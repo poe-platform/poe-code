@@ -1,0 +1,58 @@
+{
+  "label": "original-safety",
+  "candidate": "b494675c34dc289f4ad4b10a9201e1211eb0a7d8",
+  "executable": "/usr/bin/time",
+  "args": [
+    "-l",
+    "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "--import",
+    "tsx",
+    "--test",
+    "--test-concurrency=1",
+    "--test-name-pattern=^isolated cancellation and iterator lifecycle checks$",
+    "tests/commands/search-stress/safety.test.ts"
+  ],
+  "cwd": "/tmp/safe-bash-search-sidecar-review-tnXxyl/source",
+  "env": {
+    "PATH": "/tmp/safe-bash-search-sidecar-review-tnXxyl/native-bin:/Users/kjopek/.nvm/versions/node/v22.22.2/bin:/usr/bin:/bin",
+    "HOME": "/tmp/safe-bash-search-sidecar-review-tnXxyl/home",
+    "TMPDIR": "/tmp/safe-bash-search-sidecar-review-tnXxyl/tmp",
+    "TMP": "/tmp/safe-bash-search-sidecar-review-tnXxyl/tmp",
+    "TEMP": "/tmp/safe-bash-search-sidecar-review-tnXxyl/tmp",
+    "TSX_DISABLE_CACHE": "1",
+    "LANG": "C",
+    "LC_ALL": "C",
+    "TZ": "UTC",
+    "RIPGREP_CONFIG_PATH": "",
+    "NO_COLOR": "1"
+  },
+  "pid": 58574,
+  "status": 1,
+  "signal": null,
+  "closed": true,
+  "timedOut": false,
+  "elapsedMs": 1175.867,
+  "outputBytes": 4594,
+  "before": {
+    "at": "2026-08-27T12:36:51.285Z",
+    "loadavg": [
+      4.08935546875,
+      5.43017578125,
+      4.73828125
+    ],
+    "cpuCount": 15,
+    "availableParallelism": 15
+  },
+  "after": {
+    "at": "2026-08-27T12:36:52.461Z",
+    "loadavg": [
+      4.162109375,
+      5.4228515625,
+      4.73974609375
+    ]
+  },
+  "signals": [],
+  "membersAfterClose": [],
+  "survivors": [],
+  "concurrency": "one sidecar test process at a time; original nested safety suite unchanged; external cohost work not controlled; process snapshots use executable names only"
+}

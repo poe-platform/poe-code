@@ -1,0 +1,1497 @@
+{
+  "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "--import",
+    "tsx",
+    "--test",
+    "--test-concurrency=1",
+    "tests/commands/search-stress/safety.test.ts",
+    "tests/shell/remote-close.test.ts",
+    "tests/stress/adapters/remote-safe-workflows.test.ts"
+  ],
+  "cwd": "/private/tmp/full-gate-b494-diagnose-UnMIFK/source",
+  "pid": 50792,
+  "status": 1,
+  "signal": null,
+  "timedOut": false,
+  "outputExceeded": false,
+  "closed": true,
+  "elapsedMs": 15716,
+  "timeoutMs": 120000,
+  "outputBytes": 27892,
+  "observed": [
+    {
+      "pid": 50792,
+      "parent": 47839,
+      "group": 50792,
+      "born": "Thu Aug 27 06:30:01 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --import tsx --test --test-concurrency=1 tests/commands/search-stress/safety.test.ts tests/shell/remote-close.test.ts tests/stress/adapters/remote-safe-workflows.test.ts"
+    },
+    {
+      "pid": 50794,
+      "parent": 50792,
+      "group": 50792,
+      "born": "Thu Aug 27 06:30:01 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --import tsx --test-concurrency=1 tests/commands/search-stress/safety.test.ts"
+    },
+    {
+      "pid": 50796,
+      "parent": 50794,
+      "group": 50792,
+      "born": "Thu Aug 27 06:30:01 2026",
+      "command": "/private/tmp/full-gate-b494-diagnose-UnMIFK/source/node_modules/@esbuild/darwin-arm64/bin/esbuild --service=0.28.2 --ping"
+    },
+    {
+      "pid": 50798,
+      "parent": 50794,
+      "group": 50792,
+      "born": "Thu Aug 27 06:30:01 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --import tsx --test /private/tmp/full-gate-b494-diagnose-UnMIFK/source/tests/commands/search-stress/safety-cases.ts"
+    },
+    {
+      "pid": 50799,
+      "parent": 50798,
+      "group": 50792,
+      "born": "Thu Aug 27 06:30:01 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --import tsx /private/tmp/full-gate-b494-diagnose-UnMIFK/source/tests/commands/search-stress/safety-cases.ts"
+    },
+    {
+      "pid": 50801,
+      "parent": 50799,
+      "group": 50792,
+      "born": "Thu Aug 27 06:30:02 2026",
+      "command": "/private/tmp/full-gate-b494-diagnose-UnMIFK/source/node_modules/@esbuild/darwin-arm64/bin/esbuild --service=0.28.2 --ping"
+    },
+    {
+      "pid": 50812,
+      "parent": 50794,
+      "group": 50792,
+      "born": "Thu Aug 27 06:30:02 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --import tsx /private/tmp/full-gate-b494-diagnose-UnMIFK/source/tests/commands/search-stress/worker.ts"
+    },
+    {
+      "pid": 50815,
+      "parent": 50812,
+      "group": 50792,
+      "born": "Thu Aug 27 06:30:02 2026",
+      "command": "/private/tmp/full-gate-b494-diagnose-UnMIFK/source/node_modules/@esbuild/darwin-arm64/bin/esbuild --service=0.28.2 --ping"
+    },
+    {
+      "pid": 50818,
+      "parent": 50794,
+      "group": 50792,
+      "born": "Thu Aug 27 06:30:02 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --import tsx /private/tmp/full-gate-b494-diagnose-UnMIFK/source/tests/commands/search-stress/worker.ts"
+    },
+    {
+      "pid": 50821,
+      "parent": 50818,
+      "group": 50792,
+      "born": "Thu Aug 27 06:30:02 2026",
+      "command": "/private/tmp/full-gate-b494-diagnose-UnMIFK/source/node_modules/@esbuild/darwin-arm64/bin/esbuild --service=0.28.2 --ping"
+    },
+    {
+      "pid": 50824,
+      "parent": 50794,
+      "group": 50792,
+      "born": "Thu Aug 27 06:30:02 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --import tsx /private/tmp/full-gate-b494-diagnose-UnMIFK/source/tests/commands/search-stress/worker.ts"
+    },
+    {
+      "pid": 50831,
+      "parent": 50824,
+      "group": 50792,
+      "born": "Thu Aug 27 06:30:02 2026",
+      "command": "/private/tmp/full-gate-b494-diagnose-UnMIFK/source/node_modules/@esbuild/darwin-arm64/bin/esbuild --service=0.28.2 --ping"
+    },
+    {
+      "pid": 50833,
+      "parent": 50794,
+      "group": 50792,
+      "born": "Thu Aug 27 06:30:02 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --import tsx /private/tmp/full-gate-b494-diagnose-UnMIFK/source/tests/commands/search-stress/worker.ts"
+    },
+    {
+      "pid": 50836,
+      "parent": 50833,
+      "group": 50792,
+      "born": "Thu Aug 27 06:30:03 2026",
+      "command": "/private/tmp/full-gate-b494-diagnose-UnMIFK/source/node_modules/@esbuild/darwin-arm64/bin/esbuild --service=0.28.2 --ping"
+    },
+    {
+      "pid": 50838,
+      "parent": 50794,
+      "group": 50792,
+      "born": "Thu Aug 27 06:30:03 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --import tsx /private/tmp/full-gate-b494-diagnose-UnMIFK/source/tests/commands/search-stress/worker.ts"
+    },
+    {
+      "pid": 50842,
+      "parent": 50838,
+      "group": 50792,
+      "born": "Thu Aug 27 06:30:03 2026",
+      "command": "/private/tmp/full-gate-b494-diagnose-UnMIFK/source/node_modules/@esbuild/darwin-arm64/bin/esbuild --service=0.28.2 --ping"
+    },
+    {
+      "pid": 50844,
+      "parent": 50794,
+      "group": 50792,
+      "born": "Thu Aug 27 06:30:03 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --import tsx /private/tmp/full-gate-b494-diagnose-UnMIFK/source/tests/commands/search-stress/worker.ts"
+    },
+    {
+      "pid": 50848,
+      "parent": 50844,
+      "group": 50792,
+      "born": "Thu Aug 27 06:30:03 2026",
+      "command": "/private/tmp/full-gate-b494-diagnose-UnMIFK/source/node_modules/@esbuild/darwin-arm64/bin/esbuild --service=0.28.2 --ping"
+    },
+    {
+      "pid": 50851,
+      "parent": 50794,
+      "group": 50792,
+      "born": "Thu Aug 27 06:30:03 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --import tsx /private/tmp/full-gate-b494-diagnose-UnMIFK/source/tests/commands/search-stress/worker.ts"
+    },
+    {
+      "pid": 50853,
+      "parent": 50851,
+      "group": 50792,
+      "born": "Thu Aug 27 06:30:03 2026",
+      "command": "/private/tmp/full-gate-b494-diagnose-UnMIFK/source/node_modules/@esbuild/darwin-arm64/bin/esbuild --service=0.28.2 --ping"
+    },
+    {
+      "pid": 50857,
+      "parent": 50794,
+      "group": 50792,
+      "born": "Thu Aug 27 06:30:03 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --import tsx /private/tmp/full-gate-b494-diagnose-UnMIFK/source/tests/commands/search-stress/worker.ts"
+    },
+    {
+      "pid": 50866,
+      "parent": 50857,
+      "group": 50792,
+      "born": "Thu Aug 27 06:30:03 2026",
+      "command": "/private/tmp/full-gate-b494-diagnose-UnMIFK/source/node_modules/@esbuild/darwin-arm64/bin/esbuild --service=0.28.2 --ping"
+    },
+    {
+      "pid": 50870,
+      "parent": 50794,
+      "group": 50792,
+      "born": "Thu Aug 27 06:30:03 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --import tsx /private/tmp/full-gate-b494-diagnose-UnMIFK/source/tests/commands/search-stress/worker.ts"
+    },
+    {
+      "pid": 50873,
+      "parent": 50870,
+      "group": 50792,
+      "born": "Thu Aug 27 06:30:04 2026",
+      "command": "/private/tmp/full-gate-b494-diagnose-UnMIFK/source/node_modules/@esbuild/darwin-arm64/bin/esbuild --service=0.28.2 --ping"
+    },
+    {
+      "pid": 50876,
+      "parent": 50794,
+      "group": 50792,
+      "born": "Thu Aug 27 06:30:04 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --import tsx /private/tmp/full-gate-b494-diagnose-UnMIFK/source/tests/commands/search-stress/worker.ts"
+    },
+    {
+      "pid": 50879,
+      "parent": 50876,
+      "group": 50792,
+      "born": "Thu Aug 27 06:30:04 2026",
+      "command": "(esbuild)"
+    },
+    {
+      "pid": 50882,
+      "parent": 50794,
+      "group": 50792,
+      "born": "Thu Aug 27 06:30:04 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --import tsx /private/tmp/full-gate-b494-diagnose-UnMIFK/source/tests/commands/search-stress/worker.ts"
+    },
+    {
+      "pid": 50885,
+      "parent": 50882,
+      "group": 50792,
+      "born": "Thu Aug 27 06:30:04 2026",
+      "command": "(esbuild)"
+    },
+    {
+      "pid": 50888,
+      "parent": 50794,
+      "group": 50792,
+      "born": "Thu Aug 27 06:30:04 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --import tsx /private/tmp/full-gate-b494-diagnose-UnMIFK/source/tests/commands/search-stress/worker.ts"
+    },
+    {
+      "pid": 50892,
+      "parent": 50888,
+      "group": 50792,
+      "born": "Thu Aug 27 06:30:04 2026",
+      "command": "/private/tmp/full-gate-b494-diagnose-UnMIFK/source/node_modules/@esbuild/darwin-arm64/bin/esbuild --service=0.28.2 --ping"
+    },
+    {
+      "pid": 50894,
+      "parent": 50794,
+      "group": 50792,
+      "born": "Thu Aug 27 06:30:04 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --import tsx /private/tmp/full-gate-b494-diagnose-UnMIFK/source/tests/commands/search-stress/worker.ts"
+    },
+    {
+      "pid": 50899,
+      "parent": 50894,
+      "group": 50792,
+      "born": "Thu Aug 27 06:30:04 2026",
+      "command": "/private/tmp/full-gate-b494-diagnose-UnMIFK/source/node_modules/@esbuild/darwin-arm64/bin/esbuild --service=0.28.2 --ping"
+    },
+    {
+      "pid": 50905,
+      "parent": 50794,
+      "group": 50792,
+      "born": "Thu Aug 27 06:30:04 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --import tsx /private/tmp/full-gate-b494-diagnose-UnMIFK/source/tests/commands/search-stress/worker.ts"
+    },
+    {
+      "pid": 50909,
+      "parent": 50905,
+      "group": 50792,
+      "born": "Thu Aug 27 06:30:04 2026",
+      "command": "/private/tmp/full-gate-b494-diagnose-UnMIFK/source/node_modules/@esbuild/darwin-arm64/bin/esbuild --service=0.28.2 --ping"
+    },
+    {
+      "pid": 50913,
+      "parent": 50794,
+      "group": 50792,
+      "born": "Thu Aug 27 06:30:05 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --import tsx /private/tmp/full-gate-b494-diagnose-UnMIFK/source/tests/commands/search-stress/worker.ts"
+    },
+    {
+      "pid": 50915,
+      "parent": 50913,
+      "group": 50792,
+      "born": "Thu Aug 27 06:30:05 2026",
+      "command": "(esbuild)"
+    },
+    {
+      "pid": 50919,
+      "parent": 50794,
+      "group": 50792,
+      "born": "Thu Aug 27 06:30:05 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --import tsx /private/tmp/full-gate-b494-diagnose-UnMIFK/source/tests/commands/search-stress/worker.ts"
+    },
+    {
+      "pid": 50921,
+      "parent": 50919,
+      "group": 50792,
+      "born": "Thu Aug 27 06:30:05 2026",
+      "command": "/private/tmp/full-gate-b494-diagnose-UnMIFK/source/node_modules/@esbuild/darwin-arm64/bin/esbuild --service=0.28.2 --ping"
+    },
+    {
+      "pid": 50927,
+      "parent": 50794,
+      "group": 50792,
+      "born": "Thu Aug 27 06:30:05 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --import tsx /private/tmp/full-gate-b494-diagnose-UnMIFK/source/tests/commands/search-stress/worker.ts"
+    },
+    {
+      "pid": 50930,
+      "parent": 50927,
+      "group": 50792,
+      "born": "Thu Aug 27 06:30:05 2026",
+      "command": "/private/tmp/full-gate-b494-diagnose-UnMIFK/source/node_modules/@esbuild/darwin-arm64/bin/esbuild --service=0.28.2 --ping"
+    },
+    {
+      "pid": 50950,
+      "parent": 50794,
+      "group": 50792,
+      "born": "Thu Aug 27 06:30:06 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --import tsx /private/tmp/full-gate-b494-diagnose-UnMIFK/source/tests/commands/search-stress/worker.ts"
+    },
+    {
+      "pid": 50952,
+      "parent": 50950,
+      "group": 50792,
+      "born": "Thu Aug 27 06:30:06 2026",
+      "command": "/private/tmp/full-gate-b494-diagnose-UnMIFK/source/node_modules/@esbuild/darwin-arm64/bin/esbuild --service=0.28.2 --ping"
+    },
+    {
+      "pid": 50956,
+      "parent": 50792,
+      "group": 50792,
+      "born": "Thu Aug 27 06:30:06 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --import tsx --test-concurrency=1 tests/shell/remote-close.test.ts"
+    },
+    {
+      "pid": 50959,
+      "parent": 50956,
+      "group": 50792,
+      "born": "Thu Aug 27 06:30:06 2026",
+      "command": "/private/tmp/full-gate-b494-diagnose-UnMIFK/source/node_modules/@esbuild/darwin-arm64/bin/esbuild --service=0.28.2 --ping"
+    },
+    {
+      "pid": 50960,
+      "parent": 50956,
+      "group": 50960,
+      "born": "Thu Aug 27 06:30:06 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --unhandled-rejections=strict --import tsx /private/tmp/full-gate-b494-diagnose-UnMIFK/source/tests/shell/remote-close-probe.ts transport"
+    },
+    {
+      "pid": 50965,
+      "parent": 50960,
+      "group": 50960,
+      "born": "Thu Aug 27 06:30:06 2026",
+      "command": "(esbuild)"
+    },
+    {
+      "pid": 50970,
+      "parent": 50956,
+      "group": 50970,
+      "born": "Thu Aug 27 06:30:06 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --unhandled-rejections=strict --import tsx /private/tmp/full-gate-b494-diagnose-UnMIFK/source/tests/shell/remote-close-probe.ts pipefail"
+    },
+    {
+      "pid": 50982,
+      "parent": 50956,
+      "group": 50982,
+      "born": "Thu Aug 27 06:30:07 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --unhandled-rejections=strict --import tsx /private/tmp/full-gate-b494-diagnose-UnMIFK/source/tests/shell/remote-close-probe.ts middle"
+    },
+    {
+      "pid": 50985,
+      "parent": 50982,
+      "group": 50982,
+      "born": "Thu Aug 27 06:30:07 2026",
+      "command": "(esbuild)"
+    },
+    {
+      "pid": 50987,
+      "parent": 50956,
+      "group": 50987,
+      "born": "Thu Aug 27 06:30:07 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --unhandled-rejections=strict --import tsx /private/tmp/full-gate-b494-diagnose-UnMIFK/source/tests/shell/remote-close-probe.ts middle-status"
+    },
+    {
+      "pid": 50992,
+      "parent": 50956,
+      "group": 50992,
+      "born": "Thu Aug 27 06:30:07 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --unhandled-rejections=strict --import tsx /private/tmp/full-gate-b494-diagnose-UnMIFK/source/tests/shell/remote-close-probe.ts nested-invoke"
+    },
+    {
+      "pid": 50994,
+      "parent": 50992,
+      "group": 50992,
+      "born": "Thu Aug 27 06:30:07 2026",
+      "command": "(esbuild)"
+    },
+    {
+      "pid": 50998,
+      "parent": 50956,
+      "group": 50998,
+      "born": "Thu Aug 27 06:30:07 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --unhandled-rejections=strict --import tsx /private/tmp/full-gate-b494-diagnose-UnMIFK/source/tests/shell/remote-close-probe.ts redirect"
+    },
+    {
+      "pid": 51004,
+      "parent": 50956,
+      "group": 51004,
+      "born": "Thu Aug 27 06:30:07 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --unhandled-rejections=strict --import tsx /private/tmp/full-gate-b494-diagnose-UnMIFK/source/tests/shell/remote-close-probe.ts group"
+    },
+    {
+      "pid": 51007,
+      "parent": 51004,
+      "group": 51004,
+      "born": "Thu Aug 27 06:30:07 2026",
+      "command": "/private/tmp/full-gate-b494-diagnose-UnMIFK/source/node_modules/@esbuild/darwin-arm64/bin/esbuild --service=0.28.2 --ping"
+    },
+    {
+      "pid": 51010,
+      "parent": 50956,
+      "group": 51010,
+      "born": "Thu Aug 27 06:30:07 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --unhandled-rejections=strict --import tsx /private/tmp/full-gate-b494-diagnose-UnMIFK/source/tests/shell/remote-close-probe.ts consumer-rejection"
+    },
+    {
+      "pid": 51017,
+      "parent": 50956,
+      "group": 51017,
+      "born": "Thu Aug 27 06:30:08 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --unhandled-rejections=strict --import tsx /private/tmp/full-gate-b494-diagnose-UnMIFK/source/tests/shell/remote-close-probe.ts consumer-status"
+    },
+    {
+      "pid": 51018,
+      "parent": 51017,
+      "group": 51017,
+      "born": "Thu Aug 27 06:30:08 2026",
+      "command": "/private/tmp/full-gate-b494-diagnose-UnMIFK/source/node_modules/@esbuild/darwin-arm64/bin/esbuild --service=0.28.2 --ping"
+    },
+    {
+      "pid": 51020,
+      "parent": 50956,
+      "group": 51020,
+      "born": "Thu Aug 27 06:30:08 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --unhandled-rejections=strict --import tsx /private/tmp/full-gate-b494-diagnose-UnMIFK/source/tests/shell/remote-close-probe.ts late-read-rejection"
+    },
+    {
+      "pid": 51027,
+      "parent": 50956,
+      "group": 51027,
+      "born": "Thu Aug 27 06:30:08 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --unhandled-rejections=strict --import tsx /private/tmp/full-gate-b494-diagnose-UnMIFK/source/tests/shell/remote-close-probe.ts iterator-return"
+    },
+    {
+      "pid": 51029,
+      "parent": 51027,
+      "group": 51027,
+      "born": "Thu Aug 27 06:30:08 2026",
+      "command": "/private/tmp/full-gate-b494-diagnose-UnMIFK/source/node_modules/@esbuild/darwin-arm64/bin/esbuild --service=0.28.2 --ping"
+    },
+    {
+      "pid": 51031,
+      "parent": 50956,
+      "group": 51031,
+      "born": "Thu Aug 27 06:30:08 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --unhandled-rejections=strict --import tsx /private/tmp/full-gate-b494-diagnose-UnMIFK/source/tests/shell/remote-close-probe.ts caller-abort"
+    },
+    {
+      "pid": 51040,
+      "parent": 51031,
+      "group": 51031,
+      "born": "Thu Aug 27 06:30:08 2026",
+      "command": "(esbuild)"
+    },
+    {
+      "pid": 51046,
+      "parent": 50956,
+      "group": 51046,
+      "born": "Thu Aug 27 06:30:08 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --unhandled-rejections=strict --import tsx /private/tmp/full-gate-b494-diagnose-UnMIFK/source/tests/shell/remote-close-probe.ts budget-abort"
+    },
+    {
+      "pid": 51050,
+      "parent": 51046,
+      "group": 51046,
+      "born": "Thu Aug 27 06:30:08 2026",
+      "command": "/private/tmp/full-gate-b494-diagnose-UnMIFK/source/node_modules/@esbuild/darwin-arm64/bin/esbuild --service=0.28.2 --ping"
+    },
+    {
+      "pid": 51052,
+      "parent": 50956,
+      "group": 51052,
+      "born": "Thu Aug 27 06:30:08 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --unhandled-rejections=strict --import tsx /private/tmp/full-gate-b494-diagnose-UnMIFK/source/tests/shell/remote-close-probe.ts completed-success"
+    },
+    {
+      "pid": 51057,
+      "parent": 51052,
+      "group": 51052,
+      "born": "Thu Aug 27 06:30:08 2026",
+      "command": "(esbuild)"
+    },
+    {
+      "pid": 51060,
+      "parent": 50956,
+      "group": 51060,
+      "born": "Thu Aug 27 06:30:08 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --unhandled-rejections=strict --import tsx /private/tmp/full-gate-b494-diagnose-UnMIFK/source/tests/shell/remote-close-probe.ts completed-failure"
+    },
+    {
+      "pid": 51064,
+      "parent": 51060,
+      "group": 51060,
+      "born": "Thu Aug 27 06:30:09 2026",
+      "command": "/private/tmp/full-gate-b494-diagnose-UnMIFK/source/node_modules/@esbuild/darwin-arm64/bin/esbuild --service=0.28.2 --ping"
+    },
+    {
+      "pid": 51065,
+      "parent": 50956,
+      "group": 51065,
+      "born": "Thu Aug 27 06:30:09 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --unhandled-rejections=strict --import tsx /private/tmp/full-gate-b494-diagnose-UnMIFK/source/tests/shell/remote-close-probe.ts completed-rejection"
+    },
+    {
+      "pid": 51070,
+      "parent": 51065,
+      "group": 51065,
+      "born": "Thu Aug 27 06:30:09 2026",
+      "command": "(esbuild)"
+    },
+    {
+      "pid": 51072,
+      "parent": 50956,
+      "group": 51072,
+      "born": "Thu Aug 27 06:30:09 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --unhandled-rejections=strict --import tsx /private/tmp/full-gate-b494-diagnose-UnMIFK/source/tests/shell/remote-close-probe.ts delayed-no-write"
+    },
+    {
+      "pid": 51076,
+      "parent": 50956,
+      "group": 51076,
+      "born": "Thu Aug 27 06:30:09 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --unhandled-rejections=strict --import tsx /private/tmp/full-gate-b494-diagnose-UnMIFK/source/tests/shell/remote-close-probe.ts closed-before-write"
+    },
+    {
+      "pid": 51081,
+      "parent": 51076,
+      "group": 51076,
+      "born": "Thu Aug 27 06:30:09 2026",
+      "command": "(esbuild)"
+    },
+    {
+      "pid": 51083,
+      "parent": 50956,
+      "group": 51083,
+      "born": "Thu Aug 27 06:30:09 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --unhandled-rejections=strict --import tsx /private/tmp/full-gate-b494-diagnose-UnMIFK/source/tests/shell/remote-close-probe.ts zero-byte-no-write"
+    },
+    {
+      "pid": 51088,
+      "parent": 50956,
+      "group": 51088,
+      "born": "Thu Aug 27 06:30:09 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --unhandled-rejections=strict --import tsx /private/tmp/full-gate-b494-diagnose-UnMIFK/source/tests/shell/first-read-probe.ts first-read-head-zero"
+    },
+    {
+      "pid": 51092,
+      "parent": 51088,
+      "group": 51088,
+      "born": "Thu Aug 27 06:30:09 2026",
+      "command": "/private/tmp/full-gate-b494-diagnose-UnMIFK/source/node_modules/@esbuild/darwin-arm64/bin/esbuild --service=0.28.2 --ping"
+    },
+    {
+      "pid": 51101,
+      "parent": 50956,
+      "group": 51101,
+      "born": "Thu Aug 27 06:30:09 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --unhandled-rejections=strict --import tsx /private/tmp/full-gate-b494-diagnose-UnMIFK/source/tests/shell/first-read-probe.ts first-read-local"
+    },
+    {
+      "pid": 51108,
+      "parent": 51101,
+      "group": 51101,
+      "born": "Thu Aug 27 06:30:10 2026",
+      "command": "/private/tmp/full-gate-b494-diagnose-UnMIFK/source/node_modules/@esbuild/darwin-arm64/bin/esbuild --service=0.28.2 --ping"
+    },
+    {
+      "pid": 51146,
+      "parent": 50956,
+      "group": 51146,
+      "born": "Thu Aug 27 06:30:11 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --unhandled-rejections=strict --import tsx /private/tmp/full-gate-b494-diagnose-UnMIFK/source/tests/shell/first-read-probe.ts first-read-s3"
+    },
+    {
+      "pid": 51149,
+      "parent": 51146,
+      "group": 51146,
+      "born": "Thu Aug 27 06:30:11 2026",
+      "command": "/private/tmp/full-gate-b494-diagnose-UnMIFK/source/node_modules/@esbuild/darwin-arm64/bin/esbuild --service=0.28.2 --ping"
+    },
+    {
+      "pid": 51191,
+      "parent": 50956,
+      "group": 51191,
+      "born": "Thu Aug 27 06:30:12 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --unhandled-rejections=strict --import tsx /private/tmp/full-gate-b494-diagnose-UnMIFK/source/tests/shell/first-read-probe.ts first-read-webdav"
+    },
+    {
+      "pid": 51193,
+      "parent": 51191,
+      "group": 51191,
+      "born": "Thu Aug 27 06:30:12 2026",
+      "command": "/private/tmp/full-gate-b494-diagnose-UnMIFK/source/node_modules/@esbuild/darwin-arm64/bin/esbuild --service=0.28.2 --ping"
+    },
+    {
+      "pid": 51243,
+      "parent": 50956,
+      "group": 51243,
+      "born": "Thu Aug 27 06:30:14 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --unhandled-rejections=strict --import tsx /private/tmp/full-gate-b494-diagnose-UnMIFK/source/tests/shell/first-read-probe.ts first-read-curl-body"
+    },
+    {
+      "pid": 51246,
+      "parent": 51243,
+      "group": 51243,
+      "born": "Thu Aug 27 06:30:14 2026",
+      "command": "/private/tmp/full-gate-b494-diagnose-UnMIFK/source/node_modules/@esbuild/darwin-arm64/bin/esbuild --service=0.28.2 --ping"
+    },
+    {
+      "pid": 51301,
+      "parent": 50956,
+      "group": 51301,
+      "born": "Thu Aug 27 06:30:15 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --unhandled-rejections=strict --import tsx /private/tmp/full-gate-b494-diagnose-UnMIFK/source/tests/shell/first-read-probe.ts first-read-curl-headers"
+    },
+    {
+      "pid": 51305,
+      "parent": 51301,
+      "group": 51301,
+      "born": "Thu Aug 27 06:30:15 2026",
+      "command": "/private/tmp/full-gate-b494-diagnose-UnMIFK/source/node_modules/@esbuild/darwin-arm64/bin/esbuild --service=0.28.2 --ping"
+    },
+    {
+      "pid": 51347,
+      "parent": 50792,
+      "group": 50792,
+      "born": "Thu Aug 27 06:30:17 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --import tsx --test-concurrency=1 tests/stress/adapters/remote-safe-workflows.test.ts"
+    }
+  ],
+  "signals": [],
+  "survivors": [],
+  "listeners": [
+    "127.0.0.1:65273",
+    "127.0.0.1:65277",
+    "127.0.0.1:65279"
+  ],
+  "cleanupRequired": false,
+  "clean": true,
+  "label": "remaining-focused-tests",
+  "accounting": {
+    "summary": {
+      "tests": 50,
+      "suites": 0,
+      "pass": 43,
+      "fail": 7,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 15525.515458
+    },
+    "counts": {
+      "pass": 43,
+      "fail": 7,
+      "skipped": 0,
+      "todo": 0,
+      "cancelled": 0
+    },
+    "reconciled": true,
+    "reconciliation": {
+      "completeFooter": true,
+      "testInstances": true,
+      "statuses": {
+        "pass": true,
+        "fail": true,
+        "skipped": true,
+        "todo": true,
+        "cancelled": true
+      }
+    },
+    "cases": [
+      {
+        "id": "tap-line-3",
+        "line": 3,
+        "indent": 0,
+        "ordinal": 1,
+        "name": "isolated cancellation and iterator lifecycle checks",
+        "status": "fail",
+        "type": "test",
+        "failureType": "testCodeFailure",
+        "location": "/private/tmp/full-gate-b494-diagnose-UnMIFK/source/tests/commands/search-stress/safety.test.ts:1:160",
+        "code": "ERR_ASSERTION",
+        "error": "|-",
+        "detail": "  ---\n  duration_ms: 452.155\n  type: 'test'\n  location: '/private/tmp/full-gate-b494-diagnose-UnMIFK/source/tests/commands/search-stress/safety.test.ts:1:160'\n  failureType: 'testCodeFailure'\n  error: |-\n    TAP version 13\n    # Subtest: cancellation releases stalled stdin\n    not ok 1 - cancellation releases stalled stdin\n      ---\n      duration_ms: 45.102958\n      type: 'test'\n      location: '/private/tmp/full-gate-b494-diagnose-UnMIFK/source/tests/commands/search-stress/safety-cases.ts:1:535'\n      failureType: 'testCodeFailure'\n      error: |-\n        Expected values to be strictly equal:\n        \n        false !== true\n        \n      code: 'ERR_ASSERTION'\n      name: 'AssertionError'\n      expected: true\n      actual: false\n      operator: 'strictEqual'\n      stack: |-\n        TestContext.<anonymous> (/private/tmp/full-gate-b494-diagnose-UnMIFK/source/tests/commands/search-stress/safety-cases.ts:39:65)\n        async Test.run (node:internal/test_runner/test:1054:7)\n        async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)\n      ...\n    # Subtest: cancellation releases stalled stdout\n    ok 2 - cancellation releases stalled stdout\n      ---\n      duration_ms: 39.18375\n      type: 'test'\n      ...\n    # Subtest: cancellation releases stalled stderr\n    ok 3 - cancellation releases stalled stderr\n      ---\n      duration_ms: 22.741542\n      type: 'test'\n      ...\n    # Subtest: cancellation releases stalled readStream\n    ok 4 - cancellation releases stalled readStream\n      ---\n      duration_ms: 40.73775\n      type: 'test'\n      ...\n    # Subtest: quiet closes a matching source before a stalled second read\n    ok 5 - quiet closes a matching source before a stalled second read\n      ---\n      duration_ms: 18.474\n      type: 'test'\n      ...\n    # Subtest: EPIPE stops traversal without later reads, writes or diagnostics\n    ok 6 - EPIPE stops traversal without later reads, writes or diagnostics\n      ---\n      duration_ms: 18.854917\n      type: 'test'\n      ...\n    # Subtest: EPIPE cleanup never waits for an uncooperative source return\n    ok 7 - EPIPE cleanup never waits for an uncooperative source return\n      ---\n      duration_ms: 18.247791\n      type: 'test'\n      ...\n    # Subtest: cancellation wins a racing stdout EPIPE\n    ok 8 - cancellation wins a racing stdout EPIPE\n      ---\n      duration_ms: 19.716\n      type: 'test'\n      ...\n    # Subtest: metadata-selected stdin yields during endless empty chunks\n    ok 9 - metadata-selected stdin yields during endless empty chunks\n      ---\n      duration_ms: 31.32575\n      type: 'test'\n      ...\n    # Subtest: native closed stdout exits successfully without diagnostics in three repetitions\n    ok 10 - native closed stdout exits successfully without diagnostics in three repetitions\n      ---\n      duration_ms: 19.197167\n      type: 'test'\n      ...\n    1..10\n    # tests 10\n    # suites 0\n    # pass 9\n    # fail 1\n    # cancelled 0\n    # skipped 0\n    # todo 0\n    # duration_ms 418.938458\n    \n    \n    1 !== 0\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected: 0\n  actual: 1\n  operator: 'strictEqual'\n  stack: |-\n    TestContext.<anonymous> (/private/tmp/full-gate-b494-diagnose-UnMIFK/source/tests/commands/search-stress/safety.test.ts:8:10)\n    Test.runInAsyncScope (node:async_hooks:214:14)\n    Test.run (node:internal/test_runner/test:1047:25)\n    Test.start (node:internal/test_runner/test:944:17)\n    startSubtestAfterBootstrap (node:internal/test_runner/harness:296:17)\n  ..."
+      },
+      {
+        "id": "tap-line-113",
+        "line": 113,
+        "indent": 0,
+        "ordinal": 2,
+        "name": "UTF8 output quota 1 counts bytes atomically",
+        "status": "pass",
+        "type": "test",
+        "failureType": null,
+        "location": null,
+        "code": null,
+        "error": null
+      },
+      {
+        "id": "tap-line-119",
+        "line": 119,
+        "indent": 0,
+        "ordinal": 3,
+        "name": "UTF8 output quota 2 counts bytes atomically",
+        "status": "pass",
+        "type": "test",
+        "failureType": null,
+        "location": null,
+        "code": null,
+        "error": null
+      },
+      {
+        "id": "tap-line-125",
+        "line": 125,
+        "indent": 0,
+        "ordinal": 4,
+        "name": "UTF8 output quota 3 counts bytes atomically",
+        "status": "pass",
+        "type": "test",
+        "failureType": null,
+        "location": null,
+        "code": null,
+        "error": null
+      },
+      {
+        "id": "tap-line-131",
+        "line": 131,
+        "indent": 0,
+        "ordinal": 5,
+        "name": "UTF8 output quota 4 counts bytes atomically",
+        "status": "pass",
+        "type": "test",
+        "failureType": null,
+        "location": null,
+        "code": null,
+        "error": null
+      },
+      {
+        "id": "tap-line-137",
+        "line": 137,
+        "indent": 0,
+        "ordinal": 6,
+        "name": "UTF8 output quota 5 counts bytes atomically",
+        "status": "pass",
+        "type": "test",
+        "failureType": null,
+        "location": null,
+        "code": null,
+        "error": null
+      },
+      {
+        "id": "tap-line-143",
+        "line": 143,
+        "indent": 0,
+        "ordinal": 7,
+        "name": "UTF8 output quota 6 counts bytes atomically",
+        "status": "pass",
+        "type": "test",
+        "failureType": null,
+        "location": null,
+        "code": null,
+        "error": null
+      },
+      {
+        "id": "tap-line-149",
+        "line": 149,
+        "indent": 0,
+        "ordinal": 8,
+        "name": "UTF8 output quota 7 counts bytes atomically",
+        "status": "pass",
+        "type": "test",
+        "failureType": null,
+        "location": null,
+        "code": null,
+        "error": null
+      },
+      {
+        "id": "tap-line-155",
+        "line": 155,
+        "indent": 0,
+        "ordinal": 9,
+        "name": "UTF8 output quota 8 counts bytes atomically",
+        "status": "pass",
+        "type": "test",
+        "failureType": null,
+        "location": null,
+        "code": null,
+        "error": null
+      },
+      {
+        "id": "tap-line-161",
+        "line": 161,
+        "indent": 0,
+        "ordinal": 10,
+        "name": "UTF8 output quota 9 counts bytes atomically",
+        "status": "pass",
+        "type": "test",
+        "failureType": null,
+        "location": null,
+        "code": null,
+        "error": null
+      },
+      {
+        "id": "tap-line-167",
+        "line": 167,
+        "indent": 0,
+        "ordinal": 11,
+        "name": "line exact",
+        "status": "pass",
+        "type": "test",
+        "failureType": null,
+        "location": null,
+        "code": null,
+        "error": null
+      },
+      {
+        "id": "tap-line-173",
+        "line": 173,
+        "indent": 0,
+        "ordinal": 12,
+        "name": "line exceeded",
+        "status": "pass",
+        "type": "test",
+        "failureType": null,
+        "location": null,
+        "code": null,
+        "error": null
+      },
+      {
+        "id": "tap-line-179",
+        "line": 179,
+        "indent": 0,
+        "ordinal": 13,
+        "name": "input exact",
+        "status": "pass",
+        "type": "test",
+        "failureType": null,
+        "location": null,
+        "code": null,
+        "error": null
+      },
+      {
+        "id": "tap-line-185",
+        "line": 185,
+        "indent": 0,
+        "ordinal": 14,
+        "name": "input exceeded",
+        "status": "pass",
+        "type": "test",
+        "failureType": null,
+        "location": null,
+        "code": null,
+        "error": null
+      },
+      {
+        "id": "tap-line-191",
+        "line": 191,
+        "indent": 0,
+        "ordinal": 15,
+        "name": "documented Rust regex difference (?i)foo",
+        "status": "pass",
+        "type": "test",
+        "failureType": null,
+        "location": null,
+        "code": null,
+        "error": null
+      },
+      {
+        "id": "tap-line-197",
+        "line": 197,
+        "indent": 0,
+        "ordinal": 16,
+        "name": "documented Rust regex difference \\\\p{Greek}",
+        "status": "pass",
+        "type": "test",
+        "failureType": null,
+        "location": null,
+        "code": null,
+        "error": null
+      },
+      {
+        "id": "tap-line-203",
+        "line": 203,
+        "indent": 0,
+        "ordinal": 17,
+        "name": "documented Rust regex difference [[:alpha:]]",
+        "status": "pass",
+        "type": "test",
+        "failureType": null,
+        "location": null,
+        "code": null,
+        "error": null
+      },
+      {
+        "id": "tap-line-209",
+        "line": 209,
+        "indent": 0,
+        "ordinal": 18,
+        "name": "external deadline bounds a catastrophic JavaScript regex probe",
+        "status": "pass",
+        "type": "test",
+        "failureType": null,
+        "location": null,
+        "code": null,
+        "error": null
+      },
+      {
+        "id": "tap-line-215",
+        "line": 215,
+        "indent": 0,
+        "ordinal": 19,
+        "name": "empty matches on malformed bytes still enforce the match-count bound",
+        "status": "pass",
+        "type": "test",
+        "failureType": null,
+        "location": null,
+        "code": null,
+        "error": null
+      },
+      {
+        "id": "tap-line-221",
+        "line": 221,
+        "indent": 0,
+        "ordinal": 20,
+        "name": "hard-deadline pipeline close: transport",
+        "status": "pass",
+        "type": "test",
+        "failureType": null,
+        "location": null,
+        "code": null,
+        "error": null
+      },
+      {
+        "id": "tap-line-228",
+        "line": 228,
+        "indent": 0,
+        "ordinal": 21,
+        "name": "hard-deadline pipeline close: pipefail",
+        "status": "pass",
+        "type": "test",
+        "failureType": null,
+        "location": null,
+        "code": null,
+        "error": null
+      },
+      {
+        "id": "tap-line-235",
+        "line": 235,
+        "indent": 0,
+        "ordinal": 22,
+        "name": "hard-deadline pipeline close: middle",
+        "status": "pass",
+        "type": "test",
+        "failureType": null,
+        "location": null,
+        "code": null,
+        "error": null
+      },
+      {
+        "id": "tap-line-242",
+        "line": 242,
+        "indent": 0,
+        "ordinal": 23,
+        "name": "hard-deadline pipeline close: middle-status",
+        "status": "pass",
+        "type": "test",
+        "failureType": null,
+        "location": null,
+        "code": null,
+        "error": null
+      },
+      {
+        "id": "tap-line-249",
+        "line": 249,
+        "indent": 0,
+        "ordinal": 24,
+        "name": "hard-deadline pipeline close: nested-invoke",
+        "status": "pass",
+        "type": "test",
+        "failureType": null,
+        "location": null,
+        "code": null,
+        "error": null
+      },
+      {
+        "id": "tap-line-256",
+        "line": 256,
+        "indent": 0,
+        "ordinal": 25,
+        "name": "hard-deadline pipeline close: redirect",
+        "status": "pass",
+        "type": "test",
+        "failureType": null,
+        "location": null,
+        "code": null,
+        "error": null
+      },
+      {
+        "id": "tap-line-263",
+        "line": 263,
+        "indent": 0,
+        "ordinal": 26,
+        "name": "hard-deadline pipeline close: group",
+        "status": "pass",
+        "type": "test",
+        "failureType": null,
+        "location": null,
+        "code": null,
+        "error": null
+      },
+      {
+        "id": "tap-line-270",
+        "line": 270,
+        "indent": 0,
+        "ordinal": 27,
+        "name": "hard-deadline pipeline close: consumer-rejection",
+        "status": "pass",
+        "type": "test",
+        "failureType": null,
+        "location": null,
+        "code": null,
+        "error": null
+      },
+      {
+        "id": "tap-line-277",
+        "line": 277,
+        "indent": 0,
+        "ordinal": 28,
+        "name": "hard-deadline pipeline close: consumer-status",
+        "status": "pass",
+        "type": "test",
+        "failureType": null,
+        "location": null,
+        "code": null,
+        "error": null
+      },
+      {
+        "id": "tap-line-284",
+        "line": 284,
+        "indent": 0,
+        "ordinal": 29,
+        "name": "hard-deadline pipeline close: late-read-rejection",
+        "status": "pass",
+        "type": "test",
+        "failureType": null,
+        "location": null,
+        "code": null,
+        "error": null
+      },
+      {
+        "id": "tap-line-291",
+        "line": 291,
+        "indent": 0,
+        "ordinal": 30,
+        "name": "hard-deadline pipeline close: iterator-return",
+        "status": "pass",
+        "type": "test",
+        "failureType": null,
+        "location": null,
+        "code": null,
+        "error": null
+      },
+      {
+        "id": "tap-line-298",
+        "line": 298,
+        "indent": 0,
+        "ordinal": 31,
+        "name": "hard-deadline pipeline close: caller-abort",
+        "status": "pass",
+        "type": "test",
+        "failureType": null,
+        "location": null,
+        "code": null,
+        "error": null
+      },
+      {
+        "id": "tap-line-305",
+        "line": 305,
+        "indent": 0,
+        "ordinal": 32,
+        "name": "hard-deadline pipeline close: budget-abort",
+        "status": "pass",
+        "type": "test",
+        "failureType": null,
+        "location": null,
+        "code": null,
+        "error": null
+      },
+      {
+        "id": "tap-line-312",
+        "line": 312,
+        "indent": 0,
+        "ordinal": 33,
+        "name": "hard-deadline pipeline close: completed-success",
+        "status": "pass",
+        "type": "test",
+        "failureType": null,
+        "location": null,
+        "code": null,
+        "error": null
+      },
+      {
+        "id": "tap-line-319",
+        "line": 319,
+        "indent": 0,
+        "ordinal": 34,
+        "name": "hard-deadline pipeline close: completed-failure",
+        "status": "pass",
+        "type": "test",
+        "failureType": null,
+        "location": null,
+        "code": null,
+        "error": null
+      },
+      {
+        "id": "tap-line-326",
+        "line": 326,
+        "indent": 0,
+        "ordinal": 35,
+        "name": "hard-deadline pipeline close: completed-rejection",
+        "status": "pass",
+        "type": "test",
+        "failureType": null,
+        "location": null,
+        "code": null,
+        "error": null
+      },
+      {
+        "id": "tap-line-333",
+        "line": 333,
+        "indent": 0,
+        "ordinal": 36,
+        "name": "hard-deadline pipeline close: delayed-no-write",
+        "status": "pass",
+        "type": "test",
+        "failureType": null,
+        "location": null,
+        "code": null,
+        "error": null
+      },
+      {
+        "id": "tap-line-340",
+        "line": 340,
+        "indent": 0,
+        "ordinal": 37,
+        "name": "hard-deadline pipeline close: closed-before-write",
+        "status": "pass",
+        "type": "test",
+        "failureType": null,
+        "location": null,
+        "code": null,
+        "error": null
+      },
+      {
+        "id": "tap-line-347",
+        "line": 347,
+        "indent": 0,
+        "ordinal": 38,
+        "name": "hard-deadline pipeline close: zero-byte-no-write",
+        "status": "pass",
+        "type": "test",
+        "failureType": null,
+        "location": null,
+        "code": null,
+        "error": null
+      },
+      {
+        "id": "tap-line-354",
+        "line": 354,
+        "indent": 0,
+        "ordinal": 39,
+        "name": "hard-deadline pipeline close: first-read-head-zero",
+        "status": "pass",
+        "type": "test",
+        "failureType": null,
+        "location": null,
+        "code": null,
+        "error": null
+      },
+      {
+        "id": "tap-line-361",
+        "line": 361,
+        "indent": 0,
+        "ordinal": 40,
+        "name": "hard-deadline pipeline close: first-read-local",
+        "status": "fail",
+        "type": "test",
+        "failureType": "testCodeFailure",
+        "location": "/private/tmp/full-gate-b494-diagnose-UnMIFK/source/tests/shell/remote-close.test.ts:1:723",
+        "code": "ERR_ASSERTION",
+        "error": "|-",
+        "detail": "  ---\n  duration_ms: 1439.833667\n  type: 'test'\n  location: '/private/tmp/full-gate-b494-diagnose-UnMIFK/source/tests/shell/remote-close.test.ts:1:723'\n  failureType: 'testCodeFailure'\n  error: |-\n    first-read-local: /private/tmp/full-gate-b494-diagnose-UnMIFK/source/tests/stress/remote-cancellation/helpers.ts:29\n          timer = setTimeout(() => reject(new Error(`DEADLINE: ${label} (${milliseconds}ms)`)), milliseconds);\n                                          ^\n    \n    Error: DEADLINE: first-read-local (1200ms)\n        at Timeout.<anonymous> (/private/tmp/full-gate-b494-diagnose-UnMIFK/source/tests/stress/remote-cancellation/helpers.ts:29:39)\n        at listOnTimeout (node:internal/timers:585:17)\n        at process.processTimers (node:internal/timers:521:7)\n    \n    Node.js v22.22.2\n    \n    \n    1 !== 0\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected: 0\n  actual: 1\n  operator: 'strictEqual'\n  stack: |-\n    Timeout.<anonymous> (/private/tmp/full-gate-b494-diagnose-UnMIFK/source/tests/stress/remote-cancellation/helpers.ts:29:39)\n    listOnTimeout (node:internal/timers:585:17)\n    process.processTimers (node:internal/timers:521:7)\n    TestContext.<anonymous> (/private/tmp/full-gate-b494-diagnose-UnMIFK/source/tests/shell/remote-close.test.ts:56:12)\n    process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ..."
+      },
+      {
+        "id": "tap-line-398",
+        "line": 398,
+        "indent": 0,
+        "ordinal": 41,
+        "name": "hard-deadline pipeline close: first-read-s3",
+        "status": "fail",
+        "type": "test",
+        "failureType": "testCodeFailure",
+        "location": "/private/tmp/full-gate-b494-diagnose-UnMIFK/source/tests/shell/remote-close.test.ts:1:723",
+        "code": "ERR_ASSERTION",
+        "error": "|-",
+        "detail": "  ---\n  duration_ms: 1429.831166\n  type: 'test'\n  location: '/private/tmp/full-gate-b494-diagnose-UnMIFK/source/tests/shell/remote-close.test.ts:1:723'\n  failureType: 'testCodeFailure'\n  error: |-\n    first-read-s3: /private/tmp/full-gate-b494-diagnose-UnMIFK/source/tests/stress/remote-cancellation/helpers.ts:29\n          timer = setTimeout(() => reject(new Error(`DEADLINE: ${label} (${milliseconds}ms)`)), milliseconds);\n                                          ^\n    \n    Error: DEADLINE: first-read-s3 (1200ms)\n        at Timeout.<anonymous> (/private/tmp/full-gate-b494-diagnose-UnMIFK/source/tests/stress/remote-cancellation/helpers.ts:29:39)\n        at listOnTimeout (node:internal/timers:585:17)\n        at process.processTimers (node:internal/timers:521:7)\n    \n    Node.js v22.22.2\n    \n    \n    1 !== 0\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected: 0\n  actual: 1\n  operator: 'strictEqual'\n  stack: |-\n    Timeout.<anonymous> (/private/tmp/full-gate-b494-diagnose-UnMIFK/source/tests/stress/remote-cancellation/helpers.ts:29:39)\n    listOnTimeout (node:internal/timers:585:17)\n    process.processTimers (node:internal/timers:521:7)\n    TestContext.<anonymous> (/private/tmp/full-gate-b494-diagnose-UnMIFK/source/tests/shell/remote-close.test.ts:56:12)\n    process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ..."
+      },
+      {
+        "id": "tap-line-435",
+        "line": 435,
+        "indent": 0,
+        "ordinal": 42,
+        "name": "hard-deadline pipeline close: first-read-webdav",
+        "status": "fail",
+        "type": "test",
+        "failureType": "testCodeFailure",
+        "location": "/private/tmp/full-gate-b494-diagnose-UnMIFK/source/tests/shell/remote-close.test.ts:1:723",
+        "code": "ERR_ASSERTION",
+        "error": "|-",
+        "detail": "  ---\n  duration_ms: 1443.959417\n  type: 'test'\n  location: '/private/tmp/full-gate-b494-diagnose-UnMIFK/source/tests/shell/remote-close.test.ts:1:723'\n  failureType: 'testCodeFailure'\n  error: |-\n    first-read-webdav: /private/tmp/full-gate-b494-diagnose-UnMIFK/source/tests/stress/remote-cancellation/helpers.ts:29\n          timer = setTimeout(() => reject(new Error(`DEADLINE: ${label} (${milliseconds}ms)`)), milliseconds);\n                                          ^\n    \n    Error: DEADLINE: first-read-webdav (1200ms)\n        at Timeout.<anonymous> (/private/tmp/full-gate-b494-diagnose-UnMIFK/source/tests/stress/remote-cancellation/helpers.ts:29:39)\n        at listOnTimeout (node:internal/timers:585:17)\n        at process.processTimers (node:internal/timers:521:7)\n    \n    Node.js v22.22.2\n    \n    \n    1 !== 0\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected: 0\n  actual: 1\n  operator: 'strictEqual'\n  stack: |-\n    Timeout.<anonymous> (/private/tmp/full-gate-b494-diagnose-UnMIFK/source/tests/stress/remote-cancellation/helpers.ts:29:39)\n    listOnTimeout (node:internal/timers:585:17)\n    process.processTimers (node:internal/timers:521:7)\n    TestContext.<anonymous> (/private/tmp/full-gate-b494-diagnose-UnMIFK/source/tests/shell/remote-close.test.ts:56:12)\n    process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ..."
+      },
+      {
+        "id": "tap-line-472",
+        "line": 472,
+        "indent": 0,
+        "ordinal": 43,
+        "name": "hard-deadline pipeline close: first-read-curl-body",
+        "status": "fail",
+        "type": "test",
+        "failureType": "testCodeFailure",
+        "location": "/private/tmp/full-gate-b494-diagnose-UnMIFK/source/tests/shell/remote-close.test.ts:1:723",
+        "code": "ERR_ASSERTION",
+        "error": "|-",
+        "detail": "  ---\n  duration_ms: 1436.859208\n  type: 'test'\n  location: '/private/tmp/full-gate-b494-diagnose-UnMIFK/source/tests/shell/remote-close.test.ts:1:723'\n  failureType: 'testCodeFailure'\n  error: |-\n    first-read-curl-body: /private/tmp/full-gate-b494-diagnose-UnMIFK/source/tests/stress/remote-cancellation/helpers.ts:29\n          timer = setTimeout(() => reject(new Error(`DEADLINE: ${label} (${milliseconds}ms)`)), milliseconds);\n                                          ^\n    \n    Error: DEADLINE: first-read-curl-body (1200ms)\n        at Timeout.<anonymous> (/private/tmp/full-gate-b494-diagnose-UnMIFK/source/tests/stress/remote-cancellation/helpers.ts:29:39)\n        at listOnTimeout (node:internal/timers:585:17)\n        at process.processTimers (node:internal/timers:521:7)\n    \n    Node.js v22.22.2\n    \n    \n    1 !== 0\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected: 0\n  actual: 1\n  operator: 'strictEqual'\n  stack: |-\n    Timeout.<anonymous> (/private/tmp/full-gate-b494-diagnose-UnMIFK/source/tests/stress/remote-cancellation/helpers.ts:29:39)\n    listOnTimeout (node:internal/timers:585:17)\n    process.processTimers (node:internal/timers:521:7)\n    TestContext.<anonymous> (/private/tmp/full-gate-b494-diagnose-UnMIFK/source/tests/shell/remote-close.test.ts:56:12)\n    process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ..."
+      },
+      {
+        "id": "tap-line-509",
+        "line": 509,
+        "indent": 0,
+        "ordinal": 44,
+        "name": "hard-deadline pipeline close: first-read-curl-headers",
+        "status": "fail",
+        "type": "test",
+        "failureType": "testCodeFailure",
+        "location": "/private/tmp/full-gate-b494-diagnose-UnMIFK/source/tests/shell/remote-close.test.ts:1:723",
+        "code": "ERR_ASSERTION",
+        "error": "|-",
+        "detail": "  ---\n  duration_ms: 1434.063125\n  type: 'test'\n  location: '/private/tmp/full-gate-b494-diagnose-UnMIFK/source/tests/shell/remote-close.test.ts:1:723'\n  failureType: 'testCodeFailure'\n  error: |-\n    first-read-curl-headers: /private/tmp/full-gate-b494-diagnose-UnMIFK/source/tests/stress/remote-cancellation/helpers.ts:29\n          timer = setTimeout(() => reject(new Error(`DEADLINE: ${label} (${milliseconds}ms)`)), milliseconds);\n                                          ^\n    \n    Error: DEADLINE: first-read-curl-headers (1200ms)\n        at Timeout.<anonymous> (/private/tmp/full-gate-b494-diagnose-UnMIFK/source/tests/stress/remote-cancellation/helpers.ts:29:39)\n        at listOnTimeout (node:internal/timers:585:17)\n        at process.processTimers (node:internal/timers:521:7)\n    \n    Node.js v22.22.2\n    \n    \n    1 !== 0\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected: 0\n  actual: 1\n  operator: 'strictEqual'\n  stack: |-\n    Timeout.<anonymous> (/private/tmp/full-gate-b494-diagnose-UnMIFK/source/tests/stress/remote-cancellation/helpers.ts:29:39)\n    listOnTimeout (node:internal/timers:585:17)\n    process.processTimers (node:internal/timers:521:7)\n    TestContext.<anonymous> (/private/tmp/full-gate-b494-diagnose-UnMIFK/source/tests/shell/remote-close.test.ts:56:12)\n    process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ..."
+      },
+      {
+        "id": "tap-line-546",
+        "line": 546,
+        "indent": 0,
+        "ordinal": 45,
+        "name": "s3: named-file cleanup leaves parents and unsupported empty rmdir has no effects",
+        "status": "fail",
+        "type": "test",
+        "failureType": "testCodeFailure",
+        "location": "/private/tmp/full-gate-b494-diagnose-UnMIFK/source/tests/stress/adapters/remote-safe-workflows.test.ts:1:1470",
+        "code": "ERR_ASSERTION",
+        "error": "Missing expected rejection.",
+        "detail": "  ---\n  duration_ms: 6.037417\n  type: 'test'\n  location: '/private/tmp/full-gate-b494-diagnose-UnMIFK/source/tests/stress/adapters/remote-safe-workflows.test.ts:1:1470'\n  failureType: 'testCodeFailure'\n  error: 'Missing expected rejection.'\n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  stack: |-\n    async TestContext.<anonymous> (/private/tmp/full-gate-b494-diagnose-UnMIFK/source/tests/stress/adapters/remote-safe-workflows.test.ts:58:5)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)\n  ..."
+      },
+      {
+        "id": "tap-line-561",
+        "line": 561,
+        "indent": 0,
+        "ordinal": 46,
+        "name": "s3: explicitly destructive subtree deletion is distinct from empty-only removal",
+        "status": "pass",
+        "type": "test",
+        "failureType": null,
+        "location": null,
+        "code": null,
+        "error": null
+      },
+      {
+        "id": "tap-line-567",
+        "line": 567,
+        "indent": 0,
+        "ordinal": 47,
+        "name": "s3: bounded memory staging publishes named bytes exclusively and cleans only local parents",
+        "status": "pass",
+        "type": "test",
+        "failureType": null,
+        "location": null,
+        "code": null,
+        "error": null
+      },
+      {
+        "id": "tap-line-573",
+        "line": 573,
+        "indent": 0,
+        "ordinal": 48,
+        "name": "webdav: named-file cleanup leaves parents and unsupported empty rmdir has no effects",
+        "status": "pass",
+        "type": "test",
+        "failureType": null,
+        "location": null,
+        "code": null,
+        "error": null
+      },
+      {
+        "id": "tap-line-579",
+        "line": 579,
+        "indent": 0,
+        "ordinal": 49,
+        "name": "webdav: explicitly destructive subtree deletion is distinct from empty-only removal",
+        "status": "pass",
+        "type": "test",
+        "failureType": null,
+        "location": null,
+        "code": null,
+        "error": null
+      },
+      {
+        "id": "tap-line-585",
+        "line": 585,
+        "indent": 0,
+        "ordinal": 50,
+        "name": "webdav: bounded memory staging publishes named bytes exclusively and cleans only local parents",
+        "status": "pass",
+        "type": "test",
+        "failureType": null,
+        "location": null,
+        "code": null,
+        "error": null
+      }
+    ],
+    "suites": [],
+    "skips": [],
+    "characterizations": [
+      {
+        "id": "tap-line-191",
+        "line": 191,
+        "indent": 0,
+        "ordinal": 15,
+        "name": "documented Rust regex difference (?i)foo",
+        "status": "pass",
+        "type": "test",
+        "failureType": null,
+        "location": null,
+        "code": null,
+        "error": null
+      },
+      {
+        "id": "tap-line-197",
+        "line": 197,
+        "indent": 0,
+        "ordinal": 16,
+        "name": "documented Rust regex difference \\\\p{Greek}",
+        "status": "pass",
+        "type": "test",
+        "failureType": null,
+        "location": null,
+        "code": null,
+        "error": null
+      },
+      {
+        "id": "tap-line-203",
+        "line": 203,
+        "indent": 0,
+        "ordinal": 17,
+        "name": "documented Rust regex difference [[:alpha:]]",
+        "status": "pass",
+        "type": "test",
+        "failureType": null,
+        "location": null,
+        "code": null,
+        "error": null
+      },
+      {
+        "id": "tap-line-209",
+        "line": 209,
+        "indent": 0,
+        "ordinal": 18,
+        "name": "external deadline bounds a catastrophic JavaScript regex probe",
+        "status": "pass",
+        "type": "test",
+        "failureType": null,
+        "location": null,
+        "code": null,
+        "error": null
+      }
+    ],
+    "nonpassing": [
+      {
+        "id": "tap-line-3",
+        "line": 3,
+        "indent": 0,
+        "ordinal": 1,
+        "name": "isolated cancellation and iterator lifecycle checks",
+        "status": "fail",
+        "type": "test",
+        "failureType": "testCodeFailure",
+        "location": "/private/tmp/full-gate-b494-diagnose-UnMIFK/source/tests/commands/search-stress/safety.test.ts:1:160",
+        "code": "ERR_ASSERTION",
+        "error": "|-",
+        "detail": "  ---\n  duration_ms: 452.155\n  type: 'test'\n  location: '/private/tmp/full-gate-b494-diagnose-UnMIFK/source/tests/commands/search-stress/safety.test.ts:1:160'\n  failureType: 'testCodeFailure'\n  error: |-\n    TAP version 13\n    # Subtest: cancellation releases stalled stdin\n    not ok 1 - cancellation releases stalled stdin\n      ---\n      duration_ms: 45.102958\n      type: 'test'\n      location: '/private/tmp/full-gate-b494-diagnose-UnMIFK/source/tests/commands/search-stress/safety-cases.ts:1:535'\n      failureType: 'testCodeFailure'\n      error: |-\n        Expected values to be strictly equal:\n        \n        false !== true\n        \n      code: 'ERR_ASSERTION'\n      name: 'AssertionError'\n      expected: true\n      actual: false\n      operator: 'strictEqual'\n      stack: |-\n        TestContext.<anonymous> (/private/tmp/full-gate-b494-diagnose-UnMIFK/source/tests/commands/search-stress/safety-cases.ts:39:65)\n        async Test.run (node:internal/test_runner/test:1054:7)\n        async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)\n      ...\n    # Subtest: cancellation releases stalled stdout\n    ok 2 - cancellation releases stalled stdout\n      ---\n      duration_ms: 39.18375\n      type: 'test'\n      ...\n    # Subtest: cancellation releases stalled stderr\n    ok 3 - cancellation releases stalled stderr\n      ---\n      duration_ms: 22.741542\n      type: 'test'\n      ...\n    # Subtest: cancellation releases stalled readStream\n    ok 4 - cancellation releases stalled readStream\n      ---\n      duration_ms: 40.73775\n      type: 'test'\n      ...\n    # Subtest: quiet closes a matching source before a stalled second read\n    ok 5 - quiet closes a matching source before a stalled second read\n      ---\n      duration_ms: 18.474\n      type: 'test'\n      ...\n    # Subtest: EPIPE stops traversal without later reads, writes or diagnostics\n    ok 6 - EPIPE stops traversal without later reads, writes or diagnostics\n      ---\n      duration_ms: 18.854917\n      type: 'test'\n      ...\n    # Subtest: EPIPE cleanup never waits for an uncooperative source return\n    ok 7 - EPIPE cleanup never waits for an uncooperative source return\n      ---\n      duration_ms: 18.247791\n      type: 'test'\n      ...\n    # Subtest: cancellation wins a racing stdout EPIPE\n    ok 8 - cancellation wins a racing stdout EPIPE\n      ---\n      duration_ms: 19.716\n      type: 'test'\n      ...\n    # Subtest: metadata-selected stdin yields during endless empty chunks\n    ok 9 - metadata-selected stdin yields during endless empty chunks\n      ---\n      duration_ms: 31.32575\n      type: 'test'\n      ...\n    # Subtest: native closed stdout exits successfully without diagnostics in three repetitions\n    ok 10 - native closed stdout exits successfully without diagnostics in three repetitions\n      ---\n      duration_ms: 19.197167\n      type: 'test'\n      ...\n    1..10\n    # tests 10\n    # suites 0\n    # pass 9\n    # fail 1\n    # cancelled 0\n    # skipped 0\n    # todo 0\n    # duration_ms 418.938458\n    \n    \n    1 !== 0\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected: 0\n  actual: 1\n  operator: 'strictEqual'\n  stack: |-\n    TestContext.<anonymous> (/private/tmp/full-gate-b494-diagnose-UnMIFK/source/tests/commands/search-stress/safety.test.ts:8:10)\n    Test.runInAsyncScope (node:async_hooks:214:14)\n    Test.run (node:internal/test_runner/test:1047:25)\n    Test.start (node:internal/test_runner/test:944:17)\n    startSubtestAfterBootstrap (node:internal/test_runner/harness:296:17)\n  ..."
+      },
+      {
+        "id": "tap-line-361",
+        "line": 361,
+        "indent": 0,
+        "ordinal": 40,
+        "name": "hard-deadline pipeline close: first-read-local",
+        "status": "fail",
+        "type": "test",
+        "failureType": "testCodeFailure",
+        "location": "/private/tmp/full-gate-b494-diagnose-UnMIFK/source/tests/shell/remote-close.test.ts:1:723",
+        "code": "ERR_ASSERTION",
+        "error": "|-",
+        "detail": "  ---\n  duration_ms: 1439.833667\n  type: 'test'\n  location: '/private/tmp/full-gate-b494-diagnose-UnMIFK/source/tests/shell/remote-close.test.ts:1:723'\n  failureType: 'testCodeFailure'\n  error: |-\n    first-read-local: /private/tmp/full-gate-b494-diagnose-UnMIFK/source/tests/stress/remote-cancellation/helpers.ts:29\n          timer = setTimeout(() => reject(new Error(`DEADLINE: ${label} (${milliseconds}ms)`)), milliseconds);\n                                          ^\n    \n    Error: DEADLINE: first-read-local (1200ms)\n        at Timeout.<anonymous> (/private/tmp/full-gate-b494-diagnose-UnMIFK/source/tests/stress/remote-cancellation/helpers.ts:29:39)\n        at listOnTimeout (node:internal/timers:585:17)\n        at process.processTimers (node:internal/timers:521:7)\n    \n    Node.js v22.22.2\n    \n    \n    1 !== 0\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected: 0\n  actual: 1\n  operator: 'strictEqual'\n  stack: |-\n    Timeout.<anonymous> (/private/tmp/full-gate-b494-diagnose-UnMIFK/source/tests/stress/remote-cancellation/helpers.ts:29:39)\n    listOnTimeout (node:internal/timers:585:17)\n    process.processTimers (node:internal/timers:521:7)\n    TestContext.<anonymous> (/private/tmp/full-gate-b494-diagnose-UnMIFK/source/tests/shell/remote-close.test.ts:56:12)\n    process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ..."
+      },
+      {
+        "id": "tap-line-398",
+        "line": 398,
+        "indent": 0,
+        "ordinal": 41,
+        "name": "hard-deadline pipeline close: first-read-s3",
+        "status": "fail",
+        "type": "test",
+        "failureType": "testCodeFailure",
+        "location": "/private/tmp/full-gate-b494-diagnose-UnMIFK/source/tests/shell/remote-close.test.ts:1:723",
+        "code": "ERR_ASSERTION",
+        "error": "|-",
+        "detail": "  ---\n  duration_ms: 1429.831166\n  type: 'test'\n  location: '/private/tmp/full-gate-b494-diagnose-UnMIFK/source/tests/shell/remote-close.test.ts:1:723'\n  failureType: 'testCodeFailure'\n  error: |-\n    first-read-s3: /private/tmp/full-gate-b494-diagnose-UnMIFK/source/tests/stress/remote-cancellation/helpers.ts:29\n          timer = setTimeout(() => reject(new Error(`DEADLINE: ${label} (${milliseconds}ms)`)), milliseconds);\n                                          ^\n    \n    Error: DEADLINE: first-read-s3 (1200ms)\n        at Timeout.<anonymous> (/private/tmp/full-gate-b494-diagnose-UnMIFK/source/tests/stress/remote-cancellation/helpers.ts:29:39)\n        at listOnTimeout (node:internal/timers:585:17)\n        at process.processTimers (node:internal/timers:521:7)\n    \n    Node.js v22.22.2\n    \n    \n    1 !== 0\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected: 0\n  actual: 1\n  operator: 'strictEqual'\n  stack: |-\n    Timeout.<anonymous> (/private/tmp/full-gate-b494-diagnose-UnMIFK/source/tests/stress/remote-cancellation/helpers.ts:29:39)\n    listOnTimeout (node:internal/timers:585:17)\n    process.processTimers (node:internal/timers:521:7)\n    TestContext.<anonymous> (/private/tmp/full-gate-b494-diagnose-UnMIFK/source/tests/shell/remote-close.test.ts:56:12)\n    process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ..."
+      },
+      {
+        "id": "tap-line-435",
+        "line": 435,
+        "indent": 0,
+        "ordinal": 42,
+        "name": "hard-deadline pipeline close: first-read-webdav",
+        "status": "fail",
+        "type": "test",
+        "failureType": "testCodeFailure",
+        "location": "/private/tmp/full-gate-b494-diagnose-UnMIFK/source/tests/shell/remote-close.test.ts:1:723",
+        "code": "ERR_ASSERTION",
+        "error": "|-",
+        "detail": "  ---\n  duration_ms: 1443.959417\n  type: 'test'\n  location: '/private/tmp/full-gate-b494-diagnose-UnMIFK/source/tests/shell/remote-close.test.ts:1:723'\n  failureType: 'testCodeFailure'\n  error: |-\n    first-read-webdav: /private/tmp/full-gate-b494-diagnose-UnMIFK/source/tests/stress/remote-cancellation/helpers.ts:29\n          timer = setTimeout(() => reject(new Error(`DEADLINE: ${label} (${milliseconds}ms)`)), milliseconds);\n                                          ^\n    \n    Error: DEADLINE: first-read-webdav (1200ms)\n        at Timeout.<anonymous> (/private/tmp/full-gate-b494-diagnose-UnMIFK/source/tests/stress/remote-cancellation/helpers.ts:29:39)\n        at listOnTimeout (node:internal/timers:585:17)\n        at process.processTimers (node:internal/timers:521:7)\n    \n    Node.js v22.22.2\n    \n    \n    1 !== 0\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected: 0\n  actual: 1\n  operator: 'strictEqual'\n  stack: |-\n    Timeout.<anonymous> (/private/tmp/full-gate-b494-diagnose-UnMIFK/source/tests/stress/remote-cancellation/helpers.ts:29:39)\n    listOnTimeout (node:internal/timers:585:17)\n    process.processTimers (node:internal/timers:521:7)\n    TestContext.<anonymous> (/private/tmp/full-gate-b494-diagnose-UnMIFK/source/tests/shell/remote-close.test.ts:56:12)\n    process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ..."
+      },
+      {
+        "id": "tap-line-472",
+        "line": 472,
+        "indent": 0,
+        "ordinal": 43,
+        "name": "hard-deadline pipeline close: first-read-curl-body",
+        "status": "fail",
+        "type": "test",
+        "failureType": "testCodeFailure",
+        "location": "/private/tmp/full-gate-b494-diagnose-UnMIFK/source/tests/shell/remote-close.test.ts:1:723",
+        "code": "ERR_ASSERTION",
+        "error": "|-",
+        "detail": "  ---\n  duration_ms: 1436.859208\n  type: 'test'\n  location: '/private/tmp/full-gate-b494-diagnose-UnMIFK/source/tests/shell/remote-close.test.ts:1:723'\n  failureType: 'testCodeFailure'\n  error: |-\n    first-read-curl-body: /private/tmp/full-gate-b494-diagnose-UnMIFK/source/tests/stress/remote-cancellation/helpers.ts:29\n          timer = setTimeout(() => reject(new Error(`DEADLINE: ${label} (${milliseconds}ms)`)), milliseconds);\n                                          ^\n    \n    Error: DEADLINE: first-read-curl-body (1200ms)\n        at Timeout.<anonymous> (/private/tmp/full-gate-b494-diagnose-UnMIFK/source/tests/stress/remote-cancellation/helpers.ts:29:39)\n        at listOnTimeout (node:internal/timers:585:17)\n        at process.processTimers (node:internal/timers:521:7)\n    \n    Node.js v22.22.2\n    \n    \n    1 !== 0\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected: 0\n  actual: 1\n  operator: 'strictEqual'\n  stack: |-\n    Timeout.<anonymous> (/private/tmp/full-gate-b494-diagnose-UnMIFK/source/tests/stress/remote-cancellation/helpers.ts:29:39)\n    listOnTimeout (node:internal/timers:585:17)\n    process.processTimers (node:internal/timers:521:7)\n    TestContext.<anonymous> (/private/tmp/full-gate-b494-diagnose-UnMIFK/source/tests/shell/remote-close.test.ts:56:12)\n    process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ..."
+      },
+      {
+        "id": "tap-line-509",
+        "line": 509,
+        "indent": 0,
+        "ordinal": 44,
+        "name": "hard-deadline pipeline close: first-read-curl-headers",
+        "status": "fail",
+        "type": "test",
+        "failureType": "testCodeFailure",
+        "location": "/private/tmp/full-gate-b494-diagnose-UnMIFK/source/tests/shell/remote-close.test.ts:1:723",
+        "code": "ERR_ASSERTION",
+        "error": "|-",
+        "detail": "  ---\n  duration_ms: 1434.063125\n  type: 'test'\n  location: '/private/tmp/full-gate-b494-diagnose-UnMIFK/source/tests/shell/remote-close.test.ts:1:723'\n  failureType: 'testCodeFailure'\n  error: |-\n    first-read-curl-headers: /private/tmp/full-gate-b494-diagnose-UnMIFK/source/tests/stress/remote-cancellation/helpers.ts:29\n          timer = setTimeout(() => reject(new Error(`DEADLINE: ${label} (${milliseconds}ms)`)), milliseconds);\n                                          ^\n    \n    Error: DEADLINE: first-read-curl-headers (1200ms)\n        at Timeout.<anonymous> (/private/tmp/full-gate-b494-diagnose-UnMIFK/source/tests/stress/remote-cancellation/helpers.ts:29:39)\n        at listOnTimeout (node:internal/timers:585:17)\n        at process.processTimers (node:internal/timers:521:7)\n    \n    Node.js v22.22.2\n    \n    \n    1 !== 0\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected: 0\n  actual: 1\n  operator: 'strictEqual'\n  stack: |-\n    Timeout.<anonymous> (/private/tmp/full-gate-b494-diagnose-UnMIFK/source/tests/stress/remote-cancellation/helpers.ts:29:39)\n    listOnTimeout (node:internal/timers:585:17)\n    process.processTimers (node:internal/timers:521:7)\n    TestContext.<anonymous> (/private/tmp/full-gate-b494-diagnose-UnMIFK/source/tests/shell/remote-close.test.ts:56:12)\n    process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ..."
+      },
+      {
+        "id": "tap-line-546",
+        "line": 546,
+        "indent": 0,
+        "ordinal": 45,
+        "name": "s3: named-file cleanup leaves parents and unsupported empty rmdir has no effects",
+        "status": "fail",
+        "type": "test",
+        "failureType": "testCodeFailure",
+        "location": "/private/tmp/full-gate-b494-diagnose-UnMIFK/source/tests/stress/adapters/remote-safe-workflows.test.ts:1:1470",
+        "code": "ERR_ASSERTION",
+        "error": "Missing expected rejection.",
+        "detail": "  ---\n  duration_ms: 6.037417\n  type: 'test'\n  location: '/private/tmp/full-gate-b494-diagnose-UnMIFK/source/tests/stress/adapters/remote-safe-workflows.test.ts:1:1470'\n  failureType: 'testCodeFailure'\n  error: 'Missing expected rejection.'\n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  stack: |-\n    async TestContext.<anonymous> (/private/tmp/full-gate-b494-diagnose-UnMIFK/source/tests/stress/adapters/remote-safe-workflows.test.ts:58:5)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)\n  ..."
+      }
+    ],
+    "disclaimer": "A passing negative guard is not automatically a defect characterization. Explicit known-limitation/policy names are separately listed, not waived or promoted to feature acceptance."
+  }
+}

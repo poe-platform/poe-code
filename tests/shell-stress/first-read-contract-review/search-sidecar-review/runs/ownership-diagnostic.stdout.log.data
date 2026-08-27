@@ -1,0 +1,342 @@
+{
+  "outcomes": [
+    {
+      "profile": "direct-structural",
+      "atSettlement": {
+        "returned": false,
+        "finalized": false
+      },
+      "afterLateRelease": {
+        "returned": false,
+        "finalized": false
+      },
+      "final": {
+        "returned": true,
+        "finalized": false
+      },
+      "rawWorkSettled": true
+    },
+    {
+      "profile": "public-shell-structural",
+      "atSettlement": {
+        "returned": true,
+        "finalized": false
+      },
+      "afterLateRelease": {
+        "returned": true,
+        "finalized": false
+      },
+      "final": {
+        "returned": true,
+        "finalized": false
+      },
+      "rawWorkSettled": true
+    },
+    {
+      "profile": "public-shell-opaque-generator",
+      "atSettlement": {
+        "returned": true,
+        "finalized": false
+      },
+      "afterLateRelease": {
+        "returned": true,
+        "finalized": true
+      },
+      "final": {
+        "returned": true,
+        "finalized": true
+      },
+      "rawWorkSettled": true
+    }
+  ],
+  "events": [
+    {
+      "profile": "direct-structural",
+      "event": "available.next.call",
+      "ms": 14.033792000000005
+    },
+    {
+      "profile": "direct-structural",
+      "event": "raw.iterator.acquire",
+      "ms": 14.039791999999977
+    },
+    {
+      "profile": "direct-structural",
+      "event": "raw.next.call",
+      "ms": 14.04649999999998
+    },
+    {
+      "profile": "direct-structural",
+      "event": "controller.abort",
+      "ms": 14.053791999999987
+    },
+    {
+      "profile": "direct-structural",
+      "event": "available.return.call",
+      "ms": 14.144000000000005
+    },
+    {
+      "profile": "direct-structural",
+      "event": "execution.rejected.exactReason",
+      "ms": 15.331625000000003
+    },
+    {
+      "profile": "direct-structural",
+      "event": "observation.atSettlement",
+      "ms": 15.334499999999991,
+      "returned": false,
+      "finalized": false
+    },
+    {
+      "profile": "direct-structural",
+      "event": "fixture.releaseLateInput",
+      "ms": 15.336041999999992
+    },
+    {
+      "profile": "direct-structural",
+      "event": "available.next.reject",
+      "ms": 15.384832999999986
+    },
+    {
+      "profile": "direct-structural",
+      "event": "available.return.complete",
+      "ms": 15.395707999999985,
+      "done": true
+    },
+    {
+      "profile": "direct-structural",
+      "event": "observation.afterLateRelease",
+      "ms": 36.74154199999998,
+      "returned": false,
+      "finalized": false
+    },
+    {
+      "profile": "direct-structural",
+      "event": "fixture.manualReturn.NOT_PRODUCT",
+      "ms": 36.74295799999999
+    },
+    {
+      "profile": "direct-structural",
+      "event": "raw.return.call",
+      "ms": 36.764917
+    },
+    {
+      "profile": "direct-structural",
+      "event": "raw.return.complete",
+      "ms": 36.76516699999999
+    },
+    {
+      "profile": "public-shell-structural",
+      "event": "raw.iterator.acquire",
+      "ms": 37.80220799999998
+    },
+    {
+      "profile": "public-shell-structural",
+      "event": "command.entry",
+      "ms": 38.989667,
+      "stdinIsRaw": false,
+      "iteratorHasReturn": false,
+      "registeredHookAvailable": true
+    },
+    {
+      "profile": "public-shell-structural",
+      "event": "regex.cleanup.register",
+      "ms": 38.999458000000004
+    },
+    {
+      "profile": "public-shell-structural",
+      "event": "available.next.call",
+      "ms": 50.78979199999998
+    },
+    {
+      "profile": "public-shell-structural",
+      "event": "raw.next.call",
+      "ms": 50.85987499999999
+    },
+    {
+      "profile": "public-shell-structural",
+      "event": "controller.abort",
+      "ms": 50.86224999999999
+    },
+    {
+      "profile": "public-shell-structural",
+      "event": "available.return.call",
+      "ms": 50.96770799999999
+    },
+    {
+      "profile": "public-shell-structural",
+      "event": "raw.return.call",
+      "ms": 50.97204199999999
+    },
+    {
+      "profile": "public-shell-structural",
+      "event": "raw.return.complete",
+      "ms": 50.972207999999995
+    },
+    {
+      "profile": "public-shell-structural",
+      "event": "regex.cleanup.drain.start",
+      "ms": 51.01837499999999
+    },
+    {
+      "profile": "public-shell-structural",
+      "event": "available.next.reject",
+      "ms": 51.02516699999998
+    },
+    {
+      "profile": "public-shell-structural",
+      "event": "available.return.complete",
+      "ms": 51.06662499999999,
+      "done": true
+    },
+    {
+      "profile": "public-shell-structural",
+      "event": "regex.cleanup.drain.complete",
+      "ms": 51.71504199999998
+    },
+    {
+      "profile": "public-shell-structural",
+      "event": "execution.rejected.exactReason",
+      "ms": 51.727417
+    },
+    {
+      "profile": "public-shell-structural",
+      "event": "observation.atSettlement",
+      "ms": 51.7285,
+      "returned": true,
+      "finalized": false
+    },
+    {
+      "profile": "public-shell-structural",
+      "event": "fixture.releaseLateInput",
+      "ms": 51.72887499999999
+    },
+    {
+      "profile": "public-shell-structural",
+      "event": "observation.afterLateRelease",
+      "ms": 73.82179199999999,
+      "returned": true,
+      "finalized": false
+    },
+    {
+      "profile": "public-shell-structural",
+      "event": "shell.dispose.complete",
+      "ms": 73.88316699999999
+    },
+    {
+      "profile": "public-shell-opaque-generator",
+      "event": "raw.iterator.acquire",
+      "ms": 74.18729199999999
+    },
+    {
+      "profile": "public-shell-opaque-generator",
+      "event": "command.entry",
+      "ms": 74.4025,
+      "stdinIsRaw": false,
+      "iteratorHasReturn": false,
+      "registeredHookAvailable": true
+    },
+    {
+      "profile": "public-shell-opaque-generator",
+      "event": "regex.cleanup.register",
+      "ms": 74.40420799999998
+    },
+    {
+      "profile": "public-shell-opaque-generator",
+      "event": "available.next.call",
+      "ms": 86.13
+    },
+    {
+      "profile": "public-shell-opaque-generator",
+      "event": "raw.next.call",
+      "ms": 86.151667
+    },
+    {
+      "profile": "public-shell-opaque-generator",
+      "event": "raw.generator.pending",
+      "ms": 86.15258299999999
+    },
+    {
+      "profile": "public-shell-opaque-generator",
+      "event": "controller.abort",
+      "ms": 86.15349999999998
+    },
+    {
+      "profile": "public-shell-opaque-generator",
+      "event": "available.return.call",
+      "ms": 86.220958
+    },
+    {
+      "profile": "public-shell-opaque-generator",
+      "event": "raw.return.call",
+      "ms": 86.229333
+    },
+    {
+      "profile": "public-shell-opaque-generator",
+      "event": "regex.cleanup.drain.start",
+      "ms": 86.24016699999999
+    },
+    {
+      "profile": "public-shell-opaque-generator",
+      "event": "available.next.reject",
+      "ms": 86.243583
+    },
+    {
+      "profile": "public-shell-opaque-generator",
+      "event": "available.return.complete",
+      "ms": 86.25074999999998,
+      "done": true
+    },
+    {
+      "profile": "public-shell-opaque-generator",
+      "event": "regex.cleanup.drain.complete",
+      "ms": 86.825917
+    },
+    {
+      "profile": "public-shell-opaque-generator",
+      "event": "execution.rejected.exactReason",
+      "ms": 86.83749999999998
+    },
+    {
+      "profile": "public-shell-opaque-generator",
+      "event": "observation.atSettlement",
+      "ms": 86.838875,
+      "returned": true,
+      "finalized": false
+    },
+    {
+      "profile": "public-shell-opaque-generator",
+      "event": "fixture.releaseLateInput",
+      "ms": 86.839125
+    },
+    {
+      "profile": "public-shell-opaque-generator",
+      "event": "raw.generator.gateReleased",
+      "ms": 86.847792
+    },
+    {
+      "profile": "public-shell-opaque-generator",
+      "event": "raw.generator.finally",
+      "ms": 86.858792
+    },
+    {
+      "profile": "public-shell-opaque-generator",
+      "event": "raw.return.complete",
+      "ms": 86.87062499999999
+    },
+    {
+      "profile": "public-shell-opaque-generator",
+      "event": "observation.afterLateRelease",
+      "ms": 108.917125,
+      "returned": true,
+      "finalized": true
+    },
+    {
+      "profile": "public-shell-opaque-generator",
+      "event": "shell.dispose.complete",
+      "ms": 108.93208299999998
+    }
+  ],
+  "unhandled": [],
+  "wrapperInstrumentation": "Forward-only next/return logging proxy around original AvailableRecords.source generator; no source patch, no expectation rewrite; public wrapper forwards registered regex cleanup unchanged."
+}

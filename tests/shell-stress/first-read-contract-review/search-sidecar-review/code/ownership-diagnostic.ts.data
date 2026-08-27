@@ -1,0 +1,106 @@
+import assert from 'node:assert/strict';
+import { setTimeout as delay } from 'node:timers/promises';
+import { createSearchCommands } from './src/commands/search/index.js';
+import { AvailableRecords } from './src/commands/regex-execution/client.js';
+import { MemoryFileSystem } from './src/fs/memory/index.js';
+import { Shell } from './src/shell/index.js';
+import type { ByteSource, CommandContext } from './src/contracts/index.js';
+
+const startedAt = performance.now();
+const events: object[] = [];
+let profile = '';
+const log = (event: string, detail = {}) => events.push({ profile, event, ms: performance.now() - startedAt, ...detail });
+const originalSource = AvailableRecords.prototype.source;
+const wrapperPromises: Promise<unknown>[] = [];
+AvailableRecords.prototype.source = function (source: ByteSource): ByteSource {
+  const iterator = originalSource.call(this, source)[Symbol.asyncIterator]();
+  const observe = (method: 'next' | 'return') => {
+    log(`available.${method}.call`);
+    const result = Promise.resolve(method === 'next' ? iterator.next() : iterator.return!());
+    wrapperPromises.push(result);
+    void result.then(value => log(`available.${method}.complete`, { done: value.done }), () => log(`available.${method}.reject`));
+    return result;
+  };
+  return { [Symbol.asyncIterator]() { return { next: () => observe('next'), return: () => observe('return') }; } };
+};
+
+const unhandled: unknown[] = [];
+const rejectionListener = (reason: unknown) => { unhandled.push(reason); log('unhandledRejection', { reason: String(reason) }); };
+process.on('unhandledRejection', rejectionListener);
+const outcomes: object[] = [];
+try {
+  for (const selected of ['direct-structural', 'public-shell-structural', 'public-shell-opaque-generator']) {
+    profile = selected;
+    const controller = new AbortController();
+    const reason = new Error(`abort ${selected}`);
+    let start!: () => void;
+    const waiting = new Promise<void>(resolve => { start = resolve; });
+    let release!: () => void;
+    let returned = false;
+    let finalized = false;
+    const rawPromises: Promise<unknown>[] = [];
+    let source: ByteSource;
+    let rawIterator: AsyncIterator<Uint8Array>;
+    if (selected.endsWith('opaque-generator')) {
+      const gate = new Promise<void>(resolve => { release = resolve; });
+      const generator = (async function* () {
+        try { log('raw.generator.pending'); start(); await gate; log('raw.generator.gateReleased'); yield Buffer.from('foo\n'); }
+        finally { finalized = true; log('raw.generator.finally'); }
+      })();
+      rawIterator = {
+        next() { log('raw.next.call'); const result = generator.next(); rawPromises.push(result); return result; },
+        return() { returned = true; log('raw.return.call'); const result = generator.return(undefined); rawPromises.push(result); void result.then(() => log('raw.return.complete')); return result; },
+      };
+    } else {
+      rawIterator = {
+        next() { log('raw.next.call'); start(); const result = new Promise<never>((_resolve, reject) => { release = () => reject(new Error('late host failure')); }); rawPromises.push(result); return result; },
+        async return() { returned = true; log('raw.return.call'); log('raw.return.complete'); return { done: true, value: undefined }; },
+      };
+    }
+    source = { [Symbol.asyncIterator]() { log('raw.iterator.acquire'); return rawIterator; } };
+    const definition = createSearchCommands()[0]!;
+    const fs = new MemoryFileSystem();
+    let shell: Shell | undefined;
+    let execution: Promise<unknown>;
+    if (selected === 'direct-structural') {
+      execution = Promise.resolve(definition.execute({
+        command: 'rg', args: ['foo', '-'], cwd: '/', env: {}, fs, signal: controller.signal,
+        stdin: source, stdinIsDefault: false,
+        stdout: { async write() { assert.fail('unexpected stdout'); } },
+        stderr: { async write() { assert.fail('unexpected stderr'); } },
+      }));
+    } else {
+      shell = new Shell({ fs });
+      shell.register({ ...definition, execute(context: CommandContext) {
+        log('command.entry', { stdinIsRaw: context.stdin === source, iteratorHasReturn: Boolean(context.stdin[Symbol.asyncIterator]().return), registeredHookAvailable: Boolean(context.registerCleanup) });
+        return definition.execute({ ...context, registerCleanup(cleanup) {
+          log('regex.cleanup.register');
+          context.registerCleanup!(async () => { log('regex.cleanup.drain.start'); await cleanup(); log('regex.cleanup.drain.complete'); });
+        } });
+      } });
+      execution = shell.exec('rg foo -', { stdin: source, signal: controller.signal });
+    }
+    const settled = execution.then(() => { throw new Error('unexpected success'); }, error => { assert.equal(error, reason); log('execution.rejected.exactReason'); });
+    await waiting;
+    log('controller.abort');
+    controller.abort(reason);
+    await settled;
+    const atSettlement = { returned, finalized };
+    log('observation.atSettlement', atSettlement);
+    log('fixture.releaseLateInput');
+    release();
+    await delay(20);
+    const afterLateRelease = { returned, finalized };
+    log('observation.afterLateRelease', afterLateRelease);
+    if (!returned) { log('fixture.manualReturn.NOT_PRODUCT'); await rawIterator.return!(); }
+    await Promise.allSettled(rawPromises);
+    await Promise.allSettled(wrapperPromises);
+    if (shell) { await shell.dispose(); log('shell.dispose.complete'); }
+    outcomes.push({ profile, atSettlement, afterLateRelease, final: { returned, finalized }, rawWorkSettled: true });
+  }
+  assert.deepEqual(unhandled, []);
+} finally {
+  AvailableRecords.prototype.source = originalSource;
+  process.off('unhandledRejection', rejectionListener);
+}
+console.log(JSON.stringify({ outcomes, events, unhandled, wrapperInstrumentation: 'Forward-only next/return logging proxy around original AvailableRecords.source generator; no source patch, no expectation rewrite; public wrapper forwards registered regex cleanup unchanged.' }, null, 2));

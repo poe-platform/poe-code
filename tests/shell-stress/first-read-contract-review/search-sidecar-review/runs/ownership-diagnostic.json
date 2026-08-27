@@ -1,0 +1,55 @@
+{
+  "label": "ownership-diagnostic",
+  "candidate": "b494675c34dc289f4ad4b10a9201e1211eb0a7d8",
+  "executable": "/usr/bin/time",
+  "args": [
+    "-l",
+    "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "--import",
+    "tsx",
+    "ownership-diagnostic.ts"
+  ],
+  "cwd": "/tmp/safe-bash-search-sidecar-review-tnXxyl/source",
+  "env": {
+    "PATH": "/tmp/safe-bash-search-sidecar-review-tnXxyl/native-bin:/Users/kjopek/.nvm/versions/node/v22.22.2/bin:/usr/bin:/bin",
+    "HOME": "/tmp/safe-bash-search-sidecar-review-tnXxyl/home",
+    "TMPDIR": "/tmp/safe-bash-search-sidecar-review-tnXxyl/tmp",
+    "TMP": "/tmp/safe-bash-search-sidecar-review-tnXxyl/tmp",
+    "TEMP": "/tmp/safe-bash-search-sidecar-review-tnXxyl/tmp",
+    "TSX_DISABLE_CACHE": "1",
+    "LANG": "C",
+    "LC_ALL": "C",
+    "TZ": "UTC",
+    "RIPGREP_CONFIG_PATH": "",
+    "NO_COLOR": "1"
+  },
+  "pid": 59936,
+  "status": 0,
+  "signal": null,
+  "closed": true,
+  "timedOut": false,
+  "elapsedMs": 508.42512500000004,
+  "outputBytes": 9325,
+  "before": {
+    "at": "2026-08-27T12:38:18.450Z",
+    "loadavg": [
+      3.451171875,
+      4.94482421875,
+      4.62353515625
+    ],
+    "cpuCount": 15,
+    "availableParallelism": 15
+  },
+  "after": {
+    "at": "2026-08-27T12:38:18.958Z",
+    "loadavg": [
+      3.451171875,
+      4.94482421875,
+      4.62353515625
+    ]
+  },
+  "signals": [],
+  "membersAfterClose": [],
+  "survivors": [],
+  "concurrency": "one sidecar test process at a time; original nested safety suite unchanged; external cohost work not controlled; process snapshots use executable names only"
+}

@@ -1,0 +1,78 @@
+import fs from 'node:fs';
+import path from 'node:path';
+import crypto from 'node:crypto';
+import { execFileSync } from 'node:child_process';
+
+const repo = '/Users/kjopek/Workspace/safe-bash';
+const evidence = path.join(repo, 'tests/shell-stress/first-read-contract-review/search-sidecar-review');
+const root = '/tmp/safe-bash-search-sidecar-review-tnXxyl';
+const qualification = JSON.parse(fs.readFileSync(path.join(evidence, 'qualification.json')));
+const env = { ...process.env, ...qualification.env };
+delete env.NODE_OPTIONS;
+const sha = bytes => crypto.createHash('sha256').update(bytes).digest('hex');
+const read = filename => fs.readFileSync(path.join(evidence, filename));
+const json = filename => JSON.parse(read(filename));
+const write = (filename, value) => { fs.mkdirSync(path.dirname(path.join(evidence, filename)), { recursive: true }); fs.writeFileSync(path.join(evidence, filename), typeof value === 'string' || Buffer.isBuffer(value) ? value : JSON.stringify(value, null, 2) + '\n'); };
+const git = args => execFileSync('git', ['--no-replace-objects', ...args], { cwd: repo, env, encoding: 'utf8', maxBuffer: 8 * 1024 * 1024 });
+const full = json('historical/canonical/test.result.json.data');
+const accounting = json('historical/canonical/test.accounting.json.data');
+const serial = json('historical/focused-v2/search-differential-tests.json.data');
+const focused = json('historical/focused-v2/report.json.data');
+const hashes = new Map(focused.sourceHashes.map(entry => [entry.path, entry.sha256]));
+const focusedSourceChecks = qualification.qualified.filter(entry => hashes.has(entry.path)).map(entry => ({ path: entry.path, sha256: hashes.get(entry.path), matches: hashes.get(entry.path) === entry.frozenSha256 }));
+if (focusedSourceChecks.some(entry => !entry.matches)) throw new Error('Focused source mismatch');
+const text = read('historical/canonical/test.stdout.log.data').toString();
+const differentialStart = text.indexOf('# node:internal/modules/run_main:123', text.indexOf('# Subtest: real SafeJS respects enclosing shell output limits'));
+const differentialEnd = text.indexOf('# Subtest:', text.indexOf('not ok 189 - tests/commands/search-stress/differential.test.ts', differentialStart));
+const safetyStart = text.indexOf('# Subtest: isolated cancellation and iterator lifecycle checks');
+const safetyEnd = text.indexOf('\n# Subtest:', safetyStart + 1);
+for (const [name, start, end] of [['differential', differentialStart, differentialEnd], ['safety', safetyStart, safetyEnd]]) {
+  if (start < 0 || end <= start) throw new Error(`Excerpt not found: ${name}`);
+  const raw = text.slice(start, end);
+  write(`historical/canonical/search-${name}.stdout.excerpt.data`, raw);
+}
+const summarize = result => Object.fromEntries(Object.entries(result).filter(([key]) => !['observed', 'accounting'].includes(key)));
+write('historical-summary.json', {
+  candidate: qualification.candidate,
+  originalBase: 'tests/integration/full-gate-20260827/combined-b494675c',
+  authenticatedCaptures: qualification.authenticated,
+  full: { ...summarize(full), summary: accounting.summary, notQualified: true },
+  isolatedDifferential: { ...summarize(serial), summary: serial.accounting.summary, newSidecarPassCount: false },
+  focusedSourceChecks,
+  focusedMissingSeparateHashes: qualification.qualified.filter(entry => !hashes.has(entry.path)).map(entry => entry.path),
+  focusedRevision: focused.revision, focusedProductChanges: focused.productChanges, focusedCleaned: focused.cleaned,
+  excerptPolicy: 'Exact slices of authenticated original stdout; complete original retained unchanged at authenticated capture path. Full stdout SHA256 and encoded capture SHA256 above. Nested safety original includes both stdin and empty-chunk closure failures.',
+});
+for (const [origin, filename] of [
+  ['/tmp/safe-bash-search-sidecar-review-prepare.mjs', 'prepare.mjs.data'],
+  ['/tmp/safe-bash-search-sidecar-review-run.mjs', 'run.mjs.data'],
+  ['/tmp/safe-bash-search-sidecar-review-finalize.mjs', 'finalize.mjs.data'],
+  [path.join(root, 'source/ownership-diagnostic.ts'), 'ownership-diagnostic.ts.data'],
+]) write(`code/${filename}`, fs.readFileSync(origin));
+const relevant = qualification.qualified.filter(entry => /^(?:src\/(?:commands\/(?:search|regex-execution)\/|shell\/|contracts\/)|tests\/commands\/search-stress\/)/.test(entry.path));
+const currentHead = git(['rev-parse', 'HEAD']).trim();
+const currentPaths = git(['ls-files', '--', 'src', 'tests/commands/search-stress']).trim().split('\n');
+const frozenSet = new Set(qualification.qualified.map(entry => entry.path));
+const inputs = qualification.qualified.map(entry => ({ path: entry.path, frozenSha256: entry.frozenSha256, snapshotAfterSha256: sha(fs.readFileSync(path.join(root, 'source', entry.path))), currentAfterSha256: fs.existsSync(path.join(repo, entry.path)) ? sha(fs.readFileSync(path.join(repo, entry.path))) : null }));
+if (inputs.some(entry => entry.snapshotAfterSha256 !== entry.frozenSha256)) throw new Error('Frozen input mutated');
+const toolChecks = qualification.dependencies.map(entry => ({ path: entry.path, sha256: sha(fs.readFileSync(path.join(root, 'source/node_modules', entry.path))), expected: entry.sha256 }));
+if (toolChecks.some(entry => entry.sha256 !== entry.expected)) throw new Error('Copied tool mutated');
+const generatedChecks = qualification.generated.map(entry => ({ ...entry, unchanged: sha(fs.readFileSync(path.join(root, 'source', entry.path))) === entry.sha256 }));
+if (generatedChecks.some(entry => !entry.unchanged)) throw new Error('Generated worker mutated');
+const ps = execFileSync('/bin/ps', ['-axo', 'pid=,ppid=,pgid=,stat=,comm='], { encoding: 'utf8', env });
+const runs = ['original-safety', 'ownership-diagnostic'].map(name => json(`runs/${name}.json`));
+const ownGroups = runs.map(run => ({ label: run.label, pgid: run.pid, matches: ps.split('\n').filter(line => line.trim().split(/\s+/)[2] === String(run.pid)) }));
+if (ownGroups.some(group => group.matches.length)) throw new Error('Owned group remains');
+write('integrity.json', {
+  checkedAt: new Date().toISOString(), currentHead, candidate: qualification.candidate,
+  inputs, relevantUnchangedPaths: relevant.filter(entry => sha(fs.readFileSync(path.join(repo, entry.path))) === entry.frozenSha256).map(entry => entry.path),
+  relevantChangedPaths: relevant.filter(entry => sha(fs.readFileSync(path.join(repo, entry.path))) !== entry.frozenSha256).map(entry => entry.path),
+  currentAddedPaths: currentPaths.filter(filename => !frozenSet.has(filename)).map(filename => ({ path: filename, sha256: sha(fs.readFileSync(path.join(repo, filename))) })),
+  toolChecks, generatedChecks,
+  timingTool: { path: '/usr/bin/time', sha256: sha(fs.readFileSync('/usr/bin/time')) },
+  ownGroups, diagnostic: JSON.parse(read('runs/ownership-diagnostic.stdout.log.data')).outcomes,
+  indexBeforeOwnCommit: git(['diff', '--cached', '--name-status']),
+  sourceStatus: git(['status', '--short', '--', 'src', 'tests/commands/search-stress', 'package.json', 'tsconfig.json']),
+  cleanup: 'All original child processes closed naturally; diagnostic owned opaque inputs released and promise work settled; no group survivors. Copied task files intentionally retained. No foreign cleanup.',
+});
+console.log(JSON.stringify({ currentHead, copiedInputsUnchanged: inputs.length, focusedSourceMatches: focusedSourceChecks.length, currentAddedPaths: currentPaths.filter(filename => !frozenSet.has(filename)), ownGroups }, null, 2));

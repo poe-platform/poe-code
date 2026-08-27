@@ -1,0 +1,103 @@
+import fs from 'node:fs';
+import path from 'node:path';
+import crypto from 'node:crypto';
+import zlib from 'node:zlib';
+import { execFileSync } from 'node:child_process';
+import { createRequire } from 'node:module';
+
+const repo = '/Users/kjopek/Workspace/safe-bash';
+const evidence = path.join(repo, 'tests/shell-stress/first-read-contract-review/search-sidecar-review');
+const base = path.join(repo, 'tests/integration/full-gate-20260827/combined-b494675c');
+const candidate = 'b494675c34dc289f4ad4b10a9201e1211eb0a7d8';
+const sha = bytes => crypto.createHash('sha256').update(bytes).digest('hex');
+const git = args => execFileSync('git', ['--no-replace-objects', ...args], { cwd: repo, maxBuffer: 32 * 1024 * 1024 });
+const assert = (value, message) => { if (!value) throw new Error(message); };
+const manifestBytes = fs.readFileSync(path.join(base, 'EVIDENCE_MANIFEST.json'));
+const manifest = JSON.parse(manifestBytes);
+const authenticated = [];
+function capture(key) {
+  const entry = manifest.captures.find(entry => entry.key === key);
+  assert(entry, `Missing capture: ${key}`);
+  const stored = fs.readFileSync(path.join(base, entry.path));
+  const raw = entry.encoding === 'gzip-base64' ? zlib.gunzipSync(Buffer.from(stored.toString().trim(), 'base64')) : stored;
+  assert(sha(stored) === entry.storedSha256, `Stored hash: ${key}`);
+  assert(sha(raw) === entry.originalSha256 && raw.length === entry.originalBytes, `Raw hash: ${key}`);
+  authenticated.push({ key, ...entry });
+  return raw;
+}
+const reportBytes = capture('canonical/report.json');
+const report = JSON.parse(reportBytes);
+assert(report.revision === candidate, 'Report revision');
+assert(git(['rev-parse', '--verify', `${candidate}^{commit}`]).toString().trim() === candidate, 'Git revision');
+const root = fs.mkdtempSync('/tmp/safe-bash-search-sidecar-review-');
+const source = path.join(root, 'source');
+fs.mkdirSync(source);
+for (const directory of ['tmp', 'native-bin', 'home', 'logs']) fs.mkdirSync(path.join(root, directory));
+fs.mkdirSync(evidence, { recursive: true });
+const configuration = ['package.json', 'package-lock.json', 'tsconfig.json', 'tsconfig.build.json'];
+const paths = git(['ls-tree', '-r', '--name-only', candidate, '--', 'src', 'tests/commands/search-stress', ...configuration]).toString().trim().split('\n');
+const qualified = [];
+for (const filename of paths) {
+  const bytes = git(['show', `${candidate}:${filename}`]);
+  const captured = report.sourceHashes[filename];
+  assert(captured && captured.sha256 === sha(bytes), `Frozen captured bytes differ: ${filename}`);
+  const destination = path.join(source, filename);
+  fs.mkdirSync(path.dirname(destination), { recursive: true });
+  fs.writeFileSync(destination, bytes);
+  const current = fs.existsSync(path.join(repo, filename)) ? fs.readFileSync(path.join(repo, filename)) : undefined;
+  qualified.push({ path: filename, frozenSha256: sha(bytes), frozenGitBlob: git(['rev-parse', `${candidate}:${filename}`]).toString().trim(), currentSha256: current && sha(current), unchanged: current?.equals(bytes) ?? false });
+}
+const dependencies = [];
+for (const [filename, captured] of Object.entries(report.dependencies.root.files)) {
+  if (!/^(?:tsx\/|esbuild\/|@esbuild\/darwin-arm64\/|typescript\/)/.test(filename)) continue;
+  const origin = path.join(repo, 'node_modules', filename);
+  const bytes = fs.readFileSync(origin);
+  assert(sha(bytes) === captured.sha256, `Current tool differs from historical capture: ${filename}`);
+  const destination = path.join(source, 'node_modules', filename);
+  fs.mkdirSync(path.dirname(destination), { recursive: true });
+  fs.writeFileSync(destination, bytes, { mode: captured.mode });
+  dependencies.push({ path: filename, sha256: sha(bytes), bytes: bytes.length });
+}
+const nodeHash = sha(fs.readFileSync(process.execPath));
+assert(nodeHash === report.node.sha256, 'Node executable differs');
+const rg = report.native.rg;
+assert(sha(fs.readFileSync(rg.resolved)) === rg.sha256, 'Pinned historical rg missing/different');
+fs.copyFileSync(rg.resolved, path.join(root, 'native-bin/rg'));
+fs.chmodSync(path.join(root, 'native-bin/rg'), 0o755);
+const env = { ...process.env, PATH: `${root}/native-bin:${path.dirname(process.execPath)}:/usr/bin:/bin`, HOME: `${root}/home`, TMPDIR: `${root}/tmp`, TMP: `${root}/tmp`, TEMP: `${root}/tmp`, TSX_DISABLE_CACHE: '1', LANG: 'C', LC_ALL: 'C', TZ: 'UTC', RIPGREP_CONFIG_PATH: '', NO_COLOR: '1' };
+delete env.NODE_OPTIONS;
+delete env.NODE_TEST_CONTEXT;
+const require = createRequire(path.join(source, 'package.json'));
+const ts = require('typescript');
+const generated = [];
+for (const filename of paths.filter(filename => /^src\/commands\/regex-execution\/.*\.ts$/.test(filename))) {
+  const input = fs.readFileSync(path.join(source, filename), 'utf8');
+  const output = ts.transpileModule(input, { fileName: filename, compilerOptions: { target: ts.ScriptTarget.ES2023, module: ts.ModuleKind.ESNext, verbatimModuleSyntax: true } }).outputText;
+  const destination = filename.replace(/^src\//, 'dist/').replace(/\.ts$/, '.js');
+  fs.mkdirSync(path.dirname(path.join(source, destination)), { recursive: true });
+  fs.writeFileSync(path.join(source, destination), output);
+  generated.push({ path: destination, sha256: sha(output) });
+}
+const historical = ['canonical/test.result.json', 'canonical/test.accounting.json', 'canonical/test.stdout.log', 'canonical/test.stderr.log', 'focused-v2/report.json', 'focused-v2/search-differential-tests.json', 'focused-v2/search-differential-tests.stdout.log', 'focused-v2/search-differential-tests.stderr.log', 'focused-v2/remaining-focused-tests.json', 'focused-v2/remaining-focused-tests.stdout.log', 'focused-v2/remaining-focused-tests.stderr.log'];
+for (const key of historical) {
+  const raw = capture(key);
+  const destination = path.join(evidence, 'historical', `${key}.data`);
+  fs.mkdirSync(path.dirname(destination), { recursive: true });
+  fs.writeFileSync(destination, raw);
+}
+const currentHead = git(['rev-parse', 'HEAD']).toString().trim();
+const qualification = {
+  startedAt: new Date().toISOString(), candidate, currentHead, root, source,
+  originalSnapshotsRemoved: JSON.parse(fs.readFileSync(path.join(base, 'CLEANUP.json'))),
+  capturedManifestSha256: sha(manifestBytes), capturedReportSha256: sha(reportBytes), authenticated,
+  qualified, dependencies, generated,
+  node: { ...report.node, currentSha256: nodeHash }, rg,
+  rgVersion: execFileSync(path.join(root, 'native-bin/rg'), ['--version'], { env }).toString(),
+  transpilation: { compiler: ts.version, method: 'transpileModule only regex-execution modules to task-owned dist; ES2023 ESNext verbatimModuleSyntax; no root dist build or typecheck', limitation: 'Not byte-identical historical tsc emitted worker; exact frozen TS and identical captured TypeScript tool, generated output hashes supplied.' },
+  commands: { safety: [process.execPath, '--import', 'tsx', '--test', '--test-concurrency=1', '--test-name-pattern=^isolated cancellation and iterator lifecycle checks$', 'tests/commands/search-stress/safety.test.ts'] },
+  env: Object.fromEntries(['PATH', 'HOME', 'TMPDIR', 'TMP', 'TEMP', 'TSX_DISABLE_CACHE', 'LANG', 'LC_ALL', 'TZ', 'RIPGREP_CONFIG_PATH', 'NO_COLOR'].map(key => [key, env[key]])),
+  notReproduced: 'Historical whole gate concurrency/load/import-guard environment; historical 486 serial corpus not rerun.'
+};
+fs.writeFileSync(path.join(evidence, 'qualification.json'), JSON.stringify(qualification, null, 2) + '\n');
+fs.writeFileSync(path.join(root, 'qualification.json'), JSON.stringify(qualification, null, 2) + '\n');
+console.log(JSON.stringify({ root, source, candidate, currentHead, paths: qualified.length, changedPaths: qualified.filter(entry => !entry.unchanged).map(entry => entry.path), toolFiles: dependencies.length, rawCaptures: authenticated.length, rg: qualification.rgVersion.split('\n')[0] }, null, 2));

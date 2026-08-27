@@ -3,13 +3,17 @@ import { copyFileSync, mkdirSync, readFileSync, statSync, writeFileSync } from "
 import { dirname, join, relative, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import { currentProfile, sha256 } from "../tests/plugins/stream-five-public/current-profile.mjs";
-import { environment, finish, json, run, snapshot, step } from "../tests/plugins/stream-five-public/harness.mjs";
+import { environment, json, run, step } from "../tests/plugins/stream-five-public/harness.mjs";
 import { publicChecks } from "../tests/plugins/stream-five-public/public-checks.mjs";
+import { finish, snapshot, unchangedTests } from "../tests/plugins/qualified-current-release/snapshot.mjs";
+import { archiveSetup, fixtureAuthority, stageArchiveTar } from "../tests/plugins/qualified-current-release/prerequisites.mjs";
+import { archiveTests } from "../tests/plugins/qualified-current-release/consumers.mjs";
+import { currentConsumers } from "./verify-current-consumers.mjs";
 
 const args = process.argv.slice(2);
 const options = {};
 for (let index = 0; index < args.length; index += 2) {
-  assert.ok(["--source-commit", "--native-assets-from", "--check-only"].includes(args[index]), "usage: --source-commit COMMIT --native-assets-from COREUTILS_DIRECTORY [--check-only true]");
+  assert.ok(["--source-commit", "--native-assets-from", "--archive-tar-from", "--check-only"].includes(args[index]), "usage: --source-commit COMMIT --native-assets-from COREUTILS_DIRECTORY --archive-tar-from ABSOLUTE_GNU_TAR [--check-only true]");
   assert.ok(args[index + 1] && !args[index + 1].startsWith("--"), "option needs a value");
   assert.equal(options[args[index]], undefined, "duplicate option");
   options[args[index]] = args[index + 1];
@@ -31,6 +35,8 @@ try {
     const setup = canonical.verifySetup({ primary });
     report.canonicalSetup = setup;
     const issues = [...setup.issues];
+    report.archiveSetup = archiveSetup(options["--archive-tar-from"], report.root);
+    issues.push(...report.archiveSetup.issues);
     const frozenManifest = JSON.parse(readFileSync(join(historical, "frozen/manifest.json")));
     for (const [path, expected] of Object.entries(frozenManifest.files)) assert.equal(sha256(readFileSync(join(historical, path))), expected, `frozen input changed: ${path}`);
     const native = JSON.parse(readFileSync(join(historical, "frozen/native.json")));
@@ -48,6 +54,10 @@ try {
       if (os.status !== 0 || Buffer.from(os.stdout).toString("base64") !== native.metadata.os.stdout) issues.push({ kind: "stream-os-profile", os });
       const locales = run("/usr/bin/locale", ["-a"], report.root);
       if (locales.status !== 0 || !["C", "en_US.UTF-8"].every(locale => locales.stdout.split("\n").includes(locale))) issues.push({ kind: "stream-locales", locales });
+    }
+    if (!issues.length) {
+      report.fixtureAuthority = fixtureAuthority(report, primary);
+      issues.push(...report.fixtureAuthority.issues);
     }
     if (issues.length) unavailable(issues);
     else {
@@ -70,7 +80,15 @@ try {
       const archivedSetup = canonical.verifySetup();
       report.archivedSetup = archivedSetup;
       assert.equal(archivedSetup.status, "setup-qualified", JSON.stringify(archivedSetup.issues));
+      report.archiveOverlay = stageArchiveTar(report, report.archiveSetup);
+      canonical.environment.TMPDIR = report.fixtureAuthority.TMPDIR;
+      const nativeEnvironment = { ...environment, TMPDIR: report.fixtureAuthority.TMPDIR };
       if (!options["--check-only"]) {
+        currentConsumers(report);
+        const archive = step(report, "current-archive-tests", process.execPath, ["--unhandled-rejections=strict", "--import", "tsx", "--test", "--test-reporter=tap", "--test-concurrency=1", ...archiveTests], report.root, { env: nativeEnvironment });
+        report.archive = { tests: archiveTests.map(path => ({ path, sha256: sha256(readFileSync(join(report.root, path))) })), counts: Object.fromEntries(["tests", "pass", "fail", "cancelled", "skipped", "todo"].map(name => [name, Number(archive.stdout.match(new RegExp(`^# ${name} (\\d+)$`, "m"))?.[1] ?? NaN)])) };
+        assert.deepEqual(report.archive.counts, { tests: 11, pass: 11, fail: 0, cancelled: 0, skipped: 0, todo: 0 });
+        json(join(report.directory, "current-archive-result.json"), report.archive);
         const metadata = canonical.runRelease();
         json(join(report.directory, "mandatory-metadata.json"), metadata);
         report.metadata = { exitCode: metadata.exitCode, counts: metadata.counts, nativeRowsPassed: metadata.nativeRows?.filter(row => row.passed).length, unchanged: metadata.unchanged };
@@ -84,7 +102,7 @@ try {
         step(report, "current-stream-compile", process.execPath, [join(report.root, "node_modules/typescript/bin/tsc"), "-p", join(author, "tsconfig.current.json")]);
         const output = join(historical, ".private/current-public");
         mkdirSync(output, { recursive: true });
-        step(report, "current-stream-execution", process.execPath, ["--unhandled-rejections=strict", "--test", "--test-concurrency=1", join(author, "emitted/tests/plugins/stream-five-public/current.review.js")], report.root, { env: { ...environment, STREAM_NEXT_REVIEW_OUTPUT: output, STREAM_NEXT_REVIEW_FROZEN: join(historical, "frozen/native.json") } });
+        step(report, "current-stream-execution", process.execPath, ["--unhandled-rejections=strict", "--test", "--test-concurrency=1", join(author, "emitted/tests/plugins/stream-five-public/current.review.js")], report.root, { env: { ...nativeEnvironment, STREAM_NEXT_REVIEW_OUTPUT: output, STREAM_NEXT_REVIEW_FROZEN: join(historical, "frozen/native.json") } });
         assert.equal(sha256(readFileSync(join(historical, "strong-diagnostics.mjs"))), "a0a573ac0d7f5ccbfd40b26a0efaf967533a2d02a9e9a65dfccaa4289f12e40c");
         step(report, "current-stream-diagnostics", process.execPath, [join(historical, "strong-diagnostics.mjs"), join(output, "results.json"), join(output, "diagnostics.json"), join(historical, "evidence/final/release.json")]);
         const results = JSON.parse(readFileSync(join(output, "results.json")));
@@ -98,6 +116,8 @@ try {
         report.stream = { summary: results.summary, diagnosticSummary: diagnostics.summary, originalHarnessSha256: profile.originalSha256, currentHarnessSha256: profile.currentSha256, frozenManifest };
         publicChecks(report);
       }
+      report.testsUnchanged = unchangedTests(report);
+      assert.equal(report.testsUnchanged, true, "candidate test bytes changed");
       finish(report, 0);
     }
   }

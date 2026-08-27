@@ -1712,6 +1712,31 @@ that any implementation, command, fixture, or test currently exists.
   in that update. No rerun or new failure verification is claimed here; the
   author's tested source, hashes, results and historical evidence remain unchanged.
 
+### Current-consumer and archive release wiring (August 27, 2026)
+
+- The mandatory qualified job now adds a committed-candidate archive prerequisite
+  and explicit build-first standalone public-consumer phase. Root cold configs,
+  canonical test selection, historical consumers/oracles and package dependencies
+  are unchanged. Per-path inventory and reproducible commands are in
+  `tests/plugins/qualified-current-release/README.md`; frozen evidence is not a
+  current pass, and provider-only strict compilation is not provider execution.
+- Dirac `aac345a0` retains canonical470/470+485/485 and historical standalone
+  omissions11/30. The current inventory separately includes the newly committed
+  S3 rmdir consumer; no all-TypeScript-included claim is made. Historical
+  selected-gnu strict build-first compilation remains mandatory without running
+  its obsolete runtime gate.
+- Existing tar pins from `e3c04127` are authenticated and staged only at the
+  current candidate's exact hardcoded fixture path. The historical same-e36
+  5pass/6fail missing-tool and11/11 configured records are preserved, not wired
+  as current proof. Missing/wrong/unset explicit tar input fails setup before
+  tests. Fixture uid/gid/groups/umask/ACL and real pinned chmod authority are
+  recorded; only a new owned temporary directory may receive group normalization.
+- Initial scoped prerequisite controls pass6/6. Exact committed-candidate outer
+  execution evidence follows separately. Original author318, independent316/318,
+  six historical SGID differences and native124/164 strict plus40 stderr
+  differences remain unchanged. Five cleanup blockers remain OPEN pending
+  independent closure; this wiring is not full lifecycle/release-ready acceptance.
+
 ### Remaining product validation
 
 - Re-run whole-repo typechecking, tests, build, and export checks as concurrent

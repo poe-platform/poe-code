@@ -132,7 +132,15 @@ or hexadecimal suffixes. No new algorithm or flag support is implied.
 Public build, moved offline package, strict TypeScript and qualified native
 evidence is in `tests/plugins/stream-five-public/README.md`. The qualified
 release command there is additive to the existing portable checks, not their
-replacement. The retained native cohort has **124/164 strict** executions
+replacement. The current mandatory profile is documented in
+`tests/plugins/qualified-current-release/README.md`: it additionally requires
+`--archive-tar-from` pointing to the authenticated existing GNU tar 1.35 binary,
+stages it at both archive fixtures' hardcoded location, and runs build-first
+current standalone public consumers. `GNU_TAR` alone does not configure those
+fixtures. Current provider-only programs receive strict public type checks,
+not an invented deployed-service pass; frozen `.mts` evidence stays historical.
+The root cold config is unchanged and does **not** include all TypeScript files.
+The retained native cohort has **124/164 strict** executions
 and **164/164 diagnostic-meaning-v2** executions: **40 exact stderr differences
 remain**, so these results are not full parity or a full-project gate.
 

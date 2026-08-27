@@ -1,0 +1,885 @@
+{
+  "sourceCommit": "f7000b05b15fa34371226b35cf537d3f73bbf004",
+  "anchors": {
+    "src/shell/arithmetic.ts": "5e2d784b8fd333972e6e413f4c3478163462a3c1abf8cc5ff7173963420440bd",
+    "src/shell/display.ts": "3d372572020a09dc5484acc575891ab1f24c8c9eba263c0a17c49b714611e069",
+    "src/shell/index.ts": "235ad982a7bfe23823b4e07d714ed73e924a5d7759a8664f8533b03517ffa383",
+    "src/shell/input.ts": "7af2dac6dfd6290e9f189590e9190b2e0703dcd99998212e471378063cd9a7b4",
+    "src/shell/locale.ts": "1b0687b8401c3f0886a793bf6f212a1731d4bd973be6ac2c7642254e6e1fb2d2",
+    "src/shell/parser.ts": "28492059750ba7f11fad563dfc03dba049f232b3f2212186cf3553e4559ae905",
+    "src/shell/pattern.ts": "eaf798a7f92c050734e97ef77e07397b3e5710a822575899cca81a527985609a",
+    "src/shell/runtime.ts": "c7c9d02ddde5576b7810bfecbbd21b70c6eb2c0ea4fe1ee8bee92c21946d8449",
+    "src/shell/shell.ts": "4ac91162195c150848793c92b8b1e90f15a36e67b5ae8a2652fe7ed9dcf4fb5e",
+    "src/shell/types.ts": "fc4133f1fb41283b0586aa7597c766d393d4f91067b613f4777e5adbef230a6d"
+  },
+  "frozenInputs": {
+    "benchmarks/shell-stress/diagnostic-profiles/native-baseline.json": "0cb9d0b498331434ec2a49dd4f75b30dcfb10db2ff8fd029613d948f119d4cf3",
+    "tests/shell-stress/cases.ts": "650a40d9ae11c771d4924a8b0dba96cc3e2cb0aea5f0cc9f599cd60b9610676a",
+    "tests/shell-stress/helpers.ts": "fac158c5440cca46fc6b35ab8e9598ce8b37b9cfaa0f19033c182e4a8ebe1ac6",
+    "tests/shell-stress/differential.test.ts": "985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118",
+    "tests/shell-stress/current-gaps/cases.ts": "57c7f254d216fdad18ef2f37ac60657ce65aeec9abff6423c9f72cc85888024d",
+    "tests/shell-stress/current-gaps/reference.ts": "4dd6ad46229a0eb3d4bd3424edcd556ed91ff1acb094518c09550ace079cdd63",
+    "tests/shell-stress/current-gaps/compatibility.test.ts": "93f4d8dd5938ddba1464b126e5aec00c5304eacbd7470768e550301837dc4fa6",
+    "tests/shell-stress/diagnostic-profiles/profile.ts": "e20db40a857317e810ff3a7e6ac337734937f2e0035351a32d6e4f746abac476",
+    "tests/shell-stress/diagnostic-profiles/compatibility.test.ts": "27b8165d4a2ff98879fe2e5892ac70b28e5dab11fcef86d9349f1afbba4f6bd4",
+    "tests/shell/diagnostic-limits.json": "60533bc1f75ef7723d105fb5cc934eeff6b159c18254f54962acd5c22a31ca3e"
+  },
+  "profiles": [
+    {
+      "name": "primary-5.3",
+      "executable": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+      "sha256": "8cecb482de24198c23a736b931cb7e8cee1f94eb0b51abd54bd99f1d73d9673c",
+      "version": "GNU bash, version 5.3.0(1)-release (aarch64-apple-darwin25.4.0)\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>\n\nThis is free software; you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n"
+    },
+    {
+      "name": "historical-3.2",
+      "executable": "/bin/bash",
+      "sha256": "35536aea9733aa345b61134a98d00232380898e55b2ea2a07c497011f7dfc7a3",
+      "version": "GNU bash, version 3.2.57(1)-release (arm64-apple-darwin25)\nCopyright (C) 2007 Free Software Foundation, Inc.\n"
+    }
+  ],
+  "oldNine": [
+    "move-output-really-closes-source",
+    "move-input-really-closes-source",
+    "prevalidation-prior-output-and-file",
+    "fatal-parameter-preserves-only-earlier-effects",
+    "nested-substitution-syntax-error-does-not-prevent-earlier-effects",
+    "fatal-parameter-expansion-prevents-following-file-effect",
+    "fatal-arithmetic-expansion-prevents-following-file-effect",
+    "fatal-expansion-in-substitution-stops-substitution-only",
+    "command-substitution-removes-nul-bytes"
+  ],
+  "original88": [
+    {
+      "cohort": "original-differential",
+      "fixture": {
+        "name": "descriptor-save-and-restore-routes-stderr-through-pipe",
+        "script": "{ printf out; printf err >&2; } 3>&1 1>out 2>&3 3>&- | cat"
+      }
+    },
+    {
+      "cohort": "original-differential",
+      "fixture": {
+        "name": "descriptor-move-closes-original-after-copy",
+        "script": "{ printf moved >&4; } 3>saved 4>&3-"
+      }
+    },
+    {
+      "cohort": "original-differential",
+      "fixture": {
+        "name": "closing-stdout-then-reopening-is-left-to-right",
+        "script": "printf restored 1>&- >restored; cat restored"
+      }
+    },
+    {
+      "cohort": "original-differential",
+      "fixture": {
+        "name": "closing-stderr-does-not-close-duplicated-stdout",
+        "script": "printf retained 2>saved 1>&2 2>&-; cat saved"
+      }
+    },
+    {
+      "cohort": "original-differential",
+      "fixture": {
+        "name": "group-redirection-is-restored-after-return",
+        "script": "f() { printf inner; return 7; }; f >inner; printf 'status=%s;' \"$?\"; printf outer; cat inner"
+      }
+    },
+    {
+      "cohort": "original-differential",
+      "fixture": {
+        "name": "pipe-established-before-stderr-copy-and-output-redirect",
+        "script": "{ printf out; printf err >&2; } 2>&1 >out | cat; cat out"
+      }
+    },
+    {
+      "cohort": "original-differential",
+      "fixture": {
+        "name": "nested-truncate-does-not-reset-outer-file-offset",
+        "script": "{ printf abcdef; printf XY >same; printf Z; } >same; cat same"
+      }
+    },
+    {
+      "cohort": "original-differential",
+      "fixture": {
+        "name": "independent-output-descriptors-have-separate-offsets",
+        "script": "{ printf abcdef; printf XY >&2; printf '!'; printf Z >&2; } >same 2>same; cat same"
+      }
+    },
+    {
+      "cohort": "original-differential",
+      "fixture": {
+        "name": "duplicated-output-descriptors-share-offset",
+        "script": "{ printf abcdef; printf XY >&2; printf '!'; printf Z >&2; } >same 2>&1; cat same"
+      }
+    },
+    {
+      "cohort": "original-differential",
+      "fixture": {
+        "name": "append-descriptor-observes-intervening-truncation",
+        "script": "{ printf abc; printf X >same; printf Y; } >>same; cat same",
+        "initialFiles": {
+          "same": "old"
+        }
+      }
+    },
+    {
+      "cohort": "original-differential",
+      "fixture": {
+        "name": "redirect-expansion-side-effect-precedes-truncate",
+        "script": "printf payload >\"$(printf marker >marker; printf target)\"; cat marker target"
+      }
+    },
+    {
+      "cohort": "original-differential",
+      "fixture": {
+        "name": "read-and-substitution-consume-one-inherited-offset",
+        "script": "IFS= read -r first; value=$(cat); printf \"<%s><%s>\" \"$first\" \"$value\"; cat",
+        "stdin": "first\nsecond\nthird\n"
+      }
+    },
+    {
+      "cohort": "original-differential",
+      "fixture": {
+        "name": "read-in-subshell-consumes-input-but-not-parent-variable",
+        "script": "value=outer; (IFS= read -r value; printf \"[%s]\" \"$value\"); IFS= read -r next; printf \"[%s][%s]\" \"$value\" \"$next\"; cat",
+        "stdin": "one\ntwo\ntail"
+      }
+    },
+    {
+      "cohort": "original-differential",
+      "fixture": {
+        "name": "multiple-input-redirections-only-last-is-consumed",
+        "script": "IFS= read -r line <one <two; printf \"[%s]\" \"$line\"; cat",
+        "initialFiles": {
+          "one": "ONE\n",
+          "two": "TWO\n"
+        },
+        "stdin": "HOST\n"
+      }
+    },
+    {
+      "cohort": "original-differential",
+      "fixture": {
+        "name": "read-n-consumes-exactly-two-characters",
+        "script": "IFS= read -r -n 2 value; printf \"[%s]\" \"$value\"; cat",
+        "stdin": "abcdef\n"
+      }
+    },
+    {
+      "cohort": "original-differential",
+      "fixture": {
+        "name": "read-d-consumes-through-delimiter-only",
+        "script": "IFS= read -r -d : value; printf \"[%s]\" \"$value\"; cat",
+        "stdin": "ab:cd:ef\n"
+      }
+    },
+    {
+      "cohort": "original-differential",
+      "fixture": {
+        "name": "read-backslash-newline-joins-before-splitting",
+        "script": "read first second; printf \"[%s][%s]\" \"$first\" \"$second\"; cat",
+        "stdin": "one\\\n two three\nrest\n"
+      }
+    },
+    {
+      "cohort": "original-differential",
+      "fixture": {
+        "name": "read-last-variable-preserves-inner-separators",
+        "script": "IFS=: read -r first rest; printf \"[%s][%s]\" \"$first\" \"$rest\"",
+        "stdin": "one::two:three:\n"
+      }
+    },
+    {
+      "cohort": "original-differential",
+      "fixture": {
+        "name": "redirected-pipeline-input-leaves-inherited-input-intact",
+        "script": "printf unused | { IFS= read -r value; printf \"[%s]\" \"$value\"; } <input; cat",
+        "initialFiles": {
+          "input": "file\n"
+        },
+        "stdin": "host\n"
+      }
+    },
+    {
+      "cohort": "original-differential",
+      "fixture": {
+        "name": "pipefail-picks-rightmost-nonzero-not-first",
+        "script": "set -o pipefail; (exit 7) | (exit 3) | cat; printf '%s' \"$?\""
+      }
+    },
+    {
+      "cohort": "original-differential",
+      "fixture": {
+        "name": "pipeline-negation-with-pipefail-controls-conditional",
+        "script": "set -o pipefail; ! (exit 9) | cat && printf yes; printf '%s' \"$?\""
+      }
+    },
+    {
+      "cohort": "original-differential",
+      "fixture": {
+        "name": "function-in-middle-of-pipeline-preserves-bytes",
+        "script": "copy() { cat; }; printf 'a\\000b\\n' | copy | cat >binary; cat binary"
+      }
+    },
+    {
+      "cohort": "original-differential",
+      "fixture": {
+        "name": "early-pipeline-reader-closes-bounded-producer",
+        "script": "for value in 1 2 3 4 5 6 7 8; do printf '%s\\n' \"$value\"; done | head -n 1; printf done",
+        "limits": {
+          "pipeHighWaterMark": 1
+        }
+      }
+    },
+    {
+      "cohort": "original-differential",
+      "fixture": {
+        "name": "quoted-positional-at-concatenates-only-edge-fields",
+        "script": "f() { printf \"<%s>\" \"pre$@post\"; }; f \"one two\" \"\" three; f"
+      }
+    },
+    {
+      "cohort": "original-differential",
+      "fixture": {
+        "name": "quoted-star-uses-first-ifs-character",
+        "script": "f() { IFS=:; printf \"<%s>\" \"$*\"; IFS=; printf \"<%s>\" \"$*\"; }; f one \"two words\" \"\" three"
+      }
+    },
+    {
+      "cohort": "original-differential",
+      "fixture": {
+        "name": "ifs-nonwhitespace-delimiters-retain-empty-fields",
+        "script": "IFS=:; value=\":a::b:\"; printf \"<%s>\" $value"
+      }
+    },
+    {
+      "cohort": "original-differential",
+      "fixture": {
+        "name": "quoted-empty-prefix-preserves-otherwise-empty-field",
+        "script": "value=; printf \"<%s>\" \"\"$value $value \"$value\""
+      }
+    },
+    {
+      "cohort": "original-differential",
+      "fixture": {
+        "name": "default-operator-does-not-evaluate-unused-substitution",
+        "script": "value=kept; printf \"<%s>\" \"${value:-$(printf wrong >unexpected)}\"; printf \"<%s>\" \"${missing:+$(printf wrong >unexpected)}\""
+      }
+    },
+    {
+      "cohort": "original-differential",
+      "fixture": {
+        "name": "assignment-default-side-effect-persists-outside-expansion",
+        "script": "printf \"<%s><%s>\" \"${value:=two words}\" \"$value\"; printf \"%s\" \"$value\" >result"
+      }
+    },
+    {
+      "cohort": "original-differential",
+      "fixture": {
+        "name": "prefix-assignment-value-expansion-sees-prior-assignment",
+        "script": "first=old; first=new second=$first; printf \"<%s><%s>\" \"$first\" \"$second\""
+      }
+    },
+    {
+      "cohort": "original-differential",
+      "fixture": {
+        "name": "command-substitution-file-shortcut-reads-and-trims",
+        "script": "printf \"<%s>\" \"$(<input)\"",
+        "initialFiles": {
+          "input": "one\ntwo\n\n"
+        }
+      }
+    },
+    {
+      "cohort": "original-differential",
+      "fixture": {
+        "name": "substitution-retains-interior-newlines-and-isolates-variable",
+        "script": "value=outer; result=$(value=inner; printf \"a\\nb\\n\\n\"); printf \"<%s><%s>\" \"$result\" \"$value\""
+      }
+    },
+    {
+      "cohort": "original-differential",
+      "fixture": {
+        "name": "last-assignment-substitution-status-wins",
+        "script": "first=$(exit 7) second=$(exit 3); printf \"%s\" \"$?\""
+      }
+    },
+    {
+      "cohort": "original-differential",
+      "fixture": {
+        "name": "substitution-does-not-reparse-metacharacters",
+        "script": "value=$(printf \"x; printf wrong >unexpected\"); printf \"<%s>\" \"$value\""
+      }
+    },
+    {
+      "cohort": "original-differential",
+      "fixture": {
+        "name": "ansi-c-quoted-word-decodes-escape-before-argument-passing",
+        "script": "printf '<%s>' $'one\\ntwo\\tthree'"
+      }
+    },
+    {
+      "cohort": "original-differential",
+      "fixture": {
+        "name": "backquote-substitution-preserves-double-quoted-result",
+        "script": "printf \"<%s>\" \"`printf 'one two\\n\\n'`\""
+      }
+    },
+    {
+      "cohort": "original-differential",
+      "fixture": {
+        "name": "quoted-glob-fragment-remains-literal-inside-pattern",
+        "script": "printf '<%s>' 'a*'?.txt",
+        "initialFiles": {
+          "a*1.txt": "yes",
+          "abc1.txt": "no",
+          "a*2.txt": "also"
+        }
+      }
+    },
+    {
+      "cohort": "original-differential",
+      "fixture": {
+        "name": "glob-question-mark-matches-one-character-including-brackets",
+        "script": "printf '<%s>' x?.txt",
+        "initialFiles": {
+          "x[.txt": "",
+          "x].txt": "",
+          "xx.txt": "",
+          "xzz.txt": ""
+        }
+      }
+    },
+    {
+      "cohort": "original-differential",
+      "fixture": {
+        "name": "glob-hidden-directory-requires-explicit-dot",
+        "script": "printf '<%s>' */*.txt .hidden/*.txt",
+        "initialFiles": {
+          "normal/a.txt": "",
+          ".hidden/b.txt": "",
+          "normal/.secret.txt": ""
+        }
+      }
+    },
+    {
+      "cohort": "original-differential",
+      "fixture": {
+        "name": "redirect-glob-resolves-single-match-with-space",
+        "script": "printf replacement >*.txt; cat *.txt",
+        "initialFiles": {
+          "one file.txt": "old"
+        }
+      }
+    },
+    {
+      "cohort": "original-differential",
+      "fixture": {
+        "name": "tilde-prefix-in-assignment-not-in-quoted-word",
+        "script": "HOME=/home/fixture; value=~/child; printf \"<%s><%s>\" \"$value\" \"~/child\""
+      }
+    },
+    {
+      "cohort": "original-differential",
+      "fixture": {
+        "name": "heredoc-tab-stripping-keeps-other-whitespace",
+        "script": "cat <<-END\n\talpha\n \tbeta\n\tEND\n"
+      }
+    },
+    {
+      "cohort": "original-differential",
+      "fixture": {
+        "name": "multiple-heredocs-last-input-wins",
+        "script": "cat <<FIRST <<'SECOND'\nunused\nFIRST\n$value $(printf literal)\nSECOND\n"
+      }
+    },
+    {
+      "cohort": "original-differential",
+      "fixture": {
+        "name": "here-string-expands-without-splitting-or-globbing",
+        "script": "value='a * b'; cat <<<$value",
+        "initialFiles": {
+          "match": ""
+        }
+      }
+    },
+    {
+      "cohort": "original-differential",
+      "fixture": {
+        "name": "arithmetic-logical-branch-does-not-mutate-unused-side",
+        "script": "value=0; printf \"%s,%s,%s\" \"$((0 && (value=7)))\" \"$((1 || (value=9)))\" \"$value\""
+      }
+    },
+    {
+      "cohort": "original-differential",
+      "fixture": {
+        "name": "compound-loop-return-restores-outer-function-positionals",
+        "script": "inner() { printf \"<%s>\" \"$1\"; return 4; }; outer() { for value in a b; do inner \"$value\"; done; printf \"<%s>\" \"$1\"; }; outer kept"
+      }
+    },
+    {
+      "cohort": "original-differential",
+      "fixture": {
+        "name": "nested-substitution-syntax-error-does-not-prevent-earlier-effects",
+        "script": "printf touched >marker; printf '%s' \"$(true |)\""
+      }
+    },
+    {
+      "cohort": "original-differential",
+      "fixture": {
+        "name": "early-reader-must-not-cancel-upstream-non-pipe-effects",
+        "script": "{ :; : >after; } | :"
+      }
+    },
+    {
+      "cohort": "original-differential",
+      "fixture": {
+        "name": "early-reader-must-not-cancel-redirected-producer-output",
+        "script": "printf abc >out | true"
+      }
+    },
+    {
+      "cohort": "original-differential",
+      "fixture": {
+        "name": "early-reader-must-not-replace-upstream-failure-with-sigpipe",
+        "script": "set -o pipefail; { true; false; } | true"
+      }
+    },
+    {
+      "cohort": "original-differential",
+      "fixture": {
+        "name": "fatal-parameter-expansion-prevents-following-file-effect",
+        "script": ": \"${missing:?stop}\"; : >after"
+      }
+    },
+    {
+      "cohort": "original-differential",
+      "fixture": {
+        "name": "fatal-arithmetic-expansion-prevents-following-file-effect",
+        "script": ": \"$((1/0))\"; : >after"
+      }
+    },
+    {
+      "cohort": "original-differential",
+      "fixture": {
+        "name": "fatal-expansion-in-substitution-stops-substitution-only",
+        "script": "value=$(printf \"%s\" \"${missing:?stop}\"; printf wrong); printf \"<%s>:%s\\n\" \"$value\" \"$?\""
+      }
+    },
+    {
+      "cohort": "original-differential",
+      "fixture": {
+        "name": "group-inherits-descriptor-three-for-inner-redirection",
+        "script": "{ printf x >&3; } 3>out"
+      }
+    },
+    {
+      "cohort": "original-differential",
+      "fixture": {
+        "name": "group-inherits-input-descriptor-and-shared-read-offset",
+        "script": "{ IFS= read -r first <&3; printf \"<%s>\\n\" \"$first\"; cat <&3; } 3<input",
+        "initialFiles": {
+          "input": "a\nb\n"
+        }
+      }
+    },
+    {
+      "cohort": "original-differential",
+      "fixture": {
+        "name": "redirect-target-substitution-inherits-earlier-stderr-redirect",
+        "script": "printf hi 2>err >\"$(printf diagnostic >&2; printf out)\""
+      }
+    },
+    {
+      "cohort": "original-differential",
+      "fixture": {
+        "name": "read-escaped-ifs-character-is-not-a-field-separator",
+        "script": "read first second; printf \"<%s>|<%s>\\n\" \"$first\" \"$second\"",
+        "stdin": "a\\ b c\n"
+      }
+    },
+    {
+      "cohort": "original-differential",
+      "fixture": {
+        "name": "read-mixed-ifs-whitespace-does-not-create-spurious-fields",
+        "script": "IFS=\" :\" read first second third; printf \"<%s>|<%s>|<%s>\\n\" \"$first\" \"$second\" \"$third\"",
+        "stdin": " a : b : c \n"
+      }
+    },
+    {
+      "cohort": "original-differential",
+      "fixture": {
+        "name": "read-discards-single-trailing-nonwhitespace-ifs-delimiter",
+        "script": "IFS=: read first second; printf \"<%s>|<%s>\\n\" \"$first\" \"$second\"",
+        "stdin": "a:b:\n"
+      }
+    },
+    {
+      "cohort": "original-differential",
+      "fixture": {
+        "name": "quoted-pattern-removal-star-is-literal",
+        "script": "value=\"abc*def\"; printf \"<%s>\\n\" \"${value%\"*\"*}\""
+      }
+    },
+    {
+      "cohort": "original-differential",
+      "fixture": {
+        "name": "glob-posix-bracket-digit-class",
+        "script": "printf '<%s>\\n' [[:digit:]].txt",
+        "initialFiles": {
+          "1.txt": "",
+          "a.txt": ""
+        }
+      }
+    },
+    {
+      "cohort": "original-differential",
+      "fixture": {
+        "name": "command-substitution-removes-nul-bytes",
+        "script": "value=$(printf \"a\\0b\"); printf \"<%s>\\n\" \"$value\""
+      }
+    },
+    {
+      "cohort": "original-differential",
+      "fixture": {
+        "name": "export-prefix-assignment-persists-in-shell",
+        "script": "value=old; value=new export value; printf \"<%s>\\n\" \"$value\""
+      }
+    },
+    {
+      "cohort": "original-differential",
+      "fixture": {
+        "name": "local-without-assignment-starts-unset",
+        "script": "value=outer; func() { local value; printf \"<%s>\\n\" \"$value\"; }; func"
+      }
+    },
+    {
+      "cohort": "original-differential",
+      "fixture": {
+        "name": "glob-matches-newline-bytes-and-the-exact-filename",
+        "script": "printf '<%s>\\n' * a?b a[ab]",
+        "initialFiles": {
+          "a\nb": "",
+          "aa\n": "",
+          "plain": ""
+        }
+      }
+    },
+    {
+      "cohort": "original-differential",
+      "fixture": {
+        "name": "parameter-patterns-match-newlines-with-exact-boundaries",
+        "script": "value=\"a\n\"; printf \"<%s>\\n\" \"${value##*}\" \"${value%%*}\" \"${value##?}\" \"${value%?}\""
+      }
+    },
+    {
+      "cohort": "original-differential",
+      "fixture": {
+        "name": "seed-5eed1234-glob-pipeline-0",
+        "script": "for value in [ab]*.txt; do printf '[%s]\\n' \"$value\"; cat \"$value\"; done | cat >result; cat result",
+        "initialFiles": {
+          "d 0.txt": "1254987779\n",
+          "c1.txt": "3418086790\n",
+          "b2.txt": "290625325\n",
+          "a 3.txt": "3376516776\n",
+          "d4.txt": "2181177831\n",
+          "c5.txt": "4288394778\n",
+          "b 6.txt": "175083185\n",
+          "a7.txt": "641513564\n",
+          "d8.txt": "1609889803\n",
+          "c 9.txt": "4022791662\n",
+          ".hidden.txt": "hidden"
+        },
+        "limits": {
+          "pipeHighWaterMark": 1
+        }
+      }
+    },
+    {
+      "cohort": "original-differential",
+      "fixture": {
+        "name": "seed-5eed1234-glob-pipeline-1",
+        "script": "for value in [ab]*.txt; do printf '[%s]\\n' \"$value\"; cat \"$value\"; done | cat >result; cat result",
+        "initialFiles": {
+          "b 0.txt": "3902004341\n",
+          "a1.txt": "2100609872\n",
+          "d2.txt": "2965290607\n",
+          "c 3.txt": "3470121218\n",
+          "b4.txt": "586400889\n",
+          "a5.txt": "1391010692\n",
+          "d 6.txt": "3461372179\n",
+          "c7.txt": "1826360150\n",
+          "b8.txt": "2340801213\n",
+          "a 9.txt": "1836485880\n",
+          ".hidden.txt": "hidden"
+        },
+        "limits": {
+          "pipeHighWaterMark": 2
+        }
+      }
+    },
+    {
+      "cohort": "original-differential",
+      "fixture": {
+        "name": "seed-5eed1234-glob-pipeline-2",
+        "script": "for value in [ab]*.txt; do printf '[%s]\\n' \"$value\"; cat \"$value\"; done | cat >result; cat result",
+        "initialFiles": {
+          "d 0.txt": "3419859959\n",
+          "c1.txt": "1132222698\n",
+          "b2.txt": "3825644353\n",
+          "a 3.txt": "4253741996\n",
+          "d4.txt": "1163909915\n",
+          "c5.txt": "1497159102\n",
+          "b 6.txt": "3778904581\n",
+          "a7.txt": "3772353440\n",
+          "d8.txt": "4156344959\n",
+          "c 9.txt": "3491419602\n",
+          ".hidden.txt": "hidden"
+        },
+        "limits": {
+          "pipeHighWaterMark": 3
+        }
+      }
+    },
+    {
+      "cohort": "original-differential",
+      "fixture": {
+        "name": "seed-5eed1234-glob-pipeline-3",
+        "script": "for value in [ab]*.txt; do printf '[%s]\\n' \"$value\"; cat \"$value\"; done | cat >result; cat result",
+        "initialFiles": {
+          "b 0.txt": "1618967305\n",
+          "a1.txt": "4056860884\n",
+          "d2.txt": "2225577507\n",
+          "c 3.txt": "861859110\n",
+          "b4.txt": "3547603533\n",
+          "a5.txt": "2558811976\n",
+          "d 6.txt": "119962119\n",
+          "c7.txt": "3635474362\n",
+          "b8.txt": "639187921\n",
+          "a 9.txt": "284508924\n",
+          ".hidden.txt": "hidden"
+        },
+        "limits": {
+          "pipeHighWaterMark": 4
+        }
+      }
+    },
+    {
+      "cohort": "original-differential",
+      "fixture": {
+        "name": "seed-5eed1234-glob-pipeline-4",
+        "script": "for value in [ab]*.txt; do printf '[%s]\\n' \"$value\"; cat \"$value\"; done | cat >result; cat result",
+        "initialFiles": {
+          "d 0.txt": "1546633771\n",
+          "c1.txt": "3899388302\n",
+          "b2.txt": "2735131541\n",
+          "a 3.txt": "443656176\n",
+          "d4.txt": "1133386383\n",
+          "c5.txt": "3778168482\n",
+          "b 6.txt": "2582844825\n",
+          "a7.txt": "72548900\n",
+          "d8.txt": "3171182387\n",
+          "c 9.txt": "2864808694\n",
+          ".hidden.txt": "hidden"
+        },
+        "limits": {
+          "pipeHighWaterMark": 5
+        }
+      }
+    },
+    {
+      "cohort": "original-differential",
+      "fixture": {
+        "name": "seed-5eed1234-glob-pipeline-5",
+        "script": "for value in [ab]*.txt; do printf '[%s]\\n' \"$value\"; cat \"$value\"; done | cat >result; cat result",
+        "initialFiles": {
+          "b 0.txt": "3430325725\n",
+          "a1.txt": "1274021272\n",
+          "d2.txt": "1169280023\n",
+          "c 3.txt": "2349234826\n",
+          "b4.txt": "3843041377\n",
+          "a5.txt": "1070638668\n",
+          "d 6.txt": "3652562235\n",
+          "c7.txt": "2557559134\n",
+          "b8.txt": "2087237925\n",
+          "a 9.txt": "1545738304\n",
+          ".hidden.txt": "hidden"
+        },
+        "limits": {
+          "pipeHighWaterMark": 6
+        }
+      }
+    },
+    {
+      "cohort": "original-syntax",
+      "fixture": {
+        "name": "unterminated-quote-after-write",
+        "script": "printf touched >marker; printf \"unterminated"
+      }
+    },
+    {
+      "cohort": "original-syntax",
+      "fixture": {
+        "name": "missing-pipeline-command-after-write",
+        "script": "printf touched >marker; true |"
+      }
+    },
+    {
+      "cohort": "original-syntax",
+      "fixture": {
+        "name": "missing-conditional-operand-after-write",
+        "script": "printf touched >marker; true &&"
+      }
+    },
+    {
+      "cohort": "original-syntax",
+      "fixture": {
+        "name": "missing-group-terminator-after-write",
+        "script": "{ printf touched >marker;"
+      }
+    },
+    {
+      "cohort": "original-syntax",
+      "fixture": {
+        "name": "missing-if-fi-after-write",
+        "script": "printf touched >marker; if true; then printf wrong"
+      }
+    },
+    {
+      "cohort": "current-gaps",
+      "fixture": {
+        "name": "move-output-really-closes-source",
+        "script": "{ printf moved >&4; printf lost >&3; printf 'status=%s' \"$?\"; } 3>saved 4>&3-"
+      }
+    },
+    {
+      "cohort": "current-gaps",
+      "fixture": {
+        "name": "move-input-really-closes-source",
+        "script": "{ IFS= read -r value <&4; printf '<%s>' \"$value\"; IFS= read -r missing <&3; printf 'status=%s' \"$?\"; } 3<input 4<&3-",
+        "initialFiles": {
+          "input": "first\nsecond\n"
+        }
+      }
+    },
+    {
+      "cohort": "current-gaps",
+      "fixture": {
+        "name": "read-n-stops-at-newline-before-count",
+        "script": "IFS= read -r -n 4 value; status=$?; printf \"<%s>:%s:\" \"$value\" \"$status\"; cat",
+        "stdin": "a\nrest\n"
+      }
+    },
+    {
+      "cohort": "current-gaps",
+      "fixture": {
+        "name": "read-d-empty-selects-nul",
+        "script": "IFS= read -r -d \"\" value; status=$?; printf \"<%s>:%s:\" \"$value\" \"$status\"; cat",
+        "stdin": "a\nb\u0000tail\n"
+      }
+    },
+    {
+      "cohort": "current-gaps",
+      "fixture": {
+        "name": "read-d-missing-delimiter-retains-data-with-failure",
+        "script": "IFS= read -r -d : value; status=$?; printf \"<%s>:%s:\" \"$value\" \"$status\"; cat",
+        "stdin": "tail"
+      }
+    },
+    {
+      "cohort": "current-gaps",
+      "fixture": {
+        "name": "file-shortcut-does-not-consume-inherited-stdin",
+        "script": "printf \"<%s>\" \"$(<input)\"; cat",
+        "stdin": "host\n",
+        "initialFiles": {
+          "input": "file\n\n"
+        }
+      }
+    },
+    {
+      "cohort": "current-gaps",
+      "fixture": {
+        "name": "ansi-c-word-is-quoted-not-split-or-globbed",
+        "script": "printf '<%s>' prefix$'a b\\t*'suffix",
+        "initialFiles": {
+          "match": ""
+        }
+      }
+    },
+    {
+      "cohort": "current-gaps",
+      "fixture": {
+        "name": "pathname-classes-c-locale-alpha-negation",
+        "script": "printf '<%s>' [[:alpha:]].txt [![:digit:]].txt",
+        "initialFiles": {
+          "7.txt": "",
+          "A.txt": "",
+          "b.txt": ""
+        }
+      }
+    },
+    {
+      "cohort": "current-gaps",
+      "fixture": {
+        "name": "prevalidation-prior-output-and-file",
+        "script": "printf before; printf marker >marker; printf \"%s\" \"$(true |)\"; printf after"
+      }
+    },
+    {
+      "cohort": "current-gaps",
+      "fixture": {
+        "name": "fatal-parameter-preserves-only-earlier-effects",
+        "script": "printf before >before; : \"${missing:?stop}\"; printf after >after"
+      }
+    },
+    {
+      "cohort": "current-gaps",
+      "fixture": {
+        "name": "unmatched-case-bracket-literal-control",
+        "script": "case \"[\" in [) printf literal;; *) printf wrong;; esac"
+      }
+    }
+  ],
+  "nulCases": [
+    {
+      "name": "original-dollar-blanklines",
+      "script": "value=$(:\n\n\nprintf '%s' \"$(printf 'a\\0b')\"\n)"
+    },
+    {
+      "name": "original-backtick-control",
+      "script": "value=`\nprintf '%s' \"$(printf 'a\\0b')\"\n`"
+    },
+    {
+      "name": "dollar-no-blank",
+      "script": "value=$(:\nprintf '%s' \"$(printf 'a\\0b')\"\n)"
+    },
+    {
+      "name": "dollar-one-blank",
+      "script": "value=$(:\n\nprintf '%s' \"$(printf 'a\\0b')\"\n)"
+    },
+    {
+      "name": "dollar-three-blanks",
+      "script": "value=$(:\n\n\n\nprintf '%s' \"$(printf 'a\\0b')\"\n)"
+    },
+    {
+      "name": "dollar-prefix-lines",
+      "script": "\n:\nvalue=$(:\n\n\nprintf '%s' \"$(printf 'a\\0b')\"\n)"
+    },
+    {
+      "name": "nested-multiple-nuls-one-warning",
+      "script": "value=$(:\n\n\nprintf '%s' \"$(printf 'a\\0b\\0c')\"\n); printf '<%s>' \"$value\""
+    },
+    {
+      "name": "two-substitutions-two-warnings",
+      "script": "first=$(printf 'a\\0b');\nsecond=$(printf 'c\\0d'); printf '<%s><%s>' \"$first\" \"$second\""
+    }
+  ],
+  "names": [
+    "shell",
+    "diagnostic-nul-script"
+  ],
+  "nulHash": "2f540ba1c8d443fe70c2838c57edd46177100b662002670b6312841713b41eaa",
+  "rules": "All original bytes/fixtures/assertions unchanged. Historical original helper unchanged; modern original-helper launch globally replaces /bin/bash executable only. -c source name shell-stress unchanged. Profile cohort uses shell. No output, diagnostic, effect, order or path normalization. NUL names each apply to both WHOLE eight-case profiles. First-read custom tests/resources runner NOT executed."
+}

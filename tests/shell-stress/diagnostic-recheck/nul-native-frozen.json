@@ -1,0 +1,1108 @@
+{
+  "sourceCommit": "f7000b05b15fa34371226b35cf537d3f73bbf004",
+  "profiles": [
+    {
+      "name": "primary-5.3",
+      "executable": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+      "sha256": "8cecb482de24198c23a736b931cb7e8cee1f94eb0b51abd54bd99f1d73d9673c",
+      "version": "GNU bash, version 5.3.0(1)-release (aarch64-apple-darwin25.4.0)\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>\n\nThis is free software; you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n"
+    },
+    {
+      "name": "historical-3.2",
+      "executable": "/bin/bash",
+      "sha256": "35536aea9733aa345b61134a98d00232380898e55b2ea2a07c497011f7dfc7a3",
+      "version": "GNU bash, version 3.2.57(1)-release (arm64-apple-darwin25)\nCopyright (C) 2007 Free Software Foundation, Inc.\n"
+    }
+  ],
+  "casesHash": "2f540ba1c8d443fe70c2838c57edd46177100b662002670b6312841713b41eaa",
+  "nativeCaptures": [
+    {
+      "profile": "primary-5.3",
+      "name": "shell",
+      "fixture": "original-dollar-blanklines",
+      "executable": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+      "argv0": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "value=$(:\n\n\nprintf '%s' \"$(printf 'a\\0b')\"\n)",
+        "shell"
+      ],
+      "env": {
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-recheck-XYjSLG/nul-native-kb0fbc",
+        "LANG": "C",
+        "LC_ALL": "C",
+        "TZ": "UTC",
+        "TMPDIR": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-recheck-XYjSLG/nul-native-kb0fbc"
+      },
+      "cwd": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-recheck-XYjSLG/nul-native-kb0fbc",
+      "run": {
+        "pid": 31589,
+        "status": 0,
+        "signal": null,
+        "timedOut": false,
+        "overflow": false,
+        "groupAlive": false,
+        "stdout": "",
+        "stderr": "c2hlbGw6IGxpbmUgNjogd2FybmluZzogY29tbWFuZCBzdWJzdGl0dXRpb246IGlnbm9yZWQgbnVsbCBieXRlIGluIGlucHV0Cg=="
+      },
+      "files": {}
+    },
+    {
+      "profile": "primary-5.3",
+      "name": "shell",
+      "fixture": "original-backtick-control",
+      "executable": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+      "argv0": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "value=`\nprintf '%s' \"$(printf 'a\\0b')\"\n`",
+        "shell"
+      ],
+      "env": {
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-recheck-XYjSLG/nul-native-sfcGJ6",
+        "LANG": "C",
+        "LC_ALL": "C",
+        "TZ": "UTC",
+        "TMPDIR": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-recheck-XYjSLG/nul-native-sfcGJ6"
+      },
+      "cwd": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-recheck-XYjSLG/nul-native-sfcGJ6",
+      "run": {
+        "pid": 31592,
+        "status": 0,
+        "signal": null,
+        "timedOut": false,
+        "overflow": false,
+        "groupAlive": false,
+        "stdout": "",
+        "stderr": "c2hlbGw6IGxpbmUgNDogd2FybmluZzogY29tbWFuZCBzdWJzdGl0dXRpb246IGlnbm9yZWQgbnVsbCBieXRlIGluIGlucHV0Cg=="
+      },
+      "files": {}
+    },
+    {
+      "profile": "primary-5.3",
+      "name": "shell",
+      "fixture": "dollar-no-blank",
+      "executable": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+      "argv0": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "value=$(:\nprintf '%s' \"$(printf 'a\\0b')\"\n)",
+        "shell"
+      ],
+      "env": {
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-recheck-XYjSLG/nul-native-cLzFVS",
+        "LANG": "C",
+        "LC_ALL": "C",
+        "TZ": "UTC",
+        "TMPDIR": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-recheck-XYjSLG/nul-native-cLzFVS"
+      },
+      "cwd": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-recheck-XYjSLG/nul-native-cLzFVS",
+      "run": {
+        "pid": 31595,
+        "status": 0,
+        "signal": null,
+        "timedOut": false,
+        "overflow": false,
+        "groupAlive": false,
+        "stdout": "",
+        "stderr": "c2hlbGw6IGxpbmUgNDogd2FybmluZzogY29tbWFuZCBzdWJzdGl0dXRpb246IGlnbm9yZWQgbnVsbCBieXRlIGluIGlucHV0Cg=="
+      },
+      "files": {}
+    },
+    {
+      "profile": "primary-5.3",
+      "name": "shell",
+      "fixture": "dollar-one-blank",
+      "executable": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+      "argv0": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "value=$(:\n\nprintf '%s' \"$(printf 'a\\0b')\"\n)",
+        "shell"
+      ],
+      "env": {
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-recheck-XYjSLG/nul-native-6Mvozg",
+        "LANG": "C",
+        "LC_ALL": "C",
+        "TZ": "UTC",
+        "TMPDIR": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-recheck-XYjSLG/nul-native-6Mvozg"
+      },
+      "cwd": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-recheck-XYjSLG/nul-native-6Mvozg",
+      "run": {
+        "pid": 31598,
+        "status": 0,
+        "signal": null,
+        "timedOut": false,
+        "overflow": false,
+        "groupAlive": false,
+        "stdout": "",
+        "stderr": "c2hlbGw6IGxpbmUgNTogd2FybmluZzogY29tbWFuZCBzdWJzdGl0dXRpb246IGlnbm9yZWQgbnVsbCBieXRlIGluIGlucHV0Cg=="
+      },
+      "files": {}
+    },
+    {
+      "profile": "primary-5.3",
+      "name": "shell",
+      "fixture": "dollar-three-blanks",
+      "executable": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+      "argv0": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "value=$(:\n\n\n\nprintf '%s' \"$(printf 'a\\0b')\"\n)",
+        "shell"
+      ],
+      "env": {
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-recheck-XYjSLG/nul-native-QHPu1J",
+        "LANG": "C",
+        "LC_ALL": "C",
+        "TZ": "UTC",
+        "TMPDIR": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-recheck-XYjSLG/nul-native-QHPu1J"
+      },
+      "cwd": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-recheck-XYjSLG/nul-native-QHPu1J",
+      "run": {
+        "pid": 31601,
+        "status": 0,
+        "signal": null,
+        "timedOut": false,
+        "overflow": false,
+        "groupAlive": false,
+        "stdout": "",
+        "stderr": "c2hlbGw6IGxpbmUgNzogd2FybmluZzogY29tbWFuZCBzdWJzdGl0dXRpb246IGlnbm9yZWQgbnVsbCBieXRlIGluIGlucHV0Cg=="
+      },
+      "files": {}
+    },
+    {
+      "profile": "primary-5.3",
+      "name": "shell",
+      "fixture": "dollar-prefix-lines",
+      "executable": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+      "argv0": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "\n:\nvalue=$(:\n\n\nprintf '%s' \"$(printf 'a\\0b')\"\n)",
+        "shell"
+      ],
+      "env": {
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-recheck-XYjSLG/nul-native-nHbxmn",
+        "LANG": "C",
+        "LC_ALL": "C",
+        "TZ": "UTC",
+        "TMPDIR": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-recheck-XYjSLG/nul-native-nHbxmn"
+      },
+      "cwd": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-recheck-XYjSLG/nul-native-nHbxmn",
+      "run": {
+        "pid": 31604,
+        "status": 0,
+        "signal": null,
+        "timedOut": false,
+        "overflow": false,
+        "groupAlive": false,
+        "stdout": "",
+        "stderr": "c2hlbGw6IGxpbmUgODogd2FybmluZzogY29tbWFuZCBzdWJzdGl0dXRpb246IGlnbm9yZWQgbnVsbCBieXRlIGluIGlucHV0Cg=="
+      },
+      "files": {}
+    },
+    {
+      "profile": "primary-5.3",
+      "name": "shell",
+      "fixture": "nested-multiple-nuls-one-warning",
+      "executable": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+      "argv0": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "value=$(:\n\n\nprintf '%s' \"$(printf 'a\\0b\\0c')\"\n); printf '<%s>' \"$value\"",
+        "shell"
+      ],
+      "env": {
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-recheck-XYjSLG/nul-native-AgjBp2",
+        "LANG": "C",
+        "LC_ALL": "C",
+        "TZ": "UTC",
+        "TMPDIR": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-recheck-XYjSLG/nul-native-AgjBp2"
+      },
+      "cwd": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-recheck-XYjSLG/nul-native-AgjBp2",
+      "run": {
+        "pid": 31607,
+        "status": 0,
+        "signal": null,
+        "timedOut": false,
+        "overflow": false,
+        "groupAlive": false,
+        "stdout": "PGFiYz4=",
+        "stderr": "c2hlbGw6IGxpbmUgNjogd2FybmluZzogY29tbWFuZCBzdWJzdGl0dXRpb246IGlnbm9yZWQgbnVsbCBieXRlIGluIGlucHV0Cg=="
+      },
+      "files": {}
+    },
+    {
+      "profile": "primary-5.3",
+      "name": "shell",
+      "fixture": "two-substitutions-two-warnings",
+      "executable": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+      "argv0": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "first=$(printf 'a\\0b');\nsecond=$(printf 'c\\0d'); printf '<%s><%s>' \"$first\" \"$second\"",
+        "shell"
+      ],
+      "env": {
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-recheck-XYjSLG/nul-native-L1qEkE",
+        "LANG": "C",
+        "LC_ALL": "C",
+        "TZ": "UTC",
+        "TMPDIR": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-recheck-XYjSLG/nul-native-L1qEkE"
+      },
+      "cwd": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-recheck-XYjSLG/nul-native-L1qEkE",
+      "run": {
+        "pid": 31610,
+        "status": 0,
+        "signal": null,
+        "timedOut": false,
+        "overflow": false,
+        "groupAlive": false,
+        "stdout": "PGFiPjxjZD4=",
+        "stderr": "c2hlbGw6IGxpbmUgMTogd2FybmluZzogY29tbWFuZCBzdWJzdGl0dXRpb246IGlnbm9yZWQgbnVsbCBieXRlIGluIGlucHV0CnNoZWxsOiBsaW5lIDI6IHdhcm5pbmc6IGNvbW1hbmQgc3Vic3RpdHV0aW9uOiBpZ25vcmVkIG51bGwgYnl0ZSBpbiBpbnB1dAo="
+      },
+      "files": {}
+    },
+    {
+      "profile": "primary-5.3",
+      "name": "diagnostic-nul-script",
+      "fixture": "original-dollar-blanklines",
+      "executable": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+      "argv0": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "value=$(:\n\n\nprintf '%s' \"$(printf 'a\\0b')\"\n)",
+        "diagnostic-nul-script"
+      ],
+      "env": {
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-recheck-XYjSLG/nul-native-0ROt2x",
+        "LANG": "C",
+        "LC_ALL": "C",
+        "TZ": "UTC",
+        "TMPDIR": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-recheck-XYjSLG/nul-native-0ROt2x"
+      },
+      "cwd": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-recheck-XYjSLG/nul-native-0ROt2x",
+      "run": {
+        "pid": 31613,
+        "status": 0,
+        "signal": null,
+        "timedOut": false,
+        "overflow": false,
+        "groupAlive": false,
+        "stdout": "",
+        "stderr": "ZGlhZ25vc3RpYy1udWwtc2NyaXB0OiBsaW5lIDY6IHdhcm5pbmc6IGNvbW1hbmQgc3Vic3RpdHV0aW9uOiBpZ25vcmVkIG51bGwgYnl0ZSBpbiBpbnB1dAo="
+      },
+      "files": {}
+    },
+    {
+      "profile": "primary-5.3",
+      "name": "diagnostic-nul-script",
+      "fixture": "original-backtick-control",
+      "executable": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+      "argv0": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "value=`\nprintf '%s' \"$(printf 'a\\0b')\"\n`",
+        "diagnostic-nul-script"
+      ],
+      "env": {
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-recheck-XYjSLG/nul-native-dmJ8vh",
+        "LANG": "C",
+        "LC_ALL": "C",
+        "TZ": "UTC",
+        "TMPDIR": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-recheck-XYjSLG/nul-native-dmJ8vh"
+      },
+      "cwd": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-recheck-XYjSLG/nul-native-dmJ8vh",
+      "run": {
+        "pid": 31616,
+        "status": 0,
+        "signal": null,
+        "timedOut": false,
+        "overflow": false,
+        "groupAlive": false,
+        "stdout": "",
+        "stderr": "ZGlhZ25vc3RpYy1udWwtc2NyaXB0OiBsaW5lIDQ6IHdhcm5pbmc6IGNvbW1hbmQgc3Vic3RpdHV0aW9uOiBpZ25vcmVkIG51bGwgYnl0ZSBpbiBpbnB1dAo="
+      },
+      "files": {}
+    },
+    {
+      "profile": "primary-5.3",
+      "name": "diagnostic-nul-script",
+      "fixture": "dollar-no-blank",
+      "executable": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+      "argv0": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "value=$(:\nprintf '%s' \"$(printf 'a\\0b')\"\n)",
+        "diagnostic-nul-script"
+      ],
+      "env": {
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-recheck-XYjSLG/nul-native-oHcwUt",
+        "LANG": "C",
+        "LC_ALL": "C",
+        "TZ": "UTC",
+        "TMPDIR": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-recheck-XYjSLG/nul-native-oHcwUt"
+      },
+      "cwd": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-recheck-XYjSLG/nul-native-oHcwUt",
+      "run": {
+        "pid": 31619,
+        "status": 0,
+        "signal": null,
+        "timedOut": false,
+        "overflow": false,
+        "groupAlive": false,
+        "stdout": "",
+        "stderr": "ZGlhZ25vc3RpYy1udWwtc2NyaXB0OiBsaW5lIDQ6IHdhcm5pbmc6IGNvbW1hbmQgc3Vic3RpdHV0aW9uOiBpZ25vcmVkIG51bGwgYnl0ZSBpbiBpbnB1dAo="
+      },
+      "files": {}
+    },
+    {
+      "profile": "primary-5.3",
+      "name": "diagnostic-nul-script",
+      "fixture": "dollar-one-blank",
+      "executable": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+      "argv0": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "value=$(:\n\nprintf '%s' \"$(printf 'a\\0b')\"\n)",
+        "diagnostic-nul-script"
+      ],
+      "env": {
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-recheck-XYjSLG/nul-native-lx20hP",
+        "LANG": "C",
+        "LC_ALL": "C",
+        "TZ": "UTC",
+        "TMPDIR": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-recheck-XYjSLG/nul-native-lx20hP"
+      },
+      "cwd": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-recheck-XYjSLG/nul-native-lx20hP",
+      "run": {
+        "pid": 31622,
+        "status": 0,
+        "signal": null,
+        "timedOut": false,
+        "overflow": false,
+        "groupAlive": false,
+        "stdout": "",
+        "stderr": "ZGlhZ25vc3RpYy1udWwtc2NyaXB0OiBsaW5lIDU6IHdhcm5pbmc6IGNvbW1hbmQgc3Vic3RpdHV0aW9uOiBpZ25vcmVkIG51bGwgYnl0ZSBpbiBpbnB1dAo="
+      },
+      "files": {}
+    },
+    {
+      "profile": "primary-5.3",
+      "name": "diagnostic-nul-script",
+      "fixture": "dollar-three-blanks",
+      "executable": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+      "argv0": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "value=$(:\n\n\n\nprintf '%s' \"$(printf 'a\\0b')\"\n)",
+        "diagnostic-nul-script"
+      ],
+      "env": {
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-recheck-XYjSLG/nul-native-YYKUOJ",
+        "LANG": "C",
+        "LC_ALL": "C",
+        "TZ": "UTC",
+        "TMPDIR": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-recheck-XYjSLG/nul-native-YYKUOJ"
+      },
+      "cwd": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-recheck-XYjSLG/nul-native-YYKUOJ",
+      "run": {
+        "pid": 31625,
+        "status": 0,
+        "signal": null,
+        "timedOut": false,
+        "overflow": false,
+        "groupAlive": false,
+        "stdout": "",
+        "stderr": "ZGlhZ25vc3RpYy1udWwtc2NyaXB0OiBsaW5lIDc6IHdhcm5pbmc6IGNvbW1hbmQgc3Vic3RpdHV0aW9uOiBpZ25vcmVkIG51bGwgYnl0ZSBpbiBpbnB1dAo="
+      },
+      "files": {}
+    },
+    {
+      "profile": "primary-5.3",
+      "name": "diagnostic-nul-script",
+      "fixture": "dollar-prefix-lines",
+      "executable": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+      "argv0": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "\n:\nvalue=$(:\n\n\nprintf '%s' \"$(printf 'a\\0b')\"\n)",
+        "diagnostic-nul-script"
+      ],
+      "env": {
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-recheck-XYjSLG/nul-native-9o2LQw",
+        "LANG": "C",
+        "LC_ALL": "C",
+        "TZ": "UTC",
+        "TMPDIR": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-recheck-XYjSLG/nul-native-9o2LQw"
+      },
+      "cwd": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-recheck-XYjSLG/nul-native-9o2LQw",
+      "run": {
+        "pid": 31628,
+        "status": 0,
+        "signal": null,
+        "timedOut": false,
+        "overflow": false,
+        "groupAlive": false,
+        "stdout": "",
+        "stderr": "ZGlhZ25vc3RpYy1udWwtc2NyaXB0OiBsaW5lIDg6IHdhcm5pbmc6IGNvbW1hbmQgc3Vic3RpdHV0aW9uOiBpZ25vcmVkIG51bGwgYnl0ZSBpbiBpbnB1dAo="
+      },
+      "files": {}
+    },
+    {
+      "profile": "primary-5.3",
+      "name": "diagnostic-nul-script",
+      "fixture": "nested-multiple-nuls-one-warning",
+      "executable": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+      "argv0": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "value=$(:\n\n\nprintf '%s' \"$(printf 'a\\0b\\0c')\"\n); printf '<%s>' \"$value\"",
+        "diagnostic-nul-script"
+      ],
+      "env": {
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-recheck-XYjSLG/nul-native-BC93w2",
+        "LANG": "C",
+        "LC_ALL": "C",
+        "TZ": "UTC",
+        "TMPDIR": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-recheck-XYjSLG/nul-native-BC93w2"
+      },
+      "cwd": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-recheck-XYjSLG/nul-native-BC93w2",
+      "run": {
+        "pid": 31631,
+        "status": 0,
+        "signal": null,
+        "timedOut": false,
+        "overflow": false,
+        "groupAlive": false,
+        "stdout": "PGFiYz4=",
+        "stderr": "ZGlhZ25vc3RpYy1udWwtc2NyaXB0OiBsaW5lIDY6IHdhcm5pbmc6IGNvbW1hbmQgc3Vic3RpdHV0aW9uOiBpZ25vcmVkIG51bGwgYnl0ZSBpbiBpbnB1dAo="
+      },
+      "files": {}
+    },
+    {
+      "profile": "primary-5.3",
+      "name": "diagnostic-nul-script",
+      "fixture": "two-substitutions-two-warnings",
+      "executable": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+      "argv0": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "first=$(printf 'a\\0b');\nsecond=$(printf 'c\\0d'); printf '<%s><%s>' \"$first\" \"$second\"",
+        "diagnostic-nul-script"
+      ],
+      "env": {
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-recheck-XYjSLG/nul-native-NlI9MX",
+        "LANG": "C",
+        "LC_ALL": "C",
+        "TZ": "UTC",
+        "TMPDIR": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-recheck-XYjSLG/nul-native-NlI9MX"
+      },
+      "cwd": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-recheck-XYjSLG/nul-native-NlI9MX",
+      "run": {
+        "pid": 31634,
+        "status": 0,
+        "signal": null,
+        "timedOut": false,
+        "overflow": false,
+        "groupAlive": false,
+        "stdout": "PGFiPjxjZD4=",
+        "stderr": "ZGlhZ25vc3RpYy1udWwtc2NyaXB0OiBsaW5lIDE6IHdhcm5pbmc6IGNvbW1hbmQgc3Vic3RpdHV0aW9uOiBpZ25vcmVkIG51bGwgYnl0ZSBpbiBpbnB1dApkaWFnbm9zdGljLW51bC1zY3JpcHQ6IGxpbmUgMjogd2FybmluZzogY29tbWFuZCBzdWJzdGl0dXRpb246IGlnbm9yZWQgbnVsbCBieXRlIGluIGlucHV0Cg=="
+      },
+      "files": {}
+    },
+    {
+      "profile": "historical-3.2",
+      "name": "shell",
+      "fixture": "original-dollar-blanklines",
+      "executable": "/bin/bash",
+      "argv0": "/bin/bash",
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "value=$(:\n\n\nprintf '%s' \"$(printf 'a\\0b')\"\n)",
+        "shell"
+      ],
+      "env": {
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-recheck-XYjSLG/nul-native-06mH5y",
+        "LANG": "C",
+        "LC_ALL": "C",
+        "TZ": "UTC",
+        "TMPDIR": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-recheck-XYjSLG/nul-native-06mH5y"
+      },
+      "cwd": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-recheck-XYjSLG/nul-native-06mH5y",
+      "run": {
+        "pid": 31637,
+        "status": 0,
+        "signal": null,
+        "timedOut": false,
+        "overflow": false,
+        "groupAlive": false,
+        "stdout": "",
+        "stderr": ""
+      },
+      "files": {}
+    },
+    {
+      "profile": "historical-3.2",
+      "name": "shell",
+      "fixture": "original-backtick-control",
+      "executable": "/bin/bash",
+      "argv0": "/bin/bash",
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "value=`\nprintf '%s' \"$(printf 'a\\0b')\"\n`",
+        "shell"
+      ],
+      "env": {
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-recheck-XYjSLG/nul-native-adG2Rb",
+        "LANG": "C",
+        "LC_ALL": "C",
+        "TZ": "UTC",
+        "TMPDIR": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-recheck-XYjSLG/nul-native-adG2Rb"
+      },
+      "cwd": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-recheck-XYjSLG/nul-native-adG2Rb",
+      "run": {
+        "pid": 31640,
+        "status": 0,
+        "signal": null,
+        "timedOut": false,
+        "overflow": false,
+        "groupAlive": false,
+        "stdout": "",
+        "stderr": ""
+      },
+      "files": {}
+    },
+    {
+      "profile": "historical-3.2",
+      "name": "shell",
+      "fixture": "dollar-no-blank",
+      "executable": "/bin/bash",
+      "argv0": "/bin/bash",
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "value=$(:\nprintf '%s' \"$(printf 'a\\0b')\"\n)",
+        "shell"
+      ],
+      "env": {
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-recheck-XYjSLG/nul-native-ViQWJ4",
+        "LANG": "C",
+        "LC_ALL": "C",
+        "TZ": "UTC",
+        "TMPDIR": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-recheck-XYjSLG/nul-native-ViQWJ4"
+      },
+      "cwd": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-recheck-XYjSLG/nul-native-ViQWJ4",
+      "run": {
+        "pid": 31643,
+        "status": 0,
+        "signal": null,
+        "timedOut": false,
+        "overflow": false,
+        "groupAlive": false,
+        "stdout": "",
+        "stderr": ""
+      },
+      "files": {}
+    },
+    {
+      "profile": "historical-3.2",
+      "name": "shell",
+      "fixture": "dollar-one-blank",
+      "executable": "/bin/bash",
+      "argv0": "/bin/bash",
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "value=$(:\n\nprintf '%s' \"$(printf 'a\\0b')\"\n)",
+        "shell"
+      ],
+      "env": {
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-recheck-XYjSLG/nul-native-TCx1Bh",
+        "LANG": "C",
+        "LC_ALL": "C",
+        "TZ": "UTC",
+        "TMPDIR": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-recheck-XYjSLG/nul-native-TCx1Bh"
+      },
+      "cwd": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-recheck-XYjSLG/nul-native-TCx1Bh",
+      "run": {
+        "pid": 31646,
+        "status": 0,
+        "signal": null,
+        "timedOut": false,
+        "overflow": false,
+        "groupAlive": false,
+        "stdout": "",
+        "stderr": ""
+      },
+      "files": {}
+    },
+    {
+      "profile": "historical-3.2",
+      "name": "shell",
+      "fixture": "dollar-three-blanks",
+      "executable": "/bin/bash",
+      "argv0": "/bin/bash",
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "value=$(:\n\n\n\nprintf '%s' \"$(printf 'a\\0b')\"\n)",
+        "shell"
+      ],
+      "env": {
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-recheck-XYjSLG/nul-native-AdzfGl",
+        "LANG": "C",
+        "LC_ALL": "C",
+        "TZ": "UTC",
+        "TMPDIR": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-recheck-XYjSLG/nul-native-AdzfGl"
+      },
+      "cwd": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-recheck-XYjSLG/nul-native-AdzfGl",
+      "run": {
+        "pid": 31649,
+        "status": 0,
+        "signal": null,
+        "timedOut": false,
+        "overflow": false,
+        "groupAlive": false,
+        "stdout": "",
+        "stderr": ""
+      },
+      "files": {}
+    },
+    {
+      "profile": "historical-3.2",
+      "name": "shell",
+      "fixture": "dollar-prefix-lines",
+      "executable": "/bin/bash",
+      "argv0": "/bin/bash",
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "\n:\nvalue=$(:\n\n\nprintf '%s' \"$(printf 'a\\0b')\"\n)",
+        "shell"
+      ],
+      "env": {
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-recheck-XYjSLG/nul-native-ONsopG",
+        "LANG": "C",
+        "LC_ALL": "C",
+        "TZ": "UTC",
+        "TMPDIR": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-recheck-XYjSLG/nul-native-ONsopG"
+      },
+      "cwd": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-recheck-XYjSLG/nul-native-ONsopG",
+      "run": {
+        "pid": 31652,
+        "status": 0,
+        "signal": null,
+        "timedOut": false,
+        "overflow": false,
+        "groupAlive": false,
+        "stdout": "",
+        "stderr": ""
+      },
+      "files": {}
+    },
+    {
+      "profile": "historical-3.2",
+      "name": "shell",
+      "fixture": "nested-multiple-nuls-one-warning",
+      "executable": "/bin/bash",
+      "argv0": "/bin/bash",
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "value=$(:\n\n\nprintf '%s' \"$(printf 'a\\0b\\0c')\"\n); printf '<%s>' \"$value\"",
+        "shell"
+      ],
+      "env": {
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-recheck-XYjSLG/nul-native-pwCnBy",
+        "LANG": "C",
+        "LC_ALL": "C",
+        "TZ": "UTC",
+        "TMPDIR": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-recheck-XYjSLG/nul-native-pwCnBy"
+      },
+      "cwd": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-recheck-XYjSLG/nul-native-pwCnBy",
+      "run": {
+        "pid": 31655,
+        "status": 0,
+        "signal": null,
+        "timedOut": false,
+        "overflow": false,
+        "groupAlive": false,
+        "stdout": "PGFiYz4=",
+        "stderr": ""
+      },
+      "files": {}
+    },
+    {
+      "profile": "historical-3.2",
+      "name": "shell",
+      "fixture": "two-substitutions-two-warnings",
+      "executable": "/bin/bash",
+      "argv0": "/bin/bash",
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "first=$(printf 'a\\0b');\nsecond=$(printf 'c\\0d'); printf '<%s><%s>' \"$first\" \"$second\"",
+        "shell"
+      ],
+      "env": {
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-recheck-XYjSLG/nul-native-2eQlUY",
+        "LANG": "C",
+        "LC_ALL": "C",
+        "TZ": "UTC",
+        "TMPDIR": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-recheck-XYjSLG/nul-native-2eQlUY"
+      },
+      "cwd": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-recheck-XYjSLG/nul-native-2eQlUY",
+      "run": {
+        "pid": 31658,
+        "status": 0,
+        "signal": null,
+        "timedOut": false,
+        "overflow": false,
+        "groupAlive": false,
+        "stdout": "PGFiPjxjZD4=",
+        "stderr": ""
+      },
+      "files": {}
+    },
+    {
+      "profile": "historical-3.2",
+      "name": "diagnostic-nul-script",
+      "fixture": "original-dollar-blanklines",
+      "executable": "/bin/bash",
+      "argv0": "/bin/bash",
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "value=$(:\n\n\nprintf '%s' \"$(printf 'a\\0b')\"\n)",
+        "diagnostic-nul-script"
+      ],
+      "env": {
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-recheck-XYjSLG/nul-native-L0s33f",
+        "LANG": "C",
+        "LC_ALL": "C",
+        "TZ": "UTC",
+        "TMPDIR": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-recheck-XYjSLG/nul-native-L0s33f"
+      },
+      "cwd": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-recheck-XYjSLG/nul-native-L0s33f",
+      "run": {
+        "pid": 31661,
+        "status": 0,
+        "signal": null,
+        "timedOut": false,
+        "overflow": false,
+        "groupAlive": false,
+        "stdout": "",
+        "stderr": ""
+      },
+      "files": {}
+    },
+    {
+      "profile": "historical-3.2",
+      "name": "diagnostic-nul-script",
+      "fixture": "original-backtick-control",
+      "executable": "/bin/bash",
+      "argv0": "/bin/bash",
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "value=`\nprintf '%s' \"$(printf 'a\\0b')\"\n`",
+        "diagnostic-nul-script"
+      ],
+      "env": {
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-recheck-XYjSLG/nul-native-YBJBKp",
+        "LANG": "C",
+        "LC_ALL": "C",
+        "TZ": "UTC",
+        "TMPDIR": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-recheck-XYjSLG/nul-native-YBJBKp"
+      },
+      "cwd": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-recheck-XYjSLG/nul-native-YBJBKp",
+      "run": {
+        "pid": 31664,
+        "status": 0,
+        "signal": null,
+        "timedOut": false,
+        "overflow": false,
+        "groupAlive": false,
+        "stdout": "",
+        "stderr": ""
+      },
+      "files": {}
+    },
+    {
+      "profile": "historical-3.2",
+      "name": "diagnostic-nul-script",
+      "fixture": "dollar-no-blank",
+      "executable": "/bin/bash",
+      "argv0": "/bin/bash",
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "value=$(:\nprintf '%s' \"$(printf 'a\\0b')\"\n)",
+        "diagnostic-nul-script"
+      ],
+      "env": {
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-recheck-XYjSLG/nul-native-Pff9nO",
+        "LANG": "C",
+        "LC_ALL": "C",
+        "TZ": "UTC",
+        "TMPDIR": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-recheck-XYjSLG/nul-native-Pff9nO"
+      },
+      "cwd": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-recheck-XYjSLG/nul-native-Pff9nO",
+      "run": {
+        "pid": 31667,
+        "status": 0,
+        "signal": null,
+        "timedOut": false,
+        "overflow": false,
+        "groupAlive": false,
+        "stdout": "",
+        "stderr": ""
+      },
+      "files": {}
+    },
+    {
+      "profile": "historical-3.2",
+      "name": "diagnostic-nul-script",
+      "fixture": "dollar-one-blank",
+      "executable": "/bin/bash",
+      "argv0": "/bin/bash",
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "value=$(:\n\nprintf '%s' \"$(printf 'a\\0b')\"\n)",
+        "diagnostic-nul-script"
+      ],
+      "env": {
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-recheck-XYjSLG/nul-native-B5t3GD",
+        "LANG": "C",
+        "LC_ALL": "C",
+        "TZ": "UTC",
+        "TMPDIR": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-recheck-XYjSLG/nul-native-B5t3GD"
+      },
+      "cwd": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-recheck-XYjSLG/nul-native-B5t3GD",
+      "run": {
+        "pid": 31670,
+        "status": 0,
+        "signal": null,
+        "timedOut": false,
+        "overflow": false,
+        "groupAlive": false,
+        "stdout": "",
+        "stderr": ""
+      },
+      "files": {}
+    },
+    {
+      "profile": "historical-3.2",
+      "name": "diagnostic-nul-script",
+      "fixture": "dollar-three-blanks",
+      "executable": "/bin/bash",
+      "argv0": "/bin/bash",
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "value=$(:\n\n\n\nprintf '%s' \"$(printf 'a\\0b')\"\n)",
+        "diagnostic-nul-script"
+      ],
+      "env": {
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-recheck-XYjSLG/nul-native-rSjuwN",
+        "LANG": "C",
+        "LC_ALL": "C",
+        "TZ": "UTC",
+        "TMPDIR": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-recheck-XYjSLG/nul-native-rSjuwN"
+      },
+      "cwd": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-recheck-XYjSLG/nul-native-rSjuwN",
+      "run": {
+        "pid": 31673,
+        "status": 0,
+        "signal": null,
+        "timedOut": false,
+        "overflow": false,
+        "groupAlive": false,
+        "stdout": "",
+        "stderr": ""
+      },
+      "files": {}
+    },
+    {
+      "profile": "historical-3.2",
+      "name": "diagnostic-nul-script",
+      "fixture": "dollar-prefix-lines",
+      "executable": "/bin/bash",
+      "argv0": "/bin/bash",
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "\n:\nvalue=$(:\n\n\nprintf '%s' \"$(printf 'a\\0b')\"\n)",
+        "diagnostic-nul-script"
+      ],
+      "env": {
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-recheck-XYjSLG/nul-native-hcMkoK",
+        "LANG": "C",
+        "LC_ALL": "C",
+        "TZ": "UTC",
+        "TMPDIR": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-recheck-XYjSLG/nul-native-hcMkoK"
+      },
+      "cwd": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-recheck-XYjSLG/nul-native-hcMkoK",
+      "run": {
+        "pid": 31676,
+        "status": 0,
+        "signal": null,
+        "timedOut": false,
+        "overflow": false,
+        "groupAlive": false,
+        "stdout": "",
+        "stderr": ""
+      },
+      "files": {}
+    },
+    {
+      "profile": "historical-3.2",
+      "name": "diagnostic-nul-script",
+      "fixture": "nested-multiple-nuls-one-warning",
+      "executable": "/bin/bash",
+      "argv0": "/bin/bash",
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "value=$(:\n\n\nprintf '%s' \"$(printf 'a\\0b\\0c')\"\n); printf '<%s>' \"$value\"",
+        "diagnostic-nul-script"
+      ],
+      "env": {
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-recheck-XYjSLG/nul-native-BXWZCm",
+        "LANG": "C",
+        "LC_ALL": "C",
+        "TZ": "UTC",
+        "TMPDIR": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-recheck-XYjSLG/nul-native-BXWZCm"
+      },
+      "cwd": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-recheck-XYjSLG/nul-native-BXWZCm",
+      "run": {
+        "pid": 31679,
+        "status": 0,
+        "signal": null,
+        "timedOut": false,
+        "overflow": false,
+        "groupAlive": false,
+        "stdout": "PGFiYz4=",
+        "stderr": ""
+      },
+      "files": {}
+    },
+    {
+      "profile": "historical-3.2",
+      "name": "diagnostic-nul-script",
+      "fixture": "two-substitutions-two-warnings",
+      "executable": "/bin/bash",
+      "argv0": "/bin/bash",
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "first=$(printf 'a\\0b');\nsecond=$(printf 'c\\0d'); printf '<%s><%s>' \"$first\" \"$second\"",
+        "diagnostic-nul-script"
+      ],
+      "env": {
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-recheck-XYjSLG/nul-native-5xIgSf",
+        "LANG": "C",
+        "LC_ALL": "C",
+        "TZ": "UTC",
+        "TMPDIR": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-recheck-XYjSLG/nul-native-5xIgSf"
+      },
+      "cwd": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-recheck-XYjSLG/nul-native-5xIgSf",
+      "run": {
+        "pid": 31682,
+        "status": 0,
+        "signal": null,
+        "timedOut": false,
+        "overflow": false,
+        "groupAlive": false,
+        "stdout": "PGFiPjxjZD4=",
+        "stderr": ""
+      },
+      "files": {}
+    }
+  ]
+}

@@ -1,0 +1,78 @@
+{
+  "schema": 1,
+  "freezeCommit": "c0aec9fc240f153e0fa18d6e2d1e291871dbe1eb",
+  "freezeManifestSha256": "458c5c9e5def60b32d963572364998c463f3e185692f6a25ed09d6069f822589",
+  "authority": "Hand-authored theoretical histories and POLICY expectations, NOT native spans or normative acceptance. Frozen before model implementation.",
+  "grammar": "AST cat has ordered children; repeat has min,max,body; group has number,body; byte has ASCII character; ref has group number. Stable AST identity is the complete ordered structural path r.N. Plans: cat=ordered child plans, group=body plan, repeat=ordered iteration plans (integer abbreviates that many null plans only for a byte body), byte/ref=null. Start=0; each byte consumes exactly one subject byte; ref consumes the live completed bytes. All boundaries thus uniquely follow from the plans; no search or regex parsing.",
+  "eligibility": "LOCAL-TAIL-HYPOTHESIS: required empty iterations admitted until this activation minimum; optional empty admitted only when this activation has not consumed and has not already completed an optional empty. An admitted optional empty must be last. This historical hypothesis is STRONGER than equivalent-cycle stopping and needs root confirmation; tail-rejected plans must also be evaluated without it to expose the ambiguity.",
+  "policies": {
+    "AGGREGATE-v1": "Whole start ascending, end descending; recursively node span length descending, ordered children/chronological iterations; equal list prefix prefers termination. AST includes uncaptured nodes.",
+    "ITERATION-v1": "Same, except repeat nodes defer aggregate extent entirely to chronological body activations; equal iteration-list prefix prefers termination. Other node extents precede their children. Equal keys form observational ties, never use enumeration rank.",
+    "finalCaptureControl": "Only a deliberately inadequate longest-final-capture comparison, not a candidate policy.",
+    "openDecision": "AGGREGATE-v1 and ITERATION-v1 disagree on P-aaaa. No authority here selects either; no promotion. Both conflict with narrow P-aaa when capture-changing optional tails are admitted."
+  },
+  "asts": {
+    "P": ["cat", ["repeat", 0, null, ["group", 1, ["repeat", 0, null, ["byte", "a"]]]], ["ref", 1]],
+    "Q": ["cat", ["repeat", 2, 2, ["group", 1, ["repeat", 0, null, ["byte", "a"]]]], ["ref", 1]],
+    "prefix": ["cat", ["repeat", 0, null, ["byte", "a"]], ["group", 1, ["repeat", 0, null, ["byte", "a"]]]],
+    "prefix2": ["cat", ["repeat", 0, null, ["byte", "a"]], ["group", 1, ["repeat", 0, null, ["byte", "a"]]], ["group", 2, ["repeat", 0, null, ["byte", "a"]]]],
+    "D": ["cat", ["repeat", 0, null, ["group", 1, ["cat", ["byte", "a"], ["repeat", 0, null, ["group", 2, ["byte", "b"]]]]]], ["ref", 2]],
+    "E": ["cat", ["repeat", 0, null, ["group", 1, ["cat", ["byte", "a"], ["group", 2, ["repeat", 0, null, ["byte", "b"]]]]]], ["ref", 2]],
+    "requiredChild": ["cat", ["repeat", 0, null, ["group", 1, ["cat", ["byte", "a"], ["repeat", 2, 2, ["group", 2, ["repeat", 0, null, ["byte", "b"]]]]]]], ["ref", 2]],
+    "emptyRef": ["cat", ["group", 1, ["repeat", 0, null, ["byte", "a"]]], ["group", 2, ["repeat", 0, null, ["byte", "b"]]], ["ref", 2]]
+  },
+  "cases": [
+    {"id":"P-aaa","ast":"P","winners":{"AGGREGATE-v1":"narrow-a","ITERATION-v1":"narrow-a"},"histories":[
+      {"id":"narrow-a","plan":[[1,1],null],"whole":[0,3],"captures":[[1,2]]},
+      {"id":"shorter","plan":[[1],null],"whole":[0,2],"captures":[[0,1]]},
+      {"id":"empty","plan":[[0],null],"whole":[0,0],"captures":[[0,0]]},
+      {"id":"capture-changing-tail","plan":[[3,0],null],"whole":[0,3],"captures":[[3,3]],"reject":"OPTIONAL_TAIL","withoutTailHypothesisWinner":true}
+    ]},
+    {"id":"P-aaaa","ast":"P","winners":{"AGGREGATE-v1":"long-repeat","ITERATION-v1":"short-repeat"},"histories":[
+      {"id":"long-repeat","plan":[[2,1],null],"whole":[0,4],"captures":[[2,3]]},
+      {"id":"short-repeat","plan":[[2],null],"whole":[0,4],"captures":[[0,2]]},
+      {"id":"split-prefix","plan":[[1,1,1],null],"whole":[0,4],"captures":[[2,3]]},
+      {"id":"capture-changing-tail","plan":[[4,0],null],"whole":[0,4],"captures":[[4,4]],"reject":"OPTIONAL_TAIL"}
+    ]},
+    {"id":"Q-empty","ast":"Q","winners":{"AGGREGATE-v1":"two-required","ITERATION-v1":"two-required"},"histories":[
+      {"id":"two-required","plan":[[0,0],null],"whole":[0,0],"captures":[[0,0]]},
+      {"id":"missing-required","plan":[[0],null],"reject":"MINIMUM"}
+    ]},
+    {"id":"Q-aaa","ast":"Q","winners":{"AGGREGATE-v1":"required-empty","ITERATION-v1":"required-empty"},"histories":[
+      {"id":"required-empty","plan":[[3,0],null],"whole":[0,3],"captures":[[3,3]]},
+      {"id":"two-nonempty","plan":[[1,1],null],"whole":[0,3],"captures":[[1,2]]}
+    ]},
+    {"id":"prefix-star","ast":"prefix","winners":{"AGGREGATE-v1":"prefix-long","ITERATION-v1":"prefix-long"},"histories":[
+      {"id":"prefix-long","plan":[3,0],"whole":[0,3],"captures":[[3,3]]},
+      {"id":"capture-long","plan":[0,3],"whole":[0,3],"captures":[[0,3]]},
+      {"id":"mixed","plan":[1,2],"whole":[0,3],"captures":[[1,3]]}
+    ]},
+    {"id":"prefix-two-captures","ast":"prefix2","winners":{"AGGREGATE-v1":"prefix-long","ITERATION-v1":"prefix-long"},"histories":[
+      {"id":"prefix-long","plan":[3,0,0],"whole":[0,3],"captures":[[3,3],[3,3]]},
+      {"id":"capture-long","plan":[0,3,0],"whole":[0,3],"captures":[[0,3],[3,3]]},
+      {"id":"mixed","plan":[1,2,0],"whole":[0,3],"captures":[[1,3],[3,3]]}
+    ]},
+    {"id":"D-abab","ast":"D","winners":{"AGGREGATE-v1":"retained-b","ITERATION-v1":"retained-b"},"histories":[
+      {"id":"retained-b","plan":[[[null,[null]],[null,[]]],null],"whole":[0,4],"captures":[[2,3],[1,2]]}
+    ]},
+    {"id":"descendant-reentered-empty","ast":"E","winners":{"AGGREGATE-v1":"reentered-empty","ITERATION-v1":"reentered-empty"},"histories":[
+      {"id":"reentered-empty","plan":[[[null,1],[null,0]],null],"whole":[0,3],"captures":[[2,3],[3,3]]}
+    ]},
+    {"id":"required-child-empty","ast":"requiredChild","winners":{"AGGREGATE-v1":"local-required","ITERATION-v1":"local-required"},"histories":[
+      {"id":"local-required","plan":[[[null,[0,0]],[null,[0,0]]],null],"whole":[0,2],"captures":[[1,2],[2,2]]}
+    ]},
+    {"id":"completed-empty-reference","ast":"emptyRef","winners":{"AGGREGATE-v1":"empty-reference","ITERATION-v1":"empty-reference"},"histories":[
+      {"id":"empty-reference","plan":[1,0,null],"whole":[0,1],"captures":[[0,1],[1,1]]}
+    ]}
+  ],
+  "controls": [
+    "Every supplied whole/capture is a half-open BYTE span checked against constructed events; malformed/reversed/out-of-range spans refuse.",
+    "Enumerate all permutations of eligible supplied histories per case; both policies keep the same winner; firstDFS does not.",
+    "P-aaaa long-repeat and split-prefix end at same abstract accept pc/pos/final registers, but chronological history selects long-repeat.",
+    "Backref continuation from same pc/position with retained-b versus absent/open env differs; completed-empty succeeds without consuming. No merge claim.",
+    "D-abab skip preserves completed descendant; E reentry marks it open then completed-empty. Earlier immutable snapshots remain unchanged.",
+    "Required-empty counter decrements locally; optional identical empty cycle terminates only under an explicit observational quotient; capture-changing empty is NOT equivalent.",
+    "Allocation/work/depth/event/input/candidate caps pre-admit model work including validation/ranking; exhaustion refuses the entire result, even after incumbent.",
+    "Abort preserves exact supplied reason before model work/ranking; no worker is created and actual worker cleanup remains untested, historical137 bound only."
+  ]
+}

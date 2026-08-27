@@ -1,0 +1,45 @@
+{
+  "fromSealedV1": "1ff82cb748c60145740dba354610ac7ed7a7f15f",
+  "fromCandidate": "/tmp/safe-bash-owned-output-prototype-Bl8HzL/candidate",
+  "toCandidate": "/tmp/safe-bash-owned-output-streaming-prototype-work-C7rt0j/candidate",
+  "files": [
+    {
+      "from": "/tmp/safe-bash-owned-output-prototype-Bl8HzL/candidate/tests/shell/first-read-probe.ts",
+      "to": "/tmp/safe-bash-owned-output-streaming-prototype-work-C7rt0j/candidate/tests/shell/first-read-probe.ts",
+      "relativePath": "tests/shell/first-read-probe.ts",
+      "sha256": "b138e5572240533efb8cde733e0c5a9bbd1c960e431b9291c0a17a300b1c7ed6",
+      "contentDelta": false
+    },
+    {
+      "from": "/tmp/safe-bash-owned-output-prototype-Bl8HzL/candidate/tests/shell/remote-close.test.ts",
+      "to": "/tmp/safe-bash-owned-output-streaming-prototype-work-C7rt0j/candidate/tests/shell/remote-close.test.ts",
+      "relativePath": "tests/shell/remote-close.test.ts",
+      "sha256": "0ca0886333c793dbddb5e14e2fdbb2a3bb457919dbf4e70d419f87fab6505474",
+      "contentDelta": false
+    },
+    {
+      "from": "/tmp/safe-bash-owned-output-prototype-Bl8HzL/candidate/tests/shell/adapted-first-read-probe.ts",
+      "to": "/tmp/safe-bash-owned-output-streaming-prototype-work-C7rt0j/candidate/tests/shell/adapted-first-read-probe.ts",
+      "relativePath": "tests/shell/adapted-first-read-probe.ts",
+      "sha256": "743f93c910422eb4ad64ac77caacb9aacf71837f28b92a51a1993e8651c6b771",
+      "contentDelta": false
+    },
+    {
+      "from": "/tmp/safe-bash-owned-output-prototype-Bl8HzL/candidate/tests/shell/adapted-remote-close.test.ts",
+      "to": "/tmp/safe-bash-owned-output-streaming-prototype-work-C7rt0j/candidate/tests/shell/adapted-remote-close.test.ts",
+      "relativePath": "tests/shell/adapted-remote-close.test.ts",
+      "sha256": "913548f801bad996dc1d95767380bf48075129d3eeaaff096f13a99983b95cae",
+      "contentDelta": false
+    },
+    {
+      "from": "/tmp/safe-bash-owned-output-prototype-Bl8HzL/candidate/tests/stress/remote-cancellation/helpers.ts",
+      "to": "/tmp/safe-bash-owned-output-streaming-prototype-work-C7rt0j/candidate/tests/stress/remote-cancellation/helpers.ts",
+      "relativePath": "tests/stress/remote-cancellation/helpers.ts",
+      "sha256": "9e76ecf9ba6604fc2c4b94a96cf5b46ffed97de5e7d0c2524e138b4410e17678",
+      "contentDelta": false
+    }
+  ],
+  "optinSemanticDelta": "Exactly historical v1 adapted-fixture.patch-data; not a rewrite of original5 assertions for this cohort",
+  "originalChildrenDeadlineMs": 3000,
+  "originalOperationDeadlineMs": 1200
+}

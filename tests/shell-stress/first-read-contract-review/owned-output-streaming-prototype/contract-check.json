@@ -1,0 +1,15 @@
+{
+  "command": [
+    "python3",
+    "/Users/kjopek/.codex/skills/write-spec/scripts/check_spec.py",
+    "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/first-read-contract-review/owned-output-streaming-prototype/CONTRACT.md"
+  ],
+  "checkerSha256": "e866d8f5806a40483cbe25f3250fc583f9a1e45d29a4255af41f6839693430bd",
+  "contractSha256": "1a17265016074ccf02734f997f856eee4e70301e68f2a86524efadf9e3bbe620",
+  "status": 0,
+  "signal": null,
+  "pid": 21402,
+  "reaped": true,
+  "stdout": "OK: /Users/kjopek/Workspace/safe-bash/tests/shell-stress/first-read-contract-review/owned-output-streaming-prototype/CONTRACT.md (0 warning(s))\n",
+  "stderr": ""
+}

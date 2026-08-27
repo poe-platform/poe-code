@@ -1,0 +1,57 @@
+{
+  "executedAgain": false,
+  "count": 5,
+  "profile": "preserved v1 GNU Bash 5.3 on Darwin arm64, not GNU/Linux",
+  "v1EvidenceCommit": "1ff82cb748c60145740dba354610ac7ed7a7f15f",
+  "artifacts": [
+    {
+      "path": "tests/shell-stress/first-read-contract-review/owned-output-prototype/evidence/native-results.json",
+      "sha256": "d8121f7cb5627638fda7d907d30aa58a93e184cd210b25902c30794a905eeddc"
+    },
+    {
+      "path": "tests/shell-stress/first-read-contract-review/owned-output-prototype/evidence/native-tools.json",
+      "sha256": "932f3b75c9a461693d6467228e86972d5c04395d73f10c55b283f3abfbb1e9fc"
+    },
+    {
+      "path": "tests/shell-stress/first-read-contract-review/owned-output-prototype/evidence/native-C3.bash-data",
+      "sha256": "11f1e01e098dcbf1d9b069d71373fa6d3fa6bab81a11d0192fdf794a5b809ccf"
+    },
+    {
+      "path": "tests/shell-stress/first-read-contract-review/owned-output-prototype/evidence/runs/native-C3.json",
+      "sha256": "a28779e80143a917515d5e91c0da51d9c98d575f832fb7856834f8ce44dafbf6"
+    },
+    {
+      "path": "tests/shell-stress/first-read-contract-review/owned-output-prototype/evidence/native-C4.bash-data",
+      "sha256": "2cce47d5ddc5015d66cd59ef0f1fbcb6087d9e18d913d173c0203884a7581efc"
+    },
+    {
+      "path": "tests/shell-stress/first-read-contract-review/owned-output-prototype/evidence/runs/native-C4.json",
+      "sha256": "450fe1682ae136e747d2bf63ab9be4e37d9d64718db35751eff0b9b406139d4a"
+    },
+    {
+      "path": "tests/shell-stress/first-read-contract-review/owned-output-prototype/evidence/native-C5.bash-data",
+      "sha256": "e5f097a1ef2a53911d8fe5aed08286218b68f7c53962c3b01f23b4aee07cb380"
+    },
+    {
+      "path": "tests/shell-stress/first-read-contract-review/owned-output-prototype/evidence/runs/native-C5.json",
+      "sha256": "24007746afef0bf8668839eac21ee9cbd70c02b9ec451b464007572003dde37a"
+    },
+    {
+      "path": "tests/shell-stress/first-read-contract-review/owned-output-prototype/evidence/native-C6.bash-data",
+      "sha256": "6d9e36ba26066ea831860cec8ef7a0e58949778c9148b32b8f7ec5b1396c2ec7"
+    },
+    {
+      "path": "tests/shell-stress/first-read-contract-review/owned-output-prototype/evidence/runs/native-C6.json",
+      "sha256": "c08478e433f6318403fc34dbf90454b3c5fbd41445fac22d76f6fba84d68cec9"
+    },
+    {
+      "path": "tests/shell-stress/first-read-contract-review/owned-output-prototype/evidence/native-C7.bash-data",
+      "sha256": "968fa6b029a1d441154cb46ab0ad22648c6c365452c0e0da5242fb198bdaf092"
+    },
+    {
+      "path": "tests/shell-stress/first-read-contract-review/owned-output-prototype/evidence/runs/native-C7.json",
+      "sha256": "f75960eaa3892fb0e50cc4da12fd9d6ce4b72f1fb19ea6a67f88cc079374d531"
+    }
+  ],
+  "newCandidateExecutedNative": false
+}

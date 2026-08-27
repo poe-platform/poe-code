@@ -1,0 +1,9 @@
+import assert from 'node:assert/strict';
+import { createOutputOperation, MemoryFileSystem, Shell } from './candidate/dist/index.js';
+const operation = createOutputOperation({signal:new AbortController().signal},{async write(){}});
+const child = operation.child({async write(){}});
+await child.acquire(()=>new Uint8Array([0,255]),()=>{});
+await operation.close();
+assert.equal(operation.signal.aborted,false);
+await new Shell({fs:new MemoryFileSystem()}).dispose();
+console.log(JSON.stringify({compiledPublicImport:true,childDeclarationBinding:true,normalCloseNotAbort:true}));

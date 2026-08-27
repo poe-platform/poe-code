@@ -1,0 +1,381 @@
+{
+  "sourceManifestSha256": "6de9b96c7286cc320379d8f7f720f3d1a5ecffdc24b7268b198859550362feea",
+  "original5": [
+    {
+      "scenario": "first-read-local",
+      "pid": 83025,
+      "status": 1,
+      "signal": null,
+      "timedOut": false,
+      "oversized": false,
+      "residual": false,
+      "stdout": "{\"scenario\":\"first-read-local\",\"active\":1,\"reads\":1,\"returned\":0,\"abortedBeforeTeardown\":false,\"events\":[\"source.next:pending-before-first-byte\",\"command.settled:head:0\"]}\n",
+      "stderr": "/private/tmp/safe-bash-owned-output-streaming-prototype-work-C7rt0j/candidate/tests/stress/remote-cancellation/helpers.ts:29\n      timer = setTimeout(() => reject(new Error(`DEADLINE: ${label} (${milliseconds}ms)`)), milliseconds);\n                                      ^\n\nError: DEADLINE: first-read-local (1200ms)\n    at Timeout.<anonymous> (/private/tmp/safe-bash-owned-output-streaming-prototype-work-C7rt0j/candidate/tests/stress/remote-cancellation/helpers.ts:29:39)\n    at listOnTimeout (node:internal/timers:585:17)\n    at process.processTimers (node:internal/timers:521:7)\n\nNode.js v22.22.2\n",
+      "observation": {
+        "scenario": "first-read-local",
+        "active": 1,
+        "reads": 1,
+        "returned": 0,
+        "abortedBeforeTeardown": false,
+        "events": [
+          "source.next:pending-before-first-byte",
+          "command.settled:head:0"
+        ]
+      }
+    },
+    {
+      "scenario": "first-read-s3",
+      "pid": 83037,
+      "status": 0,
+      "signal": null,
+      "timedOut": false,
+      "oversized": false,
+      "residual": false,
+      "stdout": "first-read-s3: passed\n{\"scenario\":\"first-read-s3\",\"active\":0,\"reads\":1,\"returned\":1,\"abortedBeforeTeardown\":false,\"events\":[\"op:S3.listObjectsV2:list:callerAborted=false:signal=live\",\"op:S3.headObject:input:callerAborted=false:signal=live\",\"op:S3.headObject:input/:callerAborted=false:signal=live\",\"op:S3.listObjectsV2:list:callerAborted=false:signal=live\",\"op:S3.getObjectStream:input:callerAborted=false:signal=live\",\"source.next:pending-before-first-byte\",\"command.settled:head:0\",\"transport.signal.abort:S3.listObjectsV2:list\",\"transport.signal.abort:S3.getObjectStream:input\",\"source.finally\",\"command.settled:cat:141\",\"command.settled:true:0\"]}\n",
+      "stderr": "",
+      "observation": {
+        "scenario": "first-read-s3",
+        "active": 0,
+        "reads": 1,
+        "returned": 1,
+        "abortedBeforeTeardown": false,
+        "events": [
+          "op:S3.listObjectsV2:list:callerAborted=false:signal=live",
+          "op:S3.headObject:input:callerAborted=false:signal=live",
+          "op:S3.headObject:input/:callerAborted=false:signal=live",
+          "op:S3.listObjectsV2:list:callerAborted=false:signal=live",
+          "op:S3.getObjectStream:input:callerAborted=false:signal=live",
+          "source.next:pending-before-first-byte",
+          "command.settled:head:0",
+          "transport.signal.abort:S3.listObjectsV2:list",
+          "transport.signal.abort:S3.getObjectStream:input",
+          "source.finally",
+          "command.settled:cat:141",
+          "command.settled:true:0"
+        ]
+      }
+    },
+    {
+      "scenario": "first-read-webdav",
+      "pid": 83039,
+      "status": 1,
+      "signal": null,
+      "timedOut": false,
+      "oversized": false,
+      "residual": false,
+      "stdout": "{\"scenario\":\"first-read-webdav\",\"active\":1,\"reads\":1,\"returned\":0,\"abortedBeforeTeardown\":false,\"events\":[\"op:DAV.PROPFIND:/dav/input:callerAborted=false:signal=live\",\"http.socket.open\",\"http.request:PROPFIND:/dav/input\",\"http.response.close:PROPFIND:finished=true\",\"op:DAV.GET:/dav/input:callerAborted=false:signal=live\",\"http.socket.open\",\"http.request:GET:/dav/input\",\"http.GET:pending-before-first-byte\",\"command.settled:head:0\",\"transport.signal.abort:DAV.PROPFIND:/dav/input\",\"transport.signal.abort:DAV.GET:/dav/input\",\"command.settled:cat:141\",\"command.settled:true:0\"]}\n",
+      "stderr": "node:internal/modules/run_main:123\n    triggerUncaughtException(\n    ^\n\nAssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\nfalse !== true\n\n    at <anonymous> (/private/tmp/safe-bash-owned-output-streaming-prototype-work-C7rt0j/candidate/tests/shell/first-read-probe.ts:103:12) {\n  generatedMessage: true,\n  code: 'ERR_ASSERTION',\n  actual: false,\n  expected: true,\n  operator: 'strictEqual',\n  diff: 'simple'\n}\n\nNode.js v22.22.2\n",
+      "observation": {
+        "scenario": "first-read-webdav",
+        "active": 1,
+        "reads": 1,
+        "returned": 0,
+        "abortedBeforeTeardown": false,
+        "events": [
+          "op:DAV.PROPFIND:/dav/input:callerAborted=false:signal=live",
+          "http.socket.open",
+          "http.request:PROPFIND:/dav/input",
+          "http.response.close:PROPFIND:finished=true",
+          "op:DAV.GET:/dav/input:callerAborted=false:signal=live",
+          "http.socket.open",
+          "http.request:GET:/dav/input",
+          "http.GET:pending-before-first-byte",
+          "command.settled:head:0",
+          "transport.signal.abort:DAV.PROPFIND:/dav/input",
+          "transport.signal.abort:DAV.GET:/dav/input",
+          "command.settled:cat:141",
+          "command.settled:true:0"
+        ]
+      }
+    },
+    {
+      "scenario": "first-read-curl-body",
+      "pid": 83041,
+      "status": 1,
+      "signal": null,
+      "timedOut": false,
+      "oversized": false,
+      "residual": false,
+      "stdout": "{\"scenario\":\"first-read-curl-body\",\"active\":1,\"reads\":1,\"returned\":0,\"abortedBeforeTeardown\":false,\"events\":[\"http.socket.open\",\"http.request:GET:/dav/input\",\"http.GET:pending-before-first-byte\",\"command.settled:head:0\",\"command.settled:curl:141\",\"command.settled:true:0\"]}\n",
+      "stderr": "node:internal/modules/run_main:123\n    triggerUncaughtException(\n    ^\n\nAssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\nfalse !== true\n\n    at <anonymous> (/private/tmp/safe-bash-owned-output-streaming-prototype-work-C7rt0j/candidate/tests/shell/first-read-probe.ts:103:12) {\n  generatedMessage: true,\n  code: 'ERR_ASSERTION',\n  actual: false,\n  expected: true,\n  operator: 'strictEqual',\n  diff: 'simple'\n}\n\nNode.js v22.22.2\n",
+      "observation": {
+        "scenario": "first-read-curl-body",
+        "active": 1,
+        "reads": 1,
+        "returned": 0,
+        "abortedBeforeTeardown": false,
+        "events": [
+          "http.socket.open",
+          "http.request:GET:/dav/input",
+          "http.GET:pending-before-first-byte",
+          "command.settled:head:0",
+          "command.settled:curl:141",
+          "command.settled:true:0"
+        ]
+      }
+    },
+    {
+      "scenario": "first-read-curl-headers",
+      "pid": 83045,
+      "status": 1,
+      "signal": null,
+      "timedOut": false,
+      "oversized": false,
+      "residual": false,
+      "stdout": "{\"scenario\":\"first-read-curl-headers\",\"active\":1,\"reads\":1,\"returned\":0,\"abortedBeforeTeardown\":false,\"events\":[\"http.socket.open\",\"http.request:GET:/dav/input\",\"http.GET:pending-before-first-byte\",\"command.settled:head:0\",\"command.settled:curl:141\",\"command.settled:true:0\"]}\n",
+      "stderr": "node:internal/modules/run_main:123\n    triggerUncaughtException(\n    ^\n\nAssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\nfalse !== true\n\n    at <anonymous> (/private/tmp/safe-bash-owned-output-streaming-prototype-work-C7rt0j/candidate/tests/shell/first-read-probe.ts:103:12) {\n  generatedMessage: true,\n  code: 'ERR_ASSERTION',\n  actual: false,\n  expected: true,\n  operator: 'strictEqual',\n  diff: 'simple'\n}\n\nNode.js v22.22.2\n",
+      "observation": {
+        "scenario": "first-read-curl-headers",
+        "active": 1,
+        "reads": 1,
+        "returned": 0,
+        "abortedBeforeTeardown": false,
+        "events": [
+          "http.socket.open",
+          "http.request:GET:/dav/input",
+          "http.GET:pending-before-first-byte",
+          "command.settled:head:0",
+          "command.settled:curl:141",
+          "command.settled:true:0"
+        ]
+      }
+    }
+  ],
+  "headZero": {
+    "scenario": "first-read-head-zero",
+    "pid": 83023,
+    "status": 0,
+    "signal": null,
+    "timedOut": false,
+    "oversized": false,
+    "residual": false,
+    "stdout": "first-read-head-zero: passed\n{\"scenario\":\"first-read-head-zero\",\"active\":0,\"reads\":0,\"returned\":1,\"abortedBeforeTeardown\":false,\"events\":[\"command.settled:head:0\"]}\n",
+    "stderr": "",
+    "observation": {
+      "scenario": "first-read-head-zero",
+      "active": 0,
+      "reads": 0,
+      "returned": 1,
+      "abortedBeforeTeardown": false,
+      "events": [
+        "command.settled:head:0"
+      ]
+    }
+  },
+  "optin5": [
+    {
+      "scenario": "first-read-local",
+      "pid": 83001,
+      "status": 0,
+      "signal": null,
+      "timedOut": false,
+      "oversized": false,
+      "residual": false,
+      "stdout": "first-read-local: passed\n{\"scenario\":\"first-read-local\",\"active\":0,\"reads\":1,\"returned\":1,\"writes\":0,\"stageAborted\":false,\"operationAborted\":true,\"abortedBeforeTeardown\":false,\"events\":[\"source.next:pending-before-first-byte\",\"command.settled:head:0\",\"source.finally\",\"command.settled:pending-stream:141\",\"command.settled:true:0\"]}\n",
+      "stderr": "",
+      "observation": {
+        "scenario": "first-read-local",
+        "active": 0,
+        "reads": 1,
+        "returned": 1,
+        "writes": 0,
+        "stageAborted": false,
+        "operationAborted": true,
+        "abortedBeforeTeardown": false,
+        "events": [
+          "source.next:pending-before-first-byte",
+          "command.settled:head:0",
+          "source.finally",
+          "command.settled:pending-stream:141",
+          "command.settled:true:0"
+        ]
+      }
+    },
+    {
+      "scenario": "first-read-s3",
+      "pid": 83003,
+      "status": 0,
+      "signal": null,
+      "timedOut": false,
+      "oversized": false,
+      "residual": false,
+      "stdout": "first-read-s3: passed\n{\"scenario\":\"first-read-s3\",\"active\":0,\"reads\":1,\"returned\":1,\"writes\":0,\"stageAborted\":false,\"operationAborted\":true,\"abortedBeforeTeardown\":false,\"events\":[\"op:S3.listObjectsV2:list:callerAborted=false:signal=live\",\"op:S3.headObject:input:callerAborted=false:signal=live\",\"op:S3.headObject:input/:callerAborted=false:signal=live\",\"op:S3.listObjectsV2:list:callerAborted=false:signal=live\",\"op:S3.getObjectStream:input:callerAborted=false:signal=live\",\"source.next:pending-before-first-byte\",\"command.settled:head:0\",\"transport.signal.abort:S3.listObjectsV2:list\",\"transport.signal.abort:S3.getObjectStream:input\",\"source.finally\",\"command.settled:cat:141\",\"command.settled:true:0\"]}\n",
+      "stderr": "",
+      "observation": {
+        "scenario": "first-read-s3",
+        "active": 0,
+        "reads": 1,
+        "returned": 1,
+        "writes": 0,
+        "stageAborted": false,
+        "operationAborted": true,
+        "abortedBeforeTeardown": false,
+        "events": [
+          "op:S3.listObjectsV2:list:callerAborted=false:signal=live",
+          "op:S3.headObject:input:callerAborted=false:signal=live",
+          "op:S3.headObject:input/:callerAborted=false:signal=live",
+          "op:S3.listObjectsV2:list:callerAborted=false:signal=live",
+          "op:S3.getObjectStream:input:callerAborted=false:signal=live",
+          "source.next:pending-before-first-byte",
+          "command.settled:head:0",
+          "transport.signal.abort:S3.listObjectsV2:list",
+          "transport.signal.abort:S3.getObjectStream:input",
+          "source.finally",
+          "command.settled:cat:141",
+          "command.settled:true:0"
+        ]
+      }
+    },
+    {
+      "scenario": "first-read-webdav",
+      "pid": 83006,
+      "status": 0,
+      "signal": null,
+      "timedOut": false,
+      "oversized": false,
+      "residual": false,
+      "stdout": "first-read-webdav: passed\n{\"scenario\":\"first-read-webdav\",\"active\":0,\"reads\":1,\"returned\":1,\"writes\":0,\"stageAborted\":false,\"operationAborted\":true,\"abortedBeforeTeardown\":false,\"events\":[\"op:DAV.PROPFIND:/dav/input:callerAborted=false:signal=live\",\"http.socket.open\",\"http.request:PROPFIND:/dav/input\",\"http.response.close:PROPFIND:finished=true\",\"op:DAV.GET:/dav/input:callerAborted=false:signal=live\",\"http.socket.open\",\"http.request:GET:/dav/input\",\"http.GET:pending-before-first-byte\",\"command.settled:head:0\",\"transport.signal.abort:DAV.PROPFIND:/dav/input\",\"transport.signal.abort:DAV.GET:/dav/input\",\"command.settled:cat:141\",\"command.settled:true:0\",\"http.request.aborted:GET\",\"http.socket.close\",\"http.response.close:GET:finished=false\",\"http.socket.open\"]}\n",
+      "stderr": "",
+      "observation": {
+        "scenario": "first-read-webdav",
+        "active": 0,
+        "reads": 1,
+        "returned": 1,
+        "writes": 0,
+        "stageAborted": false,
+        "operationAborted": true,
+        "abortedBeforeTeardown": false,
+        "events": [
+          "op:DAV.PROPFIND:/dav/input:callerAborted=false:signal=live",
+          "http.socket.open",
+          "http.request:PROPFIND:/dav/input",
+          "http.response.close:PROPFIND:finished=true",
+          "op:DAV.GET:/dav/input:callerAborted=false:signal=live",
+          "http.socket.open",
+          "http.request:GET:/dav/input",
+          "http.GET:pending-before-first-byte",
+          "command.settled:head:0",
+          "transport.signal.abort:DAV.PROPFIND:/dav/input",
+          "transport.signal.abort:DAV.GET:/dav/input",
+          "command.settled:cat:141",
+          "command.settled:true:0",
+          "http.request.aborted:GET",
+          "http.socket.close",
+          "http.response.close:GET:finished=false",
+          "http.socket.open"
+        ]
+      }
+    },
+    {
+      "scenario": "first-read-curl-body",
+      "pid": 83014,
+      "status": 0,
+      "signal": null,
+      "timedOut": false,
+      "oversized": false,
+      "residual": false,
+      "stdout": "first-read-curl-body: passed\n{\"scenario\":\"first-read-curl-body\",\"active\":0,\"reads\":1,\"returned\":1,\"writes\":0,\"stageAborted\":false,\"operationAborted\":true,\"abortedBeforeTeardown\":false,\"events\":[\"http.socket.open\",\"http.request:GET:/dav/input\",\"http.GET:pending-before-first-byte\",\"command.settled:head:0\",\"command.settled:curl:141\",\"command.settled:true:0\",\"http.request.aborted:GET\",\"http.socket.close\",\"http.response.close:GET:finished=false\"]}\n",
+      "stderr": "",
+      "observation": {
+        "scenario": "first-read-curl-body",
+        "active": 0,
+        "reads": 1,
+        "returned": 1,
+        "writes": 0,
+        "stageAborted": false,
+        "operationAborted": true,
+        "abortedBeforeTeardown": false,
+        "events": [
+          "http.socket.open",
+          "http.request:GET:/dav/input",
+          "http.GET:pending-before-first-byte",
+          "command.settled:head:0",
+          "command.settled:curl:141",
+          "command.settled:true:0",
+          "http.request.aborted:GET",
+          "http.socket.close",
+          "http.response.close:GET:finished=false"
+        ]
+      }
+    },
+    {
+      "scenario": "first-read-curl-headers",
+      "pid": 83016,
+      "status": 0,
+      "signal": null,
+      "timedOut": false,
+      "oversized": false,
+      "residual": false,
+      "stdout": "first-read-curl-headers: passed\n{\"scenario\":\"first-read-curl-headers\",\"active\":0,\"reads\":1,\"returned\":1,\"writes\":0,\"stageAborted\":false,\"operationAborted\":true,\"abortedBeforeTeardown\":false,\"events\":[\"http.socket.open\",\"http.request:GET:/dav/input\",\"http.GET:pending-before-first-byte\",\"command.settled:head:0\",\"command.settled:curl:141\",\"command.settled:true:0\",\"http.request.aborted:GET\",\"http.socket.close\",\"http.response.close:GET:finished=false\"]}\n",
+      "stderr": "",
+      "observation": {
+        "scenario": "first-read-curl-headers",
+        "active": 0,
+        "reads": 1,
+        "returned": 1,
+        "writes": 0,
+        "stageAborted": false,
+        "operationAborted": true,
+        "abortedBeforeTeardown": false,
+        "events": [
+          "http.socket.open",
+          "http.request:GET:/dav/input",
+          "http.GET:pending-before-first-byte",
+          "command.settled:head:0",
+          "command.settled:curl:141",
+          "command.settled:true:0",
+          "http.request.aborted:GET",
+          "http.socket.close",
+          "http.response.close:GET:finished=false"
+        ]
+      }
+    }
+  ],
+  "identities": [
+    {
+      "path": "tests/shell/adapted-first-read-probe.ts",
+      "bytes": 6172,
+      "sha256": "743f93c910422eb4ad64ac77caacb9aacf71837f28b92a51a1993e8651c6b771"
+    },
+    {
+      "path": "tests/shell/adapted-remote-close.test.ts",
+      "bytes": 3124,
+      "sha256": "913548f801bad996dc1d95767380bf48075129d3eeaaff096f13a99983b95cae"
+    },
+    {
+      "path": "tests/shell/first-read-probe.ts",
+      "bytes": 5048,
+      "sha256": "b138e5572240533efb8cde733e0c5a9bbd1c960e431b9291c0a17a300b1c7ed6"
+    },
+    {
+      "path": "tests/shell/remote-close.test.ts",
+      "bytes": 3116,
+      "sha256": "0ca0886333c793dbddb5e14e2fdbb2a3bb457919dbf4e70d419f87fab6505474"
+    },
+    {
+      "path": "tests/stress/remote-cancellation/helpers.ts",
+      "bytes": 13555,
+      "sha256": "9e76ecf9ba6604fc2c4b94a96cf5b46ffed97de5e7d0c2524e138b4410e17678"
+    }
+  ],
+  "originalProbeDeadlineMs": 1200,
+  "unchangedChildHardDeadlineMs": 3000,
+  "barrier": "unchanged middleware head waits started before close",
+  "original5Passes": 1,
+  "optin5Passes": 5,
+  "legacy57": {
+    "remote": 19,
+    "io": 28,
+    "shared": 5,
+    "streaming": 4,
+    "headZero": 1
+  },
+  "legacy9": "all pass; C9 synthetic is not product proof",
+  "oldAuthor12": "12/12 historical replay; not new acceptance",
+  "newAuthor6": {
+    "r0": "6/6",
+    "r1": "6/6 with same source and S3 curl binding correction"
+  },
+  "allScenariosResidualFalse": true,
+  "relocation": "Original/adapted fixture bytes identical to authenticated v1. TMP root changes only. controls/supervisor paths replace v2 temp with this owned temp; no probe/deadline/barrier delta."
+}

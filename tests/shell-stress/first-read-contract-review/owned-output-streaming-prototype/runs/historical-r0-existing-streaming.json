@@ -1,0 +1,38 @@
+{
+  "label": "historical-r0-existing-streaming",
+  "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "--unhandled-rejections=strict",
+    "--import",
+    "tsx",
+    "--test",
+    "--test-concurrency=1",
+    "--test-name-pattern=pipes preserve|early downstream|pipeline redirects|AbortSignal reaches",
+    "tests/shell/streaming.test.ts"
+  ],
+  "cwd": "/tmp/safe-bash-owned-output-streaming-prototype-work-C7rt0j/candidate",
+  "env": {
+    "PATH": "/usr/bin:/bin",
+    "LC_ALL": "C",
+    "LANG": "C",
+    "TZ": "UTC",
+    "TSX_DISABLE_CACHE": "1"
+  },
+  "startedAt": "2026-08-27T11:08:28.142Z",
+  "finishedAt": "2026-08-27T11:08:28.323Z",
+  "durationMs": 181.31120799999917,
+  "timeoutMs": 30000,
+  "maxBytes": 1048576,
+  "pid": 83144,
+  "initialIdentity": "83144 82967 83144 Thu Aug 27 06:08:28 2026     /Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --unhandled-rejections=strict --import tsx --test --test-concurrency=1 --test-name-pattern=pipes preserve|early downstream|pipeline redirects|AbortSignal reaches tests/shell/streaming.test.ts",
+  "status": 0,
+  "signal": null,
+  "timedOut": false,
+  "oversized": false,
+  "signals": [],
+  "closeEventObserved": true,
+  "pidAfterClose": "",
+  "groupExistsAfterClose": false,
+  "stdout": "TAP version 13\n# Subtest: pipes preserve bytes and launch downstream before upstream completes\nok 1 - pipes preserve bytes and launch downstream before upstream completes\n  ---\n  duration_ms: 6.657833\n  type: 'test'\n  ...\n# Subtest: early downstream exit and unused pipeline input do not deadlock\nok 2 - early downstream exit and unused pipeline input do not deadlock\n  ---\n  duration_ms: 3.956375\n  type: 'test'\n  ...\n# Subtest: pipeline redirects replace endpoints without leaving blocked writers\nok 3 - pipeline redirects replace endpoints without leaving blocked writers\n  ---\n  duration_ms: 2.099584\n  type: 'test'\n  ...\n# Subtest: AbortSignal reaches commands and releases blocked pipelines\nok 4 - AbortSignal reaches commands and releases blocked pipelines\n  ---\n  duration_ms: 0.992083\n  type: 'test'\n  ...\n1..4\n# tests 4\n# suites 0\n# pass 4\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 150.369416\n",
+  "stderr": ""
+}

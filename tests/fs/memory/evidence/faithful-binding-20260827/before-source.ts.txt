@@ -109,7 +109,8 @@ export class MemoryFileSystem implements FileSystem {
     const root = this.root;
     ownedStores.set(this, {
       root,
-      intact: () => this.root === root,
+      intact: () => this.root === root && Object.entries(memoryImplementation).every(([name, descriptor]) =>
+        name === "constructor" || name === "compareEntry" || descriptor.value === undefined || Reflect.get(this, name) === descriptor.value),
     });
     if (this.compareEntry === memoryImplementation.compareEntry?.value) {
       registeredAuthorities.add(this);

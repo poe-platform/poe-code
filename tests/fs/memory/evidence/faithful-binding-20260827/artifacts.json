@@ -1,0 +1,16 @@
+{
+  "algorithm": "sha256",
+  "artifacts": {
+    "REPORT.md": "40eba60fad25ef2c8471982dee8d4bb34c534f9e95eb9d8951547176c6112e25",
+    "after-focused32.tap": "4ff476bc3bc50d8c2c7fae1a4396d16187a191d480a756d0a8f0831d213e224c",
+    "after-owned.tap": "7cf461eb19cb254a11ed25f499d5b3666f12b3312d0ae4041233183e17b8d0e5",
+    "after.json": "d60ead0ace94ef9f027802520702c16fc44638568a825b4d64d5958d358730c4",
+    "before-faithful.tap": "5614d426b77a771f20cd164fb13ce21ceb0f53aa68dd5481e21034d29381267e",
+    "before-owned.tap": "c6ca19c7c06a6654fefff657490c86d85ff51bad728a8bab1b876d791382de96",
+    "before-source.ts.txt": "57a6148aec90c7a1db058e59bd2586e7c162c74498309e7173443096cb8906ad",
+    "before.json": "d73d74b2fab14c2a96f69247d30e3dce7694db4e52776278a1140a02d12cb980",
+    "original-comparison.test.ts.txt": "a5f25f3e6423d8e1961e4c456a31f5ae01a6b604dccedd3af42034ed8d208fae",
+    "original-late-authority.test.ts.txt": "bcdd289cb8d5d9b75a686121a04cbbff916c66526e3fcd676169ba2ed076cfab",
+    "unchanged-guards53.tap": "5699f89befab5054d92daf1f9f2313ed5b27e581d4ee6641eed8c99ec095e481"
+  }
+}

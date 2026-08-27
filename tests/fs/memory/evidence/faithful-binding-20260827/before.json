@@ -1,0 +1,28 @@
+{
+  "head": "91d5926aaa8583e4c1ab2b1b07147ecf09e116e3",
+  "captured": "2026-08-27T02:21:30.710Z",
+  "hashes": {
+    "src/fs/memory/index.ts": "57a6148aec90c7a1db058e59bd2586e7c162c74498309e7173443096cb8906ad",
+    "tests/fs/memory/comparison.test.ts": "a5f25f3e6423d8e1961e4c456a31f5ae01a6b604dccedd3af42034ed8d208fae",
+    "tests/fs/memory/late-authority.test.ts": "bcdd289cb8d5d9b75a686121a04cbbff916c66526e3fcd676169ba2ed076cfab",
+    "tests/fs/memory/faithful-binding.test.ts": "235c5a9a622d3626c8ddad6329eb8448c860285630913a7c769cf52ea5c98f9b",
+    "src/fs/webdav/resource-id.ts": "91c91a336e6256bfb824aacec79d0aa31111796c347de91bf2bc0dad47c1e0f5",
+    "src/fs/webdav/webdav.ts": "799b7d501c112ec26171e6abee88e516199e4b087caeb21903909171bf94aba8",
+    "src/fs/webdav/index.ts": "9a19fb0e61bf9ef07d97881bb93e30ba21491e580ef5e58ab0e80bb5f398d5e4",
+    "src/fs/webdav/xml.ts": "c5b2798ef847acb480be70348d59bb0bc0a0d80624c313880cd53ff1b293dec1",
+    "src/fs/s3/authority.ts": "78fb41e8a54de13a1b3114051c71949cbb2830a9508e1d6cd5b75515c6d0d29f",
+    "src/fs/s3/mock.ts": "99655664c7a52c595dc1ec4e5d461e4c002a0c9ba60d222ded078e5b9780841e",
+    "src/fs/s3/filesystem.ts": "45cec66e7569e93076e0476e9e8e743644283cf9bc89193f3801a0e5fb790dba",
+    "src/fs/s3/transport.ts": "185895f1b939370903c9a896df47a1066647a50eb3022e1d0387918996ccd51c",
+    "src/fs/s3/index.ts": "731b0141a614ec0be82885c8f608ea9c07bbe4fc96cdc01a04f90bb77f93bf49",
+    "src/contracts/io.ts": "e925ab08a5ad41862d3f5c031164cc7310bc28397455b11b37b75b55a9dbacdb",
+    "src/contracts/plugin.ts": "b45e85e0d89f88308caf0b68f0b14f78341c4bba246d02e81103646f5a4c54ae",
+    "src/contracts/errors.ts": "66455381fe9d9e5357d08942e73de6ea1d613a03b09acaab77a5ccccde0f2840",
+    "src/contracts/path.ts": "948a1ceb19fd87fa4931974282ec4d68217dbd2353fac6ce6eabd48d3b5a2f34",
+    "src/contracts/index.ts": "fb9a434deb34dbad631166a689b02641c0e1acdbac691f6956a7c76e20729f50",
+    "src/contracts/filesystem.ts": "7c72ddef5660c9a1bd62910d3155a4278ce8d7607f811b32d27cf21149be4009",
+    "src/contracts/command.ts": "997422b9774ba15d385a1ff10156540a3f562f5a42607ae56c6186d78ff500cd",
+    "tests/fs/webdav/mock.ts": "177f79ee640460822cfe0486c87f7cc61ac7c8b84389abe32b48ef27f4b4ef36"
+  },
+  "note": "Moving remote-owner worktree; only Memory method eligibility changes in this task."
+}

@@ -24,7 +24,6 @@ for (const direction of ["source", "target"] as const) {
   for (const outcome of ["same", "distinct", "unknown", "error", "invalid", "cancel"] as const) {
     test(`late Memory ${direction} authority ${outcome} precedes content effects`, async () => {
       const memory = new MemoryFileSystem();
-      memory.readFile = memory.readFile.bind(memory);
       const service = new MockS3Client({ buckets: ["bucket"] });
       const remote = new S3FileSystem({ bucket: "bucket", transport: createS3Transport(service, service.capabilities) });
       const source = direction === "source" ? memory : remote;
@@ -96,12 +95,6 @@ for (const mode of ["conflict", "cancel", "preconstruction-peer"] as const) {
     const right = mode === "preconstruction-peer" ? new ExternalMemory() : new MemoryFileSystem();
     await left.writeFile("/source", payload);
     await right.writeFile("/target", previous);
-    const lstat = left.lstat.bind(left);
-    left.lstat = async (path, options) => {
-      const { identityScope: omitted, ...stat } = await lstat(path, options);
-      void omitted;
-      return stat;
-    };
     let effects = 0;
     left.readStream = async function* () { effects++; yield payload; };
     right.writeStream = async () => { effects++; assert.fail("destination content opened"); };

@@ -1,0 +1,279 @@
+import assert from "node:assert/strict";
+import { createServer } from "node:http";
+import type { Socket } from "node:net";
+import { setImmediate as turn } from "node:timers/promises";
+import { test } from "node:test";
+import { agentCommands, collectBytes, createBytePipe, createOutputOperation, MemoryFileSystem, networkCommands, Shell, writeBytes, type ByteSource, type OutputOperation } from "../../src/index.js";
+import { bounded, gate } from "../stress/remote-cancellation/helpers.js";
+
+const encode = (value: string): Uint8Array => new TextEncoder().encode(value);
+const text = (value: Uint8Array): string => new TextDecoder().decode(value);
+const isPipe = (error: unknown): boolean => error instanceof Error && "code" in error && error.code === "EPIPE";
+const opaque = { async write(_chunk: Uint8Array) {} };
+
+for (const kind of ["upload", "data", "writeout"] as const) test(`D${kind === "upload" ? 1 : kind === "data" ? 2 : 3}: ACTIVE borrowed curl ${kind}, delayed preparation and owner/sibling conservation`, { timeout: 4500 }, async testContext => {
+  const fs = new MemoryFileSystem();
+  const started = gate();
+  const outputClosed = gate();
+  const resolution = gate<IteratorResult<Uint8Array>>();
+  const events: string[] = [];
+  const sockets = new Set<Socket>();
+  const requests: { method: string; body: string }[] = [];
+  const handlers: Promise<void>[] = [];
+  const server = createServer((request, response) => {
+    const task = (async () => {
+      const chunks: Buffer[] = [];
+      for await (const chunk of request) chunks.push(Buffer.from(chunk));
+      requests.push({ method: request.method!, body: Buffer.concat(chunks).toString() });
+      events.push("request-complete");
+      response.writeHead(200, { "Content-Length": "4", "X-Direction": "kept" });
+      response.end("BODY");
+    })();
+    handlers.push(task);
+    void task.catch(() => response.destroy());
+  });
+  server.on("connection", socket => { sockets.add(socket); socket.once("close", () => sockets.delete(socket)); });
+  await new Promise<void>(resolve => server.listen(0, "127.0.0.1", resolve));
+  const address = server.address();
+  assert.ok(address && typeof address !== "string");
+  const url = `http://127.0.0.1:${address.port}/owned`;
+  const shell = new Shell({ fs }).use(agentCommands()).use(networkCommands({ authorize: request => request.url === url }));
+  let rawReads = 0;
+  let returns = 0;
+  let ownerClosed = false;
+  let settled = false;
+  let stage: AbortSignal | undefined;
+  const first = kind === "writeout" ? "%{http_code}" : "CURL\n";
+  const raw: AsyncIterator<Uint8Array> = {
+    async next() {
+      assert.equal(ownerClosed, false);
+      const index = rawReads++;
+      events.push(`raw-next:${index}`);
+      if (index === 0) { started.resolve(); return resolution.promise; }
+      if (index === 1) return { done: false, value: encode("OWNER\n") };
+      if (index === 2) return { done: false, value: encode("SIBLING\n") };
+      return { done: true, value: undefined };
+    },
+    async return() { returns++; ownerClosed = true; return { done: true, value: undefined }; },
+  };
+  const frame = (): ByteSource => ({ [Symbol.asyncIterator]() {
+    let used = false;
+    return {
+      next() { if (used) return Promise.resolve({ done: true as const, value: undefined }); used = true; return raw.next(); },
+      async return() { return raw.return!(); },
+    };
+  } });
+  shell.use(async (context, next) => {
+    if (context.command === "head") await started.promise;
+    if (context.command === "curl") stage = context.signal;
+    const result = await next();
+    if (context.command === "head") { events.push("head-returned"); outputClosed.resolve(); }
+    return result;
+  });
+  shell.commands.register({ name: "sibling", async execute(context) {
+    const bytes = await collectBytes(context.stdin, { signal: context.signal, maxBytes: 32 });
+    await writeBytes(context.stdout, bytes, context.signal);
+    return { exitCode: 0 };
+  } });
+  const options = kind === "upload" ? "-T - -o /body -D /headers -w '%{http_code}' -v" : kind === "data" ? "--data-binary @-" : "-w @- -o /body -D /headers -v";
+  const pending = shell.exec(`set -o pipefail; curl ${options} ${url} | head -n 0`, { stdin: frame() });
+  void pending.then(() => { settled = true; }, () => { settled = true; });
+  try {
+    await bounded(outputClosed.promise, "head completes after real borrowed next");
+    await turn(); await turn();
+    assert.equal(settled, false, "opaque borrowed next remains pending after output closure");
+    assert.equal(returns, 0); assert.equal(rawReads, 1); assert.equal(stage?.aborted, false);
+    assert.equal(requests.length, 0, "request is sequenced after borrowed preparation, not reader demand");
+    events.push("asserted-delayed");
+    resolution.resolve({ done: false, value: encode(first) });
+    events.push("owner-resolved-pending-next");
+    const result = await bounded(pending, "curl after controlled resolution", 2000);
+    assert.equal(result.exitCode, 141); assert.equal(result.stdout, "");
+    assert.equal(returns, 0); assert.equal(stage?.aborted, false);
+    if (kind !== "data") {
+      assert.deepEqual(requests, [{ method: kind === "upload" ? "PUT" : "GET", body: kind === "upload" ? first : "" }]);
+      assert.equal(text(await fs.readFile("/body")), "BODY");
+      assert.match(text(await fs.readFile("/headers")), /X-Direction: kept/i);
+      assert.match(result.stderr, /HTTP 200/);
+    } else { assert.equal(result.stderr, ""); assert.deepEqual(requests, []); }
+    const owner = await bounded(shell.exec("sibling", { stdin: frame() }), "owner after output close");
+    const sibling = await bounded(shell.exec("sibling", { stdin: frame() }), "sibling after output close");
+    assert.equal(owner.stdout, "OWNER\n"); assert.equal(sibling.stdout, "SIBLING\n");
+    assert.equal(first + owner.stdout + sibling.stdout, first + "OWNER\nSIBLING\n");
+    assert.equal(rawReads, 3); assert.equal(returns, 0);
+    await raw.return!(); assert.equal(returns, 1);
+    testContext.diagnostic(JSON.stringify({ kind, inputPartition: "host-supplied one-chunk borrowed frames over same owner iterator", consumedByCurl: first, owner: owner.stdout, sibling: sibling.stdout, rawReads, returnsAfterExplicitOwnerClose: returns, result, requests, events }));
+  } finally {
+    resolution.resolve({ done: true, value: undefined });
+    await pending.catch(() => {});
+    await shell.dispose();
+    await Promise.allSettled(handlers);
+    await new Promise<void>((resolve, reject) => server.close(error => error ? reject(error) : resolve()));
+    await turn();
+    assert.equal(sockets.size, 0);
+    testContext.diagnostic(JSON.stringify({ kind, serverClosed: true, sockets: sockets.size, handlersSettled: handlers.length }));
+  }
+});
+
+test("D4: transitive output abort drains three levels before public settlement and refuses late work", { timeout: 3000 }, async testContext => {
+  const shell = new Shell({ fs: new MemoryFileSystem() }).use(agentCommands());
+  const started = gate();
+  const entered = gate();
+  const release = gate();
+  const events: string[] = [];
+  let settled = false;
+  let operation: OutputOperation | undefined;
+  shell.use(async (context, next) => { if (context.command === "head") await started.promise; return next(); });
+  shell.commands.register({ name: "tree", async execute(context) {
+    const parent = createOutputOperation(context, context.stdout);
+    operation = parent;
+    const child = parent.child(opaque);
+    const grandchild = child.child(opaque);
+    for (const [index, member] of [parent, child, grandchild].entries()) member.registerCleanup(async () => {
+      events.push(`cleanup-enter:${index}`);
+      if (index === 2) { entered.resolve(); await release.promise; }
+      events.push(`cleanup-exit:${index}`);
+    });
+    const acquired = await grandchild.acquire(() => ({ owned: true }), () => { events.push("resource-release"); });
+    assert.equal(acquired.owned, true);
+    started.resolve();
+    await entered.promise;
+    for (const member of [parent, child, grandchild]) {
+      assert.equal(member.signal.reason, parent.signal.reason); assert.ok(isPipe(member.signal.reason));
+      assert.throws(() => member.child(opaque), error => error === parent.signal.reason);
+      await assert.rejects(member.acquire(() => { assert.fail("late acquisition started"); }, () => {}), error => error === parent.signal.reason);
+    }
+    assert.equal(context.signal.aborted, false);
+    assert.equal(parent.close(), parent.close());
+    await Promise.all([parent.close(), child.close(), grandchild.close()]);
+    return { exitCode: 141 };
+  } });
+  const pending = shell.exec("set -o pipefail; tree | head -n 0");
+  void pending.then(() => { settled = true; }, () => { settled = true; });
+  try {
+    await bounded(entered.promise, "transitive cleanup entered"); await turn();
+    assert.equal(settled, false); assert.ok(operation?.signal.aborted);
+    release.resolve();
+    const result = await bounded(pending, "transitive public cleanup");
+    assert.equal(result.exitCode, 141); assert.equal(result.stderr, "");
+    assert.equal(events.filter(value => value === "resource-release").length, 1);
+    for (const index of [0, 1, 2]) assert.equal(events.filter(value => value === `cleanup-exit:${index}`).length, 1);
+    testContext.diagnostic(JSON.stringify({ result, events }));
+  } finally { release.resolve(); await pending.catch(() => {}); await shell.dispose(); }
+});
+
+test("D5: parent NORMAL close synchronously shuts descendant admission without EPIPE and drains cooperation", { timeout: 2500 }, async testContext => {
+  const caller = new AbortController();
+  const registered: (() => void | Promise<void>)[] = [];
+  const parent = createOutputOperation({ signal: caller.signal, registerCleanup: cleanup => registered.push(cleanup) }, opaque);
+  const child = parent.child(opaque);
+  const grandchild = child.child(opaque);
+  const release = gate();
+  const entered = gate();
+  let releases = 0;
+  grandchild.registerCleanup(async () => { entered.resolve(); await release.promise; releases++; });
+  const pending = parent.close();
+  assert.equal(pending, parent.close());
+  for (const member of [parent, child, grandchild]) {
+    assert.equal(member.signal.aborted, false);
+    assert.throws(() => member.child(opaque), /closed/);
+    await assert.rejects(member.acquire(() => { assert.fail("normal-close late start"); }, () => {}), /closed/);
+    assert.throws(() => member.registerCleanup(() => {}), /closed/);
+  }
+  await bounded(entered.promise, "normal child drain entered");
+  let settled = false; void pending.then(() => { settled = true; });
+  await turn(); assert.equal(settled, false);
+  release.resolve();
+  await bounded(Promise.all([pending, ...registered.map(cleanup => cleanup())]), "normal child drain");
+  assert.equal(releases, 1); assert.equal(registered.length, 1);
+  caller.abort(new Error("later caller abort"));
+  assert.equal(parent.signal.aborted, false); assert.equal(grandchild.signal.aborted, false);
+  testContext.diagnostic(JSON.stringify({ releases, registeredInvocationCleanups: registered.length, aborted: [parent, child, grandchild].map(member => member.signal.aborted) }));
+});
+
+test("D6: child-only closure isolates parent/sibling, independent file/stderr and genuine status", { timeout: 2500 }, async testContext => {
+  const fs = new MemoryFileSystem();
+  const shell = new Shell({ fs }).use(agentCommands());
+  const pipe = createBytePipe();
+  const events: string[] = [];
+  shell.commands.register({ name: "isolation", async execute(context) {
+    const parent = createOutputOperation(context, context.stdout);
+    const child = parent.child(pipe.writable);
+    const sibling = parent.child(parent.output);
+    child.registerCleanup(() => { events.push("child-release"); });
+    const reader = pipe.readable[Symbol.asyncIterator]();
+    await reader.return?.();
+    await child.close();
+    assert.ok(isPipe(child.signal.reason));
+    assert.equal(parent.signal.aborted, false); assert.equal(sibling.signal.aborted, false); assert.equal(context.signal.aborted, false);
+    await writeBytes(sibling.output, encode("sibling\n"), sibling.signal);
+    await context.fs.writeFile("/independent", encode("kept"), { signal: context.signal });
+    await writeBytes(context.stderr, encode("independent\n"), context.signal);
+    await parent.close();
+    return { exitCode: 7 };
+  } });
+  try {
+    const result = await bounded(shell.exec("set -o pipefail; isolation | cat"), "child isolation");
+    assert.equal(result.exitCode, 7); assert.equal(result.stdout, "sibling\n"); assert.equal(result.stderr, "independent\n");
+    assert.equal(text(await fs.readFile("/independent")), "kept"); assert.deepEqual(events, ["child-release"]);
+    testContext.diagnostic(JSON.stringify({ result, effect: "kept", events }));
+  } finally { await pipe.abort(); await shell.dispose(); }
+});
+
+test("D7: transitive opaque acquisitions are NOT drained; controlled late resource is released once and rejection observed", { timeout: 2500 }, async testContext => {
+  const caller = new AbortController();
+  const parent = createOutputOperation({ signal: caller.signal }, opaque);
+  const child = parent.child(opaque).child(opaque);
+  const late = gate<{ id: number }>();
+  const rejected = gate<{ id: number }>();
+  const releases: number[] = [];
+  const first = child.acquire(() => late.promise, resource => { releases.push(resource.id); });
+  const second = child.acquire(() => rejected.promise, resource => { releases.push(resource.id); });
+  const observed = Promise.allSettled([first, second]);
+  let acquisitionsSettled = false; void observed.then(() => { acquisitionsSettled = true; });
+  await bounded(parent.close(), "normal close does not claim opaque drain");
+  assert.equal(acquisitionsSettled, false); assert.deepEqual(releases, []);
+  late.resolve({ id: 17 }); rejected.reject(new Error("controlled late rejection"));
+  const results = await bounded(observed, "controlled opaque resolutions");
+  assert.equal(results[0]?.status, "rejected"); assert.equal(results[1]?.status, "rejected");
+  if (results[0]?.status === "rejected") assert.match(String(results[0].reason), /closed/);
+  if (results[1]?.status === "rejected") assert.equal(String(results[1].reason), "Error: controlled late rejection");
+  await Promise.all([parent.close(), child.close()]); assert.deepEqual(releases, [17]);
+  testContext.diagnostic(JSON.stringify({ explicitlyNotDrainedAtClose: true, laterControlledResolutions: results.map(value => value.status), releases }));
+});
+
+test("D8: descendant cleanup error surfaces; first output reason stays, later caller wins public exec", { timeout: 2500 }, async testContext => {
+  const shell = new Shell({ fs: new MemoryFileSystem() }).use(agentCommands());
+  const caller = new AbortController();
+  const callerReason = new Error("direction caller reason");
+  const cleanupFailure = new Error("direction child cleanup failure");
+  const started = gate();
+  const entered = gate();
+  const release = gate();
+  let operation: OutputOperation | undefined;
+  let cleanupError: unknown;
+  let cleanupCount = 0;
+  shell.use(async (context, next) => { if (context.command === "head") await started.promise; return next(); });
+  shell.commands.register({ name: "reasons", async execute(context) {
+    const parent = createOutputOperation(context, context.stdout);
+    operation = parent;
+    parent.child(opaque).child(opaque).registerCleanup(async () => {
+      cleanupCount++; entered.resolve(); await release.promise; throw cleanupFailure;
+    });
+    started.resolve(); await entered.promise;
+    try { await parent.close(); } catch (error) { cleanupError = error; }
+    return { exitCode: 9 };
+  } });
+  const pending = shell.exec("reasons | head -n 0", { signal: caller.signal });
+  const observed = pending.then(value => ({ value, error: undefined }), error => ({ value: undefined, error }));
+  try {
+    await bounded(entered.promise, "reason child cleanup");
+    assert.ok(isPipe(operation?.signal.reason));
+    const firstReason = operation?.signal.reason;
+    caller.abort(callerReason); release.resolve();
+    const result = await bounded(observed, "caller public precedence");
+    assert.equal(result.error, callerReason); assert.equal(operation?.signal.reason, firstReason);
+    assert.equal(cleanupCount, 1); assert.equal(cleanupError, cleanupFailure);
+    testContext.diagnostic(JSON.stringify({ callerWins: true, firstOperationEpipeRetained: true, cleanupError: String(cleanupError), cleanupCount }));
+  } finally { release.resolve(); await observed; await shell.dispose(); }
+});

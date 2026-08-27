@@ -1,0 +1,130 @@
+{
+  "purpose": "Six earlier console-only ordering probes repeated in isolated owned native tempdirs; exploratory only, not new acceptance fixtures. Earlier probes had no fixture creation and absent data operands; no product host fallback.",
+  "environment": {
+    "LC_ALL": "C",
+    "LANG": "C",
+    "TZ": "UTC"
+  },
+  "binary": "/tmp/safe-bash-gnu-strings-20260827-YJqPHf/build-system-zlib/binutils/strings",
+  "sha256": "90b9c9257095110594ae58a4bb1531d9670bd6aed297b8dbf0dc01914c5de09f",
+  "fixtures": [
+    {
+      "id": "strings-order-probe-1",
+      "command": "strings",
+      "args": [
+        "-3",
+        "-5a"
+      ],
+      "stdinHex": "61626300616263646500"
+    },
+    {
+      "id": "strings-order-probe-2",
+      "command": "strings",
+      "args": [
+        "-5a",
+        "-3"
+      ],
+      "stdinHex": "61626300616263646500"
+    },
+    {
+      "id": "strings-order-probe-3",
+      "command": "strings",
+      "args": [
+        "-5",
+        "--",
+        "data"
+      ],
+      "stdinHex": "61626300616263646500"
+    },
+    {
+      "id": "strings-order-probe-4",
+      "command": "strings",
+      "args": [
+        "data",
+        "-5"
+      ],
+      "stdinHex": "61626300616263646500"
+    },
+    {
+      "id": "strings-order-probe-5",
+      "command": "strings",
+      "args": [
+        "-5",
+        "data"
+      ],
+      "stdinHex": "61626300616263646500"
+    },
+    {
+      "id": "strings-order-probe-6",
+      "command": "strings",
+      "args": [
+        "data",
+        "-5",
+        "-n3"
+      ],
+      "stdinHex": "61626300616263646500"
+    }
+  ],
+  "observations": [
+    {
+      "id": "strings-order-probe-1",
+      "command": "strings",
+      "fixtureSha256": "78f46388d601fc1f43f96edfe6e0b0630ba4caef792e8a10f878c56790f4c5b8",
+      "status": 0,
+      "signal": null,
+      "stdoutHex": "6162630a61626364650a",
+      "stderrHex": ""
+    },
+    {
+      "id": "strings-order-probe-2",
+      "command": "strings",
+      "fixtureSha256": "23f90964638c6faf673b749de90d355e85df16b0c7561d542ee2b2e467beee8e",
+      "status": 0,
+      "signal": null,
+      "stdoutHex": "6162630a61626364650a",
+      "stderrHex": ""
+    },
+    {
+      "id": "strings-order-probe-3",
+      "command": "strings",
+      "fixtureSha256": "d6ca9188c14fc63aff637bb5b7e26f45e22020737dc8edc270440e78796ebb29",
+      "status": 1,
+      "signal": null,
+      "stdoutHex": "",
+      "stderrHex": "2f746d702f736166652d626173682d676e752d737472696e67732d32303236303832372d594a715048662f6275696c642d73797374656d2d7a6c69622f62696e7574696c732f737472696e67733a202764617461273a204e6f20737563682066696c650a"
+    },
+    {
+      "id": "strings-order-probe-4",
+      "command": "strings",
+      "fixtureSha256": "086bd3f756dfed7b6be07d28bb9826faf2e3a3d669dcee9c72d61fed8dc28047",
+      "status": 1,
+      "signal": null,
+      "stdoutHex": "",
+      "stderrHex": "2f746d702f736166652d626173682d676e752d737472696e67732d32303236303832372d594a715048662f6275696c642d73797374656d2d7a6c69622f62696e7574696c732f737472696e67733a20696e76616c696420696e746567657220617267756d656e74206174610a"
+    },
+    {
+      "id": "strings-order-probe-5",
+      "command": "strings",
+      "fixtureSha256": "bff80e6d92f31668d2e21cbaae7832324346e511e9f5a226df3e4e7de81341f0",
+      "status": 1,
+      "signal": null,
+      "stdoutHex": "",
+      "stderrHex": "2f746d702f736166652d626173682d676e752d737472696e67732d32303236303832372d594a715048662f6275696c642d73797374656d2d7a6c69622f62696e7574696c732f737472696e67733a202764617461273a204e6f20737563682066696c650a"
+    },
+    {
+      "id": "strings-order-probe-6",
+      "command": "strings",
+      "fixtureSha256": "f8da0e11ea1a60120f8421461f2012cd3d3e8c38ef24a1fc99732836ee93849a",
+      "status": 1,
+      "signal": null,
+      "stdoutHex": "",
+      "stderrHex": "2f746d702f736166652d626173682d676e752d737472696e67732d32303236303832372d594a715048662f6275696c642d73797374656d2d7a6c69622f62696e7574696c732f737472696e67733a20696e76616c696420696e746567657220617267756d656e74206e330a"
+    }
+  ],
+  "providerSourcesReadOnly": {
+    "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/expand.c": "427af9d2d6266e29abc8860a908eaf21c9b19f2b9b4f8852ca79da0910403c3d",
+    "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/expand-common.c": "df7afcc5b870351dc11b2a96a839bd4253fcf7c06e3b8b791961c645734c5998",
+    "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/fold.c": "700f20df51dfbda8bb968ee2fe08151a212b4ac389aaf20fcb9d49da183b2038",
+    "/tmp/safe-bash-gnu-strings-20260827-YJqPHf/binutils-2.44/binutils/strings.c": "fc3d00039326e357b94f283e64bacadc320bf80a38dc5fe841aab52881e85f56"
+  }
+}

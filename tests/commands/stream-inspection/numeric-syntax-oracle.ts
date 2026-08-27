@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import { execFileSync } from "node:child_process";
-import { readFileSync, readdirSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { arch, platform, release } from "node:os";
 import { fileURLToPath } from "node:url";
 import { capture, defaultGnu, identity } from "./oracle.js";
@@ -37,6 +37,8 @@ export function captureNumericSyntax() {
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
+  const destination = process.argv[2] === "--corrected" ? "fixer-numeric-controls.json" : "fixer-numeric-before.json";
+  assert.equal(existsSync(`tests/commands/stream-inspection/evidence/${destination}`), false, "never overwrite previous evidence");
   const started = new Date().toISOString();
   const source = sourceManifest();
   const native = captureNumericSyntax();
@@ -47,6 +49,5 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
   }
   assert.deepEqual(sourceManifest(), source);
   const content = JSON.stringify({ started, finished: new Date().toISOString(), source, fixtures: numericSyntaxCases, native, before }, null, 2);
-  const destination = process.argv[2] === "--corrected" ? "fixer-numeric-controls.json" : "fixer-numeric-before.json";
   execFileSync("apply_patch", [], { input: `*** Begin Patch\n*** Add File: tests/commands/stream-inspection/evidence/${destination}\n` + content.split("\n").map(line => "+" + line).join("\n") + "\n*** End Patch\n" });
 }

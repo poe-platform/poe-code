@@ -45,12 +45,15 @@ async function executeRuntimeJobsLogs(
     resources.logger.info(line);
   });
 
-  await streamJobLog(handle, {
-    since,
-    follow: false,
-    write(chunk) {
-      logWriter.write(chunk);
-    }
-  });
-  logWriter.flush();
+  try {
+    await streamJobLog(handle, {
+      since,
+      follow: false,
+      write(chunk) {
+        logWriter.write(chunk);
+      }
+    });
+  } finally {
+    logWriter.flush();
+  }
 }

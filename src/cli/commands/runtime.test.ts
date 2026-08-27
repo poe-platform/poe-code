@@ -809,6 +809,91 @@ describe("runtime command", () => {
     expect(stripAnsi(logs.join("\n"))).toBe("partial\n\ntail");
   });
 
+  it.each([
+    { command: "logs", failure: "reader" },
+    { command: "logs", failure: "cleanup" },
+    { command: "attach", failure: "reader" },
+    { command: "attach", failure: "cleanup" },
+    { command: "attach", failure: "status" }
+  ] as const)(
+    "preserves partial diagnostics when $command fails during $failure",
+    async ({ command, failure }) => {
+      vi.useFakeTimers();
+      const jobPath = path.join(jobsDir, "job-error.json");
+      const jobData = JSON.stringify(
+        createJobEntry({ id: "job-error", env_id: "env-error", status: "running" })
+      );
+      const fs = createMemFs({ [jobPath]: jobData });
+      const logs: string[] = [];
+      const error = new Error(`${failure} failed`);
+      const settled = vi.fn();
+      const kill = vi.fn();
+      const status = vi.fn<JobHandle["status"]>().mockRejectedValue(error);
+      let release = () => {};
+      jobHandles.set("env-error", {
+        ...createJobHandle({ status: "running", kill }),
+        status,
+        stream(options) {
+          const iterator = (async function* () {
+            yield { byteOffset: 0, data: "complete line\npartial dia" };
+            yield { byteOffset: 25, data: "gnostic" };
+            if (failure === "reader") {
+              throw error;
+            }
+            if (failure === "status") {
+              await new Promise<void>((resolve, reject) => {
+                release = resolve;
+                options?.signal?.addEventListener("abort", () => reject(options.signal?.reason), {
+                  once: true
+                });
+              });
+            }
+          })();
+          if (failure === "cleanup") {
+            vi.spyOn(iterator, "return").mockRejectedValue(error);
+          }
+          return iterator;
+        }
+      });
+      const program = createBaseProgram();
+      registerRuntimeCommand(program, createContainer(fs, logs));
+      const listeners = process.listenerCount("SIGINT");
+      const parsing = program
+        .parseAsync([
+          "node",
+          "cli",
+          "runtime",
+          "jobs",
+          command,
+          "job-error",
+          ...(command === "attach" ? ["--sync-on-exit"] : [])
+        ])
+        .then(
+          () => settled("done"),
+          (reason: unknown) => settled(reason)
+        );
+      try {
+        await vi.advanceTimersByTimeAsync(250);
+
+        expect(settled).toHaveBeenCalledTimes(1);
+        expect(settled.mock.calls[0]?.[0]).toBe(error);
+        expect(status).toHaveBeenCalledTimes(failure === "status" ? 1 : 0);
+        expect(kill).not.toHaveBeenCalled();
+        expect(runtimeEvents.downloads).toEqual([]);
+        expect(runtimeEvents.closed).toEqual([]);
+        expect(process.listenerCount("SIGINT")).toBe(listeners);
+        expect(vi.getTimerCount()).toBe(0);
+        await expect(fs.readFile(jobPath, "utf8")).resolves.toBe(jobData);
+        expect(logs).toEqual(["complete line", "partial diagnostic"]);
+      } finally {
+        release();
+        await vi.advanceTimersByTimeAsync(1000);
+        await parsing;
+        vi.useRealTimers();
+      }
+    }
+  );
+
   it("requests full replay when dumping runtime job logs without since", async () => {
     const streamOptions: Array<Parameters<JobHandle["stream"]>[0]> = [];
     const fs = createMemFs({

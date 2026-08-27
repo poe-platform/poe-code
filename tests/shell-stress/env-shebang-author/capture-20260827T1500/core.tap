@@ -1,0 +1,802 @@
+TAP version 13
+# Subtest: real agent pipeline: env -i A=1 B=2 env -u A
+ok 1 - real agent pipeline: env -i A=1 B=2 env -u A
+  ---
+  duration_ms: 6.636459
+  type: 'test'
+  ...
+# Subtest: real agent pipeline: env -i A=1 B=2 env -u A | cat
+ok 2 - real agent pipeline: env -i A=1 B=2 env -u A | cat
+  ---
+  duration_ms: 3.989125
+  type: 'test'
+  ...
+# Subtest: real agent pipeline: env -i A=1 B=2 env -u A env
+ok 3 - real agent pipeline: env -i A=1 B=2 env -u A env
+  ---
+  duration_ms: 1.198208
+  type: 'test'
+  ...
+# Subtest: real agent pipeline: TEMP=prefix env -i env
+ok 4 - real agent pipeline: TEMP=prefix env -i env
+  ---
+  duration_ms: 1.145333
+  type: 'test'
+  ...
+# Subtest: real agent pipeline: env -i
+ok 5 - real agent pipeline: env -i
+  ---
+  duration_ms: 0.580833
+  type: 'test'
+  ...
+# Subtest: real agent pipeline: env -i EMPTY= VALUE=a=b env
+ok 6 - real agent pipeline: env -i EMPTY= VALUE=a=b env
+  ---
+  duration_ms: 0.616958
+  type: 'test'
+  ...
+# Subtest: exact exported map: env -u PUBLIC report
+ok 7 - exact exported map: env -u PUBLIC report
+  ---
+  duration_ms: 0.890709
+  type: 'test'
+  ...
+# Subtest: exact exported map: env -i report
+ok 8 - exact exported map: env -i report
+  ---
+  duration_ms: 0.739833
+  type: 'test'
+  ...
+# Subtest: exact exported map: env -i -C /other PWD=caller report
+ok 9 - exact exported map: env -i -C /other PWD=caller report
+  ---
+  duration_ms: 0.999667
+  type: 'test'
+  ...
+# Subtest: exact exported map: env -i -C /other report
+ok 10 - exact exported map: env -i -C /other report
+  ---
+  duration_ms: 0.611875
+  type: 'test'
+  ...
+# Subtest: private/exported separation at bash startup
+ok 11 - private/exported separation at bash startup
+  ---
+  duration_ms: 3.380375
+  type: 'test'
+  ...
+# Subtest: private/exported separation at sh startup
+ok 12 - private/exported separation at sh startup
+  ---
+  duration_ms: 1.603959
+  type: 'test'
+  ...
+# Subtest: literal invoke replace=undefined supplied=false
+ok 13 - literal invoke replace=undefined supplied=false
+  ---
+  duration_ms: 1.424875
+  type: 'test'
+  ...
+# Subtest: literal invoke replace=undefined supplied=true
+ok 14 - literal invoke replace=undefined supplied=true
+  ---
+  duration_ms: 0.386334
+  type: 'test'
+  ...
+# Subtest: literal invoke replace=false supplied=false
+ok 15 - literal invoke replace=false supplied=false
+  ---
+  duration_ms: 0.311625
+  type: 'test'
+  ...
+# Subtest: literal invoke replace=false supplied=true
+ok 16 - literal invoke replace=false supplied=true
+  ---
+  duration_ms: 0.34675
+  type: 'test'
+  ...
+# Subtest: literal invoke replace=true supplied=false
+ok 17 - literal invoke replace=true supplied=false
+  ---
+  duration_ms: 0.3265
+  type: 'test'
+  ...
+# Subtest: literal invoke replace=true supplied=true
+ok 18 - literal invoke replace=true supplied=true
+  ---
+  duration_ms: 0.3015
+  type: 'test'
+  ...
+# Subtest: shell-local type mirrors the approved contract without casts
+ok 19 - shell-local type mirrors the approved contract without casts
+  ---
+  duration_ms: 0.035708
+  type: 'test'
+  ...
+# Subtest: replacement does not impose a lineage policy on later default invocation
+ok 20 - replacement does not impose a lineage policy on later default invocation
+  ---
+  duration_ms: 0.406708
+  type: 'test'
+  ...
+# Subtest: validation before entry {"bad=name":"value"}
+ok 21 - validation before entry {"bad=name":"value"}
+  ---
+  duration_ms: 0.47025
+  type: 'test'
+  ...
+# Subtest: validation before entry {"bad\\u0000name":"value"}
+ok 22 - validation before entry {"bad\\u0000name":"value"}
+  ---
+  duration_ms: 0.211708
+  type: 'test'
+  ...
+# Subtest: validation before entry {"GOOD":"bad\\u0000value"}
+ok 23 - validation before entry {"GOOD":"bad\\u0000value"}
+  ---
+  duration_ms: 0.202542
+  type: 'test'
+  ...
+# Subtest: parent function locals, exports, cwd survive replacement and child status
+ok 24 - parent function locals, exports, cwd survive replacement and child status
+  ---
+  duration_ms: 2.000708
+  type: 'test'
+  ...
+# Subtest: private clone remains private until explicit export; no global lineage reset
+ok 25 - private clone remains private until explicit export; no global lineage reset
+  ---
+  duration_ms: 0.6555
+  type: 'test'
+  ...
+# Subtest: middleware sees exact child map; caller map is copied
+ok 26 - middleware sees exact child map; caller map is copied
+  ---
+  duration_ms: 0.479
+  type: 'test'
+  ...
+# Subtest: origin and binary cursor undefined
+ok 27 - origin and binary cursor undefined
+  ---
+  duration_ms: 0.5955
+  type: 'test'
+  ...
+# Subtest: origin and binary cursor 
+ok 28 - origin and binary cursor 
+  ---
+  duration_ms: 0.615209
+  type: 'test'
+  ...
+# Subtest: origin and binary cursor 0,255,195,169,10
+ok 29 - origin and binary cursor 0,255,195,169,10
+  ---
+  duration_ms: 0.678625
+  type: 'test'
+  ...
+# Subtest: read consumes only its prefix before nested replacement
+ok 30 - read consumes only its prefix before nested replacement
+  ---
+  duration_ms: 2.2235
+  type: 'test'
+  ...
+# Subtest: env split bounded host: real-nested-pipeline
+ok 31 - env split bounded host: real-nested-pipeline
+  ---
+  duration_ms: 217.85275
+  type: 'test'
+  ...
+# Subtest: env split bounded host: export-local-cwd-parent
+ok 32 - env split bounded host: export-local-cwd-parent
+  ---
+  duration_ms: 173.248917
+  type: 'test'
+  ...
+# Subtest: env split bounded host: prefix-assignment-before-clear
+ok 33 - env split bounded host: prefix-assignment-before-clear
+  ---
+  duration_ms: 178.531791
+  type: 'test'
+  ...
+# Subtest: env split bounded host: binary-cursor-origin
+ok 34 - env split bounded host: binary-cursor-origin
+  ---
+  duration_ms: 169.537625
+  type: 'test'
+  ...
+# Subtest: env split bounded host: supplied-empty-origin
+ok 35 - env split bounded host: supplied-empty-origin
+  ---
+  duration_ms: 174.731083
+  type: 'test'
+  ...
+# Subtest: env split bounded host: bom-stderr-stdout
+ok 36 - env split bounded host: bom-stderr-stdout
+  ---
+  duration_ms: 184.347959
+  type: 'test'
+  ...
+# Subtest: env split bounded host: parse-before-chdir-effects
+ok 37 - env split bounded host: parse-before-chdir-effects
+  ---
+  duration_ms: 169.627458
+  type: 'test'
+  ...
+# Subtest: env split bounded host: unsupported-before-chdir
+ok 38 - env split bounded host: unsupported-before-chdir
+  ---
+  duration_ms: 176.753333
+  type: 'test'
+  ...
+# Subtest: env split bounded host: literal-single-optional-argument
+not ok 39 - env split bounded host: literal-single-optional-argument
+  ---
+  duration_ms: 177.041958
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/shell/env-split-host.test.ts:1:948'
+  failureType: 'testCodeFailure'
+  error: |-
+    node:internal/modules/run_main:123
+        triggerUncaughtException(
+        ^
+    
+    AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+    
+    127 !== 126
+    
+        at <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell-stress/env-split-author/resume-host.ts:94:12) {
+      generatedMessage: true,
+      code: 'ERR_ASSERTION',
+      actual: 127,
+      expected: 126,
+      operator: 'strictEqual',
+      diff: 'simple'
+    }
+    
+    Node.js v22.22.2
+    
+    
+    1 !== 0
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 0
+  actual: 1
+  operator: 'strictEqual'
+  stack: |-
+    <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell-stress/env-split-author/resume-host.ts:94:12) {
+    ChildProcess.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/env-split-host.test.ts:38:16)
+    ChildProcess.emit (node:events:519:28)
+    maybeClose (node:internal/child_process:1101:16)
+    ChildProcess._handle.onexit (node:internal/child_process:304:5)
+  ...
+# Subtest: env split bounded host: literal-injection-host-boundary
+ok 40 - env split bounded host: literal-injection-host-boundary
+  ---
+  duration_ms: 180.150625
+  type: 'test'
+  ...
+# Subtest: env split bounded host: shared-command-budget
+ok 41 - env split bounded host: shared-command-budget
+  ---
+  duration_ms: 178.7365
+  type: 'test'
+  ...
+# Subtest: env split bounded host: shared-output-budget
+ok 42 - env split bounded host: shared-output-budget
+  ---
+  duration_ms: 182.18375
+  type: 'test'
+  ...
+# Subtest: env split bounded host: shared-depth-budget
+ok 43 - env split bounded host: shared-depth-budget
+  ---
+  duration_ms: 169.923792
+  type: 'test'
+  ...
+# Subtest: env split bounded host: shared-source-budget
+ok 44 - env split bounded host: shared-source-budget
+  ---
+  duration_ms: 169.4095
+  type: 'test'
+  ...
+# Subtest: env split bounded host: shared-loop-budget
+ok 45 - env split bounded host: shared-loop-budget
+  ---
+  duration_ms: 172.195333
+  type: 'test'
+  ...
+# Subtest: env split bounded host: split-byte-cap
+ok 46 - env split bounded host: split-byte-cap
+  ---
+  duration_ms: 173.56825
+  type: 'test'
+  ...
+# Subtest: env split bounded host: split-argument-cap
+ok 47 - env split bounded host: split-argument-cap
+  ---
+  duration_ms: 185.132208
+  type: 'test'
+  ...
+# Subtest: env split bounded host: split-recursion-cap
+ok 48 - env split bounded host: split-recursion-cap
+  ---
+  duration_ms: 179.273125
+  type: 'test'
+  ...
+# Subtest: env split bounded host: typed-cancel-cleanup-late-reject
+ok 49 - env split bounded host: typed-cancel-cleanup-late-reject
+  ---
+  duration_ms: 225.719917
+  type: 'test'
+  ...
+# Subtest: env split bounded host: cleanup-failure-identity
+ok 50 - env split bounded host: cleanup-failure-identity
+  ---
+  duration_ms: 180.319708
+  type: 'test'
+  ...
+# Subtest: env split bounded host: preabort-no-dispatch
+ok 51 - env split bounded host: preabort-no-dispatch
+  ---
+  duration_ms: 178.719375
+  type: 'test'
+  ...
+# Subtest: env split bounded host: blocked-input-cancel
+ok 52 - env split bounded host: blocked-input-cancel
+  ---
+  duration_ms: 214.279583
+  type: 'test'
+  ...
+# Subtest: env split bounded host: fallback-keeps-context
+ok 53 - env split bounded host: fallback-keeps-context
+  ---
+  duration_ms: 181.484
+  type: 'test'
+  ...
+# Subtest: env split bounded host: sink-cancel-precedence
+ok 54 - env split bounded host: sink-cancel-precedence
+  ---
+  duration_ms: 163.225291
+  type: 'test'
+  ...
+# Subtest: env split bounded host: same-stream-split-does-not-consume
+ok 55 - env split bounded host: same-stream-split-does-not-consume
+  ---
+  duration_ms: 174.12
+  type: 'test'
+  ...
+# Subtest: env split additional parser cancellation, exact caps and non-S compatibility
+ok 56 - env split additional parser cancellation, exact caps and non-S compatibility
+  ---
+  duration_ms: 230.573042
+  type: 'test'
+  ...
+# Subtest: env split imports the current TypeScript product
+ok 57 - env split imports the current TypeScript product
+  ---
+  duration_ms: 0.770708
+  type: 'test'
+  ...
+# Subtest: env split GNU raw tuple: plain
+ok 58 - env split GNU raw tuple: plain
+  ---
+  duration_ms: 6.046958
+  type: 'test'
+  ...
+# Subtest: env split GNU raw tuple: whitespace
+ok 59 - env split GNU raw tuple: whitespace
+  ---
+  duration_ms: 1.181625
+  type: 'test'
+  ...
+# Subtest: env split GNU raw tuple: quotes-empty
+ok 60 - env split GNU raw tuple: quotes-empty
+  ---
+  duration_ms: 1.370375
+  type: 'test'
+  ...
+# Subtest: env split GNU raw tuple: quote-literals
+ok 61 - env split GNU raw tuple: quote-literals
+  ---
+  duration_ms: 1.009792
+  type: 'test'
+  ...
+# Subtest: env split GNU raw tuple: escape-controls
+ok 62 - env split GNU raw tuple: escape-controls
+  ---
+  duration_ms: 1.422209
+  type: 'test'
+  ...
+# Subtest: env split GNU raw tuple: escape-punctuation
+ok 63 - env split GNU raw tuple: escape-punctuation
+  ---
+  duration_ms: 0.627792
+  type: 'test'
+  ...
+# Subtest: env split GNU raw tuple: single-quote-escapes
+ok 64 - env split GNU raw tuple: single-quote-escapes
+  ---
+  duration_ms: 0.751459
+  type: 'test'
+  ...
+# Subtest: env split GNU raw tuple: underscore
+ok 65 - env split GNU raw tuple: underscore
+  ---
+  duration_ms: 0.929208
+  type: 'test'
+  ...
+# Subtest: env split GNU raw tuple: comment
+ok 66 - env split GNU raw tuple: comment
+  ---
+  duration_ms: 1.21475
+  type: 'test'
+  ...
+# Subtest: env split GNU raw tuple: comment-active
+ok 67 - env split GNU raw tuple: comment-active
+  ---
+  duration_ms: 0.60525
+  type: 'test'
+  ...
+# Subtest: env split GNU raw tuple: cancel-string
+ok 68 - env split GNU raw tuple: cancel-string
+  ---
+  duration_ms: 0.455958
+  type: 'test'
+  ...
+# Subtest: env split GNU raw tuple: cancel-double-error
+ok 69 - env split GNU raw tuple: cancel-double-error
+  ---
+  duration_ms: 0.378791
+  type: 'test'
+  ...
+# Subtest: env split GNU raw tuple: escape-space-error
+ok 70 - env split GNU raw tuple: escape-space-error
+  ---
+  duration_ms: 0.289792
+  type: 'test'
+  ...
+# Subtest: env split GNU raw tuple: escape-unknown-error
+ok 71 - env split GNU raw tuple: escape-unknown-error
+  ---
+  duration_ms: 0.334833
+  type: 'test'
+  ...
+# Subtest: env split GNU raw tuple: escape-final-error
+ok 72 - env split GNU raw tuple: escape-final-error
+  ---
+  duration_ms: 0.353291
+  type: 'test'
+  ...
+# Subtest: env split GNU raw tuple: quote-final-error
+ok 73 - env split GNU raw tuple: quote-final-error
+  ---
+  duration_ms: 0.302
+  type: 'test'
+  ...
+# Subtest: env split GNU raw tuple: expand-boundary
+ok 74 - env split GNU raw tuple: expand-boundary
+  ---
+  duration_ms: 1.712167
+  type: 'test'
+  ...
+# Subtest: env split GNU raw tuple: expand-empty-unset
+ok 75 - env split GNU raw tuple: expand-empty-unset
+  ---
+  duration_ms: 0.37775
+  type: 'test'
+  ...
+# Subtest: env split GNU raw tuple: expand-single-literal
+ok 76 - env split GNU raw tuple: expand-single-literal
+  ---
+  duration_ms: 0.4945
+  type: 'test'
+  ...
+# Subtest: env split GNU raw tuple: expand-before-i
+ok 77 - env split GNU raw tuple: expand-before-i
+  ---
+  duration_ms: 0.427959
+  type: 'test'
+  ...
+# Subtest: env split GNU raw tuple: expand-before-u
+ok 78 - env split GNU raw tuple: expand-before-u
+  ---
+  duration_ms: 0.425708
+  type: 'test'
+  ...
+# Subtest: env split GNU raw tuple: expand-assignment-timing
+ok 79 - env split GNU raw tuple: expand-assignment-timing
+  ---
+  duration_ms: 0.405292
+  type: 'test'
+  ...
+# Subtest: env split GNU raw tuple: dollar-bare-error
+ok 80 - env split GNU raw tuple: dollar-bare-error
+  ---
+  duration_ms: 0.288209
+  type: 'test'
+  ...
+# Subtest: env split GNU raw tuple: dollar-name-error
+ok 81 - env split GNU raw tuple: dollar-name-error
+  ---
+  duration_ms: 0.320125
+  type: 'test'
+  ...
+# Subtest: env split GNU raw tuple: dollar-default-error
+ok 82 - env split GNU raw tuple: dollar-default-error
+  ---
+  duration_ms: 0.215833
+  type: 'test'
+  ...
+# Subtest: env split GNU raw tuple: dollar-substitution-error
+ok 83 - env split GNU raw tuple: dollar-substitution-error
+  ---
+  duration_ms: 0.218708
+  type: 'test'
+  ...
+# Subtest: env split GNU raw tuple: literal-injection
+ok 84 - env split GNU raw tuple: literal-injection
+  ---
+  duration_ms: 0.3845
+  type: 'test'
+  ...
+# Subtest: env split GNU raw tuple: attached-S
+ok 85 - env split GNU raw tuple: attached-S
+  ---
+  duration_ms: 0.369791
+  type: 'test'
+  ...
+# Subtest: env split GNU raw tuple: combined-iS
+ok 86 - env split GNU raw tuple: combined-iS
+  ---
+  duration_ms: 0.633417
+  type: 'test'
+  ...
+# Subtest: env split GNU raw tuple: long-equals
+ok 87 - env split GNU raw tuple: long-equals
+  ---
+  duration_ms: 0.748167
+  type: 'test'
+  ...
+# Subtest: env split GNU raw tuple: long-separate
+ok 88 - env split GNU raw tuple: long-separate
+  ---
+  duration_ms: 0.558083
+  type: 'test'
+  ...
+# Subtest: env split GNU raw tuple: nested-S
+ok 89 - env split GNU raw tuple: nested-S
+  ---
+  duration_ms: 0.549125
+  type: 'test'
+  ...
+# Subtest: env split GNU raw tuple: repeated-S-before-command
+ok 90 - env split GNU raw tuple: repeated-S-before-command
+  ---
+  duration_ms: 0.487
+  type: 'test'
+  ...
+# Subtest: env split GNU raw tuple: S-after-command-is-literal
+ok 91 - env split GNU raw tuple: S-after-command-is-literal
+  ---
+  duration_ms: 1.858875
+  type: 'test'
+  ...
+# Subtest: env split GNU raw tuple: empty-S
+ok 92 - env split GNU raw tuple: empty-S
+  ---
+  duration_ms: 0.570042
+  type: 'test'
+  ...
+# Subtest: env split GNU raw tuple: empty-print-environment
+ok 93 - env split GNU raw tuple: empty-print-environment
+  ---
+  duration_ms: 0.368416
+  type: 'test'
+  ...
+# Subtest: env split GNU raw tuple: null-print
+ok 94 - env split GNU raw tuple: null-print
+  ---
+  duration_ms: 0.554625
+  type: 'test'
+  ...
+# Subtest: env split GNU raw tuple: double-dash
+ok 95 - env split GNU raw tuple: double-dash
+  ---
+  duration_ms: 0.682959
+  type: 'test'
+  ...
+# Subtest: env split GNU raw tuple: bare-dash
+ok 96 - env split GNU raw tuple: bare-dash
+  ---
+  duration_ms: 0.501792
+  type: 'test'
+  ...
+# Subtest: env split GNU raw tuple: unset-long
+ok 97 - env split GNU raw tuple: unset-long
+  ---
+  duration_ms: 0.410708
+  type: 'test'
+  ...
+# Subtest: env split GNU raw tuple: unicode
+ok 98 - env split GNU raw tuple: unicode
+  ---
+  duration_ms: 0.379667
+  type: 'test'
+  ...
+# Subtest: env split GNU raw tuple: empty-before-comment
+ok 99 - env split GNU raw tuple: empty-before-comment
+  ---
+  duration_ms: 0.305208
+  type: 'test'
+  ...
+# Subtest: env split GNU raw tuple: expanded-punctuation-not-resplit
+ok 100 - env split GNU raw tuple: expanded-punctuation-not-resplit
+  ---
+  duration_ms: 0.282875
+  type: 'test'
+  ...
+# Subtest: env split GNU raw tuple: non-ASCII-whitespace-is-data
+ok 101 - env split GNU raw tuple: non-ASCII-whitespace-is-data
+  ---
+  duration_ms: 0.263916
+  type: 'test'
+  ...
+# Subtest: env split GNU raw tuple: escaped-dollar-not-expanded
+ok 102 - env split GNU raw tuple: escaped-dollar-not-expanded
+  ---
+  duration_ms: 0.276833
+  type: 'test'
+  ...
+# Subtest: env split GNU raw tuple: empty-variable-prefix-suffix
+ok 103 - env split GNU raw tuple: empty-variable-prefix-suffix
+  ---
+  duration_ms: 0.271417
+  type: 'test'
+  ...
+# Subtest: env split GNU raw tuple: stop-before-malformed-tail
+ok 104 - env split GNU raw tuple: stop-before-malformed-tail
+  ---
+  duration_ms: 0.267792
+  type: 'test'
+  ...
+# Subtest: env split GNU raw tuple: comment-before-malformed-tail
+ok 105 - env split GNU raw tuple: comment-before-malformed-tail
+  ---
+  duration_ms: 0.297958
+  type: 'test'
+  ...
+# Subtest: env split GNU raw tuple: quoted-backslash-newline
+ok 106 - env split GNU raw tuple: quoted-backslash-newline
+  ---
+  duration_ms: 0.220291
+  type: 'test'
+  ...
+# Subtest: env split GNU raw tuple: dollar-invalid-unicode-name
+ok 107 - env split GNU raw tuple: dollar-invalid-unicode-name
+  ---
+  duration_ms: 0.419458
+  type: 'test'
+  ...
+# Subtest: env split GNU raw tuple: valid-name-underscore-digit
+ok 108 - env split GNU raw tuple: valid-name-underscore-digit
+  ---
+  duration_ms: 0.366417
+  type: 'test'
+  ...
+# Subtest: env split GNU raw tuple: chdir-last-option-before-assignment
+ok 109 - env split GNU raw tuple: chdir-last-option-before-assignment
+  ---
+  duration_ms: 0.891833
+  type: 'test'
+  ...
+# Subtest: env split GNU raw tuple: nested-options-consume-original-argv
+ok 110 - env split GNU raw tuple: nested-options-consume-original-argv
+  ---
+  duration_ms: 0.369208
+  type: 'test'
+  ...
+# Subtest: env split GNU raw tuple: nested-S-consumes-original-string
+ok 111 - env split GNU raw tuple: nested-S-consumes-original-string
+  ---
+  duration_ms: 0.314583
+  type: 'test'
+  ...
+# Subtest: env split GNU raw tuple: duplicate-assignment-preserves-expansion-time
+ok 112 - env split GNU raw tuple: duplicate-assignment-preserves-expansion-time
+  ---
+  duration_ms: 0.289291
+  type: 'test'
+  ...
+# Subtest: env split GNU raw tuple: split-generated-assignment-stops-options
+ok 113 - env split GNU raw tuple: split-generated-assignment-stops-options
+  ---
+  duration_ms: 1.849292
+  type: 'test'
+  ...
+# Subtest: env split GNU raw tuple: leading-BOM-is-literal-argument-data
+ok 114 - env split GNU raw tuple: leading-BOM-is-literal-argument-data
+  ---
+  duration_ms: 0.2675
+  type: 'test'
+  ...
+# Subtest: env split GNU raw tuple: lone-dash-then-assignment
+ok 115 - env split GNU raw tuple: lone-dash-then-assignment
+  ---
+  duration_ms: 0.240125
+  type: 'test'
+  ...
+# Subtest: env split GNU raw tuple: empty-split-does-not-remove-following-empty-arg
+ok 116 - env split GNU raw tuple: empty-split-does-not-remove-following-empty-arg
+  ---
+  duration_ms: 0.25325
+  type: 'test'
+  ...
+# Subtest: env split literal missing target, not GNU stderr parity: after-assignment-is-literal-command
+ok 117 - env split literal missing target, not GNU stderr parity: after-assignment-is-literal-command
+  ---
+  duration_ms: 0.454625
+  type: 'test'
+  ...
+# Subtest: env split literal missing target, not GNU stderr parity: empty-quoted-command
+ok 118 - env split literal missing target, not GNU stderr parity: empty-quoted-command
+  ---
+  duration_ms: 0.246625
+  type: 'test'
+  ...
+# Subtest: env split literal missing target, not GNU stderr parity: bare-dash-stops-options
+ok 119 - env split literal missing target, not GNU stderr parity: bare-dash-stops-options
+  ---
+  duration_ms: 0.2565
+  type: 'test'
+  ...
+# Subtest: env split literal missing target, not GNU stderr parity: no-S-single-target
+ok 120 - env split literal missing target, not GNU stderr parity: no-S-single-target
+  ---
+  duration_ms: 0.244625
+  type: 'test'
+  ...
+# Subtest: invoke preserves literal argv and uses fresh middleware resolution
+ok 121 - invoke preserves literal argv and uses fresh middleware resolution
+  ---
+  duration_ms: 4.721
+  type: 'test'
+  ...
+# Subtest: invoke inherits stdin and supports byte sink overrides
+ok 122 - invoke inherits stdin and supports byte sink overrides
+  ---
+  duration_ms: 1.520875
+  type: 'test'
+  ...
+# Subtest: invoke isolates child cwd, environment, functions and exit flow
+ok 123 - invoke isolates child cwd, environment, functions and exit flow
+  ---
+  duration_ms: 3.741667
+  type: 'test'
+  ...
+# Subtest: invoke shares command and output budgets
+ok 124 - invoke shares command and output budgets
+  ---
+  duration_ms: 1.532959
+  type: 'test'
+  ...
+# Subtest: invoke propagates cancellation through nested commands
+ok 125 - invoke propagates cancellation through nested commands
+  ---
+  duration_ms: 0.486042
+  type: 'test'
+  ...
+# Subtest: invoke unknown commands and recursive hooks use normal statuses and limits
+ok 126 - invoke unknown commands and recursive hooks use normal statuses and limits
+  ---
+  duration_ms: 1.737041
+  type: 'test'
+  ...
+1..126
+# tests 126
+# suites 0
+# pass 125
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 4706.850958

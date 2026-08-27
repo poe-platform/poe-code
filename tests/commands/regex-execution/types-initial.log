@@ -1,0 +1,5 @@
+tests/commands/regex-execution/commands.test.ts(18,15): error TS2322: Type '(bytes: Uint8Array<ArrayBufferLike>) => void' is not assignable to type '(chunk: Uint8Array<ArrayBufferLike>) => Promise<void>'.
+  Type 'void' is not assignable to type 'Promise<void>'.
+tests/commands/regex-execution/commands.test.ts(19,15): error TS2322: Type '(bytes: Uint8Array<ArrayBufferLike>) => void' is not assignable to type '(chunk: Uint8Array<ArrayBufferLike>) => Promise<void>'.
+  Type 'void' is not assignable to type 'Promise<void>'.
+tests/commands/regex-execution/commands.test.ts(132,57): error TS2740: Type 'CommandDefinition[]' is missing the following properties from type 'CommandRegistry': #commands, register, get, has, and 2 more.

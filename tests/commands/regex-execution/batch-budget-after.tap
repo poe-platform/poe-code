@@ -1,0 +1,16 @@
+TAP version 13
+# Subtest: available batching preserves output preceding the existing rg match limit
+ok 1 - available batching preserves output preceding the existing rg match limit
+  ---
+  duration_ms: 27.087166
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 231.508125

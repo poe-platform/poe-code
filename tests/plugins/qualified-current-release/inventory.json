@@ -6,7 +6,8 @@
   "counts": {
     "current": 22,
     "declaration": 4,
-    "frozen-evidence": 129
+    "frozen-evidence": 129,
+    "frozen-oracle": 1
   },
   "entries": [
     {
@@ -59,6 +60,14 @@
       "reason": "Imported .mjs support declaration, not standalone executable; Dirac distinguishes four imported declarations from standalone omissions.",
       "existingCoverage": "npm run typecheck through importing .ts tests; not a standalone runtime case",
       "qualifiedCoverage": "inventoried only; this scoped job does not replace root typecheck"
+    },
+    {
+      "path": "tests/commands/time-env-stress/consumer.mts",
+      "sha256": "7cede429d70acd5ffdb63cf15af06ff126fe04c06f7e9e744d0cebeca5338d1b",
+      "classification": "frozen-oracle",
+      "reason": "Independent native-oracle consumer, not public package consumer: run.mjs pins d904ca986fa945df8aef6e11b4165e2c2a63f814 and assembles relative ./dist compiled-leaf imports. README explicitly disclaims moving-current/public-leaf-export proof and preserves eight product failures plus one Apple profile disagreement. No current-source runtime pass inferred.",
+      "existingCoverage": "tests/commands/time-env-stress/run.mjs lines8,76-79; README Exact freeze and counts/Reproduction; committed75d4e0c",
+      "qualifiedCoverage": "hash-authenticated historical inventory only; unchanged frozen oracle must not be silently run against current exports or rescored"
     },
     {
       "path": "tests/fs/s3/constructor-comparison/consumer.mts",
@@ -1271,6 +1280,6 @@
       "existingCoverage": "tests/stress/regex-execution/production-review/package.mjs",
       "qualifiedCoverage": "scripts/verify-current-consumers.mjs: strict regex-production; runtime package-consumer.mjs"
     }
-  ]
+  ],
+  "inventoryFollowup": "966cfac detected concurrently committed75d4e0c time-env frozen oracle; first fail-closed output preserved separately."
 }
-

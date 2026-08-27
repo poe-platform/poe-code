@@ -70,6 +70,10 @@ export function executionCommands(execute: CommandHandler): CommandDefinition[] 
       }
       if (offset < parsed.operands.length) {
         if (parsed.flags.has("0")) throw new UsageError("cannot specify --null with a command");
+        if (context.invoke) return context.invoke(parsed.operands[offset]!, parsed.operands.slice(offset + 1), {
+          env, replaceEnv: true, cwd, stdin: context.stdin, stdout: context.stdout, stderr: context.stderr,
+          ...(context.stdinIsDefault === undefined ? {} : { stdinIsDefault: context.stdinIsDefault }),
+        });
         return execute({ ...context, command: parsed.operands[offset]!, args: parsed.operands.slice(offset + 1), env, cwd });
       }
       for (const [name, content] of Object.entries(env)) await output(context, `${name}=${content}${parsed.flags.has("0") ? "\0" : "\n"}`);

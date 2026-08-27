@@ -8,7 +8,7 @@ import { sha256 } from "./current-profile.mjs";
 export const owned = dirname(fileURLToPath(import.meta.url));
 export const repository = resolve(owned, "../../..");
 export const environment = { PATH: `${dirname(process.execPath)}:/usr/bin:/bin`, LC_ALL: "C", LANG: "C", TZ: "UTC" };
-export const selectedPaths = ["src", "package.json", "package-lock.json", "tsconfig.json", "tsconfig.build.json", "scripts/verify-qualified-release.mjs", "tests/plugins/agent-commands.test.ts", "tests/plugins/stream-five-public", "tests/commands/metadata-stress", "tests/commands/table-text-stress", "tests/commands/stream-next-stress"];
+export const selectedPaths = ["src", "package.json", "package-lock.json", "tsconfig.json", "tsconfig.build.json", "scripts/verify-qualified-release.mjs", "tests/plugins/agent-commands.test.ts", "tests/plugins/stream-five-public", "tests/commands/metadata", "tests/commands/metadata-stress", "tests/commands/table-text", "tests/commands/table-text-stress", "tests/commands/stream-next-stress"];
 
 export function run(command, args, cwd, extra = {}) {
   const result = spawnSync(command, args, { cwd, env: environment, encoding: "utf8", timeout: 180_000, maxBuffer: 32 * 1024 * 1024, ...extra });

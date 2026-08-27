@@ -1,0 +1,18 @@
+import type { Shell, ShellExecOptions } from './candidate/dist/index.js';
+
+export function createOwnedUndefinedController() {
+  const backing = new AbortController();
+  const signal: AbortSignal = backing.signal;
+  const reasonGetter: () => undefined = () => undefined;
+  const throwIfAborted: AbortSignal['throwIfAborted'] = function () {
+    if (signal.aborted) throw signal.reason;
+  };
+  Object.defineProperty(signal, 'reason', { configurable: false, get: reasonGetter });
+  Object.defineProperty(signal, 'throwIfAborted', { configurable: false, value: throwIfAborted });
+  return { signal, abort() { backing.abort(); } };
+}
+
+export function declaredConsumer(shell: Shell, caller: ReturnType<typeof createOwnedUndefinedController>) {
+  const options: ShellExecOptions = { signal: caller.signal };
+  return shell.exec('qualified-lifetime', options);
+}

@@ -1,0 +1,10 @@
+PRIVATE ROOT HANDOFF — preliminary, before binding/replay.
+Ownership accepted only for this new ordering-replay-q1 subtree and unique
+/tmp/safe-bash-owned-output-qualified-ordering-* scratch/status artifacts.
+No delegation, source changes, source rebuild, native comparison rerun, or promotion.
+Before binding: strict owned synthetic consumer passes actual candidate declaration
+checking; host lifecycle/default distinction qualified. Parser/sink sibling topology
+and actual rejection/finalization-before-caller assertions are in PRE-RUN.md.
+Original 31/1 raw and29/3 conservative results remain untouched. No product round
+has run. One exact12-logical/32-parameter replay only after pre-run commit.
+SafeJS privileged facade audit remains NOT DONE and required before promotion.

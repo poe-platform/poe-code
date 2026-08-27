@@ -1,0 +1,53 @@
+import assert from 'node:assert/strict';
+import { readFileSync, writeFileSync, readdirSync, mkdirSync, copyFileSync, lstatSync } from 'node:fs';
+import { createHash } from 'node:crypto';
+import { resolve, dirname } from 'node:path';
+import { spawnSync } from 'node:child_process';
+const root='/Users/kjopek/Workspace/safe-bash';
+const task='/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL';
+const parent=resolve(root,'tests/shell-stress/first-read-contract-review/owned-output-qualified-review');
+const owned=resolve(parent,'ordering-replay-q1');
+const first=resolve(parent,'execution-q1');
+const author=resolve(dirname(parent),'owned-output-qualified-prototype');
+const hash=bytes=>createHash('sha256').update(bytes).digest('hex');
+const json=path=>JSON.parse(readFileSync(path));
+const record=path=>({path,sha256:hash(readFileSync(path))});
+const checked=new Map();
+function check(path,expected){const actual=record(path);if(expected)assert.equal(actual.sha256,expected,path);checked.set(path,actual);}
+function manifest(base,name,pin){check(resolve(base,name),pin);for(const entry of json(resolve(base,name)).files)check(resolve(base,entry.path),entry.sha256);}
+const after=process.argv.includes('--after');
+const before=after?json(resolve(owned,'authentication-before.json')):null;
+check('/tmp/safe-bash-owned-output-qualified-prototype.ready','1c01dceeb7604340865b140bf411c51fac08926b2c0955f3bf8143368b2ac8c8');
+check('/tmp/safe-bash-owned-output-qualified-prototype-api.txt','218d14793fca4c3d55fd742ea6647a3785e2baf246fcc0b786381fe691086a3b');
+check(resolve(author,'CONTRACT.md'),'bb7e28a71ff9cf2a8fc4b0d4fbd85218af3f757d36df50ad624f83b4740a49e8');
+manifest(first,'ARTIFACTS.json','2b96b8fb3a9d46a38fac5453790f1d8a1f69f5b70ce8dbfc65af81119fb2b6c3');
+manifest(author,'ARTIFACTS.json','db23a80778f21a0f1e6c9ae437f82236d4125ed822a2f3a4cadcc68183a6fda3');
+manifest(parent,'preparation-seal.json','5bce8c213d4ae41905108c006cec5594400099a40a1fddafc2d2bf5c27d99cdc');
+for(const entry of json(resolve(first,'authentication-before.json')).files)check(entry.path,entry.sha256);
+const profile=json(resolve(author,'SOURCE-PROFILE.json'));
+const archive=profile.archives.find(entry=>entry.name==='candidate');
+const children=[];
+mkdirSync(resolve(task,'tmp/tsx'),{recursive:true});
+const env={...process.env,TSX_DISABLE_CACHE:'1',TMPDIR:resolve(task,'tmp'),TMP:resolve(task,'tmp'),TEMP:resolve(task,'tmp'),TSX_CACHE_DIR:resolve(task,'tmp/tsx')};
+if(!after){
+  mkdirSync(resolve(task,'candidate'));
+  const child=spawnSync('/usr/bin/tar',['-xzf',resolve(author,archive.path),'-C',resolve(task,'candidate')],{env,encoding:'utf8',timeout:15000});
+  children.push({pid:child.pid,status:child.status,error:child.error??null,stderr:child.stderr});
+  assert.equal(child.status,0);assert.throws(()=>process.kill(child.pid,0),{code:'ESRCH'});
+}
+for(const entry of archive.files)check(resolve(task,'candidate',entry.path),entry.sha256);
+const walk=base=>readdirSync(base,{withFileTypes:true}).flatMap(entry=>{const path=resolve(base,entry.name);assert.equal(lstatSync(path).isSymbolicLink(),false);return entry.isDirectory()?walk(path):[path];});
+assert.deepEqual(walk(resolve(task,'candidate')).map(path=>path.slice(resolve(task,'candidate').length+1)).sort(),archive.files.map(entry=>entry.path).sort());
+const firstAuth=json(resolve(first,'authentication-before.json'));
+const selectedCompiledClosure=firstAuth.selectedCompiledClosure.map(path=>path.replace('/tmp/safe-bash-owned-output-qualified-execution-zgVdib',task));
+if(before)for(const entry of before.files)check(entry.path,entry.sha256);
+const evidence={at:new Date().toISOString(),phase:after?'after':'before',sourceId:firstAuth.sourceId,testId:firstAuth.testId,compiledId:firstAuth.compiledId,selectedCompiledClosure,candidateFiles:archive.files.length,files:[...checked.values()],children};
+writeFileSync(resolve(owned,`authentication-${evidence.phase}.json`),JSON.stringify(evidence,null,2)+'\n');
+if(!after){
+  for(const name of ['driver.mjs','lifetime.mjs','qualified-criteria.mjs'])copyFileSync(resolve(first,name+'.data'),resolve(owned,name+'.data'));
+  for(const name of ['binding-map.json','expected-profiles.json'])copyFileSync(resolve(first,name),resolve(owned,name));
+  for(const path of ['tests/stress/remote-cancellation/helpers.ts','tests/fs/webdav/mock.ts','tests/shell/first-read-probe.ts']){
+    mkdirSync(dirname(resolve(task,'historical',path)),{recursive:true});copyFileSync(resolve(task,'candidate',path),resolve(task,'historical',path));
+  }
+}
+console.log(JSON.stringify({phase:evidence.phase,files:checked.size,candidateFiles:archive.files.length,sourceId:evidence.sourceId,children}));

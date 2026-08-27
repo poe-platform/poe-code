@@ -1,0 +1,15 @@
+{
+  "compilerOptions": {
+    "strict": true,
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "target": "ES2022",
+    "lib": ["ES2022", "DOM"],
+    "types": ["node"],
+    "typeRoots": ["/Users/kjopek/Workspace/safe-bash/node_modules/@types"],
+    "skipLibCheck": false,
+    "noEmitOnError": true,
+    "outDir": "typed-dist"
+  },
+  "files": ["typed-signal.ts"]
+}

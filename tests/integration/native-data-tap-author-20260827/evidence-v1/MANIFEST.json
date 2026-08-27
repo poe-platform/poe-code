@@ -1,0 +1,204 @@
+{
+  "schema": 1,
+  "candidate": "e422ad06b3470477b7f9323c89289d2963a00407",
+  "baseline": "647f42b9abf9f5abc4de3e36c74410b3bb63df3c",
+  "fixtureMapping": {
+    "path": "tests/plugins/qualified-current-release-native-data/controls.test.ts",
+    "beforeSha256": "8ef246ff8e6411bb35680d713bb808eccd371143122a026e745971e96a43c562",
+    "afterSha256": "f1a94e3a45750bd66ce3118a27664922599124abca0a303279b5143fa8b9dc92",
+    "beforeBlob": "b198e3b0b455ee2f4bdcc8d5d7e55f7767813908",
+    "afterBlob": "6b74276b312d8ae3da194efcfb007adb878d7f1f",
+    "diff": "diff --git a/tests/plugins/qualified-current-release-native-data/controls.test.ts b/tests/plugins/qualified-current-release-native-data/controls.test.ts\nindex b198e3b0..6b74276b 100644\n--- a/tests/plugins/qualified-current-release-native-data/controls.test.ts\n+++ b/tests/plugins/qualified-current-release-native-data/controls.test.ts\n@@ -194,7 +194,7 @@ test(\"actual npm script excludes future native test data without excluding neigh\n     const discovery = globSync(\"tests/**/*.test.ts\", { cwd: copy.directory }).sort();\n     assert.equal(discovery.length, 7);\n     assert.ok(data.every(path => discovery.includes(path)));\n-    const result = run(copy.directory, \"npm\", [\"test\"]);\n+    const result = run(copy.directory, \"npm\", [\"test\", \"--\", \"--test-reporter=tap\"]);\n     assert.equal(result.status, 0, result.stdout + result.stderr);\n     assert.match(result.stdout, /# tests 5\\b/u);\n     assert.match(result.stdout, /# pass 5\\b/u);\n@@ -202,7 +202,7 @@ test(\"actual npm script excludes future native test data without excluding neigh\n     for (const index of neighbors.keys()) assert.match(result.stdout, new RegExp(`neighbor-${index}`, \"u\"));\n     assert.doesNotMatch(result.stdout + result.stderr, /NATIVE_DATA_MUST_NOT_EXECUTE/u);\n     const original = JSON.parse(readFileSync(join(owned, \"before-02.json\"), \"utf8\")) as { before: { testScript: string } };\n-    copy.write(\"package.json\", JSON.stringify({ ...current, scripts: { ...current.scripts, test: original.before.testScript } }));\n+    copy.write(\"package.json\", JSON.stringify({ ...current, scripts: { ...current.scripts, test: original.before.testScript.replace(\"--test \", \"--test --test-reporter=tap \") } }));\n     const unfiltered = run(copy.directory, \"npm\", [\"test\"]);\n     assert.equal(unfiltered.status, 1);\n     assert.match(unfiltered.stdout + unfiltered.stderr, /NATIVE_DATA_MUST_NOT_EXECUTE/u);\n"
+  },
+  "payloadBytes": 478325,
+  "payloadSha256": "61c45a9bb5736556118a07e4c50fcf49f5e4f12b96025330050e367770162a0f",
+  "compressedSha256": "4759b15a6c4863493d7339ed67135ec402a6de21f18ffcc919a07a7f30a44c36",
+  "entries": [
+    {
+      "name": "final/REPORT.json",
+      "source": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/native-data-tap-author-GPJceQ/REPORT.json",
+      "bytes": 8120,
+      "sha256": "c84a65d16f5e796aeaa42ea6bc0281d579e58b1821b6e58a6485ffb8547986d1"
+    },
+    {
+      "name": "final/baseline-node22.json",
+      "source": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/native-data-tap-author-GPJceQ/baseline-node22.json",
+      "bytes": 22723,
+      "sha256": "4f47f4b93c5e73455059e14c64905a2e45e65dc8b10c76007b7a564a0b5d2283"
+    },
+    {
+      "name": "final/baseline-node22.trace.jsonl",
+      "source": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/native-data-tap-author-GPJceQ/baseline-node22.trace.jsonl",
+      "bytes": 8206,
+      "sha256": "713065fcb9b477ce9ed56bed37fbd21db12b33db38ee51946d72004006446c7f"
+    },
+    {
+      "name": "final/baseline-node24.json",
+      "source": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/native-data-tap-author-GPJceQ/baseline-node24.json",
+      "bytes": 24120,
+      "sha256": "a0644919846f3b33d418d62a0505f90e68fa9e1426800d7f8514bfead2f1de88"
+    },
+    {
+      "name": "final/baseline-node24.trace.jsonl",
+      "source": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/native-data-tap-author-GPJceQ/baseline-node24.trace.jsonl",
+      "bytes": 6832,
+      "sha256": "d0b94d8d7a656577419e1bfdff8ae8499cc40693e780d9966cfda7c1b0eda0fb"
+    },
+    {
+      "name": "final/candidate-node22.json",
+      "source": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/native-data-tap-author-GPJceQ/candidate-node22.json",
+      "bytes": 22825,
+      "sha256": "4e6146a8cb1a8eca79c5627b4b8e1df85f281818af1ce991436a646c1517a96b"
+    },
+    {
+      "name": "final/candidate-node22.trace.jsonl",
+      "source": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/native-data-tap-author-GPJceQ/candidate-node22.trace.jsonl",
+      "bytes": 8274,
+      "sha256": "50fcea9bea04df28d14af227c19e0de96f8373c44d5a52ff3ba0c7cb6fd2a78a"
+    },
+    {
+      "name": "final/candidate-node24.json",
+      "source": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/native-data-tap-author-GPJceQ/candidate-node24.json",
+      "bytes": 27777,
+      "sha256": "34d4c2057d6c822446484da3e5ab6193c9352a5c5ccdc07069fd7ea15b892cd2"
+    },
+    {
+      "name": "final/candidate-node24.trace.jsonl",
+      "source": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/native-data-tap-author-GPJceQ/candidate-node24.trace.jsonl",
+      "bytes": 12252,
+      "sha256": "821ef5983f2c40fadf36d19c67fb80a3cbbc21a222eb229cbe8cfd86d1592e1f"
+    },
+    {
+      "name": "final/remove-current-reporter-node24.json",
+      "source": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/native-data-tap-author-GPJceQ/remove-current-reporter-node24.json",
+      "bytes": 19688,
+      "sha256": "a389d0b57bb19ac35ed9d5d00011130c6a992244cd13d23091974e4b208318ce"
+    },
+    {
+      "name": "final/remove-current-reporter-node24.trace.jsonl",
+      "source": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/native-data-tap-author-GPJceQ/remove-current-reporter-node24.trace.jsonl",
+      "bytes": 4792,
+      "sha256": "05fd5be04cda27da5e96ff669c57b5124145f114d8d582ec5303b5edd5bec3f4"
+    },
+    {
+      "name": "final/remove-historical-reporter-node24.json",
+      "source": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/native-data-tap-author-GPJceQ/remove-historical-reporter-node24.json",
+      "bytes": 31230,
+      "sha256": "702e07278fdc5a49e45e44fc0b91dff3da52ffcb2200d5f1d5f5525f8debf85e"
+    },
+    {
+      "name": "final/remove-historical-reporter-node24.trace.jsonl",
+      "source": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/native-data-tap-author-GPJceQ/remove-historical-reporter-node24.trace.jsonl",
+      "bytes": 10337,
+      "sha256": "3e7e00f023e59a841faa2de0d12137fc081c2f5152b17316136d8d6f1a3dd11e"
+    },
+    {
+      "name": "final/scoped-types.json",
+      "source": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/native-data-tap-author-GPJceQ/scoped-types.json",
+      "bytes": 1034,
+      "sha256": "3d6a0d344f3ecb24a06ccdf028b1b5baa5ba82eb6c55978d72c5e811b01278c7"
+    },
+    {
+      "name": "final/trace.mjs",
+      "source": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/native-data-tap-author-GPJceQ/trace.mjs",
+      "bytes": 214,
+      "sha256": "5cd5e0a60204dc5dc9b62515d5790b03af6fe9f6883e7381337c8d2c2b4bc361"
+    },
+    {
+      "name": "setup-failed/REPORT.json",
+      "source": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/native-data-tap-author-BILZni/REPORT.json",
+      "bytes": 12089,
+      "sha256": "9028a94903c2ca33f21d336c23d5c751f89ef0a4345aff748bad2a85d8f9d80c"
+    },
+    {
+      "name": "setup-failed/baseline-node22.json",
+      "source": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/native-data-tap-author-BILZni/baseline-node22.json",
+      "bytes": 17348,
+      "sha256": "5747d1ea39648840339456f934ad142f45d3dfe38d38322af0033bb81cad7b26"
+    },
+    {
+      "name": "setup-failed/baseline-node22.trace.jsonl",
+      "source": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/native-data-tap-author-BILZni/baseline-node22.trace.jsonl",
+      "bytes": 2749,
+      "sha256": "0d7f0451403babf9fa93b7966e118eb6891a2ff5b75d073e139f79224f277b44"
+    },
+    {
+      "name": "setup-failed/baseline-node24.json",
+      "source": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/native-data-tap-author-BILZni/baseline-node24.json",
+      "bytes": 17729,
+      "sha256": "aeb19ddd273c7364def6d6a61e0a063d10a6d14e7aad694d47356339cdad5ad8"
+    },
+    {
+      "name": "setup-failed/baseline-node24.trace.jsonl",
+      "source": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/native-data-tap-author-BILZni/baseline-node24.trace.jsonl",
+      "bytes": 3055,
+      "sha256": "434b91a778e31bc398b40fb55faa5293b5db5318cb4db1601a3064c0b36d5e0a"
+    },
+    {
+      "name": "setup-failed/candidate-node22.json",
+      "source": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/native-data-tap-author-BILZni/candidate-node22.json",
+      "bytes": 17403,
+      "sha256": "7ba73cac148c105b2949c6cda744ebeb8435509d22f0bb80a703db721dede062"
+    },
+    {
+      "name": "setup-failed/candidate-node22.trace.jsonl",
+      "source": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/native-data-tap-author-BILZni/candidate-node22.trace.jsonl",
+      "bytes": 2783,
+      "sha256": "c5460ad93a17d405ae09b0691c64e0854d8d90efebf26fb63e7098aded3c060e"
+    },
+    {
+      "name": "setup-failed/candidate-node24.json",
+      "source": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/native-data-tap-author-BILZni/candidate-node24.json",
+      "bytes": 17784,
+      "sha256": "6af11de1f37eb8a310d282b40a096f47fd08b9c0deeb87ed0e6558a56bb13b4a"
+    },
+    {
+      "name": "setup-failed/candidate-node24.trace.jsonl",
+      "source": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/native-data-tap-author-BILZni/candidate-node24.trace.jsonl",
+      "bytes": 3089,
+      "sha256": "fa5da4c1ea90637c69f722de3feb4d640f08a9895894a2552dd7d0b82dd38e45"
+    },
+    {
+      "name": "setup-failed/original-supervisor.mjs",
+      "source": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/native-data-tap-author-BILZni/original-supervisor.mjs",
+      "bytes": 10359,
+      "sha256": "eedb36f96fbaa08f7f824051af06ec25a0268c298a36ce55a7c86b6a7c46229e"
+    },
+    {
+      "name": "setup-failed/remove-current-reporter-node24.json",
+      "source": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/native-data-tap-author-BILZni/remove-current-reporter-node24.json",
+      "bytes": 13221,
+      "sha256": "50f2c7cdf9c8b9b522951adf70a6a9f96656e1fc6b06506ebc0ffa5fabdba22c"
+    },
+    {
+      "name": "setup-failed/remove-current-reporter-node24.trace.jsonl",
+      "source": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/native-data-tap-author-BILZni/remove-current-reporter-node24.trace.jsonl",
+      "bytes": 940,
+      "sha256": "7804d4ee30fb2801d01ab0f42e51a2baf5c9bb8407f40483561aa3b3b7748ad6"
+    },
+    {
+      "name": "setup-failed/remove-historical-reporter-node24.json",
+      "source": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/native-data-tap-author-BILZni/remove-historical-reporter-node24.json",
+      "bytes": 13280,
+      "sha256": "233784319202c07f6d13d1be7b5224b59ed306f461f62ce41fa9901db41b6469"
+    },
+    {
+      "name": "setup-failed/remove-historical-reporter-node24.trace.jsonl",
+      "source": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/native-data-tap-author-BILZni/remove-historical-reporter-node24.trace.jsonl",
+      "bytes": 970,
+      "sha256": "4f8f4eab784e117919fb7614a978ff2aa648a95f345713557cdce28fd863d94b"
+    },
+    {
+      "name": "setup-failed/trace.mjs",
+      "source": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/native-data-tap-author-BILZni/trace.mjs",
+      "bytes": 214,
+      "sha256": "5cd5e0a60204dc5dc9b62515d5790b03af6fe9f6883e7381337c8d2c2b4bc361"
+    },
+    {
+      "name": "final/supervisor.mjs",
+      "source": "file:///Users/kjopek/Workspace/safe-bash/tests/integration/native-data-tap-author-20260827/replay.mjs",
+      "bytes": 10902,
+      "sha256": "468812692e66e8daa7a8c9eebcd9dd4454a2d17d52e760788c3261ff8063f052"
+    }
+  ]
+}

@@ -1,0 +1,2601 @@
+{
+  "mode": "direct216",
+  "selectedPass": 216,
+  "exactPass": 195,
+  "total": 216,
+  "profile": "Original stdout/status/stderr-presence policy; repaired shared-stdin additionally requires exact GNU diagnostic. Exact-row count is separate, with all raw stderr retained.",
+  "observations": [
+    {
+      "name": "paste: uneven parallel",
+      "inputSha256": "6dabfba805c7be81669c645edc086bc8853efa5d1e2257fd49e6db3cafa6a057",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "3109610a3209620a09630a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "paste: serial",
+      "inputSha256": "2f162b9d0d3dcfc847fc9cee232025d02a2b77afc63bcf36c90b23df29b198ab",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "3109320a61096209630a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "paste: repeated file independent cursors",
+      "inputSha256": "b7815539c7f85ff99bd0968224d124162d6b448975a4f458c41530074866efc9",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "31096109310a32096209320a0963090a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "paste: parallel delimiters \",\"",
+      "inputSha256": "8e549063b82a7234cb537cf49f8352a4c3f21a126f68228348196b011549d95c",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "312c612c310a322c622c320a2c632c0a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "paste: serial delimiters \",\"",
+      "inputSha256": "14fc93f5afc3af823c2fbfbd83d570db6503ecc3d45d1ec9ac33c72895ffa7e2",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "312c320a612c622c630a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "paste: parallel delimiters \"%_\"",
+      "inputSha256": "846ab99678bbd7f3c755d10bc8a6615e159bd2a22b23314dffce918d63eba29c",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "3125615f310a3225625f320a25635f0a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "paste: serial delimiters \"%_\"",
+      "inputSha256": "820bdaf4919ce0d0e78b37260b8fd4d01012128dbb496c45ab5d54e239562fec",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "3125320a6125625f630a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "paste: parallel delimiters \"\"",
+      "inputSha256": "c2ee9cd2e17209e9cac7bb0a135853133bd6b474be973c1b35e60f9845366b41",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "3161310a3262320a630a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "paste: serial delimiters \"\"",
+      "inputSha256": "f1b18ccf5e7004ccce355f3308d1c2597c890a7d0298121340dec5660c4c80cd",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "31320a6162630a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "paste: parallel delimiters \"\\\\0\"",
+      "inputSha256": "d852d67c54b57587041516ddb13e71d908bf625acc8f87bd5803febfabf0ae12",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "3161310a3262320a630a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "paste: serial delimiters \"\\\\0\"",
+      "inputSha256": "6c9fa2fca45ca9f0c47beaf667ebbc9df10231c9a0237ef07ba9d60cb3d69a16",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "31320a6162630a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "paste: parallel delimiters \"\\\\n\\\\t\"",
+      "inputSha256": "b495c057124921d67325c207224c8565e951e7832ce58a2f799c46ce2dad80eb",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "310a6109310a320a6209320a0a63090a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "paste: serial delimiters \"\\\\n\\\\t\"",
+      "inputSha256": "6f2144d00ba5d717eb79007057d3042f2ef3d210fd11250554b6e2d0a930f197",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "310a320a610a6209630a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "paste: parallel delimiters \"\\\\b\\\\f\\\\r\\\\v\"",
+      "inputSha256": "d85cd4852ec4a8ebb69bac9724dd540746175056ab2f14787f188976ab787904",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "3108610c310a3208620c320a08630c0a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "paste: serial delimiters \"\\\\b\\\\f\\\\r\\\\v\"",
+      "inputSha256": "52122a255dd7b0970afe1c218b238295b7810b6e26cf320a0d32eec76991ffb4",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "3108320a6108620c630a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "paste: parallel delimiters \"\\\\\\\\\"",
+      "inputSha256": "926c8b09c8f8ba0b26678329f67ca0066910afcff7cd947ac36506109405f964",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "315c615c310a325c625c320a5c635c0a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "paste: serial delimiters \"\\\\\\\\\"",
+      "inputSha256": "0c075161c53e77c629c429f706dabc2f83a0cce603a7e99533915363f58122b4",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "315c320a615c625c630a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "paste: parallel delimiters \"\\\\q\"",
+      "inputSha256": "f4e02de7741f9de17c7312edc8495f47634a14d433794587f561e26e8bdbfee3",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "31716171310a32716271320a7163710a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "paste: serial delimiters \"\\\\q\"",
+      "inputSha256": "db080fb110b98e234d1014dc93df668f41ff6ccb49bc93e59a0f2da465fc25f9",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "3171320a61716271630a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "paste: parallel delimiters \"é\"",
+      "inputSha256": "798e1bbbf39118b8bd15ecbd401f77adbd31c3e972ebb21dd63f41365d9a2ee8",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "31c361a9310a32c362a9320ac363a90a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "paste: serial delimiters \"é\"",
+      "inputSha256": "4a336d7b8c7ce2a1501bb163844bcf61b54aac35d989c03d9e702f88d7b69fc5",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "31c3320a61c362a9630a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "paste: shared stdin empty",
+      "inputSha256": "e272fac9148004b1098299386815efcd02fbb48551e7fb68af1d01119a364a53",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "paste: serial stdin empty",
+      "inputSha256": "ac2f3f6278e5c858d697278e0ce670781688b7c5e15c77d92e546c5ce997c261",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "0a0a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "paste: shared stdin blank",
+      "inputSha256": "6d7ee2826a9938ee22d3e7bf69743f05fcbed30f497a85ef5b758b1d6af50cef",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "09090a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "paste: serial stdin blank",
+      "inputSha256": "906f2969d89875f09887f92cccbeb95254be781f1166a130c0e7adee7e0e0c57",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "0a0a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "paste: shared stdin incomplete",
+      "inputSha256": "cf94f78c3bcd01a47cad4d0e39b9c4b477796de71267a6bdcefed2b9a54bb1a4",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "610962090a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "paste: serial stdin incomplete",
+      "inputSha256": "b5a719e41d2bd65c151c5025bd354110f7bd94615681fdb785f415f5f53a51c3",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "6109620a0a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "paste: shared stdin carriage",
+      "inputSha256": "dbd1df3c21c734dd4a5c98205c7be21dbc5ed64730467d8e52027c483f5b23c4",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "610d09620d090a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "paste: serial stdin carriage",
+      "inputSha256": "9c3d7b952c850f97e721220a6a75ddd4208208ff07d84c205cf459cbfa83c44c",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "610d09620d0a0a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "paste: shared stdin binary",
+      "inputSha256": "082fb6fe16e06ce2706dc52fc5d80ec388a4a22fa8c57e377bfd0c4b2d195eeb",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "61006209630064090a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "paste: serial stdin binary",
+      "inputSha256": "d757f8542592d0b5e30cc2442a214447a97ffb9356b27efe26c5cee6e1691f30",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "610062096300640a0a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "paste: shared stdin unicode",
+      "inputSha256": "2cae27939be7bc679722ab47c9489d2dcf4eebcd8364fe9694b97cd124a69685",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "c3a909e4b8ad09f09f99820a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "paste: serial stdin unicode",
+      "inputSha256": "3a963c6476faf3d4cda208152e02073938982f705b818bb54a5749f6258cdb4a",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "c3a909e4b8ad09f09f99820a0a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "paste: zero records",
+      "inputSha256": "2b5168814b5d744a43a68045a120e0611bb6f460f5e9a18b613d0d40408cb5f4",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "610a62093100630900096c61737400",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "paste: serial zero records",
+      "inputSha256": "7f394b6240bec375a6e89eb75a312c872c26c807155ed3d375551f231837a6d8",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "610a622c6300",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "paste: default stdin",
+      "inputSha256": "ee605da035a41c426ad7875384a508001f1bdb22af83537050738feafcbdc912",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "6f6e650a74776f0a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "paste: mixed stdin cursor",
+      "inputSha256": "227ea944b41908eecad5be45716ab16a201859ed2c3bbf15fe77bd951ad64788",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "31096109320a0962090a0963090a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "paste: literal path",
+      "inputSha256": "ded181a4cab7e805453a08e53e5c4492e4a4fbcfba7ac47bbb90774489fde7f9",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "6c69746572616c0a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "paste: missing parallel file",
+      "inputSha256": "00179ef18a3c88be14b5a6d03321138faf82158af05e18cbce175b63c6ec3b2e",
+      "actual": {
+        "exitCode": 1,
+        "stdoutHex": "",
+        "stderrHex": "70617374653a20454e4f454e543a206e6f20737563682066696c65206f72206469726563746f72792c207374617420272f776f726b2f6d697373696e67270a"
+      },
+      "selected": true,
+      "exact": false,
+      "filesUnchanged": true
+    },
+    {
+      "name": "paste: missing serial file continues",
+      "inputSha256": "318aed1b28ab2cdcc9aacd3e525303899c9a19dadf8eb85155336348302d0f85",
+      "actual": {
+        "exitCode": 1,
+        "stdoutHex": "3109320a",
+        "stderrHex": "70617374653a20454e4f454e543a206e6f20737563682066696c65206f72206469726563746f72792c207374617420272f776f726b2f6d697373696e67270a"
+      },
+      "selected": true,
+      "exact": false,
+      "filesUnchanged": true
+    },
+    {
+      "name": "paste: invalid trailing escape",
+      "inputSha256": "7dc28200b87010b8fb948302617185de0c50b9f4a17f9ac4bf525773cb58ba46",
+      "actual": {
+        "exitCode": 1,
+        "stdoutHex": "",
+        "stderrHex": "70617374653a2045494e56414c3a2064656c696d69746572206c69737420656e647320696e20616e20756e65736361706564206261636b736c6173680a"
+      },
+      "selected": true,
+      "exact": false,
+      "filesUnchanged": true
+    },
+    {
+      "name": "paste: invalid flag",
+      "inputSha256": "b3634cc704b3ede23396b766c771d83a70c13e196d081933c70e0cffc90a4819",
+      "actual": {
+        "exitCode": 1,
+        "stdoutHex": "",
+        "stderrHex": "70617374653a2045494e56414c3a20756e737570706f72746564206f7074696f6e202d2d6e6f742d696d706c656d656e7465640a"
+      },
+      "selected": true,
+      "exact": false,
+      "filesUnchanged": true
+    },
+    {
+      "name": "comm: columns all",
+      "inputSha256": "d109de3bdf6bd9acd128412539870aaa2cbb1b3d587f1ac0115ab17d89897856",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "0909610a610a0909620a09620a09630a640a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "comm: totals all",
+      "inputSha256": "ffbc0f03b2ac497c88084413a91533a9d93f6f769bb0c86df18063dd97001180",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "0909610a610a0909620a09620a09630a640a320932093209746f74616c0a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "comm: columns -1",
+      "inputSha256": "3f0b3194187da9e2e8084f7e355977472e2a6b6ebefed7d88a5e98734e8d2c64",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "09610a09620a620a630a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "comm: totals -1",
+      "inputSha256": "64de13b6ef13f44eafbc3695d6360feabb06b4080a87b2283281eaae82a8aa6c",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "09610a09620a620a630a320932093209746f74616c0a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "comm: columns -2",
+      "inputSha256": "a6e041d1f973805439f1108d86570a835372d8190bd894ae30ea2fd625c48212",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "09610a610a09620a640a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "comm: totals -2",
+      "inputSha256": "4ddbd3a4e9b61ec9852d0e8ebc4dc7b0c00097fa35ddff58f16dc374ea6c923b",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "09610a610a09620a640a320932093209746f74616c0a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "comm: columns -3",
+      "inputSha256": "1e92cc6cbb89a0da2381dfd4f0322205297f101f1180ec9ccde4a7061a185cbf",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "610a09620a09630a640a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "comm: totals -3",
+      "inputSha256": "593f5347bbef931c66c728043a4a87f3810a9d82999f9fb53adb0f770e51a42c",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "610a09620a09630a640a320932093209746f74616c0a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "comm: columns -12",
+      "inputSha256": "135661c3df953aafa36730e9790c5b0fd8a3e6226637134fbbb41214d5e83eb0",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "610a620a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "comm: totals -12",
+      "inputSha256": "794cc8a488c26bd845ad5db84e6102f2c550f3d9cd8ace019b1839ba6b026149",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "610a620a320932093209746f74616c0a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "comm: columns -13",
+      "inputSha256": "7ef7bdb806f04b8a68021f9cccc8f489505cb71ed4cd72bae023d101e85d9a45",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "620a630a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "comm: totals -13",
+      "inputSha256": "e122d9173e7e139cfbe84533ced4f34f556c966b587716bb714ca3f51c3a8130",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "620a630a320932093209746f74616c0a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "comm: columns -23",
+      "inputSha256": "07de80900356b11efdf44530fc7bdab13087bab09e08f202879183b20f3e726b",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "610a640a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "comm: totals -23",
+      "inputSha256": "ce29bf79aada6693ac50472b2e2a5d2e6e6ccbf2373894a051e25dbfcb7e6055",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "610a640a320932093209746f74616c0a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "comm: columns -123",
+      "inputSha256": "916172078165ef823275704a3b41f21a000c3d8c18b01c93ce5727d56a917735",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "comm: totals -123",
+      "inputSha256": "a66bd02eadfbb030fe9dc22f07730dd6731b64eb318d9547f8e51d7a7fbd1247",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "320932093209746f74616c0a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "comm: output delimiter \"|\"",
+      "inputSha256": "543cc957b49b13636239e49c444baa6cd980cea48f671e04a83147dda5632c1c",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "7c7c610a610a7c7c620a7c620a7c630a640a327c327c327c746f74616c0a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "comm: output delimiter \"::\"",
+      "inputSha256": "fdf83b35f33e7383570cae5fcc46fae44fa6170b672bdb1d95dfded08ec4f398",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "3a3a3a3a610a610a3a3a3a3a620a3a3a620a3a3a630a640a323a3a323a3a323a3a746f74616c0a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "comm: output delimiter \"\"",
+      "inputSha256": "7e598a5d79565493af6c599a6a04d7782a3b5ac0fc2f2cbd1fb81518f17959b4",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "0000610a610a0000620a00620a00630a640a320032003200746f74616c0a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "comm: output delimiter \"é\"",
+      "inputSha256": "ec8fd24e255a825425e36108520684cd78cc97181ea6792b92a0b40c8b9e4079",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "c3a9c3a9610a610ac3a9c3a9620ac3a9620ac3a9630a640a32c3a932c3a932c3a9746f74616c0a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "comm: empty",
+      "inputSha256": "fc2de1035a714d8c8439a67b36d201c3e190b3cb194d0a7efecfad5efd419930",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "comm: tail",
+      "inputSha256": "f4d15118ed77788e45cf01d9e7507147c76a2ac591b1a1578b66869799547a74",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "610a09620a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "comm: blanks",
+      "inputSha256": "c20fe05c75c84eadaf15072bfd8e41699581fca11547847573eb3c59bfee82ec",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "09090a0a0909610a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "comm: binary",
+      "inputSha256": "116259c96b9e7fdfba677040fc0045a8571f988e3c99bd907b249de0cbdab28f",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "09096100620a09c3a90ae4b8ad0a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "comm: emptyLeft",
+      "inputSha256": "0e84d46a26565bc85a58b9c1a4bbd05daab543610a9acec93898f1266fafd23b",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "09610a09620a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "comm: NUL records and totals",
+      "inputSha256": "e586ca61b0bcf0cce489bf14e6463253d6bdb94e1318e2163609f73266b0a9ee",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "0909610a62006300096400310931093109746f74616c00",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "comm: stdin left",
+      "inputSha256": "85c1de7551aafded0fa86bcf5e14e966920e519ffd57a4249e4b17a82cfcd15a",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "0909610a610a0909620a09620a09630a640a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "comm: stdin right",
+      "inputSha256": "c3b64fc584b462a800ca5e6b908442de413156a1618828ae333f8fd15bb5f9e4",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "0909610a610a0909620a09620a09630a640a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "comm: shared stdin",
+      "inputSha256": "d3e69ff19a538fc9beb7e0fbad8add1d127b0536cd13ee493fdb535f75903142",
+      "actual": {
+        "exitCode": 1,
+        "stdoutHex": "0909610a0909620a630a",
+        "stderrHex": "636f6d6d3a202d3a204261642066696c652064657363726970746f720a"
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "comm: unsorted paired ",
+      "inputSha256": "00d825824206a2488d47bb80bb16f65f2bc5bf12314312a2d59e1783fff3cb55",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "0909620a0909610a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "comm: unsorted unpaired ",
+      "inputSha256": "a7b397a56b4b8954ab34e5f794f5abe15efe6206d0898a18f1cc14c28911f31a",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "0909620a610a630a097a0a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "comm: unsorted empty side ",
+      "inputSha256": "3f51bd5f218cfd64c0bc4243ed11c080c91f5a7a05ef81d8a539924fd064bd0c",
+      "actual": {
+        "exitCode": 1,
+        "stdoutHex": "620a610a",
+        "stderrHex": "636f6d6d3a2066696c652031206973206e6f7420696e20736f72746564206f726465720a"
+      },
+      "selected": true,
+      "exact": false,
+      "filesUnchanged": true
+    },
+    {
+      "name": "comm: unsorted paired --check-order",
+      "inputSha256": "8b4d1704031e919a32fa9278fd8cfc83a1c5b659962175a16ae93bf45cfb0158",
+      "actual": {
+        "exitCode": 1,
+        "stdoutHex": "0909620a",
+        "stderrHex": "636f6d6d3a2045494e56414c3a2066696c652031206973206e6f7420696e20736f72746564206f726465720a"
+      },
+      "selected": true,
+      "exact": false,
+      "filesUnchanged": true
+    },
+    {
+      "name": "comm: unsorted unpaired --check-order",
+      "inputSha256": "727676e7b2a59ff2b753a705f1509b38b76c6b462a5142686dbd55309b74be94",
+      "actual": {
+        "exitCode": 1,
+        "stdoutHex": "0909620a",
+        "stderrHex": "636f6d6d3a2045494e56414c3a2066696c652031206973206e6f7420696e20736f72746564206f726465720a"
+      },
+      "selected": true,
+      "exact": false,
+      "filesUnchanged": true
+    },
+    {
+      "name": "comm: unsorted empty side --check-order",
+      "inputSha256": "d9950192add2f66eec57d136b35f7dffea39a869bad04fee91cc89c0e1d6f835",
+      "actual": {
+        "exitCode": 1,
+        "stdoutHex": "620a",
+        "stderrHex": "636f6d6d3a2045494e56414c3a2066696c652031206973206e6f7420696e20736f72746564206f726465720a"
+      },
+      "selected": true,
+      "exact": false,
+      "filesUnchanged": true
+    },
+    {
+      "name": "comm: unsorted paired --nocheck-order",
+      "inputSha256": "0a47ac345b1a52827ed4ea1b5bb877601b9417ccbf3441cf9859451c0127e90b",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "0909620a0909610a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "comm: unsorted unpaired --nocheck-order",
+      "inputSha256": "dd6e158401eab0205f8c0ceafa4a5051e0f2aab993926113206aaf67e692ae76",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "0909620a610a630a097a0a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "comm: unsorted empty side --nocheck-order",
+      "inputSha256": "6414e25b3d2d0f32d5ea18226d62824cafcdd794645e662f96239d2746f50e25",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "620a610a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "comm: literal files",
+      "inputSha256": "6fa11f271400aa2c210e0923b8b7a15b0e0870d9fc21a01ca5b274fc6e0e6c56",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "0909610a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "comm: missing file",
+      "inputSha256": "09501f78c77269f56aebadb34cb5caa38bcb3a67a7bb21da29dbfac598f3ba6e",
+      "actual": {
+        "exitCode": 1,
+        "stdoutHex": "",
+        "stderrHex": "636f6d6d3a20454e4f454e543a206e6f20737563682066696c65206f72206469726563746f72792c207374617420272f776f726b2f6d697373696e67270a"
+      },
+      "selected": true,
+      "exact": false,
+      "filesUnchanged": true
+    },
+    {
+      "name": "comm: too few files",
+      "inputSha256": "6efc4fbcb09e764e22dd91c63a17bc5cd152935e2ae3bb49eefd832c886ebf1a",
+      "actual": {
+        "exitCode": 1,
+        "stdoutHex": "",
+        "stderrHex": "636f6d6d3a2045494e56414c3a20636f6d6d2072657175697265732065786163746c792074776f2066696c65730a"
+      },
+      "selected": true,
+      "exact": false,
+      "filesUnchanged": true
+    },
+    {
+      "name": "join: pairability ",
+      "inputSha256": "c89e2196d418dfc1d0639261c641a169df734f707a7a0e69eb595139cc631696",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "612041312058310a612041312058320a612041322058310a612041322058320a64204420590a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "join: pairability -a1",
+      "inputSha256": "9bba8f38eda46d35e418524b4adc0b017e64cb4be41bb4293d4e771e08f04e74",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "612041312058310a612041312058320a612041322058310a612041322058320a6220420a64204420590a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "join: pairability -a2",
+      "inputSha256": "bc501ca81f8c228b9187e375eccbdc9cb5ad99ecd1c0ffc9ecf84eba569104c2",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "612041312058310a612041312058320a612041322058310a612041322058320a6320430a64204420590a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "join: pairability -a1,-a2",
+      "inputSha256": "698d2f361d0525969acd27f8c14f2d5f23331067ec1f3b482f3ae34ede72b5eb",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "612041312058310a612041312058320a612041322058310a612041322058320a6220420a6320430a64204420590a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "join: pairability -v1",
+      "inputSha256": "a0d9c3fdbf692ee8f00632622bbf80b953e4487da8c77e25abb3a3bed114c183",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "6220420a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "join: pairability -v2",
+      "inputSha256": "e040a39102af18172b5f726db8a44ab025f8eaa819686175beb04eb1df60e0a5",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "6320430a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "join: pairability -v1,-v2",
+      "inputSha256": "bfc38c2c9cb296339eed58edaf9c926853affa67a108c629023075a965a8090e",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "6220420a6320430a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "join: format 0",
+      "inputSha256": "2cd22cd9c1f15b92ef72855cfd1d91c69fc0e2cb7df6572e719c05ebe7e7b896",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "610a610a610a610a620a630a640a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "join: format 1.2,2.2",
+      "inputSha256": "74f863286e55a1feb35e847ba1bad586cf31ef66a31e68e83eeafe4f8205f98a",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "41312058310a41312058320a41322058310a41322058320a42204d495353494e470a4d495353494e4720430a4420590a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "join: format 0,2.2,1.2",
+      "inputSha256": "055c3a5c0d7a4803bbff37315d0a6c19b71155c12fb7dbd24aabdac379690f85",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "612058312041310a612058322041310a612058312041320a612058322041320a62204d495353494e4720420a632043204d495353494e470a64205920440a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "join: format 0 1.3 2.3",
+      "inputSha256": "7cd9afbe21364b42c71cfdaad2ffa517332984b4b2085a26d1a4c26b5e52a2bb",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "61204d495353494e47204d495353494e470a61204d495353494e47204d495353494e470a61204d495353494e47204d495353494e470a61204d495353494e47204d495353494e470a62204d495353494e47204d495353494e470a63204d495353494e47204d495353494e470a64204d495353494e47204d495353494e470a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "join: format auto",
+      "inputSha256": "99b0b36ad50f16aad0e750ea9439dd2a214ee73d482717808b8cade880bdd07f",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "612041312058310a612041312058320a612041322058310a612041322058320a622042204d495353494e470a63204d495353494e4720430a64204420590a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "join: alternate key fields",
+      "inputSha256": "b1ef7e963d8d55d0237c4170b368312137cda16f4cb2e2dde1b0d12c34451932",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "61204c20657874726120522056207461696c0a62204d205320570a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "join: shared key field",
+      "inputSha256": "4ca2380ea95f4dc01960fbd734481cfebd2c7d94a1ee563697d2e15e334be733",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "61204c20520a62204d20530a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "join: ASCII folded keys",
+      "inputSha256": "048172fd312babf415ddd751c009c8d44857b5688731d10f6ee8e83461e11fb7",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "41206f6e6520580a622074776f20590a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "join: blank splitting",
+      "inputSha256": "24116cd81eeef2c396922c36b5bcc3964d58e7acf7e8f628f20cdcc55f220bfa",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "61206f6e652074776f20580a6220746872656520590a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "join: empty lines and missing key",
+      "inputSha256": "c985c83092a44d534883638f070073a7e541a633be27cdefe01d26967833694a",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "0a0a61206f6e652074776f0a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "join: missing second key",
+      "inputSha256": "686f9e8657fa543219e5da283b3bd7973a95a4ec0e1ca711a20d213b63d99a65",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "4e4120616c6f6e65206f746865720a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "join: empty comma fields",
+      "inputSha256": "396eb9d5a5e204bacecd7e342a3a845992a70748d3acd3cb19358aabfe19249e",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "4e412c656d7074792c780a612c4e412c6c6173742c792c4e410a622c4e410a632c7a0a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "join: NUL fields",
+      "inputSha256": "4365c8b9d0fc0b63e60ceb594dacc7c813da888b83ef470876c353af8ae5703b",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "61006f6e6500580a620074776f00590a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "join: whole records",
+      "inputSha256": "cd3ded63bfc127af6646ad1018450bc88e04d27da9ae75916a68713300a96366",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "61206f6e650a622074776f0a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "join: zero record whitespace",
+      "inputSha256": "3afa7fd61b326fbb6f0d00d445c6004731f04c8c4f38ebe37133d7734fd75152",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "61206f6e65205800622074776f205900",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "join: zero records comma fields",
+      "inputSha256": "d1a765c9d7d0d8623b6faea3713623bf646eb787fae67ecc49675541971a55f5",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "612c6f6e650a782c5800622c74776f2c5900",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "join: incomplete final records",
+      "inputSha256": "cd694a56cd187158cfd3c0dff72d7f5cac102d8d9f6fd7c48361c4ee0d8a1cff",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "61206f6e6520580a622074776f20590a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "join: UTF8 payload bytes",
+      "inputSha256": "e67b4d904ab44f45f2cd27f8e774e38ff4d1621af3916dfabbc83345ee894901",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "6120c3a9f09f998220cea90a6220e4b8ade6968720f09f98800a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "join: stdin left",
+      "inputSha256": "9c76a0f0e8cdcf7683c919bb55ed2c6df1490b31331632c1921441bdd49bcefc",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "612041312058310a612041312058320a612041322058310a612041322058320a64204420590a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "join: stdin right",
+      "inputSha256": "2c6451bc86fd8ee12221b7726bca6c78152ad49223ba7b25654f239ef5f1ff65",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "612041312058310a612041312058320a612041322058310a612041322058320a64204420590a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "join: both stdin invalid",
+      "inputSha256": "8375cb67bfb6df73e899d3d4e828500f83a09a4f5d998d35f1ff1279675a6ed8",
+      "actual": {
+        "exitCode": 1,
+        "stdoutHex": "",
+        "stderrHex": "6a6f696e3a2045494e56414c3a20626f74682066696c65732063616e6e6f74206265207374616e6461726420696e7075740a"
+      },
+      "selected": true,
+      "exact": false,
+      "filesUnchanged": true
+    },
+    {
+      "name": "join: header ",
+      "inputSha256": "859f83944655f0c99e7f9dab16021de7748c671680af0a804260d0291f12ae07",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "4b4559204c4546542052494748540a61206f6e6520657874726120780a622074776f0a6320792065787472610a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "join: header -oauto",
+      "inputSha256": "97a0bedf361a9629c392e8c9daa62c7f36024caf20671d20c067697941a2f0da",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "4b4559204c4546542052494748540a61206f6e6520780a622074776f204e410a63204e4120790a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "join: header -o,0,2.2,1.2",
+      "inputSha256": "3f215ebf3d9994020456c8a384cd11e77895599a7bd2c37b628cdf690f412b08",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "4b4559205249474854204c4546540a612078206f6e650a62204e412074776f0a632079204e410a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "join: auto variable field lengths",
+      "inputSha256": "d4c4d9793d6b1ca77a0b54b29097ea00a4b576e0dc351e84aaccea9d12ab29c4",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "61206f6e652074776f20580a622073686f7274203f203f0a63206c6f6e67206578747261203f0a64203f203f20590a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "join: header with empty right",
+      "inputSha256": "9e70af3b3b18252ecd4cbd7d2d1bf64ada3a0ff4e2109d52462cc3f17279e482",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "4b45592056414c55450a61206f6e650a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "join: unsorted paired ",
+      "inputSha256": "4088b32cd2bdc5385f74e4f1df39d334c4c0c3d87a6e390c7cc371c1af06c79c",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "62204220590a61204120580a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "join: unsorted unpaired ",
+      "inputSha256": "fc6a70321ae72aa9b824b22d4f36096bae06f885540b4f49df532fe00f918f65",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "61204120580a6320430a6220420a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "join: unsorted empty side ",
+      "inputSha256": "bad45e53e0df2620120b5403265cc6d66f396f3f71f428c8db1da67f00014817",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "6220420a6120410a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "join: unsorted paired --check-order",
+      "inputSha256": "736607b082f56b6a7771aa1775bbb225563fc3389d0ad531f925c10fd8d0977e",
+      "actual": {
+        "exitCode": 1,
+        "stdoutHex": "",
+        "stderrHex": "6a6f696e3a2045494e56414c3a2066696c652031206973206e6f7420696e20736f72746564206f726465720a"
+      },
+      "selected": true,
+      "exact": false,
+      "filesUnchanged": true
+    },
+    {
+      "name": "join: unsorted unpaired --check-order",
+      "inputSha256": "577a63408a5d06a20a7ed009f26748b7371c5b8a2e477261e37da4aae827bffd",
+      "actual": {
+        "exitCode": 1,
+        "stdoutHex": "61204120580a6320430a",
+        "stderrHex": "6a6f696e3a2045494e56414c3a2066696c652031206973206e6f7420696e20736f72746564206f726465720a"
+      },
+      "selected": true,
+      "exact": false,
+      "filesUnchanged": true
+    },
+    {
+      "name": "join: unsorted empty side --check-order",
+      "inputSha256": "f99300bde2110f7faa5f095ab4fe9ae215e8011974676a58d80085a6be1a8b6b",
+      "actual": {
+        "exitCode": 1,
+        "stdoutHex": "6220420a",
+        "stderrHex": "6a6f696e3a2045494e56414c3a2066696c652031206973206e6f7420696e20736f72746564206f726465720a"
+      },
+      "selected": true,
+      "exact": false,
+      "filesUnchanged": true
+    },
+    {
+      "name": "join: unsorted paired --nocheck-order",
+      "inputSha256": "f4cfa23597864a254dfacc12fa022e3be974be7634dbfe7a5ea3e775c6080af1",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "62204220590a61204120580a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "join: unsorted unpaired --nocheck-order",
+      "inputSha256": "96da2eb4d869b5abf4ff2197285dc4c6e8b985b3feeeecfeadb718cdb05273bd",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "61204120580a6320430a6220420a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "join: unsorted empty side --nocheck-order",
+      "inputSha256": "7bf56db02c6173623b7bdd0fb98cf7d9476f24fad1d0713c27123d233a749bcb",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "6220420a6120410a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "join: invalidField",
+      "inputSha256": "09fc5caae97b1d7e102976f1bc83845fb49e2c610b1539b43bc9cac5a5f37255",
+      "actual": {
+        "exitCode": 1,
+        "stdoutHex": "",
+        "stderrHex": "6a6f696e3a2045494e56414c3a20696e76616c6964206669656c643a20300a"
+      },
+      "selected": true,
+      "exact": false,
+      "filesUnchanged": true
+    },
+    {
+      "name": "join: invalidOutput",
+      "inputSha256": "0dd26ca350403fa99c985317997a5e2a7aabb7da1d2e3f92da22dbd3ffee53b6",
+      "actual": {
+        "exitCode": 1,
+        "stdoutHex": "",
+        "stderrHex": "6a6f696e3a2045494e56414c3a20696e76616c6964206f7574707574206669656c643a20332e310a"
+      },
+      "selected": true,
+      "exact": false,
+      "filesUnchanged": true
+    },
+    {
+      "name": "join: invalidDelimiter",
+      "inputSha256": "9a97e2655023a8b1acd68e2e258f21e43992e8ecb52db6b0063c67ecf76405c2",
+      "actual": {
+        "exitCode": 1,
+        "stdoutHex": "",
+        "stderrHex": "6a6f696e3a2045494e56414c3a206a6f696e2064656c696d69746572206d757374206265206f6e65206279746520696e207468652043206c6f63616c650a"
+      },
+      "selected": true,
+      "exact": false,
+      "filesUnchanged": true
+    },
+    {
+      "name": "join: missingArgument",
+      "inputSha256": "55d7cd28e54348ab36f7010fd08ba8c4b77c180695a8b97263109de398f14aff",
+      "actual": {
+        "exitCode": 1,
+        "stdoutHex": "",
+        "stderrHex": "6a6f696e3a2045494e56414c3a20696e76616c69642066696c65206e756d6265723a206c6566740a"
+      },
+      "selected": true,
+      "exact": false,
+      "filesUnchanged": true
+    },
+    {
+      "name": "join: unknown",
+      "inputSha256": "f81837b7d20b17ffba7d11691ede369d8ac5a4fb25fba021bf4e13490e5d91a8",
+      "actual": {
+        "exitCode": 1,
+        "stdoutHex": "",
+        "stderrHex": "6a6f696e3a2045494e56414c3a20756e737570706f72746564206f7074696f6e202d2d756e6b6e6f776e0a"
+      },
+      "selected": true,
+      "exact": false,
+      "filesUnchanged": true
+    },
+    {
+      "name": "join: literal files",
+      "inputSha256": "60b72e3c010652086aff083130db9445946bf91ecce67a6b6a079cc738b6d8a5",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "61206c6566742072696768740a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "comm: seed 0",
+      "inputSha256": "c6eccc2b6fbdc14c5e14cfe958968d86f4660f783186522a501c85bfcddf0224",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "0a0a610a620a7a0a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "join: seed 0",
+      "inputSha256": "36b28d622a72085d71c4b19581286a261a0fbda03ae9c335b838407a4cebc15d",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "2c52302c300a2c52312c300a612c52322c300a622c52332c300a632c4c302c302c52342c300a642c4c312c300a642c4c322c300a7a2c52352c300a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "paste: seed 0",
+      "inputSha256": "494e7646cfc8e9e83f960256922f1d395cf8255d45ee999fa7815a9dfa550cf0",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "632c5f630a642c5f640a642c615f640a2c625f0a2c635f0a2c7a5f0a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "comm: seed 1",
+      "inputSha256": "64430aee70346d0beba11ef8b918ffc086079e3546d78be66181f230b1128c15",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "0a0a0909610a09610a09620a09620a0909630a0909640a09640a09097a0a320934093409746f74616c0a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "join: seed 1",
+      "inputSha256": "9539aa4277c760b290754055a8966d6a802ef86ea30b9c288f2e5a7f9eaddcf4",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "3f2c4c302c312c3f2c3f0a3f2c4c312c312c3f2c3f0a612c4c322c312c52302c310a612c4c322c312c52312c310a622c3f2c3f2c52322c310a622c3f2c3f2c52332c310a632c4c332c312c52342c310a642c4c342c312c52352c310a642c4c342c312c52362c310a7a2c4c352c312c52372c310a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "paste: seed 1",
+      "inputSha256": "df2ac3894018c29c37fc4b4a6d24c3f57d0b74d5bbfa5adb7ce64fb3023a8d79",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "2c5f612c635f642c7a0a612c615f622c625f632c645f642c7a0a2c5f612c635f642c7a0a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "comm: seed 2",
+      "inputSha256": "4cd29e99f0aa44f509c190451fa56a48e308b487160c140b783bdb77b04be82c",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "620a640a7a0a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "join: seed 2",
+      "inputSha256": "526cdaa15eb438cc02ac9a6cb894ce1f91a067a663fd85eed7d175f649bf3e1e",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "2c4c302c320a2c4c312c320a2c4c322c320a612c4c332c322c52302c320a612c4c342c322c52302c320a612c4c352c322c52302c320a622c4c362c322c52312c320a622c4c362c322c52322c320a632c4c372c322c52332c320a632c4c372c322c52342c320a632c4c382c322c52332c320a632c4c382c322c52342c320a632c4c392c322c52332c320a632c4c392c322c52342c320a642c4c31302c322c52352c320a642c4c31302c322c52362c320a642c4c31302c322c52372c320a642c4c31312c322c52352c320a642c4c31312c322c52362c320a642c4c31312c322c52372c320a7a2c4c31322c322c52382c320a7a2c4c31322c322c52392c320a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "paste: seed 2",
+      "inputSha256": "f2dbb75f62a267f12def91e2e117e27f4268d672d136ab4d6540f26383b95704",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "2c615f0a2c625f0a2c625f0a612c635f610a612c635f610a612c645f610a622c645f620a632c645f630a632c7a5f630a632c7a5f630a642c5f640a642c5f640a7a2c5f7a0a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "comm: seed 3",
+      "inputSha256": "ebdc70595c90675408976fadfb3932e8aea5e96aa53eee0ba7748e9e989c1e17",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "09090a0a0a0909610a0909610a0909610a0909610a0909620a09620a09620a09620a630a0909640a0909640a640a09097a0a097a0a340934093909746f74616c0a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "join: seed 3",
+      "inputSha256": "afe955c15dd5bd5e1fbe661cb796f65c5be6109bb995f5fcc83a4f48dd710acb",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "3f2c4c302c332c52302c330a3f2c4c312c332c52302c330a3f2c4c322c332c52302c330a612c4c332c332c52312c330a612c4c332c332c52322c330a612c4c332c332c52332c330a612c4c332c332c52342c330a612c4c342c332c52312c330a612c4c342c332c52322c330a612c4c342c332c52332c330a612c4c342c332c52342c330a612c4c352c332c52312c330a612c4c352c332c52322c330a612c4c352c332c52332c330a612c4c352c332c52342c330a612c4c362c332c52312c330a612c4c362c332c52322c330a612c4c362c332c52332c330a612c4c362c332c52342c330a622c4c372c332c52352c330a622c4c372c332c52362c330a622c4c372c332c52372c330a622c4c372c332c52382c330a632c4c382c332c3f2c3f0a642c4c392c332c52392c330a642c4c392c332c5231302c330a642c4c31302c332c52392c330a642c4c31302c332c5231302c330a642c4c31312c332c52392c330a642c4c31312c332c5231302c330a7a2c4c31322c332c5231312c330a7a2c4c31322c332c5231322c330a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "paste: seed 3",
+      "inputSha256": "e56929240194fe5cca531056ec566cf0447e60ab67dea18bfb11106a2f3a4ac1",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "2c5f2c615f612c615f612c625f632c645f642c645f7a0a2c615f612c615f612c625f622c625f622c645f642c7a5f7a0a2c5f2c615f612c615f612c625f632c645f642c645f7a0a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "comm: seed 4",
+      "inputSha256": "5faa3dafe85b777b9bac1f13ff24219c0704402ab6c7e1f5d0eec6a8cca5e223",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "620a640a640a640a640a7a0a7a0a7a0a7a0a7a0a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "join: seed 4",
+      "inputSha256": "8343ff55917b3f73a34d44818c09b65761d8e543c51f10a0ea320278c9411aa1",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "2c4c302c342c52302c340a2c4c312c342c52302c340a612c4c322c342c52312c340a622c52322c340a642c52332c340a642c52342c340a642c52352c340a642c52362c340a7a2c52372c340a7a2c52382c340a7a2c52392c340a7a2c5231302c340a7a2c5231312c340a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "paste: seed 4",
+      "inputSha256": "acba1ed38eecff9cabce08404f3b4202121f730f3f47b37c92ba58595404ee71",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "2c5f0a2c615f0a612c625f610a2c645f0a2c645f0a2c645f0a2c645f0a2c7a5f0a2c7a5f0a2c7a5f0a2c7a5f0a2c7a5f0a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "comm: seed 5",
+      "inputSha256": "6f07f6062cdb4d659ccb68803dfe7937b6b9e3d39da9192406568280b33a6cfc",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "090a090a090a0909610a0909620a09630a09630a0909640a0909640a09640a09097a0a09097a0a097a0a300937093609746f74616c0a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "join: seed 5",
+      "inputSha256": "0afced7bb6d8c97cfed0b8e013d32a0e0c2b03664f577e41610fdd5fcf35a1f6",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "3f2c3f2c3f2c52302c350a3f2c3f2c3f2c52312c350a3f2c3f2c3f2c52322c350a612c4c302c352c52332c350a622c4c312c352c52342c350a632c3f2c3f2c52352c350a632c3f2c3f2c52362c350a642c4c322c352c52372c350a642c4c322c352c52382c350a642c4c322c352c52392c350a642c4c332c352c52372c350a642c4c332c352c52382c350a642c4c332c352c52392c350a7a2c4c342c352c5231302c350a7a2c4c342c352c5231312c350a7a2c4c342c352c5231322c350a7a2c4c352c352c5231302c350a7a2c4c352c352c5231312c350a7a2c4c352c352c5231322c350a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "paste: seed 5",
+      "inputSha256": "b0de93e8f1a04c4b8a10eb30d4fe66a8549fa4b6859c02b68b71e23cc9729871",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "612c625f642c645f7a2c7a0a2c5f2c615f622c635f632c645f642c645f7a2c7a5f7a0a612c625f642c645f7a2c7a0a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "comm: seed 6",
+      "inputSha256": "24d87ccdc703f07abeedcc12f2a276740b3a8ad67793e91182a9346fec8b969f",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "0a630a630a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "join: seed 6",
+      "inputSha256": "567f151e0b51d2810e2dc3d0092914bea998abb11720c1c637e2578a254dcded",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "2c4c302c362c52302c360a2c4c302c362c52312c360a612c4c312c360a622c4c322c362c52322c360a622c4c332c362c52322c360a632c4c342c362c52332c360a632c4c342c362c52342c360a632c4c342c362c52352c360a632c4c342c362c52362c360a632c4c342c362c52372c360a632c4c352c362c52332c360a632c4c352c362c52342c360a632c4c352c362c52352c360a632c4c352c362c52362c360a632c4c352c362c52372c360a632c4c362c362c52332c360a632c4c362c362c52342c360a632c4c362c362c52352c360a632c4c362c362c52362c360a632c4c362c362c52372c360a642c4c372c362c52382c360a642c4c372c362c52392c360a642c4c382c362c52382c360a642c4c382c362c52392c360a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "paste: seed 6",
+      "inputSha256": "e1dde04e08772b174d9645a9e52e033523d8912c7381a4ba92816bd5b944c3d6",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "2c5f0a612c5f610a622c625f620a622c635f620a632c635f630a632c635f630a632c635f630a642c635f640a642c645f640a2c645f0a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "comm: seed 7",
+      "inputSha256": "8abe88482b286e7b7c1f23244621276c2800b1a9b10ca09e75da55111691dd11",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "09090a09090a0909610a09610a0909620a09620a0909630a09630a09630a0909640a09640a09640a09097a0a09097a0a300936093809746f74616c0a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "join: seed 7",
+      "inputSha256": "77f3428b6a3c26a18519a682e1e7879bd88bddb07c53d062b0865fe154daff93",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "3f2c4c302c372c52302c370a3f2c4c302c372c52312c370a3f2c4c312c372c52302c370a3f2c4c312c372c52312c370a612c4c322c372c52322c370a612c4c322c372c52332c370a622c4c332c372c52342c370a622c4c332c372c52352c370a632c4c342c372c52362c370a632c4c342c372c52372c370a632c4c342c372c52382c370a642c4c352c372c52392c370a642c4c352c372c5231302c370a642c4c352c372c5231312c370a7a2c4c362c372c5231322c370a7a2c4c362c372c5231332c370a7a2c4c372c372c5231322c370a7a2c4c372c372c5231332c370a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "paste: seed 7",
+      "inputSha256": "d5593edddfdae1c45f62d4e8b6494219391920c72b39a7bc35488745ef84f223",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "2c5f612c625f632c645f7a2c7a0a2c5f612c615f622c625f632c635f632c645f642c645f7a2c7a0a2c5f612c625f632c645f7a2c7a0a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "comm: seed 8",
+      "inputSha256": "4ed0b1c375720ca1d993d68ae7915a3bf353a9775eb95528fc636217dda9628a",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "640a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "join: seed 8",
+      "inputSha256": "21c71bc79c510ad236d0f0f15efe6a61a837188c5a4474a99e19346a7a0d0d78",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "2c4c302c380a2c4c312c380a2c4c322c380a612c4c332c382c52302c380a622c4c342c380a632c4c352c380a632c4c362c380a632c4c372c380a642c52312c380a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "paste: seed 8",
+      "inputSha256": "6aa072e23ec17622e520f186dc07114903b1b2f0f8cdeea4492b36451726f551",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "2c615f0a2c645f0a2c5f0a612c5f610a622c5f620a632c5f630a632c5f630a632c5f630a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "comm: seed 9",
+      "inputSha256": "328fb14c6b14b61280d289e50d4bb6c42db15cbff85713fa2c8abf757749dc8c",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "09090a09090a610a610a610a610a09620a09620a09620a0909630a09630a0909640a640a640a097a0a097a0a097a0a360937093409746f74616c0a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "join: seed 9",
+      "inputSha256": "093964788c45ed6cb71e8b10e30a0de404a901d3097b10089ec8cb6bd8afb962",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "3f2c4c302c392c52302c390a3f2c4c302c392c52312c390a3f2c4c312c392c52302c390a3f2c4c312c392c52312c390a612c4c322c392c3f2c3f0a612c4c332c392c3f2c3f0a612c4c342c392c3f2c3f0a612c4c352c392c3f2c3f0a622c3f2c3f2c52322c390a622c3f2c3f2c52332c390a622c3f2c3f2c52342c390a632c4c362c392c52352c390a632c4c362c392c52362c390a642c4c372c392c52372c390a642c4c382c392c52372c390a642c4c392c392c52372c390a7a2c3f2c3f2c52382c390a7a2c3f2c3f2c52392c390a7a2c3f2c3f2c5231302c390a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "paste: seed 9",
+      "inputSha256": "0af7d6519cdffd8480e37c62413cd675ad9b8f57ab4bf45aed273d721bb912d5",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "2c5f612c615f612c615f632c645f642c640a2c5f622c625f622c635f632c645f7a2c7a5f7a0a2c5f612c615f612c615f632c645f642c640a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "comm: seed 10",
+      "inputSha256": "7b6146289be075c24527c1af739996034b836f8e0911c464ac4fe9b6beabb7a9",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "0a610a620a620a620a630a7a0a7a0a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "join: seed 10",
+      "inputSha256": "3ecbf2a3c3ed45fc46f0280477e64c26b58ee2fefdeb4219da13c951e1445a1c",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "2c52302c31300a612c52312c31300a622c52322c31300a622c52332c31300a622c52342c31300a632c52352c31300a7a2c52362c31300a7a2c52372c31300a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "paste: seed 10",
+      "inputSha256": "bacae0f5d82f6784e2962a0513ab4d02ae2b11671a60ba7382f924378d32eafc",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "2c5f0a2c615f0a2c625f0a2c625f0a2c625f0a2c635f0a2c7a5f0a2c7a5f0a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "comm: seed 11",
+      "inputSha256": "94cfd83e9ab124ba393389f114db95da17e939f2a7df565889c16eb5b2041f9a",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "09090a090a090a0909610a09610a0909620a620a0909630a630a0909640a0909640a09097a0a097a0a097a0a320935093709746f74616c0a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "join: seed 11",
+      "inputSha256": "f740bbe74ef50cda4bb84e8e1d9ea2fd86e8e90d1f9babf5360996398c94d909",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "3f2c4c302c31312c52302c31310a3f2c4c302c31312c52312c31310a3f2c4c302c31312c52322c31310a612c4c312c31312c52332c31310a612c4c312c31312c52342c31310a622c4c322c31312c52352c31310a622c4c332c31312c52352c31310a632c4c342c31312c52362c31310a632c4c352c31312c52362c31310a642c4c362c31312c52372c31310a642c4c362c31312c52382c31310a642c4c372c31312c52372c31310a642c4c372c31312c52382c31310a7a2c4c382c31312c52392c31310a7a2c4c382c31312c5231302c31310a7a2c4c382c31312c5231312c31310a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "paste: seed 11",
+      "inputSha256": "46c7c0dfaec201576795bee72f6ce3ccf42d40ec87414aa07dbd9cb0cf0cfc94",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "2c615f622c625f632c635f642c645f7a0a2c5f2c615f612c625f632c645f642c7a5f7a2c7a0a2c615f622c625f632c635f642c645f7a0a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "comm: seed 12",
+      "inputSha256": "4e3c02dc3e5c7dd9ce09a20610f3e9343d5df3ed7238c815f55c607d2d1c53df",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "620a640a7a0a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "join: seed 12",
+      "inputSha256": "ebe2ae98cf9bb49f08f4112475c09bc7b3d1063df6552112b0ed3a09b8aba9a9",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "2c4c302c31322c52302c31320a2c4c312c31322c52302c31320a612c4c322c31322c52312c31320a612c4c322c31322c52322c31320a612c4c332c31322c52312c31320a612c4c332c31322c52322c31320a622c4c342c31322c52332c31320a622c4c342c31322c52342c31320a622c4c342c31322c52352c31320a622c4c352c31322c52332c31320a622c4c352c31322c52342c31320a622c4c352c31322c52352c31320a632c4c362c31322c52362c31320a632c4c362c31322c52372c31320a632c4c372c31322c52362c31320a632c4c372c31322c52372c31320a642c4c382c31322c52382c31320a642c4c382c31322c52392c31320a642c4c382c31322c5231302c31320a642c4c392c31322c52382c31320a642c4c392c31322c52392c31320a642c4c392c31322c5231302c31320a7a2c4c31302c31322c5231312c31320a7a2c4c31302c31322c5231322c31320a7a2c4c31302c31322c5231332c31320a7a2c4c31312c31322c5231312c31320a7a2c4c31312c31322c5231322c31320a7a2c4c31312c31322c5231332c31320a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "paste: seed 12",
+      "inputSha256": "b0ddc3dd4bd799120e3e0a535e2c0271484b7e386c5251981f8b1dec7988b16f",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "2c5f0a2c615f0a612c615f610a612c625f610a622c625f620a622c625f620a632c635f630a632c635f630a642c645f640a642c645f640a7a2c645f7a0a7a2c7a5f7a0a2c7a5f0a2c7a5f0a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "comm: seed 13",
+      "inputSha256": "ac5c073afbe47cced1073f9511a77c30807e13962ca542c309ae8c8a287c9c72",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "090a090a09610a09610a09610a620a09630a0909640a09640a09097a0a7a0a7a0a330937093209746f74616c0a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "join: seed 13",
+      "inputSha256": "1cff2090e3488fed9e35d93e39bfb6f47708232dc44845d5e5b09b35a237e92b",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "3f2c3f2c3f2c52302c31330a3f2c3f2c3f2c52312c31330a612c3f2c3f2c52322c31330a612c3f2c3f2c52332c31330a612c3f2c3f2c52342c31330a622c4c302c31332c3f2c3f0a632c3f2c3f2c52352c31330a642c4c312c31332c52362c31330a642c4c312c31332c52372c31330a7a2c4c322c31332c52382c31330a7a2c4c332c31332c52382c31330a7a2c4c342c31332c52382c31330a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "paste: seed 13",
+      "inputSha256": "93b0123931919ccaf89d815294785470071eb6760f6329b9c958e6673de0e1fb",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "622c645f7a2c7a5f7a0a2c5f612c615f612c635f642c645f7a0a622c645f7a2c7a5f7a0a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "comm: seed 14",
+      "inputSha256": "c98401cf2fb8e5623e6dcf5f92909f2d436926cd499b9228cd9ef720da0d34dc",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "0a630a630a630a640a640a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "join: seed 14",
+      "inputSha256": "6c53924012a3b02be14d1b1f478bfc8f56110a6de5c669c0ac0d7de09cb26a26",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "2c4c302c31342c52302c31340a2c4c302c31342c52312c31340a612c4c312c31342c52322c31340a612c4c322c31342c52322c31340a632c52332c31340a632c52342c31340a632c52352c31340a642c4c332c31342c52362c31340a642c4c332c31342c52372c31340a642c4c332c31342c52382c31340a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "paste: seed 14",
+      "inputSha256": "19685c1fd2f39ef1dfaab78e97b61892e6f84f3461d0eb56a3cd20618a49e886",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "2c5f0a612c5f610a612c615f610a642c635f640a2c635f0a2c635f0a2c645f0a2c645f0a2c645f0a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "comm: seed 15",
+      "inputSha256": "074319908fce78bbbe3c59f9385dcaf768af4d73b504ef0a9e168bb13d90c618",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "090a0909610a09630a0909640a640a640a7a0a330932093209746f74616c0a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "join: seed 15",
+      "inputSha256": "f9f76141d638ed39cd18c4c28de1687d93113a08438c12ff64b1ef27be991252",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "3f2c3f2c3f2c52302c31350a612c4c302c31352c52312c31350a632c3f2c3f2c52322c31350a642c4c312c31352c52332c31350a642c4c322c31352c52332c31350a642c4c332c31352c52332c31350a7a2c4c342c31352c3f2c3f0a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "paste: seed 15",
+      "inputSha256": "455cd4e20f1219e7dc35e924c1a110a1486cbe12d2a3eb754a0037ec4b1d3cf8",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "612c645f642c645f7a0a2c615f632c640a612c645f642c645f7a0a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "comm: seed 16",
+      "inputSha256": "e31f48183700c311555c1745102a67d851257650918eeb955d7865a941e81262",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "0a610a610a640a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "join: seed 16",
+      "inputSha256": "bd75366efe7b6ea7671b03cb5f67bd14d00a2229c993a49e6d00549de1dc22ba",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "2c4c302c31362c52302c31360a2c4c302c31362c52312c31360a612c52322c31360a612c52332c31360a622c4c312c31362c52342c31360a622c4c312c31362c52352c31360a622c4c322c31362c52342c31360a622c4c322c31362c52352c31360a632c4c332c31362c52362c31360a632c4c332c31362c52372c31360a632c4c332c31362c52382c31360a632c4c332c31362c52392c31360a632c4c342c31362c52362c31360a632c4c342c31362c52372c31360a632c4c342c31362c52382c31360a632c4c342c31362c52392c31360a632c4c352c31362c52362c31360a632c4c352c31362c52372c31360a632c4c352c31362c52382c31360a632c4c352c31362c52392c31360a632c4c362c31362c52362c31360a632c4c362c31362c52372c31360a632c4c362c31362c52382c31360a632c4c362c31362c52392c31360a642c4c372c31362c5231302c31360a642c4c372c31362c5231312c31360a7a2c4c382c31362c5231322c31360a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "paste: seed 16",
+      "inputSha256": "c9d5ea79ee315be22c07166bf42a4febcd57f59a1f8fc3bbbd6e256edec3956b",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "2c5f0a622c5f620a622c615f620a632c615f630a632c625f630a632c625f630a632c635f630a642c635f640a7a2c635f7a0a2c635f0a2c645f0a2c645f0a2c7a5f0a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "comm: seed 17",
+      "inputSha256": "a889f0516b19ba2e3a6318aae78618f7989fb7d1af7efdd8cab752516b0fe712",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "090a0909620a09620a0909630a0909630a09630a097a0a300934093309746f74616c0a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "join: seed 17",
+      "inputSha256": "f16be2e1824d4dc3950358802f57253373e92f3836faf04daf528fb8740158e3",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "3f2c3f2c3f2c52302c31370a622c4c302c31372c52312c31370a622c4c302c31372c52322c31370a632c4c312c31372c52332c31370a632c4c312c31372c52342c31370a632c4c312c31372c52352c31370a632c4c322c31372c52332c31370a632c4c322c31372c52342c31370a632c4c322c31372c52352c31370a7a2c3f2c3f2c52362c31370a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "paste: seed 17",
+      "inputSha256": "e00b6ebf0b2c67f7ed289e4429db85962b9a18d6ca85ceb1dd0cd901ead7d0f6",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "622c635f630a2c625f622c635f632c635f7a0a622c635f630a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "comm: seed 18",
+      "inputSha256": "28842199147e5b83af908d5fe7127be633e47729108315b8b8336f8d3b630425",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "0a0a7a0a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "join: seed 18",
+      "inputSha256": "dd5ac9c67a0f603677e1054c3fcfcaac81cd3ab641f2325e8155dd2973c068a4",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "2c52302c31380a2c52312c31380a612c4c302c31382c52322c31380a612c4c312c31382c52322c31380a632c4c322c31382c52332c31380a642c4c332c31382c52342c31380a642c4c342c31382c52342c31380a7a2c52352c31380a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "paste: seed 18",
+      "inputSha256": "f11fdc88b340aedde5b4164be44b6868f7856ecb4b121d7ff098021ee6d6b566",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "612c5f610a612c5f610a632c615f630a642c635f640a642c645f640a2c7a5f0a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "comm: seed 19",
+      "inputSha256": "5a151ba00a40aed40e315c74d47be482b82a9f2b550b666d91bd1b82b896754e",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "0a0909610a09610a620a630a630a0909640a340931093209746f74616c0a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "join: seed 19",
+      "inputSha256": "e83b7bc64682e36a0d2d93ebe8ef92b0a7c4cb6b16387b2788f647fa40da71d1",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "3f2c4c302c31392c3f2c3f0a612c4c312c31392c52302c31390a612c4c312c31392c52312c31390a622c4c322c31392c3f2c3f0a632c4c332c31392c3f2c3f0a632c4c342c31392c3f2c3f0a642c4c352c31392c52322c31390a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "paste: seed 19",
+      "inputSha256": "fd6aba591ce5c711458a7a1b9d952c52027db0c967ee6a55180d484e2a0f4143",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "2c615f622c635f632c640a612c615f640a2c615f622c635f632c640a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "comm: seed 20",
+      "inputSha256": "8d081c6677471f0cedfbf67abda1b0cc384f231291fb9d8e450c2380e3268f18",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "620a620a640a640a640a7a0a7a0a7a0a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "join: seed 20",
+      "inputSha256": "f5d6f5b882fd59a56af5476768949f04c48c2d901c9c71b746e62ece10aad788",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "2c4c302c32300a2c4c312c32300a2c4c322c32300a612c4c332c32302c52302c32300a612c4c342c32302c52302c32300a622c4c352c32302c52312c32300a622c4c352c32302c52322c32300a622c4c352c32302c52332c32300a632c4c362c32302c52342c32300a632c4c372c32302c52342c32300a642c52352c32300a642c52362c32300a642c52372c32300a7a2c4c382c32302c52382c32300a7a2c4c382c32302c52392c32300a7a2c4c382c32302c5231302c32300a7a2c4c382c32302c5231312c32300a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "paste: seed 20",
+      "inputSha256": "2141e75ee7174eec22e4c0dabb00a9ca09b0ee843216c9480188516063502516",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "2c615f0a2c625f0a2c625f0a612c625f610a612c635f610a622c645f620a632c645f630a632c645f630a7a2c7a5f7a0a2c7a5f0a2c7a5f0a2c7a5f0a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "comm: seed 21",
+      "inputSha256": "48fb542ea55d4b7390e6c63b28580f9215edd2d66afd98ea3143e980f9356767",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "0a0a0a0a610a610a620a630a630a630a640a640a7a0a7a0a31340930093009746f74616c0a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "join: seed 21",
+      "inputSha256": "95dc1fd47fadbd4afe5d2249ae0ad7b56d1ebfcb4ad27ea666ee58eeca42be44",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "3f2c4c302c32310a3f2c4c312c32310a3f2c4c322c32310a3f2c4c332c32310a612c4c342c32310a612c4c352c32310a622c4c362c32310a632c4c372c32310a632c4c382c32310a632c4c392c32310a642c4c31302c32310a642c4c31312c32310a7a2c4c31322c32310a7a2c4c31332c32310a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "paste: seed 21",
+      "inputSha256": "5b126656df9c53d92c80f5f9bec5670dad0bdc2578b9c1ae8652f9f021094275",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "2c5f2c5f612c615f622c635f632c635f642c645f7a2c7a0a0a2c5f2c5f612c615f622c635f632c635f642c645f7a2c7a0a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "comm: seed 22",
+      "inputSha256": "d2c6e93e35f7552b9091d8f3eca813406f8b6e38b262614ebffc745e43921a45",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "630a630a630a640a640a7a0a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "join: seed 22",
+      "inputSha256": "90641a7ec5cdbf913c792aeec6483c81ec5926052b3b85adab9f4ae4b699ff24",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "2c4c302c32322c52302c32320a2c4c302c32322c52312c32320a2c4c312c32322c52302c32320a2c4c312c32322c52312c32320a612c4c322c32320a612c4c332c32320a612c4c342c32320a612c4c352c32320a622c4c362c32322c52322c32320a622c4c372c32322c52322c32320a622c4c382c32322c52322c32320a632c52332c32320a632c52342c32320a632c52352c32320a642c4c392c32322c52362c32320a642c4c392c32322c52372c32320a642c4c392c32322c52382c32320a642c4c392c32322c52392c32320a642c4c31302c32322c52362c32320a642c4c31302c32322c52372c32320a642c4c31302c32322c52382c32320a642c4c31302c32322c52392c32320a7a2c4c31312c32322c5231302c32320a7a2c4c31312c32322c5231312c32320a7a2c4c31312c32322c5231322c32320a7a2c4c31322c32322c5231302c32320a7a2c4c31322c32322c5231312c32320a7a2c4c31322c32322c5231322c32320a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "paste: seed 22",
+      "inputSha256": "94fc85226ca7d7a55b5cf8c0dc92691ae8c8efc0ff3e4268f535079d1763669a",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "2c5f0a2c5f0a612c625f610a612c635f610a612c635f610a612c635f610a622c645f620a622c645f620a622c645f620a642c645f640a642c7a5f640a7a2c7a5f7a0a7a2c7a5f7a0a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "comm: seed 23",
+      "inputSha256": "8cb187db7105be13b6eac61075bedef04bbf8debdfb5c357487acfae475605cb",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "09090a09610a09610a09610a0909620a09620a0909630a630a0909640a09640a09640a09097a0a097a0a097a0a310938093509746f74616c0a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "join: seed 23",
+      "inputSha256": "4b0573a825eeecc1fabab9d7ec10db6fa6c3446c5726d67cae8f0cb7d65b58d7",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "3f2c4c302c32332c52302c32330a612c3f2c3f2c52312c32330a612c3f2c3f2c52322c32330a612c3f2c3f2c52332c32330a622c4c312c32332c52342c32330a622c4c312c32332c52352c32330a632c4c322c32332c52362c32330a632c4c332c32332c52362c32330a642c4c342c32332c52372c32330a642c4c342c32332c52382c32330a642c4c342c32332c52392c32330a7a2c4c352c32332c5231302c32330a7a2c4c352c32332c5231312c32330a7a2c4c352c32332c5231322c32330a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "paste: seed 23",
+      "inputSha256": "afb9227ce63cce22d0adfabadcf5a4950f05be2345d1377b16c47fc1a5e5033b",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "2c625f632c635f642c7a0a2c615f612c615f622c625f632c645f642c645f7a2c7a5f7a0a2c625f632c635f642c7a0a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "join: whole record output list",
+      "inputSha256": "fbb2bc5ab0bdef6ed5452d5df8f079e1c257e47a58b7a01770d5ff1fd0f9269f",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "61206f6e652061206f6e650a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "join: repeated output lists",
+      "inputSha256": "f8971e917c3517f557a5e4ad3393dbd82af0f43b85932178563db60de10bb9f0",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "41312058310a41312058320a41322058310a41322058320a4420590a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "join: auto then output list",
+      "inputSha256": "17ce2ae98bbed7041f3808c27185e93c864ea04e93bfa0e17c8d24629fc0f3f9",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "41310a41310a41320a41320a440a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "join: output list then auto",
+      "inputSha256": "5e6b0c91d951fe9a4c7ca2e7a668bb788614953ee1efd51f837fe8f3031484bd",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "41310a41310a41320a41320a440a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "join: incompatible delimiters",
+      "inputSha256": "d800a0af58ce418644aa54270e5cbc36db5e1b7bdab67e5c989761084f80fc3d",
+      "actual": {
+        "exitCode": 1,
+        "stdoutHex": "",
+        "stderrHex": "6a6f696e3a2045494e56414c3a20696e636f6d70617469626c65206669656c642064656c696d69746572730a"
+      },
+      "selected": true,
+      "exact": false,
+      "filesUnchanged": true
+    },
+    {
+      "name": "join: identical repeated delimiters",
+      "inputSha256": "59eca62c6be602b452d333dcbabca88c347f3e4f0982524813276a2a0d7e0242",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "612c6f6e652c74776f0a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "join: header with empty left",
+      "inputSha256": "02ba28ee25a2039ea1dbd632fb19b1c13d64e1055f30ab038e8743f779f08041",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "4b45592056414c55450a61206f6e650a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "join: empty fields formatted replacement",
+      "inputSha256": "a18d1c97f7f66b7d78cce7dfc14bff1101b793b4bf9fc2d364747aab3516ca50",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "612c4e412c4e410a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "join: large absent key",
+      "inputSha256": "71b8a1ab6e19d0f563f2594a13c66b123fba0e9819ccd1ea193f3e438cfa4a17",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "4e412061206f6e6520622074776f0a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "join: header empty fields",
+      "inputSha256": "f27b31a3c22c1d8593845ef7c07c7ae5fab3993a02f83ecb86001de412bef3f7",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "2c4c4546542c52494748540a612c6f6e652c74776f0a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "comm: incompatible delimiters",
+      "inputSha256": "ed676288c0999d1fd2621d2f446df73e04b116314d3e6cddb8683878dfd8498c",
+      "actual": {
+        "exitCode": 1,
+        "stdoutHex": "",
+        "stderrHex": "636f6d6d3a2045494e56414c3a206d756c7469706c6520636f6e666c696374696e67206f75747075742064656c696d69746572730a"
+      },
+      "selected": true,
+      "exact": false,
+      "filesUnchanged": true
+    },
+    {
+      "name": "comm: identical repeated delimiters",
+      "inputSha256": "66cd9a76463a01f0d0401daf9e3326f5ebb73812416632c4f1d0c884e1c546bd",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "6161610a610a6161620a61620a61630a640a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    {
+      "name": "paste: repeated delimiters",
+      "inputSha256": "275df1a4a4001501a9416c22adc9bae64ff809bf6907827088cb6ab891881658",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "313a610a323a620a3a630a",
+        "stderrHex": ""
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    }
+  ]
+}

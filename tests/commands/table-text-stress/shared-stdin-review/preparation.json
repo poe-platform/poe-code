@@ -1,0 +1,232 @@
+{
+  "preparedAt": "2026-08-27T02:56:43.773Z",
+  "nativeInitial": {
+    "name": "native216",
+    "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "args": [
+      "--unhandled-rejections=strict",
+      "--import",
+      "tsx",
+      "tests/commands/table-text-stress/shared-stdin-review/native.ts"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash",
+    "env": {},
+    "exitCode": 1,
+    "signal": null,
+    "error": null,
+    "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stderrSha256": "6cfd43dc823700dbd92b5b8b87113ae44fe4bde9c447ae6948762b19057f8439",
+    "pass": 0,
+    "fail": 0,
+    "skipped": 0,
+    "failures": [],
+    "loadError": false
+  },
+  "nativeCorrected": {
+    "name": "native216-launcher-pinned",
+    "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "args": [
+      "--unhandled-rejections=strict",
+      "--import",
+      "tsx",
+      "tests/commands/table-text-stress/shared-stdin-review/native.ts"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash",
+    "env": {},
+    "exitCode": 0,
+    "signal": null,
+    "error": null,
+    "stdoutSha256": "bd6a3a411dfe686aa48e579291e0610be1bd9c391a3685ca2ca73f9f11921137",
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "pass": 0,
+    "fail": 0,
+    "skipped": 0,
+    "failures": [],
+    "loadError": false
+  },
+  "nativeInitialClassification": "Harness launcher pathname in GNU option diagnostics; not a source failure. Exact argv0 explicitly pinned to original author launcher; no byte normalization.",
+  "stat": {
+    "commit": "bdaaf50b3eccdd261349c1f32c19407fa348a64f",
+    "path": "tests/commands/metadata/stat.test.ts",
+    "beforeSha256": "a3597699eadbcfa3b48a7a2cb9830428d6fc98c70f197c6f6c97011219e0b3aa",
+    "afterSha256": "06b10fc13e5e884802ab69cd7838e8e61f115ce9d3024ceee63145e3fba6076f",
+    "onlyExpectedStringChanged": true,
+    "diff": "diff --git a/tests/commands/metadata/stat.test.ts b/tests/commands/metadata/stat.test.ts\nindex b578a59..85ac593 100644\n--- a/tests/commands/metadata/stat.test.ts\n+++ b/tests/commands/metadata/stat.test.ts\n@@ -21,7 +21,7 @@ test(\"stat prints common mode, type, size, name and UTC millisecond timestamps\",\n   const fs = await fixture();\n   const result = await runMetadata(\"stat\", [\"-c\", \"%n:%s:%a:%A:%F:%x:%y:%Y:%.3Y:%.3X:%%\", \"file\"], fs);\n   assert.equal(result.exitCode, 0, result.stderr);\n-  assert.equal(result.stdout, \"file:4:751:-rwxr-x--x:regular file:1969-12-31 23:59:59.999 +0000:2000-01-01 00:00:00.123 +0000:946684800:946684800.123:-0.001:%\\n\");\n+  assert.equal(result.stdout, \"file:4:751:-rwxr-x--x:regular file:1969-12-31 23:59:59.999000000 +0000:2000-01-01 00:00:00.123000000 +0000:946684800:946684800.123:-0.001:%\\n\");\n });\n \n test(\"stat lstat/default and -L distinguish links, including dangling links\", async () => {\n",
+    "binaryPins": {
+      "stat": "9bfc67687cc527eb69aa7a877c1551c22db6ea46ff910ad055015958924e1fea",
+      "touch": "47fc9af399d94e27bc94c19eba754502b38dfb80fbad3d09c5f6b237698dbf68"
+    },
+    "sourceSha256": "32c77c3620837a73dc0ed72dc7ee874f8e52946c8c8c2c4b2255e4f41bea6bad",
+    "calls": [
+      {
+        "command": "stat",
+        "args": [
+          "--version"
+        ],
+        "status": 0,
+        "stdoutHex": "737461742028474e5520636f72657574696c732920392e370a436f70797269676874202843292032303235204672656520536f66747761726520466f756e646174696f6e2c20496e632e0a4c6963656e73652047504c76332b3a20474e552047504c2076657273696f6e2033206f72206c61746572203c68747470733a2f2f676e752e6f72672f6c6963656e7365732f67706c2e68746d6c3e2e0a54686973206973206672656520736f6674776172653a20796f7520617265206672656520746f206368616e676520616e64207265646973747269627574652069742e0a5468657265206973204e4f2057415252414e54592c20746f2074686520657874656e74207065726d6974746564206279206c61772e0a0a5772697474656e206279204d69636861656c204d65736b65732e0a",
+        "stderrHex": ""
+      },
+      {
+        "command": "touch",
+        "args": [
+          "--version"
+        ],
+        "status": 0,
+        "stdoutHex": "746f7563682028474e5520636f72657574696c732920392e370a436f70797269676874202843292032303235204672656520536f66747761726520466f756e646174696f6e2c20496e632e0a4c6963656e73652047504c76332b3a20474e552047504c2076657273696f6e2033206f72206c61746572203c68747470733a2f2f676e752e6f72672f6c6963656e7365732f67706c2e68746d6c3e2e0a54686973206973206672656520736f6674776172653a20796f7520617265206672656520746f206368616e676520616e64207265646973747269627574652069742e0a5468657265206973204e4f2057415252414e54592c20746f2074686520657874656e74207065726d6974746564206279206c61772e0a0a5772697474656e206279205061756c20527562696e2c2041726e6f6c6420526f6262696e732c204a696d204b696e67646f6e2c0a4461766964204d61634b656e7a69652c20616e642052616e647920536d6974682e0a",
+        "stderrHex": ""
+      },
+      {
+        "command": "touch",
+        "args": [
+          "-a",
+          "-d",
+          "@-0.001",
+          "file"
+        ],
+        "status": 0,
+        "stdoutHex": "",
+        "stderrHex": ""
+      },
+      {
+        "command": "touch",
+        "args": [
+          "-m",
+          "-d",
+          "@946684800.123",
+          "file"
+        ],
+        "status": 0,
+        "stdoutHex": "",
+        "stderrHex": ""
+      },
+      {
+        "command": "stat",
+        "args": [
+          "-c",
+          "%n:%s:%a:%A:%F:%x:%y:%Y:%.3Y:%.3X:%%",
+          "file"
+        ],
+        "status": 0,
+        "stdoutHex": "66696c653a343a3735313a2d727778722d782d2d783a726567756c61722066696c653a313936392d31322d33312032333a35393a35392e393939303030303030202b303030303a323030302d30312d30312030303a30303a30302e313233303030303030202b303030303a3934363638343830303a3934363638343830302e3132333a2d302e3030313a250a",
+        "stderrHex": ""
+      }
+    ],
+    "times": {
+      "atimeNs": "-1000000",
+      "mtimeNs": "946684800123000000"
+    },
+    "exact": 1,
+    "total": 1,
+    "cleanup": {
+      "cwd": "/tmp/safe-bash-comm-final-review-owned/native-stat-EVxlnt",
+      "removed": true
+    },
+    "historical": "42/43 author metadata retained, not rerun here",
+    "limitation": "Zero-padding known integral milliseconds; no recovered nanosecond precision and no SGID execution."
+  },
+  "historicalMutations": {
+    "rerun": false,
+    "historicalSemanticKills": 4,
+    "verified": [
+      {
+        "path": "tests/commands/table-text-stress/review/mutation-baseline-verified.tap",
+        "sha256": "0474abbb2975399a7be812291ebf5cbb8472d60b239ca57970748259335e8e25"
+      },
+      {
+        "path": "tests/commands/table-text-stress/review/mutation-baseline.tap",
+        "sha256": "ddd72c0c7e5c4de5b733adbc493828cbed0a784fa5399bb57576bb1895815a29"
+      },
+      {
+        "path": "tests/commands/table-text-stress/review/mutation-borrowed-buffer-verified.tap",
+        "sha256": "6ade212da9d6bdabff9650b0a65e66cc78fa4fd4c04c80288a0af7f940e51ebb"
+      },
+      {
+        "path": "tests/commands/table-text-stress/review/mutation-borrowed-buffer.tap",
+        "sha256": "c5b112a98a57e168bd9a4d54c80d5bfad4bce0379e750859c9a3a890ebbeb020"
+      },
+      {
+        "path": "tests/commands/table-text-stress/review/mutation-byte-fidelity-verified.tap",
+        "sha256": "d46d4ecc027dec2a08cbcd70d9ee1cf0af18258a9e461665b19ed032a857d777"
+      },
+      {
+        "path": "tests/commands/table-text-stress/review/mutation-byte-fidelity.tap",
+        "sha256": "9173e6bffd22668677d9f12008136824a59a02a7dc40da7f3db121836a029e48"
+      },
+      {
+        "path": "tests/commands/table-text-stress/review/mutation-byte-order-verified.tap",
+        "sha256": "e98449ba4084b695b55fdac50d736c26a174011758aa09652af54563993e68c0"
+      },
+      {
+        "path": "tests/commands/table-text-stress/review/mutation-byte-order.tap",
+        "sha256": "6bc421c6ccdea65e8f3b172a0b4b6ba49d78b01d2e2ef067dc9dc7b2cc991493"
+      },
+      {
+        "path": "tests/commands/table-text-stress/review/mutation-restored-verified.tap",
+        "sha256": "b5d7431c31b928a929c67e8a03712674754712900db1b7ca2ffec5307a4e2314"
+      },
+      {
+        "path": "tests/commands/table-text-stress/review/mutation-restored.tap",
+        "sha256": "6845035e114ca2fffd0cda9449f3efbb8b788ef06b350f4ff8a606ff5c232de2"
+      },
+      {
+        "path": "tests/commands/table-text-stress/review/mutation-results-verified.json",
+        "sha256": "c85323ed021c2e36372145ed24a69b8a9a89c635b6a4e58efb01e8074550e6f9"
+      },
+      {
+        "path": "tests/commands/table-text-stress/review/mutation-results.json",
+        "sha256": "f2d0e278414936f6d386caa810d573b41fbf65679bb2fb6b842ca3a4ecd94576"
+      },
+      {
+        "path": "tests/commands/table-text-stress/review/mutation-shared-cursor-verified.tap",
+        "sha256": "469bb3e87c05ac336b4beb34ee40826b8df1208a5ea26aae2445855442c772a2"
+      },
+      {
+        "path": "tests/commands/table-text-stress/review/mutation-shared-cursor.tap",
+        "sha256": "7e5901ea8c46e39bcaeba504d5d02e3e450401410813e88cdad5195ff7c7f528"
+      }
+    ],
+    "sourceSha256": "fc43999fdddaccb282e2a6bb868421c395804092076ecf2645554a80f9a3b7a8",
+    "controls": [
+      {
+        "name": "mutation-shared-cursor",
+        "killed": true,
+        "assertions": [
+          "independent frozen GNU: paste shared alternating empty EOF"
+        ],
+        "logSha256": "469bb3e87c05ac336b4beb34ee40826b8df1208a5ea26aae2445855442c772a2"
+      },
+      {
+        "name": "mutation-byte-fidelity",
+        "killed": true,
+        "assertions": [
+          "independent frozen GNU: paste NUL shared invalid bytes"
+        ],
+        "logSha256": "d46d4ecc027dec2a08cbcd70d9ee1cf0af18258a9e461665b19ed032a857d777"
+      },
+      {
+        "name": "mutation-byte-order",
+        "killed": true,
+        "assertions": [
+          "independent frozen GNU: comm C byte collation"
+        ],
+        "logSha256": "e98449ba4084b695b55fdac50d736c26a174011758aa09652af54563993e68c0"
+      },
+      {
+        "name": "mutation-borrowed-buffer",
+        "killed": true,
+        "assertions": [
+          "paste: records retain Buffer fragments after producer reuse",
+          "comm: records retain Buffer fragments after producer reuse",
+          "join: records retain Buffer fragments after producer reuse"
+        ],
+        "logSha256": "6ade212da9d6bdabff9650b0a65e66cc78fa4fd4c04c80288a0af7f940e51ebb"
+      }
+    ]
+  },
+  "oldMetadata42of43Log": {
+    "path": "/tmp/safe-bash-stat-legacy-expectation/historical-author42-of43.log",
+    "sha256": "7d5609b82761fd63d95ec05c8972a0ced41b2afcb0e84699c4ed7aece102612e"
+  },
+  "finalProductExecuted": false
+}

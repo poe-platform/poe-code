@@ -1,0 +1,26 @@
+{
+  "cwd": "/private/tmp/safe-bash-comm-final-review-owned/snapshot",
+  "tsxImport": "file:///private/tmp/safe-bash-comm-final-review-owned/snapshot/node_modules/tsx/dist/loader.mjs",
+  "results": [
+    {
+      "specifier": "tsx",
+      "path": "/private/tmp/safe-bash-comm-final-review-owned/snapshot/node_modules/tsx/dist/loader.mjs",
+      "relative": "node_modules/tsx/dist/loader.mjs"
+    },
+    {
+      "specifier": "esbuild",
+      "path": "/private/tmp/safe-bash-comm-final-review-owned/snapshot/node_modules/esbuild/lib/main.js",
+      "relative": "node_modules/esbuild/lib/main.js"
+    },
+    {
+      "specifier": "@esbuild/darwin-arm64/bin/esbuild",
+      "path": "/private/tmp/safe-bash-comm-final-review-owned/snapshot/node_modules/@esbuild/darwin-arm64/bin/esbuild",
+      "relative": "node_modules/@esbuild/darwin-arm64/bin/esbuild"
+    },
+    {
+      "specifier": "./node_modules/typescript/bin/tsc",
+      "path": "/private/tmp/safe-bash-comm-final-review-owned/snapshot/node_modules/typescript/bin/tsc",
+      "relative": "node_modules/typescript/bin/tsc"
+    }
+  ]
+}

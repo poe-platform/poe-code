@@ -1,0 +1,27 @@
+{
+  "date": "2026-08-27T19:27:50.531079+00:00",
+  "command": [
+    "node",
+    "--import",
+    "tsx",
+    "--test",
+    "tests/integration/owned-output-production-rebase/author/network.test.ts",
+    "tests/integration/owned-output-production-rebase/author/operation.test.ts",
+    "tests/integration/owned-output-production-rebase/author/shell.test.ts"
+  ],
+  "exitCode": 1,
+  "inputs": [
+    {
+      "path": "tests/integration/owned-output-production-rebase/author/network.test.ts",
+      "sha256": "b69e41170a4e7231bfae0d0b1c085cfd41f9d06b984e246d520f0dc12e199c01"
+    },
+    {
+      "path": "tests/integration/owned-output-production-rebase/author/operation.test.ts",
+      "sha256": "8ba60566d544bfd5cdc6bd12e6afd998c33ca9859c1be3e6f4e2ac5ec29b0bc3"
+    },
+    {
+      "path": "tests/integration/owned-output-production-rebase/author/shell.test.ts",
+      "sha256": "d87638fe80b34cdc35bfc313649d5bd4e8f82447969d3c01f37d5e7c3fcae19c"
+    }
+  ]
+}

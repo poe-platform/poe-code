@@ -1,0 +1,26 @@
+{
+  "observedAtSeal": "2026-08-27T19:46:00.923762+00:00",
+  "host": "macOS-26.4.1-arm64-arm-64bit-Mach-O",
+  "machine": "arm64",
+  "node": "v22.22.2",
+  "typescript": "5.9.3",
+  "tsx": "4.23.12",
+  "qualifier": "Seal-time local versions, not a toolchain closure or retroactive native-oracle certification.",
+  "bash": {
+    "exitCode": 0,
+    "version": [
+      "GNU bash, version 3.2.57(1)-release (arm64-apple-darwin25)",
+      "Copyright (C) 2007 Free Software Foundation, Inc."
+    ],
+    "stderr": ""
+  },
+  "curl": {
+    "exitCode": 0,
+    "version": [
+      "curl 8.7.1 (x86_64-apple-darwin25.0) libcurl/8.7.1 (SecureTransport) LibreSSL/3.3.6 zlib/1.2.12 nghttp2/1.68.0",
+      "Release-Date: 2024-03-27",
+      "Protocols: dict file ftp ftps gopher gophers http https imap imaps ipfs ipns ldap ldaps mqtt pop3 pop3s rtsp smb smbs smtp smtps telnet tftp"
+    ],
+    "stderr": ""
+  }
+}

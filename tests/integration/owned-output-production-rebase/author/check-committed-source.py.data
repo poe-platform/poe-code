@@ -1,0 +1,63 @@
+import datetime
+import hashlib
+import io
+import json
+from pathlib import Path
+import shutil
+import subprocess
+import tarfile
+import tempfile
+
+repository = Path("/Users/kjopek/Workspace/safe-bash")
+assert Path.cwd() == repository
+owner = Path("tests/integration/owned-output-production-rebase/author")
+commit = json.loads((owner / "SOURCE-COMMIT.json").read_text())["commit"]
+files = [str(owner / name) for name in ("helpers.ts", "operation.test.ts", "shell.test.ts", "network.test.ts")]
+selected = ["src", "package.json", *files]
+archive = subprocess.check_output(["git", "archive", commit, *selected])
+expected = []
+with tarfile.open(fileobj=io.BytesIO(archive)) as bundle:
+    for member in bundle.getmembers():
+        assert not member.name.startswith("/") and ".." not in member.name.split("/")
+        assert member.isdir() or member.isfile()
+        if member.isfile():
+            payload = bundle.extractfile(member).read()
+            expected.append({"path": member.name, "bytes": len(payload), "sha256": hashlib.sha256(payload).hexdigest()})
+expected.sort(key=lambda row: row["path"])
+snapshot = Path(tempfile.mkdtemp(prefix="safe-bash-owned-output-production-author-", dir="/tmp"))
+subprocess.run(["tar", "-xf", "-", "-C", str(snapshot)], input=archive, check=True)
+
+
+def actual():
+    result = []
+    for path in sorted(snapshot.rglob("*")):
+        assert not path.is_symlink()
+        if path.is_file():
+            payload = path.read_bytes()
+            result.append({"path": str(path.relative_to(snapshot)), "bytes": len(payload), "sha256": hashlib.sha256(payload).hexdigest()})
+    return result
+
+
+assert actual() == expected
+loader = repository / "node_modules/tsx/dist/loader.mjs"
+command = ["node", "--unhandled-rejections=strict", "--import", str(loader), "--test", *files[1:]]
+started = datetime.datetime.now(datetime.timezone.utc).isoformat()
+result = subprocess.run(command, cwd=snapshot, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+unchanged = actual() == expected
+record = {"commit": commit, "selection": selected, "archiveSha256": hashlib.sha256(archive).hexdigest(),
+          "snapshot": str(snapshot), "started": started, "finished": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+          "command": command, "exitCode": result.returncode, "inputs": expected,
+          "beforeAndAfterExactFileInventoryIncludingNewEntries": unchanged,
+          "loader": str(loader), "loaderSha256": hashlib.sha256(loader.read_bytes()).hexdigest(),
+          "scope": "Committed source-only author runtime tests. No build, install, pack, moved package or private access.",
+          "toolLimit": "Uses existing local tsx/development tooling; not an installed-tool closure or syscall audit."}
+shutil.rmtree(snapshot)
+record["ownedSnapshotRemoved"] = not snapshot.exists()
+destination = owner / "runs/committed-source"
+assert not destination.exists()
+for name, text in (("stdout.txt", result.stdout.decode()), ("stderr.txt", result.stderr.decode()), ("RUN.json", json.dumps(record, indent=2) + "\n")):
+    subprocess.run(["apply_patch", "*** Begin Patch\n*** Add File: " + str(destination / name) + "\n" +
+                    "".join("+" + line + "\n" for line in text.splitlines()) + "*** End Patch\n"], check=True, stdout=subprocess.DEVNULL)
+print(result.stdout.decode()[-850:])
+print(result.stderr.decode())
+assert result.returncode == 0 and unchanged and record["ownedSnapshotRemoved"]

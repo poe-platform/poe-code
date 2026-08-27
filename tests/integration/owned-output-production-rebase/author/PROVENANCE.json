@@ -1,0 +1,73 @@
+{
+  "artifacts": [
+    {
+      "path": "tests/integration/safejs-owned-output-prototype-review/production-rebase-proposal/PROPOSAL.md",
+      "originalCommit": "7adabe6ba4f5a3da5ba2e90660f2cc0cefe7598b",
+      "gitBlob": "6534f41c26356b01e715782d281ae1abcf78839a",
+      "sha256": "4f50797177ddb0e8a7669ac207aeb21daa7d5346f89d49c926dac53ff827ae13",
+      "bytes": 19630,
+      "unchangedAtBaselineAndRead": true
+    },
+    {
+      "path": "tests/integration/safejs-owned-output-prototype-review/production-rebase-proposal/MANIFEST.json",
+      "originalCommit": "7adabe6ba4f5a3da5ba2e90660f2cc0cefe7598b",
+      "gitBlob": "8ebbca9d626653844ce0fef62f6e0a1c3e77581e",
+      "sha256": "919f8a2b382bad4fba79bfb5b35e0a633ab75ba9748a9de2ac46d14dd67d1d42",
+      "bytes": 98606,
+      "unchangedAtBaselineAndRead": true
+    },
+    {
+      "path": "tests/integration/safejs-owned-output-prototype-review/production-rebase-proposal/inspect-public-inputs.py.data",
+      "originalCommit": "7adabe6ba4f5a3da5ba2e90660f2cc0cefe7598b",
+      "gitBlob": "dbacd31f7550c7c405afbe4ec515cd839e63157d",
+      "sha256": "5c223aa2faa73ef8cf1115976e6af07a9ca1f0fbff4bd0610320e4d710a9417f",
+      "bytes": 14521,
+      "unchangedAtBaselineAndRead": true
+    },
+    {
+      "path": "tests/shell-stress/first-read-contract-review/owned-output-qualified-prototype/candidate.tar.gz.data",
+      "originalCommit": "b8f5d46acf293138482b522d7b5f7263865b1303",
+      "gitBlob": "c3ecb5d71bd1831a71c6c230a7493bd8214a5ec1",
+      "sha256": "a3b9aa6fcb4596e8281de2c30943b98baa01449941c8368401d1172bce95d420",
+      "bytes": 1324491,
+      "unchangedAtBaselineAndRead": true
+    },
+    {
+      "path": "tests/integration/safejs-owned-output-prototype-review/zero-cap-overlay/author/inventories/parent-source213.json",
+      "originalCommit": "a61e63bc46e8389e59c0d8fdc1d424003f62c769",
+      "gitBlob": "9c64f24b9bc3731f145a246e2c3a8e6194188bb1",
+      "sha256": "8952ecfdc172c1f1d4ccde413ce5d0247ea92a8f072c90c9eaf3652c3b69f768",
+      "bytes": 32958,
+      "unchangedAtBaselineAndRead": true
+    },
+    {
+      "path": "tests/integration/safejs-owned-output-prototype-review/zero-cap-overlay/author/inventories/candidate-source213.json",
+      "originalCommit": "a61e63bc46e8389e59c0d8fdc1d424003f62c769",
+      "gitBlob": "8c7d42f4bd7193304b56ee001734d0a658030c40",
+      "sha256": "780b0f8e7861e28fb327cb25f3bf1a6e4097a07dee54716b8b16222519c5d0f7",
+      "bytes": 32958,
+      "unchangedAtBaselineAndRead": true
+    },
+    {
+      "path": "tests/integration/safejs-owned-output-prototype-review/zero-cap-overlay/author/overlay/zero-validation.patch-data",
+      "originalCommit": "a61e63bc46e8389e59c0d8fdc1d424003f62c769",
+      "gitBlob": "739e71c741653bf9b837e122583548c8d7f6e1b4",
+      "sha256": "2223c4fe1f9aaa31642cbc7e0b0d03f81592a2a825637d3bd0eee81787ccda53",
+      "bytes": 662,
+      "unchangedAtBaselineAndRead": true
+    }
+  ],
+  "verifiedHistoricalSourceCount": 213,
+  "S1SourceManifestSha256": "6de9b96c7286cc320379d8f7f720f3d1a5ecffdc24b7268b198859550362feea",
+  "zeroOverlaySourceManifestSha256": "2dc95c3abd7656de60d10a2f339a80d14d31ecc2b6d1a8f037769826cc8479f1",
+  "zeroOnlyPatchSha256": "2223c4fe1f9aaa31642cbc7e0b0d03f81592a2a825637d3bd0eee81787ccda53",
+  "zeroOnlySourcePath": "src/commands/network/shared.ts",
+  "zeroCurrentBytesEqualAccepted": true,
+  "auditsNotRerun": [
+    "ed21ae6c214e9b76d3361004ce6097c2be5b7136",
+    "9f15ac3f54397835318978ef43a056bbf11a0d06"
+  ],
+  "historicalOnly": true,
+  "baselineFrozen": "a03b9288a6f4b652387be9fefa8faf17ef58b9e7",
+  "rootObservedHeadDelta": ""
+}

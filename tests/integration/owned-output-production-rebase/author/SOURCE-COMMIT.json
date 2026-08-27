@@ -1,0 +1,25 @@
+{
+  "parent": "954ddde45d7d77c36067f15f79d3881f2a51f8db",
+  "statusBefore": " M src/commands/html-to-markdown/entities.ts\n M src/commands/html-to-markdown/input.ts\n M src/commands/html-to-markdown/parser.ts\n M src/commands/html-to-markdown/render.ts\n M src/commands/network/curl.ts\n M src/commands/network/transport.ts\n M src/commands/network/types.ts\n M src/commands/streams.ts\n M src/contracts/index.ts\n M src/contracts/io.ts\n M src/shell/runtime.ts\n M src/shell/shell.ts\n M tests/commands/expr/inactive-prefix.test.ts\n?? src/commands/html-to-markdown/text.ts\n?? src/contracts/output.ts\n?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/\n?? tests/commands/expr-stress/prefix-wording-fixture-20260827/\n?? tests/commands/expr-stress/qualified-final-review-20260827/\n?? tests/commands/search-stress/.native-1m4O1e/\n?? tests/integration/du-overlay-independent-20260827/approved-v6-9a5a6f92/\n?? tests/integration/owned-output-production-rebase/author/\n?? tests/shell/getopts-independent-20260827/audit-loader.mjs\n?? tests/shell/getopts-independent-20260827/mutation-definitions.mjs\n?? tests/shell/getopts-independent-20260827/review-harness.mjs\n?? tests/shell/getopts-independent-20260827/review-lib.mjs\n?? tests/shell/getopts-independent-20260827/type-review.mjs\n",
+  "cachedBefore": "",
+  "explicitPaths": [
+    "src/contracts/io.ts",
+    "src/contracts/output.ts",
+    "src/contracts/index.ts",
+    "src/shell/runtime.ts",
+    "src/shell/shell.ts",
+    "src/commands/network/types.ts",
+    "src/commands/network/transport.ts",
+    "src/commands/network/curl.ts",
+    "src/commands/streams.ts",
+    "tests/integration/owned-output-production-rebase/author/helpers.ts",
+    "tests/integration/owned-output-production-rebase/author/operation.test.ts",
+    "tests/integration/owned-output-production-rebase/author/shell.test.ts",
+    "tests/integration/owned-output-production-rebase/author/network.test.ts",
+    "tests/integration/owned-output-production-rebase/author/public-consumer.mts.data"
+  ],
+  "commit": "eba049535d154f4e028f57ffd8efd7622b2239ca",
+  "tree": "62d75ef09e89d4d3b6afc032c518d2846dcd03b7",
+  "foreignIndexUnchanged": true,
+  "statusAfter": " M src/commands/html-to-markdown/entities.ts\n M src/commands/html-to-markdown/input.ts\n M src/commands/html-to-markdown/parser.ts\n M src/commands/html-to-markdown/render.ts\n M tests/commands/expr/inactive-prefix.test.ts\n?? src/commands/html-to-markdown/text.ts\n?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/\n?? tests/commands/expr-stress/prefix-wording-fixture-20260827/\n?? tests/commands/expr-stress/qualified-final-review-20260827/\n?? tests/commands/search-stress/.native-1m4O1e/\n?? tests/integration/du-overlay-independent-20260827/approved-v6-9a5a6f92/\n?? tests/integration/owned-output-production-rebase/author/API-CHECKPOINT.md\n?? tests/integration/owned-output-production-rebase/author/BASELINE.json\n?? tests/integration/owned-output-production-rebase/author/DEVELOPMENT-ATTEMPTS.md\n?? tests/integration/owned-output-production-rebase/author/PROVENANCE.json\n?? tests/integration/owned-output-production-rebase/author/authenticate.py.data\n?? tests/integration/owned-output-production-rebase/author/capture.py.data\n?? tests/integration/owned-output-production-rebase/author/runs/\n?? tests/shell/getopts-independent-20260827/audit-loader.mjs\n?? tests/shell/getopts-independent-20260827/mutation-definitions.mjs\n?? tests/shell/getopts-independent-20260827/review-harness.mjs\n?? tests/shell/getopts-independent-20260827/review-lib.mjs\n?? tests/shell/getopts-independent-20260827/type-review.mjs\n"
+}

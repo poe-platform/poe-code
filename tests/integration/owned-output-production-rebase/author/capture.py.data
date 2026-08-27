@@ -1,0 +1,56 @@
+import datetime
+import hashlib
+import json
+from pathlib import Path
+import subprocess
+import sys
+import time
+
+root = Path("/Users/kjopek/Workspace/safe-bash")
+assert Path.cwd() == root
+label, *command = sys.argv[1:]
+assert label and "/" not in label and command
+destination = Path("tests/integration/owned-output-production-rebase/author/runs") / label
+assert not destination.exists(), "Capture output must be unique"
+
+
+def git(*arguments):
+    return subprocess.check_output(["git", *arguments]).decode().strip()
+
+
+def inventory(paths):
+    return [{"path": str(path), "bytes": path.stat().st_size,
+             "sha256": hashlib.sha256(path.read_bytes()).hexdigest()}
+            for path in sorted(set(paths)) if path.is_file()]
+
+
+def source():
+    return inventory(Path("src").rglob("*"))
+
+
+selected = [Path(argument) for argument in command if argument.startswith("tests/") and Path(argument).is_file()]
+selected += list(Path("tests/integration/owned-output-production-rebase/author").glob("*.ts"))
+config = [Path(name) for name in ("package.json", "package-lock.json", "tsconfig.json", "tsconfig.build.json")]
+record = {"started": datetime.datetime.now(datetime.timezone.utc).isoformat(), "command": command,
+          "headBefore": git("rev-parse", "HEAD"), "treeBefore": git("rev-parse", "HEAD^{tree}"),
+          "statusBefore": git("status", "--short"), "sourceBefore": source(),
+          "selectedInputsBefore": inventory(selected), "configBefore": inventory(config),
+          "inputLimit": "Selected entrypoints and author helpers, not a claim of complete legacy helper/data closure"}
+started = time.monotonic()
+result = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+record.update({"elapsedSeconds": time.monotonic() - started, "exitCode": result.returncode,
+               "finished": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+               "headAfter": git("rev-parse", "HEAD"), "sourceAfter": source(),
+               "selectedInputsAfter": inventory(selected), "configAfter": inventory(config)})
+record["sourceUnchangedIncludingEntries"] = record["sourceBefore"] == record["sourceAfter"]
+record["selectedInputsUnchanged"] = record["selectedInputsBefore"] == record["selectedInputsAfter"]
+record["configUnchanged"] = record["configBefore"] == record["configAfter"]
+for name, content in (("stdout.txt", result.stdout.decode()), ("stderr.txt", result.stderr.decode()),
+                      ("RUN.json", json.dumps(record, indent=2) + "\n")):
+    patch = "*** Begin Patch\n*** Add File: " + str(destination / name) + "\n"
+    patch += "".join("+" + line + "\n" for line in content.splitlines()) + "*** End Patch\n"
+    subprocess.run(["apply_patch", patch], check=True, stdout=subprocess.DEVNULL)
+print(result.stdout.decode()[-2200:])
+print(result.stderr.decode()[-2200:])
+print(json.dumps({key: record[key] for key in ("exitCode", "elapsedSeconds", "sourceUnchangedIncludingEntries", "selectedInputsUnchanged", "configUnchanged")}))
+sys.exit(result.returncode)

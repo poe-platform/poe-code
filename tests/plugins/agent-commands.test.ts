@@ -23,7 +23,7 @@ async function direct(commands: CommandRegistry, command: string, args: readonly
   return { ...result, stdout: Buffer.concat(chunks).toString(), stderr: Buffer.concat(errors).toString() };
 }
 
-test("aggregate definitions are exactly the ten delivered families, each registered once", async () => {
+test("aggregate definitions are exactly the delivered families, each registered once", async () => {
   const expected = [
     "true", "false", "echo", "pwd", "basename", "dirname", "printf", "mkdir", "touch",
     "cp", "mv", "rm", "rmdir", "ln", "readlink", "realpath", "ls", "cat", "head", "tail",
@@ -31,9 +31,10 @@ test("aggregate definitions are exactly the ten delivered families, each registe
     "sed", "awk", "jq", "rg", "base64", "base32", "xxd", "od", "sha256sum", "sha1sum",
     "md5sum", "cksum", "gzip", "gunzip", "zcat", "diff", "patch", "chmod", "stat", "mktemp", "tar",
     "paste", "comm", "join", "tac", "expand", "fold", "strings",
+    "seq", "nl", "rev", "unexpand", "split",
   ].sort();
-  assert.equal(expected.length, 60);
-  assert.equal(new Set(expected).size, 60);
+  assert.equal(expected.length, 65);
+  assert.equal(new Set(expected).size, 65);
   assert.deepEqual(createAgentCommands().map(command => command.name).sort(), expected);
   const target = host();
   await agentCommands().setup(target);
@@ -56,7 +57,7 @@ test("explicit replacement affects all families once and preserves unrelated com
   assert.throws(() => agentCommands().setup(target), /already registered/u);
   assert.deepEqual(target.commands.list(), original);
   await agentCommands({ replace: true }).setup(target);
-  assert.equal(target.commands.list().length, 61);
+  assert.equal(target.commands.list().length, 66);
   assert.equal(target.commands.get("custom"), original[0]);
   for (const name of ["printf", "sed", "jq", "rg", "gzip", "patch", "chmod", "stat", "mktemp", "tar", "paste", "comm", "join"]) {
     assert.notEqual(target.commands.get(name), original.find(command => command.name === name));

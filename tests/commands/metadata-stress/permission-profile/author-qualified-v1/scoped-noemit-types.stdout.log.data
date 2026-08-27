@@ -1,0 +1,14 @@
+tests/commands/metadata-stress/permission-profile/darwin-profile.test.ts(20,19): error TS2722: Cannot invoke an object which is possibly 'undefined'.
+tests/commands/metadata-stress/permission-profile/darwin-profile.test.ts(21,16): error TS2722: Cannot invoke an object which is possibly 'undefined'.
+tests/commands/metadata-stress/permission-profile/darwin-profile.test.ts(21,34): error TS2722: Cannot invoke an object which is possibly 'undefined'.
+tests/commands/metadata-stress/permission-profile/darwin-profile.test.ts(22,16): error TS2722: Cannot invoke an object which is possibly 'undefined'.
+tests/commands/metadata-stress/permission-profile/darwin-profile.test.ts(22,34): error TS2722: Cannot invoke an object which is possibly 'undefined'.
+tests/commands/metadata-stress/permission-profile/darwin-profile.test.ts(23,19): error TS2722: Cannot invoke an object which is possibly 'undefined'.
+tests/commands/metadata-stress/permission-profile/darwin-profile.test.ts(24,16): error TS2722: Cannot invoke an object which is possibly 'undefined'.
+tests/commands/metadata-stress/permission-profile/darwin-profile.test.ts(47,27): error TS2722: Cannot invoke an object which is possibly 'undefined'.
+tests/commands/metadata-stress/permission-profile/darwin-profile.test.ts(49,115): error TS2722: Cannot invoke an object which is possibly 'undefined'.
+tests/commands/metadata-stress/permission-profile/darwin-profile.test.ts(116,19): error TS2722: Cannot invoke an object which is possibly 'undefined'.
+tests/commands/metadata-stress/permission-profile/qualification.test.ts(13,30): error TS2722: Cannot invoke an object which is possibly 'undefined'.
+tests/commands/metadata-stress/permission-profile/qualification.test.ts(14,30): error TS2722: Cannot invoke an object which is possibly 'undefined'.
+tests/commands/metadata-stress/permission-profile/qualification.test.ts(16,59): error TS2722: Cannot invoke an object which is possibly 'undefined'.
+tests/commands/metadata-stress/permission-profile/qualification.test.ts(67,19): error TS2722: Cannot invoke an object which is possibly 'undefined'.

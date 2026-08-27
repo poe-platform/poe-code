@@ -5,11 +5,13 @@ import { join } from "node:path";
 import { MemoryFileSystem } from "../../../src/fs/memory/index.js";
 import { createRealFileSystem } from "../../../src/fs/real/index.js";
 import { namespace, oracle, run, snapshot } from "./helpers.js";
+import { qualifyModeFixtures } from "./permission-profile/fixtures.js";
 
 test("GNU chmod seeded symbolic/numeric differential: 384 mode transitions", async context => {
   const root = await namespace(context);
   await host.writeFile(join(root, "file"), Buffer.from([0, 255, 10]));
   await host.mkdir(join(root, "directory"));
+  const qualified = await qualifyModeFixtures(root, ["file", "directory"]);
   const fs = new MemoryFileSystem();
   await fs.mkdir("/work/directory", { recursive: true });
   await fs.writeFile("/work/file", Uint8Array.of(0, 255, 10));
@@ -23,7 +25,7 @@ test("GNU chmod seeded symbolic/numeric differential: 384 mode transitions", asy
     const name = iteration % 2 ? "directory" : "file";
     const mode = modes[iteration % modes.length]!;
     const umask = masks[Math.floor(iteration / modes.length) % masks.length]!;
-    await host.chmod(join(root, name), initial);
+    await qualified.setMode(name, initial);
     await fs.chmod(`/work/${name}`, initial);
     const native = oracle("chmod", ["--", mode, name], root, umask);
     const actual = await run("chmod", ["--", mode, name], fs, { umask });

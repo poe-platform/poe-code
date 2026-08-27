@@ -5,15 +5,16 @@ import { join } from "node:path";
 import { MemoryFileSystem } from "../../../src/fs/memory/index.js";
 import { createRealFileSystem } from "../../../src/fs/real/index.js";
 import { namespace, oracle, run } from "./helpers.js";
+import { qualifyModeFixtures } from "./permission-profile/fixtures.js";
 
 test("GNU chmod directory setid controls compare actual host preservation", async context => {
   const root = await namespace(context);
   await host.mkdir(join(root, "directory"));
+  const qualified = await qualifyModeFixtures(root, ["directory"]);
   const fs = new MemoryFileSystem();
   await fs.mkdir("/work/directory", { recursive: true });
   for (const initial of [0o6755, 0o3755, 0o4755, 0o1777]) for (const mode of ["755", "0755", "00755", "=755", "u=rwx,go=rx", "a-s", "a=rwX", "u=rw", "g=rx", "o=rx", "+2000", "-6000"]) {
-    await host.chmod(join(root, "directory"), initial);
-    const measured = (await host.stat(join(root, "directory"))).mode & 0o7777;
+    const measured = await qualified.setMode("directory", initial);
     await fs.chmod("/work/directory", measured);
     const native = oracle("chmod", ["--", mode, "directory"], root);
     const actual = await run("chmod", ["--", mode, "directory"], fs);

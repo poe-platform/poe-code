@@ -1,0 +1,87 @@
+TAP version 13
+# Subtest: GNU chmod directory setid controls compare actual host preservation
+ok 1 - GNU chmod directory setid controls compare actual host preservation
+  ---
+  duration_ms: 507.702083
+  type: 'test'
+  ...
+# Subtest: GNU chmod verbose/changes/reference/error controls preserve bytes and aliases
+ok 2 - GNU chmod verbose/changes/reference/error controls preserve bytes and aliases
+  ---
+  duration_ms: 57.508292
+  type: 'test'
+  ...
+# Subtest: chmod root and unsupported traversal controls fail without namespace effects
+ok 3 - chmod root and unsupported traversal controls fail without namespace effects
+  ---
+  duration_ms: 0.463583
+  type: 'test'
+  ...
+# Subtest: permission classification seal authenticates every surviving historical artifact
+ok 4 - permission classification seal authenticates every surviving historical artifact
+  ---
+  duration_ms: 21.193292
+  type: 'test'
+  ...
+# Subtest: original 17 GNU-strict failures stay distinct from qualified fixtures and later measured metadata
+ok 5 - original 17 GNU-strict failures stay distinct from qualified fixtures and later measured metadata
+  ---
+  duration_ms: 2.76975
+  type: 'test'
+  ...
+# Subtest: Darwin9.7/Node22 divergence characterization, strict GNU gap remains: requested06755 actual04755 +2000
+ok 6 - Darwin9.7/Node22 divergence characterization, strict GNU gap remains: requested06755 actual04755 +2000
+  ---
+  duration_ms: 40.472875
+  type: 'test'
+  ...
+# Darwin9.7/Node22 strict GNU gap remains; uid=501 gid=0; caller groups=20,12,61,79,80,81,701,33,98,100,204,250,395,398,400
+# removed owned Darwin profile root /private/tmp/virtual-bash-permission-profile-4yGvIV
+# Subtest: Darwin9.7/Node22 divergence characterization, strict GNU gap remains: directory0051 ug+s
+ok 7 - Darwin9.7/Node22 divergence characterization, strict GNU gap remains: directory0051 ug+s
+  ---
+  duration_ms: 31.019042
+  type: 'test'
+  ...
+# Darwin9.7/Node22 strict GNU gap remains; uid=501 gid=0; caller groups=20,12,61,79,80,81,701,33,98,100,204,250,395,398,400
+# removed owned Darwin profile root /private/tmp/virtual-bash-permission-profile-dph4Sf
+# Subtest: real search-permission denial preserves typed EACCES, diagnostics and child metadata/bytes
+ok 8 - real search-permission denial preserves typed EACCES, diagnostics and child metadata/bytes
+  ---
+  duration_ms: 14.277625
+  type: 'test'
+  ...
+# Subtest: member-group fixture qualification precedes exact setid modes and permits genuine SGID success
+ok 9 - member-group fixture qualification precedes exact setid modes and permits genuine SGID success
+  ---
+  duration_ms: 59.4405
+  type: 'test'
+  ...
+# qualified caller uid=501 primary gid=20; setid modes verified after chown
+# Subtest: qualification rejects unsafe names, roots and symlinks before changing fixture metadata
+ok 10 - qualification rejects unsafe names, roots and symlinks before changing fixture metadata
+  ---
+  duration_ms: 2.681625
+  type: 'test'
+  ...
+# Subtest: qualified initial-mode setup rejects invalid modes, unqualified names and replacement entries
+ok 11 - qualified initial-mode setup rejects invalid modes, unqualified names and replacement entries
+  ---
+  duration_ms: 2.20975
+  type: 'test'
+  ...
+# Subtest: unavailable native search permission fails fixture prerequisites without changing the target
+ok 12 - unavailable native search permission fails fixture prerequisites without changing the target
+  ---
+  duration_ms: 1.80575
+  type: 'test'
+  ...
+1..12
+# tests 12
+# suites 0
+# pass 12
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 705.36625

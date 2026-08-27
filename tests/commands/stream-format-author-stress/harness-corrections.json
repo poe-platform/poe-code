@@ -1,0 +1,9 @@
+{
+  "initialContracts": "16/19 pass; three harness mistakes, no product changes",
+  "failures": [
+    "Plugin collision rejects Shell.exec with Error('Command already registered: rev'); initial harness wrongly expected buffered failure result.",
+    "Test middleware awaited next() without returning its CommandResult; actual pipeline bytes correct but Shell reported six undefined.exitCode errors. Fixture changed to return next(), not product.",
+    "Timer cancellation rejects Shell.exec('seq 100000000'); initial harness wrongly expected stderr result. Fixture now asserts the rejection."
+  ],
+  "relatedCorrection": "Shared shell maxOutputBytes limit is also an exec rejection; test now checks it directly. Scoped TS additionally caught that spreading a MemoryFileSystem instance omits prototype methods. Fixture now overrides methods on its owned typed MemoryFileSystem instance, no casts. No error assertions removed; no native expected outputs changed."
+}

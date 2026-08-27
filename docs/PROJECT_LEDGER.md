@@ -2310,3 +2310,102 @@ that any implementation, command, fixture, or test currently exists.
   tests/integration/owned-output-production-independent-20260827/candidate-v1/REPORT.md,
   CHECKPOINT.json and MANIFEST.json. Source/fixture/evidence history is unchanged;
   only this acceptance ledger and missing durable owned-output rule are added.
+
+### 2026-08-27 21:54 UTC — first-read facts, typing author scope and HTML74 handoff
+
+- First-read production followup is sealed at7bbfbfd3 (v2observer8a674adf),
+  under tests/integration/owned-output-production-independent-20260827/
+  first-read-followup. It preserves the original five1/5 and extra-control2/6
+  failures, not rescoring them.24 observer processes/108 evidence files inspect
+  actual frozeneba output scopes before harness release. Unenrolled local input
+  and cleanup-registration-only controls remain pending; explicitly enrolled
+  cooperative operation cleanup settles. HTTP operation/client cleanup and
+  required file/header/stderr work are distinguished from whole-caller abort;
+  new body-acquired profiles do not replace original acquisition-time observations.
+  The exact proposed three-file canonical migration remains unapplied and needs
+  separate root authorization. No runtime edits were made for that followup.
+- Regex fixture typing repair ec59c917/29cfda34 (+759e9218) is separately
+  root-reported accepted: three diagnostics removed by a checked local descriptor
+  annotation, emittedJS4812bytes identical, same cases/assertions and negative
+  sensitivity. It does not rescore the historicaleba13 diagnostics.
+- DU typing/classification author source5f6960a2/bca8848f/491da31c and
+  evidencee9843e60 exactly classify14 unchanged inputs (old10 plus individually
+  discoveredv6-v9), not directories. Six captures, five versioned templates and
+  three reusable templates retain exact bytes/owning manifests. Maintained DU
+  leaf localPackage:true provides actual strict/moved-runtime coverage, not a
+  publicDU export claim. Frozen491da31c typecheck:all builds once then succeeds;
+ 23 current strict/3 intended-negative groups and75 author controls are separate
+  from whole-product tests. A Node24 nested-spec-vs-TAP fixture issue remains
+ 7/8, while Node22's same compiler-policy fixture is8/8; no waiver. Different
+  review remains required for these config/typing changes. Evidence:
+  tests/integration/du-type-workflow-20260827/README.md.
+- Root accepts HTML module9ae34a06 after independent37ec9390 for the specified
+  normalization fixes. Two unsupported title expectations and two historical
+  poison-launch failures remain; the old module-closure pack is not public/full
+  package proof. Root returned HTML source ownership and authorized a separate
+  index/I/O-only explicit owned-output adoption plus public/default integration.
+- New author source/export/docs28cf1518 changes only HTML index.ts behavior;
+  input/budget/parser/render/options/entities/text remain accepted9ae bytes.
+  Root and literal commands/html-to-markdown expose the three existing factories/
+  plugin and options/limits types; aggregate htmlToMarkdown omits replace and
+  top-level replacement remains authoritative. Default inventory becomes74;
+  curl/SafeJS remain opt-in, du/expr are absent. RendererSHA256
+  a624213e0289a441f1cacbf128dbac0861d23aee0ca3d7a2ad2f98a1d5da6378.
+- Frozen author candidateaff899aa94ed0c57a936b08fd36d185688f5c0bb,
+  tree9641374115db435022ac172ec9c99d305e07dbe4:257/257 selected source tests,
+  strict source/public types, four exact negative-type diagnostics, eight moved
+  programs across Node22.22.2/24.11.1 (six lifecycle cases per runtime,74 literal
+  names, four API/VFS workflows and two maintained stream consumers), four
+  fallback controls and both actual permission/source-denial profiles pass.
+ 20 subprocess steps reach their intended statuses;22 explicit checks pass.
+  This is author-scoped evidence, not different-agent/public acceptance or a
+  whole gate. No new source changes after that candidate are included.
+- Exact package.json SHA256
+  aaea215e419a64b08e4739dee1a6b7bba5f41f9d5e1c93d4d1771f939e904842;
+  full .tgz SHA256
+  d9c1a97388357c5cb0c810cf2fa5181dc7bebff49efe517db414a5833096eed7.
+ 830 installed/828 emitted files and410 scoped Git inputs remain unchanged,
+  including additions checks;194 actual main-thread loaded modules are bound
+  per lifecycle run, not worker-thread tracing. No dependency installation or
+  private checkout writes; all task children settle naturally.
+- Controlled curl-to-HTML-to-head0 admits one read then completes return/dispose
+  before settlement, with caller live. A required header-file destination keeps
+  its curl request scope live while retiring the body; redirected Markdown and
+  required stderr survive unrelated stdout closure. Direct HTML rethrows exact
+  operation-close reasons after cleanup; caller identity has priority, unrelated
+  caught errors retain existing status1/stderr, usage2. It does not add global
+  abort, arbitrary opaque-input preemption, or silently change canonical first-read
+  requirements. Existing frozen direct-close unscored reviewer boundaries are
+  not amended by this author description.
+- Exact test migrationsb2eb06ce/831f1712/b983a37f add only required HTML names/
+  counts/current inventory hashes and the explicit owned readFile signal binding.
+  Earlier failed author/source/packed attempts remain in the52-input lossless
+  evidence bundle; no product fix was fabricated from harness corrections.
+  Full handoff: tests/plugins/html-to-markdown-public-author/README.md.
+- Meitner independent fixture54f1e4d is ready, not run by this author. Its full
+  archive admission rejects12 pre-existing historical native tree symlinks and
+  buffers at most1GiB whereas this candidate's full Git archive is2.2GB. Root/
+  reviewer need versioned admission handling for authenticated inert links and
+  streamed archive bytes, without weakening product/build/package guards.
+  The separate blocked binding receipt is not an accepted executable declaration.
+- Root separately accepts initial DU9a5a6f92 scoped independentd53b003b: original24
+  source+moved, fresh40each, env16each, metadata19each with only permitted directory
+  atime deltas,128 regressions and789-file packed strict consumer. Native16
+  executed/13 matched/3 diagnostic-predicate mismatches retain original13/16;
+  status1/emptystdout were correct, not an established product bug. The native-only
+  predicate correction is separate. Allocation/order/O060 and historical lineage
+  qualifications remain. DU75 public integration and new pure-output adoption are
+  queued only after this74 HTML freeze and root's exact handoff; no DU source,
+  exports or defaults changed here. No broad-release/superiority/72-hour claim.
+
+### 2026-08-27 21:57 UTC — separate DU native-only qualification received
+
+- Root accepts290e175d for overlayd71d0789's one native diagnostic predicate:
+  one16-row replay is16/16 (13 literal matches and three strict40-byte invalid-B
+  rejections),14 focused controls, pre/post tool/base/patch hashes,19 roots retired
+  naturally. Original13/16 and the unrun success-only tail remain historical;
+  this is not another full cohort or composite whole-gate acceptance.
+- Initial DU module/purity scoped acceptanced53b003b still stands. Raman prepares
+  a separate publicDU75 freeze while HTML74's different-agent review proceeds.
+  The exactaff899aa HTML candidate/default inventory/package remain untouched;
+  no DU source/public integration is performed by this handoff.

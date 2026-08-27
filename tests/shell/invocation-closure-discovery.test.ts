@@ -65,7 +65,9 @@ test("unsupported discovery options do not silently dispatch", async () => {
     const result = await setup().shell.exec(source);
     assert.equal(result.exitCode, 2);
     assert.equal(result.stdout, "");
-    assert.match(result.stderr, /unsupported option/u);
+    if (source === "command -x say bad") {
+      assert.equal(result.stderr, "shell: line 1: command: -x: invalid option\ncommand: usage: command [-pVv] command [arg ...]\n");
+    } else assert.match(result.stderr, /unsupported option/u);
   }
 });
 

@@ -1,0 +1,222 @@
+{
+  "timestamp": "2026-08-27T01:54:28.087Z",
+  "path": "tests/shell/invocation-closure-discovery.test.ts",
+  "originalFileHash": "8795cf75c0f40d45fd7ff713b0808df5622e9fcbc5b4e469e297b23c3456a8d9",
+  "originalDefinition": "test(\"unsupported discovery options do not silently dispatch\", async () => {\n  for (const source of [\"command -p say bad\", \"command -x say bad\", \"type -x say\"]) {\n    const result = await setup().shell.exec(source);\n    assert.equal(result.exitCode, 2);\n    assert.equal(result.stdout, \"\");\n    assert.match(result.stderr, /unsupported option/u);\n  }\n});",
+  "otherDefinitionsHash": "17249a7a7823e08e2b309b039552ed9109c3cc2ade1814b66aabdc948a8f3c51",
+  "sourceCommit": "b02bbe855b6b45d635b521e3dc2f31ea2b04e215",
+  "runtime": {
+    "path": "src/shell/runtime.ts",
+    "hash": "bb629885983de4169d8419c97f8d09be2ae1729841ae306675ce530cd8287d7c",
+    "lines": "discoveryBuiltin option-validation return2 precedes target extraction/dispatch",
+    "location": 851
+  },
+  "gnuSource": {
+    "path": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/bash-5.3/builtins/command.def",
+    "hash": "0189759e29c50d527fa89932654ef585cc29b98b592a6b59744f6ca84aa79d34",
+    "location": 76,
+    "observation": "Option parser accepts pvV; invalid flags issue usage and return EX_USAGE before command dispatch."
+  },
+  "nativeReference": {
+    "path": "tests/shell/invocation-discovery-fixes-native.json",
+    "hash": "2ce958e4ac0b73a306bc61efbf0eb40f85902c1c2ea4ffbcd08f7928ec62e2bc",
+    "wholeProfileRows": [
+      {
+        "profile": "GNU-5.3",
+        "count": 52
+      },
+      {
+        "profile": "historical-3.2",
+        "count": 52
+      }
+    ],
+    "newNativeRuns": 0,
+    "observations": [
+      {
+        "profile": "GNU-5.3",
+        "executable": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+        "executableHash": "8cecb482de24198c23a736b931cb7e8cee1f94eb0b51abd54bd99f1d73d9673c",
+        "rows": [
+          {
+            "name": "unknown-x",
+            "mode": "bash",
+            "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/.invocation-discovery-fixes-native-gp19Kg/bash-unknown-x",
+            "argv0": "bash",
+            "args": [
+              "--noprofile",
+              "--norc",
+              "-c",
+              "command -x true",
+              "shell"
+            ],
+            "source": "command -x true",
+            "before": {
+              "localtool": "file:23212f62696e2f626173680a657869742032330a",
+              "space dir": "directory",
+              "space dir/space tool": "file:23212f62696e2f626173680a657869742032330a",
+              "sub": "directory",
+              "sub/tools": "directory",
+              "sub/tools/closuretool": "file:23212f62696e2f626173680a657869742032330a",
+              "tools": "directory",
+              "tools/closuretool": "file:23212f62696e2f626173680a657869742032330a",
+              "tools/linktool": "link:closuretool"
+            },
+            "after": {
+              "localtool": "file:23212f62696e2f626173680a657869742032330a",
+              "space dir": "directory",
+              "space dir/space tool": "file:23212f62696e2f626173680a657869742032330a",
+              "sub": "directory",
+              "sub/tools": "directory",
+              "sub/tools/closuretool": "file:23212f62696e2f626173680a657869742032330a",
+              "tools": "directory",
+              "tools/closuretool": "file:23212f62696e2f626173680a657869742032330a",
+              "tools/linktool": "link:closuretool"
+            },
+            "result": {
+              "stdoutHex": "",
+              "stderrHex": "7368656c6c3a206c696e6520313a20636f6d6d616e643a202d783a20696e76616c6964206f7074696f6e0a636f6d6d616e643a2075736167653a20636f6d6d616e64205b2d7056765d20636f6d6d616e64205b617267202e2e2e5d0a",
+              "status": 2
+            }
+          },
+          {
+            "name": "unknown-x",
+            "mode": "sh",
+            "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/.invocation-discovery-fixes-native-gp19Kg/sh-unknown-x",
+            "argv0": "sh",
+            "args": [
+              "--noprofile",
+              "--norc",
+              "-c",
+              "command -x true",
+              "shell"
+            ],
+            "source": "command -x true",
+            "before": {
+              "localtool": "file:23212f62696e2f626173680a657869742032330a",
+              "space dir": "directory",
+              "space dir/space tool": "file:23212f62696e2f626173680a657869742032330a",
+              "sub": "directory",
+              "sub/tools": "directory",
+              "sub/tools/closuretool": "file:23212f62696e2f626173680a657869742032330a",
+              "tools": "directory",
+              "tools/closuretool": "file:23212f62696e2f626173680a657869742032330a",
+              "tools/linktool": "link:closuretool"
+            },
+            "after": {
+              "localtool": "file:23212f62696e2f626173680a657869742032330a",
+              "space dir": "directory",
+              "space dir/space tool": "file:23212f62696e2f626173680a657869742032330a",
+              "sub": "directory",
+              "sub/tools": "directory",
+              "sub/tools/closuretool": "file:23212f62696e2f626173680a657869742032330a",
+              "tools": "directory",
+              "tools/closuretool": "file:23212f62696e2f626173680a657869742032330a",
+              "tools/linktool": "link:closuretool"
+            },
+            "result": {
+              "stdoutHex": "",
+              "stderrHex": "7368656c6c3a206c696e6520313a20636f6d6d616e643a202d783a20696e76616c6964206f7074696f6e0a636f6d6d616e643a2075736167653a20636f6d6d616e64205b2d7056765d20636f6d6d616e64205b617267202e2e2e5d0a",
+              "status": 2
+            }
+          }
+        ]
+      },
+      {
+        "profile": "historical-3.2",
+        "executable": "/bin/bash",
+        "executableHash": "35536aea9733aa345b61134a98d00232380898e55b2ea2a07c497011f7dfc7a3",
+        "rows": [
+          {
+            "name": "unknown-x",
+            "mode": "bash",
+            "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/.invocation-discovery-fixes-native-DXlfpK/bash-unknown-x",
+            "argv0": "bash",
+            "args": [
+              "--noprofile",
+              "--norc",
+              "-c",
+              "command -x true",
+              "shell"
+            ],
+            "source": "command -x true",
+            "before": {
+              "localtool": "file:23212f62696e2f626173680a657869742032330a",
+              "space dir": "directory",
+              "space dir/space tool": "file:23212f62696e2f626173680a657869742032330a",
+              "sub": "directory",
+              "sub/tools": "directory",
+              "sub/tools/closuretool": "file:23212f62696e2f626173680a657869742032330a",
+              "tools": "directory",
+              "tools/closuretool": "file:23212f62696e2f626173680a657869742032330a",
+              "tools/linktool": "link:closuretool"
+            },
+            "after": {
+              "localtool": "file:23212f62696e2f626173680a657869742032330a",
+              "space dir": "directory",
+              "space dir/space tool": "file:23212f62696e2f626173680a657869742032330a",
+              "sub": "directory",
+              "sub/tools": "directory",
+              "sub/tools/closuretool": "file:23212f62696e2f626173680a657869742032330a",
+              "tools": "directory",
+              "tools/closuretool": "file:23212f62696e2f626173680a657869742032330a",
+              "tools/linktool": "link:closuretool"
+            },
+            "result": {
+              "stdoutHex": "",
+              "stderrHex": "7368656c6c3a206c696e6520303a20636f6d6d616e643a202d783a20696e76616c6964206f7074696f6e0a636f6d6d616e643a2075736167653a20636f6d6d616e64205b2d7056765d20636f6d6d616e64205b617267202e2e2e5d0a",
+              "status": 2
+            }
+          },
+          {
+            "name": "unknown-x",
+            "mode": "sh",
+            "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/.invocation-discovery-fixes-native-DXlfpK/sh-unknown-x",
+            "argv0": "sh",
+            "args": [
+              "--noprofile",
+              "--norc",
+              "-c",
+              "command -x true",
+              "shell"
+            ],
+            "source": "command -x true",
+            "before": {
+              "localtool": "file:23212f62696e2f626173680a657869742032330a",
+              "space dir": "directory",
+              "space dir/space tool": "file:23212f62696e2f626173680a657869742032330a",
+              "sub": "directory",
+              "sub/tools": "directory",
+              "sub/tools/closuretool": "file:23212f62696e2f626173680a657869742032330a",
+              "tools": "directory",
+              "tools/closuretool": "file:23212f62696e2f626173680a657869742032330a",
+              "tools/linktool": "link:closuretool"
+            },
+            "after": {
+              "localtool": "file:23212f62696e2f626173680a657869742032330a",
+              "space dir": "directory",
+              "space dir/space tool": "file:23212f62696e2f626173680a657869742032330a",
+              "sub": "directory",
+              "sub/tools": "directory",
+              "sub/tools/closuretool": "file:23212f62696e2f626173680a657869742032330a",
+              "tools": "directory",
+              "tools/closuretool": "file:23212f62696e2f626173680a657869742032330a",
+              "tools/linktool": "link:closuretool"
+            },
+            "result": {
+              "stdoutHex": "",
+              "stderrHex": "7368656c6c3a206c696e6520303a20636f6d6d616e643a202d783a20696e76616c6964206f7074696f6e0a636f6d6d616e643a2075736167653a20636f6d6d616e64205b2d7056765d20636f6d6d616e64205b617267202e2e2e5d0a",
+              "status": 2
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "context": "Native command -x true proves flag diagnostics before operands; unchanged virtual say bad operand detects accidental dispatch through empty stdout. Native3.2 line0 remains historical; GNU5.3 line1 is the uniform primary target. command-p remains intentionally unsupported and type-x policy unchanged.",
+  "originalRed": {
+    "path": "v2-postfix-author-original.json",
+    "hash": "1a9ecec3ce28aedfea2f6c65dc2e0c2272409937ff3c184b388e29f692a1f683",
+    "passed": 210,
+    "total": 211
+  }
+}

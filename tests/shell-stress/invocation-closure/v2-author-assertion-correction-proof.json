@@ -1,0 +1,29 @@
+{
+  "timestamp": "2026-08-27T01:56:47.530Z",
+  "path": "tests/shell/invocation-closure-discovery.test.ts",
+  "originalFileHash": "8795cf75c0f40d45fd7ff713b0808df5622e9fcbc5b4e469e297b23c3456a8d9",
+  "revisedFileHash": "ba0ad2beba49d9f6e715b1928bbfebb5495a496b368630384d556180776eafbc",
+  "otherDefinitionsHash": "17249a7a7823e08e2b309b039552ed9109c3cc2ade1814b66aabdc948a8f3c51",
+  "otherDefinitionsUnchanged": true,
+  "originalDefinition": "test(\"unsupported discovery options do not silently dispatch\", async () => {\n  for (const source of [\"command -p say bad\", \"command -x say bad\", \"type -x say\"]) {\n    const result = await setup().shell.exec(source);\n    assert.equal(result.exitCode, 2);\n    assert.equal(result.stdout, \"\");\n    assert.match(result.stderr, /unsupported option/u);\n  }\n});",
+  "revisedDefinition": "test(\"unsupported discovery options do not silently dispatch\", async () => {\n  for (const source of [\"command -p say bad\", \"command -x say bad\", \"type -x say\"]) {\n    const result = await setup().shell.exec(source);\n    assert.equal(result.exitCode, 2);\n    assert.equal(result.stdout, \"\");\n    if (source === \"command -x say bad\") {\n      assert.equal(result.stderr, \"shell: line 1: command: -x: invalid option\\ncommand: usage: command [-pVv] command [arg ...]\\n\");\n    } else assert.match(result.stderr, /unsupported option/u);\n  }\n});",
+  "originalRed": {
+    "path": "v2-postfix-author-original.json",
+    "hash": "1a9ecec3ce28aedfea2f6c65dc2e0c2272409937ff3c184b388e29f692a1f683",
+    "passed": 210,
+    "total": 211
+  },
+  "correctedRun": {
+    "path": "v2-postfix-author-corrected.json",
+    "hash": "b73e3d83a022cbd21dcfe7cf08b06135402ad8091861c5116ac4c7903a1768e3",
+    "passed": 211,
+    "total": 211,
+    "stable": true
+  },
+  "nativeProof": {
+    "path": "v2-author-assertion-original-proof.json",
+    "hash": "01b0d2136d265308892409ba8fe5bd4f0c7e59adf0f16fc89254b299aadb2d8c",
+    "newNativeRuns": 0
+  },
+  "scope": "Only the authorized loop assertion branches on command-x; status/output/effect prevention and command-p/type-x policies remain unchanged."
+}

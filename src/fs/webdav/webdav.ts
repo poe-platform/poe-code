@@ -855,6 +855,7 @@ export class WebDavFileSystem implements FileSystem {
         const rootHref = lockRoot && davChild(lockRoot, "href");
         const timeout = active && davChild(active, "timeout");
         if (root.namespace !== "DAV:" || root.localName !== "prop" || !scope || !davChild(scope, "exclusive")
+          || davChild(scope, "shared")
           || !type || !davChild(type, "write") || !depth || scalar(depth) !== "infinity"
           || !href || `<${scalar(href)}>` !== token
           || (lockRoot !== undefined && (!rootHref || this.hrefPath(scalar(rootHref)) !== path))

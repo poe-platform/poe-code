@@ -1,0 +1,205 @@
+TAP version 13
+# Subtest: real-grant reduction rejects contradictory shared and exclusive scope and unlocks before publication
+not ok 1 - real-grant reduction rejects contradictory shared and exclusive scope and unlocks before publication
+  ---
+  duration_ms: 12.610792
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/real-service/.work-scope-KkmcDR/snapshot/tests/fs/webdav/real-service/lock-scope.test.ts:1:3647'
+  failureType: 'testCodeFailure'
+  error: 'Missing expected rejection.'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  stack: |-
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/real-service/.work-scope-KkmcDR/snapshot/tests/fs/webdav/real-service/lock-scope.test.ts:67:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# Subtest: real-grant reduction rejects contradictory shared before exclusive scope and unlocks before publication
+not ok 2 - real-grant reduction rejects contradictory shared before exclusive scope and unlocks before publication
+  ---
+  duration_ms: 1.363
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/real-service/.work-scope-KkmcDR/snapshot/tests/fs/webdav/real-service/lock-scope.test.ts:1:3647'
+  failureType: 'testCodeFailure'
+  error: 'Missing expected rejection.'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  stack: |-
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/real-service/.work-scope-KkmcDR/snapshot/tests/fs/webdav/real-service/lock-scope.test.ts:67:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: real-grant reduction rejects contradictory scope on MOVE and unlocks before publication
+not ok 3 - real-grant reduction rejects contradictory scope on MOVE and unlocks before publication
+  ---
+  duration_ms: 1.141958
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/real-service/.work-scope-KkmcDR/snapshot/tests/fs/webdav/real-service/lock-scope.test.ts:1:3647'
+  failureType: 'testCodeFailure'
+  error: 'Missing expected rejection.'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  stack: |-
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/real-service/.work-scope-KkmcDR/snapshot/tests/fs/webdav/real-service/lock-scope.test.ts:67:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: real-grant reduction rejects shared only and unlocks before publication
+ok 4 - real-grant reduction rejects shared only and unlocks before publication
+  ---
+  duration_ms: 0.793291
+  type: 'test'
+  ...
+# Subtest: real-grant reduction rejects duplicate exclusive and unlocks before publication
+ok 5 - real-grant reduction rejects duplicate exclusive and unlocks before publication
+  ---
+  duration_ms: 0.589875
+  type: 'test'
+  ...
+# Subtest: real-grant reduction rejects duplicate active grants and unlocks before publication
+ok 6 - real-grant reduction rejects duplicate active grants and unlocks before publication
+  ---
+  duration_ms: 0.485917
+  type: 'test'
+  ...
+# Subtest: real-grant reduction rejects duplicate lockdiscovery and unlocks before publication
+ok 7 - real-grant reduction rejects duplicate lockdiscovery and unlocks before publication
+  ---
+  duration_ms: 0.476458
+  type: 'test'
+  ...
+# Subtest: real-grant reduction rejects duplicate scope and unlocks before publication
+ok 8 - real-grant reduction rejects duplicate scope and unlocks before publication
+  ---
+  duration_ms: 0.96475
+  type: 'test'
+  ...
+# Subtest: real-grant reduction rejects duplicate type and unlocks before publication
+ok 9 - real-grant reduction rejects duplicate type and unlocks before publication
+  ---
+  duration_ms: 0.717042
+  type: 'test'
+  ...
+# Subtest: real-grant reduction rejects duplicate write and unlocks before publication
+ok 10 - real-grant reduction rejects duplicate write and unlocks before publication
+  ---
+  duration_ms: 0.637791
+  type: 'test'
+  ...
+# Subtest: real-grant reduction rejects unknown type without recognized write and unlocks before publication
+ok 11 - real-grant reduction rejects unknown type without recognized write and unlocks before publication
+  ---
+  duration_ms: 0.375
+  type: 'test'
+  ...
+# Subtest: real-grant reduction rejects foreign write cannot replace recognized write and unlocks before publication
+ok 12 - real-grant reduction rejects foreign write cannot replace recognized write and unlocks before publication
+  ---
+  duration_ms: 0.417375
+  type: 'test'
+  ...
+# Subtest: real-grant reduction rejects duplicate depth and unlocks before publication
+ok 13 - real-grant reduction rejects duplicate depth and unlocks before publication
+  ---
+  duration_ms: 0.401333
+  type: 'test'
+  ...
+# Subtest: real-grant reduction rejects duplicate token and unlocks before publication
+ok 14 - real-grant reduction rejects duplicate token and unlocks before publication
+  ---
+  duration_ms: 0.460625
+  type: 'test'
+  ...
+# Subtest: real-grant reduction rejects duplicate token href and unlocks before publication
+ok 15 - real-grant reduction rejects duplicate token href and unlocks before publication
+  ---
+  duration_ms: 0.3945
+  type: 'test'
+  ...
+# Subtest: real-grant reduction rejects duplicate timeout and unlocks before publication
+ok 16 - real-grant reduction rejects duplicate timeout and unlocks before publication
+  ---
+  duration_ms: 0.394791
+  type: 'test'
+  ...
+# Subtest: valid copyFile tolerates unchanged legacy grant
+ok 17 - valid copyFile tolerates unchanged legacy grant
+  ---
+  duration_ms: 0.889125
+  type: 'test'
+  ...
+# Subtest: valid rename tolerates unchanged legacy grant
+ok 18 - valid rename tolerates unchanged legacy grant
+  ---
+  duration_ms: 0.503958
+  type: 'test'
+  ...
+# Subtest: valid copyFile tolerates unknown DAV read alongside write
+ok 19 - valid copyFile tolerates unknown DAV read alongside write
+  ---
+  duration_ms: 0.354
+  type: 'test'
+  ...
+# Subtest: valid rename tolerates unknown DAV read alongside write
+ok 20 - valid rename tolerates unknown DAV read alongside write
+  ---
+  duration_ms: 0.346958
+  type: 'test'
+  ...
+# Subtest: valid copyFile tolerates unknown DAV scope child alongside exclusive
+ok 21 - valid copyFile tolerates unknown DAV scope child alongside exclusive
+  ---
+  duration_ms: 0.382
+  type: 'test'
+  ...
+# Subtest: valid rename tolerates unknown DAV scope child alongside exclusive
+ok 22 - valid rename tolerates unknown DAV scope child alongside exclusive
+  ---
+  duration_ms: 0.397792
+  type: 'test'
+  ...
+# Subtest: valid copyFile tolerates foreign shared alongside exclusive
+ok 23 - valid copyFile tolerates foreign shared alongside exclusive
+  ---
+  duration_ms: 0.356916
+  type: 'test'
+  ...
+# Subtest: valid rename tolerates foreign shared alongside exclusive
+ok 24 - valid rename tolerates foreign shared alongside exclusive
+  ---
+  duration_ms: 0.333917
+  type: 'test'
+  ...
+# Subtest: valid copyFile tolerates unknown extension containing a shared descendant
+ok 25 - valid copyFile tolerates unknown extension containing a shared descendant
+  ---
+  duration_ms: 0.70175
+  type: 'test'
+  ...
+# Subtest: valid rename tolerates unknown extension containing a shared descendant
+ok 26 - valid rename tolerates unknown extension containing a shared descendant
+  ---
+  duration_ms: 0.399083
+  type: 'test'
+  ...
+# Subtest: valid copyFile tolerates foreign write alongside recognized write
+ok 27 - valid copyFile tolerates foreign write alongside recognized write
+  ---
+  duration_ms: 0.309375
+  type: 'test'
+  ...
+# Subtest: valid rename tolerates foreign write alongside recognized write
+ok 28 - valid rename tolerates foreign write alongside recognized write
+  ---
+  duration_ms: 0.286708
+  type: 'test'
+  ...
+1..28
+# tests 28
+# suites 0
+# pass 25
+# fail 3
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 175.066041

@@ -1,0 +1,610 @@
+TAP version 13
+# Subtest: independent native wc/C/ascii/-m
+ok 1 - independent native wc/C/ascii/-m
+  ---
+  duration_ms: 2.123875
+  type: 'test'
+  ...
+# Subtest: independent native wc/C/ascii/-w
+ok 2 - independent native wc/C/ascii/-w
+  ---
+  duration_ms: 0.6015
+  type: 'test'
+  ...
+# Subtest: independent native wc/C/ascii/-lwmc
+ok 3 - independent native wc/C/ascii/-lwmc
+  ---
+  duration_ms: 0.528041
+  type: 'test'
+  ...
+# Subtest: independent native wc/C/unicode-spaces/-m
+ok 4 - independent native wc/C/unicode-spaces/-m
+  ---
+  duration_ms: 0.55375
+  type: 'test'
+  ...
+# Subtest: independent native wc/C/unicode-spaces/-w
+ok 5 - independent native wc/C/unicode-spaces/-w
+  ---
+  duration_ms: 0.431666
+  type: 'test'
+  ...
+# Subtest: independent native wc/C/unicode-spaces/-lwmc
+ok 6 - independent native wc/C/unicode-spaces/-lwmc
+  ---
+  duration_ms: 0.346375
+  type: 'test'
+  ...
+# Subtest: independent native wc/C/bom/-m
+ok 7 - independent native wc/C/bom/-m
+  ---
+  duration_ms: 0.211875
+  type: 'test'
+  ...
+# Subtest: independent native wc/C/bom/-w
+ok 8 - independent native wc/C/bom/-w
+  ---
+  duration_ms: 0.1735
+  type: 'test'
+  ...
+# Subtest: independent native wc/C/bom/-lwmc
+ok 9 - independent native wc/C/bom/-lwmc
+  ---
+  duration_ms: 0.887417
+  type: 'test'
+  ...
+# Subtest: independent native wc/C/invalid/-m
+ok 10 - independent native wc/C/invalid/-m
+  ---
+  duration_ms: 0.360958
+  type: 'test'
+  ...
+# Subtest: independent native wc/C/invalid/-w
+ok 11 - independent native wc/C/invalid/-w
+  ---
+  duration_ms: 0.175125
+  type: 'test'
+  ...
+# Subtest: independent native wc/C/invalid/-lwmc
+ok 12 - independent native wc/C/invalid/-lwmc
+  ---
+  duration_ms: 0.190792
+  type: 'test'
+  ...
+# Subtest: independent native wc/C/literal-replacement/-m
+ok 13 - independent native wc/C/literal-replacement/-m
+  ---
+  duration_ms: 0.187708
+  type: 'test'
+  ...
+# Subtest: independent native wc/C/literal-replacement/-w
+ok 14 - independent native wc/C/literal-replacement/-w
+  ---
+  duration_ms: 0.149708
+  type: 'test'
+  ...
+# Subtest: independent native wc/C/literal-replacement/-lwmc
+ok 15 - independent native wc/C/literal-replacement/-lwmc
+  ---
+  duration_ms: 0.117583
+  type: 'test'
+  ...
+# Subtest: independent native wc/C/empty/-m
+ok 16 - independent native wc/C/empty/-m
+  ---
+  duration_ms: 0.068084
+  type: 'test'
+  ...
+# Subtest: independent native wc/C/empty/-w
+ok 17 - independent native wc/C/empty/-w
+  ---
+  duration_ms: 0.065583
+  type: 'test'
+  ...
+# Subtest: independent native wc/C/empty/-lwmc
+ok 18 - independent native wc/C/empty/-lwmc
+  ---
+  duration_ms: 0.077291
+  type: 'test'
+  ...
+# Subtest: independent native wc/en_US.UTF-8/ascii/-m
+ok 19 - independent native wc/en_US.UTF-8/ascii/-m
+  ---
+  duration_ms: 0.288875
+  type: 'test'
+  ...
+# Subtest: independent native wc/en_US.UTF-8/ascii/-w
+ok 20 - independent native wc/en_US.UTF-8/ascii/-w
+  ---
+  duration_ms: 0.204458
+  type: 'test'
+  ...
+# Subtest: independent native wc/en_US.UTF-8/ascii/-lwmc
+ok 21 - independent native wc/en_US.UTF-8/ascii/-lwmc
+  ---
+  duration_ms: 0.236709
+  type: 'test'
+  ...
+# Subtest: independent native wc/en_US.UTF-8/unicode-spaces/-m
+ok 22 - independent native wc/en_US.UTF-8/unicode-spaces/-m
+  ---
+  duration_ms: 0.296916
+  type: 'test'
+  ...
+# Subtest: independent native wc/en_US.UTF-8/unicode-spaces/-w
+ok 23 - independent native wc/en_US.UTF-8/unicode-spaces/-w
+  ---
+  duration_ms: 0.214167
+  type: 'test'
+  ...
+# Subtest: independent native wc/en_US.UTF-8/unicode-spaces/-lwmc
+ok 24 - independent native wc/en_US.UTF-8/unicode-spaces/-lwmc
+  ---
+  duration_ms: 0.212625
+  type: 'test'
+  ...
+# Subtest: independent native wc/en_US.UTF-8/bom/-m
+ok 25 - independent native wc/en_US.UTF-8/bom/-m
+  ---
+  duration_ms: 0.10825
+  type: 'test'
+  ...
+# Subtest: independent native wc/en_US.UTF-8/bom/-w
+ok 26 - independent native wc/en_US.UTF-8/bom/-w
+  ---
+  duration_ms: 0.815292
+  type: 'test'
+  ...
+# Subtest: independent native wc/en_US.UTF-8/bom/-lwmc
+ok 27 - independent native wc/en_US.UTF-8/bom/-lwmc
+  ---
+  duration_ms: 0.092167
+  type: 'test'
+  ...
+# Subtest: independent native wc/en_US.UTF-8/invalid/-m
+ok 28 - independent native wc/en_US.UTF-8/invalid/-m
+  ---
+  duration_ms: 0.100542
+  type: 'test'
+  ...
+# Subtest: independent native wc/en_US.UTF-8/invalid/-w
+ok 29 - independent native wc/en_US.UTF-8/invalid/-w
+  ---
+  duration_ms: 0.105291
+  type: 'test'
+  ...
+# Subtest: independent native wc/en_US.UTF-8/invalid/-lwmc
+ok 30 - independent native wc/en_US.UTF-8/invalid/-lwmc
+  ---
+  duration_ms: 0.102625
+  type: 'test'
+  ...
+# Subtest: independent native wc/en_US.UTF-8/literal-replacement/-m
+ok 31 - independent native wc/en_US.UTF-8/literal-replacement/-m
+  ---
+  duration_ms: 0.090375
+  type: 'test'
+  ...
+# Subtest: independent native wc/en_US.UTF-8/literal-replacement/-w
+ok 32 - independent native wc/en_US.UTF-8/literal-replacement/-w
+  ---
+  duration_ms: 0.089583
+  type: 'test'
+  ...
+# Subtest: independent native wc/en_US.UTF-8/literal-replacement/-lwmc
+ok 33 - independent native wc/en_US.UTF-8/literal-replacement/-lwmc
+  ---
+  duration_ms: 0.092667
+  type: 'test'
+  ...
+# Subtest: independent native wc/en_US.UTF-8/empty/-m
+ok 34 - independent native wc/en_US.UTF-8/empty/-m
+  ---
+  duration_ms: 0.059166
+  type: 'test'
+  ...
+# Subtest: independent native wc/en_US.UTF-8/empty/-w
+ok 35 - independent native wc/en_US.UTF-8/empty/-w
+  ---
+  duration_ms: 0.060334
+  type: 'test'
+  ...
+# Subtest: independent native wc/en_US.UTF-8/empty/-lwmc
+ok 36 - independent native wc/en_US.UTF-8/empty/-lwmc
+  ---
+  duration_ms: 0.068875
+  type: 'test'
+  ...
+# Subtest: independent native wc/files-width
+ok 37 - independent native wc/files-width
+  ---
+  duration_ms: 0.770042
+  type: 'test'
+  ...
+# Subtest: independent native wc/posix-spaces
+ok 38 - independent native wc/posix-spaces
+  ---
+  duration_ms: 0.122
+  type: 'test'
+  ...
+# Subtest: independent native wc/invalid-only
+ok 39 - independent native wc/invalid-only
+  ---
+  duration_ms: 0.077917
+  type: 'test'
+  ...
+# Subtest: independent native sort/byte
+ok 40 - independent native sort/byte
+  ---
+  duration_ms: 0.433041
+  type: 'test'
+  ...
+# Subtest: independent native sort/numeric
+ok 41 - independent native sort/numeric
+  ---
+  duration_ms: 0.771
+  type: 'test'
+  ...
+# Subtest: independent native sort/numeric-stable
+ok 42 - independent native sort/numeric-stable
+  ---
+  duration_ms: 0.332875
+  type: 'test'
+  ...
+# Subtest: independent native sort/key-reverse
+ok 43 - independent native sort/key-reverse
+  ---
+  duration_ms: 2.157959
+  type: 'test'
+  ...
+# Subtest: independent native sort/fold-unique
+ok 44 - independent native sort/fold-unique
+  ---
+  duration_ms: 0.268459
+  type: 'test'
+  ...
+# Subtest: independent native sort/separator-key
+ok 45 - independent native sort/separator-key
+  ---
+  duration_ms: 0.1965
+  type: 'test'
+  ...
+# Subtest: independent native sort/zero
+ok 46 - independent native sort/zero
+  ---
+  duration_ms: 0.113084
+  type: 'test'
+  ...
+# Subtest: independent native sort/check-disorder
+ok 47 - independent native sort/check-disorder
+  ---
+  duration_ms: 0.214459
+  type: 'test'
+  ...
+# Subtest: independent native sort/reverse
+ok 48 - independent native sort/reverse
+  ---
+  duration_ms: 0.13425
+  type: 'test'
+  ...
+# Subtest: independent native sort/invalid-bytes
+ok 49 - independent native sort/invalid-bytes
+  ---
+  duration_ms: 0.109
+  type: 'test'
+  ...
+# Subtest: independent native sort/inplace
+ok 50 - independent native sort/inplace
+  ---
+  duration_ms: 0.239708
+  type: 'test'
+  ...
+# Subtest: independent native sort/inplace-read-error
+ok 51 - independent native sort/inplace-read-error
+  ---
+  duration_ms: 0.253458
+  type: 'test'
+  ...
+# Subtest: independent native sort/stdout-read-error
+ok 52 - independent native sort/stdout-read-error
+  ---
+  duration_ms: 0.177083
+  type: 'test'
+  ...
+# Subtest: independent native cksum/crc/stdin
+ok 53 - independent native cksum/crc/stdin
+  ---
+  duration_ms: 0.338208
+  type: 'test'
+  ...
+# Subtest: independent native cksum/crc/file
+ok 54 - independent native cksum/crc/file
+  ---
+  duration_ms: 0.227583
+  type: 'test'
+  ...
+# Subtest: independent native cksum/md5/stdin
+ok 55 - independent native cksum/md5/stdin
+  ---
+  duration_ms: 0.177875
+  type: 'test'
+  ...
+# Subtest: independent native cksum/md5/file
+ok 56 - independent native cksum/md5/file
+  ---
+  duration_ms: 0.129417
+  type: 'test'
+  ...
+# Subtest: independent native cksum/sha1/stdin
+ok 57 - independent native cksum/sha1/stdin
+  ---
+  duration_ms: 0.130083
+  type: 'test'
+  ...
+# Subtest: independent native cksum/sha1/file
+ok 58 - independent native cksum/sha1/file
+  ---
+  duration_ms: 0.113083
+  type: 'test'
+  ...
+# Subtest: independent native cksum/sha224/stdin
+ok 59 - independent native cksum/sha224/stdin
+  ---
+  duration_ms: 0.119833
+  type: 'test'
+  ...
+# Subtest: independent native cksum/sha224/file
+ok 60 - independent native cksum/sha224/file
+  ---
+  duration_ms: 0.105417
+  type: 'test'
+  ...
+# Subtest: independent native cksum/sha256/stdin
+ok 61 - independent native cksum/sha256/stdin
+  ---
+  duration_ms: 0.661333
+  type: 'test'
+  ...
+# Subtest: independent native cksum/sha256/file
+ok 62 - independent native cksum/sha256/file
+  ---
+  duration_ms: 0.14925
+  type: 'test'
+  ...
+# Subtest: independent native cksum/sha384/stdin
+ok 63 - independent native cksum/sha384/stdin
+  ---
+  duration_ms: 0.124
+  type: 'test'
+  ...
+# Subtest: independent native cksum/sha384/file
+ok 64 - independent native cksum/sha384/file
+  ---
+  duration_ms: 0.109708
+  type: 'test'
+  ...
+# Subtest: independent native cksum/sha512/stdin
+ok 65 - independent native cksum/sha512/stdin
+  ---
+  duration_ms: 0.110334
+  type: 'test'
+  ...
+# Subtest: independent native cksum/sha512/file
+ok 66 - independent native cksum/sha512/file
+  ---
+  duration_ms: 0.103667
+  type: 'test'
+  ...
+# Subtest: independent native cksum/empty
+ok 67 - independent native cksum/empty
+  ---
+  duration_ms: 0.065584
+  type: 'test'
+  ...
+# Subtest: independent native cksum/explicit-stdin-twice
+ok 68 - independent native cksum/explicit-stdin-twice
+  ---
+  duration_ms: 0.150834
+  type: 'test'
+  ...
+# Subtest: independent native cksum/escaped
+ok 69 - independent native cksum/escaped
+  ---
+  duration_ms: 0.128917
+  type: 'test'
+  ...
+# Subtest: independent native cksum/zero
+ok 70 - independent native cksum/zero
+  ---
+  duration_ms: 0.1075
+  type: 'test'
+  ...
+# Subtest: independent native realpath/relative
+ok 71 - independent native realpath/relative
+  ---
+  duration_ms: 0.515417
+  type: 'test'
+  ...
+# Subtest: independent native realpath/symlink-parent
+ok 72 - independent native realpath/symlink-parent
+  ---
+  duration_ms: 0.369542
+  type: 'test'
+  ...
+# Subtest: independent native realpath/base-contained
+ok 73 - independent native realpath/base-contained
+  ---
+  duration_ms: 0.283083
+  type: 'test'
+  ...
+# Subtest: independent native realpath/base-outside
+ok 74 - independent native realpath/base-outside
+  ---
+  duration_ms: 0.246166
+  type: 'test'
+  ...
+# Subtest: independent native realpath/missing-parent
+ok 75 - independent native realpath/missing-parent
+  ---
+  duration_ms: 0.448833
+  type: 'test'
+  ...
+# Subtest: independent native realpath/literal-dashes
+ok 76 - independent native realpath/literal-dashes
+  ---
+  duration_ms: 0.767542
+  type: 'test'
+  ...
+# Subtest: independent native realpath/same
+ok 77 - independent native realpath/same
+  ---
+  duration_ms: 0.240417
+  type: 'test'
+  ...
+# Subtest: wc: abort blocked stdin and observe late rejection
+ok 78 - wc: abort blocked stdin and observe late rejection
+  ---
+  duration_ms: 7.476
+  type: 'test'
+  ...
+# Subtest: cksum: abort blocked stdin and observe late rejection
+ok 79 - cksum: abort blocked stdin and observe late rejection
+  ---
+  duration_ms: 6.856292
+  type: 'test'
+  ...
+# Subtest: sort: abort blocked stdin and observe late rejection
+ok 80 - sort: abort blocked stdin and observe late rejection
+  ---
+  duration_ms: 6.667041
+  type: 'test'
+  ...
+# Subtest: sort: owned output chunks survive awaited backpressure without aliasing
+ok 81 - sort: owned output chunks survive awaited backpressure without aliasing
+  ---
+  duration_ms: 108.433708
+  type: 'test'
+  ...
+# Subtest: sort: buffer failure must not publish partial replacement
+ok 82 - sort: buffer failure must not publish partial replacement
+  ---
+  duration_ms: 79.570792
+  type: 'test'
+  ...
+# Subtest: cksum: unsupported syntax -a not-an-algorithm consumes no input
+ok 83 - cksum: unsupported syntax -a not-an-algorithm consumes no input
+  ---
+  duration_ms: 1.318
+  type: 'test'
+  ...
+# Subtest: cksum: unsupported syntax --check consumes no input
+ok 84 - cksum: unsupported syntax --check consumes no input
+  ---
+  duration_ms: 0.089458
+  type: 'test'
+  ...
+# Subtest: cksum: unsupported syntax -b consumes no input
+ok 85 - cksum: unsupported syntax -b consumes no input
+  ---
+  duration_ms: 0.12075
+  type: 'test'
+  ...
+# Subtest: cksum: unsupported syntax --tag consumes no input
+ok 86 - cksum: unsupported syntax --tag consumes no input
+  ---
+  duration_ms: 0.121583
+  type: 'test'
+  ...
+# Subtest: cksum: streaming large binary is chunk-invariant
+ok 87 - cksum: streaming large binary is chunk-invariant
+  ---
+  duration_ms: 79.056625
+  type: 'test'
+  ...
+# Subtest: actual env shell chain: LOCAL=hidden; export PUBLIC=parent; PREFIX=temporary env -i A=first A=last B=two env -u A; printf '<%s><%s><%s>\\n' "$LOCAL" "$PUBLIC" "${PREFIX-unset}"
+ok 88 - actual env shell chain: LOCAL=hidden; export PUBLIC=parent; PREFIX=temporary env -i A=first A=last B=two env -u A; printf '<%s><%s><%s>\\n' "$LOCAL" "$PUBLIC" "${PREFIX-unset}"
+  ---
+  duration_ms: 6.735917
+  type: 'test'
+  ...
+# Subtest: actual env shell chain: export PUBLIC=parent; env -u PUBLIC sh -c 'printf "<%s>\\n" "${PUBLIC-unset}"'; printf '%s\\n' "$PUBLIC"
+ok 89 - actual env shell chain: export PUBLIC=parent; env -u PUBLIC sh -c 'printf "<%s>\\n" "${PUBLIC-unset}"'; printf '%s\\n' "$PUBLIC"
+  ---
+  duration_ms: 2.130708
+  type: 'test'
+  ...
+# Subtest: actual env shell chain: PRIVATE=local; export PUBLIC=parent; env -i sh -c 'printf "<%s><%s>\\n" "${PUBLIC-unset}" "${PRIVATE-unset}"'
+ok 90 - actual env shell chain: PRIVATE=local; export PUBLIC=parent; env -i sh -c 'printf "<%s><%s>\\n" "${PUBLIC-unset}" "${PRIVATE-unset}"'
+  ---
+  duration_ms: 0.967791
+  type: 'test'
+  ...
+# Subtest: actual env shell chain: printf 'é\\n' | env -i env -i cat | wc -c
+ok 91 - actual env shell chain: printf 'é\\n' | env -i env -i cat | wc -c
+  ---
+  duration_ms: 3.627041
+  type: 'test'
+  ...
+# Subtest: actual env shell chain: env -i A=one B=two A=replaced env -u absent
+ok 92 - actual env shell chain: env -i A=one B=two A=replaced env -u absent
+  ---
+  duration_ms: 0.520166
+  type: 'test'
+  ...
+# Subtest: actual invoker keeps legacy merge boundary: omitted
+ok 93 - actual invoker keeps legacy merge boundary: omitted
+  ---
+  duration_ms: 1.050667
+  type: 'test'
+  ...
+# Subtest: actual invoker keeps legacy merge boundary: false
+ok 94 - actual invoker keeps legacy merge boundary: false
+  ---
+  duration_ms: 0.713709
+  type: 'test'
+  ...
+# Subtest: actual invoker keeps legacy merge boundary: true
+ok 95 - actual invoker keeps legacy merge boundary: true
+  ---
+  duration_ms: 0.490583
+  type: 'test'
+  ...
+# Subtest: actual env -C middleware sees exact child map and shared virtual FS/stdin
+ok 96 - actual env -C middleware sees exact child map and shared virtual FS/stdin
+  ---
+  duration_ms: 1.823333
+  type: 'test'
+  ...
+# Subtest: actual env retains maxCommands
+ok 97 - actual env retains maxCommands
+  ---
+  duration_ms: 1.118
+  type: 'test'
+  ...
+# Subtest: actual env retains maxOutputBytes
+ok 98 - actual env retains maxOutputBytes
+  ---
+  duration_ms: 0.50775
+  type: 'test'
+  ...
+# Subtest: actual env retains maxLoopIterations
+ok 99 - actual env retains maxLoopIterations
+  ---
+  duration_ms: 1.775167
+  type: 'test'
+  ...
+# Subtest: actual replacement invoker forwards supplied stdin without reviving parent environment
+ok 100 - actual replacement invoker forwards supplied stdin without reviving parent environment
+  ---
+  duration_ms: 0.525917
+  type: 'test'
+  ...
+1..100
+# tests 100
+# suites 0
+# pass 100
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 813.534125

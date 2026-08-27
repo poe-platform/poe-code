@@ -1,0 +1,190 @@
+TAP version 13
+# Subtest: hidden borrowed byteOffset source Buffer=false width=1
+ok 1 - hidden borrowed byteOffset source Buffer=false width=1
+  ---
+  duration_ms: 10.05425
+  type: 'test'
+  ...
+# Subtest: hidden borrowed byteOffset source Buffer=false width=2
+ok 2 - hidden borrowed byteOffset source Buffer=false width=2
+  ---
+  duration_ms: 6.2565
+  type: 'test'
+  ...
+# Subtest: hidden borrowed byteOffset source Buffer=false width=5
+ok 3 - hidden borrowed byteOffset source Buffer=false width=5
+  ---
+  duration_ms: 5.819166
+  type: 'test'
+  ...
+# Subtest: hidden borrowed byteOffset source Buffer=false width=17
+ok 4 - hidden borrowed byteOffset source Buffer=false width=17
+  ---
+  duration_ms: 5.980833
+  type: 'test'
+  ...
+# Subtest: hidden borrowed byteOffset source Buffer=true width=1
+ok 5 - hidden borrowed byteOffset source Buffer=true width=1
+  ---
+  duration_ms: 7.679542
+  type: 'test'
+  ...
+# Subtest: hidden borrowed byteOffset source Buffer=true width=2
+ok 6 - hidden borrowed byteOffset source Buffer=true width=2
+  ---
+  duration_ms: 6.920084
+  type: 'test'
+  ...
+# Subtest: hidden borrowed byteOffset source Buffer=true width=5
+ok 7 - hidden borrowed byteOffset source Buffer=true width=5
+  ---
+  duration_ms: 5.57825
+  type: 'test'
+  ...
+# Subtest: hidden borrowed byteOffset source Buffer=true width=17
+ok 8 - hidden borrowed byteOffset source Buffer=true width=17
+  ---
+  duration_ms: 5.536375
+  type: 'test'
+  ...
+# Subtest: hidden public named VFS borrowed Buffer 
+ok 9 - hidden public named VFS borrowed Buffer 
+  ---
+  duration_ms: 9.608916
+  type: 'test'
+  ...
+# Subtest: hidden public named VFS borrowed Buffer -z
+ok 10 - hidden public named VFS borrowed Buffer -z
+  ---
+  duration_ms: 6.211458
+  type: 'test'
+  ...
+# Subtest: hidden public named VFS borrowed Buffer -n,-s
+ok 11 - hidden public named VFS borrowed Buffer -n,-s
+  ---
+  duration_ms: 7.7
+  type: 'test'
+  ...
+# Subtest: hidden public named VFS borrowed Buffer -u
+ok 12 - hidden public named VFS borrowed Buffer -u
+  ---
+  duration_ms: 7.61125
+  type: 'test'
+  ...
+# Subtest: hidden public named VFS borrowed Buffer -o,/work/output
+ok 13 - hidden public named VFS borrowed Buffer -o,/work/output
+  ---
+  duration_ms: 6.403583
+  type: 'test'
+  ...
+# Subtest: hidden public stdin ownership is already protected by ShellInput
+ok 14 - hidden public stdin ownership is already protected by ShellInput
+  ---
+  duration_ms: 0.806334
+  type: 'test'
+  ...
+# Subtest: hidden check mode borrowed spanning Buffer remains separately measured
+ok 15 - hidden check mode borrowed spanning Buffer remains separately measured
+  ---
+  duration_ms: 5.2765
+  type: 'test'
+  ...
+# Subtest: hidden native byte/numeric/empty [] ff0a000ac0800a800aff
+ok 16 - hidden native byte/numeric/empty [] ff0a000ac0800a800aff
+  ---
+  duration_ms: 5.172833
+  type: 'test'
+  ...
+# Subtest: hidden native byte/numeric/empty ["-zru"] e99baa00f09f988000ee80800
+ok 17 - hidden native byte/numeric/empty ["-zru"] e99baa00f09f988000ee80800
+  ---
+  duration_ms: 7.647458
+  type: 'test'
+  ...
+# Subtest: hidden native byte/numeric/empty ["-ns"] 2d303030302066697273740a3
+ok 18 - hidden native byte/numeric/empty ["-ns"] 2d303030302066697273740a3
+  ---
+  duration_ms: 6.110375
+  type: 'test'
+  ...
+# Subtest: hidden native byte/numeric/empty ["-t:","-k2,2nr","-k1,1"] 7a3a320a613a320a783a31300
+ok 19 - hidden native byte/numeric/empty ["-t:","-k2,2nr","-k1,1"] 7a3a320a613a320a783a31300
+  ---
+  duration_ms: 7.619125
+  type: 'test'
+  ...
+# Subtest: hidden native byte/numeric/empty ["-bf","-s"] 2020610a20410a09420a20620
+ok 20 - hidden native byte/numeric/empty ["-bf","-s"] 2020610a20410a09420a20620
+  ---
+  duration_ms: 5.8415
+  type: 'test'
+  ...
+# Subtest: hidden native byte/numeric/empty [] 
+ok 21 - hidden native byte/numeric/empty [] 
+  ---
+  duration_ms: 5.659417
+  type: 'test'
+  ...
+# Subtest: hidden native byte/numeric/empty [] 0a0a
+ok 22 - hidden native byte/numeric/empty [] 0a0a
+  ---
+  duration_ms: 4.857875
+  type: 'test'
+  ...
+# Subtest: hidden native byte/numeric/empty ["-z"] 000000
+ok 23 - hidden native byte/numeric/empty ["-z"] 000000
+  ---
+  duration_ms: 5.308417
+  type: 'test'
+  ...
+# Subtest: hidden exact total-byte limit boundary excess=0
+ok 24 - hidden exact total-byte limit boundary excess=0
+  ---
+  duration_ms: 109.903458
+  type: 'test'
+  ...
+# Subtest: hidden exact total-byte limit boundary excess=1
+ok 25 - hidden exact total-byte limit boundary excess=1
+  ---
+  duration_ms: 61.087709
+  type: 'test'
+  ...
+# Subtest: hidden source error after retained records preserves output file
+ok 26 - hidden source error after retained records preserves output file
+  ---
+  duration_ms: 1.244667
+  type: 'test'
+  ...
+# Subtest: hidden missing later file never publishes retained earlier records
+ok 27 - hidden missing later file never publishes retained earlier records
+  ---
+  duration_ms: 0.247959
+  type: 'test'
+  ...
+# Subtest: hidden pending input cancellation keeps reason and observes late rejection
+ok 28 - hidden pending input cancellation keeps reason and observes late rejection
+  ---
+  duration_ms: 4.67
+  type: 'test'
+  ...
+# Subtest: hidden empty-chunk cancellation stops further pulls before publication
+ok 29 - hidden empty-chunk cancellation stops further pulls before publication
+  ---
+  duration_ms: 0.249792
+  type: 'test'
+  ...
+# Subtest: hidden output is owned and backpressured after all input admission
+ok 30 - hidden output is owned and backpressured after all input admission
+  ---
+  duration_ms: 33.857834
+  type: 'test'
+  ...
+1..30
+# tests 30
+# suites 0
+# pass 30
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 470.856541

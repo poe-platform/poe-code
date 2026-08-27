@@ -1,0 +1,400 @@
+TAP version 13
+# Subtest: GNU9.7 frozen wc: pipe two columns
+ok 1 - GNU9.7 frozen wc: pipe two columns
+  ---
+  duration_ms: 3.062375
+  type: 'test'
+  ...
+# Subtest: GNU9.7 frozen wc: C characters
+ok 2 - GNU9.7 frozen wc: C characters
+  ---
+  duration_ms: 0.405917
+  type: 'test'
+  ...
+# Subtest: GNU9.7 frozen wc: POSIX characters
+ok 3 - GNU9.7 frozen wc: POSIX characters
+  ---
+  duration_ms: 1.095541
+  type: 'test'
+  ...
+# Subtest: GNU9.7 frozen wc: UTF8 characters
+ok 4 - GNU9.7 frozen wc: UTF8 characters
+  ---
+  duration_ms: 0.51
+  type: 'test'
+  ...
+# Subtest: GNU9.7 frozen wc: UTF8 BOM
+ok 5 - GNU9.7 frozen wc: UTF8 BOM
+  ---
+  duration_ms: 0.273917
+  type: 'test'
+  ...
+# Subtest: GNU9.7 frozen wc: all columns
+ok 6 - GNU9.7 frozen wc: all columns
+  ---
+  duration_ms: 0.485875
+  type: 'test'
+  ...
+# Subtest: GNU9.7 frozen wc: C overrides LANG
+ok 7 - GNU9.7 frozen wc: C overrides LANG
+  ---
+  duration_ms: 0.313042
+  type: 'test'
+  ...
+# Subtest: GNU9.7 frozen wc: CTYPE overrides LANG
+ok 8 - GNU9.7 frozen wc: CTYPE overrides LANG
+  ---
+  duration_ms: 0.49275
+  type: 'test'
+  ...
+# Subtest: GNU9.7 frozen wc: single file
+ok 9 - GNU9.7 frozen wc: single file
+  ---
+  duration_ms: 0.944084
+  type: 'test'
+  ...
+# Subtest: GNU9.7 frozen wc: files total width
+ok 10 - GNU9.7 frozen wc: files total width
+  ---
+  duration_ms: 0.894083
+  type: 'test'
+  ...
+# Subtest: GNU9.7 frozen wc: file single column
+ok 11 - GNU9.7 frozen wc: file single column
+  ---
+  duration_ms: 0.389417
+  type: 'test'
+  ...
+# Subtest: GNU9.7 frozen wc: file plus stream
+ok 12 - GNU9.7 frozen wc: file plus stream
+  ---
+  duration_ms: 0.932833
+  type: 'test'
+  ...
+# Subtest: GNU9.7 frozen realpath: --relative-to=. tree/file
+ok 13 - GNU9.7 frozen realpath: --relative-to=. tree/file
+  ---
+  duration_ms: 0.337167
+  type: 'test'
+  ...
+# Subtest: GNU9.7 frozen realpath: --relative-to tree tree/file
+ok 14 - GNU9.7 frozen realpath: --relative-to tree tree/file
+  ---
+  duration_ms: 0.090833
+  type: 'test'
+  ...
+# Subtest: GNU9.7 frozen realpath: --relative-to=tree other/file
+ok 15 - GNU9.7 frozen realpath: --relative-to=tree other/file
+  ---
+  duration_ms: 0.079
+  type: 'test'
+  ...
+# Subtest: GNU9.7 frozen realpath: --relative-to=alias tree/file
+ok 16 - GNU9.7 frozen realpath: --relative-to=alias tree/file
+  ---
+  duration_ms: 0.086083
+  type: 'test'
+  ...
+# Subtest: GNU9.7 frozen realpath: --relative-base=tree tree/file other/file
+ok 17 - GNU9.7 frozen realpath: --relative-base=tree tree/file other/file
+  ---
+  duration_ms: 0.191083
+  type: 'test'
+  ...
+# Subtest: GNU9.7 frozen realpath: --relative-to=tree --relative-base=. other/file
+ok 18 - GNU9.7 frozen realpath: --relative-to=tree --relative-base=. other/file
+  ---
+  duration_ms: 0.12
+  type: 'test'
+  ...
+# Subtest: GNU9.7 frozen realpath: --relative-to=other --relative-base=tree tree/file
+ok 19 - GNU9.7 frozen realpath: --relative-to=other --relative-base=tree tree/file
+  ---
+  duration_ms: 0.078917
+  type: 'test'
+  ...
+# Subtest: GNU9.7 frozen realpath: -m --relative-to=tree/missing other/missing/leaf
+ok 20 - GNU9.7 frozen realpath: -m --relative-to=tree/missing other/missing/leaf
+  ---
+  duration_ms: 0.266667
+  type: 'test'
+  ...
+# Subtest: GNU9.7 frozen realpath: -e --relative-to=tree tree/file
+ok 21 - GNU9.7 frozen realpath: -e --relative-to=tree tree/file
+  ---
+  duration_ms: 0.112917
+  type: 'test'
+  ...
+# Subtest: GNU9.7 frozen realpath: -z --relative-to=. tree/file other/file
+ok 22 - GNU9.7 frozen realpath: -z --relative-to=. tree/file other/file
+  ---
+  duration_ms: 0.0905
+  type: 'test'
+  ...
+# Subtest: GNU9.7 frozen realpath: --relative-to=tree tree
+ok 23 - GNU9.7 frozen realpath: --relative-to=tree tree
+  ---
+  duration_ms: 0.080417
+  type: 'test'
+  ...
+# Subtest: GNU9.7 frozen realpath: -- --relative-to=literal
+ok 24 - GNU9.7 frozen realpath: -- --relative-to=literal
+  ---
+  duration_ms: 0.121917
+  type: 'test'
+  ...
+# Subtest: relative paths preserve filesystem errors, literals and cancellation
+ok 25 - relative paths preserve filesystem errors, literals and cancellation
+  ---
+  duration_ms: 0.484625
+  type: 'test'
+  ...
+# Subtest: C wc treats arbitrary octets as characters without decoding
+ok 26 - C wc treats arbitrary octets as characters without decoding
+  ---
+  duration_ms: 1.193375
+  type: 'test'
+  ...
+# Subtest: env preserves exact bindings with the pinned gnulib prepend-new profile
+ok 27 - env preserves exact bindings with the pinned gnulib prepend-new profile
+  ---
+  duration_ms: 0.45725
+  type: 'test'
+  ...
+# Subtest: sort GNU9.7 byte equality: seed7/plain
+ok 28 - sort GNU9.7 byte equality: seed7/plain
+  ---
+  duration_ms: 8.556417
+  type: 'test'
+  ...
+# Subtest: sort GNU9.7 byte equality: seed7/-r
+ok 29 - sort GNU9.7 byte equality: seed7/-r
+  ---
+  duration_ms: 4.612959
+  type: 'test'
+  ...
+# Subtest: sort GNU9.7 byte equality: seed7/-u
+ok 30 - sort GNU9.7 byte equality: seed7/-u
+  ---
+  duration_ms: 5.862292
+  type: 'test'
+  ...
+# Subtest: sort GNU9.7 byte equality: seed7/-s
+ok 31 - sort GNU9.7 byte equality: seed7/-s
+  ---
+  duration_ms: 4.697042
+  type: 'test'
+  ...
+# Subtest: sort GNU9.7 byte equality: seed7/-n
+ok 32 - sort GNU9.7 byte equality: seed7/-n
+  ---
+  duration_ms: 8.640708
+  type: 'test'
+  ...
+# Subtest: sort GNU9.7 byte equality: seed7/-nr
+ok 33 - sort GNU9.7 byte equality: seed7/-nr
+  ---
+  duration_ms: 6.586208
+  type: 'test'
+  ...
+# Subtest: sort GNU9.7 byte equality: seed7/-nu
+ok 34 - sort GNU9.7 byte equality: seed7/-nu
+  ---
+  duration_ms: 4.825708
+  type: 'test'
+  ...
+# Subtest: sort GNU9.7 byte equality: seed23/plain
+ok 35 - sort GNU9.7 byte equality: seed23/plain
+  ---
+  duration_ms: 3.941708
+  type: 'test'
+  ...
+# Subtest: sort GNU9.7 byte equality: seed23/-r
+ok 36 - sort GNU9.7 byte equality: seed23/-r
+  ---
+  duration_ms: 2.524792
+  type: 'test'
+  ...
+# Subtest: sort GNU9.7 byte equality: seed23/-u
+ok 37 - sort GNU9.7 byte equality: seed23/-u
+  ---
+  duration_ms: 4.9725
+  type: 'test'
+  ...
+# Subtest: sort GNU9.7 byte equality: seed23/-s
+ok 38 - sort GNU9.7 byte equality: seed23/-s
+  ---
+  duration_ms: 2.37875
+  type: 'test'
+  ...
+# Subtest: sort GNU9.7 byte equality: seed23/-n
+ok 39 - sort GNU9.7 byte equality: seed23/-n
+  ---
+  duration_ms: 6.478041
+  type: 'test'
+  ...
+# Subtest: sort GNU9.7 byte equality: seed23/-nr
+ok 40 - sort GNU9.7 byte equality: seed23/-nr
+  ---
+  duration_ms: 5.180417
+  type: 'test'
+  ...
+# Subtest: sort GNU9.7 byte equality: seed23/-nu
+ok 41 - sort GNU9.7 byte equality: seed23/-nu
+  ---
+  duration_ms: 4.462917
+  type: 'test'
+  ...
+# Subtest: sort GNU9.7 byte equality: seed71/plain
+ok 42 - sort GNU9.7 byte equality: seed71/plain
+  ---
+  duration_ms: 2.016042
+  type: 'test'
+  ...
+# Subtest: sort GNU9.7 byte equality: seed71/-r
+ok 43 - sort GNU9.7 byte equality: seed71/-r
+  ---
+  duration_ms: 3.949
+  type: 'test'
+  ...
+# Subtest: sort GNU9.7 byte equality: seed71/-u
+ok 44 - sort GNU9.7 byte equality: seed71/-u
+  ---
+  duration_ms: 4.277709
+  type: 'test'
+  ...
+# Subtest: sort GNU9.7 byte equality: seed71/-s
+ok 45 - sort GNU9.7 byte equality: seed71/-s
+  ---
+  duration_ms: 2.111
+  type: 'test'
+  ...
+# Subtest: sort GNU9.7 byte equality: seed71/-n
+ok 46 - sort GNU9.7 byte equality: seed71/-n
+  ---
+  duration_ms: 5.424542
+  type: 'test'
+  ...
+# Subtest: sort GNU9.7 byte equality: seed71/-nr
+ok 47 - sort GNU9.7 byte equality: seed71/-nr
+  ---
+  duration_ms: 5.386958
+  type: 'test'
+  ...
+# Subtest: sort GNU9.7 byte equality: seed71/-nu
+ok 48 - sort GNU9.7 byte equality: seed71/-nu
+  ---
+  duration_ms: 4.16975
+  type: 'test'
+  ...
+# Subtest: sort GNU9.7 byte equality: seed997/plain
+ok 49 - sort GNU9.7 byte equality: seed997/plain
+  ---
+  duration_ms: 1.963167
+  type: 'test'
+  ...
+# Subtest: sort GNU9.7 byte equality: seed997/-r
+ok 50 - sort GNU9.7 byte equality: seed997/-r
+  ---
+  duration_ms: 4.834667
+  type: 'test'
+  ...
+# Subtest: sort GNU9.7 byte equality: seed997/-u
+ok 51 - sort GNU9.7 byte equality: seed997/-u
+  ---
+  duration_ms: 4.144458
+  type: 'test'
+  ...
+# Subtest: sort GNU9.7 byte equality: seed997/-s
+ok 52 - sort GNU9.7 byte equality: seed997/-s
+  ---
+  duration_ms: 2.009917
+  type: 'test'
+  ...
+# Subtest: sort GNU9.7 byte equality: seed997/-n
+ok 53 - sort GNU9.7 byte equality: seed997/-n
+  ---
+  duration_ms: 5.345209
+  type: 'test'
+  ...
+# Subtest: sort GNU9.7 byte equality: seed997/-nr
+ok 54 - sort GNU9.7 byte equality: seed997/-nr
+  ---
+  duration_ms: 3.863625
+  type: 'test'
+  ...
+# Subtest: sort GNU9.7 byte equality: seed997/-nu
+ok 55 - sort GNU9.7 byte equality: seed997/-nu
+  ---
+  duration_ms: 5.402
+  type: 'test'
+  ...
+# Subtest: sort GNU9.7 byte equality: -f
+ok 56 - sort GNU9.7 byte equality: -f
+  ---
+  duration_ms: 0.213833
+  type: 'test'
+  ...
+# Subtest: sort GNU9.7 byte equality: -fu
+ok 57 - sort GNU9.7 byte equality: -fu
+  ---
+  duration_ms: 0.129833
+  type: 'test'
+  ...
+# Subtest: sort GNU9.7 byte equality: -b
+ok 58 - sort GNU9.7 byte equality: -b
+  ---
+  duration_ms: 0.141291
+  type: 'test'
+  ...
+# Subtest: sort GNU9.7 byte equality: -br
+ok 59 - sort GNU9.7 byte equality: -br
+  ---
+  duration_ms: 0.117917
+  type: 'test'
+  ...
+# Subtest: sort GNU9.7 byte equality: -s -k2,2n
+ok 60 - sort GNU9.7 byte equality: -s -k2,2n
+  ---
+  duration_ms: 0.399791
+  type: 'test'
+  ...
+# Subtest: sort GNU9.7 byte equality: -u -k2,2n
+ok 61 - sort GNU9.7 byte equality: -u -k2,2n
+  ---
+  duration_ms: 0.152833
+  type: 'test'
+  ...
+# Subtest: sort GNU9.7 byte equality: nul-binary
+ok 62 - sort GNU9.7 byte equality: nul-binary
+  ---
+  duration_ms: 0.076125
+  type: 'test'
+  ...
+# Subtest: sort batches completed output without mutating chunks or exceeding 64KiB
+ok 63 - sort batches completed output without mutating chunks or exceeding 64KiB
+  ---
+  duration_ms: 5.621666
+  type: 'test'
+  ...
+# Subtest: sort awaits backpressure and aborts a blocked output without later writes
+ok 64 - sort awaits backpressure and aborts a blocked output without later writes
+  ---
+  duration_ms: 7.072875
+  type: 'test'
+  ...
+# Subtest: sort -o reads before replacement and preserves binary output
+ok 65 - sort -o reads before replacement and preserves binary output
+  ---
+  duration_ms: 0.400208
+  type: 'test'
+  ...
+1..65
+# tests 65
+# suites 0
+# pass 65
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 429.878875

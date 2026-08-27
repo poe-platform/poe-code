@@ -1,0 +1,78 @@
+{
+  "at": "2026-08-27T08:22:55.974Z",
+  "candidate": "1b133a8662a32ee84524794842074c9c98d5f6c3",
+  "previous": "4c16d9c5a0e8661bc326a754205559a3e7ea6a32",
+  "priorEvidenceCommit": "45051f5a0c6e1fd8042dee0196f37545fb6eee31",
+  "source": {
+    "src/shell/shell.ts": {
+      "sha256": "538f7ea1504019fcde03abc2781c1f903573243a0332033b87501804a1c4ac5c",
+      "liveSha256": "538f7ea1504019fcde03abc2781c1f903573243a0332033b87501804a1c4ac5c",
+      "sameAs4c": false
+    },
+    "src/shell/runtime.ts": {
+      "sha256": "2223ef9e02565d163ded042d933553a1efae502ce7531fe83bba5611d959c84b",
+      "liveSha256": "2223ef9e02565d163ded042d933553a1efae502ce7531fe83bba5611d959c84b",
+      "sameAs4c": true
+    },
+    "src/shell/cleanup.ts": {
+      "sha256": "134f55641d6437681cd185960a2923d68086096921758717c5b8059595304385",
+      "liveSha256": "134f55641d6437681cd185960a2923d68086096921758717c5b8059595304385",
+      "sameAs4c": true
+    }
+  },
+  "components": {
+    "src/contracts/command.ts": "9c2f8ecf50def7250b01152a31a45c449109c3ae4d30878252cffe985c6e9df8",
+    "src/contracts/command.md": "8a5426b1e7a30a03dc62f74b28c6eb7bf9b008b78cb7b521eb7de0bc5c59a3f8",
+    "src/commands/grep.ts": "a5e93d8dd97c35f1a1530792b38478942647e6e66ac01fcd44fbea05fbfa78d1",
+    "src/commands/regex-execution/README.md": "914db79131dd4543e69746c73786df72e4f62055818e6cee17fd57eddcea4481",
+    "src/commands/regex-execution/client.ts": "1638d492d11d466875b98451a59bace4e60e71fcd5468d671182187549922bca",
+    "src/commands/search/rg.ts": "fee9a380679e17da179a1c6b4f9bacf9c89a10e0dd1d18981c26b9296f9846d3"
+  },
+  "frozenFiles": {
+    "tests/shell-stress/invocation-cleanup-holdout/ACCEPTANCE.md": "dfdd80afaa2e10af006827223bdb84a74059870da5f8561ed0da2a7d2bc2e9a0",
+    "tests/shell-stress/invocation-cleanup-holdout/README.md": "d17a42ab64a828e9877d1487c9563d73f7a73ffd41d5bdeaf1acc4ce73aa7235",
+    "tests/shell-stress/invocation-cleanup-holdout/acceptance-first-scratch.json": "d4cd658f363fc2bef073be13dd72b1826600478c30b3bca3bceec745399ac888",
+    "tests/shell-stress/invocation-cleanup-holdout/acceptance-first.json": "5ec7f20d9f0d45bb55052f5d13cf374a7b9694c18c58c271a4918f4c59e6cab3",
+    "tests/shell-stress/invocation-cleanup-holdout/acceptance-source-preflight.json": "f25ff476e60e41ec0df5fd266d9494ea6cd17c0ecca8a147d4d06de072761912",
+    "tests/shell-stress/invocation-cleanup-holdout/acceptance-summary.json": "b11f41f9104cfea456ab2e63d8b73648cb8c185db8cc4743066c3254a3142ec3",
+    "tests/shell-stress/invocation-cleanup-holdout/cases.mjs": "8b146a6bea9f1f27d7d8d7f4463d839b8ff9f7a8cb0eff2ec8d3d5a13a5ed843",
+    "tests/shell-stress/invocation-cleanup-holdout/child.mjs": "83d4ed3c571b415ce451112232ccd16ec35df31f342805456df8af6aef9babf6",
+    "tests/shell-stress/invocation-cleanup-holdout/contract-source.json": "0cf142736a28c4ccafd7cf9b3483dceb5d484e6303bbeebf1b4af3a623fb2c4a",
+    "tests/shell-stress/invocation-cleanup-holdout/freeze.json": "e2132d725422852867e1b41c05bb4de3c77fb3f7d9f34c3c3f6a397ce497f914",
+    "tests/shell-stress/invocation-cleanup-holdout/inventory.json": "c9bc780d791b6c9adb07e60fbfcb2101c98b8c05cc417967f25173b99941a963",
+    "tests/shell-stress/invocation-cleanup-holdout/preparation-validation.json": "6038bbaedc647289351f89865f6ee1dbdf033e61a3dae14f5be17f168c205887",
+    "tests/shell-stress/invocation-cleanup-holdout/run.mjs": "ad078123a6a5e38a1a60ee4a439539240498760a535af6fe1997fcd6999a5eef",
+    "tests/shell-stress/invocation-cleanup-holdout/setup-disposal-control.mjs": "5073acc0673b30d5e83bf339c0550f04603817410531207fcc51a6b3f1cf0dd5",
+    "tests/shell-stress/invocation-cleanup-holdout/setup-disposal-review.json": "cc999be32df1d3f5baba6916634ab4001ade8054996dc95b4ec9b72376d30307",
+    "tests/shell-stress/invocation-cleanup-holdout/setup-disposal-review.mjs": "9ab08086d585f27194e448add0f1ecbe92eea90d4245f2317a88065b6146afc8",
+    "tests/shell-stress/invocation-cleanup-holdout/setup-disposal-scratch.json": "26fa9f62cace06aec9a246a7c0698137a26d6478e2c39cb11b899964494423f9",
+    "tests/shell-stress/invocation-cleanup-holdout/setup-disposal-trace.mjs": "280794a189ec70b65e74b93a110387f87803c0df6b56340541db95d537ab48ac",
+    "tests/shell-stress/invocation-cleanup-holdout/support.mjs": "7f73a76e74e88092bba37878beab6ce5b64170a396069f7ecae8f816ce9d5e84",
+    "tests/shell-stress/invocation-cleanup-holdout/trace.mjs": "5ae9834cfa6abd613a79472f7c609e58942fdaf9021f3abb88386bb3960def33"
+  },
+  "profileFiles": {
+    "src/index.ts": {
+      "sha256": "c9d4d5693dd65dfcb90ff14c43631d00d9d2975a5f58ab03df7ff0e1d34a3e6e",
+      "sameAs4c": true
+    },
+    "package.json": {
+      "sha256": "c9b768b3ec77ac19262a36ce46f331618916fd7746492d83f0bf6e1212999360",
+      "sameAs4c": true
+    },
+    "package-lock.json": {
+      "sha256": "9c04bb7d2c7d1894479f0c37ce367987c2130256e5bfbf426cfa1bd2729d740b",
+      "sameAs4c": true
+    },
+    "tsconfig.json": {
+      "sha256": "31a3ef68430276b806701fe5d24d86aa7bb3d1630d79b4d5f381d6cd2c2a4c08",
+      "sameAs4c": true
+    },
+    "tsconfig.build.json": {
+      "sha256": "b57d3e5aab1f1f7ab7a70f275183ea6de255e65a2c40a0047c08d97769a1a16e",
+      "sameAs4c": true
+    }
+  },
+  "inspection": "Source identity checks only before replay; no author tests/evidence inspected.",
+  "head": "6e99656dd9d6e285b33fb3cf99ed5fef19146a48",
+  "indexSha256": "fcd3d8108b5f9fbef0eeb10960a59cbf961c027e6525c395102c572165d76735"
+}

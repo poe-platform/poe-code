@@ -1,0 +1,263 @@
+{
+  "at": "2026-08-27T08:28:25.226Z",
+  "candidate": "1b133a8662a32ee84524794842074c9c98d5f6c3",
+  "classification": "R1 fixed in independently checked scope; no new regression observed in these controls.",
+  "holdouts": {
+    "passed": 22,
+    "total": 22,
+    "unexecuted": [],
+    "allPass": true,
+    "oneUnchangedRun": true,
+    "buildStatus": 0,
+    "sourceCount": 216,
+    "emittedCount": 704,
+    "importCount": 3520,
+    "sourceGuard": true,
+    "emittedGuard": true,
+    "helperGuard": true,
+    "allImportGuards": true
+  },
+  "originalSupplementary": {
+    "tuples": [
+      {
+        "id": "D1-explicit-setup-rejection",
+        "old07": {
+          "id": "D1-explicit-setup-rejection",
+          "execRejected": true,
+          "exactSetupReason": true,
+          "disposeRejected": false,
+          "events": [
+            "first-setup",
+            "failing-setup",
+            "first-dispose"
+          ]
+        },
+        "old4c": {
+          "id": "D1-explicit-setup-rejection",
+          "execRejected": true,
+          "exactSetupReason": true,
+          "disposeRejected": false,
+          "events": [
+            "first-setup",
+            "failing-setup",
+            "first-dispose"
+          ]
+        },
+        "candidate1b": {
+          "id": "D1-explicit-setup-rejection",
+          "execRejected": true,
+          "exactSetupReason": true,
+          "disposeRejected": false,
+          "events": [
+            "first-setup",
+            "failing-setup",
+            "first-dispose"
+          ]
+        },
+        "matches07": true,
+        "matches4c": true
+      },
+      {
+        "id": "D2-queued-setup-immediate-dispose",
+        "old07": {
+          "id": "D2-queued-setup-immediate-dispose",
+          "disposeRejected": false,
+          "events": [
+            "setup-start",
+            "middleware-installed",
+            "plugin-dispose"
+          ],
+          "ownedLeaseAfterDispose": false
+        },
+        "old4c": {
+          "id": "D2-queued-setup-immediate-dispose",
+          "disposeRejected": false,
+          "events": [
+            "setup-start"
+          ],
+          "ownedLeaseAfterDispose": true
+        },
+        "candidate1b": {
+          "id": "D2-queued-setup-immediate-dispose",
+          "disposeRejected": false,
+          "events": [
+            "setup-start",
+            "middleware-installed",
+            "plugin-dispose"
+          ],
+          "ownedLeaseAfterDispose": false
+        },
+        "matches07": true,
+        "matches4c": false
+      },
+      {
+        "id": "D3-completed-setup-dispose-failure",
+        "old07": {
+          "id": "D3-completed-setup-dispose-failure",
+          "execStatus": 0,
+          "stdoutHex": "",
+          "stderrHex": "",
+          "disposeRejected": true,
+          "aggregate": true,
+          "oneExactFailure": true,
+          "events": [
+            "first-setup",
+            "second-setup",
+            "second-dispose",
+            "first-dispose"
+          ]
+        },
+        "old4c": {
+          "id": "D3-completed-setup-dispose-failure",
+          "execStatus": 0,
+          "stdoutHex": "",
+          "stderrHex": "",
+          "disposeRejected": true,
+          "aggregate": true,
+          "oneExactFailure": true,
+          "events": [
+            "first-setup",
+            "second-setup",
+            "second-dispose",
+            "first-dispose"
+          ]
+        },
+        "candidate1b": {
+          "id": "D3-completed-setup-dispose-failure",
+          "execStatus": 0,
+          "stdoutHex": "",
+          "stderrHex": "",
+          "disposeRejected": true,
+          "aggregate": true,
+          "oneExactFailure": true,
+          "events": [
+            "first-setup",
+            "second-setup",
+            "second-dispose",
+            "first-dispose"
+          ]
+        },
+        "matches07": true,
+        "matches4c": true
+      }
+    ],
+    "allThreeMatch07": true,
+    "oldProfilesReexecuted": false,
+    "fixtureUnchanged": true,
+    "traceUnchanged": true
+  },
+  "newIsolation": {
+    "count": 1,
+    "result": {
+      "id": "S1-async-per-setup-isolation-and-nesting",
+      "pass": true,
+      "events": [
+        "completed-setup",
+        "active-setup",
+        "duringactive-public-closed",
+        "completed-host-closed",
+        "active-installed-and-nested-enqueued",
+        "queued-setup",
+        "nested-setup",
+        "active-host-closed",
+        "queued-host-closed",
+        "duringnested-public-closed",
+        "nested-installed",
+        "nested-dispose",
+        "queued-dispose",
+        "active-dispose",
+        "completed-dispose",
+        "nested-host-closed",
+        "afterdispose-public-closed"
+      ],
+      "liveLeases": [],
+      "factoryCalls": 0,
+      "disposed": true,
+      "scope": "One supplementary post-replay control. Nested plugin host.use is existing JavaScript runtime behavior, not a new PluginHost TypeScript signature claim."
+    },
+    "qualification": "Separate necessary post-replay compound control; not pooled with original22 or D1-D3."
+  },
+  "allSupplementaryGuards": true,
+  "sourceExpected": {
+    "src/shell/shell.ts": "538f7ea1504019fcde03abc2781c1f903573243a0332033b87501804a1c4ac5c",
+    "src/shell/runtime.ts": "2223ef9e02565d163ded042d933553a1efae502ce7531fe83bba5611d959c84b",
+    "src/shell/cleanup.ts": "134f55641d6437681cd185960a2923d68086096921758717c5b8059595304385",
+    "src/contracts/command.ts": "9c2f8ecf50def7250b01152a31a45c449109c3ae4d30878252cffe985c6e9df8",
+    "src/contracts/command.md": "8a5426b1e7a30a03dc62f74b28c6eb7bf9b008b78cb7b521eb7de0bc5c59a3f8",
+    "src/commands/grep.ts": "a5e93d8dd97c35f1a1530792b38478942647e6e66ac01fcd44fbea05fbfa78d1",
+    "src/commands/regex-execution/README.md": "914db79131dd4543e69746c73786df72e4f62055818e6cee17fd57eddcea4481",
+    "src/commands/regex-execution/client.ts": "1638d492d11d466875b98451a59bace4e60e71fcd5468d671182187549922bca",
+    "src/commands/search/rg.ts": "fee9a380679e17da179a1c6b4f9bacf9c89a10e0dd1d18981c26b9296f9846d3"
+  },
+  "currentSource": {
+    "src/shell/shell.ts": "538f7ea1504019fcde03abc2781c1f903573243a0332033b87501804a1c4ac5c",
+    "src/shell/runtime.ts": "2223ef9e02565d163ded042d933553a1efae502ce7531fe83bba5611d959c84b",
+    "src/shell/cleanup.ts": "134f55641d6437681cd185960a2923d68086096921758717c5b8059595304385",
+    "src/contracts/command.ts": "9c2f8ecf50def7250b01152a31a45c449109c3ae4d30878252cffe985c6e9df8",
+    "src/contracts/command.md": "8a5426b1e7a30a03dc62f74b28c6eb7bf9b008b78cb7b521eb7de0bc5c59a3f8",
+    "src/commands/grep.ts": "a5e93d8dd97c35f1a1530792b38478942647e6e66ac01fcd44fbea05fbfa78d1",
+    "src/commands/regex-execution/README.md": "914db79131dd4543e69746c73786df72e4f62055818e6cee17fd57eddcea4481",
+    "src/commands/regex-execution/client.ts": "1638d492d11d466875b98451a59bace4e60e71fcd5468d671182187549922bca",
+    "src/commands/search/rg.ts": "fee9a380679e17da179a1c6b4f9bacf9c89a10e0dd1d18981c26b9296f9846d3"
+  },
+  "sourceEndpointGuard": true,
+  "all20HistoricalFilesUnchanged": true,
+  "artifacts": {
+    "r1-source-preflight.json": "0ba573ff7fd2ee87aa7823fa208270a1c0c7cd45540677e91ee61e394981c8c9",
+    "r1-holdout.json": "eb978c7d4078b0b8f57d498321d6614bb63af0c6a457923bb3b97c9b973ae0ab",
+    "r1-holdout-scratch.json": "c0c0590699f45ef677e4a87877ee542fb33db840785082d9079c21eee6eac9f7",
+    "r1-disposal-replay.mjs": "6d286d69c00421812f4eb340e8323ef71c3c007ff5cfd9608de5c5fd8b8c1230",
+    "r1-disposal-data.json": "acfb71c7e2fede1b9eb6ea16c0d64faf7d0782f0f85f3c8848c5912c9bb14697",
+    "r1-disposal-scratch.json": "2fea67f0afa9fb4843139dc60a8f5257789b6749de37a5e699ac4a674cf45c58",
+    "r1-setup-isolation-control.mjs": "7f15261b026da8d09cff14504228662649428a8a6557f92c16e00347f80a1353",
+    "r1-isolation-replay.mjs": "4c97a2815803996a2471f779bb4cd874b28c4f4e9349621c61476c5148698a9d",
+    "r1-isolation-data.json": "f2b13548ab7f7ba9494407a9e7fc75836339c1c0df432924bad6020ec8582fed",
+    "r1-isolation-scratch.json": "646c889f3479b931c9a180cd359ca8c33d291c1f44f8861467fbe62de13bb9f4",
+    "R1-REVIEW.md": "3ecb8c498221e873d7697de15699fec7cf838811bf1faf8df9b7ee50b1c75688"
+  },
+  "cleanupReceipts": [
+    {
+      "at": "2026-08-27T08:23:04.552Z",
+      "archive": "/private/tmp/safe-bash-cleanup-holdout-4szMQh",
+      "evidencePath": "tests/shell-stress/invocation-cleanup-holdout/r1-holdout.json",
+      "evidenceSha256": "eb978c7d4078b0b8f57d498321d6614bb63af0c6a457923bb3b97c9b973ae0ab",
+      "removedAfterDurableProof": true,
+      "retainedOnForcedChildTermination": false,
+      "method": "Exact owned archive only; lstat recursion and unlink symlinks, never their tooling targets."
+    },
+    {
+      "at": "2026-08-27T08:23:35.500Z",
+      "proof": "tests/shell-stress/invocation-cleanup-holdout/r1-disposal-data.json",
+      "proofSha256": "acfb71c7e2fede1b9eb6ea16c0d64faf7d0782f0f85f3c8848c5912c9bb14697",
+      "cleanup": [
+        {
+          "archive": "/private/tmp/safe-bash-dispose-review-ygWfJK",
+          "removedAfterDurableProof": true,
+          "retainedOnForcedTermination": false
+        }
+      ],
+      "method": "Exact generated archives only; lstat/unlink does not traverse node_modules symlinks."
+    },
+    {
+      "at": "2026-08-27T08:25:37.458Z",
+      "proof": "tests/shell-stress/invocation-cleanup-holdout/r1-isolation-data.json",
+      "proofSha256": "f2b13548ab7f7ba9494407a9e7fc75836339c1c0df432924bad6020ec8582fed",
+      "cleanup": [
+        {
+          "archive": "/private/tmp/safe-bash-dispose-review-f7LLRH",
+          "removedAfterDurableProof": true,
+          "retainedOnForcedTermination": false
+        }
+      ],
+      "method": "Exact generated archives only; lstat/unlink does not traverse node_modules symlinks."
+    }
+  ],
+  "notRun": [
+    "author96casecohort",
+    "Archrealworkers/packed",
+    "globaltypes",
+    "oldfivefirstread",
+    "nativeBash",
+    "mutationexpansion"
+  ]
+}

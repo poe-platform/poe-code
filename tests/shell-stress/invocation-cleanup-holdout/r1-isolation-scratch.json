@@ -1,0 +1,13 @@
+{
+  "at": "2026-08-27T08:25:37.458Z",
+  "proof": "tests/shell-stress/invocation-cleanup-holdout/r1-isolation-data.json",
+  "proofSha256": "f2b13548ab7f7ba9494407a9e7fc75836339c1c0df432924bad6020ec8582fed",
+  "cleanup": [
+    {
+      "archive": "/private/tmp/safe-bash-dispose-review-f7LLRH",
+      "removedAfterDurableProof": true,
+      "retainedOnForcedTermination": false
+    }
+  ],
+  "method": "Exact generated archives only; lstat/unlink does not traverse node_modules symlinks."
+}

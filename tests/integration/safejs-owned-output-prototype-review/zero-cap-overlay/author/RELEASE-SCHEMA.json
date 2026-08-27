@@ -1,0 +1,26 @@
+{
+  "inertExampleNotAuthorization": true,
+  "rootAuthorized": false,
+  "rootAuthorization": "REQUIRES SEPARATE EXPLICIT ROOT RELEASE AFTER DIFFERENT REVIEW",
+  "authorFreezeCommit": "REQUIRED_EXACT_FUTURE_FREEZE_COMMIT",
+  "candidateManifestSha256": "a7333f1942956f73a0cf7d16a35685f23a81186df18d89e55fe07e5a94b32b4a",
+  "sourceManifestSha256": "2dc95c3abd7656de60d10a2f339a80d14d31ecc2b6d1a8f037769826cc8479f1",
+  "independentReviewCommit": "REQUIRED_DIFFERENT_VERIFIER_COMMIT",
+  "independentReviewPath": "REQUIRED_COMMITTED_JSON_RECEIPT_PATH",
+  "independentReceiptFields": {
+    "verdict": "ALLOW_REPLAY_OF_EXACT_FREEZE",
+    "authorFreezeCommit": "EXACT_FREEZE_COMMIT",
+    "candidateManifestSha256": "a7333f1942956f73a0cf7d16a35685f23a81186df18d89e55fe07e5a94b32b4a",
+    "sourceManifestSha256": "2dc95c3abd7656de60d10a2f339a80d14d31ecc2b6d1a8f037769826cc8479f1",
+    "reviewerIdentity": "DIFFERENT_REVIEWER_IDENTITY"
+  },
+  "allowedCohorts": [
+    "surface",
+    "lifecycle",
+    "controls"
+  ],
+  "candidateRoot": "/private/tmp/safe-bash-zero-overlay-author-2brs4bc_/candidate",
+  "packageRoot": "/private/tmp/safe-bash-zero-overlay-author-2brs4bc_/consumer/node_modules/virtual-bash",
+  "outputRoot": "/private/tmp/REQUIRES_FRESH_REVIEWER_OWNED_OUTPUT",
+  "noPromotion": true
+}

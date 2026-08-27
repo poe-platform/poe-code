@@ -1,0 +1,76 @@
+{
+  "acceptedCommit": "bb7f5972dd54df3ae9c05e745bfab1f1c38a0e29",
+  "acceptedIndependentReview": "32debb6a0e43e3ff4e27e43a09a3278b082da86a",
+  "acceptedBefore": {
+    "commit": "219790c55c0214e6d46524bbdced63c18c360f62",
+    "path": "src/commands/network/shared.ts",
+    "blob": "0eb39a0037af707b75193886432ebaf7fc71f6bd",
+    "bytes": 2606,
+    "sha256": "7adab18b67c7584b646b3a6508729d7ab0672e7a0808f512f74ae16464f8842f"
+  },
+  "acceptedAfter": {
+    "commit": "bb7f5972dd54df3ae9c05e745bfab1f1c38a0e29",
+    "path": "src/commands/network/shared.ts",
+    "blob": "7817a5c570ea8938353883a7253b620d8f06d6e1",
+    "bytes": 2690,
+    "sha256": "c397734b34fe7447f71e86f2911b96b9dcea9fdde92c3186ff0d9a688a670760"
+  },
+  "s1PreimageExactlyAcceptedPreimage": true,
+  "derivedPostimageExactlyAcceptedPostimage": true,
+  "productionWriteSet": [
+    "src/commands/network/shared.ts"
+  ],
+  "excludedAcceptedCommitPaths": [
+    "src/commands/network/README.md",
+    "tests/commands/network/zero-caps.test.ts"
+  ],
+  "sourceReadingBasis": [
+    {
+      "path": "src/commands/network/README.md",
+      "bytes": 10805,
+      "sha256": "41e75f9ae587e63a61344df06b0cb518eae1f1d5eab155fd5892026c8c1ccb0f"
+    },
+    {
+      "path": "src/commands/network/args.ts",
+      "bytes": 8573,
+      "sha256": "409dac8442c1151d4404d6ce05dd72ab35655aae80c9c0930743ff6af9ea1f4c"
+    },
+    {
+      "path": "src/commands/network/body.ts",
+      "bytes": 7380,
+      "sha256": "93d8a8463ac7df91c8ef88368f2ee8524a0abd7e7970badf4d1312587a34c880"
+    },
+    {
+      "path": "src/commands/network/curl.ts",
+      "bytes": 17720,
+      "sha256": "db06650b1b55b994fe5fa83f7489062e91ac83b7d2d9c44bbb7606d57d9df057"
+    },
+    {
+      "path": "src/commands/network/output.ts",
+      "bytes": 3730,
+      "sha256": "544488561b8ad360c7d41eeec7928659f3a94acd16f196af93ed3349c6a70bab"
+    },
+    {
+      "path": "src/commands/network/shared.ts",
+      "bytes": 2606,
+      "sha256": "7adab18b67c7584b646b3a6508729d7ab0672e7a0808f512f74ae16464f8842f"
+    },
+    {
+      "path": "src/commands/network/types.ts",
+      "bytes": 1918,
+      "sha256": "be7a2770efdf42e90ca9eb41e37115b28607aeaf99ce95865d44b3625d20aa19"
+    },
+    {
+      "path": "src/contracts/command.md",
+      "bytes": 8066,
+      "sha256": "8a5426b1e7a30a03dc62f74b28c6eb7bf9b008b78cb7b521eb7de0bc5c59a3f8"
+    },
+    {
+      "path": "src/contracts/output.ts",
+      "bytes": 4166,
+      "sha256": "483fb9c7be06ff45de0120f60f5b5ebfe977c2323236353485f2adca5b6e28d0"
+    }
+  ],
+  "noAdditionalProductionPathNecessary": true,
+  "publicRuntimeAcceptance": false
+}

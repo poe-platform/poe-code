@@ -1,0 +1,32 @@
+--- approved-v2/lifecycle/profile.mjs
++++ zero-overlay/lifecycle/profile.mjs
+@@ -49,7 +49,7 @@
+   assert.equal(revision.signedPhase2, phase2);
+   assert.equal(revision.noPromotion, true);
+   assert.deepEqual(revision.cohort, { rows: 11, workflows: 6, unchangedControls: 8, revisedBindings: 3 });
+-  assert.equal(read(join(directory, "CASES.json")), originalCasesText.replace('"maxRedirects": 0', '"maxRedirects": 1').replace('"maxRetries": 0', '"maxRetries": 1'));
++  assert.equal(read(join(directory, "CASES.json")), originalCasesText);
+   assert.deepEqual(cases.rows, originalCases.rows);
+   assert.equal(cases.rows.length, 11);
+   assert.deepEqual(cases.defaultSafeJsLimits, originalCases.defaultSafeJsLimits);
+@@ -69,8 +69,9 @@
+   assert.equal(Buffer.byteLength(selector.selectorDiagnostic), 37);
+   assert.deepEqual(selector.expectedDiagnosticAttempts, ["safejs: execution:L05-execution-error\n", "shell: line 1: execution:L05-execution-error\n", "shell: line 1: cleanup:L05-execution-error\n", selector.selectorDiagnostic]);
+   const proposedCurl = proposed.proposals.find(entry => entry.proposalId === "L06-C1");
+-  assert.deepEqual(cases.curlInputs.limits, proposedCurl.constructor.limits);
+-  assert.deepEqual(revisedIds.slice(1).map(id => revision.variants[id].variantId), proposedCurl.futureVariantIds);
++  assert.deepEqual(cases.curlInputs.limits, { ...proposedCurl.constructor.limits, maxRedirects: 0, maxRetries: 0 });
++  assert.deepEqual(proposedCurl.futureVariantIds, ["L06-C1-curl-open", "L06-C1-curl-consumer-closed"]);
++  assert.deepEqual(revisedIds.slice(1).map(id => revision.variants[id].variantId), ["L06-Z0-curl-open", "L06-Z0-curl-consumer-closed"]);
+   for (const id of revisedIds.slice(1)) assert.equal(revision.variants[id].publicSource, cases.commonInputs.publicShellCommand);
+   assert.deepEqual(cases.rows.find(row => row.id === "L06-curl-open").expect, proposedCurl.unchangedExpectations.open);
+   assert.deepEqual(cases.rows.find(row => row.id === "L06-curl-consumer-closed").expect, proposedCurl.unchangedExpectations.closed);
+@@ -95,7 +96,7 @@
+   const guests = [...new Set(cases.rows.map(row => row.guest))].map(path => ({ path, ...record(join(repository, owner, path)) }));
+   return { originalEvidence, originalRunner, originalProposal, originalFiles: originalFiles.length, originalInventorySha256: sha(JSON.stringify(originalFiles)),
+     proposalFiles: proposalFiles.length, proposalInventorySha256: sha(JSON.stringify(proposalFiles)), signed, unchangedControls,
+-    allElevenOriginalRowObjectsAndExpectationsIdentical: true, onlyCasesByteDelta: ["maxRedirects: 0 -> 1", "maxRetries: 0 -> 1"],
++    allElevenOriginalRowObjectsAndExpectationsIdentical: true, onlyCasesByteDelta: ["versus approved v2: maxRedirects 1 -> 0", "versus approved v2: maxRetries 1 -> 0"], originalZeroCasesBytesRestored: true,
+     originalSections, guests, rowBranchIdsUnchanged: true, errorConstructionUnchanged: child.includes('const executionError = new Error(`execution:${row.id}`);\nconst cleanupError = new Error(`cleanup:${row.id}`);'),
+     revisionSha256: record(join(directory, "REVISION.json")).sha256, casesSha256: record(join(directory, "CASES.json")).sha256,
+     runtimeOrPrivateExecutionDuringThisVerification: false, noPromotion: true };

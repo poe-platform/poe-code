@@ -1,0 +1,125 @@
+--- approved-v2/surface/run.mjs
++++ zero-overlay/surface/run.mjs
+@@ -5,8 +5,11 @@
+ import { dirname, join, relative, resolve } from "node:path";
+ import { fileURLToPath } from "node:url";
+ 
++import { candidate, directoryShape, releaseFor, verifyCandidate, verifyFrozen } from "../admission.mjs";
++const admission = releaseFor("surface");
++const overlay = verifyCandidate(admission);
+ const owned = dirname(fileURLToPath(import.meta.url));
+-const surface = dirname(owned);
++const surface = "/Users/kjopek/Workspace/safe-bash/tests/integration/safejs-owned-output-prototype-review/surface";
+ const repository = resolve(surface, "../../../..");
+ const privateRoot = "/Users/kjopek/Workspace/poe-code";
+ const environment = { PATH: "/usr/bin:/bin", LC_ALL: "C", GIT_OPTIONAL_LOCKS: "0" };
+@@ -70,7 +73,8 @@
+   return state;
+ }
+ 
+-const task = mkdtempSync("/private/tmp/safe-bash-owned-output-surface-execution-v2-");
++mkdirSync(admission.outputRoot, { recursive: true });
++const task = mkdtempSync(join(admission.outputRoot, "surface-zero-overlay-"));
+ const results = join(task, "results");
+ mkdirSync(results);
+ const journal = { task, started: new Date().toISOString(), status: "PREPARING", children: [], cases: [], copyProvenance: [], failures: [], release: null };
+@@ -80,6 +84,7 @@
+ };
+ let before;
+ let inputBaseline;
++let shapes;
+ let sharedBaseline;
+ let inputRoots;
+ let sharedRoots;
+@@ -224,15 +229,11 @@
+   assert.equal(process.cwd(), repository);
+   assert.equal(process.env.NODE_OPTIONS ?? "", "");
+   const release = JSON.parse(regular(join(owned, "RELEASE.json")));
+-  journal.release = release;
+-  const frozenRunner = JSON.parse(regular(join(owned, "RUNNER-FREEZE.json")));
+-  for (const entry of frozenRunner.files) assert.equal(hash(regular(join(owned, entry.path))), entry.sha256, entry.path);
+-  const runnerCommit = git(repository, "log", "-1", "--format=%H", "--", relative(repository, join(owned, "RUNNER-FREEZE.json"))).trim();
+-  assert.ok(runnerCommit, "Runner must be committed before execution");
+-  for (const entry of [...frozenRunner.files, { path: "RUNNER-FREEZE.json", sha256: hash(regular(join(owned, "RUNNER-FREEZE.json"))) }]) {
+-    assert.equal(hash(gitBytes(runnerCommit, relative(repository, join(owned, entry.path)))), entry.sha256);
+-  }
++  journal.historicalRelease = release;
++  const runnerCommit = verifyFrozen();
+   journal.runnerCommit = runnerCommit;
++  journal.rootAdmission = admission;
++  journal.candidateIdentity = candidate.candidateManifestSha256;
+   for (const entry of release.receipts) {
+     const bytes = gitBytes(entry.commit, entry.path);
+     assert.equal(hash(bytes), entry.sha256);
+@@ -252,8 +253,10 @@
+     assert.equal(hash(bytes), entry.sha256);
+     provenance.set(entry.name, JSON.parse(bytes));
+   }
+-  candidateEntries = provenance.get("assembly.json").candidateFiles;
+-  consumerEntries = provenance.get("build-proof.json").consumerFiles;
++  assert.deepEqual(provenance.get("assembly.json").candidateFiles, overlay.parent);
++  candidateEntries = overlay.entries;
++  assert.equal(hash(JSON.stringify(provenance.get("build-proof.json").consumerFiles)), "4a81b133665b238545f2111bf349250329e874917691235be67d703056a4f018");
++  consumerEntries = overlay.packageEntries;
+   assert.equal(hash(gitBytes(pins.candidate.evidenceCommit, pins.candidate.archive.path)), pins.candidate.archive.sha256);
+   before = privateSnapshot();
+   put(join(results, "private-before.json"), before);
+@@ -265,20 +268,24 @@
+   const shared = pins.preparedRoot;
+   sharedRoots = [join(shared, "candidate"), join(shared, "consumer/node_modules/virtual-bash"), join(shared, "engine"), join(shared, "node_modules"),
+     "/private/tmp/safe-bash-owned-output-receipt-review-zqBitE/source-route", "/private/tmp/safe-bash-owned-output-receipt-review-zqBitE/packaged-route"];
++  const originalRoutes = sharedRoots.slice(-2);
++  sharedRoots.push(overlay.root, overlay.packageRoot);
+   sharedBaseline = allInputs(sharedRoots);
+-  for (const root of sharedRoots.slice(-2)) assert.deepEqual(bytesOnly(sharedBaseline[root]), candidateEntries);
++  for (const root of originalRoutes) assert.deepEqual(bytesOnly(sharedBaseline[root]), overlay.parent);
+   assert.deepEqual(bytesOnly(inventory(join(shared, "engine"))), bytesOnly(before.engine));
+-  copyTree(join(shared, "candidate"), join(task, "candidate"), candidateEntries);
+-  copyTree(join(shared, "consumer/node_modules/virtual-bash"), join(task, "consumer/node_modules/virtual-bash"), consumerEntries);
+-  copyTree(join(privateRoot, "packages/safejs"), join(task, "engine"), bytesOnly(before.engine), new Set(before.qualification.exclusions));
++  copyTree(overlay.root, join(task, "candidate"), candidateEntries);
++  copyTree(overlay.packageRoot, join(task, "consumer/node_modules/virtual-bash"), consumerEntries);
++  copyTree(join(shared, "engine"), join(task, "engine"), bytesOnly(before.engine));
+   for (const tool of provenance.get("assembly.json").tooling) copyTree(join(shared, "node_modules", tool.name), join(task, "node_modules", tool.name), tool.files);
+   const loader = regular(join(shared, "loader.mjs"));
+   assert.equal(hash(loader), pins.tooling.loader.sha256);
+   put(join(task, "loader.mjs"), loader);
+   put(join(task, "consumer/child.mjs"), regular(join(owned, "child.mjs")));
+-  for (const filename of ["CASES.json", "PINS.json", ...cohort.cases.map(entry => entry.source.path)]) put(join(task, "inputs", filename), regular(join(filename === "CASES.json" || filename === "PINS.json" ? owned : surface, filename)));
++  for (const filename of ["CASES.json", "PINS.json", ...cohort.cases.map(entry => entry.source.path)]) put(join(task, "inputs", filename), regular(join(owned, filename)));
+   inputRoots = [join(task, "candidate"), join(task, "consumer"), join(task, "engine"), join(task, "node_modules"), join(task, "inputs")];
+   inputBaseline = allInputs(inputRoots);
++  shapes = directoryShape([...inputRoots, ...sharedRoots]);
++  put(join(results, "directory-shape-before.json"), shapes);
+   put(join(results, "copy-provenance.json"), journal.copyProvenance);
+   put(join(results, "inputs-before.json"), inputBaseline);
+   const expectedImports = new Map();
+@@ -297,7 +304,7 @@
+     if (identityFindings.length || fieldFindings.length || actual?.engine?.returnValue?.exposurePath) {
+       const finding = { at: new Date().toISOString(), id: selected.id, runnerCommit, source: actual.source, runtimeIdentity: actual.runtimeIdentity, hostPremise: actual.premise, identityFindings, fieldFindings, returned: actual.engine?.returnValue, action: "STOP: finite facts only; no unplanned callback" };
+       put(join(results, "finding.json"), finding);
+-      put("/private/tmp/safe-bash-owned-output-surface-finding.txt", JSON.stringify(finding, null, 2) + "\n");
++      put(join(task, "ROOT-FINDING.json"), JSON.stringify(finding, null, 2) + "\n");
+       console.log("ROOT FINDING " + JSON.stringify(finding));
+       journal.finding = finding;
+       const exactHost = identityFindings.some(entry => entry.path === "stdio.write.registerCleanup"
+@@ -306,7 +313,7 @@
+         || actual.engine?.returnValue?.exposurePath === "stdio.write.registerCleanup" && actual.engine?.returnValue?.type === "function";
+       if (exactHost && exactGuest) {
+         journal.conditionalPremise = { exactHost, exactGuest, findingPublishedBeforeEffect: true };
+-        await childCase(cohort.cases.find(entry => entry.id === "09-conditional-finite-marker"), journal.cohortDeadline, expectedImports);
++        journal.conditionalBlocked = "Dormant original09 data preserved; this release freezes exactly eight surface profiles. Stop and route finding to ROOT; no ninth child authorized.";
+       }
+       break;
+     }
+@@ -324,7 +331,10 @@
+     if (before) assert.deepEqual(comparablePrivate(after), comparablePrivate(before), "Private state changed; never restore it");
+   } catch (error) { journal.failures.push({ phase: "private-after", error: String(error) }); }
+   try {
++    verifyFrozen(); verifyCandidate(admission);
+     if (inputBaseline) {
++      const afterShapes = directoryShape([...inputRoots, ...sharedRoots]);
++      put(join(results, "directory-shape-after.json"), afterShapes); assert.deepEqual(afterShapes, shapes);
+       const after = allInputs(inputRoots);
+       put(join(results, "inputs-after.json"), after);
+       assert.deepEqual(after, inputBaseline, "Owned input bytes/metadata/new entries changed");

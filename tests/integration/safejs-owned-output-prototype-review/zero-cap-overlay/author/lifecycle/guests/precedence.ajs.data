@@ -1,0 +1,5 @@
+import * as stdio from "stdio";
+const emit = stdio.write;
+await emit("admitted\n");
+await Promise.resolve().then(() => emit("selected\n"));
+return "precedence-complete";

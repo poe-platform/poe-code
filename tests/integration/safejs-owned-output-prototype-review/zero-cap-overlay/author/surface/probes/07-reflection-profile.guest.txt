@@ -1,0 +1,15 @@
+import * as stdio from "stdio";
+const copied = Object.assign({}, stdio);
+return {
+  reflect: typeof Reflect,
+  getOwnPropertyDescriptor: typeof Object.getOwnPropertyDescriptor,
+  getOwnPropertyDescriptors: typeof Object.getOwnPropertyDescriptors,
+  getOwnPropertyNames: typeof Object.getOwnPropertyNames,
+  getOwnPropertySymbols: typeof Object.getOwnPropertySymbols,
+  getPrototypeOf: typeof Object.getPrototypeOf,
+  keys: Object.keys(stdio).sort(),
+  entries: Object.entries(stdio).map(entry => [entry[0], typeof entry[1]]).sort(),
+  ownsWrite: Object.hasOwn(stdio, "write"),
+  copiedWrite: typeof copied.write,
+  sameWrite: Object.is(copied.write, stdio.write)
+};

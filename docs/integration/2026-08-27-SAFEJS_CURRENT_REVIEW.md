@@ -202,3 +202,36 @@ engine hash and packed tarball hash. Final raw evidence, not partial attempts,
 is the current checkpoint. No expected value was tuned; no skip or defect
 characterization is promoted to guest success. Broad integration, proposal
 approval, superiority and the72-hour goal remain unproven.
+
+## Public-boundary follow-up — August 27, 2026 04:51 UTC
+
+The preceding investigation is preserved as its original snapshot. Its four
+raw-engine blocker categories are **not four mandatory product defects**.
+The subsequent [public-built-package review](../../tests/integration/safejs-current-20260827/public-boundary/REPORT.md)
+separates supported command/FS/shell boundaries from raw engine and unapproved
+proposal behavior, using the same actual engine `bb23ec2` in isolated copies.
+
+The unchanged26 public cases originally had two failures from one product cause:
+literal own `command.env.__proto__` data was lost. Source `866a6a5` uses a
+prototype-free environment dictionary; the packed cases now pass26/26, repeated
+at `034a5f0`, with no skipped cases. All six strict-child public cancellation
+routes already passed before that fix. Command reason identity is preserved;
+direct bridges intentionally sanitize AbortError, while raw engine invocation
+around those bridges does not promise original Error identity. Budget/capability
+cases do not establish another supported-boundary failure.
+
+Separate test-only `034a5f0` refreshes exactly eight current-engine constructor/
+static/thrown-Error assertions, with originals and justification retained.
+Final conventional116/116 includes two raw defect characterizations, not116
+guest successes; existing bridges28/28 is also a mixed cohort. Original desired
+cases are8/9, separate raw action-abort0/1, proposal invariants2/9 and proposed
+reason profile0/18. The no-engine62 skips remain non-acceptance. None of these
+cohorts is silently merged or used to approve the upstream proposal.
+
+The fixed/repeated package tarball hashes match. Product builds pass; paired
+strict consumer checks introduce zero diagnostics over111 baseline, while the
+isolated engine still has eight workspace-prerequisite diagnostics. Private
+state and engine hashes remain unchanged and execution trees are removed.
+The linked report and machine-readable evidence give exact revisions, timestamps,
+classifications and bounded upstream requirements. A different reviewer must
+verify the public fix and test-only delta; no broad integration closure is claimed.

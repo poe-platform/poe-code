@@ -1,0 +1,1933 @@
+{
+  "typescript": "5.9.3",
+  "baseline": {
+    "inputs": [
+      "node_modules/typescript/lib/lib.es5.d.ts",
+      "node_modules/typescript/lib/lib.es2015.d.ts",
+      "node_modules/typescript/lib/lib.es2016.d.ts",
+      "node_modules/typescript/lib/lib.es2017.d.ts",
+      "node_modules/typescript/lib/lib.es2018.d.ts",
+      "node_modules/typescript/lib/lib.es2019.d.ts",
+      "node_modules/typescript/lib/lib.es2020.d.ts",
+      "node_modules/typescript/lib/lib.es2021.d.ts",
+      "node_modules/typescript/lib/lib.es2022.d.ts",
+      "node_modules/typescript/lib/lib.es2023.d.ts",
+      "node_modules/typescript/lib/lib.dom.d.ts",
+      "node_modules/typescript/lib/lib.dom.iterable.d.ts",
+      "node_modules/typescript/lib/lib.dom.asynciterable.d.ts",
+      "node_modules/typescript/lib/lib.webworker.importscripts.d.ts",
+      "node_modules/typescript/lib/lib.scripthost.d.ts",
+      "node_modules/typescript/lib/lib.es2015.core.d.ts",
+      "node_modules/typescript/lib/lib.es2015.collection.d.ts",
+      "node_modules/typescript/lib/lib.es2015.generator.d.ts",
+      "node_modules/typescript/lib/lib.es2015.iterable.d.ts",
+      "node_modules/typescript/lib/lib.es2015.promise.d.ts",
+      "node_modules/typescript/lib/lib.es2015.proxy.d.ts",
+      "node_modules/typescript/lib/lib.es2015.reflect.d.ts",
+      "node_modules/typescript/lib/lib.es2015.symbol.d.ts",
+      "node_modules/typescript/lib/lib.es2015.symbol.wellknown.d.ts",
+      "node_modules/typescript/lib/lib.es2016.array.include.d.ts",
+      "node_modules/typescript/lib/lib.es2016.intl.d.ts",
+      "node_modules/typescript/lib/lib.es2017.arraybuffer.d.ts",
+      "node_modules/typescript/lib/lib.es2017.date.d.ts",
+      "node_modules/typescript/lib/lib.es2017.object.d.ts",
+      "node_modules/typescript/lib/lib.es2017.sharedmemory.d.ts",
+      "node_modules/typescript/lib/lib.es2017.string.d.ts",
+      "node_modules/typescript/lib/lib.es2017.intl.d.ts",
+      "node_modules/typescript/lib/lib.es2017.typedarrays.d.ts",
+      "node_modules/typescript/lib/lib.es2018.asyncgenerator.d.ts",
+      "node_modules/typescript/lib/lib.es2018.asynciterable.d.ts",
+      "node_modules/typescript/lib/lib.es2018.intl.d.ts",
+      "node_modules/typescript/lib/lib.es2018.promise.d.ts",
+      "node_modules/typescript/lib/lib.es2018.regexp.d.ts",
+      "node_modules/typescript/lib/lib.es2019.array.d.ts",
+      "node_modules/typescript/lib/lib.es2019.object.d.ts",
+      "node_modules/typescript/lib/lib.es2019.string.d.ts",
+      "node_modules/typescript/lib/lib.es2019.symbol.d.ts",
+      "node_modules/typescript/lib/lib.es2019.intl.d.ts",
+      "node_modules/typescript/lib/lib.es2020.bigint.d.ts",
+      "node_modules/typescript/lib/lib.es2020.date.d.ts",
+      "node_modules/typescript/lib/lib.es2020.promise.d.ts",
+      "node_modules/typescript/lib/lib.es2020.sharedmemory.d.ts",
+      "node_modules/typescript/lib/lib.es2020.string.d.ts",
+      "node_modules/typescript/lib/lib.es2020.symbol.wellknown.d.ts",
+      "node_modules/typescript/lib/lib.es2020.intl.d.ts",
+      "node_modules/typescript/lib/lib.es2020.number.d.ts",
+      "node_modules/typescript/lib/lib.es2021.promise.d.ts",
+      "node_modules/typescript/lib/lib.es2021.string.d.ts",
+      "node_modules/typescript/lib/lib.es2021.weakref.d.ts",
+      "node_modules/typescript/lib/lib.es2021.intl.d.ts",
+      "node_modules/typescript/lib/lib.es2022.array.d.ts",
+      "node_modules/typescript/lib/lib.es2022.error.d.ts",
+      "node_modules/typescript/lib/lib.es2022.intl.d.ts",
+      "node_modules/typescript/lib/lib.es2022.object.d.ts",
+      "node_modules/typescript/lib/lib.es2022.string.d.ts",
+      "node_modules/typescript/lib/lib.es2022.regexp.d.ts",
+      "node_modules/typescript/lib/lib.es2023.array.d.ts",
+      "node_modules/typescript/lib/lib.es2023.collection.d.ts",
+      "node_modules/typescript/lib/lib.es2023.intl.d.ts",
+      "node_modules/typescript/lib/lib.decorators.d.ts",
+      "node_modules/typescript/lib/lib.decorators.legacy.d.ts",
+      "node_modules/typescript/lib/lib.es2023.full.d.ts",
+      "consumer/packages/safejs/src/parse/tokenizer.ts",
+      "consumer/packages/safejs/src/parse/assign-ids.ts",
+      "consumer/packages/safejs/src/error/shape.ts",
+      "consumer/packages/safejs/src/parse/format-error.ts",
+      "consumer/packages/safejs/src/parse/parse-export.ts",
+      "consumer/packages/safejs/src/parse/parse-import-meta.ts",
+      "consumer/packages/safejs/src/interp/regex/parse.ts",
+      "consumer/packages/safejs/src/parse/parser.ts",
+      "consumer/packages/safejs/src/parse/hash.ts",
+      "consumer/packages/safejs/src/observability/otel.ts",
+      "consumer/packages/safejs/src/interp/budget.ts",
+      "consumer/packages/safejs/src/interp/running-state.ts",
+      "consumer/packages/safejs/src/interp/generator.ts",
+      "consumer/packages/safejs/src/interp/promise-tracker.ts",
+      "consumer/packages/safejs/src/interp/arguments.ts",
+      "consumer/packages/safejs/src/graph-depth.ts",
+      "consumer/packages/safejs/src/snapshot/arguments.ts",
+      "consumer/packages/safejs/src/snapshot/dump-format.ts",
+      "consumer/packages/safejs/src/snapshot/validation.ts",
+      "consumer/packages/safejs/src/interp/promise-replay.ts",
+      "consumer/packages/safejs/src/snapshot/replay-data.ts",
+      "consumer/packages/safejs/src/snapshot/policy.ts",
+      "consumer/packages/safejs/src/interp/host-call.ts",
+      "consumer/packages/safejs/src/interp/values.ts",
+      "consumer/packages/safejs/src/interp/globals/math.ts",
+      "consumer/packages/safejs/src/restore.ts",
+      "consumer/packages/safejs/src/random.ts",
+      "consumer/packages/safejs/src/parse.ts",
+      "consumer/packages/safejs/src/interp/jobs.ts",
+      "consumer/packages/safejs/src/interp/patterns.ts",
+      "consumer/packages/safejs/src/interp/var-hoist.ts",
+      "consumer/packages/safejs/src/interp/async.ts",
+      "consumer/packages/safejs/src/interp/methods/array.ts",
+      "consumer/packages/safejs/src/interp/methods/function.ts",
+      "consumer/packages/safejs/src/interp/methods/map.ts",
+      "consumer/packages/safejs/src/interp/methods/number.ts",
+      "consumer/packages/safejs/src/interp/iteration.ts",
+      "consumer/packages/safejs/src/interp/methods/generator.ts",
+      "consumer/packages/safejs/src/interp/regex/engine.ts",
+      "consumer/packages/safejs/src/interp/methods/regex.ts",
+      "consumer/packages/safejs/src/interp/methods/string.ts",
+      "consumer/packages/safejs/src/interp/methods/set.ts",
+      "consumer/packages/safejs/src/interp/globals/error.ts",
+      "consumer/packages/safejs/src/interp/globals/collections.ts",
+      "consumer/packages/safejs/src/interp/interpreter.ts",
+      "consumer/packages/safejs/src/interp/scope.ts",
+      "consumer/packages/safejs/src/interp/exceptions.ts",
+      "consumer/packages/safejs/src/interp/promise.ts",
+      "consumer/packages/safejs/src/interp/cancel.ts",
+      "consumer/packages/safejs/src/snapshot/dump.ts",
+      "consumer/packages/safejs/src/interp/host-bridge.ts",
+      "consumer/packages/safejs/src/interp/globals/console-json.ts",
+      "consumer/packages/safejs/src/interp/globals/regex.ts",
+      "consumer/packages/safejs/src/interp/globals/misc.ts",
+      "consumer/packages/safejs/src/interp/globals/object-array.ts",
+      "consumer/packages/safejs/src/modules/registry.ts",
+      "consumer/packages/safejs/src/error-codes.ts",
+      "consumer/packages/safejs/src/snapshot/backend.ts",
+      "consumer/packages/safejs/src/snapshot/scheduler.ts",
+      "consumer/packages/safejs/src/snapshot/serialize.ts",
+      "consumer/packages/safejs/src/snapshot/replay-inputs.ts",
+      "consumer/packages/safejs/src/run.ts",
+      "consumer/packages/safejs/src/modules/canonical-path.ts",
+      "consumer/packages/safejs/src/modules/fs.ts",
+      "consumer/node_modules/virtual-bash/dist/contracts/io.d.ts",
+      "consumer/node_modules/virtual-bash/dist/contracts/filesystem.d.ts",
+      "consumer/node_modules/virtual-bash/dist/contracts/command.d.ts",
+      "consumer/node_modules/virtual-bash/dist/contracts/errors.d.ts",
+      "consumer/node_modules/virtual-bash/dist/contracts/path.d.ts",
+      "consumer/node_modules/virtual-bash/dist/contracts/plugin.d.ts",
+      "consumer/node_modules/virtual-bash/dist/contracts/index.d.ts",
+      "consumer/node_modules/virtual-bash/dist/commands/text-programs/shared.d.ts",
+      "consumer/node_modules/virtual-bash/dist/commands/text-programs/index.d.ts",
+      "consumer/node_modules/virtual-bash/dist/commands/structured/numbers.d.ts",
+      "consumer/node_modules/virtual-bash/dist/commands/structured/limits.d.ts",
+      "consumer/node_modules/virtual-bash/dist/commands/structured/index.d.ts",
+      "consumer/node_modules/virtual-bash/dist/commands/search/options.d.ts",
+      "consumer/node_modules/virtual-bash/dist/commands/search/index.d.ts",
+      "consumer/node_modules/virtual-bash/dist/commands/diff-patch/shared.d.ts",
+      "consumer/node_modules/virtual-bash/dist/commands/diff-patch/index.d.ts",
+      "consumer/node_modules/virtual-bash/dist/commands/metadata/internal.d.ts",
+      "consumer/node_modules/virtual-bash/dist/commands/metadata/index.d.ts",
+      "consumer/node_modules/virtual-bash/dist/commands/archive/internal.d.ts",
+      "consumer/node_modules/virtual-bash/dist/commands/archive/index.d.ts",
+      "consumer/node_modules/virtual-bash/dist/commands/table-text/internal.d.ts",
+      "consumer/node_modules/virtual-bash/dist/commands/table-text/index.d.ts",
+      "consumer/node_modules/virtual-bash/dist/plugins/index.d.ts",
+      "consumer/node_modules/virtual-bash/dist/shell/types.d.ts",
+      "consumer/node_modules/virtual-bash/dist/shell/shell.d.ts",
+      "consumer/node_modules/virtual-bash/dist/shell/arithmetic.d.ts",
+      "consumer/node_modules/virtual-bash/dist/shell/parser.d.ts",
+      "consumer/node_modules/virtual-bash/dist/shell/index.d.ts",
+      "consumer/node_modules/virtual-bash/dist/commands/index.d.ts",
+      "consumer/node_modules/virtual-bash/dist/commands/bytes/index.d.ts",
+      "consumer/node_modules/virtual-bash/dist/integrations/safejs/filesystem.d.ts",
+      "consumer/node_modules/virtual-bash/dist/integrations/safejs/shell.d.ts",
+      "consumer/node_modules/virtual-bash/dist/integrations/safejs/index.d.ts",
+      "consumer/node_modules/virtual-bash/dist/commands/safejs/types.d.ts",
+      "consumer/node_modules/virtual-bash/dist/commands/safejs/options.d.ts",
+      "consumer/node_modules/virtual-bash/dist/commands/safejs/index.d.ts",
+      "consumer/node_modules/virtual-bash/dist/commands/network/types.d.ts",
+      "consumer/node_modules/virtual-bash/dist/commands/network/transport.d.ts",
+      "consumer/node_modules/virtual-bash/dist/commands/network/curl.d.ts",
+      "consumer/node_modules/virtual-bash/dist/commands/network/index.d.ts",
+      "consumer/node_modules/virtual-bash/dist/fs/memory/index.d.ts",
+      "consumer/node_modules/virtual-bash/dist/fs/real/index.d.ts",
+      "consumer/node_modules/virtual-bash/dist/fs/s3/transport.d.ts",
+      "consumer/node_modules/virtual-bash/dist/fs/s3/filesystem.d.ts",
+      "consumer/node_modules/virtual-bash/dist/fs/s3/mock.d.ts",
+      "consumer/node_modules/virtual-bash/dist/fs/s3/index.d.ts",
+      "consumer/node_modules/virtual-bash/dist/fs/s3/http/types.d.ts",
+      "consumer/node_modules/virtual-bash/dist/fs/s3/http/transport.d.ts",
+      "consumer/node_modules/virtual-bash/dist/fs/s3/http/index.d.ts",
+      "consumer/node_modules/virtual-bash/dist/fs/webdav/webdav.d.ts",
+      "consumer/node_modules/virtual-bash/dist/fs/webdav/index.d.ts",
+      "consumer/node_modules/virtual-bash/dist/fs/readonly/index.d.ts",
+      "consumer/node_modules/virtual-bash/dist/fs/mount/index.d.ts",
+      "consumer/node_modules/virtual-bash/dist/fs/overlay/index.d.ts",
+      "consumer/node_modules/virtual-bash/dist/index.d.ts",
+      "consumer/baseline-types.ts",
+      "node_modules/@types/node/compatibility/disposable.d.ts",
+      "node_modules/@types/node/compatibility/indexable.d.ts",
+      "node_modules/@types/node/compatibility/iterators.d.ts",
+      "node_modules/@types/node/compatibility/index.d.ts",
+      "node_modules/@types/node/globals.typedarray.d.ts",
+      "node_modules/@types/node/buffer.buffer.d.ts",
+      "node_modules/@types/node/globals.d.ts",
+      "node_modules/@types/node/web-globals/abortcontroller.d.ts",
+      "node_modules/@types/node/web-globals/domexception.d.ts",
+      "node_modules/@types/node/web-globals/events.d.ts",
+      "node_modules/undici-types/header.d.ts",
+      "node_modules/undici-types/readable.d.ts",
+      "node_modules/undici-types/file.d.ts",
+      "node_modules/undici-types/fetch.d.ts",
+      "node_modules/undici-types/formdata.d.ts",
+      "node_modules/undici-types/connector.d.ts",
+      "node_modules/undici-types/client.d.ts",
+      "node_modules/undici-types/errors.d.ts",
+      "node_modules/undici-types/dispatcher.d.ts",
+      "node_modules/undici-types/global-dispatcher.d.ts",
+      "node_modules/undici-types/global-origin.d.ts",
+      "node_modules/undici-types/pool-stats.d.ts",
+      "node_modules/undici-types/pool.d.ts",
+      "node_modules/undici-types/handlers.d.ts",
+      "node_modules/undici-types/balanced-pool.d.ts",
+      "node_modules/undici-types/agent.d.ts",
+      "node_modules/undici-types/mock-interceptor.d.ts",
+      "node_modules/undici-types/mock-agent.d.ts",
+      "node_modules/undici-types/mock-client.d.ts",
+      "node_modules/undici-types/mock-pool.d.ts",
+      "node_modules/undici-types/mock-errors.d.ts",
+      "node_modules/undici-types/proxy-agent.d.ts",
+      "node_modules/undici-types/env-http-proxy-agent.d.ts",
+      "node_modules/undici-types/retry-handler.d.ts",
+      "node_modules/undici-types/retry-agent.d.ts",
+      "node_modules/undici-types/api.d.ts",
+      "node_modules/undici-types/interceptors.d.ts",
+      "node_modules/undici-types/util.d.ts",
+      "node_modules/undici-types/cookies.d.ts",
+      "node_modules/undici-types/patch.d.ts",
+      "node_modules/undici-types/websocket.d.ts",
+      "node_modules/undici-types/eventsource.d.ts",
+      "node_modules/undici-types/filereader.d.ts",
+      "node_modules/undici-types/diagnostics-channel.d.ts",
+      "node_modules/undici-types/content-type.d.ts",
+      "node_modules/undici-types/cache.d.ts",
+      "node_modules/undici-types/index.d.ts",
+      "node_modules/@types/node/web-globals/fetch.d.ts",
+      "node_modules/@types/node/web-globals/navigator.d.ts",
+      "node_modules/@types/node/web-globals/storage.d.ts",
+      "node_modules/@types/node/web-globals/streams.d.ts",
+      "node_modules/@types/node/assert.d.ts",
+      "node_modules/@types/node/assert/strict.d.ts",
+      "node_modules/@types/node/async_hooks.d.ts",
+      "node_modules/@types/node/buffer.d.ts",
+      "node_modules/@types/node/child_process.d.ts",
+      "node_modules/@types/node/cluster.d.ts",
+      "node_modules/@types/node/console.d.ts",
+      "node_modules/@types/node/constants.d.ts",
+      "node_modules/@types/node/crypto.d.ts",
+      "node_modules/@types/node/dgram.d.ts",
+      "node_modules/@types/node/diagnostics_channel.d.ts",
+      "node_modules/@types/node/dns.d.ts",
+      "node_modules/@types/node/dns/promises.d.ts",
+      "node_modules/@types/node/domain.d.ts",
+      "node_modules/@types/node/events.d.ts",
+      "node_modules/@types/node/fs.d.ts",
+      "node_modules/@types/node/fs/promises.d.ts",
+      "node_modules/@types/node/http.d.ts",
+      "node_modules/@types/node/http2.d.ts",
+      "node_modules/@types/node/https.d.ts",
+      "node_modules/@types/node/inspector.d.ts",
+      "node_modules/@types/node/inspector.generated.d.ts",
+      "node_modules/@types/node/module.d.ts",
+      "node_modules/@types/node/net.d.ts",
+      "node_modules/@types/node/os.d.ts",
+      "node_modules/@types/node/path.d.ts",
+      "node_modules/@types/node/perf_hooks.d.ts",
+      "node_modules/@types/node/process.d.ts",
+      "node_modules/@types/node/punycode.d.ts",
+      "node_modules/@types/node/querystring.d.ts",
+      "node_modules/@types/node/readline.d.ts",
+      "node_modules/@types/node/readline/promises.d.ts",
+      "node_modules/@types/node/repl.d.ts",
+      "node_modules/@types/node/sea.d.ts",
+      "node_modules/@types/node/sqlite.d.ts",
+      "node_modules/@types/node/stream.d.ts",
+      "node_modules/@types/node/stream/promises.d.ts",
+      "node_modules/@types/node/stream/consumers.d.ts",
+      "node_modules/@types/node/stream/web.d.ts",
+      "node_modules/@types/node/string_decoder.d.ts",
+      "node_modules/@types/node/test.d.ts",
+      "node_modules/@types/node/timers.d.ts",
+      "node_modules/@types/node/timers/promises.d.ts",
+      "node_modules/@types/node/tls.d.ts",
+      "node_modules/@types/node/trace_events.d.ts",
+      "node_modules/@types/node/tty.d.ts",
+      "node_modules/@types/node/url.d.ts",
+      "node_modules/@types/node/util.d.ts",
+      "node_modules/@types/node/v8.d.ts",
+      "node_modules/@types/node/vm.d.ts",
+      "node_modules/@types/node/wasi.d.ts",
+      "node_modules/@types/node/worker_threads.d.ts",
+      "node_modules/@types/node/zlib.d.ts",
+      "node_modules/@types/node/index.d.ts"
+    ],
+    "diagnostics": [
+      {
+        "file": "packages/safejs/src/interp/async.ts",
+        "line": 266,
+        "code": 2379,
+        "message": "Argument of type '{ span: SourceSpan; otelSpan?: OtelSpan | undefined; kind: \"await\"; replayState: unknown; nodeId: number | undefined; }' is not assignable to parameter of type 'ResumeBreakpoint' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.\n  Types of property 'nodeId' are incompatible.\n    Type 'number | undefined' is not assignable to type 'number'.\n      Type 'undefined' is not assignable to type 'number'."
+      },
+      {
+        "file": "packages/safejs/src/interp/async.ts",
+        "line": 357,
+        "code": 18048,
+        "message": "'param' is possibly 'undefined'."
+      },
+      {
+        "file": "packages/safejs/src/interp/async.ts",
+        "line": 360,
+        "code": 2345,
+        "message": "Argument of type 'Identifier | AssignmentPattern | ArrayPattern | ObjectPattern | RestElement | undefined' is not assignable to parameter of type 'Pattern'.\n  Type 'undefined' is not assignable to type 'Pattern'."
+      },
+      {
+        "file": "packages/safejs/src/interp/async.ts",
+        "line": 374,
+        "code": 2345,
+        "message": "Argument of type 'Identifier | AssignmentPattern | ArrayPattern | ObjectPattern | RestElement | undefined' is not assignable to parameter of type 'Pattern'.\n  Type 'undefined' is not assignable to type 'Pattern'."
+      },
+      {
+        "file": "packages/safejs/src/interp/async.ts",
+        "line": 427,
+        "code": 2379,
+        "message": "Argument of type '{ budget: Budget | undefined; }' is not assignable to parameter of type '{ budget?: Budget; }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.\n  Types of property 'budget' are incompatible.\n    Type 'Budget | undefined' is not assignable to type 'Budget'.\n      Type 'undefined' is not assignable to type 'Budget'."
+      },
+      {
+        "file": "packages/safejs/src/interp/budget.ts",
+        "line": 88,
+        "code": 2412,
+        "message": "Type 'number | undefined' is not assignable to type 'number' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the type of the target.\n  Type 'undefined' is not assignable to type 'number'."
+      },
+      {
+        "file": "packages/safejs/src/interp/budget.ts",
+        "line": 89,
+        "code": 2375,
+        "message": "Type 'Readonly<{ maxSteps: number | undefined; maxCallDepth: number | undefined; stringLength: number | undefined; arrayLength: number | undefined; dataSize: number | undefined; }>' is not assignable to type 'Readonly<BudgetLimits>' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.\n  Types of property 'maxSteps' are incompatible.\n    Type 'number | undefined' is not assignable to type 'number'.\n      Type 'undefined' is not assignable to type 'number'."
+      },
+      {
+        "file": "packages/safejs/src/interp/cancel.ts",
+        "line": 43,
+        "code": 2379,
+        "message": "Argument of type '{ call: (args: readonly SandboxValue[], context: SandboxCallContext | undefined) => SandboxValue | Promise<SandboxValue>; name: string | undefined; async?: true; }' is not assignable to parameter of type '{ async?: boolean; call: (args: readonly SandboxValue[], context?: SandboxCallContext | undefined) => SandboxValue | Promise<SandboxValue>; construct?: (args: readonly SandboxValue[], context?: SandboxCallContext | undefined) => SandboxValue | Promise<...>; name?: string; properties?: SandboxObject | ((closure: Sand...' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.\n  Types of property 'name' are incompatible.\n    Type 'string | undefined' is not assignable to type 'string'.\n      Type 'undefined' is not assignable to type 'string'."
+      },
+      {
+        "file": "packages/safejs/src/interp/exceptions.ts",
+        "line": 198,
+        "code": 2379,
+        "message": "Argument of type '{ chargeBudget: false; cause: unknown; span: ErrorSourceSpan | undefined; }' is not assignable to parameter of type '{ cause?: unknown; chargeBudget?: boolean; span?: ErrorSourceSpan; }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.\n  Types of property 'span' are incompatible.\n    Type 'ErrorSourceSpan | undefined' is not assignable to type 'ErrorSourceSpan'.\n      Type 'undefined' is not assignable to type 'ErrorSourceSpan'."
+      },
+      {
+        "file": "packages/safejs/src/interp/exceptions.ts",
+        "line": 206,
+        "code": 2379,
+        "message": "Argument of type '{ chargeBudget: false; cause: unknown; span: ErrorSourceSpan | undefined; }' is not assignable to parameter of type '{ cause?: unknown; chargeBudget?: boolean; span?: ErrorSourceSpan; }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.\n  Types of property 'span' are incompatible.\n    Type 'ErrorSourceSpan | undefined' is not assignable to type 'ErrorSourceSpan'.\n      Type 'undefined' is not assignable to type 'ErrorSourceSpan'."
+      },
+      {
+        "file": "packages/safejs/src/interp/exceptions.ts",
+        "line": 237,
+        "code": 2379,
+        "message": "Argument of type '{ cause: Error; chargeBudget: false; span: ErrorSourceSpan | undefined; }' is not assignable to parameter of type '{ cause?: unknown; chargeBudget?: boolean; span?: ErrorSourceSpan; }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.\n  Types of property 'span' are incompatible.\n    Type 'ErrorSourceSpan | undefined' is not assignable to type 'ErrorSourceSpan'.\n      Type 'undefined' is not assignable to type 'ErrorSourceSpan'."
+      },
+      {
+        "file": "packages/safejs/src/interp/exceptions.ts",
+        "line": 253,
+        "code": 2379,
+        "message": "Argument of type '{ cause: unknown; chargeBudget: false; span: ErrorSourceSpan | undefined; }' is not assignable to parameter of type '{ cause?: unknown; chargeBudget?: boolean; span?: ErrorSourceSpan; }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.\n  Types of property 'span' are incompatible.\n    Type 'ErrorSourceSpan | undefined' is not assignable to type 'ErrorSourceSpan'.\n      Type 'undefined' is not assignable to type 'ErrorSourceSpan'."
+      },
+      {
+        "file": "packages/safejs/src/interp/exceptions.ts",
+        "line": 263,
+        "code": 2379,
+        "message": "Argument of type '{ chargeBudget: false; span: ErrorSourceSpan | undefined; }' is not assignable to parameter of type '{ cause?: unknown; chargeBudget?: boolean; span?: ErrorSourceSpan; }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.\n  Types of property 'span' are incompatible.\n    Type 'ErrorSourceSpan | undefined' is not assignable to type 'ErrorSourceSpan'.\n      Type 'undefined' is not assignable to type 'ErrorSourceSpan'."
+      },
+      {
+        "file": "packages/safejs/src/interp/exceptions.ts",
+        "line": 608,
+        "code": 18048,
+        "message": "'element' is possibly 'undefined'."
+      },
+      {
+        "file": "packages/safejs/src/interp/exceptions.ts",
+        "line": 609,
+        "code": 2345,
+        "message": "Argument of type 'Identifier | MemberExpression | AssignmentPattern | ArrayPattern | ObjectPattern | RestElement | undefined' is not assignable to parameter of type 'Identifier | MemberExpression | AssignmentPattern | ArrayPattern | ObjectPattern | RestElement'.\n  Type 'undefined' is not assignable to type 'Identifier | MemberExpression | AssignmentPattern | ArrayPattern | ObjectPattern | RestElement'."
+      },
+      {
+        "file": "packages/safejs/src/interp/generator.ts",
+        "line": 164,
+        "code": 2375,
+        "message": "Type '{ yieldNodeId: number | undefined; sent: { type: \"normal\" | \"return\" | \"throw\"; value: unknown; }[]; }' is not assignable to type 'GeneratorChannelSnapshot' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.\n  Types of property 'yieldNodeId' are incompatible.\n    Type 'number | undefined' is not assignable to type 'number'.\n      Type 'undefined' is not assignable to type 'number'."
+      },
+      {
+        "file": "packages/safejs/src/interp/globals/console-json.ts",
+        "line": 108,
+        "code": 2379,
+        "message": "Argument of type '{ budget: Budget; gap: string; replacer: SandboxClosure | undefined; stack: never[]; }' is not assignable to parameter of type 'StringifyState' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.\n  Types of property 'replacer' are incompatible.\n    Type 'SandboxClosure | undefined' is not assignable to type 'SandboxClosure'.\n      Type 'undefined' is not assignable to type 'SandboxClosure'."
+      },
+      {
+        "file": "packages/safejs/src/interp/host-bridge.ts",
+        "line": 132,
+        "code": 2375,
+        "message": "Type '{ journal: HostCallJournal | undefined; entries: Map<any, any>; hostFunctions: Map<any, any>; sourceFunctions: Map<any, any>; active: Set<Promise<unknown>>; seen: WeakMap<...>; nextInvocation: number; restored: never[]; }' is not assignable to type 'HostCallbacks' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.\n  Types of property 'journal' are incompatible.\n    Type 'HostCallJournal | undefined' is not assignable to type 'HostCallJournal'.\n      Type 'undefined' is not assignable to type 'HostCallJournal'."
+      },
+      {
+        "file": "packages/safejs/src/interp/host-bridge.ts",
+        "line": 573,
+        "code": 2379,
+        "message": "Argument of type '{ budget: Budget; hostCalls: HostCallJournal | undefined; }' is not assignable to parameter of type 'HostBridgeOptions' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.\n  Types of property 'hostCalls' are incompatible.\n    Type 'HostCallJournal | undefined' is not assignable to type 'HostCallJournal'.\n      Type 'undefined' is not assignable to type 'HostCallJournal'."
+      },
+      {
+        "file": "packages/safejs/src/interp/host-bridge.ts",
+        "line": 586,
+        "code": 2379,
+        "message": "Argument of type '{ identifyCapability: ((key: SandboxClosure) => string | undefined) | undefined; }' is not assignable to parameter of type '{ identifyCapability?: (value: SandboxClosure, path: readonly string[]) => string | undefined; captureCapabilityProperties?: boolean; identifyPromise?: (value: SandboxPromise, path: readonly string[]) => string | undefined; }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.\n  Types of property 'identifyCapability' are incompatible.\n    Type '((key: SandboxClosure) => string | undefined) | undefined' is not assignable to type '(value: SandboxClosure, path: readonly string[]) => string | undefined'.\n      Type 'undefined' is not assignable to type '(value: SandboxClosure, path: readonly string[]) => string | undefined'."
+      },
+      {
+        "file": "packages/safejs/src/interp/interpreter.ts",
+        "line": 333,
+        "code": 2379,
+        "message": "Argument of type '{ budget: Budget; callStack: never[]; onYield: ((yieldPoint: InterpreterYieldPoint) => void) | undefined; captureReplayState: (() => unknown) | undefined; rootNode: ParseResult; ... 7 more ...; resumeTarget: { ...; }; }' is not assignable to parameter of type 'AsyncEvaluationContext' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.\n  Types of property 'onYield' are incompatible.\n    Type '((yieldPoint: InterpreterYieldPoint) => void) | undefined' is not assignable to type '(yieldPoint: InterpreterYieldPoint) => void'.\n      Type 'undefined' is not assignable to type '(yieldPoint: InterpreterYieldPoint) => void'."
+      },
+      {
+        "file": "packages/safejs/src/interp/interpreter.ts",
+        "line": 404,
+        "code": 2412,
+        "message": "Type 'undefined' is not assignable to type 'number' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the type of the target."
+      },
+      {
+        "file": "packages/safejs/src/interp/interpreter.ts",
+        "line": 599,
+        "code": 2345,
+        "message": "Argument of type 'Expression | undefined' is not assignable to parameter of type 'ParseResult'.\n  Type 'undefined' is not assignable to type 'ParseResult'."
+      },
+      {
+        "file": "packages/safejs/src/interp/interpreter.ts",
+        "line": 1839,
+        "code": 2379,
+        "message": "Argument of type '{ kind: \"loop-iteration\"; nodeId: number | undefined; span: SourceSpan; }' is not assignable to parameter of type 'ResumeBreakpoint' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.\n  Types of property 'nodeId' are incompatible.\n    Type 'number | undefined' is not assignable to type 'number'.\n      Type 'undefined' is not assignable to type 'number'."
+      },
+      {
+        "file": "packages/safejs/src/interp/interpreter.ts",
+        "line": 2032,
+        "code": 2379,
+        "message": "Argument of type '{ kind: \"generator-yield\"; nodeId: number | undefined; span: SourceSpan; }' is not assignable to parameter of type 'ResumeBreakpoint' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.\n  Types of property 'nodeId' are incompatible.\n    Type 'number | undefined' is not assignable to type 'number'.\n      Type 'undefined' is not assignable to type 'number'."
+      },
+      {
+        "file": "packages/safejs/src/interp/interpreter.ts",
+        "line": 2038,
+        "code": 2412,
+        "message": "Type 'undefined' is not assignable to type '{ sent: GeneratorCompletion[]; yieldNodeId: number; }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the type of the target."
+      },
+      {
+        "file": "packages/safejs/src/interp/interpreter.ts",
+        "line": 2090,
+        "code": 2379,
+        "message": "Argument of type '{ kind: \"generator-yield\"; nodeId: number | undefined; span: SourceSpan; }' is not assignable to parameter of type 'ResumeBreakpoint' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.\n  Types of property 'nodeId' are incompatible.\n    Type 'number | undefined' is not assignable to type 'number'.\n      Type 'undefined' is not assignable to type 'number'."
+      },
+      {
+        "file": "packages/safejs/src/interp/interpreter.ts",
+        "line": 2096,
+        "code": 2412,
+        "message": "Type 'undefined' is not assignable to type '{ sent: GeneratorCompletion[]; yieldNodeId: number; }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the type of the target."
+      },
+      {
+        "file": "packages/safejs/src/interp/interpreter.ts",
+        "line": 2491,
+        "code": 2375,
+        "message": "Type '{ code: InterpreterErrorCode; message: string; name: string; nodeId: number | undefined; nodeType: \"ArrowFunctionExpression\" | \"AssignmentExpression\" | \"ArrayExpression\" | ... 43 more ... | \"ExportNamedDeclaration\"; span: SourceSpan; stack: string; }' is not assignable to type 'InterpreterError' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.\n  Types of property 'nodeId' are incompatible.\n    Type 'number | undefined' is not assignable to type 'number'.\n      Type 'undefined' is not assignable to type 'number'."
+      },
+      {
+        "file": "packages/safejs/src/interp/jobs.ts",
+        "line": 30,
+        "code": 2412,
+        "message": "Type 'undefined' is not assignable to type 'ExecutionJob' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the type of the target."
+      },
+      {
+        "file": "packages/safejs/src/interp/patterns.ts",
+        "line": 123,
+        "code": 18048,
+        "message": "'element' is possibly 'undefined'."
+      },
+      {
+        "file": "packages/safejs/src/interp/patterns.ts",
+        "line": 124,
+        "code": 2345,
+        "message": "Argument of type 'Identifier | MemberExpression | AssignmentPattern | ArrayPattern | ObjectPattern | RestElement | undefined' is not assignable to parameter of type 'Pattern'.\n  Type 'undefined' is not assignable to type 'Pattern'."
+      },
+      {
+        "file": "packages/safejs/src/interp/promise-replay.ts",
+        "line": 53,
+        "code": 2412,
+        "message": "Type '{ start: number; nodes: number[]; } | undefined' is not assignable to type '{ start: number; nodes: number[]; }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the type of the target.\n  Type 'undefined' is not assignable to type '{ start: number; nodes: number[]; }'."
+      },
+      {
+        "file": "packages/safejs/src/interp/promise-replay.ts",
+        "line": 281,
+        "code": 2412,
+        "message": "Type 'undefined' is not assignable to type 'Budget' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the type of the target."
+      },
+      {
+        "file": "packages/safejs/src/interp/promise-replay.ts",
+        "line": 425,
+        "code": 18048,
+        "message": "'settlement' is possibly 'undefined'."
+      },
+      {
+        "file": "packages/safejs/src/interp/promise-replay.ts",
+        "line": 427,
+        "code": 18048,
+        "message": "'settlement' is possibly 'undefined'."
+      },
+      {
+        "file": "packages/safejs/src/interp/regex/engine.ts",
+        "line": 63,
+        "code": 2345,
+        "message": "Argument of type 'string | undefined' is not assignable to parameter of type 'string'.\n  Type 'undefined' is not assignable to type 'string'."
+      },
+      {
+        "file": "packages/safejs/src/interp/regex/engine.ts",
+        "line": 74,
+        "code": 2345,
+        "message": "Argument of type 'string | undefined' is not assignable to parameter of type 'string'.\n  Type 'undefined' is not assignable to type 'string'."
+      },
+      {
+        "file": "packages/safejs/src/interp/regex/engine.ts",
+        "line": 76,
+        "code": 2345,
+        "message": "Argument of type 'string | undefined' is not assignable to parameter of type 'string'.\n  Type 'undefined' is not assignable to type 'string'."
+      },
+      {
+        "file": "packages/safejs/src/interp/regex/engine.ts",
+        "line": 128,
+        "code": 2345,
+        "message": "Argument of type 'RegexNode | undefined' is not assignable to parameter of type 'RegexNode'.\n  Type 'undefined' is not assignable to type 'RegexNode'."
+      },
+      {
+        "file": "packages/safejs/src/interp/regex/engine.ts",
+        "line": 172,
+        "code": 2345,
+        "message": "Argument of type 'string | undefined' is not assignable to parameter of type 'string'.\n  Type 'undefined' is not assignable to type 'string'."
+      },
+      {
+        "file": "packages/safejs/src/interp/regex/engine.ts",
+        "line": 180,
+        "code": 2345,
+        "message": "Argument of type 'string | undefined' is not assignable to parameter of type 'string'.\n  Type 'undefined' is not assignable to type 'string'."
+      },
+      {
+        "file": "packages/safejs/src/interp/regex/parse.ts",
+        "line": 71,
+        "code": 2322,
+        "message": "Type 'RegexNode | undefined' is not assignable to type 'RegexNode'.\n  Type 'undefined' is not assignable to type 'RegexNode'."
+      },
+      {
+        "file": "packages/safejs/src/interp/regex/parse.ts",
+        "line": 83,
+        "code": 2322,
+        "message": "Type 'RegexNode | undefined' is not assignable to type 'RegexNode'.\n  Type 'undefined' is not assignable to type 'RegexNode'."
+      },
+      {
+        "file": "packages/safejs/src/interp/regex/parse.ts",
+        "line": 156,
+        "code": 2322,
+        "message": "Type '{ type: \"group\"; capturing: boolean; index: number | undefined; body: RegexNode; }' is not assignable to type 'RegexNode'.\n  Type '{ type: \"group\"; capturing: boolean; index: number | undefined; body: RegexNode; }' is not assignable to type '{ type: \"group\"; capturing: boolean; index?: number; body: RegexNode; }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.\n    Types of property 'index' are incompatible.\n      Type 'number | undefined' is not assignable to type 'number'.\n        Type 'undefined' is not assignable to type 'number'."
+      },
+      {
+        "file": "packages/safejs/src/interp/regex/parse.ts",
+        "line": 204,
+        "code": 2322,
+        "message": "Type 'CharacterClassItem | undefined' is not assignable to type 'CharacterClassItem'.\n  Type 'undefined' is not assignable to type 'CharacterClassItem'."
+      },
+      {
+        "file": "packages/safejs/src/interp/regex/parse.ts",
+        "line": 311,
+        "code": 2375,
+        "message": "Type '{ min: number; max: number | undefined; }' is not assignable to type '{ min: number; max?: number; }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.\n  Types of property 'max' are incompatible.\n    Type 'number | undefined' is not assignable to type 'number'.\n      Type 'undefined' is not assignable to type 'number'."
+      },
+      {
+        "file": "packages/safejs/src/interp/regex/parse.ts",
+        "line": 365,
+        "code": 2538,
+        "message": "Type 'undefined' cannot be used as an index type."
+      },
+      {
+        "file": "packages/safejs/src/interp/regex/parse.ts",
+        "line": 369,
+        "code": 7053,
+        "message": "Element implicitly has an 'any' type because expression of type 'any' can't be used to index type 'RegexFlags'."
+      },
+      {
+        "file": "packages/safejs/src/interp/regex/parse.ts",
+        "line": 372,
+        "code": 7053,
+        "message": "Element implicitly has an 'any' type because expression of type 'any' can't be used to index type 'RegexFlags'."
+      },
+      {
+        "file": "packages/safejs/src/interp/scope.ts",
+        "line": 227,
+        "code": 2532,
+        "message": "Object is possibly 'undefined'."
+      },
+      {
+        "file": "packages/safejs/src/modules/fs.ts",
+        "line": 540,
+        "code": 2345,
+        "message": "Argument of type 'string | undefined' is not assignable to parameter of type 'string'.\n  Type 'undefined' is not assignable to type 'string'."
+      },
+      {
+        "file": "packages/safejs/src/modules/registry.ts",
+        "line": 103,
+        "code": 2379,
+        "message": "Argument of type '{ budget: Budget; hostCalls: HostCallJournal | undefined; moduleId: string; signal: AbortSignal | undefined; }' is not assignable to parameter of type 'HostBridgeOptions' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.\n  Types of property 'hostCalls' are incompatible.\n    Type 'HostCallJournal | undefined' is not assignable to type 'HostCallJournal'.\n      Type 'undefined' is not assignable to type 'HostCallJournal'."
+      },
+      {
+        "file": "packages/safejs/src/parse/parse-export.ts",
+        "line": 52,
+        "code": 2412,
+        "message": "Type 'SourceSpan | undefined' is not assignable to type 'SourceSpan' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the type of the target.\n  Type 'undefined' is not assignable to type 'SourceSpan'."
+      },
+      {
+        "file": "packages/safejs/src/parse/parser.ts",
+        "line": 956,
+        "code": 2322,
+        "message": "Type '{ type: \"ReturnStatement\"; argument: Expression | undefined; span: SourceSpan; }' is not assignable to type 'Statement'.\n  Type '{ type: \"ReturnStatement\"; argument: Expression | undefined; span: SourceSpan; }' is not assignable to type 'ReturnStatement' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.\n    Type '{ type: \"ReturnStatement\"; argument: Expression | undefined; span: SourceSpan; }' is not assignable to type '{ type: \"ReturnStatement\"; argument?: Expression; }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.\n      Types of property 'argument' are incompatible.\n        Type 'Expression | undefined' is not assignable to type 'Expression'.\n          Type 'undefined' is not assignable to type 'Expression'."
+      },
+      {
+        "file": "packages/safejs/src/parse/parser.ts",
+        "line": 1098,
+        "code": 2375,
+        "message": "Type '{ type: \"IfStatement\"; test: Expression; consequent: Statement; alternate: Statement | undefined; span: SourceSpan; }' is not assignable to type 'IfStatement' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.\n  Type '{ type: \"IfStatement\"; test: Expression; consequent: Statement; alternate: Statement | undefined; span: SourceSpan; }' is not assignable to type '{ type: \"IfStatement\"; test: Expression; consequent: Statement; alternate?: Statement; }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.\n    Types of property 'alternate' are incompatible.\n      Type 'Statement | undefined' is not assignable to type 'Statement'.\n        Type 'undefined' is not assignable to type 'Statement'."
+      },
+      {
+        "file": "packages/safejs/src/parse/parser.ts",
+        "line": 1160,
+        "code": 2379,
+        "message": "Argument of type '{ type: \"SwitchCase\"; test: Expression | undefined; consequent: Statement[]; span: SourceSpan; }' is not assignable to parameter of type 'SwitchCase' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.\n  Type '{ type: \"SwitchCase\"; test: Expression | undefined; consequent: Statement[]; span: SourceSpan; }' is not assignable to type '{ type: \"SwitchCase\"; test?: Expression; consequent: Statement[]; }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.\n    Types of property 'test' are incompatible.\n      Type 'Expression | undefined' is not assignable to type 'Expression'.\n        Type 'undefined' is not assignable to type 'Expression'."
+      },
+      {
+        "file": "packages/safejs/src/parse/parser.ts",
+        "line": 1190,
+        "code": 2375,
+        "message": "Type '{ span: SourceSpan; label?: string; labels?: string[]; type: \"ForInStatement\"; left: Identifier | VariableDeclaration; right: Expression; body: Statement; } | { ...; } | { ...; }' is not assignable to type 'ForInStatement | ForOfStatement | ForStatement' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.\n  Type '{ span: SourceSpan; label?: string; labels?: string[]; type: \"ForStatement\"; init: Expression | VariableDeclaration | undefined; test: Expression | undefined; update: Expression | undefined; body: Statement; }' is not assignable to type 'ForInStatement | ForOfStatement | ForStatement' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.\n    Type '{ span: SourceSpan; label?: string; labels?: string[]; type: \"ForStatement\"; init: Expression | VariableDeclaration | undefined; test: Expression | undefined; update: Expression | undefined; body: Statement; }' is not assignable to type 'ForStatement' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.\n      Type '{ span: SourceSpan; label?: string; labels?: string[]; type: \"ForStatement\"; init: Expression | VariableDeclaration | undefined; test: Expression | undefined; update: Expression | undefined; body: Statement; }' is not assignable to type '{ type: \"ForStatement\"; init?: Expression | VariableDeclaration; test?: Expression; update?: Expression; body: Statement; label?: string; labels?: string[]; }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.\n        Types of property 'init' are incompatible.\n          Type 'Expression | VariableDeclaration | undefined' is not assignable to type 'Expression | VariableDeclaration'.\n            Type 'undefined' is not assignable to type 'Expression | VariableDeclaration'."
+      },
+      {
+        "file": "packages/safejs/src/parse/parser.ts",
+        "line": 1379,
+        "code": 2375,
+        "message": "Type '{ type: \"TryStatement\"; block: BlockStatement; handler: CatchClause | undefined; finalizer: BlockStatement | undefined; span: SourceSpan; }' is not assignable to type 'TryStatement' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.\n  Type '{ type: \"TryStatement\"; block: BlockStatement; handler: CatchClause | undefined; finalizer: BlockStatement | undefined; span: SourceSpan; }' is not assignable to type '{ type: \"TryStatement\"; block: BlockStatement; handler?: CatchClause; finalizer?: BlockStatement; }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.\n    Types of property 'handler' are incompatible.\n      Type 'CatchClause | undefined' is not assignable to type 'CatchClause'.\n        Type 'undefined' is not assignable to type 'CatchClause'.\n          Type 'undefined' is not assignable to type 'BaseNode'."
+      },
+      {
+        "file": "packages/safejs/src/parse/parser.ts",
+        "line": 1523,
+        "code": 2375,
+        "message": "Type '{ type: \"CatchClause\"; param: Identifier | ArrayPattern | ObjectPattern | undefined; body: BlockStatement; span: SourceSpan; }' is not assignable to type 'CatchClause' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.\n  Type '{ type: \"CatchClause\"; param: Identifier | ArrayPattern | ObjectPattern | undefined; body: BlockStatement; span: SourceSpan; }' is not assignable to type '{ type: \"CatchClause\"; param?: Identifier | ArrayPattern | ObjectPattern; body: BlockStatement; }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.\n    Types of property 'param' are incompatible.\n      Type 'Identifier | ArrayPattern | ObjectPattern | undefined' is not assignable to type 'Identifier | ArrayPattern | ObjectPattern'.\n        Type 'undefined' is not assignable to type 'Identifier | ArrayPattern | ObjectPattern'."
+      },
+      {
+        "file": "packages/safejs/src/parse/parser.ts",
+        "line": 1617,
+        "code": 2375,
+        "message": "Type '{ type: \"VariableDeclarator\"; id: Identifier | ArrayPattern | ObjectPattern; init: Expression | undefined; span: SourceSpan; }' is not assignable to type 'VariableDeclarator' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.\n  Type '{ type: \"VariableDeclarator\"; id: Identifier | ArrayPattern | ObjectPattern; init: Expression | undefined; span: SourceSpan; }' is not assignable to type '{ type: \"VariableDeclarator\"; id: Identifier | ArrayPattern | ObjectPattern; init?: Expression; }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.\n    Types of property 'init' are incompatible.\n      Type 'Expression | undefined' is not assignable to type 'Expression'.\n        Type 'undefined' is not assignable to type 'Expression'."
+      },
+      {
+        "file": "packages/safejs/src/parse/parser.ts",
+        "line": 2341,
+        "code": 2322,
+        "message": "Type '{ type: \"YieldExpression\"; argument: Expression | undefined; delegate: boolean; span: SourceSpan; }' is not assignable to type 'Expression'.\n  Type '{ type: \"YieldExpression\"; argument: Expression | undefined; delegate: boolean; span: SourceSpan; }' is not assignable to type 'YieldExpression' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.\n    Type '{ type: \"YieldExpression\"; argument: Expression | undefined; delegate: boolean; span: SourceSpan; }' is not assignable to type '{ type: \"YieldExpression\"; argument?: Expression; delegate: boolean; }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.\n      Types of property 'argument' are incompatible.\n        Type 'Expression | undefined' is not assignable to type 'Expression'.\n          Type 'undefined' is not assignable to type 'Expression'."
+      },
+      {
+        "file": "packages/safejs/src/parse/parser.ts",
+        "line": 2733,
+        "code": 2375,
+        "message": "Type '{ type: \"FunctionExpression\"; async: boolean; body: BlockStatement; generator: boolean; id: Identifier | undefined; params: (Identifier | AssignmentPattern | ArrayPattern | ObjectPattern | RestElement)[]; span: SourceSpan; }' is not assignable to type 'FunctionExpression' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.\n  Type '{ type: \"FunctionExpression\"; async: boolean; body: BlockStatement; generator: boolean; id: Identifier | undefined; params: (Identifier | AssignmentPattern | ArrayPattern | ObjectPattern | RestElement)[]; span: SourceSpan; }' is not assignable to type '{ type: \"FunctionExpression\"; async: boolean; body: BlockStatement; generator: boolean; id?: Identifier; method?: true; params: (Identifier | AssignmentPattern | ArrayPattern | ObjectPattern | RestElement)[]; }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.\n    Types of property 'id' are incompatible.\n      Type 'Identifier | undefined' is not assignable to type 'Identifier'.\n        Type 'undefined' is not assignable to type 'Identifier'.\n          Type 'undefined' is not assignable to type 'BaseNode'."
+      },
+      {
+        "file": "packages/safejs/src/parse/parser.ts",
+        "line": 3027,
+        "code": 2375,
+        "message": "Type '{ type: \"FunctionExpression\"; async: boolean; body: BlockStatement; generator: false; id: undefined; method: true; params: (Identifier | AssignmentPattern | ArrayPattern | ObjectPattern | RestElement)[]; span: SourceSpan; }' is not assignable to type 'FunctionExpression' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.\n  Type '{ type: \"FunctionExpression\"; async: boolean; body: BlockStatement; generator: false; id: undefined; method: true; params: (Identifier | AssignmentPattern | ArrayPattern | ObjectPattern | RestElement)[]; span: SourceSpan; }' is not assignable to type '{ type: \"FunctionExpression\"; async: boolean; body: BlockStatement; generator: boolean; id?: Identifier; method?: true; params: (Identifier | AssignmentPattern | ArrayPattern | ObjectPattern | RestElement)[]; }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.\n    Types of property 'id' are incompatible.\n      Type 'undefined' is not assignable to type 'Identifier'.\n        Type 'undefined' is not assignable to type 'BaseNode'."
+      },
+      {
+        "file": "packages/safejs/src/parse/parser.ts",
+        "line": 3334,
+        "code": 18048,
+        "message": "'token' is possibly 'undefined'."
+      },
+      {
+        "file": "packages/safejs/src/parse/parser.ts",
+        "line": 3338,
+        "code": 18048,
+        "message": "'token' is possibly 'undefined'."
+      },
+      {
+        "file": "packages/safejs/src/parse/parser.ts",
+        "line": 3338,
+        "code": 18048,
+        "message": "'token' is possibly 'undefined'."
+      },
+      {
+        "file": "packages/safejs/src/parse/parser.ts",
+        "line": 3338,
+        "code": 18048,
+        "message": "'token' is possibly 'undefined'."
+      },
+      {
+        "file": "packages/safejs/src/parse/parser.ts",
+        "line": 3339,
+        "code": 18048,
+        "message": "'token' is possibly 'undefined'."
+      },
+      {
+        "file": "packages/safejs/src/parse/parser.ts",
+        "line": 3343,
+        "code": 18048,
+        "message": "'token' is possibly 'undefined'."
+      },
+      {
+        "file": "packages/safejs/src/parse/parser.ts",
+        "line": 3343,
+        "code": 18048,
+        "message": "'token' is possibly 'undefined'."
+      },
+      {
+        "file": "packages/safejs/src/parse/parser.ts",
+        "line": 3343,
+        "code": 18048,
+        "message": "'token' is possibly 'undefined'."
+      },
+      {
+        "file": "packages/safejs/src/parse/parser.ts",
+        "line": 3344,
+        "code": 18048,
+        "message": "'token' is possibly 'undefined'."
+      },
+      {
+        "file": "packages/safejs/src/parse/parser.ts",
+        "line": 3438,
+        "code": 18048,
+        "message": "'token' is possibly 'undefined'."
+      },
+      {
+        "file": "packages/safejs/src/parse/parser.ts",
+        "line": 3442,
+        "code": 18048,
+        "message": "'token' is possibly 'undefined'."
+      },
+      {
+        "file": "packages/safejs/src/parse/parser.ts",
+        "line": 3447,
+        "code": 18048,
+        "message": "'token' is possibly 'undefined'."
+      },
+      {
+        "file": "packages/safejs/src/parse/parser.ts",
+        "line": 3455,
+        "code": 2345,
+        "message": "Argument of type 'Token | undefined' is not assignable to parameter of type 'Token'.\n  Type 'undefined' is not assignable to type 'Token'."
+      },
+      {
+        "file": "packages/safejs/src/parse/parser.ts",
+        "line": 3475,
+        "code": 18048,
+        "message": "'token' is possibly 'undefined'."
+      },
+      {
+        "file": "packages/safejs/src/parse/parser.ts",
+        "line": 3476,
+        "code": 18048,
+        "message": "'token' is possibly 'undefined'."
+      },
+      {
+        "file": "packages/safejs/src/parse/parser.ts",
+        "line": 3476,
+        "code": 18048,
+        "message": "'token' is possibly 'undefined'."
+      },
+      {
+        "file": "packages/safejs/src/parse/parser.ts",
+        "line": 3476,
+        "code": 18048,
+        "message": "'token' is possibly 'undefined'."
+      },
+      {
+        "file": "packages/safejs/src/parse/parser.ts",
+        "line": 3478,
+        "code": 18048,
+        "message": "'token' is possibly 'undefined'."
+      },
+      {
+        "file": "packages/safejs/src/parse/parser.ts",
+        "line": 3478,
+        "code": 18048,
+        "message": "'token' is possibly 'undefined'."
+      },
+      {
+        "file": "packages/safejs/src/parse/parser.ts",
+        "line": 3478,
+        "code": 18048,
+        "message": "'token' is possibly 'undefined'."
+      },
+      {
+        "file": "packages/safejs/src/parse/parser.ts",
+        "line": 3479,
+        "code": 18048,
+        "message": "'token' is possibly 'undefined'."
+      },
+      {
+        "file": "packages/safejs/src/parse/parser.ts",
+        "line": 3483,
+        "code": 18048,
+        "message": "'token' is possibly 'undefined'."
+      },
+      {
+        "file": "packages/safejs/src/parse/parser.ts",
+        "line": 3490,
+        "code": 18048,
+        "message": "'token' is possibly 'undefined'."
+      },
+      {
+        "file": "packages/safejs/src/parse/parser.ts",
+        "line": 3491,
+        "code": 18048,
+        "message": "'token' is possibly 'undefined'."
+      },
+      {
+        "file": "packages/safejs/src/parse/parser.ts",
+        "line": 3491,
+        "code": 18048,
+        "message": "'token' is possibly 'undefined'."
+      },
+      {
+        "file": "packages/safejs/src/parse/parser.ts",
+        "line": 3695,
+        "code": 2322,
+        "message": "Type 'Token | undefined' is not assignable to type 'Token'.\n  Type 'undefined' is not assignable to type 'Token'."
+      },
+      {
+        "file": "packages/safejs/src/parse/parser.ts",
+        "line": 3699,
+        "code": 2322,
+        "message": "Type 'Token | undefined' is not assignable to type 'Token'.\n  Type 'undefined' is not assignable to type 'Token'."
+      },
+      {
+        "file": "packages/safejs/src/parse/parser.ts",
+        "line": 3703,
+        "code": 2322,
+        "message": "Type 'Token | undefined' is not assignable to type 'Token'.\n  Type 'undefined' is not assignable to type 'Token'."
+      },
+      {
+        "file": "packages/safejs/src/parse/tokenizer.ts",
+        "line": 811,
+        "code": 18048,
+        "message": "'token' is possibly 'undefined'."
+      },
+      {
+        "file": "packages/safejs/src/run.ts",
+        "line": 200,
+        "code": 2379,
+        "message": "Argument of type '{ seed: number | undefined; snapshot: SafeJSSnapshot | undefined; }' is not assignable to parameter of type '{ seed?: number; snapshot?: SafeJSSnapshot; }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.\n  Types of property 'seed' are incompatible.\n    Type 'number | undefined' is not assignable to type 'number'.\n      Type 'undefined' is not assignable to type 'number'."
+      },
+      {
+        "file": "packages/safejs/src/run.ts",
+        "line": 212,
+        "code": 2379,
+        "message": "Argument of type '{ budget: Budget; hostCalls: HostCallJournal; moduleId: string; signal: AbortSignal | undefined; lifecycle: { hostCallbackDepth: number; }; }' is not assignable to parameter of type 'HostBridgeOptions' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.\n  Types of property 'signal' are incompatible.\n    Type 'AbortSignal | undefined' is not assignable to type 'AbortSignal'.\n      Type 'undefined' is not assignable to type 'AbortSignal'."
+      },
+      {
+        "file": "packages/safejs/src/run.ts",
+        "line": 220,
+        "code": 2379,
+        "message": "Argument of type '{ budget: Budget; hostCalls: HostCallJournal; sink: ConsoleSink | undefined; }' is not assignable to parameter of type 'ConsoleJsonGlobalsOptions' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.\n  Types of property 'sink' are incompatible.\n    Type 'ConsoleSink | undefined' is not assignable to type 'ConsoleSink'.\n      Type 'undefined' is not assignable to type 'ConsoleSink'."
+      },
+      {
+        "file": "packages/safejs/src/run.ts",
+        "line": 246,
+        "code": 2379,
+        "message": "Argument of type '{ budget: Budget; hostCalls: HostCallJournal; signal: AbortSignal | undefined; allowMissing: boolean; }' is not assignable to parameter of type '{ budget: Budget; hostCalls?: HostCallJournal; signal?: AbortSignal; allowMissing?: boolean; }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.\n  Types of property 'signal' are incompatible.\n    Type 'AbortSignal | undefined' is not assignable to type 'AbortSignal'.\n      Type 'undefined' is not assignable to type 'AbortSignal'."
+      },
+      {
+        "file": "packages/safejs/src/run.ts",
+        "line": 267,
+        "code": 2379,
+        "message": "Argument of type '{ budget: Budget; hostCalls: HostCallJournal; moduleId: string; signal: AbortSignal | undefined; lifecycle: { hostCallbackDepth: number; }; }' is not assignable to parameter of type 'HostBridgeOptions' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.\n  Types of property 'signal' are incompatible.\n    Type 'AbortSignal | undefined' is not assignable to type 'AbortSignal'.\n      Type 'undefined' is not assignable to type 'AbortSignal'."
+      },
+      {
+        "file": "packages/safejs/src/run.ts",
+        "line": 313,
+        "code": 2379,
+        "message": "Argument of type '{ snapshotBackend: SnapshotBackend | undefined; snapshotIntervalMs: number | undefined; snapshotPath: string | undefined; }' is not assignable to parameter of type 'SnapshotSchedulerOptions' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.\n  Types of property 'snapshotBackend' are incompatible.\n    Type 'SnapshotBackend | undefined' is not assignable to type 'SnapshotBackend'.\n      Type 'undefined' is not assignable to type 'SnapshotBackend'."
+      },
+      {
+        "file": "packages/safejs/src/run.ts",
+        "line": 343,
+        "code": 2379,
+        "message": "Argument of type '{ bindings: Record<string, SandboxValue>; clock: RunClock | undefined; hostCalls: HostCallRecord[]; loopIterations: Record<string, LoopIterationSnapshot> | undefined; ... 6 more ...; sourceHash: string; }' is not assignable to parameter of type '{ bindings: Record<string, SandboxValue>; clock: RunClock | undefined; hostCalls?: HostCallRecord[]; replay?: HostCallReplay; ... 6 more ...; sourceHash: string; }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.\n  Types of property 'loopIterations' are incompatible.\n    Type 'Record<string, LoopIterationSnapshot> | undefined' is not assignable to type 'Record<string, LoopIterationSnapshot>'.\n      Type 'undefined' is not assignable to type 'Record<string, LoopIterationSnapshot>'."
+      },
+      {
+        "file": "packages/safejs/src/run.ts",
+        "line": 366,
+        "code": 2412,
+        "message": "Type '{ resumeNodeId: number | undefined; version?: number; sourceHash: string; clock?: { next: number; } & RunClockSnapshot; random?: { seed: number; state: number; initialState?: number; resumeState?: number; } & { ...; }; ... 7 more ...; pendingAwaits?: RunPendingAwaitSnapshot[]; } | undefined' is not assignable to type 'InterpreterSnapshot | undefined' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the type of the target."
+      },
+      {
+        "file": "packages/safejs/src/run.ts",
+        "line": 373,
+        "code": 2379,
+        "message": "Argument of type '{ args: SandboxValue[]; budget: Budget; captureReplayState: () => number; filename: string; module: Module; onYield: (yieldPoint: InterpreterYieldPoint) => void; scope: Scope; signal: AbortSignal | undefined; snapshot: { ...; } | undefined; }' is not assignable to parameter of type '{ args: readonly SandboxValue[]; budget: Budget; captureReplayState: () => number; filename: string; module: Module; onYield: ((yieldPoint: InterpreterYieldPoint) => void) | undefined; scope: Scope; signal?: AbortSignal; snapshot?: RunSnapshot; }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.\n  Types of property 'signal' are incompatible.\n    Type 'AbortSignal | undefined' is not assignable to type 'AbortSignal'.\n      Type 'undefined' is not assignable to type 'AbortSignal'."
+      },
+      {
+        "file": "packages/safejs/src/run.ts",
+        "line": 390,
+        "code": 2379,
+        "message": "Argument of type '{ bindings: Record<string, SandboxValue>; clock: RunClock | undefined; hostCalls: HostCallRecord[]; loopIterations: Record<string, LoopIterationSnapshot> | undefined; ... 6 more ...; sourceHash: string; }' is not assignable to parameter of type '{ bindings: Record<string, SandboxValue>; clock: RunClock | undefined; hostCalls?: HostCallRecord[]; replay?: HostCallReplay; ... 6 more ...; sourceHash: string; }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.\n  Types of property 'loopIterations' are incompatible.\n    Type 'Record<string, LoopIterationSnapshot> | undefined' is not assignable to type 'Record<string, LoopIterationSnapshot>'.\n      Type 'undefined' is not assignable to type 'Record<string, LoopIterationSnapshot>'."
+      },
+      {
+        "file": "packages/safejs/src/run.ts",
+        "line": 429,
+        "code": 2379,
+        "message": "Argument of type '{ bindings: Record<string, SandboxValue>; clock: RunClock | undefined; hostCalls: HostCallRecord[]; replay: HostCallReplay | undefined; initialInputs: ReplayData; promiseReplay: PromiseReplaySnapshot; random: { ...; }; sourceHash: string; }' is not assignable to parameter of type '{ bindings: Record<string, SandboxValue>; clock: RunClock | undefined; hostCalls?: HostCallRecord[]; replay?: HostCallReplay; ... 6 more ...; sourceHash: string; }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.\n  Types of property 'replay' are incompatible.\n    Type 'HostCallReplay | undefined' is not assignable to type 'HostCallReplay'.\n      Type 'undefined' is not assignable to type 'HostCallReplay'."
+      },
+      {
+        "file": "packages/safejs/src/run.ts",
+        "line": 541,
+        "code": 2379,
+        "message": "Argument of type '{ signal: AbortSignal | undefined; budget: Budget; captureReplayState: () => number; onYield: ((yieldPoint: InterpreterYieldPoint) => void) | undefined; scope: Scope; snapshot: RunSnapshot | undefined; surfaceUnhandledThrows: true; useScopeDirectly: true; }' is not assignable to parameter of type 'InterpretOptions' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.\n  Types of property 'onYield' are incompatible.\n    Type '((yieldPoint: InterpreterYieldPoint) => void) | undefined' is not assignable to type '(yieldPoint: InterpreterYieldPoint) => void'.\n      Type 'undefined' is not assignable to type '(yieldPoint: InterpreterYieldPoint) => void'."
+      },
+      {
+        "file": "packages/safejs/src/run.ts",
+        "line": 601,
+        "code": 18048,
+        "message": "'statement' is possibly 'undefined'."
+      },
+      {
+        "file": "packages/safejs/src/run.ts",
+        "line": 601,
+        "code": 18048,
+        "message": "'statement' is possibly 'undefined'."
+      },
+      {
+        "file": "packages/safejs/src/run.ts",
+        "line": 601,
+        "code": 2339,
+        "message": "Property 'expression' does not exist on type 'BlockStatement | BreakStatement | DoWhileStatement | ExportDefaultDeclaration | ExportNamedDeclaration | ... 13 more ... | WhileStatement'.\n  Property 'expression' does not exist on type 'BlockStatement'."
+      },
+      {
+        "file": "packages/safejs/src/run.ts",
+        "line": 601,
+        "code": 2322,
+        "message": "Type 'BlockStatement | BreakStatement | DoWhileStatement | ExportDefaultDeclaration | ExportNamedDeclaration | ... 14 more ... | undefined' is not assignable to type 'ParseResult'.\n  Type 'undefined' is not assignable to type 'ParseResult'."
+      },
+      {
+        "file": "packages/safejs/src/run.ts",
+        "line": 630,
+        "code": 2375,
+        "message": "Type '{ random: { state: number; resumeState?: number; seed: number; initialState: number; } | undefined; pendingAwaits?: RunPendingAwaitSnapshot[]; promiseReplay?: PromiseReplaySnapshot; ... 8 more ...; clock: RunClockSnapshot | undefined; }' is not assignable to type 'RunSnapshot' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.\n  Type '{ random: { state: number; resumeState?: number; seed: number; initialState: number; } | undefined; pendingAwaits?: RunPendingAwaitSnapshot[]; promiseReplay?: PromiseReplaySnapshot; ... 8 more ...; clock: RunClockSnapshot | undefined; }' is not assignable to type 'SafeJSSnapshot' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.\n    Types of property 'clock' are incompatible.\n      Type 'RunClockSnapshot | undefined' is not assignable to type '{ next: number; }'.\n        Type 'undefined' is not assignable to type '{ next: number; }'."
+      },
+      {
+        "file": "packages/safejs/src/snapshot/scheduler.ts",
+        "line": 112,
+        "code": 2375,
+        "message": "Type '{ writeMaxAttempts: number | undefined; writeRetryDelayMs: number | undefined; }' is not assignable to type 'FileSnapshotBackendOptions' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.\n  Types of property 'writeMaxAttempts' are incompatible.\n    Type 'number | undefined' is not assignable to type 'number'.\n      Type 'undefined' is not assignable to type 'number'."
+      }
+    ]
+  },
+  "integration": {
+    "inputs": [
+      "node_modules/typescript/lib/lib.es5.d.ts",
+      "node_modules/typescript/lib/lib.es2015.d.ts",
+      "node_modules/typescript/lib/lib.es2016.d.ts",
+      "node_modules/typescript/lib/lib.es2017.d.ts",
+      "node_modules/typescript/lib/lib.es2018.d.ts",
+      "node_modules/typescript/lib/lib.es2019.d.ts",
+      "node_modules/typescript/lib/lib.es2020.d.ts",
+      "node_modules/typescript/lib/lib.es2021.d.ts",
+      "node_modules/typescript/lib/lib.es2022.d.ts",
+      "node_modules/typescript/lib/lib.es2023.d.ts",
+      "node_modules/typescript/lib/lib.dom.d.ts",
+      "node_modules/typescript/lib/lib.dom.iterable.d.ts",
+      "node_modules/typescript/lib/lib.dom.asynciterable.d.ts",
+      "node_modules/typescript/lib/lib.webworker.importscripts.d.ts",
+      "node_modules/typescript/lib/lib.scripthost.d.ts",
+      "node_modules/typescript/lib/lib.es2015.core.d.ts",
+      "node_modules/typescript/lib/lib.es2015.collection.d.ts",
+      "node_modules/typescript/lib/lib.es2015.generator.d.ts",
+      "node_modules/typescript/lib/lib.es2015.iterable.d.ts",
+      "node_modules/typescript/lib/lib.es2015.promise.d.ts",
+      "node_modules/typescript/lib/lib.es2015.proxy.d.ts",
+      "node_modules/typescript/lib/lib.es2015.reflect.d.ts",
+      "node_modules/typescript/lib/lib.es2015.symbol.d.ts",
+      "node_modules/typescript/lib/lib.es2015.symbol.wellknown.d.ts",
+      "node_modules/typescript/lib/lib.es2016.array.include.d.ts",
+      "node_modules/typescript/lib/lib.es2016.intl.d.ts",
+      "node_modules/typescript/lib/lib.es2017.arraybuffer.d.ts",
+      "node_modules/typescript/lib/lib.es2017.date.d.ts",
+      "node_modules/typescript/lib/lib.es2017.object.d.ts",
+      "node_modules/typescript/lib/lib.es2017.sharedmemory.d.ts",
+      "node_modules/typescript/lib/lib.es2017.string.d.ts",
+      "node_modules/typescript/lib/lib.es2017.intl.d.ts",
+      "node_modules/typescript/lib/lib.es2017.typedarrays.d.ts",
+      "node_modules/typescript/lib/lib.es2018.asyncgenerator.d.ts",
+      "node_modules/typescript/lib/lib.es2018.asynciterable.d.ts",
+      "node_modules/typescript/lib/lib.es2018.intl.d.ts",
+      "node_modules/typescript/lib/lib.es2018.promise.d.ts",
+      "node_modules/typescript/lib/lib.es2018.regexp.d.ts",
+      "node_modules/typescript/lib/lib.es2019.array.d.ts",
+      "node_modules/typescript/lib/lib.es2019.object.d.ts",
+      "node_modules/typescript/lib/lib.es2019.string.d.ts",
+      "node_modules/typescript/lib/lib.es2019.symbol.d.ts",
+      "node_modules/typescript/lib/lib.es2019.intl.d.ts",
+      "node_modules/typescript/lib/lib.es2020.bigint.d.ts",
+      "node_modules/typescript/lib/lib.es2020.date.d.ts",
+      "node_modules/typescript/lib/lib.es2020.promise.d.ts",
+      "node_modules/typescript/lib/lib.es2020.sharedmemory.d.ts",
+      "node_modules/typescript/lib/lib.es2020.string.d.ts",
+      "node_modules/typescript/lib/lib.es2020.symbol.wellknown.d.ts",
+      "node_modules/typescript/lib/lib.es2020.intl.d.ts",
+      "node_modules/typescript/lib/lib.es2020.number.d.ts",
+      "node_modules/typescript/lib/lib.es2021.promise.d.ts",
+      "node_modules/typescript/lib/lib.es2021.string.d.ts",
+      "node_modules/typescript/lib/lib.es2021.weakref.d.ts",
+      "node_modules/typescript/lib/lib.es2021.intl.d.ts",
+      "node_modules/typescript/lib/lib.es2022.array.d.ts",
+      "node_modules/typescript/lib/lib.es2022.error.d.ts",
+      "node_modules/typescript/lib/lib.es2022.intl.d.ts",
+      "node_modules/typescript/lib/lib.es2022.object.d.ts",
+      "node_modules/typescript/lib/lib.es2022.string.d.ts",
+      "node_modules/typescript/lib/lib.es2022.regexp.d.ts",
+      "node_modules/typescript/lib/lib.es2023.array.d.ts",
+      "node_modules/typescript/lib/lib.es2023.collection.d.ts",
+      "node_modules/typescript/lib/lib.es2023.intl.d.ts",
+      "node_modules/typescript/lib/lib.decorators.d.ts",
+      "node_modules/typescript/lib/lib.decorators.legacy.d.ts",
+      "node_modules/typescript/lib/lib.es2023.full.d.ts",
+      "consumer/packages/safejs/src/parse/tokenizer.ts",
+      "consumer/packages/safejs/src/parse/assign-ids.ts",
+      "consumer/packages/safejs/src/error/shape.ts",
+      "consumer/packages/safejs/src/parse/format-error.ts",
+      "consumer/packages/safejs/src/parse/parse-export.ts",
+      "consumer/packages/safejs/src/parse/parse-import-meta.ts",
+      "consumer/packages/safejs/src/interp/regex/parse.ts",
+      "consumer/packages/safejs/src/parse/parser.ts",
+      "consumer/packages/safejs/src/parse/hash.ts",
+      "consumer/packages/safejs/src/observability/otel.ts",
+      "consumer/packages/safejs/src/interp/budget.ts",
+      "consumer/packages/safejs/src/interp/running-state.ts",
+      "consumer/packages/safejs/src/interp/generator.ts",
+      "consumer/packages/safejs/src/interp/promise-tracker.ts",
+      "consumer/packages/safejs/src/interp/arguments.ts",
+      "consumer/packages/safejs/src/graph-depth.ts",
+      "consumer/packages/safejs/src/snapshot/arguments.ts",
+      "consumer/packages/safejs/src/snapshot/dump-format.ts",
+      "consumer/packages/safejs/src/snapshot/validation.ts",
+      "consumer/packages/safejs/src/interp/promise-replay.ts",
+      "consumer/packages/safejs/src/snapshot/replay-data.ts",
+      "consumer/packages/safejs/src/snapshot/policy.ts",
+      "consumer/packages/safejs/src/interp/host-call.ts",
+      "consumer/packages/safejs/src/interp/values.ts",
+      "consumer/packages/safejs/src/interp/globals/math.ts",
+      "consumer/packages/safejs/src/restore.ts",
+      "consumer/packages/safejs/src/random.ts",
+      "consumer/packages/safejs/src/parse.ts",
+      "consumer/packages/safejs/src/interp/jobs.ts",
+      "consumer/packages/safejs/src/interp/patterns.ts",
+      "consumer/packages/safejs/src/interp/var-hoist.ts",
+      "consumer/packages/safejs/src/interp/async.ts",
+      "consumer/packages/safejs/src/interp/methods/array.ts",
+      "consumer/packages/safejs/src/interp/methods/function.ts",
+      "consumer/packages/safejs/src/interp/methods/map.ts",
+      "consumer/packages/safejs/src/interp/methods/number.ts",
+      "consumer/packages/safejs/src/interp/iteration.ts",
+      "consumer/packages/safejs/src/interp/methods/generator.ts",
+      "consumer/packages/safejs/src/interp/regex/engine.ts",
+      "consumer/packages/safejs/src/interp/methods/regex.ts",
+      "consumer/packages/safejs/src/interp/methods/string.ts",
+      "consumer/packages/safejs/src/interp/methods/set.ts",
+      "consumer/packages/safejs/src/interp/globals/error.ts",
+      "consumer/packages/safejs/src/interp/globals/collections.ts",
+      "consumer/packages/safejs/src/interp/interpreter.ts",
+      "consumer/packages/safejs/src/interp/scope.ts",
+      "consumer/packages/safejs/src/interp/exceptions.ts",
+      "consumer/packages/safejs/src/interp/promise.ts",
+      "consumer/packages/safejs/src/interp/cancel.ts",
+      "consumer/packages/safejs/src/snapshot/dump.ts",
+      "consumer/packages/safejs/src/interp/host-bridge.ts",
+      "consumer/packages/safejs/src/interp/globals/console-json.ts",
+      "consumer/packages/safejs/src/interp/globals/regex.ts",
+      "consumer/packages/safejs/src/interp/globals/misc.ts",
+      "consumer/packages/safejs/src/interp/globals/object-array.ts",
+      "consumer/packages/safejs/src/modules/registry.ts",
+      "consumer/packages/safejs/src/error-codes.ts",
+      "consumer/packages/safejs/src/snapshot/backend.ts",
+      "consumer/packages/safejs/src/snapshot/scheduler.ts",
+      "consumer/packages/safejs/src/snapshot/serialize.ts",
+      "consumer/packages/safejs/src/snapshot/replay-inputs.ts",
+      "consumer/packages/safejs/src/run.ts",
+      "consumer/packages/safejs/src/modules/canonical-path.ts",
+      "consumer/packages/safejs/src/modules/fs.ts",
+      "consumer/node_modules/virtual-bash/dist/contracts/io.d.ts",
+      "consumer/node_modules/virtual-bash/dist/contracts/filesystem.d.ts",
+      "consumer/node_modules/virtual-bash/dist/contracts/command.d.ts",
+      "consumer/node_modules/virtual-bash/dist/contracts/errors.d.ts",
+      "consumer/node_modules/virtual-bash/dist/contracts/path.d.ts",
+      "consumer/node_modules/virtual-bash/dist/contracts/plugin.d.ts",
+      "consumer/node_modules/virtual-bash/dist/contracts/index.d.ts",
+      "consumer/node_modules/virtual-bash/dist/commands/text-programs/shared.d.ts",
+      "consumer/node_modules/virtual-bash/dist/commands/text-programs/index.d.ts",
+      "consumer/node_modules/virtual-bash/dist/commands/structured/numbers.d.ts",
+      "consumer/node_modules/virtual-bash/dist/commands/structured/limits.d.ts",
+      "consumer/node_modules/virtual-bash/dist/commands/structured/index.d.ts",
+      "consumer/node_modules/virtual-bash/dist/commands/search/options.d.ts",
+      "consumer/node_modules/virtual-bash/dist/commands/search/index.d.ts",
+      "consumer/node_modules/virtual-bash/dist/commands/diff-patch/shared.d.ts",
+      "consumer/node_modules/virtual-bash/dist/commands/diff-patch/index.d.ts",
+      "consumer/node_modules/virtual-bash/dist/commands/metadata/internal.d.ts",
+      "consumer/node_modules/virtual-bash/dist/commands/metadata/index.d.ts",
+      "consumer/node_modules/virtual-bash/dist/commands/archive/internal.d.ts",
+      "consumer/node_modules/virtual-bash/dist/commands/archive/index.d.ts",
+      "consumer/node_modules/virtual-bash/dist/commands/table-text/internal.d.ts",
+      "consumer/node_modules/virtual-bash/dist/commands/table-text/index.d.ts",
+      "consumer/node_modules/virtual-bash/dist/plugins/index.d.ts",
+      "consumer/node_modules/virtual-bash/dist/shell/types.d.ts",
+      "consumer/node_modules/virtual-bash/dist/shell/shell.d.ts",
+      "consumer/node_modules/virtual-bash/dist/shell/arithmetic.d.ts",
+      "consumer/node_modules/virtual-bash/dist/shell/parser.d.ts",
+      "consumer/node_modules/virtual-bash/dist/shell/index.d.ts",
+      "consumer/node_modules/virtual-bash/dist/commands/index.d.ts",
+      "consumer/node_modules/virtual-bash/dist/commands/bytes/index.d.ts",
+      "consumer/node_modules/virtual-bash/dist/integrations/safejs/filesystem.d.ts",
+      "consumer/node_modules/virtual-bash/dist/integrations/safejs/shell.d.ts",
+      "consumer/node_modules/virtual-bash/dist/integrations/safejs/index.d.ts",
+      "consumer/node_modules/virtual-bash/dist/commands/safejs/types.d.ts",
+      "consumer/node_modules/virtual-bash/dist/commands/safejs/options.d.ts",
+      "consumer/node_modules/virtual-bash/dist/commands/safejs/index.d.ts",
+      "consumer/node_modules/virtual-bash/dist/commands/network/types.d.ts",
+      "consumer/node_modules/virtual-bash/dist/commands/network/transport.d.ts",
+      "consumer/node_modules/virtual-bash/dist/commands/network/curl.d.ts",
+      "consumer/node_modules/virtual-bash/dist/commands/network/index.d.ts",
+      "consumer/node_modules/virtual-bash/dist/fs/memory/index.d.ts",
+      "consumer/node_modules/virtual-bash/dist/fs/real/index.d.ts",
+      "consumer/node_modules/virtual-bash/dist/fs/s3/transport.d.ts",
+      "consumer/node_modules/virtual-bash/dist/fs/s3/filesystem.d.ts",
+      "consumer/node_modules/virtual-bash/dist/fs/s3/mock.d.ts",
+      "consumer/node_modules/virtual-bash/dist/fs/s3/index.d.ts",
+      "consumer/node_modules/virtual-bash/dist/fs/s3/http/types.d.ts",
+      "consumer/node_modules/virtual-bash/dist/fs/s3/http/transport.d.ts",
+      "consumer/node_modules/virtual-bash/dist/fs/s3/http/index.d.ts",
+      "consumer/node_modules/virtual-bash/dist/fs/webdav/webdav.d.ts",
+      "consumer/node_modules/virtual-bash/dist/fs/webdav/index.d.ts",
+      "consumer/node_modules/virtual-bash/dist/fs/readonly/index.d.ts",
+      "consumer/node_modules/virtual-bash/dist/fs/mount/index.d.ts",
+      "consumer/node_modules/virtual-bash/dist/fs/overlay/index.d.ts",
+      "consumer/node_modules/virtual-bash/dist/index.d.ts",
+      "consumer/consumer.ts",
+      "node_modules/@types/node/compatibility/disposable.d.ts",
+      "node_modules/@types/node/compatibility/indexable.d.ts",
+      "node_modules/@types/node/compatibility/iterators.d.ts",
+      "node_modules/@types/node/compatibility/index.d.ts",
+      "node_modules/@types/node/globals.typedarray.d.ts",
+      "node_modules/@types/node/buffer.buffer.d.ts",
+      "node_modules/@types/node/globals.d.ts",
+      "node_modules/@types/node/web-globals/abortcontroller.d.ts",
+      "node_modules/@types/node/web-globals/domexception.d.ts",
+      "node_modules/@types/node/web-globals/events.d.ts",
+      "node_modules/undici-types/header.d.ts",
+      "node_modules/undici-types/readable.d.ts",
+      "node_modules/undici-types/file.d.ts",
+      "node_modules/undici-types/fetch.d.ts",
+      "node_modules/undici-types/formdata.d.ts",
+      "node_modules/undici-types/connector.d.ts",
+      "node_modules/undici-types/client.d.ts",
+      "node_modules/undici-types/errors.d.ts",
+      "node_modules/undici-types/dispatcher.d.ts",
+      "node_modules/undici-types/global-dispatcher.d.ts",
+      "node_modules/undici-types/global-origin.d.ts",
+      "node_modules/undici-types/pool-stats.d.ts",
+      "node_modules/undici-types/pool.d.ts",
+      "node_modules/undici-types/handlers.d.ts",
+      "node_modules/undici-types/balanced-pool.d.ts",
+      "node_modules/undici-types/agent.d.ts",
+      "node_modules/undici-types/mock-interceptor.d.ts",
+      "node_modules/undici-types/mock-agent.d.ts",
+      "node_modules/undici-types/mock-client.d.ts",
+      "node_modules/undici-types/mock-pool.d.ts",
+      "node_modules/undici-types/mock-errors.d.ts",
+      "node_modules/undici-types/proxy-agent.d.ts",
+      "node_modules/undici-types/env-http-proxy-agent.d.ts",
+      "node_modules/undici-types/retry-handler.d.ts",
+      "node_modules/undici-types/retry-agent.d.ts",
+      "node_modules/undici-types/api.d.ts",
+      "node_modules/undici-types/interceptors.d.ts",
+      "node_modules/undici-types/util.d.ts",
+      "node_modules/undici-types/cookies.d.ts",
+      "node_modules/undici-types/patch.d.ts",
+      "node_modules/undici-types/websocket.d.ts",
+      "node_modules/undici-types/eventsource.d.ts",
+      "node_modules/undici-types/filereader.d.ts",
+      "node_modules/undici-types/diagnostics-channel.d.ts",
+      "node_modules/undici-types/content-type.d.ts",
+      "node_modules/undici-types/cache.d.ts",
+      "node_modules/undici-types/index.d.ts",
+      "node_modules/@types/node/web-globals/fetch.d.ts",
+      "node_modules/@types/node/web-globals/navigator.d.ts",
+      "node_modules/@types/node/web-globals/storage.d.ts",
+      "node_modules/@types/node/web-globals/streams.d.ts",
+      "node_modules/@types/node/assert.d.ts",
+      "node_modules/@types/node/assert/strict.d.ts",
+      "node_modules/@types/node/async_hooks.d.ts",
+      "node_modules/@types/node/buffer.d.ts",
+      "node_modules/@types/node/child_process.d.ts",
+      "node_modules/@types/node/cluster.d.ts",
+      "node_modules/@types/node/console.d.ts",
+      "node_modules/@types/node/constants.d.ts",
+      "node_modules/@types/node/crypto.d.ts",
+      "node_modules/@types/node/dgram.d.ts",
+      "node_modules/@types/node/diagnostics_channel.d.ts",
+      "node_modules/@types/node/dns.d.ts",
+      "node_modules/@types/node/dns/promises.d.ts",
+      "node_modules/@types/node/domain.d.ts",
+      "node_modules/@types/node/events.d.ts",
+      "node_modules/@types/node/fs.d.ts",
+      "node_modules/@types/node/fs/promises.d.ts",
+      "node_modules/@types/node/http.d.ts",
+      "node_modules/@types/node/http2.d.ts",
+      "node_modules/@types/node/https.d.ts",
+      "node_modules/@types/node/inspector.d.ts",
+      "node_modules/@types/node/inspector.generated.d.ts",
+      "node_modules/@types/node/module.d.ts",
+      "node_modules/@types/node/net.d.ts",
+      "node_modules/@types/node/os.d.ts",
+      "node_modules/@types/node/path.d.ts",
+      "node_modules/@types/node/perf_hooks.d.ts",
+      "node_modules/@types/node/process.d.ts",
+      "node_modules/@types/node/punycode.d.ts",
+      "node_modules/@types/node/querystring.d.ts",
+      "node_modules/@types/node/readline.d.ts",
+      "node_modules/@types/node/readline/promises.d.ts",
+      "node_modules/@types/node/repl.d.ts",
+      "node_modules/@types/node/sea.d.ts",
+      "node_modules/@types/node/sqlite.d.ts",
+      "node_modules/@types/node/stream.d.ts",
+      "node_modules/@types/node/stream/promises.d.ts",
+      "node_modules/@types/node/stream/consumers.d.ts",
+      "node_modules/@types/node/stream/web.d.ts",
+      "node_modules/@types/node/string_decoder.d.ts",
+      "node_modules/@types/node/test.d.ts",
+      "node_modules/@types/node/timers.d.ts",
+      "node_modules/@types/node/timers/promises.d.ts",
+      "node_modules/@types/node/tls.d.ts",
+      "node_modules/@types/node/trace_events.d.ts",
+      "node_modules/@types/node/tty.d.ts",
+      "node_modules/@types/node/url.d.ts",
+      "node_modules/@types/node/util.d.ts",
+      "node_modules/@types/node/v8.d.ts",
+      "node_modules/@types/node/vm.d.ts",
+      "node_modules/@types/node/wasi.d.ts",
+      "node_modules/@types/node/worker_threads.d.ts",
+      "node_modules/@types/node/zlib.d.ts",
+      "node_modules/@types/node/index.d.ts"
+    ],
+    "diagnostics": [
+      {
+        "file": "packages/safejs/src/interp/async.ts",
+        "line": 266,
+        "code": 2379,
+        "message": "Argument of type '{ span: SourceSpan; otelSpan?: OtelSpan | undefined; kind: \"await\"; replayState: unknown; nodeId: number | undefined; }' is not assignable to parameter of type 'ResumeBreakpoint' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.\n  Types of property 'nodeId' are incompatible.\n    Type 'number | undefined' is not assignable to type 'number'.\n      Type 'undefined' is not assignable to type 'number'."
+      },
+      {
+        "file": "packages/safejs/src/interp/async.ts",
+        "line": 357,
+        "code": 18048,
+        "message": "'param' is possibly 'undefined'."
+      },
+      {
+        "file": "packages/safejs/src/interp/async.ts",
+        "line": 360,
+        "code": 2345,
+        "message": "Argument of type 'Identifier | AssignmentPattern | ArrayPattern | ObjectPattern | RestElement | undefined' is not assignable to parameter of type 'Pattern'.\n  Type 'undefined' is not assignable to type 'Pattern'."
+      },
+      {
+        "file": "packages/safejs/src/interp/async.ts",
+        "line": 374,
+        "code": 2345,
+        "message": "Argument of type 'Identifier | AssignmentPattern | ArrayPattern | ObjectPattern | RestElement | undefined' is not assignable to parameter of type 'Pattern'.\n  Type 'undefined' is not assignable to type 'Pattern'."
+      },
+      {
+        "file": "packages/safejs/src/interp/async.ts",
+        "line": 427,
+        "code": 2379,
+        "message": "Argument of type '{ budget: Budget | undefined; }' is not assignable to parameter of type '{ budget?: Budget; }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.\n  Types of property 'budget' are incompatible.\n    Type 'Budget | undefined' is not assignable to type 'Budget'.\n      Type 'undefined' is not assignable to type 'Budget'."
+      },
+      {
+        "file": "packages/safejs/src/interp/budget.ts",
+        "line": 88,
+        "code": 2412,
+        "message": "Type 'number | undefined' is not assignable to type 'number' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the type of the target.\n  Type 'undefined' is not assignable to type 'number'."
+      },
+      {
+        "file": "packages/safejs/src/interp/budget.ts",
+        "line": 89,
+        "code": 2375,
+        "message": "Type 'Readonly<{ maxSteps: number | undefined; maxCallDepth: number | undefined; stringLength: number | undefined; arrayLength: number | undefined; dataSize: number | undefined; }>' is not assignable to type 'Readonly<BudgetLimits>' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.\n  Types of property 'maxSteps' are incompatible.\n    Type 'number | undefined' is not assignable to type 'number'.\n      Type 'undefined' is not assignable to type 'number'."
+      },
+      {
+        "file": "packages/safejs/src/interp/cancel.ts",
+        "line": 43,
+        "code": 2379,
+        "message": "Argument of type '{ call: (args: readonly SandboxValue[], context: SandboxCallContext | undefined) => SandboxValue | Promise<SandboxValue>; name: string | undefined; async?: true; }' is not assignable to parameter of type '{ async?: boolean; call: (args: readonly SandboxValue[], context?: SandboxCallContext | undefined) => SandboxValue | Promise<SandboxValue>; construct?: (args: readonly SandboxValue[], context?: SandboxCallContext | undefined) => SandboxValue | Promise<...>; name?: string; properties?: SandboxObject | ((closure: Sand...' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.\n  Types of property 'name' are incompatible.\n    Type 'string | undefined' is not assignable to type 'string'.\n      Type 'undefined' is not assignable to type 'string'."
+      },
+      {
+        "file": "packages/safejs/src/interp/exceptions.ts",
+        "line": 198,
+        "code": 2379,
+        "message": "Argument of type '{ chargeBudget: false; cause: unknown; span: ErrorSourceSpan | undefined; }' is not assignable to parameter of type '{ cause?: unknown; chargeBudget?: boolean; span?: ErrorSourceSpan; }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.\n  Types of property 'span' are incompatible.\n    Type 'ErrorSourceSpan | undefined' is not assignable to type 'ErrorSourceSpan'.\n      Type 'undefined' is not assignable to type 'ErrorSourceSpan'."
+      },
+      {
+        "file": "packages/safejs/src/interp/exceptions.ts",
+        "line": 206,
+        "code": 2379,
+        "message": "Argument of type '{ chargeBudget: false; cause: unknown; span: ErrorSourceSpan | undefined; }' is not assignable to parameter of type '{ cause?: unknown; chargeBudget?: boolean; span?: ErrorSourceSpan; }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.\n  Types of property 'span' are incompatible.\n    Type 'ErrorSourceSpan | undefined' is not assignable to type 'ErrorSourceSpan'.\n      Type 'undefined' is not assignable to type 'ErrorSourceSpan'."
+      },
+      {
+        "file": "packages/safejs/src/interp/exceptions.ts",
+        "line": 237,
+        "code": 2379,
+        "message": "Argument of type '{ cause: Error; chargeBudget: false; span: ErrorSourceSpan | undefined; }' is not assignable to parameter of type '{ cause?: unknown; chargeBudget?: boolean; span?: ErrorSourceSpan; }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.\n  Types of property 'span' are incompatible.\n    Type 'ErrorSourceSpan | undefined' is not assignable to type 'ErrorSourceSpan'.\n      Type 'undefined' is not assignable to type 'ErrorSourceSpan'."
+      },
+      {
+        "file": "packages/safejs/src/interp/exceptions.ts",
+        "line": 253,
+        "code": 2379,
+        "message": "Argument of type '{ cause: unknown; chargeBudget: false; span: ErrorSourceSpan | undefined; }' is not assignable to parameter of type '{ cause?: unknown; chargeBudget?: boolean; span?: ErrorSourceSpan; }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.\n  Types of property 'span' are incompatible.\n    Type 'ErrorSourceSpan | undefined' is not assignable to type 'ErrorSourceSpan'.\n      Type 'undefined' is not assignable to type 'ErrorSourceSpan'."
+      },
+      {
+        "file": "packages/safejs/src/interp/exceptions.ts",
+        "line": 263,
+        "code": 2379,
+        "message": "Argument of type '{ chargeBudget: false; span: ErrorSourceSpan | undefined; }' is not assignable to parameter of type '{ cause?: unknown; chargeBudget?: boolean; span?: ErrorSourceSpan; }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.\n  Types of property 'span' are incompatible.\n    Type 'ErrorSourceSpan | undefined' is not assignable to type 'ErrorSourceSpan'.\n      Type 'undefined' is not assignable to type 'ErrorSourceSpan'."
+      },
+      {
+        "file": "packages/safejs/src/interp/exceptions.ts",
+        "line": 608,
+        "code": 18048,
+        "message": "'element' is possibly 'undefined'."
+      },
+      {
+        "file": "packages/safejs/src/interp/exceptions.ts",
+        "line": 609,
+        "code": 2345,
+        "message": "Argument of type 'Identifier | MemberExpression | AssignmentPattern | ArrayPattern | ObjectPattern | RestElement | undefined' is not assignable to parameter of type 'Identifier | MemberExpression | AssignmentPattern | ArrayPattern | ObjectPattern | RestElement'.\n  Type 'undefined' is not assignable to type 'Identifier | MemberExpression | AssignmentPattern | ArrayPattern | ObjectPattern | RestElement'."
+      },
+      {
+        "file": "packages/safejs/src/interp/generator.ts",
+        "line": 164,
+        "code": 2375,
+        "message": "Type '{ yieldNodeId: number | undefined; sent: { type: \"normal\" | \"return\" | \"throw\"; value: unknown; }[]; }' is not assignable to type 'GeneratorChannelSnapshot' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.\n  Types of property 'yieldNodeId' are incompatible.\n    Type 'number | undefined' is not assignable to type 'number'.\n      Type 'undefined' is not assignable to type 'number'."
+      },
+      {
+        "file": "packages/safejs/src/interp/globals/console-json.ts",
+        "line": 108,
+        "code": 2379,
+        "message": "Argument of type '{ budget: Budget; gap: string; replacer: SandboxClosure | undefined; stack: never[]; }' is not assignable to parameter of type 'StringifyState' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.\n  Types of property 'replacer' are incompatible.\n    Type 'SandboxClosure | undefined' is not assignable to type 'SandboxClosure'.\n      Type 'undefined' is not assignable to type 'SandboxClosure'."
+      },
+      {
+        "file": "packages/safejs/src/interp/host-bridge.ts",
+        "line": 132,
+        "code": 2375,
+        "message": "Type '{ journal: HostCallJournal | undefined; entries: Map<any, any>; hostFunctions: Map<any, any>; sourceFunctions: Map<any, any>; active: Set<Promise<unknown>>; seen: WeakMap<...>; nextInvocation: number; restored: never[]; }' is not assignable to type 'HostCallbacks' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.\n  Types of property 'journal' are incompatible.\n    Type 'HostCallJournal | undefined' is not assignable to type 'HostCallJournal'.\n      Type 'undefined' is not assignable to type 'HostCallJournal'."
+      },
+      {
+        "file": "packages/safejs/src/interp/host-bridge.ts",
+        "line": 573,
+        "code": 2379,
+        "message": "Argument of type '{ budget: Budget; hostCalls: HostCallJournal | undefined; }' is not assignable to parameter of type 'HostBridgeOptions' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.\n  Types of property 'hostCalls' are incompatible.\n    Type 'HostCallJournal | undefined' is not assignable to type 'HostCallJournal'.\n      Type 'undefined' is not assignable to type 'HostCallJournal'."
+      },
+      {
+        "file": "packages/safejs/src/interp/host-bridge.ts",
+        "line": 586,
+        "code": 2379,
+        "message": "Argument of type '{ identifyCapability: ((key: SandboxClosure) => string | undefined) | undefined; }' is not assignable to parameter of type '{ identifyCapability?: (value: SandboxClosure, path: readonly string[]) => string | undefined; captureCapabilityProperties?: boolean; identifyPromise?: (value: SandboxPromise, path: readonly string[]) => string | undefined; }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.\n  Types of property 'identifyCapability' are incompatible.\n    Type '((key: SandboxClosure) => string | undefined) | undefined' is not assignable to type '(value: SandboxClosure, path: readonly string[]) => string | undefined'.\n      Type 'undefined' is not assignable to type '(value: SandboxClosure, path: readonly string[]) => string | undefined'."
+      },
+      {
+        "file": "packages/safejs/src/interp/interpreter.ts",
+        "line": 333,
+        "code": 2379,
+        "message": "Argument of type '{ budget: Budget; callStack: never[]; onYield: ((yieldPoint: InterpreterYieldPoint) => void) | undefined; captureReplayState: (() => unknown) | undefined; rootNode: ParseResult; ... 7 more ...; resumeTarget: { ...; }; }' is not assignable to parameter of type 'AsyncEvaluationContext' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.\n  Types of property 'onYield' are incompatible.\n    Type '((yieldPoint: InterpreterYieldPoint) => void) | undefined' is not assignable to type '(yieldPoint: InterpreterYieldPoint) => void'.\n      Type 'undefined' is not assignable to type '(yieldPoint: InterpreterYieldPoint) => void'."
+      },
+      {
+        "file": "packages/safejs/src/interp/interpreter.ts",
+        "line": 404,
+        "code": 2412,
+        "message": "Type 'undefined' is not assignable to type 'number' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the type of the target."
+      },
+      {
+        "file": "packages/safejs/src/interp/interpreter.ts",
+        "line": 599,
+        "code": 2345,
+        "message": "Argument of type 'Expression | undefined' is not assignable to parameter of type 'ParseResult'.\n  Type 'undefined' is not assignable to type 'ParseResult'."
+      },
+      {
+        "file": "packages/safejs/src/interp/interpreter.ts",
+        "line": 1839,
+        "code": 2379,
+        "message": "Argument of type '{ kind: \"loop-iteration\"; nodeId: number | undefined; span: SourceSpan; }' is not assignable to parameter of type 'ResumeBreakpoint' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.\n  Types of property 'nodeId' are incompatible.\n    Type 'number | undefined' is not assignable to type 'number'.\n      Type 'undefined' is not assignable to type 'number'."
+      },
+      {
+        "file": "packages/safejs/src/interp/interpreter.ts",
+        "line": 2032,
+        "code": 2379,
+        "message": "Argument of type '{ kind: \"generator-yield\"; nodeId: number | undefined; span: SourceSpan; }' is not assignable to parameter of type 'ResumeBreakpoint' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.\n  Types of property 'nodeId' are incompatible.\n    Type 'number | undefined' is not assignable to type 'number'.\n      Type 'undefined' is not assignable to type 'number'."
+      },
+      {
+        "file": "packages/safejs/src/interp/interpreter.ts",
+        "line": 2038,
+        "code": 2412,
+        "message": "Type 'undefined' is not assignable to type '{ sent: GeneratorCompletion[]; yieldNodeId: number; }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the type of the target."
+      },
+      {
+        "file": "packages/safejs/src/interp/interpreter.ts",
+        "line": 2090,
+        "code": 2379,
+        "message": "Argument of type '{ kind: \"generator-yield\"; nodeId: number | undefined; span: SourceSpan; }' is not assignable to parameter of type 'ResumeBreakpoint' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.\n  Types of property 'nodeId' are incompatible.\n    Type 'number | undefined' is not assignable to type 'number'.\n      Type 'undefined' is not assignable to type 'number'."
+      },
+      {
+        "file": "packages/safejs/src/interp/interpreter.ts",
+        "line": 2096,
+        "code": 2412,
+        "message": "Type 'undefined' is not assignable to type '{ sent: GeneratorCompletion[]; yieldNodeId: number; }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the type of the target."
+      },
+      {
+        "file": "packages/safejs/src/interp/interpreter.ts",
+        "line": 2491,
+        "code": 2375,
+        "message": "Type '{ code: InterpreterErrorCode; message: string; name: string; nodeId: number | undefined; nodeType: \"ArrowFunctionExpression\" | \"AssignmentExpression\" | \"ArrayExpression\" | ... 43 more ... | \"ExportNamedDeclaration\"; span: SourceSpan; stack: string; }' is not assignable to type 'InterpreterError' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.\n  Types of property 'nodeId' are incompatible.\n    Type 'number | undefined' is not assignable to type 'number'.\n      Type 'undefined' is not assignable to type 'number'."
+      },
+      {
+        "file": "packages/safejs/src/interp/jobs.ts",
+        "line": 30,
+        "code": 2412,
+        "message": "Type 'undefined' is not assignable to type 'ExecutionJob' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the type of the target."
+      },
+      {
+        "file": "packages/safejs/src/interp/patterns.ts",
+        "line": 123,
+        "code": 18048,
+        "message": "'element' is possibly 'undefined'."
+      },
+      {
+        "file": "packages/safejs/src/interp/patterns.ts",
+        "line": 124,
+        "code": 2345,
+        "message": "Argument of type 'Identifier | MemberExpression | AssignmentPattern | ArrayPattern | ObjectPattern | RestElement | undefined' is not assignable to parameter of type 'Pattern'.\n  Type 'undefined' is not assignable to type 'Pattern'."
+      },
+      {
+        "file": "packages/safejs/src/interp/promise-replay.ts",
+        "line": 53,
+        "code": 2412,
+        "message": "Type '{ start: number; nodes: number[]; } | undefined' is not assignable to type '{ start: number; nodes: number[]; }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the type of the target.\n  Type 'undefined' is not assignable to type '{ start: number; nodes: number[]; }'."
+      },
+      {
+        "file": "packages/safejs/src/interp/promise-replay.ts",
+        "line": 281,
+        "code": 2412,
+        "message": "Type 'undefined' is not assignable to type 'Budget' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the type of the target."
+      },
+      {
+        "file": "packages/safejs/src/interp/promise-replay.ts",
+        "line": 425,
+        "code": 18048,
+        "message": "'settlement' is possibly 'undefined'."
+      },
+      {
+        "file": "packages/safejs/src/interp/promise-replay.ts",
+        "line": 427,
+        "code": 18048,
+        "message": "'settlement' is possibly 'undefined'."
+      },
+      {
+        "file": "packages/safejs/src/interp/regex/engine.ts",
+        "line": 63,
+        "code": 2345,
+        "message": "Argument of type 'string | undefined' is not assignable to parameter of type 'string'.\n  Type 'undefined' is not assignable to type 'string'."
+      },
+      {
+        "file": "packages/safejs/src/interp/regex/engine.ts",
+        "line": 74,
+        "code": 2345,
+        "message": "Argument of type 'string | undefined' is not assignable to parameter of type 'string'.\n  Type 'undefined' is not assignable to type 'string'."
+      },
+      {
+        "file": "packages/safejs/src/interp/regex/engine.ts",
+        "line": 76,
+        "code": 2345,
+        "message": "Argument of type 'string | undefined' is not assignable to parameter of type 'string'.\n  Type 'undefined' is not assignable to type 'string'."
+      },
+      {
+        "file": "packages/safejs/src/interp/regex/engine.ts",
+        "line": 128,
+        "code": 2345,
+        "message": "Argument of type 'RegexNode | undefined' is not assignable to parameter of type 'RegexNode'.\n  Type 'undefined' is not assignable to type 'RegexNode'."
+      },
+      {
+        "file": "packages/safejs/src/interp/regex/engine.ts",
+        "line": 172,
+        "code": 2345,
+        "message": "Argument of type 'string | undefined' is not assignable to parameter of type 'string'.\n  Type 'undefined' is not assignable to type 'string'."
+      },
+      {
+        "file": "packages/safejs/src/interp/regex/engine.ts",
+        "line": 180,
+        "code": 2345,
+        "message": "Argument of type 'string | undefined' is not assignable to parameter of type 'string'.\n  Type 'undefined' is not assignable to type 'string'."
+      },
+      {
+        "file": "packages/safejs/src/interp/regex/parse.ts",
+        "line": 71,
+        "code": 2322,
+        "message": "Type 'RegexNode | undefined' is not assignable to type 'RegexNode'.\n  Type 'undefined' is not assignable to type 'RegexNode'."
+      },
+      {
+        "file": "packages/safejs/src/interp/regex/parse.ts",
+        "line": 83,
+        "code": 2322,
+        "message": "Type 'RegexNode | undefined' is not assignable to type 'RegexNode'.\n  Type 'undefined' is not assignable to type 'RegexNode'."
+      },
+      {
+        "file": "packages/safejs/src/interp/regex/parse.ts",
+        "line": 156,
+        "code": 2322,
+        "message": "Type '{ type: \"group\"; capturing: boolean; index: number | undefined; body: RegexNode; }' is not assignable to type 'RegexNode'.\n  Type '{ type: \"group\"; capturing: boolean; index: number | undefined; body: RegexNode; }' is not assignable to type '{ type: \"group\"; capturing: boolean; index?: number; body: RegexNode; }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.\n    Types of property 'index' are incompatible.\n      Type 'number | undefined' is not assignable to type 'number'.\n        Type 'undefined' is not assignable to type 'number'."
+      },
+      {
+        "file": "packages/safejs/src/interp/regex/parse.ts",
+        "line": 204,
+        "code": 2322,
+        "message": "Type 'CharacterClassItem | undefined' is not assignable to type 'CharacterClassItem'.\n  Type 'undefined' is not assignable to type 'CharacterClassItem'."
+      },
+      {
+        "file": "packages/safejs/src/interp/regex/parse.ts",
+        "line": 311,
+        "code": 2375,
+        "message": "Type '{ min: number; max: number | undefined; }' is not assignable to type '{ min: number; max?: number; }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.\n  Types of property 'max' are incompatible.\n    Type 'number | undefined' is not assignable to type 'number'.\n      Type 'undefined' is not assignable to type 'number'."
+      },
+      {
+        "file": "packages/safejs/src/interp/regex/parse.ts",
+        "line": 365,
+        "code": 2538,
+        "message": "Type 'undefined' cannot be used as an index type."
+      },
+      {
+        "file": "packages/safejs/src/interp/regex/parse.ts",
+        "line": 369,
+        "code": 7053,
+        "message": "Element implicitly has an 'any' type because expression of type 'any' can't be used to index type 'RegexFlags'."
+      },
+      {
+        "file": "packages/safejs/src/interp/regex/parse.ts",
+        "line": 372,
+        "code": 7053,
+        "message": "Element implicitly has an 'any' type because expression of type 'any' can't be used to index type 'RegexFlags'."
+      },
+      {
+        "file": "packages/safejs/src/interp/scope.ts",
+        "line": 227,
+        "code": 2532,
+        "message": "Object is possibly 'undefined'."
+      },
+      {
+        "file": "packages/safejs/src/modules/fs.ts",
+        "line": 540,
+        "code": 2345,
+        "message": "Argument of type 'string | undefined' is not assignable to parameter of type 'string'.\n  Type 'undefined' is not assignable to type 'string'."
+      },
+      {
+        "file": "packages/safejs/src/modules/registry.ts",
+        "line": 103,
+        "code": 2379,
+        "message": "Argument of type '{ budget: Budget; hostCalls: HostCallJournal | undefined; moduleId: string; signal: AbortSignal | undefined; }' is not assignable to parameter of type 'HostBridgeOptions' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.\n  Types of property 'hostCalls' are incompatible.\n    Type 'HostCallJournal | undefined' is not assignable to type 'HostCallJournal'.\n      Type 'undefined' is not assignable to type 'HostCallJournal'."
+      },
+      {
+        "file": "packages/safejs/src/parse/parse-export.ts",
+        "line": 52,
+        "code": 2412,
+        "message": "Type 'SourceSpan | undefined' is not assignable to type 'SourceSpan' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the type of the target.\n  Type 'undefined' is not assignable to type 'SourceSpan'."
+      },
+      {
+        "file": "packages/safejs/src/parse/parser.ts",
+        "line": 956,
+        "code": 2322,
+        "message": "Type '{ type: \"ReturnStatement\"; argument: Expression | undefined; span: SourceSpan; }' is not assignable to type 'Statement'.\n  Type '{ type: \"ReturnStatement\"; argument: Expression | undefined; span: SourceSpan; }' is not assignable to type 'ReturnStatement' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.\n    Type '{ type: \"ReturnStatement\"; argument: Expression | undefined; span: SourceSpan; }' is not assignable to type '{ type: \"ReturnStatement\"; argument?: Expression; }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.\n      Types of property 'argument' are incompatible.\n        Type 'Expression | undefined' is not assignable to type 'Expression'.\n          Type 'undefined' is not assignable to type 'Expression'."
+      },
+      {
+        "file": "packages/safejs/src/parse/parser.ts",
+        "line": 1098,
+        "code": 2375,
+        "message": "Type '{ type: \"IfStatement\"; test: Expression; consequent: Statement; alternate: Statement | undefined; span: SourceSpan; }' is not assignable to type 'IfStatement' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.\n  Type '{ type: \"IfStatement\"; test: Expression; consequent: Statement; alternate: Statement | undefined; span: SourceSpan; }' is not assignable to type '{ type: \"IfStatement\"; test: Expression; consequent: Statement; alternate?: Statement; }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.\n    Types of property 'alternate' are incompatible.\n      Type 'Statement | undefined' is not assignable to type 'Statement'.\n        Type 'undefined' is not assignable to type 'Statement'."
+      },
+      {
+        "file": "packages/safejs/src/parse/parser.ts",
+        "line": 1160,
+        "code": 2379,
+        "message": "Argument of type '{ type: \"SwitchCase\"; test: Expression | undefined; consequent: Statement[]; span: SourceSpan; }' is not assignable to parameter of type 'SwitchCase' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.\n  Type '{ type: \"SwitchCase\"; test: Expression | undefined; consequent: Statement[]; span: SourceSpan; }' is not assignable to type '{ type: \"SwitchCase\"; test?: Expression; consequent: Statement[]; }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.\n    Types of property 'test' are incompatible.\n      Type 'Expression | undefined' is not assignable to type 'Expression'.\n        Type 'undefined' is not assignable to type 'Expression'."
+      },
+      {
+        "file": "packages/safejs/src/parse/parser.ts",
+        "line": 1190,
+        "code": 2375,
+        "message": "Type '{ span: SourceSpan; label?: string; labels?: string[]; type: \"ForInStatement\"; left: Identifier | VariableDeclaration; right: Expression; body: Statement; } | { ...; } | { ...; }' is not assignable to type 'ForInStatement | ForOfStatement | ForStatement' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.\n  Type '{ span: SourceSpan; label?: string; labels?: string[]; type: \"ForStatement\"; init: Expression | VariableDeclaration | undefined; test: Expression | undefined; update: Expression | undefined; body: Statement; }' is not assignable to type 'ForInStatement | ForOfStatement | ForStatement' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.\n    Type '{ span: SourceSpan; label?: string; labels?: string[]; type: \"ForStatement\"; init: Expression | VariableDeclaration | undefined; test: Expression | undefined; update: Expression | undefined; body: Statement; }' is not assignable to type 'ForStatement' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.\n      Type '{ span: SourceSpan; label?: string; labels?: string[]; type: \"ForStatement\"; init: Expression | VariableDeclaration | undefined; test: Expression | undefined; update: Expression | undefined; body: Statement; }' is not assignable to type '{ type: \"ForStatement\"; init?: Expression | VariableDeclaration; test?: Expression; update?: Expression; body: Statement; label?: string; labels?: string[]; }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.\n        Types of property 'init' are incompatible.\n          Type 'Expression | VariableDeclaration | undefined' is not assignable to type 'Expression | VariableDeclaration'.\n            Type 'undefined' is not assignable to type 'Expression | VariableDeclaration'."
+      },
+      {
+        "file": "packages/safejs/src/parse/parser.ts",
+        "line": 1379,
+        "code": 2375,
+        "message": "Type '{ type: \"TryStatement\"; block: BlockStatement; handler: CatchClause | undefined; finalizer: BlockStatement | undefined; span: SourceSpan; }' is not assignable to type 'TryStatement' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.\n  Type '{ type: \"TryStatement\"; block: BlockStatement; handler: CatchClause | undefined; finalizer: BlockStatement | undefined; span: SourceSpan; }' is not assignable to type '{ type: \"TryStatement\"; block: BlockStatement; handler?: CatchClause; finalizer?: BlockStatement; }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.\n    Types of property 'handler' are incompatible.\n      Type 'CatchClause | undefined' is not assignable to type 'CatchClause'.\n        Type 'undefined' is not assignable to type 'CatchClause'.\n          Type 'undefined' is not assignable to type 'BaseNode'."
+      },
+      {
+        "file": "packages/safejs/src/parse/parser.ts",
+        "line": 1523,
+        "code": 2375,
+        "message": "Type '{ type: \"CatchClause\"; param: Identifier | ArrayPattern | ObjectPattern | undefined; body: BlockStatement; span: SourceSpan; }' is not assignable to type 'CatchClause' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.\n  Type '{ type: \"CatchClause\"; param: Identifier | ArrayPattern | ObjectPattern | undefined; body: BlockStatement; span: SourceSpan; }' is not assignable to type '{ type: \"CatchClause\"; param?: Identifier | ArrayPattern | ObjectPattern; body: BlockStatement; }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.\n    Types of property 'param' are incompatible.\n      Type 'Identifier | ArrayPattern | ObjectPattern | undefined' is not assignable to type 'Identifier | ArrayPattern | ObjectPattern'.\n        Type 'undefined' is not assignable to type 'Identifier | ArrayPattern | ObjectPattern'."
+      },
+      {
+        "file": "packages/safejs/src/parse/parser.ts",
+        "line": 1617,
+        "code": 2375,
+        "message": "Type '{ type: \"VariableDeclarator\"; id: Identifier | ArrayPattern | ObjectPattern; init: Expression | undefined; span: SourceSpan; }' is not assignable to type 'VariableDeclarator' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.\n  Type '{ type: \"VariableDeclarator\"; id: Identifier | ArrayPattern | ObjectPattern; init: Expression | undefined; span: SourceSpan; }' is not assignable to type '{ type: \"VariableDeclarator\"; id: Identifier | ArrayPattern | ObjectPattern; init?: Expression; }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.\n    Types of property 'init' are incompatible.\n      Type 'Expression | undefined' is not assignable to type 'Expression'.\n        Type 'undefined' is not assignable to type 'Expression'."
+      },
+      {
+        "file": "packages/safejs/src/parse/parser.ts",
+        "line": 2341,
+        "code": 2322,
+        "message": "Type '{ type: \"YieldExpression\"; argument: Expression | undefined; delegate: boolean; span: SourceSpan; }' is not assignable to type 'Expression'.\n  Type '{ type: \"YieldExpression\"; argument: Expression | undefined; delegate: boolean; span: SourceSpan; }' is not assignable to type 'YieldExpression' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.\n    Type '{ type: \"YieldExpression\"; argument: Expression | undefined; delegate: boolean; span: SourceSpan; }' is not assignable to type '{ type: \"YieldExpression\"; argument?: Expression; delegate: boolean; }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.\n      Types of property 'argument' are incompatible.\n        Type 'Expression | undefined' is not assignable to type 'Expression'.\n          Type 'undefined' is not assignable to type 'Expression'."
+      },
+      {
+        "file": "packages/safejs/src/parse/parser.ts",
+        "line": 2733,
+        "code": 2375,
+        "message": "Type '{ type: \"FunctionExpression\"; async: boolean; body: BlockStatement; generator: boolean; id: Identifier | undefined; params: (Identifier | AssignmentPattern | ArrayPattern | ObjectPattern | RestElement)[]; span: SourceSpan; }' is not assignable to type 'FunctionExpression' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.\n  Type '{ type: \"FunctionExpression\"; async: boolean; body: BlockStatement; generator: boolean; id: Identifier | undefined; params: (Identifier | AssignmentPattern | ArrayPattern | ObjectPattern | RestElement)[]; span: SourceSpan; }' is not assignable to type '{ type: \"FunctionExpression\"; async: boolean; body: BlockStatement; generator: boolean; id?: Identifier; method?: true; params: (Identifier | AssignmentPattern | ArrayPattern | ObjectPattern | RestElement)[]; }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.\n    Types of property 'id' are incompatible.\n      Type 'Identifier | undefined' is not assignable to type 'Identifier'.\n        Type 'undefined' is not assignable to type 'Identifier'.\n          Type 'undefined' is not assignable to type 'BaseNode'."
+      },
+      {
+        "file": "packages/safejs/src/parse/parser.ts",
+        "line": 3027,
+        "code": 2375,
+        "message": "Type '{ type: \"FunctionExpression\"; async: boolean; body: BlockStatement; generator: false; id: undefined; method: true; params: (Identifier | AssignmentPattern | ArrayPattern | ObjectPattern | RestElement)[]; span: SourceSpan; }' is not assignable to type 'FunctionExpression' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.\n  Type '{ type: \"FunctionExpression\"; async: boolean; body: BlockStatement; generator: false; id: undefined; method: true; params: (Identifier | AssignmentPattern | ArrayPattern | ObjectPattern | RestElement)[]; span: SourceSpan; }' is not assignable to type '{ type: \"FunctionExpression\"; async: boolean; body: BlockStatement; generator: boolean; id?: Identifier; method?: true; params: (Identifier | AssignmentPattern | ArrayPattern | ObjectPattern | RestElement)[]; }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.\n    Types of property 'id' are incompatible.\n      Type 'undefined' is not assignable to type 'Identifier'.\n        Type 'undefined' is not assignable to type 'BaseNode'."
+      },
+      {
+        "file": "packages/safejs/src/parse/parser.ts",
+        "line": 3334,
+        "code": 18048,
+        "message": "'token' is possibly 'undefined'."
+      },
+      {
+        "file": "packages/safejs/src/parse/parser.ts",
+        "line": 3338,
+        "code": 18048,
+        "message": "'token' is possibly 'undefined'."
+      },
+      {
+        "file": "packages/safejs/src/parse/parser.ts",
+        "line": 3338,
+        "code": 18048,
+        "message": "'token' is possibly 'undefined'."
+      },
+      {
+        "file": "packages/safejs/src/parse/parser.ts",
+        "line": 3338,
+        "code": 18048,
+        "message": "'token' is possibly 'undefined'."
+      },
+      {
+        "file": "packages/safejs/src/parse/parser.ts",
+        "line": 3339,
+        "code": 18048,
+        "message": "'token' is possibly 'undefined'."
+      },
+      {
+        "file": "packages/safejs/src/parse/parser.ts",
+        "line": 3343,
+        "code": 18048,
+        "message": "'token' is possibly 'undefined'."
+      },
+      {
+        "file": "packages/safejs/src/parse/parser.ts",
+        "line": 3343,
+        "code": 18048,
+        "message": "'token' is possibly 'undefined'."
+      },
+      {
+        "file": "packages/safejs/src/parse/parser.ts",
+        "line": 3343,
+        "code": 18048,
+        "message": "'token' is possibly 'undefined'."
+      },
+      {
+        "file": "packages/safejs/src/parse/parser.ts",
+        "line": 3344,
+        "code": 18048,
+        "message": "'token' is possibly 'undefined'."
+      },
+      {
+        "file": "packages/safejs/src/parse/parser.ts",
+        "line": 3438,
+        "code": 18048,
+        "message": "'token' is possibly 'undefined'."
+      },
+      {
+        "file": "packages/safejs/src/parse/parser.ts",
+        "line": 3442,
+        "code": 18048,
+        "message": "'token' is possibly 'undefined'."
+      },
+      {
+        "file": "packages/safejs/src/parse/parser.ts",
+        "line": 3447,
+        "code": 18048,
+        "message": "'token' is possibly 'undefined'."
+      },
+      {
+        "file": "packages/safejs/src/parse/parser.ts",
+        "line": 3455,
+        "code": 2345,
+        "message": "Argument of type 'Token | undefined' is not assignable to parameter of type 'Token'.\n  Type 'undefined' is not assignable to type 'Token'."
+      },
+      {
+        "file": "packages/safejs/src/parse/parser.ts",
+        "line": 3475,
+        "code": 18048,
+        "message": "'token' is possibly 'undefined'."
+      },
+      {
+        "file": "packages/safejs/src/parse/parser.ts",
+        "line": 3476,
+        "code": 18048,
+        "message": "'token' is possibly 'undefined'."
+      },
+      {
+        "file": "packages/safejs/src/parse/parser.ts",
+        "line": 3476,
+        "code": 18048,
+        "message": "'token' is possibly 'undefined'."
+      },
+      {
+        "file": "packages/safejs/src/parse/parser.ts",
+        "line": 3476,
+        "code": 18048,
+        "message": "'token' is possibly 'undefined'."
+      },
+      {
+        "file": "packages/safejs/src/parse/parser.ts",
+        "line": 3478,
+        "code": 18048,
+        "message": "'token' is possibly 'undefined'."
+      },
+      {
+        "file": "packages/safejs/src/parse/parser.ts",
+        "line": 3478,
+        "code": 18048,
+        "message": "'token' is possibly 'undefined'."
+      },
+      {
+        "file": "packages/safejs/src/parse/parser.ts",
+        "line": 3478,
+        "code": 18048,
+        "message": "'token' is possibly 'undefined'."
+      },
+      {
+        "file": "packages/safejs/src/parse/parser.ts",
+        "line": 3479,
+        "code": 18048,
+        "message": "'token' is possibly 'undefined'."
+      },
+      {
+        "file": "packages/safejs/src/parse/parser.ts",
+        "line": 3483,
+        "code": 18048,
+        "message": "'token' is possibly 'undefined'."
+      },
+      {
+        "file": "packages/safejs/src/parse/parser.ts",
+        "line": 3490,
+        "code": 18048,
+        "message": "'token' is possibly 'undefined'."
+      },
+      {
+        "file": "packages/safejs/src/parse/parser.ts",
+        "line": 3491,
+        "code": 18048,
+        "message": "'token' is possibly 'undefined'."
+      },
+      {
+        "file": "packages/safejs/src/parse/parser.ts",
+        "line": 3491,
+        "code": 18048,
+        "message": "'token' is possibly 'undefined'."
+      },
+      {
+        "file": "packages/safejs/src/parse/parser.ts",
+        "line": 3695,
+        "code": 2322,
+        "message": "Type 'Token | undefined' is not assignable to type 'Token'.\n  Type 'undefined' is not assignable to type 'Token'."
+      },
+      {
+        "file": "packages/safejs/src/parse/parser.ts",
+        "line": 3699,
+        "code": 2322,
+        "message": "Type 'Token | undefined' is not assignable to type 'Token'.\n  Type 'undefined' is not assignable to type 'Token'."
+      },
+      {
+        "file": "packages/safejs/src/parse/parser.ts",
+        "line": 3703,
+        "code": 2322,
+        "message": "Type 'Token | undefined' is not assignable to type 'Token'.\n  Type 'undefined' is not assignable to type 'Token'."
+      },
+      {
+        "file": "packages/safejs/src/parse/tokenizer.ts",
+        "line": 811,
+        "code": 18048,
+        "message": "'token' is possibly 'undefined'."
+      },
+      {
+        "file": "packages/safejs/src/run.ts",
+        "line": 200,
+        "code": 2379,
+        "message": "Argument of type '{ seed: number | undefined; snapshot: SafeJSSnapshot | undefined; }' is not assignable to parameter of type '{ seed?: number; snapshot?: SafeJSSnapshot; }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.\n  Types of property 'seed' are incompatible.\n    Type 'number | undefined' is not assignable to type 'number'.\n      Type 'undefined' is not assignable to type 'number'."
+      },
+      {
+        "file": "packages/safejs/src/run.ts",
+        "line": 212,
+        "code": 2379,
+        "message": "Argument of type '{ budget: Budget; hostCalls: HostCallJournal; moduleId: string; signal: AbortSignal | undefined; lifecycle: { hostCallbackDepth: number; }; }' is not assignable to parameter of type 'HostBridgeOptions' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.\n  Types of property 'signal' are incompatible.\n    Type 'AbortSignal | undefined' is not assignable to type 'AbortSignal'.\n      Type 'undefined' is not assignable to type 'AbortSignal'."
+      },
+      {
+        "file": "packages/safejs/src/run.ts",
+        "line": 220,
+        "code": 2379,
+        "message": "Argument of type '{ budget: Budget; hostCalls: HostCallJournal; sink: ConsoleSink | undefined; }' is not assignable to parameter of type 'ConsoleJsonGlobalsOptions' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.\n  Types of property 'sink' are incompatible.\n    Type 'ConsoleSink | undefined' is not assignable to type 'ConsoleSink'.\n      Type 'undefined' is not assignable to type 'ConsoleSink'."
+      },
+      {
+        "file": "packages/safejs/src/run.ts",
+        "line": 246,
+        "code": 2379,
+        "message": "Argument of type '{ budget: Budget; hostCalls: HostCallJournal; signal: AbortSignal | undefined; allowMissing: boolean; }' is not assignable to parameter of type '{ budget: Budget; hostCalls?: HostCallJournal; signal?: AbortSignal; allowMissing?: boolean; }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.\n  Types of property 'signal' are incompatible.\n    Type 'AbortSignal | undefined' is not assignable to type 'AbortSignal'.\n      Type 'undefined' is not assignable to type 'AbortSignal'."
+      },
+      {
+        "file": "packages/safejs/src/run.ts",
+        "line": 267,
+        "code": 2379,
+        "message": "Argument of type '{ budget: Budget; hostCalls: HostCallJournal; moduleId: string; signal: AbortSignal | undefined; lifecycle: { hostCallbackDepth: number; }; }' is not assignable to parameter of type 'HostBridgeOptions' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.\n  Types of property 'signal' are incompatible.\n    Type 'AbortSignal | undefined' is not assignable to type 'AbortSignal'.\n      Type 'undefined' is not assignable to type 'AbortSignal'."
+      },
+      {
+        "file": "packages/safejs/src/run.ts",
+        "line": 313,
+        "code": 2379,
+        "message": "Argument of type '{ snapshotBackend: SnapshotBackend | undefined; snapshotIntervalMs: number | undefined; snapshotPath: string | undefined; }' is not assignable to parameter of type 'SnapshotSchedulerOptions' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.\n  Types of property 'snapshotBackend' are incompatible.\n    Type 'SnapshotBackend | undefined' is not assignable to type 'SnapshotBackend'.\n      Type 'undefined' is not assignable to type 'SnapshotBackend'."
+      },
+      {
+        "file": "packages/safejs/src/run.ts",
+        "line": 343,
+        "code": 2379,
+        "message": "Argument of type '{ bindings: Record<string, SandboxValue>; clock: RunClock | undefined; hostCalls: HostCallRecord[]; loopIterations: Record<string, LoopIterationSnapshot> | undefined; ... 6 more ...; sourceHash: string; }' is not assignable to parameter of type '{ bindings: Record<string, SandboxValue>; clock: RunClock | undefined; hostCalls?: HostCallRecord[]; replay?: HostCallReplay; ... 6 more ...; sourceHash: string; }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.\n  Types of property 'loopIterations' are incompatible.\n    Type 'Record<string, LoopIterationSnapshot> | undefined' is not assignable to type 'Record<string, LoopIterationSnapshot>'.\n      Type 'undefined' is not assignable to type 'Record<string, LoopIterationSnapshot>'."
+      },
+      {
+        "file": "packages/safejs/src/run.ts",
+        "line": 366,
+        "code": 2412,
+        "message": "Type '{ resumeNodeId: number | undefined; version?: number; sourceHash: string; clock?: { next: number; } & RunClockSnapshot; random?: { seed: number; state: number; initialState?: number; resumeState?: number; } & { ...; }; ... 7 more ...; pendingAwaits?: RunPendingAwaitSnapshot[]; } | undefined' is not assignable to type 'InterpreterSnapshot | undefined' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the type of the target."
+      },
+      {
+        "file": "packages/safejs/src/run.ts",
+        "line": 373,
+        "code": 2379,
+        "message": "Argument of type '{ args: SandboxValue[]; budget: Budget; captureReplayState: () => number; filename: string; module: Module; onYield: (yieldPoint: InterpreterYieldPoint) => void; scope: Scope; signal: AbortSignal | undefined; snapshot: { ...; } | undefined; }' is not assignable to parameter of type '{ args: readonly SandboxValue[]; budget: Budget; captureReplayState: () => number; filename: string; module: Module; onYield: ((yieldPoint: InterpreterYieldPoint) => void) | undefined; scope: Scope; signal?: AbortSignal; snapshot?: RunSnapshot; }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.\n  Types of property 'signal' are incompatible.\n    Type 'AbortSignal | undefined' is not assignable to type 'AbortSignal'.\n      Type 'undefined' is not assignable to type 'AbortSignal'."
+      },
+      {
+        "file": "packages/safejs/src/run.ts",
+        "line": 390,
+        "code": 2379,
+        "message": "Argument of type '{ bindings: Record<string, SandboxValue>; clock: RunClock | undefined; hostCalls: HostCallRecord[]; loopIterations: Record<string, LoopIterationSnapshot> | undefined; ... 6 more ...; sourceHash: string; }' is not assignable to parameter of type '{ bindings: Record<string, SandboxValue>; clock: RunClock | undefined; hostCalls?: HostCallRecord[]; replay?: HostCallReplay; ... 6 more ...; sourceHash: string; }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.\n  Types of property 'loopIterations' are incompatible.\n    Type 'Record<string, LoopIterationSnapshot> | undefined' is not assignable to type 'Record<string, LoopIterationSnapshot>'.\n      Type 'undefined' is not assignable to type 'Record<string, LoopIterationSnapshot>'."
+      },
+      {
+        "file": "packages/safejs/src/run.ts",
+        "line": 429,
+        "code": 2379,
+        "message": "Argument of type '{ bindings: Record<string, SandboxValue>; clock: RunClock | undefined; hostCalls: HostCallRecord[]; replay: HostCallReplay | undefined; initialInputs: ReplayData; promiseReplay: PromiseReplaySnapshot; random: { ...; }; sourceHash: string; }' is not assignable to parameter of type '{ bindings: Record<string, SandboxValue>; clock: RunClock | undefined; hostCalls?: HostCallRecord[]; replay?: HostCallReplay; ... 6 more ...; sourceHash: string; }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.\n  Types of property 'replay' are incompatible.\n    Type 'HostCallReplay | undefined' is not assignable to type 'HostCallReplay'.\n      Type 'undefined' is not assignable to type 'HostCallReplay'."
+      },
+      {
+        "file": "packages/safejs/src/run.ts",
+        "line": 541,
+        "code": 2379,
+        "message": "Argument of type '{ signal: AbortSignal | undefined; budget: Budget; captureReplayState: () => number; onYield: ((yieldPoint: InterpreterYieldPoint) => void) | undefined; scope: Scope; snapshot: RunSnapshot | undefined; surfaceUnhandledThrows: true; useScopeDirectly: true; }' is not assignable to parameter of type 'InterpretOptions' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.\n  Types of property 'onYield' are incompatible.\n    Type '((yieldPoint: InterpreterYieldPoint) => void) | undefined' is not assignable to type '(yieldPoint: InterpreterYieldPoint) => void'.\n      Type 'undefined' is not assignable to type '(yieldPoint: InterpreterYieldPoint) => void'."
+      },
+      {
+        "file": "packages/safejs/src/run.ts",
+        "line": 601,
+        "code": 18048,
+        "message": "'statement' is possibly 'undefined'."
+      },
+      {
+        "file": "packages/safejs/src/run.ts",
+        "line": 601,
+        "code": 18048,
+        "message": "'statement' is possibly 'undefined'."
+      },
+      {
+        "file": "packages/safejs/src/run.ts",
+        "line": 601,
+        "code": 2339,
+        "message": "Property 'expression' does not exist on type 'BlockStatement | BreakStatement | DoWhileStatement | ExportDefaultDeclaration | ExportNamedDeclaration | ... 13 more ... | WhileStatement'.\n  Property 'expression' does not exist on type 'BlockStatement'."
+      },
+      {
+        "file": "packages/safejs/src/run.ts",
+        "line": 601,
+        "code": 2322,
+        "message": "Type 'BlockStatement | BreakStatement | DoWhileStatement | ExportDefaultDeclaration | ExportNamedDeclaration | ... 14 more ... | undefined' is not assignable to type 'ParseResult'.\n  Type 'undefined' is not assignable to type 'ParseResult'."
+      },
+      {
+        "file": "packages/safejs/src/run.ts",
+        "line": 630,
+        "code": 2375,
+        "message": "Type '{ random: { state: number; resumeState?: number; seed: number; initialState: number; } | undefined; pendingAwaits?: RunPendingAwaitSnapshot[]; promiseReplay?: PromiseReplaySnapshot; ... 8 more ...; clock: RunClockSnapshot | undefined; }' is not assignable to type 'RunSnapshot' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.\n  Type '{ random: { state: number; resumeState?: number; seed: number; initialState: number; } | undefined; pendingAwaits?: RunPendingAwaitSnapshot[]; promiseReplay?: PromiseReplaySnapshot; ... 8 more ...; clock: RunClockSnapshot | undefined; }' is not assignable to type 'SafeJSSnapshot' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.\n    Types of property 'clock' are incompatible.\n      Type 'RunClockSnapshot | undefined' is not assignable to type '{ next: number; }'.\n        Type 'undefined' is not assignable to type '{ next: number; }'."
+      },
+      {
+        "file": "packages/safejs/src/snapshot/scheduler.ts",
+        "line": 112,
+        "code": 2375,
+        "message": "Type '{ writeMaxAttempts: number | undefined; writeRetryDelayMs: number | undefined; }' is not assignable to type 'FileSnapshotBackendOptions' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.\n  Types of property 'writeMaxAttempts' are incompatible.\n    Type 'number | undefined' is not assignable to type 'number'.\n      Type 'undefined' is not assignable to type 'number'."
+      }
+    ]
+  },
+  "introduced": [],
+  "removed": []
+}

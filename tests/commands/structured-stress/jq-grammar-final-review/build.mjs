@@ -4,9 +4,11 @@ import { resolve, relative } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import ts from 'typescript';
 import { directory, digest, root, snapshot } from './common.mjs';
+import { inventory } from './preservation.mjs';
 
 export async function build() {
   const before = snapshot();
+  const derivedBefore = Object.fromEntries(Object.entries(inventory()).filter(([path]) => path.startsWith('dist/')));
   const config = ts.readConfigFile(resolve(root, 'tsconfig.build.json'), ts.sys.readFile);
   assert.equal(config.error, undefined);
   const parsed = ts.parseJsonConfigFileContent(config.config, ts.sys, root);
@@ -43,7 +45,9 @@ export async function build() {
     },
   });
   const api = await import(pathToFileURL(resolve(outputDirectory, 'index.js')).href);
-  return { api, hooks, record: { before, afterBuild: snapshot(), compilerVersion: ts.version, nodeVersion: process.version,
+  const derivedAfter = Object.fromEntries(Object.entries(inventory()).filter(([path]) => path.startsWith('dist/')));
+  assert.deepEqual(derivedAfter, derivedBefore, 'derived output stable during bounded final in-memory build');
+  return { api, hooks, record: { before, afterBuild: snapshot(), derivedOutputStable: true, derivedFiles: Object.keys(derivedAfter).length, derivedSha256: digest(JSON.stringify(derivedAfter)), compilerVersion: ts.version, nodeVersion: process.version,
     method: 'Actual tsconfig.build.json; only outDir changed; writeFile intercepted for all outputs; emitted root ESM imported through synchronous hooks. Source runtime imports forbidden. tsx only handles immutable test helpers, not product modules. No dist or filesystem build output.',
     diagnostics: diagnosticText, emittedFiles: emitted.size, emitted: Object.fromEntries([...emitted].map(([url, text]) => [relative(outputDirectory, fileURLToPathSafe(url)), digest(text)])), loaded } };
 }

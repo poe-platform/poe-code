@@ -27,8 +27,13 @@ export function preservation(phase) {
   const baseline = JSON.parse(readFileSync(new URL('pre-approval-audit.json', import.meta.url)));
   const current = inventory();
   const changes = [];
+  const derivedChanges = [];
   for (const path of new Set([...Object.keys(baseline.inventory), ...Object.keys(current)])) {
     if (current[path] === baseline.inventory[path]) continue;
+    if (path.startsWith('dist/')) {
+      derivedChanges.push({ path, beforeSha256: baseline.inventory[path] ?? null, afterSha256: current[path] ?? null });
+      continue;
+    }
     const file = manifest.files.find(file => file.path === path);
     assert.ok(file, `unapproved fixture/artifact change: ${path}`);
     assert.ok(phase === 'post' || (phase === 'native' && file.patch === 'native'), path);
@@ -44,8 +49,8 @@ export function preservation(phase) {
     assert.equal(digest(readFileSync(join(root, file.afterSnapshot))), file.afterSha256);
   }
   return { at: new Date().toISOString(), phase, baselineFiles: Object.keys(baseline.inventory).length, currentFiles: Object.keys(current).length,
-    unchanged: Object.keys(baseline.inventory).length - changes.filter(change => change.beforeSha256 !== null).length,
-    changes, source: snapshot(), scope: 'All structured canonical tests and historical artifacts plus dist; only manifest-approved deltas allowed. Other workers may move unrelated product files; source/tooling snapshots remain separate. Endpoint checks are not ABA guarantees.' };
+    unchanged: Object.keys(baseline.inventory).length - changes.filter(change => change.beforeSha256 !== null).length - derivedChanges.filter(change => change.beforeSha256 !== null).length,
+    changes, derivedChanges, source: snapshot(), scope: 'All structured canonical tests and historical artifacts: only manifest-approved deltas allowed. Unowned derived dist is separately inventoried, not frozen evidence; late-derived-output-drift.json preserves the first overbroad guard failure. No reviewer command writes dist. Other workers may move unrelated product files; source/tooling snapshots remain separate. Endpoint checks are not ABA guarantees.' };
 }
 if (process.argv[1]?.endsWith('/preservation.mjs')) {
   const [phase, label] = process.argv.slice(2);

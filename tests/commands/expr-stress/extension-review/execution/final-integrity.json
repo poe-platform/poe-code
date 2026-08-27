@@ -1,0 +1,237 @@
+{
+  "schema": 1,
+  "at": "2026-08-27T17:52:23.104Z",
+  "receipts": [
+    {
+      "kind": "candidate",
+      "commit": "fe7083d99b8ccfdfbbb9b7209e0a6abbe7979724",
+      "sourceTreeSha256": "44a879dd20b7701486bb2b08e85ccb11d7471365d005f70fe7ed20f19878fb06",
+      "sourceEntries": 230,
+      "installedArtifactSha256": "4bb62d2e43069a3196d464d08fb99255214bc7afdbe15a3aaa34d04217976ce4",
+      "installedEntries": 766,
+      "archiveSha256": "7e2673f2a3213ad3e8287d480966b80c371bda8c592ebead68a83dd0e41f6c8e",
+      "packageSha256": "e5ba749fcf74ee99cabb756bef4d35af63f1be2cada18e3fcf9686f71aa00d32",
+      "sourceAndInstalledAddedEntriesChecked": true,
+      "entireArchiveTreeAppendProof": false,
+      "sourceRoot": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-final-archive-ZRKBPL",
+      "installed": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-final-moved-YfOSEd/consumer/node_modules/virtual-bash",
+      "retained": "Read-only evidence/build inputs retained for reproduction; no running services."
+    },
+    {
+      "kind": "baseline",
+      "commit": "8f19a9d5bb244ff6c095b7117e6d0738fdf40421",
+      "sourceTreeSha256": "48fc90ced6dc3867eeb6ac84bc422f433010a1dcd21741e832c623fe69c36daa",
+      "sourceEntries": 228,
+      "installedArtifactSha256": "4026e40d1a7e9faa532020171efe1526e7e9e443f3c4fce53cb97bb75422853f",
+      "installedEntries": 758,
+      "archiveSha256": "832dfd8a94c7a459b712d5902d1c6458a09b087c5d8523f6f6ca0a67c006bf65",
+      "packageSha256": "fdebf13b99fd87850391d2fd57f822f9906b9820b0d5244301918b98973dbe66",
+      "sourceAndInstalledAddedEntriesChecked": true,
+      "entireArchiveTreeAppendProof": false,
+      "sourceRoot": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-final-archive-TYr9f0",
+      "installed": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-final-moved-t4WOUO/consumer/node_modules/virtual-bash",
+      "retained": "Read-only evidence/build inputs retained for reproduction; no running services."
+    }
+  ],
+  "sourceInventoryMutationControls": {
+    "positiveAccepted": true,
+    "changedSourceHashRejected": true,
+    "addedSourceEntryRejected": true,
+    "missingSourceEntryRejected": true,
+    "method": "Mutate in-memory copies of authenticated inventory, never product files or expected frozen receipts."
+  },
+  "nativeHashes": [
+    {
+      "name": "gnu",
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr",
+      "sha256": "e8a4e2b58a33d2ad6bfa9eb8a4ed5f62775ab9ceac4b9421680c98973fd9109c"
+    },
+    {
+      "name": "apple",
+      "path": "/bin/expr",
+      "sha256": "584ea6af503bdb3cc647c128a16a1aa9d22d3eeab136671f746a209bfef7db9f"
+    },
+    {
+      "name": "archive",
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7.tar.xz",
+      "sha256": "e8bb26ad0293f9b5a1fc43fb42ba970e312c66ce92c1b0b16713d7500db251bf"
+    },
+    {
+      "name": "source",
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr.c",
+      "sha256": "c9dc5e04039505ab48a350e9407b1d83b2574fd7e2c31c9d23f4bf942d1b8af0"
+    }
+  ],
+  "legacyTestInputsUnchanged": true,
+  "legacyTestAddedEntryChecking": false,
+  "freezes": [
+    {
+      "commit": "35aa8054ac0ebc1eacefc7cde63e4706f4c72137",
+      "base": "tests/commands/expr-stress/frozen",
+      "files": [
+        {
+          "path": "tests/commands/expr-stress/frozen/README.md",
+          "sha256": "123231477bc6efa4f9f8f36dad66e2386772d60f6b6f70ad5c53b8999276cdc9"
+        },
+        {
+          "path": "tests/commands/expr-stress/frozen/controls.json",
+          "sha256": "5cbd8dd6e102730bf09d88b2e61ebdaccdcf3127432f37edab36ed879f32e4ec"
+        },
+        {
+          "path": "tests/commands/expr-stress/frozen/evidence/original-20260827/manifest.json",
+          "sha256": "74966f1d10cdc574100d2f2936ef759f711f8f658a6a82fda2fe1edcb53a1543"
+        },
+        {
+          "path": "tests/commands/expr-stress/frozen/evidence/original-20260827/oracle.json",
+          "sha256": "66b3b03c30b63d97e6cbe4ba77e185d03caa57780a6be3b681a15784dee9efd3"
+        },
+        {
+          "path": "tests/commands/expr-stress/frozen/evidence/validation-20260827.json",
+          "sha256": "5ae67ba3a82246567d9dae5124421b0f10eae385df153c3c7a9406c11f1b6fd0"
+        },
+        {
+          "path": "tests/commands/expr-stress/frozen/inputs.json",
+          "sha256": "d52e6d93668c2d368d65f456a1d4fdf12a43820b6a3bbd46b9c4980cfc5ac8ba"
+        },
+        {
+          "path": "tests/commands/expr-stress/frozen/primary-sources.json",
+          "sha256": "6e259e64408bb3eb5835ccd302e1baec051d29a56b6c68ebb1a651f9334f741b"
+        },
+        {
+          "path": "tests/commands/expr-stress/frozen/runner.mjs.data",
+          "sha256": "41aea89a81b5e83eafd072ab585844c8590f6bdc766cd2cc59726674562fb9d8"
+        }
+      ],
+      "appendedEntriesChecked": true
+    },
+    {
+      "commit": "92fe8a6335366b93cbc9a80d61fede69af711444",
+      "base": "tests/commands/expr-stress/extension-review/frozen",
+      "files": [
+        {
+          "path": "tests/commands/expr-stress/extension-review/frozen/ADDENDUM.md",
+          "sha256": "8125965baffbfb4fc23746cf0b81515b73f4cbf7b0f2a3297008cb6fe77f2e6b"
+        },
+        {
+          "path": "tests/commands/expr-stress/extension-review/frozen/README.md",
+          "sha256": "6f29774d0dfaa6c75dfcc7154a8eb6db4b9a208e4b6540b6b7469e37cd7b7711"
+        },
+        {
+          "path": "tests/commands/expr-stress/extension-review/frozen/controls.json",
+          "sha256": "cd551e8636d055bad42a95a22d3d291422e3bbbe2ab1a6fcb677bd2992f3508c"
+        },
+        {
+          "path": "tests/commands/expr-stress/extension-review/frozen/correction-input.json",
+          "sha256": "5274c5c39857f0ff3e601aa35fee93ae7108309f3f2063598414adf7e063e8d5"
+        },
+        {
+          "path": "tests/commands/expr-stress/extension-review/frozen/correction-native.mjs.data",
+          "sha256": "472b7dcd18b1d7eaa8c480751a910db44112d4267eaf848f85d4c8fb29ff61f3"
+        },
+        {
+          "path": "tests/commands/expr-stress/extension-review/frozen/evidence/native-20260827/manifest.json",
+          "sha256": "e31f164aed21209e194b78b424cd70314cf8479d343958a06f686fcc0b755198"
+        },
+        {
+          "path": "tests/commands/expr-stress/extension-review/frozen/evidence/native-20260827/oracle.json",
+          "sha256": "43f2f8c37004c91022c387ac88afd7ce15334ddabd30a1996c1606f89ff9dd08"
+        },
+        {
+          "path": "tests/commands/expr-stress/extension-review/frozen/evidence/quoted-parenthesis-20260827/oracle.json",
+          "sha256": "4366b45060a74a59b4c3772227062ee4ae4efec8ce9953a814463bb468386e4e"
+        },
+        {
+          "path": "tests/commands/expr-stress/extension-review/frozen/evidence/validation-20260827.json",
+          "sha256": "7997dc52a5a7326c021a5c979f80be98a62f86badf83fe5687af5852050b05dd"
+        },
+        {
+          "path": "tests/commands/expr-stress/extension-review/frozen/freeze-manifest.json",
+          "sha256": "8debc13022bebfd427c1862e75b7dcabe4eb17600bfb09c0b417c9d38f73c5f2"
+        },
+        {
+          "path": "tests/commands/expr-stress/extension-review/frozen/inputs.json",
+          "sha256": "4a02ebb53184ed13aa7627b322c7f87ea00389601f6acc5bc81feb234d520108"
+        },
+        {
+          "path": "tests/commands/expr-stress/extension-review/frozen/mutations.json",
+          "sha256": "e4683eafd36ea82c96437d0fc93eb864fcc5cbf9faeec71b8d035820dad9d30c"
+        },
+        {
+          "path": "tests/commands/expr-stress/extension-review/frozen/primary-sources.json",
+          "sha256": "6aa5dce418af4c1887e2c8d648cfa541b6765dbcffc6630d13172b392da83103"
+        },
+        {
+          "path": "tests/commands/expr-stress/extension-review/frozen/provenance.json",
+          "sha256": "79af9a119dcc71054d09a4a1ff17bce563633899d31ef1bd0b9153eae9148b87"
+        },
+        {
+          "path": "tests/commands/expr-stress/extension-review/frozen/runner.mjs.data",
+          "sha256": "ac40665793ea0230274b6f4523430b6d3c45f3f614700808289f20bf23493a11"
+        },
+        {
+          "path": "tests/commands/expr-stress/extension-review/frozen/verify-seal.mjs.data",
+          "sha256": "87703aaaa07e99cd6c3248dd6ba5dda948894d87e17de4e54fd5b02e96d24de9"
+        }
+      ],
+      "appendedEntriesChecked": true
+    }
+  ],
+  "syntax": [
+    {
+      "file": "accept-controls.mjs",
+      "status": 0
+    },
+    {
+      "file": "accept-native.mjs",
+      "status": 0
+    },
+    {
+      "file": "distribution.mjs",
+      "status": 0
+    },
+    {
+      "file": "extra-driver.mjs",
+      "status": 0
+    },
+    {
+      "file": "lifecycle-driver.mjs",
+      "status": 0
+    },
+    {
+      "file": "protocol-driver.mjs",
+      "status": 0
+    },
+    {
+      "file": "review.mjs",
+      "status": 0
+    },
+    {
+      "file": "runtime-driver.mjs",
+      "status": 0
+    },
+    {
+      "file": "shell-lifecycle-driver.mjs",
+      "status": 0
+    },
+    {
+      "file": "stage.mjs",
+      "status": 0
+    },
+    {
+      "file": "supplement.mjs",
+      "status": 0
+    },
+    {
+      "file": "verify-execution.mjs",
+      "status": 0
+    },
+    {
+      "file": "watchdog.mjs",
+      "status": 0
+    }
+  ],
+  "gitStatus": " M tests/commands/split/integration.test.ts\n M tests/commands/stream-format-author-stress/contracts.test.ts\nAM tests/commands/tree-charset-independent-20260827/mutation-controls/.gitignore\nAM tests/commands/tree-charset-independent-20260827/mutation-controls/README.md\nAM tests/commands/tree-charset-independent-20260827/mutation-controls/REPORT.md\nAM tests/commands/tree-charset-independent-20260827/mutation-controls/SHA256SUMS\nA  tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-001/commands.json\nA  tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-001/outcome.json\nA  tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-001/raw/extract-candidate.stderr\nA  tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-001/raw/extract-candidate.stdout\nA  tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-001/raw/git-archive-candidate.stderr\nA  tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-001/raw/list-packed-tarball.stderr\nA  tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-001/raw/list-packed-tarball.stdout\nA  tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-001/raw/npm-build-candidate.stderr\nA  tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-001/raw/npm-build-candidate.stdout\nA  tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-001/raw/npm-ci-candidate.stderr\nA  tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-001/raw/npm-ci-candidate.stdout\nA  tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-001/raw/npm-install-packed-candidate.stderr\nA  tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-001/raw/npm-install-packed-candidate.stdout\nA  tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-001/raw/npm-pack-candidate.stderr\nA  tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-001/raw/npm-pack-candidate.stdout\nA  tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-001/raw/version-git.stderr\nA  tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-001/raw/version-git.stdout\nA  tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-001/raw/version-npm.stderr\nA  tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-001/raw/version-npm.stdout\nA  tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-001/raw/version-tar.stderr\nA  tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-001/raw/version-tar.stdout\nA  tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-001/raw/worker-ambient-host-environment.stderr\nA  tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-001/raw/worker-ambient-host-environment.stdout\nA  tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-001/raw/worker-baseline.stderr\nA  tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-001/raw/worker-baseline.stdout\nA  tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-001/raw/worker-environment-always-ascii.stderr\nA  tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-001/raw/worker-environment-always-ascii.stdout\nA  tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-001/raw/worker-environment-work-undercharged.stderr\nA  tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-001/raw/worker-environment-work-undercharged.stdout\nA  tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-001/raw/worker-explicit-precedence-ignored.stderr\nA  tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-001/raw/worker-explicit-precedence-ignored.stdout\nA  tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-001/raw/worker-filename-unescaped.stderr\nA  tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-001/raw/worker-filename-unescaped.stdout\nA  tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-001/raw/worker-inherited-key-lookup.stderr\nA  tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-001/raw/worker-inherited-key-lookup.stdout\nA  tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-001/raw/worker-output-code-units-not-utf8-bytes.stderr\nA  tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-001/raw/worker-output-code-units-not-utf8-bytes.stdout\nA  tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-001/raw/worker-sink-write-not-awaited.stderr\nA  tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-001/raw/worker-sink-write-not-awaited.stdout\nA  tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-001/results.json\nA  tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-002/commands.json\nA  tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-002/outcome.json\nA  tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-002/raw/extract-candidate.stderr\nA  tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-002/raw/extract-candidate.stdout\nA  tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-002/raw/git-archive-candidate.stderr\nA  tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-002/raw/list-packed-tarball.stderr\nA  tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-002/raw/list-packed-tarball.stdout\nA  tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-002/raw/npm-build-candidate.stderr\nA  tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-002/raw/npm-build-candidate.stdout\nA  tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-002/raw/npm-ci-candidate.stderr\nA  tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-002/raw/npm-ci-candidate.stdout\nA  tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-002/raw/npm-install-packed-candidate.stderr\nA  tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-002/raw/npm-install-packed-candidate.stdout\nA  tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-002/raw/npm-pack-candidate.stderr\nA  tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-002/raw/npm-pack-candidate.stdout\nA  tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-002/raw/version-git.stderr\nA  tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-002/raw/version-git.stdout\nA  tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-002/raw/version-npm.stderr\nA  tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-002/raw/version-npm.stdout\nA  tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-002/raw/version-tar.stderr\nA  tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-002/raw/version-tar.stdout\nA  tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-002/raw/worker-ambient-host-environment.stderr\nA  tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-002/raw/worker-ambient-host-environment.stdout\nA  tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-002/raw/worker-baseline.stderr\nA  tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-002/raw/worker-baseline.stdout\nA  tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-002/raw/worker-environment-always-ascii.stderr\nA  tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-002/raw/worker-environment-always-ascii.stdout\nA  tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-002/raw/worker-environment-work-undercharged.stderr\nA  tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-002/raw/worker-environment-work-undercharged.stdout\nA  tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-002/raw/worker-explicit-precedence-ignored.stderr\nA  tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-002/raw/worker-explicit-precedence-ignored.stdout\nA  tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-002/raw/worker-filename-unescaped.stderr\nA  tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-002/raw/worker-filename-unescaped.stdout\nA  tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-002/raw/worker-inherited-key-lookup.stderr\nA  tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-002/raw/worker-inherited-key-lookup.stdout\nA  tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-002/raw/worker-output-code-units-not-utf8-bytes.stderr\nA  tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-002/raw/worker-output-code-units-not-utf8-bytes.stdout\nA  tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-002/raw/worker-sink-write-not-awaited.stderr\nA  tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-002/raw/worker-sink-write-not-awaited.stdout\nA  tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-002/results.json\nAM tests/commands/tree-charset-independent-20260827/mutation-controls/fixtures/consumer-package.json\nAM tests/commands/tree-charset-independent-20260827/mutation-controls/harness/mutations.mjs\nA  tests/commands/tree-charset-independent-20260827/mutation-controls/harness/run.mjs\nA  tests/commands/tree-charset-independent-20260827/mutation-controls/harness/worker.mjs\n?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/\n?? tests/commands/expr-author/abort-reason-fix/\n?? tests/commands/expr-stress/extension-review/execution/\n?? tests/commands/search-stress/.native-1m4O1e/\n?? tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-003/\n?? tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-004/\n?? tests/integration/full-gate-20260827/registry-73-migration/\n?? tests/integration/release-readiness-independent-20260827/\n?? tests/integration/safejs-owned-output-prototype-review/zero-cap-overlay/independent/inspection-v1/\n",
+  "gitIndexPaths": "tests/commands/tree-charset-independent-20260827/mutation-controls/.gitignore\ntests/commands/tree-charset-independent-20260827/mutation-controls/README.md\ntests/commands/tree-charset-independent-20260827/mutation-controls/REPORT.md\ntests/commands/tree-charset-independent-20260827/mutation-controls/SHA256SUMS\ntests/commands/tree-charset-independent-20260827/mutation-controls/attempt-001/commands.json\ntests/commands/tree-charset-independent-20260827/mutation-controls/attempt-001/outcome.json\ntests/commands/tree-charset-independent-20260827/mutation-controls/attempt-001/raw/extract-candidate.stderr\ntests/commands/tree-charset-independent-20260827/mutation-controls/attempt-001/raw/extract-candidate.stdout\ntests/commands/tree-charset-independent-20260827/mutation-controls/attempt-001/raw/git-archive-candidate.stderr\ntests/commands/tree-charset-independent-20260827/mutation-controls/attempt-001/raw/list-packed-tarball.stderr\ntests/commands/tree-charset-independent-20260827/mutation-controls/attempt-001/raw/list-packed-tarball.stdout\ntests/commands/tree-charset-independent-20260827/mutation-controls/attempt-001/raw/npm-build-candidate.stderr\ntests/commands/tree-charset-independent-20260827/mutation-controls/attempt-001/raw/npm-build-candidate.stdout\ntests/commands/tree-charset-independent-20260827/mutation-controls/attempt-001/raw/npm-ci-candidate.stderr\ntests/commands/tree-charset-independent-20260827/mutation-controls/attempt-001/raw/npm-ci-candidate.stdout\ntests/commands/tree-charset-independent-20260827/mutation-controls/attempt-001/raw/npm-install-packed-candidate.stderr\ntests/commands/tree-charset-independent-20260827/mutation-controls/attempt-001/raw/npm-install-packed-candidate.stdout\ntests/commands/tree-charset-independent-20260827/mutation-controls/attempt-001/raw/npm-pack-candidate.stderr\ntests/commands/tree-charset-independent-20260827/mutation-controls/attempt-001/raw/npm-pack-candidate.stdout\ntests/commands/tree-charset-independent-20260827/mutation-controls/attempt-001/raw/version-git.stderr\ntests/commands/tree-charset-independent-20260827/mutation-controls/attempt-001/raw/version-git.stdout\ntests/commands/tree-charset-independent-20260827/mutation-controls/attempt-001/raw/version-npm.stderr\ntests/commands/tree-charset-independent-20260827/mutation-controls/attempt-001/raw/version-npm.stdout\ntests/commands/tree-charset-independent-20260827/mutation-controls/attempt-001/raw/version-tar.stderr\ntests/commands/tree-charset-independent-20260827/mutation-controls/attempt-001/raw/version-tar.stdout\ntests/commands/tree-charset-independent-20260827/mutation-controls/attempt-001/raw/worker-ambient-host-environment.stderr\ntests/commands/tree-charset-independent-20260827/mutation-controls/attempt-001/raw/worker-ambient-host-environment.stdout\ntests/commands/tree-charset-independent-20260827/mutation-controls/attempt-001/raw/worker-baseline.stderr\ntests/commands/tree-charset-independent-20260827/mutation-controls/attempt-001/raw/worker-baseline.stdout\ntests/commands/tree-charset-independent-20260827/mutation-controls/attempt-001/raw/worker-environment-always-ascii.stderr\ntests/commands/tree-charset-independent-20260827/mutation-controls/attempt-001/raw/worker-environment-always-ascii.stdout\ntests/commands/tree-charset-independent-20260827/mutation-controls/attempt-001/raw/worker-environment-work-undercharged.stderr\ntests/commands/tree-charset-independent-20260827/mutation-controls/attempt-001/raw/worker-environment-work-undercharged.stdout\ntests/commands/tree-charset-independent-20260827/mutation-controls/attempt-001/raw/worker-explicit-precedence-ignored.stderr\ntests/commands/tree-charset-independent-20260827/mutation-controls/attempt-001/raw/worker-explicit-precedence-ignored.stdout\ntests/commands/tree-charset-independent-20260827/mutation-controls/attempt-001/raw/worker-filename-unescaped.stderr\ntests/commands/tree-charset-independent-20260827/mutation-controls/attempt-001/raw/worker-filename-unescaped.stdout\ntests/commands/tree-charset-independent-20260827/mutation-controls/attempt-001/raw/worker-inherited-key-lookup.stderr\ntests/commands/tree-charset-independent-20260827/mutation-controls/attempt-001/raw/worker-inherited-key-lookup.stdout\ntests/commands/tree-charset-independent-20260827/mutation-controls/attempt-001/raw/worker-output-code-units-not-utf8-bytes.stderr\ntests/commands/tree-charset-independent-20260827/mutation-controls/attempt-001/raw/worker-output-code-units-not-utf8-bytes.stdout\ntests/commands/tree-charset-independent-20260827/mutation-controls/attempt-001/raw/worker-sink-write-not-awaited.stderr\ntests/commands/tree-charset-independent-20260827/mutation-controls/attempt-001/raw/worker-sink-write-not-awaited.stdout\ntests/commands/tree-charset-independent-20260827/mutation-controls/attempt-001/results.json\ntests/commands/tree-charset-independent-20260827/mutation-controls/attempt-002/commands.json\ntests/commands/tree-charset-independent-20260827/mutation-controls/attempt-002/outcome.json\ntests/commands/tree-charset-independent-20260827/mutation-controls/attempt-002/raw/extract-candidate.stderr\ntests/commands/tree-charset-independent-20260827/mutation-controls/attempt-002/raw/extract-candidate.stdout\ntests/commands/tree-charset-independent-20260827/mutation-controls/attempt-002/raw/git-archive-candidate.stderr\ntests/commands/tree-charset-independent-20260827/mutation-controls/attempt-002/raw/list-packed-tarball.stderr\ntests/commands/tree-charset-independent-20260827/mutation-controls/attempt-002/raw/list-packed-tarball.stdout\ntests/commands/tree-charset-independent-20260827/mutation-controls/attempt-002/raw/npm-build-candidate.stderr\ntests/commands/tree-charset-independent-20260827/mutation-controls/attempt-002/raw/npm-build-candidate.stdout\ntests/commands/tree-charset-independent-20260827/mutation-controls/attempt-002/raw/npm-ci-candidate.stderr\ntests/commands/tree-charset-independent-20260827/mutation-controls/attempt-002/raw/npm-ci-candidate.stdout\ntests/commands/tree-charset-independent-20260827/mutation-controls/attempt-002/raw/npm-install-packed-candidate.stderr\ntests/commands/tree-charset-independent-20260827/mutation-controls/attempt-002/raw/npm-install-packed-candidate.stdout\ntests/commands/tree-charset-independent-20260827/mutation-controls/attempt-002/raw/npm-pack-candidate.stderr\ntests/commands/tree-charset-independent-20260827/mutation-controls/attempt-002/raw/npm-pack-candidate.stdout\ntests/commands/tree-charset-independent-20260827/mutation-controls/attempt-002/raw/version-git.stderr\ntests/commands/tree-charset-independent-20260827/mutation-controls/attempt-002/raw/version-git.stdout\ntests/commands/tree-charset-independent-20260827/mutation-controls/attempt-002/raw/version-npm.stderr\ntests/commands/tree-charset-independent-20260827/mutation-controls/attempt-002/raw/version-npm.stdout\ntests/commands/tree-charset-independent-20260827/mutation-controls/attempt-002/raw/version-tar.stderr\ntests/commands/tree-charset-independent-20260827/mutation-controls/attempt-002/raw/version-tar.stdout\ntests/commands/tree-charset-independent-20260827/mutation-controls/attempt-002/raw/worker-ambient-host-environment.stderr\ntests/commands/tree-charset-independent-20260827/mutation-controls/attempt-002/raw/worker-ambient-host-environment.stdout\ntests/commands/tree-charset-independent-20260827/mutation-controls/attempt-002/raw/worker-baseline.stderr\ntests/commands/tree-charset-independent-20260827/mutation-controls/attempt-002/raw/worker-baseline.stdout\ntests/commands/tree-charset-independent-20260827/mutation-controls/attempt-002/raw/worker-environment-always-ascii.stderr\ntests/commands/tree-charset-independent-20260827/mutation-controls/attempt-002/raw/worker-environment-always-ascii.stdout\ntests/commands/tree-charset-independent-20260827/mutation-controls/attempt-002/raw/worker-environment-work-undercharged.stderr\ntests/commands/tree-charset-independent-20260827/mutation-controls/attempt-002/raw/worker-environment-work-undercharged.stdout\ntests/commands/tree-charset-independent-20260827/mutation-controls/attempt-002/raw/worker-explicit-precedence-ignored.stderr\ntests/commands/tree-charset-independent-20260827/mutation-controls/attempt-002/raw/worker-explicit-precedence-ignored.stdout\ntests/commands/tree-charset-independent-20260827/mutation-controls/attempt-002/raw/worker-filename-unescaped.stderr\ntests/commands/tree-charset-independent-20260827/mutation-controls/attempt-002/raw/worker-filename-unescaped.stdout\ntests/commands/tree-charset-independent-20260827/mutation-controls/attempt-002/raw/worker-inherited-key-lookup.stderr\ntests/commands/tree-charset-independent-20260827/mutation-controls/attempt-002/raw/worker-inherited-key-lookup.stdout\ntests/commands/tree-charset-independent-20260827/mutation-controls/attempt-002/raw/worker-output-code-units-not-utf8-bytes.stderr\ntests/commands/tree-charset-independent-20260827/mutation-controls/attempt-002/raw/worker-output-code-units-not-utf8-bytes.stdout\ntests/commands/tree-charset-independent-20260827/mutation-controls/attempt-002/raw/worker-sink-write-not-awaited.stderr\ntests/commands/tree-charset-independent-20260827/mutation-controls/attempt-002/raw/worker-sink-write-not-awaited.stdout\ntests/commands/tree-charset-independent-20260827/mutation-controls/attempt-002/results.json\ntests/commands/tree-charset-independent-20260827/mutation-controls/fixtures/consumer-package.json\ntests/commands/tree-charset-independent-20260827/mutation-controls/harness/mutations.mjs\ntests/commands/tree-charset-independent-20260827/mutation-controls/harness/run.mjs\ntests/commands/tree-charset-independent-20260827/mutation-controls/harness/worker.mjs\n",
+  "productChangesByReviewer": [],
+  "limitations": "Append checks cover both frozen subtrees, candidate/baseline src trees and both installed package trees. They do not establish an append-proof whole archived repository or all tests/fixtures typechecked."
+}

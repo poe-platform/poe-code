@@ -1,0 +1,3763 @@
+{
+  "candidate": "fe7083d99b8ccfdfbbb9b7209e0a6abbe7979724",
+  "rows": [
+    {
+      "id": "pre-admission-maxPatternBytes",
+      "payload": {
+        "mode": "worker-limits",
+        "pattern": "aa",
+        "subject": "aa",
+        "limits": {
+          "maxPatternBytes": 1
+        }
+      },
+      "state": "returned",
+      "value": {
+        "state": "fulfilled",
+        "value": {
+          "good": {
+            "state": "fulfilled",
+            "value": {
+              "offsetUnit": "byte",
+              "matched": true,
+              "hasCapture": false,
+              "overall": {
+                "start": 0,
+                "end": 2
+              },
+              "capture": null,
+              "steps": 87
+            }
+          },
+          "restrictive": {
+            "state": "rejected",
+            "category": "limit",
+            "message": "regex input bytes limit exceeded"
+          },
+          "passed": true
+        }
+      },
+      "terminationAwaited": true,
+      "terminationCode": 0,
+      "output": [],
+      "outputBytes": 0,
+      "heartbeats": 5,
+      "deadlineMs": 2000,
+      "resourceLimits": {
+        "maxOldGenerationSizeMb": 64,
+        "stackSizeMb": 4
+      },
+      "passed": true
+    },
+    {
+      "id": "pre-admission-maxSubjectBytes",
+      "payload": {
+        "mode": "worker-limits",
+        "pattern": "a",
+        "subject": "aa",
+        "limits": {
+          "maxSubjectBytes": 1
+        }
+      },
+      "state": "returned",
+      "value": {
+        "state": "fulfilled",
+        "value": {
+          "good": {
+            "state": "fulfilled",
+            "value": {
+              "offsetUnit": "byte",
+              "matched": true,
+              "hasCapture": false,
+              "overall": {
+                "start": 0,
+                "end": 1
+              },
+              "capture": null,
+              "steps": 60
+            }
+          },
+          "restrictive": {
+            "state": "rejected",
+            "category": "limit",
+            "message": "regex input bytes limit exceeded"
+          },
+          "passed": true
+        }
+      },
+      "terminationAwaited": true,
+      "terminationCode": 0,
+      "output": [],
+      "outputBytes": 0,
+      "heartbeats": 5,
+      "deadlineMs": 2000,
+      "resourceLimits": {
+        "maxOldGenerationSizeMb": 64,
+        "stackSizeMb": 4
+      },
+      "passed": true
+    },
+    {
+      "id": "variant-0-M02",
+      "payload": {
+        "mutation": "M02",
+        "override": {
+          "path": "",
+          "value": []
+        }
+      },
+      "state": "returned",
+      "value": {
+        "state": "fulfilled",
+        "value": {
+          "mutation": "M02",
+          "expected": "rejected",
+          "positiveValidator": {
+            "state": "fulfilled",
+            "value": {
+              "offsetUnit": "byte",
+              "matched": true,
+              "hasCapture": true,
+              "overall": {
+                "start": 0,
+                "end": 7
+              },
+              "capture": {
+                "start": 3,
+                "end": 7
+              },
+              "steps": 100
+            }
+          },
+          "positiveClient": {
+            "state": "fulfilled",
+            "value": {
+              "offsetUnit": "byte",
+              "matched": true,
+              "hasCapture": true,
+              "overall": {
+                "start": 0,
+                "end": 7
+              },
+              "capture": {
+                "start": 3,
+                "end": 7
+              },
+              "steps": 100
+            }
+          },
+          "validator": {
+            "state": "rejected",
+            "code": "PROTOCOL",
+            "message": "regex PROTOCOL: invalid expr reply"
+          },
+          "client": {
+            "state": "rejected",
+            "code": "PROTOCOL",
+            "message": "regex PROTOCOL: invalid expr reply"
+          },
+          "events": [
+            {
+              "type": "start",
+              "url": "file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-final-moved-YfOSEd/consumer/node_modules/virtual-bash/dist/commands/regex-execution/worker.js",
+              "options": {
+                "execArgv": [],
+                "resourceLimits": {
+                  "maxOldGenerationSizeMb": 128,
+                  "stackSizeMb": 4
+                }
+              }
+            },
+            {
+              "type": "post",
+              "id": 1,
+              "kind": "expr-match"
+            },
+            {
+              "type": "terminate"
+            },
+            {
+              "type": "start",
+              "url": "file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-final-moved-YfOSEd/consumer/node_modules/virtual-bash/dist/commands/regex-execution/worker.js",
+              "options": {
+                "execArgv": [],
+                "resourceLimits": {
+                  "maxOldGenerationSizeMb": 128,
+                  "stackSizeMb": 4
+                }
+              }
+            },
+            {
+              "type": "post",
+              "id": 1,
+              "kind": "expr-match"
+            },
+            {
+              "type": "terminate"
+            }
+          ],
+          "passed": true,
+          "seam": "Installed validator plus real installed client receive path, synthetic worker transport; not real worker compilation."
+        }
+      },
+      "terminationAwaited": true,
+      "terminationCode": 0,
+      "output": [],
+      "outputBytes": 0,
+      "heartbeats": 2,
+      "deadlineMs": 2000,
+      "resourceLimits": {
+        "maxOldGenerationSizeMb": 64,
+        "stackSizeMb": 4
+      },
+      "passed": true
+    },
+    {
+      "id": "variant-1-M03",
+      "payload": {
+        "mutation": "M03",
+        "override": {
+          "path": "operation",
+          "value": "grep"
+        }
+      },
+      "state": "returned",
+      "value": {
+        "state": "fulfilled",
+        "value": {
+          "mutation": "M03",
+          "expected": "rejected",
+          "positiveValidator": {
+            "state": "fulfilled",
+            "value": {
+              "offsetUnit": "byte",
+              "matched": true,
+              "hasCapture": true,
+              "overall": {
+                "start": 0,
+                "end": 7
+              },
+              "capture": {
+                "start": 3,
+                "end": 7
+              },
+              "steps": 100
+            }
+          },
+          "positiveClient": {
+            "state": "fulfilled",
+            "value": {
+              "offsetUnit": "byte",
+              "matched": true,
+              "hasCapture": true,
+              "overall": {
+                "start": 0,
+                "end": 7
+              },
+              "capture": {
+                "start": 3,
+                "end": 7
+              },
+              "steps": 100
+            }
+          },
+          "validator": {
+            "state": "rejected",
+            "code": "PROTOCOL",
+            "message": "regex PROTOCOL: invalid expr reply"
+          },
+          "client": {
+            "state": "rejected",
+            "code": "PROTOCOL",
+            "message": "regex PROTOCOL: invalid expr reply"
+          },
+          "events": [
+            {
+              "type": "start",
+              "url": "file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-final-moved-YfOSEd/consumer/node_modules/virtual-bash/dist/commands/regex-execution/worker.js",
+              "options": {
+                "execArgv": [],
+                "resourceLimits": {
+                  "maxOldGenerationSizeMb": 128,
+                  "stackSizeMb": 4
+                }
+              }
+            },
+            {
+              "type": "post",
+              "id": 1,
+              "kind": "expr-match"
+            },
+            {
+              "type": "terminate"
+            },
+            {
+              "type": "start",
+              "url": "file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-final-moved-YfOSEd/consumer/node_modules/virtual-bash/dist/commands/regex-execution/worker.js",
+              "options": {
+                "execArgv": [],
+                "resourceLimits": {
+                  "maxOldGenerationSizeMb": 128,
+                  "stackSizeMb": 4
+                }
+              }
+            },
+            {
+              "type": "post",
+              "id": 1,
+              "kind": "expr-match"
+            },
+            {
+              "type": "terminate"
+            }
+          ],
+          "passed": true,
+          "seam": "Installed validator plus real installed client receive path, synthetic worker transport; not real worker compilation."
+        }
+      },
+      "terminationAwaited": true,
+      "terminationCode": 1,
+      "output": [],
+      "outputBytes": 0,
+      "heartbeats": 2,
+      "deadlineMs": 2000,
+      "resourceLimits": {
+        "maxOldGenerationSizeMb": 64,
+        "stackSizeMb": 4
+      },
+      "passed": true
+    },
+    {
+      "id": "variant-2-M06",
+      "payload": {
+        "mutation": "M06",
+        "override": {
+          "path": "id",
+          "value": 7.5
+        }
+      },
+      "state": "returned",
+      "value": {
+        "state": "fulfilled",
+        "value": {
+          "mutation": "M06",
+          "expected": "rejected",
+          "positiveValidator": {
+            "state": "fulfilled",
+            "value": {
+              "offsetUnit": "byte",
+              "matched": true,
+              "hasCapture": true,
+              "overall": {
+                "start": 0,
+                "end": 7
+              },
+              "capture": {
+                "start": 3,
+                "end": 7
+              },
+              "steps": 100
+            }
+          },
+          "positiveClient": {
+            "state": "fulfilled",
+            "value": {
+              "offsetUnit": "byte",
+              "matched": true,
+              "hasCapture": true,
+              "overall": {
+                "start": 0,
+                "end": 7
+              },
+              "capture": {
+                "start": 3,
+                "end": 7
+              },
+              "steps": 100
+            }
+          },
+          "validator": {
+            "state": "rejected",
+            "code": "PROTOCOL",
+            "message": "regex PROTOCOL: invalid expr reply"
+          },
+          "client": {
+            "state": "rejected",
+            "code": "PROTOCOL",
+            "message": "regex PROTOCOL: invalid expr reply"
+          },
+          "events": [
+            {
+              "type": "start",
+              "url": "file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-final-moved-YfOSEd/consumer/node_modules/virtual-bash/dist/commands/regex-execution/worker.js",
+              "options": {
+                "execArgv": [],
+                "resourceLimits": {
+                  "maxOldGenerationSizeMb": 128,
+                  "stackSizeMb": 4
+                }
+              }
+            },
+            {
+              "type": "post",
+              "id": 1,
+              "kind": "expr-match"
+            },
+            {
+              "type": "terminate"
+            },
+            {
+              "type": "start",
+              "url": "file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-final-moved-YfOSEd/consumer/node_modules/virtual-bash/dist/commands/regex-execution/worker.js",
+              "options": {
+                "execArgv": [],
+                "resourceLimits": {
+                  "maxOldGenerationSizeMb": 128,
+                  "stackSizeMb": 4
+                }
+              }
+            },
+            {
+              "type": "post",
+              "id": 1,
+              "kind": "expr-match"
+            },
+            {
+              "type": "terminate"
+            }
+          ],
+          "passed": true,
+          "seam": "Installed validator plus real installed client receive path, synthetic worker transport; not real worker compilation."
+        }
+      },
+      "terminationAwaited": true,
+      "terminationCode": 1,
+      "output": [],
+      "outputBytes": 0,
+      "heartbeats": 2,
+      "deadlineMs": 2000,
+      "resourceLimits": {
+        "maxOldGenerationSizeMb": 64,
+        "stackSizeMb": 4
+      },
+      "passed": true
+    },
+    {
+      "id": "variant-3-M09",
+      "payload": {
+        "mutation": "M09",
+        "override": {
+          "path": "result",
+          "action": "delete"
+        }
+      },
+      "state": "returned",
+      "value": {
+        "state": "fulfilled",
+        "value": {
+          "mutation": "M09",
+          "expected": "rejected",
+          "positiveValidator": {
+            "state": "fulfilled",
+            "value": {
+              "offsetUnit": "byte",
+              "matched": true,
+              "hasCapture": true,
+              "overall": {
+                "start": 0,
+                "end": 7
+              },
+              "capture": {
+                "start": 3,
+                "end": 7
+              },
+              "steps": 100
+            }
+          },
+          "positiveClient": {
+            "state": "fulfilled",
+            "value": {
+              "offsetUnit": "byte",
+              "matched": true,
+              "hasCapture": true,
+              "overall": {
+                "start": 0,
+                "end": 7
+              },
+              "capture": {
+                "start": 3,
+                "end": 7
+              },
+              "steps": 100
+            }
+          },
+          "validator": {
+            "state": "rejected",
+            "code": "PROTOCOL",
+            "message": "regex PROTOCOL: invalid expr reply"
+          },
+          "client": {
+            "state": "rejected",
+            "code": "PROTOCOL",
+            "message": "regex PROTOCOL: invalid expr reply"
+          },
+          "events": [
+            {
+              "type": "start",
+              "url": "file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-final-moved-YfOSEd/consumer/node_modules/virtual-bash/dist/commands/regex-execution/worker.js",
+              "options": {
+                "execArgv": [],
+                "resourceLimits": {
+                  "maxOldGenerationSizeMb": 128,
+                  "stackSizeMb": 4
+                }
+              }
+            },
+            {
+              "type": "post",
+              "id": 1,
+              "kind": "expr-match"
+            },
+            {
+              "type": "terminate"
+            },
+            {
+              "type": "start",
+              "url": "file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-final-moved-YfOSEd/consumer/node_modules/virtual-bash/dist/commands/regex-execution/worker.js",
+              "options": {
+                "execArgv": [],
+                "resourceLimits": {
+                  "maxOldGenerationSizeMb": 128,
+                  "stackSizeMb": 4
+                }
+              }
+            },
+            {
+              "type": "post",
+              "id": 1,
+              "kind": "expr-match"
+            },
+            {
+              "type": "terminate"
+            }
+          ],
+          "passed": true,
+          "seam": "Installed validator plus real installed client receive path, synthetic worker transport; not real worker compilation."
+        }
+      },
+      "terminationAwaited": true,
+      "terminationCode": 1,
+      "output": [],
+      "outputBytes": 0,
+      "heartbeats": 2,
+      "deadlineMs": 2000,
+      "resourceLimits": {
+        "maxOldGenerationSizeMb": 64,
+        "stackSizeMb": 4
+      },
+      "passed": true
+    },
+    {
+      "id": "variant-4-M09",
+      "payload": {
+        "mutation": "M09",
+        "override": {
+          "path": "result",
+          "value": []
+        }
+      },
+      "state": "returned",
+      "value": {
+        "state": "fulfilled",
+        "value": {
+          "mutation": "M09",
+          "expected": "rejected",
+          "positiveValidator": {
+            "state": "fulfilled",
+            "value": {
+              "offsetUnit": "byte",
+              "matched": true,
+              "hasCapture": true,
+              "overall": {
+                "start": 0,
+                "end": 7
+              },
+              "capture": {
+                "start": 3,
+                "end": 7
+              },
+              "steps": 100
+            }
+          },
+          "positiveClient": {
+            "state": "fulfilled",
+            "value": {
+              "offsetUnit": "byte",
+              "matched": true,
+              "hasCapture": true,
+              "overall": {
+                "start": 0,
+                "end": 7
+              },
+              "capture": {
+                "start": 3,
+                "end": 7
+              },
+              "steps": 100
+            }
+          },
+          "validator": {
+            "state": "rejected",
+            "code": "PROTOCOL",
+            "message": "regex PROTOCOL: invalid expr reply"
+          },
+          "client": {
+            "state": "rejected",
+            "code": "PROTOCOL",
+            "message": "regex PROTOCOL: invalid expr reply"
+          },
+          "events": [
+            {
+              "type": "start",
+              "url": "file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-final-moved-YfOSEd/consumer/node_modules/virtual-bash/dist/commands/regex-execution/worker.js",
+              "options": {
+                "execArgv": [],
+                "resourceLimits": {
+                  "maxOldGenerationSizeMb": 128,
+                  "stackSizeMb": 4
+                }
+              }
+            },
+            {
+              "type": "post",
+              "id": 1,
+              "kind": "expr-match"
+            },
+            {
+              "type": "terminate"
+            },
+            {
+              "type": "start",
+              "url": "file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-final-moved-YfOSEd/consumer/node_modules/virtual-bash/dist/commands/regex-execution/worker.js",
+              "options": {
+                "execArgv": [],
+                "resourceLimits": {
+                  "maxOldGenerationSizeMb": 128,
+                  "stackSizeMb": 4
+                }
+              }
+            },
+            {
+              "type": "post",
+              "id": 1,
+              "kind": "expr-match"
+            },
+            {
+              "type": "terminate"
+            }
+          ],
+          "passed": true,
+          "seam": "Installed validator plus real installed client receive path, synthetic worker transport; not real worker compilation."
+        }
+      },
+      "terminationAwaited": true,
+      "terminationCode": 1,
+      "output": [],
+      "outputBytes": 0,
+      "heartbeats": 2,
+      "deadlineMs": 2000,
+      "resourceLimits": {
+        "maxOldGenerationSizeMb": 64,
+        "stackSizeMb": 4
+      },
+      "passed": true
+    },
+    {
+      "id": "variant-5-M11",
+      "payload": {
+        "mutation": "M11",
+        "override": {
+          "path": "result.offsetUnit",
+          "action": "delete"
+        }
+      },
+      "state": "returned",
+      "value": {
+        "state": "fulfilled",
+        "value": {
+          "mutation": "M11",
+          "expected": "rejected",
+          "positiveValidator": {
+            "state": "fulfilled",
+            "value": {
+              "offsetUnit": "byte",
+              "matched": true,
+              "hasCapture": true,
+              "overall": {
+                "start": 0,
+                "end": 7
+              },
+              "capture": {
+                "start": 3,
+                "end": 7
+              },
+              "steps": 100
+            }
+          },
+          "positiveClient": {
+            "state": "fulfilled",
+            "value": {
+              "offsetUnit": "byte",
+              "matched": true,
+              "hasCapture": true,
+              "overall": {
+                "start": 0,
+                "end": 7
+              },
+              "capture": {
+                "start": 3,
+                "end": 7
+              },
+              "steps": 100
+            }
+          },
+          "validator": {
+            "state": "rejected",
+            "code": "PROTOCOL",
+            "message": "regex PROTOCOL: invalid expr reply"
+          },
+          "client": {
+            "state": "rejected",
+            "code": "PROTOCOL",
+            "message": "regex PROTOCOL: invalid expr reply"
+          },
+          "events": [
+            {
+              "type": "start",
+              "url": "file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-final-moved-YfOSEd/consumer/node_modules/virtual-bash/dist/commands/regex-execution/worker.js",
+              "options": {
+                "execArgv": [],
+                "resourceLimits": {
+                  "maxOldGenerationSizeMb": 128,
+                  "stackSizeMb": 4
+                }
+              }
+            },
+            {
+              "type": "post",
+              "id": 1,
+              "kind": "expr-match"
+            },
+            {
+              "type": "terminate"
+            },
+            {
+              "type": "start",
+              "url": "file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-final-moved-YfOSEd/consumer/node_modules/virtual-bash/dist/commands/regex-execution/worker.js",
+              "options": {
+                "execArgv": [],
+                "resourceLimits": {
+                  "maxOldGenerationSizeMb": 128,
+                  "stackSizeMb": 4
+                }
+              }
+            },
+            {
+              "type": "post",
+              "id": 1,
+              "kind": "expr-match"
+            },
+            {
+              "type": "terminate"
+            }
+          ],
+          "passed": true,
+          "seam": "Installed validator plus real installed client receive path, synthetic worker transport; not real worker compilation."
+        }
+      },
+      "terminationAwaited": true,
+      "terminationCode": 0,
+      "output": [],
+      "outputBytes": 0,
+      "heartbeats": 2,
+      "deadlineMs": 2000,
+      "resourceLimits": {
+        "maxOldGenerationSizeMb": 64,
+        "stackSizeMb": 4
+      },
+      "passed": true
+    },
+    {
+      "id": "variant-6-M11",
+      "payload": {
+        "mutation": "M11",
+        "override": {
+          "path": "result.offsetUnit",
+          "value": "scalar"
+        }
+      },
+      "state": "returned",
+      "value": {
+        "state": "fulfilled",
+        "value": {
+          "mutation": "M11",
+          "expected": "rejected",
+          "positiveValidator": {
+            "state": "fulfilled",
+            "value": {
+              "offsetUnit": "byte",
+              "matched": true,
+              "hasCapture": true,
+              "overall": {
+                "start": 0,
+                "end": 7
+              },
+              "capture": {
+                "start": 3,
+                "end": 7
+              },
+              "steps": 100
+            }
+          },
+          "positiveClient": {
+            "state": "fulfilled",
+            "value": {
+              "offsetUnit": "byte",
+              "matched": true,
+              "hasCapture": true,
+              "overall": {
+                "start": 0,
+                "end": 7
+              },
+              "capture": {
+                "start": 3,
+                "end": 7
+              },
+              "steps": 100
+            }
+          },
+          "validator": {
+            "state": "rejected",
+            "code": "PROTOCOL",
+            "message": "regex PROTOCOL: invalid expr reply"
+          },
+          "client": {
+            "state": "rejected",
+            "code": "PROTOCOL",
+            "message": "regex PROTOCOL: invalid expr reply"
+          },
+          "events": [
+            {
+              "type": "start",
+              "url": "file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-final-moved-YfOSEd/consumer/node_modules/virtual-bash/dist/commands/regex-execution/worker.js",
+              "options": {
+                "execArgv": [],
+                "resourceLimits": {
+                  "maxOldGenerationSizeMb": 128,
+                  "stackSizeMb": 4
+                }
+              }
+            },
+            {
+              "type": "post",
+              "id": 1,
+              "kind": "expr-match"
+            },
+            {
+              "type": "terminate"
+            },
+            {
+              "type": "start",
+              "url": "file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-final-moved-YfOSEd/consumer/node_modules/virtual-bash/dist/commands/regex-execution/worker.js",
+              "options": {
+                "execArgv": [],
+                "resourceLimits": {
+                  "maxOldGenerationSizeMb": 128,
+                  "stackSizeMb": 4
+                }
+              }
+            },
+            {
+              "type": "post",
+              "id": 1,
+              "kind": "expr-match"
+            },
+            {
+              "type": "terminate"
+            }
+          ],
+          "passed": true,
+          "seam": "Installed validator plus real installed client receive path, synthetic worker transport; not real worker compilation."
+        }
+      },
+      "terminationAwaited": true,
+      "terminationCode": 0,
+      "output": [],
+      "outputBytes": 0,
+      "heartbeats": 2,
+      "deadlineMs": 2000,
+      "resourceLimits": {
+        "maxOldGenerationSizeMb": 64,
+        "stackSizeMb": 4
+      },
+      "passed": true
+    },
+    {
+      "id": "variant-7-M12",
+      "payload": {
+        "mutation": "M12",
+        "override": {
+          "path": "result.matched",
+          "value": "false"
+        }
+      },
+      "state": "returned",
+      "value": {
+        "state": "fulfilled",
+        "value": {
+          "mutation": "M12",
+          "expected": "rejected",
+          "positiveValidator": {
+            "state": "fulfilled",
+            "value": {
+              "offsetUnit": "byte",
+              "matched": true,
+              "hasCapture": true,
+              "overall": {
+                "start": 0,
+                "end": 7
+              },
+              "capture": {
+                "start": 3,
+                "end": 7
+              },
+              "steps": 100
+            }
+          },
+          "positiveClient": {
+            "state": "fulfilled",
+            "value": {
+              "offsetUnit": "byte",
+              "matched": true,
+              "hasCapture": true,
+              "overall": {
+                "start": 0,
+                "end": 7
+              },
+              "capture": {
+                "start": 3,
+                "end": 7
+              },
+              "steps": 100
+            }
+          },
+          "validator": {
+            "state": "rejected",
+            "code": "PROTOCOL",
+            "message": "regex PROTOCOL: invalid expr reply"
+          },
+          "client": {
+            "state": "rejected",
+            "code": "PROTOCOL",
+            "message": "regex PROTOCOL: invalid expr reply"
+          },
+          "events": [
+            {
+              "type": "start",
+              "url": "file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-final-moved-YfOSEd/consumer/node_modules/virtual-bash/dist/commands/regex-execution/worker.js",
+              "options": {
+                "execArgv": [],
+                "resourceLimits": {
+                  "maxOldGenerationSizeMb": 128,
+                  "stackSizeMb": 4
+                }
+              }
+            },
+            {
+              "type": "post",
+              "id": 1,
+              "kind": "expr-match"
+            },
+            {
+              "type": "terminate"
+            },
+            {
+              "type": "start",
+              "url": "file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-final-moved-YfOSEd/consumer/node_modules/virtual-bash/dist/commands/regex-execution/worker.js",
+              "options": {
+                "execArgv": [],
+                "resourceLimits": {
+                  "maxOldGenerationSizeMb": 128,
+                  "stackSizeMb": 4
+                }
+              }
+            },
+            {
+              "type": "post",
+              "id": 1,
+              "kind": "expr-match"
+            },
+            {
+              "type": "terminate"
+            }
+          ],
+          "passed": true,
+          "seam": "Installed validator plus real installed client receive path, synthetic worker transport; not real worker compilation."
+        }
+      },
+      "terminationAwaited": true,
+      "terminationCode": 1,
+      "output": [],
+      "outputBytes": 0,
+      "heartbeats": 2,
+      "deadlineMs": 2000,
+      "resourceLimits": {
+        "maxOldGenerationSizeMb": 64,
+        "stackSizeMb": 4
+      },
+      "passed": true
+    },
+    {
+      "id": "variant-8-M13",
+      "payload": {
+        "mutation": "M13",
+        "override": {
+          "path": "result.capture",
+          "value": "[3,7]"
+        }
+      },
+      "state": "returned",
+      "value": {
+        "state": "fulfilled",
+        "value": {
+          "mutation": "M13",
+          "expected": "rejected",
+          "positiveValidator": {
+            "state": "fulfilled",
+            "value": {
+              "offsetUnit": "byte",
+              "matched": true,
+              "hasCapture": true,
+              "overall": {
+                "start": 0,
+                "end": 7
+              },
+              "capture": {
+                "start": 3,
+                "end": 7
+              },
+              "steps": 100
+            }
+          },
+          "positiveClient": {
+            "state": "fulfilled",
+            "value": {
+              "offsetUnit": "byte",
+              "matched": true,
+              "hasCapture": true,
+              "overall": {
+                "start": 0,
+                "end": 7
+              },
+              "capture": {
+                "start": 3,
+                "end": 7
+              },
+              "steps": 100
+            }
+          },
+          "validator": {
+            "state": "rejected",
+            "code": "PROTOCOL",
+            "message": "regex PROTOCOL: invalid expr reply"
+          },
+          "client": {
+            "state": "rejected",
+            "code": "PROTOCOL",
+            "message": "regex PROTOCOL: invalid expr reply"
+          },
+          "events": [
+            {
+              "type": "start",
+              "url": "file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-final-moved-YfOSEd/consumer/node_modules/virtual-bash/dist/commands/regex-execution/worker.js",
+              "options": {
+                "execArgv": [],
+                "resourceLimits": {
+                  "maxOldGenerationSizeMb": 128,
+                  "stackSizeMb": 4
+                }
+              }
+            },
+            {
+              "type": "post",
+              "id": 1,
+              "kind": "expr-match"
+            },
+            {
+              "type": "terminate"
+            },
+            {
+              "type": "start",
+              "url": "file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-final-moved-YfOSEd/consumer/node_modules/virtual-bash/dist/commands/regex-execution/worker.js",
+              "options": {
+                "execArgv": [],
+                "resourceLimits": {
+                  "maxOldGenerationSizeMb": 128,
+                  "stackSizeMb": 4
+                }
+              }
+            },
+            {
+              "type": "post",
+              "id": 1,
+              "kind": "expr-match"
+            },
+            {
+              "type": "terminate"
+            }
+          ],
+          "passed": true,
+          "seam": "Installed validator plus real installed client receive path, synthetic worker transport; not real worker compilation."
+        }
+      },
+      "terminationAwaited": true,
+      "terminationCode": 0,
+      "output": [],
+      "outputBytes": 0,
+      "heartbeats": 2,
+      "deadlineMs": 2000,
+      "resourceLimits": {
+        "maxOldGenerationSizeMb": 64,
+        "stackSizeMb": 4
+      },
+      "passed": true
+    },
+    {
+      "id": "variant-9-M14",
+      "payload": {
+        "mutation": "M14",
+        "override": {
+          "path": "result.capture.end",
+          "action": "delete"
+        }
+      },
+      "state": "returned",
+      "value": {
+        "state": "fulfilled",
+        "value": {
+          "mutation": "M14",
+          "expected": "rejected",
+          "positiveValidator": {
+            "state": "fulfilled",
+            "value": {
+              "offsetUnit": "byte",
+              "matched": true,
+              "hasCapture": true,
+              "overall": {
+                "start": 0,
+                "end": 7
+              },
+              "capture": {
+                "start": 3,
+                "end": 7
+              },
+              "steps": 100
+            }
+          },
+          "positiveClient": {
+            "state": "fulfilled",
+            "value": {
+              "offsetUnit": "byte",
+              "matched": true,
+              "hasCapture": true,
+              "overall": {
+                "start": 0,
+                "end": 7
+              },
+              "capture": {
+                "start": 3,
+                "end": 7
+              },
+              "steps": 100
+            }
+          },
+          "validator": {
+            "state": "rejected",
+            "code": "PROTOCOL",
+            "message": "regex PROTOCOL: invalid expr reply"
+          },
+          "client": {
+            "state": "rejected",
+            "code": "PROTOCOL",
+            "message": "regex PROTOCOL: invalid expr reply"
+          },
+          "events": [
+            {
+              "type": "start",
+              "url": "file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-final-moved-YfOSEd/consumer/node_modules/virtual-bash/dist/commands/regex-execution/worker.js",
+              "options": {
+                "execArgv": [],
+                "resourceLimits": {
+                  "maxOldGenerationSizeMb": 128,
+                  "stackSizeMb": 4
+                }
+              }
+            },
+            {
+              "type": "post",
+              "id": 1,
+              "kind": "expr-match"
+            },
+            {
+              "type": "terminate"
+            },
+            {
+              "type": "start",
+              "url": "file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-final-moved-YfOSEd/consumer/node_modules/virtual-bash/dist/commands/regex-execution/worker.js",
+              "options": {
+                "execArgv": [],
+                "resourceLimits": {
+                  "maxOldGenerationSizeMb": 128,
+                  "stackSizeMb": 4
+                }
+              }
+            },
+            {
+              "type": "post",
+              "id": 1,
+              "kind": "expr-match"
+            },
+            {
+              "type": "terminate"
+            }
+          ],
+          "passed": true,
+          "seam": "Installed validator plus real installed client receive path, synthetic worker transport; not real worker compilation."
+        }
+      },
+      "terminationAwaited": true,
+      "terminationCode": 0,
+      "output": [],
+      "outputBytes": 0,
+      "heartbeats": 2,
+      "deadlineMs": 2000,
+      "resourceLimits": {
+        "maxOldGenerationSizeMb": 64,
+        "stackSizeMb": 4
+      },
+      "passed": true
+    },
+    {
+      "id": "variant-10-M15",
+      "payload": {
+        "mutation": "M15",
+        "override": {
+          "path": "result.steps",
+          "special": "NaN"
+        }
+      },
+      "state": "returned",
+      "value": {
+        "state": "fulfilled",
+        "value": {
+          "mutation": "M15",
+          "expected": "rejected",
+          "positiveValidator": {
+            "state": "fulfilled",
+            "value": {
+              "offsetUnit": "byte",
+              "matched": true,
+              "hasCapture": true,
+              "overall": {
+                "start": 0,
+                "end": 7
+              },
+              "capture": {
+                "start": 3,
+                "end": 7
+              },
+              "steps": 100
+            }
+          },
+          "positiveClient": {
+            "state": "fulfilled",
+            "value": {
+              "offsetUnit": "byte",
+              "matched": true,
+              "hasCapture": true,
+              "overall": {
+                "start": 0,
+                "end": 7
+              },
+              "capture": {
+                "start": 3,
+                "end": 7
+              },
+              "steps": 100
+            }
+          },
+          "validator": {
+            "state": "rejected",
+            "code": "PROTOCOL",
+            "message": "regex PROTOCOL: invalid expr reply"
+          },
+          "client": {
+            "state": "rejected",
+            "code": "PROTOCOL",
+            "message": "regex PROTOCOL: invalid expr reply"
+          },
+          "events": [
+            {
+              "type": "start",
+              "url": "file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-final-moved-YfOSEd/consumer/node_modules/virtual-bash/dist/commands/regex-execution/worker.js",
+              "options": {
+                "execArgv": [],
+                "resourceLimits": {
+                  "maxOldGenerationSizeMb": 128,
+                  "stackSizeMb": 4
+                }
+              }
+            },
+            {
+              "type": "post",
+              "id": 1,
+              "kind": "expr-match"
+            },
+            {
+              "type": "terminate"
+            },
+            {
+              "type": "start",
+              "url": "file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-final-moved-YfOSEd/consumer/node_modules/virtual-bash/dist/commands/regex-execution/worker.js",
+              "options": {
+                "execArgv": [],
+                "resourceLimits": {
+                  "maxOldGenerationSizeMb": 128,
+                  "stackSizeMb": 4
+                }
+              }
+            },
+            {
+              "type": "post",
+              "id": 1,
+              "kind": "expr-match"
+            },
+            {
+              "type": "terminate"
+            }
+          ],
+          "passed": true,
+          "seam": "Installed validator plus real installed client receive path, synthetic worker transport; not real worker compilation."
+        }
+      },
+      "terminationAwaited": true,
+      "terminationCode": 1,
+      "output": [],
+      "outputBytes": 0,
+      "heartbeats": 2,
+      "deadlineMs": 2000,
+      "resourceLimits": {
+        "maxOldGenerationSizeMb": 64,
+        "stackSizeMb": 4
+      },
+      "passed": true
+    },
+    {
+      "id": "variant-11-M15",
+      "payload": {
+        "mutation": "M15",
+        "override": {
+          "path": "result.steps",
+          "value": -1
+        }
+      },
+      "state": "returned",
+      "value": {
+        "state": "fulfilled",
+        "value": {
+          "mutation": "M15",
+          "expected": "rejected",
+          "positiveValidator": {
+            "state": "fulfilled",
+            "value": {
+              "offsetUnit": "byte",
+              "matched": true,
+              "hasCapture": true,
+              "overall": {
+                "start": 0,
+                "end": 7
+              },
+              "capture": {
+                "start": 3,
+                "end": 7
+              },
+              "steps": 100
+            }
+          },
+          "positiveClient": {
+            "state": "fulfilled",
+            "value": {
+              "offsetUnit": "byte",
+              "matched": true,
+              "hasCapture": true,
+              "overall": {
+                "start": 0,
+                "end": 7
+              },
+              "capture": {
+                "start": 3,
+                "end": 7
+              },
+              "steps": 100
+            }
+          },
+          "validator": {
+            "state": "rejected",
+            "code": "PROTOCOL",
+            "message": "regex PROTOCOL: invalid expr reply"
+          },
+          "client": {
+            "state": "rejected",
+            "code": "PROTOCOL",
+            "message": "regex PROTOCOL: invalid expr reply"
+          },
+          "events": [
+            {
+              "type": "start",
+              "url": "file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-final-moved-YfOSEd/consumer/node_modules/virtual-bash/dist/commands/regex-execution/worker.js",
+              "options": {
+                "execArgv": [],
+                "resourceLimits": {
+                  "maxOldGenerationSizeMb": 128,
+                  "stackSizeMb": 4
+                }
+              }
+            },
+            {
+              "type": "post",
+              "id": 1,
+              "kind": "expr-match"
+            },
+            {
+              "type": "terminate"
+            },
+            {
+              "type": "start",
+              "url": "file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-final-moved-YfOSEd/consumer/node_modules/virtual-bash/dist/commands/regex-execution/worker.js",
+              "options": {
+                "execArgv": [],
+                "resourceLimits": {
+                  "maxOldGenerationSizeMb": 128,
+                  "stackSizeMb": 4
+                }
+              }
+            },
+            {
+              "type": "post",
+              "id": 1,
+              "kind": "expr-match"
+            },
+            {
+              "type": "terminate"
+            }
+          ],
+          "passed": true,
+          "seam": "Installed validator plus real installed client receive path, synthetic worker transport; not real worker compilation."
+        }
+      },
+      "terminationAwaited": true,
+      "terminationCode": 1,
+      "output": [],
+      "outputBytes": 0,
+      "heartbeats": 1,
+      "deadlineMs": 2000,
+      "resourceLimits": {
+        "maxOldGenerationSizeMb": 64,
+        "stackSizeMb": 4
+      },
+      "passed": true
+    },
+    {
+      "id": "variant-12-M15",
+      "payload": {
+        "mutation": "M15",
+        "override": {
+          "path": "result.steps",
+          "value": 1.5
+        }
+      },
+      "state": "returned",
+      "value": {
+        "state": "fulfilled",
+        "value": {
+          "mutation": "M15",
+          "expected": "rejected",
+          "positiveValidator": {
+            "state": "fulfilled",
+            "value": {
+              "offsetUnit": "byte",
+              "matched": true,
+              "hasCapture": true,
+              "overall": {
+                "start": 0,
+                "end": 7
+              },
+              "capture": {
+                "start": 3,
+                "end": 7
+              },
+              "steps": 100
+            }
+          },
+          "positiveClient": {
+            "state": "fulfilled",
+            "value": {
+              "offsetUnit": "byte",
+              "matched": true,
+              "hasCapture": true,
+              "overall": {
+                "start": 0,
+                "end": 7
+              },
+              "capture": {
+                "start": 3,
+                "end": 7
+              },
+              "steps": 100
+            }
+          },
+          "validator": {
+            "state": "rejected",
+            "code": "PROTOCOL",
+            "message": "regex PROTOCOL: invalid expr reply"
+          },
+          "client": {
+            "state": "rejected",
+            "code": "PROTOCOL",
+            "message": "regex PROTOCOL: invalid expr reply"
+          },
+          "events": [
+            {
+              "type": "start",
+              "url": "file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-final-moved-YfOSEd/consumer/node_modules/virtual-bash/dist/commands/regex-execution/worker.js",
+              "options": {
+                "execArgv": [],
+                "resourceLimits": {
+                  "maxOldGenerationSizeMb": 128,
+                  "stackSizeMb": 4
+                }
+              }
+            },
+            {
+              "type": "post",
+              "id": 1,
+              "kind": "expr-match"
+            },
+            {
+              "type": "terminate"
+            },
+            {
+              "type": "start",
+              "url": "file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-final-moved-YfOSEd/consumer/node_modules/virtual-bash/dist/commands/regex-execution/worker.js",
+              "options": {
+                "execArgv": [],
+                "resourceLimits": {
+                  "maxOldGenerationSizeMb": 128,
+                  "stackSizeMb": 4
+                }
+              }
+            },
+            {
+              "type": "post",
+              "id": 1,
+              "kind": "expr-match"
+            },
+            {
+              "type": "terminate"
+            }
+          ],
+          "passed": true,
+          "seam": "Installed validator plus real installed client receive path, synthetic worker transport; not real worker compilation."
+        }
+      },
+      "terminationAwaited": true,
+      "terminationCode": 0,
+      "output": [],
+      "outputBytes": 0,
+      "heartbeats": 1,
+      "deadlineMs": 2000,
+      "resourceLimits": {
+        "maxOldGenerationSizeMb": 64,
+        "stackSizeMb": 4
+      },
+      "passed": true
+    },
+    {
+      "id": "variant-13-M16",
+      "payload": {
+        "mutation": "M16",
+        "override": {
+          "path": "error",
+          "value": 0
+        }
+      },
+      "state": "returned",
+      "value": {
+        "state": "fulfilled",
+        "value": {
+          "mutation": "M16",
+          "expected": "rejected",
+          "positiveValidator": {
+            "state": "fulfilled",
+            "value": {
+              "offsetUnit": "byte",
+              "matched": true,
+              "hasCapture": true,
+              "overall": {
+                "start": 0,
+                "end": 7
+              },
+              "capture": {
+                "start": 3,
+                "end": 7
+              },
+              "steps": 100
+            }
+          },
+          "positiveClient": {
+            "state": "fulfilled",
+            "value": {
+              "offsetUnit": "byte",
+              "matched": true,
+              "hasCapture": true,
+              "overall": {
+                "start": 0,
+                "end": 7
+              },
+              "capture": {
+                "start": 3,
+                "end": 7
+              },
+              "steps": 100
+            }
+          },
+          "validator": {
+            "state": "rejected",
+            "code": "PROTOCOL",
+            "message": "regex PROTOCOL: invalid expr reply"
+          },
+          "client": {
+            "state": "rejected",
+            "code": "PROTOCOL",
+            "message": "regex PROTOCOL: invalid expr reply"
+          },
+          "events": [
+            {
+              "type": "start",
+              "url": "file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-final-moved-YfOSEd/consumer/node_modules/virtual-bash/dist/commands/regex-execution/worker.js",
+              "options": {
+                "execArgv": [],
+                "resourceLimits": {
+                  "maxOldGenerationSizeMb": 128,
+                  "stackSizeMb": 4
+                }
+              }
+            },
+            {
+              "type": "post",
+              "id": 1,
+              "kind": "expr-match"
+            },
+            {
+              "type": "terminate"
+            },
+            {
+              "type": "start",
+              "url": "file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-final-moved-YfOSEd/consumer/node_modules/virtual-bash/dist/commands/regex-execution/worker.js",
+              "options": {
+                "execArgv": [],
+                "resourceLimits": {
+                  "maxOldGenerationSizeMb": 128,
+                  "stackSizeMb": 4
+                }
+              }
+            },
+            {
+              "type": "post",
+              "id": 1,
+              "kind": "expr-match"
+            },
+            {
+              "type": "terminate"
+            }
+          ],
+          "passed": true,
+          "seam": "Installed validator plus real installed client receive path, synthetic worker transport; not real worker compilation."
+        }
+      },
+      "terminationAwaited": true,
+      "terminationCode": 1,
+      "output": [],
+      "outputBytes": 0,
+      "heartbeats": 1,
+      "deadlineMs": 2000,
+      "resourceLimits": {
+        "maxOldGenerationSizeMb": 64,
+        "stackSizeMb": 4
+      },
+      "passed": true
+    },
+    {
+      "id": "variant-14-M17",
+      "payload": {
+        "mutation": "M17",
+        "override": {
+          "path": "result.overall.start",
+          "value": -1
+        }
+      },
+      "state": "returned",
+      "value": {
+        "state": "fulfilled",
+        "value": {
+          "mutation": "M17",
+          "expected": "rejected",
+          "positiveValidator": {
+            "state": "fulfilled",
+            "value": {
+              "offsetUnit": "byte",
+              "matched": true,
+              "hasCapture": true,
+              "overall": {
+                "start": 0,
+                "end": 7
+              },
+              "capture": {
+                "start": 3,
+                "end": 7
+              },
+              "steps": 100
+            }
+          },
+          "positiveClient": {
+            "state": "fulfilled",
+            "value": {
+              "offsetUnit": "byte",
+              "matched": true,
+              "hasCapture": true,
+              "overall": {
+                "start": 0,
+                "end": 7
+              },
+              "capture": {
+                "start": 3,
+                "end": 7
+              },
+              "steps": 100
+            }
+          },
+          "validator": {
+            "state": "rejected",
+            "code": "PROTOCOL",
+            "message": "regex PROTOCOL: invalid expr reply"
+          },
+          "client": {
+            "state": "rejected",
+            "code": "PROTOCOL",
+            "message": "regex PROTOCOL: invalid expr reply"
+          },
+          "events": [
+            {
+              "type": "start",
+              "url": "file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-final-moved-YfOSEd/consumer/node_modules/virtual-bash/dist/commands/regex-execution/worker.js",
+              "options": {
+                "execArgv": [],
+                "resourceLimits": {
+                  "maxOldGenerationSizeMb": 128,
+                  "stackSizeMb": 4
+                }
+              }
+            },
+            {
+              "type": "post",
+              "id": 1,
+              "kind": "expr-match"
+            },
+            {
+              "type": "terminate"
+            },
+            {
+              "type": "start",
+              "url": "file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-final-moved-YfOSEd/consumer/node_modules/virtual-bash/dist/commands/regex-execution/worker.js",
+              "options": {
+                "execArgv": [],
+                "resourceLimits": {
+                  "maxOldGenerationSizeMb": 128,
+                  "stackSizeMb": 4
+                }
+              }
+            },
+            {
+              "type": "post",
+              "id": 1,
+              "kind": "expr-match"
+            },
+            {
+              "type": "terminate"
+            }
+          ],
+          "passed": true,
+          "seam": "Installed validator plus real installed client receive path, synthetic worker transport; not real worker compilation."
+        }
+      },
+      "terminationAwaited": true,
+      "terminationCode": 1,
+      "output": [],
+      "outputBytes": 0,
+      "heartbeats": 2,
+      "deadlineMs": 2000,
+      "resourceLimits": {
+        "maxOldGenerationSizeMb": 64,
+        "stackSizeMb": 4
+      },
+      "passed": true
+    },
+    {
+      "id": "variant-15-M18",
+      "payload": {
+        "mutation": "M18",
+        "override": {
+          "path": "result.overall.end",
+          "value": 9
+        }
+      },
+      "state": "returned",
+      "value": {
+        "state": "fulfilled",
+        "value": {
+          "mutation": "M18",
+          "expected": "rejected",
+          "positiveValidator": {
+            "state": "fulfilled",
+            "value": {
+              "offsetUnit": "byte",
+              "matched": true,
+              "hasCapture": true,
+              "overall": {
+                "start": 0,
+                "end": 7
+              },
+              "capture": {
+                "start": 3,
+                "end": 7
+              },
+              "steps": 100
+            }
+          },
+          "positiveClient": {
+            "state": "fulfilled",
+            "value": {
+              "offsetUnit": "byte",
+              "matched": true,
+              "hasCapture": true,
+              "overall": {
+                "start": 0,
+                "end": 7
+              },
+              "capture": {
+                "start": 3,
+                "end": 7
+              },
+              "steps": 100
+            }
+          },
+          "validator": {
+            "state": "rejected",
+            "code": "PROTOCOL",
+            "message": "regex PROTOCOL: invalid expr reply"
+          },
+          "client": {
+            "state": "rejected",
+            "code": "PROTOCOL",
+            "message": "regex PROTOCOL: invalid expr reply"
+          },
+          "events": [
+            {
+              "type": "start",
+              "url": "file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-final-moved-YfOSEd/consumer/node_modules/virtual-bash/dist/commands/regex-execution/worker.js",
+              "options": {
+                "execArgv": [],
+                "resourceLimits": {
+                  "maxOldGenerationSizeMb": 128,
+                  "stackSizeMb": 4
+                }
+              }
+            },
+            {
+              "type": "post",
+              "id": 1,
+              "kind": "expr-match"
+            },
+            {
+              "type": "terminate"
+            },
+            {
+              "type": "start",
+              "url": "file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-final-moved-YfOSEd/consumer/node_modules/virtual-bash/dist/commands/regex-execution/worker.js",
+              "options": {
+                "execArgv": [],
+                "resourceLimits": {
+                  "maxOldGenerationSizeMb": 128,
+                  "stackSizeMb": 4
+                }
+              }
+            },
+            {
+              "type": "post",
+              "id": 1,
+              "kind": "expr-match"
+            },
+            {
+              "type": "terminate"
+            }
+          ],
+          "passed": true,
+          "seam": "Installed validator plus real installed client receive path, synthetic worker transport; not real worker compilation."
+        }
+      },
+      "terminationAwaited": true,
+      "terminationCode": 0,
+      "output": [],
+      "outputBytes": 0,
+      "heartbeats": 1,
+      "deadlineMs": 2000,
+      "resourceLimits": {
+        "maxOldGenerationSizeMb": 64,
+        "stackSizeMb": 4
+      },
+      "passed": true
+    },
+    {
+      "id": "variant-16-M19",
+      "payload": {
+        "mutation": "M19",
+        "override": {
+          "path": "result.overall.start",
+          "special": "NaN"
+        }
+      },
+      "state": "returned",
+      "value": {
+        "state": "fulfilled",
+        "value": {
+          "mutation": "M19",
+          "expected": "rejected",
+          "positiveValidator": {
+            "state": "fulfilled",
+            "value": {
+              "offsetUnit": "byte",
+              "matched": true,
+              "hasCapture": true,
+              "overall": {
+                "start": 0,
+                "end": 7
+              },
+              "capture": {
+                "start": 3,
+                "end": 7
+              },
+              "steps": 100
+            }
+          },
+          "positiveClient": {
+            "state": "fulfilled",
+            "value": {
+              "offsetUnit": "byte",
+              "matched": true,
+              "hasCapture": true,
+              "overall": {
+                "start": 0,
+                "end": 7
+              },
+              "capture": {
+                "start": 3,
+                "end": 7
+              },
+              "steps": 100
+            }
+          },
+          "validator": {
+            "state": "rejected",
+            "code": "PROTOCOL",
+            "message": "regex PROTOCOL: invalid expr reply"
+          },
+          "client": {
+            "state": "rejected",
+            "code": "PROTOCOL",
+            "message": "regex PROTOCOL: invalid expr reply"
+          },
+          "events": [
+            {
+              "type": "start",
+              "url": "file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-final-moved-YfOSEd/consumer/node_modules/virtual-bash/dist/commands/regex-execution/worker.js",
+              "options": {
+                "execArgv": [],
+                "resourceLimits": {
+                  "maxOldGenerationSizeMb": 128,
+                  "stackSizeMb": 4
+                }
+              }
+            },
+            {
+              "type": "post",
+              "id": 1,
+              "kind": "expr-match"
+            },
+            {
+              "type": "terminate"
+            },
+            {
+              "type": "start",
+              "url": "file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-final-moved-YfOSEd/consumer/node_modules/virtual-bash/dist/commands/regex-execution/worker.js",
+              "options": {
+                "execArgv": [],
+                "resourceLimits": {
+                  "maxOldGenerationSizeMb": 128,
+                  "stackSizeMb": 4
+                }
+              }
+            },
+            {
+              "type": "post",
+              "id": 1,
+              "kind": "expr-match"
+            },
+            {
+              "type": "terminate"
+            }
+          ],
+          "passed": true,
+          "seam": "Installed validator plus real installed client receive path, synthetic worker transport; not real worker compilation."
+        }
+      },
+      "terminationAwaited": true,
+      "terminationCode": 1,
+      "output": [],
+      "outputBytes": 0,
+      "heartbeats": 1,
+      "deadlineMs": 2000,
+      "resourceLimits": {
+        "maxOldGenerationSizeMb": 64,
+        "stackSizeMb": 4
+      },
+      "passed": true
+    },
+    {
+      "id": "variant-17-M20",
+      "payload": {
+        "mutation": "M20",
+        "override": {
+          "path": "result.overall.end",
+          "special": "Infinity"
+        }
+      },
+      "state": "returned",
+      "value": {
+        "state": "fulfilled",
+        "value": {
+          "mutation": "M20",
+          "expected": "rejected",
+          "positiveValidator": {
+            "state": "fulfilled",
+            "value": {
+              "offsetUnit": "byte",
+              "matched": true,
+              "hasCapture": true,
+              "overall": {
+                "start": 0,
+                "end": 7
+              },
+              "capture": {
+                "start": 3,
+                "end": 7
+              },
+              "steps": 100
+            }
+          },
+          "positiveClient": {
+            "state": "fulfilled",
+            "value": {
+              "offsetUnit": "byte",
+              "matched": true,
+              "hasCapture": true,
+              "overall": {
+                "start": 0,
+                "end": 7
+              },
+              "capture": {
+                "start": 3,
+                "end": 7
+              },
+              "steps": 100
+            }
+          },
+          "validator": {
+            "state": "rejected",
+            "code": "PROTOCOL",
+            "message": "regex PROTOCOL: invalid expr reply"
+          },
+          "client": {
+            "state": "rejected",
+            "code": "PROTOCOL",
+            "message": "regex PROTOCOL: invalid expr reply"
+          },
+          "events": [
+            {
+              "type": "start",
+              "url": "file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-final-moved-YfOSEd/consumer/node_modules/virtual-bash/dist/commands/regex-execution/worker.js",
+              "options": {
+                "execArgv": [],
+                "resourceLimits": {
+                  "maxOldGenerationSizeMb": 128,
+                  "stackSizeMb": 4
+                }
+              }
+            },
+            {
+              "type": "post",
+              "id": 1,
+              "kind": "expr-match"
+            },
+            {
+              "type": "terminate"
+            },
+            {
+              "type": "start",
+              "url": "file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-final-moved-YfOSEd/consumer/node_modules/virtual-bash/dist/commands/regex-execution/worker.js",
+              "options": {
+                "execArgv": [],
+                "resourceLimits": {
+                  "maxOldGenerationSizeMb": 128,
+                  "stackSizeMb": 4
+                }
+              }
+            },
+            {
+              "type": "post",
+              "id": 1,
+              "kind": "expr-match"
+            },
+            {
+              "type": "terminate"
+            }
+          ],
+          "passed": true,
+          "seam": "Installed validator plus real installed client receive path, synthetic worker transport; not real worker compilation."
+        }
+      },
+      "terminationAwaited": true,
+      "terminationCode": 0,
+      "output": [],
+      "outputBytes": 0,
+      "heartbeats": 1,
+      "deadlineMs": 2000,
+      "resourceLimits": {
+        "maxOldGenerationSizeMb": 64,
+        "stackSizeMb": 4
+      },
+      "passed": true
+    },
+    {
+      "id": "variant-18-M21",
+      "payload": {
+        "mutation": "M21",
+        "override": {
+          "path": "result.overall.start",
+          "value": 0.5
+        }
+      },
+      "state": "returned",
+      "value": {
+        "state": "fulfilled",
+        "value": {
+          "mutation": "M21",
+          "expected": "rejected",
+          "positiveValidator": {
+            "state": "fulfilled",
+            "value": {
+              "offsetUnit": "byte",
+              "matched": true,
+              "hasCapture": true,
+              "overall": {
+                "start": 0,
+                "end": 7
+              },
+              "capture": {
+                "start": 3,
+                "end": 7
+              },
+              "steps": 100
+            }
+          },
+          "positiveClient": {
+            "state": "fulfilled",
+            "value": {
+              "offsetUnit": "byte",
+              "matched": true,
+              "hasCapture": true,
+              "overall": {
+                "start": 0,
+                "end": 7
+              },
+              "capture": {
+                "start": 3,
+                "end": 7
+              },
+              "steps": 100
+            }
+          },
+          "validator": {
+            "state": "rejected",
+            "code": "PROTOCOL",
+            "message": "regex PROTOCOL: invalid expr reply"
+          },
+          "client": {
+            "state": "rejected",
+            "code": "PROTOCOL",
+            "message": "regex PROTOCOL: invalid expr reply"
+          },
+          "events": [
+            {
+              "type": "start",
+              "url": "file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-final-moved-YfOSEd/consumer/node_modules/virtual-bash/dist/commands/regex-execution/worker.js",
+              "options": {
+                "execArgv": [],
+                "resourceLimits": {
+                  "maxOldGenerationSizeMb": 128,
+                  "stackSizeMb": 4
+                }
+              }
+            },
+            {
+              "type": "post",
+              "id": 1,
+              "kind": "expr-match"
+            },
+            {
+              "type": "terminate"
+            },
+            {
+              "type": "start",
+              "url": "file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-final-moved-YfOSEd/consumer/node_modules/virtual-bash/dist/commands/regex-execution/worker.js",
+              "options": {
+                "execArgv": [],
+                "resourceLimits": {
+                  "maxOldGenerationSizeMb": 128,
+                  "stackSizeMb": 4
+                }
+              }
+            },
+            {
+              "type": "post",
+              "id": 1,
+              "kind": "expr-match"
+            },
+            {
+              "type": "terminate"
+            }
+          ],
+          "passed": true,
+          "seam": "Installed validator plus real installed client receive path, synthetic worker transport; not real worker compilation."
+        }
+      },
+      "terminationAwaited": true,
+      "terminationCode": 1,
+      "output": [],
+      "outputBytes": 0,
+      "heartbeats": 1,
+      "deadlineMs": 2000,
+      "resourceLimits": {
+        "maxOldGenerationSizeMb": 64,
+        "stackSizeMb": 4
+      },
+      "passed": true
+    },
+    {
+      "id": "variant-19-M21",
+      "payload": {
+        "mutation": "M21",
+        "override": {
+          "path": "result.overall.end",
+          "value": 7.5
+        }
+      },
+      "state": "returned",
+      "value": {
+        "state": "fulfilled",
+        "value": {
+          "mutation": "M21",
+          "expected": "rejected",
+          "positiveValidator": {
+            "state": "fulfilled",
+            "value": {
+              "offsetUnit": "byte",
+              "matched": true,
+              "hasCapture": true,
+              "overall": {
+                "start": 0,
+                "end": 7
+              },
+              "capture": {
+                "start": 3,
+                "end": 7
+              },
+              "steps": 100
+            }
+          },
+          "positiveClient": {
+            "state": "fulfilled",
+            "value": {
+              "offsetUnit": "byte",
+              "matched": true,
+              "hasCapture": true,
+              "overall": {
+                "start": 0,
+                "end": 7
+              },
+              "capture": {
+                "start": 3,
+                "end": 7
+              },
+              "steps": 100
+            }
+          },
+          "validator": {
+            "state": "rejected",
+            "code": "PROTOCOL",
+            "message": "regex PROTOCOL: invalid expr reply"
+          },
+          "client": {
+            "state": "rejected",
+            "code": "PROTOCOL",
+            "message": "regex PROTOCOL: invalid expr reply"
+          },
+          "events": [
+            {
+              "type": "start",
+              "url": "file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-final-moved-YfOSEd/consumer/node_modules/virtual-bash/dist/commands/regex-execution/worker.js",
+              "options": {
+                "execArgv": [],
+                "resourceLimits": {
+                  "maxOldGenerationSizeMb": 128,
+                  "stackSizeMb": 4
+                }
+              }
+            },
+            {
+              "type": "post",
+              "id": 1,
+              "kind": "expr-match"
+            },
+            {
+              "type": "terminate"
+            },
+            {
+              "type": "start",
+              "url": "file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-final-moved-YfOSEd/consumer/node_modules/virtual-bash/dist/commands/regex-execution/worker.js",
+              "options": {
+                "execArgv": [],
+                "resourceLimits": {
+                  "maxOldGenerationSizeMb": 128,
+                  "stackSizeMb": 4
+                }
+              }
+            },
+            {
+              "type": "post",
+              "id": 1,
+              "kind": "expr-match"
+            },
+            {
+              "type": "terminate"
+            }
+          ],
+          "passed": true,
+          "seam": "Installed validator plus real installed client receive path, synthetic worker transport; not real worker compilation."
+        }
+      },
+      "terminationAwaited": true,
+      "terminationCode": 0,
+      "output": [],
+      "outputBytes": 0,
+      "heartbeats": 1,
+      "deadlineMs": 2000,
+      "resourceLimits": {
+        "maxOldGenerationSizeMb": 64,
+        "stackSizeMb": 4
+      },
+      "passed": true
+    },
+    {
+      "id": "variant-20-M22",
+      "payload": {
+        "mutation": "M22",
+        "override": {
+          "path": "result.overall.start",
+          "special": "unsafe"
+        }
+      },
+      "state": "returned",
+      "value": {
+        "state": "fulfilled",
+        "value": {
+          "mutation": "M22",
+          "expected": "rejected",
+          "positiveValidator": {
+            "state": "fulfilled",
+            "value": {
+              "offsetUnit": "byte",
+              "matched": true,
+              "hasCapture": true,
+              "overall": {
+                "start": 0,
+                "end": 7
+              },
+              "capture": {
+                "start": 3,
+                "end": 7
+              },
+              "steps": 100
+            }
+          },
+          "positiveClient": {
+            "state": "fulfilled",
+            "value": {
+              "offsetUnit": "byte",
+              "matched": true,
+              "hasCapture": true,
+              "overall": {
+                "start": 0,
+                "end": 7
+              },
+              "capture": {
+                "start": 3,
+                "end": 7
+              },
+              "steps": 100
+            }
+          },
+          "validator": {
+            "state": "rejected",
+            "code": "PROTOCOL",
+            "message": "regex PROTOCOL: invalid expr reply"
+          },
+          "client": {
+            "state": "rejected",
+            "code": "PROTOCOL",
+            "message": "regex PROTOCOL: invalid expr reply"
+          },
+          "events": [
+            {
+              "type": "start",
+              "url": "file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-final-moved-YfOSEd/consumer/node_modules/virtual-bash/dist/commands/regex-execution/worker.js",
+              "options": {
+                "execArgv": [],
+                "resourceLimits": {
+                  "maxOldGenerationSizeMb": 128,
+                  "stackSizeMb": 4
+                }
+              }
+            },
+            {
+              "type": "post",
+              "id": 1,
+              "kind": "expr-match"
+            },
+            {
+              "type": "terminate"
+            },
+            {
+              "type": "start",
+              "url": "file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-final-moved-YfOSEd/consumer/node_modules/virtual-bash/dist/commands/regex-execution/worker.js",
+              "options": {
+                "execArgv": [],
+                "resourceLimits": {
+                  "maxOldGenerationSizeMb": 128,
+                  "stackSizeMb": 4
+                }
+              }
+            },
+            {
+              "type": "post",
+              "id": 1,
+              "kind": "expr-match"
+            },
+            {
+              "type": "terminate"
+            }
+          ],
+          "passed": true,
+          "seam": "Installed validator plus real installed client receive path, synthetic worker transport; not real worker compilation."
+        }
+      },
+      "terminationAwaited": true,
+      "terminationCode": 0,
+      "output": [],
+      "outputBytes": 0,
+      "heartbeats": 1,
+      "deadlineMs": 2000,
+      "resourceLimits": {
+        "maxOldGenerationSizeMb": 64,
+        "stackSizeMb": 4
+      },
+      "passed": true
+    },
+    {
+      "id": "variant-21-M22",
+      "payload": {
+        "mutation": "M22",
+        "override": {
+          "path": "result.overall.end",
+          "special": "unsafe"
+        }
+      },
+      "state": "returned",
+      "value": {
+        "state": "fulfilled",
+        "value": {
+          "mutation": "M22",
+          "expected": "rejected",
+          "positiveValidator": {
+            "state": "fulfilled",
+            "value": {
+              "offsetUnit": "byte",
+              "matched": true,
+              "hasCapture": true,
+              "overall": {
+                "start": 0,
+                "end": 7
+              },
+              "capture": {
+                "start": 3,
+                "end": 7
+              },
+              "steps": 100
+            }
+          },
+          "positiveClient": {
+            "state": "fulfilled",
+            "value": {
+              "offsetUnit": "byte",
+              "matched": true,
+              "hasCapture": true,
+              "overall": {
+                "start": 0,
+                "end": 7
+              },
+              "capture": {
+                "start": 3,
+                "end": 7
+              },
+              "steps": 100
+            }
+          },
+          "validator": {
+            "state": "rejected",
+            "code": "PROTOCOL",
+            "message": "regex PROTOCOL: invalid expr reply"
+          },
+          "client": {
+            "state": "rejected",
+            "code": "PROTOCOL",
+            "message": "regex PROTOCOL: invalid expr reply"
+          },
+          "events": [
+            {
+              "type": "start",
+              "url": "file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-final-moved-YfOSEd/consumer/node_modules/virtual-bash/dist/commands/regex-execution/worker.js",
+              "options": {
+                "execArgv": [],
+                "resourceLimits": {
+                  "maxOldGenerationSizeMb": 128,
+                  "stackSizeMb": 4
+                }
+              }
+            },
+            {
+              "type": "post",
+              "id": 1,
+              "kind": "expr-match"
+            },
+            {
+              "type": "terminate"
+            },
+            {
+              "type": "start",
+              "url": "file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-final-moved-YfOSEd/consumer/node_modules/virtual-bash/dist/commands/regex-execution/worker.js",
+              "options": {
+                "execArgv": [],
+                "resourceLimits": {
+                  "maxOldGenerationSizeMb": 128,
+                  "stackSizeMb": 4
+                }
+              }
+            },
+            {
+              "type": "post",
+              "id": 1,
+              "kind": "expr-match"
+            },
+            {
+              "type": "terminate"
+            }
+          ],
+          "passed": true,
+          "seam": "Installed validator plus real installed client receive path, synthetic worker transport; not real worker compilation."
+        }
+      },
+      "terminationAwaited": true,
+      "terminationCode": 1,
+      "output": [],
+      "outputBytes": 0,
+      "heartbeats": 3,
+      "deadlineMs": 2000,
+      "resourceLimits": {
+        "maxOldGenerationSizeMb": 64,
+        "stackSizeMb": 4
+      },
+      "passed": true
+    },
+    {
+      "id": "variant-22-M17",
+      "payload": {
+        "mutation": "M17",
+        "override": {
+          "path": "result.capture.start",
+          "value": -1
+        }
+      },
+      "state": "returned",
+      "value": {
+        "state": "fulfilled",
+        "value": {
+          "mutation": "M17",
+          "expected": "rejected",
+          "positiveValidator": {
+            "state": "fulfilled",
+            "value": {
+              "offsetUnit": "byte",
+              "matched": true,
+              "hasCapture": true,
+              "overall": {
+                "start": 0,
+                "end": 7
+              },
+              "capture": {
+                "start": 3,
+                "end": 7
+              },
+              "steps": 100
+            }
+          },
+          "positiveClient": {
+            "state": "fulfilled",
+            "value": {
+              "offsetUnit": "byte",
+              "matched": true,
+              "hasCapture": true,
+              "overall": {
+                "start": 0,
+                "end": 7
+              },
+              "capture": {
+                "start": 3,
+                "end": 7
+              },
+              "steps": 100
+            }
+          },
+          "validator": {
+            "state": "rejected",
+            "code": "PROTOCOL",
+            "message": "regex PROTOCOL: invalid expr reply"
+          },
+          "client": {
+            "state": "rejected",
+            "code": "PROTOCOL",
+            "message": "regex PROTOCOL: invalid expr reply"
+          },
+          "events": [
+            {
+              "type": "start",
+              "url": "file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-final-moved-YfOSEd/consumer/node_modules/virtual-bash/dist/commands/regex-execution/worker.js",
+              "options": {
+                "execArgv": [],
+                "resourceLimits": {
+                  "maxOldGenerationSizeMb": 128,
+                  "stackSizeMb": 4
+                }
+              }
+            },
+            {
+              "type": "post",
+              "id": 1,
+              "kind": "expr-match"
+            },
+            {
+              "type": "terminate"
+            },
+            {
+              "type": "start",
+              "url": "file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-final-moved-YfOSEd/consumer/node_modules/virtual-bash/dist/commands/regex-execution/worker.js",
+              "options": {
+                "execArgv": [],
+                "resourceLimits": {
+                  "maxOldGenerationSizeMb": 128,
+                  "stackSizeMb": 4
+                }
+              }
+            },
+            {
+              "type": "post",
+              "id": 1,
+              "kind": "expr-match"
+            },
+            {
+              "type": "terminate"
+            }
+          ],
+          "passed": true,
+          "seam": "Installed validator plus real installed client receive path, synthetic worker transport; not real worker compilation."
+        }
+      },
+      "terminationAwaited": true,
+      "terminationCode": 0,
+      "output": [],
+      "outputBytes": 0,
+      "heartbeats": 2,
+      "deadlineMs": 2000,
+      "resourceLimits": {
+        "maxOldGenerationSizeMb": 64,
+        "stackSizeMb": 4
+      },
+      "passed": true
+    },
+    {
+      "id": "variant-23-M18",
+      "payload": {
+        "mutation": "M18",
+        "override": {
+          "path": "result.capture.end",
+          "value": 9
+        }
+      },
+      "state": "returned",
+      "value": {
+        "state": "fulfilled",
+        "value": {
+          "mutation": "M18",
+          "expected": "rejected",
+          "positiveValidator": {
+            "state": "fulfilled",
+            "value": {
+              "offsetUnit": "byte",
+              "matched": true,
+              "hasCapture": true,
+              "overall": {
+                "start": 0,
+                "end": 7
+              },
+              "capture": {
+                "start": 3,
+                "end": 7
+              },
+              "steps": 100
+            }
+          },
+          "positiveClient": {
+            "state": "fulfilled",
+            "value": {
+              "offsetUnit": "byte",
+              "matched": true,
+              "hasCapture": true,
+              "overall": {
+                "start": 0,
+                "end": 7
+              },
+              "capture": {
+                "start": 3,
+                "end": 7
+              },
+              "steps": 100
+            }
+          },
+          "validator": {
+            "state": "rejected",
+            "code": "PROTOCOL",
+            "message": "regex PROTOCOL: invalid expr reply"
+          },
+          "client": {
+            "state": "rejected",
+            "code": "PROTOCOL",
+            "message": "regex PROTOCOL: invalid expr reply"
+          },
+          "events": [
+            {
+              "type": "start",
+              "url": "file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-final-moved-YfOSEd/consumer/node_modules/virtual-bash/dist/commands/regex-execution/worker.js",
+              "options": {
+                "execArgv": [],
+                "resourceLimits": {
+                  "maxOldGenerationSizeMb": 128,
+                  "stackSizeMb": 4
+                }
+              }
+            },
+            {
+              "type": "post",
+              "id": 1,
+              "kind": "expr-match"
+            },
+            {
+              "type": "terminate"
+            },
+            {
+              "type": "start",
+              "url": "file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-final-moved-YfOSEd/consumer/node_modules/virtual-bash/dist/commands/regex-execution/worker.js",
+              "options": {
+                "execArgv": [],
+                "resourceLimits": {
+                  "maxOldGenerationSizeMb": 128,
+                  "stackSizeMb": 4
+                }
+              }
+            },
+            {
+              "type": "post",
+              "id": 1,
+              "kind": "expr-match"
+            },
+            {
+              "type": "terminate"
+            }
+          ],
+          "passed": true,
+          "seam": "Installed validator plus real installed client receive path, synthetic worker transport; not real worker compilation."
+        }
+      },
+      "terminationAwaited": true,
+      "terminationCode": 0,
+      "output": [],
+      "outputBytes": 0,
+      "heartbeats": 2,
+      "deadlineMs": 2000,
+      "resourceLimits": {
+        "maxOldGenerationSizeMb": 64,
+        "stackSizeMb": 4
+      },
+      "passed": true
+    },
+    {
+      "id": "variant-24-M19",
+      "payload": {
+        "mutation": "M19",
+        "override": {
+          "path": "result.capture.start",
+          "special": "NaN"
+        }
+      },
+      "state": "returned",
+      "value": {
+        "state": "fulfilled",
+        "value": {
+          "mutation": "M19",
+          "expected": "rejected",
+          "positiveValidator": {
+            "state": "fulfilled",
+            "value": {
+              "offsetUnit": "byte",
+              "matched": true,
+              "hasCapture": true,
+              "overall": {
+                "start": 0,
+                "end": 7
+              },
+              "capture": {
+                "start": 3,
+                "end": 7
+              },
+              "steps": 100
+            }
+          },
+          "positiveClient": {
+            "state": "fulfilled",
+            "value": {
+              "offsetUnit": "byte",
+              "matched": true,
+              "hasCapture": true,
+              "overall": {
+                "start": 0,
+                "end": 7
+              },
+              "capture": {
+                "start": 3,
+                "end": 7
+              },
+              "steps": 100
+            }
+          },
+          "validator": {
+            "state": "rejected",
+            "code": "PROTOCOL",
+            "message": "regex PROTOCOL: invalid expr reply"
+          },
+          "client": {
+            "state": "rejected",
+            "code": "PROTOCOL",
+            "message": "regex PROTOCOL: invalid expr reply"
+          },
+          "events": [
+            {
+              "type": "start",
+              "url": "file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-final-moved-YfOSEd/consumer/node_modules/virtual-bash/dist/commands/regex-execution/worker.js",
+              "options": {
+                "execArgv": [],
+                "resourceLimits": {
+                  "maxOldGenerationSizeMb": 128,
+                  "stackSizeMb": 4
+                }
+              }
+            },
+            {
+              "type": "post",
+              "id": 1,
+              "kind": "expr-match"
+            },
+            {
+              "type": "terminate"
+            },
+            {
+              "type": "start",
+              "url": "file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-final-moved-YfOSEd/consumer/node_modules/virtual-bash/dist/commands/regex-execution/worker.js",
+              "options": {
+                "execArgv": [],
+                "resourceLimits": {
+                  "maxOldGenerationSizeMb": 128,
+                  "stackSizeMb": 4
+                }
+              }
+            },
+            {
+              "type": "post",
+              "id": 1,
+              "kind": "expr-match"
+            },
+            {
+              "type": "terminate"
+            }
+          ],
+          "passed": true,
+          "seam": "Installed validator plus real installed client receive path, synthetic worker transport; not real worker compilation."
+        }
+      },
+      "terminationAwaited": true,
+      "terminationCode": 1,
+      "output": [],
+      "outputBytes": 0,
+      "heartbeats": 2,
+      "deadlineMs": 2000,
+      "resourceLimits": {
+        "maxOldGenerationSizeMb": 64,
+        "stackSizeMb": 4
+      },
+      "passed": true
+    },
+    {
+      "id": "variant-25-M20",
+      "payload": {
+        "mutation": "M20",
+        "override": {
+          "path": "result.capture.end",
+          "special": "Infinity"
+        }
+      },
+      "state": "returned",
+      "value": {
+        "state": "fulfilled",
+        "value": {
+          "mutation": "M20",
+          "expected": "rejected",
+          "positiveValidator": {
+            "state": "fulfilled",
+            "value": {
+              "offsetUnit": "byte",
+              "matched": true,
+              "hasCapture": true,
+              "overall": {
+                "start": 0,
+                "end": 7
+              },
+              "capture": {
+                "start": 3,
+                "end": 7
+              },
+              "steps": 100
+            }
+          },
+          "positiveClient": {
+            "state": "fulfilled",
+            "value": {
+              "offsetUnit": "byte",
+              "matched": true,
+              "hasCapture": true,
+              "overall": {
+                "start": 0,
+                "end": 7
+              },
+              "capture": {
+                "start": 3,
+                "end": 7
+              },
+              "steps": 100
+            }
+          },
+          "validator": {
+            "state": "rejected",
+            "code": "PROTOCOL",
+            "message": "regex PROTOCOL: invalid expr reply"
+          },
+          "client": {
+            "state": "rejected",
+            "code": "PROTOCOL",
+            "message": "regex PROTOCOL: invalid expr reply"
+          },
+          "events": [
+            {
+              "type": "start",
+              "url": "file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-final-moved-YfOSEd/consumer/node_modules/virtual-bash/dist/commands/regex-execution/worker.js",
+              "options": {
+                "execArgv": [],
+                "resourceLimits": {
+                  "maxOldGenerationSizeMb": 128,
+                  "stackSizeMb": 4
+                }
+              }
+            },
+            {
+              "type": "post",
+              "id": 1,
+              "kind": "expr-match"
+            },
+            {
+              "type": "terminate"
+            },
+            {
+              "type": "start",
+              "url": "file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-final-moved-YfOSEd/consumer/node_modules/virtual-bash/dist/commands/regex-execution/worker.js",
+              "options": {
+                "execArgv": [],
+                "resourceLimits": {
+                  "maxOldGenerationSizeMb": 128,
+                  "stackSizeMb": 4
+                }
+              }
+            },
+            {
+              "type": "post",
+              "id": 1,
+              "kind": "expr-match"
+            },
+            {
+              "type": "terminate"
+            }
+          ],
+          "passed": true,
+          "seam": "Installed validator plus real installed client receive path, synthetic worker transport; not real worker compilation."
+        }
+      },
+      "terminationAwaited": true,
+      "terminationCode": 0,
+      "output": [],
+      "outputBytes": 0,
+      "heartbeats": 2,
+      "deadlineMs": 2000,
+      "resourceLimits": {
+        "maxOldGenerationSizeMb": 64,
+        "stackSizeMb": 4
+      },
+      "passed": true
+    },
+    {
+      "id": "variant-26-M21",
+      "payload": {
+        "mutation": "M21",
+        "override": {
+          "path": "result.capture.start",
+          "value": 0.5
+        }
+      },
+      "state": "returned",
+      "value": {
+        "state": "fulfilled",
+        "value": {
+          "mutation": "M21",
+          "expected": "rejected",
+          "positiveValidator": {
+            "state": "fulfilled",
+            "value": {
+              "offsetUnit": "byte",
+              "matched": true,
+              "hasCapture": true,
+              "overall": {
+                "start": 0,
+                "end": 7
+              },
+              "capture": {
+                "start": 3,
+                "end": 7
+              },
+              "steps": 100
+            }
+          },
+          "positiveClient": {
+            "state": "fulfilled",
+            "value": {
+              "offsetUnit": "byte",
+              "matched": true,
+              "hasCapture": true,
+              "overall": {
+                "start": 0,
+                "end": 7
+              },
+              "capture": {
+                "start": 3,
+                "end": 7
+              },
+              "steps": 100
+            }
+          },
+          "validator": {
+            "state": "rejected",
+            "code": "PROTOCOL",
+            "message": "regex PROTOCOL: invalid expr reply"
+          },
+          "client": {
+            "state": "rejected",
+            "code": "PROTOCOL",
+            "message": "regex PROTOCOL: invalid expr reply"
+          },
+          "events": [
+            {
+              "type": "start",
+              "url": "file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-final-moved-YfOSEd/consumer/node_modules/virtual-bash/dist/commands/regex-execution/worker.js",
+              "options": {
+                "execArgv": [],
+                "resourceLimits": {
+                  "maxOldGenerationSizeMb": 128,
+                  "stackSizeMb": 4
+                }
+              }
+            },
+            {
+              "type": "post",
+              "id": 1,
+              "kind": "expr-match"
+            },
+            {
+              "type": "terminate"
+            },
+            {
+              "type": "start",
+              "url": "file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-final-moved-YfOSEd/consumer/node_modules/virtual-bash/dist/commands/regex-execution/worker.js",
+              "options": {
+                "execArgv": [],
+                "resourceLimits": {
+                  "maxOldGenerationSizeMb": 128,
+                  "stackSizeMb": 4
+                }
+              }
+            },
+            {
+              "type": "post",
+              "id": 1,
+              "kind": "expr-match"
+            },
+            {
+              "type": "terminate"
+            }
+          ],
+          "passed": true,
+          "seam": "Installed validator plus real installed client receive path, synthetic worker transport; not real worker compilation."
+        }
+      },
+      "terminationAwaited": true,
+      "terminationCode": 1,
+      "output": [],
+      "outputBytes": 0,
+      "heartbeats": 1,
+      "deadlineMs": 2000,
+      "resourceLimits": {
+        "maxOldGenerationSizeMb": 64,
+        "stackSizeMb": 4
+      },
+      "passed": true
+    },
+    {
+      "id": "variant-27-M21",
+      "payload": {
+        "mutation": "M21",
+        "override": {
+          "path": "result.capture.end",
+          "value": 7.5
+        }
+      },
+      "state": "returned",
+      "value": {
+        "state": "fulfilled",
+        "value": {
+          "mutation": "M21",
+          "expected": "rejected",
+          "positiveValidator": {
+            "state": "fulfilled",
+            "value": {
+              "offsetUnit": "byte",
+              "matched": true,
+              "hasCapture": true,
+              "overall": {
+                "start": 0,
+                "end": 7
+              },
+              "capture": {
+                "start": 3,
+                "end": 7
+              },
+              "steps": 100
+            }
+          },
+          "positiveClient": {
+            "state": "fulfilled",
+            "value": {
+              "offsetUnit": "byte",
+              "matched": true,
+              "hasCapture": true,
+              "overall": {
+                "start": 0,
+                "end": 7
+              },
+              "capture": {
+                "start": 3,
+                "end": 7
+              },
+              "steps": 100
+            }
+          },
+          "validator": {
+            "state": "rejected",
+            "code": "PROTOCOL",
+            "message": "regex PROTOCOL: invalid expr reply"
+          },
+          "client": {
+            "state": "rejected",
+            "code": "PROTOCOL",
+            "message": "regex PROTOCOL: invalid expr reply"
+          },
+          "events": [
+            {
+              "type": "start",
+              "url": "file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-final-moved-YfOSEd/consumer/node_modules/virtual-bash/dist/commands/regex-execution/worker.js",
+              "options": {
+                "execArgv": [],
+                "resourceLimits": {
+                  "maxOldGenerationSizeMb": 128,
+                  "stackSizeMb": 4
+                }
+              }
+            },
+            {
+              "type": "post",
+              "id": 1,
+              "kind": "expr-match"
+            },
+            {
+              "type": "terminate"
+            },
+            {
+              "type": "start",
+              "url": "file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-final-moved-YfOSEd/consumer/node_modules/virtual-bash/dist/commands/regex-execution/worker.js",
+              "options": {
+                "execArgv": [],
+                "resourceLimits": {
+                  "maxOldGenerationSizeMb": 128,
+                  "stackSizeMb": 4
+                }
+              }
+            },
+            {
+              "type": "post",
+              "id": 1,
+              "kind": "expr-match"
+            },
+            {
+              "type": "terminate"
+            }
+          ],
+          "passed": true,
+          "seam": "Installed validator plus real installed client receive path, synthetic worker transport; not real worker compilation."
+        }
+      },
+      "terminationAwaited": true,
+      "terminationCode": 0,
+      "output": [],
+      "outputBytes": 0,
+      "heartbeats": 1,
+      "deadlineMs": 2000,
+      "resourceLimits": {
+        "maxOldGenerationSizeMb": 64,
+        "stackSizeMb": 4
+      },
+      "passed": true
+    },
+    {
+      "id": "variant-28-M22",
+      "payload": {
+        "mutation": "M22",
+        "override": {
+          "path": "result.capture.start",
+          "special": "unsafe"
+        }
+      },
+      "state": "returned",
+      "value": {
+        "state": "fulfilled",
+        "value": {
+          "mutation": "M22",
+          "expected": "rejected",
+          "positiveValidator": {
+            "state": "fulfilled",
+            "value": {
+              "offsetUnit": "byte",
+              "matched": true,
+              "hasCapture": true,
+              "overall": {
+                "start": 0,
+                "end": 7
+              },
+              "capture": {
+                "start": 3,
+                "end": 7
+              },
+              "steps": 100
+            }
+          },
+          "positiveClient": {
+            "state": "fulfilled",
+            "value": {
+              "offsetUnit": "byte",
+              "matched": true,
+              "hasCapture": true,
+              "overall": {
+                "start": 0,
+                "end": 7
+              },
+              "capture": {
+                "start": 3,
+                "end": 7
+              },
+              "steps": 100
+            }
+          },
+          "validator": {
+            "state": "rejected",
+            "code": "PROTOCOL",
+            "message": "regex PROTOCOL: invalid expr reply"
+          },
+          "client": {
+            "state": "rejected",
+            "code": "PROTOCOL",
+            "message": "regex PROTOCOL: invalid expr reply"
+          },
+          "events": [
+            {
+              "type": "start",
+              "url": "file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-final-moved-YfOSEd/consumer/node_modules/virtual-bash/dist/commands/regex-execution/worker.js",
+              "options": {
+                "execArgv": [],
+                "resourceLimits": {
+                  "maxOldGenerationSizeMb": 128,
+                  "stackSizeMb": 4
+                }
+              }
+            },
+            {
+              "type": "post",
+              "id": 1,
+              "kind": "expr-match"
+            },
+            {
+              "type": "terminate"
+            },
+            {
+              "type": "start",
+              "url": "file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-final-moved-YfOSEd/consumer/node_modules/virtual-bash/dist/commands/regex-execution/worker.js",
+              "options": {
+                "execArgv": [],
+                "resourceLimits": {
+                  "maxOldGenerationSizeMb": 128,
+                  "stackSizeMb": 4
+                }
+              }
+            },
+            {
+              "type": "post",
+              "id": 1,
+              "kind": "expr-match"
+            },
+            {
+              "type": "terminate"
+            }
+          ],
+          "passed": true,
+          "seam": "Installed validator plus real installed client receive path, synthetic worker transport; not real worker compilation."
+        }
+      },
+      "terminationAwaited": true,
+      "terminationCode": 1,
+      "output": [],
+      "outputBytes": 0,
+      "heartbeats": 2,
+      "deadlineMs": 2000,
+      "resourceLimits": {
+        "maxOldGenerationSizeMb": 64,
+        "stackSizeMb": 4
+      },
+      "passed": true
+    },
+    {
+      "id": "variant-29-M22",
+      "payload": {
+        "mutation": "M22",
+        "override": {
+          "path": "result.capture.end",
+          "special": "unsafe"
+        }
+      },
+      "state": "returned",
+      "value": {
+        "state": "fulfilled",
+        "value": {
+          "mutation": "M22",
+          "expected": "rejected",
+          "positiveValidator": {
+            "state": "fulfilled",
+            "value": {
+              "offsetUnit": "byte",
+              "matched": true,
+              "hasCapture": true,
+              "overall": {
+                "start": 0,
+                "end": 7
+              },
+              "capture": {
+                "start": 3,
+                "end": 7
+              },
+              "steps": 100
+            }
+          },
+          "positiveClient": {
+            "state": "fulfilled",
+            "value": {
+              "offsetUnit": "byte",
+              "matched": true,
+              "hasCapture": true,
+              "overall": {
+                "start": 0,
+                "end": 7
+              },
+              "capture": {
+                "start": 3,
+                "end": 7
+              },
+              "steps": 100
+            }
+          },
+          "validator": {
+            "state": "rejected",
+            "code": "PROTOCOL",
+            "message": "regex PROTOCOL: invalid expr reply"
+          },
+          "client": {
+            "state": "rejected",
+            "code": "PROTOCOL",
+            "message": "regex PROTOCOL: invalid expr reply"
+          },
+          "events": [
+            {
+              "type": "start",
+              "url": "file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-final-moved-YfOSEd/consumer/node_modules/virtual-bash/dist/commands/regex-execution/worker.js",
+              "options": {
+                "execArgv": [],
+                "resourceLimits": {
+                  "maxOldGenerationSizeMb": 128,
+                  "stackSizeMb": 4
+                }
+              }
+            },
+            {
+              "type": "post",
+              "id": 1,
+              "kind": "expr-match"
+            },
+            {
+              "type": "terminate"
+            },
+            {
+              "type": "start",
+              "url": "file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-final-moved-YfOSEd/consumer/node_modules/virtual-bash/dist/commands/regex-execution/worker.js",
+              "options": {
+                "execArgv": [],
+                "resourceLimits": {
+                  "maxOldGenerationSizeMb": 128,
+                  "stackSizeMb": 4
+                }
+              }
+            },
+            {
+              "type": "post",
+              "id": 1,
+              "kind": "expr-match"
+            },
+            {
+              "type": "terminate"
+            }
+          ],
+          "passed": true,
+          "seam": "Installed validator plus real installed client receive path, synthetic worker transport; not real worker compilation."
+        }
+      },
+      "terminationAwaited": true,
+      "terminationCode": 0,
+      "output": [],
+      "outputBytes": 0,
+      "heartbeats": 1,
+      "deadlineMs": 2000,
+      "resourceLimits": {
+        "maxOldGenerationSizeMb": 64,
+        "stackSizeMb": 4
+      },
+      "passed": true
+    },
+    {
+      "id": "M08-rg",
+      "payload": {
+        "mutation": "M08",
+        "legacyKind": "rg"
+      },
+      "state": "returned",
+      "value": {
+        "state": "fulfilled",
+        "value": {
+          "mutation": "M08",
+          "expected": "rejected",
+          "positiveValidator": {
+            "state": "fulfilled",
+            "value": [
+              [
+                {
+                  "start": 0,
+                  "end": 1
+                }
+              ]
+            ]
+          },
+          "positiveClient": {
+            "state": "fulfilled",
+            "value": [
+              [
+                {
+                  "start": 0,
+                  "end": 1
+                }
+              ]
+            ]
+          },
+          "validator": {
+            "state": "rejected",
+            "code": "PROTOCOL",
+            "message": "regex PROTOCOL: invalid reply rows"
+          },
+          "client": {
+            "state": "rejected",
+            "code": "PROTOCOL",
+            "message": "regex PROTOCOL: invalid reply rows"
+          },
+          "events": [
+            {
+              "type": "start",
+              "url": "file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-final-moved-YfOSEd/consumer/node_modules/virtual-bash/dist/commands/regex-execution/worker.js",
+              "options": {
+                "execArgv": [],
+                "resourceLimits": {
+                  "maxOldGenerationSizeMb": 128,
+                  "stackSizeMb": 4
+                }
+              }
+            },
+            {
+              "type": "post",
+              "id": 1,
+              "kind": "rg"
+            },
+            {
+              "type": "terminate"
+            },
+            {
+              "type": "start",
+              "url": "file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-final-moved-YfOSEd/consumer/node_modules/virtual-bash/dist/commands/regex-execution/worker.js",
+              "options": {
+                "execArgv": [],
+                "resourceLimits": {
+                  "maxOldGenerationSizeMb": 128,
+                  "stackSizeMb": 4
+                }
+              }
+            },
+            {
+              "type": "post",
+              "id": 1,
+              "kind": "rg"
+            },
+            {
+              "type": "terminate"
+            }
+          ],
+          "passed": true,
+          "seam": "Installed validator plus real installed client receive path, synthetic worker transport; not real worker compilation."
+        }
+      },
+      "terminationAwaited": true,
+      "terminationCode": 1,
+      "output": [],
+      "outputBytes": 0,
+      "heartbeats": 2,
+      "deadlineMs": 2000,
+      "resourceLimits": {
+        "maxOldGenerationSizeMb": 64,
+        "stackSizeMb": 4
+      },
+      "passed": true
+    },
+    {
+      "id": "M08-glob",
+      "payload": {
+        "mutation": "M08",
+        "legacyKind": "glob"
+      },
+      "state": "returned",
+      "value": {
+        "state": "fulfilled",
+        "value": {
+          "mutation": "M08",
+          "expected": "rejected",
+          "positiveValidator": {
+            "state": "fulfilled",
+            "value": [
+              [
+                {
+                  "start": 0,
+                  "end": 1
+                }
+              ]
+            ]
+          },
+          "positiveClient": {
+            "state": "fulfilled",
+            "value": [
+              [
+                {
+                  "start": 0,
+                  "end": 1
+                }
+              ]
+            ]
+          },
+          "validator": {
+            "state": "rejected",
+            "code": "PROTOCOL",
+            "message": "regex PROTOCOL: invalid reply rows"
+          },
+          "client": {
+            "state": "rejected",
+            "code": "PROTOCOL",
+            "message": "regex PROTOCOL: invalid reply rows"
+          },
+          "events": [
+            {
+              "type": "start",
+              "url": "file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-final-moved-YfOSEd/consumer/node_modules/virtual-bash/dist/commands/regex-execution/worker.js",
+              "options": {
+                "execArgv": [],
+                "resourceLimits": {
+                  "maxOldGenerationSizeMb": 128,
+                  "stackSizeMb": 4
+                }
+              }
+            },
+            {
+              "type": "post",
+              "id": 1,
+              "kind": "glob"
+            },
+            {
+              "type": "terminate"
+            },
+            {
+              "type": "start",
+              "url": "file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-final-moved-YfOSEd/consumer/node_modules/virtual-bash/dist/commands/regex-execution/worker.js",
+              "options": {
+                "execArgv": [],
+                "resourceLimits": {
+                  "maxOldGenerationSizeMb": 128,
+                  "stackSizeMb": 4
+                }
+              }
+            },
+            {
+              "type": "post",
+              "id": 1,
+              "kind": "glob"
+            },
+            {
+              "type": "terminate"
+            }
+          ],
+          "passed": true,
+          "seam": "Installed validator plus real installed client receive path, synthetic worker transport; not real worker compilation."
+        }
+      },
+      "terminationAwaited": true,
+      "terminationCode": 1,
+      "output": [],
+      "outputBytes": 0,
+      "heartbeats": 1,
+      "deadlineMs": 2000,
+      "resourceLimits": {
+        "maxOldGenerationSizeMb": 64,
+        "stackSizeMb": 4
+      },
+      "passed": true
+    }
+  ],
+  "failed": [],
+  "driverHashes": [
+    {
+      "path": "protocol-driver.mjs",
+      "sha256": "3f87c282e60a67388e64bf6fdd0b2b445778171fbb93c0190a237c53f2fc77bc"
+    },
+    {
+      "path": "extra-driver.mjs",
+      "sha256": "c05bc59571949eebfc14074b8e03bb4a0c87a00069e86bc44801db7ec82cdbf2"
+    }
+  ],
+  "correction": "Two original supplement cap calls threw synchronously before the harness settled helper received a promise; original raw failures remain. This capture wraps invocation in Promise.then, preserving the same limits, inputs and product. Synchronous limit refusal is expected pre-admission behavior, not a candidate defect."
+}

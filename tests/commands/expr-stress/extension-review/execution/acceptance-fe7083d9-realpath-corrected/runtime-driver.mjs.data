@@ -1,0 +1,152 @@
+import assert from 'node:assert/strict';
+import threads from 'node:worker_threads';
+import { registerHooks, syncBuiltinESMExports } from 'node:module';
+import { pathToFileURL } from 'node:url';
+import { join } from 'node:path';
+import { realpathSync } from 'node:fs';
+
+const encode = value => new TextEncoder().encode(value);
+const observation = (status, stdout, stderr) => ({ status, stdoutBase64: Buffer.concat(stdout).toString('base64'), stderrBase64: Buffer.concat(stderr).toString('base64'), signal: null, failure: null });
+const tick = () => new Promise(resolve => setImmediate(resolve));
+function latch() { let release; const promise = new Promise(resolve => { release = resolve; }); return { promise, release }; }
+export async function run(payload) {
+  const base = pathToFileURL(`${realpathSync(payload.installed)}/`).href;
+  const imports = [], events = [], active = new Set();
+  const hooks = registerHooks({ resolve(specifier, context, next) {
+    const result = next(specifier, context);
+    if (context.parentURL?.startsWith(base)) {
+      assert(result.url.startsWith(base) || result.url.startsWith('node:'), `external product import ${result.url}`);
+      imports.push({ parent: context.parentURL, resolved: result.url });
+    }
+    return result;
+  } });
+  const NativeWorker = threads.Worker;
+  threads.Worker = class extends NativeWorker {
+    constructor(url, options) {
+      assert(url.href.startsWith(base), `worker outside installed package ${url}`);
+      super(url, options);
+      this.reviewId = events.filter(event => event.type === 'workerStart').length + 1;
+      active.add(this);
+      events.push({ type: 'workerStart', id: this.reviewId, url: url.href, threadId: this.threadId, execArgv: options.execArgv, resourceLimits: options.resourceLimits });
+      this.on('exit', code => { active.delete(this); events.push({ type: 'workerExit', id: this.reviewId, code }); });
+      this.on('message', reply => events.push({ type: 'workerReply', id: this.reviewId, reply }));
+    }
+    postMessage(value, transfer) {
+      events.push({ type: 'request', id: this.reviewId, operation: value.descriptor?.kind, requestId: value.id, patternHex: value.descriptor?.pattern && Buffer.from(value.descriptor.pattern).toString('hex'), subjectHex: value.rows?.[0]?.bytes && Buffer.from(value.rows[0].bytes).toString('hex') });
+      return super.postMessage(value, transfer);
+    }
+    async terminate() { events.push({ type: 'terminate', id: this.reviewId }); const result = await super.terminate(); events.push({ type: 'terminated', id: this.reviewId }); return result; }
+  };
+  syncBuiltinESMExports();
+  const api = await import(`${base}dist/index.js`);
+  const expr = await import(`${base}dist/commands/expr/index.js`);
+  const client = await import(`${base}dist/commands/regex-execution/client.js`);
+  let stdinAccess = 0, fsAccess = 0, invokeAccess = 0;
+  async function direct(args, options = {}, overrides = {}) {
+    const output = [], errors = [], cleanups = [];
+    const environment = Object.freeze({ LC_ALL: 'C', ...payload.environment });
+    const context = {
+      command: 'expr', args: Object.freeze([...args]), cwd: '/', env: environment,
+      get stdin() { stdinAccess++; throw new Error('stdin accessed'); },
+      stdinIsDefault: payload.stdinIsDefault ?? false,
+      fs: new Proxy({}, { get() { fsAccess++; throw new Error('filesystem accessed'); } }),
+      invoke() { invokeAccess++; throw new Error('invoke accessed'); },
+      signal: new AbortController().signal,
+      stdout: { async write(bytes) { assert(bytes instanceof Uint8Array); assert(Buffer.concat(output).length + bytes.length <= 8192); output.push(Buffer.from(bytes)); } },
+      stderr: { async write(bytes) { assert(bytes instanceof Uint8Array); assert(Buffer.concat(errors).length + bytes.length <= 8192); errors.push(Buffer.from(bytes)); } },
+      registerCleanup(cleanup) { events.push({ type: 'registerCleanup' }); cleanups.push(cleanup); },
+      ...overrides,
+    };
+    const definition = expr.createExprCommand(options);
+    const NativeRegExp = globalThis.RegExp;
+    let mainCompiles = 0;
+    globalThis.RegExp = new Proxy(NativeRegExp, { construct() { mainCompiles++; throw new Error('expr caller-thread RegExp compile'); }, apply() { mainCompiles++; throw new Error('expr caller-thread RegExp compile'); } });
+    try {
+      const result = await definition.execute(context);
+      events.push({ type: 'publicSettlement' });
+      for (const cleanup of cleanups) await cleanup();
+      return { ...observation(result.exitCode, output, errors), mainCompiles, stdinAccess, fsAccess, invokeAccess };
+    } finally { globalThis.RegExp = NativeRegExp; }
+  }
+  let result;
+  try {
+    if (payload.mode === 'native' || payload.mode === 'direct') result = await direct(payload.argv, payload.options);
+    else if (payload.mode === 'shell' || payload.mode === 'legacy') {
+      const fs = payload.realRoot ? new api.RealFileSystem({ root: payload.realRoot }) : new api.MemoryFileSystem();
+      const commands = [...api.createStandardCommands(), ...api.createSearchCommands()];
+      if (payload.mode === 'shell') commands.push(expr.createExprCommand(payload.options));
+      const shell = new api.Shell({ fs, commands: new api.CommandRegistry(commands), env: payload.environment ?? { LC_ALL: 'C' }, limits: payload.shellLimits });
+      try {
+        for (const [path, bytes] of Object.entries(payload.files ?? {})) await fs.writeFile(path, encode(bytes));
+        const actual = await shell.exec(payload.script);
+        const files = {};
+        for (const path of payload.readFiles ?? []) files[path] = Buffer.from(await fs.readFile(path)).toString('base64');
+        result = { ...observation(actual.exitCode, [actual.stdoutBytes], [actual.stderrBytes]), files };
+      } finally { await shell.dispose(); }
+    } else if (payload.mode === 'backpressure') {
+      const held = latch(), entered = latch();
+      let settled = false, calls = 0;
+      const captured = [];
+      const sink = { async write(bytes) { calls++; captured.push(Buffer.from(bytes)); entered.release(); await held.promise; } };
+      const promise = direct(payload.stderr ? ['1', '+'] : ['41', '+', '1'], {}, payload.stderr ? { stderr: sink } : { stdout: sink });
+      void promise.then(() => { settled = true; }, () => { settled = true; });
+      await entered.promise; await tick();
+      const settledBeforeRelease = settled;
+      held.release();
+      const actual = await promise;
+      assert.equal(settledBeforeRelease, false); assert.equal(calls, 1);
+      result = { actual, settledBeforeRelease, calls, capturedBase64: Buffer.concat(captured).toString('base64') };
+    } else if (payload.mode === 'sink-rejection') {
+      const first = { sentinel: 'stdout' }, second = { sentinel: 'stderr' };
+      const writes = [];
+      let state, reason;
+      try { await direct(['41', '+', '1'], {}, { stdout: { write() { writes.push('stdout'); return Promise.reject(first); } }, stderr: { write() { writes.push('stderr'); return Promise.reject(second); } } }); state = 'fulfilled'; }
+      catch (error) { state = 'rejected'; reason = error; }
+      result = { state, stderrReasonIdentity: Object.is(reason, second), stdoutReasonIdentity: Object.is(reason, first), writes };
+      assert.equal(state, 'rejected'); assert.equal(reason, second); assert.deepEqual(writes, ['stdout', 'stderr']);
+    } else if (payload.mode === 'abort') {
+      const controller = new AbortController();
+      const reason = payload.reason === 'zero' ? 0 : payload.reason === 'undefined-native' ? undefined : Object.assign(new Error('review abort'), { code: 'ENOENT' });
+      let actualReason, state;
+      if (payload.stage === 'pre') controller.abort(reason);
+      const promise = direct(payload.argv ?? ['abc', ':', 'a'], {}, {
+        signal: controller.signal,
+        stdout: { async write() { controller.abort(reason); await tick(); } },
+      });
+      try { await promise; state = 'fulfilled'; } catch (error) { state = 'rejected'; actualReason = error; }
+      result = { state, exact: Object.is(actualReason, controller.signal.reason), reasonType: typeof controller.signal.reason, reasonName: controller.signal.reason?.name, nativeUndefinedBecameUndefined: controller.signal.reason === undefined };
+      assert.equal(state, 'rejected'); assert(result.exact);
+    } else if (payload.mode === 'cleanup-registration') {
+      const sentinel = payload.variant === 'throw-zero' ? 0 : new Error('registration sentinel');
+      const originalOpen = client.RegexExecutor.prototype.open;
+      let opens = 0, sameCleanupPromise = null;
+      client.RegexExecutor.prototype.open = function (...args) { opens++; events.push({ type: 'open' }); return originalOpen.apply(this, args); };
+      let state, reason;
+      try {
+        await direct(['abc', ':', 'a'], {}, { registerCleanup(cleanup) {
+          events.push({ type: 'registerCleanup' });
+          if (payload.variant === 'close') { const first = cleanup(); sameCleanupPromise = first === cleanup(); }
+          else throw sentinel;
+        } }); state = 'fulfilled';
+      } catch (error) { state = 'rejected'; reason = error; }
+      finally { client.RegexExecutor.prototype.open = originalOpen; }
+      result = { state, opens, exact: Object.is(reason, sentinel), code: reason?.code, sameCleanupPromise };
+      assert.equal(opens, 0); assert.equal(state, 'rejected');
+      if (payload.variant === 'close') { assert.equal(reason.code, 'CLOSED'); assert(sameCleanupPromise); } else assert(result.exact);
+    } else if (payload.mode === 'spans') {
+      const protocol = await import(`${base}dist/commands/regex-execution/protocol.js`);
+      const executor = new client.RegexExecutor(); const session = executor.open(new AbortController().signal);
+      try {
+        result = await session.matchExpr({ kind: 'expr-match', pattern: encode(payload.pattern), profile: payload.profile, limits: { ...protocol.exprMatchCeilings, maxSteps: 1000000, ...payload.limits } }, encode(payload.subject));
+      } finally { await session.close(); await executor.dispose(); }
+    } else throw new Error(`unknown runtime mode ${payload.mode}`);
+    await tick();
+    return { result, imports, events, activeBeforeSafetyCleanup: active.size, confinement: 'Caller runtime imports resolved inside installed package or node builtins; actual worker entry URLs recorded. Nested static graph independently audited.' };
+  } catch (error) {
+    return { controlFailure: { name: error?.name, message: error?.message ?? String(error), stack: error?.stack }, result, imports, events, activeBeforeSafetyCleanup: active.size };
+  } finally {
+    const leftovers = [...active];
+    for (const worker of leftovers) await worker.terminate();
+    threads.Worker = NativeWorker; syncBuiltinESMExports(); hooks.deregister();
+  }
+}

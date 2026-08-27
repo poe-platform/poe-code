@@ -1,0 +1,121 @@
+{
+  "commit": "fe7083d99b8ccfdfbbb9b7209e0a6abbe7979724",
+  "pinned": [
+    {
+      "path": "src/commands/expr/bre-worker.ts",
+      "sha256": "f5c67e9c76b584337ae506b59449ecdcd945207b2269fdb4f79c5d1f7e81aff0",
+      "actual": "f5c67e9c76b584337ae506b59449ecdcd945207b2269fdb4f79c5d1f7e81aff0"
+    },
+    {
+      "path": "src/commands/expr/evaluate.ts",
+      "sha256": "80f8b4b7fbcd0552dd91772b941e6654c0b8dd08ce980814b811f08959015d61",
+      "actual": "80f8b4b7fbcd0552dd91772b941e6654c0b8dd08ce980814b811f08959015d61"
+    },
+    {
+      "path": "src/commands/expr/index.ts",
+      "sha256": "1f4eb0b6aa5200877ce62b59f7ac488255f4b98c3d5bb8b426fb49dec372dcef",
+      "actual": "1f4eb0b6aa5200877ce62b59f7ac488255f4b98c3d5bb8b426fb49dec372dcef"
+    },
+    {
+      "path": "src/commands/expr/internal.ts",
+      "sha256": "12ba86e1164d34a7fee89de4f8c1470fffa2fe624d26641584c08c9c96e90f56",
+      "actual": "12ba86e1164d34a7fee89de4f8c1470fffa2fe624d26641584c08c9c96e90f56"
+    },
+    {
+      "path": "src/commands/expr/syntax.ts",
+      "sha256": "be7e3cfc9c8b7e7ce520bd3f44ccccfb255ad3b249e579e8e80d5a6153f8384e",
+      "actual": "be7e3cfc9c8b7e7ce520bd3f44ccccfb255ad3b249e579e8e80d5a6153f8384e"
+    },
+    {
+      "path": "src/commands/regex-execution/client.ts",
+      "sha256": "dcd4ea63c2ea76d5c5007369f029d6b7788929c0473b84f54e65ea8243016b49",
+      "actual": "dcd4ea63c2ea76d5c5007369f029d6b7788929c0473b84f54e65ea8243016b49"
+    },
+    {
+      "path": "src/commands/regex-execution/protocol.ts",
+      "sha256": "3610a50b436e083b2633e08c841978999b5fa61759fcaea224aeec97230c8bc1",
+      "actual": "3610a50b436e083b2633e08c841978999b5fa61759fcaea224aeec97230c8bc1"
+    },
+    {
+      "path": "src/commands/regex-execution/worker.ts",
+      "sha256": "a442bb67cda6aff313cf3909cbfb0d3d8c12ebc420437d5fd9d7bd51fc6c9da6",
+      "actual": "a442bb67cda6aff313cf3909cbfb0d3d8c12ebc420437d5fd9d7bd51fc6c9da6"
+    },
+    {
+      "path": "tests/commands/expr-author/capture-regex.ts",
+      "sha256": "2068158e0ebd975e8861a9cfa00a2617d19dcdefafe9cd017b512e18a452f798",
+      "actual": "2068158e0ebd975e8861a9cfa00a2617d19dcdefafe9cd017b512e18a452f798"
+    },
+    {
+      "path": "tests/commands/expr-author/capture.ts",
+      "sha256": "7aa738f8285cd277dfa725c009586572b437a1d8790540f11dddecb9aae46199",
+      "actual": "7aa738f8285cd277dfa725c009586572b437a1d8790540f11dddecb9aae46199"
+    },
+    {
+      "path": "tests/commands/expr-author/regex-audit-cases.ts",
+      "sha256": "06eb8c20c6b1f24e96baa76c2be0eaec7087d7d0a14c4c8d25e4c5c9b3074a1f",
+      "actual": "06eb8c20c6b1f24e96baa76c2be0eaec7087d7d0a14c4c8d25e4c5c9b3074a1f"
+    },
+    {
+      "path": "tests/commands/expr/contracts.test.ts",
+      "sha256": "c474fa9cc29f47a5cbc64c45b9ab46cda8d7fc6f5aff4b70946af81bb546dc8b",
+      "actual": "c474fa9cc29f47a5cbc64c45b9ab46cda8d7fc6f5aff4b70946af81bb546dc8b"
+    },
+    {
+      "path": "tests/commands/expr/grammar.test.ts",
+      "sha256": "5fb0135c85c09a06f45b92828d736b6fa4e03272993c8362ab834766bd00e727",
+      "actual": "5fb0135c85c09a06f45b92828d736b6fa4e03272993c8362ab834766bd00e727"
+    },
+    {
+      "path": "tests/commands/expr/helpers.ts",
+      "sha256": "51448c59444bb12337860c53c6fc2a9b2e4a193e172630f425a096fadee1b390",
+      "actual": "51448c59444bb12337860c53c6fc2a9b2e4a193e172630f425a096fadee1b390"
+    },
+    {
+      "path": "tests/commands/expr/native-cases.ts",
+      "sha256": "e84ba8cb0a41b187949f62d59b3905872997f3e47774d9b6d60f4007da2c4ac1",
+      "actual": "e84ba8cb0a41b187949f62d59b3905872997f3e47774d9b6d60f4007da2c4ac1"
+    },
+    {
+      "path": "tests/commands/expr/native.test.ts",
+      "sha256": "dd1ceee8f5e70aa02528d0edc69f413397f4e28b1fbb5a90ac5c1778b9156160",
+      "actual": "dd1ceee8f5e70aa02528d0edc69f413397f4e28b1fbb5a90ac5c1778b9156160"
+    },
+    {
+      "path": "tests/commands/expr/oracle.ts",
+      "sha256": "3d8862abadcb5b07cf17234df2bedf10cd74ffdcf2d293104bbd9fcb4935cb83",
+      "actual": "3d8862abadcb5b07cf17234df2bedf10cd74ffdcf2d293104bbd9fcb4935cb83"
+    },
+    {
+      "path": "tests/commands/expr/regex-cases.ts",
+      "sha256": "62f59c9963ff8413388cf59b95011eba0a961c947d33f143ffb6d2609501e9e6",
+      "actual": "62f59c9963ff8413388cf59b95011eba0a961c947d33f143ffb6d2609501e9e6"
+    },
+    {
+      "path": "tests/commands/expr/regex-lifecycle.test.ts",
+      "sha256": "b93f0556799a4ee48e86af05ca5d4b9c051967e2dfdd7dde6b71307b412c8ed3",
+      "actual": "b93f0556799a4ee48e86af05ca5d4b9c051967e2dfdd7dde6b71307b412c8ed3"
+    },
+    {
+      "path": "tests/commands/expr/regex-limits.test.ts",
+      "sha256": "4b938f201b7ffffcb317734f7784d7b88cf5a95aacbad53a5e4df957d3f9c2a8",
+      "actual": "4b938f201b7ffffcb317734f7784d7b88cf5a95aacbad53a5e4df957d3f9c2a8"
+    },
+    {
+      "path": "tests/commands/expr/regex-native.test.ts",
+      "sha256": "5e642fd91fe8b606cc48d2d426fafcf78fedf5a04fcb172392df2274940f9ed7",
+      "actual": "5e642fd91fe8b606cc48d2d426fafcf78fedf5a04fcb172392df2274940f9ed7"
+    },
+    {
+      "path": "tests/commands/expr/regex-protocol.test.ts",
+      "sha256": "465fb777d2d35df56c736d4accfbb502f63b690ec9f3b98a4a32d45410f34bc5",
+      "actual": "465fb777d2d35df56c736d4accfbb502f63b690ec9f3b98a4a32d45410f34bc5"
+    },
+    {
+      "path": "tests/commands/expr/tsconfig.json",
+      "sha256": "533148658b6cf6d1644d9d605db2d479e4d0925bd7a7c0b391562fa59b9ee904",
+      "actual": "533148658b6cf6d1644d9d605db2d479e4d0925bd7a7c0b391562fa59b9ee904"
+    }
+  ],
+  "allMatch": true
+}

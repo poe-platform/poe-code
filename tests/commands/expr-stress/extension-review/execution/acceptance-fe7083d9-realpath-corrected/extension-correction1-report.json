@@ -1,0 +1,55 @@
+{
+  "schema": 1,
+  "freezeManifestSha256": "e31f164aed21209e194b78b424cd70314cf8479d343958a06f686fcc0b755198",
+  "candidate": {
+    "commit": "fe7083d99b8ccfdfbbb9b7209e0a6abbe7979724",
+    "sourceTreeSha256": "44a879dd20b7701486bb2b08e85ccb11d7471365d005f70fe7ed20f19878fb06",
+    "adapterSha256": "329a293bb6ba609a31b8e693671633bc966706a96b72906b088f0e5e03f66dff",
+    "installedArtifactSha256": "4bb62d2e43069a3196d464d08fb99255214bc7afdbe15a3aaa34d04217976ce4",
+    "dirty": false
+  },
+  "profiles": [
+    {
+      "id": "gnu-9.7-darwin-C",
+      "environment": {
+        "PATH": "/usr/bin:/bin",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "LANGUAGE": "C",
+        "TZ": "UTC"
+      },
+      "results": [
+        {
+          "id": "class-parenthesis-quoted-correction",
+          "caseSha256": null,
+          "status": 0,
+          "stdoutBase64": "MQo=",
+          "stderrBase64": "",
+          "signal": null,
+          "failure": null
+        }
+      ]
+    },
+    {
+      "id": "apple-darwin-C",
+      "environment": {
+        "PATH": "/usr/bin:/bin",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "LANGUAGE": "C",
+        "TZ": "UTC"
+      },
+      "results": [
+        {
+          "id": "class-parenthesis-quoted-correction",
+          "caseSha256": null,
+          "status": 0,
+          "stdoutBase64": "MQo=",
+          "stderrBase64": "",
+          "signal": null,
+          "failure": null
+        }
+      ]
+    }
+  ]
+}

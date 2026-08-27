@@ -1,0 +1,7955 @@
+{
+  "candidate": {
+    "commit": "fe7083d99b8ccfdfbbb9b7209e0a6abbe7979724",
+    "sourceTreeSha256": "44a879dd20b7701486bb2b08e85ccb11d7471365d005f70fe7ed20f19878fb06",
+    "adapterSha256": "5ea732a9ef8d6d8658ee845bd29865c7db2a7fb40488e0d96065af7ced819d9a",
+    "installedArtifactSha256": "4bb62d2e43069a3196d464d08fb99255214bc7afdbe15a3aaa34d04217976ce4",
+    "dirty": false
+  },
+  "traces": [
+    {
+      "cohort": "original95",
+      "profile": "gnu-9.7-darwin-C",
+      "id": "precedence",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 0,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 14,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "gnu-9.7-darwin-C",
+      "id": "parentheses",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 11,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "gnu-9.7-darwin-C",
+      "id": "left-associative",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 10,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "gnu-9.7-darwin-C",
+      "id": "relational-connective-precedence",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 10,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "gnu-9.7-darwin-C",
+      "id": "single-token-not-shell",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 8,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "gnu-9.7-darwin-C",
+      "id": "literal-shell-metacharacters",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 9,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "gnu-9.7-darwin-C",
+      "id": "forced-operator",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 9,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "gnu-9.7-darwin-C",
+      "id": "forced-parenthesis",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 10,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "gnu-9.7-darwin-C",
+      "id": "nested-forced-keyword",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 9,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "gnu-9.7-darwin-C",
+      "id": "ambiguous-index-keyword",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 9,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "gnu-9.7-darwin-C",
+      "id": "forced-index-keyword",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 10,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "gnu-9.7-darwin-C",
+      "id": "missing-operands",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 10,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "gnu-9.7-darwin-C",
+      "id": "missing-rhs",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 9,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "gnu-9.7-darwin-C",
+      "id": "missing-close",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 10,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "gnu-9.7-darwin-C",
+      "id": "unexpected-close",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 9,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "gnu-9.7-darwin-C",
+      "id": "trailing-token",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 10,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "gnu-9.7-darwin-C",
+      "id": "end-options-negative",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 8,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "gnu-9.7-darwin-C",
+      "id": "bare-negative",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 10,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "gnu-9.7-darwin-C",
+      "id": "signed-division",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 11,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "gnu-9.7-darwin-C",
+      "id": "signed-remainder",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 13,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "gnu-9.7-darwin-C",
+      "id": "negative-divisor",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 12,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "gnu-9.7-darwin-C",
+      "id": "negative-remainder-divisor",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 11,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "gnu-9.7-darwin-C",
+      "id": "leading-zero-decimal",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 11,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "gnu-9.7-darwin-C",
+      "id": "leading-plus-not-integer",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 10,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "gnu-9.7-darwin-C",
+      "id": "whitespace-not-integer",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 9,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "gnu-9.7-darwin-C",
+      "id": "hex-not-integer",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 9,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "gnu-9.7-darwin-C",
+      "id": "fraction-not-integer",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 9,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "gnu-9.7-darwin-C",
+      "id": "empty-not-integer",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 9,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "gnu-9.7-darwin-C",
+      "id": "divide-zero",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 9,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "gnu-9.7-darwin-C",
+      "id": "remainder-zero",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 8,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "gnu-9.7-darwin-C",
+      "id": "beyond-safe-js-integer",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 10,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "gnu-9.7-darwin-C",
+      "id": "big-multiply",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 9,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "gnu-9.7-darwin-C",
+      "id": "big-digit-carry",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 10,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "gnu-9.7-darwin-C",
+      "id": "truth-empty",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 9,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "gnu-9.7-darwin-C",
+      "id": "truth-zero-spelling",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 10,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "gnu-9.7-darwin-C",
+      "id": "truth-plus-zero-string",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 10,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "gnu-9.7-darwin-C",
+      "id": "or-return-operand",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 10,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "gnu-9.7-darwin-C",
+      "id": "or-both-empty",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 8,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "gnu-9.7-darwin-C",
+      "id": "and-return-left",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 8,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "gnu-9.7-darwin-C",
+      "id": "and-false",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 9,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "gnu-9.7-darwin-C",
+      "id": "numeric-comparison",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 9,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "gnu-9.7-darwin-C",
+      "id": "string-comparison",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 9,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "gnu-9.7-darwin-C",
+      "id": "numeric-equality",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 9,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "gnu-9.7-darwin-C",
+      "id": "plus-string-equality",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 9,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "gnu-9.7-darwin-C",
+      "id": "negative-big-comparison",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 9,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "gnu-9.7-darwin-C",
+      "id": "relational-chain",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 9,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "gnu-9.7-darwin-C",
+      "id": "or-skip-numeric-error",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 9,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "gnu-9.7-darwin-C",
+      "id": "or-skip-division",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 10,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "gnu-9.7-darwin-C",
+      "id": "and-skip-remainder",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 13,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "gnu-9.7-darwin-C",
+      "id": "or-skip-invalid-regex",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 12,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "gnu-9.7-darwin-C",
+      "id": "and-skip-invalid-match",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 11,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "gnu-9.7-darwin-C",
+      "id": "skip-still-requires-rhs",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 12,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "gnu-9.7-darwin-C",
+      "id": "skip-still-requires-close",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 13,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "gnu-9.7-darwin-C",
+      "id": "skip-still-requires-keyword-args",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 11,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "gnu-9.7-darwin-C",
+      "id": "evaluated-regex-error",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 16,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "gnu-9.7-darwin-C",
+      "id": "length-empty",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 16,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "gnu-9.7-darwin-C",
+      "id": "substr-one-based",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 15,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "gnu-9.7-darwin-C",
+      "id": "substr-overlong",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 13,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "gnu-9.7-darwin-C",
+      "id": "substr-invalid-position",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 14,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "gnu-9.7-darwin-C",
+      "id": "substr-zero",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 14,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "gnu-9.7-darwin-C",
+      "id": "substr-negative-length",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 14,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "gnu-9.7-darwin-C",
+      "id": "index-earliest-position-not-set-order",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 14,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "gnu-9.7-darwin-C",
+      "id": "index-empty-set",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 13,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "gnu-9.7-darwin-C",
+      "id": "regex-anchored-not-search",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 12,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "gnu-9.7-darwin-C",
+      "id": "regex-length",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 14,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "gnu-9.7-darwin-C",
+      "id": "match-prefix-keyword",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 15,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "gnu-9.7-darwin-C",
+      "id": "regex-first-capture",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 14,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "gnu-9.7-darwin-C",
+      "id": "regex-unmatched-capture",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 13,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "gnu-9.7-darwin-C",
+      "id": "regex-empty-capture",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 16,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "gnu-9.7-darwin-C",
+      "id": "regex-no-match-capture",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 12,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "gnu-9.7-darwin-C",
+      "id": "regex-empty-pattern",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 12,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "gnu-9.7-darwin-C",
+      "id": "regex-backreference",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 12,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "gnu-9.7-darwin-C",
+      "id": "regex-longest-alternative",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 11,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "gnu-9.7-darwin-C",
+      "id": "regex-bre-literal-plus",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 10,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "gnu-9.7-darwin-C",
+      "id": "regex-gnu-quantifiers",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 9,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "gnu-9.7-darwin-C",
+      "id": "regex-interval-class",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 9,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "gnu-9.7-darwin-C",
+      "id": "regex-newline-dot",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 10,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "gnu-9.7-darwin-C",
+      "id": "regex-dollar-not-line-anchor",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 10,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "gnu-9.7-darwin-C",
+      "id": "regex-invalid-backreference",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 12,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "gnu-9.7-darwin-C",
+      "id": "regex-invalid-capture",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 10,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "gnu-9.7-darwin-C",
+      "id": "regex-invalid-trailing-backslash",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 11,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "gnu-9.7-darwin-C",
+      "id": "workflow-build-counter",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 9,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "gnu-9.7-darwin-C",
+      "id": "workflow-basename-fallback",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 10,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "gnu-9.7-darwin-C",
+      "id": "workflow-version-major",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 11,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "gnu-9.7-darwin-C",
+      "id": "workflow-range-size",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 10,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "gnu-9.7-darwin-C",
+      "id": "workflow-cache-key-prefix",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 9,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "gnu-9.7-darwin-C",
+      "id": "unicode-length",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 9,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "gnu-9.7-darwin-C",
+      "id": "unicode-substr",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 10,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "gnu-9.7-darwin-C",
+      "id": "unicode-index",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 10,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "gnu-9.7-darwin-C",
+      "id": "unicode-regex-dot",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 8,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "gnu-9.7-darwin-C",
+      "id": "unicode-capture",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 9,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "gnu-9.7-darwin-C",
+      "id": "unicode-combining-not-graphemes",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 10,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "gnu-9.7-darwin-C",
+      "id": "unicode-collation",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 10,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "gnu-9.7-darwin-C",
+      "id": "unicode-digit-not-decimal",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 10,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "gnu-9.7-darwin-C",
+      "id": "non-nul-control-bytes",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 9,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "gnu-9.7-darwin-en_US.UTF-8",
+      "id": "unicode-length",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 9,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "gnu-9.7-darwin-en_US.UTF-8",
+      "id": "unicode-substr",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 9,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "gnu-9.7-darwin-en_US.UTF-8",
+      "id": "unicode-index",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 9,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "gnu-9.7-darwin-en_US.UTF-8",
+      "id": "unicode-regex-dot",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 9,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "gnu-9.7-darwin-en_US.UTF-8",
+      "id": "unicode-capture",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 9,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "gnu-9.7-darwin-en_US.UTF-8",
+      "id": "unicode-combining-not-graphemes",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 11,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "gnu-9.7-darwin-en_US.UTF-8",
+      "id": "unicode-collation",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 12,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "gnu-9.7-darwin-en_US.UTF-8",
+      "id": "unicode-digit-not-decimal",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 11,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "gnu-9.7-darwin-en_US.UTF-8",
+      "id": "non-nul-control-bytes",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 11,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "apple-darwin-C",
+      "id": "precedence",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 11,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "apple-darwin-C",
+      "id": "parentheses",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 12,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "apple-darwin-C",
+      "id": "left-associative",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 10,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "apple-darwin-C",
+      "id": "relational-connective-precedence",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 11,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "apple-darwin-C",
+      "id": "single-token-not-shell",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 11,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "apple-darwin-C",
+      "id": "literal-shell-metacharacters",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 11,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "apple-darwin-C",
+      "id": "forced-operator",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 12,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "apple-darwin-C",
+      "id": "forced-parenthesis",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 11,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "apple-darwin-C",
+      "id": "nested-forced-keyword",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 11,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "apple-darwin-C",
+      "id": "ambiguous-index-keyword",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 9,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "apple-darwin-C",
+      "id": "forced-index-keyword",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 11,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "apple-darwin-C",
+      "id": "missing-operands",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 11,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "apple-darwin-C",
+      "id": "missing-rhs",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 11,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "apple-darwin-C",
+      "id": "missing-close",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 12,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "apple-darwin-C",
+      "id": "unexpected-close",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 12,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "apple-darwin-C",
+      "id": "trailing-token",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 10,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "apple-darwin-C",
+      "id": "end-options-negative",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 11,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "apple-darwin-C",
+      "id": "bare-negative",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 11,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "apple-darwin-C",
+      "id": "signed-division",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 12,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "apple-darwin-C",
+      "id": "signed-remainder",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 11,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "apple-darwin-C",
+      "id": "negative-divisor",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 12,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "apple-darwin-C",
+      "id": "negative-remainder-divisor",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 12,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "apple-darwin-C",
+      "id": "leading-zero-decimal",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 11,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "apple-darwin-C",
+      "id": "leading-plus-not-integer",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 11,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "apple-darwin-C",
+      "id": "whitespace-not-integer",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 11,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "apple-darwin-C",
+      "id": "hex-not-integer",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 12,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "apple-darwin-C",
+      "id": "fraction-not-integer",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 11,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "apple-darwin-C",
+      "id": "empty-not-integer",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 9,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "apple-darwin-C",
+      "id": "divide-zero",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 8,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "apple-darwin-C",
+      "id": "remainder-zero",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 9,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "apple-darwin-C",
+      "id": "beyond-safe-js-integer",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 9,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "apple-darwin-C",
+      "id": "big-multiply",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 8,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "apple-darwin-C",
+      "id": "big-digit-carry",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 9,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "apple-darwin-C",
+      "id": "truth-empty",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 9,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "apple-darwin-C",
+      "id": "truth-zero-spelling",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 9,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "apple-darwin-C",
+      "id": "truth-plus-zero-string",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 9,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "apple-darwin-C",
+      "id": "or-return-operand",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 10,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "apple-darwin-C",
+      "id": "or-both-empty",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 9,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "apple-darwin-C",
+      "id": "and-return-left",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 10,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "apple-darwin-C",
+      "id": "and-false",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 9,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "apple-darwin-C",
+      "id": "numeric-comparison",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 10,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "apple-darwin-C",
+      "id": "string-comparison",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 10,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "apple-darwin-C",
+      "id": "numeric-equality",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 11,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "apple-darwin-C",
+      "id": "plus-string-equality",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 10,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "apple-darwin-C",
+      "id": "negative-big-comparison",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 9,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "apple-darwin-C",
+      "id": "relational-chain",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 9,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "apple-darwin-C",
+      "id": "or-skip-numeric-error",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 9,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "apple-darwin-C",
+      "id": "or-skip-division",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 9,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "apple-darwin-C",
+      "id": "and-skip-remainder",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 10,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "apple-darwin-C",
+      "id": "or-skip-invalid-regex",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 9,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "apple-darwin-C",
+      "id": "and-skip-invalid-match",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 10,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "apple-darwin-C",
+      "id": "skip-still-requires-rhs",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 9,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "apple-darwin-C",
+      "id": "skip-still-requires-close",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 9,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "apple-darwin-C",
+      "id": "skip-still-requires-keyword-args",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 10,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "apple-darwin-C",
+      "id": "evaluated-regex-error",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 9,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "apple-darwin-C",
+      "id": "length-empty",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 10,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "apple-darwin-C",
+      "id": "substr-one-based",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 8,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "apple-darwin-C",
+      "id": "substr-overlong",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 9,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "apple-darwin-C",
+      "id": "substr-invalid-position",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 9,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "apple-darwin-C",
+      "id": "substr-zero",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 9,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "apple-darwin-C",
+      "id": "substr-negative-length",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 11,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "apple-darwin-C",
+      "id": "index-earliest-position-not-set-order",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 10,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "apple-darwin-C",
+      "id": "index-empty-set",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 10,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "apple-darwin-C",
+      "id": "regex-anchored-not-search",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 9,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "apple-darwin-C",
+      "id": "regex-length",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 9,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "apple-darwin-C",
+      "id": "match-prefix-keyword",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 8,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "apple-darwin-C",
+      "id": "regex-first-capture",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 9,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "apple-darwin-C",
+      "id": "regex-unmatched-capture",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 9,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "apple-darwin-C",
+      "id": "regex-empty-capture",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 10,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "apple-darwin-C",
+      "id": "regex-no-match-capture",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 9,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "apple-darwin-C",
+      "id": "regex-empty-pattern",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 9,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "apple-darwin-C",
+      "id": "regex-backreference",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 10,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "apple-darwin-C",
+      "id": "regex-longest-alternative",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 10,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "apple-darwin-C",
+      "id": "regex-bre-literal-plus",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 10,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "apple-darwin-C",
+      "id": "regex-gnu-quantifiers",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 8,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "apple-darwin-C",
+      "id": "regex-interval-class",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 9,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "apple-darwin-C",
+      "id": "regex-newline-dot",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 9,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "apple-darwin-C",
+      "id": "regex-dollar-not-line-anchor",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 11,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "apple-darwin-C",
+      "id": "regex-invalid-backreference",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 10,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "apple-darwin-C",
+      "id": "regex-invalid-capture",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 11,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "apple-darwin-C",
+      "id": "regex-invalid-trailing-backslash",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 10,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "apple-darwin-C",
+      "id": "workflow-build-counter",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 8,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "apple-darwin-C",
+      "id": "workflow-basename-fallback",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 9,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "apple-darwin-C",
+      "id": "workflow-version-major",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 9,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "apple-darwin-C",
+      "id": "workflow-range-size",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 9,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "apple-darwin-C",
+      "id": "workflow-cache-key-prefix",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 9,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "apple-darwin-C",
+      "id": "unicode-length",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 8,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "apple-darwin-C",
+      "id": "unicode-substr",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 9,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "apple-darwin-C",
+      "id": "unicode-index",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 10,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "apple-darwin-C",
+      "id": "unicode-regex-dot",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 9,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "apple-darwin-C",
+      "id": "unicode-capture",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 9,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "apple-darwin-C",
+      "id": "unicode-combining-not-graphemes",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 9,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "apple-darwin-C",
+      "id": "unicode-collation",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 8,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "apple-darwin-C",
+      "id": "unicode-digit-not-decimal",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 9,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "apple-darwin-C",
+      "id": "non-nul-control-bytes",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 10,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "apple-darwin-en_US.UTF-8",
+      "id": "unicode-length",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 10,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "apple-darwin-en_US.UTF-8",
+      "id": "unicode-substr",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 10,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "apple-darwin-en_US.UTF-8",
+      "id": "unicode-index",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 10,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "apple-darwin-en_US.UTF-8",
+      "id": "unicode-regex-dot",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 9,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "apple-darwin-en_US.UTF-8",
+      "id": "unicode-capture",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 9,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "apple-darwin-en_US.UTF-8",
+      "id": "unicode-combining-not-graphemes",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 10,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "apple-darwin-en_US.UTF-8",
+      "id": "unicode-collation",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 9,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "apple-darwin-en_US.UTF-8",
+      "id": "unicode-digit-not-decimal",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 10,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "original95",
+      "profile": "apple-darwin-en_US.UTF-8",
+      "id": "non-nul-control-bytes",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 9,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "extension-original20",
+      "profile": "gnu-9.7-darwin-C",
+      "id": "alternative-anchored-positive",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 10,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "extension-original20",
+      "profile": "gnu-9.7-darwin-C",
+      "id": "alternative-anchored-negative",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 9,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "extension-original20",
+      "profile": "gnu-9.7-darwin-C",
+      "id": "unescaped-parentheses-literal",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 9,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "extension-original20",
+      "profile": "gnu-9.7-darwin-C",
+      "id": "escaped-backslash-before-parenthesis",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 9,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "extension-original20",
+      "profile": "gnu-9.7-darwin-C",
+      "id": "class-parenthesis-not-capture",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 9,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "extension-original20",
+      "profile": "gnu-9.7-darwin-C",
+      "id": "escaped-dot-positive",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 10,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "extension-original20",
+      "profile": "gnu-9.7-darwin-C",
+      "id": "escaped-dot-negative",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 10,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "extension-original20",
+      "profile": "gnu-9.7-darwin-C",
+      "id": "optional-first-unmatched",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 10,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "extension-original20",
+      "profile": "gnu-9.7-darwin-C",
+      "id": "optional-without-capture",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 8,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "extension-original20",
+      "profile": "gnu-9.7-darwin-C",
+      "id": "first-empty-before-tail",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 10,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "extension-original20",
+      "profile": "gnu-9.7-darwin-C",
+      "id": "optional-first-no-match",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 10,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "extension-original20",
+      "profile": "gnu-9.7-darwin-C",
+      "id": "repeated-first-last-iteration",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 9,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "extension-original20",
+      "profile": "gnu-9.7-darwin-C",
+      "id": "nested-first-outer",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 10,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "extension-original20",
+      "profile": "gnu-9.7-darwin-C",
+      "id": "backreference-negative",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 10,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "extension-original20",
+      "profile": "gnu-9.7-darwin-C",
+      "id": "backreference-twice",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 10,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "extension-original20",
+      "profile": "gnu-9.7-darwin-C",
+      "id": "longest-with-optional-suffix",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 9,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "extension-original20",
+      "profile": "gnu-9.7-darwin-C",
+      "id": "longest-no-capture",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 10,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "extension-original20",
+      "profile": "gnu-9.7-darwin-C",
+      "id": "utf8-whole-prefix-span",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 10,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "extension-original20",
+      "profile": "gnu-9.7-darwin-C",
+      "id": "utf8-shifted-first-span",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 10,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "extension-original20",
+      "profile": "gnu-9.7-darwin-C",
+      "id": "combining-first-span",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 9,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "extension-original20",
+      "profile": "gnu-9.7-darwin-en_US.UTF-8",
+      "id": "utf8-whole-prefix-span",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 11,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "extension-original20",
+      "profile": "gnu-9.7-darwin-en_US.UTF-8",
+      "id": "utf8-shifted-first-span",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 9,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "extension-original20",
+      "profile": "gnu-9.7-darwin-en_US.UTF-8",
+      "id": "combining-first-span",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 9,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "extension-original20",
+      "profile": "apple-darwin-C",
+      "id": "alternative-anchored-positive",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 9,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "extension-original20",
+      "profile": "apple-darwin-C",
+      "id": "alternative-anchored-negative",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 10,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "extension-original20",
+      "profile": "apple-darwin-C",
+      "id": "unescaped-parentheses-literal",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 9,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "extension-original20",
+      "profile": "apple-darwin-C",
+      "id": "escaped-backslash-before-parenthesis",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 9,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "extension-original20",
+      "profile": "apple-darwin-C",
+      "id": "class-parenthesis-not-capture",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 9,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "extension-original20",
+      "profile": "apple-darwin-C",
+      "id": "escaped-dot-positive",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 7,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "extension-original20",
+      "profile": "apple-darwin-C",
+      "id": "escaped-dot-negative",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 9,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "extension-original20",
+      "profile": "apple-darwin-C",
+      "id": "optional-first-unmatched",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 10,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "extension-original20",
+      "profile": "apple-darwin-C",
+      "id": "optional-without-capture",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 10,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "extension-original20",
+      "profile": "apple-darwin-C",
+      "id": "first-empty-before-tail",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 9,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "extension-original20",
+      "profile": "apple-darwin-C",
+      "id": "optional-first-no-match",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 9,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "extension-original20",
+      "profile": "apple-darwin-C",
+      "id": "repeated-first-last-iteration",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 10,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "extension-original20",
+      "profile": "apple-darwin-C",
+      "id": "nested-first-outer",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 10,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "extension-original20",
+      "profile": "apple-darwin-C",
+      "id": "backreference-negative",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 9,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "extension-original20",
+      "profile": "apple-darwin-C",
+      "id": "backreference-twice",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 9,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "extension-original20",
+      "profile": "apple-darwin-C",
+      "id": "longest-with-optional-suffix",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 9,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "extension-original20",
+      "profile": "apple-darwin-C",
+      "id": "longest-no-capture",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 9,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "extension-original20",
+      "profile": "apple-darwin-C",
+      "id": "utf8-whole-prefix-span",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 9,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "extension-original20",
+      "profile": "apple-darwin-C",
+      "id": "utf8-shifted-first-span",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 9,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "extension-original20",
+      "profile": "apple-darwin-C",
+      "id": "combining-first-span",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 9,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "extension-original20",
+      "profile": "apple-darwin-en_US.UTF-8",
+      "id": "utf8-whole-prefix-span",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 10,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "extension-original20",
+      "profile": "apple-darwin-en_US.UTF-8",
+      "id": "utf8-shifted-first-span",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 9,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "extension-original20",
+      "profile": "apple-darwin-en_US.UTF-8",
+      "id": "combining-first-span",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 9,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "extension-correction1",
+      "profile": "gnu-9.7-darwin-C",
+      "id": "class-parenthesis-quoted-correction",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 10,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    },
+    {
+      "cohort": "extension-correction1",
+      "profile": "apple-darwin-C",
+      "id": "class-parenthesis-quoted-correction",
+      "events": [
+        {
+          "type": "registerCleanup"
+        },
+        {
+          "type": "publicSettlement"
+        }
+      ],
+      "activeBeforeSafetyCleanup": 0,
+      "mainCompiles": 0,
+      "stdinAccess": 0,
+      "fsAccess": 0,
+      "invokeAccess": 0,
+      "outer": {
+        "state": "returned",
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 11,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      }
+    }
+  ],
+  "importGraph": [],
+  "bounds": {
+    "outerWorkerDeadlineMs": 2000,
+    "outerOldGenerationMb": 64,
+    "outputBytes": 8192,
+    "maximumConcurrentProbes": 1
+  },
+  "noSourceFallback": true
+}

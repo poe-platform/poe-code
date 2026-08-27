@@ -1,0 +1,54 @@
+{
+  "harnessOnly": true,
+  "candidateExecuted": false,
+  "good": {
+    "state": "returned",
+    "value": {
+      "state": "fulfilled",
+      "value": {
+        "marker": 7
+      }
+    },
+    "terminationAwaited": true,
+    "terminationCode": 0,
+    "output": [],
+    "outputBytes": 0,
+    "heartbeats": 1,
+    "deadlineMs": 2000,
+    "resourceLimits": {
+      "maxOldGenerationSizeMb": 64,
+      "stackSizeMb": 4
+    }
+  },
+  "undefinedRejection": {
+    "state": "returned",
+    "value": {
+      "state": "rejected",
+      "reasonType": "undefined"
+    },
+    "terminationAwaited": true,
+    "terminationCode": 0,
+    "output": [],
+    "outputBytes": 0,
+    "heartbeats": 1,
+    "deadlineMs": 2000,
+    "resourceLimits": {
+      "maxOldGenerationSizeMb": 64,
+      "stackSizeMb": 4
+    }
+  },
+  "spin": {
+    "state": "outer-timeout",
+    "passed": false,
+    "terminationAwaited": true,
+    "terminationCode": 1,
+    "output": [],
+    "outputBytes": 0,
+    "heartbeats": 9,
+    "deadlineMs": 100,
+    "resourceLimits": {
+      "maxOldGenerationSizeMb": 64,
+      "stackSizeMb": 4
+    }
+  }
+}

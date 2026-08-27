@@ -1,0 +1,293 @@
+{
+  "source": "Eight explicit user-disclosed nullable diagnosis reproductions/negative controls. Additional independent cohort, NOT part of frozen95/extension20/correction1 and never merged.",
+  "candidate": "fe7083d99b8ccfdfbbb9b7209e0a6abbe7979724",
+  "nativeIdentity": {
+    "configuredPath": "tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr",
+    "actualPath": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr",
+    "sha256": "e8a4e2b58a33d2ad6bfa9eb8a4ed5f62775ab9ceac4b9421680c98973fd9109c",
+    "argv0": "expr",
+    "versionProbe": {
+      "status": 0,
+      "signal": null,
+      "failure": null,
+      "stdoutBase64": "ZXhwciAoR05VIGNvcmV1dGlscykgOS43CkNvcHlyaWdodCAoQykgMjAyNSBGcmVlIFNvZnR3YXJlIEZvdW5kYXRpb24sIEluYy4KTGljZW5zZSBHUEx2Mys6IEdOVSBHUEwgdmVyc2lvbiAzIG9yIGxhdGVyIDxodHRwczovL2dudS5vcmcvbGljZW5zZXMvZ3BsLmh0bWw+LgpUaGlzIGlzIGZyZWUgc29mdHdhcmU6IHlvdSBhcmUgZnJlZSB0byBjaGFuZ2UgYW5kIHJlZGlzdHJpYnV0ZSBpdC4KVGhlcmUgaXMgTk8gV0FSUkFOVFksIHRvIHRoZSBleHRlbnQgcGVybWl0dGVkIGJ5IGxhdy4KCldyaXR0ZW4gYnkgTWlrZSBQYXJrZXIsIEphbWVzIFlvdW5nbWFuLCBhbmQgUGF1bCBFZ2dlcnQuCg==",
+      "stderrBase64": ""
+    },
+    "versionSupported": true,
+    "linkedLibraries": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr:\n\t/usr/lib/libSystem.B.dylib (compatibility version 1.0.0, current version 1356.0.0)\n"
+  },
+  "environment": {
+    "PATH": "/usr/bin:/bin",
+    "LC_ALL": "C",
+    "LANG": "C",
+    "LANGUAGE": "C",
+    "TZ": "UTC"
+  },
+  "host": {
+    "type": "Darwin",
+    "release": "25.4.0",
+    "arch": "arm64",
+    "node": "v22.22.2",
+    "macOS": "ProductName:\t\tmacOS\nProductVersion:\t\t26.4.1\nBuildVersion:\t\t25E253\n"
+  },
+  "rows": [
+    {
+      "id": "empty",
+      "argv": [
+        "+",
+        "",
+        ":",
+        "\\(a*\\)*\\1"
+      ],
+      "expected": {
+        "status": 1,
+        "signal": null,
+        "failure": null,
+        "stdoutBase64": "Cg==",
+        "stderrBase64": ""
+      },
+      "actual": {
+        "status": 2,
+        "stdoutBase64": "",
+        "stderrBase64": "ZXhwcjogdW5zdXBwb3J0ZWQgQlJFOiBiYWNrcmVmZXJlbmNlIHRvIGEgY2FwdHVyZSBpbiBudWxsYWJsZSByZXBldGl0aW9uCg==",
+        "signal": null,
+        "failure": null,
+        "mainCompiles": 0,
+        "stdinAccess": 0,
+        "fsAccess": 0,
+        "invokeAccess": 0
+      },
+      "comparison": {
+        "semantic": false,
+        "diagnostic": false,
+        "strict": false
+      }
+    },
+    {
+      "id": "a",
+      "argv": [
+        "+",
+        "a",
+        ":",
+        "\\(a*\\)*\\1"
+      ],
+      "expected": {
+        "status": 1,
+        "signal": null,
+        "failure": null,
+        "stdoutBase64": "Cg==",
+        "stderrBase64": ""
+      },
+      "actual": {
+        "status": 2,
+        "stdoutBase64": "",
+        "stderrBase64": "ZXhwcjogdW5zdXBwb3J0ZWQgQlJFOiBiYWNrcmVmZXJlbmNlIHRvIGEgY2FwdHVyZSBpbiBudWxsYWJsZSByZXBldGl0aW9uCg==",
+        "signal": null,
+        "failure": null,
+        "mainCompiles": 0,
+        "stdinAccess": 0,
+        "fsAccess": 0,
+        "invokeAccess": 0
+      },
+      "comparison": {
+        "semantic": false,
+        "diagnostic": false,
+        "strict": false
+      }
+    },
+    {
+      "id": "aa",
+      "argv": [
+        "+",
+        "aa",
+        ":",
+        "\\(a*\\)*\\1"
+      ],
+      "expected": {
+        "status": 0,
+        "signal": null,
+        "failure": null,
+        "stdoutBase64": "YQo=",
+        "stderrBase64": ""
+      },
+      "actual": {
+        "status": 2,
+        "stdoutBase64": "",
+        "stderrBase64": "ZXhwcjogdW5zdXBwb3J0ZWQgQlJFOiBiYWNrcmVmZXJlbmNlIHRvIGEgY2FwdHVyZSBpbiBudWxsYWJsZSByZXBldGl0aW9uCg==",
+        "signal": null,
+        "failure": null,
+        "mainCompiles": 0,
+        "stdinAccess": 0,
+        "fsAccess": 0,
+        "invokeAccess": 0
+      },
+      "comparison": {
+        "semantic": false,
+        "diagnostic": false,
+        "strict": false
+      }
+    },
+    {
+      "id": "aaa",
+      "argv": [
+        "+",
+        "aaa",
+        ":",
+        "\\(a*\\)*\\1"
+      ],
+      "expected": {
+        "status": 1,
+        "signal": null,
+        "failure": null,
+        "stdoutBase64": "Cg==",
+        "stderrBase64": ""
+      },
+      "actual": {
+        "status": 2,
+        "stdoutBase64": "",
+        "stderrBase64": "ZXhwcjogdW5zdXBwb3J0ZWQgQlJFOiBiYWNrcmVmZXJlbmNlIHRvIGEgY2FwdHVyZSBpbiBudWxsYWJsZSByZXBldGl0aW9uCg==",
+        "signal": null,
+        "failure": null,
+        "mainCompiles": 0,
+        "stdinAccess": 0,
+        "fsAccess": 0,
+        "invokeAccess": 0
+      },
+      "comparison": {
+        "semantic": false,
+        "diagnostic": false,
+        "strict": false
+      }
+    },
+    {
+      "id": "no-reference",
+      "argv": [
+        "+",
+        "aaa",
+        ":",
+        "\\(a*\\)*"
+      ],
+      "expected": {
+        "status": 0,
+        "signal": null,
+        "failure": null,
+        "stdoutBase64": "YWFhCg==",
+        "stderrBase64": ""
+      },
+      "actual": {
+        "status": 0,
+        "stdoutBase64": "YWFhCg==",
+        "stderrBase64": "",
+        "signal": null,
+        "failure": null,
+        "mainCompiles": 0,
+        "stdinAccess": 0,
+        "fsAccess": 0,
+        "invokeAccess": 0
+      },
+      "comparison": {
+        "semantic": true,
+        "diagnostic": true,
+        "strict": true
+      }
+    },
+    {
+      "id": "not-repeated",
+      "argv": [
+        "+",
+        "aaa",
+        ":",
+        "\\(a*\\)\\1"
+      ],
+      "expected": {
+        "status": 0,
+        "signal": null,
+        "failure": null,
+        "stdoutBase64": "YQo=",
+        "stderrBase64": ""
+      },
+      "actual": {
+        "status": 0,
+        "stdoutBase64": "YQo=",
+        "stderrBase64": "",
+        "signal": null,
+        "failure": null,
+        "mainCompiles": 0,
+        "stdinAccess": 0,
+        "fsAccess": 0,
+        "invokeAccess": 0
+      },
+      "comparison": {
+        "semantic": true,
+        "diagnostic": true,
+        "strict": true
+      }
+    },
+    {
+      "id": "nonnullable",
+      "argv": [
+        "+",
+        "aaa",
+        ":",
+        "\\(a\\)*\\1"
+      ],
+      "expected": {
+        "status": 0,
+        "signal": null,
+        "failure": null,
+        "stdoutBase64": "YQo=",
+        "stderrBase64": ""
+      },
+      "actual": {
+        "status": 0,
+        "stdoutBase64": "YQo=",
+        "stderrBase64": "",
+        "signal": null,
+        "failure": null,
+        "mainCompiles": 0,
+        "stdinAccess": 0,
+        "fsAccess": 0,
+        "invokeAccess": 0
+      },
+      "comparison": {
+        "semantic": true,
+        "diagnostic": true,
+        "strict": true
+      }
+    },
+    {
+      "id": "mandatory-empty",
+      "argv": [
+        "+",
+        "",
+        ":",
+        "\\(a*\\)\\{2\\}\\1"
+      ],
+      "expected": {
+        "status": 1,
+        "signal": null,
+        "failure": null,
+        "stdoutBase64": "Cg==",
+        "stderrBase64": ""
+      },
+      "actual": {
+        "status": 2,
+        "stdoutBase64": "",
+        "stderrBase64": "ZXhwcjogdW5zdXBwb3J0ZWQgQlJFOiBiYWNrcmVmZXJlbmNlIHRvIGEgY2FwdHVyZSBpbiBudWxsYWJsZSByZXBldGl0aW9uCg==",
+        "signal": null,
+        "failure": null,
+        "mainCompiles": 0,
+        "stdinAccess": 0,
+        "fsAccess": 0,
+        "invokeAccess": 0
+      },
+      "comparison": {
+        "semantic": false,
+        "diagnostic": false,
+        "strict": false
+      }
+    }
+  ],
+  "scratchRemoved": true,
+  "productionChanged": false
+}

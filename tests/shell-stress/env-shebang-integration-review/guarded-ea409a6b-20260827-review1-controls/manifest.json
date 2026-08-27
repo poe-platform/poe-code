@@ -1,0 +1,17 @@
+{
+  "files": {
+    "author.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "author.tap": "a0e02b530f66c14d1fab1709d3b11a96a839ecb9a0552275fc8a86e1694c52ae",
+    "build.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "core.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "core.tap": "18f18ecd1b9f135461695213044b54e4f67c3cd11fa3e0d2707866151ffe8a97",
+    "lifecycle.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "lifecycle.tap": "6d583a1ed9ee0ad03697740e69afe7e80aaaf9f187bc21a7736bccc42f97bdea",
+    "original-assertion-observations.json": "85ba9003214cb5c6f546dbea7997b24511c0c0c5edd3eae1f41cc55ae7c3af0a",
+    "report.json": "f0b5469f2637df517555e616e09963029a0cf2b789754bc35d711bfba2de15b8",
+    "scripts.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "scripts.tap": "ccafd6ff85ea06c85141100b1de2719280a34abb6fe175ecd01ae6635d3fbf37"
+  },
+  "runnerSha256": "5232a7c284edf3617fb2e386b72010ed1af149117d43a06a4965fcd800b2089b",
+  "probeSha256": "da640a2cf46d9eb45f3ee02fcdace6f1bdebc46a53acff80f0c61eefa13b49ff"
+}

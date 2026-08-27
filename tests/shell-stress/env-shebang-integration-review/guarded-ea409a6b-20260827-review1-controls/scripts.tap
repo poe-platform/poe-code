@@ -1,0 +1,1382 @@
+TAP version 13
+# Subtest: literal invoke returns nonzero to its custom caller
+ok 1 - literal invoke returns nonzero to its custom caller
+  ---
+  duration_ms: 8.075625
+  type: 'test'
+  ...
+# Subtest: literal invoke child interpreter honors its own option in tested parent
+ok 2 - literal invoke child interpreter honors its own option in tested parent
+  ---
+  duration_ms: 2.658708
+  type: 'test'
+  ...
+# Subtest: e presence only, state isolation across exec and nested child
+ok 3 - e presence only, state isolation across exec and nested child
+  ---
+  duration_ms: 3.172917
+  type: 'test'
+  ...
+# Subtest: errexit never swallows shared commands budget
+ok 4 - errexit never swallows shared commands budget
+  ---
+  duration_ms: 1.599959
+  type: 'test'
+  ...
+# Subtest: errexit never swallows shared source budget
+ok 5 - errexit never swallows shared source budget
+  ---
+  duration_ms: 1.1945
+  type: 'test'
+  ...
+# Subtest: errexit never swallows shared depth budget
+ok 6 - errexit never swallows shared depth budget
+  ---
+  duration_ms: 1.482417
+  type: 'test'
+  ...
+# Subtest: errexit never swallows shared loops budget
+ok 7 - errexit never swallows shared loops budget
+  ---
+  duration_ms: 1.376292
+  type: 'test'
+  ...
+# Subtest: errexit never swallows shared expansion budget
+ok 8 - errexit never swallows shared expansion budget
+  ---
+  duration_ms: 0.694667
+  type: 'test'
+  ...
+# Subtest: errexit never swallows shared output budget
+ok 9 - errexit never swallows shared output budget
+  ---
+  duration_ms: 5.253917
+  type: 'test'
+  ...
+# Subtest: pipeline succeeds at unchanged producer plus consumer byte budget
+ok 10 - pipeline succeeds at unchanged producer plus consumer byte budget
+  ---
+  duration_ms: 1.622042
+  type: 'test'
+  ...
+# Subtest: parent cancellation identity survives tested context
+ok 11 - parent cancellation identity survives tested context
+  ---
+  duration_ms: 0.503792
+  type: 'test'
+  ...
+# Subtest: cancellation during delayed command observes late rejection
+ok 12 - cancellation during delayed command observes late rejection
+  ---
+  duration_ms: 31.654334
+  type: 'test'
+  ...
+# Subtest: delayed pipeline consumer drains before aggregate exit
+ok 13 - delayed pipeline consumer drains before aggregate exit
+  ---
+  duration_ms: 3.661583
+  type: 'test'
+  ...
+# Subtest: failed redirected group stops but earlier file effect is retained
+ok 14 - failed redirected group stops but earlier file effect is retained
+  ---
+  duration_ms: 0.918958
+  type: 'test'
+  ...
+# Subtest: source cleanup after errexit preserves parent literal caller
+ok 15 - source cleanup after errexit preserves parent literal caller
+  ---
+  duration_ms: 1.119333
+  type: 'test'
+  ...
+# Subtest: binary stdin and default origin survive nested literal invocation
+ok 16 - binary stdin and default origin survive nested literal invocation
+  ---
+  duration_ms: 0.812625
+  type: 'test'
+  ...
+# Subtest: single optional shebang argument \#!/bin/bash -e
+ok 17 - single optional shebang argument \#!/bin/bash -e
+  ---
+  duration_ms: 0.704417
+  type: 'test'
+  ...
+# Subtest: single optional shebang argument \#!/usr/bin/bash -ee
+ok 18 - single optional shebang argument \#!/usr/bin/bash -ee
+  ---
+  duration_ms: 0.908167
+  type: 'test'
+  ...
+# Subtest: explicit interpreter does not apply file header option twice
+ok 19 - explicit interpreter does not apply file header option twice
+  ---
+  duration_ms: 0.705542
+  type: 'test'
+  ...
+# Subtest: literal shebang refusal \#!/usr/bin/env bash -e
+not ok 20 - literal shebang refusal \#!/usr/bin/env bash -e
+  ---
+  duration_ms: 1.500625
+  type: 'test'
+  location: '/private/tmp/env-shebang-review-controls-O32NVL/source/tests/shell/errexit-host.test.ts:3:698'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    127 !== 126
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 126
+  actual: 127
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/private/tmp/env-shebang-review-controls-O32NVL/source/tests/shell/errexit-host.test.ts:131:54)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: literal shebang refusal \#!/usr/bin/env -S bash -e
+not ok 21 - literal shebang refusal \#!/usr/bin/env -S bash -e
+  ---
+  duration_ms: 0.817875
+  type: 'test'
+  location: '/private/tmp/env-shebang-review-controls-O32NVL/source/tests/shell/errexit-host.test.ts:3:698'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    0 !== 126
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 126
+  actual: 0
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/private/tmp/env-shebang-review-controls-O32NVL/source/tests/shell/errexit-host.test.ts:131:54)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: literal shebang refusal \#!/bin/bash -e -e
+ok 22 - literal shebang refusal \#!/bin/bash -e -e
+  ---
+  duration_ms: 0.412792
+  type: 'test'
+  ...
+# Subtest: literal shebang refusal \#!/bin/bash -c
+ok 23 - literal shebang refusal \#!/bin/bash -c
+  ---
+  duration_ms: 0.419208
+  type: 'test'
+  ...
+# Subtest: literal shebang refusal \#!/bin/bash '-e'
+ok 24 - literal shebang refusal \#!/bin/bash '-e'
+  ---
+  duration_ms: 0.257459
+  type: 'test'
+  ...
+# Subtest: literal shebang refusal \#!/unknown -e
+ok 25 - literal shebang refusal \#!/unknown -e
+  ---
+  duration_ms: 0.236167
+  type: 'test'
+  ...
+# Subtest: direct permission and invalid UTF8 refusals remain
+ok 26 - direct permission and invalid UTF8 refusals remain
+  ---
+  duration_ms: 0.490333
+  type: 'test'
+  ...
+# Subtest: unimplemented switch stays rejected bash -u -c true
+ok 27 - unimplemented switch stays rejected bash -u -c true
+  ---
+  duration_ms: 1.428875
+  type: 'test'
+  ...
+# Subtest: unimplemented switch stays rejected bash +c true
+ok 28 - unimplemented switch stays rejected bash +c true
+  ---
+  duration_ms: 0.395584
+  type: 'test'
+  ...
+# Subtest: unimplemented switch stays rejected set -u
+ok 29 - unimplemented switch stays rejected set -u
+  ---
+  duration_ms: 0.326542
+  type: 'test'
+  ...
+# Subtest: unimplemented switch stays rejected set -o inherit_errexit
+ok 30 - unimplemented switch stays rejected set -o inherit_errexit
+  ---
+  duration_ms: 0.321458
+  type: 'test'
+  ...
+# Subtest: explicit unsupported env interpreter "/usr/bin/env bash -e"
+not ok 31 - explicit unsupported env interpreter "/usr/bin/env bash -e"
+  ---
+  duration_ms: 8.67975
+  type: 'test'
+  location: '/private/tmp/env-shebang-review-controls-O32NVL/source/tests/shell/expanded-gaps-env-host.test.ts:1:272'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    127 !== 126
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 126
+  actual: 127
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/private/tmp/env-shebang-review-controls-O32NVL/source/tests/shell/expanded-gaps-env-host.test.ts:7:60)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# Subtest: explicit unsupported env interpreter "/usr/bin/env -S bash -e"
+not ok 32 - explicit unsupported env interpreter "/usr/bin/env -S bash -e"
+  ---
+  duration_ms: 2.494541
+  type: 'test'
+  location: '/private/tmp/env-shebang-review-controls-O32NVL/source/tests/shell/expanded-gaps-env-host.test.ts:1:272'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    0 !== 126
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 126
+  actual: 0
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/private/tmp/env-shebang-review-controls-O32NVL/source/tests/shell/expanded-gaps-env-host.test.ts:7:60)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: explicit unsupported env interpreter "/usr/bin/env python"
+not ok 33 - explicit unsupported env interpreter "/usr/bin/env python"
+  ---
+  duration_ms: 0.855834
+  type: 'test'
+  location: '/private/tmp/env-shebang-review-controls-O32NVL/source/tests/shell/expanded-gaps-env-host.test.ts:1:272'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    127 !== 126
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 126
+  actual: 127
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/private/tmp/env-shebang-review-controls-O32NVL/source/tests/shell/expanded-gaps-env-host.test.ts:7:60)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: explicit unsupported env interpreter "/usr/bin/env"
+not ok 34 - explicit unsupported env interpreter "/usr/bin/env"
+  ---
+  duration_ms: 16.988792
+  type: 'test'
+  location: '/private/tmp/env-shebang-review-controls-O32NVL/source/tests/shell/expanded-gaps-env-host.test.ts:1:272'
+  failureType: 'testCodeFailure'
+  error: 'Shell limit exceeded: maxSubstitutionDepth'
+  code: 'ERR_TEST_FAILURE'
+  name: 'ShellLimitError'
+  stack: |-
+    Budget.fail (/private/tmp/env-shebang-review-controls-O32NVL/source/src/shell/runtime.ts:64:19)
+    Runtime.scriptFile (/private/tmp/env-shebang-review-controls-O32NVL/source/src/shell/runtime.ts:1268:77)
+    <anonymous> (/private/tmp/env-shebang-review-controls-O32NVL/source/src/shell/runtime.ts:1236:52)
+    <anonymous> (/private/tmp/env-shebang-review-controls-O32NVL/source/src/shell/runtime.ts:1190:16)
+    dispatch (/private/tmp/env-shebang-review-controls-O32NVL/source/src/contracts/plugin.ts:38:28)
+    <anonymous> (/private/tmp/env-shebang-review-controls-O32NVL/source/src/contracts/plugin.ts:65:12)
+    Runtime.shebangStage (/private/tmp/env-shebang-review-controls-O32NVL/source/src/shell/runtime.ts:1192:42)
+    Runtime.shebangTarget (/private/tmp/env-shebang-review-controls-O32NVL/source/src/shell/runtime.ts:1228:33)
+    <anonymous> (/private/tmp/env-shebang-review-controls-O32NVL/source/src/shell/runtime.ts:1263:15)
+    Object.invoke (/private/tmp/env-shebang-review-controls-O32NVL/source/src/shell/runtime.ts:1174:39)
+  ...
+# Subtest: explicit unsupported env interpreter "/usr/bin/env bash\\r"
+not ok 35 - explicit unsupported env interpreter "/usr/bin/env bash\\r"
+  ---
+  duration_ms: 1.001958
+  type: 'test'
+  location: '/private/tmp/env-shebang-review-controls-O32NVL/source/tests/shell/expanded-gaps-env-host.test.ts:1:272'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    127 !== 126
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 126
+  actual: 127
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/private/tmp/env-shebang-review-controls-O32NVL/source/tests/shell/expanded-gaps-env-host.test.ts:7:60)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: env shebang refuses a registry override rather than silently bypassing it
+ok 36 - env shebang refuses a registry override rather than silently bypassing it
+  ---
+  duration_ms: 1.138917
+  type: 'test'
+  ...
+# Subtest: exact primary 5.3: bash c-default-name
+ok 37 - exact primary 5.3: bash c-default-name
+  ---
+  duration_ms: 7.978875
+  type: 'test'
+  ...
+# Subtest: exact primary 5.3: bash c-literal-arguments
+ok 38 - exact primary 5.3: bash c-literal-arguments
+  ---
+  duration_ms: 2.060916
+  type: 'test'
+  ...
+# Subtest: exact primary 5.3: bash c-empty-name
+ok 39 - exact primary 5.3: bash c-empty-name
+  ---
+  duration_ms: 2.185583
+  type: 'test'
+  ...
+# Subtest: exact primary 5.3: bash c-empty-source
+ok 40 - exact primary 5.3: bash c-empty-source
+  ---
+  duration_ms: 0.524
+  type: 'test'
+  ...
+# Subtest: exact primary 5.3: bash c-dash-name
+ok 41 - exact primary 5.3: bash c-dash-name
+  ---
+  duration_ms: 1.966083
+  type: 'test'
+  ...
+# Subtest: exact primary 5.3: bash c-end-options
+ok 42 - exact primary 5.3: bash c-end-options
+  ---
+  duration_ms: 1.096625
+  type: 'test'
+  ...
+# Subtest: exact primary 5.3: bash c-repeated-clusters
+ok 43 - exact primary 5.3: bash c-repeated-clusters
+  ---
+  duration_ms: 0.803708
+  type: 'test'
+  ...
+# Subtest: exact primary 5.3: bash c-missing
+ok 44 - exact primary 5.3: bash c-missing
+  ---
+  duration_ms: 0.421708
+  type: 'test'
+  ...
+# Subtest: exact primary 5.3: bash c-missing-after-terminator
+ok 45 - exact primary 5.3: bash c-missing-after-terminator
+  ---
+  duration_ms: 0.783
+  type: 'test'
+  ...
+# Subtest: exact primary 5.3: bash stdin-default
+ok 46 - exact primary 5.3: bash stdin-default
+  ---
+  duration_ms: 1.364708
+  type: 'test'
+  ...
+# Subtest: exact primary 5.3: bash stdin-empty
+ok 47 - exact primary 5.3: bash stdin-empty
+  ---
+  duration_ms: 0.527291
+  type: 'test'
+  ...
+# Subtest: exact primary 5.3: bash stdin-end-options
+ok 48 - exact primary 5.3: bash stdin-end-options
+  ---
+  duration_ms: 0.806666
+  type: 'test'
+  ...
+# Subtest: exact primary 5.3: bash stdin-dash-terminator
+ok 49 - exact primary 5.3: bash stdin-dash-terminator
+  ---
+  duration_ms: 1.780875
+  type: 'test'
+  ...
+# Subtest: exact primary 5.3: bash stdin-literal-args
+ok 50 - exact primary 5.3: bash stdin-literal-args
+  ---
+  duration_ms: 1.0315
+  type: 'test'
+  ...
+# Subtest: exact primary 5.3: bash stdin-first-operand-ends-options
+ok 51 - exact primary 5.3: bash stdin-first-operand-ends-options
+  ---
+  duration_ms: 1.071584
+  type: 'test'
+  ...
+# Subtest: exact primary 5.3: bash file-dash-after-end-options
+ok 52 - exact primary 5.3: bash file-dash-after-end-options
+  ---
+  duration_ms: 1.037917
+  type: 'test'
+  ...
+# Subtest: exact primary 5.3: bash file-dash-after-dash
+ok 53 - exact primary 5.3: bash file-dash-after-dash
+  ---
+  duration_ms: 0.6225
+  type: 'test'
+  ...
+# Subtest: exact primary 5.3: bash c-shared-binary-data
+ok 54 - exact primary 5.3: bash c-shared-binary-data
+  ---
+  duration_ms: 0.678542
+  type: 'test'
+  ...
+# Subtest: exact primary 5.3: bash stdin-cat-shared-binary-data
+ok 55 - exact primary 5.3: bash stdin-cat-shared-binary-data
+  ---
+  duration_ms: 0.482292
+  type: 'test'
+  ...
+# Subtest: exact primary 5.3: bash stdin-read-shared-cursor
+ok 56 - exact primary 5.3: bash stdin-read-shared-cursor
+  ---
+  duration_ms: 0.936333
+  type: 'test'
+  ...
+# Subtest: exact primary 5.3: bash stdin-read-same-unit
+ok 57 - exact primary 5.3: bash stdin-read-same-unit
+  ---
+  duration_ms: 0.582542
+  type: 'test'
+  ...
+# Subtest: exact primary 5.3: bash stdin-read-one-byte
+ok 58 - exact primary 5.3: bash stdin-read-one-byte
+  ---
+  duration_ms: 0.4855
+  type: 'test'
+  ...
+# Subtest: exact primary 5.3: bash stdin-final-no-newline
+ok 59 - exact primary 5.3: bash stdin-final-no-newline
+  ---
+  duration_ms: 0.976041
+  type: 'test'
+  ...
+# Subtest: exact primary 5.3: bash stdin-compound
+ok 60 - exact primary 5.3: bash stdin-compound
+  ---
+  duration_ms: 0.963333
+  type: 'test'
+  ...
+# Subtest: exact primary 5.3: bash stdin-continuation
+ok 61 - exact primary 5.3: bash stdin-continuation
+  ---
+  duration_ms: 0.400583
+  type: 'test'
+  ...
+# Subtest: exact primary 5.3: bash stdin-quote
+ok 62 - exact primary 5.3: bash stdin-quote
+  ---
+  duration_ms: 0.414792
+  type: 'test'
+  ...
+# Subtest: exact primary 5.3: bash stdin-substitution
+ok 63 - exact primary 5.3: bash stdin-substitution
+  ---
+  duration_ms: 0.675333
+  type: 'test'
+  ...
+# Subtest: exact primary 5.3: bash stdin-comments-and-blank
+ok 64 - exact primary 5.3: bash stdin-comments-and-blank
+  ---
+  duration_ms: 0.243291
+  type: 'test'
+  ...
+# Subtest: exact primary 5.3: bash stdin-heredoc
+ok 65 - exact primary 5.3: bash stdin-heredoc
+  ---
+  duration_ms: 0.919583
+  type: 'test'
+  ...
+# Subtest: exact primary 5.3: bash stdin-two-heredocs
+ok 66 - exact primary 5.3: bash stdin-two-heredocs
+  ---
+  duration_ms: 0.762083
+  type: 'test'
+  ...
+# Subtest: exact primary 5.3: bash stdin-pipeline-continuation
+ok 67 - exact primary 5.3: bash stdin-pipeline-continuation
+  ---
+  duration_ms: 3.478709
+  type: 'test'
+  ...
+# Subtest: exact primary 5.3: bash stdin-exit-preserves-effects
+ok 68 - exact primary 5.3: bash stdin-exit-preserves-effects
+  ---
+  duration_ms: 1.343667
+  type: 'test'
+  ...
+# Subtest: exact primary 5.3: bash stdin-later-syntax
+ok 69 - exact primary 5.3: bash stdin-later-syntax
+  ---
+  duration_ms: 0.386917
+  type: 'test'
+  ...
+# Subtest: exact primary 5.3: bash stdin-incomplete-eof
+ok 70 - exact primary 5.3: bash stdin-incomplete-eof
+  ---
+  duration_ms: 0.345333
+  type: 'test'
+  ...
+# Subtest: exact primary 5.3: bash c-later-syntax
+ok 71 - exact primary 5.3: bash c-later-syntax
+  ---
+  duration_ms: 0.296666
+  type: 'test'
+  ...
+# Subtest: exact primary 5.3: bash c-environment-status
+ok 72 - exact primary 5.3: bash c-environment-status
+  ---
+  duration_ms: 0.590625
+  type: 'test'
+  ...
+# Subtest: exact primary 5.3: bash path-first-executable
+ok 73 - exact primary 5.3: bash path-first-executable
+  ---
+  duration_ms: 6.6
+  type: 'test'
+  ...
+# Subtest: exact primary 5.3: bash path-skips-directory
+ok 74 - exact primary 5.3: bash path-skips-directory
+  ---
+  duration_ms: 1.036459
+  type: 'test'
+  ...
+# Subtest: exact primary 5.3: bash path-skips-dangling
+ok 75 - exact primary 5.3: bash path-skips-dangling
+  ---
+  duration_ms: 0.966625
+  type: 'test'
+  ...
+# Subtest: exact primary 5.3: bash path-symlink
+ok 76 - exact primary 5.3: bash path-symlink
+  ---
+  duration_ms: 0.725666
+  type: 'test'
+  ...
+# Subtest: exact primary 5.3: bash path-empty-component
+ok 77 - exact primary 5.3: bash path-empty-component
+  ---
+  duration_ms: 0.561
+  type: 'test'
+  ...
+# Subtest: exact primary 5.3: bash path-empty
+ok 78 - exact primary 5.3: bash path-empty
+  ---
+  duration_ms: 4.13325
+  type: 'test'
+  ...
+# Subtest: exact primary 5.3: bash path-unset
+ok 79 - exact primary 5.3: bash path-unset
+  ---
+  duration_ms: 0.916083
+  type: 'test'
+  ...
+# Subtest: exact primary 5.3: bash path-prefix-assignment
+ok 80 - exact primary 5.3: bash path-prefix-assignment
+  ---
+  duration_ms: 1.1265
+  type: 'test'
+  ...
+# Subtest: exact primary 5.3: bash path-function-precedence
+ok 81 - exact primary 5.3: bash path-function-precedence
+  ---
+  duration_ms: 0.667875
+  type: 'test'
+  ...
+# Subtest: exact primary 5.3: bash path-missing
+ok 82 - exact primary 5.3: bash path-missing
+  ---
+  duration_ms: 0.351458
+  type: 'test'
+  ...
+# Subtest: exact primary 5.3: bash path-empty-missing
+ok 83 - exact primary 5.3: bash path-empty-missing
+  ---
+  duration_ms: 0.223458
+  type: 'test'
+  ...
+# Subtest: exact primary 5.3: bash path-unset-missing
+ok 84 - exact primary 5.3: bash path-unset-missing
+  ---
+  duration_ms: 0.735959
+  type: 'test'
+  ...
+# Subtest: exact primary 5.3: bash path-directory-only
+ok 85 - exact primary 5.3: bash path-directory-only
+  ---
+  duration_ms: 0.25575
+  type: 'test'
+  ...
+# Subtest: exact primary 5.3: bash path-denied
+ok 86 - exact primary 5.3: bash path-denied
+  ---
+  duration_ms: 0.436458
+  type: 'test'
+  ...
+# Subtest: explicit diagnostic policy: bash path-unsupported-interpreter
+ok 87 - explicit diagnostic policy: bash path-unsupported-interpreter
+  ---
+  duration_ms: 0.4215
+  type: 'test'
+  ...
+# Subtest: explicit diagnostic policy: bash path-binary
+ok 88 - explicit diagnostic policy: bash path-binary
+  ---
+  duration_ms: 0.334959
+  type: 'test'
+  ...
+# Subtest: exact primary 5.3: sh c-default-name
+ok 89 - exact primary 5.3: sh c-default-name
+  ---
+  duration_ms: 0.726
+  type: 'test'
+  ...
+# Subtest: exact primary 5.3: sh c-literal-arguments
+ok 90 - exact primary 5.3: sh c-literal-arguments
+  ---
+  duration_ms: 0.965541
+  type: 'test'
+  ...
+# Subtest: exact primary 5.3: sh c-empty-name
+ok 91 - exact primary 5.3: sh c-empty-name
+  ---
+  duration_ms: 0.740334
+  type: 'test'
+  ...
+# Subtest: exact primary 5.3: sh c-empty-source
+ok 92 - exact primary 5.3: sh c-empty-source
+  ---
+  duration_ms: 0.363333
+  type: 'test'
+  ...
+# Subtest: exact primary 5.3: sh c-dash-name
+ok 93 - exact primary 5.3: sh c-dash-name
+  ---
+  duration_ms: 2.742375
+  type: 'test'
+  ...
+# Subtest: exact primary 5.3: sh c-end-options
+ok 94 - exact primary 5.3: sh c-end-options
+  ---
+  duration_ms: 0.401542
+  type: 'test'
+  ...
+# Subtest: exact primary 5.3: sh c-repeated-clusters
+ok 95 - exact primary 5.3: sh c-repeated-clusters
+  ---
+  duration_ms: 0.307333
+  type: 'test'
+  ...
+# Subtest: exact primary 5.3: sh c-missing
+ok 96 - exact primary 5.3: sh c-missing
+  ---
+  duration_ms: 0.1235
+  type: 'test'
+  ...
+# Subtest: exact primary 5.3: sh c-missing-after-terminator
+ok 97 - exact primary 5.3: sh c-missing-after-terminator
+  ---
+  duration_ms: 0.114708
+  type: 'test'
+  ...
+# Subtest: exact primary 5.3: sh stdin-default
+ok 98 - exact primary 5.3: sh stdin-default
+  ---
+  duration_ms: 0.5505
+  type: 'test'
+  ...
+# Subtest: exact primary 5.3: sh stdin-empty
+ok 99 - exact primary 5.3: sh stdin-empty
+  ---
+  duration_ms: 0.221459
+  type: 'test'
+  ...
+# Subtest: exact primary 5.3: sh stdin-end-options
+ok 100 - exact primary 5.3: sh stdin-end-options
+  ---
+  duration_ms: 0.448
+  type: 'test'
+  ...
+# Subtest: exact primary 5.3: sh stdin-dash-terminator
+ok 101 - exact primary 5.3: sh stdin-dash-terminator
+  ---
+  duration_ms: 0.373958
+  type: 'test'
+  ...
+# Subtest: exact primary 5.3: sh stdin-literal-args
+ok 102 - exact primary 5.3: sh stdin-literal-args
+  ---
+  duration_ms: 0.418958
+  type: 'test'
+  ...
+# Subtest: exact primary 5.3: sh stdin-first-operand-ends-options
+ok 103 - exact primary 5.3: sh stdin-first-operand-ends-options
+  ---
+  duration_ms: 0.509708
+  type: 'test'
+  ...
+# Subtest: exact primary 5.3: sh file-dash-after-end-options
+ok 104 - exact primary 5.3: sh file-dash-after-end-options
+  ---
+  duration_ms: 0.510375
+  type: 'test'
+  ...
+# Subtest: exact primary 5.3: sh file-dash-after-dash
+ok 105 - exact primary 5.3: sh file-dash-after-dash
+  ---
+  duration_ms: 0.364375
+  type: 'test'
+  ...
+# Subtest: exact primary 5.3: sh c-shared-binary-data
+ok 106 - exact primary 5.3: sh c-shared-binary-data
+  ---
+  duration_ms: 0.26325
+  type: 'test'
+  ...
+# Subtest: exact primary 5.3: sh stdin-cat-shared-binary-data
+ok 107 - exact primary 5.3: sh stdin-cat-shared-binary-data
+  ---
+  duration_ms: 0.30225
+  type: 'test'
+  ...
+# Subtest: exact primary 5.3: sh stdin-read-shared-cursor
+ok 108 - exact primary 5.3: sh stdin-read-shared-cursor
+  ---
+  duration_ms: 0.781125
+  type: 'test'
+  ...
+# Subtest: exact primary 5.3: sh stdin-read-same-unit
+ok 109 - exact primary 5.3: sh stdin-read-same-unit
+  ---
+  duration_ms: 0.691334
+  type: 'test'
+  ...
+# Subtest: exact primary 5.3: sh stdin-read-one-byte
+ok 110 - exact primary 5.3: sh stdin-read-one-byte
+  ---
+  duration_ms: 0.502417
+  type: 'test'
+  ...
+# Subtest: exact primary 5.3: sh stdin-final-no-newline
+ok 111 - exact primary 5.3: sh stdin-final-no-newline
+  ---
+  duration_ms: 0.294375
+  type: 'test'
+  ...
+# Subtest: exact primary 5.3: sh stdin-compound
+ok 112 - exact primary 5.3: sh stdin-compound
+  ---
+  duration_ms: 0.625791
+  type: 'test'
+  ...
+# Subtest: exact primary 5.3: sh stdin-continuation
+ok 113 - exact primary 5.3: sh stdin-continuation
+  ---
+  duration_ms: 0.332333
+  type: 'test'
+  ...
+# Subtest: exact primary 5.3: sh stdin-quote
+ok 114 - exact primary 5.3: sh stdin-quote
+  ---
+  duration_ms: 0.547708
+  type: 'test'
+  ...
+# Subtest: exact primary 5.3: sh stdin-substitution
+ok 115 - exact primary 5.3: sh stdin-substitution
+  ---
+  duration_ms: 0.578292
+  type: 'test'
+  ...
+# Subtest: exact primary 5.3: sh stdin-comments-and-blank
+ok 116 - exact primary 5.3: sh stdin-comments-and-blank
+  ---
+  duration_ms: 0.303625
+  type: 'test'
+  ...
+# Subtest: exact primary 5.3: sh stdin-heredoc
+ok 117 - exact primary 5.3: sh stdin-heredoc
+  ---
+  duration_ms: 2.241708
+  type: 'test'
+  ...
+# Subtest: exact primary 5.3: sh stdin-two-heredocs
+ok 118 - exact primary 5.3: sh stdin-two-heredocs
+  ---
+  duration_ms: 1.010125
+  type: 'test'
+  ...
+# Subtest: exact primary 5.3: sh stdin-pipeline-continuation
+ok 119 - exact primary 5.3: sh stdin-pipeline-continuation
+  ---
+  duration_ms: 1.041625
+  type: 'test'
+  ...
+# Subtest: exact primary 5.3: sh stdin-exit-preserves-effects
+ok 120 - exact primary 5.3: sh stdin-exit-preserves-effects
+  ---
+  duration_ms: 0.698292
+  type: 'test'
+  ...
+# Subtest: exact primary 5.3: sh stdin-later-syntax
+ok 121 - exact primary 5.3: sh stdin-later-syntax
+  ---
+  duration_ms: 0.506666
+  type: 'test'
+  ...
+# Subtest: exact primary 5.3: sh stdin-incomplete-eof
+ok 122 - exact primary 5.3: sh stdin-incomplete-eof
+  ---
+  duration_ms: 0.588625
+  type: 'test'
+  ...
+# Subtest: exact primary 5.3: sh c-later-syntax
+ok 123 - exact primary 5.3: sh c-later-syntax
+  ---
+  duration_ms: 0.497917
+  type: 'test'
+  ...
+# Subtest: exact primary 5.3: sh c-environment-status
+ok 124 - exact primary 5.3: sh c-environment-status
+  ---
+  duration_ms: 0.512125
+  type: 'test'
+  ...
+# Subtest: exact primary 5.3: sh path-first-executable
+ok 125 - exact primary 5.3: sh path-first-executable
+  ---
+  duration_ms: 0.500708
+  type: 'test'
+  ...
+# Subtest: exact primary 5.3: sh path-skips-directory
+ok 126 - exact primary 5.3: sh path-skips-directory
+  ---
+  duration_ms: 0.407
+  type: 'test'
+  ...
+# Subtest: exact primary 5.3: sh path-skips-dangling
+ok 127 - exact primary 5.3: sh path-skips-dangling
+  ---
+  duration_ms: 0.398292
+  type: 'test'
+  ...
+# Subtest: exact primary 5.3: sh path-symlink
+ok 128 - exact primary 5.3: sh path-symlink
+  ---
+  duration_ms: 0.379125
+  type: 'test'
+  ...
+# Subtest: exact primary 5.3: sh path-empty-component
+ok 129 - exact primary 5.3: sh path-empty-component
+  ---
+  duration_ms: 0.410583
+  type: 'test'
+  ...
+# Subtest: exact primary 5.3: sh path-empty
+ok 130 - exact primary 5.3: sh path-empty
+  ---
+  duration_ms: 0.37175
+  type: 'test'
+  ...
+# Subtest: exact primary 5.3: sh path-unset
+ok 131 - exact primary 5.3: sh path-unset
+  ---
+  duration_ms: 0.491917
+  type: 'test'
+  ...
+# Subtest: exact primary 5.3: sh path-prefix-assignment
+ok 132 - exact primary 5.3: sh path-prefix-assignment
+  ---
+  duration_ms: 0.473
+  type: 'test'
+  ...
+# Subtest: exact primary 5.3: sh path-function-precedence
+ok 133 - exact primary 5.3: sh path-function-precedence
+  ---
+  duration_ms: 0.339375
+  type: 'test'
+  ...
+# Subtest: exact primary 5.3: sh path-missing
+ok 134 - exact primary 5.3: sh path-missing
+  ---
+  duration_ms: 0.237584
+  type: 'test'
+  ...
+# Subtest: exact primary 5.3: sh path-empty-missing
+ok 135 - exact primary 5.3: sh path-empty-missing
+  ---
+  duration_ms: 0.431917
+  type: 'test'
+  ...
+# Subtest: exact primary 5.3: sh path-unset-missing
+ok 136 - exact primary 5.3: sh path-unset-missing
+  ---
+  duration_ms: 0.60725
+  type: 'test'
+  ...
+# Subtest: exact primary 5.3: sh path-directory-only
+ok 137 - exact primary 5.3: sh path-directory-only
+  ---
+  duration_ms: 2.92475
+  type: 'test'
+  ...
+# Subtest: exact primary 5.3: sh path-denied
+ok 138 - exact primary 5.3: sh path-denied
+  ---
+  duration_ms: 0.301334
+  type: 'test'
+  ...
+# Subtest: explicit diagnostic policy: sh path-unsupported-interpreter
+ok 139 - explicit diagnostic policy: sh path-unsupported-interpreter
+  ---
+  duration_ms: 0.297291
+  type: 'test'
+  ...
+# Subtest: explicit diagnostic policy: sh path-binary
+ok 140 - explicit diagnostic policy: sh path-binary
+  ---
+  duration_ms: 0.273208
+  type: 'test'
+  ...
+# Subtest: native-backed errexit invocation consumes source with exact output and no file effects
+ok 141 - native-backed errexit invocation consumes source with exact output and no file effects
+  ---
+  duration_ms: 0.50025
+  type: 'test'
+  ...
+# Subtest: unimplemented invocation flags reject explicitly before source consumption
+ok 142 - unimplemented invocation flags reject explicitly before source consumption
+  ---
+  duration_ms: 1.223417
+  type: 'test'
+  ...
+# Subtest: new modes isolate cwd, variables, function locals, options and exit
+ok 143 - new modes isolate cwd, variables, function locals, options and exit
+  ---
+  duration_ms: 1.46575
+  type: 'test'
+  ...
+# Subtest: stdin unit consumption preserves unread bytes across child exit
+ok 144 - stdin unit consumption preserves unread bytes across child exit
+  ---
+  duration_ms: 0.859541
+  type: 'test'
+  ...
+# Subtest: stdin command effects happen before requesting another source chunk
+ok 145 - stdin command effects happen before requesting another source chunk
+  ---
+  duration_ms: 0.626333
+  type: 'test'
+  ...
+# Subtest: UTF-8 source splits and binary data stay distinct
+ok 146 - UTF-8 source splits and binary data stay distinct
+  ---
+  duration_ms: 0.917083
+  type: 'test'
+  ...
+# Subtest: existing read -n consumes only its byte before source parsing resumes
+ok 147 - existing read -n consumes only its byte before source parsing resumes
+  ---
+  duration_ms: 0.679792
+  type: 'test'
+  ...
+# Subtest: strict source decoding rejects NUL, invalid UTF-8 and controls without executing that unit
+ok 148 - strict source decoding rejects NUL, invalid UTF-8 and controls without executing that unit
+  ---
+  duration_ms: 2.169541
+  type: 'test'
+  ...
+# Subtest: code-string and stdin aggregate source budgets count UTF-8 bytes, not UTF-16
+ok 149 - code-string and stdin aggregate source budgets count UTF-8 bytes, not UTF-16
+  ---
+  duration_ms: 1.05325
+  type: 'test'
+  ...
+# Subtest: all modes share command/output/loop budgets
+ok 150 - all modes share command/output/loop budgets
+  ---
+  duration_ms: 3.228416
+  type: 'test'
+  ...
+# Subtest: stdin provenance and invoke byte overrides reach parsed commands
+ok 151 - stdin provenance and invoke byte overrides reach parsed commands
+  ---
+  duration_ms: 1.086084
+  type: 'test'
+  ...
+# Subtest: stdin nested invocation inherits descriptor cursor without a new budget
+ok 152 - stdin nested invocation inherits descriptor cursor without a new budget
+  ---
+  duration_ms: 0.547583
+  type: 'test'
+  ...
+# Subtest: PATH respects effective nonexported variables, literal invoke and registry precedence
+ok 153 - PATH respects effective nonexported variables, literal invoke and registry precedence
+  ---
+  duration_ms: 0.555292
+  type: 'test'
+  ...
+# Subtest: PATH lookup is middleware-authorized and accepts cwd/environment overlays
+ok 154 - PATH lookup is middleware-authorized and accepts cwd/environment overlays
+  ---
+  duration_ms: 0.419417
+  type: 'test'
+  ...
+# Subtest: PATH rejects unknown permission capability and never probes host fallback
+ok 155 - PATH rejects unknown permission capability and never probes host fallback
+  ---
+  duration_ms: 0.563208
+  type: 'test'
+  ...
+# Subtest: PATH propagates backend denials and does not try a second readable interpreter
+ok 156 - PATH propagates backend denials and does not try a second readable interpreter
+  ---
+  duration_ms: 0.268875
+  type: 'test'
+  ...
+# Subtest: hard-bounded invocation regression: recursive-c
+ok 157 - hard-bounded invocation regression: recursive-c
+  ---
+  duration_ms: 125.551208
+  type: 'test'
+  ...
+# Subtest: hard-bounded invocation regression: recursive-stdin
+ok 158 - hard-bounded invocation regression: recursive-stdin
+  ---
+  duration_ms: 106.582875
+  type: 'test'
+  ...
+# Subtest: hard-bounded invocation regression: recursive-path
+ok 159 - hard-bounded invocation regression: recursive-path
+  ---
+  duration_ms: 112.590083
+  type: 'test'
+  ...
+# Subtest: hard-bounded invocation regression: cancel-lookup
+ok 160 - hard-bounded invocation regression: cancel-lookup
+  ---
+  duration_ms: 186.575333
+  type: 'test'
+  ...
+# Subtest: hard-bounded invocation regression: cancel-source
+ok 161 - hard-bounded invocation regression: cancel-source
+  ---
+  duration_ms: 185.447375
+  type: 'test'
+  ...
+# Subtest: hard-bounded invocation regression: cancel-drain
+ok 162 - hard-bounded invocation regression: cancel-drain
+  ---
+  duration_ms: 197.295833
+  type: 'test'
+  ...
+# Subtest: hard-bounded invocation regression: cancel-command
+ok 163 - hard-bounded invocation regression: cancel-command
+  ---
+  duration_ms: 196.592416
+  type: 'test'
+  ...
+# Subtest: hard-bounded invocation regression: cancel-empty-chunks
+ok 164 - hard-bounded invocation regression: cancel-empty-chunks
+  ---
+  duration_ms: 134.585791
+  type: 'test'
+  ...
+# Subtest: hard-bounded invocation regression: cancel-incomplete-unit
+ok 165 - hard-bounded invocation regression: cancel-incomplete-unit
+  ---
+  duration_ms: 134.04225
+  type: 'test'
+  ...
+# Subtest: hard-bounded invocation regression: late-source
+ok 166 - hard-bounded invocation regression: late-source
+  ---
+  duration_ms: 190.271459
+  type: 'test'
+  ...
+# Subtest: hard-bounded invocation regression: source-limit
+ok 167 - hard-bounded invocation regression: source-limit
+  ---
+  duration_ms: 111.671916
+  type: 'test'
+  ...
+# Subtest: hard-bounded invocation regression: output-limit
+ok 168 - hard-bounded invocation regression: output-limit
+  ---
+  duration_ms: 112.004083
+  type: 'test'
+  ...
+# Subtest: hard-bounded invocation regression: syntax-without-eof
+ok 169 - hard-bounded invocation regression: syntax-without-eof
+  ---
+  duration_ms: 111.244
+  type: 'test'
+  ...
+# Subtest: VFS script entry preserves literal arguments and argv0: ./program
+ok 170 - VFS script entry preserves literal arguments and argv0: ./program
+  ---
+  duration_ms: 6.046583
+  type: 'test'
+  ...
+# Subtest: VFS script entry preserves literal arguments and argv0: /program
+ok 171 - VFS script entry preserves literal arguments and argv0: /program
+  ---
+  duration_ms: 1.142833
+  type: 'test'
+  ...
+# Subtest: VFS script entry preserves literal arguments and argv0: bash program
+ok 172 - VFS script entry preserves literal arguments and argv0: bash program
+  ---
+  duration_ms: 1.127417
+  type: 'test'
+  ...
+# Subtest: VFS script entry preserves literal arguments and argv0: bash -- ./program
+ok 173 - VFS script entry preserves literal arguments and argv0: bash -- ./program
+  ---
+  duration_ms: 1.573916
+  type: 'test'
+  ...
+# Subtest: explicit interpreter accepts readable nonexecutable text and dash filenames after --
+ok 174 - explicit interpreter accepts readable nonexecutable text and dash filenames after --
+  ---
+  duration_ms: 1.206666
+  type: 'test'
+  ...
+# Subtest: empty filename is missing, not a cwd directory invocation
+ok 175 - empty filename is missing, not a cwd directory invocation
+  ---
+  duration_ms: 0.891708
+  type: 'test'
+  ...
+# Subtest: script argv0 and empty positional list survive substitutions and subshells
+ok 176 - script argv0 and empty positional list survive substitutions and subshells
+  ---
+  duration_ms: 1.372375
+  type: 'test'
+  ...
+# Subtest: script invocation never evaluates host-style startup environment variables
+ok 177 - script invocation never evaluates host-style startup environment variables
+  ---
+  duration_ms: 7.969417
+  type: 'test'
+  ...
+# Subtest: script process resets variables, functions, options, status and cwd without leaking
+ok 178 - script process resets variables, functions, options, status and cwd without leaking
+  ---
+  duration_ms: 3.340125
+  type: 'test'
+  ...
+# Subtest: function locals and return scope do not enter scripts
+ok 179 - function locals and return scope do not enter scripts
+  ---
+  duration_ms: 2.442209
+  type: 'test'
+  ...
+# Subtest: VFS relative paths, symlinks, cwd and argv0 stay virtual
+ok 180 - VFS relative paths, symlinks, cwd and argv0 stay virtual
+  ---
+  duration_ms: 0.682041
+  type: 'test'
+  ...
+# Subtest: script exit is bounded to the child and error lines restart per file
+ok 181 - script exit is bounded to the child and error lines restart per file
+  ---
+  duration_ms: 1.316
+  type: 'test'
+  ...
+# Subtest: registry and functions keep precedence and middleware can deny before VFS access
+ok 182 - registry and functions keep precedence and middleware can deny before VFS access
+  ---
+  duration_ms: 0.977791
+  type: 'test'
+  ...
+# Subtest: invoke resolves VFS scripts with literal argv, middleware, environment and cwd
+ok 183 - invoke resolves VFS scripts with literal argv, middleware, environment and cwd
+  ---
+  duration_ms: 1.052583
+  type: 'test'
+  ...
+# Subtest: invoke stream overrides and descriptors reach scripts without acquiring parent streams
+ok 184 - invoke stream overrides and descriptors reach scripts without acquiring parent streams
+  ---
+  duration_ms: 1.135375
+  type: 'test'
+  ...
+# Subtest: middleware cwd/environment govern the script entrypoint
+ok 185 - middleware cwd/environment govern the script entrypoint
+  ---
+  duration_ms: 0.766958
+  type: 'test'
+  ...
+# Subtest: direct script native-backed executable fallback preserves bytes and files: plain
+ok 186 - direct script native-backed executable fallback preserves bytes and files: plain
+  ---
+  duration_ms: 0.71725
+  type: 'test'
+  ...
+# Subtest: direct script native-backed executable fallback preserves bytes and files: env
+ok 187 - direct script native-backed executable fallback preserves bytes and files: env
+  ---
+  duration_ms: 1.292
+  type: 'test'
+  ...
+# Subtest: direct script native-backed errexit shebang preserves bytes, mode and namespace: options
+ok 188 - direct script native-backed errexit shebang preserves bytes, mode and namespace: options
+  ---
+  duration_ms: 0.3655
+  type: 'test'
+  ...
+# Subtest: direct script rejection has status 126 and no body effects: noexec
+ok 189 - direct script rejection has status 126 and no body effects: noexec
+  ---
+  duration_ms: 0.274666
+  type: 'test'
+  ...
+# Subtest: direct script rejection has status 126 and no body effects: noread
+ok 190 - direct script rejection has status 126 and no body effects: noread
+  ---
+  duration_ms: 0.192084
+  type: 'test'
+  ...
+# Subtest: direct script rejection has status 126 and no body effects: python
+ok 191 - direct script rejection has status 126 and no body effects: python
+  ---
+  duration_ms: 1.365333
+  type: 'test'
+  ...
+# Subtest: direct script rejection has status 126 and no body effects: nul
+ok 192 - direct script rejection has status 126 and no body effects: nul
+  ---
+  duration_ms: 0.318375
+  type: 'test'
+  ...
+# Subtest: missing, dangling, directory and host-looking paths never fall through
+ok 193 - missing, dangling, directory and host-looking paths never fall through
+  ---
+  duration_ms: 1.1415
+  type: 'test'
+  ...
+# Subtest: bare commands now PATH-search executable VFS scripts
+ok 194 - bare commands now PATH-search executable VFS scripts
+  ---
+  duration_ms: 0.517209
+  type: 'test'
+  ...
+# Subtest: unknown execution permission capability is rejected without reading script bytes
+ok 195 - unknown execution permission capability is rejected without reading script bytes
+  ---
+  duration_ms: 0.536125
+  type: 'test'
+  ...
+# Subtest: backend permission errors, signals and byte ceilings remain authoritative
+ok 196 - backend permission errors, signals and byte ceilings remain authoritative
+  ---
+  duration_ms: 0.369625
+  type: 'test'
+  ...
+# Subtest: new interpreter modes are valid while incompatible headers and binary bytes remain rejected
+ok 197 - new interpreter modes are valid while incompatible headers and binary bytes remain rejected
+  ---
+  duration_ms: 1.896542
+  type: 'test'
+  ...
+# Subtest: whole script is parsed before body effects while parent continues
+ok 198 - whole script is parsed before body effects while parent continues
+  ---
+  duration_ms: 0.635375
+  type: 'test'
+  ...
+# Subtest: script stdin is streaming, byte-transparent, distinct from source and shared after exit
+ok 199 - script stdin is streaming, byte-transparent, distinct from source and shared after exit
+  ---
+  duration_ms: 1.034083
+  type: 'test'
+  ...
+# Subtest: script pipelines and inherited descriptors preserve exact bytes and parent ownership
+ok 200 - script pipelines and inherited descriptors preserve exact bytes and parent ownership
+  ---
+  duration_ms: 2.494125
+  type: 'test'
+  ...
+# Subtest: stdin provenance crosses direct, interpreter and invoke entrypoints without probing
+ok 201 - stdin provenance crosses direct, interpreter and invoke entrypoints without probing
+  ---
+  duration_ms: 1.830958
+  type: 'test'
+  ...
+# Subtest: nested scripts share initial source, command, output and loop budgets
+ok 202 - nested scripts share initial source, command, output and loop budgets
+  ---
+  duration_ms: 1.913166
+  type: 'test'
+  ...
+# Subtest: exact source limit boundary admits one script and never reads oversized source
+ok 203 - exact source limit boundary admits one script and never reads oversized source
+  ---
+  duration_ms: 0.436834
+  type: 'test'
+  ...
+# Subtest: hard-bounded script regression: recursion
+ok 204 - hard-bounded script regression: recursion
+  ---
+  duration_ms: 134.535
+  type: 'test'
+  ...
+# Subtest: hard-bounded script regression: cancel-stat
+ok 205 - hard-bounded script regression: cancel-stat
+  ---
+  duration_ms: 185.282625
+  type: 'test'
+  ...
+# Subtest: hard-bounded script regression: cancel-read
+ok 206 - hard-bounded script regression: cancel-read
+  ---
+  duration_ms: 184.168875
+  type: 'test'
+  ...
+# Subtest: hard-bounded script regression: cancel-command
+ok 207 - hard-bounded script regression: cancel-command
+  ---
+  duration_ms: 178.511459
+  type: 'test'
+  ...
+# Subtest: hard-bounded script regression: late-rejection
+ok 208 - hard-bounded script regression: late-rejection
+  ---
+  duration_ms: 186.847834
+  type: 'test'
+  ...
+# Subtest: hard-bounded script regression: output-limit
+ok 209 - hard-bounded script regression: output-limit
+  ---
+  duration_ms: 115.08225
+  type: 'test'
+  ...
+# Subtest: hard-bounded script regression: source-limit
+ok 210 - hard-bounded script regression: source-limit
+  ---
+  duration_ms: 119.069375
+  type: 'test'
+  ...
+1..210
+# tests 210
+# suites 0
+# pass 203
+# fail 7
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 2202.929834

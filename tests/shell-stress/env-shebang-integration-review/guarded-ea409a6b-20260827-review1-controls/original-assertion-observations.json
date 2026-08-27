@@ -1,0 +1,159 @@
+{
+  "compiledEntry": "/tmp/env-shebang-review-controls-O32NVL/source/dist/index.js",
+  "originals": [
+    {
+      "id": "core-literal",
+      "optional": "bash -e",
+      "source": "#!/usr/bin/env bash -e\nprintf forbidden > marker\n",
+      "cwd": "/work",
+      "command": "./script",
+      "file": "/work/script",
+      "assertion": "resume-host.ts:94 exitCode===126; stdout===empty; stderr matches unsupported interpreter; namespace only script",
+      "observed": {
+        "status": 127,
+        "stdout": "",
+        "stderr": "env: bash -e: command not found\n",
+        "entries": [
+          "script"
+        ],
+        "scriptUnchanged": true
+      },
+      "disposed": true
+    },
+    {
+      "id": "errexit-1",
+      "optional": "bash -e",
+      "source": "#!/usr/bin/env bash -e\nprintf BAD\n",
+      "cwd": "/",
+      "command": "/script",
+      "file": "/script",
+      "assertion": "errexit-host.test.ts:131 exitCode===126; stdout===empty; stderr matches unsupported interpreter",
+      "observed": {
+        "status": 127,
+        "stdout": "",
+        "stderr": "env: bash -e: command not found\n",
+        "entries": [
+          "script"
+        ],
+        "scriptUnchanged": true
+      },
+      "disposed": true
+    },
+    {
+      "id": "errexit-2",
+      "optional": "-S bash -e",
+      "source": "#!/usr/bin/env -S bash -e\nprintf BAD\n",
+      "cwd": "/",
+      "command": "/script",
+      "file": "/script",
+      "assertion": "errexit-host.test.ts:131 exitCode===126; stdout===empty; stderr matches unsupported interpreter",
+      "observed": {
+        "status": 0,
+        "stdout": "BAD",
+        "stderr": "",
+        "entries": [
+          "script"
+        ],
+        "scriptUnchanged": true
+      },
+      "disposed": true
+    },
+    {
+      "id": "expanded-1",
+      "optional": "bash -e",
+      "source": "#!/usr/bin/env bash -e\nprintf forbidden",
+      "cwd": "/",
+      "command": "/script",
+      "file": "/script",
+      "assertion": "expanded-gaps-env-host.test.ts:7 exitCode===126; stdout===empty; stderr matches unsupported interpreter",
+      "observed": {
+        "status": 127,
+        "stdout": "",
+        "stderr": "env: bash -e: command not found\n",
+        "entries": [
+          "script"
+        ],
+        "scriptUnchanged": true
+      },
+      "disposed": true
+    },
+    {
+      "id": "expanded-2",
+      "optional": "-S bash -e",
+      "source": "#!/usr/bin/env -S bash -e\nprintf forbidden",
+      "cwd": "/",
+      "command": "/script",
+      "file": "/script",
+      "assertion": "expanded-gaps-env-host.test.ts:7 exitCode===126; stdout===empty; stderr matches unsupported interpreter",
+      "observed": {
+        "status": 0,
+        "stdout": "forbidden",
+        "stderr": "",
+        "entries": [
+          "script"
+        ],
+        "scriptUnchanged": true
+      },
+      "disposed": true
+    },
+    {
+      "id": "expanded-3",
+      "optional": "python",
+      "source": "#!/usr/bin/env python\nprintf forbidden",
+      "cwd": "/",
+      "command": "/script",
+      "file": "/script",
+      "assertion": "expanded-gaps-env-host.test.ts:7 exitCode===126; stdout===empty; stderr matches unsupported interpreter",
+      "observed": {
+        "status": 127,
+        "stdout": "",
+        "stderr": "env: python: command not found\n",
+        "entries": [
+          "script"
+        ],
+        "scriptUnchanged": true
+      },
+      "disposed": true
+    },
+    {
+      "id": "expanded-4",
+      "optional": null,
+      "source": "#!/usr/bin/env\nprintf forbidden",
+      "cwd": "/",
+      "command": "/script",
+      "file": "/script",
+      "assertion": "expanded-gaps-env-host.test.ts:7 exitCode===126; stdout===empty; stderr matches unsupported interpreter",
+      "observed": {
+        "error": {
+          "name": "ShellLimitError",
+          "message": "Shell limit exceeded: maxSubstitutionDepth",
+          "limit": "maxSubstitutionDepth"
+        },
+        "entries": [
+          "script"
+        ],
+        "scriptUnchanged": true
+      },
+      "disposed": true
+    },
+    {
+      "id": "expanded-5",
+      "optional": "bash\r",
+      "source": "#!/usr/bin/env bash\r\nprintf forbidden",
+      "cwd": "/",
+      "command": "/script",
+      "file": "/script",
+      "assertion": "expanded-gaps-env-host.test.ts:7 exitCode===126; stdout===empty; stderr matches unsupported interpreter",
+      "observed": {
+        "status": 127,
+        "stdout": "",
+        "stderr": "env: bash\r: command not found\n",
+        "entries": [
+          "script"
+        ],
+        "scriptUnchanged": true
+      },
+      "disposed": true
+    }
+  ]
+}

@@ -1,0 +1,151 @@
+ADMISSION v3.1 — MINIMAL CONSUMER-FAILURE TERMINAL AMENDMENT — 2026-08-27
+
+AUTHORITY / HOLD
+Author/reviewer owns only this new admission-v3.1 subtree. Root routes the
+report to Raman; no direct channel. This is one separately frozen attempt,
+not a rescore of eb56ed1eff6e7061aa219fb4877bc2382cf15a27 or evidence
+769678dda195c8f77a91563274accec6e685ec4d. Their HOLD remains: 5 declared,
+3 executed, 2 expected, 1 unexpected; timeout/allocation mutant unexecuted.
+Old positive sampled RSS117342208 is not rerun evidence or repaired evidence.
+Three v2 development failures and the v3 static mistake remain authenticated,
+unaltered. Old independent RSS numeric and exact cause remain unrecoverable/
+UNKNOWN; old original runner raw rejection remains unrecovered. No attestation
+repair. HTML34, four later materializer/reconstruction controls, full410 build,
+pack/archive reconstruction remain HELD. Expr/TAP queued, not performed here.
+Candidate/source/tree/archive/pack PIN bindings are PROVENANCE ONLY.
+No product runtime/import, npm/build, full archive, branch/ref creation, private
+repo write or unrelated worktree edit. Unrelated changes do not enter this gate.
+One new pre-freeze static design mistake is preserved in STATIC-MISTAKE-01.json,
+including exact prior draft bytes/hashes. Initial STATIC-CHECKS.json was syntax
+only; STATIC-FINAL.json authenticates the final corrected pre-execution sources.
+
+AUTHENTICATED BASE / SOURCE INSPECTION
+PIN.json authenticates every immutable v3 recipe file, v3 recipe/evidence
+manifest, selected exact failure receipts/report and the unchanged v2 sources.
+Recipe manifest SHA35b2bc609846404b62ebcdd41dd3e3f57fe9a4d35940ea85d604e4f99495b037.
+Evidence manifest SHA0399f7e288c22a52447383684a1d3d790d066171041e299bf41eb042e783454c.
+Base v2 aa4374b0ab5f0789e51026b7c6fe163c044a9a6c, seal
+82347c76a2730e7ddbab6c696c5558b657edc6b4701549505ef4e557420c6aa7.
+Complete core remains byte-identical, SHA
+446c14f2e12753b8933aa307f7ce8b0dec90dd251bbd613e64a484c26397340d;
+producer fixture remains byte-identical, SHA
+74611a26193e2bf826e7ab91d4972ee5fc8463b9b4aebfacef9d3a7dde2df48c.
+telemetry.mjs and authenticate.mjs are also byte-identical copies. Other old
+recipe files are either explicitly amended copies or authenticated immutable
+dependencies, not silently omitted. AMENDMENT.json gives base/patched hashes;
+MANIFEST.json covers all new recipe files except its own externally supplied hash.
+
+Narrow core inspection: hashStream awaits the caller; abrupt iterator exit
+closes its readable. hashProcess captures the same error, calls child.kill(),
+awaits child close, attaches process status, then rethrows the original object.
+Worker writes receipt after that await; coordinator awaits worker close before
+reap probes/raw receipt/assertions. Old core-reported producer status1/null
+and the supervisor receipt-before-worker-close chronology plus absent PID/group
+probes do NOT show a cleanup barrier violation. Old stderr prints EPIPE/write
+but is only text, not a structured observer receipt. It is not retroactively
+upgraded. child.kill() source does not prove successful SIGTERM delivery.
+
+PREDICATE VS NECESSARY OBSERVATION
+Only the consumer-failure terminal predicate changes. It accepts original
+producer statusnull/SIGTERM, or status1/signalnull with newly observed structured
+EPIPE/write/errno-32 on this producer's actual stdout error object and matching
+consumer-close context. Both paths require exact caller code/message, original
+error-object forwarding, consumer status17, producer/consumer PID bindings,
+producer exit/close before core settlement, pipe close after caller failure,
+both PIDs absent and empty process group before harness settlement, bounded
+elapsed time below45000ms, and no emergency/supervisor kill. Raw numeric/status
+telemetry precedes verdict assertions. Missing evidence fails, never inferred
+from an arbitrary stderr substring or relabeled structured evidence.
+
+Observation additions apply ONLY to actual consumer-failure. The worker briefly
+wraps child_process.spawn, forwards receiver/arguments/result unchanged, attaches
+stdout-close and child-exit/close observers, and synchronizes builtin exports so
+the byte-identical core uses that wrapper. It restores spawn at core rejection.
+It does not intercept destroy/error/kill, attach a stdout error handler, change
+signal disposition, swallow an error or add a second cleanup implementation.
+Immediately before throwing at real chunk16, the worker durably records a
+fresh random token, exact caller reason and both PIDs. A producer-only
+uncaughtExceptionMonitor observes error fields and identity with the error seen
+by stdout's non-handling events.errorMonitor, stdout descriptor1 and raw
+destroyed/errored state, PID/PPID/token and that already-written caller
+marker. It neither catches the exception nor sets exitCode. The existing v3
+stdout write/drain and SIGTERM telemetry behavior is otherwise unchanged.
+The structured observation is saved independently and in the producer receipt.
+Worker event sequence independently proves local pipe close/child close/core
+settlement order; no cross-process wall-clock ordering is presumed. EPIPE cause
+is bound to the actual error object on the sole stdout pipe connected to this
+failed consumer, not just a co-occurring error string. This is trusted fixture
+instrumentation, not a defense against a malicious host forging every receipt.
+The pinned runtime's stdout dummyDestroy resets stream state via _undestroy;
+therefore errored/destroyed at uncaught observation are recorded, not assumed.
+events.errorMonitor observes without consuming error or changing error handling.
+Observation overhead is included in actual consumer memory, without subtraction.
+
+FIXED ORDER / DENOMINATORS / NO DEVELOPMENT EXECUTION
+After PRE authentication, first run the 28 explicitly SYNTHETIC predicate rows
+in SYNTHETIC-CASES.json: two acceptance controls and26 rejection controls.
+All synthetic input records are durable before evaluating the first predicate.
+Each rejection must reach the exact named predicate stage, not merely throw or
+fail setup. They are invented data, never actual process/historical evidence.
+Stop on first mismatch; preserve executed/unexecuted names. No development runs.
+Only if all28 match, run exactly the original five real controls, once in order:
+1 positive, 2 producer-exit7, 3 consumer-failure, 4 timeout, 5 allocation-mutant.
+Original flow/byte/hash/status and timeout/allocation assertions remain intact,
+including mandatory SIGTERM for timeout and allocation producer termination.
+The EPIPE exception is NOT available in positive, timeout or allocation paths.
+Timeout still waits at chunk16, gets supervisor abort after250ms, forwards
+V3_TIMEOUT, and must reap. Mutant still retains touched8MiB buffers, detects
+absolute RSS>=268435456 with <64MiB overshoot, stops allocations, aborts core,
+persists resource/numeric receipts, confirms producer absent, then SIGTERMs
+the actual allocating consumer. It is not an assertion-only mutant.
+Any unexpected real outcome stops remaining real controls, no repair/retry.
+Remaining controls are explicitly unexecuted, not passes. Postflight and seals
+still run. Genuine barrier violation is a bug/HOLD, never predicate weakening.
+
+MEMORY / FLOW POLICY UNCHANGED
+Positive transfers1073872896 bytes of0x61, producer16386 writes of65536, digest
+f5b4c8bf0f2f882ef51effdb305a5edf1c8c657d05ba2fd7594c679478fe668f.
+Both original native sampled maxRssBytes and consumer fieldwise sampled RSS
+must be absolute strict <268435456. Fresh dedicated consumer PROCESS only;
+not a thread, allocation delta, lifetime resourceUsage peak, whole supervisor,
+whole verifier or process-tree claim. No baseline subtraction, forced GC,
+threshold increase or silent retry. Unobserved peaks remain unbounded.
+Producer memory is separate. Supervisor memory is recorded and excluded from
+this component metric, not waived as a total-verifier promise. Preserve all
+rss/heapUsed/heapTotal/external/arrayBuffers baseline, fieldwise peak and latest
+values, chunks, pending consumers/bytes, write/drain/queue observations and
+statuses even on failure, before assertions. Fieldwise peaks need not coincide.
+No host-load isolation guarantee. Parent/children use pinned Node22.22.2 and
+children --max-old-space-size=96. Child environment is explicit, not ambient
+NODE_OPTIONS, credentials or preloads. Core/producer byte contents unchanged.
+
+FREEZE / EXECUTION / SEAL / RELOCATION
+Before any synthetic or actual controls: static syntax/JSON/hash checks only,
+record all mistakes if any, then explicit-path --only FIRST commit of recipe,
+observations, negatives, expectations, PIN/tool/source/pre-run manifests.
+Execute the coordinator exactly ONCE using that commit and manifest hash with
+nonexisting admission-v3.1/execution-01, capturing stdout/stderr/exit status.
+No product/archive execution during either static preparation or this recipe.
+The repository and output paths are derived relative to recipe location.
+Replay requires the same pinned tools/platform and small immutable Git inputs;
+root authorization, a new nonexistent owned output directory and new capture
+names are required. This task authorizes only execution-01, not a replay now.
+PRE/POST verify exact committed and current recipe file/directory inventories,
+including new files/empty directories, and all pinned historical inputs/tools.
+Unrelated live inputs neither veto nor enter the committed recipe. This is not
+a whole-repository append-proof claim. Authentication mismatch blocks execution.
+
+NODE=/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node
+OWNED=tests/integration/html-public-independent-20260827/admission-v3.1
+"$NODE" "$OWNED/recipe/coordinator.mjs" "$FREEZE" "$MANIFEST_SHA256" \
+  "$OWNED/execution-01" >"$OWNED/execution-01.stdout.data" \
+  2>"$OWNED/execution-01.stderr.data"
+STATUS=$?
+printf '%s\n' "$STATUS" >"$OWNED/execution-01.exit.data"
+
+SECOND explicit-path --only evidence commit seals ALL raw telemetry, outputs,
+chronology, failures, source/static mistakes, final report/inventory/manifest.
+No frozen-source modification after execution, even on obvious fixture error.
+Post-run read-only authentication is allowed, not a retry. Report exact seals,
+base/patched hashes, actual and synthetic denominators, RSS, strict remaining
+control outcomes, reaping and defects/HOLDs. No admission or global-gate claim.

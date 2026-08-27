@@ -188,10 +188,12 @@ test("missing, dangling, directory and host-looking paths never fall through", a
   }
 });
 
-test("bare commands never PATH-search scripts", async () => {
+test("bare commands now PATH-search executable VFS scripts", async () => {
   const { shell, fs } = setup({ env: { PATH: "/" } });
   await script(fs, "/program", "#!/bin/bash\nsay bad");
-  assert.equal((await shell.exec("program")).exitCode, 127);
+  const result = await shell.exec("program");
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(result.stdout, "bad\n");
 });
 
 test("unknown execution permission capability is rejected without reading script bytes", async () => {
@@ -228,12 +230,12 @@ test("backend permission errors, signals and byte ceilings remain authoritative"
   assert.deepEqual(accesses, [5, 4]);
 });
 
-test("explicit interpreter rejects unsupported modes, incompatible headers and binary bytes", async () => {
+test("new interpreter modes are valid while incompatible headers and binary bytes remain rejected", async () => {
   const { shell, fs } = setup();
   for (const command of ["bash", "bash -c 'say bad'", "bash -s", "bash -", "bash --"]) {
     const result = await shell.exec(command);
-    assert.equal(result.exitCode, 2, result.stderr);
-    assert.equal(result.stdout, "");
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdout, command === "bash -c 'say bad'" ? "bad\n" : "");
   }
   for (const bytes of [Uint8Array.of(0, 255), Uint8Array.of(255), Uint8Array.of(127, 69, 76, 70), encoder.encode("#!/bin/sh\nsay bad")]) {
     await fs.writeFile("/program", bytes);

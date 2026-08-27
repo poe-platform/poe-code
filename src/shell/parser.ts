@@ -82,12 +82,14 @@ export interface Script {
   readonly line?: number;
 }
 
+class IncompleteShellInput extends Error {}
+
 class Lexer {
   position = 0;
   delimiterOperator: string | undefined;
   readonly documents: HereDocument[] = [];
 
-  constructor(readonly source: string, readonly depth: number, readonly warnings: string[] = [], readonly lineOffset = 0, readonly byteLocale = false, readonly documentLine?: number) {
+  constructor(readonly source: string, readonly depth: number, readonly warnings: string[] = [], readonly lineOffset = 0, readonly byteLocale = false, readonly documentLine?: number, readonly partial = false) {
     if (depth > 64) throw new ShellSyntaxError("Syntax nesting exceeds 64", 0);
   }
 
@@ -110,6 +112,7 @@ class Lexer {
     }
     const offset = this.position;
     if (offset === this.source.length) {
+      if (this.partial) throw new IncompleteShellInput();
       this.readDocuments();
       return { kind: "end", value: "", offset, end: offset };
     }
@@ -165,6 +168,7 @@ class Lexer {
         }
         body += (document.stripTabs ? line.replace(/^\t+/u, "") : line) + "\n";
       }
+      if (!terminated && this.partial) throw new IncompleteShellInput();
       if (!terminated) this.warnings.push(`here-document at offset ${document.offset} delimited by end-of-file (wanted ${JSON.stringify(document.delimiter)})`);
       document.body = body;
       document.endLine = this.lineAt(Math.max(0, this.position - 1));
@@ -429,9 +433,9 @@ class Parser {
   nesting = 0;
   readonly openCommands: { name: string; line: number }[] = [];
 
-  constructor(source: string, depth: number, warnings: string[] = [], lineOffset = 0, position?: number, byteLocale = false) {
+  constructor(source: string, depth: number, warnings: string[] = [], lineOffset = 0, position?: number, byteLocale = false, partial = false) {
     if (position === undefined && depth === 0 && source.includes("\0")) throw new ShellSyntaxError("NUL bytes are not valid shell source", source.indexOf("\0"));
-    this.lexer = new Lexer(source, depth, warnings, lineOffset, byteLocale);
+    this.lexer = new Lexer(source, depth, warnings, lineOffset, byteLocale, undefined, partial);
     this.lexer.position = position ?? 0;
     this.current = this.lexer.next();
   }
@@ -665,6 +669,19 @@ export function parseShellUnit(source: string, position = 0, byteLocale = false)
   const nul = source.indexOf("\0", position);
   if (nul >= 0 && nul < next) throw new ShellSyntaxError("NUL bytes are not valid shell source", nul);
   return { script: { ...script, ...(warnings.length ? { warnings } : {}) }, next };
+}
+
+export function parseShellInputUnit(source: string, byteLocale = false): { script: Script; next: number } | undefined {
+  const warnings: string[] = [];
+  try {
+    const parser = new Parser(source, 0, warnings, 0, 0, byteLocale, true);
+    const script = parser.script(new Set(), true);
+    return { script: { ...script, ...(warnings.length ? { warnings } : {}) }, next: parser.current.end };
+  } catch (error) {
+    if (error instanceof IncompleteShellInput) return undefined;
+    if (error instanceof ShellSyntaxError && (/^Unterminated|^Trailing escape/u.test(error.reason) || (error.offset >= source.length && !/Unsupported|unsupported|nesting|exceeds/u.test(error.reason)))) return undefined;
+    throw error;
+  }
 }
 
 function parseSource(source: string, depth: number, warnings: string[], lineOffset = 0, byteLocale = false): Script {

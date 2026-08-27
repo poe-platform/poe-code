@@ -1,5 +1,10 @@
 # Contained virtual script entrypoints
 
+Historical file-only checkpoint. The subsequent bounded invocation batch in
+`INVOCATION_MODES.md` adds command-string/stdin modes and PATH dispatch, superseding
+only the unsupported-mode/PATH statements below. Its unchanged file-loader
+policies and this checkpoint's original results remain recorded here.
+
 Author checkpoint, August 26, 2026. This adds VFS script dispatch to the existing
 virtual shell, not a native Bash executable or a new public plugin/API. The full
 Bash goal, superiority requirement and requested 72 hours remain unfulfilled by

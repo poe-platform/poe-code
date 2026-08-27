@@ -5,7 +5,7 @@ import type {
   ByteSink, ByteSource, CommandContext, CommandRegistry, FileSystem, Middleware,
 } from "../contracts/index.js";
 import type { Command, HereDocument, Pipeline, Redirect, Script, Word, WordPart } from "./parser.js";
-import { HereDocumentSyntaxError, hereDocumentWords, parseShellUnit } from "./parser.js";
+import { HereDocumentSyntaxError, hereDocumentWords, parseShellInputUnit, parseShellUnit } from "./parser.js";
 import { ShellLimitError, ShellSyntaxError } from "./types.js";
 import type { ShellCommandContext, ShellInvokeOptions, ShellLimits } from "./types.js";
 import { ShellInput } from "./input.js";
@@ -127,6 +127,7 @@ export interface State {
   functions: Map<string, Command>;
   positional: string[];
   arg0?: string;
+  pathUnset?: boolean;
   status: number;
   substitutionStatus: number;
   depth: number;
@@ -749,7 +750,10 @@ export class Runtime {
         }
         const definition = this.commands.get(context.command);
         if (!definition) {
-          if (context.command === "bash" || context.command.includes("/")) return { exitCode: await this.scriptFile(context, state, io) };
+          if (context.command === "bash" || context.command === "sh") return { exitCode: await this.interpreter(context, state, io) };
+          if (context.command.includes("/") || state.variables.PATH === undefined && state.pathUnset) return { exitCode: await this.scriptFile(context, state, io, context.command, context.args, true) };
+          const target = await this.searchPath(context.command, state);
+          if (target !== undefined) return { exitCode: await this.scriptFile(context, state, io, target, context.args, true) };
           const prefix = io.scriptName === undefined ? "" : `${io.scriptName}: line ${io.diagnosticLine ?? 1}: `;
           await writeText(context.stderr, `${prefix}${context.command}: command not found\n`);
           return { exitCode: 127 };
@@ -773,14 +777,154 @@ export class Runtime {
     }
   }
 
-  async scriptFile(context: CommandContext, state: State, io: IO): Promise<number> {
-    const direct = context.command !== "bash";
+  async searchPath(name: string, state: State): Promise<string | undefined> {
+    if (!name) return undefined;
+    const path = state.variables.PATH;
+    if (path !== undefined && Buffer.byteLength(path) > this.budget.limits.maxExpansionBytes) this.budget.fail("maxExpansionBytes");
+    const components = path === undefined ? [undefined] : path.split(":");
+    if (components.length > this.budget.limits.maxExpansionFields) this.budget.fail("maxExpansionFields");
+    let denied: CommandFailure | undefined;
+    for (const component of components) {
+      this.signal.throwIfAborted();
+      const target = component === undefined ? name : `${component || "."}${component?.endsWith("/") ? "" : "/"}${name}`;
+      const resolved = resolvePath(state.cwd, target);
+      try {
+        const options = { signal: this.signal };
+        if ((await interruptible(this.fs.stat(resolved, options), this.signal)).type !== "file") continue;
+        if (this.fs.capabilities.permissions !== true) throw new CommandFailure(`${target}: execution permissions are not supported by this filesystem`, 126);
+        await interruptible(this.fs.access(resolved, ACCESS_MODES.X_OK, options), this.signal);
+        return target;
+      } catch (error) {
+        this.signal.throwIfAborted();
+        if (error instanceof CommandFailure) throw error;
+        const code = errorCode(error);
+        if (code === "ENOENT" || code === "ENOTDIR") continue;
+        if (code !== "EACCES" && code !== "EPERM") throw new CommandFailure(filesystemDiagnostic(error, target) ?? `${target}: ${message(error)}`, 126);
+        denied ??= new CommandFailure(filesystemDiagnostic(error, target) ?? `${target}: ${message(error)}`, 126);
+      }
+    }
+    if (denied) throw denied;
+    return undefined;
+  }
+
+  processState(context: CommandContext, state: State, arg0: string, args: readonly string[]): State {
+    if (state.depth >= this.budget.limits.maxSubstitutionDepth) this.budget.fail("maxSubstitutionDepth");
+    const variables = Object.assign(Object.create(null) as Record<string, string>, context.env, { PWD: state.cwd });
+    return {
+      cwd: state.cwd, variables, exported: new Set(Object.keys(variables)), functions: new Map(),
+      positional: [...args], arg0, status: 0, substitutionStatus: 0, depth: state.depth + 1,
+      loopDepth: 0, functionDepth: 0, locals: [], pipefail: false, isolated: true,
+    };
+  }
+
+  async interpreter(context: CommandContext, state: State, io: IO): Promise<number> {
     const args = [...context.args];
-    if (!direct && args[0] === "--") args.shift();
-    else if (!direct && /^[+-]/u.test(args[0] ?? "")) throw new CommandFailure("bash: unsupported option; supported form: bash [--] file [args...]", 2);
-    const target = direct ? context.command : args.shift();
-    if (target === undefined || (!direct && target === "-")) throw new CommandFailure("bash: a VFS script file is required; stdin execution is not supported", 2);
-    if (target === "") throw new CommandFailure("bash: : No such file or directory", 127);
+    let commandString = false;
+    let standardInput = false;
+    while (args.length && /^[+-]/u.test(args[0]!)) {
+      const option = args.shift()!;
+      if (option === "--" || option === "-") break;
+      if (!/^-[cs]+$/u.test(option)) {
+        await writeText(context.stderr, `${context.command}: ${option}: unsupported option; supported flags are -c and -s\n`);
+        return 2;
+      }
+      commandString ||= option.includes("c");
+      standardInput ||= option.includes("s");
+    }
+    if (!commandString && !standardInput && args.length) return this.scriptFile(context, state, io, args[0]!, args.slice(1), false);
+    const source = commandString ? args.shift() : undefined;
+    if (commandString && source === undefined) {
+      await writeText(context.stderr, `${context.command}: -c: option requires an argument\n`);
+      return 2;
+    }
+    const arg0 = commandString ? args.shift() ?? context.command : context.command;
+    const child = this.processState(context, state, arg0, args);
+    const childIO = isolateIO({ ...io, ...context, diagnosticLine: 1, diagnosticOffset: 0, scriptName: arg0 });
+    if (source !== undefined) {
+      this.budget.source(Buffer.byteLength(source));
+      return this.runCommandString(source, child, childIO);
+    }
+    const input = new ShellInput(context.stdin, this.budget, this.signal);
+    return this.runStandardInput(input, child, { ...childIO, stdin: input });
+  }
+
+  async syntaxFailure(error: ShellSyntaxError, source: string, io: IO, commandString: boolean): Promise<number> {
+    const offset = io.diagnosticOffset ?? 0;
+    const line = source.slice(0, error.offset).split("\n").length;
+    const prefix = `${io.scriptName ?? "shell"}:${commandString ? " -c:" : ""}`;
+    if (error.unclosedQuote) await writeText(io.stderr, `${prefix} line ${offset + error.unclosedQuote.line}: unexpected EOF while looking for matching \`${error.unclosedQuote.quote}'\n`);
+    else if (error.offset >= source.length && !/Unterminated|nesting|Unsupported/u.test(error.reason)) {
+      const context = error.incompleteCommand ? ` from \`${error.incompleteCommand.name}' command on line ${offset + error.incompleteCommand.line}` : "";
+      await writeText(io.stderr, `${prefix} line ${offset + source.split("\n").length + Number(!source.endsWith("\n"))}: syntax error: unexpected end of file${context}\n`);
+    } else {
+      const token = /^[;&|()<>]|^[^\s;&|()<>]+/u.exec(source.slice(error.offset))?.[0] ?? "newline";
+      await writeText(io.stderr, `${prefix} line ${offset + line}: syntax error near unexpected token \`${token}'\n${prefix} line ${offset + line}: \`${source.split("\n")[line - 1] ?? ""}'\n`);
+    }
+    return error.exitCode;
+  }
+
+  async runCommandString(source: string, state: State, io: IO): Promise<number> {
+    let position = 0;
+    let status = 0;
+    try {
+      do {
+        this.signal.throwIfAborted();
+        const unit = parseShellUnit(source, position, byteLocale(state.variables));
+        for (const warning of unit.script.warnings ?? []) await writeText(io.stderr, `${io.scriptName}: warning: ${warning}\n`);
+        if (unit.script.lists.length) {
+          const result = await this.runUnit(unit.script, state, io);
+          status = result.exitCode;
+          if (result.terminated) return status;
+        }
+        position = unit.next;
+      } while (position < source.length);
+      return status;
+    } catch (error) {
+      if (!(error instanceof ShellSyntaxError)) throw error;
+      return this.syntaxFailure(error, source, io, true);
+    }
+  }
+
+  sourceText(bytes: Uint8Array, name: string): string {
+    if (bytes.some(byte => byte < 9 || byte > 10 && byte < 13 || byte > 13 && byte < 32 || byte === 127)) throw new CommandFailure(`${name}: cannot execute binary script`, 126);
+    try { return new TextDecoder("utf-8", { fatal: true, ignoreBOM: true }).decode(bytes); }
+    catch { throw new CommandFailure(`${name}: cannot execute binary or non-UTF-8 script`, 126); }
+  }
+
+  async runStandardInput(input: ShellInput, state: State, io: IO): Promise<number> {
+    let source = "";
+    let offset = 0;
+    let status = 0;
+    let lines = 0;
+    while (true) {
+      if (++lines % 32 === 0) await interruptible(new Promise<void>(resolve => setImmediate(resolve)), this.signal);
+      this.signal.throwIfAborted();
+      const bytes = await input.sourceLine();
+      const eof = bytes === undefined;
+      if (bytes) source += this.sourceText(bytes, io.scriptName ?? "shell");
+      const unitIO = { ...io, diagnosticOffset: offset };
+      try {
+        const unit = eof ? parseShellUnit(source, 0, byteLocale(state.variables)) : parseShellInputUnit(source, byteLocale(state.variables));
+        if (unit) {
+          for (const warning of unit.script.warnings ?? []) await writeText(io.stderr, `${io.scriptName}: warning: ${warning}\n`);
+          if (unit.script.lists.length) {
+            const result = await this.runUnit(unit.script, state, unitIO);
+            status = result.exitCode;
+            if (result.terminated) return status;
+          }
+          offset += source.slice(0, unit.next).split("\n").length - 1;
+          source = source.slice(unit.next);
+        }
+      } catch (error) {
+        if (!(error instanceof ShellSyntaxError)) throw error;
+        return this.syntaxFailure(error, source, unitIO, false);
+      }
+      if (eof) return status;
+    }
+  }
+
+  async scriptFile(context: CommandContext, state: State, io: IO, target: string, args: readonly string[], direct: boolean): Promise<number> {
+    if (target === "") throw new CommandFailure(`${context.command}: : No such file or directory`, 127);
     if (state.depth >= this.budget.limits.maxSubstitutionDepth) this.budget.fail("maxSubstitutionDepth");
     const path = resolvePath(state.cwd, target);
     let source: string;
@@ -794,9 +938,7 @@ export class Runtime {
       if (stat.size > maxBytes) this.budget.fail("maxSourceBytes");
       const bytes = await interruptible(this.fs.readFile(path, { ...options, maxBytes }), this.signal);
       this.budget.source(bytes.byteLength);
-      if (bytes.some((byte) => byte < 9 || (byte > 10 && byte < 13) || (byte > 13 && byte < 32) || byte === 127)) throw new CommandFailure(`${target}: cannot execute binary script`, 126);
-      try { source = new TextDecoder("utf-8", { fatal: true, ignoreBOM: true }).decode(bytes); }
-      catch { throw new CommandFailure(`${target}: cannot execute binary or non-UTF-8 script`, 126); }
+      source = this.sourceText(bytes, target);
       if (source.startsWith("#!")) {
         const interpreter = source.split("\n", 1)[0]!.slice(2).replace(/^[ \t]+|[ \t]+$/gu, "");
         if (interpreter !== "/bin/bash" && interpreter !== "/usr/bin/bash") throw new CommandFailure(`${target}: unsupported interpreter: ${interpreter}`, 126);
@@ -822,12 +964,7 @@ export class Runtime {
       await writeText(context.stderr, `${target}: line ${line}: syntax error: ${error.reason}\n`);
       return error.exitCode;
     }
-    const variables = Object.assign(Object.create(null) as Record<string, string>, context.env, { PWD: state.cwd });
-    const child: State = {
-      cwd: state.cwd, variables, exported: new Set(Object.keys(variables)), functions: new Map(),
-      positional: args, arg0: target, status: 0, substitutionStatus: 0, depth: state.depth + 1,
-      loopDepth: 0, functionDepth: 0, locals: [], pipefail: false, isolated: true,
-    };
+    const child = this.processState(context, state, target, args);
     const childIO = isolateIO({ ...io, ...context, diagnosticLine: 1, diagnosticOffset: 0, scriptName: target });
     let status = 0;
     for (const unit of units) {
@@ -948,6 +1085,7 @@ export class Runtime {
       let status = 0;
       for (const name of args) {
         if (!/^[a-zA-Z_][a-zA-Z_0-9]*$/u.test(name)) { await writeText(stderr, `unset: ${name}: not a valid identifier\n`); status = 1; continue; }
+        if (name === "PATH") state.pathUnset = true;
         delete state.variables[name];
         state.exported.delete(name);
       }

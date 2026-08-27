@@ -91,6 +91,33 @@ export class ShellInput implements ByteSource {
     return { next: () => this.next(), [Symbol.asyncIterator]() { return this; } };
   }
 
+  sourceLine(): Promise<Uint8Array | undefined> {
+    return this.#cursor.consume(this.signal, async () => {
+      const chunks: Uint8Array[] = [];
+      let length = 0;
+      let pulls = 0;
+      while (true) {
+        if (++pulls % 128 === 0) await interruptible(new Promise<void>(resolve => setImmediate(resolve)), this.signal);
+        const result = await this.#cursor.take(this.signal);
+        if (result.done) {
+          if (!length) return undefined;
+          break;
+        }
+        const newline = result.value.indexOf(10);
+        const end = newline < 0 ? result.value.length : newline + 1;
+        if (end < result.value.length) this.#cursor.remainder = result.value.subarray(end);
+        this.budget.source(end);
+        if (end) chunks.push(result.value.subarray(0, end));
+        length += end;
+        if (newline >= 0) break;
+      }
+      const bytes = new Uint8Array(length);
+      let offset = 0;
+      for (const chunk of chunks) { bytes.set(chunk, offset); offset += chunk.length; }
+      return bytes;
+    });
+  }
+
   line(raw: boolean, options?: { count?: number; delimiter?: number; byteCount?: boolean }): Promise<{ value: string; escaped: ReadonlySet<number>; terminated: boolean }> {
     return this.#cursor.consume(this.signal, () => options ? this.readBounded(raw, options) : this.readLine(raw));
   }

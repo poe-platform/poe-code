@@ -1,0 +1,136 @@
+{
+  "outcomes": [
+    {
+      "view": "same-mount",
+      "code": "success",
+      "events": [
+        "rename"
+      ],
+      "physicalSourceBytes": [
+        109,
+        111,
+        118,
+        101,
+        32,
+        97,
+        108,
+        105,
+        97,
+        115,
+        32,
+        115,
+        101,
+        110,
+        116,
+        105,
+        110,
+        101,
+        108
+      ],
+      "physicalNames": [
+        "alias",
+        "file"
+      ]
+    },
+    {
+      "view": "repeated-mount",
+      "code": "EXDEV",
+      "events": [],
+      "physicalSourceBytes": [
+        109,
+        111,
+        118,
+        101,
+        32,
+        97,
+        108,
+        105,
+        97,
+        115,
+        32,
+        115,
+        101,
+        110,
+        116,
+        105,
+        110,
+        101,
+        108
+      ],
+      "physicalNames": [
+        "alias",
+        "file"
+      ]
+    },
+    {
+      "view": "overlay-upper",
+      "code": "success",
+      "events": [
+        "rename"
+      ],
+      "physicalSourceBytes": [
+        109,
+        111,
+        118,
+        101,
+        32,
+        97,
+        108,
+        105,
+        97,
+        115,
+        32,
+        115,
+        101,
+        110,
+        116,
+        105,
+        110,
+        101,
+        108
+      ],
+      "physicalNames": [
+        "alias",
+        "file"
+      ]
+    },
+    {
+      "view": "overlay-lower",
+      "code": "ENOTSUP",
+      "events": [],
+      "physicalSourceBytes": [
+        109,
+        111,
+        118,
+        101,
+        32,
+        97,
+        108,
+        105,
+        97,
+        115,
+        32,
+        115,
+        101,
+        110,
+        116,
+        105,
+        110,
+        101,
+        108
+      ],
+      "physicalNames": [
+        "alias",
+        "file"
+      ]
+    }
+  ],
+  "sourceSha256": {
+    "src/fs/memory/index.ts": "98704037c57bae8bd5c3782c65aceb98e967837df375b33eda52a00ce762b1a0",
+    "src/fs/real/index.ts": "d3e79b80a5a48984e1f7f7dd9a79254c2db1faf8142e287a43792180874f77da",
+    "src/fs/readonly/index.ts": "d0f7f3a36ffcf1da880b40b992f7119d6bf3364542429f8494ecf730c7137ff3",
+    "src/fs/mount/index.ts": "192ada25798791dcb7cf6c3f323ba3a64b814c75e749ae1cea13937de238ccc7",
+    "src/fs/overlay/index.ts": "e11852648b374be8991747467c911c34ae1de827d8eb3cf336d0d439e9a978de",
+    "src/fs/mount/identity.ts": "a561928d082232d034c436a89a63b85e5f137c82879281adc9f6aacfcb54d2d2"
+  }
+}

@@ -1,0 +1,38 @@
+{
+  "capturedAt": "2026-08-27T00:02:59.041Z",
+  "observedPublicationHead": "5ddce1b0550ad7de8f2a8082f0402fae7aa001b7",
+  "frozenSourceCommit": "4fa4ba9502dac843bd13aa5031d128a3171f597d",
+  "historicalProbeObservedHead": "5ddce1b0550ad7de8f2a8082f0402fae7aa001b7",
+  "historicalProbeFsTree": "0981cd1f9ba45150475f97d53f36f638dc08b9fc",
+  "historicalContractBlob": "232e441527547dcec45ca166c581166c2fd53411",
+  "proposal": {
+    "source": "/tmp/safe-bash-identity-compatibility-design-4fa.txt",
+    "sha256": "5546d69a419248284678c9b751a0cfea3989a2b22f5660d0677a19b4560221e1",
+    "status": "PROPOSAL NOT APPROVED; verbatim historical handoff"
+  },
+  "probe": {
+    "provenance": "Exact inline JavaScript and JSON stdout portion transcribed from prior functions.exec_command tool result in this conversation; not rerun",
+    "priorExitCode": 0,
+    "priorStderr": "",
+    "claims": "physical backing bytes and names asserted; outcomes observed, no remote acceptance claims"
+  },
+  "preliminaryRemoteObservation": {
+    "attribution": "positive verifier agent_message in /tmp/safe-bash-identity-positive-acceptance.jsonl, read during prior handoff",
+    "status": "preliminary; no counts inferred"
+  },
+  "sourceSha256": {
+    "src/fs/memory/index.ts": "98704037c57bae8bd5c3782c65aceb98e967837df375b33eda52a00ce762b1a0",
+    "src/fs/real/index.ts": "d3e79b80a5a48984e1f7f7dd9a79254c2db1faf8142e287a43792180874f77da",
+    "src/fs/readonly/index.ts": "d0f7f3a36ffcf1da880b40b992f7119d6bf3364542429f8494ecf730c7137ff3",
+    "src/fs/mount/index.ts": "192ada25798791dcb7cf6c3f323ba3a64b814c75e749ae1cea13937de238ccc7",
+    "src/fs/overlay/index.ts": "e11852648b374be8991747467c911c34ae1de827d8eb3cf336d0d439e9a978de",
+    "src/fs/mount/identity.ts": "a561928d082232d034c436a89a63b85e5f137c82879281adc9f6aacfcb54d2d2"
+  },
+  "artifactSha256": {
+    "historical-proposal.txt": "5546d69a419248284678c9b751a0cfea3989a2b22f5660d0677a19b4560221e1",
+    "bounded-move-probe.mjs.txt": "8d6f429d45e9bae1078d4102546c3f0daadf3edd8ce580981446dc845f972bba",
+    "bounded-move-invocation.txt": "c245fb9fd3fcd7266af143500dbff813aea15615525da32702a2de141f19d0c9",
+    "bounded-move-probe.stdout.json": "e7390b588330c79e768e7e9dc8b0e4b262841d98673b4eca269975464f751293",
+    "README.md": "d7a0ae6477eae909ca4c6d810883ce7acd6f5b390abaa3a16b690dcd17ca99cb"
+  }
+}

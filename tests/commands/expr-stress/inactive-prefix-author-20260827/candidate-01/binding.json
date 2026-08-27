@@ -1,0 +1,44 @@
+{
+  "mode": "--candidate",
+  "accepted": "21220b465537bf45ffcfb36740956a69f43bf75e",
+  "independent": "e9ff18dcdd403c68550c9ad9ea69d2edce5403a3",
+  "capturedAt": "2026-08-27T19:27:31.442Z",
+  "archiveSha256": "b2de2b86a834f1b5c3ba7a98c347d3aa9668632ff3af2a073cf2c45c6b6bfef5",
+  "evaluatorSha256": "04ca8f588ccaea97b3801fe30accfa6020636c5f72f156b0d158fa6474f525c9",
+  "testSha256": "50a1748f93ce4781b7a765227e07e4e7ad7e35c6f8ae46cf36ea93631d575c70",
+  "overlays": [
+    {
+      "path": "src/commands/expr/evaluate.ts",
+      "before": "80f8b4b7fbcd0552dd91772b941e6654c0b8dd08ce980814b811f08959015d61",
+      "after": "04ca8f588ccaea97b3801fe30accfa6020636c5f72f156b0d158fa6474f525c9"
+    },
+    {
+      "path": "tests/commands/expr/inactive-prefix.test.ts",
+      "before": null,
+      "after": "50a1748f93ce4781b7a765227e07e4e7ad7e35c6f8ae46cf36ea93631d575c70"
+    }
+  ],
+  "liveHeadAtCapture": "ea02d6b79beeac36d263743c77e15bda7931dc67",
+  "node": "v22.22.2",
+  "platform": "darwin",
+  "arch": "arm64",
+  "tooling": [
+    {
+      "name": "typescript",
+      "version": "5.9.3",
+      "packageJsonSha256": "822ef7ca6452205657b6288b066481ecf508bfbf43455d715cf7d3ec457561e6"
+    },
+    {
+      "name": "tsx",
+      "version": "4.23.12",
+      "packageJsonSha256": "96aee9fd252d0cc31f3c01468250961f5b338c797bc208700d7db926450c7659"
+    },
+    {
+      "name": "@types/node",
+      "version": "22.20.1",
+      "packageJsonSha256": "1e6d3bbbc5082745123d236b38dce0eacdab987d4ac9e57e299e55f780c170de"
+    }
+  ],
+  "sourceIdentity": "Accepted committed archive + precisely listed owned overlays, NOT whole live HEAD. Tool packages are existing local tooling, not independently rebuilt or fully hash-pinned.",
+  "nativeOracle": "Not invoked; unchanged independent frozen expectations/results are retained. Product-specific controls assert user requirements, not GNU parity."
+}

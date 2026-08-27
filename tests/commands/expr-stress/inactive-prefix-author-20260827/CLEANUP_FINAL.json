@@ -1,0 +1,18 @@
+{
+  "checkedAt": "2026-08-27T19:30:21.767Z",
+  "candidate": {
+    "scratchRemoved": true,
+    "children": "Bounded synchronous build/typecheck/test/driver children waited. Frozen driver finally terminates owned workers. Child timeout/error is an infrastructure failure, not a pass."
+  },
+  "candidateActiveWorkers": 0,
+  "ownedScratchRemoved": true,
+  "initialTimedOutCaptureProcessIdsAbsent": [
+    49497,
+    49573,
+    49574
+  ],
+  "delegatedAgents": 0,
+  "sharedDistRebuilt": false,
+  "dependenciesInstalled": false,
+  "scope": "Only owned extraction trees removed. No foreign workers, staging, temporary paths or evidence touched."
+}

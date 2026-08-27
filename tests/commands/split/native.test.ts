@@ -8,13 +8,13 @@ import { join } from "node:path";
 import { fixtures } from "./cases.js";
 import { chunks, files, run } from "./helpers.js";
 import { createMemoryFileSystem } from "../../../src/fs/memory/index.js";
+import { captureNativeReport, createNativeScratch } from "./native-capture.js";
 
-const directory = fileURLToPath(new URL(".", import.meta.url));
 const gnu = fileURLToPath(new URL("../metadata-stress/.oracle/coreutils-9.7/src/split", import.meta.url));
 const profiles = [
   { name: "gnu9.7-darwin", executable: gnu, hash: "cf5851c4e6566983ce69940b766c0b5eb0cd26ebf2bb45eefe215b2d5c62f958" },
   { name: "apple-bsd", executable: "/usr/bin/split", hash: "7c2d5f3c73e849d664bad3a2f4c67c5154b0f03f59f2fa779d49e33dc7983f91" },
-];
+] as const;
 
 for (const profile of profiles) test(`native ${profile.name}: exact status/stdout/stderr/file bytes`, async context => {
   let binary: Uint8Array;
@@ -24,7 +24,7 @@ for (const profile of profiles) test(`native ${profile.name}: exact status/stdou
   const evidence: unknown[] = [];
   let failed = false;
   for (const specimen of fixtures.filter(fixture => profile.name !== "apple-bsd" || fixture.bsd)) {
-    const temp = await native.mkdtemp(join(directory, ".native-"));
+    const temp = await createNativeScratch(context);
     const fs = createMemoryFileSystem();
     if (specimen.fileInput) { await native.writeFile(join(temp, "input"), specimen.input); await fs.writeFile("/input", specimen.input); }
     for (const [name, text] of Object.entries(specimen.existing ?? {})) { await native.writeFile(join(temp, name), text); await fs.writeFile(`/${name}`, Buffer.from(text)); }
@@ -39,10 +39,6 @@ for (const profile of profiles) test(`native ${profile.name}: exact status/stdou
     evidence.push({ id: specimen.id, args: specimen.args, inputHex: Buffer.from(specimen.input).toString("hex"), existing: specimen.existing, expected, observed, match, ...(result.error ? { nativeError: String(result.error) } : {}) });
     if (match) await native.rm(temp, { recursive: true });
   }
-  const evidenceDirectory = join(directory, "evidence");
-  await native.mkdir(evidenceDirectory, { recursive: true });
-  const report = JSON.stringify({ profile, platform: process.platform, arch: process.arch, cohort: evidence, failed }, null, 2) + "\n";
-  try { await native.writeFile(join(evidenceDirectory, `${profile.name}-initial.json`), report, { flag: "wx" }); } catch (error) { if ((error as NodeJS.ErrnoException).code !== "EEXIST") throw error; }
-  await native.writeFile(join(evidenceDirectory, `${profile.name}-latest.json`), report);
-  assert.equal(failed, false, `native mismatches retained in ${profile.name}-latest.json`);
+  const path = await captureNativeReport(context, profile.name, { profile, platform: process.platform, arch: process.arch, cohort: evidence, failed }, failed);
+  assert.equal(failed, false, `native mismatches retained in ${path ?? "test diagnostics"}`);
 });

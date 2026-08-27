@@ -7,8 +7,8 @@ import { fileURLToPath } from "node:url";
 import { join } from "node:path";
 import { createMemoryFileSystem } from "../../../src/fs/memory/index.js";
 import { run, files } from "./helpers.js";
+import { captureNativeReport, createNativeScratch } from "./native-capture.js";
 
-const directory = fileURLToPath(new URL(".", import.meta.url));
 const executable = fileURLToPath(new URL("../metadata-stress/.oracle/coreutils-9.7/src/split", import.meta.url));
 const scenarios = [
   { id: "zero-lines", args: ["-l0"], input: "abc", nativeMessage: /invalid number of lines/, virtualMessage: /invalid number of lines/ },
@@ -29,7 +29,7 @@ test("GNU errors: exact status/effects, separately asserted diagnostic profiles"
   const report: unknown[] = [];
   let failure = false;
   for (const specimen of scenarios) {
-    const temp = await native.mkdtemp(join(directory, ".native-errors-"));
+    const temp = await createNativeScratch(context);
     const fs = createMemoryFileSystem();
     if ("file" in specimen) { await native.writeFile(join(temp, "xaa"), specimen.file); await fs.writeFile("/xaa", Buffer.from(specimen.file)); }
     if ("directory" in specimen) { await native.mkdir(join(temp, "xaa")); await fs.mkdir("/xaa"); }
@@ -52,11 +52,8 @@ test("GNU errors: exact status/effects, separately asserted diagnostic profiles"
     report.push({ id: specimen.id, args: specimen.args, input: specimen.input, expected: { status: expected.status, stdout: expected.stdout.toString(), stderr: expected.stderr.toString(), files: nativeFiles, entries: nativeEntries }, observed: { status: actual.exitCode, stdout: actual.stdout, stderr: actual.stderr, files: observedFiles, entries: observedEntries }, semanticMatch, strictMatch: semanticMatch && actual.stderr === expected.stderr.toString(), diagnosticPolicy: { native: String(specimen.nativeMessage), virtual: String(specimen.virtualMessage) } });
     if (semanticMatch) await native.rm(temp, { recursive: true });
   }
-  await native.mkdir(join(directory, "evidence"), { recursive: true });
-  const json = JSON.stringify({ profile: "GNU coreutils9.7 on Darwin, LC_ALL=C; diagnostic profiles separately asserted", report }, null, 2) + "\n";
-  try { await native.writeFile(join(directory, "evidence/gnu-errors-initial.json"), json, { flag: "wx" }); } catch (error) { if ((error as NodeJS.ErrnoException).code !== "EEXIST") throw error; }
-  await native.writeFile(join(directory, "evidence/gnu-errors-latest.json"), json);
-  assert.equal(failure, false, "error cohort failure retained in evidence");
+  const path = await captureNativeReport(context, "gnu-errors", { profile: "GNU coreutils9.7 on Darwin, LC_ALL=C; diagnostic profiles separately asserted", report }, failure);
+  assert.equal(failure, false, `error cohort failure retained in ${path ?? "test diagnostics"}`);
 });
 
 test("explicit GNU versus Apple naming/profile differences remain visible", async context => {
@@ -72,7 +69,7 @@ test("explicit GNU versus Apple naming/profile differences remain visible", asyn
   ]) {
     const outputs: Record<string, unknown> = {};
     for (const [name, tool] of [["gnu", executable], ["apple", "/usr/bin/split"]] as const) {
-      const temp = await native.mkdtemp(join(directory, ".native-profile-"));
+      const temp = await createNativeScratch(context);
       const result = spawnSync(tool, scenario.args, { cwd: temp, input: scenario.input, env: { LC_ALL: "C", PATH: "/usr/bin:/bin" }, timeout: 10000 });
       const names = (await native.readdir(temp)).sort();
       outputs[name] = { status: result.status, stdout: result.stdout.toString(), stderr: result.stderr.toString(), names };
@@ -88,6 +85,5 @@ test("explicit GNU versus Apple naming/profile differences remain visible", asyn
     }
     report.push({ ...scenario, appleDiagnostic: String(scenario.appleDiagnostic), outputs });
   }
-  await native.mkdir(join(directory, "evidence"), { recursive: true });
-  await native.writeFile(join(directory, "evidence/native-profile-differences.json"), JSON.stringify(report, null, 2) + "\n");
+  await captureNativeReport(context, "native-profile-differences", report);
 });

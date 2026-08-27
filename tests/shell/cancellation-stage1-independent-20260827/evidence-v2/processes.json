@@ -1,0 +1,181 @@
+[
+  {
+    "name": "candidate-build",
+    "args": [
+      "/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-stage1-independent-20260827/evidence-v2/scratch/tools/typescript/lib/tsc.js",
+      "-p",
+      "/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-stage1-independent-20260827/evidence-v2/scratch/candidate/tsconfig.json"
+    ],
+    "started": "2026-08-27T22:47:49.223Z",
+    "finished": "2026-08-27T22:47:50.802Z",
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "watchdogMilliseconds": 90000,
+    "watchdogUsed": false
+  },
+  {
+    "name": "candidate-runtime",
+    "args": [
+      "--test",
+      "/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-stage1-independent-20260827/cohort-v1.mjs"
+    ],
+    "started": "2026-08-27T22:47:50.804Z",
+    "finished": "2026-08-27T22:47:50.892Z",
+    "status": 1,
+    "signal": null,
+    "error": null,
+    "watchdogMilliseconds": 90000,
+    "watchdogUsed": false
+  },
+  {
+    "name": "negative-types",
+    "args": [
+      "/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-stage1-independent-20260827/evidence-v2/scratch/tools/typescript/lib/tsc.js",
+      "-p",
+      "/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-stage1-independent-20260827/evidence-v2/scratch/candidate/negative.json",
+      "--pretty",
+      "false"
+    ],
+    "started": "2026-08-27T22:47:50.892Z",
+    "finished": "2026-08-27T22:47:51.272Z",
+    "status": 2,
+    "signal": null,
+    "error": null,
+    "watchdogMilliseconds": 90000,
+    "watchdogUsed": false
+  },
+  {
+    "name": "moved-positive-types",
+    "args": [
+      "/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-stage1-independent-20260827/evidence-v2/scratch/tools/typescript/lib/tsc.js",
+      "-p",
+      "/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-stage1-independent-20260827/evidence-v2/scratch/relocated-internal/positive.json"
+    ],
+    "started": "2026-08-27T22:47:51.278Z",
+    "finished": "2026-08-27T22:47:51.642Z",
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "watchdogMilliseconds": 90000,
+    "watchdogUsed": false
+  },
+  {
+    "name": "moved-negative-types",
+    "args": [
+      "/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-stage1-independent-20260827/evidence-v2/scratch/tools/typescript/lib/tsc.js",
+      "-p",
+      "/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-stage1-independent-20260827/evidence-v2/scratch/relocated-internal/negative.json",
+      "--pretty",
+      "false"
+    ],
+    "started": "2026-08-27T22:47:51.643Z",
+    "finished": "2026-08-27T22:47:52.000Z",
+    "status": 2,
+    "signal": null,
+    "error": null,
+    "watchdogMilliseconds": 90000,
+    "watchdogUsed": false
+  },
+  {
+    "name": "moved-runtime",
+    "args": [
+      "--test",
+      "/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-stage1-independent-20260827/evidence-v2/scratch/relocated-internal/cohort.mjs"
+    ],
+    "started": "2026-08-27T22:47:52.000Z",
+    "finished": "2026-08-27T22:47:52.089Z",
+    "status": 1,
+    "signal": null,
+    "error": null,
+    "watchdogMilliseconds": 90000,
+    "watchdogUsed": false
+  },
+  {
+    "name": "mutant-provenance-build",
+    "args": [
+      "/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-stage1-independent-20260827/evidence-v2/scratch/tools/typescript/lib/tsc.js",
+      "-p",
+      "/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-stage1-independent-20260827/evidence-v2/scratch/mutant-provenance/tsconfig.json"
+    ],
+    "started": "2026-08-27T22:47:52.091Z",
+    "finished": "2026-08-27T22:47:52.487Z",
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "watchdogMilliseconds": 90000,
+    "watchdogUsed": false
+  },
+  {
+    "name": "mutant-provenance-runtime",
+    "args": [
+      "--test",
+      "/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-stage1-independent-20260827/cohort-v1.mjs"
+    ],
+    "started": "2026-08-27T22:47:52.488Z",
+    "finished": "2026-08-27T22:47:52.579Z",
+    "status": 1,
+    "signal": null,
+    "error": null,
+    "watchdogMilliseconds": 90000,
+    "watchdogUsed": false
+  },
+  {
+    "name": "mutant-capacity-build",
+    "args": [
+      "/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-stage1-independent-20260827/evidence-v2/scratch/tools/typescript/lib/tsc.js",
+      "-p",
+      "/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-stage1-independent-20260827/evidence-v2/scratch/mutant-capacity/tsconfig.json"
+    ],
+    "started": "2026-08-27T22:47:52.581Z",
+    "finished": "2026-08-27T22:47:52.977Z",
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "watchdogMilliseconds": 90000,
+    "watchdogUsed": false
+  },
+  {
+    "name": "mutant-capacity-runtime",
+    "args": [
+      "--test",
+      "/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-stage1-independent-20260827/cohort-v1.mjs"
+    ],
+    "started": "2026-08-27T22:47:52.978Z",
+    "finished": "2026-08-27T22:47:53.069Z",
+    "status": 1,
+    "signal": null,
+    "error": null,
+    "watchdogMilliseconds": 90000,
+    "watchdogUsed": false
+  },
+  {
+    "name": "mutant-listener-cleanup-build",
+    "args": [
+      "/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-stage1-independent-20260827/evidence-v2/scratch/tools/typescript/lib/tsc.js",
+      "-p",
+      "/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-stage1-independent-20260827/evidence-v2/scratch/mutant-listener-cleanup/tsconfig.json"
+    ],
+    "started": "2026-08-27T22:47:53.070Z",
+    "finished": "2026-08-27T22:47:53.464Z",
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "watchdogMilliseconds": 90000,
+    "watchdogUsed": false
+  },
+  {
+    "name": "mutant-listener-cleanup-runtime",
+    "args": [
+      "--test",
+      "/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-stage1-independent-20260827/cohort-v1.mjs"
+    ],
+    "started": "2026-08-27T22:47:53.466Z",
+    "finished": "2026-08-27T22:47:53.558Z",
+    "status": 1,
+    "signal": null,
+    "error": null,
+    "watchdogMilliseconds": 90000,
+    "watchdogUsed": false
+  }
+]

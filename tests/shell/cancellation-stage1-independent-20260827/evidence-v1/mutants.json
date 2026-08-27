@@ -1,0 +1,38 @@
+[
+  {
+    "name": "mutant-provenance",
+    "obligation": "H01",
+    "from": "return Object.freeze({ origin, [reportState]: state });",
+    "to": "return Object.freeze({ origin: Object.freeze({ ...origin, signal: origin.frame.deliverySignal }), [reportState]: state });",
+    "sha256": "d6f259fe53fa249d434832aed1654b4d96ac802ac74f43b46d200fa16cf184d0",
+    "buildStatus": 0,
+    "runtimeStatus": 1,
+    "passingBaseline": true,
+    "behavioralFailure": true,
+    "killed": true
+  },
+  {
+    "name": "mutant-capacity",
+    "obligation": "H08",
+    "from": "if (count > state.resourceLimit - state.resourcesUsed) throw new CancellationCapacityError();",
+    "to": "if (false && count > state.resourceLimit - state.resourcesUsed) throw new CancellationCapacityError();",
+    "sha256": "1add62007238d352d2da1e16c41daf8478548fc8e42793657de1c939793727ae",
+    "buildStatus": 0,
+    "runtimeStatus": 1,
+    "passingBaseline": true,
+    "behavioralFailure": true,
+    "killed": true
+  },
+  {
+    "name": "mutant-listener-cleanup",
+    "obligation": "H10",
+    "from": "for (const detacher of state.signalDetachers) state.failures.push(...removeSignalListener(detacher));",
+    "to": "for (const detacher of state.signalDetachers) void detacher;",
+    "sha256": "9ae2f89b75d07c699f7eec8c91620f969b8d04d44d347f28a649c7a1dffe1a13",
+    "buildStatus": 0,
+    "runtimeStatus": 1,
+    "passingBaseline": true,
+    "behavioralFailure": true,
+    "killed": true
+  }
+]

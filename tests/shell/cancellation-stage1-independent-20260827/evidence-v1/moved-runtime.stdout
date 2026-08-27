@@ -1,0 +1,135 @@
+TAP version 13
+# Subtest: H01 three generations retain original provenance across rank upgrades
+ok 1 - H01 three generations retain original provenance across rank upgrades
+  ---
+  duration_ms: 2.0785
+  type: 'test'
+  ...
+# Subtest: H02 closed child is stable while open ancestor upgrades
+ok 2 - H02 closed child is stable while open ancestor upgrades
+  ---
+  duration_ms: 0.375208
+  type: 'test'
+  ...
+# Subtest: H03 sibling reports are targeted, exact and non-poisoning for seven reason classes
+ok 3 - H03 sibling reports are targeted, exact and non-poisoning for seven reason classes
+  ---
+  duration_ms: 1.517875
+  type: 'test'
+  ...
+# Subtest: H04 fanout records multiple exact failures without skipping later subscribers
+ok 4 - H04 fanout records multiple exact failures without skipping later subscribers
+  ---
+  duration_ms: 0.262792
+  type: 'test'
+  ...
+# Subtest: H04b detaching one later subscriber does not skip unrelated admitted subscribers
+not ok 5 - H04b detaching one later subscriber does not skip unrelated admitted subscribers
+  ---
+  duration_ms: 0.52075
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-stage1-independent-20260827/evidence-v1/scratch/relocated-internal/cohort.mjs:149:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    only the detached subscription is skipped
+    + actual - expected
+    
+      [
+        'first',
+    -   'third'
+      ]
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    0: 'first'
+    1: 'third'
+  actual:
+    0: 'first'
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-stage1-independent-20260827/evidence-v1/scratch/relocated-internal/cohort.mjs:159:10)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: H05 borrowed variants allocate no cancellation resources and cannot close parent
+ok 6 - H05 borrowed variants allocate no cancellation resources and cannot close parent
+  ---
+  duration_ms: 0.11975
+  type: 'test'
+  ...
+# Subtest: H06 admission prioritizes original ancestors and stable closed failure over getter
+ok 7 - H06 admission prioritizes original ancestors and stable closed failure over getter
+  ---
+  duration_ms: 0.170625
+  type: 'test'
+  ...
+# Subtest: H07 original control delivery survives invoke selection and root has final priority
+ok 8 - H07 original control delivery survives invoke selection and root has final priority
+  ---
+  duration_ms: 0.113042
+  type: 'test'
+  ...
+# Subtest: H07b admission uses first delivered control rather than configured array order
+not ok 9 - H07b admission uses first delivered control rather than configured array order
+  ---
+  duration_ms: 0.225667
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-stage1-independent-20260827/evidence-v1/scratch/relocated-internal/cohort.mjs:227:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    declared first-delivered control admission policy
+    + actual - expected
+    
+      {
+    +   control: 'configured first'
+    -   control: 'delivered first'
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    control: 'delivered first'
+  actual:
+    control: 'configured first'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-stage1-independent-20260827/evidence-v1/scratch/relocated-internal/cohort.mjs:242:10)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: H08 capacity and depth denial precede listeners; explicit release restores capacity
+ok 10 - H08 capacity and depth denial precede listeners; explicit release restores capacity
+  ---
+  duration_ms: 0.178209
+  type: 'test'
+  ...
+# Subtest: H09 failed initialization rolls back acquired root listeners and child subscription
+ok 11 - H09 failed initialization rolls back acquired root listeners and child subscription
+  ---
+  duration_ms: 0.13
+  type: 'test'
+  ...
+# Subtest: H10 reentrant close records in-flight failure and detaches untriggered resources
+ok 12 - H10 reentrant close records in-flight failure and detaches untriggered resources
+  ---
+  duration_ms: 0.348834
+  type: 'test'
+  ...
+1..12
+# tests 12
+# suites 0
+# pass 10
+# fail 2
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 50.873209

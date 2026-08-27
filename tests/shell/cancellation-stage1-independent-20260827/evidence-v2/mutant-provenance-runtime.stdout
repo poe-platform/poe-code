@@ -1,0 +1,374 @@
+TAP version 13
+# Subtest: H01 three generations retain original provenance across rank upgrades
+not ok 1 - H01 three generations retain original provenance across rank upgrades
+  ---
+  duration_ms: 2.323625
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-stage1-independent-20260827/cohort-v1.mjs:53:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    original signal identity
+    + actual - expected
+    
+      AbortSignal {
+        [Symbol(events.maxEventTargetListeners)]: 0,
+        [Symbol(events.maxEventTargetListenersWarned)]: false,
+        [Symbol(kAborted)]: true,
+        [Symbol(kComposite)]: false,
+    +   [Symbol(kEvents)]: SafeMap(0) {},
+    -   [Symbol(kEvents)]: SafeMap(1) {
+    -     'abort' => {
+    -       next: undefined,
+    -       resistStopPropagation: false,
+    -       size: 0
+    -     }
+    -   },
+        [Symbol(kHandlers)]: SafeMap(0) {},
+        [Symbol(kReason)]: {
+          marker: 'same-message'
+        }
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual:
+  operator: 'strictEqual'
+  stack: |-
+    selected (file:///Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-stage1-independent-20260827/cohort-v1.mjs:28:12)
+    TestContext.<anonymous> (file:///Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-stage1-independent-20260827/cohort-v1.mjs:66:19)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.start (node:internal/test_runner/test:944:17)
+    startSubtestAfterBootstrap (node:internal/test_runner/harness:296:17)
+  ...
+# Subtest: H02 closed child is stable while open ancestor upgrades
+not ok 2 - H02 closed child is stable while open ancestor upgrades
+  ---
+  duration_ms: 0.65475
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-stage1-independent-20260827/cohort-v1.mjs:80:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    original signal identity
+    + actual - expected
+    
+      AbortSignal {
+        [Symbol(events.maxEventTargetListeners)]: 0,
+        [Symbol(events.maxEventTargetListenersWarned)]: false,
+        [Symbol(kAborted)]: true,
+        [Symbol(kComposite)]: false,
+    +   [Symbol(kEvents)]: SafeMap(0) {},
+    -   [Symbol(kEvents)]: SafeMap(1) {
+    -     'abort' => {
+    -       next: undefined,
+    -       resistStopPropagation: false,
+    -       size: 0
+    -     }
+    -   },
+        [Symbol(kHandlers)]: SafeMap(0) {},
+        [Symbol(kReason)]: {
+          stopped: 'inner'
+        }
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual:
+  operator: 'strictEqual'
+  stack: |-
+    selected (file:///Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-stage1-independent-20260827/cohort-v1.mjs:28:12)
+    TestContext.<anonymous> (file:///Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-stage1-independent-20260827/cohort-v1.mjs:92:3)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# Subtest: H03 sibling reports are targeted, exact and non-poisoning for seven reason classes
+not ok 3 - H03 sibling reports are targeted, exact and non-poisoning for seven reason classes
+  ---
+  duration_ms: 0.531625
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-stage1-independent-20260827/cohort-v1.mjs:99:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    original signal identity
+    + actual - expected
+    
+      AbortSignal {
+        [Symbol(events.maxEventTargetListeners)]: 0,
+        [Symbol(events.maxEventTargetListenersWarned)]: false,
+        [Symbol(kAborted)]: true,
+        [Symbol(kComposite)]: false,
+    +   [Symbol(kEvents)]: SafeMap(0) {},
+    -   [Symbol(kEvents)]: SafeMap(1) {
+    -     'abort' => {
+    -       next: undefined,
+    -       resistStopPropagation: false,
+    -       size: 0
+    -     }
+    -   },
+        [Symbol(kHandlers)]: SafeMap(0) {},
+    +   [Symbol(kReason)]: DOMException [AbortError]: This operation was aborted
+    +       at new DOMException (node:internal/per_context/domexception:76:18)
+    +       at AbortController.abort (node:internal/abort_controller:504:18)
+    +       at publish (file:///Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-stage1-independent-20260827/evidence-v2/scratch/mutant-provenance/emitted/cancellation.js:108:26)
+    +       at AbortSignal.listener (file:///Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-stage1-independent-20260827/evidence-v2/scratch/mutant-provenance/emitted/cancellation.js:149:28)
+    +       at [nodejs.internal.kHybridDispatch] (node:internal/event_target:843:20)
+    +       at AbortSignal.dispatchEvent (node:internal/event_target:776:26)
+    +       at runAbort (node:internal/abort_controller:486:10)
+    +       at abortSignal (node:internal/abort_controller:457:3)
+    +       at AbortController.abort (node:internal/abort_controller:505:5)
+    +       at abortExact (file:///Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-stage1-independent-20260827/cohort-v1.mjs:50:14)
+    -   [Symbol(kReason)]: Symbol(native non-default reason)
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual:
+  operator: 'strictEqual'
+  stack: |-
+    selected (file:///Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-stage1-independent-20260827/cohort-v1.mjs:28:12)
+    TestContext.<anonymous> (file:///Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-stage1-independent-20260827/cohort-v1.mjs:109:27)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: H04 fanout records multiple exact failures without skipping later subscribers
+not ok 4 - H04 fanout records multiple exact failures without skipping later subscribers
+  ---
+  duration_ms: 0.49925
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-stage1-independent-20260827/cohort-v1.mjs:127:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    original signal identity
+    + actual - expected
+    
+      AbortSignal {
+        [Symbol(events.maxEventTargetListeners)]: 0,
+        [Symbol(events.maxEventTargetListenersWarned)]: false,
+        [Symbol(kAborted)]: true,
+        [Symbol(kComposite)]: false,
+    +   [Symbol(kEvents)]: SafeMap(0) {},
+    -   [Symbol(kEvents)]: SafeMap(1) {
+    -     'abort' => {
+    -       next: undefined,
+    -       resistStopPropagation: false,
+    -       size: 0
+    -     }
+    -   },
+        [Symbol(kHandlers)]: SafeMap(0) {},
+        [Symbol(kReason)]: {
+          cancel: 'local'
+        }
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual:
+  operator: 'strictEqual'
+  stack: |-
+    selected (file:///Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-stage1-independent-20260827/cohort-v1.mjs:28:12)
+    TestContext.<anonymous> (file:///Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-stage1-independent-20260827/cohort-v1.mjs:140:3)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: H04b detaching one later subscriber does not skip unrelated admitted subscribers
+not ok 5 - H04b detaching one later subscriber does not skip unrelated admitted subscribers
+  ---
+  duration_ms: 0.369709
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-stage1-independent-20260827/cohort-v1.mjs:149:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    only the detached subscription is skipped
+    + actual - expected
+    
+      [
+        'first',
+    -   'third'
+      ]
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    0: 'first'
+    1: 'third'
+  actual:
+    0: 'first'
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-stage1-independent-20260827/cohort-v1.mjs:159:10)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: H05 borrowed variants allocate no cancellation resources and cannot close parent
+ok 6 - H05 borrowed variants allocate no cancellation resources and cannot close parent
+  ---
+  duration_ms: 0.208917
+  type: 'test'
+  ...
+# Subtest: H06 admission prioritizes original ancestors and stable closed failure over getter
+ok 7 - H06 admission prioritizes original ancestors and stable closed failure over getter
+  ---
+  duration_ms: 0.259375
+  type: 'test'
+  ...
+# Subtest: H07 original control delivery survives invoke selection and root has final priority
+not ok 8 - H07 original control delivery survives invoke selection and root has final priority
+  ---
+  duration_ms: 0.283375
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-stage1-independent-20260827/cohort-v1.mjs:209:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    original signal identity
+    + actual - expected
+    
+      AbortSignal {
+        [Symbol(events.maxEventTargetListeners)]: 0,
+        [Symbol(events.maxEventTargetListenersWarned)]: false,
+        [Symbol(kAborted)]: true,
+        [Symbol(kComposite)]: false,
+    +   [Symbol(kEvents)]: SafeMap(0) {},
+    -   [Symbol(kEvents)]: SafeMap(1) {
+    -     'abort' => {
+    -       next: undefined,
+    -       resistStopPropagation: false,
+    -       size: 0
+    -     }
+    -   },
+        [Symbol(kHandlers)]: SafeMap(0) {},
+        [Symbol(kReason)]: {
+          control: true
+        }
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual:
+  operator: 'strictEqual'
+  stack: |-
+    selected (file:///Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-stage1-independent-20260827/cohort-v1.mjs:28:12)
+    TestContext.<anonymous> (file:///Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-stage1-independent-20260827/cohort-v1.mjs:220:3)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: H07b admission uses first delivered control rather than configured array order
+not ok 9 - H07b admission uses first delivered control rather than configured array order
+  ---
+  duration_ms: 0.178292
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-stage1-independent-20260827/cohort-v1.mjs:227:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    declared first-delivered control admission policy
+    + actual - expected
+    
+      {
+    +   control: 'configured first'
+    -   control: 'delivered first'
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    control: 'delivered first'
+  actual:
+    control: 'configured first'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-stage1-independent-20260827/cohort-v1.mjs:242:10)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: H08 capacity and depth denial precede listeners; explicit release restores capacity
+ok 10 - H08 capacity and depth denial precede listeners; explicit release restores capacity
+  ---
+  duration_ms: 0.201416
+  type: 'test'
+  ...
+# Subtest: H09 failed initialization rolls back acquired root listeners and child subscription
+ok 11 - H09 failed initialization rolls back acquired root listeners and child subscription
+  ---
+  duration_ms: 0.151792
+  type: 'test'
+  ...
+# Subtest: H10 reentrant close records in-flight failure and detaches untriggered resources
+not ok 12 - H10 reentrant close records in-flight failure and detaches untriggered resources
+  ---
+  duration_ms: 0.179375
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-stage1-independent-20260827/cohort-v1.mjs:280:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    original signal identity
+    + actual - expected
+    
+      AbortSignal {
+        [Symbol(events.maxEventTargetListeners)]: 0,
+        [Symbol(events.maxEventTargetListenersWarned)]: false,
+        [Symbol(kAborted)]: true,
+        [Symbol(kComposite)]: false,
+    +   [Symbol(kEvents)]: SafeMap(0) {},
+    -   [Symbol(kEvents)]: SafeMap(1) {
+    -     'abort' => {
+    -       next: undefined,
+    -       resistStopPropagation: false,
+    -       size: 0
+    -     }
+    -   },
+        [Symbol(kHandlers)]: SafeMap(0) {},
+        [Symbol(kReason)]: false
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual:
+  operator: 'strictEqual'
+  stack: |-
+    selected (file:///Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-stage1-independent-20260827/cohort-v1.mjs:28:12)
+    TestContext.<anonymous> (file:///Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-stage1-independent-20260827/cohort-v1.mjs:297:3)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+1..12
+# tests 12
+# suites 0
+# pass 4
+# fail 8
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 54.420541

@@ -1,0 +1,29 @@
+{
+  "command": [
+    "python3",
+    "-c",
+    "import os,sys,tarfile,shutil\nroot=sys.argv[2]\nwith tarfile.open(sys.argv[1]) as archive:\n for item in archive:\n  path=os.path.join(root,item.name)\n  assert os.path.commonpath([root,os.path.abspath(path)])==root\n  if item.isdir(): os.makedirs(path,exist_ok=True); continue\n  os.makedirs(os.path.dirname(path),exist_ok=True)\n  with open(path,'xb') as target:\n   if item.issym(): target.write(item.linkname.encode())\n   else:\n    assert item.isfile()\n    with archive.extractfile(item) as source: shutil.copyfileobj(source,target)\n  os.chmod(path,0o444)\n",
+    "/private/tmp/safe-bash-column-final-5XKcCe/candidate.tar",
+    "/private/tmp/safe-bash-column-final-5XKcCe/candidate"
+  ],
+  "cwd": "/private/tmp/safe-bash-column-final-5XKcCe",
+  "startedAt": "2026-08-27T16:27:23.379Z",
+  "endedAt": "2026-08-27T16:27:29.517Z",
+  "pid": 51737,
+  "deadlineMs": 90000,
+  "outputCap": 8388608,
+  "status": 0,
+  "signal": null,
+  "termination": null,
+  "spawnError": null,
+  "observedBytes": {
+    "stdout": 0,
+    "stderr": 0
+  },
+  "stdoutHex": "",
+  "stderrHex": "",
+  "groupAliveAtClose": false,
+  "groupAliveAfterRetirement": false,
+  "cleanup": "close-observed-group-checked-and-retired",
+  "forcedCleanupIsPass": false
+}

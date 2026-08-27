@@ -1,0 +1,98 @@
+{
+  "revision": "0123c83d3aae72a15621acbb29a165b97b2c6ab6",
+  "expectedBindings": {
+    "src/shell/input.ts": "3eec71b72f87dd48ddac572d6e7feb9097d32be4",
+    "src/commands/column": "8b32998383d1372a8624ac41d2e747551e5b6d4c",
+    "src/commands/grep-aliases": "5e8ac069bfa6ead7a337130457cd6519f2066e2c"
+  },
+  "verifiedAncestors": [
+    "f8819e9d6b6d535b0626e0aa004bb10a7bc36785",
+    "a809635432f18a235b8fb622a05367bedc54b315",
+    "04644bc2c15d67155f5f4b170a66fc9bef3f6e3d"
+  ],
+  "receiptAt": "2026-08-27T16:27:17.539Z",
+  "beforeAnyCandidateImport": true,
+  "fixtureCommit": "ee933d5d31d9c7da1bc77d523d545daaa4e8f382",
+  "fixtures": [
+    {
+      "file": "probe.mjs",
+      "path": "tests/commands/column-stress/current-contract-review/probe.mjs",
+      "sha256": "ca527d7a6e57d497f1c8118e64e3c416133b3b5eb558ca9f766a1dbaf64bbb08",
+      "bytes": 13805,
+      "unchangedFrom": "ee933d5d31d9c7da1bc77d523d545daaa4e8f382"
+    },
+    {
+      "file": "loader.mjs",
+      "path": "tests/commands/column-stress/current-contract-review/loader.mjs",
+      "sha256": "4ad42af4f5329a6bccffd8e695d1e35b7dfcde52e1e1f089d8d0e2777ff4fc94",
+      "bytes": 849,
+      "unchangedFrom": "ee933d5d31d9c7da1bc77d523d545daaa4e8f382"
+    },
+    {
+      "file": "consumer.mts",
+      "path": "tests/commands/column-stress/current-contract-review/consumer.mts",
+      "sha256": "b2b44e440153be72a34aff617b27f02b4c52b508295ce6a81904322ba82ef35d",
+      "bytes": 1017,
+      "unchangedFrom": "ee933d5d31d9c7da1bc77d523d545daaa4e8f382"
+    },
+    {
+      "file": "run.mjs",
+      "path": "tests/commands/column-stress/current-contract-review/run.mjs",
+      "sha256": "2d73bd23ec254c9ee8ab6cfe2148e0396e2478e2d1c85d149f06464245617cf3",
+      "bytes": 13619,
+      "unchangedFrom": "ee933d5d31d9c7da1bc77d523d545daaa4e8f382"
+    }
+  ],
+  "fixtureInventory": [
+    {
+      "path": "bounded.mjs",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 2970,
+      "sha256": "9bdf578f05aa27db539bd70924bcc452060180a4147ded31a92fe2eb77b458df"
+    },
+    {
+      "path": "consumer.mts",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 1017,
+      "sha256": "b2b44e440153be72a34aff617b27f02b4c52b508295ce6a81904322ba82ef35d"
+    },
+    {
+      "path": "loader.mjs",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 849,
+      "sha256": "4ad42af4f5329a6bccffd8e695d1e35b7dfcde52e1e1f089d8d0e2777ff4fc94"
+    },
+    {
+      "path": "probe.mjs",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 13805,
+      "sha256": "ca527d7a6e57d497f1c8118e64e3c416133b3b5eb558ca9f766a1dbaf64bbb08"
+    }
+  ],
+  "runner": {
+    "path": "tests/commands/column-stress/padding-evolution/execution-20260827/runner.mjs",
+    "originalSha256": "32ca0e1ad0425b6084cfd1bd3c4eb8f3c8d06cafee545a6df8ea7bbc0688cf2a",
+    "reboundSha256": "9bdf578f05aa27db539bd70924bcc452060180a4147ded31a92fe2eb77b458df",
+    "changedOnly": "Two absolute TMPDIR/npm-cache prefix bindings",
+    "oldTemporary": "/tmp/safe-bash-column-padding-MmS9An",
+    "temporary": "/private/tmp/safe-bash-column-final-5XKcCe"
+  },
+  "wrapperSha256": "9fc4b82f310d089bfc369752c941fec877f761ff9125b04b8269afdbd966b37b",
+  "liveContext": {
+    "head": "219790c55c0214e6d46524bbdced63c18c360f62",
+    "status": " M src/commands/network/README.md\n M src/commands/network/shared.ts\n?? tests/commands/column-stress/final-shared-replay/\n?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/\n?? tests/commands/network-zero-caps-author/\n?? tests/commands/network-zero-caps-review/baseline-original/\n?? tests/commands/network-zero-caps-review/consumer.mts\n?? tests/commands/network-zero-caps-review/entry.mjs\n?? tests/commands/network-zero-caps-review/offline.mjs\n?? tests/commands/network-zero-caps-review/runtime.mjs\n?? tests/commands/network-zero-caps-review/verify.mjs\n?? tests/commands/network/zero-caps.test.ts\n?? tests/commands/search-stress/.native-1m4O1e/\n?? tests/integration/safejs-owned-output-prototype-review/lifecycle/execution-v2/evidence/\n?? tests/integration/safejs-owned-output-prototype-review/surface/execution-v2/attempt-01/\n?? tests/integration/shared-external-stdin-independent-20260827/fixture-v2/\n",
+    "role": "receipt context only, never candidate product inputs"
+  },
+  "childEnvironment": {
+    "TSX_DISABLE_CACHE": "1",
+    "NODE_OPTIONS": "",
+    "NODE_PATH": "",
+    "TMPDIR": "/private/tmp/safe-bash-column-final-5XKcCe/",
+    "npm_config_offline": "true",
+    "npm_config_ignore_scripts": "true"
+  }
+}

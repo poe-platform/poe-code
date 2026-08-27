@@ -1,0 +1,29 @@
+{
+  "command": [
+    "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "--unhandled-rejections=strict",
+    "/private/tmp/safe-bash-column-final-5XKcCe/candidate/tests/commands/column-stress/handoff-20260827/root-hidden-return-repro.mjs",
+    "/private/tmp/safe-bash-column-final-5XKcCe/candidate",
+    "/Users/kjopek/Workspace/safe-bash/tests/commands/column-stress/final-shared-replay/capture-1/ORIGINAL-HIDDEN.json"
+  ],
+  "cwd": "/private/tmp/safe-bash-column-final-5XKcCe/candidate",
+  "startedAt": "2026-08-27T16:27:49.267Z",
+  "endedAt": "2026-08-27T16:27:49.410Z",
+  "pid": 53101,
+  "deadlineMs": 90000,
+  "outputCap": 8388608,
+  "status": 1,
+  "signal": null,
+  "termination": null,
+  "spawnError": null,
+  "observedBytes": {
+    "stdout": 317,
+    "stderr": 0
+  },
+  "stdoutHex": "7b22636c617373696669636174696f6e223a22726f6f742d6f776e65642d68696464656e2d65787465726e616c2d737464696e2d72657475726e2d626f756e64617279222c2263616e646964617465223a222f707269766174652f746d702f736166652d626173682d636f6c756d6e2d66696e616c2d35584b6343652f63616e646964617465222c226265666f72654761746552656c65617365223a7b2272657475726e73223a312c2265786563536574746c6564223a747275652c22646973706f7365536574746c6564223a747275657d2c22616363657074616e6365223a22484f4c44222c226f7574636f6d65223a7b2272656a656374696f6e223a224572726f723a205368656c6c20697320646973706f736564227d2c2266696e616c6c7952656c65617365644861726e65737347617465223a747275657d0a",
+  "stderrHex": "",
+  "groupAliveAtClose": false,
+  "groupAliveAfterRetirement": false,
+  "cleanup": "close-observed-group-checked-and-retired",
+  "forcedCleanupIsPass": false
+}

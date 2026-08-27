@@ -36,9 +36,19 @@ for (const adapter of adapters) {
     } else {
       assert.equal(fs.capabilities.permissions, false);
       if (fs.chmod) await assert.rejects(fs.chmod("/file", 0o600), errno("ENOTSUP"));
-      await assert.rejects(fs.writeFile("/mode", binary, { mode: 0o600 }), errno("ENOTSUP"));
-      await assert.rejects(fs.access("/file", 1), errno("ENOTSUP"));
-      context.diagnostic("CAPABILITY GAP: permissions, creation modes, execute access checks unsupported");
+      if (adapter.name === "s3") {
+        await fs.writeFile("/mode", binary, { mode: 0o600 });
+        assert.equal((await fs.stat("/mode")).mode & 0o7777, 0o600);
+        assert.deepEqual(await fs.readFile("/mode"), binary);
+        await assert.rejects(fs.access("/file", 1), errno("EACCES"));
+        await fs.mkdir("/directory", { mode: 0 });
+        await fs.access("/directory", 1);
+        context.diagnostic("APPROVED S3 PROFILE: advisory modes, unsupported chmod, denied file execution, permitted directory traversal; no permission enforcement");
+      } else {
+        await assert.rejects(fs.writeFile("/mode", binary, { mode: 0o600 }), errno("ENOTSUP"));
+        await assert.rejects(fs.access("/file", 1), errno("ENOTSUP"));
+        context.diagnostic("CAPABILITY GAP: permissions, creation modes, execute access checks unsupported");
+      }
     }
     if (fs.capabilities.timestamps) {
       assert.ok(fs.utimes);

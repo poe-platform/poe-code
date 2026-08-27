@@ -44,7 +44,8 @@ function counts(receipt, expected) {
 try {
   const git = args => execFileSync('git', args, { cwd: repository, maxBuffer: 32 * 1024 * 1024 });
   report.runtime = { path: process.execPath, version: process.version, sha256: hash(readFileSync(process.execPath)), platform: process.platform, arch: process.arch };
-  const paths = ['src', 'package.json', 'package-lock.json', 'tsconfig.json', 'tsconfig.build.json', 'README.md', owner, 'tests/plugins/agent-commands.test.ts', 'tests/plugins/stream-five-fixture-migration/registry.test.ts', 'tests/plugins/stream-five-fixture-migration/baseline60.json'];
+  const adjacent = ['tests/plugins/stream-five-fixture-migration/public-options.mts', 'tests/integration/stream-inspection-public-author/consumer.mts'];
+  const paths = ['src', 'package.json', 'package-lock.json', 'tsconfig.json', 'tsconfig.build.json', 'README.md', owner, 'tests/plugins/agent-commands.test.ts', 'tests/plugins/stream-five-fixture-migration/registry.test.ts', 'tests/plugins/stream-five-fixture-migration/baseline60.json', 'tests/integration/stream-inspection-public-author/public.test.ts', ...adjacent];
   const archive = join(work, 'source.tar');
   git(['archive', '--format=tar', `--output=${archive}`, candidate, ...paths]);
   run('extract-source', '/usr/bin/tar', ['-xf', archive, '-C', source]);
@@ -61,7 +62,7 @@ try {
   report.tools = [compiler, join(repository, 'node_modules/typescript/lib/_tsc.js'), join(repository, 'node_modules/typescript/package.json'), join(repository, 'node_modules/tsx/package.json'), join(repository, 'node_modules/@types/node/package.json')].map(path => ({ path, sha256: hash(readFileSync(path)) }));
   run('build', process.execPath, [compiler, '-p', 'tsconfig.build.json']);
   run('production-types', process.execPath, [compiler, '-p', 'tsconfig.build.json', '--noEmit']);
-  const scoped = run('registry-tests', process.execPath, ['--unhandled-rejections=strict', '--import', 'tsx', '--test', '--test-reporter=tap', '--test-concurrency=1', 'tests/plugins/agent-commands.test.ts', 'tests/plugins/stream-five-fixture-migration/registry.test.ts']);
+  const scoped = run('registry-tests', process.execPath, ['--unhandled-rejections=strict', '--import', 'tsx', '--test', '--test-reporter=tap', '--test-concurrency=1', 'tests/plugins/agent-commands.test.ts', 'tests/plugins/stream-five-fixture-migration/registry.test.ts', 'tests/integration/stream-inspection-public-author/public.test.ts']);
   report.registry = counts(scoped);
   const packages = join(work, 'packages'); mkdirSync(packages);
   const npm = join(dirname(process.execPath), '../lib/node_modules/npm/bin/npm-cli.js');
@@ -74,10 +75,12 @@ try {
   const stagedPackage = join(staged, 'node_modules/virtual-bash'); mkdirSync(stagedPackage, { recursive: true });
   run('unpack', '/usr/bin/tar', ['-xf', tarball, '--strip-components=1', '-C', stagedPackage]);
   writeFileSync(join(staged, 'package.json'), JSON.stringify({ name: 'aliases-column-public-consumer', private: true, type: 'module' }));
-  const consumer = join(work, 'moved-consumer'); renameSync(staged, consumer);
+  mkdirSync(join(work, 'relocated'));
+  const consumer = join(work, 'relocated/consumer'); renameSync(staged, consumer);
   const installed = join(consumer, 'node_modules/virtual-bash'); report.packageBefore = inventory(installed);
   for (const entry of inventory(join(source, 'dist'))) assert.equal(hash(readFileSync(join(installed, 'dist', entry.path))), entry.sha256);
   for (const name of ['consumer', 'negative']) copyFileSync(join(source, owner, `${name}.ts.fixture`), join(consumer, `${name}.mts`));
+  for (const [index, path] of adjacent.entries()) copyFileSync(join(source, path), join(consumer, `adjacent-${index}.mts`));
   mkdirSync(join(consumer, 'node_modules/@types'), { recursive: true });
   symlinkSync(join(repository, 'node_modules/@types/node'), join(consumer, 'node_modules/@types/node'), 'dir');
   symlinkSync(join(repository, 'node_modules/undici-types'), join(consumer, 'node_modules/undici-types'), 'dir');
@@ -97,6 +100,8 @@ try {
   const diagnosticCodes = [...negative.stdout.matchAll(/error (TS\d+):/g)].map(match => match[1]).sort();
   assert.deepEqual(diagnosticCodes, ['TS2322', 'TS2322', 'TS2322', 'TS2353', 'TS2353', 'TS2353']);
   report.negativeTypes = diagnosticCodes;
+  writeFileSync(join(consumer, 'adjacent.json'), JSON.stringify({ ...config, files: adjacent.map((path, index) => `adjacent-${index}.mts`) }));
+  run('adjacent-types', process.execPath, [compiler, '-p', 'adjacent.json', '--noEmitOnError'], consumer);
   unlinkSync(join(consumer, 'node_modules/@types/node')); unlinkSync(join(consumer, 'node_modules/undici-types'));
   const resolution = run('public-imports', process.execPath, ['--input-type=module', '-e', 'for(const name of ["virtual-bash","virtual-bash/commands/grep-aliases","virtual-bash/commands/column"]){await import(name);console.log(JSON.stringify({name,url:import.meta.resolve(name)}));}'], consumer);
   report.publicImports = resolution.stdout.trim().split('\n').map(line => JSON.parse(line));
@@ -104,6 +109,11 @@ try {
   for (const row of report.publicImports) assert.ok(fileURLToPath(row.url).startsWith(realpathSync(installed) + '/dist/'));
   report.publicTests = [];
   for (const repetition of [1, 2]) report.publicTests.push(counts(run(`public-runtime-${repetition}`, process.execPath, ['--unhandled-rejections=strict', '--test', '--test-reporter=tap', '--test-concurrency=1', 'run/consumer.mjs'], consumer), 17));
+  report.adjacentConsumers = [];
+  for (const [index, path] of adjacent.entries()) {
+    const checked = run(`adjacent-runtime-${index}`, process.execPath, [`run/adjacent-${index}.mjs`], consumer);
+    report.adjacentConsumers.push({ path, status: checked.status });
+  }
   for (const family of ['grep-aliases', 'column']) {
     const module = join(installed, 'dist/commands', family, 'index.js'), withheld = module + '.withheld'; renameSync(module, withheld);
     try {

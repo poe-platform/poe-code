@@ -165,7 +165,7 @@ test("family limits fail before output publication and bad options fail registra
   }, { timeEnv: { limits: { maxOutputBytes: 8 } } });
   const command = createTimeEnvCommands({ limits: { maxOutputBytes: 8 } }).find(entry => entry.name === "date")!;
   let written = 0;
-  await assert.rejects(command.execute({ command: "date", args: ["+%12N"], cwd: "/", env: {},
+  await assert.rejects(async () => await command.execute({ command: "date", args: ["+%12N"], cwd: "/", env: {},
     fs: createMemoryFileSystem(), signal: new AbortController().signal, stdin: (async function* () {})(),
     stdout: { async write(chunk) { written += chunk.length; } }, stderr: { async write() {} },
   }), { code: "EFBIG" });
@@ -229,4 +229,44 @@ test("public workflows leave host environment unchanged", async () => {
     assert.equal(result.stdout, "changed\n0\n");
   });
   assert.deepEqual({ ...process.env }, before);
+});
+
+test("default sleep cancels its actual Node timer before public settlement", async () => {
+  const timeouts = () => process.getActiveResourcesInfo().filter(name => name === "Timeout").length;
+  const before = timeouts();
+  await usingShell(async shell => {
+    const controller = new AbortController();
+    const reason = Object.freeze({ actualTimerAbort: true });
+    const rejection = assert.rejects(shell.exec("sleep 60", { signal: controller.signal }), error => error === reason);
+    try {
+      await immediate();
+      assert.equal(timeouts(), before + 1);
+    } finally { controller.abort(reason); }
+    await rejection;
+    assert.equal(timeouts(), before);
+    assert.equal(getEventListeners(controller.signal, "abort").length, 0);
+  });
+  assert.equal(timeouts(), before);
+});
+
+test("large printenv output honors asynchronous sink backpressure without chunk aliasing", async () => {
+  await usingShell(async shell => {
+    const value = "π".repeat(20000);
+    let active = 0, maximum = 0;
+    const chunks: Uint8Array[] = [];
+    const result = await shell.exec("printenv PAYLOAD | cat", { env: { PAYLOAD: value }, stdout: {
+      async write(chunk) {
+        maximum = Math.max(maximum, ++active);
+        const before = Uint8Array.from(chunk);
+        await immediate();
+        assert.deepEqual(chunk, before);
+        chunks.push(before); active--;
+      },
+    } });
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(maximum, 1);
+    assert.ok(chunks.length > 1);
+    assert.equal(Buffer.concat(chunks).toString(), `${value}\n`);
+    assert.equal(result.stdout, `${value}\n`);
+  }, {});
 });

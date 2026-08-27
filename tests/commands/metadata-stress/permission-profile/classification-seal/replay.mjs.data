@@ -1,0 +1,229 @@
+import * as host from 'node:fs/promises';
+import fsSync from 'node:fs';
+import path from 'node:path';
+import { pathToFileURL } from 'node:url';
+import { createHash } from 'node:crypto';
+import { spawnSync } from 'node:child_process';
+import assert from 'node:assert/strict';
+
+const owned = '/tmp/safe-bash-darwin-classification-b04J1M';
+const repo = '/Users/kjopek/Workspace/safe-bash';
+const binary = path.join(repo, 'tests/commands/metadata-stress/.oracle/coreutils-9.7/src/chmod');
+const expectedHash = '3b7a9b5819dd93eff18b25dfbbac1c1d17e2ccd419368da90b366653b1b1cbd2';
+const sha = bytes => createHash('sha256').update(bytes).digest('hex');
+const save = async (name, value) => host.writeFile(path.join(owned, name), JSON.stringify(value, null, 2) + '\n');
+const octal = mode => Number(mode).toString(8).padStart(4, '0');
+function command(binaryPath, args, options = {}) {
+  const result = spawnSync(binaryPath, args, { encoding: 'utf8', timeout: 5000, ...options });
+  assert.ifError(result.error);
+  assert.equal(result.signal, null);
+  return { binary: binaryPath, args, status: result.status, stdout: result.stdout, stderr: result.stderr };
+}
+async function stat(nativePath) {
+  const value = await host.stat(nativePath, { bigint: true });
+  return { type: value.isDirectory() ? 'directory' : 'file', mode: octal(value.mode & 0o7777n),
+    uid: Number(value.uid), gid: Number(value.gid), ino: String(value.ino), dev: String(value.dev),
+    nlink: String(value.nlink), size: String(value.size), atimeNs: String(value.atimeNs),
+    mtimeNs: String(value.mtimeNs), ctimeNs: String(value.ctimeNs), birthtimeNs: String(value.birthtimeNs) };
+}
+function wrap(fs, calls) {
+  return new Proxy(fs, { get(target, key) {
+    if (key === 'chmod') return async (name, mode, options) => {
+      calls.push({ path: name, mode: octal(mode), signalPresent: Boolean(options?.signal) });
+      return target.chmod(name, mode, options);
+    };
+    const value = Reflect.get(target, key, target);
+    return typeof value === 'function' ? value.bind(target) : value;
+  } });
+}
+const context = { recordedAt: new Date().toISOString(), process: { node: process.version,
+  versions: process.versions, executable: process.execPath, binarySha256: sha(await host.readFile(process.execPath)),
+  uid: process.getuid(), euid: process.geteuid(), gid: process.getgid(), egid: process.getegid(),
+  groups: process.getgroups(), umask: octal(process.umask()) },
+  uname: command('/usr/bin/uname', ['-a']), swVers: command('/usr/bin/sw_vers', []),
+  id: command('/usr/bin/id', []), oracle: { path: binary, sha256: sha(await host.readFile(binary)),
+    version: command(binary, ['--version']), file: command('/usr/bin/file', [binary]),
+    linkage: command('/usr/bin/otool', ['-L', binary]) },
+  bash: { sha256: sha(await host.readFile('/bin/bash')), version: command('/bin/bash', ['--version']) },
+  parent: { stat: await stat(owned), acl: command('/bin/ls', ['-ldeO@', owned]) } };
+assert.equal(context.oracle.sha256, expectedHash);
+await save('host-tool-identity.json', context);
+const cases = [{ id: 'setid-control', initial: 0o6755, mode: '+2000', umask: 0o022, name: 'directory' }];
+let seed = 0x6d657461;
+for (let iteration = 0; iteration < 384; iteration++) {
+  seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0;
+  if (iteration % 24 === 7) cases.push({ id: `differential-${iteration}`, iteration, initial: seed & 0o777,
+    mode: 'ug+s', umask: [0, 0o022, 0o077, 0o200][Math.floor(iteration / 24) % 4], name: 'directory' });
+}
+cases.push(
+  { id: 'success-member-directory-setid', initial: 0o6755, mode: '+2000', umask: 0o022, name: 'directory', member: true },
+  { id: 'success-member-directory-ug+s', initial: 0o755, mode: 'ug+s', umask: 0o022, name: 'directory', member: true },
+  { id: 'success-member-file-ug+s', initial: 0o644, mode: 'ug+s', umask: 0o022, name: 'file', member: true },
+  { id: 'success-nonmember-directory-no-sgid', initial: 0o755, mode: 'u+rwx,g=rx,o=rx', umask: 0o022, name: 'directory' },
+);
+const prior = JSON.parse(await host.readFile(path.join(owned, 'attempt2.results.json'), 'utf8'));
+const observations = [...prior.observations];
+const cleanup = [...prior.cleanup];
+for (const candidate of ['frozen', 'current']) {
+  const source = path.join(owned, candidate);
+  const { MemoryFileSystem } = await import(pathToFileURL(path.join(source, 'src/fs/memory/index.ts')).href);
+  const { createRealFileSystem } = await import(pathToFileURL(path.join(source, 'src/fs/real/index.ts')).href);
+  const { FsError } = await import(pathToFileURL(path.join(source, 'src/contracts/index.ts')).href);
+  const helpers = await import(pathToFileURL(path.join(source, 'tests/commands/metadata-stress/helpers.ts')).href);
+  const oracleDirectory = path.join(helpers.oracleRoot, 'src');
+  await host.mkdir(oracleDirectory, { recursive: true });
+  if (!fsSync.existsSync(path.join(oracleDirectory, 'chmod'))) await host.symlink(binary, path.join(oracleDirectory, 'chmod'));
+  const root = await host.mkdtemp(path.join(helpers.suiteRoot, '.native-bounded-'));
+  const sentinel = Buffer.from([0, 255, 10]);
+  try {
+    for (const input of cases) {
+      if (observations.some(row => row.candidate === candidate && row.input?.id === input.id)) continue;
+      const row = { candidate, input: { ...input, initial: octal(input.initial), umask: octal(input.umask) }, layers: {} };
+      const fixture = path.join(root, input.id);
+      await host.mkdir(fixture);
+      const target = path.join(fixture, input.name);
+      if (input.name === 'directory') await host.mkdir(target);
+      else await host.writeFile(target, sentinel);
+      await host.writeFile(path.join(fixture, 'sentinel'), sentinel);
+      if (input.member) await host.chown(target, process.getuid(), process.getgid());
+      const requested = input.mode === '+2000' ? null : input.mode === 'ug+s' ? input.initial | 0o6000 : 0o755;
+      await host.chmod(target, input.initial);
+      const initialStat = await stat(target);
+      row.initialMeasured = initialStat;
+      row.acl = command('/bin/ls', ['-ldeO@', fixture, target]);
+      assert.equal(initialStat.uid, process.getuid());
+      assert.equal(initialStat.gid, input.member ? process.getgid() : 0);
+      const nativeArguments = ['--', input.mode, input.name];
+      row.nativeInvocation = { executable: '/bin/bash', args: ['-c', 'umask "$1"; shift; exec "$@"',
+        'metadata-oracle', input.umask.toString(8), path.join(oracleDirectory, 'chmod'), ...nativeArguments],
+        cwd: fixture, env: { PATH: '/usr/bin:/bin', LC_ALL: 'C', TZ: 'UTC', TMPDIR: fixture },
+        oracleRealpath: await host.realpath(path.join(oracleDirectory, 'chmod')) };
+      row.virtualInvocation = { command: 'chmod', args: nativeArguments, cwd: '/work',
+        env: {}, stdinHex: '', umask: input.umask };
+      const request = requested ?? (Number.parseInt(initialStat.mode, 8) | 0o2000);
+      row.requestedMode = octal(request);
+      for (const layer of ['gnu', 'node', 'realfs', 'command-realfs']) {
+        await host.chmod(target, Number.parseInt(initialStat.mode, 8));
+        const before = await stat(target);
+        await new Promise(resolve => setTimeout(resolve, 3));
+        const calls = [];
+        let result;
+        try {
+          if (layer === 'gnu') {
+            const raw = helpers.oracle('chmod', nativeArguments, fixture, input.umask);
+            result = { status: raw.exitCode, stdoutHex: raw.stdout.toString('hex'), stderr: raw.stderr,
+              stderrHex: Buffer.from(raw.stderr).toString('hex') };
+          } else if (layer === 'node') {
+            await host.chmod(target, request);
+            result = { status: 0, stdoutHex: '', stderrHex: '' };
+          } else {
+            const real = await createRealFileSystem({ root: fixture });
+            if (layer === 'realfs') {
+              await real.chmod(`/${input.name}`, request, { signal: new AbortController().signal });
+              result = { status: 0, stdoutHex: '', stderrHex: '' };
+            } else {
+              const realWork = await createRealFileSystem({ root });
+              const mapped = new Proxy(realWork, { get(targetFs, key) {
+                const value = Reflect.get(targetFs, key, targetFs);
+                if (typeof value !== 'function') return value;
+                return (...args) => {
+                  if (typeof args[0] === 'string') args[0] = args[0].replace(/^\/work(?=\/|$)/u, `/${input.id}`);
+                  return value.apply(targetFs, args);
+                };
+              } });
+              const raw = await helpers.run('chmod', nativeArguments, wrap(mapped, calls), { umask: input.umask });
+              result = { status: raw.exitCode, stdoutHex: raw.stdout.toString('hex'), stderr: raw.stderr,
+                stderrHex: Buffer.from(raw.stderr).toString('hex') };
+            }
+          }
+        } catch (error) {
+          result = { status: 1, error: { name: error.name, code: error.code, path: error.path,
+            message: error.message, typedFsError: error instanceof FsError } };
+        }
+        const after = await stat(target);
+        row.layers[layer] = { before, after, ...result, calls,
+          metadataUnchanged: JSON.stringify(before) === JSON.stringify(after),
+          ctimeUnchanged: before.ctimeNs === after.ctimeNs };
+      }
+      const memory = new MemoryFileSystem();
+      await memory.mkdir('/work/directory', { recursive: true });
+      await memory.writeFile('/work/file', sentinel);
+      await memory.chmod(`/work/${input.name}`, Number.parseInt(initialStat.mode, 8));
+      const beforeMemory = await memory.stat(`/work/${input.name}`);
+      const memoryCalls = [];
+      await new Promise(resolve => setTimeout(resolve, 3));
+      const memoryResult = await helpers.run('chmod', nativeArguments, wrap(memory, memoryCalls), { umask: input.umask });
+      const afterMemory = await memory.stat(`/work/${input.name}`);
+      row.layers['command-memory'] = { status: memoryResult.exitCode, stdoutHex: memoryResult.stdout.toString('hex'),
+        stderrHex: Buffer.from(memoryResult.stderr).toString('hex'), calls: memoryCalls,
+        before: { mode: octal(beforeMemory.mode & 0o7777), uid: beforeMemory.uid, gid: beforeMemory.gid, ctimeMs: beforeMemory.ctimeMs },
+        after: { mode: octal(afterMemory.mode & 0o7777), uid: afterMemory.uid, gid: afterMemory.gid, ctimeMs: afterMemory.ctimeMs } };
+      assert.equal(memoryCalls[0].mode, octal(request));
+      assert.deepEqual(await host.readFile(path.join(fixture, 'sentinel')), sentinel);
+      if (input.name === 'file') assert.deepEqual(await host.readFile(target), sentinel);
+      assert.deepEqual(Buffer.from(await memory.readFile('/work/file')), sentinel);
+      row.sentinelHex = sentinel.toString('hex');
+      row.namespace = await host.readdir(fixture);
+      observations.push(row);
+      await host.chmod(target, 0o700);
+      console.log(candidate, input.id, initialStat.mode, 'request', row.requestedMode,
+        Object.entries(row.layers).map(([name, value]) => `${name}:${value.status}/${value.after.mode}`).join(' '));
+    }
+    const denialRoot = path.join(root, 'denial');
+    await host.mkdir(path.join(denialRoot, 'work', 'blocked'), { recursive: true });
+    const blocked = path.join(denialRoot, 'work', 'blocked');
+    const child = path.join(blocked, 'file');
+    await host.writeFile(child, sentinel, { mode: 0o600 });
+    const denial = { candidate, id: 'normal-directory-search-denial', argv: ['--', '644', 'blocked/file'],
+      initial: await stat(child), acl: command('/bin/ls', ['-ldeO@', blocked, child]), layers: {} };
+    denial.initialAfterAclInspection = await stat(child);
+    const real = await createRealFileSystem({ root: denialRoot });
+    try {
+      await host.chmod(blocked, 0);
+      denial.blockedStat = await stat(blocked);
+      for (const layer of ['gnu', 'node', 'realfs', 'command-realfs']) {
+        try {
+          if (layer === 'gnu') {
+            const raw = helpers.oracle('chmod', denial.argv, path.join(denialRoot, 'work'));
+            denial.layers[layer] = { status: raw.exitCode, stdoutHex: raw.stdout.toString('hex'), stderr: raw.stderr };
+          } else if (layer === 'node') {
+            await host.chmod(child, 0o644);
+            denial.layers[layer] = { status: 0 };
+          } else if (layer === 'realfs') {
+            await real.chmod('/work/blocked/file', 0o644, { signal: new AbortController().signal });
+            denial.layers[layer] = { status: 0 };
+          } else {
+            const raw = await helpers.run('chmod', denial.argv, real);
+            denial.layers[layer] = { status: raw.exitCode, stdoutHex: raw.stdout.toString('hex'), stderr: raw.stderr };
+          }
+        } catch (error) {
+          denial.layers[layer] = { status: 1, error: { name: error.name, code: error.code, path: error.path,
+            message: error.message, typedFsError: error instanceof FsError } };
+        }
+      }
+    } finally {
+      await host.chmod(blocked, 0o700);
+    }
+    denial.final = await stat(child);
+    denial.bytesHex = Buffer.from(await host.readFile(child)).toString('hex');
+    observations.push(denial);
+    assert.deepEqual(denial.final, denial.initialAfterAclInspection);
+    assert.equal(denial.layers.node.error.code, 'EACCES');
+    assert.equal(denial.layers.realfs.error.code, 'EACCES');
+    assert.equal(denial.layers.realfs.error.typedFsError, true);
+    assert.ok(Object.values(denial.layers).every(value => value.status === 1));
+    console.log(candidate, denial.id, JSON.stringify(denial.layers));
+  } finally {
+    await host.rm(root, { recursive: true, force: true });
+    cleanup.push({ path: root, absent: !fsSync.existsSync(root) });
+    await save('results.json', { context, observations, cleanup, completed: false });
+  }
+}
+await save('results.json', { context, observations, cleanup, completed: true,
+  limits: ['17 failing transitions only; no 384-transition replay or full suite',
+    'frozen original fixture ownership/ACL/ctime not captured by original assertions; current replay measured separately',
+    'direct metadata CommandDefinition.execute via unchanged test helper; not whole shell',
+    'raw Node and RealFS return statuses normalized to 0 success / 1 caught error for table only',
+    'GNU helper path points through owned symlink to authenticated original binary',
+    'per-layer fixture restoration is harness isolation, not a production rollback',
+    'no Linux execution and no new native syscall instrumentation'] });

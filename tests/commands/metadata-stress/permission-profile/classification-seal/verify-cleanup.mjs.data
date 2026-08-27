@@ -1,0 +1,111 @@
+import fs from 'node:fs/promises';
+import { existsSync } from 'node:fs';
+import { createHash } from 'node:crypto';
+import path from 'node:path';
+import assert from 'node:assert/strict';
+
+const owned = '/tmp/safe-bash-darwin-classification-b04J1M';
+const repo = '/Users/kjopek/Workspace/safe-bash';
+const sha = bytes => createHash('sha256').update(bytes).digest('hex');
+const read = async name => JSON.parse(await fs.readFile(path.join(owned, name), 'utf8'));
+const results = await read('results.json');
+assert.equal(results.completed, true);
+assert.equal(results.observations.length, 44);
+const routing = JSON.parse(await fs.readFile(path.join(repo, 'tests/integration/full-gate-20260827/combined-b494675c/FAILURE_ROUTING.json'), 'utf8'));
+const differential = routing.failures.find(row => row.file === 'tests/commands/metadata-stress/native-differential.test.ts');
+const frozenIndices = [...differential.detail.matchAll(/\+\s+iteration: (\d+),/gu)].map(match => Number(match[1]));
+assert.equal(frozenIndices.length, 16);
+const summaries = [];
+for (const candidate of ['frozen', 'current']) {
+  const allRows = results.observations.filter(row => row.candidate === candidate);
+  const failures = allRows.filter(row => row.input && !row.input.id.startsWith('success'));
+  assert.equal(failures.length, 17);
+  assert.deepEqual(failures.filter(row => row.input.iteration !== undefined).map(row => row.input.iteration), frozenIndices);
+  for (const row of failures) {
+    assert.equal(row.layers.gnu.status, 1);
+    assert.equal(row.layers.gnu.metadataUnchanged, true);
+    assert.equal(row.layers.gnu.stderr, "chmod: changing permissions of 'directory': Operation not permitted\n");
+    assert.equal(row.layers.gnu.stdoutHex, '');
+    const requested = Number.parseInt(row.requestedMode, 8);
+    for (const layer of ['node', 'realfs', 'command-realfs']) {
+      assert.equal(row.layers[layer].status, 0);
+      assert.equal(Number.parseInt(row.layers[layer].after.mode, 8), requested & ~0o2000);
+      assert.equal(row.layers[layer].ctimeUnchanged, false);
+      assert.equal(row.layers[layer].stdoutHex, '');
+      assert.equal(row.layers[layer].stderrHex, '');
+    }
+    const memory = row.layers['command-memory'];
+    assert.equal(memory.status, 0);
+    assert.equal(memory.after.mode, row.requestedMode);
+    assert.equal(memory.stdoutHex, '');
+    assert.equal(memory.stderrHex, '');
+    assert.equal(row.sentinelHex, '00ff0a');
+    assert.deepEqual(row.namespace.sort(), ['directory', 'sentinel']);
+  }
+  const positives = allRows.filter(row => row.input?.id.startsWith('success'));
+  assert.equal(positives.length, 4);
+  for (const row of positives) for (const layer of Object.values(row.layers)) {
+    assert.equal(layer.status, 0);
+    assert.equal(layer.after.mode, row.requestedMode);
+  }
+  const denial = allRows.find(row => row.id === 'normal-directory-search-denial');
+  assert.deepEqual(denial.initialAfterAclInspection, denial.final);
+  assert.equal(denial.bytesHex, '00ff0a');
+  assert.equal(denial.layers.realfs.error.typedFsError, true);
+  assert.equal(denial.layers.realfs.error.code, 'EACCES');
+  assert.ok(Object.values(denial.layers).every(layer => layer.status === 1));
+  summaries.push({ candidate, failures: failures.length, exactOriginalDifferentialIndices: frozenIndices,
+    gnuAllMetadataUnchanged: true, nodeAndRealFsCtimeChanged: true, positiveScenarios: positives.length,
+    permissionDenial: 'EACCES preserved; status1; child metadata and 00ff0a bytes unchanged',
+    table: failures.map(row => ({ id: row.input.id, initialRequested: row.input.initial,
+      initialMeasured: row.initialMeasured.mode, umask: row.input.umask,
+      gnu: `${row.layers.gnu.status}/${row.layers.gnu.after.mode}`,
+      nodeRealFs: `${row.layers.node.status}/${row.layers.node.after.mode}`,
+      memory: `${row.layers['command-memory'].status}/${row.layers['command-memory'].after.mode}` })) });
+}
+const sourceFreeze = await read('source-freeze.json');
+const copyVerification = [];
+for (const [candidate, files] of Object.entries(sourceFreeze.snapshots)) {
+  for (const [relative, digest] of Object.entries(files)) {
+    assert.equal(sha(await fs.readFile(path.join(owned, candidate, relative))), digest);
+  }
+  copyVerification.push({ candidate, files: Object.keys(files).length, unchanged: true });
+}
+const archiveRoot = path.join(repo, 'tests/commands/metadata-stress/sgid-feasibility');
+const archive = JSON.parse(await fs.readFile(path.join(archiveRoot, 'MANIFEST.json'), 'utf8'));
+const archiveChecks = [];
+for (const record of archive.records) {
+  const bytes = await fs.readFile(path.join(archiveRoot, record.destination));
+  assert.equal(sha(bytes), record.sha256);
+  assert.equal(bytes.length, record.bytes);
+  archiveChecks.push({ path: record.destination, sha256: record.sha256, bytes: bytes.length, authenticated: true });
+}
+const attempt1 = await read('attempt1.results.json');
+const nativeCleanup = [...attempt1.cleanup, ...results.cleanup].map(record => ({ path: record.path, absent: !existsSync(record.path) }));
+assert.ok(nativeCleanup.every(record => record.absent));
+for (const candidate of ['frozen', 'current']) {
+  await fs.rm(path.join(owned, candidate), { recursive: true, force: true });
+  assert.equal(existsSync(path.join(owned, candidate)), false);
+}
+const before = await read('before.json');
+const after = await read('after.json');
+const indexMap = text => new Map(text.split('\0').filter(Boolean).map(line => {
+  const [entry, name] = line.split('\t');
+  return [name, entry];
+}));
+const initialIndex = indexMap(before.index);
+const finalIndex = indexMap(after.index);
+const concurrentIndexPaths = [...new Set([...initialIndex.keys(), ...finalIndex.keys()])]
+  .filter(name => initialIndex.get(name) !== finalIndex.get(name));
+await fs.writeFile(path.join(owned, 'verification-cleanup.json'), JSON.stringify({ verifiedAt: new Date().toISOString(),
+  summaries, copyVerification, archiveChecks, nativeCleanup, sourceCopiesRemoved: true,
+  productionBuilds: 0, nativeBuilds: 0, allReplayProcessesSettled: true,
+  concurrentIndexPaths, priorRunnerIssues: [
+    'attempt1 owned harness compared Uint8Array with Buffer using deepStrictEqual; same bytes; failed before row retention; fixture cleaned',
+    'attempt2 denial baseline was captured before ls -ldeO@; atime changed during inspection; ctime/mode did not; corrected own measurement ordering, not canonical assertions',
+    'attempt3 retained the 21 completed frozen observations from attempt2 rather than replaying them; completed frozen denial and current22 scenarios'
+  ] }, null, 2) + '\n');
+console.log(JSON.stringify({ sourceCopiesRemoved: true, nativeCleanup,
+  sourceCopiesVerified: copyVerification, archiveRecordsVerified: archiveChecks.length,
+  resultsRows: results.observations.length, concurrentIndexPaths: concurrentIndexPaths.length,
+  resultSha256: sha(await fs.readFile(path.join(owned, 'results.json'))) }, null, 2));

@@ -1,0 +1,221 @@
+{
+  "fetchedAt": "2026-08-27T12:41:02.675Z",
+  "records": [
+    {
+      "id": "posix-chmod-function",
+      "url": "https://pubs.opengroup.org/onlinepubs/9799919799/functions/chmod.html",
+      "status": 200,
+      "bytes": 18285,
+      "sha256": "656681ebc473f2ea96d951ac5c57ae232331da31bcbaee955d2b2c83f1d49c33",
+      "matchesHistoricalPrimaryHash": true,
+      "excerpts": [
+        {
+          "line": 46,
+          "text": "<blockquote>\n<p>The <i>chmod</i>() function shall change S_ISUID, S_ISGID, <sup>[<a href=\"javascript:open_code('XSI')\">XSI</a>]</sup> <img src=\n\"../images/opt-start.gif\" alt=\"[Option Start]\" border=\"0\"> &nbsp;S_ISVTX, <img src=\"../images/opt-end.gif\" alt=\"[Option End]\"\nborder=\"0\"> and the file permission bits of the file named by the pathname pointed to by the <i>path</i> argument to the"
+        },
+        {
+          "line": 55,
+          "text": "privileges, the <i>chmod</i>() function shall fail.</p>\n<p>S_ISUID, S_ISGID, <sup>[<a href=\"javascript:open_code('XSI')\">XSI</a>]</sup> <img src=\"../images/opt-start.gif\" alt=\n\"[Option Start]\" border=\"0\"> &nbsp;S_ISVTX, <img src=\"../images/opt-end.gif\" alt=\"[Option End]\" border=\"0\"> and the file permission\nbits are described in <a href=\"../basedefs/sys_stat.h.html\"><i>&lt;sys/stat.h&gt;</i></a>.</p>"
+        },
+        {
+          "line": 59,
+          "text": "<p>If the calling process does not have appropriate privileges, and if the group ID of the file does not match the effective group\nID or one of the supplementary group IDs and if the file is a regular file, bit S_ISGID (set-group-ID on execution) in the file's\nmode shall be cleared upon successful return from <i>chmod</i>().</p>\n<p>Additional implementation-defined restrictions may cause the S_ISUID and S_ISGID bits in <i>mode</i> to be ignored,"
+        },
+        {
+          "line": 61,
+          "text": "mode shall be cleared upon successful return from <i>chmod</i>().</p>\n<p>Additional implementation-defined restrictions may cause the S_ISUID and S_ISGID bits in <i>mode</i> to be ignored,\n<sup>[<a href=\"javascript:open_code('XSI')\">XSI</a>]</sup> <img src=\"../images/opt-start.gif\" alt=\"[Option Start]\" border=\"0\">\n&nbsp;and may cause the S_ISVTX bit in <i>mode</i> to be ignored for non-directory files. <img src=\"../images/opt-end.gif\" alt="
+        },
+        {
+          "line": 65,
+          "text": "\"[Option End]\" border=\"0\"></p>\n<p>Upon successful completion, <i>chmod</i>() shall mark for update the last file status change timestamp of the file.</p>\n<p>The <i>fchmodat</i>() function shall be equivalent to the <i>chmod</i>() function except in the case where <i>path</i> specifies\na relative path. In this case the file to be changed is determined relative to the directory associated with the file descriptor"
+        },
+        {
+          "line": 80,
+          "text": "<p>If <i>fchmodat</i>() is passed the special value AT_FDCWD in the <i>fd</i> parameter, the current working directory shall be\nused. If also <i>flag</i> is zero, the behavior shall be identical to a call to <i>chmod</i>().</p>\n</blockquote>\n<h4 class=\"mansect\"><a name=\"tag_17_72_04\" id=\"tag_17_72_04\"></a>RETURN VALUE</h4>"
+        },
+        {
+          "line": 203,
+          "text": "<blockquote>\n<p>In order to ensure that the S_ISUID and S_ISGID bits are set, an application requiring this should use <a href=\n\"../functions/stat.html\"><i>stat</i>()</a> after a successful <i>chmod</i>() to verify this.</p>\n<p>Any file descriptors currently open by any process on the file could possibly become invalid if the mode of the file is changed"
+        },
+        {
+          "line": 211,
+          "text": "<blockquote>\n<p>This volume of POSIX.1-2024 specifies that the S_ISGID bit is cleared by <i>chmod</i>() on a regular file under certain\nconditions. This is specified on the assumption that regular files may be executed, and the system should prevent users from making\nexecutable <a href=\"../functions/setgid.html\"><i>setgid</i>()</a> files perform with privileges that the caller does not have. On"
+        },
+        {
+          "line": 214,
+          "text": "executable <a href=\"../functions/setgid.html\"><i>setgid</i>()</a> files perform with privileges that the caller does not have. On\nimplementations that support execution of other file types, the S_ISGID bit should be cleared for those file types under the same\ncircumstances.</p>\n<p>Implementations that use the S_ISUID bit to indicate some other function (for example, mandatory record locking) on"
+        },
+        {
+          "line": 218,
+          "text": "non-executable files need not clear this bit on writing. They should clear the bit for executable files and any other cases where\nthe bit grants special powers to processes that change the file contents. Similar comments apply to the S_ISGID bit.</p>\n<p>The purpose of the <i>fchmodat</i>() function is to enable changing the mode of files in directories other than the current\nworking directory without exposure to race conditions. Any part of the path of a file could be changed in parallel to a call to"
+        }
+      ]
+    },
+    {
+      "id": "posix-chmod-utility",
+      "url": "https://pubs.opengroup.org/onlinepubs/9799919799/utilities/chmod.html",
+      "status": 200,
+      "bytes": 28306,
+      "sha256": "29ea831c77491fb8b1f4e84320a273d5f16411a960bb18436459afe25cb4b7b7",
+      "matchesHistoricalPrimaryHash": true,
+      "excerpts": [
+        {
+          "line": 129,
+          "text": "<i>execute</i>/<i>search</i> portions of file mode bits, respectively. The <b>perm</b> symbol <b>s</b> shall represent the\n<i>set-user-ID-on-execution</i> (when <b>who</b> contains or implies <b>u</b>) and <i>set-group-ID-on-execution</i> (when\n<b>who</b> contains or implies <b>g</b>) bits.</p>\n<p>The <b>perm</b> symbol <b>X</b> shall represent the execute/search portion of the file mode bits if the file is a directory or"
+        },
+        {
+          "line": 133,
+          "text": "if the current (unmodified) file mode bits have at least one of the execute bits (S_IXUSR, S_IXGRP, or S_IXOTH) set. It shall be\nignored if the file is not a directory and none of the execute bits are set in the current file mode bits.</p>\n<p>The <b>permcopy</b> symbols <b>u</b>, <b>g</b>, and <b>o</b> shall represent the current permissions associated with the user,\ngroup, and other parts of the file mode bits, respectively. For the remainder of this section, <b>perm</b> refers to the"
+        },
+        {
+          "line": 165,
+          "text": "<li>\n<p>Requests to set the set-user-ID-on-execution or set-group-ID-on-execution bit when all execute bits are currently clear and none\nare being set are ignored.</p>\n</li>"
+        },
+        {
+          "line": 166,
+          "text": "<p>Requests to set the set-user-ID-on-execution or set-group-ID-on-execution bit when all execute bits are currently clear and none\nare being set are ignored.</p>\n</li>\n<li>"
+        },
+        {
+          "line": 169,
+          "text": "<li>\n<p>Requests to clear all execute bits also clear the set-user-ID-on-execution and set-group-ID-on-execution bits.</p>\n</li>\n<li>"
+        },
+        {
+          "line": 172,
+          "text": "<li>\n<p>Requests to clear the set-user-ID-on-execution or set-group-ID-on-execution bits when all execute bits are currently clear are\nignored. However, if the command <a href=\"../utilities/ls.html\"><i>ls</i></a> <b>-l</b> <i>file</i> writes an <i>s</i> in the\nposition indicating that the set-user-ID-on-execution or set-group-ID-on-execution is set, the commands <i>chmod</i> <b>u-s</b>"
+        },
+        {
+          "line": 173,
+          "text": "<p>Requests to clear the set-user-ID-on-execution or set-group-ID-on-execution bits when all execute bits are currently clear are\nignored. However, if the command <a href=\"../utilities/ls.html\"><i>ls</i></a> <b>-l</b> <i>file</i> writes an <i>s</i> in the\nposition indicating that the set-user-ID-on-execution or set-group-ID-on-execution is set, the commands <i>chmod</i> <b>u-s</b>\n<i>file</i> or <i>chmod</i> <b>g-s</b> <i>file</i>, respectively, shall not be ignored.</p>"
+        },
+        {
+          "line": 174,
+          "text": "ignored. However, if the command <a href=\"../utilities/ls.html\"><i>ls</i></a> <b>-l</b> <i>file</i> writes an <i>s</i> in the\nposition indicating that the set-user-ID-on-execution or set-group-ID-on-execution is set, the commands <i>chmod</i> <b>u-s</b>\n<i>file</i> or <i>chmod</i> <b>g-s</b> <i>file</i>, respectively, shall not be ignored.</p>\n</li>"
+        },
+        {
+          "line": 175,
+          "text": "position indicating that the set-user-ID-on-execution or set-group-ID-on-execution is set, the commands <i>chmod</i> <b>u-s</b>\n<i>file</i> or <i>chmod</i> <b>g-s</b> <i>file</i>, respectively, shall not be ignored.</p>\n</li>\n</ul>"
+        },
+        {
+          "line": 179,
+          "text": "<p>When using the symbolic mode form on other file types, it is implementation-defined whether or not requests to set or clear the\nset-user-ID-on-execution or set-group-ID-on-execution bits are honored.</p>\n<p>If the <b>who</b> symbol <b>o</b> is used in conjunction with the <b>perm</b> symbol <b>s</b> with no other <b>who</b> symbols\nbeing specified, the set-user-ID-on-execution and set-group-ID-on-execution bits shall not be modified. It shall not be an error to"
+        },
+        {
+          "line": 181,
+          "text": "<p>If the <b>who</b> symbol <b>o</b> is used in conjunction with the <b>perm</b> symbol <b>s</b> with no other <b>who</b> symbols\nbeing specified, the set-user-ID-on-execution and set-group-ID-on-execution bits shall not be modified. It shall not be an error to\nspecify the <b>who</b> symbol <b>o</b> in conjunction with the <b>perm</b> symbol <b>s</b>.</p>\n<p><sup>[<a href=\"javascript:open_code('XSI')\">XSI</a>]</sup> <img src=\"../images/opt-start.gif\" alt=\"[Option Start]\" border=\"0\">"
+        },
+        {
+          "line": 192,
+          "text": "file permission bits shall be cleared. For regular files, for each bit set in the octal number corresponding to the\nset-user-ID-on-execution or the set-group-ID-on-execution, bits shown in the following table shall be set; if these bits are not\nset in the octal number, they are cleared. For other file types, it is implementation-defined whether or not requests to set or\nclear the set-user-ID-on-execution or set-group-ID-on-execution bits are honored.</p>"
+        },
+        {
+          "line": 194,
+          "text": "set in the octal number, they are cleared. For other file types, it is implementation-defined whether or not requests to set or\nclear the set-user-ID-on-execution or set-group-ID-on-execution bits are honored.</p>\n<center>\n<table border=\"1\" cellpadding=\"3\" align=\"center\">"
+        },
+        {
+          "line": 390,
+          "text": "\"../utilities/umask.html\"><i>umask</i></a>.</p>\n<p class=\"tent\">Conforming applications should never assume that they know how the set-user-ID and set-group-ID bits on directories\nare interpreted.</p>\n</blockquote>"
+        },
+        {
+          "line": 457,
+          "text": "<p class=\"tent\">Implementations that support mandatory file and record locking as specified by the 1984 /usr/group standard\nhistorically used the combination of set-group-ID bit set and group execute bit clear to indicate mandatory locking. This condition\nis usually set or cleared with the symbolic mode <b>perm</b> symbol <b>l</b> instead of the <b>perm</b> symbols <b>s</b> and\n<b>x</b> so that the mandatory locking mode is not changed without explicit indication that that was what the user intended."
+        },
+        {
+          "line": 464,
+          "text": "utilities work consistently in this area. If <a href=\"../utilities/ls.html\"><i>ls</i></a> <b>-l</b> <i>file</i> indicates that the\nset-group-ID bit is set, <i>chmod</i> <b>g-s</b> <i>file</i> must clear it (assuming appropriate privileges exist to change\nmodes).</p>\n<p class=\"tent\">The System V and BSD versions use different exit status codes. Some implementations used the exit status as a count"
+        },
+        {
+          "line": 470,
+          "text": "<p class=\"tent\">The System Interfaces volume of POSIX.1-2024 indicates that implementation-defined restrictions may cause the\nS_ISUID and S_ISGID bits to be ignored. This volume of POSIX.1-2024 allows the <i>chmod</i> utility to choose to modify these bits\nbefore calling <a href=\"../functions/chmod.html\"><i>chmod</i>()</a> (or some function providing equivalent capabilities) for\nnon-regular files. Among other things, this allows implementations that use the set-user-ID and set-group-ID bits on directories to"
+        },
+        {
+          "line": 472,
+          "text": "before calling <a href=\"../functions/chmod.html\"><i>chmod</i>()</a> (or some function providing equivalent capabilities) for\nnon-regular files. Among other things, this allows implementations that use the set-user-ID and set-group-ID bits on directories to\nenable extended features to handle these extensions in an intelligent manner.</p>\n<p class=\"tent\">The <b>X</b> <b>perm</b> symbol was adopted from BSD-based systems because it provides commonly desired"
+        },
+        {
+          "line": 514,
+          "text": "<b>who</b> symbol. It shall not be an error to specify a <b>who</b> symbol of <b>u</b> or <b>g</b> in conjunction with the\n<b>perm</b> symbol <b>t</b>; it shall be ignored for <b>u</b> and <b>g</b>.&quot;</blockquote>\n<p class=\"tent\">to:</p>\n<blockquote>&quot;The <b>perm</b> symbol <b>t</b> shall specify the S_ISVTX bit. When used with a file of type directory, it can be"
+        }
+      ]
+    },
+    {
+      "id": "apple-unix03-chmod",
+      "url": "https://raw.githubusercontent.com/apple-oss-distributions/xnu/5c306bec31e314fa4d8bbdafb2f6f5a6b7e7b291/libsyscall/wrappers/unix03/chmod.c",
+      "status": 200,
+      "bytes": 1826,
+      "sha256": "668aba30c535ba6ae952bc118e051b9ed62c67ded6fd9288133296d5522894fd",
+      "matchesHistoricalPrimaryHash": true,
+      "excerpts": [
+        {
+          "line": 36,
+          "text": " * chmod stub, ignore S_ISUID and/or S_ISGID on EPERM,\n * mandated for conformance.\n *\n * This is for UNIX03 only."
+        },
+        {
+          "line": 43,
+          "text": "{\n\tint res = __chmod(path, mode);\n\n\tif (res >= 0 || errno != EPERM || (mode & (S_ISUID | S_ISGID)) == 0) {"
+        },
+        {
+          "line": 49,
+          "text": "\tif (mode & S_ISGID) {\n\t\tres = __chmod(path, mode ^ S_ISGID);\n\t\tif (res >= 0 || errno != EPERM) {\n\t\t\treturn res;"
+        },
+        {
+          "line": 55,
+          "text": "\tif (mode & S_ISUID) {\n\t\tres = __chmod(path, mode ^ S_ISUID);\n\t\tif (res >= 0 || errno != EPERM) {\n\t\t\treturn res;"
+        },
+        {
+          "line": 61,
+          "text": "\tif ((mode & (S_ISUID | S_ISGID)) == (S_ISUID | S_ISGID)) {\n\t\tres = __chmod(path, mode ^ (S_ISUID | S_ISGID));\n\t}\n\treturn res;"
+        }
+      ]
+    },
+    {
+      "id": "libuv-fs",
+      "url": "https://raw.githubusercontent.com/libuv/libuv/v1.51.0/src/unix/fs.c",
+      "status": 200,
+      "bytes": 59847,
+      "sha256": "ffe2cd709c894083d4e470bce5248eee71c5e5594418be3d7a6d80e44d723a61",
+      "matchesHistoricalPrimaryHash": true,
+      "excerpts": [
+        {
+          "line": 1698,
+          "text": "    X(ACCESS, access(req->path, req->flags));\n    X(CHMOD, chmod(req->path, req->mode));\n    X(CHOWN, chown(req->path, req->uid, req->gid));\n    X(CLOSE, uv__fs_close(req->file));"
+        }
+      ]
+    },
+    {
+      "id": "node-fs",
+      "url": "https://raw.githubusercontent.com/nodejs/node/v22.22.2/src/node_file.cc",
+      "status": 200,
+      "bytes": 137052,
+      "sha256": "d9bd85b74171f392d96217ca5e1fbf522b504c2cb94f0f84965ebd4ceee9ef06",
+      "matchesHistoricalPrimaryHash": true,
+      "excerpts": [
+        {
+          "line": 2716,
+          "text": "    AsyncCall(env, req_wrap_async, args, \"chmod\", UTF8, AfterNoArgs,\n              uv_fs_chmod, *path, mode);\n  } else {  // chmod(path, mode)\n    FSReqWrapSync req_wrap_sync(\"chmod\", *path);"
+        },
+        {
+          "line": 2720,
+          "text": "    FS_SYNC_TRACE_BEGIN(chmod);\n    SyncCallAndThrowOnError(env, &req_wrap_sync, uv_fs_chmod, *path, mode);\n    FS_SYNC_TRACE_END(chmod);\n  }"
+        }
+      ]
+    },
+    {
+      "id": "gnu-chmod",
+      "url": "https://raw.githubusercontent.com/coreutils/coreutils/v9.7/src/chmod.c",
+      "status": 200,
+      "bytes": 18743,
+      "sha256": "9344f0799f8c50a10984d5cd708a6be41169b77bfd703f2640238618ccc51393",
+      "matchesHistoricalPrimaryHash": true,
+      "excerpts": [
+        {
+          "line": 307,
+          "text": "      ch.old_mode = file_stats->st_mode;\n      ch.new_mode = mode_adjust (ch.old_mode, S_ISDIR (ch.old_mode) != 0,\n                                 umask_value, change, nullptr);\n      bool follow_symlink = !!dereference;"
+        },
+        {
+          "line": 312,
+          "text": "        follow_symlink = ent->fts_level == 0;\n      if (fchmodat (fts->fts_cwd_fd, file, ch.new_mode,\n                    follow_symlink ? 0 : AT_SYMLINK_NOFOLLOW) == 0)\n        ch.status = CH_SUCCEEDED;"
+        }
+      ]
+    }
+  ]
+}

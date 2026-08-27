@@ -7,7 +7,8 @@ export const encode = (text: string): Uint8Array => new TextEncoder().encode(tex
 export function limitsFor(overrides: Partial<NetworkLimits> = {}): NetworkLimits {
   const result = { ...defaultNetworkLimits, ...overrides };
   for (const [name, value] of Object.entries(result)) {
-    if (!Number.isSafeInteger(value) || value < 1 || (name === "maxTimeMs" && value > 2_147_483_647)) {
+    const minimum = name === "maxRedirects" || name === "maxRetries" ? 0 : 1;
+    if (!Number.isSafeInteger(value) || value < minimum || (name === "maxTimeMs" && value > 2_147_483_647)) {
       throw new RangeError(`Invalid network limit: ${name}`);
     }
   }

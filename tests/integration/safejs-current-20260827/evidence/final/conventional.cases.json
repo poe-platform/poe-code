@@ -1,0 +1,1664 @@
+{
+  "enabled": true,
+  "status": 1,
+  "signal": null,
+  "counts": {
+    "pass": 107,
+    "fail": 8,
+    "skip": 0
+  },
+  "cases": [
+    {
+      "outcome": "pass",
+      "name": "actual engine: inline source and hostile literal argv never become guest code",
+      "nesting": 0,
+      "testNumber": 1,
+      "details": {
+        "duration_ms": 126.67925,
+        "type": "test"
+      },
+      "line": 1,
+      "column": 730,
+      "file": "/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs-stress/actual-engine.test.ts"
+    },
+    {
+      "outcome": "pass",
+      "name": "actual engine: file source and hostile literal argv never become guest code",
+      "nesting": 0,
+      "testNumber": 2,
+      "details": {
+        "duration_ms": 2.563,
+        "type": "test"
+      },
+      "line": 1,
+      "column": 730,
+      "file": "/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs-stress/actual-engine.test.ts"
+    },
+    {
+      "outcome": "pass",
+      "name": "actual engine: stdin source and hostile literal argv never become guest code",
+      "nesting": 0,
+      "testNumber": 3,
+      "details": {
+        "duration_ms": 6.171,
+        "type": "test"
+      },
+      "line": 1,
+      "column": 730,
+      "file": "/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs-stress/actual-engine.test.ts"
+    },
+    {
+      "outcome": "pass",
+      "name": "actual engine: constructor/prototype input keys remain inert guest data",
+      "nesting": 0,
+      "testNumber": 4,
+      "details": {
+        "duration_ms": 1.301375,
+        "type": "test"
+      },
+      "line": 1,
+      "column": 1930,
+      "file": "/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs-stress/actual-engine.test.ts"
+    },
+    {
+      "outcome": "pass",
+      "name": "actual engine: guest boundary denies return ({}).constructor.constructor(\"return process\")();",
+      "nesting": 0,
+      "testNumber": 5,
+      "details": {
+        "duration_ms": 1.209667,
+        "type": "test"
+      },
+      "line": 1,
+      "column": 2744,
+      "file": "/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs-stress/actual-engine.test.ts"
+    },
+    {
+      "outcome": "pass",
+      "name": "actual engine: guest boundary denies import { readFile } from \"node:fs\"; return await readFile(\"/etc/passwd\", \"utf8\");",
+      "nesting": 0,
+      "testNumber": 6,
+      "details": {
+        "duration_ms": 1.506875,
+        "type": "test"
+      },
+      "line": 1,
+      "column": 2744,
+      "file": "/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs-stress/actual-engine.test.ts"
+    },
+    {
+      "outcome": "pass",
+      "name": "actual engine: guest boundary denies import { run } from \"command\"; return await run(\"touch /escape\");",
+      "nesting": 0,
+      "testNumber": 7,
+      "details": {
+        "duration_ms": 0.821458,
+        "type": "test"
+      },
+      "line": 1,
+      "column": 2744,
+      "file": "/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs-stress/actual-engine.test.ts"
+    },
+    {
+      "outcome": "pass",
+      "name": "actual engine: guest boundary denies return globalThis.process.env;",
+      "nesting": 0,
+      "testNumber": 8,
+      "details": {
+        "duration_ms": 0.82725,
+        "type": "test"
+      },
+      "line": 1,
+      "column": 2744,
+      "file": "/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs-stress/actual-engine.test.ts"
+    },
+    {
+      "outcome": "pass",
+      "name": "actual engine: maxSteps budget rejects guest work",
+      "nesting": 0,
+      "testNumber": 9,
+      "details": {
+        "duration_ms": 2.130208,
+        "type": "test"
+      },
+      "line": 1,
+      "column": 3523,
+      "file": "/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs-stress/actual-engine.test.ts"
+    },
+    {
+      "outcome": "pass",
+      "name": "actual engine: maxCallDepth budget rejects guest work",
+      "nesting": 0,
+      "testNumber": 10,
+      "details": {
+        "duration_ms": 1.6815,
+        "type": "test"
+      },
+      "line": 1,
+      "column": 3523,
+      "file": "/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs-stress/actual-engine.test.ts"
+    },
+    {
+      "outcome": "pass",
+      "name": "actual engine: stringLength budget rejects guest work",
+      "nesting": 0,
+      "testNumber": 11,
+      "details": {
+        "duration_ms": 0.883583,
+        "type": "test"
+      },
+      "line": 1,
+      "column": 3523,
+      "file": "/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs-stress/actual-engine.test.ts"
+    },
+    {
+      "outcome": "pass",
+      "name": "actual engine: arrayLength budget rejects guest work",
+      "nesting": 0,
+      "testNumber": 12,
+      "details": {
+        "duration_ms": 7.24525,
+        "type": "test"
+      },
+      "line": 1,
+      "column": 3523,
+      "file": "/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs-stress/actual-engine.test.ts"
+    },
+    {
+      "outcome": "pass",
+      "name": "actual engine: dataSize budget rejects guest work",
+      "nesting": 0,
+      "testNumber": 13,
+      "details": {
+        "duration_ms": 4.210042,
+        "type": "test"
+      },
+      "line": 1,
+      "column": 3523,
+      "file": "/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs-stress/actual-engine.test.ts"
+    },
+    {
+      "outcome": "pass",
+      "name": "actual engine: caught mixed byte/text input quota cannot recover success",
+      "nesting": 0,
+      "testNumber": 14,
+      "details": {
+        "duration_ms": 1.6365,
+        "type": "test"
+      },
+      "line": 1,
+      "column": 3861,
+      "file": "/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs-stress/actual-engine.test.ts"
+    },
+    {
+      "outcome": "pass",
+      "name": "actual engine: partial UTF-8 is a catchable decoding error, not replacement text",
+      "nesting": 0,
+      "testNumber": 15,
+      "details": {
+        "duration_ms": 1.570875,
+        "type": "test"
+      },
+      "line": 1,
+      "column": 4372,
+      "file": "/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs-stress/actual-engine.test.ts"
+    },
+    {
+      "outcome": "pass",
+      "name": "actual engine: pending guest VFS read receives cancellation and blocks subsequent writes",
+      "nesting": 0,
+      "testNumber": 16,
+      "details": {
+        "duration_ms": 11.860084,
+        "type": "test"
+      },
+      "line": 1,
+      "column": 4850,
+      "file": "/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs-stress/actual-engine.test.ts"
+    },
+    {
+      "outcome": "pass",
+      "name": "actual engine: asynchronous sink backpressure delays later virtual writes",
+      "nesting": 0,
+      "testNumber": 17,
+      "details": {
+        "duration_ms": 1.867333,
+        "type": "test"
+      },
+      "line": 1,
+      "column": 5916,
+      "file": "/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs-stress/actual-engine.test.ts"
+    },
+    {
+      "outcome": "pass",
+      "name": "actual engine: Shell early-close pipeline stops producer without hanging",
+      "nesting": 0,
+      "testNumber": 18,
+      "details": {
+        "duration_ms": 10.717125,
+        "type": "test"
+      },
+      "line": 1,
+      "column": 6770,
+      "file": "/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs-stress/actual-engine.test.ts"
+    },
+    {
+      "outcome": "pass",
+      "name": "actual engine: concurrent invocations isolate argv/env/budgets and reject retained capabilities",
+      "nesting": 0,
+      "testNumber": 19,
+      "details": {
+        "duration_ms": 3.916583,
+        "type": "test"
+      },
+      "line": 1,
+      "column": 7317,
+      "file": "/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs-stress/actual-engine.test.ts"
+    },
+    {
+      "outcome": "pass",
+      "name": "actual engine: action-producing loop stops on step budget, not output capacity",
+      "nesting": 0,
+      "testNumber": 20,
+      "details": {
+        "duration_ms": 2.109,
+        "type": "test"
+      },
+      "line": 2,
+      "column": 451,
+      "file": "/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs-stress/actual-engine.test.ts"
+    },
+    {
+      "outcome": "pass",
+      "name": "actual engine: synchronous loop respects engine deadline with large step allowance",
+      "nesting": 0,
+      "testNumber": 21,
+      "details": {
+        "duration_ms": 22.40525,
+        "type": "test"
+      },
+      "line": 2,
+      "column": 977,
+      "file": "/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs-stress/actual-engine.test.ts"
+    },
+    {
+      "outcome": "pass",
+      "name": "actual engine: all stdio and exit actions retain non-replayable journal policies",
+      "nesting": 0,
+      "testNumber": 22,
+      "details": {
+        "duration_ms": 1.811333,
+        "type": "test"
+      },
+      "line": 2,
+      "column": 1387,
+      "file": "/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs-stress/actual-engine.test.ts"
+    },
+    {
+      "outcome": "pass",
+      "name": "fixture: guest writes await downstream backpressure before consuming more input",
+      "nesting": 0,
+      "testNumber": 23,
+      "details": {
+        "duration_ms": 3.217375,
+        "type": "test"
+      },
+      "line": 1,
+      "column": 274,
+      "file": "/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs-stress/lifecycle.test.ts"
+    },
+    {
+      "outcome": "pass",
+      "name": "fixture: source iterator cleanup observes late rejection after cancellation",
+      "nesting": 0,
+      "testNumber": 24,
+      "details": {
+        "duration_ms": 7.054292,
+        "type": "test"
+      },
+      "line": 1,
+      "column": 1162,
+      "file": "/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs-stress/lifecycle.test.ts"
+    },
+    {
+      "outcome": "pass",
+      "name": "fixture: guest iterator cleanup observes late rejection after cancellation",
+      "nesting": 0,
+      "testNumber": 25,
+      "details": {
+        "duration_ms": 5.6825,
+        "type": "test"
+      },
+      "line": 1,
+      "column": 1162,
+      "file": "/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs-stress/lifecycle.test.ts"
+    },
+    {
+      "outcome": "pass",
+      "name": "fixture: sink early-close aborts queued writes and preserves prior byte effects",
+      "nesting": 0,
+      "testNumber": 26,
+      "details": {
+        "duration_ms": 0.592041,
+        "type": "test"
+      },
+      "line": 1,
+      "column": 2219,
+      "file": "/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs-stress/lifecycle.test.ts"
+    },
+    {
+      "outcome": "pass",
+      "name": "fixture: abandoned pending reads settle on completion without unhandled late failures",
+      "nesting": 0,
+      "testNumber": 27,
+      "details": {
+        "duration_ms": 6.774042,
+        "type": "test"
+      },
+      "line": 1,
+      "column": 2932,
+      "file": "/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs-stress/lifecycle.test.ts"
+    },
+    {
+      "outcome": "pass",
+      "name": "fixture: pending buffered source loading propagates cancellation and observes late failure",
+      "nesting": 0,
+      "testNumber": 28,
+      "details": {
+        "duration_ms": 6.709375,
+        "type": "test"
+      },
+      "line": 1,
+      "column": 3660,
+      "file": "/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs-stress/lifecycle.test.ts"
+    },
+    {
+      "outcome": "pass",
+      "name": "fixture: inline source remains exact data across source/argv boundaries",
+      "nesting": 0,
+      "testNumber": 29,
+      "details": {
+        "duration_ms": 1.629167,
+        "type": "test"
+      },
+      "line": 1,
+      "column": 314,
+      "file": "/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs-stress/safety.test.ts"
+    },
+    {
+      "outcome": "pass",
+      "name": "fixture: file source remains exact data across source/argv boundaries",
+      "nesting": 0,
+      "testNumber": 30,
+      "details": {
+        "duration_ms": 0.482584,
+        "type": "test"
+      },
+      "line": 1,
+      "column": 314,
+      "file": "/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs-stress/safety.test.ts"
+    },
+    {
+      "outcome": "pass",
+      "name": "fixture: stdin source remains exact data across source/argv boundaries",
+      "nesting": 0,
+      "testNumber": 31,
+      "details": {
+        "duration_ms": 0.711667,
+        "type": "test"
+      },
+      "line": 1,
+      "column": 314,
+      "file": "/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs-stress/safety.test.ts"
+    },
+    {
+      "outcome": "pass",
+      "name": "fixture: inline source byte budget exact boundary includes BOM",
+      "nesting": 0,
+      "testNumber": 32,
+      "details": {
+        "duration_ms": 0.386417,
+        "type": "test"
+      },
+      "line": 2,
+      "column": 928,
+      "file": "/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs-stress/safety.test.ts"
+    },
+    {
+      "outcome": "pass",
+      "name": "fixture: file source byte budget exact boundary includes BOM",
+      "nesting": 0,
+      "testNumber": 33,
+      "details": {
+        "duration_ms": 0.409333,
+        "type": "test"
+      },
+      "line": 2,
+      "column": 928,
+      "file": "/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs-stress/safety.test.ts"
+    },
+    {
+      "outcome": "pass",
+      "name": "fixture: stdin source byte budget exact boundary includes BOM",
+      "nesting": 0,
+      "testNumber": 34,
+      "details": {
+        "duration_ms": 0.319542,
+        "type": "test"
+      },
+      "line": 2,
+      "column": 928,
+      "file": "/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs-stress/safety.test.ts"
+    },
+    {
+      "outcome": "pass",
+      "name": "fixture: prototype keys survive snapshots and JSON without invoking accessors",
+      "nesting": 0,
+      "testNumber": 35,
+      "details": {
+        "duration_ms": 0.291625,
+        "type": "test"
+      },
+      "line": 2,
+      "column": 1537,
+      "file": "/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs-stress/safety.test.ts"
+    },
+    {
+      "outcome": "pass",
+      "name": "fixture: malformed runner results and error accessors fail without evaluating getters",
+      "nesting": 0,
+      "testNumber": 36,
+      "details": {
+        "duration_ms": 0.475667,
+        "type": "test"
+      },
+      "line": 2,
+      "column": 2197,
+      "file": "/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs-stress/safety.test.ts"
+    },
+    {
+      "outcome": "pass",
+      "name": "fixture: partial UTF-8 rejects text decoding but leaves raw bytes available",
+      "nesting": 0,
+      "testNumber": 37,
+      "details": {
+        "duration_ms": 0.360417,
+        "type": "test"
+      },
+      "line": 2,
+      "column": 2681,
+      "file": "/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs-stress/safety.test.ts"
+    },
+    {
+      "outcome": "pass",
+      "name": "fixture: all engine budgets are forwarded exactly and mutable budgets are never reused",
+      "nesting": 0,
+      "testNumber": 38,
+      "details": {
+        "duration_ms": 0.360667,
+        "type": "test"
+      },
+      "line": 2,
+      "column": 3205,
+      "file": "/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs-stress/safety.test.ts"
+    },
+    {
+      "outcome": "pass",
+      "name": "fixture: captured host operations cannot be reused after command completion",
+      "nesting": 0,
+      "testNumber": 39,
+      "details": {
+        "duration_ms": 0.277584,
+        "type": "test"
+      },
+      "line": 2,
+      "column": 4043,
+      "file": "/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs-stress/safety.test.ts"
+    },
+    {
+      "outcome": "pass",
+      "name": "fixture: registration configuration rejects unknown budgets",
+      "nesting": 0,
+      "testNumber": 40,
+      "details": {
+        "duration_ms": 0.095542,
+        "type": "test"
+      },
+      "line": 2,
+      "column": 4713,
+      "file": "/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs-stress/safety.test.ts"
+    },
+    {
+      "outcome": "pass",
+      "name": "fixture: stdout/stderr/return share an exact cumulative UTF-8 byte budget",
+      "nesting": 0,
+      "testNumber": 41,
+      "details": {
+        "duration_ms": 0.326041,
+        "type": "test"
+      },
+      "line": 2,
+      "column": 4882,
+      "file": "/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs-stress/safety.test.ts"
+    },
+    {
+      "outcome": "pass",
+      "name": "fixture: fragmented binary reads preserve bytes with varying requested sizes",
+      "nesting": 0,
+      "testNumber": 42,
+      "details": {
+        "duration_ms": 10.819125,
+        "type": "test"
+      },
+      "line": 2,
+      "column": 5500,
+      "file": "/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs-stress/safety.test.ts"
+    },
+    {
+      "outcome": "fail",
+      "name": "KNOWN UPSTREAM LIMITATION: signal loses Error construction, not compatibility acceptance",
+      "nesting": 0,
+      "testNumber": 43,
+      "details": {
+        "duration_ms": 117.064625,
+        "type": "test",
+        "error": {
+          "name": "Error",
+          "message": "Missing expected rejection.",
+          "stack": "Error [ERR_TEST_FAILURE]: Missing expected rejection.",
+          "code": "ERR_TEST_FAILURE",
+          "failureType": "testCodeFailure",
+          "cause": {
+            "name": "AssertionError",
+            "message": "Missing expected rejection.",
+            "stack": "AssertionError [ERR_ASSERTION]: Missing expected rejection.\n    at async TestContext.<anonymous> (/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs-stress/upstream-limitations.test.ts:24:5)\n    at async Test.run (node:internal/test_runner/test:1054:7)\n    at async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)",
+            "generatedMessage": false,
+            "code": "ERR_ASSERTION",
+            "expected": {
+              "message": "Error is not a constructor."
+            },
+            "operator": "rejects",
+            "diff": "simple"
+          }
+        }
+      },
+      "line": 1,
+      "column": 692,
+      "file": "/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs-stress/upstream-limitations.test.ts"
+    },
+    {
+      "outcome": "fail",
+      "name": "KNOWN UPSTREAM LIMITATION: signal loses TypeError construction, not compatibility acceptance",
+      "nesting": 0,
+      "testNumber": 44,
+      "details": {
+        "duration_ms": 1.608041,
+        "type": "test",
+        "error": {
+          "name": "Error",
+          "message": "Missing expected rejection.",
+          "stack": "Error [ERR_TEST_FAILURE]: Missing expected rejection.",
+          "code": "ERR_TEST_FAILURE",
+          "failureType": "testCodeFailure",
+          "cause": {
+            "name": "AssertionError",
+            "message": "Missing expected rejection.",
+            "stack": "AssertionError [ERR_ASSERTION]: Missing expected rejection.\n    at async TestContext.<anonymous> (/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs-stress/upstream-limitations.test.ts:24:5)\n    at async Test.run (node:internal/test_runner/test:1054:7)\n    at async Test.processPendingSubtests (node:internal/test_runner/test:744:7)",
+            "generatedMessage": false,
+            "code": "ERR_ASSERTION",
+            "expected": {
+              "message": "TypeError is not a constructor."
+            },
+            "operator": "rejects",
+            "diff": "simple"
+          }
+        }
+      },
+      "line": 1,
+      "column": 692,
+      "file": "/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs-stress/upstream-limitations.test.ts"
+    },
+    {
+      "outcome": "fail",
+      "name": "KNOWN UPSTREAM LIMITATION: signal loses Map construction, not compatibility acceptance",
+      "nesting": 0,
+      "testNumber": 45,
+      "details": {
+        "duration_ms": 1.797958,
+        "type": "test",
+        "error": {
+          "name": "Error",
+          "message": "Missing expected rejection.",
+          "stack": "Error [ERR_TEST_FAILURE]: Missing expected rejection.",
+          "code": "ERR_TEST_FAILURE",
+          "failureType": "testCodeFailure",
+          "cause": {
+            "name": "AssertionError",
+            "message": "Missing expected rejection.",
+            "stack": "AssertionError [ERR_ASSERTION]: Missing expected rejection.\n    at async TestContext.<anonymous> (/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs-stress/upstream-limitations.test.ts:24:5)\n    at async Test.run (node:internal/test_runner/test:1054:7)\n    at async Test.processPendingSubtests (node:internal/test_runner/test:744:7)",
+            "generatedMessage": false,
+            "code": "ERR_ASSERTION",
+            "expected": {
+              "message": "Map is not a constructor."
+            },
+            "operator": "rejects",
+            "diff": "simple"
+          }
+        }
+      },
+      "line": 1,
+      "column": 692,
+      "file": "/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs-stress/upstream-limitations.test.ts"
+    },
+    {
+      "outcome": "fail",
+      "name": "KNOWN UPSTREAM LIMITATION: signal loses Set construction, not compatibility acceptance",
+      "nesting": 0,
+      "testNumber": 46,
+      "details": {
+        "duration_ms": 1.113084,
+        "type": "test",
+        "error": {
+          "name": "Error",
+          "message": "Missing expected rejection.",
+          "stack": "Error [ERR_TEST_FAILURE]: Missing expected rejection.",
+          "code": "ERR_TEST_FAILURE",
+          "failureType": "testCodeFailure",
+          "cause": {
+            "name": "AssertionError",
+            "message": "Missing expected rejection.",
+            "stack": "AssertionError [ERR_ASSERTION]: Missing expected rejection.\n    at async TestContext.<anonymous> (/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs-stress/upstream-limitations.test.ts:24:5)\n    at async Test.run (node:internal/test_runner/test:1054:7)\n    at async Test.processPendingSubtests (node:internal/test_runner/test:744:7)",
+            "generatedMessage": false,
+            "code": "ERR_ASSERTION",
+            "expected": {
+              "message": "Set is not a constructor."
+            },
+            "operator": "rejects",
+            "diff": "simple"
+          }
+        }
+      },
+      "line": 1,
+      "column": 692,
+      "file": "/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs-stress/upstream-limitations.test.ts"
+    },
+    {
+      "outcome": "fail",
+      "name": "KNOWN UPSTREAM LIMITATION: signal loses RegExp construction, not compatibility acceptance",
+      "nesting": 0,
+      "testNumber": 47,
+      "details": {
+        "duration_ms": 2.125833,
+        "type": "test",
+        "error": {
+          "name": "Error",
+          "message": "Missing expected rejection.",
+          "stack": "Error [ERR_TEST_FAILURE]: Missing expected rejection.",
+          "code": "ERR_TEST_FAILURE",
+          "failureType": "testCodeFailure",
+          "cause": {
+            "name": "AssertionError",
+            "message": "Missing expected rejection.",
+            "stack": "AssertionError [ERR_ASSERTION]: Missing expected rejection.\n    at async TestContext.<anonymous> (/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs-stress/upstream-limitations.test.ts:24:5)\n    at async Test.run (node:internal/test_runner/test:1054:7)\n    at async Test.processPendingSubtests (node:internal/test_runner/test:744:7)",
+            "generatedMessage": false,
+            "code": "ERR_ASSERTION",
+            "expected": {
+              "message": "RegExp is not a constructor."
+            },
+            "operator": "rejects",
+            "diff": "simple"
+          }
+        }
+      },
+      "line": 1,
+      "column": 692,
+      "file": "/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs-stress/upstream-limitations.test.ts"
+    },
+    {
+      "outcome": "fail",
+      "name": "KNOWN UPSTREAM LIMITATION: signal loses static Array.isArray([]), not compatibility acceptance",
+      "nesting": 0,
+      "testNumber": 48,
+      "details": {
+        "duration_ms": 1.192,
+        "type": "test",
+        "error": {
+          "name": "Error",
+          "message": "Missing expected rejection.",
+          "stack": "Error [ERR_TEST_FAILURE]: Missing expected rejection.",
+          "code": "ERR_TEST_FAILURE",
+          "failureType": "testCodeFailure",
+          "cause": {
+            "name": "AssertionError",
+            "message": "Missing expected rejection.",
+            "stack": "AssertionError [ERR_ASSERTION]: Missing expected rejection.\n    at async TestContext.<anonymous> (/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs-stress/upstream-limitations.test.ts:46:5)\n    at async Test.run (node:internal/test_runner/test:1054:7)\n    at async Test.processPendingSubtests (node:internal/test_runner/test:744:7)",
+            "generatedMessage": false,
+            "code": "ERR_ASSERTION",
+            "expected": {
+              "message": "Function#isArray is not a supported method."
+            },
+            "operator": "rejects",
+            "diff": "simple"
+          }
+        }
+      },
+      "line": 1,
+      "column": 1894,
+      "file": "/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs-stress/upstream-limitations.test.ts"
+    },
+    {
+      "outcome": "fail",
+      "name": "KNOWN UPSTREAM LIMITATION: signal loses static Array.from([1, 2]), not compatibility acceptance",
+      "nesting": 0,
+      "testNumber": 49,
+      "details": {
+        "duration_ms": 1.237459,
+        "type": "test",
+        "error": {
+          "name": "Error",
+          "message": "Missing expected rejection.",
+          "stack": "Error [ERR_TEST_FAILURE]: Missing expected rejection.",
+          "code": "ERR_TEST_FAILURE",
+          "failureType": "testCodeFailure",
+          "cause": {
+            "name": "AssertionError",
+            "message": "Missing expected rejection.",
+            "stack": "AssertionError [ERR_ASSERTION]: Missing expected rejection.\n    at async TestContext.<anonymous> (/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs-stress/upstream-limitations.test.ts:46:5)\n    at async Test.run (node:internal/test_runner/test:1054:7)\n    at async Test.processPendingSubtests (node:internal/test_runner/test:744:7)",
+            "generatedMessage": false,
+            "code": "ERR_ASSERTION",
+            "expected": {
+              "message": "Function#from is not a supported method."
+            },
+            "operator": "rejects",
+            "diff": "simple"
+          }
+        }
+      },
+      "line": 1,
+      "column": 1894,
+      "file": "/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs-stress/upstream-limitations.test.ts"
+    },
+    {
+      "outcome": "pass",
+      "name": "KNOWN UPSTREAM LIMITATION: signal drops own __proto__ data, not env-key compatibility",
+      "nesting": 0,
+      "testNumber": 50,
+      "details": {
+        "duration_ms": 13.133,
+        "type": "test"
+      },
+      "line": 2,
+      "column": 6,
+      "file": "/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs-stress/upstream-limitations.test.ts"
+    },
+    {
+      "outcome": "pass",
+      "name": "KNOWN UPSTREAM LIMITATION: raw pre-aborted pure run succeeds; plugin rejects before runner",
+      "nesting": 0,
+      "testNumber": 51,
+      "details": {
+        "duration_ms": 1.005792,
+        "type": "test"
+      },
+      "line": 2,
+      "column": 1336,
+      "file": "/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs-stress/upstream-limitations.test.ts"
+    },
+    {
+      "outcome": "pass",
+      "name": "missing runtime is explicit and never consumes source or stdin",
+      "nesting": 0,
+      "testNumber": 52,
+      "details": {
+        "duration_ms": 0.982167,
+        "type": "test"
+      },
+      "line": 1,
+      "column": 190,
+      "file": "/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs/command.test.ts"
+    },
+    {
+      "outcome": "pass",
+      "name": "inline source receives exact args, virtual context and a fresh budget",
+      "nesting": 0,
+      "testNumber": 53,
+      "details": {
+        "duration_ms": 0.932167,
+        "type": "test"
+      },
+      "line": 1,
+      "column": 567,
+      "file": "/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs/command.test.ts"
+    },
+    {
+      "outcome": "pass",
+      "name": "stdio consumes bytes once and routes awaited output without host IO",
+      "nesting": 0,
+      "testNumber": 54,
+      "details": {
+        "duration_ms": 0.512542,
+        "type": "test"
+      },
+      "line": 1,
+      "column": 1307,
+      "file": "/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs/command.test.ts"
+    },
+    {
+      "outcome": "pass",
+      "name": "stdin source is not available again as guest data",
+      "nesting": 0,
+      "testNumber": 55,
+      "details": {
+        "duration_ms": 0.25525,
+        "type": "test"
+      },
+      "line": 1,
+      "column": 2120,
+      "file": "/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs/command.test.ts"
+    },
+    {
+      "outcome": "pass",
+      "name": "usage failures occur before runner and input effects",
+      "nesting": 0,
+      "testNumber": 56,
+      "details": {
+        "duration_ms": 0.395417,
+        "type": "test"
+      },
+      "line": 1,
+      "column": 2513,
+      "file": "/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs/command.test.ts"
+    },
+    {
+      "outcome": "pass",
+      "name": "guest UTF-8 text preserves BOM and multibyte input across single-byte chunks",
+      "nesting": 0,
+      "testNumber": 57,
+      "details": {
+        "duration_ms": 0.37975,
+        "type": "test"
+      },
+      "line": 1,
+      "column": 2862,
+      "file": "/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs/command.test.ts"
+    },
+    {
+      "outcome": "pass",
+      "name": "one leading source BOM is stripped without replaying source as guest input",
+      "nesting": 0,
+      "testNumber": 58,
+      "details": {
+        "duration_ms": 0.168,
+        "type": "test"
+      },
+      "line": 1,
+      "column": 3412,
+      "file": "/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs/command.test.ts"
+    },
+    {
+      "outcome": "pass",
+      "name": "script loading honors a false streaming capability and requests bounded buffered reads",
+      "nesting": 0,
+      "testNumber": 59,
+      "details": {
+        "duration_ms": 0.327458,
+        "type": "test"
+      },
+      "line": 1,
+      "column": 3671,
+      "file": "/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs/command.test.ts"
+    },
+    {
+      "outcome": "pass",
+      "name": "plugin collision is explicit, replacement is opt-in, and no js alias is registered",
+      "nesting": 0,
+      "testNumber": 60,
+      "details": {
+        "duration_ms": 0.661125,
+        "type": "test"
+      },
+      "line": 1,
+      "column": 453,
+      "file": "/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs/lifecycle.test.ts"
+    },
+    {
+      "outcome": "pass",
+      "name": "invalid host limits reject before registration: {\"timeoutMs\":0}",
+      "nesting": 0,
+      "testNumber": 61,
+      "details": {
+        "duration_ms": 0.050209,
+        "type": "test"
+      },
+      "line": 1,
+      "column": 1067,
+      "file": "/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs/lifecycle.test.ts"
+    },
+    {
+      "outcome": "pass",
+      "name": "invalid host limits reject before registration: {\"maxInputBytes\":-1}",
+      "nesting": 0,
+      "testNumber": 62,
+      "details": {
+        "duration_ms": 0.02975,
+        "type": "test"
+      },
+      "line": 1,
+      "column": 1067,
+      "file": "/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs/lifecycle.test.ts"
+    },
+    {
+      "outcome": "pass",
+      "name": "invalid host limits reject before registration: {\"maxSteps\":null}",
+      "nesting": 0,
+      "testNumber": 63,
+      "details": {
+        "duration_ms": 0.025834,
+        "type": "test"
+      },
+      "line": 1,
+      "column": 1067,
+      "file": "/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs/lifecycle.test.ts"
+    },
+    {
+      "outcome": "pass",
+      "name": "invalid host limits reject before registration: {\"dataSize\":1.5}",
+      "nesting": 0,
+      "testNumber": 64,
+      "details": {
+        "duration_ms": 0.034791,
+        "type": "test"
+      },
+      "line": 1,
+      "column": 1067,
+      "file": "/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs/lifecycle.test.ts"
+    },
+    {
+      "outcome": "pass",
+      "name": "invalid host limits reject before registration: {\"timeoutMs\":2147483648}",
+      "nesting": 0,
+      "testNumber": 65,
+      "details": {
+        "duration_ms": 0.026541,
+        "type": "test"
+      },
+      "line": 1,
+      "column": 1067,
+      "file": "/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs/lifecycle.test.ts"
+    },
+    {
+      "outcome": "pass",
+      "name": "partially supplied runtime factories fail closed",
+      "nesting": 0,
+      "testNumber": 66,
+      "details": {
+        "duration_ms": 0.041417,
+        "type": "test"
+      },
+      "line": 1,
+      "column": 1216,
+      "file": "/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs/lifecycle.test.ts"
+    },
+    {
+      "outcome": "pass",
+      "name": "source byte limit precedes interpreter effects: inline",
+      "nesting": 0,
+      "testNumber": 67,
+      "details": {
+        "duration_ms": 0.718208,
+        "type": "test"
+      },
+      "line": 1,
+      "column": 1384,
+      "file": "/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs/lifecycle.test.ts"
+    },
+    {
+      "outcome": "pass",
+      "name": "source byte limit precedes interpreter effects: stdin",
+      "nesting": 0,
+      "testNumber": 68,
+      "details": {
+        "duration_ms": 0.3415,
+        "type": "test"
+      },
+      "line": 1,
+      "column": 1384,
+      "file": "/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs/lifecycle.test.ts"
+    },
+    {
+      "outcome": "pass",
+      "name": "invalid UTF-8 source fails without invoking runner",
+      "nesting": 0,
+      "testNumber": 69,
+      "details": {
+        "duration_ms": 0.346125,
+        "type": "test"
+      },
+      "line": 1,
+      "column": 1767,
+      "file": "/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs/lifecycle.test.ts"
+    },
+    {
+      "outcome": "pass",
+      "name": "input quota is cumulative and cannot be hidden by a caught host rejection",
+      "nesting": 0,
+      "testNumber": 70,
+      "details": {
+        "duration_ms": 0.771416,
+        "type": "test"
+      },
+      "line": 1,
+      "column": 2053,
+      "file": "/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs/lifecycle.test.ts"
+    },
+    {
+      "outcome": "pass",
+      "name": "output quota covers stdout plus stderr and cannot be hidden by guest recovery",
+      "nesting": 0,
+      "testNumber": 71,
+      "details": {
+        "duration_ms": 0.35325,
+        "type": "test"
+      },
+      "line": 1,
+      "column": 2584,
+      "file": "/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs/lifecycle.test.ts"
+    },
+    {
+      "outcome": "pass",
+      "name": "unawaited console/stdio writes are drained in issue order before command returns",
+      "nesting": 0,
+      "testNumber": 72,
+      "details": {
+        "duration_ms": 6.558541,
+        "type": "test"
+      },
+      "line": 1,
+      "column": 3102,
+      "file": "/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs/lifecycle.test.ts"
+    },
+    {
+      "outcome": "pass",
+      "name": "pending output before a runner error is drained instead of silently discarded",
+      "nesting": 0,
+      "testNumber": 73,
+      "details": {
+        "duration_ms": 5.4895,
+        "type": "test"
+      },
+      "line": 1,
+      "column": 3627,
+      "file": "/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs/lifecycle.test.ts"
+    },
+    {
+      "outcome": "pass",
+      "name": "parallel guest reads are serialized, and completed-invocation callbacks cannot write",
+      "nesting": 0,
+      "testNumber": 74,
+      "details": {
+        "duration_ms": 0.314125,
+        "type": "test"
+      },
+      "line": 1,
+      "column": 4122,
+      "file": "/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs/lifecycle.test.ts"
+    },
+    {
+      "outcome": "pass",
+      "name": "stdio rejects non-byte arrays, oversized chunks and invalid read sizes",
+      "nesting": 0,
+      "testNumber": 75,
+      "details": {
+        "duration_ms": 0.512084,
+        "type": "test"
+      },
+      "line": 1,
+      "column": 4696,
+      "file": "/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs/lifecycle.test.ts"
+    },
+    {
+      "outcome": "pass",
+      "name": "parent cancellation interrupts blocked runner and observes late rejection",
+      "nesting": 0,
+      "testNumber": 76,
+      "details": {
+        "duration_ms": 6.866417,
+        "type": "test"
+      },
+      "line": 1,
+      "column": 5302,
+      "file": "/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs/lifecycle.test.ts"
+    },
+    {
+      "outcome": "pass",
+      "name": "parent cancellation interrupts blocked input and observes late rejection",
+      "nesting": 0,
+      "testNumber": 77,
+      "details": {
+        "duration_ms": 6.57,
+        "type": "test"
+      },
+      "line": 1,
+      "column": 5302,
+      "file": "/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs/lifecycle.test.ts"
+    },
+    {
+      "outcome": "pass",
+      "name": "parent cancellation interrupts blocked output and observes late rejection",
+      "nesting": 0,
+      "testNumber": 78,
+      "details": {
+        "duration_ms": 6.651209,
+        "type": "test"
+      },
+      "line": 1,
+      "column": 5302,
+      "file": "/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs/lifecycle.test.ts"
+    },
+    {
+      "outcome": "pass",
+      "name": "parent cancellation interrupts blocked stderr and observes late rejection",
+      "nesting": 0,
+      "testNumber": 79,
+      "details": {
+        "duration_ms": 6.606792,
+        "type": "test"
+      },
+      "line": 1,
+      "column": 5302,
+      "file": "/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs/lifecycle.test.ts"
+    },
+    {
+      "outcome": "pass",
+      "name": "parent cancellation interrupts blocked source and observes late rejection",
+      "nesting": 0,
+      "testNumber": 80,
+      "details": {
+        "duration_ms": 6.617958,
+        "type": "test"
+      },
+      "line": 1,
+      "column": 5302,
+      "file": "/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs/lifecycle.test.ts"
+    },
+    {
+      "outcome": "pass",
+      "name": "deadline interrupts uncooperative runner",
+      "nesting": 0,
+      "testNumber": 81,
+      "details": {
+        "duration_ms": 17.302375,
+        "type": "test"
+      },
+      "line": 1,
+      "column": 6546,
+      "file": "/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs/lifecycle.test.ts"
+    },
+    {
+      "outcome": "pass",
+      "name": "deadline interrupts uncooperative input",
+      "nesting": 0,
+      "testNumber": 82,
+      "details": {
+        "duration_ms": 16.747,
+        "type": "test"
+      },
+      "line": 1,
+      "column": 6546,
+      "file": "/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs/lifecycle.test.ts"
+    },
+    {
+      "outcome": "pass",
+      "name": "deadline interrupts uncooperative output",
+      "nesting": 0,
+      "testNumber": 83,
+      "details": {
+        "duration_ms": 16.880458,
+        "type": "test"
+      },
+      "line": 1,
+      "column": 6546,
+      "file": "/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs/lifecycle.test.ts"
+    },
+    {
+      "outcome": "pass",
+      "name": "deadline interrupts uncooperative stderr",
+      "nesting": 0,
+      "testNumber": 84,
+      "details": {
+        "duration_ms": 16.704625,
+        "type": "test"
+      },
+      "line": 1,
+      "column": 6546,
+      "file": "/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs/lifecycle.test.ts"
+    },
+    {
+      "outcome": "pass",
+      "name": "deadline interrupts uncooperative source",
+      "nesting": 0,
+      "testNumber": 85,
+      "details": {
+        "duration_ms": 17.510792,
+        "type": "test"
+      },
+      "line": 1,
+      "column": 6546,
+      "file": "/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs/lifecycle.test.ts"
+    },
+    {
+      "outcome": "pass",
+      "name": "uncooperative diagnostic sinks cannot hang a failed invocation",
+      "nesting": 0,
+      "testNumber": 86,
+      "details": {
+        "duration_ms": 14.73975,
+        "type": "test"
+      },
+      "line": 1,
+      "column": 7347,
+      "file": "/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs/lifecycle.test.ts"
+    },
+    {
+      "outcome": "pass",
+      "name": "empty-only sources yield enough for timeout and cleanup",
+      "nesting": 0,
+      "testNumber": 87,
+      "details": {
+        "duration_ms": 14.8445,
+        "type": "test"
+      },
+      "line": 1,
+      "column": 7686,
+      "file": "/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs/lifecycle.test.ts"
+    },
+    {
+      "outcome": "pass",
+      "name": "return and console JSON are bounded during expansion of repeated references",
+      "nesting": 0,
+      "testNumber": 88,
+      "details": {
+        "duration_ms": 0.602542,
+        "type": "test"
+      },
+      "line": 1,
+      "column": 8136,
+      "file": "/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs/lifecycle.test.ts"
+    },
+    {
+      "outcome": "pass",
+      "name": "JSON return rendering does not invoke accessors or toJSON host callbacks",
+      "nesting": 0,
+      "testNumber": 89,
+      "details": {
+        "duration_ms": 0.145667,
+        "type": "test"
+      },
+      "line": 1,
+      "column": 8642,
+      "file": "/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs/lifecycle.test.ts"
+    },
+    {
+      "outcome": "pass",
+      "name": "console formatting is bounded string/JSON joining, not Node percent interpolation",
+      "nesting": 0,
+      "testNumber": 90,
+      "details": {
+        "duration_ms": 0.089834,
+        "type": "test"
+      },
+      "line": 1,
+      "column": 9001,
+      "file": "/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs/lifecycle.test.ts"
+    },
+    {
+      "outcome": "pass",
+      "name": "actual local SafeJS factories are structurally assignable without private runtime dependencies",
+      "nesting": 0,
+      "testNumber": 91,
+      "details": {
+        "duration_ms": 371.998625,
+        "type": "test"
+      },
+      "line": 1,
+      "column": 917,
+      "file": "/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs/local-safejs.test.ts"
+    },
+    {
+      "outcome": "pass",
+      "name": "real SafeJS shares shell pipeline input, virtual files, argv, cwd and env",
+      "nesting": 0,
+      "testNumber": 92,
+      "details": {
+        "duration_ms": 134.7155,
+        "type": "test"
+      },
+      "line": 1,
+      "column": 2850,
+      "file": "/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs/local-safejs.test.ts"
+    },
+    {
+      "outcome": "pass",
+      "name": "real SafeJS script files use the virtual cwd, not the script directory",
+      "nesting": 0,
+      "testNumber": 93,
+      "details": {
+        "duration_ms": 3.039542,
+        "type": "test"
+      },
+      "line": 1,
+      "column": 3799,
+      "file": "/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs/local-safejs.test.ts"
+    },
+    {
+      "outcome": "pass",
+      "name": "real SafeJS source stdin is single-use and guest byte IO stays exact",
+      "nesting": 0,
+      "testNumber": 94,
+      "details": {
+        "duration_ms": 2.243541,
+        "type": "test"
+      },
+      "line": 1,
+      "column": 4511,
+      "file": "/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs/local-safejs.test.ts"
+    },
+    {
+      "outcome": "pass",
+      "name": "real SafeJS console output and return-value printing do not escape to host console",
+      "nesting": 0,
+      "testNumber": 95,
+      "details": {
+        "duration_ms": 1.858417,
+        "type": "test"
+      },
+      "line": 1,
+      "column": 5008,
+      "file": "/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs/local-safejs.test.ts"
+    },
+    {
+      "outcome": "pass",
+      "name": "real SafeJS denies ungranted host capability: return process;",
+      "nesting": 0,
+      "testNumber": 96,
+      "details": {
+        "duration_ms": 0.889875,
+        "type": "test"
+      },
+      "line": 1,
+      "column": 5811,
+      "file": "/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs/local-safejs.test.ts"
+    },
+    {
+      "outcome": "pass",
+      "name": "real SafeJS denies ungranted host capability: return require(\"node:fs\");",
+      "nesting": 0,
+      "testNumber": 97,
+      "details": {
+        "duration_ms": 0.745167,
+        "type": "test"
+      },
+      "line": 1,
+      "column": 5811,
+      "file": "/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs/local-safejs.test.ts"
+    },
+    {
+      "outcome": "pass",
+      "name": "real SafeJS denies ungranted host capability: return Function(\"return process\")();",
+      "nesting": 0,
+      "testNumber": 98,
+      "details": {
+        "duration_ms": 0.866458,
+        "type": "test"
+      },
+      "line": 1,
+      "column": 5811,
+      "file": "/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs/local-safejs.test.ts"
+    },
+    {
+      "outcome": "pass",
+      "name": "real SafeJS denies ungranted host capability: return globalThis.process;",
+      "nesting": 0,
+      "testNumber": 99,
+      "details": {
+        "duration_ms": 1.028667,
+        "type": "test"
+      },
+      "line": 1,
+      "column": 5811,
+      "file": "/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs/local-safejs.test.ts"
+    },
+    {
+      "outcome": "pass",
+      "name": "real SafeJS denies ungranted host capability: return ({}).constructor.constructor(\"return process\")();",
+      "nesting": 0,
+      "testNumber": 100,
+      "details": {
+        "duration_ms": 1.835,
+        "type": "test"
+      },
+      "line": 1,
+      "column": 5811,
+      "file": "/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs/local-safejs.test.ts"
+    },
+    {
+      "outcome": "pass",
+      "name": "real SafeJS denies ungranted host capability: import { readFile } from \"node:fs/promises\"; return await readFile(\"/etc/passwd\", \"utf8\");",
+      "nesting": 0,
+      "testNumber": 101,
+      "details": {
+        "duration_ms": 0.724875,
+        "type": "test"
+      },
+      "line": 1,
+      "column": 5811,
+      "file": "/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs/local-safejs.test.ts"
+    },
+    {
+      "outcome": "pass",
+      "name": "real SafeJS denies ungranted host capability: import { readFile } from \"fs\"; return await readFile(\"/etc/passwd\", \"utf8\");",
+      "nesting": 0,
+      "testNumber": 102,
+      "details": {
+        "duration_ms": 1.466,
+        "type": "test"
+      },
+      "line": 1,
+      "column": 5811,
+      "file": "/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs/local-safejs.test.ts"
+    },
+    {
+      "outcome": "pass",
+      "name": "real SafeJS parse, guest error, step budget, deadline and explicit status remain distinct",
+      "nesting": 0,
+      "testNumber": 103,
+      "details": {
+        "duration_ms": 15.114792,
+        "type": "test"
+      },
+      "line": 1,
+      "column": 6087,
+      "file": "/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs/local-safejs.test.ts"
+    },
+    {
+      "outcome": "pass",
+      "name": "real SafeJS session effects persist only in VFS; module/env/cwd mutations do not leak",
+      "nesting": 0,
+      "testNumber": 104,
+      "details": {
+        "duration_ms": 4.146834,
+        "type": "test"
+      },
+      "line": 1,
+      "column": 6629,
+      "file": "/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs/local-safejs.test.ts"
+    },
+    {
+      "outcome": "pass",
+      "name": "real SafeJS host-call journal marks consumed stdin/output and writes as effects",
+      "nesting": 0,
+      "testNumber": 105,
+      "details": {
+        "duration_ms": 1.660875,
+        "type": "test"
+      },
+      "line": 1,
+      "column": 7515,
+      "file": "/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs/local-safejs.test.ts"
+    },
+    {
+      "outcome": "fail",
+      "name": "upstream observation, not constructor support: supplied signal drops SafeJS Error construction",
+      "nesting": 0,
+      "testNumber": 106,
+      "details": {
+        "duration_ms": 1.538625,
+        "type": "test",
+        "error": {
+          "name": "Error",
+          "message": "Expected values to be strictly deep-equal:\n+ actual - expected\n\n  Comparison {\n+   message: 'constructed'\n-   message: 'Error is not a constructor.'\n  }\n",
+          "stack": "Error [ERR_TEST_FAILURE]: Expected values to be strictly deep-equal:\n+ actual - expected\n\n  Comparison {\n+   message: 'constructed'\n-   message: 'Error is not a constructor.'\n  }\n",
+          "code": "ERR_TEST_FAILURE",
+          "failureType": "testCodeFailure",
+          "cause": {
+            "name": "AssertionError",
+            "message": "Expected values to be strictly deep-equal:\n+ actual - expected\n\n  Comparison {\n+   message: 'constructed'\n-   message: 'Error is not a constructor.'\n  }\n",
+            "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:\n+ actual - expected\n\n  Comparison {\n+   message: 'constructed'\n-   message: 'Error is not a constructor.'\n  }\n\n    at async TestContext.<anonymous> (/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs/local-safejs.test.ts:149:3)\n    at async Test.run (node:internal/test_runner/test:1054:7)\n    at async Test.processPendingSubtests (node:internal/test_runner/test:744:7)",
+            "generatedMessage": true,
+            "code": "ERR_ASSERTION",
+            "actual": {
+              "name": "Error",
+              "message": "constructed",
+              "stack": "Error: constructed\n    at Error (line 1, column 7)"
+            },
+            "expected": {
+              "message": "Error is not a constructor."
+            },
+            "operator": "rejects",
+            "diff": "simple"
+          }
+        }
+      },
+      "line": 1,
+      "column": 9010,
+      "file": "/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs/local-safejs.test.ts"
+    },
+    {
+      "outcome": "pass",
+      "name": "real SafeJS cancellation stops a pending guest read and later filesystem effects",
+      "nesting": 0,
+      "testNumber": 107,
+      "details": {
+        "duration_ms": 10.969334,
+        "type": "test"
+      },
+      "line": 1,
+      "column": 9902,
+      "file": "/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs/local-safejs.test.ts"
+    },
+    {
+      "outcome": "pass",
+      "name": "real SafeJS quota is fatal with no leaked rejection: import { write } from \"stdio\"; try { await write(\"too large\"); } catch (error) {} return \"recovered\";",
+      "nesting": 0,
+      "testNumber": 108,
+      "details": {
+        "duration_ms": 8.121417,
+        "type": "test"
+      },
+      "line": 1,
+      "column": 11157,
+      "file": "/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs/local-safejs.test.ts"
+    },
+    {
+      "outcome": "pass",
+      "name": "real SafeJS quota is fatal with no leaked rejection: import { writeBytes } from \"stdio\"; await writeBytes([1, 2, 3]);",
+      "nesting": 0,
+      "testNumber": 109,
+      "details": {
+        "duration_ms": 6.139459,
+        "type": "test"
+      },
+      "line": 1,
+      "column": 11157,
+      "file": "/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs/local-safejs.test.ts"
+    },
+    {
+      "outcome": "pass",
+      "name": "real SafeJS quota is fatal with no leaked rejection: console.log(\"too large\");",
+      "nesting": 0,
+      "testNumber": 110,
+      "details": {
+        "duration_ms": 7.182541,
+        "type": "test"
+      },
+      "line": 1,
+      "column": 11157,
+      "file": "/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs/local-safejs.test.ts"
+    },
+    {
+      "outcome": "pass",
+      "name": "real SafeJS quota is fatal with no leaked rejection: console.error(\"too large\");",
+      "nesting": 0,
+      "testNumber": 111,
+      "details": {
+        "duration_ms": 7.301875,
+        "type": "test"
+      },
+      "line": 1,
+      "column": 11157,
+      "file": "/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs/local-safejs.test.ts"
+    },
+    {
+      "outcome": "pass",
+      "name": "real SafeJS readonly fs denies mutations without reading host paths",
+      "nesting": 0,
+      "testNumber": 112,
+      "details": {
+        "duration_ms": 1.61625,
+        "type": "test"
+      },
+      "line": 1,
+      "column": 11506,
+      "file": "/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs/local-safejs.test.ts"
+    },
+    {
+      "outcome": "pass",
+      "name": "real SafeJS repeated guest chunks compose as a binary streaming pipeline",
+      "nesting": 0,
+      "testNumber": 113,
+      "details": {
+        "duration_ms": 95.451917,
+        "type": "test"
+      },
+      "line": 1,
+      "column": 12392,
+      "file": "/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs/local-safejs.test.ts"
+    },
+    {
+      "outcome": "pass",
+      "name": "real SafeJS modules and environment have no ambient env or time imports",
+      "nesting": 0,
+      "testNumber": 114,
+      "details": {
+        "duration_ms": 2.735125,
+        "type": "test"
+      },
+      "line": 1,
+      "column": 13159,
+      "file": "/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs/local-safejs.test.ts"
+    },
+    {
+      "outcome": "pass",
+      "name": "real SafeJS respects enclosing shell output limits independently of its own budget",
+      "nesting": 0,
+      "testNumber": 115,
+      "details": {
+        "duration_ms": 1.093083,
+        "type": "test"
+      },
+      "line": 1,
+      "column": 13599,
+      "file": "/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs/local-safejs.test.ts"
+    }
+  ]
+}

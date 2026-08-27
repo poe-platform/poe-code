@@ -1,0 +1,532 @@
+{
+  "enabled": true,
+  "status": 1,
+  "signal": null,
+  "counts": {
+    "pass": 0,
+    "fail": 18,
+    "skip": 0
+  },
+  "cases": [
+    {
+      "outcome": "fail",
+      "name": "preserves primitive null exactly",
+      "nesting": 0,
+      "testNumber": 1,
+      "details": {
+        "duration_ms": 5.510125,
+        "type": "test",
+        "error": {
+          "name": "Error",
+          "message": "Expected rejection",
+          "stack": "Error [ERR_TEST_FAILURE]: Expected rejection",
+          "code": "ERR_TEST_FAILURE",
+          "failureType": "testCodeFailure",
+          "cause": {
+            "name": "AssertionError",
+            "message": "Expected rejection",
+            "stack": "AssertionError [ERR_ASSERTION]: Expected rejection\n    at rejection (/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs-stress/reason-contract.probe.mjs:17:10)\n    at async TestContext.<anonymous> (/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs-stress/reason-contract.probe.mjs:32:19)\n    at async Test.run (node:internal/test_runner/test:1054:7)\n    at async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)",
+            "generatedMessage": false,
+            "code": "ERR_ASSERTION",
+            "operator": "fail",
+            "diff": "simple"
+          }
+        }
+      },
+      "line": 31,
+      "column": 3,
+      "file": "/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs-stress/reason-contract.probe.mjs"
+    },
+    {
+      "outcome": "fail",
+      "name": "preserves primitive false exactly",
+      "nesting": 0,
+      "testNumber": 2,
+      "details": {
+        "duration_ms": 0.824125,
+        "type": "test",
+        "error": {
+          "name": "Error",
+          "message": "Expected rejection",
+          "stack": "Error [ERR_TEST_FAILURE]: Expected rejection",
+          "code": "ERR_TEST_FAILURE",
+          "failureType": "testCodeFailure",
+          "cause": {
+            "name": "AssertionError",
+            "message": "Expected rejection",
+            "stack": "AssertionError [ERR_ASSERTION]: Expected rejection\n    at rejection (/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs-stress/reason-contract.probe.mjs:17:10)\n    at async TestContext.<anonymous> (/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs-stress/reason-contract.probe.mjs:32:19)\n    at async Test.run (node:internal/test_runner/test:1054:7)\n    at async Test.processPendingSubtests (node:internal/test_runner/test:744:7)",
+            "generatedMessage": false,
+            "code": "ERR_ASSERTION",
+            "operator": "fail",
+            "diff": "simple"
+          }
+        }
+      },
+      "line": 31,
+      "column": 3,
+      "file": "/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs-stress/reason-contract.probe.mjs"
+    },
+    {
+      "outcome": "fail",
+      "name": "preserves primitive 0 exactly",
+      "nesting": 0,
+      "testNumber": 3,
+      "details": {
+        "duration_ms": 0.876833,
+        "type": "test",
+        "error": {
+          "name": "Error",
+          "message": "Expected rejection",
+          "stack": "Error [ERR_TEST_FAILURE]: Expected rejection",
+          "code": "ERR_TEST_FAILURE",
+          "failureType": "testCodeFailure",
+          "cause": {
+            "name": "AssertionError",
+            "message": "Expected rejection",
+            "stack": "AssertionError [ERR_ASSERTION]: Expected rejection\n    at rejection (/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs-stress/reason-contract.probe.mjs:17:10)\n    at async TestContext.<anonymous> (/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs-stress/reason-contract.probe.mjs:32:19)\n    at async Test.run (node:internal/test_runner/test:1054:7)\n    at async Test.processPendingSubtests (node:internal/test_runner/test:744:7)",
+            "generatedMessage": false,
+            "code": "ERR_ASSERTION",
+            "operator": "fail",
+            "diff": "simple"
+          }
+        }
+      },
+      "line": 31,
+      "column": 3,
+      "file": "/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs-stress/reason-contract.probe.mjs"
+    },
+    {
+      "outcome": "fail",
+      "name": "preserves primitive 0 exactly",
+      "nesting": 0,
+      "testNumber": 4,
+      "details": {
+        "duration_ms": 0.3545,
+        "type": "test",
+        "error": {
+          "name": "Error",
+          "message": "Expected rejection",
+          "stack": "Error [ERR_TEST_FAILURE]: Expected rejection",
+          "code": "ERR_TEST_FAILURE",
+          "failureType": "testCodeFailure",
+          "cause": {
+            "name": "AssertionError",
+            "message": "Expected rejection",
+            "stack": "AssertionError [ERR_ASSERTION]: Expected rejection\n    at rejection (/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs-stress/reason-contract.probe.mjs:17:10)\n    at async TestContext.<anonymous> (/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs-stress/reason-contract.probe.mjs:32:19)\n    at async Test.run (node:internal/test_runner/test:1054:7)\n    at async Test.processPendingSubtests (node:internal/test_runner/test:744:7)",
+            "generatedMessage": false,
+            "code": "ERR_ASSERTION",
+            "operator": "fail",
+            "diff": "simple"
+          }
+        }
+      },
+      "line": 31,
+      "column": 3,
+      "file": "/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs-stress/reason-contract.probe.mjs"
+    },
+    {
+      "outcome": "fail",
+      "name": "preserves primitive  exactly",
+      "nesting": 0,
+      "testNumber": 5,
+      "details": {
+        "duration_ms": 0.731792,
+        "type": "test",
+        "error": {
+          "name": "Error",
+          "message": "Expected rejection",
+          "stack": "Error [ERR_TEST_FAILURE]: Expected rejection",
+          "code": "ERR_TEST_FAILURE",
+          "failureType": "testCodeFailure",
+          "cause": {
+            "name": "AssertionError",
+            "message": "Expected rejection",
+            "stack": "AssertionError [ERR_ASSERTION]: Expected rejection\n    at rejection (/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs-stress/reason-contract.probe.mjs:17:10)\n    at async TestContext.<anonymous> (/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs-stress/reason-contract.probe.mjs:32:19)\n    at async Test.run (node:internal/test_runner/test:1054:7)\n    at async Test.processPendingSubtests (node:internal/test_runner/test:744:7)",
+            "generatedMessage": false,
+            "code": "ERR_ASSERTION",
+            "operator": "fail",
+            "diff": "simple"
+          }
+        }
+      },
+      "line": 31,
+      "column": 3,
+      "file": "/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs-stress/reason-contract.probe.mjs"
+    },
+    {
+      "outcome": "fail",
+      "name": "preserves primitive custom primitive reason exactly",
+      "nesting": 0,
+      "testNumber": 6,
+      "details": {
+        "duration_ms": 0.406875,
+        "type": "test",
+        "error": {
+          "name": "Error",
+          "message": "Expected rejection",
+          "stack": "Error [ERR_TEST_FAILURE]: Expected rejection",
+          "code": "ERR_TEST_FAILURE",
+          "failureType": "testCodeFailure",
+          "cause": {
+            "name": "AssertionError",
+            "message": "Expected rejection",
+            "stack": "AssertionError [ERR_ASSERTION]: Expected rejection\n    at rejection (/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs-stress/reason-contract.probe.mjs:17:10)\n    at async TestContext.<anonymous> (/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs-stress/reason-contract.probe.mjs:32:19)\n    at async Test.run (node:internal/test_runner/test:1054:7)\n    at async Test.processPendingSubtests (node:internal/test_runner/test:744:7)",
+            "generatedMessage": false,
+            "code": "ERR_ASSERTION",
+            "operator": "fail",
+            "diff": "simple"
+          }
+        }
+      },
+      "line": 31,
+      "column": 3,
+      "file": "/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs-stress/reason-contract.probe.mjs"
+    },
+    {
+      "outcome": "fail",
+      "name": "preserves primitive 7 exactly",
+      "nesting": 0,
+      "testNumber": 7,
+      "details": {
+        "duration_ms": 0.356917,
+        "type": "test",
+        "error": {
+          "name": "Error",
+          "message": "Expected rejection",
+          "stack": "Error [ERR_TEST_FAILURE]: Expected rejection",
+          "code": "ERR_TEST_FAILURE",
+          "failureType": "testCodeFailure",
+          "cause": {
+            "name": "AssertionError",
+            "message": "Expected rejection",
+            "stack": "AssertionError [ERR_ASSERTION]: Expected rejection\n    at rejection (/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs-stress/reason-contract.probe.mjs:17:10)\n    at async TestContext.<anonymous> (/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs-stress/reason-contract.probe.mjs:32:19)\n    at async Test.run (node:internal/test_runner/test:1054:7)\n    at async Test.processPendingSubtests (node:internal/test_runner/test:744:7)",
+            "generatedMessage": false,
+            "code": "ERR_ASSERTION",
+            "operator": "fail",
+            "diff": "simple"
+          }
+        }
+      },
+      "line": 31,
+      "column": 3,
+      "file": "/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs-stress/reason-contract.probe.mjs"
+    },
+    {
+      "outcome": "fail",
+      "name": "preserves primitive Symbol(cancel) exactly",
+      "nesting": 0,
+      "testNumber": 8,
+      "details": {
+        "duration_ms": 0.36825,
+        "type": "test",
+        "error": {
+          "name": "Error",
+          "message": "Expected rejection",
+          "stack": "Error [ERR_TEST_FAILURE]: Expected rejection",
+          "code": "ERR_TEST_FAILURE",
+          "failureType": "testCodeFailure",
+          "cause": {
+            "name": "AssertionError",
+            "message": "Expected rejection",
+            "stack": "AssertionError [ERR_ASSERTION]: Expected rejection\n    at rejection (/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs-stress/reason-contract.probe.mjs:17:10)\n    at async TestContext.<anonymous> (/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs-stress/reason-contract.probe.mjs:32:19)\n    at async Test.run (node:internal/test_runner/test:1054:7)\n    at async Test.processPendingSubtests (node:internal/test_runner/test:744:7)",
+            "generatedMessage": false,
+            "code": "ERR_ASSERTION",
+            "operator": "fail",
+            "diff": "simple"
+          }
+        }
+      },
+      "line": 31,
+      "column": 3,
+      "file": "/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs-stress/reason-contract.probe.mjs"
+    },
+    {
+      "outcome": "fail",
+      "name": "shapes default with untouched exact cause",
+      "nesting": 0,
+      "testNumber": 9,
+      "details": {
+        "duration_ms": 1.265625,
+        "type": "test",
+        "error": {
+          "name": "Error",
+          "message": "Expected rejection",
+          "stack": "Error [ERR_TEST_FAILURE]: Expected rejection",
+          "code": "ERR_TEST_FAILURE",
+          "failureType": "testCodeFailure",
+          "cause": {
+            "name": "AssertionError",
+            "message": "Expected rejection",
+            "stack": "AssertionError [ERR_ASSERTION]: Expected rejection\n    at rejection (/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs-stress/reason-contract.probe.mjs:17:10)\n    at async TestContext.<anonymous> (/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs-stress/reason-contract.probe.mjs:49:19)\n    at async Test.run (node:internal/test_runner/test:1054:7)\n    at async Test.processPendingSubtests (node:internal/test_runner/test:744:7)",
+            "generatedMessage": false,
+            "code": "ERR_ASSERTION",
+            "operator": "fail",
+            "diff": "simple"
+          }
+        }
+      },
+      "line": 38,
+      "column": 3,
+      "file": "/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs-stress/reason-contract.probe.mjs"
+    },
+    {
+      "outcome": "fail",
+      "name": "shapes frozen-default with untouched exact cause",
+      "nesting": 0,
+      "testNumber": 10,
+      "details": {
+        "duration_ms": 0.557334,
+        "type": "test",
+        "error": {
+          "name": "Error",
+          "message": "Expected rejection",
+          "stack": "Error [ERR_TEST_FAILURE]: Expected rejection",
+          "code": "ERR_TEST_FAILURE",
+          "failureType": "testCodeFailure",
+          "cause": {
+            "name": "AssertionError",
+            "message": "Expected rejection",
+            "stack": "AssertionError [ERR_ASSERTION]: Expected rejection\n    at rejection (/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs-stress/reason-contract.probe.mjs:17:10)\n    at async TestContext.<anonymous> (/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs-stress/reason-contract.probe.mjs:49:19)\n    at async Test.run (node:internal/test_runner/test:1054:7)\n    at async Test.processPendingSubtests (node:internal/test_runner/test:744:7)",
+            "generatedMessage": false,
+            "code": "ERR_ASSERTION",
+            "operator": "fail",
+            "diff": "simple"
+          }
+        }
+      },
+      "line": 38,
+      "column": 3,
+      "file": "/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs-stress/reason-contract.probe.mjs"
+    },
+    {
+      "outcome": "fail",
+      "name": "shapes custom-error with untouched exact cause",
+      "nesting": 0,
+      "testNumber": 11,
+      "details": {
+        "duration_ms": 0.451584,
+        "type": "test",
+        "error": {
+          "name": "Error",
+          "message": "Expected rejection",
+          "stack": "Error [ERR_TEST_FAILURE]: Expected rejection",
+          "code": "ERR_TEST_FAILURE",
+          "failureType": "testCodeFailure",
+          "cause": {
+            "name": "AssertionError",
+            "message": "Expected rejection",
+            "stack": "AssertionError [ERR_ASSERTION]: Expected rejection\n    at rejection (/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs-stress/reason-contract.probe.mjs:17:10)\n    at async TestContext.<anonymous> (/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs-stress/reason-contract.probe.mjs:49:19)\n    at async Test.run (node:internal/test_runner/test:1054:7)\n    at async Test.processPendingSubtests (node:internal/test_runner/test:744:7)",
+            "generatedMessage": false,
+            "code": "ERR_ASSERTION",
+            "operator": "fail",
+            "diff": "simple"
+          }
+        }
+      },
+      "line": 38,
+      "column": 3,
+      "file": "/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs-stress/reason-contract.probe.mjs"
+    },
+    {
+      "outcome": "fail",
+      "name": "shapes frozen-error with untouched exact cause",
+      "nesting": 0,
+      "testNumber": 12,
+      "details": {
+        "duration_ms": 0.436667,
+        "type": "test",
+        "error": {
+          "name": "Error",
+          "message": "Expected rejection",
+          "stack": "Error [ERR_TEST_FAILURE]: Expected rejection",
+          "code": "ERR_TEST_FAILURE",
+          "failureType": "testCodeFailure",
+          "cause": {
+            "name": "AssertionError",
+            "message": "Expected rejection",
+            "stack": "AssertionError [ERR_ASSERTION]: Expected rejection\n    at rejection (/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs-stress/reason-contract.probe.mjs:17:10)\n    at async TestContext.<anonymous> (/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs-stress/reason-contract.probe.mjs:49:19)\n    at async Test.run (node:internal/test_runner/test:1054:7)\n    at async Test.processPendingSubtests (node:internal/test_runner/test:744:7)",
+            "generatedMessage": false,
+            "code": "ERR_ASSERTION",
+            "operator": "fail",
+            "diff": "simple"
+          }
+        }
+      },
+      "line": 38,
+      "column": 3,
+      "file": "/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs-stress/reason-contract.probe.mjs"
+    },
+    {
+      "outcome": "fail",
+      "name": "shapes frozen-record with untouched exact cause",
+      "nesting": 0,
+      "testNumber": 13,
+      "details": {
+        "duration_ms": 0.672708,
+        "type": "test",
+        "error": {
+          "name": "Error",
+          "message": "Expected rejection",
+          "stack": "Error [ERR_TEST_FAILURE]: Expected rejection",
+          "code": "ERR_TEST_FAILURE",
+          "failureType": "testCodeFailure",
+          "cause": {
+            "name": "AssertionError",
+            "message": "Expected rejection",
+            "stack": "AssertionError [ERR_ASSERTION]: Expected rejection\n    at rejection (/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs-stress/reason-contract.probe.mjs:17:10)\n    at async TestContext.<anonymous> (/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs-stress/reason-contract.probe.mjs:49:19)\n    at async Test.run (node:internal/test_runner/test:1054:7)\n    at async Test.processPendingSubtests (node:internal/test_runner/test:744:7)",
+            "generatedMessage": false,
+            "code": "ERR_ASSERTION",
+            "operator": "fail",
+            "diff": "simple"
+          }
+        }
+      },
+      "line": 38,
+      "column": 3,
+      "file": "/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs-stress/reason-contract.probe.mjs"
+    },
+    {
+      "outcome": "fail",
+      "name": "shapes frozen-function with untouched exact cause",
+      "nesting": 0,
+      "testNumber": 14,
+      "details": {
+        "duration_ms": 0.25225,
+        "type": "test",
+        "error": {
+          "name": "Error",
+          "message": "Expected rejection",
+          "stack": "Error [ERR_TEST_FAILURE]: Expected rejection",
+          "code": "ERR_TEST_FAILURE",
+          "failureType": "testCodeFailure",
+          "cause": {
+            "name": "AssertionError",
+            "message": "Expected rejection",
+            "stack": "AssertionError [ERR_ASSERTION]: Expected rejection\n    at rejection (/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs-stress/reason-contract.probe.mjs:17:10)\n    at async TestContext.<anonymous> (/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs-stress/reason-contract.probe.mjs:49:19)\n    at async Test.run (node:internal/test_runner/test:1054:7)\n    at async Test.processPendingSubtests (node:internal/test_runner/test:744:7)",
+            "generatedMessage": false,
+            "code": "ERR_ASSERTION",
+            "operator": "fail",
+            "diff": "simple"
+          }
+        }
+      },
+      "line": 38,
+      "column": 3,
+      "file": "/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs-stress/reason-contract.probe.mjs"
+    },
+    {
+      "outcome": "fail",
+      "name": "does not read reason getters, stringify it, or traverse its prototype",
+      "nesting": 0,
+      "testNumber": 15,
+      "details": {
+        "duration_ms": 0.248792,
+        "type": "test",
+        "error": {
+          "name": "Error",
+          "message": "Expected rejection",
+          "stack": "Error [ERR_TEST_FAILURE]: Expected rejection",
+          "code": "ERR_TEST_FAILURE",
+          "failureType": "testCodeFailure",
+          "cause": {
+            "name": "AssertionError",
+            "message": "Expected rejection",
+            "stack": "AssertionError [ERR_ASSERTION]: Expected rejection\n    at rejection (/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs-stress/reason-contract.probe.mjs:17:10)\n    at async TestContext.<anonymous> (/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs-stress/reason-contract.probe.mjs:68:17)\n    at async Test.run (node:internal/test_runner/test:1054:7)\n    at async Test.processPendingSubtests (node:internal/test_runner/test:744:7)",
+            "generatedMessage": false,
+            "code": "ERR_ASSERTION",
+            "operator": "fail",
+            "diff": "simple"
+          }
+        }
+      },
+      "line": 60,
+      "column": 1,
+      "file": "/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs-stress/reason-contract.probe.mjs"
+    },
+    {
+      "outcome": "fail",
+      "name": "does not touch own reason accessors or stack formatting hooks",
+      "nesting": 0,
+      "testNumber": 16,
+      "details": {
+        "duration_ms": 0.295041,
+        "type": "test",
+        "error": {
+          "name": "Error",
+          "message": "prepared stack",
+          "stack": "Error [ERR_TEST_FAILURE]: prepared stack",
+          "code": "ERR_TEST_FAILURE",
+          "failureType": "testCodeFailure",
+          "cause": {
+            "name": "Error",
+            "message": "prepared stack",
+            "stack": "Error: prepared stack\n    at Function.Error.prepareStackTrace (/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs-stress/reason-contract.probe.mjs:83:55)\n    at prepareStackTraceCallback (node:internal/errors:144:29)\n    at new AssertionError (node:internal/assert/assertion_error:382:10)\n    at Function.fail (node:assert:198:15)\n    at rejection (/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs-stress/reason-contract.probe.mjs:17:10)\n    at async TestContext.<anonymous> (/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs-stress/reason-contract.probe.mjs:85:19)\n    at async Test.run (node:internal/test_runner/test:1054:7)\n    at async Test.processPendingSubtests (node:internal/test_runner/test:744:7)"
+          }
+        }
+      },
+      "line": 73,
+      "column": 1,
+      "file": "/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs-stress/reason-contract.probe.mjs"
+    },
+    {
+      "outcome": "fail",
+      "name": "does not inspect caller options or run setup before rejection",
+      "nesting": 0,
+      "testNumber": 17,
+      "details": {
+        "duration_ms": 0.342042,
+        "type": "test",
+        "error": {
+          "name": "Error",
+          "message": "Expected values to be strictly equal:\n+ actual - expected\n\n+ 'Error'\n- 'AbortError'\n",
+          "stack": "Error [ERR_TEST_FAILURE]: Expected values to be strictly equal:\n+ actual - expected\n\n+ 'Error'\n- 'AbortError'\n",
+          "code": "ERR_TEST_FAILURE",
+          "failureType": "testCodeFailure",
+          "cause": {
+            "name": "AssertionError",
+            "message": "Expected values to be strictly equal:\n+ actual - expected\n\n+ 'Error'\n- 'AbortError'\n",
+            "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n+ actual - expected\n\n+ 'Error'\n- 'AbortError'\n\n    at assertAbortEnvelope (/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs-stress/reason-contract.probe.mjs:22:10)\n    at TestContext.<anonymous> (/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs-stress/reason-contract.probe.mjs:102:3)\n    at async Test.run (node:internal/test_runner/test:1054:7)\n    at async Test.processPendingSubtests (node:internal/test_runner/test:744:7)",
+            "generatedMessage": true,
+            "code": "ERR_ASSERTION",
+            "actual": "Error",
+            "expected": "AbortError",
+            "operator": "strictEqual",
+            "diff": "simple"
+          }
+        }
+      },
+      "line": 93,
+      "column": 1,
+      "file": "/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs-stress/reason-contract.probe.mjs"
+    },
+    {
+      "outcome": "fail",
+      "name": "entry span stays valid for empty, multiline, and invalid source",
+      "nesting": 0,
+      "testNumber": 18,
+      "details": {
+        "duration_ms": 0.550167,
+        "type": "test",
+        "error": {
+          "name": "Error",
+          "message": "Expected rejection",
+          "stack": "Error [ERR_TEST_FAILURE]: Expected rejection",
+          "code": "ERR_TEST_FAILURE",
+          "failureType": "testCodeFailure",
+          "cause": {
+            "name": "AssertionError",
+            "message": "Expected rejection",
+            "stack": "AssertionError [ERR_ASSERTION]: Expected rejection\n    at rejection (/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs-stress/reason-contract.probe.mjs:17:10)\n    at async TestContext.<anonymous> (/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs-stress/reason-contract.probe.mjs:109:19)\n    at async Test.run (node:internal/test_runner/test:1054:7)\n    at async Test.processPendingSubtests (node:internal/test_runner/test:744:7)",
+            "generatedMessage": false,
+            "code": "ERR_ASSERTION",
+            "operator": "fail",
+            "diff": "simple"
+          }
+        }
+      },
+      "line": 106,
+      "column": 1,
+      "file": "/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs-stress/reason-contract.probe.mjs"
+    }
+  ]
+}

@@ -1,0 +1,194 @@
+{
+  "enabled": true,
+  "status": 1,
+  "signal": null,
+  "counts": {
+    "pass": 7,
+    "fail": 3,
+    "skip": 0
+  },
+  "cases": [
+    {
+      "outcome": "fail",
+      "name": "desired action-abort observes original host rejection without hiding abort",
+      "nesting": 0,
+      "testNumber": 1,
+      "details": {
+        "duration_ms": 243.636791,
+        "type": "test",
+        "error": {
+          "name": "Error",
+          "message": "{\"runPath\":\"/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/packages/safejs/src/run.ts\",\"interpreterPath\":\"/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/packages/safejs/src/interp/interpreter.ts\"}\n{\"actualEngineLoad\":\"/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/packages/safejs/src/run.ts\",\"sha256\":\"243e3ca4efef03f6df73a50ef2f23fdcee4ef07c4e26eca7f498bf7823988e1b\"}\n{\"actualEngineLoad\":\"/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/packages/safejs/src/interp/interpreter.ts\",\"sha256\":\"4d33fdba962311153d7cc8ce10d93990fe5db2604513b52fa1f3ea4cbdffc715\"}\noutward abort observed\n\n/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs-stress/action-abort.child.mjs:22\n    return Promise.reject(new Error(\"host action late rejection\"));\n                          ^\n\nError: host action late rejection\n    at <anonymous> (/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs-stress/action-abort.child.mjs:22:27)\n    at <anonymous> (/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/packages/safejs/src/interp/host-bridge.ts:222:50)\n    at invokeHostCallback (/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/packages/safejs/src/interp/host-bridge.ts:250:12)\n    at <anonymous> (/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/packages/safejs/src/interp/host-bridge.ts:222:17)\n    at executeHostCall (/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/packages/safejs/src/interp/host-bridge.ts:354:14)\n    at Object.call (/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/packages/safejs/src/interp/host-bridge.ts:219:16)\n    at call (/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/packages/safejs/src/interp/cancel.ts:54:43)\n    at invokeSandboxClosure (/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/packages/safejs/src/interp/interpreter.ts:3462:28)\n    at evaluateResolvedCallExpression (/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/packages/safejs/src/interp/interpreter.ts:3382:18)\n\nNode.js v22.22.2\n\n\n1 !== 0\n",
+          "stack": "Error [ERR_TEST_FAILURE]: {\"runPath\":\"/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/packages/safejs/src/run.ts\",\"interpreterPath\":\"/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/packages/safejs/src/interp/interpreter.ts\"}\n{\"actualEngineLoad\":\"/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/packages/safejs/src/run.ts\",\"sha256\":\"243e3ca4efef03f6df73a50ef2f23fdcee4ef07c4e26eca7f498bf7823988e1b\"}\n{\"actualEngineLoad\":\"/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/packages/safejs/src/interp/interpreter.ts\",\"sha256\":\"4d33fdba962311153d7cc8ce10d93990fe5db2604513b52fa1f3ea4cbdffc715\"}\noutward abort observed\n\n/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs-stress/action-abort.child.mjs:22\n    return Promise.reject(new Error(\"host action late rejection\"));\n                          ^\n\nError: host action late rejection\n    at <anonymous> (/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs-stress/action-abort.child.mjs:22:27)\n    at <anonymous> (/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/packages/safejs/src/interp/host-bridge.ts:222:50)\n    at invokeHostCallback (/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/packages/safejs/src/interp/host-bridge.ts:250:12)\n    at <anonymous> (/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/packages/safejs/src/interp/host-bridge.ts:222:17)\n    at executeHostCall (/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/packages/safejs/src/interp/host-bridge.ts:354:14)\n    at Object.call (/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/packages/safejs/src/interp/host-bridge.ts:219:16)\n    at call (/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/packages/safejs/src/interp/cancel.ts:54:43)\n    at invokeSandboxClosure (/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/packages/safejs/src/interp/interpreter.ts:3462:28)\n    at evaluateResolvedCallExpression (/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/packages/safejs/src/interp/interpreter.ts:3382:18)\n\nNode.js v22.22.2\n\n\n1 !== 0\n",
+          "code": "ERR_TEST_FAILURE",
+          "failureType": "testCodeFailure",
+          "cause": {
+            "name": "AssertionError",
+            "message": "{\"runPath\":\"/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/packages/safejs/src/run.ts\",\"interpreterPath\":\"/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/packages/safejs/src/interp/interpreter.ts\"}\n{\"actualEngineLoad\":\"/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/packages/safejs/src/run.ts\",\"sha256\":\"243e3ca4efef03f6df73a50ef2f23fdcee4ef07c4e26eca7f498bf7823988e1b\"}\n{\"actualEngineLoad\":\"/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/packages/safejs/src/interp/interpreter.ts\",\"sha256\":\"4d33fdba962311153d7cc8ce10d93990fe5db2604513b52fa1f3ea4cbdffc715\"}\noutward abort observed\n\n/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs-stress/action-abort.child.mjs:22\n    return Promise.reject(new Error(\"host action late rejection\"));\n                          ^\n\nError: host action late rejection\n    at <anonymous> (/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs-stress/action-abort.child.mjs:22:27)\n    at <anonymous> (/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/packages/safejs/src/interp/host-bridge.ts:222:50)\n    at invokeHostCallback (/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/packages/safejs/src/interp/host-bridge.ts:250:12)\n    at <anonymous> (/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/packages/safejs/src/interp/host-bridge.ts:222:17)\n    at executeHostCall (/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/packages/safejs/src/interp/host-bridge.ts:354:14)\n    at Object.call (/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/packages/safejs/src/interp/host-bridge.ts:219:16)\n    at call (/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/packages/safejs/src/interp/cancel.ts:54:43)\n    at invokeSandboxClosure (/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/packages/safejs/src/interp/interpreter.ts:3462:28)\n    at evaluateResolvedCallExpression (/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/packages/safejs/src/interp/interpreter.ts:3382:18)\n\nNode.js v22.22.2\n\n\n1 !== 0\n",
+            "stack": "AssertionError [ERR_ASSERTION]: {\"runPath\":\"/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/packages/safejs/src/run.ts\",\"interpreterPath\":\"/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/packages/safejs/src/interp/interpreter.ts\"}\n{\"actualEngineLoad\":\"/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/packages/safejs/src/run.ts\",\"sha256\":\"243e3ca4efef03f6df73a50ef2f23fdcee4ef07c4e26eca7f498bf7823988e1b\"}\n{\"actualEngineLoad\":\"/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/packages/safejs/src/interp/interpreter.ts\",\"sha256\":\"4d33fdba962311153d7cc8ce10d93990fe5db2604513b52fa1f3ea4cbdffc715\"}\noutward abort observed\n\n/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs-stress/action-abort.child.mjs:22\n    return Promise.reject(new Error(\"host action late rejection\"));\n                          ^\n\nError: host action late rejection\n    at <anonymous> (/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs-stress/action-abort.child.mjs:22:27)\n    at <anonymous> (/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/packages/safejs/src/interp/host-bridge.ts:222:50)\n    at invokeHostCallback (/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/packages/safejs/src/interp/host-bridge.ts:250:12)\n    at <anonymous> (/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/packages/safejs/src/interp/host-bridge.ts:222:17)\n    at executeHostCall (/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/packages/safejs/src/interp/host-bridge.ts:354:14)\n    at Object.call (/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/packages/safejs/src/interp/host-bridge.ts:219:16)\n    at call (/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/packages/safejs/src/interp/cancel.ts:54:43)\n    at invokeSandboxClosure (/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/packages/safejs/src/interp/interpreter.ts:3462:28)\n    at evaluateResolvedCallExpression (/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/packages/safejs/src/interp/interpreter.ts:3382:18)\n\nNode.js v22.22.2\n\n\n1 !== 0\n\n    at TestContext.<anonymous> (/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs-stress/action-abort.probe.ts:24:12)\n    at Test.runInAsyncScope (node:async_hooks:214:14)\n    at Test.run (node:internal/test_runner/test:1047:25)\n    at Test.start (node:internal/test_runner/test:944:17)\n    at startSubtestAfterBootstrap (node:internal/test_runner/harness:296:17)",
+            "generatedMessage": false,
+            "code": "ERR_ASSERTION",
+            "actual": 1,
+            "expected": 0,
+            "operator": "strictEqual",
+            "diff": "simple"
+          }
+        }
+      },
+      "line": 1,
+      "column": 292,
+      "file": "/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs-stress/action-abort.probe.ts"
+    },
+    {
+      "outcome": "pass",
+      "name": "UNRESOLVED desired live-signal plugin behavior: new Error(\"constructed\").message",
+      "nesting": 0,
+      "testNumber": 2,
+      "details": {
+        "duration_ms": 122.334166,
+        "type": "test"
+      },
+      "line": 1,
+      "column": 581,
+      "file": "/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs-stress/upstream-desired.probe.ts"
+    },
+    {
+      "outcome": "pass",
+      "name": "UNRESOLVED desired live-signal plugin behavior: new TypeError(\"constructed\").message",
+      "nesting": 0,
+      "testNumber": 3,
+      "details": {
+        "duration_ms": 1.564125,
+        "type": "test"
+      },
+      "line": 1,
+      "column": 581,
+      "file": "/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs-stress/upstream-desired.probe.ts"
+    },
+    {
+      "outcome": "pass",
+      "name": "UNRESOLVED desired live-signal plugin behavior: new Map([[\"key\", \"value\"]]).get(\"key\")",
+      "nesting": 0,
+      "testNumber": 4,
+      "details": {
+        "duration_ms": 1.696583,
+        "type": "test"
+      },
+      "line": 1,
+      "column": 581,
+      "file": "/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs-stress/upstream-desired.probe.ts"
+    },
+    {
+      "outcome": "pass",
+      "name": "UNRESOLVED desired live-signal plugin behavior: new Set([\"value\"]).has(\"value\")",
+      "nesting": 0,
+      "testNumber": 5,
+      "details": {
+        "duration_ms": 1.471917,
+        "type": "test"
+      },
+      "line": 1,
+      "column": 581,
+      "file": "/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs-stress/upstream-desired.probe.ts"
+    },
+    {
+      "outcome": "pass",
+      "name": "UNRESOLVED desired live-signal plugin behavior: new RegExp(\"^value$\").test(\"value\")",
+      "nesting": 0,
+      "testNumber": 6,
+      "details": {
+        "duration_ms": 1.516083,
+        "type": "test"
+      },
+      "line": 1,
+      "column": 581,
+      "file": "/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs-stress/upstream-desired.probe.ts"
+    },
+    {
+      "outcome": "pass",
+      "name": "UNRESOLVED desired live-signal plugin behavior: Array.isArray([])",
+      "nesting": 0,
+      "testNumber": 7,
+      "details": {
+        "duration_ms": 0.987167,
+        "type": "test"
+      },
+      "line": 1,
+      "column": 581,
+      "file": "/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs-stress/upstream-desired.probe.ts"
+    },
+    {
+      "outcome": "pass",
+      "name": "UNRESOLVED desired live-signal plugin behavior: Array.from([1, 2])",
+      "nesting": 0,
+      "testNumber": 8,
+      "details": {
+        "duration_ms": 1.308208,
+        "type": "test"
+      },
+      "line": 1,
+      "column": 581,
+      "file": "/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs-stress/upstream-desired.probe.ts"
+    },
+    {
+      "outcome": "fail",
+      "name": "UNRESOLVED desired live-signal plugin behavior: own __proto__ environment data",
+      "nesting": 0,
+      "testNumber": 9,
+      "details": {
+        "duration_ms": 2.425708,
+        "type": "test",
+        "error": {
+          "name": "Error",
+          "message": "Expected values to be strictly equal:\n\n'' !== 'literal\\n'\n",
+          "stack": "Error [ERR_TEST_FAILURE]: Expected values to be strictly equal:\n\n'' !== 'literal\\n'\n",
+          "code": "ERR_TEST_FAILURE",
+          "failureType": "testCodeFailure",
+          "cause": {
+            "name": "AssertionError",
+            "message": "Expected values to be strictly equal:\n\n'' !== 'literal\\n'\n",
+            "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\n'' !== 'literal\\n'\n\n    at TestContext.<anonymous> (/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs-stress/upstream-desired.probe.ts:28:10)\n    at async Test.run (node:internal/test_runner/test:1054:7)\n    at async Test.processPendingSubtests (node:internal/test_runner/test:744:7)",
+            "generatedMessage": true,
+            "code": "ERR_ASSERTION",
+            "actual": "",
+            "expected": "literal\n",
+            "operator": "strictEqual",
+            "diff": "simple"
+          }
+        }
+      },
+      "line": 2,
+      "column": 6,
+      "file": "/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs-stress/upstream-desired.probe.ts"
+    },
+    {
+      "outcome": "fail",
+      "name": "UNRESOLVED desired raw engine behavior: pre-aborted pure run rejects original reason",
+      "nesting": 0,
+      "testNumber": 10,
+      "details": {
+        "duration_ms": 1.133208,
+        "type": "test",
+        "error": {
+          "name": "Error",
+          "message": "Missing expected rejection.",
+          "stack": "Error [ERR_TEST_FAILURE]: Missing expected rejection.",
+          "code": "ERR_TEST_FAILURE",
+          "failureType": "testCodeFailure",
+          "cause": {
+            "name": "AssertionError",
+            "message": "Missing expected rejection.",
+            "stack": "AssertionError [ERR_ASSERTION]: Missing expected rejection.\n    at async TestContext.<anonymous> (/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs-stress/upstream-desired.probe.ts:37:3)\n    at async Test.run (node:internal/test_runner/test:1054:7)\n    at async Test.processPendingSubtests (node:internal/test_runner/test:744:7)",
+            "generatedMessage": false,
+            "code": "ERR_ASSERTION",
+            "operator": "rejects",
+            "diff": "simple"
+          }
+        }
+      },
+      "line": 2,
+      "column": 412,
+      "file": "/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/tests/commands/safejs-stress/upstream-desired.probe.ts"
+    }
+  ]
+}

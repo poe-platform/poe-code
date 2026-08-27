@@ -1,0 +1,16 @@
+{
+  "capturedAt": "2026-08-27T04:38:03.036Z",
+  "artifactCount": 55,
+  "artifactHashes": "verified",
+  "normalizations": {
+    "final/upstream-delta-stat.txt": "One trailing newline added by text archival; both captured and archived hashes retained.",
+    "final/upstream-history.txt": "One trailing newline added by text archival; both captured and archived hashes retained."
+  },
+  "committedHarness": "0143ecab8f5c1109b88739e75f6f1022256043ff",
+  "harnessHashes": "verified against committed source",
+  "markdownLinks": "verified",
+  "postCapturePrivateHead": "bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e",
+  "temporaryTreesRemoved": true,
+  "ownedProcesses": "No remaining Node/esbuild process with owned temporary path at post-run ps check",
+  "productOrPrivateSourceChanged": false
+}

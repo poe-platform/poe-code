@@ -1,0 +1,258 @@
+[
+  {
+    "label": "archive-product",
+    "command": "git",
+    "args": [
+      "archive",
+      "--format=tar",
+      "--output=/private/tmp/safe-bash-safejs-current-WhaqwZ/product.tar",
+      "0143ecab8f5c1109b88739e75f6f1022256043ff",
+      "src",
+      "package.json",
+      "package-lock.json",
+      "tsconfig.json",
+      "tsconfig.build.json",
+      "README.md",
+      "tests/commands/safejs",
+      "tests/commands/safejs-stress",
+      "tests/integrations/safejs"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash",
+    "status": 0,
+    "signal": null,
+    "durationMs": 64
+  },
+  {
+    "label": "extract-product",
+    "command": "tar",
+    "args": [
+      "-xf",
+      "/private/tmp/safe-bash-safejs-current-WhaqwZ/product.tar",
+      "-C",
+      "/private/tmp/safe-bash-safejs-current-WhaqwZ/product"
+    ],
+    "cwd": "/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer",
+    "status": 0,
+    "signal": null,
+    "durationMs": 51
+  },
+  {
+    "label": "build-product",
+    "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "args": [
+      "/private/tmp/safe-bash-safejs-current-WhaqwZ/node_modules/typescript/bin/tsc",
+      "-p",
+      "tsconfig.build.json"
+    ],
+    "cwd": "/private/tmp/safe-bash-safejs-current-WhaqwZ/product",
+    "status": 0,
+    "signal": null,
+    "durationMs": 1430
+  },
+  {
+    "label": "pack-product",
+    "command": "npm",
+    "args": [
+      "pack",
+      "--offline",
+      "--ignore-scripts",
+      "--json",
+      "--pack-destination",
+      "/private/tmp/safe-bash-safejs-current-WhaqwZ"
+    ],
+    "cwd": "/private/tmp/safe-bash-safejs-current-WhaqwZ/product",
+    "status": 0,
+    "signal": null,
+    "durationMs": 698
+  },
+  {
+    "label": "install-product",
+    "command": "npm",
+    "args": [
+      "install",
+      "--offline",
+      "--ignore-scripts",
+      "--omit=dev",
+      "--no-package-lock",
+      "--no-audit",
+      "--no-fund",
+      "/private/tmp/safe-bash-safejs-current-WhaqwZ/virtual-bash-0.0.0.tgz"
+    ],
+    "cwd": "/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer",
+    "status": 0,
+    "signal": null,
+    "durationMs": 459
+  },
+  {
+    "label": "guard-controls",
+    "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "args": [
+      "--input-type=module",
+      "-e",
+      "import assert from \"node:assert/strict\";\nawait assert.rejects(import(\"file:///Users/kjopek/Workspace/poe-code/packages/safejs/src/run.ts\"), { code: \"SAFEJS_REVIEW_OUTSIDE\" });\nawait assert.rejects(import(\"file:///private/tmp/safe-bash-safejs-current-WhaqwZ/product/src/index.ts\"), { message: \"Product source fallback\" });\nconsole.log(JSON.stringify({ privateSourceRejected: true, productSourceRejected: true }));"
+    ],
+    "cwd": "/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer",
+    "status": 0,
+    "signal": null,
+    "durationMs": 29
+  },
+  {
+    "label": "conventional",
+    "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "args": [
+      "--unhandled-rejections=strict",
+      "--max-old-space-size=768",
+      "--import",
+      "tsx",
+      "--test",
+      "--test-concurrency=1",
+      "--test-timeout=20000",
+      "--test-reporter=/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/reporter.mjs",
+      "tests/commands/safejs/command.test.ts",
+      "tests/commands/safejs/lifecycle.test.ts",
+      "tests/commands/safejs/local-safejs.test.ts",
+      "tests/commands/safejs-stress/actual-engine.test.ts",
+      "tests/commands/safejs-stress/lifecycle.test.ts",
+      "tests/commands/safejs-stress/safety.test.ts",
+      "tests/commands/safejs-stress/upstream-limitations.test.ts"
+    ],
+    "cwd": "/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer",
+    "status": 1,
+    "signal": null,
+    "durationMs": 3542
+  },
+  {
+    "label": "bridges",
+    "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "args": [
+      "--unhandled-rejections=strict",
+      "--max-old-space-size=768",
+      "--import",
+      "tsx",
+      "--test",
+      "--test-concurrency=1",
+      "--test-timeout=20000",
+      "--test-reporter=/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/reporter.mjs",
+      "tests/integrations/safejs/filesystem.test.ts",
+      "tests/integrations/safejs/memory-shell.test.ts",
+      "tests/integrations/safejs/shell.test.ts",
+      "tests/integrations/safejs/local-safejs.test.ts"
+    ],
+    "cwd": "/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer",
+    "status": 0,
+    "signal": null,
+    "durationMs": 1746
+  },
+  {
+    "label": "desired-original-plus-action",
+    "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "args": [
+      "--unhandled-rejections=strict",
+      "--max-old-space-size=768",
+      "--import",
+      "tsx",
+      "--test",
+      "--test-concurrency=1",
+      "--test-timeout=20000",
+      "--test-reporter=/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/reporter.mjs",
+      "tests/commands/safejs-stress/upstream-desired.probe.ts",
+      "tests/commands/safejs-stress/action-abort.probe.ts"
+    ],
+    "cwd": "/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer",
+    "status": 1,
+    "signal": null,
+    "durationMs": 826
+  },
+  {
+    "label": "proposal-invariants",
+    "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "args": [
+      "--unhandled-rejections=strict",
+      "--max-old-space-size=768",
+      "--import",
+      "tsx",
+      "--test",
+      "--test-concurrency=1",
+      "--test-timeout=20000",
+      "--test-reporter=/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/reporter.mjs",
+      "tests/commands/safejs-stress/wrapper-invariants.probe.mjs"
+    ],
+    "cwd": "/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer",
+    "status": 1,
+    "signal": null,
+    "durationMs": 548
+  },
+  {
+    "label": "proposal-reason-profile",
+    "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "args": [
+      "--unhandled-rejections=strict",
+      "--max-old-space-size=768",
+      "--import",
+      "tsx",
+      "--test",
+      "--test-concurrency=1",
+      "--test-timeout=20000",
+      "--test-reporter=/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/reporter.mjs",
+      "tests/commands/safejs-stress/reason-contract.probe.mjs"
+    ],
+    "cwd": "/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer",
+    "status": 1,
+    "signal": null,
+    "durationMs": 348
+  },
+  {
+    "label": "unavailable-engine",
+    "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "args": [
+      "--unhandled-rejections=strict",
+      "--max-old-space-size=768",
+      "--import",
+      "tsx",
+      "--test",
+      "--test-concurrency=1",
+      "--test-timeout=20000",
+      "--test-reporter=/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/reporter.mjs",
+      "tests/commands/safejs/command.test.ts",
+      "tests/commands/safejs/lifecycle.test.ts",
+      "tests/commands/safejs/local-safejs.test.ts",
+      "tests/commands/safejs-stress/actual-engine.test.ts",
+      "tests/commands/safejs-stress/lifecycle.test.ts",
+      "tests/commands/safejs-stress/safety.test.ts",
+      "tests/commands/safejs-stress/upstream-limitations.test.ts",
+      "tests/integrations/safejs/filesystem.test.ts",
+      "tests/integrations/safejs/memory-shell.test.ts",
+      "tests/integrations/safejs/shell.test.ts",
+      "tests/integrations/safejs/local-safejs.test.ts"
+    ],
+    "cwd": "/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer",
+    "status": 0,
+    "signal": null,
+    "durationMs": 3419
+  },
+  {
+    "label": "integration-type-review",
+    "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "args": [
+      "/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer/type-review.mjs"
+    ],
+    "cwd": "/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer",
+    "status": 0,
+    "signal": null,
+    "durationMs": 1696
+  },
+  {
+    "label": "current-upstream-typecheck",
+    "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "args": [
+      "/private/tmp/safe-bash-safejs-current-WhaqwZ/node_modules/typescript/bin/tsc",
+      "--noEmit",
+      "--project",
+      "packages/safejs/tsconfig.json"
+    ],
+    "cwd": "/private/tmp/safe-bash-safejs-current-WhaqwZ/consumer",
+    "status": 2,
+    "signal": null,
+    "durationMs": 1198
+  }
+]

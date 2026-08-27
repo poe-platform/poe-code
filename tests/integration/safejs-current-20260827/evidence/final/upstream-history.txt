@@ -1,0 +1,15 @@
+3466520aafa638ae97cefb70ccd2246c1a7fdcee 2026-08-26T19:11:28-05:00 fix(safejs): preserve promise execution order
+e676828f132ce5d8992e521c871b638b407c5c86 2026-08-26T18:17:46-05:00 feat(safejs): compose executable Markdown blocks
+d448eb8b51da948f9682eccb02eedf22c9de1b9d 2026-08-26T17:53:37-05:00 fix(safejs): replay completed snapshots equivalently
+a7ec0f14c58db154896a68fbacc7c6d9e636b6a3 2026-08-26T17:08:07-05:00 fix(safejs): preserve durable checkpoint replay semantics
+0b7d3d23a1f5c7ffd73bc3860e7feb3298d2bdda 2026-08-26T16:25:04-05:00 feat(safejs): replay randomness and host interactions
+a3fe17b3cb8d88b1b16917c0d53976104f9fb82b 2026-08-26T14:09:18-05:00 feat(safejs): support functions in linted harnesses
+9e5cb5a5ff93c171617f76a6f1fe25f679639e57 2026-08-26T13:32:47-05:00 fix(safejs): parse arrows in assignment expressions
+486b9f1fe3eb73527a8b6d1acedf95b12274ac6b 2026-08-26T13:28:28-05:00 fix(safejs): allow mutable lexical closures
+668a0522de6327615afc249e02dc5ec1f620418c 2026-07-30T16:41:58Z fix(safejs): load on Bun without system error map
+70f0202ce6e4a84975a07f19a015b034a7662e72 2026-07-29T21:29:18Z test(safejs): tolerate restrictive Unix umasks
+920c7c127035f9000770adf1a1469344bbb18214 2026-07-20T13:23:53-05:00 fix(spawn): default omitted modes to auto
+27cd2371b90a7943a9444acbc04e6f3791b99c74 2026-07-17T10:26:56-05:00 test(safejs): record Linux fs conformance truth
+6d87061037df275ee7aba828fff489e9cea02c4b 2026-07-16T17:40:52-05:00 docs(safejs): document the optional fs module and its deviations from node
+a69316d6285c45da8761eb2fbc47c7c25f836000 2026-07-16T17:36:27-05:00 feat(safejs): let the runner hand a script a confined fs via --fs
+05676323b0287f96b67a9c14154c818da572c45a 2026-07-16T17:08:59-05:00 test(safejs): prove fs stays absent until an embedder registers it

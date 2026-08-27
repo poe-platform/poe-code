@@ -38,7 +38,9 @@ assert.equal(query(['diff', '--name-only', state.baseline, state.candidate + '^'
 assert.equal(hash(git(repo, ['diff', '--binary', '--no-ext-diff', state.baseline, state.candidate, '--', ...sourcePaths])), state.patchSHA256);
 const streamsBefore = query(['show', state.baseline + ':src/commands/streams.ts']), streamsAfter = query(['show', state.candidate + ':src/commands/streams.ts']);
 const cat = '    define("cat",', suffix = '    headTail("head"), headTail("tail"),';
-assert.equal(streamsBefore.slice(0, streamsBefore.indexOf(cat)), streamsAfter.slice(0, streamsAfter.indexOf(cat)).replace('import { createOutputOperation } from "../contracts/index.js";\n', ''));
+assert.equal(streamsAfter.split('import { createOutputOperation, ').length, 2);
+assert(streamsBefore.includes(cat) && streamsAfter.includes(cat) && streamsBefore.includes(suffix) && streamsAfter.includes(suffix));
+assert.equal(streamsBefore.slice(0, streamsBefore.indexOf(cat)), streamsAfter.slice(0, streamsAfter.indexOf(cat)).replace('import { createOutputOperation, ', 'import { '));
 assert.equal(streamsBefore.slice(streamsBefore.indexOf(suffix)), streamsAfter.slice(streamsAfter.indexOf(suffix)));
 const privateRoot = '/Users/kjopek/Workspace/poe-code';
 const safejs = JSON.parse(readFileSync(join(state.work, 'safejs-6Mzt26/REPORT.json'))), original = safejs.privateBefore;

@@ -31,7 +31,7 @@ test("root family exports preserve four inspection definitions in the 73-command
   assert.equal(definitions.length, 73);
   assert.equal(new Set(definitions).size, 73);
   assert.deepEqual(definitions.slice(56, 60), names);
-  assert.deepEqual(definitions.slice(60), ["seq", "nl", "rev", "unexpand", "split", "date", "sleep", "printenv", "tree", "file"]);
+  assert.deepEqual(definitions.slice(60), ["seq", "nl", "rev", "unexpand", "split", "date", "sleep", "printenv", "tree", "file", "egrep", "fgrep", "column"]);
   const target = host();
   await agentCommands(aggregate).setup(target);
   assert.deepEqual(target.commands.list().map(command => command.name), definitions);
@@ -76,14 +76,14 @@ test("standalone and aggregate share one explicit replacement boundary", async (
   assert.throws(() => agentCommands().setup(target), /already registered: tac/u);
   assert.deepEqual(target.commands.list(), original);
   await agentCommands({ replace: true }).setup(target);
-  assert.equal(target.commands.list().length, 71);
+  assert.equal(target.commands.list().length, 74);
   assert.equal(target.commands.get("custom"), original.find(command => command.name === "custom"));
   for (const name of names) assert.notEqual(target.commands.get(name), original.find(command => command.name === name));
   const aggregate = target.commands.list();
   assert.throws(() => streamInspectionCommands().setup(target), /already registered: tac/u);
   assert.deepEqual(target.commands.list(), aggregate);
   await streamInspectionCommands({ replace: true }).setup(target);
-  assert.equal(target.commands.list().length, 71);
+  assert.equal(target.commands.list().length, 74);
   assert.equal(target.commands.get("printf"), aggregate.find(command => command.name === "printf"));
 });
 

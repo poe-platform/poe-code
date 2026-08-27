@@ -16,5 +16,9 @@ inventory also change70 to73: stream-five public-options and stream-inspection
 consumer. The latter keeps its explicit ordered tail and appends only the three
 new names. The current stream-inspection canonical public test changes only its
 total/title. Existing workflows, type assertions, native data and historical
-70-name captures remain unchanged; old version-bound public audit fixtures are
+70-name captures remain unchanged. Attempt02 exposed two incompletely migrated
+stream-inspection tests (61/63): the explicit tail and both custom-command
+replacement totals also require the same three-name addition. Those exact
+assertions now include egrep/fgrep/column and74 respectively; attempt02 remains
+failed, with no package phase inferred. Old version-bound public audit fixtures are
 not globally rewritten by searching for every occurrence of70.

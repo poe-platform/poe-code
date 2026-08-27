@@ -1,0 +1,72 @@
+  check('fresh-complete-qualified-typing', () => {
+    const result = probe('combined', ['typecheck:all'], true);
+    assert.equal(result.status, 0); assert.equal(result.details.builds, 1);
+    assert.equal(result.details.sourceConsumers.groups.length, 3); assert.equal(result.details.sourceConsumers.passed, true);
+    assert.equal(result.details.consumers.groups.length, 19); assert.equal(result.details.consumers.passed, true);
+    assert.deepEqual(result.details.consumers.negativeTypes.map(group => group.diagnostics), [1, 2, 5]);
+    assert.equal(result.details.candidateBinding.declarations.length, 177);
+    assert.equal(result.details.runtimeExecutions, 0);
+    report.baseline = result.details.candidateBinding;
+  });
+  assert.ok(report.baseline, 'fresh baseline required before controls');
+  const emitted = census(join(snapshot, 'dist'), walk(join(snapshot, 'dist')));
+  report.emitted = capture('emitted', JSON.stringify(emitted, null, 2) + '\n');
+  check('changed-source-fallback-message-still-denies-real-src-resolution', () => {
+    const config = JSON.parse(readFileSync(join(snapshot, 'tsconfig.json'))); config.compilerOptions.paths = { 'virtual-bash': [join(snapshot, 'src/index.ts')] };
+    mutate('tsconfig.json', JSON.stringify(config), () => {
+      const result = directGroup('source-fallback', 'env-split-public-source', true);
+      assert.equal(result.status, 2); assert.equal(result.details.phases[0].status, 0);
+      assert.match(result.details.result.groups[0].error, /foreign candidate declaration\/source fallback: virtual-bash/u);
+    });
+  });
+  check('same-candidate-authentication-neighbors', () => {
+    const path = fileURLToPath(new URL('./binding-cases.mjs', import.meta.url));
+    report.neighborDriverSha256 = sha256(readFileSync(path));
+    const destination = join(temporary, 'nearby-report.json');
+    const result = command('nearby-bindings', process.execPath, [path, join(temporary, 'nearby'), destination]);
+    const details = JSON.parse(readFileSync(destination));
+    capture('nearby-bindings.report', JSON.stringify(details, null, 2) + '\n');
+    report.neighbors = details.cases.map(({ name, status, guardError, error, compiler }) => ({ name, status, guardError, error, compiler }));
+    assert.equal(result.status, 0); assert.equal(details.cases.length, 11); assert.ok(details.cases.every(current => current.status === 'pass'));
+  });
+  check('missing-new-import-without-alias-remains-TS2305', () => {
+    const path = 'tests/shell-stress/env-split-validity/public-types.mts';
+    mutate(path, Buffer.concat([readFileSync(join(snapshot, path)), Buffer.from('\nimport { independentMissingExport } from "virtual-bash/contracts"; void independentMissingExport;\n')]), () => {
+      const result = directGroup('missing-export', 'env-split-public-types'); assert.equal(result.status, 2); assert.match(result.details.phases[0].stdout, /TS2305/u);
+    });
+  });
+  check('unchanged-mixed-package-mutation-full-warm-command-now-exits2', () => {
+    const decoy = join(temporary, 'decoy-dist'); copyRegular(join(snapshot, 'dist'), decoy);
+    writeFileSync(join(temporary, 'package.json'), JSON.stringify({ type: 'module', private: true }));
+    const declaration = join(decoy, 'contracts/index.d.ts');
+    writeFileSync(declaration, Buffer.concat([readFileSync(declaration), Buffer.from('\nexport declare const independentMissingExport: number;\n')]));
+    const configPath = 'tests/plugins/qualified-current-release/tsconfig.consumer.json';
+    const config = JSON.parse(readFileSync(join(snapshot, configPath)));
+    config.compilerOptions.paths = { 'virtual-bash/contracts': [declaration] };
+    const path = 'tests/shell-stress/env-split-validity/public-types.mts';
+    mutate(configPath, JSON.stringify(config), () => mutate(path, Buffer.concat([readFileSync(join(snapshot, path)), Buffer.from('\nimport { independentMissingExport } from "virtual-bash/contracts"; void independentMissingExport;\n')]), () => {
+      const full = probe('mixed-full-warm', ['typecheck'], true);
+      assert.equal(full.status, 2); assert.equal(full.details.builds, 0); assert.equal(full.details.phases.length, 26);
+      assert.equal(full.details.sourceConsumers.passed, true);
+      const rejected = full.details.consumers.groups.filter(group => group.status === 'fail');
+      assert.equal(rejected.length, 1); assert.equal(rejected[0].name, 'env-split-public-types');
+      assert.match(rejected[0].error, /foreign candidate declaration\/source fallback: virtual-bash\/contracts/u);
+      assert.equal(full.details.phases.find(phase => phase.label === 'consumer-env-split-public-types').status, 0);
+      assert.equal(full.details.consumers.negativeTypes.find(group => group.name === 'env-split-invalid-binding').status, 'fail');
+      report.mixedWarm = { status: full.status, builds: full.details.builds, rejected, phases: full.details.phases.map(phase => ({ label: phase.label, status: phase.status })) };
+      const sourcePath = 'scripts/typecheck-consumers.mjs';
+      const source = readFileSync(join(snapshot, sourcePath), 'utf8');
+      const original = '  assertCandidateResolutions(stdout, join(consumer, "node_modules/virtual-bash"), binding);';
+      assert.equal(source.split(original).length, 2);
+      mutate(sourcePath, source.replace(original, '  assert.ok(stdout.includes(`${consumer}/`) && stdout.includes("node_modules/virtual-bash/dist/"));'), () => {
+        const mutant = directGroup('mixed-binding-mutant', 'env-split-public-types');
+        assert.equal(mutant.status, 0, 'old substring guard must escape the same negative assertion');
+        report.guardMutant = { observedForbiddenAcceptance: true, killedByOriginalStatus2Assertion: true };
+      });
+    }));
+  });
+  check('unchanged-source-tools-build-after-neighbors', () => {
+    const after = census(snapshot, tracked); report.sourceAfter = capture('source-after', JSON.stringify(after, null, 2) + '\n');
+    assert.deepEqual(after, original); assert.deepEqual(census(snapshot, originalTools.map(entry => entry.path)), originalTools);
+    assert.deepEqual(census(join(snapshot, 'dist'), walk(join(snapshot, 'dist'))), emitted);
+  });

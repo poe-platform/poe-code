@@ -1,4 +1,54 @@
-# Independent metadata checkpoint
+# Bounded GNU 9.7 runtime followup
+
+The user authorized the pinned executable's behavior, not a switch to the
+current manual. Runtime source fixes are `2cacd04` (negative fractional epochs)
+and `0c4709f` (separate integer/fraction width accounting, including narrow-width
+trailing spaces). `220cd7e` is a separate provenance-only correction: the
+62-character `src/stat.c` hash is corrected, with its malformed original retained
+in `oracle-evidence.json`. A focused guard verifies all four native source hashes;
+archive and executable identities remain unchanged.
+
+`runtime-fix-evidence.json` preserves all original 30 timestamp and six chmod raw
+differences, current native replay, measured input calibration, commands, logs,
+hashes and the independent reviewer's classification. No corpus was expanded.
+The timestamp classification is 15 negative-only, four combined negative/width,
+and 11 width-only: all 30 semantic, zero calibration-only. Requested Date times
+can differ from measured native times, but both original engines received equal
+measured inputs. Raw nanoseconds, VFS milliseconds and microsecond-aligned
+observations are retained; this is not a filesystem-resolution guarantee.
+
+Fixer-owned validation on 2026-08-27:
+
+| Scope | Result |
+| --- | --- |
+| Original 30 timestamp differences, equal-input pinned-native replay | 30/30 |
+| Unchanged seven original metadata artifacts / direct metadata tests | hashes match / 43/43 |
+| Current root-owned agent plugin / SafeJS export tests | 31/31 / 5/5 |
+| Existing stress plus two semantic regressions and one provenance guard | 51/51 |
+| Scoped metadata and source-build types | both pass, `--noEmit` |
+
+The current direct metadata/plugin total is 79, not a rerun of the historical
+unchanged 71. Root-owned table-text integration changed the agent plugin fixture;
+this leaf did not edit either plugin file or the original metadata artifacts.
+The historical checkpoint below is not overwritten. The exact current hashes
+are recorded, and selected source/test/package inputs stayed stable during the
+gate. No current build, emitted JavaScript or whole-product acceptance is claimed.
+
+All six chmod rows remain measured host syscall/status-effect divergences, not
+proven parser bugs: GNU returns EPERM/status 1 and preserves initial modes;
+RealFS and direct Node return success with mode 0707 for requested 02707, while
+MemoryFS realizes 02707. The reviewer measured native/Node/RealFS modes, umask,
+user/groups and ACL context. These concerns remain routed to Poincare/root; no
+chmod or filesystem source changed and no denial is waived.
+
+The current GNU 9.11 manual's minus-infinity wording remains separately recorded
+as a contradiction of the selected 9.7 runtime. Precision above three, full GNU
+stat reports, broader shell/product goals and the historical four root-routed
+unowned global TypeScript diagnostics remain outside this acceptance. No global
+audit, broad diff rerun, superiority or 72-hour completion claim follows.
+Independent final acceptance must wait for the runtime-fixes closure marker.
+
+## Historical independent metadata checkpoint
 
 Independent of Curie's author cohort. Production writes are closed at
 `f06f288`; only `src/commands/metadata/stat.ts` changed. Exact source hashes,
@@ -7,7 +57,7 @@ The original seven metadata author artifacts and both plugin test files are
 unchanged. No filesystem, contracts, root exports/manifests/docs, diff/patch,
 archive or other command source was modified.
 
-## Results and fixes
+### Historical results and fixes
 
 | Cohort | Result |
 | --- | --- |

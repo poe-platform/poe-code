@@ -1,0 +1,349 @@
+{
+  "format": "independent-getopts-review-inputs-v1",
+  "recordedAt": "2026-08-27T21:17:58.802Z",
+  "session": "01a0450f-ec52-77a1-9444-d9e2be8237fc",
+  "initialHead": "beba7b00d5ba277d2ac6770968d8e4b15c846171",
+  "recordingHead": "0bd5a1f3c31ef5e6203a82026181fa0fc73acc79",
+  "commits": {
+    "candidate": {
+      "commit": "618d8967009117547ab476256bc6eb0a9463309a",
+      "tree": "8cadf30519a179418fb2f7a859d6cf64ef1c8049",
+      "parents": [
+        "8a674adf8e99f64a7baf965527dd9fc9c30bdbb2"
+      ],
+      "committerDate": "2026-08-27T15:52:45-05:00",
+      "rawCommitSHA256": "7f765b54e62f0b24bf76ce775434432230c14e5a86b3ae38061173c9c732b38b",
+      "rawCommitBody": "tree 8cadf30519a179418fb2f7a859d6cf64ef1c8049\nparent 8a674adf8e99f64a7baf965527dd9fc9c30bdbb2\nauthor Kamil Jopek <kjopek@quora.com> 1787863965 -0500\ncommitter Kamil Jopek <kjopek@quora.com> 1787863965 -0500\n\nfeat(shell): integrate checked getopts state and regular builtin\n",
+      "containingRefs": [
+        "refs/heads/main"
+      ]
+    },
+    "author": {
+      "commit": "cb94b17d0eefc62e2a51f5a6f7cf46ebbcad2faf",
+      "tree": "4e1baddcec8a24b1c290d630e7f147b3923c54b3",
+      "parents": [
+        "bca8848f2cf5e843efe51298eea5897943b32ce0"
+      ],
+      "committerDate": "2026-08-27T16:06:37-05:00",
+      "rawCommitSHA256": "4251b2eccf63fef280fdeb895b8e92d3b8f808577d9c93bb1f62b1b992506d49"
+    },
+    "ownedOutput": {
+      "commit": "eba049535d154f4e028f57ffd8efd7622b2239ca",
+      "tree": "62d75ef09e89d4d3b6afc032c518d2846dcd03b7",
+      "parents": [
+        "954ddde45d7d77c36067f15f79d3881f2a51f8db"
+      ],
+      "committerDate": "2026-08-27T14:41:18-05:00",
+      "rawCommitSHA256": "15a84950d6da3a65ab1a11701a8a595df040c53759f2cc3c4aba575b773db560"
+    },
+    "freeze": {
+      "commit": "51f14914a0e7de15c3a23961424f232853bf5c33",
+      "tree": "68d4813abedbfc273ca028d51707c5c95c775543",
+      "parents": [
+        "d6814492a9de79c4f11b16956293afa14acc6fc0"
+      ],
+      "committerDate": "2026-08-27T15:13:22-05:00",
+      "rawCommitSHA256": "7eee5d37e39f5b53f3c5b6ca3390a54264c870466b7dec1790486d7a1ab9e53a"
+    },
+    "evidence": {
+      "commit": "592c864ef62f5a29b1f126c83b6ac532357fb599",
+      "tree": "8fc99671d36a79ff75d5a4a254b96a61118e185f",
+      "parents": [
+        "9fb0e32c015e3597565e60b89b6f02e32188cd45"
+      ],
+      "committerDate": "2026-08-27T15:16:29-05:00",
+      "rawCommitSHA256": "309834d2074ac4bc6fd313e22face12616a6ba6703a92a69a97f7f81291354d2"
+    },
+    "policy": {
+      "commit": "bf3bfd63204ddd8fc5dbfa7308b77444de51d6f7",
+      "tree": "edb43d17faee70e81929e6ce5e2be8d2ab932f1d",
+      "parents": [
+        "c4b6b3a06c3bc777b7cffa075188ce39ab3b70f2"
+      ],
+      "committerDate": "2026-08-27T15:29:34-05:00",
+      "rawCommitSHA256": "8eea2828e26b626f681e53547863d288279d88fc42a88792d6c7e1819ddca83d"
+    },
+    "decisions": {
+      "commit": "f9d8737b6e391b20062f6f2a12d8fbec94e80ae8",
+      "tree": "ae3544901987c124be6a14d82e7456484498d3cd",
+      "parents": [
+        "35909b63e39496965d56913669da1f3f0ba04a1e"
+      ],
+      "committerDate": "2026-08-27T15:34:45-05:00",
+      "rawCommitSHA256": "5856e2126972436feea6d7d91bf8a08462dd88fa4498db33b4a77a82fd6b6cc0"
+    },
+    "phase1Candidate": {
+      "commit": "157d78c957b56f83f6e705fc35da60b1f2ea3a9b",
+      "tree": "fbf0adcd2a6581a869cd60e16043b43fa789b5af",
+      "parents": [
+        "e9ff18dcdd403c68550c9ad9ea69d2edce5403a3"
+      ],
+      "committerDate": "2026-08-27T14:13:37-05:00",
+      "rawCommitSHA256": "553ad37e62413db224d1a597d262072a990d94316132e67e35582cb3731a2ba3"
+    },
+    "phase1Review": {
+      "commit": "4f84fdfd41134710cdb68fab3f5970cb14e54da3",
+      "tree": "60ac7e59d9a78c67097145c9cfd577928a6f09fd",
+      "parents": [
+        "90946c525d74c61da51cb4a5c4a7f799849c1475"
+      ],
+      "committerDate": "2026-08-27T14:56:56-05:00",
+      "rawCommitSHA256": "7923609528315c098df06436a999b1e9a4d4d411687e766e7d351c3c73ccf385"
+    }
+  },
+  "documents": [
+    {
+      "path": "tests/shell/getopts-independent-20260827/stage2/FREEZE.md",
+      "commit": "592c864ef62f5a29b1f126c83b6ac532357fb599",
+      "bytes": 3720,
+      "sha256": "e4bec8de8cf5069f10b16c86a4ed292f72dacd11c1b0ee6d01600e69fcd33383",
+      "exposure": "documentary evidence; native captures include incidental N05/N13 execution.args exposure"
+    },
+    {
+      "path": "tests/shell/getopts-independent-20260827/stage2/CORRECTIONS.md",
+      "commit": "592c864ef62f5a29b1f126c83b6ac532357fb599",
+      "bytes": 3507,
+      "sha256": "f321eb57b60964bf1690125b073f80513e927def64cb8f6d2a8444cb205295dd",
+      "exposure": "documentary evidence; native captures include incidental N05/N13 execution.args exposure"
+    },
+    {
+      "path": "tests/shell/getopts-independent-20260827/stage2/README.md",
+      "commit": "592c864ef62f5a29b1f126c83b6ac532357fb599",
+      "bytes": 4596,
+      "sha256": "96004b8f8e971dcdb61c33166e558fc0fda5b4a55c392a729c954d97f9bde18c",
+      "exposure": "documentary evidence; native captures include incidental N05/N13 execution.args exposure"
+    },
+    {
+      "path": "tests/shell/getopts-independent-20260827/stage2/RESULT.md",
+      "commit": "592c864ef62f5a29b1f126c83b6ac532357fb599",
+      "bytes": 6129,
+      "sha256": "899da61f85d2caf60374df117e2e57541f0197599f71e877c52d42d3d28ea044",
+      "exposure": "documentary evidence; native captures include incidental N05/N13 execution.args exposure"
+    },
+    {
+      "path": "tests/shell/getopts-independent-20260827/stage2/invariants.json",
+      "commit": "592c864ef62f5a29b1f126c83b6ac532357fb599",
+      "bytes": 9523,
+      "sha256": "853a01496f1beea6401e21d09791db6584921082debd4a2acd2074314e266bff",
+      "exposure": "documentary evidence; native captures include incidental N05/N13 execution.args exposure"
+    },
+    {
+      "path": "tests/shell/getopts-independent-20260827/stage2/baseline.json",
+      "commit": "592c864ef62f5a29b1f126c83b6ac532357fb599",
+      "bytes": 6109,
+      "sha256": "1187b748a3dd2f03cb4f152c2b9280a0fdc8f353e64d543ccb250086cd8b6593",
+      "exposure": "documentary evidence; native captures include incidental N05/N13 execution.args exposure"
+    },
+    {
+      "path": "tests/shell/getopts-independent-20260827/stage2/freeze-manifest.json",
+      "commit": "592c864ef62f5a29b1f126c83b6ac532357fb599",
+      "bytes": 7631,
+      "sha256": "74f6db7a64bcb77a7223706e6461f712a753fd4404f8373c3487d0684d07f7b3",
+      "exposure": "documentary evidence; native captures include incidental N05/N13 execution.args exposure"
+    },
+    {
+      "path": "tests/shell/getopts-independent-20260827/stage2/evidence-manifest.json",
+      "commit": "592c864ef62f5a29b1f126c83b6ac532357fb599",
+      "bytes": 4300,
+      "sha256": "2810268b574d643be05fab252b92877d7385d2fec67eb8831f33e1ae90e25235",
+      "exposure": "documentary evidence; native captures include incidental N05/N13 execution.args exposure"
+    },
+    {
+      "path": "tests/shell/getopts-independent-20260827/stage2/capture-01/manifest.json",
+      "commit": "592c864ef62f5a29b1f126c83b6ac532357fb599",
+      "bytes": 724,
+      "sha256": "333a84779aa819b73e1210baf5660f7d4f2bca2236bc9708079f380193777c8b",
+      "exposure": "documentary evidence; native captures include incidental N05/N13 execution.args exposure"
+    },
+    {
+      "path": "tests/shell/getopts-independent-20260827/stage2/capture-01/bash53.json",
+      "commit": "592c864ef62f5a29b1f126c83b6ac532357fb599",
+      "bytes": 52819,
+      "sha256": "e6a54e03cf3c5e7daf0deb452476457bbb4e149e9bd5c4babddbdb251e985378",
+      "exposure": "documentary evidence; native captures include incidental N05/N13 execution.args exposure"
+    },
+    {
+      "path": "tests/shell/getopts-independent-20260827/stage2/capture-01/bash32.json",
+      "commit": "592c864ef62f5a29b1f126c83b6ac532357fb599",
+      "bytes": 51697,
+      "sha256": "27b1fc517b3deb882eb9eda5a7754a9e9c6fb1078d967d9e1eab71625acccb2d",
+      "exposure": "documentary evidence; native captures include incidental N05/N13 execution.args exposure"
+    },
+    {
+      "path": "tests/shell/getopts-independent-20260827/stage2/POLICY-v2.md",
+      "commit": "bf3bfd63204ddd8fc5dbfa7308b77444de51d6f7",
+      "bytes": 6393,
+      "sha256": "53ddd9f06e91918239dfb6dd08ce0d300a376e4058beddaff50274a0fe06f88a",
+      "exposure": "root policy document"
+    },
+    {
+      "path": "tests/shell/getopts-independent-20260827/stage2/policy-invariants-v2.json",
+      "commit": "bf3bfd63204ddd8fc5dbfa7308b77444de51d6f7",
+      "bytes": 6069,
+      "sha256": "5da98f2f76bf3c31baf6a0cddb5477173c9efe75035cb4fd51dd304e2f7c6af6",
+      "exposure": "root policy document"
+    },
+    {
+      "path": "tests/shell/getopts-independent-20260827/stage2/policy-v2-manifest.json",
+      "commit": "bf3bfd63204ddd8fc5dbfa7308b77444de51d6f7",
+      "bytes": 3778,
+      "sha256": "05b7683351239e90116e3cde223cbea6ef73743e782b3746a765aa57ce837bab",
+      "exposure": "root policy document"
+    },
+    {
+      "path": "tests/shell/getopts/stage2-design/DECISIONS.md",
+      "commit": "f9d8737b6e391b20062f6f2a12d8fbec94e80ae8",
+      "bytes": 20808,
+      "sha256": "1d016ddae5289d5efaffcf254c28c3a624716db7c982820be285fbf46b8b7ba5",
+      "exposure": "approved mapping prose/tables including baseline source references"
+    },
+    {
+      "path": "tests/shell/getopts/runtime/README.md",
+      "commit": "cb94b17d0eefc62e2a51f5a6f7cf46ebbcad2faf",
+      "bytes": 3570,
+      "sha256": "38155c84115974d2324fbf9ce981102de0d8c2339fa6bd8b7d55cc2fc70c45d4",
+      "exposure": "author claims/inventory; baseline includes accepted old owned-output patch"
+    },
+    {
+      "path": "tests/shell/getopts/runtime/baseline.json",
+      "commit": "cb94b17d0eefc62e2a51f5a6f7cf46ebbcad2faf",
+      "bytes": 41791,
+      "sha256": "d0f19051b0a1527df4cfabc20a3f7ecaccf0eb54e0d9d98f11eff9a74c1328b4",
+      "exposure": "author claims/inventory; baseline includes accepted old owned-output patch"
+    },
+    {
+      "path": "tests/shell/getopts/runtime/evidence-v1/REPORT.md",
+      "commit": "cb94b17d0eefc62e2a51f5a6f7cf46ebbcad2faf",
+      "bytes": 8456,
+      "sha256": "208534f3953c4024a69d1b32557a2a64551092d059a05d6a2b68f96eb31c2af6",
+      "exposure": "author claims/inventory; baseline includes accepted old owned-output patch"
+    },
+    {
+      "path": "tests/shell/getopts/runtime/evidence-v1/PRESERVATION.json",
+      "commit": "cb94b17d0eefc62e2a51f5a6f7cf46ebbcad2faf",
+      "bytes": 43580,
+      "sha256": "a7e3a333d6a09a056d0b4c51551b5975cf7f17c71fa4dd8dc7e6716e54201617",
+      "exposure": "author claims/inventory; baseline includes accepted old owned-output patch"
+    },
+    {
+      "path": "tests/shell/getopts/runtime/evidence-v1/MANIFEST.json",
+      "commit": "cb94b17d0eefc62e2a51f5a6f7cf46ebbcad2faf",
+      "bytes": 75112,
+      "sha256": "044f10e61242249afead490b4e9322b31928340df344d5ed1f72081314c39c2b",
+      "exposure": "author claims/inventory; baseline includes accepted old owned-output patch"
+    },
+    {
+      "path": "tests/shell/getopts-independent-20260827/review-manifest.json",
+      "commit": "4f84fdfd41134710cdb68fab3f5970cb14e54da3",
+      "bytes": 31053,
+      "sha256": "8eb422447a70167cda4b32c350c91ee8fceb0843dce78ebae898baac596eea59",
+      "exposure": "seal metadata only"
+    },
+    {
+      "path": "src/contracts/command.md",
+      "commit": "eba049535d154f4e028f57ffd8efd7622b2239ca",
+      "bytes": 8066,
+      "sha256": "8a5426b1e7a30a03dc62f74b28c6eb7bf9b008b78cb7b521eb7de0bc5c59a3f8",
+      "exposure": "public contract/API shape; includes incidental unchanged implementation fragments"
+    },
+    {
+      "path": "src/contracts/command.ts",
+      "commit": "eba049535d154f4e028f57ffd8efd7622b2239ca",
+      "bytes": 2923,
+      "sha256": "9c2f8ecf50def7250b01152a31a45c449109c3ae4d30878252cffe985c6e9df8",
+      "exposure": "public contract/API shape; includes incidental unchanged implementation fragments"
+    },
+    {
+      "path": "src/contracts/io.ts",
+      "commit": "eba049535d154f4e028f57ffd8efd7622b2239ca",
+      "bytes": 7663,
+      "sha256": "ff792b401508a2ef768aa4f9dd9794e653e1e14f2163e57d137e9cb2b7427809",
+      "exposure": "public contract/API shape; includes incidental unchanged implementation fragments"
+    },
+    {
+      "path": "src/contracts/plugin.ts",
+      "commit": "eba049535d154f4e028f57ffd8efd7622b2239ca",
+      "bytes": 2359,
+      "sha256": "b45e85e0d89f88308caf0b68f0b14f78341c4bba246d02e81103646f5a4c54ae",
+      "exposure": "public contract/API shape; includes incidental unchanged implementation fragments"
+    },
+    {
+      "path": "src/shell/types.ts",
+      "commit": "eba049535d154f4e028f57ffd8efd7622b2239ca",
+      "bytes": 2178,
+      "sha256": "fc4133f1fb41283b0586aa7597c766d393d4f91067b613f4777e5adbef230a6d",
+      "exposure": "public contract/API shape; includes incidental unchanged implementation fragments"
+    }
+  ],
+  "instructionsRead": [
+    "/Users/kjopek/Workspace/AGENTS.md",
+    "/Users/kjopek/Workspace/safe-bash/AGENTS.md",
+    "authoritative current user assignment"
+  ],
+  "ownership": {
+    "directoryAbsentInitially": true,
+    "directoryAbsentImmediatelyBeforeFirstApplyPatch": true,
+    "noApplicableNestedAgentsFound": true,
+    "onlyNewReviewFiles": true
+  },
+  "metadataFindings": {
+    "candidateParentDiff": "M\tsrc/shell/runtime.ts\nM\tsrc/shell/shell.ts\nA\ttests/shell/getopts/runtime/README.md\nA\ttests/shell/getopts/runtime/helpers.ts\nA\ttests/shell/getopts/runtime/host.test.ts\nA\ttests/shell/getopts/runtime/ordering.test.ts\nA\ttests/shell/getopts/runtime/state.test.ts",
+    "wholeProductionDeltaFromEba": "M\tsrc/commands/expr/evaluate.ts\nM\tsrc/commands/expr/index.ts\nM\tsrc/commands/expr/syntax.ts\nM\tsrc/commands/html-to-markdown/README.md\nM\tsrc/commands/html-to-markdown/entities.ts\nM\tsrc/commands/html-to-markdown/input.ts\nM\tsrc/commands/html-to-markdown/parser.ts\nM\tsrc/commands/html-to-markdown/render.ts\nA\tsrc/commands/html-to-markdown/text.ts\nM\tsrc/shell/runtime.ts\nM\tsrc/shell/shell.ts",
+    "sourceBlobBindings": {
+      "ownedOutput": "100644 blob bb502b076063c0fb95766911648dba788000f8b4\tsrc/shell/getopts.ts\n100644 blob 038f2019c32fab0bf1712f8b7b8e1671e60a9a12\tsrc/shell/runtime.ts\n100644 blob 6c9392e357e7f9da3ccd6ddff1c001a8d7a17b8f\tsrc/shell/shell.ts",
+      "candidate": "100644 blob bb502b076063c0fb95766911648dba788000f8b4\tsrc/shell/getopts.ts\n100644 blob b826b1f3d8cb8a0f3703c949bda5003cce06f326\tsrc/shell/runtime.ts\n100644 blob 013889cd158e77267341867f1e360d7b5eb22e94\tsrc/shell/shell.ts",
+      "author": "100644 blob bb502b076063c0fb95766911648dba788000f8b4\tsrc/shell/getopts.ts\n100644 blob b826b1f3d8cb8a0f3703c949bda5003cce06f326\tsrc/shell/runtime.ts\n100644 blob 013889cd158e77267341867f1e360d7b5eb22e94\tsrc/shell/shell.ts"
+    },
+    "protectedInventory": {
+      "document": "tests/shell/getopts/runtime/baseline.json",
+      "count": 243,
+      "candidateHashOnlyMatched": 243,
+      "authorHashOnlyMatched": 243,
+      "bodyInspection": false,
+      "wrongTemporalComparatorEba": {
+        "missingLaterEvidencePaths": 199,
+        "mismatches": [
+          "AGENTS.md"
+        ],
+        "qualification": "Exploratory comparison against earlier commit, not applicable preservation failure; actual candidate and author matched all243."
+      }
+    },
+    "declaredBaselineBindings": {
+      "src/shell/runtime.ts": "3e919d8885b86e73c3c245a6d2fcba857fab157c74d2bcde0b6d951c3683982c",
+      "src/shell/shell.ts": "136bbf577a0b12c4998e942cc07c1ace52c1db328d093919a10b885b7041cb7a",
+      "src/shell/getopts.ts": "bf0bcfd9f370861504e9561c54cfd12c8706663ee7dc3ca8a28b70f66290e9ee"
+    },
+    "sourceBodyProof": "Deferred until root resumes after freeze; blob IDs and documentary hashes only for runtime/shell.",
+    "candidateExecutions": 0,
+    "nativeExecutions": 0,
+    "authorTestsInspected": 0,
+    "protectedBlobs": "Read only into SHA256 digest, never displayed or imported; includes original frozen driver/fixture bytes.",
+    "scopeWarning": "Own candidate production delta two paths; full eba-to-candidate production tree additionally contains prior expr/html-to-markdown changes."
+  },
+  "exposure": {
+    "candidateRuntimeOrShellBodies": false,
+    "candidateImplementationDiff": false,
+    "publicContractFragments": true,
+    "oldOwnedOutputPatchInBaselineDocument": true,
+    "authorSourceLocationProse": true,
+    "incidentalFrozenNativeScriptStrings": [
+      "N05 execution.args",
+      "N13 execution.args"
+    ],
+    "captureBodies": "Only N05/N13 full records printed; remaining captured results parsed as data but not intentionally displayed.",
+    "noBlindnessClaim": true
+  },
+  "indexSnapshot": {
+    "at": "2026-08-27T21:17:58.983Z",
+    "stageEntriesSHA256": "17d779c82378b1c27a44bba0d6e4eab585d4ec8781a677a51dacf099eb4bb36c",
+    "stagedDiff": "",
+    "status": "?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/\n?? tests/commands/expr-stress/encounter-shared-outside-review-v2-20260827/\n?? tests/commands/html-to-markdown-independent-20260827/final-review-9ae34a06/.gitignore\n?? tests/commands/html-to-markdown-independent-20260827/final-review-9ae34a06/EXPECTATION-v2.json\n?? tests/commands/html-to-markdown-independent-20260827/final-review-9ae34a06/NEIGHBORS.json\n?? tests/commands/html-to-markdown-independent-20260827/final-review-9ae34a06/SETUP-FAILURE-01.md\n?? tests/commands/html-to-markdown-independent-20260827/final-review-9ae34a06/adjacent-probe.mjs\n?? tests/commands/html-to-markdown-independent-20260827/final-review-9ae34a06/common.mjs\n?? tests/commands/html-to-markdown-independent-20260827/final-review-9ae34a06/complete-setup.mjs\n?? tests/commands/html-to-markdown-independent-20260827/final-review-9ae34a06/final-audit.mjs\n?? tests/commands/html-to-markdown-independent-20260827/final-review-9ae34a06/followup.mjs\n?? tests/commands/html-to-markdown-independent-20260827/final-review-9ae34a06/holdouts.mjs\n?? tests/commands/html-to-markdown-independent-20260827/final-review-9ae34a06/legacy-ast.mjs\n?? tests/commands/html-to-markdown-independent-20260827/final-review-9ae34a06/normalization-probe.mjs\n?? tests/commands/html-to-markdown-independent-20260827/final-review-9ae34a06/probe.mjs\n?? tests/commands/html-to-markdown-independent-20260827/final-review-9ae34a06/run.mjs\n?? tests/commands/html-to-markdown-independent-20260827/final-review-9ae34a06/seal.mjs\n?? tests/commands/html-to-markdown-independent-20260827/final-review-9ae34a06/setup.mjs\n?? tests/commands/search-stress/.native-1m4O1e/\n?? tests/integration/du-type-workflow-20260827/\n?? tests/shell/getopts-independent-20260827/stage2/review-618d8967/"
+  },
+  "reproducibility": {
+    "candidateCurrentlyReachable": true,
+    "rawCommitSealed": true,
+    "bodyHashUses": "SHA256 for integrity; exact commit ID uses Git commit framing/SHA1.",
+    "archiveOrBundleCreated": false,
+    "futureCloneProof": "Pending resume; use reachable exact commit or seal sufficient raw tree/blob inputs/self-contained bundle without user branches."
+  }
+}

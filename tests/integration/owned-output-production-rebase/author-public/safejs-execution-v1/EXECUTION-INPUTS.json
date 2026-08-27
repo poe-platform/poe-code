@@ -1,0 +1,58 @@
+{
+  "schema": 1,
+  "qualification": "ROOT_RELEASED_AUTHOR_ACTUAL_CURRENT_SAFEJS_INPUTS",
+  "candidateCommit": "eba049535d154f4e028f57ffd8efd7622b2239ca",
+  "candidateTree": "62d75ef09e89d4d3b6afc032c518d2846dcd03b7",
+  "publicFreezeCommit": "9513946ced0a3b9076770a3e4dfbc18bcd3c1f13",
+  "authorPreparationCommit": "e748f20fe9d0ea1d29aefe70939d3ee76951ef68",
+  "preflight": {
+    "status": "PASS",
+    "actualLoaderNegativeControls": 2,
+    "unchangedSemanticRows": 25,
+    "privateQueries": 0,
+    "guestRuns": 0,
+    "output": "/private/tmp/safe-bash-author-safejs-loader-preflight-MR3NlJ"
+  },
+  "files": [
+    {
+      "path": "loader.mjs",
+      "bytes": 3626,
+      "sha256": "5e5d2a09a29eebba1e5fe4033a9b888cbd0a352736c43bdc80123b956841f6e7"
+    },
+    {
+      "path": "ORIGINS.json",
+      "bytes": 2128,
+      "sha256": "71329ff949690d4221988d4984e5a304cc9c306a8389391648f21e9cdd558411"
+    },
+    {
+      "path": "preflight.mjs",
+      "bytes": 4413,
+      "sha256": "291e6dff30711a82d359c8d11a7e7fd45d028fdd3f44eef8d938781be18570c1"
+    },
+    {
+      "path": "private-guard.mjs",
+      "bytes": 3118,
+      "sha256": "9fa263adb1839d4c6dc6d2b51d1d19d22abc029ee833a96310ced8d2e525e17a"
+    },
+    {
+      "path": "PUBLIC-BINDING.json",
+      "bytes": 206381,
+      "sha256": "8ff4794598e47075af2e3dd8399291fca8e9ff3627a6017122cd3c9a2a335a77"
+    },
+    {
+      "path": "README.md",
+      "bytes": 3591,
+      "sha256": "8acf9948a7d61858be4e2f4dce1cbb18e714ed389afea906b43ae63397e8c9a1"
+    },
+    {
+      "path": "supervisor.mjs",
+      "bytes": 17416,
+      "sha256": "f8a3a41469235cb491b3ac8eebc74ba1b640c7dfeca3f2f730831745fa61101a"
+    },
+    {
+      "path": "surface-assessment.mjs",
+      "bytes": 4615,
+      "sha256": "38ce9ccf99fe846aa8d87039075bdc8c9079883015e681de3eee7eab12cf4946"
+    }
+  ]
+}

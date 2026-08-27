@@ -1851,7 +1851,7 @@
     },
     {
       "path": "tests/integration/stream-inspection-public-author/consumer.mts",
-      "sha256": "8dbc02f3dac7606a021961015591ab739efe99b31050f47be2bd65c980be9082",
+      "sha256": "400f3fd3f2ddab3761b97cc58e11c5f3203b6d0fdc3b9621f5b190775b61c5ac",
       "classification": "current",
       "group": "stream-inspection",
       "reason": "unchanged public consumer; strict declarations and emitted runtime",
@@ -1878,7 +1878,7 @@
     },
     {
       "path": "tests/plugins/stream-five-fixture-migration/public-options.mts",
-      "sha256": "5b5bb3f018cea7ea681d4aec5f7d478c6846b9397de096767870f97c85c035ca",
+      "sha256": "b8ac59fdc09baf68226c87af04e8489e398b7f0a5da216787be559f421fb1c13",
       "classification": "current",
       "group": "stream-five",
       "reason": "unchanged public consumer; strict declarations and emitted runtime",

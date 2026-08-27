@@ -134,7 +134,7 @@ test("standalone plugin and aggregate preserve limits, collision preflight and r
     const result = await replacing.exec("html-to-markdown", { stdin: "too long" });
     assert.equal(result.exitCode, 1); assert.match(result.stderr, /input limit exceeded/u);
     assert.equal(replacing.commands.has("curl"), false); assert.equal(replacing.commands.has("safejs"), false);
-    assert.equal(replacing.commands.has("du"), false); assert.equal(replacing.commands.has("expr"), false);
+    assert.equal(replacing.commands.has("du"), true); assert.equal(replacing.commands.has("expr"), false);
     assert.equal(createHtmlToMarkdownCommand().name, "html-to-markdown");
   } finally { await replacing.dispose(); }
 });

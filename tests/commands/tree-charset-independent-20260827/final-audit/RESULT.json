@@ -1,0 +1,98 @@
+{
+  "schema": 1,
+  "scope": "final packaging reconciliation and focused evidence cross-audit; not a whole-gate rescore or full native-parity claim",
+  "candidate": {
+    "commit": "f1a90436c45208ca248e058a039893233c608daa",
+    "tree": "c5cdfff66e64bb4d68926c4f93a7620eb89e7dcd",
+    "mutableHeadUsed": false,
+    "defaultCommandCount": 70
+  },
+  "evidence": {
+    "primaryAuthor": "0d8623634995549d8e717d310c28db83a02a9532",
+    "mainIndependent": "92d1dacd041d90f58fee81922815bbd606cceb8e",
+    "validationPredecessor": "71cce3b10e7d1cdb6a122dc90c917d04555ac860",
+    "nativeFreeze": "55bd112804564605e397d3ee9948226d89efd457",
+    "nativeReplay": "259d983a16f3f419fab3a33ec539ceb4a72ebd2a",
+    "mutationControls": {
+      "commit": "2748e2abbc2dc838e02b1d75ee7d967f0749e8ad",
+      "tree": "2e0838b8e92ff88583e4e9651fe5a4549742ada6"
+    },
+    "reconciliation": {
+      "commit": "b76613226767d0e79995b643ebfa278b6e932780",
+      "tree": "15e0c80e732a0fa2af356b111cfe4c16bfc94ea6",
+      "attempt": "attempt-001",
+      "resultSha256": "93e7667e367060142557fc526093481f17f29698436d398c37b741f41a0f5830",
+      "manifestSha256": "902b7cebb186e80c85cd297c5aafaf94b5edff2ef10c0cb1086624c679f2c29a"
+    }
+  },
+  "reconciliation": {
+    "pass": true,
+    "selectedGitInputs": 234,
+    "pinnedToolFiles": 314,
+    "toolSourceMethod": "authenticated-live-copy",
+    "isolatedNpmCiFallbackExecuted": false,
+    "builtDistFiles": 760,
+    "predecessorPackageFiles": 761,
+    "reconciledPackageFiles": 762,
+    "commonUnchangedFiles": 761,
+    "onlyAddedPath": "README.md",
+    "removedPaths": 0,
+    "changedCommonPaths": 0,
+    "loadedModuleHashes": 176,
+    "positiveChecks": 2,
+    "expectedControls": 8,
+    "childrenClosedAndAbsent": 26,
+    "tarballSha256": "2713175a12912952999c6e0e8d81cef2638692b573081bc281ba0e785d099bab",
+    "tarballMatchesNativeReplaySha256": true,
+    "tarballMatchesMainSha512Integrity": true,
+    "productBugFound": false
+  },
+  "mutationCrossAudit": {
+    "baselineAssertionsPassed": 11,
+    "mutants": 8,
+    "mappedTargetAssertionsKilled": 8,
+    "mappedFailureKind": "AssertionError/ERR_ASSERTION",
+    "syntaxOrHashGuardKills": 0,
+    "realDeniedLoadControls": 2,
+    "lateSinkCompletionsDrained": 2,
+    "commandsClosedAndAbsent": 51,
+    "processGroupsAbsentAfterClose": 51,
+    "timeouts": 0,
+    "outputOverflows": 0,
+    "preAndPostMutationHashesRecorded": true,
+    "specificMutatedModuleLoadTimeHashesRecorded": false
+  },
+  "gapVerdicts": {
+    "actualMutation": "partial: 8/8 actual semantic kills and closure proven; specific mutated-module load-time hashes remain unrecorded",
+    "strictReproductionAndDeclarationControl": "closed for scoped evidence",
+    "fullAuthenticationAndSourceFallback": "closed for scoped 762-file/root-tree probe evidence",
+    "boundedSubprocesses": "closed for reconciliation and mutation runs"
+  },
+  "chronology": {
+    "independentPreSourceCommitFreezeExists": false,
+    "initialPostSourceFreeze": "a0445f4d5cff1c8451957ce684273e1225279588",
+    "supplementalPostSourceFreeze": "633fc0c7d582b9f997ca42be75461b78e03dccb9",
+    "unauthorizedScopedAgentsAddedThenRemoved": "d12de6eca8fff2a7389746ee67e1f99185b968f7"
+  },
+  "retained": {
+    "oldStrictRecipeUnchangedAndFailing": true,
+    "nativeDifferences": [
+      "count-mixed-roots file-operand annotation",
+      "names-utf8 Darwin collation and filename escaping",
+      "names-utf8-ascii-branches Darwin collation and filename escaping"
+    ]
+  },
+  "claimsExcluded": [
+    "no whole-gate rescore",
+    "no traversal or count expansion",
+    "no full native parity",
+    "no superiority proof",
+    "no mutable HEAD/current 73+ candidate use",
+    "no independent pre-source-commit freeze",
+    "no claim that all exported workflows were module-load authenticated"
+  ],
+  "unresolvedGaps": [
+    "Mutation commit 2748e2abbc2dc838e02b1d75ee7d967f0749e8ad does not record a load-time hash for each specific mutated target module."
+  ],
+  "pass": true
+}

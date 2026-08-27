@@ -1,0 +1,197 @@
+{
+  "classification": "pre-product-replay-freeze",
+  "audit": {
+    "stage": "before-fixture-freeze-no-product-imports",
+    "at": "2026-08-27T16:50:38.936Z",
+    "candidate": "0123c83d3aae72a15621acbb29a165b97b2c6ab6",
+    "archiveSha256": "64fac38e43ce89009e03d24b8b3dffb8425dd98a313bea4d4133d6db8030cccf",
+    "packageSha256": "62228b67ca6793544f0f4374ca00fbbb6e627f514f184d5880fd7723ccf179c6",
+    "originalReceiptSha256": "d22029ede6d17e91b1968c67c12a96d071a49605afacd81b8a0ce558359336d4",
+    "completeSource": {
+      "entries": 30613,
+      "files": 28411,
+      "symlinks": 15,
+      "sha256": "78671eef333edaacef7f1383468c57d92bac6ad124df5df093291bbe1e0ec100"
+    },
+    "gitEntries": 27687,
+    "gitMembershipSha256": "e5056f529fe441d92b58eec680b69e5afae8919145a149a058e943963ad0d878",
+    "allGitBlobsVerified": true,
+    "additionDetectingInventories": true,
+    "dependencies": [
+      {
+        "name": "typescript",
+        "version": "5.9.3",
+        "integrity": "sha512-jl1vZzPDinLr9eUt3J/t7V6FgNEw9QjvBPdysz9KfQDD41fQrC2Y4vKQdiaUpFT4bXlb1RHhLpp8wtm6M5TgSw==",
+        "cacheSha256": "10e108c9cf7d5f2879053dff18515fb405abf2ccef63eaaf017d9c571687a1d3",
+        "installed": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript",
+        "inventory": {
+          "entries": 147,
+          "files": 132,
+          "symlinks": 0,
+          "sha256": "a64c9baacf65498edea5cfa810d776b47414c8de763d02945afa969d7a288ca6"
+        },
+        "readonlyReuse": true,
+        "installedBytesEqualLockedTarball": true
+      },
+      {
+        "name": "@types/node",
+        "version": "22.20.1",
+        "integrity": "sha512-EANqOCF9QFyra+4pfxUcX9STKJpCLjMbObVzljIJomAWSnuSIEAvyzEU53GaajbXJEgdh0iEcPL+DGvpUd4k1Q==",
+        "cacheSha256": "6f99aae8d4a2bdecdce5a41a922b10943316edd4e6e6d4350f442d6c1688485f",
+        "installed": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node",
+        "inventory": {
+          "entries": 83,
+          "files": 74,
+          "symlinks": 0,
+          "sha256": "108746ee77b5c497fafb78dfd35b270d877d5933c7d1bb7689dafb11697321b6"
+        },
+        "readonlyReuse": true,
+        "installedBytesEqualLockedTarball": true
+      },
+      {
+        "name": "undici-types",
+        "version": "6.21.0",
+        "integrity": "sha512-iwDZqg0QAGrg9Rav5H4n0M64c3mkR59cJ6wQp+7C4nI0gsmExaedaYLNO44eT4AtBBwjbTiGPMlt2Md0T9H9JQ==",
+        "cacheSha256": "cfa1a9a5e18988850e548f4f6b629c58da32dc32bebb116e58ea301e516fd16d",
+        "installed": "/Users/kjopek/Workspace/safe-bash/node_modules/undici-types",
+        "inventory": {
+          "entries": 41,
+          "files": 41,
+          "symlinks": 0,
+          "sha256": "21267fdb8331f5398078412ac68501518d0c3b9e1a1996efbb328aab8546f8e9"
+        },
+        "readonlyReuse": true,
+        "installedBytesEqualLockedTarball": true
+      }
+    ],
+    "originalSeals": [
+      {
+        "path": "SHA256SUMS",
+        "sha256": "85589c8d87b556b77a174260d76250cba23d5516ecb7f6c4bf1f8b8e1967e61e",
+        "payloads": 11
+      },
+      {
+        "path": "verification/gnu/SHA256SUMS",
+        "sha256": "8663488dc2345294b82daa1ed48d72c262eff178da4b29d5dfaaed566370559b",
+        "payloads": 3
+      },
+      {
+        "path": "verification/SHA256SUMS",
+        "sha256": "ec73580edebc95d1ebc8a10cd7f8ed22ac9c879c483917f6cd51fe683a01c4d2",
+        "payloads": 45
+      },
+      {
+        "path": "verification/coverage-supplement/SHA256SUMS",
+        "sha256": "f66d66d1511cdd0f93b745c7490cb81d6a093f4be472c476f6ce2699253a5555",
+        "payloads": 15
+      }
+    ],
+    "finalReplaySeal": "9758c71ee82e5a6a9703c71a8ba25f6d7622e2ec7f2f1a9e8dd76558aaf9e613",
+    "consumers": [
+      {
+        "consumer": "/tmp/safe-bash-alias-final-0123-20260827T1634-02/physically-moved-offline-consumer",
+        "package": {
+          "entries": 776,
+          "files": 738,
+          "symlinks": 0,
+          "sha256": "65ed138a4b9be0310000f4bb224bae49136bf0b21fcdf9b5fe4a809ca8458ac1"
+        },
+        "bindings": [
+          {
+            "path": "dist/index.js",
+            "sha256": "77b771a6066aa32f82b903f7a80c578132388d6d9cec9fbde15485915859df5d",
+            "actualResolvedUrl": "file:///private/tmp/safe-bash-alias-final-0123-20260827T1634-02/physically-moved-offline-consumer/node_modules/virtual-bash/dist/index.js"
+          },
+          {
+            "path": "dist/commands/grep-aliases/index.js",
+            "sha256": "7ea22cf33cc164d19018bcce4c78e4e519bfc593336a7f5d22459e936e5e94ee",
+            "actualResolvedUrl": "file:///private/tmp/safe-bash-alias-final-0123-20260827T1634-02/physically-moved-offline-consumer/node_modules/virtual-bash/dist/commands/grep-aliases/index.js"
+          },
+          {
+            "path": "dist/commands/grep.js",
+            "sha256": "66b0887afb752a686484da1c7d6d20e80894fe15e9a515dcbd36c8d6640ffafd",
+            "actualResolvedUrl": "file:///private/tmp/safe-bash-alias-final-0123-20260827T1634-02/physically-moved-offline-consumer/node_modules/virtual-bash/dist/commands/grep.js"
+          },
+          {
+            "path": "dist/commands/regex-execution/client.js",
+            "sha256": "92416db354410d84172a13d53a2fd757d61d9979745a38bd0c297a06309e17f5",
+            "actualResolvedUrl": "file:///private/tmp/safe-bash-alias-final-0123-20260827T1634-02/physically-moved-offline-consumer/node_modules/virtual-bash/dist/commands/regex-execution/client.js"
+          },
+          {
+            "path": "dist/commands/regex-execution/protocol.js",
+            "sha256": "05ead3047ea08e9ef673d0ab008e23cdb81af34e33cdd33f41a47fe6d9fbbc65",
+            "actualResolvedUrl": "file:///private/tmp/safe-bash-alias-final-0123-20260827T1634-02/physically-moved-offline-consumer/node_modules/virtual-bash/dist/commands/regex-execution/protocol.js"
+          },
+          {
+            "path": "dist/commands/regex-execution/matching.js",
+            "sha256": "2f97a68fce0ab504676afe31b4c4fd5eea1edde87ffb28bea9f55c8422693791",
+            "actualResolvedUrl": "file:///private/tmp/safe-bash-alias-final-0123-20260827T1634-02/physically-moved-offline-consumer/node_modules/virtual-bash/dist/commands/regex-execution/matching.js"
+          },
+          {
+            "path": "dist/commands/regex-execution/worker.js",
+            "sha256": "bb568433f1194d957dd14d1eb8229e9733bd13cd42db7ca5f2ac77b5f739b8f7",
+            "actualResolvedUrl": "file:///private/tmp/safe-bash-alias-final-0123-20260827T1634-02/physically-moved-offline-consumer/node_modules/virtual-bash/dist/commands/regex-execution/worker.js"
+          },
+          {
+            "path": "dist/shell/input.js",
+            "sha256": "f8b984b6fc338ff3d1ca60e10283ab100d8e62a697f4b7f8e691819c28ea7c4a",
+            "actualResolvedUrl": "file:///private/tmp/safe-bash-alias-final-0123-20260827T1634-02/physically-moved-offline-consumer/node_modules/virtual-bash/dist/shell/input.js"
+          },
+          {
+            "path": "package.json",
+            "sha256": "2127bbfed020aeb7873462ae65224e6ee73069425c878aa2ceee9816b2191245",
+            "actualResolvedUrl": "file:///private/tmp/safe-bash-alias-final-0123-20260827T1634-02/physically-moved-offline-consumer/node_modules/virtual-bash/package.json"
+          }
+        ]
+      }
+    ],
+    "liveContextOnly": "?? src/commands/expr/\n?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/\n?? tests/commands/expr-stress/\n?? tests/commands/expr/\n?? tests/commands/grep-aliases-stress/settlement-v2/\n?? tests/commands/search-stress/.native-1m4O1e/\n?? tests/fs/real/allocation-independent/\n?? tests/integration/safejs-owned-output-prototype-review/validity-independent/replay-v2/execution/\n",
+    "liveInputsUsed": false
+  },
+  "fixture": {
+    "originalSha256": "d454002f97fa37b6546bad238feec5472774646a6bf0d766fea32c2c0c32977b",
+    "patchSha256": "9af570eb8126652e26ddd7ed1d3ac88dcad646cb822e0eca12fc89c0538aa36a",
+    "derivedSha256": "41fb87e021e9d851905e889e26beaad4a779336b787e665b21c76bbace5f8850",
+    "unchangedRemainderSha256": "f034cbd3570f36d1dc968123d5c3f8bafc72cab73687bc31ed67b85de7e9e9d5",
+    "reversibleByteExactOutsideTwoHunks": true,
+    "spans": [
+      {
+        "id": "S07",
+        "label": "borrowed-external-Shell-stdin-return-rejection-not-waived",
+        "start": 27760,
+        "originalBytes": 343,
+        "derivedBytes": 727,
+        "beforeSha256": "c38e9aa3afa7ffd8d3d4dc93fae39988d606582b92059a64bd25fb0d6e365b98",
+        "afterSha256": "57a8f1b9dd4e2fdb8e4d36a2c254f0ff7a360a643772ecf2751976062b7679f6"
+      },
+      {
+        "id": "ROOT-CONTROL",
+        "label": "public-registered-grep-reproduces-external-return-failure",
+        "start": 42699,
+        "originalBytes": 409,
+        "derivedBytes": 775,
+        "beforeSha256": "37c6b3a65db0e7c256fa2d44ce97ee5c348298dde0c334176223b52e1b0c2c2d",
+        "afterSha256": "ef8cb66ee6f517b943b517393bd2c804e502b9cda27487077aa74d5b992fe64b"
+      }
+    ]
+  },
+  "preparationSources": [
+    {
+      "path": "BOUNDARY.md",
+      "sha256": "ba0ef3b99ca0d9fcb31155263516d0198f9f6e2191c3042748b5e927a1b65ac5"
+    },
+    {
+      "path": "fixture.patch",
+      "sha256": "9af570eb8126652e26ddd7ed1d3ac88dcad646cb822e0eca12fc89c0538aa36a"
+    },
+    {
+      "path": "fixture.mjs",
+      "sha256": "19756febc3441f7a039c1ebd5d48a16f8355d2362c9116c2ff8e189727533dae"
+    },
+    {
+      "path": "audit.mjs",
+      "sha256": "3ec751c06b183740b485fe5f67bb5b71a8cd0f5c11a848bc26b7f29fb73f9363"
+    }
+  ],
+  "candidateExecutions": 0
+}

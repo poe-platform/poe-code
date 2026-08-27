@@ -1,0 +1,118 @@
+{
+  "route": "program",
+  "observation": {
+    "name": "jq program Buffer",
+    "status": 3,
+    "stdout": "",
+    "stderr": "6a713a20756e657870656374656420636861726163746572206174206f666673657420300a",
+    "files": {
+      "/input": "7b2278223a377d0a",
+      "/program": "2e78"
+    },
+    "sources": [
+      {
+        "yielded": 3,
+        "resumed": 3,
+        "finalized": true,
+        "unchangedChecks": 3
+      }
+    ]
+  },
+  "expected": {
+    "status": 0,
+    "stderr": "",
+    "stdout": "370a",
+    "files": {
+      "/input": "7b2278223a377d0a",
+      "/program": "2e78"
+    }
+  },
+  "retention": "src/commands/structured/jq.ts:81 chunks.push(chunk.slice()) retains Buffer aliases until source completion",
+  "candidate": "656ee2b04aa91b1cc40da865173be1b472a2c4ce",
+  "contract": "ByteSource/readStream next-read reuse; no transfer stated. Generator overwrites only on resumed next or finalizer. Transport copies uploads and never mutates request buffers.",
+  "repro": "jq -f /program /input",
+  "source": "frozen public.mjs + vectors.mjs; Buffer offset 7, empty views, finalizer zero-fill; paired Uint8Array control",
+  "action": "NO product edits. Stop expansion; finish only precommitted 24-row matrix."
+}
+
+{
+  "route": "replay",
+  "observation": {
+    "name": "curl replay Buffer",
+    "status": 0,
+    "stdout": "",
+    "stderr": "",
+    "calls": [
+      {
+        "url": "https://fixture.invalid/start",
+        "method": "POST",
+        "body": "5326a0ff00c3280a"
+      },
+      {
+        "url": "https://fixture.invalid/next",
+        "method": "POST",
+        "body": "5326000000000000"
+      }
+    ],
+    "authorizations": [
+      {
+        "url": "https://fixture.invalid/start",
+        "method": "POST",
+        "attempt": 0
+      },
+      {
+        "url": "https://fixture.invalid/next",
+        "method": "POST",
+        "attempt": 0,
+        "redirectFrom": "https://fixture.invalid/start"
+      }
+    ],
+    "disposals": [
+      1,
+      1
+    ],
+    "files": {
+      "/upload": "a0ff00c3280a"
+    },
+    "sources": [
+      {
+        "yielded": 4,
+        "resumed": 4,
+        "finalized": true,
+        "unchangedChecks": 4
+      }
+    ],
+    "response": {
+      "yielded": 0,
+      "resumed": 0,
+      "finalized": false,
+      "unchangedChecks": 0
+    }
+  },
+  "expected": {
+    "status": 0,
+    "stderr": "",
+    "stdout": "",
+    "calls": [
+      {
+        "url": "https://fixture.invalid/start",
+        "method": "POST",
+        "body": "5326a0ff00c3280a"
+      },
+      {
+        "url": "https://fixture.invalid/next",
+        "method": "POST",
+        "body": "5326a0ff00c3280a"
+      }
+    ],
+    "files": {
+      "/upload": "a0ff00c3280a"
+    }
+  },
+  "retention": "src/commands/network/body.ts:142 cache.push(chunk.slice()) retains borrowed VFS Buffer while hasStdin; line 124 replays aliases after finalizer",
+  "candidate": "656ee2b04aa91b1cc40da865173be1b472a2c4ce",
+  "contract": "ByteSource/readStream next-read reuse; no transfer stated. Generator overwrites only on resumed next or finalizer. Transport copies uploads and never mutates request buffers.",
+  "repro": "curl -sS -L --data-binary @- --data-binary @/upload https://fixture.invalid/start",
+  "source": "frozen public.mjs + vectors.mjs; Buffer offset 7, empty views, finalizer zero-fill; paired Uint8Array control",
+  "action": "NO product edits. Stop expansion; finish only precommitted 24-row matrix."
+}

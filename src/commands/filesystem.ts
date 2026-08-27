@@ -74,12 +74,18 @@ async function copy(
     }
   } else if (preserveLink) {
     needCapability(context, "symlink"); needCapability(context, "readlink");
+    const linkTarget = await context.fs.readlink!(source, { signal: context.signal });
     const existing = await maybeStat(context, target, false);
     if (existing) {
       if (existing.type === "directory") throw new FsError("EISDIR", { path: target });
-      await context.fs.rm(target, { signal: context.signal });
+      const sourceEntry = await context.fs.lstat(source, { signal: context.signal });
+      const identity = compareCopyIdentity(sourceEntry, existing);
+      if (identity === "same") throw new FsError("EINVAL", { path: source, dest: target, message: "source and destination are the same file" });
+      if (identity === "unknown") throw new FsError("ENOTSUP", { path: source, dest: target, message: "symbolic link copy unlink lacks authoritative distinctness" });
+      context.signal.throwIfAborted();
+      await context.fs.rm(target, { recursive: false, signal: context.signal });
     }
-    await context.fs.symlink!(await context.fs.readlink!(source, { signal: context.signal }), target, { signal: context.signal });
+    await context.fs.symlink!(linkTarget, target, { signal: context.signal });
   } else {
     if (targetStat?.type === "directory") throw new FsError("EISDIR", { path: target });
     try { await context.fs.copyFile(source, target, { signal: context.signal }); }
@@ -172,7 +178,10 @@ export function filesystemCommands(): CommandDefinition[] {
         catch (error) {
           context.signal.throwIfAborted();
           if (codeOf(error) !== "EXDEV") throw error;
-          if (!await moveAcrossDevices(context, source, target, parsed.flags.has("n"), budget)) return;
+          if (!await moveAcrossDevices(context, source, target, parsed.flags.has("n"), budget)) {
+            if (!parsed.flags.has("n")) throw new FsError("EINVAL", { path: source, dest: target, message: "source and destination are the same file" });
+            return;
+          }
         }
         if (parsed.flags.has("v")) await output(context, `'${operand}' -> '${target}'\n`);
       });

@@ -1,0 +1,347 @@
+{
+  "generatedAt": "2026-08-27T01:14:17.173Z",
+  "node": "v22.22.2",
+  "platform": "darwin",
+  "scope": "Distinct-leaf core consumer review; not remote-backend closure or malicious trusted-provider authentication",
+  "baseline": "745eaa62eebbe07b7fd30dccad4a73a1669f7124",
+  "archiveSha256": "48b836908d7d9b08381012a22919a9f8c413bc19dd69c134853cfb280285c0d2",
+  "retainedTemporaryArchive": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-core-review-AW76E9/source.tar",
+  "baselineHashes": {
+    "src/commands/filesystem.ts": "2d907d283c0562d965abf7867cfe4839c439f560f80e9feece54706b3ff602c0",
+    "src/commands/copy-identity.ts": "f1a03403fadc0138377bd3b215dafecf4b28a187549da8e80764a3fd08238dfe",
+    "src/commands/move.ts": "31e1fe6a2c0fc9efb9efa44b636d9478d4cab273de4c4e809d4f572b28084042",
+    "src/contracts/filesystem.ts": "7c72ddef5660c9a1bd62910d3155a4278ce8d7607f811b32d27cf21149be4009",
+    "src/contracts/filesystem.md": "0f930c0413b3c2a57b333c6cb4b1f88cf3cc2c878a326626036fa520ff929c83",
+    "src/fs/mount/comparison.ts": "c51f994ad3c9b02ddeff86fb3812cd8269e4fa3c8dc3dac1237bc6c09dfc5ce4"
+  },
+  "fixedHashes": {
+    "src/commands/filesystem.ts": "393ea36b78c2cc142633c0eb631bf4d316767b3992c0d5f0724135ca4f01403a",
+    "src/commands/copy-identity.ts": "f1a03403fadc0138377bd3b215dafecf4b28a187549da8e80764a3fd08238dfe",
+    "src/commands/move.ts": "31e1fe6a2c0fc9efb9efa44b636d9478d4cab273de4c4e809d4f572b28084042",
+    "src/contracts/filesystem.ts": "7c72ddef5660c9a1bd62910d3155a4278ce8d7607f811b32d27cf21149be4009",
+    "src/contracts/filesystem.md": "0f930c0413b3c2a57b333c6cb4b1f88cf3cc2c878a326626036fa520ff929c83",
+    "src/fs/mount/comparison.ts": "c51f994ad3c9b02ddeff86fb3812cd8269e4fa3c8dc3dac1237bc6c09dfc5ce4"
+  },
+  "fixtureHashes": {
+    "tests/commands/filesystem-authority-stress/authority.test.ts": "f1482c0b868e0fe609d700520c859046f12353affd7af61ad3ab965948d230be",
+    "tests/commands/filesystem-authority-stress/capture-native.ts": "6c377b0c6203dff16b02efd90634c96508da5a9dc6ebf6d1929ec83f78eabb5e",
+    "tests/commands/filesystem-authority-stress/helpers.ts": "dbb5d4710d76ea41cde3a6883bb451c2dee9a02094299ee59664a70b12571fcc",
+    "tests/commands/filesystem-authority-stress/native-fixtures.ts": "847341cbb49a18894dda3748e5c9d4a12701fcb41252471260f9f95933c459c5",
+    "tests/commands/filesystem-authority-stress/native-gnu-9.7.json": "51d72f9595f65b2e12a03069bd8ce20467ad697b7125375f19983c5d1a8a50bb",
+    "tests/commands/filesystem-authority-stress/native-parity.test.ts": "82a1821c8072a6f7c08ba9dc50b83f3af28c957b85e7cd858f0158b22f85c2ff",
+    "tests/commands/filesystem-authority-stress/preservation.test.ts": "e7f24bdc0c3f2c41b981a64b7fefd30783338e37d7849fc43f27b4040fc89c6b",
+    "tests/commands/filesystem-authority-stress/review.ts": "f1b8e681ad71784da0b023ee28e8d1504677acbbab2bcb33caab3e427adf25be",
+    "tests/commands/filesystem-authority-stress/topology.test.ts": "f1c89c8665ae9d09f0050814377485c2fcc67c2ecd195d6d27e2cdbd7d624291"
+  },
+  "baselineIndependent": {
+    "exitCode": 1,
+    "tests": 92,
+    "pass": 85,
+    "fail": 7,
+    "skipped": 0,
+    "todo": 0,
+    "failures": [
+      "mv: actual authority alias",
+      "mv: complete identity alias",
+      "GNU 9.7: move same hardlink",
+      "cp -P: an unscoped final symlink alias must not be unlinked",
+      "cp -P: unknown distinct symlinks fail closed without trusting followed distinctness",
+      "cp -P: readlink failure precedes destination unlink",
+      "mv: different recognized clients of one backend, alias=true"
+    ],
+    "stderr": ""
+  },
+  "fixedIndependent": {
+    "exitCode": 0,
+    "tests": 92,
+    "pass": 92,
+    "fail": 0,
+    "skipped": 0,
+    "todo": 0,
+    "failures": [],
+    "stderr": ""
+  },
+  "baselineUnmodifiedAuthor": {
+    "exitCode": 1,
+    "tests": 70,
+    "pass": 69,
+    "fail": 1,
+    "skipped": 0,
+    "todo": 0,
+    "failures": [
+      "unknown existing identity rejects before a hypothetical no-op copy or deletion"
+    ],
+    "stderr": ""
+  },
+  "fixedUnmodifiedAuthor": {
+    "exitCode": 1,
+    "tests": 70,
+    "pass": 67,
+    "fail": 3,
+    "skipped": 0,
+    "todo": 0,
+    "failures": [
+      "cross-device move uses comparison same before copy/delete",
+      "cross-mount hardlink alias is a no-op, never copy followed by source removal",
+      "unknown existing identity rejects before a hypothetical no-op copy or deletion"
+    ],
+    "stderr": ""
+  },
+  "ownerIntegration": {
+    "description": "Same archive plus reviewed filesystem.ts and only the committed owner's mount/comparison.ts; not a moving worktree snapshot",
+    "revision": "e8d308a11bf562efcfba1d8a861503883b4952a3",
+    "path": "src/fs/mount/comparison.ts",
+    "hashes": {
+      "src/commands/filesystem.ts": "393ea36b78c2cc142633c0eb631bf4d316767b3992c0d5f0724135ca4f01403a",
+      "src/commands/copy-identity.ts": "f1a03403fadc0138377bd3b215dafecf4b28a187549da8e80764a3fd08238dfe",
+      "src/commands/move.ts": "31e1fe6a2c0fc9efb9efa44b636d9478d4cab273de4c4e809d4f572b28084042",
+      "src/contracts/filesystem.ts": "7c72ddef5660c9a1bd62910d3155a4278ce8d7607f811b32d27cf21149be4009",
+      "src/contracts/filesystem.md": "0f930c0413b3c2a57b333c6cb4b1f88cf3cc2c878a326626036fa520ff929c83",
+      "src/fs/mount/comparison.ts": "cedfd2b4a586ddf85eaac30e1ce7797b290b712b744498e84df5036c89f64a2c"
+    },
+    "independent": {
+      "exitCode": 0,
+      "tests": 92,
+      "pass": 92,
+      "fail": 0,
+      "skipped": 0,
+      "todo": 0,
+      "failures": [],
+      "stderr": ""
+    },
+    "unmodifiedAuthor": {
+      "exitCode": 1,
+      "tests": 70,
+      "pass": 68,
+      "fail": 2,
+      "skipped": 0,
+      "todo": 0,
+      "failures": [
+        "cross-device move uses comparison same before copy/delete",
+        "cross-mount hardlink alias is a no-op, never copy followed by source removal"
+      ],
+      "stderr": ""
+    }
+  },
+  "mutants": [
+    {
+      "name": "accept-malformed-authority",
+      "file": "src/commands/copy-identity.ts",
+      "sourceSha256": "2eb6dd9cef0aa5f45137ea05fb2b97fb66d6c0d6c1d1a4d41a160fd5296ebdd0",
+      "detected": true,
+      "exitCode": 1,
+      "tests": 92,
+      "pass": 80,
+      "fail": 12,
+      "skipped": 0,
+      "todo": 0,
+      "failures": [
+        "cp: malformed comparison null fails EIO before effects",
+        "cp: malformed comparison undefined fails EIO before effects",
+        "cp: malformed comparison {} fails EIO before effects",
+        "cp: malformed comparison true fails EIO before effects",
+        "cp: malformed comparison 1 fails EIO before effects",
+        "cp: malformed comparison \"DISTINCT\" fails EIO before effects",
+        "mv: malformed comparison null fails EIO before effects",
+        "mv: malformed comparison undefined fails EIO before effects",
+        "mv: malformed comparison {} fails EIO before effects",
+        "mv: malformed comparison true fails EIO before effects",
+        "mv: malformed comparison 1 fails EIO before effects",
+        "mv: malformed comparison \"DISTINCT\" fails EIO before effects"
+      ],
+      "stderr": ""
+    },
+    {
+      "name": "ignore-post-authority-abort",
+      "file": "src/commands/copy-identity.ts",
+      "sourceSha256": "d3e695abc2c314959367e6ef039a1f778c7034a371208c7970ad2d6abdc71c4f",
+      "detected": true,
+      "exitCode": 1,
+      "tests": 92,
+      "pass": 91,
+      "fail": 1,
+      "skipped": 0,
+      "todo": 0,
+      "failures": [
+        "cp: authority cancellation preserves original reason, rejects=false"
+      ],
+      "stderr": ""
+    },
+    {
+      "name": "allow-unknown-move-noop-cleanup",
+      "file": "src/commands/move.ts",
+      "sourceSha256": "175b2f9744dcbc22053d02dca4b7eb21f69610b328289e9bec4b089bb8c39326",
+      "detected": true,
+      "exitCode": 1,
+      "tests": 92,
+      "pass": 88,
+      "fail": 4,
+      "skipped": 0,
+      "todo": 0,
+      "failures": [
+        "mv: absent existing identity refuses copy/no-op and deletion",
+        "mv: unknown existing identity refuses copy/no-op and deletion",
+        "mv: unknown symlink entry identity cannot use followed authority; source=false",
+        "mv: unknown symlink entry identity cannot use followed authority; source=true"
+      ],
+      "stderr": ""
+    },
+    {
+      "name": "allow-unknown-force-unlink",
+      "file": "src/commands/filesystem.ts",
+      "sourceSha256": "6d91678e2e3036fb40599775f64c4a76f60ff7fc8f20d0746e08acfd4bb404fb",
+      "detected": true,
+      "exitCode": 1,
+      "tests": 92,
+      "pass": 90,
+      "fail": 2,
+      "skipped": 0,
+      "todo": 0,
+      "failures": [
+        "cp -f: absent authority cannot authorize unlink after EACCES",
+        "cp -f: unknown authority cannot authorize unlink after EACCES"
+      ],
+      "stderr": ""
+    },
+    {
+      "name": "ignore-force-alias-recheck",
+      "file": "src/commands/filesystem.ts",
+      "sourceSha256": "b4601b2b16ff4edfa80b54fa2a5d4871b0333eb6c57a9e2d9132b06f92b46948",
+      "detected": true,
+      "exitCode": 1,
+      "tests": 92,
+      "pass": 91,
+      "fail": 1,
+      "skipped": 0,
+      "todo": 0,
+      "failures": [
+        "cp -f: fresh alias observation defeats stale distinct authority"
+      ],
+      "stderr": ""
+    },
+    {
+      "name": "ignore-copy-publication-failure",
+      "file": "src/commands/move.ts",
+      "sourceSha256": "20ffad2376d7ce402175a5401d6903c07db4cb19ac03bc327376a02dc73cad37",
+      "detected": true,
+      "exitCode": 1,
+      "tests": 92,
+      "pass": 87,
+      "fail": 5,
+      "skipped": 0,
+      "todo": 0,
+      "failures": [
+        "mv: failed publication preserves source; partial=false",
+        "mv: failed publication preserves source; partial=true",
+        "mv: raced destination requires exclusive creation; noClobber=false",
+        "mv: all directory publications precede cleanup; a later copy failure keeps every source",
+        "mv: readonly destination preserves policy through mounts"
+      ],
+      "stderr": ""
+    },
+    {
+      "name": "remove-before-publication",
+      "file": "src/commands/move.ts",
+      "sourceSha256": "e4677810cc559c9577b088339eb647a054e43f41428077adfeab5710e527eb9c",
+      "detected": true,
+      "exitCode": 1,
+      "tests": 92,
+      "pass": 72,
+      "fail": 20,
+      "skipped": 0,
+      "todo": 0,
+      "failures": [
+        "mv: actual authority distinct",
+        "mv: complete identity distinct",
+        "GNU 9.7: move binary to missing",
+        "GNU 9.7: move binary overwrite",
+        "GNU 9.7: move preserved symlink replaces file",
+        "mv: failed publication preserves source; partial=false",
+        "mv: failed publication preserves source; partial=true",
+        "mv: cancellation at copy never deletes source",
+        "mv: cancellation at metadata never deletes source",
+        "mv: cancellation at remove never deletes source",
+        "mv: raced destination requires exclusive creation; noClobber=false",
+        "mv: raced destination requires exclusive creation; noClobber=true",
+        "mv: all directory publications precede cleanup; a later copy failure keeps every source",
+        "mv: positive cross-mount distinct entries, same backend=false, overwrite=false",
+        "mv: positive cross-mount distinct entries, same backend=false, overwrite=true",
+        "mv: positive cross-mount distinct entries, same backend=true, overwrite=false",
+        "mv: positive cross-mount distinct entries, same backend=true, overwrite=true",
+        "mv: different recognized clients of one backend, alias=false",
+        "mv: readonly destination preserves policy through mounts",
+        "mv: readonly source preserves policy through mounts"
+      ],
+      "stderr": ""
+    },
+    {
+      "name": "nonexclusive-missing-move-target",
+      "file": "src/commands/move.ts",
+      "sourceSha256": "3a0c33268fcf63bb49a547c0fa1eb0c2496f3c87247fff246c3d7d1c77bc0e11",
+      "detected": true,
+      "exitCode": 1,
+      "tests": 92,
+      "pass": 90,
+      "fail": 2,
+      "skipped": 0,
+      "todo": 0,
+      "failures": [
+        "mv: raced destination requires exclusive creation; noClobber=false",
+        "mv: raced destination requires exclusive creation; noClobber=true"
+      ],
+      "stderr": ""
+    },
+    {
+      "name": "allow-unknown-symlink-unlink",
+      "file": "src/commands/filesystem.ts",
+      "sourceSha256": "537e4e7a517b56b8aff88684435ceb90d43eb7a8606fa4e537a3bf83766f15e4",
+      "detected": true,
+      "exitCode": 1,
+      "tests": 92,
+      "pass": 90,
+      "fail": 2,
+      "skipped": 0,
+      "todo": 0,
+      "failures": [
+        "cp -P: an unscoped final symlink alias must not be unlinked",
+        "cp -P: unknown distinct symlinks fail closed without trusting followed distinctness"
+      ],
+      "stderr": ""
+    },
+    {
+      "name": "successful-alias-move-status",
+      "file": "src/commands/filesystem.ts",
+      "sourceSha256": "21b9c684a345fe89d79d554c40201c04c90f6ee96f5af2e443ff0c81d09ef0a4",
+      "detected": true,
+      "exitCode": 1,
+      "tests": 92,
+      "pass": 88,
+      "fail": 4,
+      "skipped": 0,
+      "todo": 0,
+      "failures": [
+        "mv: actual authority alias",
+        "mv: complete identity alias",
+        "GNU 9.7: move same hardlink",
+        "mv: different recognized clients of one backend, alias=true"
+      ],
+      "stderr": ""
+    },
+    {
+      "name": "remove-move-depth-budget",
+      "file": "src/commands/move.ts",
+      "sourceSha256": "531ded87980f7021910feb2029279b13f505f1c211eced810826d2b57dc0e4ae",
+      "detected": true,
+      "exitCode": 1,
+      "tests": 92,
+      "pass": 91,
+      "fail": 1,
+      "skipped": 0,
+      "todo": 0,
+      "failures": [
+        "mv: depth budget rejects before any publication or recursive cleanup"
+      ],
+      "stderr": ""
+    }
+  ]
+}

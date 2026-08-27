@@ -1,0 +1,128 @@
+diff --git a/src/fs/webdav/resource-id.ts b/src/fs/webdav/resource-id.ts
+index fc5760e..9d6bd86 100644
+--- a/src/fs/webdav/resource-id.ts
++++ b/src/fs/webdav/resource-id.ts
+@@ -1,7 +1,6 @@
+ import type { EntryComparison, FileStat, FileSystem, FsOptions } from "../../contracts/filesystem.js";
+ import type { EntryAuthority, EntryView } from "../mount/comparison.js";
+ import { FsError } from "../../contracts/errors.js";
+-import type { WebDavFetch } from "./webdav.js";
+ 
+ export interface OwnedWebDavEntry {
+   readonly storage: object;
+@@ -14,22 +13,6 @@ export interface OwnedWebDavResource extends OwnedWebDavEntry {
+ 
+ const responses = new WeakMap<Response, ReadonlyMap<string, OwnedWebDavResource>>();
+ const observations = new WeakMap<FileStat, { filesystem: FileSystem; path: string; entry: OwnedWebDavResource }>();
+-const unchanged = new WeakMap<FileSystem, () => boolean>();
+-const providers = new WeakMap<WebDavFetch, { storage: object; unchanged: () => boolean }>();
+-const transports = new WeakMap<FileSystem, WebDavFetch>();
+-
+-export function registerMockWebDavFetch(fetch: WebDavFetch, storage: object, valid: () => boolean): void {
+-  if (providers.has(fetch)) throw new TypeError("fetch already registered");
+-  providers.set(fetch, { storage, unchanged: valid });
+-}
+-
+-export function forwardOwnedWebDavFetch(fetch: WebDavFetch): WebDavFetch {
+-  const forward: WebDavFetch = (url, init) => fetch(url, init);
+-  const provider = providers.get(fetch);
+-  if (provider) providers.set(forward, provider);
+-  return forward;
+-}
+-
+ export function registerOwnedResourceResponse(response: Response, entries: ReadonlyMap<string, OwnedWebDavResource>): void {
+   if (responses.has(response)) throw new TypeError("resource response already registered");
+   responses.set(response, new Map(entries));
+@@ -42,10 +25,7 @@ export function recordOwnedResourceStat(response: Response, filesystem: FileSyst
+ 
+ export function getOwnedWebDavEntry(view: EntryView): OwnedWebDavEntry | undefined {
+   const observation = observations.get(view.stat);
+-  const fetch = transports.get(view.filesystem);
+-  const provider = fetch && providers.get(fetch);
+-  return observation?.filesystem === view.filesystem && observation.path === view.path && unchanged.get(view.filesystem)?.()
+-    && provider?.storage === observation.entry.storage && provider.unchanged()
++  return observation?.filesystem === view.filesystem && observation.path === view.path
+     ? observation.entry : undefined;
+ }
+ 
+@@ -57,16 +37,14 @@ type ResourceQuery = (path: string, options: FsOptions) => Promise<string | unde
+ const queries = new WeakMap<FileSystem, ResourceQuery>();
+ const comparisons = new WeakMap<FileSystem, NonNullable<FileSystem["compareEntry"]>>();
+ 
+-export function registerResourceQuery(filesystem: FileSystem, query: ResourceQuery, transport: WebDavFetch, valid: () => boolean,
++export function registerResourceQuery(filesystem: FileSystem, query: ResourceQuery,
+   baseComparison: NonNullable<FileSystem["compareEntry"]>): void {
+-  unchanged.set(filesystem, valid);
+   comparisons.set(filesystem, baseComparison);
+-  transports.set(filesystem, transport);
+   queries.set(filesystem, async (path, options) => {
+-    if (!valid()) return undefined;
++    options.signal?.throwIfAborted();
+     const identifier = await query(path, options);
+     options.signal?.throwIfAborted();
+-    return valid() ? identifier : undefined;
++    return identifier;
+   });
+ }
+ 
+@@ -118,7 +96,6 @@ export const compareWebDavResources: EntryAuthority = async (own, peer, options)
+   options.signal?.throwIfAborted();
+   const peerId = await peerQuery(peer.path, options);
+   options.signal?.throwIfAborted();
+-  if (!unchanged.get(own.filesystem)?.() || !unchanged.get(peer.filesystem)?.()) return "unknown";
+   if (ownId === undefined || peerId === undefined) return "unknown";
+   if (left && right) {
+     const same = left.storage === right.storage && left.resource === right.resource;
+diff --git a/src/fs/webdav/webdav.ts b/src/fs/webdav/webdav.ts
+index a545483..a4e6af0 100644
+--- a/src/fs/webdav/webdav.ts
++++ b/src/fs/webdav/webdav.ts
+@@ -145,10 +145,7 @@ export class WebDavFileSystem implements FileSystem {
+     this.overwritePolicy = options.overwritePolicy ?? "lock";
+     if (!["lock", "etag"].includes(this.overwritePolicy)) throw new FsError("EINVAL", { message: "invalid overwritePolicy" });
+     if (this.timeoutMs > 2_147_483_647) throw new FsError("EINVAL", { message: "timeoutMs exceeds timer range" });
+-    const transport = this.transport;
+-    registerResourceQuery(this, (path, settings) => this.resourceId(path, settings), transport,
+-      () => this.transport === transport
+-        && originalWebDavMethods.every(([name, descriptor]) => Reflect.get(this, name) === descriptor.value), originalWebDavComparison);
++    registerResourceQuery(this, (path, settings) => this.resourceId(path, settings), originalWebDavComparison);
+     registerEntryAuthority(this, compareWebDavResources);
+   }
+ 
+@@ -920,6 +917,4 @@ export class WebDavFileSystem implements FileSystem {
+   async truncate(path: string, _length?: number, _options: FsOptions = {}): Promise<void> { this.unsupported("truncate", path); }
+ }
+ 
+-const originalWebDavMethods = Object.entries(Object.getOwnPropertyDescriptors(WebDavFileSystem.prototype))
+-  .filter(([name]) => name !== "constructor");
+ const originalWebDavComparison = WebDavFileSystem.prototype.compareEntry;
+diff --git a/tests/fs/webdav/mock.ts b/tests/fs/webdav/mock.ts
+index 66899a4..1336483 100644
+--- a/tests/fs/webdav/mock.ts
++++ b/tests/fs/webdav/mock.ts
+@@ -1,6 +1,6 @@
+ import { createHash, randomUUID } from "node:crypto";
+ import type { WebDavFetch } from "../../../src/fs/webdav/index.js";
+-import { forwardOwnedWebDavFetch, registerMockWebDavFetch, registerOwnedResourceResponse } from "../../../src/fs/webdav/resource-id.js";
++import { registerOwnedResourceResponse } from "../../../src/fs/webdav/resource-id.js";
+ 
+ function resourceMap() {
+   const files = new Map<string, Uint8Array | null>();
+@@ -63,15 +63,9 @@ export class MockDav {
+   readonly files = this.resources.files.set("/", null);
+   readonly requests: MockRequest[] = [];
+   readonly locks = new Map<string, { token: string; expires: number }>();
+-  constructor() {
+-    const files = this.files;
+-    const names = ["get", "set", "has", "delete", "clear", "entries", "keys", Symbol.iterator] as const;
+-    const methods = names.map(name => files[name]);
+-    registerMockWebDavFetch(this.fetch, files, () => this.files === files && names.every((name, index) => files[name] === methods[index]));
+-  }
+-
+   createFetch(): WebDavFetch {
+-    return forwardOwnedWebDavFetch(this.fetch);
++    const fetch = this.fetch;
++    return (url, init) => fetch(url, init);
+   }
+   etag(path: string): string | undefined {
+     const data = this.files.get(path);

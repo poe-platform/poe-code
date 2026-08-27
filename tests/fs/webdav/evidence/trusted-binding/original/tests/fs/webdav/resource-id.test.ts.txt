@@ -77,7 +77,7 @@ test("actual HTTP negotiates resource identity without receiving private-store p
   });
 });
 
-test("provider factories and faithful manual fetch wrappers retain the actual store", async () => {
+test("provider-owned factories retain the actual store; manual fetch wrappers do not", async () => {
   const mock = seed();
   const firstFetch = mock.createFetch(), secondFetch = mock.createFetch();
   assert.notEqual(firstFetch, secondFetch);
@@ -88,11 +88,35 @@ test("provider factories and faithful manual fetch wrappers retain the actual st
   const secondEntry = getOwnedWebDavEntry(await resolveEntryView(second, "/source"))!;
   assert.equal(firstEntry.storage, mock.files);
   assert.equal(firstEntry.resource, secondEntry.resource);
-  assert.deepEqual(getOwnedWebDavEntry(await resolveEntryView(wrapped, "/source")), firstEntry);
+  assert.equal(getOwnedWebDavEntry(await resolveEntryView(wrapped, "/source")), undefined);
   const changed = mock.files.get.bind(mock.files);
   mock.files.get = path => changed(path);
-  assert.deepEqual(getOwnedWebDavEntry(await resolveEntryView(first, "/source")), firstEntry);
+  assert.equal(getOwnedWebDavEntry(await resolveEntryView(first, "/source")), undefined);
 });
+
+for (const direction of ["to-remote", "from-remote"] as const) {
+  test(`mixed-routing genuine PROPFIND plus local-memory GET/PUT alias stays unknown ${direction}`, async () => {
+    const memory = createMemoryFileSystem();
+    await memory.writeFile("/source", bytes);
+    const mock = seed();
+    let dataCalls = 0;
+    const fetch: WebDavFetch = async (url, init) => {
+      if (init.method === "GET") { dataCalls++; return new Response(await memory.readFile("/source")); }
+      if (init.method === "PUT") { dataCalls++; await memory.writeFile("/source", new Uint8Array(await new Response(init.body).arrayBuffer())); return new Response(null, { status: 204 }); }
+      return mock.fetch(url, init);
+    };
+    const remote = new WebDavFileSystem({ baseUrl, fetch });
+    assert.equal(getOwnedWebDavEntry(await resolveEntryView(remote, "/source")), undefined);
+    assert.equal(await remote.compareEntry("/source", memory, "/source"), "unknown");
+    const mount = createMountFileSystem({ root: createMemoryFileSystem(), mounts: { "/local": memory, "/remote": remote } });
+    const paths = direction === "to-remote" ? ["/local/source", "/remote/source"] : ["/remote/source", "/local/source"];
+    await assert.rejects(mount.copyFile(paths[0]!, paths[1]!), rejected("ENOTSUP"));
+    assert.equal(dataCalls, 0);
+    assert.deepEqual(await memory.readFile("/source"), bytes);
+    assert.deepEqual(await memory.readdir("/"), [{ name: "source", type: "file" }]);
+    assert.deepEqual(mock.files.get("/source"), bytes);
+  });
+}
 
 const malformed: readonly [string, string, ErrnoCode | "unknown"][] = [
   ["absent property", response(propstat("<z:getetag/>")), "unknown"],

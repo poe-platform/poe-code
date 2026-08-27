@@ -1,6 +1,7 @@
 import type { EntryComparison, FileStat, FileSystem, FsOptions } from "../../contracts/filesystem.js";
 import type { EntryAuthority, EntryView } from "../mount/comparison.js";
 import { FsError } from "../../contracts/errors.js";
+import type { WebDavFetch } from "./webdav.js";
 
 export interface OwnedWebDavEntry {
   readonly storage: object;
@@ -13,6 +14,22 @@ export interface OwnedWebDavResource extends OwnedWebDavEntry {
 
 const responses = new WeakMap<Response, ReadonlyMap<string, OwnedWebDavResource>>();
 const observations = new WeakMap<FileStat, { filesystem: FileSystem; path: string; entry: OwnedWebDavResource }>();
+const unchanged = new WeakMap<FileSystem, () => boolean>();
+const providers = new WeakMap<WebDavFetch, { storage: object; unchanged: () => boolean }>();
+const transports = new WeakMap<FileSystem, WebDavFetch>();
+
+export function registerMockWebDavFetch(fetch: WebDavFetch, storage: object, valid: () => boolean): void {
+  if (providers.has(fetch)) throw new TypeError("fetch already registered");
+  providers.set(fetch, { storage, unchanged: valid });
+}
+
+export function forwardOwnedWebDavFetch(fetch: WebDavFetch): WebDavFetch {
+  const forward: WebDavFetch = (url, init) => fetch(url, init);
+  const provider = providers.get(fetch);
+  if (provider) providers.set(forward, provider);
+  return forward;
+}
+
 export function registerOwnedResourceResponse(response: Response, entries: ReadonlyMap<string, OwnedWebDavResource>): void {
   if (responses.has(response)) throw new TypeError("resource response already registered");
   responses.set(response, new Map(entries));
@@ -25,7 +42,10 @@ export function recordOwnedResourceStat(response: Response, filesystem: FileSyst
 
 export function getOwnedWebDavEntry(view: EntryView): OwnedWebDavEntry | undefined {
   const observation = observations.get(view.stat);
-  return observation?.filesystem === view.filesystem && observation.path === view.path
+  const fetch = transports.get(view.filesystem);
+  const provider = fetch && providers.get(fetch);
+  return observation?.filesystem === view.filesystem && observation.path === view.path && unchanged.get(view.filesystem)?.()
+    && provider?.storage === observation.entry.storage && provider.unchanged()
     ? observation.entry : undefined;
 }
 
@@ -37,14 +57,16 @@ type ResourceQuery = (path: string, options: FsOptions) => Promise<string | unde
 const queries = new WeakMap<FileSystem, ResourceQuery>();
 const comparisons = new WeakMap<FileSystem, NonNullable<FileSystem["compareEntry"]>>();
 
-export function registerResourceQuery(filesystem: FileSystem, query: ResourceQuery,
+export function registerResourceQuery(filesystem: FileSystem, query: ResourceQuery, transport: WebDavFetch, valid: () => boolean,
   baseComparison: NonNullable<FileSystem["compareEntry"]>): void {
+  unchanged.set(filesystem, valid);
   comparisons.set(filesystem, baseComparison);
+  transports.set(filesystem, transport);
   queries.set(filesystem, async (path, options) => {
-    options.signal?.throwIfAborted();
+    if (!valid()) return undefined;
     const identifier = await query(path, options);
     options.signal?.throwIfAborted();
-    return identifier;
+    return valid() ? identifier : undefined;
   });
 }
 
@@ -96,6 +118,7 @@ export const compareWebDavResources: EntryAuthority = async (own, peer, options)
   options.signal?.throwIfAborted();
   const peerId = await peerQuery(peer.path, options);
   options.signal?.throwIfAborted();
+  if (!unchanged.get(own.filesystem)?.() || !unchanged.get(peer.filesystem)?.()) return "unknown";
   if (ownId === undefined || peerId === undefined) return "unknown";
   if (left && right) {
     const same = left.storage === right.storage && left.resource === right.resource;

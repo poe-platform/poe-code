@@ -372,43 +372,32 @@ no GET, PUT, COPY, MOVE, DELETE or LOCK and cannot authorize an unknown existing
 target, an unknown final symlink unlink, or a later overlay copy-up target.
 
 Protocol resource IDs do **not** prove disjointness from local Memory/Real storage
-or other protocols. The internal `getOwnedWebDavEntry` helper exposes the actual
-owned provider's Map/resource observation, associated with a freshly validated
-stat and its exact filesystem/path. Copying a stat object, substituting a path or
-filesystem, or returning serialized metadata does not create that observation.
-Comparison consumers resolve fresh views; an old observation is not a lease.
+or other protocols. The internal `getOwnedWebDavEntry` helper exposes closed-store
+provenance only for the actual owned mock provider's registered whole fetch
+function or its `MockDav.createFetch()` forwarding factory. It binds the actual
+files Map/resource record, validates unchanged map-operation references, the
+original transport, and every original adapter prototype method (including
+buffered/streaming data operations and private metadata/request paths). Original
+base method references are captured once at module initialization, not from an
+instance after subclass overrides. Checks run before and after metadata queries;
+both operands are rechecked before returning protocol proof. Unmodified subclasses
+retain support; method overrides do not inherit base authority. Only validated
+metadata observations are associated with the provider store.
+An explicitly replaced `compareEntry` supplies separate external authority; it
+does not inherit protocol/private-store proof. The internal terminal dispatcher
+honors each such operand callback once, validates answers/conflicts and preserves
+errors/cancellation. Forwarding recursively to the base negotiation stays unknown.
+Nothing is published as a FileStat inode/scope or a public registry/trust flag.
+Other backend owners still must recognize their own actual closed storage before
+using this descriptor; its presence does not automatically authorize mixed copies.
 
-The approved host contract in `src/contracts/filesystem.md` treats transports and
-FileSystem implementations as trusted to implement their declared namespace.
-A provider-marked observation asserts the actual backing used for content
-operations. Faithful manual fetch forwarding, fetch proxies and method decorators
-preserve this assertion; different function/client references alone do not revoke
-it. `MockDav.createFetch()` remains a convenience, not an eligibility requirement.
-No full-method-table recognition, class blacklist, new identity scope or public
-registry/trust flag is used. The existing Memory authority separately recognizes
-its own backing store before comparing it with the owned provider's actual Map.
-
-A remapper or metadata cache must omit the old assertion or replace it with
-truthful authority for its actual content backing. Returning MockDav-private
-metadata while secretly directing content operations into a different local file
-violates this binding contract. Host JavaScript is not sandboxed by identity
-comparison. Conversely, a legitimate Memory/Real-backed WebDAV gateway may alias
-local storage: protocol UUIDs do not prove disjointness, and absent shared binding
-its mixed comparison stays unknown. A host-owned explicit `compareEntry` can
-recognize the actual local peer and compare its backing metadata without content
-I/O. This uses the existing optional interface, not a new transport-level API.
-
-An explicitly replaced `compareEntry` supplies separate external authority.
-The terminal dispatcher honors each operand callback once, validates answers and
-conflicts, and preserves errors/cancellation even after another authority reports
-distinctness. The original comparison function reference is retained solely for
-dynamic dispatch, never as identity eligibility. Recursive forwarding to base
-negotiation stays unknown; known complete aliases retain precedence.
-
-HTTP serialization and Response cloning do not transmit private Map provenance.
-They can still support the separate strict resource-ID WebDAV-to-WebDAV path.
-Generic HTTP/SDK providers without a recognized binding remain an open mixed-store
-integration requirement; owned Mock responses are not proof of all real servers.
+A genuine mock PROPFIND Response is **not enough**: a custom fetch can forward
+that Response while directing GET/PUT into an aliased local file. Such arbitrary
+manual wrappers remain unqualified even if their metadata is genuine. HTTP and
+Response cloning do not transmit private closed-store provenance; real HTTP uses
+only the separate protocol comparison path. The approved provider factory captures
+the qualified complete fetch mapping rather than guessing bound functions or
+trusting client/URL names. Unrecognized custom transports stay unknown.
 
 The owned `tests/fs/webdav/mock.ts` intentionally gains resource-id capability.
 Its files remain an ordinary Map with existing byte/namespace behavior. Resource
@@ -418,19 +407,18 @@ retires it. Old mock source/raw evidence and new hashes are retained separately
 in the resource-authority evidence directory; this is a provider capability delta,
 not silently weakening the independent original compatibility assertions.
 
-Historical response-only and inherited-wrong-backing reproductions demonstrated
-actual source damage; all source/raw evidence remains immutable. Under the later
-approved host binding rule those inconsistent-routing inputs are contract
-violations, not compliant safety passes. `binding-violations.test.ts` characterizes
-their damaging outcomes in a separately reported cohort. The old refusal oracle
-and the intentional policy/assertion delta are preserved in trusted-binding
-evidence; no skip/todo or erased failure represents successful interoperability.
+The earlier uncommitted resource-authority draft was unsafe for pre-construction
+data-method overrides: constructor-time snapshots treated subclass methods as
+original. Independent unchanged reproduction demonstrated source damage. Its raw
+evidence is retained and explicitly superseded by the operation-override fix
+evidence, not treated as a safe release or full positive acceptance.
 
-The original compatibility fixture still manually forwards `service.fetch`:
-neither its inputs nor its assertions change. The trusted observation path restores
-the two original mixed-memory existing-target copies without factory migration.
-The historical original31/38 and additional qualified-mock38/38 remain separate
-evidence, not universal provider support or full required-workflow closure.
+The original compatibility fixture manually forwards `service.fetch`. Its two
+mixed-memory existing-target cases therefore still need root approval for an
+explicit input capability delta to `service.createFetch()` and a qualified
+Memory-owner callback. This leaf does not edit that independent fixture. The
+resource-id feature improves its WebDAV-only existing-copy/move cases without
+claiming original mixed acceptance or universal provider interoperability.
 
 Primary basis: RFC5842 sections2.7 and3.1 (immutable unique resource IDs and
 explicit property discovery), and RFC4918 propstat/status processing. References:

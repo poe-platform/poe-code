@@ -1,6 +1,6 @@
 import { createHash, randomUUID } from "node:crypto";
 import type { WebDavFetch } from "../../../src/fs/webdav/index.js";
-import { registerOwnedResourceResponse } from "../../../src/fs/webdav/resource-id.js";
+import { forwardOwnedWebDavFetch, registerMockWebDavFetch, registerOwnedResourceResponse } from "../../../src/fs/webdav/resource-id.js";
 
 function resourceMap() {
   const files = new Map<string, Uint8Array | null>();
@@ -63,9 +63,15 @@ export class MockDav {
   readonly files = this.resources.files.set("/", null);
   readonly requests: MockRequest[] = [];
   readonly locks = new Map<string, { token: string; expires: number }>();
+  constructor() {
+    const files = this.files;
+    const names = ["get", "set", "has", "delete", "clear", "entries", "keys", Symbol.iterator] as const;
+    const methods = names.map(name => files[name]);
+    registerMockWebDavFetch(this.fetch, files, () => this.files === files && names.every((name, index) => files[name] === methods[index]));
+  }
+
   createFetch(): WebDavFetch {
-    const fetch = this.fetch;
-    return (url, init) => fetch(url, init);
+    return forwardOwnedWebDavFetch(this.fetch);
   }
   etag(path: string): string | undefined {
     const data = this.files.get(path);

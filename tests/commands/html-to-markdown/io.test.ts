@@ -1,0 +1,106 @@
+import assert from "node:assert/strict";
+import { setImmediate as pause } from "node:timers/promises";
+import test from "node:test";
+import { Shell } from "../../../src/shell/index.js";
+import { MemoryFileSystem } from "../../../src/fs/memory/index.js";
+import { createHtmlToMarkdownCommands, htmlToMarkdownCommands } from "../../../src/commands/html-to-markdown/index.js";
+import { standardCommands } from "../../../src/commands/index.js";
+import { FsError, type ByteSource } from "../../../src/contracts/index.js";
+import { byteChunks, convert, readonlyFacade } from "./helpers.js";
+
+test("files and repeated stdin share one cursor and preserve VFS", async () => {
+  const fs = new MemoryFileSystem(); await fs.mkdir("/docs");
+  await fs.writeFile("/docs/a", Buffer.from("<h1>A</h1>"));
+  await fs.writeFile("/docs/-name", Buffer.from("<b>B</b>"));
+  let acquired = 0;
+  const source: ByteSource = { [Symbol.asyncIterator]() { acquired++; return byteChunks("<p>stdin</p>")[Symbol.asyncIterator](); } };
+  const result = await convert(source, {}, { fs, cwd: "/docs", args: ["a", "-", "-", "--", "-name"] });
+  assert.equal(result.exitCode, 0, result.stderr); assert.equal(result.stdout, "# A\n\nstdin\n\n**B**\n"); assert.equal(acquired, 1);
+  assert.equal(Buffer.from(await fs.readFile("/docs/a")).toString(), "<h1>A</h1>");
+});
+test("readFile-only backend receives remaining cap and exact signal", async () => {
+  const original = new MemoryFileSystem(); const controller = new AbortController();
+  const calls: unknown[] = [];
+  const fs = readonlyFacade(original, { readFile: async (path, options) => {
+    calls.push([path, options?.maxBytes]); assert.equal(options?.signal, controller.signal); return Buffer.from("<p>x</p>");
+  } }, ["readStream"]);
+  const result = await convert("", { limits: { maxInputBytes: 16 } }, { fs, signal: controller.signal, args: ["a", "b"] });
+  assert.equal(result.exitCode, 0); assert.equal(result.stdout, "x\n\nx\n"); assert.deepEqual(calls, [["/a", 16], ["/b", 8]]);
+});
+test("missing file produces status1 and leaves previous output explicit", async () => {
+  const fs = new MemoryFileSystem(); await fs.writeFile("/a", Buffer.from("<p>A</p>"));
+  const result = await convert("", {}, { fs, args: ["/a", "/missing"] });
+  assert.equal(result.exitCode, 1); assert.equal(result.stdout, "A\n"); assert.match(result.stderr, /html-to-markdown:/u);
+});
+test("borrowed byteOffset chunks copied before next/finalization", async () => {
+  const chunks = ["<p>aa", "bb</p>"];
+  const backing = Buffer.alloc(32); let index = 0;
+  const source: ByteSource = { [Symbol.asyncIterator]() { return { async next() {
+    backing.fill(120);
+    if (index === chunks.length) return { done: true, value: undefined };
+    const chunk = chunks[index++]!; backing.write(chunk, 5); return { done: false, value: backing.subarray(5, 5 + Buffer.byteLength(chunk)) };
+  } }; } };
+  assert.equal((await convert(source)).stdout, "aabb\n");
+});
+test("preabort does not acquire resources and preserves reason identity", async () => {
+  const controller = new AbortController(), reason = { reason: "preabort" }; controller.abort(reason);
+  let acquired = 0;
+  await assert.rejects(convert({ [Symbol.asyncIterator]() { acquired++; throw new Error("unexpected"); } }, {}, { signal: controller.signal }), error => error === reason);
+  assert.equal(acquired, 0);
+});
+test("registration rejection occurs before acquisition", async () => {
+  let acquired = 0;
+  const result = await convert({ [Symbol.asyncIterator]() { acquired++; throw new Error("unexpected"); } }, {}, { registerCleanup: () => { throw new Error("closing scope"); } });
+  assert.equal(result.exitCode, 1); assert.equal(acquired, 0); assert.match(result.stderr, /closing scope/u);
+});
+test("pending read cancels and iterator return executes exactly once", async () => {
+  const controller = new AbortController(), reason = { reason: "read abort" }; let returned = 0;
+  let started!: () => void; const ready = new Promise<void>(resolve => { started = resolve; });
+  const source: ByteSource = { [Symbol.asyncIterator]() { return {
+    next: () => { started(); return new Promise(resolve => { controller.signal.addEventListener("abort", () => resolve({ done: true, value: undefined }), { once: true }); }); },
+    return: async () => { returned++; return { done: true, value: undefined }; },
+  }; } };
+  const promise = convert(source, {}, { signal: controller.signal }); await ready; controller.abort(reason);
+  await assert.rejects(promise, error => error === reason); assert.equal(returned, 1);
+});
+test("large single chunk yields for cancellation without publishing output", async () => {
+  const controller = new AbortController(), reason = new Error("CPU cancel"); let output = 0;
+  const promise = convert("<p>" + "x".repeat(100_000) + "</p>", {}, { signal: controller.signal, stdout: { write: async () => { output++; } } });
+  await pause(); controller.abort(reason);
+  await assert.rejects(promise, error => error === reason); assert.equal(output, 0);
+});
+test("producer failure stays primary over finalization failure", async () => {
+  const source: ByteSource = { [Symbol.asyncIterator]() { return {
+    async next() { throw new Error("primary producer failure"); },
+    async return() { throw new Error("secondary cleanup failure"); },
+  }; } };
+  const result = await convert(source);
+  assert.equal(result.exitCode, 1); assert.match(result.stderr, /primary producer failure/u); assert.doesNotMatch(result.stderr, /secondary cleanup/u);
+});
+test("output awaits backpressure and cancellation does not publish later chunks", async () => {
+  const controller = new AbortController(), reason = new Error("sink abort"); let writes = 0;
+  let release!: () => void, started!: () => void;
+  const blocked = new Promise<void>(resolve => { release = resolve; }); const ready = new Promise<void>(resolve => { started = resolve; });
+  const promise = convert("a".repeat(12_000), {}, { signal: controller.signal, stdout: { async write() { writes++; started(); await blocked; } } });
+  await ready; await pause(); assert.equal(writes, 1); controller.abort(reason);
+  await assert.rejects(promise, error => error === reason); release(); await pause(); assert.equal(writes, 1);
+});
+test("sink rejection stops output and is not returned as success", async () => {
+  let writes = 0;
+  const result = await convert("a".repeat(12_000), {}, { stdout: { async write() { writes++; throw new FsError("EPIPE"); } } });
+  assert.equal(result.exitCode, 1); assert.equal(writes, 1);
+});
+test("help does not read input, unknown options do not masquerade as success", async () => {
+  const source = { [Symbol.asyncIterator]() { throw new Error("unexpected acquisition"); } };
+  assert.equal((await convert(source, {}, { args: ["--help"] })).exitCode, 0);
+  assert.equal((await convert(source, {}, { args: ["--version"] })).exitCode, 0);
+  assert.equal((await convert(source, {}, { args: ["--arbitrary"] })).exitCode, 2);
+});
+test("standalone registration and actual VFS pipeline", async () => {
+  const fs = new MemoryFileSystem(); const shell = new Shell({ fs }).use(standardCommands()).use(htmlToMarkdownCommands());
+  try {
+    const result = await shell.exec("printf '<h1>Release</h1><p>ready</p>' | html-to-markdown | cat > /result");
+    assert.equal(result.exitCode, 0, result.stderr); assert.equal(Buffer.from(await fs.readFile("/result")).toString(), "# Release\n\nready\n");
+    assert.deepEqual(createHtmlToMarkdownCommands().map(command => command.name), ["html-to-markdown"]);
+  } finally { await shell.dispose(); }
+});

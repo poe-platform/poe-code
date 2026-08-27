@@ -1,0 +1,7 @@
+import { createHtmlToMarkdownCommand, createHtmlToMarkdownCommands, htmlToMarkdownCommands } from './build/commands/html-to-markdown/index.js';
+import type { HtmlToMarkdownLimits, HtmlToMarkdownCommandsOptions } from './build/commands/html-to-markdown/index.js';
+const limits: Partial<HtmlToMarkdownLimits> = { maxInputBytes: 1024, maxDepth: 32 };
+const options: HtmlToMarkdownCommandsOptions = { limits, replace: false };
+createHtmlToMarkdownCommand(options);
+createHtmlToMarkdownCommands(options);
+htmlToMarkdownCommands(options);

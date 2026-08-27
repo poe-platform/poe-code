@@ -1,0 +1,112 @@
+{
+  "status": "INERT_UNAPPROVED_PROPOSAL_ONLY",
+  "rootApprovalRequired": true,
+  "independentReviewerApproval": false,
+  "execute": false,
+  "applyToExistingPaths": false,
+  "originalEvidenceCommit": "19da254941847de60e80ea18407332bbe10b5265",
+  "originalPreparationCommit": "c8df5cf2819d7ad9d54c2a70800258c7c200665a",
+  "originalRunnerCommit": "91464989ff4c563195330cc3a7cacc4500c0bad0",
+  "sourceManifestSha256": "6de9b96c7286cc320379d8f7f720f3d1a5ecffdc24b7268b198859550362feea",
+  "writeTargets": [],
+  "newExecutions": 0,
+  "noPromotion": true,
+  "proposals": [
+    {
+      "proposalId": "L06-C1",
+      "kind": "separate host-cap binding for two existing streaming parameters",
+      "lineageRows": ["L06-curl-open", "L06-curl-consumer-closed"],
+      "futureVariantIds": ["L06-C1-curl-open", "L06-C1-curl-consumer-closed"],
+      "precondition": "ROOT explicitly approves positive host caps as a separate profile; zero-cap documentation/contract ambiguity remains separately routed, not waived",
+      "inertJsonDeltasRelativeToCopiedCases": [
+        {"pointer": "/curlInputs/limits/maxRedirects", "before": 0, "after": 1},
+        {"pointer": "/curlInputs/limits/maxRetries", "before": 0, "after": 1}
+      ],
+      "constructor": {
+        "export": "curlCommands from authenticated virtual-bash root",
+        "registration": "inner.use(curlCommands({ limits, authorize, transport }))",
+        "limits": {
+          "maxUploadBytes": 1024,
+          "maxDownloadBytes": 1024,
+          "maxBufferBytes": 4096,
+          "maxHeaderBytes": 4096,
+          "maxRedirects": 1,
+          "maxRetries": 1,
+          "maxUrls": 1,
+          "maxTimeMs": 2500
+        },
+        "authorizeBinding": "existing explicit NetworkAuthorizer strengthened to record every call before validation; allow only call 1 with attempt===0, redirectFrom===undefined, exact URL/method and live signal; deny every subsequent/invalid call and fail final exact journal assertion",
+        "transportBinding": "existing explicit injected HttpTransport; exactly one recorded call, exact URL/method; register the existing idempotent closeTransport synchronously before body acquisition; no Node/default transport fallback"
+      },
+      "unchangedInputs": {
+        "guest": "guests/curl.ajs.data",
+        "guestArgs": [],
+        "publicSource": "owned-guest",
+        "nestedCommand": "curl",
+        "args": ["-sS", "-T", "-", "-o", "/work/body.bin", "-D", "/work/headers.txt", "-w", "%{http_code}\n", "https://owned.invalid/upload"],
+        "url": "https://owned.invalid/upload",
+        "method": "PUT",
+        "uploadChunksHex": ["41300a", "42310a"],
+        "responseStatus": 200,
+        "responseStatusText": "OK",
+        "responseHttpVersion": "1.1",
+        "responseHeaders": [["Content-Type", "application/octet-stream"], ["Content-Length", "12"]],
+        "responseChunksHex": ["626f6479300a", "626f6479310a"],
+        "requiredFiles": {
+          "/work/body.bin": "body0\nbody1\n",
+          "/work/headers.txt": "HTTP/1.1 200 OK\r\nContent-Type: application/octet-stream\r\nContent-Length: 12\r\n\r\n"
+        },
+        "independentStderr": "independent-stderr\n"
+      },
+      "unchangedExpectations": {
+        "open": {"publicKind": "result", "exitCode": 0, "stdout": "200\ncurl:0\n", "stderr": "independent-stderr\n", "curlStatus": 0, "writeoutAccountedCalls": 1, "transportSignalAbortedByConsumer": false},
+        "closed": {"publicKind": "result", "exitCode": 141, "stdout": "curl:141\n", "stderr": "independent-stderr\n", "curlStatus": 141, "writeoutAccountedCalls": 0, "transportSignalAbortedByConsumer": false}
+      },
+      "additionalRequiredConstraints": [
+        "Exactly one authorization record: URL https://owned.invalid/upload, method PUT, attempt 0, no redirectFrom; every denied/extra call makes the row non-pass",
+        "Exactly one transport entry; response 200 and no Location; no requested retry, -L, redirect response or retry response; observed retry/redirect counts both zero",
+        "Reuse first-upload gate, exact two retained upload fragments, EOF and response fragments; upload-before-EOF must be positively observed, not inferred from no calls",
+        "Closed parameter closes the actual curl consumer only after first transport upload; transfer must stay live for required body/header work; open parameter must positively execute exactly one accounted writeout",
+        "Keep existing resource cleanup and inner disposal before public settlement; response dispose and transport cleanup must precede nested curl settlement; strengthen event order/count recording without sleep or rescue",
+        "Retain original required file bytes and independent stderr; missing transport/guest/writeout positive is invalid or UNPROVED, never a cancellation pass",
+        "Do not launch closed parameter if separately authorized revised positive is not valid/pass; preserve every new attempt separately"
+      ],
+      "semanticDeltaDisclosure": "Two host ceilings increase; this is not unchanged input or proof of zero-host-cap support. Guest source, argv, bytes, output expectations and original lifetime/budget controls remain unchanged. Added admission counters are a separately approved instrumentation/assertion change.",
+      "notProposed": ["No CLI --retry/--max-redirs additions", "No retry/redirect operation", "No source fix", "No zero-cap rejection acceptance test", "No assertion relaxation"]
+    },
+    {
+      "proposalId": "L05-S1",
+      "kind": "explicitly NEW selected-rejection scenario, not original-case migration",
+      "lineageRow": "L05-execution-error",
+      "futureVariantId": "L05-S1-selected-after-command",
+      "fixtureBindingIdentity": "Retain original L05-execution-error fixture branch and Error messages; use separate variantId rather than changing every branch or claiming unchanged scenario",
+      "precondition": "ROOT explicitly requests this new scenario and independent reviewer agrees its source-selected diagnostic binding; no permission inferred from this proposal",
+      "inertSourceDelta": {"before": "owned-guest", "after": "owned-guest\n)", "addedBytesHex": "0a29"},
+      "guestSourceUnchanged": "guests/precedence.ajs.data",
+      "guestArgs": [],
+      "stdinHex": "",
+      "errorMessagesUnchanged": {"executionError": "execution:L05-execution-error", "cleanupError": "cleanup:L05-execution-error"},
+      "unchangedPublicExpectation": {"publicKind": "rejection", "identity": "executionError", "stdout": "admitted\n", "cleanupFailureObserved": "cleanupError", "diagnosticSinkRejectedWithExecutionIdentity": true, "cleanupDoneBeforePublicSettlement": true},
+      "newExactSelectorExpectation": {
+        "attemptedDiagnostic": "shell: Expected command at offset 12\n",
+        "diagnosticCount": 1,
+        "externalAcceptedStderr": "",
+        "publicHasResult": false,
+        "callerAborted": false,
+        "selectedGuestStatus": 1,
+        "requiredOrder": ["original nested safejs status1", "resource release done", "recorded cleanup rejection", "new exact syntax diagnostic host-sink invocation", "same executionError thrown by that sink", "public executionError identity"]
+      },
+      "sourceProof": ["src/shell/parser.ts:540 ends the first input unit on newline", "src/shell/parser.ts:722 starts the next unit at the next offset", "src/shell/parser.ts:681 rejects ) as Expected command at offset12", "src/shell/types.ts:55 constructs ShellSyntaxError", "src/shell/shell.ts:154 advances only after first command unit completes", "src/shell/shell.ts:165 handles ShellSyntaxError and line176 writes its exact diagnostic outside ordinary runtime command conversion", "src/shell/shell.ts:96 preserves that selected rejection after registered drain"],
+      "negativeControls": [
+        "Original 19da row already proves same guest/sinks/cleanup without new selector does not establish executionError as public; retain its FAIL unchanged",
+        "Existing caller-error and cleanup-only controls remain distinct history; no counts imported or claimed freshly rerun",
+        "Require actual engine run, nested status1, exact additional attempted diagnostic and same-object throw at that sink; a caller flag or error message alone cannot mark selected=true",
+        "Any missing selector, earlier stop, altered diagnostic bytes, cleanup after public, caller abort or additional output makes the proposed row non-pass; do not widen regex or change the source after execution"
+      ],
+      "semanticDeltaDisclosure": "The primary selected rejection would come from a new syntax-diagnostic host sink, not from preserving the original guest throw. This never upgrades original coverage or original FAIL to PASS.",
+      "notProposed": ["No parseShell/operation/cleanup grants to guest", "No direct fabricated ShellLimitError", "No artificial delay or cleanup holder", "No new caller signal", "No expectation change to cleanupError"]
+    }
+  ],
+  "unchangedCommonControls": "Original guest3500ms, high200000/low2048 steps, child7000ms, parent9000ms, cohort120000ms, heap256MiB, log1MiB and zero retries; separate regular copies and original import/private/source guards required only after a new explicit release",
+  "stopRule": "No proposal is applied or executed. ROOT owns contract/profile selection; different reviewer verifies. Original evidence and NO-PROMOTION remain."
+}

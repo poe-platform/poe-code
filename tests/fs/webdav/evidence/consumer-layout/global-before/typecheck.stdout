@@ -1,0 +1,18 @@
+
+> virtual-bash@0.0.0 typecheck
+> tsc --noEmit
+
+tests/fs/webdav/consumer/consumer.test.ts(92,79): error TS2353: Object literal may only specify known properties, and 'compareEntry' does not exist in type 'WebDavFileSystemOptions'.
+tests/fs/webdav/consumer/consumer.test.ts(113,77): error TS2353: Object literal may only specify known properties, and 'compareEntry' does not exist in type 'WebDavFileSystemOptions'.
+tests/fs/webdav/consumer/consumer.test.ts(129,74): error TS2353: Object literal may only specify known properties, and 'compareEntry' does not exist in type 'WebDavFileSystemOptions'.
+tests/fs/webdav/consumer/example.ts(21,74): error TS2353: Object literal may only specify known properties, and 'compareEntry' does not exist in type 'WebDavFileSystemOptions'.
+tests/fs/webdav/consumer/example.ts(21,103): error TS7006: Parameter 'path' implicitly has an 'any' type.
+tests/fs/webdav/consumer/example.ts(21,109): error TS7006: Parameter 'peer' implicitly has an 'any' type.
+tests/fs/webdav/consumer/example.ts(21,115): error TS7006: Parameter 'peerPath' implicitly has an 'any' type.
+tests/fs/webdav/consumer/example.ts(22,13): error TS2339: Property 'signal' does not exist on type '{}'.
+tests/fs/webdav/consumer/example.ts(23,38): error TS2345: Argument of type 'WebDavFileSystemOptions' is not assignable to parameter of type 'FileSystem'.
+  Type 'WebDavFileSystemOptions' is missing the following properties from type 'FileSystem': capabilities, readFile, writeFile, appendFile, and 9 more.
+tests/fs/webdav/consumer/example.ts(24,13): error TS2339: Property 'signal' does not exist on type '{}'.
+tests/fs/webdav/consumer/example.ts(26,13): error TS2339: Property 'signal' does not exist on type '{}'.
+tests/fs/webdav/consumer/example.ts(29,13): error TS2339: Property 'signal' does not exist on type '{}'.
+tests/fs/webdav/consumer/example.ts(31,13): error TS2339: Property 'signal' does not exist on type '{}'.

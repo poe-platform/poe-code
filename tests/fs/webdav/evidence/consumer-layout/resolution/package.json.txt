@@ -1,0 +1,77 @@
+{
+  "name": "virtual-bash",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Extensible virtual shell with pluggable filesystems and streaming commands",
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./contracts": {
+      "types": "./dist/contracts/index.d.ts",
+      "import": "./dist/contracts/index.js"
+    },
+    "./contracts/*": {
+      "types": "./dist/contracts/*.d.ts",
+      "import": "./dist/contracts/*.js"
+    },
+    "./commands/network": {
+      "types": "./dist/commands/network/index.d.ts",
+      "import": "./dist/commands/network/index.js"
+    },
+    "./commands/metadata": {
+      "types": "./dist/commands/metadata/index.d.ts",
+      "import": "./dist/commands/metadata/index.js"
+    },
+    "./commands/archive": {
+      "types": "./dist/commands/archive/index.d.ts",
+      "import": "./dist/commands/archive/index.js"
+    },
+    "./commands/table-text": {
+      "types": "./dist/commands/table-text/index.d.ts",
+      "import": "./dist/commands/table-text/index.js"
+    },
+    "./fs/s3": {
+      "types": "./dist/fs/s3/index.d.ts",
+      "import": "./dist/fs/s3/index.js"
+    },
+    "./fs/webdav": {
+      "types": "./dist/fs/webdav/index.d.ts",
+      "import": "./dist/fs/webdav/index.js"
+    },
+    "./fs/readonly": {
+      "types": "./dist/fs/readonly/index.d.ts",
+      "import": "./dist/fs/readonly/index.js"
+    },
+    "./fs/mount": {
+      "types": "./dist/fs/mount/index.d.ts",
+      "import": "./dist/fs/mount/index.js"
+    },
+    "./fs/overlay": {
+      "types": "./dist/fs/overlay/index.d.ts",
+      "import": "./dist/fs/overlay/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "benchmark": "node --import tsx benchmarks/run.ts",
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc --noEmit",
+    "test": "node --import tsx --test \"tests/**/*.test.ts\"",
+    "test:contracts": "node --import tsx --test \"tests/contracts/**/*.test.ts\""
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.1",
+    "tsx": "^4.23.12",
+    "typescript": "5.9"
+  }
+}

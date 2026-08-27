@@ -434,7 +434,7 @@ authority still participates in normal shared negotiation. The post-callback
 resource queries preserve built-in alias proof without recursively invoking
 the public negotiation method. Query errors and cancellation still propagate.
 
-`tests/fs/webdav/consumer/example.ts` is a typed, public-package-only integration:
+`tests/fs/webdav/consumer/example.mts` is a typed, public-package-only integration:
 an application resolver maps recognized views to their actual backing filesystem
 and followed path, then compares genuine scoped metadata. Its accompanying
 consumer runs existing-target `cp` and `mv` in both directions over serialized

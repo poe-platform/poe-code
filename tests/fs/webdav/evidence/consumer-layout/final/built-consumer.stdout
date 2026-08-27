@@ -1,0 +1,88 @@
+TAP version 13
+# Subtest: consumer resolves the built public package, not TypeScript source
+ok 1 - consumer resolves the built public package, not TypeScript source
+  ---
+  duration_ms: 0.431708
+  type: 'test'
+  ...
+# Subtest: built public consumer: existing-target cp to-remote through actual serialized HTTP
+ok 2 - built public consumer: existing-target cp to-remote through actual serialized HTTP
+  ---
+  duration_ms: 49.233083
+  type: 'test'
+  ...
+# Subtest: built public consumer: existing-target cp from-remote through actual serialized HTTP
+ok 3 - built public consumer: existing-target cp from-remote through actual serialized HTTP
+  ---
+  duration_ms: 18.914084
+  type: 'test'
+  ...
+# Subtest: built public consumer: existing-target mv to-remote through actual serialized HTTP
+ok 4 - built public consumer: existing-target mv to-remote through actual serialized HTTP
+  ---
+  duration_ms: 16.684209
+  type: 'test'
+  ...
+# Subtest: built public consumer: existing-target mv from-remote through actual serialized HTTP
+ok 5 - built public consumer: existing-target mv from-remote through actual serialized HTTP
+  ---
+  duration_ms: 14.271625
+  type: 'test'
+  ...
+# Subtest: built public consumer: cp overlapping backing alias preserves bytes
+ok 6 - built public consumer: cp overlapping backing alias preserves bytes
+  ---
+  duration_ms: 8.972292
+  type: 'test'
+  ...
+# Subtest: built public consumer: absent authority refuses existing-target cp
+ok 7 - built public consumer: absent authority refuses existing-target cp
+  ---
+  duration_ms: 10.654583
+  type: 'test'
+  ...
+# Subtest: built public consumer: mv overlapping backing alias preserves bytes
+ok 8 - built public consumer: mv overlapping backing alias preserves bytes
+  ---
+  duration_ms: 7.15675
+  type: 'test'
+  ...
+# Subtest: built public consumer: absent authority refuses existing-target mv
+ok 9 - built public consumer: absent authority refuses existing-target mv
+  ---
+  duration_ms: 8.370291
+  type: 'test'
+  ...
+# Subtest: built public constructor callback propagates EACCES before content
+ok 10 - built public constructor callback propagates EACCES before content
+  ---
+  duration_ms: 3.146916
+  type: 'test'
+  ...
+# Subtest: built public constructor callback propagates abort before content
+ok 11 - built public constructor callback propagates abort before content
+  ---
+  duration_ms: 2.695833
+  type: 'test'
+  ...
+# Subtest: built public constructor distinct cannot override serialized protocol alias proof
+ok 12 - built public constructor distinct cannot override serialized protocol alias proof
+  ---
+  duration_ms: 2.696542
+  type: 'test'
+  ...
+# Subtest: built public complete backing identities retain precedence without callback invocation
+ok 13 - built public complete backing identities retain precedence without callback invocation
+  ---
+  duration_ms: 0.309
+  type: 'test'
+  ...
+1..13
+# tests 13
+# suites 0
+# pass 13
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 219.725166

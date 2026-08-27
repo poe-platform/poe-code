@@ -32,7 +32,7 @@ node tests/fs/webdav/consumer/run.mjs
 
 The runner archives the recorded committed source, copies current owned backend
 tests, and uses development tools already installed in the repository. It writes
-only to a fresh system temporary directory and prints its path. It never builds shared
+only to a fresh `/tmp` directory and prints its path. It never builds shared
 `dist`. The public declaration checks in `types.mts` assert callback optionality,
 the exact receiver/arguments/result, bidirectional contract assignability and
 rejection of an incompatible receiver. Under its isolated package directory the

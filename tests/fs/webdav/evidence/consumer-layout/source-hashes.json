@@ -1,0 +1,22 @@
+{
+  "source": [
+    {
+      "path": "src/fs/webdav/index.ts",
+      "sha256": "9a19fb0e61bf9ef07d97881bb93e30ba21491e580ef5e58ab0e80bb5f398d5e4"
+    },
+    {
+      "path": "src/fs/webdav/resource-id.ts",
+      "sha256": "ee5720f77a352503368d672caaf5237e45863bde88cf69b947d14178fcda49f2"
+    },
+    {
+      "path": "src/fs/webdav/webdav.ts",
+      "sha256": "36e9b5eb6f012df25bd5bb529d29716400f53a6ffa593d75b78f19f77c791b22"
+    },
+    {
+      "path": "src/fs/webdav/xml.ts",
+      "sha256": "c5b2798ef847acb480be70348d59bb0bc0a0d80624c313880cd53ff1b293dec1"
+    }
+  ],
+  "currentHead": "ea604e76d179f516a93aa29cbebcc425fdecf5c1",
+  "status": " M src/commands/streams.ts\n M src/commands/text.ts\n M src/fs/webdav/README.md\n M src/shell/runtime.ts\n M tests/fs/webdav/consumer/README.md\n D tests/fs/webdav/consumer/consumer.test.ts\n D tests/fs/webdav/consumer/example.ts\n D tests/fs/webdav/consumer/provider.ts\n?? tests/commands/core-regression-stress/env-accounting.mjs\n?? tests/commands/core-regression-stress/performance.mjs\n?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/\n?? tests/commands/search-stress/.native-1m4O1e/\n?? tests/commands/table-text-stress/shared-stdin-review/\n?? tests/fs/authority-trust-review/\n?? tests/fs/webdav/consumer/consumer.test.mts\n?? tests/fs/webdav/consumer/example.mts\n?? tests/fs/webdav/consumer/provider.mts\n?? tests/fs/webdav/consumer/run.mjs\n?? tests/fs/webdav/consumer/types.mts\n?? tests/shell/expanded-gaps-cases.ts\n?? tests/shell/expanded-gaps-env.test.ts\n?? tests/shell/expanded-gaps-fallback.test.ts\n?? tests/shell/expanded-gaps-harness.ts\n?? tests/shell/expanded-gaps-native.json\n?? tests/shell/expanded-gaps-parameter.test.ts\n"
+}

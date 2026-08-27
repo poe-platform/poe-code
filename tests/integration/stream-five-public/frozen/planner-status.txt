@@ -1,0 +1,219 @@
+INDEPENDENT PUBLIC/DEFAULT VERIFIER LEAF — PHASE ONE ONLY
+Prepared 2026-08-27; observation clock 2026-08-27T07:20:08Z.
+Repository: /Users/kjopek/Workspace/safe-bash; package name virtual-bash.
+State: READ-ONLY SCOUT/PREPARATION COMPLETE; WAITING FOR ROOT ASSIGNMENT.
+No delegation. No repository edits, staging, commits, product execution,
+build/pack/install/download, native execution or network writes performed.
+Only this reviewer's two requested /tmp handoff documents are written.
+
+OBSERVED STATE, NOT ACCEPTANCE
+Initial HEAD: 7617e21882c8319be94937bfd0633b1796012ace.
+The shared tree is dirty: mount/overlay/readonly/S3 work, FS tests, time-env
+source/tests, native scratch and regex review evidence are foreign work.
+Index was empty at first inspection. Exact root/source/config paths inspected
+had no current diff, but that does not imply whole-tree cleanliness or ownership.
+tests/integration/stream-five-public did not exist at inspection. Do not create
+it without root's fresh existence/ownership check and explicit assignment.
+Read AGENTS.md and ../AGENTS.md. No additional applicable nested AGENTS found.
+Read /tmp/safe-bash-stream-five-public-scout-needs-root.txt: scout reports no
+uncommitted Arch root delta, identifies committed b1939d7 RegexExecutionOptions
+export to preserve, and requires a fresh author assignment. This is evidence of
+that scout's observation, not this leaf granting or assuming an ownership transfer.
+
+EXPOSURE / EXISTING API RECORD
+Read existing source module entrypoints, documented command profiles, contracts,
+root exports/aggregate, shell public types, split options and stream shared
+limits/session prefix for control preparation. No new integration author code
+or author integration tests were consulted. Existing independent source handoff
+and prior four-stream public report/helpers were read, not adopted as new inputs.
+Current src/index.ts lacks both new module exports; package.json lacks both new
+subpaths; src/plugins/index.ts lacks both families. New root API not yet verified.
+Actual source entrypoint exports (not invented per-command root factories):
+  src/commands/stream-format/index.ts:
+    createStreamFormatCommands, streamFormatCommands;
+    StreamFormatCommandsOptions, StreamFormatLimits (type exports).
+  src/commands/split/index.ts:
+    createSplitCommands, splitCommands; SplitCommandsOptions, SplitLimits.
+Options in each: replace?: boolean; limits?: Partial<respective Limits>.
+StreamFormatLimits: maxInputBytes, maxOutputBytes, maxRecordBytes, maxChunkBytes,
+maxFiles, maxSteps, maxArgumentBytes, maxNumericDigits (all number).
+SplitLimits: maxInputBytes, maxOutputBytes, maxFiles, maxBufferBytes,
+maxChunkBytes, maxArgumentBytes, maxSuffixLength, maxSteps (all number).
+Aggregate family property names remain UNRELEASED, not inferred here.
+Existing public contracts used later: ByteSource = AsyncIterable<Uint8Array>;
+ByteSink.write(chunk): Promise<void>; CommandDefinition; VirtualShellPlugin;
+FileSystem; Shell; CommandRegistry; MemoryFileSystem; RealFileSystem;
+createBytePipe; collectBytes; toByteSource; ShellLimitError; FsError.
+Shell.exec returns stdoutBytes/stderrBytes as well as terminal strings.
+Shell options accept fs/commands/env/limits; exec accepts signal/stdin/stdout.
+CommandContext.invoke is optional and must be narrowed, never cast away.
+
+PRE-EXPOSURE SHA256 PINS
+package.json 82858a418d8974cc53ec4b9eff231e49415b51224490a78baad61f3da291eb22
+tsconfig.json 31a3ef68430276b806701fe5d24d86aa7bb3d1630d79b4d5f381d6cd2c2a4c08
+tsconfig.build.json b57d3e5aab1f1f7ab7a70f275183ea6de255e65a2c40a0047c08d97769a1a16e
+src/index.ts 59feca270ddb39073148032b6d53225b932979faaeb5f244158eff44bd347ff2
+src/plugins/index.ts df8834110688f62ce16f06d273f783b33e7b0fdf4944e3083da4d360b4fa5045
+src/commands/stream-format/index.ts 4a3da605ea75a71fd8f409654e2c1f42b6daeb9d0194d303e52eb3f71a42b4e6
+src/commands/stream-format/shared.ts a75bf6c98f5a4ecc76bbf07cbc41d220e957d72d8ceef770c51c950910f0edcb
+src/commands/split/index.ts 95807b8fc31e38310915a3b5ea593a1ed31ed6b19bbc29ed104150f049d89e60
+src/commands/split/options.ts d85d22d1c2e4afb1641eb3cff48ccbf5e487e8f56fdca2dacb59c1b323e771df
+
+FROZEN INDEPENDENT BYTE INPUTS / EXPECTATIONS, VERSION 1
+These are synthetic manually specified inputs, not new native-oracle rows.
+Freeze before integration-author implementation exposure. Preserve this version
+if a fixture defect is found; require an explicit correction record, not silent
+expectation changes. No run/pass count is claimed. Hex is byte-exact, UTF8 text
+where stated. Fresh MemoryFS per row, cwd /, explicit guest LC_ALL=C/LANG=C;
+create /parts and any fixture input directories in harness setup, not product.
+Unless stated otherwise, status 0, stderr empty, no unlisted filesystem effects;
+split stdout empty and complete output filename/byte set must match exactly.
+
+F01 seq width/default dispatch:
+  argv: seq -w 8 2 12; stdin empty.
+  stdout hex: 30380a31300a31320a (08\n10\n12\n).
+F02 seq exact decimal/default dispatch:
+  argv: seq -s | 0.1 0.2 0.5 (separator is one literal argv element).
+  stdout hex: 302e317c302e337c302e350a (0.1|0.3|0.5\n).
+F03 nl binary/empty/unterminated records:
+  argv: nl -ba -w2 -nrz -s : -v3 -i2
+  stdin hex: 410a0a00ff420d0a5a
+  stdout hex: 30333a410a30353a0a30373a00ff420d0a30393a5a0a
+F04 rev C invalid-UTF8/NUL/CR, final LF normalization:
+  argv: rev; stdin hex: 4100ff420a5a0d
+  stdout hex: 42ff00410a0d5a0a
+F05 rev explicit UTF-8 codepoints, not byte reversal:
+  argv: rev; guest LC_ALL=en_US.UTF-8, LANG=C
+  stdin hex: 41c3a9f09f9982000a
+  stdout hex: 00f09f9982c3a9410a
+F06 unexpand embedded binary/tab boundaries:
+  argv: unexpand -a -t4
+  stdin hex: 20202020412020204220202020430a202020202020202000ff0a
+  stdout hex: 094109420920430a090900ff0a
+F07 split exact byte files:
+  argv: split -b3 --additional-suffix=.bin - /parts/p
+  stdin hex: 00ff410a4243fe0d0a5a
+  files: /parts/paa.bin=00ff41; /parts/pab.bin=0a4243;
+         /parts/pac.bin=fe0d0a; /parts/pad.bin=5a.
+F08 split LF records, named VFS input preserved:
+  argv: split -l2 /input.bin /parts/l
+  /input.bin hex: 41000a0aff420a5a; implicit empty default stdin.
+  files: /parts/laa=41000a0a; /parts/lab=ff420a5a.
+  /input.bin remains byte-identical; no stdin acquisition required.
+F09 all five default commands in one actual live pipeline:
+  seq 8 2 12 | nl -ba -w1 -s '    ' | rev | unexpand -a -t4 | split -b5 - /parts/all
+  files: /parts/allaa=380920310a; /parts/allab=3031092020;
+         /parts/allac=320a323109; /parts/allad=2020330a.
+F10 custom byte producer plus default pipeline, reused input allocation:
+  producer | rev | rev | unexpand -a -t4 | nl -ba -w1 -s : | split -b7 - /parts/live
+  producer bytes hex: 2020202000ff410a422020430a
+  files: /parts/liveaa=313a0900ff410a; /parts/liveab=323a422020430a.
+  producer awaits context.stdout.write before overwriting the same allocation;
+  use repeating chunk lengths 1,3,2,1 to split whitespace/records/binary boundaries.
+F11 empty split has no fabricated output files:
+  argv: split -b3 - /parts/empty; stdin empty; /parts stays empty.
+
+F07 and F10 also run using public RealFileSystem with a unique explicit /tmp
+root and exact byte/namespace readback; setup roots are harness effects. Reusing
+these inputs across adapters is execution multiplicity, not new distinct corpus.
+F10 additionally redirects concatenated output files into a VFS result and reads
+it back; expected hex 313a0900ff410a323a422020430a. Shell commands themselves
+never get implicit host paths. No remote-service or all-backend claim.
+
+FROZEN CONTROL INTENT / BOUNDARIES, NOT YET EXECUTED
+C01 APIs/registry: import actual packed root and both new package subpaths.
+  Compare exported factories/types; measure createAgentCommands and initialized
+  Shell registries before registering harness producer/sinks. Assert sorted
+  historical 60-name set plus exactly seq/nl/rev/unexpand/split, once each, total
+  65 only if measured. Historical names are preserved by the prior runtime JSON
+  SHA256 92923cbd2e15f468416ec5d15e161ffae41e400c328c7eab234e23b0669f3a5f.
+  Require old tac/expand/fold/strings and old subpath unchanged/importable.
+  curl/SafeJS absent by default; existing explicit optional factories remain.
+  Current 60 baseline is historical evidence, not a fresh runtime measurement.
+C02 strict types: NodeNext/ES2023, strict, noUncheckedIndexedAccess,
+  exactOptionalPropertyTypes, verbatimModuleSyntax, skipLibCheck:false.
+  Positive root+subpath consumers exercise all listed options/limits and actual
+  ByteSource/ByteSink/CommandDefinition/FileSystem/Shell types, no casts/shims,
+  ts-ignore/expect-error/any or source path aliases. Separate negative fixtures:
+  root stream maxInputBytes='1024'; subpath stream replace='yes';
+  root split maxFiles=false; subpath split maxChunkBytes=[]; each must produce
+  exactly its intended TS2322 and no missing-module/declaration diagnostics.
+  Add aggregate option positive/negative controls only after root confirms keys;
+  record as the same typing cohort, not invented pre-released API evidence.
+C03 BytePipe reuse/backpressure: highWaterMark=1; write 00ff41, await admission,
+  overwrite producer allocation; enqueue 42 and prove blocked before draining.
+  Drain exactly 00ff4142. Abort a blocked write with the original unique reason.
+C04 live Shell sink: producer | rev, guest C, pipeHighWaterMark=1, input
+  (00ff410a) repeated 65536 times; exact output (41ff000a) repeated 65536 times.
+  Reuse producer buffers only after awaited writes. A gated slow sink retains
+  chunks; verify before/after delay and after whole execution, one active write,
+  exact bytes, unfinished producer while sink gate closed. Gate via explicit
+  promises/entry acknowledgments, not timing-only success; bounded watchdog.
+C05 cancellation: default rev | unexpand -a -t4 with a blocked sink, both plain
+  Error and FsError('ENOENT') reasons; await entry then abort, assert same reason,
+  release cooperative gates in finally and observe late rejection. For split,
+  forwarding public FileSystem records received signals; abort after one awaited
+  completed segment on input 00ff410a4243, -b3. Preserve completed paa=00ff41;
+  block the next publication before backing write and verify no false rollback.
+  Do not require context.signal object identity where a derived signal is valid.
+C06 quotas: family rev input 41420a with maxInputBytes=3 versus 2 (maxChunkBytes=3);
+  family seq 1 2 output 310a320a with maxOutputBytes=4 versus 3; valid cases exact
+  status0/empty stderr, limits status1 with command-prefixed limit meaning,
+  already published output retained and recorded. Separate split maxFiles=1,
+  input 00ff410a4243, -b3: status1, paa=00ff41 retained, no second successful
+  output; stderr must identify split/file limit, not blanket errno equivalence.
+  Shell maxOutputBytes=4 versus3 for seq 1 2 separately requires actual
+  ShellLimitError('maxOutputBytes') rejection at the lower limit, not family status.
+  Family budgets reset per command; shell budget is shared. Do not conflate them.
+C07 dispatch/replacement: real Shell wrapper uses context.invoke literal argv
+  for F02; middleware records seq dispatch. Check actual shared command budget
+  wrapper+seq=2 passes, limit1 rejects; no stub-only proof. Public plugin collision
+  against preexisting rev/split must leave registry intact; intentional replace
+  succeeds with no duplicates, aggregate uses one top-level replacement policy.
+C08 split error partial effects: a transparent VFS wrapper throws typed ENOSPC
+  before second output publication after paa=00ff41 is complete, input F07 without
+  additional suffix. Require status1, split diagnostic retaining failing path
+  and error meaning, completed paa preserved, no cleanup deletion. Any partially
+  begun second file is recorded against the precisely frozen injected boundary;
+  finalize wrapper boundary before implementation run, not from observed output.
+
+PACKED/MOVED/OFFLINE PLAN — NO RUN AUTHORIZED IN PHASE ONE
+Root must supply actual author CLOSED confirmation plus committed source marker.
+Archive that immutable commit (not dirty working tree), capture source and harness
+trees/hashes separately, and copy existing compiler/type tooling with inventories.
+Build only isolated snapshot with its actual declared config/command; no root
+dist, no npm lifecycle build chain. Verify no lifecycle hooks before pack:
+prepack/prepare/postpack/preinstall/install/postinstall and any additional
+declared lifecycle script. Product runtime/optional/peer/bundled dependency
+closures must be empty. Assert actual tar listing/manifest/export targets and all
+JS/declaration closure paths; no src/tests/node_modules/symlink escape in package.
+Copy completed tarball to a different unique consumer root outside repository;
+install/extract only locally offline after authorization, then deny repository
+AND build-snapshot reads during plain Node runtime and strict consumer checks.
+No TSX, TS source loader, source fallback, external paths or ambient NODE_OPTIONS.
+Record import realpaths/edges and compiler resolution; all product imports are
+the consumer's packed dist JS/d.ts, development types separately copied/hashed.
+Current Node v22.22.2; TS5.9.3, @types/node22.20.1, undici-types6.21.0 locally
+available. Darwin25.4.0 arm64. sandbox-exec exists but is not yet tested here.
+OS deny-network and deny-source-read controls must actually fail as expected;
+no network connection attempts outside enforced denial. If unavailable, report
+boundary unavailable, not pretend resolver hooks equal OS denial.
+Historical npm10.9.7 prepare canary exit91 is preserved in old evidence; flags
+alone are NOT a lifecycle proof. Current npm version and implementation hash
+will be measured later; do not extrapolate the old canary to all npm versions.
+Important current-source compatibility: old boundary.mjs bans worker_threads,
+but committed regex client imports Worker. Do NOT blindly copy that ban or call
+its expected import failure a new stream defect. Permit inspected legitimate
+builtin workers while requiring any executed product worker entry to be packed
+dist; deny child_process/cluster fallback and all external product modules.
+
+PRESERVED EVIDENCE AND SCOPE
+Old tests/integration/stream-inspection-public remains a separate unmodified
+module/report: 27 bounded runtime checks, measured60, strict types, old canary and
+helper corrections. Its historical result is not a current full gate.
+Existing five-source independent commit d1a425d15bf98217c0d2bf74b2f8a0d35620982a
+binds 72f780d0dbe73f71702c89c33d29aa614170c403: semantic164/164,
+strict124/164, remaining40 stderr differences preserved, not full GNU parity.
+GNU9.7-on-Darwin and Apple rev are distinct profiles; neither GNU/Linux nor
+util-linux rev was established. No new native corpus or product feature added.
+No runtime/default65 support, superiority, completion, full gate or72-hour claim.

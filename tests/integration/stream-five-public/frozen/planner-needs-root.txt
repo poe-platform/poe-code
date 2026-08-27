@@ -1,0 +1,107 @@
+ROOT HANDOFF / REQUIRED RELEASES — FIRST PHASE ONLY
+Verifier: independent public/default LEAF; no delegation; 2026-08-27.
+Read /tmp/safe-bash-stream-five-public-reviewer-status.txt for frozen version1
+byte fixtures, control requirements, source exposure and interface hashes.
+State: WAITING; no assigned repository write scope, no acceptance execution.
+
+1. OWNERSHIP: Recheck tests/integration/stream-five-public existence and competing
+   ownership, then release exact owned subtree (if still appropriate). No source,
+   author tests, root exports/package/docs/config/release changes belong to me.
+   Confirm fresh integration author assignment after scout Arch handoff; preserve
+   committed RegexExecutionOptions and concurrent dirty work. Scout reports no
+   root Arch dirt, not universal cleanliness or transfer authority.
+
+2. API: Confirm exact root/subpath exports and aggregate family option keys.
+   Existing accepted API names are createStreamFormatCommands,
+   streamFormatCommands, StreamFormatCommandsOptions, StreamFormatLimits,
+   createSplitCommands, splitCommands, SplitCommandsOptions, SplitLimits.
+   Proposed package subpaths are virtual-bash/commands/stream-format and
+   virtual-bash/commands/split, currently absent; verify actual author manifest.
+   No invented per-command factories. Preserve the old stream-inspection module.
+   Author owns targeted old count/list fixture updates; retain original60 tests
+   and their historical evidence, justify exactly five added names/65, no broad
+   rebaseline. I measure actual compiled factory and actual Shell registry later.
+
+3. FINAL GATE: Need actual integration author CLOSED confirmation and root's
+   exact committed source SHA, plus a durable release binding. Mutable worktree
+   or uncommitted author snapshot never authorizes final acceptance. Findings go
+   to root-assigned fixers, not reviewer edits to author code. After fixes, root
+   must reclose author/fixer and release a new immutable marker.
+
+4. QUALIFIED RELEASE WIRING: Existing package scripts do not wire mandatory
+   qualified release. Author/root own this work; no CI vendor is inferred.
+   Preserve cold-config 0c8cf157971e8e8e6aa8bb0e70f97240c41bc609 and Dirac's
+   full-gate configuration; outside explicitly assigned package/release files,
+   all root configuration remains read-only.
+   Mandatory existing metadata command (C/UTC at Node launch):
+     LC_ALL=C LANG=C TZ=UTC node tests/commands/metadata-stress/canonical-env/runner.mjs release
+   Setup command (before product passes):
+     LC_ALL=C LANG=C TZ=UTC node tests/commands/metadata-stress/canonical-env/runner.mjs check
+   Separate existing dev control:
+     LC_ALL=C LANG=C TZ=UTC node --test tests/commands/metadata-stress/canonical-env/setup.test.mjs
+   This is GNU-coreutils-9.7-Darwin-arm64-pinned-local-builds, not portable GNU.
+   Runner pins 15 assets:14 under metadata-stress/.oracle, plus distinct absolute
+   benchmark stat. Missing/hash/profile problems produce exit78/zero executed
+   tests; release-qualified success separately requires318/318 and22 native rows.
+   No current prerequisite qualification or318 result is claimed by this scout.
+
+5. CURRENT STREAM BINDING: Preserve unchanged historical exact release command:
+     node tests/commands/stream-next-stress/run-source.mjs --release-file tests/commands/stream-next-stress/evidence/final/release.json --source-commit 72f780d0dbe73f71702c89c33d29aa614170c403 --verify-release
+   That artifact verifies72f780d, NOT the future integration commit. Supply the
+   exact committed current integration release command/profile/artifact, or a
+   reproducible current-source-qualified release that honestly records source
+   binding. Never overwrite/relabel historical release.json. Existing native
+   corpus/profile/strict-vs-semantic distinctions remain unchanged. A portable
+   optional profile may be separate but cannot replace mandatory qualification.
+
+6. ISOLATED EXACT-COMMAND REPLAY: Confirm permission for later git-archive/build/
+   pack and local offline consumer preparation, with copied existing tooling
+   (no download), OS network denial and repository/snapshot read denial. Execute
+   author/root's exact COMMITTED release command unchanged in a positive isolated
+   snapshot and retain raw stdout/stderr/status, source/harness/Node/native hashes,
+   environment, asset overlay inventory and revision binding. Running just its
+   child helper does not prove the committed outer release command propagates
+   failure. For a separate negative snapshot omit one copied required asset;
+   run the same command and require nonzero before any product passes. Also
+   replace a copied pinned asset with inert wrong bytes to exercise wrong-pin
+   rejection; never change original oracle assets or use existing native scratch.
+   Use no output filename argument that writes to original canonical evidence.
+   Tests may create scratch only inside isolated snapshots, not the shared repo.
+   Absolute benchmark-stat access is read-only and currently host-specific;
+   ask root if strict exclusive-repo-read policy needs an explicit later exception
+   for its mandatory original path. No original host oracle access executed now.
+
+7. HARNESS PREFLIGHT: Prior packed verifier's blanket worker_threads import ban
+   is stale against committed regex worker imports. Confirm a bounded successor
+   boundary allowing legitimate builtins/packed workers, still no native process,
+   external runtime dependency or TS/source fallback. Do not modify the old helper.
+   npm pack --ignore-scripts alone is insufficient: retain old npm10.9.7 prepare
+   canary and assert absent lifecycle hooks before any real package operation.
+   Revalidate OS boundary and current tooling versions; an unavailable boundary
+   is a setup limitation, not an accepted offline/moved result. Consumer tarball
+   must actually be copied away; repo and build-snapshot access denied afterward.
+
+8. CORPUS DISCIPLINE: Version1 fixes11 distinct small byte fixtures plus bounded
+   control intentions; no product/native execution and no pass count yet. Preserve
+   originals when refining helper plumbing and freeze exact injected FS failure
+   timing before first author implementation run. If a case conflicts with an
+   existing contract, report it for explicit resolution instead of silently
+   changing expected bytes or lowering diagnostics assertions. Type negatives
+   require intended TS2322, not missing declarations. No expanded framework,
+   new native corpus, broad suites, runtime deps or native artifact commits.
+
+Useful next root response: exact owned subtree + actual API/property names +
+author identity/status + committed-source gate protocol + exact release command
+and current-source native profile binding. Until then this leaf remains read-only.
+
+POST-FREEZE OBSERVATION — 2026-08-27T07:23:16Z
+Frozen status/input document SHA256:
+c8b778b407a8cdfece9ca87676f2adf762c3127d9c52499f057fe6df71c1ce65
+Independent literal/hex and segment-concatenation consistency checks passed;
+these are preparation checks, NOT product/native tests or acceptance passes.
+HEAD advanced concurrently to333c7bb31715b18947aa3dd921cc73e530d3d9b7.
+Final scoped status now reports package.json and src/plugins/index.ts modified;
+index still empty. Those new implementation diffs were NOT read by this verifier.
+The earlier clean root-path observation is historical only. Root must resolve
+current author ownership and committed release; do not infer permission/closure
+from the earlier scout. Frozen status/input text is retained byte-for-byte.

@@ -1,0 +1,97 @@
+{
+  "time": "2026-08-27T19:25:56.498Z",
+  "platform": "darwin",
+  "arch": "arm64",
+  "node": "v22.22.2",
+  "commands": [
+    {
+      "args": [
+        "--check",
+        "tests/commands/html-to-markdown-independent-20260827/audit-loader.mjs"
+      ],
+      "status": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "--check",
+        "tests/commands/html-to-markdown-independent-20260827/consumer.mjs"
+      ],
+      "status": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "--check",
+        "tests/commands/html-to-markdown-independent-20260827/execute.mjs"
+      ],
+      "status": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "--check",
+        "tests/commands/html-to-markdown-independent-20260827/finalize.mjs"
+      ],
+      "status": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "--check",
+        "tests/commands/html-to-markdown-independent-20260827/frozen-cases.mjs"
+      ],
+      "status": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "--check",
+        "tests/commands/html-to-markdown-independent-20260827/semantic-audit.mjs"
+      ],
+      "status": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "--check",
+        "tests/commands/html-to-markdown-independent-20260827/setup.mjs"
+      ],
+      "status": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "--check",
+        "tests/commands/html-to-markdown-independent-20260827/supplemental-consumer.mjs"
+      ],
+      "status": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "--check",
+        "tests/commands/html-to-markdown-independent-20260827/verify.mjs"
+      ],
+      "status": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "tests/commands/html-to-markdown-independent-20260827/verify.mjs"
+      ],
+      "status": 0,
+      "stdout": "{\"verified\":true,\"artifactFiles\":\"not yet sealed\",\"files\":576,\"candidate\":\"2272feb92f8c0f151385f59f79eee004c50d14b8\",\"freeze\":\"e761af2ed973e07b9b8cf09aae68ccbfbd475ca1\",\"packedFiles\":137,\"sourceBindings\":90,\"receipts\":229,\"productLoads\":6350,\"killedIncludingSupervisorControl\":6,\"frozen\":\"119 PASS / 6 retained FAIL\",\"semantic\":\"1 PASS / 4 source-semantic FAIL\",\"comparison\":\"16 rerun; 5 exact / 11 classified differences\",\"writes\":0}\n",
+      "stderr": ""
+    }
+  ]
+}

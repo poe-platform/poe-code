@@ -1,0 +1,1833 @@
+{
+  "freeze": "e761af2ed973e07b9b8cf09aae68ccbfbd475ca1",
+  "rows": [
+    {
+      "id": "L01-empty",
+      "kind": "literal",
+      "expected": "",
+      "inputSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "original": "PASS",
+      "actual": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "observationOnly": false,
+      "outcome": "PASS"
+    },
+    {
+      "id": "L02-heading-paragraph",
+      "kind": "literal",
+      "expected": "## Title\n\nHello **world**\\.\n",
+      "inputSha256": "09b7179b5c7fad5fd52647dcfad0083f2b79c40fb629921aec3ab6b324d380d0",
+      "original": "FAIL",
+      "actual": {
+        "exitCode": 0,
+        "stdout": "## Title\n\nHello **world**.\n",
+        "stderr": ""
+      },
+      "observationOnly": false,
+      "correction": "PASS",
+      "outcome": "FAIL"
+    },
+    {
+      "id": "L03-inline-boundaries",
+      "kind": "literal",
+      "expected": "one *two* three\n",
+      "inputSha256": "2cb4e2cc08ca9bd83b742e074ebcb459681cc261e4426f85413ed34980714f64",
+      "original": "PASS",
+      "actual": {
+        "exitCode": 0,
+        "stdout": "one *two* three\n",
+        "stderr": ""
+      },
+      "observationOnly": false,
+      "outcome": "PASS"
+    },
+    {
+      "id": "L04-whitespace",
+      "kind": "literal",
+      "expected": "a b c d\n",
+      "inputSha256": "407b7e36830664c3f83192df3b63efcb08c4c5c0bc256abde3bd92f3c2350a73",
+      "original": "PASS",
+      "actual": {
+        "exitCode": 0,
+        "stdout": "a b c d\n",
+        "stderr": ""
+      },
+      "observationOnly": false,
+      "outcome": "PASS"
+    },
+    {
+      "id": "L05-unknown-entity",
+      "kind": "literal",
+      "expected": "\\&bogus; \\&lt; � � �\n",
+      "inputSha256": "19607f27481be97875e835501ae882674c7cc105fb2deb56b4e588f8eb416e56",
+      "original": "PASS",
+      "actual": {
+        "exitCode": 0,
+        "stdout": "\\&bogus; \\&lt; � � �\n",
+        "stderr": ""
+      },
+      "observationOnly": false,
+      "outcome": "PASS"
+    },
+    {
+      "id": "L06-raw-ordinary-text",
+      "kind": "literal",
+      "expected": "\\<script\\>\\*x\\* \\[y\\]\\(z\\)\n",
+      "inputSha256": "7fc993264e90b17cf773ab1dee1f7c694c8166d3482597103ca9af808fd5e0e8",
+      "original": "FAIL",
+      "actual": {
+        "exitCode": 0,
+        "stdout": "\\<script\\>\\*x\\* \\[y\\](z)\n",
+        "stderr": ""
+      },
+      "observationOnly": false,
+      "correction": "PASS",
+      "outcome": "FAIL"
+    },
+    {
+      "id": "L07-drop-active",
+      "kind": "literal",
+      "expected": "before\n\nafter\n",
+      "inputSha256": "1f1452417fc736e5922223719c8a51f65fd2d50bea3ada66621201ad988fcaa5",
+      "original": "PASS",
+      "actual": {
+        "exitCode": 0,
+        "stdout": "before\n\nafter\n",
+        "stderr": ""
+      },
+      "observationOnly": false,
+      "outcome": "PASS"
+    },
+    {
+      "id": "L08-unterminated-script",
+      "kind": "literal",
+      "expected": "before\n",
+      "inputSha256": "4e588cc544db8cd2091cf1c8373b885ad4ccf13988a083150acd16bdb582cbc7",
+      "original": "PASS",
+      "actual": {
+        "exitCode": 0,
+        "stdout": "before\n",
+        "stderr": ""
+      },
+      "observationOnly": false,
+      "outcome": "PASS"
+    },
+    {
+      "id": "L09-unterminated-comment",
+      "kind": "literal",
+      "expected": "before\n",
+      "inputSha256": "8c814c153892dce48033764c94e8c3d7f4beb278ad56a01060cd82c9ad8e70c9",
+      "original": "PASS",
+      "actual": {
+        "exitCode": 0,
+        "stdout": "before\n",
+        "stderr": ""
+      },
+      "observationOnly": false,
+      "outcome": "PASS"
+    },
+    {
+      "id": "L10-unknown-elements",
+      "kind": "literal",
+      "expected": "ABC\n",
+      "inputSha256": "1daed1c3bd2dc27d61e55ba56be062ccca00ef4b223524fc19e45f97d94dc8c2",
+      "original": "PASS",
+      "actual": {
+        "exitCode": 0,
+        "stdout": "ABC\n",
+        "stderr": ""
+      },
+      "observationOnly": false,
+      "outcome": "PASS"
+    },
+    {
+      "id": "L11-unclosed-elements",
+      "kind": "literal",
+      "expected": "A*B*\n",
+      "inputSha256": "a8241b1ade60a589a6b2143c27ae86b812d8f60e5056b62ed04eb8c74b6d4bda",
+      "original": "PASS",
+      "actual": {
+        "exitCode": 0,
+        "stdout": "A*B*\n",
+        "stderr": ""
+      },
+      "observationOnly": false,
+      "outcome": "PASS"
+    },
+    {
+      "id": "L12-selfclosing",
+      "kind": "literal",
+      "expected": "AB\n",
+      "inputSha256": "967b54e1a7af8d441aed343ee86c388a9fe535cf40e2dac2314ce9f8efa2ca8f",
+      "original": "PASS",
+      "actual": {
+        "exitCode": 0,
+        "stdout": "AB\n",
+        "stderr": ""
+      },
+      "observationOnly": false,
+      "outcome": "PASS"
+    },
+    {
+      "id": "L13-strict-utf8",
+      "kind": "literal",
+      "expected": "Żółw 🐢 文\n",
+      "inputSha256": "fc1ebe0525529e8b1e986a638c77abf2f233dbabece09706f9c5faca84d4f97c",
+      "original": "PASS",
+      "actual": {
+        "exitCode": 0,
+        "stdout": "Żółw 🐢 文\n",
+        "stderr": "",
+        "splitBoundaries": 24
+      },
+      "observationOnly": false,
+      "outcome": "PASS"
+    },
+    {
+      "id": "L14-bom-nul",
+      "kind": "literal",
+      "expected": "A�B\n",
+      "inputSha256": "055d708fe6c42bcd2f4c839b7ec1af458fcff6a24c2d7e6d5b0d1f4330157a54",
+      "original": "PASS",
+      "actual": {
+        "exitCode": 0,
+        "stdout": "A�B\n",
+        "stderr": ""
+      },
+      "observationOnly": false,
+      "outcome": "PASS"
+    },
+    {
+      "id": "L15-first-duplicate",
+      "kind": "literal",
+      "expected": "label\n",
+      "inputSha256": "64938f533f96fd55a69ba34250fddcf14c6589dd80ed8b19c17b186f9897949c",
+      "original": "PASS",
+      "actual": {
+        "exitCode": 0,
+        "stdout": "label\n",
+        "stderr": ""
+      },
+      "observationOnly": false,
+      "outcome": "PASS"
+    },
+    {
+      "id": "L16-invalid-close-raw",
+      "kind": "literal",
+      "expected": "ok\n",
+      "inputSha256": "cd758946eb8fec0f1a794980e756c78151e072cc5fa5a028a57ce714080f447d",
+      "original": "PASS",
+      "actual": {
+        "exitCode": 0,
+        "stdout": "ok\n",
+        "stderr": ""
+      },
+      "observationOnly": false,
+      "outcome": "PASS"
+    },
+    {
+      "id": "L17-rcdata",
+      "kind": "literal",
+      "expected": "\\<b\\>A\n",
+      "inputSha256": "607380dc8e5b7d917fb156679d74f67714efaa1de6684008e81c3cd2726fa457",
+      "original": "PASS",
+      "actual": {
+        "exitCode": 0,
+        "stdout": "\\<b\\>A\n",
+        "stderr": ""
+      },
+      "observationOnly": false,
+      "outcome": "PASS"
+    },
+    {
+      "id": "L18-malformed-tail",
+      "kind": "literal",
+      "expected": "before \\<a href=\"unfinished\n",
+      "inputSha256": "f2a47a98745e6a60f256011727334de3004106c23f088242cb01214e3688fb66",
+      "original": "PASS",
+      "actual": {
+        "exitCode": 0,
+        "stdout": "before \\<a href=\"unfinished\n",
+        "stderr": ""
+      },
+      "observationOnly": false,
+      "outcome": "PASS"
+    },
+    {
+      "id": "L19-plain-code",
+      "kind": "literal",
+      "expected": "```\nA\n B\nC\n```\n",
+      "inputSha256": "6921472e796e1f2dc8ddf6a2f71c28f67984483874c15fe778074159ee96478c",
+      "original": "PASS",
+      "actual": {
+        "exitCode": 0,
+        "stdout": "```\nA\n B\nC\n```\n",
+        "stderr": ""
+      },
+      "observationOnly": false,
+      "outcome": "PASS"
+    },
+    {
+      "id": "U-link-javascript",
+      "kind": "literal",
+      "expected": "label\n",
+      "inputSha256": "5ccb139c8a9cdcc72d96b6fdcc60af84a84624081feffec7d9e7800f8523dde4",
+      "original": "PASS",
+      "actual": {
+        "exitCode": 0,
+        "stdout": "label\n",
+        "stderr": ""
+      },
+      "observationOnly": false,
+      "outcome": "PASS"
+    },
+    {
+      "id": "U-image-javascript",
+      "kind": "literal",
+      "expected": "label\n",
+      "inputSha256": "20dbee87b744b5b6bb096a78079a6cf363c74ec2e6f08fa5ed07c194023e8217",
+      "original": "PASS",
+      "actual": {
+        "exitCode": 0,
+        "stdout": "label\n",
+        "stderr": ""
+      },
+      "observationOnly": false,
+      "outcome": "PASS"
+    },
+    {
+      "id": "U-link-case",
+      "kind": "literal",
+      "expected": "label\n",
+      "inputSha256": "52ac4888bb1ed94a59d8294df2e0fc9d67e6cf4a5964ce90e4de34f385d7ab8d",
+      "original": "PASS",
+      "actual": {
+        "exitCode": 0,
+        "stdout": "label\n",
+        "stderr": ""
+      },
+      "observationOnly": false,
+      "outcome": "PASS"
+    },
+    {
+      "id": "U-image-case",
+      "kind": "literal",
+      "expected": "label\n",
+      "inputSha256": "c3c685d188fa51b053284ac1d52fdbfbf8502e3fdf68116fc4717534c4df12d0",
+      "original": "PASS",
+      "actual": {
+        "exitCode": 0,
+        "stdout": "label\n",
+        "stderr": ""
+      },
+      "observationOnly": false,
+      "outcome": "PASS"
+    },
+    {
+      "id": "U-link-entity-colon",
+      "kind": "literal",
+      "expected": "label\n",
+      "inputSha256": "465c51364c38fbf68c65ce3208cc6290348a279ca09f711bb6d69ff32fda8d30",
+      "original": "PASS",
+      "actual": {
+        "exitCode": 0,
+        "stdout": "label\n",
+        "stderr": ""
+      },
+      "observationOnly": false,
+      "outcome": "PASS"
+    },
+    {
+      "id": "U-image-entity-colon",
+      "kind": "literal",
+      "expected": "label\n",
+      "inputSha256": "8fbb73ac1776bca8c048913e31d25044abebf998f55c5e09d03a25cb4527d6c1",
+      "original": "PASS",
+      "actual": {
+        "exitCode": 0,
+        "stdout": "label\n",
+        "stderr": ""
+      },
+      "observationOnly": false,
+      "outcome": "PASS"
+    },
+    {
+      "id": "U-link-entity-letter",
+      "kind": "literal",
+      "expected": "label\n",
+      "inputSha256": "c20976c92e875dc20eeb35b67c5c3346b52780fb2649fe77cca50038a2ca0038",
+      "original": "PASS",
+      "actual": {
+        "exitCode": 0,
+        "stdout": "label\n",
+        "stderr": ""
+      },
+      "observationOnly": false,
+      "outcome": "PASS"
+    },
+    {
+      "id": "U-image-entity-letter",
+      "kind": "literal",
+      "expected": "label\n",
+      "inputSha256": "52b997c2cd4452ace1f493d790359b96619ac8ebaed6bc314e357b61ab942c58",
+      "original": "PASS",
+      "actual": {
+        "exitCode": 0,
+        "stdout": "label\n",
+        "stderr": ""
+      },
+      "observationOnly": false,
+      "outcome": "PASS"
+    },
+    {
+      "id": "U-link-nested-entity",
+      "kind": "literal",
+      "expected": "label\n",
+      "inputSha256": "59542ed95b1a59b05cf1176cddac4b66ce9bbed3b2e3cd00b89736a3b026ece7",
+      "original": "PASS",
+      "actual": {
+        "exitCode": 0,
+        "stdout": "label\n",
+        "stderr": ""
+      },
+      "observationOnly": false,
+      "outcome": "PASS"
+    },
+    {
+      "id": "U-image-nested-entity",
+      "kind": "literal",
+      "expected": "label\n",
+      "inputSha256": "360550f04c1bc1b8271b4af07e4d6ee056feacdc3656a91d2c5d235ad8c92685",
+      "original": "PASS",
+      "actual": {
+        "exitCode": 0,
+        "stdout": "label\n",
+        "stderr": ""
+      },
+      "observationOnly": false,
+      "outcome": "PASS"
+    },
+    {
+      "id": "U-link-tab",
+      "kind": "literal",
+      "expected": "label\n",
+      "inputSha256": "c4832e65e431e9e5104faf85d9bbb5e77346a43792261c01ee4dab4734eb1025",
+      "original": "PASS",
+      "actual": {
+        "exitCode": 0,
+        "stdout": "label\n",
+        "stderr": ""
+      },
+      "observationOnly": false,
+      "outcome": "PASS"
+    },
+    {
+      "id": "U-image-tab",
+      "kind": "literal",
+      "expected": "label\n",
+      "inputSha256": "2fe926db171ad7c77c73aceef2c902f6208094c0bb0784b123ed9d4991558acd",
+      "original": "PASS",
+      "actual": {
+        "exitCode": 0,
+        "stdout": "label\n",
+        "stderr": ""
+      },
+      "observationOnly": false,
+      "outcome": "PASS"
+    },
+    {
+      "id": "U-link-newline",
+      "kind": "literal",
+      "expected": "label\n",
+      "inputSha256": "c54779cf26e9dff05d974470743b9ca80a85a880bb51690ba775240d0b5309ca",
+      "original": "PASS",
+      "actual": {
+        "exitCode": 0,
+        "stdout": "label\n",
+        "stderr": ""
+      },
+      "observationOnly": false,
+      "outcome": "PASS"
+    },
+    {
+      "id": "U-image-newline",
+      "kind": "literal",
+      "expected": "label\n",
+      "inputSha256": "7cd9c87f3131db00a889f70d81f7678612216b6ccee02da5abb9edb68783f7d2",
+      "original": "PASS",
+      "actual": {
+        "exitCode": 0,
+        "stdout": "label\n",
+        "stderr": ""
+      },
+      "observationOnly": false,
+      "outcome": "PASS"
+    },
+    {
+      "id": "U-link-entity-newline",
+      "kind": "literal",
+      "expected": "label\n",
+      "inputSha256": "c283d3ee56e971f0b6b12dedfa51fad58e609394de6a6c7fb854e3f16f52f6f7",
+      "original": "PASS",
+      "actual": {
+        "exitCode": 0,
+        "stdout": "label\n",
+        "stderr": ""
+      },
+      "observationOnly": false,
+      "outcome": "PASS"
+    },
+    {
+      "id": "U-image-entity-newline",
+      "kind": "literal",
+      "expected": "label\n",
+      "inputSha256": "87061f1e7d36f3d5251f2ae165de2d1dfddf3cc2b3969bba153ca876752745dd",
+      "original": "PASS",
+      "actual": {
+        "exitCode": 0,
+        "stdout": "label\n",
+        "stderr": ""
+      },
+      "observationOnly": false,
+      "outcome": "PASS"
+    },
+    {
+      "id": "U-link-entity-tab",
+      "kind": "literal",
+      "expected": "label\n",
+      "inputSha256": "f1e2ea83636245e487671a7fa53385803347f1226678a1d051fc6ffb2a7bf12e",
+      "original": "PASS",
+      "actual": {
+        "exitCode": 0,
+        "stdout": "label\n",
+        "stderr": ""
+      },
+      "observationOnly": false,
+      "outcome": "PASS"
+    },
+    {
+      "id": "U-image-entity-tab",
+      "kind": "literal",
+      "expected": "label\n",
+      "inputSha256": "1dc90d0103fb35e0e2e22813209fa5302574867e8f0913293895bab29e2e7a30",
+      "original": "PASS",
+      "actual": {
+        "exitCode": 0,
+        "stdout": "label\n",
+        "stderr": ""
+      },
+      "observationOnly": false,
+      "outcome": "PASS"
+    },
+    {
+      "id": "U-link-percent-tab",
+      "kind": "literal",
+      "expected": "label\n",
+      "inputSha256": "f79f618917b57b23edfc7f34ed004c38ad6a132ba16ad677ab002e82a49f8c70",
+      "original": "PASS",
+      "actual": {
+        "exitCode": 0,
+        "stdout": "label\n",
+        "stderr": ""
+      },
+      "observationOnly": false,
+      "outcome": "PASS"
+    },
+    {
+      "id": "U-image-percent-tab",
+      "kind": "literal",
+      "expected": "label\n",
+      "inputSha256": "0e7862b81b1221d78f5f8f04aab6117b871d8b967b47dc098b4f5aee07c30f3c",
+      "original": "PASS",
+      "actual": {
+        "exitCode": 0,
+        "stdout": "label\n",
+        "stderr": ""
+      },
+      "observationOnly": false,
+      "outcome": "PASS"
+    },
+    {
+      "id": "U-link-percent-cr",
+      "kind": "literal",
+      "expected": "label\n",
+      "inputSha256": "e82b3a11b5561b1f22a5f3dfb41a75bd35e9162925dcc6342a622df1ccf8c15c",
+      "original": "PASS",
+      "actual": {
+        "exitCode": 0,
+        "stdout": "label\n",
+        "stderr": ""
+      },
+      "observationOnly": false,
+      "outcome": "PASS"
+    },
+    {
+      "id": "U-image-percent-cr",
+      "kind": "literal",
+      "expected": "label\n",
+      "inputSha256": "70e286e9f85038f8887aa29b67e4ac88a912fa5b886c3956092d4cd14cbfcf40",
+      "original": "PASS",
+      "actual": {
+        "exitCode": 0,
+        "stdout": "label\n",
+        "stderr": ""
+      },
+      "observationOnly": false,
+      "outcome": "PASS"
+    },
+    {
+      "id": "U-link-data",
+      "kind": "literal",
+      "expected": "label\n",
+      "inputSha256": "993c0b6c7e68c63c43d6c9e78feae97c3de2110c3d5588e3d6a24954c242a543",
+      "original": "PASS",
+      "actual": {
+        "exitCode": 0,
+        "stdout": "label\n",
+        "stderr": ""
+      },
+      "observationOnly": false,
+      "outcome": "PASS"
+    },
+    {
+      "id": "U-image-data",
+      "kind": "literal",
+      "expected": "label\n",
+      "inputSha256": "abc7ad7adf106536e0f7a90646b469e653eb871fb65c001e12a34b3d384a248d",
+      "original": "PASS",
+      "actual": {
+        "exitCode": 0,
+        "stdout": "label\n",
+        "stderr": ""
+      },
+      "observationOnly": false,
+      "outcome": "PASS"
+    },
+    {
+      "id": "U-link-vbscript",
+      "kind": "literal",
+      "expected": "label\n",
+      "inputSha256": "26cbb58f6d51f152a31819d6f02af3fead06498cf2f649963e2b51c8c30a9e96",
+      "original": "PASS",
+      "actual": {
+        "exitCode": 0,
+        "stdout": "label\n",
+        "stderr": ""
+      },
+      "observationOnly": false,
+      "outcome": "PASS"
+    },
+    {
+      "id": "U-image-vbscript",
+      "kind": "literal",
+      "expected": "label\n",
+      "inputSha256": "fc3d96bf1e2fee820219938d95e2642730cc0ea368f500d1b132431af6b19430",
+      "original": "PASS",
+      "actual": {
+        "exitCode": 0,
+        "stdout": "label\n",
+        "stderr": ""
+      },
+      "observationOnly": false,
+      "outcome": "PASS"
+    },
+    {
+      "id": "U-link-file",
+      "kind": "literal",
+      "expected": "label\n",
+      "inputSha256": "d907e32d77ffca146a5ffc2afb3a3c451419d28c80938489ebddecfaa4efd5e8",
+      "original": "PASS",
+      "actual": {
+        "exitCode": 0,
+        "stdout": "label\n",
+        "stderr": ""
+      },
+      "observationOnly": false,
+      "outcome": "PASS"
+    },
+    {
+      "id": "U-image-file",
+      "kind": "literal",
+      "expected": "label\n",
+      "inputSha256": "75869c6f3064807a93452db413ced10ca7f36c67ec9c9ea67cdf9c8afad0aa5a",
+      "original": "PASS",
+      "actual": {
+        "exitCode": 0,
+        "stdout": "label\n",
+        "stderr": ""
+      },
+      "observationOnly": false,
+      "outcome": "PASS"
+    },
+    {
+      "id": "U-link-network-path",
+      "kind": "literal",
+      "expected": "label\n",
+      "inputSha256": "4078e3e9c09fda63cbb22ae2bdc1d9768949c40c8961c66004f7ebc39aabfa1a",
+      "original": "PASS",
+      "actual": {
+        "exitCode": 0,
+        "stdout": "label\n",
+        "stderr": ""
+      },
+      "observationOnly": false,
+      "outcome": "PASS"
+    },
+    {
+      "id": "U-image-network-path",
+      "kind": "literal",
+      "expected": "label\n",
+      "inputSha256": "9240b07a6025c483b3ba7c653b515d5f61faba3b634e5a30796458ccece594ab",
+      "original": "PASS",
+      "actual": {
+        "exitCode": 0,
+        "stdout": "label\n",
+        "stderr": ""
+      },
+      "observationOnly": false,
+      "outcome": "PASS"
+    },
+    {
+      "id": "U-link-backslash",
+      "kind": "literal",
+      "expected": "label\n",
+      "inputSha256": "b1ca1710eb14979098b9d9638810718be39996d771f45acec1bb870ad23c89b1",
+      "original": "PASS",
+      "actual": {
+        "exitCode": 0,
+        "stdout": "label\n",
+        "stderr": ""
+      },
+      "observationOnly": false,
+      "outcome": "PASS"
+    },
+    {
+      "id": "U-image-backslash",
+      "kind": "literal",
+      "expected": "label\n",
+      "inputSha256": "86097b2f83102978418bca03eb755980284802499416863e4e81235d39ff0233",
+      "original": "PASS",
+      "actual": {
+        "exitCode": 0,
+        "stdout": "label\n",
+        "stderr": ""
+      },
+      "observationOnly": false,
+      "outcome": "PASS"
+    },
+    {
+      "id": "U-link-https-backslash",
+      "kind": "literal",
+      "expected": "label\n",
+      "inputSha256": "e07ad8677fd5ca7589944a9e3c9e2753deed6ad359ee237494580ad0abb1a34d",
+      "original": "PASS",
+      "actual": {
+        "exitCode": 0,
+        "stdout": "label\n",
+        "stderr": ""
+      },
+      "observationOnly": false,
+      "outcome": "PASS"
+    },
+    {
+      "id": "U-image-https-backslash",
+      "kind": "literal",
+      "expected": "label\n",
+      "inputSha256": "dce87eeef9c06c3c72eb34d53ca1231098cb70b21deb2889a648b66cb430d814",
+      "original": "PASS",
+      "actual": {
+        "exitCode": 0,
+        "stdout": "label\n",
+        "stderr": ""
+      },
+      "observationOnly": false,
+      "outcome": "PASS"
+    },
+    {
+      "id": "U-link-unknown-entity",
+      "kind": "literal",
+      "expected": "label\n",
+      "inputSha256": "2c1fd008b3f39b111b286cb86c657701c179866519499d2997a39c458003156c",
+      "original": "PASS",
+      "actual": {
+        "exitCode": 0,
+        "stdout": "label\n",
+        "stderr": ""
+      },
+      "observationOnly": false,
+      "outcome": "PASS"
+    },
+    {
+      "id": "U-image-unknown-entity",
+      "kind": "literal",
+      "expected": "label\n",
+      "inputSha256": "26634b8e482cc71fdf5fd7d9e4960c49be2fe111e2ea3ed9940a44809eed2c67",
+      "original": "PASS",
+      "actual": {
+        "exitCode": 0,
+        "stdout": "label\n",
+        "stderr": ""
+      },
+      "observationOnly": false,
+      "outcome": "PASS"
+    },
+    {
+      "id": "U-link-nul",
+      "kind": "literal",
+      "expected": "label\n",
+      "inputSha256": "641774ff148be4f27e7a362afd8179d72d96d55d2008b707659af992e7a3089f",
+      "original": "PASS",
+      "actual": {
+        "exitCode": 0,
+        "stdout": "label\n",
+        "stderr": ""
+      },
+      "observationOnly": false,
+      "outcome": "PASS"
+    },
+    {
+      "id": "U-image-nul",
+      "kind": "literal",
+      "expected": "label\n",
+      "inputSha256": "f535443110db8381fbcf42772e43b1388e305eda0e8a3957770ebce1ad438802",
+      "original": "PASS",
+      "actual": {
+        "exitCode": 0,
+        "stdout": "label\n",
+        "stderr": ""
+      },
+      "observationOnly": false,
+      "outcome": "PASS"
+    },
+    {
+      "id": "U-link-del",
+      "kind": "literal",
+      "expected": "label\n",
+      "inputSha256": "d7754ef8d3c6eff75c0bd157fc3b80ade5bfda4e420ce4f8e9acf64a3219716c",
+      "original": "PASS",
+      "actual": {
+        "exitCode": 0,
+        "stdout": "label\n",
+        "stderr": ""
+      },
+      "observationOnly": false,
+      "outcome": "PASS"
+    },
+    {
+      "id": "U-image-del",
+      "kind": "literal",
+      "expected": "label\n",
+      "inputSha256": "0c7456d41df6c657db9249cd150df62ca579977868b60d89a17128bfba15ba1b",
+      "original": "PASS",
+      "actual": {
+        "exitCode": 0,
+        "stdout": "label\n",
+        "stderr": ""
+      },
+      "observationOnly": false,
+      "outcome": "PASS"
+    },
+    {
+      "id": "U-link-scheme-confusion",
+      "kind": "invariant",
+      "expected": "record-destination-ambiguity",
+      "inputSha256": "be3b6e5d1446bf6209a47ab9f91c73aa34ff95d81120c1fa2565e056b46ee05e",
+      "original": "PASS",
+      "actual": {
+        "exitCode": 0,
+        "stdout": "label\n",
+        "stderr": ""
+      },
+      "observationOnly": true,
+      "outcome": "PASS"
+    },
+    {
+      "id": "U-image-mailto",
+      "kind": "literal",
+      "expected": "label\n",
+      "inputSha256": "ffdc26920d5fbec35a9d943b3ebfd70e9ce56de8879575718c671ef0241e087e",
+      "original": "PASS",
+      "actual": {
+        "exitCode": 0,
+        "stdout": "label\n",
+        "stderr": ""
+      },
+      "observationOnly": false,
+      "outcome": "PASS"
+    },
+    {
+      "id": "U-safe-https%3A%2F%2Fsafe.test%2Fa%3Fx%3D1%26y%3D2",
+      "kind": "invariant",
+      "expected": "safe-link",
+      "inputSha256": "14dbf2d7371e32675b2a4d1469a6ea45e82231271b7510323fedb1898ab12cd2",
+      "original": "PASS",
+      "actual": {
+        "exitCode": 0,
+        "stdout": "[label](<https://safe.test/a?x=1&y=2>)\n",
+        "stderr": ""
+      },
+      "observationOnly": false,
+      "outcome": "PASS"
+    },
+    {
+      "id": "U-safe-http%3A%2F%2Fsafe.test",
+      "kind": "invariant",
+      "expected": "safe-link",
+      "inputSha256": "df175633fed3a62ebaa79322c76790d0bde9e59e9f51d9253b133d52025832b8",
+      "original": "PASS",
+      "actual": {
+        "exitCode": 0,
+        "stdout": "[label](<http://safe.test>)\n",
+        "stderr": ""
+      },
+      "observationOnly": false,
+      "outcome": "PASS"
+    },
+    {
+      "id": "U-safe-%2Fpath",
+      "kind": "invariant",
+      "expected": "safe-link",
+      "inputSha256": "51fc2f4e7d29c6b28e9ea6220c721714b80379d0e8cb60244f4048fa956f8966",
+      "original": "PASS",
+      "actual": {
+        "exitCode": 0,
+        "stdout": "[label](</path>)\n",
+        "stderr": ""
+      },
+      "observationOnly": false,
+      "outcome": "PASS"
+    },
+    {
+      "id": "U-safe-..%2Fpath",
+      "kind": "invariant",
+      "expected": "safe-link",
+      "inputSha256": "868402207bfd507da025a0eb3c491bb783b3313c51c1ba6f2eeabf2c8ec1a161",
+      "original": "PASS",
+      "actual": {
+        "exitCode": 0,
+        "stdout": "[label](<../path>)\n",
+        "stderr": ""
+      },
+      "observationOnly": false,
+      "outcome": "PASS"
+    },
+    {
+      "id": "U-safe-%23part",
+      "kind": "invariant",
+      "expected": "safe-link",
+      "inputSha256": "d22fba053a690bae977d68673f46245da2cf554310b0dd8678aeac62b70b3de8",
+      "original": "PASS",
+      "actual": {
+        "exitCode": 0,
+        "stdout": "[label](<#part>)\n",
+        "stderr": ""
+      },
+      "observationOnly": false,
+      "outcome": "PASS"
+    },
+    {
+      "id": "U-safe-mailto%3Aa%40example.test",
+      "kind": "invariant",
+      "expected": "safe-link",
+      "inputSha256": "362e4172c525b0d167b2166c5bb755f5c328c3dccc64088b57cf11cf86be43e9",
+      "original": "PASS",
+      "actual": {
+        "exitCode": 0,
+        "stdout": "[label](<mailto:a@example.test>)\n",
+        "stderr": ""
+      },
+      "observationOnly": false,
+      "outcome": "PASS"
+    },
+    {
+      "id": "U-ambiguous-nbsp",
+      "kind": "invariant",
+      "expected": "record-destination-ambiguity",
+      "inputSha256": "73e672bcf6d85a05f575fb87a7473ad148ec70b789efeffdc4f5948093c344c0",
+      "original": "PASS",
+      "actual": {
+        "exitCode": 0,
+        "stdout": "label\n",
+        "stderr": ""
+      },
+      "observationOnly": true,
+      "outcome": "PASS"
+    },
+    {
+      "id": "U-ambiguous-em-space",
+      "kind": "invariant",
+      "expected": "record-destination-ambiguity",
+      "inputSha256": "be65c07137f24f6dbe3365c4ab52fcdc209c525687e063a7fcac260bca65eddf",
+      "original": "PASS",
+      "actual": {
+        "exitCode": 0,
+        "stdout": "label\n",
+        "stderr": ""
+      },
+      "observationOnly": true,
+      "outcome": "PASS"
+    },
+    {
+      "id": "U-ambiguous-zero-width",
+      "kind": "invariant",
+      "expected": "record-destination-ambiguity",
+      "inputSha256": "524e8ac446ba0365e21d80cf597c87e100c5bc09218147e5c3d8185dacd84b64",
+      "original": "PASS",
+      "actual": {
+        "exitCode": 0,
+        "stdout": "label\n",
+        "stderr": ""
+      },
+      "observationOnly": true,
+      "outcome": "PASS"
+    },
+    {
+      "id": "U-ambiguous-nested-percent",
+      "kind": "invariant",
+      "expected": "record-destination-ambiguity",
+      "inputSha256": "6063a2e910ceceaa4a30e529476a43f9fe9909c7d6ad8bd89f48673825dc8b50",
+      "original": "PASS",
+      "actual": {
+        "exitCode": 0,
+        "stdout": "[label](<java%2573cript%253Aalert%281%29>)\n",
+        "stderr": ""
+      },
+      "observationOnly": true,
+      "outcome": "PASS"
+    },
+    {
+      "id": "U-ambiguous-percent-scheme",
+      "kind": "invariant",
+      "expected": "record-destination-ambiguity",
+      "inputSha256": "b1b6b744bef4b31fa7ce21528f26def5a3d298299963feb5a06a9913caf9f484",
+      "original": "PASS",
+      "actual": {
+        "exitCode": 0,
+        "stdout": "[label](<javascript%3Aalert%281%29>)\n",
+        "stderr": ""
+      },
+      "observationOnly": true,
+      "outcome": "PASS"
+    },
+    {
+      "id": "U-ambiguous-percent-slashes",
+      "kind": "invariant",
+      "expected": "record-destination-ambiguity",
+      "inputSha256": "ce4bfc5264fbd26d9626f305a0ba02e5043a8db7f2591675cca7350e96e8261b",
+      "original": "PASS",
+      "actual": {
+        "exitCode": 0,
+        "stdout": "[label](<%2f%2fevil.test>)\n",
+        "stderr": ""
+      },
+      "observationOnly": true,
+      "outcome": "PASS"
+    },
+    {
+      "id": "U-ambiguous-leading-space",
+      "kind": "invariant",
+      "expected": "record-destination-ambiguity",
+      "inputSha256": "bb39eb08908cceff1f75f955be67f6cff93685b80ad64a183dba1be1d2993e48",
+      "original": "PASS",
+      "actual": {
+        "exitCode": 0,
+        "stdout": "label\n",
+        "stderr": ""
+      },
+      "observationOnly": true,
+      "outcome": "PASS"
+    },
+    {
+      "id": "U-ambiguous-numeric-no-semicolon",
+      "kind": "invariant",
+      "expected": "record-destination-ambiguity",
+      "inputSha256": "cdd9711827068fef4d943e4c8c48994bf0ddc7322941bc3d2bcc9c84ee8d2791",
+      "original": "PASS",
+      "actual": {
+        "exitCode": 0,
+        "stdout": "[label](<java&#115cript:alert%281%29>)\n",
+        "stderr": ""
+      },
+      "observationOnly": true,
+      "outcome": "PASS"
+    },
+    {
+      "id": "U-title-alt-injection",
+      "kind": "invariant",
+      "expected": "no-injected-active-markdown",
+      "inputSha256": "fdcb366046e7e1af455e5ddbbc6d99c8fe1d90f4102ac644da09134a737c71ac",
+      "original": "FAIL",
+      "actual": {
+        "exitCode": 0,
+        "stdout": "[safe](<https://safe.test>)![\\] \\[evil\\](javascript:bad) \\<img src=x onerror=evil\\>](<https://safe.test/i>)\n",
+        "stderr": ""
+      },
+      "observationOnly": false,
+      "correction": "PASS",
+      "outcome": "FAIL"
+    },
+    {
+      "id": "U-destination-delimiters",
+      "kind": "invariant",
+      "expected": "encoded-delimiters",
+      "inputSha256": "fc5c17b3b3446c8cd409aa3ef08b283776924c951c2c781a67bef0cc908c2d9e",
+      "original": "PASS",
+      "actual": {
+        "exitCode": 0,
+        "stdout": "[label](<https://safe.test/a%20%28b%29%22%3E%5Bc%5D>)\n",
+        "stderr": ""
+      },
+      "observationOnly": false,
+      "outcome": "PASS"
+    },
+    {
+      "id": "F01-nested-list",
+      "kind": "invariant",
+      "expected": "nested-list",
+      "inputSha256": "954934afc1ab3e4a83aa38a5f9a75e32b48c6d446fca4a0d90321f9d1a8efb0d",
+      "original": "PASS",
+      "actual": {
+        "exitCode": 0,
+        "stdout": "7. alpha\n\n   - beta\n8. gamma\n",
+        "stderr": ""
+      },
+      "observationOnly": false,
+      "outcome": "PASS"
+    },
+    {
+      "id": "F02-quote",
+      "kind": "invariant",
+      "expected": "quote",
+      "inputSha256": "027a274f1082d2c701bdacab2fb642b020048d3036a2562cd99d9fb9635238c0",
+      "original": "PASS",
+      "actual": {
+        "exitCode": 0,
+        "stdout": "> alpha\n>\n> beta\n",
+        "stderr": ""
+      },
+      "observationOnly": false,
+      "outcome": "PASS"
+    },
+    {
+      "id": "F03-fence",
+      "kind": "invariant",
+      "expected": "fence-preserves",
+      "inputSha256": "a143e924272cc8aa56df4c2cdb87eb4f33bcae17cdfa38b0881fe7aeb1e00fca",
+      "original": "PASS",
+      "actual": {
+        "exitCode": 0,
+        "stdout": "````js\nconst x = ```;\n\n end\n````\n",
+        "stderr": ""
+      },
+      "observationOnly": false,
+      "outcome": "PASS"
+    },
+    {
+      "id": "F04-code-span",
+      "kind": "invariant",
+      "expected": "code-span-preserves",
+      "inputSha256": "10a45f991a659267b4c062f07f62140c7bce4c89cf6654f5737e2dda0d5fbaea",
+      "original": "PASS",
+      "actual": {
+        "exitCode": 0,
+        "stdout": "``  `x`  ``\n",
+        "stderr": ""
+      },
+      "observationOnly": false,
+      "outcome": "PASS"
+    },
+    {
+      "id": "F05-ragged-table",
+      "kind": "invariant",
+      "expected": "table-content",
+      "inputSha256": "78949f1fce9b7c3c56a37b66888fb1af19e37c1f28b6d7d1ea090f88f4a0939c",
+      "original": "PASS",
+      "actual": {
+        "exitCode": 0,
+        "stdout": "cap\n\n|  |  |\n| --- | --- |\n| a | b\\|c |\n| d |  |\n",
+        "stderr": ""
+      },
+      "observationOnly": false,
+      "outcome": "PASS"
+    },
+    {
+      "id": "F06-rawtext",
+      "kind": "invariant",
+      "expected": "rawtext-content",
+      "inputSha256": "e8832a652da77b3b4b9015b0758259c962b32d10ea101cdda01b55044d67d1d6",
+      "original": "PASS",
+      "actual": {
+        "exitCode": 0,
+        "stdout": "\\&amp;\\<b\\>X\\</b\\>\\<i\\>Y\\</i\\>\n",
+        "stderr": ""
+      },
+      "observationOnly": false,
+      "outcome": "PASS"
+    },
+    {
+      "id": "F07-br-hr",
+      "kind": "invariant",
+      "expected": "hardbreak-rule",
+      "inputSha256": "9d0ea653eb724a3050846aec57ae32d59d72d169940aaf431ec8320a1ea07ac4",
+      "original": "PASS",
+      "actual": {
+        "exitCode": 0,
+        "stdout": "a  \nb\n\n---\n\nc\n",
+        "stderr": ""
+      },
+      "observationOnly": false,
+      "outcome": "PASS"
+    },
+    {
+      "id": "F08-unquoted-case",
+      "kind": "invariant",
+      "expected": "safe-link",
+      "inputSha256": "d5f0c7bce2aacb2432f49fc557b57fa7e0865924ccb5c4f09d2c8709be29d013",
+      "original": "PASS",
+      "actual": {
+        "exitCode": 0,
+        "stdout": "[label](<https://safe.test>)\n",
+        "stderr": ""
+      },
+      "observationOnly": false,
+      "outcome": "PASS"
+    },
+    {
+      "id": "E01-truncated",
+      "kind": "bytes-error",
+      "expected": {
+        "status": 1
+      },
+      "inputSha256": "3c1c36c746e9b9106e77cfc2ede3374d38a883e23fbcd3b20023e326008c5434",
+      "original": "PASS",
+      "actual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "html-to-markdown: The encoded data was not valid for encoding utf-8\n"
+      },
+      "observationOnly": false,
+      "outcome": "PASS"
+    },
+    {
+      "id": "E02-overlong",
+      "kind": "bytes-error",
+      "expected": {
+        "status": 1
+      },
+      "inputSha256": "caf573f0daa6960ecb26f8eddbc4e2059277ad5afc6f72ffd59a0ecead602a22",
+      "original": "PASS",
+      "actual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "html-to-markdown: The encoded data was not valid for encoding utf-8\n"
+      },
+      "observationOnly": false,
+      "outcome": "PASS"
+    },
+    {
+      "id": "E03-surrogate",
+      "kind": "bytes-error",
+      "expected": {
+        "status": 1
+      },
+      "inputSha256": "91a681b998555fb475479817b126c94e57e52011fa1842c5d188795a4a05226b",
+      "original": "PASS",
+      "actual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "html-to-markdown: The encoded data was not valid for encoding utf-8\n"
+      },
+      "observationOnly": false,
+      "outcome": "PASS"
+    },
+    {
+      "id": "E04-continuation",
+      "kind": "bytes-error",
+      "expected": {
+        "status": 1
+      },
+      "inputSha256": "76be8b528d0075f7aae98d6fa57a6d3c83ae480a8469e668d7b0af968995ac71",
+      "original": "PASS",
+      "actual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "html-to-markdown: The encoded data was not valid for encoding utf-8\n"
+      },
+      "observationOnly": false,
+      "outcome": "PASS"
+    },
+    {
+      "id": "B01-input",
+      "kind": "limit",
+      "expected": {
+        "status": 1,
+        "limits": {
+          "maxInputBytes": 8
+        }
+      },
+      "inputSha256": "15e2b0d3c33891ebb0f1ef609ec419420c20e320ce94c65fbc8c3312448eb225",
+      "original": "PASS",
+      "actual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "html-to-markdown: EFBIG: html-to-markdown input limit exceeded\n"
+      },
+      "observationOnly": false,
+      "outcome": "PASS"
+    },
+    {
+      "id": "B02-output",
+      "kind": "limit",
+      "expected": {
+        "status": 1,
+        "limits": {
+          "maxOutputBytes": 8
+        }
+      },
+      "inputSha256": "13d966976352824f1523c4af8a401092a7512b96cdf3d211fb546184227351a5",
+      "original": "PASS",
+      "actual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "html-to-markdown: EFBIG: html-to-markdown rendered bytes limit exceeded\n"
+      },
+      "observationOnly": false,
+      "outcome": "PASS"
+    },
+    {
+      "id": "B03-token",
+      "kind": "limit",
+      "expected": {
+        "status": 1,
+        "limits": {
+          "maxTokenBytes": 32
+        }
+      },
+      "inputSha256": "38669c29767e8a95150e1a1e64c9a56133444af1a4c1533b61c171a4c5a3bc56",
+      "original": "PASS",
+      "actual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "html-to-markdown: EFBIG: html-to-markdown token bytes limit exceeded\n"
+      },
+      "observationOnly": false,
+      "outcome": "PASS"
+    },
+    {
+      "id": "B04-tokens",
+      "kind": "limit",
+      "expected": {
+        "status": 1,
+        "limits": {
+          "maxTokens": 2
+        }
+      },
+      "inputSha256": "50c4c5fab652c2e0b5a93555bb94dc6fd21f0897a42f82d5bb54f43cf1e994de",
+      "original": "PASS",
+      "actual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "html-to-markdown: EFBIG: html-to-markdown tokens limit exceeded\n"
+      },
+      "observationOnly": false,
+      "outcome": "PASS"
+    },
+    {
+      "id": "B05-nodes",
+      "kind": "limit",
+      "expected": {
+        "status": 1,
+        "limits": {
+          "maxNodes": 2
+        }
+      },
+      "inputSha256": "50c4c5fab652c2e0b5a93555bb94dc6fd21f0897a42f82d5bb54f43cf1e994de",
+      "original": "PASS",
+      "actual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "html-to-markdown: EFBIG: html-to-markdown nodes limit exceeded\n"
+      },
+      "observationOnly": false,
+      "outcome": "PASS"
+    },
+    {
+      "id": "B06-depth",
+      "kind": "limit",
+      "expected": {
+        "status": 1,
+        "limits": {
+          "maxDepth": 4
+        }
+      },
+      "inputSha256": "12ab6289611f984ed471fa6ad96e5c7949166d3e1ee131b8fb37728f9707088a",
+      "original": "PASS",
+      "actual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "html-to-markdown: EFBIG: html-to-markdown depth limit exceeded\n"
+      },
+      "observationOnly": false,
+      "outcome": "PASS"
+    },
+    {
+      "id": "B07-attributes",
+      "kind": "limit",
+      "expected": {
+        "status": 1,
+        "limits": {
+          "maxAttributes": 2
+        }
+      },
+      "inputSha256": "94c89dc6c4adfc43724fbc0b25ffe6c8e2219c42c383f98b003fadfd1f97d4ef",
+      "original": "PASS",
+      "actual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "html-to-markdown: EFBIG: html-to-markdown attributes limit exceeded\n"
+      },
+      "observationOnly": false,
+      "outcome": "PASS"
+    },
+    {
+      "id": "B08-table-cells",
+      "kind": "limit",
+      "expected": {
+        "status": 1,
+        "limits": {
+          "maxTableCells": 2
+        }
+      },
+      "inputSha256": "6274d2926fdea7b375c69449cf49785c243e0fe2eff798a5b1846caebe4c4c34",
+      "original": "PASS",
+      "actual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "html-to-markdown: EFBIG: html-to-markdown cells limit exceeded\n"
+      },
+      "observationOnly": false,
+      "outcome": "PASS"
+    },
+    {
+      "id": "B09-cell-bytes",
+      "kind": "limit",
+      "expected": {
+        "status": 1,
+        "limits": {
+          "maxTableCellBytes": 8
+        }
+      },
+      "inputSha256": "7e8a945efe7b1e99a140a8f43c8c5cbaeab3bde0741f783d16231f5fc9249f82",
+      "original": "PASS",
+      "actual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "html-to-markdown: EFBIG: html-to-markdown rendered bytes limit exceeded\n"
+      },
+      "observationOnly": false,
+      "outcome": "PASS"
+    },
+    {
+      "id": "B10-files",
+      "kind": "limit",
+      "expected": {
+        "status": 1,
+        "limits": {
+          "maxFiles": 1
+        }
+      },
+      "inputSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "original": "FAIL",
+      "actual": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "html-to-markdown: file limit exceeded\n"
+      },
+      "observationOnly": false,
+      "correction": "PASS",
+      "outcome": "FAIL"
+    },
+    {
+      "id": "B11-args",
+      "kind": "limit",
+      "expected": {
+        "status": 1,
+        "limits": {
+          "maxArgumentBytes": 4
+        }
+      },
+      "inputSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "original": "FAIL",
+      "actual": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "html-to-markdown: argument limit exceeded\n"
+      },
+      "observationOnly": false,
+      "correction": "PASS",
+      "outcome": "FAIL"
+    },
+    {
+      "id": "B12-diagnostic",
+      "kind": "diagnostic",
+      "expected": {
+        "status": 1,
+        "limits": {
+          "maxDiagnosticBytes": 24
+        }
+      },
+      "inputSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "original": "PASS",
+      "actual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "html-to-markdown: ENOENT"
+      },
+      "observationOnly": false,
+      "outcome": "PASS"
+    },
+    {
+      "id": "B13-work",
+      "kind": "limit",
+      "expected": {
+        "status": 1,
+        "limits": {
+          "maxWorkUnits": 64
+        }
+      },
+      "inputSha256": "dbade0e28d88d04717257f12ca3c7a15a5c156ebcbb4a096e22bceac3e6a92ae",
+      "original": "PASS",
+      "actual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "html-to-markdown: EFBIG: html-to-markdown work limit exceeded\n"
+      },
+      "observationOnly": false,
+      "outcome": "PASS"
+    },
+    {
+      "id": "S-attribute",
+      "kind": "limit",
+      "expected": {
+        "status": 1,
+        "limits": {
+          "maxWorkUnits": 2048,
+          "maxInputBytes": 500000
+        }
+      },
+      "inputSha256": "4bae954a51bd0465f32b1d6230539e119d89f6b52359082357ce57490ef41ce3",
+      "original": "PASS",
+      "actual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "html-to-markdown: EFBIG: html-to-markdown work limit exceeded\n"
+      },
+      "observationOnly": false,
+      "outcome": "PASS"
+    },
+    {
+      "id": "S-entity",
+      "kind": "limit",
+      "expected": {
+        "status": 1,
+        "limits": {
+          "maxWorkUnits": 2048,
+          "maxInputBytes": 500000
+        }
+      },
+      "inputSha256": "4ec83f5159f7a46ceaef16ab13d3ed629de9cf3be84f4c0bfec0e7c6451a9033",
+      "original": "PASS",
+      "actual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "html-to-markdown: EFBIG: html-to-markdown work limit exceeded\n"
+      },
+      "observationOnly": false,
+      "outcome": "PASS"
+    },
+    {
+      "id": "S-delimiters",
+      "kind": "limit",
+      "expected": {
+        "status": 1,
+        "limits": {
+          "maxWorkUnits": 2048,
+          "maxInputBytes": 500000
+        }
+      },
+      "inputSha256": "2dbc27fdb29e47a5a2dd6a3178ba817c87a5d1d0ee6d126817a8cf6c4d2fd828",
+      "original": "PASS",
+      "actual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "html-to-markdown: EFBIG: html-to-markdown work limit exceeded\n"
+      },
+      "observationOnly": false,
+      "outcome": "PASS"
+    },
+    {
+      "id": "S-rawtext",
+      "kind": "limit",
+      "expected": {
+        "status": 1,
+        "limits": {
+          "maxWorkUnits": 2048,
+          "maxInputBytes": 500000
+        }
+      },
+      "inputSha256": "d6eb5b2861a3205b737479e668dfb124966751e21e87ff4d801d871a780267f6",
+      "original": "PASS",
+      "actual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "html-to-markdown: EFBIG: html-to-markdown work limit exceeded\n"
+      },
+      "observationOnly": false,
+      "outcome": "PASS"
+    },
+    {
+      "id": "S-backticks",
+      "kind": "limit",
+      "expected": {
+        "status": 1,
+        "limits": {
+          "maxWorkUnits": 2048,
+          "maxInputBytes": 500000
+        }
+      },
+      "inputSha256": "e22bf4ad67659eaac81b477b909588cbe8b24992ca3339fae9853f19383c68e2",
+      "original": "PASS",
+      "actual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "html-to-markdown: EFBIG: html-to-markdown work limit exceeded\n"
+      },
+      "observationOnly": false,
+      "outcome": "PASS"
+    },
+    {
+      "id": "S-deep",
+      "kind": "limit",
+      "expected": {
+        "status": 1,
+        "limits": {
+          "maxWorkUnits": 2048,
+          "maxInputBytes": 500000
+        }
+      },
+      "inputSha256": "e702cfee9c55139ef3db23489f4adce06f84365b1795f950bd160bf07e452b9f",
+      "original": "PASS",
+      "actual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "html-to-markdown: EFBIG: html-to-markdown work limit exceeded\n"
+      },
+      "observationOnly": false,
+      "outcome": "PASS"
+    },
+    {
+      "id": "P01-help-no-read",
+      "expected": "--help and --version acquire neither stdin nor VFS; success",
+      "original": "PASS",
+      "controls": [],
+      "outcome": "PASS"
+    },
+    {
+      "id": "P02-shared-stdin",
+      "expected": "repeated - converts a single cursor once, does not replay",
+      "original": "PASS",
+      "controls": [],
+      "outcome": "PASS"
+    },
+    {
+      "id": "P03-borrowed-buffer",
+      "expected": "Buffer reused on next and finally does not corrupt retained input",
+      "original": "PASS",
+      "controls": [],
+      "outcome": "PASS"
+    },
+    {
+      "id": "P04-abort-before-read",
+      "expected": "caller reason preserved; no unsolicited input acquisition",
+      "original": "PASS",
+      "controls": [],
+      "outcome": "PASS"
+    },
+    {
+      "id": "P05-abort-pending-read",
+      "expected": "cooperative pending iterator is closed once; caller reason wins",
+      "original": "PASS",
+      "controls": [],
+      "outcome": "PASS"
+    },
+    {
+      "id": "P06-backpressure",
+      "expected": "output writes awaited; no concurrent writes or early settlement",
+      "original": "PASS",
+      "controls": [],
+      "outcome": "PASS"
+    },
+    {
+      "id": "P07-sink-error",
+      "expected": "failed output never reports success; cleanup completes",
+      "original": "PASS",
+      "controls": [],
+      "outcome": "PASS"
+    },
+    {
+      "id": "P08-vfs-failure",
+      "expected": "typed file error stops later operands; bounded prefixed diagnostic",
+      "original": "PASS",
+      "controls": [],
+      "outcome": "PASS"
+    },
+    {
+      "id": "P09-shared-input-budget",
+      "expected": "two individually small operands together exceed shared input cap",
+      "original": "PASS",
+      "controls": [],
+      "outcome": "PASS"
+    },
+    {
+      "id": "P10-registered-cleanup",
+      "expected": "registerCleanup precedes iterator acquisition, idempotent overlapping completion",
+      "original": "PASS",
+      "controls": [],
+      "outcome": "PASS"
+    },
+    {
+      "id": "P11-shell-middleware",
+      "expected": "actual Shell plugin dispatch invokes middleware; byte output goes to VFS",
+      "original": "FAIL",
+      "controls": [],
+      "correction": "PASS",
+      "outcome": "FAIL"
+    },
+    {
+      "id": "P12-early-pipeline",
+      "expected": "actual finite downstream consumer cancellation settles cooperative resources",
+      "original": "PASS",
+      "controls": [],
+      "outcome": "PASS"
+    },
+    {
+      "id": "P13-host-denial",
+      "expected": "installed execution succeeds under source/ambient-file denial, without net/child/worker grants; explicit denied file read fails",
+      "original": "PASS",
+      "controls": [],
+      "outcome": "PASS"
+    },
+    {
+      "id": "P14-fallback-read-bound",
+      "expected": "VFS fallback gets supplied signal and remaining input bound",
+      "original": "PASS",
+      "controls": [],
+      "outcome": "PASS"
+    },
+    {
+      "id": "P15-config-copy",
+      "expected": "mutating options after construction does not alter limits; invalid limits rejected",
+      "original": "PASS",
+      "controls": [],
+      "outcome": "PASS"
+    },
+    {
+      "id": "P16-factory-collision",
+      "expected": "all three exports usable; collision fails unless replace intentionally true",
+      "original": "PASS",
+      "controls": [],
+      "outcome": "PASS"
+    },
+    {
+      "id": "N01-missing-entry",
+      "expected": "real missing installed leaf fails module resolution; no source fallback",
+      "original": "SEE_CONTROL_ROWS",
+      "controls": [
+        {
+          "id": "N01-missing-entry",
+          "outcome": "PASS"
+        }
+      ],
+      "outcome": "PASS"
+    },
+    {
+      "id": "N02-poisoned-source",
+      "expected": "retired original source location contains throwing sentinel; installed run unaffected; direct access denied",
+      "original": "PASS",
+      "controls": [
+        {
+          "id": "N02-poisoned-source",
+          "outcome": "PASS"
+        },
+        {
+          "id": "N02-direct-denial",
+          "outcome": "PASS"
+        }
+      ],
+      "outcome": "PASS"
+    },
+    {
+      "id": "N03-layout",
+      "expected": "real missing emitted dependency fails resolution; no hidden source rescue",
+      "original": "SEE_CONTROL_ROWS",
+      "controls": [
+        {
+          "id": "N03-layout",
+          "outcome": "PASS"
+        }
+      ],
+      "outcome": "PASS"
+    },
+    {
+      "id": "N04-types",
+      "expected": "positive actual installed declarations compile; unknown limit, wrong limit type, wrong replace type each fail TS",
+      "original": "SEE_CONTROL_ROWS",
+      "controls": [
+        {
+          "id": "N04-positive",
+          "outcome": "PASS"
+        },
+        {
+          "id": "N04-unknown-limit",
+          "outcome": "PASS"
+        },
+        {
+          "id": "N04-wrong-limit",
+          "outcome": "PASS"
+        },
+        {
+          "id": "N04-wrong-replace",
+          "outcome": "PASS"
+        }
+      ],
+      "outcome": "PASS"
+    },
+    {
+      "id": "N05-assertion-sensitivity",
+      "expected": "deliberately wrong literal expectation and deliberately tiny work budget genuinely fail expected assertion/status",
+      "original": "SEE_CONTROL_ROWS",
+      "controls": [
+        {
+          "id": "N05-wrong-literal",
+          "outcome": "PASS"
+        },
+        {
+          "id": "N05-tiny-budget",
+          "outcome": "PASS"
+        }
+      ],
+      "outcome": "PASS"
+    }
+  ],
+  "counts": {
+    "fixedInputRows": 108,
+    "frozenProtocolDefinitions": 21,
+    "firstRunExecuted": 125,
+    "urlObservationRows": 9
+  },
+  "version": 2,
+  "reason": "Add explicit outcomes for control cross-references; original matrix and raw failures preserved."
+}

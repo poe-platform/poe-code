@@ -1,0 +1,81 @@
+{
+  "capturedAt": "2026-08-27",
+  "scope": "read-only child-cancellation and timeout design",
+  "candidate": {
+    "commit": "618d8967009117547ab476256bc6eb0a9463309a",
+    "tree": "8cadf30519a179418fb2f7a859d6cf64ef1c8049",
+    "parent": "8a674adf8e99f64a7baf965527dd9fc9c30bdbb2",
+    "subject": "feat(shell): integrate checked getopts state and regular builtin",
+    "liveHeadObserved": "0bd5a1f3c31ef5e6203a82026181fa0fc73acc79",
+    "inspectedTrackedPathsMatchCandidateAtLiveHead": true,
+    "inspectedTrackedPathsHaveNoWorktreeOrIndexChanges": true,
+    "blobs": {
+      "src/contracts/command.ts": {
+        "gitObject": "671327d43c48c5964658ad8c630578fe889421e2",
+        "sha256": "9c2f8ecf50def7250b01152a31a45c449109c3ae4d30878252cffe985c6e9df8"
+      },
+      "src/contracts/command.md": {
+        "gitObject": "16371126acaccd07a8db2505b53a0625eb9b4592",
+        "sha256": "8a5426b1e7a30a03dc62f74b28c6eb7bf9b008b78cb7b521eb7de0bc5c59a3f8"
+      },
+      "src/contracts/io.ts": {
+        "gitObject": "6dc0efb87132376763228a845b2e62638898268a",
+        "sha256": "ff792b401508a2ef768aa4f9dd9794e653e1e14f2163e57d137e9cb2b7427809"
+      },
+      "src/contracts/output.ts": {
+        "gitObject": "3b1fe9536352a5e13c94ff231ce20ead354aabc8",
+        "sha256": "5e262bda9541a5b70fcb23d4950e92844d404f9029f02c32c889b90d7c92d83e"
+      },
+      "src/shell/cleanup.ts": {
+        "gitObject": "eae04650a553e4820da9c7b08b0255a6b20fc01c",
+        "sha256": "134f55641d6437681cd185960a2923d68086096921758717c5b8059595304385"
+      },
+      "src/shell/runtime.ts": {
+        "gitObject": "b826b1f3d8cb8a0f3703c949bda5003cce06f326",
+        "sha256": "c746e4cee0f5245d94bba2082ce72b62fdc3b251fd400ee247371fa44dfed722"
+      },
+      "src/shell/shell.ts": {
+        "gitObject": "013889cd158e77267341867f1e360d7b5eb22e94",
+        "sha256": "2c704d4934889d12836e441112b11f41a4e3cdf6cf1ce96f9db42b4b70cdb332"
+      },
+      "src/shell/types.ts": {
+        "gitObject": "4684a5ad1f8b76c721a6f827646f289eda4c44ef",
+        "sha256": "fc4133f1fb41283b0586aa7597c766d393d4f91067b613f4777e5adbef230a6d"
+      },
+      "tests/contracts/invocation-cleanup.test.ts": {
+        "gitObject": "a08146484563ec1f5811df306ea7b9fa5dd1c496",
+        "sha256": "04ed02c878f9104323aeb9c2dcef19f7adc6be7555ab3d90f58f94d21b25defe"
+      }
+    }
+  },
+  "gnuOracle": {
+    "version": "GNU coreutils 9.7",
+    "binary": {
+      "path": "tests/commands/metadata-stress/.oracle/coreutils-9.7/src/timeout",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/timeout",
+      "bytes": 95240,
+      "mode": "-rwxr-xr-x",
+      "architecture": "Mach-O 64-bit executable arm64",
+      "sha256": "36fc11afeb227c7ea50054de958b80de954088139f1d5ef4c03df95ef811a55e"
+    },
+    "source": {
+      "path": "tests/commands/metadata-stress/.oracle/coreutils-9.7/src/timeout.c",
+      "upstream": "https://raw.githubusercontent.com/coreutils/coreutils/v9.7/src/timeout.c",
+      "sha256": "e11dc2897e468a2fc4bcf44dc3643f08f9ae063b7ce03b88def9dd866250c8ad",
+      "freshUpstreamHashMatched": true
+    },
+    "texinfo": {
+      "path": "tests/commands/metadata-stress/.oracle/coreutils-9.7/doc/coreutils.texi",
+      "upstream": "https://raw.githubusercontent.com/coreutils/coreutils/v9.7/doc/coreutils.texi",
+      "sha256": "39b126752866fff675e462bd44d76f3e034abafe462a069cebd53ef39fc53eca",
+      "freshUpstreamHashMatched": true,
+      "timeoutSectionLines": "18821-18964"
+    },
+    "classification": "ignored local native oracle; not a product dependency",
+    "nativeExecution": [
+      "--version",
+      "--help"
+    ],
+    "nativeStatusOrTimingProbesRun": false
+  }
+}

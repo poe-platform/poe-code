@@ -1,0 +1,10 @@
+51da58359bd7d6d02b35fe8500b9fb624d648dd7bd3302e96d4f3d9e6b3f6ae3  tests/stress/byte-ownership-20260827/remaining-consumers/fix-author/baseline-canonical.tap
+680cf1e0d129630b2ec8ad307fd2858a495a71f5eb8cce1f3ee44ce34a260814  tests/stress/byte-ownership-20260827/remaining-consumers/fix-author/baseline-corrected-canonical.tap
+c645011bd201ce1768b1c98e3545bf09513708843b1fbe14ec1f77977a0c2224  tests/stress/byte-ownership-20260827/remaining-consumers/fix-author/baseline-nearby.tap
+e7aec66e4745ff220bfa292467821a5a185a324b25a7b20b1c737791b1a030a9  tests/stress/byte-ownership-20260827/remaining-consumers/fix-author/candidate-canonical.tap
+d84322dcdfe00153d1c94da23a231b8ee4e72f0cd65fc111728f93d83caaa370  tests/stress/byte-ownership-20260827/remaining-consumers/fix-author/candidate-nearby.tap
+e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855  tests/stress/byte-ownership-20260827/remaining-consumers/fix-author/baseline-corrected-scoped-ts.log
+e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855  tests/stress/byte-ownership-20260827/remaining-consumers/fix-author/baseline-scoped-ts.log
+e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855  tests/stress/byte-ownership-20260827/remaining-consumers/fix-author/candidate-scoped-ts.log
+2490d33ecb538d7c90bf28442a29a788a8126e0fc43d5f61dded9571b71f03af  tests/stress/byte-ownership-20260827/remaining-consumers/fix-author/baseline-initial-network.test.ts.data
+a53b4e1681ba7aafd73feca3f64029017c08f74225cb3f93318e0ca587aa53e5  tests/stress/byte-ownership-20260827/remaining-consumers/fix-author/baseline-initial-structured.test.ts.data

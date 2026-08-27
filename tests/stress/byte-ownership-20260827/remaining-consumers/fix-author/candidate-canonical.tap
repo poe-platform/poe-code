@@ -1,0 +1,118 @@
+TAP version 13
+# Subtest: curl retries exact ragged offset Buffer bytes after reuse and finalization
+ok 1 - curl retries exact ragged offset Buffer bytes after reuse and finalization
+  ---
+  duration_ms: 3.510209
+  type: 'test'
+  ...
+# Subtest: curl -T replays a final Buffer offset view after finalizer mutation
+ok 2 - curl -T replays a final Buffer offset view after finalizer mutation
+  ---
+  duration_ms: 1.871541
+  type: 'test'
+  ...
+# Subtest: curl retries exact ragged offset Uint8Array bytes after reuse and finalization
+ok 3 - curl retries exact ragged offset Uint8Array bytes after reuse and finalization
+  ---
+  duration_ms: 2.118041
+  type: 'test'
+  ...
+# Subtest: curl -T replays a final Uint8Array offset view after finalizer mutation
+ok 4 - curl -T replays a final Uint8Array offset view after finalizer mutation
+  ---
+  duration_ms: 1.898625
+  type: 'test'
+  ...
+# Subtest: curl replay leaves stable Buffer input and surrounding sentinels unchanged
+ok 5 - curl replay leaves stable Buffer input and surrounding sentinels unchanged
+  ---
+  duration_ms: 1.9345
+  type: 'test'
+  ...
+# Subtest: curl replay budget accepts its exact boundary and refuses overflow without a partial replay
+ok 6 - curl replay budget accepts its exact boundary and refuses overflow without a partial replay
+  ---
+  duration_ms: 3.473375
+  type: 'test'
+  ...
+# Subtest: curl upload limit stops before publishing an overflowing retained fragment
+ok 7 - curl upload limit stops before publishing an overflowing retained fragment
+  ---
+  duration_ms: 0.288
+  type: 'test'
+  ...
+# Subtest: curl cancellation preserves the caller reason and closes retained source storage
+ok 8 - curl cancellation preserves the caller reason and closes retained source storage
+  ---
+  duration_ms: 0.526125
+  type: 'test'
+  ...
+# Subtest: curl first upload remains transient and pull-driven while its replay is owned
+ok 9 - curl first upload remains transient and pull-driven while its replay is owned
+  ---
+  duration_ms: 1.86175
+  type: 'test'
+  ...
+# Subtest: jq -f owns ragged offset Buffer chunks before producer reuse
+ok 10 - jq -f owns ragged offset Buffer chunks before producer reuse
+  ---
+  duration_ms: 1.863125
+  type: 'test'
+  ...
+# Subtest: jq -f owns a final Buffer view before producer finalization
+ok 11 - jq -f owns a final Buffer view before producer finalization
+  ---
+  duration_ms: 0.514458
+  type: 'test'
+  ...
+# Subtest: jq -f owns ragged offset Uint8Array chunks before producer reuse
+ok 12 - jq -f owns ragged offset Uint8Array chunks before producer reuse
+  ---
+  duration_ms: 0.395417
+  type: 'test'
+  ...
+# Subtest: jq -f owns a final Uint8Array view before producer finalization
+ok 13 - jq -f owns a final Uint8Array view before producer finalization
+  ---
+  duration_ms: 0.492416
+  type: 'test'
+  ...
+# Subtest: jq -f leaves stable offset Buffer input and sentinels unchanged
+ok 14 - jq -f leaves stable offset Buffer input and sentinels unchanged
+  ---
+  duration_ms: 0.996792
+  type: 'test'
+  ...
+# Subtest: jq -f rejects original invalid UTF-8 even when finalizer replaces it with valid text
+ok 15 - jq -f rejects original invalid UTF-8 even when finalizer replaces it with valid text
+  ---
+  duration_ms: 0.185083
+  type: 'test'
+  ...
+# Subtest: jq -f preserves exact source-byte limit and closes rejected input
+ok 16 - jq -f preserves exact source-byte limit and closes rejected input
+  ---
+  duration_ms: 0.329166
+  type: 'test'
+  ...
+# Subtest: jq -f does not relax the independent input-byte limit
+ok 17 - jq -f does not relax the independent input-byte limit
+  ---
+  duration_ms: 0.188334
+  type: 'test'
+  ...
+# Subtest: jq -f forwards cancellation while closing retained source storage
+ok 18 - jq -f forwards cancellation while closing retained source storage
+  ---
+  duration_ms: 0.3645
+  type: 'test'
+  ...
+1..18
+# tests 18
+# suites 0
+# pass 18
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 177.278875

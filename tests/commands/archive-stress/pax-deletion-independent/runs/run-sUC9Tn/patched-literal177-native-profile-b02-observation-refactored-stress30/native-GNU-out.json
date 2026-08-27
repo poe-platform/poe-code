@@ -1,0 +1,91 @@
+{
+  "family": "GNU",
+  "direction": "out",
+  "executable": "/private/tmp/safe-bash-pax-deletion-independent-FEprCU/tree/tests/commands/archive/.oracle/gnu-tar/1.35/bin/gtar",
+  "version": "tar (GNU tar) 1.35\nCopyright (C) 2023 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by John Gilmore and Jay Fenlason.",
+  "executableSha256": "49a0bd353ad67347674d00a7b3eeb171da58728f7e4577c9b320d8ab1e7bba66",
+  "outcome": "passed",
+  "fixtureSeed": "xorshift32; explicit seeds in fixtures/native tests",
+  "artifacts": {
+    "virtualPlainSha256": "59ccd0cb1c94d1f6841b69d51ba4bb53d0eec24fb74c3d0a0cd71d3e51e9455b",
+    "plainExtractedSymbol": "{\"isSymbolicLink\":true,\"isFile\":false,\"size\":126}",
+    "virtualGzipSha256": "4fbe7cc6dcc02dcc9f4ecdce4cc909cca6ad0edb4118235a9f738d6d8eb6a65a",
+    "gzipExtractedSymbol": "{\"isSymbolicLink\":true,\"isFile\":false,\"size\":126}"
+  },
+  "observations": [
+    {
+      "args": [
+        "-tf",
+        "virtual.tar"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdoutSha256": "576e9d3f6aa963d160490ec4dce70c9816f3aa9e9df1d062efa4dd877afb7b92",
+      "stdoutBytes": 155,
+      "stdoutText": "deep/leaf\nspace name\ncross-namenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamename.bin\nsymbol\n",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "-tvf",
+        "virtual.tar"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdoutSha256": "704b3eb779cb34f7f7d18c52155161cdbb900d8a06f7cf8e22c6bc3911771103",
+      "stdoutBytes": 477,
+      "stdoutText": "-rw-rw-rw- 0/0            1237 2026-08-26 23:05 deep/leaf\n-rw-rw-rw- 0/0               0 2026-08-26 23:05 space name\n-rw-rw-rw- 0/0           65563 2026-08-26 23:05 cross-namenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamename.bin\nlrwxrwxrwx 0/0               0 2026-08-26 23:05 symbol -> cross-namenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamename.bin\n",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "-xf",
+        "virtual.tar",
+        "-C",
+        "plain-output"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdoutBytes": 0,
+      "stderr": ""
+    },
+    {
+      "args": [
+        "-tzf",
+        "virtual.tar"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdoutSha256": "576e9d3f6aa963d160490ec4dce70c9816f3aa9e9df1d062efa4dd877afb7b92",
+      "stdoutBytes": 155,
+      "stdoutText": "deep/leaf\nspace name\ncross-namenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamename.bin\nsymbol\n",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "-tzvf",
+        "virtual.tar"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdoutSha256": "704b3eb779cb34f7f7d18c52155161cdbb900d8a06f7cf8e22c6bc3911771103",
+      "stdoutBytes": 477,
+      "stdoutText": "-rw-rw-rw- 0/0            1237 2026-08-26 23:05 deep/leaf\n-rw-rw-rw- 0/0               0 2026-08-26 23:05 space name\n-rw-rw-rw- 0/0           65563 2026-08-26 23:05 cross-namenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamename.bin\nlrwxrwxrwx 0/0               0 2026-08-26 23:05 symbol -> cross-namenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamename.bin\n",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "-xzf",
+        "virtual.tar",
+        "-C",
+        "gzip-output"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdoutBytes": 0,
+      "stderr": ""
+    }
+  ]
+}

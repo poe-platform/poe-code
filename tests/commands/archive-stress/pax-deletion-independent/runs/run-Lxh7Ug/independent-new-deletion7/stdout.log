@@ -1,0 +1,52 @@
+TAP version 13
+# Subtest: D01 local timestamp tombstones mask raw/global once, including excluded real members
+ok 1 - D01 local timestamp tombstones mask raw/global once, including excluded real members
+  ---
+  duration_ms: 5.278917
+  type: 'test'
+  ...
+# Subtest: D02 global deletion persists per key across unrelated globals and temporary local values
+ok 2 - D02 global deletion persists per key across unrelated globals and temporary local values
+  ---
+  duration_ms: 3.226792
+  type: 'test'
+  ...
+# Subtest: D03 duplicate records and consecutive local headers use last value without losing tombstones
+ok 3 - D03 duplicate records and consecutive local headers use last value without losing tombstones
+  ---
+  duration_ms: 2.260667
+  type: 'test'
+  ...
+# Subtest: D04 only effective raw fields are decoded and effective sizes preserve following framing
+ok 4 - D04 only effective raw fields are decoded and effective sizes preserve following framing
+  ---
+  duration_ms: 4.811875
+  type: 'test'
+  ...
+# Subtest: D05 required tombstones reject before member body/effects and cannot resurrect GNU long fallbacks
+ok 5 - D05 required tombstones reject before member body/effects and cannot resurrect GNU long fallbacks
+  ---
+  duration_ms: 2.432334
+  type: 'test'
+  ...
+# Subtest: D06 paired timestamp restoration preserves deleted counterparts with fresh stat and propagates failure
+ok 6 - D06 paired timestamp restoration preserves deleted counterparts with fresh stat and propagates failure
+  ---
+  duration_ms: 1.690166
+  type: 'test'
+  ...
+# Subtest: D07 deletion/overrides never bypass structural framing, strict PAX grammar or byte/path limits
+ok 7 - D07 deletion/overrides never bypass structural framing, strict PAX grammar or byte/path limits
+  ---
+  duration_ms: 5.326917
+  type: 'test'
+  ...
+1..7
+# tests 7
+# suites 0
+# pass 7
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 154.332708

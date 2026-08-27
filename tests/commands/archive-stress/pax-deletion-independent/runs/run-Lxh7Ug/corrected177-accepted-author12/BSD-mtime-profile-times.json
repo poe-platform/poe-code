@@ -1,0 +1,9 @@
+{
+  "family": "BSD",
+  "actualLocal": 1700123401125,
+  "actualFollowing": 1700123456000,
+  "expectedLocal": 1700123401125,
+  "expectedFollowing": 1700123456000,
+  "posixFollowing": 1700123400000,
+  "profileConflict": true
+}

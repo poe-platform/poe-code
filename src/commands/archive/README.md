@@ -119,9 +119,16 @@ unsupported and produce failure. No option or archive data executes code.
   are rejected. Header checksums use the unsigned POSIX calculation.
 - PAX lengths are **UTF-8 octet lengths including the whole record**, not
   JavaScript string lengths. Embedded newlines and `=` inside values work.
-  Nonempty global/local precedence is implemented. Empty values currently clear
-  earlier PAX values and fall back to the USTAR field; POSIX deletion of the
-  corresponding base field remains a separate open semantic concern.
+  Local values override global values, then GNU long-record and raw USTAR
+  fallbacks. Empty values are deletion tombstones: they suppress lower fields,
+  not resurrect them. Local state applies to the next real member (even when
+  excluded); global state persists per keyword until replaced. Last duplicate
+  records win, including deletion and later reintroduction.
+  Missing effective path, size, or a required link target fails before that
+  member's effects. Rejection of deleted size also covers zero-data types rather
+  than guessing their framing. This is a conservative product policy, not a
+  universal POSIX-mandated error. Checksum/envelope and extension physical sizes
+  remain validated; overridden/deleted raw semantic fields are not decoded.
   Recognized keys: `path`, `linkpath`, `size`, `uid`, `gid`, `mtime`, `atime`,
   `ctime`, `uname`, `gname`, `comment`, `charset`, `hdrcharset`.
   Known optional metadata is accepted and discarded: nonempty attribute names
@@ -161,8 +168,8 @@ unsupported and produce failure. No option or archive data executes code.
   replacement. Unsupported backend links fail; there is no copy fallback.
   Replacing a regular file unlinks and exclusively creates it, leaving earlier
   hardlinked versions untouched.
-- Headers record numeric UID/GID when provided, ordinary/special permission
-  bits, mtime, and (PAX) atime. Missing UID/GID become zero; no owner names are
+- Created headers record numeric UID/GID when provided, ordinary/special permission
+  bits, mtime, and (PAX) atime. Missing creation UID/GID become zero; no owner names are
   invented. There is no FS ownership API: extraction does **not** chown, restore
   owner/group names, ctime/birthtime, ACLs, or xattrs. Supported `chmod`/`utimes`
   restore ordinary `0777` permission bits and atime/mtime; setuid/setgid/sticky
@@ -170,7 +177,15 @@ unsupported and produce failure. No option or archive data executes code.
   reapplied. Backend capability flags/methods govern restoration. Unsupported
   metadata is not represented as preserved. Timestamp precision remains that
   of JS numeric milliseconds and the FS; PAX rendering has at most nine
-  fractional-second digits. Verbose listing uses numeric IDs/seconds, not
+  fractional-second digits. Deleted input UID/GID/mtime are displayed as `-`,
+  not invented zero values. Deleted mtime is not restored: normal backend
+  creation/write (or existing-directory) state remains. Absent atime retains the
+  historical atime-from-mtime fallback; explicitly deleted atime suppresses it.
+  If just one timestamp is requested, a fresh post-write/post-chmod stat supplies
+  the other for paired `utimes`; stat/utimes errors and cancellation propagate.
+  This is non-atomic best-effort preservation, not an omission primitive, lease
+  or pathname-race guarantee. Neither requested time means no `utimes` call.
+  Verbose listing otherwise uses numeric IDs/seconds, not
   byte-for-byte GNU date/locale formatting.
 - Directory metadata is deferred until successful archive validation, children
   before parents. Tar requests `0700` for new intermediate directories without

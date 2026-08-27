@@ -1,0 +1,48 @@
+TAP version 13
+# Subtest: I01 opaque optional bytes cannot change effective size, path, type or literal dot-underscore members
+ok 1 - I01 opaque optional bytes cannot change effective size, path, type or literal dot-underscore members
+  ---
+  duration_ms: 19.945125
+  type: 'test'
+  ...
+# Subtest: I02 malformed opaque-value framing and checksum mutations fail before publication
+ok 2 - I02 malformed opaque-value framing and checksum mutations fail before publication
+  ---
+  duration_ms: 21.6185
+  type: 'test'
+  ...
+# Subtest: I03 essential layout and effective-path controls remain fail-closed beside ignored metadata
+ok 3 - I03 essential layout and effective-path controls remain fail-closed beside ignored metadata
+  ---
+  duration_ms: 39.996375
+  type: 'test'
+  ...
+# Subtest: I04 discarded values still consume PAX, member, archive and effective-size budgets
+ok 4 - I04 discarded values still consume PAX, member, archive and effective-size budgets
+  ---
+  duration_ms: 8.7175
+  type: 'test'
+  ...
+# Subtest: I05 fixed local nanoseconds and global precedence have separate virtual and native profile assertions
+ok 5 - I05 fixed local nanoseconds and global precedence have separate virtual and native profile assertions
+  ---
+  duration_ms: 59.225333
+  type: 'test'
+  ...
+# {"family":"GNU","sha256":"49a0bd353ad67347674d00a7b3eeb171da58728f7e4577c9b320d8ab1e7bba66","observations":[{"args":["--version"],"status":0,"signal":null,"stdout":"tar (GNU tar) 1.35\\nCopyright (C) 2023 Free Software Foundation, Inc.\\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\\nThis is free software: you are free to change and redistribute it.\\nThere is NO WARRANTY, to the extent permitted by law.\\n\\nWritten by John Gilmore and Jay Fenlason.\\n","stderr":""},{"fixedArchiveSha256":"259f156dd7cd11fe320d1569a8598afcda3900653982018bc3c41460dde9f5ee","environment":{"PATH":"/usr/bin:/bin","LC_ALL":"C","TZ":"UTC"}},{"args":["-xf","fixed.tar","-C","out"],"status":0,"signal":null,"stdout":"","stderr":""},{"localNs":"1700123401123456789","followingNs":"1700123400000000000","posixFollowingNs":"1700123400000000000","classification":"nonempty POSIX precedence"},{"sidecarArchiveSha256":"8404daf3a152880fa1bc3521a786ce051566fb418feb40017d0104dd46cfbde8"},{"args":["-tf","sidecar.tar"],"status":0,"signal":null,"stdout":"._literal\\nliteral\\n","stderr":""},{"sidecarClassification":"default native presentation only; no product filtering or inferred metadata restoration","noExtraNativeOptions":true}]}
+# {"family":"BSD","sha256":"bdccb76a715fbebc4915a1a1b1de0e7050ad842ebb730c47935b3a22c13e3af9","observations":[{"args":["--version"],"status":0,"signal":null,"stdout":"bsdtar 3.5.3 - libarchive 3.7.4 zlib/1.2.12 liblzma/5.4.3 bz2lib/1.0.8 \\n","stderr":""},{"fixedArchiveSha256":"259f156dd7cd11fe320d1569a8598afcda3900653982018bc3c41460dde9f5ee","environment":{"PATH":"/usr/bin:/bin","LC_ALL":"C","TZ":"UTC"}},{"args":["-xf","fixed.tar","-C","out"],"status":0,"signal":null,"stdout":"","stderr":""},{"localNs":"1700123401123456789","followingNs":"1700123456000000000","posixFollowingNs":"1700123400000000000","classification":"native global semantics conflict; NOT virtual acceptance"},{"sidecarArchiveSha256":"8404daf3a152880fa1bc3521a786ce051566fb418feb40017d0104dd46cfbde8"},{"args":["-tf","sidecar.tar"],"status":0,"signal":null,"stdout":"literal\\n","stderr":""},{"sidecarClassification":"default native presentation only; no product filtering or inferred metadata restoration","noExtraNativeOptions":true}]}
+# Subtest: I06 opaque PAX hardlinks share writes and unsupported publication never copies
+ok 6 - I06 opaque PAX hardlinks share writes and unsupported publication never copies
+  ---
+  duration_ms: 7.364458
+  type: 'test'
+  ...
+1..6
+# tests 6
+# suites 0
+# pass 6
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 278.078167

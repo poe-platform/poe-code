@@ -1,0 +1,1806 @@
+{
+  "startedUtc": "2026-08-27T03:37:53.091Z",
+  "node": "v22.22.2",
+  "nodeSha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+  "platform": "darwin",
+  "architecture": "arm64",
+  "scope": "native-only benign profile observations; no product imports, no malicious/header-garbage host extraction; not normative expected values",
+  "temporary": "/tmp/safe-bash-pax-deletion-owned-XRJyky",
+  "env": {
+    "PATH": "/usr/bin:/bin",
+    "LC_ALL": "C",
+    "LANG": "C",
+    "TZ": "UTC",
+    "HOME": "/tmp/safe-bash-pax-deletion-owned-XRJyky",
+    "TMPDIR": "/tmp/safe-bash-pax-deletion-owned-XRJyky",
+    "COPYFILE_DISABLE": "1",
+    "COPY_EXTENDED_ATTRIBUTES_DISABLE": "1"
+  },
+  "calls": [
+    {
+      "executable": "/Users/kjopek/Workspace/safe-bash/tests/commands/archive/.oracle/gnu-tar/1.35/bin/gtar",
+      "args": [
+        "--version"
+      ],
+      "cwd": "/tmp/safe-bash-pax-deletion-owned-XRJyky",
+      "status": 0,
+      "signal": null,
+      "stdout": "tar (GNU tar) 1.35\nCopyright (C) 2023 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by John Gilmore and Jay Fenlason.\n",
+      "stderr": ""
+    },
+    {
+      "executable": "/usr/bin/bsdtar",
+      "args": [
+        "--version"
+      ],
+      "cwd": "/tmp/safe-bash-pax-deletion-owned-XRJyky",
+      "status": 0,
+      "signal": null,
+      "stdout": "bsdtar 3.5.3 - libarchive 3.7.4 zlib/1.2.12 liblzma/5.4.3 bz2lib/1.0.8 \n",
+      "stderr": ""
+    },
+    {
+      "executable": "/Users/kjopek/Workspace/safe-bash/tests/commands/archive/.oracle/gnu-tar/1.35/bin/gtar",
+      "args": [
+        "--full-time",
+        "--numeric-owner",
+        "-tvf",
+        "/tmp/safe-bash-pax-deletion-owned-XRJyky/D01-ordinary.tar"
+      ],
+      "cwd": "/tmp/safe-bash-pax-deletion-owned-XRJyky",
+      "status": 0,
+      "signal": null,
+      "stdout": "-rw------- 0/0               2 2023-11-16 08:30:56 a\n-rw------- 0/0               2 2023-11-16 08:30:56 b\n",
+      "stderr": ""
+    },
+    {
+      "executable": "/Users/kjopek/Workspace/safe-bash/tests/commands/archive/.oracle/gnu-tar/1.35/bin/gtar",
+      "args": [
+        "--no-same-owner",
+        "-xf",
+        "/tmp/safe-bash-pax-deletion-owned-XRJyky/D01-ordinary.tar",
+        "-C",
+        "/tmp/safe-bash-pax-deletion-owned-XRJyky/D01-ordinary-GNU"
+      ],
+      "cwd": "/tmp/safe-bash-pax-deletion-owned-XRJyky",
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "executable": "/usr/bin/bsdtar",
+      "args": [
+        "-tvf",
+        "/tmp/safe-bash-pax-deletion-owned-XRJyky/D01-ordinary.tar"
+      ],
+      "cwd": "/tmp/safe-bash-pax-deletion-owned-XRJyky",
+      "status": 0,
+      "signal": null,
+      "stdout": "-rw-------  0 0      0           2 Nov 16  2023 a\n-rw-------  0 0      0           2 Nov 16  2023 b\n",
+      "stderr": ""
+    },
+    {
+      "executable": "/usr/bin/bsdtar",
+      "args": [
+        "--no-same-owner",
+        "-xf",
+        "/tmp/safe-bash-pax-deletion-owned-XRJyky/D01-ordinary.tar",
+        "-C",
+        "/tmp/safe-bash-pax-deletion-owned-XRJyky/D01-ordinary-BSD"
+      ],
+      "cwd": "/tmp/safe-bash-pax-deletion-owned-XRJyky",
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "executable": "/Users/kjopek/Workspace/safe-bash/tests/commands/archive/.oracle/gnu-tar/1.35/bin/gtar",
+      "args": [
+        "--full-time",
+        "--numeric-owner",
+        "-tvf",
+        "/tmp/safe-bash-pax-deletion-owned-XRJyky/D02-global-unrelated-key.tar"
+      ],
+      "cwd": "/tmp/safe-bash-pax-deletion-owned-XRJyky",
+      "status": 0,
+      "signal": null,
+      "stdout": "-rw------- 101/0             2 2023-11-16 08:30:00 a\n-rw------- 0/202             2 2023-11-16 08:30:56 b\n",
+      "stderr": ""
+    },
+    {
+      "executable": "/Users/kjopek/Workspace/safe-bash/tests/commands/archive/.oracle/gnu-tar/1.35/bin/gtar",
+      "args": [
+        "--no-same-owner",
+        "-xf",
+        "/tmp/safe-bash-pax-deletion-owned-XRJyky/D02-global-unrelated-key.tar",
+        "-C",
+        "/tmp/safe-bash-pax-deletion-owned-XRJyky/D02-global-unrelated-key-GNU"
+      ],
+      "cwd": "/tmp/safe-bash-pax-deletion-owned-XRJyky",
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "executable": "/usr/bin/bsdtar",
+      "args": [
+        "-tvf",
+        "/tmp/safe-bash-pax-deletion-owned-XRJyky/D02-global-unrelated-key.tar"
+      ],
+      "cwd": "/tmp/safe-bash-pax-deletion-owned-XRJyky",
+      "status": 0,
+      "signal": null,
+      "stdout": "-rw-------  0 0      0           2 Nov 16  2023 a\n-rw-------  0 0      0           2 Nov 16  2023 b\n",
+      "stderr": ""
+    },
+    {
+      "executable": "/usr/bin/bsdtar",
+      "args": [
+        "--no-same-owner",
+        "-xf",
+        "/tmp/safe-bash-pax-deletion-owned-XRJyky/D02-global-unrelated-key.tar",
+        "-C",
+        "/tmp/safe-bash-pax-deletion-owned-XRJyky/D02-global-unrelated-key-BSD"
+      ],
+      "cwd": "/tmp/safe-bash-pax-deletion-owned-XRJyky",
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "executable": "/Users/kjopek/Workspace/safe-bash/tests/commands/archive/.oracle/gnu-tar/1.35/bin/gtar",
+      "args": [
+        "--full-time",
+        "--numeric-owner",
+        "-tvf",
+        "/tmp/safe-bash-pax-deletion-owned-XRJyky/D03-global-delete-persistence-reintroduction.tar"
+      ],
+      "cwd": "/tmp/safe-bash-pax-deletion-owned-XRJyky",
+      "status": 2,
+      "signal": null,
+      "stdout": "-rw------- 0/0               2 2023-11-16 08:30:56 a\n-rw------- 0/0               2 2023-11-16 08:31:39.125 b\n-rw------- 0/0               2 2023-11-16 08:30:56     c\n-rw------- 0/0               2 2023-11-16 08:30:00     d\n",
+      "stderr": "/Users/kjopek/Workspace/safe-bash/tests/commands/archive/.oracle/gnu-tar/1.35/bin/gtar: Malformed extended header: invalid mtime=\n/Users/kjopek/Workspace/safe-bash/tests/commands/archive/.oracle/gnu-tar/1.35/bin/gtar: Malformed extended header: invalid mtime=\n/Users/kjopek/Workspace/safe-bash/tests/commands/archive/.oracle/gnu-tar/1.35/bin/gtar: Malformed extended header: invalid mtime=\n/Users/kjopek/Workspace/safe-bash/tests/commands/archive/.oracle/gnu-tar/1.35/bin/gtar: Exiting with failure status due to previous errors\n"
+    },
+    {
+      "executable": "/Users/kjopek/Workspace/safe-bash/tests/commands/archive/.oracle/gnu-tar/1.35/bin/gtar",
+      "args": [
+        "--no-same-owner",
+        "-xf",
+        "/tmp/safe-bash-pax-deletion-owned-XRJyky/D03-global-delete-persistence-reintroduction.tar",
+        "-C",
+        "/tmp/safe-bash-pax-deletion-owned-XRJyky/D03-global-delete-persistence-reintroduction-GNU"
+      ],
+      "cwd": "/tmp/safe-bash-pax-deletion-owned-XRJyky",
+      "status": 2,
+      "signal": null,
+      "stdout": "",
+      "stderr": "/Users/kjopek/Workspace/safe-bash/tests/commands/archive/.oracle/gnu-tar/1.35/bin/gtar: Malformed extended header: invalid mtime=\n/Users/kjopek/Workspace/safe-bash/tests/commands/archive/.oracle/gnu-tar/1.35/bin/gtar: Malformed extended header: invalid mtime=\n/Users/kjopek/Workspace/safe-bash/tests/commands/archive/.oracle/gnu-tar/1.35/bin/gtar: Malformed extended header: invalid mtime=\n/Users/kjopek/Workspace/safe-bash/tests/commands/archive/.oracle/gnu-tar/1.35/bin/gtar: Exiting with failure status due to previous errors\n"
+    },
+    {
+      "executable": "/usr/bin/bsdtar",
+      "args": [
+        "-tvf",
+        "/tmp/safe-bash-pax-deletion-owned-XRJyky/D03-global-delete-persistence-reintroduction.tar"
+      ],
+      "cwd": "/tmp/safe-bash-pax-deletion-owned-XRJyky",
+      "status": 0,
+      "signal": null,
+      "stdout": "-rw-------  0 0      0           2 Nov 16  2023 a\n-rw-------  0 0      0           2 Nov 16  2023 b\n-rw-------  0 0      0           2 Nov 16  2023 c\n-rw-------  0 0      0           2 Nov 16  2023 d\n",
+      "stderr": ""
+    },
+    {
+      "executable": "/usr/bin/bsdtar",
+      "args": [
+        "--no-same-owner",
+        "-xf",
+        "/tmp/safe-bash-pax-deletion-owned-XRJyky/D03-global-delete-persistence-reintroduction.tar",
+        "-C",
+        "/tmp/safe-bash-pax-deletion-owned-XRJyky/D03-global-delete-persistence-reintroduction-BSD"
+      ],
+      "cwd": "/tmp/safe-bash-pax-deletion-owned-XRJyky",
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "executable": "/Users/kjopek/Workspace/safe-bash/tests/commands/archive/.oracle/gnu-tar/1.35/bin/gtar",
+      "args": [
+        "--full-time",
+        "--numeric-owner",
+        "-tvf",
+        "/tmp/safe-bash-pax-deletion-owned-XRJyky/D04-local-delete-reset-reintroduction.tar"
+      ],
+      "cwd": "/tmp/safe-bash-pax-deletion-owned-XRJyky",
+      "status": 2,
+      "signal": null,
+      "stdout": "-rw------- 0/0               2 2023-11-16 08:30:00 a\n-rw------- 0/0               2 2023-11-16 08:31:39.125 b\n-rw------- 0/0               2 2023-11-16 08:30:00     c\n",
+      "stderr": "/Users/kjopek/Workspace/safe-bash/tests/commands/archive/.oracle/gnu-tar/1.35/bin/gtar: Malformed extended header: invalid mtime=\n/Users/kjopek/Workspace/safe-bash/tests/commands/archive/.oracle/gnu-tar/1.35/bin/gtar: Exiting with failure status due to previous errors\n"
+    },
+    {
+      "executable": "/Users/kjopek/Workspace/safe-bash/tests/commands/archive/.oracle/gnu-tar/1.35/bin/gtar",
+      "args": [
+        "--no-same-owner",
+        "-xf",
+        "/tmp/safe-bash-pax-deletion-owned-XRJyky/D04-local-delete-reset-reintroduction.tar",
+        "-C",
+        "/tmp/safe-bash-pax-deletion-owned-XRJyky/D04-local-delete-reset-reintroduction-GNU"
+      ],
+      "cwd": "/tmp/safe-bash-pax-deletion-owned-XRJyky",
+      "status": 2,
+      "signal": null,
+      "stdout": "",
+      "stderr": "/Users/kjopek/Workspace/safe-bash/tests/commands/archive/.oracle/gnu-tar/1.35/bin/gtar: Malformed extended header: invalid mtime=\n/Users/kjopek/Workspace/safe-bash/tests/commands/archive/.oracle/gnu-tar/1.35/bin/gtar: Exiting with failure status due to previous errors\n"
+    },
+    {
+      "executable": "/usr/bin/bsdtar",
+      "args": [
+        "-tvf",
+        "/tmp/safe-bash-pax-deletion-owned-XRJyky/D04-local-delete-reset-reintroduction.tar"
+      ],
+      "cwd": "/tmp/safe-bash-pax-deletion-owned-XRJyky",
+      "status": 0,
+      "signal": null,
+      "stdout": "-rw-------  0 0      0           2 Jan  1  1970 a\n-rw-------  0 0      0           2 Nov 16  2023 b\n-rw-------  0 0      0           2 Nov 16  2023 c\n",
+      "stderr": ""
+    },
+    {
+      "executable": "/usr/bin/bsdtar",
+      "args": [
+        "--no-same-owner",
+        "-xf",
+        "/tmp/safe-bash-pax-deletion-owned-XRJyky/D04-local-delete-reset-reintroduction.tar",
+        "-C",
+        "/tmp/safe-bash-pax-deletion-owned-XRJyky/D04-local-delete-reset-reintroduction-BSD"
+      ],
+      "cwd": "/tmp/safe-bash-pax-deletion-owned-XRJyky",
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "executable": "/Users/kjopek/Workspace/safe-bash/tests/commands/archive/.oracle/gnu-tar/1.35/bin/gtar",
+      "args": [
+        "--full-time",
+        "--numeric-owner",
+        "-tvf",
+        "/tmp/safe-bash-pax-deletion-owned-XRJyky/D05-local-duplicate-final-value.tar"
+      ],
+      "cwd": "/tmp/safe-bash-pax-deletion-owned-XRJyky",
+      "status": 2,
+      "signal": null,
+      "stdout": "-rw------- 0/0               2 2023-11-16 08:31:39.125 a\n-rw------- 0/0               2 2023-11-16 08:30:56     b\n",
+      "stderr": "/Users/kjopek/Workspace/safe-bash/tests/commands/archive/.oracle/gnu-tar/1.35/bin/gtar: Malformed extended header: invalid mtime=\n/Users/kjopek/Workspace/safe-bash/tests/commands/archive/.oracle/gnu-tar/1.35/bin/gtar: Exiting with failure status due to previous errors\n"
+    },
+    {
+      "executable": "/Users/kjopek/Workspace/safe-bash/tests/commands/archive/.oracle/gnu-tar/1.35/bin/gtar",
+      "args": [
+        "--no-same-owner",
+        "-xf",
+        "/tmp/safe-bash-pax-deletion-owned-XRJyky/D05-local-duplicate-final-value.tar",
+        "-C",
+        "/tmp/safe-bash-pax-deletion-owned-XRJyky/D05-local-duplicate-final-value-GNU"
+      ],
+      "cwd": "/tmp/safe-bash-pax-deletion-owned-XRJyky",
+      "status": 2,
+      "signal": null,
+      "stdout": "",
+      "stderr": "/Users/kjopek/Workspace/safe-bash/tests/commands/archive/.oracle/gnu-tar/1.35/bin/gtar: Malformed extended header: invalid mtime=\n/Users/kjopek/Workspace/safe-bash/tests/commands/archive/.oracle/gnu-tar/1.35/bin/gtar: Exiting with failure status due to previous errors\n"
+    },
+    {
+      "executable": "/usr/bin/bsdtar",
+      "args": [
+        "-tvf",
+        "/tmp/safe-bash-pax-deletion-owned-XRJyky/D05-local-duplicate-final-value.tar"
+      ],
+      "cwd": "/tmp/safe-bash-pax-deletion-owned-XRJyky",
+      "status": 0,
+      "signal": null,
+      "stdout": "-rw-------  0 0      0           2 Nov 16  2023 a\n-rw-------  0 0      0           2 Nov 16  2023 b\n",
+      "stderr": ""
+    },
+    {
+      "executable": "/usr/bin/bsdtar",
+      "args": [
+        "--no-same-owner",
+        "-xf",
+        "/tmp/safe-bash-pax-deletion-owned-XRJyky/D05-local-duplicate-final-value.tar",
+        "-C",
+        "/tmp/safe-bash-pax-deletion-owned-XRJyky/D05-local-duplicate-final-value-BSD"
+      ],
+      "cwd": "/tmp/safe-bash-pax-deletion-owned-XRJyky",
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "executable": "/Users/kjopek/Workspace/safe-bash/tests/commands/archive/.oracle/gnu-tar/1.35/bin/gtar",
+      "args": [
+        "--full-time",
+        "--numeric-owner",
+        "-tvf",
+        "/tmp/safe-bash-pax-deletion-owned-XRJyky/D06-local-duplicate-final-delete.tar"
+      ],
+      "cwd": "/tmp/safe-bash-pax-deletion-owned-XRJyky",
+      "status": 2,
+      "signal": null,
+      "stdout": "-rw------- 0/0               2 2023-11-16 08:31:39.125 a\n-rw------- 0/0               2 2023-11-16 08:30:56     b\n",
+      "stderr": "/Users/kjopek/Workspace/safe-bash/tests/commands/archive/.oracle/gnu-tar/1.35/bin/gtar: Malformed extended header: invalid mtime=\n/Users/kjopek/Workspace/safe-bash/tests/commands/archive/.oracle/gnu-tar/1.35/bin/gtar: Exiting with failure status due to previous errors\n"
+    },
+    {
+      "executable": "/Users/kjopek/Workspace/safe-bash/tests/commands/archive/.oracle/gnu-tar/1.35/bin/gtar",
+      "args": [
+        "--no-same-owner",
+        "-xf",
+        "/tmp/safe-bash-pax-deletion-owned-XRJyky/D06-local-duplicate-final-delete.tar",
+        "-C",
+        "/tmp/safe-bash-pax-deletion-owned-XRJyky/D06-local-duplicate-final-delete-GNU"
+      ],
+      "cwd": "/tmp/safe-bash-pax-deletion-owned-XRJyky",
+      "status": 2,
+      "signal": null,
+      "stdout": "",
+      "stderr": "/Users/kjopek/Workspace/safe-bash/tests/commands/archive/.oracle/gnu-tar/1.35/bin/gtar: Malformed extended header: invalid mtime=\n/Users/kjopek/Workspace/safe-bash/tests/commands/archive/.oracle/gnu-tar/1.35/bin/gtar: Exiting with failure status due to previous errors\n"
+    },
+    {
+      "executable": "/usr/bin/bsdtar",
+      "args": [
+        "-tvf",
+        "/tmp/safe-bash-pax-deletion-owned-XRJyky/D06-local-duplicate-final-delete.tar"
+      ],
+      "cwd": "/tmp/safe-bash-pax-deletion-owned-XRJyky",
+      "status": 0,
+      "signal": null,
+      "stdout": "-rw-------  0 0      0           2 Jan  1  1970 a\n-rw-------  0 0      0           2 Nov 16  2023 b\n",
+      "stderr": ""
+    },
+    {
+      "executable": "/usr/bin/bsdtar",
+      "args": [
+        "--no-same-owner",
+        "-xf",
+        "/tmp/safe-bash-pax-deletion-owned-XRJyky/D06-local-duplicate-final-delete.tar",
+        "-C",
+        "/tmp/safe-bash-pax-deletion-owned-XRJyky/D06-local-duplicate-final-delete-BSD"
+      ],
+      "cwd": "/tmp/safe-bash-pax-deletion-owned-XRJyky",
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "executable": "/Users/kjopek/Workspace/safe-bash/tests/commands/archive/.oracle/gnu-tar/1.35/bin/gtar",
+      "args": [
+        "--full-time",
+        "--numeric-owner",
+        "-tvf",
+        "/tmp/safe-bash-pax-deletion-owned-XRJyky/D07-global-duplicate-final-delete-and-value.tar"
+      ],
+      "cwd": "/tmp/safe-bash-pax-deletion-owned-XRJyky",
+      "status": 2,
+      "signal": null,
+      "stdout": "-rw------- 0/0               2 2023-11-16 08:30:00 a\n-rw------- 0/0               2 2023-11-16 08:31:39.125 b\n-rw------- 0/0               2 2023-11-16 08:31:39.125 c\n",
+      "stderr": "/Users/kjopek/Workspace/safe-bash/tests/commands/archive/.oracle/gnu-tar/1.35/bin/gtar: Malformed extended header: invalid mtime=\n/Users/kjopek/Workspace/safe-bash/tests/commands/archive/.oracle/gnu-tar/1.35/bin/gtar: Malformed extended header: invalid mtime=\n/Users/kjopek/Workspace/safe-bash/tests/commands/archive/.oracle/gnu-tar/1.35/bin/gtar: Malformed extended header: invalid mtime=\n/Users/kjopek/Workspace/safe-bash/tests/commands/archive/.oracle/gnu-tar/1.35/bin/gtar: Exiting with failure status due to previous errors\n"
+    },
+    {
+      "executable": "/Users/kjopek/Workspace/safe-bash/tests/commands/archive/.oracle/gnu-tar/1.35/bin/gtar",
+      "args": [
+        "--no-same-owner",
+        "-xf",
+        "/tmp/safe-bash-pax-deletion-owned-XRJyky/D07-global-duplicate-final-delete-and-value.tar",
+        "-C",
+        "/tmp/safe-bash-pax-deletion-owned-XRJyky/D07-global-duplicate-final-delete-and-value-GNU"
+      ],
+      "cwd": "/tmp/safe-bash-pax-deletion-owned-XRJyky",
+      "status": 2,
+      "signal": null,
+      "stdout": "",
+      "stderr": "/Users/kjopek/Workspace/safe-bash/tests/commands/archive/.oracle/gnu-tar/1.35/bin/gtar: Malformed extended header: invalid mtime=\n/Users/kjopek/Workspace/safe-bash/tests/commands/archive/.oracle/gnu-tar/1.35/bin/gtar: Malformed extended header: invalid mtime=\n/Users/kjopek/Workspace/safe-bash/tests/commands/archive/.oracle/gnu-tar/1.35/bin/gtar: Malformed extended header: invalid mtime=\n/Users/kjopek/Workspace/safe-bash/tests/commands/archive/.oracle/gnu-tar/1.35/bin/gtar: Exiting with failure status due to previous errors\n"
+    },
+    {
+      "executable": "/usr/bin/bsdtar",
+      "args": [
+        "-tvf",
+        "/tmp/safe-bash-pax-deletion-owned-XRJyky/D07-global-duplicate-final-delete-and-value.tar"
+      ],
+      "cwd": "/tmp/safe-bash-pax-deletion-owned-XRJyky",
+      "status": 0,
+      "signal": null,
+      "stdout": "-rw-------  0 0      0           2 Nov 16  2023 a\n-rw-------  0 0      0           2 Nov 16  2023 b\n-rw-------  0 0      0           2 Nov 16  2023 c\n",
+      "stderr": ""
+    },
+    {
+      "executable": "/usr/bin/bsdtar",
+      "args": [
+        "--no-same-owner",
+        "-xf",
+        "/tmp/safe-bash-pax-deletion-owned-XRJyky/D07-global-duplicate-final-delete-and-value.tar",
+        "-C",
+        "/tmp/safe-bash-pax-deletion-owned-XRJyky/D07-global-duplicate-final-delete-and-value-BSD"
+      ],
+      "cwd": "/tmp/safe-bash-pax-deletion-owned-XRJyky",
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "executable": "/Users/kjopek/Workspace/safe-bash/tests/commands/archive/.oracle/gnu-tar/1.35/bin/gtar",
+      "args": [
+        "--full-time",
+        "--numeric-owner",
+        "-tvf",
+        "/tmp/safe-bash-pax-deletion-owned-XRJyky/D08-cli-omission-control.tar"
+      ],
+      "cwd": "/tmp/safe-bash-pax-deletion-owned-XRJyky",
+      "status": 0,
+      "signal": null,
+      "stdout": "-rw------- 0/0               2 2023-11-16 08:31:39.125 a\n-rw------- 0/0               2 2023-11-16 08:30:56     b\n",
+      "stderr": ""
+    },
+    {
+      "executable": "/Users/kjopek/Workspace/safe-bash/tests/commands/archive/.oracle/gnu-tar/1.35/bin/gtar",
+      "args": [
+        "--no-same-owner",
+        "-xf",
+        "/tmp/safe-bash-pax-deletion-owned-XRJyky/D08-cli-omission-control.tar",
+        "-C",
+        "/tmp/safe-bash-pax-deletion-owned-XRJyky/D08-cli-omission-control-GNU"
+      ],
+      "cwd": "/tmp/safe-bash-pax-deletion-owned-XRJyky",
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "executable": "/usr/bin/bsdtar",
+      "args": [
+        "-tvf",
+        "/tmp/safe-bash-pax-deletion-owned-XRJyky/D08-cli-omission-control.tar"
+      ],
+      "cwd": "/tmp/safe-bash-pax-deletion-owned-XRJyky",
+      "status": 0,
+      "signal": null,
+      "stdout": "-rw-------  0 0      0           2 Nov 16  2023 a\n-rw-------  0 0      0           2 Nov 16  2023 b\n",
+      "stderr": ""
+    },
+    {
+      "executable": "/usr/bin/bsdtar",
+      "args": [
+        "--no-same-owner",
+        "-xf",
+        "/tmp/safe-bash-pax-deletion-owned-XRJyky/D08-cli-omission-control.tar",
+        "-C",
+        "/tmp/safe-bash-pax-deletion-owned-XRJyky/D08-cli-omission-control-BSD"
+      ],
+      "cwd": "/tmp/safe-bash-pax-deletion-owned-XRJyky",
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "executable": "/Users/kjopek/Workspace/safe-bash/tests/commands/archive/.oracle/gnu-tar/1.35/bin/gtar",
+      "args": [
+        "--pax-option=delete=mtime",
+        "--full-time",
+        "--numeric-owner",
+        "-tvf",
+        "/tmp/safe-bash-pax-deletion-owned-XRJyky/D08-cli-omission-control.tar"
+      ],
+      "cwd": "/tmp/safe-bash-pax-deletion-owned-XRJyky",
+      "status": 0,
+      "signal": null,
+      "stdout": "-rw------- 0/0               2 2023-11-16 08:30:56 a\n-rw------- 0/0               2 2023-11-16 08:30:56 b\n",
+      "stderr": ""
+    },
+    {
+      "executable": "/Users/kjopek/Workspace/safe-bash/tests/commands/archive/.oracle/gnu-tar/1.35/bin/gtar",
+      "args": [
+        "--pax-option=delete=mtime",
+        "--no-same-owner",
+        "-xf",
+        "/tmp/safe-bash-pax-deletion-owned-XRJyky/D08-cli-omission-control.tar",
+        "-C",
+        "/tmp/safe-bash-pax-deletion-owned-XRJyky/D08-cli-omission-control-GNU-cli-delete-mtime"
+      ],
+      "cwd": "/tmp/safe-bash-pax-deletion-owned-XRJyky",
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": ""
+    }
+  ],
+  "profiles": [
+    {
+      "name": "GNU",
+      "executable": "/Users/kjopek/Workspace/safe-bash/tests/commands/archive/.oracle/gnu-tar/1.35/bin/gtar",
+      "sha256": "49a0bd353ad67347674d00a7b3eeb171da58728f7e4577c9b320d8ab1e7bba66",
+      "version": "tar (GNU tar) 1.35\nCopyright (C) 2023 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by John Gilmore and Jay Fenlason.\n"
+    },
+    {
+      "name": "BSD",
+      "executable": "/usr/bin/bsdtar",
+      "sha256": "bdccb76a715fbebc4915a1a1b1de0e7050ad842ebb730c47935b3a22c13e3af9",
+      "version": "bsdtar 3.5.3 - libarchive 3.7.4 zlib/1.2.12 liblzma/5.4.3 bz2lib/1.0.8 \n"
+    }
+  ],
+  "vectors": [
+    {
+      "id": "D01-ordinary",
+      "sha256": "8b2b9a043fb4b7543042060bf647998176d85b0f4a87720384c0bcc0588b3e8d",
+      "archiveBase64": "YQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADAwMDA2MDAAMDAwMDAwMAAwMDAwMDAwADAwMDAwMDAwMDAyADE0NTI1MzUxNTAwADAwNzM2NwAgMAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAB1c3RhcgAwMAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAwMDAwMDAwADAwMDAwMDAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABhCgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAGIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAwMDAwNjAwADAwMDAwMDAAMDAwMDAwMAAwMDAwMDAwMDAwMgAxNDUyNTM1MTUwMAAwMDczNzAAIDAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAdXN0YXIAMDAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAMDAwMDAwMAAwMDAwMDAwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAYgoAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+      "headers": [
+        {
+          "offset": 0,
+          "name": "a",
+          "type": "0",
+          "size": 2,
+          "rawMtimeOctal": "14525351500",
+          "rawMtimeSeconds": 1700123456,
+          "headerHex": "6100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000030303030363030003030303030303000303030303030300030303030303030303030320031343532353335313530300030303733363700203000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000757374617200303000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000303030303030300030303030303030000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+          "bodyHex": "610a"
+        },
+        {
+          "offset": 1024,
+          "name": "b",
+          "type": "0",
+          "size": 2,
+          "rawMtimeOctal": "14525351500",
+          "rawMtimeSeconds": 1700123456,
+          "headerHex": "6200000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000030303030363030003030303030303000303030303030300030303030303030303030320031343532353335313530300030303733373000203000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000757374617200303000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000303030303030300030303030303030000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+          "bodyHex": "620a"
+        }
+      ],
+      "observations": [
+        {
+          "profile": "GNU",
+          "listing": {
+            "executable": "/Users/kjopek/Workspace/safe-bash/tests/commands/archive/.oracle/gnu-tar/1.35/bin/gtar",
+            "args": [
+              "--full-time",
+              "--numeric-owner",
+              "-tvf",
+              "/tmp/safe-bash-pax-deletion-owned-XRJyky/D01-ordinary.tar"
+            ],
+            "cwd": "/tmp/safe-bash-pax-deletion-owned-XRJyky",
+            "status": 0,
+            "signal": null,
+            "stdout": "-rw------- 0/0               2 2023-11-16 08:30:56 a\n-rw------- 0/0               2 2023-11-16 08:30:56 b\n",
+            "stderr": ""
+          },
+          "extraction": {
+            "executable": "/Users/kjopek/Workspace/safe-bash/tests/commands/archive/.oracle/gnu-tar/1.35/bin/gtar",
+            "args": [
+              "--no-same-owner",
+              "-xf",
+              "/tmp/safe-bash-pax-deletion-owned-XRJyky/D01-ordinary.tar",
+              "-C",
+              "/tmp/safe-bash-pax-deletion-owned-XRJyky/D01-ordinary-GNU"
+            ],
+            "cwd": "/tmp/safe-bash-pax-deletion-owned-XRJyky",
+            "status": 0,
+            "signal": null,
+            "stdout": "",
+            "stderr": ""
+          },
+          "files": [
+            {
+              "name": "a",
+              "bytes": 2,
+              "sha256": "87428fc522803d31065e7bce3cf03fe475096631e5e07bbd7a0fde60c4cf25c7",
+              "mtimeNs": "1700123456000000000"
+            },
+            {
+              "name": "b",
+              "bytes": 2,
+              "sha256": "0263829989b6fd954f72baaf2fc64bc2e2f01d692d4de72986ea808f6e99813f",
+              "mtimeNs": "1700123456000000000"
+            }
+          ]
+        },
+        {
+          "profile": "BSD",
+          "listing": {
+            "executable": "/usr/bin/bsdtar",
+            "args": [
+              "-tvf",
+              "/tmp/safe-bash-pax-deletion-owned-XRJyky/D01-ordinary.tar"
+            ],
+            "cwd": "/tmp/safe-bash-pax-deletion-owned-XRJyky",
+            "status": 0,
+            "signal": null,
+            "stdout": "-rw-------  0 0      0           2 Nov 16  2023 a\n-rw-------  0 0      0           2 Nov 16  2023 b\n",
+            "stderr": ""
+          },
+          "extraction": {
+            "executable": "/usr/bin/bsdtar",
+            "args": [
+              "--no-same-owner",
+              "-xf",
+              "/tmp/safe-bash-pax-deletion-owned-XRJyky/D01-ordinary.tar",
+              "-C",
+              "/tmp/safe-bash-pax-deletion-owned-XRJyky/D01-ordinary-BSD"
+            ],
+            "cwd": "/tmp/safe-bash-pax-deletion-owned-XRJyky",
+            "status": 0,
+            "signal": null,
+            "stdout": "",
+            "stderr": ""
+          },
+          "files": [
+            {
+              "name": "a",
+              "bytes": 2,
+              "sha256": "87428fc522803d31065e7bce3cf03fe475096631e5e07bbd7a0fde60c4cf25c7",
+              "mtimeNs": "1700123456000000000"
+            },
+            {
+              "name": "b",
+              "bytes": 2,
+              "sha256": "0263829989b6fd954f72baaf2fc64bc2e2f01d692d4de72986ea808f6e99813f",
+              "mtimeNs": "1700123456000000000"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "D02-global-unrelated-key",
+      "sha256": "a4e03f324232e722c74b552b242a2ae4a4ff7e4ab9714870da76878093f5de79",
+      "archiveBase64": "Z2xvYmFsAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADAwMDA2MDAAMDAwMDAwMAAwMDAwMDAwADAwMDAwMDAwMDM3ADE0NTI1MzUxNTAwADAxMDUwNgAgZwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAB1c3RhcgAwMAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAwMDAwMDAwADAwMDAwMDAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAyMCBtdGltZT0xNzAwMTIzNDAwCjExIHVpZD0xMDEKAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAGEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAwMDAwNjAwADAwMDAwMDAAMDAwMDAwMAAwMDAwMDAwMDAwMgAxNDUyNTM1MTUwMAAwMDczNjcAIDAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAdXN0YXIAMDAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAMDAwMDAwMAAwMDAwMDAwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAYQoAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABnbG9iYWwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAMDAwMDYwMAAwMDAwMDAwADAwMDAwMDAAMDAwMDAwMDAwMTMAMTQ1MjUzNTE1MDAAMDEwNTAwACBnAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHVzdGFyADAwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADAwMDAwMDAAMDAwMDAwMAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADExIGdpZD0yMDIKAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAYgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADAwMDA2MDAAMDAwMDAwMAAwMDAwMDAwADAwMDAwMDAwMDAyADE0NTI1MzUxNTAwADAwNzM3MAAgMAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAB1c3RhcgAwMAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAwMDAwMDAwADAwMDAwMDAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABiCgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+      "headers": [
+        {
+          "offset": 0,
+          "name": "global",
+          "type": "g",
+          "size": 31,
+          "rawMtimeOctal": "14525351500",
+          "rawMtimeSeconds": 1700123456,
+          "headerHex": "676c6f62616c0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000030303030363030003030303030303000303030303030300030303030303030303033370031343532353335313530300030313035303600206700000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000757374617200303000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000303030303030300030303030303030000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+          "bodyHex": "3230206d74696d653d313730303132333430300a3131207569643d3130310a",
+          "pax": [
+            "20 mtime=1700123400\n",
+            "11 uid=101\n"
+          ]
+        },
+        {
+          "offset": 1024,
+          "name": "a",
+          "type": "0",
+          "size": 2,
+          "rawMtimeOctal": "14525351500",
+          "rawMtimeSeconds": 1700123456,
+          "headerHex": "6100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000030303030363030003030303030303000303030303030300030303030303030303030320031343532353335313530300030303733363700203000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000757374617200303000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000303030303030300030303030303030000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+          "bodyHex": "610a"
+        },
+        {
+          "offset": 2048,
+          "name": "global",
+          "type": "g",
+          "size": 11,
+          "rawMtimeOctal": "14525351500",
+          "rawMtimeSeconds": 1700123456,
+          "headerHex": "676c6f62616c0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000030303030363030003030303030303000303030303030300030303030303030303031330031343532353335313530300030313035303000206700000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000757374617200303000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000303030303030300030303030303030000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+          "bodyHex": "3131206769643d3230320a",
+          "pax": [
+            "11 gid=202\n"
+          ]
+        },
+        {
+          "offset": 3072,
+          "name": "b",
+          "type": "0",
+          "size": 2,
+          "rawMtimeOctal": "14525351500",
+          "rawMtimeSeconds": 1700123456,
+          "headerHex": "6200000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000030303030363030003030303030303000303030303030300030303030303030303030320031343532353335313530300030303733373000203000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000757374617200303000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000303030303030300030303030303030000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+          "bodyHex": "620a"
+        }
+      ],
+      "observations": [
+        {
+          "profile": "GNU",
+          "listing": {
+            "executable": "/Users/kjopek/Workspace/safe-bash/tests/commands/archive/.oracle/gnu-tar/1.35/bin/gtar",
+            "args": [
+              "--full-time",
+              "--numeric-owner",
+              "-tvf",
+              "/tmp/safe-bash-pax-deletion-owned-XRJyky/D02-global-unrelated-key.tar"
+            ],
+            "cwd": "/tmp/safe-bash-pax-deletion-owned-XRJyky",
+            "status": 0,
+            "signal": null,
+            "stdout": "-rw------- 101/0             2 2023-11-16 08:30:00 a\n-rw------- 0/202             2 2023-11-16 08:30:56 b\n",
+            "stderr": ""
+          },
+          "extraction": {
+            "executable": "/Users/kjopek/Workspace/safe-bash/tests/commands/archive/.oracle/gnu-tar/1.35/bin/gtar",
+            "args": [
+              "--no-same-owner",
+              "-xf",
+              "/tmp/safe-bash-pax-deletion-owned-XRJyky/D02-global-unrelated-key.tar",
+              "-C",
+              "/tmp/safe-bash-pax-deletion-owned-XRJyky/D02-global-unrelated-key-GNU"
+            ],
+            "cwd": "/tmp/safe-bash-pax-deletion-owned-XRJyky",
+            "status": 0,
+            "signal": null,
+            "stdout": "",
+            "stderr": ""
+          },
+          "files": [
+            {
+              "name": "a",
+              "bytes": 2,
+              "sha256": "87428fc522803d31065e7bce3cf03fe475096631e5e07bbd7a0fde60c4cf25c7",
+              "mtimeNs": "1700123400000000000"
+            },
+            {
+              "name": "b",
+              "bytes": 2,
+              "sha256": "0263829989b6fd954f72baaf2fc64bc2e2f01d692d4de72986ea808f6e99813f",
+              "mtimeNs": "1700123456000000000"
+            }
+          ]
+        },
+        {
+          "profile": "BSD",
+          "listing": {
+            "executable": "/usr/bin/bsdtar",
+            "args": [
+              "-tvf",
+              "/tmp/safe-bash-pax-deletion-owned-XRJyky/D02-global-unrelated-key.tar"
+            ],
+            "cwd": "/tmp/safe-bash-pax-deletion-owned-XRJyky",
+            "status": 0,
+            "signal": null,
+            "stdout": "-rw-------  0 0      0           2 Nov 16  2023 a\n-rw-------  0 0      0           2 Nov 16  2023 b\n",
+            "stderr": ""
+          },
+          "extraction": {
+            "executable": "/usr/bin/bsdtar",
+            "args": [
+              "--no-same-owner",
+              "-xf",
+              "/tmp/safe-bash-pax-deletion-owned-XRJyky/D02-global-unrelated-key.tar",
+              "-C",
+              "/tmp/safe-bash-pax-deletion-owned-XRJyky/D02-global-unrelated-key-BSD"
+            ],
+            "cwd": "/tmp/safe-bash-pax-deletion-owned-XRJyky",
+            "status": 0,
+            "signal": null,
+            "stdout": "",
+            "stderr": ""
+          },
+          "files": [
+            {
+              "name": "a",
+              "bytes": 2,
+              "sha256": "87428fc522803d31065e7bce3cf03fe475096631e5e07bbd7a0fde60c4cf25c7",
+              "mtimeNs": "1700123456000000000"
+            },
+            {
+              "name": "b",
+              "bytes": 2,
+              "sha256": "0263829989b6fd954f72baaf2fc64bc2e2f01d692d4de72986ea808f6e99813f",
+              "mtimeNs": "1700123456000000000"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "D03-global-delete-persistence-reintroduction",
+      "sha256": "0ed24879a44a325a066c23d18a1e53b575d5a532732924ade50efc362ef196b0",
+      "archiveBase64": "Z2xvYmFsAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADAwMDA2MDAAMDAwMDAwMAAwMDAwMDAwADAwMDAwMDAwMDExADE0NTI1MzUxNTAwADAxMDQ3NgAgZwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAB1c3RhcgAwMAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAwMDAwMDAwADAwMDAwMDAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA5IG10aW1lPQoAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAGEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAwMDAwNjAwADAwMDAwMDAAMDAwMDAwMAAwMDAwMDAwMDAwMgAxNDUyNTM1MTUwMAAwMDczNjcAIDAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAdXN0YXIAMDAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAMDAwMDAwMAAwMDAwMDAwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAYQoAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABsb2NhbAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAMDAwMDYwMAAwMDAwMDAwADAwMDAwMDAAMDAwMDAwMDAwMzAAMTQ1MjUzNTE1MDAAMDEwMzUyACB4AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHVzdGFyADAwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADAwMDAwMDAAMDAwMDAwMAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADI0IG10aW1lPTE3MDAxMjM0OTkuMTI1CgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAYgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADAwMDA2MDAAMDAwMDAwMAAwMDAwMDAwADAwMDAwMDAwMDAyADE0NTI1MzUxNTAwADAwNzM3MAAgMAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAB1c3RhcgAwMAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAwMDAwMDAwADAwMDAwMDAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABiCgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAGMAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAwMDAwNjAwADAwMDAwMDAAMDAwMDAwMAAwMDAwMDAwMDAwMgAxNDUyNTM1MTUwMAAwMDczNzEAIDAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAdXN0YXIAMDAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAMDAwMDAwMAAwMDAwMDAwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAYwoAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABnbG9iYWwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAMDAwMDYwMAAwMDAwMDAwADAwMDAwMDAAMDAwMDAwMDAwMjQAMTQ1MjUzNTE1MDAAMDEwNTAyACBnAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHVzdGFyADAwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADAwMDAwMDAAMDAwMDAwMAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADIwIG10aW1lPTE3MDAxMjM0MDAKAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAZAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADAwMDA2MDAAMDAwMDAwMAAwMDAwMDAwADAwMDAwMDAwMDAyADE0NTI1MzUxNTAwADAwNzM3MgAgMAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAB1c3RhcgAwMAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAwMDAwMDAwADAwMDAwMDAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABkCgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+      "headers": [
+        {
+          "offset": 0,
+          "name": "global",
+          "type": "g",
+          "size": 9,
+          "rawMtimeOctal": "14525351500",
+          "rawMtimeSeconds": 1700123456,
+          "headerHex": "676c6f62616c0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000030303030363030003030303030303000303030303030300030303030303030303031310031343532353335313530300030313034373600206700000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000757374617200303000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000303030303030300030303030303030000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+          "bodyHex": "39206d74696d653d0a",
+          "pax": [
+            "9 mtime=\n"
+          ]
+        },
+        {
+          "offset": 1024,
+          "name": "a",
+          "type": "0",
+          "size": 2,
+          "rawMtimeOctal": "14525351500",
+          "rawMtimeSeconds": 1700123456,
+          "headerHex": "6100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000030303030363030003030303030303000303030303030300030303030303030303030320031343532353335313530300030303733363700203000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000757374617200303000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000303030303030300030303030303030000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+          "bodyHex": "610a"
+        },
+        {
+          "offset": 2048,
+          "name": "local",
+          "type": "x",
+          "size": 24,
+          "rawMtimeOctal": "14525351500",
+          "rawMtimeSeconds": 1700123456,
+          "headerHex": "6c6f63616c000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000030303030363030003030303030303000303030303030300030303030303030303033300031343532353335313530300030313033353200207800000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000757374617200303000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000303030303030300030303030303030000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+          "bodyHex": "3234206d74696d653d313730303132333439392e3132350a",
+          "pax": [
+            "24 mtime=1700123499.125\n"
+          ]
+        },
+        {
+          "offset": 3072,
+          "name": "b",
+          "type": "0",
+          "size": 2,
+          "rawMtimeOctal": "14525351500",
+          "rawMtimeSeconds": 1700123456,
+          "headerHex": "6200000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000030303030363030003030303030303000303030303030300030303030303030303030320031343532353335313530300030303733373000203000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000757374617200303000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000303030303030300030303030303030000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+          "bodyHex": "620a"
+        },
+        {
+          "offset": 4096,
+          "name": "c",
+          "type": "0",
+          "size": 2,
+          "rawMtimeOctal": "14525351500",
+          "rawMtimeSeconds": 1700123456,
+          "headerHex": "6300000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000030303030363030003030303030303000303030303030300030303030303030303030320031343532353335313530300030303733373100203000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000757374617200303000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000303030303030300030303030303030000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+          "bodyHex": "630a"
+        },
+        {
+          "offset": 5120,
+          "name": "global",
+          "type": "g",
+          "size": 20,
+          "rawMtimeOctal": "14525351500",
+          "rawMtimeSeconds": 1700123456,
+          "headerHex": "676c6f62616c0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000030303030363030003030303030303000303030303030300030303030303030303032340031343532353335313530300030313035303200206700000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000757374617200303000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000303030303030300030303030303030000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+          "bodyHex": "3230206d74696d653d313730303132333430300a",
+          "pax": [
+            "20 mtime=1700123400\n"
+          ]
+        },
+        {
+          "offset": 6144,
+          "name": "d",
+          "type": "0",
+          "size": 2,
+          "rawMtimeOctal": "14525351500",
+          "rawMtimeSeconds": 1700123456,
+          "headerHex": "6400000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000030303030363030003030303030303000303030303030300030303030303030303030320031343532353335313530300030303733373200203000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000757374617200303000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000303030303030300030303030303030000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+          "bodyHex": "640a"
+        }
+      ],
+      "observations": [
+        {
+          "profile": "GNU",
+          "listing": {
+            "executable": "/Users/kjopek/Workspace/safe-bash/tests/commands/archive/.oracle/gnu-tar/1.35/bin/gtar",
+            "args": [
+              "--full-time",
+              "--numeric-owner",
+              "-tvf",
+              "/tmp/safe-bash-pax-deletion-owned-XRJyky/D03-global-delete-persistence-reintroduction.tar"
+            ],
+            "cwd": "/tmp/safe-bash-pax-deletion-owned-XRJyky",
+            "status": 2,
+            "signal": null,
+            "stdout": "-rw------- 0/0               2 2023-11-16 08:30:56 a\n-rw------- 0/0               2 2023-11-16 08:31:39.125 b\n-rw------- 0/0               2 2023-11-16 08:30:56     c\n-rw------- 0/0               2 2023-11-16 08:30:00     d\n",
+            "stderr": "/Users/kjopek/Workspace/safe-bash/tests/commands/archive/.oracle/gnu-tar/1.35/bin/gtar: Malformed extended header: invalid mtime=\n/Users/kjopek/Workspace/safe-bash/tests/commands/archive/.oracle/gnu-tar/1.35/bin/gtar: Malformed extended header: invalid mtime=\n/Users/kjopek/Workspace/safe-bash/tests/commands/archive/.oracle/gnu-tar/1.35/bin/gtar: Malformed extended header: invalid mtime=\n/Users/kjopek/Workspace/safe-bash/tests/commands/archive/.oracle/gnu-tar/1.35/bin/gtar: Exiting with failure status due to previous errors\n"
+          },
+          "extraction": {
+            "executable": "/Users/kjopek/Workspace/safe-bash/tests/commands/archive/.oracle/gnu-tar/1.35/bin/gtar",
+            "args": [
+              "--no-same-owner",
+              "-xf",
+              "/tmp/safe-bash-pax-deletion-owned-XRJyky/D03-global-delete-persistence-reintroduction.tar",
+              "-C",
+              "/tmp/safe-bash-pax-deletion-owned-XRJyky/D03-global-delete-persistence-reintroduction-GNU"
+            ],
+            "cwd": "/tmp/safe-bash-pax-deletion-owned-XRJyky",
+            "status": 2,
+            "signal": null,
+            "stdout": "",
+            "stderr": "/Users/kjopek/Workspace/safe-bash/tests/commands/archive/.oracle/gnu-tar/1.35/bin/gtar: Malformed extended header: invalid mtime=\n/Users/kjopek/Workspace/safe-bash/tests/commands/archive/.oracle/gnu-tar/1.35/bin/gtar: Malformed extended header: invalid mtime=\n/Users/kjopek/Workspace/safe-bash/tests/commands/archive/.oracle/gnu-tar/1.35/bin/gtar: Malformed extended header: invalid mtime=\n/Users/kjopek/Workspace/safe-bash/tests/commands/archive/.oracle/gnu-tar/1.35/bin/gtar: Exiting with failure status due to previous errors\n"
+          },
+          "files": [
+            {
+              "name": "a",
+              "bytes": 2,
+              "sha256": "87428fc522803d31065e7bce3cf03fe475096631e5e07bbd7a0fde60c4cf25c7",
+              "mtimeNs": "1700123456000000000"
+            },
+            {
+              "name": "b",
+              "bytes": 2,
+              "sha256": "0263829989b6fd954f72baaf2fc64bc2e2f01d692d4de72986ea808f6e99813f",
+              "mtimeNs": "1700123499125000000"
+            },
+            {
+              "name": "c",
+              "bytes": 2,
+              "sha256": "a3a5e715f0cc574a73c3f9bebb6bc24f32ffd5b67b387244c2c909da779a1478",
+              "mtimeNs": "1700123456000000000"
+            },
+            {
+              "name": "d",
+              "bytes": 2,
+              "sha256": "8d74beec1be996322ad76813bafb92d40839895d6dd7ee808b17ca201eac98be",
+              "mtimeNs": "1700123400000000000"
+            }
+          ]
+        },
+        {
+          "profile": "BSD",
+          "listing": {
+            "executable": "/usr/bin/bsdtar",
+            "args": [
+              "-tvf",
+              "/tmp/safe-bash-pax-deletion-owned-XRJyky/D03-global-delete-persistence-reintroduction.tar"
+            ],
+            "cwd": "/tmp/safe-bash-pax-deletion-owned-XRJyky",
+            "status": 0,
+            "signal": null,
+            "stdout": "-rw-------  0 0      0           2 Nov 16  2023 a\n-rw-------  0 0      0           2 Nov 16  2023 b\n-rw-------  0 0      0           2 Nov 16  2023 c\n-rw-------  0 0      0           2 Nov 16  2023 d\n",
+            "stderr": ""
+          },
+          "extraction": {
+            "executable": "/usr/bin/bsdtar",
+            "args": [
+              "--no-same-owner",
+              "-xf",
+              "/tmp/safe-bash-pax-deletion-owned-XRJyky/D03-global-delete-persistence-reintroduction.tar",
+              "-C",
+              "/tmp/safe-bash-pax-deletion-owned-XRJyky/D03-global-delete-persistence-reintroduction-BSD"
+            ],
+            "cwd": "/tmp/safe-bash-pax-deletion-owned-XRJyky",
+            "status": 0,
+            "signal": null,
+            "stdout": "",
+            "stderr": ""
+          },
+          "files": [
+            {
+              "name": "a",
+              "bytes": 2,
+              "sha256": "87428fc522803d31065e7bce3cf03fe475096631e5e07bbd7a0fde60c4cf25c7",
+              "mtimeNs": "1700123456000000000"
+            },
+            {
+              "name": "b",
+              "bytes": 2,
+              "sha256": "0263829989b6fd954f72baaf2fc64bc2e2f01d692d4de72986ea808f6e99813f",
+              "mtimeNs": "1700123499125000000"
+            },
+            {
+              "name": "c",
+              "bytes": 2,
+              "sha256": "a3a5e715f0cc574a73c3f9bebb6bc24f32ffd5b67b387244c2c909da779a1478",
+              "mtimeNs": "1700123456000000000"
+            },
+            {
+              "name": "d",
+              "bytes": 2,
+              "sha256": "8d74beec1be996322ad76813bafb92d40839895d6dd7ee808b17ca201eac98be",
+              "mtimeNs": "1700123456000000000"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "D04-local-delete-reset-reintroduction",
+      "sha256": "21d482d59f20cdd2dc541f290d29b2842d952ef0bb0a435f3fe773ddab505b98",
+      "archiveBase64": "Z2xvYmFsAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADAwMDA2MDAAMDAwMDAwMAAwMDAwMDAwADAwMDAwMDAwMDI0ADE0NTI1MzUxNTAwADAxMDUwMgAgZwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAB1c3RhcgAwMAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAwMDAwMDAwADAwMDAwMDAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAyMCBtdGltZT0xNzAwMTIzNDAwCgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAGxvY2FsAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAwMDAwNjAwADAwMDAwMDAAMDAwMDAwMAAwMDAwMDAwMDAxMQAxNDUyNTM1MTUwMAAwMTAzNTEAIHgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAdXN0YXIAMDAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAMDAwMDAwMAAwMDAwMDAwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAOSBtdGltZT0KAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABhAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAMDAwMDYwMAAwMDAwMDAwADAwMDAwMDAAMDAwMDAwMDAwMDIAMTQ1MjUzNTE1MDAAMDA3MzY3ACAwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHVzdGFyADAwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADAwMDAwMDAAMDAwMDAwMAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAGEKAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAbG9jYWwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADAwMDA2MDAAMDAwMDAwMAAwMDAwMDAwADAwMDAwMDAwMDMwADE0NTI1MzUxNTAwADAxMDM1MgAgeAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAB1c3RhcgAwMAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAwMDAwMDAwADAwMDAwMDAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAyNCBtdGltZT0xNzAwMTIzNDk5LjEyNQoAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAGIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAwMDAwNjAwADAwMDAwMDAAMDAwMDAwMAAwMDAwMDAwMDAwMgAxNDUyNTM1MTUwMAAwMDczNzAAIDAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAdXN0YXIAMDAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAMDAwMDAwMAAwMDAwMDAwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAYgoAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABjAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAMDAwMDYwMAAwMDAwMDAwADAwMDAwMDAAMDAwMDAwMDAwMDIAMTQ1MjUzNTE1MDAAMDA3MzcxACAwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHVzdGFyADAwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADAwMDAwMDAAMDAwMDAwMAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAGMKAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+      "headers": [
+        {
+          "offset": 0,
+          "name": "global",
+          "type": "g",
+          "size": 20,
+          "rawMtimeOctal": "14525351500",
+          "rawMtimeSeconds": 1700123456,
+          "headerHex": "676c6f62616c0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000030303030363030003030303030303000303030303030300030303030303030303032340031343532353335313530300030313035303200206700000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000757374617200303000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000303030303030300030303030303030000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+          "bodyHex": "3230206d74696d653d313730303132333430300a",
+          "pax": [
+            "20 mtime=1700123400\n"
+          ]
+        },
+        {
+          "offset": 1024,
+          "name": "local",
+          "type": "x",
+          "size": 9,
+          "rawMtimeOctal": "14525351500",
+          "rawMtimeSeconds": 1700123456,
+          "headerHex": "6c6f63616c000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000030303030363030003030303030303000303030303030300030303030303030303031310031343532353335313530300030313033353100207800000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000757374617200303000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000303030303030300030303030303030000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+          "bodyHex": "39206d74696d653d0a",
+          "pax": [
+            "9 mtime=\n"
+          ]
+        },
+        {
+          "offset": 2048,
+          "name": "a",
+          "type": "0",
+          "size": 2,
+          "rawMtimeOctal": "14525351500",
+          "rawMtimeSeconds": 1700123456,
+          "headerHex": "6100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000030303030363030003030303030303000303030303030300030303030303030303030320031343532353335313530300030303733363700203000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000757374617200303000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000303030303030300030303030303030000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+          "bodyHex": "610a"
+        },
+        {
+          "offset": 3072,
+          "name": "local",
+          "type": "x",
+          "size": 24,
+          "rawMtimeOctal": "14525351500",
+          "rawMtimeSeconds": 1700123456,
+          "headerHex": "6c6f63616c000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000030303030363030003030303030303000303030303030300030303030303030303033300031343532353335313530300030313033353200207800000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000757374617200303000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000303030303030300030303030303030000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+          "bodyHex": "3234206d74696d653d313730303132333439392e3132350a",
+          "pax": [
+            "24 mtime=1700123499.125\n"
+          ]
+        },
+        {
+          "offset": 4096,
+          "name": "b",
+          "type": "0",
+          "size": 2,
+          "rawMtimeOctal": "14525351500",
+          "rawMtimeSeconds": 1700123456,
+          "headerHex": "6200000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000030303030363030003030303030303000303030303030300030303030303030303030320031343532353335313530300030303733373000203000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000757374617200303000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000303030303030300030303030303030000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+          "bodyHex": "620a"
+        },
+        {
+          "offset": 5120,
+          "name": "c",
+          "type": "0",
+          "size": 2,
+          "rawMtimeOctal": "14525351500",
+          "rawMtimeSeconds": 1700123456,
+          "headerHex": "6300000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000030303030363030003030303030303000303030303030300030303030303030303030320031343532353335313530300030303733373100203000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000757374617200303000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000303030303030300030303030303030000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+          "bodyHex": "630a"
+        }
+      ],
+      "observations": [
+        {
+          "profile": "GNU",
+          "listing": {
+            "executable": "/Users/kjopek/Workspace/safe-bash/tests/commands/archive/.oracle/gnu-tar/1.35/bin/gtar",
+            "args": [
+              "--full-time",
+              "--numeric-owner",
+              "-tvf",
+              "/tmp/safe-bash-pax-deletion-owned-XRJyky/D04-local-delete-reset-reintroduction.tar"
+            ],
+            "cwd": "/tmp/safe-bash-pax-deletion-owned-XRJyky",
+            "status": 2,
+            "signal": null,
+            "stdout": "-rw------- 0/0               2 2023-11-16 08:30:00 a\n-rw------- 0/0               2 2023-11-16 08:31:39.125 b\n-rw------- 0/0               2 2023-11-16 08:30:00     c\n",
+            "stderr": "/Users/kjopek/Workspace/safe-bash/tests/commands/archive/.oracle/gnu-tar/1.35/bin/gtar: Malformed extended header: invalid mtime=\n/Users/kjopek/Workspace/safe-bash/tests/commands/archive/.oracle/gnu-tar/1.35/bin/gtar: Exiting with failure status due to previous errors\n"
+          },
+          "extraction": {
+            "executable": "/Users/kjopek/Workspace/safe-bash/tests/commands/archive/.oracle/gnu-tar/1.35/bin/gtar",
+            "args": [
+              "--no-same-owner",
+              "-xf",
+              "/tmp/safe-bash-pax-deletion-owned-XRJyky/D04-local-delete-reset-reintroduction.tar",
+              "-C",
+              "/tmp/safe-bash-pax-deletion-owned-XRJyky/D04-local-delete-reset-reintroduction-GNU"
+            ],
+            "cwd": "/tmp/safe-bash-pax-deletion-owned-XRJyky",
+            "status": 2,
+            "signal": null,
+            "stdout": "",
+            "stderr": "/Users/kjopek/Workspace/safe-bash/tests/commands/archive/.oracle/gnu-tar/1.35/bin/gtar: Malformed extended header: invalid mtime=\n/Users/kjopek/Workspace/safe-bash/tests/commands/archive/.oracle/gnu-tar/1.35/bin/gtar: Exiting with failure status due to previous errors\n"
+          },
+          "files": [
+            {
+              "name": "a",
+              "bytes": 2,
+              "sha256": "87428fc522803d31065e7bce3cf03fe475096631e5e07bbd7a0fde60c4cf25c7",
+              "mtimeNs": "1700123400000000000"
+            },
+            {
+              "name": "b",
+              "bytes": 2,
+              "sha256": "0263829989b6fd954f72baaf2fc64bc2e2f01d692d4de72986ea808f6e99813f",
+              "mtimeNs": "1700123499125000000"
+            },
+            {
+              "name": "c",
+              "bytes": 2,
+              "sha256": "a3a5e715f0cc574a73c3f9bebb6bc24f32ffd5b67b387244c2c909da779a1478",
+              "mtimeNs": "1700123400000000000"
+            }
+          ]
+        },
+        {
+          "profile": "BSD",
+          "listing": {
+            "executable": "/usr/bin/bsdtar",
+            "args": [
+              "-tvf",
+              "/tmp/safe-bash-pax-deletion-owned-XRJyky/D04-local-delete-reset-reintroduction.tar"
+            ],
+            "cwd": "/tmp/safe-bash-pax-deletion-owned-XRJyky",
+            "status": 0,
+            "signal": null,
+            "stdout": "-rw-------  0 0      0           2 Jan  1  1970 a\n-rw-------  0 0      0           2 Nov 16  2023 b\n-rw-------  0 0      0           2 Nov 16  2023 c\n",
+            "stderr": ""
+          },
+          "extraction": {
+            "executable": "/usr/bin/bsdtar",
+            "args": [
+              "--no-same-owner",
+              "-xf",
+              "/tmp/safe-bash-pax-deletion-owned-XRJyky/D04-local-delete-reset-reintroduction.tar",
+              "-C",
+              "/tmp/safe-bash-pax-deletion-owned-XRJyky/D04-local-delete-reset-reintroduction-BSD"
+            ],
+            "cwd": "/tmp/safe-bash-pax-deletion-owned-XRJyky",
+            "status": 0,
+            "signal": null,
+            "stdout": "",
+            "stderr": ""
+          },
+          "files": [
+            {
+              "name": "a",
+              "bytes": 2,
+              "sha256": "87428fc522803d31065e7bce3cf03fe475096631e5e07bbd7a0fde60c4cf25c7",
+              "mtimeNs": "0"
+            },
+            {
+              "name": "b",
+              "bytes": 2,
+              "sha256": "0263829989b6fd954f72baaf2fc64bc2e2f01d692d4de72986ea808f6e99813f",
+              "mtimeNs": "1700123499125000000"
+            },
+            {
+              "name": "c",
+              "bytes": 2,
+              "sha256": "a3a5e715f0cc574a73c3f9bebb6bc24f32ffd5b67b387244c2c909da779a1478",
+              "mtimeNs": "1700123456000000000"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "D05-local-duplicate-final-value",
+      "sha256": "794f26a514917d4d8f31d0a43f7d125b64fe3786860510a4d0f119990db9b4c8",
+      "archiveBase64": "bG9jYWwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADAwMDA2MDAAMDAwMDAwMAAwMDAwMDAwADAwMDAwMDAwMDY1ADE0NTI1MzUxNTAwADAxMDM2MgAgeAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAB1c3RhcgAwMAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAwMDAwMDAwADAwMDAwMDAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAyMCBtdGltZT0xNzAwMTIzNDAwCjkgbXRpbWU9CjI0IG10aW1lPTE3MDAxMjM0OTkuMTI1CgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAGEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAwMDAwNjAwADAwMDAwMDAAMDAwMDAwMAAwMDAwMDAwMDAwMgAxNDUyNTM1MTUwMAAwMDczNjcAIDAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAdXN0YXIAMDAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAMDAwMDAwMAAwMDAwMDAwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAYQoAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABiAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAMDAwMDYwMAAwMDAwMDAwADAwMDAwMDAAMDAwMDAwMDAwMDIAMTQ1MjUzNTE1MDAAMDA3MzcwACAwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHVzdGFyADAwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADAwMDAwMDAAMDAwMDAwMAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAGIKAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+      "headers": [
+        {
+          "offset": 0,
+          "name": "local",
+          "type": "x",
+          "size": 53,
+          "rawMtimeOctal": "14525351500",
+          "rawMtimeSeconds": 1700123456,
+          "headerHex": "6c6f63616c000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000030303030363030003030303030303000303030303030300030303030303030303036350031343532353335313530300030313033363200207800000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000757374617200303000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000303030303030300030303030303030000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+          "bodyHex": "3230206d74696d653d313730303132333430300a39206d74696d653d0a3234206d74696d653d313730303132333439392e3132350a",
+          "pax": [
+            "20 mtime=1700123400\n",
+            "9 mtime=\n",
+            "24 mtime=1700123499.125\n"
+          ]
+        },
+        {
+          "offset": 1024,
+          "name": "a",
+          "type": "0",
+          "size": 2,
+          "rawMtimeOctal": "14525351500",
+          "rawMtimeSeconds": 1700123456,
+          "headerHex": "6100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000030303030363030003030303030303000303030303030300030303030303030303030320031343532353335313530300030303733363700203000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000757374617200303000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000303030303030300030303030303030000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+          "bodyHex": "610a"
+        },
+        {
+          "offset": 2048,
+          "name": "b",
+          "type": "0",
+          "size": 2,
+          "rawMtimeOctal": "14525351500",
+          "rawMtimeSeconds": 1700123456,
+          "headerHex": "6200000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000030303030363030003030303030303000303030303030300030303030303030303030320031343532353335313530300030303733373000203000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000757374617200303000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000303030303030300030303030303030000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+          "bodyHex": "620a"
+        }
+      ],
+      "observations": [
+        {
+          "profile": "GNU",
+          "listing": {
+            "executable": "/Users/kjopek/Workspace/safe-bash/tests/commands/archive/.oracle/gnu-tar/1.35/bin/gtar",
+            "args": [
+              "--full-time",
+              "--numeric-owner",
+              "-tvf",
+              "/tmp/safe-bash-pax-deletion-owned-XRJyky/D05-local-duplicate-final-value.tar"
+            ],
+            "cwd": "/tmp/safe-bash-pax-deletion-owned-XRJyky",
+            "status": 2,
+            "signal": null,
+            "stdout": "-rw------- 0/0               2 2023-11-16 08:31:39.125 a\n-rw------- 0/0               2 2023-11-16 08:30:56     b\n",
+            "stderr": "/Users/kjopek/Workspace/safe-bash/tests/commands/archive/.oracle/gnu-tar/1.35/bin/gtar: Malformed extended header: invalid mtime=\n/Users/kjopek/Workspace/safe-bash/tests/commands/archive/.oracle/gnu-tar/1.35/bin/gtar: Exiting with failure status due to previous errors\n"
+          },
+          "extraction": {
+            "executable": "/Users/kjopek/Workspace/safe-bash/tests/commands/archive/.oracle/gnu-tar/1.35/bin/gtar",
+            "args": [
+              "--no-same-owner",
+              "-xf",
+              "/tmp/safe-bash-pax-deletion-owned-XRJyky/D05-local-duplicate-final-value.tar",
+              "-C",
+              "/tmp/safe-bash-pax-deletion-owned-XRJyky/D05-local-duplicate-final-value-GNU"
+            ],
+            "cwd": "/tmp/safe-bash-pax-deletion-owned-XRJyky",
+            "status": 2,
+            "signal": null,
+            "stdout": "",
+            "stderr": "/Users/kjopek/Workspace/safe-bash/tests/commands/archive/.oracle/gnu-tar/1.35/bin/gtar: Malformed extended header: invalid mtime=\n/Users/kjopek/Workspace/safe-bash/tests/commands/archive/.oracle/gnu-tar/1.35/bin/gtar: Exiting with failure status due to previous errors\n"
+          },
+          "files": [
+            {
+              "name": "a",
+              "bytes": 2,
+              "sha256": "87428fc522803d31065e7bce3cf03fe475096631e5e07bbd7a0fde60c4cf25c7",
+              "mtimeNs": "1700123499125000000"
+            },
+            {
+              "name": "b",
+              "bytes": 2,
+              "sha256": "0263829989b6fd954f72baaf2fc64bc2e2f01d692d4de72986ea808f6e99813f",
+              "mtimeNs": "1700123456000000000"
+            }
+          ]
+        },
+        {
+          "profile": "BSD",
+          "listing": {
+            "executable": "/usr/bin/bsdtar",
+            "args": [
+              "-tvf",
+              "/tmp/safe-bash-pax-deletion-owned-XRJyky/D05-local-duplicate-final-value.tar"
+            ],
+            "cwd": "/tmp/safe-bash-pax-deletion-owned-XRJyky",
+            "status": 0,
+            "signal": null,
+            "stdout": "-rw-------  0 0      0           2 Nov 16  2023 a\n-rw-------  0 0      0           2 Nov 16  2023 b\n",
+            "stderr": ""
+          },
+          "extraction": {
+            "executable": "/usr/bin/bsdtar",
+            "args": [
+              "--no-same-owner",
+              "-xf",
+              "/tmp/safe-bash-pax-deletion-owned-XRJyky/D05-local-duplicate-final-value.tar",
+              "-C",
+              "/tmp/safe-bash-pax-deletion-owned-XRJyky/D05-local-duplicate-final-value-BSD"
+            ],
+            "cwd": "/tmp/safe-bash-pax-deletion-owned-XRJyky",
+            "status": 0,
+            "signal": null,
+            "stdout": "",
+            "stderr": ""
+          },
+          "files": [
+            {
+              "name": "a",
+              "bytes": 2,
+              "sha256": "87428fc522803d31065e7bce3cf03fe475096631e5e07bbd7a0fde60c4cf25c7",
+              "mtimeNs": "1700123499125000000"
+            },
+            {
+              "name": "b",
+              "bytes": 2,
+              "sha256": "0263829989b6fd954f72baaf2fc64bc2e2f01d692d4de72986ea808f6e99813f",
+              "mtimeNs": "1700123456000000000"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "D06-local-duplicate-final-delete",
+      "sha256": "cd7db98714160bd385ab106166c77057e01dbb234443d63003ca9e97a830b9f5",
+      "archiveBase64": "bG9jYWwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADAwMDA2MDAAMDAwMDAwMAAwMDAwMDAwADAwMDAwMDAwMDQxADE0NTI1MzUxNTAwADAxMDM1NAAgeAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAB1c3RhcgAwMAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAwMDAwMDAwADAwMDAwMDAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAyNCBtdGltZT0xNzAwMTIzNDk5LjEyNQo5IG10aW1lPQoAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAGEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAwMDAwNjAwADAwMDAwMDAAMDAwMDAwMAAwMDAwMDAwMDAwMgAxNDUyNTM1MTUwMAAwMDczNjcAIDAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAdXN0YXIAMDAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAMDAwMDAwMAAwMDAwMDAwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAYQoAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABiAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAMDAwMDYwMAAwMDAwMDAwADAwMDAwMDAAMDAwMDAwMDAwMDIAMTQ1MjUzNTE1MDAAMDA3MzcwACAwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHVzdGFyADAwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADAwMDAwMDAAMDAwMDAwMAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAGIKAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+      "headers": [
+        {
+          "offset": 0,
+          "name": "local",
+          "type": "x",
+          "size": 33,
+          "rawMtimeOctal": "14525351500",
+          "rawMtimeSeconds": 1700123456,
+          "headerHex": "6c6f63616c000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000030303030363030003030303030303000303030303030300030303030303030303034310031343532353335313530300030313033353400207800000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000757374617200303000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000303030303030300030303030303030000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+          "bodyHex": "3234206d74696d653d313730303132333439392e3132350a39206d74696d653d0a",
+          "pax": [
+            "24 mtime=1700123499.125\n",
+            "9 mtime=\n"
+          ]
+        },
+        {
+          "offset": 1024,
+          "name": "a",
+          "type": "0",
+          "size": 2,
+          "rawMtimeOctal": "14525351500",
+          "rawMtimeSeconds": 1700123456,
+          "headerHex": "6100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000030303030363030003030303030303000303030303030300030303030303030303030320031343532353335313530300030303733363700203000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000757374617200303000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000303030303030300030303030303030000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+          "bodyHex": "610a"
+        },
+        {
+          "offset": 2048,
+          "name": "b",
+          "type": "0",
+          "size": 2,
+          "rawMtimeOctal": "14525351500",
+          "rawMtimeSeconds": 1700123456,
+          "headerHex": "6200000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000030303030363030003030303030303000303030303030300030303030303030303030320031343532353335313530300030303733373000203000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000757374617200303000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000303030303030300030303030303030000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+          "bodyHex": "620a"
+        }
+      ],
+      "observations": [
+        {
+          "profile": "GNU",
+          "listing": {
+            "executable": "/Users/kjopek/Workspace/safe-bash/tests/commands/archive/.oracle/gnu-tar/1.35/bin/gtar",
+            "args": [
+              "--full-time",
+              "--numeric-owner",
+              "-tvf",
+              "/tmp/safe-bash-pax-deletion-owned-XRJyky/D06-local-duplicate-final-delete.tar"
+            ],
+            "cwd": "/tmp/safe-bash-pax-deletion-owned-XRJyky",
+            "status": 2,
+            "signal": null,
+            "stdout": "-rw------- 0/0               2 2023-11-16 08:31:39.125 a\n-rw------- 0/0               2 2023-11-16 08:30:56     b\n",
+            "stderr": "/Users/kjopek/Workspace/safe-bash/tests/commands/archive/.oracle/gnu-tar/1.35/bin/gtar: Malformed extended header: invalid mtime=\n/Users/kjopek/Workspace/safe-bash/tests/commands/archive/.oracle/gnu-tar/1.35/bin/gtar: Exiting with failure status due to previous errors\n"
+          },
+          "extraction": {
+            "executable": "/Users/kjopek/Workspace/safe-bash/tests/commands/archive/.oracle/gnu-tar/1.35/bin/gtar",
+            "args": [
+              "--no-same-owner",
+              "-xf",
+              "/tmp/safe-bash-pax-deletion-owned-XRJyky/D06-local-duplicate-final-delete.tar",
+              "-C",
+              "/tmp/safe-bash-pax-deletion-owned-XRJyky/D06-local-duplicate-final-delete-GNU"
+            ],
+            "cwd": "/tmp/safe-bash-pax-deletion-owned-XRJyky",
+            "status": 2,
+            "signal": null,
+            "stdout": "",
+            "stderr": "/Users/kjopek/Workspace/safe-bash/tests/commands/archive/.oracle/gnu-tar/1.35/bin/gtar: Malformed extended header: invalid mtime=\n/Users/kjopek/Workspace/safe-bash/tests/commands/archive/.oracle/gnu-tar/1.35/bin/gtar: Exiting with failure status due to previous errors\n"
+          },
+          "files": [
+            {
+              "name": "a",
+              "bytes": 2,
+              "sha256": "87428fc522803d31065e7bce3cf03fe475096631e5e07bbd7a0fde60c4cf25c7",
+              "mtimeNs": "1700123499125000000"
+            },
+            {
+              "name": "b",
+              "bytes": 2,
+              "sha256": "0263829989b6fd954f72baaf2fc64bc2e2f01d692d4de72986ea808f6e99813f",
+              "mtimeNs": "1700123456000000000"
+            }
+          ]
+        },
+        {
+          "profile": "BSD",
+          "listing": {
+            "executable": "/usr/bin/bsdtar",
+            "args": [
+              "-tvf",
+              "/tmp/safe-bash-pax-deletion-owned-XRJyky/D06-local-duplicate-final-delete.tar"
+            ],
+            "cwd": "/tmp/safe-bash-pax-deletion-owned-XRJyky",
+            "status": 0,
+            "signal": null,
+            "stdout": "-rw-------  0 0      0           2 Jan  1  1970 a\n-rw-------  0 0      0           2 Nov 16  2023 b\n",
+            "stderr": ""
+          },
+          "extraction": {
+            "executable": "/usr/bin/bsdtar",
+            "args": [
+              "--no-same-owner",
+              "-xf",
+              "/tmp/safe-bash-pax-deletion-owned-XRJyky/D06-local-duplicate-final-delete.tar",
+              "-C",
+              "/tmp/safe-bash-pax-deletion-owned-XRJyky/D06-local-duplicate-final-delete-BSD"
+            ],
+            "cwd": "/tmp/safe-bash-pax-deletion-owned-XRJyky",
+            "status": 0,
+            "signal": null,
+            "stdout": "",
+            "stderr": ""
+          },
+          "files": [
+            {
+              "name": "a",
+              "bytes": 2,
+              "sha256": "87428fc522803d31065e7bce3cf03fe475096631e5e07bbd7a0fde60c4cf25c7",
+              "mtimeNs": "0"
+            },
+            {
+              "name": "b",
+              "bytes": 2,
+              "sha256": "0263829989b6fd954f72baaf2fc64bc2e2f01d692d4de72986ea808f6e99813f",
+              "mtimeNs": "1700123456000000000"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "D07-global-duplicate-final-delete-and-value",
+      "sha256": "6d2954a2df53c84bd15eb369d5438235cbe8a061db3412dde7a5f17a1ee67891",
+      "archiveBase64": "Z2xvYmFsAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADAwMDA2MDAAMDAwMDAwMAAwMDAwMDAwADAwMDAwMDAwMDM1ADE0NTI1MzUxNTAwADAxMDUwNAAgZwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAB1c3RhcgAwMAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAwMDAwMDAwADAwMDAwMDAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA5IG10aW1lPQoyMCBtdGltZT0xNzAwMTIzNDAwCgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAGEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAwMDAwNjAwADAwMDAwMDAAMDAwMDAwMAAwMDAwMDAwMDAwMgAxNDUyNTM1MTUwMAAwMDczNjcAIDAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAdXN0YXIAMDAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAMDAwMDAwMAAwMDAwMDAwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAYQoAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABnbG9iYWwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAMDAwMDYwMAAwMDAwMDAwADAwMDAwMDAAMDAwMDAwMDAwNDEAMTQ1MjUzNTE1MDAAMDEwNTAxACBnAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHVzdGFyADAwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADAwMDAwMDAAMDAwMDAwMAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADI0IG10aW1lPTE3MDAxMjM0OTkuMTI1CjkgbXRpbWU9CgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAYgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADAwMDA2MDAAMDAwMDAwMAAwMDAwMDAwADAwMDAwMDAwMDAyADE0NTI1MzUxNTAwADAwNzM3MAAgMAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAB1c3RhcgAwMAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAwMDAwMDAwADAwMDAwMDAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABiCgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAGMAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAwMDAwNjAwADAwMDAwMDAAMDAwMDAwMAAwMDAwMDAwMDAwMgAxNDUyNTM1MTUwMAAwMDczNzEAIDAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAdXN0YXIAMDAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAMDAwMDAwMAAwMDAwMDAwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAYwoAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+      "headers": [
+        {
+          "offset": 0,
+          "name": "global",
+          "type": "g",
+          "size": 29,
+          "rawMtimeOctal": "14525351500",
+          "rawMtimeSeconds": 1700123456,
+          "headerHex": "676c6f62616c0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000030303030363030003030303030303000303030303030300030303030303030303033350031343532353335313530300030313035303400206700000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000757374617200303000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000303030303030300030303030303030000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+          "bodyHex": "39206d74696d653d0a3230206d74696d653d313730303132333430300a",
+          "pax": [
+            "9 mtime=\n",
+            "20 mtime=1700123400\n"
+          ]
+        },
+        {
+          "offset": 1024,
+          "name": "a",
+          "type": "0",
+          "size": 2,
+          "rawMtimeOctal": "14525351500",
+          "rawMtimeSeconds": 1700123456,
+          "headerHex": "6100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000030303030363030003030303030303000303030303030300030303030303030303030320031343532353335313530300030303733363700203000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000757374617200303000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000303030303030300030303030303030000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+          "bodyHex": "610a"
+        },
+        {
+          "offset": 2048,
+          "name": "global",
+          "type": "g",
+          "size": 33,
+          "rawMtimeOctal": "14525351500",
+          "rawMtimeSeconds": 1700123456,
+          "headerHex": "676c6f62616c0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000030303030363030003030303030303000303030303030300030303030303030303034310031343532353335313530300030313035303100206700000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000757374617200303000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000303030303030300030303030303030000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+          "bodyHex": "3234206d74696d653d313730303132333439392e3132350a39206d74696d653d0a",
+          "pax": [
+            "24 mtime=1700123499.125\n",
+            "9 mtime=\n"
+          ]
+        },
+        {
+          "offset": 3072,
+          "name": "b",
+          "type": "0",
+          "size": 2,
+          "rawMtimeOctal": "14525351500",
+          "rawMtimeSeconds": 1700123456,
+          "headerHex": "6200000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000030303030363030003030303030303000303030303030300030303030303030303030320031343532353335313530300030303733373000203000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000757374617200303000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000303030303030300030303030303030000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+          "bodyHex": "620a"
+        },
+        {
+          "offset": 4096,
+          "name": "c",
+          "type": "0",
+          "size": 2,
+          "rawMtimeOctal": "14525351500",
+          "rawMtimeSeconds": 1700123456,
+          "headerHex": "6300000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000030303030363030003030303030303000303030303030300030303030303030303030320031343532353335313530300030303733373100203000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000757374617200303000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000303030303030300030303030303030000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+          "bodyHex": "630a"
+        }
+      ],
+      "observations": [
+        {
+          "profile": "GNU",
+          "listing": {
+            "executable": "/Users/kjopek/Workspace/safe-bash/tests/commands/archive/.oracle/gnu-tar/1.35/bin/gtar",
+            "args": [
+              "--full-time",
+              "--numeric-owner",
+              "-tvf",
+              "/tmp/safe-bash-pax-deletion-owned-XRJyky/D07-global-duplicate-final-delete-and-value.tar"
+            ],
+            "cwd": "/tmp/safe-bash-pax-deletion-owned-XRJyky",
+            "status": 2,
+            "signal": null,
+            "stdout": "-rw------- 0/0               2 2023-11-16 08:30:00 a\n-rw------- 0/0               2 2023-11-16 08:31:39.125 b\n-rw------- 0/0               2 2023-11-16 08:31:39.125 c\n",
+            "stderr": "/Users/kjopek/Workspace/safe-bash/tests/commands/archive/.oracle/gnu-tar/1.35/bin/gtar: Malformed extended header: invalid mtime=\n/Users/kjopek/Workspace/safe-bash/tests/commands/archive/.oracle/gnu-tar/1.35/bin/gtar: Malformed extended header: invalid mtime=\n/Users/kjopek/Workspace/safe-bash/tests/commands/archive/.oracle/gnu-tar/1.35/bin/gtar: Malformed extended header: invalid mtime=\n/Users/kjopek/Workspace/safe-bash/tests/commands/archive/.oracle/gnu-tar/1.35/bin/gtar: Exiting with failure status due to previous errors\n"
+          },
+          "extraction": {
+            "executable": "/Users/kjopek/Workspace/safe-bash/tests/commands/archive/.oracle/gnu-tar/1.35/bin/gtar",
+            "args": [
+              "--no-same-owner",
+              "-xf",
+              "/tmp/safe-bash-pax-deletion-owned-XRJyky/D07-global-duplicate-final-delete-and-value.tar",
+              "-C",
+              "/tmp/safe-bash-pax-deletion-owned-XRJyky/D07-global-duplicate-final-delete-and-value-GNU"
+            ],
+            "cwd": "/tmp/safe-bash-pax-deletion-owned-XRJyky",
+            "status": 2,
+            "signal": null,
+            "stdout": "",
+            "stderr": "/Users/kjopek/Workspace/safe-bash/tests/commands/archive/.oracle/gnu-tar/1.35/bin/gtar: Malformed extended header: invalid mtime=\n/Users/kjopek/Workspace/safe-bash/tests/commands/archive/.oracle/gnu-tar/1.35/bin/gtar: Malformed extended header: invalid mtime=\n/Users/kjopek/Workspace/safe-bash/tests/commands/archive/.oracle/gnu-tar/1.35/bin/gtar: Malformed extended header: invalid mtime=\n/Users/kjopek/Workspace/safe-bash/tests/commands/archive/.oracle/gnu-tar/1.35/bin/gtar: Exiting with failure status due to previous errors\n"
+          },
+          "files": [
+            {
+              "name": "a",
+              "bytes": 2,
+              "sha256": "87428fc522803d31065e7bce3cf03fe475096631e5e07bbd7a0fde60c4cf25c7",
+              "mtimeNs": "1700123400000000000"
+            },
+            {
+              "name": "b",
+              "bytes": 2,
+              "sha256": "0263829989b6fd954f72baaf2fc64bc2e2f01d692d4de72986ea808f6e99813f",
+              "mtimeNs": "1700123499125000000"
+            },
+            {
+              "name": "c",
+              "bytes": 2,
+              "sha256": "a3a5e715f0cc574a73c3f9bebb6bc24f32ffd5b67b387244c2c909da779a1478",
+              "mtimeNs": "1700123499125000000"
+            }
+          ]
+        },
+        {
+          "profile": "BSD",
+          "listing": {
+            "executable": "/usr/bin/bsdtar",
+            "args": [
+              "-tvf",
+              "/tmp/safe-bash-pax-deletion-owned-XRJyky/D07-global-duplicate-final-delete-and-value.tar"
+            ],
+            "cwd": "/tmp/safe-bash-pax-deletion-owned-XRJyky",
+            "status": 0,
+            "signal": null,
+            "stdout": "-rw-------  0 0      0           2 Nov 16  2023 a\n-rw-------  0 0      0           2 Nov 16  2023 b\n-rw-------  0 0      0           2 Nov 16  2023 c\n",
+            "stderr": ""
+          },
+          "extraction": {
+            "executable": "/usr/bin/bsdtar",
+            "args": [
+              "--no-same-owner",
+              "-xf",
+              "/tmp/safe-bash-pax-deletion-owned-XRJyky/D07-global-duplicate-final-delete-and-value.tar",
+              "-C",
+              "/tmp/safe-bash-pax-deletion-owned-XRJyky/D07-global-duplicate-final-delete-and-value-BSD"
+            ],
+            "cwd": "/tmp/safe-bash-pax-deletion-owned-XRJyky",
+            "status": 0,
+            "signal": null,
+            "stdout": "",
+            "stderr": ""
+          },
+          "files": [
+            {
+              "name": "a",
+              "bytes": 2,
+              "sha256": "87428fc522803d31065e7bce3cf03fe475096631e5e07bbd7a0fde60c4cf25c7",
+              "mtimeNs": "1700123456000000000"
+            },
+            {
+              "name": "b",
+              "bytes": 2,
+              "sha256": "0263829989b6fd954f72baaf2fc64bc2e2f01d692d4de72986ea808f6e99813f",
+              "mtimeNs": "1700123456000000000"
+            },
+            {
+              "name": "c",
+              "bytes": 2,
+              "sha256": "a3a5e715f0cc574a73c3f9bebb6bc24f32ffd5b67b387244c2c909da779a1478",
+              "mtimeNs": "1700123456000000000"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "D08-cli-omission-control",
+      "sha256": "5ca43e180415788278d4a19c618e2c2677e1c615e2b0da7c91944863cb20ceef",
+      "archiveBase64": "bG9jYWwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADAwMDA2MDAAMDAwMDAwMAAwMDAwMDAwADAwMDAwMDAwMDMwADE0NTI1MzUxNTAwADAxMDM1MgAgeAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAB1c3RhcgAwMAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAwMDAwMDAwADAwMDAwMDAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAyNCBtdGltZT0xNzAwMTIzNDk5LjEyNQoAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAGEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAwMDAwNjAwADAwMDAwMDAAMDAwMDAwMAAwMDAwMDAwMDAwMgAxNDUyNTM1MTUwMAAwMDczNjcAIDAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAdXN0YXIAMDAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAMDAwMDAwMAAwMDAwMDAwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAYQoAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABiAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAMDAwMDYwMAAwMDAwMDAwADAwMDAwMDAAMDAwMDAwMDAwMDIAMTQ1MjUzNTE1MDAAMDA3MzcwACAwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHVzdGFyADAwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADAwMDAwMDAAMDAwMDAwMAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAGIKAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+      "headers": [
+        {
+          "offset": 0,
+          "name": "local",
+          "type": "x",
+          "size": 24,
+          "rawMtimeOctal": "14525351500",
+          "rawMtimeSeconds": 1700123456,
+          "headerHex": "6c6f63616c000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000030303030363030003030303030303000303030303030300030303030303030303033300031343532353335313530300030313033353200207800000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000757374617200303000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000303030303030300030303030303030000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+          "bodyHex": "3234206d74696d653d313730303132333439392e3132350a",
+          "pax": [
+            "24 mtime=1700123499.125\n"
+          ]
+        },
+        {
+          "offset": 1024,
+          "name": "a",
+          "type": "0",
+          "size": 2,
+          "rawMtimeOctal": "14525351500",
+          "rawMtimeSeconds": 1700123456,
+          "headerHex": "6100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000030303030363030003030303030303000303030303030300030303030303030303030320031343532353335313530300030303733363700203000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000757374617200303000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000303030303030300030303030303030000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+          "bodyHex": "610a"
+        },
+        {
+          "offset": 2048,
+          "name": "b",
+          "type": "0",
+          "size": 2,
+          "rawMtimeOctal": "14525351500",
+          "rawMtimeSeconds": 1700123456,
+          "headerHex": "6200000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000030303030363030003030303030303000303030303030300030303030303030303030320031343532353335313530300030303733373000203000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000757374617200303000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000303030303030300030303030303030000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+          "bodyHex": "620a"
+        }
+      ],
+      "observations": [
+        {
+          "profile": "GNU",
+          "listing": {
+            "executable": "/Users/kjopek/Workspace/safe-bash/tests/commands/archive/.oracle/gnu-tar/1.35/bin/gtar",
+            "args": [
+              "--full-time",
+              "--numeric-owner",
+              "-tvf",
+              "/tmp/safe-bash-pax-deletion-owned-XRJyky/D08-cli-omission-control.tar"
+            ],
+            "cwd": "/tmp/safe-bash-pax-deletion-owned-XRJyky",
+            "status": 0,
+            "signal": null,
+            "stdout": "-rw------- 0/0               2 2023-11-16 08:31:39.125 a\n-rw------- 0/0               2 2023-11-16 08:30:56     b\n",
+            "stderr": ""
+          },
+          "extraction": {
+            "executable": "/Users/kjopek/Workspace/safe-bash/tests/commands/archive/.oracle/gnu-tar/1.35/bin/gtar",
+            "args": [
+              "--no-same-owner",
+              "-xf",
+              "/tmp/safe-bash-pax-deletion-owned-XRJyky/D08-cli-omission-control.tar",
+              "-C",
+              "/tmp/safe-bash-pax-deletion-owned-XRJyky/D08-cli-omission-control-GNU"
+            ],
+            "cwd": "/tmp/safe-bash-pax-deletion-owned-XRJyky",
+            "status": 0,
+            "signal": null,
+            "stdout": "",
+            "stderr": ""
+          },
+          "files": [
+            {
+              "name": "a",
+              "bytes": 2,
+              "sha256": "87428fc522803d31065e7bce3cf03fe475096631e5e07bbd7a0fde60c4cf25c7",
+              "mtimeNs": "1700123499125000000"
+            },
+            {
+              "name": "b",
+              "bytes": 2,
+              "sha256": "0263829989b6fd954f72baaf2fc64bc2e2f01d692d4de72986ea808f6e99813f",
+              "mtimeNs": "1700123456000000000"
+            }
+          ]
+        },
+        {
+          "profile": "BSD",
+          "listing": {
+            "executable": "/usr/bin/bsdtar",
+            "args": [
+              "-tvf",
+              "/tmp/safe-bash-pax-deletion-owned-XRJyky/D08-cli-omission-control.tar"
+            ],
+            "cwd": "/tmp/safe-bash-pax-deletion-owned-XRJyky",
+            "status": 0,
+            "signal": null,
+            "stdout": "-rw-------  0 0      0           2 Nov 16  2023 a\n-rw-------  0 0      0           2 Nov 16  2023 b\n",
+            "stderr": ""
+          },
+          "extraction": {
+            "executable": "/usr/bin/bsdtar",
+            "args": [
+              "--no-same-owner",
+              "-xf",
+              "/tmp/safe-bash-pax-deletion-owned-XRJyky/D08-cli-omission-control.tar",
+              "-C",
+              "/tmp/safe-bash-pax-deletion-owned-XRJyky/D08-cli-omission-control-BSD"
+            ],
+            "cwd": "/tmp/safe-bash-pax-deletion-owned-XRJyky",
+            "status": 0,
+            "signal": null,
+            "stdout": "",
+            "stderr": ""
+          },
+          "files": [
+            {
+              "name": "a",
+              "bytes": 2,
+              "sha256": "87428fc522803d31065e7bce3cf03fe475096631e5e07bbd7a0fde60c4cf25c7",
+              "mtimeNs": "1700123499125000000"
+            },
+            {
+              "name": "b",
+              "bytes": 2,
+              "sha256": "0263829989b6fd954f72baaf2fc64bc2e2f01d692d4de72986ea808f6e99813f",
+              "mtimeNs": "1700123456000000000"
+            }
+          ]
+        },
+        {
+          "profile": "GNU-cli-delete-mtime",
+          "listing": {
+            "executable": "/Users/kjopek/Workspace/safe-bash/tests/commands/archive/.oracle/gnu-tar/1.35/bin/gtar",
+            "args": [
+              "--pax-option=delete=mtime",
+              "--full-time",
+              "--numeric-owner",
+              "-tvf",
+              "/tmp/safe-bash-pax-deletion-owned-XRJyky/D08-cli-omission-control.tar"
+            ],
+            "cwd": "/tmp/safe-bash-pax-deletion-owned-XRJyky",
+            "status": 0,
+            "signal": null,
+            "stdout": "-rw------- 0/0               2 2023-11-16 08:30:56 a\n-rw------- 0/0               2 2023-11-16 08:30:56 b\n",
+            "stderr": ""
+          },
+          "extraction": {
+            "executable": "/Users/kjopek/Workspace/safe-bash/tests/commands/archive/.oracle/gnu-tar/1.35/bin/gtar",
+            "args": [
+              "--pax-option=delete=mtime",
+              "--no-same-owner",
+              "-xf",
+              "/tmp/safe-bash-pax-deletion-owned-XRJyky/D08-cli-omission-control.tar",
+              "-C",
+              "/tmp/safe-bash-pax-deletion-owned-XRJyky/D08-cli-omission-control-GNU-cli-delete-mtime"
+            ],
+            "cwd": "/tmp/safe-bash-pax-deletion-owned-XRJyky",
+            "status": 0,
+            "signal": null,
+            "stdout": "",
+            "stderr": ""
+          },
+          "files": [
+            {
+              "name": "a",
+              "bytes": 2,
+              "sha256": "87428fc522803d31065e7bce3cf03fe475096631e5e07bbd7a0fde60c4cf25c7",
+              "mtimeNs": "1700123456000000000"
+            },
+            {
+              "name": "b",
+              "bytes": 2,
+              "sha256": "0263829989b6fd954f72baaf2fc64bc2e2f01d692d4de72986ea808f6e99813f",
+              "mtimeNs": "1700123456000000000"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "cleanup": {
+    "fixturesAbsent": true,
+    "children": "synchronous, no detached groups, all reaped"
+  },
+  "endedUtc": "2026-08-27T03:37:53.380Z"
+}

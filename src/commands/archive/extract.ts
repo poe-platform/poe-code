@@ -1,5 +1,5 @@
 import { dirname, isPathWithin, resolvePath, type ByteSource, type CommandContext, type FileStat } from "../../contracts/index.js";
-import { applyPax, parseHeader, parsePax, type Entry } from "./format.js";
+import { applyPax, numberField, parseHeader, parsePax, type ReadEntry } from "./format.js";
 import { Budget, checkPath, display, fail, hasIdentity, maybeStat, operation, publish, sameIdentity, text, vfsPath } from "./internal.js";
 import { Exclusions, type TarOptions } from "./options.js";
 import { Reader } from "./stream.js";
@@ -87,16 +87,21 @@ async function checkSymlinkTarget(context: CommandContext, root: string, path: s
   }
 }
 
-async function metadata(context: CommandContext, path: string, entry: Entry): Promise<void> {
+async function metadata(context: CommandContext, path: string, entry: ReadEntry): Promise<void> {
   if (context.fs.chmod && context.fs.capabilities.permissions !== false) {
     await operation(context, () => context.fs.chmod!(path, entry.mode & 0o777, { signal: context.signal }));
   }
   if (context.fs.utimes && context.fs.capabilities.timestamps !== false) {
-    await operation(context, () => context.fs.utimes!(path, (entry.atime ?? entry.mtime) * 1000, entry.mtime * 1000, { signal: context.signal }));
+    const atime = entry.atime ?? (entry.atimeDeleted ? undefined : entry.mtime);
+    const mtime = entry.mtime;
+    if (atime === undefined && mtime === undefined) return;
+    const current = atime === undefined || mtime === undefined
+      ? await operation(context, () => context.fs.stat(path, { signal: context.signal })) : undefined;
+    await operation(context, () => context.fs.utimes!(path, atime === undefined ? current!.atimeMs : atime * 1000, mtime === undefined ? current!.mtimeMs : mtime * 1000, { signal: context.signal }));
   }
 }
 
-function verbose(entry: Entry): string {
+function verbose(entry: ReadEntry): string {
   const type = entry.type === "5" ? "d" : entry.type === "2" ? "l" : entry.type === "1" ? "h" : "-";
   let permissions = "";
   for (const bit of [0o400, 0o200, 0o100, 0o040, 0o020, 0o010, 0o004, 0o002, 0o001]) permissions += entry.mode & bit ? (bit & 0o444 ? "r" : bit & 0o222 ? "w" : "x") : "-";
@@ -104,7 +109,7 @@ function verbose(entry: Entry): string {
     if (entry.mode & special) permissions = permissions.slice(0, offset) + (entry.mode & execute ? lower : upper) + permissions.slice(offset + 1);
   }
   const suffix = entry.type === "2" ? ` -> ${display(entry.linkname)}` : entry.type === "1" ? ` link to ${display(entry.linkname)}` : "";
-  return `${type}${permissions} ${entry.uid}/${entry.gid} ${entry.size} ${entry.mtime} ${display(entry.name)}${suffix}\n`;
+  return `${type}${permissions} ${entry.uid ?? "-"}/${entry.gid ?? "-"} ${entry.size} ${entry.mtime ?? "-"} ${display(entry.name)}${suffix}\n`;
 }
 
 export async function readArchive(context: CommandContext, source: ByteSource, options: TarOptions, budget: Budget): Promise<void> {
@@ -118,7 +123,7 @@ export async function readArchive(context: CommandContext, source: ByteSource, o
   let warnedAbsolute = false;
   const matched = new Set<number>();
   const published = new Map<string, FileStat>();
-  const directories = new Map<string, { root: string; entry: Entry }>();
+  const directories = new Map<string, { root: string; entry: ReadEntry }>();
   let archivePath: string | undefined;
   let archiveStat: FileStat | undefined;
   if (options.mode === "x" && options.archive !== "-") {
@@ -135,16 +140,17 @@ export async function readArchive(context: CommandContext, source: ByteSource, o
         await reader.finish();
         break;
       }
-      let entry = parseHeader(block);
+      const header = parseHeader(block);
       await budget.member();
-      if (["x", "g", "L", "K"].includes(entry.type)) {
-        if (entry.size > budget.limits.maxPaxBytes) fail("extended header byte limit exceeded");
-        const payload = await reader.exact(entry.size);
-        await reader.padding(entry.size);
-        if (entry.type === "x" || entry.type === "g") {
+      if (["x", "g", "L", "K"].includes(header.type)) {
+        const size = numberField(block, 124, 12);
+        if (size > budget.limits.maxPaxBytes) fail("extended header byte limit exceeded");
+        const payload = await reader.exact(size);
+        await reader.padding(size);
+        if (header.type === "x" || header.type === "g") {
           const values = parsePax(payload);
-          if (entry.type === "g") {
-            for (const [key, value] of values) value === "" ? global.delete(key) : global.set(key, value);
+          if (header.type === "g") {
+            for (const [key, value] of values) global.set(key, value);
           } else { for (const [key, value] of values) local.set(key, value); pending = true; }
           for (const state of [global, local]) {
             if ([...state].reduce((size, [key, value]) => size + Buffer.byteLength(key) + Buffer.byteLength(value), 0) > budget.limits.maxPaxBytes) fail("PAX state byte limit exceeded");
@@ -153,18 +159,16 @@ export async function readArchive(context: CommandContext, source: ByteSource, o
           if (payload.length === 0 || payload.at(-1) !== 0) fail("invalid GNU long-name record");
           const value = text(payload.subarray(0, -1));
           checkPath(value, budget.limits);
-          if (entry.type === "L") longName = value;
+          if (header.type === "L") longName = value;
           else longLink = value;
           pending = true;
         }
         continue;
       }
-      if (longName !== undefined) entry.name = longName;
-      if (longLink !== undefined) entry.linkname = longLink;
-      entry = applyPax(entry, global, local);
+      const entry = applyPax(header, global, local, longName, longLink);
       local = new Map(); pending = false; longName = undefined; longLink = undefined;
       checkPath(entry.name, budget.limits);
-      if (!Number.isFinite(entry.mtime) || Math.abs(entry.mtime * 1000) > 8.64e15) fail("archive timestamp is outside the supported range");
+      if (entry.mtime !== undefined && (!Number.isFinite(entry.mtime) || Math.abs(entry.mtime * 1000) > 8.64e15)) fail("archive timestamp is outside the supported range");
       if (entry.linkname) checkPath(entry.linkname, budget.limits);
       if (entry.type === "0" && entry.name.endsWith("/")) entry.type = "5";
       if (!["0", "1", "2", "5"].includes(entry.type)) fail(`unsupported archive entry type: ${display(entry.type)}`);

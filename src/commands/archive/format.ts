@@ -12,6 +12,21 @@ export interface Entry {
   atime?: number;
 }
 
+export interface ReadEntry extends Omit<Entry, "uid" | "gid" | "mtime" | "atime"> {
+  uid: number | undefined;
+  gid: number | undefined;
+  mtime: number | undefined;
+  atime: number | undefined;
+  atimeDeleted: boolean;
+}
+
+export interface Header {
+  bytes: Uint8Array;
+  posix: boolean;
+  type: string;
+  mode: number;
+}
+
 export function numberField(header: Uint8Array, offset: number, width: number, signed = false): number {
   const bytes = header.subarray(offset, offset + width);
   let value: bigint;
@@ -35,7 +50,7 @@ function stringField(header: Uint8Array, offset: number, width: number): string 
   return text(end === -1 ? bytes : bytes.subarray(0, end));
 }
 
-export function parseHeader(header: Uint8Array): Entry {
+export function parseHeader(header: Uint8Array): Header {
   if (header.length !== 512) fail("invalid header size");
   const expected = numberField(header, 148, 8);
   let actual = 0;
@@ -44,17 +59,11 @@ export function parseHeader(header: Uint8Array): Entry {
   const magic = Buffer.from(header.subarray(257, 265)).toString("latin1");
   const posix = magic === "ustar\0" + "00";
   if (!posix && magic !== "ustar  \0") fail("unsupported archive format (expected USTAR, PAX, or GNU basic headers)");
-  const prefix = posix ? stringField(header, 345, 155) : "";
-  const name = stringField(header, 0, 100);
-  const entry: Entry = {
-    name: prefix ? `${prefix}/${name}` : name,
+  const entry: Header = {
+    bytes: header,
+    posix,
     type: header[156] === 0 ? "0" : String.fromCharCode(header[156]!),
-    linkname: stringField(header, 157, 100),
     mode: numberField(header, 100, 8),
-    uid: numberField(header, 108, 8),
-    gid: numberField(header, 116, 8),
-    size: numberField(header, 124, 12),
-    mtime: numberField(header, 136, 12, true),
   };
   numberField(header, 329, 8);
   numberField(header, 337, 8);
@@ -172,20 +181,38 @@ export function parsePax(payload: Uint8Array): Map<string, string> {
   return result;
 }
 
-export function applyPax(entry: Entry, global: ReadonlyMap<string, string>, local: ReadonlyMap<string, string>): Entry {
-  const result = { ...entry };
+export function applyPax(header: Header, global: ReadonlyMap<string, string>, local: ReadonlyMap<string, string>, longName?: string, longLink?: string): ReadEntry {
   const merged = new Map(global);
-  for (const [key, value] of local) value === "" ? merged.delete(key) : merged.set(key, value);
+  for (const [key, value] of local) merged.set(key, value);
   for (const [key, value] of merged) {
-    if (key === "path") result.name = value;
-    else if (key === "linkpath") result.linkname = value;
-    else if (key === "uid" || key === "gid" || key === "size") {
+    if (value === "") continue;
+    if (key === "uid" || key === "gid" || key === "size") {
       if (!/^[0-9]+$/u.test(value) || !Number.isSafeInteger(Number(value))) fail(`invalid PAX ${key}`);
-      result[key] = Number(value);
     } else if (key === "mtime" || key === "atime" || key === "ctime") {
       if (!/^-?[0-9]+(?:\.[0-9]+)?$/u.test(value) || !Number.isFinite(Number(value)) || Math.abs(Number(value) * 1000) > 8.64e15) fail(`invalid PAX ${key}`);
-      if (key !== "ctime") result[key] = Number(value);
     }
   }
-  return result;
+  const numeric = (key: string, raw: () => number | undefined): number | undefined => {
+    if (!merged.has(key)) return raw();
+    const value = merged.get(key)!;
+    return value === "" ? undefined : Number(value);
+  };
+  const name = merged.has("path") ? merged.get("path")! : longName ?? (() => {
+    const prefix = header.posix ? stringField(header.bytes, 345, 155) : "";
+    const raw = stringField(header.bytes, 0, 100);
+    return prefix ? `${prefix}/${raw}` : raw;
+  })();
+  if (!name) fail("missing effective path");
+  const linkname = merged.has("linkpath") ? merged.get("linkpath")! : longLink ?? stringField(header.bytes, 157, 100);
+  if ((header.type === "1" || header.type === "2") && !linkname) fail("missing effective linkpath");
+  const size = numeric("size", () => numberField(header.bytes, 124, 12));
+  if (size === undefined) fail("missing effective size");
+  return {
+    name, linkname, size, type: header.type, mode: header.mode,
+    uid: numeric("uid", () => numberField(header.bytes, 108, 8)),
+    gid: numeric("gid", () => numberField(header.bytes, 116, 8)),
+    mtime: numeric("mtime", () => numberField(header.bytes, 136, 12, true)),
+    atime: numeric("atime", () => undefined),
+    atimeDeleted: merged.get("atime") === "",
+  };
 }

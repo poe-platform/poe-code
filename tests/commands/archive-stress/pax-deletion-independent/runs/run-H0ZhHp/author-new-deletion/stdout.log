@@ -1,0 +1,82 @@
+TAP version 13
+# Subtest: D01 local deletion suppresses global and raw time for exactly one member
+ok 1 - D01 local deletion suppresses global and raw time for exactly one member
+  ---
+  duration_ms: 7.882958
+  type: 'test'
+  ...
+# Subtest: D02 global tombstones persist per keyword until explicit reintroduction
+ok 2 - D02 global tombstones persist per keyword until explicit reintroduction
+  ---
+  duration_ms: 2.613583
+  type: 'test'
+  ...
+# Subtest: D03 duplicate deletion and reintroduction use the last per-key record
+ok 3 - D03 duplicate deletion and reintroduction use the last per-key record
+  ---
+  duration_ms: 2.333875
+  type: 'test'
+  ...
+# Subtest: D04 local state is consumed by excluded members without mutating global deletion
+ok 4 - D04 local state is consumed by excluded members without mutating global deletion
+  ---
+  duration_ms: 1.979
+  type: 'test'
+  ...
+# Subtest: D05 deleted required path rejects before effects and cannot resurrect GNU names
+ok 5 - D05 deleted required path rejects before effects and cannot resurrect GNU names
+  ---
+  duration_ms: 4.956834
+  type: 'test'
+  ...
+# Subtest: D06 deleted regular size fails even when excluded and reintroduction preserves alignment
+ok 6 - D06 deleted regular size fails even when excluded and reintroduction preserves alignment
+  ---
+  duration_ms: 2.122375
+  type: 'test'
+  ...
+# Subtest: D07 link deletion blocks raw and GNU targets while restored hardlinks share identity
+ok 7 - D07 link deletion blocks raw and GNU targets while restored hardlinks share identity
+  ---
+  duration_ms: 4.675917
+  type: 'test'
+  ...
+# Subtest: D08 deleted mtime preserves deterministic file and deferred-directory backend state
+ok 8 - D08 deleted mtime preserves deterministic file and deferred-directory backend state
+  ---
+  duration_ms: 0.829667
+  type: 'test'
+  ...
+# Subtest: D09 paired timestamp restoration preserves the missing counterpart and propagates errors
+ok 9 - D09 paired timestamp restoration preserves the missing counterpart and propagates errors
+  ---
+  duration_ms: 4.01575
+  type: 'test'
+  ...
+# Subtest: D10 effective PAX and GNU paths mask only unselected raw semantic fields
+ok 10 - D10 effective PAX and GNU paths mask only unselected raw semantic fields
+  ---
+  duration_ms: 2.294291
+  type: 'test'
+  ...
+# Subtest: D11 selected numeric PAX values bypass malformed raw numbers but retain effective validation
+ok 11 - D11 selected numeric PAX values bypass malformed raw numbers but retain effective validation
+  ---
+  duration_ms: 2.826459
+  type: 'test'
+  ...
+# Subtest: D12 tombstones retain structural, framing, critical-layout and resource guards
+ok 12 - D12 tombstones retain structural, framing, critical-layout and resource guards
+  ---
+  duration_ms: 4.491125
+  type: 'test'
+  ...
+1..12
+# tests 12
+# suites 0
+# pass 12
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 254.58475

@@ -1,0 +1,101 @@
+--- a/src/commands/streams.ts
++++ b/src/commands/streams.ts
+@@ -63,6 +63,46 @@
+   if (!omit) for (const chunk of pending.slice(start)) await output(context, chunk);
+ }
+ 
++function wcUtf8(consume: (point: number | undefined) => void) {
++  let remaining = 0;
++  let lead = 0;
++  let point = 0;
++  let first = false;
++  return {
++    write(bytes: Uint8Array): void {
++      for (const byte of bytes) {
++        if (remaining) {
++          const continuation = byte >= 0x80 && byte <= 0xbf
++            && (!first || (lead !== 0xe0 || byte >= 0xa0) && (lead !== 0xed || byte <= 0x9f)
++              && (lead !== 0xf0 || byte >= 0x90) && (lead !== 0xf4 || byte <= 0x8f));
++          if (continuation) {
++            point = point * 64 + (byte & 0x3f);
++            first = false;
++            if (--remaining === 0) consume(point);
++            continue;
++          }
++          consume(undefined);
++          remaining = 0;
++        }
++        if (byte < 0x80) consume(byte);
++        else if (byte >= 0xc2 && byte <= 0xf4) {
++          lead = byte;
++          remaining = byte < 0xe0 ? 1 : byte < 0xf0 ? 2 : 3;
++          point = byte & (remaining === 1 ? 0x1f : remaining === 2 ? 0x0f : 0x07);
++          first = true;
++        } else consume(undefined);
++      }
++    },
++    finish(): void { if (remaining) consume(undefined); remaining = 0; },
++  };
++}
++
++function wcSpace(point: number, posix: boolean): boolean {
++  return point === 32 || point >= 9 && point <= 13 || point === 0xa0 || point === 0x1680
++    || point >= 0x2000 && point <= 0x200a || point === 0x2028 || point === 0x2029
++    || point === 0x202f || point === 0x205f || point === 0x3000 || !posix && point === 0x2060;
++}
++
+ function headTail(name: "head" | "tail"): CommandDefinition {
+   return define(name, async context => {
+     const args = context.args[0] && /^-[0-9]+$/u.test(context.args[0]) ? ["-n", context.args[0].slice(1), ...context.args.slice(1)] : context.args;
+@@ -195,6 +235,7 @@
+       const totals: Record<string, number> = { l: 0, w: 0, m: 0, c: 0 };
+       const locale = context.env.LC_ALL || context.env.LC_CTYPE || context.env.LANG || "C.UTF-8";
+       const singleByte = locale === "C" || locale === "POSIX";
++      const posix = Object.hasOwn(context.env, "POSIXLY_CORRECT");
+       let width = 1;
+       if (names.length > 1 || selected.length > 1) {
+         let totalSize = 0n;
+@@ -213,20 +254,26 @@
+       for (const name of names) {
+         const counts: Record<string, number> = { l: 0, w: 0, m: 0, c: 0 };
+         let inWord = false;
+-        const utf8 = new TextDecoder("utf-8", { ignoreBOM: true });
++        const word = (whitespace: boolean) => {
++          if (!whitespace && !inWord) counts.w!++;
++          inWord = !whitespace;
++        };
++        const utf8 = wcUtf8(point => {
++          if (point !== undefined) counts.m!++;
++          word(point !== undefined && wcSpace(point, posix));
++        });
+         try {
+           for await (const chunk of input(context, name)) {
+             context.signal.throwIfAborted();
+             counts.c! += chunk.length;
+             for (const byte of chunk) {
+               if (byte === 10) counts.l!++;
+-              const whitespace = byte === 32 || byte >= 9 && byte <= 13;
+-              if (!whitespace && !inWord) counts.w!++;
+-              inWord = !whitespace;
++              if (singleByte) word(byte === 32 || byte >= 9 && byte <= 13 || !posix && byte === 0xa0);
+             }
+-            if (parsed.flags.has("m")) counts.m! += singleByte ? chunk.length : [...utf8.decode(chunk, { stream: true })].length;
++            if (singleByte) counts.m! += chunk.length;
++            else utf8.write(chunk);
+           }
+-          if (parsed.flags.has("m") && !singleByte) counts.m! += [...utf8.decode()].length;
++          if (!singleByte) utf8.finish();
+           for (const field of Object.keys(totals)) totals[field]! += counts[field]!;
+           await print(counts, parsed.operands.length ? name : undefined);
+         } catch (error) { await diagnostic(context, error); exitCode = 1; }
+--- a/src/commands/text.ts
++++ b/src/commands/text.ts
+@@ -122,7 +122,7 @@
+             }
+             records.push(line.bytes);
+           }
+-        } catch (error) { await diagnostic(context, error); exitCode = 1; }
++        } catch (error) { await diagnostic(context, error); return { exitCode: 2 }; }
+       }
+       if (parsed.flags.has("c")) return { exitCode };
+       records.sort(compare);

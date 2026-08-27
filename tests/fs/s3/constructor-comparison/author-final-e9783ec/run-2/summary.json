@@ -1,0 +1,52 @@
+{
+  "attempt": 2,
+  "beforeHead": "e9783ecd393efd8af1b892c94f73a863d28650a7",
+  "afterHead": "e9783ecd393efd8af1b892c94f73a863d28650a7",
+  "sourceSetSha256": "e5673f9dd6ce311af7565dfb16e56145e2cd4cd8460c24494c09829db53f533b",
+  "changes": [],
+  "stable": true,
+  "sourceStatus": "",
+  "checks": [
+    {
+      "name": "dispatch",
+      "status": 0,
+      "totals": {}
+    },
+    {
+      "name": "original43",
+      "status": 0,
+      "totals": {
+        "tests": 43,
+        "pass": 43,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      }
+    },
+    {
+      "name": "original4",
+      "status": 0,
+      "totals": {
+        "tests": 4,
+        "pass": 4,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      }
+    },
+    {
+      "name": "required49",
+      "status": 0,
+      "totals": {
+        "tests": 49,
+        "pass": 49,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      }
+    }
+  ]
+}

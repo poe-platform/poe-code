@@ -1,0 +1,111 @@
+{
+  "classification": "AUTHOR current-source integration only; not Dirac acceptance",
+  "repository": "/Users/kjopek/Workspace/safe-bash",
+  "output": "/private/tmp/safe-bash-author-constructor-final-20260827-K4tcZj",
+  "rounds": [
+    {
+      "attempt": 1,
+      "beforeHead": "ceb3f5ff88624d6366a2b0f3810d6a93e489a327",
+      "afterHead": "ceb3f5ff88624d6366a2b0f3810d6a93e489a327",
+      "sourceSetSha256": "cc5936261c133d725f6a2599f64d30e4ffb22a772ffad2453e2fa742193ca63b",
+      "changes": [],
+      "stable": true,
+      "sourceStatus": "",
+      "checks": [
+        {
+          "name": "dispatch",
+          "status": 0,
+          "totals": {}
+        },
+        {
+          "name": "original43",
+          "status": 0,
+          "totals": {
+            "tests": 43,
+            "pass": 43,
+            "fail": 0,
+            "cancelled": 0,
+            "skipped": 0,
+            "todo": 0
+          }
+        },
+        {
+          "name": "original4",
+          "status": 0,
+          "totals": {
+            "tests": 4,
+            "pass": 4,
+            "fail": 0,
+            "cancelled": 0,
+            "skipped": 0,
+            "todo": 0
+          }
+        },
+        {
+          "name": "required49",
+          "status": 0,
+          "totals": {
+            "tests": 49,
+            "pass": 49,
+            "fail": 0,
+            "cancelled": 0,
+            "skipped": 0,
+            "todo": 0
+          }
+        }
+      ]
+    },
+    {
+      "attempt": 2,
+      "beforeHead": "e9783ecd393efd8af1b892c94f73a863d28650a7",
+      "afterHead": "e9783ecd393efd8af1b892c94f73a863d28650a7",
+      "sourceSetSha256": "e5673f9dd6ce311af7565dfb16e56145e2cd4cd8460c24494c09829db53f533b",
+      "changes": [],
+      "stable": true,
+      "sourceStatus": "",
+      "checks": [
+        {
+          "name": "dispatch",
+          "status": 0,
+          "totals": {}
+        },
+        {
+          "name": "original43",
+          "status": 0,
+          "totals": {
+            "tests": 43,
+            "pass": 43,
+            "fail": 0,
+            "cancelled": 0,
+            "skipped": 0,
+            "todo": 0
+          }
+        },
+        {
+          "name": "original4",
+          "status": 0,
+          "totals": {
+            "tests": 4,
+            "pass": 4,
+            "fail": 0,
+            "cancelled": 0,
+            "skipped": 0,
+            "todo": 0
+          }
+        },
+        {
+          "name": "required49",
+          "status": 0,
+          "totals": {
+            "tests": 49,
+            "pass": 49,
+            "fail": 0,
+            "cancelled": 0,
+            "skipped": 0,
+            "todo": 0
+          }
+        }
+      ]
+    }
+  ]
+}

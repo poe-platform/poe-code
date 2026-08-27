@@ -1,0 +1,142 @@
+{
+  "date": "2026-08-27T05:25:13.361Z",
+  "purpose": "Isolated reproduction of the first unpublished capture control failure; no product import and no semantic-cohort expectation changed.",
+  "rows": [
+    {
+      "binary": {
+        "id": "gnu53",
+        "path": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+        "sha256": "8cecb482de24198c23a736b931cb7e8cee1f94eb0b51abd54bd99f1d73d9673c",
+        "versionPrefix": "5.3."
+      },
+      "argv0": "bash",
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "printf 'name=%s\nversion=%s\n' \"$0\" \"$BASH_VERSION\"\nset -o\nset -e\nvalue=$(case $- in *e*) printf retained;; *) printf cleared;; esac)\nprintf 'substitution=%s\n' \"$value\"\nbash -c 'printf \"bash-child=%s:%s\\n\" \"$0\" \"$BASH_VERSION\"; set -o' child\nsh -c 'printf \"sh-child=%s:%s\\n\" \"$0\" \"$BASH_VERSION\"; set -o' child\nprintf '\\000\\377'\n",
+        "shell"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/errexit-holdout/.control-d9xKf8",
+      "env": {
+        "PATH": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/errexit-holdout/.control-d9xKf8",
+        "HOME": "/nonexistent",
+        "LANG": "C",
+        "LC_ALL": "C",
+        "TZ": "UTC"
+      },
+      "result": {
+        "pid": 70039,
+        "status": 0,
+        "signal": null,
+        "timedOut": false,
+        "overflow": false,
+        "groupAlive": false,
+        "stdout": "bmFtZT1zaGVsbAp2ZXJzaW9uPTUuMy4wKDEpLXJlbGVhc2UKYWxsZXhwb3J0ICAgICAgCW9mZgpicmFjZWV4cGFuZCAgICAJb24KZW1hY3MgICAgICAgICAgCW9mZgplcnJleGl0ICAgICAgICAJb2ZmCmVycnRyYWNlICAgICAgIAlvZmYKZnVuY3RyYWNlICAgICAgCW9mZgpoYXNoYWxsICAgICAgICAJb24KaGlzdGV4cGFuZCAgICAgCW9mZgpoaXN0b3J5ICAgICAgICAJb2ZmCmlnbm9yZWVvZiAgICAgIAlvZmYKaW50ZXJhY3RpdmUtY29tbWVudHMJb24Ka2V5d29yZCAgICAgICAgCW9mZgptb25pdG9yICAgICAgICAJb2ZmCm5vY2xvYmJlciAgICAgIAlvZmYKbm9leGVjICAgICAgICAgCW9mZgpub2dsb2IgICAgICAgICAJb2ZmCm5vbG9nICAgICAgICAgIAlvZmYKbm90aWZ5ICAgICAgICAgCW9mZgpub3Vuc2V0ICAgICAgICAJb2ZmCm9uZWNtZCAgICAgICAgIAlvZmYKcGh5c2ljYWwgICAgICAgCW9mZgpwaXBlZmFpbCAgICAgICAJb2ZmCnBvc2l4ICAgICAgICAgIAlvZmYKcHJpdmlsZWdlZCAgICAgCW9mZgp2ZXJib3NlICAgICAgICAJb2ZmCnZpICAgICAgICAgICAgIAlvZmYKeHRyYWNlICAgICAgICAgCW9mZgpzdWJzdGl0dXRpb249Y2xlYXJlZApiYXNoLWNoaWxkPWNoaWxkOjUuMy4wKDEpLXJlbGVhc2UKYWxsZXhwb3J0ICAgICAgCW9mZgpicmFjZWV4cGFuZCAgICAJb24KZW1hY3MgICAgICAgICAgCW9mZgplcnJleGl0ICAgICAgICAJb2ZmCmVycnRyYWNlICAgICAgIAlvZmYKZnVuY3RyYWNlICAgICAgCW9mZgpoYXNoYWxsICAgICAgICAJb24KaGlzdGV4cGFuZCAgICAgCW9mZgpoaXN0b3J5ICAgICAgICAJb2ZmCmlnbm9yZWVvZiAgICAgIAlvZmYKaW50ZXJhY3RpdmUtY29tbWVudHMJb24Ka2V5d29yZCAgICAgICAgCW9mZgptb25pdG9yICAgICAgICAJb2ZmCm5vY2xvYmJlciAgICAgIAlvZmYKbm9leGVjICAgICAgICAgCW9mZgpub2dsb2IgICAgICAgICAJb2ZmCm5vbG9nICAgICAgICAgIAlvZmYKbm90aWZ5ICAgICAgICAgCW9mZgpub3Vuc2V0ICAgICAgICAJb2ZmCm9uZWNtZCAgICAgICAgIAlvZmYKcGh5c2ljYWwgICAgICAgCW9mZgpwaXBlZmFpbCAgICAgICAJb2ZmCnBvc2l4ICAgICAgICAgIAlvZmYKcHJpdmlsZWdlZCAgICAgCW9mZgp2ZXJib3NlICAgICAgICAJb2ZmCnZpICAgICAgICAgICAgIAlvZmYKeHRyYWNlICAgICAgICAgCW9mZgpzaC1jaGlsZD1jaGlsZDo1LjMuMCgxKS1yZWxlYXNlCmFsbGV4cG9ydCAgICAgIAlvZmYKYnJhY2VleHBhbmQgICAgCW9uCmVtYWNzICAgICAgICAgIAlvZmYKZXJyZXhpdCAgICAgICAgCW9mZgplcnJ0cmFjZSAgICAgICAJb2ZmCmZ1bmN0cmFjZSAgICAgIAlvZmYKaGFzaGFsbCAgICAgICAgCW9uCmhpc3RleHBhbmQgICAgIAlvZmYKaGlzdG9yeSAgICAgICAgCW9mZgppZ25vcmVlb2YgICAgICAJb2ZmCmludGVyYWN0aXZlLWNvbW1lbnRzCW9uCmtleXdvcmQgICAgICAgIAlvZmYKbW9uaXRvciAgICAgICAgCW9mZgpub2Nsb2JiZXIgICAgICAJb2ZmCm5vZXhlYyAgICAgICAgIAlvZmYKbm9nbG9iICAgICAgICAgCW9mZgpub2xvZyAgICAgICAgICAJb2ZmCm5vdGlmeSAgICAgICAgIAlvZmYKbm91bnNldCAgICAgICAgCW9mZgpvbmVjbWQgICAgICAgICAJb2ZmCnBoeXNpY2FsICAgICAgIAlvZmYKcGlwZWZhaWwgICAgICAgCW9mZgpwb3NpeCAgICAgICAgICAJb24KcHJpdmlsZWdlZCAgICAgCW9mZgp2ZXJib3NlICAgICAgICAJb2ZmCnZpICAgICAgICAgICAgIAlvZmYKeHRyYWNlICAgICAgICAgCW9mZgoA/w==",
+        "stderr": ""
+      }
+    },
+    {
+      "binary": {
+        "id": "gnu53",
+        "path": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+        "sha256": "8cecb482de24198c23a736b931cb7e8cee1f94eb0b51abd54bd99f1d73d9673c",
+        "versionPrefix": "5.3."
+      },
+      "argv0": "sh",
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "printf 'name=%s\nversion=%s\n' \"$0\" \"$BASH_VERSION\"\nset -o\nset -e\nvalue=$(case $- in *e*) printf retained;; *) printf cleared;; esac)\nprintf 'substitution=%s\n' \"$value\"\nbash -c 'printf \"bash-child=%s:%s\\n\" \"$0\" \"$BASH_VERSION\"; set -o' child\nsh -c 'printf \"sh-child=%s:%s\\n\" \"$0\" \"$BASH_VERSION\"; set -o' child\nprintf '\\000\\377'\n",
+        "shell"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/errexit-holdout/.control-d9xKf8",
+      "env": {
+        "PATH": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/errexit-holdout/.control-d9xKf8",
+        "HOME": "/nonexistent",
+        "LANG": "C",
+        "LC_ALL": "C",
+        "TZ": "UTC"
+      },
+      "result": {
+        "pid": 70044,
+        "status": 0,
+        "signal": null,
+        "timedOut": false,
+        "overflow": false,
+        "groupAlive": false,
+        "stdout": "bmFtZT1zaGVsbAp2ZXJzaW9uPTUuMy4wKDEpLXJlbGVhc2UKYWxsZXhwb3J0ICAgICAgCW9mZgpicmFjZWV4cGFuZCAgICAJb24KZW1hY3MgICAgICAgICAgCW9mZgplcnJleGl0ICAgICAgICAJb2ZmCmVycnRyYWNlICAgICAgIAlvZmYKZnVuY3RyYWNlICAgICAgCW9mZgpoYXNoYWxsICAgICAgICAJb24KaGlzdGV4cGFuZCAgICAgCW9mZgpoaXN0b3J5ICAgICAgICAJb2ZmCmlnbm9yZWVvZiAgICAgIAlvZmYKaW50ZXJhY3RpdmUtY29tbWVudHMJb24Ka2V5d29yZCAgICAgICAgCW9mZgptb25pdG9yICAgICAgICAJb2ZmCm5vY2xvYmJlciAgICAgIAlvZmYKbm9leGVjICAgICAgICAgCW9mZgpub2dsb2IgICAgICAgICAJb2ZmCm5vbG9nICAgICAgICAgIAlvZmYKbm90aWZ5ICAgICAgICAgCW9mZgpub3Vuc2V0ICAgICAgICAJb2ZmCm9uZWNtZCAgICAgICAgIAlvZmYKcGh5c2ljYWwgICAgICAgCW9mZgpwaXBlZmFpbCAgICAgICAJb2ZmCnBvc2l4ICAgICAgICAgIAlvbgpwcml2aWxlZ2VkICAgICAJb2ZmCnZlcmJvc2UgICAgICAgIAlvZmYKdmkgICAgICAgICAgICAgCW9mZgp4dHJhY2UgICAgICAgICAJb2ZmCnN1YnN0aXR1dGlvbj1yZXRhaW5lZApiYXNoLWNoaWxkPWNoaWxkOjUuMy4wKDEpLXJlbGVhc2UKYWxsZXhwb3J0ICAgICAgCW9mZgpicmFjZWV4cGFuZCAgICAJb24KZW1hY3MgICAgICAgICAgCW9mZgplcnJleGl0ICAgICAgICAJb2ZmCmVycnRyYWNlICAgICAgIAlvZmYKZnVuY3RyYWNlICAgICAgCW9mZgpoYXNoYWxsICAgICAgICAJb24KaGlzdGV4cGFuZCAgICAgCW9mZgpoaXN0b3J5ICAgICAgICAJb2ZmCmlnbm9yZWVvZiAgICAgIAlvZmYKaW50ZXJhY3RpdmUtY29tbWVudHMJb24Ka2V5d29yZCAgICAgICAgCW9mZgptb25pdG9yICAgICAgICAJb2ZmCm5vY2xvYmJlciAgICAgIAlvZmYKbm9leGVjICAgICAgICAgCW9mZgpub2dsb2IgICAgICAgICAJb2ZmCm5vbG9nICAgICAgICAgIAlvZmYKbm90aWZ5ICAgICAgICAgCW9mZgpub3Vuc2V0ICAgICAgICAJb2ZmCm9uZWNtZCAgICAgICAgIAlvZmYKcGh5c2ljYWwgICAgICAgCW9mZgpwaXBlZmFpbCAgICAgICAJb2ZmCnBvc2l4ICAgICAgICAgIAlvZmYKcHJpdmlsZWdlZCAgICAgCW9mZgp2ZXJib3NlICAgICAgICAJb2ZmCnZpICAgICAgICAgICAgIAlvZmYKeHRyYWNlICAgICAgICAgCW9mZgpzaC1jaGlsZD1jaGlsZDo1LjMuMCgxKS1yZWxlYXNlCmFsbGV4cG9ydCAgICAgIAlvZmYKYnJhY2VleHBhbmQgICAgCW9uCmVtYWNzICAgICAgICAgIAlvZmYKZXJyZXhpdCAgICAgICAgCW9mZgplcnJ0cmFjZSAgICAgICAJb2ZmCmZ1bmN0cmFjZSAgICAgIAlvZmYKaGFzaGFsbCAgICAgICAgCW9uCmhpc3RleHBhbmQgICAgIAlvZmYKaGlzdG9yeSAgICAgICAgCW9mZgppZ25vcmVlb2YgICAgICAJb2ZmCmludGVyYWN0aXZlLWNvbW1lbnRzCW9uCmtleXdvcmQgICAgICAgIAlvZmYKbW9uaXRvciAgICAgICAgCW9mZgpub2Nsb2JiZXIgICAgICAJb2ZmCm5vZXhlYyAgICAgICAgIAlvZmYKbm9nbG9iICAgICAgICAgCW9mZgpub2xvZyAgICAgICAgICAJb2ZmCm5vdGlmeSAgICAgICAgIAlvZmYKbm91bnNldCAgICAgICAgCW9mZgpvbmVjbWQgICAgICAgICAJb2ZmCnBoeXNpY2FsICAgICAgIAlvZmYKcGlwZWZhaWwgICAgICAgCW9mZgpwb3NpeCAgICAgICAgICAJb24KcHJpdmlsZWdlZCAgICAgCW9mZgp2ZXJib3NlICAgICAgICAJb2ZmCnZpICAgICAgICAgICAgIAlvZmYKeHRyYWNlICAgICAgICAgCW9mZgoA/w==",
+        "stderr": ""
+      }
+    },
+    {
+      "binary": {
+        "id": "apple32",
+        "path": "/bin/bash",
+        "sha256": "35536aea9733aa345b61134a98d00232380898e55b2ea2a07c497011f7dfc7a3",
+        "versionPrefix": "3.2."
+      },
+      "argv0": "bash",
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "printf 'name=%s\nversion=%s\n' \"$0\" \"$BASH_VERSION\"\nset -o\nset -e\nvalue=$(case $- in *e*) printf retained;; *) printf cleared;; esac)\nprintf 'substitution=%s\n' \"$value\"\nbash -c 'printf \"bash-child=%s:%s\\n\" \"$0\" \"$BASH_VERSION\"; set -o' child\nsh -c 'printf \"sh-child=%s:%s\\n\" \"$0\" \"$BASH_VERSION\"; set -o' child\nprintf '\\000\\377'\n",
+        "shell"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/errexit-holdout/.control-P0gwN0",
+      "env": {
+        "PATH": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/errexit-holdout/.control-P0gwN0",
+        "HOME": "/nonexistent",
+        "LANG": "C",
+        "LC_ALL": "C",
+        "TZ": "UTC"
+      },
+      "result": {
+        "pid": 70051,
+        "status": 2,
+        "signal": null,
+        "timedOut": false,
+        "overflow": false,
+        "groupAlive": false,
+        "stdout": "bmFtZT1zaGVsbAp2ZXJzaW9uPTMuMi41NygxKS1yZWxlYXNlCmFsbGV4cG9ydCAgICAgIAlvZmYKYnJhY2VleHBhbmQgICAgCW9uCmVtYWNzICAgICAgICAgIAlvZmYKZXJyZXhpdCAgICAgICAgCW9mZgplcnJ0cmFjZSAgICAgICAJb2ZmCmZ1bmN0cmFjZSAgICAgIAlvZmYKaGFzaGFsbCAgICAgICAgCW9uCmhpc3RleHBhbmQgICAgIAlvZmYKaGlzdG9yeSAgICAgICAgCW9mZgppZ25vcmVlb2YgICAgICAJb2ZmCmludGVyYWN0aXZlLWNvbW1lbnRzCW9uCmtleXdvcmQgICAgICAgIAlvZmYKbW9uaXRvciAgICAgICAgCW9mZgpub2Nsb2JiZXIgICAgICAJb2ZmCm5vZXhlYyAgICAgICAgIAlvZmYKbm9nbG9iICAgICAgICAgCW9mZgpub2xvZyAgICAgICAgICAJb2ZmCm5vdGlmeSAgICAgICAgIAlvZmYKbm91bnNldCAgICAgICAgCW9mZgpvbmVjbWQgICAgICAgICAJb2ZmCnBoeXNpY2FsICAgICAgIAlvZmYKcGlwZWZhaWwgICAgICAgCW9mZgpwb3NpeCAgICAgICAgICAJb2ZmCnByaXZpbGVnZWQgICAgIAlvZmYKdmVyYm9zZSAgICAgICAgCW9mZgp2aSAgICAgICAgICAgICAJb2ZmCnh0cmFjZSAgICAgICAgIAlvZmYK",
+        "stderr": "c2hlbGw6IC1jOiBsaW5lIDU6IHN5bnRheCBlcnJvciBuZWFyIHVuZXhwZWN0ZWQgdG9rZW4gYDs7Jwo="
+      }
+    },
+    {
+      "binary": {
+        "id": "apple32",
+        "path": "/bin/bash",
+        "sha256": "35536aea9733aa345b61134a98d00232380898e55b2ea2a07c497011f7dfc7a3",
+        "versionPrefix": "3.2."
+      },
+      "argv0": "sh",
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "printf 'name=%s\nversion=%s\n' \"$0\" \"$BASH_VERSION\"\nset -o\nset -e\nvalue=$(case $- in *e*) printf retained;; *) printf cleared;; esac)\nprintf 'substitution=%s\n' \"$value\"\nbash -c 'printf \"bash-child=%s:%s\\n\" \"$0\" \"$BASH_VERSION\"; set -o' child\nsh -c 'printf \"sh-child=%s:%s\\n\" \"$0\" \"$BASH_VERSION\"; set -o' child\nprintf '\\000\\377'\n",
+        "shell"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/errexit-holdout/.control-P0gwN0",
+      "env": {
+        "PATH": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/errexit-holdout/.control-P0gwN0",
+        "HOME": "/nonexistent",
+        "LANG": "C",
+        "LC_ALL": "C",
+        "TZ": "UTC"
+      },
+      "result": {
+        "pid": 70052,
+        "status": 2,
+        "signal": null,
+        "timedOut": false,
+        "overflow": false,
+        "groupAlive": false,
+        "stdout": "bmFtZT1zaGVsbAp2ZXJzaW9uPTMuMi41NygxKS1yZWxlYXNlCmFsbGV4cG9ydCAgICAgIAlvZmYKYnJhY2VleHBhbmQgICAgCW9uCmVtYWNzICAgICAgICAgIAlvZmYKZXJyZXhpdCAgICAgICAgCW9mZgplcnJ0cmFjZSAgICAgICAJb2ZmCmZ1bmN0cmFjZSAgICAgIAlvZmYKaGFzaGFsbCAgICAgICAgCW9uCmhpc3RleHBhbmQgICAgIAlvZmYKaGlzdG9yeSAgICAgICAgCW9mZgppZ25vcmVlb2YgICAgICAJb2ZmCmludGVyYWN0aXZlLWNvbW1lbnRzCW9uCmtleXdvcmQgICAgICAgIAlvZmYKbW9uaXRvciAgICAgICAgCW9mZgpub2Nsb2JiZXIgICAgICAJb2ZmCm5vZXhlYyAgICAgICAgIAlvZmYKbm9nbG9iICAgICAgICAgCW9mZgpub2xvZyAgICAgICAgICAJb2ZmCm5vdGlmeSAgICAgICAgIAlvZmYKbm91bnNldCAgICAgICAgCW9mZgpvbmVjbWQgICAgICAgICAJb2ZmCnBoeXNpY2FsICAgICAgIAlvZmYKcGlwZWZhaWwgICAgICAgCW9mZgpwb3NpeCAgICAgICAgICAJb24KcHJpdmlsZWdlZCAgICAgCW9mZgp2ZXJib3NlICAgICAgICAJb2ZmCnZpICAgICAgICAgICAgIAlvZmYKeHRyYWNlICAgICAgICAgCW9mZgo=",
+        "stderr": "c2hlbGw6IC1jOiBsaW5lIDU6IHN5bnRheCBlcnJvciBuZWFyIHVuZXhwZWN0ZWQgdG9rZW4gYDs7Jwo="
+      }
+    }
+  ]
+}

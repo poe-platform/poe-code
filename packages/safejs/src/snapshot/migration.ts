@@ -26,9 +26,9 @@ export type SnapshotMigration = {
 };
 
 export function validateMigrationSemantics(value: unknown): asserts value is string {
-  if (!["jobs-v1", "jobs-v2", "jobs-v3", "jobs-v4", "jobs-v5"].includes(value as string))
+  if (!["jobs-v1", "jobs-v2", "jobs-v3", "jobs-v4", "jobs-v5", "jobs-v6"].includes(value as string))
     throw new TypeError(
-      "Migration requires a supported execution-semantics marker (jobs-v1 through jobs-v5)."
+      "Migration requires a supported execution-semantics marker (jobs-v1 through jobs-v6)."
     );
 }
 

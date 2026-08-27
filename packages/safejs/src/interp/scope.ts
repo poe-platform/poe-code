@@ -173,16 +173,16 @@ export class Scope {
     }
 
     const binding = scope.#bindings.get(name);
-    if (binding?.kind === "const") {
-      throw new TypeError(`Cannot assign to const binding '${name}'.`);
-    }
-
     if (binding === undefined) {
       throw new ReferenceError(`Cannot assign to undeclared binding '${name}'.`);
     }
 
     if (binding.value === uninitialized) {
       throw new ReferenceError(`Cannot access '${name}' before initialization.`);
+    }
+
+    if (binding.kind === "const") {
+      throw new TypeError(`Cannot assign to const binding '${name}'.`);
     }
 
     scope.#bindings.set(name, {

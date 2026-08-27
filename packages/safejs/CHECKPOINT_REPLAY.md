@@ -161,7 +161,10 @@ recreating connections. Published poe-code 8.0.1 (`jobs-v4`) returns false for
 runtime returns true. Managed MCP clients use those stable capabilities and
 run-scoped cleanup. Older snapshots are rejected before effects, not migrated.
 
-New run snapshots carry `executionSemantics: "jobs-v5"`. Promise jobs run after
+New run snapshots carry `executionSemantics: "jobs-v6"`. Assignment references read
+their captured value before the RHS, and conversion/write failures preserve source
+evaluation order. Earlier markers must use explicit migration rather than replaying
+host effects against the corrected reference semantics. Promise jobs run after
 the surrounding synchronous source execution yields. Async functions execute
 their synchronous prefix before returning a promise, and synchronous builtin
 callbacks do not implicitly await returned promises. Thenables preserve their

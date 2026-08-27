@@ -611,9 +611,6 @@ function validateGenericValue(
   if (typeof value === "string") {
     requireString(value, path, state.limits);
     state.dataSize += value.length;
-  } else if (typeof value === "number") {
-    if (Number.isInteger(value) && !Number.isSafeInteger(value))
-      fail("invalidValue", path, "integer must be safe");
   } else if (Array.isArray(value)) {
     if (value.length > state.limits.maxEntries) fail("budgetExceeded", path, "array is too large");
     if (state.dataPropertiesOnly) {

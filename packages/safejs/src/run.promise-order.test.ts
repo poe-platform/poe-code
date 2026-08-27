@@ -17,7 +17,17 @@ describe("native promise execution order", () => {
     }
   );
 
-  it.each([undefined, "legacy", "jobs-v1", "jobs-v2", "jobs-v3", "jobs-v4", "jobs-v6", null])(
+  it.each([
+    undefined,
+    "legacy",
+    "jobs-v1",
+    "jobs-v2",
+    "jobs-v3",
+    "jobs-v4",
+    "jobs-v5",
+    "jobs-v7",
+    null
+  ])(
     "rejects incompatible execution semantics %s before host effects",
     async (executionSemantics) => {
       const source = "await read(); return 42;";

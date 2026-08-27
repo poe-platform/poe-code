@@ -800,36 +800,33 @@ async function evaluateAssignmentExpression(
     };
   }
 
-  const binding = context.scope.lookup(node.left.name);
-  if (!binding.found) {
+  const binding = node.operator === "=" ? undefined : context.scope.lookup(node.left.name);
+  if (binding?.found === false) {
     throw new ReferenceError(`Cannot assign to undeclared binding '${node.left.name}'.`);
   }
+  const current = binding?.value;
 
-  if (binding.kind === "const") {
-    throw new TypeError(`Cannot assign to const '${node.left.name}'`);
-  }
-
-  if (node.operator === "&&=" && !isTruthy(binding.value)) {
+  if (node.operator === "&&=" && !isTruthy(current)) {
     return {
       kind: "normal",
       hasValue: true,
-      value: binding.value
+      value: current
     };
   }
 
-  if (node.operator === "||=" && isTruthy(binding.value)) {
+  if (node.operator === "||=" && isTruthy(current)) {
     return {
       kind: "normal",
       hasValue: true,
-      value: binding.value
+      value: current
     };
   }
 
-  if (node.operator === "??=" && binding.value !== null && binding.value !== undefined) {
+  if (node.operator === "??=" && current !== null && current !== undefined) {
     return {
       kind: "normal",
       hasValue: true,
-      value: binding.value
+      value: current
     };
   }
 
@@ -844,7 +841,7 @@ async function evaluateAssignmentExpression(
     node.operator === "||=" ||
     node.operator === "??="
       ? right.value
-      : applyCompoundAssignmentOperator(node.operator, binding.value, right.value, context);
+      : await applyCompoundAssignmentOperator(node.operator, current, right.value, context);
 
   context.scope.assign(node.left.name, value);
 
@@ -873,50 +870,30 @@ async function evaluateMemberAssignmentExpression(
   if (member.kind === "nullish") {
     throw new TypeError("Cannot assign properties of null or undefined.");
   }
-  if (isSandboxRegex(member.object)) {
-    if (node.operator !== "=") {
-      throw new TypeError("RegExp properties only support direct assignment.");
-    }
-    const right = await evaluateNode(node.right, context);
-    if (right.kind !== "normal") return right;
-    setRegexMember(member.object, member.property, right.value);
-    return { kind: "normal", hasValue: true, value: right.value };
-  }
-  if (!isIndexableSandboxValue(member.object)) {
-    throw new TypeError("Assignment expressions require a sandbox object property.");
-  }
+  const current =
+    node.operator === "=" ? undefined : getPropertyValue(member.object, member.property, context);
 
-  if (
-    node.operator === "&&=" &&
-    !isTruthy(getMemberValue(member.object, member.property, context))
-  ) {
+  if (node.operator === "&&=" && !isTruthy(current)) {
     return {
       kind: "normal",
       hasValue: true,
-      value: getMemberValue(member.object, member.property, context)
+      value: current
     };
   }
 
-  if (
-    node.operator === "||=" &&
-    isTruthy(getMemberValue(member.object, member.property, context))
-  ) {
+  if (node.operator === "||=" && isTruthy(current)) {
     return {
       kind: "normal",
       hasValue: true,
-      value: getMemberValue(member.object, member.property, context)
+      value: current
     };
   }
 
-  if (
-    node.operator === "??=" &&
-    getMemberValue(member.object, member.property, context) !== null &&
-    getMemberValue(member.object, member.property, context) !== undefined
-  ) {
+  if (node.operator === "??=" && current !== null && current !== undefined) {
     return {
       kind: "normal",
       hasValue: true,
-      value: getMemberValue(member.object, member.property, context)
+      value: current
     };
   }
 
@@ -925,14 +902,13 @@ async function evaluateMemberAssignmentExpression(
     return right;
   }
 
-  const current = getMemberValue(member.object, member.property, context);
   const value =
     node.operator === "=" ||
     node.operator === "&&=" ||
     node.operator === "||=" ||
     node.operator === "??="
       ? right.value
-      : applyCompoundAssignmentOperator(node.operator, current, right.value, context);
+      : await applyCompoundAssignmentOperator(node.operator, current, right.value, context);
 
   setSandboxProperty(member.object, member.property, value);
 
@@ -2252,11 +2228,7 @@ async function evaluateIdentifierUpdateExpression(
     };
   }
 
-  if (binding.kind === "const") {
-    throw new TypeError(`Cannot assign to const '${node.argument.name}'`);
-  }
-
-  const current = Number(binding.value);
+  const current = toNumber(await toNumericPrimitive(binding.value, context));
   const next = node.operator === "++" ? current + 1 : current - 1;
   context.scope.assign(node.argument.name, next);
 
@@ -2285,11 +2257,9 @@ async function evaluateMemberUpdateExpression(
   if (member.kind === "nullish") {
     throw new TypeError("Cannot update properties of null or undefined.");
   }
-  if (!isIndexableSandboxValue(member.object)) {
-    throw new TypeError("Update expressions require a sandbox object property.");
-  }
-
-  const current = Number(getMemberValue(member.object, member.property, context));
+  const current = toNumber(
+    await toNumericPrimitive(getPropertyValue(member.object, member.property, context), context)
+  );
   const next = node.operator === "++" ? current + 1 : current - 1;
   setSandboxProperty(member.object, member.property, next);
 
@@ -2305,106 +2275,37 @@ async function evaluateMemberExpression(
   context: EvaluationContext
 ): Promise<EvaluationResult> {
   const member = await evaluateMemberAccess(node, context);
-  if (member.kind === "error") {
-    return member;
-  }
-  if (member.kind === "completion") {
-    return member.result;
-  }
-
+  if (member.kind === "error") return member;
+  if (member.kind === "completion") return member.result;
   if (member.kind === "nullish") {
-    if (node.optional) {
-      return {
-        kind: "normal",
-        hasValue: true,
-        value: undefined
-      };
-    }
-
+    if (node.optional) return { kind: "normal", hasValue: true, value: undefined };
     throw new TypeError("Cannot read properties of null or undefined.");
   }
-
-  if (typeof member.object === "string") {
-    return {
-      kind: "normal",
-      hasValue: true,
-      value: getStringMember(member.object, member.property, context.budget)
-    };
-  }
-
-  if (typeof member.object === "number") {
-    return {
-      kind: "normal",
-      hasValue: true,
-      value: getNumberMember(member.object, member.property, context.budget)
-    };
-  }
-
-  if (Array.isArray(member.object)) {
-    return {
-      kind: "normal",
-      hasValue: true,
-      value: getArrayMemberValue(member.object, member.property, context)
-    };
-  }
-
-  if (isSandboxMap(member.object)) {
-    return {
-      kind: "normal",
-      hasValue: true,
-      value: getMapMember(member.object, member.property, createMapMethodOptions(context))
-    };
-  }
-
-  if (isSandboxSet(member.object)) {
-    return {
-      kind: "normal",
-      hasValue: true,
-      value: getSetMember(member.object, member.property, createSetMethodOptions(context))
-    };
-  }
-
-  if (isSandboxGenerator(member.object)) {
-    return {
-      kind: "normal",
-      hasValue: true,
-      value: getGeneratorMember(member.object, member.property, context.budget)
-    };
-  }
-
-  if (isSandboxClosure(member.object)) {
-    return {
-      kind: "normal",
-      hasValue: true,
-      value: getClosureMemberValue(member.object, member.property, context)
-    };
-  }
-
-  if (isSandboxPromise(member.object)) {
-    return {
-      kind: "normal",
-      hasValue: true,
-      value: getPromiseMember(member.property, context.budget)
-    };
-  }
-
-  if (isSandboxRegex(member.object)) {
-    return {
-      kind: "normal",
-      hasValue: true,
-      value: getRegexMember(member.object, member.property)
-    };
-  }
-
-  if (!isIndexableSandboxValue(member.object)) {
-    throw new TypeError("Attempted to read a property from a non-object value.");
-  }
-
   return {
     kind: "normal",
     hasValue: true,
-    value: getMemberValue(member.object, member.property, context)
+    value: getPropertyValue(member.object, member.property, context)
   };
+}
+
+function getPropertyValue(
+  target: InterpreterValue,
+  property: string | number,
+  context: EvaluationContext
+): SandboxValue {
+  if (typeof target === "string") return getStringMember(target, property, context.budget);
+  if (typeof target === "number") return getNumberMember(target, property, context.budget);
+  if (typeof target === "boolean") return undefined;
+  if (isSandboxMap(target)) return getMapMember(target, property, createMapMethodOptions(context));
+  if (isSandboxSet(target)) return getSetMember(target, property, createSetMethodOptions(context));
+  if (isSandboxGenerator(target)) return getGeneratorMember(target, property, context.budget);
+  if (isSandboxClosure(target)) return getClosureMemberValue(target, property, context);
+  if (isSandboxPromise(target)) return getPromiseMember(property, context.budget);
+  if (isSandboxRegex(target)) return getRegexMember(target, property);
+  if (!isIndexableSandboxValue(target)) {
+    throw new TypeError("Attempted to read a property from a non-object value.");
+  }
+  return getMemberValue(target, property, context);
 }
 
 async function evaluateCallExpression(
@@ -3035,12 +2936,14 @@ function applyBinaryOperator(
   }
 }
 
-function applyCompoundAssignmentOperator(
+async function applyCompoundAssignmentOperator(
   operator: Exclude<AssignmentExpression["operator"], "=" | "&&=" | "||=" | "??=">,
   left: InterpreterValue,
   right: InterpreterValue,
   context: EvaluationContext
-): InterpreterValue {
+): Promise<InterpreterValue> {
+  left = await toNumericPrimitive(left, context);
+  right = await toNumericPrimitive(right, context);
   switch (operator) {
     case "+=":
       return applyAdditionOperator(left, right, context);
@@ -3208,6 +3111,9 @@ async function toNumericPrimitive(
   if (isIndexableSandboxValue(value)) {
     for (const methodName of ["valueOf", "toString"] as const) {
       const method = getMemberValue(value, methodName, context);
+      if (methodName === "toString" && method === undefined && !Object.hasOwn(value, methodName)) {
+        return toString(value);
+      }
       if (!isSandboxClosure(method)) {
         continue;
       }
@@ -3224,6 +3130,7 @@ async function toNumericPrimitive(
         return result as SandboxPrimitive;
       }
     }
+    throw new TypeError("Cannot convert object to primitive value.");
   }
 
   return toString(value);
@@ -3315,23 +3222,35 @@ function getArrayMemberValue(
 }
 
 function setSandboxProperty(
-  target: SandboxArray | SandboxObject,
+  target: SandboxValue,
   property: string | number,
   value: SandboxValue
 ): void {
+  if (isSandboxRegex(target)) {
+    setRegexMember(target, property, value);
+    return;
+  }
+  if (!isIndexableSandboxValue(target)) {
+    throw new TypeError("Assignment expressions require a sandbox object property.");
+  }
+  const key = String(property);
   if (Array.isArray(target)) {
     assertCollectionMutable(target);
-    const key = String(property);
     if (key === "length" || isArrayIndexKey(key)) {
       (target as unknown as Record<string, SandboxValue>)[key] = value;
       return;
     }
-
-    defineSandboxProperty(target, key, value);
-    return;
   }
 
-  defineSandboxProperty(target, String(property), value);
+  const descriptor = Object.getOwnPropertyDescriptor(target, key);
+  if (descriptor !== undefined) {
+    if (descriptor.writable !== true) {
+      throw new TypeError(`Cannot assign to read only property '${key}'.`);
+    }
+    Object.defineProperty(target, key, { value });
+  } else {
+    defineSandboxProperty(target, key, value);
+  }
 }
 
 function deleteSandboxProperty(

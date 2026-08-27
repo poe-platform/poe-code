@@ -33,7 +33,8 @@ language completeness from passing existing tests alone.
       expressions, including Map and Set, plus top-level await inside nested
       control-flow blocks; retain host-escape protections.
 - [ ] Classes and prototypes: implement language-level objects and inheritance
-      inside the sandbox, never exposing host prototypes.
+      inside the sandbox, never exposing host prototypes. Full implementation and
+      validation sequence: `safejs-classes-prototypes.md` (in progress).
 - [ ] Generators: implement async generators and resumable suspended generators.
 - [ ] Regular expressions: support backreferences, lookaround, named groups, and
       Unicode properties while preserving enforceable execution budgets.
@@ -1727,3 +1728,22 @@ Released and verified as `poe-code@10.0.4`; the exact registry receipt follows.
   Classes/prototypes, generators, full budgeted regular expressions, scoped
   network/process modules, and multi-file source imports remain open. The overall
   language-completeness goal remains active.
+
+### Class/object prerequisite: reference evaluation — release pending
+
+- The class audit exposed incorrect existing reference semantics. Corrected
+  compound-read ordering, logical constant short-circuiting, write-error timing,
+  source numeric coercion, and preservation of own-data-property flags.
+- Independent stress also exposed rejection of large finite numbers in checkpoint
+  data. Fixed the generic-data validation while retaining safe structural cursors
+  and identities. Added 99 focused regressions and actual CI consumer smoke.
+- Snapshots now use `jobs-v6`; earlier semantics require explicit migration.
+  Genuine 10.0.4 snapshots and five earlier published versions have direct
+  rejection/migration/replay evidence rather than only rewritten marker fixtures.
+- Native comparison: 1,152 cases and 2,304 restores per Node version (18/22/24).
+  Budget/abort, process-kill, CLI, registry-boundary, and cleanup details are in
+  `safejs-classes-prototypes.md`. No repeated effects in those tests.
+- Full pre-release repository validation: 21,237 pass, 41 skip. Class syntax,
+  sandbox-owned intrinsic prototypes, accessors, private state, and the other
+  remaining language-completeness items are still open. This prerequisite is not
+  a claim that the class/prototype item is complete.

@@ -151,7 +151,7 @@ It returns `inspection` and, for a migration, `outputPath` and `dryRun`.
   replayed against new source. The continuation can deliberately call an old
   operation again; SafeJS cannot infer business-level deduplication from code.
 - Format-1 dumps with complete version-1 replay journals and `jobs-v1` through
-  `jobs-v5` markers are accepted. Unknown formats, missing histories, malformed
+  `jobs-v6` markers are accepted. Unknown formats, missing histories, malformed
   identities, and unportable checkpoints fail closed. Keep the original runtime
   for checkpoints outside that explicit compatibility envelope.
 

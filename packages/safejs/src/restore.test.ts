@@ -70,9 +70,9 @@ describe("restore", () => {
     ["unknown version", { version: 2, sourceHash: hashSource("1 + 2") }, "$.version"],
     ["missing hash", { version: 1 }, "$.sourceHash"],
     [
-      "unsafe integer",
-      { version: 1, sourceHash: hashSource("1 + 2"), count: Number.MAX_SAFE_INTEGER + 1 },
-      "$.count"
+      "unsafe clock cursor",
+      { version: 1, sourceHash: hashSource("1 + 2"), clock: { next: Number.MAX_SAFE_INTEGER + 1 } },
+      "$.clock.next"
     ],
     [
       "unsupported value",

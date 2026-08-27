@@ -1112,7 +1112,7 @@ describe("interpret", () => {
 
   it("rejects assignment to a const binding with a clear sandbox error", async () => {
     await expect(interpret(block(parse("const x = 1"), parse("x = 2")))).rejects.toMatchObject({
-      message: "Cannot assign to const 'x'"
+      message: "Cannot assign to const binding 'x'."
     });
   });
 
@@ -2366,7 +2366,7 @@ describe("interpret", () => {
 
   it("prevents assignment to a named function expression binding", async () => {
     await expect(interpret(parse("(function check() { check = 1; })()"))).rejects.toThrow(
-      "Cannot assign to const 'check'"
+      "Cannot assign to const binding 'check'."
     );
   });
 

@@ -116,7 +116,7 @@ their outcome is uncertain, automatic reissue is unsafe: the SDK requires
 `tools()` and connection release are re-issuable. This does not promise exactly
 once across uncheckpointed crash windows or migrate an old snapshot.
 
-Snapshots use `jobs-v5`. Registered host methods returned from factories now
+Snapshots use `jobs-v6`. Registered host methods returned from factories now
 retain their original identity. Published 8.0.1 returns false for
 `(await get()) === method` when `get` returns the registered `method`; the corrected
 runtime returns true. Older markers are rejected before host effects rather than

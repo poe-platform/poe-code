@@ -1,0 +1,65 @@
+{
+  "date": "2026-08-27T18:29:44.392Z",
+  "head": "31f5678e62e3f3d43b4825d839ec970e7768da7d",
+  "originals": {
+    "tests/commands/du/behavior.test.ts": {
+      "sha256": "36f54589a455eec0249e192a83ca412d9d88b8452ab448073edee1e4bb1d327b",
+      "gitBlob": "56e31dfb0beaa95690d8fb9609b3a3863abe1c6b",
+      "destination": "tests/commands/du/canonical-migration-v1/originals/behavior.test.ts.txt"
+    },
+    "tests/commands/du/native.test.ts": {
+      "sha256": "416216cf815f3dae8f28fb6fe3ad40231add0e97d0d63684e0ac0e1377f3eef4",
+      "gitBlob": "05e07946d5ab3e34e725bc10a022c96871d335ce",
+      "destination": "tests/commands/du/canonical-migration-v1/originals/native.test.ts.txt"
+    }
+  },
+  "handoff": {
+    "path": "tests/commands/du/functional-v1/evidence/checks-v1-CTz5xl/unowned-expectation-handoff.stdout.txt",
+    "sha256": "322315edac390ced29d2e8c887ec3a077229f2b7b8c020057c95346fab3c219e",
+    "counts": {
+      "tests": 9,
+      "pass": 5,
+      "fail": 4,
+      "cancelled": 0,
+      "skipped": 0
+    },
+    "evidenceCommit": "67c75f62e31386ce379178770f24cdc31d673124"
+  },
+  "previousEvidenceHashesVerified": 45,
+  "productPins": {
+    "src/commands/du/README.md": {
+      "commit": "32c5b60c3323101ebd3d4a3339931caa93867ae5",
+      "sha256": "2bfaa4f9330578f943802adbe54300fbb6070d823c5260bec15fa99e0c942bb1"
+    },
+    "src/commands/du/arguments.ts": {
+      "commit": "32c5b60c3323101ebd3d4a3339931caa93867ae5",
+      "sha256": "1c25d25f2c1464b2b47e9a574d8c786c032d2c5f80b231d15e444a7020a3c409"
+    },
+    "src/commands/du/budget.ts": {
+      "commit": "32c5b60c3323101ebd3d4a3339931caa93867ae5",
+      "sha256": "b97e9e9b9a02fae0c95fe9f50af79644bab053d6426fb8b2886a413160c29971"
+    },
+    "src/commands/du/du.ts": {
+      "commit": "32c5b60c3323101ebd3d4a3339931caa93867ae5",
+      "sha256": "89a7e96bd08f72fd91a140841cf4dd362ba7e741374ec31e476b2db480cbaf03"
+    },
+    "src/commands/du/format.ts": {
+      "commit": "32c5b60c3323101ebd3d4a3339931caa93867ae5",
+      "sha256": "84463e68db86ca767b05b410c79c0844e97be2c3585ed7fff2f81ae15411daa1"
+    },
+    "src/commands/du/index.ts": {
+      "commit": "32c5b60c3323101ebd3d4a3339931caa93867ae5",
+      "sha256": "73a4ea414b6a6325fb8c4c507fc8f86e7b6b743cb2b94f13437ef42f4d545cd7"
+    },
+    "src/commands/du/options.ts": {
+      "commit": "32c5b60c3323101ebd3d4a3339931caa93867ae5",
+      "sha256": "5765a37baccf628f3de85c94409627a16cf4dda02f66c9d2a37cf2929bf26253"
+    },
+    "src/fs/overlay/index.ts": {
+      "commit": "1c793b934dcd06aa42e0df24a7228b395178cf3d",
+      "sha256": "829352e34a662868ddac3385317bf2f7eea8f605ea55e995865a6dd95ddc0d17"
+    }
+  },
+  "indexBeforeSha256": "4147aa6a4797865724f515de8987e4c5789eef9a2e7c3b8ed6b0df2d73923c08",
+  "classification": "Original .ts.txt and raw .stdout.txt are immutable captured data, not canonical TypeScript inputs."
+}

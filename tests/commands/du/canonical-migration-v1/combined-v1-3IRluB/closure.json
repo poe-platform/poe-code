@@ -1,0 +1,211 @@
+{
+  "candidate": "9a5a6f922beb1bc6ba84a0cd32ea7a12f8ce985d",
+  "results": [
+    {
+      "name": "du",
+      "args": [
+        "--import",
+        "tsx",
+        "--test",
+        "--test-concurrency=1",
+        "tests/commands/du/backends.test.ts",
+        "tests/commands/du/behavior.test.ts",
+        "tests/commands/du/functional-v1/environment.test.ts",
+        "tests/commands/du/functional-v1/native.test.ts",
+        "tests/commands/du/native.test.ts",
+        "tests/commands/du/overlay-purity.test.ts",
+        "tests/commands/du/safety.test.ts"
+      ],
+      "startedAt": "2026-08-27T18:32:18.976Z",
+      "finishedAt": "2026-08-27T18:32:20.694Z",
+      "status": 0,
+      "signal": null,
+      "counts": {
+        "tests": 191,
+        "suites": 0,
+        "pass": 191,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      }
+    },
+    {
+      "name": "overlay-strict",
+      "args": [
+        "--import",
+        "tsx",
+        "--test",
+        "--test-concurrency=1",
+        "tests/fs/overlay/metadata-purity.test.ts",
+        "tests/commands/du/overlay-purity.test.ts"
+      ],
+      "startedAt": "2026-08-27T18:32:20.695Z",
+      "finishedAt": "2026-08-27T18:32:21.096Z",
+      "status": 0,
+      "signal": null,
+      "counts": {
+        "tests": 30,
+        "suites": 0,
+        "pass": 30,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      }
+    },
+    {
+      "name": "overlay-focused",
+      "args": [
+        "--import",
+        "tsx",
+        "--test",
+        "--test-concurrency=1",
+        "tests/fs/overlay/allocation.test.ts",
+        "tests/commands/du/backends.test.ts",
+        "tests/fs/overlay/adversarial.test.ts",
+        "tests/fs/overlay/streaming.test.ts",
+        "tests/fs/overlay/rmdir.test.ts",
+        "tests/fs/overlay/snapshot-rmdir.test.ts",
+        "tests/fs/overlay/scoped-links.test.ts",
+        "tests/fs/overlay/copy-identity.test.ts",
+        "tests/fs/overlay/review-regressions.test.ts",
+        "tests/fs/readonly/readonly.test.ts",
+        "tests/fs/readonly/metadata.test.ts",
+        "tests/fs/readonly/snapshot-rmdir.test.ts",
+        "tests/fs/mount/comparison.test.ts",
+        "tests/fs/mount/copy-identity-guards.test.ts",
+        "tests/fs/mount/identity-scope.test.ts",
+        "tests/fs/mount/snapshot-rmdir.test.ts",
+        "tests/fs/mount/identity-authority-review/authority.test.ts"
+      ],
+      "startedAt": "2026-08-27T18:32:21.096Z",
+      "finishedAt": "2026-08-27T18:32:24.491Z",
+      "status": 0,
+      "signal": null,
+      "counts": {
+        "tests": 416,
+        "suites": 0,
+        "pass": 416,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      }
+    },
+    {
+      "name": "du-types",
+      "args": [
+        "node_modules/typescript/bin/tsc",
+        "-p",
+        "tests/commands/du/tsconfig.json"
+      ],
+      "startedAt": "2026-08-27T18:32:24.491Z",
+      "finishedAt": "2026-08-27T18:32:25.467Z",
+      "status": 0,
+      "signal": null,
+      "counts": {}
+    },
+    {
+      "name": "functional-types",
+      "args": [
+        "node_modules/typescript/bin/tsc",
+        "-p",
+        "tests/commands/du/functional-v1/tsconfig.json"
+      ],
+      "startedAt": "2026-08-27T18:32:25.467Z",
+      "finishedAt": "2026-08-27T18:32:26.268Z",
+      "status": 0,
+      "signal": null,
+      "counts": {}
+    },
+    {
+      "name": "overlay-types",
+      "args": [
+        "node_modules/typescript/bin/tsc",
+        "--noEmit",
+        "--target",
+        "ES2023",
+        "--lib",
+        "ES2023",
+        "--module",
+        "NodeNext",
+        "--moduleResolution",
+        "NodeNext",
+        "--strict",
+        "--noUncheckedIndexedAccess",
+        "--exactOptionalPropertyTypes",
+        "--verbatimModuleSyntax",
+        "--forceConsistentCasingInFileNames",
+        "--skipLibCheck",
+        "--types",
+        "node",
+        "tests/fs/overlay/metadata-purity.test.ts",
+        "tests/commands/du/overlay-purity.test.ts",
+        "tests/fs/overlay/allocation.test.ts",
+        "tests/commands/du/backends.test.ts",
+        "tests/fs/overlay/adversarial.test.ts",
+        "tests/fs/overlay/streaming.test.ts",
+        "tests/fs/overlay/rmdir.test.ts",
+        "tests/fs/overlay/snapshot-rmdir.test.ts",
+        "tests/fs/overlay/scoped-links.test.ts",
+        "tests/fs/overlay/copy-identity.test.ts",
+        "tests/fs/overlay/review-regressions.test.ts",
+        "tests/fs/readonly/readonly.test.ts",
+        "tests/fs/readonly/metadata.test.ts",
+        "tests/fs/readonly/snapshot-rmdir.test.ts",
+        "tests/fs/mount/comparison.test.ts",
+        "tests/fs/mount/copy-identity-guards.test.ts",
+        "tests/fs/mount/identity-scope.test.ts",
+        "tests/fs/mount/snapshot-rmdir.test.ts",
+        "tests/fs/mount/identity-authority-review/authority.test.ts"
+      ],
+      "startedAt": "2026-08-27T18:32:26.268Z",
+      "finishedAt": "2026-08-27T18:32:28.081Z",
+      "status": 0,
+      "signal": null,
+      "counts": {}
+    },
+    {
+      "name": "isolated-build",
+      "args": [
+        "node_modules/typescript/bin/tsc",
+        "-p",
+        "tests/commands/du/functional-v1/tsconfig.build.json",
+        "--outDir",
+        "/Users/kjopek/Workspace/safe-bash/tests/commands/du/canonical-migration-v1/.runtime-8pm9vw/.build"
+      ],
+      "startedAt": "2026-08-27T18:32:28.081Z",
+      "finishedAt": "2026-08-27T18:32:28.880Z",
+      "status": 0,
+      "signal": null,
+      "counts": {}
+    },
+    {
+      "name": "built-boundary",
+      "args": [
+        "tests/commands/du/functional-v1/verify-built.mjs",
+        "/Users/kjopek/Workspace/safe-bash/tests/commands/du/canonical-migration-v1/.runtime-8pm9vw/.build"
+      ],
+      "startedAt": "2026-08-27T18:32:28.880Z",
+      "finishedAt": "2026-08-27T18:32:28.925Z",
+      "status": 0,
+      "signal": null,
+      "counts": {}
+    }
+  ],
+  "finishedAt": "2026-08-27T18:32:29.089Z",
+  "changed": [],
+  "added": [],
+  "archiveSha256After": "060064b1fbada5d605934cbdcdda1863ae44f8ef05e05b8ab3a7af690982c3fa",
+  "originalInputSha256": "8b70378033cef9bf7490c931cb0089cdb0002dcaebd3ed01cd0fc9002193a211",
+  "finalInputSha256": "8b70378033cef9bf7490c931cb0089cdb0002dcaebd3ed01cd0fc9002193a211",
+  "nativeSha256After": "f1df033deed07d208d80128568404c1043b283c59f294164f1240789bfadcf2b",
+  "indexBeforeSha256": "3d3d0cf12de54978242cede9330fdeba5756b2acd9c83b02d7ae054358b25ef2",
+  "indexAfterSha256": "4b14ab91df1df2f6ae6ca1dde111952bb108309e505b2a9717219c30a4ca00d9",
+  "indexPreserved": false,
+  "sharedDistBeforeSha256": "3e970fe0e44d2234e8aa2ac126bac4c9b4cc669761752f1afdb671d62b38c91b",
+  "sharedDistAfterSha256": "3e970fe0e44d2234e8aa2ac126bac4c9b4cc669761752f1afdb671d62b38c91b",
+  "sharedDistPreserved": true,
+  "inspectionScope": "All runtime file paths including new entries and symlink targets; excludes explicitly installed node_modules link and separately hashed .build output. Empty directories, external tooling contents, and hostile concurrent mutation are not append-proof claims."
+}

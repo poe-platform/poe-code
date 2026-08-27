@@ -63,7 +63,7 @@ function timestamp(milliseconds: number): string {
 function epoch(milliseconds: number, precision: number): string {
   if (precision > 3) throw new FsError("ENOTSUP", { message: "stat timestamps support at most millisecond precision" });
   const scale = 10 ** precision;
-  const scaled = Math.floor(available(milliseconds, "timestamp") / 1000 * scale);
+  const scaled = Math.floor(available(milliseconds, "timestamp") / (1000 / scale));
   const absolute = Math.abs(scaled);
   return `${scaled < 0 ? "-" : ""}${Math.floor(absolute / scale)}${precision ? "." + (absolute % scale).toString().padStart(precision, "0") : ""}`;
 }

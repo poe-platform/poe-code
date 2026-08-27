@@ -1151,6 +1151,47 @@ that any implementation, command, fixture, or test currently exists.
   tests/commands/archive/**/*.test.ts. Do not silently inject a different native
   oracle into that source-only historical run. No global full-suite pass follows.
 
+### August 27, 2026: resumed table-text author delivery
+
+- Following the contract handoff, Curie resumed the paused9d1e0fa batch without
+  duplicating standard cut. Initial source implements paste/comm/join; resumed
+  validation reproduced257/257. Three additional Buffer-reuse byte probes then
+  failed, showing shared fragments corrupting all three tools. Source fix32513a4
+  takes a true Uint8Array snapshot. The original three failing byte outputs and
+  unchanged expectations are retained in
+  tests/commands/table-text/buffer-ownership-regression.json. Family tests now
+  pass260/260 with the pinned native oracle; this is author verification.
+- Root integration33347b76def1b2cbbe3f399b3be330d3f40e6a50 exports the table family
+  from the root and virtual-bash/commands/table-text. Aggregate tableText limits
+  preserve family types; the explicit expected-name registry contains56 defaults.
+  Curl/SafeJS stay optional and runtime dependencies remain zero. No unrelated
+  source/test changes were staged. Different-agent table stress/fix is pending.
+- An isolated git archive of33347b7, cached tooling linked with no source overlays,
+  passes global typecheck/build and311/311 scoped tests:260 table,31 aggregate,
+  20 unchanged diagnostics/jq interop; zero fail/skip/TODO/cancel. Six built-package
+  checks pass, including root/subpath identity, literal56-name registry, binary
+  repeated stdin, NUL comm output, real VFS join/cut/paste composition and eleven
+  fixed export/declaration entries. This is not a full repository test run.
+- The pinned GNU9.7 C-locale corpus remains216 observations with215 matches and
+  one documented comm shared-stdin disagreement. All observed binary hashes
+  match the frozen native evidence. Matching ordinary stderr wording is not
+  asserted; exact stdout, exit status and input bytes are checked, except the
+  explicit duplicate-close status disagreement. Passing its characterization
+  does not make it a native parity match. No selected-version or broad superiority
+  claim follows. No additional oracle installation was needed.
+- Evidence and reproduction are in tests/commands/table-text/AUTHOR_HANDOFF.md
+  and author-verification.json, including exact source/log hashes and remaining
+  flags, locale and quota limits. An ad-hoc scoped TS command initially used
+  ES2022 rather than repository ES2023; the corrected scoped command and the
+  frozen project-config typecheck pass, without editing shell source.
+- The earlier jq compile error no longer appears in the fresh live or frozen
+  checks. Other workers continue editing; a committed snapshot pass does not
+  certify their later moving state. Core consumer review still needs a distinct
+  leaf: Curie cannot independently certify its ownf291156. The explicit review
+  handoff is docs/CORE_CONSUMER_REVIEW_HANDOFF.md; design prototype29fe1bf is not
+  retrospective production-consumer acceptance. Poincare still owns backend
+  positive38/guard retesting. The broad product/72-hour goals remain active.
+
 ### Remaining product validation
 
 - Re-run whole-repo typechecking, tests, build, and export checks as concurrent

@@ -1,0 +1,113 @@
+{
+  "date": "2026-08-27T00:54:17.639Z",
+  "kind": "author verification, not independent review",
+  "sourceRevision": "33347b76def1b2cbbe3f399b3be330d3f40e6a50",
+  "sourceCapture": "git archive, no source overlays; cached dev dependencies linked",
+  "runtimeDependencies": 0,
+  "defaultNames": 56,
+  "newNames": [
+    "paste",
+    "comm",
+    "join"
+  ],
+  "existingCutDuplicated": false,
+  "globalTypecheck": {
+    "exit": 0
+  },
+  "build": {
+    "exit": 0
+  },
+  "scopedTests": {
+    "total": 311,
+    "pass": 311,
+    "fail": 0,
+    "skip": 0,
+    "todo": 0,
+    "cancel": 0,
+    "cohorts": {
+      "tableText": 260,
+      "aggregate": 31,
+      "diagnosticsAndJqInterop": 20
+    }
+  },
+  "tableNative": {
+    "target": "GNU coreutils 9.7, LC_ALL=C",
+    "observations": 216,
+    "matches": 215,
+    "documentedDisagreements": 1,
+    "disagreement": "comm - - on GNU9.7 Darwin: identical stdout, native EBADF duplicate-close exit1 versus virtual shared-cursor exit0",
+    "liveRecheckPassed": true,
+    "binaryHashesMatchFrozenEvidence": true,
+    "identities": {
+      "paste": {
+        "version": "paste (GNU coreutils) 9.7",
+        "sha256": "1916958b8ae7c602acf473b4d3c7928945394ec0598a7dc4c04ed015733c0cbc"
+      },
+      "comm": {
+        "version": "comm (GNU coreutils) 9.7",
+        "sha256": "de6214ad2723e5c660d4fe2d7bcc01b1abb7604403c2ecc06ba5218544215718"
+      },
+      "join": {
+        "version": "join (GNU coreutils) 9.7",
+        "sha256": "dc44314f9b47e818b2c0467c38813684e1a18f9a35229fd9ad55012684bd4c3e"
+      }
+    }
+  },
+  "bufferRegression": {
+    "fixCommit": "32513a4",
+    "baseline": {
+      "pass": 0,
+      "fail": 3
+    },
+    "corrected": {
+      "pass": 3,
+      "fail": 0
+    },
+    "evidence": "tests/commands/table-text/buffer-ownership-regression.json"
+  },
+  "builtSmoke": {
+    "pass": 6,
+    "fail": 0,
+    "fixedExportsChecked": 11,
+    "checks": [
+      "root/subpath API and exact family",
+      "literal56 defaults and optional networking/SafeJS excluded",
+      "VFS join/cut/paste pipeline with unchanged inputs",
+      "comm NUL records",
+      "paste repeated binary stdin",
+      "zero runtime dependencies, manifest/lock and exports"
+    ]
+  },
+  "sourceSha256": {
+    "src/commands/table-text/index.ts": "9003d5c6d85d283eca5a5e1e50750eae10639ce1830bf68427536c50d40848a9",
+    "src/commands/table-text/internal.ts": "fc43999fdddaccb282e2a6bb868421c395804092076ecf2645554a80f9a3b7a8",
+    "src/commands/table-text/paste.ts": "39b236794d5254d3e40471d9cb867d488ab4c57c236c2730bd2640ded84d1ba5",
+    "src/commands/table-text/comm.ts": "7a9a3d591dd3fda338748019b8c3e6eeb7e77db2f15f18bf20e041a80b894b4f",
+    "src/commands/table-text/join.ts": "83704c0da1bcd137fedf1e90e1d922af482bcfac290bc90f6b7ef3e36b6429b0",
+    "src/index.ts": "76a17e2be09c743f8522a5f45868c1da84a80f107a2aae7e72b2e564bfff88b1",
+    "src/plugins/index.ts": "b42974c3208fda3c9e4378b235d6d5d955f1c753c8bfb5e5dd31e22355323f0d",
+    "package.json": "216554f6115e7254b471b1e3b91319e516a80682b59a0b7fe6d8df16b2cb164b",
+    "package-lock.json": "9c04bb7d2c7d1894479f0c37ce367987c2130256e5bfbf426cfa1bd2729d740b",
+    "tests/commands/table-text/gnu-evidence.json": "42e8b27580243212a341edd8b8a106f4d52f81164f5ae56567dd3c738d6a8caa"
+  },
+  "logs": {
+    "types": {
+      "path": "/tmp/safe-bash-table-author-frozen-types.log",
+      "sha256": "1fdde720d88bceb0944ea367ca22ed421eb773fe2037128aef9cf9646f975e47"
+    },
+    "build": {
+      "path": "/tmp/safe-bash-table-author-frozen-build.log",
+      "sha256": "192358b3fd3475b4bb505c07ba0b5608c6e4aa06624198bba950fe56e278e6f0"
+    },
+    "tests": {
+      "path": "/tmp/safe-bash-table-author-frozen-tests.tap",
+      "sha256": "b24556720701e36c9eb9fba8aae238edcdb731a9bf97282ac88b23759268cd90"
+    }
+  },
+  "remaining": [
+    "different-agent table-text stress/fix review",
+    "distinct-leaf review of core consumers f291156; author review is not substituted",
+    "Poincare backend authority implementation and rerun positive38 plus rejection guards",
+    "no full utility parity, global full-suite or superiority claim"
+  ]
+}

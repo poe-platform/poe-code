@@ -1,0 +1,52 @@
+{
+  "classification": "Post-commit identity seal only; no source changes or additional runtime/whole-gate claim",
+  "sourceAndTestCommit": "a809635432f18a235b8fb622a05367bedc54b315",
+  "sourceGitTree": "8b32998383d1372a8624ac41d2e747551e5b6d4c",
+  "previousVerifierSourceTree": "014da3de0ca297c4e28bc410f908e94478edd40d",
+  "sourceDigest": "e4f9a8d1690600807d496ae8bc42409cc98344ee7bba10ea702a136d52cd370e",
+  "sourceDigestAlgorithm": "SHA256(JSON.stringify(ordered path-to-SHA256 map for six src/commands/column/*.ts files))",
+  "sourceHashes": {
+    "src/commands/column/column.ts": "5422966f69620cf0a60cdbded9c662ad16da09c609e3ce949e52da21be030f7d",
+    "src/commands/column/display.ts": "c79c3570b5e84e0304851ba782e4946f3f340ad3e70414f4aa123b600cbd4117",
+    "src/commands/column/index.ts": "0585011a2c4f2f5c38359fcfa7bc801f7c390074fc0f1d031a458cb7a609fd3d",
+    "src/commands/column/internal.ts": "2389e73fc1a79e4734a032f5d60d2ad1a6538500f559254fc9b7784c1e8cc5e4",
+    "src/commands/column/options.ts": "e26bdac0703fc65bc481e4ef42b9e7f5d3bccd43fda296463615eef389b613ec",
+    "src/commands/column/table.ts": "7aa3fa6d82d43fe89b3f704c4614838a0db4750421a50367dd6e187e5ce4cf55"
+  },
+  "postCommitBlobVerification": {
+    "recordedInputsChecked": 220,
+    "mismatches": 0,
+    "changedCommitPathsChecked": 23,
+    "allChangedPathsOwned": true,
+    "method": "git show <sourceAndTestCommit>:<path> hashed against final verification sourceAndInputSnapshot; all 220 match",
+    "appendScope": "The execution-time before/after audit re-enumerated input names and found no additions/deletions. This post-commit comparison checked the recorded 220 paths only and is not an additional append-proof archive/tree gate."
+  },
+  "verification": {
+    "path": "captures/verify-E4OZRb/verification.json",
+    "sha256": "a5a182d2a13293de51b16215b9b0e63240351bc68dc94b7c1bdd3c275db424be",
+    "tests": 148,
+    "passed": 148,
+    "failed": 0,
+    "skipped": 0,
+    "todo": 0,
+    "newTests": 35,
+    "checks": 10,
+    "allCheckStatusesZero": true,
+    "unrelatedBuildTypeFailuresObserved": false,
+    "scope": "Owned tests, scoped strict types, build, built internal N03 smoke, five bounded isolated sparse repetitions and whitespace check; no full gate or packed consumer."
+  },
+  "native": {
+    "path": "captures/native-tMviSP/observations.json",
+    "sha256": "63830152f45f2e743b0d2ec0457d447983327af579ec4568be4297d494454e41",
+    "profile": "util-linux 2.41.2 / Darwin en_US.UTF-8",
+    "binarySha256": "a599976edf85eaa3222ac745309596023b5e63283a8b8ee3c3834d741214dd88",
+    "selectedExactCases": 14,
+    "capturedVersionProbes": 1,
+    "sealedRecipesReplayed": ["N01", "N03"],
+    "historicalStress37of40": "Unchanged, literal old snapshot; not rerun or relabeled",
+    "prospectiveAuthorBSDCounts": { "exact": 14, "qualified": 10, "nativeUnsupported": 2, "productUnsupported": 2 }
+  },
+  "apiAndLimits": "Factories, options/defaults, scalar-width-v1, fill and verifier cleanup/forwarding sections preserved; see preserved-source.json byte seals. Fixed 8192-byte stdout chunks introduce no option.",
+  "processStatus": "All author subprocesses observed exit; no running author process retained. Canonical tests never rewrite evidence; unique captures retained.",
+  "ownershipStatus": "Author source changes stopped at sourceAndTestCommit. This seal is evidence-only; different verifier owns subsequent source work. Root/package/defaults/shared readers/FS/core untouched."
+}

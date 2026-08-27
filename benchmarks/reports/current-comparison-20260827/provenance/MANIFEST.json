@@ -1,0 +1,68 @@
+{
+  "schemaVersion": 1,
+  "createdAt": "2026-08-27T10:33:26.368Z",
+  "scope": "Provenance/preconditions only; root review required; not staged or committed",
+  "primaryCommit": "010411eff3dd210b9575e061914efccd65c13547",
+  "oldReplayCommit": "245799e7498c849098ca971fe00270112aa5e06e",
+  "files": [
+    {
+      "path": "benchmarks/reports/current-comparison-20260827/provenance/AUDIT_ATTEMPTS.json",
+      "bytes": 5657,
+      "sha256": "538aa9204b07a20511b6cc49c5dacf09158be9f94740a7bd6208a07aea665beb"
+    },
+    {
+      "path": "benchmarks/reports/current-comparison-20260827/provenance/INPUTS-before-node-cap.json",
+      "bytes": 83408,
+      "sha256": "fbd43f39f2d3ce4d7f08e6753a47a5aebfb24bbacbeea32fd197a55e4fbcf73b"
+    },
+    {
+      "path": "benchmarks/reports/current-comparison-20260827/provenance/INPUTS.json",
+      "bytes": 83409,
+      "sha256": "9c33ee8938d6d5adb33fc88b0e9ad5788568a58c3ab36c8f68c1afa35b90ebec"
+    },
+    {
+      "path": "benchmarks/reports/current-comparison-20260827/provenance/INVENTORY.json",
+      "bytes": 4725336,
+      "sha256": "27593beb311ae11c49de582993a99325486da84d2533ceaed8a0b16578f8ea05"
+    },
+    {
+      "path": "benchmarks/reports/current-comparison-20260827/provenance/NATIVE_VERSIONS.json",
+      "bytes": 9719,
+      "sha256": "b6b8beb1af7c05ee91d89e36cdbf5cb7e592ef474e3bba37527de4f19e65b18a"
+    },
+    {
+      "path": "benchmarks/reports/current-comparison-20260827/provenance/PROVENANCE_PLAN.md",
+      "bytes": 19528,
+      "sha256": "3bda6590cba23b545b56a9fbfcbd83ff0524afe64fdcfdbf6619ac9889d59c08"
+    },
+    {
+      "path": "benchmarks/reports/current-comparison-20260827/provenance/UNAVAILABLE.json",
+      "bytes": 5217,
+      "sha256": "820ad57f389fee5064c296aab6c40e626f7822847db91374c93a4e773a0ea2b3"
+    },
+    {
+      "path": "benchmarks/reports/current-comparison-20260827/provenance/VALIDATION.json",
+      "bytes": 1946,
+      "sha256": "a2ecd679e96c6ded3c691455c19147293c80ae12ccf4dba75ff361e6fa999bf0"
+    },
+    {
+      "path": "benchmarks/reports/current-comparison-20260827/provenance/check-hashes.mjs",
+      "bytes": 18025,
+      "sha256": "fc0dbe8c33030e51117c025563a956da5f45d79dcffd3ca9c0e47b19ebc2dda0"
+    },
+    {
+      "path": "benchmarks/reports/current-comparison-20260827/provenance/native-versions.mjs",
+      "bytes": 6183,
+      "sha256": "7a0f5c3357f0989ee768bad6e436999276e8a2e880c7076f97b08e9715e1d154"
+    }
+  ],
+  "selfHashExcluded": true,
+  "newCandidateAuthorized": false,
+  "releaseGate": "BLOCKED_NO_AUTHORIZED_FUTURE_CANDIDATE",
+  "nativeVersionChildren": 6,
+  "productEngineImports": 0,
+  "comparisonCases": 0,
+  "timingTrials": 0,
+  "installs": 0,
+  "downloads": 0
+}

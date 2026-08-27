@@ -1,0 +1,366 @@
+{
+  "schema": "safe-bash.preparation-owned-file-manifest.v1",
+  "scope": "benchmarks/reports/current-comparison-20260827",
+  "classification": "Preparation artifacts only; not candidate or execution qualification",
+  "algorithm": "sha256",
+  "regularFilesOnly": true,
+  "fileCountExcludingManifest": 70,
+  "explicitCommitFileCount": 71,
+  "totalBytesExcludingManifest": 15280025,
+  "selfExcluded": {
+    "path": "benchmarks/reports/current-comparison-20260827/verification/OWNED_FILES.json",
+    "reason": "No self-hash; hash the completed manifest separately."
+  },
+  "files": [
+    {
+      "path": "benchmarks/reports/current-comparison-20260827/README.md",
+      "bytes": 5026,
+      "sha256": "4c85b4fec6a81886262b8cf9e761fb495456c81b8426ed869806c6df66b7127c"
+    },
+    {
+      "path": "benchmarks/reports/current-comparison-20260827/cohorts/AMENDMENT_V2.md",
+      "bytes": 3979,
+      "sha256": "e6bbe9e132cb8503deeab72d8948dfadf0de04b6076f953d672b236e7101598c"
+    },
+    {
+      "path": "benchmarks/reports/current-comparison-20260827/cohorts/AMENDMENT_V2_SEAL.json",
+      "bytes": 741,
+      "sha256": "839d12181a024a6dcab928a5f1483ac3a9e10af8d04ab4bb9454dae02427e186"
+    },
+    {
+      "path": "benchmarks/reports/current-comparison-20260827/cohorts/COHORT_PLAN.md",
+      "bytes": 13471,
+      "sha256": "2a8d32a29ea43d01f4c04be27162cdc896e1060c83c0f402b83bcf0ca7952d87"
+    },
+    {
+      "path": "benchmarks/reports/current-comparison-20260827/cohorts/SEAL.json",
+      "bytes": 1948,
+      "sha256": "da99ce71943feec45a2bbbae6319e38fb1816522b5ffddbe55ae28b0716ce230"
+    },
+    {
+      "path": "benchmarks/reports/current-comparison-20260827/cohorts/amendment-v2.json",
+      "bytes": 3708,
+      "sha256": "b437a1b265ef9ae7866f4b9e16eeaef78c0485d3dda184edb0cd1dada845ff50"
+    },
+    {
+      "path": "benchmarks/reports/current-comparison-20260827/cohorts/artifact-manifest.json",
+      "bytes": 295268,
+      "sha256": "dda28bc7dc39cb97401ae587878118ca66a3102dac2cacb6893aa7e34a26ceb9"
+    },
+    {
+      "path": "benchmarks/reports/current-comparison-20260827/cohorts/historical-224.json",
+      "bytes": 3723376,
+      "sha256": "f08e8624a37556e95f0089b16333cbb203f3bf4fdbf40a5498ee71babb58ce0a"
+    },
+    {
+      "path": "benchmarks/reports/current-comparison-20260827/cohorts/historical-breadth.json",
+      "bytes": 550134,
+      "sha256": "c4e322ce7a81c7909cd54121e4a435152c4a2eb9e1b2f69b5c09ba0f858e396a"
+    },
+    {
+      "path": "benchmarks/reports/current-comparison-20260827/cohorts/manifest.json",
+      "bytes": 56519,
+      "sha256": "71ea8429cb4e3a8a4b7800f3b002e2f94f51bd651a671f22404741e86abdcb05"
+    },
+    {
+      "path": "benchmarks/reports/current-comparison-20260827/cohorts/overlap.json",
+      "bytes": 4897920,
+      "sha256": "3597aab5a3558828711c812af875e85f8efa24bde355da32ff30cee41892fa92"
+    },
+    {
+      "path": "benchmarks/reports/current-comparison-20260827/cohorts/prepare.mjs",
+      "bytes": 41239,
+      "sha256": "e7982089788fad042676e77b9ef947266659a1363aa782e2198f45ef846aa3bc"
+    },
+    {
+      "path": "benchmarks/reports/current-comparison-20260827/cohorts/profiles.json",
+      "bytes": 182510,
+      "sha256": "6f7f6bbc1599f6adea468a40b9b2df4354e817f99dfc9248fb291e542df95a80"
+    },
+    {
+      "path": "benchmarks/reports/current-comparison-20260827/cohorts/proposed-holdouts.json",
+      "bytes": 64446,
+      "sha256": "2f37c49f9fc2f7003e6b209d7296d710c007759e9c8f44c3bed4959de3f32a6f"
+    },
+    {
+      "path": "benchmarks/reports/current-comparison-20260827/cohorts/public-profile-snapshot.json",
+      "bytes": 74975,
+      "sha256": "bdde79ced7bb176b58d2b58d587195cb43e7e8ade404bfb5b6691e07ec29945d"
+    },
+    {
+      "path": "benchmarks/reports/current-comparison-20260827/cohorts/verify-amendment-v2.mjs",
+      "bytes": 9057,
+      "sha256": "7ab2a4b2cd79f053912fc1a5b9b40b246b7f5ab580a5edfdf7912f955beaeb63"
+    },
+    {
+      "path": "benchmarks/reports/current-comparison-20260827/provenance/AUDIT_ATTEMPTS.json",
+      "bytes": 5657,
+      "sha256": "538aa9204b07a20511b6cc49c5dacf09158be9f94740a7bd6208a07aea665beb"
+    },
+    {
+      "path": "benchmarks/reports/current-comparison-20260827/provenance/INPUTS-before-node-cap.json",
+      "bytes": 83408,
+      "sha256": "fbd43f39f2d3ce4d7f08e6753a47a5aebfb24bbacbeea32fd197a55e4fbcf73b"
+    },
+    {
+      "path": "benchmarks/reports/current-comparison-20260827/provenance/INPUTS.json",
+      "bytes": 83409,
+      "sha256": "9c33ee8938d6d5adb33fc88b0e9ad5788568a58c3ab36c8f68c1afa35b90ebec"
+    },
+    {
+      "path": "benchmarks/reports/current-comparison-20260827/provenance/INVENTORY.json",
+      "bytes": 4725336,
+      "sha256": "27593beb311ae11c49de582993a99325486da84d2533ceaed8a0b16578f8ea05"
+    },
+    {
+      "path": "benchmarks/reports/current-comparison-20260827/provenance/MANIFEST.json",
+      "bytes": 2677,
+      "sha256": "02f0b1180f3a8e1f3e5f2445cb9caa57bb93715cbd9a69d66fe743e1c3633395"
+    },
+    {
+      "path": "benchmarks/reports/current-comparison-20260827/provenance/NATIVE_VERSIONS.json",
+      "bytes": 9719,
+      "sha256": "b6b8beb1af7c05ee91d89e36cdbf5cb7e592ef474e3bba37527de4f19e65b18a"
+    },
+    {
+      "path": "benchmarks/reports/current-comparison-20260827/provenance/PHASE_APPLICABILITY.json",
+      "bytes": 21456,
+      "sha256": "3d579bc1965a74476ac463e979da7bdbe7b83a199360b9a3e244c304655b6de6"
+    },
+    {
+      "path": "benchmarks/reports/current-comparison-20260827/provenance/PROVENANCE_PLAN.md",
+      "bytes": 24486,
+      "sha256": "af6a38138c80cf743eb1c1ea6e01a033507ce0ac492e1b83f6969dea9438b46d"
+    },
+    {
+      "path": "benchmarks/reports/current-comparison-20260827/provenance/REQUEST2_REVISION.json",
+      "bytes": 8451,
+      "sha256": "7c4cc91ea5beb42527ec0025bb4126a50dcaf4c70b324b11a4b3420fefdd7e82"
+    },
+    {
+      "path": "benchmarks/reports/current-comparison-20260827/provenance/UNAVAILABLE.json",
+      "bytes": 5217,
+      "sha256": "820ad57f389fee5064c296aab6c40e626f7822847db91374c93a4e773a0ea2b3"
+    },
+    {
+      "path": "benchmarks/reports/current-comparison-20260827/provenance/VALIDATION.json",
+      "bytes": 1946,
+      "sha256": "a2ecd679e96c6ded3c691455c19147293c80ae12ccf4dba75ff361e6fa999bf0"
+    },
+    {
+      "path": "benchmarks/reports/current-comparison-20260827/provenance/check-hashes.mjs",
+      "bytes": 18025,
+      "sha256": "fc0dbe8c33030e51117c025563a956da5f45d79dcffd3ca9c0e47b19ebc2dda0"
+    },
+    {
+      "path": "benchmarks/reports/current-comparison-20260827/provenance/history/request2/PROVENANCE_PLAN.v1.md",
+      "bytes": 19528,
+      "sha256": "3bda6590cba23b545b56a9fbfcbd83ff0524afe64fdcfdbf6619ac9889d59c08"
+    },
+    {
+      "path": "benchmarks/reports/current-comparison-20260827/provenance/native-versions.mjs",
+      "bytes": 6183,
+      "sha256": "7a0f5c3357f0989ee768bad6e436999276e8a2e880c7076f97b08e9715e1d154"
+    },
+    {
+      "path": "benchmarks/reports/current-comparison-20260827/runner/INTERFACES.md",
+      "bytes": 12550,
+      "sha256": "d326e98ee86b4dc24ea185aa3edfd3df581b22f5a06b6156687e4c9e1c6842b2"
+    },
+    {
+      "path": "benchmarks/reports/current-comparison-20260827/runner/PROTOCOL.md",
+      "bytes": 23038,
+      "sha256": "bb8ccb123d127a6e1f09bfcc53a1b4504b7f29ea2f3abd508a280370420d6a36"
+    },
+    {
+      "path": "benchmarks/reports/current-comparison-20260827/runner/README.md",
+      "bytes": 7163,
+      "sha256": "3bb18116873ecf0175831904124df2498310c19536cca8b1c45638d24b87175f"
+    },
+    {
+      "path": "benchmarks/reports/current-comparison-20260827/runner/REVISION2.json",
+      "bytes": 12061,
+      "sha256": "78dd122e308d034f51ac31c25c1d2e20492ffff2f790f7a9a32717ee643fd388"
+    },
+    {
+      "path": "benchmarks/reports/current-comparison-20260827/runner/REVISIONS.md",
+      "bytes": 5736,
+      "sha256": "7e4924676e9b452f686287b83547a7d21c84e8dbbd54d81d9496ec4139a07f86"
+    },
+    {
+      "path": "benchmarks/reports/current-comparison-20260827/runner/VALIDATION.md",
+      "bytes": 5121,
+      "sha256": "69c8efce5b75f57f7763eeb60b3a1dc3ea5ca7382b1437ac78cd4a7fa8b4e72f"
+    },
+    {
+      "path": "benchmarks/reports/current-comparison-20260827/runner/gate.mjs",
+      "bytes": 13552,
+      "sha256": "1c152441dffadaa58b627abfc338a7fdf100d29e19907e407ff99945e8ededc7"
+    },
+    {
+      "path": "benchmarks/reports/current-comparison-20260827/runner/lifecycle-model.mjs",
+      "bytes": 4738,
+      "sha256": "ac1bb054e3c0a04679371ed44f010105379ed856ce08c306fc60ea4911af15bb"
+    },
+    {
+      "path": "benchmarks/reports/current-comparison-20260827/runner/mock-not-an-engine.mjs.data",
+      "bytes": 67,
+      "sha256": "be7e2d0a602ac99f6a3bd5d189f787921c3b55958f513e9a4ebf9a6688bdf8d8"
+    },
+    {
+      "path": "benchmarks/reports/current-comparison-20260827/runner/prepare.mjs",
+      "bytes": 1951,
+      "sha256": "12aa46950be6a8d50e6e78d2836b6259bc32359b7d4aa3351eb58a1382bb17b0"
+    },
+    {
+      "path": "benchmarks/reports/current-comparison-20260827/runner/reader.mjs",
+      "bytes": 3050,
+      "sha256": "807ad329ec3542a3aa947b560e7b956832d4b077682a6bd9edca768c05070d57"
+    },
+    {
+      "path": "benchmarks/reports/current-comparison-20260827/runner/revisions/reviewed-v1/01-INTERFACES.md.data",
+      "bytes": 10437,
+      "sha256": "7e52a4e454200d01516374c37789fc2d41735181f3e8b47e16e8e3569b3dcb02"
+    },
+    {
+      "path": "benchmarks/reports/current-comparison-20260827/runner/revisions/reviewed-v1/02-PROTOCOL.md.data",
+      "bytes": 22031,
+      "sha256": "ee77d427e64d2be36d1b729ec665ac7fe7cb7118b3531617fb77d1c12e93a0a9"
+    },
+    {
+      "path": "benchmarks/reports/current-comparison-20260827/runner/revisions/reviewed-v1/03-README.md.data",
+      "bytes": 6117,
+      "sha256": "3b01c1c1c1216d0919472727e674aee9cbd868d29f114a8dc570ab72855c968a"
+    },
+    {
+      "path": "benchmarks/reports/current-comparison-20260827/runner/revisions/reviewed-v1/04-VALIDATION.md.data",
+      "bytes": 4809,
+      "sha256": "048d9e3a5a85581cce0e78ec0d3942fb83fb113eff868206cbd61553730111c6"
+    },
+    {
+      "path": "benchmarks/reports/current-comparison-20260827/runner/revisions/reviewed-v1/05-gate.mjs.data",
+      "bytes": 11988,
+      "sha256": "d631e6c66f0d3711c45d4f921b7bc8f667179c2578187702067716741cd2d129"
+    },
+    {
+      "path": "benchmarks/reports/current-comparison-20260827/runner/revisions/reviewed-v1/06-lifecycle-model.mjs.data",
+      "bytes": 4738,
+      "sha256": "ac1bb054e3c0a04679371ed44f010105379ed856ce08c306fc60ea4911af15bb"
+    },
+    {
+      "path": "benchmarks/reports/current-comparison-20260827/runner/revisions/reviewed-v1/07-mock-not-an-engine.mjs.data.data",
+      "bytes": 67,
+      "sha256": "be7e2d0a602ac99f6a3bd5d189f787921c3b55958f513e9a4ebf9a6688bdf8d8"
+    },
+    {
+      "path": "benchmarks/reports/current-comparison-20260827/runner/revisions/reviewed-v1/08-prepare.mjs.data",
+      "bytes": 2085,
+      "sha256": "2722fb536e1dae749ad5d7e2a60e69d56000815680f836267692cc20940cdf31"
+    },
+    {
+      "path": "benchmarks/reports/current-comparison-20260827/runner/revisions/reviewed-v1/09-reader.mjs.data",
+      "bytes": 3071,
+      "sha256": "4ecdc85d9d0d0d44e655fc67a2aecccfb07bc20da8007e700a17c4f73f5ceffc"
+    },
+    {
+      "path": "benchmarks/reports/current-comparison-20260827/runner/revisions/reviewed-v1/10-selfcheck.mjs.data",
+      "bytes": 17918,
+      "sha256": "a4706f48e3ac792ac906a32e6b7e9ce34c5b6fcf9fd5a4b57ec1dc8aab9aa91b"
+    },
+    {
+      "path": "benchmarks/reports/current-comparison-20260827/runner/revisions/reviewed-v1/11-CHECKS.json.data",
+      "bytes": 2260,
+      "sha256": "41a43b7c9cfa33eab1ce56329927b7c5a50454e31b5389b3b06a3808b14e567f"
+    },
+    {
+      "path": "benchmarks/reports/current-comparison-20260827/runner/revisions/reviewed-v1/12-REVIEW.md.data",
+      "bytes": 7648,
+      "sha256": "dcbdda0399bf8f52c71f902604bd9268227a354b241200cfa329ad6e2d054a28"
+    },
+    {
+      "path": "benchmarks/reports/current-comparison-20260827/runner/revisions/reviewed-v1/13-selfcheck-attempt-001.json.data",
+      "bytes": 10252,
+      "sha256": "b4d2183256ad4b8bc7763a2a1d7d25659d37374ea0c68b1dd1e65e75523ecfe4"
+    },
+    {
+      "path": "benchmarks/reports/current-comparison-20260827/runner/revisions/reviewed-v1/14-selfcheck-attempt-002.json.data",
+      "bytes": 10569,
+      "sha256": "03f33ac17f006ac1c36a9cad2ca893d10f53f6c7ce35e750a221281a64614d71"
+    },
+    {
+      "path": "benchmarks/reports/current-comparison-20260827/runner/revisions/reviewed-v1/15-runner-selfcheck.json.data",
+      "bytes": 10569,
+      "sha256": "03f33ac17f006ac1c36a9cad2ca893d10f53f6c7ce35e750a221281a64614d71"
+    },
+    {
+      "path": "benchmarks/reports/current-comparison-20260827/runner/revisions/reviewed-v1/RECORD.json",
+      "bytes": 6578,
+      "sha256": "d211d189889e7e78bee96f7d67b76e8ea83f4a5ec8d71ce9886698cdab3f5a62"
+    },
+    {
+      "path": "benchmarks/reports/current-comparison-20260827/runner/revisions/revision2/selfcheck-attempt-001.json.data",
+      "bytes": 13374,
+      "sha256": "a41059778edf9da2ea0822f7d00c4a701a3942a264979d713160b431360aa96c"
+    },
+    {
+      "path": "benchmarks/reports/current-comparison-20260827/runner/revisions/revision2/static-attempt-001-failure.json.data",
+      "bytes": 907,
+      "sha256": "a7316cc8bcdd2a1b08dea2ea7e84bfe9d8aa094647ebe9c3ed44a47cc30059b9"
+    },
+    {
+      "path": "benchmarks/reports/current-comparison-20260827/runner/revisions/revision2/static-cli-checks-attempt-002.json.data",
+      "bytes": 10997,
+      "sha256": "b3e9c04cab5934f883d0ac9d4ab6ef63652e3ee933855e15679ed2a75b1b876e"
+    },
+    {
+      "path": "benchmarks/reports/current-comparison-20260827/runner/revisions/wording-v3/PROTOCOL.before.md.data",
+      "bytes": 22379,
+      "sha256": "2d54869251b3d12ffcaea01ffa11a25cf319be733bc4be016b5a216fdd36754e"
+    },
+    {
+      "path": "benchmarks/reports/current-comparison-20260827/runner/revisions/wording-v3/RECEIPT.json",
+      "bytes": 1532,
+      "sha256": "fc54196c0d828d0cc0f162840c7d94834535a783c76f122f1648c4ae030b0434"
+    },
+    {
+      "path": "benchmarks/reports/current-comparison-20260827/runner/selfcheck.mjs",
+      "bytes": 24012,
+      "sha256": "b3682ef72f80072c60eaae402302feb1b84c60157cb9ac3ba2f060ad184cb805"
+    },
+    {
+      "path": "benchmarks/reports/current-comparison-20260827/verification/CHECKS.json",
+      "bytes": 2260,
+      "sha256": "41a43b7c9cfa33eab1ce56329927b7c5a50454e31b5389b3b06a3808b14e567f"
+    },
+    {
+      "path": "benchmarks/reports/current-comparison-20260827/verification/FINAL_ACCEPTANCE.md",
+      "bytes": 3075,
+      "sha256": "10adc6ed9c32b5b84b0a7e934cc1c4997433e5e6f4bb3f521b632082588d98d6"
+    },
+    {
+      "path": "benchmarks/reports/current-comparison-20260827/verification/FINAL_CHECKS.json",
+      "bytes": 12107,
+      "sha256": "cc592bd415cf8a85920674b1bda7d676950db1a85bd4bef506d9ec8102728715"
+    },
+    {
+      "path": "benchmarks/reports/current-comparison-20260827/verification/FINAL_REVIEW.md",
+      "bytes": 5083,
+      "sha256": "d5d0ec7b00a25a22db61ebd7985e0b744cf02edf5537692d199282a8d795cd2c"
+    },
+    {
+      "path": "benchmarks/reports/current-comparison-20260827/verification/REVIEW.md",
+      "bytes": 7648,
+      "sha256": "dcbdda0399bf8f52c71f902604bd9268227a354b241200cfa329ad6e2d054a28"
+    },
+    {
+      "path": "benchmarks/reports/current-comparison-20260827/verification/final-static-check.mjs",
+      "bytes": 6923,
+      "sha256": "19ceb07053323517254d0254d2d26cb9fcd2d8628602facb8687c1a58b824af8"
+    },
+    {
+      "path": "benchmarks/reports/current-comparison-20260827/verification/static-check.mjs",
+      "bytes": 9749,
+      "sha256": "3ebec725a5343f3da29061ec813d89b4de61e3dec5c92022e5b73e763c2570a8"
+    }
+  ]
+}

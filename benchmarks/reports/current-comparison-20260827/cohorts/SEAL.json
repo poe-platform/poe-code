@@ -1,0 +1,59 @@
+{
+  "schemaVersion": 1,
+  "status": "pre-candidate-design-and-historical-input-integrity-only",
+  "algorithm": "sha256",
+  "files": [
+    {
+      "path": "artifact-manifest.json",
+      "bytes": 295268,
+      "sha256": "dda28bc7dc39cb97401ae587878118ca66a3102dac2cacb6893aa7e34a26ceb9"
+    },
+    {
+      "path": "historical-224.json",
+      "bytes": 3723376,
+      "sha256": "f08e8624a37556e95f0089b16333cbb203f3bf4fdbf40a5498ee71babb58ce0a"
+    },
+    {
+      "path": "historical-breadth.json",
+      "bytes": 550134,
+      "sha256": "c4e322ce7a81c7909cd54121e4a435152c4a2eb9e1b2f69b5c09ba0f858e396a"
+    },
+    {
+      "path": "profiles.json",
+      "bytes": 182510,
+      "sha256": "6f7f6bbc1599f6adea468a40b9b2df4354e817f99dfc9248fb291e542df95a80"
+    },
+    {
+      "path": "proposed-holdouts.json",
+      "bytes": 64446,
+      "sha256": "2f37c49f9fc2f7003e6b209d7296d710c007759e9c8f44c3bed4959de3f32a6f"
+    },
+    {
+      "path": "public-profile-snapshot.json",
+      "bytes": 74975,
+      "sha256": "bdde79ced7bb176b58d2b58d587195cb43e7e8ade404bfb5b6691e07ec29945d"
+    },
+    {
+      "path": "overlap.json",
+      "bytes": 4897920,
+      "sha256": "3597aab5a3558828711c812af875e85f8efa24bde355da32ff30cee41892fa92"
+    },
+    {
+      "path": "manifest.json",
+      "bytes": 56519,
+      "sha256": "71ea8429cb4e3a8a4b7800f3b002e2f94f51bd651a671f22404741e86abdcb05"
+    },
+    {
+      "path": "prepare.mjs",
+      "bytes": 41239,
+      "sha256": "e7982089788fad042676e77b9ef947266659a1363aa782e2198f45ef846aa3bc"
+    },
+    {
+      "path": "COHORT_PLAN.md",
+      "bytes": 13471,
+      "sha256": "2a8d32a29ea43d01f4c04be27162cdc896e1060c83c0f402b83bcf0ca7952d87"
+    }
+  ],
+  "contentDigest": "46efb75be0663e4606cd616c7e8282ad3e01a367c72cd180703260a55f15d9df",
+  "authorityLimit": "Hash pinning detects changes against this seal; not a signature or root approval. Once reviewed, retain this version and create a new version for changes."
+}

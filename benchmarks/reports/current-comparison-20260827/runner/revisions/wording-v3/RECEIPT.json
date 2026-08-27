@@ -1,0 +1,37 @@
+{
+  "scope": "DOCUMENTATION_ONLY_FINAL_WORDING_CORRECTION",
+  "review": "benchmarks/reports/current-comparison-20260827/verification/FINAL_REVIEW.md",
+  "changedDocument": "benchmarks/reports/current-comparison-20260827/runner/PROTOCOL.md",
+  "prior": {
+    "sha256": "2d54869251b3d12ffcaea01ffa11a25cf319be733bc4be016b5a216fdd36754e",
+    "bytes": 22379,
+    "preservedAt": "benchmarks/reports/current-comparison-20260827/runner/revisions/wording-v3/PROTOCOL.before.md.data"
+  },
+  "revised": {
+    "sha256": "bb8ccb123d127a6e1f09bfcc53a1b4504b7f29ea2f3abd508a280370420d6a36",
+    "bytes": 23038
+  },
+  "unchangedRevision2": {
+    "path": "benchmarks/reports/current-comparison-20260827/runner/REVISION2.json",
+    "sha256": "78dd122e308d034f51ac31c25c1d2e20492ffff2f790f7a9a32717ee643fd388",
+    "bytes": 12061
+  },
+  "change": "Only the historical four-field capture paragraph: exact stored/projected representations, channel-specific API/encoding limits, baseline stderr public-text/UTF8 loss before base64, supplementary future raw capture without retroactive all224 fidelity.",
+  "preserved": [
+    "predicate",
+    "goldens",
+    "scores",
+    "code",
+    "initial83 mock evidence",
+    "REVISION2.json"
+  ],
+  "checks": "Targeted before/after paragraph identity, two-document hash preservation and whitespace only; no hash audit or test rerun",
+  "engineCalls": 0,
+  "nativeCalls": 0,
+  "testsRun": 0,
+  "serversStarted": 0,
+  "timingSamples": 0,
+  "executionEnabled": false,
+  "stagedOrCommitted": false,
+  "score": null
+}

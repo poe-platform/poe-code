@@ -1,0 +1,1716 @@
+{
+  "profile": {
+    "id": "proposed-memory-vfs-c-byte-utc-v1",
+    "status": "proposed-unapproved-unexecuted",
+    "cwd": "/fixture",
+    "environment": {
+      "HOME": "/home/user",
+      "TMPDIR": "/tmp",
+      "LC_ALL": "C",
+      "LANG": "C",
+      "TZ": "UTC",
+      "FIRST": "alpha\nbeta",
+      "SECOND": "second",
+      "EMPTY": ""
+    },
+    "preexistingDirectories": [
+      "/fixture",
+      "/tmp",
+      "/home/user"
+    ],
+    "network": "disabled",
+    "filesystem": "explicit fresh memory VFS; native future capture uses isolated corresponding fixture and external scratch role",
+    "runtimeBoundary": "future public package exports only after independent inventory and different packed review; registration and actual shell dispatch reported separately",
+    "comparison": "exact status, stdout/stderr bytes, final path/type/file bytes/symlink census; stable mode assertions only under a separately declared compatible metadata profile",
+    "limits": {
+      "inputBytesPerRecipe": 65536,
+      "outputBytesPerChannel": 1048576,
+      "fixtureEntries": 128,
+      "independentFutureDeadlineMs": 10000
+    },
+    "excluded": [
+      "remote-provider guarantees",
+      "performance or scheduling precision",
+      "Unicode display widths",
+      "negative/unsupported flags",
+      "native oracle availability claims",
+      "du work"
+    ],
+    "nativeProfiles": [
+      {
+        "id": "gnu97-darwin-arm64-coreutils",
+        "status": "availability-unverified-in-this-task",
+        "commands": [
+          "tac",
+          "expand",
+          "fold",
+          "seq",
+          "nl",
+          "unexpand",
+          "split",
+          "date",
+          "printenv",
+          "sleep"
+        ]
+      },
+      {
+        "id": "gnu-binutils244-darwin-strings",
+        "status": "availability-unverified-in-this-task",
+        "commands": [
+          "strings"
+        ]
+      },
+      {
+        "id": "apple-darwin-rev-c-byte",
+        "status": "availability-unverified-in-this-task",
+        "commands": [
+          "rev"
+        ]
+      },
+      {
+        "id": "gnu-linux-and-util-linux",
+        "status": "separate-unavailable-profile-not-substituted",
+        "commands": []
+      }
+    ]
+  },
+  "cases": [
+    {
+      "id": "proposed/v1/01/tac/append-log",
+      "name": "tac",
+      "script": "tac log | cat > newest",
+      "input": {
+        "cwd": "/fixture",
+        "files": {
+          "log": "ZWFybGllcgpsYXRlcgo=",
+          "sentinel": "dW50b3VjaGVkCg=="
+        },
+        "stdinBase64": "",
+        "directories": [],
+        "fileModes": {},
+        "fileTimes": {},
+        "symlinks": {}
+      },
+      "inputCanonicalSha256": "8a884abe0489819357dcf4ead7f6f81a42b12f51c12df316f07f9ae87bae8288",
+      "scriptSha256": "0ad5d634e918d517dd0fc7759a6604dc88698c8b6d0bd44f84951e2d2f257122",
+      "profile": "proposed-memory-vfs-c-byte-utc-v1",
+      "publicDocumentation": {
+        "path": "src/commands/stream-inspection/README.md",
+        "sha256": "519dee9089cdff247f1f137f16a9f8447d96830dfffe2422136c49d55b2fe1d0"
+      },
+      "intent": "Reverse a two-record VFS log through an internal pipe.",
+      "plannedOutputPaths": [
+        "newest"
+      ],
+      "mustPreserveInputs": true,
+      "nativeExpected": null,
+      "oracleStatus": "future-independent-generation-required",
+      "candidateBinding": null,
+      "status": "sealed-proposal-not-pass",
+      "staticCoverage": {
+        "id": "proposed/tac/append-log",
+        "declaredTarget": "tac",
+        "scriptSha256": "0ad5d634e918d517dd0fc7759a6604dc88698c8b6d0bd44f84951e2d2f257122",
+        "byteInputSha256": "96453ba3f62658474ee4ea3b510379e50ac1dd51ea950ba110aa014e211408d7",
+        "fullFixtureSha256": "8a884abe0489819357dcf4ead7f6f81a42b12f51c12df316f07f9ae87bae8288",
+        "scriptAndByteInputSha256": "a0635a518df78150b2e15b9fc8e3e5766ec742b50aa20e98f70e7976e41e5f5c",
+        "fullRecipeProfileSha256": "09e587400499a307d9ab61f3346245be9d5e9b6d9cd4848eee77056bd1b3a146",
+        "profile": "proposed-memory-vfs-c-byte-utc-v1",
+        "lexicalTokens": [
+          "cat",
+          "log",
+          "newest",
+          "tac"
+        ],
+        "literalPipeCharacterCount": 1,
+        "literalRedirectCharacterCount": 1,
+        "assets": [
+          {
+            "role": "stdin",
+            "byteLength": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "role": "file:log",
+            "byteLength": 14,
+            "sha256": "7bbd402faaca6a318fc7b0658e392116bc5b7a2282feb06e97498969e40fcb7b"
+          },
+          {
+            "role": "file:sentinel",
+            "byteLength": 10,
+            "sha256": "0967b63182a9178fa55b1b6b6f3db64bb615bc8ed4457d69ceb99faeecbf8ed7"
+          }
+        ]
+      }
+    },
+    {
+      "id": "proposed/v1/02/tac/literal-records",
+      "name": "tac",
+      "script": "tac -s '::' records > reversed",
+      "input": {
+        "cwd": "/fixture",
+        "files": {
+          "records": "b25lOjp0d286OnRocmVlOjo=",
+          "sentinel": "dW50b3VjaGVkCg=="
+        },
+        "stdinBase64": "",
+        "directories": [],
+        "fileModes": {},
+        "fileTimes": {},
+        "symlinks": {}
+      },
+      "inputCanonicalSha256": "775342bfae22ddda74134f82267669561914af360ad13b43deecbe044494626a",
+      "scriptSha256": "cb0f9099704bf4a380efb054ce1a46c4a597d2aa45bddeeb92a2f799ff35a0bc",
+      "profile": "proposed-memory-vfs-c-byte-utc-v1",
+      "publicDocumentation": {
+        "path": "src/commands/stream-inspection/README.md",
+        "sha256": "519dee9089cdff247f1f137f16a9f8447d96830dfffe2422136c49d55b2fe1d0"
+      },
+      "intent": "Reverse literal multi-byte separators without a regex profile.",
+      "plannedOutputPaths": [
+        "reversed"
+      ],
+      "mustPreserveInputs": true,
+      "nativeExpected": null,
+      "oracleStatus": "future-independent-generation-required",
+      "candidateBinding": null,
+      "status": "sealed-proposal-not-pass",
+      "staticCoverage": {
+        "id": "proposed/tac/literal-records",
+        "declaredTarget": "tac",
+        "scriptSha256": "cb0f9099704bf4a380efb054ce1a46c4a597d2aa45bddeeb92a2f799ff35a0bc",
+        "byteInputSha256": "7ae449997ac26c2d47ddde39d696410e9bb4f889ca2f3e036a1608dd2980eb4f",
+        "fullFixtureSha256": "775342bfae22ddda74134f82267669561914af360ad13b43deecbe044494626a",
+        "scriptAndByteInputSha256": "00b74d6cc7f0420328fa9c193d0b4742a58dc4719f7a177d1460856b4f780ab6",
+        "fullRecipeProfileSha256": "c1c82f023524c6fe7a553dca71cc3b31fd4927836d65caf65968f13ee85b0fcc",
+        "profile": "proposed-memory-vfs-c-byte-utc-v1",
+        "lexicalTokens": [
+          "records",
+          "reversed",
+          "s",
+          "tac"
+        ],
+        "literalPipeCharacterCount": 0,
+        "literalRedirectCharacterCount": 1,
+        "assets": [
+          {
+            "role": "stdin",
+            "byteLength": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "role": "file:records",
+            "byteLength": 17,
+            "sha256": "6b42e4ce24084e60240b5b2494d29b022f34150d445724a44245048df2a2550f"
+          },
+          {
+            "role": "file:sentinel",
+            "byteLength": 10,
+            "sha256": "0967b63182a9178fa55b1b6b6f3db64bb615bc8ed4457d69ceb99faeecbf8ed7"
+          }
+        ]
+      }
+    },
+    {
+      "id": "proposed/v1/03/expand/indent-only",
+      "name": "expand",
+      "script": "expand -i -t 4 source | cat > readable",
+      "input": {
+        "cwd": "/fixture",
+        "files": {
+          "source": "CWZpcnN0CXZhbHVlCiAgCXNlY29uZAo=",
+          "sentinel": "dW50b3VjaGVkCg=="
+        },
+        "stdinBase64": "",
+        "directories": [],
+        "fileModes": {},
+        "fileTimes": {},
+        "symlinks": {}
+      },
+      "inputCanonicalSha256": "e6c2d80fbc9c0cc164409303dd85b374beaa01cb4a3189ee89a30b6e4f44af59",
+      "scriptSha256": "c1b39949a5a9a9237f007e25b63a723319401806202fed1e5beee5ae820d2fd7",
+      "profile": "proposed-memory-vfs-c-byte-utc-v1",
+      "publicDocumentation": {
+        "path": "src/commands/stream-inspection/README.md",
+        "sha256": "519dee9089cdff247f1f137f16a9f8447d96830dfffe2422136c49d55b2fe1d0"
+      },
+      "intent": "Expand leading indentation while retaining later tabs.",
+      "plannedOutputPaths": [
+        "readable"
+      ],
+      "mustPreserveInputs": true,
+      "nativeExpected": null,
+      "oracleStatus": "future-independent-generation-required",
+      "candidateBinding": null,
+      "status": "sealed-proposal-not-pass",
+      "staticCoverage": {
+        "id": "proposed/expand/indent-only",
+        "declaredTarget": "expand",
+        "scriptSha256": "c1b39949a5a9a9237f007e25b63a723319401806202fed1e5beee5ae820d2fd7",
+        "byteInputSha256": "799b2bc04b1560531c0aa55ca83235f893cf378b886acc35d58c66b234f52fa7",
+        "fullFixtureSha256": "e6c2d80fbc9c0cc164409303dd85b374beaa01cb4a3189ee89a30b6e4f44af59",
+        "scriptAndByteInputSha256": "9e2c7d401e27e50c78244e67f33b959d64c0f90ca9cd685e8ffb7064bf8899bd",
+        "fullRecipeProfileSha256": "f71c47cd83719a2fa7cb2c68602addd1ee1688f85a3626e3dedf94ac162b55f6",
+        "profile": "proposed-memory-vfs-c-byte-utc-v1",
+        "lexicalTokens": [
+          "cat",
+          "expand",
+          "i",
+          "readable",
+          "source",
+          "t"
+        ],
+        "literalPipeCharacterCount": 1,
+        "literalRedirectCharacterCount": 1,
+        "assets": [
+          {
+            "role": "stdin",
+            "byteLength": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "role": "file:source",
+            "byteLength": 23,
+            "sha256": "8d57589dec4dd1cdddf1aedf35585f168df194179f0f1fc243446cce94978d4a"
+          },
+          {
+            "role": "file:sentinel",
+            "byteLength": 10,
+            "sha256": "0967b63182a9178fa55b1b6b6f3db64bb615bc8ed4457d69ceb99faeecbf8ed7"
+          }
+        ]
+      }
+    },
+    {
+      "id": "proposed/v1/04/expand/finite-tab-stops",
+      "name": "expand",
+      "script": "expand -t 3,7 source > columns",
+      "input": {
+        "cwd": "/fixture",
+        "files": {
+          "source": "YQliCWMK",
+          "sentinel": "dW50b3VjaGVkCg=="
+        },
+        "stdinBase64": "",
+        "directories": [],
+        "fileModes": {},
+        "fileTimes": {},
+        "symlinks": {}
+      },
+      "inputCanonicalSha256": "4458870bc28bb9da88e1212274b8e4a8a89bb1fb666fede1d0feb875e50090c5",
+      "scriptSha256": "b83ded853650926bf843a9300086d37e5b389958326cc617b76467b76531ac13",
+      "profile": "proposed-memory-vfs-c-byte-utc-v1",
+      "publicDocumentation": {
+        "path": "src/commands/stream-inspection/README.md",
+        "sha256": "519dee9089cdff247f1f137f16a9f8447d96830dfffe2422136c49d55b2fe1d0"
+      },
+      "intent": "Exercise finite C-byte tab columns with a VFS operand.",
+      "plannedOutputPaths": [
+        "columns"
+      ],
+      "mustPreserveInputs": true,
+      "nativeExpected": null,
+      "oracleStatus": "future-independent-generation-required",
+      "candidateBinding": null,
+      "status": "sealed-proposal-not-pass",
+      "staticCoverage": {
+        "id": "proposed/expand/finite-tab-stops",
+        "declaredTarget": "expand",
+        "scriptSha256": "b83ded853650926bf843a9300086d37e5b389958326cc617b76467b76531ac13",
+        "byteInputSha256": "d19d2d522cc3fdfb03e13d8542067500bdcb46bfc9d55ce77446dc72942d0c5c",
+        "fullFixtureSha256": "4458870bc28bb9da88e1212274b8e4a8a89bb1fb666fede1d0feb875e50090c5",
+        "scriptAndByteInputSha256": "854333865e6be946695e96de04c7b333db1801ad2a4d9083517bb1bebc77fa92",
+        "fullRecipeProfileSha256": "4a2d33acd851705614168b2d62dc28a5048b9fefac8571698a1154a6b5ccf2bc",
+        "profile": "proposed-memory-vfs-c-byte-utc-v1",
+        "lexicalTokens": [
+          "columns",
+          "expand",
+          "source",
+          "t"
+        ],
+        "literalPipeCharacterCount": 0,
+        "literalRedirectCharacterCount": 1,
+        "assets": [
+          {
+            "role": "stdin",
+            "byteLength": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "role": "file:source",
+            "byteLength": 6,
+            "sha256": "bd56df9b747166a38de6b261ee06660e07909915c60eedf81312e4697bd1b8ea"
+          },
+          {
+            "role": "file:sentinel",
+            "byteLength": 10,
+            "sha256": "0967b63182a9178fa55b1b6b6f3db64bb615bc8ed4457d69ceb99faeecbf8ed7"
+          }
+        ]
+      }
+    },
+    {
+      "id": "proposed/v1/05/fold/byte-wrap",
+      "name": "fold",
+      "script": "fold -b -w 5 input | cat > wrapped",
+      "input": {
+        "cwd": "/fixture",
+        "files": {
+          "input": "YWJjZGVmZ2hpamsK",
+          "sentinel": "dW50b3VjaGVkCg=="
+        },
+        "stdinBase64": "",
+        "directories": [],
+        "fileModes": {},
+        "fileTimes": {},
+        "symlinks": {}
+      },
+      "inputCanonicalSha256": "983554f6c63e56860c387a271d3f5311064520d8b7ae433410d1d983d8479aae",
+      "scriptSha256": "5f7700ece996374602555bf6aba11b3419180f2532b4d21ae39935b270dadee8",
+      "profile": "proposed-memory-vfs-c-byte-utc-v1",
+      "publicDocumentation": {
+        "path": "src/commands/stream-inspection/README.md",
+        "sha256": "519dee9089cdff247f1f137f16a9f8447d96830dfffe2422136c49d55b2fe1d0"
+      },
+      "intent": "Wrap fixed-byte records and preserve the short tail.",
+      "plannedOutputPaths": [
+        "wrapped"
+      ],
+      "mustPreserveInputs": true,
+      "nativeExpected": null,
+      "oracleStatus": "future-independent-generation-required",
+      "candidateBinding": null,
+      "status": "sealed-proposal-not-pass",
+      "staticCoverage": {
+        "id": "proposed/fold/byte-wrap",
+        "declaredTarget": "fold",
+        "scriptSha256": "5f7700ece996374602555bf6aba11b3419180f2532b4d21ae39935b270dadee8",
+        "byteInputSha256": "1d8fd3245844d34d56906bb90cd45b5319d77ef4d324bae87fa9080b8360c600",
+        "fullFixtureSha256": "983554f6c63e56860c387a271d3f5311064520d8b7ae433410d1d983d8479aae",
+        "scriptAndByteInputSha256": "9743a6c1a152de9c1ccf72528d81d2586e9220ce6fea7a02aa0a9306f429f649",
+        "fullRecipeProfileSha256": "78de5de72d03e90a011b5095581e0c081c25e8a267c1bf65e3f94ee290ee20d6",
+        "profile": "proposed-memory-vfs-c-byte-utc-v1",
+        "lexicalTokens": [
+          "b",
+          "cat",
+          "fold",
+          "input",
+          "w",
+          "wrapped"
+        ],
+        "literalPipeCharacterCount": 1,
+        "literalRedirectCharacterCount": 1,
+        "assets": [
+          {
+            "role": "stdin",
+            "byteLength": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "role": "file:input",
+            "byteLength": 12,
+            "sha256": "1bda1871e01f9d677ef3b3dddb7e9745aaa5602dfbf2aa605a791a9c76316c1b"
+          },
+          {
+            "role": "file:sentinel",
+            "byteLength": 10,
+            "sha256": "0967b63182a9178fa55b1b6b6f3db64bb615bc8ed4457d69ceb99faeecbf8ed7"
+          }
+        ]
+      }
+    },
+    {
+      "id": "proposed/v1/06/fold/word-wrap",
+      "name": "fold",
+      "script": "fold -s -w 9 words > wrapped",
+      "input": {
+        "cwd": "/fixture",
+        "files": {
+          "words": "cmVkIGJsdWUgZ3JlZW4K",
+          "sentinel": "dW50b3VjaGVkCg=="
+        },
+        "stdinBase64": "",
+        "directories": [],
+        "fileModes": {},
+        "fileTimes": {},
+        "symlinks": {}
+      },
+      "inputCanonicalSha256": "215d5d2173f387678a8bd3899f25a89c9bc5e2aa832aa150e2762babc8f4d867",
+      "scriptSha256": "0fb1ca1388c4c1df772f3afbd05d5f1b0ae22f0bfc7f69ab14ab76921a69ecda",
+      "profile": "proposed-memory-vfs-c-byte-utc-v1",
+      "publicDocumentation": {
+        "path": "src/commands/stream-inspection/README.md",
+        "sha256": "519dee9089cdff247f1f137f16a9f8447d96830dfffe2422136c49d55b2fe1d0"
+      },
+      "intent": "Prefer blanks at bounded wrap positions.",
+      "plannedOutputPaths": [
+        "wrapped"
+      ],
+      "mustPreserveInputs": true,
+      "nativeExpected": null,
+      "oracleStatus": "future-independent-generation-required",
+      "candidateBinding": null,
+      "status": "sealed-proposal-not-pass",
+      "staticCoverage": {
+        "id": "proposed/fold/word-wrap",
+        "declaredTarget": "fold",
+        "scriptSha256": "0fb1ca1388c4c1df772f3afbd05d5f1b0ae22f0bfc7f69ab14ab76921a69ecda",
+        "byteInputSha256": "08f8ee83ea6402fbf1a3be437b0fd190ac70a8eae83817c68d1db366cf530c5e",
+        "fullFixtureSha256": "215d5d2173f387678a8bd3899f25a89c9bc5e2aa832aa150e2762babc8f4d867",
+        "scriptAndByteInputSha256": "ba8c2e215bea5ad10c50b362970daa9db16394b96dbb18def6c683c2c9da570c",
+        "fullRecipeProfileSha256": "d2cb7b725b8d6f5ba693df76bc540e4f054464f836959125ea4e6dc809da2f8f",
+        "profile": "proposed-memory-vfs-c-byte-utc-v1",
+        "lexicalTokens": [
+          "fold",
+          "s",
+          "w",
+          "words",
+          "wrapped"
+        ],
+        "literalPipeCharacterCount": 0,
+        "literalRedirectCharacterCount": 1,
+        "assets": [
+          {
+            "role": "stdin",
+            "byteLength": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "role": "file:words",
+            "byteLength": 15,
+            "sha256": "cabaa0fcac92b39b496fb7d29483475110584da9fa135886eda7f1cbfaa351af"
+          },
+          {
+            "role": "file:sentinel",
+            "byteLength": 10,
+            "sha256": "0967b63182a9178fa55b1b6b6f3db64bb615bc8ed4457d69ceb99faeecbf8ed7"
+          }
+        ]
+      }
+    },
+    {
+      "id": "proposed/v1/07/strings/binary-file",
+      "name": "strings",
+      "script": "strings -a -n 4 payload | cat > labels",
+      "input": {
+        "cwd": "/fixture",
+        "files": {
+          "payload": "AEFMUEhBAP9CRVRBCg==",
+          "sentinel": "dW50b3VjaGVkCg=="
+        },
+        "stdinBase64": "",
+        "directories": [],
+        "fileModes": {},
+        "fileTimes": {},
+        "symlinks": {}
+      },
+      "inputCanonicalSha256": "88ac69eaa5cf4b93944aa408a1102442b3011c1e05eba08505fbc78c80f75aae",
+      "scriptSha256": "5eef6677b73de7127164ddcf547283c10b6403add399398470486b02d170b4be",
+      "profile": "proposed-memory-vfs-c-byte-utc-v1",
+      "publicDocumentation": {
+        "path": "src/commands/stream-inspection/README.md",
+        "sha256": "519dee9089cdff247f1f137f16a9f8447d96830dfffe2422136c49d55b2fe1d0"
+      },
+      "intent": "Extract printable labels from a binary VFS payload.",
+      "plannedOutputPaths": [
+        "labels"
+      ],
+      "mustPreserveInputs": true,
+      "nativeExpected": null,
+      "oracleStatus": "future-independent-generation-required",
+      "candidateBinding": null,
+      "status": "sealed-proposal-not-pass",
+      "staticCoverage": {
+        "id": "proposed/strings/binary-file",
+        "declaredTarget": "strings",
+        "scriptSha256": "5eef6677b73de7127164ddcf547283c10b6403add399398470486b02d170b4be",
+        "byteInputSha256": "09f1f2b4486eff9375c9eaa22dc5b9d78330199505018be9e9d47a6f4baf54c5",
+        "fullFixtureSha256": "88ac69eaa5cf4b93944aa408a1102442b3011c1e05eba08505fbc78c80f75aae",
+        "scriptAndByteInputSha256": "52f8bcbeea531a38570ef6e747751ee9114a19b221ffdd1269d5d31b1d8900a5",
+        "fullRecipeProfileSha256": "ad1318d6e92a19675086129b0a18f44d7c0169be5ec40eb36f1cb8858f2355fd",
+        "profile": "proposed-memory-vfs-c-byte-utc-v1",
+        "lexicalTokens": [
+          "a",
+          "cat",
+          "labels",
+          "n",
+          "payload",
+          "strings"
+        ],
+        "literalPipeCharacterCount": 1,
+        "literalRedirectCharacterCount": 1,
+        "assets": [
+          {
+            "role": "stdin",
+            "byteLength": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "role": "file:payload",
+            "byteLength": 13,
+            "sha256": "9ca85ab192f8483bbf9f2fa7f03ed85b0dc20a0e8edc214276513b83d57de275"
+          },
+          {
+            "role": "file:sentinel",
+            "byteLength": 10,
+            "sha256": "0967b63182a9178fa55b1b6b6f3db64bb615bc8ed4457d69ceb99faeecbf8ed7"
+          }
+        ]
+      }
+    },
+    {
+      "id": "proposed/v1/08/strings/stdin-offsets",
+      "name": "strings",
+      "script": "strings -a -n 3 -t d > offsets",
+      "input": {
+        "cwd": "/fixture",
+        "files": {
+          "sentinel": "dW50b3VjaGVkCg=="
+        },
+        "stdinBase64": "AGFiYwBkZWYA",
+        "directories": [],
+        "fileModes": {},
+        "fileTimes": {},
+        "symlinks": {}
+      },
+      "inputCanonicalSha256": "58fd6b0f521880ac6b86036986615febe4c24de7fbae5522c871610f20ef7cc6",
+      "scriptSha256": "882112b8ba777bf12195618489534d4d97b918f34d9b294d019a8589ba721ed4",
+      "profile": "proposed-memory-vfs-c-byte-utc-v1",
+      "publicDocumentation": {
+        "path": "src/commands/stream-inspection/README.md",
+        "sha256": "519dee9089cdff247f1f137f16a9f8447d96830dfffe2422136c49d55b2fe1d0"
+      },
+      "intent": "Record decimal offsets from raw stdin without object parsing.",
+      "plannedOutputPaths": [
+        "offsets"
+      ],
+      "mustPreserveInputs": true,
+      "nativeExpected": null,
+      "oracleStatus": "future-independent-generation-required",
+      "candidateBinding": null,
+      "status": "sealed-proposal-not-pass",
+      "staticCoverage": {
+        "id": "proposed/strings/stdin-offsets",
+        "declaredTarget": "strings",
+        "scriptSha256": "882112b8ba777bf12195618489534d4d97b918f34d9b294d019a8589ba721ed4",
+        "byteInputSha256": "0536a47e063a6f83b0354860bf817373cde6afe08a6b3c4c9ce66f2292b2c40b",
+        "fullFixtureSha256": "58fd6b0f521880ac6b86036986615febe4c24de7fbae5522c871610f20ef7cc6",
+        "scriptAndByteInputSha256": "5f149f17f0ec402e9d83f0ab1c6cc650a018e725eadc8e97394235508a4d7247",
+        "fullRecipeProfileSha256": "b15d1346b415f1ff0d93b549ca220cca93cf0c65635feb5179d6efa90a861fb2",
+        "profile": "proposed-memory-vfs-c-byte-utc-v1",
+        "lexicalTokens": [
+          "a",
+          "d",
+          "n",
+          "offsets",
+          "strings",
+          "t"
+        ],
+        "literalPipeCharacterCount": 0,
+        "literalRedirectCharacterCount": 1,
+        "assets": [
+          {
+            "role": "stdin",
+            "byteLength": 9,
+            "sha256": "c48dca15f6966d5e037bf7a7456b57e4bd97b38227bd934a244c4db4aba45069"
+          },
+          {
+            "role": "file:sentinel",
+            "byteLength": 10,
+            "sha256": "0967b63182a9178fa55b1b6b6f3db64bb615bc8ed4457d69ceb99faeecbf8ed7"
+          }
+        ]
+      }
+    },
+    {
+      "id": "proposed/v1/09/seq/decimal-series",
+      "name": "seq",
+      "script": "seq 0.5 0.5 2 | cat > series",
+      "input": {
+        "cwd": "/fixture",
+        "files": {
+          "sentinel": "dW50b3VjaGVkCg=="
+        },
+        "stdinBase64": "",
+        "directories": [],
+        "fileModes": {},
+        "fileTimes": {},
+        "symlinks": {}
+      },
+      "inputCanonicalSha256": "54371883003f65d1c26c0733a0fbc56f1c37985598cb6a3ead1f93ff5670f1e8",
+      "scriptSha256": "a0aa9b7435d45737f20285043b5086be3d73f80b6374743056b96c7bc728046f",
+      "profile": "proposed-memory-vfs-c-byte-utc-v1",
+      "publicDocumentation": {
+        "path": "src/commands/stream-format/README.md",
+        "sha256": "d4180b1dafcdf8be758089f7e7105cf0fe6db5977880353c32c99645b264f778"
+      },
+      "intent": "Write an exactly representable decimal sequence through a pipe.",
+      "plannedOutputPaths": [
+        "series"
+      ],
+      "mustPreserveInputs": true,
+      "nativeExpected": null,
+      "oracleStatus": "future-independent-generation-required",
+      "candidateBinding": null,
+      "status": "sealed-proposal-not-pass",
+      "staticCoverage": {
+        "id": "proposed/seq/decimal-series",
+        "declaredTarget": "seq",
+        "scriptSha256": "a0aa9b7435d45737f20285043b5086be3d73f80b6374743056b96c7bc728046f",
+        "byteInputSha256": "661a20fb2ed643560a635d816da933de2bfe749f2dd9a43202dcf73cce5d64e6",
+        "fullFixtureSha256": "54371883003f65d1c26c0733a0fbc56f1c37985598cb6a3ead1f93ff5670f1e8",
+        "scriptAndByteInputSha256": "9c7a6af081b595e1310e1c790b597e5093b424c58f88b4bc54bfa042f1672a19",
+        "fullRecipeProfileSha256": "1e5e53aeb70cb2d7ebc78133928a4958e19976464e5085b2c147d5dbbbd7693d",
+        "profile": "proposed-memory-vfs-c-byte-utc-v1",
+        "lexicalTokens": [
+          "cat",
+          "seq",
+          "series"
+        ],
+        "literalPipeCharacterCount": 1,
+        "literalRedirectCharacterCount": 1,
+        "assets": [
+          {
+            "role": "stdin",
+            "byteLength": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "role": "file:sentinel",
+            "byteLength": 10,
+            "sha256": "0967b63182a9178fa55b1b6b6f3db64bb615bc8ed4457d69ceb99faeecbf8ed7"
+          }
+        ]
+      }
+    },
+    {
+      "id": "proposed/v1/10/seq/equal-width",
+      "name": "seq",
+      "script": "seq -w 8 11 > serials",
+      "input": {
+        "cwd": "/fixture",
+        "files": {
+          "sentinel": "dW50b3VjaGVkCg=="
+        },
+        "stdinBase64": "",
+        "directories": [],
+        "fileModes": {},
+        "fileTimes": {},
+        "symlinks": {}
+      },
+      "inputCanonicalSha256": "54371883003f65d1c26c0733a0fbc56f1c37985598cb6a3ead1f93ff5670f1e8",
+      "scriptSha256": "ec1ced8582d15c39d2a6c02c84eca760161b0be6adb25f613049d3673da5523e",
+      "profile": "proposed-memory-vfs-c-byte-utc-v1",
+      "publicDocumentation": {
+        "path": "src/commands/stream-format/README.md",
+        "sha256": "d4180b1dafcdf8be758089f7e7105cf0fe6db5977880353c32c99645b264f778"
+      },
+      "intent": "Generate fixed-width identifiers crossing a decimal digit boundary.",
+      "plannedOutputPaths": [
+        "serials"
+      ],
+      "mustPreserveInputs": true,
+      "nativeExpected": null,
+      "oracleStatus": "future-independent-generation-required",
+      "candidateBinding": null,
+      "status": "sealed-proposal-not-pass",
+      "staticCoverage": {
+        "id": "proposed/seq/equal-width",
+        "declaredTarget": "seq",
+        "scriptSha256": "ec1ced8582d15c39d2a6c02c84eca760161b0be6adb25f613049d3673da5523e",
+        "byteInputSha256": "661a20fb2ed643560a635d816da933de2bfe749f2dd9a43202dcf73cce5d64e6",
+        "fullFixtureSha256": "54371883003f65d1c26c0733a0fbc56f1c37985598cb6a3ead1f93ff5670f1e8",
+        "scriptAndByteInputSha256": "0fac48347f8f66d9d08f9664b06a69fc286f6374cb743a1e989937098b0dbeac",
+        "fullRecipeProfileSha256": "fc35e929c835fdda7674c14df9fc0a676d58fe25a76e0322c926cdd9bf238777",
+        "profile": "proposed-memory-vfs-c-byte-utc-v1",
+        "lexicalTokens": [
+          "seq",
+          "serials",
+          "w"
+        ],
+        "literalPipeCharacterCount": 0,
+        "literalRedirectCharacterCount": 1,
+        "assets": [
+          {
+            "role": "stdin",
+            "byteLength": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "role": "file:sentinel",
+            "byteLength": 10,
+            "sha256": "0967b63182a9178fa55b1b6b6f3db64bb615bc8ed4457d69ceb99faeecbf8ed7"
+          }
+        ]
+      }
+    },
+    {
+      "id": "proposed/v1/11/nl/number-blank-lines",
+      "name": "nl",
+      "script": "nl -ba -w2 -s ':' input | cat > numbered",
+      "input": {
+        "cwd": "/fixture",
+        "files": {
+          "input": "Zmlyc3QKCmxhc3QK",
+          "sentinel": "dW50b3VjaGVkCg=="
+        },
+        "stdinBase64": "",
+        "directories": [],
+        "fileModes": {},
+        "fileTimes": {},
+        "symlinks": {}
+      },
+      "inputCanonicalSha256": "add68b0afd1a54b33011c7f8003a12d6047b293fe5905dbe603c91ec3006d7af",
+      "scriptSha256": "8c47cba639423abe1193054ac48612f963fca8d4dd763501f4bee59eef517fb6",
+      "profile": "proposed-memory-vfs-c-byte-utc-v1",
+      "publicDocumentation": {
+        "path": "src/commands/stream-format/README.md",
+        "sha256": "d4180b1dafcdf8be758089f7e7105cf0fe6db5977880353c32c99645b264f778"
+      },
+      "intent": "Number all records, including an empty one, into a report.",
+      "plannedOutputPaths": [
+        "numbered"
+      ],
+      "mustPreserveInputs": true,
+      "nativeExpected": null,
+      "oracleStatus": "future-independent-generation-required",
+      "candidateBinding": null,
+      "status": "sealed-proposal-not-pass",
+      "staticCoverage": {
+        "id": "proposed/nl/number-blank-lines",
+        "declaredTarget": "nl",
+        "scriptSha256": "8c47cba639423abe1193054ac48612f963fca8d4dd763501f4bee59eef517fb6",
+        "byteInputSha256": "5ab0f9c5bbc79931decf49d70fbe2208b349110ab9fa4fc824588ec5257fe8f0",
+        "fullFixtureSha256": "add68b0afd1a54b33011c7f8003a12d6047b293fe5905dbe603c91ec3006d7af",
+        "scriptAndByteInputSha256": "e939dfb92ea7f27446931b2933f6d79edda6753228b2db7348fbe9f7f3235257",
+        "fullRecipeProfileSha256": "ab7767eb90fedbe00be679fdbbe47ad6462bee9256a85fd0b5b85b0aabeb3644",
+        "profile": "proposed-memory-vfs-c-byte-utc-v1",
+        "lexicalTokens": [
+          "ba",
+          "cat",
+          "input",
+          "nl",
+          "numbered",
+          "s",
+          "w2"
+        ],
+        "literalPipeCharacterCount": 1,
+        "literalRedirectCharacterCount": 1,
+        "assets": [
+          {
+            "role": "stdin",
+            "byteLength": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "role": "file:input",
+            "byteLength": 12,
+            "sha256": "b0e67e17c4436751f1c4191a5de17771e6a97d3be5bde4ebbf4b808154d12e18"
+          },
+          {
+            "role": "file:sentinel",
+            "byteLength": 10,
+            "sha256": "0967b63182a9178fa55b1b6b6f3db64bb615bc8ed4457d69ceb99faeecbf8ed7"
+          }
+        ]
+      }
+    },
+    {
+      "id": "proposed/v1/12/nl/custom-increment",
+      "name": "nl",
+      "script": "nl -ba -v5 -i2 -w1 -s ':' input > numbered",
+      "input": {
+        "cwd": "/fixture",
+        "files": {
+          "input": "b25lCnR3bwo=",
+          "sentinel": "dW50b3VjaGVkCg=="
+        },
+        "stdinBase64": "",
+        "directories": [],
+        "fileModes": {},
+        "fileTimes": {},
+        "symlinks": {}
+      },
+      "inputCanonicalSha256": "d4758e67e1d38424b12c51a70f16ab13c4618e8d504c4d7decf5ac84c3a9b86a",
+      "scriptSha256": "26a39969b013c31d817f0551d2ebba50197c3adee0ab7e8f8c03caa356ef24cb",
+      "profile": "proposed-memory-vfs-c-byte-utc-v1",
+      "publicDocumentation": {
+        "path": "src/commands/stream-format/README.md",
+        "sha256": "d4180b1dafcdf8be758089f7e7105cf0fe6db5977880353c32c99645b264f778"
+      },
+      "intent": "Number two VFS records with a nondefault start and increment.",
+      "plannedOutputPaths": [
+        "numbered"
+      ],
+      "mustPreserveInputs": true,
+      "nativeExpected": null,
+      "oracleStatus": "future-independent-generation-required",
+      "candidateBinding": null,
+      "status": "sealed-proposal-not-pass",
+      "staticCoverage": {
+        "id": "proposed/nl/custom-increment",
+        "declaredTarget": "nl",
+        "scriptSha256": "26a39969b013c31d817f0551d2ebba50197c3adee0ab7e8f8c03caa356ef24cb",
+        "byteInputSha256": "18b4587f542b0255c4b344b27051ab21aaa4d17a0da002637746db9a51d60fe2",
+        "fullFixtureSha256": "d4758e67e1d38424b12c51a70f16ab13c4618e8d504c4d7decf5ac84c3a9b86a",
+        "scriptAndByteInputSha256": "224e3c94a98dbeab917aeaf811db2a97d7af317d2b641134436819da07075bf8",
+        "fullRecipeProfileSha256": "4dc4473686ed06985002d9b676479aa5cd523af48337838545c8df12c5640a87",
+        "profile": "proposed-memory-vfs-c-byte-utc-v1",
+        "lexicalTokens": [
+          "ba",
+          "i2",
+          "input",
+          "nl",
+          "numbered",
+          "s",
+          "v5",
+          "w1"
+        ],
+        "literalPipeCharacterCount": 0,
+        "literalRedirectCharacterCount": 1,
+        "assets": [
+          {
+            "role": "stdin",
+            "byteLength": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "role": "file:input",
+            "byteLength": 8,
+            "sha256": "c3f9c8c283a2b1f2f1896f27a01cbe3cddc0c9d93f752e4639035a0f5b36f6e8"
+          },
+          {
+            "role": "file:sentinel",
+            "byteLength": 10,
+            "sha256": "0967b63182a9178fa55b1b6b6f3db64bb615bc8ed4457d69ceb99faeecbf8ed7"
+          }
+        ]
+      }
+    },
+    {
+      "id": "proposed/v1/13/rev/c-byte-binary",
+      "name": "rev",
+      "script": "rev input | cat > reversed",
+      "input": {
+        "cwd": "/fixture",
+        "files": {
+          "input": "QQD/Qgo=",
+          "sentinel": "dW50b3VjaGVkCg=="
+        },
+        "stdinBase64": "",
+        "directories": [],
+        "fileModes": {},
+        "fileTimes": {},
+        "symlinks": {}
+      },
+      "inputCanonicalSha256": "6b41c7793724a4f670968f71d2f59e545c76fa963bdeb203a4e0803e74c07bad",
+      "scriptSha256": "fface23c6941333175a8450ac9735f94f75c4f4a16382ced5f0055f4b3044ef2",
+      "profile": "proposed-memory-vfs-c-byte-utc-v1",
+      "publicDocumentation": {
+        "path": "src/commands/stream-format/README.md",
+        "sha256": "d4180b1dafcdf8be758089f7e7105cf0fe6db5977880353c32c99645b264f778"
+      },
+      "intent": "Reverse a binary line under the documented C-byte profile.",
+      "plannedOutputPaths": [
+        "reversed"
+      ],
+      "mustPreserveInputs": true,
+      "nativeExpected": null,
+      "oracleStatus": "future-independent-generation-required",
+      "candidateBinding": null,
+      "status": "sealed-proposal-not-pass",
+      "staticCoverage": {
+        "id": "proposed/rev/c-byte-binary",
+        "declaredTarget": "rev",
+        "scriptSha256": "fface23c6941333175a8450ac9735f94f75c4f4a16382ced5f0055f4b3044ef2",
+        "byteInputSha256": "6c5ef354f1e1eff37d005af806daa01d73adb98e29bb910997c6bc322683b6a6",
+        "fullFixtureSha256": "6b41c7793724a4f670968f71d2f59e545c76fa963bdeb203a4e0803e74c07bad",
+        "scriptAndByteInputSha256": "fb8765b8cc43db502cee7c9a572abd3a85a1eb4177745d811f161c6d5e433462",
+        "fullRecipeProfileSha256": "5e4da64f6ed9f46ce28ff5e5219260f7993858c6725c88b30a3bfd85186e6ffe",
+        "profile": "proposed-memory-vfs-c-byte-utc-v1",
+        "lexicalTokens": [
+          "cat",
+          "input",
+          "rev",
+          "reversed"
+        ],
+        "literalPipeCharacterCount": 1,
+        "literalRedirectCharacterCount": 1,
+        "assets": [
+          {
+            "role": "stdin",
+            "byteLength": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "role": "file:input",
+            "byteLength": 5,
+            "sha256": "237f3dd927edf19464a4f05da0f98f6df816395663426b981181d13a17cb0789"
+          },
+          {
+            "role": "file:sentinel",
+            "byteLength": 10,
+            "sha256": "0967b63182a9178fa55b1b6b6f3db64bb615bc8ed4457d69ceb99faeecbf8ed7"
+          }
+        ]
+      }
+    },
+    {
+      "id": "proposed/v1/14/rev/multiple-operands",
+      "name": "rev",
+      "script": "rev first second > reversed",
+      "input": {
+        "cwd": "/fixture",
+        "files": {
+          "first": "c3RyZXNzZWQK",
+          "second": "ZHJhd2VyCg==",
+          "sentinel": "dW50b3VjaGVkCg=="
+        },
+        "stdinBase64": "",
+        "directories": [],
+        "fileModes": {},
+        "fileTimes": {},
+        "symlinks": {}
+      },
+      "inputCanonicalSha256": "6944409e26a3d8c4add5aaee7b75bb2bcbbd17cd539363c8936c5507181a816a",
+      "scriptSha256": "8329a73bc724bdc5053f1c9b59ed7661ab24b8bc011a75e3bf0f06a6350cc87f",
+      "profile": "proposed-memory-vfs-c-byte-utc-v1",
+      "publicDocumentation": {
+        "path": "src/commands/stream-format/README.md",
+        "sha256": "d4180b1dafcdf8be758089f7e7105cf0fe6db5977880353c32c99645b264f778"
+      },
+      "intent": "Read distinct VFS operands without intermixing line order.",
+      "plannedOutputPaths": [
+        "reversed"
+      ],
+      "mustPreserveInputs": true,
+      "nativeExpected": null,
+      "oracleStatus": "future-independent-generation-required",
+      "candidateBinding": null,
+      "status": "sealed-proposal-not-pass",
+      "staticCoverage": {
+        "id": "proposed/rev/multiple-operands",
+        "declaredTarget": "rev",
+        "scriptSha256": "8329a73bc724bdc5053f1c9b59ed7661ab24b8bc011a75e3bf0f06a6350cc87f",
+        "byteInputSha256": "f0d99415c4b6617a345390acd6e6a59ce94118ce4f9b7c4daefe7e1ebe2d05d6",
+        "fullFixtureSha256": "6944409e26a3d8c4add5aaee7b75bb2bcbbd17cd539363c8936c5507181a816a",
+        "scriptAndByteInputSha256": "a95e481e74e0f98cf14a4a512a52845c3d7507b37d16f170289cf7c6aff931aa",
+        "fullRecipeProfileSha256": "14389de86191878b816c7691d7a9009058f83d57c70caac8c396cacc590ba722",
+        "profile": "proposed-memory-vfs-c-byte-utc-v1",
+        "lexicalTokens": [
+          "first",
+          "rev",
+          "reversed",
+          "second"
+        ],
+        "literalPipeCharacterCount": 0,
+        "literalRedirectCharacterCount": 1,
+        "assets": [
+          {
+            "role": "stdin",
+            "byteLength": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "role": "file:first",
+            "byteLength": 9,
+            "sha256": "c21079bceea873230678a28ca60aac75cedb067085c8218b9facd3fca7bbd2fb"
+          },
+          {
+            "role": "file:second",
+            "byteLength": 7,
+            "sha256": "5d5f1c41716a090885f99f8316391ed6744391d7d39546a42233d80f76ec7353"
+          },
+          {
+            "role": "file:sentinel",
+            "byteLength": 10,
+            "sha256": "0967b63182a9178fa55b1b6b6f3db64bb615bc8ed4457d69ceb99faeecbf8ed7"
+          }
+        ]
+      }
+    },
+    {
+      "id": "proposed/v1/15/unexpand/all-tab-stops",
+      "name": "unexpand",
+      "script": "unexpand -a -t 4 input | cat > compact",
+      "input": {
+        "cwd": "/fixture",
+        "files": {
+          "input": "ICAgIG9uZSAgICB0d28K",
+          "sentinel": "dW50b3VjaGVkCg=="
+        },
+        "stdinBase64": "",
+        "directories": [],
+        "fileModes": {},
+        "fileTimes": {},
+        "symlinks": {}
+      },
+      "inputCanonicalSha256": "4b5acc05004048e1bf786b30eeee03847775be6c4d5a95d0492dc01e4c1b7e3c",
+      "scriptSha256": "35dbc053873cc7a43b8b93cf676458e16bb13e5b80a932760873457327982781",
+      "profile": "proposed-memory-vfs-c-byte-utc-v1",
+      "publicDocumentation": {
+        "path": "src/commands/stream-format/README.md",
+        "sha256": "d4180b1dafcdf8be758089f7e7105cf0fe6db5977880353c32c99645b264f778"
+      },
+      "intent": "Compact blanks throughout lines using fixed C-byte columns.",
+      "plannedOutputPaths": [
+        "compact"
+      ],
+      "mustPreserveInputs": true,
+      "nativeExpected": null,
+      "oracleStatus": "future-independent-generation-required",
+      "candidateBinding": null,
+      "status": "sealed-proposal-not-pass",
+      "staticCoverage": {
+        "id": "proposed/unexpand/all-tab-stops",
+        "declaredTarget": "unexpand",
+        "scriptSha256": "35dbc053873cc7a43b8b93cf676458e16bb13e5b80a932760873457327982781",
+        "byteInputSha256": "4e2c5f1a628945df9bb821150d628aeb2c2dac7e588d5cfebddac703c9d11f00",
+        "fullFixtureSha256": "4b5acc05004048e1bf786b30eeee03847775be6c4d5a95d0492dc01e4c1b7e3c",
+        "scriptAndByteInputSha256": "324df3dd9d566902ca907086d8764338f1e01f07eeaaed9fcf4b17f8ad967595",
+        "fullRecipeProfileSha256": "8604ca3722d0434fdf5e3ff36d7cb79111f40fcd896b486337cc00a238b93da9",
+        "profile": "proposed-memory-vfs-c-byte-utc-v1",
+        "lexicalTokens": [
+          "a",
+          "cat",
+          "compact",
+          "input",
+          "t",
+          "unexpand"
+        ],
+        "literalPipeCharacterCount": 1,
+        "literalRedirectCharacterCount": 1,
+        "assets": [
+          {
+            "role": "stdin",
+            "byteLength": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "role": "file:input",
+            "byteLength": 15,
+            "sha256": "380854d6c6451d993f9a4bcf315669eda75c5a7652eb7d76b27e684574bce83d"
+          },
+          {
+            "role": "file:sentinel",
+            "byteLength": 10,
+            "sha256": "0967b63182a9178fa55b1b6b6f3db64bb615bc8ed4457d69ceb99faeecbf8ed7"
+          }
+        ]
+      }
+    },
+    {
+      "id": "proposed/v1/16/unexpand/leading-only",
+      "name": "unexpand",
+      "script": "unexpand input > compact",
+      "input": {
+        "cwd": "/fixture",
+        "files": {
+          "input": "ICAgICAgICBsZWFkICAgICAgICB0YWlsCg==",
+          "sentinel": "dW50b3VjaGVkCg=="
+        },
+        "stdinBase64": "",
+        "directories": [],
+        "fileModes": {},
+        "fileTimes": {},
+        "symlinks": {}
+      },
+      "inputCanonicalSha256": "c666a2df6c83fa9368dfc132ba91688580da18fd615a3f3a96b2a30750e9b973",
+      "scriptSha256": "c9aadf77c5a3574241365e067d5d0aa35275fd466077cdd803102e716161da15",
+      "profile": "proposed-memory-vfs-c-byte-utc-v1",
+      "publicDocumentation": {
+        "path": "src/commands/stream-format/README.md",
+        "sha256": "d4180b1dafcdf8be758089f7e7105cf0fe6db5977880353c32c99645b264f778"
+      },
+      "intent": "Default conversion must distinguish indentation from interior blanks.",
+      "plannedOutputPaths": [
+        "compact"
+      ],
+      "mustPreserveInputs": true,
+      "nativeExpected": null,
+      "oracleStatus": "future-independent-generation-required",
+      "candidateBinding": null,
+      "status": "sealed-proposal-not-pass",
+      "staticCoverage": {
+        "id": "proposed/unexpand/leading-only",
+        "declaredTarget": "unexpand",
+        "scriptSha256": "c9aadf77c5a3574241365e067d5d0aa35275fd466077cdd803102e716161da15",
+        "byteInputSha256": "77074f49e33099f3a834fe38d52c8ac35696e72cbd373db2275aba4b43465ad0",
+        "fullFixtureSha256": "c666a2df6c83fa9368dfc132ba91688580da18fd615a3f3a96b2a30750e9b973",
+        "scriptAndByteInputSha256": "10abc4f31da350984a110eb9091e6d40a985e4758f106046a92ceaeb427b6d53",
+        "fullRecipeProfileSha256": "8e140ea5890865b13465c55c0494abddc35e682eb8dcf12a98860fd207fc9529",
+        "profile": "proposed-memory-vfs-c-byte-utc-v1",
+        "lexicalTokens": [
+          "compact",
+          "input",
+          "unexpand"
+        ],
+        "literalPipeCharacterCount": 0,
+        "literalRedirectCharacterCount": 1,
+        "assets": [
+          {
+            "role": "stdin",
+            "byteLength": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "role": "file:input",
+            "byteLength": 25,
+            "sha256": "61e24687d8f8c9f86cae30863dedc62b05ebd910eb6b4716b241ee743d65e96e"
+          },
+          {
+            "role": "file:sentinel",
+            "byteLength": 10,
+            "sha256": "0967b63182a9178fa55b1b6b6f3db64bb615bc8ed4457d69ceb99faeecbf8ed7"
+          }
+        ]
+      }
+    },
+    {
+      "id": "proposed/v1/17/split/binary-segments",
+      "name": "split",
+      "script": "split -b 3 payload part. && cat part.aa part.ab part.ac > joined",
+      "input": {
+        "cwd": "/fixture",
+        "files": {
+          "payload": "AP8BAoADBA==",
+          "sentinel": "dW50b3VjaGVkCg=="
+        },
+        "stdinBase64": "",
+        "directories": [],
+        "fileModes": {},
+        "fileTimes": {},
+        "symlinks": {}
+      },
+      "inputCanonicalSha256": "b07ea26a8aed8a96415d30efa46799a66818a434ae9bf194c5224d743ce8004f",
+      "scriptSha256": "72058f42294ef0f64115b480acc8b14003a129294d774d69fbeda3add7b884f9",
+      "profile": "proposed-memory-vfs-c-byte-utc-v1",
+      "publicDocumentation": {
+        "path": "src/commands/split/README.md",
+        "sha256": "624e12593ddf027d13d5bb45f2f7fffeb133d4003de021c3bb9eede93245c249"
+      },
+      "intent": "Create exact binary VFS segments and reconstruct through VFS reads.",
+      "plannedOutputPaths": [
+        "part.aa",
+        "part.ab",
+        "part.ac",
+        "joined"
+      ],
+      "mustPreserveInputs": true,
+      "nativeExpected": null,
+      "oracleStatus": "future-independent-generation-required",
+      "candidateBinding": null,
+      "status": "sealed-proposal-not-pass",
+      "staticCoverage": {
+        "id": "proposed/split/binary-segments",
+        "declaredTarget": "split",
+        "scriptSha256": "72058f42294ef0f64115b480acc8b14003a129294d774d69fbeda3add7b884f9",
+        "byteInputSha256": "502ce31b650ab6697ee0ae9450a78dce76b2b805931fd7f9945aa0ee32f62b33",
+        "fullFixtureSha256": "b07ea26a8aed8a96415d30efa46799a66818a434ae9bf194c5224d743ce8004f",
+        "scriptAndByteInputSha256": "680cfdd89ed21bb6cc1eebf933c33a2f575d8a24cbe0840a8f436b5fff6026a4",
+        "fullRecipeProfileSha256": "c250e90782119f7ed7f1ec09250280babfbc57a9d65aaab1edad2457ff029c42",
+        "profile": "proposed-memory-vfs-c-byte-utc-v1",
+        "lexicalTokens": [
+          "b",
+          "cat",
+          "joined",
+          "part.",
+          "part.aa",
+          "part.ab",
+          "part.ac",
+          "payload",
+          "split"
+        ],
+        "literalPipeCharacterCount": 0,
+        "literalRedirectCharacterCount": 1,
+        "assets": [
+          {
+            "role": "stdin",
+            "byteLength": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "role": "file:payload",
+            "byteLength": 7,
+            "sha256": "79b6300ea0da0a9efd128f93abd92f52443bb45cec563135c3e96297bb4ae03a"
+          },
+          {
+            "role": "file:sentinel",
+            "byteLength": 10,
+            "sha256": "0967b63182a9178fa55b1b6b6f3db64bb615bc8ed4457d69ceb99faeecbf8ed7"
+          }
+        ]
+      }
+    },
+    {
+      "id": "proposed/v1/18/split/pipeline-records",
+      "name": "split",
+      "script": "cat input | split -l 2 - chunk. && cat chunk.aa chunk.ab > joined",
+      "input": {
+        "cwd": "/fixture",
+        "files": {
+          "input": "b25lCnR3bwpsYXN0",
+          "sentinel": "dW50b3VjaGVkCg=="
+        },
+        "stdinBase64": "",
+        "directories": [],
+        "fileModes": {},
+        "fileTimes": {},
+        "symlinks": {}
+      },
+      "inputCanonicalSha256": "23500efb4f2e762fa96d048565f5081d4dc63ab4e1d9c6c016aec5d47c67c6b9",
+      "scriptSha256": "918966eddd000cef6283b84baee40849cc6c97c54a1ddc79f86b8c3f37436f8f",
+      "profile": "proposed-memory-vfs-c-byte-utc-v1",
+      "publicDocumentation": {
+        "path": "src/commands/split/README.md",
+        "sha256": "624e12593ddf027d13d5bb45f2f7fffeb133d4003de021c3bb9eede93245c249"
+      },
+      "intent": "Split a pipe with an unterminated last record and reconstruct bytes.",
+      "plannedOutputPaths": [
+        "chunk.aa",
+        "chunk.ab",
+        "joined"
+      ],
+      "mustPreserveInputs": true,
+      "nativeExpected": null,
+      "oracleStatus": "future-independent-generation-required",
+      "candidateBinding": null,
+      "status": "sealed-proposal-not-pass",
+      "staticCoverage": {
+        "id": "proposed/split/pipeline-records",
+        "declaredTarget": "split",
+        "scriptSha256": "918966eddd000cef6283b84baee40849cc6c97c54a1ddc79f86b8c3f37436f8f",
+        "byteInputSha256": "e1b5cf37403feb006ea656b7fbfc4ae72cb9f75e994da78a3f9bc0ad76da7899",
+        "fullFixtureSha256": "23500efb4f2e762fa96d048565f5081d4dc63ab4e1d9c6c016aec5d47c67c6b9",
+        "scriptAndByteInputSha256": "a2df52de7ced00a2dbc7c2ad425afa4fe23d3c3e49276f18a625599152e2bef1",
+        "fullRecipeProfileSha256": "5653fe9b95054d437819348ae6fbe255364f57ccb1c6cf8de625db377db0f1bc",
+        "profile": "proposed-memory-vfs-c-byte-utc-v1",
+        "lexicalTokens": [
+          "cat",
+          "chunk.",
+          "chunk.aa",
+          "chunk.ab",
+          "input",
+          "joined",
+          "l",
+          "split"
+        ],
+        "literalPipeCharacterCount": 1,
+        "literalRedirectCharacterCount": 1,
+        "assets": [
+          {
+            "role": "stdin",
+            "byteLength": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "role": "file:input",
+            "byteLength": 12,
+            "sha256": "ef3b4918288d7b9325fb21a4b1062bb9e213741ea33511e9943a9207ce0fef32"
+          },
+          {
+            "role": "file:sentinel",
+            "byteLength": 10,
+            "sha256": "0967b63182a9178fa55b1b6b6f3db64bb615bc8ed4457d69ceb99faeecbf8ed7"
+          }
+        ]
+      }
+    },
+    {
+      "id": "proposed/v1/19/date/explicit-epoch",
+      "name": "date",
+      "script": "date -u -d '@1700000000' '+%F %T' | cat > stamp",
+      "input": {
+        "cwd": "/fixture",
+        "files": {
+          "sentinel": "dW50b3VjaGVkCg=="
+        },
+        "stdinBase64": "",
+        "directories": [],
+        "fileModes": {},
+        "fileTimes": {},
+        "symlinks": {}
+      },
+      "inputCanonicalSha256": "54371883003f65d1c26c0733a0fbc56f1c37985598cb6a3ead1f93ff5670f1e8",
+      "scriptSha256": "f55b6b2348f905657425d1791093a1c7b0b26461d36eb2087d27b3617fe81160",
+      "profile": "proposed-memory-vfs-c-byte-utc-v1",
+      "publicDocumentation": {
+        "path": "src/commands/time-env/README.md",
+        "sha256": "42351fecb1c1f7c293bec851fa48720b6557fc6af0e2e77e9784d51ff765d53b"
+      },
+      "intent": "Format a fixed instant without wall-clock or timezone-name dependence.",
+      "plannedOutputPaths": [
+        "stamp"
+      ],
+      "mustPreserveInputs": true,
+      "nativeExpected": null,
+      "oracleStatus": "future-independent-generation-required",
+      "candidateBinding": null,
+      "status": "sealed-proposal-not-pass",
+      "staticCoverage": {
+        "id": "proposed/date/explicit-epoch",
+        "declaredTarget": "date",
+        "scriptSha256": "f55b6b2348f905657425d1791093a1c7b0b26461d36eb2087d27b3617fe81160",
+        "byteInputSha256": "661a20fb2ed643560a635d816da933de2bfe749f2dd9a43202dcf73cce5d64e6",
+        "fullFixtureSha256": "54371883003f65d1c26c0733a0fbc56f1c37985598cb6a3ead1f93ff5670f1e8",
+        "scriptAndByteInputSha256": "caf8f26448f2b9a0e010523683f339e99552a8aa0b315d98e0504d8c83392fff",
+        "fullRecipeProfileSha256": "6a7bb7bb566a3feff413effa51e92e68bc5fc13ed79b693e462d9a59d5800cc4",
+        "profile": "proposed-memory-vfs-c-byte-utc-v1",
+        "lexicalTokens": [
+          "F",
+          "T",
+          "cat",
+          "d",
+          "date",
+          "stamp",
+          "u"
+        ],
+        "literalPipeCharacterCount": 1,
+        "literalRedirectCharacterCount": 1,
+        "assets": [
+          {
+            "role": "stdin",
+            "byteLength": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "role": "file:sentinel",
+            "byteLength": 10,
+            "sha256": "0967b63182a9178fa55b1b6b6f3db64bb615bc8ed4457d69ceb99faeecbf8ed7"
+          }
+        ]
+      }
+    },
+    {
+      "id": "proposed/v1/20/date/leap-calendar",
+      "name": "date",
+      "script": "date -u -d '2024-02-29 12:34:56Z' '+%Y-%m-%dT%H:%M:%S' > stamp",
+      "input": {
+        "cwd": "/fixture",
+        "files": {
+          "sentinel": "dW50b3VjaGVkCg=="
+        },
+        "stdinBase64": "",
+        "directories": [],
+        "fileModes": {},
+        "fileTimes": {},
+        "symlinks": {}
+      },
+      "inputCanonicalSha256": "54371883003f65d1c26c0733a0fbc56f1c37985598cb6a3ead1f93ff5670f1e8",
+      "scriptSha256": "c004035e28cb1199293cb4217a9dd62c8a286e25d2e57e8a12e6f799e15379b4",
+      "profile": "proposed-memory-vfs-c-byte-utc-v1",
+      "publicDocumentation": {
+        "path": "src/commands/time-env/README.md",
+        "sha256": "42351fecb1c1f7c293bec851fa48720b6557fc6af0e2e77e9784d51ff765d53b"
+      },
+      "intent": "Format an explicit leap-day calendar input under UTC.",
+      "plannedOutputPaths": [
+        "stamp"
+      ],
+      "mustPreserveInputs": true,
+      "nativeExpected": null,
+      "oracleStatus": "future-independent-generation-required",
+      "candidateBinding": null,
+      "status": "sealed-proposal-not-pass",
+      "staticCoverage": {
+        "id": "proposed/date/leap-calendar",
+        "declaredTarget": "date",
+        "scriptSha256": "c004035e28cb1199293cb4217a9dd62c8a286e25d2e57e8a12e6f799e15379b4",
+        "byteInputSha256": "661a20fb2ed643560a635d816da933de2bfe749f2dd9a43202dcf73cce5d64e6",
+        "fullFixtureSha256": "54371883003f65d1c26c0733a0fbc56f1c37985598cb6a3ead1f93ff5670f1e8",
+        "scriptAndByteInputSha256": "6e77a34817cb0266b30ac7fc2e799bb58b23dfded0769482c8110f5bbc360bea",
+        "fullRecipeProfileSha256": "2010dc392182013a76a215927ec8ad6c3a85f53000a51dbe71d7003798919eed",
+        "profile": "proposed-memory-vfs-c-byte-utc-v1",
+        "lexicalTokens": [
+          "H",
+          "M",
+          "S",
+          "Y-",
+          "Z",
+          "d",
+          "dT",
+          "date",
+          "m-",
+          "stamp",
+          "u"
+        ],
+        "literalPipeCharacterCount": 0,
+        "literalRedirectCharacterCount": 1,
+        "assets": [
+          {
+            "role": "stdin",
+            "byteLength": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "role": "file:sentinel",
+            "byteLength": 10,
+            "sha256": "0967b63182a9178fa55b1b6b6f3db64bb615bc8ed4457d69ceb99faeecbf8ed7"
+          }
+        ]
+      }
+    },
+    {
+      "id": "proposed/v1/21/printenv/named-nul",
+      "name": "printenv",
+      "script": "printenv -0 FIRST EMPTY FIRST > values",
+      "input": {
+        "cwd": "/fixture",
+        "files": {
+          "sentinel": "dW50b3VjaGVkCg=="
+        },
+        "stdinBase64": "",
+        "directories": [],
+        "fileModes": {},
+        "fileTimes": {},
+        "symlinks": {}
+      },
+      "inputCanonicalSha256": "54371883003f65d1c26c0733a0fbc56f1c37985598cb6a3ead1f93ff5670f1e8",
+      "scriptSha256": "21214b28c124228b5a9bc2a27842a409ebace6b066eb32a10930af507df6984d",
+      "profile": "proposed-memory-vfs-c-byte-utc-v1",
+      "publicDocumentation": {
+        "path": "src/commands/time-env/README.md",
+        "sha256": "42351fecb1c1f7c293bec851fa48720b6557fc6af0e2e77e9784d51ff765d53b"
+      },
+      "intent": "Capture named/repeated/empty exported values in requested order with NUL terminators.",
+      "plannedOutputPaths": [
+        "values"
+      ],
+      "mustPreserveInputs": true,
+      "nativeExpected": null,
+      "oracleStatus": "future-independent-generation-required",
+      "candidateBinding": null,
+      "status": "sealed-proposal-not-pass",
+      "staticCoverage": {
+        "id": "proposed/printenv/named-nul",
+        "declaredTarget": "printenv",
+        "scriptSha256": "21214b28c124228b5a9bc2a27842a409ebace6b066eb32a10930af507df6984d",
+        "byteInputSha256": "661a20fb2ed643560a635d816da933de2bfe749f2dd9a43202dcf73cce5d64e6",
+        "fullFixtureSha256": "54371883003f65d1c26c0733a0fbc56f1c37985598cb6a3ead1f93ff5670f1e8",
+        "scriptAndByteInputSha256": "48e5b9d632dd3406554f6c0a425bb8d435fe8b9109ba54c469d87b72703aead3",
+        "fullRecipeProfileSha256": "8699479f6caf64f5ffd67cb87df49a728faca5f2bfad9aee891fa708948ca0aa",
+        "profile": "proposed-memory-vfs-c-byte-utc-v1",
+        "lexicalTokens": [
+          "EMPTY",
+          "FIRST",
+          "printenv",
+          "values"
+        ],
+        "literalPipeCharacterCount": 0,
+        "literalRedirectCharacterCount": 1,
+        "assets": [
+          {
+            "role": "stdin",
+            "byteLength": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "role": "file:sentinel",
+            "byteLength": 10,
+            "sha256": "0967b63182a9178fa55b1b6b6f3db64bb615bc8ed4457d69ceb99faeecbf8ed7"
+          }
+        ]
+      }
+    },
+    {
+      "id": "proposed/v1/22/printenv/named-pipeline",
+      "name": "printenv",
+      "script": "printenv FIRST SECOND | cat > values",
+      "input": {
+        "cwd": "/fixture",
+        "files": {
+          "sentinel": "dW50b3VjaGVkCg=="
+        },
+        "stdinBase64": "",
+        "directories": [],
+        "fileModes": {},
+        "fileTimes": {},
+        "symlinks": {}
+      },
+      "inputCanonicalSha256": "54371883003f65d1c26c0733a0fbc56f1c37985598cb6a3ead1f93ff5670f1e8",
+      "scriptSha256": "0c4ac5beaf1107f17b37b4d818c77524d67356bf5e4b49fccce7d674b083f2f7",
+      "profile": "proposed-memory-vfs-c-byte-utc-v1",
+      "publicDocumentation": {
+        "path": "src/commands/time-env/README.md",
+        "sha256": "42351fecb1c1f7c293bec851fa48720b6557fc6af0e2e77e9784d51ff765d53b"
+      },
+      "intent": "Forward explicit named values through a pipe; do not assert enumeration order.",
+      "plannedOutputPaths": [
+        "values"
+      ],
+      "mustPreserveInputs": true,
+      "nativeExpected": null,
+      "oracleStatus": "future-independent-generation-required",
+      "candidateBinding": null,
+      "status": "sealed-proposal-not-pass",
+      "staticCoverage": {
+        "id": "proposed/printenv/named-pipeline",
+        "declaredTarget": "printenv",
+        "scriptSha256": "0c4ac5beaf1107f17b37b4d818c77524d67356bf5e4b49fccce7d674b083f2f7",
+        "byteInputSha256": "661a20fb2ed643560a635d816da933de2bfe749f2dd9a43202dcf73cce5d64e6",
+        "fullFixtureSha256": "54371883003f65d1c26c0733a0fbc56f1c37985598cb6a3ead1f93ff5670f1e8",
+        "scriptAndByteInputSha256": "2dabcf88e6e8158e5bccb4d1097df8e669ff38e545dcd2f7443f46f346d0c976",
+        "fullRecipeProfileSha256": "2c2bf9bb17429ae05ebb21f1e5d0af2ba6347de2ead195689329398be97cc3dd",
+        "profile": "proposed-memory-vfs-c-byte-utc-v1",
+        "lexicalTokens": [
+          "FIRST",
+          "SECOND",
+          "cat",
+          "printenv",
+          "values"
+        ],
+        "literalPipeCharacterCount": 1,
+        "literalRedirectCharacterCount": 1,
+        "assets": [
+          {
+            "role": "stdin",
+            "byteLength": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "role": "file:sentinel",
+            "byteLength": 10,
+            "sha256": "0967b63182a9178fa55b1b6b6f3db64bb615bc8ed4457d69ceb99faeecbf8ed7"
+          }
+        ]
+      }
+    },
+    {
+      "id": "proposed/v1/23/sleep/zero-marker",
+      "name": "sleep",
+      "script": "sleep 0 && cat input > marker",
+      "input": {
+        "cwd": "/fixture",
+        "files": {
+          "input": "YWZ0ZXItemVybwo=",
+          "sentinel": "dW50b3VjaGVkCg=="
+        },
+        "stdinBase64": "",
+        "directories": [],
+        "fileModes": {},
+        "fileTimes": {},
+        "symlinks": {}
+      },
+      "inputCanonicalSha256": "207f664b82f3a84727c599e415d9245b7fc3f2b7ab025af9330c685f969de55e",
+      "scriptSha256": "a51b87c901c51a228f89b31e543766c8ed02f2219f4887a8ab4b8ca405253a15",
+      "profile": "proposed-memory-vfs-c-byte-utc-v1",
+      "publicDocumentation": {
+        "path": "src/commands/time-env/README.md",
+        "sha256": "42351fecb1c1f7c293bec851fa48720b6557fc6af0e2e77e9784d51ff765d53b"
+      },
+      "intent": "Successful zero sleep must permit a subsequent VFS write. No timing claim.",
+      "plannedOutputPaths": [
+        "marker"
+      ],
+      "mustPreserveInputs": true,
+      "nativeExpected": null,
+      "oracleStatus": "future-independent-generation-required",
+      "candidateBinding": null,
+      "status": "sealed-proposal-not-pass",
+      "staticCoverage": {
+        "id": "proposed/sleep/zero-marker",
+        "declaredTarget": "sleep",
+        "scriptSha256": "a51b87c901c51a228f89b31e543766c8ed02f2219f4887a8ab4b8ca405253a15",
+        "byteInputSha256": "966afaf12ccf3f81a5ecd8b07f3358ade23a1718971b8ab396dfc4c65a27574c",
+        "fullFixtureSha256": "207f664b82f3a84727c599e415d9245b7fc3f2b7ab025af9330c685f969de55e",
+        "scriptAndByteInputSha256": "0873f6349c2086266d878201a030ed5769c6bd671387d2d7b62d7e776648f013",
+        "fullRecipeProfileSha256": "3146aadb0e3d7b6b8ab7dd387f86ecf857e6cd033c4d7205271ca7d8d3cd5a3a",
+        "profile": "proposed-memory-vfs-c-byte-utc-v1",
+        "lexicalTokens": [
+          "cat",
+          "input",
+          "marker",
+          "sleep"
+        ],
+        "literalPipeCharacterCount": 0,
+        "literalRedirectCharacterCount": 1,
+        "assets": [
+          {
+            "role": "stdin",
+            "byteLength": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "role": "file:input",
+            "byteLength": 11,
+            "sha256": "340fff0a88fe1fae3e7c8d324b3543a84a38a25da106ce0e6f86c4791800ecc6"
+          },
+          {
+            "role": "file:sentinel",
+            "byteLength": 10,
+            "sha256": "0967b63182a9178fa55b1b6b6f3db64bb615bc8ed4457d69ceb99faeecbf8ed7"
+          }
+        ]
+      }
+    },
+    {
+      "id": "proposed/v1/24/sleep/fractional-marker",
+      "name": "sleep",
+      "script": "sleep 0.001s && cat input > marker",
+      "input": {
+        "cwd": "/fixture",
+        "files": {
+          "input": "YWZ0ZXItaW50ZXJ2YWwK",
+          "sentinel": "dW50b3VjaGVkCg=="
+        },
+        "stdinBase64": "",
+        "directories": [],
+        "fileModes": {},
+        "fileTimes": {},
+        "symlinks": {}
+      },
+      "inputCanonicalSha256": "e91d5b83e39ce7db5fb0dd5c36dad4236401b8a97fb2cff0cdf08ebf225aeb7e",
+      "scriptSha256": "134f08524a84522e9446575476601a903e6226ae30a6b974ce299924faed1803",
+      "profile": "proposed-memory-vfs-c-byte-utc-v1",
+      "publicDocumentation": {
+        "path": "src/commands/time-env/README.md",
+        "sha256": "42351fecb1c1f7c293bec851fa48720b6557fc6af0e2e77e9784d51ff765d53b"
+      },
+      "intent": "A short positive duration permits subsequent VFS work. No precision/speed assertion.",
+      "plannedOutputPaths": [
+        "marker"
+      ],
+      "mustPreserveInputs": true,
+      "nativeExpected": null,
+      "oracleStatus": "future-independent-generation-required",
+      "candidateBinding": null,
+      "status": "sealed-proposal-not-pass",
+      "staticCoverage": {
+        "id": "proposed/sleep/fractional-marker",
+        "declaredTarget": "sleep",
+        "scriptSha256": "134f08524a84522e9446575476601a903e6226ae30a6b974ce299924faed1803",
+        "byteInputSha256": "026d45cbfdbb916f614263e92a26bc07fda498f39810f1bd8f2ed1ae69da6769",
+        "fullFixtureSha256": "e91d5b83e39ce7db5fb0dd5c36dad4236401b8a97fb2cff0cdf08ebf225aeb7e",
+        "scriptAndByteInputSha256": "5202dad0fb8b272da2405d11564adaa9385f18319aea125b92e3ee06c7fd8c9d",
+        "fullRecipeProfileSha256": "11912d3e3af41c6cde813314a0de08d2400bbef1f4c8f567c42a72645f6d9ab8",
+        "profile": "proposed-memory-vfs-c-byte-utc-v1",
+        "lexicalTokens": [
+          "cat",
+          "input",
+          "marker",
+          "s",
+          "sleep"
+        ],
+        "literalPipeCharacterCount": 0,
+        "literalRedirectCharacterCount": 1,
+        "assets": [
+          {
+            "role": "stdin",
+            "byteLength": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "role": "file:input",
+            "byteLength": 15,
+            "sha256": "0334babd2cc35f70f2b63cccb6f0e3b62985dc7ef92b0b236da1c34ae061c889"
+          },
+          {
+            "role": "file:sentinel",
+            "byteLength": 10,
+            "sha256": "0967b63182a9178fa55b1b6b6f3db64bb615bc8ed4457d69ceb99faeecbf8ed7"
+          }
+        ]
+      }
+    }
+  ]
+}

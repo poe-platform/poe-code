@@ -1,0 +1,289 @@
+{
+  "schema": "safe-bash.runner-preparation-revision.v2",
+  "date": "2026-08-27",
+  "scope": "RUNNER_ONLY_PREPARATION_REVISION_NOT_CANDIDATE_FREEZE_OR_EXECUTION_APPROVAL",
+  "status": "WAITING_ROOT",
+  "reviewRequests": [
+    1,
+    3
+  ],
+  "actualRootReceiptSupplied": false,
+  "priorRecord": {
+    "path": "benchmarks/reports/current-comparison-20260827/runner/revisions/reviewed-v1/RECORD.json",
+    "sha256": "d211d189889e7e78bee96f7d67b76e8ea83f4a5ec8d71ce9886698cdab3f5a62",
+    "preservedInputs": 15,
+    "initialAuthorMockCounts": [
+      60,
+      62
+    ],
+    "initialReviewerMockCount": 62
+  },
+  "changes": [
+    "Hash-bound preparation-only ROOT coordination receipt; no signing/key/comparisonApproved requirement",
+    "Shared evidence-role documents with explicit selectors; independent candidate reviews preserved",
+    "Selected historical cohorts without forced new24/current-candidate freeze/all-phase approval; null proposed expectations preserved",
+    "Known tree/file planned additions, no source-name-count inference"
+  ],
+  "checks": {
+    "syntax": 5,
+    "mocks": {
+      "checks": 83,
+      "passed": 83,
+      "failed": 0
+    },
+    "cli": {
+      "checks": 9,
+      "expectedOutcomes": 9
+    },
+    "archivedPriorInputs": 15,
+    "staticAttempts": {
+      "first": "FAILED_LEXICAL_FALSE_POSITIVE_RETAINED",
+      "second": "PASS_STATIC_MOCK_CHECKS"
+    },
+    "staticImportStatementsChecked": 16,
+    "staticInputBytes": 193382,
+    "ownedSourceWhitespace": "PASS",
+    "realLifecycleTests": "NOT_RUN"
+  },
+  "preApplyHelperFailures": [
+    {
+      "step": "archive generation",
+      "exit": 1,
+      "reason": "Relative reviewer rawFile resolved against cwd, then corrected using recorded rawDirectory; no patch applied"
+    },
+    {
+      "step": "mock patch generation",
+      "exit": 1,
+      "reason": "Unbounded sign( text matcher matched Object.assign; corrected word boundary; no patch applied"
+    },
+    {
+      "step": "document patch",
+      "reason": "Duplicate delete/add operations rejected before application; used targeted updates"
+    }
+  ],
+  "sourceFiles": [
+    {
+      "path": "benchmarks/reports/current-comparison-20260827/runner/INTERFACES.md",
+      "bytes": 12550,
+      "sha256": "d326e98ee86b4dc24ea185aa3edfd3df581b22f5a06b6156687e4c9e1c6842b2",
+      "priorSha256": "7e52a4e454200d01516374c37789fc2d41735181f3e8b47e16e8e3569b3dcb02",
+      "reviewedPriorSha256": null,
+      "changed": true,
+      "classification": "preparation-documentation"
+    },
+    {
+      "path": "benchmarks/reports/current-comparison-20260827/runner/PROTOCOL.md",
+      "bytes": 22379,
+      "sha256": "2d54869251b3d12ffcaea01ffa11a25cf319be733bc4be016b5a216fdd36754e",
+      "priorSha256": "ee77d427e64d2be36d1b729ec665ac7fe7cb7118b3531617fb77d1c12e93a0a9",
+      "reviewedPriorSha256": null,
+      "changed": true,
+      "classification": "preparation-documentation"
+    },
+    {
+      "path": "benchmarks/reports/current-comparison-20260827/runner/README.md",
+      "bytes": 7163,
+      "sha256": "3bb18116873ecf0175831904124df2498310c19536cca8b1c45638d24b87175f",
+      "priorSha256": "3b01c1c1c1216d0919472727e674aee9cbd868d29f114a8dc570ab72855c968a",
+      "reviewedPriorSha256": null,
+      "changed": true,
+      "classification": "preparation-documentation"
+    },
+    {
+      "path": "benchmarks/reports/current-comparison-20260827/runner/REVISIONS.md",
+      "bytes": 5736,
+      "sha256": "7e4924676e9b452f686287b83547a7d21c84e8dbbd54d81d9496ec4139a07f86",
+      "priorSha256": null,
+      "reviewedPriorSha256": null,
+      "changed": true,
+      "classification": "preparation-documentation"
+    },
+    {
+      "path": "benchmarks/reports/current-comparison-20260827/runner/VALIDATION.md",
+      "bytes": 5121,
+      "sha256": "69c8efce5b75f57f7763eeb60b3a1dc3ea5ca7382b1437ac78cd4a7fa8b4e72f",
+      "priorSha256": "048d9e3a5a85581cce0e78ec0d3942fb83fb113eff868206cbd61553730111c6",
+      "reviewedPriorSha256": null,
+      "changed": true,
+      "classification": "preparation-documentation"
+    },
+    {
+      "path": "benchmarks/reports/current-comparison-20260827/runner/gate.mjs",
+      "bytes": 13552,
+      "sha256": "1c152441dffadaa58b627abfc338a7fdf100d29e19907e407ff99945e8ededc7",
+      "priorSha256": "d631e6c66f0d3711c45d4f921b7bc8f667179c2578187702067716741cd2d129",
+      "reviewedPriorSha256": "d631e6c66f0d3711c45d4f921b7bc8f667179c2578187702067716741cd2d129",
+      "changed": true,
+      "classification": "preparation-code"
+    },
+    {
+      "path": "benchmarks/reports/current-comparison-20260827/runner/lifecycle-model.mjs",
+      "bytes": 4738,
+      "sha256": "ac1bb054e3c0a04679371ed44f010105379ed856ce08c306fc60ea4911af15bb",
+      "priorSha256": "ac1bb054e3c0a04679371ed44f010105379ed856ce08c306fc60ea4911af15bb",
+      "reviewedPriorSha256": "ac1bb054e3c0a04679371ed44f010105379ed856ce08c306fc60ea4911af15bb",
+      "changed": false,
+      "classification": "preparation-code"
+    },
+    {
+      "path": "benchmarks/reports/current-comparison-20260827/runner/mock-not-an-engine.mjs.data",
+      "bytes": 67,
+      "sha256": "be7e2d0a602ac99f6a3bd5d189f787921c3b55958f513e9a4ebf9a6688bdf8d8",
+      "priorSha256": "be7e2d0a602ac99f6a3bd5d189f787921c3b55958f513e9a4ebf9a6688bdf8d8",
+      "reviewedPriorSha256": null,
+      "changed": false,
+      "classification": "opaque-mock-data"
+    },
+    {
+      "path": "benchmarks/reports/current-comparison-20260827/runner/prepare.mjs",
+      "bytes": 1951,
+      "sha256": "12aa46950be6a8d50e6e78d2836b6259bc32359b7d4aa3351eb58a1382bb17b0",
+      "priorSha256": "2722fb536e1dae749ad5d7e2a60e69d56000815680f836267692cc20940cdf31",
+      "reviewedPriorSha256": "2722fb536e1dae749ad5d7e2a60e69d56000815680f836267692cc20940cdf31",
+      "changed": true,
+      "classification": "preparation-code"
+    },
+    {
+      "path": "benchmarks/reports/current-comparison-20260827/runner/reader.mjs",
+      "bytes": 3050,
+      "sha256": "807ad329ec3542a3aa947b560e7b956832d4b077682a6bd9edca768c05070d57",
+      "priorSha256": "4ecdc85d9d0d0d44e655fc67a2aecccfb07bc20da8007e700a17c4f73f5ceffc",
+      "reviewedPriorSha256": "4ecdc85d9d0d0d44e655fc67a2aecccfb07bc20da8007e700a17c4f73f5ceffc",
+      "changed": true,
+      "classification": "preparation-code"
+    },
+    {
+      "path": "benchmarks/reports/current-comparison-20260827/runner/selfcheck.mjs",
+      "bytes": 24012,
+      "sha256": "b3682ef72f80072c60eaae402302feb1b84c60157cb9ac3ba2f060ad184cb805",
+      "priorSha256": "a4706f48e3ac792ac906a32e6b7e9ce34c5b6fcf9fd5a4b57ec1dc8aab9aa91b",
+      "reviewedPriorSha256": "a4706f48e3ac792ac906a32e6b7e9ce34c5b6fcf9fd5a4b57ec1dc8aab9aa91b",
+      "changed": true,
+      "classification": "preparation-code"
+    }
+  ],
+  "rawEvidence": [
+    {
+      "path": "/tmp/safe-bash-runner-revision2-checks.kYEUpK/selfcheck-attempt-001.json",
+      "bytes": 13374,
+      "sha256": "a41059778edf9da2ea0822f7d00c4a701a3942a264979d713160b431360aa96c"
+    },
+    {
+      "path": "/tmp/safe-bash-runner-revision2-checks.kYEUpK/static-cli-checks.json",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/safe-bash-runner-revision2-checks.kYEUpK/static-cli-checks-attempt-002.json",
+      "bytes": 10997,
+      "sha256": "b3e9c04cab5934f883d0ac9d4ab6ef63652e3ee933855e15679ed2a75b1b876e"
+    },
+    {
+      "path": "/tmp/safe-bash-runner-revision2-checks.kYEUpK/static-attempt-001-failure.json",
+      "bytes": 907,
+      "sha256": "a7316cc8bcdd2a1b08dea2ea7e84bfe9d8aa094647ebe9c3ed44a47cc30059b9"
+    },
+    {
+      "path": "/tmp/safe-bash-runner-revision2-checks.kYEUpK/prepare.json",
+      "bytes": 1235,
+      "sha256": "fe51ceeedec6a4f040f87cd9148b8fccbd41a0b2b3a519e39a213576926012b7"
+    },
+    {
+      "path": "/tmp/safe-bash-runner-revision2-checks.kYEUpK/preflight-missing.json",
+      "bytes": 586,
+      "sha256": "0d98aef800ff64e9744db1abc24418f114b43c2ae367e858aabdc79e5b37c9f4"
+    },
+    {
+      "path": "/tmp/safe-bash-runner-revision2-checks.kYEUpK/preflight-missing-receipt.json",
+      "bytes": 548,
+      "sha256": "7c4ea63968ccf94845c481efe29919178342d7f9b181f4a060b90221c90e8f8a"
+    },
+    {
+      "path": "/tmp/safe-bash-runner-revision2-checks.kYEUpK/preflight-synthetic-selected.json",
+      "bytes": 1278,
+      "sha256": "5fd738ce1e493ef4873e3be4a9a68595c0bfc2db547446ef6ca23f71ff852c2b"
+    },
+    {
+      "path": "/tmp/safe-bash-runner-revision2-checks.kYEUpK/preflight-bad-receipt-hash.json",
+      "bytes": 531,
+      "sha256": "b3eeb45c1ae12a5a920420e62174f4f360a5fa0a5ca4f0c70c9afe94f45604f8"
+    },
+    {
+      "path": "/tmp/safe-bash-runner-revision2-checks.kYEUpK/execute-rejected.json",
+      "bytes": 539,
+      "sha256": "498c51c53d4049054107505d7fd25fd46e23273c9a119ee100f63dbe30b57799"
+    },
+    {
+      "path": "/tmp/safe-bash-runner-revision2-checks.kYEUpK/key-flag-rejected.json",
+      "bytes": 508,
+      "sha256": "6292cae9f5109b191c39387554d5961ada1b1b04627f35dedd91acf51c1551ff"
+    },
+    {
+      "path": "/tmp/safe-bash-runner-revision2-checks.kYEUpK/execution-flag-rejected.json",
+      "bytes": 508,
+      "sha256": "6292cae9f5109b191c39387554d5961ada1b1b04627f35dedd91acf51c1551ff"
+    },
+    {
+      "path": "/tmp/safe-bash-runner-revision2-checks.kYEUpK/preflight-absent-receipt-file.json",
+      "bytes": 573,
+      "sha256": "59bdb3c0e3f7d0ebb0aa9c67b8959c4cf8abe0fdf40bc25031cc8e4f4ee044ae"
+    },
+    {
+      "path": "/tmp/safe-bash-runner-revision2-checks.kYEUpK/shared-mock-evidence.json",
+      "bytes": 340,
+      "sha256": "b560e60c357d59605ceb3215230d9d83af8969d602d422ec190a6ce29d64aab7"
+    },
+    {
+      "path": "/tmp/safe-bash-runner-revision2-checks.kYEUpK/selected-historical.mock.json",
+      "bytes": 1348,
+      "sha256": "77a06ac8edafb52254ef73d18816b39288c355a399d35fd2956e5f49bb4bac05"
+    },
+    {
+      "path": "/tmp/safe-bash-runner-revision2-checks.kYEUpK/root-receipt.mock.json",
+      "bytes": 333,
+      "sha256": "60f04a41398cf281ae4bea92dae17e57e4587c906608c45e1c1f8cd0b86ef104"
+    }
+  ],
+  "archivedRevisionEvidence": [
+    {
+      "originalPath": "/tmp/safe-bash-runner-revision2-checks.kYEUpK/selfcheck-attempt-001.json",
+      "archivedPath": "benchmarks/reports/current-comparison-20260827/runner/revisions/revision2/selfcheck-attempt-001.json.data",
+      "bytes": 13374,
+      "sha256": "a41059778edf9da2ea0822f7d00c4a701a3942a264979d713160b431360aa96c"
+    },
+    {
+      "originalPath": "/tmp/safe-bash-runner-revision2-checks.kYEUpK/static-cli-checks-attempt-002.json",
+      "archivedPath": "benchmarks/reports/current-comparison-20260827/runner/revisions/revision2/static-cli-checks-attempt-002.json.data",
+      "bytes": 10997,
+      "sha256": "b3e9c04cab5934f883d0ac9d4ab6ef63652e3ee933855e15679ed2a75b1b876e"
+    },
+    {
+      "originalPath": "/tmp/safe-bash-runner-revision2-checks.kYEUpK/static-attempt-001-failure.json",
+      "archivedPath": "benchmarks/reports/current-comparison-20260827/runner/revisions/revision2/static-attempt-001-failure.json.data",
+      "bytes": 907,
+      "sha256": "a7316cc8bcdd2a1b08dea2ea7e84bfe9d8aa094647ebe9c3ed44a47cc30059b9"
+    }
+  ],
+  "controlsLimits": {
+    "perFileReadBytes": 2097152,
+    "totalRecordReadBytes": 16777216,
+    "actualRecordReadBytes": 176777
+  },
+  "processStatus": {
+    "allPreviouslyLaunchedChecksCompleted": true,
+    "runnerOwnedBackgroundJobs": 0,
+    "engineCalls": 0,
+    "nativeWorkloadCalls": 0,
+    "runnerSpawnedChildrenOrWorkers": 0,
+    "servers": 0,
+    "timingSamples": 0,
+    "scope": "Own admitted checks only; shell/Git metadata/Node tools ran; not host-wide quiescence"
+  },
+  "executionEnabled": false,
+  "executorPresent": false,
+  "timingEnabled": false,
+  "score": null,
+  "stagedOrCommitted": false,
+  "exclusions": "No product/root/package/sibling/private writes, downloads, comparisons, native probes, servers, timing, full-package tests/builds or du work",
+  "hashScope": "Current source table excludes this record itself; external raw record SHA256 is reported separately"
+}

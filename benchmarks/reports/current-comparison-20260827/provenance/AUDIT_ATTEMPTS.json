@@ -1,0 +1,130 @@
+{
+  "schemaVersion": 1,
+  "attempts": [
+    {
+      "attempt": 1,
+      "path": "/tmp/safe-bash-current-comparison-hash-audit.json",
+      "bytes": 13700390,
+      "sha256": "00c65bf16bf18f7f796864bb6bc78e1bfa177db2b51e6b0ba059eb00b56be05f",
+      "checkerSha256": "8cdbc098ea431607db0df2653a0449e99b736160ae9831ea6c5806962aa6e5a6",
+      "inputsSha256": "fbd43f39f2d3ce4d7f08e6753a47a5aebfb24bbacbeea32fd197a55e4fbcf73b",
+      "exitCode": 2,
+      "summary": {
+        "evidenceVerified": 28,
+        "treesVerified": 6,
+        "nativeRecordsVerified": 137,
+        "nativeRecordsBlocked": 1,
+        "unresolvedHistoricalNativeNames": 12,
+        "blockingObservations": 2
+      },
+      "blockers": [
+        {
+          "path": "/private/tmp/safe-bash-published-auth-JydnQ4/execution-closure",
+          "error": "TREE_MEMBERSHIP_OR_BYTES_MISMATCH"
+        },
+        {
+          "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/strings",
+          "error": "ENOENT"
+        }
+      ],
+      "note": "Initial base-only check exposes two extra observer files and missing strings. No comparison executed.",
+      "earlierCheckerSourcePreserved": "Intermediate source revisions not separately retained; raw result and emitted checker hash retained. Not claimed as independently replayable historical script snapshots."
+    },
+    {
+      "attempt": 2,
+      "path": "/tmp/safe-bash-current-comparison-hash-audit-v2.json",
+      "bytes": 4498502,
+      "sha256": "efa2dfbb9074de3bb345a806f74ab1a988e41b757e3f42653f3b3971038c0579",
+      "checkerSha256": "5c58f432929a103aeb3218c12701707456cea8f53c69c34b862188d85de3995f",
+      "inputsSha256": "fbd43f39f2d3ce4d7f08e6753a47a5aebfb24bbacbeea32fd197a55e4fbcf73b",
+      "exitCode": 2,
+      "summary": {
+        "evidenceVerified": 28,
+        "treesVerified": 7,
+        "nativeRecordsVerified": 137,
+        "nativeRecordsBlocked": 1,
+        "unresolvedHistoricalNativeNames": 12,
+        "blockingObservations": 2
+      },
+      "blockers": [
+        {
+          "path": "/private/tmp/safe-bash-published-auth-JydnQ4/execution-closure",
+          "error": "TREE_MEMBERSHIP_OR_BYTES_MISMATCH"
+        },
+        {
+          "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/strings",
+          "error": "ENOENT"
+        }
+      ],
+      "note": "Separate later primary 3844-file closure map added; original 3842-only mismatch retained.",
+      "earlierCheckerSourcePreserved": "Intermediate source revisions not separately retained; raw result and emitted checker hash retained. Not claimed as independently replayable historical script snapshots."
+    },
+    {
+      "attempt": 3,
+      "path": "/tmp/safe-bash-current-comparison-hash-audit-v3.json",
+      "bytes": 4724942,
+      "sha256": "0fa698cf35c9c650d513c61ad5d865192c8ad0ce23742abefdfbd88ed93652c5",
+      "checkerSha256": "fc0dbe8c33030e51117c025563a956da5f45d79dcffd3ca9c0e47b19ebc2dda0",
+      "inputsSha256": "fbd43f39f2d3ce4d7f08e6753a47a5aebfb24bbacbeea32fd197a55e4fbcf73b",
+      "exitCode": 2,
+      "summary": {
+        "evidenceVerified": 28,
+        "treesVerified": 7,
+        "nativeRecordsVerified": 137,
+        "nativeRecordsBlocked": 1,
+        "unresolvedHistoricalNativeNames": 12,
+        "blockingObservations": 3
+      },
+      "blockers": [
+        {
+          "path": "/private/tmp/safe-bash-published-auth-JydnQ4/execution-closure",
+          "error": "TREE_MEMBERSHIP_OR_BYTES_MISMATCH"
+        },
+        {
+          "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+          "error": "FILE_BYTE_CAP"
+        },
+        {
+          "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/strings",
+          "error": "ENOENT"
+        }
+      ],
+      "note": "Old source/profile and baseline runtime prerequisites added; 64 MiB hash cap blocks the 112989184-byte Node executable.",
+      "earlierCheckerSourcePreserved": "Intermediate source revisions not separately retained; raw result and emitted checker hash retained. Not claimed as independently replayable historical script snapshots."
+    },
+    {
+      "attempt": 4,
+      "path": "/tmp/safe-bash-current-comparison-hash-audit-final.json",
+      "bytes": 4725336,
+      "sha256": "27593beb311ae11c49de582993a99325486da84d2533ceaed8a0b16578f8ea05",
+      "checkerSha256": "fc0dbe8c33030e51117c025563a956da5f45d79dcffd3ca9c0e47b19ebc2dda0",
+      "inputsSha256": "9c33ee8938d6d5adb33fc88b0e9ad5788568a58c3ab36c8f68c1afa35b90ebec",
+      "exitCode": 2,
+      "summary": {
+        "evidenceVerified": 28,
+        "treesVerified": 7,
+        "nativeRecordsVerified": 137,
+        "nativeRecordsBlocked": 1,
+        "unresolvedHistoricalNativeNames": 12,
+        "blockingObservations": 2
+      },
+      "blockers": [
+        {
+          "path": "/private/tmp/safe-bash-published-auth-JydnQ4/execution-closure",
+          "error": "TREE_MEMBERSHIP_OR_BYTES_MISMATCH"
+        },
+        {
+          "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/strings",
+          "error": "ENOENT"
+        }
+      ],
+      "note": "Only hash-reader per-file cap raised to 128 MiB; Node hash now verified. Original closure-profile mismatch and strings absence remain.",
+      "earlierCheckerSourcePreserved": "Final checker delivered"
+    }
+  ],
+  "nativeVersionAttempts": 1,
+  "nativeVersionChildrenTotal": 6,
+  "noVersionRetryAfterHashCapChange": true,
+  "primaryEvidenceFilesCheckedAgainstGitBlobs": 28,
+  "gitBlobVerificationAllMatched": true
+}

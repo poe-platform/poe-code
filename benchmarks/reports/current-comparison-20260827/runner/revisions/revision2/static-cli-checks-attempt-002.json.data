@@ -1,0 +1,307 @@
+{
+  "scope": "REVISION2_STATIC_AND_SYNTHETIC_CHECKS_ONLY",
+  "status": "PASS_STATIC_MOCK_CHECKS",
+  "syntaxFiles": 5,
+  "mockCounts": {
+    "checks": 83,
+    "passed": 83,
+    "failed": 0
+  },
+  "mockRaw": {
+    "path": "/tmp/safe-bash-runner-revision2-checks.kYEUpK/selfcheck-attempt-001.json",
+    "bytes": 13374,
+    "sha256": "a41059778edf9da2ea0822f7d00c4a701a3942a264979d713160b431360aa96c"
+  },
+  "cliChecks": 9,
+  "cliReceipts": [
+    {
+      "path": "/tmp/safe-bash-runner-revision2-checks.kYEUpK/prepare.json",
+      "bytes": 1235,
+      "sha256": "fe51ceeedec6a4f040f87cd9148b8fccbd41a0b2b3a519e39a213576926012b7",
+      "observedExit": 2,
+      "status": "WAITING_ROOT",
+      "output": {
+        "schema": "safe-bash.comparison-preflight.v2",
+        "mode": "PREPARATION_ONLY",
+        "status": "WAITING_ROOT",
+        "reasons": [
+          "No hash-bound ROOT preparation coordination receipt supplied."
+        ],
+        "executorPresent": false,
+        "executionEnabled": false,
+        "timingEnabled": false,
+        "engineCalls": 0,
+        "nativeWorkloadCalls": 0,
+        "childProcessesCreated": 0,
+        "loopbackServersCreated": 0,
+        "performanceSamples": 0,
+        "score": null,
+        "qualification": "Static preparation only; no candidate qualification or runtime proof.",
+        "candidateRoles": [
+          "candidateFreeze",
+          "canonicalInventory",
+          "inventoryReview",
+          "packManifest",
+          "packedReview",
+          "baselineAuthentication",
+          "dependencyClosure",
+          "nativeProfile",
+          "cohortPlan",
+          "executionProfile",
+          "budgetProfile",
+          "runnerSourceManifest"
+        ],
+        "historicalRoles": [
+          "cohortPlan",
+          "runnerSourceManifest"
+        ],
+        "requiredArguments": [
+          "manifest",
+          "root-receipt",
+          "root-receipt-sha256"
+        ],
+        "currentAuthorization": "PREPARE/PREFLIGHT and pure mock checks only",
+        "artifactReadCaps": {
+          "manifestBytes": 1048576,
+          "receiptBytes": 16384,
+          "artifactBytes": 268435456,
+          "totalBytes": 1073741824,
+          "files": 8192
+        }
+      }
+    },
+    {
+      "path": "/tmp/safe-bash-runner-revision2-checks.kYEUpK/preflight-missing.json",
+      "bytes": 586,
+      "sha256": "0d98aef800ff64e9744db1abc24418f114b43c2ae367e858aabdc79e5b37c9f4",
+      "observedExit": 2,
+      "status": "WAITING_ROOT",
+      "output": {
+        "schema": "safe-bash.comparison-preflight.v2",
+        "mode": "PREPARATION_ONLY",
+        "status": "WAITING_ROOT",
+        "reasons": [
+          "Missing ROOT input: --manifest",
+          "Missing ROOT input: --root-receipt",
+          "Missing ROOT input: --root-receipt-sha256"
+        ],
+        "executorPresent": false,
+        "executionEnabled": false,
+        "timingEnabled": false,
+        "engineCalls": 0,
+        "nativeWorkloadCalls": 0,
+        "childProcessesCreated": 0,
+        "loopbackServersCreated": 0,
+        "performanceSamples": 0,
+        "score": null,
+        "qualification": "Static preparation only; no candidate qualification or runtime proof."
+      }
+    },
+    {
+      "path": "/tmp/safe-bash-runner-revision2-checks.kYEUpK/preflight-missing-receipt.json",
+      "bytes": 548,
+      "sha256": "7c4ea63968ccf94845c481efe29919178342d7f9b181f4a060b90221c90e8f8a",
+      "observedExit": 2,
+      "status": "WAITING_ROOT",
+      "output": {
+        "schema": "safe-bash.comparison-preflight.v2",
+        "mode": "PREPARATION_ONLY",
+        "status": "WAITING_ROOT",
+        "reasons": [
+          "Missing ROOT input: --root-receipt",
+          "Missing ROOT input: --root-receipt-sha256"
+        ],
+        "executorPresent": false,
+        "executionEnabled": false,
+        "timingEnabled": false,
+        "engineCalls": 0,
+        "nativeWorkloadCalls": 0,
+        "childProcessesCreated": 0,
+        "loopbackServersCreated": 0,
+        "performanceSamples": 0,
+        "score": null,
+        "qualification": "Static preparation only; no candidate qualification or runtime proof."
+      }
+    },
+    {
+      "path": "/tmp/safe-bash-runner-revision2-checks.kYEUpK/preflight-synthetic-selected.json",
+      "bytes": 1278,
+      "sha256": "5fd738ce1e493ef4873e3be4a9a68595c0bfc2db547446ef6ca23f71ff852c2b",
+      "observedExit": 0,
+      "status": "PREPARED_EXECUTION_DISABLED",
+      "output": {
+        "schema": "safe-bash.comparison-preflight.v2",
+        "mode": "PREPARATION_ONLY",
+        "status": "PREPARED_EXECUTION_DISABLED",
+        "reasons": [],
+        "executorPresent": false,
+        "executionEnabled": false,
+        "timingEnabled": false,
+        "engineCalls": 0,
+        "nativeWorkloadCalls": 0,
+        "childProcessesCreated": 0,
+        "loopbackServersCreated": 0,
+        "performanceSamples": 0,
+        "score": null,
+        "qualification": "Static preparation only; no candidate qualification or runtime proof.",
+        "manifestSha256": "77a06ac8edafb52254ef73d18816b39288c355a399d35fd2956e5f49bb4bac05",
+        "rootReceiptSha256": "60f04a41398cf281ae4bea92dae17e57e4587c906608c45e1c1f8cd0b86ef104",
+        "artifactReceipts": [
+          {
+            "id": "sharedMock",
+            "bytes": 340,
+            "sha256": "b560e60c357d59605ceb3215230d9d83af8969d602d422ec190a6ce29d64aab7",
+            "resolvedPath": "/private/tmp/safe-bash-runner-revision2-checks.kYEUpK/shared-mock-evidence.json"
+          }
+        ],
+        "selectedCohorts": [
+          "baseline-only"
+        ],
+        "uncapturedExpectations": [],
+        "semanticGate": "Hash-bound ROOT coordination receipt under trusted-host authority; selectors, document content and candidate inventory NOT independently qualified by this reader.",
+        "nextGate": "A separately reviewed, ROOT-authorized executor is not implemented here."
+      }
+    },
+    {
+      "path": "/tmp/safe-bash-runner-revision2-checks.kYEUpK/preflight-bad-receipt-hash.json",
+      "bytes": 531,
+      "sha256": "b3eeb45c1ae12a5a920420e62174f4f360a5fa0a5ca4f0c70c9afe94f45604f8",
+      "observedExit": 1,
+      "status": "FAIL_PREFLIGHT",
+      "output": {
+        "schema": "safe-bash.comparison-preflight.v2",
+        "mode": "PREPARATION_ONLY",
+        "status": "FAIL_PREFLIGHT",
+        "reasons": [
+          "ROOT preparation receipt hash mismatch"
+        ],
+        "executorPresent": false,
+        "executionEnabled": false,
+        "timingEnabled": false,
+        "engineCalls": 0,
+        "nativeWorkloadCalls": 0,
+        "childProcessesCreated": 0,
+        "loopbackServersCreated": 0,
+        "performanceSamples": 0,
+        "score": null,
+        "qualification": "Static preparation only; no candidate qualification or runtime proof.",
+        "artifactReceipts": []
+      }
+    },
+    {
+      "path": "/tmp/safe-bash-runner-revision2-checks.kYEUpK/execute-rejected.json",
+      "bytes": 539,
+      "sha256": "498c51c53d4049054107505d7fd25fd46e23273c9a119ee100f63dbe30b57799",
+      "observedExit": 1,
+      "status": "FAIL_PREFLIGHT",
+      "output": {
+        "schema": "safe-bash.comparison-preflight.v2",
+        "mode": "PREPARATION_ONLY",
+        "status": "FAIL_PREFLIGHT",
+        "reasons": [
+          "Only PREPARE and PREFLIGHT exist; EXECUTE/RUN/TIMING are not implemented"
+        ],
+        "executorPresent": false,
+        "executionEnabled": false,
+        "timingEnabled": false,
+        "engineCalls": 0,
+        "nativeWorkloadCalls": 0,
+        "childProcessesCreated": 0,
+        "loopbackServersCreated": 0,
+        "performanceSamples": 0,
+        "score": null,
+        "qualification": "Static preparation only; no candidate qualification or runtime proof."
+      }
+    },
+    {
+      "path": "/tmp/safe-bash-runner-revision2-checks.kYEUpK/key-flag-rejected.json",
+      "bytes": 508,
+      "sha256": "6292cae9f5109b191c39387554d5961ada1b1b04627f35dedd91acf51c1551ff",
+      "observedExit": 1,
+      "status": "FAIL_PREFLIGHT",
+      "output": {
+        "schema": "safe-bash.comparison-preflight.v2",
+        "mode": "PREPARATION_ONLY",
+        "status": "FAIL_PREFLIGHT",
+        "reasons": [
+          "Unknown, duplicate or incomplete argument"
+        ],
+        "executorPresent": false,
+        "executionEnabled": false,
+        "timingEnabled": false,
+        "engineCalls": 0,
+        "nativeWorkloadCalls": 0,
+        "childProcessesCreated": 0,
+        "loopbackServersCreated": 0,
+        "performanceSamples": 0,
+        "score": null,
+        "qualification": "Static preparation only; no candidate qualification or runtime proof."
+      }
+    },
+    {
+      "path": "/tmp/safe-bash-runner-revision2-checks.kYEUpK/execution-flag-rejected.json",
+      "bytes": 508,
+      "sha256": "6292cae9f5109b191c39387554d5961ada1b1b04627f35dedd91acf51c1551ff",
+      "observedExit": 1,
+      "status": "FAIL_PREFLIGHT",
+      "output": {
+        "schema": "safe-bash.comparison-preflight.v2",
+        "mode": "PREPARATION_ONLY",
+        "status": "FAIL_PREFLIGHT",
+        "reasons": [
+          "Unknown, duplicate or incomplete argument"
+        ],
+        "executorPresent": false,
+        "executionEnabled": false,
+        "timingEnabled": false,
+        "engineCalls": 0,
+        "nativeWorkloadCalls": 0,
+        "childProcessesCreated": 0,
+        "loopbackServersCreated": 0,
+        "performanceSamples": 0,
+        "score": null,
+        "qualification": "Static preparation only; no candidate qualification or runtime proof."
+      }
+    },
+    {
+      "path": "/tmp/safe-bash-runner-revision2-checks.kYEUpK/preflight-absent-receipt-file.json",
+      "bytes": 573,
+      "sha256": "59bdb3c0e3f7d0ebb0aa9c67b8959c4cf8abe0fdf40bc25031cc8e4f4ee044ae",
+      "observedExit": 2,
+      "status": "WAITING_ROOT",
+      "output": {
+        "schema": "safe-bash.comparison-preflight.v2",
+        "mode": "PREPARATION_ONLY",
+        "status": "WAITING_ROOT",
+        "reasons": [
+          "ENOENT: no such file or directory, lstat '/tmp/safe-bash-runner-revision2-checks.kYEUpK/absent-receipt.json'"
+        ],
+        "executorPresent": false,
+        "executionEnabled": false,
+        "timingEnabled": false,
+        "engineCalls": 0,
+        "nativeWorkloadCalls": 0,
+        "childProcessesCreated": 0,
+        "loopbackServersCreated": 0,
+        "performanceSamples": 0,
+        "score": null,
+        "qualification": "Static preparation only; no candidate qualification or runtime proof."
+      }
+    }
+  ],
+  "archivedInputsChecked": 15,
+  "staticImportStatementsChecked": 16,
+  "staticImportScope": "Four named preparation modules, not universal module evaluation or AST security proof; retained prior lexical false positive",
+  "inputBytes": 193382,
+  "inputCaps": {
+    "perFileBytes": 2097152,
+    "totalBytes": 16777216
+  },
+  "engineCalls": 0,
+  "nativeWorkloadCalls": 0,
+  "runnerChildProcesses": 0,
+  "servers": 0,
+  "timingSamples": 0,
+  "score": null,
+  "realRootReceiptSupplied": false
+}

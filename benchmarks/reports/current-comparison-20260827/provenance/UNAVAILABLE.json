@@ -1,0 +1,125 @@
+{
+  "schemaVersion": 1,
+  "observedAt": "2026-08-27T10:27:53.469Z",
+  "scope": "PROVENANCE_PRECONDITIONS_ONLY_NO_CANDIDATE_AUTHORIZED",
+  "releaseGate": "BLOCKED_NO_AUTHORIZED_FUTURE_CANDIDATE",
+  "candidate": {
+    "rootCommit": null,
+    "gitTree": null,
+    "acceptedDirtyCaptureOrCleanSource": null,
+    "packedArtifact": null,
+    "accepted70Names": null,
+    "acceptedTrackedConsumerInventory": null,
+    "acceptedDifferentAgentPackedReview": null,
+    "authorization": null
+  },
+  "blockedExactProfiles": [
+    {
+      "path": "/private/tmp/safe-bash-published-auth-JydnQ4/execution-closure",
+      "error": "TREE_MEMBERSHIP_OR_BYTES_MISMATCH",
+      "disposition": "Base 3842-file closure cannot be reused as exact-membership unchanged. Separate 3844-file primary v3 profile verifies; no implicit profile substitution."
+    },
+    {
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/strings",
+      "error": "ENOENT",
+      "disposition": "Missing exact recorded strings prerequisite; no substitute search/install."
+    }
+  ],
+  "unresolvedHistoricalNativeNames": [
+    {
+      "name": "column",
+      "status": "BLOCKED_PREREQUISITE",
+      "reason": "No usable identity in the historical baseline-only harness; do not substitute another profile or silently install.",
+      "independentlyRecordedProfile": null
+    },
+    {
+      "name": "file",
+      "status": "BLOCKED_PREREQUISITE",
+      "reason": "No usable identity in the historical baseline-only harness; do not substitute another profile or silently install.",
+      "independentlyRecordedProfile": "file5.41-libmagic-Darwin"
+    },
+    {
+      "name": "rev",
+      "status": "BLOCKED_PREREQUISITE",
+      "reason": "No usable identity in the historical baseline-only harness; do not substitute another profile or silently install.",
+      "independentlyRecordedProfile": null
+    },
+    {
+      "name": "tree",
+      "status": "BLOCKED_PREREQUISITE",
+      "reason": "No usable identity in the historical baseline-only harness; do not substitute another profile or silently install.",
+      "independentlyRecordedProfile": "tree2.2.1-Darwin"
+    },
+    {
+      "name": "sqlite3",
+      "status": "BLOCKED_PREREQUISITE",
+      "reason": "No usable identity in the historical baseline-only harness; do not substitute another profile or silently install.",
+      "independentlyRecordedProfile": null
+    },
+    {
+      "name": "xan",
+      "status": "BLOCKED_PREREQUISITE",
+      "reason": "No usable identity in the historical baseline-only harness; do not substitute another profile or silently install.",
+      "independentlyRecordedProfile": null
+    },
+    {
+      "name": "yq",
+      "status": "BLOCKED_PREREQUISITE",
+      "reason": "No usable identity in the historical baseline-only harness; do not substitute another profile or silently install.",
+      "independentlyRecordedProfile": null
+    },
+    {
+      "name": "html-to-markdown",
+      "status": "BLOCKED_PREREQUISITE",
+      "reason": "No usable identity in the historical baseline-only harness; do not substitute another profile or silently install.",
+      "independentlyRecordedProfile": null
+    },
+    {
+      "name": "js-exec",
+      "status": "BLOCKED_PREREQUISITE",
+      "reason": "No usable identity in the historical baseline-only harness; do not substitute another profile or silently install.",
+      "independentlyRecordedProfile": null
+    },
+    {
+      "name": "python",
+      "status": "BLOCKED_PREREQUISITE",
+      "reason": "No usable identity in the historical baseline-only harness; do not substitute another profile or silently install.",
+      "independentlyRecordedProfile": null
+    },
+    {
+      "name": "python3",
+      "status": "BLOCKED_PREREQUISITE",
+      "reason": "No usable identity in the historical baseline-only harness; do not substitute another profile or silently install.",
+      "independentlyRecordedProfile": null
+    },
+    {
+      "name": "time",
+      "status": "BLOCKED_PREREQUISITE",
+      "reason": "No usable identity in the historical baseline-only harness; do not substitute another profile or silently install.",
+      "independentlyRecordedProfile": null
+    }
+  ],
+  "futureInputs": [
+    "root authorization of exact future candidate and execution envelope",
+    "root integration commit and git tree",
+    "accepted dirty capture or clean-source proof",
+    "packed artifact bytes and contents hashes",
+    "exact public/default 70-name inventory, optional curl/SafeJS separation",
+    "accepted tracked-consumer inventory and different-agent packed review, each hash-bound",
+    "authenticated available native profiles and accepted per-profile case denominator",
+    "captured actual request/settlement/import-evaluation/lifecycle evidence for newly authorized calls"
+  ],
+  "diagnosticPolicy": {
+    "label": "SKIP_NOT_RUN",
+    "requiresSeparateAuthorization": true,
+    "countsAsPass": false,
+    "shrinksRequiredDenominator": false
+  },
+  "releasePolicy": {
+    "missingRequiredPrerequisite": "BLOCKED_PREREQUISITE",
+    "implicitRecovery": false,
+    "implicitProfileFallback": false
+  },
+  "newCandidateFrozen": false,
+  "comparisonCasesExecuted": 0
+}

@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 2,
+  "status": "additive-preparation-integrity-only-not-approval",
+  "baseSealSha256": "da99ce71943feec45a2bbbae6319e38fb1816522b5ffddbe55ae28b0716ce230",
+  "files": [
+    {
+      "path": "amendment-v2.json",
+      "bytes": 3708,
+      "sha256": "b437a1b265ef9ae7866f4b9e16eeaef78c0485d3dda184edb0cd1dada845ff50"
+    },
+    {
+      "path": "AMENDMENT_V2.md",
+      "bytes": 3979,
+      "sha256": "e6bbe9e132cb8503deeab72d8948dfadf0de04b6076f953d672b236e7101598c"
+    },
+    {
+      "path": "verify-amendment-v2.mjs",
+      "bytes": 9057,
+      "sha256": "7ab2a4b2cd79f053912fc1a5b9b40b246b7f5ab580a5edfdf7912f955beaeb63"
+    }
+  ],
+  "contentDigest": "93a48984cb6ad35001ccc61783c88035bf00cd6077e82cf46cd9984a91f432ab"
+}

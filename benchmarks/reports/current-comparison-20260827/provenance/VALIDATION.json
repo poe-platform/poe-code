@@ -1,0 +1,63 @@
+{
+  "schemaVersion": 1,
+  "checkedAt": "2026-08-27T10:32:49.478Z",
+  "scope": "Owned-output validation only, no product tests, comparisons, native workloads or new version probes",
+  "syntaxChecks": {
+    "check-hashes.mjs": "PASS",
+    "native-versions.mjs": "PASS"
+  },
+  "ownedJsonParse": "PASS",
+  "ownedWhitespace": "PASS",
+  "inputsAndCheckerHashes": "PASS",
+  "versionReceiptAndPreservedInputsHashes": "PASS",
+  "primaryGitBlobChecks": {
+    "files": 28,
+    "matched": 28
+  },
+  "expectedBlockedHashCheckerExit": 2,
+  "blockedProfilesPreserved": [
+    {
+      "path": "/private/tmp/safe-bash-published-auth-JydnQ4/execution-closure",
+      "error": "TREE_MEMBERSHIP_OR_BYTES_MISMATCH"
+    },
+    {
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/strings",
+      "error": "ENOENT"
+    }
+  ],
+  "packageRoots": [
+    "authenticated-extraction",
+    "old-replay-installed-package",
+    "authenticated-execution-package",
+    "live-installed-comparator-not-candidate"
+  ],
+  "packageFilesPerRoot": 955,
+  "laterClosureFiles": 3844,
+  "oldSourceFiles": 176,
+  "baselineOnlyRuntimePrerequisites": 29,
+  "nativeVersions": {
+    "planned": 6,
+    "attempted": 6,
+    "spawned": 6,
+    "closed": 6,
+    "groupsAbsent": 6,
+    "timeoutOrOutputFailures": 0,
+    "cleanupSignals": 0,
+    "activeManagedChildren": 0
+  },
+  "validationAttempts": [
+    {
+      "attempt": 1,
+      "status": "FAILED_AUDIT_LABEL_SELECTOR",
+      "error": "Expected 4 package roots; substring selector matched 3, omitting live-installed-comparator-not-candidate. No artifact failure or product execution."
+    },
+    {
+      "attempt": 2,
+      "status": "PASS",
+      "correction": "Use explicit four package labels; all 955-file hashes/membership verified in every root. No new hashing or native-version execution."
+    }
+  ],
+  "stagedPaths": [],
+  "commitsCreated": 0,
+  "newCandidateAuthorized": false
+}

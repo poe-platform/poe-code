@@ -1,0 +1,128 @@
+{
+  "scope": "ADDITIVE_REVIEWED_V1_HISTORY_NOT_EXECUTABLE",
+  "reason": "Preserve inputs before review requests 1 and 3 revision",
+  "reviewedSelfchecks": {
+    "checks": 62,
+    "passed": 62,
+    "failed": 0,
+    "rawFile": "runner-selfcheck.json",
+    "rawSha256": "03f33ac17f006ac1c36a9cad2ca893d10f53f6c7ce35e750a221281a64614d71",
+    "realLifecycleProof": false
+  },
+  "preservationAttempt1": {
+    "status": "FAILED_BEFORE_APPLY_PATCH",
+    "exit": 1,
+    "reason": "ENOENT stat runner-selfcheck.json: reviewer rawFile is relative to rawDirectory; corrected resolution, no repository edits applied on failed attempt",
+    "partialPatchRetained": true
+  },
+  "records": [
+    {
+      "originalPath": "benchmarks/reports/current-comparison-20260827/runner/INTERFACES.md",
+      "archivedPath": "benchmarks/reports/current-comparison-20260827/runner/revisions/reviewed-v1/01-INTERFACES.md.data",
+      "bytes": 10437,
+      "sha256": "7e52a4e454200d01516374c37789fc2d41735181f3e8b47e16e8e3569b3dcb02",
+      "reviewedSha256": null
+    },
+    {
+      "originalPath": "benchmarks/reports/current-comparison-20260827/runner/PROTOCOL.md",
+      "archivedPath": "benchmarks/reports/current-comparison-20260827/runner/revisions/reviewed-v1/02-PROTOCOL.md.data",
+      "bytes": 22031,
+      "sha256": "ee77d427e64d2be36d1b729ec665ac7fe7cb7118b3531617fb77d1c12e93a0a9",
+      "reviewedSha256": null
+    },
+    {
+      "originalPath": "benchmarks/reports/current-comparison-20260827/runner/README.md",
+      "archivedPath": "benchmarks/reports/current-comparison-20260827/runner/revisions/reviewed-v1/03-README.md.data",
+      "bytes": 6117,
+      "sha256": "3b01c1c1c1216d0919472727e674aee9cbd868d29f114a8dc570ab72855c968a",
+      "reviewedSha256": null
+    },
+    {
+      "originalPath": "benchmarks/reports/current-comparison-20260827/runner/VALIDATION.md",
+      "archivedPath": "benchmarks/reports/current-comparison-20260827/runner/revisions/reviewed-v1/04-VALIDATION.md.data",
+      "bytes": 4809,
+      "sha256": "048d9e3a5a85581cce0e78ec0d3942fb83fb113eff868206cbd61553730111c6",
+      "reviewedSha256": null
+    },
+    {
+      "originalPath": "benchmarks/reports/current-comparison-20260827/runner/gate.mjs",
+      "archivedPath": "benchmarks/reports/current-comparison-20260827/runner/revisions/reviewed-v1/05-gate.mjs.data",
+      "bytes": 11988,
+      "sha256": "d631e6c66f0d3711c45d4f921b7bc8f667179c2578187702067716741cd2d129",
+      "reviewedSha256": "d631e6c66f0d3711c45d4f921b7bc8f667179c2578187702067716741cd2d129"
+    },
+    {
+      "originalPath": "benchmarks/reports/current-comparison-20260827/runner/lifecycle-model.mjs",
+      "archivedPath": "benchmarks/reports/current-comparison-20260827/runner/revisions/reviewed-v1/06-lifecycle-model.mjs.data",
+      "bytes": 4738,
+      "sha256": "ac1bb054e3c0a04679371ed44f010105379ed856ce08c306fc60ea4911af15bb",
+      "reviewedSha256": "ac1bb054e3c0a04679371ed44f010105379ed856ce08c306fc60ea4911af15bb"
+    },
+    {
+      "originalPath": "benchmarks/reports/current-comparison-20260827/runner/mock-not-an-engine.mjs.data",
+      "archivedPath": "benchmarks/reports/current-comparison-20260827/runner/revisions/reviewed-v1/07-mock-not-an-engine.mjs.data.data",
+      "bytes": 67,
+      "sha256": "be7e2d0a602ac99f6a3bd5d189f787921c3b55958f513e9a4ebf9a6688bdf8d8",
+      "reviewedSha256": null
+    },
+    {
+      "originalPath": "benchmarks/reports/current-comparison-20260827/runner/prepare.mjs",
+      "archivedPath": "benchmarks/reports/current-comparison-20260827/runner/revisions/reviewed-v1/08-prepare.mjs.data",
+      "bytes": 2085,
+      "sha256": "2722fb536e1dae749ad5d7e2a60e69d56000815680f836267692cc20940cdf31",
+      "reviewedSha256": "2722fb536e1dae749ad5d7e2a60e69d56000815680f836267692cc20940cdf31"
+    },
+    {
+      "originalPath": "benchmarks/reports/current-comparison-20260827/runner/reader.mjs",
+      "archivedPath": "benchmarks/reports/current-comparison-20260827/runner/revisions/reviewed-v1/09-reader.mjs.data",
+      "bytes": 3071,
+      "sha256": "4ecdc85d9d0d0d44e655fc67a2aecccfb07bc20da8007e700a17c4f73f5ceffc",
+      "reviewedSha256": "4ecdc85d9d0d0d44e655fc67a2aecccfb07bc20da8007e700a17c4f73f5ceffc"
+    },
+    {
+      "originalPath": "benchmarks/reports/current-comparison-20260827/runner/selfcheck.mjs",
+      "archivedPath": "benchmarks/reports/current-comparison-20260827/runner/revisions/reviewed-v1/10-selfcheck.mjs.data",
+      "bytes": 17918,
+      "sha256": "a4706f48e3ac792ac906a32e6b7e9ce34c5b6fcf9fd5a4b57ec1dc8aab9aa91b",
+      "reviewedSha256": "a4706f48e3ac792ac906a32e6b7e9ce34c5b6fcf9fd5a4b57ec1dc8aab9aa91b"
+    },
+    {
+      "originalPath": "benchmarks/reports/current-comparison-20260827/verification/CHECKS.json",
+      "archivedPath": "benchmarks/reports/current-comparison-20260827/runner/revisions/reviewed-v1/11-CHECKS.json.data",
+      "bytes": 2260,
+      "sha256": "41a43b7c9cfa33eab1ce56329927b7c5a50454e31b5389b3b06a3808b14e567f",
+      "reviewedSha256": null
+    },
+    {
+      "originalPath": "benchmarks/reports/current-comparison-20260827/verification/REVIEW.md",
+      "archivedPath": "benchmarks/reports/current-comparison-20260827/runner/revisions/reviewed-v1/12-REVIEW.md.data",
+      "bytes": 7648,
+      "sha256": "dcbdda0399bf8f52c71f902604bd9268227a354b241200cfa329ad6e2d054a28",
+      "reviewedSha256": null
+    },
+    {
+      "originalPath": "/tmp/safe-bash-current-comparison-runner-checks.xRBRu2/selfcheck-attempt-001.json",
+      "archivedPath": "benchmarks/reports/current-comparison-20260827/runner/revisions/reviewed-v1/13-selfcheck-attempt-001.json.data",
+      "bytes": 10252,
+      "sha256": "b4d2183256ad4b8bc7763a2a1d7d25659d37374ea0c68b1dd1e65e75523ecfe4",
+      "reviewedSha256": null
+    },
+    {
+      "originalPath": "/tmp/safe-bash-current-comparison-runner-checks.xRBRu2/selfcheck-attempt-002.json",
+      "archivedPath": "benchmarks/reports/current-comparison-20260827/runner/revisions/reviewed-v1/14-selfcheck-attempt-002.json.data",
+      "bytes": 10569,
+      "sha256": "03f33ac17f006ac1c36a9cad2ca893d10f53f6c7ce35e750a221281a64614d71",
+      "reviewedSha256": null
+    },
+    {
+      "originalPath": "/tmp/safe-bash-preparation-verification.BzpzNY/runner-selfcheck.json",
+      "archivedPath": "benchmarks/reports/current-comparison-20260827/runner/revisions/reviewed-v1/15-runner-selfcheck.json.data",
+      "bytes": 10569,
+      "sha256": "03f33ac17f006ac1c36a9cad2ca893d10f53f6c7ce35e750a221281a64614d71",
+      "reviewedSha256": null
+    }
+  ],
+  "engineCalls": 0,
+  "nativeWorkloadCalls": 0,
+  "score": null
+}

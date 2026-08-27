@@ -1,0 +1,202 @@
+[
+  {
+    "name": "canonical-current",
+    "started": "2026-08-27T12:59:37.077Z",
+    "ended": "2026-08-27T12:59:43.196Z",
+    "args": [
+      "--import",
+      "tsx",
+      "--test",
+      "tests/shell/invocation-cleanup-public.test.ts"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-cleanup-runtime/migration-review/.work-attempt-02/candidate",
+    "pid": 96229,
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "counts": {
+      "tests": 10,
+      "pass": 10,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    }
+  },
+  {
+    "name": "negative-null",
+    "started": "2026-08-27T12:59:43.201Z",
+    "ended": "2026-08-27T12:59:43.330Z",
+    "args": [
+      "--import",
+      "tsx",
+      "--test",
+      "tests/shell/invocation-cleanup-public.test.ts"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-cleanup-runtime/migration-review/.work-attempt-02/candidate",
+    "pid": 96314,
+    "status": 1,
+    "signal": null,
+    "error": null,
+    "counts": {
+      "tests": 10,
+      "pass": 0,
+      "fail": 10,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    }
+  },
+  {
+    "name": "negative-false",
+    "started": "2026-08-27T12:59:43.331Z",
+    "ended": "2026-08-27T12:59:43.461Z",
+    "args": [
+      "--import",
+      "tsx",
+      "--test",
+      "tests/shell/invocation-cleanup-public.test.ts"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-cleanup-runtime/migration-review/.work-attempt-02/candidate",
+    "pid": 96317,
+    "status": 1,
+    "signal": null,
+    "error": null,
+    "counts": {
+      "tests": 10,
+      "pass": 0,
+      "fail": 10,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    }
+  },
+  {
+    "name": "negative-wrong-hash",
+    "started": "2026-08-27T12:59:43.461Z",
+    "ended": "2026-08-27T12:59:43.651Z",
+    "args": [
+      "--import",
+      "tsx",
+      "--test",
+      "tests/shell/invocation-cleanup-public.test.ts"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-cleanup-runtime/migration-review/.work-attempt-02/candidate",
+    "pid": 96320,
+    "status": 1,
+    "signal": null,
+    "error": null,
+    "counts": {
+      "tests": 10,
+      "pass": 0,
+      "fail": 10,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    }
+  },
+  {
+    "name": "negative-omitted-input",
+    "started": "2026-08-27T12:59:43.651Z",
+    "ended": "2026-08-27T12:59:43.844Z",
+    "args": [
+      "--import",
+      "tsx",
+      "--test",
+      "tests/shell/invocation-cleanup-public.test.ts"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-cleanup-runtime/migration-review/.work-attempt-02/candidate",
+    "pid": 96323,
+    "status": 1,
+    "signal": null,
+    "error": null,
+    "counts": {
+      "tests": 10,
+      "pass": 0,
+      "fail": 10,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    }
+  },
+  {
+    "name": "negative-wrong-revision",
+    "started": "2026-08-27T12:59:43.844Z",
+    "ended": "2026-08-27T12:59:43.988Z",
+    "args": [
+      "--import",
+      "tsx",
+      "--test",
+      "tests/shell/invocation-cleanup-public.test.ts"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-cleanup-runtime/migration-review/.work-attempt-02/candidate",
+    "pid": 96326,
+    "status": 1,
+    "signal": null,
+    "error": null,
+    "counts": {
+      "tests": 10,
+      "pass": 0,
+      "fail": 10,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    }
+  },
+  {
+    "name": "negative-loaded-emitted",
+    "started": "2026-08-27T12:59:46.443Z",
+    "ended": "2026-08-27T12:59:46.526Z",
+    "args": [
+      "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-cleanup-runtime/migration-review/.work-attempt-02/nested/safe-bash-public-cleanup-current-SuOTql/tests/shell-stress/invocation-cleanup-runtime/public-worker.mjs",
+      "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-cleanup-runtime/migration-review/.work-attempt-02/nested/safe-bash-public-cleanup-current-SuOTql/public-manifest.json",
+      "grep:normal"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-cleanup-runtime/migration-review/.work-attempt-02/nested/safe-bash-public-cleanup-current-SuOTql",
+    "pid": 96349,
+    "status": 1,
+    "signal": null,
+    "error": null,
+    "counts": {}
+  },
+  {
+    "name": "negative-loaded-manifest",
+    "started": "2026-08-27T12:59:46.856Z",
+    "ended": "2026-08-27T12:59:46.944Z",
+    "args": [
+      "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-cleanup-runtime/migration-review/.work-attempt-02/nested/safe-bash-public-cleanup-current-SuOTql/tests/shell-stress/invocation-cleanup-runtime/public-worker.mjs",
+      "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-cleanup-runtime/migration-review/.work-attempt-02/nested/safe-bash-public-cleanup-current-SuOTql/public-manifest.json",
+      "grep:normal"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-cleanup-runtime/migration-review/.work-attempt-02/nested/safe-bash-public-cleanup-current-SuOTql",
+    "pid": 96352,
+    "status": 1,
+    "signal": null,
+    "error": null,
+    "counts": {}
+  },
+  {
+    "name": "retirement-mutant-canonical",
+    "started": "2026-08-27T12:59:47.297Z",
+    "ended": "2026-08-27T12:59:53.289Z",
+    "args": [
+      "--import",
+      "tsx",
+      "--test",
+      "tests/shell/invocation-cleanup-public.test.ts"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-cleanup-runtime/migration-review/.work-attempt-02/mutant",
+    "pid": 96370,
+    "status": 1,
+    "signal": null,
+    "error": null,
+    "counts": {
+      "tests": 10,
+      "pass": 0,
+      "fail": 10,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    }
+  }
+]

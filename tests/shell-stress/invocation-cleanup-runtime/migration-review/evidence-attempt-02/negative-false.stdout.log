@@ -1,0 +1,180 @@
+TAP version 13
+# Subtest: real registered grep: normal waits owned native retirement
+not ok 1 - real registered grep: normal waits owned native retirement
+  ---
+  duration_ms: 1.940459
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-cleanup-runtime/migration-review/.work-attempt-02/candidate/tests/shell/invocation-cleanup-public.test.ts:1:1496'
+  failureType: 'hookFailed'
+  error: 'Committed qualification requires an object manifest'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    TestContext.before.timeout (/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-cleanup-runtime/migration-review/.work-attempt-02/candidate/tests/shell/invocation-cleanup-public.test.ts:20:12)
+    async TestHook.run (node:internal/test_runner/test:1054:7)
+  ...
+# Subtest: real registered grep: early-pipe waits owned native retirement
+not ok 2 - real registered grep: early-pipe waits owned native retirement
+  ---
+  duration_ms: 0.203291
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-cleanup-runtime/migration-review/.work-attempt-02/candidate/tests/shell/invocation-cleanup-public.test.ts:1:1496'
+  failureType: 'hookFailed'
+  error: 'Committed qualification requires an object manifest'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    TestContext.before.timeout (/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-cleanup-runtime/migration-review/.work-attempt-02/candidate/tests/shell/invocation-cleanup-public.test.ts:20:12)
+    async TestHook.run (node:internal/test_runner/test:1054:7)
+  ...
+# Subtest: real registered grep: caller-abort waits owned native retirement
+not ok 3 - real registered grep: caller-abort waits owned native retirement
+  ---
+  duration_ms: 0.022042
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-cleanup-runtime/migration-review/.work-attempt-02/candidate/tests/shell/invocation-cleanup-public.test.ts:1:1496'
+  failureType: 'hookFailed'
+  error: 'Committed qualification requires an object manifest'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    TestContext.before.timeout (/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-cleanup-runtime/migration-review/.work-attempt-02/candidate/tests/shell/invocation-cleanup-public.test.ts:20:12)
+    async TestHook.run (node:internal/test_runner/test:1054:7)
+  ...
+# Subtest: real registered grep: same-shell-sibling waits owned native retirement
+not ok 4 - real registered grep: same-shell-sibling waits owned native retirement
+  ---
+  duration_ms: 0.015375
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-cleanup-runtime/migration-review/.work-attempt-02/candidate/tests/shell/invocation-cleanup-public.test.ts:1:1496'
+  failureType: 'hookFailed'
+  error: 'Committed qualification requires an object manifest'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    TestContext.before.timeout (/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-cleanup-runtime/migration-review/.work-attempt-02/candidate/tests/shell/invocation-cleanup-public.test.ts:20:12)
+    async TestHook.run (node:internal/test_runner/test:1054:7)
+  ...
+# Subtest: real registered grep: other-shell-sibling waits owned native retirement
+not ok 5 - real registered grep: other-shell-sibling waits owned native retirement
+  ---
+  duration_ms: 0.018125
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-cleanup-runtime/migration-review/.work-attempt-02/candidate/tests/shell/invocation-cleanup-public.test.ts:1:1496'
+  failureType: 'hookFailed'
+  error: 'Committed qualification requires an object manifest'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    TestContext.before.timeout (/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-cleanup-runtime/migration-review/.work-attempt-02/candidate/tests/shell/invocation-cleanup-public.test.ts:20:12)
+    async TestHook.run (node:internal/test_runner/test:1054:7)
+  ...
+# Subtest: real registered rg: normal waits owned native retirement
+not ok 6 - real registered rg: normal waits owned native retirement
+  ---
+  duration_ms: 0.01425
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-cleanup-runtime/migration-review/.work-attempt-02/candidate/tests/shell/invocation-cleanup-public.test.ts:1:1496'
+  failureType: 'hookFailed'
+  error: 'Committed qualification requires an object manifest'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    TestContext.before.timeout (/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-cleanup-runtime/migration-review/.work-attempt-02/candidate/tests/shell/invocation-cleanup-public.test.ts:20:12)
+    async TestHook.run (node:internal/test_runner/test:1054:7)
+  ...
+# Subtest: real registered rg: early-pipe waits owned native retirement
+not ok 7 - real registered rg: early-pipe waits owned native retirement
+  ---
+  duration_ms: 0.046125
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-cleanup-runtime/migration-review/.work-attempt-02/candidate/tests/shell/invocation-cleanup-public.test.ts:1:1496'
+  failureType: 'hookFailed'
+  error: 'Committed qualification requires an object manifest'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    TestContext.before.timeout (/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-cleanup-runtime/migration-review/.work-attempt-02/candidate/tests/shell/invocation-cleanup-public.test.ts:20:12)
+    async TestHook.run (node:internal/test_runner/test:1054:7)
+  ...
+# Subtest: real registered rg: caller-abort waits owned native retirement
+not ok 8 - real registered rg: caller-abort waits owned native retirement
+  ---
+  duration_ms: 0.015083
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-cleanup-runtime/migration-review/.work-attempt-02/candidate/tests/shell/invocation-cleanup-public.test.ts:1:1496'
+  failureType: 'hookFailed'
+  error: 'Committed qualification requires an object manifest'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    TestContext.before.timeout (/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-cleanup-runtime/migration-review/.work-attempt-02/candidate/tests/shell/invocation-cleanup-public.test.ts:20:12)
+    async TestHook.run (node:internal/test_runner/test:1054:7)
+  ...
+# Subtest: real registered rg: same-shell-sibling waits owned native retirement
+not ok 9 - real registered rg: same-shell-sibling waits owned native retirement
+  ---
+  duration_ms: 0.116625
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-cleanup-runtime/migration-review/.work-attempt-02/candidate/tests/shell/invocation-cleanup-public.test.ts:1:1496'
+  failureType: 'hookFailed'
+  error: 'Committed qualification requires an object manifest'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    TestContext.before.timeout (/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-cleanup-runtime/migration-review/.work-attempt-02/candidate/tests/shell/invocation-cleanup-public.test.ts:20:12)
+    async TestHook.run (node:internal/test_runner/test:1054:7)
+  ...
+# Subtest: real registered rg: other-shell-sibling waits owned native retirement
+not ok 10 - real registered rg: other-shell-sibling waits owned native retirement
+  ---
+  duration_ms: 0.101042
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-cleanup-runtime/migration-review/.work-attempt-02/candidate/tests/shell/invocation-cleanup-public.test.ts:1:1496'
+  failureType: 'hookFailed'
+  error: 'Committed qualification requires an object manifest'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    TestContext.before.timeout (/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-cleanup-runtime/migration-review/.work-attempt-02/candidate/tests/shell/invocation-cleanup-public.test.ts:20:12)
+    async TestHook.run (node:internal/test_runner/test:1054:7)
+  ...
+1..10
+# tests 10
+# suites 0
+# pass 0
+# fail 10
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 103.631292

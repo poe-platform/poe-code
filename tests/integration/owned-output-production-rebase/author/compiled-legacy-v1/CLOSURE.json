@@ -1,0 +1,55 @@
+{
+  "candidate": "eba049535d154f4e028f57ffd8efd7622b2239ca",
+  "artifactProfile": "compiled-legacy-v1",
+  "finished": "2026-08-27T20:08:37.811721+00:00",
+  "failed": true,
+  "results": [
+    {
+      "name": "compiler-version",
+      "exitCode": 0,
+      "elapsedSeconds": 0.09231216700572986,
+      "counts": {},
+      "passed": true,
+      "allPermittedIntegrityChecksPassed": true,
+      "remainingOwnProcessGroupObserved": false
+    },
+    {
+      "name": "build",
+      "exitCode": 0,
+      "elapsedSeconds": 2.4118319580011303,
+      "counts": {},
+      "passed": true,
+      "allPermittedIntegrityChecksPassed": true,
+      "remainingOwnProcessGroupObserved": false
+    },
+    {
+      "name": "worker-prerequisite",
+      "exitCode": 1,
+      "elapsedSeconds": 0.04687154100975022,
+      "counts": {},
+      "passed": false,
+      "allPermittedIntegrityChecksPassed": true,
+      "remainingOwnProcessGroupObserved": false
+    }
+  ],
+  "notRun": [
+    "core",
+    "state",
+    "focused-types",
+    "source-types"
+  ],
+  "snapshotFinalSha256": "50727697894edc0a1e6ccc8fbf276de5ba2e0e23ebd5f35a76ebc4e80196be52",
+  "immutableSourceTestsConfigCopiedToolsIncludingEntriesUnchanged": true,
+  "compiledArtifactsFinalSha256": "3189d7dd493248d41de38f01055e1ecf844bf10e7226d9b453ad3a1f0d03dfd9",
+  "compiledArtifactsUnchangedAfterBuild": true,
+  "installedToolsFinalSha256": "8a64487cc654516786ed4e9fbc933836099c590e2149dc84c29c21744e70cbd9",
+  "installedToolsUnchangedIncludingEntries": true,
+  "externalToolsFinalSha256": "2eb4b7ae8a2af0c3b508edf67bb726c396a25a8035a1cacb867981d6b472c198",
+  "externalToolsUnchanged": true,
+  "buildsAttempted": 1,
+  "packs": 0,
+  "installs": 0,
+  "privateQueries": 0,
+  "snapshotRetention": "Retained only in this author's new regular TMP; no other worker output accessed",
+  "handlesLimit": "Each command exits naturally unless timeout is recorded; own process-group presence probed once after exit; not host-wide detached-process/FD/syscall proof"
+}

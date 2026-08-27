@@ -1,0 +1,77 @@
+{
+  "candidate": "eba049535d154f4e028f57ffd8efd7622b2239ca",
+  "artifactProfile": "compiled-legacy-v1",
+  "name": "build",
+  "command": [
+    "node",
+    "node_modules/typescript/bin/tsc",
+    "-p",
+    "tsconfig.build.json"
+  ],
+  "cwd": "/tmp/safe-bash-owned-output-built-legacy-a_x4yi9h/candidate",
+  "environment": {
+    "PATH": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin:/usr/bin:/bin:/usr/sbin:/sbin",
+    "HOME": "/tmp/safe-bash-owned-output-built-legacy-a_x4yi9h/build-scratch/home",
+    "TMPDIR": "/tmp/safe-bash-owned-output-built-legacy-a_x4yi9h/build-scratch/tmp",
+    "TMP": "/tmp/safe-bash-owned-output-built-legacy-a_x4yi9h/build-scratch/tmp",
+    "TEMP": "/tmp/safe-bash-owned-output-built-legacy-a_x4yi9h/build-scratch/tmp",
+    "LANG": "C",
+    "LC_ALL": "C",
+    "TZ": "UTC",
+    "TSX_DISABLE_CACHE": "1"
+  },
+  "started": "2026-08-27T20:08:33.494094+00:00",
+  "finished": "2026-08-27T20:08:36.290178+00:00",
+  "elapsedSeconds": 2.4118319580011303,
+  "pid": 42827,
+  "exitCode": 0,
+  "outerTimeout": false,
+  "outerKill": false,
+  "remainingOwnProcessGroupObserved": false,
+  "counts": {},
+  "expectedTests": null,
+  "countMatch": true,
+  "stdoutMatch": true,
+  "passed": true,
+  "stdoutBytes": 0,
+  "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stderrBytes": 0,
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "snapshotBeforeSha256": "09365e7df933c169283c027863d06dd330eb355f61e526d79573838c597d8c9f",
+  "snapshotAfterSha256": "50727697894edc0a1e6ccc8fbf276de5ba2e0e23ebd5f35a76ebc4e80196be52",
+  "sourceTestsConfigCopiedToolsIncludingEntriesUnchanged": true,
+  "compiledArtifactsUnchanged": null,
+  "installedToolsAfterSha256": "8a64487cc654516786ed4e9fbc933836099c590e2149dc84c29c21744e70cbd9",
+  "externalToolsAfterSha256": "2eb4b7ae8a2af0c3b508edf67bb726c396a25a8035a1cacb867981d6b472c198",
+  "allPermittedIntegrityChecksPassed": true,
+  "scratchAfter": [
+    {
+      "path": "home",
+      "kind": "directory",
+      "mode": 493
+    },
+    {
+      "path": "tmp",
+      "kind": "directory",
+      "mode": 493
+    },
+    {
+      "path": "tmp/node-compile-cache",
+      "kind": "directory",
+      "mode": 493
+    },
+    {
+      "path": "tmp/node-compile-cache/v22.22.2-arm64-2b4477fa-501",
+      "kind": "directory",
+      "mode": 493
+    },
+    {
+      "path": "tmp/node-compile-cache/v22.22.2-arm64-2b4477fa-501/3aa81fe4",
+      "kind": "file",
+      "mode": 384,
+      "bytes": 1322028,
+      "sha256": "e663b2bebfbcbae4827abad6d7289423566b26a89b4ae5841c26bf2b9a269d71"
+    }
+  ],
+  "privateQueries": 0
+}

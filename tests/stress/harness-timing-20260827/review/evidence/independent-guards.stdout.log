@@ -1,0 +1,7 @@
+HARNESS_TIMING {"pid":88905,"event":"semantic-watchdog-armed","atMs":3716.500625,"detail":{"timerId":1,"milliseconds":20,"armedMs":3716.47375,"dueMs":3736.47375}}
+HARNESS_TIMING {"pid":88905,"event":"semantic-watchdog-fired","atMs":3738.948833,"detail":{"timerId":1,"armedMs":3716.47375,"dueMs":3736.47375,"firedMs":3738.924208,"latenessMs":2.4504579999997986}}
+HARNESS_TIMING {"pid":88905,"event":"semantic-watchdog-cleared","atMs":3739.149625,"detail":{"timerId":1}}
+HARNESS_TIMING {"pid":88905,"event":"semantic-watchdog-armed","atMs":3739.5345,"detail":{"timerId":2,"milliseconds":20,"armedMs":3739.530792,"dueMs":3759.530792}}
+HARNESS_TIMING {"pid":88905,"event":"semantic-watchdog-fired","atMs":3761.722458,"detail":{"timerId":2,"armedMs":3739.530792,"dueMs":3759.530792,"firedMs":3761.697,"latenessMs":2.166208000000097}}
+HARNESS_TIMING {"pid":88905,"event":"semantic-watchdog-cleared","atMs":3761.811542,"detail":{"timerId":2}}
+Independent controls: 8 completed, including one positive calibration; all exact controlled children retired.

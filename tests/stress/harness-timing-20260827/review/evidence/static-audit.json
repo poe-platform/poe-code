@@ -1,0 +1,67 @@
+{
+  "commit": "fa4c80035848ce5eab1efe3ae47862eac03ae7c9",
+  "checks": [
+    {
+      "name": "all 20 original snapshots retain frozen byte hashes",
+      "pass": true
+    },
+    {
+      "name": "original manifest unchanged",
+      "pass": true
+    },
+    {
+      "name": "all fixture inputs and expected triples unchanged",
+      "pass": true
+    },
+    {
+      "name": "unowned helper unchanged: tests/commands/structured-stress/jq-grammar-author-20260827/harness.ts",
+      "pass": true
+    },
+    {
+      "name": "unowned helper unchanged: tests/commands/search-stress/harness.ts",
+      "pass": true
+    },
+    {
+      "name": "15-case jq loop only changes adapter and test watchdog",
+      "pass": true
+    },
+    {
+      "name": "search product command context unchanged",
+      "pass": true
+    },
+    {
+      "name": "whole-write, backpressure and exact cancellation cases byte-identical",
+      "pass": true
+    },
+    {
+      "name": "wrapper retains exact pass6 and zero-status assertions",
+      "pass": true
+    },
+    {
+      "name": "scan adapter retains frozen product and shell limits",
+      "pass": true
+    },
+    {
+      "name": "implementation freeze contains only allowed harness paths",
+      "pass": true
+    },
+    {
+      "name": "consumed implementation files match author commit bytes",
+      "pass": true
+    }
+  ],
+  "changesSinceIndependentFreeze": [
+    {
+      "path": "src/commands/diff-patch/unified.ts",
+      "frozen": "a8659f40aeb9d1cac3548ffd24950e652eeace92cef1339de9e3a5e5ed7e10fb",
+      "current": "9c115580c2c896e0cc517d6adcd6329c7466f34264c736892ff90918b2ee3c38"
+    },
+    {
+      "path": "src/fs/webdav/webdav.ts",
+      "frozen": "8c280010a9de5f915ebb72be504d79f2a149e95064752c3a4b4a07cd425efd54",
+      "current": "d61d6d36eeea65f0c7e6eb5ecbe118e353ffe5a87131e4e26c1a3d772ee71acf"
+    }
+  ],
+  "checksPassed": 12,
+  "checksTotal": 12
+}

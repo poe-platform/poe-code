@@ -1,0 +1,209 @@
+{
+  "semanticResults": [
+    {
+      "name": "serial-jq",
+      "kind": "jq",
+      "durationMs": 7665.259417,
+      "checks": [
+        {
+          "name": "exact direct child and streams closed successfully",
+          "pass": true
+        },
+        {
+          "name": "canonical TAP retains 15 passes, zero failures/skips",
+          "pass": true
+        },
+        {
+          "name": "330 independently frozen actual triple digests, unique routes/transports",
+          "pass": true
+        },
+        {
+          "name": "module readiness precedes execution and actual read/output evidence",
+          "pass": true
+        }
+      ],
+      "traceEvents": 1981,
+      "pass": true
+    },
+    {
+      "name": "serial-wrapper",
+      "kind": "wrapper",
+      "durationMs": 360.42720800000006,
+      "checks": [
+        {
+          "name": "exact direct child and streams closed successfully",
+          "pass": true
+        },
+        {
+          "name": "canonical child retains six passes and zero failures/skips",
+          "pass": true
+        },
+        {
+          "name": "three exact native profiles, output triples and real retirement",
+          "pass": true
+        },
+        {
+          "name": "virtual suffix follows actual prefix output for all three repetitions",
+          "pass": true
+        }
+      ],
+      "traceEvents": 19,
+      "pass": true
+    },
+    {
+      "name": "concurrent-1-jq",
+      "kind": "jq",
+      "durationMs": 7534.692499999999,
+      "checks": [
+        {
+          "name": "exact direct child and streams closed successfully",
+          "pass": true
+        },
+        {
+          "name": "canonical TAP retains 15 passes, zero failures/skips",
+          "pass": true
+        },
+        {
+          "name": "330 independently frozen actual triple digests, unique routes/transports",
+          "pass": true
+        },
+        {
+          "name": "module readiness precedes execution and actual read/output evidence",
+          "pass": true
+        }
+      ],
+      "traceEvents": 1981,
+      "pass": true
+    },
+    {
+      "name": "concurrent-1-streaming",
+      "kind": "streaming",
+      "durationMs": 253.55370799999946,
+      "checks": [
+        {
+          "name": "exact direct child and streams closed successfully",
+          "pass": true
+        },
+        {
+          "name": "canonical child retains six passes and zero failures/skips",
+          "pass": true
+        },
+        {
+          "name": "three exact native profiles, output triples and real retirement",
+          "pass": true
+        },
+        {
+          "name": "virtual suffix follows actual prefix output for all three repetitions",
+          "pass": true
+        }
+      ],
+      "traceEvents": 19,
+      "pass": true
+    },
+    {
+      "name": "concurrent-2-streaming",
+      "kind": "streaming",
+      "durationMs": 254.32929200000035,
+      "checks": [
+        {
+          "name": "exact direct child and streams closed successfully",
+          "pass": true
+        },
+        {
+          "name": "canonical child retains six passes and zero failures/skips",
+          "pass": true
+        },
+        {
+          "name": "three exact native profiles, output triples and real retirement",
+          "pass": true
+        },
+        {
+          "name": "virtual suffix follows actual prefix output for all three repetitions",
+          "pass": true
+        }
+      ],
+      "traceEvents": 19,
+      "pass": true
+    },
+    {
+      "name": "concurrent-2-jq",
+      "kind": "jq",
+      "durationMs": 7433.4365,
+      "checks": [
+        {
+          "name": "exact direct child and streams closed successfully",
+          "pass": true
+        },
+        {
+          "name": "canonical TAP retains 15 passes, zero failures/skips",
+          "pass": true
+        },
+        {
+          "name": "330 independently frozen actual triple digests, unique routes/transports",
+          "pass": true
+        },
+        {
+          "name": "module readiness precedes execution and actual read/output evidence",
+          "pass": true
+        }
+      ],
+      "traceEvents": 1981,
+      "pass": true
+    }
+  ],
+  "changed": [],
+  "directlyOwned": [
+    {
+      "name": "native-profile",
+      "pid": 90495,
+      "exitSeen": true,
+      "closeSeen": true,
+      "failures": []
+    },
+    {
+      "name": "serial-jq",
+      "pid": 90497,
+      "exitSeen": true,
+      "closeSeen": true,
+      "failures": []
+    },
+    {
+      "name": "serial-wrapper",
+      "pid": 91177,
+      "exitSeen": true,
+      "closeSeen": true,
+      "failures": []
+    },
+    {
+      "name": "concurrent-1-streaming",
+      "pid": 91254,
+      "exitSeen": true,
+      "closeSeen": true,
+      "failures": []
+    },
+    {
+      "name": "concurrent-1-jq",
+      "pid": 91253,
+      "exitSeen": true,
+      "closeSeen": true,
+      "failures": []
+    },
+    {
+      "name": "concurrent-2-streaming",
+      "pid": 91468,
+      "exitSeen": true,
+      "closeSeen": true,
+      "failures": []
+    },
+    {
+      "name": "concurrent-2-jq",
+      "pid": 91469,
+      "exitSeen": true,
+      "closeSeen": true,
+      "failures": []
+    }
+  ],
+  "activeChildren": [],
+  "maximumScheduledDescendants": 3,
+  "wrapperConcurrency": "not exercised; exact canonical child cases concurrent instead"
+}

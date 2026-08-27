@@ -1,0 +1,5 @@
+{
+  "name": "late-rejection-observed",
+  "lateRejection": true,
+  "strictUnhandledRejections": true
+}

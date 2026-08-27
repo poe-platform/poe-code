@@ -1,0 +1,607 @@
+{
+  "implementation": "fa4c80035848ce5eab1efe3ae47862eac03ae7c9",
+  "evidenceCommit": "0619e1c47ecffb9913f35d5ad86c177e74ab67f7",
+  "manifestSha256": "4a2f7cca93a2aa81e5e4cde09f2c7d6ebac779d630a2e7017921177112ae03fd",
+  "verified": [
+    {
+      "kind": "implementation",
+      "path": "tests/commands/search-stress/streaming-cases.ts",
+      "sha256": "c95f952ea2d9a80248a21677c1486113bd2cad322e78506af3d41f5803163b2e",
+      "commit": "fa4c80035848ce5eab1efe3ae47862eac03ae7c9"
+    },
+    {
+      "kind": "implementation",
+      "path": "tests/commands/search-stress/streaming.test.ts",
+      "sha256": "8df0258324e0694a1712ac9e614f1fea690aa9581180b4bed3a1ac9455c2fa80",
+      "commit": "fa4c80035848ce5eab1efe3ae47862eac03ae7c9"
+    },
+    {
+      "kind": "implementation",
+      "path": "tests/commands/structured-stress/jq-grammar-author-20260827/scan-boundaries.test.ts",
+      "sha256": "107a7169371234bd4d2e4636d5ff5f9cc70e3afccc2ed0299520a709abb816b1",
+      "commit": "fa4c80035848ce5eab1efe3ae47862eac03ae7c9"
+    },
+    {
+      "kind": "implementation",
+      "path": "tests/stress/harness-timing-20260827/RUN-PLAN.md",
+      "sha256": "d875abc874b68d1d9ecf6982705146942b0a1505e02deba52fb91cd4f7d44dd0",
+      "commit": "fa4c80035848ce5eab1efe3ae47862eac03ae7c9"
+    },
+    {
+      "kind": "implementation",
+      "path": "tests/stress/harness-timing-20260827/baseline.mjs",
+      "sha256": "989c9df5894b55a7180f4b60c869736967bf147486b180e4ab09f36d4f62728c",
+      "commit": "fa4c80035848ce5eab1efe3ae47862eac03ae7c9"
+    },
+    {
+      "kind": "implementation",
+      "path": "tests/stress/harness-timing-20260827/evidence-tools.mjs",
+      "sha256": "47962ca0aecd424a6cf61571064c276c0bebed0c0ad4a74ac70582d0ed29c465",
+      "commit": "fa4c80035848ce5eab1efe3ae47862eac03ae7c9"
+    },
+    {
+      "kind": "implementation",
+      "path": "tests/stress/harness-timing-20260827/final-check.mjs",
+      "sha256": "49e4bdd32df7720ec6427f40a14cc03d75633ffd7c2c69eaaf67ab1337a9fc17",
+      "commit": "fa4c80035848ce5eab1efe3ae47862eac03ae7c9"
+    },
+    {
+      "kind": "implementation",
+      "path": "tests/stress/harness-timing-20260827/jq-baseline.ts",
+      "sha256": "dfb6b4b6f114ffcdf79f15c970ec1d63405f51e9e12f614b9fd341480fec7b99",
+      "commit": "fa4c80035848ce5eab1efe3ae47862eac03ae7c9"
+    },
+    {
+      "kind": "implementation",
+      "path": "tests/stress/harness-timing-20260827/native-baseline.ts",
+      "sha256": "5ce78d4e29132b26c53391845ac76e7532129e58f1ebea122af1c540709b5520",
+      "commit": "fa4c80035848ce5eab1efe3ae47862eac03ae7c9"
+    },
+    {
+      "kind": "implementation",
+      "path": "tests/stress/harness-timing-20260827/native-delivery.ts",
+      "sha256": "3e415abe8d16c9e42037fa16793632c9ea23feb199580c5e6837cb9d886f1bb4",
+      "commit": "fa4c80035848ce5eab1efe3ae47862eac03ae7c9"
+    },
+    {
+      "kind": "implementation",
+      "path": "tests/stress/harness-timing-20260827/negative-controls.ts",
+      "sha256": "aa1824f5d9da016b7f77d2dfedaf14e5cc8fdb649ee26817cb2f129fe3fe6b85",
+      "commit": "fa4c80035848ce5eab1efe3ae47862eac03ae7c9"
+    },
+    {
+      "kind": "implementation",
+      "path": "tests/stress/harness-timing-20260827/scan-execution.ts",
+      "sha256": "ebf67b88b6f7a5c6192ee0075db0579f901e57b102d836c0f0e8229a3c91c269",
+      "commit": "fa4c80035848ce5eab1efe3ae47862eac03ae7c9"
+    },
+    {
+      "kind": "implementation",
+      "path": "tests/stress/harness-timing-20260827/schedule.mjs",
+      "sha256": "4576cbdbac6a6aa948129b051002faf078c01002f7577341262353f601b05a0e",
+      "commit": "fa4c80035848ce5eab1efe3ae47862eac03ae7c9"
+    },
+    {
+      "kind": "implementation",
+      "path": "tests/stress/harness-timing-20260827/summarize.mjs",
+      "sha256": "2bb6098f172c1eb75aaf24779c08766fcc8399b0e5092b0041f12eaf0efc301a",
+      "commit": "fa4c80035848ce5eab1efe3ae47862eac03ae7c9"
+    },
+    {
+      "kind": "implementation",
+      "path": "tests/stress/harness-timing-20260827/trace.ts",
+      "sha256": "87b108fb8c6361c5a12ea5a76e835eca77bf34fec90b0ac33a6aa5e6fb0f29fc",
+      "commit": "fa4c80035848ce5eab1efe3ae47862eac03ae7c9"
+    },
+    {
+      "kind": "implementation",
+      "path": "tests/stress/harness-timing-20260827/tsconfig.scope.json",
+      "sha256": "fc6ca2cc22b73370315d529fb4f178fd43aa21a5597bbf17291ada8dcd1d1619",
+      "commit": "fa4c80035848ce5eab1efe3ae47862eac03ae7c9"
+    },
+    {
+      "kind": "implementation",
+      "path": "tests/stress/harness-timing-20260827/watchdog.ts",
+      "sha256": "c6a30c3faf09c48d776dc4013f89b8354d8b893163522cfb6035b2e528fd0df3",
+      "commit": "fa4c80035848ce5eab1efe3ae47862eac03ae7c9"
+    },
+    {
+      "kind": "artifact",
+      "path": "tests/stress/harness-timing-20260827/evidence/attempt-1-source/manifest.json",
+      "sha256": "8304ac381922ba3bad0fe7a1a1c9a539ce6c31bb9014bab274f66c7983876bcc",
+      "commit": "0619e1c47ecffb9913f35d5ad86c177e74ab67f7"
+    },
+    {
+      "kind": "artifact",
+      "path": "tests/stress/harness-timing-20260827/evidence/attempt-1-source/tests/commands/search-stress/streaming-cases.ts.txt",
+      "sha256": "c95f952ea2d9a80248a21677c1486113bd2cad322e78506af3d41f5803163b2e",
+      "commit": "0619e1c47ecffb9913f35d5ad86c177e74ab67f7"
+    },
+    {
+      "kind": "artifact",
+      "path": "tests/stress/harness-timing-20260827/evidence/attempt-1-source/tests/commands/search-stress/streaming.test.ts.txt",
+      "sha256": "8df0258324e0694a1712ac9e614f1fea690aa9581180b4bed3a1ac9455c2fa80",
+      "commit": "0619e1c47ecffb9913f35d5ad86c177e74ab67f7"
+    },
+    {
+      "kind": "artifact",
+      "path": "tests/stress/harness-timing-20260827/evidence/attempt-1-source/tests/commands/structured-stress/jq-grammar-author-20260827/scan-boundaries.test.ts.txt",
+      "sha256": "107a7169371234bd4d2e4636d5ff5f9cc70e3afccc2ed0299520a709abb816b1",
+      "commit": "0619e1c47ecffb9913f35d5ad86c177e74ab67f7"
+    },
+    {
+      "kind": "artifact",
+      "path": "tests/stress/harness-timing-20260827/evidence/attempt-1-source/tests/stress/harness-timing-20260827/evidence-tools.mjs.txt",
+      "sha256": "1ee2a554c0a3ec8ee032b2679ca94c02edceabd0c043e1f1512cbebb733bb9e9",
+      "commit": "0619e1c47ecffb9913f35d5ad86c177e74ab67f7"
+    },
+    {
+      "kind": "artifact",
+      "path": "tests/stress/harness-timing-20260827/evidence/attempt-1-source/tests/stress/harness-timing-20260827/native-delivery.ts.txt",
+      "sha256": "99b21733e0051df6bf2581814446262c1f364eb08d582251e4155f1909afb554",
+      "commit": "0619e1c47ecffb9913f35d5ad86c177e74ab67f7"
+    },
+    {
+      "kind": "artifact",
+      "path": "tests/stress/harness-timing-20260827/evidence/attempt-1-source/tests/stress/harness-timing-20260827/negative-controls.ts.txt",
+      "sha256": "b763894ba495121da2b5a6d7ac2e05b756bb7a3eaa6c3a3672f2ed6027ee4670",
+      "commit": "0619e1c47ecffb9913f35d5ad86c177e74ab67f7"
+    },
+    {
+      "kind": "artifact",
+      "path": "tests/stress/harness-timing-20260827/evidence/attempt-1-source/tests/stress/harness-timing-20260827/scan-execution.ts.txt",
+      "sha256": "ebf67b88b6f7a5c6192ee0075db0579f901e57b102d836c0f0e8229a3c91c269",
+      "commit": "0619e1c47ecffb9913f35d5ad86c177e74ab67f7"
+    },
+    {
+      "kind": "artifact",
+      "path": "tests/stress/harness-timing-20260827/evidence/attempt-1-source/tests/stress/harness-timing-20260827/schedule.mjs.txt",
+      "sha256": "4576cbdbac6a6aa948129b051002faf078c01002f7577341262353f601b05a0e",
+      "commit": "0619e1c47ecffb9913f35d5ad86c177e74ab67f7"
+    },
+    {
+      "kind": "artifact",
+      "path": "tests/stress/harness-timing-20260827/evidence/attempt-1-source/tests/stress/harness-timing-20260827/trace.ts.txt",
+      "sha256": "87b108fb8c6361c5a12ea5a76e835eca77bf34fec90b0ac33a6aa5e6fb0f29fc",
+      "commit": "0619e1c47ecffb9913f35d5ad86c177e74ab67f7"
+    },
+    {
+      "kind": "artifact",
+      "path": "tests/stress/harness-timing-20260827/evidence/attempt-1-source/tests/stress/harness-timing-20260827/watchdog.ts.txt",
+      "sha256": "a2d1d32a270b65004b45112ca1d49f80d768b883d7354f21bbd143c8e496091c",
+      "commit": "0619e1c47ecffb9913f35d5ad86c177e74ab67f7"
+    },
+    {
+      "kind": "artifact",
+      "path": "tests/stress/harness-timing-20260827/evidence/baseline-jq-events.json",
+      "sha256": "bfd0666c1857e05c7fe3c0db02290fb1c74dd50b8eb571e42ca405134ba69951",
+      "commit": "0619e1c47ecffb9913f35d5ad86c177e74ab67f7"
+    },
+    {
+      "kind": "artifact",
+      "path": "tests/stress/harness-timing-20260827/evidence/baseline-jq-events.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "commit": "0619e1c47ecffb9913f35d5ad86c177e74ab67f7"
+    },
+    {
+      "kind": "artifact",
+      "path": "tests/stress/harness-timing-20260827/evidence/baseline-jq-events.stdout.log",
+      "sha256": "a49a081b30e36537fe67e011051948173b4a5ada4c7e313a1f0d119bac4827ad",
+      "commit": "0619e1c47ecffb9913f35d5ad86c177e74ab67f7"
+    },
+    {
+      "kind": "artifact",
+      "path": "tests/stress/harness-timing-20260827/evidence/baseline-jq.json",
+      "sha256": "749916825dab5d2e0311881451f721ad086762fba03659b45ad67a496b7563d4",
+      "commit": "0619e1c47ecffb9913f35d5ad86c177e74ab67f7"
+    },
+    {
+      "kind": "artifact",
+      "path": "tests/stress/harness-timing-20260827/evidence/baseline-jq.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "commit": "0619e1c47ecffb9913f35d5ad86c177e74ab67f7"
+    },
+    {
+      "kind": "artifact",
+      "path": "tests/stress/harness-timing-20260827/evidence/baseline-jq.stdout.log",
+      "sha256": "f04e1fdc8a2f4ad73f34a5a69b2b6b9c717f61b05fd4bcd09ab3e0b1d331d3ec",
+      "commit": "0619e1c47ecffb9913f35d5ad86c177e74ab67f7"
+    },
+    {
+      "kind": "artifact",
+      "path": "tests/stress/harness-timing-20260827/evidence/baseline-streaming.json",
+      "sha256": "0989a9dbc93a0ef0ec79e13d11dd3a83d2e9adc903ce40ca3843a2b96c9f031c",
+      "commit": "0619e1c47ecffb9913f35d5ad86c177e74ab67f7"
+    },
+    {
+      "kind": "artifact",
+      "path": "tests/stress/harness-timing-20260827/evidence/baseline-streaming.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "commit": "0619e1c47ecffb9913f35d5ad86c177e74ab67f7"
+    },
+    {
+      "kind": "artifact",
+      "path": "tests/stress/harness-timing-20260827/evidence/baseline-streaming.stdout.log",
+      "sha256": "41398bc7d7f4fb37d192eff424eea3a4d06607351f956a32271a204a2e7634aa",
+      "commit": "0619e1c47ecffb9913f35d5ad86c177e74ab67f7"
+    },
+    {
+      "kind": "artifact",
+      "path": "tests/stress/harness-timing-20260827/evidence/before.json",
+      "sha256": "fb509690fdc35e00cbbc68d608097950ffba50fe7b9f2f23474d3d52a90319f3",
+      "commit": "0619e1c47ecffb9913f35d5ad86c177e74ab67f7"
+    },
+    {
+      "kind": "artifact",
+      "path": "tests/stress/harness-timing-20260827/evidence/default-prefix-events.json",
+      "sha256": "c6924ae999e1d9685128266e88e55c47ada0a7ce84dcd2758a790fb759e1ba3c",
+      "commit": "0619e1c47ecffb9913f35d5ad86c177e74ab67f7"
+    },
+    {
+      "kind": "artifact",
+      "path": "tests/stress/harness-timing-20260827/evidence/expected-330-triples.json",
+      "sha256": "151450c1e83f5460ad70a197fa8f95cdcab68cf170ac6137aa43a049b814ee57",
+      "commit": "0619e1c47ecffb9913f35d5ad86c177e74ab67f7"
+    },
+    {
+      "kind": "artifact",
+      "path": "tests/stress/harness-timing-20260827/evidence/final-check-results.json",
+      "sha256": "b90a1225bf97632174ca15aad9d984be63dcdb756e3660f7a8dd7203514b96cd",
+      "commit": "0619e1c47ecffb9913f35d5ad86c177e74ab67f7"
+    },
+    {
+      "kind": "artifact",
+      "path": "tests/stress/harness-timing-20260827/evidence/final-negative-controls.json",
+      "sha256": "1aecfcfa01543c27ea7ec6a17d2079987ed58c197f5fdefb6bee6f0f54b9d498",
+      "commit": "0619e1c47ecffb9913f35d5ad86c177e74ab67f7"
+    },
+    {
+      "kind": "artifact",
+      "path": "tests/stress/harness-timing-20260827/evidence/final-negative-controls.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "commit": "0619e1c47ecffb9913f35d5ad86c177e74ab67f7"
+    },
+    {
+      "kind": "artifact",
+      "path": "tests/stress/harness-timing-20260827/evidence/final-negative-controls.stdout.log",
+      "sha256": "86baf5657016ce8bfbfbc299bf5d208d7aefa819121d38c18e8b71cdfef87a70",
+      "commit": "0619e1c47ecffb9913f35d5ad86c177e74ab67f7"
+    },
+    {
+      "kind": "artifact",
+      "path": "tests/stress/harness-timing-20260827/evidence/final-scoped-types.json",
+      "sha256": "c08e66e4dca868a48db9ad02427fd7b774acf1692bb2e380421f5da6ba9c4d71",
+      "commit": "0619e1c47ecffb9913f35d5ad86c177e74ab67f7"
+    },
+    {
+      "kind": "artifact",
+      "path": "tests/stress/harness-timing-20260827/evidence/final-scoped-types.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "commit": "0619e1c47ecffb9913f35d5ad86c177e74ab67f7"
+    },
+    {
+      "kind": "artifact",
+      "path": "tests/stress/harness-timing-20260827/evidence/final-scoped-types.stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "commit": "0619e1c47ecffb9913f35d5ad86c177e74ab67f7"
+    },
+    {
+      "kind": "artifact",
+      "path": "tests/stress/harness-timing-20260827/evidence/final-streaming.json",
+      "sha256": "ba5a9d15f5edecb331a0471e484b983af8733672768a7424e15cc0257dff279b",
+      "commit": "0619e1c47ecffb9913f35d5ad86c177e74ab67f7"
+    },
+    {
+      "kind": "artifact",
+      "path": "tests/stress/harness-timing-20260827/evidence/final-streaming.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "commit": "0619e1c47ecffb9913f35d5ad86c177e74ab67f7"
+    },
+    {
+      "kind": "artifact",
+      "path": "tests/stress/harness-timing-20260827/evidence/final-streaming.stdout.log",
+      "sha256": "6e6df5c99910923f5cc7d25255b030fdaa3c7684ae1e0c3c6d259802cd37ee06",
+      "commit": "0619e1c47ecffb9913f35d5ad86c177e74ab67f7"
+    },
+    {
+      "kind": "artifact",
+      "path": "tests/stress/harness-timing-20260827/evidence/line-buffered-prefix-events.json",
+      "sha256": "a58b1ff4722e6d43d88ee95292ca2b4f0448cdc29185e7117ebb5ffe9fb98e6a",
+      "commit": "0619e1c47ecffb9913f35d5ad86c177e74ab67f7"
+    },
+    {
+      "kind": "artifact",
+      "path": "tests/stress/harness-timing-20260827/evidence/native-help.json",
+      "sha256": "e49099d01e6696d195edc43c4b62767ff92f69da9a4338a60b31133a1c94bf2d",
+      "commit": "0619e1c47ecffb9913f35d5ad86c177e74ab67f7"
+    },
+    {
+      "kind": "artifact",
+      "path": "tests/stress/harness-timing-20260827/evidence/native-help.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "commit": "0619e1c47ecffb9913f35d5ad86c177e74ab67f7"
+    },
+    {
+      "kind": "artifact",
+      "path": "tests/stress/harness-timing-20260827/evidence/native-help.stdout.log",
+      "sha256": "537946d556964600879c6290f6d9efa4010e11872d6185f5ebf039f0cfc4e92b",
+      "commit": "0619e1c47ecffb9913f35d5ad86c177e74ab67f7"
+    },
+    {
+      "kind": "artifact",
+      "path": "tests/stress/harness-timing-20260827/evidence/native-version.json",
+      "sha256": "7ee224e37b2d315b129151c94b32cc8c2e28ab66b4135ff64b883ae61ae1abff",
+      "commit": "0619e1c47ecffb9913f35d5ad86c177e74ab67f7"
+    },
+    {
+      "kind": "artifact",
+      "path": "tests/stress/harness-timing-20260827/evidence/native-version.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "commit": "0619e1c47ecffb9913f35d5ad86c177e74ab67f7"
+    },
+    {
+      "kind": "artifact",
+      "path": "tests/stress/harness-timing-20260827/evidence/native-version.stdout.log",
+      "sha256": "1b93a92a4194b0cd390151eee9782bc4a7f759ea78c87ff567ab48fa9d224218",
+      "commit": "0619e1c47ecffb9913f35d5ad86c177e74ab67f7"
+    },
+    {
+      "kind": "artifact",
+      "path": "tests/stress/harness-timing-20260827/evidence/negative-controls-detail.json",
+      "sha256": "0692e41bab666beb7cea718631be08aeffabd500ed41aeada1aada664759592e",
+      "commit": "0619e1c47ecffb9913f35d5ad86c177e74ab67f7"
+    },
+    {
+      "kind": "artifact",
+      "path": "tests/stress/harness-timing-20260827/evidence/negative-controls-final-detail.json",
+      "sha256": "5a97f187b2c6ead0eb2fbb223add41ee3584ecdaf817e60c4ee753001ed70b74",
+      "commit": "0619e1c47ecffb9913f35d5ad86c177e74ab67f7"
+    },
+    {
+      "kind": "artifact",
+      "path": "tests/stress/harness-timing-20260827/evidence/negative-controls.json",
+      "sha256": "b59a8056394bf32c4fa5e9b13bd84c07dcbca7fe3b295d7d02ad5615521cc355",
+      "commit": "0619e1c47ecffb9913f35d5ad86c177e74ab67f7"
+    },
+    {
+      "kind": "artifact",
+      "path": "tests/stress/harness-timing-20260827/evidence/negative-controls.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "commit": "0619e1c47ecffb9913f35d5ad86c177e74ab67f7"
+    },
+    {
+      "kind": "artifact",
+      "path": "tests/stress/harness-timing-20260827/evidence/negative-controls.stdout.log",
+      "sha256": "354f37234dfac03eb97189888a7d05ac74657bc137b25bca679c4df35576578d",
+      "commit": "0619e1c47ecffb9913f35d5ad86c177e74ab67f7"
+    },
+    {
+      "kind": "artifact",
+      "path": "tests/stress/harness-timing-20260827/evidence/original-25ms-events.json",
+      "sha256": "287218a697807cba90b4d41708daa97dec183437dd74e572046c5c6a520296a4",
+      "commit": "0619e1c47ecffb9913f35d5ad86c177e74ab67f7"
+    },
+    {
+      "kind": "artifact",
+      "path": "tests/stress/harness-timing-20260827/evidence/post-final-check.json",
+      "sha256": "f17d3e5be5ce515a5dcebd5c9fdf4643095a72262222863f1e9af4b561e957a4",
+      "commit": "0619e1c47ecffb9913f35d5ad86c177e74ab67f7"
+    },
+    {
+      "kind": "artifact",
+      "path": "tests/stress/harness-timing-20260827/evidence/post-schedule.json",
+      "sha256": "94925b12651018656017efb00eb380913f6270b76c52f5d8ee4a6e88cd549538",
+      "commit": "0619e1c47ecffb9913f35d5ad86c177e74ab67f7"
+    },
+    {
+      "kind": "artifact",
+      "path": "tests/stress/harness-timing-20260827/evidence/pre-final-check.json",
+      "sha256": "9744fe8d3770157f0e6d61506e872118ac920746a4d20a538985541baeb7f88a",
+      "commit": "0619e1c47ecffb9913f35d5ad86c177e74ab67f7"
+    },
+    {
+      "kind": "artifact",
+      "path": "tests/stress/harness-timing-20260827/evidence/pre-schedule.json",
+      "sha256": "a87089432312c33e916953cd0986b916504e0d89328087315e1371a52f69287b",
+      "commit": "0619e1c47ecffb9913f35d5ad86c177e74ab67f7"
+    },
+    {
+      "kind": "artifact",
+      "path": "tests/stress/harness-timing-20260827/evidence/provisional-review-R1.txt",
+      "sha256": "dba5623a31e0f45e5f54a5b5dd4452cb0d5865d341f723205609714661033502",
+      "commit": "0619e1c47ecffb9913f35d5ad86c177e74ab67f7"
+    },
+    {
+      "kind": "artifact",
+      "path": "tests/stress/harness-timing-20260827/evidence/released-marker.txt",
+      "sha256": "b03ac405c5de9f409504f44286111a0fb6a00f6c6c43cd1219b7b464a9e4ba03",
+      "commit": "0619e1c47ecffb9913f35d5ad86c177e74ab67f7"
+    },
+    {
+      "kind": "artifact",
+      "path": "tests/stress/harness-timing-20260827/evidence/released-root-notes.txt",
+      "sha256": "871c7e39572cbabb34fdc978b20c0fe290ac8ceceed848b6eb3984c4dc53dd7f",
+      "commit": "0619e1c47ecffb9913f35d5ad86c177e74ab67f7"
+    },
+    {
+      "kind": "artifact",
+      "path": "tests/stress/harness-timing-20260827/evidence/round-1-jq.json",
+      "sha256": "8138efda924127ede1f71d3e953ff62b063f43d095b208378e636895b32662d6",
+      "commit": "0619e1c47ecffb9913f35d5ad86c177e74ab67f7"
+    },
+    {
+      "kind": "artifact",
+      "path": "tests/stress/harness-timing-20260827/evidence/round-1-jq.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "commit": "0619e1c47ecffb9913f35d5ad86c177e74ab67f7"
+    },
+    {
+      "kind": "artifact",
+      "path": "tests/stress/harness-timing-20260827/evidence/round-1-jq.stdout.log",
+      "sha256": "0bb3ff858fee5a267942c418129a53ccd5aa080e7bc6e0c6d3e3368698762c65",
+      "commit": "0619e1c47ecffb9913f35d5ad86c177e74ab67f7"
+    },
+    {
+      "kind": "artifact",
+      "path": "tests/stress/harness-timing-20260827/evidence/round-1-streaming.json",
+      "sha256": "90919a7b1923ca2aebc7ef848d323d60dd7c88b561eb89c8fcc09c5925354e43",
+      "commit": "0619e1c47ecffb9913f35d5ad86c177e74ab67f7"
+    },
+    {
+      "kind": "artifact",
+      "path": "tests/stress/harness-timing-20260827/evidence/round-1-streaming.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "commit": "0619e1c47ecffb9913f35d5ad86c177e74ab67f7"
+    },
+    {
+      "kind": "artifact",
+      "path": "tests/stress/harness-timing-20260827/evidence/round-1-streaming.stdout.log",
+      "sha256": "2d4e196a7973877a2dcfc06cacb8b225e738fa6121634ef33c9bc6b5748288d5",
+      "commit": "0619e1c47ecffb9913f35d5ad86c177e74ab67f7"
+    },
+    {
+      "kind": "artifact",
+      "path": "tests/stress/harness-timing-20260827/evidence/round-2-jq.json",
+      "sha256": "b4a2ca7ca59239c406a93836f73bcf450724c6b82b06465d60cfc7d7c9bb5be4",
+      "commit": "0619e1c47ecffb9913f35d5ad86c177e74ab67f7"
+    },
+    {
+      "kind": "artifact",
+      "path": "tests/stress/harness-timing-20260827/evidence/round-2-jq.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "commit": "0619e1c47ecffb9913f35d5ad86c177e74ab67f7"
+    },
+    {
+      "kind": "artifact",
+      "path": "tests/stress/harness-timing-20260827/evidence/round-2-jq.stdout.log",
+      "sha256": "6057f0a68c9ba00d30861fbe7af45cb912b9493b31cb26cada37441a03caff65",
+      "commit": "0619e1c47ecffb9913f35d5ad86c177e74ab67f7"
+    },
+    {
+      "kind": "artifact",
+      "path": "tests/stress/harness-timing-20260827/evidence/round-2-streaming.json",
+      "sha256": "0d3423478c05726e585c167946b7a7d7612c9de39f7eb41a7b9abfc6a6deb91a",
+      "commit": "0619e1c47ecffb9913f35d5ad86c177e74ab67f7"
+    },
+    {
+      "kind": "artifact",
+      "path": "tests/stress/harness-timing-20260827/evidence/round-2-streaming.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "commit": "0619e1c47ecffb9913f35d5ad86c177e74ab67f7"
+    },
+    {
+      "kind": "artifact",
+      "path": "tests/stress/harness-timing-20260827/evidence/round-2-streaming.stdout.log",
+      "sha256": "50a4a407ba9c7f0ce3e95141a32466b597997fa33b706339442d214566413041",
+      "commit": "0619e1c47ecffb9913f35d5ad86c177e74ab67f7"
+    },
+    {
+      "kind": "artifact",
+      "path": "tests/stress/harness-timing-20260827/evidence/round-3-jq.json",
+      "sha256": "debc75bce639f2e7edfd69f2c42e93a58282a326b856c22b730ddb39b894e1f4",
+      "commit": "0619e1c47ecffb9913f35d5ad86c177e74ab67f7"
+    },
+    {
+      "kind": "artifact",
+      "path": "tests/stress/harness-timing-20260827/evidence/round-3-jq.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "commit": "0619e1c47ecffb9913f35d5ad86c177e74ab67f7"
+    },
+    {
+      "kind": "artifact",
+      "path": "tests/stress/harness-timing-20260827/evidence/round-3-jq.stdout.log",
+      "sha256": "a1069cde20c7194f89c1e4e533bedee4703fc2ceddb1526656b408d7f3ca7f63",
+      "commit": "0619e1c47ecffb9913f35d5ad86c177e74ab67f7"
+    },
+    {
+      "kind": "artifact",
+      "path": "tests/stress/harness-timing-20260827/evidence/round-3-streaming.json",
+      "sha256": "8472d89bef1b10cae0b8d75ce4b355edd7fc0aef3518c9df45848c06d607bc05",
+      "commit": "0619e1c47ecffb9913f35d5ad86c177e74ab67f7"
+    },
+    {
+      "kind": "artifact",
+      "path": "tests/stress/harness-timing-20260827/evidence/round-3-streaming.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "commit": "0619e1c47ecffb9913f35d5ad86c177e74ab67f7"
+    },
+    {
+      "kind": "artifact",
+      "path": "tests/stress/harness-timing-20260827/evidence/round-3-streaming.stdout.log",
+      "sha256": "df622c454c8452b0889e3b4c1ec0e0ac60419dbf78957cb09e141fc06f2c4923",
+      "commit": "0619e1c47ecffb9913f35d5ad86c177e74ab67f7"
+    },
+    {
+      "kind": "artifact",
+      "path": "tests/stress/harness-timing-20260827/evidence/schedule-results.json",
+      "sha256": "86f4f192722da7e70c40638705b2f89a2c7b1b95b787e342bdb2b67b0bcb1d8a",
+      "commit": "0619e1c47ecffb9913f35d5ad86c177e74ab67f7"
+    },
+    {
+      "kind": "artifact",
+      "path": "tests/stress/harness-timing-20260827/evidence/scoped-types.json",
+      "sha256": "24b0ee572fa1aedf092ae0c1a6951435f85cc216efdc7f407b943fe3cfa9b47f",
+      "commit": "0619e1c47ecffb9913f35d5ad86c177e74ab67f7"
+    },
+    {
+      "kind": "artifact",
+      "path": "tests/stress/harness-timing-20260827/evidence/scoped-types.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "commit": "0619e1c47ecffb9913f35d5ad86c177e74ab67f7"
+    },
+    {
+      "kind": "artifact",
+      "path": "tests/stress/harness-timing-20260827/evidence/scoped-types.stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "commit": "0619e1c47ecffb9913f35d5ad86c177e74ab67f7"
+    },
+    {
+      "kind": "artifact",
+      "path": "tests/stress/harness-timing-20260827/evidence/serial-jq.json",
+      "sha256": "5bb930d9e3cb178b1e4cfb4437561000f770e578bce01461748f1875e273d697",
+      "commit": "0619e1c47ecffb9913f35d5ad86c177e74ab67f7"
+    },
+    {
+      "kind": "artifact",
+      "path": "tests/stress/harness-timing-20260827/evidence/serial-jq.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "commit": "0619e1c47ecffb9913f35d5ad86c177e74ab67f7"
+    },
+    {
+      "kind": "artifact",
+      "path": "tests/stress/harness-timing-20260827/evidence/serial-jq.stdout.log",
+      "sha256": "ec95bb4150ccaa16edbc8b4f0dea76baa66a597507c7b465e0d31af2b1e46a4a",
+      "commit": "0619e1c47ecffb9913f35d5ad86c177e74ab67f7"
+    },
+    {
+      "kind": "artifact",
+      "path": "tests/stress/harness-timing-20260827/evidence/serial-streaming.json",
+      "sha256": "19b622e648b0e3ff4539612336f80a74b6606c83cf214188d9f2cd08e733d310",
+      "commit": "0619e1c47ecffb9913f35d5ad86c177e74ab67f7"
+    },
+    {
+      "kind": "artifact",
+      "path": "tests/stress/harness-timing-20260827/evidence/serial-streaming.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "commit": "0619e1c47ecffb9913f35d5ad86c177e74ab67f7"
+    },
+    {
+      "kind": "artifact",
+      "path": "tests/stress/harness-timing-20260827/evidence/serial-streaming.stdout.log",
+      "sha256": "50b7ad1c655abec5bbdf3712d6bafe9f5423a1225e5e8274d8ee9e5eaaf7949e",
+      "commit": "0619e1c47ecffb9913f35d5ad86c177e74ab67f7"
+    },
+    {
+      "kind": "artifact",
+      "path": "tests/stress/harness-timing-20260827/evidence/summary.json",
+      "sha256": "f8a93ada4c1731bff1f3374da4b48489d00fdea6c281b4e5c759e61cd90bf501",
+      "commit": "0619e1c47ecffb9913f35d5ad86c177e74ab67f7"
+    },
+    {
+      "kind": "report",
+      "path": "tests/stress/harness-timing-20260827/REPORT.md",
+      "sha256": "2787333c8c7383db26e3e8230e04dbaa77fef806e92c2b0ed239fd5278285dd2",
+      "commit": "0619e1c47ecffb9913f35d5ad86c177e74ab67f7"
+    }
+  ]
+}

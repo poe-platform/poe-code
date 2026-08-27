@@ -9,7 +9,7 @@ import { HereDocumentSyntaxError, hereDocumentWords, parseShellInputUnit, parseS
 import { ShellLimitError, ShellSyntaxError } from "./types.js";
 import type { ShellCommandContext, ShellInvokeOptions, ShellLimits } from "./types.js";
 import { ShellInput } from "./input.js";
-import { evaluateArithmetic } from "./arithmetic.js";
+import { evaluateArithmetic, prepareArithmetic } from "./arithmetic.js";
 import { compilePattern, matchesPattern } from "./pattern.js";
 import { byteLocale } from "./locale.js";
 import { functionDisplay } from "./display.js";
@@ -1549,9 +1549,10 @@ export class Runtime {
     let value = part.name === "?" ? String(state.status)
       : part.name === "#" ? String(state.positional.length)
       : part.name === "@" || part.name === "*" ? state.positional.join(hereString && (part.name === "@" || !part.quoted) ? " " : Array.from(state.variables.IFS ?? " ")[0] ?? "")
-      : part.name === "0" ? state.arg0 ?? "virtual-bash"
+      : /^0+$/u.test(part.name) ? state.arg0 ?? "virtual-bash"
       : /^\d+$/u.test(part.name) ? state.positional[Number(part.name) - 1]
       : state.variables[part.name];
+    if (part.substring) return this.substring(part, value, state, io);
     if (part.operator) {
       if (["#", "##", "%", "%%"].includes(part.operator) || part.operator.startsWith("/")) return this.parameterPattern(part, value ?? "", state, io, hereString);
       const missing = value === undefined || (part.operator.startsWith(":") && value === "");
@@ -1567,6 +1568,56 @@ export class Runtime {
       } else if (operator === "+") value = "";
     }
     return part.length ? String(Array.from(value ?? "").length) : value ?? "";
+  }
+
+  async substring(part: Extract<WordPart, { kind: "variable" }>, value: string | undefined, state: State, io: IO): Promise<string> {
+    const expression = part.substring!;
+    const line = io.diagnosticLine ?? part.line;
+    if (!expression.offset.parts.length && !expression.length) throw new ExpansionFailure(`${expression.source}: bad substitution`, line);
+    if (value === undefined) return "";
+    const limit = this.budget.limits.maxExpansionBytes;
+    if (Buffer.byteLength(value) > limit) this.budget.fail("maxExpansionBytes");
+    const variables = new Proxy(this.arithmeticVariables(state), { get: (target, key) => {
+      this.signal.throwIfAborted();
+      const value: unknown = Reflect.get(target, key);
+      if (typeof value === "string" && Buffer.byteLength(value) > limit) this.budget.fail("maxExpansionBytes");
+      return value;
+    } });
+    const arithmetic = async (word: Word): Promise<{ value: bigint; source: string }> => {
+      let source = "";
+      let bytes = 0;
+      for (const entry of word.parts) {
+        this.signal.throwIfAborted();
+        const text = entry.kind === "text" ? entry.value : await this.part(entry, state, io);
+        bytes += Buffer.byteLength(text);
+        if (bytes > limit) this.budget.fail("maxExpansionBytes");
+        source += text;
+      }
+      this.signal.throwIfAborted();
+      try { return { value: evaluateArithmetic(prepareArithmetic(source), variables), source }; }
+      catch (error) {
+        this.signal.throwIfAborted();
+        if (error instanceof ShellLimitError) throw error;
+        throw new ExpansionFailure(`${part.name}: ${message(error)}`, line);
+      }
+    };
+    const offsetExpression = await arithmetic(expression.offset);
+    const characters = byteLocale(state.variables) ? undefined : Array.from(value);
+    const bytes = characters ? undefined : Buffer.from(value);
+    const size = BigInt(characters?.length ?? bytes!.byteLength);
+    const offset = offsetExpression.value < 0n ? size + offsetExpression.value : offsetExpression.value;
+    if (offset < 0n || offset > size) return "";
+    let end = size;
+    if (expression.length) {
+      const length = await arithmetic(expression.length);
+      end = length.value < 0n ? size + length.value : offset + length.value;
+      if (end < offset) throw new ExpansionFailure(`${length.source}: substring expression < 0`, line);
+      if (end > size) end = size;
+    }
+    this.signal.throwIfAborted();
+    if (characters) return characters.slice(Number(offset), Number(end)).join("");
+    try { return new TextDecoder("utf-8", { fatal: true, ignoreBOM: true }).decode(bytes!.subarray(Number(offset), Number(end))); }
+    catch { throw new ExpansionFailure("substring expansion splits a UTF-8 character in a byte locale", line); }
   }
 
   async parameterPattern(part: Extract<WordPart, { kind: "variable" }>, text: string, state: State, io: IO, hereString: boolean): Promise<string> {

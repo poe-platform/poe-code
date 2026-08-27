@@ -5,7 +5,7 @@ import type { ArithmeticProgram } from "./arithmetic.js";
 export type WordPart =
   | { kind: "text"; value: string; quoted: boolean }
   | { kind: "arithmetic"; expression: ArithmeticProgram; source: string; line: number; quoted: boolean }
-  | { kind: "variable"; name: string; quoted: boolean; line?: number; length?: boolean; operator?: string; alternate?: Word; replacement?: Word }
+  | { kind: "variable"; name: string; quoted: boolean; line?: number; length?: boolean; operator?: string; alternate?: Word; replacement?: Word; substring?: { offset: Word; length?: Word; source: string } }
   | { kind: "failed-substitution"; diagnostic: string; quoted: boolean }
   | { kind: "substitution"; script: Script; line: number; sourceLine?: number; quoted: boolean };
 
@@ -271,11 +271,13 @@ class Lexer {
     this.error("Unterminated delimiter expansion syntax");
   }
 
-  word(terminator?: string, enclosingQuoted = false, literal = false): Word {
+  word(terminator?: string, enclosingQuoted = false, literal = false, arithmetic = false): Word {
     const offset = this.position;
     const reduction = this.printedNewlineReduction;
     const unprinted = this.unprintedWords;
     const parts: WordPart[] = [];
+    let parentheses = 0;
+    let conditionals = 0;
     let plain = true;
     const text = (value: string, quoted: boolean) => {
       const previous = parts.at(-1);
@@ -284,7 +286,7 @@ class Lexer {
     };
     while (this.position < this.source.length) {
       const current = this.source[this.position]!;
-      if (terminator ? terminator.includes(current) : /[ \t\n;|&()<>]/u.test(current)) break;
+      if (terminator ? terminator.includes(current) && (!arithmetic || current !== ":" || parentheses === 0 && conditionals === 0) : /[ \t\n;|&()<>]/u.test(current)) break;
       if (current === "$" && this.source[this.position + 1] === "'" && !enclosingQuoted && !literal) {
         plain = false;
         this.unprintedWords++;
@@ -330,6 +332,12 @@ class Lexer {
         }
         else this.expansion(parts, enclosingQuoted);
       } else {
+        if (arithmetic) {
+          if (current === "(") parentheses++;
+          else if (current === ")") parentheses--;
+          else if (current === "?") conditionals++;
+          else if (current === ":" && conditionals > 0) conditionals--;
+        }
         text(current, false);
         this.position++;
       }
@@ -431,14 +439,16 @@ class Lexer {
       parts.push({ kind: "substitution", script, line, sourceLine: script.line ?? line, quoted });
     } else if (this.source[this.position] === "{") {
       this.position++;
+      const parameterStart = this.position - 2;
       const length = this.source[this.position] === "#" && /[a-zA-Z_]/u.test(this.source[this.position + 1] ?? "");
       if (length) this.position++;
-      const name = /^(?:[a-zA-Z_][a-zA-Z_0-9]*|[?@*#0-9])/u.exec(this.source.slice(this.position))?.[0];
+      const name = /^(?:[a-zA-Z_][a-zA-Z_0-9]*|[0-9]+|[?@*#])/u.exec(this.source.slice(this.position))?.[0];
       if (!name) this.error("Unsupported parameter expansion");
       this.position += name.length;
       const operator = /^(?::[-=+?]|##|%%|\/\/|\/[#%]?|[-=+?#%])/u.exec(this.source.slice(this.position))?.[0];
       let alternate: Word | undefined;
       let replacement: Word | undefined;
+      let substring: Extract<WordPart, { kind: "variable" }>["substring"];
       if (operator) {
         if (length) this.error("Invalid length expansion");
         this.position += operator.length;
@@ -447,10 +457,20 @@ class Lexer {
           this.position++;
           replacement = this.word("}");
         }
+      } else if (this.source[this.position] === ":") {
+        if (length || !/^(?:[a-zA-Z_][a-zA-Z_0-9]*|[0-9]+)$/u.test(name)) this.error("Unsupported non-scalar substring expansion");
+        this.position++;
+        const offset = this.word(":}", true, false, true);
+        let substringLength: Word | undefined;
+        if (this.source[this.position] === ":") {
+          this.position++;
+          substringLength = this.word("}", true, false, true);
+        }
+        substring = { offset, ...(substringLength ? { length: substringLength } : {}), source: this.source.slice(parameterStart, this.position + 1) };
       }
       if (this.source[this.position] !== "}") this.error("Unterminated or unsupported parameter expansion");
       this.position++;
-      parts.push({ kind: "variable", name, quoted, line, ...(length ? { length } : {}), ...(operator ? { operator, alternate: alternate! } : {}), ...(replacement ? { replacement } : {}) });
+      parts.push({ kind: "variable", name, quoted, line, ...(length ? { length } : {}), ...(operator ? { operator, alternate: alternate! } : {}), ...(replacement ? { replacement } : {}), ...(substring ? { substring } : {}) });
     } else {
       const name = /^(?:[a-zA-Z_][a-zA-Z_0-9]*|[?@*#0-9])/u.exec(this.source.slice(this.position))?.[0];
       if (name) {

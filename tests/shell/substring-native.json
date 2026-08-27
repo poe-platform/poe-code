@@ -1,0 +1,1911 @@
+{
+  "source": {
+    "arithmetic.ts": "5e2d784b8fd333972e6e413f4c3478163462a3c1abf8cc5ff7173963420440bd",
+    "display.ts": "3d372572020a09dc5484acc575891ab1f24c8c9eba263c0a17c49b714611e069",
+    "index.ts": "235ad982a7bfe23823b4e07d714ed73e924a5d7759a8664f8533b03517ffa383",
+    "input.ts": "7af2dac6dfd6290e9f189590e9190b2e0703dcd99998212e471378063cd9a7b4",
+    "locale.ts": "1b0687b8401c3f0886a793bf6f212a1731d4bd973be6ac2c7642254e6e1fb2d2",
+    "parser.ts": "f8a76103ccc3e0f981bdb8cf391f48a8864dbf895c39e459d5f5da7b6ec77b0c",
+    "pattern.ts": "eaf798a7f92c050734e97ef77e07397b3e5710a822575899cca81a527985609a",
+    "runtime.ts": "f307642e52c3bfeb5df64057fb26af6645135bb5bdc307f399de6ce1541c0ddb",
+    "shell.ts": "4ac91162195c150848793c92b8b1e90f15a36e67b5ae8a2652fe7ed9dcf4fb5e",
+    "types.ts": "fc4133f1fb41283b0586aa7597c766d393d4f91067b613f4777e5adbef230a6d"
+  },
+  "caseHash": "31eccd1f7e2f4955e9bdab291b03c8ace027ff99a87e274294c2e9e036164767",
+  "argv0": "bash",
+  "commandName": "shell",
+  "profiles": [
+    {
+      "name": "GNU-5.3",
+      "executable": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+      "version": "GNU bash, version 5.3.0(1)-release (aarch64-apple-darwin25.4.0)\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>\n\nThis is free software; you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n",
+      "sha256": "8cecb482de24198c23a736b931cb7e8cee1f94eb0b51abd54bd99f1d73d9673c",
+      "locales": [
+        {
+          "locale": "C",
+          "control": "5.3.0(1)-release:C:6",
+          "rows": [
+            {
+              "name": "handoff-scalar",
+              "expected": {
+                "stdout": "NjpiY2E6ZGVmYXVsdDpzZXQ=",
+                "stderr": "",
+                "status": 0,
+                "files": {}
+              }
+            },
+            {
+              "name": "offset-length",
+              "expected": {
+                "stdout": "PGJjZD4=",
+                "stderr": "",
+                "status": 0,
+                "files": {}
+              }
+            },
+            {
+              "name": "tail",
+              "expected": {
+                "stdout": "PGNkZWY+",
+                "stderr": "",
+                "status": 0,
+                "files": {}
+              }
+            },
+            {
+              "name": "empty-offset",
+              "expected": {
+                "stdout": "PGFiPg==",
+                "stderr": "",
+                "status": 0,
+                "files": {}
+              }
+            },
+            {
+              "name": "empty-length",
+              "expected": {
+                "stdout": "PD4=",
+                "stderr": "",
+                "status": 0,
+                "files": {}
+              }
+            },
+            {
+              "name": "both-empty",
+              "expected": {
+                "stdout": "PD4=",
+                "stderr": "",
+                "status": 0,
+                "files": {}
+              }
+            },
+            {
+              "name": "offset-empty-tail",
+              "expected": {
+                "stdout": "",
+                "stderr": "c2hlbGw6IGxpbmUgMTogJHtWQUxVRTp9OiBiYWQgc3Vic3RpdHV0aW9uCg==",
+                "status": 1,
+                "files": {}
+              }
+            },
+            {
+              "name": "negative-offset",
+              "expected": {
+                "stdout": "PGVmPg==",
+                "stderr": "",
+                "status": 0,
+                "files": {}
+              }
+            },
+            {
+              "name": "negative-length",
+              "expected": {
+                "stdout": "PGJjZGU+",
+                "stderr": "",
+                "status": 0,
+                "files": {}
+              }
+            },
+            {
+              "name": "both-negative",
+              "expected": {
+                "stdout": "PGNkZT4=",
+                "stderr": "",
+                "status": 0,
+                "files": {}
+              }
+            },
+            {
+              "name": "past-end",
+              "expected": {
+                "stdout": "PD4=",
+                "stderr": "",
+                "status": 0,
+                "files": {}
+              }
+            },
+            {
+              "name": "before-start",
+              "expected": {
+                "stdout": "PD4=",
+                "stderr": "",
+                "status": 0,
+                "files": {}
+              }
+            },
+            {
+              "name": "at-end",
+              "expected": {
+                "stdout": "PD4=",
+                "stderr": "",
+                "status": 0,
+                "files": {}
+              }
+            },
+            {
+              "name": "zero-length",
+              "expected": {
+                "stdout": "PD4=",
+                "stderr": "",
+                "status": 0,
+                "files": {}
+              }
+            },
+            {
+              "name": "large-offset",
+              "expected": {
+                "stdout": "PD4=",
+                "stderr": "",
+                "status": 0,
+                "files": {}
+              }
+            },
+            {
+              "name": "large-length",
+              "expected": {
+                "stdout": "PGJjZGVmPg==",
+                "stderr": "",
+                "status": 0,
+                "files": {}
+              }
+            },
+            {
+              "name": "overflow-arithmetic",
+              "expected": {
+                "stdout": "PGJjPg==",
+                "stderr": "",
+                "status": 0,
+                "files": {}
+              }
+            },
+            {
+              "name": "default-not-negative-offset",
+              "expected": {
+                "stdout": "PGFiY2RlZj4=",
+                "stderr": "",
+                "status": 0,
+                "files": {}
+              }
+            },
+            {
+              "name": "ternary-offset",
+              "expected": {
+                "stdout": "PGNkPg==",
+                "stderr": "",
+                "status": 0,
+                "files": {}
+              }
+            },
+            {
+              "name": "ternary-parentheses",
+              "expected": {
+                "stdout": "PGNkPg==",
+                "stderr": "",
+                "status": 0,
+                "files": {}
+              }
+            },
+            {
+              "name": "nested-ternary",
+              "expected": {
+                "stdout": "PGNkPg==",
+                "stderr": "",
+                "status": 0,
+                "files": {}
+              }
+            },
+            {
+              "name": "arithmetic-expansion",
+              "expected": {
+                "stdout": "PGNkPg==",
+                "stderr": "",
+                "status": 0,
+                "files": {}
+              }
+            },
+            {
+              "name": "arithmetic-variables",
+              "expected": {
+                "stdout": "Y2RlZg==",
+                "stderr": "",
+                "status": 0,
+                "files": {}
+              }
+            },
+            {
+              "name": "arithmetic-side-effects",
+              "expected": {
+                "stdout": "YmNkOjM=",
+                "stderr": "",
+                "status": 0,
+                "files": {}
+              }
+            },
+            {
+              "name": "value-snapshot",
+              "expected": {
+                "stdout": "YmM6MTIz",
+                "stderr": "",
+                "status": 0,
+                "files": {}
+              }
+            },
+            {
+              "name": "nested-parameter",
+              "expected": {
+                "stdout": "YmM=",
+                "stderr": "",
+                "status": 0,
+                "files": {}
+              }
+            },
+            {
+              "name": "nested-default",
+              "expected": {
+                "stdout": "YmNk",
+                "stderr": "",
+                "status": 0,
+                "files": {}
+              }
+            },
+            {
+              "name": "command-expansion-order",
+              "expected": {
+                "stdout": "YmM=",
+                "stderr": "",
+                "status": 0,
+                "files": {
+                  "marker": "b2Zmc2V0bGVuZ3Ro"
+                }
+              }
+            },
+            {
+              "name": "out-of-range-skips-length",
+              "expected": {
+                "stdout": "PD46MA==",
+                "stderr": "",
+                "status": 0,
+                "files": {}
+              }
+            },
+            {
+              "name": "negative-range-skips-length",
+              "expected": {
+                "stdout": "PD46MA==",
+                "stderr": "",
+                "status": 0,
+                "files": {}
+              }
+            },
+            {
+              "name": "end-evaluates-length",
+              "expected": {
+                "stdout": "PD46MQ==",
+                "stderr": "",
+                "status": 0,
+                "files": {}
+              }
+            },
+            {
+              "name": "unset-skips-arithmetic",
+              "expected": {
+                "stdout": "PD46MA==",
+                "stderr": "",
+                "status": 0,
+                "files": {}
+              }
+            },
+            {
+              "name": "empty-evaluates-arithmetic",
+              "expected": {
+                "stdout": "PD46Mg==",
+                "stderr": "",
+                "status": 0,
+                "files": {}
+              }
+            },
+            {
+              "name": "quoted-fields",
+              "expected": {
+                "stdout": "PCBiID48Yj4=",
+                "stderr": "",
+                "status": 0,
+                "files": {}
+              }
+            },
+            {
+              "name": "unquoted-glob",
+              "expected": {
+                "stdout": "PGZpcnN0PjxzZWNvbmQ+PCo+",
+                "stderr": "",
+                "status": 0,
+                "files": {
+                  "first": "a2VlcA==",
+                  "second": "a2VlcA=="
+                }
+              }
+            },
+            {
+              "name": "positional-one",
+              "expected": {
+                "stdout": "YmNk",
+                "stderr": "",
+                "status": 0,
+                "files": {}
+              }
+            },
+            {
+              "name": "positional-ten",
+              "expected": {
+                "stdout": "YmNk",
+                "stderr": "",
+                "status": 0,
+                "files": {}
+              }
+            },
+            {
+              "name": "positional-zero",
+              "expected": {
+                "stdout": "aGU=",
+                "stderr": "",
+                "status": 0,
+                "files": {}
+              }
+            },
+            {
+              "name": "function-state",
+              "expected": {
+                "stdout": "YmM6Mjo5",
+                "stderr": "",
+                "status": 0,
+                "files": {}
+              }
+            },
+            {
+              "name": "substitution-state",
+              "expected": {
+                "stdout": "YmM6MQ==",
+                "stderr": "",
+                "status": 0,
+                "files": {}
+              }
+            },
+            {
+              "name": "offset-division-fatal",
+              "expected": {
+                "stdout": "",
+                "stderr": "c2hlbGw6IGxpbmUgMTogVkFMVUU6IDEvMDogZGl2aXNpb24gYnkgMCAoZXJyb3IgdG9rZW4gaXMgIjAiKQo=",
+                "status": 1,
+                "files": {
+                  "before": "YmVmb3Jl"
+                }
+              }
+            },
+            {
+              "name": "length-division-fatal",
+              "expected": {
+                "stdout": "",
+                "stderr": "c2hlbGw6IGxpbmUgMTogVkFMVUU6IDEvMDogZGl2aXNpb24gYnkgMCAoZXJyb3IgdG9rZW4gaXMgIjAiKQo=",
+                "status": 1,
+                "files": {
+                  "before": "YmVmb3Jl"
+                }
+              }
+            },
+            {
+              "name": "negative-end-fatal",
+              "expected": {
+                "stdout": "",
+                "stderr": "c2hlbGw6IGxpbmUgMTogLTEwOiBzdWJzdHJpbmcgZXhwcmVzc2lvbiA8IDAK",
+                "status": 1,
+                "files": {
+                  "before": "YmVmb3Jl"
+                }
+              }
+            },
+            {
+              "name": "arithmetic-syntax-fatal",
+              "expected": {
+                "stdout": "",
+                "stderr": "c2hlbGw6IGxpbmUgMTogVkFMVUU6IDErOiBhcml0aG1ldGljIHN5bnRheCBlcnJvcjogb3BlcmFuZCBleHBlY3RlZCAoZXJyb3IgdG9rZW4gaXMgIisiKQo=",
+                "status": 1,
+                "files": {
+                  "before": "YmVmb3Jl"
+                }
+              }
+            },
+            {
+              "name": "substitution-fatal-scope",
+              "expected": {
+                "stdout": "PD46MQ==",
+                "stderr": "c2hlbGw6IGxpbmUgMTogVkFMVUU6IDEvMDogZGl2aXNpb24gYnkgMCAoZXJyb3IgdG9rZW4gaXMgIjAiKQo=",
+                "status": 0,
+                "files": {}
+              }
+            },
+            {
+              "name": "utf8-full-first",
+              "expected": {
+                "stdout": "w6k=",
+                "stderr": "",
+                "status": 0,
+                "files": {}
+              }
+            },
+            {
+              "name": "utf8-full-middle",
+              "expected": {
+                "stdout": "8J+Zgg==",
+                "stderr": "",
+                "status": 0,
+                "files": {}
+              }
+            },
+            {
+              "name": "utf8-last",
+              "expected": {
+                "stdout": "Wg==",
+                "stderr": "",
+                "status": 0,
+                "files": {}
+              }
+            },
+            {
+              "name": "utf8-fragment",
+              "expected": {
+                "stdout": "qQ==",
+                "stderr": "",
+                "status": 0,
+                "files": {}
+              }
+            },
+            {
+              "name": "utf8-negative-fragment",
+              "expected": {
+                "stdout": "gg==",
+                "stderr": "",
+                "status": 0,
+                "files": {}
+              }
+            }
+          ]
+        },
+        {
+          "locale": "en_US.UTF-8",
+          "control": "5.3.0(1)-release:en_US.UTF-8:2",
+          "rows": [
+            {
+              "name": "handoff-scalar",
+              "expected": {
+                "stdout": "NjpiY2E6ZGVmYXVsdDpzZXQ=",
+                "stderr": "",
+                "status": 0,
+                "files": {}
+              }
+            },
+            {
+              "name": "offset-length",
+              "expected": {
+                "stdout": "PGJjZD4=",
+                "stderr": "",
+                "status": 0,
+                "files": {}
+              }
+            },
+            {
+              "name": "tail",
+              "expected": {
+                "stdout": "PGNkZWY+",
+                "stderr": "",
+                "status": 0,
+                "files": {}
+              }
+            },
+            {
+              "name": "empty-offset",
+              "expected": {
+                "stdout": "PGFiPg==",
+                "stderr": "",
+                "status": 0,
+                "files": {}
+              }
+            },
+            {
+              "name": "empty-length",
+              "expected": {
+                "stdout": "PD4=",
+                "stderr": "",
+                "status": 0,
+                "files": {}
+              }
+            },
+            {
+              "name": "both-empty",
+              "expected": {
+                "stdout": "PD4=",
+                "stderr": "",
+                "status": 0,
+                "files": {}
+              }
+            },
+            {
+              "name": "offset-empty-tail",
+              "expected": {
+                "stdout": "",
+                "stderr": "c2hlbGw6IGxpbmUgMTogJHtWQUxVRTp9OiBiYWQgc3Vic3RpdHV0aW9uCg==",
+                "status": 1,
+                "files": {}
+              }
+            },
+            {
+              "name": "negative-offset",
+              "expected": {
+                "stdout": "PGVmPg==",
+                "stderr": "",
+                "status": 0,
+                "files": {}
+              }
+            },
+            {
+              "name": "negative-length",
+              "expected": {
+                "stdout": "PGJjZGU+",
+                "stderr": "",
+                "status": 0,
+                "files": {}
+              }
+            },
+            {
+              "name": "both-negative",
+              "expected": {
+                "stdout": "PGNkZT4=",
+                "stderr": "",
+                "status": 0,
+                "files": {}
+              }
+            },
+            {
+              "name": "past-end",
+              "expected": {
+                "stdout": "PD4=",
+                "stderr": "",
+                "status": 0,
+                "files": {}
+              }
+            },
+            {
+              "name": "before-start",
+              "expected": {
+                "stdout": "PD4=",
+                "stderr": "",
+                "status": 0,
+                "files": {}
+              }
+            },
+            {
+              "name": "at-end",
+              "expected": {
+                "stdout": "PD4=",
+                "stderr": "",
+                "status": 0,
+                "files": {}
+              }
+            },
+            {
+              "name": "zero-length",
+              "expected": {
+                "stdout": "PD4=",
+                "stderr": "",
+                "status": 0,
+                "files": {}
+              }
+            },
+            {
+              "name": "large-offset",
+              "expected": {
+                "stdout": "PD4=",
+                "stderr": "",
+                "status": 0,
+                "files": {}
+              }
+            },
+            {
+              "name": "large-length",
+              "expected": {
+                "stdout": "PGJjZGVmPg==",
+                "stderr": "",
+                "status": 0,
+                "files": {}
+              }
+            },
+            {
+              "name": "overflow-arithmetic",
+              "expected": {
+                "stdout": "PGJjPg==",
+                "stderr": "",
+                "status": 0,
+                "files": {}
+              }
+            },
+            {
+              "name": "default-not-negative-offset",
+              "expected": {
+                "stdout": "PGFiY2RlZj4=",
+                "stderr": "",
+                "status": 0,
+                "files": {}
+              }
+            },
+            {
+              "name": "ternary-offset",
+              "expected": {
+                "stdout": "PGNkPg==",
+                "stderr": "",
+                "status": 0,
+                "files": {}
+              }
+            },
+            {
+              "name": "ternary-parentheses",
+              "expected": {
+                "stdout": "PGNkPg==",
+                "stderr": "",
+                "status": 0,
+                "files": {}
+              }
+            },
+            {
+              "name": "nested-ternary",
+              "expected": {
+                "stdout": "PGNkPg==",
+                "stderr": "",
+                "status": 0,
+                "files": {}
+              }
+            },
+            {
+              "name": "arithmetic-expansion",
+              "expected": {
+                "stdout": "PGNkPg==",
+                "stderr": "",
+                "status": 0,
+                "files": {}
+              }
+            },
+            {
+              "name": "arithmetic-variables",
+              "expected": {
+                "stdout": "Y2RlZg==",
+                "stderr": "",
+                "status": 0,
+                "files": {}
+              }
+            },
+            {
+              "name": "arithmetic-side-effects",
+              "expected": {
+                "stdout": "YmNkOjM=",
+                "stderr": "",
+                "status": 0,
+                "files": {}
+              }
+            },
+            {
+              "name": "value-snapshot",
+              "expected": {
+                "stdout": "YmM6MTIz",
+                "stderr": "",
+                "status": 0,
+                "files": {}
+              }
+            },
+            {
+              "name": "nested-parameter",
+              "expected": {
+                "stdout": "YmM=",
+                "stderr": "",
+                "status": 0,
+                "files": {}
+              }
+            },
+            {
+              "name": "nested-default",
+              "expected": {
+                "stdout": "YmNk",
+                "stderr": "",
+                "status": 0,
+                "files": {}
+              }
+            },
+            {
+              "name": "command-expansion-order",
+              "expected": {
+                "stdout": "YmM=",
+                "stderr": "",
+                "status": 0,
+                "files": {
+                  "marker": "b2Zmc2V0bGVuZ3Ro"
+                }
+              }
+            },
+            {
+              "name": "out-of-range-skips-length",
+              "expected": {
+                "stdout": "PD46MA==",
+                "stderr": "",
+                "status": 0,
+                "files": {}
+              }
+            },
+            {
+              "name": "negative-range-skips-length",
+              "expected": {
+                "stdout": "PD46MA==",
+                "stderr": "",
+                "status": 0,
+                "files": {}
+              }
+            },
+            {
+              "name": "end-evaluates-length",
+              "expected": {
+                "stdout": "PD46MQ==",
+                "stderr": "",
+                "status": 0,
+                "files": {}
+              }
+            },
+            {
+              "name": "unset-skips-arithmetic",
+              "expected": {
+                "stdout": "PD46MA==",
+                "stderr": "",
+                "status": 0,
+                "files": {}
+              }
+            },
+            {
+              "name": "empty-evaluates-arithmetic",
+              "expected": {
+                "stdout": "PD46Mg==",
+                "stderr": "",
+                "status": 0,
+                "files": {}
+              }
+            },
+            {
+              "name": "quoted-fields",
+              "expected": {
+                "stdout": "PCBiID48Yj4=",
+                "stderr": "",
+                "status": 0,
+                "files": {}
+              }
+            },
+            {
+              "name": "unquoted-glob",
+              "expected": {
+                "stdout": "PGZpcnN0PjxzZWNvbmQ+PCo+",
+                "stderr": "",
+                "status": 0,
+                "files": {
+                  "first": "a2VlcA==",
+                  "second": "a2VlcA=="
+                }
+              }
+            },
+            {
+              "name": "positional-one",
+              "expected": {
+                "stdout": "YmNk",
+                "stderr": "",
+                "status": 0,
+                "files": {}
+              }
+            },
+            {
+              "name": "positional-ten",
+              "expected": {
+                "stdout": "YmNk",
+                "stderr": "",
+                "status": 0,
+                "files": {}
+              }
+            },
+            {
+              "name": "positional-zero",
+              "expected": {
+                "stdout": "aGU=",
+                "stderr": "",
+                "status": 0,
+                "files": {}
+              }
+            },
+            {
+              "name": "function-state",
+              "expected": {
+                "stdout": "YmM6Mjo5",
+                "stderr": "",
+                "status": 0,
+                "files": {}
+              }
+            },
+            {
+              "name": "substitution-state",
+              "expected": {
+                "stdout": "YmM6MQ==",
+                "stderr": "",
+                "status": 0,
+                "files": {}
+              }
+            },
+            {
+              "name": "offset-division-fatal",
+              "expected": {
+                "stdout": "",
+                "stderr": "c2hlbGw6IGxpbmUgMTogVkFMVUU6IDEvMDogZGl2aXNpb24gYnkgMCAoZXJyb3IgdG9rZW4gaXMgIjAiKQo=",
+                "status": 1,
+                "files": {
+                  "before": "YmVmb3Jl"
+                }
+              }
+            },
+            {
+              "name": "length-division-fatal",
+              "expected": {
+                "stdout": "",
+                "stderr": "c2hlbGw6IGxpbmUgMTogVkFMVUU6IDEvMDogZGl2aXNpb24gYnkgMCAoZXJyb3IgdG9rZW4gaXMgIjAiKQo=",
+                "status": 1,
+                "files": {
+                  "before": "YmVmb3Jl"
+                }
+              }
+            },
+            {
+              "name": "negative-end-fatal",
+              "expected": {
+                "stdout": "",
+                "stderr": "c2hlbGw6IGxpbmUgMTogLTEwOiBzdWJzdHJpbmcgZXhwcmVzc2lvbiA8IDAK",
+                "status": 1,
+                "files": {
+                  "before": "YmVmb3Jl"
+                }
+              }
+            },
+            {
+              "name": "arithmetic-syntax-fatal",
+              "expected": {
+                "stdout": "",
+                "stderr": "c2hlbGw6IGxpbmUgMTogVkFMVUU6IDErOiBhcml0aG1ldGljIHN5bnRheCBlcnJvcjogb3BlcmFuZCBleHBlY3RlZCAoZXJyb3IgdG9rZW4gaXMgIisiKQo=",
+                "status": 1,
+                "files": {
+                  "before": "YmVmb3Jl"
+                }
+              }
+            },
+            {
+              "name": "substitution-fatal-scope",
+              "expected": {
+                "stdout": "PD46MQ==",
+                "stderr": "c2hlbGw6IGxpbmUgMTogVkFMVUU6IDEvMDogZGl2aXNpb24gYnkgMCAoZXJyb3IgdG9rZW4gaXMgIjAiKQo=",
+                "status": 0,
+                "files": {}
+              }
+            },
+            {
+              "name": "utf8-full-first",
+              "expected": {
+                "stdout": "w6nwn5mC",
+                "stderr": "",
+                "status": 0,
+                "files": {}
+              }
+            },
+            {
+              "name": "utf8-full-middle",
+              "expected": {
+                "stdout": "Wg==",
+                "stderr": "",
+                "status": 0,
+                "files": {}
+              }
+            },
+            {
+              "name": "utf8-last",
+              "expected": {
+                "stdout": "Wg==",
+                "stderr": "",
+                "status": 0,
+                "files": {}
+              }
+            },
+            {
+              "name": "utf8-fragment",
+              "expected": {
+                "stdout": "8J+Zgg==",
+                "stderr": "",
+                "status": 0,
+                "files": {}
+              }
+            },
+            {
+              "name": "utf8-negative-fragment",
+              "expected": {
+                "stdout": "8J+Zgg==",
+                "stderr": "",
+                "status": 0,
+                "files": {}
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "historical-3.2",
+      "executable": "/bin/bash",
+      "version": "GNU bash, version 3.2.57(1)-release (arm64-apple-darwin25)\nCopyright (C) 2007 Free Software Foundation, Inc.\n",
+      "sha256": "35536aea9733aa345b61134a98d00232380898e55b2ea2a07c497011f7dfc7a3",
+      "locales": [
+        {
+          "locale": "C",
+          "control": "3.2.57(1)-release:C:6",
+          "rows": [
+            {
+              "name": "handoff-scalar",
+              "expected": {
+                "stdout": "NjpiY2E6ZGVmYXVsdDpzZXQ=",
+                "stderr": "",
+                "status": 0,
+                "files": {}
+              }
+            },
+            {
+              "name": "offset-length",
+              "expected": {
+                "stdout": "PGJjZD4=",
+                "stderr": "",
+                "status": 0,
+                "files": {}
+              }
+            },
+            {
+              "name": "tail",
+              "expected": {
+                "stdout": "PGNkZWY+",
+                "stderr": "",
+                "status": 0,
+                "files": {}
+              }
+            },
+            {
+              "name": "empty-offset",
+              "expected": {
+                "stdout": "PGFiPg==",
+                "stderr": "",
+                "status": 0,
+                "files": {}
+              }
+            },
+            {
+              "name": "empty-length",
+              "expected": {
+                "stdout": "PD4=",
+                "stderr": "",
+                "status": 0,
+                "files": {}
+              }
+            },
+            {
+              "name": "both-empty",
+              "expected": {
+                "stdout": "PD4=",
+                "stderr": "",
+                "status": 0,
+                "files": {}
+              }
+            },
+            {
+              "name": "offset-empty-tail",
+              "expected": {
+                "stdout": "",
+                "stderr": "c2hlbGw6ICR7VkFMVUU6fTogYmFkIHN1YnN0aXR1dGlvbgo=",
+                "status": 1,
+                "files": {}
+              }
+            },
+            {
+              "name": "negative-offset",
+              "expected": {
+                "stdout": "PGVmPg==",
+                "stderr": "",
+                "status": 0,
+                "files": {}
+              }
+            },
+            {
+              "name": "negative-length",
+              "expected": {
+                "stdout": "",
+                "stderr": "c2hlbGw6IC0xOiBzdWJzdHJpbmcgZXhwcmVzc2lvbiA8IDAK",
+                "status": 1,
+                "files": {}
+              }
+            },
+            {
+              "name": "both-negative",
+              "expected": {
+                "stdout": "",
+                "stderr": "c2hlbGw6IC0xOiBzdWJzdHJpbmcgZXhwcmVzc2lvbiA8IDAK",
+                "status": 1,
+                "files": {}
+              }
+            },
+            {
+              "name": "past-end",
+              "expected": {
+                "stdout": "PD4=",
+                "stderr": "",
+                "status": 0,
+                "files": {}
+              }
+            },
+            {
+              "name": "before-start",
+              "expected": {
+                "stdout": "PD4=",
+                "stderr": "",
+                "status": 0,
+                "files": {}
+              }
+            },
+            {
+              "name": "at-end",
+              "expected": {
+                "stdout": "PD4=",
+                "stderr": "",
+                "status": 0,
+                "files": {}
+              }
+            },
+            {
+              "name": "zero-length",
+              "expected": {
+                "stdout": "PD4=",
+                "stderr": "",
+                "status": 0,
+                "files": {}
+              }
+            },
+            {
+              "name": "large-offset",
+              "expected": {
+                "stdout": "PD4=",
+                "stderr": "",
+                "status": 0,
+                "files": {}
+              }
+            },
+            {
+              "name": "large-length",
+              "expected": {
+                "stdout": "PGJjZGVmPg==",
+                "stderr": "",
+                "status": 0,
+                "files": {}
+              }
+            },
+            {
+              "name": "overflow-arithmetic",
+              "expected": {
+                "stdout": "PGJjPg==",
+                "stderr": "",
+                "status": 0,
+                "files": {}
+              }
+            },
+            {
+              "name": "default-not-negative-offset",
+              "expected": {
+                "stdout": "PGFiY2RlZj4=",
+                "stderr": "",
+                "status": 0,
+                "files": {}
+              }
+            },
+            {
+              "name": "ternary-offset",
+              "expected": {
+                "stdout": "PGNkPg==",
+                "stderr": "",
+                "status": 0,
+                "files": {}
+              }
+            },
+            {
+              "name": "ternary-parentheses",
+              "expected": {
+                "stdout": "PGNkPg==",
+                "stderr": "",
+                "status": 0,
+                "files": {}
+              }
+            },
+            {
+              "name": "nested-ternary",
+              "expected": {
+                "stdout": "PGNkPg==",
+                "stderr": "",
+                "status": 0,
+                "files": {}
+              }
+            },
+            {
+              "name": "arithmetic-expansion",
+              "expected": {
+                "stdout": "PGNkPg==",
+                "stderr": "",
+                "status": 0,
+                "files": {}
+              }
+            },
+            {
+              "name": "arithmetic-variables",
+              "expected": {
+                "stdout": "Y2RlZg==",
+                "stderr": "",
+                "status": 0,
+                "files": {}
+              }
+            },
+            {
+              "name": "arithmetic-side-effects",
+              "expected": {
+                "stdout": "YmNkOjM=",
+                "stderr": "",
+                "status": 0,
+                "files": {}
+              }
+            },
+            {
+              "name": "value-snapshot",
+              "expected": {
+                "stdout": "YmM6MTIz",
+                "stderr": "",
+                "status": 0,
+                "files": {}
+              }
+            },
+            {
+              "name": "nested-parameter",
+              "expected": {
+                "stdout": "",
+                "stderr": "c2hlbGw6ICR7T0ZGU0VUOiBiYWQgc3Vic3RpdHV0aW9uCg==",
+                "status": 1,
+                "files": {}
+              }
+            },
+            {
+              "name": "nested-default",
+              "expected": {
+                "stdout": "YmNk",
+                "stderr": "",
+                "status": 0,
+                "files": {}
+              }
+            },
+            {
+              "name": "command-expansion-order",
+              "expected": {
+                "stdout": "YmM=",
+                "stderr": "",
+                "status": 0,
+                "files": {
+                  "marker": "b2Zmc2V0bGVuZ3Ro"
+                }
+              }
+            },
+            {
+              "name": "out-of-range-skips-length",
+              "expected": {
+                "stdout": "PD46MA==",
+                "stderr": "",
+                "status": 0,
+                "files": {}
+              }
+            },
+            {
+              "name": "negative-range-skips-length",
+              "expected": {
+                "stdout": "PD46MA==",
+                "stderr": "",
+                "status": 0,
+                "files": {}
+              }
+            },
+            {
+              "name": "end-evaluates-length",
+              "expected": {
+                "stdout": "PD46MQ==",
+                "stderr": "",
+                "status": 0,
+                "files": {}
+              }
+            },
+            {
+              "name": "unset-skips-arithmetic",
+              "expected": {
+                "stdout": "PD46MA==",
+                "stderr": "",
+                "status": 0,
+                "files": {}
+              }
+            },
+            {
+              "name": "empty-evaluates-arithmetic",
+              "expected": {
+                "stdout": "PD46Mg==",
+                "stderr": "",
+                "status": 0,
+                "files": {}
+              }
+            },
+            {
+              "name": "quoted-fields",
+              "expected": {
+                "stdout": "PCBiID48Yj4=",
+                "stderr": "",
+                "status": 0,
+                "files": {}
+              }
+            },
+            {
+              "name": "unquoted-glob",
+              "expected": {
+                "stdout": "PGZpcnN0PjxzZWNvbmQ+PCo+",
+                "stderr": "",
+                "status": 0,
+                "files": {
+                  "first": "a2VlcA==",
+                  "second": "a2VlcA=="
+                }
+              }
+            },
+            {
+              "name": "positional-one",
+              "expected": {
+                "stdout": "YmNk",
+                "stderr": "",
+                "status": 0,
+                "files": {}
+              }
+            },
+            {
+              "name": "positional-ten",
+              "expected": {
+                "stdout": "YmNk",
+                "stderr": "",
+                "status": 0,
+                "files": {}
+              }
+            },
+            {
+              "name": "positional-zero",
+              "expected": {
+                "stdout": "aGU=",
+                "stderr": "",
+                "status": 0,
+                "files": {}
+              }
+            },
+            {
+              "name": "function-state",
+              "expected": {
+                "stdout": "YmM6Mjo5",
+                "stderr": "",
+                "status": 0,
+                "files": {}
+              }
+            },
+            {
+              "name": "substitution-state",
+              "expected": {
+                "stdout": "YmM6MQ==",
+                "stderr": "",
+                "status": 0,
+                "files": {}
+              }
+            },
+            {
+              "name": "offset-division-fatal",
+              "expected": {
+                "stdout": "",
+                "stderr": "c2hlbGw6IFZBTFVFOiAxLzA6IGRpdmlzaW9uIGJ5IDAgKGVycm9yIHRva2VuIGlzICIwIikK",
+                "status": 1,
+                "files": {
+                  "before": "YmVmb3Jl"
+                }
+              }
+            },
+            {
+              "name": "length-division-fatal",
+              "expected": {
+                "stdout": "",
+                "stderr": "c2hlbGw6IFZBTFVFOiAxLzA6IGRpdmlzaW9uIGJ5IDAgKGVycm9yIHRva2VuIGlzICIwIikK",
+                "status": 1,
+                "files": {
+                  "before": "YmVmb3Jl"
+                }
+              }
+            },
+            {
+              "name": "negative-end-fatal",
+              "expected": {
+                "stdout": "",
+                "stderr": "c2hlbGw6IC0xMDogc3Vic3RyaW5nIGV4cHJlc3Npb24gPCAwCg==",
+                "status": 1,
+                "files": {
+                  "before": "YmVmb3Jl"
+                }
+              }
+            },
+            {
+              "name": "arithmetic-syntax-fatal",
+              "expected": {
+                "stdout": "",
+                "stderr": "c2hlbGw6IFZBTFVFOiAxKzogc3ludGF4IGVycm9yOiBvcGVyYW5kIGV4cGVjdGVkIChlcnJvciB0b2tlbiBpcyAiKyIpCg==",
+                "status": 1,
+                "files": {
+                  "before": "YmVmb3Jl"
+                }
+              }
+            },
+            {
+              "name": "substitution-fatal-scope",
+              "expected": {
+                "stdout": "PD46MQ==",
+                "stderr": "c2hlbGw6IFZBTFVFOiAxLzA6IGRpdmlzaW9uIGJ5IDAgKGVycm9yIHRva2VuIGlzICIwIikK",
+                "status": 0,
+                "files": {}
+              }
+            },
+            {
+              "name": "utf8-full-first",
+              "expected": {
+                "stdout": "w6k=",
+                "stderr": "",
+                "status": 0,
+                "files": {}
+              }
+            },
+            {
+              "name": "utf8-full-middle",
+              "expected": {
+                "stdout": "8J+Zgg==",
+                "stderr": "",
+                "status": 0,
+                "files": {}
+              }
+            },
+            {
+              "name": "utf8-last",
+              "expected": {
+                "stdout": "Wg==",
+                "stderr": "",
+                "status": 0,
+                "files": {}
+              }
+            },
+            {
+              "name": "utf8-fragment",
+              "expected": {
+                "stdout": "qQ==",
+                "stderr": "",
+                "status": 0,
+                "files": {}
+              }
+            },
+            {
+              "name": "utf8-negative-fragment",
+              "expected": {
+                "stdout": "gg==",
+                "stderr": "",
+                "status": 0,
+                "files": {}
+              }
+            }
+          ]
+        },
+        {
+          "locale": "en_US.UTF-8",
+          "control": "3.2.57(1)-release:en_US.UTF-8:2",
+          "rows": [
+            {
+              "name": "handoff-scalar",
+              "expected": {
+                "stdout": "NjpiY2E6ZGVmYXVsdDpzZXQ=",
+                "stderr": "",
+                "status": 0,
+                "files": {}
+              }
+            },
+            {
+              "name": "offset-length",
+              "expected": {
+                "stdout": "PGJjZD4=",
+                "stderr": "",
+                "status": 0,
+                "files": {}
+              }
+            },
+            {
+              "name": "tail",
+              "expected": {
+                "stdout": "PGNkZWY+",
+                "stderr": "",
+                "status": 0,
+                "files": {}
+              }
+            },
+            {
+              "name": "empty-offset",
+              "expected": {
+                "stdout": "PGFiPg==",
+                "stderr": "",
+                "status": 0,
+                "files": {}
+              }
+            },
+            {
+              "name": "empty-length",
+              "expected": {
+                "stdout": "PD4=",
+                "stderr": "",
+                "status": 0,
+                "files": {}
+              }
+            },
+            {
+              "name": "both-empty",
+              "expected": {
+                "stdout": "PD4=",
+                "stderr": "",
+                "status": 0,
+                "files": {}
+              }
+            },
+            {
+              "name": "offset-empty-tail",
+              "expected": {
+                "stdout": "",
+                "stderr": "c2hlbGw6ICR7VkFMVUU6fTogYmFkIHN1YnN0aXR1dGlvbgo=",
+                "status": 1,
+                "files": {}
+              }
+            },
+            {
+              "name": "negative-offset",
+              "expected": {
+                "stdout": "PGVmPg==",
+                "stderr": "",
+                "status": 0,
+                "files": {}
+              }
+            },
+            {
+              "name": "negative-length",
+              "expected": {
+                "stdout": "",
+                "stderr": "c2hlbGw6IC0xOiBzdWJzdHJpbmcgZXhwcmVzc2lvbiA8IDAK",
+                "status": 1,
+                "files": {}
+              }
+            },
+            {
+              "name": "both-negative",
+              "expected": {
+                "stdout": "",
+                "stderr": "c2hlbGw6IC0xOiBzdWJzdHJpbmcgZXhwcmVzc2lvbiA8IDAK",
+                "status": 1,
+                "files": {}
+              }
+            },
+            {
+              "name": "past-end",
+              "expected": {
+                "stdout": "PD4=",
+                "stderr": "",
+                "status": 0,
+                "files": {}
+              }
+            },
+            {
+              "name": "before-start",
+              "expected": {
+                "stdout": "PD4=",
+                "stderr": "",
+                "status": 0,
+                "files": {}
+              }
+            },
+            {
+              "name": "at-end",
+              "expected": {
+                "stdout": "PD4=",
+                "stderr": "",
+                "status": 0,
+                "files": {}
+              }
+            },
+            {
+              "name": "zero-length",
+              "expected": {
+                "stdout": "PD4=",
+                "stderr": "",
+                "status": 0,
+                "files": {}
+              }
+            },
+            {
+              "name": "large-offset",
+              "expected": {
+                "stdout": "PD4=",
+                "stderr": "",
+                "status": 0,
+                "files": {}
+              }
+            },
+            {
+              "name": "large-length",
+              "expected": {
+                "stdout": "PGJjZGVmPg==",
+                "stderr": "",
+                "status": 0,
+                "files": {}
+              }
+            },
+            {
+              "name": "overflow-arithmetic",
+              "expected": {
+                "stdout": "PGJjPg==",
+                "stderr": "",
+                "status": 0,
+                "files": {}
+              }
+            },
+            {
+              "name": "default-not-negative-offset",
+              "expected": {
+                "stdout": "PGFiY2RlZj4=",
+                "stderr": "",
+                "status": 0,
+                "files": {}
+              }
+            },
+            {
+              "name": "ternary-offset",
+              "expected": {
+                "stdout": "PGNkPg==",
+                "stderr": "",
+                "status": 0,
+                "files": {}
+              }
+            },
+            {
+              "name": "ternary-parentheses",
+              "expected": {
+                "stdout": "PGNkPg==",
+                "stderr": "",
+                "status": 0,
+                "files": {}
+              }
+            },
+            {
+              "name": "nested-ternary",
+              "expected": {
+                "stdout": "PGNkPg==",
+                "stderr": "",
+                "status": 0,
+                "files": {}
+              }
+            },
+            {
+              "name": "arithmetic-expansion",
+              "expected": {
+                "stdout": "PGNkPg==",
+                "stderr": "",
+                "status": 0,
+                "files": {}
+              }
+            },
+            {
+              "name": "arithmetic-variables",
+              "expected": {
+                "stdout": "Y2RlZg==",
+                "stderr": "",
+                "status": 0,
+                "files": {}
+              }
+            },
+            {
+              "name": "arithmetic-side-effects",
+              "expected": {
+                "stdout": "YmNkOjM=",
+                "stderr": "",
+                "status": 0,
+                "files": {}
+              }
+            },
+            {
+              "name": "value-snapshot",
+              "expected": {
+                "stdout": "YmM6MTIz",
+                "stderr": "",
+                "status": 0,
+                "files": {}
+              }
+            },
+            {
+              "name": "nested-parameter",
+              "expected": {
+                "stdout": "",
+                "stderr": "c2hlbGw6ICR7T0ZGU0VUOiBiYWQgc3Vic3RpdHV0aW9uCg==",
+                "status": 1,
+                "files": {}
+              }
+            },
+            {
+              "name": "nested-default",
+              "expected": {
+                "stdout": "YmNk",
+                "stderr": "",
+                "status": 0,
+                "files": {}
+              }
+            },
+            {
+              "name": "command-expansion-order",
+              "expected": {
+                "stdout": "YmM=",
+                "stderr": "",
+                "status": 0,
+                "files": {
+                  "marker": "b2Zmc2V0bGVuZ3Ro"
+                }
+              }
+            },
+            {
+              "name": "out-of-range-skips-length",
+              "expected": {
+                "stdout": "PD46MA==",
+                "stderr": "",
+                "status": 0,
+                "files": {}
+              }
+            },
+            {
+              "name": "negative-range-skips-length",
+              "expected": {
+                "stdout": "PD46MA==",
+                "stderr": "",
+                "status": 0,
+                "files": {}
+              }
+            },
+            {
+              "name": "end-evaluates-length",
+              "expected": {
+                "stdout": "PD46MQ==",
+                "stderr": "",
+                "status": 0,
+                "files": {}
+              }
+            },
+            {
+              "name": "unset-skips-arithmetic",
+              "expected": {
+                "stdout": "PD46MA==",
+                "stderr": "",
+                "status": 0,
+                "files": {}
+              }
+            },
+            {
+              "name": "empty-evaluates-arithmetic",
+              "expected": {
+                "stdout": "PD46Mg==",
+                "stderr": "",
+                "status": 0,
+                "files": {}
+              }
+            },
+            {
+              "name": "quoted-fields",
+              "expected": {
+                "stdout": "PCBiID48Yj4=",
+                "stderr": "",
+                "status": 0,
+                "files": {}
+              }
+            },
+            {
+              "name": "unquoted-glob",
+              "expected": {
+                "stdout": "PGZpcnN0PjxzZWNvbmQ+PCo+",
+                "stderr": "",
+                "status": 0,
+                "files": {
+                  "first": "a2VlcA==",
+                  "second": "a2VlcA=="
+                }
+              }
+            },
+            {
+              "name": "positional-one",
+              "expected": {
+                "stdout": "YmNk",
+                "stderr": "",
+                "status": 0,
+                "files": {}
+              }
+            },
+            {
+              "name": "positional-ten",
+              "expected": {
+                "stdout": "YmNk",
+                "stderr": "",
+                "status": 0,
+                "files": {}
+              }
+            },
+            {
+              "name": "positional-zero",
+              "expected": {
+                "stdout": "aGU=",
+                "stderr": "",
+                "status": 0,
+                "files": {}
+              }
+            },
+            {
+              "name": "function-state",
+              "expected": {
+                "stdout": "YmM6Mjo5",
+                "stderr": "",
+                "status": 0,
+                "files": {}
+              }
+            },
+            {
+              "name": "substitution-state",
+              "expected": {
+                "stdout": "YmM6MQ==",
+                "stderr": "",
+                "status": 0,
+                "files": {}
+              }
+            },
+            {
+              "name": "offset-division-fatal",
+              "expected": {
+                "stdout": "",
+                "stderr": "c2hlbGw6IFZBTFVFOiAxLzA6IGRpdmlzaW9uIGJ5IDAgKGVycm9yIHRva2VuIGlzICIwIikK",
+                "status": 1,
+                "files": {
+                  "before": "YmVmb3Jl"
+                }
+              }
+            },
+            {
+              "name": "length-division-fatal",
+              "expected": {
+                "stdout": "",
+                "stderr": "c2hlbGw6IFZBTFVFOiAxLzA6IGRpdmlzaW9uIGJ5IDAgKGVycm9yIHRva2VuIGlzICIwIikK",
+                "status": 1,
+                "files": {
+                  "before": "YmVmb3Jl"
+                }
+              }
+            },
+            {
+              "name": "negative-end-fatal",
+              "expected": {
+                "stdout": "",
+                "stderr": "c2hlbGw6IC0xMDogc3Vic3RyaW5nIGV4cHJlc3Npb24gPCAwCg==",
+                "status": 1,
+                "files": {
+                  "before": "YmVmb3Jl"
+                }
+              }
+            },
+            {
+              "name": "arithmetic-syntax-fatal",
+              "expected": {
+                "stdout": "",
+                "stderr": "c2hlbGw6IFZBTFVFOiAxKzogc3ludGF4IGVycm9yOiBvcGVyYW5kIGV4cGVjdGVkIChlcnJvciB0b2tlbiBpcyAiKyIpCg==",
+                "status": 1,
+                "files": {
+                  "before": "YmVmb3Jl"
+                }
+              }
+            },
+            {
+              "name": "substitution-fatal-scope",
+              "expected": {
+                "stdout": "PD46MQ==",
+                "stderr": "c2hlbGw6IFZBTFVFOiAxLzA6IGRpdmlzaW9uIGJ5IDAgKGVycm9yIHRva2VuIGlzICIwIikK",
+                "status": 0,
+                "files": {}
+              }
+            },
+            {
+              "name": "utf8-full-first",
+              "expected": {
+                "stdout": "w6nwn5mC",
+                "stderr": "",
+                "status": 0,
+                "files": {}
+              }
+            },
+            {
+              "name": "utf8-full-middle",
+              "expected": {
+                "stdout": "Wg==",
+                "stderr": "",
+                "status": 0,
+                "files": {}
+              }
+            },
+            {
+              "name": "utf8-last",
+              "expected": {
+                "stdout": "Wg==",
+                "stderr": "",
+                "status": 0,
+                "files": {}
+              }
+            },
+            {
+              "name": "utf8-fragment",
+              "expected": {
+                "stdout": "8J+Zgg==",
+                "stderr": "",
+                "status": 0,
+                "files": {}
+              }
+            },
+            {
+              "name": "utf8-negative-fragment",
+              "expected": {
+                "stdout": "8J+Zgg==",
+                "stderr": "",
+                "status": 0,
+                "files": {}
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

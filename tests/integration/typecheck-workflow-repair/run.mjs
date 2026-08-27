@@ -1,10 +1,10 @@
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
-import { chmodSync, copyFileSync, existsSync, lstatSync, mkdirSync, mkdtempSync, openSync, closeSync, readFileSync, readdirSync, realpathSync, rmSync, writeFileSync } from "node:fs";
+import { chmodSync, copyFileSync, cpSync, existsSync, lstatSync, mkdirSync, mkdtempSync, openSync, closeSync, readFileSync, readdirSync, realpathSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 
 const root = fileURLToPath(new URL("../../../", import.meta.url));
 const output = resolve(process.argv[2] ?? "");
@@ -104,15 +104,94 @@ try {
   });
   check("resolution-guard-rejects-source-fallback-with-directory-url-root", () => {
     const script = `import assert from 'node:assert/strict';
+      import { cpSync, mkdirSync, mkdtempSync, rmSync } from 'node:fs';
+      import { join } from 'node:path';
+      import { tmpdir } from 'node:os';
       import { assertBuiltConsumerResolution } from './scripts/typecheck-consumers.mjs';
       const root = ${JSON.stringify(snapshot + "/")};
-      const consumer = '/tmp/typecheck-resolution-control/consumer';
-      const positive = consumer + "/node_modules/virtual-bash/dist/index.d.ts";
-      assertBuiltConsumerResolution(positive, consumer, root);
-      assert.throws(() => assertBuiltConsumerResolution(positive + " was successfully resolved to '" + root + "src/index.ts'", consumer, root), /source fallback/);
-      assert.throws(() => assertBuiltConsumerResolution('unresolved', consumer, root), /copied built package/);`;
+      const consumer = mkdtempSync(join(tmpdir(), 'safe-bash-resolution-control-'));
+      try {
+        const installed = join(consumer, 'node_modules/virtual-bash'); mkdirSync(installed, { recursive: true });
+        cpSync(join(root, 'package.json'), join(installed, 'package.json'));
+        cpSync(join(root, 'dist'), join(installed, 'dist'), { recursive: true });
+        const positive = "======== Module name 'virtual-bash' was successfully resolved to '" + installed + "/dist/index.d.ts'. ========";
+        assertBuiltConsumerResolution(positive, consumer, root);
+        assert.throws(() => assertBuiltConsumerResolution(positive + "\\n======== Module name 'virtual-bash/contracts' was successfully resolved to '" + root + "src/contracts/index.ts'. ========", consumer, root), /source fallback/);
+        assert.throws(() => assertBuiltConsumerResolution('unresolved', consumer, root), /authenticated candidate declarations/);
+      } finally { rmSync(consumer, { recursive: true, force: true }); }`;
     const result = command("source-resolution-guard", process.execPath, ["--input-type=module", "-e", script]);
     assert.equal(result.status, 0);
+  });
+  const bindingModule = await import(pathToFileURL(join(snapshot, "scripts/typecheck-consumers.mjs")).href);
+  const binding = bindingModule.createBuiltPackageBinding(snapshot);
+  const consumer = join(temporary, "actual-binding-consumer"), installed = join(consumer, "node_modules/virtual-bash");
+  mkdirSync(installed, { recursive: true });
+  cpSync(join(snapshot, "package.json"), join(installed, "package.json"));
+  cpSync(join(snapshot, "dist"), join(installed, "dist"), { recursive: true });
+  const declarationFixture = "tests/shell-stress/env-split-validity/public-types.mts";
+  const originalFixture = readFileSync(join(snapshot, declarationFixture), "utf8");
+  const missingExport = "\nimport { independentMissingExport } from 'virtual-bash/contracts'; void independentMissingExport;\n";
+  writeFileSync(join(consumer, "fixture.mts"), originalFixture);
+  const strictConfig = JSON.parse(readFileSync(join(snapshot, "tests/plugins/qualified-current-release/tsconfig.consumer.json")));
+  Object.assign(strictConfig.compilerOptions, { noEmit: true, rootDir: consumer, typeRoots: [join(snapshot, "node_modules/@types")] });
+  strictConfig.files = [join(consumer, "fixture.mts")];
+  const directCompile = (label, config = strictConfig) => {
+    writeFileSync(join(consumer, "tsconfig.json"), JSON.stringify(config));
+    return command(label, process.execPath, ["node_modules/typescript/bin/tsc", "-p", join(consumer, "tsconfig.json"), "--traceResolution"]);
+  };
+  check("real-candidate-consumer-and-external-node-typings-pass", () => {
+    const result = directCompile("binding-legitimate"); assert.equal(result.status, 0);
+    bindingModule.assertBuiltConsumerResolution(result.stdout, consumer, snapshot, binding);
+  });
+  writeFileSync(join(consumer, "fixture.mts"), originalFixture + missingExport);
+  check("real-missing-export-without-path-mapping-is-ts2305", () => {
+    const result = directCompile("binding-missing-export"); assert.equal(result.status, 2);
+    assert.match(result.stdout, /error TS2305:.*independentMissingExport/u);
+  });
+  const decoy = join(temporary, "decoy-dist"); cpSync(join(snapshot, "dist"), decoy, { recursive: true });
+  const foreignContracts = join(decoy, "contracts/index.d.ts");
+  writeFileSync(foreignContracts, readFileSync(foreignContracts, "utf8") + "\nexport declare const independentMissingExport: number;\n");
+  const mixedConfig = structuredClone(strictConfig); mixedConfig.compilerOptions.paths = { "virtual-bash/contracts": [foreignContracts] };
+  check("real-mixed-root-and-foreign-subpath-is-rejected", () => {
+    const result = directCompile("binding-mixed", mixedConfig); assert.equal(result.status, 0);
+    assert.throws(() => bindingModule.assertBuiltConsumerResolution(result.stdout, consumer, snapshot, binding), /foreign candidate declaration/u);
+  });
+  check("complete-warm-npm-typecheck-rejects-foreign-export", () => {
+    const configPath = "tests/plugins/qualified-current-release/tsconfig.consumer.json";
+    const config = JSON.parse(readFileSync(join(snapshot, configPath)));
+    config.compilerOptions.paths = { "virtual-bash/contracts": [foreignContracts] };
+    mutate(declarationFixture, originalFixture + missingExport, () => mutate(configPath, JSON.stringify(config), () => {
+      const evidence = join(output, "binding-full-warm"), npmHome = join(temporary, "npm-profile"); mkdirSync(npmHome);
+      writeFileSync(join(npmHome, "user.npmrc"), ""); writeFileSync(join(npmHome, "global.npmrc"), "");
+      const environment = { ...process.env, npm_config_cache: join(npmHome, "cache"), npm_config_userconfig: join(npmHome, "user.npmrc"), npm_config_globalconfig: join(npmHome, "global.npmrc"), npm_config_offline: "true", npm_config_audit: "false", npm_config_fund: "false" };
+      const result = command("binding-full-warm", "npm", ["run", "typecheck", "--", "--report", evidence], snapshot, environment);
+      const details = JSON.parse(readFileSync(join(evidence, "report.json")));
+      assert.equal(result.status, 2); assert.equal(details.builds, 0);
+      const group = details.consumers.groups.find(group => group.name === "env-split-public-types");
+      assert.equal(group.status, "fail"); assert.match(group.error, /foreign candidate declaration/u);
+    }));
+  });
+  writeFileSync(join(consumer, "fixture.mts"), originalFixture);
+  check("same-build-wrong-public-export-is-rejected", () => {
+    const config = structuredClone(strictConfig); config.compilerOptions.paths = { "virtual-bash/contracts": [join(installed, "dist/index.d.ts")] };
+    const result = directCompile("binding-wrong-export", config); assert.equal(result.status, 0);
+    assert.throws(() => bindingModule.assertBuiltConsumerResolution(result.stdout, consumer, snapshot, binding), /wrong candidate export/u);
+  });
+  check("foreign-declaration-symlink-is-rejected", () => {
+    const path = join(installed, "dist/contracts/index.d.ts"), original = readFileSync(path);
+    try {
+      rmSync(path); symlinkSync(foreignContracts, path);
+      const result = directCompile("binding-symlink", mixedConfig); assert.equal(result.status, 0);
+      assert.throws(() => bindingModule.assertBuiltConsumerResolution(result.stdout, consumer, snapshot, binding), /regular files/u);
+    } finally { rmSync(path); writeFileSync(path, original); }
+  });
+  check("changed-candidate-declaration-bytes-are-rejected", () => {
+    const path = join(installed, "dist/contracts/index.d.ts"), original = readFileSync(path);
+    try {
+      writeFileSync(path, Buffer.concat([original, Buffer.from("\nexport declare const changedExtra: number;\n")]));
+      const result = directCompile("binding-mutated-bytes"); assert.equal(result.status, 0);
+      assert.throws(() => bindingModule.assertBuiltConsumerResolution(result.stdout, consumer, snapshot, binding), /declaration bytes/u);
+    } finally { writeFileSync(path, original); }
   });
   check("capture-byte-tampering-rejected-before-compiler", () => mutate(classification.entries[0].path, "changed captured data\n", () => preflightRejects("tampered-capture", /captured data/u)));
   check("broad-exclusion-is-rejected", () => {

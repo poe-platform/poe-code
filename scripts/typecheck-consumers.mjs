@@ -1,15 +1,79 @@
 import assert from "node:assert/strict";
-import { cpSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
-import { basename, join } from "node:path";
+import { createHash } from "node:crypto";
+import { cpSync, existsSync, lstatSync, mkdirSync, readFileSync, readdirSync, realpathSync, writeFileSync } from "node:fs";
+import { basename, isAbsolute, join, relative, resolve, sep } from "node:path";
 import { consumerGroups, currentSourceConsumerGroups, negativeGroups, ownerPath } from "../tests/plugins/qualified-current-release/consumers.mjs";
 import { validateRuntimeCoverage } from "../tests/plugins/qualified-current-release/runtime-coverage.mjs";
 
-export function assertBuiltConsumerResolution(stdout, consumer, root) {
-  assert.ok(stdout.includes(`${consumer}/`) && stdout.includes("node_modules/virtual-bash/dist/"), "consumer must resolve the copied built package");
-  assert.ok(!stdout.includes(`was successfully resolved to '${join(root, "src")}/`), "public consumer used repository source fallback");
+const sha256 = bytes => createHash("sha256").update(bytes).digest("hex");
+const within = (directory, path) => {
+  const local = relative(directory, path);
+  return local !== ".." && !local.startsWith(`..${sep}`) && !isAbsolute(local);
+};
+
+export function createBuiltPackageBinding(root) {
+  const metadata = readFileSync(join(root, "package.json")), declarations = new Map();
+  const walk = directory => {
+    for (const name of readdirSync(join(root, directory))) {
+      const path = join(directory, name), stat = lstatSync(join(root, path));
+      assert.equal(stat.isSymbolicLink(), false, `candidate build must use regular files: ${path}`);
+      if (stat.isDirectory()) walk(path);
+      else if (/\.d\.(?:ts|mts|cts)$/u.test(name)) declarations.set(path, sha256(readFileSync(join(root, path))));
+    }
+  };
+  assert.equal(lstatSync(join(root, "dist")).isSymbolicLink(), false, "candidate dist must not redirect to another build");
+  walk("dist");
+  assert.ok(declarations.size > 0, "candidate declarations are missing");
+  return { metadataSha256: sha256(metadata), exports: JSON.parse(metadata).exports, declarations };
 }
 
-export function checkSourceConsumerTypes(root, temporary, compile) {
+function declaredTypePath(specifier, binding) {
+  const key = specifier === "virtual-bash" ? "." : `.${specifier.slice("virtual-bash".length)}`;
+  if (binding.exports[key]) return binding.exports[key].types;
+  for (const [pattern, entry] of Object.entries(binding.exports)) {
+    const parts = pattern.split("*");
+    if (parts.length === 2 && key.startsWith(parts[0]) && key.endsWith(parts[1])) {
+      return entry.types?.replace("*", key.slice(parts[0].length, key.length - parts[1].length));
+    }
+  }
+}
+
+function assertCandidateResolutions(stdout, installed, binding) {
+  const packageRoot = realpathSync(installed), dist = join(packageRoot, "dist");
+  const actual = createBuiltPackageBinding(packageRoot);
+  assert.equal(actual.metadataSha256, binding.metadataSha256, "candidate package metadata changed");
+  assert.deepEqual(actual.declarations, binding.declarations, "candidate declaration bytes or file set changed");
+  let importer, checked = 0;
+  for (const line of stdout.split("\n")) {
+    const start = /^======== Resolving module '.*' from '(.*)'\. ========$/u.exec(line);
+    if (start) importer = start[1];
+    const match = /^======== Module name '(.*)' was successfully resolved to '([^']+)'/u.exec(line);
+    if (!match) continue;
+    const [, specifier, target] = match;
+    const physicalTarget = realpathSync(target);
+    const publicImport = /^virtual-bash(?:\/|$)/u.test(specifier);
+    const localLeaf = /(?:^|\/)node_modules\/virtual-bash\//u.test(specifier);
+    const relativeDeclaration = /^\.\.?\//u.test(specifier) && importer && existsSync(importer) && within(dist, realpathSync(importer));
+    if (!publicImport && !localLeaf && !relativeDeclaration && !within(dist, physicalTarget)) continue;
+    assert.ok(within(dist, physicalTarget), `foreign candidate declaration/source fallback: ${specifier} -> ${target}`);
+    const local = relative(packageRoot, physicalTarget), expected = binding.declarations.get(local);
+    assert.ok(expected, `resolution is not an authenticated candidate declaration: ${specifier} -> ${target}`);
+    assert.equal(sha256(readFileSync(physicalTarget)), expected, `candidate declaration bytes changed: ${target}`);
+    if (publicImport) {
+      const declared = declaredTypePath(specifier, binding);
+      assert.equal(typeof declared, "string", `public subpath has no candidate types export: ${specifier}`);
+      assert.equal(physicalTarget, resolve(packageRoot, declared), `public subpath resolved to the wrong candidate export: ${specifier}`);
+    }
+    checked++;
+  }
+  assert.ok(checked > 0, "consumer must resolve authenticated candidate declarations");
+}
+
+export function assertBuiltConsumerResolution(stdout, consumer, root, binding = createBuiltPackageBinding(root)) {
+  assertCandidateResolutions(stdout, join(consumer, "node_modules/virtual-bash"), binding);
+}
+
+export function checkSourceConsumerTypes(root, temporary, compile, binding = createBuiltPackageBinding(root)) {
   const groups = currentSourceConsumerGroups.map(group => {
     const result = { name: group.name, files: group.files, qualification: group.qualification, status: "pending", runtime: "not executed: typecheck-only route" };
     try {
@@ -21,9 +85,7 @@ export function checkSourceConsumerTypes(root, temporary, compile) {
       }));
       const checked = compile(`source-consumer-${group.name}`, ["-p", filename, "--traceResolution"]);
       assert.equal(checked.status, 0, `strict current source consumer failed: ${group.name}`);
-      const publicResolutions = [...checked.stdout.matchAll(/Module name 'virtual-bash(?:\/[^']*)?' was successfully resolved to '([^']+)'/gu)];
-      assert.ok(publicResolutions.length > 0, "current source consumer must resolve public package declarations");
-      for (const resolution of publicResolutions) assert.ok(resolution[1].startsWith(`${join(root, "dist")}/`), "public imports must use the candidate build, not source fallback");
+      assertCandidateResolutions(checked.stdout, root, binding);
       result.status = "pass";
     } catch (error) { result.status = "fail"; result.error = error.message; }
     return result;
@@ -31,7 +93,7 @@ export function checkSourceConsumerTypes(root, temporary, compile) {
   return { groups, passed: groups.every(group => group.status === "pass"), qualification: "Exact current .ts public consumers; explicit source fixture helpers are retained. Not isolated packed runtime or provider acceptance." };
 }
 
-export function checkCurrentConsumerTypes(root, temporary, compile) {
+export function checkCurrentConsumerTypes(root, temporary, compile, binding = createBuiltPackageBinding(root)) {
   validateRuntimeCoverage(consumerGroups);
   const consumer = join(temporary, "consumer"), installed = join(consumer, "node_modules/virtual-bash");
   mkdirSync(installed, { recursive: true });
@@ -58,7 +120,7 @@ export function checkCurrentConsumerTypes(root, temporary, compile) {
       const filename = join(workspace, "tsconfig.json"); writeFileSync(filename, JSON.stringify(config));
       const resolution = compile(`consumer-${group.name}`, ["-p", filename, "--traceResolution"]);
       assert.equal(resolution.status, 0, `strict consumer declarations failed: ${group.name}`);
-      assertBuiltConsumerResolution(resolution.stdout, consumer, root);
+      assertBuiltConsumerResolution(resolution.stdout, group.localPackage ? workspace : consumer, root, binding);
       result.status = "pass";
     } catch (error) { result.status = "fail"; result.error = error.message; }
   }

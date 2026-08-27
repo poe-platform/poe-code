@@ -5,7 +5,7 @@ import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { verifyTypecheckInputs, requireBuiltPackage } from "./typecheck-inputs.mjs";
-import { checkCurrentConsumerTypes, checkSourceConsumerTypes } from "./typecheck-consumers.mjs";
+import { checkCurrentConsumerTypes, checkSourceConsumerTypes, createBuiltPackageBinding } from "./typecheck-consumers.mjs";
 
 const root = fileURLToPath(new URL("../", import.meta.url));
 const args = process.argv.slice(2), build = args.includes("--build"), consumersOnly = args.includes("--consumers");
@@ -38,10 +38,12 @@ try {
     if (compile("build", ["-p", "tsconfig.build.json"]).status !== 0) throw new Error("Production build failed; stale declarations will not be used for consumer checks.");
   }
   requireBuiltPackage(root);
+  const binding = createBuiltPackageBinding(root);
+  report.candidateBinding = { metadataSha256: binding.metadataSha256, declarations: [...binding.declarations].map(([path, sha256]) => ({ path, sha256 })) };
   const global = consumersOnly ? null : compile("source-and-tests", ["--noEmit"]);
   const historical = compile("historical-build-first-consumer", ["--noEmit", "-p", "tests/commands/table-text-stress/shared-stdin-review/tsconfig.consumer.json"]);
-  report.sourceConsumers = checkSourceConsumerTypes(root, temporary, compile);
-  report.consumers = checkCurrentConsumerTypes(root, temporary, compile);
+  report.sourceConsumers = checkSourceConsumerTypes(root, temporary, compile, binding);
+  report.consumers = checkCurrentConsumerTypes(root, temporary, compile, binding);
   const passed = (!global || global.status === 0) && historical.status === 0 && report.sourceConsumers.passed && report.consumers.passed;
   report.status = passed ? "typecheck-passed-not-runtime-acceptance" : "typecheck-failed";
   process.exitCode = passed ? 0 : 2;

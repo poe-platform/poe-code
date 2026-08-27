@@ -57,7 +57,7 @@ Historical static audit `0d625f3` remains immutable: zero dynamic executions,
 zero verified dynamic probes, zero proven violations. The prior broader task
 was refused twice by a service with this exact output (not an OS error or proof):
 
-> ERROR: This content was flagged for possible cybersecurity risk. If this seems wrong, try rephrasing your request. To get authorized for security work, join the Trusted Access for Cyber program: https://chatgpt.com/cyber .
+> ERROR: This content was flagged for possible cybersecurity risk. If this seems wrong, try rephrasing your request. To get authorized for security work, join the Trusted Access for Cyber program: https://chatgpt.com/cyber
 
 This explicitly narrowed controls-only stage does not retry the broad task.
 If any further execution is denied, stop and preserve the exact tool output;

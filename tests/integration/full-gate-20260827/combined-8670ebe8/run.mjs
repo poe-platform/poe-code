@@ -16,9 +16,15 @@ const assessRepository = options => assessBase({ ...options, profile: policy });
 const successor = fileURLToPath(new URL('./', import.meta.url));
 
 import { prerequisites, privateState } from "../combined-b494675c/prerequisites.mjs";
+import { prerequisites as archivedPrerequisites } from './prerequisites.mjs';
+import { assessCommittedRevision, verifyFreshCommittedArchive } from './committed-archive.mjs';
 
 const harness = fileURLToPath(new URL("../combined-b494675c/", import.meta.url));
-const launchPreflight = assessRepository({ repository, candidate: process.argv[3] });
+const committedArchive = process.argv[6] === '--committed-archive';
+assert.ok(process.argv.length === (committedArchive ? 7 : 6), 'Optional mode must be explicit: --committed-archive');
+const launchPreflight = committedArchive
+  ? assessCommittedRevision({ repository, candidate: process.argv[3], profile: policy })
+  : assessRepository({ repository, candidate: process.argv[3] });
 console.log(JSON.stringify({ preflight: launchPreflight }));
 if (launchPreflight.issues.length) { process.exitCode = 78; }
 if (launchPreflight.issues.length) process.exit(78);
@@ -110,6 +116,13 @@ try {
   const archive = join(temporary, "source.tar"); execFileSync("git", ["archive", "-o", archive, discovery.revision], { cwd: repository, timeout: 180000 });
   const archiveHash = createHash("sha256"); for await (const chunk of createReadStream(archive)) archiveHash.update(chunk);
   report.archiveSha256 = archiveHash.digest("hex"); execFileSync("tar", ["-xf", archive, "-C", source], { timeout: 180000 });
+  if (committedArchive) {
+    const admitted = verifyFreshCommittedArchive(source, launchPreflight.entries);
+    assert.deepEqual(launchPreflight.entries, discovery.tree, 'Independent committed listings disagree');
+    report.archiveAdmission = { mode: 'committed-archive', candidate: discovery.revision, tree: freeze.tree, count: admitted.count, source: admitted.source,
+      manifestSha256: hash(JSON.stringify(admitted.files)), workingTreeOverlay: false };
+    save('archive-admission.json', { ...report.archiveAdmission, files: admitted.files });
+  }
   for (const entry of discovery.tree) {
     const path = join(source, entry.path), stat = lstatSync(path), symlink = entry.mode === "120000";
     assert.equal(stat.isSymbolicLink(), symlink);
@@ -134,6 +147,7 @@ try {
   }
   assert.equal(JSON.parse(readFileSync(join(source, "benchmarks/node_modules/just-bash/package.json"), "utf8")).version, "3.4.2");
   report.harnessHashes = Object.fromEntries(readdirSync(harness).filter(name => /\.(mjs|fixture)$/.test(name)).map(name => [name, hash(readFileSync(join(harness, name)))]));
+  report.successorHarnessHashes = Object.fromEntries(['run.mjs', 'committed-archive.mjs', 'prerequisites.mjs', 'import-guard.mjs', 'CANDIDATE.json', 'policy.json', 'cleanup-expected.json'].map(name => [name, hash(readFileSync(join(successor, name)))]));
   for (const name of ["import-guard.mjs", "public.mjs", "consumer.mts.fixture"]) { const bytes = readFileSync(join(name === 'import-guard.mjs' ? successor : harness, name)); writeFileSync(join(temporary, "harness", name), bytes); report.harnessHashes[name] = hash(bytes); }
   writeFileSync(environment.FULL_GATE_EXPECTED, JSON.stringify(Object.fromEntries(freeze.bindings.filter(entry => entry.path === 'src/commands/execution.ts' || entry.path === 'src/commands/env-split.ts').map(entry => [entry.path, entry.sha256]))));
   const cleanupEnvelope = JSON.parse(readFileSync(join(successor, 'cleanup-expected.json')));
@@ -147,7 +161,7 @@ try {
     const path = join(temporary, 'harness', name); return [path, hash(readFileSync(path))];
   }));
   report.launchPreflight = launchPreflight;
-  report.prerequisites = await prerequisites({ repository, source, temporary, environment, candidate: discovery.revision });
+  report.prerequisites = await (committedArchive ? archivedPrerequisites : prerequisites)({ repository, source, temporary, environment, candidate: discovery.revision });
   report.mandatoryNativeStaging = stageNative(launchPreflight, { snapshot: source, nativeRoot: join(temporary, "native-bin"), environment });
   save("prerequisites.json", report.prerequisites);
   report.native = {};

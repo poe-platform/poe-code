@@ -30,7 +30,7 @@ export async function prepareNative(repo) {
     awk: "/usr/bin/awk", grep: "/usr/bin/grep", find: "/usr/bin/find", xargs: "/usr/bin/xargs",
     jq: "/usr/bin/jq", xxd: "/usr/bin/xxd", curl: "/usr/bin/curl",
     rg: process.env.EXPANDED_RG ?? "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/@openai/codex/node_modules/@openai/codex-darwin-arm64/vendor/aarch64-apple-darwin/codex-path/rg",
-    gzip, gunzip: gzip, zcat: gzip,
+    gzip, gunzip: join(dirname(gzip), "gunzip"), zcat: join(dirname(gzip), "zcat"),
     tar: process.env.EXPANDED_TAR ?? join(repo, "tests/commands/archive/.oracle/gnu-tar/1.35/bin/gtar"),
     diff: process.env.EXPANDED_DIFF ?? "/tmp/safe-bash-gnu-oracle.Yg2F0W/diffutils-3.12/src/diff",
     patch: process.env.EXPANDED_PATCH ?? "/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch",
@@ -56,7 +56,7 @@ export async function prepareNative(repo) {
 export async function observeNative(profile, specimen, baseUrl) {
   const cwd = await mkdtemp(join(profile.workspace, "case-"));
   const env = { ...environment, PATH: profile.bin, HOME: cwd, TMPDIR: join(cwd, "tmp") };
-  const replacements = [[cwd, fixtureRoot], [profile.bin, "/usr/bin"], ...(baseUrl ? [[baseUrl, "{{BASE}}"]] : [])];
+  const replacements = [[await realpath(cwd), fixtureRoot], [cwd, fixtureRoot], [await realpath(profile.bin), "/usr/bin"], [profile.bin, "/usr/bin"], ...(baseUrl ? [[baseUrl, "{{BASE}}"]] : [])];
   try {
     await chmod(cwd, 0o755);
     for (const path of specimen.directories) await mkdir(join(cwd, relativePath(path)), { recursive: true, mode: 0o755 });

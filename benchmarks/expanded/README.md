@@ -15,16 +15,20 @@ node --import tsx benchmarks/expanded/run.mjs benchmarks/reports/expanded-202608
 ```
 
 Output directories must not exist. The runner requires the harness to match the
-selected committed revision, extracts that revision's production source with
+selected committed harness revision, extracts the selected production source with
 `git archive`, links cached development tooling, and never copies dirty product
 files. It records all source hashes, baseline bundle/manifest/isolated-lock
 hashes, runtime details and moving worktree status. It does not run the global
 product suite or certify the moving worktree.
 
-The first native capture is immutable:
+The first native capture is immutable but superseded for acceptance by the
+corrected native capture (`native-corrected/native.json`); see
+`benchmarks/reports/expanded-20260827/ORACLE_CORRECTIONS.md` for the two harness
+defects and unchanged recipes. The historical first capture is:
 `benchmarks/reports/expanded-20260827/native-first/native.json`. All 224 functional
 recipes and four performance recipes had their declared native exit status
-before product scoring. Native errors intentionally expected by a recipe are
+before initial product scoring. Declared exit validity alone was insufficient;
+the corrected capture adds independent launcher/path controls. Native errors intentionally expected by a recipe are
 valid observations, not exclusions. To capture another explicitly separate native
 cohort with the installed, hashed oracles:
 
@@ -39,6 +43,15 @@ and `EXPANDED_RG` can select preinstalled tools. No automatic download or instal
 occurs. Native subprocesses run trusted static fixtures only; product commands
 do not spawn processes. Fixtures use private temporary directories and loopback
 HTTP, never external uploads or user files.
+
+The runner accepts output, product revision, harness revision (default HEAD),
+then native JSON path (default corrected capture). To hold product source fixed
+while independently correcting the oracle harness:
+
+```sh
+node --test benchmarks/expanded/native-controls.test.mjs
+node --import tsx benchmarks/expanded/run.mjs benchmarks/reports/expanded-20260827/corrected-new bd2cacb HEAD
+```
 
 ## Denominators and assertions
 

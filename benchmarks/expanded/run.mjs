@@ -14,10 +14,11 @@ import { transportControls } from "./transport.mjs";
 const repo = process.cwd(), output = resolve(process.argv[2]);
 const git = (...args) => execFileSync("git", args, { cwd: repo, encoding: "utf8" }).trim();
 const revision = git("rev-parse", process.argv[3] ?? "HEAD");
+const harnessRevision = git("rev-parse", process.argv[4] ?? "HEAD");
 const harnessRoot = dirname(fileURLToPath(import.meta.url));
-const trackedHarness = git("ls-tree", "--name-only", revision, "benchmarks/expanded");
+const trackedHarness = git("ls-tree", "--name-only", harnessRevision, "benchmarks/expanded");
 assert.ok(trackedHarness, "Commit the corpus and harness before scoring product outcomes");
-const goldPath = resolve("benchmarks/reports/expanded-20260827/native-first/native.json");
+const goldPath = resolve(process.argv[5] ?? "benchmarks/reports/expanded-20260827/native-corrected/native.json");
 const goldBytes = await readFile(goldPath), gold = JSON.parse(goldBytes);
 const corpus = recipes(), performanceCorpus = performanceRecipes();
 for (const specimen of [...corpus, ...performanceCorpus]) assert.equal(gold.observations.find(row => row.id === specimen.id)?.recipeHash, hash(JSON.stringify(specimen)), `Native-first recipe changed: ${specimen.id}`);
@@ -25,7 +26,7 @@ for (const [path, digest] of Object.entries(gold.sourceHashes)) assert.equal(has
 const harnessHashes = {};
 for (const name of (await readdir(harnessRoot)).filter(name => name.endsWith(".mjs")).sort()) {
   const bytes = await readFile(join(harnessRoot, name));
-  assert.equal(hash(bytes), hash(execFileSync("git", ["show", `${revision}:benchmarks/expanded/${name}`], { cwd: repo })), `Uncommitted harness: ${name}`);
+  assert.equal(hash(bytes), hash(execFileSync("git", ["show", `${harnessRevision}:benchmarks/expanded/${name}`], { cwd: repo })), `Uncommitted harness: ${name}`);
   harnessHashes[name] = hash(bytes);
 }
 await mkdir(output, { recursive: false });
@@ -109,7 +110,7 @@ try {
   await write("performance.json", performanceRows);
   const hits = engine => [...new Set(results.flatMap(row => row[engine].observation?.registryEvents.map(event => event.name) ?? []))].sort();
   const reached = { virtual: hits(engines[0]), baseline: hits(engines[1]) };
-  const report = { startedAt, finishedAt: new Date().toISOString(), revision, movingHeadAtEnd: git("rev-parse", "HEAD"), dirtyAtEnd: git("status", "--short"),
+  const report = { startedAt, finishedAt: new Date().toISOString(), revision, harnessRevision, movingHeadAtEnd: git("rev-parse", "HEAD"), dirtyAtEnd: git("status", "--short"),
     sourceSnapshot: "git archive at exact revision; no dirty production copied; cached development node_modules linked; source hashes recorded", sourceHashes, harnessHashes,
     nativeGolden: { path: goldPath, sha256: hash(goldBytes), profile: gold.primaryProfile, sourceHashes: gold.sourceHashes, toolIdentities: gold.toolIdentities },
     baseline: { version: JSON.parse(await readFile(join(baselineRoot, "package.json"), "utf8")).version, manifestSha256: hash(await readFile(join(baselineRoot, "package.json"))), bundleSha256: hash(await readFile(join(baselineRoot, "dist/bundle/index.js"))), lockSha256: hash(await readFile("benchmarks/package-lock.json")) },

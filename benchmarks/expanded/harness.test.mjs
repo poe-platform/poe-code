@@ -21,6 +21,13 @@ test("native-first observations preserve recipe hashes and intentional error exi
     assert.equal(captured.recipeHash, hash(JSON.stringify(row)), row.id);
     assert.equal(captured.exitCode, row.nativeExit, row.id);
   }
+  assert.equal(hash(await readFile(new URL("recipes.mjs", import.meta.url))), gold.sourceHashes["recipes.mjs"]);
+});
+
+test("corrected native capture changes no recipe and matches capture sources", async () => {
+  const gold = JSON.parse(await readFile(new URL("../reports/expanded-20260827/native-corrected/native.json", import.meta.url), "utf8"));
+  assert.equal(gold.invalidCount, 0);
+  for (const row of [...recipes(), ...performanceRecipes()]) assert.equal(gold.observations.find(observation => observation.id === row.id).recipeHash, hash(JSON.stringify(row)), row.id);
   for (const [path, digest] of Object.entries(gold.sourceHashes)) assert.equal(hash(await readFile(new URL(path, import.meta.url))), digest, path);
 });
 

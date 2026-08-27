@@ -1,0 +1,29 @@
+{
+  "name": "over1GiB-positive-backpressure",
+  "expectedBoundary": "positive",
+  "started": "2026-08-27T22:23:33.026Z",
+  "status": "pass",
+  "result": {
+    "bytes": 1073872896,
+    "chunks": 16386,
+    "maxChunkBytes": 65536,
+    "maxProducerChunkBytes": 65536,
+    "maxRssBytes": 261767168,
+    "maxPendingConsumers": 1,
+    "sha256": "f5b4c8bf0f2f882ef51effdb305a5edf1c8c657d05ba2fd7594c679478fe668f",
+    "process": {
+      "status": 0,
+      "signal": null,
+      "stderr": "{\"emitted\":1073872896,\"drains\":16226}\n",
+      "timedOut": false,
+      "stderrOverflow": false
+    },
+    "producer": {
+      "emitted": 1073872896,
+      "drains": 16226
+    },
+    "consumerMaximumPending": 1,
+    "sampledRssCeilingBytes": 268435456
+  },
+  "finished": "2026-08-27T22:23:33.644Z"
+}

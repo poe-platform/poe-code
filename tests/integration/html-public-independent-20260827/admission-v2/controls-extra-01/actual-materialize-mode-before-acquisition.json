@@ -1,0 +1,12 @@
+{
+  "name": "actual-materialize-mode-before-acquisition",
+  "expectedBoundary": "INPUT_MODE",
+  "started": "2026-08-27T22:34:35.532Z",
+  "error": {
+    "message": "BOUNDARY:INPUT_MODE README.md",
+    "code": "INPUT_MODE",
+    "stack": "Error: BOUNDARY:INPUT_MODE README.md\n    at guard (file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v2/core.mjs:20:39)\n    at validateTree (file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v2/core.mjs:89:5)\n    at materialize (file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v2/core.mjs:124:3)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v2/controls-extra.mjs:39:15\n    at negative (file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v2/controls-extra.mjs:21:15)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v2/controls-extra.mjs:35:7"
+  },
+  "status": "pass",
+  "finished": "2026-08-27T22:34:35.606Z"
+}

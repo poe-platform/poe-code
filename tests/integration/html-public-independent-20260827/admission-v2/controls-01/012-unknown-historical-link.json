@@ -1,0 +1,13 @@
+{
+  "name": "unknown-historical-link",
+  "expectedBoundary": "UNKNOWN_LINK",
+  "started": "2026-08-27T22:23:32.582Z",
+  "error": {
+    "name": "Error",
+    "message": "BOUNDARY:UNKNOWN_LINK tests/unlisted-link",
+    "code": "UNKNOWN_LINK",
+    "stack": "Error: BOUNDARY:UNKNOWN_LINK tests/unlisted-link\n    at guard (file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v2/core.mjs:20:39)\n    at validateTree (file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v2/core.mjs:75:7)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v2/controls.mjs:42:62\n    at check (file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v2/controls.mjs:24:26)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v2/controls.mjs:42:7"
+  },
+  "status": "pass",
+  "finished": "2026-08-27T22:23:32.616Z"
+}

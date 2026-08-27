@@ -1,0 +1,13 @@
+{
+  "name": "oversized-producer-chunk",
+  "expectedBoundary": "STREAM_CHUNK",
+  "started": "2026-08-27T22:23:33.026Z",
+  "error": {
+    "name": "Error",
+    "message": "BOUNDARY:STREAM_CHUNK",
+    "code": "STREAM_CHUNK",
+    "stack": "Error: BOUNDARY:STREAM_CHUNK\n    at guard (file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v2/core.mjs:20:39)\n    at hashStream (file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v2/core.mjs:160:5)\n    at async check (file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v2/controls.mjs:24:20)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v2/controls.mjs:72:1"
+  },
+  "status": "pass",
+  "finished": "2026-08-27T22:23:33.026Z"
+}

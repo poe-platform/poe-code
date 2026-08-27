@@ -1,0 +1,18 @@
+{
+  "at": "2026-08-27T22:18:39.161Z",
+  "scope": "hash-only Git binding; no candidate compiler/npm/runtime execution",
+  "harness": {
+    ".gitattributes": "790f5f7d9cddfcf9839093868d537bef7e7734e7b65213ed2db612c4d0da2f8d",
+    "bind.mjs": "d6f1d9225e769ee6a6feca11e9e142f0d11a2812efb72725869de6d93c1537c3",
+    "core.mjs": "7f083acdc3b90ad603d53c9eab5f71192272e16efc63573044bc1172adf4689a",
+    "stream-fixture.mjs": "74611a26193e2bf826e7ab91d4972ee5fc8463b9b4aebfacef9d3a7dde2df48c"
+  },
+  "node": {
+    "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+  },
+  "git": {
+    "path": "/usr/bin/git",
+    "sha256": "12bed4523661307059b879b9b54e77a73176e9d27d27a0e40363271d8f0668ba"
+  }
+}

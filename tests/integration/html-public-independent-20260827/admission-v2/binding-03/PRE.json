@@ -1,0 +1,25 @@
+{
+  "at": "2026-08-27T22:19:17.318Z",
+  "scope": "hash-only Git binding; no candidate compiler/npm/runtime execution",
+  "harness": {
+    ".gitattributes": "790f5f7d9cddfcf9839093868d537bef7e7734e7b65213ed2db612c4d0da2f8d",
+    "bind.mjs": "1c46b3e595d146497f504db5b929d0b50bf092a530f358f2b93c40d42a51fcfd",
+    "binding-01/FAILURE.json": "ca99f163b43a807e8977b47be2d5bd95c77aa66782d24d39bbbc96a868771162",
+    "binding-01/PRE.json": "d84d1ef763cf358c25c832aabfec2889a7752851360441083b60e7633b77c55f",
+    "binding-02/FAILURE.json": "b2eeb0497485fa9ecf94b8892e13d33ad80ab069d81d489c92057a8a624593b2",
+    "binding-02/PRE.json": "06d268e3c9533ffbc56163db415a9c9e2ff2f486ff4995dfeb4b77913a7f7582",
+    "binding-02/author-parent-README.raw": "ab22fb99a15b085329d4aa5b320cd23963d5768af95218f5a4c38a0cf25d47b4",
+    "binding-02/author-report.json.gz.base64": "b4e6e198ee0d3e6807aeff511ddfd1d05f12de32c610af3b40e25c5bb6fe303d",
+    "binding-02/receipt.json.gz.base64": "8039b2527600f12725f8d45580b70afe9be7838a57b9e7a4b28fd29d0db81cbd",
+    "core.mjs": "84a4bc7ced17ef22f24665a8337b39097101948e32f72391797003df43d820de",
+    "stream-fixture.mjs": "74611a26193e2bf826e7ab91d4972ee5fc8463b9b4aebfacef9d3a7dde2df48c"
+  },
+  "node": {
+    "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+  },
+  "git": {
+    "path": "/usr/bin/git",
+    "sha256": "12bed4523661307059b879b9b54e77a73176e9d27d27a0e40363271d8f0668ba"
+  }
+}

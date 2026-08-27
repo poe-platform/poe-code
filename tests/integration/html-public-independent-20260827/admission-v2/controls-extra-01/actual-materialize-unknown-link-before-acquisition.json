@@ -1,0 +1,12 @@
+{
+  "name": "actual-materialize-unknown-link-before-acquisition",
+  "expectedBoundary": "UNKNOWN_LINK",
+  "started": "2026-08-27T22:34:35.607Z",
+  "error": {
+    "message": "BOUNDARY:UNKNOWN_LINK tests/unlisted-link",
+    "code": "UNKNOWN_LINK",
+    "stack": "Error: BOUNDARY:UNKNOWN_LINK tests/unlisted-link\n    at guard (file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v2/core.mjs:20:39)\n    at validateTree (file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v2/core.mjs:75:7)\n    at materialize (file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v2/core.mjs:124:3)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v2/controls-extra.mjs:45:15\n    at negative (file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v2/controls-extra.mjs:21:15)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v2/controls-extra.mjs:42:7"
+  },
+  "status": "pass",
+  "finished": "2026-08-27T22:34:35.632Z"
+}

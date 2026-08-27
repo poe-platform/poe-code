@@ -1,0 +1,31 @@
+{
+  "at": "2026-08-27T22:21:20.842Z",
+  "scope": "hash-only Git binding; no candidate compiler/npm/runtime execution",
+  "harness": {
+    ".gitattributes": "790f5f7d9cddfcf9839093868d537bef7e7734e7b65213ed2db612c4d0da2f8d",
+    "bind.mjs": "563e9feec3a4336f90ca3ac6429d6f81cefc0d6343caa513cf313a2360321006",
+    "binding-01/FAILURE.json": "ca99f163b43a807e8977b47be2d5bd95c77aa66782d24d39bbbc96a868771162",
+    "binding-01/PRE.json": "d84d1ef763cf358c25c832aabfec2889a7752851360441083b60e7633b77c55f",
+    "binding-02/FAILURE.json": "b2eeb0497485fa9ecf94b8892e13d33ad80ab069d81d489c92057a8a624593b2",
+    "binding-02/PRE.json": "06d268e3c9533ffbc56163db415a9c9e2ff2f486ff4995dfeb4b77913a7f7582",
+    "binding-02/author-parent-README.raw": "ab22fb99a15b085329d4aa5b320cd23963d5768af95218f5a4c38a0cf25d47b4",
+    "binding-02/author-report.json.gz.base64": "b4e6e198ee0d3e6807aeff511ddfd1d05f12de32c610af3b40e25c5bb6fe303d",
+    "binding-02/receipt.json.gz.base64": "8039b2527600f12725f8d45580b70afe9be7838a57b9e7a4b28fd29d0db81cbd",
+    "binding-03/FAILURE.json": "fd67cc469412dcfe018dfd71866e94fdc3767bbd59a44702afc28ce0fc433e46",
+    "binding-03/PRE.json": "a7133de2a213651e5d1f6dd9d1e03499adbf8f947f7a4e0bb137fee529d17183",
+    "binding-03/author-parent-README.raw": "ab22fb99a15b085329d4aa5b320cd23963d5768af95218f5a4c38a0cf25d47b4",
+    "binding-03/author-report.json.gz.base64": "b4e6e198ee0d3e6807aeff511ddfd1d05f12de32c610af3b40e25c5bb6fe303d",
+    "binding-03/receipt.json.gz.base64": "8039b2527600f12725f8d45580b70afe9be7838a57b9e7a4b28fd29d0db81cbd",
+    "core.mjs": "446c14f2e12753b8933aa307f7ce8b0dec90dd251bbd613e64a484c26397340d",
+    "reconstruct.mjs": "c67174200c2694f881fe064babde9e6cd2179568cb9f85b0b691c53e0ff29439",
+    "stream-fixture.mjs": "74611a26193e2bf826e7ab91d4972ee5fc8463b9b4aebfacef9d3a7dde2df48c"
+  },
+  "node": {
+    "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+  },
+  "git": {
+    "path": "/usr/bin/git",
+    "sha256": "12bed4523661307059b879b9b54e77a73176e9d27d27a0e40363271d8f0668ba"
+  }
+}

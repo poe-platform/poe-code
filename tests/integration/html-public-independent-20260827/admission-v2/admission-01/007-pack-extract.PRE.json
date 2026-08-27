@@ -1,0 +1,25 @@
+{
+  "at": "2026-08-27T22:27:08.984Z",
+  "executable": "/usr/bin/tar",
+  "executableSha256": "bdccb76a715fbebc4915a1a1b1de0e7050ad842ebb730c47935b3a22c13e3af9",
+  "args": [
+    "-xzf",
+    "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/html-admission-v2-build-szIjA0/pack/virtual-bash-0.0.0.tgz",
+    "-C",
+    "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/html-admission-v2-build-szIjA0/packed"
+  ],
+  "cwd": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/html-admission-v2-build-szIjA0",
+  "env": {
+    "PATH": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin:/usr/bin:/bin",
+    "HOME": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/html-admission-v2-build-szIjA0",
+    "TMPDIR": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/html-admission-v2-build-szIjA0",
+    "LC_ALL": "C",
+    "LANG": "C",
+    "TZ": "UTC",
+    "npm_config_cache": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/html-admission-v2-build-szIjA0/npm-cache",
+    "npm_config_userconfig": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/html-admission-v2-build-szIjA0/empty.npmrc",
+    "npm_config_globalconfig": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/html-admission-v2-build-szIjA0/empty-global.npmrc",
+    "npm_config_update_notifier": "false"
+  },
+  "bindingSha256": "7df791cf7c7c0010af85726af9d9e78dcdebbdaff0c182fb9670be6e29b8989a"
+}

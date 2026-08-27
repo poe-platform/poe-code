@@ -1,0 +1,13 @@
+{
+  "name": "necessary-historical-link",
+  "expectedBoundary": "BUILD_LINK",
+  "started": "2026-08-27T22:23:32.645Z",
+  "error": {
+    "name": "Error",
+    "message": "BOUNDARY:BUILD_LINK tests/commands/filesystem-inspection-stress/tree/evidence/final-436bda3/harness/derived/native-fixtures/cycle/inner/back",
+    "code": "BUILD_LINK",
+    "stack": "Error: BOUNDARY:BUILD_LINK tests/commands/filesystem-inspection-stress/tree/evidence/final-436bda3/harness/derived/native-fixtures/cycle/inner/back\n    at guard (file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v2/core.mjs:20:39)\n    at validateTree (file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v2/core.mjs:73:7)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v2/controls.mjs:45:62\n    at check (file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v2/controls.mjs:24:26)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v2/controls.mjs:45:7"
+  },
+  "status": "pass",
+  "finished": "2026-08-27T22:23:32.651Z"
+}

@@ -1,0 +1,115 @@
+{
+  "schema": "html-admission-v2/1",
+  "started": "2026-08-27T22:25:43.223Z",
+  "bindingSha256": "7df791cf7c7c0010af85726af9d9e78dcdebbdaff0c182fb9670be6e29b8989a",
+  "candidate": "aff899aa94ed0c57a936b08fd36d185688f5c0bb",
+  "tree": "9641374115db435022ac172ec9c99d305e07dbe4",
+  "scratch": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/html-admission-v2-build-szIjA0",
+  "limits": {
+    "chunkBytes": 65536,
+    "producerChunkBytes": 1048576,
+    "archiveBytes": 3221225472,
+    "metadataBytes": 16777216,
+    "blobBytes": 33554432,
+    "buildBytes": 134217728,
+    "stderrBytes": 65536,
+    "commandBytes": 8388608,
+    "timeoutMs": 180000
+  },
+  "commands": [
+    {
+      "name": "compiler-config",
+      "status": 0,
+      "raw": "001-compiler-config.RAW.json"
+    },
+    {
+      "name": "compiler-inputs",
+      "status": 0,
+      "raw": "002-compiler-inputs.RAW.json"
+    },
+    {
+      "name": "build",
+      "status": 0,
+      "raw": "003-build.RAW.json"
+    },
+    {
+      "name": "npm-pack",
+      "status": 0,
+      "raw": "004-npm-pack.RAW.json"
+    },
+    {
+      "name": "pack-paths",
+      "status": 0,
+      "raw": "005-pack-paths.RAW.json"
+    },
+    {
+      "name": "pack-kinds",
+      "status": 0,
+      "raw": "006-pack-kinds.RAW.json"
+    },
+    {
+      "name": "pack-extract",
+      "status": 0,
+      "raw": "007-pack-extract.RAW.json"
+    }
+  ],
+  "candidateRuntimeCasesExecuted": 0,
+  "publicAcceptance": false,
+  "independentReview": "pending Raman through root",
+  "wholeGate": false,
+  "archiveBefore": {
+    "bytes": 2340945920,
+    "chunks": 46554,
+    "maxChunkBytes": 65536,
+    "maxProducerChunkBytes": 65536,
+    "maxRssBytes": 233275392,
+    "maxPendingConsumers": 1,
+    "sha256": "cb7f6b6d68f5946c3300e28156367ba42d1af83b12cb1b4be88832c50dfbfd07",
+    "process": {
+      "status": 0,
+      "signal": null,
+      "stderr": "",
+      "timedOut": false,
+      "stderrOverflow": false
+    }
+  },
+  "materialized": {
+    "files": 410,
+    "bytes": 65377928,
+    "symlinks": 0
+  },
+  "reconstruction": {
+    "candidate": "aff899aa94ed0c57a936b08fd36d185688f5c0bb",
+    "tree": "9641374115db435022ac172ec9c99d305e07dbe4",
+    "scopedInputs": 410,
+    "importedObjects": 466,
+    "importedBytes": 65053323,
+    "parentDeltaPaths": 2,
+    "fullClone": false
+  },
+  "archiveAfter": {
+    "bytes": 2340945920,
+    "chunks": 46066,
+    "maxChunkBytes": 65536,
+    "maxProducerChunkBytes": 65536,
+    "maxRssBytes": 175259648,
+    "maxPendingConsumers": 1,
+    "sha256": "cb7f6b6d68f5946c3300e28156367ba42d1af83b12cb1b4be88832c50dfbfd07",
+    "process": {
+      "status": 0,
+      "signal": null,
+      "stderr": "",
+      "timedOut": false,
+      "stderrOverflow": false
+    }
+  },
+  "pack": {
+    "sha256": "d9c1a97388357c5cb0c810cf2fa5181dc7bebff49efe517db414a5833096eed7",
+    "files": 830,
+    "emitted": 828
+  },
+  "compilerInputs": 373,
+  "appendProof": "Recursive complete file inventories before/after detect added files and all symlinks within build/packed views; newly added empty directories are not tracked. Original18file checks authenticate only original paths, not an append-proof original fixture directory (admission-v2 intentionally adds a sibling subtree). Full Git archive rehash is immutable candidate-only, not live user-tree admission.",
+  "status": "admission-proof-complete-review-pending",
+  "finished": "2026-08-27T22:27:14.013Z"
+}

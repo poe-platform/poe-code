@@ -1,0 +1,6 @@
+tree 9641374115db435022ac172ec9c99d305e07dbe4
+parent b983a37fa8bc322d707867afa9250f88fb408e0a
+author Kamil Jopek <kjopek@quora.com> 1787867225 -0500
+committer Kamil Jopek <kjopek@quora.com> 1787867225 -0500
+
+test: correct new HTML packed author checks and authenticate module loads

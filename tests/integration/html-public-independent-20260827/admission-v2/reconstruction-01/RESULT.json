@@ -1,0 +1,12 @@
+{
+  "status": "scoped-reconstruction-proof-not-full-clone",
+  "candidate": "aff899aa94ed0c57a936b08fd36d185688f5c0bb",
+  "tree": "9641374115db435022ac172ec9c99d305e07dbe4",
+  "scopedInputs": 410,
+  "importedObjects": 466,
+  "importedBytes": 65053323,
+  "parentDeltaPaths": 2,
+  "fullClone": false,
+  "candidateSourceCommitRead": false,
+  "compilerNpmRuntimeExecuted": false
+}

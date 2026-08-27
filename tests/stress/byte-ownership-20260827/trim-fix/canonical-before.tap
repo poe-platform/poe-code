@@ -1,0 +1,388 @@
+TAP version 13
+# Subtest: collect owns offset Buffer windows across next reads and finalization
+ok 1 - collect owns offset Buffer windows across next reads and finalization
+  ---
+  duration_ms: 0.679917
+  type: 'test'
+  ...
+# Subtest: lines owns unfinished Buffer fragments without losing empty or final records
+ok 2 - lines owns unfinished Buffer fragments without losing empty or final records
+  ---
+  duration_ms: 0.231875
+  type: 'test'
+  ...
+# Subtest: lines retains Buffer fragments with a custom NUL separator
+ok 3 - lines retains Buffer fragments with a custom NUL separator
+  ---
+  duration_ms: 0.1555
+  type: 'test'
+  ...
+# Subtest: collect owns offset Uint8Array windows across next reads and finalization
+ok 4 - collect owns offset Uint8Array windows across next reads and finalization
+  ---
+  duration_ms: 0.1365
+  type: 'test'
+  ...
+# Subtest: lines owns unfinished Uint8Array fragments without losing empty or final records
+ok 5 - lines owns unfinished Uint8Array fragments without losing empty or final records
+  ---
+  duration_ms: 0.071584
+  type: 'test'
+  ...
+# Subtest: lines retains Uint8Array fragments with a custom NUL separator
+ok 6 - lines retains Uint8Array fragments with a custom NUL separator
+  ---
+  duration_ms: 0.045125
+  type: 'test'
+  ...
+# Subtest: collect preserves its exact limit error and finalizes without mutating input
+ok 7 - collect preserves its exact limit error and finalizes without mutating input
+  ---
+  duration_ms: 0.256709
+  type: 'test'
+  ...
+# Subtest: collect preserves cancellation identity and source finalization
+ok 8 - collect preserves cancellation identity and source finalization
+  ---
+  duration_ms: 0.105583
+  type: 'test'
+  ...
+# Subtest: collect and lines propagate source failure without changing the error
+ok 9 - collect and lines propagate source failure without changing the error
+  ---
+  duration_ms: 0.17975
+  type: 'test'
+  ...
+# Subtest: lines preserves the existing byte limit at the exact boundary and overflow
+ok 10 - lines preserves the existing byte limit at the exact boundary and overflow
+  ---
+  duration_ms: 267.608625
+  type: 'test'
+  ...
+# Subtest: head byte trimming has linear copies for immutable Buffer
+not ok 11 - head byte trimming has linear copies for immutable Buffer
+  ---
+  duration_ms: 18.142
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/streams.test.ts:1:3256'
+  failureType: 'testCodeFailure'
+  error: '{"copiedBytes":136515,"allocations":1055,"maxBacking":535,"maxSlots":535,"inputBytes":1055}'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/streams.test.ts:98:18)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# Subtest: head byte trimming has linear copies for reused Buffer
+not ok 12 - head byte trimming has linear copies for reused Buffer
+  ---
+  duration_ms: 13.364791
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/streams.test.ts:1:3256'
+  failureType: 'testCodeFailure'
+  error: '{"copiedBytes":136515,"allocations":1055,"maxBacking":535,"maxSlots":535,"inputBytes":1055}'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/streams.test.ts:98:18)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: head byte queue releases oversized and consumed Buffer backing with zero/empty controls
+not ok 13 - head byte queue releases oversized and consumed Buffer backing with zero/empty controls
+  ---
+  duration_ms: 94.992959
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/streams.test.ts:1:3796'
+  failureType: 'testCodeFailure'
+  error: '{"copiedBytes":49260,"allocations":2058,"maxBacking":49260,"maxSlots":2058,"inputBytes":49260}'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/streams.test.ts:109:16)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: head byte trimming has linear copies for immutable Uint8Array
+not ok 14 - head byte trimming has linear copies for immutable Uint8Array
+  ---
+  duration_ms: 14.051208
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/streams.test.ts:1:3256'
+  failureType: 'testCodeFailure'
+  error: '{"copiedBytes":136515,"allocations":1055,"maxBacking":535,"maxSlots":535,"inputBytes":1055}'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/streams.test.ts:98:18)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: head byte trimming has linear copies for reused Uint8Array
+not ok 15 - head byte trimming has linear copies for reused Uint8Array
+  ---
+  duration_ms: 10.503291
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/streams.test.ts:1:3256'
+  failureType: 'testCodeFailure'
+  error: '{"copiedBytes":136515,"allocations":1055,"maxBacking":535,"maxSlots":535,"inputBytes":1055}'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/streams.test.ts:98:18)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: head byte queue releases oversized and consumed Uint8Array backing with zero/empty controls
+not ok 16 - head byte queue releases oversized and consumed Uint8Array backing with zero/empty controls
+  ---
+  duration_ms: 76.830833
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/streams.test.ts:1:3796'
+  failureType: 'testCodeFailure'
+  error: '{"copiedBytes":49260,"allocations":2058,"maxBacking":49260,"maxSlots":2058,"inputBytes":49260}'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/streams.test.ts:109:16)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: tail byte trimming has linear copies for immutable Buffer
+not ok 17 - tail byte trimming has linear copies for immutable Buffer
+  ---
+  duration_ms: 11.026375
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/streams.test.ts:1:3256'
+  failureType: 'testCodeFailure'
+  error: '{"copiedBytes":136515,"allocations":1055,"maxBacking":535,"maxSlots":535,"inputBytes":1055}'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/streams.test.ts:98:18)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: tail byte trimming has linear copies for reused Buffer
+not ok 18 - tail byte trimming has linear copies for reused Buffer
+  ---
+  duration_ms: 9.902959
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/streams.test.ts:1:3256'
+  failureType: 'testCodeFailure'
+  error: '{"copiedBytes":136515,"allocations":1055,"maxBacking":535,"maxSlots":535,"inputBytes":1055}'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/streams.test.ts:98:18)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: tail byte queue releases oversized and consumed Buffer backing with zero/empty controls
+not ok 19 - tail byte queue releases oversized and consumed Buffer backing with zero/empty controls
+  ---
+  duration_ms: 66.842084
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/streams.test.ts:1:3796'
+  failureType: 'testCodeFailure'
+  error: '{"copiedBytes":49260,"allocations":2058,"maxBacking":49260,"maxSlots":2058,"inputBytes":49260}'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/streams.test.ts:109:16)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: tail byte trimming has linear copies for immutable Uint8Array
+not ok 20 - tail byte trimming has linear copies for immutable Uint8Array
+  ---
+  duration_ms: 9.846375
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/streams.test.ts:1:3256'
+  failureType: 'testCodeFailure'
+  error: '{"copiedBytes":136515,"allocations":1055,"maxBacking":535,"maxSlots":535,"inputBytes":1055}'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/streams.test.ts:98:18)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: tail byte trimming has linear copies for reused Uint8Array
+not ok 21 - tail byte trimming has linear copies for reused Uint8Array
+  ---
+  duration_ms: 8.254958
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/streams.test.ts:1:3256'
+  failureType: 'testCodeFailure'
+  error: '{"copiedBytes":136515,"allocations":1055,"maxBacking":535,"maxSlots":535,"inputBytes":1055}'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/streams.test.ts:98:18)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: tail byte queue releases oversized and consumed Uint8Array backing with zero/empty controls
+not ok 22 - tail byte queue releases oversized and consumed Uint8Array backing with zero/empty controls
+  ---
+  duration_ms: 67.064958
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/streams.test.ts:1:3796'
+  failureType: 'testCodeFailure'
+  error: '{"copiedBytes":49260,"allocations":2058,"maxBacking":49260,"maxSlots":2058,"inputBytes":49260}'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/streams.test.ts:109:16)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: tail -c 4 owns borrowed Buffer readStream windows
+ok 23 - tail -c 4 owns borrowed Buffer readStream windows
+  ---
+  duration_ms: 1.489667
+  type: 'test'
+  ...
+# Subtest: tail -n 1 owns borrowed Buffer readStream windows
+ok 24 - tail -n 1 owns borrowed Buffer readStream windows
+  ---
+  duration_ms: 0.186
+  type: 'test'
+  ...
+# Subtest: head -c -2 owns borrowed Buffer readStream windows
+ok 25 - head -c -2 owns borrowed Buffer readStream windows
+  ---
+  duration_ms: 0.143667
+  type: 'test'
+  ...
+# Subtest: tail -c 4 owns borrowed Uint8Array readStream windows
+ok 26 - tail -c 4 owns borrowed Uint8Array readStream windows
+  ---
+  duration_ms: 0.084708
+  type: 'test'
+  ...
+# Subtest: tail -n 1 owns borrowed Uint8Array readStream windows
+ok 27 - tail -n 1 owns borrowed Uint8Array readStream windows
+  ---
+  duration_ms: 0.159708
+  type: 'test'
+  ...
+# Subtest: head -c -2 owns borrowed Uint8Array readStream windows
+ok 28 - head -c -2 owns borrowed Uint8Array readStream windows
+  ---
+  duration_ms: 0.080417
+  type: 'test'
+  ...
+# Subtest: tail preserves its retained byte limit and finalizes the source
+ok 29 - tail preserves its retained byte limit and finalizes the source
+  ---
+  duration_ms: 120.475917
+  type: 'test'
+  ...
+# Subtest: head byte omission awaits sink accept before another borrowed read
+ok 30 - head byte omission awaits sink accept before another borrowed read
+  ---
+  duration_ms: 4.907708
+  type: 'test'
+  ...
+# Subtest: head byte omission awaits sink cancel before another borrowed read
+ok 31 - head byte omission awaits sink cancel before another borrowed read
+  ---
+  duration_ms: 0.853208
+  type: 'test'
+  ...
+# Subtest: head byte omission awaits sink reject before another borrowed read
+ok 32 - head byte omission awaits sink reject before another borrowed read
+  ---
+  duration_ms: 0.580375
+  type: 'test'
+  ...
+# Subtest: cat copies binary chunks, preserves missing final newlines and consumes stdin only once
+ok 33 - cat copies binary chunks, preserves missing final newlines and consumes stdin only once
+  ---
+  duration_ms: 0.542583
+  type: 'test'
+  ...
+# Subtest: cat numbering, blank squeezing and visible bytes survive chunk boundaries
+ok 34 - cat numbering, blank squeezing and visible bytes survive chunk boundaries
+  ---
+  duration_ms: 0.428416
+  type: 'test'
+  ...
+# Subtest: head and tail support byte/line counts, origin counts, omission and unterminated lines
+ok 35 - head and tail support byte/line counts, origin counts, omission and unterminated lines
+  ---
+  duration_ms: 0.608458
+  type: 'test'
+  ...
+# Subtest: head stops reading when satisfied and multiple input headers are controllable
+ok 36 - head stops reading when satisfied and multiple input headers are controllable
+  ---
+  duration_ms: 0.248
+  type: 'test'
+  ...
+# Subtest: wc tracks words across chunks and distinguishes bytes, UTF-8 characters and newlines
+ok 37 - wc tracks words across chunks and distinguishes bytes, UTF-8 characters and newlines
+  ---
+  duration_ms: 0.493167
+  type: 'test'
+  ...
+# Subtest: tee streams to stdout and multiple virtual files, supports append, and continues after file errors
+ok 38 - tee streams to stdout and multiple virtual files, supports append, and continues after file errors
+  ---
+  duration_ms: 0.26375
+  type: 'test'
+  ...
+# Subtest: tr translates, deletes, squeezes and complements byte sets across chunks
+ok 39 - tr translates, deletes, squeezes and complements byte sets across chunks
+  ---
+  duration_ms: 1.078792
+  type: 'test'
+  ...
+1..39
+# tests 39
+# suites 0
+# pass 27
+# fail 12
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1202.054458

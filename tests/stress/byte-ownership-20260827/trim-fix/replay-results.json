@@ -1,0 +1,43 @@
+[
+  {
+    "name": "original20",
+    "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "args": [
+      "--unhandled-rejections=strict",
+      "--import",
+      "./tests/stress/byte-ownership-20260827/trim-fix/binding.mjs",
+      "--import",
+      "tsx",
+      "--test",
+      "--test-concurrency=1",
+      "--test-reporter=tap",
+      "tests/stress/byte-ownership-20260827/ownership.test.ts"
+    ],
+    "started": "2026-08-27T10:22:51.098Z",
+    "finished": "2026-08-27T10:22:51.352Z",
+    "exitCode": 0,
+    "expected": 0
+  },
+  {
+    "name": "previous-binding-rejects",
+    "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "args": [
+      "tests/stress/byte-ownership-20260827/fix/binding.mjs"
+    ],
+    "started": "2026-08-27T10:22:51.352Z",
+    "finished": "2026-08-27T10:22:51.385Z",
+    "exitCode": 1,
+    "expected": 1
+  },
+  {
+    "name": "original-binding-rejects",
+    "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "args": [
+      "tests/stress/byte-ownership-20260827/binding.mjs"
+    ],
+    "started": "2026-08-27T10:22:51.385Z",
+    "finished": "2026-08-27T10:22:51.415Z",
+    "exitCode": 1,
+    "expected": 1
+  }
+]

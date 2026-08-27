@@ -1,0 +1,103 @@
+{
+  "at": "2026-08-27T10:28:53.880Z",
+  "codeCommit": "7d7dce7ced596b24e60e1ab3fea5bcd50c070755",
+  "observedHead": "161c1d35f4675a8e9249b6dcf20b7fbd13a95ebd",
+  "protectedHashes": {
+    "src/commands/streams.ts": "be601a62f51a95c62778987118e292aea6637ca4e7271486239af2f8d65e7d1c",
+    "tests/commands/streams.test.ts": "119a53e868f896bf4ab42785d79fe02348e92de68ca7859a284446f596e3bfff",
+    "src/commands/internal.ts": "ade20c95a7d3dac5250a214d112ab25d710ce7909a4c6605f18ee21781949654",
+    "tests/commands/internal.test.ts": "406be07ceb7a76b792737e14aa6e8d1dcf26c0589f111b8061c60fab18877840"
+  },
+  "ownedSourceScopeStatus": "clean",
+  "sourceAndCanonicalEditsAfterCodeCommit": false,
+  "checks": [
+    {
+      "name": "canonical-before",
+      "file": "canonical-before.tap",
+      "tests": 39,
+      "pass": 27,
+      "fail": 12,
+      "exitCode": 1
+    },
+    {
+      "name": "canonical-after",
+      "file": "canonical-after.tap",
+      "tests": 39,
+      "pass": 39,
+      "fail": 0,
+      "exitCode": 0
+    },
+    {
+      "name": "adjacent",
+      "file": "adjacent.tap",
+      "tests": 46,
+      "pass": 46,
+      "fail": 0,
+      "exitCode": 0
+    },
+    {
+      "name": "original20",
+      "file": "original20.txt",
+      "tests": 20,
+      "pass": 20,
+      "fail": 0,
+      "exitCode": 0
+    }
+  ],
+  "scopedCompile": {
+    "command": [
+      "node_modules/.bin/tsc",
+      "-p",
+      "tests/stress/byte-ownership-20260827/fix/tsconfig.json"
+    ],
+    "exitCode": 0,
+    "stdoutStderrFile": "typecheck.txt"
+  },
+  "currentFullBinding": {
+    "exitCode": 1,
+    "mismatches": [
+      {
+        "path": "package.json",
+        "expected": "316d5eb7e741f71b91270c5c08fa44d9252d3dfac33a7e6aed79a0cf705ee55a",
+        "actual": "792ba8de3f1927e58564350621834ad8470345fec9eaf126485d0ed5fe03577e"
+      },
+      {
+        "path": "src/index.ts",
+        "expected": "66f4625127afbc182d96c134d0c2882a8f445ee7bdf7c41c470434782910095d",
+        "actual": "05af12d657d7d485958ffe22499181993de98c729dadbb9dac347a822fca863e"
+      },
+      {
+        "path": "src/plugins/index.ts",
+        "expected": "fcf1cbb62c0395763b72898350eadc719eb8775517cb2c45bbea7376d01a0a36",
+        "actual": "720eb0fd43a269aa62a37bd195417db39681a6d3166389d495229f6474ae4ac3"
+      }
+    ],
+    "stdout": "",
+    "stderr": "node:internal/modules/run_main:123\n    triggerUncaughtException(\n    ^\n\nAssertionError [ERR_ASSERTION]: trim candidate source/fixture mismatch: package.json\n+ actual - expected\n\n+ '792ba8de3f1927e58564350621834ad8470345fec9eaf126485d0ed5fe03577e'\n- '316d5eb7e741f71b91270c5c08fa44d9252d3dfac33a7e6aed79a0cf705ee55a'\n\n    at file:///Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/trim-fix/binding.mjs:9:10\n    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5) {\n  generatedMessage: false,\n  code: 'ERR_ASSERTION',\n  actual: '792ba8de3f1927e58564350621834ad8470345fec9eaf126485d0ed5fe03577e',\n  expected: '316d5eb7e741f71b91270c5c08fa44d9252d3dfac33a7e6aed79a0cf705ee55a',\n  operator: 'strictEqual',\n  diff: 'simple'\n}\n\nNode.js v22.22.2\n",
+    "qualification": "Frozen results are not requalified against concurrent root/export integration. No binding or expectations changed."
+  },
+  "evidenceHashes": {
+    "tests/stress/byte-ownership-20260827/trim-fix/REPORT.md": "a5790e3eb21200acdfbac0dbafe7a9244fb260d9ee74db1fbfdab0a308e87068",
+    "tests/stress/byte-ownership-20260827/trim-fix/adjacent.tap": "9cdf35ec25715c4c41af1c16f5439ab857f0b80b1519df11d7d8e9d5ee858a7e",
+    "tests/stress/byte-ownership-20260827/trim-fix/binding.mjs": "db3026a1e19f51fcdc95e545856aec4657bcc7ccc00b509ddf7f50adaf030aa9",
+    "tests/stress/byte-ownership-20260827/trim-fix/candidate-source.json": "1ff72d4108b26ec67205791e6309ec43f9cb5b196beee92eeeb886203d6aeb87",
+    "tests/stress/byte-ownership-20260827/trim-fix/canonical-after.tap": "28bd8c81ce0d05b8b27be78a9cd8432fe168cf348f707927cd7f995e1d761c5d",
+    "tests/stress/byte-ownership-20260827/trim-fix/canonical-before.tap": "b5ca73223508e762b6f166e238d3c38882f55e1f09c2c96a54d6f752e4d9acc7",
+    "tests/stress/byte-ownership-20260827/trim-fix/concurrent-drift.json": "e45ad645c117a4ae40ed416256265f7201b7b59540e5da185594e49f8976e842",
+    "tests/stress/byte-ownership-20260827/trim-fix/observations.json": "29e511e59d6953971ecbdc88db717d9d954682a987d7b935e774851776a1e499",
+    "tests/stress/byte-ownership-20260827/trim-fix/observations.mjs": "898c108dab7f656e599ed05d97fd7ebd272930e3b049c5756423e4b26c8190b2",
+    "tests/stress/byte-ownership-20260827/trim-fix/observations.txt": "bd018bad60ebe2dc178dde21d938ef845527c1d4a364c0d5ac08690b33d96d12",
+    "tests/stress/byte-ownership-20260827/trim-fix/original-binding-rejects.txt": "3c10847a4579a1b9dfe4a434127b20efccaac615143e7e6603492eb66bfbccbc",
+    "tests/stress/byte-ownership-20260827/trim-fix/original20.txt": "f4ec8b66684950578b684433607bc7849b273f857cb31bca4250dd847899c9ee",
+    "tests/stress/byte-ownership-20260827/trim-fix/previous-binding-rejects.txt": "b203f2c9814a86775ae522eca292653af0298a160704f4f09f669b1712ae9ffd",
+    "tests/stress/byte-ownership-20260827/trim-fix/record.mjs": "a3cad164d7940ed383bf897cb1f4f7d6e5675e41e405bc815df678e70010959a",
+    "tests/stress/byte-ownership-20260827/trim-fix/replay-results.json": "d788508d045625a34115b273b541d0979bd4a460f507d935474960a72ac3b9e6",
+    "tests/stress/byte-ownership-20260827/trim-fix/typecheck.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "whitespace": {
+    "sourceCanonicalExitCode": 0,
+    "initialStagedEvidenceExitCode": 0,
+    "rawTranscriptsPreserved": true
+  },
+  "cleanup": "All launched test/compiler/observation processes returned. No server, worker or detached service started. Unrelated workspace changes remain untouched."
+}

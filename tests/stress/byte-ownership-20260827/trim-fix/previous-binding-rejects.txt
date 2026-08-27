@@ -1,0 +1,23 @@
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: candidate source/fixture mismatch: src/commands/streams.ts
++ actual - expected
+
++ 'be601a62f51a95c62778987118e292aea6637ca4e7271486239af2f8d65e7d1c'
+- '06bff98731e9244f502589de6f81c5dec9737c70a3eb285ebf90bf2a3dd93a9d'
+
+    at file:///Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/fix/binding.mjs:9:10
+    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5) {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: 'be601a62f51a95c62778987118e292aea6637ca4e7271486239af2f8d65e7d1c',
+  expected: '06bff98731e9244f502589de6f81c5dec9737c70a3eb285ebf90bf2a3dd93a9d',
+  operator: 'strictEqual',
+  diff: 'simple'
+}
+
+Node.js v22.22.2

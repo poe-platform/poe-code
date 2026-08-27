@@ -1,0 +1,23 @@
+{
+  "at": "2026-08-27T10:27:58.698Z",
+  "codeCommit": "7d7dce7ced596b24e60e1ab3fea5bcd50c070755",
+  "mismatches": [
+    {
+      "path": "package.json",
+      "expected": "316d5eb7e741f71b91270c5c08fa44d9252d3dfac33a7e6aed79a0cf705ee55a",
+      "actual": "792ba8de3f1927e58564350621834ad8470345fec9eaf126485d0ed5fe03577e"
+    },
+    {
+      "path": "src/index.ts",
+      "expected": "66f4625127afbc182d96c134d0c2882a8f445ee7bdf7c41c470434782910095d",
+      "actual": "05af12d657d7d485958ffe22499181993de98c729dadbb9dac347a822fca863e"
+    },
+    {
+      "path": "src/plugins/index.ts",
+      "expected": "fcf1cbb62c0395763b72898350eadc719eb8775517cb2c45bbea7376d01a0a36",
+      "actual": "720eb0fd43a269aa62a37bd195417db39681a6d3166389d495229f6474ae4ac3"
+    }
+  ],
+  "ownedStatus": "",
+  "mismatchStatus": ""
+}

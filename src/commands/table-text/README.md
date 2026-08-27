@@ -21,7 +21,12 @@ implemented. comm/join require C/POSIX ordering; non-C locale requests fail
 explicitly. Data is bytes, not decoded or locale-folded Unicode.
 
 Byte-source reads and output writes are awaited; stdin has one shared record
-cursor. VFS inputs receive linked cancellation, cancelled on downstream failure
+cursor. comm finalizes each operand in order before emitting totals. A repeated
+operand referring to an already closed reader reports `Bad file descriptor`,
+matching the pinned GNU 9.7 shared-stdin profile; it does not refuse to read the
+input. Physical iterator cleanup remains idempotent, so the host source is not
+closed twice. paste retains its successful shared-cursor behavior. VFS inputs
+receive linked cancellation, cancelled on downstream failure
 or command exit. No native process, host filesystem or runtime dependency is
 used. Limits bound input/output, individual producer chunks/records, file count,
 join duplicate groups/fields and steps. A producer chunk exceeding maxChunkBytes
@@ -79,3 +84,16 @@ Run author tests with `GNU_TABLE_BIN=/path/to/coreutils-9.7/src node
 --unhandled-rejections=strict --import tsx --test
 'tests/commands/table-text/*.test.ts'`. Without that optional native path, only
 the live oracle recheck is explicitly skipped; frozen product observations run.
+
+## Bounded shared-stdin correction
+
+The historical 215/216 author observations above remain unchanged. The separate
+`tests/commands/table-text-stress/shared-stdin-fix/` acceptance driver now matches
+all 216 original inputs and native expectations, including shared stdin's status
+1 and diagnostic. The original author test intentionally asserting status 0 is
+preserved and now fails: unchanged current-helper311 is 310 pass/1 expectation
+conflict; the separately identified same-input acceptance311 passes 311/311.
+Focused cancellation/ownership/lifecycle checks pass 17/17. Exact native pins,
+initial red bytes, final observations, launcher controls and limits are in that
+subtree. These are author-fix results awaiting a different verifier, not an
+upgrade of the earlier independent 104/311 or full GNU compatibility evidence.

@@ -97,6 +97,7 @@ export class RecordReader {
   private chunk: Uint8Array = empty;
   private offset = 0;
   private done = false;
+  private closed = false;
   private iterator: AsyncGenerator<Uint8Array>;
   constructor(source: ByteSource, readonly separator: number, readonly budget: Budget, signal: AbortSignal) {
     this.iterator = readBytes(source, signal);
@@ -125,7 +126,16 @@ export class RecordReader {
     }
     return size ? Buffer.concat(parts, size) : undefined;
   }
-  async close(): Promise<void> { await this.iterator.return(undefined); }
+  async closeOperand(name: string): Promise<void> {
+    this.budget.context.signal.throwIfAborted();
+    if (this.closed) throw new Error(`${name}: Bad file descriptor`);
+    await this.close();
+  }
+  async close(): Promise<void> {
+    if (this.closed) return;
+    this.closed = true;
+    await this.iterator.return(undefined);
+  }
 }
 
 export class Inputs {

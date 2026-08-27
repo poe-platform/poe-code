@@ -54,6 +54,7 @@ export function createCommCommand(options: TableTextCommandsOptions = {}): Comma
           previous[index] = rows[index]; rows[index] = next;
         }
       }
+      for (const [index, reader] of readers.entries()) await reader.closeOperand(files[index]!);
       if (total) await budget.output([encode(totals[0]!.toString()), delimiter, encode(totals[1]!.toString()), delimiter, encode(totals[2]!.toString()), delimiter, encode("total"), terminator]);
       return { exitCode: order.failed ? 1 : 0 };
     } finally { await inputs.close(); }

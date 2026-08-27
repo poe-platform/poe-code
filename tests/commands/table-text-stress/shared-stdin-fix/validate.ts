@@ -1,0 +1,31 @@
+import assert from "node:assert/strict";
+import { spawnSync } from "node:child_process";
+import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { resolve } from "node:path";
+import { directory, manifest, oracle, root, runtime, save, sha } from "./support.js";
+
+const label = process.argv[2];
+assert.ok(label && ["red-focused", "post-focused", "legacy311", "acceptance311", "scoped-types"].includes(label));
+const inputs: { author: string[] } = JSON.parse(await readFile(resolve(root, "tests/commands/diff-patch-stress/routed-five-review/table-inputs.json"), "utf8"));
+const author = inputs.author.map(path => resolve(root, path));
+const revised = author.map(path => path.endsWith("/table-text/differential.test.ts") ? resolve(directory, "acceptance216.test.ts") : path);
+await mkdir(runtime, { recursive: true });
+await writeFile(resolve(runtime, "sentinel"), "shared-stdin-fix-validation-owned");
+const before = await manifest();
+assert.equal(before["tests/fs/webdav/mock.ts"], "177f79ee640460822cfe0486c87f7cc61ac7c8b84389abe32b48ef27f4b4ef36");
+const args = label === "scoped-types" ? [resolve(root, "node_modules/typescript/bin/tsc"), "--noEmit", "-p", resolve(directory, "tsconfig.json")]
+  : ["--unhandled-rejections=strict", "--import", "tsx", "--test", ...(label === "legacy311" ? author : label === "acceptance311" ? revised : [resolve(directory, "shared-stdin.test.ts")])];
+const inputHashes: Record<string, string> = {};
+for (const path of [...author, resolve(directory, "acceptance216.test.ts"), resolve(directory, "shared-stdin.test.ts"), resolve(directory, "support.ts"), resolve(directory, "fixtures.ts"), resolve(directory, "validate.ts"), resolve(directory, "tsconfig.json")]) inputHashes[path] = sha(await readFile(path));
+const env = { ...process.env, TSX_DISABLE_CACHE: "1", TMPDIR: runtime, GNU_TABLE_BIN: resolve(oracle, "src") };
+const compatibility = spawnSync(process.execPath, ["--import", "tsx", "--input-type=module", "-e", `const module = await import(${JSON.stringify(resolve(root, "tests/fs/webdav/mock.ts"))}); if (typeof module.MockDav !== "function") throw new Error("missing MockDav");`], { cwd: runtime, env, timeout: 10000 });
+assert.equal(compatibility.status, 0, compatibility.stderr.toString());
+const result = spawnSync(process.execPath, args, { cwd: runtime, env, timeout: 180000, maxBuffer: 64 * 1024 * 1024 });
+const stdout = result.stdout ?? Buffer.alloc(0), stderr = result.stderr ?? Buffer.alloc(0);
+const text = stdout.toString();
+const summary = { exitCode: result.status, signal: result.signal, error: result.error?.message ?? null, pass: Number(text.match(/^# pass (\d+)/m)?.[1] ?? 0), fail: Number(text.match(/^# fail (\d+)/m)?.[1] ?? 0), skipped: Number(text.match(/^# skipped (\d+)/m)?.[1] ?? 0) };
+const after = await manifest();
+const drift = Object.keys(before).filter(path => before[path] !== after[path]).map(path => ({ path, before: before[path], after: after[path] }));
+assert.equal(await readFile(resolve(runtime, "sentinel"), "utf8"), "shared-stdin-fix-validation-owned");
+await save(`${label}.json`, { at: new Date().toISOString(), label, cwd: runtime, executable: process.execPath, executableSha256: sha(await readFile(process.execPath)), args, env: { LC_ALL: "C (native child)", TMPDIR: runtime, GNU_TABLE_BIN: env.GNU_TABLE_BIN, TSX_DISABLE_CACHE: "1" }, compatibility: { status: compatibility.status, stdoutHex: compatibility.stdout.toString("hex"), stderrHex: compatibility.stderr.toString("hex") }, before, after, inputHashes, drift, summary, stdoutBase64: stdout.toString("base64"), stderrBase64: stderr.toString("base64"), stdoutSha256: sha(stdout), stderrSha256: sha(stderr) });
+console.log(JSON.stringify({ label, ...summary, drift }, null, 2));

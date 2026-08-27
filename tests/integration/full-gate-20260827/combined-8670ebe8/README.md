@@ -66,3 +66,11 @@ node tests/integration/full-gate-20260827/combined-8670ebe8/run.mjs \
 
 Results belong in a separate immutable capture/evidence commit. This preparation
 document records no product pass/fail score and does not claim the run completed.
+
+## Explicit committed-archive admission
+
+Root subsequently authorized a separate `--committed-archive` mode for this same
+8670 candidate, because another owner legitimately edits the moving checkout.
+Source/harness6699804a adds the mode; its distinct independent review is required
+before launch. See `ARCHIVE-ADMISSION.md`. The default live-worktree guard and
+its original86c63b39 refusal remain unchanged, not deleted or bypassed globally.

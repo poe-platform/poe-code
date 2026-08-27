@@ -118,6 +118,18 @@ Core source/evidence hashes, full commits, raw logs and external failures are se
 in the final core handoff. All owned test/native children ended, scratch trees
 were removed, and foreign staging was preserved. Stop after this author handoff.
 
+### Post-validation integration qualification
+
+Source commit: `84ab66ca717e0dff21abf57051b41cb553f3c7f3`. Its two env hashes match
+the tested hashes exactly. After the validation guard closed, concurrent commit
+`b2821599` changed `src/commands/network/body.ts` and `src/commands/structured/jq.ts`
+before the env commit was made. The final seal detects and records both changes.
+Thus the checks had stable inputs **during execution**, but the final integrated
+source commit is not a whole-input revalidation of those later foreign changes.
+No source edit, silent waiver or repeat-to-green is made for them. Independent
+acceptance must bind to the complete committed candidate, not inherit a false
+all-current-source gate from this author report.
+
 ## Reproduction
 
 ```sh

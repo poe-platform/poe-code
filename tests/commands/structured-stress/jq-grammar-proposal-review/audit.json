@@ -1,0 +1,6453 @@
+{
+  "recordedAt": "2026-08-27T02:04:39.509Z",
+  "verdict": "REJECT v2 as an exact application plan; native expectation values agree",
+  "productImported": false,
+  "classifications": {
+    "stale-policy": 19,
+    "diagnostic-mixed": 2,
+    "resource-mixed-composite": 1,
+    "newly-exposed-stale-assertion": 4
+  },
+  "rows": [
+    {
+      "number": 1,
+      "oldTestName": "strict UTF-8 rejection remains chunk invariant (not native parity): raw-lone-continuation",
+      "proposedReviewedName": "native UTF-8 replacement remains chunk invariant: raw-lone-continuation",
+      "path": "tests/commands/structured-stress/independent-increment/safety.test.ts",
+      "classification": "stale-policy",
+      "baseline": {
+        "probes": 1,
+        "exact": 1,
+        "diagnosticOnly": 0,
+        "statusOrStdout": 0
+      },
+      "oldAssertionSha256": "03a889c6cda89fa4c1373c0672d780470609c2a1a60b6ad8b1f5cc8ffe5230bb",
+      "oldAssertionLines": 14,
+      "constituents": [
+        {
+          "id": "strict-raw-lone-continuation",
+          "actualInput": {
+            "argv": [
+              "-Rc",
+              "--",
+              "."
+            ],
+            "inputHex": "6f6b0a8061667465720a",
+            "files": {}
+          },
+          "proofInputHex": "6f6b0a8061667465720a",
+          "exactLookupMatches": true,
+          "frozenProofHash": "ffe8421c24f977e3c24f7ef9589b5e0e655be26270b52d50a3ae9aa2c0c6b76d",
+          "expected": {
+            "status": 0,
+            "stdoutHex": "226f6b220a22efbfbd6166746572220a",
+            "stderrHex": ""
+          },
+          "nativeRoute": "literal-argv-stdin",
+          "nativeMatchesFrozen": true,
+          "schedules": {
+            "baseline": 1,
+            "inclusiveCuts": [
+              0,
+              10
+            ],
+            "emptyMiddleChunk": true,
+            "executions": 12
+          }
+        }
+      ],
+      "retainedSchedules": {
+        "baseline": 1,
+        "inclusiveCuts": [
+          0,
+          10
+        ],
+        "emptyMiddleChunk": true,
+        "executions": 12
+      },
+      "proposedDeltaStatus": "REJECT v2 application mechanics; native expectation tuples agree"
+    },
+    {
+      "number": 2,
+      "oldTestName": "strict UTF-8 rejection remains chunk invariant (not native parity): raw-truncated",
+      "proposedReviewedName": "native UTF-8 replacement remains chunk invariant: raw-truncated",
+      "path": "tests/commands/structured-stress/independent-increment/safety.test.ts",
+      "classification": "stale-policy",
+      "baseline": {
+        "probes": 1,
+        "exact": 1,
+        "diagnosticOnly": 0,
+        "statusOrStdout": 0
+      },
+      "oldAssertionSha256": "03a889c6cda89fa4c1373c0672d780470609c2a1a60b6ad8b1f5cc8ffe5230bb",
+      "oldAssertionLines": 14,
+      "constituents": [
+        {
+          "id": "strict-raw-truncated",
+          "actualInput": {
+            "argv": [
+              "-Rj",
+              "--",
+              "."
+            ],
+            "inputHex": "6f6b0af09f",
+            "files": {}
+          },
+          "proofInputHex": "6f6b0af09f",
+          "exactLookupMatches": true,
+          "frozenProofHash": "4e08e69af4364c4d1ca727fb74f21d52673fd734502f05f61306bf6ce631c0a7",
+          "expected": {
+            "status": 0,
+            "stdoutHex": "6f6befbfbd",
+            "stderrHex": ""
+          },
+          "nativeRoute": "literal-argv-stdin",
+          "nativeMatchesFrozen": true,
+          "schedules": {
+            "baseline": 1,
+            "inclusiveCuts": [
+              0,
+              5
+            ],
+            "emptyMiddleChunk": true,
+            "executions": 7
+          }
+        }
+      ],
+      "retainedSchedules": {
+        "baseline": 1,
+        "inclusiveCuts": [
+          0,
+          5
+        ],
+        "emptyMiddleChunk": true,
+        "executions": 7
+      },
+      "proposedDeltaStatus": "REJECT v2 application mechanics; native expectation tuples agree"
+    },
+    {
+      "number": 3,
+      "oldTestName": "strict UTF-8 rejection remains chunk invariant (not native parity): raw-bad-continuation",
+      "proposedReviewedName": "native UTF-8 replacement remains chunk invariant: raw-bad-continuation",
+      "path": "tests/commands/structured-stress/independent-increment/safety.test.ts",
+      "classification": "stale-policy",
+      "baseline": {
+        "probes": 1,
+        "exact": 1,
+        "diagnosticOnly": 0,
+        "statusOrStdout": 0
+      },
+      "oldAssertionSha256": "03a889c6cda89fa4c1373c0672d780470609c2a1a60b6ad8b1f5cc8ffe5230bb",
+      "oldAssertionLines": 14,
+      "constituents": [
+        {
+          "id": "strict-raw-bad-continuation",
+          "actualInput": {
+            "argv": [
+              "-Rc",
+              "--",
+              "."
+            ],
+            "inputHex": "e282410a",
+            "files": {}
+          },
+          "proofInputHex": "e282410a",
+          "exactLookupMatches": true,
+          "frozenProofHash": "ce9ef50ced5dd818aab553722a9ff3543b229bb1bf8e4768e8aa6f5825fa6171",
+          "expected": {
+            "status": 0,
+            "stdoutHex": "22efbfbd41220a",
+            "stderrHex": ""
+          },
+          "nativeRoute": "literal-argv-stdin",
+          "nativeMatchesFrozen": true,
+          "schedules": {
+            "baseline": 1,
+            "inclusiveCuts": [
+              0,
+              4
+            ],
+            "emptyMiddleChunk": true,
+            "executions": 6
+          }
+        }
+      ],
+      "retainedSchedules": {
+        "baseline": 1,
+        "inclusiveCuts": [
+          0,
+          4
+        ],
+        "emptyMiddleChunk": true,
+        "executions": 6
+      },
+      "proposedDeltaStatus": "REJECT v2 application mechanics; native expectation tuples agree"
+    },
+    {
+      "number": 4,
+      "oldTestName": "strict UTF-8 rejection remains chunk invariant (not native parity): json-bad-string",
+      "proposedReviewedName": "native UTF-8 replacement remains chunk invariant: json-bad-string",
+      "path": "tests/commands/structured-stress/independent-increment/safety.test.ts",
+      "classification": "stale-policy",
+      "baseline": {
+        "probes": 1,
+        "exact": 1,
+        "diagnosticOnly": 0,
+        "statusOrStdout": 0
+      },
+      "oldAssertionSha256": "03a889c6cda89fa4c1373c0672d780470609c2a1a60b6ad8b1f5cc8ffe5230bb",
+      "oldAssertionLines": 14,
+      "constituents": [
+        {
+          "id": "strict-json-bad-string",
+          "actualInput": {
+            "argv": [
+              "-c",
+              "--",
+              "."
+            ],
+            "inputHex": "226f6b220a2280220a226166746572220a",
+            "files": {}
+          },
+          "proofInputHex": "226f6b220a2280220a226166746572220a",
+          "exactLookupMatches": true,
+          "frozenProofHash": "d8cc7775b8f78a1f29083dfd3c7b7a6fc11623c0a0df64611caa128f1503872e",
+          "expected": {
+            "status": 0,
+            "stdoutHex": "226f6b220a22efbfbd220a226166746572220a",
+            "stderrHex": ""
+          },
+          "nativeRoute": "literal-argv-stdin",
+          "nativeMatchesFrozen": true,
+          "schedules": {
+            "baseline": 1,
+            "inclusiveCuts": [
+              0,
+              17
+            ],
+            "emptyMiddleChunk": true,
+            "executions": 19
+          }
+        }
+      ],
+      "retainedSchedules": {
+        "baseline": 1,
+        "inclusiveCuts": [
+          0,
+          17
+        ],
+        "emptyMiddleChunk": true,
+        "executions": 19
+      },
+      "proposedDeltaStatus": "REJECT v2 application mechanics; native expectation tuples agree"
+    },
+    {
+      "number": 5,
+      "oldTestName": "raw native: record-error-prefix",
+      "proposedReviewedName": "raw native: record-error-prefix",
+      "path": "tests/commands/structured-stress/raw-input.test.ts",
+      "classification": "stale-policy",
+      "baseline": {
+        "probes": 1,
+        "exact": 1,
+        "diagnosticOnly": 0,
+        "statusOrStdout": 0
+      },
+      "oldAssertionSha256": "cbca3cfec9ae587f19ea8b3a3c705cceb50ccf4087b857f3272840ce26a14e64",
+      "oldAssertionLines": 14,
+      "constituents": [
+        {
+          "id": "record-error-prefix",
+          "actualInput": {
+            "argv": [
+              "-Rc",
+              ".,1/0"
+            ],
+            "inputHex": "780a790a",
+            "files": {}
+          },
+          "proofInputHex": "780a790a",
+          "exactLookupMatches": true,
+          "frozenProofHash": "7206e39f3825979abee8b0b2775c9323f352704a039f5cc8bcae71110a55acc7",
+          "expected": {
+            "status": 5,
+            "stdoutHex": "2278220a2279220a",
+            "stderrHex": "6a713a206572726f7220286174203c737464696e3e3a31293a206e756d6265722028312920616e64206e756d626572202830292063616e6e6f7420626520646976696465642062656361757365207468652064697669736f72206973207a65726f0a6a713a206572726f7220286174203c737464696e3e3a32293a206e756d6265722028312920616e64206e756d626572202830292063616e6e6f7420626520646976696465642062656361757365207468652064697669736f72206973207a65726f0a"
+          },
+          "nativeRoute": "literal-argv-stdin",
+          "nativeMatchesFrozen": true,
+          "schedules": {
+            "sizes": [
+              1,
+              2,
+              7,
+              16384
+            ],
+            "executions": 4,
+            "freshMemoryFsEachSize": true,
+            "fileArrangement": {},
+            "preserveAllUnselectedRawFixtures": true
+          }
+        }
+      ],
+      "retainedSchedules": {
+        "sizes": [
+          1,
+          2,
+          7,
+          16384
+        ],
+        "executions": 4,
+        "freshMemoryFsEachSize": true,
+        "fileArrangement": {},
+        "preserveAllUnselectedRawFixtures": true
+      },
+      "proposedDeltaStatus": "REJECT v2 application mechanics; native expectation tuples agree"
+    },
+    {
+      "number": 6,
+      "oldTestName": "raw native: file-unicode:-Rc",
+      "proposedReviewedName": "raw native: file-unicode:-Rc",
+      "path": "tests/commands/structured-stress/raw-input.test.ts",
+      "classification": "stale-policy",
+      "baseline": {
+        "probes": 1,
+        "exact": 1,
+        "diagnosticOnly": 0,
+        "statusOrStdout": 0
+      },
+      "oldAssertionSha256": "cbca3cfec9ae587f19ea8b3a3c705cceb50ccf4087b857f3272840ce26a14e64",
+      "oldAssertionLines": 14,
+      "constituents": [
+        {
+          "id": "file-unicode:-Rc",
+          "actualInput": {
+            "argv": [
+              "-Rc",
+              ".",
+              "unicode-start",
+              "-"
+            ],
+            "inputHex": "98800a",
+            "files": {
+              "unicode-start": "f09f"
+            }
+          },
+          "proofInputHex": "98800a",
+          "exactLookupMatches": true,
+          "frozenProofHash": "ce6f115ba3b52673ec619f115a738adda7df3cad010df084aae61940762e3d82",
+          "expected": {
+            "status": 0,
+            "stdoutHex": "22efbfbdefbfbdefbfbd220a",
+            "stderrHex": ""
+          },
+          "nativeRoute": "binary-file-input-via-inherited-fd",
+          "nativeMatchesFrozen": true,
+          "schedules": {
+            "sizes": [
+              1,
+              2,
+              7,
+              16384
+            ],
+            "executions": 4,
+            "freshMemoryFsEachSize": true,
+            "fileArrangement": {
+              "unicode-start": "f09f"
+            },
+            "preserveAllUnselectedRawFixtures": true
+          }
+        }
+      ],
+      "retainedSchedules": {
+        "sizes": [
+          1,
+          2,
+          7,
+          16384
+        ],
+        "executions": 4,
+        "freshMemoryFsEachSize": true,
+        "fileArrangement": {
+          "unicode-start": "f09f"
+        },
+        "preserveAllUnselectedRawFixtures": true
+      },
+      "proposedDeltaStatus": "REJECT v2 application mechanics; native expectation tuples agree"
+    },
+    {
+      "number": 7,
+      "oldTestName": "raw native: file-unicode:-Rsc",
+      "proposedReviewedName": "raw native: file-unicode:-Rsc",
+      "path": "tests/commands/structured-stress/raw-input.test.ts",
+      "classification": "stale-policy",
+      "baseline": {
+        "probes": 1,
+        "exact": 1,
+        "diagnosticOnly": 0,
+        "statusOrStdout": 0
+      },
+      "oldAssertionSha256": "cbca3cfec9ae587f19ea8b3a3c705cceb50ccf4087b857f3272840ce26a14e64",
+      "oldAssertionLines": 14,
+      "constituents": [
+        {
+          "id": "file-unicode:-Rsc",
+          "actualInput": {
+            "argv": [
+              "-Rsc",
+              ".",
+              "unicode-start",
+              "-"
+            ],
+            "inputHex": "98800a",
+            "files": {
+              "unicode-start": "f09f"
+            }
+          },
+          "proofInputHex": "98800a",
+          "exactLookupMatches": true,
+          "frozenProofHash": "217c66dd32e62c307cbed753b584a04d8701a98ed18d4fd8d3ddebf4b1d70115",
+          "expected": {
+            "status": 0,
+            "stdoutHex": "22efbfbdefbfbdefbfbd5c6e220a",
+            "stderrHex": ""
+          },
+          "nativeRoute": "binary-file-input-via-inherited-fd",
+          "nativeMatchesFrozen": true,
+          "schedules": {
+            "sizes": [
+              1,
+              2,
+              7,
+              16384
+            ],
+            "executions": 4,
+            "freshMemoryFsEachSize": true,
+            "fileArrangement": {
+              "unicode-start": "f09f"
+            },
+            "preserveAllUnselectedRawFixtures": true
+          }
+        }
+      ],
+      "retainedSchedules": {
+        "sizes": [
+          1,
+          2,
+          7,
+          16384
+        ],
+        "executions": 4,
+        "freshMemoryFsEachSize": true,
+        "fileArrangement": {
+          "unicode-start": "f09f"
+        },
+        "preserveAllUnselectedRawFixtures": true
+      },
+      "proposedDeltaStatus": "REJECT v2 application mechanics; native expectation tuples agree"
+    },
+    {
+      "number": 8,
+      "oldTestName": "raw native: invalid:0:-Rc",
+      "proposedReviewedName": "raw native: invalid:0:-Rc",
+      "path": "tests/commands/structured-stress/raw-input.test.ts",
+      "classification": "stale-policy",
+      "baseline": {
+        "probes": 1,
+        "exact": 1,
+        "diagnosticOnly": 0,
+        "statusOrStdout": 0
+      },
+      "oldAssertionSha256": "cbca3cfec9ae587f19ea8b3a3c705cceb50ccf4087b857f3272840ce26a14e64",
+      "oldAssertionLines": 14,
+      "constituents": [
+        {
+          "id": "invalid:0:-Rc",
+          "actualInput": {
+            "argv": [
+              "-Rc",
+              "."
+            ],
+            "inputHex": "6f6b0ac0af",
+            "files": {}
+          },
+          "proofInputHex": "6f6b0ac0af",
+          "exactLookupMatches": true,
+          "frozenProofHash": "14c16928f67621621f120ee8bb956d768ce48918beea96c76e2275bcc338f8a6",
+          "expected": {
+            "status": 0,
+            "stdoutHex": "226f6b220a22efbfbdefbfbd220a",
+            "stderrHex": ""
+          },
+          "nativeRoute": "literal-argv-stdin",
+          "nativeMatchesFrozen": true,
+          "schedules": {
+            "sizes": [
+              1,
+              2,
+              7,
+              16384
+            ],
+            "executions": 4,
+            "freshMemoryFsEachSize": true,
+            "fileArrangement": {},
+            "preserveAllUnselectedRawFixtures": true
+          }
+        }
+      ],
+      "retainedSchedules": {
+        "sizes": [
+          1,
+          2,
+          7,
+          16384
+        ],
+        "executions": 4,
+        "freshMemoryFsEachSize": true,
+        "fileArrangement": {},
+        "preserveAllUnselectedRawFixtures": true
+      },
+      "proposedDeltaStatus": "REJECT v2 application mechanics; native expectation tuples agree"
+    },
+    {
+      "number": 9,
+      "oldTestName": "raw native: invalid:0:-Rsc",
+      "proposedReviewedName": "raw native: invalid:0:-Rsc",
+      "path": "tests/commands/structured-stress/raw-input.test.ts",
+      "classification": "stale-policy",
+      "baseline": {
+        "probes": 1,
+        "exact": 1,
+        "diagnosticOnly": 0,
+        "statusOrStdout": 0
+      },
+      "oldAssertionSha256": "cbca3cfec9ae587f19ea8b3a3c705cceb50ccf4087b857f3272840ce26a14e64",
+      "oldAssertionLines": 14,
+      "constituents": [
+        {
+          "id": "invalid:0:-Rsc",
+          "actualInput": {
+            "argv": [
+              "-Rsc",
+              "."
+            ],
+            "inputHex": "6f6b0ac0af",
+            "files": {}
+          },
+          "proofInputHex": "6f6b0ac0af",
+          "exactLookupMatches": true,
+          "frozenProofHash": "3d18930c54dfc62721dad6490ba39ba3ad022b146c55855621a2c0ac6ce846d8",
+          "expected": {
+            "status": 0,
+            "stdoutHex": "226f6b5c6eefbfbdefbfbd220a",
+            "stderrHex": ""
+          },
+          "nativeRoute": "literal-argv-stdin",
+          "nativeMatchesFrozen": true,
+          "schedules": {
+            "sizes": [
+              1,
+              2,
+              7,
+              16384
+            ],
+            "executions": 4,
+            "freshMemoryFsEachSize": true,
+            "fileArrangement": {},
+            "preserveAllUnselectedRawFixtures": true
+          }
+        }
+      ],
+      "retainedSchedules": {
+        "sizes": [
+          1,
+          2,
+          7,
+          16384
+        ],
+        "executions": 4,
+        "freshMemoryFsEachSize": true,
+        "fileArrangement": {},
+        "preserveAllUnselectedRawFixtures": true
+      },
+      "proposedDeltaStatus": "REJECT v2 application mechanics; native expectation tuples agree"
+    },
+    {
+      "number": 10,
+      "oldTestName": "raw native: invalid:1:-Rc",
+      "proposedReviewedName": "raw native: invalid:1:-Rc",
+      "path": "tests/commands/structured-stress/raw-input.test.ts",
+      "classification": "stale-policy",
+      "baseline": {
+        "probes": 1,
+        "exact": 1,
+        "diagnosticOnly": 0,
+        "statusOrStdout": 0
+      },
+      "oldAssertionSha256": "cbca3cfec9ae587f19ea8b3a3c705cceb50ccf4087b857f3272840ce26a14e64",
+      "oldAssertionLines": 14,
+      "constituents": [
+        {
+          "id": "invalid:1:-Rc",
+          "actualInput": {
+            "argv": [
+              "-Rc",
+              "."
+            ],
+            "inputHex": "6f6b0aeda080",
+            "files": {}
+          },
+          "proofInputHex": "6f6b0aeda080",
+          "exactLookupMatches": true,
+          "frozenProofHash": "f27b5f7487b3b065c62028e128ac3553d5452b00515a63369b2fb61fa1ebb265",
+          "expected": {
+            "status": 0,
+            "stdoutHex": "226f6b220a22efbfbd220a",
+            "stderrHex": ""
+          },
+          "nativeRoute": "literal-argv-stdin",
+          "nativeMatchesFrozen": true,
+          "schedules": {
+            "sizes": [
+              1,
+              2,
+              7,
+              16384
+            ],
+            "executions": 4,
+            "freshMemoryFsEachSize": true,
+            "fileArrangement": {},
+            "preserveAllUnselectedRawFixtures": true
+          }
+        }
+      ],
+      "retainedSchedules": {
+        "sizes": [
+          1,
+          2,
+          7,
+          16384
+        ],
+        "executions": 4,
+        "freshMemoryFsEachSize": true,
+        "fileArrangement": {},
+        "preserveAllUnselectedRawFixtures": true
+      },
+      "proposedDeltaStatus": "REJECT v2 application mechanics; native expectation tuples agree"
+    },
+    {
+      "number": 11,
+      "oldTestName": "raw native: invalid:1:-Rsc",
+      "proposedReviewedName": "raw native: invalid:1:-Rsc",
+      "path": "tests/commands/structured-stress/raw-input.test.ts",
+      "classification": "stale-policy",
+      "baseline": {
+        "probes": 1,
+        "exact": 1,
+        "diagnosticOnly": 0,
+        "statusOrStdout": 0
+      },
+      "oldAssertionSha256": "cbca3cfec9ae587f19ea8b3a3c705cceb50ccf4087b857f3272840ce26a14e64",
+      "oldAssertionLines": 14,
+      "constituents": [
+        {
+          "id": "invalid:1:-Rsc",
+          "actualInput": {
+            "argv": [
+              "-Rsc",
+              "."
+            ],
+            "inputHex": "6f6b0aeda080",
+            "files": {}
+          },
+          "proofInputHex": "6f6b0aeda080",
+          "exactLookupMatches": true,
+          "frozenProofHash": "6990ef53a3cd04009e89aaae8f4b312243911db7a2e77ec7984ee90b3457dcf7",
+          "expected": {
+            "status": 0,
+            "stdoutHex": "226f6b5c6eefbfbd220a",
+            "stderrHex": ""
+          },
+          "nativeRoute": "literal-argv-stdin",
+          "nativeMatchesFrozen": true,
+          "schedules": {
+            "sizes": [
+              1,
+              2,
+              7,
+              16384
+            ],
+            "executions": 4,
+            "freshMemoryFsEachSize": true,
+            "fileArrangement": {},
+            "preserveAllUnselectedRawFixtures": true
+          }
+        }
+      ],
+      "retainedSchedules": {
+        "sizes": [
+          1,
+          2,
+          7,
+          16384
+        ],
+        "executions": 4,
+        "freshMemoryFsEachSize": true,
+        "fileArrangement": {},
+        "preserveAllUnselectedRawFixtures": true
+      },
+      "proposedDeltaStatus": "REJECT v2 application mechanics; native expectation tuples agree"
+    },
+    {
+      "number": 12,
+      "oldTestName": "raw native: invalid:2:-Rc",
+      "proposedReviewedName": "raw native: invalid:2:-Rc",
+      "path": "tests/commands/structured-stress/raw-input.test.ts",
+      "classification": "stale-policy",
+      "baseline": {
+        "probes": 1,
+        "exact": 1,
+        "diagnosticOnly": 0,
+        "statusOrStdout": 0
+      },
+      "oldAssertionSha256": "cbca3cfec9ae587f19ea8b3a3c705cceb50ccf4087b857f3272840ce26a14e64",
+      "oldAssertionLines": 14,
+      "constituents": [
+        {
+          "id": "invalid:2:-Rc",
+          "actualInput": {
+            "argv": [
+              "-Rc",
+              "."
+            ],
+            "inputHex": "6f6b0af4908080",
+            "files": {}
+          },
+          "proofInputHex": "6f6b0af4908080",
+          "exactLookupMatches": true,
+          "frozenProofHash": "11ab8680e2069ec47c63a3880d058e0e9914ee756b90cf235ffbc2155b4a8087",
+          "expected": {
+            "status": 0,
+            "stdoutHex": "226f6b220a22efbfbd220a",
+            "stderrHex": ""
+          },
+          "nativeRoute": "literal-argv-stdin",
+          "nativeMatchesFrozen": true,
+          "schedules": {
+            "sizes": [
+              1,
+              2,
+              7,
+              16384
+            ],
+            "executions": 4,
+            "freshMemoryFsEachSize": true,
+            "fileArrangement": {},
+            "preserveAllUnselectedRawFixtures": true
+          }
+        }
+      ],
+      "retainedSchedules": {
+        "sizes": [
+          1,
+          2,
+          7,
+          16384
+        ],
+        "executions": 4,
+        "freshMemoryFsEachSize": true,
+        "fileArrangement": {},
+        "preserveAllUnselectedRawFixtures": true
+      },
+      "proposedDeltaStatus": "REJECT v2 application mechanics; native expectation tuples agree"
+    },
+    {
+      "number": 13,
+      "oldTestName": "raw native: invalid:2:-Rsc",
+      "proposedReviewedName": "raw native: invalid:2:-Rsc",
+      "path": "tests/commands/structured-stress/raw-input.test.ts",
+      "classification": "stale-policy",
+      "baseline": {
+        "probes": 1,
+        "exact": 1,
+        "diagnosticOnly": 0,
+        "statusOrStdout": 0
+      },
+      "oldAssertionSha256": "cbca3cfec9ae587f19ea8b3a3c705cceb50ccf4087b857f3272840ce26a14e64",
+      "oldAssertionLines": 14,
+      "constituents": [
+        {
+          "id": "invalid:2:-Rsc",
+          "actualInput": {
+            "argv": [
+              "-Rsc",
+              "."
+            ],
+            "inputHex": "6f6b0af4908080",
+            "files": {}
+          },
+          "proofInputHex": "6f6b0af4908080",
+          "exactLookupMatches": true,
+          "frozenProofHash": "bcdaaf10911b2f1ed8630a7d1148102ceec48526e6fbe30cc2542bc2ab49f6e4",
+          "expected": {
+            "status": 0,
+            "stdoutHex": "226f6b5c6eefbfbd220a",
+            "stderrHex": ""
+          },
+          "nativeRoute": "literal-argv-stdin",
+          "nativeMatchesFrozen": true,
+          "schedules": {
+            "sizes": [
+              1,
+              2,
+              7,
+              16384
+            ],
+            "executions": 4,
+            "freshMemoryFsEachSize": true,
+            "fileArrangement": {},
+            "preserveAllUnselectedRawFixtures": true
+          }
+        }
+      ],
+      "retainedSchedules": {
+        "sizes": [
+          1,
+          2,
+          7,
+          16384
+        ],
+        "executions": 4,
+        "freshMemoryFsEachSize": true,
+        "fileArrangement": {},
+        "preserveAllUnselectedRawFixtures": true
+      },
+      "proposedDeltaStatus": "REJECT v2 application mechanics; native expectation tuples agree"
+    },
+    {
+      "number": 14,
+      "oldTestName": "raw native: invalid:3:-Rc",
+      "proposedReviewedName": "raw native: invalid:3:-Rc",
+      "path": "tests/commands/structured-stress/raw-input.test.ts",
+      "classification": "stale-policy",
+      "baseline": {
+        "probes": 1,
+        "exact": 1,
+        "diagnosticOnly": 0,
+        "statusOrStdout": 0
+      },
+      "oldAssertionSha256": "cbca3cfec9ae587f19ea8b3a3c705cceb50ccf4087b857f3272840ce26a14e64",
+      "oldAssertionLines": 14,
+      "constituents": [
+        {
+          "id": "invalid:3:-Rc",
+          "actualInput": {
+            "argv": [
+              "-Rc",
+              "."
+            ],
+            "inputHex": "6f6b0af09f",
+            "files": {}
+          },
+          "proofInputHex": "6f6b0af09f",
+          "exactLookupMatches": true,
+          "frozenProofHash": "721c3b1736fe2e89c07aa8aa1c3ef33b118ce1bf77949f1be49878de7385a5eb",
+          "expected": {
+            "status": 0,
+            "stdoutHex": "226f6b220a22efbfbd220a",
+            "stderrHex": ""
+          },
+          "nativeRoute": "literal-argv-stdin",
+          "nativeMatchesFrozen": true,
+          "schedules": {
+            "sizes": [
+              1,
+              2,
+              7,
+              16384
+            ],
+            "executions": 4,
+            "freshMemoryFsEachSize": true,
+            "fileArrangement": {},
+            "preserveAllUnselectedRawFixtures": true
+          }
+        }
+      ],
+      "retainedSchedules": {
+        "sizes": [
+          1,
+          2,
+          7,
+          16384
+        ],
+        "executions": 4,
+        "freshMemoryFsEachSize": true,
+        "fileArrangement": {},
+        "preserveAllUnselectedRawFixtures": true
+      },
+      "proposedDeltaStatus": "REJECT v2 application mechanics; native expectation tuples agree"
+    },
+    {
+      "number": 15,
+      "oldTestName": "raw native: invalid:3:-Rsc",
+      "proposedReviewedName": "raw native: invalid:3:-Rsc",
+      "path": "tests/commands/structured-stress/raw-input.test.ts",
+      "classification": "stale-policy",
+      "baseline": {
+        "probes": 1,
+        "exact": 1,
+        "diagnosticOnly": 0,
+        "statusOrStdout": 0
+      },
+      "oldAssertionSha256": "cbca3cfec9ae587f19ea8b3a3c705cceb50ccf4087b857f3272840ce26a14e64",
+      "oldAssertionLines": 14,
+      "constituents": [
+        {
+          "id": "invalid:3:-Rsc",
+          "actualInput": {
+            "argv": [
+              "-Rsc",
+              "."
+            ],
+            "inputHex": "6f6b0af09f",
+            "files": {}
+          },
+          "proofInputHex": "6f6b0af09f",
+          "exactLookupMatches": true,
+          "frozenProofHash": "d328c33ae1af0317c0103b07f6229b938687422101bcad791ae3c598810d5844",
+          "expected": {
+            "status": 0,
+            "stdoutHex": "226f6b5c6eefbfbd220a",
+            "stderrHex": ""
+          },
+          "nativeRoute": "literal-argv-stdin",
+          "nativeMatchesFrozen": true,
+          "schedules": {
+            "sizes": [
+              1,
+              2,
+              7,
+              16384
+            ],
+            "executions": 4,
+            "freshMemoryFsEachSize": true,
+            "fileArrangement": {},
+            "preserveAllUnselectedRawFixtures": true
+          }
+        }
+      ],
+      "retainedSchedules": {
+        "sizes": [
+          1,
+          2,
+          7,
+          16384
+        ],
+        "executions": 4,
+        "freshMemoryFsEachSize": true,
+        "fileArrangement": {},
+        "preserveAllUnselectedRawFixtures": true
+      },
+      "proposedDeltaStatus": "REJECT v2 application mechanics; native expectation tuples agree"
+    },
+    {
+      "number": 16,
+      "oldTestName": "raw native: invalid:4:-Rc",
+      "proposedReviewedName": "raw native: invalid:4:-Rc",
+      "path": "tests/commands/structured-stress/raw-input.test.ts",
+      "classification": "stale-policy",
+      "baseline": {
+        "probes": 1,
+        "exact": 1,
+        "diagnosticOnly": 0,
+        "statusOrStdout": 0
+      },
+      "oldAssertionSha256": "cbca3cfec9ae587f19ea8b3a3c705cceb50ccf4087b857f3272840ce26a14e64",
+      "oldAssertionLines": 14,
+      "constituents": [
+        {
+          "id": "invalid:4:-Rc",
+          "actualInput": {
+            "argv": [
+              "-Rc",
+              "."
+            ],
+            "inputHex": "6f6b0a80",
+            "files": {}
+          },
+          "proofInputHex": "6f6b0a80",
+          "exactLookupMatches": true,
+          "frozenProofHash": "e500ad0ce40b92ea2c8fb8c1ac903d609c33e1faa8bdc53ffbd33d31206602ea",
+          "expected": {
+            "status": 0,
+            "stdoutHex": "226f6b220a22efbfbd220a",
+            "stderrHex": ""
+          },
+          "nativeRoute": "literal-argv-stdin",
+          "nativeMatchesFrozen": true,
+          "schedules": {
+            "sizes": [
+              1,
+              2,
+              7,
+              16384
+            ],
+            "executions": 4,
+            "freshMemoryFsEachSize": true,
+            "fileArrangement": {},
+            "preserveAllUnselectedRawFixtures": true
+          }
+        }
+      ],
+      "retainedSchedules": {
+        "sizes": [
+          1,
+          2,
+          7,
+          16384
+        ],
+        "executions": 4,
+        "freshMemoryFsEachSize": true,
+        "fileArrangement": {},
+        "preserveAllUnselectedRawFixtures": true
+      },
+      "proposedDeltaStatus": "REJECT v2 application mechanics; native expectation tuples agree"
+    },
+    {
+      "number": 17,
+      "oldTestName": "raw native: invalid:4:-Rsc",
+      "proposedReviewedName": "raw native: invalid:4:-Rsc",
+      "path": "tests/commands/structured-stress/raw-input.test.ts",
+      "classification": "stale-policy",
+      "baseline": {
+        "probes": 1,
+        "exact": 1,
+        "diagnosticOnly": 0,
+        "statusOrStdout": 0
+      },
+      "oldAssertionSha256": "cbca3cfec9ae587f19ea8b3a3c705cceb50ccf4087b857f3272840ce26a14e64",
+      "oldAssertionLines": 14,
+      "constituents": [
+        {
+          "id": "invalid:4:-Rsc",
+          "actualInput": {
+            "argv": [
+              "-Rsc",
+              "."
+            ],
+            "inputHex": "6f6b0a80",
+            "files": {}
+          },
+          "proofInputHex": "6f6b0a80",
+          "exactLookupMatches": true,
+          "frozenProofHash": "133ced85dba9da0c181f6500fa1148b839173966ea2aa4df7c3ceccc63033513",
+          "expected": {
+            "status": 0,
+            "stdoutHex": "226f6b5c6eefbfbd220a",
+            "stderrHex": ""
+          },
+          "nativeRoute": "literal-argv-stdin",
+          "nativeMatchesFrozen": true,
+          "schedules": {
+            "sizes": [
+              1,
+              2,
+              7,
+              16384
+            ],
+            "executions": 4,
+            "freshMemoryFsEachSize": true,
+            "fileArrangement": {},
+            "preserveAllUnselectedRawFixtures": true
+          }
+        }
+      ],
+      "retainedSchedules": {
+        "sizes": [
+          1,
+          2,
+          7,
+          16384
+        ],
+        "executions": 4,
+        "freshMemoryFsEachSize": true,
+        "fileArrangement": {},
+        "preserveAllUnselectedRawFixtures": true
+      },
+      "proposedDeltaStatus": "REJECT v2 application mechanics; native expectation tuples agree"
+    },
+    {
+      "number": 18,
+      "oldTestName": "strict malformed JSON 14 across chunk boundaries",
+      "proposedReviewedName": "native JSON acceptance 14 across chunk boundaries",
+      "path": "tests/commands/structured-stress/safety.test.ts",
+      "classification": "stale-policy",
+      "baseline": {
+        "probes": 1,
+        "exact": 1,
+        "diagnosticOnly": 0,
+        "statusOrStdout": 0
+      },
+      "oldAssertionSha256": "f2d82e6931a2ed101e5fc9dc3352a9621d30dbab45d97108d661020e0439cc5b",
+      "oldAssertionLines": 10,
+      "constituents": [
+        {
+          "id": "malformed-14",
+          "actualInput": {
+            "argv": [
+              "-c",
+              "."
+            ],
+            "inputHex": "225c754443303022",
+            "files": {}
+          },
+          "proofInputHex": "225c754443303022",
+          "exactLookupMatches": true,
+          "frozenProofHash": "3006ab73f2d7145a5a4974933d0896d297a53e7e1a37a1f3a76ea41e5654d8bb",
+          "expected": {
+            "status": 0,
+            "stdoutHex": "22efbfbd220a",
+            "stderrHex": ""
+          },
+          "nativeRoute": "literal-argv-stdin",
+          "nativeMatchesFrozen": true,
+          "schedules": {
+            "sizes": [
+              1,
+              2,
+              5,
+              64
+            ],
+            "timeoutMs": 3000,
+            "executions": 4,
+            "preserveAll23LoopInputs": true
+          }
+        }
+      ],
+      "retainedSchedules": {
+        "sizes": [
+          1,
+          2,
+          5,
+          64
+        ],
+        "timeoutMs": 3000,
+        "executions": 4,
+        "preserveAll23LoopInputs": true
+      },
+      "proposedDeltaStatus": "REJECT v2 application mechanics; native expectation tuples agree"
+    },
+    {
+      "number": 19,
+      "oldTestName": "strict malformed JSON 16 across chunk boundaries",
+      "proposedReviewedName": "native JSON acceptance 16 across chunk boundaries",
+      "path": "tests/commands/structured-stress/safety.test.ts",
+      "classification": "stale-policy",
+      "baseline": {
+        "probes": 1,
+        "exact": 1,
+        "diagnosticOnly": 0,
+        "statusOrStdout": 0
+      },
+      "oldAssertionSha256": "f2d82e6931a2ed101e5fc9dc3352a9621d30dbab45d97108d661020e0439cc5b",
+      "oldAssertionLines": 10,
+      "constituents": [
+        {
+          "id": "malformed-16",
+          "actualInput": {
+            "argv": [
+              "-c",
+              "."
+            ],
+            "inputHex": "6e756c6c00",
+            "files": {}
+          },
+          "proofInputHex": "6e756c6c00",
+          "exactLookupMatches": true,
+          "frozenProofHash": "44ec89810755b8ed69233f82794ffe507e7d42d8f3a7af08882b79d72d9760f8",
+          "expected": {
+            "status": 0,
+            "stdoutHex": "6e756c6c0a",
+            "stderrHex": ""
+          },
+          "nativeRoute": "literal-argv-stdin",
+          "nativeMatchesFrozen": true,
+          "schedules": {
+            "sizes": [
+              1,
+              2,
+              5,
+              64
+            ],
+            "timeoutMs": 3000,
+            "executions": 4,
+            "preserveAll23LoopInputs": true
+          }
+        }
+      ],
+      "retainedSchedules": {
+        "sizes": [
+          1,
+          2,
+          5,
+          64
+        ],
+        "timeoutMs": 3000,
+        "executions": 4,
+        "preserveAll23LoopInputs": true
+      },
+      "proposedDeltaStatus": "REJECT v2 application mechanics; native expectation tuples agree"
+    },
+    {
+      "number": 20,
+      "oldTestName": "invalid UTF-8 never becomes replacement text",
+      "proposedReviewedName": "invalid UTF-8 JSON tokens preserve prefix and native diagnostics",
+      "path": "tests/commands/structured-stress/safety.test.ts",
+      "classification": "diagnostic-mixed",
+      "baseline": {
+        "probes": 5,
+        "exact": 0,
+        "diagnosticOnly": 5,
+        "statusOrStdout": 0
+      },
+      "oldAssertionSha256": "7afdf1a8c028e5465d4755eddd336d8d95982a53a2f20f897e1be4595693d45f",
+      "oldAssertionLines": 140,
+      "constituents": [
+        {
+          "id": "outside-string-0",
+          "actualInput": {
+            "argv": [
+              "-c",
+              "."
+            ],
+            "inputHex": "7b7d0ac0af",
+            "files": {}
+          },
+          "proofInputHex": "7b7d0ac0af",
+          "exactLookupMatches": true,
+          "frozenProofHash": "c28daee0da5007598f181dcda1f317f7072e4e36ce2917411748c3b6374d2c64",
+          "expected": {
+            "status": 5,
+            "stdoutHex": "7b7d0a",
+            "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520322c20636f6c756d6e20320a"
+          },
+          "nativeRoute": "literal-argv-stdin",
+          "nativeMatchesFrozen": true,
+          "schedules": {
+            "sizes": [
+              1,
+              2,
+              64
+            ],
+            "executions": 15,
+            "completedPrefixHex": "7b7d0a"
+          }
+        },
+        {
+          "id": "outside-string-1",
+          "actualInput": {
+            "argv": [
+              "-c",
+              "."
+            ],
+            "inputHex": "7b7d0aeda080",
+            "files": {}
+          },
+          "proofInputHex": "7b7d0aeda080",
+          "exactLookupMatches": true,
+          "frozenProofHash": "49354a814199d477a4f49418da20ef88c24c7e35257fa2233a23b450a6bf9889",
+          "expected": {
+            "status": 5,
+            "stdoutHex": "7b7d0a",
+            "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520322c20636f6c756d6e20330a"
+          },
+          "nativeRoute": "literal-argv-stdin",
+          "nativeMatchesFrozen": true,
+          "schedules": {
+            "sizes": [
+              1,
+              2,
+              64
+            ],
+            "executions": 15,
+            "completedPrefixHex": "7b7d0a"
+          }
+        },
+        {
+          "id": "outside-string-2",
+          "actualInput": {
+            "argv": [
+              "-c",
+              "."
+            ],
+            "inputHex": "7b7d0af4908080",
+            "files": {}
+          },
+          "proofInputHex": "7b7d0af4908080",
+          "exactLookupMatches": true,
+          "frozenProofHash": "168b75cf3dd403975955384c92ed2204759281c437c5c659beebe0050f9c8326",
+          "expected": {
+            "status": 5,
+            "stdoutHex": "7b7d0a",
+            "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520322c20636f6c756d6e20340a"
+          },
+          "nativeRoute": "literal-argv-stdin",
+          "nativeMatchesFrozen": true,
+          "schedules": {
+            "sizes": [
+              1,
+              2,
+              64
+            ],
+            "executions": 15,
+            "completedPrefixHex": "7b7d0a"
+          }
+        },
+        {
+          "id": "outside-string-3",
+          "actualInput": {
+            "argv": [
+              "-c",
+              "."
+            ],
+            "inputHex": "7b7d0af09f",
+            "files": {}
+          },
+          "proofInputHex": "7b7d0af09f",
+          "exactLookupMatches": true,
+          "frozenProofHash": "13bc2a91f95d1f46340d7bcf71df1dcee575c58fda96ec4d973b41c3d03e866e",
+          "expected": {
+            "status": 5,
+            "stdoutHex": "7b7d0a",
+            "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520322c20636f6c756d6e20320a"
+          },
+          "nativeRoute": "literal-argv-stdin",
+          "nativeMatchesFrozen": true,
+          "schedules": {
+            "sizes": [
+              1,
+              2,
+              64
+            ],
+            "executions": 15,
+            "completedPrefixHex": "7b7d0a"
+          }
+        },
+        {
+          "id": "outside-string-4",
+          "actualInput": {
+            "argv": [
+              "-c",
+              "."
+            ],
+            "inputHex": "7b7d0a80",
+            "files": {}
+          },
+          "proofInputHex": "7b7d0a80",
+          "exactLookupMatches": true,
+          "frozenProofHash": "beb12be3c324dbd642edc6482b88d1ee2d658c7227284487341b90dfb54ea76b",
+          "expected": {
+            "status": 5,
+            "stdoutHex": "7b7d0a",
+            "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520322c20636f6c756d6e20310a"
+          },
+          "nativeRoute": "literal-argv-stdin",
+          "nativeMatchesFrozen": true,
+          "schedules": {
+            "sizes": [
+              1,
+              2,
+              64
+            ],
+            "executions": 15,
+            "completedPrefixHex": "7b7d0a"
+          }
+        }
+      ],
+      "retainedSchedules": {
+        "sizes": [
+          1,
+          2,
+          64
+        ],
+        "executions": 15,
+        "completedPrefixHex": "7b7d0a"
+      },
+      "proposedDeltaStatus": "REJECT v2 application mechanics; native expectation tuples agree"
+    },
+    {
+      "number": 21,
+      "oldTestName": "malformed UTF-8 preserves completed JSON prefix across every chunk split",
+      "proposedReviewedName": "malformed UTF-8 preserves completed JSON prefix across every chunk split",
+      "path": "tests/commands/structured/cli.test.ts",
+      "classification": "diagnostic-mixed",
+      "baseline": {
+        "probes": 36,
+        "exact": 12,
+        "diagnosticOnly": 24,
+        "statusOrStdout": 0
+      },
+      "oldAssertionSha256": "3803a2665503354ba33edcc77b83c0f7565deffaff898405c1f3462c86c6d796",
+      "oldAssertionLines": 16,
+      "constituents": [
+        {
+          "id": "prefix-0-0--c",
+          "actualInput": {
+            "argv": [
+              "-c",
+              "."
+            ],
+            "inputHex": "7b7d0aff",
+            "files": {}
+          },
+          "proofInputHex": "7b7d0aff",
+          "exactLookupMatches": true,
+          "frozenProofHash": "8dcdf51b7212cdfcfa320b5892dfd4a5bbed554ffef1d49c748279b75cc3283e",
+          "expected": {
+            "status": 5,
+            "stdoutHex": "7b7d0a",
+            "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520322c20636f6c756d6e20310a"
+          },
+          "nativeRoute": "literal-argv-stdin",
+          "nativeMatchesFrozen": true,
+          "schedules": {
+            "everyInclusiveCutFor18Inputs": [
+              [
+                0,
+                4
+              ],
+              [
+                0,
+                10
+              ],
+              [
+                0,
+                22
+              ],
+              [
+                0,
+                4
+              ],
+              [
+                0,
+                10
+              ],
+              [
+                0,
+                22
+              ],
+              [
+                0,
+                5
+              ],
+              [
+                0,
+                11
+              ],
+              [
+                0,
+                23
+              ],
+              [
+                0,
+                6
+              ],
+              [
+                0,
+                12
+              ],
+              [
+                0,
+                24
+              ],
+              [
+                0,
+                7
+              ],
+              [
+                0,
+                13
+              ],
+              [
+                0,
+                25
+              ],
+              [
+                0,
+                7
+              ],
+              [
+                0,
+                13
+              ],
+              [
+                0,
+                25
+              ]
+            ],
+            "bytewiseFor18Inputs": true,
+            "wholeSlurpFor18Inputs": true,
+            "executions": 297,
+            "exactStderrAlsoRequiredForSingleAndSlurp": true
+          }
+        },
+        {
+          "id": "prefix-0-0--sc",
+          "actualInput": {
+            "argv": [
+              "-sc",
+              "."
+            ],
+            "inputHex": "7b7d0aff",
+            "files": {}
+          },
+          "proofInputHex": "7b7d0aff",
+          "exactLookupMatches": true,
+          "frozenProofHash": "9c193ce940fe403a92ef412a47299a8c0e9177f3d43810ae1839f9012768c943",
+          "expected": {
+            "status": 5,
+            "stdoutHex": "",
+            "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520322c20636f6c756d6e20310a"
+          },
+          "nativeRoute": "literal-argv-stdin",
+          "nativeMatchesFrozen": true,
+          "schedules": {
+            "everyInclusiveCutFor18Inputs": [
+              [
+                0,
+                4
+              ],
+              [
+                0,
+                10
+              ],
+              [
+                0,
+                22
+              ],
+              [
+                0,
+                4
+              ],
+              [
+                0,
+                10
+              ],
+              [
+                0,
+                22
+              ],
+              [
+                0,
+                5
+              ],
+              [
+                0,
+                11
+              ],
+              [
+                0,
+                23
+              ],
+              [
+                0,
+                6
+              ],
+              [
+                0,
+                12
+              ],
+              [
+                0,
+                24
+              ],
+              [
+                0,
+                7
+              ],
+              [
+                0,
+                13
+              ],
+              [
+                0,
+                25
+              ],
+              [
+                0,
+                7
+              ],
+              [
+                0,
+                13
+              ],
+              [
+                0,
+                25
+              ]
+            ],
+            "bytewiseFor18Inputs": true,
+            "wholeSlurpFor18Inputs": true,
+            "executions": 297,
+            "exactStderrAlsoRequiredForSingleAndSlurp": true
+          }
+        },
+        {
+          "id": "prefix-1-0--c",
+          "actualInput": {
+            "argv": [
+              "-c",
+              "."
+            ],
+            "inputHex": "22f09f9880220a310aff",
+            "files": {}
+          },
+          "proofInputHex": "22f09f9880220a310aff",
+          "exactLookupMatches": true,
+          "frozenProofHash": "6d63e6c8fefaee002ef265f7f679105d58004fb8089865a6793d276e6863e726",
+          "expected": {
+            "status": 5,
+            "stdoutHex": "22f09f9880220a310a",
+            "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520332c20636f6c756d6e20310a"
+          },
+          "nativeRoute": "literal-argv-stdin",
+          "nativeMatchesFrozen": true,
+          "schedules": {
+            "everyInclusiveCutFor18Inputs": [
+              [
+                0,
+                4
+              ],
+              [
+                0,
+                10
+              ],
+              [
+                0,
+                22
+              ],
+              [
+                0,
+                4
+              ],
+              [
+                0,
+                10
+              ],
+              [
+                0,
+                22
+              ],
+              [
+                0,
+                5
+              ],
+              [
+                0,
+                11
+              ],
+              [
+                0,
+                23
+              ],
+              [
+                0,
+                6
+              ],
+              [
+                0,
+                12
+              ],
+              [
+                0,
+                24
+              ],
+              [
+                0,
+                7
+              ],
+              [
+                0,
+                13
+              ],
+              [
+                0,
+                25
+              ],
+              [
+                0,
+                7
+              ],
+              [
+                0,
+                13
+              ],
+              [
+                0,
+                25
+              ]
+            ],
+            "bytewiseFor18Inputs": true,
+            "wholeSlurpFor18Inputs": true,
+            "executions": 297,
+            "exactStderrAlsoRequiredForSingleAndSlurp": true
+          }
+        },
+        {
+          "id": "prefix-1-0--sc",
+          "actualInput": {
+            "argv": [
+              "-sc",
+              "."
+            ],
+            "inputHex": "22f09f9880220a310aff",
+            "files": {}
+          },
+          "proofInputHex": "22f09f9880220a310aff",
+          "exactLookupMatches": true,
+          "frozenProofHash": "b8497de680cc27d2e8db77d433240867f4fe5eee96be510823fd046dd02e7609",
+          "expected": {
+            "status": 5,
+            "stdoutHex": "",
+            "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520332c20636f6c756d6e20310a"
+          },
+          "nativeRoute": "literal-argv-stdin",
+          "nativeMatchesFrozen": true,
+          "schedules": {
+            "everyInclusiveCutFor18Inputs": [
+              [
+                0,
+                4
+              ],
+              [
+                0,
+                10
+              ],
+              [
+                0,
+                22
+              ],
+              [
+                0,
+                4
+              ],
+              [
+                0,
+                10
+              ],
+              [
+                0,
+                22
+              ],
+              [
+                0,
+                5
+              ],
+              [
+                0,
+                11
+              ],
+              [
+                0,
+                23
+              ],
+              [
+                0,
+                6
+              ],
+              [
+                0,
+                12
+              ],
+              [
+                0,
+                24
+              ],
+              [
+                0,
+                7
+              ],
+              [
+                0,
+                13
+              ],
+              [
+                0,
+                25
+              ],
+              [
+                0,
+                7
+              ],
+              [
+                0,
+                13
+              ],
+              [
+                0,
+                25
+              ]
+            ],
+            "bytewiseFor18Inputs": true,
+            "wholeSlurpFor18Inputs": true,
+            "executions": 297,
+            "exactStderrAlsoRequiredForSingleAndSlurp": true
+          }
+        },
+        {
+          "id": "prefix-2-0--c",
+          "actualInput": {
+            "argv": [
+              "-c",
+              "."
+            ],
+            "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465ff",
+            "files": {}
+          },
+          "proofInputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465ff",
+          "exactLookupMatches": true,
+          "frozenProofHash": "23db20a9eb1ebaa767e48244bc36e7cd6960e8de1c4c72fc391fb9ccb965bb9b",
+          "expected": {
+            "status": 5,
+            "stdoutHex": "7b2261223a5b315d7d0a",
+            "stderrHex": "6a713a207061727365206572726f723a20556e66696e697368656420737472696e6720617420454f46206174206c696e6520322c20636f6c756d6e2031320a"
+          },
+          "nativeRoute": "literal-argv-stdin",
+          "nativeMatchesFrozen": true,
+          "schedules": {
+            "everyInclusiveCutFor18Inputs": [
+              [
+                0,
+                4
+              ],
+              [
+                0,
+                10
+              ],
+              [
+                0,
+                22
+              ],
+              [
+                0,
+                4
+              ],
+              [
+                0,
+                10
+              ],
+              [
+                0,
+                22
+              ],
+              [
+                0,
+                5
+              ],
+              [
+                0,
+                11
+              ],
+              [
+                0,
+                23
+              ],
+              [
+                0,
+                6
+              ],
+              [
+                0,
+                12
+              ],
+              [
+                0,
+                24
+              ],
+              [
+                0,
+                7
+              ],
+              [
+                0,
+                13
+              ],
+              [
+                0,
+                25
+              ],
+              [
+                0,
+                7
+              ],
+              [
+                0,
+                13
+              ],
+              [
+                0,
+                25
+              ]
+            ],
+            "bytewiseFor18Inputs": true,
+            "wholeSlurpFor18Inputs": true,
+            "executions": 297,
+            "exactStderrAlsoRequiredForSingleAndSlurp": true
+          }
+        },
+        {
+          "id": "prefix-2-0--sc",
+          "actualInput": {
+            "argv": [
+              "-sc",
+              "."
+            ],
+            "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465ff",
+            "files": {}
+          },
+          "proofInputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465ff",
+          "exactLookupMatches": true,
+          "frozenProofHash": "558e9865ba6ae1098503d52cd132c5a12bcf54c99d640bdcade67ce2874d9b67",
+          "expected": {
+            "status": 5,
+            "stdoutHex": "",
+            "stderrHex": "6a713a207061727365206572726f723a20556e66696e697368656420737472696e6720617420454f46206174206c696e6520322c20636f6c756d6e2031320a"
+          },
+          "nativeRoute": "literal-argv-stdin",
+          "nativeMatchesFrozen": true,
+          "schedules": {
+            "everyInclusiveCutFor18Inputs": [
+              [
+                0,
+                4
+              ],
+              [
+                0,
+                10
+              ],
+              [
+                0,
+                22
+              ],
+              [
+                0,
+                4
+              ],
+              [
+                0,
+                10
+              ],
+              [
+                0,
+                22
+              ],
+              [
+                0,
+                5
+              ],
+              [
+                0,
+                11
+              ],
+              [
+                0,
+                23
+              ],
+              [
+                0,
+                6
+              ],
+              [
+                0,
+                12
+              ],
+              [
+                0,
+                24
+              ],
+              [
+                0,
+                7
+              ],
+              [
+                0,
+                13
+              ],
+              [
+                0,
+                25
+              ],
+              [
+                0,
+                7
+              ],
+              [
+                0,
+                13
+              ],
+              [
+                0,
+                25
+              ]
+            ],
+            "bytewiseFor18Inputs": true,
+            "wholeSlurpFor18Inputs": true,
+            "executions": 297,
+            "exactStderrAlsoRequiredForSingleAndSlurp": true
+          }
+        },
+        {
+          "id": "prefix-0-1--c",
+          "actualInput": {
+            "argv": [
+              "-c",
+              "."
+            ],
+            "inputHex": "7b7d0ac3",
+            "files": {}
+          },
+          "proofInputHex": "7b7d0ac3",
+          "exactLookupMatches": true,
+          "frozenProofHash": "442e157e2c20a83eeb0e4d28cbdce68760f076833452b70ede73dbfde4696c30",
+          "expected": {
+            "status": 5,
+            "stdoutHex": "7b7d0a",
+            "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520322c20636f6c756d6e20310a"
+          },
+          "nativeRoute": "literal-argv-stdin",
+          "nativeMatchesFrozen": true,
+          "schedules": {
+            "everyInclusiveCutFor18Inputs": [
+              [
+                0,
+                4
+              ],
+              [
+                0,
+                10
+              ],
+              [
+                0,
+                22
+              ],
+              [
+                0,
+                4
+              ],
+              [
+                0,
+                10
+              ],
+              [
+                0,
+                22
+              ],
+              [
+                0,
+                5
+              ],
+              [
+                0,
+                11
+              ],
+              [
+                0,
+                23
+              ],
+              [
+                0,
+                6
+              ],
+              [
+                0,
+                12
+              ],
+              [
+                0,
+                24
+              ],
+              [
+                0,
+                7
+              ],
+              [
+                0,
+                13
+              ],
+              [
+                0,
+                25
+              ],
+              [
+                0,
+                7
+              ],
+              [
+                0,
+                13
+              ],
+              [
+                0,
+                25
+              ]
+            ],
+            "bytewiseFor18Inputs": true,
+            "wholeSlurpFor18Inputs": true,
+            "executions": 297,
+            "exactStderrAlsoRequiredForSingleAndSlurp": true
+          }
+        },
+        {
+          "id": "prefix-0-1--sc",
+          "actualInput": {
+            "argv": [
+              "-sc",
+              "."
+            ],
+            "inputHex": "7b7d0ac3",
+            "files": {}
+          },
+          "proofInputHex": "7b7d0ac3",
+          "exactLookupMatches": true,
+          "frozenProofHash": "2d31d8bfd7e151de338b7670d207e6c626e43b5118cc68a7ad6a60d0c320fd04",
+          "expected": {
+            "status": 5,
+            "stdoutHex": "",
+            "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520322c20636f6c756d6e20310a"
+          },
+          "nativeRoute": "literal-argv-stdin",
+          "nativeMatchesFrozen": true,
+          "schedules": {
+            "everyInclusiveCutFor18Inputs": [
+              [
+                0,
+                4
+              ],
+              [
+                0,
+                10
+              ],
+              [
+                0,
+                22
+              ],
+              [
+                0,
+                4
+              ],
+              [
+                0,
+                10
+              ],
+              [
+                0,
+                22
+              ],
+              [
+                0,
+                5
+              ],
+              [
+                0,
+                11
+              ],
+              [
+                0,
+                23
+              ],
+              [
+                0,
+                6
+              ],
+              [
+                0,
+                12
+              ],
+              [
+                0,
+                24
+              ],
+              [
+                0,
+                7
+              ],
+              [
+                0,
+                13
+              ],
+              [
+                0,
+                25
+              ],
+              [
+                0,
+                7
+              ],
+              [
+                0,
+                13
+              ],
+              [
+                0,
+                25
+              ]
+            ],
+            "bytewiseFor18Inputs": true,
+            "wholeSlurpFor18Inputs": true,
+            "executions": 297,
+            "exactStderrAlsoRequiredForSingleAndSlurp": true
+          }
+        },
+        {
+          "id": "prefix-1-1--c",
+          "actualInput": {
+            "argv": [
+              "-c",
+              "."
+            ],
+            "inputHex": "22f09f9880220a310ac3",
+            "files": {}
+          },
+          "proofInputHex": "22f09f9880220a310ac3",
+          "exactLookupMatches": true,
+          "frozenProofHash": "8cad4d60ee39655e87e5b67dd7b78db1ff600506720bb5a959bdcf31c5ab0793",
+          "expected": {
+            "status": 5,
+            "stdoutHex": "22f09f9880220a310a",
+            "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520332c20636f6c756d6e20310a"
+          },
+          "nativeRoute": "literal-argv-stdin",
+          "nativeMatchesFrozen": true,
+          "schedules": {
+            "everyInclusiveCutFor18Inputs": [
+              [
+                0,
+                4
+              ],
+              [
+                0,
+                10
+              ],
+              [
+                0,
+                22
+              ],
+              [
+                0,
+                4
+              ],
+              [
+                0,
+                10
+              ],
+              [
+                0,
+                22
+              ],
+              [
+                0,
+                5
+              ],
+              [
+                0,
+                11
+              ],
+              [
+                0,
+                23
+              ],
+              [
+                0,
+                6
+              ],
+              [
+                0,
+                12
+              ],
+              [
+                0,
+                24
+              ],
+              [
+                0,
+                7
+              ],
+              [
+                0,
+                13
+              ],
+              [
+                0,
+                25
+              ],
+              [
+                0,
+                7
+              ],
+              [
+                0,
+                13
+              ],
+              [
+                0,
+                25
+              ]
+            ],
+            "bytewiseFor18Inputs": true,
+            "wholeSlurpFor18Inputs": true,
+            "executions": 297,
+            "exactStderrAlsoRequiredForSingleAndSlurp": true
+          }
+        },
+        {
+          "id": "prefix-1-1--sc",
+          "actualInput": {
+            "argv": [
+              "-sc",
+              "."
+            ],
+            "inputHex": "22f09f9880220a310ac3",
+            "files": {}
+          },
+          "proofInputHex": "22f09f9880220a310ac3",
+          "exactLookupMatches": true,
+          "frozenProofHash": "b9442cd7be87707ece83c3fc57d9c5d5ed58f8659db301914ca2007499ada4f3",
+          "expected": {
+            "status": 5,
+            "stdoutHex": "",
+            "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520332c20636f6c756d6e20310a"
+          },
+          "nativeRoute": "literal-argv-stdin",
+          "nativeMatchesFrozen": true,
+          "schedules": {
+            "everyInclusiveCutFor18Inputs": [
+              [
+                0,
+                4
+              ],
+              [
+                0,
+                10
+              ],
+              [
+                0,
+                22
+              ],
+              [
+                0,
+                4
+              ],
+              [
+                0,
+                10
+              ],
+              [
+                0,
+                22
+              ],
+              [
+                0,
+                5
+              ],
+              [
+                0,
+                11
+              ],
+              [
+                0,
+                23
+              ],
+              [
+                0,
+                6
+              ],
+              [
+                0,
+                12
+              ],
+              [
+                0,
+                24
+              ],
+              [
+                0,
+                7
+              ],
+              [
+                0,
+                13
+              ],
+              [
+                0,
+                25
+              ],
+              [
+                0,
+                7
+              ],
+              [
+                0,
+                13
+              ],
+              [
+                0,
+                25
+              ]
+            ],
+            "bytewiseFor18Inputs": true,
+            "wholeSlurpFor18Inputs": true,
+            "executions": 297,
+            "exactStderrAlsoRequiredForSingleAndSlurp": true
+          }
+        },
+        {
+          "id": "prefix-2-1--c",
+          "actualInput": {
+            "argv": [
+              "-c",
+              "."
+            ],
+            "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465c3",
+            "files": {}
+          },
+          "proofInputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465c3",
+          "exactLookupMatches": true,
+          "frozenProofHash": "b1bb5f1629686b76d3dbbe59008df8da80a93e5ba5a7c53ca08024b571c8c3c8",
+          "expected": {
+            "status": 5,
+            "stdoutHex": "7b2261223a5b315d7d0a",
+            "stderrHex": "6a713a207061727365206572726f723a20556e66696e697368656420737472696e6720617420454f46206174206c696e6520322c20636f6c756d6e2031320a"
+          },
+          "nativeRoute": "literal-argv-stdin",
+          "nativeMatchesFrozen": true,
+          "schedules": {
+            "everyInclusiveCutFor18Inputs": [
+              [
+                0,
+                4
+              ],
+              [
+                0,
+                10
+              ],
+              [
+                0,
+                22
+              ],
+              [
+                0,
+                4
+              ],
+              [
+                0,
+                10
+              ],
+              [
+                0,
+                22
+              ],
+              [
+                0,
+                5
+              ],
+              [
+                0,
+                11
+              ],
+              [
+                0,
+                23
+              ],
+              [
+                0,
+                6
+              ],
+              [
+                0,
+                12
+              ],
+              [
+                0,
+                24
+              ],
+              [
+                0,
+                7
+              ],
+              [
+                0,
+                13
+              ],
+              [
+                0,
+                25
+              ],
+              [
+                0,
+                7
+              ],
+              [
+                0,
+                13
+              ],
+              [
+                0,
+                25
+              ]
+            ],
+            "bytewiseFor18Inputs": true,
+            "wholeSlurpFor18Inputs": true,
+            "executions": 297,
+            "exactStderrAlsoRequiredForSingleAndSlurp": true
+          }
+        },
+        {
+          "id": "prefix-2-1--sc",
+          "actualInput": {
+            "argv": [
+              "-sc",
+              "."
+            ],
+            "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465c3",
+            "files": {}
+          },
+          "proofInputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465c3",
+          "exactLookupMatches": true,
+          "frozenProofHash": "aac10945d0c07ce760144455c87811c82cf6f4c7abf8780f18063acb46bd0cf8",
+          "expected": {
+            "status": 5,
+            "stdoutHex": "",
+            "stderrHex": "6a713a207061727365206572726f723a20556e66696e697368656420737472696e6720617420454f46206174206c696e6520322c20636f6c756d6e2031320a"
+          },
+          "nativeRoute": "literal-argv-stdin",
+          "nativeMatchesFrozen": true,
+          "schedules": {
+            "everyInclusiveCutFor18Inputs": [
+              [
+                0,
+                4
+              ],
+              [
+                0,
+                10
+              ],
+              [
+                0,
+                22
+              ],
+              [
+                0,
+                4
+              ],
+              [
+                0,
+                10
+              ],
+              [
+                0,
+                22
+              ],
+              [
+                0,
+                5
+              ],
+              [
+                0,
+                11
+              ],
+              [
+                0,
+                23
+              ],
+              [
+                0,
+                6
+              ],
+              [
+                0,
+                12
+              ],
+              [
+                0,
+                24
+              ],
+              [
+                0,
+                7
+              ],
+              [
+                0,
+                13
+              ],
+              [
+                0,
+                25
+              ],
+              [
+                0,
+                7
+              ],
+              [
+                0,
+                13
+              ],
+              [
+                0,
+                25
+              ]
+            ],
+            "bytewiseFor18Inputs": true,
+            "wholeSlurpFor18Inputs": true,
+            "executions": 297,
+            "exactStderrAlsoRequiredForSingleAndSlurp": true
+          }
+        },
+        {
+          "id": "prefix-0-2--c",
+          "actualInput": {
+            "argv": [
+              "-c",
+              "."
+            ],
+            "inputHex": "7b7d0ac328",
+            "files": {}
+          },
+          "proofInputHex": "7b7d0ac328",
+          "exactLookupMatches": true,
+          "frozenProofHash": "93a0d599b8884dfea81c79446952a039f2b20c64b3ac0466b9b6cbd5c471416f",
+          "expected": {
+            "status": 5,
+            "stdoutHex": "7b7d0a",
+            "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520322c20636f6c756d6e20320a"
+          },
+          "nativeRoute": "literal-argv-stdin",
+          "nativeMatchesFrozen": true,
+          "schedules": {
+            "everyInclusiveCutFor18Inputs": [
+              [
+                0,
+                4
+              ],
+              [
+                0,
+                10
+              ],
+              [
+                0,
+                22
+              ],
+              [
+                0,
+                4
+              ],
+              [
+                0,
+                10
+              ],
+              [
+                0,
+                22
+              ],
+              [
+                0,
+                5
+              ],
+              [
+                0,
+                11
+              ],
+              [
+                0,
+                23
+              ],
+              [
+                0,
+                6
+              ],
+              [
+                0,
+                12
+              ],
+              [
+                0,
+                24
+              ],
+              [
+                0,
+                7
+              ],
+              [
+                0,
+                13
+              ],
+              [
+                0,
+                25
+              ],
+              [
+                0,
+                7
+              ],
+              [
+                0,
+                13
+              ],
+              [
+                0,
+                25
+              ]
+            ],
+            "bytewiseFor18Inputs": true,
+            "wholeSlurpFor18Inputs": true,
+            "executions": 297,
+            "exactStderrAlsoRequiredForSingleAndSlurp": true
+          }
+        },
+        {
+          "id": "prefix-0-2--sc",
+          "actualInput": {
+            "argv": [
+              "-sc",
+              "."
+            ],
+            "inputHex": "7b7d0ac328",
+            "files": {}
+          },
+          "proofInputHex": "7b7d0ac328",
+          "exactLookupMatches": true,
+          "frozenProofHash": "77938c082abe972c9a0e1970b99c3c4ffef608540d46800811a9c575be927f66",
+          "expected": {
+            "status": 5,
+            "stdoutHex": "",
+            "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520322c20636f6c756d6e20320a"
+          },
+          "nativeRoute": "literal-argv-stdin",
+          "nativeMatchesFrozen": true,
+          "schedules": {
+            "everyInclusiveCutFor18Inputs": [
+              [
+                0,
+                4
+              ],
+              [
+                0,
+                10
+              ],
+              [
+                0,
+                22
+              ],
+              [
+                0,
+                4
+              ],
+              [
+                0,
+                10
+              ],
+              [
+                0,
+                22
+              ],
+              [
+                0,
+                5
+              ],
+              [
+                0,
+                11
+              ],
+              [
+                0,
+                23
+              ],
+              [
+                0,
+                6
+              ],
+              [
+                0,
+                12
+              ],
+              [
+                0,
+                24
+              ],
+              [
+                0,
+                7
+              ],
+              [
+                0,
+                13
+              ],
+              [
+                0,
+                25
+              ],
+              [
+                0,
+                7
+              ],
+              [
+                0,
+                13
+              ],
+              [
+                0,
+                25
+              ]
+            ],
+            "bytewiseFor18Inputs": true,
+            "wholeSlurpFor18Inputs": true,
+            "executions": 297,
+            "exactStderrAlsoRequiredForSingleAndSlurp": true
+          }
+        },
+        {
+          "id": "prefix-1-2--c",
+          "actualInput": {
+            "argv": [
+              "-c",
+              "."
+            ],
+            "inputHex": "22f09f9880220a310ac328",
+            "files": {}
+          },
+          "proofInputHex": "22f09f9880220a310ac328",
+          "exactLookupMatches": true,
+          "frozenProofHash": "1f80ed52cc5f27beba0522249e52512ab875497eb1821455ead9202b41857b0f",
+          "expected": {
+            "status": 5,
+            "stdoutHex": "22f09f9880220a310a",
+            "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520332c20636f6c756d6e20320a"
+          },
+          "nativeRoute": "literal-argv-stdin",
+          "nativeMatchesFrozen": true,
+          "schedules": {
+            "everyInclusiveCutFor18Inputs": [
+              [
+                0,
+                4
+              ],
+              [
+                0,
+                10
+              ],
+              [
+                0,
+                22
+              ],
+              [
+                0,
+                4
+              ],
+              [
+                0,
+                10
+              ],
+              [
+                0,
+                22
+              ],
+              [
+                0,
+                5
+              ],
+              [
+                0,
+                11
+              ],
+              [
+                0,
+                23
+              ],
+              [
+                0,
+                6
+              ],
+              [
+                0,
+                12
+              ],
+              [
+                0,
+                24
+              ],
+              [
+                0,
+                7
+              ],
+              [
+                0,
+                13
+              ],
+              [
+                0,
+                25
+              ],
+              [
+                0,
+                7
+              ],
+              [
+                0,
+                13
+              ],
+              [
+                0,
+                25
+              ]
+            ],
+            "bytewiseFor18Inputs": true,
+            "wholeSlurpFor18Inputs": true,
+            "executions": 297,
+            "exactStderrAlsoRequiredForSingleAndSlurp": true
+          }
+        },
+        {
+          "id": "prefix-1-2--sc",
+          "actualInput": {
+            "argv": [
+              "-sc",
+              "."
+            ],
+            "inputHex": "22f09f9880220a310ac328",
+            "files": {}
+          },
+          "proofInputHex": "22f09f9880220a310ac328",
+          "exactLookupMatches": true,
+          "frozenProofHash": "c9417b1b7e3c436e1108a9ee14c4dc7602bd04f7dbedef63584ed507648140d3",
+          "expected": {
+            "status": 5,
+            "stdoutHex": "",
+            "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520332c20636f6c756d6e20320a"
+          },
+          "nativeRoute": "literal-argv-stdin",
+          "nativeMatchesFrozen": true,
+          "schedules": {
+            "everyInclusiveCutFor18Inputs": [
+              [
+                0,
+                4
+              ],
+              [
+                0,
+                10
+              ],
+              [
+                0,
+                22
+              ],
+              [
+                0,
+                4
+              ],
+              [
+                0,
+                10
+              ],
+              [
+                0,
+                22
+              ],
+              [
+                0,
+                5
+              ],
+              [
+                0,
+                11
+              ],
+              [
+                0,
+                23
+              ],
+              [
+                0,
+                6
+              ],
+              [
+                0,
+                12
+              ],
+              [
+                0,
+                24
+              ],
+              [
+                0,
+                7
+              ],
+              [
+                0,
+                13
+              ],
+              [
+                0,
+                25
+              ],
+              [
+                0,
+                7
+              ],
+              [
+                0,
+                13
+              ],
+              [
+                0,
+                25
+              ]
+            ],
+            "bytewiseFor18Inputs": true,
+            "wholeSlurpFor18Inputs": true,
+            "executions": 297,
+            "exactStderrAlsoRequiredForSingleAndSlurp": true
+          }
+        },
+        {
+          "id": "prefix-2-2--c",
+          "actualInput": {
+            "argv": [
+              "-c",
+              "."
+            ],
+            "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465c328",
+            "files": {}
+          },
+          "proofInputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465c328",
+          "exactLookupMatches": true,
+          "frozenProofHash": "fb2853758d2ac91deadf51a7472230cc2c13f6a1e05db0438d877636f4aa6371",
+          "expected": {
+            "status": 5,
+            "stdoutHex": "7b2261223a5b315d7d0a",
+            "stderrHex": "6a713a207061727365206572726f723a20556e66696e697368656420737472696e6720617420454f46206174206c696e6520322c20636f6c756d6e2031330a"
+          },
+          "nativeRoute": "literal-argv-stdin",
+          "nativeMatchesFrozen": true,
+          "schedules": {
+            "everyInclusiveCutFor18Inputs": [
+              [
+                0,
+                4
+              ],
+              [
+                0,
+                10
+              ],
+              [
+                0,
+                22
+              ],
+              [
+                0,
+                4
+              ],
+              [
+                0,
+                10
+              ],
+              [
+                0,
+                22
+              ],
+              [
+                0,
+                5
+              ],
+              [
+                0,
+                11
+              ],
+              [
+                0,
+                23
+              ],
+              [
+                0,
+                6
+              ],
+              [
+                0,
+                12
+              ],
+              [
+                0,
+                24
+              ],
+              [
+                0,
+                7
+              ],
+              [
+                0,
+                13
+              ],
+              [
+                0,
+                25
+              ],
+              [
+                0,
+                7
+              ],
+              [
+                0,
+                13
+              ],
+              [
+                0,
+                25
+              ]
+            ],
+            "bytewiseFor18Inputs": true,
+            "wholeSlurpFor18Inputs": true,
+            "executions": 297,
+            "exactStderrAlsoRequiredForSingleAndSlurp": true
+          }
+        },
+        {
+          "id": "prefix-2-2--sc",
+          "actualInput": {
+            "argv": [
+              "-sc",
+              "."
+            ],
+            "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465c328",
+            "files": {}
+          },
+          "proofInputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465c328",
+          "exactLookupMatches": true,
+          "frozenProofHash": "940f050e5e2bcc5f073984efde6d3ff78dec0ea98192c430f487d90d81fe6fa0",
+          "expected": {
+            "status": 5,
+            "stdoutHex": "",
+            "stderrHex": "6a713a207061727365206572726f723a20556e66696e697368656420737472696e6720617420454f46206174206c696e6520322c20636f6c756d6e2031330a"
+          },
+          "nativeRoute": "literal-argv-stdin",
+          "nativeMatchesFrozen": true,
+          "schedules": {
+            "everyInclusiveCutFor18Inputs": [
+              [
+                0,
+                4
+              ],
+              [
+                0,
+                10
+              ],
+              [
+                0,
+                22
+              ],
+              [
+                0,
+                4
+              ],
+              [
+                0,
+                10
+              ],
+              [
+                0,
+                22
+              ],
+              [
+                0,
+                5
+              ],
+              [
+                0,
+                11
+              ],
+              [
+                0,
+                23
+              ],
+              [
+                0,
+                6
+              ],
+              [
+                0,
+                12
+              ],
+              [
+                0,
+                24
+              ],
+              [
+                0,
+                7
+              ],
+              [
+                0,
+                13
+              ],
+              [
+                0,
+                25
+              ],
+              [
+                0,
+                7
+              ],
+              [
+                0,
+                13
+              ],
+              [
+                0,
+                25
+              ]
+            ],
+            "bytewiseFor18Inputs": true,
+            "wholeSlurpFor18Inputs": true,
+            "executions": 297,
+            "exactStderrAlsoRequiredForSingleAndSlurp": true
+          }
+        },
+        {
+          "id": "prefix-0-3--c",
+          "actualInput": {
+            "argv": [
+              "-c",
+              "."
+            ],
+            "inputHex": "7b7d0aeda080",
+            "files": {}
+          },
+          "proofInputHex": "7b7d0aeda080",
+          "exactLookupMatches": true,
+          "frozenProofHash": "d2355a40abe59b6a5d1224ca02c1c56ae6a558ca837123d8d1a0acec4e48e087",
+          "expected": {
+            "status": 5,
+            "stdoutHex": "7b7d0a",
+            "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520322c20636f6c756d6e20330a"
+          },
+          "nativeRoute": "literal-argv-stdin",
+          "nativeMatchesFrozen": true,
+          "schedules": {
+            "everyInclusiveCutFor18Inputs": [
+              [
+                0,
+                4
+              ],
+              [
+                0,
+                10
+              ],
+              [
+                0,
+                22
+              ],
+              [
+                0,
+                4
+              ],
+              [
+                0,
+                10
+              ],
+              [
+                0,
+                22
+              ],
+              [
+                0,
+                5
+              ],
+              [
+                0,
+                11
+              ],
+              [
+                0,
+                23
+              ],
+              [
+                0,
+                6
+              ],
+              [
+                0,
+                12
+              ],
+              [
+                0,
+                24
+              ],
+              [
+                0,
+                7
+              ],
+              [
+                0,
+                13
+              ],
+              [
+                0,
+                25
+              ],
+              [
+                0,
+                7
+              ],
+              [
+                0,
+                13
+              ],
+              [
+                0,
+                25
+              ]
+            ],
+            "bytewiseFor18Inputs": true,
+            "wholeSlurpFor18Inputs": true,
+            "executions": 297,
+            "exactStderrAlsoRequiredForSingleAndSlurp": true
+          }
+        },
+        {
+          "id": "prefix-0-3--sc",
+          "actualInput": {
+            "argv": [
+              "-sc",
+              "."
+            ],
+            "inputHex": "7b7d0aeda080",
+            "files": {}
+          },
+          "proofInputHex": "7b7d0aeda080",
+          "exactLookupMatches": true,
+          "frozenProofHash": "5c51e93c52807ecbd59521588e364be3d3dbb749ce44e8ebefe3147021867e55",
+          "expected": {
+            "status": 5,
+            "stdoutHex": "",
+            "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520322c20636f6c756d6e20330a"
+          },
+          "nativeRoute": "literal-argv-stdin",
+          "nativeMatchesFrozen": true,
+          "schedules": {
+            "everyInclusiveCutFor18Inputs": [
+              [
+                0,
+                4
+              ],
+              [
+                0,
+                10
+              ],
+              [
+                0,
+                22
+              ],
+              [
+                0,
+                4
+              ],
+              [
+                0,
+                10
+              ],
+              [
+                0,
+                22
+              ],
+              [
+                0,
+                5
+              ],
+              [
+                0,
+                11
+              ],
+              [
+                0,
+                23
+              ],
+              [
+                0,
+                6
+              ],
+              [
+                0,
+                12
+              ],
+              [
+                0,
+                24
+              ],
+              [
+                0,
+                7
+              ],
+              [
+                0,
+                13
+              ],
+              [
+                0,
+                25
+              ],
+              [
+                0,
+                7
+              ],
+              [
+                0,
+                13
+              ],
+              [
+                0,
+                25
+              ]
+            ],
+            "bytewiseFor18Inputs": true,
+            "wholeSlurpFor18Inputs": true,
+            "executions": 297,
+            "exactStderrAlsoRequiredForSingleAndSlurp": true
+          }
+        },
+        {
+          "id": "prefix-1-3--c",
+          "actualInput": {
+            "argv": [
+              "-c",
+              "."
+            ],
+            "inputHex": "22f09f9880220a310aeda080",
+            "files": {}
+          },
+          "proofInputHex": "22f09f9880220a310aeda080",
+          "exactLookupMatches": true,
+          "frozenProofHash": "3d36f3e490c1ee164687031aa2bf3a9761acf5cfb36fa94eecb4cb01068d2b57",
+          "expected": {
+            "status": 5,
+            "stdoutHex": "22f09f9880220a310a",
+            "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520332c20636f6c756d6e20330a"
+          },
+          "nativeRoute": "literal-argv-stdin",
+          "nativeMatchesFrozen": true,
+          "schedules": {
+            "everyInclusiveCutFor18Inputs": [
+              [
+                0,
+                4
+              ],
+              [
+                0,
+                10
+              ],
+              [
+                0,
+                22
+              ],
+              [
+                0,
+                4
+              ],
+              [
+                0,
+                10
+              ],
+              [
+                0,
+                22
+              ],
+              [
+                0,
+                5
+              ],
+              [
+                0,
+                11
+              ],
+              [
+                0,
+                23
+              ],
+              [
+                0,
+                6
+              ],
+              [
+                0,
+                12
+              ],
+              [
+                0,
+                24
+              ],
+              [
+                0,
+                7
+              ],
+              [
+                0,
+                13
+              ],
+              [
+                0,
+                25
+              ],
+              [
+                0,
+                7
+              ],
+              [
+                0,
+                13
+              ],
+              [
+                0,
+                25
+              ]
+            ],
+            "bytewiseFor18Inputs": true,
+            "wholeSlurpFor18Inputs": true,
+            "executions": 297,
+            "exactStderrAlsoRequiredForSingleAndSlurp": true
+          }
+        },
+        {
+          "id": "prefix-1-3--sc",
+          "actualInput": {
+            "argv": [
+              "-sc",
+              "."
+            ],
+            "inputHex": "22f09f9880220a310aeda080",
+            "files": {}
+          },
+          "proofInputHex": "22f09f9880220a310aeda080",
+          "exactLookupMatches": true,
+          "frozenProofHash": "f662c81244aa156e8c2f7ce1a53be56bd55687b2d164b71f762590ee009268d8",
+          "expected": {
+            "status": 5,
+            "stdoutHex": "",
+            "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520332c20636f6c756d6e20330a"
+          },
+          "nativeRoute": "literal-argv-stdin",
+          "nativeMatchesFrozen": true,
+          "schedules": {
+            "everyInclusiveCutFor18Inputs": [
+              [
+                0,
+                4
+              ],
+              [
+                0,
+                10
+              ],
+              [
+                0,
+                22
+              ],
+              [
+                0,
+                4
+              ],
+              [
+                0,
+                10
+              ],
+              [
+                0,
+                22
+              ],
+              [
+                0,
+                5
+              ],
+              [
+                0,
+                11
+              ],
+              [
+                0,
+                23
+              ],
+              [
+                0,
+                6
+              ],
+              [
+                0,
+                12
+              ],
+              [
+                0,
+                24
+              ],
+              [
+                0,
+                7
+              ],
+              [
+                0,
+                13
+              ],
+              [
+                0,
+                25
+              ],
+              [
+                0,
+                7
+              ],
+              [
+                0,
+                13
+              ],
+              [
+                0,
+                25
+              ]
+            ],
+            "bytewiseFor18Inputs": true,
+            "wholeSlurpFor18Inputs": true,
+            "executions": 297,
+            "exactStderrAlsoRequiredForSingleAndSlurp": true
+          }
+        },
+        {
+          "id": "prefix-2-3--c",
+          "actualInput": {
+            "argv": [
+              "-c",
+              "."
+            ],
+            "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465eda080",
+            "files": {}
+          },
+          "proofInputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465eda080",
+          "exactLookupMatches": true,
+          "frozenProofHash": "6e455230aa491a49e750d4a75f9bac8df892513fccdf15ad0351b8224509a128",
+          "expected": {
+            "status": 5,
+            "stdoutHex": "7b2261223a5b315d7d0a",
+            "stderrHex": "6a713a207061727365206572726f723a20556e66696e697368656420737472696e6720617420454f46206174206c696e6520322c20636f6c756d6e2031340a"
+          },
+          "nativeRoute": "literal-argv-stdin",
+          "nativeMatchesFrozen": true,
+          "schedules": {
+            "everyInclusiveCutFor18Inputs": [
+              [
+                0,
+                4
+              ],
+              [
+                0,
+                10
+              ],
+              [
+                0,
+                22
+              ],
+              [
+                0,
+                4
+              ],
+              [
+                0,
+                10
+              ],
+              [
+                0,
+                22
+              ],
+              [
+                0,
+                5
+              ],
+              [
+                0,
+                11
+              ],
+              [
+                0,
+                23
+              ],
+              [
+                0,
+                6
+              ],
+              [
+                0,
+                12
+              ],
+              [
+                0,
+                24
+              ],
+              [
+                0,
+                7
+              ],
+              [
+                0,
+                13
+              ],
+              [
+                0,
+                25
+              ],
+              [
+                0,
+                7
+              ],
+              [
+                0,
+                13
+              ],
+              [
+                0,
+                25
+              ]
+            ],
+            "bytewiseFor18Inputs": true,
+            "wholeSlurpFor18Inputs": true,
+            "executions": 297,
+            "exactStderrAlsoRequiredForSingleAndSlurp": true
+          }
+        },
+        {
+          "id": "prefix-2-3--sc",
+          "actualInput": {
+            "argv": [
+              "-sc",
+              "."
+            ],
+            "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465eda080",
+            "files": {}
+          },
+          "proofInputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465eda080",
+          "exactLookupMatches": true,
+          "frozenProofHash": "d992fbd3b1e8a9640ddba63245ab8d6859f2e31d3e13bd355571d6996f7cb2fb",
+          "expected": {
+            "status": 5,
+            "stdoutHex": "",
+            "stderrHex": "6a713a207061727365206572726f723a20556e66696e697368656420737472696e6720617420454f46206174206c696e6520322c20636f6c756d6e2031340a"
+          },
+          "nativeRoute": "literal-argv-stdin",
+          "nativeMatchesFrozen": true,
+          "schedules": {
+            "everyInclusiveCutFor18Inputs": [
+              [
+                0,
+                4
+              ],
+              [
+                0,
+                10
+              ],
+              [
+                0,
+                22
+              ],
+              [
+                0,
+                4
+              ],
+              [
+                0,
+                10
+              ],
+              [
+                0,
+                22
+              ],
+              [
+                0,
+                5
+              ],
+              [
+                0,
+                11
+              ],
+              [
+                0,
+                23
+              ],
+              [
+                0,
+                6
+              ],
+              [
+                0,
+                12
+              ],
+              [
+                0,
+                24
+              ],
+              [
+                0,
+                7
+              ],
+              [
+                0,
+                13
+              ],
+              [
+                0,
+                25
+              ],
+              [
+                0,
+                7
+              ],
+              [
+                0,
+                13
+              ],
+              [
+                0,
+                25
+              ]
+            ],
+            "bytewiseFor18Inputs": true,
+            "wholeSlurpFor18Inputs": true,
+            "executions": 297,
+            "exactStderrAlsoRequiredForSingleAndSlurp": true
+          }
+        },
+        {
+          "id": "prefix-0-4--c",
+          "actualInput": {
+            "argv": [
+              "-c",
+              "."
+            ],
+            "inputHex": "7b7d0af0808080",
+            "files": {}
+          },
+          "proofInputHex": "7b7d0af0808080",
+          "exactLookupMatches": true,
+          "frozenProofHash": "bd296401e2df6c5b0accd69dbd4b45eaaa80a4ff53c84b95ba0109be28d60eb5",
+          "expected": {
+            "status": 5,
+            "stdoutHex": "7b7d0a",
+            "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520322c20636f6c756d6e20340a"
+          },
+          "nativeRoute": "literal-argv-stdin",
+          "nativeMatchesFrozen": true,
+          "schedules": {
+            "everyInclusiveCutFor18Inputs": [
+              [
+                0,
+                4
+              ],
+              [
+                0,
+                10
+              ],
+              [
+                0,
+                22
+              ],
+              [
+                0,
+                4
+              ],
+              [
+                0,
+                10
+              ],
+              [
+                0,
+                22
+              ],
+              [
+                0,
+                5
+              ],
+              [
+                0,
+                11
+              ],
+              [
+                0,
+                23
+              ],
+              [
+                0,
+                6
+              ],
+              [
+                0,
+                12
+              ],
+              [
+                0,
+                24
+              ],
+              [
+                0,
+                7
+              ],
+              [
+                0,
+                13
+              ],
+              [
+                0,
+                25
+              ],
+              [
+                0,
+                7
+              ],
+              [
+                0,
+                13
+              ],
+              [
+                0,
+                25
+              ]
+            ],
+            "bytewiseFor18Inputs": true,
+            "wholeSlurpFor18Inputs": true,
+            "executions": 297,
+            "exactStderrAlsoRequiredForSingleAndSlurp": true
+          }
+        },
+        {
+          "id": "prefix-0-4--sc",
+          "actualInput": {
+            "argv": [
+              "-sc",
+              "."
+            ],
+            "inputHex": "7b7d0af0808080",
+            "files": {}
+          },
+          "proofInputHex": "7b7d0af0808080",
+          "exactLookupMatches": true,
+          "frozenProofHash": "70ec0da0625f73417968f4c46b010614eb4f3693473b3dc39ce5e7e6760ce116",
+          "expected": {
+            "status": 5,
+            "stdoutHex": "",
+            "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520322c20636f6c756d6e20340a"
+          },
+          "nativeRoute": "literal-argv-stdin",
+          "nativeMatchesFrozen": true,
+          "schedules": {
+            "everyInclusiveCutFor18Inputs": [
+              [
+                0,
+                4
+              ],
+              [
+                0,
+                10
+              ],
+              [
+                0,
+                22
+              ],
+              [
+                0,
+                4
+              ],
+              [
+                0,
+                10
+              ],
+              [
+                0,
+                22
+              ],
+              [
+                0,
+                5
+              ],
+              [
+                0,
+                11
+              ],
+              [
+                0,
+                23
+              ],
+              [
+                0,
+                6
+              ],
+              [
+                0,
+                12
+              ],
+              [
+                0,
+                24
+              ],
+              [
+                0,
+                7
+              ],
+              [
+                0,
+                13
+              ],
+              [
+                0,
+                25
+              ],
+              [
+                0,
+                7
+              ],
+              [
+                0,
+                13
+              ],
+              [
+                0,
+                25
+              ]
+            ],
+            "bytewiseFor18Inputs": true,
+            "wholeSlurpFor18Inputs": true,
+            "executions": 297,
+            "exactStderrAlsoRequiredForSingleAndSlurp": true
+          }
+        },
+        {
+          "id": "prefix-1-4--c",
+          "actualInput": {
+            "argv": [
+              "-c",
+              "."
+            ],
+            "inputHex": "22f09f9880220a310af0808080",
+            "files": {}
+          },
+          "proofInputHex": "22f09f9880220a310af0808080",
+          "exactLookupMatches": true,
+          "frozenProofHash": "11d302a677f6f879b6ab25f65ab20c58574cca7f5c2274cc50aae24d261016e5",
+          "expected": {
+            "status": 5,
+            "stdoutHex": "22f09f9880220a310a",
+            "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520332c20636f6c756d6e20340a"
+          },
+          "nativeRoute": "literal-argv-stdin",
+          "nativeMatchesFrozen": true,
+          "schedules": {
+            "everyInclusiveCutFor18Inputs": [
+              [
+                0,
+                4
+              ],
+              [
+                0,
+                10
+              ],
+              [
+                0,
+                22
+              ],
+              [
+                0,
+                4
+              ],
+              [
+                0,
+                10
+              ],
+              [
+                0,
+                22
+              ],
+              [
+                0,
+                5
+              ],
+              [
+                0,
+                11
+              ],
+              [
+                0,
+                23
+              ],
+              [
+                0,
+                6
+              ],
+              [
+                0,
+                12
+              ],
+              [
+                0,
+                24
+              ],
+              [
+                0,
+                7
+              ],
+              [
+                0,
+                13
+              ],
+              [
+                0,
+                25
+              ],
+              [
+                0,
+                7
+              ],
+              [
+                0,
+                13
+              ],
+              [
+                0,
+                25
+              ]
+            ],
+            "bytewiseFor18Inputs": true,
+            "wholeSlurpFor18Inputs": true,
+            "executions": 297,
+            "exactStderrAlsoRequiredForSingleAndSlurp": true
+          }
+        },
+        {
+          "id": "prefix-1-4--sc",
+          "actualInput": {
+            "argv": [
+              "-sc",
+              "."
+            ],
+            "inputHex": "22f09f9880220a310af0808080",
+            "files": {}
+          },
+          "proofInputHex": "22f09f9880220a310af0808080",
+          "exactLookupMatches": true,
+          "frozenProofHash": "c6957eda9b38e7d855b179dff355c56bfa4e75834f216eaace2d9e953731262e",
+          "expected": {
+            "status": 5,
+            "stdoutHex": "",
+            "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520332c20636f6c756d6e20340a"
+          },
+          "nativeRoute": "literal-argv-stdin",
+          "nativeMatchesFrozen": true,
+          "schedules": {
+            "everyInclusiveCutFor18Inputs": [
+              [
+                0,
+                4
+              ],
+              [
+                0,
+                10
+              ],
+              [
+                0,
+                22
+              ],
+              [
+                0,
+                4
+              ],
+              [
+                0,
+                10
+              ],
+              [
+                0,
+                22
+              ],
+              [
+                0,
+                5
+              ],
+              [
+                0,
+                11
+              ],
+              [
+                0,
+                23
+              ],
+              [
+                0,
+                6
+              ],
+              [
+                0,
+                12
+              ],
+              [
+                0,
+                24
+              ],
+              [
+                0,
+                7
+              ],
+              [
+                0,
+                13
+              ],
+              [
+                0,
+                25
+              ],
+              [
+                0,
+                7
+              ],
+              [
+                0,
+                13
+              ],
+              [
+                0,
+                25
+              ]
+            ],
+            "bytewiseFor18Inputs": true,
+            "wholeSlurpFor18Inputs": true,
+            "executions": 297,
+            "exactStderrAlsoRequiredForSingleAndSlurp": true
+          }
+        },
+        {
+          "id": "prefix-2-4--c",
+          "actualInput": {
+            "argv": [
+              "-c",
+              "."
+            ],
+            "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465f0808080",
+            "files": {}
+          },
+          "proofInputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465f0808080",
+          "exactLookupMatches": true,
+          "frozenProofHash": "0112e93a5e3ad64b71e6f0f201f038d23d2230fa447f9db89e1a621da2d6f1e3",
+          "expected": {
+            "status": 5,
+            "stdoutHex": "7b2261223a5b315d7d0a",
+            "stderrHex": "6a713a207061727365206572726f723a20556e66696e697368656420737472696e6720617420454f46206174206c696e6520322c20636f6c756d6e2031350a"
+          },
+          "nativeRoute": "literal-argv-stdin",
+          "nativeMatchesFrozen": true,
+          "schedules": {
+            "everyInclusiveCutFor18Inputs": [
+              [
+                0,
+                4
+              ],
+              [
+                0,
+                10
+              ],
+              [
+                0,
+                22
+              ],
+              [
+                0,
+                4
+              ],
+              [
+                0,
+                10
+              ],
+              [
+                0,
+                22
+              ],
+              [
+                0,
+                5
+              ],
+              [
+                0,
+                11
+              ],
+              [
+                0,
+                23
+              ],
+              [
+                0,
+                6
+              ],
+              [
+                0,
+                12
+              ],
+              [
+                0,
+                24
+              ],
+              [
+                0,
+                7
+              ],
+              [
+                0,
+                13
+              ],
+              [
+                0,
+                25
+              ],
+              [
+                0,
+                7
+              ],
+              [
+                0,
+                13
+              ],
+              [
+                0,
+                25
+              ]
+            ],
+            "bytewiseFor18Inputs": true,
+            "wholeSlurpFor18Inputs": true,
+            "executions": 297,
+            "exactStderrAlsoRequiredForSingleAndSlurp": true
+          }
+        },
+        {
+          "id": "prefix-2-4--sc",
+          "actualInput": {
+            "argv": [
+              "-sc",
+              "."
+            ],
+            "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465f0808080",
+            "files": {}
+          },
+          "proofInputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465f0808080",
+          "exactLookupMatches": true,
+          "frozenProofHash": "fee6e2567f30febcf99842123e349711508cb1de4de975f1af5a4be0504f3316",
+          "expected": {
+            "status": 5,
+            "stdoutHex": "",
+            "stderrHex": "6a713a207061727365206572726f723a20556e66696e697368656420737472696e6720617420454f46206174206c696e6520322c20636f6c756d6e2031350a"
+          },
+          "nativeRoute": "literal-argv-stdin",
+          "nativeMatchesFrozen": true,
+          "schedules": {
+            "everyInclusiveCutFor18Inputs": [
+              [
+                0,
+                4
+              ],
+              [
+                0,
+                10
+              ],
+              [
+                0,
+                22
+              ],
+              [
+                0,
+                4
+              ],
+              [
+                0,
+                10
+              ],
+              [
+                0,
+                22
+              ],
+              [
+                0,
+                5
+              ],
+              [
+                0,
+                11
+              ],
+              [
+                0,
+                23
+              ],
+              [
+                0,
+                6
+              ],
+              [
+                0,
+                12
+              ],
+              [
+                0,
+                24
+              ],
+              [
+                0,
+                7
+              ],
+              [
+                0,
+                13
+              ],
+              [
+                0,
+                25
+              ],
+              [
+                0,
+                7
+              ],
+              [
+                0,
+                13
+              ],
+              [
+                0,
+                25
+              ]
+            ],
+            "bytewiseFor18Inputs": true,
+            "wholeSlurpFor18Inputs": true,
+            "executions": 297,
+            "exactStderrAlsoRequiredForSingleAndSlurp": true
+          }
+        },
+        {
+          "id": "prefix-0-5--c",
+          "actualInput": {
+            "argv": [
+              "-c",
+              "."
+            ],
+            "inputHex": "7b7d0af4908080",
+            "files": {}
+          },
+          "proofInputHex": "7b7d0af4908080",
+          "exactLookupMatches": true,
+          "frozenProofHash": "37a996acb823771dc3ac49df521cd6bb7d4cc3d35efb0aef6b553a8f48832832",
+          "expected": {
+            "status": 5,
+            "stdoutHex": "7b7d0a",
+            "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520322c20636f6c756d6e20340a"
+          },
+          "nativeRoute": "literal-argv-stdin",
+          "nativeMatchesFrozen": true,
+          "schedules": {
+            "everyInclusiveCutFor18Inputs": [
+              [
+                0,
+                4
+              ],
+              [
+                0,
+                10
+              ],
+              [
+                0,
+                22
+              ],
+              [
+                0,
+                4
+              ],
+              [
+                0,
+                10
+              ],
+              [
+                0,
+                22
+              ],
+              [
+                0,
+                5
+              ],
+              [
+                0,
+                11
+              ],
+              [
+                0,
+                23
+              ],
+              [
+                0,
+                6
+              ],
+              [
+                0,
+                12
+              ],
+              [
+                0,
+                24
+              ],
+              [
+                0,
+                7
+              ],
+              [
+                0,
+                13
+              ],
+              [
+                0,
+                25
+              ],
+              [
+                0,
+                7
+              ],
+              [
+                0,
+                13
+              ],
+              [
+                0,
+                25
+              ]
+            ],
+            "bytewiseFor18Inputs": true,
+            "wholeSlurpFor18Inputs": true,
+            "executions": 297,
+            "exactStderrAlsoRequiredForSingleAndSlurp": true
+          }
+        },
+        {
+          "id": "prefix-0-5--sc",
+          "actualInput": {
+            "argv": [
+              "-sc",
+              "."
+            ],
+            "inputHex": "7b7d0af4908080",
+            "files": {}
+          },
+          "proofInputHex": "7b7d0af4908080",
+          "exactLookupMatches": true,
+          "frozenProofHash": "786c2f0b76554d6d210950b80640f3e87495bfc8102786217b075e27c77fe308",
+          "expected": {
+            "status": 5,
+            "stdoutHex": "",
+            "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520322c20636f6c756d6e20340a"
+          },
+          "nativeRoute": "literal-argv-stdin",
+          "nativeMatchesFrozen": true,
+          "schedules": {
+            "everyInclusiveCutFor18Inputs": [
+              [
+                0,
+                4
+              ],
+              [
+                0,
+                10
+              ],
+              [
+                0,
+                22
+              ],
+              [
+                0,
+                4
+              ],
+              [
+                0,
+                10
+              ],
+              [
+                0,
+                22
+              ],
+              [
+                0,
+                5
+              ],
+              [
+                0,
+                11
+              ],
+              [
+                0,
+                23
+              ],
+              [
+                0,
+                6
+              ],
+              [
+                0,
+                12
+              ],
+              [
+                0,
+                24
+              ],
+              [
+                0,
+                7
+              ],
+              [
+                0,
+                13
+              ],
+              [
+                0,
+                25
+              ],
+              [
+                0,
+                7
+              ],
+              [
+                0,
+                13
+              ],
+              [
+                0,
+                25
+              ]
+            ],
+            "bytewiseFor18Inputs": true,
+            "wholeSlurpFor18Inputs": true,
+            "executions": 297,
+            "exactStderrAlsoRequiredForSingleAndSlurp": true
+          }
+        },
+        {
+          "id": "prefix-1-5--c",
+          "actualInput": {
+            "argv": [
+              "-c",
+              "."
+            ],
+            "inputHex": "22f09f9880220a310af4908080",
+            "files": {}
+          },
+          "proofInputHex": "22f09f9880220a310af4908080",
+          "exactLookupMatches": true,
+          "frozenProofHash": "a42a65025245a2f85d3efa8c221d15b772379679abffb25dc8b96065c4d487fa",
+          "expected": {
+            "status": 5,
+            "stdoutHex": "22f09f9880220a310a",
+            "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520332c20636f6c756d6e20340a"
+          },
+          "nativeRoute": "literal-argv-stdin",
+          "nativeMatchesFrozen": true,
+          "schedules": {
+            "everyInclusiveCutFor18Inputs": [
+              [
+                0,
+                4
+              ],
+              [
+                0,
+                10
+              ],
+              [
+                0,
+                22
+              ],
+              [
+                0,
+                4
+              ],
+              [
+                0,
+                10
+              ],
+              [
+                0,
+                22
+              ],
+              [
+                0,
+                5
+              ],
+              [
+                0,
+                11
+              ],
+              [
+                0,
+                23
+              ],
+              [
+                0,
+                6
+              ],
+              [
+                0,
+                12
+              ],
+              [
+                0,
+                24
+              ],
+              [
+                0,
+                7
+              ],
+              [
+                0,
+                13
+              ],
+              [
+                0,
+                25
+              ],
+              [
+                0,
+                7
+              ],
+              [
+                0,
+                13
+              ],
+              [
+                0,
+                25
+              ]
+            ],
+            "bytewiseFor18Inputs": true,
+            "wholeSlurpFor18Inputs": true,
+            "executions": 297,
+            "exactStderrAlsoRequiredForSingleAndSlurp": true
+          }
+        },
+        {
+          "id": "prefix-1-5--sc",
+          "actualInput": {
+            "argv": [
+              "-sc",
+              "."
+            ],
+            "inputHex": "22f09f9880220a310af4908080",
+            "files": {}
+          },
+          "proofInputHex": "22f09f9880220a310af4908080",
+          "exactLookupMatches": true,
+          "frozenProofHash": "43d70625c86003902bbd257bb9d819afce4a7e6955d96963227fc4b61296ce00",
+          "expected": {
+            "status": 5,
+            "stdoutHex": "",
+            "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520332c20636f6c756d6e20340a"
+          },
+          "nativeRoute": "literal-argv-stdin",
+          "nativeMatchesFrozen": true,
+          "schedules": {
+            "everyInclusiveCutFor18Inputs": [
+              [
+                0,
+                4
+              ],
+              [
+                0,
+                10
+              ],
+              [
+                0,
+                22
+              ],
+              [
+                0,
+                4
+              ],
+              [
+                0,
+                10
+              ],
+              [
+                0,
+                22
+              ],
+              [
+                0,
+                5
+              ],
+              [
+                0,
+                11
+              ],
+              [
+                0,
+                23
+              ],
+              [
+                0,
+                6
+              ],
+              [
+                0,
+                12
+              ],
+              [
+                0,
+                24
+              ],
+              [
+                0,
+                7
+              ],
+              [
+                0,
+                13
+              ],
+              [
+                0,
+                25
+              ],
+              [
+                0,
+                7
+              ],
+              [
+                0,
+                13
+              ],
+              [
+                0,
+                25
+              ]
+            ],
+            "bytewiseFor18Inputs": true,
+            "wholeSlurpFor18Inputs": true,
+            "executions": 297,
+            "exactStderrAlsoRequiredForSingleAndSlurp": true
+          }
+        },
+        {
+          "id": "prefix-2-5--c",
+          "actualInput": {
+            "argv": [
+              "-c",
+              "."
+            ],
+            "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465f4908080",
+            "files": {}
+          },
+          "proofInputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465f4908080",
+          "exactLookupMatches": true,
+          "frozenProofHash": "4006bd3894533c0553e03059a909031dc95779016288b0064b0144ee6a0e97a5",
+          "expected": {
+            "status": 5,
+            "stdoutHex": "7b2261223a5b315d7d0a",
+            "stderrHex": "6a713a207061727365206572726f723a20556e66696e697368656420737472696e6720617420454f46206174206c696e6520322c20636f6c756d6e2031350a"
+          },
+          "nativeRoute": "literal-argv-stdin",
+          "nativeMatchesFrozen": true,
+          "schedules": {
+            "everyInclusiveCutFor18Inputs": [
+              [
+                0,
+                4
+              ],
+              [
+                0,
+                10
+              ],
+              [
+                0,
+                22
+              ],
+              [
+                0,
+                4
+              ],
+              [
+                0,
+                10
+              ],
+              [
+                0,
+                22
+              ],
+              [
+                0,
+                5
+              ],
+              [
+                0,
+                11
+              ],
+              [
+                0,
+                23
+              ],
+              [
+                0,
+                6
+              ],
+              [
+                0,
+                12
+              ],
+              [
+                0,
+                24
+              ],
+              [
+                0,
+                7
+              ],
+              [
+                0,
+                13
+              ],
+              [
+                0,
+                25
+              ],
+              [
+                0,
+                7
+              ],
+              [
+                0,
+                13
+              ],
+              [
+                0,
+                25
+              ]
+            ],
+            "bytewiseFor18Inputs": true,
+            "wholeSlurpFor18Inputs": true,
+            "executions": 297,
+            "exactStderrAlsoRequiredForSingleAndSlurp": true
+          }
+        },
+        {
+          "id": "prefix-2-5--sc",
+          "actualInput": {
+            "argv": [
+              "-sc",
+              "."
+            ],
+            "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465f4908080",
+            "files": {}
+          },
+          "proofInputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465f4908080",
+          "exactLookupMatches": true,
+          "frozenProofHash": "1dd32eab634cdc7734e2f60f4286902c44a9b0f512c5453128ac23cc26bfc3b5",
+          "expected": {
+            "status": 5,
+            "stdoutHex": "",
+            "stderrHex": "6a713a207061727365206572726f723a20556e66696e697368656420737472696e6720617420454f46206174206c696e6520322c20636f6c756d6e2031350a"
+          },
+          "nativeRoute": "literal-argv-stdin",
+          "nativeMatchesFrozen": true,
+          "schedules": {
+            "everyInclusiveCutFor18Inputs": [
+              [
+                0,
+                4
+              ],
+              [
+                0,
+                10
+              ],
+              [
+                0,
+                22
+              ],
+              [
+                0,
+                4
+              ],
+              [
+                0,
+                10
+              ],
+              [
+                0,
+                22
+              ],
+              [
+                0,
+                5
+              ],
+              [
+                0,
+                11
+              ],
+              [
+                0,
+                23
+              ],
+              [
+                0,
+                6
+              ],
+              [
+                0,
+                12
+              ],
+              [
+                0,
+                24
+              ],
+              [
+                0,
+                7
+              ],
+              [
+                0,
+                13
+              ],
+              [
+                0,
+                25
+              ],
+              [
+                0,
+                7
+              ],
+              [
+                0,
+                13
+              ],
+              [
+                0,
+                25
+              ]
+            ],
+            "bytewiseFor18Inputs": true,
+            "wholeSlurpFor18Inputs": true,
+            "executions": 297,
+            "exactStderrAlsoRequiredForSingleAndSlurp": true
+          }
+        }
+      ],
+      "retainedSchedules": {
+        "everyInclusiveCutFor18Inputs": [
+          [
+            0,
+            4
+          ],
+          [
+            0,
+            10
+          ],
+          [
+            0,
+            22
+          ],
+          [
+            0,
+            4
+          ],
+          [
+            0,
+            10
+          ],
+          [
+            0,
+            22
+          ],
+          [
+            0,
+            5
+          ],
+          [
+            0,
+            11
+          ],
+          [
+            0,
+            23
+          ],
+          [
+            0,
+            6
+          ],
+          [
+            0,
+            12
+          ],
+          [
+            0,
+            24
+          ],
+          [
+            0,
+            7
+          ],
+          [
+            0,
+            13
+          ],
+          [
+            0,
+            25
+          ],
+          [
+            0,
+            7
+          ],
+          [
+            0,
+            13
+          ],
+          [
+            0,
+            25
+          ]
+        ],
+        "bytewiseFor18Inputs": true,
+        "wholeSlurpFor18Inputs": true,
+        "executions": 297,
+        "exactStderrAlsoRequiredForSingleAndSlurp": true
+      },
+      "proposedDeltaStatus": "REJECT v2 application mechanics; native expectation tuples agree"
+    },
+    {
+      "number": 22,
+      "oldTestName": "valid large decimals survive while malformed JSON and division by zero fail",
+      "proposedReviewedName": "valid large decimals survive while malformed JSON and division by zero fail",
+      "path": "tests/commands/structured/resources.test.ts",
+      "classification": "resource-mixed-composite",
+      "baseline": {
+        "probes": 29,
+        "exact": 13,
+        "diagnosticOnly": 10,
+        "statusOrStdout": 6
+      },
+      "oldAssertionSha256": "b856802fab24a8ab6404a970fc91897148f2e57215f3bac3588e4cb7b157425f",
+      "oldAssertionLines": 23,
+      "constituents": [
+        {
+          "id": "resource-json-0",
+          "actualInput": {
+            "argv": [
+              "-c",
+              "."
+            ],
+            "inputHex": "4e614e",
+            "files": {}
+          },
+          "proofInputHex": "4e614e",
+          "exactLookupMatches": true,
+          "frozenProofHash": "fb91afdf1554b5b0668ea1e312f389217b5a9b24f0bb50d4992e567c556e48b1",
+          "expected": {
+            "status": 0,
+            "stdoutHex": "6e756c6c0a",
+            "stderrHex": ""
+          },
+          "nativeRoute": "literal-argv-stdin",
+          "nativeMatchesFrozen": true,
+          "schedules": {
+            "executions": 29,
+            "jsonInputs": 15,
+            "invalidByteInputs": 4,
+            "divisionFilters": 3,
+            "largeDecimalInputs": 3,
+            "arithmeticAndConversionFilters": 3,
+            "surrogatePair": 1,
+            "customQuotaAssertionsInThisTest": 0,
+            "retainAdjacentQuotaAndCancellationTestsUnchanged": true
+          }
+        },
+        {
+          "id": "resource-json-1",
+          "actualInput": {
+            "argv": [
+              "-c",
+              "."
+            ],
+            "inputHex": "496e66696e697479",
+            "files": {}
+          },
+          "proofInputHex": "496e66696e697479",
+          "exactLookupMatches": true,
+          "frozenProofHash": "1b8ea24adabb8cdf8ca5d6e9ddd98473e036e2f9bfde7b1eb09d50a25cb80dcd",
+          "expected": {
+            "status": 0,
+            "stdoutHex": "312e37393736393331333438363233313537652b3330380a",
+            "stderrHex": ""
+          },
+          "nativeRoute": "literal-argv-stdin",
+          "nativeMatchesFrozen": true,
+          "schedules": {
+            "executions": 29,
+            "jsonInputs": 15,
+            "invalidByteInputs": 4,
+            "divisionFilters": 3,
+            "largeDecimalInputs": 3,
+            "arithmeticAndConversionFilters": 3,
+            "surrogatePair": 1,
+            "customQuotaAssertionsInThisTest": 0,
+            "retainAdjacentQuotaAndCancellationTestsUnchanged": true
+          }
+        },
+        {
+          "id": "resource-json-2",
+          "actualInput": {
+            "argv": [
+              "-c",
+              "."
+            ],
+            "inputHex": "2d496e66696e697479",
+            "files": {}
+          },
+          "proofInputHex": "2d496e66696e697479",
+          "exactLookupMatches": true,
+          "frozenProofHash": "c8c7696e10a1ecea4e48e1bcc2e29337b34fcf95e41d319c946e4ec21f51b690",
+          "expected": {
+            "status": 0,
+            "stdoutHex": "2d312e37393736393331333438363233313537652b3330380a",
+            "stderrHex": ""
+          },
+          "nativeRoute": "literal-argv-stdin",
+          "nativeMatchesFrozen": true,
+          "schedules": {
+            "executions": 29,
+            "jsonInputs": 15,
+            "invalidByteInputs": 4,
+            "divisionFilters": 3,
+            "largeDecimalInputs": 3,
+            "arithmeticAndConversionFilters": 3,
+            "surrogatePair": 1,
+            "customQuotaAssertionsInThisTest": 0,
+            "retainAdjacentQuotaAndCancellationTestsUnchanged": true
+          }
+        },
+        {
+          "id": "resource-json-3",
+          "actualInput": {
+            "argv": [
+              "-c",
+              "."
+            ],
+            "inputHex": "225c754438303022",
+            "files": {}
+          },
+          "proofInputHex": "225c754438303022",
+          "exactLookupMatches": true,
+          "frozenProofHash": "b69d0fb67513e6da1dbdaf14bb8a4dd1a9eacae8ebca7ee9c7c3e287b5cd5c3a",
+          "expected": {
+            "status": 5,
+            "stdoutHex": "",
+            "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964205c75585858585c755858585820737572726f67617465207061697220657363617065206174206c696e6520312c20636f6c756d6e20380a"
+          },
+          "nativeRoute": "literal-argv-stdin",
+          "nativeMatchesFrozen": true,
+          "schedules": {
+            "executions": 29,
+            "jsonInputs": 15,
+            "invalidByteInputs": 4,
+            "divisionFilters": 3,
+            "largeDecimalInputs": 3,
+            "arithmeticAndConversionFilters": 3,
+            "surrogatePair": 1,
+            "customQuotaAssertionsInThisTest": 0,
+            "retainAdjacentQuotaAndCancellationTestsUnchanged": true
+          }
+        },
+        {
+          "id": "resource-json-4",
+          "actualInput": {
+            "argv": [
+              "-c",
+              "."
+            ],
+            "inputHex": "225c754443303022",
+            "files": {}
+          },
+          "proofInputHex": "225c754443303022",
+          "exactLookupMatches": true,
+          "frozenProofHash": "5bd93817dede033693577f46562bf07294295aa3e77cd3667a2f46351f03f38f",
+          "expected": {
+            "status": 0,
+            "stdoutHex": "22efbfbd220a",
+            "stderrHex": ""
+          },
+          "nativeRoute": "literal-argv-stdin",
+          "nativeMatchesFrozen": true,
+          "schedules": {
+            "executions": 29,
+            "jsonInputs": 15,
+            "invalidByteInputs": 4,
+            "divisionFilters": 3,
+            "largeDecimalInputs": 3,
+            "arithmeticAndConversionFilters": 3,
+            "surrogatePair": 1,
+            "customQuotaAssertionsInThisTest": 0,
+            "retainAdjacentQuotaAndCancellationTestsUnchanged": true
+          }
+        },
+        {
+          "id": "resource-json-5",
+          "actualInput": {
+            "argv": [
+              "-c",
+              "."
+            ],
+            "inputHex": "5b7d",
+            "files": {}
+          },
+          "proofInputHex": "5b7d",
+          "exactLookupMatches": true,
+          "frozenProofHash": "a5eb394675b2c86dd60c27f07614ddf0c02b645242ce5882c03f9f470da9b326",
+          "expected": {
+            "status": 5,
+            "stdoutHex": "",
+            "stderrHex": "6a713a207061727365206572726f723a20556e6d61746368656420277d27206174206c696e6520312c20636f6c756d6e20320a"
+          },
+          "nativeRoute": "literal-argv-stdin",
+          "nativeMatchesFrozen": true,
+          "schedules": {
+            "executions": 29,
+            "jsonInputs": 15,
+            "invalidByteInputs": 4,
+            "divisionFilters": 3,
+            "largeDecimalInputs": 3,
+            "arithmeticAndConversionFilters": 3,
+            "surrogatePair": 1,
+            "customQuotaAssertionsInThisTest": 0,
+            "retainAdjacentQuotaAndCancellationTestsUnchanged": true
+          }
+        },
+        {
+          "id": "resource-json-6",
+          "actualInput": {
+            "argv": [
+              "-c",
+              "."
+            ],
+            "inputHex": "7b2261223a7d",
+            "files": {}
+          },
+          "proofInputHex": "7b2261223a7d",
+          "exactLookupMatches": true,
+          "frozenProofHash": "1b8fc7f7356e9c2980cc2521e95095e7b14f732b1847eb87adc3acd13f2ffd9e",
+          "expected": {
+            "status": 5,
+            "stdoutHex": "",
+            "stderrHex": "6a713a207061727365206572726f723a20556e6d61746368656420277d27206174206c696e6520312c20636f6c756d6e20360a"
+          },
+          "nativeRoute": "literal-argv-stdin",
+          "nativeMatchesFrozen": true,
+          "schedules": {
+            "executions": 29,
+            "jsonInputs": 15,
+            "invalidByteInputs": 4,
+            "divisionFilters": 3,
+            "largeDecimalInputs": 3,
+            "arithmeticAndConversionFilters": 3,
+            "surrogatePair": 1,
+            "customQuotaAssertionsInThisTest": 0,
+            "retainAdjacentQuotaAndCancellationTestsUnchanged": true
+          }
+        },
+        {
+          "id": "resource-json-7",
+          "actualInput": {
+            "argv": [
+              "-c",
+              "."
+            ],
+            "inputHex": "3031",
+            "files": {}
+          },
+          "proofInputHex": "3031",
+          "exactLookupMatches": true,
+          "frozenProofHash": "5f8e20112d67ae4162f15680bb06107a6ea41d416359c56419c01f0c38fe1a81",
+          "expected": {
+            "status": 0,
+            "stdoutHex": "310a",
+            "stderrHex": ""
+          },
+          "nativeRoute": "literal-argv-stdin",
+          "nativeMatchesFrozen": true,
+          "schedules": {
+            "executions": 29,
+            "jsonInputs": 15,
+            "invalidByteInputs": 4,
+            "divisionFilters": 3,
+            "largeDecimalInputs": 3,
+            "arithmeticAndConversionFilters": 3,
+            "surrogatePair": 1,
+            "customQuotaAssertionsInThisTest": 0,
+            "retainAdjacentQuotaAndCancellationTestsUnchanged": true
+          }
+        },
+        {
+          "id": "resource-json-8",
+          "actualInput": {
+            "argv": [
+              "-c",
+              "."
+            ],
+            "inputHex": "312e",
+            "files": {}
+          },
+          "proofInputHex": "312e",
+          "exactLookupMatches": true,
+          "frozenProofHash": "d8265083bc7be1fd37de1c397e2fe705786c5634c3192bf46def20ea1313fc3b",
+          "expected": {
+            "status": 0,
+            "stdoutHex": "310a",
+            "stderrHex": ""
+          },
+          "nativeRoute": "literal-argv-stdin",
+          "nativeMatchesFrozen": true,
+          "schedules": {
+            "executions": 29,
+            "jsonInputs": 15,
+            "invalidByteInputs": 4,
+            "divisionFilters": 3,
+            "largeDecimalInputs": 3,
+            "arithmeticAndConversionFilters": 3,
+            "surrogatePair": 1,
+            "customQuotaAssertionsInThisTest": 0,
+            "retainAdjacentQuotaAndCancellationTestsUnchanged": true
+          }
+        },
+        {
+          "id": "resource-json-9",
+          "actualInput": {
+            "argv": [
+              "-c",
+              "."
+            ],
+            "inputHex": "3165",
+            "files": {}
+          },
+          "proofInputHex": "3165",
+          "exactLookupMatches": true,
+          "frozenProofHash": "679f37aa8e391e7452f0d48dfcbdf3002b5e29b008f46e2d0555e0569b2ecdb6",
+          "expected": {
+            "status": 5,
+            "stdoutHex": "",
+            "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520312c20636f6c756d6e20320a"
+          },
+          "nativeRoute": "literal-argv-stdin",
+          "nativeMatchesFrozen": true,
+          "schedules": {
+            "executions": 29,
+            "jsonInputs": 15,
+            "invalidByteInputs": 4,
+            "divisionFilters": 3,
+            "largeDecimalInputs": 3,
+            "arithmeticAndConversionFilters": 3,
+            "surrogatePair": 1,
+            "customQuotaAssertionsInThisTest": 0,
+            "retainAdjacentQuotaAndCancellationTestsUnchanged": true
+          }
+        },
+        {
+          "id": "resource-json-10",
+          "actualInput": {
+            "argv": [
+              "-c",
+              "."
+            ],
+            "inputHex": "7472756566616c7365",
+            "files": {}
+          },
+          "proofInputHex": "7472756566616c7365",
+          "exactLookupMatches": true,
+          "frozenProofHash": "4207ae214c0df9c845ace1b1a40a97ae22a73698e980d912466896859f691ded",
+          "expected": {
+            "status": 5,
+            "stdoutHex": "",
+            "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206c69746572616c20617420454f46206174206c696e6520312c20636f6c756d6e20390a"
+          },
+          "nativeRoute": "literal-argv-stdin",
+          "nativeMatchesFrozen": true,
+          "schedules": {
+            "executions": 29,
+            "jsonInputs": 15,
+            "invalidByteInputs": 4,
+            "divisionFilters": 3,
+            "largeDecimalInputs": 3,
+            "arithmeticAndConversionFilters": 3,
+            "surrogatePair": 1,
+            "customQuotaAssertionsInThisTest": 0,
+            "retainAdjacentQuotaAndCancellationTestsUnchanged": true
+          }
+        },
+        {
+          "id": "resource-json-11",
+          "actualInput": {
+            "argv": [
+              "-c",
+              "."
+            ],
+            "inputHex": "226261640a737472696e6722",
+            "files": {}
+          },
+          "proofInputHex": "226261640a737472696e6722",
+          "exactLookupMatches": true,
+          "frozenProofHash": "e63fd57204489d5a0ed86d827cbacb657664a99e67eb76edeb9b807e6bc63fa5",
+          "expected": {
+            "status": 5,
+            "stdoutHex": "",
+            "stderrHex": "6a713a207061727365206572726f723a20496e76616c696420737472696e673a20636f6e74726f6c20636861726163746572732066726f6d20552b30303030207468726f75676820552b30303146206d7573742062652065736361706564206174206c696e6520322c20636f6c756d6e20370a"
+          },
+          "nativeRoute": "literal-argv-stdin",
+          "nativeMatchesFrozen": true,
+          "schedules": {
+            "executions": 29,
+            "jsonInputs": 15,
+            "invalidByteInputs": 4,
+            "divisionFilters": 3,
+            "largeDecimalInputs": 3,
+            "arithmeticAndConversionFilters": 3,
+            "surrogatePair": 1,
+            "customQuotaAssertionsInThisTest": 0,
+            "retainAdjacentQuotaAndCancellationTestsUnchanged": true
+          }
+        },
+        {
+          "id": "resource-json-12",
+          "actualInput": {
+            "argv": [
+              "-c",
+              "."
+            ],
+            "inputHex": "5b312c5d",
+            "files": {}
+          },
+          "proofInputHex": "5b312c5d",
+          "exactLookupMatches": true,
+          "frozenProofHash": "7091fcc31bf2cb053ecbc10bbfefdb11c8cf9abb0eee5f340b094788576f0847",
+          "expected": {
+            "status": 5,
+            "stdoutHex": "",
+            "stderrHex": "6a713a207061727365206572726f723a20457870656374656420616e6f7468657220617272617920656c656d656e74206174206c696e6520312c20636f6c756d6e20340a"
+          },
+          "nativeRoute": "literal-argv-stdin",
+          "nativeMatchesFrozen": true,
+          "schedules": {
+            "executions": 29,
+            "jsonInputs": 15,
+            "invalidByteInputs": 4,
+            "divisionFilters": 3,
+            "largeDecimalInputs": 3,
+            "arithmeticAndConversionFilters": 3,
+            "surrogatePair": 1,
+            "customQuotaAssertionsInThisTest": 0,
+            "retainAdjacentQuotaAndCancellationTestsUnchanged": true
+          }
+        },
+        {
+          "id": "resource-json-13",
+          "actualInput": {
+            "argv": [
+              "-c",
+              "."
+            ],
+            "inputHex": "7b2261223a302c7d",
+            "files": {}
+          },
+          "proofInputHex": "7b2261223a302c7d",
+          "exactLookupMatches": true,
+          "frozenProofHash": "f324cfd4e7ed726ac2394e1e4646f6b10417eb259fd331ec3c3e48907124453d",
+          "expected": {
+            "status": 5,
+            "stdoutHex": "",
+            "stderrHex": "6a713a207061727365206572726f723a20457870656374656420616e6f74686572206b65792d76616c75652070616972206174206c696e6520312c20636f6c756d6e20380a"
+          },
+          "nativeRoute": "literal-argv-stdin",
+          "nativeMatchesFrozen": true,
+          "schedules": {
+            "executions": 29,
+            "jsonInputs": 15,
+            "invalidByteInputs": 4,
+            "divisionFilters": 3,
+            "largeDecimalInputs": 3,
+            "arithmeticAndConversionFilters": 3,
+            "surrogatePair": 1,
+            "customQuotaAssertionsInThisTest": 0,
+            "retainAdjacentQuotaAndCancellationTestsUnchanged": true
+          }
+        },
+        {
+          "id": "resource-json-14",
+          "actualInput": {
+            "argv": [
+              "-c",
+              "."
+            ],
+            "inputHex": "efbbbf30",
+            "files": {}
+          },
+          "proofInputHex": "efbbbf30",
+          "exactLookupMatches": true,
+          "frozenProofHash": "fb6a304ee6da443bd39c743a606ada6b06bd21168d7490c33ed7c4626a277cd5",
+          "expected": {
+            "status": 0,
+            "stdoutHex": "300a",
+            "stderrHex": ""
+          },
+          "nativeRoute": "literal-argv-stdin",
+          "nativeMatchesFrozen": true,
+          "schedules": {
+            "executions": 29,
+            "jsonInputs": 15,
+            "invalidByteInputs": 4,
+            "divisionFilters": 3,
+            "largeDecimalInputs": 3,
+            "arithmeticAndConversionFilters": 3,
+            "surrogatePair": 1,
+            "customQuotaAssertionsInThisTest": 0,
+            "retainAdjacentQuotaAndCancellationTestsUnchanged": true
+          }
+        },
+        {
+          "id": "resource-large-0",
+          "actualInput": {
+            "argv": [
+              "-c",
+              "."
+            ],
+            "inputHex": "316539393939",
+            "files": {}
+          },
+          "proofInputHex": "316539393939",
+          "exactLookupMatches": true,
+          "frozenProofHash": "09313c3f93633edd0212c1dc55b9ab5aca4a1de266639919a7c8903fe6fbff1a",
+          "expected": {
+            "status": 0,
+            "stdoutHex": "31452b393939390a",
+            "stderrHex": ""
+          },
+          "nativeRoute": "literal-argv-stdin",
+          "nativeMatchesFrozen": true,
+          "schedules": {
+            "executions": 29,
+            "jsonInputs": 15,
+            "invalidByteInputs": 4,
+            "divisionFilters": 3,
+            "largeDecimalInputs": 3,
+            "arithmeticAndConversionFilters": 3,
+            "surrogatePair": 1,
+            "customQuotaAssertionsInThisTest": 0,
+            "retainAdjacentQuotaAndCancellationTestsUnchanged": true
+          }
+        },
+        {
+          "id": "resource-large-1",
+          "actualInput": {
+            "argv": [
+              "-c",
+              "."
+            ],
+            "inputHex": "5b3165393939395d",
+            "files": {}
+          },
+          "proofInputHex": "5b3165393939395d",
+          "exactLookupMatches": true,
+          "frozenProofHash": "02a5987883d01032217a3e60f23f525449bba9fd48a649537ac604b0de644a30",
+          "expected": {
+            "status": 0,
+            "stdoutHex": "5b31452b393939395d0a",
+            "stderrHex": ""
+          },
+          "nativeRoute": "literal-argv-stdin",
+          "nativeMatchesFrozen": true,
+          "schedules": {
+            "executions": 29,
+            "jsonInputs": 15,
+            "invalidByteInputs": 4,
+            "divisionFilters": 3,
+            "largeDecimalInputs": 3,
+            "arithmeticAndConversionFilters": 3,
+            "surrogatePair": 1,
+            "customQuotaAssertionsInThisTest": 0,
+            "retainAdjacentQuotaAndCancellationTestsUnchanged": true
+          }
+        },
+        {
+          "id": "resource-large-2",
+          "actualInput": {
+            "argv": [
+              "-c",
+              "."
+            ],
+            "inputHex": "7b2261223a3165393939397d",
+            "files": {}
+          },
+          "proofInputHex": "7b2261223a3165393939397d",
+          "exactLookupMatches": true,
+          "frozenProofHash": "20c8451104b9d88f41e8690820ccbd11cd5d31825301b689707ecd542c28b137",
+          "expected": {
+            "status": 0,
+            "stdoutHex": "7b2261223a31452b393939397d0a",
+            "stderrHex": ""
+          },
+          "nativeRoute": "literal-argv-stdin",
+          "nativeMatchesFrozen": true,
+          "schedules": {
+            "executions": 29,
+            "jsonInputs": 15,
+            "invalidByteInputs": 4,
+            "divisionFilters": 3,
+            "largeDecimalInputs": 3,
+            "arithmeticAndConversionFilters": 3,
+            "surrogatePair": 1,
+            "customQuotaAssertionsInThisTest": 0,
+            "retainAdjacentQuotaAndCancellationTestsUnchanged": true
+          }
+        },
+        {
+          "id": "resource-utf8-0",
+          "actualInput": {
+            "argv": [
+              "-c",
+              "."
+            ],
+            "inputHex": "ff",
+            "files": {}
+          },
+          "proofInputHex": "ff",
+          "exactLookupMatches": true,
+          "frozenProofHash": "b115f6c5d4770fc730d77d649b03910f5398056ba102688f100ed1810f78b994",
+          "expected": {
+            "status": 5,
+            "stdoutHex": "",
+            "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520312c20636f6c756d6e20310a"
+          },
+          "nativeRoute": "literal-argv-stdin",
+          "nativeMatchesFrozen": true,
+          "schedules": {
+            "executions": 29,
+            "jsonInputs": 15,
+            "invalidByteInputs": 4,
+            "divisionFilters": 3,
+            "largeDecimalInputs": 3,
+            "arithmeticAndConversionFilters": 3,
+            "surrogatePair": 1,
+            "customQuotaAssertionsInThisTest": 0,
+            "retainAdjacentQuotaAndCancellationTestsUnchanged": true
+          }
+        },
+        {
+          "id": "resource-utf8-1",
+          "actualInput": {
+            "argv": [
+              "-c",
+              "."
+            ],
+            "inputHex": "c3",
+            "files": {}
+          },
+          "proofInputHex": "c3",
+          "exactLookupMatches": true,
+          "frozenProofHash": "112c7a60e4abbacf246d037492916312ec6aae7b53150083acfd4844491c0b2a",
+          "expected": {
+            "status": 5,
+            "stdoutHex": "",
+            "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520312c20636f6c756d6e20310a"
+          },
+          "nativeRoute": "literal-argv-stdin",
+          "nativeMatchesFrozen": true,
+          "schedules": {
+            "executions": 29,
+            "jsonInputs": 15,
+            "invalidByteInputs": 4,
+            "divisionFilters": 3,
+            "largeDecimalInputs": 3,
+            "arithmeticAndConversionFilters": 3,
+            "surrogatePair": 1,
+            "customQuotaAssertionsInThisTest": 0,
+            "retainAdjacentQuotaAndCancellationTestsUnchanged": true
+          }
+        },
+        {
+          "id": "resource-utf8-2",
+          "actualInput": {
+            "argv": [
+              "-c",
+              "."
+            ],
+            "inputHex": "c328",
+            "files": {}
+          },
+          "proofInputHex": "c328",
+          "exactLookupMatches": true,
+          "frozenProofHash": "e02ca5fdd6e03a9521f2211b5f548480095174c5f0b80f395816c7e018614e9a",
+          "expected": {
+            "status": 5,
+            "stdoutHex": "",
+            "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520312c20636f6c756d6e20320a"
+          },
+          "nativeRoute": "literal-argv-stdin",
+          "nativeMatchesFrozen": true,
+          "schedules": {
+            "executions": 29,
+            "jsonInputs": 15,
+            "invalidByteInputs": 4,
+            "divisionFilters": 3,
+            "largeDecimalInputs": 3,
+            "arithmeticAndConversionFilters": 3,
+            "surrogatePair": 1,
+            "customQuotaAssertionsInThisTest": 0,
+            "retainAdjacentQuotaAndCancellationTestsUnchanged": true
+          }
+        },
+        {
+          "id": "resource-utf8-3",
+          "actualInput": {
+            "argv": [
+              "-c",
+              "."
+            ],
+            "inputHex": "eda080",
+            "files": {}
+          },
+          "proofInputHex": "eda080",
+          "exactLookupMatches": true,
+          "frozenProofHash": "9d23094a1e4bbeb0d36d610e8248ab27bc99bca7e4676fef64385425f3fad61e",
+          "expected": {
+            "status": 5,
+            "stdoutHex": "",
+            "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520312c20636f6c756d6e20330a"
+          },
+          "nativeRoute": "literal-argv-stdin",
+          "nativeMatchesFrozen": true,
+          "schedules": {
+            "executions": 29,
+            "jsonInputs": 15,
+            "invalidByteInputs": 4,
+            "divisionFilters": 3,
+            "largeDecimalInputs": 3,
+            "arithmeticAndConversionFilters": 3,
+            "surrogatePair": 1,
+            "customQuotaAssertionsInThisTest": 0,
+            "retainAdjacentQuotaAndCancellationTestsUnchanged": true
+          }
+        },
+        {
+          "id": "resource-filter-0",
+          "actualInput": {
+            "argv": [
+              "-nc",
+              "1/0"
+            ],
+            "inputHex": "6e756c6c",
+            "files": {},
+            "implicitDefaultInput": true
+          },
+          "proofInputHex": "",
+          "exactLookupMatches": false,
+          "frozenProofHash": "1d30dec2bde86baa93bddac1a2c12dfbf4eff557a2674bef6ef25dd3458092fb",
+          "expected": {
+            "status": 5,
+            "stdoutHex": "",
+            "stderrHex": "6a713a206572726f7220286174203c756e6b6e6f776e3e293a206e756d6265722028312920616e64206e756d626572202830292063616e6e6f7420626520646976696465642062656361757365207468652064697669736f72206973207a65726f0a"
+          },
+          "nativeRoute": "literal-argv-stdin",
+          "nativeMatchesFrozen": true,
+          "schedules": {
+            "executions": 29,
+            "jsonInputs": 15,
+            "invalidByteInputs": 4,
+            "divisionFilters": 3,
+            "largeDecimalInputs": 3,
+            "arithmeticAndConversionFilters": 3,
+            "surrogatePair": 1,
+            "customQuotaAssertionsInThisTest": 0,
+            "retainAdjacentQuotaAndCancellationTestsUnchanged": true
+          }
+        },
+        {
+          "id": "resource-filter-1",
+          "actualInput": {
+            "argv": [
+              "-nc",
+              "0/0"
+            ],
+            "inputHex": "6e756c6c",
+            "files": {},
+            "implicitDefaultInput": true
+          },
+          "proofInputHex": "",
+          "exactLookupMatches": false,
+          "frozenProofHash": "dda4e06f44458a393e70d99154a57e48f25fd886ea569e5be7ca4fc82beba509",
+          "expected": {
+            "status": 5,
+            "stdoutHex": "",
+            "stderrHex": "6a713a206572726f7220286174203c756e6b6e6f776e3e293a206e756d6265722028302920616e64206e756d626572202830292063616e6e6f7420626520646976696465642062656361757365207468652064697669736f72206973207a65726f0a"
+          },
+          "nativeRoute": "literal-argv-stdin",
+          "nativeMatchesFrozen": true,
+          "schedules": {
+            "executions": 29,
+            "jsonInputs": 15,
+            "invalidByteInputs": 4,
+            "divisionFilters": 3,
+            "largeDecimalInputs": 3,
+            "arithmeticAndConversionFilters": 3,
+            "surrogatePair": 1,
+            "customQuotaAssertionsInThisTest": 0,
+            "retainAdjacentQuotaAndCancellationTestsUnchanged": true
+          }
+        },
+        {
+          "id": "resource-filter-2",
+          "actualInput": {
+            "argv": [
+              "-nc",
+              "1%0"
+            ],
+            "inputHex": "6e756c6c",
+            "files": {},
+            "implicitDefaultInput": true
+          },
+          "proofInputHex": "",
+          "exactLookupMatches": false,
+          "frozenProofHash": "d7b8e0240223bdca489549db9da85c19b878557733f2bf57d6a84586b4546e24",
+          "expected": {
+            "status": 5,
+            "stdoutHex": "",
+            "stderrHex": "6a713a206572726f7220286174203c756e6b6e6f776e3e293a206e756d6265722028312920616e64206e756d626572202830292063616e6e6f742062652064697669646564202872656d61696e646572292062656361757365207468652064697669736f72206973207a65726f0a"
+          },
+          "nativeRoute": "literal-argv-stdin",
+          "nativeMatchesFrozen": true,
+          "schedules": {
+            "executions": 29,
+            "jsonInputs": 15,
+            "invalidByteInputs": 4,
+            "divisionFilters": 3,
+            "largeDecimalInputs": 3,
+            "arithmeticAndConversionFilters": 3,
+            "surrogatePair": 1,
+            "customQuotaAssertionsInThisTest": 0,
+            "retainAdjacentQuotaAndCancellationTestsUnchanged": true
+          }
+        },
+        {
+          "id": "resource-filter-3",
+          "actualInput": {
+            "argv": [
+              "-nc",
+              "1e308*1e308"
+            ],
+            "inputHex": "6e756c6c",
+            "files": {},
+            "implicitDefaultInput": true
+          },
+          "proofInputHex": "",
+          "exactLookupMatches": false,
+          "frozenProofHash": "fe126e3f0d70904bf8d5d7a40854b1bcc49849b51c945f993e00890e36447d0c",
+          "expected": {
+            "status": 0,
+            "stdoutHex": "312e37393736393331333438363233313537652b3330380a",
+            "stderrHex": ""
+          },
+          "nativeRoute": "literal-argv-stdin",
+          "nativeMatchesFrozen": true,
+          "schedules": {
+            "executions": 29,
+            "jsonInputs": 15,
+            "invalidByteInputs": 4,
+            "divisionFilters": 3,
+            "largeDecimalInputs": 3,
+            "arithmeticAndConversionFilters": 3,
+            "surrogatePair": 1,
+            "customQuotaAssertionsInThisTest": 0,
+            "retainAdjacentQuotaAndCancellationTestsUnchanged": true
+          }
+        },
+        {
+          "id": "resource-filter-4",
+          "actualInput": {
+            "argv": [
+              "-nc",
+              "\"1e9999\"|tonumber"
+            ],
+            "inputHex": "6e756c6c",
+            "files": {},
+            "implicitDefaultInput": true
+          },
+          "proofInputHex": "",
+          "exactLookupMatches": false,
+          "frozenProofHash": "1bc0d834b42b89c18d98446373b6dedbff99fcc7c5780fd08d40ccc9565f12cb",
+          "expected": {
+            "status": 0,
+            "stdoutHex": "31452b393939390a",
+            "stderrHex": ""
+          },
+          "nativeRoute": "literal-argv-stdin",
+          "nativeMatchesFrozen": true,
+          "schedules": {
+            "executions": 29,
+            "jsonInputs": 15,
+            "invalidByteInputs": 4,
+            "divisionFilters": 3,
+            "largeDecimalInputs": 3,
+            "arithmeticAndConversionFilters": 3,
+            "surrogatePair": 1,
+            "customQuotaAssertionsInThisTest": 0,
+            "retainAdjacentQuotaAndCancellationTestsUnchanged": true
+          }
+        },
+        {
+          "id": "resource-filter-5",
+          "actualInput": {
+            "argv": [
+              "-nc",
+              "\"[1e9999]\"|fromjson"
+            ],
+            "inputHex": "6e756c6c",
+            "files": {},
+            "implicitDefaultInput": true
+          },
+          "proofInputHex": "",
+          "exactLookupMatches": false,
+          "frozenProofHash": "422838ee900fe65129cc5f82563574c5f73c3902b16c9dfdeec0711a02a0046b",
+          "expected": {
+            "status": 0,
+            "stdoutHex": "5b31452b393939395d0a",
+            "stderrHex": ""
+          },
+          "nativeRoute": "literal-argv-stdin",
+          "nativeMatchesFrozen": true,
+          "schedules": {
+            "executions": 29,
+            "jsonInputs": 15,
+            "invalidByteInputs": 4,
+            "divisionFilters": 3,
+            "largeDecimalInputs": 3,
+            "arithmeticAndConversionFilters": 3,
+            "surrogatePair": 1,
+            "customQuotaAssertionsInThisTest": 0,
+            "retainAdjacentQuotaAndCancellationTestsUnchanged": true
+          }
+        },
+        {
+          "id": "resource-large-3",
+          "actualInput": {
+            "argv": [
+              "-c",
+              "."
+            ],
+            "inputHex": "225c75443833445c754445303022",
+            "files": {}
+          },
+          "proofInputHex": "225c75443833445c754445303022",
+          "exactLookupMatches": true,
+          "frozenProofHash": "4bf1f457f45f084281bcb0c2cb3a5f506485f52ceca1ee23f758c466ce6d7b6f",
+          "expected": {
+            "status": 0,
+            "stdoutHex": "22f09f9880220a",
+            "stderrHex": ""
+          },
+          "nativeRoute": "literal-argv-stdin",
+          "nativeMatchesFrozen": true,
+          "schedules": {
+            "executions": 29,
+            "jsonInputs": 15,
+            "invalidByteInputs": 4,
+            "divisionFilters": 3,
+            "largeDecimalInputs": 3,
+            "arithmeticAndConversionFilters": 3,
+            "surrogatePair": 1,
+            "customQuotaAssertionsInThisTest": 0,
+            "retainAdjacentQuotaAndCancellationTestsUnchanged": true
+          }
+        }
+      ],
+      "retainedSchedules": {
+        "executions": 29,
+        "jsonInputs": 15,
+        "invalidByteInputs": 4,
+        "divisionFilters": 3,
+        "largeDecimalInputs": 3,
+        "arithmeticAndConversionFilters": 3,
+        "surrogatePair": 1,
+        "customQuotaAssertionsInThisTest": 0,
+        "retainAdjacentQuotaAndCancellationTestsUnchanged": true
+      },
+      "proposedDeltaStatus": "REJECT v2 application mechanics; native expectation tuples agree"
+    },
+    {
+      "number": 23,
+      "oldTestName": "strict malformed JSON 5 across chunk boundaries",
+      "proposedReviewedName": "native JSON acceptance 5 across chunk boundaries",
+      "path": "tests/commands/structured-stress/safety.test.ts",
+      "classification": "newly-exposed-stale-assertion",
+      "baseline": "not part of historical22; do not inflate baseline",
+      "oldAssertionSha256": "f2d82e6931a2ed101e5fc9dc3352a9621d30dbab45d97108d661020e0439cc5b",
+      "oldAssertionLines": 10,
+      "constituents": [
+        {
+          "id": "token-282",
+          "actualInput": {
+            "argv": [
+              "-c",
+              "."
+            ],
+            "inputHex": "5b30315d",
+            "files": {}
+          },
+          "proofInputHex": "5b30315d",
+          "exactLookupMatches": true,
+          "frozenProofHash": "e66a74076b23d24ceda2b47b49b5e5a21cbade90f4d8cec9fd66e3994f65bd82",
+          "expected": {
+            "status": 0,
+            "stdoutHex": "5b315d0a",
+            "stderrHex": ""
+          },
+          "nativeRoute": "literal-argv-stdin",
+          "nativeMatchesFrozen": true,
+          "schedules": {
+            "sizes": [
+              1,
+              2,
+              5,
+              64
+            ],
+            "timeoutMs": 3000,
+            "executions": 4,
+            "preserveAll23LoopInputs": true
+          }
+        }
+      ],
+      "retainedSchedules": {
+        "sizes": [
+          1,
+          2,
+          5,
+          64
+        ],
+        "timeoutMs": 3000,
+        "executions": 4,
+        "preserveAll23LoopInputs": true
+      },
+      "proposedDeltaStatus": "REJECT v2 application mechanics; native expectation tuples agree"
+    },
+    {
+      "number": 24,
+      "oldTestName": "strict malformed JSON 15 across chunk boundaries",
+      "proposedReviewedName": "native JSON acceptance 15 across chunk boundaries",
+      "path": "tests/commands/structured-stress/safety.test.ts",
+      "classification": "newly-exposed-stale-assertion",
+      "baseline": "not part of historical22; do not inflate baseline",
+      "oldAssertionSha256": "f2d82e6931a2ed101e5fc9dc3352a9621d30dbab45d97108d661020e0439cc5b",
+      "oldAssertionLines": 10,
+      "constituents": [
+        {
+          "id": "bom-737",
+          "actualInput": {
+            "argv": [
+              "-c",
+              "."
+            ],
+            "inputHex": "efbbbf30",
+            "files": {}
+          },
+          "proofInputHex": "efbbbf30",
+          "exactLookupMatches": true,
+          "frozenProofHash": "b9c7c64ddaaf9c8274a610aa1400143e1a1263e057f84a8ce1e68444d29fac95",
+          "expected": {
+            "status": 0,
+            "stdoutHex": "300a",
+            "stderrHex": ""
+          },
+          "nativeRoute": "literal-argv-stdin",
+          "nativeMatchesFrozen": true,
+          "schedules": {
+            "sizes": [
+              1,
+              2,
+              5,
+              64
+            ],
+            "timeoutMs": 3000,
+            "executions": 4,
+            "preserveAll23LoopInputs": true
+          }
+        }
+      ],
+      "retainedSchedules": {
+        "sizes": [
+          1,
+          2,
+          5,
+          64
+        ],
+        "timeoutMs": 3000,
+        "executions": 4,
+        "preserveAll23LoopInputs": true
+      },
+      "proposedDeltaStatus": "REJECT v2 application mechanics; native expectation tuples agree"
+    },
+    {
+      "number": 25,
+      "oldTestName": "strict malformed JSON 21 across chunk boundaries",
+      "proposedReviewedName": "native JSON acceptance 21 across chunk boundaries",
+      "path": "tests/commands/structured-stress/safety.test.ts",
+      "classification": "newly-exposed-stale-assertion",
+      "baseline": "not part of historical22; do not inflate baseline",
+      "oldAssertionSha256": "f2d82e6931a2ed101e5fc9dc3352a9621d30dbab45d97108d661020e0439cc5b",
+      "oldAssertionLines": 10,
+      "constituents": [
+        {
+          "id": "token-176",
+          "actualInput": {
+            "argv": [
+              "-c",
+              "."
+            ],
+            "inputHex": "2d496e66696e697479",
+            "files": {}
+          },
+          "proofInputHex": "2d496e66696e697479",
+          "exactLookupMatches": true,
+          "frozenProofHash": "eca6a7c69c9311bbca116187dfba0e8ea2c3e0a832eecdbad602e8d364d73e90",
+          "expected": {
+            "status": 0,
+            "stdoutHex": "2d312e37393736393331333438363233313537652b3330380a",
+            "stderrHex": ""
+          },
+          "nativeRoute": "literal-argv-stdin",
+          "nativeMatchesFrozen": true,
+          "schedules": {
+            "sizes": [
+              1,
+              2,
+              5,
+              64
+            ],
+            "timeoutMs": 3000,
+            "executions": 4,
+            "preserveAll23LoopInputs": true
+          }
+        }
+      ],
+      "retainedSchedules": {
+        "sizes": [
+          1,
+          2,
+          5,
+          64
+        ],
+        "timeoutMs": 3000,
+        "executions": 4,
+        "preserveAll23LoopInputs": true
+      },
+      "proposedDeltaStatus": "REJECT v2 application mechanics; native expectation tuples agree"
+    },
+    {
+      "number": 26,
+      "oldTestName": "strict malformed JSON 22 across chunk boundaries",
+      "proposedReviewedName": "native JSON acceptance 22 across chunk boundaries",
+      "path": "tests/commands/structured-stress/safety.test.ts",
+      "classification": "newly-exposed-stale-assertion",
+      "baseline": "not part of historical22; do not inflate baseline",
+      "oldAssertionSha256": "f2d82e6931a2ed101e5fc9dc3352a9621d30dbab45d97108d661020e0439cc5b",
+      "oldAssertionLines": 10,
+      "constituents": [
+        {
+          "id": "token-0",
+          "actualInput": {
+            "argv": [
+              "-c",
+              "."
+            ],
+            "inputHex": "4e614e",
+            "files": {}
+          },
+          "proofInputHex": "4e614e",
+          "exactLookupMatches": true,
+          "frozenProofHash": "067a7b5527e7430ca975a7f39b8c637eb0b752618badf866569e00e2a15ef287",
+          "expected": {
+            "status": 0,
+            "stdoutHex": "6e756c6c0a",
+            "stderrHex": ""
+          },
+          "nativeRoute": "literal-argv-stdin",
+          "nativeMatchesFrozen": true,
+          "schedules": {
+            "sizes": [
+              1,
+              2,
+              5,
+              64
+            ],
+            "timeoutMs": 3000,
+            "executions": 4,
+            "preserveAll23LoopInputs": true
+          }
+        }
+      ],
+      "retainedSchedules": {
+        "sizes": [
+          1,
+          2,
+          5,
+          64
+        ],
+        "timeoutMs": 3000,
+        "executions": 4,
+        "preserveAll23LoopInputs": true
+      },
+      "proposedDeltaStatus": "REJECT v2 application mechanics; native expectation tuples agree"
+    }
+  ],
+  "byteMutationDemonstrations": [
+    {
+      "row": "raw native: file-unicode:-Rc",
+      "id": "file-unicode:-Rc",
+      "expectedHex": "22efbfbdefbfbdefbfbd220a",
+      "mutantHex": "2280efbfbdefbfbd220a",
+      "proposedDecodedStringAssertionPasses": true,
+      "actualByteEqualityPasses": false
+    },
+    {
+      "row": "raw native: file-unicode:-Rsc",
+      "id": "file-unicode:-Rsc",
+      "expectedHex": "22efbfbdefbfbdefbfbd5c6e220a",
+      "mutantHex": "2280efbfbdefbfbd5c6e220a",
+      "proposedDecodedStringAssertionPasses": true,
+      "actualByteEqualityPasses": false
+    },
+    {
+      "row": "raw native: invalid:0:-Rc",
+      "id": "invalid:0:-Rc",
+      "expectedHex": "226f6b220a22efbfbdefbfbd220a",
+      "mutantHex": "226f6b220a2280efbfbd220a",
+      "proposedDecodedStringAssertionPasses": true,
+      "actualByteEqualityPasses": false
+    },
+    {
+      "row": "raw native: invalid:0:-Rsc",
+      "id": "invalid:0:-Rsc",
+      "expectedHex": "226f6b5c6eefbfbdefbfbd220a",
+      "mutantHex": "226f6b5c6e80efbfbd220a",
+      "proposedDecodedStringAssertionPasses": true,
+      "actualByteEqualityPasses": false
+    },
+    {
+      "row": "raw native: invalid:1:-Rc",
+      "id": "invalid:1:-Rc",
+      "expectedHex": "226f6b220a22efbfbd220a",
+      "mutantHex": "226f6b220a2280220a",
+      "proposedDecodedStringAssertionPasses": true,
+      "actualByteEqualityPasses": false
+    },
+    {
+      "row": "raw native: invalid:1:-Rsc",
+      "id": "invalid:1:-Rsc",
+      "expectedHex": "226f6b5c6eefbfbd220a",
+      "mutantHex": "226f6b5c6e80220a",
+      "proposedDecodedStringAssertionPasses": true,
+      "actualByteEqualityPasses": false
+    },
+    {
+      "row": "raw native: invalid:2:-Rc",
+      "id": "invalid:2:-Rc",
+      "expectedHex": "226f6b220a22efbfbd220a",
+      "mutantHex": "226f6b220a2280220a",
+      "proposedDecodedStringAssertionPasses": true,
+      "actualByteEqualityPasses": false
+    },
+    {
+      "row": "raw native: invalid:2:-Rsc",
+      "id": "invalid:2:-Rsc",
+      "expectedHex": "226f6b5c6eefbfbd220a",
+      "mutantHex": "226f6b5c6e80220a",
+      "proposedDecodedStringAssertionPasses": true,
+      "actualByteEqualityPasses": false
+    },
+    {
+      "row": "raw native: invalid:3:-Rc",
+      "id": "invalid:3:-Rc",
+      "expectedHex": "226f6b220a22efbfbd220a",
+      "mutantHex": "226f6b220a2280220a",
+      "proposedDecodedStringAssertionPasses": true,
+      "actualByteEqualityPasses": false
+    },
+    {
+      "row": "raw native: invalid:3:-Rsc",
+      "id": "invalid:3:-Rsc",
+      "expectedHex": "226f6b5c6eefbfbd220a",
+      "mutantHex": "226f6b5c6e80220a",
+      "proposedDecodedStringAssertionPasses": true,
+      "actualByteEqualityPasses": false
+    },
+    {
+      "row": "raw native: invalid:4:-Rc",
+      "id": "invalid:4:-Rc",
+      "expectedHex": "226f6b220a22efbfbd220a",
+      "mutantHex": "226f6b220a2280220a",
+      "proposedDecodedStringAssertionPasses": true,
+      "actualByteEqualityPasses": false
+    },
+    {
+      "row": "raw native: invalid:4:-Rsc",
+      "id": "invalid:4:-Rsc",
+      "expectedHex": "226f6b5c6eefbfbd220a",
+      "mutantHex": "226f6b5c6e80220a",
+      "proposedDecodedStringAssertionPasses": true,
+      "actualByteEqualityPasses": false
+    },
+    {
+      "row": "strict malformed JSON 14 across chunk boundaries",
+      "id": "malformed-14",
+      "expectedHex": "22efbfbd220a",
+      "mutantHex": "2280220a",
+      "proposedDecodedStringAssertionPasses": true,
+      "actualByteEqualityPasses": false
+    },
+    {
+      "row": "valid large decimals survive while malformed JSON and division by zero fail",
+      "id": "resource-json-4",
+      "expectedHex": "22efbfbd220a",
+      "mutantHex": "2280220a",
+      "proposedDecodedStringAssertionPasses": true,
+      "actualByteEqualityPasses": false
+    }
+  ],
+  "exactLookupMismatches": [
+    {
+      "row": 22,
+      "id": "resource-filter-0",
+      "actualInputHex": "6e756c6c",
+      "proofInputHex": ""
+    },
+    {
+      "row": 22,
+      "id": "resource-filter-1",
+      "actualInputHex": "6e756c6c",
+      "proofInputHex": ""
+    },
+    {
+      "row": 22,
+      "id": "resource-filter-2",
+      "actualInputHex": "6e756c6c",
+      "proofInputHex": ""
+    },
+    {
+      "row": 22,
+      "id": "resource-filter-3",
+      "actualInputHex": "6e756c6c",
+      "proofInputHex": ""
+    },
+    {
+      "row": 22,
+      "id": "resource-filter-4",
+      "actualInputHex": "6e756c6c",
+      "proofInputHex": ""
+    },
+    {
+      "row": 22,
+      "id": "resource-filter-5",
+      "actualInputHex": "6e756c6c",
+      "proofInputHex": ""
+    }
+  ],
+  "limits": "Static canonical literal extraction plus native-only evidence. No source acceptance or canonical edits. Native source chunks are not controlled by OS pipe writes."
+}

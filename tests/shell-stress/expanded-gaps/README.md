@@ -34,7 +34,7 @@ to fit product behavior. The initial raw evidence remains immutable.
 Profile controls record parent and actual child BASH_VERSION/BASH. env-shebang
 uses the real Darwin /usr/bin/env and explicit `.roles/bash` or `.roles/sh`
 symlink to that profile binary. A direct /bin/bash shebang runs Bash3.2 under
-either parent. The host kernel accepts whitespace-separated optional arguments:
+either parent. The captured Darwin tool/kernel stack accepts optional arguments:
 `env bash -e` executes here. This capture is NOT Linux's single-optional-argument
 semantics and NOT a pure GNU userspace/kernel profile. Injection text is literal
 interpreter arguments, not shell program text. GNU env documentation is semantic

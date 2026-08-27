@@ -1,0 +1,225 @@
+{
+  "findings": [
+    {
+      "id": "header-execute-no-read",
+      "classification": "diagnostic-only; correct126, no body effects",
+      "expected": {
+        "stdout": "",
+        "stderr": "c2hlbGw6IC4vc2NyaXB0OiBQZXJtaXNzaW9uIGRlbmllZAo=",
+        "status": 126,
+        "entries": {
+          "bin/": null,
+          "script": {
+            "bytes": "cHJpbnRmIGZvcmJpZGRlbiA+IG1hcmtlcgo=",
+            "mode": 73
+          },
+          "work/": null
+        }
+      },
+      "actual": {
+        "stdout": "",
+        "stderr": "c2hlbGw6IGxpbmUgMTogLi9zY3JpcHQ6IFBlcm1pc3Npb24gZGVuaWVkCg==",
+        "status": 126,
+        "entries": {
+          "bin/": null,
+          "script": {
+            "bytes": "cHJpbnRmIGZvcmJpZGRlbiA+IG1hcmtlcgo=",
+            "mode": 73
+          },
+          "work/": null
+        }
+      },
+      "sourceManifest": "11796b4c4d2cb52b2562df6af065d3fd522a8b77708a2f95c54ea76b271d710c"
+    },
+    {
+      "id": "env-single-kernel-argument",
+      "classification": "platform/unsupported optional-argument boundary; native Darwin executes bash -e, virtual rejects126; not Linux single-argument parity",
+      "expected": {
+        "stdout": "",
+        "stderr": "",
+        "status": 0,
+        "entries": {
+          "bin/": null,
+          "marker": {
+            "bytes": "c2hvdWxkLW5vdC1ydW4=",
+            "mode": 420
+          },
+          "script": {
+            "bytes": "IyEvdXNyL2Jpbi9lbnYgYmFzaCAtZQpwcmludGYgc2hvdWxkLW5vdC1ydW4gPiBtYXJrZXIK",
+            "mode": 493
+          },
+          "work/": null
+        }
+      },
+      "actual": {
+        "stdout": "",
+        "stderr": "c2hlbGw6IGxpbmUgMTogLi9zY3JpcHQ6IHVuc3VwcG9ydGVkIGludGVycHJldGVyOiAvdXNyL2Jpbi9lbnYgYmFzaCAtZQo=",
+        "status": 126,
+        "entries": {
+          "bin/": null,
+          "script": {
+            "bytes": "IyEvdXNyL2Jpbi9lbnYgYmFzaCAtZQpwcmludGYgc2hvdWxkLW5vdC1ydW4gPiBtYXJrZXIK",
+            "mode": 493
+          },
+          "work/": null
+        }
+      },
+      "sourceManifest": "11796b4c4d2cb52b2562df6af065d3fd522a8b77708a2f95c54ea76b271d710c"
+    },
+    {
+      "id": "env-injection-text",
+      "classification": "status/diagnostic difference; neither executes injection or body",
+      "expected": {
+        "stdout": "",
+        "stderr": "ZW52OiBiYXNoO3RvdWNoOiBObyBzdWNoIGZpbGUgb3IgZGlyZWN0b3J5Cg==",
+        "status": 127,
+        "entries": {
+          "bin/": null,
+          "script": {
+            "bytes": "IyEvdXNyL2Jpbi9lbnYgYmFzaDt0b3VjaCBtYXJrZXIKcHJpbnRmIHNob3VsZC1ub3QtcnVuID4gbWFya2VyCg==",
+            "mode": 493
+          },
+          "work/": null
+        }
+      },
+      "actual": {
+        "stdout": "",
+        "stderr": "c2hlbGw6IGxpbmUgMTogLi9zY3JpcHQ6IHVuc3VwcG9ydGVkIGludGVycHJldGVyOiAvdXNyL2Jpbi9lbnYgYmFzaDt0b3VjaCBtYXJrZXIK",
+        "status": 126,
+        "entries": {
+          "bin/": null,
+          "script": {
+            "bytes": "IyEvdXNyL2Jpbi9lbnYgYmFzaDt0b3VjaCBtYXJrZXIKcHJpbnRmIHNob3VsZC1ub3QtcnVuID4gbWFya2VyCg==",
+            "mode": 493
+          },
+          "work/": null
+        }
+      },
+      "sourceManifest": "11796b4c4d2cb52b2562df6af065d3fd522a8b77708a2f95c54ea76b271d710c"
+    },
+    {
+      "id": "env-missing-target",
+      "classification": "status/diagnostic difference; native127 vs bounded unsupported126",
+      "expected": {
+        "stdout": "",
+        "stderr": "ZW52OiB2ZXJpZmllci1uby1zdWNoLWludGVycHJldGVyOiBObyBzdWNoIGZpbGUgb3IgZGlyZWN0b3J5Cg==",
+        "status": 127,
+        "entries": {
+          "bin/": null,
+          "script": {
+            "bytes": "IyEvdXNyL2Jpbi9lbnYgdmVyaWZpZXItbm8tc3VjaC1pbnRlcnByZXRlcgpwcmludGYgZm9yYmlkZGVuID4gbWFya2VyCg==",
+            "mode": 493
+          },
+          "work/": null
+        }
+      },
+      "actual": {
+        "stdout": "",
+        "stderr": "c2hlbGw6IGxpbmUgMTogLi9zY3JpcHQ6IHVuc3VwcG9ydGVkIGludGVycHJldGVyOiAvdXNyL2Jpbi9lbnYgdmVyaWZpZXItbm8tc3VjaC1pbnRlcnByZXRlcgo=",
+        "status": 126,
+        "entries": {
+          "bin/": null,
+          "script": {
+            "bytes": "IyEvdXNyL2Jpbi9lbnYgdmVyaWZpZXItbm8tc3VjaC1pbnRlcnByZXRlcgpwcmludGYgZm9yYmlkZGVuID4gbWFya2VyCg==",
+            "mode": 493
+          },
+          "work/": null
+        }
+      },
+      "sourceManifest": "11796b4c4d2cb52b2562df6af065d3fd522a8b77708a2f95c54ea76b271d710c"
+    },
+    {
+      "id": "env-unsupported-interpreter",
+      "classification": "diagnostic-only; correct126 and no body effects",
+      "expected": {
+        "stdout": "",
+        "stderr": "c2hlbGw6IC4vc2NyaXB0OiAvdmVyaWZpZXItbWlzc2luZy9pbnRlcnByZXRlcjogYmFkIGludGVycHJldGVyOiBObyBzdWNoIGZpbGUgb3IgZGlyZWN0b3J5Cg==",
+        "status": 126,
+        "entries": {
+          "bin/": null,
+          "script": {
+            "bytes": "IyEvdmVyaWZpZXItbWlzc2luZy9pbnRlcnByZXRlcgpwcmludGYgZm9yYmlkZGVuID4gbWFya2VyCg==",
+            "mode": 493
+          },
+          "work/": null
+        }
+      },
+      "actual": {
+        "stdout": "",
+        "stderr": "c2hlbGw6IGxpbmUgMTogLi9zY3JpcHQ6IHVuc3VwcG9ydGVkIGludGVycHJldGVyOiAvdmVyaWZpZXItbWlzc2luZy9pbnRlcnByZXRlcgo=",
+        "status": 126,
+        "entries": {
+          "bin/": null,
+          "script": {
+            "bytes": "IyEvdmVyaWZpZXItbWlzc2luZy9pbnRlcnByZXRlcgpwcmludGYgZm9yYmlkZGVuID4gbWFya2VyCg==",
+            "mode": 493
+          },
+          "work/": null
+        }
+      },
+      "sourceManifest": "11796b4c4d2cb52b2562df6af065d3fd522a8b77708a2f95c54ea76b271d710c"
+    },
+    {
+      "id": "parameter-substitution-order",
+      "classification": "creation mode only: native0644 vs MemoryFS0666; output XbX and marker patternreplacement exact; not expansion ordering defect",
+      "expected": {
+        "stdout": "WGJY",
+        "stderr": "",
+        "status": 0,
+        "entries": {
+          "bin/": null,
+          "marker": {
+            "bytes": "cGF0dGVybnJlcGxhY2VtZW50",
+            "mode": 420
+          },
+          "work/": null
+        }
+      },
+      "actual": {
+        "stdout": "WGJY",
+        "stderr": "",
+        "status": 0,
+        "entries": {
+          "bin/": null,
+          "marker": {
+            "bytes": "cGF0dGVybnJlcGxhY2VtZW50",
+            "mode": 438
+          },
+          "work/": null
+        }
+      },
+      "sourceManifest": "11796b4c4d2cb52b2562df6af065d3fd522a8b77708a2f95c54ea76b271d710c"
+    },
+    {
+      "id": "parameter-existing-controls",
+      "classification": "unsupported substring control, not requested removal/replacement family; no earlier baseline rerun, no regression attribution",
+      "expected": {
+        "stdout": "NjpiY2E6ZGVmYXVsdDpzZXQ=",
+        "stderr": "",
+        "status": 0,
+        "entries": {
+          "bin/": null,
+          "work/": null
+        }
+      },
+      "actual": {
+        "stdout": "",
+        "stderr": "c2hlbGw6IFVudGVybWluYXRlZCBvciB1bnN1cHBvcnRlZCBwYXJhbWV0ZXIgZXhwYW5zaW9uIGF0IG9mZnNldCA1NQo=",
+        "status": 2,
+        "entries": {
+          "bin/": null,
+          "work/": null
+        }
+      },
+      "sourceManifest": "11796b4c4d2cb52b2562df6af065d3fd522a8b77708a2f95c54ea76b271d710c"
+    }
+  ],
+  "primary": 29,
+  "historical": 28,
+  "total": 36,
+  "host": {
+    "passed": 10,
+    "total": 10
+  },
+  "freeze": "dba5df8693f6d9d15feb0aa039985d91e2ea7b3a"
+}

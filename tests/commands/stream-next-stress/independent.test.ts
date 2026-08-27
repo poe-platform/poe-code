@@ -399,29 +399,31 @@ contract("split mid-write cancellation retains partial bytes and exact errno-sha
 });
 
 contract("format blocked input cancels and observes late rejection", async () => {
-  const fs = await filesystem("memory");
-  await fs.writeFile("/fixture/input", bytes("abc"));
-  const controller = new AbortController();
-  const reason = new FsError("ENOENT", { path: "/caller-input-cancel" });
-  let rejectPending: ((reason: unknown) => void) | undefined;
-  let entered: (() => void) | undefined;
-  const ready = new Promise<void>(resolve => { entered = resolve; });
-  const wrapped = intercept(fs, { readStream: (_path: string, options: ReadStreamOptions = {}): ByteSource => ({
-    [Symbol.asyncIterator]() { return { next: async () => {
-      assert.ok(options.signal);
-      entered!();
-      return new Promise<IteratorResult<Uint8Array>>((_resolve, reject) => { rejectPending = reject; });
-    } }; },
-  }) });
-  const instance = shell(wrapped);
-  try {
-    const pending = instance.exec("rev input", { signal: controller.signal });
-    await ready;
-    controller.abort(reason);
-    await assert.rejects(pending, error => error === reason);
-    rejectPending!(new Error("late host read failure"));
-    await pause();
-  } finally { await instance.dispose(); }
+  for (const command of ["nl", "rev", "unexpand"]) {
+    const fs = await filesystem("memory");
+    await fs.writeFile("/fixture/input", bytes("abc"));
+    const controller = new AbortController();
+    const reason = new FsError("ENOENT", { path: "/caller-input-cancel" });
+    let rejectPending: ((reason: unknown) => void) | undefined;
+    let entered: (() => void) | undefined;
+    const ready = new Promise<void>(resolve => { entered = resolve; });
+    const wrapped = intercept(fs, { readStream: (_path: string, options: ReadStreamOptions = {}): ByteSource => ({
+      [Symbol.asyncIterator]() { return { next: async () => {
+        assert.ok(options.signal);
+        entered!();
+        return new Promise<IteratorResult<Uint8Array>>((_resolve, reject) => { rejectPending = reject; });
+      } }; },
+    }) });
+    const instance = shell(wrapped);
+    try {
+      const pending = instance.exec(`${command} input`, { signal: controller.signal });
+      await ready;
+      controller.abort(reason);
+      await assert.rejects(pending, error => error === reason);
+      rejectPending!(new Error("late host read failure"));
+      await pause();
+    } finally { await instance.dispose(); }
+  }
 });
 
 contract("format blocked output cancels and observes late sink rejection", async () => {

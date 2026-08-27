@@ -1,0 +1,807 @@
+{
+  "schema": 1,
+  "instrumentationVersion": 1,
+  "candidate": "f1a90436c45208ca248e058a039893233c608daa",
+  "mutationBase": {
+    "commit": "2748e2abbc2dc838e02b1d75ee7d967f0749e8ad",
+    "tree": "2e0838b8e92ff88583e4e9651fe5a4549742ada6",
+    "parent": "710ae52f9f8db6be99aa6798a0246fce4e7b827e",
+    "changedPathCount": 181,
+    "changedPaths": [
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/.gitignore",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/README.md",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/REPORT.md",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/SHA256SUMS",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-001/commands.json",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-001/outcome.json",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-001/raw/extract-candidate.stderr",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-001/raw/extract-candidate.stdout",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-001/raw/git-archive-candidate.stderr",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-001/raw/list-packed-tarball.stderr",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-001/raw/list-packed-tarball.stdout",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-001/raw/npm-build-candidate.stderr",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-001/raw/npm-build-candidate.stdout",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-001/raw/npm-ci-candidate.stderr",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-001/raw/npm-ci-candidate.stdout",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-001/raw/npm-install-packed-candidate.stderr",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-001/raw/npm-install-packed-candidate.stdout",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-001/raw/npm-pack-candidate.stderr",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-001/raw/npm-pack-candidate.stdout",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-001/raw/version-git.stderr",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-001/raw/version-git.stdout",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-001/raw/version-npm.stderr",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-001/raw/version-npm.stdout",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-001/raw/version-tar.stderr",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-001/raw/version-tar.stdout",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-001/raw/worker-ambient-host-environment.stderr",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-001/raw/worker-ambient-host-environment.stdout",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-001/raw/worker-baseline.stderr",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-001/raw/worker-baseline.stdout",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-001/raw/worker-environment-always-ascii.stderr",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-001/raw/worker-environment-always-ascii.stdout",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-001/raw/worker-environment-work-undercharged.stderr",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-001/raw/worker-environment-work-undercharged.stdout",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-001/raw/worker-explicit-precedence-ignored.stderr",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-001/raw/worker-explicit-precedence-ignored.stdout",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-001/raw/worker-filename-unescaped.stderr",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-001/raw/worker-filename-unescaped.stdout",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-001/raw/worker-inherited-key-lookup.stderr",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-001/raw/worker-inherited-key-lookup.stdout",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-001/raw/worker-output-code-units-not-utf8-bytes.stderr",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-001/raw/worker-output-code-units-not-utf8-bytes.stdout",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-001/raw/worker-sink-write-not-awaited.stderr",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-001/raw/worker-sink-write-not-awaited.stdout",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-001/results.json",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-002/commands.json",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-002/outcome.json",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-002/raw/extract-candidate.stderr",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-002/raw/extract-candidate.stdout",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-002/raw/git-archive-candidate.stderr",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-002/raw/list-packed-tarball.stderr",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-002/raw/list-packed-tarball.stdout",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-002/raw/npm-build-candidate.stderr",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-002/raw/npm-build-candidate.stdout",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-002/raw/npm-ci-candidate.stderr",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-002/raw/npm-ci-candidate.stdout",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-002/raw/npm-install-packed-candidate.stderr",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-002/raw/npm-install-packed-candidate.stdout",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-002/raw/npm-pack-candidate.stderr",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-002/raw/npm-pack-candidate.stdout",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-002/raw/version-git.stderr",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-002/raw/version-git.stdout",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-002/raw/version-npm.stderr",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-002/raw/version-npm.stdout",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-002/raw/version-tar.stderr",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-002/raw/version-tar.stdout",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-002/raw/worker-ambient-host-environment.stderr",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-002/raw/worker-ambient-host-environment.stdout",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-002/raw/worker-baseline.stderr",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-002/raw/worker-baseline.stdout",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-002/raw/worker-environment-always-ascii.stderr",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-002/raw/worker-environment-always-ascii.stdout",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-002/raw/worker-environment-work-undercharged.stderr",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-002/raw/worker-environment-work-undercharged.stdout",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-002/raw/worker-explicit-precedence-ignored.stderr",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-002/raw/worker-explicit-precedence-ignored.stdout",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-002/raw/worker-filename-unescaped.stderr",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-002/raw/worker-filename-unescaped.stdout",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-002/raw/worker-inherited-key-lookup.stderr",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-002/raw/worker-inherited-key-lookup.stdout",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-002/raw/worker-output-code-units-not-utf8-bytes.stderr",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-002/raw/worker-output-code-units-not-utf8-bytes.stdout",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-002/raw/worker-sink-write-not-awaited.stderr",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-002/raw/worker-sink-write-not-awaited.stdout",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-002/results.json",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-003/outcome.json",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-003/raw/launcher.stderr",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-004/commands.json",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-004/outcome.json",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-004/raw/extract-candidate.stderr",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-004/raw/extract-candidate.stdout",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-004/raw/git-archive-candidate.stderr",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-004/raw/list-packed-tarball.stderr",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-004/raw/list-packed-tarball.stdout",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-004/raw/npm-build-candidate.stderr",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-004/raw/npm-build-candidate.stdout",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-004/raw/npm-ci-candidate.stderr",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-004/raw/npm-ci-candidate.stdout",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-004/raw/npm-install-packed-candidate.stderr",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-004/raw/npm-install-packed-candidate.stdout",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-004/raw/npm-pack-candidate.stderr",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-004/raw/npm-pack-candidate.stdout",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-004/raw/version-git.stderr",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-004/raw/version-git.stdout",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-004/raw/version-npm.stderr",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-004/raw/version-npm.stdout",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-004/raw/version-tar.stderr",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-004/raw/version-tar.stdout",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-004/raw/worker-ambient-host-environment.stderr",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-004/raw/worker-ambient-host-environment.stdout",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-004/raw/worker-baseline.stderr",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-004/raw/worker-baseline.stdout",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-004/raw/worker-environment-always-ascii.stderr",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-004/raw/worker-environment-always-ascii.stdout",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-004/raw/worker-environment-work-undercharged.stderr",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-004/raw/worker-environment-work-undercharged.stdout",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-004/raw/worker-explicit-precedence-ignored.stderr",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-004/raw/worker-explicit-precedence-ignored.stdout",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-004/raw/worker-filename-unescaped.stderr",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-004/raw/worker-filename-unescaped.stdout",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-004/raw/worker-inherited-key-lookup.stderr",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-004/raw/worker-inherited-key-lookup.stdout",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-004/raw/worker-output-code-units-not-utf8-bytes.stderr",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-004/raw/worker-output-code-units-not-utf8-bytes.stdout",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-004/raw/worker-sink-write-not-awaited.stderr",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-004/raw/worker-sink-write-not-awaited.stdout",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-004/results.json",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-005/commands.json",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-005/outcome.json",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-005/raw/extract-candidate.stderr",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-005/raw/extract-candidate.stdout",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-005/raw/git-archive-candidate.stderr",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-005/raw/list-packed-tarball.stderr",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-005/raw/list-packed-tarball.stdout",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-005/raw/load-guard-outside-same-bytes.stderr",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-005/raw/load-guard-outside-same-bytes.stdout",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-005/raw/load-guard-positive-installed.stderr",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-005/raw/load-guard-positive-installed.stdout",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-005/raw/load-guard-wrong-installed-package.stderr",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-005/raw/load-guard-wrong-installed-package.stdout",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-005/raw/npm-build-candidate.stderr",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-005/raw/npm-build-candidate.stdout",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-005/raw/npm-ci-candidate.stderr",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-005/raw/npm-ci-candidate.stdout",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-005/raw/npm-install-packed-candidate.stderr",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-005/raw/npm-install-packed-candidate.stdout",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-005/raw/npm-install-wrong-package.stderr",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-005/raw/npm-install-wrong-package.stdout",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-005/raw/npm-pack-candidate.stderr",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-005/raw/npm-pack-candidate.stdout",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-005/raw/npm-pack-wrong-package.stderr",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-005/raw/npm-pack-wrong-package.stdout",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-005/raw/version-git.stderr",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-005/raw/version-git.stdout",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-005/raw/version-npm.stderr",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-005/raw/version-npm.stdout",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-005/raw/version-tar.stderr",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-005/raw/version-tar.stdout",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-005/raw/worker-ambient-host-environment.stderr",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-005/raw/worker-ambient-host-environment.stdout",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-005/raw/worker-baseline.stderr",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-005/raw/worker-baseline.stdout",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-005/raw/worker-environment-always-ascii.stderr",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-005/raw/worker-environment-always-ascii.stdout",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-005/raw/worker-environment-work-undercharged.stderr",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-005/raw/worker-environment-work-undercharged.stdout",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-005/raw/worker-explicit-precedence-ignored.stderr",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-005/raw/worker-explicit-precedence-ignored.stdout",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-005/raw/worker-filename-unescaped.stderr",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-005/raw/worker-filename-unescaped.stdout",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-005/raw/worker-inherited-key-lookup.stderr",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-005/raw/worker-inherited-key-lookup.stdout",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-005/raw/worker-output-code-units-not-utf8-bytes.stderr",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-005/raw/worker-output-code-units-not-utf8-bytes.stdout",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-005/raw/worker-sink-write-not-awaited.stderr",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-005/raw/worker-sink-write-not-awaited.stdout",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/attempt-005/results.json",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/fixtures/consumer-package.json",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/harness/load-guard.mjs",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/harness/mutations.mjs",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/harness/run.mjs",
+      "tests/commands/tree-charset-independent-20260827/mutation-controls/harness/worker.mjs"
+    ],
+    "onlyMutationControlsChanged": true,
+    "sourceAuthentication": [
+      {
+        "path": "tests/commands/tree-charset-independent-20260827/mutation-controls/harness/run.mjs",
+        "bytes": 28503,
+        "sha256": "557a17da7dddc3b631acc646ce366b1bbbfa124a3936730a967c1d278a9011d3"
+      },
+      {
+        "path": "tests/commands/tree-charset-independent-20260827/mutation-controls/harness/mutations.mjs",
+        "bytes": 2677,
+        "sha256": "e9ff322ae85ee1cf91b9346d1fee5a14fa7c6c5123bbefb5ae43367edac62cca"
+      },
+      {
+        "path": "tests/commands/tree-charset-independent-20260827/mutation-controls/harness/worker.mjs",
+        "bytes": 11584,
+        "sha256": "4a79ab8bf980bad74263f593a7899cb5b91dd01f4a46c9c3a2e9f07f1e709c79"
+      },
+      {
+        "path": "tests/commands/tree-charset-independent-20260827/mutation-controls/harness/load-guard.mjs",
+        "bytes": 1996,
+        "sha256": "8d7d90566400eaff3e3c96e94e9e216d75cd22cc8df5d2a58564211c16420ec9"
+      },
+      {
+        "path": "tests/commands/tree-charset-independent-20260827/mutation-controls/fixtures/consumer-package.json",
+        "bytes": 94,
+        "sha256": "2117b333e225739ff6121a4736215f5e0d1a758296054edf1f4098b7f7803005"
+      }
+    ]
+  },
+  "finalAudit": {
+    "evidenceCommit": "7a8e7bebc96156e511fc91389341d87e5aba317c",
+    "postCommitFreezeCommit": "a67ae4e81a728b198d181095f6ca7c87a138b25c",
+    "ownedPathLog": [
+      "a67ae4e81a728b198d181095f6ca7c87a138b25c docs(tree): freeze final packaging audit",
+      "7a8e7bebc96156e511fc91389341d87e5aba317c docs(tree): record final packaging evidence audit",
+      "b76613226767d0e79995b643ebfa278b6e932780 test(tree): reconcile full package validation evidence"
+    ],
+    "recordedGap": "specific mutated-module load-time hashes remain unrecorded"
+  },
+  "derivative": {
+    "originalRunSha256": "557a17da7dddc3b631acc646ce366b1bbbfa124a3936730a967c1d278a9011d3",
+    "derivedRunSha256": "1a2db1840e897fdf50938af24522264ace91f88122ee89e1f9aa897dba958d94",
+    "transformations": [
+      {
+        "label": "explicit-output-root",
+        "occurrences": 1,
+        "searchBytes": 47,
+        "searchSha256": "056656e9712bb83c76d2a02475f07706e444035ec0682a62e1d14faad036853b",
+        "replacementBytes": 54,
+        "replacementSha256": "c74ea4effc41eb934c0f8dc6b32b838c5f77d7d7fef65eb1016cb1fdf69a8151"
+      },
+      {
+        "label": "explicit-repository-root",
+        "occurrences": 1,
+        "searchBytes": 62,
+        "searchSha256": "a8a1e6f4b0597494632d0511cacffbcf50048347ef3f9ac65a2cafb2e66380e5",
+        "replacementBytes": 61,
+        "replacementSha256": "56a9d7d805893bd0d566975ab96222b505fe71ee1e4be5c8fed4225c51bafe16"
+      },
+      {
+        "label": "explicit-fixture-path",
+        "occurrences": 1,
+        "searchBytes": 74,
+        "searchSha256": "cd8039e48f64c9ed725be9cff77346e12c7c0140dd5a509bf1a03407ac448224",
+        "replacementBytes": 57,
+        "replacementSha256": "60d70fdc0d526e22ba59fdae7f8f120f7cc6b2d8fddf9e9ee6bba38e9bcb7931"
+      },
+      {
+        "label": "instrumentation-tool-manifest",
+        "occurrences": 1,
+        "searchBytes": 121,
+        "searchSha256": "b0766f768adfd11c69820ed12cde60fe1edc1a4eb7c7e894b6035413f16f6503",
+        "replacementBytes": 162,
+        "replacementSha256": "1b8e3bfaed35049d4a1a285aa6c2b00547126629f24875372c3359c55aa11da8"
+      },
+      {
+        "label": "pre-entry-loader-worker-launch",
+        "occurrences": 1,
+        "searchBytes": 738,
+        "searchSha256": "f7d130fe889be1aae58d5ee2aacc55385ac0f030d2026861a0467b1e5be79d0f",
+        "replacementBytes": 3863,
+        "replacementSha256": "124d7ff079415e585596fcdfbb6c94d1369f82290b740d410221af71b8150e26"
+      },
+      {
+        "label": "baseline-loaded-module-hashes",
+        "occurrences": 1,
+        "searchBytes": 184,
+        "searchSha256": "d66b06c700577b8e64ff087ff78dfaeb323559554aae606fe63af949985af413",
+        "replacementBytes": 795,
+        "replacementSha256": "ac6f6d779fd2a9d561f68b8c688afe9ccd063a204b4c38f974a46c27872dfd88"
+      },
+      {
+        "label": "declared-mutant-hash-worker-launch",
+        "occurrences": 1,
+        "searchBytes": 177,
+        "searchSha256": "8585faf471e1722de8f7424460aff1673b0e5f335452756345006257b3b8258d",
+        "replacementBytes": 708,
+        "replacementSha256": "d77ef5bb59c31ddeee19b48043c75dcefc0034d14c921d276a6b64ada8f61347"
+      },
+      {
+        "label": "mapped-assertion-and-load-attestation",
+        "occurrences": 1,
+        "searchBytes": 137,
+        "searchSha256": "6695fa9da09884ee79fc1dd6ab48c919aae0d3aff7578c8e838ed20705ec37e2",
+        "replacementBytes": 581,
+        "replacementSha256": "7b21e09798cb8d2cf63b1bd3dde7bc9606f63f38e4743880147f986c91a5e9c2"
+      },
+      {
+        "label": "result-schema-provenance",
+        "occurrences": 1,
+        "searchBytes": 70,
+        "searchSha256": "6166f9e27d31e4d965b9bf37049e24d3f6ff233680bcb8b46e1abe0de99afcde",
+        "replacementBytes": 169,
+        "replacementSha256": "b5c24690b350879ca6586d62689aac3bdb1e83196bb7a86b86164322ad7ae8d3"
+      },
+      {
+        "label": "result-load-authentication-manifest",
+        "occurrences": 1,
+        "searchBytes": 195,
+        "searchSha256": "358093e11a2c4238dce7a86f71bd4f809f658ad8201733184d70dfd40d6b6686",
+        "replacementBytes": 994,
+        "replacementSha256": "f13181deac8bdf50d1fec329358ce3a437b24ae67fa86fa94209777460c020be"
+      },
+      {
+        "label": "refuse-attempt-overwrite",
+        "occurrences": 1,
+        "searchBytes": 431,
+        "searchSha256": "42357c7305d32da08e470d6affc22c80d58d3c93bcc5082f7eaac9255a40b0ef",
+        "replacementBytes": 283,
+        "replacementSha256": "db8aa5fbf605ebcb01be8c43f33fd6efe52e17fd130a0cd1da74b76686926ac1"
+      }
+    ],
+    "files": [
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/mutation-load-auth/.work/run-v1-fc7btt/derived/run.mjs",
+        "resolvedPath": "/Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/mutation-load-auth/.work/run-v1-fc7btt/derived/run.mjs",
+        "bytes": 33994,
+        "sha256": "1a2db1840e897fdf50938af24522264ace91f88122ee89e1f9aa897dba958d94"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/mutation-load-auth/.work/run-v1-fc7btt/derived/mutations.mjs",
+        "resolvedPath": "/Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/mutation-load-auth/.work/run-v1-fc7btt/derived/mutations.mjs",
+        "bytes": 2677,
+        "sha256": "e9ff322ae85ee1cf91b9346d1fee5a14fa7c6c5123bbefb5ae43367edac62cca"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/mutation-load-auth/.work/run-v1-fc7btt/derived/worker.mjs",
+        "resolvedPath": "/Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/mutation-load-auth/.work/run-v1-fc7btt/derived/worker.mjs",
+        "bytes": 11584,
+        "sha256": "4a79ab8bf980bad74263f593a7899cb5b91dd01f4a46c9c3a2e9f07f1e709c79"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/mutation-load-auth/.work/run-v1-fc7btt/derived/load-guard.mjs",
+        "resolvedPath": "/Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/mutation-load-auth/.work/run-v1-fc7btt/derived/load-guard.mjs",
+        "bytes": 1996,
+        "sha256": "8d7d90566400eaff3e3c96e94e9e216d75cd22cc8df5d2a58564211c16420ec9"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/mutation-load-auth/.work/run-v1-fc7btt/derived/bootstrap.mjs",
+        "resolvedPath": "/Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/mutation-load-auth/.work/run-v1-fc7btt/derived/bootstrap.mjs",
+        "bytes": 1060,
+        "sha256": "74fd07c931e8a9096b2e2963dbf099938119b894e72fb4cd2f067293332a4051"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/mutation-load-auth/.work/run-v1-fc7btt/derived/load-hash-loader.mjs",
+        "resolvedPath": "/Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/mutation-load-auth/.work/run-v1-fc7btt/derived/load-hash-loader.mjs",
+        "bytes": 3591,
+        "sha256": "25b1a83d26e2a9fa960c07c4d78185cb0c37aebcab524cd5faffef92fcf61c41"
+      }
+    ],
+    "normalizedDiff": {
+      "bytes": 16573,
+      "sha256": "c1931552275a997f2bcf4fb8fed3181d7edf3114f43079c608b3f196d22ae1e3"
+    },
+    "unchangedInputs": [
+      "mutations.mjs",
+      "worker.mjs",
+      "load-guard.mjs",
+      "consumer-package.json"
+    ]
+  },
+  "wrapper": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/mutation-load-auth/harness/run-v1.mjs",
+    "resolvedPath": "/Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/mutation-load-auth/harness/run-v1.mjs",
+    "bytes": 26389,
+    "sha256": "a1ca754a75fb4515ae7559a6ed7ea0b569a4b566e642b6f7f5aaf2f9930b269d"
+  },
+  "wrapperCommands": [
+    {
+      "label": "resolve-mutation-commit",
+      "command": "/usr/bin/git",
+      "args": [
+        "rev-parse",
+        "--verify",
+        "2748e2abbc2dc838e02b1d75ee7d967f0749e8ad^{commit}"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "pid": 35178,
+      "timeoutMs": 30000,
+      "timedOut": false,
+      "overflow": false,
+      "exitEvent": {
+        "code": 0,
+        "signal": null
+      },
+      "closeEvent": {
+        "code": 0,
+        "signal": null
+      },
+      "stdoutBytes": 41,
+      "stderrBytes": 0,
+      "stdoutSha256": "3e61a59d4268899089cf07cb3449f7a7bf359b680f09976c6bc1d7106db2e5bb",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "absentAfterClose": true,
+      "processGroupAbsentAfterClose": true
+    },
+    {
+      "label": "resolve-mutation-tree",
+      "command": "/usr/bin/git",
+      "args": [
+        "rev-parse",
+        "--verify",
+        "2748e2abbc2dc838e02b1d75ee7d967f0749e8ad^{tree}"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "pid": 35181,
+      "timeoutMs": 30000,
+      "timedOut": false,
+      "overflow": false,
+      "exitEvent": {
+        "code": 0,
+        "signal": null
+      },
+      "closeEvent": {
+        "code": 0,
+        "signal": null
+      },
+      "stdoutBytes": 41,
+      "stderrBytes": 0,
+      "stdoutSha256": "7ec071b158bfc497b30f04c79fe674878ed1c3ae9bbd9582690cd421523da761",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "absentAfterClose": true,
+      "processGroupAbsentAfterClose": true
+    },
+    {
+      "label": "resolve-mutation-parent",
+      "command": "/usr/bin/git",
+      "args": [
+        "rev-parse",
+        "--verify",
+        "2748e2abbc2dc838e02b1d75ee7d967f0749e8ad^"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "pid": 35182,
+      "timeoutMs": 30000,
+      "timedOut": false,
+      "overflow": false,
+      "exitEvent": {
+        "code": 0,
+        "signal": null
+      },
+      "closeEvent": {
+        "code": 0,
+        "signal": null
+      },
+      "stdoutBytes": 41,
+      "stderrBytes": 0,
+      "stdoutSha256": "76434dd99f6dd455ad2d070c3775d0c613501bcf44e7e173260cfa66a738b201",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "absentAfterClose": true,
+      "processGroupAbsentAfterClose": true
+    },
+    {
+      "label": "mutation-changed-paths",
+      "command": "/usr/bin/git",
+      "args": [
+        "diff-tree",
+        "--no-commit-id",
+        "--name-only",
+        "-r",
+        "2748e2abbc2dc838e02b1d75ee7d967f0749e8ad"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "pid": 35183,
+      "timeoutMs": 30000,
+      "timedOut": false,
+      "overflow": false,
+      "exitEvent": {
+        "code": 0,
+        "signal": null
+      },
+      "closeEvent": {
+        "code": 0,
+        "signal": null
+      },
+      "stdoutBytes": 20131,
+      "stderrBytes": 0,
+      "stdoutSha256": "c191cc267303b110c43c1b61d7f1c66a2ead28c95b4f32b284134290460f92e7",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "absentAfterClose": true,
+      "processGroupAbsentAfterClose": true
+    },
+    {
+      "label": "resolve-candidate-commit",
+      "command": "/usr/bin/git",
+      "args": [
+        "rev-parse",
+        "--verify",
+        "f1a90436c45208ca248e058a039893233c608daa^{commit}"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "pid": 35184,
+      "timeoutMs": 30000,
+      "timedOut": false,
+      "overflow": false,
+      "exitEvent": {
+        "code": 0,
+        "signal": null
+      },
+      "closeEvent": {
+        "code": 0,
+        "signal": null
+      },
+      "stdoutBytes": 41,
+      "stderrBytes": 0,
+      "stdoutSha256": "9be78e7238e4f38dbf11550952e1b8379537c00a005a74626edfa8dc7bcf2084",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "absentAfterClose": true,
+      "processGroupAbsentAfterClose": true
+    },
+    {
+      "label": "resolve-final-audit-7a8e7beb",
+      "command": "/usr/bin/git",
+      "args": [
+        "rev-parse",
+        "--verify",
+        "7a8e7bebc96156e511fc91389341d87e5aba317c^{commit}"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "pid": 35185,
+      "timeoutMs": 30000,
+      "timedOut": false,
+      "overflow": false,
+      "exitEvent": {
+        "code": 0,
+        "signal": null
+      },
+      "closeEvent": {
+        "code": 0,
+        "signal": null
+      },
+      "stdoutBytes": 41,
+      "stderrBytes": 0,
+      "stdoutSha256": "4238c4f9a5a5ac255a05a8275c22079f2bc95f291199e39eb4500a5c70106f48",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "absentAfterClose": true,
+      "processGroupAbsentAfterClose": true
+    },
+    {
+      "label": "resolve-final-audit-a67ae4e8",
+      "command": "/usr/bin/git",
+      "args": [
+        "rev-parse",
+        "--verify",
+        "a67ae4e81a728b198d181095f6ca7c87a138b25c^{commit}"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "pid": 35186,
+      "timeoutMs": 30000,
+      "timedOut": false,
+      "overflow": false,
+      "exitEvent": {
+        "code": 0,
+        "signal": null
+      },
+      "closeEvent": {
+        "code": 0,
+        "signal": null
+      },
+      "stdoutBytes": 41,
+      "stderrBytes": 0,
+      "stdoutSha256": "a6e7752f66a595a15a72aadd49bb9cd82e683b22520d89826b993e20ade4b79f",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "absentAfterClose": true,
+      "processGroupAbsentAfterClose": true
+    },
+    {
+      "label": "final-audit-path-log",
+      "command": "/usr/bin/git",
+      "args": [
+        "log",
+        "--format=%H %s",
+        "--",
+        "tests/commands/tree-charset-independent-20260827/final-audit"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "pid": 35187,
+      "timeoutMs": 30000,
+      "timedOut": false,
+      "overflow": false,
+      "exitEvent": {
+        "code": 0,
+        "signal": null
+      },
+      "closeEvent": {
+        "code": 0,
+        "signal": null
+      },
+      "stdoutBytes": 269,
+      "stderrBytes": 0,
+      "stdoutSha256": "551bacf08cae531ab859d6fb71072097a3883e033814ab63a9e6fdb4371df417",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "absentAfterClose": true,
+      "processGroupAbsentAfterClose": true
+    },
+    {
+      "label": "show-run-mjs",
+      "command": "/usr/bin/git",
+      "args": [
+        "show",
+        "2748e2abbc2dc838e02b1d75ee7d967f0749e8ad:tests/commands/tree-charset-independent-20260827/mutation-controls/harness/run.mjs"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "pid": 35188,
+      "timeoutMs": 30000,
+      "timedOut": false,
+      "overflow": false,
+      "exitEvent": {
+        "code": 0,
+        "signal": null
+      },
+      "closeEvent": {
+        "code": 0,
+        "signal": null
+      },
+      "stdoutBytes": 28503,
+      "stderrBytes": 0,
+      "stdoutSha256": "557a17da7dddc3b631acc646ce366b1bbbfa124a3936730a967c1d278a9011d3",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "absentAfterClose": true,
+      "processGroupAbsentAfterClose": true
+    },
+    {
+      "label": "show-mutations-mjs",
+      "command": "/usr/bin/git",
+      "args": [
+        "show",
+        "2748e2abbc2dc838e02b1d75ee7d967f0749e8ad:tests/commands/tree-charset-independent-20260827/mutation-controls/harness/mutations.mjs"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "pid": 35189,
+      "timeoutMs": 30000,
+      "timedOut": false,
+      "overflow": false,
+      "exitEvent": {
+        "code": 0,
+        "signal": null
+      },
+      "closeEvent": {
+        "code": 0,
+        "signal": null
+      },
+      "stdoutBytes": 2677,
+      "stderrBytes": 0,
+      "stdoutSha256": "e9ff322ae85ee1cf91b9346d1fee5a14fa7c6c5123bbefb5ae43367edac62cca",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "absentAfterClose": true,
+      "processGroupAbsentAfterClose": true
+    },
+    {
+      "label": "show-worker-mjs",
+      "command": "/usr/bin/git",
+      "args": [
+        "show",
+        "2748e2abbc2dc838e02b1d75ee7d967f0749e8ad:tests/commands/tree-charset-independent-20260827/mutation-controls/harness/worker.mjs"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "pid": 35190,
+      "timeoutMs": 30000,
+      "timedOut": false,
+      "overflow": false,
+      "exitEvent": {
+        "code": 0,
+        "signal": null
+      },
+      "closeEvent": {
+        "code": 0,
+        "signal": null
+      },
+      "stdoutBytes": 11584,
+      "stderrBytes": 0,
+      "stdoutSha256": "4a79ab8bf980bad74263f593a7899cb5b91dd01f4a46c9c3a2e9f07f1e709c79",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "absentAfterClose": true,
+      "processGroupAbsentAfterClose": true
+    },
+    {
+      "label": "show-load-guard-mjs",
+      "command": "/usr/bin/git",
+      "args": [
+        "show",
+        "2748e2abbc2dc838e02b1d75ee7d967f0749e8ad:tests/commands/tree-charset-independent-20260827/mutation-controls/harness/load-guard.mjs"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "pid": 35191,
+      "timeoutMs": 30000,
+      "timedOut": false,
+      "overflow": false,
+      "exitEvent": {
+        "code": 0,
+        "signal": null
+      },
+      "closeEvent": {
+        "code": 0,
+        "signal": null
+      },
+      "stdoutBytes": 1996,
+      "stderrBytes": 0,
+      "stdoutSha256": "8d7d90566400eaff3e3c96e94e9e216d75cd22cc8df5d2a58564211c16420ec9",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "absentAfterClose": true,
+      "processGroupAbsentAfterClose": true
+    },
+    {
+      "label": "show-consumer-fixture",
+      "command": "/usr/bin/git",
+      "args": [
+        "show",
+        "2748e2abbc2dc838e02b1d75ee7d967f0749e8ad:tests/commands/tree-charset-independent-20260827/mutation-controls/fixtures/consumer-package.json"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "pid": 35192,
+      "timeoutMs": 30000,
+      "timedOut": false,
+      "overflow": false,
+      "exitEvent": {
+        "code": 0,
+        "signal": null
+      },
+      "closeEvent": {
+        "code": 0,
+        "signal": null
+      },
+      "stdoutBytes": 94,
+      "stderrBytes": 0,
+      "stdoutSha256": "2117b333e225739ff6121a4736215f5e0d1a758296054edf1f4098b7f7803005",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "absentAfterClose": true,
+      "processGroupAbsentAfterClose": true
+    },
+    {
+      "label": "derivative-diff",
+      "command": "/usr/bin/git",
+      "args": [
+        "diff",
+        "--no-index",
+        "--src-prefix=a/",
+        "--dst-prefix=b/",
+        "--",
+        "/Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/mutation-load-auth/.work/run-v1-fc7btt/original",
+        "/Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/mutation-load-auth/.work/run-v1-fc7btt/derived"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "pid": 35193,
+      "timeoutMs": 30000,
+      "timedOut": false,
+      "overflow": false,
+      "exitEvent": {
+        "code": 1,
+        "signal": null
+      },
+      "closeEvent": {
+        "code": 1,
+        "signal": null
+      },
+      "stdoutBytes": 17703,
+      "stderrBytes": 0,
+      "stdoutSha256": "95ad46aa71db4246bbef3d368cad153b2ef9a42de18b7b2f82b0990962d50a4d",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "absentAfterClose": true,
+      "processGroupAbsentAfterClose": true
+    },
+    {
+      "label": "derived-mutation-run",
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--unhandled-rejections=strict",
+        "/Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/mutation-load-auth/.work/run-v1-fc7btt/derived/run.mjs"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "pid": 35194,
+      "timeoutMs": 600000,
+      "timedOut": false,
+      "overflow": false,
+      "exitEvent": {
+        "code": 0,
+        "signal": null
+      },
+      "closeEvent": {
+        "code": 0,
+        "signal": null
+      },
+      "stdoutBytes": 1206,
+      "stderrBytes": 0,
+      "stdoutSha256": "4dac1c49be0543eadb4f775031fa0217b1e071c1202f5ff2362befd4065ad837",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "absentAfterClose": true,
+      "processGroupAbsentAfterClose": true
+    }
+  ],
+  "allWrapperChildrenClosed": true,
+  "allWrapperProcessGroupsClosed": true,
+  "wrapperTimeouts": 0,
+  "wrapperOutputOverflows": 0
+}

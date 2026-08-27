@@ -1,0 +1,423 @@
+[
+  {
+    "label": "resolve-mutation-commit",
+    "command": "/usr/bin/git",
+    "args": [
+      "rev-parse",
+      "--verify",
+      "2748e2abbc2dc838e02b1d75ee7d967f0749e8ad^{commit}"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash",
+    "pid": 35178,
+    "timeoutMs": 30000,
+    "timedOut": false,
+    "overflow": false,
+    "exitEvent": {
+      "code": 0,
+      "signal": null
+    },
+    "closeEvent": {
+      "code": 0,
+      "signal": null
+    },
+    "stdoutBytes": 41,
+    "stderrBytes": 0,
+    "stdoutSha256": "3e61a59d4268899089cf07cb3449f7a7bf359b680f09976c6bc1d7106db2e5bb",
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "absentAfterClose": true,
+    "processGroupAbsentAfterClose": true
+  },
+  {
+    "label": "resolve-mutation-tree",
+    "command": "/usr/bin/git",
+    "args": [
+      "rev-parse",
+      "--verify",
+      "2748e2abbc2dc838e02b1d75ee7d967f0749e8ad^{tree}"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash",
+    "pid": 35181,
+    "timeoutMs": 30000,
+    "timedOut": false,
+    "overflow": false,
+    "exitEvent": {
+      "code": 0,
+      "signal": null
+    },
+    "closeEvent": {
+      "code": 0,
+      "signal": null
+    },
+    "stdoutBytes": 41,
+    "stderrBytes": 0,
+    "stdoutSha256": "7ec071b158bfc497b30f04c79fe674878ed1c3ae9bbd9582690cd421523da761",
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "absentAfterClose": true,
+    "processGroupAbsentAfterClose": true
+  },
+  {
+    "label": "resolve-mutation-parent",
+    "command": "/usr/bin/git",
+    "args": [
+      "rev-parse",
+      "--verify",
+      "2748e2abbc2dc838e02b1d75ee7d967f0749e8ad^"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash",
+    "pid": 35182,
+    "timeoutMs": 30000,
+    "timedOut": false,
+    "overflow": false,
+    "exitEvent": {
+      "code": 0,
+      "signal": null
+    },
+    "closeEvent": {
+      "code": 0,
+      "signal": null
+    },
+    "stdoutBytes": 41,
+    "stderrBytes": 0,
+    "stdoutSha256": "76434dd99f6dd455ad2d070c3775d0c613501bcf44e7e173260cfa66a738b201",
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "absentAfterClose": true,
+    "processGroupAbsentAfterClose": true
+  },
+  {
+    "label": "mutation-changed-paths",
+    "command": "/usr/bin/git",
+    "args": [
+      "diff-tree",
+      "--no-commit-id",
+      "--name-only",
+      "-r",
+      "2748e2abbc2dc838e02b1d75ee7d967f0749e8ad"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash",
+    "pid": 35183,
+    "timeoutMs": 30000,
+    "timedOut": false,
+    "overflow": false,
+    "exitEvent": {
+      "code": 0,
+      "signal": null
+    },
+    "closeEvent": {
+      "code": 0,
+      "signal": null
+    },
+    "stdoutBytes": 20131,
+    "stderrBytes": 0,
+    "stdoutSha256": "c191cc267303b110c43c1b61d7f1c66a2ead28c95b4f32b284134290460f92e7",
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "absentAfterClose": true,
+    "processGroupAbsentAfterClose": true
+  },
+  {
+    "label": "resolve-candidate-commit",
+    "command": "/usr/bin/git",
+    "args": [
+      "rev-parse",
+      "--verify",
+      "f1a90436c45208ca248e058a039893233c608daa^{commit}"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash",
+    "pid": 35184,
+    "timeoutMs": 30000,
+    "timedOut": false,
+    "overflow": false,
+    "exitEvent": {
+      "code": 0,
+      "signal": null
+    },
+    "closeEvent": {
+      "code": 0,
+      "signal": null
+    },
+    "stdoutBytes": 41,
+    "stderrBytes": 0,
+    "stdoutSha256": "9be78e7238e4f38dbf11550952e1b8379537c00a005a74626edfa8dc7bcf2084",
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "absentAfterClose": true,
+    "processGroupAbsentAfterClose": true
+  },
+  {
+    "label": "resolve-final-audit-7a8e7beb",
+    "command": "/usr/bin/git",
+    "args": [
+      "rev-parse",
+      "--verify",
+      "7a8e7bebc96156e511fc91389341d87e5aba317c^{commit}"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash",
+    "pid": 35185,
+    "timeoutMs": 30000,
+    "timedOut": false,
+    "overflow": false,
+    "exitEvent": {
+      "code": 0,
+      "signal": null
+    },
+    "closeEvent": {
+      "code": 0,
+      "signal": null
+    },
+    "stdoutBytes": 41,
+    "stderrBytes": 0,
+    "stdoutSha256": "4238c4f9a5a5ac255a05a8275c22079f2bc95f291199e39eb4500a5c70106f48",
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "absentAfterClose": true,
+    "processGroupAbsentAfterClose": true
+  },
+  {
+    "label": "resolve-final-audit-a67ae4e8",
+    "command": "/usr/bin/git",
+    "args": [
+      "rev-parse",
+      "--verify",
+      "a67ae4e81a728b198d181095f6ca7c87a138b25c^{commit}"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash",
+    "pid": 35186,
+    "timeoutMs": 30000,
+    "timedOut": false,
+    "overflow": false,
+    "exitEvent": {
+      "code": 0,
+      "signal": null
+    },
+    "closeEvent": {
+      "code": 0,
+      "signal": null
+    },
+    "stdoutBytes": 41,
+    "stderrBytes": 0,
+    "stdoutSha256": "a6e7752f66a595a15a72aadd49bb9cd82e683b22520d89826b993e20ade4b79f",
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "absentAfterClose": true,
+    "processGroupAbsentAfterClose": true
+  },
+  {
+    "label": "final-audit-path-log",
+    "command": "/usr/bin/git",
+    "args": [
+      "log",
+      "--format=%H %s",
+      "--",
+      "tests/commands/tree-charset-independent-20260827/final-audit"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash",
+    "pid": 35187,
+    "timeoutMs": 30000,
+    "timedOut": false,
+    "overflow": false,
+    "exitEvent": {
+      "code": 0,
+      "signal": null
+    },
+    "closeEvent": {
+      "code": 0,
+      "signal": null
+    },
+    "stdoutBytes": 269,
+    "stderrBytes": 0,
+    "stdoutSha256": "551bacf08cae531ab859d6fb71072097a3883e033814ab63a9e6fdb4371df417",
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "absentAfterClose": true,
+    "processGroupAbsentAfterClose": true
+  },
+  {
+    "label": "show-run-mjs",
+    "command": "/usr/bin/git",
+    "args": [
+      "show",
+      "2748e2abbc2dc838e02b1d75ee7d967f0749e8ad:tests/commands/tree-charset-independent-20260827/mutation-controls/harness/run.mjs"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash",
+    "pid": 35188,
+    "timeoutMs": 30000,
+    "timedOut": false,
+    "overflow": false,
+    "exitEvent": {
+      "code": 0,
+      "signal": null
+    },
+    "closeEvent": {
+      "code": 0,
+      "signal": null
+    },
+    "stdoutBytes": 28503,
+    "stderrBytes": 0,
+    "stdoutSha256": "557a17da7dddc3b631acc646ce366b1bbbfa124a3936730a967c1d278a9011d3",
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "absentAfterClose": true,
+    "processGroupAbsentAfterClose": true
+  },
+  {
+    "label": "show-mutations-mjs",
+    "command": "/usr/bin/git",
+    "args": [
+      "show",
+      "2748e2abbc2dc838e02b1d75ee7d967f0749e8ad:tests/commands/tree-charset-independent-20260827/mutation-controls/harness/mutations.mjs"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash",
+    "pid": 35189,
+    "timeoutMs": 30000,
+    "timedOut": false,
+    "overflow": false,
+    "exitEvent": {
+      "code": 0,
+      "signal": null
+    },
+    "closeEvent": {
+      "code": 0,
+      "signal": null
+    },
+    "stdoutBytes": 2677,
+    "stderrBytes": 0,
+    "stdoutSha256": "e9ff322ae85ee1cf91b9346d1fee5a14fa7c6c5123bbefb5ae43367edac62cca",
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "absentAfterClose": true,
+    "processGroupAbsentAfterClose": true
+  },
+  {
+    "label": "show-worker-mjs",
+    "command": "/usr/bin/git",
+    "args": [
+      "show",
+      "2748e2abbc2dc838e02b1d75ee7d967f0749e8ad:tests/commands/tree-charset-independent-20260827/mutation-controls/harness/worker.mjs"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash",
+    "pid": 35190,
+    "timeoutMs": 30000,
+    "timedOut": false,
+    "overflow": false,
+    "exitEvent": {
+      "code": 0,
+      "signal": null
+    },
+    "closeEvent": {
+      "code": 0,
+      "signal": null
+    },
+    "stdoutBytes": 11584,
+    "stderrBytes": 0,
+    "stdoutSha256": "4a79ab8bf980bad74263f593a7899cb5b91dd01f4a46c9c3a2e9f07f1e709c79",
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "absentAfterClose": true,
+    "processGroupAbsentAfterClose": true
+  },
+  {
+    "label": "show-load-guard-mjs",
+    "command": "/usr/bin/git",
+    "args": [
+      "show",
+      "2748e2abbc2dc838e02b1d75ee7d967f0749e8ad:tests/commands/tree-charset-independent-20260827/mutation-controls/harness/load-guard.mjs"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash",
+    "pid": 35191,
+    "timeoutMs": 30000,
+    "timedOut": false,
+    "overflow": false,
+    "exitEvent": {
+      "code": 0,
+      "signal": null
+    },
+    "closeEvent": {
+      "code": 0,
+      "signal": null
+    },
+    "stdoutBytes": 1996,
+    "stderrBytes": 0,
+    "stdoutSha256": "8d7d90566400eaff3e3c96e94e9e216d75cd22cc8df5d2a58564211c16420ec9",
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "absentAfterClose": true,
+    "processGroupAbsentAfterClose": true
+  },
+  {
+    "label": "show-consumer-fixture",
+    "command": "/usr/bin/git",
+    "args": [
+      "show",
+      "2748e2abbc2dc838e02b1d75ee7d967f0749e8ad:tests/commands/tree-charset-independent-20260827/mutation-controls/fixtures/consumer-package.json"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash",
+    "pid": 35192,
+    "timeoutMs": 30000,
+    "timedOut": false,
+    "overflow": false,
+    "exitEvent": {
+      "code": 0,
+      "signal": null
+    },
+    "closeEvent": {
+      "code": 0,
+      "signal": null
+    },
+    "stdoutBytes": 94,
+    "stderrBytes": 0,
+    "stdoutSha256": "2117b333e225739ff6121a4736215f5e0d1a758296054edf1f4098b7f7803005",
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "absentAfterClose": true,
+    "processGroupAbsentAfterClose": true
+  },
+  {
+    "label": "derivative-diff",
+    "command": "/usr/bin/git",
+    "args": [
+      "diff",
+      "--no-index",
+      "--src-prefix=a/",
+      "--dst-prefix=b/",
+      "--",
+      "/Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/mutation-load-auth/.work/run-v1-fc7btt/original",
+      "/Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/mutation-load-auth/.work/run-v1-fc7btt/derived"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash",
+    "pid": 35193,
+    "timeoutMs": 30000,
+    "timedOut": false,
+    "overflow": false,
+    "exitEvent": {
+      "code": 1,
+      "signal": null
+    },
+    "closeEvent": {
+      "code": 1,
+      "signal": null
+    },
+    "stdoutBytes": 17703,
+    "stderrBytes": 0,
+    "stdoutSha256": "95ad46aa71db4246bbef3d368cad153b2ef9a42de18b7b2f82b0990962d50a4d",
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "absentAfterClose": true,
+    "processGroupAbsentAfterClose": true
+  },
+  {
+    "label": "derived-mutation-run",
+    "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "args": [
+      "--unhandled-rejections=strict",
+      "/Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/mutation-load-auth/.work/run-v1-fc7btt/derived/run.mjs"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash",
+    "pid": 35194,
+    "timeoutMs": 600000,
+    "timedOut": false,
+    "overflow": false,
+    "exitEvent": {
+      "code": 0,
+      "signal": null
+    },
+    "closeEvent": {
+      "code": 0,
+      "signal": null
+    },
+    "stdoutBytes": 1206,
+    "stderrBytes": 0,
+    "stdoutSha256": "4dac1c49be0543eadb4f775031fa0217b1e071c1202f5ff2362befd4065ad837",
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "absentAfterClose": true,
+    "processGroupAbsentAfterClose": true
+  }
+]

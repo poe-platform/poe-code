@@ -841,7 +841,8 @@ export class WebDavFileSystem implements FileSystem {
         const timeout = active && davChild(active, "timeout");
         if (root.namespace !== "DAV:" || root.localName !== "prop" || !scope || !davChild(scope, "exclusive")
           || !type || !davChild(type, "write") || !depth || scalar(depth) !== "infinity"
-          || !href || `<${scalar(href)}>` !== token || !rootHref || this.hrefPath(scalar(rootHref)) !== path
+          || !href || `<${scalar(href)}>` !== token
+          || (lockRoot !== undefined && (!rootHref || this.hrefPath(scalar(rootHref)) !== path))
           || !timeout || !/^Second-[1-9]\d*$/i.test(scalar(timeout)) || Number(scalar(timeout).slice(7)) > 4_294_967_295) {
           fail("ENOTSUP", "LOCK", path, "server did not grant a finite exclusive depth-infinity write lock");
         }

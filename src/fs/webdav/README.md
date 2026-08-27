@@ -125,6 +125,14 @@ when available, guards LOCK with `If-Match`; otherwise `If-Match: *` prevents
 LOCK from creating a missing resource. Nonempty collections return `ENOTEMPTY`.
 Type mismatches return `EISDIR`/`ENOTDIR`; moving onto an ancestor is rejected.
 
+New-lock responses may use the RFC2518 activelock form without `lockroot`.
+For a successful acquisition on the validated request target, the required
+Lock-Token header and matching XML token bind the grant to that target. If a
+`lockroot` is present, it must still identify that exact requested path. Status,
+exclusive/write/depth-infinity, finite timeout, URL confinement and redirect
+checks are unchanged. This compatibility does not infer backing identity or
+relax malformed token/ETag handling; see RFC2518 sections 8.10.1, 9.5 and 12.1.
+
 Locks request `Second-60`, but servers choose the actual finite timeout. There
 is no refresh or automatic mutation retry. `UNLOCK` is attempted even after
 cancellation or failed/partial transfer, with a fresh request deadline. Cleanup

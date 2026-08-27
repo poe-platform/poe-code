@@ -1,0 +1,12 @@
+{
+  "args": [
+    "--unhandled-rejections=strict",
+    "--import",
+    "tsx",
+    "--test",
+    "tests/fs/webdav/real-service/legacy-lock.test.ts"
+  ],
+  "exitCode": 1,
+  "sourceSha256": "b7503e186108baae2ec69b56ee45d782b423a514c71094067b2ea877ee3c221e",
+  "testSha256": "76285e0452f774038c5c5865c83abc8f88860a08e3d5a0f80bc613b2998afd99"
+}

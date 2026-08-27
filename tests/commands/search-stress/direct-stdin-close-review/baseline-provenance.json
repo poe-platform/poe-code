@@ -1,0 +1,1318 @@
+{
+  "baseline": "c5d44262ecca11009df6ce32a180005d3f3cb574",
+  "chosenBecause": "User-supplied committed pre-fix proof, not current HEAD; raw stdin enters AvailableRecords.source without an inner cancellation-aware reader.",
+  "observedHead": "64f7e837cdb9adb85ff3b8d7154dcbd42c2a0777",
+  "baselineRg": {
+    "path": "src/commands/search/rg.ts",
+    "kind": "build-input",
+    "gitBlob": "41f1569b58177a387db3c53bf136d23c5067c6f7",
+    "bytes": 10520,
+    "sha256": "fee9a380679e17da179a1c6b4f9bacf9c89a10e0dd1d18981c26b9296f9846d3"
+  },
+  "candidate": "NOT ROUTED; no candidate source inspected",
+  "historical": "Supplied sidecar 9/10 is not this independent cohort",
+  "files": [
+    {
+      "path": "src/commands/archive/create.ts",
+      "kind": "build-input",
+      "gitBlob": "5048ed88f35912dfe3171b4f8d75f78f8909443d",
+      "bytes": 8594,
+      "sha256": "cdddce8ccd1d53987fa1a314cdc6e04d48246fa59fd0880fb444c66bdca7199c"
+    },
+    {
+      "path": "src/commands/archive/extract.ts",
+      "kind": "build-input",
+      "gitBlob": "da8ad235cf48ad1f09f44c141dbf247a2996ab4b",
+      "bytes": 15935,
+      "sha256": "fc2f8a4151ca7c5398cd64fe4a55156f2a1ac6feb75404cfb96c8f5b6d4a1536"
+    },
+    {
+      "path": "src/commands/archive/format.ts",
+      "kind": "build-input",
+      "gitBlob": "09c8f28548b98e41fd68700abbe97c619051eb9a",
+      "bytes": 10149,
+      "sha256": "05445d1d80023bbd5a59ff3a47b14bcea038f1f8476835fd973a01ee89fd19ac"
+    },
+    {
+      "path": "src/commands/archive/index.ts",
+      "kind": "build-input",
+      "gitBlob": "9f206705cd1fc0a8494af8dfae5ed4f47659e267",
+      "bytes": 3599,
+      "sha256": "6f23a98dbe89bb37f44799f47c365fb430e910f87363c50291f7b44293e416d0"
+    },
+    {
+      "path": "src/commands/archive/internal.ts",
+      "kind": "build-input",
+      "gitBlob": "e0b85bdf7ef334b366b9fdb8e2691b563eb6262e",
+      "bytes": 8296,
+      "sha256": "6e9a204384490607973f7e1109c51a082319b6eed2fecb8f410d9d51711367d9"
+    },
+    {
+      "path": "src/commands/archive/options.ts",
+      "kind": "build-input",
+      "gitBlob": "a12273dbfdfc5365a6b49eecc60cb7094db73389",
+      "bytes": 10282,
+      "sha256": "1c2dc4e57c80901b402f8f08b1a5638b7acad9f882aca67ae4f9be73295bf956"
+    },
+    {
+      "path": "src/commands/archive/stream.ts",
+      "kind": "build-input",
+      "gitBlob": "bdab8a55afebe54b61e594fe7e7fec4ef8f982bb",
+      "bytes": 3715,
+      "sha256": "31a3b70bf7ce89f81e287cac09c6816637bd06dc398010dd82386ce5d93ceba4"
+    },
+    {
+      "path": "src/commands/basic.ts",
+      "kind": "build-input",
+      "gitBlob": "4180a22e83a6246287b5a2d169cfbf039f6e4b37",
+      "bytes": 8605,
+      "sha256": "635d6956e728277f78387c0a03a00d5567ba608f39bb2b9b65a8f1ffdf79017f"
+    },
+    {
+      "path": "src/commands/bytes/checksums/index.ts",
+      "kind": "build-input",
+      "gitBlob": "9d0af357a4b97d4ab145e3d9d2e57013ee2f271a",
+      "bytes": 12862,
+      "sha256": "042bb34a0b81a03d70bc148eae753e2f562817dda5a5023bddda67a567088bab"
+    },
+    {
+      "path": "src/commands/bytes/compression/files.ts",
+      "kind": "build-input",
+      "gitBlob": "d0351023bcf2374dd2fd7a37a8b8d6134bf66f93",
+      "bytes": 10141,
+      "sha256": "1f8d8b243f10d63ae5cccea40d1d9cfc6cb841a46bea15cc61f4a5caa70572df"
+    },
+    {
+      "path": "src/commands/bytes/compression/gunzip.ts",
+      "kind": "build-input",
+      "gitBlob": "f9f612b09588199a4f5ac8352b548505d3af41a7",
+      "bytes": 5874,
+      "sha256": "6bf534778fa82558ae36bd96412662a8e4c4e864c0a93f15b40d1148a64f835f"
+    },
+    {
+      "path": "src/commands/bytes/compression/index.ts",
+      "kind": "build-input",
+      "gitBlob": "6c2e773b5e76a45398e2ab68d0545a8793109911",
+      "bytes": 2119,
+      "sha256": "cb0de2e91261eaf255491fe5dc2e62683ef002e07cddef5827b57527eaaf88f9"
+    },
+    {
+      "path": "src/commands/bytes/compression/options.ts",
+      "kind": "build-input",
+      "gitBlob": "9d5b488692f35139be3c2dbf0480d98b9fa7732a",
+      "bytes": 1764,
+      "sha256": "3218bbcba8d3c5c113eb7f4761f81e0919e380c6f3de76b26b6a52c44ba7cd95"
+    },
+    {
+      "path": "src/commands/bytes/compression/stream.ts",
+      "kind": "build-input",
+      "gitBlob": "ad4faddb6372786fff00ea0a6f2666c46fb4827c",
+      "bytes": 3390,
+      "sha256": "573157fda5382df052ea30011ff3094ac6c838618e1272689766819777a8c9e4"
+    },
+    {
+      "path": "src/commands/bytes/encoding/base.ts",
+      "kind": "build-input",
+      "gitBlob": "e0cfec562cb54de156b7552fa202107532a42ceb",
+      "bytes": 4324,
+      "sha256": "91e4309ca4947fbf3ac0dd9d0dc9431d3d22d29fb66e46706290922c9feb134d"
+    },
+    {
+      "path": "src/commands/bytes/encoding/index.ts",
+      "kind": "build-input",
+      "gitBlob": "e0a457aa2a88f624eb412b405975ef7d902d907c",
+      "bytes": 389,
+      "sha256": "6df6b0d7393fd2abb82b476915fc48ae333730c1e9b323a11776a3b9c2607d5f"
+    },
+    {
+      "path": "src/commands/bytes/encoding/od.ts",
+      "kind": "build-input",
+      "gitBlob": "6e711801c87fd1cd5a409cddb8817bac48837430",
+      "bytes": 6148,
+      "sha256": "dbe5312675e4ecf74d852e28ac8134be5586d8aa53d5b21a3cccc5d986213a03"
+    },
+    {
+      "path": "src/commands/bytes/encoding/shared.ts",
+      "kind": "build-input",
+      "gitBlob": "03f68f3a9b0a53745bc33c4d605cd4013b9bd0af",
+      "bytes": 3857,
+      "sha256": "8a0eb870513630296a7f28d7d6867d25aba9b785365b812d740c6d7b4da3d396"
+    },
+    {
+      "path": "src/commands/bytes/encoding/xxd.ts",
+      "kind": "build-input",
+      "gitBlob": "b09bc20594c33eef4a363b5346de110d1874c6c8",
+      "bytes": 5831,
+      "sha256": "1b78b95a9b0175e5297b988a1794310c03786df5a7aa90a4dd261e91ec765a78"
+    },
+    {
+      "path": "src/commands/bytes/index.ts",
+      "kind": "build-input",
+      "gitBlob": "7567da63d7acfc529db7dcd145ff55ed41b89b59",
+      "bytes": 1040,
+      "sha256": "70643f22b1b47c1d6422b97d76cacf95e4e6337521f6f42e0f5f559bacbed84f"
+    },
+    {
+      "path": "src/commands/copy-identity.ts",
+      "kind": "build-input",
+      "gitBlob": "020bedd35a95893736aae453330c96cff58a112b",
+      "bytes": 2179,
+      "sha256": "f1a03403fadc0138377bd3b215dafecf4b28a187549da8e80764a3fd08238dfe"
+    },
+    {
+      "path": "src/commands/diff-patch/diff-format.ts",
+      "kind": "build-input",
+      "gitBlob": "ff3fd370362301cccd39322b643deb99b314b0fd",
+      "bytes": 5221,
+      "sha256": "e7d66d54d65e28d152fc451d63aae1813eddf450001c0dd4dcb15ca67c941e24"
+    },
+    {
+      "path": "src/commands/diff-patch/diff.ts",
+      "kind": "build-input",
+      "gitBlob": "3df080754f641b8119f5e920022632aa00344409",
+      "bytes": 12580,
+      "sha256": "c3eb090a70a590992cd165486911aec51fa5dbac0e746453dbc0809fe76bc06e"
+    },
+    {
+      "path": "src/commands/diff-patch/index.ts",
+      "kind": "build-input",
+      "gitBlob": "d7bc0c3c474ff420a0b8b431aaf3ed5764935512",
+      "bytes": 961,
+      "sha256": "82465ab079aac196a8cf99231fc9d9e7f4f60135f862802e02d2e523d0bebf17"
+    },
+    {
+      "path": "src/commands/diff-patch/patch-envelope.ts",
+      "kind": "build-input",
+      "gitBlob": "fa5745894d0a060fef9ff1edb511c9079f7f47a7",
+      "bytes": 2408,
+      "sha256": "f6a15e78d7cea41d503f5352206efeb9fa950871c820af730cf27ea06ade99e8"
+    },
+    {
+      "path": "src/commands/diff-patch/patch-formats.ts",
+      "kind": "build-input",
+      "gitBlob": "454e9a55b7bf5f7eb029145cc31a6bda3a3dfb14",
+      "bytes": 10854,
+      "sha256": "a78045ac43900582bdb19f0476414e8566c4e1e2edc86b654bc760cf86de3aa4"
+    },
+    {
+      "path": "src/commands/diff-patch/patch-gnu-paths.ts",
+      "kind": "build-input",
+      "gitBlob": "309f40b1c1b2888d63e67d7009bda5235c1d7b47",
+      "bytes": 9631,
+      "sha256": "3a06d5b33d3c0df12ff83b0bbf4396d90906d6fd61e3ca1bd5537f508c4282af"
+    },
+    {
+      "path": "src/commands/diff-patch/patch-gnu-reject.ts",
+      "kind": "build-input",
+      "gitBlob": "9513aa990e9845c0c5fccebae3807d82c1d83c9a",
+      "bytes": 3400,
+      "sha256": "5df12efd994c0187998f0112a5fac595f376142f2cd187a5e0b40738f7b6cf02"
+    },
+    {
+      "path": "src/commands/diff-patch/patch-path.ts",
+      "kind": "build-input",
+      "gitBlob": "418cba549e068658f587927bfc41430880656fcb",
+      "bytes": 4210,
+      "sha256": "053f471db60b5a2878144451a821f8590415a85535cb86e5d9ee0367e257ef94"
+    },
+    {
+      "path": "src/commands/diff-patch/patch.ts",
+      "kind": "build-input",
+      "gitBlob": "b449fc498ddb51f8603b02ac09f33cd6244f4472",
+      "bytes": 19215,
+      "sha256": "4676d745a02a739f403025c5c1867de44052a5be4c7e29f8e59a899244330606"
+    },
+    {
+      "path": "src/commands/diff-patch/shared.ts",
+      "kind": "build-input",
+      "gitBlob": "99d12adf757d03e779d180a1d027735bed88a6cb",
+      "bytes": 6906,
+      "sha256": "81ab0a3d1fbb29feb91761a7a60a535ca5768079ee0415e0788cbebfb1f3617e"
+    },
+    {
+      "path": "src/commands/diff-patch/unified.ts",
+      "kind": "build-input",
+      "gitBlob": "97f812aaceb9ed305f1a2c04ce9c8265842757ca",
+      "bytes": 11415,
+      "sha256": "31ac868fb3fabcde00178fa02cdf0fbcabdfa408cead72bb2d3aedc2c90813f5"
+    },
+    {
+      "path": "src/commands/env-split.ts",
+      "kind": "build-input",
+      "gitBlob": "437c36d72c12e985d39c5dc9e09b6bb644753500",
+      "bytes": 7492,
+      "sha256": "b005331bff0dd207a65b9001d235020f005eed45b813cca912851502c3f9dcf4"
+    },
+    {
+      "path": "src/commands/execution.ts",
+      "kind": "build-input",
+      "gitBlob": "61e49c6d8684ccdb5c2f80624d9c8fda9f1d5d2c",
+      "bytes": 9269,
+      "sha256": "61940d3b86593243c13cab716be87f84647e42b69476757482dfebafc7d693a6"
+    },
+    {
+      "path": "src/commands/file/classify.ts",
+      "kind": "build-input",
+      "gitBlob": "05231698609b94ec1170ac13e303f525ecae482d",
+      "bytes": 7260,
+      "sha256": "fcdee375d2f97afae9d8dc6a23eff64440258aea0a8c2adff7b2968875bc6535"
+    },
+    {
+      "path": "src/commands/file/index.ts",
+      "kind": "build-input",
+      "gitBlob": "599e8b914ff67f9da5142bdfc1c675f8dec4afa7",
+      "bytes": 10496,
+      "sha256": "5278a91c223e182a6bfd2961b16545ff42e2f4e986c25f5dc7f35371aee0d178"
+    },
+    {
+      "path": "src/commands/file/shared.ts",
+      "kind": "build-input",
+      "gitBlob": "5ac1d09ac66227a99806ff3017b74f800b7f188c",
+      "bytes": 6937,
+      "sha256": "bb6d9ac67eeace8e52220c94f7eb2d78236fe045d3d1312814c5b9dcb0755fc5"
+    },
+    {
+      "path": "src/commands/filesystem.ts",
+      "kind": "build-input",
+      "gitBlob": "470911e2a7cb9fe051d3b3616a6730e415d9f87c",
+      "bytes": 22388,
+      "sha256": "74fb5fdd66c2eaf7a8f31d2be8c6be0e94c09ff65892c561bbc0c6bc6f875a8f"
+    },
+    {
+      "path": "src/commands/find.ts",
+      "kind": "build-input",
+      "gitBlob": "cc1854873f02be5a6ede00fa78283f3b80f647ee",
+      "bytes": 9193,
+      "sha256": "534a5359a42bb7bf0020f21092740262edbe9053744e29d153fa9e6319539db2"
+    },
+    {
+      "path": "src/commands/grep.ts",
+      "kind": "build-input",
+      "gitBlob": "68ebe72c37722cddb5f939be13653115b883429e",
+      "bytes": 5742,
+      "sha256": "a5e93d8dd97c35f1a1530792b38478942647e6e66ac01fcd44fbea05fbfa78d1"
+    },
+    {
+      "path": "src/commands/index.ts",
+      "kind": "build-input",
+      "gitBlob": "ced15c531fe849ac874f2b3825bda12a0928daa5",
+      "bytes": 2292,
+      "sha256": "67a0e34ea9a8518d2349b4707ef5214e9da0de790ea5c1973daac71dabc70aa9"
+    },
+    {
+      "path": "src/commands/internal.ts",
+      "kind": "build-input",
+      "gitBlob": "b13134023b32f79e76df8cc2de3c93c36b7f608f",
+      "bytes": 8820,
+      "sha256": "ade20c95a7d3dac5250a214d112ab25d710ce7909a4c6605f18ee21781949654"
+    },
+    {
+      "path": "src/commands/metadata/chmod.ts",
+      "kind": "build-input",
+      "gitBlob": "c8a5ce1fa00216db5df8468110c674cf61329da6",
+      "bytes": 6888,
+      "sha256": "9286ebc9bea074bf9dad58cb6197aa5e10d325c549187eefbc9203ac76b09cfd"
+    },
+    {
+      "path": "src/commands/metadata/index.ts",
+      "kind": "build-input",
+      "gitBlob": "d8fec3587825da535600455ac219486a1cbd4943",
+      "bytes": 1091,
+      "sha256": "bc4ad8e3fb5474796ff326b1f53b8c1b84cf45647640f8246d4ccfb3b61d467e"
+    },
+    {
+      "path": "src/commands/metadata/internal.ts",
+      "kind": "build-input",
+      "gitBlob": "a2f986f3b6b0da855b8edc587f091c42fcc0193d",
+      "bytes": 3195,
+      "sha256": "bd26d6f4a098c565ce38da6bc269503469638837d3dce47e21ac9c1604a45cd7"
+    },
+    {
+      "path": "src/commands/metadata/mktemp.ts",
+      "kind": "build-input",
+      "gitBlob": "5e650b9bead674f831430d87da9e530c740e73d0",
+      "bytes": 5683,
+      "sha256": "1165d822477e68f6b4dfac3db6a7fa43247226137122c0d980e1490b80bc34d4"
+    },
+    {
+      "path": "src/commands/metadata/stat.ts",
+      "kind": "build-input",
+      "gitBlob": "539cab73328ecc58a05cf0631d976201f518b7b1",
+      "bytes": 11535,
+      "sha256": "fab291cc4e5668526fc1247e155f5878e1235d9d95a5096d34bcfa9f022d7f3b"
+    },
+    {
+      "path": "src/commands/move.ts",
+      "kind": "build-input",
+      "gitBlob": "c8b98b9b354594c5c8797b7a5d6d5b1b66ec3f3b",
+      "bytes": 8000,
+      "sha256": "31e1fe6a2c0fc9efb9efa44b636d9478d4cab273de4c4e809d4f572b28084042"
+    },
+    {
+      "path": "src/commands/network/args.ts",
+      "kind": "build-input",
+      "gitBlob": "4a58d259a98a839927aa9de70c94e4f7d9f9f1e1",
+      "bytes": 8573,
+      "sha256": "409dac8442c1151d4404d6ce05dd72ab35655aae80c9c0930743ff6af9ea1f4c"
+    },
+    {
+      "path": "src/commands/network/body.ts",
+      "kind": "build-input",
+      "gitBlob": "3ce326f779c9732b1f59b96373c6f0c5f22920e2",
+      "bytes": 7380,
+      "sha256": "93d8a8463ac7df91c8ef88368f2ee8524a0abd7e7970badf4d1312587a34c880"
+    },
+    {
+      "path": "src/commands/network/curl.ts",
+      "kind": "build-input",
+      "gitBlob": "a1808127a728f8fd1c072657303ec202e488b12c",
+      "bytes": 15881,
+      "sha256": "4859cc27a94d4ffe74ecadf20280d5d519d85babc50d24f55b9c51357c2dca42"
+    },
+    {
+      "path": "src/commands/network/index.ts",
+      "kind": "build-input",
+      "gitBlob": "3e276efcb2b97a0da8773f58cf08ff25954fdc3d",
+      "bytes": 1049,
+      "sha256": "ffee94bffaaef2d96760a24cc164af04951bc30477bcbbdd101144abf4b8e329"
+    },
+    {
+      "path": "src/commands/network/output.ts",
+      "kind": "build-input",
+      "gitBlob": "394b03e6815015fab408b4a1d39585ee39b6519b",
+      "bytes": 3730,
+      "sha256": "544488561b8ad360c7d41eeec7928659f3a94acd16f196af93ed3349c6a70bab"
+    },
+    {
+      "path": "src/commands/network/shared.ts",
+      "kind": "build-input",
+      "gitBlob": "0eb39a0037af707b75193886432ebaf7fc71f6bd",
+      "bytes": 2606,
+      "sha256": "7adab18b67c7584b646b3a6508729d7ab0672e7a0808f512f74ae16464f8842f"
+    },
+    {
+      "path": "src/commands/network/transport.ts",
+      "kind": "build-input",
+      "gitBlob": "fe3233039020eeb312fed0b61228fdf9cf600bac",
+      "bytes": 3133,
+      "sha256": "b6246ceacc90c0451028755fdf9cbb795790968676f48c8e3f9258128286f844"
+    },
+    {
+      "path": "src/commands/network/types.ts",
+      "kind": "build-input",
+      "gitBlob": "71a08ae76efadfd0e1c41e407400bf0ac8b33a4f",
+      "bytes": 1832,
+      "sha256": "806dd2132dd4004404dbb5c21a421e84c53c161f750f6acc1aedd0f8054b5fe9"
+    },
+    {
+      "path": "src/commands/predicates.ts",
+      "kind": "build-input",
+      "gitBlob": "4a7ce27295d6347a26bd9edf4c0d2769afec0297",
+      "bytes": 5535,
+      "sha256": "ca98df3ffbc6939007fd73939ad40b67028dfe66c1129a3647fbb061213bd347"
+    },
+    {
+      "path": "src/commands/regex-execution/client.ts",
+      "kind": "build-input",
+      "gitBlob": "401f00362b232e5b2a8cf330966e9698077b9cbd",
+      "bytes": 13794,
+      "sha256": "1638d492d11d466875b98451a59bace4e60e71fcd5468d671182187549922bca"
+    },
+    {
+      "path": "src/commands/regex-execution/matching.ts",
+      "kind": "build-input",
+      "gitBlob": "9f1f53ec5fd78ddc2e6062bccaafd038fdec1f07",
+      "bytes": 11796,
+      "sha256": "1d21b81ebbfe361405556aa59b58f6e2cf9f6d487e9518c5d77a90af36690737"
+    },
+    {
+      "path": "src/commands/regex-execution/protocol.ts",
+      "kind": "build-input",
+      "gitBlob": "33c272bd0ffc084bb001ff3320a747b7d747bc33",
+      "bytes": 5187,
+      "sha256": "0b4f9fac518cd31f403c1c0f49e4c7772f783e32df7cfe83ee5d4906426133e6"
+    },
+    {
+      "path": "src/commands/regex-execution/worker.ts",
+      "kind": "build-input",
+      "gitBlob": "40dba6290e6b7446683979e88cfd2ddaae0a5c8b",
+      "bytes": 1248,
+      "sha256": "ad818ba991aa54ce7029e8ca7be7e6d92c326134705c402f244a51da505d044e"
+    },
+    {
+      "path": "src/commands/safejs/index.ts",
+      "kind": "build-input",
+      "gitBlob": "b981d9fc64d9cce94dcc79652ee5437d61b50e80",
+      "bytes": 8649,
+      "sha256": "3978b1f876a3651034a56e793313d54bc5031c650f82d23bc59f40a73545fceb"
+    },
+    {
+      "path": "src/commands/safejs/io.ts",
+      "kind": "build-input",
+      "gitBlob": "99df4659cdb585be82b177e4e40ea3102ea1b87c",
+      "bytes": 4704,
+      "sha256": "ef366f40b1d1d161ec0f2c18f1138daf75693ab416274bb92763ebf73899f2f1"
+    },
+    {
+      "path": "src/commands/safejs/options.ts",
+      "kind": "build-input",
+      "gitBlob": "d632015ceab0146605d271d6ea0b5557a26aea29",
+      "bytes": 2464,
+      "sha256": "4009050c3a75daececeb2e75af46be8872d21a83c7a8132b6221b0b4d87c7a43"
+    },
+    {
+      "path": "src/commands/safejs/render.ts",
+      "kind": "build-input",
+      "gitBlob": "1d8d9a59f4481881c6ad938859c0a64bee0f8ff0",
+      "bytes": 2807,
+      "sha256": "10eabbdc8d3c1f2e7c40aeafd51b15484ece05de844fcb73f2ef1aed01fe5d6e"
+    },
+    {
+      "path": "src/commands/safejs/types.ts",
+      "kind": "build-input",
+      "gitBlob": "99b00cbf92e062838ae253ff6f8649ff4b34985b",
+      "bytes": 2243,
+      "sha256": "edd5f7cf2ed473ca33105cfe1039c3fb36ae913112d0564ea3d9b163b3c08bf4"
+    },
+    {
+      "path": "src/commands/search/glob.ts",
+      "kind": "build-input",
+      "gitBlob": "922d148336c9a612f7e604d0aa32b3ce1ba6c8c6",
+      "bytes": 3157,
+      "sha256": "7bce0c409e26ba1a3cf9c05199a495bec51a935c0bbb61a67825f68302d6c0da"
+    },
+    {
+      "path": "src/commands/search/index.ts",
+      "kind": "build-input",
+      "gitBlob": "8d94d01e37eb91c4ef97da40775ccc097b2d44f5",
+      "bytes": 881,
+      "sha256": "5efc7444e51bd6c8fce07529808d847c89dd7e6d50e34966875a030a90ee77bf"
+    },
+    {
+      "path": "src/commands/search/matcher.ts",
+      "kind": "build-input",
+      "gitBlob": "4cb187c8ad6bbd607df0762c991bd3bcdc5f82af",
+      "bytes": 1074,
+      "sha256": "db1d257b12c3cd11a2c8335fd2b56a3959e95c9a301cd8ed6d3dc16e9744989e"
+    },
+    {
+      "path": "src/commands/search/options.ts",
+      "kind": "build-input",
+      "gitBlob": "3fbac16d008279ff195178f4960bc300e859fece",
+      "bytes": 8823,
+      "sha256": "8e0bd7dea4d395e36ec8ffb6edc8712e3dfacab7cde8e928d8947c7c8aeb5fbf"
+    },
+    {
+      "path": "src/commands/search/output.ts",
+      "kind": "build-input",
+      "gitBlob": "97d266abe7aa2a93388dc9b24f989b2fd0865b10",
+      "bytes": 3899,
+      "sha256": "6a9ebaed985637a62b89978d32a7424c5756104f4b6c2f286106150a819cbcd1"
+    },
+    {
+      "path": "src/commands/search/rg.ts",
+      "kind": "build-input",
+      "gitBlob": "41f1569b58177a387db3c53bf136d23c5067c6f7",
+      "bytes": 10520,
+      "sha256": "fee9a380679e17da179a1c6b4f9bacf9c89a10e0dd1d18981c26b9296f9846d3"
+    },
+    {
+      "path": "src/commands/search/shared.ts",
+      "kind": "build-input",
+      "gitBlob": "dd0c714274531b91c9196ff96d35b9e264e1189b",
+      "bytes": 4879,
+      "sha256": "83d436b5d602cb45cf31bdf6124e4d4696532b67c1d7737712c00e632eb3e724"
+    },
+    {
+      "path": "src/commands/search/walk.ts",
+      "kind": "build-input",
+      "gitBlob": "bb8e231f36ae7ff02089d4c844b742a25cfcfb53",
+      "bytes": 8792,
+      "sha256": "20fa6d36855750ceb3d19fb2efc8c5b736c361f23211fd11858ee2ec2a5e5ba0"
+    },
+    {
+      "path": "src/commands/split/index.ts",
+      "kind": "build-input",
+      "gitBlob": "f6889f7b40c0ea9219827517b0b417ac0f3b8b0d",
+      "bytes": 909,
+      "sha256": "95807b8fc31e38310915a3b5ea593a1ed31ed6b19bbc29ed104150f049d89e60"
+    },
+    {
+      "path": "src/commands/split/io.ts",
+      "kind": "build-input",
+      "gitBlob": "79e2a6d5c08d7308eada8eec0bce27bb9e10edf1",
+      "bytes": 3687,
+      "sha256": "83b42d0087270bb2e365c51b2f5bbf847c749dd1aebf39e15c97b5b068a34879"
+    },
+    {
+      "path": "src/commands/split/names.ts",
+      "kind": "build-input",
+      "gitBlob": "c4299111576b00cbc601de40fcb5e91727f1c78f",
+      "bytes": 1524,
+      "sha256": "3639d937c30f9c57df7dc74588323003a3a9157330862194ca0b42bae2de59a3"
+    },
+    {
+      "path": "src/commands/split/options.ts",
+      "kind": "build-input",
+      "gitBlob": "5926f6ac45f2370a0c3dc350ca77dc6f913b2dec",
+      "bytes": 5885,
+      "sha256": "d85d22d1c2e4afb1641eb3cff48ccbf5e487e8f56fdca2dacb59c1b323e771df"
+    },
+    {
+      "path": "src/commands/split/outputs.ts",
+      "kind": "build-input",
+      "gitBlob": "0dc4dfc4bc2b1d89e48b12f068921c585a3a7e9a",
+      "bytes": 5099,
+      "sha256": "3a46de1948b16b5c8e8917967e17d4e6bffdc1f07d0433e33c01ed36ebf15ee3"
+    },
+    {
+      "path": "src/commands/split/split.ts",
+      "kind": "build-input",
+      "gitBlob": "8404dfb0fe9468221291c274414eb44f2d78c546",
+      "bytes": 5082,
+      "sha256": "4c7d2988862e4ab979de6b8d9ee630bbf3823c2bbf7f1d0f049b7541f3ab50f0"
+    },
+    {
+      "path": "src/commands/stream-format/index.ts",
+      "kind": "build-input",
+      "gitBlob": "cfe925533f0370b601ed45b306e267439f5d1183",
+      "bytes": 1230,
+      "sha256": "4a3da605ea75a71fd8f409654e2c1f42b6daeb9d0194d303e52eb3f71a42b4e6"
+    },
+    {
+      "path": "src/commands/stream-format/nl.ts",
+      "kind": "build-input",
+      "gitBlob": "b14aa82677d61fdf70b0e9c95cea7a514cc7702a",
+      "bytes": 4443,
+      "sha256": "91417793ec91fec3de72864d17a522c88c83f9be111804523289c0eeea71433e"
+    },
+    {
+      "path": "src/commands/stream-format/rev.ts",
+      "kind": "build-input",
+      "gitBlob": "8da48d7cb4426f7954f8a70c20ca5cd79dfe7ec6",
+      "bytes": 2772,
+      "sha256": "250220ec8942cbf624a1acec6dfc5012afa3c68605b6c13e11283877769ce753"
+    },
+    {
+      "path": "src/commands/stream-format/seq.ts",
+      "kind": "build-input",
+      "gitBlob": "210103eda887d357d10cdbfb8c1b58dc99cdfcbf",
+      "bytes": 11724,
+      "sha256": "da12d6b4792fe42a9c21b0dae93e85a00f7a30f0b5067c051cfb9ef0d2f35198"
+    },
+    {
+      "path": "src/commands/stream-format/shared.ts",
+      "kind": "build-input",
+      "gitBlob": "b7802570b4f34efdb99fd98d26b1ab37571baca5",
+      "bytes": 7684,
+      "sha256": "a75bf6c98f5a4ecc76bbf07cbc41d220e957d72d8ceef770c51c950910f0edcb"
+    },
+    {
+      "path": "src/commands/stream-format/unexpand.ts",
+      "kind": "build-input",
+      "gitBlob": "cd409257547ad49b3c1e00bb33da3af4c36ba7c7",
+      "bytes": 4457,
+      "sha256": "465ae7b673d381e2bc038a61e05e701874b954e0bfcd4c3d4d8802910ee30636"
+    },
+    {
+      "path": "src/commands/stream-inspection/expand.ts",
+      "kind": "build-input",
+      "gitBlob": "b994a1e17bea35500bd16d2a7b2343b369720883",
+      "bytes": 3197,
+      "sha256": "d2d9e8b878822f27a74f148c66c0da6edcca3dd40a56749718685d6a5bbf2ff9"
+    },
+    {
+      "path": "src/commands/stream-inspection/fold.ts",
+      "kind": "build-input",
+      "gitBlob": "7376d415aac2b9022efaeb587dcac5dc654429bc",
+      "bytes": 2038,
+      "sha256": "608d9392bad152ed35aeabb94cb7a1b455d87f64a4d6b7183b18f463c2184dd2"
+    },
+    {
+      "path": "src/commands/stream-inspection/index.ts",
+      "kind": "build-input",
+      "gitBlob": "9e4b2216fc95a29a5a6bdfeb439d5908cf075fa7",
+      "bytes": 1278,
+      "sha256": "a7af51784ea70f49fd5bbbc686c2bcc289b75d2e837a6e74987dfdf199864842"
+    },
+    {
+      "path": "src/commands/stream-inspection/numeric-options.ts",
+      "kind": "build-input",
+      "gitBlob": "7c1af2658904fddd01832f3d9a48551c3cb8947c",
+      "bytes": 2008,
+      "sha256": "b09c1781d720c79fbb4ab6b4952616b0455a3214595c7a5649cdfc509752c71a"
+    },
+    {
+      "path": "src/commands/stream-inspection/shared.ts",
+      "kind": "build-input",
+      "gitBlob": "90fce1e5007908663cf8e0f39074d24f54657efe",
+      "bytes": 7472,
+      "sha256": "0df865f2c7d5831acc06903e9fe8b117cd22cb3f1899033a76b0d73a5b46a937"
+    },
+    {
+      "path": "src/commands/stream-inspection/strings.ts",
+      "kind": "build-input",
+      "gitBlob": "a4252aa6c609fb4b351c88dc3a0076fa77bb3230",
+      "bytes": 2456,
+      "sha256": "a5d7e051591541ffeb0dd5d51183bb708afaa836f84565368447793949e5b78c"
+    },
+    {
+      "path": "src/commands/stream-inspection/tac.ts",
+      "kind": "build-input",
+      "gitBlob": "542c3f582d7a95032f3757ac2d6aadb1f485b5f9",
+      "bytes": 2197,
+      "sha256": "2704f57dc67e6e0197833eb0ca1f85db11b5a8307f5cfb9b0995ad61057fcb36"
+    },
+    {
+      "path": "src/commands/streams.ts",
+      "kind": "build-input",
+      "gitBlob": "43ebaabb8f25df0884bf3d523e24fe62e6bd3fec",
+      "bytes": 17015,
+      "sha256": "be601a62f51a95c62778987118e292aea6637ca4e7271486239af2f8d65e7d1c"
+    },
+    {
+      "path": "src/commands/structured/index.ts",
+      "kind": "build-input",
+      "gitBlob": "f2a68de1dd392442cafe407923f7eb336a4c58c5",
+      "bytes": 995,
+      "sha256": "f2842b616b322081023e6091492bf7acb2231dcb2c729e0f376e125271cd0415"
+    },
+    {
+      "path": "src/commands/structured/input.ts",
+      "kind": "build-input",
+      "gitBlob": "6350b5c4f5b8cae9243cf6560c98d9e53cb3128e",
+      "bytes": 14456,
+      "sha256": "fa83e47ea3f0dfbb388f509cd748b733886171c16b10c536a5efa05fa7a9e5ca"
+    },
+    {
+      "path": "src/commands/structured/interpreter.ts",
+      "kind": "build-input",
+      "gitBlob": "f7e0dfcb1815aa90ae49d495e453b4d069139108",
+      "bytes": 21567,
+      "sha256": "bac1cf5325eff5bfa69f1c8bec5d3d8a80bb452fd61cdc802d55a26788acaffc"
+    },
+    {
+      "path": "src/commands/structured/jq.ts",
+      "kind": "build-input",
+      "gitBlob": "f27c7c7925ee22c8aa496b67f5ed6560d125cdfd",
+      "bytes": 11396,
+      "sha256": "096897bfa9d875ba524cebd6b3959c551a26fa5e56d3b0d2fb42f9fabdf80da3"
+    },
+    {
+      "path": "src/commands/structured/limits.ts",
+      "kind": "build-input",
+      "gitBlob": "f40c2edc755f14474ed50491b6f4118be33d7ae5",
+      "bytes": 6675,
+      "sha256": "9919a0c0de44c08a9c63c977f7dc8a6d7319f4111cb37c7f3b249fbfd07743fe"
+    },
+    {
+      "path": "src/commands/structured/numbers.ts",
+      "kind": "build-input",
+      "gitBlob": "fe90b5fcbef68a4a2a4aed164d7599d0dcd22630",
+      "bytes": 6091,
+      "sha256": "1ef4803e8311e554c8b11a590e75f4c9a96fb81614872587f534514fadfc7ae2"
+    },
+    {
+      "path": "src/commands/structured/parser.ts",
+      "kind": "build-input",
+      "gitBlob": "f1bb01cd4c0203109727b70eb3598bd7822298c4",
+      "bytes": 12587,
+      "sha256": "a7bcafcd6a3676ed8e344dcaa1293d4593652c9c343172c5184c8c826d042b51"
+    },
+    {
+      "path": "src/commands/structured/split.ts",
+      "kind": "build-input",
+      "gitBlob": "e2d7bb6635e60e0a479399e97ca8ede386b67dc1",
+      "bytes": 2102,
+      "sha256": "b70b49daa93f472871799159c9702279c6e83d8a4ff2734d86024249a8ee35f6"
+    },
+    {
+      "path": "src/commands/structured/values.ts",
+      "kind": "build-input",
+      "gitBlob": "88556c37d99b451c0d9ef55443c5946c46d46d9b",
+      "bytes": 9063,
+      "sha256": "8d4e7cf5e9182f2c0487be2fba1dd3585c406cc0cfd73c1a38dcb2c95198e46a"
+    },
+    {
+      "path": "src/commands/table-text/comm.ts",
+      "kind": "build-input",
+      "gitBlob": "35e146f4a3479eb4a3f6a539eccc00f8265430a6",
+      "bytes": 3885,
+      "sha256": "34df22e9b6e1ca23ec14e83003aa9758c7d9fc1b1473828429e2ae713e4219cd"
+    },
+    {
+      "path": "src/commands/table-text/index.ts",
+      "kind": "build-input",
+      "gitBlob": "65c8b203c5048b55b1fcf640bd207f0d8f6020c5",
+      "bytes": 1124,
+      "sha256": "9003d5c6d85d283eca5a5e1e50750eae10639ce1830bf68427536c50d40848a9"
+    },
+    {
+      "path": "src/commands/table-text/internal.ts",
+      "kind": "build-input",
+      "gitBlob": "ae46eef22675c641a0c47995c20ed1def0985a37",
+      "bytes": 8443,
+      "sha256": "544935927754e228711318a299c20d95b3954bc756e14785722d0eac67a436d9"
+    },
+    {
+      "path": "src/commands/table-text/join.ts",
+      "kind": "build-input",
+      "gitBlob": "8e4354cce7c6579cda1f41d71340562128542362",
+      "bytes": 9692,
+      "sha256": "83704c0da1bcd137fedf1e90e1d922af482bcfac290bc90f6b7ef3e36b6429b0"
+    },
+    {
+      "path": "src/commands/table-text/paste.ts",
+      "kind": "build-input",
+      "gitBlob": "cbfa601e23c5d49bdb29efdc656482e80e3793ce",
+      "bytes": 3946,
+      "sha256": "39b236794d5254d3e40471d9cb867d488ab4c57c236c2730bd2640ded84d1ba5"
+    },
+    {
+      "path": "src/commands/text-programs/awk-runtime.ts",
+      "kind": "build-input",
+      "gitBlob": "8ec5cc780d46438c80ad2410cd1fa8dbb149f842",
+      "bytes": 27084,
+      "sha256": "30821e08780042b3382ceedb4b133a89475938a1212ed607782e2d0e592bd35e"
+    },
+    {
+      "path": "src/commands/text-programs/awk-syntax.ts",
+      "kind": "build-input",
+      "gitBlob": "46a9936adbbcc15a5228f5606814e4740687537c",
+      "bytes": 22142,
+      "sha256": "179754bbb74643f57f8e19b0a87c43a8793130aa4b4f8d07a4cc14cae871d4d7"
+    },
+    {
+      "path": "src/commands/text-programs/awk-values.ts",
+      "kind": "build-input",
+      "gitBlob": "0dd4f1b5193ab9548eb78a2199582730033a0f11",
+      "bytes": 7118,
+      "sha256": "6824c5348221d98f9d94c058bbe119eaa6aa1e7ca7775af8d460f358436c2d7c"
+    },
+    {
+      "path": "src/commands/text-programs/awk.ts",
+      "kind": "build-input",
+      "gitBlob": "6dbd8bc5125a821de27a70541a8590efeee56243",
+      "bytes": 1831,
+      "sha256": "af422696809543efb470ae219774e32819124035d51a756d5761f41fa4607dc3"
+    },
+    {
+      "path": "src/commands/text-programs/index.ts",
+      "kind": "build-input",
+      "gitBlob": "ffd06b0422a62d76d3d15c6a65ec2cc2805fe3fb",
+      "bytes": 983,
+      "sha256": "6df5a7c5c242e71e18d8a15ea87d1c6c5bcd90aa57edb529af64e147135ea9e2"
+    },
+    {
+      "path": "src/commands/text-programs/regex.ts",
+      "kind": "build-input",
+      "gitBlob": "1cf3c49b631cf046ec0abdcf9879d162334c80e6",
+      "bytes": 16791,
+      "sha256": "23df19386627659c3a5175562a2f8eeda873b81e3dc3e78d3cf51aafa7b3b06f"
+    },
+    {
+      "path": "src/commands/text-programs/sed.ts",
+      "kind": "build-input",
+      "gitBlob": "9be29dd04a0c93934805fb27a76dbaee1e185e9a",
+      "bytes": 22047,
+      "sha256": "38fceb4869a0db8197a050de3430d5b9c5017e1606a4348d17d8004745c645a9"
+    },
+    {
+      "path": "src/commands/text-programs/shared.ts",
+      "kind": "build-input",
+      "gitBlob": "2eff6d5d3f142a6f10be7a081c0f4ac4b4a4d9e5",
+      "bytes": 4351,
+      "sha256": "fec28a956be858e725811f9e83a7f325d99d3152da0231af0d619847e8e6206e"
+    },
+    {
+      "path": "src/commands/text.ts",
+      "kind": "build-input",
+      "gitBlob": "e1f2d07baab23bf7003730435165d1dbe2eaa9e9",
+      "bytes": 16953,
+      "sha256": "08a27afc45d2f5a48b082cc2c979e3a13d01fbef42129bc0e72d5477d56a074d"
+    },
+    {
+      "path": "src/commands/time-env/calendar.ts",
+      "kind": "build-input",
+      "gitBlob": "32a31cbd190bd05100a2ac782265a539bcff6bcb",
+      "bytes": 9990,
+      "sha256": "a761667dddc8ca42df81bfad154c04d433d63a243432d4299a5704a1d16f31ec"
+    },
+    {
+      "path": "src/commands/time-env/date.ts",
+      "kind": "build-input",
+      "gitBlob": "7ab8c1f8f59214f169490b6f4684715ad1efaa65",
+      "bytes": 6310,
+      "sha256": "e1e2df940c7464112279eba3e407b80a3fb2f792932763300c85748825add726"
+    },
+    {
+      "path": "src/commands/time-env/format.ts",
+      "kind": "build-input",
+      "gitBlob": "c8c70d09560f6a37c9e4607a123be4f69c93a7fa",
+      "bytes": 8085,
+      "sha256": "ddbabf9ac2918869ed32a641fb9e2c290ee71b9bbf07ccaab64f9fc3b29b22b0"
+    },
+    {
+      "path": "src/commands/time-env/index.ts",
+      "kind": "build-input",
+      "gitBlob": "dd1cf7779cb9609ef33747772da780b486f0516f",
+      "bytes": 1170,
+      "sha256": "ddbad0cf7599324eb165b14ae9352326de57d817f5302f16f4737915aa1aed60"
+    },
+    {
+      "path": "src/commands/time-env/printenv.ts",
+      "kind": "build-input",
+      "gitBlob": "969ff57fea84c998365e4871cc734c9bda1bd3aa",
+      "bytes": 2006,
+      "sha256": "ee13e1a416da4f7ed153fa9535a716fb3c43d4e5d07444efdc0a7d88075d0c33"
+    },
+    {
+      "path": "src/commands/time-env/shared.ts",
+      "kind": "build-input",
+      "gitBlob": "a4e1ad5ee397ce84de9456a4c7d81437f9862570",
+      "bytes": 4089,
+      "sha256": "e7572901c107373afa51adba1b4e97d01ced89e71e53e4ad0affefbdaab5f532"
+    },
+    {
+      "path": "src/commands/time-env/sleep.ts",
+      "kind": "build-input",
+      "gitBlob": "99135b02133cd88abb35da5cd1aee674f21371aa",
+      "bytes": 5247,
+      "sha256": "b0e8aca87bbcc690653f8c6db3cb0039832a481f6bedfbc381deb12bb6b4de96"
+    },
+    {
+      "path": "src/commands/tree/arguments.ts",
+      "kind": "build-input",
+      "gitBlob": "545875a99b37617cd4e8741ea22c74068cb92395",
+      "bytes": 4552,
+      "sha256": "848b3e07aafefc67de77efccaa446904d9a1920cb158e094217c18e24a6a2762"
+    },
+    {
+      "path": "src/commands/tree/index.ts",
+      "kind": "build-input",
+      "gitBlob": "08351d6de8cd9940a6b01c54b7aae5dec2683c8c",
+      "bytes": 934,
+      "sha256": "cdd900d8e489736ec860aa55dfc7013e01c3dba797cbe51ec1a4366120b9cefc"
+    },
+    {
+      "path": "src/commands/tree/io.ts",
+      "kind": "build-input",
+      "gitBlob": "799c1edcca260704c0ba31a22694fc4dcdb4756b",
+      "bytes": 3768,
+      "sha256": "163f2412e5fcca1dc0cd0ac7264beb29b8180efdd65c34fdff08f84a670471e1"
+    },
+    {
+      "path": "src/commands/tree/options.ts",
+      "kind": "build-input",
+      "gitBlob": "c053ac2a3a73e11ce02f44aa4963f526f8880abd",
+      "bytes": 1013,
+      "sha256": "8eefe8b28a9341af79e22714ab9898abf07d04fb0a5f99773c822a4432369483"
+    },
+    {
+      "path": "src/commands/tree/pattern.ts",
+      "kind": "build-input",
+      "gitBlob": "10856009329db0d2729fe911ab022c638239ab25",
+      "bytes": 3061,
+      "sha256": "114de00a12f9e32e0593a22abe753d27e079fe504e13e8b35289ae90afdbb215"
+    },
+    {
+      "path": "src/commands/tree/tree.ts",
+      "kind": "build-input",
+      "gitBlob": "70948ef642b4d6cc9f26eee9f78a7a581d6a588a",
+      "bytes": 10748,
+      "sha256": "2ebcf54d9804e7000bf3de4780d598b8b6bc157ee411c134dea5c62717738ef1"
+    },
+    {
+      "path": "src/contracts/command.ts",
+      "kind": "build-input",
+      "gitBlob": "671327d43c48c5964658ad8c630578fe889421e2",
+      "bytes": 2923,
+      "sha256": "9c2f8ecf50def7250b01152a31a45c449109c3ae4d30878252cffe985c6e9df8"
+    },
+    {
+      "path": "src/contracts/errors.ts",
+      "kind": "build-input",
+      "gitBlob": "d466866ce93c4feced56e2bd5fe4c41637e62226",
+      "bytes": 3457,
+      "sha256": "66455381fe9d9e5357d08942e73de6ea1d613a03b09acaab77a5ccccde0f2840"
+    },
+    {
+      "path": "src/contracts/filesystem.ts",
+      "kind": "build-input",
+      "gitBlob": "2c2cef5888b11c15a182c8c015277bec07ae209b",
+      "bytes": 3861,
+      "sha256": "a11b016e6bac06e6e8cd26fabb3b56a30788c8f75091513f6bf01ab7d016909d"
+    },
+    {
+      "path": "src/contracts/index.ts",
+      "kind": "build-input",
+      "gitBlob": "778c289fc215e238a96880e9e64e04baed45e0d0",
+      "bytes": 173,
+      "sha256": "fb9a434deb34dbad631166a689b02641c0e1acdbac691f6956a7c76e20729f50"
+    },
+    {
+      "path": "src/contracts/io.ts",
+      "kind": "build-input",
+      "gitBlob": "738e6bb2e1055d6e575f6b342b75ed3053710f70",
+      "bytes": 7383,
+      "sha256": "e925ab08a5ad41862d3f5c031164cc7310bc28397455b11b37b75b55a9dbacdb"
+    },
+    {
+      "path": "src/contracts/path.ts",
+      "kind": "build-input",
+      "gitBlob": "4cbf95a4baa405a6fc5438c23511a9059b977201",
+      "bytes": 1675,
+      "sha256": "948a1ceb19fd87fa4931974282ec4d68217dbd2353fac6ce6eabd48d3b5a2f34"
+    },
+    {
+      "path": "src/contracts/plugin.ts",
+      "kind": "build-input",
+      "gitBlob": "69b685ebbf6cfb7d1068c419b7e4109e4f9179d4",
+      "bytes": 2359,
+      "sha256": "b45e85e0d89f88308caf0b68f0b14f78341c4bba246d02e81103646f5a4c54ae"
+    },
+    {
+      "path": "src/fs/memory/index.ts",
+      "kind": "build-input",
+      "gitBlob": "29551d4afa95503783f915410fcdafaf518a6786",
+      "bytes": 23533,
+      "sha256": "2ece749f3f22be6a0da76dcd964feb9b1055e742a05c727c43f672e9bc7ec8b4"
+    },
+    {
+      "path": "src/fs/mount/comparison.ts",
+      "kind": "build-input",
+      "gitBlob": "250eeac4385adb7ad3760859dd4c9b95493b62e5",
+      "bytes": 5220,
+      "sha256": "cedfd2b4a586ddf85eaac30e1ce7797b290b712b744498e84df5036c89f64a2c"
+    },
+    {
+      "path": "src/fs/mount/identity.ts",
+      "kind": "build-input",
+      "gitBlob": "263c9db554babd12cb04c355c14ac54190ea0377",
+      "bytes": 748,
+      "sha256": "a561928d082232d034c436a89a63b85e5f137c82879281adc9f6aacfcb54d2d2"
+    },
+    {
+      "path": "src/fs/mount/index.ts",
+      "kind": "build-input",
+      "gitBlob": "045272e8e9d053ff68ee14b919cda6b8b21c5d07",
+      "bytes": 25447,
+      "sha256": "a2be203c4bb0a1c979e9ff2ab3672f7aa7a1f441cc4c57cddcca7e4807a1881d"
+    },
+    {
+      "path": "src/fs/overlay/index.ts",
+      "kind": "build-input",
+      "gitBlob": "f0b742c29fa5bf52bd60ec5a70fd5ce410b18771",
+      "bytes": 41438,
+      "sha256": "e14936876292b4900e1f2d4298ae5ec41509c5772d5afc63bf143d36c85662be"
+    },
+    {
+      "path": "src/fs/readonly/index.ts",
+      "kind": "build-input",
+      "gitBlob": "68a8f21f306bbc6e3a1bdf2c08deecdf2b066eee",
+      "bytes": 5880,
+      "sha256": "384f940196dc572f677541daa9c420da2e013324d66576004c1a2730e7899067"
+    },
+    {
+      "path": "src/fs/real/index.ts",
+      "kind": "build-input",
+      "gitBlob": "5b80d931d9a229fb54557abadd8556c119c7d770",
+      "bytes": 23456,
+      "sha256": "d3e79b80a5a48984e1f7f7dd9a79254c2db1faf8142e287a43792180874f77da"
+    },
+    {
+      "path": "src/fs/s3/authority.ts",
+      "kind": "build-input",
+      "gitBlob": "726ec79f5a8b158fd2de7f14c927ee8a90b2bae2",
+      "bytes": 4938,
+      "sha256": "1a95f7a28904b8607948673db3e99d3d4a49b2a3839d980143fe13c25e1af344"
+    },
+    {
+      "path": "src/fs/s3/filesystem.ts",
+      "kind": "build-input",
+      "gitBlob": "fd019babc0252f31cb3ae3c23bafd87898af4aae",
+      "bytes": 51254,
+      "sha256": "9ac11951d681db45cee474568ca46d227cfb5bbd9b0d5ce2d6c176d0c4f94833"
+    },
+    {
+      "path": "src/fs/s3/http/index.ts",
+      "kind": "build-input",
+      "gitBlob": "1455dc0439f0ae786edb006fd72c66b32e67d1a8",
+      "bytes": 181,
+      "sha256": "bd414ce2de1aeb4becff1375ba994ee5bea6ca46600234807515c28385130dd4"
+    },
+    {
+      "path": "src/fs/s3/http/request.ts",
+      "kind": "build-input",
+      "gitBlob": "3acb81911ca3ee341a5ee1ec102266aa5df468cf",
+      "bytes": 7073,
+      "sha256": "33e2232404d05c08db2ccce200b6ca1d10af36f6a72f197e196fe1fa3f5ba618"
+    },
+    {
+      "path": "src/fs/s3/http/signature.ts",
+      "kind": "build-input",
+      "gitBlob": "de78bf8a0ef40e54463224b3f5f035ca20a91d75",
+      "bytes": 4443,
+      "sha256": "094b2e6fce2657757bf168ae694213f874e644d81cc9ead75faa1120f0910b3b"
+    },
+    {
+      "path": "src/fs/s3/http/transport.ts",
+      "kind": "build-input",
+      "gitBlob": "48296f5e358dd0debdd9f5ab9f48bc2e85605ef2",
+      "bytes": 22773,
+      "sha256": "73611a0d279cec24d85d14031a02d92607979977ef926245fe0a6f9e7eb6161d"
+    },
+    {
+      "path": "src/fs/s3/http/types.ts",
+      "kind": "build-input",
+      "gitBlob": "10484fb76cb3e2f6b68beece2667f31c1485f46d",
+      "bytes": 1172,
+      "sha256": "b8ee451a00d17355919024c542dd5c7cbd027d74c7d2f5686f37fd6c0a5ab39e"
+    },
+    {
+      "path": "src/fs/s3/http/xml.ts",
+      "kind": "build-input",
+      "gitBlob": "3fa8efbe297d179021f65d4f14f22c9a72f898b9",
+      "bytes": 6470,
+      "sha256": "73598f1a2aedbf22a5d455849dae4f7e80f022d5ad847f136b2d1d6ecc99301e"
+    },
+    {
+      "path": "src/fs/s3/index.ts",
+      "kind": "build-input",
+      "gitBlob": "4556d401259e31aff76d4cf871279f4462fc3136",
+      "bytes": 596,
+      "sha256": "731b0141a614ec0be82885c8f608ea9c07bbe4fc96cdc01a04f90bb77f93bf49"
+    },
+    {
+      "path": "src/fs/s3/mock.ts",
+      "kind": "build-input",
+      "gitBlob": "10143b852f976da81c100d634e131559ed1a8a36",
+      "bytes": 11823,
+      "sha256": "99655664c7a52c595dc1ec4e5d461e4c002a0c9ba60d222ded078e5b9780841e"
+    },
+    {
+      "path": "src/fs/s3/transport.ts",
+      "kind": "build-input",
+      "gitBlob": "800d2d5ec02a9773dbc6d5e33be0d3a83f6ef204",
+      "bytes": 4996,
+      "sha256": "185895f1b939370903c9a896df47a1066647a50eb3022e1d0387918996ccd51c"
+    },
+    {
+      "path": "src/fs/webdav/index.ts",
+      "kind": "build-input",
+      "gitBlob": "c24b8f3d026e44a284bc3338bb961a366dd4a4cb",
+      "bytes": 230,
+      "sha256": "d359fa8a89c30fa7fa06b256c524b4bc1022b3217763051961e579c5fcfd7764"
+    },
+    {
+      "path": "src/fs/webdav/resource-id.ts",
+      "kind": "build-input",
+      "gitBlob": "6b05b9c33afe9581edb325405aac44d95cf413d8",
+      "bytes": 5570,
+      "sha256": "ee5720f77a352503368d672caaf5237e45863bde88cf69b947d14178fcda49f2"
+    },
+    {
+      "path": "src/fs/webdav/webdav.ts",
+      "kind": "build-input",
+      "gitBlob": "a9c2fa23e94bf058340028a4aa0eda27771163c9",
+      "bytes": 53307,
+      "sha256": "e66a66e2745852c6bd12be12a18c855df069152cf6b8089d2ecee8880c62de94"
+    },
+    {
+      "path": "src/fs/webdav/xml.ts",
+      "kind": "build-input",
+      "gitBlob": "53843cb7cb8b82664cf7a146e33228b53fd86833",
+      "bytes": 10122,
+      "sha256": "c5b2798ef847acb480be70348d59bb0bc0a0d80624c313880cd53ff1b293dec1"
+    },
+    {
+      "path": "src/index.ts",
+      "kind": "build-input",
+      "gitBlob": "f22006574a46d127ea52e1209168fc147c57b690",
+      "bytes": 1320,
+      "sha256": "05af12d657d7d485958ffe22499181993de98c729dadbb9dac347a822fca863e"
+    },
+    {
+      "path": "src/integrations/safejs/filesystem.ts",
+      "kind": "build-input",
+      "gitBlob": "a1593368ebe58df7695bf6010e192bbbce9e9da6",
+      "bytes": 21470,
+      "sha256": "c9ab864768e430bbfbea7590071646985c6374634124f62516ec09c13d9af578"
+    },
+    {
+      "path": "src/integrations/safejs/index.ts",
+      "kind": "build-input",
+      "gitBlob": "52bb84f334e2749334f9eaadce17abe3344884ff",
+      "bytes": 445,
+      "sha256": "b0866c13456991f05f30dd23cabcf895d92b8af89985eb88172ac3d76b3b8384"
+    },
+    {
+      "path": "src/integrations/safejs/shell.ts",
+      "kind": "build-input",
+      "gitBlob": "2d1b1bdf717670ad6652ca0742ab8f4ed58bf00d",
+      "bytes": 3695,
+      "sha256": "5cb3e55c5e62adb540b41ac7ce39e8458a3a25ffb8422e6164419c1d22ef15da"
+    },
+    {
+      "path": "src/integrations/safejs/stats.ts",
+      "kind": "build-input",
+      "gitBlob": "43769836bd8f8d611cebd031f3cc7d749b988a0f",
+      "bytes": 1359,
+      "sha256": "94bb724a7281296e08ac4465979e0f9cac585e28f91fc79382650a3c60ea4824"
+    },
+    {
+      "path": "src/integrations/safejs/values.ts",
+      "kind": "build-input",
+      "gitBlob": "d326d0a41a7145bae4f6f12d3774522c9c500d76",
+      "bytes": 2446,
+      "sha256": "91ac3025b6420a7a908736f1d746077f27c9f045f6be22d82a37f4a07ff9111a"
+    },
+    {
+      "path": "src/plugins/index.ts",
+      "kind": "build-input",
+      "gitBlob": "ca2f93009f6b2b400e7c8939f73c727366a82f6b",
+      "bytes": 4578,
+      "sha256": "720eb0fd43a269aa62a37bd195417db39681a6d3166389d495229f6474ae4ac3"
+    },
+    {
+      "path": "src/shell/arithmetic.ts",
+      "kind": "build-input",
+      "gitBlob": "223101946d13ac9b44f4a898f58fd16004ba86b9",
+      "bytes": 9922,
+      "sha256": "5e2d784b8fd333972e6e413f4c3478163462a3c1abf8cc5ff7173963420440bd"
+    },
+    {
+      "path": "src/shell/cleanup.ts",
+      "kind": "build-input",
+      "gitBlob": "eae04650a553e4820da9c7b08b0255a6b20fc01c",
+      "bytes": 1947,
+      "sha256": "134f55641d6437681cd185960a2923d68086096921758717c5b8059595304385"
+    },
+    {
+      "path": "src/shell/display.ts",
+      "kind": "build-input",
+      "gitBlob": "ecff8bf185cd542940607a79ee5257f292e844f5",
+      "bytes": 2605,
+      "sha256": "3d372572020a09dc5484acc575891ab1f24c8c9eba263c0a17c49b714611e069"
+    },
+    {
+      "path": "src/shell/index.ts",
+      "kind": "build-input",
+      "gitBlob": "0110bd9d5c0388dc6fe15abc27f27a18dd7a6b38",
+      "bytes": 275,
+      "sha256": "235ad982a7bfe23823b4e07d714ed73e924a5d7759a8664f8533b03517ffa383"
+    },
+    {
+      "path": "src/shell/input.ts",
+      "kind": "build-input",
+      "gitBlob": "5af0daa5145c816b653d34751aa3ce417065cbe2",
+      "bytes": 9720,
+      "sha256": "7af2dac6dfd6290e9f189590e9190b2e0703dcd99998212e471378063cd9a7b4"
+    },
+    {
+      "path": "src/shell/locale.ts",
+      "kind": "build-input",
+      "gitBlob": "5a2cda6417f2f28af38b33f2d32a56271c0f5a58",
+      "bytes": 207,
+      "sha256": "1b0687b8401c3f0886a793bf6f212a1731d4bd973be6ac2c7642254e6e1fb2d2"
+    },
+    {
+      "path": "src/shell/parser.ts",
+      "kind": "build-input",
+      "gitBlob": "f570235d1f65ade0f7279ccacf805ec1333155f7",
+      "bytes": 36304,
+      "sha256": "10d015eb62fd4e4f964666c04e5869ea78afdb76d930181760adecbcf16ab65e"
+    },
+    {
+      "path": "src/shell/pattern.ts",
+      "kind": "build-input",
+      "gitBlob": "be8739ee6b6c9e9323c559aff15f2dd27ce8271c",
+      "bytes": 4863,
+      "sha256": "eaf798a7f92c050734e97ef77e07397b3e5710a822575899cca81a527985609a"
+    },
+    {
+      "path": "src/shell/runtime.ts",
+      "kind": "build-input",
+      "gitBlob": "5ae36fce1be6a830accfd1b298d265cd8fedaaa3",
+      "bytes": 100410,
+      "sha256": "2223ef9e02565d163ded042d933553a1efae502ce7531fe83bba5611d959c84b"
+    },
+    {
+      "path": "src/shell/shell.ts",
+      "kind": "build-input",
+      "gitBlob": "9d535825bce412d86c4dee587c59142bcf86944d",
+      "bytes": 10368,
+      "sha256": "538f7ea1504019fcde03abc2781c1f903573243a0332033b87501804a1c4ac5c"
+    },
+    {
+      "path": "src/shell/types.ts",
+      "kind": "build-input",
+      "gitBlob": "4684a5ad1f8b76c721a6f827646f289eda4c44ef",
+      "bytes": 2178,
+      "sha256": "fc4133f1fb41283b0586aa7597c766d393d4f91067b613f4777e5adbef230a6d"
+    },
+    {
+      "path": "package.json",
+      "kind": "build-input",
+      "gitBlob": "f176ae92e21c5a3d062474d62e8af8f1ccf34e0b",
+      "bytes": 3997,
+      "sha256": "2127bbfed020aeb7873462ae65224e6ee73069425c878aa2ceee9816b2191245"
+    },
+    {
+      "path": "package-lock.json",
+      "kind": "build-input",
+      "gitBlob": "5d6562da663aa1b363c5ce5f101ed8469cece4da",
+      "bytes": 16734,
+      "sha256": "9c04bb7d2c7d1894479f0c37ce367987c2130256e5bfbf426cfa1bd2729d740b"
+    },
+    {
+      "path": "tsconfig.json",
+      "kind": "build-input",
+      "gitBlob": "b4c8915ba61dfeb955de8186558d25d00d76b98b",
+      "bytes": 1087,
+      "sha256": "86adf86ecb49df322e08438453c00ef14d922c0785f7d879498b1fc8cb48e5d4"
+    },
+    {
+      "path": "tsconfig.build.json",
+      "kind": "build-input",
+      "gitBlob": "89e6b5617b949858c6e90953b561b38089c78dd7",
+      "bytes": 260,
+      "sha256": "b57d3e5aab1f1f7ab7a70f275183ea6de255e65a2c40a0047c08d97769a1a16e"
+    },
+    {
+      "path": "src/contracts/command.md",
+      "kind": "context-only",
+      "gitBlob": "16371126acaccd07a8db2505b53a0625eb9b4592",
+      "bytes": 8066,
+      "sha256": "8a5426b1e7a30a03dc62f74b28c6eb7bf9b008b78cb7b521eb7de0bc5c59a3f8"
+    },
+    {
+      "path": "tests/commands/search-stress/safety-cases.ts",
+      "kind": "context-only",
+      "gitBlob": "ee106d311f1371f3dc2bc31ecb1db4553c4ea3b6",
+      "bytes": 7364,
+      "sha256": "500c9e4b625cf3188a11ba0f8c29601b53c9ea396892788f747333c490bde123"
+    },
+    {
+      "path": "tests/shell-stress/first-read-contract-review/search-sidecar-review/README.md",
+      "kind": "context-only",
+      "gitBlob": "b5d8929457c2f16904f4aa052174a60432e3a24c",
+      "bytes": 13686,
+      "sha256": "c9898a773abecf8dabd39fd8f46d8221bbe9a18f45fe04e9c100229bbd8c6b3d"
+    },
+    {
+      "path": "tests/shell-stress/first-read-contract-review/search-sidecar-review/code/ownership-diagnostic.ts.data",
+      "kind": "context-only",
+      "gitBlob": "afd1b8fa1523af9933168eccbdc3f817e8e018c7",
+      "bytes": 6041,
+      "sha256": "b92deb329c3af94e3ab426b249ff0ab05a16626ceb595be998498c5501b82328"
+    },
+    {
+      "path": "tests/shell-stress/first-read-contract-review/search-sidecar-review/runs/original-safety.json",
+      "kind": "context-only",
+      "gitBlob": "349c9192beb046205a255ed1064a22a8d96c7f88",
+      "bytes": 1712,
+      "sha256": "1b1f8cc035e961e9ac5a9c80f12b23db04b91f6c5e024682ff40867ecc25a30d"
+    }
+  ]
+}

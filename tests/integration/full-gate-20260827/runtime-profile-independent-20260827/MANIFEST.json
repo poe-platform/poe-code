@@ -1,0 +1,11 @@
+{
+  "kind": "exact-independent-runtime-admission-evidence",
+  "entries": {
+    "README.md": "4fc07224e85a7327ec8e342d7277be3d6d76748084c362252764a3ae8f87872d",
+    "attempt-1/": "directory",
+    "attempt-1/RESULT.json": "74badb9d31303c2d9e47419bf4a69cfd858cc8f6fbbd28f869688c5d64e3f213",
+    "attempt-1/UNCHANGED-AUTHOR.json": "3aa93494bbcf7abb58d0b57708ac99ce0a34df27ae9a4bc6e0550c909e717bc4",
+    "run.mjs": "77131410f754490daf6e7310c1289d558e42e097216e8425f920f2e0b884a0f2",
+    "verify.mjs": "67a82da4d55d0f3b840a72dd57528b55ff6b84a9c9e77f0d2034b6c5a4e7ff3b"
+  }
+}

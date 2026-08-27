@@ -1,0 +1,17 @@
+TAP version 13
+# Subtest: dangling output links: pinned GNU effects on MemoryFS and rooted RealFS; Apple separate
+ok 1 - dangling output links: pinned GNU effects on MemoryFS and rooted RealFS; Apple separate
+  ---
+  duration_ms: 262.112542
+  type: 'test'
+  ...
+# split native capture: /private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/virtual-bash-split-remaining-review-G4K9Uu/phase-path/virtual-bash-split-capture-ywbUxW/dangling-native.json
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 393.587792

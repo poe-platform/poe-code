@@ -1,0 +1,105 @@
+{
+  "entries": [
+    {
+      "original": "attempt-02/canonical-capture-audit.json",
+      "archived": "attempt-02/canonical-capture-audit.json.gz.base64",
+      "originalBytes": 10014078,
+      "originalSha256": "c2e6783c6c26a972ae717918d8893a0d343b9d4ccd68b1ee7573073f483efe8b",
+      "compressedBytes": 366933,
+      "compressedSha256": "d0ff084c498b3238a6dd198a8f337e77f9d2070a81aaaa143c06e76089d74c5a",
+      "encoding": "gzip+base64",
+      "byteExactRoundTrip": true
+    },
+    {
+      "original": "attempt-02/canonical-default-audit.json",
+      "archived": "attempt-02/canonical-default-audit.json.gz.base64",
+      "originalBytes": 2467166,
+      "originalSha256": "20e82ec9e6c65e42e59ec7269604f54b3703a91426549f4a010c7a1dee702246",
+      "compressedBytes": 60286,
+      "compressedSha256": "7918e655366443296ac6e919e0cf2456d6d26d406a0db39cff1b6c33ac0b887c",
+      "encoding": "gzip+base64",
+      "byteExactRoundTrip": true
+    },
+    {
+      "original": "attempt-02/helper-audit.json",
+      "archived": "attempt-02/helper-audit.json.gz.base64",
+      "originalBytes": 37485162,
+      "originalSha256": "de6bedb3e32b20eb2a96fec89ef8ed6d9b5c0cc7a5569680cc10380d07649b18",
+      "compressedBytes": 1273398,
+      "compressedSha256": "5d383c5bea2ee587045b92ba149bc3e8267c3a069fbcf1351da0da175eb610f5",
+      "encoding": "gzip+base64",
+      "byteExactRoundTrip": true
+    },
+    {
+      "original": "attempt-02/helper-child-2.tap",
+      "archived": "attempt-02/helper-child-2.tap.gz.base64",
+      "originalBytes": 5877829,
+      "originalSha256": "4725efea6e5c9743840fb74b68854d90818e80092efb4f07c0efa8bdc38e9e0d",
+      "compressedBytes": 217835,
+      "compressedSha256": "ee5ebddc8a7ce355d3da5d46da55e5fdedc39ec62761b1c138c62fa52d6be19c",
+      "encoding": "gzip+base64",
+      "byteExactRoundTrip": true
+    },
+    {
+      "original": "attempt-02/results.json",
+      "archived": "attempt-02/results.json.gz.base64",
+      "originalBytes": 23238085,
+      "originalSha256": "8c52ef5feccd0c8e578293d580ddbbf33040d58ac91ed8d3c493c14287a66f7c",
+      "compressedBytes": 944868,
+      "compressedSha256": "1b390e7ba3bfdd67a9d49d816aef923cbf3e9f1e20dc764dab6c62db69e4237c",
+      "encoding": "gzip+base64",
+      "byteExactRoundTrip": true
+    },
+    {
+      "original": "attempt-03/canonical-capture-audit.json",
+      "archived": "attempt-03/canonical-capture-audit.json.gz.base64",
+      "originalBytes": 10846994,
+      "originalSha256": "b49f0b9b46569c0fc96f8c763e9dfe6b2b943de7bfa298698e966f641a24824d",
+      "compressedBytes": 384485,
+      "compressedSha256": "6ba64399c676c5d6200b4c65537fe1bfc68e5b6ab544aeca840c1e27254f6c0e",
+      "encoding": "gzip+base64",
+      "byteExactRoundTrip": true
+    },
+    {
+      "original": "attempt-03/canonical-default-audit.json",
+      "archived": "attempt-03/canonical-default-audit.json.gz.base64",
+      "originalBytes": 3296730,
+      "originalSha256": "04980ffa1fe6ac598eeb3bd21f67bf9dcd4136392e01da9bcc906813e1a299e1",
+      "compressedBytes": 77642,
+      "compressedSha256": "7c7f05fa6faa368ca5b287afa5046b7d0658f3e4547ae7755ede1291228cacc9",
+      "encoding": "gzip+base64",
+      "byteExactRoundTrip": true
+    },
+    {
+      "original": "attempt-03/helper-audit.json",
+      "archived": "attempt-03/helper-audit.json.gz.base64",
+      "originalBytes": 41638562,
+      "originalSha256": "3181177d3287a1e21f937cd9015538d240abc75ae794f03308dd575ef4a76e4a",
+      "compressedBytes": 1360290,
+      "compressedSha256": "28be892ed4f3a9168b79a34fb207691006ed8e1a798e18b809bf3a9b415159ee",
+      "encoding": "gzip+base64",
+      "byteExactRoundTrip": true
+    },
+    {
+      "original": "attempt-03/helper-child-2.tap",
+      "archived": "attempt-03/helper-child-2.tap.gz.base64",
+      "originalBytes": 5877826,
+      "originalSha256": "13f7f8265c1b60f9ac86b5c138120fcea04783e255c0fc024311ba95476b901f",
+      "compressedBytes": 217833,
+      "compressedSha256": "6b566406fb6a13033e8dddbac76742da0a0ea9a1c1bc7b9f953f2b66333af95b",
+      "encoding": "gzip+base64",
+      "byteExactRoundTrip": true
+    },
+    {
+      "original": "attempt-03/results.json",
+      "archived": "attempt-03/results.json.gz.base64",
+      "originalBytes": 23233185,
+      "originalSha256": "f96fc122e011a1c5ff71331541793d193ace50be38c4803e1d2dc04f944358e8",
+      "compressedBytes": 943976,
+      "compressedSha256": "6c166c5abf07546017b00710f2bc1b26caa4d43c0014aa8cede0edc28d292f28",
+      "encoding": "gzip+base64",
+      "byteExactRoundTrip": true
+    }
+  ],
+  "note": "Lossless storage only; every original byte and SHA256 retained and round-tripped before removal of redundant raw files. This includes verifier failures. No oracle/canonical test recapture occurred."
+}

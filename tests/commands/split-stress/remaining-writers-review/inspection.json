@@ -1,0 +1,338 @@
+{
+  "changed": [
+    "tests/commands/split/dangling-native.test.ts",
+    "tests/commands/split/edge.test.ts",
+    "tests/commands/split/native-capture.test.ts",
+    "tests/commands/split/native-capture.ts",
+    "tests/commands/split/stress.test.ts"
+  ],
+  "files": [
+    {
+      "name": "native.test.ts",
+      "parentSha256": "e451f9d68b7d1ce0345b386077b8030ee76146bf34392965591091ccf23c6e92",
+      "candidateSha256": "e451f9d68b7d1ce0345b386077b8030ee76146bf34392965591091ccf23c6e92",
+      "unchanged": true,
+      "assertions": [
+        {
+          "method": "assert.equal",
+          "args": [
+            "createHash(\"sha256\").update(binary).digest(\"hex\")",
+            "profile.hash",
+            "\"oracle changed: pin must be reviewed\""
+          ]
+        },
+        {
+          "method": "assert.deepEqual",
+          "args": [
+            "observed",
+            "expected"
+          ]
+        },
+        {
+          "method": "assert.equal",
+          "args": [
+            "failed",
+            "false",
+            "`native mismatches retained in ${path ?? \"test diagnostics\"}`"
+          ]
+        }
+      ],
+      "arrayLiterals": 2,
+      "pins": [
+        "cf5851c4e6566983ce69940b766c0b5eb0cd26ebf2bb45eefe215b2d5c62f958",
+        "7c2d5f3c73e849d664bad3a2f4c67c5154b0f03f59f2fa779d49e33dc7983f91"
+      ]
+    },
+    {
+      "name": "native-errors.test.ts",
+      "parentSha256": "258cba32a8ea4064771b40e7a14650436d293d1ea415704efcec16c450146f06",
+      "candidateSha256": "258cba32a8ea4064771b40e7a14650436d293d1ea415704efcec16c450146f06",
+      "unchanged": true,
+      "assertions": [
+        {
+          "method": "assert.equal",
+          "args": [
+            "createHash(\"sha256\").update(binary).digest(\"hex\")",
+            "\"cf5851c4e6566983ce69940b766c0b5eb0cd26ebf2bb45eefe215b2d5c62f958\""
+          ]
+        },
+        {
+          "method": "assert.equal",
+          "args": [
+            "actual.exitCode",
+            "expected.status"
+          ]
+        },
+        {
+          "method": "assert.equal",
+          "args": [
+            "actual.stdout",
+            "expected.stdout.toString()"
+          ]
+        },
+        {
+          "method": "assert.deepEqual",
+          "args": [
+            "observedFiles",
+            "nativeFiles"
+          ]
+        },
+        {
+          "method": "assert.deepEqual",
+          "args": [
+            "observedEntries",
+            "nativeEntries"
+          ]
+        },
+        {
+          "method": "assert.match",
+          "args": [
+            "expected.stderr.toString()",
+            "specimen.nativeMessage"
+          ]
+        },
+        {
+          "method": "assert.match",
+          "args": [
+            "actual.stderr",
+            "specimen.virtualMessage"
+          ]
+        },
+        {
+          "method": "assert.equal",
+          "args": [
+            "failure",
+            "false",
+            "`error cohort failure retained in ${path ?? \"test diagnostics\"}`"
+          ]
+        },
+        {
+          "method": "assert.equal",
+          "args": [
+            "createHash(\"sha256\").update(await native.readFile(executable)).digest(\"hex\")",
+            "\"cf5851c4e6566983ce69940b766c0b5eb0cd26ebf2bb45eefe215b2d5c62f958\""
+          ]
+        },
+        {
+          "method": "assert.equal",
+          "args": [
+            "createHash(\"sha256\").update(await native.readFile(\"/usr/bin/split\")).digest(\"hex\")",
+            "\"7c2d5f3c73e849d664bad3a2f4c67c5154b0f03f59f2fa779d49e33dc7983f91\""
+          ]
+        },
+        {
+          "method": "assert.equal",
+          "args": [
+            "result.status",
+            "scenario.id === \"invalid-zero\" ? 1 : 0"
+          ]
+        },
+        {
+          "method": "assert.equal",
+          "args": [
+            "names.length",
+            "scenario.gnuFiles"
+          ]
+        },
+        {
+          "method": "assert.equal",
+          "args": [
+            "result.status",
+            "scenario.appleStatus"
+          ]
+        },
+        {
+          "method": "assert.equal",
+          "args": [
+            "names.length",
+            "scenario.appleFiles"
+          ]
+        },
+        {
+          "method": "assert.match",
+          "args": [
+            "result.stderr.toString()",
+            "scenario.appleDiagnostic"
+          ]
+        }
+      ],
+      "arrayLiterals": 21,
+      "pins": [
+        "cf5851c4e6566983ce69940b766c0b5eb0cd26ebf2bb45eefe215b2d5c62f958",
+        "cf5851c4e6566983ce69940b766c0b5eb0cd26ebf2bb45eefe215b2d5c62f958",
+        "7c2d5f3c73e849d664bad3a2f4c67c5154b0f03f59f2fa779d49e33dc7983f91"
+      ]
+    },
+    {
+      "name": "edge.test.ts",
+      "parentSha256": "e828c602c1c32ae70c8f222c08fbffb2a121a0a8bdf4cd4b154d1c7f0e9c8135",
+      "candidateSha256": "3a1a157f097d260510d6e400f299f9f33fcad4fef8c08f7552ee8f0ec5eaeb7c",
+      "unchanged": false,
+      "assertions": [
+        {
+          "method": "assert.equal",
+          "args": [
+            "createHash(\"sha256\").update(binary).digest(\"hex\")",
+            "\"cf5851c4e6566983ce69940b766c0b5eb0cd26ebf2bb45eefe215b2d5c62f958\""
+          ]
+        },
+        {
+          "method": "assert.deepEqual",
+          "args": [
+            "await native.readdir(temp)",
+            "[]"
+          ]
+        },
+        {
+          "method": "assert.deepEqual",
+          "args": [
+            "await observed.fs.readdir(\"/\")",
+            "[]"
+          ]
+        },
+        {
+          "method": "assert.equal",
+          "args": [
+            "failed",
+            "false"
+          ]
+        }
+      ],
+      "arrayLiterals": 8,
+      "pins": [
+        "cf5851c4e6566983ce69940b766c0b5eb0cd26ebf2bb45eefe215b2d5c62f958"
+      ]
+    },
+    {
+      "name": "stress.test.ts",
+      "parentSha256": "8c2b13aeb5c283e1903abe55183bb79eaf0f03d914fb58dbf1f0d4007bf13539",
+      "candidateSha256": "466fa02b7ece40eb85c415fad6b4728e914cca87351f00c4e276d7c61cd5215a",
+      "unchanged": false,
+      "assertions": [
+        {
+          "method": "assert.equal",
+          "args": [
+            "createHash(\"sha256\").update(binary).digest(\"hex\")",
+            "\"cf5851c4e6566983ce69940b766c0b5eb0cd26ebf2bb45eefe215b2d5c62f958\""
+          ]
+        },
+        {
+          "method": "assert.deepEqual",
+          "args": [
+            "observed",
+            "expected"
+          ]
+        },
+        {
+          "method": "assert.equal",
+          "args": [
+            "failed",
+            "false"
+          ]
+        }
+      ],
+      "arrayLiterals": 13,
+      "pins": [
+        "cf5851c4e6566983ce69940b766c0b5eb0cd26ebf2bb45eefe215b2d5c62f958"
+      ]
+    },
+    {
+      "name": "dangling-native.test.ts",
+      "parentSha256": "1e0dedebaa9ecb5dd20cc7da209d100202f0ce06cd2cfc70ed32d1a8c24e7356",
+      "candidateSha256": "ec1d5f520ecb92cd7d8e9768909244cea921759a0c3949f53da466f985c129fe",
+      "unchanged": false,
+      "assertions": [
+        {
+          "method": "assert.equal",
+          "args": [
+            "createHash(\"sha256\").update(binary).digest(\"hex\")",
+            "pin"
+          ]
+        },
+        {
+          "method": "assert.equal",
+          "args": [
+            "appleHash",
+            "\"7c2d5f3c73e849d664bad3a2f4c67c5154b0f03f59f2fa779d49e33dc7983f91\""
+          ]
+        },
+        {
+          "method": "assert.ifError",
+          "args": [
+            "result.error"
+          ]
+        },
+        {
+          "method": "assert.equal",
+          "args": [
+            "expected.status",
+            "fixture.error ? 1 : 0",
+            "fixture.id"
+          ]
+        },
+        {
+          "method": "assert.match",
+          "args": [
+            "expected.stderr",
+            "nativeErrors[fixture.error]",
+            "fixture.id"
+          ]
+        },
+        {
+          "method": "assert.equal",
+          "args": [
+            "expected.stderr",
+            "\"\""
+          ]
+        },
+        {
+          "method": "assert.equal",
+          "args": [
+            "actual.status",
+            "expected.status"
+          ]
+        },
+        {
+          "method": "assert.equal",
+          "args": [
+            "actual.stdout",
+            "expected.stdout"
+          ]
+        },
+        {
+          "method": "assert.deepEqual",
+          "args": [
+            "actual.entries",
+            "expected.entries"
+          ]
+        },
+        {
+          "method": "assert.match",
+          "args": [
+            "actual.stderr",
+            "virtualErrors[fixture.error]"
+          ]
+        },
+        {
+          "method": "assert.equal",
+          "args": [
+            "actual.stderr",
+            "expected.stderr"
+          ]
+        },
+        {
+          "method": "assert.deepEqual",
+          "args": [
+            "failures",
+            "[]"
+          ]
+        }
+      ],
+      "arrayLiterals": 47,
+      "pins": [
+        "cf5851c4e6566983ce69940b766c0b5eb0cd26ebf2bb45eefe215b2d5c62f958",
+        "7c2d5f3c73e849d664bad3a2f4c67c5154b0f03f59f2fa779d49e33dc7983f91"
+      ]
+    }
+  ]
+}

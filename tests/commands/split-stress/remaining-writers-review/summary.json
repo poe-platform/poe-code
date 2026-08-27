@@ -1,0 +1,804 @@
+{
+  "candidate": "79f11f1526224a1f34ffd64d7a32c63bdb971a0d",
+  "parent": "8784a8fc0484313b914fe1ae6db33a8cfd0e0be4",
+  "finalAttempt": "attempt-03",
+  "started": "2026-08-27T15:56:03.626Z",
+  "finished": "2026-08-27T15:56:27.646Z",
+  "node": "v22.22.2",
+  "platform": "darwin",
+  "arch": "arm64",
+  "native": [
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/split",
+      "pin": "cf5851c4e6566983ce69940b766c0b5eb0cd26ebf2bb45eefe215b2d5c62f958",
+      "mode": 493,
+      "sha256": "cf5851c4e6566983ce69940b766c0b5eb0cd26ebf2bb45eefe215b2d5c62f958",
+      "size": 127592
+    },
+    {
+      "path": "/usr/bin/split",
+      "pin": "7c2d5f3c73e849d664bad3a2f4c67c5154b0f03f59f2fa779d49e33dc7983f91",
+      "mode": 493,
+      "sha256": "7c2d5f3c73e849d664bad3a2f4c67c5154b0f03f59f2fa779d49e33dc7983f91",
+      "size": 134768
+    }
+  ],
+  "rows": [
+    {
+      "mode": "canonical-default",
+      "code": 0,
+      "signal": null,
+      "counts": {
+        "tests": 7,
+        "pass": 7,
+        "fail": 0,
+        "skip": 0
+      },
+      "audit": {
+        "processes": 5,
+        "mutationAttempts": 3548,
+        "protectedAttempts": 0,
+        "blocked": [],
+        "nativeInvocations": 128,
+        "nativeAllowed": true,
+        "unapprovedChildren": [],
+        "nativeErrors": []
+      },
+      "capturedReports": 0,
+      "publishedReports": 0,
+      "retainedScratch": [],
+      "childRuns": []
+    },
+    {
+      "mode": "canonical-capture",
+      "code": 0,
+      "signal": null,
+      "counts": {
+        "tests": 7,
+        "pass": 7,
+        "fail": 0,
+        "skip": 0
+      },
+      "audit": {
+        "processes": 5,
+        "mutationAttempts": 3562,
+        "protectedAttempts": 0,
+        "blocked": [],
+        "nativeInvocations": 128,
+        "nativeAllowed": true,
+        "unapprovedChildren": [],
+        "nativeErrors": []
+      },
+      "capturedReports": 7,
+      "publishedReports": 7,
+      "retainedScratch": [],
+      "childRuns": []
+    },
+    {
+      "mode": "helper",
+      "code": 0,
+      "signal": null,
+      "counts": {
+        "tests": 10,
+        "pass": 10,
+        "fail": 0,
+        "skip": 0
+      },
+      "audit": {
+        "processes": 21,
+        "mutationAttempts": 14727,
+        "protectedAttempts": 0,
+        "blocked": [],
+        "nativeInvocations": 512,
+        "nativeAllowed": true,
+        "unapprovedChildren": [],
+        "nativeErrors": []
+      },
+      "capturedReports": 0,
+      "publishedReports": 23,
+      "retainedScratch": [],
+      "childRuns": [
+        {
+          "time": "2026-08-27T15:56:15.170Z",
+          "pid": 81118,
+          "mode": "helper",
+          "event": "node-child-result",
+          "status": 0,
+          "signal": null,
+          "error": null,
+          "counts": {
+            "tests": 7,
+            "pass": 7,
+            "fail": 0,
+            "skip": 0
+          }
+        },
+        {
+          "time": "2026-08-27T15:56:17.061Z",
+          "pid": 81118,
+          "mode": "helper",
+          "event": "node-child-result",
+          "status": 0,
+          "signal": null,
+          "error": null,
+          "counts": {
+            "tests": 7,
+            "pass": 7,
+            "fail": 0,
+            "skip": 0
+          }
+        },
+        {
+          "time": "2026-08-27T15:56:18.955Z",
+          "pid": 81118,
+          "mode": "helper",
+          "event": "node-child-result",
+          "status": 1,
+          "signal": null,
+          "error": null,
+          "counts": {
+            "tests": 7,
+            "pass": 1,
+            "fail": 6,
+            "skip": 0
+          }
+        },
+        {
+          "time": "2026-08-27T15:56:20.960Z",
+          "pid": 81118,
+          "mode": "helper",
+          "event": "node-child-result",
+          "status": 1,
+          "signal": null,
+          "error": null,
+          "counts": {
+            "tests": 7,
+            "pass": 1,
+            "fail": 6,
+            "skip": 0
+          }
+        }
+      ]
+    },
+    {
+      "mode": "guards",
+      "code": 0,
+      "signal": null,
+      "counts": {
+        "tests": null,
+        "pass": null,
+        "fail": null,
+        "skip": null
+      },
+      "audit": {
+        "processes": 1,
+        "mutationAttempts": 79,
+        "protectedAttempts": 11,
+        "blocked": [
+          {
+            "time": "2026-08-27T15:56:21.134Z",
+            "pid": 81762,
+            "mode": "guards",
+            "event": "mutation-attempt",
+            "operation": "promise.writeFile",
+            "paths": [
+              "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/virtual-bash-split-remaining-review-fU9Kc1/candidate/tests/commands/split/evidence/edge-latest.json"
+            ],
+            "realpaths": [
+              "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/virtual-bash-split-remaining-review-fU9Kc1/candidate/tests/commands/split/evidence/edge-latest.json"
+            ],
+            "authorityPaths": [
+              "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/virtual-bash-split-remaining-review-fU9Kc1/candidate/tests/commands/split/evidence/edge-latest.json"
+            ],
+            "blocked": true
+          },
+          {
+            "time": "2026-08-27T15:56:21.134Z",
+            "pid": 81762,
+            "mode": "guards",
+            "event": "mutation-attempt",
+            "operation": "sync.writeFileSync",
+            "paths": [
+              "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/virtual-bash-split-remaining-review-fU9Kc1/candidate/tests/commands/split/evidence/edge-latest.json"
+            ],
+            "realpaths": [
+              "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/virtual-bash-split-remaining-review-fU9Kc1/candidate/tests/commands/split/evidence/edge-latest.json"
+            ],
+            "authorityPaths": [
+              "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/virtual-bash-split-remaining-review-fU9Kc1/candidate/tests/commands/split/evidence/edge-latest.json"
+            ],
+            "blocked": true
+          },
+          {
+            "time": "2026-08-27T15:56:21.134Z",
+            "pid": 81762,
+            "mode": "guards",
+            "event": "mutation-attempt",
+            "operation": "callback.writeFile",
+            "paths": [
+              "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/virtual-bash-split-remaining-review-fU9Kc1/candidate/tests/commands/split/evidence/edge-latest.json"
+            ],
+            "realpaths": [
+              "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/virtual-bash-split-remaining-review-fU9Kc1/candidate/tests/commands/split/evidence/edge-latest.json"
+            ],
+            "authorityPaths": [
+              "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/virtual-bash-split-remaining-review-fU9Kc1/candidate/tests/commands/split/evidence/edge-latest.json"
+            ],
+            "blocked": true
+          },
+          {
+            "time": "2026-08-27T15:56:21.134Z",
+            "pid": 81762,
+            "mode": "guards",
+            "event": "mutation-attempt",
+            "operation": "promise.open",
+            "paths": [
+              "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/virtual-bash-split-remaining-review-fU9Kc1/candidate/tests/commands/split/evidence/edge-latest.json"
+            ],
+            "realpaths": [
+              "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/virtual-bash-split-remaining-review-fU9Kc1/candidate/tests/commands/split/evidence/edge-latest.json"
+            ],
+            "authorityPaths": [
+              "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/virtual-bash-split-remaining-review-fU9Kc1/candidate/tests/commands/split/evidence/edge-latest.json"
+            ],
+            "blocked": true
+          },
+          {
+            "time": "2026-08-27T15:56:21.134Z",
+            "pid": 81762,
+            "mode": "guards",
+            "event": "mutation-attempt",
+            "operation": "sync.openSync",
+            "paths": [
+              "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/virtual-bash-split-remaining-review-fU9Kc1/candidate/tests/commands/split/evidence/edge-latest.json"
+            ],
+            "realpaths": [
+              "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/virtual-bash-split-remaining-review-fU9Kc1/candidate/tests/commands/split/evidence/edge-latest.json"
+            ],
+            "authorityPaths": [
+              "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/virtual-bash-split-remaining-review-fU9Kc1/candidate/tests/commands/split/evidence/edge-latest.json"
+            ],
+            "blocked": true
+          },
+          {
+            "time": "2026-08-27T15:56:21.134Z",
+            "pid": 81762,
+            "mode": "guards",
+            "event": "mutation-attempt",
+            "operation": "FileHandle.writeFile",
+            "paths": [
+              "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/virtual-bash-split-remaining-review-fU9Kc1/candidate/tests/commands/split/evidence/edge-latest.json"
+            ],
+            "realpaths": [
+              "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/virtual-bash-split-remaining-review-fU9Kc1/candidate/tests/commands/split/evidence/edge-latest.json"
+            ],
+            "authorityPaths": [
+              "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/virtual-bash-split-remaining-review-fU9Kc1/candidate/tests/commands/split/evidence/edge-latest.json"
+            ],
+            "blocked": true
+          },
+          {
+            "time": "2026-08-27T15:56:21.134Z",
+            "pid": 81762,
+            "mode": "guards",
+            "event": "mutation-attempt",
+            "operation": "sync.writeSync",
+            "paths": [
+              "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/virtual-bash-split-remaining-review-fU9Kc1/candidate/tests/commands/split/evidence/edge-latest.json"
+            ],
+            "realpaths": [
+              "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/virtual-bash-split-remaining-review-fU9Kc1/candidate/tests/commands/split/evidence/edge-latest.json"
+            ],
+            "authorityPaths": [
+              "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/virtual-bash-split-remaining-review-fU9Kc1/candidate/tests/commands/split/evidence/edge-latest.json"
+            ],
+            "blocked": true
+          },
+          {
+            "time": "2026-08-27T15:56:21.134Z",
+            "pid": 81762,
+            "mode": "guards",
+            "event": "mutation-attempt",
+            "operation": "createWriteStream",
+            "paths": [
+              "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/virtual-bash-split-remaining-review-fU9Kc1/candidate/tests/commands/split/evidence/edge-latest.json"
+            ],
+            "realpaths": [
+              "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/virtual-bash-split-remaining-review-fU9Kc1/candidate/tests/commands/split/evidence/edge-latest.json"
+            ],
+            "authorityPaths": [
+              "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/virtual-bash-split-remaining-review-fU9Kc1/candidate/tests/commands/split/evidence/edge-latest.json"
+            ],
+            "blocked": true
+          },
+          {
+            "time": "2026-08-27T15:56:21.134Z",
+            "pid": 81762,
+            "mode": "guards",
+            "event": "mutation-attempt",
+            "operation": "promise.copyFile",
+            "paths": [
+              "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/virtual-bash-split-remaining-review-fU9Kc1/candidate/tests/commands/split/evidence/edge-latest.json"
+            ],
+            "realpaths": [
+              "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/virtual-bash-split-remaining-review-fU9Kc1/candidate/tests/commands/split/evidence/edge-latest.json"
+            ],
+            "authorityPaths": [
+              "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/virtual-bash-split-remaining-review-fU9Kc1/candidate/tests/commands/split/evidence/edge-latest.json"
+            ],
+            "blocked": true
+          },
+          {
+            "time": "2026-08-27T15:56:21.134Z",
+            "pid": 81762,
+            "mode": "guards",
+            "event": "mutation-attempt",
+            "operation": "promise.rename",
+            "paths": [
+              "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/virtual-bash-split-remaining-review-fU9Kc1/candidate/tests/commands/split/evidence/edge-latest.json",
+              "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/virtual-bash-split-remaining-review-fU9Kc1/candidate/tests/commands/split/evidence/edge-latest.json"
+            ],
+            "realpaths": [
+              "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/virtual-bash-split-remaining-review-fU9Kc1/candidate/tests/commands/split/evidence/edge-latest.json",
+              "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/virtual-bash-split-remaining-review-fU9Kc1/candidate/tests/commands/split/evidence/edge-latest.json"
+            ],
+            "authorityPaths": [
+              "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/virtual-bash-split-remaining-review-fU9Kc1/candidate/tests/commands/split/evidence/edge-latest.json",
+              "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/virtual-bash-split-remaining-review-fU9Kc1/candidate/tests/commands/split/evidence/edge-latest.json"
+            ],
+            "blocked": true
+          },
+          {
+            "time": "2026-08-27T15:56:21.134Z",
+            "pid": 81762,
+            "mode": "guards",
+            "event": "mutation-attempt",
+            "operation": "promise.unlink",
+            "paths": [
+              "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/virtual-bash-split-remaining-review-fU9Kc1/guards/repository-alias/tests/commands/split/evidence/edge-latest.json"
+            ],
+            "realpaths": [
+              "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/virtual-bash-split-remaining-review-fU9Kc1/candidate/tests/commands/split/evidence/edge-latest.json"
+            ],
+            "authorityPaths": [
+              "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/virtual-bash-split-remaining-review-fU9Kc1/candidate/tests/commands/split/evidence/edge-latest.json"
+            ],
+            "blocked": true
+          }
+        ],
+        "nativeInvocations": 0,
+        "nativeAllowed": true,
+        "unapprovedChildren": [],
+        "nativeErrors": []
+      },
+      "capturedReports": 0,
+      "publishedReports": 19,
+      "retainedScratch": [],
+      "childRuns": []
+    },
+    {
+      "mode": "phase-fixed",
+      "code": 0,
+      "signal": null,
+      "counts": {
+        "tests": 1,
+        "pass": 1,
+        "fail": 0,
+        "skip": 0
+      },
+      "audit": {
+        "processes": 1,
+        "mutationAttempts": 434,
+        "protectedAttempts": 0,
+        "blocked": [],
+        "nativeInvocations": 22,
+        "nativeAllowed": true,
+        "unapprovedChildren": [],
+        "nativeErrors": []
+      },
+      "capturedReports": 0,
+      "publishedReports": 0,
+      "retainedScratch": [],
+      "childRuns": []
+    },
+    {
+      "mode": "phase-path",
+      "code": 0,
+      "signal": null,
+      "counts": {
+        "tests": 1,
+        "pass": 1,
+        "fail": 0,
+        "skip": 0
+      },
+      "audit": {
+        "processes": 1,
+        "mutationAttempts": 436,
+        "protectedAttempts": 0,
+        "blocked": [],
+        "nativeInvocations": 22,
+        "nativeAllowed": true,
+        "unapprovedChildren": [],
+        "nativeErrors": []
+      },
+      "capturedReports": 1,
+      "publishedReports": 1,
+      "retainedScratch": [],
+      "childRuns": []
+    },
+    {
+      "mode": "scoped-typecheck",
+      "code": 0,
+      "signal": null,
+      "counts": {
+        "tests": null,
+        "pass": null,
+        "fail": null,
+        "skip": null
+      },
+      "audit": {
+        "processes": 1,
+        "mutationAttempts": 0,
+        "protectedAttempts": 0,
+        "blocked": [],
+        "nativeInvocations": 0,
+        "nativeAllowed": true,
+        "unapprovedChildren": [],
+        "nativeErrors": []
+      },
+      "capturedReports": 0,
+      "publishedReports": 0,
+      "retainedScratch": [],
+      "childRuns": []
+    }
+  ],
+  "checks": [
+    {
+      "check": "edge-raw-bytes-identical-to-committed-golden",
+      "pass": true,
+      "sha256": "09882a536d0332e39f2088dbd0b1ef93f4896f54a29ce5b37fea77a9d57aa52e"
+    },
+    {
+      "check": "stress-raw-bytes-identical-to-committed-golden",
+      "pass": true,
+      "sha256": "c957eeb8225c861c6bfd2e6aae0a53b06792b5fff4096fecd61fc5b9524ebf26"
+    },
+    {
+      "check": "failure-reports-survive-cleanup-with-exact-cohorts-and-one-injected-observed-status-mismatch-per-failing-test",
+      "pass": true
+    }
+  ],
+  "limitations": [
+    "Node API interception is verified for these inspected tests, not kernel-wide tracing or a security sandbox against hostile native code.",
+    "Native binaries remain pinned, with argv/cwd/environment and timeout recorded; no native oracle replacement or timeout increase was used.",
+    "Report-directory identity is checked before exclusive create, not a transactional race/ABA guarantee.",
+    "Direct assertion exceptions retain TAP but can precede aggregate report publication.",
+    "Helper negative children deliberately alter observed status in their own generated sandbox test copies; frozen candidate files remain byte-identical.",
+    "Repeated modes and reporting controls are not new semantic coverage; frozen8670 remains UNQUALIFIED; no full gate, superiority, completion or duration claim."
+  ],
+  "guards": [
+    {
+      "name": "default-no-serialization-no-allocation",
+      "pass": true
+    },
+    {
+      "name": "failure-diagnostic-roundtrip-edge",
+      "pass": true
+    },
+    {
+      "name": "failure-diagnostic-roundtrip-stress",
+      "pass": true
+    },
+    {
+      "name": "failure-diagnostic-roundtrip-dangling-native",
+      "pass": true
+    },
+    {
+      "name": "reject-setting-\"/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/virtual-bash-split-remaining-review-fU9Kc1/candidate\"",
+      "pass": true
+    },
+    {
+      "name": "reject-setting-\"/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/virtual-bash-split-remaining-review-fU9Kc1/candidate/tests/commands/split/evidence/edge-latest.json\"",
+      "pass": true
+    },
+    {
+      "name": "reject-setting-\"/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/virtual-bash-split-remaining-review-fU9Kc1/guards\"",
+      "pass": true
+    },
+    {
+      "name": "reject-setting-\"0\"",
+      "pass": true
+    },
+    {
+      "name": "reject-setting-\"\"",
+      "pass": true
+    },
+    {
+      "name": "reject-setting-\"true\"",
+      "pass": true
+    },
+    {
+      "name": "reject-report-name-\"../edge\"",
+      "pass": true
+    },
+    {
+      "name": "reject-report-name-\"/tmp/edge\"",
+      "pass": true
+    },
+    {
+      "name": "reject-report-name-\"edge.json\"",
+      "pass": true
+    },
+    {
+      "name": "reject-report-name-\"\"",
+      "pass": true
+    },
+    {
+      "name": "reject-report-name-\"native-initial\"",
+      "pass": true
+    },
+    {
+      "name": "reject-repository-TMPDIR-/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/virtual-bash-split-remaining-review-fU9Kc1/candidate",
+      "pass": true
+    },
+    {
+      "name": "reject-repository-TMPDIR-/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/virtual-bash-split-remaining-review-fU9Kc1/candidate/tests/commands/split",
+      "pass": true
+    },
+    {
+      "name": "reject-repository-TMPDIR-/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/virtual-bash-split-remaining-review-fU9Kc1/guards/repository-alias",
+      "pass": true
+    },
+    {
+      "name": "reject-repository-TMPDIR-/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/virtual-bash-split-remaining-review-fU9Kc1/guards/repository-alias/tests/commands/split",
+      "pass": true
+    },
+    {
+      "name": "twelve-concurrent-exclusive-OS-temp-publications",
+      "pass": true
+    },
+    {
+      "name": "existing-output",
+      "pass": true
+    },
+    {
+      "name": "existing-identical-output",
+      "pass": true
+    },
+    {
+      "name": "output-symlink",
+      "pass": true
+    },
+    {
+      "name": "dangling-output-symlink",
+      "pass": true
+    },
+    {
+      "name": "directory-symlink",
+      "pass": true
+    },
+    {
+      "name": "replaced-directory",
+      "pass": true
+    },
+    {
+      "name": "phase-cannot-select-destination-initial",
+      "pass": true
+    },
+    {
+      "name": "phase-cannot-select-destination-fixed",
+      "pass": true
+    },
+    {
+      "name": "phase-cannot-select-destination-final",
+      "pass": true
+    },
+    {
+      "name": "phase-cannot-select-destination-../../evidence/dangling/native-initial",
+      "pass": true
+    },
+    {
+      "name": "phase-cannot-select-destination-/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/virtual-bash-split-remaining-review-fU9Kc1/candidate/tests/commands/split/evidence/dangling/native-initial.json",
+      "pass": true
+    },
+    {
+      "name": "positive-control-identical-promise-write",
+      "pass": true
+    },
+    {
+      "name": "positive-control-identical-sync-write",
+      "pass": true
+    },
+    {
+      "name": "positive-control-identical-callback-write",
+      "pass": true
+    },
+    {
+      "name": "positive-control-promises-open-truncate",
+      "pass": true
+    },
+    {
+      "name": "positive-control-sync-open-truncate",
+      "pass": true
+    },
+    {
+      "name": "positive-control-filehandle-write",
+      "pass": true
+    },
+    {
+      "name": "positive-control-descriptor-write",
+      "pass": true
+    },
+    {
+      "name": "positive-control-write-stream",
+      "pass": true
+    },
+    {
+      "name": "positive-control-identical-copy",
+      "pass": true
+    },
+    {
+      "name": "positive-control-identical-rename",
+      "pass": true
+    },
+    {
+      "name": "positive-control-unlink-through-directory-alias",
+      "pass": true
+    },
+    {
+      "name": "unlink-owned-symlink-does-not-unlink-protected-target",
+      "pass": true
+    }
+  ],
+  "rendezvous": [
+    {
+      "members": [
+        {
+          "pid": 80706,
+          "mode": "canonical-default",
+          "argv": [
+            "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+            "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/virtual-bash-split-remaining-review-fU9Kc1/candidate/tests/commands/split/dangling-native.test.ts"
+          ],
+          "ready": "2026-08-27T15:56:10.648Z"
+        },
+        {
+          "pid": 80707,
+          "mode": "canonical-default",
+          "argv": [
+            "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+            "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/virtual-bash-split-remaining-review-fU9Kc1/candidate/tests/commands/split/edge.test.ts"
+          ],
+          "ready": "2026-08-27T15:56:10.652Z"
+        },
+        {
+          "pid": 80708,
+          "mode": "canonical-default",
+          "argv": [
+            "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+            "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/virtual-bash-split-remaining-review-fU9Kc1/candidate/tests/commands/split/native-errors.test.ts"
+          ],
+          "ready": "2026-08-27T15:56:10.669Z"
+        },
+        {
+          "pid": 80709,
+          "mode": "canonical-capture",
+          "argv": [
+            "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+            "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/virtual-bash-split-remaining-review-fU9Kc1/candidate/tests/commands/split/dangling-native.test.ts"
+          ],
+          "ready": "2026-08-27T15:56:10.665Z"
+        },
+        {
+          "pid": 80710,
+          "mode": "canonical-capture",
+          "argv": [
+            "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+            "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/virtual-bash-split-remaining-review-fU9Kc1/candidate/tests/commands/split/edge.test.ts"
+          ],
+          "ready": "2026-08-27T15:56:10.659Z"
+        },
+        {
+          "pid": 80711,
+          "mode": "canonical-capture",
+          "argv": [
+            "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+            "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/virtual-bash-split-remaining-review-fU9Kc1/candidate/tests/commands/split/native-errors.test.ts"
+          ],
+          "ready": "2026-08-27T15:56:10.675Z"
+        }
+      ],
+      "allSixAlive": true,
+      "released": "2026-08-27T15:56:10.690Z",
+      "concurrencyPerMode": 3
+    }
+  ],
+  "authentication": {
+    "candidateEntries": 288,
+    "goldens": 44,
+    "archiveUnchangedIncludingNewEntries": true,
+    "liveSplitUnchangedIncludingNewEntries": true,
+    "nativeUnchanged": true,
+    "liveTrackedChanges": []
+  },
+  "vectorCounts": {
+    "gnu": 43,
+    "apple": 20,
+    "errors": 9,
+    "crossProfile": 4,
+    "edge": 18,
+    "stressInputsAndArguments": 8,
+    "stressChunkVariants": 16,
+    "danglingFixtures": 11,
+    "danglingVfsObservations": 22,
+    "nativeProcessesPerCanonicalMode": 128
+  },
+  "failureReports": [
+    {
+      "capture": false,
+      "reports": [
+        {
+          "name": "dangling-native",
+          "sha256": "932cf931a326f070b65763fd91c11b201a6866e5f48f043c8fa30803e27fe0f7"
+        },
+        {
+          "name": "edge",
+          "sha256": "223591ffc4a61872a9afe32ca1c663d5dc5324b19f72d00255e874924f97f773"
+        },
+        {
+          "name": "gnu-errors",
+          "sha256": "47c6c7b8ad0afeaada1fcb632126b8b3b36d8b21c36f84761a145bde037ff888"
+        },
+        {
+          "name": "gnu9.7-darwin",
+          "sha256": "b274847afeb706fb5ec89cb398743034fcd073286868670011e25d457b94f1da"
+        },
+        {
+          "name": "apple-bsd",
+          "sha256": "ea34e5e31bdf0352505094fa67891c0cc54fc6f5ae3b3030f7d7164ac4327217"
+        },
+        {
+          "name": "stress",
+          "sha256": "c7b9e789393ab761e29e0421f15d8da02ae515122f266ce2ad2732e73d2b8fc7"
+        }
+      ],
+      "expectedFailingTests": 6,
+      "genuineCanonicalFailures": 0
+    },
+    {
+      "capture": true,
+      "reports": [
+        {
+          "name": "dangling-native",
+          "sha256": "eff2ae567b8b039e54f8f41e2fa8fe145c343309b5c508795679a929da9779fa"
+        },
+        {
+          "name": "edge",
+          "sha256": "223591ffc4a61872a9afe32ca1c663d5dc5324b19f72d00255e874924f97f773"
+        },
+        {
+          "name": "gnu-errors",
+          "sha256": "226f51f91dd18df1ad2c20ead4e469e9d357d7d6420f771a2410e62ee5972acd"
+        },
+        {
+          "name": "native-profile-differences",
+          "sha256": "efdbd3a6bf9795fc8d3518a708ee4785208b17e3fb4204121ef124a94daeae3f"
+        },
+        {
+          "name": "gnu9.7-darwin",
+          "sha256": "850f5ba1fa2dbe9ab053150c0cef54d75256b9ee6c8faba5a67c28b1019431cc"
+        },
+        {
+          "name": "apple-bsd",
+          "sha256": "ea34e5e31bdf0352505094fa67891c0cc54fc6f5ae3b3030f7d7164ac4327217"
+        },
+        {
+          "name": "stress",
+          "sha256": "c7b9e789393ab761e29e0421f15d8da02ae515122f266ce2ad2732e73d2b8fc7"
+        }
+      ],
+      "expectedFailingTests": 6,
+      "genuineCanonicalFailures": 0
+    }
+  ]
+}

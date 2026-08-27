@@ -1,0 +1,52 @@
+TAP version 13
+# Subtest: dangling output links: pinned GNU effects on MemoryFS and rooted RealFS; Apple separate
+ok 1 - dangling output links: pinned GNU effects on MemoryFS and rooted RealFS; Apple separate
+  ---
+  duration_ms: 331.661791
+  type: 'test'
+  ...
+# Subtest: GNU size spellings and empty-input output-directory controls
+ok 2 - GNU size spellings and empty-input output-directory controls
+  ---
+  duration_ms: 143.618292
+  type: 'test'
+  ...
+# Subtest: GNU errors: exact status/effects, separately asserted diagnostic profiles
+ok 3 - GNU errors: exact status/effects, separately asserted diagnostic profiles
+  ---
+  duration_ms: 97.400334
+  type: 'test'
+  ...
+# Subtest: explicit GNU versus Apple naming/profile differences remain visible
+ok 4 - explicit GNU versus Apple naming/profile differences remain visible
+  ---
+  duration_ms: 325.57675
+  type: 'test'
+  ...
+# Subtest: native gnu9.7-darwin: exact status/stdout/stderr/file bytes
+ok 5 - native gnu9.7-darwin: exact status/stdout/stderr/file bytes
+  ---
+  duration_ms: 817.183458
+  type: 'test'
+  ...
+# Subtest: native apple-bsd: exact status/stdout/stderr/file bytes
+ok 6 - native apple-bsd: exact status/stdout/stderr/file bytes
+  ---
+  duration_ms: 353.998584
+  type: 'test'
+  ...
+# Subtest: GNU boundary stress: complete effects under large chunks and reused windows
+ok 7 - GNU boundary stress: complete effects under large chunks and reused windows
+  ---
+  duration_ms: 112.478792
+  type: 'test'
+  ...
+1..7
+# tests 7
+# suites 0
+# pass 7
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1598.862208

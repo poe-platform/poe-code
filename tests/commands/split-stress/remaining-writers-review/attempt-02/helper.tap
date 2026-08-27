@@ -1,0 +1,99 @@
+TAP version 13
+# Subtest: native capture is off by default, including serialization and filesystem effects
+ok 1 - native capture is off by default, including serialization and filesystem effects
+  ---
+  duration_ms: 25.321458
+  type: 'test'
+  ...
+# Subtest: explicit native capture returns distinct retained paths and exact report bytes
+ok 2 - explicit native capture returns distinct retained paths and exact report bytes
+  ---
+  duration_ms: 5.144584
+  type: 'test'
+  ...
+# Subtest: native capture rejects path-valued switches and invalid report names
+ok 3 - native capture rejects path-valued switches and invalid report names
+  ---
+  duration_ms: 18.986875
+  type: 'test'
+  ...
+# Subtest: remaining native reports publish concurrently without sharing destinations
+ok 4 - remaining native reports publish concurrently without sharing destinations
+  ---
+  duration_ms: 6.132333
+  type: 'test'
+  ...
+# Subtest: native scratch and capture reject repository temp roots, including symlink aliases
+not ok 5 - native scratch and capture reject repository temp roots, including symlink aliases
+  ---
+  duration_ms: 20.6865
+  type: 'test'
+  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/virtual-bash-split-remaining-review-G4K9Uu/candidate/tests/commands/split/native-capture.test.ts:1:4316'
+  failureType: 'testCodeFailure'
+  error: 'REVIEW_WRITE_BLOCKED: callback.unlink: /private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/virtual-bash-split-remaining-review-G4K9Uu/helper/virtual-bash-split-guard-CNuAUY/repository'
+  code: 'REVIEW_WRITE_BLOCKED'
+  stack: |-
+    mutation (file:///Users/kjopek/Workspace/safe-bash/tests/commands/split-stress/remaining-writers-review/audit.mjs:33:36)
+    target.<computed> (file:///Users/kjopek/Workspace/safe-bash/tests/commands/split-stress/remaining-writers-review/audit.mjs:46:13)
+    node:internal/fs/rimraf:79:5
+    FSReqCallback.oncomplete (node:fs:197:5)
+  ...
+# Subtest: native capture refuses overwrites, output symlinks, and replaced destination directories
+ok 6 - native capture refuses overwrites, output symlinks, and replaced destination directories
+  ---
+  duration_ms: 12.531542
+  type: 'test'
+  ...
+# Subtest: actual native harness success, capture off, preserves repository evidence
+ok 7 - actual native harness success, capture off, preserves repository evidence
+  ---
+  duration_ms: 1672.382709
+  type: 'test'
+  ...
+# Subtest: actual native harness success, capture on, preserves repository evidence
+ok 8 - actual native harness success, capture on, preserves repository evidence
+  ---
+  duration_ms: 1695.263375
+  type: 'test'
+  ...
+# Subtest: actual native harness injected mismatch, capture off, preserves repository evidence
+not ok 9 - actual native harness injected mismatch, capture off, preserves repository evidence
+  ---
+  duration_ms: 1985.780542
+  type: 'test'
+  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/virtual-bash-split-remaining-review-G4K9Uu/candidate/tests/commands/split/native-capture.test.ts:1:6561'
+  failureType: 'testCodeFailure'
+  error: 'REVIEW_WRITE_BLOCKED: callback.unlink: /private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/virtual-bash-split-remaining-review-G4K9Uu/helper/virtual-bash-split-regression-CJ0HSy/sandbox/node_modules'
+  code: 'REVIEW_WRITE_BLOCKED'
+  stack: |-
+    mutation (file:///Users/kjopek/Workspace/safe-bash/tests/commands/split-stress/remaining-writers-review/audit.mjs:33:36)
+    target.<computed> (file:///Users/kjopek/Workspace/safe-bash/tests/commands/split-stress/remaining-writers-review/audit.mjs:46:13)
+    node:internal/fs/rimraf:79:5
+    FSReqCallback.oncomplete (node:fs:197:5)
+  ...
+# Injected harness-only mismatch retained before cleanup: {"id":"zero-lines","args":["-l0"],"input":"abc","expected":{"status":1,"stdout":"","stderr":"split: invalid number of lines: '0'\\n","files":{},"entries":[]},"observed":{"status":2,"stdout":"","stderr":"split: invalid number of lines: '0'\\n","files":{},"entries":[]},"semanticMatch":false,"strictMatch":false,"diagnosticPolicy":{"native":"/invalid number of lines/","virtual":"/invalid number of lines/"}}
+# Subtest: actual native harness injected mismatch, capture on, preserves repository evidence
+not ok 10 - actual native harness injected mismatch, capture on, preserves repository evidence
+  ---
+  duration_ms: 1864.073417
+  type: 'test'
+  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/virtual-bash-split-remaining-review-G4K9Uu/candidate/tests/commands/split/native-capture.test.ts:1:6561'
+  failureType: 'testCodeFailure'
+  error: 'REVIEW_WRITE_BLOCKED: callback.unlink: /private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/virtual-bash-split-remaining-review-G4K9Uu/helper/virtual-bash-split-regression-GC0gEP/sandbox/node_modules'
+  code: 'REVIEW_WRITE_BLOCKED'
+  stack: |-
+    mutation (file:///Users/kjopek/Workspace/safe-bash/tests/commands/split-stress/remaining-writers-review/audit.mjs:33:36)
+    target.<computed> (file:///Users/kjopek/Workspace/safe-bash/tests/commands/split-stress/remaining-writers-review/audit.mjs:46:13)
+    node:internal/fs/rimraf:79:5
+    FSReqCallback.oncomplete (node:fs:197:5)
+  ...
+# Injected harness-only mismatch retained before cleanup: {"id":"zero-lines","args":["-l0"],"input":"abc","expected":{"status":1,"stdout":"","stderr":"split: invalid number of lines: '0'\\n","files":{},"entries":[]},"observed":{"status":2,"stdout":"","stderr":"split: invalid number of lines: '0'\\n","files":{},"entries":[]},"semanticMatch":false,"strictMatch":false,"diagnosticPolicy":{"native":"/invalid number of lines/","virtual":"/invalid number of lines/"}}
+1..10
+# tests 10
+# suites 0
+# pass 7
+# fail 3
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 7422.461

@@ -1,4 +1,36 @@
-# Independent jq original42 review — PREPARATION ONLY
+# Independent jq original42 review — preparation and REVIEW checkpoint
+
+## Final independent checkpoint: FAIL, August 27, 2026 UTC
+
+See `REVIEW.md` and `review.json` for the separate post-handoff review of
+`d1f78d43880c94300c0019b07a88110e9b3e8f08`:
+
+- Unchanged main harness: **788/790 exact executions**, 255/256 vectors;
+  original42 **42/42**, historical **155/155 + 81/81**, reviewer **19/20**.
+  The existing `review-fromjson-two-error-records` diagnostic mismatch persists
+  on direct and public-shell routes. The five all-boundary cases pass 288/288.
+- All **22/22 original red tests reproduce unchanged**. Independent native proof
+  distinguishes non-native policy retirement from remaining diagnostic and
+  input-acceptance gaps; it does not declare the broad owned gate green.
+- Existing author safety: **10/10 on three runs**. Seven new independent failure
+  boundary controls: **4 pass / 3 fail on each of three runs**, exposing typed
+  stderr retry and successful-diagnostic replay. These are not native vectors
+  and are not folded into 790.
+- Four author-reported supplementary gaps are independently reproduced, not
+  excluded. Scoped/global TypeScript pass after the new tests. All 170 historical
+  files and all 15 non-README prep files match their immutable commits.
+- Structured source matches the handoff hash throughout. Other source and HEAD
+  move between cohorts; this is **not clean committed-HEAD/product validation**.
+
+The new `legacy-*.json`, `bounded-validation.json`, and
+`failure-boundaries-results.json` are separate immutable observation cohorts.
+Capture scripts intentionally refuse artifact overwrites. Replay the original
+main harness with a fresh `--report` name; replay the new boundary tests directly
+with `node --unhandled-rejections=strict --import tsx --test
+tests/commands/structured-stress/jq-42-independent-review/failure-boundaries.test.ts`.
+An expected nonzero test/report exit remains a failure, never a passing gate.
+
+## Historical preparation phase (unchanged evidence follows)
 
 This leaf owns only this new subtree. No production, author, historical oracle,
 original matrix, root configuration or frozen audit files were changed. No

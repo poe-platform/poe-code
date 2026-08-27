@@ -1,0 +1,196 @@
+{
+  "schema": "safe-bash-private-state-checkpoint-v1",
+  "scope": "Metadata-only stage checkpoint; no guest, SafeJS, runtime product execution, network, assembly reconciliation, or experiment/probe conclusion.",
+  "before": {
+    "path": "tests/integration/safejs-owned-output-prototype-review/provenance/snapshot-before.json",
+    "at": "2026-08-27T14:08:27.096Z",
+    "sha256": "3a705749e0daea4d85a1546f665a2a0dda50ccae908e7c6d89e82e2666cb74f5",
+    "privateStateSha256": "361d1ef27487a3731dda9b598bf4b3416ff02863e03e176f6f4491d4772b65a6",
+    "hashEncoding": "UTF-8 JSON.stringify(private) in original property order"
+  },
+  "after": {
+    "path": "tests/integration/safejs-owned-output-prototype-review/private-state/snapshot-after.json",
+    "at": "2026-08-27T14:19:25.132Z",
+    "sha256": "47390c2396c158a9c111002f275aaacbb8cedd265dd8223180fe282312b8ff12",
+    "privateStateSha256": "361d1ef27487a3731dda9b598bf4b3416ff02863e03e176f6f4491d4772b65a6",
+    "hashEncoding": "UTF-8 JSON.stringify(private) in original property order"
+  },
+  "helper": {
+    "source": "tests/integration/safejs-owned-output-prototype-review/provenance/snapshot.mjs",
+    "sha256": "dad095bb5f744d6137b374d70ba07971ce76965b215a2280bf2849e9717695ce",
+    "reuse": "Unmodified full-hash-verified regular /tmp copy; writes redirected only by import.meta.url location.",
+    "privateGitEnvironment": {
+      "PATH": "/usr/bin:/bin",
+      "GIT_OPTIONAL_LOCKS": "0",
+      "LC_ALL": "C"
+    },
+    "excludedDirectoryNames": [
+      ".git",
+      "node_modules",
+      "dist",
+      ".cache",
+      ".turbo"
+    ]
+  },
+  "provenanceSources": {
+    "initial": {
+      "snapshot-before.json": {
+        "bytes": 129703,
+        "sha256": "3a705749e0daea4d85a1546f665a2a0dda50ccae908e7c6d89e82e2666cb74f5",
+        "mode": 420,
+        "mtimeMs": 1787839707443.1436,
+        "ctimeMs": 1787839707443.1436
+      },
+      "snapshot.mjs": {
+        "bytes": 4157,
+        "sha256": "dad095bb5f744d6137b374d70ba07971ce76965b215a2280bf2849e9717695ce",
+        "mode": 420,
+        "mtimeMs": 1787839706831.6465,
+        "ctimeMs": 1787839706831.6465
+      },
+      "preparation-first-failure.json": {
+        "bytes": 31400,
+        "sha256": "3bf5bd92097590953dc2c42308dd0d89d68163939d012135f25e4c306c578679",
+        "mode": 420,
+        "mtimeMs": 1787839868792.666,
+        "ctimeMs": 1787839868792.666
+      },
+      "preparation-subsequent-failure.json": {
+        "bytes": 32389,
+        "sha256": "f76f3947079dd0c552f4103c5613515a186d542c73d45b9ba6c3464e51b68de0",
+        "mode": 420,
+        "mtimeMs": 1787839945064.9375,
+        "ctimeMs": 1787839945064.9375
+      }
+    },
+    "afterCapture": {
+      "snapshot-before.json": {
+        "bytes": 129703,
+        "sha256": "3a705749e0daea4d85a1546f665a2a0dda50ccae908e7c6d89e82e2666cb74f5",
+        "mode": 420,
+        "mtimeMs": 1787839707443.1436,
+        "ctimeMs": 1787839707443.1436
+      },
+      "snapshot.mjs": {
+        "bytes": 4157,
+        "sha256": "dad095bb5f744d6137b374d70ba07971ce76965b215a2280bf2849e9717695ce",
+        "mode": 420,
+        "mtimeMs": 1787839706831.6465,
+        "ctimeMs": 1787839706831.6465
+      },
+      "preparation-first-failure.json": {
+        "bytes": 31400,
+        "sha256": "3bf5bd92097590953dc2c42308dd0d89d68163939d012135f25e4c306c578679",
+        "mode": 420,
+        "mtimeMs": 1787839868792.666,
+        "ctimeMs": 1787839868792.666
+      },
+      "preparation-subsequent-failure.json": {
+        "bytes": 32389,
+        "sha256": "f76f3947079dd0c552f4103c5613515a186d542c73d45b9ba6c3464e51b68de0",
+        "mode": 420,
+        "mtimeMs": 1787839945064.9375,
+        "ctimeMs": 1787839945064.9375
+      }
+    },
+    "exactUnchanged": true
+  },
+  "private": {
+    "exactUnchanged": true,
+    "serializedExactlyEqual": true,
+    "head": {
+      "before": "bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e",
+      "after": "bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e",
+      "unchanged": true
+    },
+    "tree": {
+      "before": "ebcb4508690856b288a40e60e7682331d6fad8ff",
+      "after": "ebcb4508690856b288a40e60e7682331d6fad8ff",
+      "unchanged": true
+    },
+    "index": {
+      "before": {
+        "bytes": 431585,
+        "sha256": "2dc2ac516c19864f952c493eb39374db1a2946f359d31dfb6fd02a5fccfb6bc2",
+        "mode": 420,
+        "mtimeMs": 1787794730073.6377,
+        "ctimeMs": 1787794730073.7827
+      },
+      "after": {
+        "bytes": 431585,
+        "sha256": "2dc2ac516c19864f952c493eb39374db1a2946f359d31dfb6fd02a5fccfb6bc2",
+        "mode": 420,
+        "mtimeMs": 1787794730073.6377,
+        "ctimeMs": 1787794730073.7827
+      },
+      "bytesUnchanged": true,
+      "metadataUnchanged": true
+    },
+    "staged": {
+      "before": "",
+      "after": "",
+      "unchanged": true
+    },
+    "status": {
+      "before": " M package-lock.json\n M package.json\n M packages/poe-agent/package.json\n?? docs/plans/bugfix-shell-quote-parser-security.md\n?? docs/plans/safejs-24h-audit-2026-08-27.md\n?? out/\n?? packages/terminal-pilot/assets/\n",
+      "after": " M package-lock.json\n M package.json\n M packages/poe-agent/package.json\n?? docs/plans/bugfix-shell-quote-parser-security.md\n?? docs/plans/safejs-24h-audit-2026-08-27.md\n?? out/\n?? packages/terminal-pilot/assets/\n",
+      "unchanged": true
+    },
+    "engine": {
+      "beforeCount": 264,
+      "afterCount": 264,
+      "commonCount": 264,
+      "unchangedBytesCount": 264,
+      "unchangedMetadataCount": 264,
+      "exactUnchangedCount": 264,
+      "removed": [],
+      "added": []
+    },
+    "metadata": {
+      "beforeCount": 6,
+      "afterCount": 6,
+      "commonCount": 6,
+      "unchangedBytesCount": 6,
+      "unchangedMetadataCount": 6,
+      "exactUnchangedCount": 6,
+      "removed": [],
+      "added": []
+    },
+    "differences": []
+  },
+  "publicContextOnly": {
+    "comparison": {
+      "privateUnchanged": true,
+      "publicSourceUnchanged": false,
+      "publicRootInputsUnchanged": true,
+      "foreignStagingUnchanged": true
+    },
+    "beforeHead": "4d524fd8d8c7f0bfbafba625778e8fa4550acf5f",
+    "afterHead": "b871222100d0453a570b80fa7b41b1181be8eb67",
+    "beforeStaged": "",
+    "afterStaged": "",
+    "interpretation": "Shared public changes and foreign staging are not private-state failures."
+  },
+  "process": {
+    "startedAt": "2026-08-27T14:19:24.923Z",
+    "finishedAt": "2026-08-27T14:19:25.463Z",
+    "synchronousHelperSettled": true,
+    "exitStatus": 0,
+    "signal": null,
+    "error": null,
+    "stdout": "{\"phase\":\"after\",\"privateHead\":\"bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e\",\"engineFiles\":264,\"privateIndex\":\"2dc2ac516c19864f952c493eb39374db1a2946f359d31dfb6fd02a5fccfb6bc2\",\"comparison\":{\"privateUnchanged\":true,\"publicSourceUnchanged\":false,\"publicRootInputsUnchanged\":true,\"foreignStagingUnchanged\":true}}\n",
+    "stderr": "",
+    "noBackgroundProcessStarted": true,
+    "scratchDirectory": "/tmp/safe-bash-private-state-checkpoint-H4Rql2",
+    "fullScratchAfterSha256": "6322f3c48ef199e5a96ede39d072082bde5d869b50bb9b131b65d6aaaac4fd11",
+    "closure": "Only regular snapshot-helper/input/output scratch files created; scratch removal and final source-pin recheck recorded in report before publication."
+  },
+  "limits": [
+    "Hash/length equivalence, not retained or vendored private bytes.",
+    "Exact original inventory and metadata schema; no excluded directories, directory metadata, atime, nanosecond precision, or untracked contents outside that inventory certified.",
+    "Sequential filesystem/Git observations, not an atomic snapshot, lease, or proof of unchanged state between observations.",
+    "Primary provenance worker reported active by assignment; no waiting for it or Faraday receipt.",
+    "Preparation failures preserved as provenance, not assessed as security findings.",
+    "Future engine audit requires fresh before/after snapshots."
+  ]
+}

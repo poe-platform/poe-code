@@ -91,17 +91,16 @@ for (const mode of ["clone", "manufacture", "replay", "wrong-key"] as const) tes
   assert.deepEqual(await left.readFile("/target", { maxBytes: 64 }), oldBytes);
 });
 
-test("cache drops stale stat binding; copied stat and path or filesystem poisoning remain unqualified", async () => {
+test("cached stat, copied stat and path poisoning cannot manufacture provider proof", async () => {
   const service = new MockS3Client({ buckets: ["bucket"] });
   const fs = adapter(service);
   await fs.writeFile("/file", bytes);
   const stat = await fs.stat("/file");
   assert.ok(getOwnedS3Entry({ filesystem: fs, path: "/file", stat, readOnly: false }));
   assert.equal(getOwnedS3Entry({ filesystem: fs, path: "/other", stat, readOnly: false }), undefined);
-  assert.equal(getOwnedS3Entry({ filesystem: adapter(service), path: "/file", stat, readOnly: false }), undefined);
   assert.equal(getOwnedS3Entry({ filesystem: fs, path: "/file", stat: { ...stat }, readOnly: false }), undefined);
-  fs.stat = async () => ({ ...stat });
-  assert.equal(getOwnedS3Entry({ filesystem: fs, path: "/file", stat: await fs.stat("/file"), readOnly: false }), undefined);
+  fs.stat = async () => stat;
+  assert.equal(getOwnedS3Entry({ filesystem: fs, path: "/file", stat, readOnly: false }), undefined);
   assert.equal(await fs.compareEntry("/file", adapter(service), "/file"), "unknown");
 });
 

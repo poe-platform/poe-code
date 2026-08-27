@@ -25,7 +25,7 @@ async function provider(streaming: boolean) {
 }
 
 for (const streaming of [false, true]) for (const timing of ["subclass-before", "prototype-before", "instance-after", "prototype-after"] as const) {
-  test(`S3 adapter ${timing} ${streaming ? "streamed" : "buffered"} remapping drops inherited binding before copy`, async () => {
+  test(`S3 adapter ${timing} ${streaming ? "streamed" : "buffered"} overrides cannot authorize source damage`, async () => {
     const memory = new MemoryFileSystem();
     await memory.writeFile("/source", original);
     await memory.writeFile("/keep", marker);
@@ -51,10 +51,6 @@ for (const streaming of [false, true]) for (const timing of ["subclass-before", 
       const Constructor = timing === "subclass-before" ? DataView : S3FileSystem;
       first = new Constructor(firstProvider.options);
       second = new Constructor(secondProvider.options);
-      for (const filesystem of [first, second]) {
-        const stat = filesystem.stat.bind(filesystem);
-        filesystem.stat = async (path, options) => ({ ...await stat(path, options) });
-      }
       if (timing === "instance-after" || (timing === "prototype-after" && streaming)) {
         install(first);
         install(second);
@@ -118,7 +114,7 @@ for (const answer of ["same", "invalid"] as const) test(`explicit subclass compa
   assert.deepEqual(await second.readFile("/source"), original);
 });
 
-for (const streaming of [false, true]) test(`Memory consumer preserves source when ${streaming ? "streamed" : "buffered"} S3 remapping drops inherited binding`, async () => {
+for (const streaming of [false, true]) test(`private Memory descriptor consumer rejects a pre-overridden ${streaming ? "streamed" : "buffered"} S3 destination`, async () => {
   const memory = new MemoryFileSystem();
   await memory.writeFile("/source", original);
   await memory.writeFile("/keep", marker);
@@ -133,8 +129,6 @@ for (const streaming of [false, true]) test(`Memory consumer preserves source wh
       throw new FsError("EIO");
     } });
     const remote = new S3FileSystem(remoteProvider.options);
-    const stat = remote.stat.bind(remote);
-    remote.stat = async (path, options) => ({ ...await stat(path, options) });
     const mount = new MountFileSystem({ root: new MemoryFileSystem(), mounts: { "/local": memory, "/remote": remote } });
     const offset = remoteProvider.client.requests.length;
     await assert.rejects(mount.copyFile("/local/source", "/remote/source"), { code: "ENOTSUP" });

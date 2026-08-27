@@ -137,9 +137,7 @@ export class S3FileSystem implements FileSystem {
     const bucket = this.bucket;
     const registeredPrefix = this.prefix;
     registerS3EntryOwner(this, path => this.path(path), () => this.transport === transport
-      && this.bucket === bucket && this.prefix === registeredPrefix
-      && Object.entries(s3Implementation).every(([name, descriptor]) => name === "constructor" || name === "compareEntry"
-        || descriptor.value === undefined || Reflect.get(this, name) === descriptor.value), s3Implementation.compareEntry!.value!);
+      && this.bucket === bucket && this.prefix === registeredPrefix, s3Comparison);
     registerEntryAuthority(this, compareOwnedS3Entries);
   }
 
@@ -920,4 +918,4 @@ export class S3FileSystem implements FileSystem {
   }
 }
 
-const s3Implementation = Object.getOwnPropertyDescriptors(S3FileSystem.prototype);
+const s3Comparison = S3FileSystem.prototype.compareEntry;

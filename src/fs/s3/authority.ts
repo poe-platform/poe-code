@@ -49,10 +49,8 @@ export function recordS3Stat(filesystem: FileSystem, path: string, stat: FileSta
 export function registerS3EntryOwner(filesystem: FileSystem, normalize: (path: string) => string,
   intact: () => boolean, baseComparison: NonNullable<FileSystem["compareEntry"]>): void {
   comparisons.set(filesystem, baseComparison);
-  const names = ["stat", "lstat", "realpath", "readFile", "writeFile", "copyFile", "rename", "readStream", "writeStream"] as const;
-  const methods = names.map(name => filesystem[name]);
   entries.set(filesystem, view => {
-    if (!intact() || !names.every((name, index) => filesystem[name] === methods[index])) return undefined;
+    if (!intact()) return undefined;
     const observation = observedStats.get(view.stat);
     return observation?.filesystem === filesystem && observation.path === normalize(view.path) ? observation.entry : undefined;
   });

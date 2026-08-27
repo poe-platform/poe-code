@@ -1,0 +1,263 @@
+{
+  "dev": 16777232,
+  "ino": 172263351,
+  "mode": 16877,
+  "type": "directory",
+  "entries": {
+    "extension": {
+      "dev": 16777232,
+      "ino": 172263352,
+      "mode": 16877,
+      "type": "directory",
+      "entries": {
+        "control": {
+          "dev": 16777232,
+          "ino": 172270056,
+          "mode": 16877,
+          "type": "directory",
+          "entries": {}
+        },
+        "descendant": {
+          "dev": 16777232,
+          "ino": 172270061,
+          "mode": 16877,
+          "type": "directory",
+          "entries": {
+            "child": {
+              "dev": 16777232,
+              "ino": 172270062,
+              "mode": 16877,
+              "type": "directory",
+              "entries": {}
+            }
+          }
+        },
+        "final-link": {
+          "dev": 16777232,
+          "ino": 172270057,
+          "mode": 41453,
+          "type": "symlink",
+          "target": "nonempty"
+        },
+        "ind-alias-bytes": {
+          "dev": 16777232,
+          "ino": 172285941,
+          "mode": 33188,
+          "type": "file",
+          "hex": "00ff80410d0a",
+          "sha256": "1148e711421df4cb092b5e2df5a54881fb8c41a6ea0cf5a77934a31bf0c6aa0b"
+        },
+        "ind-auth-bad-password": {
+          "dev": 16777232,
+          "ino": 172285877,
+          "mode": 16877,
+          "type": "directory",
+          "entries": {}
+        },
+        "ind-auth-missing": {
+          "dev": 16777232,
+          "ino": 172285876,
+          "mode": 16877,
+          "type": "directory",
+          "entries": {}
+        },
+        "ind-auth-second-principal": {
+          "dev": 16777232,
+          "ino": 172285878,
+          "mode": 16877,
+          "type": "directory",
+          "entries": {}
+        },
+        "ind-binding": {
+          "dev": 16777232,
+          "ino": 172285937,
+          "mode": 16877,
+          "type": "directory",
+          "entries": {}
+        },
+        "ind-descendant": {
+          "dev": 16777232,
+          "ino": 172285891,
+          "mode": 16877,
+          "type": "directory",
+          "entries": {
+            "child": {
+              "dev": 16777232,
+              "ino": 172285892,
+              "mode": 33188,
+              "type": "file",
+              "hex": "00ff80410d0a",
+              "sha256": "1148e711421df4cb092b5e2df5a54881fb8c41a6ea0cf5a77934a31bf0c6aa0b"
+            }
+          }
+        },
+        "ind-expiry-parent": {
+          "dev": 16777232,
+          "ino": 172285909,
+          "mode": 16877,
+          "type": "directory",
+          "entries": {}
+        },
+        "ind-native-race": {
+          "dev": 16777232,
+          "ino": 172285881,
+          "mode": 16877,
+          "type": "directory",
+          "entries": {
+            "child": {
+              "dev": 16777232,
+              "ino": 172285883,
+              "mode": 33188,
+              "type": "file",
+              "hex": "00ff80410d0a",
+              "sha256": "1148e711421df4cb092b5e2df5a54881fb8c41a6ea0cf5a77934a31bf0c6aa0b"
+            }
+          }
+        },
+        "ind-nonempty": {
+          "dev": 16777232,
+          "ino": 172285879,
+          "mode": 16877,
+          "type": "directory",
+          "entries": {
+            "child": {
+              "dev": 16777232,
+              "ino": 172285880,
+              "mode": 33188,
+              "type": "file",
+              "hex": "00ff80410d0a",
+              "sha256": "1148e711421df4cb092b5e2df5a54881fb8c41a6ea0cf5a77934a31bf0c6aa0b"
+            }
+          }
+        },
+        "ind-other-lock": {
+          "dev": 16777232,
+          "ino": 172285886,
+          "mode": 16877,
+          "type": "directory",
+          "entries": {}
+        },
+        "ind-parent-0": {
+          "dev": 16777232,
+          "ino": 172285887,
+          "mode": 16877,
+          "type": "directory",
+          "entries": {}
+        },
+        "ind-parent-infinity": {
+          "dev": 16777232,
+          "ino": 172285889,
+          "mode": 16877,
+          "type": "directory",
+          "entries": {}
+        },
+        "ind-refresh": {
+          "dev": 16777232,
+          "ino": 172285924,
+          "mode": 16877,
+          "type": "directory",
+          "entries": {}
+        },
+        "ind-serialize": {
+          "dev": 16777232,
+          "ino": 172285903,
+          "mode": 16877,
+          "type": "directory",
+          "entries": {
+            "child": {
+              "dev": 16777232,
+              "ino": 172285904,
+              "mode": 33188,
+              "type": "file",
+              "hex": "00ff80410d0a",
+              "sha256": "1148e711421df4cb092b5e2df5a54881fb8c41a6ea0cf5a77934a31bf0c6aa0b"
+            }
+          }
+        },
+        "ind-unlock": {
+          "dev": 16777232,
+          "ino": 172285928,
+          "mode": 16877,
+          "type": "directory",
+          "entries": {}
+        },
+        "late-child": {
+          "dev": 16777232,
+          "ino": 172270052,
+          "mode": 16877,
+          "type": "directory",
+          "entries": {
+            "child": {
+              "dev": 16777232,
+              "ino": 172270054,
+              "mode": 33188,
+              "type": "file",
+              "hex": "00ff80410d0a",
+              "sha256": "1148e711421df4cb092b5e2df5a54881fb8c41a6ea0cf5a77934a31bf0c6aa0b"
+            }
+          }
+        },
+        "lock-target": {
+          "dev": 16777232,
+          "ino": 172270058,
+          "mode": 16877,
+          "type": "directory",
+          "entries": {}
+        },
+        "nonempty": {
+          "dev": 16777232,
+          "ino": 172270050,
+          "mode": 16877,
+          "type": "directory",
+          "entries": {
+            "child": {
+              "dev": 16777232,
+              "ino": 172270051,
+              "mode": 33188,
+              "type": "file",
+              "hex": "00ff80410d0a",
+              "sha256": "1148e711421df4cb092b5e2df5a54881fb8c41a6ea0cf5a77934a31bf0c6aa0b"
+            }
+          }
+        },
+        "parent": {
+          "dev": 16777232,
+          "ino": 172270059,
+          "mode": 16877,
+          "type": "directory",
+          "entries": {}
+        },
+        "shell-bytes": {
+          "dev": 16777232,
+          "ino": 172270049,
+          "mode": 33188,
+          "type": "file",
+          "hex": "6e61746976652d6261636b65640a",
+          "sha256": "fe3a14be2c2499deb28a2e0fa067ceb2b97cf68aed81507dc983e6bf1b0d8dab"
+        }
+      }
+    },
+    "stock": {
+      "dev": 16777232,
+      "ino": 172263353,
+      "mode": 16877,
+      "type": "directory",
+      "entries": {
+        "empty": {
+          "dev": 16777232,
+          "ino": 172270063,
+          "mode": 16877,
+          "type": "directory",
+          "entries": {}
+        },
+        "ind-empty": {
+          "dev": 16777232,
+          "ino": 172285938,
+          "mode": 16877,
+          "type": "directory",
+          "entries": {}
+        }
+      }
+    }
+  }
+}

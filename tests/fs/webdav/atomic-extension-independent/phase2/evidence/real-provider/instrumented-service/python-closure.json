@@ -1,0 +1,262 @@
+{
+  "cheroot": {
+    "file": "/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/atomic-extension-independent/phase2/.work-jz86dH/venv/lib/python3.14/site-packages/cheroot/__init__.py",
+    "sha256": "336c6879386053fbc3ff86c4a3292448d5ebe9e99de08c1c964ccd48bd87afc3"
+  },
+  "cheroot.errors": {
+    "file": "/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/atomic-extension-independent/phase2/.work-jz86dH/venv/lib/python3.14/site-packages/cheroot/errors.py",
+    "sha256": "abdb48a31151fdf083343e1401f7f9d49b9d902acc04aad7037dc8549c08a123"
+  },
+  "cheroot._compat": {
+    "file": "/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/atomic-extension-independent/phase2/.work-jz86dH/venv/lib/python3.14/site-packages/cheroot/_compat.py",
+    "sha256": "851a3780b11cf8318b133d99a532417493096a2f713440cbe92151db690ec389"
+  },
+  "cheroot.makefile": {
+    "file": "/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/atomic-extension-independent/phase2/.work-jz86dH/venv/lib/python3.14/site-packages/cheroot/makefile.py",
+    "sha256": "590b80470d808afd6788258dd0f8d90f0944626d90a19c330e0f7cfc51f75ffd"
+  },
+  "cheroot.connections": {
+    "file": "/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/atomic-extension-independent/phase2/.work-jz86dH/venv/lib/python3.14/site-packages/cheroot/connections.py",
+    "sha256": "f022bb0a478fb1ae6db833bd4259193f2e331e8caef358475dd9249c3a97ce10"
+  },
+  "cheroot.workers": {
+    "file": "/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/atomic-extension-independent/phase2/.work-jz86dH/venv/lib/python3.14/site-packages/cheroot/workers/__init__.py",
+    "sha256": "fb38b2c3b88f587b3674de11fd0ec0419eebd1d40f4deb359d50b3020d8b39cf"
+  },
+  "more_itertools.recipes": {
+    "file": "/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/atomic-extension-independent/phase2/.work-jz86dH/venv/lib/python3.14/site-packages/more_itertools/recipes.py",
+    "sha256": "6aff1f84b0a70b96c102e3b92a70539255f1489765fc54140b1c1478f95b4828"
+  },
+  "more_itertools.more": {
+    "file": "/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/atomic-extension-independent/phase2/.work-jz86dH/venv/lib/python3.14/site-packages/more_itertools/more.py",
+    "sha256": "f2ad17370b06905e981b524213395f0dee3d072e9c3ddab3d65e671f324e5ace"
+  },
+  "more_itertools": {
+    "file": "/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/atomic-extension-independent/phase2/.work-jz86dH/venv/lib/python3.14/site-packages/more_itertools/__init__.py",
+    "sha256": "19cb2d318e8d45eb7d56136a55f1452c9469d21597571c31d752aa8232a2c07b"
+  },
+  "jaraco.functools": {
+    "file": "/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/atomic-extension-independent/phase2/.work-jz86dH/venv/lib/python3.14/site-packages/jaraco/functools/__init__.py",
+    "sha256": "4885def75d339ba8c0dfbf74bfeb3e0fa8c04b3bbe2ffcc7ddb54946fb94bda8"
+  },
+  "cheroot.workers.threadpool": {
+    "file": "/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/atomic-extension-independent/phase2/.work-jz86dH/venv/lib/python3.14/site-packages/cheroot/workers/threadpool.py",
+    "sha256": "b8caaeda2441b6f04515ae317d3af79bad8be6ca6cf6e7fddb14915aa3f61f38"
+  },
+  "cheroot.server": {
+    "file": "/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/atomic-extension-independent/phase2/.work-jz86dH/venv/lib/python3.14/site-packages/cheroot/server.py",
+    "sha256": "4600b6540b3d382c384e366373ee1b12af94b7e97da1a8ca7d7a7c282b4c3777"
+  },
+  "cheroot.wsgi": {
+    "file": "/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/atomic-extension-independent/phase2/.work-jz86dH/venv/lib/python3.14/site-packages/cheroot/wsgi.py",
+    "sha256": "d91417984c4d09df72d0d633110e8d2ab0b8138d19824d96d0845c9c3ebcd812"
+  },
+  "wsgidav": {
+    "file": "/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/atomic-extension-independent/phase2/.work-jz86dH/venv/lib/python3.14/site-packages/wsgidav/__init__.py",
+    "sha256": "1e360e5407d42e6da37de394f88037da4efa575bf9ba489127e0f5e1d13d7910"
+  },
+  "defusedxml.common": {
+    "file": "/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/atomic-extension-independent/phase2/.work-jz86dH/venv/lib/python3.14/site-packages/defusedxml/common.py",
+    "sha256": "ddddba8cd5b87cd5f38235a1bd47ecf3701f8b3e44571143ba941bba09123197"
+  },
+  "defusedxml": {
+    "file": "/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/atomic-extension-independent/phase2/.work-jz86dH/venv/lib/python3.14/site-packages/defusedxml/__init__.py",
+    "sha256": "45ccde695246eb8a76160cb58e50b36ee45d72110f9c468206bc6093c249fe93"
+  },
+  "defusedxml.ElementTree": {
+    "file": "/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/atomic-extension-independent/phase2/.work-jz86dH/venv/lib/python3.14/site-packages/defusedxml/ElementTree.py",
+    "sha256": "18b4aaa42cf9f285c63c6cb37ff1f296c3d2f7f75c1953f948de1d2bbcafc8fc"
+  },
+  "wsgidav.xml_tools": {
+    "file": "/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/atomic-extension-independent/phase2/.work-jz86dH/venv/lib/python3.14/site-packages/wsgidav/xml_tools.py",
+    "sha256": "d2035c6d30473d05af281d7266d25c3abf847e84e11801b8d3b049089eb0da6d"
+  },
+  "wsgidav.dav_error": {
+    "file": "/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/atomic-extension-independent/phase2/.work-jz86dH/venv/lib/python3.14/site-packages/wsgidav/dav_error.py",
+    "sha256": "15230d9283ab5ea5f1d6391a7e80e558517f9f8aad1c6b87450d913a9aa6d3ad"
+  },
+  "wsgidav.util": {
+    "file": "/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/atomic-extension-independent/phase2/.work-jz86dH/venv/lib/python3.14/site-packages/wsgidav/util.py",
+    "sha256": "88987c27fcbc71e3a3197a9509942d39206d5f12f28dda08766e7eb98e831714"
+  },
+  "wsgidav.request_server": {
+    "file": "/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/atomic-extension-independent/phase2/.work-jz86dH/venv/lib/python3.14/site-packages/wsgidav/request_server.py",
+    "sha256": "232d1b902668d57eeb2be55cefe89b5b8bb269f169c1ae78bbc363198d8b6203"
+  },
+  "wsgidav.dav_provider": {
+    "file": "/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/atomic-extension-independent/phase2/.work-jz86dH/venv/lib/python3.14/site-packages/wsgidav/dav_provider.py",
+    "sha256": "36dd8501c8cd1e6198cdc25f7fff3bdd96a79049852a518b31456ede2f1c7b10"
+  },
+  "wsgidav.fs_dav_provider": {
+    "file": "/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/atomic-extension-independent/phase2/.work-jz86dH/venv/lib/python3.14/site-packages/wsgidav/fs_dav_provider.py",
+    "sha256": "6bacc94cac0c2ce1eeab975ef7e47b30e19521d70de5f0a0dc7643bb66806d8f"
+  },
+  "cheroot.ssl": {
+    "file": "/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/atomic-extension-independent/phase2/.work-jz86dH/venv/lib/python3.14/site-packages/cheroot/ssl/__init__.py",
+    "sha256": "e3a31864a4bfc433a7f8e30cdd23f0fb7ad86faf2579dfeda560734561dfbdc7"
+  },
+  "cheroot.ssl.builtin": {
+    "file": "/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/atomic-extension-independent/phase2/.work-jz86dH/venv/lib/python3.14/site-packages/cheroot/ssl/builtin.py",
+    "sha256": "31997be656ee1900ebeaa64250a89d903101afc38ac24e57d35867691dbbd963"
+  },
+  "jinja2.bccache": {
+    "file": "/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/atomic-extension-independent/phase2/.work-jz86dH/venv/lib/python3.14/site-packages/jinja2/bccache.py",
+    "sha256": "821d2ab3daee9675e8d0f857e634c9cb6507cc8f3016743ade8fefc3b9e1cd18"
+  },
+  "markupsafe._speedups": {
+    "file": "/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/atomic-extension-independent/phase2/.work-jz86dH/venv/lib/python3.14/site-packages/markupsafe/_speedups.cpython-314-darwin.so",
+    "sha256": "978a43e8fddff30a513d84d407d78935692665bdd2d83d93afeecac42a95f293"
+  },
+  "markupsafe": {
+    "file": "/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/atomic-extension-independent/phase2/.work-jz86dH/venv/lib/python3.14/site-packages/markupsafe/__init__.py",
+    "sha256": "bb57cb70d0b1d0ff04ecb4facf73977fa8a99d29a09ba69e7e77b9cbe77ba38d"
+  },
+  "jinja2.utils": {
+    "file": "/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/atomic-extension-independent/phase2/.work-jz86dH/venv/lib/python3.14/site-packages/jinja2/utils.py",
+    "sha256": "ad1a77a3d7bb64a4b87f2ad645b10bc8b729b8655315c9e8a1a39ad6ac7f1489"
+  },
+  "jinja2.nodes": {
+    "file": "/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/atomic-extension-independent/phase2/.work-jz86dH/venv/lib/python3.14/site-packages/jinja2/nodes.py",
+    "sha256": "9b50eecdcafaaa1648f0943a57226050d8a78c07f96d0ce28d29839ccb2f531f"
+  },
+  "jinja2.exceptions": {
+    "file": "/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/atomic-extension-independent/phase2/.work-jz86dH/venv/lib/python3.14/site-packages/jinja2/exceptions.py",
+    "sha256": "8a81de1eb5b009635a5d7d629c798755b96f73885a3bb017b230a9dc67d6bf1d"
+  },
+  "jinja2.visitor": {
+    "file": "/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/atomic-extension-independent/phase2/.work-jz86dH/venv/lib/python3.14/site-packages/jinja2/visitor.py",
+    "sha256": "11c9cbd4f2307ffe1154238cc6c44db91f005c76d2d6a7c074c384da780a273e"
+  },
+  "jinja2.idtracking": {
+    "file": "/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/atomic-extension-independent/phase2/.work-jz86dH/venv/lib/python3.14/site-packages/jinja2/idtracking.py",
+    "sha256": "fa5979948a7bde930bdc4ad46222098fbb5d996c5c1ff2250efdf203f862658a"
+  },
+  "jinja2.optimizer": {
+    "file": "/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/atomic-extension-independent/phase2/.work-jz86dH/venv/lib/python3.14/site-packages/jinja2/optimizer.py",
+    "sha256": "ac99c246543ba59b04126321b100e00bfa4ac831f13f94cf4bacd53c6b2072ef"
+  },
+  "jinja2.compiler": {
+    "file": "/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/atomic-extension-independent/phase2/.work-jz86dH/venv/lib/python3.14/site-packages/jinja2/compiler.py",
+    "sha256": "f51a42425e57f3c0479652623ec1cf876f791e1d2e029bf0149350baeb542de3"
+  },
+  "jinja2.async_utils": {
+    "file": "/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/atomic-extension-independent/phase2/.work-jz86dH/venv/lib/python3.14/site-packages/jinja2/async_utils.py",
+    "sha256": "bcaf8f76cba8ace3275929c4913de25094489139d880ed93e8c9c6c43807239a"
+  },
+  "jinja2.runtime": {
+    "file": "/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/atomic-extension-independent/phase2/.work-jz86dH/venv/lib/python3.14/site-packages/jinja2/runtime.py",
+    "sha256": "80393e1af76b8895ea82c19b1e0adc2933f4629eb33d7ce1ceb2290851f78c05"
+  },
+  "jinja2.filters": {
+    "file": "/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/atomic-extension-independent/phase2/.work-jz86dH/venv/lib/python3.14/site-packages/jinja2/filters.py",
+    "sha256": "3d0fc481df67f634a0b671906321782b98f69d8c21508ba584f9f28a691dafe9"
+  },
+  "jinja2.tests": {
+    "file": "/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/atomic-extension-independent/phase2/.work-jz86dH/venv/lib/python3.14/site-packages/jinja2/tests.py",
+    "sha256": "54bb018551675a0f8fc52073d4c8519cd5a03f5a2f5e4de778ed452d031e0bd4"
+  },
+  "jinja2.defaults": {
+    "file": "/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/atomic-extension-independent/phase2/.work-jz86dH/venv/lib/python3.14/site-packages/jinja2/defaults.py",
+    "sha256": "6e805c4b0efc87e969db461b697489b2a900236b8dfe60ff4ed0b27697aae705"
+  },
+  "jinja2._identifier": {
+    "file": "/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/atomic-extension-independent/phase2/.work-jz86dH/venv/lib/python3.14/site-packages/jinja2/_identifier.py",
+    "sha256": "ff361cb4d2b346a964fe6bab4cd973ae3bb514524bed56bf223aaa77b8a2da55"
+  },
+  "jinja2.lexer": {
+    "file": "/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/atomic-extension-independent/phase2/.work-jz86dH/venv/lib/python3.14/site-packages/jinja2/lexer.py",
+    "sha256": "2d88988a8e9bafe4dea7d9cf72ea565ec3c4b6396ec37a75994fa534155151f9"
+  },
+  "jinja2.parser": {
+    "file": "/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/atomic-extension-independent/phase2/.work-jz86dH/venv/lib/python3.14/site-packages/jinja2/parser.py",
+    "sha256": "94b385cb7b0498773921a1074621f5b1056721dda6a14433872789653b5d637d"
+  },
+  "jinja2.environment": {
+    "file": "/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/atomic-extension-independent/phase2/.work-jz86dH/venv/lib/python3.14/site-packages/jinja2/environment.py",
+    "sha256": "f6786b3fb0a1f8d6c65f4d30bf2af8cb2fae84d1ead8e09ceb48201ab9e2fdf9"
+  },
+  "jinja2.loaders": {
+    "file": "/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/atomic-extension-independent/phase2/.work-jz86dH/venv/lib/python3.14/site-packages/jinja2/loaders.py",
+    "sha256": "c08ae7c63bdc6ea8795705b6f0d4a47e8b620eaf2a342c4839215b1948922c1e"
+  },
+  "jinja2": {
+    "file": "/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/atomic-extension-independent/phase2/.work-jz86dH/venv/lib/python3.14/site-packages/jinja2/__init__.py",
+    "sha256": "c717a93bd8bb0c7b2a910ae004476e2ed7e8cf6402b93ebf81b2f85d237585b5"
+  },
+  "wsgidav.mw": {
+    "file": "/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/atomic-extension-independent/phase2/.work-jz86dH/venv/lib/python3.14/site-packages/wsgidav/mw/__init__.py",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "wsgidav.mw.base_mw": {
+    "file": "/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/atomic-extension-independent/phase2/.work-jz86dH/venv/lib/python3.14/site-packages/wsgidav/mw/base_mw.py",
+    "sha256": "7961a1b2e5efa9e6c89588ca3637f00a4bf2a657eee3f8a7a4619eeeb01fcb11"
+  },
+  "wsgidav.dir_browser._dir_browser": {
+    "file": "/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/atomic-extension-independent/phase2/.work-jz86dH/venv/lib/python3.14/site-packages/wsgidav/dir_browser/_dir_browser.py",
+    "sha256": "9fa94f792c9006289e2d40943e4644f12bd7822a9cc27762299973359a21572d"
+  },
+  "wsgidav.dir_browser": {
+    "file": "/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/atomic-extension-independent/phase2/.work-jz86dH/venv/lib/python3.14/site-packages/wsgidav/dir_browser/__init__.py",
+    "sha256": "2f011db885af69d236880dd7beb9359a064a817933b8d0282e067b6e76cdccf3"
+  },
+  "wsgidav.error_printer": {
+    "file": "/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/atomic-extension-independent/phase2/.work-jz86dH/venv/lib/python3.14/site-packages/wsgidav/error_printer.py",
+    "sha256": "26099fd8ce94662f8defc6ab5c7a75f5ea7d10fc6d22214416ddc3cb9e398fe6"
+  },
+  "wsgidav.dc": {
+    "file": "/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/atomic-extension-independent/phase2/.work-jz86dH/venv/lib/python3.14/site-packages/wsgidav/dc/__init__.py",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "wsgidav.dc.base_dc": {
+    "file": "/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/atomic-extension-independent/phase2/.work-jz86dH/venv/lib/python3.14/site-packages/wsgidav/dc/base_dc.py",
+    "sha256": "c2a3002f7bf9d5cbdc7c1c46984e2b1b75f7bfb172e1e85e03cbe4867fe3e655"
+  },
+  "wsgidav.dc.simple_dc": {
+    "file": "/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/atomic-extension-independent/phase2/.work-jz86dH/venv/lib/python3.14/site-packages/wsgidav/dc/simple_dc.py",
+    "sha256": "340f1d0c2c20566526d35412fdb7b2af056e4e7ac089e0bed6c47cb566140586"
+  },
+  "wsgidav.http_authenticator": {
+    "file": "/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/atomic-extension-independent/phase2/.work-jz86dH/venv/lib/python3.14/site-packages/wsgidav/http_authenticator.py",
+    "sha256": "8a32dba71c27c1e27ea0eb748d7a5e65a27bd2b2be3a4eee05b0bc3548137453"
+  },
+  "wsgidav.mw.cors": {
+    "file": "/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/atomic-extension-independent/phase2/.work-jz86dH/venv/lib/python3.14/site-packages/wsgidav/mw/cors.py",
+    "sha256": "15ffc01f908c56c9005f218bfe76fbb074289a838df763b90acbc9373cb25904"
+  },
+  "wsgidav.request_resolver": {
+    "file": "/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/atomic-extension-independent/phase2/.work-jz86dH/venv/lib/python3.14/site-packages/wsgidav/request_resolver.py",
+    "sha256": "535405b8c9e6876ed9758196c8d16ae282a1542a22f50df74107c14f2536d33b"
+  },
+  "wsgidav.default_conf": {
+    "file": "/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/atomic-extension-independent/phase2/.work-jz86dH/venv/lib/python3.14/site-packages/wsgidav/default_conf.py",
+    "sha256": "939278347596a45d2c72739ea2120cd99ae23631ad47e19c85404e5a90951f40"
+  },
+  "wsgidav.lock_man": {
+    "file": "/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/atomic-extension-independent/phase2/.work-jz86dH/venv/lib/python3.14/site-packages/wsgidav/lock_man/__init__.py",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "wsgidav.rw_lock": {
+    "file": "/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/atomic-extension-independent/phase2/.work-jz86dH/venv/lib/python3.14/site-packages/wsgidav/rw_lock.py",
+    "sha256": "6600bb2fa64be9a74bd0b23226f251d6d5858e3a11d878a126b21e1c2697969c"
+  },
+  "wsgidav.lock_man.lock_manager": {
+    "file": "/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/atomic-extension-independent/phase2/.work-jz86dH/venv/lib/python3.14/site-packages/wsgidav/lock_man/lock_manager.py",
+    "sha256": "3c489dd3f3e9bcaf9ceacd3f3f97363f0eb357db07d1ad4cce0dcab866c0b346"
+  },
+  "wsgidav.lock_man.lock_storage": {
+    "file": "/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/atomic-extension-independent/phase2/.work-jz86dH/venv/lib/python3.14/site-packages/wsgidav/lock_man/lock_storage.py",
+    "sha256": "a6d39d3bb6090cf7c9e6eefc2740ba5141d1ff25cb59e942d057e0acb6b4386b"
+  },
+  "wsgidav.prop_man": {
+    "file": "/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/atomic-extension-independent/phase2/.work-jz86dH/venv/lib/python3.14/site-packages/wsgidav/prop_man/__init__.py",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "wsgidav.prop_man.property_manager": {
+    "file": "/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/atomic-extension-independent/phase2/.work-jz86dH/venv/lib/python3.14/site-packages/wsgidav/prop_man/property_manager.py",
+    "sha256": "3a8ff5975887449e15a59d9f94bbf2cfe4bf029b90e53e93beea6d95486fd6e3"
+  },
+  "wsgidav.wsgidav_app": {
+    "file": "/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/atomic-extension-independent/phase2/.work-jz86dH/venv/lib/python3.14/site-packages/wsgidav/wsgidav_app.py",
+    "sha256": "e4e0a0d7fa937a3bd7cbea38b2ff6c58a0676e59bbcd2cb1cddd1741d1a14259"
+  }
+}

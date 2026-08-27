@@ -1,0 +1,24 @@
+{
+  "source": "d1174e2db9f4a4c92403842dee6fb3d4ff57ec96",
+  "author": "a5f7d236b40446468ffa739ce8d26b172ed8e5d2",
+  "startedAt": "2026-08-27T08:33:28.551Z",
+  "sourceArchiveSha256": "e705552cb347ccb7b7e11a4c582591126e75ecd1b0f51d2397efc51843bc114a",
+  "fixtureHashes": {
+    "README.md": "b8e14af483095ac353d0e33d3c7a0bd30b78bfb0003e6c9d01730f9626aab640",
+    "CHECKPOINT.json": "cb5521e490ec9cf140472b7a5a77d82d131ae780813c2615ba2e9078cc0cb9eb",
+    "run.mjs": "438620024a25baaec138bf946cd3fd8d9acee8e887176ba3784ec2f2cae8f69c",
+    "audit.mjs": "e4c036f6fb9337364e1ad585f4fb09917aa604e7239269c1ffc52b3c18f46388",
+    "server.py": "9e9c9d660857e715aba1cd312eb1d30082742602027508eb9b4dd3530de03c9b",
+    "consumer.mts": "2a975eda5ba8035eb4ac3b9932a990b2cd2e0038349b99c5aa4575e8e323e4fd",
+    "example.mts": "0a477635fa96ed8a68c200b279ed1f78889296fc9cea1ed414df722416d6ec04",
+    "https.mts": "c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d",
+    "openssl.cnf": "bd247b3ed249845809fb064056893f9212a19a3910ba6f517bfa714a328c642f",
+    "dependencies.json": "e80ca4a6c021a346ee88dfe6098f7b87d1fddae72fe470292e24931fd24752a9",
+    "closure-loader.mjs": "83a197cc33dfeeed18b7b41ff49cd2f2f9eefa0fea7294476efaace5a4607ffb"
+  },
+  "node": "v22.22.2",
+  "nodeBinarySha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+  "pythonBinarySha256": "87d4df53fd91304be5bac391fb204643c36b7df2023c04a0953bcbc7d4fdf634",
+  "sharedStatus": "?? benchmarks/reports/sort-performance-20260827/\n?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/\n?? tests/commands/filesystem-inspection-stress/file/\n?? tests/commands/filesystem-inspection-stress/tree/\n?? tests/commands/search-stress/.native-1m4O1e/\n?? tests/commands/time-env-stress/fix-review/\n?? tests/fs/webdav/atomic-extension-independent/phase2/\n",
+  "initialReview": "44534900396654ac760c49e599be738a1e6cf689"
+}

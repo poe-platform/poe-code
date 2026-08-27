@@ -1,0 +1,19 @@
+{
+  "workspace": "/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/atomic-extension-independent/phase2/.work-jz86dH",
+  "removed": true,
+  "children": [
+    {
+      "pid": 7971,
+      "code": 0,
+      "signal": null
+    },
+    {
+      "pid": 7985,
+      "code": 0,
+      "signal": null
+    }
+  ],
+  "noSharedDist": true,
+  "ownedVenvDownloadsRootsAndKeysRemoved": true,
+  "completedAt": "2026-08-27T08:41:24.132Z"
+}

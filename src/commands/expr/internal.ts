@@ -96,17 +96,41 @@ export class Budget {
   }
 }
 
+function effectiveLocale(context: CommandContext, category: "LC_CTYPE" | "LC_COLLATE"): string {
+  return context.env.LC_ALL || context.env[category] || context.env.LANG || "C";
+}
+
+function baselineLocale(locale: string): boolean {
+  return locale === "C" || locale === "POSIX" || locale === "C.UTF-8" || locale === "C.utf8";
+}
+
 export function utf8Profile(context: CommandContext): boolean {
-  const locale = context.env.LC_ALL || context.env.LC_CTYPE || context.env.LANG || "C";
+  const locale = effectiveLocale(context, "LC_CTYPE");
   if (locale === "C" || locale === "POSIX") return false;
-  if (locale === "C.UTF-8" || locale === "C.utf8") return true;
-  throw new ExprError("character operations require C/POSIX or C.UTF-8/C.utf8 locale");
+  if (locale === "C.UTF-8" || locale === "C.utf8" || locale === "en_US.UTF-8") return true;
+  throw new ExprError("character operations require C/POSIX, C.UTF-8/C.utf8, or qualified en_US.UTF-8 encoding");
 }
 
 export function requireByteCollation(context: CommandContext): void {
-  const locale = context.env.LC_ALL || context.env.LC_COLLATE || context.env.LANG || "C";
-  if (!["C", "POSIX", "C.UTF-8", "C.utf8"].includes(locale)) {
+  if (!baselineLocale(effectiveLocale(context, "LC_COLLATE"))) {
     throw new ExprError("string comparison requires C/POSIX or C.UTF-8/C.utf8 byte collation");
+  }
+}
+
+export function screenMatch(subject: Uint8Array, pattern: Uint8Array, budget: Budget): void {
+  budget.context.signal.throwIfAborted();
+  if (pattern.length > budget.limits.maxRegexPatternBytes
+    || subject.length > Math.min(budget.limits.maxStringBytes, exprMatchCeilings.maxSubjectBytes)) {
+    throw new ExprError("regex input bytes limit exceeded", 3);
+  }
+  if (baselineLocale(effectiveLocale(budget.context, "LC_CTYPE"))
+    && baselineLocale(effectiveLocale(budget.context, "LC_COLLATE"))) return;
+  budget.charge(pattern.length);
+  for (let offset = 0; offset < pattern.length; offset++) {
+    if (pattern[offset] === 92) offset++;
+    else if (pattern[offset] === 91) {
+      throw new ExprError("unsupported BRE: bracket expressions require C/POSIX or C.UTF-8/C.utf8 LC_CTYPE and LC_COLLATE");
+    }
   }
 }
 

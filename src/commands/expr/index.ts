@@ -2,7 +2,7 @@ import { writeBytes, type CommandDefinition, type VirtualShellPlugin } from "../
 import { RegexExecutor, RegexExecutionError, withRegexSession } from "../regex-execution/client.js";
 import { ExprMatchError, exprMatchCeilings } from "../regex-execution/protocol.js";
 import { bytes, characterCount, evaluate, smallInteger, truth } from "./evaluate.js";
-import { Budget, ExprError, settings, type ExprCommandsOptions } from "./internal.js";
+import { Budget, ExprError, screenMatch, settings, type ExprCommandsOptions } from "./internal.js";
 import { parse } from "./syntax.js";
 
 export type { ExprCommandsOptions, ExprLimits } from "./internal.js";
@@ -28,6 +28,7 @@ export function createExprCommand(options: ExprCommandsOptions = {}): CommandDef
           const tree = parse(context.args, budget, context.args[0] === "--" ? 1 : 0);
           const value = await evaluate(tree, budget, async (subject, pattern, unicode) => {
             budget.charge();
+            screenMatch(subject, pattern, budget);
             if (budget.remaining() < 1) throw new ExprError("evaluation work limit exceeded", 3);
             const result = await session.matchExpr({ kind: "expr-match", pattern, profile: unicode ? "utf8-scalar" : "byte", limits: {
               maxPatternBytes: limits.maxRegexPatternBytes,

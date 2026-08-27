@@ -1,5 +1,10 @@
 # Independent invocation-closure holdouts
 
+**Post-READY result: red, 31/34 new holdouts.** See `POST_READY.md` and
+`post-ready-summary.json` for the completed replay, fixed legacy targets,
+separate precedence correction and foreign dependency drift. The preparation
+record below remains historical evidence, not the latest acceptance status.
+
 Preparation for three serialized groups only: truthful discovery/command
 dispatch, read -N, and the explicit POSIX-sh assignment profile. No production
 writes, author expectations copied, delegation, source/dot/eval or old fixture

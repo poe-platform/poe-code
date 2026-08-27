@@ -1,0 +1,16 @@
+{
+  "command": "node --import tsx tests/shell-stress/invocation-closure/post-ready-audit.mjs",
+  "exitCode": 1,
+  "stage": "Aggregate audit, after all separately guarded runtime/compiler runs",
+  "failedAssumption": "Every runtime phase used the identical product dependency versions",
+  "firstFailure": {
+    "path": "src/fs/memory/index.ts",
+    "new34": "75d743507152e60c839fa3c5cabb9c4d699f6e16ad217d5c253cbb12f456a6e4",
+    "legacy72": "a017abfe3fb8b8f330c0c41bf93000dc3dbeed3e353b880da5a9d3006d781d7e"
+  },
+  "alsoObserved": {
+    "src/fs/s3/authority.ts": ["2487b9daba77d7c0a560b5d719508055c427e1c0a0befa05b5d894990ac72b49", "0e12d26f2882f31cb2f33476c0bd18aed250404f8e3624d67aff1c3e5e7853a4"],
+    "laterRevisedFileMemory": "3203c1e4396cb69fb181a4636df061e3e4bcf8350b72d724440d66bb5dbe607d"
+  },
+  "disposition": "Keep the aggregate equality check failed. Each individual run retained unchanged starting/ending imported hashes, but foreign owners changed dependencies between phases. Record every version and end-tree differences; no coherent whole-checkpoint/current-tree acceptance and no whole-cohort retry. Audit-only grouping is corrected, not test expectations or source."
+}

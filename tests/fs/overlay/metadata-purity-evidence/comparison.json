@@ -1,0 +1,11 @@
+{
+  "green": "captures/repaired-BscHHg",
+  "originalOverlay": "captures/exact-tests-old-overlay-ZW4MmR",
+  "comparedInputCount": 44,
+  "differences": [
+    "src/fs/overlay/index.ts"
+  ],
+  "identicalFinalNewTestBytes": true,
+  "originalOverlaySha256": "e5ac4a650662656f4256455ecabb965cb6fb6eb7ab8f01315115aa70a3aa3640",
+  "repairedOverlaySha256": "829352e34a662868ddac3385317bf2f7eea8f605ea55e995865a6dd95ddc0d17"
+}

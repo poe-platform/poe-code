@@ -1,0 +1,30 @@
+{
+  "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "node_modules/typescript/bin/tsc",
+    "--noEmit",
+    "--target",
+    "ES2023",
+    "--lib",
+    "ES2023",
+    "--module",
+    "NodeNext",
+    "--moduleResolution",
+    "NodeNext",
+    "--strict",
+    "--noUncheckedIndexedAccess",
+    "--exactOptionalPropertyTypes",
+    "--verbatimModuleSyntax",
+    "--forceConsistentCasingInFileNames",
+    "--skipLibCheck",
+    "--types",
+    "node",
+    "tests/fs/overlay/metadata-purity.test.ts",
+    "tests/commands/du/overlay-purity.test.ts"
+  ],
+  "startedAt": "2026-08-27T18:15:25.245Z",
+  "finishedAt": "2026-08-27T18:15:26.187Z",
+  "status": 0,
+  "signal": null,
+  "counts": {}
+}

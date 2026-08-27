@@ -1,0 +1,39 @@
+{
+  "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "--import",
+    "tsx",
+    "--test",
+    "--test-concurrency=1",
+    "tests/fs/overlay/allocation.test.ts",
+    "tests/commands/du/backends.test.ts",
+    "tests/fs/overlay/adversarial.test.ts",
+    "tests/fs/overlay/streaming.test.ts",
+    "tests/fs/overlay/rmdir.test.ts",
+    "tests/fs/overlay/snapshot-rmdir.test.ts",
+    "tests/fs/overlay/scoped-links.test.ts",
+    "tests/fs/overlay/copy-identity.test.ts",
+    "tests/fs/overlay/review-regressions.test.ts",
+    "tests/fs/readonly/readonly.test.ts",
+    "tests/fs/readonly/metadata.test.ts",
+    "tests/fs/readonly/snapshot-rmdir.test.ts",
+    "tests/fs/mount/comparison.test.ts",
+    "tests/fs/mount/copy-identity-guards.test.ts",
+    "tests/fs/mount/identity-scope.test.ts",
+    "tests/fs/mount/snapshot-rmdir.test.ts",
+    "tests/fs/mount/identity-authority-review/authority.test.ts"
+  ],
+  "startedAt": "2026-08-27T18:16:20.952Z",
+  "finishedAt": "2026-08-27T18:16:25.741Z",
+  "status": 0,
+  "signal": null,
+  "counts": {
+    "tests": 416,
+    "suites": 0,
+    "pass": 416,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  }
+}

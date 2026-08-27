@@ -1,0 +1,190 @@
+TAP version 13
+# Subtest: strict DU direct: original pending-garbage fixture has zero backend mutations
+ok 1 - strict DU direct: original pending-garbage fixture has zero backend mutations
+  ---
+  duration_ms: 8.980875
+  type: 'test'
+  ...
+# Subtest: strict DU readonly: original pending-garbage fixture has zero backend mutations
+ok 2 - strict DU readonly: original pending-garbage fixture has zero backend mutations
+  ---
+  duration_ms: 5.943583
+  type: 'test'
+  ...
+# Subtest: strict DU mount: original pending-garbage fixture has zero backend mutations
+ok 3 - strict DU mount: original pending-garbage fixture has zero backend mutations
+  ---
+  duration_ms: 2.485917
+  type: 'test'
+  ...
+# Subtest: strict DU nested: original pending-garbage fixture has zero backend mutations
+ok 4 - strict DU nested: original pending-garbage fixture has zero backend mutations
+  ---
+  duration_ms: 2.09175
+  type: 'test'
+  ...
+# Subtest: direct: metadata keeps pending garbage hidden without deleting it or changing identity
+ok 5 - direct: metadata keeps pending garbage hidden without deleting it or changing identity
+  ---
+  duration_ms: 8.94825
+  type: 'test'
+  ...
+# Subtest: readonly: metadata keeps pending garbage hidden without deleting it or changing identity
+ok 6 - readonly: metadata keeps pending garbage hidden without deleting it or changing identity
+  ---
+  duration_ms: 4.060042
+  type: 'test'
+  ...
+# Subtest: mount: metadata keeps pending garbage hidden without deleting it or changing identity
+ok 7 - mount: metadata keeps pending garbage hidden without deleting it or changing identity
+  ---
+  duration_ms: 10.686
+  type: 'test'
+  ...
+# Subtest: nested-upper: metadata keeps pending garbage hidden without deleting it or changing identity
+ok 8 - nested-upper: metadata keeps pending garbage hidden without deleting it or changing identity
+  ---
+  duration_ms: 9.285625
+  type: 'test'
+  ...
+# Subtest: nested-lower: metadata keeps pending garbage hidden without deleting it or changing identity
+ok 9 - nested-lower: metadata keeps pending garbage hidden without deleting it or changing identity
+  ---
+  duration_ms: 16.570291
+  type: 'test'
+  ...
+# Subtest: composed: metadata keeps pending garbage hidden without deleting it or changing identity
+ok 10 - composed: metadata keeps pending garbage hidden without deleting it or changing identity
+  ---
+  duration_ms: 18.297291
+  type: 'test'
+  ...
+# Subtest: readdir missing preserves errors and does not drain pending garbage
+ok 11 - readdir missing preserves errors and does not drain pending garbage
+  ---
+  duration_ms: 0.475792
+  type: 'test'
+  ...
+# Subtest: readdir not-directory preserves errors and does not drain pending garbage
+ok 12 - readdir not-directory preserves errors and does not drain pending garbage
+  ---
+  duration_ms: 0.436084
+  type: 'test'
+  ...
+# Subtest: readdir permission preserves errors and does not drain pending garbage
+ok 13 - readdir permission preserves errors and does not drain pending garbage
+  ---
+  duration_ms: 0.83
+  type: 'test'
+  ...
+# Subtest: readdir backend-error preserves errors and does not drain pending garbage
+ok 14 - readdir backend-error preserves errors and does not drain pending garbage
+  ---
+  duration_ms: 0.537583
+  type: 'test'
+  ...
+# Subtest: stat: pre-aborted errno-shaped reasons cause no backend work
+ok 15 - stat: pre-aborted errno-shaped reasons cause no backend work
+  ---
+  duration_ms: 0.234917
+  type: 'test'
+  ...
+# Subtest: lstat: pre-aborted errno-shaped reasons cause no backend work
+ok 16 - lstat: pre-aborted errno-shaped reasons cause no backend work
+  ---
+  duration_ms: 0.145375
+  type: 'test'
+  ...
+# Subtest: readdir: pre-aborted errno-shaped reasons cause no backend work
+ok 17 - readdir: pre-aborted errno-shaped reasons cause no backend work
+  ---
+  duration_ms: 0.130334
+  type: 'test'
+  ...
+# Subtest: in-flight readdir abort preserves the reason and leaves pending garbage intact
+ok 18 - in-flight readdir abort preserves the reason and leaves pending garbage intact
+  ---
+  duration_ms: 0.23775
+  type: 'test'
+  ...
+# Subtest: queued metadata cancellation cannot release an active mutation's turn
+ok 19 - queued metadata cancellation cannot release an active mutation's turn
+  ---
+  duration_ms: 6.9135
+  type: 'test'
+  ...
+# Subtest: active streams remain hidden while metadata preserves pending storage and explicit cleanup drains only garbage
+ok 20 - active streams remain hidden while metadata preserves pending storage and explicit cleanup drains only garbage
+  ---
+  duration_ms: 1.600958
+  type: 'test'
+  ...
+# Subtest: retained removed bytes remain hidden and metadata cannot undo committed whiteouts
+ok 21 - retained removed bytes remain hidden and metadata cannot undo committed whiteouts
+  ---
+  duration_ms: 1.3185
+  type: 'test'
+  ...
+# Subtest: metadata preserves rename opacity and selected upper identity while garbage waits
+ok 22 - metadata preserves rename opacity and selected upper identity while garbage waits
+  ---
+  duration_ms: 1.074541
+  type: 'test'
+  ...
+# Subtest: explicit cleanup retains failed entries, reports failures, and retries without the caller signal
+ok 23 - explicit cleanup retains failed entries, reports failures, and retries without the caller signal
+  ---
+  duration_ms: 0.331
+  type: 'test'
+  ...
+# Subtest: existing admitted explicit cleanup may finish after caller cancellation without rollback
+ok 24 - existing admitted explicit cleanup may finish after caller cancellation without rollback
+  ---
+  duration_ms: 0.268916
+  type: 'test'
+  ...
+# Subtest: readFile retains its existing cleanup trigger and ordering
+ok 25 - readFile retains its existing cleanup trigger and ordering
+  ---
+  duration_ms: 0.25175
+  type: 'test'
+  ...
+# Subtest: readStream retains its existing cleanup trigger and ordering
+ok 26 - readStream retains its existing cleanup trigger and ordering
+  ---
+  duration_ms: 0.312417
+  type: 'test'
+  ...
+# Subtest: mkdir retains its existing cleanup trigger and ordering
+ok 27 - mkdir retains its existing cleanup trigger and ordering
+  ---
+  duration_ms: 0.292041
+  type: 'test'
+  ...
+# Subtest: writeFile retains its existing cleanup trigger and ordering
+ok 28 - writeFile retains its existing cleanup trigger and ordering
+  ---
+  duration_ms: 0.206625
+  type: 'test'
+  ...
+# Subtest: copyFile retains its existing cleanup trigger and ordering
+ok 29 - copyFile retains its existing cleanup trigger and ordering
+  ---
+  duration_ms: 2.533083
+  type: 'test'
+  ...
+# Subtest: copy identity rejection and rmdir keep their existing no-housekeeping ordering
+ok 30 - copy identity rejection and rmdir keep their existing no-housekeeping ordering
+  ---
+  duration_ms: 1.057833
+  type: 'test'
+  ...
+1..30
+# tests 30
+# suites 0
+# pass 30
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 587.862

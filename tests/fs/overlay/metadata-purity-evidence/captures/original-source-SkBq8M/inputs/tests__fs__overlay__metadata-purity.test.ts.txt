@@ -1,0 +1,329 @@
+import assert from "node:assert/strict";
+import test from "node:test";
+import type { TestContext } from "node:test";
+import { collectBytes, FsError } from "../../../src/contracts/index.js";
+import type { FileSystem } from "../../../src/contracts/index.js";
+import { MemoryFileSystem } from "../../../src/fs/memory/index.js";
+import { createMountFileSystem } from "../../../src/fs/mount/index.js";
+import { OverlayFileSystem } from "../../../src/fs/overlay/index.js";
+import { createReadOnlyFileSystem } from "../../../src/fs/readonly/index.js";
+import { deferred, encode, immutable, snapshot, wrapped } from "./helpers.js";
+
+const mutators = new Set(["writeFile", "appendFile", "writeStream", "mkdir", "rm", "rmdir",
+  "rename", "copyFile", "symlink", "link", "chmod", "utimes", "truncate"]);
+interface Call { layer: string; method: string; args: unknown[] }
+
+function observed(backend: FileSystem, layer: string, calls: Call[]): FileSystem {
+  return new Proxy(backend, {
+    get(target, property) {
+      const value: unknown = Reflect.get(target, property);
+      if (typeof value !== "function") return value;
+      return (...args: unknown[]) => {
+        calls.push({ layer, method: String(property), args });
+        return Reflect.apply(value, target, args);
+      };
+    },
+  });
+}
+
+function noMutations(calls: Call[]): void {
+  assert.deepEqual(calls.filter(call => mutators.has(call.method)), []);
+  assert.deepEqual(calls.filter(call => call.method === "compareEntry"), []);
+}
+
+async function stagingRoots(storage: FileSystem): Promise<string[]> {
+  return (await storage.readdir("/")).map(entry => `/${entry.name}`)
+    .filter(path => path.startsWith("/.virtual-bash-overlay-"));
+}
+
+async function pending(context: TestContext) {
+  const storage = new MemoryFileSystem();
+  const backing = new MemoryFileSystem();
+  await backing.mkdir("/tree");
+  await backing.writeFile("/tree/file", encode("lower"));
+  await backing.symlink("tree", "/alias");
+  const calls: Call[] = [];
+  const cleanup: { failure: unknown } = { failure: new FsError("EACCES") };
+  const upperHooks: Partial<FileSystem> = {
+    async rm(path, options) {
+      if (cleanup.failure !== undefined) throw cleanup.failure;
+      await storage.rm(path, options);
+    },
+  };
+  const lowerHooks: Partial<FileSystem> = {};
+  const { lower: protectedLower, mutations } = immutable(backing);
+  const upper = observed(wrapped(storage, upperHooks), "upper", calls);
+  const lower = observed(wrapped(protectedLower, lowerHooks), "lower", calls);
+  const overlay = new OverlayFileSystem({ upper, lower });
+  context.after(async () => {
+    cleanup.failure = undefined;
+    await overlay.cleanup();
+    assert.deepEqual(await stagingRoots(storage), []);
+    assert.deepEqual(mutations, []);
+  });
+  await overlay.mkdir("/created");
+  const roots = await stagingRoots(storage);
+  assert.equal(roots.length, 1);
+  calls.length = 0;
+  return { overlay, storage, backing, upper, lower, upperHooks, lowerHooks, calls, cleanup, roots };
+}
+
+for (const view of ["direct", "readonly", "mount", "nested-upper", "nested-lower", "composed"] as const) {
+  test(`${view}: metadata keeps pending garbage hidden without deleting it or changing identity`, async context => {
+    const state = await pending(context);
+    const { overlay, storage, backing, roots, calls } = state;
+    let filesystem: FileSystem = overlay;
+    let prefix = "";
+    if (view === "readonly") filesystem = createReadOnlyFileSystem(overlay);
+    if (view === "mount") {
+      filesystem = createMountFileSystem({ root: new MemoryFileSystem(), mounts: { "/data": overlay } });
+      prefix = "/data";
+    }
+    if (view === "nested-upper") filesystem = new OverlayFileSystem({ upper: overlay, lower: new MemoryFileSystem() });
+    if (view === "nested-lower") filesystem = new OverlayFileSystem({ upper: new MemoryFileSystem(), lower: createReadOnlyFileSystem(overlay) });
+    if (view === "composed") {
+      filesystem = createReadOnlyFileSystem(createMountFileSystem({ root: new MemoryFileSystem(), mounts: {
+        "/data": new OverlayFileSystem({ upper: new MemoryFileSystem(), lower: createReadOnlyFileSystem(overlay) }),
+      } }));
+      prefix = "/data";
+    }
+    const beforeUpper = await snapshot(storage);
+    const beforeLower = await snapshot(backing);
+    const selected = await filesystem.lstat(`${prefix}/tree/file`);
+    state.cleanup.failure = undefined;
+    calls.length = 0;
+    for (let repetition = 0; repetition < 2; repetition++) {
+      assert.deepEqual((await filesystem.readdir(`${prefix}/`)).map(entry => entry.name), ["alias", "created", "tree"]);
+      for (const path of ["/tree", "/alias", "/tree/../alias/"]) {
+        assert.deepEqual(await filesystem.readdir(`${prefix}${path}`), [{ name: "file", type: "file" }]);
+      }
+      assert.deepEqual(await filesystem.stat(`${prefix}/tree/file`), selected);
+      assert.deepEqual(await filesystem.lstat(`${prefix}/tree/file`), selected);
+      for (const root of roots) {
+        for (const path of [root, `${root}/entry`]) {
+          await assert.rejects(filesystem.lstat(`${prefix}${path}`), { code: "ENOENT" });
+          await assert.rejects(filesystem.readdir(`${prefix}${path}`), { code: "ENOENT" });
+        }
+      }
+      noMutations(calls);
+      assert.deepEqual(await snapshot(storage), beforeUpper);
+      assert.deepEqual(await snapshot(backing), beforeLower);
+    }
+    assert.equal(await overlay.compareEntry("/tree/file", state.lower, "/tree/file"), "same");
+  });
+}
+
+for (const scenario of ["missing", "not-directory", "permission", "backend-error"] as const) {
+  test(`readdir ${scenario} preserves errors and does not drain pending garbage`, async context => {
+    const state = await pending(context);
+    let path = "/tree";
+    let expected: { code: string; path?: string } = { code: "EIO", path };
+    const failure = new FsError("EIO", { syscall: "readdir", path });
+    if (scenario === "missing") { path = "/missing"; expected = { code: "ENOENT", path }; }
+    if (scenario === "not-directory") { path = "/tree/file"; expected = { code: "ENOTDIR", path }; }
+    if (scenario === "permission") {
+      await state.backing.chmod("/tree", 0);
+      expected = { code: "EACCES", path };
+    }
+    if (scenario === "backend-error") state.lowerHooks.readdir = async () => { throw failure; };
+    const before = await snapshot(state.storage);
+    state.cleanup.failure = undefined;
+    await assert.rejects(state.overlay.readdir(path), scenario === "backend-error" ? error => error === failure : expected);
+    noMutations(state.calls);
+    assert.deepEqual(await snapshot(state.storage), before);
+    if (scenario === "backend-error") {
+      delete state.lowerHooks.readdir;
+      assert.deepEqual(await state.overlay.readdir("/tree"), [{ name: "file", type: "file" }]);
+      noMutations(state.calls);
+    }
+  });
+}
+
+for (const method of ["stat", "lstat", "readdir"] as const) {
+  test(`${method}: pre-aborted errno-shaped reasons cause no backend work`, async context => {
+    const state = await pending(context);
+    state.cleanup.failure = undefined;
+    const reason = new FsError("ENOENT", { message: "cancel, not a missing path" });
+    await assert.rejects(state.overlay[method]("/", { signal: AbortSignal.abort(reason) }), error => error === reason);
+    assert.deepEqual(state.calls, []);
+    assert.deepEqual(await stagingRoots(state.storage), state.roots);
+  });
+}
+
+test("in-flight readdir abort preserves the reason and leaves pending garbage intact", async context => {
+  const state = await pending(context);
+  const controller = new AbortController();
+  const reason = new FsError("ENOENT", { message: "cancel during backend listing" });
+  state.upperHooks.readdir = async (path, options) => {
+    assert.equal(options?.signal, controller.signal);
+    const entries = await state.storage.readdir(path, options);
+    controller.abort(reason);
+    return entries;
+  };
+  state.cleanup.failure = undefined;
+  await assert.rejects(state.overlay.readdir("/", { signal: controller.signal }), error => error === reason);
+  noMutations(state.calls);
+  assert.deepEqual(await stagingRoots(state.storage), state.roots);
+});
+
+test("queued metadata cancellation cannot release an active mutation's turn", async context => {
+  const state = await pending(context);
+  const entered = deferred<void>();
+  const release = deferred<void>();
+  state.upperHooks.writeFile = async (path, bytes, options) => {
+    entered.resolve();
+    await release.promise;
+    await state.storage.writeFile(path, bytes, options);
+  };
+  const writing = state.overlay.writeFile("/new", encode("published"));
+  await entered.promise;
+  const controller = new AbortController();
+  const reason = new FsError("EACCES", { message: "cancel queued metadata" });
+  const canceled = state.overlay.readdir("/", { signal: controller.signal });
+  let nextFinished = false;
+  const next = state.overlay.lstat("/created").then(result => { nextFinished = true; return result; });
+  state.calls.length = 0;
+  try {
+    controller.abort(reason);
+    await assert.rejects(canceled, error => error === reason);
+    await new Promise<void>(resolve => setImmediate(resolve));
+    assert.equal(nextFinished, false);
+    assert.deepEqual(state.calls, []);
+  } finally { release.resolve(); await writing; await next; }
+  assert.deepEqual(await state.storage.readFile("/new"), encode("published"));
+});
+
+test("active streams remain hidden while metadata preserves pending storage and explicit cleanup drains only garbage", async context => {
+  const state = await pending(context);
+  const entered = deferred<void>();
+  const release = deferred<void>();
+  const writing = state.overlay.writeStream("/stream", (async function* () {
+    yield encode("first");
+    entered.resolve();
+    await release.promise;
+    yield encode("last");
+  })());
+  await entered.promise;
+  const active = (await stagingRoots(state.storage)).filter(path => !state.roots.includes(path));
+  assert.equal(active.length, 1);
+  state.cleanup.failure = undefined;
+  state.calls.length = 0;
+  try {
+    assert.deepEqual((await state.overlay.readdir("/")).map(entry => entry.name), ["alias", "created", "tree"]);
+    for (const root of [...state.roots, ...active]) await assert.rejects(state.overlay.lstat(root), { code: "ENOENT" });
+    noMutations(state.calls);
+    assert.deepEqual(await stagingRoots(state.storage), [...state.roots, ...active].sort());
+    await state.overlay.cleanup();
+    assert.deepEqual(await stagingRoots(state.storage), active);
+    assert.ok(state.calls.filter(call => call.method === "rm").every(call => !active.includes(String(call.args[0]))));
+  } finally { release.resolve(); await writing; }
+  assert.deepEqual(await state.storage.readFile("/stream"), encode("firstlast"));
+  assert.deepEqual(await stagingRoots(state.storage), []);
+});
+
+test("retained removed bytes remain hidden and metadata cannot undo committed whiteouts", async context => {
+  const state = await pending(context);
+  await state.overlay.writeFile("/tree/file", encode("upper retained content"));
+  await state.overlay.rm("/tree/file");
+  const before = await snapshot(state.storage);
+  const lowerBefore = await snapshot(state.backing);
+  const roots = await stagingRoots(state.storage);
+  let retained = false;
+  for (const root of roots) {
+    try { retained ||= Buffer.from(await state.storage.readFile(`${root}/entry`)).toString() === "upper retained content"; }
+    catch (error) { assert.ok(error instanceof FsError && ["ENOENT", "EISDIR"].includes(error.code)); }
+  }
+  assert.equal(retained, true);
+  state.cleanup.failure = undefined;
+  state.calls.length = 0;
+  assert.deepEqual(await state.overlay.readdir("/tree"), []);
+  for (const root of roots) await assert.rejects(state.overlay.readdir(root), { code: "ENOENT" });
+  await assert.rejects(state.overlay.lstat("/tree/file"), { code: "ENOENT" });
+  noMutations(state.calls);
+  assert.deepEqual(await snapshot(state.storage), before);
+  assert.deepEqual(await snapshot(state.backing), lowerBefore);
+  await state.overlay.cleanup();
+  await assert.rejects(state.overlay.lstat("/tree/file"), { code: "ENOENT" });
+  assert.deepEqual(await snapshot(state.backing), lowerBefore);
+});
+
+test("metadata preserves rename opacity and selected upper identity while garbage waits", async context => {
+  const state = await pending(context);
+  await state.backing.mkdir("/destination");
+  await state.overlay.rename("/tree", "/destination");
+  await state.backing.writeFile("/destination/hidden-lower", encode("not visible"));
+  const selected = await state.overlay.lstat("/destination/file");
+  const before = await snapshot(state.storage);
+  state.cleanup.failure = undefined;
+  state.calls.length = 0;
+  assert.deepEqual(await state.overlay.readdir("/destination"), [{ name: "file", type: "file" }]);
+  assert.deepEqual(await state.overlay.lstat("/destination/file"), selected);
+  await assert.rejects(state.overlay.readdir("/tree"), { code: "ENOENT" });
+  noMutations(state.calls);
+  assert.deepEqual(await snapshot(state.storage), before);
+  assert.equal(await state.overlay.compareEntry("/destination/file", state.upper, "/destination/file"), "same");
+});
+
+test("explicit cleanup retains failed entries, reports failures, and retries without the caller signal", async context => {
+  const state = await pending(context);
+  const failure = state.cleanup.failure;
+  const signal = new AbortController().signal;
+  await assert.rejects(state.overlay.cleanup({ signal }), error => error instanceof AggregateError
+    && error.errors.length === 1 && error.errors[0] === failure);
+  const removals = state.calls.filter(call => call.method === "rm");
+  assert.equal(removals.length, 2);
+  for (const call of removals) assert.deepEqual(call.args[1], { recursive: true, force: true });
+  assert.deepEqual(await stagingRoots(state.storage), state.roots);
+  state.calls.length = 0;
+  await state.overlay.readdir("/");
+  noMutations(state.calls);
+  state.cleanup.failure = undefined;
+  await state.overlay.cleanup({ signal });
+  assert.deepEqual(await stagingRoots(state.storage), []);
+});
+
+test("existing admitted explicit cleanup may finish after caller cancellation without rollback", async context => {
+  const state = await pending(context);
+  const controller = new AbortController();
+  const reason = new Error("cancel admitted cleanup");
+  state.upperHooks.rm = async (path, options) => {
+    assert.equal(options?.signal, undefined);
+    controller.abort(reason);
+    await state.storage.rm(path, options);
+  };
+  await state.overlay.cleanup({ signal: controller.signal });
+  assert.equal(controller.signal.reason, reason);
+  assert.deepEqual(await stagingRoots(state.storage), []);
+  assert.equal((await state.overlay.lstat("/created")).type, "directory");
+});
+
+for (const trigger of ["readFile", "readStream", "mkdir", "writeFile", "copyFile"] as const) {
+  test(`${trigger} retains its existing cleanup trigger and ordering`, async context => {
+    const state = await pending(context);
+    state.cleanup.failure = undefined;
+    if (trigger === "readFile") assert.deepEqual(await state.overlay.readFile("/tree/file"), encode("lower"));
+    if (trigger === "readStream") assert.deepEqual(await collectBytes(state.overlay.readStream("/tree/file")), encode("lower"));
+    if (trigger === "mkdir") await state.overlay.mkdir("/next");
+    if (trigger === "writeFile") await state.overlay.writeFile("/next", encode("new"));
+    if (trigger === "copyFile") await state.overlay.copyFile("/tree/file", "/next");
+    const mutations = state.calls.filter(call => mutators.has(call.method));
+    assert.equal(mutations[0]?.method, "rm");
+    assert.equal(mutations[0]?.args[0], state.roots[0]);
+    const cleanupIndex = state.calls.findIndex(call => call.method === "rm");
+    const readIndex = state.calls.findIndex(call => ["readFile", "readStream"].includes(call.method));
+    if (readIndex !== -1) assert.ok(cleanupIndex < readIndex);
+    assert.deepEqual(await stagingRoots(state.storage), []);
+  });
+}
+
+test("copy identity rejection and rmdir keep their existing no-housekeeping ordering", async context => {
+  const state = await pending(context);
+  state.cleanup.failure = undefined;
+  await assert.rejects(state.overlay.copyFile("/tree/file", "/tree/file"), { code: "EINVAL" });
+  noMutations(state.calls);
+  assert.deepEqual(await stagingRoots(state.storage), state.roots);
+  state.calls.length = 0;
+  await state.overlay.rmdir("/created");
+  assert.deepEqual(state.calls.filter(call => mutators.has(call.method)).map(call => call.method), ["rmdir"]);
+  assert.deepEqual(await stagingRoots(state.storage), state.roots);
+});

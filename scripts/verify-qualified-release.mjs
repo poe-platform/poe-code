@@ -3,7 +3,7 @@ import { copyFileSync, mkdirSync, readFileSync, statSync, writeFileSync } from "
 import { dirname, join, relative, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import { currentProfile, sha256 } from "../tests/plugins/stream-five-public/current-profile.mjs";
-import { environment, finish, json, requireSuccess, run, snapshot, step } from "../tests/plugins/stream-five-public/harness.mjs";
+import { environment, finish, json, run, snapshot, step } from "../tests/plugins/stream-five-public/harness.mjs";
 import { publicChecks } from "../tests/plugins/stream-five-public/public-checks.mjs";
 
 const args = process.argv.slice(2);
@@ -89,6 +89,10 @@ try {
         step(report, "current-stream-diagnostics", process.execPath, [join(historical, "strong-diagnostics.mjs"), join(output, "results.json"), join(output, "diagnostics.json"), join(historical, "evidence/final/release.json")]);
         const results = JSON.parse(readFileSync(join(output, "results.json")));
         const diagnostics = JSON.parse(readFileSync(join(output, "diagnostics.json")));
+        assert.equal(results.summary.distinctPrimaryInputs, 82);
+        assert.equal(results.summary.primary.executions, 164);
+        assert.equal(diagnostics.summary.strengthened, 164);
+        assert.ok(diagnostics.summary.strict >= 124, "strict outcomes regressed from the preserved profile");
         json(join(report.directory, "current-stream-results.json"), results);
         json(join(report.directory, "current-stream-diagnostics-result.json"), diagnostics);
         report.stream = { summary: results.summary, diagnosticSummary: diagnostics.summary, originalHarnessSha256: profile.originalSha256, currentHarnessSha256: profile.currentSha256, frozenManifest };

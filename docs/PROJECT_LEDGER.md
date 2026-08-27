@@ -1662,6 +1662,46 @@ that any implementation, command, fixture, or test currently exists.
   or72-hour claim. SGID6/env normative policy is unchanged. Independent frozen
   public-consumer review follows author normal closure, not this author proof.
 
+### Five-command public/default integration — August 27, 2026
+
+- Root public exports `333c7bb` and aggregate/subpaths `b7e9eb5` expose the
+  existing `seq`, `nl`, `rev`, `unexpand` and `split` implementations, with
+  `streamFormat`/`split` family options and one replacement policy. The default
+  aggregate is 65 unique names; the old four stream-inspection commands remain
+  separate. `RegexExecutionOptions` from `b1939d7`, cold portable configuration,
+  optional curl/SafeJS and zero runtime dependencies are preserved.
+- Original registry tests at `0487969`: **31/31**. Unchanged tests after wiring:
+  **29/31**, with exactly two stale registry failures. Test-only `5560a52`
+  adds five exact names and migrates 60/61 to 65/66; **31/31** again. Both raw
+  original outcomes and source/test hashes are preserved under
+  `tests/plugins/stream-five-public/evidence/`.
+- The committed-source qualified runner `f544d8f` initially failed snapshot
+  preparation because a canonical table fixture was not archived. `dbe3cfd`
+  fixes archive coverage without changing product or historical tests. Its
+  qualified run passes mandatory metadata/table **318/318**, including all
+  **22/22** routed native rows; current default stream replay **18/18** groups
+  (82 native inputs on two adapters, 3 workflows per adapter, 16 contract groups);
+  registry **31/31**; moved packed consumer **21/21**; strict positive public
+  types and seven expected negative type diagnostics. Repeated npm10.9.7
+  packs match byte-for-byte; prepare executes even with `--ignore-scripts`
+  in an isolated sentinel copy. No root dist emission or dependency installation.
+- The new current profile retains the frozen 82 inputs, raw native oracles,
+  classifiers and old historical release byte-exact. It changes registry
+  presence/count and duplicate plugin/limit configuration only, using actual
+  aggregate options. **124/164 strict**, **164/164 stronger diagnostic profile**,
+  **40 exact stderr differences across 20 inputs** remain distinct claims.
+  GNU9.7-on-Darwin and Apple rev are not GNU/Linux or full native parity.
+- `verify:release:qualified` requires explicit existing pinned native assets
+  and resolves an immutable source commit (explicit `--source-commit` or
+  logged HEAD). Fifteen metadata assets, including the distinct historical
+  stat, plus stream references are authenticated before products run. Missing
+  and wrong-hash controls on isolated copied assets each return **78**, zero
+  product tests, not pass/skip. The portable gate remains unchanged and does
+  not replace this qualified job. Detailed exact commands, final source/harness
+  pins, follow-up validation and retained helper failures are in the new
+  author README/evidence. No full gate, superiority, 72-hour completion or
+  independent public acceptance is claimed; a different verifier follows closure.
+
 ### Remaining product validation
 
 - Re-run whole-repo typechecking, tests, build, and export checks as concurrent

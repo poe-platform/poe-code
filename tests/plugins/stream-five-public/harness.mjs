@@ -49,7 +49,7 @@ export function snapshot(sourceRef = "HEAD") {
   mkdirSync(root);
   requireSuccess(run("git", ["--no-replace-objects", "archive", "--format=tar", `--output=${join(directory, "source.tar")}`, sourceCommit, ...selectedPaths], repository));
   requireSuccess(run("/usr/bin/tar", ["-xf", join(directory, "source.tar"), "-C", root], repository));
-  const harness = ["scripts/verify-qualified-release.mjs", ...manifest(repository, "tests/plugins/stream-five-public").filter(entry => !entry.path.includes("/.runs/") && !entry.path.includes("/evidence/")).map(entry => entry.path)];
+  const harness = ["scripts/verify-qualified-release.mjs", ...manifest(repository, "tests/plugins/stream-five-public").filter(entry => !entry.path.includes("/evidence/") && /\.(?:mjs|fixture)$/u.test(entry.path)).map(entry => entry.path)];
   for (const path of harness) assert.equal(sha256(readFileSync(join(root, path))), sha256(readFileSync(join(repository, path))), `runner differs from chosen source: ${path}`);
   symlinkSync(join(repository, "node_modules"), join(root, "node_modules"), "dir");
   const sources = [...manifest(root), ...["package.json", "package-lock.json", "tsconfig.json", "tsconfig.build.json"].map(path => ({ path, sha256: sha256(readFileSync(join(root, path))) }))];

@@ -53,11 +53,12 @@ try {
 
 The result contains `world` followed by a newline.
 
-`agentCommands(options?)` installs ten delivered families once: standard,
+`agentCommands(options?)` installs twelve delivered families once: standard,
 text programs, structured (`jq`), search (`rg`), byte tools, diff/patch,
 metadata (`chmod`, `stat`, `mktemp`), archives (`tar`), table-text
-(`paste`, `comm`, `join`), and stream inspection (`tac`, `expand`, `fold`, `strings`),
-totaling 60 unique registered plugin names. These families have separate scoped evidence;
+(`paste`, `comm`, `join`), stream inspection (`tac`, `expand`, `fold`, `strings`),
+stream formatting (`seq`, `nl`, `rev`, `unexpand`), and splitting (`split`),
+totaling 65 unique registered plugin names. These families have separate scoped evidence;
 name registration is not proof of complete utility semantics.
 Do not also install those families unless you deliberately request replacement.
 The bundle checks every name for collisions before changing the registry;
@@ -83,6 +84,8 @@ agentCommands({
   archive: { limits: { maxArchiveBytes: 64 * 1024 * 1024 } },
   tableText: { limits: { maxRecordBytes: 1024 * 1024, maxGroupBytes: 8 * 1024 * 1024 } },
   streamInspection: { limits: { maxInputBytes: 16 * 1024 * 1024 } },
+  streamFormat: { limits: { maxRecordBytes: 1024 * 1024 } },
+  split: { limits: { maxFiles: 128 } },
 });
 ```
 
@@ -91,6 +94,47 @@ their existing fixed limits. Shell-wide limits belong in `new Shell({ limits })`
 `exec` buffers its returned output under shell limits, while internal pipes use
 streaming byte sources/sinks and backpressure. Commands never spawn native
 processes. Native utilities appear only as trusted test/benchmark oracles.
+
+## Stream Formatting and Splitting
+
+The root and `virtual-bash/commands/stream-format` export
+`createStreamFormatCommands`, `streamFormatCommands`,
+`StreamFormatCommandsOptions`, and `StreamFormatLimits`. The root and
+`virtual-bash/commands/split` export `createSplitCommands`, `splitCommands`,
+`SplitCommandsOptions`, and `SplitLimits`. Factories return definitions;
+plugins install them. All five commands are already included in the default
+aggregate. Do not install the standalone plugins again unless intentionally
+replacing commands. Aggregate `streamFormat` and `split` options omit `replace`;
+the aggregate's single replacement policy applies to every family.
+
+For example, with the default aggregate and a memory filesystem,
+`seq 1 3 | nl -ba -w1 -s: | rev | unexpand -a | split -l2 - /lines.`
+writes `/lines.aa` containing `1:1\n2:2\n` and `/lines.ab` containing `3:3\n`.
+Split output is VFS data, not host files. The separate `streamInspection` option
+and its four commands remain unchanged.
+
+Stream-format defaults per invocation are input 32 MiB, output 64 MiB, record
+8 MiB, chunk 1 MiB, 64 files, 268435456 steps, 65536 argument bytes and 4096
+numeric digits. Split defaults are input/output 256 MiB each, 4096 files,
+8 MiB buffer, 64 KiB chunk, 65536 argument bytes, suffix length 128 and
+536870912 steps. Overrides are positive safe integers. These family bounds do
+not replace shell-wide budgets; cancellation does not roll back completed I/O.
+
+Supported flags and exclusions remain documented in
+`src/commands/stream-format/README.md` and `src/commands/split/README.md`.
+Their old source-only availability statements describe the pre-integration
+checkpoint, superseded by this public integration. In particular, numeric
+formatting is not all GNU floating/locale behavior; `rev` uses byte/C or UTF-8
+codepoint profiles, not grapheme reversal; `unexpand` uses C-byte columns;
+split does not implement `-n`/`--number`, `--filter`, custom record separators
+or hexadecimal suffixes. No new algorithm or flag support is implied.
+
+Public build, moved offline package, strict TypeScript and qualified native
+evidence is in `tests/plugins/stream-five-public/README.md`. The qualified
+release command there is additive to the existing portable checks, not their
+replacement. The retained native cohort has **124/164 strict** executions
+and **164/164 diagnostic-meaning-v2** executions: **40 exact stderr differences
+remain**, so these results are not full parity or a full-project gate.
 
 ## Stream Inspection Commands
 
@@ -262,7 +306,7 @@ pre-first-byte `head -n 0` custom lifecycle issue is not fixed by this checkpoin
 it does not prevent delivery of the verified curl scope. Current root assignments
 govern source/test ownership; historical assignments are recorded in the ledger.
 
-The current default aggregate has 60 unique plugin names; optional `curl` and `safejs`
+The current default aggregate has 65 unique plugin names; optional `curl` and `safejs`
 add one each only when explicitly installed. At curl finalization, the committed
 aggregate still had 49 names while uncommitted metadata wiring exposed 52 in
 the working tree and its built package. That historical build/smoke remains a

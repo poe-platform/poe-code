@@ -1,13 +1,15 @@
 import assert from "node:assert/strict";
 import { copyFileSync, cpSync, existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { environment, json, step } from "./harness.mjs";
+import { environment, json, manifest, run, step } from "./harness.mjs";
 import { sha256 } from "./current-profile.mjs";
 
 export function publicChecks(report) {
   const { root, directory } = report;
   const compiler = join(root, "node_modules/typescript/bin/tsc");
   step(report, "isolated-build", process.execPath, [compiler, "-p", "tsconfig.build.json"]);
+  report.builtFiles = manifest(root, "dist");
+  json(join(directory, "built-files.json"), report.builtFiles);
   step(report, "current-registry", process.execPath, ["--import", "tsx", "--test", "tests/plugins/agent-commands.test.ts"]);
   const npmEnvironment = { ...environment, npm_config_cache: join(directory, "npm-cache"), npm_config_userconfig: join(directory, "npmrc"), npm_config_offline: "true", npm_config_audit: "false", npm_config_fund: "false", npm_config_update_notifier: "false" };
   writeFileSync(npmEnvironment.npm_config_userconfig, "");
@@ -61,6 +63,11 @@ export function publicChecks(report) {
   assert.equal((negative.stdout.match(/error TS\d+:/gu) ?? []).length, 7, "all seven invalid public configurations must fail");
   for (const line of [4, 5, 6, 7, 8, 9, 10]) assert.ok(negative.stdout.includes(`negative.ts(${line},`), `missing rejection on line ${line}`);
   step(report, "moved-offline-consumer", process.execPath, ["--experimental-permission", `--allow-fs-read=${moved}`, "--allow-worker", "--unhandled-rejections=strict", "consumer.mjs"], moved);
+  const denied = run(process.execPath, ["--experimental-permission", `--allow-fs-read=${moved}`, "--input-type=module", "-e", `import { readFileSync } from "node:fs"; readFileSync(${JSON.stringify(join(root, "src/index.ts"))});`], moved);
+  json(join(directory, "source-fallback-denied.json"), denied);
+  assert.equal(denied.status, 1);
+  assert.match(denied.stderr, /ERR_ACCESS_DENIED/u);
+  assert.deepEqual(manifest(root, "dist"), report.builtFiles, "pack lifecycle changed the compiled output");
 }
 
 function stepNegative(report, compiler, moved) {

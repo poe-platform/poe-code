@@ -3,15 +3,17 @@ import {
   type CommandContext, type CommandDefinition, type FileStat,
 } from "../contracts/index.js";
 import { codeOf, define, eachOperand, options, output, pathOf, requireOperands, UsageError, value } from "./internal.js";
+import { compareCopyIdentity } from "./copy-identity.js";
 
 async function maybeStat(context: CommandContext, path: string, follow = true): Promise<FileStat | undefined> {
   try { return await context.fs[follow ? "stat" : "lstat"](path, { signal: context.signal }); }
-  catch (error) { if (codeOf(error) === "ENOENT") return undefined; throw error; }
+  catch (error) { context.signal.throwIfAborted(); if (codeOf(error) === "ENOENT") return undefined; throw error; }
 }
 
 async function canonicalMissing(context: CommandContext, path: string): Promise<string> {
   try { return await context.fs.realpath(path, { signal: context.signal }); }
   catch (error) {
+    context.signal.throwIfAborted();
     if (codeOf(error) !== "ENOENT" || path === "/") throw error;
     const link = await maybeStat(context, path, false);
     if (link?.type === "symlink") throw error;
@@ -52,8 +54,7 @@ async function copy(
   const physicalTarget = preserveLink
     ? joinPath(await context.fs.realpath(dirname(target), { signal: context.signal }), basename(target))
     : await canonicalMissing(context, target);
-  if (physicalSource === physicalTarget || (targetStat?.ino !== undefined && sourceStat.ino !== undefined
-    && targetStat.dev === sourceStat.dev && targetStat.ino === sourceStat.ino)) {
+  if (physicalSource === physicalTarget || compareCopyIdentity(sourceStat, targetStat) === "same") {
     throw new FsError("EINVAL", { path: source, dest: target, message: "source and destination are the same file" });
   }
   if (flags.has("n") && await maybeStat(context, target, false)) return;
@@ -79,6 +80,7 @@ async function copy(
     if (targetStat?.type === "directory") throw new FsError("EISDIR", { path: target });
     try { await context.fs.copyFile(source, target, { signal: context.signal }); }
     catch (error) {
+      context.signal.throwIfAborted();
       if (!flags.has("f") || !targetStat || codeOf(error) !== "EACCES") throw error;
       await context.fs.rm(target, { signal: context.signal });
       await context.fs.copyFile(source, target, { signal: context.signal });

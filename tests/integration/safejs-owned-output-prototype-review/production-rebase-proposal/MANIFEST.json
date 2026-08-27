@@ -1,0 +1,2468 @@
+{
+  "schema": 1,
+  "date": "2026-08-27",
+  "status": "CONDITIONAL_PROSPECTIVE_WRITE_PATHS_ONLY_NO_APPROVED_OWNERSHIP_NO_PROMOTION",
+  "evidenceOwnerScope": "tests/integration/safejs-owned-output-prototype-review/production-rebase-proposal/** plus regular TMP; no source ownership",
+  "initialWorkingTreeObservation": {
+    "sourceHead": "53f2a4681cd22a65299576ba655cf9338c3d1de0",
+    "sourceTree": "7fb1fc3b54596ec936e7f16ae462e1366ec3dc9e",
+    "trackedChanges": [],
+    "stagedChanges": [],
+    "untrackedDirectoryEntriesOnly": [
+      "src/commands/html-to-markdown/",
+      "tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/",
+      "tests/commands/expr-stress/diagnostics-candidate-review/",
+      "tests/commands/html-to-markdown/",
+      "tests/commands/search-stress/.native-1m4O1e/",
+      "tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/",
+      "tests/integration/du-overlay-independent-20260827/migration-audit-9a5a6f92/",
+      "tests/integration/release-readiness-independent-20260827/candidate-aa84dbbf-review/"
+    ],
+    "limitations": "Directory-entry status only; no untracked-content inventory or append-proof tree claim. No source working-tree files read for comparison.",
+    "laterHeadObservedWithoutRepinning": "66975ea8ffeedd7c1df510bac2b13e1767bef610"
+  },
+  "proposal": {
+    "likelySourceWrites": 9,
+    "likelyExistingModifications": 8,
+    "likelyNewFiles": 1,
+    "conditionalDocumentationPaths": 2,
+    "paths": [
+      {
+        "path": "src/contracts/io.ts",
+        "status": "required-likely",
+        "operation": "modify",
+        "ownerCoordination": "contracts",
+        "reason": "ByteSink/createBytePipe lack optional ownedOutput and consumer-close wiring; preserve byte ownership and backpressure."
+      },
+      {
+        "path": "src/contracts/output.ts",
+        "status": "required-likely",
+        "operation": "add",
+        "ownerCoordination": "contracts/lifecycle",
+        "reason": "Absent in frozen source; review V1 operation plus S1 child helper against current cooperative acquisition/cleanup requirements."
+      },
+      {
+        "path": "src/contracts/index.ts",
+        "status": "required-likely",
+        "operation": "modify",
+        "ownerCoordination": "ROOT-assigned integration/barrel",
+        "reason": "Missing output.js star export; current root already forwards this barrel."
+      },
+      {
+        "path": "src/shell/runtime.ts",
+        "status": "required-likely",
+        "operation": "modify",
+        "ownerCoordination": "shell runtime; direct getopts coordination",
+        "reason": "Budget.sink, signalSink, pipeline output and completed/written finalization; preserve state/env/shebang/cleanup/accounting."
+      },
+      {
+        "path": "src/shell/shell.ts",
+        "status": "required-likely",
+        "operation": "modify",
+        "ownerCoordination": "shell; conditional getopts State-initialization overlap",
+        "reason": "External capture/sink capability forwarding absent; preserve exec/dispose and state initialization."
+      },
+      {
+        "path": "src/commands/network/types.ts",
+        "status": "required-likely",
+        "operation": "modify",
+        "ownerCoordination": "network/public contract",
+        "reason": "HttpRequest lacks proposed optional registerCleanup callback."
+      },
+      {
+        "path": "src/commands/network/transport.ts",
+        "status": "required-likely",
+        "operation": "modify",
+        "ownerCoordination": "network/lifecycle",
+        "reason": "Historical request cleanup enrollment before acquisition and idempotent awaited close are absent."
+      },
+      {
+        "path": "src/commands/network/curl.ts",
+        "status": "required-likely",
+        "operation": "modify",
+        "ownerCoordination": "network",
+        "reason": "Output-operation enrollment/acquisition/publication and S1 next-only borrowed stdin; retain authorization, credentials, retry caps, VFS and streaming."
+      },
+      {
+        "path": "src/commands/streams.ts",
+        "status": "required-likely",
+        "operation": "modify cat section/import only",
+        "ownerCoordination": "stream commands",
+        "reason": "File-operand-only cat operation missing; unrelated suffix/tail retention already live and excluded from edits."
+      },
+      {
+        "path": "src/contracts/command.md",
+        "status": "conditional",
+        "operation": "modify documentation if selected",
+        "ownerCoordination": "contracts documentation",
+        "reason": "Document accepted helper relationship without weakening existing cleanup or inventing global first-read lifecycle; no new doc filename presumed."
+      },
+      {
+        "path": "src/commands/network/README.md",
+        "status": "conditional",
+        "operation": "modify documentation if promoted",
+        "ownerCoordination": "network documentation",
+        "reason": "Document accepted optional transport cleanup/output ownership while preserving existing zero-cap explanation."
+      },
+      {
+        "path": "src/commands/network/shared.ts",
+        "status": "nochange-already-live",
+        "operation": "none",
+        "ownerCoordination": "network",
+        "reason": "Exact bb7f5972 zero-cap validator already committed; no ZERO-only production overlay."
+      },
+      {
+        "path": "src/commands/internal.ts",
+        "status": "nochange-already-live",
+        "operation": "none",
+        "ownerCoordination": "command internals",
+        "reason": "Exact S1 retention bytes; unrelated collect/lines ownership overlay excluded."
+      },
+      {
+        "path": "src/commands/network/body.ts",
+        "status": "nochange-already-live",
+        "operation": "none",
+        "ownerCoordination": "network",
+        "reason": "Exact S1 replay-cache retention; borrowed adapter is local to curl, not prebuffering here."
+      },
+      {
+        "path": "src/commands/structured/jq.ts",
+        "status": "nochange-already-live",
+        "operation": "none",
+        "ownerCoordination": "structured commands",
+        "reason": "Exact S1 retained program bytes; unrelated retention overlay excluded."
+      },
+      {
+        "path": "src/contracts/command.ts",
+        "status": "nochange-already-live",
+        "operation": "none",
+        "ownerCoordination": "contracts",
+        "reason": "CommandContext.registerCleanup already exists; no new command-contract field evidenced."
+      },
+      {
+        "path": "src/shell/cleanup.ts",
+        "status": "nochange-already-live",
+        "operation": "none",
+        "ownerCoordination": "shell lifecycle",
+        "reason": "Existing admission sealing/child drain/settlement identical to S1; new demonstrated gap needs separate ROOT approval, not blanket rewrite."
+      },
+      {
+        "path": "src/shell/types.ts",
+        "status": "nochange-already-live",
+        "operation": "none",
+        "ownerCoordination": "shell types",
+        "reason": "No owned-output delta; State is in runtime.ts."
+      },
+      {
+        "path": "src/commands/network/index.ts",
+        "status": "nochange-already-live",
+        "operation": "none",
+        "ownerCoordination": "network/integration",
+        "reason": "Existing type and transport export routing."
+      },
+      {
+        "path": "src/commands/network/args.ts",
+        "status": "nochange-already-live",
+        "operation": "none",
+        "ownerCoordination": "network",
+        "reason": "No historical owned-output argument changes."
+      },
+      {
+        "path": "src/commands/network/output.ts",
+        "status": "nochange-already-live",
+        "operation": "none",
+        "ownerCoordination": "network",
+        "reason": "Existing streaming/VFS helpers used by adapted curl context; no source delta."
+      },
+      {
+        "path": "src/index.ts",
+        "status": "nochange-already-live",
+        "operation": "none",
+        "ownerCoordination": "ROOT-assigned integration",
+        "reason": "Existing contracts/network stars suffice as source routing; not packed-consumer acceptance."
+      },
+      {
+        "path": "package.json",
+        "status": "nochange-already-live",
+        "operation": "none",
+        "ownerCoordination": "ROOT-assigned integration",
+        "reason": "Existing root/contracts/wildcard/network exports and dist packaging; no new deps/config/subpath."
+      },
+      {
+        "path": "src/commands/tree/arguments.ts",
+        "status": "excluded-unrelated",
+        "operation": "none",
+        "ownerCoordination": "tree commands",
+        "reason": "B0 captured-dirty path, current differs; do not promote old capture or clean base."
+      },
+      {
+        "path": "src/commands/tree/io.ts",
+        "status": "excluded-unrelated",
+        "operation": "none",
+        "ownerCoordination": "tree commands",
+        "reason": "B0 captured-dirty path already equals current; not a feature overlay."
+      },
+      {
+        "path": "src/commands/tree/tree.ts",
+        "status": "excluded-unrelated",
+        "operation": "none",
+        "ownerCoordination": "tree commands",
+        "reason": "B0 captured-dirty path already equals current; not a feature overlay."
+      },
+      {
+        "path": "src/commands/execution.ts",
+        "status": "excluded-unrelated",
+        "operation": "none",
+        "ownerCoordination": "execution commands",
+        "reason": "Preserve current env replacement and transparent output forwarding."
+      },
+      {
+        "path": "src/commands/env-split.ts",
+        "status": "excluded-unrelated",
+        "operation": "none",
+        "ownerCoordination": "env dispatch",
+        "reason": "Current-only split-string support; do not delete."
+      },
+      {
+        "path": "src/shell/input.ts",
+        "status": "excluded-unrelated",
+        "operation": "none",
+        "ownerCoordination": "shell input",
+        "reason": "Preserve current cursor/cancellation ownership; no output helper change here."
+      },
+      {
+        "path": "src/commands/search/rg.ts",
+        "status": "excluded-unrelated",
+        "operation": "none",
+        "ownerCoordination": "search",
+        "reason": "Preserve direct-stdin cancellation/search work."
+      },
+      {
+        "path": "src/commands/search/index.ts",
+        "status": "excluded-unrelated",
+        "operation": "none",
+        "ownerCoordination": "search/integration",
+        "reason": "No feature delta or registry integration change."
+      },
+      {
+        "path": "src/plugins/index.ts",
+        "status": "excluded-unrelated",
+        "operation": "none",
+        "ownerCoordination": "ROOT-assigned integration",
+        "reason": "Preserve aggregate composition; curl/SafeJS remain explicit optional plugins."
+      }
+    ],
+    "overlaps": [
+      {
+        "path": "src/shell/runtime.ts",
+        "status": "direct prospective getopts file overlap",
+        "ownedOutputFrozenStartLines": [
+          85,
+          231,
+          335,
+          378
+        ],
+        "stateDispatchFrozenStartLines": [
+          30,
+          136,
+          240,
+          1464,
+          1500
+        ],
+        "resolution": "ROOT must coordinate before implementation; no Poincare unsealed work inspected"
+      },
+      {
+        "path": "src/shell/shell.ts",
+        "status": "conditional getopts initialization overlap",
+        "ownedOutputFrozenStartLines": [
+          115
+        ],
+        "stateDispatchFrozenStartLines": [
+          141
+        ],
+        "resolution": "Coordinate if getopts changes initial State; not an asserted Poincare write request"
+      }
+    ],
+    "featureAndRetentionBoundary": {
+      "b0ToV1FeaturePaths": 9,
+      "retentionPaths": 4,
+      "finalS1FeaturePaths": 2,
+      "v1ToFinalPaths": 6,
+      "fullChainUniqueProductionPaths": 12,
+      "mixedFeatureRetentionPath": "src/commands/streams.ts"
+    },
+    "apiBoundary": "Historical optional ownedOutput consumerClosed/write; OutputOperation signal/output/registerCleanup/acquire/child/close; hypothetical HttpRequest.registerCleanup. No accountedWrite, no V2 input/prebuffer API.",
+    "promotionBlockers": [
+      "Actual ZERO-only TEMP audit pending in supplied ROOT handoff; no ongoing status queried or outcome inferred.",
+      "ROOT source/contracts/barrel and getopts overlapping ownership must be assigned before implementation.",
+      "Reconcile historical helper acquire/close admitted cooperative work versus opaque promises with current contract; source-review question, no new runtime failure claim.",
+      "Later rebased committed-source runtime tests, contract/export review, build/packed public consumer and actual-SafeJS acceptance remain separate owner work."
+    ]
+  },
+  "inspection": {
+    "schema": 1,
+    "scope": "read-only public Git/archive byte inspection; no execution, extraction, build, tests, private access or live-source reads",
+    "frozenCommit": "53f2a4681cd22a65299576ba655cf9338c3d1de0",
+    "frozenTree": "7fb1fc3b54596ec936e7f16ae462e1366ec3dc9e",
+    "artifacts": [
+      {
+        "path": "tests/shell-stress/first-read-contract-review/owned-output-prototype/baseline.tar.gz.data",
+        "bytes": 597690,
+        "sha256": "0066bc48069f116b549ea895e4972c02ed6958be641fd23ea3b6db26cc181f05",
+        "gitBlob": "0be0f9df7b25848a8d01feeb28e430023246e94f",
+        "originalCommit": "1ff82cb748c60145740dba354610ac7ed7a7f15f",
+        "originalBytesEqualFrozen": true
+      },
+      {
+        "path": "tests/shell-stress/first-read-contract-review/owned-output-prototype/source-r1.patch-data",
+        "bytes": 25613,
+        "sha256": "d73bb2637d54b97f62fd6e1baa57100cf0018a763679c31386349e30a19cc4e2",
+        "gitBlob": "9bd6489af5e99b52264b76c28d06e9bdb171f570",
+        "originalCommit": "1ff82cb748c60145740dba354610ac7ed7a7f15f",
+        "originalBytesEqualFrozen": true
+      },
+      {
+        "path": "tests/shell-stress/first-read-contract-review/owned-output-streaming-prototype/baseline-current-retention.patch-data",
+        "bytes": 3685,
+        "sha256": "063751093b7cf887d35b33498b65e1ef49a2f35f9dfb28e368ab6e409fda05b5",
+        "gitBlob": "c1a3bc72be7aee4b5d5265085877314a92b47ee0",
+        "originalCommit": "c1985fd5ef365312a098148528cee517064cfaa9",
+        "originalBytesEqualFrozen": true
+      },
+      {
+        "path": "tests/shell-stress/first-read-contract-review/owned-output-streaming-prototype/source-S1-r0.patch-data",
+        "bytes": 4031,
+        "sha256": "80c523e21610d90c67c8ab0084532ab465f645a0d57442dcd952795de01f2f3f",
+        "gitBlob": "b81abf680e28e31efab5dbf7dc57d2b8949d7579",
+        "originalCommit": "c1985fd5ef365312a098148528cee517064cfaa9",
+        "originalBytesEqualFrozen": true
+      },
+      {
+        "path": "tests/shell-stress/first-read-contract-review/owned-output-streaming-prototype/source-S1-r1.patch-data",
+        "bytes": 4031,
+        "sha256": "80c523e21610d90c67c8ab0084532ab465f645a0d57442dcd952795de01f2f3f",
+        "gitBlob": "b81abf680e28e31efab5dbf7dc57d2b8949d7579",
+        "originalCommit": "c1985fd5ef365312a098148528cee517064cfaa9",
+        "originalBytesEqualFrozen": true
+      },
+      {
+        "path": "tests/shell-stress/first-read-contract-review/owned-output-qualified-prototype/candidate.tar.gz.data",
+        "bytes": 1324491,
+        "sha256": "a3b9aa6fcb4596e8281de2c30943b98baa01449941c8368401d1172bce95d420",
+        "gitBlob": "c3ecb5d71bd1831a71c6c230a7493bd8214a5ec1",
+        "originalCommit": "b8f5d46acf293138482b522d7b5f7263865b1303",
+        "originalBytesEqualFrozen": true
+      },
+      {
+        "path": "tests/shell-stress/first-read-contract-review/owned-output-qualified-prototype/SOURCE-PROFILE.json",
+        "bytes": 526327,
+        "sha256": "dde465c6636625f7802f5ead10bbeb236f62c271d8a078459a5c8bb120de1ce2",
+        "gitBlob": "53d77df298dc36ec7e8d6e93ad9fa15ed55963d6",
+        "originalCommit": "b8f5d46acf293138482b522d7b5f7263865b1303",
+        "originalBytesEqualFrozen": true
+      },
+      {
+        "path": "tests/integration/safejs-owned-output-prototype-review/receipt-review/attempts/r2/proof.json",
+        "bytes": 1130772,
+        "sha256": "fe19612e093ca3ef78152bcca666606966905f5736b2d0e4f090e7854a5ece99",
+        "gitBlob": "3ec796656fd1c038c2098ebaac1cf2019beefdc4",
+        "originalCommit": "07a7dae5db51612a23e74d1d164d33723d4d61b6",
+        "originalBytesEqualFrozen": true
+      },
+      {
+        "path": "tests/integration/safejs-owned-output-prototype-review/receipt-review/STAGES.md",
+        "bytes": 10465,
+        "sha256": "530775960c0bc71e0094f1c4dd1fc918b6e6b58de71293fc5d48dbffb0827a7b",
+        "gitBlob": "b1b6843993538cee6c2ee71402b38b8648f3994f",
+        "originalCommit": "07a7dae5db51612a23e74d1d164d33723d4d61b6",
+        "originalBytesEqualFrozen": true
+      },
+      {
+        "path": "tests/integration/safejs-owned-output-prototype-review/receipt-review/REPORT.md",
+        "bytes": 10814,
+        "sha256": "81a8b977284f033824815f601ab6d0f09705779f02515478ae408bf79ec3eee0",
+        "gitBlob": "9271a4552e2d8671ef481feef702a22802542d72",
+        "originalCommit": "db139ae983ad66364e0367f9fb1ed0262ee61f63",
+        "originalBytesEqualFrozen": true
+      },
+      {
+        "path": "tests/integration/safejs-owned-output-prototype-review/receipt-review/verification.json",
+        "bytes": 2713,
+        "sha256": "28f079b2cc6a7acba9aa11acf1e8b4562f935dd4bf879e81d2621a628c88ba10",
+        "gitBlob": "d037e7796b32f16e5fc4d75d6dc66493f7009719",
+        "originalCommit": "07a7dae5db51612a23e74d1d164d33723d4d61b6",
+        "originalBytesEqualFrozen": true
+      },
+      {
+        "path": "tests/shell-stress/first-read-contract-review/owned-output-qualified-review/ordering-replay-q1/authentication-before.json",
+        "bytes": 1915486,
+        "sha256": "d383714b58d56e0cc1b13f73e9d65586cbd892f2962e301d591e0afbe25edb93",
+        "gitBlob": "7edc78d0fb203cb7e7602625b9b11d0289c22ec3",
+        "originalCommit": "e57b5aa16f749b6fac558877dff0712e64df05a8",
+        "originalBytesEqualFrozen": true
+      },
+      {
+        "path": "tests/shell-stress/first-read-contract-review/owned-output-qualified-review/ordering-replay-q1/authentication-after.json",
+        "bytes": 1915392,
+        "sha256": "bcd1f75ae25c09cd2c32f1781f7069cd3fb800e1978919fc64fd98048057520e",
+        "gitBlob": "c67a5b15af73a21a65d13d4822380d196ce01b09",
+        "originalCommit": "e57b5aa16f749b6fac558877dff0712e64df05a8",
+        "originalBytesEqualFrozen": true
+      }
+    ],
+    "stageSummaries": [
+      {
+        "name": "B0",
+        "sourceCount": 212,
+        "sourceManifestSha256": "6d8589043618e623e35a63e92cbecc160b7f587335a69bba3e0b0f57e34dca8b"
+      },
+      {
+        "name": "V1",
+        "sourceCount": 213,
+        "sourceManifestSha256": "c13d21a4205f75a846363e7e2c13db103ed841ee61397553105745c940f31c44"
+      },
+      {
+        "name": "retention",
+        "sourceCount": 213,
+        "sourceManifestSha256": "42e7a2f5cb127f017ee2e3f99a852ae769244a15b524c9572b64955d1cad29c3"
+      },
+      {
+        "name": "final-S1",
+        "sourceCount": 213,
+        "sourceManifestSha256": "6de9b96c7286cc320379d8f7f720f3d1a5ecffdc24b7268b198859550362feea"
+      }
+    ],
+    "fullQualifiedManifest": {
+      "files": 940,
+      "sha256": "a2632992e84344c1a6a92fcee181a1e6d535d6cb87ef1a9a7841e48af9c02e28"
+    },
+    "baselineMetadata": {
+      "regularSemanticFiles": 227,
+      "appleDoubleSidecars": 270,
+      "classification": "exact archive only; in-memory; no extraction"
+    },
+    "deltas": [
+      {
+        "stage": "B0-to-V1",
+        "changedPaths": [
+          {
+            "path": "src/commands/network/curl.ts",
+            "before": {
+              "path": "src/commands/network/curl.ts",
+              "bytes": 15881,
+              "sha256": "4859cc27a94d4ffe74ecadf20280d5d519d85babc50d24f55b9c51357c2dca42"
+            },
+            "after": {
+              "path": "src/commands/network/curl.ts",
+              "bytes": 17530,
+              "sha256": "bfbdb77e185e4aa206efc768c89f6f02ee2e833d64856a93320e6ea47f494eb3"
+            },
+            "sectionSha256": "5826b14f5183f44e7e5db024c92647be4fb61eeeaaac73d8938fe625853dae5c",
+            "hunks": [
+              {
+                "header": "@@ -1,6 +1,6 @@",
+                "patchSectionLine": 5,
+                "sha256": "9351e272c5131c2fa61ded00c70278cc3162e806f5c115b380c282381a2162cd"
+              },
+              {
+                "header": "@@ -60,6 +60,10 @@ async function stop(response: HttpResponse | undefined, signal: AbortSignal): Pr",
+                "patchSectionLine": 13,
+                "sha256": "9c968c4614b10e5f3720f3dc6400ff3b8e32167f1b8fd5c960a9690feb121fd9"
+              },
+              {
+                "header": "@@ -106,7 +110,10 @@ async function transfer(context: CommandContext, args: CurlArguments, input: str",
+                "patchSectionLine": 24,
+                "sha256": "b4500fead453ef02336bd473b7c146c5680d2eac17f78da3505ac8c2bd442ad0"
+              },
+              {
+                "header": "@@ -117,6 +124,16 @@ async function transfer(context: CommandContext, args: CurlArguments, input: str",
+                "patchSectionLine": 36,
+                "sha256": "ca38880289279352ad18653dfb51193cd0833fdf41550f9fbeee44003760aac6"
+              },
+              {
+                "header": "@@ -169,9 +186,12 @@ async function transfer(context: CommandContext, args: CurlArguments, input: str",
+                "patchSectionLine": 53,
+                "sha256": "929619c6813daaf9a22616b033f6f368506bb8c808baf55497b4194939f81fe4"
+              },
+              {
+                "header": "@@ -179,7 +199,11 @@ async function transfer(context: CommandContext, args: CurlArguments, input: str",
+                "patchSectionLine": 69,
+                "sha256": "85d3986093fb04692b652585caae639e0f44ffd34e7db63954373df4bdc0c6c4"
+              },
+              {
+                "header": "@@ -212,13 +236,15 @@ async function transfer(context: CommandContext, args: CurlArguments, input: str",
+                "patchSectionLine": 82,
+                "sha256": "eab8fd22cc294061152a9cfb72b1c24bf8cc47e1d6f4cc13ad85fa3cd5ffca03"
+              },
+              {
+                "header": "@@ -226,13 +252,18 @@ async function transfer(context: CommandContext, args: CurlArguments, input: str",
+                "patchSectionLine": 100,
+                "sha256": "75eb2821e0cdcc4092bbfb4e69ed2d8624d902a5c07dc5599867fae529d72e9d"
+              },
+              {
+                "header": "@@ -251,11 +282,12 @@ async function transfer(context: CommandContext, args: CurlArguments, input: str",
+                "patchSectionLine": 121,
+                "sha256": "b3d5f3f326cea46c922b1483377244224a7d439afdb18a62776cd17b9db3b142"
+              },
+              {
+                "header": "@@ -263,9 +295,9 @@ async function transfer(context: CommandContext, args: CurlArguments, input: str",
+                "patchSectionLine": 136,
+                "sha256": "c68fb5e3a18383d4b9b75992f061a5a310f52a1f765a9aabbf5db4137e93f174"
+              }
+            ]
+          },
+          {
+            "path": "src/commands/network/transport.ts",
+            "before": {
+              "path": "src/commands/network/transport.ts",
+              "bytes": 3133,
+              "sha256": "b6246ceacc90c0451028755fdf9cbb795790968676f48c8e3f9258128286f844"
+            },
+            "after": {
+              "path": "src/commands/network/transport.ts",
+              "bytes": 3613,
+              "sha256": "c9f3302aac3bba8fc1cd9c72571adb062dbc2e336da1a403c5c2d6207c2c0e05"
+            },
+            "sectionSha256": "c9558987a95f736f31c8da97189b33d74bb56dc9c84395d656cb237e67a91661",
+            "hunks": [
+              {
+                "header": "@@ -1,4 +1,4 @@",
+                "patchSectionLine": 5,
+                "sha256": "55cc1a8b5bb934e9534b367d78491103e961e1d1412e4716e1fc4339ab464e59"
+              },
+              {
+                "header": "@@ -26,7 +26,19 @@ export function createNodeHttpTransport(options: NodeHttpTransportOptions = {}):",
+                "patchSectionLine": 11,
+                "sha256": "50b99d1fa963a3adc3e10b0f46f7e958dd77934b411277f1eb7f5e87800b94da"
+              },
+              {
+                "header": "@@ -40,25 +52,25 @@ export function createNodeHttpTransport(options: NodeHttpTransportOptions = {}):",
+                "patchSectionLine": 32,
+                "sha256": "f219d1f072bc27c3fb3a0e75e230d10558cb6b1366c61b124f446997d198f025"
+              }
+            ]
+          },
+          {
+            "path": "src/commands/network/types.ts",
+            "before": {
+              "path": "src/commands/network/types.ts",
+              "bytes": 1832,
+              "sha256": "806dd2132dd4004404dbb5c21a421e84c53c161f750f6acc1aedd0f8054b5fe9"
+            },
+            "after": {
+              "path": "src/commands/network/types.ts",
+              "bytes": 1918,
+              "sha256": "be7a2770efdf42e90ca9eb41e37115b28607aeaf99ce95865d44b3625d20aa19"
+            },
+            "sectionSha256": "a842064011d67d3d07e360bd1e2a06defe120d1d3cb91387f7b7d733aba76ad6",
+            "hunks": [
+              {
+                "header": "@@ -1,4 +1,4 @@",
+                "patchSectionLine": 5,
+                "sha256": "36995fe6ae8db7d2dbc76258cd4cb88d36bfd807b75fff7380b8deadb16f5294"
+              },
+              {
+                "header": "@@ -8,6 +8,7 @@ export interface HttpRequest {",
+                "patchSectionLine": 11,
+                "sha256": "28f3c2baa27cb00b61261def3dec376b0c0ff90fb86985adcdb62f42465cfa20"
+              }
+            ]
+          },
+          {
+            "path": "src/commands/streams.ts",
+            "before": {
+              "path": "src/commands/streams.ts",
+              "bytes": 16807,
+              "sha256": "8966dd770c11731e5256a1e42aaec4b07ae7f0508a3e89a3efc956d27109098d"
+            },
+            "after": {
+              "path": "src/commands/streams.ts",
+              "bytes": 17500,
+              "sha256": "792bc1af0f2c9d5fbd7b947956873f3dfbb5fd34fcbdadcb15b1ef8fb423c169"
+            },
+            "sectionSha256": "b0ce15f6a5afadf97d3555047663cd63279df3f18301a27fefb5e2ccbdce3541",
+            "hunks": [
+              {
+                "header": "@@ -1,4 +1,4 @@",
+                "patchSectionLine": 5,
+                "sha256": "9b5118ead1a4aac1ec776f4353e002cb88d3c73d0cd57d192e83e2f396fcee10"
+              },
+              {
+                "header": "@@ -189,8 +189,13 @@ export function streamCommands(): CommandDefinition[] {",
+                "patchSectionLine": 11,
+                "sha256": "8896ddea76628655c1cbc04cb65bd134ced26ad2904c01c5cee2da59f74f5fee"
+              },
+              {
+                "header": "@@ -225,6 +230,11 @@ export function streamCommands(): CommandDefinition[] {",
+                "patchSectionLine": 25,
+                "sha256": "f3f835159499b9ab3106dda52f5d81159810c5322ac5443efcd9fc17d73a74d7"
+              }
+            ]
+          },
+          {
+            "path": "src/contracts/index.ts",
+            "before": {
+              "path": "src/contracts/index.ts",
+              "bytes": 173,
+              "sha256": "fb9a434deb34dbad631166a689b02641c0e1acdbac691f6956a7c76e20729f50"
+            },
+            "after": {
+              "path": "src/contracts/index.ts",
+              "bytes": 202,
+              "sha256": "21b09d18564ec4f586542af67a1e26f0198cc20938563f8b572cb5c4b38f676c"
+            },
+            "sectionSha256": "e80abff0e23491bd92492dc0789eb592804a87afdb37e7cec43026604d8c0791",
+            "hunks": [
+              {
+                "header": "@@ -2,5 +2,6 @@ export * from \"./command.js\";",
+                "patchSectionLine": 5,
+                "sha256": "b1927233208cd4f44e3423d335f2c6930db9bf9cfd95339c4ab2ca68ca65f27a"
+              }
+            ]
+          },
+          {
+            "path": "src/contracts/io.ts",
+            "before": {
+              "path": "src/contracts/io.ts",
+              "bytes": 7383,
+              "sha256": "e925ab08a5ad41862d3f5c031164cc7310bc28397455b11b37b75b55a9dbacdb"
+            },
+            "after": {
+              "path": "src/contracts/io.ts",
+              "bytes": 7679,
+              "sha256": "52970acab76d8a7482d2867bf023acb18db26393c281b2fc388a63feb98fcce4"
+            },
+            "sectionSha256": "a9016460d592db44f5dbf593c55c61392fe7953c863364cc6415f36b8b6e5716",
+            "hunks": [
+              {
+                "header": "@@ -5,6 +5,10 @@ export type ByteSource = AsyncIterable<Uint8Array>;",
+                "patchSectionLine": 5,
+                "sha256": "10a43da5da391196b830f98d5db68b8f06f8f073dab676c29260cdda0ae7fe54"
+              },
+              {
+                "header": "@@ -43,12 +47,14 @@ export function createBytePipe(options: BytePipeOptions = {}): BytePipe {",
+                "patchSectionLine": 16,
+                "sha256": "93cd0f3481abced1ed3ee2c3950b3fb95e6be595d34702f60468d9865d3d262e"
+              },
+              {
+                "header": "@@ -95,15 +101,17 @@ export function createBytePipe(options: BytePipeOptions = {}): BytePipe {",
+                "patchSectionLine": 31,
+                "sha256": "dd9c16eb11dd401f4ee12947d380c4d89fd5e48849d9661d51fd0fda9f898a52"
+              }
+            ]
+          },
+          {
+            "path": "src/contracts/output.ts",
+            "before": null,
+            "after": {
+              "path": "src/contracts/output.ts",
+              "bytes": 3820,
+              "sha256": "709af26d3a8cca80fa31c9acce54c59f332c920f566556b30e7ac6b14b4d1009"
+            },
+            "sectionSha256": "d7a8b9f2ec11f88216bf00632e379e9c71ee16b585e8c502e037585ef604267d",
+            "hunks": [
+              {
+                "header": "@@ -0,0 +1,100 @@",
+                "patchSectionLine": 6,
+                "sha256": "03c1de92b0f6f1260741a643cb5fc1c013167bc6b1d148e143f455dbf9458003"
+              }
+            ]
+          },
+          {
+            "path": "src/shell/runtime.ts",
+            "before": {
+              "path": "src/shell/runtime.ts",
+              "bytes": 100410,
+              "sha256": "2223ef9e02565d163ded042d933553a1efae502ce7531fe83bba5611d959c84b"
+            },
+            "after": {
+              "path": "src/shell/runtime.ts",
+              "bytes": 101302,
+              "sha256": "d352c421177b82bd0a6f77ebc8cc9ab4b490e54cb39b685bb72871388a9fcb03"
+            },
+            "sectionSha256": "3ffc778f100f51f0603bf892751fd8bf30748f341bf843bc545d8779b353486e",
+            "hunks": [
+              {
+                "header": "@@ -85,6 +85,16 @@ export class Budget {",
+                "patchSectionLine": 5,
+                "sha256": "979a59abf32751116cbe72e3a48b524cc3f3a84855531b1e05fa204d4d146596"
+              },
+              {
+                "header": "@@ -231,7 +241,13 @@ function signalSink(sink: ByteSink, signal: AbortSignal): ByteSink {",
+                "patchSectionLine": 22,
+                "sha256": "ff43c42340cd6004adf7ac75bbc9ba2a7f4dea3c45f414b5f8c1dda0620dbd20"
+              },
+              {
+                "header": "@@ -331,7 +347,7 @@ export class Runtime {",
+                "patchSectionLine": 37,
+                "sha256": "678880a7368e302a21935325ea9546ac3b030ed5d49a6792b1b824f172c7a1d5"
+              },
+              {
+                "header": "@@ -376,7 +392,7 @@ export class Runtime {",
+                "patchSectionLine": 46,
+                "sha256": "abcfc9c71588b54e2b4d688b0c00b41320aaf365a957c5a536386037bde74abe"
+              }
+            ]
+          },
+          {
+            "path": "src/shell/shell.ts",
+            "before": {
+              "path": "src/shell/shell.ts",
+              "bytes": 10368,
+              "sha256": "538f7ea1504019fcde03abc2781c1f903573243a0332033b87501804a1c4ac5c"
+            },
+            "after": {
+              "path": "src/shell/shell.ts",
+              "bytes": 10644,
+              "sha256": "136bbf577a0b12c4998e942cc07c1ace52c1db328d093919a10b885b7041cb7a"
+            },
+            "sectionSha256": "40f3b4968bd5927b06c4fd63a7d53de76a31d930959aaef49db11fd1606845a1",
+            "hunks": [
+              {
+                "header": "@@ -113,6 +113,13 @@ export class Shell implements PluginHost {",
+                "patchSectionLine": 5,
+                "sha256": "09e48e4c23cd17fdb4a390b42ed1a2e71ec0781ada73e71ddb76beb2e50ebdeb"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "stage": "V1-to-retention",
+        "changedPaths": [
+          {
+            "path": "src/commands/internal.ts",
+            "before": {
+              "path": "src/commands/internal.ts",
+              "bytes": 8793,
+              "sha256": "28d83d91d5086b39b50494ea1130d34c3b48b22a15dc04c2912ee2503a7536d5"
+            },
+            "after": {
+              "path": "src/commands/internal.ts",
+              "bytes": 8820,
+              "sha256": "ade20c95a7d3dac5250a214d112ab25d710ce7909a4c6605f18ee21781949654"
+            },
+            "sectionSha256": "7058abf96ca849b76414c3ec18ec10cc17cf1c07a5a6ee9c3e595c9bdbe02cc9",
+            "hunks": [
+              {
+                "header": "@@ -155,7 +155,7 @@ export async function collect(source: ByteSource, signal: AbortSignal, limit = b",
+                "patchSectionLine": 5,
+                "sha256": "88f6827f65bac673edad0d4b797de949e311fcfe234f0dc4391ac6a0eb4bc9b4"
+              },
+              {
+                "header": "@@ -179,7 +179,7 @@ export async function* lines(source: ByteSource, separator = 10): AsyncGenerator",
+                "patchSectionLine": 14,
+                "sha256": "589a7a6388fa1cca5f02c59fa7bac34e07e1ddb555df3cb1a35f1753a361b50a"
+              }
+            ]
+          },
+          {
+            "path": "src/commands/network/body.ts",
+            "before": {
+              "path": "src/commands/network/body.ts",
+              "bytes": 7372,
+              "sha256": "29a8a744b043447eacc09d09ca651f2b0a34bdf08e08ddf3065729dbc486edbf"
+            },
+            "after": {
+              "path": "src/commands/network/body.ts",
+              "bytes": 7380,
+              "sha256": "93d8a8463ac7df91c8ef88368f2ee8524a0abd7e7970badf4d1312587a34c880"
+            },
+            "sectionSha256": "4208291db013ff4f00e8990bf443672797bad78f332b0f6e68eedb1f794ee854",
+            "hunks": [
+              {
+                "header": "@@ -139,7 +139,7 @@ export function createBody(context: CommandContext, args: CurlArguments, limits:",
+                "patchSectionLine": 5,
+                "sha256": "d2d81f400ab4dc02820669306a7b2e59a8041c8f6342de32de0bd575d9e98091"
+              }
+            ]
+          },
+          {
+            "path": "src/commands/streams.ts",
+            "before": {
+              "path": "src/commands/streams.ts",
+              "bytes": 17500,
+              "sha256": "792bc1af0f2c9d5fbd7b947956873f3dfbb5fd34fcbdadcb15b1ef8fb423c169"
+            },
+            "after": {
+              "path": "src/commands/streams.ts",
+              "bytes": 17708,
+              "sha256": "40de51068674277e636e45d11cdc7cbd39fe3f1036aeda321802d8809a53af93"
+            },
+            "sectionSha256": "fde43d2a19c39f1d73ecca286bbe6420c82a91e71626c6737decc397a23eeeb9",
+            "hunks": [
+              {
+                "header": "@@ -40,7 +40,8 @@ async function suffix(context: CommandContext, source: ByteSource, count: number",
+                "patchSectionLine": 5,
+                "sha256": "e0a86fb096de7867fc9d55e4b6df71ee4d41bb522cc6cace81b30e4f0f09d283"
+              },
+              {
+                "header": "@@ -48,8 +49,11 @@ async function suffix(context: CommandContext, source: ByteSource, count: number",
+                "patchSectionLine": 15,
+                "sha256": "51d731d656046a7b9b1cb5ed938523c9fa5554badbee4065679c1ad3e6b9641b"
+              }
+            ]
+          },
+          {
+            "path": "src/commands/structured/jq.ts",
+            "before": {
+              "path": "src/commands/structured/jq.ts",
+              "bytes": 11388,
+              "sha256": "feca27d38a096931faabe5a5449ecc65c39c8b0abbcf69d3ea73a31f729fdbac"
+            },
+            "after": {
+              "path": "src/commands/structured/jq.ts",
+              "bytes": 11396,
+              "sha256": "096897bfa9d875ba524cebd6b3959c551a26fa5e56d3b0d2fb42f9fabdf80da3"
+            },
+            "sectionSha256": "3225ebfda717fb5ae4b2243287ef7d097694e7543f0b8a697c70121cf1b6733d",
+            "hunks": [
+              {
+                "header": "@@ -78,7 +78,7 @@ async function readProgram(context: CommandContext, path: string, limits: JqLimi",
+                "patchSectionLine": 5,
+                "sha256": "942d31640e4581f611d46886ef16441ba7a8b0870ed82e518e20652b5a0e4e45"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "stage": "retention-to-final-S1",
+        "changedPaths": [
+          {
+            "path": "src/commands/network/curl.ts",
+            "before": {
+              "path": "src/commands/network/curl.ts",
+              "bytes": 17530,
+              "sha256": "bfbdb77e185e4aa206efc768c89f6f02ee2e833d64856a93320e6ea47f494eb3"
+            },
+            "after": {
+              "path": "src/commands/network/curl.ts",
+              "bytes": 17720,
+              "sha256": "db06650b1b55b994fe5fa83f7489062e91ac83b7d2d9c44bbb7606d57d9df057"
+            },
+            "sectionSha256": "0e748c1253afab02d49c44ac0d109a98d075af820fbca73d18b85928ff46ca93",
+            "hunks": [
+              {
+                "header": "@@ -114,6 +114,10 @@ async function transfer(context: CommandContext, args: CurlArguments, input: str",
+                "patchSectionLine": 5,
+                "sha256": "0418c1ef14da608d649f8ca93e57c8779f14fa1385e2be551ff84075a1eb54df"
+              },
+              {
+                "header": "@@ -138,7 +142,7 @@ async function transfer(context: CommandContext, args: CurlArguments, input: str",
+                "patchSectionLine": 16,
+                "sha256": "0c89b60bfbd0c0fea337eca5ed3fd96d0fff8f9b26928bc9a3d60261e84cadbd"
+              },
+              {
+                "header": "@@ -146,7 +150,7 @@ async function transfer(context: CommandContext, args: CurlArguments, input: str",
+                "patchSectionLine": 25,
+                "sha256": "9d08abfe12b5cc1993b23a9194ca744061d9d8815f369faa5f57515f490a3a4e"
+              }
+            ]
+          },
+          {
+            "path": "src/contracts/output.ts",
+            "before": {
+              "path": "src/contracts/output.ts",
+              "bytes": 3820,
+              "sha256": "709af26d3a8cca80fa31c9acce54c59f332c920f566556b30e7ac6b14b4d1009"
+            },
+            "after": {
+              "path": "src/contracts/output.ts",
+              "bytes": 4166,
+              "sha256": "483fb9c7be06ff45de0120f60f5b5ebfe977c2323236353485f2adca5b6e28d0"
+            },
+            "sectionSha256": "6010865f61852427858c73b495d47439893730d47655a3c4f71c5719bf412ac1",
+            "hunks": [
+              {
+                "header": "@@ -4,6 +4,7 @@ import { writeBytes, type ByteSink } from \"./io.js\";",
+                "patchSectionLine": 5,
+                "sha256": "edd91096b28fc56ca0a82fa37a56e8bc5cc46a26da270732ec9b0d0712a179d7"
+              },
+              {
+                "header": "@@ -14,6 +15,7 @@ export function createOutputOperation(context: Pick<CommandContext, \"signal\" | \"",
+                "patchSectionLine": 13,
+                "sha256": "9046060001fe23147bb82def0bafc23ebe8b485240cecaf29d976211ac0c332c"
+              },
+              {
+                "header": "@@ -33,6 +35,7 @@ export function createOutputOperation(context: Pick<CommandContext, \"signal\" | \"",
+                "patchSectionLine": 21,
+                "sha256": "92d1d4119cbf76fdff799bbd8195a61a6307a185bbfce5253bcb37ee94ae47fa"
+              },
+              {
+                "header": "@@ -74,6 +77,12 @@ export function createOutputOperation(context: Pick<CommandContext, \"signal\" | \"",
+                "patchSectionLine": 29,
+                "sha256": "081a0623742eb287e77e9401a1d0cb080ae9b43bc5a694619bc6a0ec21f87c67"
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "sourceRouteMatchesQualified": true,
+    "receiptStageIdentitiesMatch": true,
+    "orderingBindings": [
+      {
+        "phase": "before",
+        "exactPrefix": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/",
+        "matchedFiles": 940,
+        "binding": "path and SHA-256; ordering receipt omits byte counts"
+      },
+      {
+        "phase": "after",
+        "exactPrefix": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/",
+        "matchedFiles": 940,
+        "binding": "path and SHA-256; ordering receipt omits byte counts"
+      }
+    ],
+    "capturedDirtyBaseline": [
+      {
+        "path": "src/commands/tree/io.ts",
+        "cleanGitBlob": "d1f63b698918062e2c3b05167289f2cbf96e6811",
+        "clean": {
+          "path": "src/commands/tree/io.ts",
+          "bytes": 2986,
+          "sha256": "ab76f076d122d27d6bfb04d623551c88f28fdd3f9408c06ae2dc3769462ba153"
+        },
+        "captured": {
+          "path": "src/commands/tree/io.ts",
+          "bytes": 3768,
+          "sha256": "163f2412e5fcca1dc0cd0ac7264beb29b8180efdd65c34fdff08f84a670471e1"
+        }
+      },
+      {
+        "path": "src/commands/tree/arguments.ts",
+        "cleanGitBlob": "3e645e4832031fbbacfe39b51ed02e6da07439b9",
+        "clean": {
+          "path": "src/commands/tree/arguments.ts",
+          "bytes": 4470,
+          "sha256": "572db370cad20fff449ed6ce43c0a358390a8f9cfb15ea447d4ac7aaec4b8c9a"
+        },
+        "captured": {
+          "path": "src/commands/tree/arguments.ts",
+          "bytes": 4552,
+          "sha256": "848b3e07aafefc67de77efccaa446904d9a1920cb158e094217c18e24a6a2762"
+        }
+      },
+      {
+        "path": "src/commands/tree/tree.ts",
+        "cleanGitBlob": "7450265c5d929eb8540a675b78ece31da787f277",
+        "clean": {
+          "path": "src/commands/tree/tree.ts",
+          "bytes": 9430,
+          "sha256": "449536d5ef259a44308d253c1f5af4bf7af7bed128deff688f9fb8df8bb4c44a"
+        },
+        "captured": {
+          "path": "src/commands/tree/tree.ts",
+          "bytes": 10748,
+          "sha256": "2ebcf54d9804e7000bf3de4780d598b8b6bc157ee411c134dea5c62717738ef1"
+        }
+      }
+    ],
+    "featurePaths": [
+      "src/commands/network/curl.ts",
+      "src/commands/network/transport.ts",
+      "src/commands/network/types.ts",
+      "src/commands/streams.ts",
+      "src/contracts/index.ts",
+      "src/contracts/io.ts",
+      "src/contracts/output.ts",
+      "src/shell/runtime.ts",
+      "src/shell/shell.ts"
+    ],
+    "retentionPaths": [
+      "src/commands/internal.ts",
+      "src/commands/network/body.ts",
+      "src/commands/streams.ts",
+      "src/commands/structured/jq.ts"
+    ],
+    "v1ToFinalPaths": [
+      "src/commands/internal.ts",
+      "src/commands/network/body.ts",
+      "src/commands/network/curl.ts",
+      "src/commands/streams.ts",
+      "src/commands/structured/jq.ts",
+      "src/contracts/output.ts"
+    ],
+    "pathEvidence": [
+      {
+        "path": "package.json",
+        "current": {
+          "path": "package.json",
+          "bytes": 4287,
+          "sha256": "691426f4934c471d2a76d49675f3fc19f3ddc47c8aa63cc38671d899a09c4535"
+        },
+        "currentGitBlob": "c821769405cc40b17eb2fcec860a97728f128268",
+        "historical": {
+          "B0": null,
+          "V1": null,
+          "retention": null,
+          "final-S1": null
+        },
+        "sameAsFinalS1": null
+      },
+      {
+        "path": "src/commands/env-split.ts",
+        "current": {
+          "path": "src/commands/env-split.ts",
+          "bytes": 7492,
+          "sha256": "b005331bff0dd207a65b9001d235020f005eed45b813cca912851502c3f9dcf4"
+        },
+        "currentGitBlob": "437c36d72c12e985d39c5dc9e09b6bb644753500",
+        "historical": {
+          "B0": null,
+          "V1": null,
+          "retention": null,
+          "final-S1": null
+        },
+        "sameAsFinalS1": null
+      },
+      {
+        "path": "src/commands/execution.ts",
+        "current": {
+          "path": "src/commands/execution.ts",
+          "bytes": 9269,
+          "sha256": "61940d3b86593243c13cab716be87f84647e42b69476757482dfebafc7d693a6"
+        },
+        "currentGitBlob": "61e49c6d8684ccdb5c2f80624d9c8fda9f1d5d2c",
+        "historical": {
+          "B0": {
+            "path": "src/commands/execution.ts",
+            "bytes": 8967,
+            "sha256": "1d084ab203dc59a510e39e5c71743b755ba9bdb5d4b018658398ed96c3dff700"
+          },
+          "V1": {
+            "path": "src/commands/execution.ts",
+            "bytes": 8967,
+            "sha256": "1d084ab203dc59a510e39e5c71743b755ba9bdb5d4b018658398ed96c3dff700"
+          },
+          "retention": {
+            "path": "src/commands/execution.ts",
+            "bytes": 8967,
+            "sha256": "1d084ab203dc59a510e39e5c71743b755ba9bdb5d4b018658398ed96c3dff700"
+          },
+          "final-S1": {
+            "path": "src/commands/execution.ts",
+            "bytes": 8967,
+            "sha256": "1d084ab203dc59a510e39e5c71743b755ba9bdb5d4b018658398ed96c3dff700"
+          }
+        },
+        "sameAsFinalS1": false
+      },
+      {
+        "path": "src/commands/internal.ts",
+        "current": {
+          "path": "src/commands/internal.ts",
+          "bytes": 8820,
+          "sha256": "ade20c95a7d3dac5250a214d112ab25d710ce7909a4c6605f18ee21781949654"
+        },
+        "currentGitBlob": "b13134023b32f79e76df8cc2de3c93c36b7f608f",
+        "historical": {
+          "B0": {
+            "path": "src/commands/internal.ts",
+            "bytes": 8793,
+            "sha256": "28d83d91d5086b39b50494ea1130d34c3b48b22a15dc04c2912ee2503a7536d5"
+          },
+          "V1": {
+            "path": "src/commands/internal.ts",
+            "bytes": 8793,
+            "sha256": "28d83d91d5086b39b50494ea1130d34c3b48b22a15dc04c2912ee2503a7536d5"
+          },
+          "retention": {
+            "path": "src/commands/internal.ts",
+            "bytes": 8820,
+            "sha256": "ade20c95a7d3dac5250a214d112ab25d710ce7909a4c6605f18ee21781949654"
+          },
+          "final-S1": {
+            "path": "src/commands/internal.ts",
+            "bytes": 8820,
+            "sha256": "ade20c95a7d3dac5250a214d112ab25d710ce7909a4c6605f18ee21781949654"
+          }
+        },
+        "sameAsFinalS1": true
+      },
+      {
+        "path": "src/commands/network/README.md",
+        "current": {
+          "path": "src/commands/network/README.md",
+          "bytes": 12132,
+          "sha256": "71d0f549abd8d3b08dbfdc3455a554149231fe26b1827da9b721ca5d2bde222e"
+        },
+        "currentGitBlob": "b9c19276aa0811cb627a87c5aae8ae90a9a347c3",
+        "historical": {
+          "B0": {
+            "path": "src/commands/network/README.md",
+            "bytes": 10805,
+            "sha256": "41e75f9ae587e63a61344df06b0cb518eae1f1d5eab155fd5892026c8c1ccb0f"
+          },
+          "V1": {
+            "path": "src/commands/network/README.md",
+            "bytes": 10805,
+            "sha256": "41e75f9ae587e63a61344df06b0cb518eae1f1d5eab155fd5892026c8c1ccb0f"
+          },
+          "retention": {
+            "path": "src/commands/network/README.md",
+            "bytes": 10805,
+            "sha256": "41e75f9ae587e63a61344df06b0cb518eae1f1d5eab155fd5892026c8c1ccb0f"
+          },
+          "final-S1": {
+            "path": "src/commands/network/README.md",
+            "bytes": 10805,
+            "sha256": "41e75f9ae587e63a61344df06b0cb518eae1f1d5eab155fd5892026c8c1ccb0f"
+          }
+        },
+        "sameAsFinalS1": false
+      },
+      {
+        "path": "src/commands/network/args.ts",
+        "current": {
+          "path": "src/commands/network/args.ts",
+          "bytes": 8573,
+          "sha256": "409dac8442c1151d4404d6ce05dd72ab35655aae80c9c0930743ff6af9ea1f4c"
+        },
+        "currentGitBlob": "4a58d259a98a839927aa9de70c94e4f7d9f9f1e1",
+        "historical": {
+          "B0": {
+            "path": "src/commands/network/args.ts",
+            "bytes": 8573,
+            "sha256": "409dac8442c1151d4404d6ce05dd72ab35655aae80c9c0930743ff6af9ea1f4c"
+          },
+          "V1": {
+            "path": "src/commands/network/args.ts",
+            "bytes": 8573,
+            "sha256": "409dac8442c1151d4404d6ce05dd72ab35655aae80c9c0930743ff6af9ea1f4c"
+          },
+          "retention": {
+            "path": "src/commands/network/args.ts",
+            "bytes": 8573,
+            "sha256": "409dac8442c1151d4404d6ce05dd72ab35655aae80c9c0930743ff6af9ea1f4c"
+          },
+          "final-S1": {
+            "path": "src/commands/network/args.ts",
+            "bytes": 8573,
+            "sha256": "409dac8442c1151d4404d6ce05dd72ab35655aae80c9c0930743ff6af9ea1f4c"
+          }
+        },
+        "sameAsFinalS1": true
+      },
+      {
+        "path": "src/commands/network/body.ts",
+        "current": {
+          "path": "src/commands/network/body.ts",
+          "bytes": 7380,
+          "sha256": "93d8a8463ac7df91c8ef88368f2ee8524a0abd7e7970badf4d1312587a34c880"
+        },
+        "currentGitBlob": "3ce326f779c9732b1f59b96373c6f0c5f22920e2",
+        "historical": {
+          "B0": {
+            "path": "src/commands/network/body.ts",
+            "bytes": 7372,
+            "sha256": "29a8a744b043447eacc09d09ca651f2b0a34bdf08e08ddf3065729dbc486edbf"
+          },
+          "V1": {
+            "path": "src/commands/network/body.ts",
+            "bytes": 7372,
+            "sha256": "29a8a744b043447eacc09d09ca651f2b0a34bdf08e08ddf3065729dbc486edbf"
+          },
+          "retention": {
+            "path": "src/commands/network/body.ts",
+            "bytes": 7380,
+            "sha256": "93d8a8463ac7df91c8ef88368f2ee8524a0abd7e7970badf4d1312587a34c880"
+          },
+          "final-S1": {
+            "path": "src/commands/network/body.ts",
+            "bytes": 7380,
+            "sha256": "93d8a8463ac7df91c8ef88368f2ee8524a0abd7e7970badf4d1312587a34c880"
+          }
+        },
+        "sameAsFinalS1": true
+      },
+      {
+        "path": "src/commands/network/curl.ts",
+        "current": {
+          "path": "src/commands/network/curl.ts",
+          "bytes": 15881,
+          "sha256": "4859cc27a94d4ffe74ecadf20280d5d519d85babc50d24f55b9c51357c2dca42"
+        },
+        "currentGitBlob": "a1808127a728f8fd1c072657303ec202e488b12c",
+        "historical": {
+          "B0": {
+            "path": "src/commands/network/curl.ts",
+            "bytes": 15881,
+            "sha256": "4859cc27a94d4ffe74ecadf20280d5d519d85babc50d24f55b9c51357c2dca42"
+          },
+          "V1": {
+            "path": "src/commands/network/curl.ts",
+            "bytes": 17530,
+            "sha256": "bfbdb77e185e4aa206efc768c89f6f02ee2e833d64856a93320e6ea47f494eb3"
+          },
+          "retention": {
+            "path": "src/commands/network/curl.ts",
+            "bytes": 17530,
+            "sha256": "bfbdb77e185e4aa206efc768c89f6f02ee2e833d64856a93320e6ea47f494eb3"
+          },
+          "final-S1": {
+            "path": "src/commands/network/curl.ts",
+            "bytes": 17720,
+            "sha256": "db06650b1b55b994fe5fa83f7489062e91ac83b7d2d9c44bbb7606d57d9df057"
+          }
+        },
+        "sameAsFinalS1": false,
+        "s1ToCurrentDiff": {
+          "sha256": "ae08b8bcf9b41161189b0af6021716a065c1a24438a2618c1c8e594e3a31e7a9",
+          "bytes": 9465,
+          "hunks": [
+            "@@ -1,6 +1,6 @@",
+            "@@ -58,10 +58,6 @@",
+            "@@ -110,14 +106,7 @@",
+            "@@ -128,21 +117,11 @@",
+            "@@ -150,7 +129,7 @@",
+            "@@ -190,12 +169,9 @@",
+            "@@ -203,11 +179,7 @@",
+            "@@ -240,15 +212,13 @@",
+            "@@ -256,18 +226,13 @@",
+            "@@ -286,12 +251,11 @@",
+            "@@ -299,9 +263,9 @@"
+          ]
+        }
+      },
+      {
+        "path": "src/commands/network/index.ts",
+        "current": {
+          "path": "src/commands/network/index.ts",
+          "bytes": 1049,
+          "sha256": "ffee94bffaaef2d96760a24cc164af04951bc30477bcbbdd101144abf4b8e329"
+        },
+        "currentGitBlob": "3e276efcb2b97a0da8773f58cf08ff25954fdc3d",
+        "historical": {
+          "B0": {
+            "path": "src/commands/network/index.ts",
+            "bytes": 1049,
+            "sha256": "ffee94bffaaef2d96760a24cc164af04951bc30477bcbbdd101144abf4b8e329"
+          },
+          "V1": {
+            "path": "src/commands/network/index.ts",
+            "bytes": 1049,
+            "sha256": "ffee94bffaaef2d96760a24cc164af04951bc30477bcbbdd101144abf4b8e329"
+          },
+          "retention": {
+            "path": "src/commands/network/index.ts",
+            "bytes": 1049,
+            "sha256": "ffee94bffaaef2d96760a24cc164af04951bc30477bcbbdd101144abf4b8e329"
+          },
+          "final-S1": {
+            "path": "src/commands/network/index.ts",
+            "bytes": 1049,
+            "sha256": "ffee94bffaaef2d96760a24cc164af04951bc30477bcbbdd101144abf4b8e329"
+          }
+        },
+        "sameAsFinalS1": true
+      },
+      {
+        "path": "src/commands/network/output.ts",
+        "current": {
+          "path": "src/commands/network/output.ts",
+          "bytes": 3730,
+          "sha256": "544488561b8ad360c7d41eeec7928659f3a94acd16f196af93ed3349c6a70bab"
+        },
+        "currentGitBlob": "394b03e6815015fab408b4a1d39585ee39b6519b",
+        "historical": {
+          "B0": {
+            "path": "src/commands/network/output.ts",
+            "bytes": 3730,
+            "sha256": "544488561b8ad360c7d41eeec7928659f3a94acd16f196af93ed3349c6a70bab"
+          },
+          "V1": {
+            "path": "src/commands/network/output.ts",
+            "bytes": 3730,
+            "sha256": "544488561b8ad360c7d41eeec7928659f3a94acd16f196af93ed3349c6a70bab"
+          },
+          "retention": {
+            "path": "src/commands/network/output.ts",
+            "bytes": 3730,
+            "sha256": "544488561b8ad360c7d41eeec7928659f3a94acd16f196af93ed3349c6a70bab"
+          },
+          "final-S1": {
+            "path": "src/commands/network/output.ts",
+            "bytes": 3730,
+            "sha256": "544488561b8ad360c7d41eeec7928659f3a94acd16f196af93ed3349c6a70bab"
+          }
+        },
+        "sameAsFinalS1": true
+      },
+      {
+        "path": "src/commands/network/shared.ts",
+        "current": {
+          "path": "src/commands/network/shared.ts",
+          "bytes": 2690,
+          "sha256": "c397734b34fe7447f71e86f2911b96b9dcea9fdde92c3186ff0d9a688a670760"
+        },
+        "currentGitBlob": "7817a5c570ea8938353883a7253b620d8f06d6e1",
+        "historical": {
+          "B0": {
+            "path": "src/commands/network/shared.ts",
+            "bytes": 2606,
+            "sha256": "7adab18b67c7584b646b3a6508729d7ab0672e7a0808f512f74ae16464f8842f"
+          },
+          "V1": {
+            "path": "src/commands/network/shared.ts",
+            "bytes": 2606,
+            "sha256": "7adab18b67c7584b646b3a6508729d7ab0672e7a0808f512f74ae16464f8842f"
+          },
+          "retention": {
+            "path": "src/commands/network/shared.ts",
+            "bytes": 2606,
+            "sha256": "7adab18b67c7584b646b3a6508729d7ab0672e7a0808f512f74ae16464f8842f"
+          },
+          "final-S1": {
+            "path": "src/commands/network/shared.ts",
+            "bytes": 2606,
+            "sha256": "7adab18b67c7584b646b3a6508729d7ab0672e7a0808f512f74ae16464f8842f"
+          }
+        },
+        "sameAsFinalS1": false
+      },
+      {
+        "path": "src/commands/network/transport.ts",
+        "current": {
+          "path": "src/commands/network/transport.ts",
+          "bytes": 3133,
+          "sha256": "b6246ceacc90c0451028755fdf9cbb795790968676f48c8e3f9258128286f844"
+        },
+        "currentGitBlob": "fe3233039020eeb312fed0b61228fdf9cf600bac",
+        "historical": {
+          "B0": {
+            "path": "src/commands/network/transport.ts",
+            "bytes": 3133,
+            "sha256": "b6246ceacc90c0451028755fdf9cbb795790968676f48c8e3f9258128286f844"
+          },
+          "V1": {
+            "path": "src/commands/network/transport.ts",
+            "bytes": 3613,
+            "sha256": "c9f3302aac3bba8fc1cd9c72571adb062dbc2e336da1a403c5c2d6207c2c0e05"
+          },
+          "retention": {
+            "path": "src/commands/network/transport.ts",
+            "bytes": 3613,
+            "sha256": "c9f3302aac3bba8fc1cd9c72571adb062dbc2e336da1a403c5c2d6207c2c0e05"
+          },
+          "final-S1": {
+            "path": "src/commands/network/transport.ts",
+            "bytes": 3613,
+            "sha256": "c9f3302aac3bba8fc1cd9c72571adb062dbc2e336da1a403c5c2d6207c2c0e05"
+          }
+        },
+        "sameAsFinalS1": false,
+        "s1ToCurrentDiff": {
+          "sha256": "0a5a1b920e351032f8647304fd8150be5492a90b00b8a92c2cf1b69179551ab8",
+          "bytes": 3053,
+          "hunks": [
+            "@@ -1,4 +1,4 @@",
+            "@@ -26,19 +26,7 @@",
+            "@@ -52,25 +40,25 @@"
+          ]
+        }
+      },
+      {
+        "path": "src/commands/network/types.ts",
+        "current": {
+          "path": "src/commands/network/types.ts",
+          "bytes": 1832,
+          "sha256": "806dd2132dd4004404dbb5c21a421e84c53c161f750f6acc1aedd0f8054b5fe9"
+        },
+        "currentGitBlob": "71a08ae76efadfd0e1c41e407400bf0ac8b33a4f",
+        "historical": {
+          "B0": {
+            "path": "src/commands/network/types.ts",
+            "bytes": 1832,
+            "sha256": "806dd2132dd4004404dbb5c21a421e84c53c161f750f6acc1aedd0f8054b5fe9"
+          },
+          "V1": {
+            "path": "src/commands/network/types.ts",
+            "bytes": 1918,
+            "sha256": "be7a2770efdf42e90ca9eb41e37115b28607aeaf99ce95865d44b3625d20aa19"
+          },
+          "retention": {
+            "path": "src/commands/network/types.ts",
+            "bytes": 1918,
+            "sha256": "be7a2770efdf42e90ca9eb41e37115b28607aeaf99ce95865d44b3625d20aa19"
+          },
+          "final-S1": {
+            "path": "src/commands/network/types.ts",
+            "bytes": 1918,
+            "sha256": "be7a2770efdf42e90ca9eb41e37115b28607aeaf99ce95865d44b3625d20aa19"
+          }
+        },
+        "sameAsFinalS1": false,
+        "s1ToCurrentDiff": {
+          "sha256": "f630d92224c740991b6bc9172e35ecae235df8aaae07ae5d18a0b7fbbaed2d40",
+          "bytes": 526,
+          "hunks": [
+            "@@ -1,4 +1,4 @@",
+            "@@ -8,7 +8,6 @@"
+          ]
+        }
+      },
+      {
+        "path": "src/commands/search/index.ts",
+        "current": {
+          "path": "src/commands/search/index.ts",
+          "bytes": 881,
+          "sha256": "5efc7444e51bd6c8fce07529808d847c89dd7e6d50e34966875a030a90ee77bf"
+        },
+        "currentGitBlob": "8d94d01e37eb91c4ef97da40775ccc097b2d44f5",
+        "historical": {
+          "B0": {
+            "path": "src/commands/search/index.ts",
+            "bytes": 881,
+            "sha256": "5efc7444e51bd6c8fce07529808d847c89dd7e6d50e34966875a030a90ee77bf"
+          },
+          "V1": {
+            "path": "src/commands/search/index.ts",
+            "bytes": 881,
+            "sha256": "5efc7444e51bd6c8fce07529808d847c89dd7e6d50e34966875a030a90ee77bf"
+          },
+          "retention": {
+            "path": "src/commands/search/index.ts",
+            "bytes": 881,
+            "sha256": "5efc7444e51bd6c8fce07529808d847c89dd7e6d50e34966875a030a90ee77bf"
+          },
+          "final-S1": {
+            "path": "src/commands/search/index.ts",
+            "bytes": 881,
+            "sha256": "5efc7444e51bd6c8fce07529808d847c89dd7e6d50e34966875a030a90ee77bf"
+          }
+        },
+        "sameAsFinalS1": true
+      },
+      {
+        "path": "src/commands/search/rg.ts",
+        "current": {
+          "path": "src/commands/search/rg.ts",
+          "bytes": 10557,
+          "sha256": "1c38e14b811a46795af958a99b9fae6b02b415b6ff8363e5755ecd15bfdd9d5f"
+        },
+        "currentGitBlob": "aa66ae5b06c1d5f97e56fda13436bfef757ca771",
+        "historical": {
+          "B0": {
+            "path": "src/commands/search/rg.ts",
+            "bytes": 10520,
+            "sha256": "fee9a380679e17da179a1c6b4f9bacf9c89a10e0dd1d18981c26b9296f9846d3"
+          },
+          "V1": {
+            "path": "src/commands/search/rg.ts",
+            "bytes": 10520,
+            "sha256": "fee9a380679e17da179a1c6b4f9bacf9c89a10e0dd1d18981c26b9296f9846d3"
+          },
+          "retention": {
+            "path": "src/commands/search/rg.ts",
+            "bytes": 10520,
+            "sha256": "fee9a380679e17da179a1c6b4f9bacf9c89a10e0dd1d18981c26b9296f9846d3"
+          },
+          "final-S1": {
+            "path": "src/commands/search/rg.ts",
+            "bytes": 10520,
+            "sha256": "fee9a380679e17da179a1c6b4f9bacf9c89a10e0dd1d18981c26b9296f9846d3"
+          }
+        },
+        "sameAsFinalS1": false
+      },
+      {
+        "path": "src/commands/streams.ts",
+        "current": {
+          "path": "src/commands/streams.ts",
+          "bytes": 17015,
+          "sha256": "be601a62f51a95c62778987118e292aea6637ca4e7271486239af2f8d65e7d1c"
+        },
+        "currentGitBlob": "43ebaabb8f25df0884bf3d523e24fe62e6bd3fec",
+        "historical": {
+          "B0": {
+            "path": "src/commands/streams.ts",
+            "bytes": 16807,
+            "sha256": "8966dd770c11731e5256a1e42aaec4b07ae7f0508a3e89a3efc956d27109098d"
+          },
+          "V1": {
+            "path": "src/commands/streams.ts",
+            "bytes": 17500,
+            "sha256": "792bc1af0f2c9d5fbd7b947956873f3dfbb5fd34fcbdadcb15b1ef8fb423c169"
+          },
+          "retention": {
+            "path": "src/commands/streams.ts",
+            "bytes": 17708,
+            "sha256": "40de51068674277e636e45d11cdc7cbd39fe3f1036aeda321802d8809a53af93"
+          },
+          "final-S1": {
+            "path": "src/commands/streams.ts",
+            "bytes": 17708,
+            "sha256": "40de51068674277e636e45d11cdc7cbd39fe3f1036aeda321802d8809a53af93"
+          }
+        },
+        "sameAsFinalS1": false,
+        "s1ToCurrentDiff": {
+          "sha256": "1a06f936d399e0febf41f2891243485b9654d53dc495b348558ef31c148c9b62",
+          "bytes": 1931,
+          "hunks": [
+            "@@ -1,4 +1,4 @@",
+            "@@ -193,13 +193,8 @@",
+            "@@ -234,11 +229,6 @@"
+          ]
+        }
+      },
+      {
+        "path": "src/commands/structured/jq.ts",
+        "current": {
+          "path": "src/commands/structured/jq.ts",
+          "bytes": 11396,
+          "sha256": "096897bfa9d875ba524cebd6b3959c551a26fa5e56d3b0d2fb42f9fabdf80da3"
+        },
+        "currentGitBlob": "f27c7c7925ee22c8aa496b67f5ed6560d125cdfd",
+        "historical": {
+          "B0": {
+            "path": "src/commands/structured/jq.ts",
+            "bytes": 11388,
+            "sha256": "feca27d38a096931faabe5a5449ecc65c39c8b0abbcf69d3ea73a31f729fdbac"
+          },
+          "V1": {
+            "path": "src/commands/structured/jq.ts",
+            "bytes": 11388,
+            "sha256": "feca27d38a096931faabe5a5449ecc65c39c8b0abbcf69d3ea73a31f729fdbac"
+          },
+          "retention": {
+            "path": "src/commands/structured/jq.ts",
+            "bytes": 11396,
+            "sha256": "096897bfa9d875ba524cebd6b3959c551a26fa5e56d3b0d2fb42f9fabdf80da3"
+          },
+          "final-S1": {
+            "path": "src/commands/structured/jq.ts",
+            "bytes": 11396,
+            "sha256": "096897bfa9d875ba524cebd6b3959c551a26fa5e56d3b0d2fb42f9fabdf80da3"
+          }
+        },
+        "sameAsFinalS1": true
+      },
+      {
+        "path": "src/commands/tree/arguments.ts",
+        "current": {
+          "path": "src/commands/tree/arguments.ts",
+          "bytes": 4689,
+          "sha256": "a57277a6807fa849fe1b8e0344f326294948b12892d7e375002b4dbb7cdebfec"
+        },
+        "currentGitBlob": "a527001d1229cee8d0a7e9aeeb267fdf66aa4732",
+        "historical": {
+          "B0": {
+            "path": "src/commands/tree/arguments.ts",
+            "bytes": 4552,
+            "sha256": "848b3e07aafefc67de77efccaa446904d9a1920cb158e094217c18e24a6a2762"
+          },
+          "V1": {
+            "path": "src/commands/tree/arguments.ts",
+            "bytes": 4552,
+            "sha256": "848b3e07aafefc67de77efccaa446904d9a1920cb158e094217c18e24a6a2762"
+          },
+          "retention": {
+            "path": "src/commands/tree/arguments.ts",
+            "bytes": 4552,
+            "sha256": "848b3e07aafefc67de77efccaa446904d9a1920cb158e094217c18e24a6a2762"
+          },
+          "final-S1": {
+            "path": "src/commands/tree/arguments.ts",
+            "bytes": 4552,
+            "sha256": "848b3e07aafefc67de77efccaa446904d9a1920cb158e094217c18e24a6a2762"
+          }
+        },
+        "sameAsFinalS1": false
+      },
+      {
+        "path": "src/commands/tree/io.ts",
+        "current": {
+          "path": "src/commands/tree/io.ts",
+          "bytes": 3768,
+          "sha256": "163f2412e5fcca1dc0cd0ac7264beb29b8180efdd65c34fdff08f84a670471e1"
+        },
+        "currentGitBlob": "799c1edcca260704c0ba31a22694fc4dcdb4756b",
+        "historical": {
+          "B0": {
+            "path": "src/commands/tree/io.ts",
+            "bytes": 3768,
+            "sha256": "163f2412e5fcca1dc0cd0ac7264beb29b8180efdd65c34fdff08f84a670471e1"
+          },
+          "V1": {
+            "path": "src/commands/tree/io.ts",
+            "bytes": 3768,
+            "sha256": "163f2412e5fcca1dc0cd0ac7264beb29b8180efdd65c34fdff08f84a670471e1"
+          },
+          "retention": {
+            "path": "src/commands/tree/io.ts",
+            "bytes": 3768,
+            "sha256": "163f2412e5fcca1dc0cd0ac7264beb29b8180efdd65c34fdff08f84a670471e1"
+          },
+          "final-S1": {
+            "path": "src/commands/tree/io.ts",
+            "bytes": 3768,
+            "sha256": "163f2412e5fcca1dc0cd0ac7264beb29b8180efdd65c34fdff08f84a670471e1"
+          }
+        },
+        "sameAsFinalS1": true
+      },
+      {
+        "path": "src/commands/tree/tree.ts",
+        "current": {
+          "path": "src/commands/tree/tree.ts",
+          "bytes": 10748,
+          "sha256": "2ebcf54d9804e7000bf3de4780d598b8b6bc157ee411c134dea5c62717738ef1"
+        },
+        "currentGitBlob": "70948ef642b4d6cc9f26eee9f78a7a581d6a588a",
+        "historical": {
+          "B0": {
+            "path": "src/commands/tree/tree.ts",
+            "bytes": 10748,
+            "sha256": "2ebcf54d9804e7000bf3de4780d598b8b6bc157ee411c134dea5c62717738ef1"
+          },
+          "V1": {
+            "path": "src/commands/tree/tree.ts",
+            "bytes": 10748,
+            "sha256": "2ebcf54d9804e7000bf3de4780d598b8b6bc157ee411c134dea5c62717738ef1"
+          },
+          "retention": {
+            "path": "src/commands/tree/tree.ts",
+            "bytes": 10748,
+            "sha256": "2ebcf54d9804e7000bf3de4780d598b8b6bc157ee411c134dea5c62717738ef1"
+          },
+          "final-S1": {
+            "path": "src/commands/tree/tree.ts",
+            "bytes": 10748,
+            "sha256": "2ebcf54d9804e7000bf3de4780d598b8b6bc157ee411c134dea5c62717738ef1"
+          }
+        },
+        "sameAsFinalS1": true
+      },
+      {
+        "path": "src/contracts/command.md",
+        "current": {
+          "path": "src/contracts/command.md",
+          "bytes": 8066,
+          "sha256": "8a5426b1e7a30a03dc62f74b28c6eb7bf9b008b78cb7b521eb7de0bc5c59a3f8"
+        },
+        "currentGitBlob": "16371126acaccd07a8db2505b53a0625eb9b4592",
+        "historical": {
+          "B0": {
+            "path": "src/contracts/command.md",
+            "bytes": 8066,
+            "sha256": "8a5426b1e7a30a03dc62f74b28c6eb7bf9b008b78cb7b521eb7de0bc5c59a3f8"
+          },
+          "V1": {
+            "path": "src/contracts/command.md",
+            "bytes": 8066,
+            "sha256": "8a5426b1e7a30a03dc62f74b28c6eb7bf9b008b78cb7b521eb7de0bc5c59a3f8"
+          },
+          "retention": {
+            "path": "src/contracts/command.md",
+            "bytes": 8066,
+            "sha256": "8a5426b1e7a30a03dc62f74b28c6eb7bf9b008b78cb7b521eb7de0bc5c59a3f8"
+          },
+          "final-S1": {
+            "path": "src/contracts/command.md",
+            "bytes": 8066,
+            "sha256": "8a5426b1e7a30a03dc62f74b28c6eb7bf9b008b78cb7b521eb7de0bc5c59a3f8"
+          }
+        },
+        "sameAsFinalS1": true
+      },
+      {
+        "path": "src/contracts/command.ts",
+        "current": {
+          "path": "src/contracts/command.ts",
+          "bytes": 2923,
+          "sha256": "9c2f8ecf50def7250b01152a31a45c449109c3ae4d30878252cffe985c6e9df8"
+        },
+        "currentGitBlob": "671327d43c48c5964658ad8c630578fe889421e2",
+        "historical": {
+          "B0": {
+            "path": "src/contracts/command.ts",
+            "bytes": 2923,
+            "sha256": "9c2f8ecf50def7250b01152a31a45c449109c3ae4d30878252cffe985c6e9df8"
+          },
+          "V1": {
+            "path": "src/contracts/command.ts",
+            "bytes": 2923,
+            "sha256": "9c2f8ecf50def7250b01152a31a45c449109c3ae4d30878252cffe985c6e9df8"
+          },
+          "retention": {
+            "path": "src/contracts/command.ts",
+            "bytes": 2923,
+            "sha256": "9c2f8ecf50def7250b01152a31a45c449109c3ae4d30878252cffe985c6e9df8"
+          },
+          "final-S1": {
+            "path": "src/contracts/command.ts",
+            "bytes": 2923,
+            "sha256": "9c2f8ecf50def7250b01152a31a45c449109c3ae4d30878252cffe985c6e9df8"
+          }
+        },
+        "sameAsFinalS1": true
+      },
+      {
+        "path": "src/contracts/index.ts",
+        "current": {
+          "path": "src/contracts/index.ts",
+          "bytes": 173,
+          "sha256": "fb9a434deb34dbad631166a689b02641c0e1acdbac691f6956a7c76e20729f50"
+        },
+        "currentGitBlob": "778c289fc215e238a96880e9e64e04baed45e0d0",
+        "historical": {
+          "B0": {
+            "path": "src/contracts/index.ts",
+            "bytes": 173,
+            "sha256": "fb9a434deb34dbad631166a689b02641c0e1acdbac691f6956a7c76e20729f50"
+          },
+          "V1": {
+            "path": "src/contracts/index.ts",
+            "bytes": 202,
+            "sha256": "21b09d18564ec4f586542af67a1e26f0198cc20938563f8b572cb5c4b38f676c"
+          },
+          "retention": {
+            "path": "src/contracts/index.ts",
+            "bytes": 202,
+            "sha256": "21b09d18564ec4f586542af67a1e26f0198cc20938563f8b572cb5c4b38f676c"
+          },
+          "final-S1": {
+            "path": "src/contracts/index.ts",
+            "bytes": 202,
+            "sha256": "21b09d18564ec4f586542af67a1e26f0198cc20938563f8b572cb5c4b38f676c"
+          }
+        },
+        "sameAsFinalS1": false,
+        "s1ToCurrentDiff": {
+          "sha256": "30d5e3e422efedbf7f83b5b346a86ec2396dec63bb791a5f9bb18fe1658b4cca",
+          "bytes": 258,
+          "hunks": [
+            "@@ -2,6 +2,5 @@"
+          ]
+        }
+      },
+      {
+        "path": "src/contracts/io.ts",
+        "current": {
+          "path": "src/contracts/io.ts",
+          "bytes": 7383,
+          "sha256": "e925ab08a5ad41862d3f5c031164cc7310bc28397455b11b37b75b55a9dbacdb"
+        },
+        "currentGitBlob": "738e6bb2e1055d6e575f6b342b75ed3053710f70",
+        "historical": {
+          "B0": {
+            "path": "src/contracts/io.ts",
+            "bytes": 7383,
+            "sha256": "e925ab08a5ad41862d3f5c031164cc7310bc28397455b11b37b75b55a9dbacdb"
+          },
+          "V1": {
+            "path": "src/contracts/io.ts",
+            "bytes": 7679,
+            "sha256": "52970acab76d8a7482d2867bf023acb18db26393c281b2fc388a63feb98fcce4"
+          },
+          "retention": {
+            "path": "src/contracts/io.ts",
+            "bytes": 7679,
+            "sha256": "52970acab76d8a7482d2867bf023acb18db26393c281b2fc388a63feb98fcce4"
+          },
+          "final-S1": {
+            "path": "src/contracts/io.ts",
+            "bytes": 7679,
+            "sha256": "52970acab76d8a7482d2867bf023acb18db26393c281b2fc388a63feb98fcce4"
+          }
+        },
+        "sameAsFinalS1": false,
+        "s1ToCurrentDiff": {
+          "sha256": "4c077d07ab3b312067bc3be60417f301e6db30cb7966a9fa19e2b5d39f7adc8e",
+          "bytes": 1585,
+          "hunks": [
+            "@@ -5,10 +5,6 @@",
+            "@@ -47,14 +43,12 @@",
+            "@@ -101,17 +95,15 @@"
+          ]
+        }
+      },
+      {
+        "path": "src/contracts/output.ts",
+        "current": null,
+        "currentGitBlob": null,
+        "historical": {
+          "B0": null,
+          "V1": {
+            "path": "src/contracts/output.ts",
+            "bytes": 3820,
+            "sha256": "709af26d3a8cca80fa31c9acce54c59f332c920f566556b30e7ac6b14b4d1009"
+          },
+          "retention": {
+            "path": "src/contracts/output.ts",
+            "bytes": 3820,
+            "sha256": "709af26d3a8cca80fa31c9acce54c59f332c920f566556b30e7ac6b14b4d1009"
+          },
+          "final-S1": {
+            "path": "src/contracts/output.ts",
+            "bytes": 4166,
+            "sha256": "483fb9c7be06ff45de0120f60f5b5ebfe977c2323236353485f2adca5b6e28d0"
+          }
+        },
+        "sameAsFinalS1": false,
+        "s1ToCurrentDiff": {
+          "sha256": "c0a8b8f5d9359ac16ab1a5dbdf21644cccd9c13823e166b9698d6a46111a479f",
+          "bytes": 4359,
+          "hunks": [
+            "@@ -1,109 +0,0 @@"
+          ]
+        }
+      },
+      {
+        "path": "src/index.ts",
+        "current": {
+          "path": "src/index.ts",
+          "bytes": 1414,
+          "sha256": "496b64711dde0f614723e7006a6b1a7e6bce57f45ec255c6134c1292584316e2"
+        },
+        "currentGitBlob": "efa79f233dde5b62e7044e528b0fc2426e2fe065",
+        "historical": {
+          "B0": {
+            "path": "src/index.ts",
+            "bytes": 1190,
+            "sha256": "c9d4d5693dd65dfcb90ff14c43631d00d9d2975a5f58ab03df7ff0e1d34a3e6e"
+          },
+          "V1": {
+            "path": "src/index.ts",
+            "bytes": 1190,
+            "sha256": "c9d4d5693dd65dfcb90ff14c43631d00d9d2975a5f58ab03df7ff0e1d34a3e6e"
+          },
+          "retention": {
+            "path": "src/index.ts",
+            "bytes": 1190,
+            "sha256": "c9d4d5693dd65dfcb90ff14c43631d00d9d2975a5f58ab03df7ff0e1d34a3e6e"
+          },
+          "final-S1": {
+            "path": "src/index.ts",
+            "bytes": 1190,
+            "sha256": "c9d4d5693dd65dfcb90ff14c43631d00d9d2975a5f58ab03df7ff0e1d34a3e6e"
+          }
+        },
+        "sameAsFinalS1": false
+      },
+      {
+        "path": "src/plugins/index.ts",
+        "current": {
+          "path": "src/plugins/index.ts",
+          "bytes": 5150,
+          "sha256": "b0b7fbbf0aa36b7998c760f0e3ec5ee7dbaf18e929b6c2fb434f7ea62a2f082d"
+        },
+        "currentGitBlob": "73fb9823f19d30be8b1e048be7f64c447354ec27",
+        "historical": {
+          "B0": {
+            "path": "src/plugins/index.ts",
+            "bytes": 3974,
+            "sha256": "bf653ec1ae5f528090d7031caeb5fc3fcae6b240b5f7459318f1d90840a405d9"
+          },
+          "V1": {
+            "path": "src/plugins/index.ts",
+            "bytes": 3974,
+            "sha256": "bf653ec1ae5f528090d7031caeb5fc3fcae6b240b5f7459318f1d90840a405d9"
+          },
+          "retention": {
+            "path": "src/plugins/index.ts",
+            "bytes": 3974,
+            "sha256": "bf653ec1ae5f528090d7031caeb5fc3fcae6b240b5f7459318f1d90840a405d9"
+          },
+          "final-S1": {
+            "path": "src/plugins/index.ts",
+            "bytes": 3974,
+            "sha256": "bf653ec1ae5f528090d7031caeb5fc3fcae6b240b5f7459318f1d90840a405d9"
+          }
+        },
+        "sameAsFinalS1": false
+      },
+      {
+        "path": "src/shell/cleanup.ts",
+        "current": {
+          "path": "src/shell/cleanup.ts",
+          "bytes": 1947,
+          "sha256": "134f55641d6437681cd185960a2923d68086096921758717c5b8059595304385"
+        },
+        "currentGitBlob": "eae04650a553e4820da9c7b08b0255a6b20fc01c",
+        "historical": {
+          "B0": {
+            "path": "src/shell/cleanup.ts",
+            "bytes": 1947,
+            "sha256": "134f55641d6437681cd185960a2923d68086096921758717c5b8059595304385"
+          },
+          "V1": {
+            "path": "src/shell/cleanup.ts",
+            "bytes": 1947,
+            "sha256": "134f55641d6437681cd185960a2923d68086096921758717c5b8059595304385"
+          },
+          "retention": {
+            "path": "src/shell/cleanup.ts",
+            "bytes": 1947,
+            "sha256": "134f55641d6437681cd185960a2923d68086096921758717c5b8059595304385"
+          },
+          "final-S1": {
+            "path": "src/shell/cleanup.ts",
+            "bytes": 1947,
+            "sha256": "134f55641d6437681cd185960a2923d68086096921758717c5b8059595304385"
+          }
+        },
+        "sameAsFinalS1": true
+      },
+      {
+        "path": "src/shell/input.ts",
+        "current": {
+          "path": "src/shell/input.ts",
+          "bytes": 9881,
+          "sha256": "4214a448a1a076acb297c3ba6a02d72482d488cf8b6df4549498148a012e5c32"
+        },
+        "currentGitBlob": "3eec71b72f87dd48ddac572d6e7feb9097d32be4",
+        "historical": {
+          "B0": {
+            "path": "src/shell/input.ts",
+            "bytes": 9720,
+            "sha256": "7af2dac6dfd6290e9f189590e9190b2e0703dcd99998212e471378063cd9a7b4"
+          },
+          "V1": {
+            "path": "src/shell/input.ts",
+            "bytes": 9720,
+            "sha256": "7af2dac6dfd6290e9f189590e9190b2e0703dcd99998212e471378063cd9a7b4"
+          },
+          "retention": {
+            "path": "src/shell/input.ts",
+            "bytes": 9720,
+            "sha256": "7af2dac6dfd6290e9f189590e9190b2e0703dcd99998212e471378063cd9a7b4"
+          },
+          "final-S1": {
+            "path": "src/shell/input.ts",
+            "bytes": 9720,
+            "sha256": "7af2dac6dfd6290e9f189590e9190b2e0703dcd99998212e471378063cd9a7b4"
+          }
+        },
+        "sameAsFinalS1": false
+      },
+      {
+        "path": "src/shell/runtime.ts",
+        "current": {
+          "path": "src/shell/runtime.ts",
+          "bytes": 107839,
+          "sha256": "4e937b71df3135d1262a616924b4173e982f236dd86415e0e75895eac9c85e06"
+        },
+        "currentGitBlob": "1eb395676cf2c3f22ed75dfdf4454f50f9614b75",
+        "historical": {
+          "B0": {
+            "path": "src/shell/runtime.ts",
+            "bytes": 100410,
+            "sha256": "2223ef9e02565d163ded042d933553a1efae502ce7531fe83bba5611d959c84b"
+          },
+          "V1": {
+            "path": "src/shell/runtime.ts",
+            "bytes": 101302,
+            "sha256": "d352c421177b82bd0a6f77ebc8cc9ab4b490e54cb39b685bb72871388a9fcb03"
+          },
+          "retention": {
+            "path": "src/shell/runtime.ts",
+            "bytes": 101302,
+            "sha256": "d352c421177b82bd0a6f77ebc8cc9ab4b490e54cb39b685bb72871388a9fcb03"
+          },
+          "final-S1": {
+            "path": "src/shell/runtime.ts",
+            "bytes": 101302,
+            "sha256": "d352c421177b82bd0a6f77ebc8cc9ab4b490e54cb39b685bb72871388a9fcb03"
+          }
+        },
+        "sameAsFinalS1": false,
+        "s1ToCurrentDiff": {
+          "sha256": "5a6cec6ec1e6daec1a2aed758272fdfff1982c081673b5ccc9c7ad4a7816af3e",
+          "bytes": 17147,
+          "hunks": [
+            "@@ -2,7 +2,7 @@",
+            "@@ -14,6 +14,7 @@",
+            "@@ -85,16 +86,6 @@",
+            "@@ -241,13 +232,7 @@",
+            "@@ -347,7 +332,7 @@",
+            "@@ -392,7 +377,7 @@",
+            "@@ -1041,7 +1026,7 @@",
+            "@@ -1057,7 +1042,7 @@",
+            "@@ -1150,30 +1135,158 @@",
+            "@@ -1185,6 +1298,7 @@",
+            "@@ -1203,7 +1317,6 @@"
+          ]
+        }
+      },
+      {
+        "path": "src/shell/shell.ts",
+        "current": {
+          "path": "src/shell/shell.ts",
+          "bytes": 10368,
+          "sha256": "538f7ea1504019fcde03abc2781c1f903573243a0332033b87501804a1c4ac5c"
+        },
+        "currentGitBlob": "9d535825bce412d86c4dee587c59142bcf86944d",
+        "historical": {
+          "B0": {
+            "path": "src/shell/shell.ts",
+            "bytes": 10368,
+            "sha256": "538f7ea1504019fcde03abc2781c1f903573243a0332033b87501804a1c4ac5c"
+          },
+          "V1": {
+            "path": "src/shell/shell.ts",
+            "bytes": 10644,
+            "sha256": "136bbf577a0b12c4998e942cc07c1ace52c1db328d093919a10b885b7041cb7a"
+          },
+          "retention": {
+            "path": "src/shell/shell.ts",
+            "bytes": 10644,
+            "sha256": "136bbf577a0b12c4998e942cc07c1ace52c1db328d093919a10b885b7041cb7a"
+          },
+          "final-S1": {
+            "path": "src/shell/shell.ts",
+            "bytes": 10644,
+            "sha256": "136bbf577a0b12c4998e942cc07c1ace52c1db328d093919a10b885b7041cb7a"
+          }
+        },
+        "sameAsFinalS1": false,
+        "s1ToCurrentDiff": {
+          "sha256": "78d2e34b9ca41907e53cb6405fcff25a24bd1643a9765797c27450716655fdb4",
+          "bytes": 637,
+          "hunks": [
+            "@@ -113,13 +113,6 @@"
+          ]
+        }
+      },
+      {
+        "path": "src/shell/types.ts",
+        "current": {
+          "path": "src/shell/types.ts",
+          "bytes": 2178,
+          "sha256": "fc4133f1fb41283b0586aa7597c766d393d4f91067b613f4777e5adbef230a6d"
+        },
+        "currentGitBlob": "4684a5ad1f8b76c721a6f827646f289eda4c44ef",
+        "historical": {
+          "B0": {
+            "path": "src/shell/types.ts",
+            "bytes": 2178,
+            "sha256": "fc4133f1fb41283b0586aa7597c766d393d4f91067b613f4777e5adbef230a6d"
+          },
+          "V1": {
+            "path": "src/shell/types.ts",
+            "bytes": 2178,
+            "sha256": "fc4133f1fb41283b0586aa7597c766d393d4f91067b613f4777e5adbef230a6d"
+          },
+          "retention": {
+            "path": "src/shell/types.ts",
+            "bytes": 2178,
+            "sha256": "fc4133f1fb41283b0586aa7597c766d393d4f91067b613f4777e5adbef230a6d"
+          },
+          "final-S1": {
+            "path": "src/shell/types.ts",
+            "bytes": 2178,
+            "sha256": "fc4133f1fb41283b0586aa7597c766d393d4f91067b613f4777e5adbef230a6d"
+          }
+        },
+        "sameAsFinalS1": true
+      }
+    ],
+    "currentVersusFinalS1": [
+      {
+        "path": "src/commands/column/README.md",
+        "status": "current-only",
+        "currentSha256": "85f10830d3bc2e826ed68576044f469976950d5b515ab593a27b799c1827d5be",
+        "finalS1Sha256": null
+      },
+      {
+        "path": "src/commands/column/column.ts",
+        "status": "current-only",
+        "currentSha256": "5422966f69620cf0a60cdbded9c662ad16da09c609e3ce949e52da21be030f7d",
+        "finalS1Sha256": null
+      },
+      {
+        "path": "src/commands/column/display.ts",
+        "status": "current-only",
+        "currentSha256": "c79c3570b5e84e0304851ba782e4946f3f340ad3e70414f4aa123b600cbd4117",
+        "finalS1Sha256": null
+      },
+      {
+        "path": "src/commands/column/index.ts",
+        "status": "current-only",
+        "currentSha256": "0585011a2c4f2f5c38359fcfa7bc801f7c390074fc0f1d031a458cb7a609fd3d",
+        "finalS1Sha256": null
+      },
+      {
+        "path": "src/commands/column/internal.ts",
+        "status": "current-only",
+        "currentSha256": "2389e73fc1a79e4734a032f5d60d2ad1a6538500f559254fc9b7784c1e8cc5e4",
+        "finalS1Sha256": null
+      },
+      {
+        "path": "src/commands/column/options.ts",
+        "status": "current-only",
+        "currentSha256": "e26bdac0703fc65bc481e4ef42b9e7f5d3bccd43fda296463615eef389b613ec",
+        "finalS1Sha256": null
+      },
+      {
+        "path": "src/commands/column/table.ts",
+        "status": "current-only",
+        "currentSha256": "7aa3fa6d82d43fe89b3f704c4614838a0db4750421a50367dd6e187e5ce4cf55",
+        "finalS1Sha256": null
+      },
+      {
+        "path": "src/commands/du/README.md",
+        "status": "current-only",
+        "currentSha256": "2bfaa4f9330578f943802adbe54300fbb6070d823c5260bec15fa99e0c942bb1",
+        "finalS1Sha256": null
+      },
+      {
+        "path": "src/commands/du/arguments.ts",
+        "status": "current-only",
+        "currentSha256": "1c25d25f2c1464b2b47e9a574d8c786c032d2c5f80b231d15e444a7020a3c409",
+        "finalS1Sha256": null
+      },
+      {
+        "path": "src/commands/du/budget.ts",
+        "status": "current-only",
+        "currentSha256": "b97e9e9b9a02fae0c95fe9f50af79644bab053d6426fb8b2886a413160c29971",
+        "finalS1Sha256": null
+      },
+      {
+        "path": "src/commands/du/du.ts",
+        "status": "current-only",
+        "currentSha256": "89a7e96bd08f72fd91a140841cf4dd362ba7e741374ec31e476b2db480cbaf03",
+        "finalS1Sha256": null
+      },
+      {
+        "path": "src/commands/du/format.ts",
+        "status": "current-only",
+        "currentSha256": "84463e68db86ca767b05b410c79c0844e97be2c3585ed7fff2f81ae15411daa1",
+        "finalS1Sha256": null
+      },
+      {
+        "path": "src/commands/du/index.ts",
+        "status": "current-only",
+        "currentSha256": "73a4ea414b6a6325fb8c4c507fc8f86e7b6b743cb2b94f13437ef42f4d545cd7",
+        "finalS1Sha256": null
+      },
+      {
+        "path": "src/commands/du/options.ts",
+        "status": "current-only",
+        "currentSha256": "5765a37baccf628f3de85c94409627a16cf4dda02f66c9d2a37cf2929bf26253",
+        "finalS1Sha256": null
+      },
+      {
+        "path": "src/commands/env-split.ts",
+        "status": "current-only",
+        "currentSha256": "b005331bff0dd207a65b9001d235020f005eed45b813cca912851502c3f9dcf4",
+        "finalS1Sha256": null
+      },
+      {
+        "path": "src/commands/execution.ts",
+        "status": "different",
+        "currentSha256": "61940d3b86593243c13cab716be87f84647e42b69476757482dfebafc7d693a6",
+        "finalS1Sha256": "1d084ab203dc59a510e39e5c71743b755ba9bdb5d4b018658398ed96c3dff700"
+      },
+      {
+        "path": "src/commands/expr/README.md",
+        "status": "current-only",
+        "currentSha256": "0da1befe61e8e55196e24b972ff0a5d7d4642c4a201968359a1daf01c650f0bd",
+        "finalS1Sha256": null
+      },
+      {
+        "path": "src/commands/expr/bre-worker.ts",
+        "status": "current-only",
+        "currentSha256": "f5c67e9c76b584337ae506b59449ecdcd945207b2269fdb4f79c5d1f7e81aff0",
+        "finalS1Sha256": null
+      },
+      {
+        "path": "src/commands/expr/evaluate.ts",
+        "status": "current-only",
+        "currentSha256": "80f8b4b7fbcd0552dd91772b941e6654c0b8dd08ce980814b811f08959015d61",
+        "finalS1Sha256": null
+      },
+      {
+        "path": "src/commands/expr/index.ts",
+        "status": "current-only",
+        "currentSha256": "1f4eb0b6aa5200877ce62b59f7ac488255f4b98c3d5bb8b426fb49dec372dcef",
+        "finalS1Sha256": null
+      },
+      {
+        "path": "src/commands/expr/internal.ts",
+        "status": "current-only",
+        "currentSha256": "12ba86e1164d34a7fee89de4f8c1470fffa2fe624d26641584c08c9c96e90f56",
+        "finalS1Sha256": null
+      },
+      {
+        "path": "src/commands/expr/syntax.ts",
+        "status": "current-only",
+        "currentSha256": "4e8d05cc672be9f0786ebd74b09f9524028fd1d4f1491319cccd8a74d1ea3df0",
+        "finalS1Sha256": null
+      },
+      {
+        "path": "src/commands/grep-aliases/README.md",
+        "status": "current-only",
+        "currentSha256": "3924bff49587885b182b33205bfb741d896ec52ee5c8f2b594154c9d9ba677da",
+        "finalS1Sha256": null
+      },
+      {
+        "path": "src/commands/grep-aliases/index.ts",
+        "status": "current-only",
+        "currentSha256": "c2333d21c049651a3ef75f811f7c3f516a364d41fdbed2f3683388fba0adbcff",
+        "finalS1Sha256": null
+      },
+      {
+        "path": "src/commands/network/README.md",
+        "status": "different",
+        "currentSha256": "71d0f549abd8d3b08dbfdc3455a554149231fe26b1827da9b721ca5d2bde222e",
+        "finalS1Sha256": "41e75f9ae587e63a61344df06b0cb518eae1f1d5eab155fd5892026c8c1ccb0f"
+      },
+      {
+        "path": "src/commands/network/curl.ts",
+        "status": "different",
+        "currentSha256": "4859cc27a94d4ffe74ecadf20280d5d519d85babc50d24f55b9c51357c2dca42",
+        "finalS1Sha256": "db06650b1b55b994fe5fa83f7489062e91ac83b7d2d9c44bbb7606d57d9df057"
+      },
+      {
+        "path": "src/commands/network/shared.ts",
+        "status": "different",
+        "currentSha256": "c397734b34fe7447f71e86f2911b96b9dcea9fdde92c3186ff0d9a688a670760",
+        "finalS1Sha256": "7adab18b67c7584b646b3a6508729d7ab0672e7a0808f512f74ae16464f8842f"
+      },
+      {
+        "path": "src/commands/network/transport.ts",
+        "status": "different",
+        "currentSha256": "b6246ceacc90c0451028755fdf9cbb795790968676f48c8e3f9258128286f844",
+        "finalS1Sha256": "c9f3302aac3bba8fc1cd9c72571adb062dbc2e336da1a403c5c2d6207c2c0e05"
+      },
+      {
+        "path": "src/commands/network/types.ts",
+        "status": "different",
+        "currentSha256": "806dd2132dd4004404dbb5c21a421e84c53c161f750f6acc1aedd0f8054b5fe9",
+        "finalS1Sha256": "be7a2770efdf42e90ca9eb41e37115b28607aeaf99ce95865d44b3625d20aa19"
+      },
+      {
+        "path": "src/commands/regex-execution/client.ts",
+        "status": "different",
+        "currentSha256": "5d086314898c38390753a07ef1c37001890ac2b47f3d0e05e221048b9db42ebc",
+        "finalS1Sha256": "1638d492d11d466875b98451a59bace4e60e71fcd5468d671182187549922bca"
+      },
+      {
+        "path": "src/commands/regex-execution/protocol.ts",
+        "status": "different",
+        "currentSha256": "3610a50b436e083b2633e08c841978999b5fa61759fcaea224aeec97230c8bc1",
+        "finalS1Sha256": "0b4f9fac518cd31f403c1c0f49e4c7772f783e32df7cfe83ee5d4906426133e6"
+      },
+      {
+        "path": "src/commands/regex-execution/worker.ts",
+        "status": "different",
+        "currentSha256": "a442bb67cda6aff313cf3909cbfb0d3d8c12ebc420437d5fd9d7bd51fc6c9da6",
+        "finalS1Sha256": "ad818ba991aa54ce7029e8ca7be7e6d92c326134705c402f244a51da505d044e"
+      },
+      {
+        "path": "src/commands/search/rg.ts",
+        "status": "different",
+        "currentSha256": "1c38e14b811a46795af958a99b9fae6b02b415b6ff8363e5755ecd15bfdd9d5f",
+        "finalS1Sha256": "fee9a380679e17da179a1c6b4f9bacf9c89a10e0dd1d18981c26b9296f9846d3"
+      },
+      {
+        "path": "src/commands/streams.ts",
+        "status": "different",
+        "currentSha256": "be601a62f51a95c62778987118e292aea6637ca4e7271486239af2f8d65e7d1c",
+        "finalS1Sha256": "40de51068674277e636e45d11cdc7cbd39fe3f1036aeda321802d8809a53af93"
+      },
+      {
+        "path": "src/commands/text.ts",
+        "status": "different",
+        "currentSha256": "9a66dc0e320c62aad86d78da9c55580cf6910a537a47db8a330e5122f63a1895",
+        "finalS1Sha256": "08a27afc45d2f5a48b082cc2c979e3a13d01fbef42129bc0e72d5477d56a074d"
+      },
+      {
+        "path": "src/commands/tree/README.md",
+        "status": "different",
+        "currentSha256": "736c9975da43820fca1941938a092c3f52ae792ac83a96c2ce8f091be7c7147d",
+        "finalS1Sha256": "3d8fafb9a69b35a70c99bab27269e13d63c7cbf2f67af852e1a6443390d63723"
+      },
+      {
+        "path": "src/commands/tree/arguments.ts",
+        "status": "different",
+        "currentSha256": "a57277a6807fa849fe1b8e0344f326294948b12892d7e375002b4dbb7cdebfec",
+        "finalS1Sha256": "848b3e07aafefc67de77efccaa446904d9a1920cb158e094217c18e24a6a2762"
+      },
+      {
+        "path": "src/commands/tree/charset.ts",
+        "status": "current-only",
+        "currentSha256": "7aa62fdd785298932d977fa327022a0491a6e7f9f7ddc8cead54a92af0fce37e",
+        "finalS1Sha256": null
+      },
+      {
+        "path": "src/contracts/filesystem.md",
+        "status": "different",
+        "currentSha256": "fb74e8fc3841c06f89e8fa93fad55cdfac20788de4eee13db6b8a8072b963d2a",
+        "finalS1Sha256": "4c0c83ac7477776455055b32370844453ee7521467f02e5304bff23901df06b2"
+      },
+      {
+        "path": "src/contracts/filesystem.ts",
+        "status": "different",
+        "currentSha256": "e2343faf818a15ad7afc06618b3f8856cf14f36c86574cc49c85d51a13e7e522",
+        "finalS1Sha256": "a11b016e6bac06e6e8cd26fabb3b56a30788c8f75091513f6bf01ab7d016909d"
+      },
+      {
+        "path": "src/contracts/index.ts",
+        "status": "different",
+        "currentSha256": "fb9a434deb34dbad631166a689b02641c0e1acdbac691f6956a7c76e20729f50",
+        "finalS1Sha256": "21b09d18564ec4f586542af67a1e26f0198cc20938563f8b572cb5c4b38f676c"
+      },
+      {
+        "path": "src/contracts/io.ts",
+        "status": "different",
+        "currentSha256": "e925ab08a5ad41862d3f5c031164cc7310bc28397455b11b37b75b55a9dbacdb",
+        "finalS1Sha256": "52970acab76d8a7482d2867bf023acb18db26393c281b2fc388a63feb98fcce4"
+      },
+      {
+        "path": "src/contracts/output.ts",
+        "status": "S1-only",
+        "currentSha256": null,
+        "finalS1Sha256": "483fb9c7be06ff45de0120f60f5b5ebfe977c2323236353485f2adca5b6e28d0"
+      },
+      {
+        "path": "src/fs/mount/index.ts",
+        "status": "different",
+        "currentSha256": "5b7c81d0bf6e7bcd491c401fd3d0fc185f4767f15c81faaa4fddded14e53aaf6",
+        "finalS1Sha256": "a2be203c4bb0a1c979e9ff2ab3672f7aa7a1f441cc4c57cddcca7e4807a1881d"
+      },
+      {
+        "path": "src/fs/overlay/index.ts",
+        "status": "different",
+        "currentSha256": "829352e34a662868ddac3385317bf2f7eea8f605ea55e995865a6dd95ddc0d17",
+        "finalS1Sha256": "e14936876292b4900e1f2d4298ae5ec41509c5772d5afc63bf143d36c85662be"
+      },
+      {
+        "path": "src/fs/readonly/index.ts",
+        "status": "different",
+        "currentSha256": "2d5057de23f90cfef1f98c45f41063545bcd6c5a4439aa57d9aa0a058645b7b2",
+        "finalS1Sha256": "384f940196dc572f677541daa9c420da2e013324d66576004c1a2730e7899067"
+      },
+      {
+        "path": "src/fs/real/allocation.ts",
+        "status": "current-only",
+        "currentSha256": "8394428e33a97402159ccb0c67add8d375a2e013c5ddef5fa68875dddbed70ef",
+        "finalS1Sha256": null
+      },
+      {
+        "path": "src/fs/real/index.ts",
+        "status": "different",
+        "currentSha256": "ab139aa429c2705c7d5ec13a20d1583bacb182e3e2347fcdee2f169704c0bc9a",
+        "finalS1Sha256": "d3e79b80a5a48984e1f7f7dd9a79254c2db1faf8142e287a43792180874f77da"
+      },
+      {
+        "path": "src/index.ts",
+        "status": "different",
+        "currentSha256": "496b64711dde0f614723e7006a6b1a7e6bce57f45ec255c6134c1292584316e2",
+        "finalS1Sha256": "c9d4d5693dd65dfcb90ff14c43631d00d9d2975a5f58ab03df7ff0e1d34a3e6e"
+      },
+      {
+        "path": "src/plugins/index.ts",
+        "status": "different",
+        "currentSha256": "b0b7fbbf0aa36b7998c760f0e3ec5ee7dbaf18e929b6c2fb434f7ea62a2f082d",
+        "finalS1Sha256": "bf653ec1ae5f528090d7031caeb5fc3fcae6b240b5f7459318f1d90840a405d9"
+      },
+      {
+        "path": "src/shell/input.ts",
+        "status": "different",
+        "currentSha256": "4214a448a1a076acb297c3ba6a02d72482d488cf8b6df4549498148a012e5c32",
+        "finalS1Sha256": "7af2dac6dfd6290e9f189590e9190b2e0703dcd99998212e471378063cd9a7b4"
+      },
+      {
+        "path": "src/shell/runtime.ts",
+        "status": "different",
+        "currentSha256": "4e937b71df3135d1262a616924b4173e982f236dd86415e0e75895eac9c85e06",
+        "finalS1Sha256": "d352c421177b82bd0a6f77ebc8cc9ab4b490e54cb39b685bb72871388a9fcb03"
+      },
+      {
+        "path": "src/shell/shell.ts",
+        "status": "different",
+        "currentSha256": "538f7ea1504019fcde03abc2781c1f903573243a0332033b87501804a1c4ac5c",
+        "finalS1Sha256": "136bbf577a0b12c4998e942cc07c1ace52c1db328d093919a10b885b7041cb7a"
+      }
+    ],
+    "currentSourceCount": 237,
+    "currentSourceManifestSha256": "e4b9cab2a27ee6ecdf07deb8c57df8732cf51771fcc3ded652d5d38696faf65c",
+    "zeroCapsAlreadyLive": {
+      "path": "src/commands/network/shared.ts",
+      "commit": "bb7f5972dd54df3ae9c05e745bfab1f1c38a0e29",
+      "bytesEqualFrozen": true
+    },
+    "featureComparisonAssertions": {
+      "currentEqualsB0": [
+        "src/commands/network/curl.ts",
+        "src/commands/network/transport.ts",
+        "src/commands/network/types.ts",
+        "src/contracts/index.ts",
+        "src/contracts/io.ts",
+        "src/shell/shell.ts"
+      ],
+      "retentionAlreadyFinalS1": [
+        "src/commands/internal.ts",
+        "src/commands/network/body.ts",
+        "src/commands/structured/jq.ts"
+      ],
+      "currentStreamsEqualsB0PlusRetentionOnly": true,
+      "streamsRetentionCheck": {
+        "stage": "streams-retention-only-check",
+        "changedPaths": [
+          {
+            "path": "src/commands/streams.ts",
+            "before": {
+              "path": "src/commands/streams.ts",
+              "bytes": 16807,
+              "sha256": "8966dd770c11731e5256a1e42aaec4b07ae7f0508a3e89a3efc956d27109098d"
+            },
+            "after": {
+              "path": "src/commands/streams.ts",
+              "bytes": 17015,
+              "sha256": "be601a62f51a95c62778987118e292aea6637ca4e7271486239af2f8d65e7d1c"
+            },
+            "sectionSha256": "fde43d2a19c39f1d73ecca286bbe6420c82a91e71626c6737decc397a23eeeb9",
+            "hunks": [
+              {
+                "header": "@@ -40,7 +40,8 @@ async function suffix(context: CommandContext, source: ByteSource, count: number",
+                "patchSectionLine": 5,
+                "sha256": "e0a86fb096de7867fc9d55e4b6df71ee4d41bb522cc6cace81b30e4f0f09d283"
+              },
+              {
+                "header": "@@ -48,8 +49,11 @@ async function suffix(context: CommandContext, source: ByteSource, count: number",
+                "patchSectionLine": 15,
+                "sha256": "51d731d656046a7b9b1cb5ed938523c9fa5554badbee4065679c1ad3e6b9641b"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "absentCurrentTypeScriptTokens": [
+      "ownedOutput",
+      "createOutputOperation",
+      "accountedWrite"
+    ]
+  },
+  "evidenceIntegrity": [
+    {
+      "path": "PROPOSAL.md",
+      "bytes": 19630,
+      "sha256": "4f50797177ddb0e8a7669ac207aeb21daa7d5346f89d49c926dac53ff827ae13"
+    },
+    {
+      "path": "inspect-public-inputs.py.data",
+      "bytes": 14521,
+      "sha256": "5c223aa2faa73ef8cf1115976e6af07a9ca1f0fbff4bd0610320e4d710a9417f"
+    }
+  ],
+  "validation": {
+    "publicGitArchiveAndInMemoryDiffAssertions": "PASS",
+    "tests": "NOT EXECUTED",
+    "build": "NOT EXECUTED",
+    "typecheck": "NOT EXECUTED",
+    "installs": 0,
+    "networkRequests": 0,
+    "productExecutions": 0,
+    "guestExecutions": 0,
+    "privateRepositoryQueries": 0,
+    "extractedCandidates": 0,
+    "initialInspectorAttempt": "Stopped because ordering receipts omit byte counts; schema use corrected to path/SHA-256. No candidate or fixture changed."
+  }
+}

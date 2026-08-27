@@ -1,0 +1,3091 @@
+{
+  "captured": "2026-08-27T04:29:30.438Z",
+  "policy": {
+    "primary": "GNU Bash 5.3 parent; actual Darwin kernel /usr/bin/env and target role binary recorded separately",
+    "historical": "whole cohort Bash 3.2 parent; no per-case selection",
+    "mapping": "Only native temporary fixture root -> /fixture in stdout/stderr and symlink targets. Raw bytes retained. No diagnostic or environment-order normalization.",
+    "output": "Shared-output noreset witness asserts typed exhaustion after actual tick dispatch and no final sentinel, not exact dispatch/visible-byte accounting. Existing explicitly-forwarded sink doublewrap remains OPEN.",
+    "ownership": "No author new tests or expectations read. Original three recipes inspected, not replayed verbatim. Other leaf owns unchanged seven."
+  },
+  "casesHash": "11a4928d6cf4c64de20752e2b918bafa511789fabf048221dc841ed2638f52fd",
+  "nativeCount": 36,
+  "hostCount": 10,
+  "tools": {
+    "env": {
+      "path": "/usr/bin/env",
+      "hash": "9eb7c5aed7f3c7fe07b77d9a84d0a7c6a8c68c17a15aa3dace0d8ff02d352776"
+    },
+    "directBash": {
+      "path": "/bin/bash",
+      "hash": "35536aea9733aa345b61134a98d00232380898e55b2ea2a07c497011f7dfc7a3"
+    }
+  },
+  "profiles": [
+    {
+      "role": "primary",
+      "binary": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+      "hash": "8cecb482de24198c23a736b931cb7e8cee1f94eb0b51abd54bd99f1d73d9673c",
+      "version": {
+        "pid": 90072,
+        "status": 0,
+        "signal": null,
+        "timedOut": false,
+        "overflow": false,
+        "groupAlive": false,
+        "stdout": "R05VIGJhc2gsIHZlcnNpb24gNS4zLjAoMSktcmVsZWFzZSAoYWFyY2g2NC1hcHBsZS1kYXJ3aW4yNS40LjApCkNvcHlyaWdodCAoQykgMjAyNSBGcmVlIFNvZnR3YXJlIEZvdW5kYXRpb24sIEluYy4KTGljZW5zZSBHUEx2Mys6IEdOVSBHUEwgdmVyc2lvbiAzIG9yIGxhdGVyIDxodHRwOi8vZ251Lm9yZy9saWNlbnNlcy9ncGwuaHRtbD4KClRoaXMgaXMgZnJlZSBzb2Z0d2FyZTsgeW91IGFyZSBmcmVlIHRvIGNoYW5nZSBhbmQgcmVkaXN0cmlidXRlIGl0LgpUaGVyZSBpcyBOTyBXQVJSQU5UWSwgdG8gdGhlIGV4dGVudCBwZXJtaXR0ZWQgYnkgbGF3Lgo=",
+        "stderr": ""
+      },
+      "rows": [
+        {
+          "id": "header-argv",
+          "args": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "./script \"a b\" \"\" ';touch marker'",
+            "shell"
+          ],
+          "argv0": "bash",
+          "cwd": "/private/tmp/safe-bash-gaps-native-GHPJIS",
+          "env": {
+            "PATH": "/private/tmp/safe-bash-gaps-native-GHPJIS/bin:/private/tmp/safe-bash-gaps-native-GHPJIS/.roles",
+            "HOME": "/private/tmp/safe-bash-gaps-native-GHPJIS",
+            "LANG": "C",
+            "LC_ALL": "C",
+            "TZ": "UTC"
+          },
+          "run": {
+            "pid": 90009,
+            "status": 0,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "PC4vc2NyaXB0Pgo8Mz4KPGEgYj4KPD4KPDt0b3VjaCBtYXJrZXI+Cg==",
+            "stderr": ""
+          },
+          "tuple": {
+            "stdout": "PC4vc2NyaXB0Pgo8Mz4KPGEgYj4KPD4KPDt0b3VjaCBtYXJrZXI+Cg==",
+            "stderr": "",
+            "status": 0,
+            "entries": {
+              "bin/": null,
+              "script": {
+                "bytes": "cHJpbnRmICI8JXM+XG4iICIkMCIgIiQjIiAiJDEiICIkMiIgIiQzIgo=",
+                "mode": 493
+              },
+              "work/": null
+            }
+          }
+        },
+        {
+          "id": "header-path",
+          "args": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "tool value",
+            "shell"
+          ],
+          "argv0": "bash",
+          "cwd": "/private/tmp/safe-bash-gaps-native-cJFWT2",
+          "env": {
+            "PATH": "/private/tmp/safe-bash-gaps-native-cJFWT2/bin:/private/tmp/safe-bash-gaps-native-cJFWT2/.roles",
+            "HOME": "/private/tmp/safe-bash-gaps-native-cJFWT2",
+            "LANG": "C",
+            "LC_ALL": "C",
+            "TZ": "UTC"
+          },
+          "run": {
+            "pid": 90010,
+            "status": 0,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "L3ByaXZhdGUvdG1wL3NhZmUtYmFzaC1nYXBzLW5hdGl2ZS1jSkZXVDIvYmluL3Rvb2w6dmFsdWU=",
+            "stderr": ""
+          },
+          "tuple": {
+            "stdout": "L2ZpeHR1cmUvYmluL3Rvb2w6dmFsdWU=",
+            "stderr": "",
+            "status": 0,
+            "entries": {
+              "bin/": null,
+              "bin/tool": {
+                "bytes": "cHJpbnRmICIlczolcyIgIiQwIiAiJDEiCg==",
+                "mode": 493
+              },
+              "work/": null
+            }
+          }
+        },
+        {
+          "id": "header-cwd",
+          "args": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "./script; pwd",
+            "shell"
+          ],
+          "argv0": "bash",
+          "cwd": "/private/tmp/safe-bash-gaps-native-rL27WO",
+          "env": {
+            "PATH": "/private/tmp/safe-bash-gaps-native-rL27WO/bin:/private/tmp/safe-bash-gaps-native-rL27WO/.roles",
+            "HOME": "/private/tmp/safe-bash-gaps-native-rL27WO",
+            "LANG": "C",
+            "LC_ALL": "C",
+            "TZ": "UTC"
+          },
+          "run": {
+            "pid": 90011,
+            "status": 0,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "L3ByaXZhdGUvdG1wL3NhZmUtYmFzaC1nYXBzLW5hdGl2ZS1yTDI3V08KL3ByaXZhdGUvdG1wL3NhZmUtYmFzaC1nYXBzLW5hdGl2ZS1yTDI3V08vd29yawovcHJpdmF0ZS90bXAvc2FmZS1iYXNoLWdhcHMtbmF0aXZlLXJMMjdXTwo=",
+            "stderr": ""
+          },
+          "tuple": {
+            "stdout": "L2ZpeHR1cmUKL2ZpeHR1cmUvd29yawovZml4dHVyZQo=",
+            "stderr": "",
+            "status": 0,
+            "entries": {
+              "bin/": null,
+              "script": {
+                "bytes": "cHdkOyBjZCB3b3JrOyBwd2QK",
+                "mode": 493
+              },
+              "work/": null
+            }
+          }
+        },
+        {
+          "id": "header-env",
+          "args": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "export PUBLIC=public; SECRET=secret; PREFIX=prefix ./script; printf \":%s\" \"${PREFIX-unset}\"",
+            "shell"
+          ],
+          "argv0": "bash",
+          "cwd": "/private/tmp/safe-bash-gaps-native-H5Rex2",
+          "env": {
+            "PATH": "/private/tmp/safe-bash-gaps-native-H5Rex2/bin:/private/tmp/safe-bash-gaps-native-H5Rex2/.roles",
+            "HOME": "/private/tmp/safe-bash-gaps-native-H5Rex2",
+            "LANG": "C",
+            "LC_ALL": "C",
+            "TZ": "UTC"
+          },
+          "run": {
+            "pid": 90013,
+            "status": 0,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "cHVibGljOjpwcmVmaXg6dW5zZXQ=",
+            "stderr": ""
+          },
+          "tuple": {
+            "stdout": "cHVibGljOjpwcmVmaXg6dW5zZXQ=",
+            "stderr": "",
+            "status": 0,
+            "entries": {
+              "bin/": null,
+              "script": {
+                "bytes": "cHJpbnRmICIlczolczolcyIgIiRQVUJMSUMiICIkU0VDUkVUIiAiJFBSRUZJWCIK",
+                "mode": 493
+              },
+              "work/": null
+            }
+          }
+        },
+        {
+          "id": "header-functions",
+          "args": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "inherited(){ printf inherited; }; ./script; inherited",
+            "shell"
+          ],
+          "argv0": "bash",
+          "cwd": "/private/tmp/safe-bash-gaps-native-C958wu",
+          "env": {
+            "PATH": "/private/tmp/safe-bash-gaps-native-C958wu/bin:/private/tmp/safe-bash-gaps-native-C958wu/.roles",
+            "HOME": "/private/tmp/safe-bash-gaps-native-C958wu",
+            "LANG": "C",
+            "LC_ALL": "C",
+            "TZ": "UTC"
+          },
+          "run": {
+            "pid": 90015,
+            "status": 0,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "Y2hpbGRpbmhlcml0ZWQ=",
+            "stderr": "Li9zY3JpcHQ6IGxpbmUgMTogaW5oZXJpdGVkOiBjb21tYW5kIG5vdCBmb3VuZAo="
+          },
+          "tuple": {
+            "stdout": "Y2hpbGRpbmhlcml0ZWQ=",
+            "stderr": "Li9zY3JpcHQ6IGxpbmUgMTogaW5oZXJpdGVkOiBjb21tYW5kIG5vdCBmb3VuZAo=",
+            "status": 0,
+            "entries": {
+              "bin/": null,
+              "script": {
+                "bytes": "aW5oZXJpdGVkOyBjaGlsZCgpeyBwcmludGYgY2hpbGQ7IH07IGNoaWxkCg==",
+                "mode": 493
+              },
+              "work/": null
+            }
+          }
+        },
+        {
+          "id": "header-state",
+          "args": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "VALUE=parent; ./script; printf \"%s:%s:%s:\" \"$?\" \"$VALUE\" \"${NEW-unset}\"; pwd",
+            "shell"
+          ],
+          "argv0": "bash",
+          "cwd": "/private/tmp/safe-bash-gaps-native-lpKF5O",
+          "env": {
+            "PATH": "/private/tmp/safe-bash-gaps-native-lpKF5O/bin:/private/tmp/safe-bash-gaps-native-lpKF5O/.roles",
+            "HOME": "/private/tmp/safe-bash-gaps-native-lpKF5O",
+            "LANG": "C",
+            "LC_ALL": "C",
+            "TZ": "UTC"
+          },
+          "run": {
+            "pid": 90018,
+            "status": 0,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "NzpwYXJlbnQ6dW5zZXQ6L3ByaXZhdGUvdG1wL3NhZmUtYmFzaC1nYXBzLW5hdGl2ZS1scEtGNU8K",
+            "stderr": ""
+          },
+          "tuple": {
+            "stdout": "NzpwYXJlbnQ6dW5zZXQ6L2ZpeHR1cmUK",
+            "stderr": "",
+            "status": 0,
+            "entries": {
+              "bin/": null,
+              "script": {
+                "bytes": "VkFMVUU9Y2hpbGQ7IGV4cG9ydCBORVc9bmV3OyBjZCB3b3JrOyBleGl0IDcK",
+                "mode": 493
+              },
+              "work/": null
+            }
+          }
+        },
+        {
+          "id": "header-empty",
+          "args": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "./script; printf \"status:%s\" \"$?\"",
+            "shell"
+          ],
+          "argv0": "bash",
+          "cwd": "/private/tmp/safe-bash-gaps-native-lVo1nH",
+          "env": {
+            "PATH": "/private/tmp/safe-bash-gaps-native-lVo1nH/bin:/private/tmp/safe-bash-gaps-native-lVo1nH/.roles",
+            "HOME": "/private/tmp/safe-bash-gaps-native-lVo1nH",
+            "LANG": "C",
+            "LC_ALL": "C",
+            "TZ": "UTC"
+          },
+          "run": {
+            "pid": 90020,
+            "status": 0,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "c3RhdHVzOjA=",
+            "stderr": ""
+          },
+          "tuple": {
+            "stdout": "c3RhdHVzOjA=",
+            "stderr": "",
+            "status": 0,
+            "entries": {
+              "bin/": null,
+              "script": {
+                "bytes": "",
+                "mode": 493
+              },
+              "work/": null
+            }
+          }
+        },
+        {
+          "id": "header-exit",
+          "args": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "./script; printf \":%s:after\" \"$?\"",
+            "shell"
+          ],
+          "argv0": "bash",
+          "cwd": "/private/tmp/safe-bash-gaps-native-U7vkDA",
+          "env": {
+            "PATH": "/private/tmp/safe-bash-gaps-native-U7vkDA/bin:/private/tmp/safe-bash-gaps-native-U7vkDA/.roles",
+            "HOME": "/private/tmp/safe-bash-gaps-native-U7vkDA",
+            "LANG": "C",
+            "LC_ALL": "C",
+            "TZ": "UTC"
+          },
+          "run": {
+            "pid": 90022,
+            "status": 0,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "YmVmb3JlOjIzOmFmdGVy",
+            "stderr": ""
+          },
+          "tuple": {
+            "stdout": "YmVmb3JlOjIzOmFmdGVy",
+            "stderr": "",
+            "status": 0,
+            "entries": {
+              "bin/": null,
+              "script": {
+                "bytes": "cHJpbnRmIGJlZm9yZTsgZXhpdCAyMzsgcHJpbnRmIGZvcmJpZGRlbgo=",
+                "mode": 493
+              },
+              "work/": null
+            }
+          }
+        },
+        {
+          "id": "header-symlink",
+          "args": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "./alias value",
+            "shell"
+          ],
+          "argv0": "bash",
+          "cwd": "/private/tmp/safe-bash-gaps-native-ThceIk",
+          "env": {
+            "PATH": "/private/tmp/safe-bash-gaps-native-ThceIk/bin:/private/tmp/safe-bash-gaps-native-ThceIk/.roles",
+            "HOME": "/private/tmp/safe-bash-gaps-native-ThceIk",
+            "LANG": "C",
+            "LC_ALL": "C",
+            "TZ": "UTC"
+          },
+          "run": {
+            "pid": 90024,
+            "status": 0,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "Li9hbGlhczp2YWx1ZQ==",
+            "stderr": ""
+          },
+          "tuple": {
+            "stdout": "Li9hbGlhczp2YWx1ZQ==",
+            "stderr": "",
+            "status": 0,
+            "entries": {
+              "alias": {
+                "link": "script"
+              },
+              "bin/": null,
+              "script": {
+                "bytes": "cHJpbnRmICIlczolcyIgIiQwIiAiJDEiCg==",
+                "mode": 493
+              },
+              "work/": null
+            }
+          }
+        },
+        {
+          "id": "header-noexecute",
+          "args": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "./script",
+            "shell"
+          ],
+          "argv0": "bash",
+          "cwd": "/private/tmp/safe-bash-gaps-native-WuahQo",
+          "env": {
+            "PATH": "/private/tmp/safe-bash-gaps-native-WuahQo/bin:/private/tmp/safe-bash-gaps-native-WuahQo/.roles",
+            "HOME": "/private/tmp/safe-bash-gaps-native-WuahQo",
+            "LANG": "C",
+            "LC_ALL": "C",
+            "TZ": "UTC"
+          },
+          "run": {
+            "pid": 90025,
+            "status": 126,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "",
+            "stderr": "c2hlbGw6IGxpbmUgMTogLi9zY3JpcHQ6IFBlcm1pc3Npb24gZGVuaWVkCg=="
+          },
+          "tuple": {
+            "stdout": "",
+            "stderr": "c2hlbGw6IGxpbmUgMTogLi9zY3JpcHQ6IFBlcm1pc3Npb24gZGVuaWVkCg==",
+            "status": 126,
+            "entries": {
+              "bin/": null,
+              "script": {
+                "bytes": "cHJpbnRmIGZvcmJpZGRlbiA+IG1hcmtlcgo=",
+                "mode": 420
+              },
+              "work/": null
+            }
+          }
+        },
+        {
+          "id": "header-readonly-bash",
+          "args": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "bash ./script",
+            "shell"
+          ],
+          "argv0": "bash",
+          "cwd": "/private/tmp/safe-bash-gaps-native-QIkSyx",
+          "env": {
+            "PATH": "/private/tmp/safe-bash-gaps-native-QIkSyx/bin:/private/tmp/safe-bash-gaps-native-QIkSyx/.roles",
+            "HOME": "/private/tmp/safe-bash-gaps-native-QIkSyx",
+            "LANG": "C",
+            "LC_ALL": "C",
+            "TZ": "UTC"
+          },
+          "run": {
+            "pid": 90026,
+            "status": 0,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "cmVhZGFibGU=",
+            "stderr": ""
+          },
+          "tuple": {
+            "stdout": "cmVhZGFibGU=",
+            "stderr": "",
+            "status": 0,
+            "entries": {
+              "bin/": null,
+              "script": {
+                "bytes": "cHJpbnRmIHJlYWRhYmxlCg==",
+                "mode": 420
+              },
+              "work/": null
+            }
+          }
+        },
+        {
+          "id": "header-execute-no-read",
+          "args": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "./script",
+            "shell"
+          ],
+          "argv0": "bash",
+          "cwd": "/private/tmp/safe-bash-gaps-native-kqmgiD",
+          "env": {
+            "PATH": "/private/tmp/safe-bash-gaps-native-kqmgiD/bin:/private/tmp/safe-bash-gaps-native-kqmgiD/.roles",
+            "HOME": "/private/tmp/safe-bash-gaps-native-kqmgiD",
+            "LANG": "C",
+            "LC_ALL": "C",
+            "TZ": "UTC"
+          },
+          "run": {
+            "pid": 90027,
+            "status": 126,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "",
+            "stderr": "c2hlbGw6IC4vc2NyaXB0OiBQZXJtaXNzaW9uIGRlbmllZAo="
+          },
+          "tuple": {
+            "stdout": "",
+            "stderr": "c2hlbGw6IC4vc2NyaXB0OiBQZXJtaXNzaW9uIGRlbmllZAo=",
+            "status": 126,
+            "entries": {
+              "bin/": null,
+              "script": {
+                "bytes": "cHJpbnRmIGZvcmJpZGRlbiA+IG1hcmtlcgo=",
+                "mode": 73
+              },
+              "work/": null
+            }
+          }
+        },
+        {
+          "id": "header-path-search-denied",
+          "args": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "PATH=\"$PWD/denied:$PATH\"; tool",
+            "shell"
+          ],
+          "argv0": "bash",
+          "cwd": "/private/tmp/safe-bash-gaps-native-VEhq9S",
+          "env": {
+            "PATH": "/private/tmp/safe-bash-gaps-native-VEhq9S/bin:/private/tmp/safe-bash-gaps-native-VEhq9S/.roles",
+            "HOME": "/private/tmp/safe-bash-gaps-native-VEhq9S",
+            "LANG": "C",
+            "LC_ALL": "C",
+            "TZ": "UTC"
+          },
+          "run": {
+            "pid": 90028,
+            "status": 0,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "c2VsZWN0ZWQ=",
+            "stderr": ""
+          },
+          "tuple": {
+            "stdout": "c2VsZWN0ZWQ=",
+            "stderr": "",
+            "status": 0,
+            "entries": {
+              "bin/": null,
+              "bin/tool": {
+                "bytes": "cHJpbnRmIHNlbGVjdGVkCg==",
+                "mode": 493
+              },
+              "denied/": null,
+              "denied/tool": {
+                "bytes": "cHJpbnRmIGZvcmJpZGRlbgo=",
+                "mode": 420
+              },
+              "work/": null
+            }
+          }
+        },
+        {
+          "id": "env-argv",
+          "args": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "./script \"a b\" ';touch marker'",
+            "shell"
+          ],
+          "argv0": "bash",
+          "cwd": "/private/tmp/safe-bash-gaps-native-AGvqk4",
+          "env": {
+            "PATH": "/private/tmp/safe-bash-gaps-native-AGvqk4/bin:/private/tmp/safe-bash-gaps-native-AGvqk4/.roles",
+            "HOME": "/private/tmp/safe-bash-gaps-native-AGvqk4",
+            "LANG": "C",
+            "LC_ALL": "C",
+            "TZ": "UTC"
+          },
+          "run": {
+            "pid": 90029,
+            "status": 0,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "PC4vc2NyaXB0Pgo8Mj4KPGEgYj4KPDt0b3VjaCBtYXJrZXI+Cg==",
+            "stderr": ""
+          },
+          "tuple": {
+            "stdout": "PC4vc2NyaXB0Pgo8Mj4KPGEgYj4KPDt0b3VjaCBtYXJrZXI+Cg==",
+            "stderr": "",
+            "status": 0,
+            "entries": {
+              "bin/": null,
+              "script": {
+                "bytes": "IyEvdXNyL2Jpbi9lbnYgYmFzaApwcmludGYgIjwlcz5cbiIgIiQwIiAiJCMiICIkMSIgIiQyIgo=",
+                "mode": 493
+              },
+              "work/": null
+            }
+          }
+        },
+        {
+          "id": "env-tabs",
+          "args": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "./script",
+            "shell"
+          ],
+          "argv0": "bash",
+          "cwd": "/private/tmp/safe-bash-gaps-native-PjmmwM",
+          "env": {
+            "PATH": "/private/tmp/safe-bash-gaps-native-PjmmwM/bin:/private/tmp/safe-bash-gaps-native-PjmmwM/.roles",
+            "HOME": "/private/tmp/safe-bash-gaps-native-PjmmwM",
+            "LANG": "C",
+            "LC_ALL": "C",
+            "TZ": "UTC"
+          },
+          "run": {
+            "pid": 90031,
+            "status": 0,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "d2hpdGVzcGFjZQ==",
+            "stderr": ""
+          },
+          "tuple": {
+            "stdout": "d2hpdGVzcGFjZQ==",
+            "stderr": "",
+            "status": 0,
+            "entries": {
+              "bin/": null,
+              "script": {
+                "bytes": "IyEJL3Vzci9iaW4vZW52CWJhc2gKcHJpbnRmIHdoaXRlc3BhY2UK",
+                "mode": 493
+              },
+              "work/": null
+            }
+          }
+        },
+        {
+          "id": "env-single-kernel-argument",
+          "args": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "./script",
+            "shell"
+          ],
+          "argv0": "bash",
+          "cwd": "/private/tmp/safe-bash-gaps-native-VueiBr",
+          "env": {
+            "PATH": "/private/tmp/safe-bash-gaps-native-VueiBr/bin:/private/tmp/safe-bash-gaps-native-VueiBr/.roles",
+            "HOME": "/private/tmp/safe-bash-gaps-native-VueiBr",
+            "LANG": "C",
+            "LC_ALL": "C",
+            "TZ": "UTC"
+          },
+          "run": {
+            "pid": 90037,
+            "status": 0,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "",
+            "stderr": ""
+          },
+          "tuple": {
+            "stdout": "",
+            "stderr": "",
+            "status": 0,
+            "entries": {
+              "bin/": null,
+              "marker": {
+                "bytes": "c2hvdWxkLW5vdC1ydW4=",
+                "mode": 420
+              },
+              "script": {
+                "bytes": "IyEvdXNyL2Jpbi9lbnYgYmFzaCAtZQpwcmludGYgc2hvdWxkLW5vdC1ydW4gPiBtYXJrZXIK",
+                "mode": 493
+              },
+              "work/": null
+            }
+          }
+        },
+        {
+          "id": "env-injection-text",
+          "args": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "./script",
+            "shell"
+          ],
+          "argv0": "bash",
+          "cwd": "/private/tmp/safe-bash-gaps-native-ediPkR",
+          "env": {
+            "PATH": "/private/tmp/safe-bash-gaps-native-ediPkR/bin:/private/tmp/safe-bash-gaps-native-ediPkR/.roles",
+            "HOME": "/private/tmp/safe-bash-gaps-native-ediPkR",
+            "LANG": "C",
+            "LC_ALL": "C",
+            "TZ": "UTC"
+          },
+          "run": {
+            "pid": 90046,
+            "status": 127,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "",
+            "stderr": "ZW52OiBiYXNoO3RvdWNoOiBObyBzdWNoIGZpbGUgb3IgZGlyZWN0b3J5Cg=="
+          },
+          "tuple": {
+            "stdout": "",
+            "stderr": "ZW52OiBiYXNoO3RvdWNoOiBObyBzdWNoIGZpbGUgb3IgZGlyZWN0b3J5Cg==",
+            "status": 127,
+            "entries": {
+              "bin/": null,
+              "script": {
+                "bytes": "IyEvdXNyL2Jpbi9lbnYgYmFzaDt0b3VjaCBtYXJrZXIKcHJpbnRmIHNob3VsZC1ub3QtcnVuID4gbWFya2VyCg==",
+                "mode": 493
+              },
+              "work/": null
+            }
+          }
+        },
+        {
+          "id": "env-missing-target",
+          "args": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "./script",
+            "shell"
+          ],
+          "argv0": "bash",
+          "cwd": "/private/tmp/safe-bash-gaps-native-cpmh9U",
+          "env": {
+            "PATH": "/private/tmp/safe-bash-gaps-native-cpmh9U/bin:/private/tmp/safe-bash-gaps-native-cpmh9U/.roles",
+            "HOME": "/private/tmp/safe-bash-gaps-native-cpmh9U",
+            "LANG": "C",
+            "LC_ALL": "C",
+            "TZ": "UTC"
+          },
+          "run": {
+            "pid": 90047,
+            "status": 127,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "",
+            "stderr": "ZW52OiB2ZXJpZmllci1uby1zdWNoLWludGVycHJldGVyOiBObyBzdWNoIGZpbGUgb3IgZGlyZWN0b3J5Cg=="
+          },
+          "tuple": {
+            "stdout": "",
+            "stderr": "ZW52OiB2ZXJpZmllci1uby1zdWNoLWludGVycHJldGVyOiBObyBzdWNoIGZpbGUgb3IgZGlyZWN0b3J5Cg==",
+            "status": 127,
+            "entries": {
+              "bin/": null,
+              "script": {
+                "bytes": "IyEvdXNyL2Jpbi9lbnYgdmVyaWZpZXItbm8tc3VjaC1pbnRlcnByZXRlcgpwcmludGYgZm9yYmlkZGVuID4gbWFya2VyCg==",
+                "mode": 493
+              },
+              "work/": null
+            }
+          }
+        },
+        {
+          "id": "env-sh",
+          "args": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "./script value",
+            "shell"
+          ],
+          "argv0": "bash",
+          "cwd": "/private/tmp/safe-bash-gaps-native-eKIJZV",
+          "env": {
+            "PATH": "/private/tmp/safe-bash-gaps-native-eKIJZV/bin:/private/tmp/safe-bash-gaps-native-eKIJZV/.roles",
+            "HOME": "/private/tmp/safe-bash-gaps-native-eKIJZV",
+            "LANG": "C",
+            "LC_ALL": "C",
+            "TZ": "UTC"
+          },
+          "run": {
+            "pid": 90049,
+            "status": 0,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "Li9zY3JpcHQ6dmFsdWU=",
+            "stderr": ""
+          },
+          "tuple": {
+            "stdout": "Li9zY3JpcHQ6dmFsdWU=",
+            "stderr": "",
+            "status": 0,
+            "entries": {
+              "bin/": null,
+              "script": {
+                "bytes": "IyEvdXNyL2Jpbi9lbnYgc2gKcHJpbnRmICIlczolcyIgIiQwIiAiJDEiCg==",
+                "mode": 493
+              },
+              "work/": null
+            }
+          }
+        },
+        {
+          "id": "env-child-isolation",
+          "args": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "export PUBLIC=public; SECRET=secret; ./script; printf \"%s:\" \"$PUBLIC\"; pwd",
+            "shell"
+          ],
+          "argv0": "bash",
+          "cwd": "/private/tmp/safe-bash-gaps-native-RJMyZY",
+          "env": {
+            "PATH": "/private/tmp/safe-bash-gaps-native-RJMyZY/bin:/private/tmp/safe-bash-gaps-native-RJMyZY/.roles",
+            "HOME": "/private/tmp/safe-bash-gaps-native-RJMyZY",
+            "LANG": "C",
+            "LC_ALL": "C",
+            "TZ": "UTC"
+          },
+          "run": {
+            "pid": 90050,
+            "status": 0,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "cHVibGljOnVuc2V0OnB1YmxpYzovcHJpdmF0ZS90bXAvc2FmZS1iYXNoLWdhcHMtbmF0aXZlLVJKTXlaWQo=",
+            "stderr": ""
+          },
+          "tuple": {
+            "stdout": "cHVibGljOnVuc2V0OnB1YmxpYzovZml4dHVyZQo=",
+            "stderr": "",
+            "status": 0,
+            "entries": {
+              "bin/": null,
+              "script": {
+                "bytes": "IyEvdXNyL2Jpbi9lbnYgYmFzaApwcmludGYgIiVzOiVzOiIgIiRQVUJMSUMiICIke1NFQ1JFVC11bnNldH0iOyBQVUJMSUM9Y2hpbGQ7IGNkIHdvcmsK",
+                "mode": 493
+              },
+              "work/": null
+            }
+          }
+        },
+        {
+          "id": "env-unsupported-interpreter",
+          "args": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "./script",
+            "shell"
+          ],
+          "argv0": "bash",
+          "cwd": "/private/tmp/safe-bash-gaps-native-tYM4U3",
+          "env": {
+            "PATH": "/private/tmp/safe-bash-gaps-native-tYM4U3/bin:/private/tmp/safe-bash-gaps-native-tYM4U3/.roles",
+            "HOME": "/private/tmp/safe-bash-gaps-native-tYM4U3",
+            "LANG": "C",
+            "LC_ALL": "C",
+            "TZ": "UTC"
+          },
+          "run": {
+            "pid": 90052,
+            "status": 126,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "",
+            "stderr": "c2hlbGw6IC4vc2NyaXB0OiAvdmVyaWZpZXItbWlzc2luZy9pbnRlcnByZXRlcjogYmFkIGludGVycHJldGVyOiBObyBzdWNoIGZpbGUgb3IgZGlyZWN0b3J5Cg=="
+          },
+          "tuple": {
+            "stdout": "",
+            "stderr": "c2hlbGw6IC4vc2NyaXB0OiAvdmVyaWZpZXItbWlzc2luZy9pbnRlcnByZXRlcjogYmFkIGludGVycHJldGVyOiBObyBzdWNoIGZpbGUgb3IgZGlyZWN0b3J5Cg==",
+            "status": 126,
+            "entries": {
+              "bin/": null,
+              "script": {
+                "bytes": "IyEvdmVyaWZpZXItbWlzc2luZy9pbnRlcnByZXRlcgpwcmludGYgZm9yYmlkZGVuID4gbWFya2VyCg==",
+                "mode": 493
+              },
+              "work/": null
+            }
+          }
+        },
+        {
+          "id": "parameter-combined-nearby",
+          "args": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "VALUE=abcabcabc; printf \"%s:%s:%s\" \"${VALUE#abc}\" \"${VALUE%abc}\" \"${VALUE//a/X}\"",
+            "shell"
+          ],
+          "argv0": "bash",
+          "cwd": "/private/tmp/safe-bash-gaps-native-xTeDz6",
+          "env": {
+            "PATH": "/private/tmp/safe-bash-gaps-native-xTeDz6/bin:/private/tmp/safe-bash-gaps-native-xTeDz6/.roles",
+            "HOME": "/private/tmp/safe-bash-gaps-native-xTeDz6",
+            "LANG": "C",
+            "LC_ALL": "C",
+            "TZ": "UTC"
+          },
+          "run": {
+            "pid": 90053,
+            "status": 0,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "YWJjYWJjOmFiY2FiYzpYYmNYYmNYYmM=",
+            "stderr": ""
+          },
+          "tuple": {
+            "stdout": "YWJjYWJjOmFiY2FiYzpYYmNYYmNYYmM=",
+            "stderr": "",
+            "status": 0,
+            "entries": {
+              "bin/": null,
+              "work/": null
+            }
+          }
+        },
+        {
+          "id": "parameter-short-long-prefix",
+          "args": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "VALUE=a/b/c; printf \"%s:%s\" \"${VALUE#*/}\" \"${VALUE##*/}\"",
+            "shell"
+          ],
+          "argv0": "bash",
+          "cwd": "/private/tmp/safe-bash-gaps-native-B0hUlU",
+          "env": {
+            "PATH": "/private/tmp/safe-bash-gaps-native-B0hUlU/bin:/private/tmp/safe-bash-gaps-native-B0hUlU/.roles",
+            "HOME": "/private/tmp/safe-bash-gaps-native-B0hUlU",
+            "LANG": "C",
+            "LC_ALL": "C",
+            "TZ": "UTC"
+          },
+          "run": {
+            "pid": 90054,
+            "status": 0,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "Yi9jOmM=",
+            "stderr": ""
+          },
+          "tuple": {
+            "stdout": "Yi9jOmM=",
+            "stderr": "",
+            "status": 0,
+            "entries": {
+              "bin/": null,
+              "work/": null
+            }
+          }
+        },
+        {
+          "id": "parameter-short-long-suffix",
+          "args": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "VALUE=a/b/c; printf \"%s:%s\" \"${VALUE%/*}\" \"${VALUE%%/*}\"",
+            "shell"
+          ],
+          "argv0": "bash",
+          "cwd": "/private/tmp/safe-bash-gaps-native-B7LWg8",
+          "env": {
+            "PATH": "/private/tmp/safe-bash-gaps-native-B7LWg8/bin:/private/tmp/safe-bash-gaps-native-B7LWg8/.roles",
+            "HOME": "/private/tmp/safe-bash-gaps-native-B7LWg8",
+            "LANG": "C",
+            "LC_ALL": "C",
+            "TZ": "UTC"
+          },
+          "run": {
+            "pid": 90055,
+            "status": 0,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "YS9iOmE=",
+            "stderr": ""
+          },
+          "tuple": {
+            "stdout": "YS9iOmE=",
+            "stderr": "",
+            "status": 0,
+            "entries": {
+              "bin/": null,
+              "work/": null
+            }
+          }
+        },
+        {
+          "id": "parameter-replace-first-global",
+          "args": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "VALUE=abaaba; printf \"%s:%s\" \"${VALUE/a/X}\" \"${VALUE//a/X}\"",
+            "shell"
+          ],
+          "argv0": "bash",
+          "cwd": "/private/tmp/safe-bash-gaps-native-yoU0GS",
+          "env": {
+            "PATH": "/private/tmp/safe-bash-gaps-native-yoU0GS/bin:/private/tmp/safe-bash-gaps-native-yoU0GS/.roles",
+            "HOME": "/private/tmp/safe-bash-gaps-native-yoU0GS",
+            "LANG": "C",
+            "LC_ALL": "C",
+            "TZ": "UTC"
+          },
+          "run": {
+            "pid": 90056,
+            "status": 0,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "WGJhYWJhOlhiWFhiWA==",
+            "stderr": ""
+          },
+          "tuple": {
+            "stdout": "WGJhYWJhOlhiWFhiWA==",
+            "stderr": "",
+            "status": 0,
+            "entries": {
+              "bin/": null,
+              "work/": null
+            }
+          }
+        },
+        {
+          "id": "parameter-anchored-replace",
+          "args": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "VALUE=abcabc; printf \"%s:%s\" \"${VALUE/#abc/X}\" \"${VALUE/%abc/X}\"",
+            "shell"
+          ],
+          "argv0": "bash",
+          "cwd": "/private/tmp/safe-bash-gaps-native-Gc7UAQ",
+          "env": {
+            "PATH": "/private/tmp/safe-bash-gaps-native-Gc7UAQ/bin:/private/tmp/safe-bash-gaps-native-Gc7UAQ/.roles",
+            "HOME": "/private/tmp/safe-bash-gaps-native-Gc7UAQ",
+            "LANG": "C",
+            "LC_ALL": "C",
+            "TZ": "UTC"
+          },
+          "run": {
+            "pid": 90057,
+            "status": 0,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "WGFiYzphYmNY",
+            "stderr": ""
+          },
+          "tuple": {
+            "stdout": "WGFiYzphYmNY",
+            "stderr": "",
+            "status": 0,
+            "entries": {
+              "bin/": null,
+              "work/": null
+            }
+          }
+        },
+        {
+          "id": "parameter-delete",
+          "args": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "VALUE=ababa; printf \"%s:%s\" \"${VALUE/a/}\" \"${VALUE//a/}\"",
+            "shell"
+          ],
+          "argv0": "bash",
+          "cwd": "/private/tmp/safe-bash-gaps-native-1yWUdJ",
+          "env": {
+            "PATH": "/private/tmp/safe-bash-gaps-native-1yWUdJ/bin:/private/tmp/safe-bash-gaps-native-1yWUdJ/.roles",
+            "HOME": "/private/tmp/safe-bash-gaps-native-1yWUdJ",
+            "LANG": "C",
+            "LC_ALL": "C",
+            "TZ": "UTC"
+          },
+          "run": {
+            "pid": 90058,
+            "status": 0,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "YmFiYTpiYg==",
+            "stderr": ""
+          },
+          "tuple": {
+            "stdout": "YmFiYTpiYg==",
+            "stderr": "",
+            "status": 0,
+            "entries": {
+              "bin/": null,
+              "work/": null
+            }
+          }
+        },
+        {
+          "id": "parameter-quoted-pattern",
+          "args": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "VALUE=\"a*b*c\"; printf \"%s:%s\" \"${VALUE#\"a*\"}\" \"${VALUE%\"*c\"}\"",
+            "shell"
+          ],
+          "argv0": "bash",
+          "cwd": "/private/tmp/safe-bash-gaps-native-UyUOmR",
+          "env": {
+            "PATH": "/private/tmp/safe-bash-gaps-native-UyUOmR/bin:/private/tmp/safe-bash-gaps-native-UyUOmR/.roles",
+            "HOME": "/private/tmp/safe-bash-gaps-native-UyUOmR",
+            "LANG": "C",
+            "LC_ALL": "C",
+            "TZ": "UTC"
+          },
+          "run": {
+            "pid": 90059,
+            "status": 0,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "YipjOmEqYg==",
+            "stderr": ""
+          },
+          "tuple": {
+            "stdout": "YipjOmEqYg==",
+            "stderr": "",
+            "status": 0,
+            "entries": {
+              "bin/": null,
+              "work/": null
+            }
+          }
+        },
+        {
+          "id": "parameter-escaped-pattern",
+          "args": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "VALUE=\"a*b*c\"; printf \"%s:%s\" \"${VALUE#*\\*}\" \"${VALUE//\\*/X}\"",
+            "shell"
+          ],
+          "argv0": "bash",
+          "cwd": "/private/tmp/safe-bash-gaps-native-3QjZGo",
+          "env": {
+            "PATH": "/private/tmp/safe-bash-gaps-native-3QjZGo/bin:/private/tmp/safe-bash-gaps-native-3QjZGo/.roles",
+            "HOME": "/private/tmp/safe-bash-gaps-native-3QjZGo",
+            "LANG": "C",
+            "LC_ALL": "C",
+            "TZ": "UTC"
+          },
+          "run": {
+            "pid": 90060,
+            "status": 0,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "YipjOmFYYlhj",
+            "stderr": ""
+          },
+          "tuple": {
+            "stdout": "YipjOmFYYlhj",
+            "stderr": "",
+            "status": 0,
+            "entries": {
+              "bin/": null,
+              "work/": null
+            }
+          }
+        },
+        {
+          "id": "parameter-unset-empty",
+          "args": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "unset VALUE; EMPTY=; printf \"<%s><%s><%s><%s>\" \"${VALUE#x}\" \"${VALUE//x/y}\" \"${EMPTY%%*}\" \"${EMPTY//x/y}\"",
+            "shell"
+          ],
+          "argv0": "bash",
+          "cwd": "/private/tmp/safe-bash-gaps-native-V4uqmA",
+          "env": {
+            "PATH": "/private/tmp/safe-bash-gaps-native-V4uqmA/bin:/private/tmp/safe-bash-gaps-native-V4uqmA/.roles",
+            "HOME": "/private/tmp/safe-bash-gaps-native-V4uqmA",
+            "LANG": "C",
+            "LC_ALL": "C",
+            "TZ": "UTC"
+          },
+          "run": {
+            "pid": 90061,
+            "status": 0,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "PD48Pjw+PD4=",
+            "stderr": ""
+          },
+          "tuple": {
+            "stdout": "PD48Pjw+PD4=",
+            "stderr": "",
+            "status": 0,
+            "entries": {
+              "bin/": null,
+              "work/": null
+            }
+          }
+        },
+        {
+          "id": "parameter-pattern-variable",
+          "args": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "VALUE=abcabc; PAT=\"a*\"; printf \"%s:%s\" \"${VALUE#$PAT}\" \"${VALUE##$PAT}\"",
+            "shell"
+          ],
+          "argv0": "bash",
+          "cwd": "/private/tmp/safe-bash-gaps-native-6V6bmc",
+          "env": {
+            "PATH": "/private/tmp/safe-bash-gaps-native-6V6bmc/bin:/private/tmp/safe-bash-gaps-native-6V6bmc/.roles",
+            "HOME": "/private/tmp/safe-bash-gaps-native-6V6bmc",
+            "LANG": "C",
+            "LC_ALL": "C",
+            "TZ": "UTC"
+          },
+          "run": {
+            "pid": 90062,
+            "status": 0,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "YmNhYmM6",
+            "stderr": ""
+          },
+          "tuple": {
+            "stdout": "YmNhYmM6",
+            "stderr": "",
+            "status": 0,
+            "entries": {
+              "bin/": null,
+              "work/": null
+            }
+          }
+        },
+        {
+          "id": "parameter-replacement-variable",
+          "args": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "VALUE=aba; PAT=a; REP=\"x y\"; printf \"<%s>\" \"${VALUE//$PAT/$REP}\"",
+            "shell"
+          ],
+          "argv0": "bash",
+          "cwd": "/private/tmp/safe-bash-gaps-native-MDTt5A",
+          "env": {
+            "PATH": "/private/tmp/safe-bash-gaps-native-MDTt5A/bin:/private/tmp/safe-bash-gaps-native-MDTt5A/.roles",
+            "HOME": "/private/tmp/safe-bash-gaps-native-MDTt5A",
+            "LANG": "C",
+            "LC_ALL": "C",
+            "TZ": "UTC"
+          },
+          "run": {
+            "pid": 90063,
+            "status": 0,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "PHggeWJ4IHk+",
+            "stderr": ""
+          },
+          "tuple": {
+            "stdout": "PHggeWJ4IHk+",
+            "stderr": "",
+            "status": 0,
+            "entries": {
+              "bin/": null,
+              "work/": null
+            }
+          }
+        },
+        {
+          "id": "parameter-nested-default",
+          "args": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "VALUE=abcabc; unset OUTER; printf \"%s\" \"${OUTER:-${VALUE%abc}}\"",
+            "shell"
+          ],
+          "argv0": "bash",
+          "cwd": "/private/tmp/safe-bash-gaps-native-Xrs074",
+          "env": {
+            "PATH": "/private/tmp/safe-bash-gaps-native-Xrs074/bin:/private/tmp/safe-bash-gaps-native-Xrs074/.roles",
+            "HOME": "/private/tmp/safe-bash-gaps-native-Xrs074",
+            "LANG": "C",
+            "LC_ALL": "C",
+            "TZ": "UTC"
+          },
+          "run": {
+            "pid": 90064,
+            "status": 0,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "YWJj",
+            "stderr": ""
+          },
+          "tuple": {
+            "stdout": "YWJj",
+            "stderr": "",
+            "status": 0,
+            "entries": {
+              "bin/": null,
+              "work/": null
+            }
+          }
+        },
+        {
+          "id": "parameter-substitution-order",
+          "args": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "VALUE=aba; printf \"%s\" \"${VALUE//$(printf a; printf pattern > marker)/$(printf X; printf replacement >> marker)}\"",
+            "shell"
+          ],
+          "argv0": "bash",
+          "cwd": "/private/tmp/safe-bash-gaps-native-XTBtiL",
+          "env": {
+            "PATH": "/private/tmp/safe-bash-gaps-native-XTBtiL/bin:/private/tmp/safe-bash-gaps-native-XTBtiL/.roles",
+            "HOME": "/private/tmp/safe-bash-gaps-native-XTBtiL",
+            "LANG": "C",
+            "LC_ALL": "C",
+            "TZ": "UTC"
+          },
+          "run": {
+            "pid": 90065,
+            "status": 0,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "WGJY",
+            "stderr": ""
+          },
+          "tuple": {
+            "stdout": "WGJY",
+            "stderr": "",
+            "status": 0,
+            "entries": {
+              "bin/": null,
+              "marker": {
+                "bytes": "cGF0dGVybnJlcGxhY2VtZW50",
+                "mode": 420
+              },
+              "work/": null
+            }
+          }
+        },
+        {
+          "id": "parameter-quoted-fields",
+          "args": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "VALUE=\"a b a\"; printf \"<%s>\" \"${VALUE//a/}\" \"${VALUE#a }\"",
+            "shell"
+          ],
+          "argv0": "bash",
+          "cwd": "/private/tmp/safe-bash-gaps-native-HehOpm",
+          "env": {
+            "PATH": "/private/tmp/safe-bash-gaps-native-HehOpm/bin:/private/tmp/safe-bash-gaps-native-HehOpm/.roles",
+            "HOME": "/private/tmp/safe-bash-gaps-native-HehOpm",
+            "LANG": "C",
+            "LC_ALL": "C",
+            "TZ": "UTC"
+          },
+          "run": {
+            "pid": 90068,
+            "status": 0,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "PCBiID48YiBhPg==",
+            "stderr": ""
+          },
+          "tuple": {
+            "stdout": "PCBiID48YiBhPg==",
+            "stderr": "",
+            "status": 0,
+            "entries": {
+              "bin/": null,
+              "work/": null
+            }
+          }
+        },
+        {
+          "id": "parameter-existing-controls",
+          "args": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "VALUE=abcabc; printf \"%s:%s:%s:%s\" \"${#VALUE}\" \"${VALUE:1:3}\" \"${MISSING:-default}\" \"${VALUE:+set}\"",
+            "shell"
+          ],
+          "argv0": "bash",
+          "cwd": "/private/tmp/safe-bash-gaps-native-X93pzT",
+          "env": {
+            "PATH": "/private/tmp/safe-bash-gaps-native-X93pzT/bin:/private/tmp/safe-bash-gaps-native-X93pzT/.roles",
+            "HOME": "/private/tmp/safe-bash-gaps-native-X93pzT",
+            "LANG": "C",
+            "LC_ALL": "C",
+            "TZ": "UTC"
+          },
+          "run": {
+            "pid": 90069,
+            "status": 0,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "NjpiY2E6ZGVmYXVsdDpzZXQ=",
+            "stderr": ""
+          },
+          "tuple": {
+            "stdout": "NjpiY2E6ZGVmYXVsdDpzZXQ=",
+            "stderr": "",
+            "status": 0,
+            "entries": {
+              "bin/": null,
+              "work/": null
+            }
+          }
+        }
+      ],
+      "controls": [
+        {
+          "id": "profile-control",
+          "args": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "printf \"parent:%s:%s\\n\" \"$0\" \"$BASH_VERSION\"; ./env-control; ./direct-control",
+            "shell"
+          ],
+          "argv0": "bash",
+          "cwd": "/private/tmp/safe-bash-gaps-native-Clkkff",
+          "env": {
+            "PATH": "/private/tmp/safe-bash-gaps-native-Clkkff/bin:/private/tmp/safe-bash-gaps-native-Clkkff/.roles",
+            "HOME": "/private/tmp/safe-bash-gaps-native-Clkkff",
+            "LANG": "C",
+            "LC_ALL": "C",
+            "TZ": "UTC"
+          },
+          "run": {
+            "pid": 90070,
+            "status": 0,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "cGFyZW50OnNoZWxsOjUuMy4wKDEpLXJlbGVhc2UKZW52LWNoaWxkOi9wcml2YXRlL3RtcC9zYWZlLWJhc2gtZ2Fwcy1uYXRpdmUtQ2xra2ZmLy5yb2xlcy9iYXNoOjUuMy4wKDEpLXJlbGVhc2UKZGlyZWN0LWNoaWxkOi9iaW4vYmFzaDozLjIuNTcoMSktcmVsZWFzZQo=",
+            "stderr": ""
+          },
+          "tuple": {
+            "stdout": "cGFyZW50OnNoZWxsOjUuMy4wKDEpLXJlbGVhc2UKZW52LWNoaWxkOi9maXh0dXJlLy5yb2xlcy9iYXNoOjUuMy4wKDEpLXJlbGVhc2UKZGlyZWN0LWNoaWxkOi9iaW4vYmFzaDozLjIuNTcoMSktcmVsZWFzZQo=",
+            "stderr": "",
+            "status": 0,
+            "entries": {
+              "bin/": null,
+              "direct-control": {
+                "bytes": "IyEvYmluL2Jhc2gKcHJpbnRmICJkaXJlY3QtY2hpbGQ6JXM6JXNcbiIgIiRCQVNIIiAiJEJBU0hfVkVSU0lPTiIK",
+                "mode": 493
+              },
+              "env-control": {
+                "bytes": "IyEvdXNyL2Jpbi9lbnYgYmFzaApwcmludGYgImVudi1jaGlsZDolczolc1xuIiAiJEJBU0giICIkQkFTSF9WRVJTSU9OIgo=",
+                "mode": 493
+              },
+              "work/": null
+            }
+          }
+        }
+      ]
+    },
+    {
+      "role": "historical",
+      "binary": "/bin/bash",
+      "hash": "35536aea9733aa345b61134a98d00232380898e55b2ea2a07c497011f7dfc7a3",
+      "version": {
+        "pid": 90180,
+        "status": 0,
+        "signal": null,
+        "timedOut": false,
+        "overflow": false,
+        "groupAlive": false,
+        "stdout": "R05VIGJhc2gsIHZlcnNpb24gMy4yLjU3KDEpLXJlbGVhc2UgKGFybTY0LWFwcGxlLWRhcndpbjI1KQpDb3B5cmlnaHQgKEMpIDIwMDcgRnJlZSBTb2Z0d2FyZSBGb3VuZGF0aW9uLCBJbmMuCg==",
+        "stderr": ""
+      },
+      "rows": [
+        {
+          "id": "header-argv",
+          "args": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "./script \"a b\" \"\" ';touch marker'",
+            "shell"
+          ],
+          "argv0": "bash",
+          "cwd": "/private/tmp/safe-bash-gaps-native-a7LtJH",
+          "env": {
+            "PATH": "/private/tmp/safe-bash-gaps-native-a7LtJH/bin:/private/tmp/safe-bash-gaps-native-a7LtJH/.roles",
+            "HOME": "/private/tmp/safe-bash-gaps-native-a7LtJH",
+            "LANG": "C",
+            "LC_ALL": "C",
+            "TZ": "UTC"
+          },
+          "run": {
+            "pid": 90073,
+            "status": 0,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "PC4vc2NyaXB0Pgo8Mz4KPGEgYj4KPD4KPDt0b3VjaCBtYXJrZXI+Cg==",
+            "stderr": ""
+          },
+          "tuple": {
+            "stdout": "PC4vc2NyaXB0Pgo8Mz4KPGEgYj4KPD4KPDt0b3VjaCBtYXJrZXI+Cg==",
+            "stderr": "",
+            "status": 0,
+            "entries": {
+              "bin/": null,
+              "script": {
+                "bytes": "cHJpbnRmICI8JXM+XG4iICIkMCIgIiQjIiAiJDEiICIkMiIgIiQzIgo=",
+                "mode": 493
+              },
+              "work/": null
+            }
+          }
+        },
+        {
+          "id": "header-path",
+          "args": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "tool value",
+            "shell"
+          ],
+          "argv0": "bash",
+          "cwd": "/private/tmp/safe-bash-gaps-native-LA6gfd",
+          "env": {
+            "PATH": "/private/tmp/safe-bash-gaps-native-LA6gfd/bin:/private/tmp/safe-bash-gaps-native-LA6gfd/.roles",
+            "HOME": "/private/tmp/safe-bash-gaps-native-LA6gfd",
+            "LANG": "C",
+            "LC_ALL": "C",
+            "TZ": "UTC"
+          },
+          "run": {
+            "pid": 90074,
+            "status": 0,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "L3ByaXZhdGUvdG1wL3NhZmUtYmFzaC1nYXBzLW5hdGl2ZS1MQTZnZmQvYmluL3Rvb2w6dmFsdWU=",
+            "stderr": ""
+          },
+          "tuple": {
+            "stdout": "L2ZpeHR1cmUvYmluL3Rvb2w6dmFsdWU=",
+            "stderr": "",
+            "status": 0,
+            "entries": {
+              "bin/": null,
+              "bin/tool": {
+                "bytes": "cHJpbnRmICIlczolcyIgIiQwIiAiJDEiCg==",
+                "mode": 493
+              },
+              "work/": null
+            }
+          }
+        },
+        {
+          "id": "header-cwd",
+          "args": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "./script; pwd",
+            "shell"
+          ],
+          "argv0": "bash",
+          "cwd": "/private/tmp/safe-bash-gaps-native-R3zS0Y",
+          "env": {
+            "PATH": "/private/tmp/safe-bash-gaps-native-R3zS0Y/bin:/private/tmp/safe-bash-gaps-native-R3zS0Y/.roles",
+            "HOME": "/private/tmp/safe-bash-gaps-native-R3zS0Y",
+            "LANG": "C",
+            "LC_ALL": "C",
+            "TZ": "UTC"
+          },
+          "run": {
+            "pid": 90075,
+            "status": 0,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "L3ByaXZhdGUvdG1wL3NhZmUtYmFzaC1nYXBzLW5hdGl2ZS1SM3pTMFkKL3ByaXZhdGUvdG1wL3NhZmUtYmFzaC1nYXBzLW5hdGl2ZS1SM3pTMFkvd29yawovcHJpdmF0ZS90bXAvc2FmZS1iYXNoLWdhcHMtbmF0aXZlLVIzelMwWQo=",
+            "stderr": ""
+          },
+          "tuple": {
+            "stdout": "L2ZpeHR1cmUKL2ZpeHR1cmUvd29yawovZml4dHVyZQo=",
+            "stderr": "",
+            "status": 0,
+            "entries": {
+              "bin/": null,
+              "script": {
+                "bytes": "cHdkOyBjZCB3b3JrOyBwd2QK",
+                "mode": 493
+              },
+              "work/": null
+            }
+          }
+        },
+        {
+          "id": "header-env",
+          "args": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "export PUBLIC=public; SECRET=secret; PREFIX=prefix ./script; printf \":%s\" \"${PREFIX-unset}\"",
+            "shell"
+          ],
+          "argv0": "bash",
+          "cwd": "/private/tmp/safe-bash-gaps-native-5jzTBb",
+          "env": {
+            "PATH": "/private/tmp/safe-bash-gaps-native-5jzTBb/bin:/private/tmp/safe-bash-gaps-native-5jzTBb/.roles",
+            "HOME": "/private/tmp/safe-bash-gaps-native-5jzTBb",
+            "LANG": "C",
+            "LC_ALL": "C",
+            "TZ": "UTC"
+          },
+          "run": {
+            "pid": 90077,
+            "status": 0,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "cHVibGljOjpwcmVmaXg6dW5zZXQ=",
+            "stderr": ""
+          },
+          "tuple": {
+            "stdout": "cHVibGljOjpwcmVmaXg6dW5zZXQ=",
+            "stderr": "",
+            "status": 0,
+            "entries": {
+              "bin/": null,
+              "script": {
+                "bytes": "cHJpbnRmICIlczolczolcyIgIiRQVUJMSUMiICIkU0VDUkVUIiAiJFBSRUZJWCIK",
+                "mode": 493
+              },
+              "work/": null
+            }
+          }
+        },
+        {
+          "id": "header-functions",
+          "args": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "inherited(){ printf inherited; }; ./script; inherited",
+            "shell"
+          ],
+          "argv0": "bash",
+          "cwd": "/private/tmp/safe-bash-gaps-native-zBAPyx",
+          "env": {
+            "PATH": "/private/tmp/safe-bash-gaps-native-zBAPyx/bin:/private/tmp/safe-bash-gaps-native-zBAPyx/.roles",
+            "HOME": "/private/tmp/safe-bash-gaps-native-zBAPyx",
+            "LANG": "C",
+            "LC_ALL": "C",
+            "TZ": "UTC"
+          },
+          "run": {
+            "pid": 90079,
+            "status": 0,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "Y2hpbGRpbmhlcml0ZWQ=",
+            "stderr": "Li9zY3JpcHQ6IGxpbmUgMTogaW5oZXJpdGVkOiBjb21tYW5kIG5vdCBmb3VuZAo="
+          },
+          "tuple": {
+            "stdout": "Y2hpbGRpbmhlcml0ZWQ=",
+            "stderr": "Li9zY3JpcHQ6IGxpbmUgMTogaW5oZXJpdGVkOiBjb21tYW5kIG5vdCBmb3VuZAo=",
+            "status": 0,
+            "entries": {
+              "bin/": null,
+              "script": {
+                "bytes": "aW5oZXJpdGVkOyBjaGlsZCgpeyBwcmludGYgY2hpbGQ7IH07IGNoaWxkCg==",
+                "mode": 493
+              },
+              "work/": null
+            }
+          }
+        },
+        {
+          "id": "header-state",
+          "args": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "VALUE=parent; ./script; printf \"%s:%s:%s:\" \"$?\" \"$VALUE\" \"${NEW-unset}\"; pwd",
+            "shell"
+          ],
+          "argv0": "bash",
+          "cwd": "/private/tmp/safe-bash-gaps-native-rsuDFt",
+          "env": {
+            "PATH": "/private/tmp/safe-bash-gaps-native-rsuDFt/bin:/private/tmp/safe-bash-gaps-native-rsuDFt/.roles",
+            "HOME": "/private/tmp/safe-bash-gaps-native-rsuDFt",
+            "LANG": "C",
+            "LC_ALL": "C",
+            "TZ": "UTC"
+          },
+          "run": {
+            "pid": 90082,
+            "status": 0,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "NzpwYXJlbnQ6dW5zZXQ6L3ByaXZhdGUvdG1wL3NhZmUtYmFzaC1nYXBzLW5hdGl2ZS1yc3VERnQK",
+            "stderr": ""
+          },
+          "tuple": {
+            "stdout": "NzpwYXJlbnQ6dW5zZXQ6L2ZpeHR1cmUK",
+            "stderr": "",
+            "status": 0,
+            "entries": {
+              "bin/": null,
+              "script": {
+                "bytes": "VkFMVUU9Y2hpbGQ7IGV4cG9ydCBORVc9bmV3OyBjZCB3b3JrOyBleGl0IDcK",
+                "mode": 493
+              },
+              "work/": null
+            }
+          }
+        },
+        {
+          "id": "header-empty",
+          "args": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "./script; printf \"status:%s\" \"$?\"",
+            "shell"
+          ],
+          "argv0": "bash",
+          "cwd": "/private/tmp/safe-bash-gaps-native-1u0B5z",
+          "env": {
+            "PATH": "/private/tmp/safe-bash-gaps-native-1u0B5z/bin:/private/tmp/safe-bash-gaps-native-1u0B5z/.roles",
+            "HOME": "/private/tmp/safe-bash-gaps-native-1u0B5z",
+            "LANG": "C",
+            "LC_ALL": "C",
+            "TZ": "UTC"
+          },
+          "run": {
+            "pid": 90084,
+            "status": 0,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "c3RhdHVzOjA=",
+            "stderr": ""
+          },
+          "tuple": {
+            "stdout": "c3RhdHVzOjA=",
+            "stderr": "",
+            "status": 0,
+            "entries": {
+              "bin/": null,
+              "script": {
+                "bytes": "",
+                "mode": 493
+              },
+              "work/": null
+            }
+          }
+        },
+        {
+          "id": "header-exit",
+          "args": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "./script; printf \":%s:after\" \"$?\"",
+            "shell"
+          ],
+          "argv0": "bash",
+          "cwd": "/private/tmp/safe-bash-gaps-native-NKK1hO",
+          "env": {
+            "PATH": "/private/tmp/safe-bash-gaps-native-NKK1hO/bin:/private/tmp/safe-bash-gaps-native-NKK1hO/.roles",
+            "HOME": "/private/tmp/safe-bash-gaps-native-NKK1hO",
+            "LANG": "C",
+            "LC_ALL": "C",
+            "TZ": "UTC"
+          },
+          "run": {
+            "pid": 90086,
+            "status": 0,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "YmVmb3JlOjIzOmFmdGVy",
+            "stderr": ""
+          },
+          "tuple": {
+            "stdout": "YmVmb3JlOjIzOmFmdGVy",
+            "stderr": "",
+            "status": 0,
+            "entries": {
+              "bin/": null,
+              "script": {
+                "bytes": "cHJpbnRmIGJlZm9yZTsgZXhpdCAyMzsgcHJpbnRmIGZvcmJpZGRlbgo=",
+                "mode": 493
+              },
+              "work/": null
+            }
+          }
+        },
+        {
+          "id": "header-symlink",
+          "args": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "./alias value",
+            "shell"
+          ],
+          "argv0": "bash",
+          "cwd": "/private/tmp/safe-bash-gaps-native-LD9ylb",
+          "env": {
+            "PATH": "/private/tmp/safe-bash-gaps-native-LD9ylb/bin:/private/tmp/safe-bash-gaps-native-LD9ylb/.roles",
+            "HOME": "/private/tmp/safe-bash-gaps-native-LD9ylb",
+            "LANG": "C",
+            "LC_ALL": "C",
+            "TZ": "UTC"
+          },
+          "run": {
+            "pid": 90088,
+            "status": 0,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "Li9hbGlhczp2YWx1ZQ==",
+            "stderr": ""
+          },
+          "tuple": {
+            "stdout": "Li9hbGlhczp2YWx1ZQ==",
+            "stderr": "",
+            "status": 0,
+            "entries": {
+              "alias": {
+                "link": "script"
+              },
+              "bin/": null,
+              "script": {
+                "bytes": "cHJpbnRmICIlczolcyIgIiQwIiAiJDEiCg==",
+                "mode": 493
+              },
+              "work/": null
+            }
+          }
+        },
+        {
+          "id": "header-noexecute",
+          "args": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "./script",
+            "shell"
+          ],
+          "argv0": "bash",
+          "cwd": "/private/tmp/safe-bash-gaps-native-800WPW",
+          "env": {
+            "PATH": "/private/tmp/safe-bash-gaps-native-800WPW/bin:/private/tmp/safe-bash-gaps-native-800WPW/.roles",
+            "HOME": "/private/tmp/safe-bash-gaps-native-800WPW",
+            "LANG": "C",
+            "LC_ALL": "C",
+            "TZ": "UTC"
+          },
+          "run": {
+            "pid": 90089,
+            "status": 126,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "",
+            "stderr": "c2hlbGw6IC4vc2NyaXB0OiBQZXJtaXNzaW9uIGRlbmllZAo="
+          },
+          "tuple": {
+            "stdout": "",
+            "stderr": "c2hlbGw6IC4vc2NyaXB0OiBQZXJtaXNzaW9uIGRlbmllZAo=",
+            "status": 126,
+            "entries": {
+              "bin/": null,
+              "script": {
+                "bytes": "cHJpbnRmIGZvcmJpZGRlbiA+IG1hcmtlcgo=",
+                "mode": 420
+              },
+              "work/": null
+            }
+          }
+        },
+        {
+          "id": "header-readonly-bash",
+          "args": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "bash ./script",
+            "shell"
+          ],
+          "argv0": "bash",
+          "cwd": "/private/tmp/safe-bash-gaps-native-yL9zME",
+          "env": {
+            "PATH": "/private/tmp/safe-bash-gaps-native-yL9zME/bin:/private/tmp/safe-bash-gaps-native-yL9zME/.roles",
+            "HOME": "/private/tmp/safe-bash-gaps-native-yL9zME",
+            "LANG": "C",
+            "LC_ALL": "C",
+            "TZ": "UTC"
+          },
+          "run": {
+            "pid": 90090,
+            "status": 0,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "cmVhZGFibGU=",
+            "stderr": ""
+          },
+          "tuple": {
+            "stdout": "cmVhZGFibGU=",
+            "stderr": "",
+            "status": 0,
+            "entries": {
+              "bin/": null,
+              "script": {
+                "bytes": "cHJpbnRmIHJlYWRhYmxlCg==",
+                "mode": 420
+              },
+              "work/": null
+            }
+          }
+        },
+        {
+          "id": "header-execute-no-read",
+          "args": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "./script",
+            "shell"
+          ],
+          "argv0": "bash",
+          "cwd": "/private/tmp/safe-bash-gaps-native-Y8p7ZT",
+          "env": {
+            "PATH": "/private/tmp/safe-bash-gaps-native-Y8p7ZT/bin:/private/tmp/safe-bash-gaps-native-Y8p7ZT/.roles",
+            "HOME": "/private/tmp/safe-bash-gaps-native-Y8p7ZT",
+            "LANG": "C",
+            "LC_ALL": "C",
+            "TZ": "UTC"
+          },
+          "run": {
+            "pid": 90091,
+            "status": 126,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "",
+            "stderr": "c2hlbGw6IC4vc2NyaXB0OiBQZXJtaXNzaW9uIGRlbmllZAo="
+          },
+          "tuple": {
+            "stdout": "",
+            "stderr": "c2hlbGw6IC4vc2NyaXB0OiBQZXJtaXNzaW9uIGRlbmllZAo=",
+            "status": 126,
+            "entries": {
+              "bin/": null,
+              "script": {
+                "bytes": "cHJpbnRmIGZvcmJpZGRlbiA+IG1hcmtlcgo=",
+                "mode": 73
+              },
+              "work/": null
+            }
+          }
+        },
+        {
+          "id": "header-path-search-denied",
+          "args": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "PATH=\"$PWD/denied:$PATH\"; tool",
+            "shell"
+          ],
+          "argv0": "bash",
+          "cwd": "/private/tmp/safe-bash-gaps-native-FyYhJd",
+          "env": {
+            "PATH": "/private/tmp/safe-bash-gaps-native-FyYhJd/bin:/private/tmp/safe-bash-gaps-native-FyYhJd/.roles",
+            "HOME": "/private/tmp/safe-bash-gaps-native-FyYhJd",
+            "LANG": "C",
+            "LC_ALL": "C",
+            "TZ": "UTC"
+          },
+          "run": {
+            "pid": 90092,
+            "status": 0,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "c2VsZWN0ZWQ=",
+            "stderr": ""
+          },
+          "tuple": {
+            "stdout": "c2VsZWN0ZWQ=",
+            "stderr": "",
+            "status": 0,
+            "entries": {
+              "bin/": null,
+              "bin/tool": {
+                "bytes": "cHJpbnRmIHNlbGVjdGVkCg==",
+                "mode": 493
+              },
+              "denied/": null,
+              "denied/tool": {
+                "bytes": "cHJpbnRmIGZvcmJpZGRlbgo=",
+                "mode": 420
+              },
+              "work/": null
+            }
+          }
+        },
+        {
+          "id": "env-argv",
+          "args": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "./script \"a b\" ';touch marker'",
+            "shell"
+          ],
+          "argv0": "bash",
+          "cwd": "/private/tmp/safe-bash-gaps-native-Mr0Ej7",
+          "env": {
+            "PATH": "/private/tmp/safe-bash-gaps-native-Mr0Ej7/bin:/private/tmp/safe-bash-gaps-native-Mr0Ej7/.roles",
+            "HOME": "/private/tmp/safe-bash-gaps-native-Mr0Ej7",
+            "LANG": "C",
+            "LC_ALL": "C",
+            "TZ": "UTC"
+          },
+          "run": {
+            "pid": 90094,
+            "status": 0,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "PC4vc2NyaXB0Pgo8Mj4KPGEgYj4KPDt0b3VjaCBtYXJrZXI+Cg==",
+            "stderr": ""
+          },
+          "tuple": {
+            "stdout": "PC4vc2NyaXB0Pgo8Mj4KPGEgYj4KPDt0b3VjaCBtYXJrZXI+Cg==",
+            "stderr": "",
+            "status": 0,
+            "entries": {
+              "bin/": null,
+              "script": {
+                "bytes": "IyEvdXNyL2Jpbi9lbnYgYmFzaApwcmludGYgIjwlcz5cbiIgIiQwIiAiJCMiICIkMSIgIiQyIgo=",
+                "mode": 493
+              },
+              "work/": null
+            }
+          }
+        },
+        {
+          "id": "env-tabs",
+          "args": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "./script",
+            "shell"
+          ],
+          "argv0": "bash",
+          "cwd": "/private/tmp/safe-bash-gaps-native-edkwpl",
+          "env": {
+            "PATH": "/private/tmp/safe-bash-gaps-native-edkwpl/bin:/private/tmp/safe-bash-gaps-native-edkwpl/.roles",
+            "HOME": "/private/tmp/safe-bash-gaps-native-edkwpl",
+            "LANG": "C",
+            "LC_ALL": "C",
+            "TZ": "UTC"
+          },
+          "run": {
+            "pid": 90095,
+            "status": 0,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "d2hpdGVzcGFjZQ==",
+            "stderr": ""
+          },
+          "tuple": {
+            "stdout": "d2hpdGVzcGFjZQ==",
+            "stderr": "",
+            "status": 0,
+            "entries": {
+              "bin/": null,
+              "script": {
+                "bytes": "IyEJL3Vzci9iaW4vZW52CWJhc2gKcHJpbnRmIHdoaXRlc3BhY2UK",
+                "mode": 493
+              },
+              "work/": null
+            }
+          }
+        },
+        {
+          "id": "env-single-kernel-argument",
+          "args": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "./script",
+            "shell"
+          ],
+          "argv0": "bash",
+          "cwd": "/private/tmp/safe-bash-gaps-native-wgptVs",
+          "env": {
+            "PATH": "/private/tmp/safe-bash-gaps-native-wgptVs/bin:/private/tmp/safe-bash-gaps-native-wgptVs/.roles",
+            "HOME": "/private/tmp/safe-bash-gaps-native-wgptVs",
+            "LANG": "C",
+            "LC_ALL": "C",
+            "TZ": "UTC"
+          },
+          "run": {
+            "pid": 90098,
+            "status": 0,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "",
+            "stderr": ""
+          },
+          "tuple": {
+            "stdout": "",
+            "stderr": "",
+            "status": 0,
+            "entries": {
+              "bin/": null,
+              "marker": {
+                "bytes": "c2hvdWxkLW5vdC1ydW4=",
+                "mode": 420
+              },
+              "script": {
+                "bytes": "IyEvdXNyL2Jpbi9lbnYgYmFzaCAtZQpwcmludGYgc2hvdWxkLW5vdC1ydW4gPiBtYXJrZXIK",
+                "mode": 493
+              },
+              "work/": null
+            }
+          }
+        },
+        {
+          "id": "env-injection-text",
+          "args": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "./script",
+            "shell"
+          ],
+          "argv0": "bash",
+          "cwd": "/private/tmp/safe-bash-gaps-native-lv5F8u",
+          "env": {
+            "PATH": "/private/tmp/safe-bash-gaps-native-lv5F8u/bin:/private/tmp/safe-bash-gaps-native-lv5F8u/.roles",
+            "HOME": "/private/tmp/safe-bash-gaps-native-lv5F8u",
+            "LANG": "C",
+            "LC_ALL": "C",
+            "TZ": "UTC"
+          },
+          "run": {
+            "pid": 90122,
+            "status": 127,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "",
+            "stderr": "ZW52OiBiYXNoO3RvdWNoOiBObyBzdWNoIGZpbGUgb3IgZGlyZWN0b3J5Cg=="
+          },
+          "tuple": {
+            "stdout": "",
+            "stderr": "ZW52OiBiYXNoO3RvdWNoOiBObyBzdWNoIGZpbGUgb3IgZGlyZWN0b3J5Cg==",
+            "status": 127,
+            "entries": {
+              "bin/": null,
+              "script": {
+                "bytes": "IyEvdXNyL2Jpbi9lbnYgYmFzaDt0b3VjaCBtYXJrZXIKcHJpbnRmIHNob3VsZC1ub3QtcnVuID4gbWFya2VyCg==",
+                "mode": 493
+              },
+              "work/": null
+            }
+          }
+        },
+        {
+          "id": "env-missing-target",
+          "args": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "./script",
+            "shell"
+          ],
+          "argv0": "bash",
+          "cwd": "/private/tmp/safe-bash-gaps-native-wYLy5w",
+          "env": {
+            "PATH": "/private/tmp/safe-bash-gaps-native-wYLy5w/bin:/private/tmp/safe-bash-gaps-native-wYLy5w/.roles",
+            "HOME": "/private/tmp/safe-bash-gaps-native-wYLy5w",
+            "LANG": "C",
+            "LC_ALL": "C",
+            "TZ": "UTC"
+          },
+          "run": {
+            "pid": 90124,
+            "status": 127,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "",
+            "stderr": "ZW52OiB2ZXJpZmllci1uby1zdWNoLWludGVycHJldGVyOiBObyBzdWNoIGZpbGUgb3IgZGlyZWN0b3J5Cg=="
+          },
+          "tuple": {
+            "stdout": "",
+            "stderr": "ZW52OiB2ZXJpZmllci1uby1zdWNoLWludGVycHJldGVyOiBObyBzdWNoIGZpbGUgb3IgZGlyZWN0b3J5Cg==",
+            "status": 127,
+            "entries": {
+              "bin/": null,
+              "script": {
+                "bytes": "IyEvdXNyL2Jpbi9lbnYgdmVyaWZpZXItbm8tc3VjaC1pbnRlcnByZXRlcgpwcmludGYgZm9yYmlkZGVuID4gbWFya2VyCg==",
+                "mode": 493
+              },
+              "work/": null
+            }
+          }
+        },
+        {
+          "id": "env-sh",
+          "args": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "./script value",
+            "shell"
+          ],
+          "argv0": "bash",
+          "cwd": "/private/tmp/safe-bash-gaps-native-Ohc4DC",
+          "env": {
+            "PATH": "/private/tmp/safe-bash-gaps-native-Ohc4DC/bin:/private/tmp/safe-bash-gaps-native-Ohc4DC/.roles",
+            "HOME": "/private/tmp/safe-bash-gaps-native-Ohc4DC",
+            "LANG": "C",
+            "LC_ALL": "C",
+            "TZ": "UTC"
+          },
+          "run": {
+            "pid": 90131,
+            "status": 0,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "Li9zY3JpcHQ6dmFsdWU=",
+            "stderr": ""
+          },
+          "tuple": {
+            "stdout": "Li9zY3JpcHQ6dmFsdWU=",
+            "stderr": "",
+            "status": 0,
+            "entries": {
+              "bin/": null,
+              "script": {
+                "bytes": "IyEvdXNyL2Jpbi9lbnYgc2gKcHJpbnRmICIlczolcyIgIiQwIiAiJDEiCg==",
+                "mode": 493
+              },
+              "work/": null
+            }
+          }
+        },
+        {
+          "id": "env-child-isolation",
+          "args": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "export PUBLIC=public; SECRET=secret; ./script; printf \"%s:\" \"$PUBLIC\"; pwd",
+            "shell"
+          ],
+          "argv0": "bash",
+          "cwd": "/private/tmp/safe-bash-gaps-native-koiQEc",
+          "env": {
+            "PATH": "/private/tmp/safe-bash-gaps-native-koiQEc/bin:/private/tmp/safe-bash-gaps-native-koiQEc/.roles",
+            "HOME": "/private/tmp/safe-bash-gaps-native-koiQEc",
+            "LANG": "C",
+            "LC_ALL": "C",
+            "TZ": "UTC"
+          },
+          "run": {
+            "pid": 90134,
+            "status": 0,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "cHVibGljOnVuc2V0OnB1YmxpYzovcHJpdmF0ZS90bXAvc2FmZS1iYXNoLWdhcHMtbmF0aXZlLWtvaVFFYwo=",
+            "stderr": ""
+          },
+          "tuple": {
+            "stdout": "cHVibGljOnVuc2V0OnB1YmxpYzovZml4dHVyZQo=",
+            "stderr": "",
+            "status": 0,
+            "entries": {
+              "bin/": null,
+              "script": {
+                "bytes": "IyEvdXNyL2Jpbi9lbnYgYmFzaApwcmludGYgIiVzOiVzOiIgIiRQVUJMSUMiICIke1NFQ1JFVC11bnNldH0iOyBQVUJMSUM9Y2hpbGQ7IGNkIHdvcmsK",
+                "mode": 493
+              },
+              "work/": null
+            }
+          }
+        },
+        {
+          "id": "env-unsupported-interpreter",
+          "args": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "./script",
+            "shell"
+          ],
+          "argv0": "bash",
+          "cwd": "/private/tmp/safe-bash-gaps-native-GIIpig",
+          "env": {
+            "PATH": "/private/tmp/safe-bash-gaps-native-GIIpig/bin:/private/tmp/safe-bash-gaps-native-GIIpig/.roles",
+            "HOME": "/private/tmp/safe-bash-gaps-native-GIIpig",
+            "LANG": "C",
+            "LC_ALL": "C",
+            "TZ": "UTC"
+          },
+          "run": {
+            "pid": 90147,
+            "status": 126,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "",
+            "stderr": "c2hlbGw6IC4vc2NyaXB0OiAvdmVyaWZpZXItbWlzc2luZy9pbnRlcnByZXRlcjogYmFkIGludGVycHJldGVyOiBObyBzdWNoIGZpbGUgb3IgZGlyZWN0b3J5Cg=="
+          },
+          "tuple": {
+            "stdout": "",
+            "stderr": "c2hlbGw6IC4vc2NyaXB0OiAvdmVyaWZpZXItbWlzc2luZy9pbnRlcnByZXRlcjogYmFkIGludGVycHJldGVyOiBObyBzdWNoIGZpbGUgb3IgZGlyZWN0b3J5Cg==",
+            "status": 126,
+            "entries": {
+              "bin/": null,
+              "script": {
+                "bytes": "IyEvdmVyaWZpZXItbWlzc2luZy9pbnRlcnByZXRlcgpwcmludGYgZm9yYmlkZGVuID4gbWFya2VyCg==",
+                "mode": 493
+              },
+              "work/": null
+            }
+          }
+        },
+        {
+          "id": "parameter-combined-nearby",
+          "args": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "VALUE=abcabcabc; printf \"%s:%s:%s\" \"${VALUE#abc}\" \"${VALUE%abc}\" \"${VALUE//a/X}\"",
+            "shell"
+          ],
+          "argv0": "bash",
+          "cwd": "/private/tmp/safe-bash-gaps-native-hyVRxg",
+          "env": {
+            "PATH": "/private/tmp/safe-bash-gaps-native-hyVRxg/bin:/private/tmp/safe-bash-gaps-native-hyVRxg/.roles",
+            "HOME": "/private/tmp/safe-bash-gaps-native-hyVRxg",
+            "LANG": "C",
+            "LC_ALL": "C",
+            "TZ": "UTC"
+          },
+          "run": {
+            "pid": 90148,
+            "status": 0,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "YWJjYWJjOmFiY2FiYzpYYmNYYmNYYmM=",
+            "stderr": ""
+          },
+          "tuple": {
+            "stdout": "YWJjYWJjOmFiY2FiYzpYYmNYYmNYYmM=",
+            "stderr": "",
+            "status": 0,
+            "entries": {
+              "bin/": null,
+              "work/": null
+            }
+          }
+        },
+        {
+          "id": "parameter-short-long-prefix",
+          "args": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "VALUE=a/b/c; printf \"%s:%s\" \"${VALUE#*/}\" \"${VALUE##*/}\"",
+            "shell"
+          ],
+          "argv0": "bash",
+          "cwd": "/private/tmp/safe-bash-gaps-native-3rYYze",
+          "env": {
+            "PATH": "/private/tmp/safe-bash-gaps-native-3rYYze/bin:/private/tmp/safe-bash-gaps-native-3rYYze/.roles",
+            "HOME": "/private/tmp/safe-bash-gaps-native-3rYYze",
+            "LANG": "C",
+            "LC_ALL": "C",
+            "TZ": "UTC"
+          },
+          "run": {
+            "pid": 90149,
+            "status": 0,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "Yi9jOmM=",
+            "stderr": ""
+          },
+          "tuple": {
+            "stdout": "Yi9jOmM=",
+            "stderr": "",
+            "status": 0,
+            "entries": {
+              "bin/": null,
+              "work/": null
+            }
+          }
+        },
+        {
+          "id": "parameter-short-long-suffix",
+          "args": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "VALUE=a/b/c; printf \"%s:%s\" \"${VALUE%/*}\" \"${VALUE%%/*}\"",
+            "shell"
+          ],
+          "argv0": "bash",
+          "cwd": "/private/tmp/safe-bash-gaps-native-WQ3CiM",
+          "env": {
+            "PATH": "/private/tmp/safe-bash-gaps-native-WQ3CiM/bin:/private/tmp/safe-bash-gaps-native-WQ3CiM/.roles",
+            "HOME": "/private/tmp/safe-bash-gaps-native-WQ3CiM",
+            "LANG": "C",
+            "LC_ALL": "C",
+            "TZ": "UTC"
+          },
+          "run": {
+            "pid": 90150,
+            "status": 0,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "YS9iOmE=",
+            "stderr": ""
+          },
+          "tuple": {
+            "stdout": "YS9iOmE=",
+            "stderr": "",
+            "status": 0,
+            "entries": {
+              "bin/": null,
+              "work/": null
+            }
+          }
+        },
+        {
+          "id": "parameter-replace-first-global",
+          "args": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "VALUE=abaaba; printf \"%s:%s\" \"${VALUE/a/X}\" \"${VALUE//a/X}\"",
+            "shell"
+          ],
+          "argv0": "bash",
+          "cwd": "/private/tmp/safe-bash-gaps-native-1xdUkp",
+          "env": {
+            "PATH": "/private/tmp/safe-bash-gaps-native-1xdUkp/bin:/private/tmp/safe-bash-gaps-native-1xdUkp/.roles",
+            "HOME": "/private/tmp/safe-bash-gaps-native-1xdUkp",
+            "LANG": "C",
+            "LC_ALL": "C",
+            "TZ": "UTC"
+          },
+          "run": {
+            "pid": 90151,
+            "status": 0,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "WGJhYWJhOlhiWFhiWA==",
+            "stderr": ""
+          },
+          "tuple": {
+            "stdout": "WGJhYWJhOlhiWFhiWA==",
+            "stderr": "",
+            "status": 0,
+            "entries": {
+              "bin/": null,
+              "work/": null
+            }
+          }
+        },
+        {
+          "id": "parameter-anchored-replace",
+          "args": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "VALUE=abcabc; printf \"%s:%s\" \"${VALUE/#abc/X}\" \"${VALUE/%abc/X}\"",
+            "shell"
+          ],
+          "argv0": "bash",
+          "cwd": "/private/tmp/safe-bash-gaps-native-Np3PI8",
+          "env": {
+            "PATH": "/private/tmp/safe-bash-gaps-native-Np3PI8/bin:/private/tmp/safe-bash-gaps-native-Np3PI8/.roles",
+            "HOME": "/private/tmp/safe-bash-gaps-native-Np3PI8",
+            "LANG": "C",
+            "LC_ALL": "C",
+            "TZ": "UTC"
+          },
+          "run": {
+            "pid": 90152,
+            "status": 0,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "WGFiYzphYmNY",
+            "stderr": ""
+          },
+          "tuple": {
+            "stdout": "WGFiYzphYmNY",
+            "stderr": "",
+            "status": 0,
+            "entries": {
+              "bin/": null,
+              "work/": null
+            }
+          }
+        },
+        {
+          "id": "parameter-delete",
+          "args": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "VALUE=ababa; printf \"%s:%s\" \"${VALUE/a/}\" \"${VALUE//a/}\"",
+            "shell"
+          ],
+          "argv0": "bash",
+          "cwd": "/private/tmp/safe-bash-gaps-native-rJekg1",
+          "env": {
+            "PATH": "/private/tmp/safe-bash-gaps-native-rJekg1/bin:/private/tmp/safe-bash-gaps-native-rJekg1/.roles",
+            "HOME": "/private/tmp/safe-bash-gaps-native-rJekg1",
+            "LANG": "C",
+            "LC_ALL": "C",
+            "TZ": "UTC"
+          },
+          "run": {
+            "pid": 90154,
+            "status": 0,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "YmFiYTpiYg==",
+            "stderr": ""
+          },
+          "tuple": {
+            "stdout": "YmFiYTpiYg==",
+            "stderr": "",
+            "status": 0,
+            "entries": {
+              "bin/": null,
+              "work/": null
+            }
+          }
+        },
+        {
+          "id": "parameter-quoted-pattern",
+          "args": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "VALUE=\"a*b*c\"; printf \"%s:%s\" \"${VALUE#\"a*\"}\" \"${VALUE%\"*c\"}\"",
+            "shell"
+          ],
+          "argv0": "bash",
+          "cwd": "/private/tmp/safe-bash-gaps-native-JAM3xq",
+          "env": {
+            "PATH": "/private/tmp/safe-bash-gaps-native-JAM3xq/bin:/private/tmp/safe-bash-gaps-native-JAM3xq/.roles",
+            "HOME": "/private/tmp/safe-bash-gaps-native-JAM3xq",
+            "LANG": "C",
+            "LC_ALL": "C",
+            "TZ": "UTC"
+          },
+          "run": {
+            "pid": 90155,
+            "status": 0,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "YipjOmEqYg==",
+            "stderr": ""
+          },
+          "tuple": {
+            "stdout": "YipjOmEqYg==",
+            "stderr": "",
+            "status": 0,
+            "entries": {
+              "bin/": null,
+              "work/": null
+            }
+          }
+        },
+        {
+          "id": "parameter-escaped-pattern",
+          "args": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "VALUE=\"a*b*c\"; printf \"%s:%s\" \"${VALUE#*\\*}\" \"${VALUE//\\*/X}\"",
+            "shell"
+          ],
+          "argv0": "bash",
+          "cwd": "/private/tmp/safe-bash-gaps-native-xSv3P9",
+          "env": {
+            "PATH": "/private/tmp/safe-bash-gaps-native-xSv3P9/bin:/private/tmp/safe-bash-gaps-native-xSv3P9/.roles",
+            "HOME": "/private/tmp/safe-bash-gaps-native-xSv3P9",
+            "LANG": "C",
+            "LC_ALL": "C",
+            "TZ": "UTC"
+          },
+          "run": {
+            "pid": 90157,
+            "status": 0,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "YipjOmFYYlhj",
+            "stderr": ""
+          },
+          "tuple": {
+            "stdout": "YipjOmFYYlhj",
+            "stderr": "",
+            "status": 0,
+            "entries": {
+              "bin/": null,
+              "work/": null
+            }
+          }
+        },
+        {
+          "id": "parameter-unset-empty",
+          "args": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "unset VALUE; EMPTY=; printf \"<%s><%s><%s><%s>\" \"${VALUE#x}\" \"${VALUE//x/y}\" \"${EMPTY%%*}\" \"${EMPTY//x/y}\"",
+            "shell"
+          ],
+          "argv0": "bash",
+          "cwd": "/private/tmp/safe-bash-gaps-native-P535rI",
+          "env": {
+            "PATH": "/private/tmp/safe-bash-gaps-native-P535rI/bin:/private/tmp/safe-bash-gaps-native-P535rI/.roles",
+            "HOME": "/private/tmp/safe-bash-gaps-native-P535rI",
+            "LANG": "C",
+            "LC_ALL": "C",
+            "TZ": "UTC"
+          },
+          "run": {
+            "pid": 90161,
+            "status": 0,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "PD48Pjw+PD4=",
+            "stderr": ""
+          },
+          "tuple": {
+            "stdout": "PD48Pjw+PD4=",
+            "stderr": "",
+            "status": 0,
+            "entries": {
+              "bin/": null,
+              "work/": null
+            }
+          }
+        },
+        {
+          "id": "parameter-pattern-variable",
+          "args": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "VALUE=abcabc; PAT=\"a*\"; printf \"%s:%s\" \"${VALUE#$PAT}\" \"${VALUE##$PAT}\"",
+            "shell"
+          ],
+          "argv0": "bash",
+          "cwd": "/private/tmp/safe-bash-gaps-native-p0Oo9p",
+          "env": {
+            "PATH": "/private/tmp/safe-bash-gaps-native-p0Oo9p/bin:/private/tmp/safe-bash-gaps-native-p0Oo9p/.roles",
+            "HOME": "/private/tmp/safe-bash-gaps-native-p0Oo9p",
+            "LANG": "C",
+            "LC_ALL": "C",
+            "TZ": "UTC"
+          },
+          "run": {
+            "pid": 90162,
+            "status": 0,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "YmNhYmM6",
+            "stderr": ""
+          },
+          "tuple": {
+            "stdout": "YmNhYmM6",
+            "stderr": "",
+            "status": 0,
+            "entries": {
+              "bin/": null,
+              "work/": null
+            }
+          }
+        },
+        {
+          "id": "parameter-replacement-variable",
+          "args": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "VALUE=aba; PAT=a; REP=\"x y\"; printf \"<%s>\" \"${VALUE//$PAT/$REP}\"",
+            "shell"
+          ],
+          "argv0": "bash",
+          "cwd": "/private/tmp/safe-bash-gaps-native-uwI2Ht",
+          "env": {
+            "PATH": "/private/tmp/safe-bash-gaps-native-uwI2Ht/bin:/private/tmp/safe-bash-gaps-native-uwI2Ht/.roles",
+            "HOME": "/private/tmp/safe-bash-gaps-native-uwI2Ht",
+            "LANG": "C",
+            "LC_ALL": "C",
+            "TZ": "UTC"
+          },
+          "run": {
+            "pid": 90166,
+            "status": 0,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "PHggeWJ4IHk+",
+            "stderr": ""
+          },
+          "tuple": {
+            "stdout": "PHggeWJ4IHk+",
+            "stderr": "",
+            "status": 0,
+            "entries": {
+              "bin/": null,
+              "work/": null
+            }
+          }
+        },
+        {
+          "id": "parameter-nested-default",
+          "args": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "VALUE=abcabc; unset OUTER; printf \"%s\" \"${OUTER:-${VALUE%abc}}\"",
+            "shell"
+          ],
+          "argv0": "bash",
+          "cwd": "/private/tmp/safe-bash-gaps-native-dtgbfu",
+          "env": {
+            "PATH": "/private/tmp/safe-bash-gaps-native-dtgbfu/bin:/private/tmp/safe-bash-gaps-native-dtgbfu/.roles",
+            "HOME": "/private/tmp/safe-bash-gaps-native-dtgbfu",
+            "LANG": "C",
+            "LC_ALL": "C",
+            "TZ": "UTC"
+          },
+          "run": {
+            "pid": 90168,
+            "status": 0,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "YWJj",
+            "stderr": ""
+          },
+          "tuple": {
+            "stdout": "YWJj",
+            "stderr": "",
+            "status": 0,
+            "entries": {
+              "bin/": null,
+              "work/": null
+            }
+          }
+        },
+        {
+          "id": "parameter-substitution-order",
+          "args": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "VALUE=aba; printf \"%s\" \"${VALUE//$(printf a; printf pattern > marker)/$(printf X; printf replacement >> marker)}\"",
+            "shell"
+          ],
+          "argv0": "bash",
+          "cwd": "/private/tmp/safe-bash-gaps-native-zu53Xd",
+          "env": {
+            "PATH": "/private/tmp/safe-bash-gaps-native-zu53Xd/bin:/private/tmp/safe-bash-gaps-native-zu53Xd/.roles",
+            "HOME": "/private/tmp/safe-bash-gaps-native-zu53Xd",
+            "LANG": "C",
+            "LC_ALL": "C",
+            "TZ": "UTC"
+          },
+          "run": {
+            "pid": 90170,
+            "status": 0,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "WGJY",
+            "stderr": ""
+          },
+          "tuple": {
+            "stdout": "WGJY",
+            "stderr": "",
+            "status": 0,
+            "entries": {
+              "bin/": null,
+              "marker": {
+                "bytes": "cGF0dGVybnJlcGxhY2VtZW50",
+                "mode": 420
+              },
+              "work/": null
+            }
+          }
+        },
+        {
+          "id": "parameter-quoted-fields",
+          "args": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "VALUE=\"a b a\"; printf \"<%s>\" \"${VALUE//a/}\" \"${VALUE#a }\"",
+            "shell"
+          ],
+          "argv0": "bash",
+          "cwd": "/private/tmp/safe-bash-gaps-native-GjPS2l",
+          "env": {
+            "PATH": "/private/tmp/safe-bash-gaps-native-GjPS2l/bin:/private/tmp/safe-bash-gaps-native-GjPS2l/.roles",
+            "HOME": "/private/tmp/safe-bash-gaps-native-GjPS2l",
+            "LANG": "C",
+            "LC_ALL": "C",
+            "TZ": "UTC"
+          },
+          "run": {
+            "pid": 90174,
+            "status": 0,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "PCBiID48YiBhPg==",
+            "stderr": ""
+          },
+          "tuple": {
+            "stdout": "PCBiID48YiBhPg==",
+            "stderr": "",
+            "status": 0,
+            "entries": {
+              "bin/": null,
+              "work/": null
+            }
+          }
+        },
+        {
+          "id": "parameter-existing-controls",
+          "args": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "VALUE=abcabc; printf \"%s:%s:%s:%s\" \"${#VALUE}\" \"${VALUE:1:3}\" \"${MISSING:-default}\" \"${VALUE:+set}\"",
+            "shell"
+          ],
+          "argv0": "bash",
+          "cwd": "/private/tmp/safe-bash-gaps-native-YP2NDj",
+          "env": {
+            "PATH": "/private/tmp/safe-bash-gaps-native-YP2NDj/bin:/private/tmp/safe-bash-gaps-native-YP2NDj/.roles",
+            "HOME": "/private/tmp/safe-bash-gaps-native-YP2NDj",
+            "LANG": "C",
+            "LC_ALL": "C",
+            "TZ": "UTC"
+          },
+          "run": {
+            "pid": 90175,
+            "status": 0,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "NjpiY2E6ZGVmYXVsdDpzZXQ=",
+            "stderr": ""
+          },
+          "tuple": {
+            "stdout": "NjpiY2E6ZGVmYXVsdDpzZXQ=",
+            "stderr": "",
+            "status": 0,
+            "entries": {
+              "bin/": null,
+              "work/": null
+            }
+          }
+        }
+      ],
+      "controls": [
+        {
+          "id": "profile-control",
+          "args": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "printf \"parent:%s:%s\\n\" \"$0\" \"$BASH_VERSION\"; ./env-control; ./direct-control",
+            "shell"
+          ],
+          "argv0": "bash",
+          "cwd": "/private/tmp/safe-bash-gaps-native-Xjho28",
+          "env": {
+            "PATH": "/private/tmp/safe-bash-gaps-native-Xjho28/bin:/private/tmp/safe-bash-gaps-native-Xjho28/.roles",
+            "HOME": "/private/tmp/safe-bash-gaps-native-Xjho28",
+            "LANG": "C",
+            "LC_ALL": "C",
+            "TZ": "UTC"
+          },
+          "run": {
+            "pid": 90176,
+            "status": 0,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "cGFyZW50OnNoZWxsOjMuMi41NygxKS1yZWxlYXNlCmVudi1jaGlsZDovcHJpdmF0ZS90bXAvc2FmZS1iYXNoLWdhcHMtbmF0aXZlLVhqaG8yOC8ucm9sZXMvYmFzaDozLjIuNTcoMSktcmVsZWFzZQpkaXJlY3QtY2hpbGQ6L2Jpbi9iYXNoOjMuMi41NygxKS1yZWxlYXNlCg==",
+            "stderr": ""
+          },
+          "tuple": {
+            "stdout": "cGFyZW50OnNoZWxsOjMuMi41NygxKS1yZWxlYXNlCmVudi1jaGlsZDovZml4dHVyZS8ucm9sZXMvYmFzaDozLjIuNTcoMSktcmVsZWFzZQpkaXJlY3QtY2hpbGQ6L2Jpbi9iYXNoOjMuMi41NygxKS1yZWxlYXNlCg==",
+            "stderr": "",
+            "status": 0,
+            "entries": {
+              "bin/": null,
+              "direct-control": {
+                "bytes": "IyEvYmluL2Jhc2gKcHJpbnRmICJkaXJlY3QtY2hpbGQ6JXM6JXNcbiIgIiRCQVNIIiAiJEJBU0hfVkVSU0lPTiIK",
+                "mode": 493
+              },
+              "env-control": {
+                "bytes": "IyEvdXNyL2Jpbi9lbnYgYmFzaApwcmludGYgImVudi1jaGlsZDolczolc1xuIiAiJEJBU0giICIkQkFTSF9WRVJTSU9OIgo=",
+                "mode": 493
+              },
+              "work/": null
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

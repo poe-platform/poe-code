@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { getEventListeners } from "node:events";
 import test from "node:test";
 import { RegexExecutor } from "../../../../src/commands/regex-execution/client.js";
-import { inputBytes, type GlobDescriptor } from "../../../../src/commands/regex-execution/protocol.js";
+import { inputBytes, type Descriptor, type GlobDescriptor, type Match, type Row } from "../../../../src/commands/regex-execution/protocol.js";
 import { Glob, ignoreRules, matchGlobs } from "../../../../src/commands/search/glob.js";
 
 test("worker globs retain code-unit strings, Unicode predicates and ancestor policy", async () => {
@@ -46,7 +46,9 @@ test("glob validation preserves first invalid rule and ignore-file literal brack
 });
 
 test("glob batching caps ordinary descriptors without reordering matches", async () => {
-  const executor = new RegexExecutor();
+  const executor: Omit<RegexExecutor, "request"> & {
+    request(descriptor: Descriptor, rows: readonly Row[], signal: AbortSignal): Promise<Match[][]>;
+  } = new RegexExecutor();
   const session = executor.open(new AbortController().signal);
   const original = executor.request.bind(executor);
   const requests: { patterns: number; rows: number; bytes: number }[] = [];

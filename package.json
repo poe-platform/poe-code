@@ -84,7 +84,9 @@
     "typecheck": "tsc --noEmit",
     "typecheck:consumers": "npm run build && tsc --noEmit -p tests/commands/table-text-stress/shared-stdin-review/tsconfig.consumer.json",
     "test": "node --import tsx --test \"tests/**/*.test.ts\"",
-    "test:contracts": "node --import tsx --test \"tests/contracts/**/*.test.ts\""
+    "test:contracts": "node --import tsx --test \"tests/contracts/**/*.test.ts\"",
+    "verify:stream-public": "node tests/plugins/stream-five-public/verify-public.mjs",
+    "verify:release:qualified": "node scripts/verify-qualified-release.mjs"
   },
   "devDependencies": {
     "@types/node": "^22.20.1",

@@ -8,6 +8,11 @@ import { inspect, git, hash, repository } from "../combined-b494675c/inspect.mjs
 import { account } from "../account.mjs";
 import { supervise } from "../supervise.mjs";
 import { isolatedHistory } from "../history.mjs";
+import { inspectRuntime, probeGuardedRuntime, requireMatchingLauncher } from '../runtime-profile-20260827/profile.mjs';
+
+const runtimeReceipt = inspectRuntime();
+if (!runtimeReceipt.supported) { console.log(JSON.stringify({ runtime: runtimeReceipt, suiteLaunched: false })); process.exit(78); }
+requireMatchingLauncher(runtimeReceipt);
 
 import { assessRepository as assessBase, requireAdmission, stageNative, verifyNativeStaging } from "../preflight-repair/preflight.mjs";
 const freeze = JSON.parse(readFileSync(new URL('./CANDIDATE.json', import.meta.url)));
@@ -51,6 +56,7 @@ const environment = { PATH: `${join(temporary, "native-bin")}:${dirname(process.
   FULL_GATE_ROOT: temporary, FULL_GATE_TOOL_ROOTS: JSON.stringify([npmRoot]), FULL_GATE_SOURCE: source, FULL_GATE_EXPECTED: join(temporary, "harness/critical-source.json") };
 writeFileSync(environment.npm_config_userconfig, ""); writeFileSync(environment.npm_config_globalconfig, "");
 const report = { startedAt: new Date().toISOString(), revision: discovery.revision, discovery, temporary, source, consumer, environment, phases: [],
+  runtimeProfile: runtimeReceipt,
   node: { version: process.version, executable: process.execPath, sha256: hash(readFileSync(process.execPath)), platform: process.platform, arch: process.arch },
   npm: { executable: npmPath, sha256: hash(readFileSync(npmPath)), version: execFileSync(process.execPath, [npmPath, "--version"], { encoding: "utf8", env: environment, timeout: 10000 }).trim() }, handoffRequiredDefaultCount: 70, noPrivateEngine: false,
   fullCompatibilityClaim: false, actualSafeJsAcceptance: "current copied engine availability must be proved; actual outcomes and characterizations counted without upstream acceptance inference" };
@@ -100,11 +106,16 @@ function copyDependencies(origin, destination) {
 }
 async function phase(label, executable, args, cwd = source, timeoutMs = 180000) {
   const env = { ...environment, FULL_GATE_IMPORTS: join(output, "imports", label), NODE_OPTIONS: "--import=" + pathToFileURL(join(temporary, "harness/import-guard.mjs")).href };
-  const result = await supervise(executable, args, { cwd, env, timeoutMs, stdout: join(output, label + ".stdout.log"), stderr: join(output, label + ".stderr.log"), observeSockets: true });
+  const selectedExecutable = executable === 'npm' ? process.execPath : executable;
+  const selectedArgs = executable === 'npm' ? [npmPath, ...args] : args;
+  const result = await supervise(selectedExecutable, selectedArgs, { cwd, env, timeoutMs, stdout: join(output, label + ".stdout.log"), stderr: join(output, label + ".stderr.log"), observeSockets: true });
+  result.observedNodeCommands = result.observed.map(entry => entry.command).filter(command => /^(?:\S+\/)?node(?:\s|$)/u.test(command));
+  result.mixedNodeExecutables = result.observedNodeCommands.map(command => command.split(/\s+/u)[0]).filter(path => path.startsWith('/') && realpathSync(path) !== runtimeReceipt.identity.path);
   result.label = label; result.sourceChanges = verifySource(); report.phases.push(result); save(label + ".result.json", result);
   for (const [path, expected] of Object.entries(report.gateArtifactHashes ?? {})) assert.equal(hash(readFileSync(path)), expected, `Gate artifact changed during ${label}: ${path}`);
   if (label === "test" || label === "contracts") { result.accounting = account(readFileSync(join(output, label + ".stdout.log"), "utf8")); save(label + ".accounting.json", result.accounting); }
   save("report.json", report);
+  assert.deepEqual(result.mixedNodeExecutables, [], `Observed mixed Node runtime during ${label}`);
   assert.deepEqual(result.sourceChanges, [], `Frozen tracked inputs changed during ${label}; later gates must not use mutated inputs`);
   return result;
 }
@@ -178,6 +189,9 @@ try {
   if (report.native["bash5.3"].available) assert.equal(report.native["bash5.3"].sha256, "8cecb482de24198c23a736b931cb7e8cee1f94eb0b51abd54bd99f1d73d9673c");
   report.locales = execFileSync("/usr/bin/locale", ["-a"], { encoding: "utf8", env: environment });
   report.oracleProfile = "Darwin, sanitized LC_ALL/LANG=C and TZ=UTC; fixtures retain explicit UTF8 overrides. /bin/bash remains Apple Bash3.2, separately pinned GNU5.3 is not substituted. Explicit pinned GNU byte oracle variables and regular-copy SAFEJS_LOCAL_ROOT are set; no default /bin/bash replacement.";
+  report.runtimeProbe = probeGuardedRuntime({ executable: process.execPath, root: temporary, source, harness: join(temporary, 'harness'), guard: join(temporary, 'harness/import-guard.mjs'), expectedSource: JSON.parse(readFileSync(environment.FULL_GATE_EXPECTED)), environment });
+  save('runtime-probe.json', report.runtimeProbe);
+  if (report.runtimeProbe.status !== 0) { const error = new Error('Guarded runtime feature probe refused before suite'); error.exitCode = 78; throw error; }
   const discovered = await phase("canonical-discovery", process.execPath, ["--input-type=module", "-e", "import{globSync}from'node:fs';const files=globSync('tests/**/*.test.ts',{exclude:path=>path==='tests/commands/regex-execution/continuation/artifacts/native'});console.log(JSON.stringify(files.sort()));"]);
   assert.equal(discovered.status, 0);
   report.actualCanonicalFiles = JSON.parse(readFileSync(join(output, "canonical-discovery.stdout.log"), "utf8"));
@@ -253,7 +267,7 @@ try {
   report.declaredGateCommandsSucceeded = report.privateUnchanged && report.dependencyChanges.length === 0 && report.phases.every(phase => phase.status === (phase.expectedStatus ?? 0) && phase.clean && phase.sourceChanges.length === 0 && (!phase.accounting || phase.accounting.reconciled)) && report.public?.count === 70;
   report.testOutcomeCounts = report.phases.find(phase => phase.label === "test")?.accounting?.counts;
   if (!report.declaredGateCommandsSucceeded) process.exitCode = 1;
-} catch (error) { report.status = "infrastructure-failed"; report.error = { message: error.message, stack: error.stack }; process.exitCode = 1; }
+} catch (error) { report.status = error.exitCode === 78 ? 'runtime-prerequisite-refused-before-suite' : "infrastructure-failed"; report.error = { message: error.message, stack: error.stack }; process.exitCode = error.exitCode === 78 ? 78 : 1; }
 finally {
   if (report.prerequisites?.safejs?.before) {
     report.privateAfter = privateState();

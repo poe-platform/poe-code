@@ -1,0 +1,13 @@
+import { Shell, MemoryFileSystem, agentCommands, createAgentCommands, createS3HttpTransport, createStreamInspectionCommands, streamInspectionCommands, type AgentCommandsOptions } from "virtual-bash";
+import { createStreamInspectionCommands as streamSubpath } from "virtual-bash/commands/stream-inspection";
+import { createS3HttpTransport as transportSubpath } from "virtual-bash/fs/s3/http";
+const shell = new Shell({ fs: new MemoryFileSystem() }).use(agentCommands());
+void shell.exec("printf 'a\\nb\\n' | tac");
+void createAgentCommands();
+void createS3HttpTransport;
+void transportSubpath;
+const options: AgentCommandsOptions = { streamInspection: {} };
+void agentCommands(options);
+void createStreamInspectionCommands();
+void streamInspectionCommands();
+void streamSubpath();

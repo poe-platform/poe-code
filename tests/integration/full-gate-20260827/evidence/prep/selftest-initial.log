@@ -1,0 +1,114 @@
+TAP version 13
+# Subtest: prep: reject full execution without explicit handoff
+ok 1 - prep: reject full execution without explicit handoff
+  ---
+  duration_ms: 35.147125
+  type: 'test'
+  ...
+# Subtest: prep: independent accounting reconciles preserved 9920 dirty-snapshot TAP
+ok 2 - prep: independent accounting reconciles preserved 9920 dirty-snapshot TAP
+  ---
+  duration_ms: 27.572333
+  type: 'test'
+  ...
+# Subtest: prep: truncated test output cannot reconcile as a successful gate
+ok 3 - prep: truncated test output cannot reconcile as a successful gate
+  ---
+  duration_ms: 0.176375
+  type: 'test'
+  ...
+# Subtest: prep: skip and characterization remain distinct from accepted feature behavior
+ok 4 - prep: skip and characterization remain distinct from accepted feature behavior
+  ---
+  duration_ms: 0.057583
+  type: 'test'
+  ...
+# Subtest: prep: supervisor captures a bounded successful child
+ok 5 - prep: supervisor captures a bounded successful child
+  ---
+  duration_ms: 179.955708
+  type: 'test'
+  ...
+# Subtest: prep: timeout cleans its descendant but leaves another task-owned group alone
+ok 6 - prep: timeout cleans its descendant but leaves another task-owned group alone
+  ---
+  duration_ms: 906.368083
+  type: 'test'
+  ...
+# Subtest: prep: module guard rejects live product fallback without executing it
+ok 7 - prep: module guard rejects live product fallback without executing it
+  ---
+  duration_ms: 33.599375
+  type: 'test'
+  ...
+# Subtest: prep: guard accepts isolated TypeScript and preserves nested native TAP
+not ok 8 - prep: guard accepts isolated TypeScript and preserves nested native TAP
+  ---
+  duration_ms: 265.339458
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/selftest.mjs:61:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    TAP version 13
+    # node:internal/modules/customization_hooks:280
+    #     throw new ERR_INVALID_RETURN_PROPERTY_VALUE(
+    #           ^
+    # TypeError [ERR_INVALID_RETURN_PROPERTY_VALUE]: Expected a string, an ArrayBuffer, or a TypedArray to be returned for the "source" from the "load" hook but got undefined.
+    #     at validateLoad (node:internal/modules/customization_hooks:280:11)
+    #     at nextStep (node:internal/modules/customization_hooks:194:14)
+    #     at load (file:///Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/import-guard.mjs:25:12)
+    #     at nextStep (node:internal/modules/customization_hooks:189:26)
+    #     at loadWithHooks (node:internal/modules/customization_hooks:352:18)
+    #     at \#loadSync (node:internal/modules/esm/loader:849:14)
+    #     at ModuleLoader.load (node:internal/modules/esm/loader:808:28)
+    #     at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:594:31)
+    #     at \#createModuleJob (node:internal/modules/esm/loader:624:36)
+    #     at \#getJobFromResolveResult (node:internal/modules/esm/loader:343:34) {
+    #   code: 'ERR_INVALID_RETURN_PROPERTY_VALUE'
+    # }
+    # Node.js v22.22.2
+    # Subtest: /tmp/full-gate-selftest-NoVE5U/fixture.ts
+    not ok 1 - /tmp/full-gate-selftest-NoVE5U/fixture.ts
+      ---
+      duration_ms: 83.268417
+      type: 'test'
+      location: '/tmp/full-gate-selftest-NoVE5U/fixture.ts:1:1'
+      failureType: 'testCodeFailure'
+      exitCode: 1
+      signal: ~
+      error: 'test failed'
+      code: 'ERR_TEST_FAILURE'
+      ...
+    1..1
+    # tests 1
+    # suites 0
+    # pass 0
+    # fail 1
+    # cancelled 0
+    # skipped 0
+    # todo 0
+    # duration_ms 86.368709
+    
+    
+    1 !== 0
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 0
+  actual: 1
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/selftest.mjs:67:10)
+    process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+1..8
+# tests 8
+# suites 0
+# pass 7
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1498.409625

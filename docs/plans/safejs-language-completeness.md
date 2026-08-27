@@ -25,7 +25,7 @@ language completeness from passing existing tests alone.
 - [x] Agent failures: provide explicit checked/unchecked result handling with
       CLI/SDK parity rather than an implicit unrecoverable orchestration failure.
 - [x] MCP: provide usable transport integration without requiring custom glue.
-- [x] Environment: make capability configuration explicit and missing/denied
+- [ ] Environment: make capability configuration explicit and missing/denied
       variables distinguishable without granting ambient host access.
 - [ ] Budgets: support an explicit recoverable checkpoint/result policy without
       letting scripts bypass host resource limits.
@@ -1441,8 +1441,27 @@ or active checkpoints, not assumed failure checkpoints.
   locally and from the installed package, all five binaries present, and all
   19 consumer symlinks internal. The archive inventory contains 3,350 entries;
   the bundler clears its hashed chunk directory before rebuilding it. User
-  terminal-pilot assets remain untouched. Environment is complete; snapshot,
-  budget, class, generator, regex, network/process, and source-module work remain.
+  terminal-pilot assets remain untouched. A final host-record replacement check
+  reopened environment verification as described below; snapshot, budget, class,
+  generator, regex, network/process, and source-module work also remain.
+
+### Ambient record replacement follow-up
+
+A final TDD audit found that 10.0.0 captures the original `process.env` object,
+although granted ambient values are documented as read at call time. Replacing
+that host record therefore returns an obsolete value. A failing regression
+replaces the whole record and contrasts it with an explicit fixed-value grant.
+Resolve the ambient record only after the permission check on each call; keep
+explicit values copied and fixed. Re-run the environment matrices, verify a
+published patch release, and only then restore the environment completion mark.
+
+The fix also covers replacement with an empty record, so removed ambient secrets
+do not remain readable. The extended matrix adds 64 whole-record replacements
+and 64 corresponding completed restores. It passes locally and in the isolated
+candidate `/tmp/safejs-env-replacement-consumer.N30nX3/project` on Node 18.18.2,
+22.22.2, and 24.14.0. The 12 SDK and six active-root crash matrices, 54 CLI cases,
+public types/installed smoke, and cleanup audit pass again. The preceding
+documentation-only Release run 33052303602 also completed successfully.
 
 ## Stale artifact cleanup
 

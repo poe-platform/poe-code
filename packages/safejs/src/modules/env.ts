@@ -24,13 +24,13 @@ export class EnvAccessError extends Error {
 export function makeEnvModule(input: readonly string[] | EnvModuleOptions): EnvModule {
   const options = normalizeEnvOptions(Array.isArray(input) ? { allow: input } : input);
   const allowedNames = new Set(options.allow);
-  const values = options.values ?? process.env;
+  const values = options.values;
 
   return {
     get(name) {
       const variable = readEnvName(name, "Environment variable name");
       if (!allowedNames.has(variable)) throw new EnvAccessError(variable);
-      return readEnvValue(values, variable);
+      return readEnvValue(values ?? process.env, variable);
     }
   };
 }

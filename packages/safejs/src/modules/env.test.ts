@@ -136,6 +136,21 @@ describe("makeEnvModule", () => {
     expect(env.get("TOKEN")).toBe("second");
   });
 
+  it.each(["replacement", undefined])("uses the current ambient record after replacement (%s)", (replacement) => {
+    vi.stubEnv("TOKEN", "original");
+    const ambient = makeEnvModule(["TOKEN"]);
+    const explicit = makeEnvModule({ allow: ["TOKEN"], values: { TOKEN: "fixed" } });
+    const original = process.env;
+    let observed: unknown;
+    try {
+      process.env = replacement === undefined ? {} : { TOKEN: replacement };
+      observed = [ambient.get("TOKEN"), explicit.get("TOKEN")];
+    } finally {
+      process.env = original;
+    }
+    expect(observed).toEqual([replacement, "fixed"]);
+  });
+
   it("rejects a granted accessor without executing it", () => {
     const getter = vi.fn(() => "secret");
     expect(() =>

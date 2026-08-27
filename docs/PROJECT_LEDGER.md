@@ -1310,6 +1310,83 @@ that any implementation, command, fixture, or test currently exists.
   review, broad required workflows, the72-hour goal and the exact “much better”
   requirement remain open.
 
+### August27,2026 core/bytes, oracle-profile and shell checkpoint
+
+- Curie's author source commits: `b5ec52a` fixes realpath relative rendering and
+  GNU wc column width/explicit C character counts; `8bf6f43` adds streaming
+  cksum crc/md5/sha1/sha224/sha256/sha384/sha512 algorithm selection. These address
+  three of the five frozen core rows and the one bytes row without changing
+  benchmark recipes/expected output. Independent source verification is due.
+- Two env rows remain distinct: direct assignment output order differs from
+  this native profile; nested `env -i A=1 B=2 env -u A` genuinely restores
+  cleared variables through shell invocation merge. The proposed additive
+  `CommandInvokeOptions.replaceEnv?: boolean` has not been agreed/implemented.
+  It would request exact child environment replacement without injecting PWD,
+  preserving parent state, stdin metadata, signal and shared budgets. Sagan owns
+  runtime integration; no bypass, reversed output or benchmark whitening.
+- Sort `f3eb0fe` uses a direct plain-byte comparator and independently owned
+  output chunks capped at64KiB after bounded full-input sorting. Online uniq is
+  unchanged. `afcea6c` fixes the author's CommandHandler-union test typing error.
+  Author sort47/47 and checksum76/76 with pinned GNU9.7 are separate cohorts.
+  The new combined focused run passes193/193, zero fail/skip/TODO, on the moving
+  worktree at HEAD`d1b10a375a13f031f9f604a64395cd507f21a071`.
+- Current global typecheck/build both pass, captured August27,2026
+  02:22:49–02:22:54 UTC with that same starting/ending HEAD. Uncommitted changes
+  in other owners' FS/archive/metadata source and tests were present. This is
+  **not** a committed-snapshot or whole-test-suite result. Package/lock/root
+  exports/aggregate were unchanged by Curie; runtime dependencies remain zero.
+- Isolated sort evidence `a74456e`, in
+  `benchmarks/reports/core-fixes-20260827/sort/report.json`, compares exact
+  `b5ec52a` with the same source tree plus only the `f3eb0fe` text.ts blob, and
+  installed just-bash3.4.2. All3 eligibility controls and18/18 timed executions
+  match stdout/stderr/status/FS. All six order permutations are used. Median ms:
+  before37.873, after9.241, baseline5.725: baseline remains faster. Sampled RSS,
+  startup/warmup, TS-source versus bundle and cohost-load limitations are retained;
+  this is not an overall speed/memory claim. Original slowdown evidence is intact.
+- Primary npm registry capture at02:16:39.706 UTC still identifies latest
+  just-bash3.4.2, published August22,2026 03:28:27.717 UTC; official repository
+  manifest agrees. Exact response/manifest/bundle/lock hashes are in
+  `benchmarks/reports/core-fixes-20260827/release.json`. No new install or main
+  dependency was needed. The historical3.4.2 baseline remains separately pinned.
+- The scratch control commit `2f1bdcb` proves TMPDIR was absent precommand and
+  after noop, but GNU patch dry-run created it under the old fixture-local
+  scratch configuration. `d1b10a3` aligns all engines to preexisting scratch
+  outside `/fixture`; no product workaround or ignored effect paths. The new228
+  native observations preserve every recipe/output/status; exactly one final
+  namespace loses the empty tmp directory. Nine harness/control tests pass.
+  See `benchmarks/reports/expanded-20260827/SCRATCH_PROFILE_DELTA.md`. Historical
+  206/224 versus155/224 and all18 original failures remain untouched; no new
+  full224 product score is asserted under the scratch-aligned profile.
+- `20b889b` adds the distinct frozen baseline-only matrix:53 names, three
+  native-backed primary recipes (dot/source/eval), ours0/3 versus baseline3/3;
+  the other50 names are unmeasured. This extracts immutable reports, not new
+  executions or claims about today's implementations. Separate native-backed
+  baseline-led expansion and different-agent fairness review remain outstanding.
+- Approved provider-observation rule is documented in `cd8b5c8` and
+  `src/contracts/filesystem.md`: faithful forwarding preserves fresh provenance
+  and FS/path/stat-to-content binding without method-reference eligibility.
+  Remappers/cache gateways omit/replace assertions for actual backing resources;
+  no broad trust flag, fictitious disjoint scope or race guarantee. Poincare's
+  S3 implementation `91d5926` is observed, not independently accepted here.
+  Original31/38 and qualified-mock38/38 stay separate pending Dirac review;
+  generic SDK/copied serialized metadata without provenance remains open.
+- Fresh shell checkpoint **reported by root**, not independently rerun here:
+  source `7e69fe1/6370e7/3aa3a41/abdc741/b02bbe8`; independent `90cbf28`
+  unchanged72/72 holdout and132/132 author. Native57 cases retain51/57 GNU5.3
+  and49/57 Bash3.2. Expanded-seven `5cfb70a` remains0/7 (type classification,
+  headerless fallback, env shebang, source, dot, eval, combined parameter
+  expansion); both native profiles7/7. Dirty source/dot/eval author48/48 plus
+  productive distinct verification is not accepted. BOM fix16 text failures and
+  22 byte checks are separate from63/64 suite with one jq diagnostic assertion.
+  Do not infer current kernel36/36; classifier differences need honest semantics,
+  not a forced builtin label. Later source/eval commits require their own proof.
+- Faraday's patch `-s` and stat formatting fixes are separate production work;
+  the scratch-profile correction is only a documented oracle delta. SGID6
+  remains a backend/profile decision: command postcheck/rollback is not a safe
+  fix for mode/ctime races. All other owners' files and temporary artifacts are
+  preserved. The full backend/tool/kernel,72-hour and “much better” goals remain
+  active and unproven; no new tool batch or shared lifecycle API was added.
+
 ### Remaining product validation
 
 - Re-run whole-repo typechecking, tests, build, and export checks as concurrent

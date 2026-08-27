@@ -271,6 +271,23 @@
   incomplete baseline-only command coverage. Keep terminal byte-API mismatches
   distinct from internal pipe/file corruption, and performance TS-source versus
   bundled-package/setup differences explicit. Distinct fairness review is pending.
+- Curie's routed core/bytes author fixes are `b5ec52a` (realpath/wc), `f3eb0fe`
+  plus type-test correction `afcea6c` (sort), and `8bf6f43` (cksum algorithms).
+  This narrow checksum assignment supersedes the general bytes exclusion only
+  for that routed work. Distinct source/performance verification remains due.
+  Preserve the frozen224 observations: nested env clearing still needs agreed
+  shell invocation replacement semantics; environment entry ordering is a
+  separate native-profile discrepancy, not a reason to reverse/sort to green.
+- Preserve the shell cohorts independently: reported `90cbf28` is72/72 holdout
+  and132/132 author, while frozen expanded-seven `5cfb70a` remains0/7 and native
+  GNU5.3/Bash3.2 both7/7. Dirty source/dot/eval48/48 is not accepted closure.
+  Type classification must reflect actual registry/kernel dispatch; never call
+  a registry command a builtin solely to satisfy a comparison expectation.
+- Benchmark scratch setup is a harness role outside the asserted fixture, not
+  a product requirement to manufacture `/fixture/tmp`. Preserve old native
+  captures/scores beside the separate scratch-aligned profile. The distinct
+  baseline-only matrix has53 frozen names, three measured primary recipes and
+  fifty unmeasured names; unmeasured is never success or complete parity.
 - Curie independently owns `tests/stress/s3-policy/**` for rename policy review;
   read adapter source but send source fixes to Poincare. Keep capable-client
   ordinary rename useful while testing preconditions and honest partial errors;

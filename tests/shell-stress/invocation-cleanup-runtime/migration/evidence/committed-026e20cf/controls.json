@@ -1,0 +1,15 @@
+{
+  "status": 0,
+  "signal": null,
+  "error": null,
+  "counts": {
+    "tests": 15,
+    "pass": 15,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "sourceHash": "b82821a4a9f47122942eb1d759653f8f4c28a8a9101e806163fb5ff874e8b59d",
+  "committedSource": "026e20cf38ddbb695d82de3f30cf7a1a7c88f088"
+}

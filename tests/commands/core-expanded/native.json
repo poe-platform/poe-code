@@ -1,0 +1,339 @@
+{
+  "capturedAt": "2026-08-27T02:04:11.208Z",
+  "tools": {
+    "wc": {
+      "path": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/wc",
+      "sha256": "0e5f97838353293c4e4272cccf4a37de800539ad9d6b1094f4d9695501da7060",
+      "version": "wc (GNU coreutils) 9.7"
+    },
+    "realpath": {
+      "path": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/realpath",
+      "sha256": "c88d28201142f5126674d7d32cdc32f08d6dd5dbbf10b6c774e6810716067e81",
+      "version": "realpath (GNU coreutils) 9.7"
+    },
+    "env": {
+      "path": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/env",
+      "sha256": "1026eb36ffd2fdca6d064c0ffd6dd99ceb7bb3f49ec5e804df2c53bef372dbf0",
+      "version": "env (GNU coreutils) 9.7"
+    }
+  },
+  "wc": [
+    {
+      "name": "pipe two columns",
+      "args": [
+        "-lw"
+      ],
+      "stdin": "one two\nthree\n",
+      "env": {
+        "LC_ALL": "C"
+      },
+      "stdout": "      2       3\n",
+      "stderr": "",
+      "exitCode": 0
+    },
+    {
+      "name": "C characters",
+      "args": [
+        "-m"
+      ],
+      "stdin": "éabc\n",
+      "env": {
+        "LC_ALL": "C"
+      },
+      "stdout": "6\n",
+      "stderr": "",
+      "exitCode": 0
+    },
+    {
+      "name": "POSIX characters",
+      "args": [
+        "-m"
+      ],
+      "stdin": "éabc\n",
+      "env": {
+        "LC_ALL": "POSIX"
+      },
+      "stdout": "6\n",
+      "stderr": "",
+      "exitCode": 0
+    },
+    {
+      "name": "UTF8 characters",
+      "args": [
+        "-m"
+      ],
+      "stdin": "é😀\n",
+      "env": {
+        "LC_ALL": "en_US.UTF-8"
+      },
+      "stdout": "3\n",
+      "stderr": "",
+      "exitCode": 0
+    },
+    {
+      "name": "UTF8 BOM",
+      "args": [
+        "-m"
+      ],
+      "stdin": "﻿a\n",
+      "env": {
+        "LC_ALL": "en_US.UTF-8"
+      },
+      "stdout": "3\n",
+      "stderr": "",
+      "exitCode": 0
+    },
+    {
+      "name": "all columns",
+      "args": [
+        "-lwcm"
+      ],
+      "stdin": "héllo  world\nlast",
+      "env": {
+        "LC_ALL": "en_US.UTF-8"
+      },
+      "stdout": "      1       3      17      18\n",
+      "stderr": "",
+      "exitCode": 0
+    },
+    {
+      "name": "C overrides LANG",
+      "args": [
+        "-m"
+      ],
+      "stdin": "é\n",
+      "env": {
+        "LC_ALL": "C",
+        "LANG": "en_US.UTF-8"
+      },
+      "stdout": "3\n",
+      "stderr": "",
+      "exitCode": 0
+    },
+    {
+      "name": "CTYPE overrides LANG",
+      "args": [
+        "-m"
+      ],
+      "stdin": "é\n",
+      "env": {
+        "LC_CTYPE": "C",
+        "LANG": "en_US.UTF-8"
+      },
+      "stdout": "3\n",
+      "stderr": "",
+      "exitCode": 0
+    },
+    {
+      "name": "single file",
+      "args": [
+        "-lwcm",
+        "first"
+      ],
+      "stdin": "",
+      "env": {
+        "LC_ALL": "C"
+      },
+      "stdout": " 5  5 10 10 first\n",
+      "stderr": "",
+      "exitCode": 0
+    },
+    {
+      "name": "files total width",
+      "args": [
+        "-lwcm",
+        "first",
+        "second"
+      ],
+      "stdin": "",
+      "env": {
+        "LC_ALL": "C"
+      },
+      "stdout": " 5  5 10 10 first\n 2  2  4  4 second\n 7  7 14 14 total\n",
+      "stderr": "",
+      "exitCode": 0
+    },
+    {
+      "name": "file single column",
+      "args": [
+        "-l",
+        "first",
+        "second"
+      ],
+      "stdin": "",
+      "env": {
+        "LC_ALL": "C"
+      },
+      "stdout": " 5 first\n 2 second\n 7 total\n",
+      "stderr": "",
+      "exitCode": 0
+    },
+    {
+      "name": "file plus stream",
+      "args": [
+        "-lc",
+        "first",
+        "-"
+      ],
+      "stdin": "x\n",
+      "env": {
+        "LC_ALL": "C"
+      },
+      "stdout": "      5      10 first\n      1       2 -\n      6      12 total\n",
+      "stderr": "",
+      "exitCode": 0
+    }
+  ],
+  "realpath": [
+    {
+      "args": [
+        "--relative-to=.",
+        "tree/file"
+      ],
+      "stdout": "tree/file\n",
+      "stderr": "",
+      "exitCode": 0
+    },
+    {
+      "args": [
+        "--relative-to",
+        "tree",
+        "tree/file"
+      ],
+      "stdout": "file\n",
+      "stderr": "",
+      "exitCode": 0
+    },
+    {
+      "args": [
+        "--relative-to=tree",
+        "other/file"
+      ],
+      "stdout": "../other/file\n",
+      "stderr": "",
+      "exitCode": 0
+    },
+    {
+      "args": [
+        "--relative-to=alias",
+        "tree/file"
+      ],
+      "stdout": "file\n",
+      "stderr": "",
+      "exitCode": 0
+    },
+    {
+      "args": [
+        "--relative-base=tree",
+        "tree/file",
+        "other/file"
+      ],
+      "stdout": "file\n/work/other/file\n",
+      "stderr": "",
+      "exitCode": 0
+    },
+    {
+      "args": [
+        "--relative-to=tree",
+        "--relative-base=.",
+        "other/file"
+      ],
+      "stdout": "../other/file\n",
+      "stderr": "",
+      "exitCode": 0
+    },
+    {
+      "args": [
+        "--relative-to=other",
+        "--relative-base=tree",
+        "tree/file"
+      ],
+      "stdout": "/work/tree/file\n",
+      "stderr": "",
+      "exitCode": 0
+    },
+    {
+      "args": [
+        "-m",
+        "--relative-to=tree/missing",
+        "other/missing/leaf"
+      ],
+      "stdout": "../../other/missing/leaf\n",
+      "stderr": "",
+      "exitCode": 0
+    },
+    {
+      "args": [
+        "-e",
+        "--relative-to=tree",
+        "tree/file"
+      ],
+      "stdout": "file\n",
+      "stderr": "",
+      "exitCode": 0
+    },
+    {
+      "args": [
+        "-z",
+        "--relative-to=.",
+        "tree/file",
+        "other/file"
+      ],
+      "stdout": "tree/file\u0000other/file\u0000",
+      "stderr": "",
+      "exitCode": 0
+    },
+    {
+      "args": [
+        "--relative-to=tree",
+        "tree"
+      ],
+      "stdout": ".\n",
+      "stderr": "",
+      "exitCode": 0
+    },
+    {
+      "args": [
+        "--",
+        "--relative-to=literal"
+      ],
+      "stdout": "/work/--relative-to=literal\n",
+      "stderr": "",
+      "exitCode": 0
+    }
+  ],
+  "environmentOrder": [
+    {
+      "args": [
+        "-i",
+        "A=1",
+        "B=2"
+      ],
+      "stdout": "B=2\nA=1\n",
+      "stderr": "",
+      "exitCode": 0
+    },
+    {
+      "args": [
+        "-i",
+        "B=2",
+        "A=1"
+      ],
+      "stdout": "A=1\nB=2\n",
+      "stderr": "",
+      "exitCode": 0
+    },
+    {
+      "args": [
+        "-i",
+        "ONE=1",
+        "TWO=2",
+        "THREE=3"
+      ],
+      "stdout": "THREE=3\nTWO=2\nONE=1\n",
+      "stderr": "",
+      "exitCode": 0
+    }
+  ],
+  "sourceSha256": "6d030da87d28f540fca10c4875374a8489f8a2bbbff2d320fc96978024f9bd14"
+}

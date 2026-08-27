@@ -44,7 +44,7 @@ test("head stops reading when satisfied and multiple input headers are controlla
 
 test("wc tracks words across chunks and distinguishes bytes, UTF-8 characters and newlines", async () => {
   const result = await run("wc", ["-lwcm"], { stdin: chunks("héllo  world\nlast") });
-  assert.equal(result.stdout, "1 3 17 18\n");
+  assert.equal(result.stdout, "      1       3      17      18\n");
   assert.equal((await run("wc", ["-c"], { stdin: new Uint8Array([0, 255, 1]) })).stdout, "3\n");
   const fs = await fixture({ first: "a\n", second: "b\nc\n" });
   assert.equal((await run("wc", ["-l", "first", "second"], { fs })).stdout, "1 first\n2 second\n3 total\n");

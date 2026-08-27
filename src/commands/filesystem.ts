@@ -1,5 +1,5 @@
 import {
-  basename, dirname, FsError, isPathWithin, joinPath,
+  basename, dirname, FsError, isPathWithin, joinPath, relativePath,
   type CommandContext, type CommandDefinition, type FileStat,
 } from "../contracts/index.js";
 import { codeOf, define, eachOperand, options, output, pathOf, requireOperands, UsageError, value } from "./internal.js";
@@ -272,15 +272,38 @@ export function filesystemCommands(): CommandDefinition[] {
       });
     }),
     define("realpath", async context => {
-      const parsed = options(context.args, "emz", { "canonicalize-existing": "e", "canonicalize-missing": "m", zero: "z" });
+      const args: string[] = [];
+      const relative = new Map<string, string>();
+      let ended = false;
+      for (let index = 0; index < context.args.length; index++) {
+        const argument = context.args[index]!;
+        if (argument === "--") ended = true;
+        const key = argument.split("=", 1)[0]!;
+        if (!ended && (key === "--relative-to" || key === "--relative-base")) {
+          const equals = argument.indexOf("=");
+          const directory = equals < 0 ? context.args[++index] : argument.slice(equals + 1);
+          if (directory === undefined) throw new UsageError(`option '${key}' requires an argument`);
+          relative.set(key, directory);
+        } else args.push(argument);
+      }
+      const parsed = options(args, "emz", { "canonicalize-existing": "e", "canonicalize-missing": "m", zero: "z" });
       requireOperands(parsed.operands);
-      return eachOperand(context, parsed.operands, async operand => {
+      const canonical = async (operand: string): Promise<string> => {
         const path = pathOf(context, operand);
         const existing = await maybeStat(context, path, false);
-        const resolved = parsed.flags.has("m") ? await canonicalMissing(context, path)
+        return parsed.flags.has("m") ? await canonicalMissing(context, path)
           : parsed.flags.has("e") || existing ? await context.fs.realpath(path, { signal: context.signal })
           : joinPath(await context.fs.realpath(dirname(path), { signal: context.signal }), basename(path));
-        await output(context, resolved + (parsed.flags.has("z") ? "\0" : "\n"));
+      };
+      const baseOperand = relative.get("--relative-base");
+      const toOperand = relative.get("--relative-to") ?? baseOperand;
+      const base = baseOperand === undefined ? undefined : await canonical(baseOperand);
+      const to = toOperand === undefined ? undefined : await canonical(toOperand);
+      return eachOperand(context, parsed.operands, async operand => {
+        const resolved = await canonical(operand);
+        const display = to !== undefined && (base === undefined || isPathWithin(base, to) && isPathWithin(base, resolved))
+          ? relativePath(to, resolved) || "." : resolved;
+        await output(context, display + (parsed.flags.has("z") ? "\0" : "\n"));
       });
     }),
     define("ls", async context => {

@@ -65,10 +65,10 @@ options. Invalid options and malformed operands produce diagnostics and status
 | `readlink` | Literal link targets; canonical `-f`, existing-only `-e`, no newline `-n`, NUL `-z`. |
 | `basename` | Root/trailing slash handling, optional suffix, `-a`, `-s`, `-z`. |
 | `dirname` | Multiple path operands, trailing slashes and roots, `-z`. |
-| `realpath` | Existing paths and missing final component; `-e`, `-m`, `-z`. |
+| `realpath` | Existing paths and missing final component; `-e`, `-m`, `-z`, `--relative-to`, `--relative-base`; relative bases follow the selected canonicalization mode. |
 | `head` | Default ten lines, `-n`, `-c`, legacy leading `-NUMBER`, negative omit-last counts, `-q`, `-v`; early input termination. |
 | `tail` | Default last ten lines, `-n`, `-c`, legacy leading `-NUMBER`, `+N` origins, `-q`, `-v`; bounded suffix buffering. |
-| `wc` | `-l`, `-w`, `-c`, `-m`; multiple files and totals; byte counting and UTF-8 decoding across chunk boundaries. |
+| `wc` | `-l`, `-w`, `-c`, `-m`; multiple files/totals and GNU field widths; C/POSIX `-m` counts bytes, otherwise UTF-8 decoding across chunks (default UTF-8). Locale priority is LC_ALL, LC_CTYPE, LANG. Virtual stdin is an opaque stream, so multi-column stream width is seven; native regular-file stdin width requires descriptor metadata not currently exposed. |
 | `sort` | Byte ordering, exact decimal numeric comparison `-n`, `-r`, `-f`, `-b`, `-s`, `-u`, `-t`, repeated `-k` with field/character ranges and `bfnr` modifiers, `-o`, `-c`, `-z`. |
 | `uniq` | Adjacent groups, `-c`, `-d`, `-u`, `-i`, field/byte skips `-f`/`-s`, comparison width `-w`, `-z`, optional input/output paths. |
 | `cut` | Byte `-b`, UTF-8 codepoint `-c`, field `-f` ranges including open/overlapping ranges; `-d`, `-s`, `-z`, `--complement`, `--output-delimiter`. |

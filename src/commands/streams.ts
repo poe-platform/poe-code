@@ -193,12 +193,27 @@ export function streamCommands(): CommandDefinition[] {
       const selected = ["l", "w", "m", "c"].filter(flag => parsed.flags.has(flag));
       const names = parsed.operands.length ? parsed.operands : ["-"];
       const totals: Record<string, number> = { l: 0, w: 0, m: 0, c: 0 };
+      const locale = context.env.LC_ALL || context.env.LC_CTYPE || context.env.LANG || "C.UTF-8";
+      const singleByte = locale === "C" || locale === "POSIX";
+      let width = 1;
+      if (names.length > 1 || selected.length > 1) {
+        let totalSize = 0n;
+        for (const name of names) {
+          if (name === "-") { width = Math.max(width, 7); continue; }
+          try {
+            const stat = await context.fs.stat(pathOf(context, name), { signal: context.signal });
+            if (stat.type !== "file") width = Math.max(width, 7);
+            else if (Number.isSafeInteger(stat.size) && stat.size >= 0) totalSize += BigInt(stat.size);
+          } catch { context.signal.throwIfAborted(); }
+        }
+        width = Math.max(width, totalSize.toString().length);
+      }
       let exitCode = 0;
-      const print = async (counts: Record<string, number>, name?: string) => output(context, selected.map(flag => String(counts[flag])).join(" ") + (name === undefined ? "" : ` ${name}`) + "\n");
+      const print = async (counts: Record<string, number>, name?: string) => output(context, selected.map(flag => String(counts[flag]).padStart(width)).join(" ") + (name === undefined ? "" : ` ${name}`) + "\n");
       for (const name of names) {
         const counts: Record<string, number> = { l: 0, w: 0, m: 0, c: 0 };
         let inWord = false;
-        const utf8 = new TextDecoder();
+        const utf8 = new TextDecoder("utf-8", { ignoreBOM: true });
         try {
           for await (const chunk of input(context, name)) {
             context.signal.throwIfAborted();
@@ -209,9 +224,9 @@ export function streamCommands(): CommandDefinition[] {
               if (!whitespace && !inWord) counts.w!++;
               inWord = !whitespace;
             }
-            if (parsed.flags.has("m")) counts.m! += [...utf8.decode(chunk, { stream: true })].length;
+            if (parsed.flags.has("m")) counts.m! += singleByte ? chunk.length : [...utf8.decode(chunk, { stream: true })].length;
           }
-          if (parsed.flags.has("m")) counts.m! += [...utf8.decode()].length;
+          if (parsed.flags.has("m") && !singleByte) counts.m! += [...utf8.decode()].length;
           for (const field of Object.keys(totals)) totals[field]! += counts[field]!;
           await print(counts, parsed.operands.length ? name : undefined);
         } catch (error) { await diagnostic(context, error); exitCode = 1; }

@@ -10,15 +10,23 @@ export class TreeLimitError extends FsError {
   }
 }
 
-export function message(error: unknown): string {
-  return error instanceof Error ? error.message.replace(/^[A-Z][A-Z0-9]+: /u, "") : String(error);
+export function message(error: unknown, budget: WalkBudget): string {
+  const value: unknown = error instanceof Error ? error.message : error;
+  const text = typeof value === "string" ? value
+    : value === null || value === undefined || typeof value === "number" || typeof value === "boolean" ? String(value)
+    : "non-string filesystem error";
+  budget.text(text);
+  return error instanceof Error ? text.replace(/^[A-Z][A-Z0-9]+: /u, "") : text;
 }
 
-export function escaped(value: string): string {
+export function escaped(value: string, budget: WalkBudget): string {
+  budget.outputText(value);
   const controls: Record<number, string> = { 8: "\\b", 9: "\\t", 10: "\\n", 11: "\\v", 12: "\\f", 13: "\\r", 92: "\\\\" };
   let result = "";
   for (const byte of new TextEncoder().encode(value)) {
-    result += controls[byte] ?? (byte >= 32 && byte < 127 ? String.fromCharCode(byte) : `\\${byte.toString(8).padStart(3, "0")}`);
+    const part = controls[byte] ?? (byte >= 32 && byte < 127 ? String.fromCharCode(byte) : `\\${byte.toString(8).padStart(3, "0")}`);
+    budget.checkOutput(result.length + part.length);
+    result += part;
   }
   return result;
 }
@@ -41,9 +49,20 @@ export class WalkBudget {
   entry(count = 1): void { this.check(this.entries += count, this.limits.maxEntries, "entry"); }
 
   text(value: string): void {
+    this.check(value.length, this.limits.maxPathBytes, "path/name");
+    this.check(this.metadata + value.length, this.limits.maxMetadataBytes, "metadata");
     const size = Buffer.byteLength(value);
     this.check(size, this.limits.maxPathBytes, "path/name");
     this.check(this.metadata += size, this.limits.maxMetadataBytes, "metadata");
+  }
+
+  checkOutput(size: number): void { this.check(this.output + size, this.limits.maxOutputBytes, "output"); }
+
+  outputText(value: string): number {
+    this.checkOutput(value.length);
+    const size = Buffer.byteLength(value);
+    this.checkOutput(size);
+    return size;
   }
 
   async fs<Result>(operation: () => Promise<Result>): Promise<Result> {
@@ -67,8 +86,7 @@ export class WalkBudget {
   }
 
   async emit(sink: ByteSink, value: string): Promise<void> {
-    const size = Buffer.byteLength(value);
-    this.check(this.output + size, this.limits.maxOutputBytes, "output");
+    const size = this.outputText(value);
     this.output += size;
     const bytes = new TextEncoder().encode(value);
     for (let offset = 0; offset < bytes.length; offset += 16384) {

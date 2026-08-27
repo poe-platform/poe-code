@@ -24,6 +24,7 @@ export function parse(args: readonly string[], budget: WalkBudget): Arguments {
   budget.check(args.length, budget.limits.maxArguments, "argument count");
   let bytes = 0;
   for (const arg of args) {
+    budget.check(bytes + arg.length, budget.limits.maxArgumentBytes, "argument");
     budget.check(bytes += Buffer.byteLength(arg), budget.limits.maxArgumentBytes, "argument");
     if (arg.includes("\0")) throw new UsageError("arguments must not contain NUL");
     if (/[\ud800-\udfff]/u.test(arg)) throw new UsageError("arguments must be well-formed Unicode");

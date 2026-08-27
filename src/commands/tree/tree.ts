@@ -18,7 +18,28 @@ interface Entry {
 
 function directory(entry: Entry): boolean { return (entry.followed ?? entry.stat)?.type === "directory"; }
 
-function serialized(value: unknown): string {
+function serialized(value: Readonly<Record<string, string | number>>, budget: WalkBudget): string {
+  let size = 2;
+  const add = (count: number): void => { budget.checkOutput(size += count); };
+  const string = (text: string): void => {
+    budget.outputText(text);
+    add(2);
+    for (const character of text) {
+      const point = character.codePointAt(0)!;
+      if (point === 34 || point === 92 || point === 8 || point === 9 || point === 10 || point === 12 || point === 13) add(2);
+      else if (point < 32 || (point >= 0xd800 && point <= 0xdfff) || /[\u007f-\u009f\u2028\u2029\p{Cf}]/u.test(character)) add(6 * character.length);
+      else add(point < 0x80 ? 1 : point < 0x800 ? 2 : point < 0x10000 ? 3 : 4);
+    }
+  };
+  let first = true;
+  for (const [key, field] of Object.entries(value)) {
+    if (!first) add(1);
+    first = false;
+    string(key); add(1);
+    if (typeof field === "string") string(field);
+    else if (typeof field === "number") add(String(field).length);
+    else throw new TypeError("tree JSON fields must be strings or numbers");
+  }
   return JSON.stringify(value).replace(/[\u007f-\u009f\u2028\u2029\p{Cf}]/gu,
     character => character.split("").map(unit => `\\u${unit.charCodeAt(0).toString(16).padStart(4, "0")}`).join(""));
 }
@@ -49,7 +70,7 @@ class Walker {
     } catch (error) {
       context.signal.throwIfAborted();
       if (error instanceof TreeLimitError) throw error;
-      entry.error = message(error);
+      entry.error = message(error, this.budget);
     }
     if (entry.target !== undefined) this.budget.text(entry.target);
     return entry;
@@ -71,7 +92,7 @@ class Walker {
     } catch (error) {
       context.signal.throwIfAborted();
       if (error instanceof TreeLimitError) throw error;
-      entry.error = message(error); return [];
+      entry.error = message(error, this.budget); return [];
     }
     this.budget.check(listing.length, limits.maxDirectoryEntries, "directory entry");
     this.budget.entry(listing.length);
@@ -91,7 +112,7 @@ class Walker {
       candidates.push({ name: item.name, bytes });
     }
     candidates.sort((left, right) => {
-      this.budget.step();
+      this.budget.step(1 + left.bytes.length + right.bytes.length);
       return Buffer.compare(left.bytes, right.bytes) * (this.args.reverse ? -1 : 1);
     });
     const children: Entry[] = [];
@@ -104,7 +125,10 @@ class Walker {
       }
       children.push(child);
     }
-    if (this.args.dirsFirst) children.sort((left, right) => Number(directory(right)) - Number(directory(left)));
+    if (this.args.dirsFirst) children.sort((left, right) => {
+      this.budget.step();
+      return Number(directory(right)) - Number(directory(left));
+    });
     return children;
   }
 
@@ -115,14 +139,14 @@ class Walker {
     if (entry.error) {
       this.budget.text(entry.error);
       this.failed = true;
-      await this.budget.emit(this.budget.context.stderr, `tree: ${escaped(entry.display)}: ${escaped(entry.error)}\n`);
+      await this.budget.emit(this.budget.context.stderr, `tree: ${escaped(entry.display, this.budget)}: ${escaped(entry.error, this.budget)}\n`);
     }
     const name = depth === 0 || this.args.full ? entry.display : entry.name;
     const annotation = entry.error ?? (entry.cycle ? "recursive, not followed" : undefined);
     if (this.args.json) {
       const fields = { type: entry.stat?.type === "symlink" ? "link" : entry.stat?.type ?? "unknown", name,
         ...(entry.target === undefined ? {} : { target: entry.target }), ...(annotation === undefined ? {} : { error: annotation }) };
-      await this.write(`${this.padding(depth + 1)}${serialized(fields).slice(0, -1)}`);
+      await this.write(`${this.padding(depth + 1)}${serialized(fields, this.budget).slice(0, -1)}`);
       if (children.length) {
         await this.write(`,"contents":[${this.newline()}`);
         for (let index = 0; index < children.length; index++) {
@@ -135,7 +159,7 @@ class Walker {
     } else {
       const utf8 = this.args.charset === "UTF-8";
       const branch = this.args.indent && depth > 0 ? prefix + (last ? (utf8 ? "└── " : "`-- ") : (utf8 ? "├── " : "|-- ")) : "";
-      await this.write(`${branch}${escaped(name)}${entry.target === undefined ? "" : ` -> ${escaped(entry.target)}`}${annotation === undefined ? "" : `  [${escaped(annotation)}]`}\n`);
+      await this.write(`${branch}${escaped(name, this.budget)}${entry.target === undefined ? "" : ` -> ${escaped(entry.target, this.budget)}`}${annotation === undefined ? "" : `  [${escaped(annotation, this.budget)}]`}\n`);
       const childPrefix = depth === 0 ? "" : prefix + (last ? "    " : utf8 ? "│   " : "|   ");
       for (let index = 0; index < children.length; index++) {
         await this.visit(children[index]!, [...ancestors, entry], childPrefix, index === children.length - 1, depth + 1);
@@ -148,9 +172,11 @@ class Walker {
   private write(value: string): Promise<void> { return this.budget.emit(this.budget.context.stdout, value); }
 
   async run(): Promise<number> {
+    this.budget.text(this.budget.context.cwd);
     if (this.args.json) await this.write(`[${this.newline()}`);
     for (let index = 0; index < this.args.operands.length; index++) {
       const operand = this.args.operands[index]!;
+      this.budget.text(operand);
       this.budget.entry();
       if (this.args.json && index) await this.write(`,${this.newline()}`);
       const entry = await this.inspect(resolvePath(this.budget.context.cwd, operand), operand, operand);
@@ -159,7 +185,7 @@ class Walker {
     if (this.args.report) {
       if (this.args.json) {
         await this.write(`,${this.newline()}${this.padding(1)}${serialized({ type: "report", directories: this.directories,
-          ...(this.args.directories ? {} : { files: this.files }) })}`);
+          ...(this.args.directories ? {} : { files: this.files }) }, this.budget)}`);
       } else await this.write(`\n${this.directories} ${this.directories === 1 ? "directory" : "directories"}${this.args.directories ? "" : `, ${this.files} ${this.files === 1 ? "file" : "files"}`}\n`);
     }
     if (this.args.json) await this.write(`${this.newline()}]\n`);
@@ -176,7 +202,7 @@ export function createTreeCommand(options: TreeCommandsOptions = {}): CommandDef
     catch (error) {
       context.signal.throwIfAborted();
       if (!(error instanceof UsageError)) throw error;
-      await budget.emit(context.stderr, `tree: ${escaped(error.message)}\n`);
+      await budget.emit(context.stderr, `tree: ${escaped(error.message, budget)}\n`);
       return { exitCode: 2 };
     }
     if (args.help || args.version) {

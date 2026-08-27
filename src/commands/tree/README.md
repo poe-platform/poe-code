@@ -85,8 +85,10 @@ Every awaited FS call receives the supplied signal and is checked before/after;
 an abort races pending operations and observes their eventual rejections. The
 command cannot force an uncooperative backend to stop its own work. Sinks use
 `writeBytes` with the signal, owned chunks no larger than 16 KiB, and awaited
-backpressure. Sink failures, cancellation and family-limit errors propagate,
-not converted into FS diagnostics. Already-emitted bytes remain; output after
+backpressure. Sink failures, cancellation and family-limit errors propagate at
+the command boundary, not converted into ordinary FS diagnostics by tree. The
+current Shell may render a non-abort limit error as status 1. Already-emitted
+bytes remain; output after
 these exceptional failures can be a partial text prefix or incomplete JSON.
 No output/namespace rollback is claimed. Shell output sinks retain the existing
 shared execution output budget, including stderr and multiple invocations.
@@ -105,10 +107,39 @@ Every limit is a positive safe integer, copied and validated at factory creation
 | `maxEntries` | 100000 | Root operands plus every returned directory entry, even excluded/hidden |
 | `maxDirectoryEntries` | 10000 | Raw returned array length |
 | `maxDepth` | 256 | Descent safety bound; default exceeding it fails rather than silently truncating |
-| `maxPathBytes` | 16384 | Each observed path, display path, name, link target and error message |
+| `maxPathBytes` | 16384 | Each cwd, raw operand, observed/display path, name, link target and raw/rendered error message |
 | `maxMetadataBytes` | 8388608 | Cumulative bytes of those strings; repeated strings are charged again |
 | `maxOutputBytes` | 16777216 | Combined stdout/stderr bytes, admitted before each write operation |
-| `maxSteps` | 4194304 | FS/comparison calls, entries, name-sort comparisons, pattern compilation, alternatives and DP row/transition work |
+| `maxSteps` | 4194304 | FS/comparison calls, entries, sort byte spans and grouping comparisons, pattern compilation, alternatives and DP row/transition work |
+
+Name sorting reserves `1 + left UTF-8 byte length + right UTF-8 byte length`
+before each `Buffer.compare`. This conservatively covers both full byte spans
+even when the actual comparison exits early. The second `--dirsfirst` sort
+charges one unit before each constant-size directory-classification comparison.
+Both passes use the same cumulative budget and check cancellation before every
+comparison. Ordering, stable grouping and reverse behavior are unchanged. Actual
+comparison counts are engine/input dependent; this is not a CPU-time benchmark.
+
+String admission first uses constant-time UTF-16 length as a lower bound on UTF-8
+bytes, against both the per-field and remaining cumulative quota. Only then may
+bounded byte sizing, regex scanning or encoding occur. Backend `Error.message`
+is admitted **raw, before errno-prefix stripping**; the rendered message is also
+charged when visited. Cwd/raw operands are admitted before virtual path
+normalization, and arguments before byte sizing. These are memory/work policy
+checks, not namespace/security authority. Unknown object/symbol/bigint exceptions
+use a fixed diagnostic rather than invoking arbitrary text conversion; string
+errors and `Error.message` retain their content within the bounds. Reading a
+host-defined getter and backend creation of the original string remain opaque
+host work, not sandboxed or retroactively bounded by this command.
+
+Output admission similarly checks remaining bytes before sizing/encoding. Text
+escaping checks each expanded part before appending, so controls cannot build an
+over-limit escaped fragment. JSON fields are preflight-sized, including control,
+surrogate and formatting-character escapes, before `JSON.stringify` and its
+bounded control replacement. Complete formatted writes are checked again. A
+bounded number of fragments may exist before aggregate line admission; this is
+not an exact peak-heap or zero-allocation guarantee. Earlier output still survives
+later limit failures. See `tests/commands/tree/SORT-TEXT.md` for measurements.
 
 Pattern compilation and matching consume the **same invocation budget** as the
 walk, cumulatively across all patterns and all entries, without per-name resets.
@@ -134,8 +165,8 @@ Directory metadata is collected to determine filtered siblings and connectors;
 the whole subtree/output is not buffered. The backend `readdir` contract returns
 an array, so **backend allocation/materialization happens before the command can
 check the array cap**. Backend internal pagination/response limits remain needed.
-Metadata caps bound author-retained data, not provider memory or CPU. Individual
-sort comparisons/UTF-8 encoding are also bounded by name/path and entry caps;
+Metadata caps bound author-retained data, not provider memory or CPU. String
+scans/UTF-8 encoding are also bounded by admitted name/path/output caps;
 the work counter is not an exact instruction/time meter. The walker yields an
 event-loop turn every 64 FS/comparison operations. Pathname races can make any
 listing inconsistent; no descriptor-relative snapshot API is invented.

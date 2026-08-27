@@ -1,0 +1,334 @@
+TAP version 13
+# Subtest: ISO year v1 pinned GNU9.7 Darwin 0000-01-01T12:00:00Z UTC
+ok 1 - ISO year v1 pinned GNU9.7 Darwin 0000-01-01T12:00:00Z UTC
+  ---
+  duration_ms: 1.512833
+  type: 'test'
+  ...
+# Subtest: ISO year v1 pinned GNU9.7 Darwin 0000-01-01T12:00:00Z UTC-14
+ok 2 - ISO year v1 pinned GNU9.7 Darwin 0000-01-01T12:00:00Z UTC-14
+  ---
+  duration_ms: 0.296125
+  type: 'test'
+  ...
+# Subtest: ISO year v1 pinned GNU9.7 Darwin 0000-01-02T12:00:00Z UTC
+ok 3 - ISO year v1 pinned GNU9.7 Darwin 0000-01-02T12:00:00Z UTC
+  ---
+  duration_ms: 0.149042
+  type: 'test'
+  ...
+# Subtest: ISO year v1 pinned GNU9.7 Darwin 0000-01-02T12:00:00Z UTC-14
+ok 4 - ISO year v1 pinned GNU9.7 Darwin 0000-01-02T12:00:00Z UTC-14
+  ---
+  duration_ms: 0.115917
+  type: 'test'
+  ...
+# Subtest: ISO year v1 pinned GNU9.7 Darwin 0000-01-03T12:00:00Z UTC
+ok 5 - ISO year v1 pinned GNU9.7 Darwin 0000-01-03T12:00:00Z UTC
+  ---
+  duration_ms: 0.169625
+  type: 'test'
+  ...
+# Subtest: ISO year v1 pinned GNU9.7 Darwin 0000-01-03T12:00:00Z UTC-14
+ok 6 - ISO year v1 pinned GNU9.7 Darwin 0000-01-03T12:00:00Z UTC-14
+  ---
+  duration_ms: 0.108792
+  type: 'test'
+  ...
+# Subtest: ISO year v1 pinned GNU9.7 Darwin 0000-12-31T12:00:00Z UTC
+ok 7 - ISO year v1 pinned GNU9.7 Darwin 0000-12-31T12:00:00Z UTC
+  ---
+  duration_ms: 0.093708
+  type: 'test'
+  ...
+# Subtest: ISO year v1 pinned GNU9.7 Darwin 0000-12-31T12:00:00Z UTC-14
+ok 8 - ISO year v1 pinned GNU9.7 Darwin 0000-12-31T12:00:00Z UTC-14
+  ---
+  duration_ms: 0.108209
+  type: 'test'
+  ...
+# Subtest: ISO year v1 pinned GNU9.7 Darwin 0001-01-01T12:00:00Z UTC
+ok 9 - ISO year v1 pinned GNU9.7 Darwin 0001-01-01T12:00:00Z UTC
+  ---
+  duration_ms: 0.278042
+  type: 'test'
+  ...
+# Subtest: ISO year v1 pinned GNU9.7 Darwin 0001-01-01T12:00:00Z UTC-14
+ok 10 - ISO year v1 pinned GNU9.7 Darwin 0001-01-01T12:00:00Z UTC-14
+  ---
+  duration_ms: 0.248625
+  type: 'test'
+  ...
+# Subtest: ISO year v1 pinned GNU9.7 Darwin 0004-01-01T12:00:00Z UTC
+ok 11 - ISO year v1 pinned GNU9.7 Darwin 0004-01-01T12:00:00Z UTC
+  ---
+  duration_ms: 0.333292
+  type: 'test'
+  ...
+# Subtest: ISO year v1 pinned GNU9.7 Darwin 0004-01-01T12:00:00Z UTC-14
+ok 12 - ISO year v1 pinned GNU9.7 Darwin 0004-01-01T12:00:00Z UTC-14
+  ---
+  duration_ms: 0.082542
+  type: 'test'
+  ...
+# Subtest: ISO year v1 pinned GNU9.7 Darwin 0099-01-01T12:00:00Z UTC
+ok 13 - ISO year v1 pinned GNU9.7 Darwin 0099-01-01T12:00:00Z UTC
+  ---
+  duration_ms: 0.10975
+  type: 'test'
+  ...
+# Subtest: ISO year v1 pinned GNU9.7 Darwin 0099-01-01T12:00:00Z UTC-14
+ok 14 - ISO year v1 pinned GNU9.7 Darwin 0099-01-01T12:00:00Z UTC-14
+  ---
+  duration_ms: 0.050791
+  type: 'test'
+  ...
+# Subtest: ISO year v1 pinned GNU9.7 Darwin 0099-12-31T12:00:00Z UTC
+ok 15 - ISO year v1 pinned GNU9.7 Darwin 0099-12-31T12:00:00Z UTC
+  ---
+  duration_ms: 0.043834
+  type: 'test'
+  ...
+# Subtest: ISO year v1 pinned GNU9.7 Darwin 0099-12-31T12:00:00Z UTC-14
+ok 16 - ISO year v1 pinned GNU9.7 Darwin 0099-12-31T12:00:00Z UTC-14
+  ---
+  duration_ms: 0.043292
+  type: 'test'
+  ...
+# Subtest: ISO year v1 pinned GNU9.7 Darwin 0100-01-01T12:00:00Z UTC
+ok 17 - ISO year v1 pinned GNU9.7 Darwin 0100-01-01T12:00:00Z UTC
+  ---
+  duration_ms: 0.038083
+  type: 'test'
+  ...
+# Subtest: ISO year v1 pinned GNU9.7 Darwin 0100-01-01T12:00:00Z UTC-14
+ok 18 - ISO year v1 pinned GNU9.7 Darwin 0100-01-01T12:00:00Z UTC-14
+  ---
+  duration_ms: 0.037667
+  type: 'test'
+  ...
+# Subtest: ISO year v1 pinned GNU9.7 Darwin 0100-01-04T12:00:00Z UTC
+ok 19 - ISO year v1 pinned GNU9.7 Darwin 0100-01-04T12:00:00Z UTC
+  ---
+  duration_ms: 0.039542
+  type: 'test'
+  ...
+# Subtest: ISO year v1 pinned GNU9.7 Darwin 0100-01-04T12:00:00Z UTC-14
+ok 20 - ISO year v1 pinned GNU9.7 Darwin 0100-01-04T12:00:00Z UTC-14
+  ---
+  duration_ms: 0.0395
+  type: 'test'
+  ...
+# Subtest: ISO year v1 pinned GNU9.7 Darwin 1899-12-31T12:00:00Z UTC
+ok 21 - ISO year v1 pinned GNU9.7 Darwin 1899-12-31T12:00:00Z UTC
+  ---
+  duration_ms: 0.035958
+  type: 'test'
+  ...
+# Subtest: ISO year v1 pinned GNU9.7 Darwin 1899-12-31T12:00:00Z UTC-14
+ok 22 - ISO year v1 pinned GNU9.7 Darwin 1899-12-31T12:00:00Z UTC-14
+  ---
+  duration_ms: 0.037583
+  type: 'test'
+  ...
+# Subtest: ISO year v1 pinned GNU9.7 Darwin 1900-01-01T12:00:00Z UTC
+ok 23 - ISO year v1 pinned GNU9.7 Darwin 1900-01-01T12:00:00Z UTC
+  ---
+  duration_ms: 0.035334
+  type: 'test'
+  ...
+# Subtest: ISO year v1 pinned GNU9.7 Darwin 1900-01-01T12:00:00Z UTC-14
+ok 24 - ISO year v1 pinned GNU9.7 Darwin 1900-01-01T12:00:00Z UTC-14
+  ---
+  duration_ms: 0.038084
+  type: 'test'
+  ...
+# Subtest: ISO year v1 pinned GNU9.7 Darwin 1999-01-01T12:00:00Z UTC
+ok 25 - ISO year v1 pinned GNU9.7 Darwin 1999-01-01T12:00:00Z UTC
+  ---
+  duration_ms: 0.034792
+  type: 'test'
+  ...
+# Subtest: ISO year v1 pinned GNU9.7 Darwin 1999-01-01T12:00:00Z UTC-14
+ok 26 - ISO year v1 pinned GNU9.7 Darwin 1999-01-01T12:00:00Z UTC-14
+  ---
+  duration_ms: 0.034375
+  type: 'test'
+  ...
+# Subtest: ISO year v1 pinned GNU9.7 Darwin 2000-01-01T12:00:00Z UTC
+ok 27 - ISO year v1 pinned GNU9.7 Darwin 2000-01-01T12:00:00Z UTC
+  ---
+  duration_ms: 0.033792
+  type: 'test'
+  ...
+# Subtest: ISO year v1 pinned GNU9.7 Darwin 2000-01-01T12:00:00Z UTC-14
+ok 28 - ISO year v1 pinned GNU9.7 Darwin 2000-01-01T12:00:00Z UTC-14
+  ---
+  duration_ms: 0.049708
+  type: 'test'
+  ...
+# Subtest: ISO year v1 pinned GNU9.7 Darwin 2021-01-01T12:00:00Z UTC
+ok 29 - ISO year v1 pinned GNU9.7 Darwin 2021-01-01T12:00:00Z UTC
+  ---
+  duration_ms: 0.035583
+  type: 'test'
+  ...
+# Subtest: ISO year v1 pinned GNU9.7 Darwin 2021-01-01T12:00:00Z UTC-14
+ok 30 - ISO year v1 pinned GNU9.7 Darwin 2021-01-01T12:00:00Z UTC-14
+  ---
+  duration_ms: 0.04
+  type: 'test'
+  ...
+# Subtest: ISO year digit presentation does not change signed year, week or calendar year
+ok 31 - ISO year digit presentation does not change signed year, week or calendar year
+  ---
+  duration_ms: 0.155125
+  type: 'test'
+  ...
+# Subtest: native negative-year witnesses do not expand accepted calendar grammar
+ok 32 - native negative-year witnesses do not expand accepted calendar grammar
+  ---
+  duration_ms: 0.170959
+  type: 'test'
+  ...
+# Subtest: fraction expansion v1 pinned GNU9.7 Darwin @0
+ok 33 - fraction expansion v1 pinned GNU9.7 Darwin @0
+  ---
+  duration_ms: 1.624625
+  type: 'test'
+  ...
+# Subtest: fraction expansion v1 pinned GNU9.7 Darwin @0.100000000
+ok 34 - fraction expansion v1 pinned GNU9.7 Darwin @0.100000000
+  ---
+  duration_ms: 0.295042
+  type: 'test'
+  ...
+# Subtest: fraction expansion v1 pinned GNU9.7 Darwin @0.000000001
+ok 35 - fraction expansion v1 pinned GNU9.7 Darwin @0.000000001
+  ---
+  duration_ms: 0.219834
+  type: 'test'
+  ...
+# Subtest: fraction expansion v1 pinned GNU9.7 Darwin @0.000000100
+ok 36 - fraction expansion v1 pinned GNU9.7 Darwin @0.000000100
+  ---
+  duration_ms: 0.150417
+  type: 'test'
+  ...
+# Subtest: fraction expansion v1 pinned GNU9.7 Darwin @0.001200000
+ok 37 - fraction expansion v1 pinned GNU9.7 Darwin @0.001200000
+  ---
+  duration_ms: 0.2305
+  type: 'test'
+  ...
+# Subtest: fraction expansion v1 pinned GNU9.7 Darwin @0.123456789
+ok 38 - fraction expansion v1 pinned GNU9.7 Darwin @0.123456789
+  ---
+  duration_ms: 0.178125
+  type: 'test'
+  ...
+# Subtest: fraction expansion v1 pinned GNU9.7 Darwin @0.999999999
+ok 39 - fraction expansion v1 pinned GNU9.7 Darwin @0.999999999
+  ---
+  duration_ms: 0.159292
+  type: 'test'
+  ...
+# Subtest: fraction expansion v1 pinned GNU9.7 Darwin @-0.000000001
+ok 40 - fraction expansion v1 pinned GNU9.7 Darwin @-0.000000001
+  ---
+  duration_ms: 0.413917
+  type: 'test'
+  ...
+# Subtest: fraction expansion v1 pinned GNU9.7 Darwin @-0.123456789
+ok 41 - fraction expansion v1 pinned GNU9.7 Darwin @-0.123456789
+  ---
+  duration_ms: 0.325916
+  type: 'test'
+  ...
+# Subtest: fraction expansion v1 pinned GNU9.7 Darwin @-1.000000001
+ok 42 - fraction expansion v1 pinned GNU9.7 Darwin @-1.000000001
+  ---
+  duration_ms: 0.298917
+  type: 'test'
+  ...
+# Subtest: fraction expansion v1 pinned GNU9.7 Darwin @1704164645.123000000
+ok 43 - fraction expansion v1 pinned GNU9.7 Darwin @1704164645.123000000
+  ---
+  duration_ms: 0.113583
+  type: 'test'
+  ...
+# Subtest: fraction expansion v1 pinned GNU9.7 Darwin @1704164645.000001000
+ok 44 - fraction expansion v1 pinned GNU9.7 Darwin @1704164645.000001000
+  ---
+  duration_ms: 0.118875
+  type: 'test'
+  ...
+# Subtest: fraction widths preserve actual millisecond clock precision and sample once
+ok 45 - fraction widths preserve actual millisecond clock precision and sample once
+  ---
+  duration_ms: 0.1265
+  type: 'test'
+  ...
+# Subtest: unpadded virtual fractions do not infer native hardware resolution or discard explicit precision
+ok 46 - unpadded virtual fractions do not infer native hardware resolution or discard explicit precision
+  ---
+  duration_ms: 0.143084
+  type: 'test'
+  ...
+# Subtest: fraction width truncation never rounds into the next second
+ok 47 - fraction width truncation never rounds into the next second
+  ---
+  duration_ms: 0.093792
+  type: 'test'
+  ...
+# Subtest: fraction allocation preflight %1000000000N
+ok 48 - fraction allocation preflight %1000000000N
+  ---
+  duration_ms: 0.243
+  type: 'test'
+  ...
+# Subtest: fraction allocation preflight %_1000000000N
+ok 49 - fraction allocation preflight %_1000000000N
+  ---
+  duration_ms: 0.051959
+  type: 'test'
+  ...
+# Subtest: fraction allocation preflight %01000000000N
+ok 50 - fraction allocation preflight %01000000000N
+  ---
+  duration_ms: 0.05025
+  type: 'test'
+  ...
+# Subtest: fraction allocation preflight %\#^1000000000N
+ok 51 - fraction allocation preflight %\#^1000000000N
+  ---
+  duration_ms: 0.041417
+  type: 'test'
+  ...
+# Subtest: unpadded huge explicit width allocates only significant digits but respects width admission
+ok 52 - unpadded huge explicit width allocates only significant digits but respects width admission
+  ---
+  duration_ms: 0.076417
+  type: 'test'
+  ...
+# Subtest: fraction budget includes preceding UTF8 bytes, every field and the newline
+ok 53 - fraction budget includes preceding UTF8 bytes, every field and the newline
+  ---
+  duration_ms: 0.088959
+  type: 'test'
+  ...
+# Subtest: fraction modifiers and argument quotas still reject without partial publication
+ok 54 - fraction modifiers and argument quotas still reject without partial publication
+  ---
+  duration_ms: 0.161667
+  type: 'test'
+  ...
+1..54
+# tests 54
+# suites 0
+# pass 54
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 248.375542

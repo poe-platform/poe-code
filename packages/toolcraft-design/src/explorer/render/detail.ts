@@ -26,26 +26,15 @@ export function renderDetail(
   const pane = state.paneDefinitions[1];
   const title = pane?.titleForRow?.(row ?? undefined) ?? pane?.title ?? "Preview";
 
-  if (layout.mode === "narrow-vertical") {
-    drawPaneFrame(
-      screen,
-      rect,
-      title,
-      state.focused === "detail" ? styles.borderFocused : styles.border,
-      { focused: state.focused === "detail", indicator: scrollIndicator(state) }
-    );
-    renderDetailBody(state, screen, paneBodyRect(rect), row);
-    return;
-  }
+  const { start, max } = renderDetailBody(state, screen, paneBodyRect(rect), row);
 
   drawPaneFrame(
     screen,
     rect,
     title,
     state.focused === "detail" ? styles.borderFocused : styles.border,
-    { focused: state.focused === "detail", indicator: scrollIndicator(state) }
+    { focused: state.focused === "detail", indicator: scrollIndicator(state, start, max) }
   );
-  renderDetailBody(state, screen, paneBodyRect(rect), row);
 }
 
 function renderDetailBody(
@@ -53,30 +42,29 @@ function renderDetailBody(
   screen: ScreenBuffer,
   rect: Rect,
   row: Row | null
-): void {
+): { start: number; max: number } {
   const styles = getExplorerStyles();
   const items = state.detail.items;
 
   if (rect.width <= 0 || rect.height <= 0) {
-    return;
+    return { start: 0, max: 0 };
   }
 
   if (items === null) {
     writeLine(screen, rect, 0, row === null ? state.emptyHint : "Loading detail...", styles.muted);
-    return;
+    return { start: 0, max: 0 };
   }
 
   if (items.length === 0) {
     writeLine(screen, rect, 0, state.emptyHint, styles.muted);
-    return;
+    return { start: 0, max: 0 };
   }
 
   if (items.length === 1 && items[0]?.title === undefined) {
-    renderBlob(screen, rect, renderItemMarkdown(items[0]!, rect, row), state.detail.scroll);
-    return;
+    return renderBlob(screen, rect, renderItemMarkdown(items[0]!, rect, row), state.detail.scroll);
   }
 
-  renderListMode(state, screen, rect, items, row);
+  return renderListMode(state, screen, rect, items, row);
 }
 
 function renderListMode(
@@ -85,11 +73,12 @@ function renderListMode(
   rect: Rect,
   items: DetailItem[],
   row: Row | null
-): void {
+): { start: number; max: number } {
   const styles = getExplorerStyles();
   let y = 0;
 
-  const start = clamp(state.detail.scroll, 0, Math.max(0, items.length - 1));
+  const max = Math.max(0, items.length - 1);
+  const start = clamp(state.detail.scroll, 0, max);
   for (let index = start; index < items.length && y < rect.height; index += 1) {
     const item = items[index]!;
     const cursor = index === state.detail.cursor;
@@ -123,15 +112,17 @@ function renderListMode(
       y += 1;
     }
   }
+  return { start, max };
 }
 
-function renderBlob(screen: ScreenBuffer, rect: Rect, text: string, scroll: number): void {
+function renderBlob(screen: ScreenBuffer, rect: Rect, text: string, scroll: number): { start: number; max: number } {
   const allLines: ReturnType<typeof ansiToCells>[] = [[]];
   for (const cell of ansiToCells(text)) {
     if (cell.ch === "\n") allLines.push([]);
     else allLines.at(-1)!.push(cell);
   }
-  const start = clamp(scroll, 0, Math.max(0, allLines.length - rect.height));
+  const max = Math.max(0, allLines.length - rect.height);
+  const start = clamp(scroll, 0, max);
   const lines = allLines.slice(start);
   for (let row = 0; row < rect.height; row += 1) {
     let x = rect.x;
@@ -141,6 +132,7 @@ function renderBlob(screen: ScreenBuffer, rect: Rect, text: string, scroll: numb
       x += cell.width;
     }
   }
+  return { start, max };
 }
 
 function renderItemMarkdown(item: DetailItem, rect: Rect, row: Row | null): string {
@@ -187,11 +179,9 @@ function clamp(value: number, min: number, max: number): number {
   return Math.min(max, Math.max(min, value));
 }
 
-function scrollIndicator(state: ExplorerState): string {
+function scrollIndicator(state: ExplorerState, start: number, max: number): string {
   if (state.detail.loading) return "⠋";
-  const content = state.detail.items?.[state.detail.cursor]?.renderedContent ?? "";
-  const total = Math.max(1, content.split("\n").length);
-  return `${Math.min(100, Math.round((state.detail.scroll / Math.max(1, total - 1)) * 100))}%`;
+  return `${max === 0 ? 0 : Math.round((start / max) * 100)}%`;
 }
 
 function contentHash(content: string): number {

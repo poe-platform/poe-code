@@ -1,0 +1,341 @@
+{
+  "timestamp": "2026-08-27T02:57:26.217Z",
+  "reportSha256": "122509e7eb66d3929e0d22e4764f2d601f1f5f328e204e883348e9b2b314bd2e",
+  "productSha256": "d0b71767ef63e1ff68a0b7bdc027b968dbc41368b7c8fcf2ff3b9fff116a1b02",
+  "source": "Existing recorded prelisted outer-phase hashes AND original per-row before/after/actual-load manifests; no new source observations or product execution",
+  "outerTraceFlag": false,
+  "explanation": "The unchanged replay intentionally allocates its own per-row trace paths; the outer shared trace is empty. Reconcile using its existing actual load manifests, not a fabricated retroactive snapshot.",
+  "guardRows": [
+    {
+      "id": "original-env-unset",
+      "pid": 18810,
+      "loadedDigest": "27543ff7936a5b618a13f7c15483abbee92cfe5c927d5c2a897df24816a0c444",
+      "actualPaths": 130,
+      "originalRowValid": true,
+      "mismatches": [],
+      "guarded": true
+    },
+    {
+      "id": "unset-pipeline-cat",
+      "pid": 18812,
+      "loadedDigest": "27543ff7936a5b618a13f7c15483abbee92cfe5c927d5c2a897df24816a0c444",
+      "actualPaths": 130,
+      "originalRowValid": true,
+      "mismatches": [],
+      "guarded": true
+    },
+    {
+      "id": "inherited-unset",
+      "pid": 18813,
+      "loadedDigest": "27543ff7936a5b618a13f7c15483abbee92cfe5c927d5c2a897df24816a0c444",
+      "actualPaths": 130,
+      "originalRowValid": true,
+      "mismatches": [],
+      "guarded": true
+    },
+    {
+      "id": "prefix-cleared",
+      "pid": 18815,
+      "loadedDigest": "27543ff7936a5b618a13f7c15483abbee92cfe5c927d5c2a897df24816a0c444",
+      "actualPaths": 130,
+      "originalRowValid": true,
+      "mismatches": [],
+      "guarded": true
+    },
+    {
+      "id": "empty-env-reporter",
+      "pid": 18816,
+      "loadedDigest": "27543ff7936a5b618a13f7c15483abbee92cfe5c927d5c2a897df24816a0c444",
+      "actualPaths": 130,
+      "originalRowValid": true,
+      "mismatches": [],
+      "guarded": true
+    },
+    {
+      "id": "pwd-is-data",
+      "pid": 18818,
+      "loadedDigest": "27543ff7936a5b618a13f7c15483abbee92cfe5c927d5c2a897df24816a0c444",
+      "actualPaths": 130,
+      "originalRowValid": true,
+      "mismatches": [],
+      "guarded": true
+    },
+    {
+      "id": "env-C-independent-cwd",
+      "pid": 18825,
+      "loadedDigest": "27543ff7936a5b618a13f7c15483abbee92cfe5c927d5c2a897df24816a0c444",
+      "actualPaths": 130,
+      "originalRowValid": true,
+      "mismatches": [],
+      "guarded": true
+    },
+    {
+      "id": "bash-export-boundary",
+      "pid": 18829,
+      "loadedDigest": "27543ff7936a5b618a13f7c15483abbee92cfe5c927d5c2a897df24816a0c444",
+      "actualPaths": 130,
+      "originalRowValid": true,
+      "mismatches": [],
+      "guarded": true
+    },
+    {
+      "id": "sh-export-boundary",
+      "pid": 18830,
+      "loadedDigest": "27543ff7936a5b618a13f7c15483abbee92cfe5c927d5c2a897df24816a0c444",
+      "actualPaths": 130,
+      "originalRowValid": true,
+      "mismatches": [],
+      "guarded": true
+    },
+    {
+      "id": "parent-success-attributes",
+      "pid": 18840,
+      "loadedDigest": "27543ff7936a5b618a13f7c15483abbee92cfe5c927d5c2a897df24816a0c444",
+      "actualPaths": 130,
+      "originalRowValid": true,
+      "mismatches": [],
+      "guarded": true
+    },
+    {
+      "id": "parent-failure-function-local",
+      "pid": 18841,
+      "loadedDigest": "27543ff7936a5b618a13f7c15483abbee92cfe5c927d5c2a897df24816a0c444",
+      "actualPaths": 130,
+      "originalRowValid": true,
+      "mismatches": [],
+      "guarded": true
+    },
+    {
+      "id": "binary-pipeline",
+      "pid": 18855,
+      "loadedDigest": "27543ff7936a5b618a13f7c15483abbee92cfe5c927d5c2a897df24816a0c444",
+      "actualPaths": 130,
+      "originalRowValid": true,
+      "mismatches": [],
+      "guarded": true
+    },
+    {
+      "id": "empty-input",
+      "pid": 18857,
+      "loadedDigest": "27543ff7936a5b618a13f7c15483abbee92cfe5c927d5c2a897df24816a0c444",
+      "actualPaths": 130,
+      "originalRowValid": true,
+      "mismatches": [],
+      "guarded": true
+    },
+    {
+      "id": "literal-child-arguments",
+      "pid": 18858,
+      "loadedDigest": "27543ff7936a5b618a13f7c15483abbee92cfe5c927d5c2a897df24816a0c444",
+      "actualPaths": 130,
+      "originalRowValid": true,
+      "mismatches": [],
+      "guarded": true
+    },
+    {
+      "id": "entry-order-raw-control",
+      "pid": 18859,
+      "loadedDigest": "27543ff7936a5b618a13f7c15483abbee92cfe5c927d5c2a897df24816a0c444",
+      "actualPaths": 130,
+      "originalRowValid": true,
+      "mismatches": [],
+      "guarded": true
+    },
+    {
+      "id": "compat-merge-omitted-false",
+      "pid": 18860,
+      "loadedDigest": "27543ff7936a5b618a13f7c15483abbee92cfe5c927d5c2a897df24816a0c444",
+      "actualPaths": 130,
+      "originalRowValid": true,
+      "mismatches": [],
+      "guarded": true
+    },
+    {
+      "id": "exact-map-pwd-cwd",
+      "pid": 18870,
+      "loadedDigest": "27543ff7936a5b618a13f7c15483abbee92cfe5c927d5c2a897df24816a0c444",
+      "actualPaths": 130,
+      "originalRowValid": true,
+      "mismatches": [],
+      "guarded": true
+    },
+    {
+      "id": "empty-and-omitted-map",
+      "pid": 18887,
+      "loadedDigest": "27543ff7936a5b618a13f7c15483abbee92cfe5c927d5c2a897df24816a0c444",
+      "actualPaths": 130,
+      "originalRowValid": true,
+      "mismatches": [],
+      "guarded": true
+    },
+    {
+      "id": "real-core-env-reporter",
+      "pid": 18888,
+      "loadedDigest": "27543ff7936a5b618a13f7c15483abbee92cfe5c927d5c2a897df24816a0c444",
+      "actualPaths": 130,
+      "originalRowValid": true,
+      "mismatches": [],
+      "guarded": true
+    },
+    {
+      "id": "stdin-binary-origin-cursor",
+      "pid": 18891,
+      "loadedDigest": "27543ff7936a5b618a13f7c15483abbee92cfe5c927d5c2a897df24816a0c444",
+      "actualPaths": 130,
+      "originalRowValid": true,
+      "mismatches": [],
+      "guarded": true
+    },
+    {
+      "id": "literal-middleware-dispatch",
+      "pid": 18898,
+      "loadedDigest": "27543ff7936a5b618a13f7c15483abbee92cfe5c927d5c2a897df24816a0c444",
+      "actualPaths": 130,
+      "originalRowValid": true,
+      "mismatches": [],
+      "guarded": true
+    },
+    {
+      "id": "parent-success-failure-locals",
+      "pid": 18899,
+      "loadedDigest": "27543ff7936a5b618a13f7c15483abbee92cfe5c927d5c2a897df24816a0c444",
+      "actualPaths": 130,
+      "originalRowValid": true,
+      "mismatches": [],
+      "guarded": true
+    },
+    {
+      "id": "bad-key-nul-before-effects",
+      "pid": 18902,
+      "loadedDigest": "27543ff7936a5b618a13f7c15483abbee92cfe5c927d5c2a897df24816a0c444",
+      "actualPaths": 130,
+      "originalRowValid": true,
+      "mismatches": [],
+      "guarded": true
+    },
+    {
+      "id": "typed-cancellation-parent-context",
+      "pid": 19011,
+      "loadedDigest": "27543ff7936a5b618a13f7c15483abbee92cfe5c927d5c2a897df24816a0c444",
+      "actualPaths": 130,
+      "originalRowValid": true,
+      "mismatches": [],
+      "guarded": true
+    },
+    {
+      "id": "shared-budget-dispatch-witnesses",
+      "pid": 19132,
+      "loadedDigest": "27543ff7936a5b618a13f7c15483abbee92cfe5c927d5c2a897df24816a0c444",
+      "actualPaths": 130,
+      "originalRowValid": true,
+      "mismatches": [],
+      "guarded": true
+    }
+  ],
+  "total": 25,
+  "valid": 25,
+  "globalDiagnostics": [
+    "tests/fs/webdav/consumer/consumer.test.ts(88,79): error TS2353: Object literal may only specify known properties, and 'compareEntry' does not exist in type 'WebDavFileSystemOptions'.",
+    "tests/fs/webdav/consumer/consumer.test.ts(109,77): error TS2353: Object literal may only specify known properties, and 'compareEntry' does not exist in type 'WebDavFileSystemOptions'.",
+    "tests/fs/webdav/consumer/consumer.test.ts(125,74): error TS2353: Object literal may only specify known properties, and 'compareEntry' does not exist in type 'WebDavFileSystemOptions'.",
+    "tests/fs/webdav/consumer/example.ts(21,74): error TS2353: Object literal may only specify known properties, and 'compareEntry' does not exist in type 'WebDavFileSystemOptions'.",
+    "tests/fs/webdav/consumer/example.ts(21,103): error TS7006: Parameter 'path' implicitly has an 'any' type.",
+    "tests/fs/webdav/consumer/example.ts(21,109): error TS7006: Parameter 'peer' implicitly has an 'any' type.",
+    "tests/fs/webdav/consumer/example.ts(21,115): error TS7006: Parameter 'peerPath' implicitly has an 'any' type.",
+    "tests/fs/webdav/consumer/example.ts(22,13): error TS2339: Property 'signal' does not exist on type '{}'.",
+    "tests/fs/webdav/consumer/example.ts(23,38): error TS2345: Argument of type 'WebDavFileSystemOptions' is not assignable to parameter of type 'FileSystem'.",
+    "tests/fs/webdav/consumer/example.ts(24,13): error TS2339: Property 'signal' does not exist on type '{}'.",
+    "tests/fs/webdav/consumer/example.ts(26,13): error TS2339: Property 'signal' does not exist on type '{}'.",
+    "tests/fs/webdav/consumer/example.ts(29,13): error TS2339: Property 'signal' does not exist on type '{}'.",
+    "tests/fs/webdav/consumer/example.ts(31,13): error TS2339: Property 'signal' does not exist on type '{}'.",
+    "tests/fs/webdav/consumer/provider.ts(89,15): error TS2722: Cannot invoke an object which is possibly 'undefined'."
+  ],
+  "highlights": [
+    {
+      "id": "original-env-unset",
+      "passed": true,
+      "actual": {
+        "stdout": "Qj0yCg==",
+        "stderr": "",
+        "status": 0,
+        "files": {
+          "work/": null
+        }
+      }
+    },
+    {
+      "id": "unset-pipeline-cat",
+      "passed": true,
+      "actual": {
+        "stdout": "Qj0yCg==",
+        "stderr": "",
+        "status": 0,
+        "files": {
+          "work/": null
+        }
+      }
+    },
+    {
+      "id": "env-C-independent-cwd",
+      "passed": true,
+      "actual": {
+        "stdout": "",
+        "stderr": "",
+        "status": 0,
+        "files": {
+          "work/": null,
+          "parent-effect": "cGFyZW50",
+          "work/effect": "dmFsdWU="
+        }
+      }
+    },
+    {
+      "id": "parent-success-attributes",
+      "passed": true,
+      "actual": {
+        "stdout": "c2VjcmV0OnB1YmxpYwp1bnNldDpwdWJsaWMK",
+        "stderr": "",
+        "status": 0,
+        "files": {
+          "work/": null
+        }
+      }
+    },
+    {
+      "id": "parent-failure-function-local",
+      "passed": true,
+      "actual": {
+        "stdout": "Nzppbm5lcjpwdWJsaWMKb3V0ZXI6cHVibGljCg==",
+        "stderr": "",
+        "status": 0,
+        "files": {
+          "work/": null
+        }
+      }
+    },
+    {
+      "id": "binary-pipeline",
+      "passed": true,
+      "actual": {
+        "stdout": "AP9B",
+        "stderr": "",
+        "status": 0,
+        "files": {
+          "work/": null
+        }
+      }
+    },
+    {
+      "id": "empty-input",
+      "passed": true,
+      "actual": {
+        "stdout": "ZG9uZQ==",
+        "stderr": "",
+        "status": 0,
+        "files": {
+          "work/": null
+        }
+      }
+    }
+  ]
+}

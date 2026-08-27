@@ -1,0 +1,68 @@
+{
+  "copiedAt": "2026-08-27T02:56:09.147Z",
+  "author": "Separate runtime-author read-only investigation, not this leaf independent witness",
+  "reexecuted": false,
+  "baseline": {
+    "revision": "954f230^",
+    "loadedRuntimeSha256": "e886b64536c7496769fdbe856aafb0e73ee88ace47c2a3ca9cb3cc71f11f8c4a",
+    "isolation": "Only runtime.ts load substituted by archived Node hook/transpiled ESM; other real source modules current; recorded worktree runtime hash not mislabeled as loaded baseline"
+  },
+  "provenance": [
+    {
+      "source": "/tmp/safe-bash-env-output-budget-investigation.md",
+      "destination": "tests/shell-stress/env-replacement/output-budget-evidence/safe-bash-env-output-budget-investigation.md",
+      "encoding": "utf8-exact",
+      "bytes": 7617,
+      "sha256": "4f5e48f1fb6a6281bcac7a15e96e344917c5eea2894993968e866cfc7befc016"
+    },
+    {
+      "source": "/tmp/safe-bash-env-output-budget-investigation-final.txt",
+      "destination": "tests/shell-stress/env-replacement/output-budget-evidence/safe-bash-env-output-budget-investigation-final.txt.base64",
+      "encoding": "base64",
+      "bytes": 701,
+      "sha256": "0cf0bf326777c7e277863a13ecadc3b8a10812ad56e11c5b30b2ff3eef7cb401"
+    },
+    {
+      "source": "/tmp/safe-bash-env-output-current.json",
+      "destination": "tests/shell-stress/env-replacement/output-budget-evidence/safe-bash-env-output-current.json",
+      "encoding": "utf8-exact",
+      "bytes": 31239,
+      "sha256": "3172c8b7395f9f1880e8f9040e6b7e407606cfe5996284a01f35a6cbe73a846e"
+    },
+    {
+      "source": "/tmp/safe-bash-env-output-baseline.json",
+      "destination": "tests/shell-stress/env-replacement/output-budget-evidence/safe-bash-env-output-baseline.json",
+      "encoding": "utf8-exact",
+      "bytes": 31891,
+      "sha256": "f7a0fba0631e3093ae293ceb101589c5daf06a6496daa5a20ab87dcf76b289b7"
+    },
+    {
+      "source": "/tmp/safe-bash-env-output-probe.mjs",
+      "destination": "tests/shell-stress/env-replacement/output-budget-evidence/safe-bash-env-output-probe.mjs",
+      "encoding": "utf8-exact",
+      "bytes": 2557,
+      "sha256": "a6356644d60a6c7955fc91cef186bbc4df43eac001b519a5d4e43c718569a74e"
+    },
+    {
+      "source": "/tmp/safe-bash-env-output-baseline-loader.mjs",
+      "destination": "tests/shell-stress/env-replacement/output-budget-evidence/safe-bash-env-output-baseline-loader.mjs",
+      "encoding": "utf8-exact",
+      "bytes": 437,
+      "sha256": "fc1d229105575899c0ff4947e6c3ddebc6cdc0500f0df7f9322f195e2102b0e9"
+    },
+    {
+      "source": "/tmp/safe-bash-env-output-baseline-runtime.mjs",
+      "destination": "tests/shell-stress/env-replacement/output-budget-evidence/safe-bash-env-output-baseline-runtime.mjs",
+      "encoding": "utf8-exact",
+      "bytes": 101847,
+      "sha256": "cd040f35dfe77b10cfe26d446f3802d54050b132e6b053198a426f9453f4015e"
+    },
+    {
+      "source": "/tmp/safe-bash-env-output-budget-investigation.log",
+      "destination": "tests/shell-stress/env-replacement/output-budget-evidence/safe-bash-env-output-budget-investigation.log",
+      "encoding": "utf8-exact",
+      "bytes": 89453,
+      "sha256": "d9b2dc1941f39bf0d9d543b385e7e5f133d8f68af12b39fc200a2af8db2985de"
+    }
+  ]
+}

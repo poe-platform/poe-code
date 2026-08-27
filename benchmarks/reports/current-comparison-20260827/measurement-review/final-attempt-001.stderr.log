@@ -1,0 +1,57 @@
+node:internal/child_process:1120
+    result.error = new ErrnoException(result.error, 'spawnSync ' + options.file);
+                   ^
+
+<ref *1> Error: spawnSync /usr/bin/git ENOBUFS
+    at Object.spawnSync (node:internal/child_process:1120:20)
+    at spawnSync (node:child_process:902:24)
+    at execFileSync (node:child_process:945:15)
+    at git (file:///Users/kjopek/Workspace/safe-bash/benchmarks/reports/current-comparison-20260827/measurement-review/review-results.mjs:41:26)
+    at file:///Users/kjopek/Workspace/safe-bash/benchmarks/reports/current-comparison-20260827/measurement-review/review-results.mjs:132:26
+    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5) {
+  errno: -55,
+  code: 'ENOBUFS',
+  syscall: 'spawnSync /usr/bin/git',
+  path: '/usr/bin/git',
+  spawnargs: [
+    'show',
+    'e33974b8c643077453227a9679d8ceca8367998c:benchmarks/reports/current-comparison-20260827/cohorts/overlap.json'
+  ],
+  error: [Circular *1],
+  status: null,
+  signal: 'SIGTERM',
+  output: [
+    null,
+    Buffer(4227072) [Uint8Array] [
+      123,  10,  32,  32,  34, 111, 114, 105, 103, 105, 110,  97,
+      108,  86, 101, 114, 115, 117, 115,  65, 108, 105, 103, 110,
+      101, 100,  34,  58,  32, 123,  10,  32,  32,  32,  32,  34,
+      108, 101, 102, 116,  67,  97, 115, 101, 115,  34,  58,  32,
+       50,  50,  52,  44,  10,  32,  32,  32,  32,  34, 114, 105,
+      103, 104, 116,  67,  97, 115, 101, 115,  34,  58,  32,  50,
+       50,  52,  44,  10,  32,  32,  32,  32,  34, 109,  97, 116,
+       99, 104, 101, 115,  34,  58,  32, 123,  10,  32,  32,  32,
+       32,  32,  32,  34,
+      ... 4226972 more items
+    ],
+    Buffer(0) [Uint8Array] []
+  ],
+  pid: 14357,
+  stdout: Buffer(4227072) [Uint8Array] [
+    123,  10,  32,  32,  34, 111, 114, 105, 103, 105, 110,  97,
+    108,  86, 101, 114, 115, 117, 115,  65, 108, 105, 103, 110,
+    101, 100,  34,  58,  32, 123,  10,  32,  32,  32,  32,  34,
+    108, 101, 102, 116,  67,  97, 115, 101, 115,  34,  58,  32,
+     50,  50,  52,  44,  10,  32,  32,  32,  32,  34, 114, 105,
+    103, 104, 116,  67,  97, 115, 101, 115,  34,  58,  32,  50,
+     50,  52,  44,  10,  32,  32,  32,  32,  34, 109,  97, 116,
+     99, 104, 101, 115,  34,  58,  32, 123,  10,  32,  32,  32,
+     32,  32,  32,  34,
+    ... 4226972 more items
+  ],
+  stderr: Buffer(0) [Uint8Array] []
+}
+
+Node.js v22.22.2

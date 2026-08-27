@@ -1,0 +1,70 @@
+{
+  "status": "STATIC_PREFLIGHT_READY_FOR_INDEPENDENT_FREEZE_CHECK_NOT_MEASURED",
+  "candidate": "e33974b8c643077453227a9679d8ceca8367998c",
+  "gitTree": "f559246f1317af7691de00333e13dfc8f44ef428",
+  "sourceSha256": "903784b4a5b1123d285e81fff65883b44d486759fb5ce3f4d28c602ed66736cf",
+  "sourceInventorySha256": "00e2633c564a461bf095e7fb9444d165e2c261b3d3b02a0143194044b36a70dd",
+  "packageSha256": "bc4f0e01d9daba5dc7c99a7d66615e52808a83a162140d59e88544c7c71fbd51",
+  "binding": {
+    "root": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/current-comparison-20260827/measurement-freeze",
+    "path": "execution-binding.json",
+    "bytes": 1172804,
+    "sha256": "1c74655402eba80a12e1c190fa43ba6923faace8a7db81c7f17da8a3b4528b1e"
+  },
+  "proposedRootReceipt": {
+    "root": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/current-comparison-20260827/measurement-freeze",
+    "path": "proposed-root-receipt.json",
+    "bytes": 1580,
+    "sha256": "c0f9468f33d1df5ec468bc98830c06fc8fcadb797f3595b0a7fa18f346f607a5"
+  },
+  "nodeSha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+  "paths": {
+    "scratch": "/private/tmp/safe-bash-measurement-freeze-XAFOrN",
+    "artifacts": "/private/tmp/safe-bash-measurement-freeze-XAFOrN/artifacts",
+    "tools": "/private/tmp/safe-bash-measurement-freeze-XAFOrN/tools",
+    "build": "/private/tmp/safe-bash-measurement-freeze-XAFOrN/build/source",
+    "runtime": "/private/tmp/safe-bash-measurement-freeze-XAFOrN/runtime",
+    "offlineCandidate": "/private/tmp/safe-bash-measurement-freeze-XAFOrN/offline/virtual-bash",
+    "offlineBaseline": "/private/tmp/safe-bash-measurement-freeze-XAFOrN/offline/just-bash",
+    "host": "/private/tmp/safe-bash-measurement-freeze-XAFOrN/host"
+  },
+  "profiles": [
+    "original",
+    "aligned",
+    "breadth"
+  ],
+  "qualifications": {
+    "scope": "COMMITTED_FROZEN_COMPARISON_ONLY",
+    "qualificationAcceptedMeaning": "Latest explicit ROOT comparison authorization only; never release or whole-gate approval.",
+    "releaseQualified": false,
+    "globalGreen": false,
+    "wholeGateApproval": false,
+    "rootWholeGateCleanupPrerequisite": false,
+    "envSplitS": "PARTIAL",
+    "shebang": "UNSUPPORTED",
+    "independentFixtureValidity": "UNRESOLVED",
+    "independentFreezeCheck": "PENDING; this leaf stops for independent verification",
+    "priorIndependentPackedReviewClaim": false,
+    "rootAnnouncementRequiredBeforeProductImports": true,
+    "timingAuthorized": false,
+    "nativeRecaptureAuthorized": false
+  },
+  "productImports": 0,
+  "engineCalls": 0,
+  "freshNativeOracleCalls": 0,
+  "measurementCalls": 0,
+  "timingTrials": 0,
+  "downloads": 0,
+  "installs": 0,
+  "staging": false,
+  "commits": false,
+  "processCounts": {
+    "launched": 6,
+    "closed": 6,
+    "groupsGone": 6,
+    "failures": 0
+  },
+  "hashedBytes": 584139015,
+  "requiredCommandFile": "NEXT_COMMAND.txt",
+  "outputDirectoryMustNotExist": "/private/tmp/safe-bash-measurement-freeze-XAFOrN/measurement-attempt-001"
+}

@@ -1,0 +1,100 @@
+{
+  "status": "BOUND_NOT_MEASURED",
+  "bindingSha256": "1c74655402eba80a12e1c190fa43ba6923faace8a7db81c7f17da8a3b4528b1e",
+  "receiptSha256": "c0f9468f33d1df5ec468bc98830c06fc8fcadb797f3595b0a7fa18f346f607a5",
+  "required": {
+    "original": 448,
+    "aligned": 448,
+    "breadth": {
+      "observations": 136,
+      "targets": 54,
+      "controls": 7,
+      "diagnostics": 7
+    },
+    "unionScore": null
+  },
+  "productImports": 0,
+  "score": null,
+  "loadEvents": [
+    {
+      "event": "static-runtime-load-returned",
+      "path": "/private/tmp/safe-bash-measurement-freeze-XAFOrN/runtime/execution/run.mjs",
+      "bytes": 5829,
+      "sha256": "a43284fd0161013f1ee9d64b3bf06f4aa84022dd65e9a37cb39e8ddfdd3225bb"
+    },
+    {
+      "event": "static-runtime-load-returned",
+      "path": "/private/tmp/safe-bash-measurement-freeze-XAFOrN/runtime/execution/binding.mjs",
+      "bytes": 6589,
+      "sha256": "08d07b268738f24a0b9b744f77555f1ff1dc901a1d20e76c6ba47e03659d02ae"
+    },
+    {
+      "event": "static-runtime-load-returned",
+      "path": "/private/tmp/safe-bash-measurement-freeze-XAFOrN/runtime/execution/cohorts.mjs",
+      "bytes": 3638,
+      "sha256": "1124a0984dddcba03c7060155680c1f51bae48f1b02338ca772b7032d07d6b38"
+    },
+    {
+      "event": "static-runtime-load-returned",
+      "path": "/private/tmp/safe-bash-measurement-freeze-XAFOrN/runtime/execution/limits.mjs",
+      "bytes": 1009,
+      "sha256": "32dd62f87607971bf4be523b66e35fa4c7190f2116e797d838d69ce341005a36"
+    },
+    {
+      "event": "static-runtime-load-returned",
+      "path": "/private/tmp/safe-bash-measurement-freeze-XAFOrN/runtime/execution/assessment.mjs",
+      "bytes": 1193,
+      "sha256": "1ac0d0ba91dd685af45759beff9b3733bb5a4f136c61be6a21dfa22aa4d3b472"
+    },
+    {
+      "event": "static-runtime-load-returned",
+      "path": "/private/tmp/safe-bash-measurement-freeze-XAFOrN/runtime/execution/supervise.mjs",
+      "bytes": 14537,
+      "sha256": "5930f48aba28df735e3862f1b283b5d774fd0f4d55c81990c0f48f69a8f2df8a"
+    },
+    {
+      "event": "static-runtime-load-returned",
+      "path": "/private/tmp/safe-bash-measurement-freeze-XAFOrN/runtime/execution/io.mjs",
+      "bytes": 5443,
+      "sha256": "3d9d5578cc1d7c889dc5dabc463eeff90d4a990f861d80ceed8935fcf5bfc811"
+    },
+    {
+      "event": "static-runtime-load-returned",
+      "path": "/private/tmp/safe-bash-measurement-freeze-XAFOrN/runtime/execution/reuse/expanded-common.mjs",
+      "bytes": 3439,
+      "sha256": "28e51f7bb98aaf72550a76a159d79a09fb767b5780320fc1426740fedc311061"
+    },
+    {
+      "event": "static-runtime-load-returned",
+      "path": "/private/tmp/safe-bash-measurement-freeze-XAFOrN/runtime/execution/reuse/breadth-assess.mjs",
+      "bytes": 6915,
+      "sha256": "4e1ef722249987da598a0765f87e48c021cf5a2f1ec83c09e86d2489c39397eb"
+    }
+  ],
+  "denyUnlistedProductModules": true,
+  "loadHookBoundary": "Returned preflight helper source bytes only; product paths not admitted. No engine child, module or native oracle was invoked.",
+  "command": {
+    "executable": "/private/tmp/safe-bash-measurement-freeze-XAFOrN/tools/node",
+    "args": [
+      "--experimental-loader",
+      "/private/tmp/safe-bash-measurement-freeze-XAFOrN/tools/preflight-only-loader.mjs",
+      "/private/tmp/safe-bash-measurement-freeze-XAFOrN/runtime/execution/run.mjs",
+      "PREFLIGHT",
+      "--binding",
+      "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/current-comparison-20260827/measurement-freeze/execution-binding.json",
+      "--root-receipt",
+      "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/current-comparison-20260827/measurement-freeze/proposed-root-receipt.json",
+      "--root-receipt-sha256",
+      "c0f9468f33d1df5ec468bc98830c06fc8fcadb797f3595b0a7fa18f346f607a5"
+    ],
+    "cwd": "/private/tmp/safe-bash-measurement-freeze-XAFOrN/host",
+    "env": {
+      "PATH": "/usr/bin:/bin",
+      "HOME": "/private/tmp/safe-bash-measurement-freeze-XAFOrN/host/home",
+      "TMPDIR": "/private/tmp/safe-bash-measurement-freeze-XAFOrN/host/tmp",
+      "LANG": "C",
+      "LC_ALL": "C",
+      "TZ": "UTC"
+    }
+  }
+}

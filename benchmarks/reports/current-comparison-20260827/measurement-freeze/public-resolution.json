@@ -1,0 +1,19 @@
+{
+  "results": [
+    {
+      "name": "virtual-bash",
+      "packageJson": "/private/tmp/safe-bash-measurement-freeze-XAFOrN/offline/virtual-bash/node_modules/virtual-bash/package.json",
+      "entry": "/private/tmp/safe-bash-measurement-freeze-XAFOrN/offline/virtual-bash/node_modules/virtual-bash/dist/index.js",
+      "resolved": "file:///private/tmp/safe-bash-measurement-freeze-XAFOrN/offline/virtual-bash/node_modules/virtual-bash/dist/index.js",
+      "productImportPerformed": false
+    },
+    {
+      "name": "just-bash",
+      "packageJson": "/private/tmp/safe-bash-measurement-freeze-XAFOrN/offline/just-bash/benchmarks/node_modules/just-bash/package.json",
+      "entry": "/private/tmp/safe-bash-measurement-freeze-XAFOrN/offline/just-bash/benchmarks/node_modules/just-bash/dist/bundle/index.js",
+      "resolved": "file:///private/tmp/safe-bash-measurement-freeze-XAFOrN/offline/just-bash/benchmarks/node_modules/just-bash/dist/bundle/index.js",
+      "productImportPerformed": false
+    }
+  ],
+  "productImports": 0
+}

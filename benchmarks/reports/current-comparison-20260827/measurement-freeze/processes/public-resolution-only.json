@@ -1,0 +1,47 @@
+{
+  "label": "public-resolution-only",
+  "executable": "/private/tmp/safe-bash-measurement-freeze-XAFOrN/tools/node",
+  "args": [
+    "--experimental-import-meta-resolve",
+    "/private/tmp/safe-bash-measurement-freeze-XAFOrN/tools/resolve-public.mjs",
+    "/private/tmp/safe-bash-measurement-freeze-XAFOrN/tools/resolution-targets.json"
+  ],
+  "cwd": "/private/tmp/safe-bash-measurement-freeze-XAFOrN/host",
+  "env": {
+    "PATH": "/usr/bin:/bin",
+    "HOME": "/private/tmp/safe-bash-measurement-freeze-XAFOrN/host/home",
+    "TMPDIR": "/private/tmp/safe-bash-measurement-freeze-XAFOrN/host/tmp",
+    "LANG": "C",
+    "LC_ALL": "C",
+    "TZ": "UTC"
+  },
+  "timeoutMs": 60000,
+  "combinedOutputCap": 4194304,
+  "productImportsAuthorized": false,
+  "startedAt": "2026-08-27T12:37:46.187Z",
+  "cleanupSignals": [],
+  "pid": 59669,
+  "exitCode": 0,
+  "signal": null,
+  "closed": true,
+  "groupGone": true,
+  "finishedAt": "2026-08-27T12:37:46.217Z",
+  "outputBytes": 1031,
+  "stdoutBase64": "ewogICJyZXN1bHRzIjogWwogICAgewogICAgICAibmFtZSI6ICJ2aXJ0dWFsLWJhc2giLAogICAgICAicGFja2FnZUpzb24iOiAiL3ByaXZhdGUvdG1wL3NhZmUtYmFzaC1tZWFzdXJlbWVudC1mcmVlemUtWEFGT3JOL29mZmxpbmUvdmlydHVhbC1iYXNoL25vZGVfbW9kdWxlcy92aXJ0dWFsLWJhc2gvcGFja2FnZS5qc29uIiwKICAgICAgImVudHJ5IjogIi9wcml2YXRlL3RtcC9zYWZlLWJhc2gtbWVhc3VyZW1lbnQtZnJlZXplLVhBRk9yTi9vZmZsaW5lL3ZpcnR1YWwtYmFzaC9ub2RlX21vZHVsZXMvdmlydHVhbC1iYXNoL2Rpc3QvaW5kZXguanMiLAogICAgICAicmVzb2x2ZWQiOiAiZmlsZTovLy9wcml2YXRlL3RtcC9zYWZlLWJhc2gtbWVhc3VyZW1lbnQtZnJlZXplLVhBRk9yTi9vZmZsaW5lL3ZpcnR1YWwtYmFzaC9ub2RlX21vZHVsZXMvdmlydHVhbC1iYXNoL2Rpc3QvaW5kZXguanMiLAogICAgICAicHJvZHVjdEltcG9ydFBlcmZvcm1lZCI6IGZhbHNlCiAgICB9LAogICAgewogICAgICAibmFtZSI6ICJqdXN0LWJhc2giLAogICAgICAicGFja2FnZUpzb24iOiAiL3ByaXZhdGUvdG1wL3NhZmUtYmFzaC1tZWFzdXJlbWVudC1mcmVlemUtWEFGT3JOL29mZmxpbmUvanVzdC1iYXNoL2JlbmNobWFya3Mvbm9kZV9tb2R1bGVzL2p1c3QtYmFzaC9wYWNrYWdlLmpzb24iLAogICAgICAiZW50cnkiOiAiL3ByaXZhdGUvdG1wL3NhZmUtYmFzaC1tZWFzdXJlbWVudC1mcmVlemUtWEFGT3JOL29mZmxpbmUvanVzdC1iYXNoL2JlbmNobWFya3Mvbm9kZV9tb2R1bGVzL2p1c3QtYmFzaC9kaXN0L2J1bmRsZS9pbmRleC5qcyIsCiAgICAgICJyZXNvbHZlZCI6ICJmaWxlOi8vL3ByaXZhdGUvdG1wL3NhZmUtYmFzaC1tZWFzdXJlbWVudC1mcmVlemUtWEFGT3JOL29mZmxpbmUvanVzdC1iYXNoL2JlbmNobWFya3Mvbm9kZV9tb2R1bGVzL2p1c3QtYmFzaC9kaXN0L2J1bmRsZS9pbmRleC5qcyIsCiAgICAgICJwcm9kdWN0SW1wb3J0UGVyZm9ybWVkIjogZmFsc2UKICAgIH0KICBdLAogICJwcm9kdWN0SW1wb3J0cyI6IDAKfQo=",
+  "stderrBase64": "",
+  "displayTextLogsNormalizeFinalNewline": true,
+  "stdout": {
+    "root": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/current-comparison-20260827/measurement-freeze",
+    "path": "processes/public-resolution-only.stdout.txt",
+    "bytes": 1031,
+    "sha256": "173d8491ce80ef5a98d7707a328903fe8edce3d6512f339767f951a15d625ce5"
+  },
+  "stderr": {
+    "root": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/current-comparison-20260827/measurement-freeze",
+    "path": "processes/public-resolution-only.stderr.txt",
+    "bytes": 1,
+    "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+  },
+  "stdoutRawSha256": "173d8491ce80ef5a98d7707a328903fe8edce3d6512f339767f951a15d625ce5",
+  "stderrRawSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

@@ -1,0 +1,4 @@
+Traceback (most recent call last):
+  File "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/current-comparison-20260827/measurement-review/static-freeze-check.py", line 98, in <module>
+    assert mapping(source) == mapping(inventory['files']) and len(source) == 220
+AssertionError

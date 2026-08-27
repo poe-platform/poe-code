@@ -1,0 +1,41 @@
+{
+  "root": "/private/tmp/safe-bash-measurement-freeze-XAFOrN/tools",
+  "files": [
+    {
+      "path": "node",
+      "bytes": 112989184,
+      "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+    },
+    {
+      "path": "archive-tools.py",
+      "bytes": 3227,
+      "sha256": "e364f20f4dec4178af68454f8049bb40e712b1be39879f2f2f3d78d1fc261a80"
+    },
+    {
+      "path": "resolve-public.mjs",
+      "bytes": 539,
+      "sha256": "36e7c191bfdbf803ae78cc0e671d6810e525ffbf4ebc00f388c6b3762d5b8641"
+    },
+    {
+      "path": "preflight-only-loader.mjs",
+      "bytes": 1145,
+      "sha256": "6ef3efa0ceb801d00a7c196a41b98878e5d216ab88830830486dd8da1a460abe"
+    },
+    {
+      "path": "preflight-allowlist.json",
+      "bytes": 1668,
+      "sha256": "30cd78b2b9e75c816bf4ac936655d4bb0896888b9d3e99e933aed14568ec762f"
+    },
+    {
+      "path": "primary/extract.py",
+      "bytes": 6465,
+      "sha256": "08d8b148a845459ff59391ec5d0a24399d32e47ef37d9fc3f6ed26a712e804f4"
+    }
+  ],
+  "python": {
+    "path": "/usr/bin/python3",
+    "bytes": 118928,
+    "sha256": "12bed4523661307059b879b9b54e77a73176e9d27d27a0e40363271d8f0668ba"
+  },
+  "nodeDynamicSystemLibrariesIndividuallyAuthenticated": false
+}

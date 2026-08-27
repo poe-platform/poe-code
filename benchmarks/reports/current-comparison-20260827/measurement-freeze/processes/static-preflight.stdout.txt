@@ -1,0 +1,18 @@
+{
+  "status": "BOUND_NOT_MEASURED",
+  "bindingSha256": "1c74655402eba80a12e1c190fa43ba6923faace8a7db81c7f17da8a3b4528b1e",
+  "receiptSha256": "c0f9468f33d1df5ec468bc98830c06fc8fcadb797f3595b0a7fa18f346f607a5",
+  "required": {
+    "original": 448,
+    "aligned": 448,
+    "breadth": {
+      "observations": 136,
+      "targets": 54,
+      "controls": 7,
+      "diagnostics": 7
+    },
+    "unionScore": null
+  },
+  "productImports": 0,
+  "score": null
+}

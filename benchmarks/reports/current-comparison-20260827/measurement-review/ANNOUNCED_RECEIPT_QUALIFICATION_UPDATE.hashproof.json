@@ -1,0 +1,117 @@
+{
+  "status": "ROOT_SOURCE_QUALIFICATION_UPDATE_VERIFIED_STATIC_ONLY",
+  "candidate": "e33974b8c643077453227a9679d8ceca8367998c",
+  "feature": "84ab66ca717e0dff21abf57051b41cb553f3c7f3",
+  "soleParent": [
+    "b494675c34dc289f4ad4b10a9201e1211eb0a7d8"
+  ],
+  "ancestryExitCodes": {
+    "84ab66ca717e0dff21abf57051b41cb553f3c7f3 -> e33974b8c643077453227a9679d8ceca8367998c": 0,
+    "b494675c34dc289f4ad4b10a9201e1211eb0a7d8 -> 84ab66ca717e0dff21abf57051b41cb553f3c7f3": 0,
+    "84ab66ca717e0dff21abf57051b41cb553f3c7f3 -> b494675c34dc289f4ad4b10a9201e1211eb0a7d8": 1,
+    "db3680fcfa91a7fff6ca0dad332c297094d14783 -> b494675c34dc289f4ad4b10a9201e1211eb0a7d8": 0
+  },
+  "sourceBlobs": [
+    {
+      "path": "src/commands/execution.ts",
+      "bytes": 9269,
+      "gitBlob": "61e49c6d8684ccdb5c2f80624d9c8fda9f1d5d2c",
+      "expectedSha256": "61940d3b86593243c13cab716be87f84647e42b69476757482dfebafc7d693a6",
+      "observed": {
+        "candidateGitSha256": "61940d3b86593243c13cab716be87f84647e42b69476757482dfebafc7d693a6",
+        "featureGitSha256": "61940d3b86593243c13cab716be87f84647e42b69476757482dfebafc7d693a6",
+        "frozenArchiveMemberSha256": "61940d3b86593243c13cab716be87f84647e42b69476757482dfebafc7d693a6",
+        "frozenExtractedFileSha256": "61940d3b86593243c13cab716be87f84647e42b69476757482dfebafc7d693a6",
+        "inventorySha256": "61940d3b86593243c13cab716be87f84647e42b69476757482dfebafc7d693a6"
+      },
+      "archiveMember": "package/src/commands/execution.ts",
+      "frozenExtractedPath": "/private/tmp/safe-bash-measurement-freeze-XAFOrN/build/source/src/commands/execution.ts"
+    },
+    {
+      "path": "src/commands/env-split.ts",
+      "bytes": 7492,
+      "gitBlob": "437c36d72c12e985d39c5dc9e09b6bb644753500",
+      "expectedSha256": "b005331bff0dd207a65b9001d235020f005eed45b813cca912851502c3f9dcf4",
+      "observed": {
+        "candidateGitSha256": "b005331bff0dd207a65b9001d235020f005eed45b813cca912851502c3f9dcf4",
+        "featureGitSha256": "b005331bff0dd207a65b9001d235020f005eed45b813cca912851502c3f9dcf4",
+        "frozenArchiveMemberSha256": "b005331bff0dd207a65b9001d235020f005eed45b813cca912851502c3f9dcf4",
+        "frozenExtractedFileSha256": "b005331bff0dd207a65b9001d235020f005eed45b813cca912851502c3f9dcf4",
+        "inventorySha256": "b005331bff0dd207a65b9001d235020f005eed45b813cca912851502c3f9dcf4"
+      },
+      "archiveMember": "package/src/commands/env-split.ts",
+      "frozenExtractedPath": "/private/tmp/safe-bash-measurement-freeze-XAFOrN/build/source/src/commands/env-split.ts"
+    }
+  ],
+  "sourceArchive": {
+    "path": "/private/tmp/safe-bash-measurement-freeze-XAFOrN/artifacts/candidate-source.tar.gz",
+    "sha256": "903784b4a5b1123d285e81fff65883b44d486759fb5ce3f4d28c602ed66736cf"
+  },
+  "sourceInventorySha256": "00e2633c564a461bf095e7fb9444d165e2c261b3d3b02a0143194044b36a70dd",
+  "oldGate": {
+    "commit": "b494675c34dc289f4ad4b10a9201e1211eb0a7d8",
+    "parserAbsent": true,
+    "executionSha256": "1d084ab203dc59a510e39e5c71743b755ba9bdb5d4b018658398ed96c3dff700",
+    "featureSourceChanges": [
+      "src/commands/env-split.ts",
+      "src/commands/execution.ts"
+    ],
+    "canonicalTestsPrecedeImplementation": [
+      {
+        "path": "tests/shell/env-split-native.test.ts",
+        "lastChangeAtOldGate": "db3680fcfa91a7fff6ca0dad332c297094d14783",
+        "sha256ByCommit": {
+          "db3680fcfa91a7fff6ca0dad332c297094d14783": "20191b28aaeb2abf249814f709722f9812840d2faef2afd46a7a29382487b433",
+          "b494675c34dc289f4ad4b10a9201e1211eb0a7d8": "20191b28aaeb2abf249814f709722f9812840d2faef2afd46a7a29382487b433",
+          "84ab66ca717e0dff21abf57051b41cb553f3c7f3": "20191b28aaeb2abf249814f709722f9812840d2faef2afd46a7a29382487b433"
+        }
+      },
+      {
+        "path": "tests/shell/env-split-host.test.ts",
+        "lastChangeAtOldGate": "db3680fcfa91a7fff6ca0dad332c297094d14783",
+        "sha256ByCommit": {
+          "db3680fcfa91a7fff6ca0dad332c297094d14783": "f0a9ff72bb7a9565b6441c5a1126d8f4d4719ccbbaa3e31a67ccaec679ff227a",
+          "b494675c34dc289f4ad4b10a9201e1211eb0a7d8": "f0a9ff72bb7a9565b6441c5a1126d8f4d4719ccbbaa3e31a67ccaec679ff227a",
+          "84ab66ca717e0dff21abf57051b41cb553f3c7f3": "f0a9ff72bb7a9565b6441c5a1126d8f4d4719ccbbaa3e31a67ccaec679ff227a"
+        }
+      }
+    ]
+  },
+  "committedReportsInspected": [
+    {
+      "commit": "804cb6e6864e0c9f7a60a426567e57b48e254f71",
+      "path": "tests/shell-stress/env-split-gate-routing/BINDING_ADDENDUM.md",
+      "bytes": 15255,
+      "sha256": "6fede8815dca21082dd081dbfaa2ff629ff5a3012922998477988244406b4fb8"
+    },
+    {
+      "commit": "8ab677479e0094ec0c6cdf90d1f0e87883b2f8dc",
+      "path": "tests/shell-stress/env-split-validity-review/V2_REVIEW.md",
+      "bytes": 8342,
+      "sha256": "9fdc723e3fa751d026ac220359ac127c807627df01658fd6470f34ccdbd2de1a"
+    },
+    {
+      "commit": "954406871fae381b1c69441b34946a224201d7ad",
+      "path": "tests/integration/full-gate-20260827/combined-b494675c/run.mjs",
+      "bytes": 19134,
+      "sha256": "73f87d1451ee8e85bfe67e0e4d198b9a27d2c168f127e1f5a3da28152eb7348e"
+    }
+  ],
+  "reportCommitAncestryRequiredOrTested": false,
+  "receipt": {
+    "path": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/current-comparison-20260827/measurement-freeze/proposed-root-receipt.json",
+    "bytes": 1580,
+    "beforeSha256": "c0f9468f33d1df5ec468bc98830c06fc8fcadb797f3595b0a7fa18f346f607a5",
+    "afterSha256": "c0f9468f33d1df5ec468bc98830c06fc8fcadb797f3595b0a7fa18f346f607a5",
+    "rewritten": false
+  },
+  "executionBindingSha256Unchanged": "1c74655402eba80a12e1c190fa43ba6923faace8a7db81c7f17da8a3b4528b1e",
+  "qualificationUpdateSha256": "2a76d47930dfe123d1f98bcb31ad82cfb90cca342728d680ec639ebcbd80b78c",
+  "scope": "Complementary source-bounded env qualification only; no cohort/golden/score or active-run change",
+  "productImports": 0,
+  "measurementCalls": 0,
+  "envTests": 0,
+  "nativeOracleCalls": 0,
+  "wholeGateRuns": 0,
+  "commits": 0
+}

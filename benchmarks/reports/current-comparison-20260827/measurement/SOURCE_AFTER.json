@@ -1,0 +1,173 @@
+{
+  "candidate": "e33974b8c643077453227a9679d8ceca8367998c",
+  "sourceProof": [
+    {
+      "path": "/private/tmp/safe-bash-measurement-freeze-XAFOrN/artifacts/candidate-source.tar.gz",
+      "bytes": 564762,
+      "sha256": "903784b4a5b1123d285e81fff65883b44d486759fb5ce3f4d28c602ed66736cf",
+      "expectedSha256": "903784b4a5b1123d285e81fff65883b44d486759fb5ce3f4d28c602ed66736cf",
+      "unchanged": true
+    },
+    {
+      "path": "/private/tmp/safe-bash-measurement-freeze-XAFOrN/artifacts/virtual-bash-0.0.0.tgz",
+      "bytes": 682405,
+      "sha256": "bc4f0e01d9daba5dc7c99a7d66615e52808a83a162140d59e88544c7c71fbd51",
+      "expectedSha256": "bc4f0e01d9daba5dc7c99a7d66615e52808a83a162140d59e88544c7c71fbd51",
+      "unchanged": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/current-comparison-20260827/measurement-freeze/source-inventory.json",
+      "bytes": 67805,
+      "sha256": "00e2633c564a461bf095e7fb9444d165e2c261b3d3b02a0143194044b36a70dd",
+      "expectedSha256": "00e2633c564a461bf095e7fb9444d165e2c261b3d3b02a0143194044b36a70dd",
+      "unchanged": true
+    },
+    {
+      "path": "/private/tmp/safe-bash-measurement-freeze-XAFOrN/artifacts/just-bash-3.4.2.tgz",
+      "bytes": 9879070,
+      "sha256": "f3a90ecffb1150e786201d9bd408ae30bcc1f64f3b10b7de22353f7e1373841d",
+      "expectedSha256": "f3a90ecffb1150e786201d9bd408ae30bcc1f64f3b10b7de22353f7e1373841d",
+      "unchanged": true
+    },
+    {
+      "path": "/private/tmp/safe-bash-measurement-freeze-XAFOrN/runtime/cohorts/SEAL.json",
+      "bytes": 1948,
+      "sha256": "da99ce71943feec45a2bbbae6319e38fb1816522b5ffddbe55ae28b0716ce230",
+      "expectedSha256": "da99ce71943feec45a2bbbae6319e38fb1816522b5ffddbe55ae28b0716ce230",
+      "unchanged": true
+    },
+    {
+      "path": "/private/tmp/safe-bash-measurement-freeze-XAFOrN/runtime/cohorts/artifact-manifest.json",
+      "bytes": 295268,
+      "sha256": "dda28bc7dc39cb97401ae587878118ca66a3102dac2cacb6893aa7e34a26ceb9",
+      "expectedSha256": "dda28bc7dc39cb97401ae587878118ca66a3102dac2cacb6893aa7e34a26ceb9",
+      "unchanged": true
+    },
+    {
+      "path": "/private/tmp/safe-bash-measurement-freeze-XAFOrN/runtime/cohorts/historical-224.json",
+      "bytes": 3723376,
+      "sha256": "f08e8624a37556e95f0089b16333cbb203f3bf4fdbf40a5498ee71babb58ce0a",
+      "expectedSha256": "f08e8624a37556e95f0089b16333cbb203f3bf4fdbf40a5498ee71babb58ce0a",
+      "unchanged": true
+    },
+    {
+      "path": "/private/tmp/safe-bash-measurement-freeze-XAFOrN/runtime/cohorts/historical-breadth.json",
+      "bytes": 550134,
+      "sha256": "c4e322ce7a81c7909cd54121e4a435152c4a2eb9e1b2f69b5c09ba0f858e396a",
+      "expectedSha256": "c4e322ce7a81c7909cd54121e4a435152c4a2eb9e1b2f69b5c09ba0f858e396a",
+      "unchanged": true
+    },
+    {
+      "path": "/private/tmp/safe-bash-measurement-freeze-XAFOrN/runtime/cohorts/profiles.json",
+      "bytes": 182510,
+      "sha256": "6f7f6bbc1599f6adea468a40b9b2df4354e817f99dfc9248fb291e542df95a80",
+      "expectedSha256": "6f7f6bbc1599f6adea468a40b9b2df4354e817f99dfc9248fb291e542df95a80",
+      "unchanged": true
+    },
+    {
+      "path": "/private/tmp/safe-bash-measurement-freeze-XAFOrN/runtime/cohorts/proposed-holdouts.json",
+      "bytes": 64446,
+      "sha256": "2f37c49f9fc2f7003e6b209d7296d710c007759e9c8f44c3bed4959de3f32a6f",
+      "expectedSha256": "2f37c49f9fc2f7003e6b209d7296d710c007759e9c8f44c3bed4959de3f32a6f",
+      "unchanged": true
+    },
+    {
+      "path": "/private/tmp/safe-bash-measurement-freeze-XAFOrN/runtime/cohorts/public-profile-snapshot.json",
+      "bytes": 74975,
+      "sha256": "bdde79ced7bb176b58d2b58d587195cb43e7e8ade404bfb5b6691e07ec29945d",
+      "expectedSha256": "bdde79ced7bb176b58d2b58d587195cb43e7e8ade404bfb5b6691e07ec29945d",
+      "unchanged": true
+    },
+    {
+      "path": "/private/tmp/safe-bash-measurement-freeze-XAFOrN/runtime/cohorts/overlap.json",
+      "bytes": 4897920,
+      "sha256": "3597aab5a3558828711c812af875e85f8efa24bde355da32ff30cee41892fa92",
+      "expectedSha256": "3597aab5a3558828711c812af875e85f8efa24bde355da32ff30cee41892fa92",
+      "unchanged": true
+    },
+    {
+      "path": "/private/tmp/safe-bash-measurement-freeze-XAFOrN/runtime/cohorts/manifest.json",
+      "bytes": 56519,
+      "sha256": "71ea8429cb4e3a8a4b7800f3b002e2f94f51bd651a671f22404741e86abdcb05",
+      "expectedSha256": "71ea8429cb4e3a8a4b7800f3b002e2f94f51bd651a671f22404741e86abdcb05",
+      "unchanged": true
+    },
+    {
+      "path": "/private/tmp/safe-bash-measurement-freeze-XAFOrN/runtime/cohorts/prepare.mjs",
+      "bytes": 41239,
+      "sha256": "e7982089788fad042676e77b9ef947266659a1363aa782e2198f45ef846aa3bc",
+      "expectedSha256": "e7982089788fad042676e77b9ef947266659a1363aa782e2198f45ef846aa3bc",
+      "unchanged": true
+    },
+    {
+      "path": "/private/tmp/safe-bash-measurement-freeze-XAFOrN/runtime/cohorts/COHORT_PLAN.md",
+      "bytes": 13471,
+      "sha256": "2a8d32a29ea43d01f4c04be27162cdc896e1060c83c0f402b83bcf0ca7952d87",
+      "expectedSha256": "2a8d32a29ea43d01f4c04be27162cdc896e1060c83c0f402b83bcf0ca7952d87",
+      "unchanged": true
+    },
+    {
+      "path": "/private/tmp/safe-bash-measurement-freeze-XAFOrN/runtime/cohorts/AMENDMENT_V2_SEAL.json",
+      "bytes": 741,
+      "sha256": "839d12181a024a6dcab928a5f1483ac3a9e10af8d04ab4bb9454dae02427e186",
+      "expectedSha256": "839d12181a024a6dcab928a5f1483ac3a9e10af8d04ab4bb9454dae02427e186",
+      "unchanged": true
+    },
+    {
+      "path": "/private/tmp/safe-bash-measurement-freeze-XAFOrN/runtime/cohorts/amendment-v2.json",
+      "bytes": 3708,
+      "sha256": "b437a1b265ef9ae7866f4b9e16eeaef78c0485d3dda184edb0cd1dada845ff50",
+      "expectedSha256": "b437a1b265ef9ae7866f4b9e16eeaef78c0485d3dda184edb0cd1dada845ff50",
+      "unchanged": true
+    },
+    {
+      "path": "/private/tmp/safe-bash-measurement-freeze-XAFOrN/runtime/cohorts/AMENDMENT_V2.md",
+      "bytes": 3979,
+      "sha256": "e6bbe9e132cb8503deeab72d8948dfadf0de04b6076f953d672b236e7101598c",
+      "expectedSha256": "e6bbe9e132cb8503deeab72d8948dfadf0de04b6076f953d672b236e7101598c",
+      "unchanged": true
+    },
+    {
+      "path": "/private/tmp/safe-bash-measurement-freeze-XAFOrN/runtime/cohorts/verify-amendment-v2.mjs",
+      "bytes": 9057,
+      "sha256": "7ab2a4b2cd79f053912fc1a5b9b40b246b7f5ab580a5edfdf7912f955beaeb63",
+      "expectedSha256": "7ab2a4b2cd79f053912fc1a5b9b40b246b7f5ab580a5edfdf7912f955beaeb63",
+      "unchanged": true
+    }
+  ],
+  "closureProof": {
+    "runner": {
+      "boundFiles": 15,
+      "postFiles": 15,
+      "exactHashesMatchBinding": true,
+      "proof": "Frozen driver post-membership verification; not a second package scan"
+    },
+    "virtual-bash": {
+      "boundFiles": 711,
+      "postFiles": 711,
+      "exactHashesMatchBinding": true,
+      "proof": "Frozen driver post-membership verification; not a second package scan"
+    },
+    "just-bash": {
+      "boundFiles": 3844,
+      "postFiles": 3844,
+      "exactHashesMatchBinding": true,
+      "proof": "Frozen driver post-membership verification; not a second package scan"
+    }
+  },
+  "pinnedDriverInputsAfter": {
+    "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/current-comparison-20260827/measurement/../measurement-freeze/execution-binding.json": {
+      "bytes": 1172804,
+      "sha256": "1c74655402eba80a12e1c190fa43ba6923faace8a7db81c7f17da8a3b4528b1e"
+    },
+    "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/current-comparison-20260827/measurement/../measurement-freeze/proposed-root-receipt.json": {
+      "bytes": 1580,
+      "sha256": "c0f9468f33d1df5ec468bc98830c06fc8fcadb797f3595b0a7fa18f346f607a5"
+    },
+    "/private/tmp/safe-bash-measurement-freeze-XAFOrN/tools/node": {
+      "bytes": 112989184,
+      "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+    }
+  },
+  "postHashError": null
+}

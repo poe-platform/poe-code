@@ -1,0 +1,7 @@
+import { createHtmlToMarkdownCommands, type AgentCommandsOptions, type HtmlToMarkdownCommandsOptions } from "virtual-bash";
+import { htmlToMarkdownCommands } from "virtual-bash/commands/html-to-markdown";
+const nested: AgentCommandsOptions = { htmlToMarkdown: { replace: true } };
+const wrong: HtmlToMarkdownCommandsOptions = { limits: { maxInputBytes: "wrong" } };
+htmlToMarkdownCommands({ limits: { unknownLimit: 1 } });
+createHtmlToMarkdownCommands().push({ name: "wrong", execute: () => ({ exitCode: 0 }) });
+void [nested, wrong];

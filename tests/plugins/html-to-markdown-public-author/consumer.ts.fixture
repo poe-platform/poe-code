@@ -1,0 +1,62 @@
+import assert from "node:assert/strict";
+import * as root from "virtual-bash";
+import * as html from "virtual-bash/commands/html-to-markdown";
+import type { AgentCommandsOptions, HtmlToMarkdownCommandsOptions, HtmlToMarkdownLimits, CommandDefinition, VirtualShellPlugin } from "virtual-bash";
+import type { HtmlToMarkdownCommandsOptions as LeafOptions, HtmlToMarkdownLimits as LeafLimits } from "virtual-bash/commands/html-to-markdown";
+
+const limits: Partial<HtmlToMarkdownLimits> = { maxInputBytes: 1024, maxOutputBytes: 4096, maxWorkUnits: 32768 };
+const leafLimits: Partial<LeafLimits> = limits;
+const options: HtmlToMarkdownCommandsOptions = { limits: leafLimits };
+const leafOptions: LeafOptions = options;
+const aggregate: AgentCommandsOptions = { htmlToMarkdown: leafOptions };
+const replacementIsTopLevel: "replace" extends keyof NonNullable<AgentCommandsOptions["htmlToMarkdown"]> ? false : true = true;
+const single: CommandDefinition = html.createHtmlToMarkdownCommand(options);
+const definitions: readonly CommandDefinition[] = html.createHtmlToMarkdownCommands(options);
+const plugin: VirtualShellPlugin = html.htmlToMarkdownCommands(options);
+assert.equal(single.name, "html-to-markdown"); assert.equal(replacementIsTopLevel, true);
+assert.deepEqual(definitions.map(command => command.name), ["html-to-markdown"]);
+assert.deepEqual(Object.keys(html).sort(), ["createHtmlToMarkdownCommand", "createHtmlToMarkdownCommands", "htmlToMarkdownCommands"]);
+assert.equal(root.createHtmlToMarkdownCommand, html.createHtmlToMarkdownCommand);
+assert.equal(root.createHtmlToMarkdownCommands, html.createHtmlToMarkdownCommands);
+assert.equal(root.htmlToMarkdownCommands, html.htmlToMarkdownCommands);
+assert.throws(() => html.createHtmlToMarkdownCommand({ limits: { maxDepth: 0 } }), /Invalid/);
+const expected = [
+  "true", "false", "echo", "pwd", "basename", "dirname", "printf", "mkdir", "touch",
+  "cp", "mv", "rm", "rmdir", "ln", "readlink", "realpath", "ls", "cat", "head", "tail",
+  "wc", "tee", "tr", "sort", "uniq", "cut", "grep", "test", "[", "env", "xargs", "find",
+  "sed", "awk", "jq", "rg", "base64", "base32", "xxd", "od", "sha256sum", "sha1sum",
+  "md5sum", "cksum", "gzip", "gunzip", "zcat", "diff", "patch", "chmod", "stat", "mktemp", "tar",
+  "paste", "comm", "join", "tac", "expand", "fold", "strings", "seq", "nl", "rev", "unexpand", "split",
+  "date", "sleep", "printenv", "tree", "file", "egrep", "fgrep", "column", "html-to-markdown",
+].sort();
+assert.equal(expected.length, 74); assert.equal(new Set(expected).size, 74);
+assert.deepEqual(root.createAgentCommands(aggregate).map(command => command.name).sort(), expected);
+const fs = root.createMemoryFileSystem(); const shell = new root.Shell({ fs }).use(root.agentCommands(aggregate));
+try {
+  const result = await shell.exec("html-to-markdown | cat > /doc", { stdin: "<h1>Title</h1><p>Hello <b>world</b></p>" });
+  assert.equal(result.exitCode, 0, result.stderr); assert.equal(result.stdout, ""); assert.equal(result.stderr, "");
+  assert.equal(Buffer.from(await fs.readFile("/doc")).toString(), "# Title\n\nHello **world**\n");
+  for (const name of ["curl", "safejs", "du", "expr"]) assert.equal(shell.commands.has(name), false);
+  assert.deepEqual(shell.commands.list().map(command => command.name).sort(), expected);
+} finally { await shell.dispose(); }
+const standalone = new root.Shell({ fs }).use(plugin);
+try {
+  const result = await standalone.exec("html-to-markdown", { stdin: "<p>1<em></em>. ordinary</p><em>a</em><b></b><em>b</em>" });
+  assert.equal(result.exitCode, 0, result.stderr); assert.equal(result.stdout, "1\\. ordinary\n\n*ab*\n");
+} finally { await standalone.dispose(); }
+const capped = new root.Shell({ fs }).use(root.agentCommands({ htmlToMarkdown: { limits: { maxInputBytes: 4 } } }));
+try {
+  const result = await capped.exec("html-to-markdown", { stdin: "<p>long</p>" });
+  assert.equal(result.exitCode, 1); assert.match(result.stderr, /input limit exceeded/); assert.equal(result.stdout, "");
+} finally { await capped.dispose(); }
+let disposed = 0; const authorized: string[] = [];
+const connected = new root.Shell({ fs }).use(root.agentCommands()).use(root.networkCommands({
+  authorize: request => { authorized.push(request.url); return request.url === "https://page.test/document"; },
+  transport: async () => ({ status: 200, statusText: "OK", headers: [], body: root.toByteSource("<h2>Remote</h2>"), async dispose() { disposed++; } }),
+}));
+try {
+  const result = await connected.exec("curl https://page.test/document | html-to-markdown > /remote.md");
+  assert.equal(result.exitCode, 0, result.stderr); assert.equal(Buffer.from(await fs.readFile("/remote.md")).toString(), "## Remote\n");
+  assert.deepEqual(authorized, ["https://page.test/document"]); assert.equal(disposed, 1);
+} finally { await connected.dispose(); }
+console.log(JSON.stringify({ defaults: expected.length, root: import.meta.resolve("virtual-bash"), subpath: import.meta.resolve("virtual-bash/commands/html-to-markdown"), workflows: 4, authorized, disposed }));

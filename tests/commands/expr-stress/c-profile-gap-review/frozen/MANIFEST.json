@@ -1,0 +1,38 @@
+{
+  "schema": 1,
+  "date": "2026-08-27",
+  "candidate": "27a7793526830768484885afba5832bf8bb248b5",
+  "evidence": "50b1e560b11adfcd1d1726896832c3c524e28c4d",
+  "files": [
+    {
+      "path": "CASES.md",
+      "sha256": "a9d667ab3d138e5da0ad2c3e90e2f11152ce8205903f51036268b4763d4ce4a6"
+    },
+    {
+      "path": "CASE_MATRIX.json",
+      "sha256": "ae334dcecc459d59e89d0183067b828ae4848ef48db300391dbe0971ec6046d2"
+    },
+    {
+      "path": "PRIMARY_SOURCES.json",
+      "sha256": "cc4ff479c15bdb7792ca43bbb881610685288d8c8cccc565a499da37532db2ea"
+    },
+    {
+      "path": "REPORT.md",
+      "sha256": "e8b9dd16113cd1c32cc75f6ebec2767be8b4e7b1ef4c7805b881aff2e3eac481"
+    },
+    {
+      "path": "VALIDATION.md",
+      "sha256": "a483e0cf7aacc238a5dc3c7ed8f6a2266d03cb7708a41fe0837670d10b0a11dc"
+    },
+    {
+      "path": "audit.mjs",
+      "sha256": "1b1fd8e03fbf8ecdfd4969f76c4dd4c0eb4d068b7027f803cd7632e4e13e7e0b"
+    },
+    {
+      "path": "extract.mjs",
+      "sha256": "2dcaeb9bdf14b4240aec407fcb088185373ba7fb1ae8d9307cdb423b80f3f4f2"
+    }
+  ],
+  "inventorySha256": "8fcbf0527573d1ae71aec48e4fee802c8215498e6c7b880b137caa58218155ea",
+  "exclusion": "MANIFEST.json only. Verification rejects added/missing/changed immediate entries and directories in this owned flat evidence tree; no claim about the whole repository."
+}

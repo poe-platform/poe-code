@@ -1,0 +1,45 @@
+{
+  "schema": 1,
+  "consultedDate": "2026-08-27",
+  "method": "web.run primary-site search results and accessible official page text; no new native observations. URLs identify normative/contextual references, not byte-exact GNU9.7 oracle substitutes.",
+  "sources": [
+    {
+      "id": "P1",
+      "title": "POSIX.1-2024, Base Definitions, 8.2 Internationalization Variables",
+      "url": "https://pubs.opengroup.org/onlinepubs/9799919799/basedefs/V1_chap08.html",
+      "use": "A nonempty LC_ALL overrides the corresponding nonempty LC_* category, which overrides nonempty LANG, followed by the implementation-defined default."
+    },
+    {
+      "id": "P2",
+      "title": "POSIX.1-2017, expr",
+      "url": "https://pubs.opengroup.org/onlinepubs/9699919799/utilities/expr.html",
+      "use": "LC_CTYPE covers character interpretation/classes; LC_COLLATE covers regex ranges/equivalence/collating elements and string relations. Status 2 denotes invalid expression; stderr is diagnostic, with no prescribed GNU token-aware wording. Edition is explicit, not mislabelled as the 2024 page."
+    },
+    {
+      "id": "P3",
+      "title": "POSIX.1-2017, Base Definitions, Regular Expressions",
+      "url": "https://pubs.opengroup.org/onlinepubs/9699919799/basedefs/V1_chap09.html",
+      "use": "Leftmost-longest whole-match and subpattern rules are normative context; this review does not derive GNU's partially open capture-register behavior from POSIX or decide the complete nullable-repeat semantics."
+    },
+    {
+      "id": "G1",
+      "title": "GNU Coreutils online manual, String expressions",
+      "url": "https://www.gnu.org/s/coreutils/manual/html_node/String-expressions.html",
+      "versionQualification": "Search-indexed page labels itself 9.11. It is not the pinned 9.7 source/archive or a claim about the latest release.",
+      "use": "Character-count versus first-capture return distinction; GNU prefix + forces a token to be a string, unlike shell quoting alone."
+    },
+    {
+      "id": "G2",
+      "title": "GNU Coreutils online manual, Relations for expr",
+      "url": "https://www.gnu.org/software/coreutils/manual/coreutils.html#Relations-for-expr",
+      "versionQualification": "Search-indexed manual labels itself 9.11; contextual documentation only, not replacement 9.7 expectations.",
+      "use": "Nonnumeric relations use the LC_COLLATE character collating sequence."
+    },
+    {
+      "id": "E1",
+      "title": "ECMA-402, 9th edition (2022), 10.3.3.2 CompareStrings",
+      "url": "https://tc39.es/ecma402/2022/#sec-comparestrings",
+      "use": "Locale-sensitive comparison has implementation-defined behavior and can change across implementation versions; it is not a promise of Darwin GNU9.7 libc collation equivalence."
+    }
+  ]
+}

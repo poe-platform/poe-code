@@ -1,0 +1,189 @@
+{
+  "schema": 1,
+  "scope": "14 individually authenticated staging inputs: six sealed captures, five versioned templates (v5-v9), three reusable templates. None is discarded or rewritten.",
+  "policy": "Relative installed-package imports require isolated local-package staging. Reusable templates remain runnable original recipes; the maintained DU leaf route supplies current strict/runtime checks without declaring public DU support. New recipe templates use consumer.ts.fixture staged byte-identically as consumer.ts; old frozen inputs retain their names.",
+  "entries": [
+    {
+      "path": "tests/integration/du-overlay-independent-20260827/approved-v5-9a5a6f92/consumer/consumer.ts",
+      "role": "versioned-template",
+      "bytes": 603,
+      "sha256": "14e55e16f60f8262c2b299fcf48911d2789e3ec1c7b44674dd622f5dab4552b7",
+      "owner": {
+        "path": "tests/integration/du-overlay-independent-20260827/approved-v5-9a5a6f92/MANIFEST.json",
+        "sha256": "bb3d41beff906a712f4d87de987e6447c897e5704e072b04a75c6926cb482833",
+        "collection": "files",
+        "input": "consumer/consumer.ts"
+      },
+      "currentGroup": "du-leaf"
+    },
+    {
+      "path": "tests/integration/du-overlay-independent-20260827/approved-v6-9a5a6f92/consumer/consumer.ts",
+      "role": "versioned-template",
+      "bytes": 603,
+      "sha256": "14e55e16f60f8262c2b299fcf48911d2789e3ec1c7b44674dd622f5dab4552b7",
+      "owner": {
+        "path": "tests/integration/du-overlay-independent-20260827/approved-v6-9a5a6f92/MANIFEST.json",
+        "sha256": "417a776d878fe8bf8ee363327dd603b3b34d64df09f1b3314b2da33b84df4ef7",
+        "collection": "files",
+        "input": "consumer/consumer.ts"
+      },
+      "currentGroup": "du-leaf"
+    },
+    {
+      "path": "tests/integration/du-overlay-independent-20260827/approved-v7-9a5a6f92/consumer/consumer.ts",
+      "role": "versioned-template",
+      "bytes": 603,
+      "sha256": "14e55e16f60f8262c2b299fcf48911d2789e3ec1c7b44674dd622f5dab4552b7",
+      "owner": {
+        "path": "tests/integration/du-overlay-independent-20260827/approved-v7-9a5a6f92/MANIFEST.json",
+        "sha256": "ae6c2dac28f30e94a6a4d07060cad8506608b5ec5aabeed254c964fd678c3ffc",
+        "collection": "files",
+        "input": "consumer/consumer.ts"
+      },
+      "currentGroup": "du-leaf"
+    },
+    {
+      "path": "tests/integration/du-overlay-independent-20260827/approved-v8-9a5a6f92/consumer/consumer.ts",
+      "role": "versioned-template",
+      "bytes": 603,
+      "sha256": "14e55e16f60f8262c2b299fcf48911d2789e3ec1c7b44674dd622f5dab4552b7",
+      "owner": {
+        "path": "tests/integration/du-overlay-independent-20260827/approved-v8-9a5a6f92/MANIFEST.json",
+        "sha256": "e8f957bd9ea434b0af5388ab0e2ed2d936d5338fcbca5344f3793b08e5e38af7",
+        "collection": "files",
+        "input": "consumer/consumer.ts"
+      },
+      "currentGroup": "du-leaf"
+    },
+    {
+      "path": "tests/integration/du-overlay-independent-20260827/approved-v9-9a5a6f92/consumer/consumer.ts",
+      "role": "versioned-template",
+      "bytes": 603,
+      "sha256": "14e55e16f60f8262c2b299fcf48911d2789e3ec1c7b44674dd622f5dab4552b7",
+      "owner": {
+        "path": "tests/integration/du-overlay-independent-20260827/approved-v9-9a5a6f92/MANIFEST.json",
+        "sha256": "474a95bd160636cdbabe03943a0a84aaaeb56d04ab87d25915bb1ac8cbdf9fa2",
+        "collection": "files",
+        "input": "consumer/consumer.ts"
+      },
+      "currentGroup": "du-leaf"
+    },
+    {
+      "path": "tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/evidence/candidate-9a5a6f92-2026-08-27T184628110Z-fdd7-TvfiaD/harness/harness/consumer-v2/consumer.ts",
+      "role": "sealed-capture",
+      "bytes": 603,
+      "sha256": "14e55e16f60f8262c2b299fcf48911d2789e3ec1c7b44674dd622f5dab4552b7",
+      "owner": {
+        "path": "tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/evidence/candidate-9a5a6f92-2026-08-27T184628110Z-fdd7-TvfiaD/manifest.json",
+        "sha256": "63b24884fee37b3e8440505f89446a685fdbb01be520309cdca2791bfd3fd8bc",
+        "collection": "harness.inputs",
+        "input": "harness/consumer-v2/consumer.ts"
+      },
+      "currentGroup": "du-leaf"
+    },
+    {
+      "path": "tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/evidence/candidate-9a5a6f92-2026-08-27T184718966Z-42b7-ik3KTO/harness/harness/consumer-v2/consumer.ts",
+      "role": "sealed-capture",
+      "bytes": 603,
+      "sha256": "14e55e16f60f8262c2b299fcf48911d2789e3ec1c7b44674dd622f5dab4552b7",
+      "owner": {
+        "path": "tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/evidence/candidate-9a5a6f92-2026-08-27T184718966Z-42b7-ik3KTO/manifest.json",
+        "sha256": "f336e4433cdf96466435b0ef1b1bd8b57b4f3ab85bde514330edb12543d960b8",
+        "collection": "harness.inputs",
+        "input": "harness/consumer-v2/consumer.ts"
+      },
+      "currentGroup": "du-leaf"
+    },
+    {
+      "path": "tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/evidence/candidate-9a5a6f92-2026-08-27T184742640Z-4378-47r2eR/harness/harness/consumer-v2/consumer.ts",
+      "role": "sealed-capture",
+      "bytes": 603,
+      "sha256": "14e55e16f60f8262c2b299fcf48911d2789e3ec1c7b44674dd622f5dab4552b7",
+      "owner": {
+        "path": "tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/evidence/candidate-9a5a6f92-2026-08-27T184742640Z-4378-47r2eR/manifest.json",
+        "sha256": "733f314e4f187d90971e08e59e4d49f8a772752d01fd090948a6a1de31ba97be",
+        "collection": "harness.inputs",
+        "input": "harness/consumer-v2/consumer.ts"
+      },
+      "currentGroup": "du-leaf"
+    },
+    {
+      "path": "tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/evidence/supplied-revision-9a5a6f92-2026-08-27T183910720Z-c216-VLoupP/harness/harness/consumer/consumer.ts",
+      "role": "sealed-capture",
+      "bytes": 554,
+      "sha256": "89932a1fed79a910d23d51fc2718c59fabd39ac8b58c62dc8f4e6a3946449edc",
+      "owner": {
+        "path": "tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/evidence/supplied-revision-9a5a6f92-2026-08-27T183910720Z-c216-VLoupP/manifest.json",
+        "sha256": "63f99403662a306e6f575565845ddde8c5fc7036404791cc7ce13ede21f4244f",
+        "collection": "harness.inputs",
+        "input": "harness/consumer/consumer.ts"
+      },
+      "currentGroup": "du-leaf"
+    },
+    {
+      "path": "tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/harness/consumer-v2/consumer.ts",
+      "role": "reusable-template",
+      "bytes": 603,
+      "sha256": "14e55e16f60f8262c2b299fcf48911d2789e3ec1c7b44674dd622f5dab4552b7",
+      "owner": {
+        "path": "tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/evidence/candidate-9a5a6f92-2026-08-27T184628110Z-fdd7-TvfiaD/manifest.json",
+        "sha256": "63b24884fee37b3e8440505f89446a685fdbb01be520309cdca2791bfd3fd8bc",
+        "collection": "harness.inputs",
+        "input": "harness/consumer-v2/consumer.ts"
+      },
+      "currentGroup": "du-leaf"
+    },
+    {
+      "path": "tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/harness/consumer/consumer.ts",
+      "role": "reusable-template",
+      "bytes": 554,
+      "sha256": "89932a1fed79a910d23d51fc2718c59fabd39ac8b58c62dc8f4e6a3946449edc",
+      "owner": {
+        "path": "tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/evidence/supplied-revision-9a5a6f92-2026-08-27T183910720Z-c216-VLoupP/manifest.json",
+        "sha256": "63f99403662a306e6f575565845ddde8c5fc7036404791cc7ce13ede21f4244f",
+        "collection": "harness.inputs",
+        "input": "harness/consumer/consumer.ts"
+      },
+      "currentGroup": "du-leaf"
+    },
+    {
+      "path": "tests/integration/du-overlay-independent-20260827/consumer/consumer.ts",
+      "role": "reusable-template",
+      "bytes": 554,
+      "sha256": "89932a1fed79a910d23d51fc2718c59fabd39ac8b58c62dc8f4e6a3946449edc",
+      "owner": {
+        "path": "tests/integration/du-overlay-independent-20260827/evidence/baseline-877144ea-2026-08-27T182017267Z-cbc5-YXsTka/manifest.json",
+        "sha256": "a8ef5cb2305a94183c2d0db0a9afa88fabee7b78f52cb59b9b493851bdc83c21",
+        "collection": "harness.inputs",
+        "input": "consumer/consumer.ts"
+      },
+      "currentGroup": "du-leaf"
+    },
+    {
+      "path": "tests/integration/du-overlay-independent-20260827/evidence/baseline-877144ea-2026-08-27T182017267Z-cbc5-YXsTka/harness/consumer/consumer.ts",
+      "role": "sealed-capture",
+      "bytes": 554,
+      "sha256": "89932a1fed79a910d23d51fc2718c59fabd39ac8b58c62dc8f4e6a3946449edc",
+      "owner": {
+        "path": "tests/integration/du-overlay-independent-20260827/evidence/baseline-877144ea-2026-08-27T182017267Z-cbc5-YXsTka/manifest.json",
+        "sha256": "a8ef5cb2305a94183c2d0db0a9afa88fabee7b78f52cb59b9b493851bdc83c21",
+        "collection": "harness.inputs",
+        "input": "consumer/consumer.ts"
+      },
+      "currentGroup": "du-leaf"
+    },
+    {
+      "path": "tests/integration/du-overlay-independent-20260827/evidence/baseline-877144ea-2026-08-27T182141438Z-2e8b-bTCRpv/harness/consumer/consumer.ts",
+      "role": "sealed-capture",
+      "bytes": 554,
+      "sha256": "89932a1fed79a910d23d51fc2718c59fabd39ac8b58c62dc8f4e6a3946449edc",
+      "owner": {
+        "path": "tests/integration/du-overlay-independent-20260827/evidence/baseline-877144ea-2026-08-27T182141438Z-2e8b-bTCRpv/manifest.json",
+        "sha256": "23a5aff29fff7bb5bfdd77c52de908b3f909eb954a9062f89e1aab0f323a322b",
+        "collection": "harness.inputs",
+        "input": "consumer/consumer.ts"
+      },
+      "currentGroup": "du-leaf"
+    }
+  ]
+}

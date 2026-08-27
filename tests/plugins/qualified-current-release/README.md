@@ -21,6 +21,28 @@ it cannot replace the mandatory qualified job.
 
 ## Exact candidate, unchanged tests
 
+### DU staging-input typing
+
+`staged-types.json` separately authenticates fourteen literal DU recipe inputs
+against their owning manifests: six sealed captures, five versioned v5–v9
+templates and three reusable templates. Their bytes and filenames stay intact.
+Their relative `./node_modules/virtual-bash/dist/commands/du/index.js` imports
+only resolve in the recipes' isolated installed-package layout, not as root
+compilation units. Each exact exclusion requires an intact owner record and a
+maintained `du-leaf` local-package type/runtime route; no DU directory is omitted.
+Reusable templates remain usable recipes, not disposable historical data. New
+recipe templates should be named `consumer.ts.fixture` and staged byte-identically
+as `consumer.ts`; this does not rename existing frozen inputs or change the
+maintained standalone `.mts` inventory convention.
+
+The maintained `du-leaf.mts` consumer imports the installed internal leaf,
+checks factories/options strictly, executes a VFS workflow and a limit refusal,
+and disposes both shells. Its `localPackage:true` route receives the same built
+declaration authentication and moved runtime permissions as other current
+consumers. It is not public DU export/default integration, full DU behavioral
+acceptance, or a rerun of historical source revisions. Unknown `.mts` inputs
+still fail classification; neighboring `.ts` sources remain compiler inputs.
+
 The owned snapshot helper reuses existing `run`/`step`/`finish` conventions,
 without modifying the previous stream-public helpers or independent holdouts.
 Git archives resolve one commit, never dirty source. Harness bytes must match

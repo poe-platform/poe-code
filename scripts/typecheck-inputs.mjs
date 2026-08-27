@@ -3,16 +3,18 @@ import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
-import { currentConsumerPaths, currentSourceConsumerGroups, negativeGroups, ownerPath } from "../tests/plugins/qualified-current-release/consumers.mjs";
+import { consumerGroups, currentConsumerPaths, currentSourceConsumerGroups, negativeGroups, ownerPath } from "../tests/plugins/qualified-current-release/consumers.mjs";
 import { verifyInventory } from "../tests/plugins/qualified-current-release/inventory-check.mjs";
+import { verifyStagedTypeInputs } from "./typecheck-staged-inputs.mjs";
 
 const sha256 = bytes => createHash("sha256").update(bytes).digest("hex");
 export const classification = JSON.parse(readFileSync(new URL("../tests/plugins/qualified-current-release/captured-types.json", import.meta.url)));
 
 export function verifyTypecheckInputs(root) {
   const config = JSON.parse(readFileSync(join(root, "tsconfig.json")));
+  const staged = verifyStagedTypeInputs(root, consumerGroups);
   assert.deepEqual(config.include, ["src/**/*.ts", "tests/**/*.ts"], "current source/test coverage must remain enabled");
-  assert.deepEqual(config.exclude, [...classification.existingExclusions, ...classification.entries.map(entry => entry.path)], "type-data exclusions must be the exact authenticated entries, not a directory or extension wildcard");
+  assert.deepEqual(config.exclude, [...classification.existingExclusions, ...classification.entries.map(entry => entry.path), ...staged.entries.map(entry => entry.path)], "type-data exclusions must be the exact authenticated entries, not a directory or extension wildcard");
   for (const evidence of classification.evidence) assert.equal(sha256(readFileSync(join(root, evidence.path))), evidence.sha256, `frozen capture evidence changed: ${evidence.path}`);
   const provenance = JSON.parse(readFileSync(join(root, classification.provenance)));
   for (const entry of classification.entries) {
@@ -23,6 +25,7 @@ export function verifyTypecheckInputs(root) {
     assert.ok(existsSync(join(root, entry.originalPath)), `current contract source is missing: ${entry.originalPath}`);
   }
   const tracked = execFileSync("git", ["ls-files", "-z"], { cwd: root, maxBuffer: 32 * 1024 * 1024 }).toString().split("\0").filter(Boolean);
+  for (const entry of staged.entries) assert.ok(tracked.includes(entry.path) && tracked.includes(entry.owner.path), `staged input and owning manifest must be tracked: ${entry.path}`);
   const inventory = JSON.parse(readFileSync(join(root, ownerPath, "inventory.json")));
   const classified = new Set(inventory.entries.map(entry => entry.path));
   const unknown = tracked.filter(path => path.endsWith(".mts") && !classified.has(path));
@@ -34,7 +37,7 @@ export function verifyTypecheckInputs(root) {
     assert.ok(existsSync(join(root, path)), `current source consumer is missing: ${path}`);
     assert.ok(!config.exclude.includes(path), `current source consumer excluded: ${path}`);
   }
-  return { capturedData: classification.entries.length, currentSourceConsumerGroups, standaloneInventory: inventory.counts };
+  return { capturedData: classification.entries.length, stagedInputs: staged.entries.map(({ path, role, currentGroup }) => ({ path, role, currentGroup })), currentSourceConsumerGroups, standaloneInventory: inventory.counts };
 }
 
 export function requireBuiltPackage(root) {

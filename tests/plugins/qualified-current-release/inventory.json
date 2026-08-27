@@ -5,7 +5,7 @@
   "historicalColdReview": "aac345a0: canonical470/470 and485/485; standalone omissions11/30 at respective frozen commits, not current denominator.",
   "counts": {
     "frozen-evidence": 147,
-    "current": 33,
+    "current": 34,
     "declaration": 7,
     "frozen-oracle": 1,
     "negative-types": 3
@@ -1866,6 +1866,15 @@
       "reason": "Maintained actual public consumer; strict same-package declarations and emitted runtime, not historical exclusion.",
       "existingCoverage": "column-public",
       "qualifiedCoverage": "scripts/verify-current-consumers.mjs: strict and runtime column-public"
+    },
+    {
+      "path": "tests/plugins/qualified-current-release/du-leaf.mts",
+      "sha256": "8e22f8d4d6f171f28ff7b5478b8257c5120a16a50998b5d0bcf4a2f40374ca2d",
+      "classification": "current",
+      "group": "du-leaf",
+      "reason": "maintained internal DU leaf declarations, VFS execution and limits; not a public export/default acceptance",
+      "existingCoverage": "tests/integration/du-overlay-independent-20260827/HOLDOUT_CONTRACT.md",
+      "qualifiedCoverage": "scripts/verify-current-consumers.mjs: strict du-leaf; runtime du-leaf.mjs"
     },
     {
       "path": "tests/plugins/stream-five-fixture-migration/public-options.mts",

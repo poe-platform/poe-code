@@ -1,0 +1,59 @@
+{
+  "runtime": "1b133a8662a32ee84524794842074c9c98d5f6c3",
+  "time": "2026-08-27T08:44:59.678Z",
+  "checks": [
+    {
+      "commit": "01aa1bffe0568cc6787d5ff8e0331e024a787385",
+      "path": "src/commands/grep.ts",
+      "sha256": "a5e93d8dd97c35f1a1530792b38478942647e6e66ac01fcd44fbea05fbfa78d1",
+      "identicalAtRuntime": true
+    },
+    {
+      "commit": "01aa1bffe0568cc6787d5ff8e0331e024a787385",
+      "path": "src/commands/search/rg.ts",
+      "sha256": "fee9a380679e17da179a1c6b4f9bacf9c89a10e0dd1d18981c26b9296f9846d3",
+      "identicalAtRuntime": true
+    },
+    {
+      "commit": "01aa1bffe0568cc6787d5ff8e0331e024a787385",
+      "path": "src/commands/regex-execution/client.ts",
+      "sha256": "1638d492d11d466875b98451a59bace4e60e71fcd5468d671182187549922bca",
+      "identicalAtRuntime": true
+    },
+    {
+      "commit": "01aa1bffe0568cc6787d5ff8e0331e024a787385",
+      "path": "src/commands/regex-execution/README.md",
+      "sha256": "914db79131dd4543e69746c73786df72e4f62055818e6cee17fd57eddcea4481",
+      "identicalAtRuntime": true
+    },
+    {
+      "commit": "10273352f8d65d929cbf5a23e69119414dacee60",
+      "path": "tests/commands/regex-execution/followup/messageerror.test.ts",
+      "sha256": "1be27d16a8487dae108d0d80de2a6e443d1f6da0a0913461ebea768a8448a5c3",
+      "identicalAtRuntime": true
+    }
+  ],
+  "otherEvidence": [
+    {
+      "name": "runtime-r1-runtime.json",
+      "sha256": "baa9c4d7c8c2e70697df8722f2464e098133ffa0b5e66f3c62ad7131b75ed7fc",
+      "counts": {
+        "controls": 8,
+        "passed": 7,
+        "failed": 1
+      },
+      "independentlyRerun": false
+    },
+    {
+      "name": "runtime-r1-triage.json",
+      "sha256": "0f52dc0a0ac48fbcb2cadc0c17bb9f8ab2477f78b8eb5d34a2f7e53bb9af7a92",
+      "counts": {
+        "controls": 13,
+        "passed": 13,
+        "failed": 0
+      },
+      "independentlyRerun": false
+    }
+  ],
+  "supplementalReadOnlyAfterIndependentFreezeAndReproduction": true
+}

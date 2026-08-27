@@ -1,0 +1,165 @@
+{
+  "claim": {
+    "time": "2026-08-27T08:43:22.144Z",
+    "node": "v22.22.2",
+    "platform": "darwin",
+    "arch": "arm64",
+    "provenance": [
+      {
+        "label": "baseline",
+        "commit": "07acb1a4d30b7592cf247a0220250317be4e2038",
+        "sourceFilesVerified": 196,
+        "compiledFilesVerified": 636,
+        "freezeSha256": "1265e3f16a078a9a203e545d6e7b5829605979fd9c08771cc8d737ad640e0788",
+        "buildSha256": "838392043de878938f7dcb9edf5a9a9bcda72a6df6f9a2eb4c74e877c598aff0",
+        "relevant": [
+          {
+            "path": "src/contracts/command.md",
+            "sha256": "8a5426b1e7a30a03dc62f74b28c6eb7bf9b008b78cb7b521eb7de0bc5c59a3f8"
+          },
+          {
+            "path": "src/shell/runtime.ts",
+            "sha256": "5589f60a1db983538d37168e3b9276555ef71a2bc67446783535e47789f9d6eb"
+          },
+          {
+            "path": "src/shell/shell.ts",
+            "sha256": "4ac91162195c150848793c92b8b1e90f15a36e67b5ae8a2652fe7ed9dcf4fb5e"
+          },
+          {
+            "path": "src/shell/types.ts",
+            "sha256": "fc4133f1fb41283b0586aa7597c766d393d4f91067b613f4777e5adbef230a6d"
+          },
+          {
+            "path": "dist/shell/runtime.js",
+            "sha256": "9f32cf4734c764ecac4625ed5390d5123b1aff10463a91b7db11065e516c779b"
+          },
+          {
+            "path": "dist/shell/shell.js",
+            "sha256": "fefe6d73b37d4adb16e6704faa9931073048e46bb3be63c41ff3ac0db0a77c12"
+          }
+        ]
+      },
+      {
+        "label": "runtime-r1",
+        "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3",
+        "sourceFilesVerified": 216,
+        "compiledFilesVerified": 704,
+        "freezeSha256": "11393027a812e9e25cc4af47309c38b9f444f8f8099e4772a04e6dfc145dd70a",
+        "buildSha256": "88d09d6ab1429211c31bb1bfb60d494b9cf1b68ca81b54a3d6923e55478ba2af",
+        "relevant": [
+          {
+            "path": "src/contracts/command.md",
+            "sha256": "8a5426b1e7a30a03dc62f74b28c6eb7bf9b008b78cb7b521eb7de0bc5c59a3f8",
+            "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+          },
+          {
+            "path": "src/shell/cleanup.ts",
+            "sha256": "134f55641d6437681cd185960a2923d68086096921758717c5b8059595304385",
+            "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+          },
+          {
+            "path": "src/shell/runtime.ts",
+            "sha256": "2223ef9e02565d163ded042d933553a1efae502ce7531fe83bba5611d959c84b",
+            "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+          },
+          {
+            "path": "src/shell/shell.ts",
+            "sha256": "538f7ea1504019fcde03abc2781c1f903573243a0332033b87501804a1c4ac5c",
+            "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+          },
+          {
+            "path": "src/shell/types.ts",
+            "sha256": "fc4133f1fb41283b0586aa7597c766d393d4f91067b613f4777e5adbef230a6d",
+            "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+          },
+          {
+            "path": "dist/shell/cleanup.js",
+            "sha256": "f29a3f3e220019dd5dba62bbcdd0fddc336c4924d30f7066f0839556fb65db29"
+          },
+          {
+            "path": "dist/shell/runtime.js",
+            "sha256": "ee3e045a1770cc43591a19936ec153e9a29c959c9de5886d2112427a9d20e97a"
+          },
+          {
+            "path": "dist/shell/shell.js",
+            "sha256": "38dced6b802a8aebf277a197061e83f3dcb9a9d1fed3372ce13a655f0e8ddd3d"
+          }
+        ]
+      }
+    ],
+    "fixtureCommit": "10273352f8d65d929cbf5a23e69119414dacee60",
+    "fixtureSha256": "34c3d137b96c4e963573977c92d478f3bd0d670fd2b7bf32bace1fdf852dd007",
+    "originalBodySha256": "1c3ed588392d94119e402ebd5e10162072a6fe78c34be7044856bce813933fce",
+    "originalBodyByteEqual": true,
+    "registrationCommit": "01aa1bffe0568cc6787d5ff8e0331e024a787385",
+    "files": {
+      "EXPECTATIONS.md": "d0d2aaea2142d47248d33964df3fad69a89731a443ac298013ca134a4ccf0b77",
+      "controls.mjs": "41978df1f0690ed50e3a42b18141d1ac60e4c34bf69cb7f9811cd50775b80644",
+      "original-group.mjs": "80ba87a6aa4080dc64f00c384d4dea94483ec034fd2d76019c753765e8e31a10",
+      "run.mjs": "b8f4794994aa2d50b421d818394501eebcf4341e81a56677cd157f49a3e89aa5"
+    },
+    "strictUnhandled": true,
+    "watchdogMs": 15000,
+    "outputCap": 16384,
+    "heapMb": 128,
+    "riskConsumed": 0,
+    "broadTests": false,
+    "mainResultsCertified": false,
+    "correction": {
+      "group": 2,
+      "originalEvidenceSha256": "a0edf39c431f4334210e36eb289b5098551a8c0d41af4a8aef15bb973e2b43df",
+      "reason": "Read AggregateError.errors on captured public outcome, not Node AssertionError.actual copy; preserve original assertion body."
+    }
+  },
+  "child": {
+    "pid": 29650,
+    "stdout": "{\"pass\":true,\"groups\":1,\"passed\":1,\"observations\":[{\"name\":\"ordinary-handler-throw-with-cleanup-and-original-assertion\",\"pass\":true,\"details\":{\"variants\":[{\"cleanups\":1,\"exactCleanupIdentities\":true,\"awaited\":true,\"stderr\":\"shell: line 1: selected execution failure\\n\"},{\"cleanups\":2,\"exactCleanupIdentities\":true,\"awaited\":true,\"stderr\":\"shell: line 1: selected execution failure\\n\"}],\"original\":{\"pass\":false,\"caller\":\"none\",\"assertionPreserved\":true,\"laterCallerBranchesReached\":false,\"actual\":\"Invocation cleanup failed\",\"expected\":\"selected execution failure\"}}}]}\n",
+    "stderr": "",
+    "killed": false,
+    "events": [
+      "stdout-close",
+      "stderr-close",
+      {
+        "exit": 0,
+        "signal": null
+      }
+    ],
+    "code": 0,
+    "signal": null
+  },
+  "result": {
+    "pass": true,
+    "groups": 1,
+    "passed": 1,
+    "observations": [
+      {
+        "name": "ordinary-handler-throw-with-cleanup-and-original-assertion",
+        "pass": true,
+        "details": {
+          "variants": [
+            {
+              "cleanups": 1,
+              "exactCleanupIdentities": true,
+              "awaited": true,
+              "stderr": "shell: line 1: selected execution failure\n"
+            },
+            {
+              "cleanups": 2,
+              "exactCleanupIdentities": true,
+              "awaited": true,
+              "stderr": "shell: line 1: selected execution failure\n"
+            }
+          ],
+          "original": {
+            "pass": false,
+            "caller": "none",
+            "assertionPreserved": true,
+            "laterCallerBranchesReached": false,
+            "actual": "Invocation cleanup failed",
+            "expected": "selected execution failure"
+          }
+        }
+      }
+    ]
+  }
+}

@@ -1,0 +1,106 @@
+{
+  "candidate": {
+    "commit": "27a7793526830768484885afba5832bf8bb248b5",
+    "sourceTreeSha256": "3f9f08d5a284954c9cc7e977225f6b85cd7d20c8e812c4163f5573ed94a08aae",
+    "adapterSha256": "5ae25ca13f47fcf2715ca0336149b41faf3d70fafa83ef42c667c9be054ca686",
+    "installedArtifactSha256": "3c7035e2917fab3b95eede6908065f544890ad60bc984a29941b559a34082ea5",
+    "dirty": false
+  },
+  "cohort": "extension-correction1",
+  "profiles": [
+    {
+      "id": "gnu-9.7-darwin-C",
+      "denominator": 1,
+      "semanticMatches": 1,
+      "diagnosticMatches": 1,
+      "strictMatches": 1
+    },
+    {
+      "id": "apple-darwin-C",
+      "denominator": 1,
+      "semanticMatches": 0,
+      "diagnosticMatches": 0,
+      "strictMatches": 0
+    }
+  ],
+  "rows": [
+    {
+      "id": "class-parenthesis-quoted-correction",
+      "profile": "gnu-9.7-darwin-C",
+      "argv": [
+        "+",
+        "(",
+        ":",
+        "[(]"
+      ],
+      "expected": {
+        "id": "class-parenthesis-quoted-correction",
+        "status": 0,
+        "signal": null,
+        "failure": null,
+        "stdoutBase64": "MQo=",
+        "stderrBase64": "",
+        "argvUtf8Hex": [
+          "2b",
+          "28",
+          "3a",
+          "5b285d"
+        ]
+      },
+      "actual": {
+        "id": "class-parenthesis-quoted-correction",
+        "caseSha256": null,
+        "status": 0,
+        "stdoutBase64": "MQo=",
+        "stderrBase64": "",
+        "signal": null,
+        "failure": null
+      },
+      "comparison": {
+        "semantic": true,
+        "diagnostic": true,
+        "strict": true
+      },
+      "classification": "strict match"
+    },
+    {
+      "id": "class-parenthesis-quoted-correction",
+      "profile": "apple-darwin-C",
+      "argv": [
+        "+",
+        "(",
+        ":",
+        "[(]"
+      ],
+      "expected": {
+        "id": "class-parenthesis-quoted-correction",
+        "status": 2,
+        "signal": null,
+        "failure": null,
+        "stdoutBase64": "",
+        "stderrBase64": "ZXhwcjogc3ludGF4IGVycm9yCg==",
+        "argvUtf8Hex": [
+          "2b",
+          "28",
+          "3a",
+          "5b285d"
+        ]
+      },
+      "actual": {
+        "id": "class-parenthesis-quoted-correction",
+        "caseSha256": null,
+        "status": 0,
+        "stdoutBase64": "MQo=",
+        "stderrBase64": "",
+        "signal": null,
+        "failure": null
+      },
+      "comparison": {
+        "semantic": false,
+        "diagnostic": false,
+        "strict": false
+      },
+      "classification": "semantic/status/output difference"
+    }
+  ]
+}

@@ -1,0 +1,136 @@
+{
+  "harnessCommit": "f6e0533920d9583af80f044a327bfcaa381d7cac",
+  "sourceCommit": "27a7793526830768484885afba5832bf8bb248b5",
+  "bindings": [
+    {
+      "file": "review.mjs",
+      "origin": "f6e0533920d9583af80f044a327bfcaa381d7cac:tests/commands/expr-stress/extension-review/execution/review.mjs",
+      "originalSha256": "d34d81cff2b5b8bb93f5c66aa1595bd7706f8de01042f3cc1fd9d170d0a2bf51",
+      "boundSha256": "7e875c2c5d515fcecd1a89825c90ce4e25042d046c840acb75b4dd4493f4dc55",
+      "changes": [
+        {
+          "before": "tests/commands/expr-stress/extension-review/execution",
+          "after": "tests/commands/expr-stress/extension-review/after-abort-fix/replay"
+        },
+        {
+          "before": "../../../../..'",
+          "after": "../../../../../..'"
+        }
+      ]
+    },
+    {
+      "file": "stage.mjs",
+      "origin": "f6e0533920d9583af80f044a327bfcaa381d7cac:tests/commands/expr-stress/extension-review/execution/stage.mjs",
+      "originalSha256": "8a89a2c018b028bd3921c214d023dab95d2a72b06a8e435644ec8df56d3e7ff5",
+      "boundSha256": "8230ad2d4ad80e5ac8ae1e5c6b945a7f649ad807567f368768315ba86788b263",
+      "changes": [
+        {
+          "before": "/tmp/expr-extension-author-candidate.txt",
+          "after": "/tmp/expr-cancel-fix-candidate.txt"
+        }
+      ]
+    },
+    {
+      "file": "watchdog.mjs",
+      "origin": "f6e0533920d9583af80f044a327bfcaa381d7cac:tests/commands/expr-stress/extension-review/execution/watchdog.mjs",
+      "originalSha256": "bef0f71905b37dbfd461f211214760ffc2ba8ae9039859f5736c3234309a92ee",
+      "boundSha256": "bef0f71905b37dbfd461f211214760ffc2ba8ae9039859f5736c3234309a92ee",
+      "changes": []
+    },
+    {
+      "file": "accept-native.mjs",
+      "origin": "f6e0533920d9583af80f044a327bfcaa381d7cac:tests/commands/expr-stress/extension-review/execution/accept-native.mjs",
+      "originalSha256": "1eb39afeb3b6b2ec47583a278e7421bc436ca1aa8c81344cea4443f256e32c20",
+      "boundSha256": "e60f1a08bf120c50381fa43ecbf6cf3bd6d4a20ae3498d1887c581b0f22d9fed",
+      "changes": [
+        {
+          "before": "candidate-fe7083d9-20260827",
+          "after": "candidate-27a77935"
+        }
+      ]
+    },
+    {
+      "file": "accept-controls.mjs",
+      "origin": "f6e0533920d9583af80f044a327bfcaa381d7cac:tests/commands/expr-stress/extension-review/execution/accept-controls.mjs",
+      "originalSha256": "2b250dc09143b27c0e1313744b84a49c9b26123595d76aa5689b7a93eae920e6",
+      "boundSha256": "0c3c374b2fbddf72aa14de31ead41aa06f02e5bb72f89c2d540998f52c644866",
+      "changes": [
+        {
+          "before": "candidate-fe7083d9-20260827",
+          "after": "candidate-27a77935"
+        }
+      ]
+    },
+    {
+      "file": "distribution.mjs",
+      "origin": "f6e0533920d9583af80f044a327bfcaa381d7cac:tests/commands/expr-stress/extension-review/execution/distribution.mjs",
+      "originalSha256": "5bb6342fb44f25b7bdea8c2c27f67891b7f9eed4dd66a00675e2cb1834fa8d86",
+      "boundSha256": "6bc4f01ab7b11a35f090831f396b7571c7d77182b980226bbb82eae4a9df698e",
+      "changes": [
+        {
+          "before": "candidate-fe7083d9-20260827",
+          "after": "candidate-27a77935"
+        },
+        {
+          "before": "distribution-fe7083d9",
+          "after": "distribution-27a77935"
+        }
+      ]
+    },
+    {
+      "file": "supplement.mjs",
+      "origin": "f6e0533920d9583af80f044a327bfcaa381d7cac:tests/commands/expr-stress/extension-review/execution/supplement.mjs",
+      "originalSha256": "fcbd9391b6c90e1fb713c0587797cf0a9b22507dcfec534c64d4c30297e7bec4",
+      "boundSha256": "8eb61b1e2790f6bd534c20257e8ade3ae8487a24a705346de6e5217fc526f4df",
+      "changes": [
+        {
+          "before": "candidate-fe7083d9-20260827",
+          "after": "candidate-27a77935"
+        },
+        {
+          "before": "baseline-8f19a9d5-20260827",
+          "after": "baseline-8f19a9d5"
+        },
+        {
+          "before": "supplement-fe7083d9-first",
+          "after": "supplement-27a77935"
+        }
+      ]
+    },
+    {
+      "file": "runtime-driver.mjs",
+      "origin": "f6e0533920d9583af80f044a327bfcaa381d7cac:tests/commands/expr-stress/extension-review/execution/runtime-driver.mjs",
+      "originalSha256": "5ae25ca13f47fcf2715ca0336149b41faf3d70fafa83ef42c667c9be054ca686",
+      "boundSha256": "5ae25ca13f47fcf2715ca0336149b41faf3d70fafa83ef42c667c9be054ca686",
+      "changes": []
+    },
+    {
+      "file": "protocol-driver.mjs",
+      "origin": "f6e0533920d9583af80f044a327bfcaa381d7cac:tests/commands/expr-stress/extension-review/execution/protocol-driver.mjs",
+      "originalSha256": "3f87c282e60a67388e64bf6fdd0b2b445778171fbb93c0190a237c53f2fc77bc",
+      "boundSha256": "3f87c282e60a67388e64bf6fdd0b2b445778171fbb93c0190a237c53f2fc77bc",
+      "changes": []
+    },
+    {
+      "file": "lifecycle-driver.mjs",
+      "origin": "f6e0533920d9583af80f044a327bfcaa381d7cac:tests/commands/expr-stress/extension-review/execution/lifecycle-driver.mjs",
+      "originalSha256": "1246aa9d53aabb47b825133634b458a9f2ce958f3d32c758c28e7c76668c2e37",
+      "boundSha256": "1246aa9d53aabb47b825133634b458a9f2ce958f3d32c758c28e7c76668c2e37",
+      "changes": []
+    },
+    {
+      "file": "extra-driver.mjs",
+      "origin": "f6e0533920d9583af80f044a327bfcaa381d7cac:tests/commands/expr-stress/extension-review/execution/extra-driver.mjs",
+      "originalSha256": "c05bc59571949eebfc14074b8e03bb4a0c87a00069e86bc44801db7ec82cdbf2",
+      "boundSha256": "c05bc59571949eebfc14074b8e03bb4a0c87a00069e86bc44801db7ec82cdbf2",
+      "changes": []
+    },
+    {
+      "file": "shell-lifecycle-driver.mjs",
+      "origin": "f6e0533920d9583af80f044a327bfcaa381d7cac:tests/commands/expr-stress/extension-review/execution/shell-lifecycle-driver.mjs",
+      "originalSha256": "00a054683c0694edae9484591ef8b99642c39c49153c2b0a1b4414b5cedf24c6",
+      "boundSha256": "00a054683c0694edae9484591ef8b99642c39c49153c2b0a1b4414b5cedf24c6",
+      "changes": []
+    }
+  ]
+}

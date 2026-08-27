@@ -1,0 +1,172 @@
+{
+  "candidate": "27a7793526830768484885afba5832bf8bb248b5",
+  "installed": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-final-moved-ou8UXb/consumer/node_modules/virtual-bash",
+  "declarations": [
+    {
+      "path": "dist/commands/expr/index.d.ts",
+      "sha256": "bc5ad271ac3d86ed7fe5ed04b59b2541578f52c91695b3288a369d3d1cd2af44",
+      "contents": "import { type CommandDefinition, type VirtualShellPlugin } from \"../../contracts/index.js\";\nimport { type ExprCommandsOptions } from \"./internal.js\";\nexport type { ExprCommandsOptions, ExprLimits } from \"./internal.js\";\nexport declare function createExprCommand(options?: ExprCommandsOptions): CommandDefinition;\nexport declare function createExprCommands(options?: ExprCommandsOptions): readonly CommandDefinition[];\nexport declare function exprCommands(options?: ExprCommandsOptions): VirtualShellPlugin;\n//# sourceMappingURL=index.d.ts.map"
+    },
+    {
+      "path": "dist/commands/expr/internal.d.ts",
+      "sha256": "e219599805535ef5319218856c1c3999f48a7805cfb54ba285bfc0705a285e70",
+      "contents": "import type { CommandContext } from \"../../contracts/index.js\";\nimport type { RegexExecutionOptions } from \"../regex-execution/client.js\";\nexport interface ExprLimits {\n    readonly maxArgumentBytes: number;\n    readonly maxNumericDigits: number;\n    readonly maxNodes: number;\n    readonly maxDepth: number;\n    readonly maxSteps: number;\n    readonly maxStringBytes: number;\n    readonly maxOutputBytes: number;\n    readonly maxRegexPatternBytes: number;\n    readonly maxRegexNodes: number;\n    readonly maxRegexDepth: number;\n    readonly maxRegexStates: number;\n    readonly maxRegexAllocatedUnits: number;\n}\nexport interface ExprCommandsOptions {\n    readonly replace?: boolean;\n    readonly limits?: Partial<ExprLimits>;\n    readonly regex?: RegexExecutionOptions;\n}\nexport declare class ExprError extends Error {\n    readonly exitCode: 2 | 3;\n    constructor(message: string, exitCode?: 2 | 3);\n}\nexport declare function settings(options: ExprCommandsOptions): ExprLimits;\nexport declare class Budget {\n    readonly context: CommandContext;\n    readonly limits: ExprLimits;\n    private steps;\n    private checkpoint;\n    constructor(context: CommandContext, limits: ExprLimits);\n    remaining(): number;\n    check(size: number, maximum: number, label: string): void;\n    charge(size?: number): void;\n    yield(): Promise<void>;\n    allocation(size: number): void;\n    arguments(): void;\n    encode(text: string): Uint8Array;\n}\nexport declare function utf8Profile(context: CommandContext): boolean;\nexport declare function requireByteCollation(context: CommandContext): void;\nexport declare function nextCharacter(bytes: Uint8Array, offset: number, unicode: boolean): number;\n//# sourceMappingURL=internal.d.ts.map"
+    },
+    {
+      "path": "dist/commands/regex-execution/protocol.d.ts",
+      "sha256": "85f2f6e5f5cc911a8f05a9a8a5b0780259e2a4dfd2f9cbd389ba6a8e7784e051",
+      "contents": "export interface RegexExecutionOptions {\n    readonly requestTimeoutMs?: number;\n    readonly startupTimeoutMs?: number;\n    readonly maxWorkers?: number;\n    readonly maxQueuedRequests?: number;\n    readonly maxQueuedBytes?: number;\n    readonly idleTimeoutMs?: number;\n    readonly workerOldGenerationMb?: number;\n    readonly workerStackMb?: number;\n}\nexport declare const defaults: Required<RegexExecutionOptions>;\nexport type RegexErrorCode = \"QUEUE_EXHAUSTED\" | \"REQUEST_TIMEOUT\" | \"STARTUP_TIMEOUT\" | \"WORKER_EXIT\" | \"WORKER_ERROR\" | \"PROTOCOL\" | \"CLOSED\" | \"MATCH\";\nexport declare class RegexExecutionError extends Error {\n    readonly code: RegexErrorCode;\n    constructor(code: RegexErrorCode, message: string);\n}\nexport interface GrepDescriptor {\n    readonly kind: \"grep\";\n    readonly patterns: readonly string[];\n    readonly fixed: boolean;\n    readonly extended: boolean;\n    readonly insensitive: boolean;\n    readonly whole: boolean;\n    readonly word: boolean;\n}\nexport interface SearchDescriptor {\n    readonly kind: \"rg\";\n    readonly patterns: readonly string[];\n    readonly fixed: boolean;\n    readonly case: \"sensitive\" | \"insensitive\" | \"smart\";\n    readonly whole: boolean;\n    readonly word: boolean;\n    readonly nullData: boolean;\n}\nexport interface GlobDescriptor {\n    readonly kind: \"glob\";\n    readonly patterns: readonly string[];\n    readonly globOptions: readonly {\n        readonly insensitive: boolean;\n        readonly literalUnclosedClass: boolean;\n    }[];\n}\nexport type Descriptor = GrepDescriptor | SearchDescriptor | GlobDescriptor;\nexport interface Row {\n    readonly bytes: Uint8Array;\n    readonly all: boolean;\n    readonly terminated: boolean;\n    readonly directory?: boolean;\n    readonly ancestors?: boolean;\n}\nexport interface Match {\n    readonly start: number;\n    readonly end: number;\n}\nexport interface Request {\n    readonly id: number;\n    readonly descriptor: Descriptor;\n    readonly rows: readonly Row[];\n}\nexport type Reply = {\n    readonly id: number;\n    readonly results: readonly Float64Array[];\n} | {\n    readonly id: number;\n    readonly error: string;\n};\nexport interface ExprMatchLimits {\n    readonly maxPatternBytes: number;\n    readonly maxSubjectBytes: number;\n    readonly maxNodes: number;\n    readonly maxDepth: number;\n    readonly maxSteps: number;\n    readonly maxStates: number;\n    readonly maxAllocatedUnits: number;\n}\nexport declare const exprMatchCeilings: ExprMatchLimits;\nexport interface ExprMatchDescriptor {\n    readonly kind: \"expr-match\";\n    readonly pattern: Uint8Array;\n    readonly profile: \"byte\" | \"utf8-scalar\";\n    readonly limits: ExprMatchLimits;\n}\nexport interface ExprMatchResult {\n    readonly offsetUnit: \"byte\";\n    readonly matched: boolean;\n    readonly hasCapture: boolean;\n    readonly overall: Match | null;\n    readonly capture: Match | null;\n    readonly steps: number;\n}\nexport interface ExprMatchRequest {\n    readonly id: number;\n    readonly descriptor: ExprMatchDescriptor;\n    readonly rows: readonly Row[];\n}\nexport type ExprMatchReply = {\n    readonly id: number;\n    readonly operation: \"expr-match\";\n    readonly result: ExprMatchResult;\n} | {\n    readonly id: number;\n    readonly operation: \"expr-match\";\n    readonly error: string;\n    readonly category: \"syntax\" | \"unsupported\" | \"limit\";\n};\nexport declare class ExprMatchError extends Error {\n    readonly category: \"syntax\" | \"unsupported\" | \"limit\";\n    constructor(category: \"syntax\" | \"unsupported\" | \"limit\", message: string);\n}\nexport declare function validateExprInput(descriptor: ExprMatchDescriptor, rows: readonly Row[], signal: AbortSignal): void;\nexport declare function validateExprRequest(value: unknown): asserts value is ExprMatchRequest;\nexport declare function validateExprReply(value: unknown, id: number, descriptor: ExprMatchDescriptor, subject: Uint8Array, signal: AbortSignal): ExprMatchResult;\nexport declare function policy(options: RegexExecutionOptions): Required<RegexExecutionOptions>;\nexport declare function inputBytes(descriptor: Descriptor, rows: readonly Row[], signal: AbortSignal): number;\nexport declare function validateReply(value: unknown, id: number, rows: readonly Row[], signal: AbortSignal): Match[][];\n//# sourceMappingURL=protocol.d.ts.map"
+    },
+    {
+      "path": "dist/commands/regex-execution/client.d.ts",
+      "sha256": "a0c121bf338ad2e2570a5239f131ef2aaccb77dd7b2579bac4de9ed57d1f9eaf",
+      "contents": "import { Worker } from \"node:worker_threads\";\nimport type { CommandContext, CommandResult } from \"../../contracts/command.js\";\nimport type { ByteSource } from \"../../contracts/io.js\";\nimport { type ExprMatchDescriptor, type ExprMatchResult, type Descriptor, type Match, type RegexExecutionOptions, type Row } from \"./protocol.js\";\nexport type { RegexExecutionOptions } from \"./protocol.js\";\nexport { RegexExecutionError } from \"./protocol.js\";\nexport declare function withRegexSession(context: CommandContext, executor: RegexExecutor, execute: (session: RegexSession) => CommandResult | Promise<CommandResult>): Promise<CommandResult>;\ndeclare class Slot {\n    private readonly owner;\n    readonly worker: Worker;\n    busy: boolean;\n    ready: boolean;\n    retired: Promise<void> | undefined;\n    idleTimer: ReturnType<typeof setTimeout> | undefined;\n    private receiver;\n    private failure;\n    private terminal;\n    private exited;\n    private readonly message;\n    private readonly error;\n    private readonly messageerror;\n    private readonly exit;\n    constructor(owner: RegexExecutor);\n    fail(error: unknown): void;\n    exchange(timeout: number, startup: boolean, signal: AbortSignal, send?: () => void): Promise<unknown>;\n    retire(): Promise<void>;\n}\nexport declare class RegexExecutor {\n    readonly options: Required<RegexExecutionOptions>;\n    private readonly slots;\n    private readonly queue;\n    private queuedBytes;\n    private sessions;\n    private sequence;\n    private disposed;\n    constructor(options?: RegexExecutionOptions);\n    open(signal: AbortSignal): RegexSession;\n    close(): Promise<void>;\n    dispose(): Promise<void>;\n    retired(slot: Slot): void;\n    request(descriptor: Descriptor, rows: readonly Row[], signal: AbortSignal, retirements?: Set<Promise<void>>): Promise<Match[][]>;\n    request(descriptor: ExprMatchDescriptor, rows: readonly Row[], signal: AbortSignal, retirements?: Set<Promise<void>>): Promise<ExprMatchResult>;\n    private pump;\n    private run;\n}\nexport declare class RegexSession {\n    private readonly executor;\n    private readonly signal;\n    private closed;\n    private readonly pending;\n    private readonly retirements;\n    private readonly controller;\n    private readonly requestSignal;\n    constructor(executor: RegexExecutor, signal: AbortSignal);\n    run(descriptor: Descriptor, rows: readonly Row[]): Promise<Match[][]>;\n    matchExpr(descriptor: ExprMatchDescriptor, subject: Uint8Array): Promise<ExprMatchResult>;\n    close(): Promise<void>;\n}\nexport declare class AvailableRecords {\n    private readonly delimiter;\n    private readonly maxLineBytes;\n    private readonly extraDelimiter;\n    private chunk;\n    private offset;\n    constructor(delimiter: number, maxLineBytes: number, extraDelimiter?: number);\n    source(source: ByteSource): ByteSource;\n    private end;\n    batches<Line>(source: AsyncIterable<Line>, size: (line: Line) => number, maxRecords?: () => number): AsyncGenerator<Line[]>;\n}\n//# sourceMappingURL=client.d.ts.map"
+    }
+  ],
+  "packageExports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./contracts": {
+      "types": "./dist/contracts/index.d.ts",
+      "import": "./dist/contracts/index.js"
+    },
+    "./contracts/*": {
+      "types": "./dist/contracts/*.d.ts",
+      "import": "./dist/contracts/*.js"
+    },
+    "./commands/network": {
+      "types": "./dist/commands/network/index.d.ts",
+      "import": "./dist/commands/network/index.js"
+    },
+    "./commands/metadata": {
+      "types": "./dist/commands/metadata/index.d.ts",
+      "import": "./dist/commands/metadata/index.js"
+    },
+    "./commands/archive": {
+      "types": "./dist/commands/archive/index.d.ts",
+      "import": "./dist/commands/archive/index.js"
+    },
+    "./commands/table-text": {
+      "types": "./dist/commands/table-text/index.d.ts",
+      "import": "./dist/commands/table-text/index.js"
+    },
+    "./commands/stream-inspection": {
+      "types": "./dist/commands/stream-inspection/index.d.ts",
+      "import": "./dist/commands/stream-inspection/index.js"
+    },
+    "./commands/stream-format": {
+      "types": "./dist/commands/stream-format/index.d.ts",
+      "import": "./dist/commands/stream-format/index.js"
+    },
+    "./commands/split": {
+      "types": "./dist/commands/split/index.d.ts",
+      "import": "./dist/commands/split/index.js"
+    },
+    "./commands/time-env": {
+      "types": "./dist/commands/time-env/index.d.ts",
+      "import": "./dist/commands/time-env/index.js"
+    },
+    "./commands/tree": {
+      "types": "./dist/commands/tree/index.d.ts",
+      "import": "./dist/commands/tree/index.js"
+    },
+    "./commands/file": {
+      "types": "./dist/commands/file/index.d.ts",
+      "import": "./dist/commands/file/index.js"
+    },
+    "./commands/grep-aliases": {
+      "types": "./dist/commands/grep-aliases/index.d.ts",
+      "import": "./dist/commands/grep-aliases/index.js"
+    },
+    "./commands/column": {
+      "types": "./dist/commands/column/index.d.ts",
+      "import": "./dist/commands/column/index.js"
+    },
+    "./fs/s3": {
+      "types": "./dist/fs/s3/index.d.ts",
+      "import": "./dist/fs/s3/index.js"
+    },
+    "./fs/s3/http": {
+      "types": "./dist/fs/s3/http/index.d.ts",
+      "import": "./dist/fs/s3/http/index.js"
+    },
+    "./fs/webdav": {
+      "types": "./dist/fs/webdav/index.d.ts",
+      "import": "./dist/fs/webdav/index.js"
+    },
+    "./fs/readonly": {
+      "types": "./dist/fs/readonly/index.d.ts",
+      "import": "./dist/fs/readonly/index.js"
+    },
+    "./fs/mount": {
+      "types": "./dist/fs/mount/index.d.ts",
+      "import": "./dist/fs/mount/index.js"
+    },
+    "./fs/overlay": {
+      "types": "./dist/fs/overlay/index.d.ts",
+      "import": "./dist/fs/overlay/index.js"
+    }
+  },
+  "runtimeDependencies": {},
+  "limits": "Descriptor maxPatternBytes/maxSubjectBytes bytes; maxNodes includes AST+instructions; maxDepth nesting; maxSteps work; maxStates cumulative search; maxAllocatedUnits logical allocation, not RSS. Expr maxArgumentBytes sums UTF8 argv bytes without terminators. maxOutputBytes includes LF.",
+  "protocol": "ExprMatchDescriptor kind expr-match, byte pattern, byte/utf8-scalar profile, exact limits object. Request id/descriptor/one bytes-all=false-terminated=false row. Reply id/operation=expr-match/result or category/error. Result offsetUnit=byte, booleans, nullable {start,end} spans, steps integer.",
+  "seam": "Public installed validator/executor/session plus injected Worker constructor, preserving actual client implementation; separate unmodified worker runs.",
+  "workerGraph": {
+    "files": [
+      {
+        "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-final-moved-ou8UXb/consumer/node_modules/virtual-bash/dist/commands/regex-execution/worker.js",
+        "sha256": "46479e6d87bd5d20371a2e523310b2275c74d32d15105fcc9678ec73410efe4f"
+      },
+      {
+        "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-final-moved-ou8UXb/consumer/node_modules/virtual-bash/dist/commands/regex-execution/protocol.js",
+        "sha256": "a38e930b62581a22b23d05087b4f67937accbe157d5f6bb6c9b33e7c35f5c9b6"
+      },
+      {
+        "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-final-moved-ou8UXb/consumer/node_modules/virtual-bash/dist/commands/expr/bre-worker.js",
+        "sha256": "e744453f4430b6a929cadac4e4b6a8a4e58ac75440ef16006ff4f4dab31f4874"
+      },
+      {
+        "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-final-moved-ou8UXb/consumer/node_modules/virtual-bash/dist/commands/regex-execution/matching.js",
+        "sha256": "2f97a68fce0ab504676afe31b4c4fd5eea1edde87ffb28bea9f55c8422693791"
+      }
+    ],
+    "edges": [
+      {
+        "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-final-moved-ou8UXb/consumer/node_modules/virtual-bash/dist/commands/regex-execution/worker.js",
+        "specifier": "node:worker_threads"
+      },
+      {
+        "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-final-moved-ou8UXb/consumer/node_modules/virtual-bash/dist/commands/regex-execution/worker.js",
+        "specifier": "./matching.js",
+        "target": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-final-moved-ou8UXb/consumer/node_modules/virtual-bash/dist/commands/regex-execution/matching.js"
+      },
+      {
+        "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-final-moved-ou8UXb/consumer/node_modules/virtual-bash/dist/commands/regex-execution/worker.js",
+        "specifier": "../expr/bre-worker.js",
+        "target": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-final-moved-ou8UXb/consumer/node_modules/virtual-bash/dist/commands/expr/bre-worker.js"
+      },
+      {
+        "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-final-moved-ou8UXb/consumer/node_modules/virtual-bash/dist/commands/regex-execution/worker.js",
+        "specifier": "./protocol.js",
+        "target": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-final-moved-ou8UXb/consumer/node_modules/virtual-bash/dist/commands/regex-execution/protocol.js"
+      },
+      {
+        "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-final-moved-ou8UXb/consumer/node_modules/virtual-bash/dist/commands/expr/bre-worker.js",
+        "specifier": "node:worker_threads"
+      },
+      {
+        "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-final-moved-ou8UXb/consumer/node_modules/virtual-bash/dist/commands/expr/bre-worker.js",
+        "specifier": "../regex-execution/protocol.js",
+        "target": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-final-moved-ou8UXb/consumer/node_modules/virtual-bash/dist/commands/regex-execution/protocol.js"
+      },
+      {
+        "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-final-moved-ou8UXb/consumer/node_modules/virtual-bash/dist/commands/regex-execution/matching.js",
+        "specifier": "node:buffer"
+      }
+    ],
+    "allStaticProductImportsConfined": true
+  },
+  "classification": "Physical standalone installed dist module only; no expr public package-subpath/default/root integration."
+}

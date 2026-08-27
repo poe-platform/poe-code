@@ -1,0 +1,118 @@
+{
+  "baselineCommit": "8f19a9d5bb244ff6c095b7117e6d0738fdf40421",
+  "candidateCommit": "27a7793526830768484885afba5832bf8bb248b5",
+  "baseline": {
+    "grep": [
+      [
+        {
+          "start": 0,
+          "end": 1
+        },
+        {
+          "start": 1,
+          "end": 2
+        },
+        {
+          "start": 2,
+          "end": 3
+        }
+      ]
+    ],
+    "rg": [
+      [
+        {
+          "start": 0,
+          "end": 2
+        },
+        {
+          "start": 2,
+          "end": 3
+        }
+      ]
+    ],
+    "glob": [
+      [
+        {
+          "start": 0,
+          "end": 0
+        }
+      ]
+    ],
+    "defaults": {
+      "requestTimeoutMs": 1000,
+      "startupTimeoutMs": 3000,
+      "maxWorkers": 2,
+      "maxQueuedRequests": 64,
+      "maxQueuedBytes": 134217728,
+      "idleTimeoutMs": 100,
+      "workerOldGenerationMb": 128,
+      "workerStackMb": 4
+    },
+    "legacyValid": [
+      [
+        {
+          "start": 1,
+          "end": 2
+        }
+      ]
+    ]
+  },
+  "candidate": {
+    "grep": [
+      [
+        {
+          "start": 0,
+          "end": 1
+        },
+        {
+          "start": 1,
+          "end": 2
+        },
+        {
+          "start": 2,
+          "end": 3
+        }
+      ]
+    ],
+    "rg": [
+      [
+        {
+          "start": 0,
+          "end": 2
+        },
+        {
+          "start": 2,
+          "end": 3
+        }
+      ]
+    ],
+    "glob": [
+      [
+        {
+          "start": 0,
+          "end": 0
+        }
+      ]
+    ],
+    "defaults": {
+      "requestTimeoutMs": 1000,
+      "startupTimeoutMs": 3000,
+      "maxWorkers": 2,
+      "maxQueuedRequests": 64,
+      "maxQueuedBytes": 134217728,
+      "idleTimeoutMs": 100,
+      "workerOldGenerationMb": 128,
+      "workerStackMb": 4
+    },
+    "legacyValid": [
+      [
+        {
+          "start": 1,
+          "end": 2
+        }
+      ]
+    ]
+  },
+  "equal": true,
+  "note": "Same real installed session executes grep, rg and glob; default options and old byte spans retained. Legacy glob zero-length sentinel is not an expr span."
+}

@@ -1,0 +1,14 @@
+{
+  "binary": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "tests/commands/expr-stress/extension-review/after-abort-fix/replay/accept-native.mjs",
+    "acceptance-27a77935"
+  ],
+  "cwd": "/Users/kjopek/Workspace/safe-bash",
+  "timeoutMs": 120000,
+  "status": 0,
+  "signal": null,
+  "failure": null,
+  "stdout": "{\n  \"cohort\": \"original95\",\n  \"profiles\": [\n    {\n      \"id\": \"gnu-9.7-darwin-C\",\n      \"denominator\": 95,\n      \"semanticMatches\": 95,\n      \"diagnosticMatches\": 87,\n      \"strictMatches\": 87\n    },\n    {\n      \"id\": \"gnu-9.7-darwin-en_US.UTF-8\",\n      \"denominator\": 9,\n      \"semanticMatches\": 2,\n      \"diagnosticMatches\": 2,\n      \"strictMatches\": 2\n    },\n    {\n      \"id\": \"apple-darwin-C\",\n      \"denominator\": 95,\n      \"semanticMatches\": 61,\n      \"diagnosticMatches\": 46,\n      \"strictMatches\": 42\n    },\n    {\n      \"id\": \"apple-darwin-en_US.UTF-8\",\n      \"denominator\": 9,\n      \"semanticMatches\": 5,\n      \"diagnosticMatches\": 0,\n      \"strictMatches\": 0\n    }\n  ]\n}\n\n{\n  \"cohort\": \"extension-original20\",\n  \"profiles\": [\n    {\n      \"id\": \"gnu-9.7-darwin-C\",\n      \"denominator\": 20,\n      \"semanticMatches\": 20,\n      \"diagnosticMatches\": 19,\n      \"strictMatches\": 19\n    },\n    {\n      \"id\": \"gnu-9.7-darwin-en_US.UTF-8\",\n      \"denominator\": 3,\n      \"semanticMatches\": 0,\n      \"diagnosticMatches\": 0,\n      \"strictMatches\": 0\n    },\n    {\n      \"id\": \"apple-darwin-C\",\n      \"denominator\": 20,\n      \"semanticMatches\": 16,\n      \"diagnosticMatches\": 19,\n      \"strictMatches\": 15\n    },\n    {\n      \"id\": \"apple-darwin-en_US.UTF-8\",\n      \"denominator\": 3,\n      \"semanticMatches\": 0,\n      \"diagnosticMatches\": 0,\n      \"strictMatches\": 0\n    }\n  ]\n}\n\n{\n  \"cohort\": \"extension-correction1\",\n  \"profiles\": [\n    {\n      \"id\": \"gnu-9.7-darwin-C\",\n      \"denominator\": 1,\n      \"semanticMatches\": 1,\n      \"diagnosticMatches\": 1,\n      \"strictMatches\": 1\n    },\n    {\n      \"id\": \"apple-darwin-C\",\n      \"denominator\": 1,\n      \"semanticMatches\": 0,\n      \"diagnosticMatches\": 0,\n      \"strictMatches\": 0\n    }\n  ]\n}\n\n",
+  "stderr": ""
+}

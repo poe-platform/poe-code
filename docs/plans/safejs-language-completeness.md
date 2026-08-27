@@ -1729,7 +1729,7 @@ Released and verified as `poe-code@10.0.4`; the exact registry receipt follows.
   network/process modules, and multi-file source imports remain open. The overall
   language-completeness goal remains active.
 
-### Class/object prerequisite: reference evaluation — release pending
+### Class/object prerequisite: reference evaluation — released in poe-code 11.0.0
 
 - The class audit exposed incorrect existing reference semantics. Corrected
   compound-read ordering, logical constant short-circuiting, write-error timing,
@@ -1747,3 +1747,12 @@ Released and verified as `poe-code@10.0.4`; the exact registry receipt follows.
   sandbox-owned intrinsic prototypes, accessors, private state, and the other
   remaining language-completeness items are still open. This prerequisite is not
   a claim that the class/prototype item is complete.
+- Code commit `d94439542182ced254ed867f08dc377ba37256a6`; Release run
+  `33068025742` succeeds in 9m2s. npm publishes 11.0.0 at
+  `2026-08-27T11:44:09.960Z`; npm gitHead and tag `v11.0.0` match that code commit.
+- Fresh registry consumer `/tmp/safejs-references-published.5h0OEo` passes all
+  three Node matrices, budget/abort-capability checks, 18 SIGKILLs, 15 CLI cases,
+  genuine historical snapshot migration, actual CI SDK smoke, public types,
+  and shared runtime checks. The 153-output/six-directory stale-artifact gate
+  still passes; all 19 consumer symlinks are internal. The full release receipt
+  and explicit remaining object-model gaps are in `safejs-classes-prototypes.md`.

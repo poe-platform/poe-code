@@ -18,7 +18,9 @@ No class or prototype support is complete merely because a prerequisite ships.
 - Intrinsic prototypes belong to each sandbox execution. Neither native prototypes
   nor closure implementation fields become script-accessible capabilities.
 - Budgets account for prototype edges, descriptors, private state, constructors,
-  getters/setters, cycles, and retained closures. Cancellation remains fatal.
+  getters/setters, cycles, and retained closures. Budget/reentry failures remain
+  fatal. Cancellation revokes host operations while allowing local cleanup,
+  preserving the existing `CHECKPOINT_REPLAY.md` contract.
 - Checkpoint, replay, migration, host crossings, and lint understand the same object
   model. No silently discarded prototype/accessor/private state; incompatible replay
   semantics require an explicit marker and migration, never a hash/marker rewrite.
@@ -68,9 +70,40 @@ also multiply getter calls and misorder setters once accessors are introduced.
   checks, stale-artifact audit, and relevant visual CLI checks. Verify every release
   workflow and exact published package identity before recording release success.
 
+## Object-model integration audit
+
+- The existing no-`eval`/no-dynamic-`Function` capability policy remains in force.
+  Owned function prototypes must not turn a `.constructor` chain into a native
+  execution escape. Adding classes is not permission to expose host intrinsics.
+- Use explicit object metadata for sandbox prototype edges and descriptors; native
+  getters cannot implement source accessors because interpreter calls are async
+  operations. Function property storage must remain separate from native closure
+  wrapper fields (`call`, `construct`, cancellation metadata, and brands).
+- `run.ts` creates fresh builtin bindings, but `values.ts` passes branded closures,
+  generators, promises, and regex values through copies. Realm ownership and
+  host-capability crossing need deliberate handling; a shared mutable prototype
+  table attached to those wrappers would create cross-run pollution.
+- `measureSandboxData` currently walks array elements, collection contents, and
+  captured closure values, not a general descriptor/prototype graph. Include named
+  array properties and newly introduced graph edges in the ownership/budget work.
+  Intrinsic baseline allocations must not charge every script for the whole builtin
+  realm, while script additions/replacements on intrinsic prototypes must be charged
+  even when no user binding points at them.
+- `patterns.ts` still resolves/writes member targets separately. Assignment defaults
+  must capture their target reference before evaluating a default initializer.
+  Getters, object rest/spread, and pattern source reads must use the same operations
+  as direct member expressions rather than native object reads/writes.
+- `iteration.ts` currently adapts native iterators and sandbox generator channels.
+  Owned iterator methods must invoke source closures through interpreter control,
+  not pass a source property to native `Reflect.apply`.
+- `snapshot/replay-data.ts` currently records physical own data descriptors and
+  rejects accessors/custom host prototypes. Extend that protocol deliberately for
+  owned objects, aliases, cycles, private state, and registered source capabilities;
+  do not relax the rejection of arbitrary host prototypes/accessors.
+
 ## Evidence
 
-### Reference evaluation prerequisite — release pending
+### Reference evaluation prerequisite — released in poe-code 11.0.0
 
 This prerequisite does not complete classes, prototypes, descriptors, or all
 property consumers. Computed-key coercion, binary-expression coercion, pattern
@@ -108,6 +141,8 @@ Independent ad-hoc scripts retained outside the repository:
 - `/tmp/safejs-references-failures.mjs`: 288 budget failures and 576 recoveries/
   completed restores; 72 aborts, 180 coercion-error/fallback cases, and 64 concurrent
   isolation checks. Zero repeated effects or fatal-error escape callbacks.
+  Abort checks concern revoked host capabilities, not a prohibition on local
+  computation/cleanup after cancellation; the latter is explicitly permitted.
 - `/tmp/safejs-references-crash.mjs`: 18 actual SIGKILLs, 18 subsequent budget
   failures, 36 successful restores, 12 external reconciliation receipts, and 72
   terminated child processes. Covers a pending effect, a plain await, and an effect
@@ -125,6 +160,12 @@ The stress harness itself required corrections: public snapshot serialization us
 may preserve the AbortController reason, root/standalone exit codes differ, and
 the filesystem fixture expects a real newline. Failed harness attempts are not
 counted as successful runtime validations.
+An additional cancellation probe showed that native JavaScript without a signal
+is not an oracle for a canceled run's completion result: local cleanup is permitted,
+but a canceled invocation can still reject. The abort matrix asserts the actual
+host-capability revocation contract, not successful completion after cancellation.
+Source-call promise ownership across entry forms remains part of the object-model
+integration audit, rather than evidence of universal cancellation conformance.
 
 Regression scripts also pass: migration (810 cases, 1,620 restores, 1,350 expected
 failures), recovery (138 budget cases, 27 ordinary failures, 468 restores, 48
@@ -163,3 +204,32 @@ Final build gate: 67 forced workspace builds succeed, followed by the normal
 cache-hit build and root bundle generation. The 153-file/six-directory cleanup
 audit passes after each build. No validation processes were using workspace dist
 while those builds ran.
+
+### Registry release receipt
+
+- Code commit: `d94439542182ced254ed867f08dc377ba37256a6` —
+  `fix(safejs)!: preserve assignment reference evaluation`.
+- GitHub Release run `33068025742`: success; release job takes 9m2s. Build,
+  signature audit, package rules, full tests, SDK/CLI smoke, publication, and
+  post-job cleanup all pass. Pre-commit and pre-push hooks were not bypassed.
+- npm publishes `poe-code@11.0.0` on August 27, 2026 at
+  `2026-08-27T11:44:09.960Z`; GitHub tag/release `v11.0.0` follows at
+  `2026-08-27T11:44:11Z`. npm `gitHead` and the tag both identify the exact code
+  commit above. This is a major release because older execution markers require
+  explicit migration, not implicit replay under changed reference semantics.
+- Fresh exact registry installation: `/tmp/safejs-references-published.5h0OEo`.
+  Re-ran the same 1,152-case/2,304-restore matrix on Node 18.18.2, 22.22.2, and
+  24.14.0. The 288 budget, 72 abort-capability, 180 coercion, 64 isolation, 18
+  SIGKILL, 15 CLI, 36 actual-10.0.4, and 90 older historical snapshot cases pass.
+  Counts describe the same scenarios repeated against the published artifact,
+  not additional independent coverage. No native effects are repeated.
+- The installed package also passes the 810-case migration matrix and recovery
+  regression (138 budget cases, 27 ordinary failures, 468 restores, 48 concurrent
+  runs), the actual current CI SDK smoke, strict public types, and index/core
+  identity checks. Evidence remains in `/tmp/safejs-references-published-*`;
+  the successful abort/coercion log is `safejs-references-published-failures-final.log`.
+- Registry cleanup audit: 153 removed outputs and six obsolete directories remain
+  absent, all five binaries exist, and all 19 symlinks are internal. No global
+  installation or skill mutation was needed. User font assets remain untouched.
+- Only this prerequisite is released. The full class/prototype requirement and
+  all remaining checklist items stay open; the overall goal remains active.

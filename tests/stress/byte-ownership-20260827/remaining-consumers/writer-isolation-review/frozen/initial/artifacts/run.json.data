@@ -1,0 +1,26 @@
+{
+  "profile": "Direct public-root source-import registered curl; NOT Shell; NOT packed",
+  "node": "v22.22.2",
+  "platform": "darwin",
+  "arch": "arm64",
+  "command": [
+    "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "--unhandled-rejections=strict",
+    "--import",
+    "tsx",
+    "--test",
+    "--test-concurrency=1",
+    "--test-reporter=tap",
+    "tests/stress/byte-ownership-20260827/remaining-consumers/direct-curl/direct-curl.test.ts"
+  ],
+  "fixtureFreezeCommit": "3163946e8983ee8424d0a20578aa48d9eb35e14c",
+  "outcome": {
+    "code": 1,
+    "signal": null
+  },
+  "watchdogFired": false,
+  "childClosed": true,
+  "sourceHashesUnchanged": true,
+  "sourceInventoryUnchanged": true,
+  "fixtureHashesUnchanged": true
+}

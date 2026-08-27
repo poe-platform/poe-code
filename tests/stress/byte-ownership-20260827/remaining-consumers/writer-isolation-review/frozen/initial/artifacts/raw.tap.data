@@ -1,0 +1,88 @@
+TAP version 13
+# Subtest: direct-registered-curl-buffer-307-replay
+not ok 1 - direct-registered-curl-buffer-307-replay
+  ---
+  duration_ms: 4.665583
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/remaining-consumers/direct-curl/direct-curl.test.ts:1:661'
+  failureType: 'testCodeFailure'
+  error: |-
+    307 replay must retain original stdin bytes after producer finalization
+    + actual - expected
+    
+      [
+    +   238,
+    +   238,
+    +   238,
+    +   238,
+    +   238,
+    +   238,
+    +   238,
+    +   238,
+    +   238,
+    +   238,
+    +   238,
+    +   238
+    -   0,
+    -   255,
+    -   128,
+    -   195,
+    -   40,
+    -   10,
+    -   13,
+    -   0,
+    -   254,
+    -   65,
+    -   226,
+    -   40
+      ]
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    0: 0
+    1: 255
+    2: 128
+    3: 195
+    4: 40
+    5: 10
+    6: 13
+    7: 0
+    8: 254
+    9: 65
+    10: 226
+    11: 40
+  actual:
+    0: 238
+    1: 238
+    2: 238
+    3: 238
+    4: 238
+    5: 238
+    6: 238
+    7: 238
+    8: 238
+    9: 238
+    10: 238
+    11: 238
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/remaining-consumers/direct-curl/direct-curl.test.ts:261:12)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# Subtest: direct-registered-curl-native-uint8array-307-replay
+ok 2 - direct-registered-curl-native-uint8array-307-replay
+  ---
+  duration_ms: 1.466125
+  type: 'test'
+  ...
+1..2
+# tests 2
+# suites 0
+# pass 1
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 287.82025

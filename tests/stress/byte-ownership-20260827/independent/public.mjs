@@ -106,9 +106,11 @@ test('public awaited sink acceptance before backing reuse', watchdog, async cont
   completed(state, 5);
 });
 
-test('public sink rejection keeps exact reason and source cleanup', watchdog, async context => {
+test('public sink rejection preserves attempted bytes and exact diagnostic', watchdog, async context => {
   const { shell, state } = await fixture(context, 'Buffer', vectors.binary);
   const reason = new Error('independent sink rejection');
-  await assert.rejects(shell.exec('tail -c 7 /borrowed', { stdout: { async write() { throw reason; } } }), error => error === reason);
+  const result = await shell.exec('tail -c 7 /borrowed', { stdout: { async write() { throw reason; } } });
+  assert.deepEqual({ stdout: hex(result.stdoutBytes), stderr: result.stderr, status: result.exitCode },
+    { stdout: '8391', stderr: 'tail: independent sink rejection\n', status: 1 });
   completed(state, 5);
 });

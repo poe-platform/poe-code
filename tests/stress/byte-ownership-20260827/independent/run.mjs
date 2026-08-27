@@ -22,7 +22,7 @@ const sourceSnapshot = () => mapHashes([
   ...['package.json', 'tsconfig.json', 'tsconfig.build.json', 'tests/contracts/io.test.ts', 'AGENTS.md'].map(filename => join(root, filename)),
 ]);
 const frozenNames = ['vectors.mjs', 'fixtures.mjs', 'internal.mjs', 'public.mjs', 'loaded-hashes.mjs', 'run.mjs', 'README.md', '.gitignore', 'consumer-package.json', 'scaffolding-correction.md'];
-const freezeName = 'freeze-scaffold-v2.json';
+const freezeName = 'freeze-scaffold-v3.json';
 const fixtureSnapshot = () => mapHashes(frozenNames.map(filename => join(owned, filename)));
 const addEvidence = (name, content) => {
   const filename = relative(root, join(owned, name));

@@ -11,7 +11,7 @@ records source and fixture SHA-256 values before any product execution. Commit
 that freeze and these explicit files before running the baseline. Then run:
 
 ```
-node tests/stress/byte-ownership-20260827/independent/run.mjs prepatch-v2
+node tests/stress/byte-ownership-20260827/independent/run.mjs prepatch-v3
 node tests/stress/byte-ownership-20260827/independent/run.mjs candidate
 ```
 
@@ -55,7 +55,7 @@ The original 17/20 baseline and frozen scaffolding history remain read-only and
 are not rebound by this runner. Author-owned unchanged-20 replay is separate.
 This leaf reports its own 30-test frozen cohort and moved-build identity only.
 The preserved first harness attempt and exact corrections are documented in
-`scaffolding-correction.md`; current scaffolding binds `freeze-scaffold-v2.json`.
+`scaffolding-correction.md`; current scaffolding binds `freeze-scaffold-v3.json`.
 Timing records include compiler/loader/harness effects and cohost load is
 uncontrolled. Allocation is not measured; source-level copy observations may be
 reported after the candidate is inspected, not as a blanket-copy recommendation

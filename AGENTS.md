@@ -139,8 +139,12 @@
 
 ## Validation and commits
 
-- npm test runs node:test through tsx; npm run test:contracts targets contracts;
-  npm run typecheck checks source/tests; npm run build emits ESM/declarations in dist.
+- npm test runs node:test through tsx; npm run test:contracts targets contracts.
+  npm run typecheck:all builds once, then checks source/tests and maintained strict
+  consumers; npm run typecheck requires existing built declarations. Rebuild after
+  source changes. Typechecking is not runtime or service acceptance. Captured-data
+  exclusions must remain exact and authenticated, not broad test-tree omissions.
+  npm run build emits ESM/declarations in dist.
   Run scoped checks first; do not rerun competing owners' entire suites needlessly.
 - Inspect git root/status/index before changes. Use apply_patch, stage explicit
   owned paths and git commit --only with those paths. Preserve concurrent edits,

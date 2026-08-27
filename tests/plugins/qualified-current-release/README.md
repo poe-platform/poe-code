@@ -46,8 +46,9 @@ compiled, but their Apache/WsgiDAV/S3 workflows are **not executed** by this job
 importing exported workflow modules is not service proof. Research feasibility
 inputs are not claimed as supported product features. Frozen evidence copies
 are hash-inventoried, not mutated or rescored. Four imported `.d.mts` support
-declarations are not standalone runtime programs. No root `.ts` inclusion or
-canonical test configuration changes occur.
+declarations are not standalone runtime programs. The original standalone
+reconciliation changed neither root `.ts` inclusion nor canonical test
+configuration; the later exact-data typing repair is recorded below.
 
 ### August 27 inventory reconciliation
 
@@ -73,11 +74,35 @@ the emitted file. Its injected fetch/configured removal and stock refusal do
 not establish deployed-provider acceptance. External service acceptance and
 configured-rmdir evidence remain separate.
 
-This census has177 entries:29 current,2 negative,4 declarations,141 frozen
+That historical census has177 entries:29 current,2 negative,4 declarations,141 frozen
 evidence and1 frozen oracle. New paths still fail closed. Development tooling
 is copied as regular files into the frozen candidate, not linked to a mutable
 dependency tree. `tests/integration/qualified-current-release-inventory/verify.mjs`
 checks the census and eight guard mutations; it is not a runtime release gate.
+
+### August 27 build-aware typing route
+
+Two later env-split fixtures from f2906a06 are explicitly classified, not omitted:
+`public-types.mts` is a maintained declaration-only proof; `invalid-binding.mts`
+must produce exactly one TS2741 diagnostic. Their bytes remain unchanged. The
+updated census is179:30 current,3 negative,4 declarations,141 frozen evidence and
+1 frozen oracle. The positive route intentionally has no runtime: its original
+`run-v2.mjs` also invokes only tsc for this file. This is not new env-S acceptance.
+
+`npm run typecheck:all` builds once, keeps current source/tests checked, and reuses
+these maintained routes for strict copied-build declarations and exact negative
+diagnostics without executing consumer programs. Four current `.ts` consumers
+also remain in the root compiler and get three explicit strict build-first
+groups. Those WebDAV fixtures deliberately import source MockDav helpers; they
+are not represented as isolated packed service proofs. Current public imports
+must resolve candidate `dist`. The separate runtime release runner retains its
+mandatory pre/post execution guards and canonical `.test.mts` execution.
+
+Exactly five flattened historical tree contract captures are classified as
+authenticated data by `captured-types.json`, not current compilation units.
+Their original current contract sources and neighboring TypeScript remain
+checked. See `tests/integration/typecheck-workflow-repair/README.md` for source
+binding, cold prerequisites, retained historical failures and mutation controls.
 The census reads all tracked paths (including future examples outside tests or
 scripts), with no prefix exclusions. The former independent-holdout prefix
 contained zero .mts files; it can no longer silently hide a future executable.

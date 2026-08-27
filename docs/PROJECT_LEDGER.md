@@ -1989,3 +1989,39 @@ that any implementation, command, fixture, or test currently exists.
   root decides the next full-gate/comparison run. Evidence and exact reproduction
   are in tests/integration/qualified-current-release-repair and
   tests/plugins/filesystem-inspection-public-independent. No whole gate rerun.
+
+### 2026-08-27 — authenticated type data and build-first workflow
+
+- Source/configuration b9559de5 is Curie's narrow typing repair. Exactly five
+  flattened tree captures, causing seven TS2307 and one TS7006, become authenticated
+  historical data rather than current compile units. Bytes, provenance, preseal
+  and original replay stay unchanged; current contracts, neighboring TypeScript
+  and all four current cold-dependent `.ts` consumers remain checked. No broad
+  `.ts`/`.mts` or artifact-directory omission. Plato's separate1a18cb18 fixes the
+  three file-test TS2749 annotations; no ownership or runtime-fix claim here.
+- `typecheck:all` builds once before global source/tests, the existing selected-GNU
+  route, three explicit strict source-consumer groups and19 copied-build groups.
+  Plain typecheck requires existing built exports and fails with clear exit78
+  when absent; it does not claim stale dist is fresh. Runtime consumer execution
+  and provider acceptance remain separate from typing.
+- Two unchanged later env-S declaration fixtures receive explicit inventory
+  routes: positive compile-only and exact single TS2741 negative. Census177→179
+  preserves all original classifications; exact negative groups now require1+2+5
+  diagnostics. This is not env-S runtime acceptance or a new native profile.
+- Final isolated base026e20cf plus ten hashed owned repair overlays matches
+  b9559de5; no dirty foreign fixture is copied. One production build/global types
+  pass, strict groups3/3+19/19, exact negatives pass;15/15 bounded controls plus
+  unchanged24/24 runtime-coverage controls. Failed-build/stale-use, missing-current
+  consumer, unknown tracked input, source-error, neighbor-error, broad-exclusion,
+  changed-capture and source-resolution controls reject. Earlier v1/v2 and all33
+  raw captures remain sealed. No private checkout, dependency or product change.
+- Independent execution-repair acceptance had already been recorded in7f7764b5
+  for c3fbda62; c4783b71 only corrects a terminal-LF manifest representation.
+  This supersedes the earlier pending-review status, not847dfd7's historically
+  incomplete coverage. Original b49416520/307/13 is still unqualified; its30→11
+  and954's35→11 typing cohorts and all ten remaining failures remain in evidence.
+- See tests/integration/typecheck-workflow-repair/README.md and its read-only
+  verifier. A different reviewer must accept this new workflow. The whole-gate
+  launcher still requires a reviewed new candidate/policy and complete native
+  staging; no broad suite was rerun, old seal rewritten, or product superiority
+  or72-hour completion asserted.

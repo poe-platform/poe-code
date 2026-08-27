@@ -425,20 +425,33 @@ lifecycle success or replay durability. See the ledger for separate cohorts.
 ## Validate
 
 ```sh
-npm run typecheck
-npm run build
+npm run typecheck:all
 npm test
 SAFEJS_LOCAL_ROOT=/path/to/poe-code/packages/safejs npm test
 ```
 
-Typechecking and default test discovery both omit exactly
+`typecheck:all` builds production ESM/declarations once, then checks current
+source/tests and the maintained strict built-package consumer routes. It does
+not execute their runtime programs. `npm run typecheck` reuses an existing
+build; without one it stops with an explicit prerequisite rather than unresolved
+consumer imports. Use the combined command after source changes: presence of
+`dist` alone is not freshness verification. `npm run typecheck:consumers` checks
+the consumer routes against an existing build without rebuilding or running
+the global source/test check. `npm run build` remains available separately.
+
+Typechecking and default test discovery both omit
 `tests/commands/regex-execution/continuation/artifacts/native`, whose `.ts`
-names are native glob inputs, not maintained TypeScript. Other artifact trees,
-tests and helpers are not broadly excluded. The August 27 native-data correction
-removes six raw-payload diagnostics, but the recorded global typecheck still
-fails with eight foreign filesystem-inspection fixture diagnostics; it is not
-a whole-product pass. Historical standalone `.mts` omissions and the separate
-build-first consumer gate remain separate. The qualified release inventory now
+names are native glob inputs, not maintained TypeScript. Typechecking additionally
+authenticates and excludes exactly five flattened historical tree contract
+captures; their original bytes, provenance and replay are retained. Their current
+`src/contracts` originals, neighboring TypeScript and current consumers remain
+checked. The historical eight capture diagnostics and separate three file-test
+annotation diagnostics are preserved, not product failures erased from a run.
+See `tests/integration/typecheck-workflow-repair/README.md` for the narrow change
+and negative controls. Other artifact trees, tests and helpers are not broadly
+excluded; the existing selected-GNU consumer has its own build-first check.
+
+Historical standalone `.mts` omissions remain separate. The qualified inventory
 explicitly routes maintained `.mts` consumers, intentional negative-type cases,
 and hash-sealed historical captures; new paths still fail closed. Its maintained
 `.test.mts` programs execute through that dedicated runner, not `npm test`'s

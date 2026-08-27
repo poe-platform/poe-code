@@ -1,0 +1,388 @@
+TAP version 13
+# Subtest: abort remains observable after producer close while bytes are unread
+ok 1 - abort remains observable after producer close while bytes are unread
+  ---
+  duration_ms: 5.055334
+  type: 'test'
+  ...
+# Subtest: aborting a fully drained pipe does not undo successful closure
+ok 2 - aborting a fully drained pipe does not undo successful closure
+  ---
+  duration_ms: 0.203958
+  type: 'test'
+  ...
+# Subtest: abort preserves the first failure and releases blocked writes and close
+ok 3 - abort preserves the first failure and releases blocked writes and close
+  ---
+  duration_ms: 0.430417
+  type: 'test'
+  ...
+# Subtest: a thrown producer can fail the pipe without dangling internal rejections
+ok 4 - a thrown producer can fail the pipe without dangling internal rejections
+  ---
+  duration_ms: 0.906792
+  type: 'test'
+  ...
+# Subtest: concurrent pipe writes preserve invocation order and snapshot mutable chunks
+ok 5 - concurrent pipe writes preserve invocation order and snapshot mutable chunks
+  ---
+  duration_ms: 1.5595
+  type: 'test'
+  ...
+# Subtest: an oversized individual chunk still flows through a small watermark
+ok 6 - an oversized individual chunk still flows through a small watermark
+  ---
+  duration_ms: 0.178542
+  type: 'test'
+  ...
+# Subtest: return and throw cancel consumers even before the first read
+ok 7 - return and throw cancel consumers even before the first read
+  ---
+  duration_ms: 0.363667
+  type: 'test'
+  ...
+# Subtest: collectBytes cancels a stalled next and does not await uncooperative cleanup
+ok 8 - collectBytes cancels a stalled next and does not await uncooperative cleanup
+  ---
+  duration_ms: 1.322417
+  type: 'test'
+  ...
+# Subtest: pipeBytes aborts a stalled sink and observes late write and cleanup failures
+ok 9 - pipeBytes aborts a stalled sink and observes late write and cleanup failures
+  ---
+  duration_ms: 0.287584
+  type: 'test'
+  ...
+# Subtest: invalid runtime byte inputs are rejected instead of coerced
+ok 10 - invalid runtime byte inputs are rejected instead of coerced
+  ---
+  duration_ms: 0.09975
+  type: 'test'
+  ...
+# Subtest: hundreds of empty, closed, and abandoned pipes settle without background errors
+ok 11 - hundreds of empty, closed, and abandoned pipes settle without background errors
+  ---
+  duration_ms: 7.7985
+  type: 'test'
+  ...
+# Subtest: successful and canceled stream helpers release their AbortSignal listeners
+ok 12 - successful and canceled stream helpers release their AbortSignal listeners
+  ---
+  duration_ms: 0.359667
+  type: 'test'
+  ...
+# Subtest: an aborted pending input can reject later without an unhandled rejection
+ok 13 - an aborted pending input can reject later without an unhandled rejection
+  ---
+  duration_ms: 0.254625
+  type: 'test'
+  ...
+# Subtest: byte limits preserve the primary error when iterator cleanup also fails
+ok 14 - byte limits preserve the primary error when iterator cleanup also fails
+  ---
+  duration_ms: 0.084542
+  type: 'test'
+  ...
+# Subtest: byte sources preserve binary bytes and UTF-8 text
+ok 15 - byte sources preserve binary bytes and UTF-8 text
+  ---
+  duration_ms: 0.959125
+  type: 'test'
+  ...
+# Subtest: byte sources snapshot Uint8Array and Buffer inputs at creation
+ok 16 - byte sources snapshot Uint8Array and Buffer inputs at creation
+  ---
+  duration_ms: 0.694959
+  type: 'test'
+  ...
+# Subtest: collectors enforce explicit byte limits and close overflowing sources
+ok 17 - collectors enforce explicit byte limits and close overflowing sources
+  ---
+  duration_ms: 0.666291
+  type: 'test'
+  ...
+# Subtest: collectors copy reused buffers and decode UTF-8 split across chunks
+ok 18 - collectors copy reused buffers and decode UTF-8 split across chunks
+  ---
+  duration_ms: 0.338542
+  type: 'test'
+  ...
+# Subtest: collectors reject pre-aborted operations
+ok 19 - collectors reject pre-aborted operations
+  ---
+  duration_ms: 0.187625
+  type: 'test'
+  ...
+# Subtest: pipes stream while the producer runs and apply byte-based backpressure
+ok 20 - pipes stream while the producer runs and apply byte-based backpressure
+  ---
+  duration_ms: 4.668417
+  type: 'test'
+  ...
+# Subtest: pipe writes take ownership through byte copies, including Buffer inputs
+ok 21 - pipe writes take ownership through byte copies, including Buffer inputs
+  ---
+  duration_ms: 0.182541
+  type: 'test'
+  ...
+# Subtest: pipe cancellation rejects blocked producers and readers
+ok 22 - pipe cancellation rejects blocked producers and readers
+  ---
+  duration_ms: 0.461
+  type: 'test'
+  ...
+# Subtest: breaking consumption produces EPIPE for pending writers
+ok 23 - breaking consumption produces EPIPE for pending writers
+  ---
+  duration_ms: 0.183084
+  type: 'test'
+  ...
+# Subtest: returning an unread pipe releases blocked producers
+ok 24 - returning an unread pipe releases blocked producers
+  ---
+  duration_ms: 0.1405
+  type: 'test'
+  ...
+# Subtest: closed and pre-aborted pipes reject further writes
+ok 25 - closed and pre-aborted pipes reject further writes
+  ---
+  duration_ms: 0.2305
+  type: 'test'
+  ...
+# Subtest: pipe watermarks must be positive finite safe integers
+ok 26 - pipe watermarks must be positive finite safe integers
+  ---
+  duration_ms: 0.07575
+  type: 'test'
+  ...
+# Subtest: pipeBytes awaits sink acceptance before requesting the next chunk
+ok 27 - pipeBytes awaits sink acceptance before requesting the next chunk
+  ---
+  duration_ms: 0.11475
+  type: 'test'
+  ...
+# Subtest: writeText encodes UTF-8 and propagates sink failures
+ok 28 - writeText encodes UTF-8 and propagates sink failures
+  ---
+  duration_ms: 0.062667
+  type: 'test'
+  ...
+# Subtest: early downstream closure drains both owners; pipefail=false, failure=false
+ok 29 - early downstream closure drains both owners; pipefail=false, failure=false
+  ---
+  duration_ms: 37.836625
+  type: 'test'
+  ...
+# Subtest: early downstream closure drains both owners; pipefail=false, failure=true
+ok 30 - early downstream closure drains both owners; pipefail=false, failure=true
+  ---
+  duration_ms: 33.602791
+  type: 'test'
+  ...
+# Subtest: early downstream closure drains both owners; pipefail=true, failure=false
+ok 31 - early downstream closure drains both owners; pipefail=true, failure=false
+  ---
+  duration_ms: 33.8295
+  type: 'test'
+  ...
+# Subtest: early downstream closure drains both owners; pipefail=true, failure=true
+ok 32 - early downstream closure drains both owners; pipefail=true, failure=true
+  ---
+  duration_ms: 31.950583
+  type: 'test'
+  ...
+# Subtest: pipeline abort drains nested owners even when every handler remains opaque
+ok 33 - pipeline abort drains nested owners even when every handler remains opaque
+  ---
+  duration_ms: 17.515584
+  type: 'test'
+  ...
+# Subtest: opaque pending input and iterator return do not delay owned cleanup on cancel
+ok 34 - opaque pending input and iterator return do not delay owned cleanup on cancel
+  ---
+  duration_ms: 16.836625
+  type: 'test'
+  ...
+# Subtest: opaque sink rejection is observed without skipping cleanup or altering captured bytes
+ok 35 - opaque sink rejection is observed without skipping cleanup or altering captured bytes
+  ---
+  duration_ms: 32.994583
+  type: 'test'
+  ...
+# Subtest: registered cleanup follows owned | pass
+ok 36 - registered cleanup follows owned | pass
+  ---
+  duration_ms: 17.440333
+  type: 'test'
+  ...
+# Subtest: registered cleanup follows (owned)
+ok 37 - registered cleanup follows (owned)
+  ---
+  duration_ms: 16.676333
+  type: 'test'
+  ...
+# Subtest: registered cleanup follows f() { owned; }; f
+ok 38 - registered cleanup follows f() { owned; }; f
+  ---
+  duration_ms: 16.873875
+  type: 'test'
+  ...
+# Subtest: registered cleanup follows eval owned
+ok 39 - registered cleanup follows eval owned
+  ---
+  duration_ms: 16.098333
+  type: 'test'
+  ...
+# Subtest: registered cleanup follows . /owned.sh
+ok 40 - registered cleanup follows . /owned.sh
+  ---
+  duration_ms: 17.002417
+  type: 'test'
+  ...
+# Subtest: registered cleanup follows source /owned.sh
+ok 41 - registered cleanup follows source /owned.sh
+  ---
+  duration_ms: 15.976334
+  type: 'test'
+  ...
+# Subtest: registered cleanup follows say $(owned)
+ok 42 - registered cleanup follows say $(owned)
+  ---
+  duration_ms: 16.558
+  type: 'test'
+  ...
+# Subtest: registered cleanup follows bash -c owned
+ok 43 - registered cleanup follows bash -c owned
+  ---
+  duration_ms: 16.870417
+  type: 'test'
+  ...
+# Subtest: registered cleanup follows command owned
+ok 44 - registered cleanup follows command owned
+  ---
+  duration_ms: 16.782458
+  type: 'test'
+  ...
+# Subtest: pipeline output and shared output accounting preserve exact bytes after delayed drain
+ok 45 - pipeline output and shared output accounting preserve exact bytes after delayed drain
+  ---
+  duration_ms: 31.830709
+  type: 'test'
+  ...
+# Subtest: cleanup is registered before acquisition and delays normal public settlement
+ok 46 - cleanup is registered before acquisition and delays normal public settlement
+  ---
+  duration_ms: 4.057292
+  type: 'test'
+  ...
+# Subtest: caller cancellation drains middleware hooks without waiting opaque next
+ok 47 - caller cancellation drains middleware hooks without waiting opaque next
+  ---
+  duration_ms: 1.455875
+  type: 'test'
+  ...
+# Subtest: normal completion seals saved registration and invoke before input acquisition
+ok 48 - normal completion seals saved registration and invoke before input acquisition
+  ---
+  duration_ms: 0.532667
+  type: 'test'
+  ...
+# Subtest: all cleanup failures survive undefined and null without hiding nonzero results
+ok 49 - all cleanup failures survive undefined and null without hiding nonzero results
+  ---
+  duration_ms: 0.51225
+  type: 'test'
+  ...
+# Subtest: dispose closes admissions and shares the active cleanup barrier before plugins
+ok 50 - dispose closes admissions and shares the active cleanup barrier before plugins
+  ---
+  duration_ms: 0.614
+  type: 'test'
+  ...
+# Subtest: hard-timeout lifecycle regression: cleanup-abort
+ok 51 - hard-timeout lifecycle regression: cleanup-abort
+  ---
+  duration_ms: 217.720583
+  type: 'test'
+  ...
+# Subtest: hard-timeout lifecycle regression: cleanup-late-rejection
+ok 52 - hard-timeout lifecycle regression: cleanup-late-rejection
+  ---
+  duration_ms: 220.888916
+  type: 'test'
+  ...
+# Subtest: hard-timeout lifecycle regression: shared-delayed-generator
+ok 53 - hard-timeout lifecycle regression: shared-delayed-generator
+  ---
+  duration_ms: 180.560666
+  type: 'test'
+  ...
+# Subtest: hard-timeout lifecycle regression: shared-serialized
+ok 54 - hard-timeout lifecycle regression: shared-serialized
+  ---
+  duration_ms: 186.451833
+  type: 'test'
+  ...
+# Subtest: hard-timeout lifecycle regression: shared-repeated-cancellation
+ok 55 - hard-timeout lifecycle regression: shared-repeated-cancellation
+  ---
+  duration_ms: 190.318084
+  type: 'test'
+  ...
+# Subtest: hard-timeout lifecycle regression: shared-abandoned-rejection
+ok 56 - hard-timeout lifecycle regression: shared-abandoned-rejection
+  ---
+  duration_ms: 236.916792
+  type: 'test'
+  ...
+# Subtest: hard-timeout lifecycle regression: shared-retained-rejection
+ok 57 - hard-timeout lifecycle regression: shared-retained-rejection
+  ---
+  duration_ms: 244.31
+  type: 'test'
+  ...
+# Subtest: hard-timeout lifecycle regression: owned-cleanup-abort
+ok 58 - hard-timeout lifecycle regression: owned-cleanup-abort
+  ---
+  duration_ms: 155.853125
+  type: 'test'
+  ...
+# Subtest: hard-timeout lifecycle regression: busy-loop-abort
+ok 59 - hard-timeout lifecycle regression: busy-loop-abort
+  ---
+  duration_ms: 152.998125
+  type: 'test'
+  ...
+# Subtest: write-only redirects never read and retain independent/duplicated offsets
+ok 60 - write-only redirects never read and retain independent/duplicated offsets
+  ---
+  duration_ms: 4.492667
+  type: 'test'
+  ...
+# Subtest: offset and append descriptors interleave correctly without reading files
+ok 61 - offset and append descriptors interleave correctly without reading files
+  ---
+  duration_ms: 1.877583
+  type: 'test'
+  ...
+# Subtest: cancelled queued readers cannot bypass an active shared read
+ok 62 - cancelled queued readers cannot bypass an active shared read
+  ---
+  duration_ms: 0.58775
+  type: 'test'
+  ...
+# Subtest: input errors still close their owned iterator exactly once
+ok 63 - input errors still close their owned iterator exactly once
+  ---
+  duration_ms: 0.366667
+  type: 'test'
+  ...
+1..63
+# tests 63
+# suites 0
+# pass 63
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 2853.716

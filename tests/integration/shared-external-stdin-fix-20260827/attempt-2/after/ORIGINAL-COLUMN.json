@@ -1,0 +1,14 @@
+{
+  "classification": "root-owned-hidden-external-stdin-return-boundary",
+  "candidate": "/private/tmp/shared-stdin-fix-pd8eh6/after/candidate",
+  "beforeGateRelease": {
+    "returns": 1,
+    "execSettled": true,
+    "disposeSettled": true
+  },
+  "acceptance": "HOLD",
+  "outcome": {
+    "rejection": "Error: Shell is disposed"
+  },
+  "finallyReleasedHarnessGate": true
+}

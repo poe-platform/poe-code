@@ -1,0 +1,222 @@
+{
+  "label": "candidate-02",
+  "auditedAt": "2026-08-27T21:41:23.684Z",
+  "candidate": "c3e40f8bd721da5e496f3b3abfd51aee45db5a84",
+  "canonicalCommit": "860967af44b20918e3096230f6c7445d4c9cf133",
+  "inputs": {
+    "manifestSha256": "d56c505a01e29a25707173d7ff31ee39fa042748b0f7758427b98a27cc034bb3",
+    "freezeSha256": "181ed1873e06a1c2848d57d5a14dd20b73e73b605387d87a701e7efab4e5618a",
+    "frozenFileCount": 33,
+    "appendAwareFrozenDirectories": [
+      "original",
+      "revised",
+      "support",
+      "historical"
+    ],
+    "followupManifestSha256": "52eb62127fe1cc7156ddaeeb56f2bcef073e34da040799ca2b0b1533329043ee",
+    "followupFreezeSha256": "83913d2d9646e7a1cd5d6c9b1db1ba85c7bc9da391e00ef3b4ae5e3b91a87ee7",
+    "targetOnlyPostExecutionAssertion": true
+  },
+  "checks": [
+    "exact c3 product, c25 ancestry and canonical-only commit",
+    "all four final cohorts retain original denominators and distinct results",
+    "only nearby target expectation changed; all other tuple fields and driver bytes retained",
+    "only quota target expectation changed; cap two, mode, job count and all inputs preserved",
+    "nearby actual identity, ordered one-job descriptor, budgets, callbacks and cleanup unchanged",
+    "quota direct original-reason identity assertion passes without any diagnostic attempt",
+    "all fixed core dispatch inputs unchanged; unique real VFS roots separately bound; target identity and cleanup unchanged",
+    "source archive authentication and only one revised canonical overlay",
+    "selected runtime, installed package, tooling and original trees unchanged including appended entries",
+    "normal cleanup and bounded cooperative workers; no false original passes"
+  ],
+  "summaries": {
+    "original": {
+      "focused": {
+        "status": 1,
+        "tests": 27,
+        "pass": 26,
+        "fail": 1,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "canonical": {
+        "status": 1,
+        "tests": 237,
+        "pass": 236,
+        "fail": 1,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "nearby": {
+        "pass": 15,
+        "tests": 16,
+        "failures": [
+          "stdout-failure-no-regex-replay"
+        ]
+      },
+      "quota": {
+        "pass": 46,
+        "tests": 47,
+        "failures": [
+          "stdout-rejection-normal-quota"
+        ]
+      },
+      "core": {
+        "pass": 145,
+        "tests": 146,
+        "failures": [
+          "sink-rejection"
+        ]
+      }
+    },
+    "revised": {
+      "focused": {
+        "status": 0,
+        "tests": 27,
+        "pass": 27,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "canonical": {
+        "status": 0,
+        "tests": 237,
+        "pass": 237,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "nearby": {
+        "pass": 16,
+        "tests": 16,
+        "failures": []
+      },
+      "quota": {
+        "pass": 47,
+        "tests": 47,
+        "failures": []
+      },
+      "core": {
+        "pass": 146,
+        "tests": 146,
+        "failures": []
+      }
+    }
+  },
+  "dynamicCoreBindings": [
+    {
+      "id": "real-vfs-artifact-pipeline",
+      "originalRoot": "/Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/sink-profile-migration-v3-20260827/author/node_modules/candidate-02/temporary/expr-final-real-vfs-iU44Je",
+      "revisedRoot": "/Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/sink-profile-migration-v3-20260827/author/node_modules/candidate-02/temporary/expr-final-real-vfs-X0Va0g",
+      "sameTemporaryParent": true,
+      "bothRemoved": true,
+      "vfsEffectsIdentical": true
+    }
+  ],
+  "targetEffects": {
+    "core": {
+      "state": "rejected",
+      "stderrReasonIdentity": false,
+      "stdoutReasonIdentity": true,
+      "writes": [
+        "stdout"
+      ]
+    },
+    "quota": {
+      "actual": {
+        "status": null,
+        "stdout": "",
+        "stderr": "",
+        "stdoutHex": "",
+        "stderrHex": "",
+        "rejection": "sink"
+      },
+      "attempts": [
+        {
+          "channel": "stdout",
+          "bytes": 2,
+          "hex": "310a",
+          "text": "1\n"
+        }
+      ],
+      "events": [
+        "register-cleanup",
+        "session-open",
+        "stdout-entered",
+        "session-close",
+        "settled"
+      ],
+      "exactIdentityCheck": {
+        "name": "identical stdout rejection without diagnostic attempt",
+        "passed": true
+      }
+    },
+    "nearby": {
+      "observed": {
+        "rejected": "sink",
+        "message": "independent sink failure",
+        "stdout": "",
+        "stderr": ""
+      },
+      "jobs": [
+        {
+          "subject": "a",
+          "pattern": "a",
+          "allowance": 7999985,
+          "steps": 57
+        }
+      ],
+      "events": [
+        {
+          "kind": "cleanup-registered"
+        },
+        {
+          "kind": "match-enter",
+          "index": 1
+        },
+        {
+          "kind": "worker-start",
+          "url": "file:///Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/sink-profile-migration-v3-20260827/author/node_modules/candidate-02/original/dist/commands/regex-execution/worker.js"
+        },
+        {
+          "kind": "match-result",
+          "index": 1
+        },
+        {
+          "kind": "match-settled"
+        },
+        {
+          "kind": "stdout-start",
+          "bytes": 2
+        },
+        {
+          "kind": "close-start"
+        },
+        {
+          "kind": "worker-exit",
+          "code": 1
+        },
+        {
+          "kind": "close-end",
+          "activeWorkers": 0
+        },
+        {
+          "kind": "execute-settled",
+          "activeWorkers": 0
+        },
+        {
+          "kind": "overlapping-cleanups-awaited",
+          "activeWorkers": 0
+        }
+      ],
+      "budgetCount": 1,
+      "sessionCount": 1
+    }
+  },
+  "historicalQualification": "candidate-01 stays unchanged; its initial quota comparator-only result is not promoted to a direct identity assertion. Historical author 558/559, final 236/237, 145/146, 15/16 and 46/47 are preserved independently from both new captures.",
+  "limits": "These are author-selected observational checks, not independent verification, a consolidated profile audit, all canonical tests, native parity, a public export, performance, superiority, 72 hours or whole-project completion."
+}

@@ -1,0 +1,20 @@
+{
+  "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "--import",
+    "tsx",
+    "--test",
+    "--test-reporter=spec",
+    "tests/commands/expr/contracts.test.ts"
+  ],
+  "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/sink-profile-migration-v3-20260827/author/node_modules/candidate-01/revised",
+  "started": "2026-08-27T21:35:02.685Z",
+  "finished": "2026-08-27T21:35:03.007Z",
+  "timeout": 120000,
+  "maxBuffer": 33554432,
+  "status": 0,
+  "signal": null,
+  "error": null,
+  "stdout": "✔ factories register exactly expr with explicit replacement (0.975416ms)\n✔ evaluated BRE uses matching and rejects invalid patterns on empty subjects (55.052875ms)\n✔ UTF-8 argv uses bytes in C and scalars in C.UTF-8, never UTF-16 units (1.58375ms)\n✔ unsupported locales and unrepresentable argv are explicit errors (0.667333ms)\n✔ bounded aggregate argument bytes {\"maxArgumentBytes\":3} (0.104584ms)\n✔ bounded numeric digits {\"maxNumericDigits\":3} (0.122ms)\n✔ bounded arithmetic result digits {\"maxNumericDigits\":3} (0.156041ms)\n✔ bounded arithmetic result digits {\"maxNumericDigits\":3} (0.124125ms)\n✔ bounded numeric result digits {\"maxNumericDigits\":1} (0.187333ms)\n✔ bounded AST node {\"maxNodes\":2} (0.337708ms)\n✔ bounded depth {\"maxDepth\":3} (0.122083ms)\n✔ bounded depth {\"maxDepth\":3} (0.123625ms)\n✔ bounded depth {\"maxDepth\":3} (0.26025ms)\n✔ bounded evaluation work {\"maxSteps\":3} (0.064333ms)\n✔ bounded string allocation {\"maxStringBytes\":3} (0.070708ms)\n✔ bounded output bytes {\"maxOutputBytes\":3} (0.067917ms)\n✔ bounded evaluation work {\"maxSteps\":1000} (1.109333ms)\n✔ factory limit validation and long input preflight (5.335625ms)\n✔ direct success and errors do not even access stdin (0.471917ms)\n✔ awaits sink backpressure and preserves complete byte output (0.373333ms)\n✔ byte pipe backpressure, C partial bytes, and exact abort reason (3.220916ms)\n✔ abort during pending output observes late rejection (0.602792ms)\n✔ work yields for timer cancellation without consuming stdin (4.541625ms)\n✔ sink failure preserves its reason without a diagnostic and diagnostic failure is not swallowed (0.76175ms)\n✔ actual Shell registry, piping and VFS redirection preserve byte output (10.111458ms)\n✔ Shell input ownership is compared to its baseline, not direct-command ownership (1.164667ms)\n✔ literal argv dispatch uses the actual Shell invoker and middleware (2.066375ms)\nℹ tests 27\nℹ suites 0\nℹ pass 27\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 287.606042\n",
+  "stderr": ""
+}

@@ -1,0 +1,17 @@
+{
+  "frozenAt": "2026-08-27T21:38:31.565Z",
+  "captureLabel": "candidate-02",
+  "files": [
+    {
+      "path": "capture-v2.mjs",
+      "sha256": "35f50325ffeaa78a1421ccff57c60599962a4ed2c6100a2a948fbcc99da6470e"
+    },
+    {
+      "path": "integrity-v2.mjs",
+      "sha256": "f809a81a63c4f4321b91e6134099ab0068212738276a6e81470fdd5cc22c1bf2"
+    }
+  ],
+  "priorCapture": "candidate-01",
+  "sameFourCohorts": true,
+  "onlyExecutionHarnessDelta": "Rebind identity validator and revised quota probe; new quota assertion executes after outcome and cleanup only."
+}

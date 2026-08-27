@@ -1,0 +1,14 @@
+{
+  "manifestSha256": "d56c505a01e29a25707173d7ff31ee39fa042748b0f7758427b98a27cc034bb3",
+  "freezeSha256": "181ed1873e06a1c2848d57d5a14dd20b73e73b605387d87a701e7efab4e5618a",
+  "frozenFileCount": 33,
+  "appendAwareFrozenDirectories": [
+    "original",
+    "revised",
+    "support",
+    "historical"
+  ],
+  "followupManifestSha256": "52eb62127fe1cc7156ddaeeb56f2bcef073e34da040799ca2b0b1533329043ee",
+  "followupFreezeSha256": "83913d2d9646e7a1cd5d6c9b1db1ba85c7bc9da391e00ef3b4ae5e3b91a87ee7",
+  "targetOnlyPostExecutionAssertion": true
+}

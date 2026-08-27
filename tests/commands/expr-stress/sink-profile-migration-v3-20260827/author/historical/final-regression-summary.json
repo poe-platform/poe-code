@@ -1,0 +1,52 @@
+{
+  "types": {
+    "status": 0
+  },
+  "legacyNoNative": {
+    "status": 1,
+    "tests": 237,
+    "pass": 236,
+    "fail": 1,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "additionalCanonical": {
+    "status": 0,
+    "tests": 338,
+    "pass": 338,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "shared11": {
+    "status": 1,
+    "tests": 276,
+    "pass": 275,
+    "fail": 1,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "omittedLegacy": [
+    "tests/commands/expr/native.test.ts",
+    "tests/commands/expr/regex-native.test.ts"
+  ],
+  "nativeExprPolicy": "No native expr recapture. Existing frozen 44 Darwin tuples replayed separately; native canonical files not run.",
+  "lifecyclePaths": [
+    "tests/commands/expr/contracts.test.ts",
+    "tests/commands/expr/abort-reason-regression.test.ts",
+    "tests/commands/expr/regex-lifecycle.test.ts",
+    "tests/commands/expr/regex-limits.test.ts",
+    "tests/commands/expr/regex-protocol.test.ts",
+    "tests/commands/expr/grammar.test.ts"
+  ],
+  "currentPaths": [
+    "tests/commands/expr/diagnostics-regression.test.ts",
+    "tests/commands/expr/inactive-prefix.test.ts",
+    "tests/commands/expr/named-profile.test.ts",
+    "tests/commands/expr/encounter-order.test.ts",
+    "tests/commands/expr/output-quota.test.ts"
+  ]
+}

@@ -1,0 +1,102 @@
+{
+  "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "--unhandled-rejections=strict",
+    "--import",
+    "tsx",
+    "--test",
+    "--test-concurrency=1",
+    "--test-timeout=30000",
+    "tests/commands/time-env/format-regressions.test.ts",
+    "tests/commands/time-env/sleep-regressions.test.ts"
+  ],
+  "cwd": "/tmp/safe-bash-fraction-independent-packed-3n2Cyg/archive",
+  "pid": 79759,
+  "status": 0,
+  "signal": null,
+  "timedOut": false,
+  "outputExceeded": false,
+  "closed": true,
+  "elapsedMs": 800,
+  "timeoutMs": 120000,
+  "outputBytes": 14971,
+  "observed": [
+    {
+      "pid": 79759,
+      "parent": 78599,
+      "group": 79759,
+      "born": "Thu Aug 27 04:05:21 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --unhandled-rejections=strict --import tsx --test --test-concurrency=1 --test-timeout=30000 tests/commands/time-env/format-regressions.test.ts tests/commands/time-env/sleep-regressions.test.ts"
+    },
+    {
+      "pid": 79761,
+      "parent": 79759,
+      "group": 79759,
+      "born": "Thu Aug 27 04:05:21 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --unhandled-rejections=strict --import tsx --test-concurrency=1 --test-timeout=30000 tests/commands/time-env/format-regressions.test.ts"
+    },
+    {
+      "pid": 79763,
+      "parent": 79761,
+      "group": 79759,
+      "born": "Thu Aug 27 04:05:21 2026",
+      "command": "/private/tmp/safe-bash-fraction-independent-packed-3n2Cyg/archive/node_modules/@esbuild/darwin-arm64/bin/esbuild --service=0.28.2 --ping"
+    },
+    {
+      "pid": 79771,
+      "parent": 79761,
+      "group": 79759,
+      "born": "Thu Aug 27 04:05:21 2026",
+      "command": "(date)"
+    },
+    {
+      "pid": 79788,
+      "parent": 79761,
+      "group": 79759,
+      "born": "Thu Aug 27 04:05:21 2026",
+      "command": "(date)"
+    },
+    {
+      "pid": 79806,
+      "parent": 79761,
+      "group": 79759,
+      "born": "Thu Aug 27 04:05:21 2026",
+      "command": "(date)"
+    },
+    {
+      "pid": 79824,
+      "parent": 79761,
+      "group": 79759,
+      "born": "Thu Aug 27 04:05:22 2026",
+      "command": "(date)"
+    },
+    {
+      "pid": 79827,
+      "parent": 79759,
+      "group": 79759,
+      "born": "Thu Aug 27 04:05:22 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --unhandled-rejections=strict --import tsx --test-concurrency=1 --test-timeout=30000 tests/commands/time-env/sleep-regressions.test.ts"
+    }
+  ],
+  "signals": [],
+  "survivors": [],
+  "listeners": [],
+  "cleanupRequired": false,
+  "clean": true,
+  "stdout": {
+    "bytes": 14971,
+    "sha256": "c9dac1af4d8c2238fd5adf2ac3225429b625a8e4a3e7f89b3481f141f59b2fda"
+  },
+  "stderr": {
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "counts": {
+    "tests": 83,
+    "pass": 83,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  }
+}

@@ -1,0 +1,2 @@
+public-time-env-unavailable.mts(1,10): error TS2724: '"virtual-bash"' has no exported member named 'createTimeEnvCommands'. Did you mean 'createByteCommands'?
+public-time-env-unavailable.mts(1,33): error TS2305: Module '"virtual-bash"' has no exported member 'timeEnvCommands'.

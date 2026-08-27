@@ -1,0 +1,44 @@
+{
+  "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "--unhandled-rejections=strict",
+    "--import",
+    "./guard.mjs",
+    "--input-type=module",
+    "-e",
+    "await import(\"file:///tmp/safe-bash-fraction-independent-packed-3n2Cyg/archive/dist/index.js\")"
+  ],
+  "cwd": "/tmp/safe-bash-fraction-independent-packed-3n2Cyg/consumer",
+  "pid": 80332,
+  "status": 1,
+  "signal": null,
+  "timedOut": false,
+  "outputExceeded": false,
+  "closed": true,
+  "elapsedMs": 168,
+  "timeoutMs": 120000,
+  "outputBytes": 1119,
+  "observed": [
+    {
+      "pid": 80332,
+      "parent": 78599,
+      "group": 80332,
+      "born": "Thu Aug 27 04:05:27 2026",
+      "command": "(node)"
+    }
+  ],
+  "signals": [],
+  "survivors": [],
+  "listeners": [],
+  "cleanupRequired": false,
+  "clean": true,
+  "stdout": {
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "stderr": {
+    "bytes": 1119,
+    "sha256": "126ba8109f0615a4c3b6eae4c2c34d51cc0569c89d652e61ca8b59bea93a2408"
+  },
+  "counts": {}
+}

@@ -1,0 +1,197 @@
+{
+  "cacheRoot": "/tmp/tsx-501",
+  "canonicalSourceRoot": "/private/tmp/safe-bash-fraction-independent-packed-3n2Cyg/archive/src/",
+  "inspectedWithinRunWindow": 19,
+  "candidates": [
+    {
+      "path": "/tmp/tsx-501/17878-053afcf5ff3b11e204402584ff6b49ac57bd209b",
+      "sha256": "fbc3e597ae0c8c6b8bca27f5759ceb95138d7278f1bd6755a4490e2ae32e73c3",
+      "bytes": 32092,
+      "inode": 172435442,
+      "mtimeMs": 1787821520265.9758,
+      "sources": [
+        "/private/tmp/safe-bash-fraction-independent-packed-3n2Cyg/archive/src/fs/memory/index.ts"
+      ]
+    },
+    {
+      "path": "/tmp/tsx-501/17878-11871f4fce58dd180a8be968366bd64796b26836",
+      "sha256": "6b0812b0802394aafa9df9716cb71d7e7797f0408dedbc6da238ba9d7c5fd47e",
+      "bytes": 5050,
+      "inode": 172435445,
+      "mtimeMs": 1787821520272.125,
+      "sources": [
+        "/private/tmp/safe-bash-fraction-independent-packed-3n2Cyg/archive/src/commands/time-env/shared.ts"
+      ]
+    },
+    {
+      "path": "/tmp/tsx-501/17878-23d844625ad8b75cf968ea2d6e5bc6237ecb3c5e",
+      "sha256": "53f9f0cc9d940815ef1e8f195c662a9d3b02513220889f2d86393a653b6d088b",
+      "bytes": 10045,
+      "inode": 172435458,
+      "mtimeMs": 1787821520279.156,
+      "sources": [
+        "/private/tmp/safe-bash-fraction-independent-packed-3n2Cyg/archive/src/contracts/io.ts"
+      ]
+    },
+    {
+      "path": "/tmp/tsx-501/17878-393cf08961eeaf12b1d403510421d27621be0a8d",
+      "sha256": "d5111ab55c5d9e52b80bc412653a1836313710edc153fc7eb174b18d43777540",
+      "bytes": 436,
+      "inode": 172435451,
+      "mtimeMs": 1787821520274.8586,
+      "sources": [
+        "/private/tmp/safe-bash-fraction-independent-packed-3n2Cyg/archive/src/contracts/index.ts"
+      ]
+    },
+    {
+      "path": "/tmp/tsx-501/17878-3cfd5dfe146f10620614679736393af4e00be3cf",
+      "sha256": "0ec57d373f16ef3e00ffb46000f79e986b8fd7a624a7a40555966a00ab0407c5",
+      "bytes": 380,
+      "inode": 172435456,
+      "mtimeMs": 1787821520277.8674,
+      "sources": [
+        "/private/tmp/safe-bash-fraction-independent-packed-3n2Cyg/archive/src/contracts/filesystem.ts"
+      ]
+    },
+    {
+      "path": "/tmp/tsx-501/17878-52c1cc4be9d80d326d88bb7875cc03675d880d07",
+      "sha256": "7c4637717c9ac0b6e54011d525d0a5c8ad9394a64201f6588e911b715c854768",
+      "bytes": 15114,
+      "inode": 172435452,
+      "mtimeMs": 1787821520276.874,
+      "sources": [
+        "/private/tmp/safe-bash-fraction-independent-packed-3n2Cyg/archive/src/commands/time-env/calendar.ts"
+      ]
+    },
+    {
+      "path": "/tmp/tsx-501/17878-588846ec00cbd70eec94baa262bf9dc49e7dd2ab",
+      "sha256": "b4c52ad2b47245dd10b95cf0689beefc9508fdec4714a70cea08cf6fc0db506d",
+      "bytes": 1773,
+      "inode": 172435441,
+      "mtimeMs": 1787821520265.9507,
+      "sources": [
+        "/private/tmp/safe-bash-fraction-independent-packed-3n2Cyg/archive/src/commands/time-env/index.ts"
+      ]
+    },
+    {
+      "path": "/tmp/tsx-501/17878-907e6b2549e7d567a2f001151e8ead8ef70359f8",
+      "sha256": "c68d4a621c53d535f37e108f72d667e7f0a8f5e6113bcccac1a75bc3c8b699f9",
+      "bytes": 1338,
+      "inode": 172435454,
+      "mtimeMs": 1787821520277.3237,
+      "sources": [
+        "/private/tmp/safe-bash-fraction-independent-packed-3n2Cyg/archive/src/fs/mount/identity.ts"
+      ]
+    },
+    {
+      "path": "/tmp/tsx-501/17878-94db96d6289bd28b5ae808cd4d6eb438d8e3c476",
+      "sha256": "7fa6baa568919277642526b615e1a8b6b800aed8d43df26aa9c4b5c22d2e1108",
+      "bytes": 8788,
+      "inode": 172435444,
+      "mtimeMs": 1787821520272.1138,
+      "sources": [
+        "/private/tmp/safe-bash-fraction-independent-packed-3n2Cyg/archive/src/commands/time-env/date.ts"
+      ]
+    },
+    {
+      "path": "/tmp/tsx-501/17878-9901418bcb644f3f20024c1e057da75a9f2d8c59",
+      "sha256": "87a1b92634fd610527d91de0dcc5e54a80e3db5bf828d77fd4d730c1fb14cc16",
+      "bytes": 3041,
+      "inode": 172435457,
+      "mtimeMs": 1787821520278.86,
+      "sources": [
+        "/private/tmp/safe-bash-fraction-independent-packed-3n2Cyg/archive/src/contracts/path.ts"
+      ]
+    },
+    {
+      "path": "/tmp/tsx-501/17878-b27e5e438bd130ff9ff7fb9bf3452412966fdb6b",
+      "sha256": "814ecae8decfad0345f035a049804113fcec852dc168790093dda4deaa1a5662",
+      "bytes": 7831,
+      "inode": 172435447,
+      "mtimeMs": 1787821520272.1272,
+      "sources": [
+        "/private/tmp/safe-bash-fraction-independent-packed-3n2Cyg/archive/src/commands/time-env/sleep.ts"
+      ]
+    },
+    {
+      "path": "/tmp/tsx-501/17878-d97246e1f249ab686b2daf3ad8e25d3b53739232",
+      "sha256": "c9a7031cd75f9e245923b210025cd4661615bdc640dd7e944ea5ae52914536fa",
+      "bytes": 2484,
+      "inode": 172435459,
+      "mtimeMs": 1787821520279.258,
+      "sources": [
+        "/private/tmp/safe-bash-fraction-independent-packed-3n2Cyg/archive/src/contracts/plugin.ts"
+      ]
+    },
+    {
+      "path": "/tmp/tsx-501/17878-dbe7a35d5285feb9526e7f41f2a7d99b5ae68f76",
+      "sha256": "8d567fefbf75a33d61f4c86960b90193a175f598220e5b9aeb73d3e5381ca650",
+      "bytes": 6436,
+      "inode": 172435448,
+      "mtimeMs": 1787821520273.0786,
+      "sources": [
+        "/private/tmp/safe-bash-fraction-independent-packed-3n2Cyg/archive/src/fs/s3/authority.ts"
+      ]
+    },
+    {
+      "path": "/tmp/tsx-501/17878-e361602e8d25f182db566e414e502bb437d5db70",
+      "sha256": "0c2ea9c88f578a89ed4fee8048a360df7917d34cc5a251e3a045e0797a06dbe2",
+      "bytes": 6807,
+      "inode": 172435449,
+      "mtimeMs": 1787821520273.316,
+      "sources": [
+        "/private/tmp/safe-bash-fraction-independent-packed-3n2Cyg/archive/src/fs/mount/comparison.ts"
+      ]
+    },
+    {
+      "path": "/tmp/tsx-501/17878-eb8a779518de7ed83146b5d58dd71193771655ba",
+      "sha256": "a5eb50e7bc8455e4d735770ef5fa67b8473fcee8d5107ebdaf078cdc07463f22",
+      "bytes": 7564,
+      "inode": 172435450,
+      "mtimeMs": 1787821520273.2766,
+      "sources": [
+        "/private/tmp/safe-bash-fraction-independent-packed-3n2Cyg/archive/src/fs/webdav/resource-id.ts"
+      ]
+    },
+    {
+      "path": "/tmp/tsx-501/17878-ef163d6b9fb5214d2cc13aade147ad158d010726",
+      "sha256": "0b73fa7093fd5aa5fb0939ac71c1a10261ed8bc8b416369264cb6770761deb5e",
+      "bytes": 3205,
+      "inode": 172435443,
+      "mtimeMs": 1787821520269.9128,
+      "sources": [
+        "/private/tmp/safe-bash-fraction-independent-packed-3n2Cyg/archive/src/commands/time-env/printenv.ts"
+      ]
+    },
+    {
+      "path": "/tmp/tsx-501/17878-f3ca0e8a879c264713dfa32a9a7a892af1921c42",
+      "sha256": "61817a48c5a4049117557f8261fc5726ebf491451606bde0d7f48e2d94177abe",
+      "bytes": 2304,
+      "inode": 172435455,
+      "mtimeMs": 1787821520277.5771,
+      "sources": [
+        "/private/tmp/safe-bash-fraction-independent-packed-3n2Cyg/archive/src/contracts/command.ts"
+      ]
+    },
+    {
+      "path": "/tmp/tsx-501/17878-fdcf61b099f188f211b996c629f40dbab15ee75e",
+      "sha256": "614069a208d44d6cbd0961c2917467f32cc696add28305840602e7e4a44c16d0",
+      "bytes": 4830,
+      "inode": 172435446,
+      "mtimeMs": 1787821520272.1147,
+      "sources": [
+        "/private/tmp/safe-bash-fraction-independent-packed-3n2Cyg/archive/src/contracts/errors.ts"
+      ]
+    },
+    {
+      "path": "/tmp/tsx-501/17878-fe046d7996e308e104f243c69a5d16da0fb7563f",
+      "sha256": "296bd6b81cabf737157882b8b0196fa50b74d36f1db946b8ee94ac0d651593d1",
+      "bytes": 12990,
+      "inode": 172435453,
+      "mtimeMs": 1787821520276.8743,
+      "sources": [
+        "/private/tmp/safe-bash-fraction-independent-packed-3n2Cyg/archive/src/commands/time-env/format.ts"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,29 @@
+{
+  "reason": "Unchanged original223 isolated-child fixture supplies its own minimal env, omitting inherited TSX_DISABLE_CACHE/TMPDIR. Only cache entries whose source maps name this exact owned frozen scratch are removed.",
+  "cacheRoot": "/tmp/tsx-501",
+  "canonicalSourceRoot": "/private/tmp/safe-bash-fraction-independent-packed-3n2Cyg/archive/src/",
+  "removed": [
+    "/tmp/tsx-501/17878-053afcf5ff3b11e204402584ff6b49ac57bd209b",
+    "/tmp/tsx-501/17878-11871f4fce58dd180a8be968366bd64796b26836",
+    "/tmp/tsx-501/17878-23d844625ad8b75cf968ea2d6e5bc6237ecb3c5e",
+    "/tmp/tsx-501/17878-393cf08961eeaf12b1d403510421d27621be0a8d",
+    "/tmp/tsx-501/17878-3cfd5dfe146f10620614679736393af4e00be3cf",
+    "/tmp/tsx-501/17878-52c1cc4be9d80d326d88bb7875cc03675d880d07",
+    "/tmp/tsx-501/17878-588846ec00cbd70eec94baa262bf9dc49e7dd2ab",
+    "/tmp/tsx-501/17878-907e6b2549e7d567a2f001151e8ead8ef70359f8",
+    "/tmp/tsx-501/17878-94db96d6289bd28b5ae808cd4d6eb438d8e3c476",
+    "/tmp/tsx-501/17878-9901418bcb644f3f20024c1e057da75a9f2d8c59",
+    "/tmp/tsx-501/17878-b27e5e438bd130ff9ff7fb9bf3452412966fdb6b",
+    "/tmp/tsx-501/17878-d97246e1f249ab686b2daf3ad8e25d3b53739232",
+    "/tmp/tsx-501/17878-dbe7a35d5285feb9526e7f41f2a7d99b5ae68f76",
+    "/tmp/tsx-501/17878-e361602e8d25f182db566e414e502bb437d5db70",
+    "/tmp/tsx-501/17878-eb8a779518de7ed83146b5d58dd71193771655ba",
+    "/tmp/tsx-501/17878-ef163d6b9fb5214d2cc13aade147ad158d010726",
+    "/tmp/tsx-501/17878-f3ca0e8a879c264713dfa32a9a7a892af1921c42",
+    "/tmp/tsx-501/17878-fdcf61b099f188f211b996c629f40dbab15ee75e",
+    "/tmp/tsx-501/17878-fe046d7996e308e104f243c69a5d16da0fb7563f"
+  ],
+  "foreignEntriesUntouched": true,
+  "cacheDirectoryPreserved": true,
+  "capturedAt": "2026-08-27T09:08:28.176Z"
+}

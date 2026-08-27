@@ -1,0 +1,3110 @@
+{
+  "identity": "01a0426e-f309-7682-bfbf-2cd25393acf3 NEW independent packed/cohort verifier; no delegation",
+  "frozenSource": "c7823633ee99f711f1319ace59d4cf2b7f622ecc",
+  "sourceAcceptance": false,
+  "canonicalAssertionChangesAuthorized": false,
+  "packageSha256": "b42892cdcd2f765e4d99e857b68d43fe14dbcdff1c704e8b2dc4b9db6d2e756a",
+  "sourceCohorts": {
+    "source-original223": {
+      "total": 223,
+      "pass": 221,
+      "fail": 2,
+      "mode": "unchanged full-source-archive fixtures; not packed",
+      "rawStdoutFile": "source-original223.stdout",
+      "rawStderrFile": "source-original223.stderr",
+      "rawRunnerBytes": {
+        "stdout": {
+          "bytes": 39204,
+          "sha256": "3bbc41f8b6a97fbf8b7d46029ecd6537f2f56d549d4555126e909b6dc4ebd508"
+        },
+        "stderr": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      },
+      "commandByteTelemetry": "Original tests do not log each successful internal command capture; none fabricated. Assertions, names and raw TAP including failing status expected1/actual0 are preserved.",
+      "rows": [
+        {
+          "name": "date default current time falls within the surrounding wall-clock samples",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 1
+        },
+        {
+          "name": "date vector: epoch",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 2
+        },
+        {
+          "name": "date vector: negative nanosecond",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 3
+        },
+        {
+          "name": "date vector: negative fractional epoch",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 4
+        },
+        {
+          "name": "date vector: positive signed epoch",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 5
+        },
+        {
+          "name": "date vector: comma epoch",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 6
+        },
+        {
+          "name": "date vector: leap day ISO nanoseconds",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 7
+        },
+        {
+          "name": "date vector: date only midnight",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 8
+        },
+        {
+          "name": "date vector: century nonleap ordinal",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 9
+        },
+        {
+          "name": "date vector: early year avoids Date.UTC 1900 adjustment",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 10
+        },
+        {
+          "name": "date vector: year zero leap",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 11
+        },
+        {
+          "name": "date vector: numeric offset",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 12
+        },
+        {
+          "name": "date vector: negative offset",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 13
+        },
+        {
+          "name": "date vector: RFC email input",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 14
+        },
+        {
+          "name": "date vector: HTTP RFC GMT",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 15
+        },
+        {
+          "name": "date vector: ISO date",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 16
+        },
+        {
+          "name": "date vector: ISO hours",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 17
+        },
+        {
+          "name": "date vector: ISO minutes",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 18
+        },
+        {
+          "name": "date vector: ISO seconds",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 19
+        },
+        {
+          "name": "date vector: ISO nanoseconds",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 20
+        },
+        {
+          "name": "date vector: RFC3339 date",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 21
+        },
+        {
+          "name": "date vector: RFC3339 seconds",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 22
+        },
+        {
+          "name": "date vector: RFC3339 nanoseconds",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 23
+        },
+        {
+          "name": "date vector: format before options",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 24
+        },
+        {
+          "name": "date vector: empty format",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 25
+        },
+        {
+          "name": "date vector: literal Unicode",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 26
+        },
+        {
+          "name": "date vector: C names and composite formats",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 27
+        },
+        {
+          "name": "date vector: padding casing and C modifiers",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 28
+        },
+        {
+          "name": "date vector: precision truncates not rounds",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 29
+        },
+        {
+          "name": "date vector: ISO previous year week",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 30
+        },
+        {
+          "name": "date vector: ISO next year week",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 31
+        },
+        {
+          "name": "date vector: POSIX reversed offset",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 32
+        },
+        {
+          "name": "date vector: POSIX seconds offset",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 33
+        },
+        {
+          "name": "date vector: IANA New York winter",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 34
+        },
+        {
+          "name": "date vector: IANA New York summer",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 35
+        },
+        {
+          "name": "date vector: IANA wall time",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 36
+        },
+        {
+          "name": "date vector: IANA half hour",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 37
+        },
+        {
+          "name": "date vector: IANA quarter hour",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 38
+        },
+        {
+          "name": "date vector: UTC overrides invalid virtual TZ",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 39
+        },
+        {
+          "name": "date vector: numeric default widths",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 40
+        },
+        {
+          "name": "date vector: timezone signed zero padding",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 41
+        },
+        {
+          "name": "date vector: C change-case flags",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 42
+        },
+        {
+          "name": "date vector: Etc GMT label",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 43
+        },
+        {
+          "name": "date vector: Z zone label",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 44
+        },
+        {
+          "name": "date vector: IANA lower calendar endpoint",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 45
+        },
+        {
+          "name": "date vector: IANA upper calendar endpoint",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 46
+        },
+        {
+          "name": "date injected clock is read once and only provides millisecond precision",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 47
+        },
+        {
+          "name": "date explicit relative grammar: now",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 48
+        },
+        {
+          "name": "date explicit relative grammar: today",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 49
+        },
+        {
+          "name": "date explicit relative grammar: yesterday",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 50
+        },
+        {
+          "name": "date explicit relative grammar: tomorrow",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 51
+        },
+        {
+          "name": "date explicit relative grammar: now -1 hour",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 52
+        },
+        {
+          "name": "date explicit relative grammar: 2 minutes ago",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 53
+        },
+        {
+          "name": "date explicit relative grammar: +3 seconds",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 54
+        },
+        {
+          "name": "date DST gaps and ambiguous folds require an explicit offset rather than a guessed occurrence",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 55
+        },
+        {
+          "name": "date uses only an own virtual TZ and ignores locale environment under its explicit C profile",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 56
+        },
+        {
+          "name": "date reference reads VFS mtime through a symlink, preserves bytes and never uses the injected clock",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 57
+        },
+        {
+          "name": "date rejects unsupported/invalid input without stdout: -d2023-02-29",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 58
+        },
+        {
+          "name": "date rejects unsupported/invalid input without stdout: -d1900-02-29",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 59
+        },
+        {
+          "name": "date rejects unsupported/invalid input without stdout: -d2024-13-01",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 60
+        },
+        {
+          "name": "date rejects unsupported/invalid input without stdout: -d2024-04-31",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 61
+        },
+        {
+          "name": "date rejects unsupported/invalid input without stdout: -d2024-01-00",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 62
+        },
+        {
+          "name": "date rejects unsupported/invalid input without stdout: -d2024-02-29T24:00:00Z",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 63
+        },
+        {
+          "name": "date rejects unsupported/invalid input without stdout: -d2024-02-29T23:59:60Z",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 64
+        },
+        {
+          "name": "date rejects unsupported/invalid input without stdout: -d2024-01-01T00:00:00+25:00",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 65
+        },
+        {
+          "name": "date rejects unsupported/invalid input without stdout: -d@0.1234567890",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 66
+        },
+        {
+          "name": "date rejects unsupported/invalid input without stdout: -d@NaN",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 67
+        },
+        {
+          "name": "date rejects unsupported/invalid input without stdout: -d@1e3",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 68
+        },
+        {
+          "name": "date rejects unsupported/invalid input without stdout: -d@99999999999999999",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 69
+        },
+        {
+          "name": "date rejects unsupported/invalid input without stdout: -d",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 70
+        },
+        {
+          "name": "date rejects unsupported/invalid input without stdout: --date=",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 71
+        },
+        {
+          "name": "date rejects unsupported/invalid input without stdout: --date next Friday",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 72
+        },
+        {
+          "name": "date rejects unsupported/invalid input without stdout: --date 01/02/03",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 73
+        },
+        {
+          "name": "date rejects unsupported/invalid input without stdout: --date Fri, 29 Feb 2024 12:34:56 GMT",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 74
+        },
+        {
+          "name": "date rejects unsupported/invalid input without stdout: -s 2024-01-01",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 75
+        },
+        {
+          "name": "date rejects unsupported/invalid input without stdout: --set=2024-01-01",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 76
+        },
+        {
+          "name": "date rejects unsupported/invalid input without stdout: 082712002026",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 77
+        },
+        {
+          "name": "date rejects unsupported/invalid input without stdout: --file=/etc/passwd",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 78
+        },
+        {
+          "name": "date rejects unsupported/invalid input without stdout: --debug",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 79
+        },
+        {
+          "name": "date rejects unsupported/invalid input without stdout: --utc=yes",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 80
+        },
+        {
+          "name": "date rejects unsupported/invalid input without stdout: -r file -d@0",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 81
+        },
+        {
+          "name": "date rejects unsupported/invalid input without stdout: -I +%s",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 82
+        },
+        {
+          "name": "date rejects unsupported/invalid input without stdout: -Iinvalid",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 83
+        },
+        {
+          "name": "date rejects unsupported/invalid input without stdout: --rfc-3339=hours",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 84
+        },
+        {
+          "name": "date rejects unsupported/invalid input without stdout: -d@0 +%Q",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 85
+        },
+        {
+          "name": "date rejects unsupported/invalid input without stdout: -d@0 +%",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 86
+        },
+        {
+          "name": "date rejects unsupported/invalid input without stdout: -d@0 +%::::z",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 87
+        },
+        {
+          "name": "date rejects unsupported/invalid input without stdout: -d@0 +%12N",
+          "result": "fail",
+          "nestingSpaces": 0,
+          "tapNumber": 88
+        },
+        {
+          "name": "date rejects unsupported/invalid input without stdout: -d@0 +%-N",
+          "result": "fail",
+          "nestingSpaces": 0,
+          "tapNumber": 89
+        },
+        {
+          "name": "date rejects unsupported/invalid input without stdout: -d@0 +%5%",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 90
+        },
+        {
+          "name": "date rejects invalid clocks and bounded format expansion without writing stdout",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 91
+        },
+        {
+          "name": "time-env definitions and plugin collision preflight are atomic",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 92
+        },
+        {
+          "name": "actual Shell pipelines, virtual files, command substitutions and replaced environments",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 93
+        },
+        {
+          "name": "actual shell propagates own prototype-shaped environment data through printenv",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 94
+        },
+        {
+          "name": "sleep output is zero under a zero shared output budget; real writes still charge",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 95
+        },
+        {
+          "name": "actual Shell cancellation stops sleep before following command and clears the timer",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 96
+        },
+        {
+          "name": "default long timer cancellation permits its isolated process to exit",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 97
+        },
+        {
+          "name": "date and printenv await sink backpressure and preserve cancellation",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 98
+        },
+        {
+          "name": "all three validate bounded arguments and factory settings",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 99
+        },
+        {
+          "name": "VFS reference decimal millisecond precision and empty operands are explicit",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 100
+        },
+        {
+          "name": "GNU date epoch",
+          "result": "pass",
+          "nestingSpaces": 4,
+          "tapNumber": 1
+        },
+        {
+          "name": "GNU date negative nanosecond",
+          "result": "pass",
+          "nestingSpaces": 4,
+          "tapNumber": 2
+        },
+        {
+          "name": "GNU date negative fractional epoch",
+          "result": "pass",
+          "nestingSpaces": 4,
+          "tapNumber": 3
+        },
+        {
+          "name": "GNU date positive signed epoch",
+          "result": "pass",
+          "nestingSpaces": 4,
+          "tapNumber": 4
+        },
+        {
+          "name": "GNU date comma epoch",
+          "result": "pass",
+          "nestingSpaces": 4,
+          "tapNumber": 5
+        },
+        {
+          "name": "GNU date leap day ISO nanoseconds",
+          "result": "pass",
+          "nestingSpaces": 4,
+          "tapNumber": 6
+        },
+        {
+          "name": "GNU date date only midnight",
+          "result": "pass",
+          "nestingSpaces": 4,
+          "tapNumber": 7
+        },
+        {
+          "name": "GNU date century nonleap ordinal",
+          "result": "pass",
+          "nestingSpaces": 4,
+          "tapNumber": 8
+        },
+        {
+          "name": "GNU date early year avoids Date.UTC 1900 adjustment",
+          "result": "pass",
+          "nestingSpaces": 4,
+          "tapNumber": 9
+        },
+        {
+          "name": "GNU date year zero leap",
+          "result": "pass",
+          "nestingSpaces": 4,
+          "tapNumber": 10
+        },
+        {
+          "name": "GNU date numeric offset",
+          "result": "pass",
+          "nestingSpaces": 4,
+          "tapNumber": 11
+        },
+        {
+          "name": "GNU date negative offset",
+          "result": "pass",
+          "nestingSpaces": 4,
+          "tapNumber": 12
+        },
+        {
+          "name": "GNU date RFC email input",
+          "result": "pass",
+          "nestingSpaces": 4,
+          "tapNumber": 13
+        },
+        {
+          "name": "GNU date HTTP RFC GMT",
+          "result": "pass",
+          "nestingSpaces": 4,
+          "tapNumber": 14
+        },
+        {
+          "name": "GNU date ISO date",
+          "result": "pass",
+          "nestingSpaces": 4,
+          "tapNumber": 15
+        },
+        {
+          "name": "GNU date ISO hours",
+          "result": "pass",
+          "nestingSpaces": 4,
+          "tapNumber": 16
+        },
+        {
+          "name": "GNU date ISO minutes",
+          "result": "pass",
+          "nestingSpaces": 4,
+          "tapNumber": 17
+        },
+        {
+          "name": "GNU date ISO seconds",
+          "result": "pass",
+          "nestingSpaces": 4,
+          "tapNumber": 18
+        },
+        {
+          "name": "GNU date ISO nanoseconds",
+          "result": "pass",
+          "nestingSpaces": 4,
+          "tapNumber": 19
+        },
+        {
+          "name": "GNU date RFC3339 date",
+          "result": "pass",
+          "nestingSpaces": 4,
+          "tapNumber": 20
+        },
+        {
+          "name": "GNU date RFC3339 seconds",
+          "result": "pass",
+          "nestingSpaces": 4,
+          "tapNumber": 21
+        },
+        {
+          "name": "GNU date RFC3339 nanoseconds",
+          "result": "pass",
+          "nestingSpaces": 4,
+          "tapNumber": 22
+        },
+        {
+          "name": "GNU date format before options",
+          "result": "pass",
+          "nestingSpaces": 4,
+          "tapNumber": 23
+        },
+        {
+          "name": "GNU date empty format",
+          "result": "pass",
+          "nestingSpaces": 4,
+          "tapNumber": 24
+        },
+        {
+          "name": "GNU date literal Unicode",
+          "result": "pass",
+          "nestingSpaces": 4,
+          "tapNumber": 25
+        },
+        {
+          "name": "GNU date C names and composite formats",
+          "result": "pass",
+          "nestingSpaces": 4,
+          "tapNumber": 26
+        },
+        {
+          "name": "GNU date padding casing and C modifiers",
+          "result": "pass",
+          "nestingSpaces": 4,
+          "tapNumber": 27
+        },
+        {
+          "name": "GNU date precision truncates not rounds",
+          "result": "pass",
+          "nestingSpaces": 4,
+          "tapNumber": 28
+        },
+        {
+          "name": "GNU date ISO previous year week",
+          "result": "pass",
+          "nestingSpaces": 4,
+          "tapNumber": 29
+        },
+        {
+          "name": "GNU date ISO next year week",
+          "result": "pass",
+          "nestingSpaces": 4,
+          "tapNumber": 30
+        },
+        {
+          "name": "GNU date POSIX reversed offset",
+          "result": "pass",
+          "nestingSpaces": 4,
+          "tapNumber": 31
+        },
+        {
+          "name": "GNU date POSIX seconds offset",
+          "result": "pass",
+          "nestingSpaces": 4,
+          "tapNumber": 32
+        },
+        {
+          "name": "GNU date IANA New York winter",
+          "result": "pass",
+          "nestingSpaces": 4,
+          "tapNumber": 33
+        },
+        {
+          "name": "GNU date IANA New York summer",
+          "result": "pass",
+          "nestingSpaces": 4,
+          "tapNumber": 34
+        },
+        {
+          "name": "GNU date IANA wall time",
+          "result": "pass",
+          "nestingSpaces": 4,
+          "tapNumber": 35
+        },
+        {
+          "name": "GNU date IANA half hour",
+          "result": "pass",
+          "nestingSpaces": 4,
+          "tapNumber": 36
+        },
+        {
+          "name": "GNU date IANA quarter hour",
+          "result": "pass",
+          "nestingSpaces": 4,
+          "tapNumber": 37
+        },
+        {
+          "name": "GNU date UTC overrides invalid virtual TZ",
+          "result": "pass",
+          "nestingSpaces": 4,
+          "tapNumber": 38
+        },
+        {
+          "name": "GNU date numeric default widths",
+          "result": "pass",
+          "nestingSpaces": 4,
+          "tapNumber": 39
+        },
+        {
+          "name": "GNU date timezone signed zero padding",
+          "result": "pass",
+          "nestingSpaces": 4,
+          "tapNumber": 40
+        },
+        {
+          "name": "GNU date C change-case flags",
+          "result": "pass",
+          "nestingSpaces": 4,
+          "tapNumber": 41
+        },
+        {
+          "name": "GNU date Etc GMT label",
+          "result": "pass",
+          "nestingSpaces": 4,
+          "tapNumber": 42
+        },
+        {
+          "name": "GNU date Z zone label",
+          "result": "pass",
+          "nestingSpaces": 4,
+          "tapNumber": 43
+        },
+        {
+          "name": "GNU date IANA lower calendar endpoint",
+          "result": "pass",
+          "nestingSpaces": 4,
+          "tapNumber": 44
+        },
+        {
+          "name": "GNU date IANA upper calendar endpoint",
+          "result": "pass",
+          "nestingSpaces": 4,
+          "tapNumber": 45
+        },
+        {
+          "name": "GNU printenv []",
+          "result": "pass",
+          "nestingSpaces": 4,
+          "tapNumber": 46
+        },
+        {
+          "name": "GNU printenv [\"A\"]",
+          "result": "pass",
+          "nestingSpaces": 4,
+          "tapNumber": 47
+        },
+        {
+          "name": "GNU printenv [\"EMPTY\"]",
+          "result": "pass",
+          "nestingSpaces": 4,
+          "tapNumber": 48
+        },
+        {
+          "name": "GNU printenv [\"missing\",\"A\"]",
+          "result": "pass",
+          "nestingSpaces": 4,
+          "tapNumber": 49
+        },
+        {
+          "name": "GNU printenv [\"A\",\"A\"]",
+          "result": "pass",
+          "nestingSpaces": 4,
+          "tapNumber": 50
+        },
+        {
+          "name": "GNU printenv [\"--null\",\"A\",\"EMPTY\"]",
+          "result": "pass",
+          "nestingSpaces": 4,
+          "tapNumber": 51
+        },
+        {
+          "name": "GNU printenv [\"-00\",\"A\"]",
+          "result": "pass",
+          "nestingSpaces": 4,
+          "tapNumber": 52
+        },
+        {
+          "name": "GNU printenv [\"A\",\"-0\"]",
+          "result": "pass",
+          "nestingSpaces": 4,
+          "tapNumber": 53
+        },
+        {
+          "name": "GNU printenv [\"A=value\"]",
+          "result": "pass",
+          "nestingSpaces": 4,
+          "tapNumber": 54
+        },
+        {
+          "name": "GNU printenv [\"--\",\"-0\"]",
+          "result": "pass",
+          "nestingSpaces": 4,
+          "tapNumber": 55
+        },
+        {
+          "name": "GNU printenv [\"__proto__\",\"constructor\",\"toString\"]",
+          "result": "pass",
+          "nestingSpaces": 4,
+          "tapNumber": 56
+        },
+        {
+          "name": "GNU sleep [\"0\"]",
+          "result": "pass",
+          "nestingSpaces": 4,
+          "tapNumber": 57
+        },
+        {
+          "name": "GNU sleep [\"0d\",\"0h\",\"0m\",\"0s\"]",
+          "result": "pass",
+          "nestingSpaces": 4,
+          "tapNumber": 58
+        },
+        {
+          "name": "GNU sleep [\".001\"]",
+          "result": "pass",
+          "nestingSpaces": 4,
+          "tapNumber": 59
+        },
+        {
+          "name": "GNU sleep [\"1e-3\"]",
+          "result": "pass",
+          "nestingSpaces": 4,
+          "tapNumber": 60
+        },
+        {
+          "name": "GNU sleep [\".00000001d\"]",
+          "result": "pass",
+          "nestingSpaces": 4,
+          "tapNumber": 61
+        },
+        {
+          "name": "GNU sleep [\".0000001h\"]",
+          "result": "pass",
+          "nestingSpaces": 4,
+          "tapNumber": 62
+        },
+        {
+          "name": "GNU sleep [\".00001m\",\".0004s\"]",
+          "result": "pass",
+          "nestingSpaces": 4,
+          "tapNumber": 63
+        },
+        {
+          "name": "GNU sleep [\"--\",\"0\"]",
+          "result": "pass",
+          "nestingSpaces": 4,
+          "tapNumber": 64
+        },
+        {
+          "name": "GNU sleep [\"+0.001\"]",
+          "result": "pass",
+          "nestingSpaces": 4,
+          "tapNumber": 65
+        },
+        {
+          "name": "GNU sleep [\"-0.00\"]",
+          "result": "pass",
+          "nestingSpaces": 4,
+          "tapNumber": 66
+        },
+        {
+          "name": "GNU sleep [\"1ms\"]",
+          "result": "pass",
+          "nestingSpaces": 4,
+          "tapNumber": 67
+        },
+        {
+          "name": "GNU sleep [\"-1\"]",
+          "result": "pass",
+          "nestingSpaces": 4,
+          "tapNumber": 68
+        },
+        {
+          "name": "GNU sleep [\"NaN\"]",
+          "result": "pass",
+          "nestingSpaces": 4,
+          "tapNumber": 69
+        },
+        {
+          "name": "GNU sleep []",
+          "result": "pass",
+          "nestingSpaces": 4,
+          "tapNumber": 70
+        },
+        {
+          "name": "GNU sleep help scans past duration operands without waiting",
+          "result": "pass",
+          "nestingSpaces": 4,
+          "tapNumber": 71
+        },
+        {
+          "name": "GNU reference file uses observed metadata, including Node/Apple mtime quantization",
+          "result": "pass",
+          "nestingSpaces": 4,
+          "tapNumber": 72
+        },
+        {
+          "name": "pinned local GNU9.7 differential (external oracle; not a pass when absent)",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 101
+        },
+        {
+          "name": "printenv own dictionary []",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 102
+        },
+        {
+          "name": "printenv own dictionary [\"A\",\"EMPTY\",\"UNICODE\"]",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 103
+        },
+        {
+          "name": "printenv own dictionary [\"missing\",\"A\",\"missing\",\"EMPTY\"]",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 104
+        },
+        {
+          "name": "printenv own dictionary [\"A\",\"A\"]",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 105
+        },
+        {
+          "name": "printenv own dictionary [\"--null\",\"EMPTY\",\"UNICODE\"]",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 106
+        },
+        {
+          "name": "printenv own dictionary [\"-00\",\"A\"]",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 107
+        },
+        {
+          "name": "printenv own dictionary [\"A\",\"-0\"]",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 108
+        },
+        {
+          "name": "printenv own dictionary [\"A=one\"]",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 109
+        },
+        {
+          "name": "printenv own dictionary [\"--\",\"-0\"]",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 110
+        },
+        {
+          "name": "printenv own prototype-shaped and nonenumerable names never consult inherited or host environment",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 111
+        },
+        {
+          "name": "printenv empty dictionary and missing name do not acquire stdin or write output",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 112
+        },
+        {
+          "name": "printenv invalid option -i is status2 without stdout",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 113
+        },
+        {
+          "name": "printenv invalid option -u is status2 without stdout",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 114
+        },
+        {
+          "name": "printenv invalid option --null=yes is status2 without stdout",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 115
+        },
+        {
+          "name": "printenv invalid option --invalid is status2 without stdout",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 116
+        },
+        {
+          "name": "printenv bounds output before effects and propagates sink rejection unchanged",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 117
+        },
+        {
+          "name": "sleep summed fractional intervals 0.125",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 118
+        },
+        {
+          "name": "sleep summed fractional intervals .001s 0.002",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 119
+        },
+        {
+          "name": "sleep summed fractional intervals 1e-3m",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 120
+        },
+        {
+          "name": "sleep summed fractional intervals +0.0001h",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 121
+        },
+        {
+          "name": "sleep summed fractional intervals 0.00001d",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 122
+        },
+        {
+          "name": "sleep summed fractional intervals 0.02",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 123
+        },
+        {
+          "name": "sleep summed fractional intervals 1. 0.5s",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 124
+        },
+        {
+          "name": "sleep never finishes early and chunks intervals above timer range",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 125
+        },
+        {
+          "name": "sleep configurable timer quantum and submillisecond durations do not spin",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 126
+        },
+        {
+          "name": "sleep abort before/during clears listeners and pending timers",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 127
+        },
+        {
+          "name": "sleep handles abort synchronously triggered by a trusted scheduler setup without leaking its handle",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 128
+        },
+        {
+          "name": "sleep rejects nonmonotonic scheduler time and cleans the subscription",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 129
+        },
+        {
+          "name": "sleep validates all operands before waiting: []",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 130
+        },
+        {
+          "name": "sleep validates all operands before waiting: [\"-1\"]",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 131
+        },
+        {
+          "name": "sleep validates all operands before waiting: [\"1ms\"]",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 132
+        },
+        {
+          "name": "sleep validates all operands before waiting: [\"NaN\"]",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 133
+        },
+        {
+          "name": "sleep validates all operands before waiting: [\"Infinity\"]",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 134
+        },
+        {
+          "name": "sleep validates all operands before waiting: [\"1e999\"]",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 135
+        },
+        {
+          "name": "sleep validates all operands before waiting: [\"0x1\"]",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 136
+        },
+        {
+          "name": "sleep validates all operands before waiting: [\"1\",\"bad\"]",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 137
+        },
+        {
+          "name": "sleep validates all operands before waiting: [\"1,2\"]",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 138
+        },
+        {
+          "name": "sleep validates all operands before waiting: [\"1D\"]",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 139
+        },
+        {
+          "name": "sleep validates all operands before waiting: [\"--invalid\"]",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 140
+        },
+        {
+          "name": "sleep validates all operands before waiting: [\"--\",\"0\"]",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 141
+        },
+        {
+          "name": "sleep validates all operands before waiting: [\"-0.00\"]",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 142
+        },
+        {
+          "name": "sleep zero does not consume stdin or write either channel",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 143
+        },
+        {
+          "name": "sleep default scheduler waits against monotonic elapsed time",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 144
+        },
+        {
+          "name": "256 signed epoch/fraction vectors preserve independent floor-seconds arithmetic",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 145
+        },
+        {
+          "name": "256 finite decimal sleep sums never schedule earlier than their exact rational duration",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 146
+        },
+        {
+          "name": "date and printenv honor byte rather than character limits, including output chunk ownership",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 147
+        },
+        {
+          "name": "date rejects clock setting before clock/metadata access and pre-abort wins",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 148
+        },
+        {
+          "name": "date reference preserves authorization errors and abort during cooperative metadata work",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 149
+        },
+        {
+          "name": "sleep timer creation failure and successful completion remove abort listeners",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 150
+        },
+        {
+          "name": "actual Shell date loop, sorting pipeline, references and null-delimited environment publication",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 151
+        }
+      ]
+    },
+    "source-existing83": {
+      "total": 83,
+      "pass": 83,
+      "fail": 0,
+      "mode": "unchanged full-source-archive fixtures; not packed",
+      "rawStdoutFile": "source-existing83.stdout",
+      "rawStderrFile": "source-existing83.stderr",
+      "rawRunnerBytes": {
+        "stdout": {
+          "bytes": 14971,
+          "sha256": "c9dac1af4d8c2238fd5adf2ac3225429b625a8e4a3e7f89b3481f141f59b2fda"
+        },
+        "stderr": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      },
+      "commandByteTelemetry": "Original tests do not log each successful internal command capture; none fabricated. Assertions, names and raw TAP including failing status expected1/actual0 are preserved.",
+      "rows": [
+        {
+          "name": "date independent-review regression %12F",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 1
+        },
+        {
+          "name": "date independent-review regression %\\#c",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 2
+        },
+        {
+          "name": "date independent-review regression %-z",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 3
+        },
+        {
+          "name": "date independent-review regression %_z",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 4
+        },
+        {
+          "name": "date independent-review regression %_12z",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 5
+        },
+        {
+          "name": "date independent-review regression %^P",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 6
+        },
+        {
+          "name": "date independent-review regression %\\#^p|%^\\#p|%\\#^P|%^\\#P|%\\#^Z",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 7
+        },
+        {
+          "name": "date independent-review regression %\\#A|%\\#b|%^c|%\\#r",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 8
+        },
+        {
+          "name": "date independent-review regression %-:z|%_:z|%-::z|%_::z|%-:::z|%_:::z",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 9
+        },
+        {
+          "name": "date independent-review regression %_12F|%-12F|%012F|%_012F|%0_12F",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 10
+        },
+        {
+          "name": "date compound year width belongs to the year, including short years",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 11
+        },
+        {
+          "name": "date explicit D inherits year padding while C-locale x remains opaque",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 12
+        },
+        {
+          "name": "date timezone padding applies to signed numeric offsets, not pre-padded strings",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 13
+        },
+        {
+          "name": "0008-01-02T03:04:05Z UTC aAbBhcpPrZ",
+          "result": "pass",
+          "nestingSpaces": 4,
+          "tapNumber": 1
+        },
+        {
+          "name": "0008-01-02T03:04:05Z UTC FDxRXTYy",
+          "result": "pass",
+          "nestingSpaces": 4,
+          "tapNumber": 2
+        },
+        {
+          "name": "0008-01-02T03:04:05Z UTC z",
+          "result": "pass",
+          "nestingSpaces": 4,
+          "tapNumber": 3
+        },
+        {
+          "name": "0008-01-02T03:04:05Z UTC-0:30:07 aAbBhcpPrZ",
+          "result": "pass",
+          "nestingSpaces": 4,
+          "tapNumber": 4
+        },
+        {
+          "name": "0008-01-02T03:04:05Z UTC-0:30:07 FDxRXTYy",
+          "result": "pass",
+          "nestingSpaces": 4,
+          "tapNumber": 5
+        },
+        {
+          "name": "0008-01-02T03:04:05Z UTC-0:30:07 z",
+          "result": "pass",
+          "nestingSpaces": 4,
+          "tapNumber": 6
+        },
+        {
+          "name": "0008-01-02T03:04:05Z UTC+0:00:07 aAbBhcpPrZ",
+          "result": "pass",
+          "nestingSpaces": 4,
+          "tapNumber": 7
+        },
+        {
+          "name": "0008-01-02T03:04:05Z UTC+0:00:07 FDxRXTYy",
+          "result": "pass",
+          "nestingSpaces": 4,
+          "tapNumber": 8
+        },
+        {
+          "name": "0008-01-02T03:04:05Z UTC+0:00:07 z",
+          "result": "pass",
+          "nestingSpaces": 4,
+          "tapNumber": 9
+        },
+        {
+          "name": "0008-01-02T03:04:05Z UTC-5:45 aAbBhcpPrZ",
+          "result": "pass",
+          "nestingSpaces": 4,
+          "tapNumber": 10
+        },
+        {
+          "name": "0008-01-02T03:04:05Z UTC-5:45 FDxRXTYy",
+          "result": "pass",
+          "nestingSpaces": 4,
+          "tapNumber": 11
+        },
+        {
+          "name": "0008-01-02T03:04:05Z UTC-5:45 z",
+          "result": "pass",
+          "nestingSpaces": 4,
+          "tapNumber": 12
+        },
+        {
+          "name": "0008-01-02T03:04:05Z America/New_York aAbBhcpPrZ",
+          "result": "pass",
+          "nestingSpaces": 4,
+          "tapNumber": 13
+        },
+        {
+          "name": "0008-01-02T03:04:05Z America/New_York FDxRXTYy",
+          "result": "pass",
+          "nestingSpaces": 4,
+          "tapNumber": 14
+        },
+        {
+          "name": "0008-01-02T03:04:05Z America/New_York z",
+          "result": "pass",
+          "nestingSpaces": 4,
+          "tapNumber": 15
+        },
+        {
+          "name": "0008-01-02T03:04:05Z Europe/Paris aAbBhcpPrZ",
+          "result": "pass",
+          "nestingSpaces": 4,
+          "tapNumber": 16
+        },
+        {
+          "name": "0008-01-02T03:04:05Z Europe/Paris FDxRXTYy",
+          "result": "pass",
+          "nestingSpaces": 4,
+          "tapNumber": 17
+        },
+        {
+          "name": "0008-01-02T03:04:05Z Europe/Paris z",
+          "result": "pass",
+          "nestingSpaces": 4,
+          "tapNumber": 18
+        },
+        {
+          "name": "2024-02-29T15:06:07Z UTC aAbBhcpPrZ",
+          "result": "pass",
+          "nestingSpaces": 4,
+          "tapNumber": 19
+        },
+        {
+          "name": "2024-02-29T15:06:07Z UTC FDxRXTYy",
+          "result": "pass",
+          "nestingSpaces": 4,
+          "tapNumber": 20
+        },
+        {
+          "name": "2024-02-29T15:06:07Z UTC z",
+          "result": "pass",
+          "nestingSpaces": 4,
+          "tapNumber": 21
+        },
+        {
+          "name": "2024-02-29T15:06:07Z UTC-0:30:07 aAbBhcpPrZ",
+          "result": "pass",
+          "nestingSpaces": 4,
+          "tapNumber": 22
+        },
+        {
+          "name": "2024-02-29T15:06:07Z UTC-0:30:07 FDxRXTYy",
+          "result": "pass",
+          "nestingSpaces": 4,
+          "tapNumber": 23
+        },
+        {
+          "name": "2024-02-29T15:06:07Z UTC-0:30:07 z",
+          "result": "pass",
+          "nestingSpaces": 4,
+          "tapNumber": 24
+        },
+        {
+          "name": "2024-02-29T15:06:07Z UTC+0:00:07 aAbBhcpPrZ",
+          "result": "pass",
+          "nestingSpaces": 4,
+          "tapNumber": 25
+        },
+        {
+          "name": "2024-02-29T15:06:07Z UTC+0:00:07 FDxRXTYy",
+          "result": "pass",
+          "nestingSpaces": 4,
+          "tapNumber": 26
+        },
+        {
+          "name": "2024-02-29T15:06:07Z UTC+0:00:07 z",
+          "result": "pass",
+          "nestingSpaces": 4,
+          "tapNumber": 27
+        },
+        {
+          "name": "2024-02-29T15:06:07Z UTC-5:45 aAbBhcpPrZ",
+          "result": "pass",
+          "nestingSpaces": 4,
+          "tapNumber": 28
+        },
+        {
+          "name": "2024-02-29T15:06:07Z UTC-5:45 FDxRXTYy",
+          "result": "pass",
+          "nestingSpaces": 4,
+          "tapNumber": 29
+        },
+        {
+          "name": "2024-02-29T15:06:07Z UTC-5:45 z",
+          "result": "pass",
+          "nestingSpaces": 4,
+          "tapNumber": 30
+        },
+        {
+          "name": "2024-02-29T15:06:07Z America/New_York aAbBhcpPrZ",
+          "result": "pass",
+          "nestingSpaces": 4,
+          "tapNumber": 31
+        },
+        {
+          "name": "2024-02-29T15:06:07Z America/New_York FDxRXTYy",
+          "result": "pass",
+          "nestingSpaces": 4,
+          "tapNumber": 32
+        },
+        {
+          "name": "2024-02-29T15:06:07Z America/New_York z",
+          "result": "pass",
+          "nestingSpaces": 4,
+          "tapNumber": 33
+        },
+        {
+          "name": "2024-02-29T15:06:07Z Europe/Paris aAbBhcpPrZ",
+          "result": "pass",
+          "nestingSpaces": 4,
+          "tapNumber": 34
+        },
+        {
+          "name": "2024-02-29T15:06:07Z Europe/Paris FDxRXTYy",
+          "result": "pass",
+          "nestingSpaces": 4,
+          "tapNumber": 35
+        },
+        {
+          "name": "2024-02-29T15:06:07Z Europe/Paris z",
+          "result": "pass",
+          "nestingSpaces": 4,
+          "tapNumber": 36
+        },
+        {
+          "name": "@-1.000000001 UTC aAbBhcpPrZ",
+          "result": "pass",
+          "nestingSpaces": 4,
+          "tapNumber": 37
+        },
+        {
+          "name": "@-1.000000001 UTC FDxRXTYy",
+          "result": "pass",
+          "nestingSpaces": 4,
+          "tapNumber": 38
+        },
+        {
+          "name": "@-1.000000001 UTC z",
+          "result": "pass",
+          "nestingSpaces": 4,
+          "tapNumber": 39
+        },
+        {
+          "name": "@-1.000000001 UTC-0:30:07 aAbBhcpPrZ",
+          "result": "pass",
+          "nestingSpaces": 4,
+          "tapNumber": 40
+        },
+        {
+          "name": "@-1.000000001 UTC-0:30:07 FDxRXTYy",
+          "result": "pass",
+          "nestingSpaces": 4,
+          "tapNumber": 41
+        },
+        {
+          "name": "@-1.000000001 UTC-0:30:07 z",
+          "result": "pass",
+          "nestingSpaces": 4,
+          "tapNumber": 42
+        },
+        {
+          "name": "@-1.000000001 UTC+0:00:07 aAbBhcpPrZ",
+          "result": "pass",
+          "nestingSpaces": 4,
+          "tapNumber": 43
+        },
+        {
+          "name": "@-1.000000001 UTC+0:00:07 FDxRXTYy",
+          "result": "pass",
+          "nestingSpaces": 4,
+          "tapNumber": 44
+        },
+        {
+          "name": "@-1.000000001 UTC+0:00:07 z",
+          "result": "pass",
+          "nestingSpaces": 4,
+          "tapNumber": 45
+        },
+        {
+          "name": "@-1.000000001 UTC-5:45 aAbBhcpPrZ",
+          "result": "pass",
+          "nestingSpaces": 4,
+          "tapNumber": 46
+        },
+        {
+          "name": "@-1.000000001 UTC-5:45 FDxRXTYy",
+          "result": "pass",
+          "nestingSpaces": 4,
+          "tapNumber": 47
+        },
+        {
+          "name": "@-1.000000001 UTC-5:45 z",
+          "result": "pass",
+          "nestingSpaces": 4,
+          "tapNumber": 48
+        },
+        {
+          "name": "@-1.000000001 America/New_York aAbBhcpPrZ",
+          "result": "pass",
+          "nestingSpaces": 4,
+          "tapNumber": 49
+        },
+        {
+          "name": "@-1.000000001 America/New_York FDxRXTYy",
+          "result": "pass",
+          "nestingSpaces": 4,
+          "tapNumber": 50
+        },
+        {
+          "name": "@-1.000000001 America/New_York z",
+          "result": "pass",
+          "nestingSpaces": 4,
+          "tapNumber": 51
+        },
+        {
+          "name": "@-1.000000001 Europe/Paris aAbBhcpPrZ",
+          "result": "pass",
+          "nestingSpaces": 4,
+          "tapNumber": 52
+        },
+        {
+          "name": "@-1.000000001 Europe/Paris FDxRXTYy",
+          "result": "pass",
+          "nestingSpaces": 4,
+          "tapNumber": 53
+        },
+        {
+          "name": "@-1.000000001 Europe/Paris z",
+          "result": "pass",
+          "nestingSpaces": 4,
+          "tapNumber": 54
+        },
+        {
+          "name": "fresh GNU9.7 C-locale flag/width/compound/timezone matrix",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 14
+        },
+        {
+          "name": "sleep exact decimal carry [\"0.0009999999\",\"0.0000000001\"]",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 15
+        },
+        {
+          "name": "sleep exact decimal carry [\"0.0004999999\",\"0.0005000001\"]",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 16
+        },
+        {
+          "name": "sleep exact decimal carry [\"0.0009999999\",\"0.0000000000999999999999\"]",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 17
+        },
+        {
+          "name": "sleep exact decimal carry [\"0.0009999999\",\"0.0000000001000000000001\"]",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 18
+        },
+        {
+          "name": "sleep exact decimal carry [\"0.001\",\"1e-1000000000000000000000\"]",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 19
+        },
+        {
+          "name": "sleep exact decimal carry [\"1e-1000000000000000000000\"]",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 20
+        },
+        {
+          "name": "sleep exact decimal carry [\".000016666666666666m\",\".00000000000000000004\"]",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 21
+        },
+        {
+          "name": "sleep exact decimal carry [\".0000000001d\",\".0000000001h\",\".0000000001m\",\".000990994\"]",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 22
+        },
+        {
+          "name": "sleep exact decimal carry [\"0.000000000000000000000000000001\",\"0.000999999999999999999999999999\"]",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 23
+        },
+        {
+          "name": "sleep exact decimal carry [\".0005\",\".0005\",\"1e-999999999999999999999\"]",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 24
+        },
+        {
+          "name": "sleep exact decimal carry [\"0e9999999999999999999999\",\"0e-9999999999999999999999\"]",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 25
+        },
+        {
+          "name": "sleep bounded exact rational properties across decimal positions and units",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 26
+        },
+        {
+          "name": "sleep sparse decimal positions bound huge exponents without allocating exponent-sized buffers",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 27
+        },
+        {
+          "name": "sleep exact range boundary preserves chunking and rejects excess before scheduling",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 28
+        },
+        {
+          "name": "sleep many fractional carries reach the boundary without per-operand rounding",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 29
+        }
+      ]
+    },
+    "source-new54": {
+      "total": 54,
+      "pass": 54,
+      "fail": 0,
+      "mode": "unchanged full-source-archive fixtures; not packed",
+      "rawStdoutFile": "source-new54.stdout",
+      "rawStderrFile": "source-new54.stderr",
+      "rawRunnerBytes": {
+        "stdout": {
+          "bytes": 10432,
+          "sha256": "0ee19e7d9d4b6931a1aa057c594fe821828e6e19b87bcc302fb0a7b8702bafaa"
+        },
+        "stderr": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      },
+      "commandByteTelemetry": "Original tests do not log each successful internal command capture; none fabricated. Assertions, names and raw TAP including failing status expected1/actual0 are preserved.",
+      "rows": [
+        {
+          "name": "ISO year v1 pinned GNU9.7 Darwin 0000-01-01T12:00:00Z UTC",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 1
+        },
+        {
+          "name": "ISO year v1 pinned GNU9.7 Darwin 0000-01-01T12:00:00Z UTC-14",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 2
+        },
+        {
+          "name": "ISO year v1 pinned GNU9.7 Darwin 0000-01-02T12:00:00Z UTC",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 3
+        },
+        {
+          "name": "ISO year v1 pinned GNU9.7 Darwin 0000-01-02T12:00:00Z UTC-14",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 4
+        },
+        {
+          "name": "ISO year v1 pinned GNU9.7 Darwin 0000-01-03T12:00:00Z UTC",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 5
+        },
+        {
+          "name": "ISO year v1 pinned GNU9.7 Darwin 0000-01-03T12:00:00Z UTC-14",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 6
+        },
+        {
+          "name": "ISO year v1 pinned GNU9.7 Darwin 0000-12-31T12:00:00Z UTC",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 7
+        },
+        {
+          "name": "ISO year v1 pinned GNU9.7 Darwin 0000-12-31T12:00:00Z UTC-14",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 8
+        },
+        {
+          "name": "ISO year v1 pinned GNU9.7 Darwin 0001-01-01T12:00:00Z UTC",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 9
+        },
+        {
+          "name": "ISO year v1 pinned GNU9.7 Darwin 0001-01-01T12:00:00Z UTC-14",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 10
+        },
+        {
+          "name": "ISO year v1 pinned GNU9.7 Darwin 0004-01-01T12:00:00Z UTC",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 11
+        },
+        {
+          "name": "ISO year v1 pinned GNU9.7 Darwin 0004-01-01T12:00:00Z UTC-14",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 12
+        },
+        {
+          "name": "ISO year v1 pinned GNU9.7 Darwin 0099-01-01T12:00:00Z UTC",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 13
+        },
+        {
+          "name": "ISO year v1 pinned GNU9.7 Darwin 0099-01-01T12:00:00Z UTC-14",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 14
+        },
+        {
+          "name": "ISO year v1 pinned GNU9.7 Darwin 0099-12-31T12:00:00Z UTC",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 15
+        },
+        {
+          "name": "ISO year v1 pinned GNU9.7 Darwin 0099-12-31T12:00:00Z UTC-14",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 16
+        },
+        {
+          "name": "ISO year v1 pinned GNU9.7 Darwin 0100-01-01T12:00:00Z UTC",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 17
+        },
+        {
+          "name": "ISO year v1 pinned GNU9.7 Darwin 0100-01-01T12:00:00Z UTC-14",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 18
+        },
+        {
+          "name": "ISO year v1 pinned GNU9.7 Darwin 0100-01-04T12:00:00Z UTC",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 19
+        },
+        {
+          "name": "ISO year v1 pinned GNU9.7 Darwin 0100-01-04T12:00:00Z UTC-14",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 20
+        },
+        {
+          "name": "ISO year v1 pinned GNU9.7 Darwin 1899-12-31T12:00:00Z UTC",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 21
+        },
+        {
+          "name": "ISO year v1 pinned GNU9.7 Darwin 1899-12-31T12:00:00Z UTC-14",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 22
+        },
+        {
+          "name": "ISO year v1 pinned GNU9.7 Darwin 1900-01-01T12:00:00Z UTC",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 23
+        },
+        {
+          "name": "ISO year v1 pinned GNU9.7 Darwin 1900-01-01T12:00:00Z UTC-14",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 24
+        },
+        {
+          "name": "ISO year v1 pinned GNU9.7 Darwin 1999-01-01T12:00:00Z UTC",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 25
+        },
+        {
+          "name": "ISO year v1 pinned GNU9.7 Darwin 1999-01-01T12:00:00Z UTC-14",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 26
+        },
+        {
+          "name": "ISO year v1 pinned GNU9.7 Darwin 2000-01-01T12:00:00Z UTC",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 27
+        },
+        {
+          "name": "ISO year v1 pinned GNU9.7 Darwin 2000-01-01T12:00:00Z UTC-14",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 28
+        },
+        {
+          "name": "ISO year v1 pinned GNU9.7 Darwin 2021-01-01T12:00:00Z UTC",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 29
+        },
+        {
+          "name": "ISO year v1 pinned GNU9.7 Darwin 2021-01-01T12:00:00Z UTC-14",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 30
+        },
+        {
+          "name": "ISO year digit presentation does not change signed year, week or calendar year",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 31
+        },
+        {
+          "name": "native negative-year witnesses do not expand accepted calendar grammar",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 32
+        },
+        {
+          "name": "fraction expansion v1 pinned GNU9.7 Darwin @0",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 33
+        },
+        {
+          "name": "fraction expansion v1 pinned GNU9.7 Darwin @0.100000000",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 34
+        },
+        {
+          "name": "fraction expansion v1 pinned GNU9.7 Darwin @0.000000001",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 35
+        },
+        {
+          "name": "fraction expansion v1 pinned GNU9.7 Darwin @0.000000100",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 36
+        },
+        {
+          "name": "fraction expansion v1 pinned GNU9.7 Darwin @0.001200000",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 37
+        },
+        {
+          "name": "fraction expansion v1 pinned GNU9.7 Darwin @0.123456789",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 38
+        },
+        {
+          "name": "fraction expansion v1 pinned GNU9.7 Darwin @0.999999999",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 39
+        },
+        {
+          "name": "fraction expansion v1 pinned GNU9.7 Darwin @-0.000000001",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 40
+        },
+        {
+          "name": "fraction expansion v1 pinned GNU9.7 Darwin @-0.123456789",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 41
+        },
+        {
+          "name": "fraction expansion v1 pinned GNU9.7 Darwin @-1.000000001",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 42
+        },
+        {
+          "name": "fraction expansion v1 pinned GNU9.7 Darwin @1704164645.123000000",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 43
+        },
+        {
+          "name": "fraction expansion v1 pinned GNU9.7 Darwin @1704164645.000001000",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 44
+        },
+        {
+          "name": "fraction widths preserve actual millisecond clock precision and sample once",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 45
+        },
+        {
+          "name": "unpadded virtual fractions do not infer native hardware resolution or discard explicit precision",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 46
+        },
+        {
+          "name": "fraction width truncation never rounds into the next second",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 47
+        },
+        {
+          "name": "fraction allocation preflight %1000000000N",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 48
+        },
+        {
+          "name": "fraction allocation preflight %_1000000000N",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 49
+        },
+        {
+          "name": "fraction allocation preflight %01000000000N",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 50
+        },
+        {
+          "name": "fraction allocation preflight %\\#^1000000000N",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 51
+        },
+        {
+          "name": "unpadded huge explicit width allocates only significant digits but respects width admission",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 52
+        },
+        {
+          "name": "fraction budget includes preceding UTF8 bytes, every field and the newline",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 53
+        },
+        {
+          "name": "fraction modifiers and argument quotas still reject without partial publication",
+          "result": "pass",
+          "nestingSpaces": 0,
+          "tapNumber": 54
+        }
+      ]
+    }
+  },
+  "packedCohorts": {
+    "original305": {
+      "total": 305,
+      "pass": 304,
+      "fail": 1,
+      "rawRows": "holdouts.json",
+      "failures": [
+        {
+          "name": "Apple BSD printenv separate profile",
+          "category": "Apple-BSD-observed-not-target",
+          "expected": {
+            "status": 0,
+            "stdoutHex": "0a",
+            "stderrHex": ""
+          },
+          "actual": {
+            "status": 0,
+            "stdoutHex": "0ae99baa0a",
+            "stderrHex": ""
+          },
+          "result": "fail",
+          "error": {
+            "name": "AssertionError",
+            "message": "Expected values to be strictly deep-equal:\n+ actual - expected\n\n  {\n    status: 0,\n    stderrHex: '',\n+   stdoutHex: '0ae99baa0a'\n-   stdoutHex: '0a'\n  }\n",
+            "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:\n+ actual - expected\n\n  {\n    status: 0,\n    stderrHex: '',\n+   stdoutHex: '0ae99baa0a'\n-   stdoutHex: '0a'\n  }\n\n    at file:///private/tmp/safe-bash-fraction-independent-packed-3n2Cyg/consumer/original305.mjs:251:16\n    at async row (file:///private/tmp/safe-bash-fraction-independent-packed-3n2Cyg/consumer/original305.mjs:33:9)\n    at async file:///private/tmp/safe-bash-fraction-independent-packed-3n2Cyg/consumer/original305.mjs:245:5"
+          }
+        }
+      ],
+      "adaptation": "Only two import paths and their import.meta.resolve metadata paths; original assertions and labels unchanged."
+    },
+    "immutable304": {
+      "total": 304,
+      "pass": 304,
+      "fail": 0,
+      "rawRows": "hidden-rows.json",
+      "adaptation": "None; committed holdout and guard are byte-identical."
+    },
+    "originalSleep8": {
+      "total": 8,
+      "pass": 8,
+      "fail": 0,
+      "subsetOf": "original305, not an additive denominator",
+      "rows": [
+        {
+          "name": "compiled public sleep cancellation repeat0",
+          "category": "public-sleep-lifecycle",
+          "atExec": {
+            "timers": 0,
+            "listeners": [
+              0
+            ]
+          },
+          "atDispose": {
+            "timers": 0,
+            "listeners": [
+              0
+            ]
+          },
+          "result": "pass"
+        },
+        {
+          "name": "compiled public sleep cancellation repeat1",
+          "category": "public-sleep-lifecycle",
+          "atExec": {
+            "timers": 0,
+            "listeners": [
+              0
+            ]
+          },
+          "atDispose": {
+            "timers": 0,
+            "listeners": [
+              0
+            ]
+          },
+          "result": "pass"
+        },
+        {
+          "name": "compiled public sleep cancellation repeat2",
+          "category": "public-sleep-lifecycle",
+          "atExec": {
+            "timers": 0,
+            "listeners": [
+              0
+            ]
+          },
+          "atDispose": {
+            "timers": 0,
+            "listeners": [
+              0
+            ]
+          },
+          "result": "pass"
+        },
+        {
+          "name": "compiled public sleep cancellation repeat3",
+          "category": "public-sleep-lifecycle",
+          "atExec": {
+            "timers": 0,
+            "listeners": [
+              0
+            ]
+          },
+          "atDispose": {
+            "timers": 0,
+            "listeners": [
+              0
+            ]
+          },
+          "result": "pass"
+        },
+        {
+          "name": "compiled public sleep cancellation repeat4",
+          "category": "public-sleep-lifecycle",
+          "atExec": {
+            "timers": 0,
+            "listeners": [
+              0
+            ]
+          },
+          "atDispose": {
+            "timers": 0,
+            "listeners": [
+              0
+            ]
+          },
+          "result": "pass"
+        },
+        {
+          "name": "compiled public sleep cancellation repeat5",
+          "category": "public-sleep-lifecycle",
+          "atExec": {
+            "timers": 0,
+            "listeners": [
+              0
+            ]
+          },
+          "atDispose": {
+            "timers": 0,
+            "listeners": [
+              0
+            ]
+          },
+          "result": "pass"
+        },
+        {
+          "name": "public preabort creates no timer and preserves caller identity",
+          "category": "public-sleep-lifecycle",
+          "result": "pass"
+        },
+        {
+          "name": "cancelling one Shell does not clear a sibling timer",
+          "category": "public-sleep-isolation",
+          "siblingTimers": 1,
+          "result": "pass"
+        }
+      ]
+    },
+    "controls14": {
+      "total": 14,
+      "pass": 14,
+      "fail": 0,
+      "rawRows": "controls.json"
+    }
+  },
+  "profiles": {
+    "measuredExisting36": {
+      "total": 36,
+      "GNU97DarwinMatches": 31,
+      "GNU97DarwinNonmatches": 5,
+      "AppleMatches": 0,
+      "rawRows": "fresh-native-matrix.json",
+      "nonmatches": [
+        {
+          "category": "zone-label-profile",
+          "args": [
+            "-d",
+            "0008-01-02T03:04:05Z",
+            "+%Z|%-Z|%_Z|%0Z|%^Z|%#Z|%#^Z|%^#Z|%1Z|%6Z|%9Z|%12Z|%_12Z|%012Z|%-12Z|%_012Z|%0_12Z|%^#30Z|%030Z"
+          ],
+          "appleArgs": [
+            "-r",
+            "-61914660955",
+            "+%Z|%-Z|%_Z|%0Z|%^Z|%#Z|%#^Z|%^#Z|%1Z|%6Z|%9Z|%12Z|%_12Z|%012Z|%-12Z|%_012Z|%0_12Z|%^#30Z|%030Z"
+          ],
+          "env": {
+            "LC_ALL": "C",
+            "TZ": "America/New_York"
+          },
+          "actual": {
+            "status": 0,
+            "stdoutHex": "474d542d343a35363a30327c474d542d343a35363a30327c474d542d343a35363a30327c474d542d343a35363a30327c474d542d343a35363a30327c676d742d343a35363a30327c676d742d343a35363a30327c676d742d343a35363a30327c474d542d343a35363a30327c474d542d343a35363a30327c474d542d343a35363a30327c20474d542d343a35363a30327c20474d542d343a35363a30327c30474d542d343a35363a30327c474d542d343a35363a30327c30474d542d343a35363a30327c20474d542d343a35363a30327c20202020202020202020202020202020202020676d742d343a35363a30327c30303030303030303030303030303030303030474d542d343a35363a30320a",
+            "stderrHex": ""
+          },
+          "gnu": {
+            "status": 0,
+            "stdoutHex": "4c4d547c4c4d547c4c4d547c4c4d547c4c4d547c6c6d747c6c6d747c6c6d747c4c4d547c2020204c4d547c2020202020204c4d547c2020202020202020204c4d547c2020202020202020204c4d547c3030303030303030304c4d547c4c4d547c3030303030303030304c4d547c2020202020202020204c4d547c2020202020202020202020202020202020202020202020202020206c6d747c3030303030303030303030303030303030303030303030303030304c4d540a",
+            "stderrHex": ""
+          },
+          "apple": {
+            "status": 0,
+            "stdoutHex": "4c4d547c4c4d547c4c4d547c4c4d547c5e5a7c235a7c235e5a7c5e235a7c315a7c365a7c395a7c31325a7c31325a7c31325a7c31325a7c3031325a7c5f31325a7c5e2333305a7c33305a0a",
+            "stderrHex": ""
+          },
+          "gnuMatch": false,
+          "appleMatch": false
+        },
+        {
+          "category": "zone-label-profile",
+          "args": [
+            "-d",
+            "0008-01-02T03:04:05Z",
+            "+%Z|%-Z|%_Z|%0Z|%^Z|%#Z|%#^Z|%^#Z|%1Z|%6Z|%9Z|%12Z|%_12Z|%012Z|%-12Z|%_012Z|%0_12Z|%^#30Z|%030Z"
+          ],
+          "appleArgs": [
+            "-r",
+            "-61914660955",
+            "+%Z|%-Z|%_Z|%0Z|%^Z|%#Z|%#^Z|%^#Z|%1Z|%6Z|%9Z|%12Z|%_12Z|%012Z|%-12Z|%_012Z|%0_12Z|%^#30Z|%030Z"
+          ],
+          "env": {
+            "LC_ALL": "C",
+            "TZ": "Europe/Paris"
+          },
+          "actual": {
+            "status": 0,
+            "stdoutHex": "474d542b303a30393a32317c474d542b303a30393a32317c474d542b303a30393a32317c474d542b303a30393a32317c474d542b303a30393a32317c676d742b303a30393a32317c676d742b303a30393a32317c676d742b303a30393a32317c474d542b303a30393a32317c474d542b303a30393a32317c474d542b303a30393a32317c20474d542b303a30393a32317c20474d542b303a30393a32317c30474d542b303a30393a32317c474d542b303a30393a32317c30474d542b303a30393a32317c20474d542b303a30393a32317c20202020202020202020202020202020202020676d742b303a30393a32317c30303030303030303030303030303030303030474d542b303a30393a32310a",
+            "stderrHex": ""
+          },
+          "gnu": {
+            "status": 0,
+            "stdoutHex": "4c4d547c4c4d547c4c4d547c4c4d547c4c4d547c6c6d747c6c6d747c6c6d747c4c4d547c2020204c4d547c2020202020204c4d547c2020202020202020204c4d547c2020202020202020204c4d547c3030303030303030304c4d547c4c4d547c3030303030303030304c4d547c2020202020202020204c4d547c2020202020202020202020202020202020202020202020202020206c6d747c3030303030303030303030303030303030303030303030303030304c4d540a",
+            "stderrHex": ""
+          },
+          "apple": {
+            "status": 0,
+            "stdoutHex": "4c4d547c4c4d547c4c4d547c4c4d547c5e5a7c235a7c235e5a7c5e235a7c315a7c365a7c395a7c31325a7c31325a7c31325a7c31325a7c3031325a7c5f31325a7c5e2333305a7c33305a0a",
+            "stderrHex": ""
+          },
+          "gnuMatch": false,
+          "appleMatch": false
+        },
+        {
+          "category": "zone-label-profile",
+          "args": [
+            "-d",
+            "2024-02-29T15:06:07Z",
+            "+%Z|%-Z|%_Z|%0Z|%^Z|%#Z|%#^Z|%^#Z|%1Z|%6Z|%9Z|%12Z|%_12Z|%012Z|%-12Z|%_012Z|%0_12Z|%^#30Z|%030Z"
+          ],
+          "appleArgs": [
+            "-r",
+            "1709219167",
+            "+%Z|%-Z|%_Z|%0Z|%^Z|%#Z|%#^Z|%^#Z|%1Z|%6Z|%9Z|%12Z|%_12Z|%012Z|%-12Z|%_012Z|%0_12Z|%^#30Z|%030Z"
+          ],
+          "env": {
+            "LC_ALL": "C",
+            "TZ": "Europe/Paris"
+          },
+          "actual": {
+            "status": 0,
+            "stdoutHex": "474d542b317c474d542b317c474d542b317c474d542b317c474d542b317c676d742b317c676d742b317c676d742b317c474d542b317c20474d542b317c20202020474d542b317c20202020202020474d542b317c20202020202020474d542b317c30303030303030474d542b317c474d542b317c30303030303030474d542b317c20202020202020474d542b317c20202020202020202020202020202020202020202020202020676d742b317c30303030303030303030303030303030303030303030303030474d542b310a",
+            "stderrHex": ""
+          },
+          "gnu": {
+            "status": 0,
+            "stdoutHex": "4345547c4345547c4345547c4345547c4345547c6365747c6365747c6365747c4345547c2020204345547c2020202020204345547c2020202020202020204345547c2020202020202020204345547c3030303030303030304345547c4345547c3030303030303030304345547c2020202020202020204345547c2020202020202020202020202020202020202020202020202020206365747c3030303030303030303030303030303030303030303030303030304345540a",
+            "stderrHex": ""
+          },
+          "apple": {
+            "status": 0,
+            "stdoutHex": "4345547c4345547c4345547c4345547c5e5a7c235a7c235e5a7c5e235a7c315a7c365a7c395a7c31325a7c31325a7c31325a7c31325a7c3031325a7c5f31325a7c5e2333305a7c33305a0a",
+            "stderrHex": ""
+          },
+          "gnuMatch": false,
+          "appleMatch": false
+        },
+        {
+          "category": "zone-label-profile",
+          "args": [
+            "-d",
+            "@-1",
+            "+%Z|%-Z|%_Z|%0Z|%^Z|%#Z|%#^Z|%^#Z|%1Z|%6Z|%9Z|%12Z|%_12Z|%012Z|%-12Z|%_012Z|%0_12Z|%^#30Z|%030Z"
+          ],
+          "appleArgs": [
+            "-r",
+            "-1",
+            "+%Z|%-Z|%_Z|%0Z|%^Z|%#Z|%#^Z|%^#Z|%1Z|%6Z|%9Z|%12Z|%_12Z|%012Z|%-12Z|%_012Z|%0_12Z|%^#30Z|%030Z"
+          ],
+          "env": {
+            "LC_ALL": "C",
+            "TZ": "America/New_York"
+          },
+          "actual": {
+            "status": 0,
+            "stdoutHex": "474d542d357c474d542d357c474d542d357c474d542d357c474d542d357c676d742d357c676d742d357c676d742d357c474d542d357c20474d542d357c20202020474d542d357c20202020202020474d542d357c20202020202020474d542d357c30303030303030474d542d357c474d542d357c30303030303030474d542d357c20202020202020474d542d357c20202020202020202020202020202020202020202020202020676d742d357c30303030303030303030303030303030303030303030303030474d542d350a",
+            "stderrHex": ""
+          },
+          "gnu": {
+            "status": 0,
+            "stdoutHex": "4553547c4553547c4553547c4553547c4553547c6573747c6573747c6573747c4553547c2020204553547c2020202020204553547c2020202020202020204553547c2020202020202020204553547c3030303030303030304553547c4553547c3030303030303030304553547c2020202020202020204553547c2020202020202020202020202020202020202020202020202020206573747c3030303030303030303030303030303030303030303030303030304553540a",
+            "stderrHex": ""
+          },
+          "apple": {
+            "status": 0,
+            "stdoutHex": "4553547c4553547c4553547c4553547c5e5a7c235a7c235e5a7c5e235a7c315a7c365a7c395a7c31325a7c31325a7c31325a7c31325a7c3031325a7c5f31325a7c5e2333305a7c33305a0a",
+            "stderrHex": ""
+          },
+          "gnuMatch": false,
+          "appleMatch": false
+        },
+        {
+          "category": "zone-label-profile",
+          "args": [
+            "-d",
+            "@-1",
+            "+%Z|%-Z|%_Z|%0Z|%^Z|%#Z|%#^Z|%^#Z|%1Z|%6Z|%9Z|%12Z|%_12Z|%012Z|%-12Z|%_012Z|%0_12Z|%^#30Z|%030Z"
+          ],
+          "appleArgs": [
+            "-r",
+            "-1",
+            "+%Z|%-Z|%_Z|%0Z|%^Z|%#Z|%#^Z|%^#Z|%1Z|%6Z|%9Z|%12Z|%_12Z|%012Z|%-12Z|%_012Z|%0_12Z|%^#30Z|%030Z"
+          ],
+          "env": {
+            "LC_ALL": "C",
+            "TZ": "Europe/Paris"
+          },
+          "actual": {
+            "status": 0,
+            "stdoutHex": "474d542b317c474d542b317c474d542b317c474d542b317c474d542b317c676d742b317c676d742b317c676d742b317c474d542b317c20474d542b317c20202020474d542b317c20202020202020474d542b317c20202020202020474d542b317c30303030303030474d542b317c474d542b317c30303030303030474d542b317c20202020202020474d542b317c20202020202020202020202020202020202020202020202020676d742b317c30303030303030303030303030303030303030303030303030474d542b310a",
+            "stderrHex": ""
+          },
+          "gnu": {
+            "status": 0,
+            "stdoutHex": "4345547c4345547c4345547c4345547c4345547c6365747c6365747c6365747c4345547c2020204345547c2020202020204345547c2020202020202020204345547c2020202020202020204345547c3030303030303030304345547c4345547c3030303030303030304345547c2020202020202020204345547c2020202020202020202020202020202020202020202020202020206365747c3030303030303030303030303030303030303030303030303030304345540a",
+            "stderrHex": ""
+          },
+          "apple": {
+            "status": 0,
+            "stdoutHex": "4345547c4345547c4345547c4345547c5e5a7c235a7c235e5a7c5e235a7c315a7c365a7c395a7c31325a7c31325a7c31325a7c31325a7c3031325a7c5f31325a7c5e2333305a7c33305a0a",
+            "stderrHex": ""
+          },
+          "gnuMatch": false,
+          "appleMatch": false
+        }
+      ]
+    },
+    "historicalBareN": {
+      "classification": "UNCHANGED AUTHOR CAPTURE, NOT a new independent native replay or semantic acceptance",
+      "total": 12,
+      "exactGNU97DarwinMatches": 1,
+      "nonmatches": 11,
+      "rawRows": "historical/native-after-v1.json",
+      "rows": [
+        {
+          "category": "host-resolution-bare-N-profile",
+          "input": "@0",
+          "zone": "UTC",
+          "directives": [
+            "%s",
+            "%N",
+            "%-N",
+            "%--N",
+            "%3N",
+            "%6N",
+            "%9N"
+          ],
+          "args": [
+            "-d",
+            "@0",
+            "+%s|%N|%-N|%--N|%3N|%6N|%9N"
+          ],
+          "gnu": {
+            "status": 0,
+            "stdoutHex": "307c3030303030303030307c3030303030307c307c3030307c3030303030307c3030303030303030300a",
+            "stderrHex": ""
+          },
+          "appleArgs": [
+            "-r",
+            "0",
+            "+%s|%N|%-N|%--N|%3N|%6N|%9N"
+          ],
+          "apple": {
+            "status": 0,
+            "stdoutHex": "307c3030303030303030307c4e7c2d4e7c334e7c364e7c394e0a",
+            "stderrHex": ""
+          },
+          "virtual": {
+            "status": 0,
+            "stdoutHex": "307c3030303030303030307c307c307c3030307c3030303030307c3030303030303030300a",
+            "stderrHex": ""
+          },
+          "gnuMatch": false,
+          "appleMatch": false
+        },
+        {
+          "category": "host-resolution-bare-N-profile",
+          "input": "@0.100000000",
+          "zone": "UTC",
+          "directives": [
+            "%s",
+            "%N",
+            "%-N",
+            "%--N",
+            "%3N",
+            "%6N",
+            "%9N"
+          ],
+          "args": [
+            "-d",
+            "@0.100000000",
+            "+%s|%N|%-N|%--N|%3N|%6N|%9N"
+          ],
+          "gnu": {
+            "status": 0,
+            "stdoutHex": "307c3130303030303030307c3130303030307c317c3130307c3130303030307c3130303030303030300a",
+            "stderrHex": ""
+          },
+          "appleArgs": [
+            "-r",
+            "0",
+            "+%s|%N|%-N|%--N|%3N|%6N|%9N"
+          ],
+          "apple": {
+            "status": 0,
+            "stdoutHex": "307c3030303030303030307c4e7c2d4e7c334e7c364e7c394e0a",
+            "stderrHex": ""
+          },
+          "virtual": {
+            "status": 0,
+            "stdoutHex": "307c3130303030303030307c317c317c3130307c3130303030307c3130303030303030300a",
+            "stderrHex": ""
+          },
+          "gnuMatch": false,
+          "appleMatch": false
+        },
+        {
+          "category": "host-resolution-bare-N-profile",
+          "input": "@0.000000001",
+          "zone": "UTC",
+          "directives": [
+            "%s",
+            "%N",
+            "%-N",
+            "%--N",
+            "%3N",
+            "%6N",
+            "%9N"
+          ],
+          "args": [
+            "-d",
+            "@0.000000001",
+            "+%s|%N|%-N|%--N|%3N|%6N|%9N"
+          ],
+          "gnu": {
+            "status": 0,
+            "stdoutHex": "307c3030303030303030317c3030303030307c3030303030303030317c3030307c3030303030307c3030303030303030310a",
+            "stderrHex": ""
+          },
+          "appleArgs": [
+            "-r",
+            "0",
+            "+%s|%N|%-N|%--N|%3N|%6N|%9N"
+          ],
+          "apple": {
+            "status": 0,
+            "stdoutHex": "307c3030303030303030307c4e7c2d4e7c334e7c364e7c394e0a",
+            "stderrHex": ""
+          },
+          "virtual": {
+            "status": 0,
+            "stdoutHex": "307c3030303030303030317c3030303030303030317c3030303030303030317c3030307c3030303030307c3030303030303030310a",
+            "stderrHex": ""
+          },
+          "gnuMatch": false,
+          "appleMatch": false
+        },
+        {
+          "category": "host-resolution-bare-N-profile",
+          "input": "@0.000000100",
+          "zone": "UTC",
+          "directives": [
+            "%s",
+            "%N",
+            "%-N",
+            "%--N",
+            "%3N",
+            "%6N",
+            "%9N"
+          ],
+          "args": [
+            "-d",
+            "@0.000000100",
+            "+%s|%N|%-N|%--N|%3N|%6N|%9N"
+          ],
+          "gnu": {
+            "status": 0,
+            "stdoutHex": "307c3030303030303130307c3030303030307c303030303030317c3030307c3030303030307c3030303030303130300a",
+            "stderrHex": ""
+          },
+          "appleArgs": [
+            "-r",
+            "0",
+            "+%s|%N|%-N|%--N|%3N|%6N|%9N"
+          ],
+          "apple": {
+            "status": 0,
+            "stdoutHex": "307c3030303030303030307c4e7c2d4e7c334e7c364e7c394e0a",
+            "stderrHex": ""
+          },
+          "virtual": {
+            "status": 0,
+            "stdoutHex": "307c3030303030303130307c303030303030317c303030303030317c3030307c3030303030307c3030303030303130300a",
+            "stderrHex": ""
+          },
+          "gnuMatch": false,
+          "appleMatch": false
+        },
+        {
+          "category": "host-resolution-bare-N-profile",
+          "input": "@0.001200000",
+          "zone": "UTC",
+          "directives": [
+            "%s",
+            "%N",
+            "%-N",
+            "%--N",
+            "%3N",
+            "%6N",
+            "%9N"
+          ],
+          "args": [
+            "-d",
+            "@0.001200000",
+            "+%s|%N|%-N|%--N|%3N|%6N|%9N"
+          ],
+          "gnu": {
+            "status": 0,
+            "stdoutHex": "307c3030313230303030307c3030313230307c303031327c3030317c3030313230307c3030313230303030300a",
+            "stderrHex": ""
+          },
+          "appleArgs": [
+            "-r",
+            "0",
+            "+%s|%N|%-N|%--N|%3N|%6N|%9N"
+          ],
+          "apple": {
+            "status": 0,
+            "stdoutHex": "307c3030303030303030307c4e7c2d4e7c334e7c364e7c394e0a",
+            "stderrHex": ""
+          },
+          "virtual": {
+            "status": 0,
+            "stdoutHex": "307c3030313230303030307c303031327c303031327c3030317c3030313230307c3030313230303030300a",
+            "stderrHex": ""
+          },
+          "gnuMatch": false,
+          "appleMatch": false
+        },
+        {
+          "category": "host-resolution-bare-N-profile",
+          "input": "@0.123456789",
+          "zone": "UTC",
+          "directives": [
+            "%s",
+            "%N",
+            "%-N",
+            "%--N",
+            "%3N",
+            "%6N",
+            "%9N"
+          ],
+          "args": [
+            "-d",
+            "@0.123456789",
+            "+%s|%N|%-N|%--N|%3N|%6N|%9N"
+          ],
+          "gnu": {
+            "status": 0,
+            "stdoutHex": "307c3132333435363738397c3132333435367c3132333435363738397c3132337c3132333435367c3132333435363738390a",
+            "stderrHex": ""
+          },
+          "appleArgs": [
+            "-r",
+            "0",
+            "+%s|%N|%-N|%--N|%3N|%6N|%9N"
+          ],
+          "apple": {
+            "status": 0,
+            "stdoutHex": "307c3030303030303030307c4e7c2d4e7c334e7c364e7c394e0a",
+            "stderrHex": ""
+          },
+          "virtual": {
+            "status": 0,
+            "stdoutHex": "307c3132333435363738397c3132333435363738397c3132333435363738397c3132337c3132333435367c3132333435363738390a",
+            "stderrHex": ""
+          },
+          "gnuMatch": false,
+          "appleMatch": false
+        },
+        {
+          "category": "host-resolution-bare-N-profile",
+          "input": "@0.999999999",
+          "zone": "UTC",
+          "directives": [
+            "%s",
+            "%N",
+            "%-N",
+            "%--N",
+            "%3N",
+            "%6N",
+            "%9N"
+          ],
+          "args": [
+            "-d",
+            "@0.999999999",
+            "+%s|%N|%-N|%--N|%3N|%6N|%9N"
+          ],
+          "gnu": {
+            "status": 0,
+            "stdoutHex": "307c3939393939393939397c3939393939397c3939393939393939397c3939397c3939393939397c3939393939393939390a",
+            "stderrHex": ""
+          },
+          "appleArgs": [
+            "-r",
+            "0",
+            "+%s|%N|%-N|%--N|%3N|%6N|%9N"
+          ],
+          "apple": {
+            "status": 0,
+            "stdoutHex": "307c3030303030303030307c4e7c2d4e7c334e7c364e7c394e0a",
+            "stderrHex": ""
+          },
+          "virtual": {
+            "status": 0,
+            "stdoutHex": "307c3939393939393939397c3939393939393939397c3939393939393939397c3939397c3939393939397c3939393939393939390a",
+            "stderrHex": ""
+          },
+          "gnuMatch": false,
+          "appleMatch": false
+        },
+        {
+          "category": "host-resolution-bare-N-profile",
+          "input": "@-0.000000001",
+          "zone": "UTC",
+          "directives": [
+            "%s",
+            "%N",
+            "%-N",
+            "%--N",
+            "%3N",
+            "%6N",
+            "%9N"
+          ],
+          "args": [
+            "-d",
+            "@-0.000000001",
+            "+%s|%N|%-N|%--N|%3N|%6N|%9N"
+          ],
+          "gnu": {
+            "status": 0,
+            "stdoutHex": "2d317c3939393939393939397c3939393939397c3939393939393939397c3939397c3939393939397c3939393939393939390a",
+            "stderrHex": ""
+          },
+          "appleArgs": [
+            "-r",
+            "-1",
+            "+%s|%N|%-N|%--N|%3N|%6N|%9N"
+          ],
+          "apple": {
+            "status": 0,
+            "stdoutHex": "2d317c3030303030303030307c4e7c2d4e7c334e7c364e7c394e0a",
+            "stderrHex": ""
+          },
+          "virtual": {
+            "status": 0,
+            "stdoutHex": "2d317c3939393939393939397c3939393939393939397c3939393939393939397c3939397c3939393939397c3939393939393939390a",
+            "stderrHex": ""
+          },
+          "gnuMatch": false,
+          "appleMatch": false
+        },
+        {
+          "category": "host-resolution-bare-N-profile",
+          "input": "@-0.123456789",
+          "zone": "UTC",
+          "directives": [
+            "%s",
+            "%N",
+            "%-N",
+            "%--N",
+            "%3N",
+            "%6N",
+            "%9N"
+          ],
+          "args": [
+            "-d",
+            "@-0.123456789",
+            "+%s|%N|%-N|%--N|%3N|%6N|%9N"
+          ],
+          "gnu": {
+            "status": 0,
+            "stdoutHex": "2d317c3837363534333231317c3837363534337c3837363534333231317c3837367c3837363534337c3837363534333231310a",
+            "stderrHex": ""
+          },
+          "appleArgs": [
+            "-r",
+            "-1",
+            "+%s|%N|%-N|%--N|%3N|%6N|%9N"
+          ],
+          "apple": {
+            "status": 0,
+            "stdoutHex": "2d317c3030303030303030307c4e7c2d4e7c334e7c364e7c394e0a",
+            "stderrHex": ""
+          },
+          "virtual": {
+            "status": 0,
+            "stdoutHex": "2d317c3837363534333231317c3837363534333231317c3837363534333231317c3837367c3837363534337c3837363534333231310a",
+            "stderrHex": ""
+          },
+          "gnuMatch": false,
+          "appleMatch": false
+        },
+        {
+          "category": "host-resolution-bare-N-profile",
+          "input": "@-1.000000001",
+          "zone": "UTC",
+          "directives": [
+            "%s",
+            "%N",
+            "%-N",
+            "%--N",
+            "%3N",
+            "%6N",
+            "%9N"
+          ],
+          "args": [
+            "-d",
+            "@-1.000000001",
+            "+%s|%N|%-N|%--N|%3N|%6N|%9N"
+          ],
+          "gnu": {
+            "status": 0,
+            "stdoutHex": "2d327c3939393939393939397c3939393939397c3939393939393939397c3939397c3939393939397c3939393939393939390a",
+            "stderrHex": ""
+          },
+          "appleArgs": [
+            "-r",
+            "-2",
+            "+%s|%N|%-N|%--N|%3N|%6N|%9N"
+          ],
+          "apple": {
+            "status": 0,
+            "stdoutHex": "2d327c3030303030303030307c4e7c2d4e7c334e7c364e7c394e0a",
+            "stderrHex": ""
+          },
+          "virtual": {
+            "status": 0,
+            "stdoutHex": "2d327c3939393939393939397c3939393939393939397c3939393939393939397c3939397c3939393939397c3939393939393939390a",
+            "stderrHex": ""
+          },
+          "gnuMatch": false,
+          "appleMatch": false
+        },
+        {
+          "category": "host-resolution-bare-N-profile",
+          "input": "@1704164645.123000000",
+          "zone": "UTC",
+          "directives": [
+            "%s",
+            "%N",
+            "%-N",
+            "%--N",
+            "%3N",
+            "%6N",
+            "%9N"
+          ],
+          "args": [
+            "-d",
+            "@1704164645.123000000",
+            "+%s|%N|%-N|%--N|%3N|%6N|%9N"
+          ],
+          "gnu": {
+            "status": 0,
+            "stdoutHex": "313730343136343634357c3132333030303030307c3132333030307c3132337c3132337c3132333030307c3132333030303030300a",
+            "stderrHex": ""
+          },
+          "appleArgs": [
+            "-r",
+            "1704164645",
+            "+%s|%N|%-N|%--N|%3N|%6N|%9N"
+          ],
+          "apple": {
+            "status": 0,
+            "stdoutHex": "313730343136343634357c3030303030303030307c4e7c2d4e7c334e7c364e7c394e0a",
+            "stderrHex": ""
+          },
+          "virtual": {
+            "status": 0,
+            "stdoutHex": "313730343136343634357c3132333030303030307c3132337c3132337c3132337c3132333030307c3132333030303030300a",
+            "stderrHex": ""
+          },
+          "gnuMatch": false,
+          "appleMatch": false
+        },
+        {
+          "category": "host-resolution-bare-N-profile",
+          "input": "@1704164645.000001000",
+          "zone": "UTC",
+          "directives": [
+            "%s",
+            "%N",
+            "%-N",
+            "%--N",
+            "%3N",
+            "%6N",
+            "%9N"
+          ],
+          "args": [
+            "-d",
+            "@1704164645.000001000",
+            "+%s|%N|%-N|%--N|%3N|%6N|%9N"
+          ],
+          "gnu": {
+            "status": 0,
+            "stdoutHex": "313730343136343634357c3030303030313030307c3030303030317c3030303030317c3030307c3030303030317c3030303030313030300a",
+            "stderrHex": ""
+          },
+          "appleArgs": [
+            "-r",
+            "1704164645",
+            "+%s|%N|%-N|%--N|%3N|%6N|%9N"
+          ],
+          "apple": {
+            "status": 0,
+            "stdoutHex": "313730343136343634357c3030303030303030307c4e7c2d4e7c334e7c364e7c394e0a",
+            "stderrHex": ""
+          },
+          "virtual": {
+            "status": 0,
+            "stdoutHex": "313730343136343634357c3030303030313030307c3030303030317c3030303030317c3030307c3030303030317c3030303030313030300a",
+            "stderrHex": ""
+          },
+          "gnuMatch": true,
+          "appleMatch": false
+        }
+      ]
+    }
+  },
+  "publicApi": {
+    "positive": "Exported virtual-bash Shell/FS/registry/plugin types and emitted bare imports work.",
+    "negativeTypes": {
+      "actualPublicRoot": [
+        "TS2353 unknown Shell option",
+        "TS2322 incorrect command callback"
+      ],
+      "internalPackedLeafOnly": [
+        "TS2353 unknown family option",
+        "TS2322 clock result",
+        "TS2741 incomplete scheduler",
+        "TS2322 output limit",
+        "TS2322 timer callback"
+      ],
+      "missingPublicTimeEnv": [
+        "TS2724 createTimeEnvCommands absent from root",
+        "TS2305 timeEnvCommands absent from root"
+      ]
+    },
+    "timeEnvPublicFactoryAvailable": false,
+    "timeEnvExportMapSubpathAvailable": false,
+    "defaultCommandCount": 65,
+    "defaultTimeEnvIntegration": false,
+    "guardNegative": "Actual archived build/dist import rejected by unchanged packed guard, not a missing-module failure."
+  },
+  "cacheCleanup": {
+    "removedProvenOwnedEntries": 19,
+    "foreignEntriesUntouched": true,
+    "evidence": "cache-cleanup-before.json and cache-cleanup.json"
+  },
+  "verdict": "Scoped cohort/packaging replay matches the recorded expectations, with original failures and profile nonmatches retained. No source-semantic, public-time-env, whole-product, performance or superiority acceptance."
+}

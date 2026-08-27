@@ -1,0 +1,153 @@
+{
+  "recordedAt": "2026-08-27T09:12:45.504Z",
+  "fixtureChecks": [
+    {
+      "revision": "4a0cbe7a8e01bfe15db757f76b1cd30c283fe792",
+      "path": "tests/commands/time-env/fraction-expansion/native-v1.json",
+      "sha256": "949cf8167add4308bb9fb8d8bc8394acf6a77879b4d636d4b2a16e10917d8fd8",
+      "liveStillMatchesPinned": true
+    },
+    {
+      "revision": "4a0cbe7a8e01bfe15db757f76b1cd30c283fe792",
+      "path": "tests/commands/time-env/fraction-expansion/native-after-v1.json",
+      "sha256": "2d1ac3c84dbfafc3bfa9ed3709116e59ddfc0fc681e84fd79feb9d31576fd1d0",
+      "liveStillMatchesPinned": true
+    },
+    {
+      "revision": "4a0cbe7a8e01bfe15db757f76b1cd30c283fe792",
+      "path": "tests/commands/time-env/fraction-expansion/SEMANTICS.md",
+      "sha256": "284bee4c773a53e1daa0ad346f3e2cb2cfd1d59f217ab052d07eb76edd85f785",
+      "liveStillMatchesPinned": true
+    },
+    {
+      "revision": "4a0cbe7a8e01bfe15db757f76b1cd30c283fe792",
+      "path": "tests/commands/time-env/fraction-expansion/AUTHOR_HANDOFF.md",
+      "sha256": "1e707b26af651bf3187fe52dc44fee1e332530c7723b7e8aeff0a9da5a43c750",
+      "liveStillMatchesPinned": true
+    },
+    {
+      "revision": "d904ca986fa945df8aef6e11b4165e2c2a63f814",
+      "path": "tests/commands/time-env/date.test.ts",
+      "sha256": "9fab5e8bdcf0044fea983fa78159bf9ab7163167be12b263a95c8e969bfcafbd",
+      "liveStillMatchesPinned": true
+    },
+    {
+      "revision": "d904ca986fa945df8aef6e11b4165e2c2a63f814",
+      "path": "tests/commands/time-env/integration.test.ts",
+      "sha256": "b8dd8811177ceffd1076b2caa802aff6ddbf8a85a0c61fcaa57399d107517528",
+      "liveStillMatchesPinned": true
+    },
+    {
+      "revision": "d904ca986fa945df8aef6e11b4165e2c2a63f814",
+      "path": "tests/commands/time-env/native.test.ts",
+      "sha256": "be16b7d4018a4efefb1cd6f476424d1817acdbaa64ce48f9adddafc8480c55e7",
+      "liveStillMatchesPinned": true
+    },
+    {
+      "revision": "d904ca986fa945df8aef6e11b4165e2c2a63f814",
+      "path": "tests/commands/time-env/printenv.test.ts",
+      "sha256": "94f4eee53f1ccbd1998b3d76f7427803b7819a260df5f3e706baed7dc372107c",
+      "liveStillMatchesPinned": true
+    },
+    {
+      "revision": "d904ca986fa945df8aef6e11b4165e2c2a63f814",
+      "path": "tests/commands/time-env/sleep.test.ts",
+      "sha256": "a45294e5b23fc8f7d541fcc3abbef6fff7379a853071ad68836a6c255f8c7e35",
+      "liveStillMatchesPinned": true
+    },
+    {
+      "revision": "d904ca986fa945df8aef6e11b4165e2c2a63f814",
+      "path": "tests/commands/time-env/stress.test.ts",
+      "sha256": "cdf2149fa02b35b15d12e399f5265f0e74e1343ad8d307356bbd455a6b32f465",
+      "liveStillMatchesPinned": true
+    },
+    {
+      "revision": "d904ca986fa945df8aef6e11b4165e2c2a63f814",
+      "path": "tests/commands/time-env/helpers.ts",
+      "sha256": "335c3d447edb33a08276f2c81b4f16ec39f4b258b26aad8fa5f0e7fb2347f43b",
+      "liveStillMatchesPinned": true
+    },
+    {
+      "revision": "d904ca986fa945df8aef6e11b4165e2c2a63f814",
+      "path": "tests/commands/time-env/date-cases.ts",
+      "sha256": "68d7895cadec7399c26c537445fe73b1c307837e5de532c07e64abbcc9301296",
+      "liveStillMatchesPinned": true
+    },
+    {
+      "revision": "d904ca986fa945df8aef6e11b4165e2c2a63f814",
+      "path": "tests/commands/time-env/tsconfig.json",
+      "sha256": "db68f198c327572db5cc320d02d54e1e348ff7e8b1bfeb3dc8817d27129da6bc",
+      "liveStillMatchesPinned": true
+    },
+    {
+      "revision": "db369ef",
+      "path": "tests/commands/time-env/format-regressions.test.ts",
+      "sha256": "9eaff04621635198bedacaf6ef06b880f6662d5b446e3f15b00a9f4cc73e6d56",
+      "liveStillMatchesPinned": true
+    },
+    {
+      "revision": "db369ef",
+      "path": "tests/commands/time-env/sleep-regressions.test.ts",
+      "sha256": "1114458ff4d79cd7eca9b814ac5b7d09e488b5296b09c1ddefa9a26a87e9674d",
+      "liveStillMatchesPinned": true
+    },
+    {
+      "revision": "4a0cbe7a8e01bfe15db757f76b1cd30c283fe792",
+      "path": "tests/commands/time-env/fraction-expansion/nanoseconds.test.ts",
+      "sha256": "2529639afffc2cd7cfe0d213f7f6a16df4251b58102f65fd720e0cf904cf6c85",
+      "liveStillMatchesPinned": true
+    },
+    {
+      "revision": "4a0cbe7a8e01bfe15db757f76b1cd30c283fe792",
+      "path": "tests/commands/time-env/fraction-expansion/iso-year.test.ts",
+      "sha256": "3ce99b115bd8b64588c97249b91506ab32f92c638c6cbd8cbbe5a013699cc66c",
+      "liveStillMatchesPinned": true
+    },
+    {
+      "revision": "2542cfa",
+      "path": "tests/commands/time-env-stress/fix-review/holdout.mts",
+      "sha256": "a4013ca7e8bd8b7006350d8f4120eb9313317d6bbd2dd0d85cf870f162708823",
+      "liveStillMatchesPinned": true
+    },
+    {
+      "revision": "2542cfa",
+      "path": "tests/commands/time-env-stress/fix-review/guard.mjs",
+      "sha256": "7633b73cb0e45882e620fc3fd41942edd04968cc986ccc8c1e84b317ee51cfb4",
+      "liveStillMatchesPinned": true
+    },
+    {
+      "revision": "75d4e0c",
+      "path": "tests/commands/time-env-stress/consumer.mts",
+      "sha256": "7cede429d70acd5ffdb63cf15af06ff126fe04c06f7e9e744d0cebeca5338d1b",
+      "liveStillMatchesPinned": true
+    },
+    {
+      "revision": "db369ef",
+      "path": "tests/commands/time-env/fix-review/native-neighbors.mjs",
+      "sha256": "e9da2eb73373727de2f473bb391006156cd87c03bf3002a06ded06fbbb4fadcd",
+      "liveStillMatchesPinned": true
+    }
+  ],
+  "packComparison": {
+    "added": [
+      {
+        "path": "README.md",
+        "size": 21632,
+        "mode": 420
+      }
+    ],
+    "removed": [],
+    "allDistHashesEqualPriorAuthorBuild": true,
+    "priorTarball": "d4b92cf564a96caeac3ee88dea0afe79458a592fe462c9765aa13127257f80d5",
+    "currentTarball": "b42892cdcd2f765e4d99e857b68d43fe14dbcdff1c704e8b2dc4b9db6d2e756a"
+  },
+  "sourceChildProcessScan": {
+    "command": "git grep -l child_process c782363 -- src",
+    "status": 1,
+    "stdoutHex": "",
+    "stderrHex": "",
+    "meaning": "No literal child_process references in pinned src; static inspection, not syscall tracing.",
+    "initialAuditNote": "execFileSync initially treated grep no-match status1 as an error before audit publication; no tests or product commands rerun."
+  },
+  "scratchAbsenceVerified": true
+}

@@ -1,0 +1,1796 @@
+{
+  "at": "2026-08-27T05:05:45.450Z",
+  "final": {
+    "timestamp": "2026-08-27T05:05:45.324Z",
+    "anchor": "f1bb98b4ec8fd9cc198959e85f96e38880e72243",
+    "head": "1ea140b50f0b4edcfa28a60e2f89351b97e509a5",
+    "runtimeCommit": "f1bb98b4ec8fd9cc198959e85f96e38880e72243",
+    "shell": {
+      "src/shell/arithmetic.ts": {
+        "actual": "5e2d784b8fd333972e6e413f4c3478163462a3c1abf8cc5ff7173963420440bd",
+        "committed": "5e2d784b8fd333972e6e413f4c3478163462a3c1abf8cc5ff7173963420440bd",
+        "matches": true
+      },
+      "src/shell/display.ts": {
+        "actual": "3d372572020a09dc5484acc575891ab1f24c8c9eba263c0a17c49b714611e069",
+        "committed": "3d372572020a09dc5484acc575891ab1f24c8c9eba263c0a17c49b714611e069",
+        "matches": true
+      },
+      "src/shell/index.ts": {
+        "actual": "235ad982a7bfe23823b4e07d714ed73e924a5d7759a8664f8533b03517ffa383",
+        "committed": "235ad982a7bfe23823b4e07d714ed73e924a5d7759a8664f8533b03517ffa383",
+        "matches": true
+      },
+      "src/shell/input.ts": {
+        "actual": "7af2dac6dfd6290e9f189590e9190b2e0703dcd99998212e471378063cd9a7b4",
+        "committed": "7af2dac6dfd6290e9f189590e9190b2e0703dcd99998212e471378063cd9a7b4",
+        "matches": true
+      },
+      "src/shell/locale.ts": {
+        "actual": "1b0687b8401c3f0886a793bf6f212a1731d4bd973be6ac2c7642254e6e1fb2d2",
+        "committed": "1b0687b8401c3f0886a793bf6f212a1731d4bd973be6ac2c7642254e6e1fb2d2",
+        "matches": true
+      },
+      "src/shell/parser.ts": {
+        "actual": "feb6cbb2f03ec0c409adeb816bec506788fb3014a23c8dd02f4002362dc4b9f2",
+        "committed": "feb6cbb2f03ec0c409adeb816bec506788fb3014a23c8dd02f4002362dc4b9f2",
+        "matches": true
+      },
+      "src/shell/pattern.ts": {
+        "actual": "eaf798a7f92c050734e97ef77e07397b3e5710a822575899cca81a527985609a",
+        "committed": "eaf798a7f92c050734e97ef77e07397b3e5710a822575899cca81a527985609a",
+        "matches": true
+      },
+      "src/shell/runtime.ts": {
+        "actual": "e8f1edb842d04498050d314091269974df157b11ab13cabba41d9c84a0191538",
+        "committed": "e8f1edb842d04498050d314091269974df157b11ab13cabba41d9c84a0191538",
+        "matches": true
+      },
+      "src/shell/shell.ts": {
+        "actual": "4ac91162195c150848793c92b8b1e90f15a36e67b5ae8a2652fe7ed9dcf4fb5e",
+        "committed": "4ac91162195c150848793c92b8b1e90f15a36e67b5ae8a2652fe7ed9dcf4fb5e",
+        "matches": true
+      },
+      "src/shell/types.ts": {
+        "actual": "fc4133f1fb41283b0586aa7597c766d393d4f91067b613f4777e5adbef230a6d",
+        "committed": "fc4133f1fb41283b0586aa7597c766d393d4f91067b613f4777e5adbef230a6d",
+        "matches": true
+      }
+    },
+    "immutableDrift": [],
+    "status": "M src/commands/stream-inspection/expand.ts\n M src/commands/stream-inspection/fold.ts\n M src/commands/stream-inspection/strings.ts\n M tests/commands/stream-inspection-stress/evidence/artifact-hashes.json\n M tests/commands/stream-inspection-stress/tools/review-snapshot.mjs\n M tests/commands/stream-inspection-stress/tools/run-review.mjs\n M tests/commands/stream-inspection/numeric-syntax.test.ts\n?? benchmarks/reports/comparison-fairness-20260827/\n?? benchmarks/reports/current-integration/comparison-replay-20260827/\n?? src/commands/stream-inspection/numeric-options.ts\n?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/\n?? tests/commands/search-stress/.native-1m4O1e/\n?? tests/commands/stream-inspection-stress/REVIEW.md\n?? tests/commands/stream-inspection-stress/evidence/SUMMARY.json\n?? tests/commands/stream-inspection-stress/evidence/initial-commit.json\n?? tests/commands/stream-inspection-stress/evidence/snapshot-2026-08-27T04-57-07-841Z/post-run-audit.json\n?? tests/commands/stream-inspection-stress/tools/audit-snapshot.mjs\n?? tests/commands/stream-inspection-stress/tools/summarize.mjs\n?? tests/commands/stream-inspection/evidence/fixer-validation-first.json\n?? tests/commands/stream-inspection/fixer-verify.mjs\n?? tests/integration/safejs-current-independent/\n?? tests/shell-stress/kernel-reconciliation/ACCEPTANCE_ROWS.md\n?? tests/shell-stress/kernel-reconciliation/acceptance-capture.mjs\n?? tests/shell-stress/kernel-reconciliation/acceptance-compilers-f1bb98b.json\n?? tests/shell-stress/kernel-reconciliation/acceptance-compilers.mjs\n?? tests/shell-stress/kernel-reconciliation/acceptance-corrected72.tap\n?? tests/shell-stress/kernel-reconciliation/acceptance-f1bb98b.json\n?? tests/shell-stress/kernel-reconciliation/acceptance-native36-f1bb98b.json\n?? tests/shell-stress/kernel-reconciliation/acceptance-native36.mjs\n?? tests/shell-stress/kernel-reconciliation/acceptance-native57-f1bb98b.json\n?? tests/shell-stress/kernel-reconciliation/acceptance-native57.ts\n?? tests/shell-stress/kernel-reconciliation/acceptance-ready-proof.json\n?? tests/shell-stress/kernel-reconciliation/acceptance-report.mjs\n?? tests/shell-stress/kernel-reconciliation/acceptance-rows.json\n?? tests/shell-stress/kernel-reconciliation/acceptance-support.mjs\n?? tests/stress/regex-execution/design/review/REPORT.md\n?? tests/stress/regex-execution/design/review/audit.mjs\n?? tests/stress/regex-execution/design/review/cleanup.mjs\n?? tests/stress/regex-execution/design/review/evidence/",
+    "staged": "",
+    "valid": true
+  },
+  "immutable": {
+    "tests/shell-stress/current-shell/support.mjs": "d7b278db709f869a03e5cce56c501011a1162465b03ecfc1663465b0163c6f8a",
+    "tests/shell-stress/expanded-gaps/cases.mjs": "11a4928d6cf4c64de20752e2b918bafa511789fabf048221dc841ed2638f52fd",
+    "tests/shell-stress/expanded-gaps/harness.mjs": "74efccf649ffb3b0835a92d46d495ff9dd3a28c5e4b419270c976c92c6989e1b",
+    "tests/shell-stress/expanded-gaps/native-frozen.json": "9afb51e0eed4f9fe1a61c52a146066edf11a6cc53408dd0b442186bbcd25a302",
+    "tests/shell-stress/expanded-gaps/native.mjs": "64e6ac8e1801c1f11dae37cd99629309579a1555d5164aef5c9daddb0d516b46",
+    "tests/shell-stress/expanded-gaps/product.mjs": "50578db97f08968c2f64c0309b46e9c0bae127f15721f1fd1754881c5deb54c5",
+    "tests/shell-stress/invocation-modes/capture-native.ts": "87f6c12062d4e14dd31f164e4b547f39e9a94d2b646e6553299b99587ca446a0",
+    "tests/shell-stress/invocation-modes/cases.ts": "fdc22c27541f4f29334274e35238c22fa4645730dbe5239134a585ee8e03f83c",
+    "tests/shell-stress/invocation-modes/harness.ts": "e8735e961c91e6c0ff170d4105c595f5ac9af548d3572cdd97f45f810f0a0679",
+    "tests/shell-stress/invocation-modes/holdout.test.ts": "ba1a9c461822a81fa99193ad3aa04bf1382cf0bb567d2e4569d5f67c93ac5d02",
+    "tests/shell-stress/invocation-modes/native-corrected-evidence.json": "86e6be4ec1ad22f3c5956ed0b37d8091653c4858fbf143f35b2e80eae4b67e45",
+    "tests/shell-stress/invocation-modes/trace.mjs": "e433375f13dabbf72b364f14cc780e1d30b8d67c386765e0e713b43d2c7996ed",
+    "tests/shell-stress/invocation-modes/virtual-child.ts": "c5d770ba6ba0522e0387fbcbdd0dd00c9437ae3520ae593aeaf1546be604781d",
+    "tests/shell-stress/kernel-reconciliation/BASELINE.md": "54cae5200304d4d6ef6fed01993c841c0c58d75f82abc7bc2210e8d854a71483",
+    "tests/shell-stress/kernel-reconciliation/RAW_ROWS.md": "d9187fff4b62810d1446c63810608d0b0a7eaed82223335c464178a01ecb307a",
+    "tests/shell-stress/kernel-reconciliation/audit.json": "cfb8cd0e7dc087398e9bfc50a26ad9978801c5c62725332e1d776a7e1a795787",
+    "tests/shell-stress/kernel-reconciliation/baseline-current.json": "ab79f0254cbc20a9923a78802ce2dab86b383dadfb04c8dbf7ff2528cb3ab1d8",
+    "tests/shell-stress/kernel-reconciliation/baseline-recovered.json": "5feb7451dcef401d7b33dc27adb6fd6d408fe66fa80816664538b91ac67051bc",
+    "tests/shell-stress/kernel-reconciliation/capture.mjs": "5a01e3542c63aad20f93d6c53b92850318eaadfd7bcfc01267b0a62c2bd1810b",
+    "tests/shell-stress/kernel-reconciliation/corrected72.tap": "7a4323acefcd385bd02dc2d3979757757b26e1b5d0c43323d13029e68ad9f3fe",
+    "tests/shell-stress/kernel-reconciliation/functional-handoff.json": "57dc77bc833ff3c6778d68b00a41171a18fa258735d12b75a69a1e5c967c6f4d",
+    "tests/shell-stress/kernel-reconciliation/native36-current.json": "7ef74516df90327cbe8ec5821cd4dfcc928a053eb3410335c711e253ad89e02f",
+    "tests/shell-stress/kernel-reconciliation/native36.mjs": "a3ff27fd16b9d9872dfbe2b3bd7a566b8f640fb62d8a4fcc5dbb2bd94d9c6e89",
+    "tests/shell-stress/kernel-reconciliation/native57-current.json": "85995da790b5f62051c0743d6c92361ec57ffd277c46a7eafabde3987728f799",
+    "tests/shell-stress/kernel-reconciliation/native57.ts": "3d3673f2e28c1d834b4eb6d66952b56b9b0e441b3979ee3e97377ae498a80725",
+    "tests/shell-stress/kernel-reconciliation/report.mjs": "45b6f3f48a9e22f51df4ff966e618ab1c15c699ae6deff9bd8eeb8dd327a4ce9",
+    "tests/shell-stress/kernel-reconciliation/scoped-typecheck.json": "e108d52e755f0050f8aa677b7ef94c03c7e18640f847e99a20a988841b50a9f3",
+    "tests/shell-stress/kernel-reconciliation/seal.json": "909f2d0a1cb4bb63f8620b88be393d5a445f69e3d4f5a5c6a7b25fa976bb0645",
+    "tests/shell-stress/kernel-reconciliation/support.d.mts": "79b24079ff93f916aa5f35db06f98b1352df5703d0c3305dc12012da7587d869",
+    "tests/shell-stress/kernel-reconciliation/support.mjs": "7cbe2c4a7271d81a6abd98fc2d91852d193d9d1c2e6efa99b796b8f0dcef86d4",
+    "tests/shell-stress/kernel-reconciliation/unresolved-rows.json": "8333bb783775b8a18d84bf909f0aacffedbb6742ca48f4f42889a1f6afbae906"
+  },
+  "summary": {
+    "native36": [
+      {
+        "role": "primary",
+        "total": 36,
+        "hashMatches": true,
+        "drift": []
+      },
+      {
+        "role": "historical",
+        "total": 36,
+        "hashMatches": true,
+        "drift": []
+      }
+    ],
+    "native57": [
+      {
+        "role": "gnu-5.3",
+        "total": 57,
+        "hashMatches": true,
+        "drift": [],
+        "fixtureOrSourceDrift": []
+      },
+      {
+        "role": "historical-3.2",
+        "total": 57,
+        "hashMatches": true,
+        "drift": [],
+        "fixtureOrSourceDrift": []
+      }
+    ],
+    "product36": [
+      {
+        "role": "primary",
+        "total": 36,
+        "passed": 30,
+        "invalid": 0
+      },
+      {
+        "role": "historical",
+        "total": 36,
+        "passed": 29,
+        "invalid": 0
+      }
+    ],
+    "host10": {
+      "total": 10,
+      "passed": 10,
+      "invalid": 0
+    },
+    "corrected72": {
+      "tests": 72,
+      "pass": 72,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    "raw57": [
+      {
+        "role": "gnu-5.3",
+        "total": 57,
+        "passed": 52
+      },
+      {
+        "role": "historical-3.2",
+        "total": 57,
+        "passed": 50
+      }
+    ]
+  },
+  "changes36": [
+    "parameter-existing-controls"
+  ],
+  "changes57": [],
+  "changesHost": [],
+  "unresolvedPrimary36": [
+    "header-execute-no-read",
+    "env-single-kernel-argument",
+    "env-injection-text",
+    "env-missing-target",
+    "env-unsupported-interpreter",
+    "parameter-substitution-order"
+  ],
+  "unresolvedPrimary57": [
+    "path-only-denied-126",
+    "path-missing-127",
+    "path-unsupported-shebang-policy",
+    "path-binary-policy",
+    "path-invalid-utf8-policy"
+  ],
+  "perPhaseGuardInvalid": [],
+  "endpointDrift": [
+    "tests/commands/stream-inspection/numeric-syntax.test.ts",
+    "tests/stress/regex-execution/design/review/audit.mjs",
+    "tests/stress/regex-execution/design/review/cleanup.mjs"
+  ],
+  "importedSources": {
+    "src/commands/archive/create.ts": "cdddce8ccd1d53987fa1a314cdc6e04d48246fa59fd0880fb444c66bdca7199c",
+    "src/commands/archive/extract.ts": "fc2f8a4151ca7c5398cd64fe4a55156f2a1ac6feb75404cfb96c8f5b6d4a1536",
+    "src/commands/archive/format.ts": "05445d1d80023bbd5a59ff3a47b14bcea038f1f8476835fd973a01ee89fd19ac",
+    "src/commands/archive/index.ts": "6f23a98dbe89bb37f44799f47c365fb430e910f87363c50291f7b44293e416d0",
+    "src/commands/archive/internal.ts": "6e9a204384490607973f7e1109c51a082319b6eed2fecb8f410d9d51711367d9",
+    "src/commands/archive/options.ts": "1c2dc4e57c80901b402f8f08b1a5638b7acad9f882aca67ae4f9be73295bf956",
+    "src/commands/archive/stream.ts": "31a3b70bf7ce89f81e287cac09c6816637bd06dc398010dd82386ce5d93ceba4",
+    "src/commands/basic.ts": "635d6956e728277f78387c0a03a00d5567ba608f39bb2b9b65a8f1ffdf79017f",
+    "src/commands/bytes/checksums/index.ts": "042bb34a0b81a03d70bc148eae753e2f562817dda5a5023bddda67a567088bab",
+    "src/commands/bytes/compression/files.ts": "1f8d8b243f10d63ae5cccea40d1d9cfc6cb841a46bea15cc61f4a5caa70572df",
+    "src/commands/bytes/compression/gunzip.ts": "6bf534778fa82558ae36bd96412662a8e4c4e864c0a93f15b40d1148a64f835f",
+    "src/commands/bytes/compression/index.ts": "cb0de2e91261eaf255491fe5dc2e62683ef002e07cddef5827b57527eaaf88f9",
+    "src/commands/bytes/compression/options.ts": "3218bbcba8d3c5c113eb7f4761f81e0919e380c6f3de76b26b6a52c44ba7cd95",
+    "src/commands/bytes/compression/stream.ts": "573157fda5382df052ea30011ff3094ac6c838618e1272689766819777a8c9e4",
+    "src/commands/bytes/encoding/base.ts": "91e4309ca4947fbf3ac0dd9d0dc9431d3d22d29fb66e46706290922c9feb134d",
+    "src/commands/bytes/encoding/index.ts": "6df6b0d7393fd2abb82b476915fc48ae333730c1e9b323a11776a3b9c2607d5f",
+    "src/commands/bytes/encoding/od.ts": "dbe5312675e4ecf74d852e28ac8134be5586d8aa53d5b21a3cccc5d986213a03",
+    "src/commands/bytes/encoding/shared.ts": "8a0eb870513630296a7f28d7d6867d25aba9b785365b812d740c6d7b4da3d396",
+    "src/commands/bytes/encoding/xxd.ts": "1b78b95a9b0175e5297b988a1794310c03786df5a7aa90a4dd261e91ec765a78",
+    "src/commands/bytes/index.ts": "70643f22b1b47c1d6422b97d76cacf95e4e6337521f6f42e0f5f559bacbed84f",
+    "src/commands/copy-identity.ts": "f1a03403fadc0138377bd3b215dafecf4b28a187549da8e80764a3fd08238dfe",
+    "src/commands/diff-patch/diff-format.ts": "e7d66d54d65e28d152fc451d63aae1813eddf450001c0dd4dcb15ca67c941e24",
+    "src/commands/diff-patch/diff.ts": "c3eb090a70a590992cd165486911aec51fa5dbac0e746453dbc0809fe76bc06e",
+    "src/commands/diff-patch/index.ts": "82465ab079aac196a8cf99231fc9d9e7f4f60135f862802e02d2e523d0bebf17",
+    "src/commands/diff-patch/patch-envelope.ts": "f6a15e78d7cea41d503f5352206efeb9fa950871c820af730cf27ea06ade99e8",
+    "src/commands/diff-patch/patch-formats.ts": "a78045ac43900582bdb19f0476414e8566c4e1e2edc86b654bc760cf86de3aa4",
+    "src/commands/diff-patch/patch-gnu-paths.ts": "3a06d5b33d3c0df12ff83b0bbf4396d90906d6fd61e3ca1bd5537f508c4282af",
+    "src/commands/diff-patch/patch-gnu-reject.ts": "5df12efd994c0187998f0112a5fac595f376142f2cd187a5e0b40738f7b6cf02",
+    "src/commands/diff-patch/patch-path.ts": "053f471db60b5a2878144451a821f8590415a85535cb86e5d9ee0367e257ef94",
+    "src/commands/diff-patch/patch.ts": "72bfb60c502ac5bcaf2efa3e0f044b0ab1d89a54293f829d62f011e7c10e82d7",
+    "src/commands/diff-patch/shared.ts": "81ab0a3d1fbb29feb91761a7a60a535ca5768079ee0415e0788cbebfb1f3617e",
+    "src/commands/diff-patch/unified.ts": "a8659f40aeb9d1cac3548ffd24950e652eeace92cef1339de9e3a5e5ed7e10fb",
+    "src/commands/execution.ts": "1d084ab203dc59a510e39e5c71743b755ba9bdb5d4b018658398ed96c3dff700",
+    "src/commands/filesystem.ts": "74fb5fdd66c2eaf7a8f31d2be8c6be0e94c09ff65892c561bbc0c6bc6f875a8f",
+    "src/commands/find.ts": "534a5359a42bb7bf0020f21092740262edbe9053744e29d153fa9e6319539db2",
+    "src/commands/grep.ts": "5e5255a1cce15bfa57f1ba4ffd46e5b4ff7810c37aba8522fd50cdb482edba3d",
+    "src/commands/index.ts": "052a905512a3f1e27304de90366600f9ea79c26f60f0a3598619453f408530e2",
+    "src/commands/internal.ts": "28d83d91d5086b39b50494ea1130d34c3b48b22a15dc04c2912ee2503a7536d5",
+    "src/commands/metadata/chmod.ts": "9286ebc9bea074bf9dad58cb6197aa5e10d325c549187eefbc9203ac76b09cfd",
+    "src/commands/metadata/index.ts": "bc4ad8e3fb5474796ff326b1f53b8c1b84cf45647640f8246d4ccfb3b61d467e",
+    "src/commands/metadata/internal.ts": "bd26d6f4a098c565ce38da6bc269503469638837d3dce47e21ac9c1604a45cd7",
+    "src/commands/metadata/mktemp.ts": "1165d822477e68f6b4dfac3db6a7fa43247226137122c0d980e1490b80bc34d4",
+    "src/commands/metadata/stat.ts": "fab291cc4e5668526fc1247e155f5878e1235d9d95a5096d34bcfa9f022d7f3b",
+    "src/commands/move.ts": "31e1fe6a2c0fc9efb9efa44b636d9478d4cab273de4c4e809d4f572b28084042",
+    "src/commands/network/args.ts": "409dac8442c1151d4404d6ce05dd72ab35655aae80c9c0930743ff6af9ea1f4c",
+    "src/commands/network/body.ts": "29a8a744b043447eacc09d09ca651f2b0a34bdf08e08ddf3065729dbc486edbf",
+    "src/commands/network/curl.ts": "4859cc27a94d4ffe74ecadf20280d5d519d85babc50d24f55b9c51357c2dca42",
+    "src/commands/network/index.ts": "ffee94bffaaef2d96760a24cc164af04951bc30477bcbbdd101144abf4b8e329",
+    "src/commands/network/output.ts": "544488561b8ad360c7d41eeec7928659f3a94acd16f196af93ed3349c6a70bab",
+    "src/commands/network/shared.ts": "7adab18b67c7584b646b3a6508729d7ab0672e7a0808f512f74ae16464f8842f",
+    "src/commands/network/transport.ts": "b6246ceacc90c0451028755fdf9cbb795790968676f48c8e3f9258128286f844",
+    "src/commands/network/types.ts": "806dd2132dd4004404dbb5c21a421e84c53c161f750f6acc1aedd0f8054b5fe9",
+    "src/commands/predicates.ts": "ca98df3ffbc6939007fd73939ad40b67028dfe66c1129a3647fbb061213bd347",
+    "src/commands/safejs/index.ts": "3978b1f876a3651034a56e793313d54bc5031c650f82d23bc59f40a73545fceb",
+    "src/commands/safejs/io.ts": "ef366f40b1d1d161ec0f2c18f1138daf75693ab416274bb92763ebf73899f2f1",
+    "src/commands/safejs/options.ts": "4009050c3a75daececeb2e75af46be8872d21a83c7a8132b6221b0b4d87c7a43",
+    "src/commands/safejs/render.ts": "10eabbdc8d3c1f2e7c40aeafd51b15484ece05de844fcb73f2ef1aed01fe5d6e",
+    "src/commands/safejs/types.ts": "edd5f7cf2ed473ca33105cfe1039c3fb36ae913112d0564ea3d9b163b3c08bf4",
+    "src/commands/search/glob.ts": "d6fc574fbfde82b459426875801a36aaaf5ec9536ce25d1f5876215396094425",
+    "src/commands/search/index.ts": "5efc7444e51bd6c8fce07529808d847c89dd7e6d50e34966875a030a90ee77bf",
+    "src/commands/search/matcher.ts": "499848186cde72bd696cba1fc7d53af39354ba74ea63c42acd92d5eb1cda1cfb",
+    "src/commands/search/options.ts": "828d97d930dc615089a29efd3fe463293d4f61bf4dd33c81c2ceb6b910eb6ef8",
+    "src/commands/search/output.ts": "6a9ebaed985637a62b89978d32a7424c5756104f4b6c2f286106150a819cbcd1",
+    "src/commands/search/rg.ts": "c677f831e8e9dcc5051713d894d277ffa9646d2de358c1970b2dd0a9dfb44417",
+    "src/commands/search/shared.ts": "83d436b5d602cb45cf31bdf6124e4d4696532b67c1d7737712c00e632eb3e724",
+    "src/commands/search/walk.ts": "474b87aa10e7daf0506edd7408d3a1b48c2bf7e644e8f585f1f5930bb658686a",
+    "src/commands/streams.ts": "8966dd770c11731e5256a1e42aaec4b07ae7f0508a3e89a3efc956d27109098d",
+    "src/commands/structured/index.ts": "f2842b616b322081023e6091492bf7acb2231dcb2c729e0f376e125271cd0415",
+    "src/commands/structured/input.ts": "fa83e47ea3f0dfbb388f509cd748b733886171c16b10c536a5efa05fa7a9e5ca",
+    "src/commands/structured/interpreter.ts": "bac1cf5325eff5bfa69f1c8bec5d3d8a80bb452fd61cdc802d55a26788acaffc",
+    "src/commands/structured/jq.ts": "feca27d38a096931faabe5a5449ecc65c39c8b0abbcf69d3ea73a31f729fdbac",
+    "src/commands/structured/limits.ts": "9919a0c0de44c08a9c63c977f7dc8a6d7319f4111cb37c7f3b249fbfd07743fe",
+    "src/commands/structured/numbers.ts": "1ef4803e8311e554c8b11a590e75f4c9a96fb81614872587f534514fadfc7ae2",
+    "src/commands/structured/parser.ts": "a7bcafcd6a3676ed8e344dcaa1293d4593652c9c343172c5184c8c826d042b51",
+    "src/commands/structured/split.ts": "b70b49daa93f472871799159c9702279c6e83d8a4ff2734d86024249a8ee35f6",
+    "src/commands/structured/values.ts": "8d4e7cf5e9182f2c0487be2fba1dd3585c406cc0cfd73c1a38dcb2c95198e46a",
+    "src/commands/table-text/comm.ts": "34df22e9b6e1ca23ec14e83003aa9758c7d9fc1b1473828429e2ae713e4219cd",
+    "src/commands/table-text/index.ts": "9003d5c6d85d283eca5a5e1e50750eae10639ce1830bf68427536c50d40848a9",
+    "src/commands/table-text/internal.ts": "544935927754e228711318a299c20d95b3954bc756e14785722d0eac67a436d9",
+    "src/commands/table-text/join.ts": "83704c0da1bcd137fedf1e90e1d922af482bcfac290bc90f6b7ef3e36b6429b0",
+    "src/commands/table-text/paste.ts": "39b236794d5254d3e40471d9cb867d488ab4c57c236c2730bd2640ded84d1ba5",
+    "src/commands/text-programs/awk-runtime.ts": "30821e08780042b3382ceedb4b133a89475938a1212ed607782e2d0e592bd35e",
+    "src/commands/text-programs/awk-syntax.ts": "179754bbb74643f57f8e19b0a87c43a8793130aa4b4f8d07a4cc14cae871d4d7",
+    "src/commands/text-programs/awk-values.ts": "6824c5348221d98f9d94c058bbe119eaa6aa1e7ca7775af8d460f358436c2d7c",
+    "src/commands/text-programs/awk.ts": "af422696809543efb470ae219774e32819124035d51a756d5761f41fa4607dc3",
+    "src/commands/text-programs/index.ts": "6df5a7c5c242e71e18d8a15ea87d1c6c5bcd90aa57edb529af64e147135ea9e2",
+    "src/commands/text-programs/regex.ts": "23df19386627659c3a5175562a2f8eeda873b81e3dc3e78d3cf51aafa7b3b06f",
+    "src/commands/text-programs/sed.ts": "38fceb4869a0db8197a050de3430d5b9c5017e1606a4348d17d8004745c645a9",
+    "src/commands/text-programs/shared.ts": "fec28a956be858e725811f9e83a7f325d99d3152da0231af0d619847e8e6206e",
+    "src/commands/text.ts": "17a4c60061bdeeca1000499ae9b433f7e3e58c768e1c855e81e7c5338f8998d2",
+    "src/contracts/command.ts": "1ec2f2907eb123ea366623bda293249a62bad6886a63bebb957930df0d414ffa",
+    "src/contracts/errors.ts": "66455381fe9d9e5357d08942e73de6ea1d613a03b09acaab77a5ccccde0f2840",
+    "src/contracts/filesystem.ts": "7c72ddef5660c9a1bd62910d3155a4278ce8d7607f811b32d27cf21149be4009",
+    "src/contracts/index.ts": "fb9a434deb34dbad631166a689b02641c0e1acdbac691f6956a7c76e20729f50",
+    "src/contracts/io.ts": "e925ab08a5ad41862d3f5c031164cc7310bc28397455b11b37b75b55a9dbacdb",
+    "src/contracts/path.ts": "948a1ceb19fd87fa4931974282ec4d68217dbd2353fac6ce6eabd48d3b5a2f34",
+    "src/contracts/plugin.ts": "b45e85e0d89f88308caf0b68f0b14f78341c4bba246d02e81103646f5a4c54ae",
+    "src/fs/memory/index.ts": "2ece749f3f22be6a0da76dcd964feb9b1055e742a05c727c43f672e9bc7ec8b4",
+    "src/fs/mount/comparison.ts": "cedfd2b4a586ddf85eaac30e1ce7797b290b712b744498e84df5036c89f64a2c",
+    "src/fs/mount/identity.ts": "a561928d082232d034c436a89a63b85e5f137c82879281adc9f6aacfcb54d2d2",
+    "src/fs/mount/index.ts": "290e22e36016bf206badff86e55047e8311c3c4feb1c525b9ae0807c568333ee",
+    "src/fs/overlay/index.ts": "6442f61ab61aee52a321ef91892ec4c0dc73674bb40ca9a732ffa69f7e73495e",
+    "src/fs/readonly/index.ts": "384f940196dc572f677541daa9c420da2e013324d66576004c1a2730e7899067",
+    "src/fs/real/index.ts": "d3e79b80a5a48984e1f7f7dd9a79254c2db1faf8142e287a43792180874f77da",
+    "src/fs/s3/authority.ts": "1a95f7a28904b8607948673db3e99d3d4a49b2a3839d980143fe13c25e1af344",
+    "src/fs/s3/filesystem.ts": "af2ee439cbabdc3babe008da2601ccc1a031555edc5e082f8711f4512db01411",
+    "src/fs/s3/http/index.ts": "bd414ce2de1aeb4becff1375ba994ee5bea6ca46600234807515c28385130dd4",
+    "src/fs/s3/http/request.ts": "33e2232404d05c08db2ccce200b6ca1d10af36f6a72f197e196fe1fa3f5ba618",
+    "src/fs/s3/http/signature.ts": "094b2e6fce2657757bf168ae694213f874e644d81cc9ead75faa1120f0910b3b",
+    "src/fs/s3/http/transport.ts": "73611a0d279cec24d85d14031a02d92607979977ef926245fe0a6f9e7eb6161d",
+    "src/fs/s3/http/xml.ts": "73598f1a2aedbf22a5d455849dae4f7e80f022d5ad847f136b2d1d6ecc99301e",
+    "src/fs/s3/index.ts": "731b0141a614ec0be82885c8f608ea9c07bbe4fc96cdc01a04f90bb77f93bf49",
+    "src/fs/s3/mock.ts": "99655664c7a52c595dc1ec4e5d461e4c002a0c9ba60d222ded078e5b9780841e",
+    "src/fs/s3/transport.ts": "185895f1b939370903c9a896df47a1066647a50eb3022e1d0387918996ccd51c",
+    "src/fs/webdav/index.ts": "9a19fb0e61bf9ef07d97881bb93e30ba21491e580ef5e58ab0e80bb5f398d5e4",
+    "src/fs/webdav/resource-id.ts": "ee5720f77a352503368d672caaf5237e45863bde88cf69b947d14178fcda49f2",
+    "src/fs/webdav/webdav.ts": "36e9b5eb6f012df25bd5bb529d29716400f53a6ffa593d75b78f19f77c791b22",
+    "src/fs/webdav/xml.ts": "c5b2798ef847acb480be70348d59bb0bc0a0d80624c313880cd53ff1b293dec1",
+    "src/index.ts": "93db829fa8897c5978d6a7e19e6fc974f980cd659f79be6fcfd2f868bad76613",
+    "src/integrations/safejs/filesystem.ts": "c9ab864768e430bbfbea7590071646985c6374634124f62516ec09c13d9af578",
+    "src/integrations/safejs/index.ts": "b0866c13456991f05f30dd23cabcf895d92b8af89985eb88172ac3d76b3b8384",
+    "src/integrations/safejs/shell.ts": "5cb3e55c5e62adb540b41ac7ce39e8458a3a25ffb8422e6164419c1d22ef15da",
+    "src/integrations/safejs/stats.ts": "94bb724a7281296e08ac4465979e0f9cac585e28f91fc79382650a3c60ea4824",
+    "src/integrations/safejs/values.ts": "91ac3025b6420a7a908736f1d746077f27c9f045f6be22d82a37f4a07ff9111a",
+    "src/plugins/index.ts": "b42974c3208fda3c9e4378b235d6d5d955f1c753c8bfb5e5dd31e22355323f0d",
+    "src/shell/arithmetic.ts": "5e2d784b8fd333972e6e413f4c3478163462a3c1abf8cc5ff7173963420440bd",
+    "src/shell/display.ts": "3d372572020a09dc5484acc575891ab1f24c8c9eba263c0a17c49b714611e069",
+    "src/shell/index.ts": "235ad982a7bfe23823b4e07d714ed73e924a5d7759a8664f8533b03517ffa383",
+    "src/shell/input.ts": "7af2dac6dfd6290e9f189590e9190b2e0703dcd99998212e471378063cd9a7b4",
+    "src/shell/locale.ts": "1b0687b8401c3f0886a793bf6f212a1731d4bd973be6ac2c7642254e6e1fb2d2",
+    "src/shell/parser.ts": "feb6cbb2f03ec0c409adeb816bec506788fb3014a23c8dd02f4002362dc4b9f2",
+    "src/shell/pattern.ts": "eaf798a7f92c050734e97ef77e07397b3e5710a822575899cca81a527985609a",
+    "src/shell/runtime.ts": "e8f1edb842d04498050d314091269974df157b11ab13cabba41d9c84a0191538",
+    "src/shell/shell.ts": "4ac91162195c150848793c92b8b1e90f15a36e67b5ae8a2652fe7ed9dcf4fb5e",
+    "src/shell/types.ts": "fc4133f1fb41283b0586aa7597c766d393d4f91067b613f4777e5adbef230a6d"
+  },
+  "committedImports": {
+    "src/commands/archive/create.ts": "cdddce8ccd1d53987fa1a314cdc6e04d48246fa59fd0880fb444c66bdca7199c",
+    "src/commands/archive/extract.ts": "fc2f8a4151ca7c5398cd64fe4a55156f2a1ac6feb75404cfb96c8f5b6d4a1536",
+    "src/commands/archive/format.ts": "05445d1d80023bbd5a59ff3a47b14bcea038f1f8476835fd973a01ee89fd19ac",
+    "src/commands/archive/index.ts": "6f23a98dbe89bb37f44799f47c365fb430e910f87363c50291f7b44293e416d0",
+    "src/commands/archive/internal.ts": "6e9a204384490607973f7e1109c51a082319b6eed2fecb8f410d9d51711367d9",
+    "src/commands/archive/options.ts": "1c2dc4e57c80901b402f8f08b1a5638b7acad9f882aca67ae4f9be73295bf956",
+    "src/commands/archive/stream.ts": "31a3b70bf7ce89f81e287cac09c6816637bd06dc398010dd82386ce5d93ceba4",
+    "src/commands/basic.ts": "635d6956e728277f78387c0a03a00d5567ba608f39bb2b9b65a8f1ffdf79017f",
+    "src/commands/bytes/checksums/index.ts": "042bb34a0b81a03d70bc148eae753e2f562817dda5a5023bddda67a567088bab",
+    "src/commands/bytes/compression/files.ts": "1f8d8b243f10d63ae5cccea40d1d9cfc6cb841a46bea15cc61f4a5caa70572df",
+    "src/commands/bytes/compression/gunzip.ts": "6bf534778fa82558ae36bd96412662a8e4c4e864c0a93f15b40d1148a64f835f",
+    "src/commands/bytes/compression/index.ts": "cb0de2e91261eaf255491fe5dc2e62683ef002e07cddef5827b57527eaaf88f9",
+    "src/commands/bytes/compression/options.ts": "3218bbcba8d3c5c113eb7f4761f81e0919e380c6f3de76b26b6a52c44ba7cd95",
+    "src/commands/bytes/compression/stream.ts": "573157fda5382df052ea30011ff3094ac6c838618e1272689766819777a8c9e4",
+    "src/commands/bytes/encoding/base.ts": "91e4309ca4947fbf3ac0dd9d0dc9431d3d22d29fb66e46706290922c9feb134d",
+    "src/commands/bytes/encoding/index.ts": "6df6b0d7393fd2abb82b476915fc48ae333730c1e9b323a11776a3b9c2607d5f",
+    "src/commands/bytes/encoding/od.ts": "dbe5312675e4ecf74d852e28ac8134be5586d8aa53d5b21a3cccc5d986213a03",
+    "src/commands/bytes/encoding/shared.ts": "8a0eb870513630296a7f28d7d6867d25aba9b785365b812d740c6d7b4da3d396",
+    "src/commands/bytes/encoding/xxd.ts": "1b78b95a9b0175e5297b988a1794310c03786df5a7aa90a4dd261e91ec765a78",
+    "src/commands/bytes/index.ts": "70643f22b1b47c1d6422b97d76cacf95e4e6337521f6f42e0f5f559bacbed84f",
+    "src/commands/copy-identity.ts": "f1a03403fadc0138377bd3b215dafecf4b28a187549da8e80764a3fd08238dfe",
+    "src/commands/diff-patch/diff-format.ts": "e7d66d54d65e28d152fc451d63aae1813eddf450001c0dd4dcb15ca67c941e24",
+    "src/commands/diff-patch/diff.ts": "c3eb090a70a590992cd165486911aec51fa5dbac0e746453dbc0809fe76bc06e",
+    "src/commands/diff-patch/index.ts": "82465ab079aac196a8cf99231fc9d9e7f4f60135f862802e02d2e523d0bebf17",
+    "src/commands/diff-patch/patch-envelope.ts": "f6a15e78d7cea41d503f5352206efeb9fa950871c820af730cf27ea06ade99e8",
+    "src/commands/diff-patch/patch-formats.ts": "a78045ac43900582bdb19f0476414e8566c4e1e2edc86b654bc760cf86de3aa4",
+    "src/commands/diff-patch/patch-gnu-paths.ts": "3a06d5b33d3c0df12ff83b0bbf4396d90906d6fd61e3ca1bd5537f508c4282af",
+    "src/commands/diff-patch/patch-gnu-reject.ts": "5df12efd994c0187998f0112a5fac595f376142f2cd187a5e0b40738f7b6cf02",
+    "src/commands/diff-patch/patch-path.ts": "053f471db60b5a2878144451a821f8590415a85535cb86e5d9ee0367e257ef94",
+    "src/commands/diff-patch/patch.ts": "72bfb60c502ac5bcaf2efa3e0f044b0ab1d89a54293f829d62f011e7c10e82d7",
+    "src/commands/diff-patch/shared.ts": "81ab0a3d1fbb29feb91761a7a60a535ca5768079ee0415e0788cbebfb1f3617e",
+    "src/commands/diff-patch/unified.ts": "a8659f40aeb9d1cac3548ffd24950e652eeace92cef1339de9e3a5e5ed7e10fb",
+    "src/commands/execution.ts": "1d084ab203dc59a510e39e5c71743b755ba9bdb5d4b018658398ed96c3dff700",
+    "src/commands/filesystem.ts": "74fb5fdd66c2eaf7a8f31d2be8c6be0e94c09ff65892c561bbc0c6bc6f875a8f",
+    "src/commands/find.ts": "534a5359a42bb7bf0020f21092740262edbe9053744e29d153fa9e6319539db2",
+    "src/commands/grep.ts": "5e5255a1cce15bfa57f1ba4ffd46e5b4ff7810c37aba8522fd50cdb482edba3d",
+    "src/commands/index.ts": "052a905512a3f1e27304de90366600f9ea79c26f60f0a3598619453f408530e2",
+    "src/commands/internal.ts": "28d83d91d5086b39b50494ea1130d34c3b48b22a15dc04c2912ee2503a7536d5",
+    "src/commands/metadata/chmod.ts": "9286ebc9bea074bf9dad58cb6197aa5e10d325c549187eefbc9203ac76b09cfd",
+    "src/commands/metadata/index.ts": "bc4ad8e3fb5474796ff326b1f53b8c1b84cf45647640f8246d4ccfb3b61d467e",
+    "src/commands/metadata/internal.ts": "bd26d6f4a098c565ce38da6bc269503469638837d3dce47e21ac9c1604a45cd7",
+    "src/commands/metadata/mktemp.ts": "1165d822477e68f6b4dfac3db6a7fa43247226137122c0d980e1490b80bc34d4",
+    "src/commands/metadata/stat.ts": "fab291cc4e5668526fc1247e155f5878e1235d9d95a5096d34bcfa9f022d7f3b",
+    "src/commands/move.ts": "31e1fe6a2c0fc9efb9efa44b636d9478d4cab273de4c4e809d4f572b28084042",
+    "src/commands/network/args.ts": "409dac8442c1151d4404d6ce05dd72ab35655aae80c9c0930743ff6af9ea1f4c",
+    "src/commands/network/body.ts": "29a8a744b043447eacc09d09ca651f2b0a34bdf08e08ddf3065729dbc486edbf",
+    "src/commands/network/curl.ts": "4859cc27a94d4ffe74ecadf20280d5d519d85babc50d24f55b9c51357c2dca42",
+    "src/commands/network/index.ts": "ffee94bffaaef2d96760a24cc164af04951bc30477bcbbdd101144abf4b8e329",
+    "src/commands/network/output.ts": "544488561b8ad360c7d41eeec7928659f3a94acd16f196af93ed3349c6a70bab",
+    "src/commands/network/shared.ts": "7adab18b67c7584b646b3a6508729d7ab0672e7a0808f512f74ae16464f8842f",
+    "src/commands/network/transport.ts": "b6246ceacc90c0451028755fdf9cbb795790968676f48c8e3f9258128286f844",
+    "src/commands/network/types.ts": "806dd2132dd4004404dbb5c21a421e84c53c161f750f6acc1aedd0f8054b5fe9",
+    "src/commands/predicates.ts": "ca98df3ffbc6939007fd73939ad40b67028dfe66c1129a3647fbb061213bd347",
+    "src/commands/safejs/index.ts": "3978b1f876a3651034a56e793313d54bc5031c650f82d23bc59f40a73545fceb",
+    "src/commands/safejs/io.ts": "ef366f40b1d1d161ec0f2c18f1138daf75693ab416274bb92763ebf73899f2f1",
+    "src/commands/safejs/options.ts": "4009050c3a75daececeb2e75af46be8872d21a83c7a8132b6221b0b4d87c7a43",
+    "src/commands/safejs/render.ts": "10eabbdc8d3c1f2e7c40aeafd51b15484ece05de844fcb73f2ef1aed01fe5d6e",
+    "src/commands/safejs/types.ts": "edd5f7cf2ed473ca33105cfe1039c3fb36ae913112d0564ea3d9b163b3c08bf4",
+    "src/commands/search/glob.ts": "d6fc574fbfde82b459426875801a36aaaf5ec9536ce25d1f5876215396094425",
+    "src/commands/search/index.ts": "5efc7444e51bd6c8fce07529808d847c89dd7e6d50e34966875a030a90ee77bf",
+    "src/commands/search/matcher.ts": "499848186cde72bd696cba1fc7d53af39354ba74ea63c42acd92d5eb1cda1cfb",
+    "src/commands/search/options.ts": "828d97d930dc615089a29efd3fe463293d4f61bf4dd33c81c2ceb6b910eb6ef8",
+    "src/commands/search/output.ts": "6a9ebaed985637a62b89978d32a7424c5756104f4b6c2f286106150a819cbcd1",
+    "src/commands/search/rg.ts": "c677f831e8e9dcc5051713d894d277ffa9646d2de358c1970b2dd0a9dfb44417",
+    "src/commands/search/shared.ts": "83d436b5d602cb45cf31bdf6124e4d4696532b67c1d7737712c00e632eb3e724",
+    "src/commands/search/walk.ts": "474b87aa10e7daf0506edd7408d3a1b48c2bf7e644e8f585f1f5930bb658686a",
+    "src/commands/streams.ts": "8966dd770c11731e5256a1e42aaec4b07ae7f0508a3e89a3efc956d27109098d",
+    "src/commands/structured/index.ts": "f2842b616b322081023e6091492bf7acb2231dcb2c729e0f376e125271cd0415",
+    "src/commands/structured/input.ts": "fa83e47ea3f0dfbb388f509cd748b733886171c16b10c536a5efa05fa7a9e5ca",
+    "src/commands/structured/interpreter.ts": "bac1cf5325eff5bfa69f1c8bec5d3d8a80bb452fd61cdc802d55a26788acaffc",
+    "src/commands/structured/jq.ts": "feca27d38a096931faabe5a5449ecc65c39c8b0abbcf69d3ea73a31f729fdbac",
+    "src/commands/structured/limits.ts": "9919a0c0de44c08a9c63c977f7dc8a6d7319f4111cb37c7f3b249fbfd07743fe",
+    "src/commands/structured/numbers.ts": "1ef4803e8311e554c8b11a590e75f4c9a96fb81614872587f534514fadfc7ae2",
+    "src/commands/structured/parser.ts": "a7bcafcd6a3676ed8e344dcaa1293d4593652c9c343172c5184c8c826d042b51",
+    "src/commands/structured/split.ts": "b70b49daa93f472871799159c9702279c6e83d8a4ff2734d86024249a8ee35f6",
+    "src/commands/structured/values.ts": "8d4e7cf5e9182f2c0487be2fba1dd3585c406cc0cfd73c1a38dcb2c95198e46a",
+    "src/commands/table-text/comm.ts": "34df22e9b6e1ca23ec14e83003aa9758c7d9fc1b1473828429e2ae713e4219cd",
+    "src/commands/table-text/index.ts": "9003d5c6d85d283eca5a5e1e50750eae10639ce1830bf68427536c50d40848a9",
+    "src/commands/table-text/internal.ts": "544935927754e228711318a299c20d95b3954bc756e14785722d0eac67a436d9",
+    "src/commands/table-text/join.ts": "83704c0da1bcd137fedf1e90e1d922af482bcfac290bc90f6b7ef3e36b6429b0",
+    "src/commands/table-text/paste.ts": "39b236794d5254d3e40471d9cb867d488ab4c57c236c2730bd2640ded84d1ba5",
+    "src/commands/text-programs/awk-runtime.ts": "30821e08780042b3382ceedb4b133a89475938a1212ed607782e2d0e592bd35e",
+    "src/commands/text-programs/awk-syntax.ts": "179754bbb74643f57f8e19b0a87c43a8793130aa4b4f8d07a4cc14cae871d4d7",
+    "src/commands/text-programs/awk-values.ts": "6824c5348221d98f9d94c058bbe119eaa6aa1e7ca7775af8d460f358436c2d7c",
+    "src/commands/text-programs/awk.ts": "af422696809543efb470ae219774e32819124035d51a756d5761f41fa4607dc3",
+    "src/commands/text-programs/index.ts": "6df5a7c5c242e71e18d8a15ea87d1c6c5bcd90aa57edb529af64e147135ea9e2",
+    "src/commands/text-programs/regex.ts": "23df19386627659c3a5175562a2f8eeda873b81e3dc3e78d3cf51aafa7b3b06f",
+    "src/commands/text-programs/sed.ts": "38fceb4869a0db8197a050de3430d5b9c5017e1606a4348d17d8004745c645a9",
+    "src/commands/text-programs/shared.ts": "fec28a956be858e725811f9e83a7f325d99d3152da0231af0d619847e8e6206e",
+    "src/commands/text.ts": "17a4c60061bdeeca1000499ae9b433f7e3e58c768e1c855e81e7c5338f8998d2",
+    "src/contracts/command.ts": "1ec2f2907eb123ea366623bda293249a62bad6886a63bebb957930df0d414ffa",
+    "src/contracts/errors.ts": "66455381fe9d9e5357d08942e73de6ea1d613a03b09acaab77a5ccccde0f2840",
+    "src/contracts/filesystem.ts": "7c72ddef5660c9a1bd62910d3155a4278ce8d7607f811b32d27cf21149be4009",
+    "src/contracts/index.ts": "fb9a434deb34dbad631166a689b02641c0e1acdbac691f6956a7c76e20729f50",
+    "src/contracts/io.ts": "e925ab08a5ad41862d3f5c031164cc7310bc28397455b11b37b75b55a9dbacdb",
+    "src/contracts/path.ts": "948a1ceb19fd87fa4931974282ec4d68217dbd2353fac6ce6eabd48d3b5a2f34",
+    "src/contracts/plugin.ts": "b45e85e0d89f88308caf0b68f0b14f78341c4bba246d02e81103646f5a4c54ae",
+    "src/fs/memory/index.ts": "2ece749f3f22be6a0da76dcd964feb9b1055e742a05c727c43f672e9bc7ec8b4",
+    "src/fs/mount/comparison.ts": "cedfd2b4a586ddf85eaac30e1ce7797b290b712b744498e84df5036c89f64a2c",
+    "src/fs/mount/identity.ts": "a561928d082232d034c436a89a63b85e5f137c82879281adc9f6aacfcb54d2d2",
+    "src/fs/mount/index.ts": "290e22e36016bf206badff86e55047e8311c3c4feb1c525b9ae0807c568333ee",
+    "src/fs/overlay/index.ts": "6442f61ab61aee52a321ef91892ec4c0dc73674bb40ca9a732ffa69f7e73495e",
+    "src/fs/readonly/index.ts": "384f940196dc572f677541daa9c420da2e013324d66576004c1a2730e7899067",
+    "src/fs/real/index.ts": "d3e79b80a5a48984e1f7f7dd9a79254c2db1faf8142e287a43792180874f77da",
+    "src/fs/s3/authority.ts": "1a95f7a28904b8607948673db3e99d3d4a49b2a3839d980143fe13c25e1af344",
+    "src/fs/s3/filesystem.ts": "af2ee439cbabdc3babe008da2601ccc1a031555edc5e082f8711f4512db01411",
+    "src/fs/s3/http/index.ts": "bd414ce2de1aeb4becff1375ba994ee5bea6ca46600234807515c28385130dd4",
+    "src/fs/s3/http/request.ts": "33e2232404d05c08db2ccce200b6ca1d10af36f6a72f197e196fe1fa3f5ba618",
+    "src/fs/s3/http/signature.ts": "094b2e6fce2657757bf168ae694213f874e644d81cc9ead75faa1120f0910b3b",
+    "src/fs/s3/http/transport.ts": "73611a0d279cec24d85d14031a02d92607979977ef926245fe0a6f9e7eb6161d",
+    "src/fs/s3/http/xml.ts": "73598f1a2aedbf22a5d455849dae4f7e80f022d5ad847f136b2d1d6ecc99301e",
+    "src/fs/s3/index.ts": "731b0141a614ec0be82885c8f608ea9c07bbe4fc96cdc01a04f90bb77f93bf49",
+    "src/fs/s3/mock.ts": "99655664c7a52c595dc1ec4e5d461e4c002a0c9ba60d222ded078e5b9780841e",
+    "src/fs/s3/transport.ts": "185895f1b939370903c9a896df47a1066647a50eb3022e1d0387918996ccd51c",
+    "src/fs/webdav/index.ts": "9a19fb0e61bf9ef07d97881bb93e30ba21491e580ef5e58ab0e80bb5f398d5e4",
+    "src/fs/webdav/resource-id.ts": "ee5720f77a352503368d672caaf5237e45863bde88cf69b947d14178fcda49f2",
+    "src/fs/webdav/webdav.ts": "36e9b5eb6f012df25bd5bb529d29716400f53a6ffa593d75b78f19f77c791b22",
+    "src/fs/webdav/xml.ts": "c5b2798ef847acb480be70348d59bb0bc0a0d80624c313880cd53ff1b293dec1",
+    "src/index.ts": "93db829fa8897c5978d6a7e19e6fc974f980cd659f79be6fcfd2f868bad76613",
+    "src/integrations/safejs/filesystem.ts": "c9ab864768e430bbfbea7590071646985c6374634124f62516ec09c13d9af578",
+    "src/integrations/safejs/index.ts": "b0866c13456991f05f30dd23cabcf895d92b8af89985eb88172ac3d76b3b8384",
+    "src/integrations/safejs/shell.ts": "5cb3e55c5e62adb540b41ac7ce39e8458a3a25ffb8422e6164419c1d22ef15da",
+    "src/integrations/safejs/stats.ts": "94bb724a7281296e08ac4465979e0f9cac585e28f91fc79382650a3c60ea4824",
+    "src/integrations/safejs/values.ts": "91ac3025b6420a7a908736f1d746077f27c9f045f6be22d82a37f4a07ff9111a",
+    "src/plugins/index.ts": "b42974c3208fda3c9e4378b235d6d5d955f1c753c8bfb5e5dd31e22355323f0d",
+    "src/shell/arithmetic.ts": "5e2d784b8fd333972e6e413f4c3478163462a3c1abf8cc5ff7173963420440bd",
+    "src/shell/display.ts": "3d372572020a09dc5484acc575891ab1f24c8c9eba263c0a17c49b714611e069",
+    "src/shell/index.ts": "235ad982a7bfe23823b4e07d714ed73e924a5d7759a8664f8533b03517ffa383",
+    "src/shell/input.ts": "7af2dac6dfd6290e9f189590e9190b2e0703dcd99998212e471378063cd9a7b4",
+    "src/shell/locale.ts": "1b0687b8401c3f0886a793bf6f212a1731d4bd973be6ac2c7642254e6e1fb2d2",
+    "src/shell/parser.ts": "feb6cbb2f03ec0c409adeb816bec506788fb3014a23c8dd02f4002362dc4b9f2",
+    "src/shell/pattern.ts": "eaf798a7f92c050734e97ef77e07397b3e5710a822575899cca81a527985609a",
+    "src/shell/runtime.ts": "e8f1edb842d04498050d314091269974df157b11ab13cabba41d9c84a0191538",
+    "src/shell/shell.ts": "4ac91162195c150848793c92b8b1e90f15a36e67b5ae8a2652fe7ed9dcf4fb5e",
+    "src/shell/types.ts": "fc4133f1fb41283b0586aa7597c766d393d4f91067b613f4777e5adbef230a6d"
+  },
+  "sourceMismatch": [],
+  "uncommittedSourcePaths": [
+    "src/commands/stream-inspection/expand.ts",
+    "src/commands/stream-inspection/fold.ts",
+    "src/commands/stream-inspection/index.ts",
+    "src/commands/stream-inspection/shared.ts",
+    "src/commands/stream-inspection/strings.ts",
+    "src/commands/stream-inspection/tac.ts"
+  ],
+  "compiler": [
+    {
+      "id": "global",
+      "status": 0,
+      "inputs": 1117,
+      "guardValid": true,
+      "diagnostics": [],
+      "fixedDrift": [],
+      "inventoryDrift": []
+    },
+    {
+      "id": "build",
+      "status": 0,
+      "inputs": 308,
+      "guardValid": true,
+      "diagnostics": [],
+      "fixedDrift": [],
+      "inventoryDrift": []
+    },
+    {
+      "id": "benchmark",
+      "status": 0,
+      "inputs": 417,
+      "guardValid": true,
+      "diagnostics": [],
+      "fixedDrift": [],
+      "inventoryDrift": []
+    }
+  ],
+  "references": {
+    "tests/shell/substring-report.md": "cc1d8654e29292dcc4405f86aa354b7baac1a9a1d439812cabf0617ea9167965",
+    "tests/shell/substring-validation.json": "52e682b66b0e5517f58e579293670a9a795b21e5fa0af073692ce15d75ed0e3a",
+    "tests/shell-stress/substring-holdout/ACCEPTANCE.md": "d9bd92740248c9d9df03656bfbf691b0fa1f63906051bafb62a0873835b91799",
+    "tests/shell-stress/substring-holdout/acceptance-audit.json": "8947ab5ef7d2f35dd43166d1351bd7e44051d1b3264ed8e0c9bd32dd3a24bd87"
+  },
+  "externalEvidence": "Author105/132/86/44 and independent substring98 are referenced only, not rerun here and not added to independent denominators. Their retained C-byte and diagnostic losses are not waived.",
+  "children": [
+    {
+      "pid": 4170,
+      "groupAlive": false
+    },
+    {
+      "pid": 4174,
+      "groupAlive": false
+    },
+    {
+      "pid": 4175,
+      "groupAlive": false
+    },
+    {
+      "pid": 4176,
+      "groupAlive": false
+    },
+    {
+      "pid": 4178,
+      "groupAlive": false
+    },
+    {
+      "pid": 4180,
+      "groupAlive": false
+    },
+    {
+      "pid": 4183,
+      "groupAlive": false
+    },
+    {
+      "pid": 4186,
+      "groupAlive": false
+    },
+    {
+      "pid": 4188,
+      "groupAlive": false
+    },
+    {
+      "pid": 4190,
+      "groupAlive": false
+    },
+    {
+      "pid": 4191,
+      "groupAlive": false
+    },
+    {
+      "pid": 4192,
+      "groupAlive": false
+    },
+    {
+      "pid": 4193,
+      "groupAlive": false
+    },
+    {
+      "pid": 4194,
+      "groupAlive": false
+    },
+    {
+      "pid": 4195,
+      "groupAlive": false
+    },
+    {
+      "pid": 4199,
+      "groupAlive": false
+    },
+    {
+      "pid": 4200,
+      "groupAlive": false
+    },
+    {
+      "pid": 4202,
+      "groupAlive": false
+    },
+    {
+      "pid": 4214,
+      "groupAlive": false
+    },
+    {
+      "pid": 4271,
+      "groupAlive": false
+    },
+    {
+      "pid": 4320,
+      "groupAlive": false
+    },
+    {
+      "pid": 4396,
+      "groupAlive": false
+    },
+    {
+      "pid": 4399,
+      "groupAlive": false
+    },
+    {
+      "pid": 4404,
+      "groupAlive": false
+    },
+    {
+      "pid": 4412,
+      "groupAlive": false
+    },
+    {
+      "pid": 4418,
+      "groupAlive": false
+    },
+    {
+      "pid": 4421,
+      "groupAlive": false
+    },
+    {
+      "pid": 4433,
+      "groupAlive": false
+    },
+    {
+      "pid": 4438,
+      "groupAlive": false
+    },
+    {
+      "pid": 4442,
+      "groupAlive": false
+    },
+    {
+      "pid": 4446,
+      "groupAlive": false
+    },
+    {
+      "pid": 4454,
+      "groupAlive": false
+    },
+    {
+      "pid": 4461,
+      "groupAlive": false
+    },
+    {
+      "pid": 4465,
+      "groupAlive": false
+    },
+    {
+      "pid": 4469,
+      "groupAlive": false
+    },
+    {
+      "pid": 4476,
+      "groupAlive": false
+    },
+    {
+      "pid": 4480,
+      "groupAlive": false
+    },
+    {
+      "pid": 4484,
+      "groupAlive": false
+    },
+    {
+      "pid": 4649,
+      "groupAlive": false
+    },
+    {
+      "pid": 4655,
+      "groupAlive": false
+    },
+    {
+      "pid": 4662,
+      "groupAlive": false
+    },
+    {
+      "pid": 4669,
+      "groupAlive": false
+    },
+    {
+      "pid": 4675,
+      "groupAlive": false
+    },
+    {
+      "pid": 4685,
+      "groupAlive": false
+    },
+    {
+      "pid": 4689,
+      "groupAlive": false
+    },
+    {
+      "pid": 4697,
+      "groupAlive": false
+    },
+    {
+      "pid": 4708,
+      "groupAlive": false
+    },
+    {
+      "pid": 4712,
+      "groupAlive": false
+    },
+    {
+      "pid": 4718,
+      "groupAlive": false
+    },
+    {
+      "pid": 4726,
+      "groupAlive": false
+    },
+    {
+      "pid": 4733,
+      "groupAlive": false
+    },
+    {
+      "pid": 4746,
+      "groupAlive": false
+    },
+    {
+      "pid": 4751,
+      "groupAlive": false
+    },
+    {
+      "pid": 4810,
+      "groupAlive": false
+    },
+    {
+      "pid": 4860,
+      "groupAlive": false
+    },
+    {
+      "pid": 4863,
+      "groupAlive": false
+    },
+    {
+      "pid": 4906,
+      "groupAlive": false
+    },
+    {
+      "pid": 4983,
+      "groupAlive": false
+    },
+    {
+      "pid": 5048,
+      "groupAlive": false
+    },
+    {
+      "pid": 5136,
+      "groupAlive": false
+    },
+    {
+      "pid": 5137,
+      "groupAlive": false
+    },
+    {
+      "pid": 5138,
+      "groupAlive": false
+    },
+    {
+      "pid": 5151,
+      "groupAlive": false
+    },
+    {
+      "pid": 5152,
+      "groupAlive": false
+    },
+    {
+      "pid": 5153,
+      "groupAlive": false
+    },
+    {
+      "pid": 5167,
+      "groupAlive": false
+    },
+    {
+      "pid": 5170,
+      "groupAlive": false
+    },
+    {
+      "pid": 5173,
+      "groupAlive": false
+    },
+    {
+      "pid": 5192,
+      "groupAlive": false
+    },
+    {
+      "pid": 5196,
+      "groupAlive": false
+    },
+    {
+      "pid": 5199,
+      "groupAlive": false
+    },
+    {
+      "pid": 5217,
+      "groupAlive": false
+    },
+    {
+      "pid": 5221,
+      "groupAlive": false
+    },
+    {
+      "pid": 5225,
+      "groupAlive": false
+    },
+    {
+      "pid": 5240,
+      "groupAlive": false
+    },
+    {
+      "pid": 5241,
+      "groupAlive": false
+    },
+    {
+      "pid": 5391,
+      "groupAlive": false
+    },
+    {
+      "pid": 6352,
+      "groupAlive": false
+    },
+    {
+      "pid": 6403,
+      "groupAlive": false
+    },
+    {
+      "pid": 6416,
+      "groupAlive": false
+    },
+    {
+      "pid": 6430,
+      "groupAlive": false
+    },
+    {
+      "pid": 6432,
+      "groupAlive": false
+    },
+    {
+      "pid": 6446,
+      "groupAlive": false
+    },
+    {
+      "pid": 6460,
+      "groupAlive": false
+    },
+    {
+      "pid": 6462,
+      "groupAlive": false
+    },
+    {
+      "pid": 6476,
+      "groupAlive": false
+    },
+    {
+      "pid": 6490,
+      "groupAlive": false
+    },
+    {
+      "pid": 6504,
+      "groupAlive": false
+    },
+    {
+      "pid": 6506,
+      "groupAlive": false
+    },
+    {
+      "pid": 6520,
+      "groupAlive": false
+    },
+    {
+      "pid": 6534,
+      "groupAlive": false
+    },
+    {
+      "pid": 6548,
+      "groupAlive": false
+    },
+    {
+      "pid": 6550,
+      "groupAlive": false
+    },
+    {
+      "pid": 6564,
+      "groupAlive": false
+    },
+    {
+      "pid": 6579,
+      "groupAlive": false
+    },
+    {
+      "pid": 6581,
+      "groupAlive": false
+    },
+    {
+      "pid": 6596,
+      "groupAlive": false
+    },
+    {
+      "pid": 6610,
+      "groupAlive": false
+    },
+    {
+      "pid": 6624,
+      "groupAlive": false
+    },
+    {
+      "pid": 6626,
+      "groupAlive": false
+    },
+    {
+      "pid": 6640,
+      "groupAlive": false
+    },
+    {
+      "pid": 6654,
+      "groupAlive": false
+    },
+    {
+      "pid": 6658,
+      "groupAlive": false
+    },
+    {
+      "pid": 6672,
+      "groupAlive": false
+    },
+    {
+      "pid": 6686,
+      "groupAlive": false
+    },
+    {
+      "pid": 6689,
+      "groupAlive": false
+    },
+    {
+      "pid": 6703,
+      "groupAlive": false
+    },
+    {
+      "pid": 6718,
+      "groupAlive": false
+    },
+    {
+      "pid": 6732,
+      "groupAlive": false
+    },
+    {
+      "pid": 6734,
+      "groupAlive": false
+    },
+    {
+      "pid": 6748,
+      "groupAlive": false
+    },
+    {
+      "pid": 6763,
+      "groupAlive": false
+    },
+    {
+      "pid": 6777,
+      "groupAlive": false
+    },
+    {
+      "pid": 6779,
+      "groupAlive": false
+    },
+    {
+      "pid": 6798,
+      "groupAlive": false
+    },
+    {
+      "pid": 6812,
+      "groupAlive": false
+    },
+    {
+      "pid": 6827,
+      "groupAlive": false
+    },
+    {
+      "pid": 6913,
+      "groupAlive": false
+    },
+    {
+      "pid": 6990,
+      "groupAlive": false
+    },
+    {
+      "pid": 7056,
+      "groupAlive": false
+    },
+    {
+      "pid": 7177,
+      "groupAlive": false
+    },
+    {
+      "pid": 7338,
+      "groupAlive": false
+    },
+    {
+      "pid": 7423,
+      "groupAlive": false
+    },
+    {
+      "pid": 7510,
+      "groupAlive": false
+    },
+    {
+      "pid": 7654,
+      "groupAlive": false
+    },
+    {
+      "pid": 7719,
+      "groupAlive": false
+    },
+    {
+      "pid": 7720,
+      "groupAlive": false
+    },
+    {
+      "pid": 7721,
+      "groupAlive": false
+    },
+    {
+      "pid": 7727,
+      "groupAlive": false
+    },
+    {
+      "pid": 7728,
+      "groupAlive": false
+    },
+    {
+      "pid": 7729,
+      "groupAlive": false
+    },
+    {
+      "pid": 7730,
+      "groupAlive": false
+    },
+    {
+      "pid": 7731,
+      "groupAlive": false
+    },
+    {
+      "pid": 7732,
+      "groupAlive": false
+    },
+    {
+      "pid": 7733,
+      "groupAlive": false
+    },
+    {
+      "pid": 7735,
+      "groupAlive": false
+    },
+    {
+      "pid": 7737,
+      "groupAlive": false
+    },
+    {
+      "pid": 7738,
+      "groupAlive": false
+    },
+    {
+      "pid": 7740,
+      "groupAlive": false
+    },
+    {
+      "pid": 7742,
+      "groupAlive": false
+    },
+    {
+      "pid": 7745,
+      "groupAlive": false
+    },
+    {
+      "pid": 7748,
+      "groupAlive": false
+    },
+    {
+      "pid": 7750,
+      "groupAlive": false
+    },
+    {
+      "pid": 7752,
+      "groupAlive": false
+    },
+    {
+      "pid": 7754,
+      "groupAlive": false
+    },
+    {
+      "pid": 7756,
+      "groupAlive": false
+    },
+    {
+      "pid": 7758,
+      "groupAlive": false
+    },
+    {
+      "pid": 7760,
+      "groupAlive": false
+    },
+    {
+      "pid": 7762,
+      "groupAlive": false
+    },
+    {
+      "pid": 7765,
+      "groupAlive": false
+    },
+    {
+      "pid": 7767,
+      "groupAlive": false
+    },
+    {
+      "pid": 7769,
+      "groupAlive": false
+    },
+    {
+      "pid": 7771,
+      "groupAlive": false
+    },
+    {
+      "pid": 7773,
+      "groupAlive": false
+    },
+    {
+      "pid": 7776,
+      "groupAlive": false
+    },
+    {
+      "pid": 7778,
+      "groupAlive": false
+    },
+    {
+      "pid": 7780,
+      "groupAlive": false
+    },
+    {
+      "pid": 7782,
+      "groupAlive": false
+    },
+    {
+      "pid": 7784,
+      "groupAlive": false
+    },
+    {
+      "pid": 7788,
+      "groupAlive": false
+    },
+    {
+      "pid": 7790,
+      "groupAlive": false
+    },
+    {
+      "pid": 7792,
+      "groupAlive": false
+    },
+    {
+      "pid": 7794,
+      "groupAlive": false
+    },
+    {
+      "pid": 7797,
+      "groupAlive": false
+    },
+    {
+      "pid": 7799,
+      "groupAlive": false
+    },
+    {
+      "pid": 7802,
+      "groupAlive": false
+    },
+    {
+      "pid": 7804,
+      "groupAlive": false
+    },
+    {
+      "pid": 7806,
+      "groupAlive": false
+    },
+    {
+      "pid": 7809,
+      "groupAlive": false
+    },
+    {
+      "pid": 7812,
+      "groupAlive": false
+    },
+    {
+      "pid": 7815,
+      "groupAlive": false
+    },
+    {
+      "pid": 7818,
+      "groupAlive": false
+    },
+    {
+      "pid": 7826,
+      "groupAlive": false
+    },
+    {
+      "pid": 7829,
+      "groupAlive": false
+    },
+    {
+      "pid": 7832,
+      "groupAlive": false
+    },
+    {
+      "pid": 7835,
+      "groupAlive": false
+    },
+    {
+      "pid": 7839,
+      "groupAlive": false
+    },
+    {
+      "pid": 7847,
+      "groupAlive": false
+    },
+    {
+      "pid": 7850,
+      "groupAlive": false
+    },
+    {
+      "pid": 7860,
+      "groupAlive": false
+    },
+    {
+      "pid": 7863,
+      "groupAlive": false
+    },
+    {
+      "pid": 7867,
+      "groupAlive": false
+    },
+    {
+      "pid": 7870,
+      "groupAlive": false
+    },
+    {
+      "pid": 7874,
+      "groupAlive": false
+    },
+    {
+      "pid": 7876,
+      "groupAlive": false
+    },
+    {
+      "pid": 7878,
+      "groupAlive": false
+    },
+    {
+      "pid": 7881,
+      "groupAlive": false
+    },
+    {
+      "pid": 7883,
+      "groupAlive": false
+    },
+    {
+      "pid": 7897,
+      "groupAlive": false
+    },
+    {
+      "pid": 7898,
+      "groupAlive": false
+    },
+    {
+      "pid": 7899,
+      "groupAlive": false
+    },
+    {
+      "pid": 7901,
+      "groupAlive": false
+    },
+    {
+      "pid": 7903,
+      "groupAlive": false
+    },
+    {
+      "pid": 7905,
+      "groupAlive": false
+    },
+    {
+      "pid": 8320,
+      "groupAlive": false
+    },
+    {
+      "pid": 8708,
+      "groupAlive": false
+    },
+    {
+      "pid": 9056,
+      "groupAlive": false
+    },
+    {
+      "pid": 9453,
+      "groupAlive": false
+    },
+    {
+      "pid": 9829,
+      "groupAlive": false
+    },
+    {
+      "pid": 10173,
+      "groupAlive": false
+    },
+    {
+      "pid": 10525,
+      "groupAlive": false
+    },
+    {
+      "pid": 10899,
+      "groupAlive": false
+    },
+    {
+      "pid": 11253,
+      "groupAlive": false
+    },
+    {
+      "pid": 11601,
+      "groupAlive": false
+    },
+    {
+      "pid": 11951,
+      "groupAlive": false
+    },
+    {
+      "pid": 12306,
+      "groupAlive": false
+    },
+    {
+      "pid": 12657,
+      "groupAlive": false
+    },
+    {
+      "pid": 13011,
+      "groupAlive": false
+    },
+    {
+      "pid": 13363,
+      "groupAlive": false
+    },
+    {
+      "pid": 13716,
+      "groupAlive": false
+    },
+    {
+      "pid": 14065,
+      "groupAlive": false
+    },
+    {
+      "pid": 14420,
+      "groupAlive": false
+    },
+    {
+      "pid": 14769,
+      "groupAlive": false
+    },
+    {
+      "pid": 15122,
+      "groupAlive": false
+    },
+    {
+      "pid": 15474,
+      "groupAlive": false
+    },
+    {
+      "pid": 15852,
+      "groupAlive": false
+    },
+    {
+      "pid": 16214,
+      "groupAlive": false
+    },
+    {
+      "pid": 16584,
+      "groupAlive": false
+    },
+    {
+      "pid": 16974,
+      "groupAlive": false
+    },
+    {
+      "pid": 17325,
+      "groupAlive": false
+    },
+    {
+      "pid": 17679,
+      "groupAlive": false
+    },
+    {
+      "pid": 18032,
+      "groupAlive": false
+    },
+    {
+      "pid": 18848,
+      "groupAlive": false
+    },
+    {
+      "pid": 19624,
+      "groupAlive": false
+    },
+    {
+      "pid": 19972,
+      "groupAlive": false
+    },
+    {
+      "pid": 20333,
+      "groupAlive": false
+    },
+    {
+      "pid": 20681,
+      "groupAlive": false
+    },
+    {
+      "pid": 21033,
+      "groupAlive": false
+    },
+    {
+      "pid": 21391,
+      "groupAlive": false
+    },
+    {
+      "pid": 21743,
+      "groupAlive": false
+    },
+    {
+      "pid": 22139,
+      "groupAlive": false
+    },
+    {
+      "pid": 22494,
+      "groupAlive": false
+    },
+    {
+      "pid": 22860,
+      "groupAlive": false
+    },
+    {
+      "pid": 23216,
+      "groupAlive": false
+    },
+    {
+      "pid": 23595,
+      "groupAlive": false
+    },
+    {
+      "pid": 23957,
+      "groupAlive": false
+    },
+    {
+      "pid": 24527,
+      "groupAlive": false
+    },
+    {
+      "pid": 25287,
+      "groupAlive": false
+    },
+    {
+      "pid": 25651,
+      "groupAlive": false
+    },
+    {
+      "pid": 26011,
+      "groupAlive": false
+    },
+    {
+      "pid": 26368,
+      "groupAlive": false
+    },
+    {
+      "pid": 26370,
+      "groupAlive": false
+    },
+    {
+      "pid": 26372,
+      "groupAlive": false
+    },
+    {
+      "pid": 26375,
+      "groupAlive": false
+    },
+    {
+      "pid": 26377,
+      "groupAlive": false
+    },
+    {
+      "pid": 26379,
+      "groupAlive": false
+    },
+    {
+      "pid": 26382,
+      "groupAlive": false
+    },
+    {
+      "pid": 26384,
+      "groupAlive": false
+    },
+    {
+      "pid": 26386,
+      "groupAlive": false
+    },
+    {
+      "pid": 26391,
+      "groupAlive": false
+    },
+    {
+      "pid": 26394,
+      "groupAlive": false
+    },
+    {
+      "pid": 26399,
+      "groupAlive": false
+    },
+    {
+      "pid": 26407,
+      "groupAlive": false
+    },
+    {
+      "pid": 26410,
+      "groupAlive": false
+    },
+    {
+      "pid": 26413,
+      "groupAlive": false
+    },
+    {
+      "pid": 26425,
+      "groupAlive": false
+    },
+    {
+      "pid": 26427,
+      "groupAlive": false
+    },
+    {
+      "pid": 26428,
+      "groupAlive": false
+    },
+    {
+      "pid": 26429,
+      "groupAlive": false
+    },
+    {
+      "pid": 26432,
+      "groupAlive": false
+    },
+    {
+      "pid": 26434,
+      "groupAlive": false
+    },
+    {
+      "pid": 26437,
+      "groupAlive": false
+    },
+    {
+      "pid": 26440,
+      "groupAlive": false
+    },
+    {
+      "pid": 26442,
+      "groupAlive": false
+    },
+    {
+      "pid": 26446,
+      "groupAlive": false
+    },
+    {
+      "pid": 26450,
+      "groupAlive": false
+    },
+    {
+      "pid": 26453,
+      "groupAlive": false
+    },
+    {
+      "pid": 26456,
+      "groupAlive": false
+    },
+    {
+      "pid": 26460,
+      "groupAlive": false
+    },
+    {
+      "pid": 26463,
+      "groupAlive": false
+    },
+    {
+      "pid": 26464,
+      "groupAlive": false
+    },
+    {
+      "pid": 26467,
+      "groupAlive": false
+    },
+    {
+      "pid": 26474,
+      "groupAlive": false
+    },
+    {
+      "pid": 26482,
+      "groupAlive": false
+    },
+    {
+      "pid": 26484,
+      "groupAlive": false
+    },
+    {
+      "pid": 26515,
+      "groupAlive": false
+    },
+    {
+      "pid": 26526,
+      "groupAlive": false
+    },
+    {
+      "pid": 26529,
+      "groupAlive": false
+    },
+    {
+      "pid": 26532,
+      "groupAlive": false
+    },
+    {
+      "pid": 26534,
+      "groupAlive": false
+    },
+    {
+      "pid": 26538,
+      "groupAlive": false
+    },
+    {
+      "pid": 26548,
+      "groupAlive": false
+    },
+    {
+      "pid": 26551,
+      "groupAlive": false
+    },
+    {
+      "pid": 26553,
+      "groupAlive": false
+    },
+    {
+      "pid": 26557,
+      "groupAlive": false
+    },
+    {
+      "pid": 26558,
+      "groupAlive": false
+    },
+    {
+      "pid": 26560,
+      "groupAlive": false
+    },
+    {
+      "pid": 26563,
+      "groupAlive": false
+    },
+    {
+      "pid": 26566,
+      "groupAlive": false
+    },
+    {
+      "pid": 26571,
+      "groupAlive": false
+    },
+    {
+      "pid": 26573,
+      "groupAlive": false
+    },
+    {
+      "pid": 26575,
+      "groupAlive": false
+    },
+    {
+      "pid": 26579,
+      "groupAlive": false
+    },
+    {
+      "pid": 26582,
+      "groupAlive": false
+    },
+    {
+      "pid": 26585,
+      "groupAlive": false
+    },
+    {
+      "pid": 26589,
+      "groupAlive": false
+    },
+    {
+      "pid": 26594,
+      "groupAlive": false
+    },
+    {
+      "pid": 26596,
+      "groupAlive": false
+    },
+    {
+      "pid": 26599,
+      "groupAlive": false
+    },
+    {
+      "pid": 26608,
+      "groupAlive": false
+    },
+    {
+      "pid": 26612,
+      "groupAlive": false
+    },
+    {
+      "pid": 26615,
+      "groupAlive": false
+    },
+    {
+      "pid": 26617,
+      "groupAlive": false
+    },
+    {
+      "pid": 26620,
+      "groupAlive": false
+    },
+    {
+      "pid": 26623,
+      "groupAlive": false
+    },
+    {
+      "pid": 26626,
+      "groupAlive": false
+    },
+    {
+      "pid": 26631,
+      "groupAlive": false
+    },
+    {
+      "pid": 26635,
+      "groupAlive": false
+    },
+    {
+      "pid": 26638,
+      "groupAlive": false
+    },
+    {
+      "pid": 26652,
+      "groupAlive": false
+    },
+    {
+      "pid": 26658,
+      "groupAlive": false
+    },
+    {
+      "pid": 26661,
+      "groupAlive": false
+    },
+    {
+      "pid": 26662,
+      "groupAlive": false
+    },
+    {
+      "pid": 26665,
+      "groupAlive": false
+    },
+    {
+      "pid": 28536,
+      "groupAlive": false
+    },
+    {
+      "pid": 28538,
+      "groupAlive": false
+    },
+    {
+      "pid": 28955,
+      "groupAlive": false
+    },
+    {
+      "pid": 28956,
+      "groupAlive": false
+    },
+    {
+      "pid": 29305,
+      "groupAlive": false
+    },
+    {
+      "pid": 29307,
+      "groupAlive": false
+    }
+  ]
+}

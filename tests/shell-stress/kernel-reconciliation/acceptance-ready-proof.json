@@ -1,0 +1,99 @@
+{
+  "text": "SUBSTRING AUTHOR READY — 2026-08-27\nSOURCE WRITE LEASE RELINQUISHED. NO FURTHER SOURCE WRITES until root routing.\n\nAtomic commit f1bb98b4ec8fd9cc198959e85f96e38880e72243\nfeat(shell): support bounded scalar substring expansion\n15 explicit owned paths only: src/shell/parser.ts +runtime.ts and NEW\ntests/shell/substring-* author source/tests/evidence/report. Foreign7031 index\nentries byte-identical before/after --only commit, SHA256\n6730da70da2230bdc03fdde32d6c1a8908b1314dc09130f0b2d565c9cb61971b.\nOwned worktree clean after commit. Baseline3243c5 untouched.\n\nCurrent guarded/actually imported TS hashes:\nruntime.ts e8f1edb842d04498050d314091269974df157b11ab13cabba41d9c84a0191538\nparser.ts feb6cbb2f03ec0c409adeb816bec506788fb3014a23c8dd02f4002362dc4b9f2\nUnchanged arithmetic.ts\n5e2d784b8fd333972e6e413f4c3478163462a3c1abf8cc5ff7173963420440bd\nshell.ts4ac91162195c150848793c92b8b1e90f15a36e67b5ae8a2652fe7ed9dcf4fb5e\ntypes.tsfc4133f1fb41283b0586aa7597c766d393d4f91067b613f4777e5adbef230a6d\nContracts unchanged84fc742:\ncommand.ts1ec2f2907eb123ea366623bda293249a62bad6886a63bebb957930df0d414ffa\nfilesystem.ts7c72ddef5660c9a1bd62910d3155a4278ce8d7607f811b32d27cf21149be4009\nPublic export names/contract fields/dependencies/manifests changed: NONE.\n\nImplemented named/numbered scalar ${NAME:offset[:length]} using existing signed64\narithmetic evaluator/state. Nested expansions/ternary delimiter handling; decimal\nmulti-digit/leading-zero positional identity; unset/value snapshot/order semantics;\nempty/omitted/negative bounds and BigInt-safe clamping; quoted/unquoted fields;\nshared source/command/loop/depth/output/expansion budgets and typed cancellation.\nMalformed nested syntax prevalidates before effects; arithmetic errors stay fatal\nat expansion with earlier effects preserved. No newShell/Budget/host execution.\n\nMain native capture BEFORE source edits:50 cases x2wholelocales(C,en_US.UTF-8)\nx2profiles(GNU5.3/Bash3.2)=200 case executions, plus actual version/locale witnesses.\nInitial author2/100 retained. Supplemental leading-zero four-case wholeC cohort\nfrozen before zero-identity correction:3/4 before,4/4 after both profiles. Initial\npure /tmp-cwd supplemental run repeated in isolateddirs, identical whole eight\nnative/virtual observation bytes; disclosed, not per-case oracle or product retry.\n\nFinal raw MAIN exact byte/status/file-content comparisons:\nGNU5.3 C48/50, UTF850/50. Historical C39/50, UTF841/50.\nSupplemental4/4 each native. Combined primary102/104; historical84/104.\nTwo C byte slices producing invalidUTF8 remain REAL unsupported native losses:\nexplicit fatal diagnostic, no replacement decoding/lossy façade. Native complete\nrows retained. Author tests separately assert this limit, NOT native equality.\nHistorical negative-length/nested-operand/diagnostic differences retained.\nFile effects assert names/content, not creation modes; known0666vs0644 remains\nunclosed and excluded from any filesystem-mode-parity claim.\n\nFinal guarded tests:author105/105 (100 main including2 unsupported-error controls,\n4 supplemental,1 bounded child with16 checks), affectedparser/expansion132/132,\nsource/eval86/86, current-shell44/44 TAP(43 leaves+wrapper). Total367 TAP passes.\nFinal global/build/benchmark noEmit0/0/0; prelisted1108/308/417 inputs; changed0,\nactual-import mismatch0, unguardedcompilerinputs0. Initial global2 own helper\nTS7034/TS7005 preserved; explicit array type correction, no suppression/flags/casts.\nCurrent-shell nested source guards also pass. No emitting tsc/full suite/36/72,\nold9 warning or accepted accounting/lifecycle reruns.\n\nDurable tests/shell/substring-report.md, substring-native.json, substring-red.json,\nsubstring-positional-native.json, substring-validation.json and capture/verify/\ntest sources. Detailed guards/rawlogs /tmp/safe-bash-substring-validation.json\nand /tmp/safe-bash-substring-validation-final.json, hashes in durable evidence.\nAll own children closed/group-cleaned; validation PID/groups absent; no watchers\nor SIGSTOP. Source frozen; independent substring/reconciliation rerun required.\nArrays/@/* and other nonscalar/special forms outside this bounded increment;\nnonUTF8 locale families/general missing grammar remain unproved. Env-shebang\noptional args/real-errexit, allowlist126vs127, creation-mask/all-command policy,\nold9 and fivefirstread remain separate. No full-shell/parity/superiority claim.\n",
+  "sha256": "ff631fb83d7243b382ca28e9a1432b731953678073ca0a31b5e87cffca74bc2d",
+  "stamp": {
+    "timestamp": "2026-08-27T05:01:22.115Z",
+    "anchor": "f1bb98b4ec8fd9cc198959e85f96e38880e72243",
+    "head": "72f6fe6dcf760512418732fa85cf1dd1cbe96297",
+    "runtimeCommit": "f1bb98b4ec8fd9cc198959e85f96e38880e72243",
+    "shell": {
+      "src/shell/arithmetic.ts": {
+        "actual": "5e2d784b8fd333972e6e413f4c3478163462a3c1abf8cc5ff7173963420440bd",
+        "committed": "5e2d784b8fd333972e6e413f4c3478163462a3c1abf8cc5ff7173963420440bd",
+        "matches": true
+      },
+      "src/shell/display.ts": {
+        "actual": "3d372572020a09dc5484acc575891ab1f24c8c9eba263c0a17c49b714611e069",
+        "committed": "3d372572020a09dc5484acc575891ab1f24c8c9eba263c0a17c49b714611e069",
+        "matches": true
+      },
+      "src/shell/index.ts": {
+        "actual": "235ad982a7bfe23823b4e07d714ed73e924a5d7759a8664f8533b03517ffa383",
+        "committed": "235ad982a7bfe23823b4e07d714ed73e924a5d7759a8664f8533b03517ffa383",
+        "matches": true
+      },
+      "src/shell/input.ts": {
+        "actual": "7af2dac6dfd6290e9f189590e9190b2e0703dcd99998212e471378063cd9a7b4",
+        "committed": "7af2dac6dfd6290e9f189590e9190b2e0703dcd99998212e471378063cd9a7b4",
+        "matches": true
+      },
+      "src/shell/locale.ts": {
+        "actual": "1b0687b8401c3f0886a793bf6f212a1731d4bd973be6ac2c7642254e6e1fb2d2",
+        "committed": "1b0687b8401c3f0886a793bf6f212a1731d4bd973be6ac2c7642254e6e1fb2d2",
+        "matches": true
+      },
+      "src/shell/parser.ts": {
+        "actual": "feb6cbb2f03ec0c409adeb816bec506788fb3014a23c8dd02f4002362dc4b9f2",
+        "committed": "feb6cbb2f03ec0c409adeb816bec506788fb3014a23c8dd02f4002362dc4b9f2",
+        "matches": true
+      },
+      "src/shell/pattern.ts": {
+        "actual": "eaf798a7f92c050734e97ef77e07397b3e5710a822575899cca81a527985609a",
+        "committed": "eaf798a7f92c050734e97ef77e07397b3e5710a822575899cca81a527985609a",
+        "matches": true
+      },
+      "src/shell/runtime.ts": {
+        "actual": "e8f1edb842d04498050d314091269974df157b11ab13cabba41d9c84a0191538",
+        "committed": "e8f1edb842d04498050d314091269974df157b11ab13cabba41d9c84a0191538",
+        "matches": true
+      },
+      "src/shell/shell.ts": {
+        "actual": "4ac91162195c150848793c92b8b1e90f15a36e67b5ae8a2652fe7ed9dcf4fb5e",
+        "committed": "4ac91162195c150848793c92b8b1e90f15a36e67b5ae8a2652fe7ed9dcf4fb5e",
+        "matches": true
+      },
+      "src/shell/types.ts": {
+        "actual": "fc4133f1fb41283b0586aa7597c766d393d4f91067b613f4777e5adbef230a6d",
+        "committed": "fc4133f1fb41283b0586aa7597c766d393d4f91067b613f4777e5adbef230a6d",
+        "matches": true
+      }
+    },
+    "immutableDrift": [],
+    "status": "?? benchmarks/reports/comparison-fairness-20260827/\n?? benchmarks/reports/current-integration/comparison-replay-20260827/\n?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/\n?? tests/commands/search-stress/.native-1m4O1e/\n?? tests/commands/stream-inspection/evidence/fixer-numeric-before.json\n?? tests/commands/stream-inspection/evidence/fixer-numeric-exploratory.json\n?? tests/commands/stream-inspection/numeric-syntax-cases.ts\n?? tests/commands/stream-inspection/numeric-syntax-oracle.ts\n?? tests/fs/s3/http/final-verification/protocol/\n?? tests/shell-stress/kernel-reconciliation/acceptance-capture.mjs\n?? tests/shell-stress/kernel-reconciliation/acceptance-native36.mjs\n?? tests/shell-stress/kernel-reconciliation/acceptance-native57.ts\n?? tests/shell-stress/kernel-reconciliation/acceptance-support.mjs\n?? tests/shell-stress/substring-holdout/acceptance-f1bb98b.json\n?? tests/shell-stress/substring-holdout/acceptance-product.mjs\n?? tests/shell-stress/substring-holdout/acceptance.mjs\n?? tests/stress/regex-execution/design/review/evidence/",
+    "staged": "",
+    "valid": true
+  },
+  "immutable": {
+    "tests/shell-stress/current-shell/support.mjs": "d7b278db709f869a03e5cce56c501011a1162465b03ecfc1663465b0163c6f8a",
+    "tests/shell-stress/expanded-gaps/cases.mjs": "11a4928d6cf4c64de20752e2b918bafa511789fabf048221dc841ed2638f52fd",
+    "tests/shell-stress/expanded-gaps/harness.mjs": "74efccf649ffb3b0835a92d46d495ff9dd3a28c5e4b419270c976c92c6989e1b",
+    "tests/shell-stress/expanded-gaps/native-frozen.json": "9afb51e0eed4f9fe1a61c52a146066edf11a6cc53408dd0b442186bbcd25a302",
+    "tests/shell-stress/expanded-gaps/native.mjs": "64e6ac8e1801c1f11dae37cd99629309579a1555d5164aef5c9daddb0d516b46",
+    "tests/shell-stress/expanded-gaps/product.mjs": "50578db97f08968c2f64c0309b46e9c0bae127f15721f1fd1754881c5deb54c5",
+    "tests/shell-stress/invocation-modes/capture-native.ts": "87f6c12062d4e14dd31f164e4b547f39e9a94d2b646e6553299b99587ca446a0",
+    "tests/shell-stress/invocation-modes/cases.ts": "fdc22c27541f4f29334274e35238c22fa4645730dbe5239134a585ee8e03f83c",
+    "tests/shell-stress/invocation-modes/harness.ts": "e8735e961c91e6c0ff170d4105c595f5ac9af548d3572cdd97f45f810f0a0679",
+    "tests/shell-stress/invocation-modes/holdout.test.ts": "ba1a9c461822a81fa99193ad3aa04bf1382cf0bb567d2e4569d5f67c93ac5d02",
+    "tests/shell-stress/invocation-modes/native-corrected-evidence.json": "86e6be4ec1ad22f3c5956ed0b37d8091653c4858fbf143f35b2e80eae4b67e45",
+    "tests/shell-stress/invocation-modes/trace.mjs": "e433375f13dabbf72b364f14cc780e1d30b8d67c386765e0e713b43d2c7996ed",
+    "tests/shell-stress/invocation-modes/virtual-child.ts": "c5d770ba6ba0522e0387fbcbdd0dd00c9437ae3520ae593aeaf1546be604781d",
+    "tests/shell-stress/kernel-reconciliation/BASELINE.md": "54cae5200304d4d6ef6fed01993c841c0c58d75f82abc7bc2210e8d854a71483",
+    "tests/shell-stress/kernel-reconciliation/RAW_ROWS.md": "d9187fff4b62810d1446c63810608d0b0a7eaed82223335c464178a01ecb307a",
+    "tests/shell-stress/kernel-reconciliation/audit.json": "cfb8cd0e7dc087398e9bfc50a26ad9978801c5c62725332e1d776a7e1a795787",
+    "tests/shell-stress/kernel-reconciliation/baseline-current.json": "ab79f0254cbc20a9923a78802ce2dab86b383dadfb04c8dbf7ff2528cb3ab1d8",
+    "tests/shell-stress/kernel-reconciliation/baseline-recovered.json": "5feb7451dcef401d7b33dc27adb6fd6d408fe66fa80816664538b91ac67051bc",
+    "tests/shell-stress/kernel-reconciliation/capture.mjs": "5a01e3542c63aad20f93d6c53b92850318eaadfd7bcfc01267b0a62c2bd1810b",
+    "tests/shell-stress/kernel-reconciliation/corrected72.tap": "7a4323acefcd385bd02dc2d3979757757b26e1b5d0c43323d13029e68ad9f3fe",
+    "tests/shell-stress/kernel-reconciliation/functional-handoff.json": "57dc77bc833ff3c6778d68b00a41171a18fa258735d12b75a69a1e5c967c6f4d",
+    "tests/shell-stress/kernel-reconciliation/native36-current.json": "7ef74516df90327cbe8ec5821cd4dfcc928a053eb3410335c711e253ad89e02f",
+    "tests/shell-stress/kernel-reconciliation/native36.mjs": "a3ff27fd16b9d9872dfbe2b3bd7a566b8f640fb62d8a4fcc5dbb2bd94d9c6e89",
+    "tests/shell-stress/kernel-reconciliation/native57-current.json": "85995da790b5f62051c0743d6c92361ec57ffd277c46a7eafabde3987728f799",
+    "tests/shell-stress/kernel-reconciliation/native57.ts": "3d3673f2e28c1d834b4eb6d66952b56b9b0e441b3979ee3e97377ae498a80725",
+    "tests/shell-stress/kernel-reconciliation/report.mjs": "45b6f3f48a9e22f51df4ff966e618ab1c15c699ae6deff9bd8eeb8dd327a4ce9",
+    "tests/shell-stress/kernel-reconciliation/scoped-typecheck.json": "e108d52e755f0050f8aa677b7ef94c03c7e18640f847e99a20a988841b50a9f3",
+    "tests/shell-stress/kernel-reconciliation/seal.json": "909f2d0a1cb4bb63f8620b88be393d5a445f69e3d4f5a5c6a7b25fa976bb0645",
+    "tests/shell-stress/kernel-reconciliation/support.d.mts": "79b24079ff93f916aa5f35db06f98b1352df5703d0c3305dc12012da7587d869",
+    "tests/shell-stress/kernel-reconciliation/support.mjs": "7cbe2c4a7271d81a6abd98fc2d91852d193d9d1c2e6efa99b796b8f0dcef86d4",
+    "tests/shell-stress/kernel-reconciliation/unresolved-rows.json": "8333bb783775b8a18d84bf909f0aacffedbb6742ca48f4f42889a1f6afbae906"
+  }
+}

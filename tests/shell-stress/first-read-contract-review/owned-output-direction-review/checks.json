@@ -1,0 +1,134 @@
+{
+  "schema": 1,
+  "classification": "PREPARATION_ONLY_NO_PRODUCT_EXECUTION",
+  "nodeVersion": "v22.22.2",
+  "nodeExecutable": {
+    "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+  },
+  "timeoutMsPerCheck": 3000,
+  "maxCaptureBytesPerStream": 131072,
+  "checks": [
+    {
+      "program": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--check",
+        "tests/shell-stress/first-read-contract-review/owned-output-direction-review/probes.mjs"
+      ],
+      "expected": 0,
+      "startedAt": "2026-08-27T10:06:41.404Z",
+      "finishedAt": "2026-08-27T10:06:41.427Z",
+      "pid": 10862,
+      "exitCode": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "",
+      "stderr": "",
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "expectedOutcomeObserved": true
+    },
+    {
+      "program": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--check",
+        "tests/shell-stress/first-read-contract-review/owned-output-direction-review/scaffold.mjs"
+      ],
+      "expected": 0,
+      "startedAt": "2026-08-27T10:06:41.428Z",
+      "finishedAt": "2026-08-27T10:06:41.451Z",
+      "pid": 10868,
+      "exitCode": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "",
+      "stderr": "",
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "expectedOutcomeObserved": true
+    },
+    {
+      "program": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "tests/shell-stress/first-read-contract-review/owned-output-direction-review/scaffold.mjs",
+        "verify"
+      ],
+      "expected": 0,
+      "startedAt": "2026-08-27T10:06:41.451Z",
+      "finishedAt": "2026-08-27T10:06:41.485Z",
+      "pid": 10874,
+      "exitCode": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "{\n  \"classification\": \"PREPARATION_INTEGRITY_ONLY_NOT_PRODUCT_ACCEPTANCE\",\n  \"logicalCaseCount\": 7,\n  \"maximumLogicalCaseCount\": 7,\n  \"productExecuted\": 0,\n  \"productPassed\": null,\n  \"pending\": [\n    \"D01\",\n    \"D02\",\n    \"D03\",\n    \"D04\",\n    \"D05\",\n    \"D06\",\n    \"D07\"\n  ],\n  \"frozenFilesVerified\": 3,\n  \"historicalFilesVerified\": 29,\n  \"sealSha256\": \"eb2fde0beb13aeb738019309c6db9ec8aa4ab9694a82d3f35efc1cbfae0527ae\"\n}\n",
+      "stderr": "",
+      "stdoutSha256": "43e385c39f61645a8f8acc47438aafbfc82a1de44730f913e28dabcfe5cba800",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "expectedOutcomeObserved": true
+    },
+    {
+      "program": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "tests/shell-stress/first-read-contract-review/owned-output-direction-review/scaffold.mjs",
+        "check-probes"
+      ],
+      "expected": 0,
+      "startedAt": "2026-08-27T10:06:41.485Z",
+      "finishedAt": "2026-08-27T10:06:41.520Z",
+      "pid": 10885,
+      "exitCode": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "{\n  \"classification\": \"SYNTHETIC_PROBE_CHECK_ONLY\",\n  \"productExecuted\": 0,\n  \"productPassed\": null\n}\n",
+      "stderr": "",
+      "stdoutSha256": "136bd651b97a51444382f2ff76a79335259df973d38b25ef2c656e3d5b73785e",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "expectedOutcomeObserved": true
+    },
+    {
+      "program": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "tests/shell-stress/first-read-contract-review/owned-output-direction-review/scaffold.mjs",
+        "run"
+      ],
+      "expected": 2,
+      "startedAt": "2026-08-27T10:06:41.520Z",
+      "finishedAt": "2026-08-27T10:06:41.551Z",
+      "pid": 10896,
+      "exitCode": 2,
+      "signal": null,
+      "error": null,
+      "stdout": "",
+      "stderr": "PREPARATION_ONLY: no authenticated v2 binding or product driver; run is unavailable\n",
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrSha256": "7e18382afc48a4bdd12b72e35c94d477abf0a23b8bc4d9f6a721ede752a2923a",
+      "expectedOutcomeObserved": true
+    },
+    {
+      "program": "git",
+      "args": [
+        "diff",
+        "--check",
+        "--",
+        "tests/shell-stress/first-read-contract-review/owned-output-direction-review"
+      ],
+      "expected": 0,
+      "startedAt": "2026-08-27T10:06:41.551Z",
+      "finishedAt": "2026-08-27T10:06:41.571Z",
+      "pid": 10906,
+      "exitCode": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "",
+      "stderr": "",
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "expectedOutcomeObserved": true
+    }
+  ],
+  "allExpectedOutcomesObserved": true,
+  "productExecuted": 0,
+  "productPassed": null,
+  "frozenLogicalCaseCount": 7,
+  "resourceSummary": "Only synchronous bounded check children; all reaped by spawnSync. No servers, network, candidate imports or product runtime. No signals when signal=null."
+}

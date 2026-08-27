@@ -138,10 +138,25 @@ forces lowercase even with `^`, and on weekday/month names forces uppercase.
 Numeric zone padding covers the sign and raw offset; colon-separated minutes
 and seconds retain their two digits, while unpadded hours need not have two.
 `%:z`, `%::z`, `%:::z` produce colonized offsets. An unmodified `%%` is literal;
-decorated/width-qualified percent literals reject. `%N` or `%1N`..`%9N` preserves
-explicit input nanoseconds, truncating for smaller widths. Flags or precision
-above9 on N reject. Negative epoch `%s` floors, with a nonnegative fractional
+decorated/width-qualified percent literals reject. `%N` defaults to nine fractional
+digits; an explicit width truncates digits or pads on the right. `%3N` and `%6N`
+give milliseconds/microseconds without rounding; widths above9 append zeros,
+not measured precision. `0` pads right with zeros, `_` with spaces, and `-` omits
+insignificant trailing zeros after truncation (at least one digit remains).
+Padding flags obey their order; `^`/`#` do not change numeric digits. Width and
+remaining byte limits are checked before allocating padding. E/O/colon modifiers
+on N still reject. Negative epoch `%s` floors, with a nonnegative fractional
 remainder. UTC/Gregorian and ISO-week formatting do not use host locale.
+
+Bare `%-N` follows that same unpadded virtual rule and retains all available input
+precision. GNU date9.7 specially rewrites this exact spelling to a precision based
+on the native machine's clock resolution, even for explicit input; the observed
+Darwin oracle uses six digits. The virtual command does not invent a host clock
+resolution or truncate explicit nanoseconds to it. This measured native profile
+difference is retained in `tests/commands/time-env/fraction-expansion/native-v1.json`.
+The historical rejection profile for decorated/>9-width N remains preserved in
+the original author and independent captures; the expansion has new versioned
+positive assertions rather than silently rewriting those old results.
 
 **No fake measured nanosecond precision:** Date.now supplies milliseconds, so
 its N output ends in six zeros. Explicit input may supply nine digits. A VFS

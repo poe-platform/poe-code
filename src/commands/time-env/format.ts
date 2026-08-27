@@ -83,11 +83,13 @@ export function formatDate(format: string, instant: bigint, zone: TimeZone, limi
       case "m": value = String(fields.month); defaultWidth = 2; break;
       case "M": value = String(fields.minute); defaultWidth = 2; break;
       case "n": value = "\n"; break;
-      case "N":
-        if (padding !== undefined || swap || upper || (width !== undefined && (width < 1 || width > 9))) {
-          throw new CommandFailure("%N supports unmodified precision1 through9 only");
-        }
-        append(nano.slice(0, width ?? 9)); continue;
+      case "N": {
+        const precision = width ?? 9;
+        const digits = nano.slice(0, precision).replace(/0+$/, "") || "0";
+        const length = padding === "" ? digits.length : precision;
+        checkSize(size + length + 1, limits.maxOutputBytes, "output");
+        append(padding === "" ? digits : digits.padEnd(precision, padding ?? "0")); continue;
+      }
       case "p": value = meridian; break;
       case "P": value = meridian.toLowerCase(); break;
       case "q": value = String(Math.ceil(fields.month / 3)); defaultWidth = 1; break;

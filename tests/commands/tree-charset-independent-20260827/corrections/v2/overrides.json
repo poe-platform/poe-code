@@ -1,0 +1,15 @@
+{
+  "schema": 1,
+  "revises": "supplemental-freeze/cases.json",
+  "rationale": "exact f1a90436 virtual contract plus authenticated native tree 2.2.1 Darwin observations",
+  "overrides": [
+    { "id": "P08", "replace": { "expect": "ascii" }, "remove": ["expectError"] },
+    { "id": "P09", "replace": { "expect": "ascii" }, "remove": ["expectError"] },
+    { "id": "P10", "replace": { "expect": "utf8" }, "remove": ["expectError"] },
+    { "id": "A11", "replace": { "expect": "ascii" }, "remove": ["expectError"] }
+  ],
+  "unchangedDistinctions": [
+    "unknown or empty explicit --charset remains a status-2 usage error",
+    "lowercase .utf8 locale aliases are virtual extensions and not native Darwin parity"
+  ]
+}

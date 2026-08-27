@@ -1,0 +1,31 @@
+{
+  "phase": "exact-registry53",
+  "capturedEpoch": 1787792020.318027,
+  "provenance": "CONTEMPORANEOUS immediately before spawn",
+  "env": {
+    "PATH": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin:/opt/homebrew/bin:/usr/bin:/bin",
+    "LANG": "C.UTF-8",
+    "LC_ALL": "C.UTF-8",
+    "TZ": "UTC",
+    "CI": "1",
+    "HOME": "/tmp/safe-bash-registry-post-tar-refined-ujuf3ja1/environment/exact-registry53/HOME",
+    "TMPDIR": "/tmp/safe-bash-registry-post-tar-refined-ujuf3ja1/environment/exact-registry53/TMPDIR",
+    "XDG_CACHE_HOME": "/tmp/safe-bash-registry-post-tar-refined-ujuf3ja1/environment/exact-registry53/XDG_CACHE_HOME",
+    "XDG_CONFIG_HOME": "/tmp/safe-bash-registry-post-tar-refined-ujuf3ja1/environment/exact-registry53/XDG_CONFIG_HOME",
+    "XDG_DATA_HOME": "/tmp/safe-bash-registry-post-tar-refined-ujuf3ja1/environment/exact-registry53/XDG_DATA_HOME",
+    "XDG_STATE_HOME": "/tmp/safe-bash-registry-post-tar-refined-ujuf3ja1/environment/exact-registry53/XDG_STATE_HOME",
+    "npm_config_cache": "/tmp/safe-bash-registry-post-tar-refined-ujuf3ja1/environment/exact-registry53/npm_config_cache",
+    "XDG_RUNTIME_DIR": "/tmp/safe-bash-registry-post-tar-refined-ujuf3ja1/environment/exact-registry53/runtime"
+  },
+  "cwd": "/tmp/safe-bash-registry-post-tar-refined-ujuf3ja1/source",
+  "argv": [
+    "node",
+    "--unhandled-rejections=strict",
+    "--import",
+    "tsx",
+    "--input-type=module",
+    "-e",
+    "import assert from \"node:assert/strict\";\nimport { readFileSync } from \"node:fs\";\nimport { resolve } from \"node:path\";\nimport { pathToFileURL } from \"node:url\";\nconst contract = JSON.parse(readFileSync(process.argv[1], \"utf8\"));\nassert.equal(contract.count, 53);\nassert.equal(contract.names.length, 53);\nassert.equal(new Set(contract.names).size, 53);\nconst expected = [...contract.names].sort();\nconst api = await import(pathToFileURL(resolve(\"src/index.ts\")).href);\nconst definitions = api.createAgentCommands().map(command => command.name).sort();\nassert.deepEqual(definitions, expected, \"factory must expose the independently pinned 53 default names\");\nconst shell = new api.Shell({ fs: api.createMemoryFileSystem() }).use(api.agentCommands());\ntry {\n  const initialized = await shell.exec(\":\");\n  assert.equal(initialized.exitCode, 0, initialized.stderr);\n  const installed = shell.commands.list().map(command => command.name).sort();\n  assert.deepEqual(installed, expected, \"initialized host must expose the independently pinned 53 default names\");\n  assert.equal(new Set(installed).size, 53);\n  for (const name of contract.forbiddenDefaultNames) assert.equal(installed.includes(name), false, name);\n  console.log(JSON.stringify({ kind: \"separate-exact-registry-probe\", expected, definitions, installed, count: installed.length }));\n} finally { await shell.dispose(); }\n",
+    "/tmp/safe-bash-registry-post-tar-refined-ujuf3ja1/aux/expected-default-commands.json"
+  ]
+}

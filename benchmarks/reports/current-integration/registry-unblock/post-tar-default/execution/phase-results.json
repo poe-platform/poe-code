@@ -1,0 +1,74 @@
+[
+  {
+    "phase": "matrix79",
+    "exit": 1,
+    "signal": null,
+    "timeout": false,
+    "seconds": 1.531,
+    "pid": 34072,
+    "remainingProcessGroupKilled": false
+  },
+  {
+    "phase": "diagnostics8",
+    "exit": 0,
+    "signal": null,
+    "timeout": false,
+    "seconds": 0.504,
+    "pid": 34087,
+    "remainingProcessGroupKilled": false
+  },
+  {
+    "phase": "fresh6",
+    "exit": 0,
+    "signal": null,
+    "timeout": false,
+    "seconds": 0.408,
+    "pid": 34090,
+    "remainingProcessGroupKilled": false
+  },
+  {
+    "phase": "split6",
+    "exit": 0,
+    "signal": null,
+    "timeout": false,
+    "seconds": 0.419,
+    "pid": 34094,
+    "remainingProcessGroupKilled": false
+  },
+  {
+    "phase": "exact-registry53",
+    "exit": 0,
+    "signal": null,
+    "timeout": false,
+    "seconds": 0.199,
+    "pid": 34097,
+    "remainingProcessGroupKilled": false
+  },
+  {
+    "phase": "registry-author2",
+    "exit": 0,
+    "signal": null,
+    "timeout": false,
+    "seconds": 0.409,
+    "pid": 34100,
+    "remainingProcessGroupKilled": false
+  },
+  {
+    "phase": "preflight-author30",
+    "exit": 0,
+    "signal": null,
+    "timeout": false,
+    "seconds": 0.291,
+    "pid": 34111,
+    "remainingProcessGroupKilled": false
+  },
+  {
+    "phase": "independent162",
+    "exit": 0,
+    "signal": null,
+    "timeout": false,
+    "seconds": 1.134,
+    "pid": 34120,
+    "remainingProcessGroupKilled": false
+  }
+]

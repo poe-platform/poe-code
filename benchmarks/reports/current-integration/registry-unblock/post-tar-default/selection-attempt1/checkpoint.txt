@@ -1,0 +1,8 @@
+POST-TAR separate frozen DIRTY 2cacd04614baaa6e95f8663b73ded023eafd2c19
+selected SHA256 db607f2ccabd1e75afb9441d358e19c3b5a350a500dddc82bddd4c3a58b91abc
+src SHA256 06069adee39d4b3b9c837a80e9f74e35d75ca1ba7f42d0f238f257e628596e78
+1322 selected regular files; 915 exclusions; capture stable; 4a737f9 exact handoff matches
+Snapshot /tmp/safe-bash-registry-post-tar-nuzewj1c/source-attempt-1
+Exact99=79+8+6+6; independent154 same-cardinality53 omissions +7 optional54 workflows +1 literal22 contract; separate literal53/registry2/author30.
+Exact argv and per-file hashes: /Users/kjopek/Workspace/safe-bash/benchmarks/reports/current-integration/registry-unblock/post-tar-default/execution/sealed-input.json
+900-second deadline, no fullsuite/comparator/tar semantic tests; prior52 phase immutable.

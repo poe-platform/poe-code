@@ -1,0 +1,20 @@
+{
+  "status": "PROPOSED INDEPENDENT LITERAL CONTRACT; confirm in explicit author handoff",
+  "count": 52,
+  "names": [
+    "[", "awk", "base32", "base64", "basename", "cat", "chmod", "cksum",
+    "cp", "cut", "diff", "dirname", "echo", "env", "false", "find", "grep",
+    "gunzip", "gzip", "head", "jq", "ln", "ls", "md5sum", "mkdir", "mktemp",
+    "mv", "od", "patch", "printf", "pwd", "readlink", "realpath", "rg", "rm",
+    "rmdir", "sed", "sha1sum", "sha256sum", "sort", "stat", "tail", "tee",
+    "test", "touch", "tr", "true", "uniq", "wc", "xargs", "xxd", "zcat"
+  ],
+  "forbiddenDefaultNames": ["curl", "safejs"],
+  "provenance": "Explicit 49-to-52 author-intended contract, independently transcribed and checked against accepted historical inventory; never derive expectations from the runtime/factories under test",
+  "mutation": {
+    "remove": "cat",
+    "substitute": "__registry_unblock_missing_cat_control",
+    "requiredCardinality": 52,
+    "requiresHandoffConfirmation": true
+  }
+}

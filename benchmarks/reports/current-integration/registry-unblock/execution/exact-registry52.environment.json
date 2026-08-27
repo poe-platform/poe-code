@@ -1,0 +1,31 @@
+{
+  "phase": "exact-registry52",
+  "capturedEpoch": 1787791050.310666,
+  "provenance": "CONTEMPORANEOUS immediately before spawn",
+  "env": {
+    "PATH": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin:/opt/homebrew/bin:/usr/bin:/bin",
+    "LANG": "C.UTF-8",
+    "LC_ALL": "C.UTF-8",
+    "TZ": "UTC",
+    "CI": "1",
+    "HOME": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-registry-unblock-or9etxak/environment/exact-registry52/HOME",
+    "TMPDIR": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-registry-unblock-or9etxak/environment/exact-registry52/TMPDIR",
+    "XDG_CACHE_HOME": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-registry-unblock-or9etxak/environment/exact-registry52/XDG_CACHE_HOME",
+    "XDG_CONFIG_HOME": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-registry-unblock-or9etxak/environment/exact-registry52/XDG_CONFIG_HOME",
+    "XDG_DATA_HOME": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-registry-unblock-or9etxak/environment/exact-registry52/XDG_DATA_HOME",
+    "XDG_STATE_HOME": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-registry-unblock-or9etxak/environment/exact-registry52/XDG_STATE_HOME",
+    "npm_config_cache": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-registry-unblock-or9etxak/environment/exact-registry52/npm_config_cache",
+    "XDG_RUNTIME_DIR": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-registry-unblock-or9etxak/environment/exact-registry52/runtime"
+  },
+  "cwd": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-registry-unblock-or9etxak/source",
+  "argv": [
+    "node",
+    "--unhandled-rejections=strict",
+    "--import",
+    "tsx",
+    "--input-type=module",
+    "-e",
+    "import assert from \"node:assert/strict\";\nimport { readFileSync } from \"node:fs\";\nimport { resolve } from \"node:path\";\nimport { pathToFileURL } from \"node:url\";\nconst contract = JSON.parse(readFileSync(process.argv[1], \"utf8\"));\nassert.equal(contract.count, 52);\nassert.equal(contract.names.length, 52);\nassert.equal(new Set(contract.names).size, 52);\nconst expected = [...contract.names].sort();\nconst api = await import(pathToFileURL(resolve(\"src/index.ts\")).href);\nconst definitions = api.createAgentCommands().map(command => command.name).sort();\nassert.deepEqual(definitions, expected, \"factory must expose the independently pinned 52 default names\");\nconst shell = new api.Shell({ fs: api.createMemoryFileSystem() }).use(api.agentCommands());\ntry {\n  const initialized = await shell.exec(\":\");\n  assert.equal(initialized.exitCode, 0, initialized.stderr);\n  const installed = shell.commands.list().map(command => command.name).sort();\n  assert.deepEqual(installed, expected, \"initialized host must expose the independently pinned 52 default names\");\n  assert.equal(new Set(installed).size, 52);\n  for (const name of contract.forbiddenDefaultNames) assert.equal(installed.includes(name), false, name);\n  console.log(JSON.stringify({ kind: \"separate-exact-registry-probe\", expected, definitions, installed, count: installed.length }));\n} finally { await shell.dispose(); }\n",
+    "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-registry-unblock-or9etxak/aux/expected-default-commands.json"
+  ]
+}

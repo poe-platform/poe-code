@@ -1,0 +1,31 @@
+{
+  "phase": "independent162",
+  "capturedEpoch": 1787792766.7091541,
+  "provenance": "CONTEMPORANEOUS immediately before spawn",
+  "env": {
+    "PATH": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin:/opt/homebrew/bin:/usr/bin:/bin",
+    "LANG": "C.UTF-8",
+    "LC_ALL": "C.UTF-8",
+    "TZ": "UTC",
+    "CI": "1",
+    "HOME": "/tmp/safe-bash-registry-final56-tmm2jry8/environment/independent162/HOME",
+    "TMPDIR": "/tmp/safe-bash-registry-final56-tmm2jry8/environment/independent162/TMPDIR",
+    "XDG_CACHE_HOME": "/tmp/safe-bash-registry-final56-tmm2jry8/environment/independent162/XDG_CACHE_HOME",
+    "XDG_CONFIG_HOME": "/tmp/safe-bash-registry-final56-tmm2jry8/environment/independent162/XDG_CONFIG_HOME",
+    "XDG_DATA_HOME": "/tmp/safe-bash-registry-final56-tmm2jry8/environment/independent162/XDG_DATA_HOME",
+    "XDG_STATE_HOME": "/tmp/safe-bash-registry-final56-tmm2jry8/environment/independent162/XDG_STATE_HOME",
+    "npm_config_cache": "/tmp/safe-bash-registry-final56-tmm2jry8/environment/independent162/npm_config_cache",
+    "XDG_RUNTIME_DIR": "/tmp/safe-bash-registry-final56-tmm2jry8/environment/independent162/runtime"
+  },
+  "cwd": "/tmp/safe-bash-registry-final56-tmm2jry8/mutation-source",
+  "argv": [
+    "node",
+    "--unhandled-rejections=strict",
+    "--import",
+    "tsx",
+    "--test",
+    "--test-concurrency=1",
+    "--test-reporter=tap",
+    "audit/independent-mutations.test.mjs"
+  ]
+}

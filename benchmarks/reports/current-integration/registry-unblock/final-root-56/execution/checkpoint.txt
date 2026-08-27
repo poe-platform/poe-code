@@ -1,0 +1,8 @@
+FINAL ROOT56 single frozen CURRENT capture: DIRTY e8d308a11bf562efcfba1d8a861503883b4952a3
+selected SHA256 61b7000ac4ab394fcc88ec50686e2f7c05e27e75151e97fde2e864f8c6cb9c3d
+src SHA256 3f756a0dc31139c0888e976fc051ee0b83f7bbd31c937286b54aeddc3baf720e
+1379 independent regular files; before/after seal stable;33347b7 root fixture bytes match
+/tmp/safe-bash-registry-final56-tmm2jry8/source
+Exact99=79+8+6+6; separate full Curie root registry file;154 omissions preserve observed baseline cardinality;7 optional controls use baseline+1;1 literal22 contract. No literal56 full-registry workflow gate.
+Actual argv, dirtypaths and filehashes: /Users/kjopek/Workspace/safe-bash/benchmarks/reports/current-integration/registry-unblock/final-root-56/execution/sealed-input.json
+900s bound; no live source refresh after seal; no broader suites.

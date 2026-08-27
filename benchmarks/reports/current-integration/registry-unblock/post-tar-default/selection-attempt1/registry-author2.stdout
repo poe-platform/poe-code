@@ -1,0 +1,22 @@
+TAP version 13
+# Subtest: metadata root API preflights collisions and excludes optional network/runtime plugins
+ok 1 - metadata root API preflights collisions and excludes optional network/runtime plugins
+  ---
+  duration_ms: 2.137959
+  type: 'test'
+  ...
+# Subtest: aggregate definitions are exactly the eight delivered families, each registered once
+ok 2 - aggregate definitions are exactly the eight delivered families, each registered once
+  ---
+  duration_ms: 2.036792
+  type: 'test'
+  ...
+1..2
+# tests 2
+# suites 0
+# pass 2
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 364.086459

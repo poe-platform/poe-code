@@ -1,0 +1,32 @@
+{
+  "phase": "fresh6",
+  "capturedEpoch": 1787791049.4925828,
+  "provenance": "CONTEMPORANEOUS immediately before spawn",
+  "env": {
+    "PATH": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin:/opt/homebrew/bin:/usr/bin:/bin",
+    "LANG": "C.UTF-8",
+    "LC_ALL": "C.UTF-8",
+    "TZ": "UTC",
+    "CI": "1",
+    "HOME": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-registry-unblock-or9etxak/environment/fresh6/HOME",
+    "TMPDIR": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-registry-unblock-or9etxak/environment/fresh6/TMPDIR",
+    "XDG_CACHE_HOME": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-registry-unblock-or9etxak/environment/fresh6/XDG_CACHE_HOME",
+    "XDG_CONFIG_HOME": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-registry-unblock-or9etxak/environment/fresh6/XDG_CONFIG_HOME",
+    "XDG_DATA_HOME": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-registry-unblock-or9etxak/environment/fresh6/XDG_DATA_HOME",
+    "XDG_STATE_HOME": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-registry-unblock-or9etxak/environment/fresh6/XDG_STATE_HOME",
+    "npm_config_cache": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-registry-unblock-or9etxak/environment/fresh6/npm_config_cache",
+    "XDG_RUNTIME_DIR": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-registry-unblock-or9etxak/environment/fresh6/runtime"
+  },
+  "cwd": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-registry-unblock-or9etxak/source",
+  "argv": [
+    "node",
+    "--unhandled-rejections=strict",
+    "--import",
+    "tsx",
+    "--test",
+    "--test-concurrency=1",
+    "--test-reporter=tap",
+    "--test-name-pattern=^(?:fresh numeric/split pipelines: memory|fresh numeric/split pipelines: real|fresh numeric/split pipelines: s3|fresh numeric/split pipelines: webdav|fresh numeric/split pipelines: mount|fresh numeric/split pipelines: overlay)$",
+    "tests/commands/structured-stress/final-increment/fresh-interop.test.ts"
+  ]
+}

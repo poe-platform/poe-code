@@ -1,0 +1,52 @@
+{
+  "classification": "Captured native/engine evidence and archived harness inputs; not canonical TypeScript source or test discovery. No private engine source bytes.",
+  "attempts": 2,
+  "recordedAt": "2026-08-27T09:51:16.961Z",
+  "npm": {
+    "entry": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/bin/npm-cli.js",
+    "entrySha256": "8e5f6f3429f8cdbe693cdc29904e9d5a7b127a494bd15c804bd54c7403bfcbe7",
+    "manifest": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/package.json",
+    "manifestSha256": "9845f841112330e2ac0b6714afd0bb488328ecb2631eda7bff73a2b222bfdd2b",
+    "version": "10.9.7"
+  },
+  "nativeTools": {
+    "git": "git version 2.50.1 (Apple Git-155)",
+    "tar": "bsdtar 3.5.3 - libarchive 3.7.4 zlib/1.2.12 liblzma/5.4.3 bz2lib/1.0.8"
+  },
+  "files": {
+    "attempt-01/extract-archive.stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "attempt-01/extract-archive.stdout.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "attempt-01/extract-public-package.stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "attempt-01/extract-public-package.stdout.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "attempt-01/frozen-inputs.json": "2f3171cdafee6f93d0bc4c207861d3640c0a300d45b186ac81f04b5a22969dd4",
+    "attempt-01/full-archive.stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "attempt-01/full-archive.stdout.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "attempt-01/guest-probes.stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "attempt-01/guest-probes.stdout.log": "f9d04c9c8f0b2d4f7451810371809dcd3e072c3e4977f8eb7eb5b9e87428fd63",
+    "attempt-01/imports.ndjson": "637942b193b26a038e9a2a67daa1cc4a1bcf32cfeb1735dcae4e104645b91ec3",
+    "attempt-01/inputs/cases.mjs.txt": "b69de9b1e1ce632e2f9057d96156be84c9c6e96908f6614c0ac5641af9ca3412",
+    "attempt-01/inputs/loader.mjs.txt": "3306a11120061037c285dea765728157afd277b4ce8b566e52cf57073a03335b",
+    "attempt-01/inputs/probe.child.mjs.txt": "1102606a77d4f643a4b833a742f3d2a3e77db18a3c1d644e675189a5e3c73c3a",
+    "attempt-01/inputs/run.mjs.txt": "2f01be88228d7b848d9cc63a37688cf475ce63749879e0c9a88987036d9d54b5",
+    "attempt-01/pack-public-package.stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "attempt-01/pack-public-package.stdout.log": "e0e99b0d558afaa203a65e2535fca3d768fcda26a8b307401aeec427b96f25b7",
+    "attempt-01/public-package-build.stderr.log": "3c1a1c66d72b342f55ef0823c9431c5bd2d76356829adc72eed5e5172d3ad240",
+    "attempt-01/public-package-build.stdout.log": "192358b3fd3475b4bb505c07ba0b5608c6e4aa06624198bba950fe56e278e6f0",
+    "attempt-01/report.json": "110d3a6d01dc1fbeef6a26e59b8e518ccfbe700a3cdb1d9ddc67732637d1cc98",
+    "attempt-02/extract-archive.stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "attempt-02/extract-archive.stdout.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "attempt-02/extract-public-package.stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "attempt-02/extract-public-package.stdout.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "attempt-02/frozen-inputs.json": "0e67060fad43172d76be433db73f23a832ac3fa11b1b0666bcdb260658b4b209",
+    "attempt-02/full-archive.stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "attempt-02/full-archive.stdout.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "attempt-02/guest-probes.stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "attempt-02/guest-probes.stdout.log": "ea537c4425515dd2c176b788b17a29330fc8873229ecb646e6e056749b456de5",
+    "attempt-02/imports.ndjson": "3c7b1d0b1af0d9804bb05ebedff87313facf72527820565c9ec68983f5e17379",
+    "attempt-02/pack-public-package.stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "attempt-02/pack-public-package.stdout.log": "e0e99b0d558afaa203a65e2535fca3d768fcda26a8b307401aeec427b96f25b7",
+    "attempt-02/public-package-build.stderr.log": "3c1a1c66d72b342f55ef0823c9431c5bd2d76356829adc72eed5e5172d3ad240",
+    "attempt-02/public-package-build.stdout.log": "192358b3fd3475b4bb505c07ba0b5608c6e4aa06624198bba950fe56e278e6f0",
+    "attempt-02/report.json": "a04c9ac29ffd06f71ab94eed8ebf3cda774f3c5c824194a71a667b2490414472"
+  }
+}

@@ -1,0 +1,109 @@
+{
+  "candidate": "f44958bf48778737a58535e2bc9b37c292ac28c4",
+  "privateHead": "bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e",
+  "fullArchiveSha256": "d942398b277a621b82b98dbaab267291ac4dc7b613f884b617650357964989bd",
+  "publicInputs": {
+    "package.json": "316d5eb7e741f71b91270c5c08fa44d9252d3dfac33a7e6aed79a0cf705ee55a",
+    "package-lock.json": "9c04bb7d2c7d1894479f0c37ce367987c2130256e5bfbf426cfa1bd2729d740b",
+    "tsconfig.json": "f473dbe2230f833bbd374f6d211e843da377973fa96ad0eb38b6b5740dd18027",
+    "tsconfig.build.json": "b57d3e5aab1f1f7ab7a70f275183ea6de255e65a2c40a0047c08d97769a1a16e",
+    "src/index.ts": "66f4625127afbc182d96c134d0c2882a8f445ee7bdf7c41c470434782910095d",
+    "src/contracts/index.ts": "fb9a434deb34dbad631166a689b02641c0e1acdbac691f6956a7c76e20729f50",
+    "src/integrations/safejs/index.ts": "b0866c13456991f05f30dd23cabcf895d92b8af89985eb88172ac3d76b3b8384"
+  },
+  "harnessFiles": {
+    "run.mjs": "2f01be88228d7b848d9cc63a37688cf475ce63749879e0c9a88987036d9d54b5",
+    "cases.mjs": "b69de9b1e1ce632e2f9057d96156be84c9c6e96908f6614c0ac5641af9ca3412",
+    "loader.mjs": "3306a11120061037c285dea765728157afd277b4ce8b566e52cf57073a03335b",
+    "probe.child.mjs": "1102606a77d4f643a4b833a742f3d2a3e77db18a3c1d644e675189a5e3c73c3a"
+  },
+  "cases": [
+    {
+      "name": "command-facades",
+      "route": "command",
+      "assertion": "surfaces",
+      "sourceSha256": "b84bc4efcd7c384a4c196d1540762af04b7349e4ee12a993203339477951fde6"
+    },
+    {
+      "name": "reflection-availability",
+      "route": "command",
+      "assertion": "reflection",
+      "sourceSha256": "9b32c272ca88f1d8fcf469dd6cd6ba2265a7721aa3e8c35449bd3f223a85785d"
+    },
+    {
+      "name": "closure-and-context-paths",
+      "route": "command",
+      "assertion": "undefined-list",
+      "sourceSha256": "ad8e66008e5ed80fe6df857878b4603d5787074ad0708cfa91a8e91466f5818e"
+    },
+    {
+      "name": "missing-cleanup-export",
+      "route": "command",
+      "assertion": "missing-export",
+      "sourceSha256": "23bfe40d11196cc83ef5895d3bfb1ee91a0d96385ee67f42fef68bfeb4854b14"
+    },
+    {
+      "name": "no-effect-absent-cleanup-call",
+      "route": "command",
+      "assertion": "absent-call",
+      "sourceSha256": "5f56808353406c0b1714765b0366959979dec5ab7bea259e048058e781d3b9c9"
+    },
+    {
+      "name": "guest-local-lookalike-and-fresh-invocation",
+      "route": "command",
+      "assertion": "local-only",
+      "sourceSha256": "ea62ce43ce5715c07fd1071c8fc1700f62a98cee36535350675e92b70cf785b7",
+      "followupSha256": "fcefa118e01bf5a21f9101f19a257313fe828cbd0976518d228182f3f5e74fda"
+    },
+    {
+      "name": "bounded-step-budget-no-cleanup-authority",
+      "route": "command",
+      "limits": {
+        "maxSteps": 100
+      },
+      "assertion": "step-budget",
+      "sourceSha256": "27d19e5850321988bbd30c44e50a96d9aa719197db839c65c9e84410a3587b79"
+    },
+    {
+      "name": "pre-abort-no-runner-admission",
+      "route": "command",
+      "preAbort": true,
+      "assertion": "cancel",
+      "sourceSha256": "3c93d330a9b2a1e69236cdbb1929bca902327944871948c5f8676211e9656adf"
+    },
+    {
+      "name": "live-abort-after-property-probe",
+      "route": "command",
+      "abortOnWrite": true,
+      "assertion": "cancel",
+      "sourceSha256": "e31bb83657a0a3c7311ad7097d25e456a53bb59b87e69bae7ce5207278d94da3"
+    },
+    {
+      "name": "standalone-shell-facade-no-dispatch",
+      "route": "bridge",
+      "assertion": "surfaces",
+      "sourceSha256": "caf5a135cf82a59f5c025eec15c0f35d9a16cd89e2e55cd93fb7dc827e84c291"
+    },
+    {
+      "name": "shell-option-cleanup-rejected-before-dispatch",
+      "route": "bridge",
+      "assertion": "bad-option",
+      "sourceSha256": "52b18f22bdd53f125dc0a9c23281078ba07a25cb345beaa564e1f9d2fb67a54f"
+    },
+    {
+      "name": "shell-result-facade",
+      "route": "bridge",
+      "assertion": "surfaces",
+      "dispatches": 1,
+      "sourceSha256": "a9ee755af42b08985f77489bfa9b72bfdc0aa43a1c277bf797c804e8acebf82d"
+    },
+    {
+      "name": "fs-stat-result-facade",
+      "route": "command",
+      "assertion": "surfaces",
+      "reads": 1,
+      "sourceSha256": "e19f1d802c0db9282ffcba3abef05ffd5871ed2103974dd640210dcaaf9ca8ae"
+    }
+  ],
+  "frozenAt": "2026-08-27T09:43:43.954Z"
+}

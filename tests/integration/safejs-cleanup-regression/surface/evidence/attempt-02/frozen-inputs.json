@@ -1,0 +1,127 @@
+{
+  "candidate": "f44958bf48778737a58535e2bc9b37c292ac28c4",
+  "privateHead": "bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e",
+  "fullArchiveSha256": "d942398b277a621b82b98dbaab267291ac4dc7b613f884b617650357964989bd",
+  "publicInputs": {
+    "package.json": "316d5eb7e741f71b91270c5c08fa44d9252d3dfac33a7e6aed79a0cf705ee55a",
+    "package-lock.json": "9c04bb7d2c7d1894479f0c37ce367987c2130256e5bfbf426cfa1bd2729d740b",
+    "tsconfig.json": "f473dbe2230f833bbd374f6d211e843da377973fa96ad0eb38b6b5740dd18027",
+    "tsconfig.build.json": "b57d3e5aab1f1f7ab7a70f275183ea6de255e65a2c40a0047c08d97769a1a16e",
+    "src/index.ts": "66f4625127afbc182d96c134d0c2882a8f445ee7bdf7c41c470434782910095d",
+    "src/contracts/index.ts": "fb9a434deb34dbad631166a689b02641c0e1acdbac691f6956a7c76e20729f50",
+    "src/integrations/safejs/index.ts": "b0866c13456991f05f30dd23cabcf895d92b8af89985eb88172ac3d76b3b8384"
+  },
+  "harnessFiles": {
+    "run.mjs": "2f01be88228d7b848d9cc63a37688cf475ce63749879e0c9a88987036d9d54b5",
+    "cases.mjs": "112d5b0630eb3caa01d88aca88804d36a290f14dd0a162c34bf08e6c545a41d7",
+    "loader.mjs": "3306a11120061037c285dea765728157afd277b4ce8b566e52cf57073a03335b",
+    "probe.child.mjs": "48db2d2aa7b7632d37d6bf7a9e1cbc92ce718c5dbb7793b2ab0bbb8e823d46b5"
+  },
+  "cases": [
+    {
+      "name": "command-facades",
+      "route": "command",
+      "assertion": "surfaces",
+      "sourceSha256": "1d4459ba7372ba6cc94f49b25a09ce0747bfb7167d213a35843abe51c5850d68"
+    },
+    {
+      "name": "reflection-availability",
+      "route": "command",
+      "negativeSources": [
+        {
+          "source": "import * as command from \"command\"; return Object.getOwnPropertyDescriptor(command, \"registerCleanup\");",
+          "stderr": "safejs: Attempted to call a non-function value.\n"
+        },
+        {
+          "source": "import * as command from \"command\"; return Object.getPrototypeOf(command);",
+          "stderr": "safejs: Attempted to call a non-function value.\n"
+        },
+        {
+          "source": "import * as command from \"command\"; return Reflect.ownKeys(command);",
+          "stderr": "safejs: Identifier 'Reflect' is not defined.\n"
+        },
+        {
+          "source": "import { setExitCode } from \"command\"; return { ...setExitCode };",
+          "stderr": "safejs: Cannot spread function into object literal.\n"
+        }
+      ],
+      "assertion": "reflection",
+      "sourceSha256": "434a47e6f78c7ebe846f5027eb5d9ea2658bc5d216eb5b3eae43ab4fa346c876"
+    },
+    {
+      "name": "closure-and-context-paths",
+      "route": "command",
+      "assertion": "undefined-list",
+      "sourceSha256": "ad8e66008e5ed80fe6df857878b4603d5787074ad0708cfa91a8e91466f5818e"
+    },
+    {
+      "name": "missing-cleanup-export",
+      "route": "command",
+      "assertion": "missing-export",
+      "sourceSha256": "23bfe40d11196cc83ef5895d3bfb1ee91a0d96385ee67f42fef68bfeb4854b14"
+    },
+    {
+      "name": "no-effect-absent-cleanup-call",
+      "route": "command",
+      "assertion": "absent-call",
+      "sourceSha256": "5f56808353406c0b1714765b0366959979dec5ab7bea259e048058e781d3b9c9"
+    },
+    {
+      "name": "guest-local-lookalike-and-fresh-invocation",
+      "route": "command",
+      "assertion": "local-only",
+      "sourceSha256": "ea62ce43ce5715c07fd1071c8fc1700f62a98cee36535350675e92b70cf785b7",
+      "followupSha256": "fcefa118e01bf5a21f9101f19a257313fe828cbd0976518d228182f3f5e74fda"
+    },
+    {
+      "name": "bounded-step-budget-no-cleanup-authority",
+      "route": "command",
+      "limits": {
+        "maxSteps": 100
+      },
+      "assertion": "step-budget",
+      "sourceSha256": "27d19e5850321988bbd30c44e50a96d9aa719197db839c65c9e84410a3587b79"
+    },
+    {
+      "name": "pre-abort-no-runner-admission",
+      "route": "command",
+      "preAbort": true,
+      "assertion": "cancel",
+      "sourceSha256": "3c93d330a9b2a1e69236cdbb1929bca902327944871948c5f8676211e9656adf"
+    },
+    {
+      "name": "live-abort-after-property-probe",
+      "route": "command",
+      "abortOnWrite": true,
+      "assertion": "cancel",
+      "sourceSha256": "e31bb83657a0a3c7311ad7097d25e456a53bb59b87e69bae7ce5207278d94da3"
+    },
+    {
+      "name": "standalone-shell-facade-no-dispatch",
+      "route": "bridge",
+      "assertion": "surfaces",
+      "sourceSha256": "84bb6338e1593cfbdaddc4484f8a454e751a45292673c0dbcc58f911f994ef91"
+    },
+    {
+      "name": "shell-option-cleanup-rejected-before-dispatch",
+      "route": "bridge",
+      "assertion": "bad-option",
+      "sourceSha256": "52b18f22bdd53f125dc0a9c23281078ba07a25cb345beaa564e1f9d2fb67a54f"
+    },
+    {
+      "name": "shell-result-facade",
+      "route": "bridge",
+      "assertion": "surfaces",
+      "dispatches": 1,
+      "sourceSha256": "79d3949c6b9b07f4ddac40030c6ee15d612182f7a996f9bb3ff567a856c2c323"
+    },
+    {
+      "name": "fs-stat-result-facade",
+      "route": "command",
+      "assertion": "surfaces",
+      "reads": 1,
+      "sourceSha256": "f2e5589004e02564e15a65fe2a117ac162ca37961d37f91508a438574c5ac35e"
+    }
+  ],
+  "frozenAt": "2026-08-27T09:46:05.383Z"
+}

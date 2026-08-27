@@ -86,7 +86,7 @@ limited.value = { ...limited.value, stdin: { [Symbol.asyncIterator]() {
 } } };
 try {
   const result = await createHtmlToMarkdownCommand({ limits: { maxInputBytes: 4 } }).execute(limited.value);
-  assert.equal(result.exitCode, 1); assert.match(Buffer.concat(limited.stderr).toString(), /^html-to-markdown: input limit exceeded/u);
+  assert.equal(result.exitCode, 1); assert.equal(Buffer.concat(limited.stderr).toString(), "html-to-markdown: EFBIG: html-to-markdown input limit exceeded\n");
   assert.equal(reads, 1); assert.equal(returned, 1); assert.equal(caller.signal.aborted, false);
   observations.push({ case: "limit-cleanup", status: result.exitCode, reads, returned });
 } finally { await limited.close(); }
@@ -98,7 +98,7 @@ const opaque = context({ stdin: { [Symbol.asyncIterator]() { return {
   async return() { opaqueReturns++; await release.promise; return { done: true, value: undefined }; },
 }; } }, stdout: { async write() {}, ownedOutput: { consumerClosed: outputClosed.signal, async write() {} } } });
 const reason = new FsError("EPIPE");
-const execution = createHtmlToMarkdownCommand().execute(opaque.value).then(result => { settled = true; return result; }, error => { settled = true; throw error; });
+const execution = Promise.resolve(createHtmlToMarkdownCommand().execute(opaque.value)).then(result => { settled = true; return result; }, error => { settled = true; throw error; });
 void execution.catch(() => {});
 try {
   await started.promise; outputClosed.abort(reason); await turn();

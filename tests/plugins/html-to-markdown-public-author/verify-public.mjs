@@ -31,11 +31,12 @@ function check(name, callback) {
   try { callback(); report.checks.push({ name, status: "pass" }); }
   catch (error) { report.checks.push({ name, status: "fail", error: error.stack }); report.failures.push({ name, error: error.message }); }
 }
-function manifest(directory) {
+function manifest(directory, excludedRoots = []) {
   const records = [];
   const walk = prefix => {
     for (const name of readdirSync(join(directory, prefix)).sort()) {
       const path = prefix ? `${prefix}/${name}` : name, stat = lstatSync(join(directory, path));
+      if (excludedRoots.includes(path)) continue;
       assert.equal(stat.isSymbolicLink(), false, `unexpected symlink: ${path}`);
       if (stat.isDirectory()) { records.push({ path, kind: "directory" }); walk(path); }
       else { assert.equal(stat.isFile(), true); records.push({ path, kind: "file", sha256: digest(readFileSync(join(directory, path))) }); }
@@ -70,11 +71,12 @@ try {
   const compiler = join(root, "node_modules/typescript/bin/tsc");
   const built = run("build", process.execPath, [compiler, "-p", "tsconfig.build.json"]);
   assert.equal(built.status, 0, "cannot proceed without a complete product build");
+  report.emittedBefore = manifest(join(root, "dist"));
   const moduleTests = entries.filter(entry => entry.path.startsWith("tests/commands/html-to-markdown/") && entry.path.endsWith(".test.ts")).map(entry => entry.path);
   const sourceTests = [`${owner}/lifecycle.test.ts`, ...moduleTests, "tests/plugins/agent-commands.test.ts", "tests/plugins/stream-five-fixture-migration/registry.test.ts"];
   const canonical = run("source-scoped", process.execPath, ["--import", "tsx", "--test", "--test-reporter=tap", ...sourceTests]);
   report.sourceCounts = Object.fromEntries([...canonical.stdout.matchAll(/^# (tests|pass|fail|cancelled|skipped|todo) (\d+)$/gmu)].map(match => [match[1], Number(match[2])]));
-  check("205 explicit author/canonical/registry tests execute without skips", () => assert.deepEqual(report.sourceCounts, { tests: 205, pass: 205, fail: 0, cancelled: 0, skipped: 0, todo: 0 }));
+  check("257 explicit author/canonical/nested-normalization/registry tests execute without skips", () => assert.deepEqual(report.sourceCounts, { tests: 257, pass: 257, fail: 0, cancelled: 0, skipped: 0, todo: 0 }));
   const scopedConfig = join(directory, "scoped-types.json");
   json(scopedConfig, { extends: join(root, "tsconfig.json"), compilerOptions: { noEmit: true, rootDir: root, typeRoots: [join(root, "node_modules/@types")] }, files: sourceTests.map(path => join(root, path)), include: [], exclude: [] });
   run("source-scoped-types", process.execPath, [compiler, "-p", scopedConfig]);
@@ -111,6 +113,14 @@ try {
     const lines = negative.stdout.split("\n").filter(line => /error TS/u.test(line)); assert.equal(lines.length, 4);
     assert.deepEqual(lines.map(line => /\((\d+),\d+\): error (TS\d+)/u.exec(line)?.slice(1)), [["3", "TS2353"], ["4", "TS2322"], ["5", "TS2353"], ["6", "TS2339"]]);
   });
+  const runtimeFiles = ["consumer.js", "lifecycle.js", "stream-consumer.mjs", "stream-options.mjs"];
+  const loadedInputs = Object.fromEntries([
+    ...report.package.before.filter(entry => entry.kind === "file").map(entry => [join(installed, entry.path), entry.sha256]),
+    ...runtimeFiles.map(name => [join(moved, name), digest(readFileSync(join(moved, name)))]),
+  ]);
+  const guard = join(moved, "guard.mjs");
+  writeFileSync(guard, `import assert from 'node:assert/strict';\nimport { registerHooks } from 'node:module';\nimport { createHash } from 'node:crypto';\nimport { fileURLToPath } from 'node:url';\nconst expected = ${JSON.stringify(loadedInputs)};\nconst observed = new Map();\nregisterHooks({load(url, context, nextLoad) { const result=nextLoad(url,context); if(url.startsWith('file:')) { const path=fileURLToPath(url); assert.ok(expected[path], 'unexpected loaded file: '+path); assert.ok(result.source!==undefined && result.source!==null, 'missing loaded source: '+path); const sha256=createHash('sha256').update(result.source).digest('hex'); assert.equal(sha256,expected[path],path); observed.set(path,sha256); } return result; }});\nprocess.once('exit',()=>console.log(JSON.stringify({loadBindings:[...observed],execPath:process.execPath,version:process.version})));\n`);
+  report.runtimeGuard = { sha256: digest(readFileSync(guard)), expected: loadedInputs, scope: "main-thread loaded module bytes; no claim of worker dependency tracing" };
   const permissions = await import(pathToFileURL(join(root, "scripts/verify-current-consumers.mjs")));
   report.runtimes = [];
   for (const [index, executable] of [process.execPath, node24].entries()) {
@@ -118,8 +128,14 @@ try {
     const admission = permissions.probeConsumerPermission({ root, directory: permissionDirectory }, executable);
     report.runtimes.push(admission);
     const flags = permissions.consumerPermissionArgs(admission, moved, true);
-    for (const filename of ["consumer.js", "lifecycle.js", "stream-consumer.mjs", "stream-options.mjs"]) {
-      run(`runtime-${index}-${filename}`, executable, [...flags, join(moved, filename)], moved);
+    for (const filename of runtimeFiles) {
+      const result = run(`runtime-${index}-${filename}`, executable, [...flags, "--import", guard, join(moved, filename)], moved);
+      check(`runtime ${index} ${filename} authenticates actual loaded root and HTML bytes`, () => {
+        const receipt = result.stdout.trim().split("\n").map(line => JSON.parse(line)).find(value => value.loadBindings);
+        assert.ok(receipt); assert.equal(realpathSync(receipt.execPath), admission.executable); assert.equal(receipt.version, admission.identity.version);
+        const observed = new Map(receipt.loadBindings);
+        for (const path of ["dist/index.js", "dist/commands/html-to-markdown/index.js", "dist/commands/html-to-markdown/render.js"]) assert.equal(observed.get(join(installed, path)), loadedInputs[join(installed, path)]);
+      });
     }
     const forbidden = join(root, "src/index.ts");
     const denied = run(`source-denial-${index}`, executable, [...flags, "--input-type=module", "-e", `import {readFileSync} from 'node:fs'; readFileSync(${JSON.stringify(forbidden)});`], moved, 1);
@@ -138,10 +154,11 @@ try {
   renameSync(join(missingTypes, "node_modules/virtual-bash/dist/commands/html-to-markdown/index.d.ts"), join(missingTypes, "node_modules/virtual-bash/dist/commands/html-to-markdown/index.d.ts.disabled"));
   json(join(missingTypes, "tsconfig.json"), { ...config, compilerOptions: { ...config.compilerOptions, noEmit: true, rootDir: missingTypes, outDir: missingTypes }, files: [join(missingTypes, "consumer.ts")] });
   const missing = run("missing-types", process.execPath, [compiler, "-p", join(missingTypes, "tsconfig.json"), "--pretty", "false"], missingTypes, 2);
-  check("missing installed public HTML declarations refuse source fallback", () => assert.match(missing.stdout, /TS2307.*virtual-bash\/commands\/html-to-markdown/u));
+  check("missing installed public HTML declarations refuse source fallback", () => assert.match(missing.stdout, /TS7016.*virtual-bash\/commands\/html-to-markdown/u));
   report.package.after = manifest(installed); check("positive installed package unchanged, including no added entries", () => assert.deepEqual(report.package.after, report.package.before));
   report.emitted = manifest(join(root, "dist"));
-  report.archiveAfter = manifest(root).filter(entry => !["node_modules", "dist"].some(prefix => entry.path === prefix || entry.path.startsWith(prefix + "/")));
+  check("built output unchanged including no added entries", () => assert.deepEqual(report.emitted, report.emittedBefore));
+  report.archiveAfter = manifest(root, ["node_modules", "dist"]);
   check("selected committed archive source/tests/artifacts unchanged with no added entries", () => assert.deepEqual(report.archiveAfter, report.archiveBefore));
 } catch (error) { report.failures.push({ name: "fatal", error: error.stack }); }
 finally {

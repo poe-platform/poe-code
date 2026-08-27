@@ -1,0 +1,118 @@
+{
+  "status": "PROPOSED ONLY — existing-file edits require explicit root resumption after author READY",
+  "requirements": "User requires real -e; preserve public single optional interpreter argument, exact direct bash/sh -e/+e support, literal env bash -e remains unsplit, env -S remains unsupported",
+  "items": [
+    {
+      "path": "tests/shell/invocation-modes.test.ts",
+      "line": 36,
+      "testName": "unimplemented invocation flags reject explicitly before source consumption",
+      "originalGroupRows": 18,
+      "affectedRows": [
+        {
+          "mode": "bash",
+          "flag": "-e"
+        },
+        {
+          "mode": "sh",
+          "flag": "-e"
+        }
+      ],
+      "minimalNegativeDiff": "Remove only \"-e\" from the nine-flag array. Preserve remaining eight flags in the same bash/sh loop and retain exact exit2, diagnostic and aggregate reads===0 assertions.",
+      "positiveProposal": "Add one separately named grouped test for the original two -e invocations with the same single-chunk stdin say bad. Exact status0, stdout bad\\n/6261640a, empty stderr bytes, no VFS effects. Assert one source acquisition per invocation (two total) independently from negative zero-read guard; native bytes do not measure JavaScript callback counts.",
+      "oldExpectation": {
+        "status": 2,
+        "stderrPattern": "unsupported option",
+        "stdinAcquisitions": 0
+      },
+      "newExpectation": {
+        "status": 0,
+        "stdoutHex": "6261640a",
+        "stderrHex": "",
+        "sourceAcquisitionsPerInvocation": 1
+      },
+      "nativeRows": [
+        "invocation-bash-e",
+        "invocation-sh-e"
+      ],
+      "proposedGroupCountDelta": 1,
+      "retainedUnsupportedRows": 16
+    },
+    {
+      "path": "tests/shell/unsupported-options.test.ts",
+      "line": 6,
+      "testName": "unsupported errexit requests fail closed before subsequent commands",
+      "originalGroupRows": 3,
+      "affectedSources": [
+        "set -e; false; say bad >after",
+        "set -o errexit; false; say bad >after"
+      ],
+      "minimalNegativeDiff": "Keep set -eu || say unsafe >after as a separately named unsupported-combination control with its original status2/unsupported-shell-option/no-file assertions. Do not convert it to native success0, remove its OR-list, or add an exit0-or2 allowance.",
+      "positiveProposal": "Separate the first two original source strings into an exact native-backed errexit group: status1, empty stdout/stderr text and bytes, empty namespace/no after. Retain the original printf-based reference and the supported-set-forms test unchanged.",
+      "oldExpectation": {
+        "status": 2,
+        "stderrPattern": "unsupported shell option",
+        "files": {}
+      },
+      "newExpectation": {
+        "status": 1,
+        "stdoutHex": "",
+        "stderrHex": "",
+        "files": {}
+      },
+      "nativeRows": [
+        "set-e",
+        "set-o-errexit"
+      ],
+      "neighborNativeRow": "set-eu-retained-policy-neighbor",
+      "neighborNativeStatus": 0,
+      "neighborPolicyNotAuthorizedForChange": true,
+      "proposedGroupCountDelta": 1
+    },
+    {
+      "path": "tests/shell/script-entrypoint.test.ts",
+      "line": 179,
+      "testName": "direct script rejection has status 126 and no body effects: options",
+      "originalRow": {
+        "name": "options",
+        "body": "#!/bin/bash -e\nsay bad",
+        "mode": 493
+      },
+      "minimalNegativeDiff": "Move only the options row out of the rejection table into one exact positive case; keep noexec/noread/python/nul and all unrelated controls unchanged.",
+      "positiveProposal": "Same ./options invocation and exact source/mode; require exit0, stdout bad\\n/exact6261640a, empty stderr bytes, unchanged source bytes/mode/namespace.",
+      "oldExpectation": {
+        "status": 126,
+        "stdout": "",
+        "stderrPattern": "unsupported interpreter"
+      },
+      "newExpectation": {
+        "status": 0,
+        "stdoutHex": "6261640a",
+        "stderrHex": "",
+        "sourceAndNamespaceUnchanged": true
+      },
+      "nativeRows": [
+        "literal-bin-bash-e-shebang"
+      ],
+      "supplementalNativeRows": [
+        "profile-e-file-bridge"
+      ],
+      "kernelQualification": "Literal #!/bin/bash -e always uses actual /bin/bash3.2 under both launcher parents; real GNU5.3 is proven by separately labeled explicit profile -e file bridge, not falsely attributed to kernel dispatch.",
+      "proposedGroupCountDelta": 0
+    }
+  ],
+  "denominators": {
+    "reportedFailedTests": 3,
+    "affectedLogicalInputs": 5,
+    "retainedNegativeInvocationInputs": 16,
+    "retainedNegativeSetInputs": 1,
+    "proposedTotalTestGroupDelta": 2,
+    "appliedTestGroupDelta": 0
+  },
+  "notAuthorized": [
+    "No existing tests changed now",
+    "No original36/72 stress cases/oracles changes",
+    "No author-new-tests or hidden holdout/consumer reads",
+    "No env literal single-argument or env-S policy edits",
+    "No source fix or dirty-product acceptance"
+  ]
+}

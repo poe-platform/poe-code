@@ -1,0 +1,7 @@
+Preserved author development failure, prior to correcting the test string.
+Command: node_modules/.bin/tsc -p tests/commands/du/tsconfig.json
+Exit status: 2 (the compound shell command later returned 1 from git check-ignore).
+Diagnostics copied from the tool output:
+tests/commands/du/behavior.test.ts(27,54): error TS1487: Octal escape sequences are not allowed. Use the syntax '\x05'.
+tests/commands/du/behavior.test.ts(27,69): error TS1487: Octal escape sequences are not allowed. Use the syntax '\x05'.
+tests/commands/du/behavior.test.ts(27,82): error TS1487: Octal escape sequences are not allowed. Use the syntax '\x00'.

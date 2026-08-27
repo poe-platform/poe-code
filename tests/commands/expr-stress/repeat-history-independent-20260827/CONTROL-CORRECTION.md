@@ -31,3 +31,17 @@ Four post-inspection resource controls are also frozen here before execution:
 These are post-inspection controls, not additions to the pre-inspection 28-case
 semantic denominator. First-run source/compiled snapshots stay unchanged; the
 follow-up writes a new output file and never re-executes the 137 scoped tests.
+
+## Second harness correction, retained separately
+
+`controls-followup.json` records 6/7: both synchronous source-cap checks and all
+four resource controls passed, while the pre-abort row still escaped before its
+assertion. Inspection of unchanged `client.ts:140` shows `open(signal)` itself
+throws the exact already-aborted reason. Both earlier drivers aborted before
+opening, outside the assertion. This is a second harness placement error, not
+a product failure. The maintained drivers now open before aborting when testing
+`matchExpr`. `cancellation.mjs` separately tests both synchronous admission points
+and zero worker acquisition, without rerunning the semantic cohort or 137 tests.
+The follow-up driver also uses `dispose()` rather than an extra internal
+`executor.close()` after `session.close()`; the first follow-up acquired no
+later sessions and recorded zero active workers. No product source changed.

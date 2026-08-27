@@ -57,8 +57,8 @@ try {
   await control('corrected/pre-abort-identity', async () => {
     const controller = new AbortController();
     const reason = Object.freeze({ code: 'ENOENT', marker: 'independent-abort-reason' });
-    controller.abort(reason);
     const aborted = new RegexExecutor().open(controller.signal);
+    controller.abort(reason);
     try { assert.throws(() => aborted.matchExpr(target, subject), error => error === reason); }
     finally { await aborted.close(); }
     return { synchronous: true, exactReasonPreserved: true };
@@ -101,7 +101,7 @@ try {
   });
 } finally {
   await session.close();
-  await executor.close();
+  await executor.dispose();
   const activeBeforeSafetyCleanup = workers.filter(worker => !worker.closed).length;
   await Promise.all(workers.filter(worker => !worker.closed).map(worker => worker.terminate()));
   threads.Worker = NativeWorker;

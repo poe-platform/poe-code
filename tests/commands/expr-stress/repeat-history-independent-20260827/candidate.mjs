@@ -114,8 +114,8 @@ try {
   await control('cancel/pre-abort-identity', async () => {
     const controller = new AbortController();
     const reason = Object.freeze({ code: 'ENOENT', marker: 'independent-abort-reason' });
-    controller.abort(reason);
     const session = new RegexExecutor().open(controller.signal);
+    controller.abort(reason);
     try { await assert.rejects(async () => session.matchExpr(request, subject), error => error === reason); }
     finally { await session.close(); }
     return { exactReasonPreserved: true };

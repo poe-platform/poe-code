@@ -1,0 +1,5 @@
+{
+  "name": "virtual-bash-benign-benchmark-only-harness",
+  "private": true,
+  "type": "module"
+}

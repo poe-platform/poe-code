@@ -1,0 +1,798 @@
+{
+  "claim": {
+    "authority": "BENIGN_BENCHMARK_ONLY_NOT_DEFAULT_ACCEPTANCE",
+    "time": "2026-08-27T08:55:14.708Z",
+    "authorization": "Current explicit root-relayed user assignment authorizes only the prepared ordinary six-command benchmark and the archived 329eb272 baseline. It does not assert original benign green or authorize the risky dispatcher.",
+    "originalPrepared": "7/8 preserved, unrebaselined",
+    "riskyJobs": "four LOCKED; six additional UNUSED",
+    "commandsMaximum": 6,
+    "alternatingPairsMaximum": 3,
+    "commandRetries": 0,
+    "setupOnlyRecovery": 1,
+    "watchdogMs": 30000,
+    "preservedSetupFailure": {
+      "path": "result.json",
+      "sha256": "db3a8c49ea2c44460638a9e45453b0b62de44c9fb6a87046dd70258d8599eded",
+      "commandsStarted": 0,
+      "rootReported": "/tmp/regex-runtime-benchmark-ready.txt",
+      "correction": "Own private package boundary prevents repository package self-reference; no benchmark/observer byte changes."
+    },
+    "outputCapBytes": 16384,
+    "ipcCapBytes": 65536,
+    "defaultAcceptance": false
+  },
+  "pass": true,
+  "riskConsumed": 0,
+  "activeChildren": 0,
+  "previousChildren": {
+    "pids": [
+      12025,
+      12028,
+      12035,
+      12036,
+      23265,
+      23282,
+      23288,
+      23290,
+      23361,
+      23362,
+      23363,
+      23364,
+      23228,
+      12098,
+      12100,
+      12106,
+      12111,
+      11988,
+      11986,
+      24697,
+      27623,
+      27627,
+      27633,
+      27634,
+      27695,
+      27696,
+      27702,
+      27703,
+      27705
+    ],
+    "status": 1,
+    "stdout": "",
+    "stderr": ""
+  },
+  "identities": {
+    "preparedSha256": "75e2c89496a1d7f9f19c8bb1bbbcefc3ca8898fb0fd5f263bc95f3c4a4987b87",
+    "commits": {
+      "runtime": "1b133a8662a32ee84524794842074c9c98d5f6c3",
+      "registration": "01aa1bffe0568cc6787d5ff8e0331e024a787385",
+      "fixture": "10273352f8d65d929cbf5a23e69119414dacee60"
+    },
+    "candidate": {
+      "snapshotRoot": "/Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/cleanup-boundary-review/.temporary/runtime-r1-verified",
+      "packageRoot": "/Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/cleanup-boundary-review/.temporary/runtime-r1-verified-packed-old-five/production-continuation-review/node_modules/virtual-bash",
+      "freezeSha256": "ef7d7c018ca19cc699a3ddcd009b8d1197de416f154651885738ce7537369b2e",
+      "buildSha256": "9194095150789c25ff250aa746b567aac584d433a6330180f37d4924195a30d9",
+      "archivePath": "/Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/cleanup-boundary-review/.temporary/runtime-r1-verified-packed-old-five/production-continuation-review/virtual-bash-0.0.0.tgz",
+      "archiveSha256": "86c34e382c85563afbd9c760aa2e0f161308e8f43e14fe99dfec9ed96d77539b",
+      "sourceFiles": 216,
+      "emittedFiles": 704
+    },
+    "baseline": {
+      "snapshotRoot": "/Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/production-continuation-review/snapshots/baseline",
+      "head": "329eb2722052e8ace0ec18a751f12c30ed87a25b",
+      "frozenAt": "839f2d4",
+      "freezeSha256": "ded2ab6a8e44b860463b8015a405d93e570da6edbd13118099926ca97076beb8",
+      "buildSha256": "52641ec74771095f07f16c9c8fd30057a89a358461b42e9f74bac055b4ef48ee",
+      "sourceFiles": 152,
+      "emittedFiles": 588,
+      "captureStatus": "M tests/commands/diff-patch-stress/evidence/fullgate-51282a9-review/mutations.mjs\n M tests/fs/webdav/real-service-independent/run.mjs\n M tests/shell-stress/invocation-closure/holdout.test.ts\n?? benchmarks/reports/comparison-fairness-20260827/published-artifact-authentication/\n?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/\n?? tests/commands/search-stress/.native-1m4O1e/\n?? tests/fs/s3/rmdir-real-service/evidence-1D1P9B/\n?? tests/fs/s3/rmdir-real-service/evidence-EK5WvL/\n?? tests/fs/s3/rmdir-real-service/evidence-GScgVQ/\n?? tests/fs/s3/rmdir-real-service/evidence-Xyjrmo/\n?? tests/fs/webdav/real-service-independent/scope-neighbors.mts\n?? tests/fs/webdav/rmdir-real-service/\n?? tests/shell-stress/canonical-profile-migration/.candidate-A-MCzKZA/\n?? tests/shell-stress/canonical-profile-migration/.candidate-A-Utom8y/\n?? tests/shell-stress/canonical-profile-migration/.candidate-B-hwqqUo/\n?? tests/shell-stress/canonical-profile-migration/.candidate-C-jWPzgO/\n?? tests/shell-stress/canonical-profile-migration/.candidate-FINAL-T42B3X/\n?? tests/shell-stress/canonical-profile-migration/.source-6e-9PS0KC/\n?? tests/shell-stress/canonical-profile-migration/candidate-C.json\n?? tests/shell-stress/errexit-legacy-policy/.correction-archive-bLk5Ko/\n?? tests/stress/regex-execution/production-continuation-review/",
+      "dirtyCapturedIdentities": []
+    },
+    "preparationSource": [
+      {
+        "path": "child.mjs",
+        "sha256": "382f844e71317844bbc61e824f335a27fed8b40704d4ddb491e718b3eb3f0374"
+      },
+      {
+        "path": "observe.mjs",
+        "sha256": "a5226d1e24a8c091be3d98f5ed477b2b07e0b1bdcd6dec51cfe56467e8be3312"
+      },
+      {
+        "path": "benchmark.mjs",
+        "sha256": "7ebe01feacbb085d7355a06e5eb91bcfa5e3a1cccda445fae01329f67f0d8d45"
+      },
+      {
+        "path": "guard.mjs",
+        "sha256": "eab23888c87e18aeb1effc79ec29ef3ace4ec170f2d0344cf3cf004b6349f336"
+      },
+      {
+        "path": "binding.mjs",
+        "sha256": "2a81a61f9e95ab811d84744775633b2d84abf5d23fd99701fedc9f7db393ca1e"
+      },
+      {
+        "path": "prepare.mjs",
+        "sha256": "7b4361c996449e48a72df8c0a0913a1f7b4732e01b19343545375e7b713feb58"
+      },
+      {
+        "path": "tsconfig.json",
+        "sha256": "7ccca206c1424427bdcb046c2d24c13155cc9299c7124a5c7a292455985530b7"
+      }
+    ],
+    "preparationEmitted": [
+      {
+        "path": ".temporary/compiled/child.mjs",
+        "sha256": "c2b89481e5a06a820526a3463493919ab47585bc1d5677f5dc50eb7143f6b8fc"
+      },
+      {
+        "path": ".temporary/compiled/observe.mjs",
+        "sha256": "85b997898052fb1c1df27a0422929e1e7667e2ee848c7b4dabf25be839eda2de"
+      },
+      {
+        "path": ".temporary/compiled/benchmark.mjs",
+        "sha256": "8b1e0d2ac84978e83fd8a060f3046c5b86fdc164afb248e99ac5f0ffd739548e"
+      }
+    ],
+    "runner": [
+      {
+        "path": "run.mjs",
+        "sha256": "40d008dc7c91936176ea92f111ea690e7dc24a7c883d4a0f53b4a5c2d48dc15c"
+      },
+      {
+        "path": "intervals.mjs",
+        "sha256": "ea701c6ed976223d81576b29d2441d939f1966222cc0adcd178c5cd35e3c56d5"
+      },
+      {
+        "path": "package.json",
+        "sha256": "5f29a2ad1d53067ba79cd3fec79b2bd40543e406f24019c7a93406cbcb7280d4"
+      }
+    ]
+  },
+  "host": {
+    "node": "v22.22.2",
+    "platform": "darwin",
+    "arch": "arm64",
+    "cohostLoad": "foreign load uncontrolled; no simultaneous owned benchmark/probes",
+    "head": "3d2e6ff84b3029eb618c919ae1dd993127cb296d"
+  },
+  "run": {
+    "pid": 44220,
+    "events": [
+      "ready",
+      "disconnect",
+      "stdout-close",
+      "stderr-close",
+      {
+        "exit": 0,
+        "signal": null
+      }
+    ],
+    "stdout": "",
+    "stderr": "",
+    "result": {
+      "kind": "result",
+      "pass": true,
+      "pairs": [
+        {
+          "repeat": 0,
+          "order": [
+            "baseline",
+            "candidate"
+          ],
+          "baseline": {
+            "elapsedMs": 32.300042000000005,
+            "output": {
+              "exitCode": 0,
+              "stdout": "Li9maWxlMDAudHh0OmhpdCAwMAouL2ZpbGUwMS50eHQ6aGl0IDAxCi4vZmlsZTAyLnR4dDpoaXQgMDIKLi9maWxlMDMudHh0OmhpdCAwMwouL2ZpbGUwNC50eHQ6aGl0IDA0Ci4vZmlsZTA1LnR4dDpoaXQgMDUKLi9maWxlMDYudHh0OmhpdCAwNgouL2ZpbGUwNy50eHQ6aGl0IDA3Ci4vZmlsZTA4LnR4dDpoaXQgMDgKLi9maWxlMDkudHh0OmhpdCAwOQouL2ZpbGUxMi50eHQ6aGl0IDEyCi4vZmlsZTMwLnR4dDpoaXQgMzAKLi9maWxlMzEudHh0OmhpdCAzMQo=",
+              "stderr": ""
+            },
+            "startupMs": [
+              21.97499999999998
+            ],
+            "publicSettlement": [
+              {
+                "url": "file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/production-continuation-review/snapshots/baseline/dist/commands/regex-execution/worker.js",
+                "exited": true,
+                "terminationCalls": 1,
+                "terminationAwaited": true,
+                "startupMs": 21.97499999999998,
+                "exitCode": 1,
+                "listeners": {
+                  "message": 0,
+                  "messageerror": 0,
+                  "error": 0,
+                  "exit": 0
+                }
+              }
+            ],
+            "afterDispose": [
+              {
+                "url": "file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/production-continuation-review/snapshots/baseline/dist/commands/regex-execution/worker.js",
+                "exited": true,
+                "terminationCalls": 1,
+                "terminationAwaited": true,
+                "startupMs": 21.97499999999998,
+                "exitCode": 1,
+                "listeners": {
+                  "message": 0,
+                  "messageerror": 0,
+                  "error": 0,
+                  "exit": 0
+                }
+              }
+            ]
+          },
+          "candidate": {
+            "elapsedMs": 23.862750000000005,
+            "output": {
+              "exitCode": 0,
+              "stdout": "Li9maWxlMDAudHh0OmhpdCAwMAouL2ZpbGUwMS50eHQ6aGl0IDAxCi4vZmlsZTAyLnR4dDpoaXQgMDIKLi9maWxlMDMudHh0OmhpdCAwMwouL2ZpbGUwNC50eHQ6aGl0IDA0Ci4vZmlsZTA1LnR4dDpoaXQgMDUKLi9maWxlMDYudHh0OmhpdCAwNgouL2ZpbGUwNy50eHQ6aGl0IDA3Ci4vZmlsZTA4LnR4dDpoaXQgMDgKLi9maWxlMDkudHh0OmhpdCAwOQouL2ZpbGUxMi50eHQ6aGl0IDEyCi4vZmlsZTMwLnR4dDpoaXQgMzAKLi9maWxlMzEudHh0OmhpdCAzMQo=",
+              "stderr": ""
+            },
+            "startupMs": [
+              12.879541999999987
+            ],
+            "publicSettlement": [
+              {
+                "url": "file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/cleanup-boundary-review/.temporary/runtime-r1-verified-packed-old-five/production-continuation-review/node_modules/virtual-bash/dist/commands/regex-execution/worker.js",
+                "exited": true,
+                "terminationCalls": 1,
+                "terminationAwaited": true,
+                "startupMs": 12.879541999999987,
+                "exitCode": 1,
+                "listeners": {
+                  "message": 0,
+                  "messageerror": 0,
+                  "error": 0,
+                  "exit": 0
+                }
+              }
+            ],
+            "afterDispose": [
+              {
+                "url": "file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/cleanup-boundary-review/.temporary/runtime-r1-verified-packed-old-five/production-continuation-review/node_modules/virtual-bash/dist/commands/regex-execution/worker.js",
+                "exited": true,
+                "terminationCalls": 1,
+                "terminationAwaited": true,
+                "startupMs": 12.879541999999987,
+                "exitCode": 1,
+                "listeners": {
+                  "message": 0,
+                  "messageerror": 0,
+                  "error": 0,
+                  "exit": 0
+                }
+              }
+            ]
+          }
+        },
+        {
+          "repeat": 1,
+          "order": [
+            "candidate",
+            "baseline"
+          ],
+          "candidate": {
+            "elapsedMs": 17.78358399999999,
+            "output": {
+              "exitCode": 0,
+              "stdout": "Li9maWxlMDAudHh0OmhpdCAwMAouL2ZpbGUwMS50eHQ6aGl0IDAxCi4vZmlsZTAyLnR4dDpoaXQgMDIKLi9maWxlMDMudHh0OmhpdCAwMwouL2ZpbGUwNC50eHQ6aGl0IDA0Ci4vZmlsZTA1LnR4dDpoaXQgMDUKLi9maWxlMDYudHh0OmhpdCAwNgouL2ZpbGUwNy50eHQ6aGl0IDA3Ci4vZmlsZTA4LnR4dDpoaXQgMDgKLi9maWxlMDkudHh0OmhpdCAwOQouL2ZpbGUxMi50eHQ6aGl0IDEyCi4vZmlsZTMwLnR4dDpoaXQgMzAKLi9maWxlMzEudHh0OmhpdCAzMQo=",
+              "stderr": ""
+            },
+            "startupMs": [
+              12.54487499999999
+            ],
+            "publicSettlement": [
+              {
+                "url": "file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/cleanup-boundary-review/.temporary/runtime-r1-verified-packed-old-five/production-continuation-review/node_modules/virtual-bash/dist/commands/regex-execution/worker.js",
+                "exited": true,
+                "terminationCalls": 1,
+                "terminationAwaited": true,
+                "startupMs": 12.54487499999999,
+                "exitCode": 1,
+                "listeners": {
+                  "message": 0,
+                  "messageerror": 0,
+                  "error": 0,
+                  "exit": 0
+                }
+              }
+            ],
+            "afterDispose": [
+              {
+                "url": "file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/cleanup-boundary-review/.temporary/runtime-r1-verified-packed-old-five/production-continuation-review/node_modules/virtual-bash/dist/commands/regex-execution/worker.js",
+                "exited": true,
+                "terminationCalls": 1,
+                "terminationAwaited": true,
+                "startupMs": 12.54487499999999,
+                "exitCode": 1,
+                "listeners": {
+                  "message": 0,
+                  "messageerror": 0,
+                  "error": 0,
+                  "exit": 0
+                }
+              }
+            ]
+          },
+          "baseline": {
+            "elapsedMs": 15.616750000000025,
+            "output": {
+              "exitCode": 0,
+              "stdout": "Li9maWxlMDAudHh0OmhpdCAwMAouL2ZpbGUwMS50eHQ6aGl0IDAxCi4vZmlsZTAyLnR4dDpoaXQgMDIKLi9maWxlMDMudHh0OmhpdCAwMwouL2ZpbGUwNC50eHQ6aGl0IDA0Ci4vZmlsZTA1LnR4dDpoaXQgMDUKLi9maWxlMDYudHh0OmhpdCAwNgouL2ZpbGUwNy50eHQ6aGl0IDA3Ci4vZmlsZTA4LnR4dDpoaXQgMDgKLi9maWxlMDkudHh0OmhpdCAwOQouL2ZpbGUxMi50eHQ6aGl0IDEyCi4vZmlsZTMwLnR4dDpoaXQgMzAKLi9maWxlMzEudHh0OmhpdCAzMQo=",
+              "stderr": ""
+            },
+            "startupMs": [
+              12.746415999999982
+            ],
+            "publicSettlement": [
+              {
+                "url": "file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/production-continuation-review/snapshots/baseline/dist/commands/regex-execution/worker.js",
+                "exited": true,
+                "terminationCalls": 1,
+                "terminationAwaited": true,
+                "startupMs": 12.746415999999982,
+                "exitCode": 1,
+                "listeners": {
+                  "message": 0,
+                  "messageerror": 0,
+                  "error": 0,
+                  "exit": 0
+                }
+              }
+            ],
+            "afterDispose": [
+              {
+                "url": "file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/production-continuation-review/snapshots/baseline/dist/commands/regex-execution/worker.js",
+                "exited": true,
+                "terminationCalls": 1,
+                "terminationAwaited": true,
+                "startupMs": 12.746415999999982,
+                "exitCode": 1,
+                "listeners": {
+                  "message": 0,
+                  "messageerror": 0,
+                  "error": 0,
+                  "exit": 0
+                }
+              }
+            ]
+          }
+        },
+        {
+          "repeat": 2,
+          "order": [
+            "baseline",
+            "candidate"
+          ],
+          "baseline": {
+            "elapsedMs": 15.404584,
+            "output": {
+              "exitCode": 0,
+              "stdout": "Li9maWxlMDAudHh0OmhpdCAwMAouL2ZpbGUwMS50eHQ6aGl0IDAxCi4vZmlsZTAyLnR4dDpoaXQgMDIKLi9maWxlMDMudHh0OmhpdCAwMwouL2ZpbGUwNC50eHQ6aGl0IDA0Ci4vZmlsZTA1LnR4dDpoaXQgMDUKLi9maWxlMDYudHh0OmhpdCAwNgouL2ZpbGUwNy50eHQ6aGl0IDA3Ci4vZmlsZTA4LnR4dDpoaXQgMDgKLi9maWxlMDkudHh0OmhpdCAwOQouL2ZpbGUxMi50eHQ6aGl0IDEyCi4vZmlsZTMwLnR4dDpoaXQgMzAKLi9maWxlMzEudHh0OmhpdCAzMQo=",
+              "stderr": ""
+            },
+            "startupMs": [
+              12.243375000000015
+            ],
+            "publicSettlement": [
+              {
+                "url": "file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/production-continuation-review/snapshots/baseline/dist/commands/regex-execution/worker.js",
+                "exited": true,
+                "terminationCalls": 1,
+                "terminationAwaited": true,
+                "startupMs": 12.243375000000015,
+                "exitCode": 1,
+                "listeners": {
+                  "message": 0,
+                  "messageerror": 0,
+                  "error": 0,
+                  "exit": 0
+                }
+              }
+            ],
+            "afterDispose": [
+              {
+                "url": "file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/production-continuation-review/snapshots/baseline/dist/commands/regex-execution/worker.js",
+                "exited": true,
+                "terminationCalls": 1,
+                "terminationAwaited": true,
+                "startupMs": 12.243375000000015,
+                "exitCode": 1,
+                "listeners": {
+                  "message": 0,
+                  "messageerror": 0,
+                  "error": 0,
+                  "exit": 0
+                }
+              }
+            ]
+          },
+          "candidate": {
+            "elapsedMs": 17.088374999999985,
+            "output": {
+              "exitCode": 0,
+              "stdout": "Li9maWxlMDAudHh0OmhpdCAwMAouL2ZpbGUwMS50eHQ6aGl0IDAxCi4vZmlsZTAyLnR4dDpoaXQgMDIKLi9maWxlMDMudHh0OmhpdCAwMwouL2ZpbGUwNC50eHQ6aGl0IDA0Ci4vZmlsZTA1LnR4dDpoaXQgMDUKLi9maWxlMDYudHh0OmhpdCAwNgouL2ZpbGUwNy50eHQ6aGl0IDA3Ci4vZmlsZTA4LnR4dDpoaXQgMDgKLi9maWxlMDkudHh0OmhpdCAwOQouL2ZpbGUxMi50eHQ6aGl0IDEyCi4vZmlsZTMwLnR4dDpoaXQgMzAKLi9maWxlMzEudHh0OmhpdCAzMQo=",
+              "stderr": ""
+            },
+            "startupMs": [
+              12.180499999999995
+            ],
+            "publicSettlement": [
+              {
+                "url": "file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/cleanup-boundary-review/.temporary/runtime-r1-verified-packed-old-five/production-continuation-review/node_modules/virtual-bash/dist/commands/regex-execution/worker.js",
+                "exited": true,
+                "terminationCalls": 1,
+                "terminationAwaited": true,
+                "startupMs": 12.180499999999995,
+                "exitCode": 1,
+                "listeners": {
+                  "message": 0,
+                  "messageerror": 0,
+                  "error": 0,
+                  "exit": 0
+                }
+              }
+            ],
+            "afterDispose": [
+              {
+                "url": "file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/cleanup-boundary-review/.temporary/runtime-r1-verified-packed-old-five/production-continuation-review/node_modules/virtual-bash/dist/commands/regex-execution/worker.js",
+                "exited": true,
+                "terminationCalls": 1,
+                "terminationAwaited": true,
+                "startupMs": 12.180499999999995,
+                "exitCode": 1,
+                "listeners": {
+                  "message": 0,
+                  "messageerror": 0,
+                  "error": 0,
+                  "exit": 0
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "lateErrors": [],
+      "riskConsumed": 0,
+      "commands": 6,
+      "filesPerCommand": 32,
+      "expectedOutputBytes": 260,
+      "method": "Three alternating pairs; complete Shell/plugin creation, startup, traversal, exact output and awaited disposal included; imports and VFS setup excluded. Same-host load uncontrolled. No superiority inference.",
+      "intervals": [
+        {
+          "variant": "baseline",
+          "useStart": 108.581834,
+          "firstWorker": 0,
+          "useEnd": 108.59775,
+          "execStart": 108.609667,
+          "pluginSetupStart": 109.525917,
+          "pluginSetupEnd": 111.064417,
+          "execEnd": 140.722667,
+          "publicSettlement": [
+            {
+              "url": "file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/production-continuation-review/snapshots/baseline/dist/commands/regex-execution/worker.js",
+              "exited": true,
+              "terminationCalls": 1,
+              "terminationAwaited": true,
+              "startupMs": 21.97499999999998,
+              "exitCode": 1,
+              "listeners": {
+                "message": 0,
+                "messageerror": 0,
+                "error": 0,
+                "exit": 0
+              }
+            }
+          ],
+          "disposeStart": 140.775,
+          "disposeEnd": 140.79825
+        },
+        {
+          "variant": "candidate",
+          "useStart": 141.471042,
+          "firstWorker": 1,
+          "useEnd": 141.492584,
+          "execStart": 141.493542,
+          "pluginSetupStart": 142.255,
+          "pluginSetupEnd": 144.077334,
+          "execEnd": 165.211334,
+          "publicSettlement": [
+            {
+              "url": "file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/cleanup-boundary-review/.temporary/runtime-r1-verified-packed-old-five/production-continuation-review/node_modules/virtual-bash/dist/commands/regex-execution/worker.js",
+              "exited": true,
+              "terminationCalls": 1,
+              "terminationAwaited": true,
+              "startupMs": 12.879541999999987,
+              "exitCode": 1,
+              "listeners": {
+                "message": 0,
+                "messageerror": 0,
+                "error": 0,
+                "exit": 0
+              }
+            }
+          ],
+          "disposeStart": 165.219084,
+          "disposeEnd": 165.2575
+        },
+        {
+          "variant": "candidate",
+          "useStart": 165.444875,
+          "firstWorker": 2,
+          "useEnd": 165.447459,
+          "execStart": 165.448209,
+          "pluginSetupStart": 165.587709,
+          "pluginSetupEnd": 165.738875,
+          "execEnd": 183.204584,
+          "publicSettlement": [
+            {
+              "url": "file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/cleanup-boundary-review/.temporary/runtime-r1-verified-packed-old-five/production-continuation-review/node_modules/virtual-bash/dist/commands/regex-execution/worker.js",
+              "exited": true,
+              "terminationCalls": 1,
+              "terminationAwaited": true,
+              "startupMs": 12.54487499999999,
+              "exitCode": 1,
+              "listeners": {
+                "message": 0,
+                "messageerror": 0,
+                "error": 0,
+                "exit": 0
+              }
+            }
+          ],
+          "disposeStart": 183.212709,
+          "disposeEnd": 183.217167
+        },
+        {
+          "variant": "baseline",
+          "useStart": 183.327125,
+          "firstWorker": 3,
+          "useEnd": 183.329667,
+          "execStart": 183.330542,
+          "pluginSetupStart": 183.488,
+          "pluginSetupEnd": 183.621125,
+          "execEnd": 198.918542,
+          "publicSettlement": [
+            {
+              "url": "file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/production-continuation-review/snapshots/baseline/dist/commands/regex-execution/worker.js",
+              "exited": true,
+              "terminationCalls": 1,
+              "terminationAwaited": true,
+              "startupMs": 12.746415999999982,
+              "exitCode": 1,
+              "listeners": {
+                "message": 0,
+                "messageerror": 0,
+                "error": 0,
+                "exit": 0
+              }
+            }
+          ],
+          "disposeStart": 198.927,
+          "disposeEnd": 198.929375
+        },
+        {
+          "variant": "baseline",
+          "useStart": 199.021834,
+          "firstWorker": 4,
+          "useEnd": 199.024459,
+          "execStart": 199.025125,
+          "pluginSetupStart": 199.079709,
+          "pluginSetupEnd": 199.184667,
+          "execEnd": 214.409334,
+          "publicSettlement": [
+            {
+              "url": "file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/production-continuation-review/snapshots/baseline/dist/commands/regex-execution/worker.js",
+              "exited": true,
+              "terminationCalls": 1,
+              "terminationAwaited": true,
+              "startupMs": 12.243375000000015,
+              "exitCode": 1,
+              "listeners": {
+                "message": 0,
+                "messageerror": 0,
+                "error": 0,
+                "exit": 0
+              }
+            }
+          ],
+          "disposeStart": 214.415209,
+          "disposeEnd": 214.41775
+        },
+        {
+          "variant": "candidate",
+          "useStart": 214.511625,
+          "firstWorker": 5,
+          "useEnd": 214.514,
+          "execStart": 214.514625,
+          "pluginSetupStart": 214.57675,
+          "pluginSetupEnd": 214.6935,
+          "execEnd": 231.57775,
+          "publicSettlement": [
+            {
+              "url": "file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/cleanup-boundary-review/.temporary/runtime-r1-verified-packed-old-five/production-continuation-review/node_modules/virtual-bash/dist/commands/regex-execution/worker.js",
+              "exited": true,
+              "terminationCalls": 1,
+              "terminationAwaited": true,
+              "startupMs": 12.180499999999995,
+              "exitCode": 1,
+              "listeners": {
+                "message": 0,
+                "messageerror": 0,
+                "error": 0,
+                "exit": 0
+              }
+            }
+          ],
+          "disposeStart": 231.583375,
+          "disposeEnd": 231.589125
+        }
+      ],
+      "modules": {
+        "candidate": {
+          "entry": "file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/cleanup-boundary-review/.temporary/runtime-r1-verified-packed-old-five/production-continuation-review/node_modules/virtual-bash/dist/index.js",
+          "physicalEntry": "/Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/cleanup-boundary-review/.temporary/runtime-r1-verified-packed-old-five/production-continuation-review/node_modules/virtual-bash/dist/index.js"
+        },
+        "baseline": {
+          "entry": "file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/production-continuation-review/snapshots/baseline/dist/index.js",
+          "physicalEntry": "/Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/production-continuation-review/snapshots/baseline/dist/index.js"
+        }
+      },
+      "timingQualification": "Additive public-method/plugin-setup timing taps return original values/promises. Setup bound = complete elapsed minus (disposeEnd - execStart); it includes constructor/plugin factory/use and small outer scheduling tails. useEnd-useStart isolates registration, not constructor/factory. Deferred pluginSetupEnd-pluginSetupStart is separately timed inside exec. Timing/settlement observation overhead is included equally; original compiled benchmark and native-worker observer bytes are unchanged."
+    },
+    "killed": false,
+    "outputBytes": 0,
+    "ipcBytes": 13133,
+    "readyMs": 119.75262500000008,
+    "code": 0,
+    "signal": null,
+    "closeAwaited": true,
+    "elapsedMs": 301.150708
+  },
+  "summary": [
+    {
+      "repeat": 0,
+      "order": [
+        "baseline",
+        "candidate"
+      ],
+      "baseline": {
+        "elapsedMs": 32.300042000000005,
+        "startupMs": [
+          21.97499999999998
+        ],
+        "setupUpperBoundMs": 0.11145900000001063,
+        "pluginUseMs": 0.01591600000000426,
+        "pluginSetupMs": 1.538499999999999,
+        "execMs": 32.113,
+        "settlementToDisposeMs": 0.052333000000004404,
+        "disposeMs": 0.023249999999990223,
+        "stdoutBytes": 260,
+        "stdoutSha256": "508c70ef89ed85ee8704733da421f3af14f1ac7f0b376fe27ab0f6a3403c3086",
+        "stderrBytes": 0,
+        "exitCode": 0,
+        "workers": 1,
+        "publicSettlementClean": true,
+        "immediatePublicSettlementClean": true,
+        "afterDisposeClean": true
+      },
+      "candidate": {
+        "elapsedMs": 23.862750000000005,
+        "startupMs": [
+          12.879541999999987
+        ],
+        "setupUpperBoundMs": 0.0987920000000031,
+        "pluginUseMs": 0.02154199999998241,
+        "pluginSetupMs": 1.822334000000012,
+        "execMs": 23.717792000000003,
+        "settlementToDisposeMs": 0.007750000000015689,
+        "disposeMs": 0.038415999999983796,
+        "stdoutBytes": 260,
+        "stdoutSha256": "508c70ef89ed85ee8704733da421f3af14f1ac7f0b376fe27ab0f6a3403c3086",
+        "stderrBytes": 0,
+        "exitCode": 0,
+        "workers": 1,
+        "publicSettlementClean": true,
+        "immediatePublicSettlementClean": true,
+        "afterDisposeClean": true
+      }
+    },
+    {
+      "repeat": 1,
+      "order": [
+        "candidate",
+        "baseline"
+      ],
+      "candidate": {
+        "elapsedMs": 17.78358399999999,
+        "startupMs": [
+          12.54487499999999
+        ],
+        "setupUpperBoundMs": 0.0146259999999927,
+        "pluginUseMs": 0.0025840000000130203,
+        "pluginSetupMs": 0.15116600000001768,
+        "execMs": 17.75637500000002,
+        "settlementToDisposeMs": 0.0081249999999784,
+        "disposeMs": 0.004457999999999629,
+        "stdoutBytes": 260,
+        "stdoutSha256": "508c70ef89ed85ee8704733da421f3af14f1ac7f0b376fe27ab0f6a3403c3086",
+        "stderrBytes": 0,
+        "exitCode": 0,
+        "workers": 1,
+        "publicSettlementClean": true,
+        "immediatePublicSettlementClean": true,
+        "afterDisposeClean": true
+      },
+      "baseline": {
+        "elapsedMs": 15.616750000000025,
+        "startupMs": [
+          12.746415999999982
+        ],
+        "setupUpperBoundMs": 0.017917000000039707,
+        "pluginUseMs": 0.0025420000000053733,
+        "pluginSetupMs": 0.13312500000000682,
+        "execMs": 15.587999999999994,
+        "settlementToDisposeMs": 0.008457999999990307,
+        "disposeMs": 0.002375000000000682,
+        "stdoutBytes": 260,
+        "stdoutSha256": "508c70ef89ed85ee8704733da421f3af14f1ac7f0b376fe27ab0f6a3403c3086",
+        "stderrBytes": 0,
+        "exitCode": 0,
+        "workers": 1,
+        "publicSettlementClean": true,
+        "immediatePublicSettlementClean": true,
+        "afterDisposeClean": true
+      }
+    },
+    {
+      "repeat": 2,
+      "order": [
+        "baseline",
+        "candidate"
+      ],
+      "baseline": {
+        "elapsedMs": 15.404584,
+        "startupMs": [
+          12.243375000000015
+        ],
+        "setupUpperBoundMs": 0.011958999999990283,
+        "pluginUseMs": 0.0026249999999947704,
+        "pluginSetupMs": 0.10495799999998212,
+        "execMs": 15.384208999999998,
+        "settlementToDisposeMs": 0.005875000000003183,
+        "disposeMs": 0.002541000000007898,
+        "stdoutBytes": 260,
+        "stdoutSha256": "508c70ef89ed85ee8704733da421f3af14f1ac7f0b376fe27ab0f6a3403c3086",
+        "stderrBytes": 0,
+        "exitCode": 0,
+        "workers": 1,
+        "publicSettlementClean": true,
+        "immediatePublicSettlementClean": true,
+        "afterDisposeClean": true
+      },
+      "candidate": {
+        "elapsedMs": 17.088374999999985,
+        "startupMs": [
+          12.180499999999995
+        ],
+        "setupUpperBoundMs": 0.013874999999984539,
+        "pluginUseMs": 0.002375000000000682,
+        "pluginSetupMs": 0.11674999999999613,
+        "execMs": 17.063125000000014,
+        "settlementToDisposeMs": 0.005624999999980673,
+        "disposeMs": 0.005750000000006139,
+        "stdoutBytes": 260,
+        "stdoutSha256": "508c70ef89ed85ee8704733da421f3af14f1ac7f0b376fe27ab0f6a3403c3086",
+        "stderrBytes": 0,
+        "exitCode": 0,
+        "workers": 1,
+        "publicSettlementClean": true,
+        "immediatePublicSettlementClean": true,
+        "afterDisposeClean": true
+      }
+    }
+  ],
+  "postRunIdentityRecheck": true,
+  "interrupted": null,
+  "finishedAt": "2026-08-27T08:55:15.914Z"
+}

@@ -16,8 +16,8 @@ for (const [index, entry] of corpus.entries()) {
     if (entry.fixture.name === "comm shared original") {
       assert.equal(entry.oracle.exitCode, 1);
       assert.equal(Buffer.from(entry.oracle.stderrHex, "hex").toString(), "comm: -: Bad file descriptor\n");
-      assert.equal(actual.exitCode, 0);
-      assert.equal(actual.stderrHex, "");
+      assert.equal(actual.exitCode, 1);
+      assert.equal(Buffer.from(actual.stderrHex, "hex").toString(), "comm: -: Bad file descriptor\n");
     } else {
       assert.equal(actual.exitCode, entry.oracle.exitCode);
       assert.equal(Boolean(actual.stderrHex), Boolean(entry.oracle.stderrHex));

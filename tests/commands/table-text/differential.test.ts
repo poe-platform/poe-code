@@ -9,7 +9,7 @@ const evidence = JSON.parse(await readFile(new URL("gnu-evidence.json", import.m
 assert.equal(evidence.observations.length, tableCases.length);
 for (const [index, fixture] of tableCases.entries()) {
   const sharedStdinArtifact = fixture.name === "comm: shared stdin";
-  test(`${sharedStdinArtifact ? "explicit GNU duplicate-close disagreement" : "frozen GNU 9.7"} ${fixture.name}`, async () => {
+  test(`${sharedStdinArtifact ? "frozen GNU 9.7 shared-stdin regression" : "frozen GNU 9.7"} ${fixture.name}`, async () => {
     const expected = evidence.observations[index]!;
     assert.equal(expected.name, fixture.name);
     assert.equal(expected.caseSha256, caseHash(fixture));
@@ -17,9 +17,9 @@ for (const [index, fixture] of tableCases.entries()) {
     assert.equal(actual.stdoutHex, expected.stdoutHex);
     if (sharedStdinArtifact) {
       assert.equal(expected.exitCode, 1);
-      assert.match(Buffer.from(expected.stderrHex, "hex").toString(), /Bad file descriptor/u);
-      assert.equal(actual.exitCode, 0, actual.stderr);
-      assert.equal(actual.stderr, "");
+      assert.equal(Buffer.from(expected.stderrHex, "hex").toString(), "comm: -: Bad file descriptor\n");
+      assert.equal(actual.exitCode, 1, actual.stderr);
+      assert.equal(actual.stderr, "comm: -: Bad file descriptor\n");
     } else {
       assert.equal(actual.exitCode, expected.exitCode, actual.stderr);
       assert.equal(Boolean(actual.stderr), Boolean(expected.stderrHex));

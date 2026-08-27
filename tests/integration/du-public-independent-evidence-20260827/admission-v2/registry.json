@@ -1,0 +1,251 @@
+{
+  "definitionsReference": {
+    "path": "tests/integration/du-public-independent-evidence-20260827/controls.v1.json",
+    "commit": "ebd77c05134bc77311609e02cf4a35c8aff0fcc2",
+    "sha256": "a269a6cc4bd45c087a4e84d49cafb3077d1e55efc527d3ef6531d7c0fe7ced4b"
+  },
+  "controls": [
+    {
+      "definition": {
+        "id": "S01",
+        "phase": "static-only",
+        "kind": "positive",
+        "input": "Untouched preparation and complete pinned Git inputs",
+        "expect": "Authenticated preparation; admitted=false; all29 HELD. Exit zero is not semantic success."
+      },
+      "execution": "applicable",
+      "body": "executor.mjs#S01"
+    },
+    {
+      "definition": {
+        "id": "A01",
+        "phase": "future-admission",
+        "kind": "negative",
+        "input": "Exact74 author names without authenticated root HTML74 acceptance, or the unaccepted streaming repair",
+        "expect": "HOLD; no DU invocation, even if pack reproduction succeeds."
+      },
+      "execution": "applicable",
+      "body": "executor.mjs#A01"
+    },
+    {
+      "definition": {
+        "id": "A02",
+        "phase": "future-admission",
+        "kind": "negative",
+        "input": "Old mode committed-archive, transient mode relabel, or full-history claim",
+        "expect": "Reject this addendum's binding; never dispatch the original validator using a forged mode."
+      },
+      "execution": "applicable",
+      "body": "executor.mjs#A02"
+    },
+    {
+      "definition": {
+        "id": "A03",
+        "phase": "future-admission",
+        "kind": "negative",
+        "input": "Changed, removed, extra, duplicate, traversal, symlink or other nonregular selected input; changed mode/blob/hash; later source/helper",
+        "expect": "Reject before materialization/execution; do not repair using live source. Each mutation is an isolated control."
+      },
+      "execution": "applicable",
+      "body": "executor.mjs#A03"
+    },
+    {
+      "definition": {
+        "id": "A04",
+        "phase": "future-admission",
+        "kind": "negative",
+        "input": "Absent pinned pack, partial census, one changed nonloaded member, matching emitted JS but differing tar bytes, or failed reproduction",
+        "expect": "No admission; require direct whole-pack byte equality, exact SHA-256 and complete package census."
+      },
+      "execution": "applicable",
+      "body": "executor.mjs#A04"
+    },
+    {
+      "definition": {
+        "id": "A05",
+        "phase": "future-admission",
+        "kind": "negative",
+        "input": "Missing original required binding/root approval, unauthorized supervisor/tool, changed helper/dependency, unspecified write isolation or new protected-tree entry",
+        "expect": "Reject; preserve original common requirements and pre/post authentication, including new entries."
+      },
+      "execution": "applicable",
+      "body": "executor.mjs#A05"
+    },
+    {
+      "definition": {
+        "id": "A06",
+        "phase": "future-admission",
+        "kind": "positive",
+        "input": "Accepted HTML74, all authentic root bindings, complete pinned inputs/tools and exact independently reproduced full pack",
+        "expect": "Eligible for a separately reviewed future admission implementation only; v1 still refuses admission. No DU29 result follows from eligibility."
+      },
+      "execution": "HELD-unexecuted-no-pass",
+      "body": null
+    },
+    {
+      "definition": {
+        "id": "A07",
+        "phase": "future-admission",
+        "kind": "positive",
+        "input": "Unrelated live worktree edits or foreign staging while pinned committed inputs remain identical",
+        "expect": "Do not veto scoped input authentication or consume those live bytes; do not require global index equality."
+      },
+      "execution": "applicable",
+      "body": "executor.mjs#A07"
+    },
+    {
+      "definition": {
+        "id": "P01",
+        "phase": "future-public-replay",
+        "kind": "negative",
+        "input": "Missing explicit root/subpath export; source fallback; absent/tampered load proof; mismatched consumer/helper; symlink install; old move location remains",
+        "expect": "Reject before semantic credit; original P03-P06/R03 guards remain required."
+      },
+      "execution": "applicable",
+      "body": "executor.mjs#P01"
+    },
+    {
+      "definition": {
+        "id": "P02",
+        "phase": "future-public-replay",
+        "kind": "negative",
+        "input": "Count74, count76, duplicate75 or substituted75, even if names look plausible",
+        "expect": "Reject exact root-approved75 comparison; keep getopts builtin, HTML present and curl/SafeJS/expr excluded."
+      },
+      "execution": "applicable",
+      "body": "executor.mjs#P02"
+    },
+    {
+      "definition": {
+        "id": "P03",
+        "phase": "future-public-replay",
+        "kind": "positive",
+        "input": "Admitted exact pack physically installed/moved, authenticated complete actual-load evidence and strict declaration controls, then all29 separately executable cases",
+        "expect": "Report each actual result against original frozen assertions, without converting blocked cases or expected guard failures into semantic passes."
+      },
+      "execution": "HELD-unexecuted-no-pass",
+      "body": null
+    }
+  ],
+  "specified": 11,
+  "applicable": 9,
+  "held": 2,
+  "originalBindingMapping": {
+    "candidateCommit": {
+      "prepared": "candidateCommit",
+      "role": "executed candidate; sourceCommit is separately bound"
+    },
+    "freezeCommit": {
+      "prepared": "oldFreeze.commit"
+    },
+    "freezeManifestSha256": {
+      "prepared": "oldFreeze.manifestSha256"
+    },
+    "sourceInventory": {
+      "handoffPointer": "/sourceInventory",
+      "role": "all771 committed selected entries, authenticated not materialized"
+    },
+    "html74Checkpoint": {
+      "handoffPointer": "/html74Checkpoint",
+      "status": "author-only; acceptedHTML74 unresolved"
+    },
+    "approved75Inventory": {
+      "handoffPointer": "/declared75Inventory",
+      "status": "declaration only; root approval unresolved"
+    },
+    "sourcePathsAndPolicy": {
+      "handoffPointer": "/sourcePathsAndPolicy",
+      "status": "author policy authenticated; root acceptance unresolved"
+    },
+    "aggregateDuOptions": {
+      "handoffPointer": "/aggregateDuOptions",
+      "status": "AgentCommandsOptions.du declaration only; root acceptance unresolved"
+    },
+    "diagnostics": {
+      "handoffPointer": "/diagnostics",
+      "status": "exact author diagnostics only; root acceptance unresolved"
+    },
+    "outputOperationIntegration": {
+      "handoffPointer": "/outputOperationIntegration",
+      "status": "eight exact policy sections, not approved/executed mappings"
+    },
+    "supervisorIdentity": {
+      "handoffPointer": "/authorSupervisor",
+      "status": "reference only; independent supervisor unresolved; do not execute"
+    },
+    "toolIdentities": {
+      "handoffPointers": [
+        "/tools",
+        "/tooling",
+        "/captureTool"
+      ],
+      "status": "author fingerprints only; complete future closure unresolved; staticTools binds inspector tools separately"
+    },
+    "admissionPolicy": {
+      "prepared": "mode",
+      "document": "ADMISSION-ADDENDUM.v1.md",
+      "postRunDetectsNewEntries": true,
+      "status": "new literal; no old-validator adapter"
+    },
+    "replayAuthorization": {
+      "handoffPointer": "/rootReplayAuthorization",
+      "status": "null; root authorization unresolved"
+    }
+  },
+  "originalFixedScope": {
+    "package": "virtual-bash",
+    "subpath": "virtual-bash/commands/du",
+    "defaultPluginCount": 75,
+    "htmlCheckpointPluginCount": 74,
+    "getoptsIsBuiltinNotPlugin": true,
+    "htmlRequired": true,
+    "curlAndSafejsOptional": true,
+    "exprDefault": false,
+    "physicalStorageClaims": false,
+    "wholeGate": false
+  },
+  "originalLifecycleMapping": {
+    "path": "tests/plugins/du-public-author/POLICY.md",
+    "sha256": "3114c4ad8189094c68f68e9beb0f36f7b2002458d81dbc9641cc6c96c38ed4c4",
+    "headZero": {
+      "path": "tests/plugins/du-public-author/POLICY.md",
+      "sha256": "3114c4ad8189094c68f68e9beb0f36f7b2002458d81dbc9641cc6c96c38ed4c4",
+      "section": "headZero"
+    },
+    "firstReadCancel": {
+      "path": "tests/plugins/du-public-author/POLICY.md",
+      "sha256": "3114c4ad8189094c68f68e9beb0f36f7b2002458d81dbc9641cc6c96c38ed4c4",
+      "section": "firstReadCancel"
+    },
+    "validationAndStderr": {
+      "path": "tests/plugins/du-public-author/POLICY.md",
+      "sha256": "3114c4ad8189094c68f68e9beb0f36f7b2002458d81dbc9641cc6c96c38ed4c4",
+      "section": "validationAndStderr"
+    },
+    "admissionObservation": {
+      "path": "tests/plugins/du-public-author/POLICY.md",
+      "sha256": "3114c4ad8189094c68f68e9beb0f36f7b2002458d81dbc9641cc6c96c38ed4c4",
+      "section": "admissionObservation"
+    },
+    "accountedWrites": {
+      "path": "tests/plugins/du-public-author/POLICY.md",
+      "sha256": "3114c4ad8189094c68f68e9beb0f36f7b2002458d81dbc9641cc6c96c38ed4c4",
+      "section": "accountedWrites"
+    },
+    "execSettlement": {
+      "path": "tests/plugins/du-public-author/POLICY.md",
+      "sha256": "3114c4ad8189094c68f68e9beb0f36f7b2002458d81dbc9641cc6c96c38ed4c4",
+      "section": "execSettlement"
+    },
+    "disposeOverlap": {
+      "path": "tests/plugins/du-public-author/POLICY.md",
+      "sha256": "3114c4ad8189094c68f68e9beb0f36f7b2002458d81dbc9641cc6c96c38ed4c4",
+      "section": "disposeOverlap"
+    },
+    "isolationAndOpaqueBoundary": {
+      "path": "tests/plugins/du-public-author/POLICY.md",
+      "sha256": "3114c4ad8189094c68f68e9beb0f36f7b2002458d81dbc9641cc6c96c38ed4c4",
+      "section": "isolationAndOpaqueBoundary"
+    }
+  }
+}

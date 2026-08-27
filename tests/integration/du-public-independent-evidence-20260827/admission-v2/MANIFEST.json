@@ -1,0 +1,69 @@
+{
+  "schemaVersion": 2,
+  "role": "admission-only recipe seal; external Git commit required before execution",
+  "files": [
+    {
+      "path": "closure.json",
+      "mode": 420,
+      "type": "file",
+      "bytes": 628683,
+      "sha256": "b4263e32e6b2ea91a7f8eccceb1133a04ef09d614adca2c8021737572dbd0ad7"
+    },
+    {
+      "path": "common.mjs",
+      "mode": 420,
+      "type": "file",
+      "bytes": 7623,
+      "sha256": "ec2204441e048d09b46d4233bd1ce16a6dc67026dbf04c44459a29e77b130756"
+    },
+    {
+      "path": "executor.mjs",
+      "mode": 420,
+      "type": "file",
+      "bytes": 33816,
+      "sha256": "dca165bf823cd099d8b4e8dd50e6cd029a79c811f0444b2609eb7dcc8edaf6e7"
+    },
+    {
+      "path": "launch.mjs",
+      "mode": 420,
+      "type": "file",
+      "bytes": 2130,
+      "sha256": "f940d7c0c5fe6aa4f1d07336400c8be2a50ed834e042bd02d4a7b3255fee2dd7"
+    },
+    {
+      "path": "README.md",
+      "mode": 420,
+      "type": "file",
+      "bytes": 5071,
+      "sha256": "4d710c4aeae55d9e9fb2a7a728eb368d1a3700d6ba5cba7a73951021de90edf8"
+    },
+    {
+      "path": "recipe.json",
+      "mode": 420,
+      "type": "file",
+      "bytes": 11488,
+      "sha256": "e96c1c8c2d0fd286bb1cc84dda7f2ac09b25f45962604b476900bc528ded3d30"
+    },
+    {
+      "path": "registry.json",
+      "mode": 420,
+      "type": "file",
+      "bytes": 9724,
+      "sha256": "c8f7e303d609eca35e7905c302b304f5493a35a70130c9b137fe32b1c8dae2af"
+    },
+    {
+      "path": "seal.mjs",
+      "mode": 420,
+      "type": "file",
+      "bytes": 8851,
+      "sha256": "7dc6e5de66c1b71b86f88b494e0068c23d9c4448a4a4fe2a05ed3f898b7e7462"
+    },
+    {
+      "path": "tool-observer.cjs",
+      "mode": 420,
+      "type": "file",
+      "bytes": 5616,
+      "sha256": "e54414c43a22733b31c21bf7f9c7b5fbbf34da629bb34df338e91211c7ee78ac"
+    }
+  ]
+}

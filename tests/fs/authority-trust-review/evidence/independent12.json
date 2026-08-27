@@ -1,0 +1,49 @@
+{
+  "name": "independent12",
+  "command": [
+    "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "--unhandled-rejections=strict",
+    "--import",
+    "tsx",
+    "--test",
+    "--test-reporter=tap",
+    "tests/fs/authority-trust-review/authority.test.ts"
+  ],
+  "cwd": "/tmp/safe-bash-authority-fixed-2Nwe9Y",
+  "startedAt": "2026-08-27T03:03:15.499Z",
+  "finishedAt": "2026-08-27T03:03:15.794Z",
+  "code": 0,
+  "signal": null,
+  "executedTestHashes": {
+    "tests/fs/authority-trust-review/authority.test.ts": "75bfe6e5c3857d1c640747b00229ce54b736da8453783025b1495fbc9247a5fb"
+  },
+  "counts": {
+    "tests": 12,
+    "pass": 12,
+    "fail": 0,
+    "skipped": 0,
+    "cancelled": 0,
+    "todo": 0
+  },
+  "timedOut": false,
+  "outputExceeded": false,
+  "residualGroup": false,
+  "unchangedInputs": true,
+  "stdoutSha256": "41bb603c413e1f1f06f99b337a51059cdf67cd5f19c28e978d2ff7687cbb72c6",
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "tests": [
+    "ok 1 - 01 faithful opaque S3 readonly source executes shell cp over existing target",
+    "ok 2 - 02 faithful opaque DAV instances execute existing-target cp and preserve aliases",
+    "ok 3 - 03 distinct Real instances share actual backing, permit distinct copy and reject hardlink alias",
+    "ok 4 - 04 actual distinct maps override identical URL bucket key and client hints",
+    "ok 5 - 05 legitimate Real DAV overlap refuses unknown, then truthful existing comparison permits distinct copy",
+    "ok 6 - 06 fresh S3 HEAD authority rejects cached response and FS path stat replay",
+    "ok 7 - 07 DAV response authority binds exact FS path stat and does not follow response clones",
+    "ok 8 - 08 late metadata denial and buffered body failure propagate EACCES without target effects",
+    "ok 9 - 09 pending metadata cancellation preserves files and handles late rejection",
+    "ok 10 - 10 pending streamed body cancellation preserves source but permits already-truncated destination",
+    "ok 11 - 11 conflicting or invalid authorities fail EIO before content, known aliases still dominate",
+    "ok 12 - 12 readonly S3 and DAV destinations reject overwrite before body acquisition"
+  ],
+  "temporaryFixturesRemoved": "/tmp/safe-bash-authority-fixtures-ySwbEc"
+}

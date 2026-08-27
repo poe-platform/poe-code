@@ -1,0 +1,32 @@
+{
+  "name": "scoped-types",
+  "command": [
+    "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "node_modules/typescript/bin/tsc",
+    "--noEmit",
+    "-p",
+    "authority-types.json"
+  ],
+  "cwd": "/tmp/safe-bash-authority-fixed-2Nwe9Y",
+  "startedAt": "2026-08-27T03:02:41.563Z",
+  "finishedAt": "2026-08-27T03:02:42.366Z",
+  "code": 0,
+  "signal": null,
+  "executedTestHashes": {},
+  "counts": {
+    "tests": -1,
+    "pass": -1,
+    "fail": -1,
+    "skipped": -1,
+    "cancelled": -1,
+    "todo": -1
+  },
+  "timedOut": false,
+  "outputExceeded": false,
+  "residualGroup": false,
+  "unchangedInputs": true,
+  "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "tests": [],
+  "temporaryFixturesRemoved": "/tmp/safe-bash-authority-fixtures-dy0hnY"
+}

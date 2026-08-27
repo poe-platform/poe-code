@@ -1,0 +1,39 @@
+{
+  "name": "boundary2",
+  "command": [
+    "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "--unhandled-rejections=strict",
+    "--import",
+    "tsx",
+    "--test",
+    "--test-reporter=tap",
+    "tests/fs/authority-trust-review/boundary.test.ts"
+  ],
+  "cwd": "/tmp/safe-bash-authority-fixed-2Nwe9Y",
+  "startedAt": "2026-08-27T03:02:41.325Z",
+  "finishedAt": "2026-08-27T03:02:41.501Z",
+  "code": 0,
+  "signal": null,
+  "executedTestHashes": {
+    "tests/fs/authority-trust-review/boundary.test.ts": "868af3f2e6ccb29b7e87c7fb1b32169bfa68092b7a228531a3c1f2b162d06faa"
+  },
+  "counts": {
+    "tests": 2,
+    "pass": 2,
+    "fail": 0,
+    "skipped": 0,
+    "cancelled": 0,
+    "todo": 0
+  },
+  "timedOut": false,
+  "outputExceeded": false,
+  "residualGroup": false,
+  "unchangedInputs": true,
+  "stdoutSha256": "3b40bf730fd2641b75c877d40f129e919d81e084b6c8e60aa6f1077bc060fc92",
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "tests": [
+    "ok 1 - B1 OUT OF CONTRACT remote metadata with Memory write routing retains concrete source damage",
+    "ok 2 - B2 OPEN serialized SDK metadata lacks cross-backend authority despite faithful content routing"
+  ],
+  "temporaryFixturesRemoved": "/tmp/safe-bash-authority-fixtures-5LFyax"
+}

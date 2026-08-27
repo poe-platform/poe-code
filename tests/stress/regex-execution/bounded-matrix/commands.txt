@@ -1,0 +1,12 @@
+node --unhandled-rejections=strict --max-old-space-size=64 --max-semi-space-size=1 --stack-size=512 tests/stress/regex-execution/bounded-matrix/run.mjs grep-linear-match
+node --unhandled-rejections=strict --max-old-space-size=64 --max-semi-space-size=1 --stack-size=512 tests/stress/regex-execution/bounded-matrix/run.mjs grep-linear-nonmatch
+node --unhandled-rejections=strict --max-old-space-size=64 --max-semi-space-size=1 --stack-size=512 tests/stress/regex-execution/bounded-matrix/run.mjs rg-linear-match
+node --unhandled-rejections=strict --max-old-space-size=64 --max-semi-space-size=1 --stack-size=512 tests/stress/regex-execution/bounded-matrix/run.mjs rg-linear-nonmatch
+node --unhandled-rejections=strict --max-old-space-size=64 --max-semi-space-size=1 --stack-size=512 tests/stress/regex-execution/bounded-matrix/run.mjs grep-nested-16
+node --unhandled-rejections=strict --max-old-space-size=64 --max-semi-space-size=1 --stack-size=512 tests/stress/regex-execution/bounded-matrix/run.mjs grep-nested-20
+node --unhandled-rejections=strict --max-old-space-size=64 --max-semi-space-size=1 --stack-size=512 tests/stress/regex-execution/bounded-matrix/run.mjs grep-nested-24
+node --unhandled-rejections=strict --max-old-space-size=64 --max-semi-space-size=1 --stack-size=512 tests/stress/regex-execution/bounded-matrix/run.mjs grep-nested-28
+node --unhandled-rejections=strict --max-old-space-size=64 --max-semi-space-size=1 --stack-size=512 tests/stress/regex-execution/bounded-matrix/run.mjs rg-nested-16
+node --unhandled-rejections=strict --max-old-space-size=64 --max-semi-space-size=1 --stack-size=512 tests/stress/regex-execution/bounded-matrix/run.mjs rg-nested-20
+node --unhandled-rejections=strict --max-old-space-size=64 --max-semi-space-size=1 --stack-size=512 tests/stress/regex-execution/bounded-matrix/run.mjs rg-nested-24
+node --unhandled-rejections=strict --max-old-space-size=64 --max-semi-space-size=1 --stack-size=512 tests/stress/regex-execution/bounded-matrix/run.mjs rg-nested-28

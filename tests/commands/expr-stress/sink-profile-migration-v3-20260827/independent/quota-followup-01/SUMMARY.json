@@ -1,0 +1,430 @@
+{
+  "counts": {
+    "original": {
+      "passed": 46,
+      "total": 47,
+      "failed": [
+        "stdout-rejection-normal-quota"
+      ],
+      "directIdentityAssertion": null
+    },
+    "initial": {
+      "passed": 47,
+      "total": 47,
+      "failed": [],
+      "directIdentityAssertion": null
+    },
+    "corrected": {
+      "passed": 47,
+      "total": 47,
+      "failed": [],
+      "directIdentityAssertion": {
+        "name": "identical stdout rejection without diagnostic attempt",
+        "passed": true
+      }
+    }
+  },
+  "positives": 4,
+  "preservedFalsePositives": 2,
+  "correctedMutantsDetected": 7,
+  "sensitivity": [
+    {
+      "profile": "initial",
+      "mutation": "none",
+      "triggers": [
+        {
+          "mutation": "none",
+          "args": [
+            "1"
+          ],
+          "options": {
+            "limits": {
+              "maxOutputBytes": 2
+            }
+          },
+          "caughtReasonType": "object",
+          "caughtMessage": "ATTACKER_SINK_MESSAGE"
+        }
+      ],
+      "passed": true,
+      "failures": [],
+      "falsePositive": false,
+      "intendedRejectionDetected": false
+    },
+    {
+      "profile": "initial",
+      "mutation": "literal-sink-marker",
+      "triggers": [
+        {
+          "mutation": "literal-sink-marker",
+          "args": [
+            "1"
+          ],
+          "options": {
+            "limits": {
+              "maxOutputBytes": 2
+            }
+          },
+          "caughtReasonType": "object",
+          "caughtMessage": "ATTACKER_SINK_MESSAGE"
+        }
+      ],
+      "passed": true,
+      "failures": [],
+      "falsePositive": true,
+      "intendedRejectionDetected": false
+    },
+    {
+      "profile": "initial",
+      "mutation": "none",
+      "triggers": [
+        {
+          "mutation": "none",
+          "args": [
+            "1"
+          ],
+          "options": {
+            "limits": {
+              "maxOutputBytes": 2
+            }
+          },
+          "caughtReasonType": "object",
+          "caughtMessage": "ATTACKER_SINK_MESSAGE"
+        }
+      ],
+      "passed": true,
+      "failures": [],
+      "falsePositive": false,
+      "intendedRejectionDetected": false
+    },
+    {
+      "profile": "initial",
+      "mutation": "object-sink-marker",
+      "triggers": [
+        {
+          "mutation": "object-sink-marker",
+          "args": [
+            "1"
+          ],
+          "options": {
+            "limits": {
+              "maxOutputBytes": 2
+            }
+          },
+          "caughtReasonType": "object",
+          "caughtMessage": "ATTACKER_SINK_MESSAGE"
+        }
+      ],
+      "passed": true,
+      "failures": [],
+      "falsePositive": true,
+      "intendedRejectionDetected": false
+    },
+    {
+      "profile": "corrected",
+      "mutation": "none",
+      "triggers": [
+        {
+          "mutation": "none",
+          "args": [
+            "1"
+          ],
+          "options": {
+            "limits": {
+              "maxOutputBytes": 2
+            }
+          },
+          "caughtReasonType": "object",
+          "caughtMessage": "ATTACKER_SINK_MESSAGE"
+        }
+      ],
+      "passed": true,
+      "failures": [],
+      "falsePositive": false,
+      "intendedRejectionDetected": false
+    },
+    {
+      "profile": "corrected",
+      "mutation": "literal-sink-marker",
+      "triggers": [
+        {
+          "mutation": "literal-sink-marker",
+          "args": [
+            "1"
+          ],
+          "options": {
+            "limits": {
+              "maxOutputBytes": 2
+            }
+          },
+          "caughtReasonType": "object",
+          "caughtMessage": "ATTACKER_SINK_MESSAGE"
+        }
+      ],
+      "passed": false,
+      "failures": [
+        "identical stdout rejection without diagnostic attempt"
+      ],
+      "falsePositive": false,
+      "intendedRejectionDetected": true
+    },
+    {
+      "profile": "corrected",
+      "mutation": "none",
+      "triggers": [
+        {
+          "mutation": "none",
+          "args": [
+            "1"
+          ],
+          "options": {
+            "limits": {
+              "maxOutputBytes": 2
+            }
+          },
+          "caughtReasonType": "object",
+          "caughtMessage": "ATTACKER_SINK_MESSAGE"
+        }
+      ],
+      "passed": true,
+      "failures": [],
+      "falsePositive": false,
+      "intendedRejectionDetected": false
+    },
+    {
+      "profile": "corrected",
+      "mutation": "object-sink-marker",
+      "triggers": [
+        {
+          "mutation": "object-sink-marker",
+          "args": [
+            "1"
+          ],
+          "options": {
+            "limits": {
+              "maxOutputBytes": 2
+            }
+          },
+          "caughtReasonType": "object",
+          "caughtMessage": "ATTACKER_SINK_MESSAGE"
+        }
+      ],
+      "passed": false,
+      "failures": [
+        "identical stdout rejection without diagnostic attempt"
+      ],
+      "falsePositive": false,
+      "intendedRejectionDetected": true
+    },
+    {
+      "profile": "corrected",
+      "mutation": "swallow",
+      "triggers": [
+        {
+          "mutation": "swallow",
+          "args": [
+            "1"
+          ],
+          "options": {
+            "limits": {
+              "maxOutputBytes": 2
+            }
+          },
+          "caughtReasonType": "object",
+          "caughtMessage": "ATTACKER_SINK_MESSAGE"
+        }
+      ],
+      "passed": false,
+      "failures": [
+        "exact result and rejection identity",
+        "identical stdout rejection without diagnostic attempt"
+      ],
+      "falsePositive": false,
+      "intendedRejectionDetected": true
+    },
+    {
+      "profile": "corrected",
+      "mutation": "recast",
+      "triggers": [
+        {
+          "mutation": "recast",
+          "args": [
+            "1"
+          ],
+          "options": {
+            "limits": {
+              "maxOutputBytes": 2
+            }
+          },
+          "caughtReasonType": "object",
+          "caughtMessage": "ATTACKER_SINK_MESSAGE"
+        }
+      ],
+      "passed": false,
+      "failures": [
+        "exact result and rejection identity",
+        "identical stdout rejection without diagnostic attempt",
+        "normal attempted bytes obey normal quota"
+      ],
+      "falsePositive": false,
+      "intendedRejectionDetected": true
+    },
+    {
+      "profile": "corrected",
+      "mutation": "wrong-error-copy",
+      "triggers": [
+        {
+          "mutation": "wrong-error-copy",
+          "args": [
+            "1"
+          ],
+          "options": {
+            "limits": {
+              "maxOutputBytes": 2
+            }
+          },
+          "caughtReasonType": "object",
+          "caughtMessage": "ATTACKER_SINK_MESSAGE"
+        }
+      ],
+      "passed": false,
+      "failures": [
+        "exact result and rejection identity",
+        "identical stdout rejection without diagnostic attempt"
+      ],
+      "falsePositive": false,
+      "intendedRejectionDetected": true
+    },
+    {
+      "profile": "corrected",
+      "mutation": "wrong-sentinel",
+      "triggers": [
+        {
+          "mutation": "wrong-sentinel",
+          "args": [
+            "1"
+          ],
+          "options": {
+            "limits": {
+              "maxOutputBytes": 2
+            }
+          },
+          "caughtReasonType": "object",
+          "caughtMessage": "ATTACKER_SINK_MESSAGE"
+        }
+      ],
+      "passed": false,
+      "failures": [
+        "exact result and rejection identity",
+        "identical stdout rejection without diagnostic attempt"
+      ],
+      "falsePositive": false,
+      "intendedRejectionDetected": true
+    },
+    {
+      "profile": "corrected",
+      "mutation": "duplicate-diagnostic",
+      "triggers": [
+        {
+          "mutation": "duplicate-diagnostic",
+          "args": [
+            "1"
+          ],
+          "options": {
+            "limits": {
+              "maxOutputBytes": 2
+            }
+          },
+          "caughtReasonType": "object",
+          "caughtMessage": "ATTACKER_SINK_MESSAGE"
+        }
+      ],
+      "passed": false,
+      "failures": [
+        "exact result and rejection identity",
+        "identical stdout rejection without diagnostic attempt",
+        "normal attempted bytes obey normal quota",
+        "at most one stderr attempt"
+      ],
+      "falsePositive": false,
+      "intendedRejectionDetected": true
+    }
+  ],
+  "structural": [
+    {
+      "id": "weaken identity",
+      "assertion": "only authorized target assertion may differ",
+      "rejected": true,
+      "positivePassed": true
+    },
+    {
+      "id": "remove one-write bound",
+      "assertion": "only authorized target assertion may differ",
+      "rejected": true,
+      "positivePassed": true
+    },
+    {
+      "id": "change callback",
+      "assertion": "only authorized target assertion may differ",
+      "rejected": true,
+      "positivePassed": true
+    },
+    {
+      "id": "remove job assertion",
+      "assertion": "only authorized target assertion may differ",
+      "rejected": true,
+      "positivePassed": true
+    },
+    {
+      "id": "remove cleanup assertion",
+      "assertion": "only authorized target assertion may differ",
+      "rejected": true,
+      "positivePassed": true
+    }
+  ],
+  "unchangedCanonicalCoreNearby": [
+    {
+      "path": "revised/canonical/contracts.test.ts.data",
+      "sha256": "ce900757c3d61c85e76960260f54e90fa4ae1edb0d71b070b8bf639b9a2326b7",
+      "unchanged": true
+    },
+    {
+      "path": "revised/core/runtime-driver.mjs",
+      "sha256": "1ecb6e435f0fd42956836b593de9c4015a94e90788d7a832e9504449586a94f5",
+      "unchanged": true
+    },
+    {
+      "path": "revised/core/protocol-driver.mjs",
+      "sha256": "3f87c282e60a67388e64bf6fdd0b2b445778171fbb93c0190a237c53f2fc77bc",
+      "unchanged": true
+    },
+    {
+      "path": "revised/core/lifecycle-driver.mjs",
+      "sha256": "1246aa9d53aabb47b825133634b458a9f2ce958f3d32c758c28e7c76668c2e37",
+      "unchanged": true
+    },
+    {
+      "path": "revised/core/watchdog.mjs",
+      "sha256": "bef0f71905b37dbfd461f211214760ffc2ba8ae9039859f5736c3234309a92ee",
+      "unchanged": true
+    },
+    {
+      "path": "revised/nearby/controls.json",
+      "sha256": "8842bd8d8542757a64cca37306491903233cb43e41fe9b37d0801feba6816fda",
+      "unchanged": true
+    },
+    {
+      "path": "support/nearby-driver.mjs",
+      "sha256": "a0c00b680f4d4c35ee11edc16313feb6a4f7428684bb78eaab1f774e7c88ccbe",
+      "unchanged": true
+    }
+  ],
+  "product": "c3e40f8bd721da5e496f3b3abfd51aee45db5a84",
+  "initialCommit": "0219616f7e2dc2f13aebc155933fd52fe1dfac9e",
+  "authorCommit": "098ce3f4fefed0eebf98881bd835eac1ed9b6e4c",
+  "sameArchive": "66d53b29c609957e3f5b7ee27c7734c72a959771b68e3b9b6417df0dd379b97f",
+  "samePackage": "8331e853455f295dfda24ff53d612514212067ca2075df09e8b60339bda58a5e",
+  "appendAwareSourceDistPackageHarnessUnchanged": true,
+  "noProductDefectEstablished": true,
+  "comparatorDefectCorrected": true
+}

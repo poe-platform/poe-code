@@ -1,0 +1,33 @@
+{
+  "frozenAt": "2026-08-27T21:38:09.260Z",
+  "originalFreezePath": "FREEZE.json",
+  "originalFreezeSha256": "181ed1873e06a1c2848d57d5a14dd20b73e73b605387d87a701e7efab4e5618a",
+  "manifestSha256": "52eb62127fe1cc7156ddaeeb56f2bcef073e34da040799ca2b0b1533329043ee",
+  "files": [
+    {
+      "path": "quota-identity-v2/probe.mjs",
+      "bytes": 9607,
+      "sha256": "d654ad3b0623430481a6e306a8d64fdbb888092e4394ccd0e473cb2fb6f37dfd"
+    },
+    {
+      "path": "quota-identity-v2/cases.mjs",
+      "bytes": 3662,
+      "sha256": "95b43097e3d7685504fc11db5b90f6fa59988b34daf5ee236e679ca8b8b3ea40"
+    },
+    {
+      "path": "quota-identity-v2/common.mjs",
+      "bytes": 920,
+      "sha256": "12cc409e46a55c16c640d00916a24d4bea43f03c57b4695743ad2ed16456ee5f"
+    },
+    {
+      "path": "capture-v2.mjs",
+      "bytes": 12638,
+      "sha256": "35f50325ffeaa78a1421ccff57c60599962a4ed2c6100a2a948fbcc99da6470e"
+    },
+    {
+      "path": "MANIFEST-v2.json",
+      "bytes": 23158,
+      "sha256": "52eb62127fe1cc7156ddaeeb56f2bcef073e34da040799ca2b0b1533329043ee"
+    }
+  ]
+}

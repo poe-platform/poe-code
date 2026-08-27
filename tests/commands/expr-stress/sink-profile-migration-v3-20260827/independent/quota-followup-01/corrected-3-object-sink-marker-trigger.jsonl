@@ -1,0 +1,1 @@
+{"mutation":"object-sink-marker","args":["1"],"options":{"limits":{"maxOutputBytes":2}},"caughtReasonType":"object","caughtMessage":"ATTACKER_SINK_MESSAGE"}

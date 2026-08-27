@@ -1,0 +1,15 @@
+{
+  "scratch": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-sink-independent-v3-SWsRGi",
+  "source": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-sink-independent-v3-SWsRGi/source",
+  "temporary": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-sink-independent-v3-SWsRGi/tmp",
+  "product": "c3e40f8bd721da5e496f3b3abfd51aee45db5a84",
+  "selected": [
+    "src",
+    "package.json",
+    "package-lock.json",
+    "tsconfig.json",
+    "tsconfig.build.json"
+  ],
+  "archiveSha256": "66d53b29c609957e3f5b7ee27c7734c72a959771b68e3b9b6417df0dd379b97f",
+  "started": "2026-08-27T21:45:38.296Z"
+}

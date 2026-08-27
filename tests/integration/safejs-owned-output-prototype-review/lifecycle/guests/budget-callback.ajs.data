@@ -1,0 +1,11 @@
+import * as stdio from "stdio";
+const emit = stdio.write;
+await emit("before-budget\n");
+const callbacks = [async () => {
+  let count = 0;
+  for (let index = 0; index < 4096; index++) count += 1;
+  await emit("after-budget\n");
+  return count;
+}];
+const result = await Promise.resolve().then(callbacks[0]);
+return result;

@@ -1,0 +1,10 @@
+import * as stdio from "stdio";
+import * as command from "command";
+import * as shell from "shell";
+const execute = shell.exec;
+const result = await execute("owned-curl");
+await stdio.write(result.stdout);
+await stdio.write("curl:" + result.exitCode + "\n");
+await stdio.error(result.stderr);
+command.setExitCode(result.exitCode);
+return "curl-complete";

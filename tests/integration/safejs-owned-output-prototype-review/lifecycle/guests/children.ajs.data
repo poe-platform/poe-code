@@ -1,0 +1,9 @@
+import * as stdio from "stdio";
+import * as shell from "shell";
+const execute = shell.exec;
+const first = execute("owned-leaf left");
+const second = execute("owned-leaf right");
+const results = await Promise.all([first, second]);
+const late = await execute("owned-leaf late");
+await stdio.write(JSON.stringify([results[0].exitCode, results[1].exitCode, late.exitCode]) + "\n");
+return "children-complete";

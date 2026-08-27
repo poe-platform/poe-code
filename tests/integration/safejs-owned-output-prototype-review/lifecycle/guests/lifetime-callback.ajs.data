@@ -1,0 +1,15 @@
+import * as stdio from "stdio";
+import * as command from "command";
+import * as shell from "shell";
+const emit = stdio.write;
+const execute = shell.exec;
+const deliver = async () => {
+  await emit("callback\n");
+  await execute("owned-late");
+};
+const pending = execute("owned-hold");
+const scheduled = pending.then(deliver, deliver);
+scheduled.catch(() => 0);
+await emit("queued\n");
+if (command.args[0] === "live") await scheduled;
+return "lifetime-complete";

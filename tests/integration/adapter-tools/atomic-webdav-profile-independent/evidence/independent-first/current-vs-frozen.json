@@ -1,0 +1,1346 @@
+[
+  {
+    "path": "package-lock.json",
+    "frozenSha256": "9c04bb7d2c7d1894479f0c37ce367987c2130256e5bfbf426cfa1bd2729d740b",
+    "currentCommitSha256": "9c04bb7d2c7d1894479f0c37ce367987c2130256e5bfbf426cfa1bd2729d740b",
+    "liveSha256": "9c04bb7d2c7d1894479f0c37ce367987c2130256e5bfbf426cfa1bd2729d740b"
+  },
+  {
+    "path": "package.json",
+    "frozenSha256": "2d98aad926c0a877ed4c3e5ac088cb498526e4769d30f9ab092cfd2bbeb7f9c7",
+    "currentCommitSha256": "2d98aad926c0a877ed4c3e5ac088cb498526e4769d30f9ab092cfd2bbeb7f9c7",
+    "liveSha256": "2d98aad926c0a877ed4c3e5ac088cb498526e4769d30f9ab092cfd2bbeb7f9c7"
+  },
+  {
+    "path": "src/commands/README.md",
+    "frozenSha256": "b6fb2730f3cf0e9d2fe882352b1c2ece3ab7eacd9b6932ea6fcfc0358863228a",
+    "currentCommitSha256": "b6fb2730f3cf0e9d2fe882352b1c2ece3ab7eacd9b6932ea6fcfc0358863228a",
+    "liveSha256": "b6fb2730f3cf0e9d2fe882352b1c2ece3ab7eacd9b6932ea6fcfc0358863228a"
+  },
+  {
+    "path": "src/commands/archive/README.md",
+    "frozenSha256": "37ea45ddd30ea605f36194c83b1ea05873bb26a6ebca7a104c037ef1f236a822",
+    "currentCommitSha256": "37ea45ddd30ea605f36194c83b1ea05873bb26a6ebca7a104c037ef1f236a822",
+    "liveSha256": "37ea45ddd30ea605f36194c83b1ea05873bb26a6ebca7a104c037ef1f236a822"
+  },
+  {
+    "path": "src/commands/archive/create.ts",
+    "frozenSha256": "cdddce8ccd1d53987fa1a314cdc6e04d48246fa59fd0880fb444c66bdca7199c",
+    "currentCommitSha256": "cdddce8ccd1d53987fa1a314cdc6e04d48246fa59fd0880fb444c66bdca7199c",
+    "liveSha256": "cdddce8ccd1d53987fa1a314cdc6e04d48246fa59fd0880fb444c66bdca7199c"
+  },
+  {
+    "path": "src/commands/archive/extract.ts",
+    "frozenSha256": "fc2f8a4151ca7c5398cd64fe4a55156f2a1ac6feb75404cfb96c8f5b6d4a1536",
+    "currentCommitSha256": "fc2f8a4151ca7c5398cd64fe4a55156f2a1ac6feb75404cfb96c8f5b6d4a1536",
+    "liveSha256": "fc2f8a4151ca7c5398cd64fe4a55156f2a1ac6feb75404cfb96c8f5b6d4a1536"
+  },
+  {
+    "path": "src/commands/archive/format.ts",
+    "frozenSha256": "05445d1d80023bbd5a59ff3a47b14bcea038f1f8476835fd973a01ee89fd19ac",
+    "currentCommitSha256": "05445d1d80023bbd5a59ff3a47b14bcea038f1f8476835fd973a01ee89fd19ac",
+    "liveSha256": "05445d1d80023bbd5a59ff3a47b14bcea038f1f8476835fd973a01ee89fd19ac"
+  },
+  {
+    "path": "src/commands/archive/index.ts",
+    "frozenSha256": "6f23a98dbe89bb37f44799f47c365fb430e910f87363c50291f7b44293e416d0",
+    "currentCommitSha256": "6f23a98dbe89bb37f44799f47c365fb430e910f87363c50291f7b44293e416d0",
+    "liveSha256": "6f23a98dbe89bb37f44799f47c365fb430e910f87363c50291f7b44293e416d0"
+  },
+  {
+    "path": "src/commands/archive/internal.ts",
+    "frozenSha256": "6e9a204384490607973f7e1109c51a082319b6eed2fecb8f410d9d51711367d9",
+    "currentCommitSha256": "6e9a204384490607973f7e1109c51a082319b6eed2fecb8f410d9d51711367d9",
+    "liveSha256": "6e9a204384490607973f7e1109c51a082319b6eed2fecb8f410d9d51711367d9"
+  },
+  {
+    "path": "src/commands/archive/options.ts",
+    "frozenSha256": "1c2dc4e57c80901b402f8f08b1a5638b7acad9f882aca67ae4f9be73295bf956",
+    "currentCommitSha256": "1c2dc4e57c80901b402f8f08b1a5638b7acad9f882aca67ae4f9be73295bf956",
+    "liveSha256": "1c2dc4e57c80901b402f8f08b1a5638b7acad9f882aca67ae4f9be73295bf956"
+  },
+  {
+    "path": "src/commands/archive/stream.ts",
+    "frozenSha256": "31a3b70bf7ce89f81e287cac09c6816637bd06dc398010dd82386ce5d93ceba4",
+    "currentCommitSha256": "31a3b70bf7ce89f81e287cac09c6816637bd06dc398010dd82386ce5d93ceba4",
+    "liveSha256": "31a3b70bf7ce89f81e287cac09c6816637bd06dc398010dd82386ce5d93ceba4"
+  },
+  {
+    "path": "src/commands/basic.ts",
+    "frozenSha256": "635d6956e728277f78387c0a03a00d5567ba608f39bb2b9b65a8f1ffdf79017f",
+    "currentCommitSha256": "635d6956e728277f78387c0a03a00d5567ba608f39bb2b9b65a8f1ffdf79017f",
+    "liveSha256": "635d6956e728277f78387c0a03a00d5567ba608f39bb2b9b65a8f1ffdf79017f"
+  },
+  {
+    "path": "src/commands/bytes/README.md",
+    "frozenSha256": "c630d1fb9d0f21671ae7ded4bdb86b5a73a6e124c63da1c8b87908c77b577a20",
+    "currentCommitSha256": "c630d1fb9d0f21671ae7ded4bdb86b5a73a6e124c63da1c8b87908c77b577a20",
+    "liveSha256": "c630d1fb9d0f21671ae7ded4bdb86b5a73a6e124c63da1c8b87908c77b577a20"
+  },
+  {
+    "path": "src/commands/bytes/checksums/README.md",
+    "frozenSha256": "b0e2d4a525b7f25a3a36d28440ca85a4c9ebfbce27cc3e12cc8bb9decb9eab0e",
+    "currentCommitSha256": "b0e2d4a525b7f25a3a36d28440ca85a4c9ebfbce27cc3e12cc8bb9decb9eab0e",
+    "liveSha256": "b0e2d4a525b7f25a3a36d28440ca85a4c9ebfbce27cc3e12cc8bb9decb9eab0e"
+  },
+  {
+    "path": "src/commands/bytes/checksums/index.ts",
+    "frozenSha256": "042bb34a0b81a03d70bc148eae753e2f562817dda5a5023bddda67a567088bab",
+    "currentCommitSha256": "042bb34a0b81a03d70bc148eae753e2f562817dda5a5023bddda67a567088bab",
+    "liveSha256": "042bb34a0b81a03d70bc148eae753e2f562817dda5a5023bddda67a567088bab"
+  },
+  {
+    "path": "src/commands/bytes/compression/README.md",
+    "frozenSha256": "970ab6bf5c3c9fc97582d25b508513656aa265e5352ce3be5e77bc2d041c9dc7",
+    "currentCommitSha256": "970ab6bf5c3c9fc97582d25b508513656aa265e5352ce3be5e77bc2d041c9dc7",
+    "liveSha256": "970ab6bf5c3c9fc97582d25b508513656aa265e5352ce3be5e77bc2d041c9dc7"
+  },
+  {
+    "path": "src/commands/bytes/compression/files.ts",
+    "frozenSha256": "1f8d8b243f10d63ae5cccea40d1d9cfc6cb841a46bea15cc61f4a5caa70572df",
+    "currentCommitSha256": "1f8d8b243f10d63ae5cccea40d1d9cfc6cb841a46bea15cc61f4a5caa70572df",
+    "liveSha256": "1f8d8b243f10d63ae5cccea40d1d9cfc6cb841a46bea15cc61f4a5caa70572df"
+  },
+  {
+    "path": "src/commands/bytes/compression/gunzip.ts",
+    "frozenSha256": "6bf534778fa82558ae36bd96412662a8e4c4e864c0a93f15b40d1148a64f835f",
+    "currentCommitSha256": "6bf534778fa82558ae36bd96412662a8e4c4e864c0a93f15b40d1148a64f835f",
+    "liveSha256": "6bf534778fa82558ae36bd96412662a8e4c4e864c0a93f15b40d1148a64f835f"
+  },
+  {
+    "path": "src/commands/bytes/compression/index.ts",
+    "frozenSha256": "cb0de2e91261eaf255491fe5dc2e62683ef002e07cddef5827b57527eaaf88f9",
+    "currentCommitSha256": "cb0de2e91261eaf255491fe5dc2e62683ef002e07cddef5827b57527eaaf88f9",
+    "liveSha256": "cb0de2e91261eaf255491fe5dc2e62683ef002e07cddef5827b57527eaaf88f9"
+  },
+  {
+    "path": "src/commands/bytes/compression/options.ts",
+    "frozenSha256": "3218bbcba8d3c5c113eb7f4761f81e0919e380c6f3de76b26b6a52c44ba7cd95",
+    "currentCommitSha256": "3218bbcba8d3c5c113eb7f4761f81e0919e380c6f3de76b26b6a52c44ba7cd95",
+    "liveSha256": "3218bbcba8d3c5c113eb7f4761f81e0919e380c6f3de76b26b6a52c44ba7cd95"
+  },
+  {
+    "path": "src/commands/bytes/compression/stream.ts",
+    "frozenSha256": "573157fda5382df052ea30011ff3094ac6c838618e1272689766819777a8c9e4",
+    "currentCommitSha256": "573157fda5382df052ea30011ff3094ac6c838618e1272689766819777a8c9e4",
+    "liveSha256": "573157fda5382df052ea30011ff3094ac6c838618e1272689766819777a8c9e4"
+  },
+  {
+    "path": "src/commands/bytes/encoding/README.md",
+    "frozenSha256": "8b73fdf7a5ebc57fa44014a9449dcb767ba48030b29d36d5e37580cdbcdee886",
+    "currentCommitSha256": "8b73fdf7a5ebc57fa44014a9449dcb767ba48030b29d36d5e37580cdbcdee886",
+    "liveSha256": "8b73fdf7a5ebc57fa44014a9449dcb767ba48030b29d36d5e37580cdbcdee886"
+  },
+  {
+    "path": "src/commands/bytes/encoding/base.ts",
+    "frozenSha256": "91e4309ca4947fbf3ac0dd9d0dc9431d3d22d29fb66e46706290922c9feb134d",
+    "currentCommitSha256": "91e4309ca4947fbf3ac0dd9d0dc9431d3d22d29fb66e46706290922c9feb134d",
+    "liveSha256": "91e4309ca4947fbf3ac0dd9d0dc9431d3d22d29fb66e46706290922c9feb134d"
+  },
+  {
+    "path": "src/commands/bytes/encoding/index.ts",
+    "frozenSha256": "6df6b0d7393fd2abb82b476915fc48ae333730c1e9b323a11776a3b9c2607d5f",
+    "currentCommitSha256": "6df6b0d7393fd2abb82b476915fc48ae333730c1e9b323a11776a3b9c2607d5f",
+    "liveSha256": "6df6b0d7393fd2abb82b476915fc48ae333730c1e9b323a11776a3b9c2607d5f"
+  },
+  {
+    "path": "src/commands/bytes/encoding/od.ts",
+    "frozenSha256": "dbe5312675e4ecf74d852e28ac8134be5586d8aa53d5b21a3cccc5d986213a03",
+    "currentCommitSha256": "dbe5312675e4ecf74d852e28ac8134be5586d8aa53d5b21a3cccc5d986213a03",
+    "liveSha256": "dbe5312675e4ecf74d852e28ac8134be5586d8aa53d5b21a3cccc5d986213a03"
+  },
+  {
+    "path": "src/commands/bytes/encoding/shared.ts",
+    "frozenSha256": "8a0eb870513630296a7f28d7d6867d25aba9b785365b812d740c6d7b4da3d396",
+    "currentCommitSha256": "8a0eb870513630296a7f28d7d6867d25aba9b785365b812d740c6d7b4da3d396",
+    "liveSha256": "8a0eb870513630296a7f28d7d6867d25aba9b785365b812d740c6d7b4da3d396"
+  },
+  {
+    "path": "src/commands/bytes/encoding/xxd.ts",
+    "frozenSha256": "1b78b95a9b0175e5297b988a1794310c03786df5a7aa90a4dd261e91ec765a78",
+    "currentCommitSha256": "1b78b95a9b0175e5297b988a1794310c03786df5a7aa90a4dd261e91ec765a78",
+    "liveSha256": "1b78b95a9b0175e5297b988a1794310c03786df5a7aa90a4dd261e91ec765a78"
+  },
+  {
+    "path": "src/commands/bytes/index.ts",
+    "frozenSha256": "70643f22b1b47c1d6422b97d76cacf95e4e6337521f6f42e0f5f559bacbed84f",
+    "currentCommitSha256": "70643f22b1b47c1d6422b97d76cacf95e4e6337521f6f42e0f5f559bacbed84f",
+    "liveSha256": "70643f22b1b47c1d6422b97d76cacf95e4e6337521f6f42e0f5f559bacbed84f"
+  },
+  {
+    "path": "src/commands/copy-identity.ts",
+    "frozenSha256": "f1a03403fadc0138377bd3b215dafecf4b28a187549da8e80764a3fd08238dfe",
+    "currentCommitSha256": "f1a03403fadc0138377bd3b215dafecf4b28a187549da8e80764a3fd08238dfe",
+    "liveSha256": "f1a03403fadc0138377bd3b215dafecf4b28a187549da8e80764a3fd08238dfe"
+  },
+  {
+    "path": "src/commands/diff-patch/GNU-DIFF.md",
+    "frozenSha256": "e0e1f1f8e27bc68c991dee2a9e80a230896a6140fa4408e9b7379713dc8b81cb",
+    "currentCommitSha256": "e0e1f1f8e27bc68c991dee2a9e80a230896a6140fa4408e9b7379713dc8b81cb",
+    "liveSha256": "e0e1f1f8e27bc68c991dee2a9e80a230896a6140fa4408e9b7379713dc8b81cb"
+  },
+  {
+    "path": "src/commands/diff-patch/GNU-PATCH.md",
+    "frozenSha256": "5e194d1b6dd8481fb7631f56ca3c81fd1e98eb35988d0ea5b1ed7ddde1909605",
+    "currentCommitSha256": "5e194d1b6dd8481fb7631f56ca3c81fd1e98eb35988d0ea5b1ed7ddde1909605",
+    "liveSha256": "5e194d1b6dd8481fb7631f56ca3c81fd1e98eb35988d0ea5b1ed7ddde1909605"
+  },
+  {
+    "path": "src/commands/diff-patch/PARSER.md",
+    "frozenSha256": "5d92f96bb67fdf4a284f6e2e7c802eeeb99d86cf0e4e71fb793c2f5405d66fa6",
+    "currentCommitSha256": "5d92f96bb67fdf4a284f6e2e7c802eeeb99d86cf0e4e71fb793c2f5405d66fa6",
+    "liveSha256": "5d92f96bb67fdf4a284f6e2e7c802eeeb99d86cf0e4e71fb793c2f5405d66fa6"
+  },
+  {
+    "path": "src/commands/diff-patch/README.md",
+    "frozenSha256": "26745f4ccdb86bd9de6f3c7265fe46704974ef88dd037db39a92c4ff5cce8454",
+    "currentCommitSha256": "26745f4ccdb86bd9de6f3c7265fe46704974ef88dd037db39a92c4ff5cce8454",
+    "liveSha256": "26745f4ccdb86bd9de6f3c7265fe46704974ef88dd037db39a92c4ff5cce8454"
+  },
+  {
+    "path": "src/commands/diff-patch/diff-format.ts",
+    "frozenSha256": "e7d66d54d65e28d152fc451d63aae1813eddf450001c0dd4dcb15ca67c941e24",
+    "currentCommitSha256": "e7d66d54d65e28d152fc451d63aae1813eddf450001c0dd4dcb15ca67c941e24",
+    "liveSha256": "e7d66d54d65e28d152fc451d63aae1813eddf450001c0dd4dcb15ca67c941e24"
+  },
+  {
+    "path": "src/commands/diff-patch/diff.ts",
+    "frozenSha256": "c3eb090a70a590992cd165486911aec51fa5dbac0e746453dbc0809fe76bc06e",
+    "currentCommitSha256": "c3eb090a70a590992cd165486911aec51fa5dbac0e746453dbc0809fe76bc06e",
+    "liveSha256": "c3eb090a70a590992cd165486911aec51fa5dbac0e746453dbc0809fe76bc06e"
+  },
+  {
+    "path": "src/commands/diff-patch/index.ts",
+    "frozenSha256": "82465ab079aac196a8cf99231fc9d9e7f4f60135f862802e02d2e523d0bebf17",
+    "currentCommitSha256": "82465ab079aac196a8cf99231fc9d9e7f4f60135f862802e02d2e523d0bebf17",
+    "liveSha256": "82465ab079aac196a8cf99231fc9d9e7f4f60135f862802e02d2e523d0bebf17"
+  },
+  {
+    "path": "src/commands/diff-patch/patch-envelope.ts",
+    "frozenSha256": "f6a15e78d7cea41d503f5352206efeb9fa950871c820af730cf27ea06ade99e8",
+    "currentCommitSha256": "f6a15e78d7cea41d503f5352206efeb9fa950871c820af730cf27ea06ade99e8",
+    "liveSha256": "f6a15e78d7cea41d503f5352206efeb9fa950871c820af730cf27ea06ade99e8"
+  },
+  {
+    "path": "src/commands/diff-patch/patch-formats.ts",
+    "frozenSha256": "a78045ac43900582bdb19f0476414e8566c4e1e2edc86b654bc760cf86de3aa4",
+    "currentCommitSha256": "a78045ac43900582bdb19f0476414e8566c4e1e2edc86b654bc760cf86de3aa4",
+    "liveSha256": "a78045ac43900582bdb19f0476414e8566c4e1e2edc86b654bc760cf86de3aa4"
+  },
+  {
+    "path": "src/commands/diff-patch/patch-gnu-paths.ts",
+    "frozenSha256": "3a06d5b33d3c0df12ff83b0bbf4396d90906d6fd61e3ca1bd5537f508c4282af",
+    "currentCommitSha256": "3a06d5b33d3c0df12ff83b0bbf4396d90906d6fd61e3ca1bd5537f508c4282af",
+    "liveSha256": "3a06d5b33d3c0df12ff83b0bbf4396d90906d6fd61e3ca1bd5537f508c4282af"
+  },
+  {
+    "path": "src/commands/diff-patch/patch-gnu-reject.ts",
+    "frozenSha256": "5df12efd994c0187998f0112a5fac595f376142f2cd187a5e0b40738f7b6cf02",
+    "currentCommitSha256": "5df12efd994c0187998f0112a5fac595f376142f2cd187a5e0b40738f7b6cf02",
+    "liveSha256": "5df12efd994c0187998f0112a5fac595f376142f2cd187a5e0b40738f7b6cf02"
+  },
+  {
+    "path": "src/commands/diff-patch/patch-path.ts",
+    "frozenSha256": "053f471db60b5a2878144451a821f8590415a85535cb86e5d9ee0367e257ef94",
+    "currentCommitSha256": "053f471db60b5a2878144451a821f8590415a85535cb86e5d9ee0367e257ef94",
+    "liveSha256": "053f471db60b5a2878144451a821f8590415a85535cb86e5d9ee0367e257ef94"
+  },
+  {
+    "path": "src/commands/diff-patch/patch.ts",
+    "frozenSha256": "4676d745a02a739f403025c5c1867de44052a5be4c7e29f8e59a899244330606",
+    "currentCommitSha256": "4676d745a02a739f403025c5c1867de44052a5be4c7e29f8e59a899244330606",
+    "liveSha256": "4676d745a02a739f403025c5c1867de44052a5be4c7e29f8e59a899244330606"
+  },
+  {
+    "path": "src/commands/diff-patch/shared.ts",
+    "frozenSha256": "81ab0a3d1fbb29feb91761a7a60a535ca5768079ee0415e0788cbebfb1f3617e",
+    "currentCommitSha256": "81ab0a3d1fbb29feb91761a7a60a535ca5768079ee0415e0788cbebfb1f3617e",
+    "liveSha256": "81ab0a3d1fbb29feb91761a7a60a535ca5768079ee0415e0788cbebfb1f3617e"
+  },
+  {
+    "path": "src/commands/diff-patch/unified.ts",
+    "frozenSha256": "31ac868fb3fabcde00178fa02cdf0fbcabdfa408cead72bb2d3aedc2c90813f5",
+    "currentCommitSha256": "31ac868fb3fabcde00178fa02cdf0fbcabdfa408cead72bb2d3aedc2c90813f5",
+    "liveSha256": "31ac868fb3fabcde00178fa02cdf0fbcabdfa408cead72bb2d3aedc2c90813f5"
+  },
+  {
+    "path": "src/commands/execution.ts",
+    "frozenSha256": "1d084ab203dc59a510e39e5c71743b755ba9bdb5d4b018658398ed96c3dff700",
+    "currentCommitSha256": "1d084ab203dc59a510e39e5c71743b755ba9bdb5d4b018658398ed96c3dff700",
+    "liveSha256": "1d084ab203dc59a510e39e5c71743b755ba9bdb5d4b018658398ed96c3dff700"
+  },
+  {
+    "path": "src/commands/file/README.md",
+    "frozenSha256": "8a299c77e959ca579b5da67ea2d0345f4da1f31d5f0a74d99686e74e3358efd3",
+    "currentCommitSha256": "aaa49bf4c73705aed8571eafc030dd1cb3b3db5a0ef4121319a0c0531071d57d",
+    "liveSha256": "aaa49bf4c73705aed8571eafc030dd1cb3b3db5a0ef4121319a0c0531071d57d"
+  },
+  {
+    "path": "src/commands/file/classify.ts",
+    "frozenSha256": "fcdee375d2f97afae9d8dc6a23eff64440258aea0a8c2adff7b2968875bc6535",
+    "currentCommitSha256": "fcdee375d2f97afae9d8dc6a23eff64440258aea0a8c2adff7b2968875bc6535",
+    "liveSha256": "fcdee375d2f97afae9d8dc6a23eff64440258aea0a8c2adff7b2968875bc6535"
+  },
+  {
+    "path": "src/commands/file/index.ts",
+    "frozenSha256": "1753ac81d099b329d52bb83b0047d5241ca25ec74f9c57b62399f254404ee825",
+    "currentCommitSha256": "5278a91c223e182a6bfd2961b16545ff42e2f4e986c25f5dc7f35371aee0d178",
+    "liveSha256": "5278a91c223e182a6bfd2961b16545ff42e2f4e986c25f5dc7f35371aee0d178"
+  },
+  {
+    "path": "src/commands/file/shared.ts",
+    "frozenSha256": "fa4d86f5cc1eb3a642aac34845737566c89e2b2b4983ec21a111441c3b94f87a",
+    "currentCommitSha256": "bb6d9ac67eeace8e52220c94f7eb2d78236fe045d3d1312814c5b9dcb0755fc5",
+    "liveSha256": "bb6d9ac67eeace8e52220c94f7eb2d78236fe045d3d1312814c5b9dcb0755fc5"
+  },
+  {
+    "path": "src/commands/filesystem.ts",
+    "frozenSha256": "74fb5fdd66c2eaf7a8f31d2be8c6be0e94c09ff65892c561bbc0c6bc6f875a8f",
+    "currentCommitSha256": "74fb5fdd66c2eaf7a8f31d2be8c6be0e94c09ff65892c561bbc0c6bc6f875a8f",
+    "liveSha256": "74fb5fdd66c2eaf7a8f31d2be8c6be0e94c09ff65892c561bbc0c6bc6f875a8f"
+  },
+  {
+    "path": "src/commands/find.ts",
+    "frozenSha256": "534a5359a42bb7bf0020f21092740262edbe9053744e29d153fa9e6319539db2",
+    "currentCommitSha256": "534a5359a42bb7bf0020f21092740262edbe9053744e29d153fa9e6319539db2",
+    "liveSha256": "534a5359a42bb7bf0020f21092740262edbe9053744e29d153fa9e6319539db2"
+  },
+  {
+    "path": "src/commands/grep.ts",
+    "frozenSha256": "a5e93d8dd97c35f1a1530792b38478942647e6e66ac01fcd44fbea05fbfa78d1",
+    "currentCommitSha256": "a5e93d8dd97c35f1a1530792b38478942647e6e66ac01fcd44fbea05fbfa78d1",
+    "liveSha256": "a5e93d8dd97c35f1a1530792b38478942647e6e66ac01fcd44fbea05fbfa78d1"
+  },
+  {
+    "path": "src/commands/index.ts",
+    "frozenSha256": "67a0e34ea9a8518d2349b4707ef5214e9da0de790ea5c1973daac71dabc70aa9",
+    "currentCommitSha256": "67a0e34ea9a8518d2349b4707ef5214e9da0de790ea5c1973daac71dabc70aa9",
+    "liveSha256": "67a0e34ea9a8518d2349b4707ef5214e9da0de790ea5c1973daac71dabc70aa9"
+  },
+  {
+    "path": "src/commands/internal.ts",
+    "frozenSha256": "28d83d91d5086b39b50494ea1130d34c3b48b22a15dc04c2912ee2503a7536d5",
+    "currentCommitSha256": "28d83d91d5086b39b50494ea1130d34c3b48b22a15dc04c2912ee2503a7536d5",
+    "liveSha256": "28d83d91d5086b39b50494ea1130d34c3b48b22a15dc04c2912ee2503a7536d5"
+  },
+  {
+    "path": "src/commands/metadata/README.md",
+    "frozenSha256": "36e299c06fc251233f0e46d994ac8bfe1d8607d10382d834ed4f1aeae83eb1ce",
+    "currentCommitSha256": "36e299c06fc251233f0e46d994ac8bfe1d8607d10382d834ed4f1aeae83eb1ce",
+    "liveSha256": "36e299c06fc251233f0e46d994ac8bfe1d8607d10382d834ed4f1aeae83eb1ce"
+  },
+  {
+    "path": "src/commands/metadata/chmod.ts",
+    "frozenSha256": "9286ebc9bea074bf9dad58cb6197aa5e10d325c549187eefbc9203ac76b09cfd",
+    "currentCommitSha256": "9286ebc9bea074bf9dad58cb6197aa5e10d325c549187eefbc9203ac76b09cfd",
+    "liveSha256": "9286ebc9bea074bf9dad58cb6197aa5e10d325c549187eefbc9203ac76b09cfd"
+  },
+  {
+    "path": "src/commands/metadata/index.ts",
+    "frozenSha256": "bc4ad8e3fb5474796ff326b1f53b8c1b84cf45647640f8246d4ccfb3b61d467e",
+    "currentCommitSha256": "bc4ad8e3fb5474796ff326b1f53b8c1b84cf45647640f8246d4ccfb3b61d467e",
+    "liveSha256": "bc4ad8e3fb5474796ff326b1f53b8c1b84cf45647640f8246d4ccfb3b61d467e"
+  },
+  {
+    "path": "src/commands/metadata/internal.ts",
+    "frozenSha256": "bd26d6f4a098c565ce38da6bc269503469638837d3dce47e21ac9c1604a45cd7",
+    "currentCommitSha256": "bd26d6f4a098c565ce38da6bc269503469638837d3dce47e21ac9c1604a45cd7",
+    "liveSha256": "bd26d6f4a098c565ce38da6bc269503469638837d3dce47e21ac9c1604a45cd7"
+  },
+  {
+    "path": "src/commands/metadata/mktemp.ts",
+    "frozenSha256": "1165d822477e68f6b4dfac3db6a7fa43247226137122c0d980e1490b80bc34d4",
+    "currentCommitSha256": "1165d822477e68f6b4dfac3db6a7fa43247226137122c0d980e1490b80bc34d4",
+    "liveSha256": "1165d822477e68f6b4dfac3db6a7fa43247226137122c0d980e1490b80bc34d4"
+  },
+  {
+    "path": "src/commands/metadata/stat.ts",
+    "frozenSha256": "fab291cc4e5668526fc1247e155f5878e1235d9d95a5096d34bcfa9f022d7f3b",
+    "currentCommitSha256": "fab291cc4e5668526fc1247e155f5878e1235d9d95a5096d34bcfa9f022d7f3b",
+    "liveSha256": "fab291cc4e5668526fc1247e155f5878e1235d9d95a5096d34bcfa9f022d7f3b"
+  },
+  {
+    "path": "src/commands/move.ts",
+    "frozenSha256": "31e1fe6a2c0fc9efb9efa44b636d9478d4cab273de4c4e809d4f572b28084042",
+    "currentCommitSha256": "31e1fe6a2c0fc9efb9efa44b636d9478d4cab273de4c4e809d4f572b28084042",
+    "liveSha256": "31e1fe6a2c0fc9efb9efa44b636d9478d4cab273de4c4e809d4f572b28084042"
+  },
+  {
+    "path": "src/commands/network/README.md",
+    "frozenSha256": "41e75f9ae587e63a61344df06b0cb518eae1f1d5eab155fd5892026c8c1ccb0f",
+    "currentCommitSha256": "41e75f9ae587e63a61344df06b0cb518eae1f1d5eab155fd5892026c8c1ccb0f",
+    "liveSha256": "41e75f9ae587e63a61344df06b0cb518eae1f1d5eab155fd5892026c8c1ccb0f"
+  },
+  {
+    "path": "src/commands/network/args.ts",
+    "frozenSha256": "409dac8442c1151d4404d6ce05dd72ab35655aae80c9c0930743ff6af9ea1f4c",
+    "currentCommitSha256": "409dac8442c1151d4404d6ce05dd72ab35655aae80c9c0930743ff6af9ea1f4c",
+    "liveSha256": "409dac8442c1151d4404d6ce05dd72ab35655aae80c9c0930743ff6af9ea1f4c"
+  },
+  {
+    "path": "src/commands/network/body.ts",
+    "frozenSha256": "29a8a744b043447eacc09d09ca651f2b0a34bdf08e08ddf3065729dbc486edbf",
+    "currentCommitSha256": "29a8a744b043447eacc09d09ca651f2b0a34bdf08e08ddf3065729dbc486edbf",
+    "liveSha256": "29a8a744b043447eacc09d09ca651f2b0a34bdf08e08ddf3065729dbc486edbf"
+  },
+  {
+    "path": "src/commands/network/curl.ts",
+    "frozenSha256": "4859cc27a94d4ffe74ecadf20280d5d519d85babc50d24f55b9c51357c2dca42",
+    "currentCommitSha256": "4859cc27a94d4ffe74ecadf20280d5d519d85babc50d24f55b9c51357c2dca42",
+    "liveSha256": "4859cc27a94d4ffe74ecadf20280d5d519d85babc50d24f55b9c51357c2dca42"
+  },
+  {
+    "path": "src/commands/network/index.ts",
+    "frozenSha256": "ffee94bffaaef2d96760a24cc164af04951bc30477bcbbdd101144abf4b8e329",
+    "currentCommitSha256": "ffee94bffaaef2d96760a24cc164af04951bc30477bcbbdd101144abf4b8e329",
+    "liveSha256": "ffee94bffaaef2d96760a24cc164af04951bc30477bcbbdd101144abf4b8e329"
+  },
+  {
+    "path": "src/commands/network/output.ts",
+    "frozenSha256": "544488561b8ad360c7d41eeec7928659f3a94acd16f196af93ed3349c6a70bab",
+    "currentCommitSha256": "544488561b8ad360c7d41eeec7928659f3a94acd16f196af93ed3349c6a70bab",
+    "liveSha256": "544488561b8ad360c7d41eeec7928659f3a94acd16f196af93ed3349c6a70bab"
+  },
+  {
+    "path": "src/commands/network/shared.ts",
+    "frozenSha256": "7adab18b67c7584b646b3a6508729d7ab0672e7a0808f512f74ae16464f8842f",
+    "currentCommitSha256": "7adab18b67c7584b646b3a6508729d7ab0672e7a0808f512f74ae16464f8842f",
+    "liveSha256": "7adab18b67c7584b646b3a6508729d7ab0672e7a0808f512f74ae16464f8842f"
+  },
+  {
+    "path": "src/commands/network/transport.ts",
+    "frozenSha256": "b6246ceacc90c0451028755fdf9cbb795790968676f48c8e3f9258128286f844",
+    "currentCommitSha256": "b6246ceacc90c0451028755fdf9cbb795790968676f48c8e3f9258128286f844",
+    "liveSha256": "b6246ceacc90c0451028755fdf9cbb795790968676f48c8e3f9258128286f844"
+  },
+  {
+    "path": "src/commands/network/types.ts",
+    "frozenSha256": "806dd2132dd4004404dbb5c21a421e84c53c161f750f6acc1aedd0f8054b5fe9",
+    "currentCommitSha256": "806dd2132dd4004404dbb5c21a421e84c53c161f750f6acc1aedd0f8054b5fe9",
+    "liveSha256": "806dd2132dd4004404dbb5c21a421e84c53c161f750f6acc1aedd0f8054b5fe9"
+  },
+  {
+    "path": "src/commands/predicates.ts",
+    "frozenSha256": "ca98df3ffbc6939007fd73939ad40b67028dfe66c1129a3647fbb061213bd347",
+    "currentCommitSha256": "ca98df3ffbc6939007fd73939ad40b67028dfe66c1129a3647fbb061213bd347",
+    "liveSha256": "ca98df3ffbc6939007fd73939ad40b67028dfe66c1129a3647fbb061213bd347"
+  },
+  {
+    "path": "src/commands/regex-execution/README.md",
+    "frozenSha256": "914db79131dd4543e69746c73786df72e4f62055818e6cee17fd57eddcea4481",
+    "currentCommitSha256": "914db79131dd4543e69746c73786df72e4f62055818e6cee17fd57eddcea4481",
+    "liveSha256": "914db79131dd4543e69746c73786df72e4f62055818e6cee17fd57eddcea4481"
+  },
+  {
+    "path": "src/commands/regex-execution/client.ts",
+    "frozenSha256": "1638d492d11d466875b98451a59bace4e60e71fcd5468d671182187549922bca",
+    "currentCommitSha256": "1638d492d11d466875b98451a59bace4e60e71fcd5468d671182187549922bca",
+    "liveSha256": "1638d492d11d466875b98451a59bace4e60e71fcd5468d671182187549922bca"
+  },
+  {
+    "path": "src/commands/regex-execution/matching.ts",
+    "frozenSha256": "1d21b81ebbfe361405556aa59b58f6e2cf9f6d487e9518c5d77a90af36690737",
+    "currentCommitSha256": "1d21b81ebbfe361405556aa59b58f6e2cf9f6d487e9518c5d77a90af36690737",
+    "liveSha256": "1d21b81ebbfe361405556aa59b58f6e2cf9f6d487e9518c5d77a90af36690737"
+  },
+  {
+    "path": "src/commands/regex-execution/protocol.ts",
+    "frozenSha256": "0b4f9fac518cd31f403c1c0f49e4c7772f783e32df7cfe83ee5d4906426133e6",
+    "currentCommitSha256": "0b4f9fac518cd31f403c1c0f49e4c7772f783e32df7cfe83ee5d4906426133e6",
+    "liveSha256": "0b4f9fac518cd31f403c1c0f49e4c7772f783e32df7cfe83ee5d4906426133e6"
+  },
+  {
+    "path": "src/commands/regex-execution/worker.ts",
+    "frozenSha256": "ad818ba991aa54ce7029e8ca7be7e6d92c326134705c402f244a51da505d044e",
+    "currentCommitSha256": "ad818ba991aa54ce7029e8ca7be7e6d92c326134705c402f244a51da505d044e",
+    "liveSha256": "ad818ba991aa54ce7029e8ca7be7e6d92c326134705c402f244a51da505d044e"
+  },
+  {
+    "path": "src/commands/safejs/README.md",
+    "frozenSha256": "d914f984a176f4bc5f2e1f101ad57329782a3ea5d1362f69d0b198d22a015102",
+    "currentCommitSha256": "d914f984a176f4bc5f2e1f101ad57329782a3ea5d1362f69d0b198d22a015102",
+    "liveSha256": "d914f984a176f4bc5f2e1f101ad57329782a3ea5d1362f69d0b198d22a015102"
+  },
+  {
+    "path": "src/commands/safejs/index.ts",
+    "frozenSha256": "3978b1f876a3651034a56e793313d54bc5031c650f82d23bc59f40a73545fceb",
+    "currentCommitSha256": "3978b1f876a3651034a56e793313d54bc5031c650f82d23bc59f40a73545fceb",
+    "liveSha256": "3978b1f876a3651034a56e793313d54bc5031c650f82d23bc59f40a73545fceb"
+  },
+  {
+    "path": "src/commands/safejs/io.ts",
+    "frozenSha256": "ef366f40b1d1d161ec0f2c18f1138daf75693ab416274bb92763ebf73899f2f1",
+    "currentCommitSha256": "ef366f40b1d1d161ec0f2c18f1138daf75693ab416274bb92763ebf73899f2f1",
+    "liveSha256": "ef366f40b1d1d161ec0f2c18f1138daf75693ab416274bb92763ebf73899f2f1"
+  },
+  {
+    "path": "src/commands/safejs/options.ts",
+    "frozenSha256": "4009050c3a75daececeb2e75af46be8872d21a83c7a8132b6221b0b4d87c7a43",
+    "currentCommitSha256": "4009050c3a75daececeb2e75af46be8872d21a83c7a8132b6221b0b4d87c7a43",
+    "liveSha256": "4009050c3a75daececeb2e75af46be8872d21a83c7a8132b6221b0b4d87c7a43"
+  },
+  {
+    "path": "src/commands/safejs/render.ts",
+    "frozenSha256": "10eabbdc8d3c1f2e7c40aeafd51b15484ece05de844fcb73f2ef1aed01fe5d6e",
+    "currentCommitSha256": "10eabbdc8d3c1f2e7c40aeafd51b15484ece05de844fcb73f2ef1aed01fe5d6e",
+    "liveSha256": "10eabbdc8d3c1f2e7c40aeafd51b15484ece05de844fcb73f2ef1aed01fe5d6e"
+  },
+  {
+    "path": "src/commands/safejs/types.ts",
+    "frozenSha256": "edd5f7cf2ed473ca33105cfe1039c3fb36ae913112d0564ea3d9b163b3c08bf4",
+    "currentCommitSha256": "edd5f7cf2ed473ca33105cfe1039c3fb36ae913112d0564ea3d9b163b3c08bf4",
+    "liveSha256": "edd5f7cf2ed473ca33105cfe1039c3fb36ae913112d0564ea3d9b163b3c08bf4"
+  },
+  {
+    "path": "src/commands/search/README.md",
+    "frozenSha256": "21bb3308dc36282f6a8b0c5f7ec8e0684bf71563af0b5b35ea2254595d7a70d7",
+    "currentCommitSha256": "21bb3308dc36282f6a8b0c5f7ec8e0684bf71563af0b5b35ea2254595d7a70d7",
+    "liveSha256": "21bb3308dc36282f6a8b0c5f7ec8e0684bf71563af0b5b35ea2254595d7a70d7"
+  },
+  {
+    "path": "src/commands/search/glob.ts",
+    "frozenSha256": "7bce0c409e26ba1a3cf9c05199a495bec51a935c0bbb61a67825f68302d6c0da",
+    "currentCommitSha256": "7bce0c409e26ba1a3cf9c05199a495bec51a935c0bbb61a67825f68302d6c0da",
+    "liveSha256": "7bce0c409e26ba1a3cf9c05199a495bec51a935c0bbb61a67825f68302d6c0da"
+  },
+  {
+    "path": "src/commands/search/index.ts",
+    "frozenSha256": "5efc7444e51bd6c8fce07529808d847c89dd7e6d50e34966875a030a90ee77bf",
+    "currentCommitSha256": "5efc7444e51bd6c8fce07529808d847c89dd7e6d50e34966875a030a90ee77bf",
+    "liveSha256": "5efc7444e51bd6c8fce07529808d847c89dd7e6d50e34966875a030a90ee77bf"
+  },
+  {
+    "path": "src/commands/search/matcher.ts",
+    "frozenSha256": "db1d257b12c3cd11a2c8335fd2b56a3959e95c9a301cd8ed6d3dc16e9744989e",
+    "currentCommitSha256": "db1d257b12c3cd11a2c8335fd2b56a3959e95c9a301cd8ed6d3dc16e9744989e",
+    "liveSha256": "db1d257b12c3cd11a2c8335fd2b56a3959e95c9a301cd8ed6d3dc16e9744989e"
+  },
+  {
+    "path": "src/commands/search/options.ts",
+    "frozenSha256": "8e0bd7dea4d395e36ec8ffb6edc8712e3dfacab7cde8e928d8947c7c8aeb5fbf",
+    "currentCommitSha256": "8e0bd7dea4d395e36ec8ffb6edc8712e3dfacab7cde8e928d8947c7c8aeb5fbf",
+    "liveSha256": "8e0bd7dea4d395e36ec8ffb6edc8712e3dfacab7cde8e928d8947c7c8aeb5fbf"
+  },
+  {
+    "path": "src/commands/search/output.ts",
+    "frozenSha256": "6a9ebaed985637a62b89978d32a7424c5756104f4b6c2f286106150a819cbcd1",
+    "currentCommitSha256": "6a9ebaed985637a62b89978d32a7424c5756104f4b6c2f286106150a819cbcd1",
+    "liveSha256": "6a9ebaed985637a62b89978d32a7424c5756104f4b6c2f286106150a819cbcd1"
+  },
+  {
+    "path": "src/commands/search/rg.ts",
+    "frozenSha256": "fee9a380679e17da179a1c6b4f9bacf9c89a10e0dd1d18981c26b9296f9846d3",
+    "currentCommitSha256": "fee9a380679e17da179a1c6b4f9bacf9c89a10e0dd1d18981c26b9296f9846d3",
+    "liveSha256": "fee9a380679e17da179a1c6b4f9bacf9c89a10e0dd1d18981c26b9296f9846d3"
+  },
+  {
+    "path": "src/commands/search/shared.ts",
+    "frozenSha256": "83d436b5d602cb45cf31bdf6124e4d4696532b67c1d7737712c00e632eb3e724",
+    "currentCommitSha256": "83d436b5d602cb45cf31bdf6124e4d4696532b67c1d7737712c00e632eb3e724",
+    "liveSha256": "83d436b5d602cb45cf31bdf6124e4d4696532b67c1d7737712c00e632eb3e724"
+  },
+  {
+    "path": "src/commands/search/walk.ts",
+    "frozenSha256": "20fa6d36855750ceb3d19fb2efc8c5b736c361f23211fd11858ee2ec2a5e5ba0",
+    "currentCommitSha256": "20fa6d36855750ceb3d19fb2efc8c5b736c361f23211fd11858ee2ec2a5e5ba0",
+    "liveSha256": "20fa6d36855750ceb3d19fb2efc8c5b736c361f23211fd11858ee2ec2a5e5ba0"
+  },
+  {
+    "path": "src/commands/split/README.md",
+    "frozenSha256": "624e12593ddf027d13d5bb45f2f7fffeb133d4003de021c3bb9eede93245c249",
+    "currentCommitSha256": "624e12593ddf027d13d5bb45f2f7fffeb133d4003de021c3bb9eede93245c249",
+    "liveSha256": "624e12593ddf027d13d5bb45f2f7fffeb133d4003de021c3bb9eede93245c249"
+  },
+  {
+    "path": "src/commands/split/index.ts",
+    "frozenSha256": "95807b8fc31e38310915a3b5ea593a1ed31ed6b19bbc29ed104150f049d89e60",
+    "currentCommitSha256": "95807b8fc31e38310915a3b5ea593a1ed31ed6b19bbc29ed104150f049d89e60",
+    "liveSha256": "95807b8fc31e38310915a3b5ea593a1ed31ed6b19bbc29ed104150f049d89e60"
+  },
+  {
+    "path": "src/commands/split/io.ts",
+    "frozenSha256": "83b42d0087270bb2e365c51b2f5bbf847c749dd1aebf39e15c97b5b068a34879",
+    "currentCommitSha256": "83b42d0087270bb2e365c51b2f5bbf847c749dd1aebf39e15c97b5b068a34879",
+    "liveSha256": "83b42d0087270bb2e365c51b2f5bbf847c749dd1aebf39e15c97b5b068a34879"
+  },
+  {
+    "path": "src/commands/split/names.ts",
+    "frozenSha256": "3639d937c30f9c57df7dc74588323003a3a9157330862194ca0b42bae2de59a3",
+    "currentCommitSha256": "3639d937c30f9c57df7dc74588323003a3a9157330862194ca0b42bae2de59a3",
+    "liveSha256": "3639d937c30f9c57df7dc74588323003a3a9157330862194ca0b42bae2de59a3"
+  },
+  {
+    "path": "src/commands/split/options.ts",
+    "frozenSha256": "d85d22d1c2e4afb1641eb3cff48ccbf5e487e8f56fdca2dacb59c1b323e771df",
+    "currentCommitSha256": "d85d22d1c2e4afb1641eb3cff48ccbf5e487e8f56fdca2dacb59c1b323e771df",
+    "liveSha256": "d85d22d1c2e4afb1641eb3cff48ccbf5e487e8f56fdca2dacb59c1b323e771df"
+  },
+  {
+    "path": "src/commands/split/outputs.ts",
+    "frozenSha256": "3a46de1948b16b5c8e8917967e17d4e6bffdc1f07d0433e33c01ed36ebf15ee3",
+    "currentCommitSha256": "3a46de1948b16b5c8e8917967e17d4e6bffdc1f07d0433e33c01ed36ebf15ee3",
+    "liveSha256": "3a46de1948b16b5c8e8917967e17d4e6bffdc1f07d0433e33c01ed36ebf15ee3"
+  },
+  {
+    "path": "src/commands/split/split.ts",
+    "frozenSha256": "4c7d2988862e4ab979de6b8d9ee630bbf3823c2bbf7f1d0f049b7541f3ab50f0",
+    "currentCommitSha256": "4c7d2988862e4ab979de6b8d9ee630bbf3823c2bbf7f1d0f049b7541f3ab50f0",
+    "liveSha256": "4c7d2988862e4ab979de6b8d9ee630bbf3823c2bbf7f1d0f049b7541f3ab50f0"
+  },
+  {
+    "path": "src/commands/stream-format/README.md",
+    "frozenSha256": "d4180b1dafcdf8be758089f7e7105cf0fe6db5977880353c32c99645b264f778",
+    "currentCommitSha256": "d4180b1dafcdf8be758089f7e7105cf0fe6db5977880353c32c99645b264f778",
+    "liveSha256": "d4180b1dafcdf8be758089f7e7105cf0fe6db5977880353c32c99645b264f778"
+  },
+  {
+    "path": "src/commands/stream-format/index.ts",
+    "frozenSha256": "4a3da605ea75a71fd8f409654e2c1f42b6daeb9d0194d303e52eb3f71a42b4e6",
+    "currentCommitSha256": "4a3da605ea75a71fd8f409654e2c1f42b6daeb9d0194d303e52eb3f71a42b4e6",
+    "liveSha256": "4a3da605ea75a71fd8f409654e2c1f42b6daeb9d0194d303e52eb3f71a42b4e6"
+  },
+  {
+    "path": "src/commands/stream-format/nl.ts",
+    "frozenSha256": "91417793ec91fec3de72864d17a522c88c83f9be111804523289c0eeea71433e",
+    "currentCommitSha256": "91417793ec91fec3de72864d17a522c88c83f9be111804523289c0eeea71433e",
+    "liveSha256": "91417793ec91fec3de72864d17a522c88c83f9be111804523289c0eeea71433e"
+  },
+  {
+    "path": "src/commands/stream-format/rev.ts",
+    "frozenSha256": "250220ec8942cbf624a1acec6dfc5012afa3c68605b6c13e11283877769ce753",
+    "currentCommitSha256": "250220ec8942cbf624a1acec6dfc5012afa3c68605b6c13e11283877769ce753",
+    "liveSha256": "250220ec8942cbf624a1acec6dfc5012afa3c68605b6c13e11283877769ce753"
+  },
+  {
+    "path": "src/commands/stream-format/seq.ts",
+    "frozenSha256": "da12d6b4792fe42a9c21b0dae93e85a00f7a30f0b5067c051cfb9ef0d2f35198",
+    "currentCommitSha256": "da12d6b4792fe42a9c21b0dae93e85a00f7a30f0b5067c051cfb9ef0d2f35198",
+    "liveSha256": "da12d6b4792fe42a9c21b0dae93e85a00f7a30f0b5067c051cfb9ef0d2f35198"
+  },
+  {
+    "path": "src/commands/stream-format/shared.ts",
+    "frozenSha256": "a75bf6c98f5a4ecc76bbf07cbc41d220e957d72d8ceef770c51c950910f0edcb",
+    "currentCommitSha256": "a75bf6c98f5a4ecc76bbf07cbc41d220e957d72d8ceef770c51c950910f0edcb",
+    "liveSha256": "a75bf6c98f5a4ecc76bbf07cbc41d220e957d72d8ceef770c51c950910f0edcb"
+  },
+  {
+    "path": "src/commands/stream-format/unexpand.ts",
+    "frozenSha256": "465ae7b673d381e2bc038a61e05e701874b954e0bfcd4c3d4d8802910ee30636",
+    "currentCommitSha256": "465ae7b673d381e2bc038a61e05e701874b954e0bfcd4c3d4d8802910ee30636",
+    "liveSha256": "465ae7b673d381e2bc038a61e05e701874b954e0bfcd4c3d4d8802910ee30636"
+  },
+  {
+    "path": "src/commands/stream-inspection/README.md",
+    "frozenSha256": "519dee9089cdff247f1f137f16a9f8447d96830dfffe2422136c49d55b2fe1d0",
+    "currentCommitSha256": "519dee9089cdff247f1f137f16a9f8447d96830dfffe2422136c49d55b2fe1d0",
+    "liveSha256": "519dee9089cdff247f1f137f16a9f8447d96830dfffe2422136c49d55b2fe1d0"
+  },
+  {
+    "path": "src/commands/stream-inspection/expand.ts",
+    "frozenSha256": "d2d9e8b878822f27a74f148c66c0da6edcca3dd40a56749718685d6a5bbf2ff9",
+    "currentCommitSha256": "d2d9e8b878822f27a74f148c66c0da6edcca3dd40a56749718685d6a5bbf2ff9",
+    "liveSha256": "d2d9e8b878822f27a74f148c66c0da6edcca3dd40a56749718685d6a5bbf2ff9"
+  },
+  {
+    "path": "src/commands/stream-inspection/fold.ts",
+    "frozenSha256": "608d9392bad152ed35aeabb94cb7a1b455d87f64a4d6b7183b18f463c2184dd2",
+    "currentCommitSha256": "608d9392bad152ed35aeabb94cb7a1b455d87f64a4d6b7183b18f463c2184dd2",
+    "liveSha256": "608d9392bad152ed35aeabb94cb7a1b455d87f64a4d6b7183b18f463c2184dd2"
+  },
+  {
+    "path": "src/commands/stream-inspection/index.ts",
+    "frozenSha256": "a7af51784ea70f49fd5bbbc686c2bcc289b75d2e837a6e74987dfdf199864842",
+    "currentCommitSha256": "a7af51784ea70f49fd5bbbc686c2bcc289b75d2e837a6e74987dfdf199864842",
+    "liveSha256": "a7af51784ea70f49fd5bbbc686c2bcc289b75d2e837a6e74987dfdf199864842"
+  },
+  {
+    "path": "src/commands/stream-inspection/numeric-options.ts",
+    "frozenSha256": "b09c1781d720c79fbb4ab6b4952616b0455a3214595c7a5649cdfc509752c71a",
+    "currentCommitSha256": "b09c1781d720c79fbb4ab6b4952616b0455a3214595c7a5649cdfc509752c71a",
+    "liveSha256": "b09c1781d720c79fbb4ab6b4952616b0455a3214595c7a5649cdfc509752c71a"
+  },
+  {
+    "path": "src/commands/stream-inspection/shared.ts",
+    "frozenSha256": "0df865f2c7d5831acc06903e9fe8b117cd22cb3f1899033a76b0d73a5b46a937",
+    "currentCommitSha256": "0df865f2c7d5831acc06903e9fe8b117cd22cb3f1899033a76b0d73a5b46a937",
+    "liveSha256": "0df865f2c7d5831acc06903e9fe8b117cd22cb3f1899033a76b0d73a5b46a937"
+  },
+  {
+    "path": "src/commands/stream-inspection/strings.ts",
+    "frozenSha256": "a5d7e051591541ffeb0dd5d51183bb708afaa836f84565368447793949e5b78c",
+    "currentCommitSha256": "a5d7e051591541ffeb0dd5d51183bb708afaa836f84565368447793949e5b78c",
+    "liveSha256": "a5d7e051591541ffeb0dd5d51183bb708afaa836f84565368447793949e5b78c"
+  },
+  {
+    "path": "src/commands/stream-inspection/tac.ts",
+    "frozenSha256": "2704f57dc67e6e0197833eb0ca1f85db11b5a8307f5cfb9b0995ad61057fcb36",
+    "currentCommitSha256": "2704f57dc67e6e0197833eb0ca1f85db11b5a8307f5cfb9b0995ad61057fcb36",
+    "liveSha256": "2704f57dc67e6e0197833eb0ca1f85db11b5a8307f5cfb9b0995ad61057fcb36"
+  },
+  {
+    "path": "src/commands/streams.ts",
+    "frozenSha256": "8966dd770c11731e5256a1e42aaec4b07ae7f0508a3e89a3efc956d27109098d",
+    "currentCommitSha256": "8966dd770c11731e5256a1e42aaec4b07ae7f0508a3e89a3efc956d27109098d",
+    "liveSha256": "8966dd770c11731e5256a1e42aaec4b07ae7f0508a3e89a3efc956d27109098d"
+  },
+  {
+    "path": "src/commands/structured/README.md",
+    "frozenSha256": "a86d20662bc2f7f5f7c807533b732de1775be88e0884fa912fcd0dce9f0b0d2b",
+    "currentCommitSha256": "a86d20662bc2f7f5f7c807533b732de1775be88e0884fa912fcd0dce9f0b0d2b",
+    "liveSha256": "a86d20662bc2f7f5f7c807533b732de1775be88e0884fa912fcd0dce9f0b0d2b"
+  },
+  {
+    "path": "src/commands/structured/index.ts",
+    "frozenSha256": "f2842b616b322081023e6091492bf7acb2231dcb2c729e0f376e125271cd0415",
+    "currentCommitSha256": "f2842b616b322081023e6091492bf7acb2231dcb2c729e0f376e125271cd0415",
+    "liveSha256": "f2842b616b322081023e6091492bf7acb2231dcb2c729e0f376e125271cd0415"
+  },
+  {
+    "path": "src/commands/structured/input.ts",
+    "frozenSha256": "fa83e47ea3f0dfbb388f509cd748b733886171c16b10c536a5efa05fa7a9e5ca",
+    "currentCommitSha256": "fa83e47ea3f0dfbb388f509cd748b733886171c16b10c536a5efa05fa7a9e5ca",
+    "liveSha256": "fa83e47ea3f0dfbb388f509cd748b733886171c16b10c536a5efa05fa7a9e5ca"
+  },
+  {
+    "path": "src/commands/structured/interpreter.ts",
+    "frozenSha256": "bac1cf5325eff5bfa69f1c8bec5d3d8a80bb452fd61cdc802d55a26788acaffc",
+    "currentCommitSha256": "bac1cf5325eff5bfa69f1c8bec5d3d8a80bb452fd61cdc802d55a26788acaffc",
+    "liveSha256": "bac1cf5325eff5bfa69f1c8bec5d3d8a80bb452fd61cdc802d55a26788acaffc"
+  },
+  {
+    "path": "src/commands/structured/jq.ts",
+    "frozenSha256": "feca27d38a096931faabe5a5449ecc65c39c8b0abbcf69d3ea73a31f729fdbac",
+    "currentCommitSha256": "feca27d38a096931faabe5a5449ecc65c39c8b0abbcf69d3ea73a31f729fdbac",
+    "liveSha256": "feca27d38a096931faabe5a5449ecc65c39c8b0abbcf69d3ea73a31f729fdbac"
+  },
+  {
+    "path": "src/commands/structured/limits.ts",
+    "frozenSha256": "9919a0c0de44c08a9c63c977f7dc8a6d7319f4111cb37c7f3b249fbfd07743fe",
+    "currentCommitSha256": "9919a0c0de44c08a9c63c977f7dc8a6d7319f4111cb37c7f3b249fbfd07743fe",
+    "liveSha256": "9919a0c0de44c08a9c63c977f7dc8a6d7319f4111cb37c7f3b249fbfd07743fe"
+  },
+  {
+    "path": "src/commands/structured/numbers.ts",
+    "frozenSha256": "1ef4803e8311e554c8b11a590e75f4c9a96fb81614872587f534514fadfc7ae2",
+    "currentCommitSha256": "1ef4803e8311e554c8b11a590e75f4c9a96fb81614872587f534514fadfc7ae2",
+    "liveSha256": "1ef4803e8311e554c8b11a590e75f4c9a96fb81614872587f534514fadfc7ae2"
+  },
+  {
+    "path": "src/commands/structured/parser.ts",
+    "frozenSha256": "a7bcafcd6a3676ed8e344dcaa1293d4593652c9c343172c5184c8c826d042b51",
+    "currentCommitSha256": "a7bcafcd6a3676ed8e344dcaa1293d4593652c9c343172c5184c8c826d042b51",
+    "liveSha256": "a7bcafcd6a3676ed8e344dcaa1293d4593652c9c343172c5184c8c826d042b51"
+  },
+  {
+    "path": "src/commands/structured/split.ts",
+    "frozenSha256": "b70b49daa93f472871799159c9702279c6e83d8a4ff2734d86024249a8ee35f6",
+    "currentCommitSha256": "b70b49daa93f472871799159c9702279c6e83d8a4ff2734d86024249a8ee35f6",
+    "liveSha256": "b70b49daa93f472871799159c9702279c6e83d8a4ff2734d86024249a8ee35f6"
+  },
+  {
+    "path": "src/commands/structured/values.ts",
+    "frozenSha256": "8d4e7cf5e9182f2c0487be2fba1dd3585c406cc0cfd73c1a38dcb2c95198e46a",
+    "currentCommitSha256": "8d4e7cf5e9182f2c0487be2fba1dd3585c406cc0cfd73c1a38dcb2c95198e46a",
+    "liveSha256": "8d4e7cf5e9182f2c0487be2fba1dd3585c406cc0cfd73c1a38dcb2c95198e46a"
+  },
+  {
+    "path": "src/commands/table-text/README.md",
+    "frozenSha256": "f47536847f3cadb6e87d6fecbc55f4c8496772ec95421d5fc720d2dd4671bce8",
+    "currentCommitSha256": "f47536847f3cadb6e87d6fecbc55f4c8496772ec95421d5fc720d2dd4671bce8",
+    "liveSha256": "f47536847f3cadb6e87d6fecbc55f4c8496772ec95421d5fc720d2dd4671bce8"
+  },
+  {
+    "path": "src/commands/table-text/comm.ts",
+    "frozenSha256": "34df22e9b6e1ca23ec14e83003aa9758c7d9fc1b1473828429e2ae713e4219cd",
+    "currentCommitSha256": "34df22e9b6e1ca23ec14e83003aa9758c7d9fc1b1473828429e2ae713e4219cd",
+    "liveSha256": "34df22e9b6e1ca23ec14e83003aa9758c7d9fc1b1473828429e2ae713e4219cd"
+  },
+  {
+    "path": "src/commands/table-text/index.ts",
+    "frozenSha256": "9003d5c6d85d283eca5a5e1e50750eae10639ce1830bf68427536c50d40848a9",
+    "currentCommitSha256": "9003d5c6d85d283eca5a5e1e50750eae10639ce1830bf68427536c50d40848a9",
+    "liveSha256": "9003d5c6d85d283eca5a5e1e50750eae10639ce1830bf68427536c50d40848a9"
+  },
+  {
+    "path": "src/commands/table-text/internal.ts",
+    "frozenSha256": "544935927754e228711318a299c20d95b3954bc756e14785722d0eac67a436d9",
+    "currentCommitSha256": "544935927754e228711318a299c20d95b3954bc756e14785722d0eac67a436d9",
+    "liveSha256": "544935927754e228711318a299c20d95b3954bc756e14785722d0eac67a436d9"
+  },
+  {
+    "path": "src/commands/table-text/join.ts",
+    "frozenSha256": "83704c0da1bcd137fedf1e90e1d922af482bcfac290bc90f6b7ef3e36b6429b0",
+    "currentCommitSha256": "83704c0da1bcd137fedf1e90e1d922af482bcfac290bc90f6b7ef3e36b6429b0",
+    "liveSha256": "83704c0da1bcd137fedf1e90e1d922af482bcfac290bc90f6b7ef3e36b6429b0"
+  },
+  {
+    "path": "src/commands/table-text/paste.ts",
+    "frozenSha256": "39b236794d5254d3e40471d9cb867d488ab4c57c236c2730bd2640ded84d1ba5",
+    "currentCommitSha256": "39b236794d5254d3e40471d9cb867d488ab4c57c236c2730bd2640ded84d1ba5",
+    "liveSha256": "39b236794d5254d3e40471d9cb867d488ab4c57c236c2730bd2640ded84d1ba5"
+  },
+  {
+    "path": "src/commands/text-programs/README.md",
+    "frozenSha256": "b39d89bf294fecc3da6d9ecff88aa07e8d7b0d12e0471d3c7974538907d1552a",
+    "currentCommitSha256": "b39d89bf294fecc3da6d9ecff88aa07e8d7b0d12e0471d3c7974538907d1552a",
+    "liveSha256": "b39d89bf294fecc3da6d9ecff88aa07e8d7b0d12e0471d3c7974538907d1552a"
+  },
+  {
+    "path": "src/commands/text-programs/awk-runtime.ts",
+    "frozenSha256": "30821e08780042b3382ceedb4b133a89475938a1212ed607782e2d0e592bd35e",
+    "currentCommitSha256": "30821e08780042b3382ceedb4b133a89475938a1212ed607782e2d0e592bd35e",
+    "liveSha256": "30821e08780042b3382ceedb4b133a89475938a1212ed607782e2d0e592bd35e"
+  },
+  {
+    "path": "src/commands/text-programs/awk-syntax.ts",
+    "frozenSha256": "179754bbb74643f57f8e19b0a87c43a8793130aa4b4f8d07a4cc14cae871d4d7",
+    "currentCommitSha256": "179754bbb74643f57f8e19b0a87c43a8793130aa4b4f8d07a4cc14cae871d4d7",
+    "liveSha256": "179754bbb74643f57f8e19b0a87c43a8793130aa4b4f8d07a4cc14cae871d4d7"
+  },
+  {
+    "path": "src/commands/text-programs/awk-values.ts",
+    "frozenSha256": "6824c5348221d98f9d94c058bbe119eaa6aa1e7ca7775af8d460f358436c2d7c",
+    "currentCommitSha256": "6824c5348221d98f9d94c058bbe119eaa6aa1e7ca7775af8d460f358436c2d7c",
+    "liveSha256": "6824c5348221d98f9d94c058bbe119eaa6aa1e7ca7775af8d460f358436c2d7c"
+  },
+  {
+    "path": "src/commands/text-programs/awk.ts",
+    "frozenSha256": "af422696809543efb470ae219774e32819124035d51a756d5761f41fa4607dc3",
+    "currentCommitSha256": "af422696809543efb470ae219774e32819124035d51a756d5761f41fa4607dc3",
+    "liveSha256": "af422696809543efb470ae219774e32819124035d51a756d5761f41fa4607dc3"
+  },
+  {
+    "path": "src/commands/text-programs/index.ts",
+    "frozenSha256": "6df5a7c5c242e71e18d8a15ea87d1c6c5bcd90aa57edb529af64e147135ea9e2",
+    "currentCommitSha256": "6df5a7c5c242e71e18d8a15ea87d1c6c5bcd90aa57edb529af64e147135ea9e2",
+    "liveSha256": "6df5a7c5c242e71e18d8a15ea87d1c6c5bcd90aa57edb529af64e147135ea9e2"
+  },
+  {
+    "path": "src/commands/text-programs/regex.ts",
+    "frozenSha256": "23df19386627659c3a5175562a2f8eeda873b81e3dc3e78d3cf51aafa7b3b06f",
+    "currentCommitSha256": "23df19386627659c3a5175562a2f8eeda873b81e3dc3e78d3cf51aafa7b3b06f",
+    "liveSha256": "23df19386627659c3a5175562a2f8eeda873b81e3dc3e78d3cf51aafa7b3b06f"
+  },
+  {
+    "path": "src/commands/text-programs/sed.ts",
+    "frozenSha256": "38fceb4869a0db8197a050de3430d5b9c5017e1606a4348d17d8004745c645a9",
+    "currentCommitSha256": "38fceb4869a0db8197a050de3430d5b9c5017e1606a4348d17d8004745c645a9",
+    "liveSha256": "38fceb4869a0db8197a050de3430d5b9c5017e1606a4348d17d8004745c645a9"
+  },
+  {
+    "path": "src/commands/text-programs/shared.ts",
+    "frozenSha256": "fec28a956be858e725811f9e83a7f325d99d3152da0231af0d619847e8e6206e",
+    "currentCommitSha256": "fec28a956be858e725811f9e83a7f325d99d3152da0231af0d619847e8e6206e",
+    "liveSha256": "fec28a956be858e725811f9e83a7f325d99d3152da0231af0d619847e8e6206e"
+  },
+  {
+    "path": "src/commands/text.ts",
+    "frozenSha256": "17a4c60061bdeeca1000499ae9b433f7e3e58c768e1c855e81e7c5338f8998d2",
+    "currentCommitSha256": "08a27afc45d2f5a48b082cc2c979e3a13d01fbef42129bc0e72d5477d56a074d",
+    "liveSha256": "08a27afc45d2f5a48b082cc2c979e3a13d01fbef42129bc0e72d5477d56a074d"
+  },
+  {
+    "path": "src/commands/time-env/README.md",
+    "frozenSha256": "42351fecb1c1f7c293bec851fa48720b6557fc6af0e2e77e9784d51ff765d53b",
+    "currentCommitSha256": "42351fecb1c1f7c293bec851fa48720b6557fc6af0e2e77e9784d51ff765d53b",
+    "liveSha256": "42351fecb1c1f7c293bec851fa48720b6557fc6af0e2e77e9784d51ff765d53b"
+  },
+  {
+    "path": "src/commands/time-env/calendar.ts",
+    "frozenSha256": "a761667dddc8ca42df81bfad154c04d433d63a243432d4299a5704a1d16f31ec",
+    "currentCommitSha256": "a761667dddc8ca42df81bfad154c04d433d63a243432d4299a5704a1d16f31ec",
+    "liveSha256": "a761667dddc8ca42df81bfad154c04d433d63a243432d4299a5704a1d16f31ec"
+  },
+  {
+    "path": "src/commands/time-env/date.ts",
+    "frozenSha256": "e1e2df940c7464112279eba3e407b80a3fb2f792932763300c85748825add726",
+    "currentCommitSha256": "e1e2df940c7464112279eba3e407b80a3fb2f792932763300c85748825add726",
+    "liveSha256": "e1e2df940c7464112279eba3e407b80a3fb2f792932763300c85748825add726"
+  },
+  {
+    "path": "src/commands/time-env/format.ts",
+    "frozenSha256": "ddbabf9ac2918869ed32a641fb9e2c290ee71b9bbf07ccaab64f9fc3b29b22b0",
+    "currentCommitSha256": "ddbabf9ac2918869ed32a641fb9e2c290ee71b9bbf07ccaab64f9fc3b29b22b0",
+    "liveSha256": "ddbabf9ac2918869ed32a641fb9e2c290ee71b9bbf07ccaab64f9fc3b29b22b0"
+  },
+  {
+    "path": "src/commands/time-env/index.ts",
+    "frozenSha256": "ddbad0cf7599324eb165b14ae9352326de57d817f5302f16f4737915aa1aed60",
+    "currentCommitSha256": "ddbad0cf7599324eb165b14ae9352326de57d817f5302f16f4737915aa1aed60",
+    "liveSha256": "ddbad0cf7599324eb165b14ae9352326de57d817f5302f16f4737915aa1aed60"
+  },
+  {
+    "path": "src/commands/time-env/printenv.ts",
+    "frozenSha256": "ee13e1a416da4f7ed153fa9535a716fb3c43d4e5d07444efdc0a7d88075d0c33",
+    "currentCommitSha256": "ee13e1a416da4f7ed153fa9535a716fb3c43d4e5d07444efdc0a7d88075d0c33",
+    "liveSha256": "ee13e1a416da4f7ed153fa9535a716fb3c43d4e5d07444efdc0a7d88075d0c33"
+  },
+  {
+    "path": "src/commands/time-env/shared.ts",
+    "frozenSha256": "e7572901c107373afa51adba1b4e97d01ced89e71e53e4ad0affefbdaab5f532",
+    "currentCommitSha256": "e7572901c107373afa51adba1b4e97d01ced89e71e53e4ad0affefbdaab5f532",
+    "liveSha256": "e7572901c107373afa51adba1b4e97d01ced89e71e53e4ad0affefbdaab5f532"
+  },
+  {
+    "path": "src/commands/time-env/sleep.ts",
+    "frozenSha256": "b0e8aca87bbcc690653f8c6db3cb0039832a481f6bedfbc381deb12bb6b4de96",
+    "currentCommitSha256": "b0e8aca87bbcc690653f8c6db3cb0039832a481f6bedfbc381deb12bb6b4de96",
+    "liveSha256": "b0e8aca87bbcc690653f8c6db3cb0039832a481f6bedfbc381deb12bb6b4de96"
+  },
+  {
+    "path": "src/commands/tree/README.md",
+    "frozenSha256": "3d8fafb9a69b35a70c99bab27269e13d63c7cbf2f67af852e1a6443390d63723",
+    "currentCommitSha256": "3d8fafb9a69b35a70c99bab27269e13d63c7cbf2f67af852e1a6443390d63723",
+    "liveSha256": "3d8fafb9a69b35a70c99bab27269e13d63c7cbf2f67af852e1a6443390d63723"
+  },
+  {
+    "path": "src/commands/tree/arguments.ts",
+    "frozenSha256": "572db370cad20fff449ed6ce43c0a358390a8f9cfb15ea447d4ac7aaec4b8c9a",
+    "currentCommitSha256": "572db370cad20fff449ed6ce43c0a358390a8f9cfb15ea447d4ac7aaec4b8c9a",
+    "liveSha256": "848b3e07aafefc67de77efccaa446904d9a1920cb158e094217c18e24a6a2762"
+  },
+  {
+    "path": "src/commands/tree/index.ts",
+    "frozenSha256": "cdd900d8e489736ec860aa55dfc7013e01c3dba797cbe51ec1a4366120b9cefc",
+    "currentCommitSha256": "cdd900d8e489736ec860aa55dfc7013e01c3dba797cbe51ec1a4366120b9cefc",
+    "liveSha256": "cdd900d8e489736ec860aa55dfc7013e01c3dba797cbe51ec1a4366120b9cefc"
+  },
+  {
+    "path": "src/commands/tree/io.ts",
+    "frozenSha256": "ab76f076d122d27d6bfb04d623551c88f28fdd3f9408c06ae2dc3769462ba153",
+    "currentCommitSha256": "ab76f076d122d27d6bfb04d623551c88f28fdd3f9408c06ae2dc3769462ba153",
+    "liveSha256": "163f2412e5fcca1dc0cd0ac7264beb29b8180efdd65c34fdff08f84a670471e1"
+  },
+  {
+    "path": "src/commands/tree/options.ts",
+    "frozenSha256": "8eefe8b28a9341af79e22714ab9898abf07d04fb0a5f99773c822a4432369483",
+    "currentCommitSha256": "8eefe8b28a9341af79e22714ab9898abf07d04fb0a5f99773c822a4432369483",
+    "liveSha256": "8eefe8b28a9341af79e22714ab9898abf07d04fb0a5f99773c822a4432369483"
+  },
+  {
+    "path": "src/commands/tree/pattern.ts",
+    "frozenSha256": "114de00a12f9e32e0593a22abe753d27e079fe504e13e8b35289ae90afdbb215",
+    "currentCommitSha256": "114de00a12f9e32e0593a22abe753d27e079fe504e13e8b35289ae90afdbb215",
+    "liveSha256": "114de00a12f9e32e0593a22abe753d27e079fe504e13e8b35289ae90afdbb215"
+  },
+  {
+    "path": "src/commands/tree/tree.ts",
+    "frozenSha256": "449536d5ef259a44308d253c1f5af4bf7af7bed128deff688f9fb8df8bb4c44a",
+    "currentCommitSha256": "449536d5ef259a44308d253c1f5af4bf7af7bed128deff688f9fb8df8bb4c44a",
+    "liveSha256": "2ebcf54d9804e7000bf3de4780d598b8b6bc157ee411c134dea5c62717738ef1"
+  },
+  {
+    "path": "src/contracts/command.md",
+    "frozenSha256": "8a5426b1e7a30a03dc62f74b28c6eb7bf9b008b78cb7b521eb7de0bc5c59a3f8",
+    "currentCommitSha256": "8a5426b1e7a30a03dc62f74b28c6eb7bf9b008b78cb7b521eb7de0bc5c59a3f8",
+    "liveSha256": "8a5426b1e7a30a03dc62f74b28c6eb7bf9b008b78cb7b521eb7de0bc5c59a3f8"
+  },
+  {
+    "path": "src/contracts/command.ts",
+    "frozenSha256": "9c2f8ecf50def7250b01152a31a45c449109c3ae4d30878252cffe985c6e9df8",
+    "currentCommitSha256": "9c2f8ecf50def7250b01152a31a45c449109c3ae4d30878252cffe985c6e9df8",
+    "liveSha256": "9c2f8ecf50def7250b01152a31a45c449109c3ae4d30878252cffe985c6e9df8"
+  },
+  {
+    "path": "src/contracts/errors.ts",
+    "frozenSha256": "66455381fe9d9e5357d08942e73de6ea1d613a03b09acaab77a5ccccde0f2840",
+    "currentCommitSha256": "66455381fe9d9e5357d08942e73de6ea1d613a03b09acaab77a5ccccde0f2840",
+    "liveSha256": "66455381fe9d9e5357d08942e73de6ea1d613a03b09acaab77a5ccccde0f2840"
+  },
+  {
+    "path": "src/contracts/filesystem.md",
+    "frozenSha256": "4c0c83ac7477776455055b32370844453ee7521467f02e5304bff23901df06b2",
+    "currentCommitSha256": "4c0c83ac7477776455055b32370844453ee7521467f02e5304bff23901df06b2",
+    "liveSha256": "4c0c83ac7477776455055b32370844453ee7521467f02e5304bff23901df06b2"
+  },
+  {
+    "path": "src/contracts/filesystem.ts",
+    "frozenSha256": "a11b016e6bac06e6e8cd26fabb3b56a30788c8f75091513f6bf01ab7d016909d",
+    "currentCommitSha256": "a11b016e6bac06e6e8cd26fabb3b56a30788c8f75091513f6bf01ab7d016909d",
+    "liveSha256": "a11b016e6bac06e6e8cd26fabb3b56a30788c8f75091513f6bf01ab7d016909d"
+  },
+  {
+    "path": "src/contracts/index.ts",
+    "frozenSha256": "fb9a434deb34dbad631166a689b02641c0e1acdbac691f6956a7c76e20729f50",
+    "currentCommitSha256": "fb9a434deb34dbad631166a689b02641c0e1acdbac691f6956a7c76e20729f50",
+    "liveSha256": "fb9a434deb34dbad631166a689b02641c0e1acdbac691f6956a7c76e20729f50"
+  },
+  {
+    "path": "src/contracts/io.ts",
+    "frozenSha256": "e925ab08a5ad41862d3f5c031164cc7310bc28397455b11b37b75b55a9dbacdb",
+    "currentCommitSha256": "e925ab08a5ad41862d3f5c031164cc7310bc28397455b11b37b75b55a9dbacdb",
+    "liveSha256": "e925ab08a5ad41862d3f5c031164cc7310bc28397455b11b37b75b55a9dbacdb"
+  },
+  {
+    "path": "src/contracts/path.ts",
+    "frozenSha256": "948a1ceb19fd87fa4931974282ec4d68217dbd2353fac6ce6eabd48d3b5a2f34",
+    "currentCommitSha256": "948a1ceb19fd87fa4931974282ec4d68217dbd2353fac6ce6eabd48d3b5a2f34",
+    "liveSha256": "948a1ceb19fd87fa4931974282ec4d68217dbd2353fac6ce6eabd48d3b5a2f34"
+  },
+  {
+    "path": "src/contracts/plugin.ts",
+    "frozenSha256": "b45e85e0d89f88308caf0b68f0b14f78341c4bba246d02e81103646f5a4c54ae",
+    "currentCommitSha256": "b45e85e0d89f88308caf0b68f0b14f78341c4bba246d02e81103646f5a4c54ae",
+    "liveSha256": "b45e85e0d89f88308caf0b68f0b14f78341c4bba246d02e81103646f5a4c54ae"
+  },
+  {
+    "path": "src/fs/memory/index.ts",
+    "frozenSha256": "2ece749f3f22be6a0da76dcd964feb9b1055e742a05c727c43f672e9bc7ec8b4",
+    "currentCommitSha256": "2ece749f3f22be6a0da76dcd964feb9b1055e742a05c727c43f672e9bc7ec8b4",
+    "liveSha256": "2ece749f3f22be6a0da76dcd964feb9b1055e742a05c727c43f672e9bc7ec8b4"
+  },
+  {
+    "path": "src/fs/mount/COMPARISON.md",
+    "frozenSha256": "5892edfab8bcf07f23dc93ea691b183e8b7d20c55b8507bf93ae43c89acdd771",
+    "currentCommitSha256": "5892edfab8bcf07f23dc93ea691b183e8b7d20c55b8507bf93ae43c89acdd771",
+    "liveSha256": "5892edfab8bcf07f23dc93ea691b183e8b7d20c55b8507bf93ae43c89acdd771"
+  },
+  {
+    "path": "src/fs/mount/README.md",
+    "frozenSha256": "43b143a25bad076e4b17f0b091e86281b8f801a2abf0b303a6425022892be746",
+    "currentCommitSha256": "43b143a25bad076e4b17f0b091e86281b8f801a2abf0b303a6425022892be746",
+    "liveSha256": "43b143a25bad076e4b17f0b091e86281b8f801a2abf0b303a6425022892be746"
+  },
+  {
+    "path": "src/fs/mount/comparison.ts",
+    "frozenSha256": "cedfd2b4a586ddf85eaac30e1ce7797b290b712b744498e84df5036c89f64a2c",
+    "currentCommitSha256": "cedfd2b4a586ddf85eaac30e1ce7797b290b712b744498e84df5036c89f64a2c",
+    "liveSha256": "cedfd2b4a586ddf85eaac30e1ce7797b290b712b744498e84df5036c89f64a2c"
+  },
+  {
+    "path": "src/fs/mount/identity.ts",
+    "frozenSha256": "a561928d082232d034c436a89a63b85e5f137c82879281adc9f6aacfcb54d2d2",
+    "currentCommitSha256": "a561928d082232d034c436a89a63b85e5f137c82879281adc9f6aacfcb54d2d2",
+    "liveSha256": "a561928d082232d034c436a89a63b85e5f137c82879281adc9f6aacfcb54d2d2"
+  },
+  {
+    "path": "src/fs/mount/index.ts",
+    "frozenSha256": "a2be203c4bb0a1c979e9ff2ab3672f7aa7a1f441cc4c57cddcca7e4807a1881d",
+    "currentCommitSha256": "a2be203c4bb0a1c979e9ff2ab3672f7aa7a1f441cc4c57cddcca7e4807a1881d",
+    "liveSha256": "a2be203c4bb0a1c979e9ff2ab3672f7aa7a1f441cc4c57cddcca7e4807a1881d"
+  },
+  {
+    "path": "src/fs/overlay/README.md",
+    "frozenSha256": "6f7983213bec73ef63c249832a85d6f03b550846b02940451efc0bbdf522a089",
+    "currentCommitSha256": "6f7983213bec73ef63c249832a85d6f03b550846b02940451efc0bbdf522a089",
+    "liveSha256": "6f7983213bec73ef63c249832a85d6f03b550846b02940451efc0bbdf522a089"
+  },
+  {
+    "path": "src/fs/overlay/index.ts",
+    "frozenSha256": "e14936876292b4900e1f2d4298ae5ec41509c5772d5afc63bf143d36c85662be",
+    "currentCommitSha256": "e14936876292b4900e1f2d4298ae5ec41509c5772d5afc63bf143d36c85662be",
+    "liveSha256": "e14936876292b4900e1f2d4298ae5ec41509c5772d5afc63bf143d36c85662be"
+  },
+  {
+    "path": "src/fs/readonly/README.md",
+    "frozenSha256": "47484995dd2a66153196c1e5b79efb6ae0d883ebef521c1d81a2a9e103f9e48c",
+    "currentCommitSha256": "47484995dd2a66153196c1e5b79efb6ae0d883ebef521c1d81a2a9e103f9e48c",
+    "liveSha256": "47484995dd2a66153196c1e5b79efb6ae0d883ebef521c1d81a2a9e103f9e48c"
+  },
+  {
+    "path": "src/fs/readonly/index.ts",
+    "frozenSha256": "384f940196dc572f677541daa9c420da2e013324d66576004c1a2730e7899067",
+    "currentCommitSha256": "384f940196dc572f677541daa9c420da2e013324d66576004c1a2730e7899067",
+    "liveSha256": "384f940196dc572f677541daa9c420da2e013324d66576004c1a2730e7899067"
+  },
+  {
+    "path": "src/fs/real/index.ts",
+    "frozenSha256": "d3e79b80a5a48984e1f7f7dd9a79254c2db1faf8142e287a43792180874f77da",
+    "currentCommitSha256": "d3e79b80a5a48984e1f7f7dd9a79254c2db1faf8142e287a43792180874f77da",
+    "liveSha256": "d3e79b80a5a48984e1f7f7dd9a79254c2db1faf8142e287a43792180874f77da"
+  },
+  {
+    "path": "src/fs/s3/COMPARISON.md",
+    "frozenSha256": "3b2fa90a245c3b4454205731938da8c36abf3467810e360d1c58391c33d4ff67",
+    "currentCommitSha256": "3b2fa90a245c3b4454205731938da8c36abf3467810e360d1c58391c33d4ff67",
+    "liveSha256": "3b2fa90a245c3b4454205731938da8c36abf3467810e360d1c58391c33d4ff67"
+  },
+  {
+    "path": "src/fs/s3/README.md",
+    "frozenSha256": "a45743f5660219857369e6568d734ace3e0007537fedcfb402cd04ec0ae11e78",
+    "currentCommitSha256": "a45743f5660219857369e6568d734ace3e0007537fedcfb402cd04ec0ae11e78",
+    "liveSha256": "a45743f5660219857369e6568d734ace3e0007537fedcfb402cd04ec0ae11e78"
+  },
+  {
+    "path": "src/fs/s3/SDK_COMPARISON.md",
+    "frozenSha256": "0906ebcb14f8a7cca712a75ad21822a600e7464c5297665af35dd4c767a28542",
+    "currentCommitSha256": "0906ebcb14f8a7cca712a75ad21822a600e7464c5297665af35dd4c767a28542",
+    "liveSha256": "0906ebcb14f8a7cca712a75ad21822a600e7464c5297665af35dd4c767a28542"
+  },
+  {
+    "path": "src/fs/s3/authority.ts",
+    "frozenSha256": "1a95f7a28904b8607948673db3e99d3d4a49b2a3839d980143fe13c25e1af344",
+    "currentCommitSha256": "1a95f7a28904b8607948673db3e99d3d4a49b2a3839d980143fe13c25e1af344",
+    "liveSha256": "1a95f7a28904b8607948673db3e99d3d4a49b2a3839d980143fe13c25e1af344"
+  },
+  {
+    "path": "src/fs/s3/filesystem.ts",
+    "frozenSha256": "9ac11951d681db45cee474568ca46d227cfb5bbd9b0d5ce2d6c176d0c4f94833",
+    "currentCommitSha256": "9ac11951d681db45cee474568ca46d227cfb5bbd9b0d5ce2d6c176d0c4f94833",
+    "liveSha256": "9ac11951d681db45cee474568ca46d227cfb5bbd9b0d5ce2d6c176d0c4f94833"
+  },
+  {
+    "path": "src/fs/s3/http/README.md",
+    "frozenSha256": "67494abd767b494e1f062eefb746fc962ad9412e7d6f99d0669034e7b93c964b",
+    "currentCommitSha256": "67494abd767b494e1f062eefb746fc962ad9412e7d6f99d0669034e7b93c964b",
+    "liveSha256": "67494abd767b494e1f062eefb746fc962ad9412e7d6f99d0669034e7b93c964b"
+  },
+  {
+    "path": "src/fs/s3/http/index.ts",
+    "frozenSha256": "bd414ce2de1aeb4becff1375ba994ee5bea6ca46600234807515c28385130dd4",
+    "currentCommitSha256": "bd414ce2de1aeb4becff1375ba994ee5bea6ca46600234807515c28385130dd4",
+    "liveSha256": "bd414ce2de1aeb4becff1375ba994ee5bea6ca46600234807515c28385130dd4"
+  },
+  {
+    "path": "src/fs/s3/http/request.ts",
+    "frozenSha256": "33e2232404d05c08db2ccce200b6ca1d10af36f6a72f197e196fe1fa3f5ba618",
+    "currentCommitSha256": "33e2232404d05c08db2ccce200b6ca1d10af36f6a72f197e196fe1fa3f5ba618",
+    "liveSha256": "33e2232404d05c08db2ccce200b6ca1d10af36f6a72f197e196fe1fa3f5ba618"
+  },
+  {
+    "path": "src/fs/s3/http/signature.ts",
+    "frozenSha256": "094b2e6fce2657757bf168ae694213f874e644d81cc9ead75faa1120f0910b3b",
+    "currentCommitSha256": "094b2e6fce2657757bf168ae694213f874e644d81cc9ead75faa1120f0910b3b",
+    "liveSha256": "094b2e6fce2657757bf168ae694213f874e644d81cc9ead75faa1120f0910b3b"
+  },
+  {
+    "path": "src/fs/s3/http/transport.ts",
+    "frozenSha256": "73611a0d279cec24d85d14031a02d92607979977ef926245fe0a6f9e7eb6161d",
+    "currentCommitSha256": "73611a0d279cec24d85d14031a02d92607979977ef926245fe0a6f9e7eb6161d",
+    "liveSha256": "73611a0d279cec24d85d14031a02d92607979977ef926245fe0a6f9e7eb6161d"
+  },
+  {
+    "path": "src/fs/s3/http/types.ts",
+    "frozenSha256": "b8ee451a00d17355919024c542dd5c7cbd027d74c7d2f5686f37fd6c0a5ab39e",
+    "currentCommitSha256": "b8ee451a00d17355919024c542dd5c7cbd027d74c7d2f5686f37fd6c0a5ab39e",
+    "liveSha256": "b8ee451a00d17355919024c542dd5c7cbd027d74c7d2f5686f37fd6c0a5ab39e"
+  },
+  {
+    "path": "src/fs/s3/http/xml.ts",
+    "frozenSha256": "73598f1a2aedbf22a5d455849dae4f7e80f022d5ad847f136b2d1d6ecc99301e",
+    "currentCommitSha256": "73598f1a2aedbf22a5d455849dae4f7e80f022d5ad847f136b2d1d6ecc99301e",
+    "liveSha256": "73598f1a2aedbf22a5d455849dae4f7e80f022d5ad847f136b2d1d6ecc99301e"
+  },
+  {
+    "path": "src/fs/s3/index.ts",
+    "frozenSha256": "731b0141a614ec0be82885c8f608ea9c07bbe4fc96cdc01a04f90bb77f93bf49",
+    "currentCommitSha256": "731b0141a614ec0be82885c8f608ea9c07bbe4fc96cdc01a04f90bb77f93bf49",
+    "liveSha256": "731b0141a614ec0be82885c8f608ea9c07bbe4fc96cdc01a04f90bb77f93bf49"
+  },
+  {
+    "path": "src/fs/s3/mock.ts",
+    "frozenSha256": "99655664c7a52c595dc1ec4e5d461e4c002a0c9ba60d222ded078e5b9780841e",
+    "currentCommitSha256": "99655664c7a52c595dc1ec4e5d461e4c002a0c9ba60d222ded078e5b9780841e",
+    "liveSha256": "99655664c7a52c595dc1ec4e5d461e4c002a0c9ba60d222ded078e5b9780841e"
+  },
+  {
+    "path": "src/fs/s3/transport.ts",
+    "frozenSha256": "185895f1b939370903c9a896df47a1066647a50eb3022e1d0387918996ccd51c",
+    "currentCommitSha256": "185895f1b939370903c9a896df47a1066647a50eb3022e1d0387918996ccd51c",
+    "liveSha256": "185895f1b939370903c9a896df47a1066647a50eb3022e1d0387918996ccd51c"
+  },
+  {
+    "path": "src/fs/webdav/PRODUCTION_CHECKPOINT.md",
+    "frozenSha256": "ee00578d845be249d82cef70c999df1c92e30d1c5498d2da3a8e3191d5e1f6f2",
+    "currentCommitSha256": "ee00578d845be249d82cef70c999df1c92e30d1c5498d2da3a8e3191d5e1f6f2",
+    "liveSha256": "ee00578d845be249d82cef70c999df1c92e30d1c5498d2da3a8e3191d5e1f6f2"
+  },
+  {
+    "path": "src/fs/webdav/README.md",
+    "frozenSha256": "9a56aaeabed8f9e0bdc7ef93326f1f25ec0fec23c733150f7b474ed29cb8ae36",
+    "currentCommitSha256": "9a56aaeabed8f9e0bdc7ef93326f1f25ec0fec23c733150f7b474ed29cb8ae36",
+    "liveSha256": "9a56aaeabed8f9e0bdc7ef93326f1f25ec0fec23c733150f7b474ed29cb8ae36"
+  },
+  {
+    "path": "src/fs/webdav/index.ts",
+    "frozenSha256": "d359fa8a89c30fa7fa06b256c524b4bc1022b3217763051961e579c5fcfd7764",
+    "currentCommitSha256": "d359fa8a89c30fa7fa06b256c524b4bc1022b3217763051961e579c5fcfd7764",
+    "liveSha256": "d359fa8a89c30fa7fa06b256c524b4bc1022b3217763051961e579c5fcfd7764"
+  },
+  {
+    "path": "src/fs/webdav/resource-id.ts",
+    "frozenSha256": "ee5720f77a352503368d672caaf5237e45863bde88cf69b947d14178fcda49f2",
+    "currentCommitSha256": "ee5720f77a352503368d672caaf5237e45863bde88cf69b947d14178fcda49f2",
+    "liveSha256": "ee5720f77a352503368d672caaf5237e45863bde88cf69b947d14178fcda49f2"
+  },
+  {
+    "path": "src/fs/webdav/webdav.ts",
+    "frozenSha256": "e66a66e2745852c6bd12be12a18c855df069152cf6b8089d2ecee8880c62de94",
+    "currentCommitSha256": "e66a66e2745852c6bd12be12a18c855df069152cf6b8089d2ecee8880c62de94",
+    "liveSha256": "e66a66e2745852c6bd12be12a18c855df069152cf6b8089d2ecee8880c62de94"
+  },
+  {
+    "path": "src/fs/webdav/xml.ts",
+    "frozenSha256": "c5b2798ef847acb480be70348d59bb0bc0a0d80624c313880cd53ff1b293dec1",
+    "currentCommitSha256": "c5b2798ef847acb480be70348d59bb0bc0a0d80624c313880cd53ff1b293dec1",
+    "liveSha256": "c5b2798ef847acb480be70348d59bb0bc0a0d80624c313880cd53ff1b293dec1"
+  },
+  {
+    "path": "src/index.ts",
+    "frozenSha256": "c9d4d5693dd65dfcb90ff14c43631d00d9d2975a5f58ab03df7ff0e1d34a3e6e",
+    "currentCommitSha256": "c9d4d5693dd65dfcb90ff14c43631d00d9d2975a5f58ab03df7ff0e1d34a3e6e",
+    "liveSha256": "c9d4d5693dd65dfcb90ff14c43631d00d9d2975a5f58ab03df7ff0e1d34a3e6e"
+  },
+  {
+    "path": "src/integrations/safejs/filesystem.ts",
+    "frozenSha256": "c9ab864768e430bbfbea7590071646985c6374634124f62516ec09c13d9af578",
+    "currentCommitSha256": "c9ab864768e430bbfbea7590071646985c6374634124f62516ec09c13d9af578",
+    "liveSha256": "c9ab864768e430bbfbea7590071646985c6374634124f62516ec09c13d9af578"
+  },
+  {
+    "path": "src/integrations/safejs/index.ts",
+    "frozenSha256": "b0866c13456991f05f30dd23cabcf895d92b8af89985eb88172ac3d76b3b8384",
+    "currentCommitSha256": "b0866c13456991f05f30dd23cabcf895d92b8af89985eb88172ac3d76b3b8384",
+    "liveSha256": "b0866c13456991f05f30dd23cabcf895d92b8af89985eb88172ac3d76b3b8384"
+  },
+  {
+    "path": "src/integrations/safejs/shell.ts",
+    "frozenSha256": "5cb3e55c5e62adb540b41ac7ce39e8458a3a25ffb8422e6164419c1d22ef15da",
+    "currentCommitSha256": "5cb3e55c5e62adb540b41ac7ce39e8458a3a25ffb8422e6164419c1d22ef15da",
+    "liveSha256": "5cb3e55c5e62adb540b41ac7ce39e8458a3a25ffb8422e6164419c1d22ef15da"
+  },
+  {
+    "path": "src/integrations/safejs/stats.ts",
+    "frozenSha256": "94bb724a7281296e08ac4465979e0f9cac585e28f91fc79382650a3c60ea4824",
+    "currentCommitSha256": "94bb724a7281296e08ac4465979e0f9cac585e28f91fc79382650a3c60ea4824",
+    "liveSha256": "94bb724a7281296e08ac4465979e0f9cac585e28f91fc79382650a3c60ea4824"
+  },
+  {
+    "path": "src/integrations/safejs/values.ts",
+    "frozenSha256": "91ac3025b6420a7a908736f1d746077f27c9f045f6be22d82a37f4a07ff9111a",
+    "currentCommitSha256": "91ac3025b6420a7a908736f1d746077f27c9f045f6be22d82a37f4a07ff9111a",
+    "liveSha256": "91ac3025b6420a7a908736f1d746077f27c9f045f6be22d82a37f4a07ff9111a"
+  },
+  {
+    "path": "src/plugins/index.ts",
+    "frozenSha256": "bf653ec1ae5f528090d7031caeb5fc3fcae6b240b5f7459318f1d90840a405d9",
+    "currentCommitSha256": "bf653ec1ae5f528090d7031caeb5fc3fcae6b240b5f7459318f1d90840a405d9",
+    "liveSha256": "bf653ec1ae5f528090d7031caeb5fc3fcae6b240b5f7459318f1d90840a405d9"
+  },
+  {
+    "path": "src/shell/arithmetic.ts",
+    "frozenSha256": "5e2d784b8fd333972e6e413f4c3478163462a3c1abf8cc5ff7173963420440bd",
+    "currentCommitSha256": "5e2d784b8fd333972e6e413f4c3478163462a3c1abf8cc5ff7173963420440bd",
+    "liveSha256": "5e2d784b8fd333972e6e413f4c3478163462a3c1abf8cc5ff7173963420440bd"
+  },
+  {
+    "path": "src/shell/cleanup.ts",
+    "frozenSha256": "134f55641d6437681cd185960a2923d68086096921758717c5b8059595304385",
+    "currentCommitSha256": "134f55641d6437681cd185960a2923d68086096921758717c5b8059595304385",
+    "liveSha256": "134f55641d6437681cd185960a2923d68086096921758717c5b8059595304385"
+  },
+  {
+    "path": "src/shell/display.ts",
+    "frozenSha256": "3d372572020a09dc5484acc575891ab1f24c8c9eba263c0a17c49b714611e069",
+    "currentCommitSha256": "3d372572020a09dc5484acc575891ab1f24c8c9eba263c0a17c49b714611e069",
+    "liveSha256": "3d372572020a09dc5484acc575891ab1f24c8c9eba263c0a17c49b714611e069"
+  },
+  {
+    "path": "src/shell/index.ts",
+    "frozenSha256": "235ad982a7bfe23823b4e07d714ed73e924a5d7759a8664f8533b03517ffa383",
+    "currentCommitSha256": "235ad982a7bfe23823b4e07d714ed73e924a5d7759a8664f8533b03517ffa383",
+    "liveSha256": "235ad982a7bfe23823b4e07d714ed73e924a5d7759a8664f8533b03517ffa383"
+  },
+  {
+    "path": "src/shell/input.ts",
+    "frozenSha256": "7af2dac6dfd6290e9f189590e9190b2e0703dcd99998212e471378063cd9a7b4",
+    "currentCommitSha256": "7af2dac6dfd6290e9f189590e9190b2e0703dcd99998212e471378063cd9a7b4",
+    "liveSha256": "7af2dac6dfd6290e9f189590e9190b2e0703dcd99998212e471378063cd9a7b4"
+  },
+  {
+    "path": "src/shell/locale.ts",
+    "frozenSha256": "1b0687b8401c3f0886a793bf6f212a1731d4bd973be6ac2c7642254e6e1fb2d2",
+    "currentCommitSha256": "1b0687b8401c3f0886a793bf6f212a1731d4bd973be6ac2c7642254e6e1fb2d2",
+    "liveSha256": "1b0687b8401c3f0886a793bf6f212a1731d4bd973be6ac2c7642254e6e1fb2d2"
+  },
+  {
+    "path": "src/shell/parser.ts",
+    "frozenSha256": "10d015eb62fd4e4f964666c04e5869ea78afdb76d930181760adecbcf16ab65e",
+    "currentCommitSha256": "10d015eb62fd4e4f964666c04e5869ea78afdb76d930181760adecbcf16ab65e",
+    "liveSha256": "10d015eb62fd4e4f964666c04e5869ea78afdb76d930181760adecbcf16ab65e"
+  },
+  {
+    "path": "src/shell/pattern.ts",
+    "frozenSha256": "eaf798a7f92c050734e97ef77e07397b3e5710a822575899cca81a527985609a",
+    "currentCommitSha256": "eaf798a7f92c050734e97ef77e07397b3e5710a822575899cca81a527985609a",
+    "liveSha256": "eaf798a7f92c050734e97ef77e07397b3e5710a822575899cca81a527985609a"
+  },
+  {
+    "path": "src/shell/runtime.ts",
+    "frozenSha256": "2223ef9e02565d163ded042d933553a1efae502ce7531fe83bba5611d959c84b",
+    "currentCommitSha256": "2223ef9e02565d163ded042d933553a1efae502ce7531fe83bba5611d959c84b",
+    "liveSha256": "2223ef9e02565d163ded042d933553a1efae502ce7531fe83bba5611d959c84b"
+  },
+  {
+    "path": "src/shell/shell.ts",
+    "frozenSha256": "538f7ea1504019fcde03abc2781c1f903573243a0332033b87501804a1c4ac5c",
+    "currentCommitSha256": "538f7ea1504019fcde03abc2781c1f903573243a0332033b87501804a1c4ac5c",
+    "liveSha256": "538f7ea1504019fcde03abc2781c1f903573243a0332033b87501804a1c4ac5c"
+  },
+  {
+    "path": "src/shell/types.ts",
+    "frozenSha256": "fc4133f1fb41283b0586aa7597c766d393d4f91067b613f4777e5adbef230a6d",
+    "currentCommitSha256": "fc4133f1fb41283b0586aa7597c766d393d4f91067b613f4777e5adbef230a6d",
+    "liveSha256": "fc4133f1fb41283b0586aa7597c766d393d4f91067b613f4777e5adbef230a6d"
+  },
+  {
+    "path": "tests/fs/webdav/mock.ts",
+    "frozenSha256": "177f79ee640460822cfe0486c87f7cc61ac7c8b84389abe32b48ef27f4b4ef36",
+    "currentCommitSha256": "177f79ee640460822cfe0486c87f7cc61ac7c8b84389abe32b48ef27f4b4ef36",
+    "liveSha256": "177f79ee640460822cfe0486c87f7cc61ac7c8b84389abe32b48ef27f4b4ef36"
+  },
+  {
+    "path": "tests/integration/adapter-tools/atomic-webdav-profile/atomic-mock.ts",
+    "frozenSha256": "70a52a3f2f8df440f6b038c19af02f2d63f79d1b4f099e934b4e2d30c23998bf",
+    "currentCommitSha256": "70a52a3f2f8df440f6b038c19af02f2d63f79d1b4f099e934b4e2d30c23998bf",
+    "liveSha256": "70a52a3f2f8df440f6b038c19af02f2d63f79d1b4f099e934b4e2d30c23998bf"
+  },
+  {
+    "path": "tests/integration/adapter-tools/atomic-webdav-profile/controls.ts",
+    "frozenSha256": "24a03650e519cca07962b563e886c31900da3a1905de01d7b28074ca78a43196",
+    "currentCommitSha256": "24a03650e519cca07962b563e886c31900da3a1905de01d7b28074ca78a43196",
+    "liveSha256": "24a03650e519cca07962b563e886c31900da3a1905de01d7b28074ca78a43196"
+  },
+  {
+    "path": "tests/integration/adapter-tools/atomic-webdav-profile/loaded-hook.mjs",
+    "frozenSha256": "d7d3f592f49592153022a563e0a1786fd7691cc887ba699e83176b61f8136bea",
+    "currentCommitSha256": "d7d3f592f49592153022a563e0a1786fd7691cc887ba699e83176b61f8136bea",
+    "liveSha256": "d7d3f592f49592153022a563e0a1786fd7691cc887ba699e83176b61f8136bea"
+  },
+  {
+    "path": "tests/integration/adapter-tools/atomic-webdav-profile/verify.mjs",
+    "frozenSha256": "c45b79d9848bf48bf99a8db833fc43d078192c33d1d137e449ab957fe909f05e",
+    "currentCommitSha256": "c45b79d9848bf48bf99a8db833fc43d078192c33d1d137e449ab957fe909f05e",
+    "liveSha256": "c45b79d9848bf48bf99a8db833fc43d078192c33d1d137e449ab957fe909f05e"
+  },
+  {
+    "path": "tests/integration/adapter-tools/fixtures.ts",
+    "frozenSha256": "127a6910a2733d6b6df01285d37d5c90ccbeeeefda40e0869dc633ef8f6d14e5",
+    "currentCommitSha256": "127a6910a2733d6b6df01285d37d5c90ccbeeeefda40e0869dc633ef8f6d14e5",
+    "liveSha256": "127a6910a2733d6b6df01285d37d5c90ccbeeeefda40e0869dc633ef8f6d14e5"
+  },
+  {
+    "path": "tests/integration/adapter-tools/matrix.test.ts",
+    "frozenSha256": "14d9150068fa2b28acd671b6077e56b08c7565840c1760af9387cb5dbba2030d",
+    "currentCommitSha256": "14d9150068fa2b28acd671b6077e56b08c7565840c1760af9387cb5dbba2030d",
+    "liveSha256": "14d9150068fa2b28acd671b6077e56b08c7565840c1760af9387cb5dbba2030d"
+  },
+  {
+    "path": "tests/integration/adapter-tools/preflight-review/preflight.ts",
+    "frozenSha256": "0cca6e8941bde1ebd89e3eaaf856d77047b1bd91219446ba8e732bd7c4c5b2cf",
+    "currentCommitSha256": "0cca6e8941bde1ebd89e3eaaf856d77047b1bd91219446ba8e732bd7c4c5b2cf",
+    "liveSha256": "0cca6e8941bde1ebd89e3eaaf856d77047b1bd91219446ba8e732bd7c4c5b2cf"
+  },
+  {
+    "path": "tsconfig.build.json",
+    "frozenSha256": "b57d3e5aab1f1f7ab7a70f275183ea6de255e65a2c40a0047c08d97769a1a16e",
+    "currentCommitSha256": "b57d3e5aab1f1f7ab7a70f275183ea6de255e65a2c40a0047c08d97769a1a16e",
+    "liveSha256": "b57d3e5aab1f1f7ab7a70f275183ea6de255e65a2c40a0047c08d97769a1a16e"
+  },
+  {
+    "path": "tsconfig.json",
+    "frozenSha256": "f473dbe2230f833bbd374f6d211e843da377973fa96ad0eb38b6b5740dd18027",
+    "currentCommitSha256": "f473dbe2230f833bbd374f6d211e843da377973fa96ad0eb38b6b5740dd18027",
+    "liveSha256": "f473dbe2230f833bbd374f6d211e843da377973fa96ad0eb38b6b5740dd18027"
+  }
+]

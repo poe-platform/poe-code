@@ -1,0 +1,7 @@
+{
+  "passed": true,
+  "profile": "frozen configured mock fixture only",
+  "canonicalMigration": false,
+  "newRealInterop": false,
+  "mutationsKilled": 10
+}

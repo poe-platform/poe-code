@@ -1,0 +1,32 @@
+{
+  "name": "mutation-recursive-child-deletion",
+  "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "--unhandled-rejections=strict",
+    "--import",
+    "/Users/kjopek/Workspace/safe-bash/tests/integration/adapter-tools/atomic-webdav-profile-independent/observe.mjs",
+    "--test",
+    "--test-reporter=tap",
+    "out-configured/tests/integration/adapter-tools/atomic-webdav-profile-independent/hidden.js"
+  ],
+  "cwd": "/Users/kjopek/Workspace/safe-bash/tests/integration/adapter-tools/atomic-webdav-profile-independent/.isolated-XCrUhe/consumer",
+  "startedAt": "2026-08-27T09:14:50.834Z",
+  "finishedAt": "2026-08-27T09:14:51.051Z",
+  "status": 1,
+  "signal": null,
+  "counts": {
+    "tests": 27,
+    "pass": 22,
+    "fail": 5,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "failedRows": [
+    "hidden: rmdir existing deep child preserves exact namespace",
+    "hidden: rm -d existing deep child preserves exact namespace",
+    "hidden: rmdir late deep child preserves exact namespace",
+    "hidden: rm -d late deep child preserves exact namespace",
+    "hidden: mount forwards late-child refusal and preserves sibling mount prefix"
+  ]
+}

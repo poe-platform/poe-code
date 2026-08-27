@@ -1,0 +1,12 @@
+{
+  "completedAt": "2026-08-27T09:19:19.376Z",
+  "currentHead": "436bda3e21b2b6041409fac7408cf072b5d3fe5e",
+  "currentSourceTree": "fdeaf157135e969df1fc0ea54658f0b5a2017979",
+  "frozenSourceTree": "67da7e232729bb75fc3313f80d644112558dc1fa",
+  "successfulCaptureHead": "c1cc8fbb4f6c1f7931e0ea7f7f36c9707bff8e82",
+  "originalInputsAndEntireAuthorSubtreeUnchanged": true,
+  "executableVerifierInputsMatchSuccessfulRun": true,
+  "artifactsAndModuleLogSealsVerified": true,
+  "allOwnedScratchRemoved": true,
+  "scope": "audit of recorded frozen qualification; current HEAD and live source are not retested by this audit"
+}

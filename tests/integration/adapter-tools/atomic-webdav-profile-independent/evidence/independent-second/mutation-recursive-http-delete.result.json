@@ -1,0 +1,39 @@
+{
+  "name": "mutation-recursive-http-delete",
+  "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "--unhandled-rejections=strict",
+    "--import",
+    "/Users/kjopek/Workspace/safe-bash/tests/integration/adapter-tools/atomic-webdav-profile-independent/observe.mjs",
+    "--test",
+    "--test-reporter=tap",
+    "out-configured/tests/integration/adapter-tools/atomic-webdav-profile-independent/hidden.js"
+  ],
+  "cwd": "/Users/kjopek/Workspace/safe-bash/tests/integration/adapter-tools/atomic-webdav-profile-independent/.isolated-XCrUhe/consumer",
+  "startedAt": "2026-08-27T09:14:51.061Z",
+  "finishedAt": "2026-08-27T09:14:51.280Z",
+  "status": 1,
+  "signal": null,
+  "counts": {
+    "tests": 27,
+    "pass": 15,
+    "fail": 12,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "failedRows": [
+    "hidden: direct helper mutates actual backing synchronously, exactly one entry",
+    "hidden: configured public shell removes only exact encoded target /target",
+    "hidden: configured public shell removes only exact encoded target /space name",
+    "hidden: configured public shell removes only exact encoded target /snow-雪",
+    "hidden: configured public shell removes only exact encoded target /percent%2Fname",
+    "hidden: configured public shell removes only exact encoded target /hash\\#name",
+    "hidden: corrupt operation receipt errors after effect without rollback or fallback",
+    "hidden: corrupt namespaceUrl receipt errors after effect without rollback or fallback",
+    "hidden: corrupt path receipt errors after effect without rollback or fallback",
+    "hidden: corrupt outcome receipt errors after effect without rollback or fallback",
+    "hidden: lock ancestors and descendants block; expired and prefix siblings do not",
+    "hidden: actual mount contract, not fabricated capabilities"
+  ]
+}

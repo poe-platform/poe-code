@@ -1,0 +1,159 @@
+{
+  "frozen": "68059389bf95e03caeae6479837187add3d07814",
+  "checkpoint": "222e9e127b5e86fa3e9af85d3bad0ee9fa54395c",
+  "liveHead": "c1cc8fbb4f6c1f7931e0ea7f7f36c9707bff8e82",
+  "seals": {
+    "matrixSha256": "14d9150068fa2b28acd671b6077e56b08c7565840c1760af9387cb5dbba2030d",
+    "commandWorkloadsAndAssertionsSha256": "2d6700674dbaadd10fba3765def70a647709ed7578c10bbc2f783fe4cbac64bf",
+    "stockFixtureSha256": "127a6910a2733d6b6df01285d37d5c90ccbeeeefda40e0869dc633ef8f6d14e5",
+    "configuredFixtureSha256": "6ca47426b3926125950755679dfadd8169bb19620968adf51a0ec8b92f6a34ba",
+    "mockSha256": "177f79ee640460822cfe0486c87f7cc61ac7c8b84389abe32b48ef27f4b4ef36",
+    "atomicHelperSha256": "70a52a3f2f8df440f6b038c19af02f2d63f79d1b4f099e934b4e2d30c23998bf",
+    "packSha256": "2e33387a28f91e0d187eaab429410765bf317ff59567c9f0287aa73199d63dbf",
+    "generatedBuildSha256": "693a50d3ba681bb3afc2f5f8e4ae8edf84091ed4f492935a95f2f54c5bd4a8e0",
+    "sourceManifestSha256": "0bf604ee810f6ac5dd2cdf771934288fe654700f9b3f6875903592df47f314d1"
+  },
+  "counts": {
+    "original-stock79": {
+      "tests": 79,
+      "pass": 78,
+      "fail": 1,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    "packed-stock79": {
+      "tests": 79,
+      "pass": 78,
+      "fail": 1,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    "configured79": {
+      "tests": 79,
+      "pass": 79,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    "author-controls22": {
+      "tests": 22,
+      "pass": 22,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    "independent-hidden": {
+      "tests": 27,
+      "pass": 27,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    "mutation-lost-capability": {
+      "tests": 27,
+      "pass": 12,
+      "fail": 15,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    "mutation-ignore-nonempty": {
+      "tests": 27,
+      "pass": 22,
+      "fail": 5,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    "mutation-recursive-child-deletion": {
+      "tests": 27,
+      "pass": 22,
+      "fail": 5,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    "mutation-recursive-http-delete": {
+      "tests": 27,
+      "pass": 15,
+      "fail": 12,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    "mutation-yield-before-delete": {
+      "tests": 27,
+      "pass": 26,
+      "fail": 1,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    "mutation-wrong-target": {
+      "tests": 27,
+      "pass": 15,
+      "fail": 12,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    "mutation-prefix-sibling-refusal": {
+      "tests": 27,
+      "pass": 15,
+      "fail": 12,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    "mutation-ignore-namespace": {
+      "tests": 27,
+      "pass": 26,
+      "fail": 1,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    "mutation-wrong-receipt": {
+      "tests": 27,
+      "pass": 20,
+      "fail": 7,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    "mutation-ignore-locks": {
+      "tests": 27,
+      "pass": 26,
+      "fail": 1,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    "hidden-restored": {
+      "tests": 27,
+      "pass": 27,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    }
+  },
+  "denominatorClassification": {
+    "originalMatrixRows": 79,
+    "writableBackendRows": 66,
+    "otherPositiveRows": 4,
+    "readonlyRefusalRows": 9,
+    "stockPositiveChecksPassed": 69,
+    "configuredPositiveChecksPassed": 70,
+    "originalReadonlyRefusalsPassed": 9,
+    "authorControlsSeparate": 22,
+    "independentHiddenSeparate": 27,
+    "boundedMutants": 10
+  },
+  "decision": "frozen configured test-only profile independently accepted; stock 78/79 failure retained; no canonical migration or new real-service qualification"
+}

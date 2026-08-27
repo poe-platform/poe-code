@@ -1,0 +1,27 @@
+[
+  {
+    "path": "tests/integration/adapter-tools/matrix.test.ts",
+    "from": "../../../src/index.js",
+    "to": "virtual-bash"
+  },
+  {
+    "path": "tests/integration/adapter-tools/fixtures.ts",
+    "from": "../../../src/index.js",
+    "to": "virtual-bash"
+  },
+  {
+    "path": "tests/integration/adapter-tools/preflight-review/preflight.ts",
+    "from": "../../../../src/index.js",
+    "to": "virtual-bash"
+  },
+  {
+    "path": "tests/fs/webdav/mock.ts",
+    "from": "../../../src/fs/webdav/index.js",
+    "to": "virtual-bash/fs/webdav"
+  },
+  {
+    "path": "tests/fs/webdav/mock.ts",
+    "from": "../../../src/fs/webdav/resource-id.js",
+    "to": "/Users/kjopek/Workspace/safe-bash/tests/integration/adapter-tools/atomic-webdav-profile-independent/.isolated-LoFht8/source/dist/fs/webdav/resource-id.js"
+  }
+]

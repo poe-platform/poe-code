@@ -1,0 +1,363 @@
+diff --git a/src/commands/file/README.md b/src/commands/file/README.md
+index 402cc3b..77e0aad 100644
+--- a/src/commands/file/README.md
++++ b/src/commands/file/README.md
+@@ -89,11 +89,11 @@ Defaults (all positive safe integers; maxDurationMs <= 2147483647):
+ | --- | ---: | --- |
+ | maxSniffBytes | 65536 | retained sample per operand |
+ | maxReadFileBytes | 1048576 | maximum authorized whole-read fallback |
+-| maxInputBytes | 8388608 | aggregate delivered input bytes |
++| maxInputBytes | 8388608 | aggregate ByteIO and admitted metadata UTF-8 bytes |
+ | maxOutputBytes | 1048576 | combined stdout and stderr bytes |
+ | maxChunkBytes | 1048576 | maximum delivered input chunk/output chunk |
+ | maxEntries | 1024 | operand count, preflighted |
+-| maxSteps | 1048576 | stream iterations plus sampled bytes and operands |
++| maxSteps | 1048576 | iterations, sampled bytes, operands and text work units |
+ | maxArgumentBytes | 65536 | UTF-8 arguments plus one separator each |
+ | maxDurationMs | 10000 | active invocation deadline |
+ 
+@@ -123,6 +123,44 @@ late promise rejections are observed. Diagnostic output obeys the combined byte
+ budget and can be truncated or absent if the budget is exhausted. Parent shell
+ limits still apply separately; family limits are not one shared shell quota.
+ 
++### TEXT-BOUND-001: metadata and diagnostic admission
++
++The text-safety correction extends these existing family limits; it does not add
++flags or filesystem contracts. Raw readlink targets and backend error messages
++first undergo constant-time UTF-16 length checks against remaining input/work
++budgets, and against remaining output for text that will be rendered. Only then
++are codepoints examined. Actual UTF-8 metadata bytes are charged cumulatively
++with ByteIO bytes; labels/arguments use the separate argument quota and shared
++work quota. Argument count and string length are checked before UTF-8 scans.
++
++Escaping admits each generated piece against remaining output before retaining
++it, works on one Unicode codepoint per regex call, and yields/checks cancellation
++after at most4096 UTF-16 units. Metadata and label work is charged before the
++loop; output text length/work and exact UTF-8 bytes are admitted before encoding.
++Each field is bounded by remaining output; the final line (at most two such
++fields plus fixed formatting) is checked again before any full-line encoding.
++Admission is cumulative across operands/errors, not a fresh per-entry allowance.
++MIME-only symlink handling still calls readlink and preserves its errors, and
++admits/charges its target, but does not escape/build an unused human description.
++
++Normal usage and filesystem diagnostics preserve their existing complete text
++when admitted. A quota error uses a known short diagnostic instead of trying to
++escape the rejected backend text again. To report exhausted work safely, the
++family has a fixed, cumulative **64 UTF-16-unit emergency diagnostic reserve**
++separate from maxSteps. It still obeys the shared maxOutputBytes, maxChunkBytes,
++signal and deadline. Its input is sliced before encoding, UTF-8 accounting
++precedes encoding, and truncation preserves whole Unicode codepoints. This
++bounded reserve is not a reset of the ordinary work budget. The command uses
++it only for terminal limit messages; long admitted usage errors are not silently
++reduced to64 units. No ordinary scan is exempted from work/input admission.
++
++This closes command-owned preprocessing on unrestricted metadata/error strings,
++not a catastrophic-regex issue or a host-JavaScript sandbox guarantee. Backend
++string construction/allocation, getters, whole readFile allocation, and arbitrary
++host execution still precede or lie outside command admission. The configured
++limits authorize bounded work, not a hard heap ceiling or preemption within a
++single JavaScript primitive. No decompression or native libmagic is involved.
++
+ ## Evidence
+ 
+ Run `node --import tsx --test tests/commands/file/*.test.ts`.
+diff --git a/src/commands/file/index.ts b/src/commands/file/index.ts
+index 2c8e1f3..599e8b9 100644
+--- a/src/commands/file/index.ts
++++ b/src/commands/file/index.ts
+@@ -1,6 +1,6 @@
+ import { FsError, readBytes, resolvePath, type ByteSource, type CommandContext, type CommandDefinition, type FileStat, type VirtualShellPlugin } from "../../contracts/index.js";
+ import { classify, type Classification } from "./classify.js";
+-import { diagnostic, escapeName, FileFailure, FileLimitError, settings, SharedBudget, type FileCommandsOptions } from "./shared.js";
++import { limitMessage, FileFailure, FileLimitError, settings, SharedBudget, type FileCommandsOptions } from "./shared.js";
+ 
+ export type { FileCommandsOptions, FileLimits } from "./shared.js";
+ 
+@@ -16,10 +16,13 @@ interface Arguments {
+   names: string[];
+ }
+ 
+-function parse(args: readonly string[], budget: SharedBudget): Arguments {
++async function parse(args: readonly string[], budget: SharedBudget): Promise<Arguments> {
+   const result: Arguments = { brief: false, follow: false, mimeType: false, mimeEncoding: false, names: [] };
+   let argumentBytes = 0;
++  budget.check(args.length, budget.limits.maxArgumentBytes, "argument");
+   for (const argument of args) {
++    budget.check(argument.length + 1, budget.limits.maxArgumentBytes - argumentBytes, "argument");
++    budget.work(argument.length);
+     argumentBytes += Buffer.byteLength(argument) + 1;
+     budget.check(argumentBytes, budget.limits.maxArgumentBytes, "argument");
+   }
+@@ -38,7 +41,7 @@ function parse(args: readonly string[], budget: SharedBudget): Arguments {
+         case "--mime-encoding": result.mimeEncoding = true; break;
+         case "--help": result.action = "help"; break;
+         case "--version": result.action = "version"; break;
+-        default: throw new FileFailure(`unsupported option '${escapeName(flag)}'`);
++        default: throw new FileFailure(`unsupported option '${await budget.escapeName(flag)}'`);
+       }
+     }
+   }
+@@ -74,7 +77,7 @@ async function prefix(source: ByteSource, budget: SharedBudget, signal: AbortSig
+   return { bytes, complete };
+ }
+ 
+-async function inspect(context: CommandContext, name: string, follow: boolean, budget: SharedBudget, stdinUsed: boolean): Promise<Classification> {
++async function inspect(context: CommandContext, name: string, follow: boolean, describe: boolean, budget: SharedBudget, stdinUsed: boolean): Promise<Classification> {
+   if (name === "-") {
+     if (stdinUsed) return classify(new Uint8Array(), true);
+     const sample = await prefix(context.stdin, budget, budget.signal);
+@@ -91,7 +94,8 @@ async function inspect(context: CommandContext, name: string, follow: boolean, b
+   if (stat.type === "symlink") {
+     if (follow) throw new FsError("ENOTSUP", { path, message: "followed stat returned a symbolic link" });
+     const target = fs.readlink ? await budget.host(() => fs.readlink!(path, { signal: budget.signal })) : undefined;
+-    return { description: target === undefined ? "symbolic link" : `symbolic link to ${escapeName(target)}`, mime: "inode/symlink", encoding: "binary" };
++    const rendered = target === undefined ? undefined : await budget.escapeName(target, true, describe);
++    return { description: rendered === undefined || !describe ? "symbolic link" : `symbolic link to ${rendered}`, mime: "inode/symlink", encoding: "binary" };
+   }
+   if (stat.type !== "file") throw new FsError("ENOTSUP", { path, message: "unsupported filesystem entry type" });
+   let sample: { bytes: Uint8Array; complete: boolean };
+@@ -125,7 +129,7 @@ export function createFileCommand(options: FileCommandsOptions = {}): CommandDef
+     const budget = new SharedBudget(context, limits);
+     let writing = false;
+     try {
+-      const args = parse(context.args, budget);
++      const args = await parse(context.args, budget);
+       if (args.action) {
+         writing = true;
+         await budget.output(context.stdout, args.action === "help" ? help : `file (${profile})\n`);
+@@ -136,20 +140,23 @@ export function createFileCommand(options: FileCommandsOptions = {}): CommandDef
+       for (const name of args.names) {
+         await budget.step();
+         let detected: Classification;
+-        try { detected = await inspect(context, name, args.follow, budget, stdinUsed); }
++        try { detected = await inspect(context, name, args.follow, !args.mimeType && !args.mimeEncoding, budget, stdinUsed); }
+         catch (error) {
+           budget.signal.throwIfAborted();
+           if (!(error instanceof FsError)) throw error;
+           failed = true;
++          const label = await budget.escapeName(name);
++          const message = await budget.escapeName(error.message, true);
+           writing = true;
+-          await budget.output(context.stderr, `file: ${escapeName(name)}: ${diagnostic(error)}\n`);
++          await budget.output(context.stderr, `file: ${label}: ${message}\n`);
+           writing = false;
+           continue;
+         } finally { if (name === "-") stdinUsed = true; }
+         const content = args.mimeType && args.mimeEncoding ? `${detected.mime}; charset=${detected.encoding}`
+           : args.mimeType ? detected.mime : args.mimeEncoding ? detected.encoding : detected.description;
++        const label = args.brief ? "" : `${name === "-" ? "/dev/stdin" : await budget.escapeName(name)}: `;
+         writing = true;
+-        await budget.output(context.stdout, `${args.brief ? "" : `${name === "-" ? "/dev/stdin" : escapeName(name)}: `}${content}\n`);
++        await budget.output(context.stdout, `${label}${content}\n`);
+         writing = false;
+       }
+       return { exitCode: failed ? 1 : 0 };
+@@ -158,8 +165,28 @@ export function createFileCommand(options: FileCommandsOptions = {}): CommandDef
+       budget.signal.throwIfAborted();
+       if (writing && !(error instanceof FileLimitError)) throw error;
+       if (!(error instanceof FileFailure)) throw error;
+-      await budget.failure(`file: ${diagnostic(error)}\n`);
+-      return { exitCode: error instanceof FileLimitError ? 1 : 2 };
++      let limited = error instanceof FileLimitError;
++      let message: string;
++      if (error instanceof FileLimitError) message = limitMessage(error);
++      else {
++        try { message = await budget.escapeName(error.message, true); }
++        catch (failure) {
++          budget.signal.throwIfAborted();
++          if (!(failure instanceof FileLimitError)) throw failure;
++          limited = true;
++          message = limitMessage(failure);
++        }
++      }
++      if (!limited) {
++        try { await budget.output(context.stderr, `file: ${message}\n`); return { exitCode: 2 }; }
++        catch (failure) {
++          budget.signal.throwIfAborted();
++          if (!(failure instanceof FileLimitError)) throw failure;
++          message = limitMessage(failure);
++        }
++      }
++      await budget.failure(`file: ${message}\n`);
++      return { exitCode: 1 };
+     } finally { budget.dispose(); }
+   } };
+ }
+diff --git a/src/commands/file/shared.ts b/src/commands/file/shared.ts
+index 464eb7b..5ac1d09 100644
+--- a/src/commands/file/shared.ts
++++ b/src/commands/file/shared.ts
+@@ -1,4 +1,4 @@
+-import { FsError, writeBytes, type ByteSink, type CommandContext } from "../../contracts/index.js";
++import { writeBytes, type ByteSink, type CommandContext } from "../../contracts/index.js";
+ 
+ export interface FileLimits {
+   readonly maxSniffBytes: number;
+@@ -38,6 +38,7 @@ export class SharedBudget {
+   private inputBytes = 0;
+   private outputBytes = 0;
+   private steps = 0;
++  private failureUnits = 64;
+   private untilYield = 128;
+   private readonly controller = new AbortController();
+   private readonly timer: ReturnType<typeof setTimeout>;
+@@ -62,10 +63,14 @@ export class SharedBudget {
+     this.signal.throwIfAborted();
+   }
+ 
+-  async step(count = 1): Promise<void> {
++  work(count: number): void {
+     this.checkTime();
++    this.check(count, this.limits.maxSteps - this.steps, "step");
+     this.steps += count;
+-    this.check(this.steps, this.limits.maxSteps, "step");
++  }
++
++  async step(count = 1): Promise<void> {
++    this.work(count);
+     if (--this.untilYield <= 0) {
+       this.untilYield = 128;
+       await new Promise<void>(resolve => setImmediate(resolve));
+@@ -79,10 +84,46 @@ export class SharedBudget {
+     this.inputBytes += size;
+   }
+ 
++  async escapeName(value: string, metadata = false, render = true): Promise<string> {
++    this.checkTime();
++    if (metadata) this.check(value.length, this.remainingInputBytes, "input");
++    if (render) this.check(value.length, this.limits.maxOutputBytes - this.outputBytes, "output");
++    this.work(value.length);
++    const pieces: string[] = [];
++    let outputBytes = 0;
++    let untilYield = 4096;
++    for (const character of value) {
++      if (metadata) {
++        const size = Buffer.byteLength(character);
++        this.check(size, this.remainingInputBytes, "input");
++        this.inputBytes += size;
++      }
++      if (render) {
++        const piece = character === "\\" ? "\\\\" : /[\p{Cc}\p{Cf}\p{Zl}\p{Zp}]/u.test(character)
++          ? `\\u{${character.codePointAt(0)!.toString(16)}}` : character;
++        outputBytes += Buffer.byteLength(piece);
++        this.check(outputBytes, this.limits.maxOutputBytes - this.outputBytes, "output");
++        pieces.push(piece);
++      }
++      untilYield -= character.length;
++      if (untilYield <= 0) {
++        untilYield = 4096;
++        await new Promise<void>(resolve => setImmediate(resolve));
++        this.checkTime();
++      }
++    }
++    this.checkTime();
++    return pieces.join("");
++  }
++
+   async output(sink: ByteSink, text: string, signal = this.signal): Promise<void> {
++    this.checkTime();
++    this.check(text.length, this.limits.maxOutputBytes - this.outputBytes, "output");
++    this.work(text.length);
++    const size = Buffer.byteLength(text);
++    this.check(size, this.limits.maxOutputBytes - this.outputBytes, "output");
++    this.outputBytes += size;
+     const bytes = new TextEncoder().encode(text);
+-    this.check(bytes.length, this.limits.maxOutputBytes - this.outputBytes, "output");
+-    this.outputBytes += bytes.length;
+     const width = Math.min(16384, this.limits.maxChunkBytes);
+     for (let offset = 0; offset < bytes.length; offset += width) {
+       await writeBytes(sink, bytes.slice(offset, offset + width), signal);
+@@ -90,8 +131,22 @@ export class SharedBudget {
+   }
+ 
+   async failure(text: string): Promise<void> {
+-    const bytes = new TextEncoder().encode(text).slice(0, this.limits.maxOutputBytes - this.outputBytes);
+-    this.outputBytes += bytes.length;
++    this.checkTime();
++    const units = Math.min(this.failureUnits, this.limits.maxOutputBytes - this.outputBytes, text.length);
++    this.failureUnits -= units;
++    let end = units;
++    if (end > 0 && end < text.length && text.charCodeAt(end - 1) >= 0xd800 && text.charCodeAt(end - 1) <= 0xdbff
++      && text.charCodeAt(end) >= 0xdc00 && text.charCodeAt(end) <= 0xdfff) end--;
++    let bounded = "";
++    let size = 0;
++    for (const character of text.slice(0, end)) {
++      const width = Buffer.byteLength(character);
++      if (width > this.limits.maxOutputBytes - this.outputBytes - size) break;
++      size += width;
++      bounded += character;
++    }
++    this.outputBytes += size;
++    const bytes = new TextEncoder().encode(bounded);
+     const width = Math.min(16384, this.limits.maxChunkBytes);
+     for (let offset = 0; offset < bytes.length; offset += width) {
+       await writeBytes(this.context.stderr, bytes.slice(offset, offset + width), this.signal);
+@@ -116,14 +171,8 @@ export class SharedBudget {
+   }
+ }
+ 
+-export function escapeName(value: string): string {
+-  return value.replace(/[\\\p{Cc}\p{Cf}\p{Zl}\p{Zp}]/gu, character => {
+-    if (character === "\\") return "\\\\";
+-    return `\\u{${character.codePointAt(0)!.toString(16)}}`;
+-  });
+-}
+-
+-export function diagnostic(error: unknown): string {
+-  if (error instanceof FsError) return escapeName(error.message);
+-  return escapeName(error instanceof Error ? error.message : String(error));
++export function limitMessage(error: FileLimitError): string {
++  const message = error.message;
++  return message.length <= 32 && ["argument", "entry", "readFile", "input", "chunk", "output", "step", "time"]
++    .some(label => message === `${label} limit exceeded`) ? message : "resource limit exceeded";
+ }
+diff --git a/src/commands/text.ts b/src/commands/text.ts
+index 70bb169..e1f2d07 100644
+--- a/src/commands/text.ts
++++ b/src/commands/text.ts
+@@ -78,6 +78,29 @@ async function emitRecords(context: CommandContext, records: ByteSource, destina
+   }
+ }
+ 
++async function collectSortRecords(source: ByteSource, delimiter: number, accept: (bytes: Uint8Array) => void): Promise<void> {
++  let pending: Uint8Array[] = [];
++  let size = 0;
++  for await (const chunk of source) {
++    let start = 0;
++    for (let offset = 0; offset < chunk.length; offset++) {
++      if (chunk[offset] !== delimiter) continue;
++      const part = chunk.subarray(start, offset);
++      size += part.length;
++      if (size > bufferLimit) throw new FsError("EFBIG", { message: "line buffer limit exceeded" });
++      if (pending.length) { pending.push(part); accept(concatenate(pending, size)); }
++      else accept(new Uint8Array(part));
++      pending = []; size = 0; start = offset + 1;
++    }
++    if (start < chunk.length) {
++      pending.push(new Uint8Array(chunk.subarray(start)));
++      size += chunk.length - start;
++      if (size > bufferLimit) throw new FsError("EFBIG", { message: "line buffer limit exceeded" });
++    }
++  }
++  if (size) accept(concatenate(pending, size));
++}
++
+ export function textCommands(): CommandDefinition[] {
+   return [
+     define("sort", async context => {
+@@ -112,6 +135,15 @@ export function textCommands(): CommandDefinition[] {
+       const delimiter = parsed.flags.has("z") ? 0 : 10;
+       for (const name of parsed.operands.length ? parsed.operands : ["-"]) {
+         try {
++          if (!parsed.flags.has("c")) {
++            await collectSortRecords(input(context, name), delimiter, bytes => {
++              context.signal.throwIfAborted();
++              size += bytes.length + 1;
++              if (size > bufferLimit) throw new FsError("EFBIG", { message: "sort buffer limit exceeded" });
++              records.push(bytes);
++            });
++            continue;
++          }
+           for await (const line of lines(input(context, name), delimiter)) {
+             context.signal.throwIfAborted();
+             size += line.bytes.length + 1;

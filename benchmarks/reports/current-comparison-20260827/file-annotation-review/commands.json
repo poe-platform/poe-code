@@ -1,0 +1,394 @@
+[
+  {
+    "name": "parent",
+    "executable": "git",
+    "args": [
+      "rev-parse",
+      "1a18cb1858f9453f41a20caff0988c578aa9c7e2^"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash",
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "stdinSha256": null,
+    "stdoutSha256": "cc4d7be59e7cd2e5308f07bd76d9763c0ad44457e95c0b4e93304bb2afa97a66",
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "name": "initial-head",
+    "executable": "git",
+    "args": [
+      "rev-parse",
+      "HEAD"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash",
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "stdinSha256": null,
+    "stdoutSha256": "802a6f9aaab563ef297f6f0f38cff1f2f1de94d21346d85f776adc2ff3c33864",
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "name": "initial-status",
+    "executable": "git",
+    "args": [
+      "status",
+      "--short"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash",
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "stdinSha256": null,
+    "stdoutSha256": "c8316f32b2f923ac6202f922f14f9da55b235c8f952f496eb58178153ea0e09e",
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "name": "initial-index",
+    "executable": "git",
+    "args": [
+      "diff",
+      "--cached",
+      "--raw"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash",
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "stdinSha256": null,
+    "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "name": "commit-metadata",
+    "executable": "git",
+    "args": [
+      "show",
+      "--no-patch",
+      "--format=fuller",
+      "1a18cb1858f9453f41a20caff0988c578aa9c7e2"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash",
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "stdinSha256": null,
+    "stdoutSha256": "75f872654d407f9db20bf21e3b7e3e1191cea79140b05efda401974f59be3234",
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "name": "changed-paths",
+    "executable": "git",
+    "args": [
+      "diff",
+      "--name-only",
+      "9e6c5e2394d5d36df42529d74d1dd21301ddeab6",
+      "1a18cb1858f9453f41a20caff0988c578aa9c7e2"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash",
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "stdinSha256": null,
+    "stdoutSha256": "256d24f737e1f79597c406aed3167fd23e6d8262593a015e23c40e951d432f23",
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "name": "exact-delta",
+    "executable": "git",
+    "args": [
+      "diff",
+      "9e6c5e2394d5d36df42529d74d1dd21301ddeab6",
+      "1a18cb1858f9453f41a20caff0988c578aa9c7e2",
+      "--",
+      "tests/commands/file/text-bound.test.ts"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash",
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "stdinSha256": null,
+    "stdoutSha256": "b09e8b68a5569a6178e910f692b17ace9bf0c817c2d498ef312337a47cc09442",
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "name": "parent-fixture",
+    "executable": "git",
+    "args": [
+      "show",
+      "9e6c5e2394d5d36df42529d74d1dd21301ddeab6:tests/commands/file/text-bound.test.ts"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash",
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "stdinSha256": null,
+    "stdoutSha256": "d77be12ea936a817699d6f596c9525cdee5fdf8e53289d98767975a09724ae83",
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "name": "commit-fixture",
+    "executable": "git",
+    "args": [
+      "show",
+      "1a18cb1858f9453f41a20caff0988c578aa9c7e2:tests/commands/file/text-bound.test.ts"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash",
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "stdinSha256": null,
+    "stdoutSha256": "40577fca7e56498a285f39ddfc0c14f649ffc27b6e41a509023746d2c475e558",
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "name": "before-archive",
+    "executable": "git",
+    "args": [
+      "archive",
+      "9e6c5e2394d5d36df42529d74d1dd21301ddeab6",
+      "--",
+      "src",
+      "tests/commands/file/text-bound.test.ts",
+      "tests/commands/file/helpers.ts",
+      "package.json",
+      "package-lock.json",
+      "tsconfig.json"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash",
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "stdinSha256": null,
+    "stdoutSha256": "909e3d90dba17eb9ad4d4148d9aa952103e31db921a569a90eebdb44a6ff15b4",
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "name": "before-extract",
+    "executable": "tar",
+    "args": [
+      "-x",
+      "-C",
+      "/tmp/safe-bash-file-annotation-review-6fBRw5/before"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash",
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "stdinSha256": "909e3d90dba17eb9ad4d4148d9aa952103e31db921a569a90eebdb44a6ff15b4",
+    "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "name": "before-scoped-config",
+    "executable": "apply_patch",
+    "args": [],
+    "cwd": "/Users/kjopek/Workspace/safe-bash",
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "stdinSha256": "bf3335c7e64a249de567f91b01fc58d68aae56eb9e206d729cef167787bc59f2",
+    "stdoutSha256": "71f8e3d622373d0d689ec9137015e7aab31c21c532078cd1fe5251852454ccab",
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "name": "before-types",
+    "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "args": [
+      "/tmp/safe-bash-file-annotation-review-6fBRw5/node_modules/typescript/bin/tsc",
+      "--noEmit",
+      "-p",
+      "tsconfig.scoped.json",
+      "--pretty",
+      "false"
+    ],
+    "cwd": "/tmp/safe-bash-file-annotation-review-6fBRw5/before",
+    "status": 2,
+    "signal": null,
+    "error": null,
+    "stdinSha256": null,
+    "stdoutSha256": "0faab383cbe3c5baf01de4263750655348850213580a3c60020314005457a5f8",
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "name": "before-tests",
+    "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "args": [
+      "--import",
+      "tsx",
+      "--test",
+      "tests/commands/file/text-bound.test.ts"
+    ],
+    "cwd": "/tmp/safe-bash-file-annotation-review-6fBRw5/before",
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "stdinSha256": null,
+    "stdoutSha256": "fcdf98ebe1fab0162695be671f45f944fc3c6011286d0509c7feb0eb383cf26c",
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "name": "after-archive",
+    "executable": "git",
+    "args": [
+      "archive",
+      "1a18cb1858f9453f41a20caff0988c578aa9c7e2",
+      "--",
+      "src",
+      "tests/commands/file/text-bound.test.ts",
+      "tests/commands/file/helpers.ts",
+      "package.json",
+      "package-lock.json",
+      "tsconfig.json"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash",
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "stdinSha256": null,
+    "stdoutSha256": "dde1edd4bc3b3d251d201111fac607a1a30307d15815472ecf41983a94f41ab7",
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "name": "after-extract",
+    "executable": "tar",
+    "args": [
+      "-x",
+      "-C",
+      "/tmp/safe-bash-file-annotation-review-6fBRw5/after"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash",
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "stdinSha256": "dde1edd4bc3b3d251d201111fac607a1a30307d15815472ecf41983a94f41ab7",
+    "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "name": "after-scoped-config",
+    "executable": "apply_patch",
+    "args": [],
+    "cwd": "/Users/kjopek/Workspace/safe-bash",
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "stdinSha256": "0d5cdd1bafd9b7ebee0b81f8eb547bdfb1f6b1f5f0a0fb6ed9b758f0ff54bde5",
+    "stdoutSha256": "7ef40fd4ef41073a3b690159bb09bde6c18ff13d51f4684e4a325fb659b50359",
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "name": "after-types",
+    "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "args": [
+      "/tmp/safe-bash-file-annotation-review-6fBRw5/node_modules/typescript/bin/tsc",
+      "--noEmit",
+      "-p",
+      "tsconfig.scoped.json",
+      "--pretty",
+      "false"
+    ],
+    "cwd": "/tmp/safe-bash-file-annotation-review-6fBRw5/after",
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "stdinSha256": null,
+    "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "name": "after-tests",
+    "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "args": [
+      "--import",
+      "tsx",
+      "--test",
+      "tests/commands/file/text-bound.test.ts"
+    ],
+    "cwd": "/tmp/safe-bash-file-annotation-review-6fBRw5/after",
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "stdinSha256": null,
+    "stdoutSha256": "fb889b5c4498e99accd14044b1a81b83b0897ba589fab6d2513690ca1c28cad2",
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "name": "negative-injection",
+    "executable": "apply_patch",
+    "args": [],
+    "cwd": "/Users/kjopek/Workspace/safe-bash",
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "stdinSha256": "6b559581aa0836f69aed0afc74576f21259e1a118e9500217295b34706a7c057",
+    "stdoutSha256": "0d9dd26c7c5802252de6eaa6e3d0c84101b9a8670bc04a2aa32262fba6a7af59",
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "name": "negative-types",
+    "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "args": [
+      "/tmp/safe-bash-file-annotation-review-6fBRw5/node_modules/typescript/bin/tsc",
+      "--noEmit",
+      "-p",
+      "tsconfig.scoped.json",
+      "--pretty",
+      "false"
+    ],
+    "cwd": "/tmp/safe-bash-file-annotation-review-6fBRw5/negative",
+    "status": 2,
+    "signal": null,
+    "error": null,
+    "stdinSha256": null,
+    "stdoutSha256": "16247dbdbe02ccda85967ada776e5fa142e4e058164c4165ef9798e1ec06f89f",
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "name": "final-head",
+    "executable": "git",
+    "args": [
+      "rev-parse",
+      "HEAD"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash",
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "stdinSha256": null,
+    "stdoutSha256": "802a6f9aaab563ef297f6f0f38cff1f2f1de94d21346d85f776adc2ff3c33864",
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "name": "final-status",
+    "executable": "git",
+    "args": [
+      "status",
+      "--short"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash",
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "stdinSha256": null,
+    "stdoutSha256": "c8316f32b2f923ac6202f922f14f9da55b235c8f952f496eb58178153ea0e09e",
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "name": "final-index",
+    "executable": "git",
+    "args": [
+      "diff",
+      "--cached",
+      "--raw"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash",
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "stdinSha256": null,
+    "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  }
+]

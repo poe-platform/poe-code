@@ -1,5 +1,12 @@
 # Independent final runtime containment review
 
+**Current status:** execution stopped after five scoped passes; `rg-queued-abort`
+remains UNUSED. The reviewer's shared-worker ownership ambiguity was resolved
+read-only, but STOP remains latched and no further execution is authorized here.
+See `REPORT.md`, `evidence/STOP.json` and `evidence/final-audit.json`. Instructions
+below preserve the original phase-1 preparation and once-only execution protocol;
+do not rerun them or clear the claims/STOP to complete the missing slot.
+
 Phase 1 only until ROOT grants the exact six-slot gate. Never execute child modules
 directly. No automatic retries or matrix loop. Original historical probes, original
 five, first-read controls, benchmarks and fixture-author compiled runs are separate.

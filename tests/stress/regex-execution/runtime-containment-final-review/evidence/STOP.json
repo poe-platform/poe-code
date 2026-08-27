@@ -1,0 +1,13 @@
+{
+  "job": "grep-queued-abort",
+  "reason": "Independent manual review found unresolved public-settlement worker ownership/cleanup discrepancy despite raw harness pass; stop entire matrix without retry.",
+  "rawHarnessPass": true,
+  "resultSha256": "572f59ca68457ae070a8bba059a14776e28b8446d119a338a831df4868ff94c5",
+  "observation": "At sibling-one public Shell.exec settlement, both real workers have exited:false, terminationCalls:1, terminationAwaited:false and message/messageerror/error/exit listeners 1/1/1/2. Frozen child skips retired(boundary.workers) for every queued boundary. Sibling-two and final cleanup require separate inspection. No changed expected outputs or rerun.",
+  "targetSlotsConsumed": 5,
+  "pathologicalRequestsConsumed": 4,
+  "remainingUnused": ["rg-queued-abort"],
+  "nextStep": "Final evidence report only; no further target launch.",
+  "resolution": "Read-only diagnosis resolved the reviewer's ownership ambiguity: frozen command.md lines 76-80 expressly permits shared workers after local invocation cleanup. observe.mjs labels worker creation scope, not current lease/retirement ownership. RegexExecutor.close decrements the shared session count; only the last session awaits pool retirement. Both sibling results are correct and both workers are retired before dispose. No product defect or substantive frozen-harness flaw is established. Initial suspicion is preserved as a reviewer interpretation error, not a failing product assertion. Stop remains latched; slot 6 is not launched.",
+  "measuredCounts": { "rawHarnessPass": 5, "rawHarnessFail": 0, "scopedReviewedPass": 5, "unexecuted": 1 }
+}

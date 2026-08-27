@@ -1,0 +1,31 @@
+{
+  "job": "rg-abort",
+  "time": "2026-08-27T09:25:06.093Z",
+  "preparedSha256": "276b972c3334f0452d26e20fcd0256445f3cbc2dcd43d5b815cbd6d607b1b3b3",
+  "approval": {
+    "authority": "ROOT_EXPLICIT_EXECUTION_AFTER_REVIEWED_BENIGN_GREEN",
+    "preparedSha256": "276b972c3334f0452d26e20fcd0256445f3cbc2dcd43d5b815cbd6d607b1b3b3",
+    "benignSha256": "d27d834f2a1b3773ccc8918a95a1b29b838efa48d833c9f3507ad740c233cb99",
+    "controlsSha256": "1229baac8c348b8232d12ed0e5187fad3873bd43ca091881a8eba41530ce9931",
+    "sourceCommit": "1b133a8662a32ee84524794842074c9c98d5f6c3",
+    "archiveSha256": "86c34e382c85563afbd9c760aa2e0f161308e8f43e14fe99dfec9ed96d77539b",
+    "fixtureCommit": "8d0909ff3cf29290051e3d91dc3205e629ef6bda",
+    "reviewedIndependentBenignGreen": true,
+    "noConcurrentLifecycleProbesOrPerformance": true,
+    "totalTargetBudget": 6,
+    "totalPathologicalRequestBudget": 4,
+    "jobs": [
+      "grep-default",
+      "rg-default",
+      "grep-abort",
+      "rg-abort",
+      "grep-queued-abort",
+      "rg-queued-abort"
+    ],
+    "expiresAt": "2026-08-27T11:20:45.477Z",
+    "sha256": "f0979bf95c009526e30db02b9c402867bbe176fef5816c70003d89e824431092"
+  },
+  "targetSlotsReserved": 1,
+  "pathologicalRequestsReserved": 1,
+  "noRetry": true
+}

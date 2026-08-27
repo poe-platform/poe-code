@@ -1,0 +1,363 @@
+{
+  "job": "grep-default",
+  "time": "2026-08-27T09:23:04.888Z",
+  "pass": true,
+  "preparedSha256": "276b972c3334f0452d26e20fcd0256445f3cbc2dcd43d5b815cbd6d607b1b3b3",
+  "claim": {
+    "job": "grep-default",
+    "time": "2026-08-27T09:23:03.704Z",
+    "preparedSha256": "276b972c3334f0452d26e20fcd0256445f3cbc2dcd43d5b815cbd6d607b1b3b3",
+    "approval": {
+      "authority": "ROOT_EXPLICIT_EXECUTION_AFTER_REVIEWED_BENIGN_GREEN",
+      "preparedSha256": "276b972c3334f0452d26e20fcd0256445f3cbc2dcd43d5b815cbd6d607b1b3b3",
+      "benignSha256": "d27d834f2a1b3773ccc8918a95a1b29b838efa48d833c9f3507ad740c233cb99",
+      "controlsSha256": "1229baac8c348b8232d12ed0e5187fad3873bd43ca091881a8eba41530ce9931",
+      "sourceCommit": "1b133a8662a32ee84524794842074c9c98d5f6c3",
+      "archiveSha256": "86c34e382c85563afbd9c760aa2e0f161308e8f43e14fe99dfec9ed96d77539b",
+      "fixtureCommit": "8d0909ff3cf29290051e3d91dc3205e629ef6bda",
+      "reviewedIndependentBenignGreen": true,
+      "noConcurrentLifecycleProbesOrPerformance": true,
+      "totalTargetBudget": 6,
+      "totalPathologicalRequestBudget": 4,
+      "jobs": [
+        "grep-default",
+        "rg-default",
+        "grep-abort",
+        "rg-abort",
+        "grep-queued-abort",
+        "rg-queued-abort"
+      ],
+      "expiresAt": "2026-08-27T11:20:45.477Z",
+      "sha256": "f0979bf95c009526e30db02b9c402867bbe176fef5816c70003d89e824431092"
+    },
+    "targetSlotsReserved": 1,
+    "pathologicalRequestsReserved": 1,
+    "noRetry": true
+  },
+  "runs": [
+    {
+      "job": "grep-default",
+      "pid": 44880,
+      "watchdogMs": 6000,
+      "events": [
+        "ready",
+        "disconnect",
+        "stdout-close",
+        "stderr-close",
+        {
+          "exit": 0,
+          "signal": null
+        }
+      ],
+      "stdout": "",
+      "stderr": "",
+      "result": {
+        "kind": "result",
+        "job": "grep-default",
+        "pass": true,
+        "entry": "file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/cleanup-boundary-review/.temporary/runtime-r1-verified-packed-old-five/production-continuation-review/node_modules/virtual-bash/dist/index.js",
+        "elapsedMs": 1084.965375,
+        "details": {
+          "phase": "ready worker plus accepted nonempty request; native-call entry not instrumented",
+          "acceptance": {
+            "id": 2,
+            "atMs": 98.334,
+            "workerReadyAtMs": 97.556667,
+            "bytes": "YWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYSE="
+          },
+          "timer": {
+            "scheduledAtMs": 98.334,
+            "dueAtMs": 103.334,
+            "actualAtMs": 104.644833,
+            "latenessMs": 1.3108330000000024,
+            "workerAliveNoResponse": true
+          },
+          "settledAtMs": 1102.733542,
+          "acceptedNonemptyRequests": 1,
+          "outcome": {
+            "exitCode": 2,
+            "stdout": "",
+            "stderr": "Z3JlcDogcmVnZXggUkVRVUVTVF9USU1FT1VUOiBhY3RpdmUgcmVxdWVzdCBleGNlZWRlZCAxMDAwbXMK"
+          },
+          "timeoutOrigin": "regex REQUEST_TIMEOUT exact diagnostic, not Shell outer timeout",
+          "beforeDispose": [
+            {
+              "owner": "target",
+              "url": "file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/cleanup-boundary-review/.temporary/runtime-r1-verified-packed-old-five/production-continuation-review/node_modules/virtual-bash/dist/commands/regex-execution/worker.js",
+              "options": {
+                "execArgv": [],
+                "resourceLimits": {
+                  "maxOldGenerationSizeMb": 128,
+                  "stackSizeMb": 4
+                }
+              },
+              "exited": true,
+              "readyAtMs": 97.556667,
+              "terminationCalls": 1,
+              "terminationAwaited": true,
+              "requests": [
+                {
+                  "owner": "target",
+                  "id": 1,
+                  "atMs": 97.676875,
+                  "descriptor": {
+                    "kind": "grep",
+                    "patterns": [
+                      "^(a+)+$"
+                    ],
+                    "fixed": false,
+                    "extended": true,
+                    "insensitive": false,
+                    "whole": false,
+                    "word": false
+                  },
+                  "rows": []
+                },
+                {
+                  "owner": "target",
+                  "id": 2,
+                  "atMs": 98.293792,
+                  "descriptor": {
+                    "kind": "grep",
+                    "patterns": [
+                      "^(a+)+$"
+                    ],
+                    "fixed": false,
+                    "extended": true,
+                    "insensitive": false,
+                    "whole": false,
+                    "word": false
+                  },
+                  "rows": [
+                    {
+                      "bytes": "YWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYSE=",
+                      "terminated": true
+                    }
+                  ]
+                }
+              ],
+              "responses": [
+                {
+                  "id": 1,
+                  "atMs": 97.814917
+                }
+              ],
+              "exitCode": 1,
+              "heldResponses": 0,
+              "listeners": {
+                "message": 0,
+                "messageerror": 0,
+                "error": 0,
+                "exit": 0
+              }
+            }
+          ]
+        },
+        "boundaries": [
+          {
+            "owner": "target",
+            "command": "grep -E '^(a+)+$'",
+            "rejected": false,
+            "result": {
+              "exitCode": 2,
+              "stdout": "",
+              "stderr": "Z3JlcDogcmVnZXggUkVRVUVTVF9USU1FT1VUOiBhY3RpdmUgcmVxdWVzdCBleGNlZWRlZCAxMDAwbXMK"
+            },
+            "exactCallerReason": null,
+            "callerListeners": null,
+            "signals": [
+              {
+                "aborted": false,
+                "listeners": 0
+              },
+              {
+                "aborted": true,
+                "listeners": 0
+              },
+              {
+                "aborted": true,
+                "listeners": 0
+              },
+              {
+                "aborted": true,
+                "listeners": 0
+              }
+            ],
+            "workers": [
+              {
+                "owner": "target",
+                "url": "file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/cleanup-boundary-review/.temporary/runtime-r1-verified-packed-old-five/production-continuation-review/node_modules/virtual-bash/dist/commands/regex-execution/worker.js",
+                "options": {
+                  "execArgv": [],
+                  "resourceLimits": {
+                    "maxOldGenerationSizeMb": 128,
+                    "stackSizeMb": 4
+                  }
+                },
+                "exited": true,
+                "readyAtMs": 97.556667,
+                "terminationCalls": 1,
+                "terminationAwaited": true,
+                "requests": [
+                  {
+                    "owner": "target",
+                    "id": 1,
+                    "atMs": 97.676875,
+                    "descriptor": {
+                      "kind": "grep",
+                      "patterns": [
+                        "^(a+)+$"
+                      ],
+                      "fixed": false,
+                      "extended": true,
+                      "insensitive": false,
+                      "whole": false,
+                      "word": false
+                    },
+                    "rows": []
+                  },
+                  {
+                    "owner": "target",
+                    "id": 2,
+                    "atMs": 98.293792,
+                    "descriptor": {
+                      "kind": "grep",
+                      "patterns": [
+                        "^(a+)+$"
+                      ],
+                      "fixed": false,
+                      "extended": true,
+                      "insensitive": false,
+                      "whole": false,
+                      "word": false
+                    },
+                    "rows": [
+                      {
+                        "bytes": "YWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYSE=",
+                        "terminated": true
+                      }
+                    ]
+                  }
+                ],
+                "responses": [
+                  {
+                    "id": 1,
+                    "atMs": 97.814917
+                  }
+                ],
+                "exitCode": 1,
+                "heldResponses": 0,
+                "listeners": {
+                  "message": 0,
+                  "messageerror": 0,
+                  "error": 0,
+                  "exit": 0
+                }
+              }
+            ]
+          }
+        ],
+        "admissions": [
+          {
+            "owner": "target",
+            "atMs": 74.347333,
+            "callbackSha256": "1a556f0d45086fe075c148b1c7f309bb91afb61da3b78f796853b6dab44a76dc"
+          },
+          {
+            "owner": "target",
+            "atMs": 98.249458,
+            "callbackSha256": "1a556f0d45086fe075c148b1c7f309bb91afb61da3b78f796853b6dab44a76dc"
+          }
+        ],
+        "finalWorkers": [
+          {
+            "owner": "target",
+            "url": "file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/cleanup-boundary-review/.temporary/runtime-r1-verified-packed-old-five/production-continuation-review/node_modules/virtual-bash/dist/commands/regex-execution/worker.js",
+            "options": {
+              "execArgv": [],
+              "resourceLimits": {
+                "maxOldGenerationSizeMb": 128,
+                "stackSizeMb": 4
+              }
+            },
+            "exited": true,
+            "readyAtMs": 97.556667,
+            "terminationCalls": 1,
+            "terminationAwaited": true,
+            "requests": [
+              {
+                "owner": "target",
+                "id": 1,
+                "atMs": 97.676875,
+                "descriptor": {
+                  "kind": "grep",
+                  "patterns": [
+                    "^(a+)+$"
+                  ],
+                  "fixed": false,
+                  "extended": true,
+                  "insensitive": false,
+                  "whole": false,
+                  "word": false
+                },
+                "rows": []
+              },
+              {
+                "owner": "target",
+                "id": 2,
+                "atMs": 98.293792,
+                "descriptor": {
+                  "kind": "grep",
+                  "patterns": [
+                    "^(a+)+$"
+                  ],
+                  "fixed": false,
+                  "extended": true,
+                  "insensitive": false,
+                  "whole": false,
+                  "word": false
+                },
+                "rows": [
+                  {
+                    "bytes": "YWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYSE=",
+                    "terminated": true
+                  }
+                ]
+              }
+            ],
+            "responses": [
+              {
+                "id": 1,
+                "atMs": 97.814917
+              }
+            ],
+            "exitCode": 1,
+            "heldResponses": 0,
+            "listeners": {
+              "message": 0,
+              "messageerror": 0,
+              "error": 0,
+              "exit": 0
+            }
+          }
+        ],
+        "lateErrors": [],
+        "targetSlotsConsumed": 1,
+        "pathologicalRequests": 1
+      },
+      "killed": false,
+      "outputBytes": 0,
+      "ipcBytes": 4767,
+      "readyMs": 32.81779199999983,
+      "code": 0,
+      "signal": null,
+      "closeAwaited": true,
+      "streamsAndIPCClosed": true,
+      "activeChildren": 0,
+      "childElapsedMs": 1171.665,
+      "pass": true
+    }
+  ],
+  "targetSlotsConsumed": 1,
+  "activeChildren": 0
+}

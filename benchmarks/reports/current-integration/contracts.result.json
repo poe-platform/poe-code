@@ -1,0 +1,17 @@
+{
+  "name": "contracts",
+  "command": [
+    "npm",
+    "run",
+    "test:contracts"
+  ],
+  "cwd": "/tmp/safe-bash-current-integration-69dbdy0m/source",
+  "startedAt": 1787788039.3776472,
+  "durationSeconds": 0.564835786819458,
+  "timeoutSeconds": 180,
+  "timedOut": false,
+  "returnCode": 0,
+  "signal": null,
+  "cleanup": [],
+  "observedChildCount": 14
+}

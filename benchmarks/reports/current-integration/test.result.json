@@ -1,0 +1,16 @@
+{
+  "name": "test",
+  "command": [
+    "npm",
+    "test"
+  ],
+  "cwd": "/tmp/safe-bash-current-integration-69dbdy0m/source",
+  "startedAt": 1787787971.483823,
+  "durationSeconds": 67.82210683822632,
+  "timeoutSeconds": 900,
+  "timedOut": false,
+  "returnCode": 1,
+  "signal": null,
+  "cleanup": [],
+  "observedChildCount": 2094
+}

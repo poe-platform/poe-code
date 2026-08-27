@@ -1,0 +1,5 @@
+{
+  "completedAt": 1787787965.914685,
+  "method": "Private regular-file copies of installed dependency trees to snapshot node_modules and benchmarks/node_modules, excluded from source inventory; only verified internal dependency links preserved; never link back to live tree.",
+  "verified": true
+}

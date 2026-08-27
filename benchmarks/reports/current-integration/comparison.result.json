@@ -1,0 +1,20 @@
+{
+  "name": "comparison",
+  "command": [
+    "npm",
+    "run",
+    "benchmark",
+    "--",
+    "--output",
+    "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/current-integration/comparison.json"
+  ],
+  "cwd": "/tmp/safe-bash-current-integration-69dbdy0m/source",
+  "startedAt": 1787788065.51589,
+  "durationSeconds": 1.001075267791748,
+  "timeoutSeconds": 300,
+  "timedOut": false,
+  "returnCode": 1,
+  "signal": null,
+  "cleanup": [],
+  "observedChildCount": 5
+}

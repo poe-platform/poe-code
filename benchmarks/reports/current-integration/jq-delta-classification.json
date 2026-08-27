@@ -1,0 +1,774 @@
+{
+  "diagnostic-only": [
+    {
+      "name": "additive native exact bytes: compare-mixed-double",
+      "tapLine": 35208,
+      "differentFields": [
+        "stderrHex"
+      ],
+      "expected": {
+        "status": "5",
+        "stdoutHex": "''",
+        "stderrHex": "'6a713a206572726f7220286174203c737464696e3e3a30293a2043616e6e6f742069746572617465206f76657220626f6f6c65616e202874727565290a'"
+      },
+      "actual": {
+        "status": "5",
+        "stdoutHex": "''",
+        "stderrHex": "'6a713a20756e6971756520726571756972657320616e2061727261790a'"
+      }
+    },
+    {
+      "name": "additive native exact bytes: scalar-types",
+      "tapLine": 35242,
+      "differentFields": [
+        "stderrHex"
+      ],
+      "expected": {
+        "status": "5",
+        "stdoutHex": "''",
+        "stderrHex": "'6a713a206572726f7220286174203c737464696e3e3a30293a20737472696e672028226e756d62657222292063616e6e6f7420626520736f727465642c206173206974206973206e6f7420616e2061727261790a'"
+      },
+      "actual": {
+        "status": "5",
+        "stdoutHex": "''",
+        "stderrHex": "'6a713a20736f727420726571756972657320616e2061727261790a'"
+      }
+    },
+    {
+      "name": "additive native exact bytes: preserve-through-copy",
+      "tapLine": 35294,
+      "differentFields": [
+        "stderrHex"
+      ],
+      "expected": {
+        "status": "5",
+        "stdoutHex": "''",
+        "stderrHex": "'6a713a206572726f7220286174203c737464696e3e3a30293a2043616e6e6f7420696e646578206e756d626572207769746820737472696e6720226b6579220a'"
+      },
+      "actual": {
+        "status": "5",
+        "stdoutHex": "''",
+        "stderrHex": "'6a713a2066726f6d5f656e747269657320726571756972657320616e2061727261790a'"
+      }
+    },
+    {
+      "name": "additive native exact bytes: conversion-large-token",
+      "tapLine": 35400,
+      "differentFields": [
+        "stderrHex"
+      ],
+      "expected": {
+        "status": "5",
+        "stdoutHex": "''",
+        "stderrHex": "'6a713a206572726f7220286174203c737464696e3e3a30293a206e756d626572202831452b3939393929206f6e6c7920737472696e67732063616e206265207061727365640a'"
+      },
+      "actual": {
+        "status": "5",
+        "stdoutHex": "''",
+        "stderrHex": "'6a713a2066726f6d6a736f6e207265717569726573206120737472696e670a'"
+      }
+    },
+    {
+      "name": "native exact bytes: fromjson",
+      "tapLine": 35932,
+      "differentFields": [
+        "stderrHex"
+      ],
+      "expected": {
+        "status": "5",
+        "stdoutHex": "''",
+        "stderrHex": "'6a713a206572726f7220286174203c737464696e3e3a30293a20556e66696e6973686564204a534f4e207465726d20617420454f46206174206c696e6520312c20636f6c756d6e203120287768696c652070617273696e6720277b27290a6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c206174206c696e6520312c20636f6c756d6e20350a'"
+      },
+      "actual": {
+        "status": "5",
+        "stdoutHex": "''",
+        "stderrHex": "'6a713a20696e76616c6964204a534f4e20696e707574206174206f666673657420310a'"
+      }
+    },
+    {
+      "name": "native exact bytes: separator-error-after-prefix",
+      "tapLine": 36204,
+      "differentFields": [
+        "stderrHex"
+      ],
+      "expected": {
+        "status": "5",
+        "stdoutHex": "'702f71'",
+        "stderrHex": "'6a713a206572726f7220286174203c737464696e3e3a30293a206e756d6265722028312920616e64206e756d626572202830292063616e6e6f7420626520646976696465642062656361757365207468652064697669736f72206973207a65726f0a'"
+      },
+      "actual": {
+        "status": "5",
+        "stdoutHex": "'702f71'",
+        "stderrHex": "'6a713a206469766973696f6e206279207a65726f0a'"
+      }
+    },
+    {
+      "name": "native exact bytes: recover-final-error",
+      "tapLine": 36478,
+      "differentFields": [
+        "stderrHex"
+      ],
+      "expected": {
+        "status": "5",
+        "stdoutHex": "'6f6b'",
+        "stderrHex": "'6a713a206572726f7220286174203c737464696e3e3a32293a20737472696e67202822222920616e64206f626a65637420287b7d292063616e6e6f742062652061646465640a'"
+      },
+      "actual": {
+        "status": "5",
+        "stdoutHex": "'6f6b'",
+        "stderrHex": "'6a713a206a6f696e20656c656d656e7473206d75737420626520737472696e67732c206e756d626572732c20626f6f6c65616e73206f72206e756c6c0a'"
+      }
+    },
+    {
+      "name": "native exact bytes: recover-final-error:bytewise",
+      "tapLine": 36512,
+      "differentFields": [
+        "stderrHex"
+      ],
+      "expected": {
+        "status": "5",
+        "stdoutHex": "'6f6b'",
+        "stderrHex": "'6a713a206572726f7220286174203c737464696e3e3a32293a20737472696e67202822222920616e64206f626a65637420287b7d292063616e6e6f742062652061646465640a'"
+      },
+      "actual": {
+        "status": "5",
+        "stdoutHex": "'6f6b'",
+        "stderrHex": "'6a713a206a6f696e20656c656d656e7473206d75737420626520737472696e67732c206e756d626572732c20626f6f6c65616e73206f72206e756c6c0a'"
+      }
+    },
+    {
+      "name": "native exact bytes: parse-error-after-prefix",
+      "tapLine": 36616,
+      "differentFields": [
+        "stderrHex"
+      ],
+      "expected": {
+        "status": "5",
+        "stdoutHex": "'702f71'",
+        "stderrHex": "'6a713a207061727365206572726f723a20556e66696e6973686564204a534f4e207465726d20617420454f46206174206c696e6520332c20636f6c756d6e20300a'"
+      },
+      "actual": {
+        "status": "5",
+        "stdoutHex": "'702f71'",
+        "stderrHex": "'6a713a20696e76616c6964204a534f4e20696e707574206174206f66667365742031310a'"
+      }
+    },
+    {
+      "name": "native exact bytes: parse-error-after-prefix:bytewise",
+      "tapLine": 36650,
+      "differentFields": [
+        "stderrHex"
+      ],
+      "expected": {
+        "status": "5",
+        "stdoutHex": "'702f71'",
+        "stderrHex": "'6a713a207061727365206572726f723a20556e66696e6973686564204a534f4e207465726d20617420454f46206174206c696e6520332c20636f6c756d6e20300a'"
+      },
+      "actual": {
+        "status": "5",
+        "stdoutHex": "'702f71'",
+        "stderrHex": "'6a713a20696e76616c6964204a534f4e20696e707574206174206f66667365742031310a'"
+      }
+    },
+    {
+      "name": "native exact bytes: json-high-surrogate-escape",
+      "tapLine": 37260,
+      "differentFields": [
+        "stderrHex"
+      ],
+      "expected": {
+        "status": "5",
+        "stdoutHex": "''",
+        "stderrHex": "'6a713a207061727365206572726f723a20496e76616c6964205c75585858585c755858585820737572726f67617465207061697220657363617065206174206c696e6520312c20636f6c756d6e20380a'"
+      },
+      "actual": {
+        "status": "5",
+        "stdoutHex": "''",
+        "stderrHex": "'6a713a20696e76616c6964204a534f4e20696e707574206174206f666673657420380a'"
+      }
+    },
+    {
+      "name": "native exact bytes: json-high-surrogate-escape:bytewise",
+      "tapLine": 37294,
+      "differentFields": [
+        "stderrHex"
+      ],
+      "expected": {
+        "status": "5",
+        "stdoutHex": "''",
+        "stderrHex": "'6a713a207061727365206572726f723a20496e76616c6964205c75585858585c755858585820737572726f67617465207061697220657363617065206174206c696e6520312c20636f6c756d6e20380a'"
+      },
+      "actual": {
+        "status": "5",
+        "stdoutHex": "''",
+        "stderrHex": "'6a713a20696e76616c6964204a534f4e20696e707574206174206f666673657420380a'"
+      }
+    }
+  ],
+  "status/output difference": [
+    {
+      "name": "native exact bytes: join-mixed",
+      "tapLine": 36068,
+      "differentFields": [
+        "status",
+        "stderrHex"
+      ],
+      "expected": {
+        "status": "5",
+        "stdoutHex": "''",
+        "stderrHex": "'6a713a207061727365206572726f723a20556e66696e697368656420737472696e6720617420454f46206174206c696e6520312c20636f6c756d6e2032340a'"
+      },
+      "actual": {
+        "status": "3",
+        "stdoutHex": "''",
+        "stderrHex": "'6a713a20696e76616c696420737472696e67206174206f666673657420360a'"
+      }
+    },
+    {
+      "name": "native exact bytes: join-mixed:bytewise",
+      "tapLine": 36103,
+      "differentFields": [
+        "status",
+        "stderrHex"
+      ],
+      "expected": {
+        "status": "5",
+        "stdoutHex": "''",
+        "stderrHex": "'6a713a207061727365206572726f723a20556e66696e697368656420737472696e6720617420454f46206174206c696e6520312c20636f6c756d6e2032340a'"
+      },
+      "actual": {
+        "status": "3",
+        "stdoutHex": "''",
+        "stderrHex": "'6a713a20696e76616c696420737472696e67206174206f666673657420360a'"
+      }
+    },
+    {
+      "name": "native exact bytes: recover-following-json",
+      "tapLine": 36262,
+      "differentFields": [
+        "status",
+        "stdoutHex",
+        "stderrHex"
+      ],
+      "expected": {
+        "status": "0",
+        "stdoutHex": "'6f6b6166746572'",
+        "stderrHex": "'6a713a206572726f7220286174203c737464696e3e3a32293a20737472696e67202822222920616e64206f626a65637420287b7d292063616e6e6f742062652061646465640a'"
+      },
+      "actual": {
+        "status": "5",
+        "stdoutHex": "'6f6b'",
+        "stderrHex": "'6a713a206a6f696e20656c656d656e7473206d75737420626520737472696e67732c206e756d626572732c20626f6f6c65616e73206f72206e756c6c0a'"
+      }
+    },
+    {
+      "name": "native exact bytes: recover-following-json:bytewise",
+      "tapLine": 36298,
+      "differentFields": [
+        "status",
+        "stdoutHex",
+        "stderrHex"
+      ],
+      "expected": {
+        "status": "0",
+        "stdoutHex": "'6f6b6166746572'",
+        "stderrHex": "'6a713a206572726f7220286174203c737464696e3e3a32293a20737472696e67202822222920616e64206f626a65637420287b7d292063616e6e6f742062652061646465640a'"
+      },
+      "actual": {
+        "status": "5",
+        "stdoutHex": "'6f6b'",
+        "stderrHex": "'6a713a206a6f696e20656c656d656e7473206d75737420626520737472696e67732c206e756d626572732c20626f6f6c65616e73206f72206e756c6c0a'"
+      }
+    },
+    {
+      "name": "native exact bytes: recover-following-json-exit",
+      "tapLine": 36334,
+      "differentFields": [
+        "status",
+        "stdoutHex",
+        "stderrHex"
+      ],
+      "expected": {
+        "status": "0",
+        "stdoutHex": "'6f6b6166746572'",
+        "stderrHex": "'6a713a206572726f7220286174203c737464696e3e3a32293a20737472696e67202822222920616e64206f626a65637420287b7d292063616e6e6f742062652061646465640a'"
+      },
+      "actual": {
+        "status": "5",
+        "stdoutHex": "'6f6b'",
+        "stderrHex": "'6a713a206a6f696e20656c656d656e7473206d75737420626520737472696e67732c206e756d626572732c20626f6f6c65616e73206f72206e756c6c0a'"
+      }
+    },
+    {
+      "name": "native exact bytes: recover-following-json-exit:bytewise",
+      "tapLine": 36370,
+      "differentFields": [
+        "status",
+        "stdoutHex",
+        "stderrHex"
+      ],
+      "expected": {
+        "status": "0",
+        "stdoutHex": "'6f6b6166746572'",
+        "stderrHex": "'6a713a206572726f7220286174203c737464696e3e3a32293a20737472696e67202822222920616e64206f626a65637420287b7d292063616e6e6f742062652061646465640a'"
+      },
+      "actual": {
+        "status": "5",
+        "stdoutHex": "'6f6b'",
+        "stderrHex": "'6a713a206a6f696e20656c656d656e7473206d75737420626520737472696e67732c206e756d626572732c20626f6f6c65616e73206f72206e756c6c0a'"
+      }
+    },
+    {
+      "name": "native exact bytes: recover-following-raw",
+      "tapLine": 36406,
+      "differentFields": [
+        "status",
+        "stdoutHex",
+        "stderrHex"
+      ],
+      "expected": {
+        "status": "0",
+        "stdoutHex": "'6f6b6166746572'",
+        "stderrHex": "'6a713a206572726f7220286174203c737464696e3e3a32293a206e756d6265722028312920616e64206e756d626572202830292063616e6e6f7420626520646976696465642062656361757365207468652064697669736f72206973207a65726f0a'"
+      },
+      "actual": {
+        "status": "5",
+        "stdoutHex": "'6f6b'",
+        "stderrHex": "'6a713a206469766973696f6e206279207a65726f0a'"
+      }
+    },
+    {
+      "name": "native exact bytes: recover-following-raw:bytewise",
+      "tapLine": 36442,
+      "differentFields": [
+        "status",
+        "stdoutHex",
+        "stderrHex"
+      ],
+      "expected": {
+        "status": "0",
+        "stdoutHex": "'6f6b6166746572'",
+        "stderrHex": "'6a713a206572726f7220286174203c737464696e3e3a32293a206e756d6265722028312920616e64206e756d626572202830292063616e6e6f7420626520646976696465642062656361757365207468652064697669736f72206973207a65726f0a'"
+      },
+      "actual": {
+        "status": "5",
+        "stdoutHex": "'6f6b'",
+        "stderrHex": "'6a713a206469766973696f6e206279207a65726f0a'"
+      }
+    },
+    {
+      "name": "native exact bytes: recover-internal-generator",
+      "tapLine": 36546,
+      "differentFields": [
+        "stdoutHex",
+        "stderrHex"
+      ],
+      "expected": {
+        "status": "5",
+        "stdoutHex": "'702f71722f73'",
+        "stderrHex": "'6a713a206572726f7220286174203c737464696e3e3a31293a206e756d6265722028312920616e64206e756d626572202830292063616e6e6f7420626520646976696465642062656361757365207468652064697669736f72206973207a65726f0a6a713a206572726f7220286174203c737464696e3e3a32293a206e756d6265722028312920616e64206e756d626572202830292063616e6e6f7420626520646976696465642062656361757365207468652064697669736f72206973207a65726f0a'"
+      },
+      "actual": {
+        "status": "5",
+        "stdoutHex": "'702f71'",
+        "stderrHex": "'6a713a206469766973696f6e206279207a65726f0a'"
+      }
+    },
+    {
+      "name": "native exact bytes: recover-internal-generator:bytewise",
+      "tapLine": 36581,
+      "differentFields": [
+        "stdoutHex",
+        "stderrHex"
+      ],
+      "expected": {
+        "status": "5",
+        "stdoutHex": "'702f71722f73'",
+        "stderrHex": "'6a713a206572726f7220286174203c737464696e3e3a31293a206e756d6265722028312920616e64206e756d626572202830292063616e6e6f7420626520646976696465642062656361757365207468652064697669736f72206973207a65726f0a6a713a206572726f7220286174203c737464696e3e3a32293a206e756d6265722028312920616e64206e756d626572202830292063616e6e6f7420626520646976696465642062656361757365207468652064697669736f72206973207a65726f0a'"
+      },
+      "actual": {
+        "status": "5",
+        "stdoutHex": "'702f71'",
+        "stderrHex": "'6a713a206469766973696f6e206279207a65726f0a'"
+      }
+    },
+    {
+      "name": "native exact bytes: raw-lone-continuation",
+      "tapLine": 36684,
+      "differentFields": [
+        "status",
+        "stdoutHex",
+        "stderrHex"
+      ],
+      "expected": {
+        "status": "0",
+        "stdoutHex": "'226f6b220a22efbfbd6166746572220a'",
+        "stderrHex": "''"
+      },
+      "actual": {
+        "status": "5",
+        "stdoutHex": "'226f6b220a'",
+        "stderrHex": "'6a713a20696e76616c6964205554462d3820696e7075740a'"
+      }
+    },
+    {
+      "name": "native exact bytes: raw-lone-continuation:bytewise",
+      "tapLine": 36720,
+      "differentFields": [
+        "status",
+        "stdoutHex",
+        "stderrHex"
+      ],
+      "expected": {
+        "status": "0",
+        "stdoutHex": "'226f6b220a22efbfbd6166746572220a'",
+        "stderrHex": "''"
+      },
+      "actual": {
+        "status": "5",
+        "stdoutHex": "'226f6b220a'",
+        "stderrHex": "'6a713a20696e76616c6964205554462d3820696e7075740a'"
+      }
+    },
+    {
+      "name": "native exact bytes: raw-truncated",
+      "tapLine": 36756,
+      "differentFields": [
+        "status",
+        "stdoutHex",
+        "stderrHex"
+      ],
+      "expected": {
+        "status": "0",
+        "stdoutHex": "'6f6befbfbd'",
+        "stderrHex": "''"
+      },
+      "actual": {
+        "status": "5",
+        "stdoutHex": "'6f6b'",
+        "stderrHex": "'6a713a20696e76616c6964205554462d3820696e7075740a'"
+      }
+    },
+    {
+      "name": "native exact bytes: raw-truncated:bytewise",
+      "tapLine": 36792,
+      "differentFields": [
+        "status",
+        "stdoutHex",
+        "stderrHex"
+      ],
+      "expected": {
+        "status": "0",
+        "stdoutHex": "'6f6befbfbd'",
+        "stderrHex": "''"
+      },
+      "actual": {
+        "status": "5",
+        "stdoutHex": "'6f6b'",
+        "stderrHex": "'6a713a20696e76616c6964205554462d3820696e7075740a'"
+      }
+    },
+    {
+      "name": "native exact bytes: raw-surrogate",
+      "tapLine": 36828,
+      "differentFields": [
+        "status",
+        "stdoutHex",
+        "stderrHex"
+      ],
+      "expected": {
+        "status": "0",
+        "stdoutHex": "'226f6b220a22efbfbd220a226166746572220a'",
+        "stderrHex": "''"
+      },
+      "actual": {
+        "status": "5",
+        "stdoutHex": "'226f6b220a'",
+        "stderrHex": "'6a713a20696e76616c6964205554462d3820696e7075740a'"
+      }
+    },
+    {
+      "name": "native exact bytes: raw-surrogate:bytewise",
+      "tapLine": 36864,
+      "differentFields": [
+        "status",
+        "stdoutHex",
+        "stderrHex"
+      ],
+      "expected": {
+        "status": "0",
+        "stdoutHex": "'226f6b220a22efbfbd220a226166746572220a'",
+        "stderrHex": "''"
+      },
+      "actual": {
+        "status": "5",
+        "stdoutHex": "'226f6b220a'",
+        "stderrHex": "'6a713a20696e76616c6964205554462d3820696e7075740a'"
+      }
+    },
+    {
+      "name": "native exact bytes: raw-overlong-slurp",
+      "tapLine": 36900,
+      "differentFields": [
+        "status",
+        "stdoutHex",
+        "stderrHex"
+      ],
+      "expected": {
+        "status": "0",
+        "stdoutHex": "'2261efbfbdefbfbd625c6e220a'",
+        "stderrHex": "''"
+      },
+      "actual": {
+        "status": "5",
+        "stdoutHex": "''",
+        "stderrHex": "'6a713a20696e76616c6964205554462d3820696e7075740a'"
+      }
+    },
+    {
+      "name": "native exact bytes: raw-overlong-slurp:bytewise",
+      "tapLine": 36936,
+      "differentFields": [
+        "status",
+        "stdoutHex",
+        "stderrHex"
+      ],
+      "expected": {
+        "status": "0",
+        "stdoutHex": "'2261efbfbdefbfbd625c6e220a'",
+        "stderrHex": "''"
+      },
+      "actual": {
+        "status": "5",
+        "stdoutHex": "''",
+        "stderrHex": "'6a713a20696e76616c6964205554462d3820696e7075740a'"
+      }
+    },
+    {
+      "name": "native exact bytes: raw-bad-continuation",
+      "tapLine": 36972,
+      "differentFields": [
+        "status",
+        "stdoutHex",
+        "stderrHex"
+      ],
+      "expected": {
+        "status": "0",
+        "stdoutHex": "'22efbfbd41220a'",
+        "stderrHex": "''"
+      },
+      "actual": {
+        "status": "5",
+        "stdoutHex": "''",
+        "stderrHex": "'6a713a20696e76616c6964205554462d3820696e7075740a'"
+      }
+    },
+    {
+      "name": "native exact bytes: raw-bad-continuation:bytewise",
+      "tapLine": 37008,
+      "differentFields": [
+        "status",
+        "stdoutHex",
+        "stderrHex"
+      ],
+      "expected": {
+        "status": "0",
+        "stdoutHex": "'22efbfbd41220a'",
+        "stderrHex": "''"
+      },
+      "actual": {
+        "status": "5",
+        "stdoutHex": "''",
+        "stderrHex": "'6a713a20696e76616c6964205554462d3820696e7075740a'"
+      }
+    },
+    {
+      "name": "native exact bytes: json-bad-string",
+      "tapLine": 37044,
+      "differentFields": [
+        "status",
+        "stdoutHex",
+        "stderrHex"
+      ],
+      "expected": {
+        "status": "0",
+        "stdoutHex": "'226f6b220a22efbfbd220a226166746572220a'",
+        "stderrHex": "''"
+      },
+      "actual": {
+        "status": "5",
+        "stdoutHex": "'226f6b220a'",
+        "stderrHex": "'6a713a20696e76616c6964205554462d3820696e7075740a'"
+      }
+    },
+    {
+      "name": "native exact bytes: json-bad-string:bytewise",
+      "tapLine": 37080,
+      "differentFields": [
+        "status",
+        "stdoutHex",
+        "stderrHex"
+      ],
+      "expected": {
+        "status": "0",
+        "stdoutHex": "'226f6b220a22efbfbd220a226166746572220a'",
+        "stderrHex": "''"
+      },
+      "actual": {
+        "status": "5",
+        "stdoutHex": "'226f6b220a'",
+        "stderrHex": "'6a713a20696e76616c6964205554462d3820696e7075740a'"
+      }
+    },
+    {
+      "name": "native exact bytes: json-truncated-string",
+      "tapLine": 37116,
+      "differentFields": [
+        "status",
+        "stdoutHex",
+        "stderrHex"
+      ],
+      "expected": {
+        "status": "0",
+        "stdoutHex": "'2261efbfbd220a'",
+        "stderrHex": "''"
+      },
+      "actual": {
+        "status": "5",
+        "stdoutHex": "''",
+        "stderrHex": "'6a713a20696e76616c6964205554462d3820696e7075740a'"
+      }
+    },
+    {
+      "name": "native exact bytes: json-truncated-string:bytewise",
+      "tapLine": 37152,
+      "differentFields": [
+        "status",
+        "stdoutHex",
+        "stderrHex"
+      ],
+      "expected": {
+        "status": "0",
+        "stdoutHex": "'2261efbfbd220a'",
+        "stderrHex": "''"
+      },
+      "actual": {
+        "status": "5",
+        "stdoutHex": "''",
+        "stderrHex": "'6a713a20696e76616c6964205554462d3820696e7075740a'"
+      }
+    },
+    {
+      "name": "native exact bytes: json-low-surrogate-escape",
+      "tapLine": 37188,
+      "differentFields": [
+        "status",
+        "stdoutHex",
+        "stderrHex"
+      ],
+      "expected": {
+        "status": "0",
+        "stdoutHex": "'22efbfbd220a'",
+        "stderrHex": "''"
+      },
+      "actual": {
+        "status": "5",
+        "stdoutHex": "''",
+        "stderrHex": "'6a713a20696e76616c6964204a534f4e20696e707574206174206f666673657420380a'"
+      }
+    },
+    {
+      "name": "native exact bytes: json-low-surrogate-escape:bytewise",
+      "tapLine": 37224,
+      "differentFields": [
+        "status",
+        "stdoutHex",
+        "stderrHex"
+      ],
+      "expected": {
+        "status": "0",
+        "stdoutHex": "'22efbfbd220a'",
+        "stderrHex": "''"
+      },
+      "actual": {
+        "status": "5",
+        "stdoutHex": "''",
+        "stderrHex": "'6a713a20696e76616c6964204a534f4e20696e707574206174206f666673657420380a'"
+      }
+    },
+    {
+      "name": "native exact bytes: raw-file-utf8-boundary",
+      "tapLine": 37334,
+      "differentFields": [
+        "status",
+        "stdoutHex",
+        "stderrHex"
+      ],
+      "expected": {
+        "status": "0",
+        "stdoutHex": "'2241efbfbdefbfbdefbfbd220a2242220a'",
+        "stderrHex": "''"
+      },
+      "actual": {
+        "status": "5",
+        "stdoutHex": "''",
+        "stderrHex": "'6a713a20696e76616c6964205554462d3820696e7075740a'"
+      }
+    },
+    {
+      "name": "native exact bytes: pipe-error-recovery",
+      "tapLine": 37388,
+      "differentFields": [
+        "stdoutHex",
+        "stderrHex"
+      ],
+      "expected": {
+        "status": "0",
+        "stdoutHex": "'6265666f72657c6166746572'",
+        "stderrHex": "'6a713a206572726f7220286174203c737464696e3e3a32293a20737472696e67202822222920616e64206f626a65637420287b7d292063616e6e6f742062652061646465640a'"
+      },
+      "actual": {
+        "status": "0",
+        "stdoutHex": "'6265666f7265'",
+        "stderrHex": "'6a713a206a6f696e20656c656d656e7473206d75737420626520737472696e67732c206e756d626572732c20626f6f6c65616e73206f72206e756c6c0a'"
+      }
+    },
+    {
+      "name": "native exact bytes: runtime-error-last-false",
+      "tapLine": 37501,
+      "differentFields": [
+        "status",
+        "stdoutHex",
+        "stderrHex"
+      ],
+      "expected": {
+        "status": "1",
+        "stdoutHex": "'66616c73650a'",
+        "stderrHex": "'6a713a206572726f7220286174203c737464696e3e3a31293a20737472696e67202822222920616e64206f626a65637420287b7d292063616e6e6f742062652061646465640a'"
+      },
+      "actual": {
+        "status": "5",
+        "stdoutHex": "''",
+        "stderrHex": "'6a713a206a6f696e20656c656d656e7473206d75737420626520737472696e67732c206e756d626572732c20626f6f6c65616e73206f72206e756c6c0a'"
+      }
+    },
+    {
+      "name": "native exact bytes: runtime-error-last-empty",
+      "tapLine": 37537,
+      "differentFields": [
+        "status",
+        "stderrHex"
+      ],
+      "expected": {
+        "status": "4",
+        "stdoutHex": "''",
+        "stderrHex": "'6a713a206572726f7220286174203c737464696e3e3a31293a20737472696e67202822222920616e64206f626a65637420287b7d292063616e6e6f742062652061646465640a'"
+      },
+      "actual": {
+        "status": "5",
+        "stdoutHex": "''",
+        "stderrHex": "'6a713a206a6f696e20656c656d656e7473206d75737420626520737472696e67732c206e756d626572732c20626f6f6c65616e73206f72206e756c6c0a'"
+      }
+    }
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "sameOrderedTestNamesAndStatuses": true,
+  "uniqueTests": 9920,
+  "counts": {
+    "pass": 9686,
+    "skipped": 70,
+    "fail": 164,
+    "todo": 0,
+    "cancelled": 0
+  },
+  "comparatorSummaryUnchanged": true,
+  "sourceSelectionChange": "Only 75 historical stdout/stderr/out/err files excluded; final input manifest is clean-inputs.json; no live updates incorporated."
+}

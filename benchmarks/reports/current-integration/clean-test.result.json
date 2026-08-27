@@ -1,0 +1,16 @@
+{
+  "name": "clean-test",
+  "command": [
+    "npm",
+    "test"
+  ],
+  "cwd": "/tmp/safe-bash-current-integration-69dbdy0m/source-clean",
+  "startedAt": 1787788705.8483589,
+  "durationSeconds": 57.274479150772095,
+  "timeoutSeconds": 900,
+  "timedOut": false,
+  "returnCode": 1,
+  "signal": null,
+  "cleanup": [],
+  "observedChildCount": 1971
+}

@@ -1,0 +1,37 @@
+{
+  "kind": "Attributed independent review summary; report-only qualification resolution",
+  "reviewInputs": [
+    {
+      "path": "/tmp/safe-bash-current-integration-final-review-detail.txt",
+      "sha256": "f0f3f63ab22642335baf8524afb94cb66c69404374a0b3dbbaa095f17678cdc3"
+    },
+    {
+      "path": "/tmp/safe-bash-current-integration-final-review-evidence.json",
+      "sha256": "f9226e7f8882e9db321e355a1f7ad3b2b32d1b054a9ab62f9d2bdd8f2e8ec687"
+    }
+  ],
+  "dirtySourceAnchor": "57d9d9860bd51fabd910814efeea4efbca0e4c26",
+  "selectedInputSha256": "5905112264b83a5e12ca549eec5a88d90f956b2838d54095e97bcec545c91560",
+  "independentlyReviewedSelectedFiles": 1266,
+  "staticImportClosureFiles": 530,
+  "testCounts": { "tests": 9920, "pass": 9686, "fail": 164, "skipped": 70, "todo": 0, "cancelled": 0 },
+  "contracts": { "tests": 82, "pass": 82, "overlapsFullSuite": true },
+  "comparison": {
+    "virtual-bash": { "total": 118, "pass": 118 },
+    "just-bash": { "version": "3.4.2", "total": 118, "pass": 108, "fail": 9, "unsupported": 1 }
+  },
+  "qualifications": {
+    "aliasScope": "Checked executed entrypoints/resolutions and reviewed static closure only; no universal computed-import/path claim; no live-alias execution identified",
+    "unexecutedHistoricalLiveAliases": [
+      "tests/shell/first-read-independent.snapshot.mjs:4-5",
+      "tests/shell/first-read-guard.snapshot.mjs:5"
+    ],
+    "initialEnvironment": "INFERRED/RECONSTRUCTED from helper/checkpoint/run evidence; no retained contemporaneous initial per-phase capture; environment.json was overwritten with corrected rg PATH",
+    "cleanPhaseEnvironments": "Contemporaneous corrected per-phase captures in clean-*.environment.json"
+  },
+  "preEditArtifactVerification": { "entries": 90, "mismatches": 0 },
+  "historicalEvidencePreserved": true,
+  "validationRerunForFinalization": false,
+  "sourceChangesForFinalization": false,
+  "evidenceCommitIsTestedSourceCommit": false
+}

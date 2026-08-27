@@ -1,0 +1,2242 @@
+[
+  {
+    "path": "dist/index.js",
+    "bytes": 857,
+    "symlink": false
+  },
+  {
+    "path": "dist/index.js.map",
+    "bytes": 560,
+    "symlink": false
+  },
+  {
+    "path": "dist/index.d.ts",
+    "bytes": 859,
+    "symlink": false
+  },
+  {
+    "path": "dist/index.d.ts.map",
+    "bytes": 562,
+    "symlink": false
+  },
+  {
+    "path": "dist/plugins/index.js",
+    "bytes": 2160,
+    "symlink": false
+  },
+  {
+    "path": "dist/plugins/index.js.map",
+    "bytes": 2119,
+    "symlink": false
+  },
+  {
+    "path": "dist/plugins/index.d.ts",
+    "bytes": 1140,
+    "symlink": false
+  },
+  {
+    "path": "dist/plugins/index.d.ts.map",
+    "bytes": 1024,
+    "symlink": false
+  },
+  {
+    "path": "dist/shell/shell.js",
+    "bytes": 7848,
+    "symlink": false
+  },
+  {
+    "path": "dist/shell/input.d.ts.map",
+    "bytes": 789,
+    "symlink": false
+  },
+  {
+    "path": "dist/shell/pattern.d.ts.map",
+    "bytes": 449,
+    "symlink": false
+  },
+  {
+    "path": "dist/shell/shell.js.map",
+    "bytes": 7955,
+    "symlink": false
+  },
+  {
+    "path": "dist/shell/runtime.d.ts",
+    "bytes": 5362,
+    "symlink": false
+  },
+  {
+    "path": "dist/shell/arithmetic.js.map",
+    "bytes": 11677,
+    "symlink": false
+  },
+  {
+    "path": "dist/shell/runtime.js",
+    "bytes": 73309,
+    "symlink": false
+  },
+  {
+    "path": "dist/shell/types.js",
+    "bytes": 738,
+    "symlink": false
+  },
+  {
+    "path": "dist/shell/pattern.js",
+    "bytes": 5344,
+    "symlink": false
+  },
+  {
+    "path": "dist/shell/types.js.map",
+    "bytes": 656,
+    "symlink": false
+  },
+  {
+    "path": "dist/shell/types.d.ts",
+    "bytes": 2426,
+    "symlink": false
+  },
+  {
+    "path": "dist/shell/parser.js.map",
+    "bytes": 37458,
+    "symlink": false
+  },
+  {
+    "path": "dist/shell/input.d.ts",
+    "bytes": 762,
+    "symlink": false
+  },
+  {
+    "path": "dist/shell/arithmetic.js",
+    "bytes": 10808,
+    "symlink": false
+  },
+  {
+    "path": "dist/shell/index.js",
+    "bytes": 175,
+    "symlink": false
+  },
+  {
+    "path": "dist/shell/locale.d.ts",
+    "bytes": 126,
+    "symlink": false
+  },
+  {
+    "path": "dist/shell/locale.d.ts.map",
+    "bytes": 207,
+    "symlink": false
+  },
+  {
+    "path": "dist/shell/input.js.map",
+    "bytes": 9723,
+    "symlink": false
+  },
+  {
+    "path": "dist/shell/shell.d.ts.map",
+    "bytes": 876,
+    "symlink": false
+  },
+  {
+    "path": "dist/shell/pattern.js.map",
+    "bytes": 5625,
+    "symlink": false
+  },
+  {
+    "path": "dist/shell/locale.js.map",
+    "bytes": 286,
+    "symlink": false
+  },
+  {
+    "path": "dist/shell/shell.d.ts",
+    "bytes": 923,
+    "symlink": false
+  },
+  {
+    "path": "dist/shell/arithmetic.d.ts.map",
+    "bytes": 1148,
+    "symlink": false
+  },
+  {
+    "path": "dist/shell/pattern.d.ts",
+    "bytes": 377,
+    "symlink": false
+  },
+  {
+    "path": "dist/shell/runtime.d.ts.map",
+    "bytes": 5816,
+    "symlink": false
+  },
+  {
+    "path": "dist/shell/index.js.map",
+    "bytes": 244,
+    "symlink": false
+  },
+  {
+    "path": "dist/shell/types.d.ts.map",
+    "bytes": 2549,
+    "symlink": false
+  },
+  {
+    "path": "dist/shell/index.d.ts",
+    "bytes": 310,
+    "symlink": false
+  },
+  {
+    "path": "dist/shell/runtime.js.map",
+    "bytes": 75521,
+    "symlink": false
+  },
+  {
+    "path": "dist/shell/parser.d.ts",
+    "bytes": 2933,
+    "symlink": false
+  },
+  {
+    "path": "dist/shell/parser.js",
+    "bytes": 34144,
+    "symlink": false
+  },
+  {
+    "path": "dist/shell/arithmetic.d.ts",
+    "bytes": 1009,
+    "symlink": false
+  },
+  {
+    "path": "dist/shell/locale.js",
+    "bytes": 202,
+    "symlink": false
+  },
+  {
+    "path": "dist/shell/input.js",
+    "bytes": 9273,
+    "symlink": false
+  },
+  {
+    "path": "dist/shell/index.d.ts.map",
+    "bytes": 343,
+    "symlink": false
+  },
+  {
+    "path": "dist/shell/parser.d.ts.map",
+    "bytes": 3490,
+    "symlink": false
+  },
+  {
+    "path": "dist/contracts/io.js",
+    "bytes": 7365,
+    "symlink": false
+  },
+  {
+    "path": "dist/contracts/path.d.ts",
+    "bytes": 844,
+    "symlink": false
+  },
+  {
+    "path": "dist/contracts/filesystem.js",
+    "bytes": 121,
+    "symlink": false
+  },
+  {
+    "path": "dist/contracts/filesystem.d.ts.map",
+    "bytes": 4454,
+    "symlink": false
+  },
+  {
+    "path": "dist/contracts/io.d.ts.map",
+    "bytes": 1368,
+    "symlink": false
+  },
+  {
+    "path": "dist/contracts/errors.d.ts",
+    "bytes": 2102,
+    "symlink": false
+  },
+  {
+    "path": "dist/contracts/errors.js.map",
+    "bytes": 3333,
+    "symlink": false
+  },
+  {
+    "path": "dist/contracts/path.d.ts.map",
+    "bytes": 735,
+    "symlink": false
+  },
+  {
+    "path": "dist/contracts/filesystem.js.map",
+    "bytes": 270,
+    "symlink": false
+  },
+  {
+    "path": "dist/contracts/index.js",
+    "bytes": 206,
+    "symlink": false
+  },
+  {
+    "path": "dist/contracts/errors.d.ts.map",
+    "bytes": 917,
+    "symlink": false
+  },
+  {
+    "path": "dist/contracts/plugin.d.ts",
+    "bytes": 836,
+    "symlink": false
+  },
+  {
+    "path": "dist/contracts/command.js",
+    "bytes": 1353,
+    "symlink": false
+  },
+  {
+    "path": "dist/contracts/io.js.map",
+    "bytes": 7646,
+    "symlink": false
+  },
+  {
+    "path": "dist/contracts/plugin.js.map",
+    "bytes": 1751,
+    "symlink": false
+  },
+  {
+    "path": "dist/contracts/command.d.ts",
+    "bytes": 1813,
+    "symlink": false
+  },
+  {
+    "path": "dist/contracts/command.js.map",
+    "bytes": 1476,
+    "symlink": false
+  },
+  {
+    "path": "dist/contracts/errors.js",
+    "bytes": 3225,
+    "symlink": false
+  },
+  {
+    "path": "dist/contracts/io.d.ts",
+    "bytes": 1299,
+    "symlink": false
+  },
+  {
+    "path": "dist/contracts/index.js.map",
+    "bytes": 241,
+    "symlink": false
+  },
+  {
+    "path": "dist/contracts/path.js",
+    "bytes": 1631,
+    "symlink": false
+  },
+  {
+    "path": "dist/contracts/path.js.map",
+    "bytes": 1872,
+    "symlink": false
+  },
+  {
+    "path": "dist/contracts/command.d.ts.map",
+    "bytes": 1907,
+    "symlink": false
+  },
+  {
+    "path": "dist/contracts/plugin.d.ts.map",
+    "bytes": 880,
+    "symlink": false
+  },
+  {
+    "path": "dist/contracts/index.d.ts",
+    "bytes": 208,
+    "symlink": false
+  },
+  {
+    "path": "dist/contracts/plugin.js",
+    "bytes": 1878,
+    "symlink": false
+  },
+  {
+    "path": "dist/contracts/filesystem.d.ts",
+    "bytes": 3805,
+    "symlink": false
+  },
+  {
+    "path": "dist/contracts/index.d.ts.map",
+    "bytes": 243,
+    "symlink": false
+  },
+  {
+    "path": "dist/integrations/safejs/shell.js",
+    "bytes": 2623,
+    "symlink": false
+  },
+  {
+    "path": "dist/integrations/safejs/filesystem.js",
+    "bytes": 17832,
+    "symlink": false
+  },
+  {
+    "path": "dist/integrations/safejs/shell.js.map",
+    "bytes": 2871,
+    "symlink": false
+  },
+  {
+    "path": "dist/integrations/safejs/filesystem.d.ts.map",
+    "bytes": 991,
+    "symlink": false
+  },
+  {
+    "path": "dist/integrations/safejs/values.d.ts.map",
+    "bytes": 707,
+    "symlink": false
+  },
+  {
+    "path": "dist/integrations/safejs/filesystem.js.map",
+    "bytes": 20131,
+    "symlink": false
+  },
+  {
+    "path": "dist/integrations/safejs/index.js",
+    "bytes": 159,
+    "symlink": false
+  },
+  {
+    "path": "dist/integrations/safejs/stats.js.map",
+    "bytes": 1623,
+    "symlink": false
+  },
+  {
+    "path": "dist/integrations/safejs/shell.d.ts.map",
+    "bytes": 1280,
+    "symlink": false
+  },
+  {
+    "path": "dist/integrations/safejs/values.js",
+    "bytes": 2395,
+    "symlink": false
+  },
+  {
+    "path": "dist/integrations/safejs/shell.d.ts",
+    "bytes": 1302,
+    "symlink": false
+  },
+  {
+    "path": "dist/integrations/safejs/stats.d.ts.map",
+    "bytes": 436,
+    "symlink": false
+  },
+  {
+    "path": "dist/integrations/safejs/index.js.map",
+    "bytes": 226,
+    "symlink": false
+  },
+  {
+    "path": "dist/integrations/safejs/values.js.map",
+    "bytes": 2566,
+    "symlink": false
+  },
+  {
+    "path": "dist/integrations/safejs/index.d.ts",
+    "bytes": 464,
+    "symlink": false
+  },
+  {
+    "path": "dist/integrations/safejs/stats.d.ts",
+    "bytes": 340,
+    "symlink": false
+  },
+  {
+    "path": "dist/integrations/safejs/values.d.ts",
+    "bytes": 627,
+    "symlink": false
+  },
+  {
+    "path": "dist/integrations/safejs/filesystem.d.ts",
+    "bytes": 987,
+    "symlink": false
+  },
+  {
+    "path": "dist/integrations/safejs/stats.js",
+    "bytes": 1280,
+    "symlink": false
+  },
+  {
+    "path": "dist/integrations/safejs/index.d.ts.map",
+    "bytes": 426,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/filesystem.js",
+    "bytes": 20986,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/grep.d.ts.map",
+    "bytes": 205,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/internal.d.ts.map",
+    "bytes": 2116,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/filesystem.d.ts.map",
+    "bytes": 221,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/streams.d.ts",
+    "bytes": 164,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/grep.js",
+    "bytes": 8409,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/predicates.d.ts",
+    "bytes": 170,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/basic.js.map",
+    "bytes": 11096,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/streams.js.map",
+    "bytes": 19308,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/execution.js.map",
+    "bytes": 10073,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/text.js.map",
+    "bytes": 18490,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/predicates.js",
+    "bytes": 6958,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/execution.d.ts.map",
+    "bytes": 306,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/predicates.d.ts.map",
+    "bytes": 220,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/internal.js",
+    "bytes": 8845,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/filesystem.js.map",
+    "bytes": 24368,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/grep.d.ts",
+    "bytes": 159,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/find.js.map",
+    "bytes": 11673,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/index.js",
+    "bytes": 2118,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/streams.js",
+    "bytes": 17357,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/execution.js",
+    "bytes": 9930,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/find.d.ts",
+    "bytes": 203,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/text.d.ts.map",
+    "bytes": 206,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/find.d.ts.map",
+    "bytes": 242,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/grep.js.map",
+    "bytes": 8681,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/index.js.map",
+    "bytes": 2117,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/internal.d.ts",
+    "bytes": 2207,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/basic.js",
+    "bytes": 11031,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/basic.d.ts.map",
+    "bytes": 207,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/index.d.ts",
+    "bytes": 471,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/internal.js.map",
+    "bytes": 10465,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/find.js",
+    "bytes": 11669,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/text.d.ts",
+    "bytes": 159,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/execution.d.ts",
+    "bytes": 295,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/streams.d.ts.map",
+    "bytes": 212,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/filesystem.d.ts",
+    "bytes": 171,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/text.js",
+    "bytes": 17346,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/predicates.js.map",
+    "bytes": 6609,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/index.d.ts.map",
+    "bytes": 436,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/basic.d.ts",
+    "bytes": 161,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/bytes/index.js",
+    "bytes": 955,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/bytes/index.js.map",
+    "bytes": 873,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/bytes/index.d.ts",
+    "bytes": 360,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/bytes/index.d.ts.map",
+    "bytes": 359,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/bytes/encoding/od.d.ts.map",
+    "bytes": 217,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/bytes/encoding/xxd.d.ts",
+    "bytes": 166,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/bytes/encoding/od.js",
+    "bytes": 6788,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/bytes/encoding/xxd.js.map",
+    "bytes": 7160,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/bytes/encoding/shared.d.ts.map",
+    "bytes": 822,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/bytes/encoding/index.js",
+    "bytes": 323,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/bytes/encoding/shared.d.ts",
+    "bytes": 773,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/bytes/encoding/shared.js.map",
+    "bytes": 4547,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/bytes/encoding/base.js",
+    "bytes": 4404,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/bytes/encoding/xxd.js",
+    "bytes": 6556,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/bytes/encoding/index.js.map",
+    "bytes": 401,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/bytes/encoding/xxd.d.ts.map",
+    "bytes": 222,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/bytes/encoding/base.d.ts",
+    "bytes": 193,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/bytes/encoding/base.d.ts.map",
+    "bytes": 253,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/bytes/encoding/index.d.ts",
+    "bytes": 185,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/bytes/encoding/base.js.map",
+    "bytes": 5290,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/bytes/encoding/shared.js",
+    "bytes": 4012,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/bytes/encoding/od.js.map",
+    "bytes": 7940,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/bytes/encoding/od.d.ts",
+    "bytes": 164,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/bytes/encoding/index.d.ts.map",
+    "bytes": 233,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/bytes/checksums/index.js",
+    "bytes": 12772,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/bytes/checksums/index.js.map",
+    "bytes": 13563,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/bytes/checksums/index.d.ts",
+    "bytes": 185,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/bytes/checksums/index.d.ts.map",
+    "bytes": 236,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/bytes/compression/stream.d.ts.map",
+    "bytes": 559,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/bytes/compression/options.d.ts.map",
+    "bytes": 465,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/bytes/compression/stream.js",
+    "bytes": 3588,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/bytes/compression/options.d.ts",
+    "bytes": 343,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/bytes/compression/gunzip.js.map",
+    "bytes": 7536,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/bytes/compression/files.js",
+    "bytes": 10403,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/bytes/compression/options.js",
+    "bytes": 2027,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/bytes/compression/gunzip.js",
+    "bytes": 6727,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/bytes/compression/gunzip.d.ts.map",
+    "bytes": 309,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/bytes/compression/index.js",
+    "bytes": 2410,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/bytes/compression/stream.js.map",
+    "bytes": 3806,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/bytes/compression/stream.d.ts",
+    "bytes": 497,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/bytes/compression/options.js.map",
+    "bytes": 2062,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/bytes/compression/files.d.ts",
+    "bytes": 714,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/bytes/compression/gunzip.d.ts",
+    "bytes": 225,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/bytes/compression/files.d.ts.map",
+    "bytes": 775,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/bytes/compression/index.js.map",
+    "bytes": 2178,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/bytes/compression/index.d.ts",
+    "bytes": 188,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/bytes/compression/files.js.map",
+    "bytes": 11117,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/bytes/compression/index.d.ts.map",
+    "bytes": 238,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/network/args.d.ts",
+    "bytes": 1018,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/network/output.js.map",
+    "bytes": 4459,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/network/curl.d.ts",
+    "bytes": 254,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/network/body.js.map",
+    "bytes": 8693,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/network/types.js",
+    "bytes": 506,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/network/types.js.map",
+    "bytes": 603,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/network/body.d.ts.map",
+    "bytes": 607,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/network/types.d.ts",
+    "bytes": 1666,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/network/args.js.map",
+    "bytes": 9615,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/network/output.d.ts",
+    "bytes": 662,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/network/shared.d.ts.map",
+    "bytes": 808,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/network/transport.js",
+    "bytes": 3310,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/network/index.js",
+    "bytes": 868,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/network/body.js",
+    "bytes": 8101,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/network/curl.js.map",
+    "bytes": 17898,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/network/shared.d.ts",
+    "bytes": 784,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/network/args.d.ts.map",
+    "bytes": 1241,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/network/curl.js",
+    "bytes": 18048,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/network/transport.js.map",
+    "bytes": 3562,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/network/transport.d.ts",
+    "bytes": 338,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/network/output.js",
+    "bytes": 3958,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/network/shared.js.map",
+    "bytes": 2842,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/network/transport.d.ts.map",
+    "bytes": 398,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/network/body.d.ts",
+    "bytes": 568,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/network/index.js.map",
+    "bytes": 868,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/network/types.d.ts.map",
+    "bytes": 1775,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/network/index.d.ts",
+    "bytes": 678,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/network/shared.js",
+    "bytes": 2327,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/network/args.js",
+    "bytes": 9572,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/network/curl.d.ts.map",
+    "bytes": 286,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/network/index.d.ts.map",
+    "bytes": 555,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/network/output.d.ts.map",
+    "bytes": 712,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/search/output.js.map",
+    "bytes": 5152,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/search/walk.d.ts.map",
+    "bytes": 941,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/search/rg.d.ts",
+    "bytes": 229,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/search/options.d.ts.map",
+    "bytes": 1732,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/search/walk.d.ts",
+    "bytes": 860,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/search/glob.d.ts.map",
+    "bytes": 612,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/search/options.d.ts",
+    "bytes": 1506,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/search/options.js",
+    "bytes": 11714,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/search/output.d.ts",
+    "bytes": 1204,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/search/rg.js.map",
+    "bytes": 11144,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/search/rg.js",
+    "bytes": 10353,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/search/shared.d.ts.map",
+    "bytes": 1482,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/search/index.js",
+    "bytes": 756,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/search/matcher.d.ts.map",
+    "bytes": 556,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/search/rg.d.ts.map",
+    "bytes": 275,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/search/options.js.map",
+    "bytes": 9195,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/search/matcher.js",
+    "bytes": 6063,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/search/shared.d.ts",
+    "bytes": 1455,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/search/matcher.js.map",
+    "bytes": 6579,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/search/glob.js.map",
+    "bytes": 4902,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/search/walk.js.map",
+    "bytes": 8879,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/search/output.js",
+    "bytes": 3633,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/search/shared.js.map",
+    "bytes": 5381,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/search/index.js.map",
+    "bytes": 767,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/search/glob.d.ts",
+    "bytes": 536,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/search/walk.js",
+    "bytes": 8281,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/search/index.d.ts",
+    "bytes": 410,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/search/shared.js",
+    "bytes": 4690,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/search/glob.js",
+    "bytes": 4711,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/search/matcher.d.ts",
+    "bytes": 458,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/search/index.d.ts.map",
+    "bytes": 398,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/search/output.d.ts.map",
+    "bytes": 1342,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/structured/limits.d.ts.map",
+    "bytes": 2472,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/structured/input.d.ts.map",
+    "bytes": 747,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/structured/numbers.js.map",
+    "bytes": 7495,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/structured/numbers.js",
+    "bytes": 5527,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/structured/parser.js.map",
+    "bytes": 14192,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/structured/values.d.ts.map",
+    "bytes": 889,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/structured/input.d.ts",
+    "bytes": 693,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/structured/split.js.map",
+    "bytes": 2731,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/structured/limits.d.ts",
+    "bytes": 2328,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/structured/limits.js",
+    "bytes": 6091,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/structured/index.js",
+    "bytes": 811,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/structured/input.js.map",
+    "bytes": 10962,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/structured/numbers.d.ts",
+    "bytes": 764,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/structured/values.js",
+    "bytes": 7995,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/structured/jq.js.map",
+    "bytes": 10263,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/structured/interpreter.d.ts",
+    "bytes": 957,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/structured/jq.d.ts",
+    "bytes": 252,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/structured/interpreter.js.map",
+    "bytes": 27056,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/structured/split.d.ts.map",
+    "bytes": 300,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/structured/index.js.map",
+    "bytes": 814,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/structured/split.d.ts",
+    "bytes": 186,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/structured/numbers.d.ts.map",
+    "bytes": 839,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/structured/split.js",
+    "bytes": 2424,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/structured/values.js.map",
+    "bytes": 10204,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/structured/interpreter.js",
+    "bytes": 26436,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/structured/limits.js.map",
+    "bytes": 6944,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/structured/index.d.ts",
+    "bytes": 521,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/structured/parser.d.ts",
+    "bytes": 1035,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/structured/parser.js",
+    "bytes": 11901,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/structured/interpreter.d.ts.map",
+    "bytes": 1268,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/structured/jq.js",
+    "bytes": 9587,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/structured/values.d.ts",
+    "bytes": 713,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/structured/jq.d.ts.map",
+    "bytes": 281,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/structured/input.js",
+    "bytes": 10316,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/structured/index.d.ts.map",
+    "bytes": 461,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/structured/parser.d.ts.map",
+    "bytes": 1482,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/safejs/io.js",
+    "bytes": 4828,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/safejs/render.d.ts.map",
+    "bytes": 256,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/safejs/io.d.ts.map",
+    "bytes": 1488,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/safejs/options.d.ts.map",
+    "bytes": 584,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/safejs/types.js",
+    "bytes": 305,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/safejs/types.js.map",
+    "bytes": 329,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/safejs/render.d.ts",
+    "bytes": 157,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/safejs/render.js.map",
+    "bytes": 3627,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/safejs/options.d.ts",
+    "bytes": 522,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/safejs/types.d.ts",
+    "bytes": 2330,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/safejs/options.js",
+    "bytes": 2371,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/safejs/render.js",
+    "bytes": 3374,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/safejs/index.js",
+    "bytes": 10160,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/safejs/options.js.map",
+    "bytes": 2848,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/safejs/io.js.map",
+    "bytes": 5433,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/safejs/io.d.ts",
+    "bytes": 1322,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/safejs/index.js.map",
+    "bytes": 8907,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/safejs/types.d.ts.map",
+    "bytes": 2392,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/safejs/index.d.ts",
+    "bytes": 772,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/safejs/index.d.ts.map",
+    "bytes": 672,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/text-programs/awk-syntax.js.map",
+    "bytes": 26474,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/text-programs/regex.js.map",
+    "bytes": 19315,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/text-programs/regex.d.ts.map",
+    "bytes": 879,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/text-programs/awk.js.map",
+    "bytes": 2077,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/text-programs/sed.js",
+    "bytes": 27319,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/text-programs/awk-runtime.d.ts",
+    "bytes": 1264,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/text-programs/awk-values.d.ts",
+    "bytes": 1136,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/text-programs/awk-values.js",
+    "bytes": 7415,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/text-programs/awk-syntax.d.ts",
+    "bytes": 3047,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/text-programs/awk.js",
+    "bytes": 1999,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/text-programs/awk-values.d.ts.map",
+    "bytes": 1282,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/text-programs/awk-runtime.js.map",
+    "bytes": 35437,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/text-programs/shared.d.ts.map",
+    "bytes": 1519,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/text-programs/index.js",
+    "bytes": 840,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/text-programs/sed.js.map",
+    "bytes": 25537,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/text-programs/awk-values.js.map",
+    "bytes": 9160,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/text-programs/awk-syntax.d.ts.map",
+    "bytes": 3608,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/text-programs/shared.d.ts",
+    "bytes": 1520,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/text-programs/sed.d.ts.map",
+    "bytes": 287,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/text-programs/awk.d.ts.map",
+    "bytes": 285,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/text-programs/awk.d.ts",
+    "bytes": 240,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/text-programs/awk-runtime.d.ts.map",
+    "bytes": 1302,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/text-programs/awk-runtime.js",
+    "bytes": 31842,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/text-programs/shared.js.map",
+    "bytes": 4756,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/text-programs/sed.d.ts",
+    "bytes": 240,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/text-programs/regex.js",
+    "bytes": 18844,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/text-programs/index.js.map",
+    "bytes": 842,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/text-programs/awk-syntax.js",
+    "bytes": 23181,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/text-programs/index.d.ts",
+    "bytes": 438,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/text-programs/shared.js",
+    "bytes": 4045,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/text-programs/regex.d.ts",
+    "bytes": 750,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/text-programs/index.d.ts.map",
+    "bytes": 413,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/metadata/internal.d.ts.map",
+    "bytes": 1097,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/metadata/mktemp.d.ts.map",
+    "bytes": 228,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/metadata/stat.js.map",
+    "bytes": 11426,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/metadata/mktemp.js.map",
+    "bytes": 6427,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/metadata/internal.js",
+    "bytes": 2923,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/metadata/mktemp.js",
+    "bytes": 6753,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/metadata/index.js",
+    "bytes": 933,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/metadata/chmod.js",
+    "bytes": 8059,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/metadata/stat.d.ts.map",
+    "bytes": 224,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/metadata/chmod.js.map",
+    "bytes": 9017,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/metadata/stat.d.ts",
+    "bytes": 236,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/metadata/mktemp.d.ts",
+    "bytes": 240,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/metadata/chmod.d.ts.map",
+    "bytes": 226,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/metadata/index.js.map",
+    "bytes": 966,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/metadata/internal.d.ts",
+    "bytes": 1156,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/metadata/index.d.ts",
+    "bytes": 472,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/metadata/internal.js.map",
+    "bytes": 3516,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/metadata/index.d.ts.map",
+    "bytes": 418,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/metadata/chmod.d.ts",
+    "bytes": 238,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/metadata/stat.js",
+    "bytes": 9913,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/diff-patch/patch-envelope.js.map",
+    "bytes": 2494,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/diff-patch/patch-gnu-reject.d.ts",
+    "bytes": 377,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/diff-patch/diff.d.ts",
+    "bytes": 207,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/diff-patch/patch-formats.d.ts",
+    "bytes": 419,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/diff-patch/diff.d.ts.map",
+    "bytes": 223,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/diff-patch/patch-path.d.ts",
+    "bytes": 277,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/diff-patch/patch-envelope.d.ts.map",
+    "bytes": 278,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/diff-patch/patch-envelope.d.ts",
+    "bytes": 166,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/diff-patch/patch-gnu-paths.d.ts",
+    "bytes": 1947,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/diff-patch/patch.js",
+    "bytes": 20066,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/diff-patch/unified.js",
+    "bytes": 11483,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/diff-patch/shared.d.ts.map",
+    "bytes": 1847,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/diff-patch/patch.js.map",
+    "bytes": 21489,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/diff-patch/index.js",
+    "bytes": 826,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/diff-patch/patch-gnu-paths.js.map",
+    "bytes": 10676,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/diff-patch/patch-gnu-reject.js",
+    "bytes": 3679,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/diff-patch/shared.d.ts",
+    "bytes": 1715,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/diff-patch/patch-gnu-reject.d.ts.map",
+    "bytes": 484,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/diff-patch/patch-formats.js",
+    "bytes": 11610,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/diff-patch/diff-format.js.map",
+    "bytes": 6458,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/diff-patch/diff-format.js",
+    "bytes": 5607,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/diff-patch/patch-path.js.map",
+    "bytes": 5430,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/diff-patch/unified.d.ts.map",
+    "bytes": 2007,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/diff-patch/shared.js.map",
+    "bytes": 7621,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/diff-patch/patch-envelope.js",
+    "bytes": 2628,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/diff-patch/patch.d.ts.map",
+    "bytes": 225,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/diff-patch/unified.d.ts",
+    "bytes": 1764,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/diff-patch/diff-format.d.ts",
+    "bytes": 534,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/diff-patch/index.js.map",
+    "bytes": 839,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/diff-patch/patch-gnu-paths.d.ts.map",
+    "bytes": 2101,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/diff-patch/patch-path.js",
+    "bytes": 4602,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/diff-patch/patch-formats.js.map",
+    "bytes": 12547,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/diff-patch/patch-gnu-reject.js.map",
+    "bytes": 4488,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/diff-patch/patch.d.ts",
+    "bytes": 209,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/diff-patch/index.d.ts",
+    "bytes": 426,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/diff-patch/shared.js",
+    "bytes": 6830,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/diff-patch/patch-formats.d.ts.map",
+    "bytes": 527,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/diff-patch/diff.js",
+    "bytes": 13696,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/diff-patch/patch-path.d.ts.map",
+    "bytes": 347,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/diff-patch/diff-format.d.ts.map",
+    "bytes": 722,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/diff-patch/index.d.ts.map",
+    "bytes": 410,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/diff-patch/unified.js.map",
+    "bytes": 11866,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/diff-patch/patch-gnu-paths.js",
+    "bytes": 9323,
+    "symlink": false
+  },
+  {
+    "path": "dist/commands/diff-patch/diff.js.map",
+    "bytes": 14931,
+    "symlink": false
+  },
+  {
+    "path": "dist/fs/readonly/index.js",
+    "bytes": 4501,
+    "symlink": false
+  },
+  {
+    "path": "dist/fs/readonly/index.js.map",
+    "bytes": 5363,
+    "symlink": false
+  },
+  {
+    "path": "dist/fs/readonly/index.d.ts",
+    "bytes": 2250,
+    "symlink": false
+  },
+  {
+    "path": "dist/fs/readonly/index.d.ts.map",
+    "bytes": 2474,
+    "symlink": false
+  },
+  {
+    "path": "dist/fs/s3/filesystem.js",
+    "bytes": 50798,
+    "symlink": false
+  },
+  {
+    "path": "dist/fs/s3/filesystem.d.ts.map",
+    "bytes": 3758,
+    "symlink": false
+  },
+  {
+    "path": "dist/fs/s3/mock.d.ts",
+    "bytes": 2251,
+    "symlink": false
+  },
+  {
+    "path": "dist/fs/s3/mock.d.ts.map",
+    "bytes": 2033,
+    "symlink": false
+  },
+  {
+    "path": "dist/fs/s3/mock.js.map",
+    "bytes": 12089,
+    "symlink": false
+  },
+  {
+    "path": "dist/fs/s3/filesystem.js.map",
+    "bytes": 54144,
+    "symlink": false
+  },
+  {
+    "path": "dist/fs/s3/transport.js",
+    "bytes": 1380,
+    "symlink": false
+  },
+  {
+    "path": "dist/fs/s3/index.js",
+    "bytes": 224,
+    "symlink": false
+  },
+  {
+    "path": "dist/fs/s3/transport.js.map",
+    "bytes": 1783,
+    "symlink": false
+  },
+  {
+    "path": "dist/fs/s3/transport.d.ts",
+    "bytes": 4005,
+    "symlink": false
+  },
+  {
+    "path": "dist/fs/s3/mock.js",
+    "bytes": 10634,
+    "symlink": false
+  },
+  {
+    "path": "dist/fs/s3/transport.d.ts.map",
+    "bytes": 4084,
+    "symlink": false
+  },
+  {
+    "path": "dist/fs/s3/index.js.map",
+    "bytes": 273,
+    "symlink": false
+  },
+  {
+    "path": "dist/fs/s3/index.d.ts",
+    "bytes": 625,
+    "symlink": false
+  },
+  {
+    "path": "dist/fs/s3/filesystem.d.ts",
+    "bytes": 3930,
+    "symlink": false
+  },
+  {
+    "path": "dist/fs/s3/index.d.ts.map",
+    "bytes": 573,
+    "symlink": false
+  },
+  {
+    "path": "dist/fs/memory/index.js",
+    "bytes": 20302,
+    "symlink": false
+  },
+  {
+    "path": "dist/fs/memory/index.js.map",
+    "bytes": 24034,
+    "symlink": false
+  },
+  {
+    "path": "dist/fs/memory/index.d.ts",
+    "bytes": 2770,
+    "symlink": false
+  },
+  {
+    "path": "dist/fs/memory/index.d.ts.map",
+    "bytes": 2712,
+    "symlink": false
+  },
+  {
+    "path": "dist/fs/real/index.js",
+    "bytes": 24206,
+    "symlink": false
+  },
+  {
+    "path": "dist/fs/real/index.js.map",
+    "bytes": 23368,
+    "symlink": false
+  },
+  {
+    "path": "dist/fs/real/index.d.ts",
+    "bytes": 4985,
+    "symlink": false
+  },
+  {
+    "path": "dist/fs/real/index.d.ts.map",
+    "bytes": 2621,
+    "symlink": false
+  },
+  {
+    "path": "dist/fs/mount/identity.d.ts.map",
+    "bytes": 285,
+    "symlink": false
+  },
+  {
+    "path": "dist/fs/mount/identity.js.map",
+    "bytes": 823,
+    "symlink": false
+  },
+  {
+    "path": "dist/fs/mount/index.js",
+    "bytes": 24660,
+    "symlink": false
+  },
+  {
+    "path": "dist/fs/mount/identity.d.ts",
+    "bytes": 232,
+    "symlink": false
+  },
+  {
+    "path": "dist/fs/mount/identity.js",
+    "bytes": 651,
+    "symlink": false
+  },
+  {
+    "path": "dist/fs/mount/index.js.map",
+    "bytes": 27100,
+    "symlink": false
+  },
+  {
+    "path": "dist/fs/mount/index.d.ts",
+    "bytes": 2595,
+    "symlink": false
+  },
+  {
+    "path": "dist/fs/mount/index.d.ts.map",
+    "bytes": 2681,
+    "symlink": false
+  },
+  {
+    "path": "dist/fs/webdav/xml.d.ts.map",
+    "bytes": 717,
+    "symlink": false
+  },
+  {
+    "path": "dist/fs/webdav/xml.js.map",
+    "bytes": 11628,
+    "symlink": false
+  },
+  {
+    "path": "dist/fs/webdav/xml.js",
+    "bytes": 11072,
+    "symlink": false
+  },
+  {
+    "path": "dist/fs/webdav/xml.d.ts",
+    "bytes": 647,
+    "symlink": false
+  },
+  {
+    "path": "dist/fs/webdav/webdav.js",
+    "bytes": 47678,
+    "symlink": false
+  },
+  {
+    "path": "dist/fs/webdav/index.js",
+    "bytes": 81,
+    "symlink": false
+  },
+  {
+    "path": "dist/fs/webdav/webdav.d.ts",
+    "bytes": 3480,
+    "symlink": false
+  },
+  {
+    "path": "dist/fs/webdav/webdav.d.ts.map",
+    "bytes": 3383,
+    "symlink": false
+  },
+  {
+    "path": "dist/fs/webdav/index.js.map",
+    "bytes": 159,
+    "symlink": false
+  },
+  {
+    "path": "dist/fs/webdav/index.d.ts",
+    "bytes": 156,
+    "symlink": false
+  },
+  {
+    "path": "dist/fs/webdav/index.d.ts.map",
+    "bytes": 214,
+    "symlink": false
+  },
+  {
+    "path": "dist/fs/webdav/webdav.js.map",
+    "bytes": 48620,
+    "symlink": false
+  },
+  {
+    "path": "dist/fs/overlay/index.js",
+    "bytes": 41953,
+    "symlink": false
+  },
+  {
+    "path": "dist/fs/overlay/index.js.map",
+    "bytes": 46240,
+    "symlink": false
+  },
+  {
+    "path": "dist/fs/overlay/index.d.ts",
+    "bytes": 3322,
+    "symlink": false
+  },
+  {
+    "path": "dist/fs/overlay/index.d.ts.map",
+    "bytes": 3134,
+    "symlink": false
+  }
+]

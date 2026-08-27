@@ -4,7 +4,22 @@ import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { namespace, oracle, oracleRoot, sha256, suiteRoot } from "./helpers.js";
 
-const evidence = JSON.parse(await readFile(new URL("./oracle-evidence.json", import.meta.url), "utf8")) as { binaries: Record<string, string>; authorFilesSha256: Record<string, string>; archiveSha256: string };
+const parsed: unknown = JSON.parse(await readFile(new URL("./oracle-evidence.json", import.meta.url), "utf8"));
+assert.ok(typeof parsed === "object" && parsed !== null);
+assert.ok("binaries" in parsed && "authorFilesSha256" in parsed && "archiveSha256" in parsed);
+assert.equal(typeof parsed.archiveSha256, "string");
+
+function hashes(value: unknown): Record<string, string> {
+  assert.ok(typeof value === "object" && value !== null);
+  const output: Record<string, string> = {};
+  for (const [name, hash] of Object.entries(value)) {
+    assert.equal(typeof hash, "string");
+    output[name] = hash;
+  }
+  return output;
+}
+
+const evidence = { binaries: hashes(parsed.binaries), authorFilesSha256: hashes(parsed.authorFilesSha256), archiveSha256: parsed.archiveSha256 };
 
 test("GNU oracle binaries/archive match the independently captured exact identities", async context => {
   assert.equal(await sha256(join(oracleRoot, "../coreutils-9.7.tar.xz")), evidence.archiveSha256);

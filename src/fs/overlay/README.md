@@ -7,6 +7,20 @@ backends must be distinct, non-aliasing storage namespaces. Upper must be
 exclusively owned by this instance; lower must not be externally modified while
 the instance is in use. No other wrappers are required.
 
+`rmdir` refuses with `ENOTSUP` before upper mutation or whiteout publication if
+the upper currently declares `capabilities.snapshotRmdir === true`. A successful
+snapshot-marker removal may leave a late child visible in the backing store;
+publishing a whiteout would incorrectly hide it. The refusal also covers
+lower-only removal and conservatively covers a mixed-profile mounted upper.
+It is checked after ordinary path, permission and visible-emptiness diagnostics,
+including after the final asynchronous listing; errors and cancellation retain
+their existing precedence. No other mutation capability is changed. A strict
+upper retains its existing removal behavior, including above a static lower
+that declares snapshot-marker support, because lower `rmdir` is never delegated.
+The overlay does not advertise the weaker profile. These checks do not relax
+the exclusive-upper/static-lower prerequisites or add external-writer safety to
+strict backends that violate those prerequisites.
+
 `compareEntry` resolves both followed read views without copy-up or staging
 cleanup. It exposes the currently selected backing entry, not future write
 authority. `copyFile` separately resolves its destination inside the mutation

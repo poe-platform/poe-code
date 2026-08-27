@@ -15,6 +15,15 @@ boundaries. Collisions with the outer configuration are rejected, not overridden
 Opaque decorators are not unwrapped. Their policy and namespace information are
 not assumed to match a single-device backend; see the verification limits below.
 
+`capabilities.snapshotRmdir` is a live getter on the frozen capability object.
+It is true when any routed backend currently declares the snapshot-marker
+profile, including nested mounts and a host facade whose backing profile changes
+after construction. The static mount table itself has no add/remove API.
+This conservative aggregate flag does not weaken strict routed `rmdir` calls:
+each backend retains its own operation semantics. Snapshot success can leave a
+late child and therefore its logical directory visible; mount forwarding does
+not hide that child or promise absence, rollback, or marker-instance identity.
+
 ## Namespace and symlinks
 
 - Routing uses the longest component-prefix, never a plain string prefix.

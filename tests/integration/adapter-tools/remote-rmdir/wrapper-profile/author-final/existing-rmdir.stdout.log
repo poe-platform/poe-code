@@ -1,0 +1,226 @@
+TAP version 13
+# Subtest: mount rmdir routes nested mounts with the original signal and no rm fallback
+ok 1 - mount rmdir routes nested mounts with the original signal and no rm fallback
+  ---
+  duration_ms: 1.56425
+  type: 'test'
+  ...
+# Subtest: mount rmdir /disk/missing reports ENOENT and preserves descendants
+ok 2 - mount rmdir /disk/missing reports ENOENT and preserves descendants
+  ---
+  duration_ms: 0.501083
+  type: 'test'
+  ...
+# Subtest: mount rmdir /disk/file reports ENOTDIR and preserves descendants
+ok 3 - mount rmdir /disk/file reports ENOTDIR and preserves descendants
+  ---
+  duration_ms: 0.37025
+  type: 'test'
+  ...
+# Subtest: mount rmdir /disk/link reports ENOTDIR and preserves descendants
+ok 4 - mount rmdir /disk/link reports ENOTDIR and preserves descendants
+  ---
+  duration_ms: 0.189833
+  type: 'test'
+  ...
+# Subtest: mount rmdir /disk/link/ reports ENOTDIR and preserves descendants
+ok 5 - mount rmdir /disk/link/ reports ENOTDIR and preserves descendants
+  ---
+  duration_ms: 0.245125
+  type: 'test'
+  ...
+# Subtest: mount rmdir /disk/tree reports ENOTEMPTY and preserves descendants
+ok 6 - mount rmdir /disk/tree reports ENOTEMPTY and preserves descendants
+  ---
+  duration_ms: 0.260416
+  type: 'test'
+  ...
+# Subtest: mount rmdir /disk reports EBUSY and preserves descendants
+ok 7 - mount rmdir /disk reports EBUSY and preserves descendants
+  ---
+  duration_ms: 0.095667
+  type: 'test'
+  ...
+# Subtest: mount rmdir /disk/empty/. reports EINVAL and preserves descendants
+ok 8 - mount rmdir /disk/empty/. reports EINVAL and preserves descendants
+  ---
+  duration_ms: 0.0915
+  type: 'test'
+  ...
+# Subtest: mount rmdir preserves a child created at the delegate boundary
+ok 9 - mount rmdir preserves a child created at the delegate boundary
+  ---
+  duration_ms: 0.385958
+  type: 'test'
+  ...
+# Subtest: mount rmdir missing provider support fails ENOTSUP without inspecting children or using rm
+ok 10 - mount rmdir missing provider support fails ENOTSUP without inspecting children or using rm
+  ---
+  duration_ms: 0.343209
+  type: 'test'
+  ...
+# Subtest: mount rmdir respects readonly mounts and protected synthetic ancestors
+ok 11 - mount rmdir respects readonly mounts and protected synthetic ancestors
+  ---
+  duration_ms: 0.260125
+  type: 'test'
+  ...
+# Subtest: mount rmdir propagates arbitrary delegate failures and cancellation without effects
+ok 12 - mount rmdir propagates arbitrary delegate failures and cancellation without effects
+  ---
+  duration_ms: 0.151708
+  type: 'test'
+  ...
+# Subtest: static lower hidden descendants, merged=false: removal and recreation preserve every lower entry
+ok 13 - static lower hidden descendants, merged=false: removal and recreation preserve every lower entry
+  ---
+  duration_ms: 3.862084
+  type: 'test'
+  ...
+# Subtest: static lower hidden descendants, merged=true: removal and recreation preserve every lower entry
+ok 14 - static lower hidden descendants, merged=true: removal and recreation preserve every lower entry
+  ---
+  duration_ms: 1.7255
+  type: 'test'
+  ...
+# Subtest: lower-only whiteout removal needs no upper deletion primitive or parent copy-up
+ok 15 - lower-only whiteout removal needs no upper deletion primitive or parent copy-up
+  ---
+  duration_ms: 0.884875
+  type: 'test'
+  ...
+# Subtest: a hidden physical upper child is not removed through a recursive fallback
+ok 16 - a hidden physical upper child is not removed through a recursive fallback
+  ---
+  duration_ms: 0.353334
+  type: 'test'
+  ...
+# Subtest: same-instance child queued before removal, merged=false, survives with ENOTEMPTY
+ok 17 - same-instance child queued before removal, merged=false, survives with ENOTEMPTY
+  ---
+  duration_ms: 1.674833
+  type: 'test'
+  ...
+# Subtest: same-instance child queued before removal, merged=true, survives with ENOTEMPTY
+ok 18 - same-instance child queued before removal, merged=true, survives with ENOTEMPTY
+  ---
+  duration_ms: 0.57875
+  type: 'test'
+  ...
+# Subtest: same-instance child queued after lower removal, recreate=false, follows namespace order
+ok 19 - same-instance child queued after lower removal, recreate=false, follows namespace order
+  ---
+  duration_ms: 0.541833
+  type: 'test'
+  ...
+# Subtest: same-instance child queued after lower removal, recreate=true, follows namespace order
+ok 20 - same-instance child queued after lower removal, recreate=true, follows namespace order
+  ---
+  duration_ms: 0.543334
+  type: 'test'
+  ...
+# Subtest: overlay rmdir uses only backing rmdir and preserves whiteouted lower descendants
+ok 21 - overlay rmdir uses only backing rmdir and preserves whiteouted lower descendants
+  ---
+  duration_ms: 2.808
+  type: 'test'
+  ...
+# Subtest: overlay rmdir /missing reports ENOENT without hiding descendants
+ok 22 - overlay rmdir /missing reports ENOENT without hiding descendants
+  ---
+  duration_ms: 1.006334
+  type: 'test'
+  ...
+# Subtest: overlay rmdir /file reports ENOTDIR without hiding descendants
+ok 23 - overlay rmdir /file reports ENOTDIR without hiding descendants
+  ---
+  duration_ms: 1.200791
+  type: 'test'
+  ...
+# Subtest: overlay rmdir /link reports ENOTDIR without hiding descendants
+ok 24 - overlay rmdir /link reports ENOTDIR without hiding descendants
+  ---
+  duration_ms: 1.093834
+  type: 'test'
+  ...
+# Subtest: overlay rmdir /link/ reports ENOTDIR without hiding descendants
+ok 25 - overlay rmdir /link/ reports ENOTDIR without hiding descendants
+  ---
+  duration_ms: 0.836167
+  type: 'test'
+  ...
+# Subtest: overlay rmdir /tree reports ENOTEMPTY without hiding descendants
+ok 26 - overlay rmdir /tree reports ENOTEMPTY without hiding descendants
+  ---
+  duration_ms: 1.337459
+  type: 'test'
+  ...
+# Subtest: overlay rmdir / reports EBUSY without hiding descendants
+ok 27 - overlay rmdir / reports EBUSY without hiding descendants
+  ---
+  duration_ms: 0.805708
+  type: 'test'
+  ...
+# Subtest: overlay rmdir /empty/. reports EINVAL without hiding descendants
+ok 28 - overlay rmdir /empty/. reports EINVAL without hiding descendants
+  ---
+  duration_ms: 0.82
+  type: 'test'
+  ...
+# Subtest: overlay rmdir retains a raced upper child and does not publish a whiteout
+ok 29 - overlay rmdir retains a raced upper child and does not publish a whiteout
+  ---
+  duration_ms: 0.859334
+  type: 'test'
+  ...
+# Subtest: overlay static lower directory, merged=false: removes only the visible empty directory
+ok 30 - overlay static lower directory, merged=false: removes only the visible empty directory
+  ---
+  duration_ms: 1.162208
+  type: 'test'
+  ...
+# Subtest: overlay static lower directory, merged=true: removes only the visible empty directory
+ok 31 - overlay static lower directory, merged=true: removes only the visible empty directory
+  ---
+  duration_ms: 0.567667
+  type: 'test'
+  ...
+# Subtest: overlay preexisting upper-only empty directory is removable above unchanged lower storage
+ok 32 - overlay preexisting upper-only empty directory is removable above unchanged lower storage
+  ---
+  duration_ms: 0.420708
+  type: 'test'
+  ...
+# Subtest: overlay missing backing rmdir refuses without staging or changing namespace
+ok 33 - overlay missing backing rmdir refuses without staging or changing namespace
+  ---
+  duration_ms: 0.266167
+  type: 'test'
+  ...
+# Subtest: overlay rmdir propagates provider errors, cancellation and readonly denial
+ok 34 - overlay rmdir propagates provider errors, cancellation and readonly denial
+  ---
+  duration_ms: 0.251334
+  type: 'test'
+  ...
+# Subtest: overlay rmdir never retries recursive garbage cleanup
+ok 35 - overlay rmdir never retries recursive garbage cleanup
+  ---
+  duration_ms: 0.1875
+  type: 'test'
+  ...
+# Subtest: readonly rmdir always rejects before delegate access, path checks, or options access
+ok 36 - readonly rmdir always rejects before delegate access, path checks, or options access
+  ---
+  duration_ms: 0.735833
+  type: 'test'
+  ...
+1..36
+# tests 36
+# suites 0
+# pass 36
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 154.116541

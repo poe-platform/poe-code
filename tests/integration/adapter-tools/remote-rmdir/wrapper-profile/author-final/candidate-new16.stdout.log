@@ -1,0 +1,106 @@
+TAP version 13
+# Subtest: mount advertises snapshot rmdir through flattened nested mounts without weakening strict paths
+ok 1 - mount advertises snapshot rmdir through flattened nested mounts without weakening strict paths
+  ---
+  duration_ms: 1.921917
+  type: 'test'
+  ...
+# Subtest: mount live profile tracks a snapshot mount added behind an existing routed host facade
+ok 2 - mount live profile tracks a snapshot mount added behind an existing routed host facade
+  ---
+  duration_ms: 0.590208
+  type: 'test'
+  ...
+# Subtest: mount actual Shell preserves a late child after snapshot delegate success
+ok 3 - mount actual Shell preserves a late child after snapshot delegate success
+  ---
+  duration_ms: 6.151708
+  type: 'test'
+  ...
+# Subtest: snapshot mount retains signal identity, error paths and pre-aborted errno-shaped reasons
+ok 4 - snapshot mount retains signal identity, error paths and pre-aborted errno-shaped reasons
+  ---
+  duration_ms: 0.306666
+  type: 'test'
+  ...
+# Subtest: snapshot upper refusal preserves late child visibility and prior whiteouts, merged=false
+ok 5 - snapshot upper refusal preserves late child visibility and prior whiteouts, merged=false
+  ---
+  duration_ms: 2.927125
+  type: 'test'
+  ...
+# Subtest: snapshot upper refusal preserves late child visibility and prior whiteouts, merged=true
+ok 6 - snapshot upper refusal preserves late child visibility and prior whiteouts, merged=true
+  ---
+  duration_ms: 0.660167
+  type: 'test'
+  ...
+# Subtest: snapshot upper refuses lower-only whiteout publication without mutation or copy-up
+ok 7 - snapshot upper refuses lower-only whiteout publication without mutation or copy-up
+  ---
+  duration_ms: 0.484
+  type: 'test'
+  ...
+# Subtest: snapshot upper keeps ENOTEMPTY diagnostics and namespace for /tree
+ok 8 - snapshot upper keeps ENOTEMPTY diagnostics and namespace for /tree
+  ---
+  duration_ms: 0.327292
+  type: 'test'
+  ...
+# Subtest: snapshot upper keeps ENOTDIR diagnostics and namespace for /file
+ok 9 - snapshot upper keeps ENOTDIR diagnostics and namespace for /file
+  ---
+  duration_ms: 0.204042
+  type: 'test'
+  ...
+# Subtest: snapshot upper keeps ENOENT diagnostics and namespace for /missing
+ok 10 - snapshot upper keeps ENOENT diagnostics and namespace for /missing
+  ---
+  duration_ms: 0.149417
+  type: 'test'
+  ...
+# Subtest: snapshot upper keeps EBUSY diagnostics and namespace for /
+ok 11 - snapshot upper keeps EBUSY diagnostics and namespace for /
+  ---
+  duration_ms: 0.167208
+  type: 'test'
+  ...
+# Subtest: overlay rechecks a snapshot profile enabled during the final emptiness observation
+ok 12 - overlay rechecks a snapshot profile enabled during the final emptiness observation
+  ---
+  duration_ms: 0.951541
+  type: 'test'
+  ...
+# Subtest: snapshot upper preserves pre-aborted cancellation and provider inspection errors
+ok 13 - snapshot upper preserves pre-aborted cancellation and provider inspection errors
+  ---
+  duration_ms: 0.373417
+  type: 'test'
+  ...
+# Subtest: strict upper retains removal over a static snapshot-capable lower, merged=false
+ok 14 - strict upper retains removal over a static snapshot-capable lower, merged=false
+  ---
+  duration_ms: 0.490667
+  type: 'test'
+  ...
+# Subtest: strict upper retains removal over a static snapshot-capable lower, merged=true
+ok 15 - strict upper retains removal over a static snapshot-capable lower, merged=true
+  ---
+  duration_ms: 0.291166
+  type: 'test'
+  ...
+# Subtest: readonly snapshot delegate refuses before options, path checks and delegate access without claiming the profile
+ok 16 - readonly snapshot delegate refuses before options, path checks and delegate access without claiming the profile
+  ---
+  duration_ms: 1.58075
+  type: 'test'
+  ...
+1..16
+# tests 16
+# suites 0
+# pass 16
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 249.276875

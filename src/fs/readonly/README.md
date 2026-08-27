@@ -29,6 +29,11 @@ cleanup methods. Mutation errors have precedence over pre-aborted signals,
 invalid flags, missing paths, and empty/no-op payloads. A pre-aborted mutation
 therefore still rejects with `EROFS`, not the signal's reason.
 
+This also applies to snapshot-marker `rmdir` delegates. The wrapper never
+invokes their removal method and need not advertise `snapshotRmdir`; its
+capabilities omit that profile. An outer mount may reject a pre-aborted call
+before routing it, preserving that mount's cancellation precedence instead.
+
 Errors retain the supplied, unnormalized paths and method name in `syscall`.
 For `rename`, `copyFile`, `link`, and `symlink`, the first path argument is
 `error.path` and the second is `error.dest`. All other denied operations have

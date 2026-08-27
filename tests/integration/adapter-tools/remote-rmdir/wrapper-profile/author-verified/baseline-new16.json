@@ -1,0 +1,40 @@
+{
+  "name": "baseline-new16",
+  "argv": [
+    "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "--unhandled-rejections=strict",
+    "--import",
+    "tsx",
+    "--test",
+    "--test-reporter=tap",
+    "tests/fs/mount/snapshot-rmdir.test.ts",
+    "tests/fs/overlay/snapshot-rmdir.test.ts",
+    "tests/fs/readonly/snapshot-rmdir.test.ts"
+  ],
+  "cwd": "/Users/kjopek/Workspace/safe-bash/tests/integration/adapter-tools/remote-rmdir/wrapper-profile/.frozen-SOkJ3v",
+  "startedAt": "2026-08-27T07:18:40.260Z",
+  "elapsedMs": 280.68545899999936,
+  "status": 1,
+  "signal": null,
+  "error": null,
+  "counts": {
+    "tests": 16,
+    "pass": 9,
+    "fail": 7,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "failures": [
+    "mount advertises snapshot rmdir through flattened nested mounts without weakening strict paths",
+    "mount live profile tracks a snapshot mount added behind an existing routed host facade",
+    "mount actual Shell preserves a late child after snapshot delegate success",
+    "snapshot upper refusal preserves late child visibility and prior whiteouts, merged=false",
+    "snapshot upper refusal preserves late child visibility and prior whiteouts, merged=true",
+    "snapshot upper refuses lower-only whiteout publication without mutation or copy-up",
+    "overlay rechecks a snapshot profile enabled during the final emptiness observation"
+  ],
+  "sourceHash": "f5d0aea6cca5f835a0ae07633f2d71a9a48757c24f50be9e4d7eae7957996702",
+  "inputHash": "9e8c5b36e7cc1ce897cadf4ba3024314b2bff0439e1477d5a64777c6b57f6d8b",
+  "unchanged": true
+}

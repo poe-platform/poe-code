@@ -1,0 +1,89 @@
+diff --git a/tests/integration/owned-output-production-rebase/author-public/harness/stage-candidate.mjs b/tests/integration/owned-output-production-rebase/author-public/execution-v1/public-stage.mjs
+index 2c4e62a9..96fce8e1 100644
+--- a/tests/integration/owned-output-production-rebase/author-public/harness/stage-candidate.mjs
++++ b/tests/integration/owned-output-production-rebase/author-public/execution-v1/public-stage.mjs
+@@ -3,20 +3,25 @@ import { spawnSync } from "node:child_process";
+ import { existsSync, mkdirSync, mkdtempSync, renameSync, realpathSync } from "node:fs";
+ import { dirname, join } from "node:path";
+ import { pathToFileURL } from "node:url";
+-import { copyPublicTool, directory, environment, git, gitEntries, inventory, json, regular, sha256, verifyEntries, verifyRelease, verifyTooling, writeJson, writeNew } from "./common.mjs";
++import { copyPublicTool, directory, environment, git, gitEntries, inventory as regularInventory, json, regular, sha256, verifyEntries, verifyRelease, verifyTooling, writeJson, writeNew } from "../harness/common.mjs";
++import { captureArchive, committedEntries, executionDirectory, executionFreeze, hashFile, snapshot, verifyArchiveBytes } from "./archive-binding.mjs";
+ 
+ export function stageCandidate(releaseFile) {
+   const release = json(releaseFile);
+   const author = verifyRelease(release);
+   const tooling = verifyTooling();
++  const execution = executionFreeze();
++  const binding = json(join(executionDirectory, "CANDIDATE.json"));
++  assert.equal(binding.commit, release.candidateCommit);
+   const temporary = realpathSync(mkdtempSync("/tmp/safe-bash-author-public-current-"));
+   const evidence = join(temporary, "evidence");
+   const product = join(temporary, "candidate");
++  const inventory = root => snapshot(root, product, binding.nativeFixtureSymlinks);
+   const pending = join(temporary, "consumer-before-move");
+   const consumer = join(temporary, "moved-consumer");
+   const commands = [];
+   const immutable = new Map();
+-  const report = { schema: 1, qualification: "AUTHOR_ONLY_NOT_INDEPENDENT_ACCEPTANCE", release, author, temporary, product, consumer, commands, status: "STARTED", candidateRuntimeExecutions: 0, privateQueries: 0, privateImports: 0, startedAt: new Date().toISOString() };
++  const report = { schema: 1, qualification: "AUTHOR_ONLY_NOT_INDEPENDENT_ACCEPTANCE", release, author, execution, temporary, product, consumer, commands, status: "STARTED", candidateRuntimeExecutions: 0, privateQueries: 0, privateImports: 0, startedAt: new Date().toISOString() };
+   for (const path of [evidence, product, pending, join(temporary, "home"), join(temporary, "tmp"), join(temporary, "pack")]) mkdirSync(path, { recursive: true });
+   const node = join(temporary, "tools/bin/node");
+   writeNew(node, regular(process.execPath), 0o755);
+@@ -41,19 +46,20 @@ export function stageCandidate(releaseFile) {
+   try {
+     const roots = git("ls-tree", "-z", release.candidateCommit).toString().split("\0").filter(Boolean).map(line => line.split("\t")).filter(([header]) => header.includes(" blob ")).map(([, path]) => path);
+     assert.ok(roots.includes("package.json") && roots.includes("tsconfig.build.json"));
+-    const selectors = [...roots, "src", "scripts", ...(release.maintainedTypecheck ? ["tests"] : [])];
+-    const inputs = gitEntries(release.candidateCommit, selectors);
++    const inputs = committedEntries(release.candidateCommit);
+     assert.ok(inputs.some(entry => entry.path === "src/contracts/output.ts"), "ROOT's new production output candidate required");
+     writeJson(join(evidence, "candidate-git-inputs.json"), inputs);
+-    const sourceManifest = inputs.filter(entry => entry.path.startsWith("src/")).map(entry => ({ ...entry, sha256: sha256(git("cat-file", "blob", entry.blob)) }));
++    const sourceManifest = binding.sources;
++    assert.deepEqual(inputs.filter(entry => entry.path.startsWith("src/")), sourceManifest.map(({ sha256: digest, bytes, ...entry }) => entry));
++    assert.equal(sha256(JSON.stringify(sourceManifest)), binding.sourceManifestSha256);
+     report.sourceManifestSha256 = sha256(JSON.stringify(sourceManifest));
+     writeJson(join(evidence, "current-source-manifest.json"), sourceManifest);
+     archivePath = join(temporary, "candidate.tar");
+-    writeNew(archivePath, git("archive", "--format=tar", release.candidateCommit, "--", ...selectors));
+-    archiveHash = sha256(regular(archivePath));
++    captureArchive(release.candidateCommit, archivePath);
++    archiveHash = hashFile(archivePath);
+     report.archive = { path: archivePath, sha256: archiveHash, sourceCommit: release.candidateCommit, tree: release.candidateTree };
+     run("extract-current-archive", "/usr/bin/bsdtar", ["-xf", archivePath, "-C", product], temporary);
+-    for (const entry of inputs) assert.deepEqual(regular(join(product, entry.path)), git("cat-file", "blob", entry.blob), entry.path);
++    verifyArchiveBytes(product, inputs);
+     rootInputs = roots.map(path => ({ path, sha256: sha256(regular(join(product, path))) }));
+     for (const name of ["src", "scripts", ...(release.maintainedTypecheck ? ["tests"] : [])]) remember(`input-${name}`, join(product, name));
+     for (const tool of tooling.packages) {
+@@ -61,6 +67,14 @@ export function stageCandidate(releaseFile) {
+       copyPublicTool(tool, target);
+       remember(`tool-${tool.name.replaceAll("/", "_")}`, target);
+     }
++    childEnvironment.GIT_DIR = git("rev-parse", "--absolute-git-dir").toString().trim();
++    childEnvironment.GIT_INDEX_FILE = join(temporary, "candidate.index");
++    childEnvironment.GIT_WORK_TREE = product;
++    childEnvironment.GIT_CONFIG_COUNT = "1";
++    childEnvironment.GIT_CONFIG_KEY_0 = "core.fsmonitor";
++    childEnvironment.GIT_CONFIG_VALUE_0 = "false";
++    run("bind-current-index", "/usr/bin/git", ["-c", "core.fsmonitor=false", "read-tree", release.candidateCommit], product);
++    report.candidateIndexSha256 = hashFile(childEnvironment.GIT_INDEX_FILE);
+     const compiler = join(product, "node_modules/typescript/bin/tsc");
+     run("build", node, [compiler, "-p", "tsconfig.build.json"], product);
+     remember("dist", join(product, "dist"));
+@@ -113,11 +127,13 @@ export function stageCandidate(releaseFile) {
+     }
+     try {
+       for (const entry of rootInputs) assert.equal(sha256(regular(join(product, entry.path))), entry.sha256, entry.path);
+-      if (archivePath) assert.equal(sha256(regular(archivePath)), archiveHash);
++      if (archivePath) assert.equal(hashFile(archivePath), archiveHash);
++      if (report.candidateIndexSha256) assert.equal(hashFile(childEnvironment.GIT_INDEX_FILE), report.candidateIndexSha256);
+       if (tarballPath) assert.equal(sha256(regular(tarballPath)), tarballHash);
+       assert.equal(sha256(regular(node)), tooling.node.sha256);
+       verifyTooling();
+       verifyRelease(release);
++      executionFreeze();
+       report.sourceToolArchivePackageAfter = "UNCHANGED";
+     } catch (error) { report.sourceToolArchivePackageAfter = error.message; process.exitCode = 1; report.status = "AUTHOR_INTEGRITY_NONPASS"; }
+     report.finishedAt = new Date().toISOString();

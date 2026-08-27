@@ -1,0 +1,54 @@
+{
+  "schema": 1,
+  "qualification": "ROOT_RELEASED_AUTHOR_BINDINGS_NOT_PRODUCT_ACCEPTANCE",
+  "candidateCommit": "eba049535d154f4e028f57ffd8efd7622b2239ca",
+  "authorPreparationCommit": "e748f20fe9d0ea1d29aefe70939d3ee76951ef68",
+  "preflight": "3/3 binding tests pass at /private/tmp/safe-bash-author-execution-bindings.WjNIfN; earlier 2/3 failure preserved separately",
+  "files": [
+    {
+      "path": "archive-binding.mjs",
+      "bytes": 4953,
+      "sha256": "093be58379009a6445143b0b16e8045b19a37d28c8fef5438f2cb8400dc254b8"
+    },
+    {
+      "path": "BINDING-DELTA.json",
+      "bytes": 3669,
+      "sha256": "7ed52785274620aeffe9924955004075700481a3a5127abb10930d33f68c3d70"
+    },
+    {
+      "path": "binding.test.mjs",
+      "bytes": 2104,
+      "sha256": "c35928b32897d6db71e455fe7cdba61eaec0918d51fd6e43486286e583c1d2b5"
+    },
+    {
+      "path": "CANDIDATE.json",
+      "bytes": 67965,
+      "sha256": "63bd13e9cb83e534236b02ec99fbd02d041d0c80296d33dadc3e7c053ef5bf50"
+    },
+    {
+      "path": "PREFLIGHT-ATTEMPTS.md",
+      "bytes": 1586,
+      "sha256": "b634a721595fdad83689edf28f168fb76d914c5c58644082db7e709e697e0fe0"
+    },
+    {
+      "path": "public-stage.mjs",
+      "bytes": 11951,
+      "sha256": "80134bb4876f213377ed5526a5aac5eb1ee1d552f1bb0490b4ab0a12c92051e2"
+    },
+    {
+      "path": "public-stage.patch-data",
+      "bytes": 7153,
+      "sha256": "52c071d9ac190169da98d4556f882dd8a5dcf3493de84f0e84834a6c33723ba9"
+    },
+    {
+      "path": "README.md",
+      "bytes": 2097,
+      "sha256": "a608becd69314f4ea9ae49a620042868b6fdad292339e96151f77d7c6e6b296f"
+    },
+    {
+      "path": "ROOT-RELEASE.json",
+      "bytes": 813,
+      "sha256": "50a4787a66e2c0601bdb48b80455eb425949c828bf70adf554ef48fe3cc13049"
+    }
+  ]
+}

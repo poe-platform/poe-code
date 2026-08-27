@@ -73,3 +73,58 @@ errors. None is claimed rerun at this approval checkpoint. Original22/30 reds,
 baseline94 =45 exact/49 differences, and original42/790 remain intact. This is
 only an evidence-test migration, not new native parity, full jq/project closure,
 superiority, a clean HEAD certificate, or a 72-hour work claim.
+
+## Final application and bounded validation
+
+- Approval evidence-only commit: `e0c4b72ab3f3f77a8812567f24ac2c56f078bafe`.
+- Separate single-canonical-test commit: `c0055e105eb6873281c1a311a4996ca2c6f9fdeb`.
+  Its complete changed-path list is exactly the one authorized evidence.test.ts;
+  no report, production, fixture, manifest or other canonical file is included.
+- The final evidence-only commit is the commit adding this completion section
+  and the seven validation artifacts alongside it. Resolve its exact ID with
+  `git log -1 --format=%H -- tests/commands/structured-stress/jq-grammar-seal-final/REPORT.md`;
+  the final handoff also records the ID. A commit cannot embed its own final hash.
+
+The committed application is byte-exact to the reviewed afterSnapshot, SHA-256
+`81a55856d1ec4dea51676ef09a5aeeb95d3383a7284eb1ec87deef848e430281`.
+The original native-freeze test remains unchanged. All 667 captured structured
+paths retain their bytes except this deliberately authorized fourteenth target;
+the prior 13 approved canonical paths, all before/after snapshots, vectors,
+native artifacts, fixtures, manifests and historical reports remain exact.
+Both immutable manifest pins and the structured source commit/hash above remain
+unchanged before/after every validation command. No production edit was made.
+
+| Fresh command cohort | Result |
+| --- | --- |
+| Exact prior 38-file list, full structured tests | **3758/3758**, zero failures/cancellations/skips/todos |
+| Canonical target plus byte-assertion file | **2/2 + 15/15**, included in 3758, no duplicate credit |
+| Scoped current structured source and all structured tests, including target | Typecheck exit 0 |
+| One global TypeScript check | Exit 2, **14 unowned diagnostics**, retained verbatim |
+
+Tests run with `--unhandled-rejections=strict`, the same explicit 38 paths from
+the old post-full-structured.json, a 180-second test timeout and a 240-second
+process watchdog. The full run was August 27, 2026, 02:57:18.442–02:57:30.267 UTC;
+the global check ended 02:57:38.219 UTC. No native oracle or full1344 source or
+compiled rerun occurred. Prior 1344/1344 and 427/427 acceptance remains only the
+separate earlier report's evidence. Prior **3757/3758** is preserved, not refreshed.
+
+Current global diagnostics are all in the unowned WebDAV consumer work:
+consumer.test.ts:88,109,125 (three TS2353); example.ts:21 (one TS2353 and three
+TS7006), :22,24,26,29,31 (five TS2339), :23 (one TS2345); provider.ts:89 (one
+TS2722), under tests/fs/webdav/consumer/. No change or rerun was used to hide
+these errors. The prior two shell errors remain historical observations; they
+did not appear in this new global run. This is not a whole-project typecheck pass.
+
+The worktree and HEAD moved independently. During the full test run the captured
+src tree changed at src/fs/s3/COMPARISON.md and src/fs/s3/SDK_COMPARISON.md;
+the structured source stayed exact. All before/after product path hashes and
+dirty statuses are retained; no clean-HEAD or stable-whole-product claim is made.
+There are no remaining failures in this bounded test migration. All reviewer
+commands completed, no reviewer-owned child remains active, and no subagents
+were created. The final explicit-path commit leaves owned paths clean; unrelated
+workers' changes are neither edited nor staged by this reviewer.
+
+Fresh raw TAP, exact commands, timestamps, source/product hashes and diagnostics
+are in full-structured.json, target-and-byte-assertions.json, scoped-types.json,
+global-types.json and final-audit.json. The local validate.mjs and tsconfig.json
+define the reproducible bounded runs; evidence writers refuse overwrites.

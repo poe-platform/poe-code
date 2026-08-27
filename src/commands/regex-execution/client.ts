@@ -31,6 +31,7 @@ class Slot {
     else this.fail(new RegexExecutionError("PROTOCOL", "unexpected idle message"));
   };
   private readonly error = (error: Error) => this.fail(new RegexExecutionError("WORKER_ERROR", error.message));
+  private readonly messageerror = () => this.fail(new RegexExecutionError("PROTOCOL", "worker message could not be deserialized"));
   private readonly exit = (code: number) => {
     this.exited = true;
     this.fail(new RegexExecutionError("WORKER_EXIT", `worker exited (${code})`));
@@ -43,6 +44,7 @@ class Slot {
       },
     });
     this.worker.on("message", this.message);
+    this.worker.on("messageerror", this.messageerror);
     this.worker.on("error", this.error);
     this.worker.on("exit", this.exit);
   }
@@ -75,6 +77,7 @@ class Slot {
       if (!this.exited) await this.worker.terminate();
     })().finally(() => {
       this.worker.off("message", this.message);
+      this.worker.off("messageerror", this.messageerror);
       this.worker.off("error", this.error);
       this.worker.off("exit", this.exit);
       this.receiver = undefined;

@@ -62,6 +62,8 @@ distinguish startup/request timeout, worker exit/error, invalid protocol, closed
 executor and matching errors. The class is internal, not a new root value
 export. Commands retain their status-2/error-output convention; cancellation
 preserves the caller's reason. A matching diagnostic retains the prior text.
+Worker receive-side `messageerror` is terminal `PROTOCOL` during startup,
+requests or idle time; it uses the same awaited retirement and listener removal.
 
 Timeouts are explicit matcher policy, not a Shell deadline, cumulative three-
 second allowance, descriptor-session allowance or exact wall-clock SLA. Host
@@ -93,9 +95,15 @@ preserved through termination; late rejection handlers are attached.
 An invocation handle is not a worker lease. Its `finally` closes the handle;
 the last handle awaits remaining worker retirement. With open but I/O-paused
 invocations, idle workers and timers are unref'd and automatically retire.
-There is no permanent worker per invocation, idle invocation capacity pinning,
-plugin-installed listener or required new plugin lifecycle contract. Internal
-`dispose()` rejects queued/active requests and awaits exact worker cleanup.
+There is no permanent worker per invocation, idle invocation capacity pinning
+or plugin-installed listener. Internal `dispose()` rejects queued/active requests
+and awaits exact worker cleanup. This internal awaiting is not a public Shell
+cleanup barrier: the runtime races command completion against cancellation, so
+an early-closing pipeline can settle before the command's `finally` completes.
+`Shell.dispose()` does not await that outstanding command either. Followup F1
+remains blocked on an explicitly approved invocation-cleanup contract; no new
+lifecycle API or runtime change is supplied here. See
+`tests/commands/regex-execution/followup/REPORT.md` for source evidence.
 
 Workers cache at most one descriptor (rg also retains its bounded three fragment
 variants). Different descriptor requests replace that cache. No call/input/

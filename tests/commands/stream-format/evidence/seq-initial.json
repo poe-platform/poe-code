@@ -1,0 +1,534 @@
+{
+  "profile": "GNU coreutils9.7 Darwin25.4.0 arm64 LC_ALL=C",
+  "originalFailure": "Before source creation, seq.test.ts failed ERR_MODULE_NOT_FOUND for new stream-format/index.js; no assertions changed.",
+  "cases": [
+    {
+      "args": [
+        "4"
+      ],
+      "native": {
+        "exitCode": 0,
+        "stdoutHex": "310a320a330a340a",
+        "stderr": ""
+      },
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "310a320a330a340a",
+        "stderr": ""
+      },
+      "strict": true,
+      "selectedSemantic": true
+    },
+    {
+      "args": [
+        "0"
+      ],
+      "native": {
+        "exitCode": 0,
+        "stdoutHex": "",
+        "stderr": ""
+      },
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "",
+        "stderr": ""
+      },
+      "strict": true,
+      "selectedSemantic": true
+    },
+    {
+      "args": [
+        "3",
+        "1"
+      ],
+      "native": {
+        "exitCode": 0,
+        "stdoutHex": "",
+        "stderr": ""
+      },
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "",
+        "stderr": ""
+      },
+      "strict": true,
+      "selectedSemantic": true
+    },
+    {
+      "args": [
+        "-2",
+        "2"
+      ],
+      "native": {
+        "exitCode": 0,
+        "stdoutHex": "2d320a2d310a300a310a320a",
+        "stderr": ""
+      },
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "2d320a2d310a300a310a320a",
+        "stderr": ""
+      },
+      "strict": true,
+      "selectedSemantic": true
+    },
+    {
+      "args": [
+        "5",
+        "-2",
+        "-1"
+      ],
+      "native": {
+        "exitCode": 0,
+        "stdoutHex": "350a330a310a2d310a",
+        "stderr": ""
+      },
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "350a330a310a2d310a",
+        "stderr": ""
+      },
+      "strict": true,
+      "selectedSemantic": true
+    },
+    {
+      "args": [
+        "0.1",
+        "0.1",
+        "0.4"
+      ],
+      "native": {
+        "exitCode": 0,
+        "stdoutHex": "302e310a302e320a302e330a302e340a",
+        "stderr": ""
+      },
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "302e310a302e320a302e330a302e340a",
+        "stderr": ""
+      },
+      "strict": true,
+      "selectedSemantic": true
+    },
+    {
+      "args": [
+        "1.00",
+        "0.1",
+        "1.3"
+      ],
+      "native": {
+        "exitCode": 0,
+        "stdoutHex": "312e30300a312e31300a312e32300a312e33300a",
+        "stderr": ""
+      },
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "312e30300a312e31300a312e32300a312e33300a",
+        "stderr": ""
+      },
+      "strict": true,
+      "selectedSemantic": true
+    },
+    {
+      "args": [
+        "1e-2",
+        "1e-2",
+        "0.04"
+      ],
+      "native": {
+        "exitCode": 0,
+        "stdoutHex": "302e30310a302e30320a302e30330a302e30340a",
+        "stderr": ""
+      },
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "302e30310a302e30320a302e30330a302e30340a",
+        "stderr": ""
+      },
+      "strict": true,
+      "selectedSemantic": true
+    },
+    {
+      "args": [
+        "-s",
+        ":",
+        "1",
+        "3"
+      ],
+      "native": {
+        "exitCode": 0,
+        "stdoutHex": "313a323a330a",
+        "stderr": ""
+      },
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "313a323a330a",
+        "stderr": ""
+      },
+      "strict": true,
+      "selectedSemantic": true
+    },
+    {
+      "args": [
+        "--separator=",
+        "3"
+      ],
+      "native": {
+        "exitCode": 0,
+        "stdoutHex": "3132330a",
+        "stderr": ""
+      },
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "3132330a",
+        "stderr": ""
+      },
+      "strict": true,
+      "selectedSemantic": true
+    },
+    {
+      "args": [
+        "-w",
+        "-2",
+        "2"
+      ],
+      "native": {
+        "exitCode": 0,
+        "stdoutHex": "2d320a2d310a30300a30310a30320a",
+        "stderr": ""
+      },
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "2d320a2d310a30300a30310a30320a",
+        "stderr": ""
+      },
+      "strict": true,
+      "selectedSemantic": true
+    },
+    {
+      "args": [
+        "-w",
+        "-0.1",
+        "0.1",
+        "0.2"
+      ],
+      "native": {
+        "exitCode": 0,
+        "stdoutHex": "2d302e310a30302e300a30302e310a30302e320a",
+        "stderr": ""
+      },
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "2d302e310a30302e300a30302e310a30302e320a",
+        "stderr": ""
+      },
+      "strict": true,
+      "selectedSemantic": true
+    },
+    {
+      "args": [
+        "-w",
+        "1.0",
+        "0.5",
+        "2.000"
+      ],
+      "native": {
+        "exitCode": 0,
+        "stdoutHex": "312e300a312e350a322e300a",
+        "stderr": ""
+      },
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "312e300a312e350a322e300a",
+        "stderr": ""
+      },
+      "strict": true,
+      "selectedSemantic": true
+    },
+    {
+      "args": [
+        "-f",
+        "%08.2f",
+        "-1",
+        "1"
+      ],
+      "native": {
+        "exitCode": 0,
+        "stdoutHex": "2d303030312e30300a30303030302e30300a30303030312e30300a",
+        "stderr": ""
+      },
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "2d303030312e30300a30303030302e30300a30303030312e30300a",
+        "stderr": ""
+      },
+      "strict": true,
+      "selectedSemantic": true
+    },
+    {
+      "args": [
+        "-f",
+        "%.0f",
+        "0.5",
+        "1",
+        "3.5"
+      ],
+      "native": {
+        "exitCode": 0,
+        "stdoutHex": "300a320a320a340a",
+        "stderr": ""
+      },
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "300a320a320a340a",
+        "stderr": ""
+      },
+      "strict": true,
+      "selectedSemantic": true
+    },
+    {
+      "args": [
+        "-f",
+        "[%+8.2e]%%",
+        "1",
+        "2"
+      ],
+      "native": {
+        "exitCode": 0,
+        "stdoutHex": "5b2b312e3030652b30305d250a5b2b322e3030652b30305d250a",
+        "stderr": ""
+      },
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "5b2b312e3030652b30305d250a5b2b322e3030652b30305d250a",
+        "stderr": ""
+      },
+      "strict": true,
+      "selectedSemantic": true
+    },
+    {
+      "args": [
+        "-f",
+        "%.3g",
+        "999",
+        "1",
+        "1001"
+      ],
+      "native": {
+        "exitCode": 0,
+        "stdoutHex": "3939390a31652b30330a31652b30330a",
+        "stderr": ""
+      },
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "3939390a31652b30330a31652b30330a",
+        "stderr": ""
+      },
+      "strict": true,
+      "selectedSemantic": true
+    },
+    {
+      "args": [
+        "--format=%#.3G",
+        "1",
+        "3"
+      ],
+      "native": {
+        "exitCode": 0,
+        "stdoutHex": "312e30300a322e30300a332e30300a",
+        "stderr": ""
+      },
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "312e30300a322e30300a332e30300a",
+        "stderr": ""
+      },
+      "strict": true,
+      "selectedSemantic": true
+    },
+    {
+      "args": [
+        "-f",
+        "%-8.1f",
+        "1",
+        "2"
+      ],
+      "native": {
+        "exitCode": 0,
+        "stdoutHex": "312e3020202020200a322e3020202020200a",
+        "stderr": ""
+      },
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "312e3020202020200a322e3020202020200a",
+        "stderr": ""
+      },
+      "strict": true,
+      "selectedSemantic": true
+    },
+    {
+      "args": [
+        "9007199254740992",
+        "9007199254740995"
+      ],
+      "native": {
+        "exitCode": 0,
+        "stdoutHex": "393030373139393235343734303939320a393030373139393235343734303939330a393030373139393235343734303939340a393030373139393235343734303939350a",
+        "stderr": ""
+      },
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "393030373139393235343734303939320a393030373139393235343734303939330a393030373139393235343734303939340a393030373139393235343734303939350a",
+        "stderr": ""
+      },
+      "strict": true,
+      "selectedSemantic": true
+    },
+    {
+      "args": [
+        "1",
+        "0",
+        "3"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdoutHex": "",
+        "stderr": "seq: invalid Zero increment value: '0'\nTry 'tests/commands/metadata-stress/.oracle/coreutils-9.7/src/seq --help' for more information.\n"
+      },
+      "actual": {
+        "exitCode": 1,
+        "stdoutHex": "",
+        "stderr": "seq: invalid Zero increment value\n"
+      },
+      "strict": false,
+      "selectedSemantic": true
+    },
+    {
+      "args": [],
+      "native": {
+        "exitCode": 1,
+        "stdoutHex": "",
+        "stderr": "seq: missing operand\nTry 'tests/commands/metadata-stress/.oracle/coreutils-9.7/src/seq --help' for more information.\n"
+      },
+      "actual": {
+        "exitCode": 1,
+        "stdoutHex": "",
+        "stderr": "seq: expected one to three numeric operands\n"
+      },
+      "strict": false,
+      "selectedSemantic": true
+    },
+    {
+      "args": [
+        "-w",
+        "-f",
+        "%g",
+        "3"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdoutHex": "",
+        "stderr": "seq: format string may not be specified when printing equal width strings\nTry 'tests/commands/metadata-stress/.oracle/coreutils-9.7/src/seq --help' for more information.\n"
+      },
+      "actual": {
+        "exitCode": 1,
+        "stdoutHex": "",
+        "stderr": "seq: format string may not be specified when printing equal width strings\n"
+      },
+      "strict": false,
+      "selectedSemantic": true
+    },
+    {
+      "args": [
+        "-f",
+        "%s",
+        "3"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdoutHex": "",
+        "stderr": "seq: format '%s' has unknown %s directive\n"
+      },
+      "actual": {
+        "exitCode": 1,
+        "stdoutHex": "",
+        "stderr": "seq: format requires one f, e or g conversion\n"
+      },
+      "strict": false,
+      "selectedSemantic": true
+    },
+    {
+      "args": [
+        "-f",
+        "%g %g",
+        "3"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdoutHex": "",
+        "stderr": "seq: format '%g %g' has too many % directives\n"
+      },
+      "actual": {
+        "exitCode": 1,
+        "stdoutHex": "",
+        "stderr": "seq: format must contain exactly one conversion\n"
+      },
+      "strict": false,
+      "selectedSemantic": true
+    },
+    {
+      "args": [
+        "NaN"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdoutHex": "",
+        "stderr": "seq: invalid 'not-a-number' argument: 'NaN'\nTry 'tests/commands/metadata-stress/.oracle/coreutils-9.7/src/seq --help' for more information.\n"
+      },
+      "actual": {
+        "exitCode": 1,
+        "stdoutHex": "",
+        "stderr": "seq: invalid decimal argument: 'NaN'\n"
+      },
+      "strict": false,
+      "selectedSemantic": true
+    },
+    {
+      "args": [
+        "1",
+        "2",
+        "3",
+        "4"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdoutHex": "",
+        "stderr": "seq: extra operand '4'\nTry 'tests/commands/metadata-stress/.oracle/coreutils-9.7/src/seq --help' for more information.\n"
+      },
+      "actual": {
+        "exitCode": 1,
+        "stdoutHex": "",
+        "stderr": "seq: expected one to three numeric operands\n"
+      },
+      "strict": false,
+      "selectedSemantic": true
+    },
+    {
+      "args": [
+        "--bad"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdoutHex": "",
+        "stderr": "tests/commands/metadata-stress/.oracle/coreutils-9.7/src/seq: unrecognized option '--bad'\nTry 'tests/commands/metadata-stress/.oracle/coreutils-9.7/src/seq --help' for more information.\n"
+      },
+      "actual": {
+        "exitCode": 1,
+        "stdoutHex": "",
+        "stderr": "seq: unrecognized option '--bad'\n"
+      },
+      "strict": false,
+      "selectedSemantic": true
+    }
+  ]
+}

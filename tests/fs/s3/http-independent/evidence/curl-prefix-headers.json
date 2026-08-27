@@ -1,0 +1,89 @@
+{
+  "curl": "curl 8.7.1 (x86_64-apple-darwin25.0) libcurl/8.7.1 (SecureTransport) LibreSSL/3.3.6 zlib/1.2.12 nghttp2/1.68.0\nRelease-Date: 2024-03-27\nProtocols: dict file ftp ftps gopher gophers http https imap imaps ipfs ipns ldap ldaps mqtt pop3 pop3s rtsp smb smbs smtp smtps telnet tftp\nFeatures: alt-svc AsynchDNS GSS-API HSTS HTTP2 HTTPS-proxy IPv6 Kerberos Largefile libz MultiSSL NTLM SPNEGO SSL threadsafe UnixSockets\n",
+  "binarySha256": "5ef748580e05e8208c8faacc9be88d1aa48d9970101c0a29ba26896e017e6226",
+  "oracleVectors": [
+    {
+      "name": "GET",
+      "canonicalHash": "7344ae5b7ee6c3e7e6b0fe0640412a37625d1fbfff95c48bbb2dc43964946972",
+      "signature": "f0e8bdb87c964420e857bd35b5d6ed310bd44f0170aba48dd91039c6036bdb41",
+      "passed": true
+    },
+    {
+      "name": "PUT",
+      "canonicalHash": "9e0e90d9c76de8fa5b200d8c849cd5b8dc7a3be3951ddb7f6a76b4158342019d",
+      "signature": "98ad721746da40c64f1a55b78f14c238d841ea1380cd77a1b5971af0ece108bd",
+      "passed": true
+    },
+    {
+      "name": "lifecycle",
+      "canonicalHash": "9766c798316ff2757b517bc739a67f6213b4ab36dd5da2f94eaebf79c77395ca",
+      "signature": "fea454ca298b7da1c68078a5d1bdbfbbe0d65c699e0f91ac7a200a0136783543",
+      "passed": true
+    },
+    {
+      "name": "list",
+      "canonicalHash": "df57d21db20da04d7fa30298dd4488ba3a2b47ca3a489c74750e0f1e7df1b9b7",
+      "signature": "34b48302e7b5fa45bde8084f4b7868a86f0a534bc59db6670ed5711ef69dc6f7",
+      "passed": true
+    }
+  ],
+  "checks": [
+    {
+      "method": "PUT",
+      "url": "/bucket/target",
+      "headers": {
+        "host": "127.0.0.1:53596",
+        "authorization": "AWS4-HMAC-SHA256 Credential=independent-s3-review/20260827/us-east-1/s3/aws4_request, SignedHeaders=host;x-amz-content-sha256;x-amz-copy-source;x-amz-date, Signature=fff13b54e983fa91ff387dddd186827bb96dc321b389d1cab53030e6dcf3ffe9",
+        "x-amz-date": "20260827T044443Z",
+        "x-amz-content-sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "user-agent": "curl/8.7.1",
+        "accept": "*/*",
+        "x-amz-copy-source": "/bucket/source"
+      },
+      "signedNames": [
+        "host",
+        "x-amz-content-sha256",
+        "x-amz-copy-source",
+        "x-amz-date"
+      ],
+      "expectedSortedNames": [
+        "host",
+        "x-amz-content-sha256",
+        "x-amz-copy-source",
+        "x-amz-date"
+      ],
+      "namesOrdered": true,
+      "validSignature": true
+    },
+    {
+      "method": "PUT",
+      "url": "/bucket/target",
+      "headers": {
+        "host": "127.0.0.1:53596",
+        "authorization": "AWS4-HMAC-SHA256 Credential=independent-s3-review/20260827/us-east-1/s3/aws4_request, SignedHeaders=host;x-amz-content-sha256;x-amz-copy-source-if-match;x-amz-copy-source;x-amz-date, Signature=c6000ed626032b0d68f2a425ec90deb52265f70ba6052314862cbbe22083b366",
+        "x-amz-date": "20260827T044443Z",
+        "x-amz-content-sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "user-agent": "curl/8.7.1",
+        "accept": "*/*",
+        "x-amz-copy-source": "/bucket/source",
+        "x-amz-copy-source-if-match": "\"stale\""
+      },
+      "signedNames": [
+        "host",
+        "x-amz-content-sha256",
+        "x-amz-copy-source-if-match",
+        "x-amz-copy-source",
+        "x-amz-date"
+      ],
+      "expectedSortedNames": [
+        "host",
+        "x-amz-content-sha256",
+        "x-amz-copy-source",
+        "x-amz-copy-source-if-match",
+        "x-amz-date"
+      ],
+      "namesOrdered": false,
+      "validSignature": false
+    }
+  ]
+}

@@ -1,0 +1,27 @@
+import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
+import { createWriteStream, readFileSync, statSync, writeFileSync } from "node:fs";
+import { join, resolve } from "node:path";
+import { Readable } from "node:stream";
+import { pipeline } from "node:stream/promises";
+
+const directory = resolve(process.argv[2]);
+const prepare = JSON.parse(readFileSync(join(directory, "prepare.json"), "utf8"));
+assert.equal(prepare.directory, directory);
+assert.ok(prepare.phases.every(phase => phase.status === 0));
+const lock = prepare.serviceLock;
+assert.equal(process.platform + "-" + process.arch, lock.platform);
+const checksum = await fetch(lock.checksumUrl, { signal: AbortSignal.timeout(30000) });
+assert.equal(checksum.status, 200);
+const officialChecksum = await checksum.text();
+assert.equal(officialChecksum.trim().split(/\s+/)[0], lock.sha256);
+const response = await fetch(lock.url, { signal: AbortSignal.timeout(120000) });
+assert.equal(response.status, 200); assert.ok(response.body);
+const binary = join(directory, "minio");
+await pipeline(Readable.fromWeb(response.body), createWriteStream(binary, { flags: "wx", mode: 0o700 }));
+assert.equal(statSync(binary).size, lock.size);
+const sha256 = createHash("sha256").update(readFileSync(binary)).digest("hex");
+assert.equal(sha256, lock.sha256);
+const report = { capturedAt: new Date().toISOString(), lock, binary, sha256, officialChecksum, finalDownloadUrl: response.url, status: response.status, size: statSync(binary).size };
+writeFileSync(join(directory, "download.json"), JSON.stringify(report, null, 2));
+console.log(JSON.stringify(report, null, 2));

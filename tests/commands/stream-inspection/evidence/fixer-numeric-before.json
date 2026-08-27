@@ -1,0 +1,1720 @@
+{
+  "started": "2026-08-27T05:01:01.991Z",
+  "finished": "2026-08-27T05:01:02.344Z",
+  "source": {
+    "hashes": {
+      "src/commands/stream-inspection/README.md": "1490e733ae1691da397d9f5efdefe90a904cf89ac585481960343b9bdff49abd",
+      "src/commands/stream-inspection/expand.ts": "481bc77d34ce1db7410e6e2c9fd5f49a0e287b025b8e9253d884dadb4ae3298c",
+      "src/commands/stream-inspection/fold.ts": "45a2cbc6fbad9ee8f25a4d04cf57be2a907e46cbe30084daf27a0c9ac0b208a2",
+      "src/commands/stream-inspection/index.ts": "a7af51784ea70f49fd5bbbc686c2bcc289b75d2e837a6e74987dfdf199864842",
+      "src/commands/stream-inspection/shared.ts": "0df865f2c7d5831acc06903e9fe8b117cd22cb3f1899033a76b0d73a5b46a937",
+      "src/commands/stream-inspection/strings.ts": "7d18b9e91d8c447e1103cdf48fe7efd7af766655c05e059f2c59270daa3ede51",
+      "src/commands/stream-inspection/tac.ts": "2704f57dc67e6e0197833eb0ca1f85db11b5a8307f5cfb9b0995ad61057fcb36"
+    },
+    "sha256": "57c6e29cc6fae6dce5946dddb211b0cc1bf94ef20badb4286546aeafe1e1d553"
+  },
+  "fixtures": [
+    {
+      "id": "reported-expand-legacy",
+      "command": "expand",
+      "args": [
+        "-2,5"
+      ],
+      "stdinHex": "0958095909"
+    },
+    {
+      "id": "reported-expand-zero-repeat",
+      "command": "expand",
+      "args": [
+        "-t",
+        "2,+0"
+      ],
+      "stdinHex": "616263096465660a"
+    },
+    {
+      "id": "expand-legacy-initial-prefix",
+      "command": "expand",
+      "args": [
+        "-i2,5"
+      ],
+      "stdinHex": "0958095909616263095a0a"
+    },
+    {
+      "id": "expand-legacy-initial-separate",
+      "command": "expand",
+      "args": [
+        "-2,5",
+        "-i"
+      ],
+      "stdinHex": "0958095909616263095a0a"
+    },
+    {
+      "id": "expand-legacy-repeated",
+      "command": "expand",
+      "args": [
+        "-2",
+        "-5"
+      ],
+      "stdinHex": "0958095909616263095a0a"
+    },
+    {
+      "id": "expand-legacy-modern-order",
+      "command": "expand",
+      "args": [
+        "-2",
+        "--tabs=5,+3"
+      ],
+      "stdinHex": "0958095909616263095a0a"
+    },
+    {
+      "id": "expand-modern-legacy-order",
+      "command": "expand",
+      "args": [
+        "-t2",
+        "-5,+3"
+      ],
+      "stdinHex": "0958095909616263095a0a"
+    },
+    {
+      "id": "expand-zero-relative-only",
+      "command": "expand",
+      "args": [
+        "-t+0"
+      ],
+      "stdinHex": "0958095909616263095a0a"
+    },
+    {
+      "id": "expand-zero-absolute-only",
+      "command": "expand",
+      "args": [
+        "--tabs=/0"
+      ],
+      "stdinHex": "0958095909616263095a0a"
+    },
+    {
+      "id": "expand-zero-finite",
+      "command": "expand",
+      "args": [
+        "-t2,5,+0"
+      ],
+      "stdinHex": "0958095909616263095a0a"
+    },
+    {
+      "id": "expand-zero-absolute-single",
+      "command": "expand",
+      "args": [
+        "-t2,/0"
+      ],
+      "stdinHex": "0958095909616263095a0a"
+    },
+    {
+      "id": "expand-zero-sticky-replacement",
+      "command": "expand",
+      "args": [
+        "-t2,+0,4"
+      ],
+      "stdinHex": "0958095909616263095a0a"
+    },
+    {
+      "id": "expand-zero-sticky-zero",
+      "command": "expand",
+      "args": [
+        "-t2,+0,0"
+      ],
+      "stdinHex": "0958095909616263095a0a"
+    },
+    {
+      "id": "expand-zero-separate-stop",
+      "command": "expand",
+      "args": [
+        "-t2,+0",
+        "-t4"
+      ],
+      "stdinHex": "0958095909616263095a0a"
+    },
+    {
+      "id": "expand-repeat-separate-stop",
+      "command": "expand",
+      "args": [
+        "-t2,+3",
+        "-t5"
+      ],
+      "stdinHex": "0958095909616263095a0a"
+    },
+    {
+      "id": "expand-zero-then-repeat",
+      "command": "expand",
+      "args": [
+        "-t+0,+3"
+      ],
+      "stdinHex": "0958095909616263095a0a"
+    },
+    {
+      "id": "expand-zero-then-other-repeat",
+      "command": "expand",
+      "args": [
+        "-t+0,/3"
+      ],
+      "stdinHex": "0958095909616263095a0a"
+    },
+    {
+      "id": "expand-repeat-then-other-zero",
+      "command": "expand",
+      "args": [
+        "-t+3,/0"
+      ],
+      "stdinHex": "0958095909616263095a0a"
+    },
+    {
+      "id": "expand-zero-legacy",
+      "command": "expand",
+      "args": [
+        "-2,+0"
+      ],
+      "stdinHex": "0958095909616263095a0a"
+    },
+    {
+      "id": "expand-empty-marker",
+      "command": "expand",
+      "args": [
+        "-t+"
+      ],
+      "stdinHex": "0958095909616263095a0a"
+    },
+    {
+      "id": "expand-marker-replacement",
+      "command": "expand",
+      "args": [
+        "-t+/2"
+      ],
+      "stdinHex": "0958095909616263095a0a"
+    },
+    {
+      "id": "expand-operand-permutation",
+      "command": "expand",
+      "args": [
+        "data",
+        "-2,5"
+      ],
+      "stdinHex": "",
+      "files": {
+        "data": "0958095909"
+      }
+    },
+    {
+      "id": "expand-end-options",
+      "command": "expand",
+      "args": [
+        "--",
+        "-2,5"
+      ],
+      "stdinHex": "",
+      "files": {
+        "-2,5": "0958095909"
+      }
+    },
+    {
+      "id": "expand-zero-stop-invalid",
+      "command": "expand",
+      "args": [
+        "-0"
+      ],
+      "stdinHex": "0958095909616263095a0a",
+      "error": "expand: invalid number '0'\n"
+    },
+    {
+      "id": "expand-descending-invalid",
+      "command": "expand",
+      "args": [
+        "-5,2"
+      ],
+      "stdinHex": "0958095909616263095a0a",
+      "error": "expand: tab stops must be ascending\n"
+    },
+    {
+      "id": "expand-legacy-suffix-invalid",
+      "command": "expand",
+      "args": [
+        "-2,5i"
+      ],
+      "stdinHex": "0958095909616263095a0a",
+      "error": "expand: invalid number '5i'\n"
+    },
+    {
+      "id": "expand-repeat-reset-invalid",
+      "command": "expand",
+      "args": [
+        "-t+3,+0"
+      ],
+      "stdinHex": "0958095909616263095a0a",
+      "error": "expand: repeating tab stop must be last\n"
+    },
+    {
+      "id": "expand-repeat-sticky-invalid",
+      "command": "expand",
+      "args": [
+        "-t+3,4"
+      ],
+      "stdinHex": "0958095909616263095a0a",
+      "error": "expand: repeating tab stop must be last\n"
+    },
+    {
+      "id": "expand-repeat-conflict-invalid",
+      "command": "expand",
+      "args": [
+        "-t+3,/4"
+      ],
+      "stdinHex": "0958095909616263095a0a",
+      "error": "expand: '/' specifier is mutually exclusive with '+'\n"
+    },
+    {
+      "id": "expand-negative-value-invalid",
+      "command": "expand",
+      "args": [
+        "-t",
+        "-2"
+      ],
+      "stdinHex": "0958095909616263095a0a",
+      "error": "expand: invalid number '-2'\n"
+    },
+    {
+      "id": "expand-legacy-overflow-invalid",
+      "command": "expand",
+      "args": [
+        "-18446744073709551616"
+      ],
+      "stdinHex": "0958095909616263095a0a",
+      "error": "expand: invalid number '18446744073709551616'\n"
+    },
+    {
+      "id": "reported-fold-legacy",
+      "command": "fold",
+      "args": [
+        "-3"
+      ],
+      "stdinHex": "61626364656667"
+    },
+    {
+      "id": "fold-legacy-bytes-prefix",
+      "command": "fold",
+      "args": [
+        "-b3"
+      ],
+      "stdinHex": "616209636465660a"
+    },
+    {
+      "id": "fold-legacy-spaces-prefix",
+      "command": "fold",
+      "args": [
+        "-s5"
+      ],
+      "stdinHex": "616220636420656667680a"
+    },
+    {
+      "id": "fold-legacy-multidigit",
+      "command": "fold",
+      "args": [
+        "-12"
+      ],
+      "stdinHex": "6162636465666768696a6b6c6d6e6f700a"
+    },
+    {
+      "id": "fold-legacy-leading-zero",
+      "command": "fold",
+      "args": [
+        "-03"
+      ],
+      "stdinHex": "6162636465666768696a6b6c6d6e6f700a"
+    },
+    {
+      "id": "fold-legacy-modern-order",
+      "command": "fold",
+      "args": [
+        "-3",
+        "--width=5"
+      ],
+      "stdinHex": "6162636465666768696a6b6c6d6e6f700a"
+    },
+    {
+      "id": "fold-modern-legacy-order",
+      "command": "fold",
+      "args": [
+        "-w5",
+        "-3"
+      ],
+      "stdinHex": "6162636465666768696a6b6c6d6e6f700a"
+    },
+    {
+      "id": "fold-legacy-repeated",
+      "command": "fold",
+      "args": [
+        "-3",
+        "-5"
+      ],
+      "stdinHex": "6162636465666768696a6b6c6d6e6f700a"
+    },
+    {
+      "id": "fold-operand-permutation",
+      "command": "fold",
+      "args": [
+        "data",
+        "-3"
+      ],
+      "stdinHex": "",
+      "files": {
+        "data": "61626364656667"
+      }
+    },
+    {
+      "id": "fold-end-options",
+      "command": "fold",
+      "args": [
+        "--",
+        "-3"
+      ],
+      "stdinHex": "",
+      "files": {
+        "-3": "61626364656667"
+      }
+    },
+    {
+      "id": "fold-legacy-suffix-invalid",
+      "command": "fold",
+      "args": [
+        "-3b"
+      ],
+      "stdinHex": "6162636465666768696a6b6c6d6e6f700a",
+      "error": "fold: invalid number '3b'\n"
+    },
+    {
+      "id": "fold-zero-invalid",
+      "command": "fold",
+      "args": [
+        "-0"
+      ],
+      "stdinHex": "6162636465666768696a6b6c6d6e6f700a",
+      "error": "fold: invalid number '0'\n"
+    },
+    {
+      "id": "fold-overridden-zero-invalid",
+      "command": "fold",
+      "args": [
+        "-0",
+        "-w3"
+      ],
+      "stdinHex": "6162636465666768696a6b6c6d6e6f700a",
+      "error": "fold: invalid number '0'\n"
+    },
+    {
+      "id": "fold-overridden-modern-zero-invalid",
+      "command": "fold",
+      "args": [
+        "-w0",
+        "-3"
+      ],
+      "stdinHex": "6162636465666768696a6b6c6d6e6f700a",
+      "error": "fold: invalid number '0'\n"
+    },
+    {
+      "id": "fold-negative-value-invalid",
+      "command": "fold",
+      "args": [
+        "-w",
+        "-3"
+      ],
+      "stdinHex": "6162636465666768696a6b6c6d6e6f700a",
+      "error": "fold: invalid number '-3'\n"
+    },
+    {
+      "id": "fold-legacy-overflow-invalid",
+      "command": "fold",
+      "args": [
+        "-18446744073709551616"
+      ],
+      "stdinHex": "6162636465666768696a6b6c6d6e6f700a",
+      "error": "fold: invalid number '18446744073709551616'\n"
+    },
+    {
+      "id": "reported-strings-legacy",
+      "command": "strings",
+      "args": [
+        "-5"
+      ],
+      "stdinHex": "666f757200666976657300656e64696e67"
+    },
+    {
+      "id": "strings-legacy-multidigit",
+      "command": "strings",
+      "args": [
+        "-12"
+      ],
+      "stdinHex": "666f757200666976657300656e64696e67006162636465666768006162636465666768696a6b6c00"
+    },
+    {
+      "id": "strings-legacy-leading-zero",
+      "command": "strings",
+      "args": [
+        "-05"
+      ],
+      "stdinHex": "666f757200666976657300656e64696e67006162636465666768006162636465666768696a6b6c00"
+    },
+    {
+      "id": "strings-legacy-octal",
+      "command": "strings",
+      "args": [
+        "-010"
+      ],
+      "stdinHex": "666f757200666976657300656e64696e67006162636465666768006162636465666768696a6b6c00"
+    },
+    {
+      "id": "strings-legacy-modern-order",
+      "command": "strings",
+      "args": [
+        "-5",
+        "-n3"
+      ],
+      "stdinHex": "666f757200666976657300656e64696e67006162636465666768006162636465666768696a6b6c00"
+    },
+    {
+      "id": "strings-modern-legacy-order",
+      "command": "strings",
+      "args": [
+        "--bytes=3",
+        "-5"
+      ],
+      "stdinHex": "666f757200666976657300656e64696e67006162636465666768006162636465666768696a6b6c00"
+    },
+    {
+      "id": "strings-legacy-repeated",
+      "command": "strings",
+      "args": [
+        "-5",
+        "-3"
+      ],
+      "stdinHex": "666f757200666976657300656e64696e67006162636465666768006162636465666768696a6b6c00"
+    },
+    {
+      "id": "strings-legacy-overridden-zero",
+      "command": "strings",
+      "args": [
+        "-0",
+        "-5"
+      ],
+      "stdinHex": "666f757200666976657300656e64696e67006162636465666768006162636465666768696a6b6c00"
+    },
+    {
+      "id": "strings-legacy-flags-radix",
+      "command": "strings",
+      "args": [
+        "-5",
+        "-af",
+        "-tx"
+      ],
+      "stdinHex": "666f757200666976657300656e64696e67006162636465666768006162636465666768696a6b6c00"
+    },
+    {
+      "id": "strings-operand-permutation",
+      "command": "strings",
+      "args": [
+        "data",
+        "-5"
+      ],
+      "stdinHex": "",
+      "files": {
+        "data": "666f757200666976657300656e64696e67"
+      }
+    },
+    {
+      "id": "strings-end-options",
+      "command": "strings",
+      "args": [
+        "--",
+        "-5"
+      ],
+      "stdinHex": "",
+      "files": {
+        "-5": "666f757200666976657300656e64696e67"
+      }
+    },
+    {
+      "id": "strings-legacy-zero-invalid",
+      "command": "strings",
+      "args": [
+        "-0"
+      ],
+      "stdinHex": "666f757200666976657300656e64696e67006162636465666768006162636465666768696a6b6c00",
+      "error": "strings: invalid number '0'\n"
+    },
+    {
+      "id": "strings-legacy-zero-modern-invalid",
+      "command": "strings",
+      "args": [
+        "-0",
+        "-n5"
+      ],
+      "stdinHex": "666f757200666976657300656e64696e67006162636465666768006162636465666768696a6b6c00",
+      "error": "strings: invalid number '0'\n"
+    },
+    {
+      "id": "strings-modern-zero-legacy-invalid",
+      "command": "strings",
+      "args": [
+        "-n0",
+        "-5"
+      ],
+      "stdinHex": "666f757200666976657300656e64696e67006162636465666768006162636465666768696a6b6c00",
+      "error": "strings: invalid number '0'\n"
+    },
+    {
+      "id": "strings-modern-overridden-zero-invalid",
+      "command": "strings",
+      "args": [
+        "-n0",
+        "-n5",
+        "-5"
+      ],
+      "stdinHex": "666f757200666976657300656e64696e67006162636465666768006162636465666768696a6b6c00",
+      "error": "strings: invalid number '0'\n"
+    },
+    {
+      "id": "strings-legacy-invalid-octal",
+      "command": "strings",
+      "args": [
+        "-08"
+      ],
+      "stdinHex": "666f757200666976657300656e64696e67006162636465666768006162636465666768696a6b6c00",
+      "error": "strings: invalid number '08'\n"
+    },
+    {
+      "id": "strings-legacy-prefix-invalid",
+      "command": "strings",
+      "args": [
+        "-a5"
+      ],
+      "stdinHex": "666f757200666976657300656e64696e67006162636465666768006162636465666768696a6b6c00",
+      "error": "strings: invalid number 'a5'\n"
+    },
+    {
+      "id": "strings-legacy-suffix-invalid",
+      "command": "strings",
+      "args": [
+        "-5a"
+      ],
+      "stdinHex": "666f757200666976657300656e64696e67006162636465666768006162636465666768696a6b6c00",
+      "error": "strings: invalid number '5a'\n"
+    },
+    {
+      "id": "strings-legacy-overflow-invalid",
+      "command": "strings",
+      "args": [
+        "-18446744073709551616"
+      ],
+      "stdinHex": "666f757200666976657300656e64696e67006162636465666768006162636465666768696a6b6c00",
+      "error": "strings: invalid number '18446744073709551616'\n"
+    },
+    {
+      "id": "strings-legacy-uint-overflow-invalid",
+      "command": "strings",
+      "args": [
+        "-4294967296"
+      ],
+      "stdinHex": "666f757200666976657300656e64696e67006162636465666768006162636465666768696a6b6c00",
+      "error": "strings: invalid number '4294967296'\n"
+    },
+    {
+      "id": "strings-legacy-uint-max-invalid",
+      "command": "strings",
+      "args": [
+        "-4294967295"
+      ],
+      "stdinHex": "666f757200666976657300656e64696e67006162636465666768006162636465666768696a6b6c00",
+      "error": "strings: invalid number '4294967295'\n"
+    }
+  ],
+  "native": {
+    "startedProfile": {
+      "platform": "darwin",
+      "release": "25.4.0",
+      "arch": "arm64",
+      "LC_ALL": "C",
+      "LANG": "C",
+      "TZ": "UTC"
+    },
+    "before": {
+      "expand": {
+        "executable": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/expand",
+        "resolved": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/expand",
+        "sha256": "158dccaca888f3187291f4f4ede9b3715ccee15e8e441f82030dc09d25a2648b",
+        "version": "expand (GNU coreutils) 9.7\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by David MacKenzie.\n",
+        "versionStderr": "",
+        "versionStatus": 0
+      },
+      "fold": {
+        "executable": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/fold",
+        "resolved": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/fold",
+        "sha256": "8cfe2de684b57136dcb7040d529289b610f4f15a4f8696cded679d56a5361559",
+        "version": "fold (GNU coreutils) 9.7\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by David MacKenzie.\n",
+        "versionStderr": "",
+        "versionStatus": 0
+      },
+      "strings": {
+        "executable": "/tmp/safe-bash-gnu-strings-20260827-YJqPHf/build-system-zlib/binutils/strings",
+        "resolved": "/private/tmp/safe-bash-gnu-strings-20260827-YJqPHf/build-system-zlib/binutils/strings",
+        "sha256": "90b9c9257095110594ae58a4bb1531d9670bd6aed297b8dbf0dc01914c5de09f",
+        "version": "GNU strings (GNU Binutils) 2.44\nCopyright (C) 2025 Free Software Foundation, Inc.\nThis program is free software; you may redistribute it under the terms of\nthe GNU General Public License version 3 or (at your option) any later version.\nThis program has absolutely no warranty.\n",
+        "versionStderr": "",
+        "versionStatus": 0
+      }
+    },
+    "observations": [
+      {
+        "id": "reported-expand-legacy",
+        "command": "expand",
+        "fixtureSha256": "0369dbb3e67931c885cbd54e584099d0fe8c29ba8938fc8541a90f3f283c7a1b",
+        "status": 0,
+        "signal": null,
+        "stdoutHex": "20205820205920",
+        "stderrHex": ""
+      },
+      {
+        "id": "reported-expand-zero-repeat",
+        "command": "expand",
+        "fixtureSha256": "1716f6e7c75352b3d2d9321e75599770d23774995a2f5747dce94a873ddb1005",
+        "status": 0,
+        "signal": null,
+        "stdoutHex": "616263206465660a",
+        "stderrHex": ""
+      },
+      {
+        "id": "expand-legacy-initial-prefix",
+        "command": "expand",
+        "fixtureSha256": "e2f4c0530c03ddb765dac1528bf6e590cf1284c7ae090755c4860158c6e570f7",
+        "status": 0,
+        "signal": null,
+        "stdoutHex": "202058095909616263095a0a",
+        "stderrHex": ""
+      },
+      {
+        "id": "expand-legacy-initial-separate",
+        "command": "expand",
+        "fixtureSha256": "fb689bd5cba7c849bfae756273f6f433fdb3122e5f03724fe06e27f0262f1a93",
+        "status": 0,
+        "signal": null,
+        "stdoutHex": "202058095909616263095a0a",
+        "stderrHex": ""
+      },
+      {
+        "id": "expand-legacy-repeated",
+        "command": "expand",
+        "fixtureSha256": "87e40364b1289626b088bfe7042911021455fee997d1206ecf6d435b79a97b06",
+        "status": 0,
+        "signal": null,
+        "stdoutHex": "20205820205920616263205a0a",
+        "stderrHex": ""
+      },
+      {
+        "id": "expand-legacy-modern-order",
+        "command": "expand",
+        "fixtureSha256": "11c5f0d69bdbb692fdf804d69e319813f65d18451775ed8cba35de9d890693a4",
+        "status": 0,
+        "signal": null,
+        "stdoutHex": "20205820205920206162632020205a0a",
+        "stderrHex": ""
+      },
+      {
+        "id": "expand-modern-legacy-order",
+        "command": "expand",
+        "fixtureSha256": "ed7569636643d1262ff44daafad4e1c43c52b1ecd045a81679a2c59d5517f440",
+        "status": 0,
+        "signal": null,
+        "stdoutHex": "20205820205920206162632020205a0a",
+        "stderrHex": ""
+      },
+      {
+        "id": "expand-zero-relative-only",
+        "command": "expand",
+        "fixtureSha256": "86a7127aeafa3ed3d336a0641c19de39162334d6f7975c1e27a0cd98e9adca48",
+        "status": 0,
+        "signal": null,
+        "stdoutHex": "20202020202020205820202020202020592020202020202061626320202020205a0a",
+        "stderrHex": ""
+      },
+      {
+        "id": "expand-zero-absolute-only",
+        "command": "expand",
+        "fixtureSha256": "eee8bc67506482ac8f848792e0f886313998b15185afce7b1d746bf706f65281",
+        "status": 0,
+        "signal": null,
+        "stdoutHex": "20202020202020205820202020202020592020202020202061626320202020205a0a",
+        "stderrHex": ""
+      },
+      {
+        "id": "expand-zero-finite",
+        "command": "expand",
+        "fixtureSha256": "ac0ec665aa3d9ef80ea2a469da391ab9d3a9c37c1abca93736179475a7871623",
+        "status": 0,
+        "signal": null,
+        "stdoutHex": "20205820205920616263205a0a",
+        "stderrHex": ""
+      },
+      {
+        "id": "expand-zero-absolute-single",
+        "command": "expand",
+        "fixtureSha256": "0b45cc6d7589b7dfa417ed650e956f78a3fa711fab18575790384541bcb87c62",
+        "status": 0,
+        "signal": null,
+        "stdoutHex": "202058205920616263205a0a",
+        "stderrHex": ""
+      },
+      {
+        "id": "expand-zero-sticky-replacement",
+        "command": "expand",
+        "fixtureSha256": "2d31c8e22658196e1fb6fa36d1d6fefd7cba87df9e87e3fa9fef920e27753c49",
+        "status": 0,
+        "signal": null,
+        "stdoutHex": "20205820202059202020616263205a0a",
+        "stderrHex": ""
+      },
+      {
+        "id": "expand-zero-sticky-zero",
+        "command": "expand",
+        "fixtureSha256": "ec6537dd17c619e25ea2bc763a0527c0965253aa70f7d1e60dead10cd24ed75b",
+        "status": 0,
+        "signal": null,
+        "stdoutHex": "202058205920616263205a0a",
+        "stderrHex": ""
+      },
+      {
+        "id": "expand-zero-separate-stop",
+        "command": "expand",
+        "fixtureSha256": "e5153c972ccaa65542da788db9a9fe60a5f8f2b01300146e784435083c044a8b",
+        "status": 0,
+        "signal": null,
+        "stdoutHex": "202058205920616263205a0a",
+        "stderrHex": ""
+      },
+      {
+        "id": "expand-repeat-separate-stop",
+        "command": "expand",
+        "fixtureSha256": "ab511bbe189ded16f970f1de3174902ca71ea0ce074e4485dfee3a7dee7d2ab9",
+        "status": 0,
+        "signal": null,
+        "stdoutHex": "20205820205920206162632020205a0a",
+        "stderrHex": ""
+      },
+      {
+        "id": "expand-zero-then-repeat",
+        "command": "expand",
+        "fixtureSha256": "ca99eaf06b8829069d27c01d2f58ceb2bbb716aa5cc7cc82d9afb1b6de5b8e1c",
+        "status": 0,
+        "signal": null,
+        "stdoutHex": "2020205820205920206162632020205a0a",
+        "stderrHex": ""
+      },
+      {
+        "id": "expand-zero-then-other-repeat",
+        "command": "expand",
+        "fixtureSha256": "811fc4c7257ab1c26f73db9ec9697128de227fb1647f985bfbb7bfda5e965ae7",
+        "status": 0,
+        "signal": null,
+        "stdoutHex": "2020205820205920206162632020205a0a",
+        "stderrHex": ""
+      },
+      {
+        "id": "expand-repeat-then-other-zero",
+        "command": "expand",
+        "fixtureSha256": "10fde3fe9e012c1c8effaf6e0df288c35f5bbbc872563f3879d1d8b78e0e5c92",
+        "status": 0,
+        "signal": null,
+        "stdoutHex": "2020205820205920206162632020205a0a",
+        "stderrHex": ""
+      },
+      {
+        "id": "expand-zero-legacy",
+        "command": "expand",
+        "fixtureSha256": "0d6fda93fe026a8c3938aeb42f7dce5641dc598d7243cb304c36ac3b18e424be",
+        "status": 0,
+        "signal": null,
+        "stdoutHex": "202058205920616263205a0a",
+        "stderrHex": ""
+      },
+      {
+        "id": "expand-empty-marker",
+        "command": "expand",
+        "fixtureSha256": "32fd4bac46113ba43fa7b7f6171c976c8cab99b4dc42b1c77582f3fb9c1a08fb",
+        "status": 0,
+        "signal": null,
+        "stdoutHex": "20202020202020205820202020202020592020202020202061626320202020205a0a",
+        "stderrHex": ""
+      },
+      {
+        "id": "expand-marker-replacement",
+        "command": "expand",
+        "fixtureSha256": "ad0b44c66636a0ff8c490a2e9b7d1a122e2317bad654b27ee1778b81bf93d22a",
+        "status": 0,
+        "signal": null,
+        "stdoutHex": "202058205920616263205a0a",
+        "stderrHex": ""
+      },
+      {
+        "id": "expand-operand-permutation",
+        "command": "expand",
+        "fixtureSha256": "23f7ca89c739ae6b8ac211604f3723f503001e29eaf58485280c157baa711a4b",
+        "status": 0,
+        "signal": null,
+        "stdoutHex": "20205820205920",
+        "stderrHex": ""
+      },
+      {
+        "id": "expand-end-options",
+        "command": "expand",
+        "fixtureSha256": "facb1cf034fa1b793742dbe5f46948ac5882cd6eee9e06e61fb1412a20a99f37",
+        "status": 0,
+        "signal": null,
+        "stdoutHex": "202020202020202058202020202020205920202020202020",
+        "stderrHex": ""
+      },
+      {
+        "id": "expand-zero-stop-invalid",
+        "command": "expand",
+        "fixtureSha256": "17fd1b7a6e1e0562bb65639389d377638111c098a27bb354617de7ac9590846f",
+        "status": 1,
+        "signal": null,
+        "stdoutHex": "",
+        "stderrHex": "657870616e643a207461622073697a652063616e6e6f7420626520300a"
+      },
+      {
+        "id": "expand-descending-invalid",
+        "command": "expand",
+        "fixtureSha256": "fdf1124d2a5e07a67ce9f78e665ee6d57f14d379bb31f616fa29b578e91f2376",
+        "status": 1,
+        "signal": null,
+        "stdoutHex": "",
+        "stderrHex": "657870616e643a207461622073697a6573206d75737420626520617363656e64696e670a"
+      },
+      {
+        "id": "expand-legacy-suffix-invalid",
+        "command": "expand",
+        "fixtureSha256": "a30b7a37577b52dc4dea86eb8188f289bcab1e5e47c95b1c541d97d5192669ab",
+        "status": 1,
+        "signal": null,
+        "stdoutHex": "",
+        "stderrHex": "657870616e643a207461622073697a6520636f6e7461696e7320696e76616c6964206368617261637465722873293a202769270a"
+      },
+      {
+        "id": "expand-repeat-reset-invalid",
+        "command": "expand",
+        "fixtureSha256": "06cff8916593ad36ca90530fd036331450819d671ebd5b4129bda18ac95642af",
+        "status": 1,
+        "signal": null,
+        "stdoutHex": "",
+        "stderrHex": "657870616e643a20272b2720737065636966696572206f6e6c7920616c6c6f776564207769746820746865206c6173742076616c75650a"
+      },
+      {
+        "id": "expand-repeat-sticky-invalid",
+        "command": "expand",
+        "fixtureSha256": "9c58eee857f6db82a1fce25aefb1d0d4ffe15c78498da8a47f8b022c8c5cad42",
+        "status": 1,
+        "signal": null,
+        "stdoutHex": "",
+        "stderrHex": "657870616e643a20272b2720737065636966696572206f6e6c7920616c6c6f776564207769746820746865206c6173742076616c75650a"
+      },
+      {
+        "id": "expand-repeat-conflict-invalid",
+        "command": "expand",
+        "fixtureSha256": "67e5afaffee65b3c74a8747833e279de0419b7c8e877f0f2dfbbdd052ff004e6",
+        "status": 1,
+        "signal": null,
+        "stdoutHex": "",
+        "stderrHex": "657870616e643a20272f2720737065636966696572206973206d757475616c6c79206578636c7573697665207769746820272b270a"
+      },
+      {
+        "id": "expand-negative-value-invalid",
+        "command": "expand",
+        "fixtureSha256": "82f270841003acc6f330437ea8aa3e4c2f8a6b147fb7a86c18309ea3f8c2b261",
+        "status": 1,
+        "signal": null,
+        "stdoutHex": "",
+        "stderrHex": "657870616e643a207461622073697a6520636f6e7461696e7320696e76616c6964206368617261637465722873293a20272d32270a"
+      },
+      {
+        "id": "expand-legacy-overflow-invalid",
+        "command": "expand",
+        "fixtureSha256": "4e7c72cc7ef3ca5af8853cd36b7b15d6acd2c521f01ff4b428bf23c592c530c8",
+        "status": 1,
+        "signal": null,
+        "stdoutHex": "",
+        "stderrHex": "657870616e643a207461622073746f7020697320746f6f206c6172676520273138343436373434303733373039353531363136270a"
+      },
+      {
+        "id": "reported-fold-legacy",
+        "command": "fold",
+        "fixtureSha256": "ca71ca2f2440103c53d2e3b2fc7b4915d73978613241ebb3da3272e52bdea6c5",
+        "status": 0,
+        "signal": null,
+        "stdoutHex": "6162630a6465660a67",
+        "stderrHex": ""
+      },
+      {
+        "id": "fold-legacy-bytes-prefix",
+        "command": "fold",
+        "fixtureSha256": "c2eeb57f6480af28ad3fabe086cdef0ffaac9f2a0df97efc9c323ede61f60b4c",
+        "status": 0,
+        "signal": null,
+        "stdoutHex": "6162090a6364650a660a",
+        "stderrHex": ""
+      },
+      {
+        "id": "fold-legacy-spaces-prefix",
+        "command": "fold",
+        "fixtureSha256": "17d6c4defbabc1c3023cbc77abd0fca22645f2413587828385fc216a0e7053af",
+        "status": 0,
+        "signal": null,
+        "stdoutHex": "6162200a6364200a656667680a",
+        "stderrHex": ""
+      },
+      {
+        "id": "fold-legacy-multidigit",
+        "command": "fold",
+        "fixtureSha256": "e334d34e6c22941dc6b7a845cb2af6fb59a908167580b15cccff757ca49877fa",
+        "status": 0,
+        "signal": null,
+        "stdoutHex": "6162636465666768696a6b6c0a6d6e6f700a",
+        "stderrHex": ""
+      },
+      {
+        "id": "fold-legacy-leading-zero",
+        "command": "fold",
+        "fixtureSha256": "2e22a093cfc9e5d75d0b9fba01691fe0f1d81e4f651ad33f8e150cace8d87643",
+        "status": 0,
+        "signal": null,
+        "stdoutHex": "6162630a6465660a6768690a6a6b6c0a6d6e6f0a700a",
+        "stderrHex": ""
+      },
+      {
+        "id": "fold-legacy-modern-order",
+        "command": "fold",
+        "fixtureSha256": "7826ff50047c5a0cafcb38cd3191129d35b6b5ef758dbbdbd4fe9458045b51f9",
+        "status": 0,
+        "signal": null,
+        "stdoutHex": "61626364650a666768696a0a6b6c6d6e6f0a700a",
+        "stderrHex": ""
+      },
+      {
+        "id": "fold-modern-legacy-order",
+        "command": "fold",
+        "fixtureSha256": "17863a6da25d6b1e07500b9d8de91dccb00afaf43a669c5229014026234744c6",
+        "status": 0,
+        "signal": null,
+        "stdoutHex": "6162630a6465660a6768690a6a6b6c0a6d6e6f0a700a",
+        "stderrHex": ""
+      },
+      {
+        "id": "fold-legacy-repeated",
+        "command": "fold",
+        "fixtureSha256": "41d2251495fc9f2c2fb21f14f83fd3a027b3666afd5690bb95550ba7c57d1fb3",
+        "status": 0,
+        "signal": null,
+        "stdoutHex": "61626364650a666768696a0a6b6c6d6e6f0a700a",
+        "stderrHex": ""
+      },
+      {
+        "id": "fold-operand-permutation",
+        "command": "fold",
+        "fixtureSha256": "e4040f5862a735cee5d865766d40d97a32568371dcd2d10e702477170e38e9a6",
+        "status": 0,
+        "signal": null,
+        "stdoutHex": "6162630a6465660a67",
+        "stderrHex": ""
+      },
+      {
+        "id": "fold-end-options",
+        "command": "fold",
+        "fixtureSha256": "776c49a357a49b9b539365a257af2507882179f67f16a6d64c48419438371761",
+        "status": 0,
+        "signal": null,
+        "stdoutHex": "61626364656667",
+        "stderrHex": ""
+      },
+      {
+        "id": "fold-legacy-suffix-invalid",
+        "command": "fold",
+        "fixtureSha256": "fa79b1689cb7a565e886fca3b9e28c5c38b189b5b14524fc26f246284997126a",
+        "status": 1,
+        "signal": null,
+        "stdoutHex": "",
+        "stderrHex": "666f6c643a20696e76616c6964206e756d626572206f6620636f6c756d6e733a20273362270a"
+      },
+      {
+        "id": "fold-zero-invalid",
+        "command": "fold",
+        "fixtureSha256": "7f6817c8f7e287cd8dc267d628b6df4b5fb8ba76d9f56d67e1196269a4cea563",
+        "status": 1,
+        "signal": null,
+        "stdoutHex": "",
+        "stderrHex": "666f6c643a20696e76616c6964206e756d626572206f6620636f6c756d6e733a202730273a20526573756c7420746f6f206c617267650a"
+      },
+      {
+        "id": "fold-overridden-zero-invalid",
+        "command": "fold",
+        "fixtureSha256": "f74d5e870842584586e5092bb5ec4f7804b9b4f4878086c5599570da3e3ce886",
+        "status": 1,
+        "signal": null,
+        "stdoutHex": "",
+        "stderrHex": "666f6c643a20696e76616c6964206e756d626572206f6620636f6c756d6e733a202730273a20526573756c7420746f6f206c617267650a"
+      },
+      {
+        "id": "fold-overridden-modern-zero-invalid",
+        "command": "fold",
+        "fixtureSha256": "ddbc25dc1723f553e74bd111b9ea4ae81b3d23a957f5536a98d6d699cb8a629d",
+        "status": 1,
+        "signal": null,
+        "stdoutHex": "",
+        "stderrHex": "666f6c643a20696e76616c6964206e756d626572206f6620636f6c756d6e733a202730273a20526573756c7420746f6f206c617267650a"
+      },
+      {
+        "id": "fold-negative-value-invalid",
+        "command": "fold",
+        "fixtureSha256": "79c47f54a9d1ffe906b5b060e7d9f0b2351d1f8b33ee36e818cf9bf24fd35b59",
+        "status": 1,
+        "signal": null,
+        "stdoutHex": "",
+        "stderrHex": "666f6c643a20696e76616c6964206e756d626572206f6620636f6c756d6e733a20272d33270a"
+      },
+      {
+        "id": "fold-legacy-overflow-invalid",
+        "command": "fold",
+        "fixtureSha256": "31792aa9351862620ca3f6d7f30b63328fa8f1d383f0cfdc7b5663dfa602aa69",
+        "status": 1,
+        "signal": null,
+        "stdoutHex": "",
+        "stderrHex": "666f6c643a20696e76616c6964206e756d626572206f6620636f6c756d6e733a20273138343436373434303733373039353531363136273a20526573756c7420746f6f206c617267650a"
+      },
+      {
+        "id": "reported-strings-legacy",
+        "command": "strings",
+        "fixtureSha256": "67a6b4684df68c4d624d90803db880c334f851a6a0ba64b31a8e7437fa7f7075",
+        "status": 0,
+        "signal": null,
+        "stdoutHex": "66697665730a656e64696e670a",
+        "stderrHex": ""
+      },
+      {
+        "id": "strings-legacy-multidigit",
+        "command": "strings",
+        "fixtureSha256": "51f2c1d1a6e42bd826928b08c79a0f22f61f2ace0c68e14467f66c8b836ce64d",
+        "status": 0,
+        "signal": null,
+        "stdoutHex": "6162636465666768696a6b6c0a",
+        "stderrHex": ""
+      },
+      {
+        "id": "strings-legacy-leading-zero",
+        "command": "strings",
+        "fixtureSha256": "d0bb94595e535b34c1d33f54f45db1119abf0b46bb9eb5dad993f3e0a8e5fd40",
+        "status": 0,
+        "signal": null,
+        "stdoutHex": "66697665730a656e64696e670a61626364656667680a6162636465666768696a6b6c0a",
+        "stderrHex": ""
+      },
+      {
+        "id": "strings-legacy-octal",
+        "command": "strings",
+        "fixtureSha256": "cb4c190590ff82452612311bcb8723e4dac33c81a615901f3abe3ff0c58ab233",
+        "status": 0,
+        "signal": null,
+        "stdoutHex": "61626364656667680a6162636465666768696a6b6c0a",
+        "stderrHex": ""
+      },
+      {
+        "id": "strings-legacy-modern-order",
+        "command": "strings",
+        "fixtureSha256": "294237ec4a926b3640044a01b66aab9ab61c3ae73045b2368c594a557bd5af9d",
+        "status": 0,
+        "signal": null,
+        "stdoutHex": "66697665730a656e64696e670a61626364656667680a6162636465666768696a6b6c0a",
+        "stderrHex": ""
+      },
+      {
+        "id": "strings-modern-legacy-order",
+        "command": "strings",
+        "fixtureSha256": "f71ab47e33a14dd39f3861ae7d50a07f803977940f41aecd03610c226f586ed6",
+        "status": 0,
+        "signal": null,
+        "stdoutHex": "66697665730a656e64696e670a61626364656667680a6162636465666768696a6b6c0a",
+        "stderrHex": ""
+      },
+      {
+        "id": "strings-legacy-repeated",
+        "command": "strings",
+        "fixtureSha256": "3d6cffceaaf2e6da97fde88ee1a3f98d7202e5a8fcd4fd797bf646c1f581bbae",
+        "status": 0,
+        "signal": null,
+        "stdoutHex": "666f75720a66697665730a656e64696e670a61626364656667680a6162636465666768696a6b6c0a",
+        "stderrHex": ""
+      },
+      {
+        "id": "strings-legacy-overridden-zero",
+        "command": "strings",
+        "fixtureSha256": "ffee5b84e14f1a2b35fb85f290351069ac4a39cc9a02ecfa26d1d150088de1f1",
+        "status": 0,
+        "signal": null,
+        "stdoutHex": "66697665730a656e64696e670a61626364656667680a6162636465666768696a6b6c0a",
+        "stderrHex": ""
+      },
+      {
+        "id": "strings-legacy-flags-radix",
+        "command": "strings",
+        "fixtureSha256": "43c7c2fdb86e55eda83040e8a238882b23e185246ec900b227b2ed6fa9609f22",
+        "status": 0,
+        "signal": null,
+        "stdoutHex": "7b7374616e6461726420696e7075747d3a20202020202020352066697665730a7b7374616e6461726420696e7075747d3a202020202020206220656e64696e670a7b7374616e6461726420696e7075747d3a20202020202031322061626364656667680a7b7374616e6461726420696e7075747d3a2020202020203162206162636465666768696a6b6c0a",
+        "stderrHex": ""
+      },
+      {
+        "id": "strings-operand-permutation",
+        "command": "strings",
+        "fixtureSha256": "b9642848438765324d57de28c422aea56faecdab7638e5c18ed41eb182984cb1",
+        "status": 1,
+        "signal": null,
+        "stdoutHex": "",
+        "stderrHex": "2f746d702f736166652d626173682d676e752d737472696e67732d32303236303832372d594a715048662f6275696c642d73797374656d2d7a6c69622f62696e7574696c732f737472696e67733a20696e76616c696420696e746567657220617267756d656e74206174610a"
+      },
+      {
+        "id": "strings-end-options",
+        "command": "strings",
+        "fixtureSha256": "5ee0160e8d4b5aaac9868096f1e81f41f2da80e0198f17328e96c01de9adcc15",
+        "status": 0,
+        "signal": null,
+        "stdoutHex": "666f75720a66697665730a656e64696e670a",
+        "stderrHex": ""
+      },
+      {
+        "id": "strings-legacy-zero-invalid",
+        "command": "strings",
+        "fixtureSha256": "cfbcfd7f3a98dd3034198e257c901faae0f35d797ba90eaa829b2254a6dbca8d",
+        "status": 1,
+        "signal": null,
+        "stdoutHex": "",
+        "stderrHex": "2f746d702f736166652d626173682d676e752d737472696e67732d32303236303832372d594a715048662f6275696c642d73797374656d2d7a6c69622f62696e7574696c732f737472696e67733a206d696e696d756d20737472696e67206c656e67746820697320746f6f20736d616c6c3a20300a"
+      },
+      {
+        "id": "strings-legacy-zero-modern-invalid",
+        "command": "strings",
+        "fixtureSha256": "8271f5632861b6fae474ba8c13ca09f8a4f9759065732c60c8ef90302e5c881a",
+        "status": 1,
+        "signal": null,
+        "stdoutHex": "",
+        "stderrHex": "2f746d702f736166652d626173682d676e752d737472696e67732d32303236303832372d594a715048662f6275696c642d73797374656d2d7a6c69622f62696e7574696c732f737472696e67733a206d696e696d756d20737472696e67206c656e67746820697320746f6f20736d616c6c3a20300a"
+      },
+      {
+        "id": "strings-modern-zero-legacy-invalid",
+        "command": "strings",
+        "fixtureSha256": "508d93f8551737520cf79ad3a02212e7a56d603f71240f6cce2e53e899c682e3",
+        "status": 1,
+        "signal": null,
+        "stdoutHex": "",
+        "stderrHex": "2f746d702f736166652d626173682d676e752d737472696e67732d32303236303832372d594a715048662f6275696c642d73797374656d2d7a6c69622f62696e7574696c732f737472696e67733a206d696e696d756d20737472696e67206c656e67746820697320746f6f20736d616c6c3a20300a"
+      },
+      {
+        "id": "strings-modern-overridden-zero-invalid",
+        "command": "strings",
+        "fixtureSha256": "e76faa3e4655ea14e4ff5a56aa74515bc448755064ffcc96ea46bdb9863d6390",
+        "status": 1,
+        "signal": null,
+        "stdoutHex": "",
+        "stderrHex": "2f746d702f736166652d626173682d676e752d737472696e67732d32303236303832372d594a715048662f6275696c642d73797374656d2d7a6c69622f62696e7574696c732f737472696e67733a206d696e696d756d20737472696e67206c656e67746820697320746f6f20736d616c6c3a20300a"
+      },
+      {
+        "id": "strings-legacy-invalid-octal",
+        "command": "strings",
+        "fixtureSha256": "3304c7ff69be0567781e84b688266a264d3fcd8be882614adb0c3571c72ba4ac",
+        "status": 1,
+        "signal": null,
+        "stdoutHex": "",
+        "stderrHex": "2f746d702f736166652d626173682d676e752d737472696e67732d32303236303832372d594a715048662f6275696c642d73797374656d2d7a6c69622f62696e7574696c732f737472696e67733a20696e76616c696420696e746567657220617267756d656e742030380a"
+      },
+      {
+        "id": "strings-legacy-prefix-invalid",
+        "command": "strings",
+        "fixtureSha256": "a2bdb6dddbb7b045d7dc1dcb39ba68a3e7506c6d8fb2469d9c23c822b1959043",
+        "status": 1,
+        "signal": null,
+        "stdoutHex": "",
+        "stderrHex": "2f746d702f736166652d626173682d676e752d737472696e67732d32303236303832372d594a715048662f6275696c642d73797374656d2d7a6c69622f62696e7574696c732f737472696e67733a20696e76616c696420696e746567657220617267756d656e742061350a"
+      },
+      {
+        "id": "strings-legacy-suffix-invalid",
+        "command": "strings",
+        "fixtureSha256": "51c1cb5b40a52376f263e7202e7394d85ce9ace4a6526a6cc4beed361a97e543",
+        "status": 1,
+        "signal": null,
+        "stdoutHex": "",
+        "stderrHex": "2f746d702f736166652d626173682d676e752d737472696e67732d32303236303832372d594a715048662f6275696c642d73797374656d2d7a6c69622f62696e7574696c732f737472696e67733a20696e76616c696420696e746567657220617267756d656e7420746d702f736166652d626173682d676e752d737472696e67732d32303236303832372d594a715048662f6275696c642d73797374656d2d7a6c69622f62696e7574696c732f737472696e67730a"
+      },
+      {
+        "id": "strings-legacy-overflow-invalid",
+        "command": "strings",
+        "fixtureSha256": "af4a24ae535e70a26b24034929d4491f846b2ec32b2bb368e3f752738b1926dc",
+        "status": 1,
+        "signal": null,
+        "stdoutHex": "",
+        "stderrHex": "2f746d702f736166652d626173682d676e752d737472696e67732d32303236303832372d594a715048662f6275696c642d73797374656d2d7a6c69622f62696e7574696c732f737472696e67733a206d696e696d756d20737472696e67206c656e67746820697320746f6f206269673a2031383434363734343037333730393535313631360a"
+      },
+      {
+        "id": "strings-legacy-uint-overflow-invalid",
+        "command": "strings",
+        "fixtureSha256": "d100871ea2bcd9e01515c57f9fcbdfc7b7602d5ffe48580505df6abcd5ac12ee",
+        "status": 1,
+        "signal": null,
+        "stdoutHex": "",
+        "stderrHex": "2f746d702f736166652d626173682d676e752d737472696e67732d32303236303832372d594a715048662f6275696c642d73797374656d2d7a6c69622f62696e7574696c732f737472696e67733a206d696e696d756d20737472696e67206c656e67746820697320746f6f206269673a20343239343936373239360a"
+      },
+      {
+        "id": "strings-legacy-uint-max-invalid",
+        "command": "strings",
+        "fixtureSha256": "ca0fce85b483ee24c04f36e58650b5272e0674391d0a18d58d2fd09e041a9693",
+        "status": 1,
+        "signal": null,
+        "stdoutHex": "",
+        "stderrHex": "2f746d702f736166652d626173682d676e752d737472696e67732d32303236303832372d594a715048662f6275696c642d73797374656d2d7a6c69622f62696e7574696c732f737472696e67733a206d696e696d756d20737472696e67206c656e677468203432393439363732393520697320746f6f206269670a"
+      }
+    ],
+    "after": {
+      "expand": {
+        "executable": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/expand",
+        "resolved": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/expand",
+        "sha256": "158dccaca888f3187291f4f4ede9b3715ccee15e8e441f82030dc09d25a2648b",
+        "version": "expand (GNU coreutils) 9.7\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by David MacKenzie.\n",
+        "versionStderr": "",
+        "versionStatus": 0
+      },
+      "fold": {
+        "executable": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/fold",
+        "resolved": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/fold",
+        "sha256": "8cfe2de684b57136dcb7040d529289b610f4f15a4f8696cded679d56a5361559",
+        "version": "fold (GNU coreutils) 9.7\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by David MacKenzie.\n",
+        "versionStderr": "",
+        "versionStatus": 0
+      },
+      "strings": {
+        "executable": "/tmp/safe-bash-gnu-strings-20260827-YJqPHf/build-system-zlib/binutils/strings",
+        "resolved": "/private/tmp/safe-bash-gnu-strings-20260827-YJqPHf/build-system-zlib/binutils/strings",
+        "sha256": "90b9c9257095110594ae58a4bb1531d9670bd6aed297b8dbf0dc01914c5de09f",
+        "version": "GNU strings (GNU Binutils) 2.44\nCopyright (C) 2025 Free Software Foundation, Inc.\nThis program is free software; you may redistribute it under the terms of\nthe GNU General Public License version 3 or (at your option) any later version.\nThis program has absolutely no warranty.\n",
+        "versionStderr": "",
+        "versionStatus": 0
+      }
+    }
+  },
+  "before": [
+    {
+      "id": "reported-expand-legacy",
+      "exitCode": 1,
+      "stdoutHex": "",
+      "stderr": "expand: invalid option -- '2'\n"
+    },
+    {
+      "id": "reported-expand-zero-repeat",
+      "exitCode": 1,
+      "stdoutHex": "",
+      "stderr": "expand: invalid number '0'\n"
+    },
+    {
+      "id": "expand-legacy-initial-prefix",
+      "exitCode": 1,
+      "stdoutHex": "",
+      "stderr": "expand: invalid option -- '2'\n"
+    },
+    {
+      "id": "expand-legacy-initial-separate",
+      "exitCode": 1,
+      "stdoutHex": "",
+      "stderr": "expand: invalid option -- '2'\n"
+    },
+    {
+      "id": "expand-legacy-repeated",
+      "exitCode": 1,
+      "stdoutHex": "",
+      "stderr": "expand: invalid option -- '2'\n"
+    },
+    {
+      "id": "expand-legacy-modern-order",
+      "exitCode": 1,
+      "stdoutHex": "",
+      "stderr": "expand: invalid option -- '2'\n"
+    },
+    {
+      "id": "expand-modern-legacy-order",
+      "exitCode": 1,
+      "stdoutHex": "",
+      "stderr": "expand: invalid option -- '5'\n"
+    },
+    {
+      "id": "expand-zero-relative-only",
+      "exitCode": 1,
+      "stdoutHex": "",
+      "stderr": "expand: invalid number '0'\n"
+    },
+    {
+      "id": "expand-zero-absolute-only",
+      "exitCode": 1,
+      "stdoutHex": "",
+      "stderr": "expand: invalid number '0'\n"
+    },
+    {
+      "id": "expand-zero-finite",
+      "exitCode": 1,
+      "stdoutHex": "",
+      "stderr": "expand: invalid number '0'\n"
+    },
+    {
+      "id": "expand-zero-absolute-single",
+      "exitCode": 1,
+      "stdoutHex": "",
+      "stderr": "expand: invalid number '0'\n"
+    },
+    {
+      "id": "expand-zero-sticky-replacement",
+      "exitCode": 1,
+      "stdoutHex": "",
+      "stderr": "expand: invalid number '0'\n"
+    },
+    {
+      "id": "expand-zero-sticky-zero",
+      "exitCode": 1,
+      "stdoutHex": "",
+      "stderr": "expand: invalid number '0'\n"
+    },
+    {
+      "id": "expand-zero-separate-stop",
+      "exitCode": 1,
+      "stdoutHex": "",
+      "stderr": "expand: invalid number '0'\n"
+    },
+    {
+      "id": "expand-repeat-separate-stop",
+      "exitCode": 1,
+      "stdoutHex": "",
+      "stderr": "expand: repeating tab stop must be last\n"
+    },
+    {
+      "id": "expand-zero-then-repeat",
+      "exitCode": 1,
+      "stdoutHex": "",
+      "stderr": "expand: invalid number '0'\n"
+    },
+    {
+      "id": "expand-zero-then-other-repeat",
+      "exitCode": 1,
+      "stdoutHex": "",
+      "stderr": "expand: invalid number '0'\n"
+    },
+    {
+      "id": "expand-repeat-then-other-zero",
+      "exitCode": 1,
+      "stdoutHex": "",
+      "stderr": "expand: repeating tab stop must be last\n"
+    },
+    {
+      "id": "expand-zero-legacy",
+      "exitCode": 1,
+      "stdoutHex": "",
+      "stderr": "expand: invalid option -- '2'\n"
+    },
+    {
+      "id": "expand-empty-marker",
+      "exitCode": 1,
+      "stdoutHex": "",
+      "stderr": "expand: invalid number ''\n"
+    },
+    {
+      "id": "expand-marker-replacement",
+      "exitCode": 1,
+      "stdoutHex": "",
+      "stderr": "expand: invalid number '/2'\n"
+    },
+    {
+      "id": "expand-operand-permutation",
+      "exitCode": 1,
+      "stdoutHex": "",
+      "stderr": "expand: invalid option -- '2'\n"
+    },
+    {
+      "id": "expand-end-options",
+      "exitCode": 0,
+      "stdoutHex": "202020202020202058202020202020205920202020202020",
+      "stderr": ""
+    },
+    {
+      "id": "expand-zero-stop-invalid",
+      "exitCode": 1,
+      "stdoutHex": "",
+      "stderr": "expand: invalid option -- '0'\n"
+    },
+    {
+      "id": "expand-descending-invalid",
+      "exitCode": 1,
+      "stdoutHex": "",
+      "stderr": "expand: invalid option -- '5'\n"
+    },
+    {
+      "id": "expand-legacy-suffix-invalid",
+      "exitCode": 1,
+      "stdoutHex": "",
+      "stderr": "expand: invalid option -- '2'\n"
+    },
+    {
+      "id": "expand-repeat-reset-invalid",
+      "exitCode": 1,
+      "stdoutHex": "",
+      "stderr": "expand: repeating tab stop must be last\n"
+    },
+    {
+      "id": "expand-repeat-sticky-invalid",
+      "exitCode": 1,
+      "stdoutHex": "",
+      "stderr": "expand: repeating tab stop must be last\n"
+    },
+    {
+      "id": "expand-repeat-conflict-invalid",
+      "exitCode": 1,
+      "stdoutHex": "",
+      "stderr": "expand: repeating tab stop must be last\n"
+    },
+    {
+      "id": "expand-negative-value-invalid",
+      "exitCode": 1,
+      "stdoutHex": "",
+      "stderr": "expand: invalid number '-2'\n"
+    },
+    {
+      "id": "expand-legacy-overflow-invalid",
+      "exitCode": 1,
+      "stdoutHex": "",
+      "stderr": "expand: invalid option -- '1'\n"
+    },
+    {
+      "id": "reported-fold-legacy",
+      "exitCode": 1,
+      "stdoutHex": "",
+      "stderr": "fold: invalid option -- '3'\n"
+    },
+    {
+      "id": "fold-legacy-bytes-prefix",
+      "exitCode": 1,
+      "stdoutHex": "",
+      "stderr": "fold: invalid option -- '3'\n"
+    },
+    {
+      "id": "fold-legacy-spaces-prefix",
+      "exitCode": 1,
+      "stdoutHex": "",
+      "stderr": "fold: invalid option -- '5'\n"
+    },
+    {
+      "id": "fold-legacy-multidigit",
+      "exitCode": 1,
+      "stdoutHex": "",
+      "stderr": "fold: invalid option -- '1'\n"
+    },
+    {
+      "id": "fold-legacy-leading-zero",
+      "exitCode": 1,
+      "stdoutHex": "",
+      "stderr": "fold: invalid option -- '0'\n"
+    },
+    {
+      "id": "fold-legacy-modern-order",
+      "exitCode": 1,
+      "stdoutHex": "",
+      "stderr": "fold: invalid option -- '3'\n"
+    },
+    {
+      "id": "fold-modern-legacy-order",
+      "exitCode": 1,
+      "stdoutHex": "",
+      "stderr": "fold: invalid option -- '3'\n"
+    },
+    {
+      "id": "fold-legacy-repeated",
+      "exitCode": 1,
+      "stdoutHex": "",
+      "stderr": "fold: invalid option -- '3'\n"
+    },
+    {
+      "id": "fold-operand-permutation",
+      "exitCode": 1,
+      "stdoutHex": "",
+      "stderr": "fold: invalid option -- '3'\n"
+    },
+    {
+      "id": "fold-end-options",
+      "exitCode": 0,
+      "stdoutHex": "61626364656667",
+      "stderr": ""
+    },
+    {
+      "id": "fold-legacy-suffix-invalid",
+      "exitCode": 1,
+      "stdoutHex": "",
+      "stderr": "fold: invalid option -- '3'\n"
+    },
+    {
+      "id": "fold-zero-invalid",
+      "exitCode": 1,
+      "stdoutHex": "",
+      "stderr": "fold: invalid option -- '0'\n"
+    },
+    {
+      "id": "fold-overridden-zero-invalid",
+      "exitCode": 1,
+      "stdoutHex": "",
+      "stderr": "fold: invalid option -- '0'\n"
+    },
+    {
+      "id": "fold-overridden-modern-zero-invalid",
+      "exitCode": 1,
+      "stdoutHex": "",
+      "stderr": "fold: invalid option -- '3'\n"
+    },
+    {
+      "id": "fold-negative-value-invalid",
+      "exitCode": 1,
+      "stdoutHex": "",
+      "stderr": "fold: invalid number '-3'\n"
+    },
+    {
+      "id": "fold-legacy-overflow-invalid",
+      "exitCode": 1,
+      "stdoutHex": "",
+      "stderr": "fold: invalid option -- '1'\n"
+    },
+    {
+      "id": "reported-strings-legacy",
+      "exitCode": 1,
+      "stdoutHex": "",
+      "stderr": "strings: invalid option -- '5'\n"
+    },
+    {
+      "id": "strings-legacy-multidigit",
+      "exitCode": 1,
+      "stdoutHex": "",
+      "stderr": "strings: invalid option -- '1'\n"
+    },
+    {
+      "id": "strings-legacy-leading-zero",
+      "exitCode": 1,
+      "stdoutHex": "",
+      "stderr": "strings: invalid option -- '0'\n"
+    },
+    {
+      "id": "strings-legacy-octal",
+      "exitCode": 1,
+      "stdoutHex": "",
+      "stderr": "strings: invalid option -- '0'\n"
+    },
+    {
+      "id": "strings-legacy-modern-order",
+      "exitCode": 1,
+      "stdoutHex": "",
+      "stderr": "strings: invalid option -- '5'\n"
+    },
+    {
+      "id": "strings-modern-legacy-order",
+      "exitCode": 1,
+      "stdoutHex": "",
+      "stderr": "strings: invalid option -- '5'\n"
+    },
+    {
+      "id": "strings-legacy-repeated",
+      "exitCode": 1,
+      "stdoutHex": "",
+      "stderr": "strings: invalid option -- '5'\n"
+    },
+    {
+      "id": "strings-legacy-overridden-zero",
+      "exitCode": 1,
+      "stdoutHex": "",
+      "stderr": "strings: invalid option -- '0'\n"
+    },
+    {
+      "id": "strings-legacy-flags-radix",
+      "exitCode": 1,
+      "stdoutHex": "",
+      "stderr": "strings: invalid option -- '5'\n"
+    },
+    {
+      "id": "strings-operand-permutation",
+      "exitCode": 1,
+      "stdoutHex": "",
+      "stderr": "strings: invalid option -- '5'\n"
+    },
+    {
+      "id": "strings-end-options",
+      "exitCode": 0,
+      "stdoutHex": "666f75720a66697665730a656e64696e670a",
+      "stderr": ""
+    },
+    {
+      "id": "strings-legacy-zero-invalid",
+      "exitCode": 1,
+      "stdoutHex": "",
+      "stderr": "strings: invalid option -- '0'\n"
+    },
+    {
+      "id": "strings-legacy-zero-modern-invalid",
+      "exitCode": 1,
+      "stdoutHex": "",
+      "stderr": "strings: invalid option -- '0'\n"
+    },
+    {
+      "id": "strings-modern-zero-legacy-invalid",
+      "exitCode": 1,
+      "stdoutHex": "",
+      "stderr": "strings: invalid option -- '5'\n"
+    },
+    {
+      "id": "strings-modern-overridden-zero-invalid",
+      "exitCode": 1,
+      "stdoutHex": "",
+      "stderr": "strings: invalid option -- '5'\n"
+    },
+    {
+      "id": "strings-legacy-invalid-octal",
+      "exitCode": 1,
+      "stdoutHex": "",
+      "stderr": "strings: invalid option -- '0'\n"
+    },
+    {
+      "id": "strings-legacy-prefix-invalid",
+      "exitCode": 1,
+      "stdoutHex": "",
+      "stderr": "strings: invalid option -- '5'\n"
+    },
+    {
+      "id": "strings-legacy-suffix-invalid",
+      "exitCode": 1,
+      "stdoutHex": "",
+      "stderr": "strings: invalid option -- '5'\n"
+    },
+    {
+      "id": "strings-legacy-overflow-invalid",
+      "exitCode": 1,
+      "stdoutHex": "",
+      "stderr": "strings: invalid option -- '1'\n"
+    },
+    {
+      "id": "strings-legacy-uint-overflow-invalid",
+      "exitCode": 1,
+      "stdoutHex": "",
+      "stderr": "strings: invalid option -- '4'\n"
+    },
+    {
+      "id": "strings-legacy-uint-max-invalid",
+      "exitCode": 1,
+      "stdoutHex": "",
+      "stderr": "strings: invalid option -- '4'\n"
+    }
+  ]
+}

@@ -1,24 +1,36 @@
 import type { CommandDefinition } from "../../contracts/index.js";
-import { integer, options, UsageError } from "../internal.js";
+import { integer, UsageError } from "../internal.js";
+import { numericOptions } from "./numeric-options.js";
 import { ByteOutput, command, type StreamInspectionLimits } from "./shared.js";
 
 function tabs(specifications: readonly string[]): (column: number) => number {
   const stops: number[] = [];
-  let repeat = 0, relative = false;
+  let absoluteRepeat = 0, relativeRepeat = 0;
   for (const specification of specifications) {
     const entries = specification.split(/[, \t]+/u);
+    let marker = "";
     for (const entry of entries) {
       if (!entry) continue;
-      if (repeat) throw new UsageError("repeating tab stop must be last");
-      const extended = entry.startsWith("+") || entry.startsWith("/");
-      const stop = integer(extended ? entry.slice(1) : entry, 1);
-      if (extended) { repeat = stop; relative = entry.startsWith("+"); }
-      else {
+      const prefix = entry.match(/^[+/]+/u)?.[0] ?? "";
+      if (prefix) marker = prefix.at(-1)!;
+      const number = entry.slice(prefix.length);
+      if (!number) continue;
+      const stop = integer(number, marker ? 0 : 1);
+      if (marker === "+") {
+        if (relativeRepeat) throw new UsageError("repeating tab stop must be last");
+        relativeRepeat = stop;
+      } else if (marker === "/") {
+        if (absoluteRepeat) throw new UsageError("repeating tab stop must be last");
+        absoluteRepeat = stop;
+      } else {
         if (stop <= (stops.at(-1) ?? 0)) throw new UsageError("tab stops must be ascending");
         stops.push(stop);
       }
     }
   }
+  if (absoluteRepeat && relativeRepeat) throw new UsageError("'/' specifier is mutually exclusive with '+'");
+  let repeat = absoluteRepeat || relativeRepeat;
+  const relative = relativeRepeat !== 0;
   if (!stops.length && !repeat) repeat = 8;
   if (stops.length === 1 && !repeat) repeat = stops.pop()!;
   return column => {
@@ -36,7 +48,7 @@ function tabs(specifications: readonly string[]): (column: number) => number {
 
 export function createExpandCommand(limits: StreamInspectionLimits): CommandDefinition {
   return command("expand", limits, async session => {
-    const parsed = options(session.context.args, "it:", { initial: "i", tabs: "t" });
+    const parsed = numericOptions(session.context.args, "it:", { initial: "i", tabs: "t" }, "t");
     const nextTab = tabs(parsed.values.get("t") ?? []);
     const output = new ByteOutput(session);
     let column = 0, initial = true;

@@ -1,11 +1,13 @@
 import type { CommandDefinition } from "../../contracts/index.js";
-import { integer, options, value } from "../internal.js";
+import { integer } from "../internal.js";
+import { numericOptions } from "./numeric-options.js";
 import { command, RecordBuffer, type StreamInspectionLimits } from "./shared.js";
 
 export function createFoldCommand(limits: StreamInspectionLimits): CommandDefinition {
   return command("fold", limits, async session => {
-    const parsed = options(session.context.args, "bsw:", { bytes: "b", spaces: "s", width: "w" });
-    const width = integer(value(parsed, "w") ?? "80", 1);
+    const parsed = numericOptions(session.context.args, "bsw:", { bytes: "b", spaces: "s", width: "w" }, "w");
+    let width = 80;
+    for (const specification of parsed.values.get("w") ?? []) width = integer(specification, 1);
     const adjust = (column: number, byte: number): number => {
       if (parsed.flags.has("b")) return column + 1;
       if (byte === 8) return Math.max(0, column - 1);

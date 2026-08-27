@@ -1,11 +1,19 @@
 import type { CommandDefinition } from "../../contracts/index.js";
-import { integer, options, UsageError, value } from "../internal.js";
+import { integer, UsageError, value } from "../internal.js";
+import { numericOptions } from "./numeric-options.js";
 import { command, RecordBuffer, type StreamInspectionLimits } from "./shared.js";
 
 export function createStringsCommand(limits: StreamInspectionLimits): CommandDefinition {
   return command("strings", limits, async session => {
-    const parsed = options(session.context.args, "afn:t:", { all: "a", "print-file-name": "f", bytes: "n", radix: "t" });
-    const minimum = integer(value(parsed, "n") ?? "4", 1);
+    const parsed = numericOptions(session.context.args, "afn:t:", { all: "a", "print-file-name": "f", bytes: "n", radix: "t" });
+    let minimum = 4;
+    for (const specification of parsed.values.get("n") ?? []) minimum = integer(specification, 1);
+    if (parsed.legacyValue !== undefined) {
+      const specification = parsed.legacyValue;
+      if (!/^(?:0[0-7]*|[1-9][0-9]*)$/u.test(specification)) throw new UsageError(`invalid number '${specification}'`);
+      minimum = Number.parseInt(specification, specification.startsWith("0") ? 8 : 10);
+      if (minimum < 1 || minimum >= 4294967295) throw new UsageError(`invalid number '${specification}'`);
+    }
     const radix = value(parsed, "t");
     if (radix !== undefined && !["d", "o", "x"].includes(radix)) throw new UsageError(`invalid radix '${radix}'`);
     const files = parsed.operands.filter(name => name !== "-");

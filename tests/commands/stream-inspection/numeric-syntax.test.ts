@@ -2,6 +2,11 @@ import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import test from "node:test";
+import { createMemoryFileSystem } from "../../../src/fs/memory/index.js";
+import { Shell } from "../../../src/shell/index.js";
+import { ShellLimitError } from "../../../src/shell/types.js";
+import { standardCommands } from "../../../src/commands/index.js";
+import { streamInspectionCommands } from "../../../src/commands/stream-inspection/index.js";
 import { numericSyntaxCases } from "./numeric-syntax-cases.js";
 import { captureNumericSyntax } from "./numeric-syntax-oracle.js";
 import { runFixture } from "./helpers.js";
@@ -54,3 +59,27 @@ for (const specimen of numericSyntaxCases.filter(candidate => candidate.id.start
     }
   });
 }
+
+test("reported numeric syntax dispatches through the actual Shell plugin", async () => {
+  const shell = new Shell({ fs: createMemoryFileSystem() }).use(standardCommands()).use(streamInspectionCommands());
+  try {
+    for (const [script, stdoutHex] of [
+      ["printf '\\tX\\tY\\t' | expand -2,5", "20205820205920"],
+      ["printf 'abc\\tdef\\n' | expand -t 2,+0", "616263206465660a"],
+      ["printf 'abcdefg' | fold -3", "6162630a6465660a67"],
+      ["printf 'four\\000fives\\000ending' | strings -5", "66697665730a656e64696e670a"],
+    ]) {
+      const result = await shell.exec(script!);
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(result.stderr, "");
+      assert.equal(Buffer.from(result.stdoutBytes).toString("hex"), stdoutHex);
+    }
+  } finally { await shell.dispose(); }
+});
+
+test("legacy numeric syntax retains the actual shared shell output budget", async () => {
+  const shell = new Shell({ fs: createMemoryFileSystem(), limits: { maxOutputBytes: 32 } }).use(standardCommands()).use(streamInspectionCommands());
+  try {
+    await assert.rejects(shell.exec("printf 'a\\tb\\n' | expand -32 | cat"), error => error instanceof ShellLimitError && error.limit === "maxOutputBytes");
+  } finally { await shell.dispose(); }
+});

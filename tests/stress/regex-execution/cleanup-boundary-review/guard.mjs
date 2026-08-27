@@ -5,14 +5,19 @@ import { resolve } from 'node:path';
 
 const owned = resolve('tests/stress/regex-execution/cleanup-boundary-review');
 const [label, job = 'registration', runLabel = job] = process.argv.slice(2);
-if (!/^[a-z][a-z0-9-]*$/u.test(label ?? '') || !/^[a-z][a-z0-9-]*$/u.test(runLabel) || !['registration', 'runtime'].includes(job)) throw new Error('static benign job required');
+if (!/^[a-z][a-z0-9-]*$/u.test(label ?? '') || !/^[a-z][a-z0-9-]*$/u.test(runLabel) || !['registration', 'runtime', 'throughput'].includes(job)) throw new Error('static benign job required');
 const snapshot = resolve(owned, '.temporary', label);
 const hash = bytes => createHash('sha256').update(bytes).digest('hex');
 const freeze = JSON.parse(await readFile(resolve(owned, 'evidence', `${label}-freeze.json`)));
-if (job === 'runtime' && freeze.mode !== 'runtime-handoff') throw new Error('runtime controls require explicit root-relayed frozen handoff');
+if (job !== 'registration' && freeze.mode !== 'runtime-handoff') throw new Error('runtime controls require explicit root-relayed frozen handoff');
 const build = JSON.parse(await readFile(resolve(owned, 'evidence', `${label}-build.json`)));
 if (build.status !== 0) throw new Error('build prerequisite failed');
 for (const entry of [...freeze.identities, ...build.emitted]) if (hash(await readFile(resolve(snapshot, entry.path))) !== entry.sha256) throw new Error(`snapshot drift: ${entry.path}`);
+if (job === 'throughput') {
+  const baseline = JSON.parse(await readFile(resolve(owned, 'evidence/baseline-freeze.json')));
+  const baselineBuild = JSON.parse(await readFile(resolve(owned, 'evidence/baseline-build.json')));
+  for (const entry of [...baseline.identities, ...baselineBuild.emitted]) if (hash(await readFile(resolve(owned, '.temporary/baseline', entry.path))) !== entry.sha256) throw new Error(`baseline drift: ${entry.path}`);
+}
 const entry = resolve(owned, `${job}.mjs`);
 const claim = { label, job, time: new Date().toISOString(), source: freeze.commit, sourceManifestSha256: hash(await readFile(resolve(owned, 'evidence', `${label}-freeze.json`))), harnessSha256: hash(await readFile(entry)), heapMb: 128, watchdogMs: 20000, outputCap: 65536, ipcCap: 1024 * 1024, strictUnhandled: true, riskConsumed: 0 };
 const result = await new Promise(resolveResult => {

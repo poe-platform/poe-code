@@ -31,3 +31,11 @@ unchanged. Original pipe-early within the24 plus those four are the original5.
 Every generated harness has original/generated hashes in its run evidence.
 The moved consumer has a different package name to prevent repository package
 self-resolution; package assets are compared byte-for-byte to frozen build.
+
+The first phase-a-registration.json reports15/17 with two opaque-host control
+timeouts. Its FS fixture intercepted readFile only, but both command paths use
+MemoryFileSystem.readStream when available, so the intended barrier was never
+entered. That is a verifier fixture defect, not a source hang. The corrected
+fixture gates both actual readStream and fallback readFile; the frozen source
+and assertions about cleanup versus an entered opaque host wait are unchanged.
+The initial run and all its exact child/fake retirement evidence remain intact.

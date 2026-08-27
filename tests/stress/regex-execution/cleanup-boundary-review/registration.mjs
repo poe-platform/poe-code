@@ -186,6 +186,8 @@ for (const family of ['grep', 'rg']) {
         await fixture.context.fs.writeFile('/held', Buffer.from('ab\n'));
         const original = fixture.context.fs.readFile.bind(fixture.context.fs);
         fixture.context.fs.readFile = async (...args) => { entered.release(); await host.promise; return original(...args); };
+        const originalStream = fixture.context.fs.readStream.bind(fixture.context.fs);
+        fixture.context.fs.readStream = async function* (...args) { entered.release(); await host.promise; yield* originalStream(...args); };
       }
       if (opaque === 'sink') fixture.context.stdout = { async write() { entered.release(); await host.promise; } };
       let handlerSettled = false;

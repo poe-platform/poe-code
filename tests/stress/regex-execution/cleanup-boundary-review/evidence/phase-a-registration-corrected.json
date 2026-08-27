@@ -1,0 +1,360 @@
+{
+  "claim": {
+    "label": "phase-a",
+    "job": "registration",
+    "time": "2026-08-27T07:51:06.898Z",
+    "source": "01aa1bffe0568cc6787d5ff8e0331e024a787385",
+    "sourceManifestSha256": "1f7598e4e1e16d59a229f0cca48908f0366d1f6a94ddfb648e24315a349104ed",
+    "harnessSha256": "4cc04c1178db3e59d80c56c814f020e3cc8aa2740d952e39870c81c2967c63c7",
+    "heapMb": 128,
+    "watchdogMs": 20000,
+    "outputCap": 65536,
+    "ipcCap": 1048576,
+    "strictUnhandled": true,
+    "riskConsumed": 0
+  },
+  "pid": 14620,
+  "events": [
+    "disconnect",
+    "stdout-close",
+    "stderr-close",
+    {
+      "exit": 0,
+      "signal": null
+    }
+  ],
+  "stdout": "",
+  "stderr": "",
+  "result": {
+    "kind": "result",
+    "pass": true,
+    "counts": {
+      "controls": 17,
+      "passed": 17,
+      "failed": 0,
+      "workers": 17,
+      "active": 0
+    },
+    "observations": [
+      {
+        "name": "grep:registrar-rejection-before-open",
+        "pass": true,
+        "events": [
+          "reject-registration"
+        ],
+        "workers": []
+      },
+      {
+        "name": "grep:preabort-before-registration-acquisition",
+        "pass": true,
+        "events": [],
+        "workers": []
+      },
+      {
+        "name": "grep:close-during-registration-denies-later-acquisition",
+        "pass": true,
+        "events": [
+          "register"
+        ],
+        "workers": []
+      },
+      {
+        "name": "grep:finally-duplicate-concurrent-reentrant-close",
+        "pass": true,
+        "events": [
+          "register",
+          "open",
+          "construct"
+        ],
+        "workers": [
+          {
+            "posts": 2,
+            "terminationCalls": 1,
+            "exited": true
+          }
+        ]
+      },
+      {
+        "name": "grep:cleanup-does-not-wait-opaque-input-fs-sink",
+        "pass": true,
+        "details": {
+          "variants": [
+            "stdin",
+            "fs",
+            "sink"
+          ]
+        },
+        "events": [
+          "register",
+          "open",
+          "construct",
+          "register",
+          "open",
+          "construct",
+          "register",
+          "open",
+          "construct"
+        ],
+        "workers": [
+          {
+            "posts": 1,
+            "terminationCalls": 1,
+            "exited": true
+          },
+          {
+            "posts": 1,
+            "terminationCalls": 1,
+            "exited": true
+          },
+          {
+            "posts": 2,
+            "terminationCalls": 1,
+            "exited": true
+          }
+        ]
+      },
+      {
+        "name": "grep:constructor-error-versus-caller-abort",
+        "pass": true,
+        "details": {
+          "variants": [
+            "utility diagnostic",
+            "exact abort"
+          ]
+        },
+        "events": [
+          "register",
+          "open",
+          "construct",
+          "register",
+          "open",
+          "construct"
+        ],
+        "workers": []
+      },
+      {
+        "name": "rg:registrar-rejection-before-open",
+        "pass": true,
+        "events": [
+          "reject-registration"
+        ],
+        "workers": []
+      },
+      {
+        "name": "rg:preabort-before-registration-acquisition",
+        "pass": true,
+        "events": [],
+        "workers": []
+      },
+      {
+        "name": "rg:close-during-registration-denies-later-acquisition",
+        "pass": true,
+        "events": [
+          "register"
+        ],
+        "workers": []
+      },
+      {
+        "name": "rg:finally-duplicate-concurrent-reentrant-close",
+        "pass": true,
+        "events": [
+          "register",
+          "open",
+          "construct"
+        ],
+        "workers": [
+          {
+            "posts": 2,
+            "terminationCalls": 1,
+            "exited": true
+          }
+        ]
+      },
+      {
+        "name": "rg:cleanup-does-not-wait-opaque-input-fs-sink",
+        "pass": true,
+        "details": {
+          "variants": [
+            "stdin",
+            "fs",
+            "sink"
+          ]
+        },
+        "events": [
+          "register",
+          "open",
+          "construct",
+          "register",
+          "open",
+          "construct",
+          "register",
+          "open",
+          "construct"
+        ],
+        "workers": [
+          {
+            "posts": 1,
+            "terminationCalls": 1,
+            "exited": true
+          },
+          {
+            "posts": 1,
+            "terminationCalls": 1,
+            "exited": true
+          },
+          {
+            "posts": 2,
+            "terminationCalls": 1,
+            "exited": true
+          }
+        ]
+      },
+      {
+        "name": "rg:constructor-error-versus-caller-abort",
+        "pass": true,
+        "details": {
+          "variants": [
+            "utility diagnostic",
+            "exact abort"
+          ]
+        },
+        "events": [
+          "register",
+          "open",
+          "construct",
+          "register",
+          "open",
+          "construct"
+        ],
+        "workers": []
+      },
+      {
+        "name": "session:active-close-cancels-and-shares-retirement",
+        "pass": true,
+        "events": [
+          "open",
+          "construct"
+        ],
+        "workers": [
+          {
+            "posts": 1,
+            "terminationCalls": 1,
+            "exited": true
+          }
+        ]
+      },
+      {
+        "name": "session:queued-close-does-not-cancel-active-sibling",
+        "pass": true,
+        "events": [
+          "open",
+          "open",
+          "construct"
+        ],
+        "workers": [
+          {
+            "posts": 1,
+            "terminationCalls": 1,
+            "exited": true
+          }
+        ]
+      },
+      {
+        "name": "session:active-close-leaves-other-lease-live",
+        "pass": true,
+        "events": [
+          "open",
+          "open",
+          "construct",
+          "construct"
+        ],
+        "workers": [
+          {
+            "posts": 1,
+            "terminationCalls": 1,
+            "exited": true
+          },
+          {
+            "posts": 1,
+            "terminationCalls": 1,
+            "exited": true
+          }
+        ]
+      },
+      {
+        "name": "executor:concurrent-dispose-shares-inflight-retirement",
+        "pass": true,
+        "events": [
+          "open",
+          "construct",
+          "open"
+        ],
+        "workers": [
+          {
+            "posts": 1,
+            "terminationCalls": 1,
+            "exited": true
+          }
+        ]
+      },
+      {
+        "name": "session:worker-error-and-prior-falsy-caller-reason",
+        "pass": true,
+        "details": {
+          "variants": [
+            {
+              "reason": "no caller abort",
+              "code": "WORKER_ERROR"
+            },
+            {
+              "reason": 0
+            },
+            {
+              "reason": false
+            },
+            {
+              "reason": ""
+            }
+          ]
+        },
+        "events": [
+          "open",
+          "construct",
+          "open",
+          "construct",
+          "open",
+          "construct",
+          "open",
+          "construct"
+        ],
+        "workers": [
+          {
+            "posts": 1,
+            "terminationCalls": 1,
+            "exited": true
+          },
+          {
+            "posts": 1,
+            "terminationCalls": 1,
+            "exited": true
+          },
+          {
+            "posts": 1,
+            "terminationCalls": 1,
+            "exited": true
+          },
+          {
+            "posts": 1,
+            "terminationCalls": 1,
+            "exited": true
+          }
+        ]
+      }
+    ],
+    "riskConsumed": 0,
+    "transport": "checked-in benign ControlledWorker; no native worker or regex evaluation"
+  },
+  "killed": false,
+  "code": 0,
+  "signal": null
+}

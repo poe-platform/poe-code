@@ -1,0 +1,319 @@
+{
+  "source": "69672fe210fbf8a23cc980828bb46d073b078425",
+  "parent": "f73ff3aacd8889fbc2c1e835e2d237f572879ab7",
+  "createdAt": "2026-08-27T07:02:31.229Z",
+  "wholeProviderAcceptance": false,
+  "scopeAcceptance": true,
+  "sourceSha256": "d61d6d36eeea65f0c7e6eb5ecbe118e353ffe5a87131e4e26c1a3d772ee71acf",
+  "reviewInputs": {
+    "run.mjs": "75e3f046ff89ca9fac8a8dae301b58dc51aa3d3b16232282627c42a18238e68c",
+    "scope-neighbors.mts": "8468487d6e4766f33496719b8a88068adc28925e28f897c758c48eb08bbf4cd2",
+    "public-guard.mjs": "1ea17afd3264589c748ceba5293b559c395c1fc452180cf3ea9d612d210aa6c4",
+    "independent.mts": "41c2fe53195bc78d7c695836897f6ff1001164b897e68775bf02ce51166d2923",
+    "scope-seal.mjs": "229ee9559426645fe565cce02d3336c1610d771542998a73ca697d25e30e2f0b",
+    "primary.mjs": "4103bbe720acbefcffed81fb9d11fc1781314fa31fc3e3111e9b61af8633c330"
+  },
+  "providers": {
+    "apache": {
+      "originalMatrix": {
+        "provider": "apache",
+        "raw": {
+          "positive": {
+            "pass": 9,
+            "fail": 0
+          },
+          "guard": {
+            "pass": 7,
+            "fail": 0
+          },
+          "refusal": {
+            "pass": 0,
+            "fail": 0
+          }
+        },
+        "consumer": {
+          "positive": {
+            "pass": 16,
+            "fail": 1
+          },
+          "guard": {
+            "pass": 14,
+            "fail": 0
+          },
+          "refusal": {
+            "pass": 2,
+            "fail": 0
+          }
+        },
+        "phase2": {
+          "positive": {
+            "pass": 2,
+            "fail": 0
+          },
+          "guard": {
+            "pass": 15,
+            "fail": 0
+          },
+          "refusal": {
+            "pass": 0,
+            "fail": 0
+          }
+        }
+      },
+      "originalRowsUnchanged": true,
+      "packedSha256": "dd1efd2f90061c52bc0c40aee73ba8156e91c6da69e4e22022d1a0e74492a1f0",
+      "sourceArchiveSha256": "6415f4081746015a0b42060e93622869e3d3b2fcf3a7b6ed4c5fd5d4ec585c7e",
+      "before": {
+        "total": 31,
+        "pass": 28,
+        "fail": 3,
+        "skipped": 0
+      },
+      "after": {
+        "total": 31,
+        "pass": 31,
+        "fail": 0,
+        "skipped": 0
+      },
+      "neighborsBefore": {
+        "total": 16,
+        "pass": 10,
+        "fail": 6,
+        "skipped": 0
+      },
+      "neighborsAfter": {
+        "total": 16,
+        "pass": 16,
+        "fail": 0,
+        "skipped": 0
+      },
+      "neighborsMasked": 0,
+      "remainingIndependentFailures": [],
+      "remainingNeighborFailures": []
+    },
+    "wsgidav": {
+      "originalMatrix": {
+        "provider": "wsgidav",
+        "raw": {
+          "positive": {
+            "pass": 3,
+            "fail": 6
+          },
+          "guard": {
+            "pass": 3,
+            "fail": 4
+          },
+          "refusal": {
+            "pass": 0,
+            "fail": 0
+          }
+        },
+        "consumer": {
+          "positive": {
+            "pass": 10,
+            "fail": 5
+          },
+          "guard": {
+            "pass": 13,
+            "fail": 0
+          },
+          "refusal": {
+            "pass": 4,
+            "fail": 0
+          }
+        },
+        "phase2": {
+          "positive": {
+            "pass": 0,
+            "fail": 2
+          },
+          "guard": {
+            "pass": 13,
+            "fail": 2
+          },
+          "refusal": {
+            "pass": 0,
+            "fail": 0
+          }
+        }
+      },
+      "originalRowsUnchanged": true,
+      "packedSha256": "dd1efd2f90061c52bc0c40aee73ba8156e91c6da69e4e22022d1a0e74492a1f0",
+      "sourceArchiveSha256": "6415f4081746015a0b42060e93622869e3d3b2fcf3a7b6ed4c5fd5d4ec585c7e",
+      "before": {
+        "total": 31,
+        "pass": 29,
+        "fail": 2,
+        "skipped": 0
+      },
+      "after": {
+        "total": 31,
+        "pass": 29,
+        "fail": 2,
+        "skipped": 0
+      },
+      "neighborsBefore": {
+        "total": 16,
+        "pass": 10,
+        "fail": 6,
+        "skipped": 0
+      },
+      "neighborsAfter": {
+        "total": 16,
+        "pass": 10,
+        "fail": 6,
+        "skipped": 0
+      },
+      "neighborsMasked": 16,
+      "remainingIndependentFailures": [
+        "default copyFile preserves binary output using actual backing authority",
+        "default rename preserves binary output using actual backing authority"
+      ],
+      "remainingNeighborFailures": [
+        "copyFile: foreign shared extension",
+        "rename: foreign shared extension",
+        "copyFile: nested DAV shared inside ignored extension",
+        "rename: nested DAV shared inside ignored extension",
+        "copyFile: unknown DAV scope extension",
+        "rename: unknown DAV scope extension"
+      ]
+    }
+  },
+  "validation": [
+    {
+      "args": [
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "--test",
+        "tests/fs/webdav/real-service/legacy-lock.test.ts"
+      ],
+      "tests": 23,
+      "pass": 23,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "args": [
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "--test",
+        "tests/fs/webdav/real-service/timestamp-postcondition.test.ts"
+      ],
+      "tests": 5,
+      "pass": 5,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "args": [
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "--test",
+        "tests/fs/webdav/real-service/lock-scope.test.ts"
+      ],
+      "tests": 28,
+      "pass": 28,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "args": [
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "--test",
+        "tests/fs/webdav/real-service/direct-comparison.test.ts"
+      ],
+      "tests": 23,
+      "pass": 23,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "args": [
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "--test",
+        "tests/fs/webdav/append.test.ts",
+        "tests/fs/webdav/binding-violations.test.ts",
+        "tests/fs/webdav/body-integrity.test.ts",
+        "tests/fs/webdav/constructor-comparison.test.ts",
+        "tests/fs/webdav/fetch-cancellation.test.ts",
+        "tests/fs/webdav/listing-budget.test.ts",
+        "tests/fs/webdav/lock-cancellation.test.ts",
+        "tests/fs/webdav/lock-multistatus.test.ts",
+        "tests/fs/webdav/operation-authority.test.ts",
+        "tests/fs/webdav/replacement.test.ts",
+        "tests/fs/webdav/resource-id.test.ts",
+        "tests/fs/webdav/review-regressions.test.ts",
+        "tests/fs/webdav/rmdir.test.ts",
+        "tests/fs/webdav/stream-http.test.ts",
+        "tests/fs/webdav/streams.test.ts",
+        "tests/fs/webdav/timestamps.test.ts",
+        "tests/fs/webdav/trusted-binding.test.ts",
+        "tests/fs/webdav/uploads.test.ts",
+        "tests/fs/webdav/webdav.test.ts",
+        "tests/fs/webdav/xml.test.ts"
+      ],
+      "tests": 564,
+      "pass": 564,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "args": [
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "--test",
+        "tests/fs/webdav/constructor-comparison.test.ts"
+      ],
+      "tests": 14,
+      "pass": 14,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "args": [
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "--test",
+        "tests/fs/mount/copy-identity-guards.test.ts",
+        "tests/fs/overlay/copy-identity.test.ts"
+      ],
+      "tests": 49,
+      "pass": 49,
+      "fail": 0,
+      "skipped": 0
+    }
+  ],
+  "strictTypesAndBuild": true,
+  "regressions": [
+    {
+      "name": "malformed real LOCK: contradictory shared and exclusive scope",
+      "code": "ENOTSUP",
+      "noTransfer": true,
+      "nativeBytesAndNamesPreserved": true,
+      "adapterUnlock204": true
+    },
+    {
+      "name": "malformed real LOCK: contradictory shared before exclusive scope",
+      "code": "ENOTSUP",
+      "noTransfer": true,
+      "nativeBytesAndNamesPreserved": true,
+      "adapterUnlock204": true
+    },
+    {
+      "name": "malformed real LOCK: contradictory scope on MOVE",
+      "code": "ENOTSUP",
+      "noTransfer": true,
+      "nativeBytesAndNamesPreserved": true,
+      "adapterUnlock204": true
+    }
+  ]
+}

@@ -12,6 +12,7 @@ const source = process.argv[3] ?? spawnSync('git', ['rev-parse', 'HEAD'], { cwd:
 assert.match(source, /^[a-f0-9]{40}$/);
 const author = '1c745c3';
 const authorRoot = 'tests/fs/webdav/real-service';
+const scopeReview = process.argv.includes('--scope-review');
 const hash = bytes => createHash('sha256').update(bytes).digest('hex');
 const git = args => {
   const result = spawnSync('git', args, { cwd: repo, env: { ...process.env, GIT_OPTIONAL_LOCKS: '0' }, maxBuffer: 32 * 1024 * 1024 });
@@ -48,12 +49,22 @@ try {
       const marker = "  const rawReport = JSON.parse(await readFile(`${evidence}/raw.json`));";
       assert.ok(text.includes(marker));
       text = text.replace(marker, "  await run(process.execPath, ['--unhandled-rejections=strict', '--import', join(own, 'public-guard.mjs'), `${workspace}/consumer/out/independent.mjs`, `${workspace}/config.json`, evidence, provider]);\n" + marker);
+      if (scopeReview) {
+        text = text.replace("'independent.mts'];", "'independent.mts', 'scope-neighbors.mts'];");
+        text = text.replace(marker, "  await run(process.execPath, ['--unhandled-rejections=strict', '--import', join(own, 'public-guard.mjs'), `${workspace}/consumer/out/scope-neighbors.mjs`, `${workspace}/config.json`, evidence, provider]);\n" + marker);
+      }
     }
+    if (scopeReview && name === 'phase2-validate.mjs') text = text.replace("const ownedTests = ['legacy-lock.test.ts', 'timestamp-postcondition.test.ts'];", "const ownedTests = ['legacy-lock.test.ts', 'timestamp-postcondition.test.ts', 'lock-scope.test.ts'];");
     report.inputs[name].executedSha256 = hash(Buffer.from(text));
     await writeFile(join(fixture, name), text);
   }
+  if (scopeReview) {
+    const bytes = git(['show', '69672fe210fbf8a23cc980828bb46d073b078425:tests/fs/webdav/real-service/lock-scope.test.ts']);
+    report.inputs['lock-scope.test.ts'] = { originalSha256: hash(bytes), executedSha256: hash(bytes) };
+    await writeFile(join(fixture, 'lock-scope.test.ts'), bytes);
+  }
   await writeFile(join(fixture, 'evidence/apache-final/raw.json'), git(['show', `${author}:${authorRoot}/evidence/apache-final/raw.json`]));
-  for (const name of ['independent.mts', 'public-guard.mjs']) {
+  for (const name of ['independent.mts', 'public-guard.mjs', ...(scopeReview ? ['scope-neighbors.mts'] : [])]) {
     const bytes = await readFile(join(own, name));
     report.inputs[name] = { originalSha256: hash(bytes), executedSha256: hash(bytes) };
     await writeFile(join(fixture, name), bytes);

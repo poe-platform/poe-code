@@ -1,0 +1,18 @@
+file:///private/tmp/safe-bash-webdav-review-D5z9K6/fixtures/run.mjs:27
+  if (result.status !== 0) throw new Error(`${command} failed: ${result.stderr || result.stdout || result.error}`);
+                                 ^
+
+Error: /Users/kjopek/.nvm/versions/node/v22.22.2/bin/node failed: file:///private/tmp/safe-bash-webdav-review-D5z9K6/fixtures/.work-PfeVSa/consumer/out/https.mjs:14
+            throw new Error("explicit manual/omit policy required");
+                  ^
+
+Error: explicit manual/omit policy required
+    at Object.fetch (file:///private/tmp/safe-bash-webdav-review-D5z9K6/fixtures/.work-PfeVSa/consumer/out/https.mjs:14:19)
+    at file:///private/tmp/safe-bash-webdav-review-D5z9K6/fixtures/.work-PfeVSa/consumer/out/scope-neighbors.mjs:107:39
+
+Node.js v22.22.2
+
+    at run (file:///private/tmp/safe-bash-webdav-review-D5z9K6/fixtures/run.mjs:27:34)
+    at file:///private/tmp/safe-bash-webdav-review-D5z9K6/fixtures/run.mjs:132:9
+
+Node.js v22.22.2

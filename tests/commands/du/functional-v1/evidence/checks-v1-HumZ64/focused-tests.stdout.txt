@@ -1,0 +1,292 @@
+TAP version 13
+# Subtest: frozen GNU 9.7 functional regression env-01
+ok 1 - frozen GNU 9.7 functional regression env-01
+  ---
+  duration_ms: 4.832
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 functional regression env-02
+ok 2 - frozen GNU 9.7 functional regression env-02
+  ---
+  duration_ms: 1.102333
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 functional regression env-03
+ok 3 - frozen GNU 9.7 functional regression env-03
+  ---
+  duration_ms: 0.5455
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 functional regression env-04
+ok 4 - frozen GNU 9.7 functional regression env-04
+  ---
+  duration_ms: 1.411792
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 functional regression env-05
+ok 5 - frozen GNU 9.7 functional regression env-05
+  ---
+  duration_ms: 0.605417
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 functional regression env-06
+ok 6 - frozen GNU 9.7 functional regression env-06
+  ---
+  duration_ms: 0.550042
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 functional regression env-07
+ok 7 - frozen GNU 9.7 functional regression env-07
+  ---
+  duration_ms: 0.673542
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 functional regression env-08
+ok 8 - frozen GNU 9.7 functional regression env-08
+  ---
+  duration_ms: 0.426208
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 functional regression env-09
+ok 9 - frozen GNU 9.7 functional regression env-09
+  ---
+  duration_ms: 2.0125
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 functional regression env-10
+ok 10 - frozen GNU 9.7 functional regression env-10
+  ---
+  duration_ms: 1.136042
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 functional regression env-11
+ok 11 - frozen GNU 9.7 functional regression env-11
+  ---
+  duration_ms: 0.440917
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 functional regression env-12
+ok 12 - frozen GNU 9.7 functional regression env-12
+  ---
+  duration_ms: 0.626167
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 functional regression env-13
+ok 13 - frozen GNU 9.7 functional regression env-13
+  ---
+  duration_ms: 0.486375
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 functional regression env-14
+ok 14 - frozen GNU 9.7 functional regression env-14
+  ---
+  duration_ms: 0.4565
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 functional regression env-15
+ok 15 - frozen GNU 9.7 functional regression env-15
+  ---
+  duration_ms: 0.436416
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 functional regression env-16
+ok 16 - frozen GNU 9.7 functional regression env-16
+  ---
+  duration_ms: 0.68975
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 functional regression env-17
+ok 17 - frozen GNU 9.7 functional regression env-17
+  ---
+  duration_ms: 1.096
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 functional regression env-18
+ok 18 - frozen GNU 9.7 functional regression env-18
+  ---
+  duration_ms: 0.840791
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 functional regression env-19
+ok 19 - frozen GNU 9.7 functional regression env-19
+  ---
+  duration_ms: 0.6105
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 functional regression env-20
+ok 20 - frozen GNU 9.7 functional regression env-20
+  ---
+  duration_ms: 0.553416
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 functional regression env-21
+ok 21 - frozen GNU 9.7 functional regression env-21
+  ---
+  duration_ms: 0.653167
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 functional regression env-22
+ok 22 - frozen GNU 9.7 functional regression env-22
+  ---
+  duration_ms: 0.40925
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 functional regression env-23
+ok 23 - frozen GNU 9.7 functional regression env-23
+  ---
+  duration_ms: 0.340625
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 functional regression env-24
+ok 24 - frozen GNU 9.7 functional regression env-24
+  ---
+  duration_ms: 0.351833
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 functional regression env-25
+ok 25 - frozen GNU 9.7 functional regression env-25
+  ---
+  duration_ms: 0.238541
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 functional regression explicit-bytes-over-invalid
+ok 26 - frozen GNU 9.7 functional regression explicit-bytes-over-invalid
+  ---
+  duration_ms: 0.183292
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 functional regression explicit-k-over-empty
+ok 27 - frozen GNU 9.7 functional regression explicit-k-over-empty
+  ---
+  duration_ms: 0.250625
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 functional regression explicit-unit-over-invalid
+ok 28 - frozen GNU 9.7 functional regression explicit-unit-over-invalid
+  ---
+  duration_ms: 0.342542
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 functional regression explicit-invalid-1
+ok 29 - frozen GNU 9.7 functional regression explicit-invalid-1
+  ---
+  duration_ms: 0.964
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 functional regression explicit-invalid-2
+ok 30 - frozen GNU 9.7 functional regression explicit-invalid-2
+  ---
+  duration_ms: 0.365083
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 functional regression explicit-invalid-3
+ok 31 - frozen GNU 9.7 functional regression explicit-invalid-3
+  ---
+  duration_ms: 0.557209
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 functional regression explicit-invalid-4
+ok 32 - frozen GNU 9.7 functional regression explicit-invalid-4
+  ---
+  duration_ms: 0.50325
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 functional regression explicit-invalid-5
+ok 33 - frozen GNU 9.7 functional regression explicit-invalid-5
+  ---
+  duration_ms: 0.534166
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 functional regression empty-only
+ok 34 - frozen GNU 9.7 functional regression empty-only
+  ---
+  duration_ms: 1.027917
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 functional regression empty-then-file
+ok 35 - frozen GNU 9.7 functional regression empty-then-file
+  ---
+  duration_ms: 0.766166
+  type: 'test'
+  ...
+# Subtest: frozen GNU 9.7 functional regression file-then-empty
+ok 36 - frozen GNU 9.7 functional regression file-then-empty
+  ---
+  duration_ms: 0.535416
+  type: 'test'
+  ...
+# Subtest: original frozen O86 now agrees without changing original bytes
+ok 37 - original frozen O86 now agrees without changing original bytes
+  ---
+  duration_ms: 1.163833
+  type: 'test'
+  ...
+# Subtest: original frozen O87 now agrees without changing original bytes
+ok 38 - original frozen O87 now agrees without changing original bytes
+  ---
+  duration_ms: 0.332167
+  type: 'test'
+  ...
+# Subtest: selected environment fallback never reads lower-priority getters
+ok 39 - selected environment fallback never reads lower-priority getters
+  ---
+  duration_ms: 0.333083
+  type: 'test'
+  ...
+# Subtest: inherited environment values and inherited POSIX flag do not change defaults
+ok 40 - inherited environment values and inherited POSIX flag do not change defaults
+  ---
+  duration_ms: 0.119209
+  type: 'test'
+  ...
+# Subtest: environment byte and work limits stay fatal, never formatting fallback
+ok 41 - environment byte and work limits stay fatal, never formatting fallback
+  ---
+  duration_ms: 0.346917
+  type: 'test'
+  ...
+# Subtest: fallback retains unknown allocation rejection and does not use file length
+ok 42 - fallback retains unknown allocation rejection and does not use file length
+  ---
+  duration_ms: 0.417583
+  type: 'test'
+  ...
+# Subtest: fallback keeps output caps and exact cancellation reason
+ok 43 - fallback keeps output caps and exact cancellation reason
+  ---
+  duration_ms: 0.452625
+  type: 'test'
+  ...
+# Subtest: fallback keeps registered cleanup and awaited sink backpressure
+ok 44 - fallback keeps registered cleanup and awaited sink backpressure
+  ---
+  duration_ms: 2.669959
+  type: 'test'
+  ...
+# Subtest: empty operand diagnoses invalid name without any empty/root lookup and preserves later errors
+ok 45 - empty operand diagnoses invalid name without any empty/root lookup and preserves later errors
+  ---
+  duration_ms: 0.294459
+  type: 'test'
+  ...
+# Subtest: O060 repeated-directory behavior and deterministic ordering stay unchanged
+ok 46 - O060 repeated-directory behavior and deterministic ordering stay unchanged
+  ---
+  duration_ms: 1.197
+  type: 'test'
+  ...
+# Subtest: actual rooted Real/Shell versus pinned GNU9.7 functional cases
+ok 47 - actual rooted Real/Shell versus pinned GNU9.7 functional cases
+  ---
+  duration_ms: 264.033292
+  type: 'test'
+  ...
+1..47
+# tests 47
+# suites 0
+# pass 47
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 449.22225

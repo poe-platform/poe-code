@@ -1,0 +1,86 @@
+{
+  "name": "preabort",
+  "pid": 62973,
+  "readyAt": 34.415250000000015,
+  "killed": false,
+  "code": 0,
+  "signal": null,
+  "ipcBytes": 639,
+  "streamBytes": 0,
+  "stderr": "",
+  "events": [
+    {
+      "event": "disconnect",
+      "values": [],
+      "atMs": 36.05995800000005
+    },
+    {
+      "event": "stdout-close"
+    },
+    {
+      "event": "stderr-close"
+    },
+    {
+      "event": "exit",
+      "values": [
+        0,
+        null
+      ],
+      "atMs": 38.87787500000013
+    },
+    {
+      "event": "close",
+      "code": 0,
+      "signal": null,
+      "atMs": 38.88924999999995
+    }
+  ],
+  "messages": [
+    {
+      "type": "ready",
+      "name": "preabort"
+    },
+    {
+      "type": "done",
+      "name": "preabort",
+      "observations": [],
+      "cleanup": [
+        {
+          "metrics": {
+            "created": 0,
+            "terminated": 0,
+            "requests": 0,
+            "execCalls": 0,
+            "inputBytes": 0,
+            "responseBytes": 0,
+            "startupMs": 0,
+            "workMs": 0,
+            "terminationMs": 0.0007919999999970173,
+            "peakInflight": 0,
+            "listenersAfter": 0,
+            "exitCode": null
+          },
+          "pending": false,
+          "released": true,
+          "capacity": 0,
+          "threadId": null,
+          "signalListeners": 0,
+          "workerListeners": []
+        }
+      ],
+      "elapsedMs": 0.4439580000000021,
+      "memory": {
+        "rss": 45760512,
+        "heapTotal": 5652480,
+        "heapUsed": 4959664,
+        "external": 1944614,
+        "arrayBuffers": 30638
+      },
+      "flags": [
+        "--unhandled-rejections=strict",
+        "--max-old-space-size=64",
+        "--stack-size=2048"
+      ]
+    }
+  ]
+}

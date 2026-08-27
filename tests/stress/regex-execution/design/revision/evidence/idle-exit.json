@@ -1,0 +1,149 @@
+{
+  "name": "idle-exit",
+  "pid": 62944,
+  "readyAt": 32.39908299999999,
+  "killed": false,
+  "code": 0,
+  "signal": null,
+  "ipcBytes": 1385,
+  "streamBytes": 0,
+  "stderr": "",
+  "events": [
+    {
+      "event": "disconnect",
+      "values": [],
+      "atMs": 109.06845799999999
+    },
+    {
+      "event": "stdout-close"
+    },
+    {
+      "event": "stderr-close"
+    },
+    {
+      "event": "exit",
+      "values": [
+        0,
+        null
+      ],
+      "atMs": 111.208875
+    },
+    {
+      "event": "close",
+      "code": 0,
+      "signal": null,
+      "atMs": 111.230041
+    }
+  ],
+  "messages": [
+    {
+      "type": "ready",
+      "name": "idle-exit"
+    },
+    {
+      "type": "done",
+      "name": "idle-exit",
+      "observations": [
+        {
+          "automaticBeforeManualDispose": {
+            "metrics": {
+              "created": 1,
+              "terminated": 1,
+              "requests": 1,
+              "execCalls": 0,
+              "inputBytes": 0,
+              "responseBytes": 0,
+              "startupMs": 26.189209,
+              "workMs": 0.1269580000000019,
+              "terminationMs": 0.17679100000000147,
+              "peakInflight": 1,
+              "listenersAfter": 0,
+              "exitCode": 1
+            },
+            "pending": false,
+            "released": true,
+            "capacity": 0,
+            "threadId": -1,
+            "signalListeners": 0,
+            "workerListeners": [
+              0,
+              0,
+              0,
+              0
+            ]
+          },
+          "exitCode": 1
+        }
+      ],
+      "cleanup": [
+        {
+          "metrics": {
+            "created": 1,
+            "terminated": 1,
+            "requests": 1,
+            "execCalls": 0,
+            "inputBytes": 0,
+            "responseBytes": 0,
+            "startupMs": 26.189209,
+            "workMs": 0.1269580000000019,
+            "terminationMs": 0.17679100000000147,
+            "peakInflight": 1,
+            "listenersAfter": 0,
+            "exitCode": 1
+          },
+          "pending": false,
+          "released": true,
+          "capacity": 0,
+          "threadId": -1,
+          "signalListeners": 0,
+          "workerListeners": [
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "metrics": {
+            "created": 1,
+            "terminated": 1,
+            "requests": 2,
+            "execCalls": 2,
+            "inputBytes": 2,
+            "responseBytes": 52,
+            "startupMs": 14.393625,
+            "workMs": 0.2838329999999871,
+            "terminationMs": 0.71875,
+            "peakInflight": 1,
+            "listenersAfter": 0,
+            "exitCode": 1
+          },
+          "pending": false,
+          "released": true,
+          "capacity": 0,
+          "threadId": -1,
+          "signalListeners": 0,
+          "workerListeners": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      "elapsedMs": 75.46691700000001,
+      "memory": {
+        "rss": 52805632,
+        "heapTotal": 6701056,
+        "heapUsed": 4794824,
+        "external": 1927049,
+        "arrayBuffers": 10778
+      },
+      "flags": [
+        "--unhandled-rejections=strict",
+        "--max-old-space-size=64",
+        "--stack-size=2048"
+      ]
+    }
+  ]
+}

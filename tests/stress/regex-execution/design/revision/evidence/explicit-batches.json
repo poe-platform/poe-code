@@ -1,0 +1,91 @@
+{
+  "name": "explicit-batches",
+  "pid": 62997,
+  "readyAt": 38.4069999999997,
+  "killed": false,
+  "code": 0,
+  "signal": null,
+  "ipcBytes": 693,
+  "streamBytes": 0,
+  "stderr": "",
+  "events": [
+    {
+      "event": "disconnect",
+      "values": [],
+      "atMs": 66.86387500000001
+    },
+    {
+      "event": "stdout-close"
+    },
+    {
+      "event": "stderr-close"
+    },
+    {
+      "event": "exit",
+      "values": [
+        0,
+        null
+      ],
+      "atMs": 69.03612500000008
+    },
+    {
+      "event": "close",
+      "code": 0,
+      "signal": null,
+      "atMs": 69.04275000000007
+    }
+  ],
+  "messages": [
+    {
+      "type": "ready",
+      "name": "explicit-batches"
+    },
+    {
+      "type": "done",
+      "name": "explicit-batches",
+      "observations": [],
+      "cleanup": [
+        {
+          "metrics": {
+            "created": 1,
+            "terminated": 1,
+            "requests": 4,
+            "execCalls": 12,
+            "inputBytes": 12,
+            "responseBytes": 309,
+            "startupMs": 24.825708000000002,
+            "workMs": 0.43087399999999576,
+            "terminationMs": 1.0876670000000033,
+            "peakInflight": 1,
+            "listenersAfter": 0,
+            "exitCode": 1
+          },
+          "pending": false,
+          "released": true,
+          "capacity": 0,
+          "threadId": -1,
+          "signalListeners": 0,
+          "workerListeners": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      "elapsedMs": 27.422165999999997,
+      "memory": {
+        "rss": 52543488,
+        "heapTotal": 6701056,
+        "heapUsed": 4776632,
+        "external": 1956403,
+        "arrayBuffers": 11007
+      },
+      "flags": [
+        "--unhandled-rejections=strict",
+        "--max-old-space-size=64",
+        "--stack-size=2048"
+      ]
+    }
+  ]
+}

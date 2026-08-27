@@ -10,12 +10,12 @@ function host(commands = new CommandRegistry()): PluginHost {
   return { commands, use() { throw new Error("Unexpected middleware"); }, registerFileSystem() { throw new Error("Unexpected filesystem"); } };
 }
 
-test("current registry is frozen60 plus five, time-env, tree/file, aliases, column and HTML", async () => {
+test("current registry is frozen60 plus five, time-env, tree/file, aliases, column, HTML, DU and expr", async () => {
   assert.equal(baseline60.length, 60);
   assert.equal(new Set(baseline60).size, 60);
   assert.deepEqual(baseline60.slice(-4), ["tac", "expand", "fold", "strings"]);
-  const expected = [...baseline60, ...approved, "date", "sleep", "printenv", "tree", "file", "egrep", "fgrep", "column", "html-to-markdown", "du"];
-  assert.equal(new Set(expected).size, 75);
+  const expected = [...baseline60, ...approved, "date", "sleep", "printenv", "tree", "file", "egrep", "fgrep", "column", "html-to-markdown", "du", "expr"];
+  assert.equal(new Set(expected).size, 76);
   assert.deepEqual(createAgentCommands().map(command => command.name), expected);
   const target = host();
   await agentCommands().setup(target);
@@ -31,7 +31,7 @@ for (const name of approved) test(`${name} aggregate collision is atomic and rep
   assert.throws(() => agentCommands().setup(target), new RegExp(`already registered: ${name}`, "u"));
   assert.deepEqual(target.commands.list(), [original, custom]);
   await agentCommands({ replace: true }).setup(target);
-  assert.equal(target.commands.list().length, 76);
+  assert.equal(target.commands.list().length, 77);
   assert.equal(target.commands.get("custom"), before[1]);
   assert.notEqual(target.commands.get(name), before[0]);
 });

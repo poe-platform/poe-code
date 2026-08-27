@@ -169,7 +169,7 @@ test("DU standalone and aggregate replacement remain explicit with limit forward
   const shell = new Shell({ fs }).use(duCommands()).use(agentCommands({ replace: true, du: { limits: { maxEntries: 1 } } }));
   try {
     const result = await shell.exec("du -b /usage"); assert.equal(result.exitCode, 1); assert.match(result.stderr, /entry limit exceeded/u);
-    assert.equal(shell.commands.list().length, 75); assert.equal(shell.commands.has("html-to-markdown"), true);
-    for (const name of ["curl", "safejs", "expr"]) assert.equal(shell.commands.has(name), false);
+    assert.equal(shell.commands.list().length, 76); assert.equal(shell.commands.has("html-to-markdown"), true); assert.equal(shell.commands.has("expr"), true);
+    for (const name of ["curl", "safejs"]) assert.equal(shell.commands.has(name), false);
   } finally { await shell.dispose(); }
 });

@@ -20,6 +20,7 @@ async function visit(path) {
   }
 }
 await visit('src/index.ts');
+if (mode !== 'baseline') await visit('src/commands/regex-execution/worker.ts');
 for (const path of ['package.json', 'tsconfig.json', 'tsconfig.build.json', 'package-lock.json', 'AGENTS.md']) await visit(path);
 const identities = [];
 for (const [path, bytes] of [...sources].sort()) {

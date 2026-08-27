@@ -1,0 +1,46 @@
+TAP version 13
+# Subtest: real SafeJS: shell and fs share one VFS; stats/dirents cross as guest-safe values
+ok 1 - real SafeJS: shell and fs share one VFS; stats/dirents cross as guest-safe values
+  ---
+  duration_ms: 160.173042
+  type: 'test'
+  ...
+# Subtest: real SafeJS: guest cannot select host fs, guest signals, or binary results
+ok 2 - real SafeJS: guest cannot select host fs, guest signals, or binary results
+  ---
+  duration_ms: 3.116125
+  type: 'test'
+  ...
+# Subtest: real SafeJS: cancellation reaches the executor only through explicit host wiring
+ok 3 - real SafeJS: cancellation reaches the executor only through explicit host wiring
+  ---
+  duration_ms: 1.623583
+  type: 'test'
+  ...
+# Subtest: real SafeJS: a pending effectful shell call requires reconciliation, never blind replay
+ok 4 - real SafeJS: a pending effectful shell call requires reconciliation, never blind replay
+  ---
+  duration_ms: 4.96625
+  type: 'test'
+  ...
+# Subtest: local SafeJS types: bridge, injected factories, declaration, and run modules are structurally assignable
+ok 5 - local SafeJS types: bridge, injected factories, declaration, and run modules are structurally assignable
+  ---
+  duration_ms: 368.220792
+  type: 'test'
+  ...
+# Subtest: real SafeJS plus concrete Shell and MemoryFileSystem: stdin, pipes, and shared writes
+ok 6 - real SafeJS plus concrete Shell and MemoryFileSystem: stdin, pipes, and shared writes
+  ---
+  duration_ms: 7.641667
+  type: 'test'
+  ...
+1..6
+# tests 6
+# suites 0
+# pass 6
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1174.190459

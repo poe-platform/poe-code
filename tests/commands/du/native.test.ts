@@ -20,7 +20,7 @@ const diagnosticProfile: Readonly<Record<string, string>> = {
   "tree:-as": "du: cannot combine --all and --summarize\n",
   "tree:-s -d1": "du: --summarize conflicts with --max-depth\n",
   "-b missing tree/a": "du: \"missing\": no such file or directory, lstat '/missing'\n",
-  "-b ": "du: \"\": no such file or directory, lstat ''\n",
+  "-b ": "du: invalid zero-length file name\n",
   "-b tree/a --unsupported": "du: unrecognized option '--unsupported'\n",
   "block:b": "du: invalid block size 'b'\n",
   "block:0": "du: invalid or unsafe block size '0'\n",
@@ -37,9 +37,6 @@ for (const item of profile.results) {
       assert.equal(item.stdout, "5\ttree/sub\n8\ttree\n");
       assert.equal(result.stdout, "5\ttree/sub\n8\ttree\n0\ttree/sub\n0\ttree\n");
       assert.equal(result.exitCode, 0); assert.equal(result.stderr, "");
-    } else if (Object.hasOwn(item.env, "DU_BLOCK_SIZE") && ["bad", ""].includes(item.env.DU_BLOCK_SIZE!)) {
-      assert.equal(item.status, 0); assert.equal(result.exitCode, 1);
-      assert.equal(result.stdout, ""); assert.match(result.stderr, /^du: invalid block size '(bad|)'\n$/u);
     } else {
       assert.equal(result.exitCode, item.status);
       assert.equal(result.stdout, item.stdout);

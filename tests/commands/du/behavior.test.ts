@@ -111,17 +111,23 @@ test("literal names, --, stable sort, missing and empty operands preserve useful
   assert.ok(ordered.stdout.indexOf("/a\n") < ordered.stdout.indexOf("/z\n"));
 });
 
-test("all argument and environment validation happens before any filesystem call", async () => {
+test("invalid arguments fail before filesystem calls; selected invalid environment falls back", async () => {
   const checked = trace(createMemoryFileSystem());
   for (const args of [["tree", "--bad"], ["-B"], ["--block-size="], ["-B1.1K"], ["-B0"], ["-B9007199254740992"], ["-d-1"], ["-d1.5"], ["-s", "-d2"], ["-as"], ["--all=yes"], ["--dereference"], ["-x"], ["a\0b"]]) {
     const result = await run(args, {}, { fs: checked.fs });
     assert.equal(result.exitCode, 1, args.join(" "));
     assert.equal(result.stdout, "");
   }
-  for (const env of [{ DU_BLOCK_SIZE: "bad" }, { DU_BLOCK_SIZE: "", BLOCK_SIZE: "1" }]) {
-    assert.equal((await run([], {}, { fs: checked.fs, env })).exitCode, 1);
-  }
   assert.equal(checked.calls.length, 0);
+  const base = createMemoryFileSystem(); await base.writeFile("/file", new Uint8Array(1025));
+  for (const env of [{ DU_BLOCK_SIZE: "bad" }, { DU_BLOCK_SIZE: "", BLOCK_SIZE: "1" }]) {
+    const fallback = trace(base);
+    const result = await run(["--apparent-size", "file"], {}, { fs: fallback.fs, env });
+    assert.equal(result.exitCode, 0);
+    assert.equal(result.stdout, "2\tfile\n");
+    assert.equal(result.stderr, "");
+    assert.deepEqual(fallback.calls.map(call => [call.method, call.path]), [["lstat", "/file"]]);
+  }
 });
 
 test("context environment precedence and explicit formatting remain local", async () => {

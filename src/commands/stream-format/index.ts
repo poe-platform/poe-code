@@ -2,12 +2,13 @@ import type { CommandDefinition, VirtualShellPlugin } from "../../contracts/inde
 import { createSeqCommand } from "./seq.js";
 import { createNlCommand } from "./nl.js";
 import { createRevCommand } from "./rev.js";
+import { createUnexpandCommand } from "./unexpand.js";
 import { settings, type StreamFormatCommandsOptions } from "./shared.js";
 export type { StreamFormatCommandsOptions, StreamFormatLimits } from "./shared.js";
 
 export function createStreamFormatCommands(options: StreamFormatCommandsOptions = {}): readonly CommandDefinition[] {
   const limits = settings(options);
-  return [createSeqCommand(limits), createNlCommand(limits), createRevCommand(limits)];
+  return [createSeqCommand(limits), createNlCommand(limits), createRevCommand(limits), createUnexpandCommand(limits)];
 }
 
 export function streamFormatCommands(options: StreamFormatCommandsOptions = {}): VirtualShellPlugin {

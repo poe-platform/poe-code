@@ -82,3 +82,21 @@ if that prefix is nonempty, diagnoses `Illegal byte sequence`, returns failure,
 skips the rest of that input file, and continues later operands. This behavior
 is an Apple/Darwin profile; no util-linux executable was available or installed,
 and rev is not labeled GNU coreutils. Lines are bounded by maxRecordBytes.
+
+## unexpand
+
+Converts initial spaces/tabs by default. `-a`/`--all` converts throughout lines;
+`--first-only` overrides explicit or implicit all mode regardless of option order.
+`-t`/`--tabs` accepts a positive uniform size, ascending explicit stop list, and a
+final `/N` absolute or `+N` relative repeat. Lists may use commas or ASCII blanks.
+`-t` implies all mode. Obsolete `-4`/`-4,8` spelling does not imply all mode.
+Files and repeated `-` stdin operands form one continuous byte stream, including
+column state across file boundaries. With a finite list, blanks past the last
+stop are preserved. Backspaces move the tracked column back, LF resets it; other
+nonblank bytes advance one column. No Unicode display-width or locale-specific
+blank classification is invented: this is the GNU9.7 C-byte column profile.
+
+Pending blank runs use counters rather than line-sized storage, with an awaited
+bounded byte writer. Tabs and columns must fit positive safe integers; input,
+output and step limits bound actual work. No newline is added at EOF. Existing
+expand remains unchanged and is exercised only as a pipe counterpart in tests.

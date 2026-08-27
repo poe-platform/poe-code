@@ -1,0 +1,11 @@
+Bounded five-row triage in progress. Repository is READONLY; no Git changes by this leaf.
+Initial observed HEAD: 29a61222a8744ce479601ff33061a38b4a193b78 (moving concurrent worktree).
+Authoritative handoff: 8e09db9; frozen product bd2cacb3a20403302fd0a49441932d5522793e56; harness 0294afb6e690433aed994868e5ed437ecf58ae48.
+Exact routed IDs: command/patch/apply; command/patch/dry-run; command/patch/reverse; composition/patch-hash/patch-hash; command/stat/timestamp.
+Frozen total remains 206 pass / 18 fail of 224. No full benchmark or global tests will run.
+Replay complete: 5/5 still-fails; 0 already-fixed, 0 current-differs, 0 repro-blocked. Fresh pinned native replay matches all four observation fields for all five rows.
+Current replay HEAD before/after 29a61222a8744ce479601ff33061a38b4a193b78; source/harness/input hashes and dirty/index state unchanged during replay.
+Both relevant source files are byte-identical to frozen bd2cacb. Metadata 2cacd04 and 0c4709f predate frozen source and do not change human-readable %y.
+Important nuance: native dry-run also leaves an empty tmp directory under fixture because native TMPDIR points there. Preserve raw namespace mismatch; do not blindly emulate host scratch artifacts in VFS.
+Final report /tmp/safe-bash-routed-five-report.txt; full exact observations/hashes /tmp/safe-bash-routed-five-results.json; root notification /tmp/root/safe-bash-routed-five.txt.
+Finalization observed concurrent HEAD90cbf287b8533c2dad9211d87d6cb66290a80132 with changed filesystem.ts/streams.ts hashes; target patch/stat/harness/oracle stable. Five-row result applies to replay29a6122, not later HEAD. Own sentinel-verified native profile cleaned; unrelated artifacts untouched.

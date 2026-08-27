@@ -214,7 +214,7 @@ for (const configured of [false, true]) {
     assert.equal((await fs.stat("/empty")).type, "directory");
     await fs.writeFile("/empty/later", bytes);
     assert.deepEqual(await fs.readFile("/empty/later"), bytes);
-    await assert.rejects(overlay.stat("/empty/later"), error("ENOENT", "/empty/later"));
+    await assert.rejects(overlay.stat("/empty/later"), error("ENOENT", "/empty"));
     assert.deepEqual(await overlay.readFile("/sibling"), bytes);
     assert.equal(requests.length, 0, "lower whiteout is not forwarded atomic removal");
     noDelete(mock);

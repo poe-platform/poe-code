@@ -79,6 +79,15 @@ plugin setup; it now executes `:` before the same required-command checks.
 The original positive matrix assertions are unchanged throughout. All first-run
 logs, input archives, pack and failures are retained, not replaced by correction.
 
+The next cohort named `author-final` was **not a passing final gate**: it retains
+20/22 controls and a `failure.json`, alongside 78/79 stock and 79/79 configured.
+Its two new lower-overlay checks expected the leaf lookup path on ENOENT, but
+overlay resolution correctly reports the first missing (whiteouted) ancestor,
+`/empty`, for `stat("/empty/later")`. The correction asserts exactly ENOENT and
+`/empty`; it does not loosen diagnostic matching or alter any original assertion.
+Both lower bytes and local whiteout visibility remain checked. Later successful
+cohorts require `gate.json`; a cohort directory name alone is not a success claim.
+
 Accepted configured production profile `d1174e2` and independent real WsgiDAV
 4.3.5 auth/locks/late-child evidence `4453490` / `b22d00c` remain separate service
 evidence. This mock score neither reruns nor expands that interoperability claim,

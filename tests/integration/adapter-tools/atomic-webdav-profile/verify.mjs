@@ -190,6 +190,7 @@ try {
   assert.deepEqual(summaries["packed-configured79"], { tests: 79, pass: 79, fail: 0, cancelled: 0, skipped: 0, todo: 0 });
   assert.equal(controls.status, 0);
   assert.deepEqual(summaries["packed-controls"], { tests: 22, pass: 22, fail: 0, cancelled: 0, skipped: 0, todo: 0 });
+  save("gate.json", { status: "passed", role: "author only", revision, originalStockFailureRetained: true, independentVerifierRequired: true });
 } catch (error) {
   failure = error;
   save("failure.json", { message: String(error), stack: error?.stack, results });

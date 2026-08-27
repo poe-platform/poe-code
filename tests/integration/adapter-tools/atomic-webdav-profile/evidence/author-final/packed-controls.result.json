@@ -1,0 +1,29 @@
+{
+  "name": "packed-controls",
+  "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "--unhandled-rejections=strict",
+    "--import",
+    "/Users/kjopek/Workspace/safe-bash/tests/integration/adapter-tools/atomic-webdav-profile/.isolated-eV6iml/source/tests/integration/adapter-tools/atomic-webdav-profile/loaded-hook.mjs",
+    "--test",
+    "--test-reporter=tap",
+    "out-configured/tests/integration/adapter-tools/atomic-webdav-profile/controls.js"
+  ],
+  "cwd": "consumer",
+  "startedAt": "2026-08-27T09:01:27.289Z",
+  "durationMs": 203.47945900000195,
+  "status": 1,
+  "signal": null,
+  "counts": {
+    "tests": 22,
+    "pass": 20,
+    "fail": 2,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "failedRows": [
+    "overlay with stock WebDAV lower whiteouts only its view without host removal",
+    "overlay with configured WebDAV lower whiteouts only its view without host removal"
+  ]
+}

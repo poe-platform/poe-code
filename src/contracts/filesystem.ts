@@ -1,6 +1,7 @@
 import type { ByteSource } from "./io.js";
 
 export type FileType = "file" | "directory" | "symlink";
+export type EntryComparison = "same" | "distinct" | "unknown";
 
 export interface FileStat {
   readonly type: FileType;
@@ -79,6 +80,7 @@ export interface FileSystem {
   appendFile(path: string, data: Uint8Array, options?: AppendFileOptions): Promise<void>;
   stat(path: string, options?: FsOptions): Promise<FileStat>;
   lstat(path: string, options?: FsOptions): Promise<FileStat>;
+  compareEntry?(path: string, peer: FileSystem, peerPath: string, options?: FsOptions): Promise<EntryComparison>;
   readdir(path: string, options?: FsOptions): Promise<DirectoryEntry[]>;
   mkdir(path: string, options?: MkdirOptions): Promise<void>;
   rm(path: string, options?: RemoveOptions): Promise<void>;

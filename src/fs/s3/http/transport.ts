@@ -125,7 +125,7 @@ function checkRange(message: IncomingMessage, range: string | undefined, metadat
 }
 
 export function createS3HttpTransport(options: S3HttpTransportOptions): S3Transport {
-  if (!options || typeof options.endpoint !== "string" || !/^https?:\/\/[^/?#]+\/?$/.test(options.endpoint)) invalid("endpoint must be an explicit HTTP(S) origin without path, credentials, query or fragment");
+  if (!options || typeof options.endpoint !== "string" || !/^https?:\/\/[^\\/?#]+\/?$/.test(options.endpoint)) invalid("endpoint must be an explicit HTTP(S) origin without path, credentials, query or fragment");
   let endpoint: URL;
   try { endpoint = new URL(options.endpoint); } catch { return invalid("invalid endpoint"); }
   if (endpoint.username || endpoint.password) invalid("endpoint credentials are not allowed");

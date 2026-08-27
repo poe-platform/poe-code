@@ -80,7 +80,8 @@ export function parseXml(bytes: Uint8Array): XmlNode {
     }
     if (xml.startsWith("<!--", position)) {
       const end = xml.indexOf("-->", position + 4);
-      if (end < 0 || xml.slice(position + 4, end).includes("--")) malformed();
+      const comment = xml.slice(position + 4, end);
+      if (end < 0 || comment.includes("--") || comment.endsWith("-")) malformed();
       position = end + 3;
       continue;
     }

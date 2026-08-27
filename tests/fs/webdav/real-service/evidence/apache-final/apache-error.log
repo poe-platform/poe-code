@@ -1,0 +1,20 @@
+[Thu Aug 27 00:33:58.552077 2026] [ssl:warn] [pid 79982] AH01906: 127.0.0.1:443:0 server certificate is a CA certificate (BasicConstraints: CA == TRUE !?)
+[Thu Aug 27 00:33:58.552108 2026] [ssl:warn] [pid 79982] AH01909: 127.0.0.1:443:0 server certificate does NOT include an ID which matches the server name
+[Thu Aug 27 00:33:58.557744 2026] [ssl:warn] [pid 79982] AH01873: Init: Session Cache is not configured [hint: SSLSessionCache]
+[Thu Aug 27 00:33:58.557879 2026] [ssl:warn] [pid 79982] AH01906: 127.0.0.1:443:0 server certificate is a CA certificate (BasicConstraints: CA == TRUE !?)
+[Thu Aug 27 00:33:58.557890 2026] [ssl:warn] [pid 79982] AH01909: 127.0.0.1:443:0 server certificate does NOT include an ID which matches the server name
+[Thu Aug 27 00:34:00.760057 2026] [dav:error] [pid 79982] [client 127.0.0.1:49784] Could not COPY /dav/COPY-stale-source due to a failed precondition on the source (e.g. locks).  [412, #0]
+[Thu Aug 27 00:34:05.073496 2026] [dav:error] [pid 79982] [client 127.0.0.1:49823] Could not MOVE/COPY /dav/COPY-guard-source due to a failed precondition on the destination (e.g. locks).  [412, #0]
+[Thu Aug 27 00:34:05.073511 2026] [dav:error] [pid 79982] [client 127.0.0.1:49823] The precondition(s) specified by the "If:" header did not match this resource. At least one failure is because: an entity-tag was specified, but the resource's actual ETag does not match.  [412, #0]
+[Thu Aug 27 00:34:05.101376 2026] [dav:error] [pid 79982] [client 127.0.0.1:49833] Could not MOVE/COPY /dav/COPY-wrong-source due to a failed precondition on the destination (e.g. locks).  [412, #0]
+[Thu Aug 27 00:34:05.101384 2026] [dav:error] [pid 79982] [client 127.0.0.1:49833] The precondition(s) specified by the "If:" header did not match this resource. At least one failure is because: a State-token was supplied, but it was not found in the locks on this resource.  [412, #0]
+[Thu Aug 27 00:34:05.128621 2026] [dav:error] [pid 79982] [client 127.0.0.1:49844] This resource is locked and an "If:" header was not supplied to allow access to the resource.  [423, #0]
+[Thu Aug 27 00:34:05.155068 2026] [dav:error] [pid 79982] [client 127.0.0.1:49855] Could not MOVE /dav/MOVE-stale-source due to a failed precondition on the source (e.g. locks).  [412, #0]
+[Thu Aug 27 00:34:09.471788 2026] [dav:error] [pid 79982] [client 127.0.0.1:49902] Could not MOVE/COPY /dav/MOVE-guard-source due to a failed precondition on the destination (e.g. locks).  [412, #0]
+[Thu Aug 27 00:34:09.471802 2026] [dav:error] [pid 79982] [client 127.0.0.1:49902] The precondition(s) specified by the "If:" header did not match this resource. At least one failure is because: an entity-tag was specified, but the resource's actual ETag does not match.  [412, #0]
+[Thu Aug 27 00:34:09.500075 2026] [dav:error] [pid 79982] [client 127.0.0.1:49912] Could not MOVE/COPY /dav/MOVE-wrong-source due to a failed precondition on the destination (e.g. locks).  [412, #0]
+[Thu Aug 27 00:34:09.500083 2026] [dav:error] [pid 79982] [client 127.0.0.1:49912] The precondition(s) specified by the "If:" header did not match this resource. At least one failure is because: a State-token was supplied, but it was not found in the locks on this resource.  [412, #0]
+[Thu Aug 27 00:34:09.526775 2026] [dav:error] [pid 79982] [client 127.0.0.1:49923] This resource is locked and an "If:" header was not supplied to allow access to the resource.  [423, #0]
+[Thu Aug 27 00:34:31.436441 2026] [auth_basic:error] [pid 79982] [client 127.0.0.1:50127] AH01617: user fixture: authentication failure for "/dav/names/binary": Password Mismatch
+[Thu Aug 27 00:34:31.443178 2026] [authz_core:error] [pid 79982] [client 127.0.0.1:50129] AH01630: client denied by server configuration: /Users/kjopek/Workspace/safe-bash/tests/fs/webdav/real-service/.work-OAkNq4/root/forbidden
+[Thu Aug 27 00:34:32.640257 2026] [dav:error] [pid 79982] (70008)Partial results are valid but processing is incomplete: [client 127.0.0.1:50405] An error occurred while reading the request body (URI: /dav/cancel-upload)  [400, #0]

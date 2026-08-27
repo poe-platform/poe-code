@@ -1,0 +1,2839 @@
+{
+  "base": "https://127.0.0.1:50416/dav",
+  "rows": [
+    {
+      "name": "PROPFIND namespace/base/trailing slash",
+      "kind": "positive",
+      "result": "pass",
+      "events": [
+        0,
+        1
+      ],
+      "witnessEvents": [
+        1,
+        2
+      ],
+      "witnessErrors": [],
+      "hostWitnessesBase64": {}
+    },
+    {
+      "name": "conditional PUT accepted and stale/exclusive PUT preserved",
+      "kind": "guard",
+      "result": "pass",
+      "events": [
+        2,
+        9
+      ],
+      "witnessEvents": [
+        9,
+        11
+      ],
+      "witnessErrors": [],
+      "hostWitnessesBase64": {
+        "put": "dHdvLW5ldw=="
+      }
+    },
+    {
+      "name": "COPY stale source If-Match preserves both entries",
+      "kind": "guard",
+      "result": "pass",
+      "events": [
+        11,
+        16
+      ],
+      "witnessEvents": [
+        16,
+        20
+      ],
+      "witnessErrors": [],
+      "hostWitnessesBase64": {
+        "COPY-stale-source": "c291cmNl",
+        "COPY-stale-target": "dGFyZ2V0",
+        "put": "dHdvLW5ldw=="
+      }
+    },
+    {
+      "name": "COPY source If-Match with distinct destination ETag",
+      "kind": "positive",
+      "result": "fail",
+      "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\n412 !== 204\n",
+      "events": [
+        20,
+        25
+      ],
+      "witnessEvents": [
+        25,
+        29
+      ],
+      "witnessErrors": [],
+      "hostWitnessesBase64": {
+        "COPY-source": "c291cmNlIGJ5dGVz",
+        "COPY-stale-source": "c291cmNl",
+        "COPY-stale-target": "dGFyZ2V0",
+        "COPY-target": "T0xE",
+        "put": "dHdvLW5ldw=="
+      }
+    },
+    {
+      "name": "COPY absent target source If-Match",
+      "kind": "positive",
+      "result": "pass",
+      "events": [
+        29,
+        33
+      ],
+      "witnessEvents": [
+        33,
+        37
+      ],
+      "witnessErrors": [],
+      "hostWitnessesBase64": {
+        "COPY-new-source": "bmV3IGJ5dGVz",
+        "COPY-new-target": "bmV3IGJ5dGVz",
+        "COPY-source": "c291cmNlIGJ5dGVz",
+        "COPY-stale-source": "c291cmNl",
+        "COPY-stale-target": "dGFyZ2V0",
+        "COPY-target": "T0xE",
+        "put": "dHdvLW5ldw=="
+      }
+    },
+    {
+      "name": "COPY Overwrite F and stale destination tagged If",
+      "kind": "guard",
+      "result": "fail",
+      "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\n204 !== 412\n",
+      "events": [
+        37,
+        41
+      ],
+      "witnessEvents": [
+        41,
+        45
+      ],
+      "witnessErrors": [],
+      "hostWitnessesBase64": {
+        "COPY-guard-source": "c291cmNl",
+        "COPY-guard-target": "c291cmNl",
+        "COPY-new-source": "bmV3IGJ5dGVz",
+        "COPY-new-target": "bmV3IGJ5dGVz",
+        "COPY-source": "c291cmNlIGJ5dGVz",
+        "COPY-stale-source": "c291cmNl",
+        "COPY-stale-target": "dGFyZ2V0",
+        "COPY-target": "T0xE",
+        "put": "dHdvLW5ldw=="
+      }
+    },
+    {
+      "name": "COPY wrong destination lock token preserves bytes",
+      "kind": "guard",
+      "result": "fail",
+      "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\n423 !== 412\n",
+      "events": [
+        45,
+        52
+      ],
+      "witnessEvents": [
+        52,
+        56
+      ],
+      "witnessErrors": [],
+      "hostWitnessesBase64": {
+        "COPY-guard-source": "c291cmNl",
+        "COPY-guard-target": "c291cmNl",
+        "COPY-new-source": "bmV3IGJ5dGVz",
+        "COPY-new-target": "bmV3IGJ5dGVz",
+        "COPY-source": "c291cmNlIGJ5dGVz",
+        "COPY-stale-source": "c291cmNl",
+        "COPY-stale-target": "dGFyZ2V0",
+        "COPY-target": "T0xE",
+        "COPY-wrong-source": "c291cmNl",
+        "COPY-wrong-target": "dGFyZ2V0",
+        "put": "dHdvLW5ldw=="
+      }
+    },
+    {
+      "name": "COPY destination LOCK token and unlock after overwrite",
+      "kind": "positive",
+      "result": "fail",
+      "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\n409 !== 204\n",
+      "events": [
+        56,
+        64
+      ],
+      "witnessEvents": [
+        64,
+        68
+      ],
+      "witnessErrors": [],
+      "hostWitnessesBase64": {
+        "COPY-guard-source": "c291cmNl",
+        "COPY-guard-target": "c291cmNl",
+        "COPY-lock-source": "c291cmNl",
+        "COPY-lock-target": "c291cmNl",
+        "COPY-new-source": "bmV3IGJ5dGVz",
+        "COPY-new-target": "bmV3IGJ5dGVz",
+        "COPY-source": "c291cmNlIGJ5dGVz",
+        "COPY-stale-source": "c291cmNl",
+        "COPY-stale-target": "dGFyZ2V0",
+        "COPY-target": "T0xE",
+        "COPY-wrong-source": "c291cmNl",
+        "COPY-wrong-target": "dGFyZ2V0",
+        "put": "dHdvLW5ldw=="
+      }
+    },
+    {
+      "name": "MOVE stale source If-Match preserves both entries",
+      "kind": "guard",
+      "result": "pass",
+      "events": [
+        68,
+        73
+      ],
+      "witnessEvents": [
+        73,
+        77
+      ],
+      "witnessErrors": [],
+      "hostWitnessesBase64": {
+        "COPY-guard-source": "c291cmNl",
+        "COPY-guard-target": "c291cmNl",
+        "COPY-lock-source": "c291cmNl",
+        "COPY-lock-target": "c291cmNl",
+        "COPY-new-source": "bmV3IGJ5dGVz",
+        "COPY-new-target": "bmV3IGJ5dGVz",
+        "COPY-source": "c291cmNlIGJ5dGVz",
+        "COPY-stale-source": "c291cmNl",
+        "COPY-stale-target": "dGFyZ2V0",
+        "COPY-target": "T0xE",
+        "COPY-wrong-source": "c291cmNl",
+        "COPY-wrong-target": "dGFyZ2V0",
+        "MOVE-stale-source": "c291cmNl",
+        "MOVE-stale-target": "dGFyZ2V0",
+        "put": "dHdvLW5ldw=="
+      }
+    },
+    {
+      "name": "MOVE source If-Match with distinct destination ETag",
+      "kind": "positive",
+      "result": "fail",
+      "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\n412 !== 204\n",
+      "events": [
+        77,
+        82
+      ],
+      "witnessEvents": [
+        82,
+        86
+      ],
+      "witnessErrors": [],
+      "hostWitnessesBase64": {
+        "COPY-guard-source": "c291cmNl",
+        "COPY-guard-target": "c291cmNl",
+        "COPY-lock-source": "c291cmNl",
+        "COPY-lock-target": "c291cmNl",
+        "COPY-new-source": "bmV3IGJ5dGVz",
+        "COPY-new-target": "bmV3IGJ5dGVz",
+        "COPY-source": "c291cmNlIGJ5dGVz",
+        "COPY-stale-source": "c291cmNl",
+        "COPY-stale-target": "dGFyZ2V0",
+        "COPY-target": "T0xE",
+        "COPY-wrong-source": "c291cmNl",
+        "COPY-wrong-target": "dGFyZ2V0",
+        "MOVE-source": "c291cmNlIGJ5dGVz",
+        "MOVE-stale-source": "c291cmNl",
+        "MOVE-stale-target": "dGFyZ2V0",
+        "MOVE-target": "T0xE",
+        "put": "dHdvLW5ldw=="
+      }
+    },
+    {
+      "name": "MOVE absent target source If-Match",
+      "kind": "positive",
+      "result": "pass",
+      "events": [
+        86,
+        90
+      ],
+      "witnessEvents": [
+        90,
+        94
+      ],
+      "witnessErrors": [],
+      "hostWitnessesBase64": {
+        "COPY-guard-source": "c291cmNl",
+        "COPY-guard-target": "c291cmNl",
+        "COPY-lock-source": "c291cmNl",
+        "COPY-lock-target": "c291cmNl",
+        "COPY-new-source": "bmV3IGJ5dGVz",
+        "COPY-new-target": "bmV3IGJ5dGVz",
+        "COPY-source": "c291cmNlIGJ5dGVz",
+        "COPY-stale-source": "c291cmNl",
+        "COPY-stale-target": "dGFyZ2V0",
+        "COPY-target": "T0xE",
+        "COPY-wrong-source": "c291cmNl",
+        "COPY-wrong-target": "dGFyZ2V0",
+        "MOVE-new-target": "bmV3IGJ5dGVz",
+        "MOVE-source": "c291cmNlIGJ5dGVz",
+        "MOVE-stale-source": "c291cmNl",
+        "MOVE-stale-target": "dGFyZ2V0",
+        "MOVE-target": "T0xE",
+        "put": "dHdvLW5ldw=="
+      }
+    },
+    {
+      "name": "MOVE Overwrite F and stale destination tagged If",
+      "kind": "guard",
+      "result": "fail",
+      "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\n204 !== 412\n",
+      "events": [
+        94,
+        98
+      ],
+      "witnessEvents": [
+        98,
+        102
+      ],
+      "witnessErrors": [],
+      "hostWitnessesBase64": {
+        "COPY-guard-source": "c291cmNl",
+        "COPY-guard-target": "c291cmNl",
+        "COPY-lock-source": "c291cmNl",
+        "COPY-lock-target": "c291cmNl",
+        "COPY-new-source": "bmV3IGJ5dGVz",
+        "COPY-new-target": "bmV3IGJ5dGVz",
+        "COPY-source": "c291cmNlIGJ5dGVz",
+        "COPY-stale-source": "c291cmNl",
+        "COPY-stale-target": "dGFyZ2V0",
+        "COPY-target": "T0xE",
+        "COPY-wrong-source": "c291cmNl",
+        "COPY-wrong-target": "dGFyZ2V0",
+        "MOVE-guard-target": "c291cmNl",
+        "MOVE-new-target": "bmV3IGJ5dGVz",
+        "MOVE-source": "c291cmNlIGJ5dGVz",
+        "MOVE-stale-source": "c291cmNl",
+        "MOVE-stale-target": "dGFyZ2V0",
+        "MOVE-target": "T0xE",
+        "put": "dHdvLW5ldw=="
+      }
+    },
+    {
+      "name": "MOVE wrong destination lock token preserves bytes",
+      "kind": "guard",
+      "result": "fail",
+      "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\n423 !== 412\n",
+      "events": [
+        102,
+        109
+      ],
+      "witnessEvents": [
+        109,
+        113
+      ],
+      "witnessErrors": [],
+      "hostWitnessesBase64": {
+        "COPY-guard-source": "c291cmNl",
+        "COPY-guard-target": "c291cmNl",
+        "COPY-lock-source": "c291cmNl",
+        "COPY-lock-target": "c291cmNl",
+        "COPY-new-source": "bmV3IGJ5dGVz",
+        "COPY-new-target": "bmV3IGJ5dGVz",
+        "COPY-source": "c291cmNlIGJ5dGVz",
+        "COPY-stale-source": "c291cmNl",
+        "COPY-stale-target": "dGFyZ2V0",
+        "COPY-target": "T0xE",
+        "COPY-wrong-source": "c291cmNl",
+        "COPY-wrong-target": "dGFyZ2V0",
+        "MOVE-guard-target": "c291cmNl",
+        "MOVE-new-target": "bmV3IGJ5dGVz",
+        "MOVE-source": "c291cmNlIGJ5dGVz",
+        "MOVE-stale-source": "c291cmNl",
+        "MOVE-stale-target": "dGFyZ2V0",
+        "MOVE-target": "T0xE",
+        "MOVE-wrong-source": "c291cmNl",
+        "MOVE-wrong-target": "dGFyZ2V0",
+        "put": "dHdvLW5ldw=="
+      }
+    },
+    {
+      "name": "MOVE destination LOCK token and unlock after overwrite",
+      "kind": "positive",
+      "result": "fail",
+      "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\n409 !== 204\n",
+      "events": [
+        113,
+        121
+      ],
+      "witnessEvents": [
+        121,
+        125
+      ],
+      "witnessErrors": [],
+      "hostWitnessesBase64": {
+        "COPY-guard-source": "c291cmNl",
+        "COPY-guard-target": "c291cmNl",
+        "COPY-lock-source": "c291cmNl",
+        "COPY-lock-target": "c291cmNl",
+        "COPY-new-source": "bmV3IGJ5dGVz",
+        "COPY-new-target": "bmV3IGJ5dGVz",
+        "COPY-source": "c291cmNlIGJ5dGVz",
+        "COPY-stale-source": "c291cmNl",
+        "COPY-stale-target": "dGFyZ2V0",
+        "COPY-target": "T0xE",
+        "COPY-wrong-source": "c291cmNl",
+        "COPY-wrong-target": "dGFyZ2V0",
+        "MOVE-guard-target": "c291cmNl",
+        "MOVE-lock-target": "c291cmNl",
+        "MOVE-new-target": "bmV3IGJ5dGVz",
+        "MOVE-source": "c291cmNlIGJ5dGVz",
+        "MOVE-stale-source": "c291cmNl",
+        "MOVE-stale-target": "dGFyZ2V0",
+        "MOVE-target": "T0xE",
+        "MOVE-wrong-source": "c291cmNl",
+        "MOVE-wrong-target": "dGFyZ2V0",
+        "put": "dHdvLW5ldw=="
+      }
+    },
+    {
+      "name": "PROPFIND getetag is an HTTP entity-tag",
+      "kind": "positive",
+      "result": "fail",
+      "error": "AssertionError [ERR_ASSERTION]: The input did not match the regular expression /^\"[^\\\"]*\"$/. Input:\n\n'171118241-1787808880-5'\n",
+      "events": [
+        125,
+        127
+      ],
+      "witnessEvents": [
+        127,
+        129
+      ],
+      "witnessErrors": [],
+      "hostWitnessesBase64": {
+        "COPY-guard-source": "c291cmNl",
+        "COPY-guard-target": "c291cmNl",
+        "COPY-lock-source": "c291cmNl",
+        "COPY-lock-target": "c291cmNl",
+        "COPY-new-source": "bmV3IGJ5dGVz",
+        "COPY-new-target": "bmV3IGJ5dGVz",
+        "COPY-source": "c291cmNlIGJ5dGVz",
+        "COPY-stale-source": "c291cmNl",
+        "COPY-stale-target": "dGFyZ2V0",
+        "COPY-target": "T0xE",
+        "COPY-wrong-source": "c291cmNl",
+        "COPY-wrong-target": "dGFyZ2V0",
+        "MOVE-guard-target": "c291cmNl",
+        "MOVE-lock-target": "c291cmNl",
+        "MOVE-new-target": "bmV3IGJ5dGVz",
+        "MOVE-source": "c291cmNlIGJ5dGVz",
+        "MOVE-stale-source": "c291cmNl",
+        "MOVE-stale-target": "dGFyZ2V0",
+        "MOVE-target": "T0xE",
+        "MOVE-wrong-source": "c291cmNl",
+        "MOVE-wrong-target": "dGFyZ2V0",
+        "property-etag": "Ynl0ZXM=",
+        "put": "dHdvLW5ldw=="
+      }
+    },
+    {
+      "name": "LOCK header is RFC coded-URL",
+      "kind": "positive",
+      "result": "fail",
+      "error": "AssertionError [ERR_ASSERTION]: The input did not match the regular expression /^<[^<>]+>$/. Input:\n\n'opaquelocktoken:0xdab895d6e498f875d9d62deaadb53243b7e635bea0fff9cabcbf86962c1b3586'\n",
+      "events": [
+        129,
+        132
+      ],
+      "witnessEvents": [
+        132,
+        134
+      ],
+      "witnessErrors": [],
+      "hostWitnessesBase64": {
+        "COPY-guard-source": "c291cmNl",
+        "COPY-guard-target": "c291cmNl",
+        "COPY-lock-source": "c291cmNl",
+        "COPY-lock-target": "c291cmNl",
+        "COPY-new-source": "bmV3IGJ5dGVz",
+        "COPY-new-target": "bmV3IGJ5dGVz",
+        "COPY-source": "c291cmNlIGJ5dGVz",
+        "COPY-stale-source": "c291cmNl",
+        "COPY-stale-target": "dGFyZ2V0",
+        "COPY-target": "T0xE",
+        "COPY-wrong-source": "c291cmNl",
+        "COPY-wrong-target": "dGFyZ2V0",
+        "MOVE-guard-target": "c291cmNl",
+        "MOVE-lock-target": "c291cmNl",
+        "MOVE-new-target": "bmV3IGJ5dGVz",
+        "MOVE-source": "c291cmNlIGJ5dGVz",
+        "MOVE-stale-source": "c291cmNl",
+        "MOVE-stale-target": "dGFyZ2V0",
+        "MOVE-target": "T0xE",
+        "MOVE-wrong-source": "c291cmNl",
+        "MOVE-wrong-target": "dGFyZ2V0",
+        "lock-syntax": "b3JpZ2luYWw=",
+        "property-etag": "Ynl0ZXM=",
+        "put": "dHdvLW5ldw=="
+      }
+    }
+  ],
+  "events": [
+    {
+      "method": "PROPFIND",
+      "path": "/",
+      "requestHeaders": {
+        "Depth": "0",
+        "Content-Type": "application/xml"
+      },
+      "requestBody": "<d:propfind xmlns:d=\"DAV:\"><d:prop><d:resourcetype/><d:getetag/></d:prop></d:propfind>",
+      "status": 207,
+      "headers": {
+        "content-type": "application/xml; charset=utf-8",
+        "date": "Thu, 27 Aug 2026 05:34:39 GMT",
+        "content-length": "404",
+        "connection": "close",
+        "server": "Cheroot/11.1.2"
+      },
+      "body": "<?xml version=\"1.0\" encoding=\"utf-8\" ?>\n<ns0:multistatus xmlns:ns0=\"DAV:\"><ns0:response><ns0:href>/dav/</ns0:href><ns0:propstat><ns0:prop><ns0:resourcetype><ns0:collection /></ns0:resourcetype></ns0:prop><ns0:status>HTTP/1.1 200 OK</ns0:status></ns0:propstat><ns0:propstat><ns0:prop><ns0:getetag /></ns0:prop><ns0:status>HTTP/1.1 404 Not Found</ns0:status></ns0:propstat></ns0:response></ns0:multistatus>"
+    },
+    {
+      "method": "PROPFIND",
+      "path": "/",
+      "requestHeaders": {
+        "Depth": "0",
+        "Content-Type": "application/xml"
+      },
+      "requestBody": "<d:propfind xmlns:d=\"DAV:\"><d:prop><d:lockdiscovery/></d:prop></d:propfind>",
+      "status": 207,
+      "headers": {
+        "content-type": "application/xml; charset=utf-8",
+        "date": "Thu, 27 Aug 2026 05:34:39 GMT",
+        "content-length": "258",
+        "connection": "close",
+        "server": "Cheroot/11.1.2"
+      },
+      "body": "<?xml version=\"1.0\" encoding=\"utf-8\" ?>\n<ns0:multistatus xmlns:ns0=\"DAV:\"><ns0:response><ns0:href>/dav/</ns0:href><ns0:propstat><ns0:prop><ns0:lockdiscovery /></ns0:prop><ns0:status>HTTP/1.1 200 OK</ns0:status></ns0:propstat></ns0:response></ns0:multistatus>"
+    },
+    {
+      "method": "PUT",
+      "path": "/put",
+      "requestHeaders": {
+        "If-None-Match": "*"
+      },
+      "requestBody": "one",
+      "status": 201,
+      "headers": {
+        "content-type": "text/html; charset=utf-8",
+        "date": "Thu, 27 Aug 2026 05:34:39 GMT",
+        "content-length": "372",
+        "etag": "\"171118211-1787808879-3\"",
+        "connection": "close",
+        "server": "Cheroot/11.1.2"
+      },
+      "body": "<!DOCTYPE HTML PUBLIC '-//W3C//DTD HTML 4.01//EN' 'http://www.w3.org/TR/html4/strict.dtd'>\n<html><head>\n  <meta http-equiv='Content-Type' content='text/html; charset=utf-8'>\n  <title>201 Created</title>\n</head><body>\n  <h1>201 Created</h1>\n  <p>201 Created</p>\n<hr/>\n<a href='https://github.com/mar10/wsgidav/'>WsgiDAV/4.3.5</a> - 2026-08-27 00:34:39.843459\n</body></html>"
+    },
+    {
+      "method": "GET",
+      "path": "/put",
+      "requestHeaders": {},
+      "requestBody": "",
+      "status": 200,
+      "headers": {
+        "content-length": "3",
+        "last-modified": "Thu, 27 Aug 2026 05:34:39 GMT",
+        "content-type": "application/octet-stream",
+        "date": "Thu, 27 Aug 2026 05:34:39 GMT",
+        "etag": "\"171118211-1787808879-3\"",
+        "accept-ranges": "bytes",
+        "connection": "close",
+        "server": "Cheroot/11.1.2"
+      },
+      "body": "one"
+    },
+    {
+      "method": "PUT",
+      "path": "/put",
+      "requestHeaders": {
+        "If-None-Match": "*"
+      },
+      "requestBody": "bad",
+      "status": 412,
+      "headers": {
+        "content-type": "text/html; charset=utf-8",
+        "content-length": "447",
+        "date": "Thu, 27 Aug 2026 05:34:39 GMT",
+        "connection": "close",
+        "server": "Cheroot/11.1.2"
+      },
+      "body": "<!DOCTYPE HTML PUBLIC '-//W3C//DTD HTML 4.01//EN' 'http://www.w3.org/TR/html4/strict.dtd'>\n<html><head>\n  <meta http-equiv='Content-Type' content='text/html; charset=utf-8'>\n  <title>412 Precondition Failed</title>\n</head><body>\n  <h1>412 Precondition Failed</h1>\n  <p>412 Precondition Failed: If-None-Match header condition failed</p>\n<hr/>\n<a href='https://github.com/mar10/wsgidav/'>WsgiDAV/4.3.5</a> - 2026-08-27 00:34:39.848963\n</body></html>"
+    },
+    {
+      "method": "PUT",
+      "path": "/put",
+      "requestHeaders": {
+        "If-Match": "\"wrong\""
+      },
+      "requestBody": "bad",
+      "status": 412,
+      "headers": {
+        "content-type": "text/html; charset=utf-8",
+        "content-length": "442",
+        "date": "Thu, 27 Aug 2026 05:34:39 GMT",
+        "connection": "close",
+        "server": "Cheroot/11.1.2"
+      },
+      "body": "<!DOCTYPE HTML PUBLIC '-//W3C//DTD HTML 4.01//EN' 'http://www.w3.org/TR/html4/strict.dtd'>\n<html><head>\n  <meta http-equiv='Content-Type' content='text/html; charset=utf-8'>\n  <title>412 Precondition Failed</title>\n</head><body>\n  <h1>412 Precondition Failed</h1>\n  <p>412 Precondition Failed: If-Match header condition failed</p>\n<hr/>\n<a href='https://github.com/mar10/wsgidav/'>WsgiDAV/4.3.5</a> - 2026-08-27 00:34:39.850708\n</body></html>"
+    },
+    {
+      "method": "GET",
+      "path": "/put",
+      "requestHeaders": {},
+      "requestBody": "",
+      "status": 200,
+      "headers": {
+        "content-length": "3",
+        "last-modified": "Thu, 27 Aug 2026 05:34:39 GMT",
+        "content-type": "application/octet-stream",
+        "date": "Thu, 27 Aug 2026 05:34:39 GMT",
+        "etag": "\"171118211-1787808879-3\"",
+        "accept-ranges": "bytes",
+        "connection": "close",
+        "server": "Cheroot/11.1.2"
+      },
+      "body": "one"
+    },
+    {
+      "method": "PUT",
+      "path": "/put",
+      "requestHeaders": {
+        "If-Match": "\"171118211-1787808879-3\""
+      },
+      "requestBody": "two-new",
+      "status": 204,
+      "headers": {
+        "content-length": "0",
+        "date": "Thu, 27 Aug 2026 05:34:39 GMT",
+        "etag": "\"171118211-1787808879-7\"",
+        "connection": "close",
+        "server": "Cheroot/11.1.2"
+      },
+      "body": ""
+    },
+    {
+      "method": "GET",
+      "path": "/put",
+      "requestHeaders": {},
+      "requestBody": "",
+      "status": 200,
+      "headers": {
+        "content-length": "7",
+        "last-modified": "Thu, 27 Aug 2026 05:34:39 GMT",
+        "content-type": "application/octet-stream",
+        "date": "Thu, 27 Aug 2026 05:34:39 GMT",
+        "etag": "\"171118211-1787808879-7\"",
+        "accept-ranges": "bytes",
+        "connection": "close",
+        "server": "Cheroot/11.1.2"
+      },
+      "body": "two-new"
+    },
+    {
+      "method": "GET",
+      "path": "/put",
+      "requestHeaders": {},
+      "requestBody": "",
+      "status": 200,
+      "headers": {
+        "content-length": "7",
+        "last-modified": "Thu, 27 Aug 2026 05:34:39 GMT",
+        "content-type": "application/octet-stream",
+        "date": "Thu, 27 Aug 2026 05:34:39 GMT",
+        "etag": "\"171118211-1787808879-7\"",
+        "accept-ranges": "bytes",
+        "connection": "close",
+        "server": "Cheroot/11.1.2"
+      },
+      "body": "two-new"
+    },
+    {
+      "method": "PROPFIND",
+      "path": "/put",
+      "requestHeaders": {
+        "Depth": "0",
+        "Content-Type": "application/xml"
+      },
+      "requestBody": "<d:propfind xmlns:d=\"DAV:\"><d:prop><d:lockdiscovery/></d:prop></d:propfind>",
+      "status": 207,
+      "headers": {
+        "content-type": "application/xml; charset=utf-8",
+        "date": "Thu, 27 Aug 2026 05:34:39 GMT",
+        "content-length": "261",
+        "connection": "close",
+        "server": "Cheroot/11.1.2"
+      },
+      "body": "<?xml version=\"1.0\" encoding=\"utf-8\" ?>\n<ns0:multistatus xmlns:ns0=\"DAV:\"><ns0:response><ns0:href>/dav/put</ns0:href><ns0:propstat><ns0:prop><ns0:lockdiscovery /></ns0:prop><ns0:status>HTTP/1.1 200 OK</ns0:status></ns0:propstat></ns0:response></ns0:multistatus>"
+    },
+    {
+      "method": "PUT",
+      "path": "/COPY-stale-source",
+      "requestHeaders": {},
+      "requestBody": "source",
+      "status": 201,
+      "headers": {
+        "content-type": "text/html; charset=utf-8",
+        "date": "Thu, 27 Aug 2026 05:34:39 GMT",
+        "content-length": "372",
+        "etag": "\"171118212-1787808879-6\"",
+        "connection": "close",
+        "server": "Cheroot/11.1.2"
+      },
+      "body": "<!DOCTYPE HTML PUBLIC '-//W3C//DTD HTML 4.01//EN' 'http://www.w3.org/TR/html4/strict.dtd'>\n<html><head>\n  <meta http-equiv='Content-Type' content='text/html; charset=utf-8'>\n  <title>201 Created</title>\n</head><body>\n  <h1>201 Created</h1>\n  <p>201 Created</p>\n<hr/>\n<a href='https://github.com/mar10/wsgidav/'>WsgiDAV/4.3.5</a> - 2026-08-27 00:34:39.861702\n</body></html>"
+    },
+    {
+      "method": "PUT",
+      "path": "/COPY-stale-target",
+      "requestHeaders": {},
+      "requestBody": "target",
+      "status": 201,
+      "headers": {
+        "content-type": "text/html; charset=utf-8",
+        "date": "Thu, 27 Aug 2026 05:34:39 GMT",
+        "content-length": "372",
+        "etag": "\"171118213-1787808879-6\"",
+        "connection": "close",
+        "server": "Cheroot/11.1.2"
+      },
+      "body": "<!DOCTYPE HTML PUBLIC '-//W3C//DTD HTML 4.01//EN' 'http://www.w3.org/TR/html4/strict.dtd'>\n<html><head>\n  <meta http-equiv='Content-Type' content='text/html; charset=utf-8'>\n  <title>201 Created</title>\n</head><body>\n  <h1>201 Created</h1>\n  <p>201 Created</p>\n<hr/>\n<a href='https://github.com/mar10/wsgidav/'>WsgiDAV/4.3.5</a> - 2026-08-27 00:34:39.863399\n</body></html>"
+    },
+    {
+      "method": "COPY",
+      "path": "/COPY-stale-source",
+      "requestHeaders": {
+        "Destination": "https://127.0.0.1:50416/dav/COPY-stale-target",
+        "Overwrite": "T",
+        "If-Match": "\"stale\""
+      },
+      "requestBody": "",
+      "status": 412,
+      "headers": {
+        "content-type": "text/html; charset=utf-8",
+        "content-length": "442",
+        "date": "Thu, 27 Aug 2026 05:34:39 GMT",
+        "connection": "close",
+        "server": "Cheroot/11.1.2"
+      },
+      "body": "<!DOCTYPE HTML PUBLIC '-//W3C//DTD HTML 4.01//EN' 'http://www.w3.org/TR/html4/strict.dtd'>\n<html><head>\n  <meta http-equiv='Content-Type' content='text/html; charset=utf-8'>\n  <title>412 Precondition Failed</title>\n</head><body>\n  <h1>412 Precondition Failed</h1>\n  <p>412 Precondition Failed: If-Match header condition failed</p>\n<hr/>\n<a href='https://github.com/mar10/wsgidav/'>WsgiDAV/4.3.5</a> - 2026-08-27 00:34:39.864682\n</body></html>"
+    },
+    {
+      "method": "GET",
+      "path": "/COPY-stale-source",
+      "requestHeaders": {},
+      "requestBody": "",
+      "status": 200,
+      "headers": {
+        "content-length": "6",
+        "last-modified": "Thu, 27 Aug 2026 05:34:39 GMT",
+        "content-type": "application/octet-stream",
+        "date": "Thu, 27 Aug 2026 05:34:39 GMT",
+        "etag": "\"171118212-1787808879-6\"",
+        "accept-ranges": "bytes",
+        "connection": "close",
+        "server": "Cheroot/11.1.2"
+      },
+      "body": "source"
+    },
+    {
+      "method": "GET",
+      "path": "/COPY-stale-target",
+      "requestHeaders": {},
+      "requestBody": "",
+      "status": 200,
+      "headers": {
+        "content-length": "6",
+        "last-modified": "Thu, 27 Aug 2026 05:34:39 GMT",
+        "content-type": "application/octet-stream",
+        "date": "Thu, 27 Aug 2026 05:34:39 GMT",
+        "etag": "\"171118213-1787808879-6\"",
+        "accept-ranges": "bytes",
+        "connection": "close",
+        "server": "Cheroot/11.1.2"
+      },
+      "body": "target"
+    },
+    {
+      "method": "GET",
+      "path": "/COPY-stale-source",
+      "requestHeaders": {},
+      "requestBody": "",
+      "status": 200,
+      "headers": {
+        "content-length": "6",
+        "last-modified": "Thu, 27 Aug 2026 05:34:39 GMT",
+        "content-type": "application/octet-stream",
+        "date": "Thu, 27 Aug 2026 05:34:39 GMT",
+        "etag": "\"171118212-1787808879-6\"",
+        "accept-ranges": "bytes",
+        "connection": "close",
+        "server": "Cheroot/11.1.2"
+      },
+      "body": "source"
+    },
+    {
+      "method": "PROPFIND",
+      "path": "/COPY-stale-source",
+      "requestHeaders": {
+        "Depth": "0",
+        "Content-Type": "application/xml"
+      },
+      "requestBody": "<d:propfind xmlns:d=\"DAV:\"><d:prop><d:lockdiscovery/></d:prop></d:propfind>",
+      "status": 207,
+      "headers": {
+        "content-type": "application/xml; charset=utf-8",
+        "date": "Thu, 27 Aug 2026 05:34:39 GMT",
+        "content-length": "275",
+        "connection": "close",
+        "server": "Cheroot/11.1.2"
+      },
+      "body": "<?xml version=\"1.0\" encoding=\"utf-8\" ?>\n<ns0:multistatus xmlns:ns0=\"DAV:\"><ns0:response><ns0:href>/dav/COPY-stale-source</ns0:href><ns0:propstat><ns0:prop><ns0:lockdiscovery /></ns0:prop><ns0:status>HTTP/1.1 200 OK</ns0:status></ns0:propstat></ns0:response></ns0:multistatus>"
+    },
+    {
+      "method": "GET",
+      "path": "/COPY-stale-target",
+      "requestHeaders": {},
+      "requestBody": "",
+      "status": 200,
+      "headers": {
+        "content-length": "6",
+        "last-modified": "Thu, 27 Aug 2026 05:34:39 GMT",
+        "content-type": "application/octet-stream",
+        "date": "Thu, 27 Aug 2026 05:34:39 GMT",
+        "etag": "\"171118213-1787808879-6\"",
+        "accept-ranges": "bytes",
+        "connection": "close",
+        "server": "Cheroot/11.1.2"
+      },
+      "body": "target"
+    },
+    {
+      "method": "PROPFIND",
+      "path": "/COPY-stale-target",
+      "requestHeaders": {
+        "Depth": "0",
+        "Content-Type": "application/xml"
+      },
+      "requestBody": "<d:propfind xmlns:d=\"DAV:\"><d:prop><d:lockdiscovery/></d:prop></d:propfind>",
+      "status": 207,
+      "headers": {
+        "content-type": "application/xml; charset=utf-8",
+        "date": "Thu, 27 Aug 2026 05:34:39 GMT",
+        "content-length": "275",
+        "connection": "close",
+        "server": "Cheroot/11.1.2"
+      },
+      "body": "<?xml version=\"1.0\" encoding=\"utf-8\" ?>\n<ns0:multistatus xmlns:ns0=\"DAV:\"><ns0:response><ns0:href>/dav/COPY-stale-target</ns0:href><ns0:propstat><ns0:prop><ns0:lockdiscovery /></ns0:prop><ns0:status>HTTP/1.1 200 OK</ns0:status></ns0:propstat></ns0:response></ns0:multistatus>"
+    },
+    {
+      "method": "PUT",
+      "path": "/COPY-source",
+      "requestHeaders": {},
+      "requestBody": "source bytes",
+      "status": 201,
+      "headers": {
+        "content-type": "text/html; charset=utf-8",
+        "date": "Thu, 27 Aug 2026 05:34:39 GMT",
+        "content-length": "372",
+        "etag": "\"171118214-1787808879-12\"",
+        "connection": "close",
+        "server": "Cheroot/11.1.2"
+      },
+      "body": "<!DOCTYPE HTML PUBLIC '-//W3C//DTD HTML 4.01//EN' 'http://www.w3.org/TR/html4/strict.dtd'>\n<html><head>\n  <meta http-equiv='Content-Type' content='text/html; charset=utf-8'>\n  <title>201 Created</title>\n</head><body>\n  <h1>201 Created</h1>\n  <p>201 Created</p>\n<hr/>\n<a href='https://github.com/mar10/wsgidav/'>WsgiDAV/4.3.5</a> - 2026-08-27 00:34:39.873746\n</body></html>"
+    },
+    {
+      "method": "PUT",
+      "path": "/COPY-target",
+      "requestHeaders": {},
+      "requestBody": "OLD",
+      "status": 201,
+      "headers": {
+        "content-type": "text/html; charset=utf-8",
+        "date": "Thu, 27 Aug 2026 05:34:39 GMT",
+        "content-length": "372",
+        "etag": "\"171118215-1787808879-3\"",
+        "connection": "close",
+        "server": "Cheroot/11.1.2"
+      },
+      "body": "<!DOCTYPE HTML PUBLIC '-//W3C//DTD HTML 4.01//EN' 'http://www.w3.org/TR/html4/strict.dtd'>\n<html><head>\n  <meta http-equiv='Content-Type' content='text/html; charset=utf-8'>\n  <title>201 Created</title>\n</head><body>\n  <h1>201 Created</h1>\n  <p>201 Created</p>\n<hr/>\n<a href='https://github.com/mar10/wsgidav/'>WsgiDAV/4.3.5</a> - 2026-08-27 00:34:39.875652\n</body></html>"
+    },
+    {
+      "method": "GET",
+      "path": "/COPY-source",
+      "requestHeaders": {},
+      "requestBody": "",
+      "status": 200,
+      "headers": {
+        "content-length": "12",
+        "last-modified": "Thu, 27 Aug 2026 05:34:39 GMT",
+        "content-type": "application/octet-stream",
+        "date": "Thu, 27 Aug 2026 05:34:39 GMT",
+        "etag": "\"171118214-1787808879-12\"",
+        "accept-ranges": "bytes",
+        "connection": "close",
+        "server": "Cheroot/11.1.2"
+      },
+      "body": "source bytes"
+    },
+    {
+      "method": "GET",
+      "path": "/COPY-target",
+      "requestHeaders": {},
+      "requestBody": "",
+      "status": 200,
+      "headers": {
+        "content-length": "3",
+        "last-modified": "Thu, 27 Aug 2026 05:34:39 GMT",
+        "content-type": "application/octet-stream",
+        "date": "Thu, 27 Aug 2026 05:34:39 GMT",
+        "etag": "\"171118215-1787808879-3\"",
+        "accept-ranges": "bytes",
+        "connection": "close",
+        "server": "Cheroot/11.1.2"
+      },
+      "body": "OLD"
+    },
+    {
+      "method": "COPY",
+      "path": "/COPY-source",
+      "requestHeaders": {
+        "Destination": "https://127.0.0.1:50416/dav/COPY-target",
+        "Overwrite": "T",
+        "If-Match": "\"171118214-1787808879-12\"",
+        "If": "<https://127.0.0.1:50416/dav/COPY-target> ([\"171118215-1787808879-3\"])"
+      },
+      "requestBody": "",
+      "status": 412,
+      "headers": {
+        "content-type": "text/html; charset=utf-8",
+        "content-length": "442",
+        "date": "Thu, 27 Aug 2026 05:34:39 GMT",
+        "connection": "close",
+        "server": "Cheroot/11.1.2"
+      },
+      "body": "<!DOCTYPE HTML PUBLIC '-//W3C//DTD HTML 4.01//EN' 'http://www.w3.org/TR/html4/strict.dtd'>\n<html><head>\n  <meta http-equiv='Content-Type' content='text/html; charset=utf-8'>\n  <title>412 Precondition Failed</title>\n</head><body>\n  <h1>412 Precondition Failed</h1>\n  <p>412 Precondition Failed: If-Match header condition failed</p>\n<hr/>\n<a href='https://github.com/mar10/wsgidav/'>WsgiDAV/4.3.5</a> - 2026-08-27 00:34:39.880512\n</body></html>"
+    },
+    {
+      "method": "GET",
+      "path": "/COPY-source",
+      "requestHeaders": {},
+      "requestBody": "",
+      "status": 200,
+      "headers": {
+        "content-length": "12",
+        "last-modified": "Thu, 27 Aug 2026 05:34:39 GMT",
+        "content-type": "application/octet-stream",
+        "date": "Thu, 27 Aug 2026 05:34:39 GMT",
+        "etag": "\"171118214-1787808879-12\"",
+        "accept-ranges": "bytes",
+        "connection": "close",
+        "server": "Cheroot/11.1.2"
+      },
+      "body": "source bytes"
+    },
+    {
+      "method": "PROPFIND",
+      "path": "/COPY-source",
+      "requestHeaders": {
+        "Depth": "0",
+        "Content-Type": "application/xml"
+      },
+      "requestBody": "<d:propfind xmlns:d=\"DAV:\"><d:prop><d:lockdiscovery/></d:prop></d:propfind>",
+      "status": 207,
+      "headers": {
+        "content-type": "application/xml; charset=utf-8",
+        "date": "Thu, 27 Aug 2026 05:34:39 GMT",
+        "content-length": "269",
+        "connection": "close",
+        "server": "Cheroot/11.1.2"
+      },
+      "body": "<?xml version=\"1.0\" encoding=\"utf-8\" ?>\n<ns0:multistatus xmlns:ns0=\"DAV:\"><ns0:response><ns0:href>/dav/COPY-source</ns0:href><ns0:propstat><ns0:prop><ns0:lockdiscovery /></ns0:prop><ns0:status>HTTP/1.1 200 OK</ns0:status></ns0:propstat></ns0:response></ns0:multistatus>"
+    },
+    {
+      "method": "GET",
+      "path": "/COPY-target",
+      "requestHeaders": {},
+      "requestBody": "",
+      "status": 200,
+      "headers": {
+        "content-length": "3",
+        "last-modified": "Thu, 27 Aug 2026 05:34:39 GMT",
+        "content-type": "application/octet-stream",
+        "date": "Thu, 27 Aug 2026 05:34:39 GMT",
+        "etag": "\"171118215-1787808879-3\"",
+        "accept-ranges": "bytes",
+        "connection": "close",
+        "server": "Cheroot/11.1.2"
+      },
+      "body": "OLD"
+    },
+    {
+      "method": "PROPFIND",
+      "path": "/COPY-target",
+      "requestHeaders": {
+        "Depth": "0",
+        "Content-Type": "application/xml"
+      },
+      "requestBody": "<d:propfind xmlns:d=\"DAV:\"><d:prop><d:lockdiscovery/></d:prop></d:propfind>",
+      "status": 207,
+      "headers": {
+        "content-type": "application/xml; charset=utf-8",
+        "date": "Thu, 27 Aug 2026 05:34:39 GMT",
+        "content-length": "269",
+        "connection": "close",
+        "server": "Cheroot/11.1.2"
+      },
+      "body": "<?xml version=\"1.0\" encoding=\"utf-8\" ?>\n<ns0:multistatus xmlns:ns0=\"DAV:\"><ns0:response><ns0:href>/dav/COPY-target</ns0:href><ns0:propstat><ns0:prop><ns0:lockdiscovery /></ns0:prop><ns0:status>HTTP/1.1 200 OK</ns0:status></ns0:propstat></ns0:response></ns0:multistatus>"
+    },
+    {
+      "method": "PUT",
+      "path": "/COPY-new-source",
+      "requestHeaders": {},
+      "requestBody": "new bytes",
+      "status": 201,
+      "headers": {
+        "content-type": "text/html; charset=utf-8",
+        "date": "Thu, 27 Aug 2026 05:34:39 GMT",
+        "content-length": "372",
+        "etag": "\"171118219-1787808879-9\"",
+        "connection": "close",
+        "server": "Cheroot/11.1.2"
+      },
+      "body": "<!DOCTYPE HTML PUBLIC '-//W3C//DTD HTML 4.01//EN' 'http://www.w3.org/TR/html4/strict.dtd'>\n<html><head>\n  <meta http-equiv='Content-Type' content='text/html; charset=utf-8'>\n  <title>201 Created</title>\n</head><body>\n  <h1>201 Created</h1>\n  <p>201 Created</p>\n<hr/>\n<a href='https://github.com/mar10/wsgidav/'>WsgiDAV/4.3.5</a> - 2026-08-27 00:34:39.888486\n</body></html>"
+    },
+    {
+      "method": "GET",
+      "path": "/COPY-new-source",
+      "requestHeaders": {},
+      "requestBody": "",
+      "status": 200,
+      "headers": {
+        "content-length": "9",
+        "last-modified": "Thu, 27 Aug 2026 05:34:39 GMT",
+        "content-type": "application/octet-stream",
+        "date": "Thu, 27 Aug 2026 05:34:39 GMT",
+        "etag": "\"171118219-1787808879-9\"",
+        "accept-ranges": "bytes",
+        "connection": "close",
+        "server": "Cheroot/11.1.2"
+      },
+      "body": "new bytes"
+    },
+    {
+      "method": "COPY",
+      "path": "/COPY-new-source",
+      "requestHeaders": {
+        "Destination": "https://127.0.0.1:50416/dav/COPY-new-target",
+        "Overwrite": "F",
+        "If-Match": "\"171118219-1787808879-9\""
+      },
+      "requestBody": "",
+      "status": 201,
+      "headers": {
+        "content-type": "text/html; charset=utf-8",
+        "date": "Thu, 27 Aug 2026 05:34:39 GMT",
+        "content-length": "372",
+        "connection": "close",
+        "server": "Cheroot/11.1.2"
+      },
+      "body": "<!DOCTYPE HTML PUBLIC '-//W3C//DTD HTML 4.01//EN' 'http://www.w3.org/TR/html4/strict.dtd'>\n<html><head>\n  <meta http-equiv='Content-Type' content='text/html; charset=utf-8'>\n  <title>201 Created</title>\n</head><body>\n  <h1>201 Created</h1>\n  <p>201 Created</p>\n<hr/>\n<a href='https://github.com/mar10/wsgidav/'>WsgiDAV/4.3.5</a> - 2026-08-27 00:34:39.891370\n</body></html>"
+    },
+    {
+      "method": "GET",
+      "path": "/COPY-new-target",
+      "requestHeaders": {},
+      "requestBody": "",
+      "status": 200,
+      "headers": {
+        "content-length": "9",
+        "last-modified": "Thu, 27 Aug 2026 05:34:39 GMT",
+        "content-type": "application/octet-stream",
+        "date": "Thu, 27 Aug 2026 05:34:39 GMT",
+        "etag": "\"171118220-1787808879-9\"",
+        "accept-ranges": "bytes",
+        "connection": "close",
+        "server": "Cheroot/11.1.2"
+      },
+      "body": "new bytes"
+    },
+    {
+      "method": "GET",
+      "path": "/COPY-new-source",
+      "requestHeaders": {},
+      "requestBody": "",
+      "status": 200,
+      "headers": {
+        "content-length": "9",
+        "last-modified": "Thu, 27 Aug 2026 05:34:39 GMT",
+        "content-type": "application/octet-stream",
+        "date": "Thu, 27 Aug 2026 05:34:39 GMT",
+        "etag": "\"171118219-1787808879-9\"",
+        "accept-ranges": "bytes",
+        "connection": "close",
+        "server": "Cheroot/11.1.2"
+      },
+      "body": "new bytes"
+    },
+    {
+      "method": "PROPFIND",
+      "path": "/COPY-new-source",
+      "requestHeaders": {
+        "Depth": "0",
+        "Content-Type": "application/xml"
+      },
+      "requestBody": "<d:propfind xmlns:d=\"DAV:\"><d:prop><d:lockdiscovery/></d:prop></d:propfind>",
+      "status": 207,
+      "headers": {
+        "content-type": "application/xml; charset=utf-8",
+        "date": "Thu, 27 Aug 2026 05:34:39 GMT",
+        "content-length": "273",
+        "connection": "close",
+        "server": "Cheroot/11.1.2"
+      },
+      "body": "<?xml version=\"1.0\" encoding=\"utf-8\" ?>\n<ns0:multistatus xmlns:ns0=\"DAV:\"><ns0:response><ns0:href>/dav/COPY-new-source</ns0:href><ns0:propstat><ns0:prop><ns0:lockdiscovery /></ns0:prop><ns0:status>HTTP/1.1 200 OK</ns0:status></ns0:propstat></ns0:response></ns0:multistatus>"
+    },
+    {
+      "method": "GET",
+      "path": "/COPY-new-target",
+      "requestHeaders": {},
+      "requestBody": "",
+      "status": 200,
+      "headers": {
+        "content-length": "9",
+        "last-modified": "Thu, 27 Aug 2026 05:34:39 GMT",
+        "content-type": "application/octet-stream",
+        "date": "Thu, 27 Aug 2026 05:34:39 GMT",
+        "etag": "\"171118220-1787808879-9\"",
+        "accept-ranges": "bytes",
+        "connection": "close",
+        "server": "Cheroot/11.1.2"
+      },
+      "body": "new bytes"
+    },
+    {
+      "method": "PROPFIND",
+      "path": "/COPY-new-target",
+      "requestHeaders": {
+        "Depth": "0",
+        "Content-Type": "application/xml"
+      },
+      "requestBody": "<d:propfind xmlns:d=\"DAV:\"><d:prop><d:lockdiscovery/></d:prop></d:propfind>",
+      "status": 207,
+      "headers": {
+        "content-type": "application/xml; charset=utf-8",
+        "date": "Thu, 27 Aug 2026 05:34:39 GMT",
+        "content-length": "273",
+        "connection": "close",
+        "server": "Cheroot/11.1.2"
+      },
+      "body": "<?xml version=\"1.0\" encoding=\"utf-8\" ?>\n<ns0:multistatus xmlns:ns0=\"DAV:\"><ns0:response><ns0:href>/dav/COPY-new-target</ns0:href><ns0:propstat><ns0:prop><ns0:lockdiscovery /></ns0:prop><ns0:status>HTTP/1.1 200 OK</ns0:status></ns0:propstat></ns0:response></ns0:multistatus>"
+    },
+    {
+      "method": "PUT",
+      "path": "/COPY-guard-source",
+      "requestHeaders": {},
+      "requestBody": "source",
+      "status": 201,
+      "headers": {
+        "content-type": "text/html; charset=utf-8",
+        "date": "Thu, 27 Aug 2026 05:34:39 GMT",
+        "content-length": "372",
+        "etag": "\"171118221-1787808879-6\"",
+        "connection": "close",
+        "server": "Cheroot/11.1.2"
+      },
+      "body": "<!DOCTYPE HTML PUBLIC '-//W3C//DTD HTML 4.01//EN' 'http://www.w3.org/TR/html4/strict.dtd'>\n<html><head>\n  <meta http-equiv='Content-Type' content='text/html; charset=utf-8'>\n  <title>201 Created</title>\n</head><body>\n  <h1>201 Created</h1>\n  <p>201 Created</p>\n<hr/>\n<a href='https://github.com/mar10/wsgidav/'>WsgiDAV/4.3.5</a> - 2026-08-27 00:34:39.900616\n</body></html>"
+    },
+    {
+      "method": "PUT",
+      "path": "/COPY-guard-target",
+      "requestHeaders": {},
+      "requestBody": "target",
+      "status": 201,
+      "headers": {
+        "content-type": "text/html; charset=utf-8",
+        "date": "Thu, 27 Aug 2026 05:34:39 GMT",
+        "content-length": "372",
+        "etag": "\"171118222-1787808879-6\"",
+        "connection": "close",
+        "server": "Cheroot/11.1.2"
+      },
+      "body": "<!DOCTYPE HTML PUBLIC '-//W3C//DTD HTML 4.01//EN' 'http://www.w3.org/TR/html4/strict.dtd'>\n<html><head>\n  <meta http-equiv='Content-Type' content='text/html; charset=utf-8'>\n  <title>201 Created</title>\n</head><body>\n  <h1>201 Created</h1>\n  <p>201 Created</p>\n<hr/>\n<a href='https://github.com/mar10/wsgidav/'>WsgiDAV/4.3.5</a> - 2026-08-27 00:34:39.902249\n</body></html>"
+    },
+    {
+      "method": "COPY",
+      "path": "/COPY-guard-source",
+      "requestHeaders": {
+        "Destination": "https://127.0.0.1:50416/dav/COPY-guard-target",
+        "Overwrite": "F"
+      },
+      "requestBody": "",
+      "status": 412,
+      "headers": {
+        "content-type": "text/html; charset=utf-8",
+        "content-length": "466",
+        "date": "Thu, 27 Aug 2026 05:34:39 GMT",
+        "connection": "close",
+        "server": "Cheroot/11.1.2"
+      },
+      "body": "<!DOCTYPE HTML PUBLIC '-//W3C//DTD HTML 4.01//EN' 'http://www.w3.org/TR/html4/strict.dtd'>\n<html><head>\n  <meta http-equiv='Content-Type' content='text/html; charset=utf-8'>\n  <title>412 Precondition Failed</title>\n</head><body>\n  <h1>412 Precondition Failed</h1>\n  <p>412 Precondition Failed: Destination already exists and Overwrite is set to false</p>\n<hr/>\n<a href='https://github.com/mar10/wsgidav/'>WsgiDAV/4.3.5</a> - 2026-08-27 00:34:39.903485\n</body></html>"
+    },
+    {
+      "method": "COPY",
+      "path": "/COPY-guard-source",
+      "requestHeaders": {
+        "Destination": "https://127.0.0.1:50416/dav/COPY-guard-target",
+        "Overwrite": "T",
+        "If": "<https://127.0.0.1:50416/dav/COPY-guard-target> ([\"stale\"])"
+      },
+      "requestBody": "",
+      "status": 204,
+      "headers": {
+        "content-length": "0",
+        "date": "Thu, 27 Aug 2026 05:34:39 GMT",
+        "connection": "close",
+        "server": "Cheroot/11.1.2"
+      },
+      "body": ""
+    },
+    {
+      "method": "GET",
+      "path": "/COPY-guard-source",
+      "requestHeaders": {},
+      "requestBody": "",
+      "status": 200,
+      "headers": {
+        "content-length": "6",
+        "last-modified": "Thu, 27 Aug 2026 05:34:39 GMT",
+        "content-type": "application/octet-stream",
+        "date": "Thu, 27 Aug 2026 05:34:39 GMT",
+        "etag": "\"171118221-1787808879-6\"",
+        "accept-ranges": "bytes",
+        "connection": "close",
+        "server": "Cheroot/11.1.2"
+      },
+      "body": "source"
+    },
+    {
+      "method": "PROPFIND",
+      "path": "/COPY-guard-source",
+      "requestHeaders": {
+        "Depth": "0",
+        "Content-Type": "application/xml"
+      },
+      "requestBody": "<d:propfind xmlns:d=\"DAV:\"><d:prop><d:lockdiscovery/></d:prop></d:propfind>",
+      "status": 207,
+      "headers": {
+        "content-type": "application/xml; charset=utf-8",
+        "date": "Thu, 27 Aug 2026 05:34:39 GMT",
+        "content-length": "275",
+        "connection": "close",
+        "server": "Cheroot/11.1.2"
+      },
+      "body": "<?xml version=\"1.0\" encoding=\"utf-8\" ?>\n<ns0:multistatus xmlns:ns0=\"DAV:\"><ns0:response><ns0:href>/dav/COPY-guard-source</ns0:href><ns0:propstat><ns0:prop><ns0:lockdiscovery /></ns0:prop><ns0:status>HTTP/1.1 200 OK</ns0:status></ns0:propstat></ns0:response></ns0:multistatus>"
+    },
+    {
+      "method": "GET",
+      "path": "/COPY-guard-target",
+      "requestHeaders": {},
+      "requestBody": "",
+      "status": 200,
+      "headers": {
+        "content-length": "6",
+        "last-modified": "Thu, 27 Aug 2026 05:34:39 GMT",
+        "content-type": "application/octet-stream",
+        "date": "Thu, 27 Aug 2026 05:34:39 GMT",
+        "etag": "\"171118223-1787808879-6\"",
+        "accept-ranges": "bytes",
+        "connection": "close",
+        "server": "Cheroot/11.1.2"
+      },
+      "body": "source"
+    },
+    {
+      "method": "PROPFIND",
+      "path": "/COPY-guard-target",
+      "requestHeaders": {
+        "Depth": "0",
+        "Content-Type": "application/xml"
+      },
+      "requestBody": "<d:propfind xmlns:d=\"DAV:\"><d:prop><d:lockdiscovery/></d:prop></d:propfind>",
+      "status": 207,
+      "headers": {
+        "content-type": "application/xml; charset=utf-8",
+        "date": "Thu, 27 Aug 2026 05:34:39 GMT",
+        "content-length": "275",
+        "connection": "close",
+        "server": "Cheroot/11.1.2"
+      },
+      "body": "<?xml version=\"1.0\" encoding=\"utf-8\" ?>\n<ns0:multistatus xmlns:ns0=\"DAV:\"><ns0:response><ns0:href>/dav/COPY-guard-target</ns0:href><ns0:propstat><ns0:prop><ns0:lockdiscovery /></ns0:prop><ns0:status>HTTP/1.1 200 OK</ns0:status></ns0:propstat></ns0:response></ns0:multistatus>"
+    },
+    {
+      "method": "PUT",
+      "path": "/COPY-wrong-source",
+      "requestHeaders": {},
+      "requestBody": "source",
+      "status": 201,
+      "headers": {
+        "content-type": "text/html; charset=utf-8",
+        "date": "Thu, 27 Aug 2026 05:34:39 GMT",
+        "content-length": "372",
+        "etag": "\"171118224-1787808879-6\"",
+        "connection": "close",
+        "server": "Cheroot/11.1.2"
+      },
+      "body": "<!DOCTYPE HTML PUBLIC '-//W3C//DTD HTML 4.01//EN' 'http://www.w3.org/TR/html4/strict.dtd'>\n<html><head>\n  <meta http-equiv='Content-Type' content='text/html; charset=utf-8'>\n  <title>201 Created</title>\n</head><body>\n  <h1>201 Created</h1>\n  <p>201 Created</p>\n<hr/>\n<a href='https://github.com/mar10/wsgidav/'>WsgiDAV/4.3.5</a> - 2026-08-27 00:34:39.913159\n</body></html>"
+    },
+    {
+      "method": "PUT",
+      "path": "/COPY-wrong-target",
+      "requestHeaders": {},
+      "requestBody": "target",
+      "status": 201,
+      "headers": {
+        "content-type": "text/html; charset=utf-8",
+        "date": "Thu, 27 Aug 2026 05:34:39 GMT",
+        "content-length": "372",
+        "etag": "\"171118225-1787808879-6\"",
+        "connection": "close",
+        "server": "Cheroot/11.1.2"
+      },
+      "body": "<!DOCTYPE HTML PUBLIC '-//W3C//DTD HTML 4.01//EN' 'http://www.w3.org/TR/html4/strict.dtd'>\n<html><head>\n  <meta http-equiv='Content-Type' content='text/html; charset=utf-8'>\n  <title>201 Created</title>\n</head><body>\n  <h1>201 Created</h1>\n  <p>201 Created</p>\n<hr/>\n<a href='https://github.com/mar10/wsgidav/'>WsgiDAV/4.3.5</a> - 2026-08-27 00:34:39.914631\n</body></html>"
+    },
+    {
+      "method": "LOCK",
+      "path": "/COPY-wrong-target",
+      "requestHeaders": {
+        "Depth": "infinity",
+        "Timeout": "Second-60",
+        "Content-Type": "application/xml"
+      },
+      "requestBody": "<d:lockinfo xmlns:d=\"DAV:\"><d:lockscope><d:exclusive/></d:lockscope><d:locktype><d:write/></d:locktype></d:lockinfo>",
+      "status": 200,
+      "headers": {
+        "content-type": "application; charset=utf-8",
+        "content-length": "513",
+        "lock-token": "opaquelocktoken:0x2eb1e0d5304f8dfbba187289b203ad81f7b4d1930155066746e2fd69885d4a4b",
+        "date": "Thu, 27 Aug 2026 05:34:39 GMT",
+        "connection": "close",
+        "server": "Cheroot/11.1.2"
+      },
+      "body": "<?xml version=\"1.0\" encoding=\"utf-8\" ?>\n<ns0:prop xmlns:ns0=\"DAV:\"><ns0:lockdiscovery><ns0:activelock><ns0:locktype><ns0:write /></ns0:locktype><ns0:lockscope><ns0:exclusive /></ns0:lockscope><ns0:depth>infinity</ns0:depth><ns0:timeout>Second-59</ns0:timeout><ns0:locktoken><ns0:href>opaquelocktoken:0x2eb1e0d5304f8dfbba187289b203ad81f7b4d1930155066746e2fd69885d4a4b</ns0:href></ns0:locktoken><ns0:lockroot><ns0:href>/dav/COPY-wrong-target</ns0:href></ns0:lockroot></ns0:activelock></ns0:lockdiscovery></ns0:prop>"
+    },
+    {
+      "method": "COPY",
+      "path": "/COPY-wrong-source",
+      "requestHeaders": {
+        "Destination": "https://127.0.0.1:50416/dav/COPY-wrong-target",
+        "Overwrite": "T",
+        "If": "<https://127.0.0.1:50416/dav/COPY-wrong-target> (<opaquelocktoken:00000000-0000-4000-8000-000000000000>)"
+      },
+      "requestBody": "",
+      "status": 423,
+      "headers": {
+        "content-type": "application/xml; charset=utf-8",
+        "content-length": "174",
+        "date": "Thu, 27 Aug 2026 05:34:39 GMT",
+        "connection": "close",
+        "server": "Cheroot/11.1.2"
+      },
+      "body": "<?xml version=\"1.0\" encoding=\"utf-8\" ?>\n<ns0:error xmlns:ns0=\"DAV:\"><ns0:no-conflicting-lock><ns0:href>/dav/COPY-wrong-target</ns0:href></ns0:no-conflicting-lock></ns0:error>"
+    },
+    {
+      "method": "GET",
+      "path": "/COPY-wrong-target",
+      "requestHeaders": {},
+      "requestBody": "",
+      "status": 200,
+      "headers": {
+        "content-length": "6",
+        "last-modified": "Thu, 27 Aug 2026 05:34:39 GMT",
+        "content-type": "application/octet-stream",
+        "date": "Thu, 27 Aug 2026 05:34:39 GMT",
+        "etag": "\"171118225-1787808879-6\"",
+        "accept-ranges": "bytes",
+        "connection": "close",
+        "server": "Cheroot/11.1.2"
+      },
+      "body": "target"
+    },
+    {
+      "method": "GET",
+      "path": "/COPY-wrong-source",
+      "requestHeaders": {},
+      "requestBody": "",
+      "status": 200,
+      "headers": {
+        "content-length": "6",
+        "last-modified": "Thu, 27 Aug 2026 05:34:39 GMT",
+        "content-type": "application/octet-stream",
+        "date": "Thu, 27 Aug 2026 05:34:39 GMT",
+        "etag": "\"171118224-1787808879-6\"",
+        "accept-ranges": "bytes",
+        "connection": "close",
+        "server": "Cheroot/11.1.2"
+      },
+      "body": "source"
+    },
+    {
+      "method": "UNLOCK",
+      "path": "/COPY-wrong-target",
+      "requestHeaders": {
+        "Lock-Token": "<opaquelocktoken:0x2eb1e0d5304f8dfbba187289b203ad81f7b4d1930155066746e2fd69885d4a4b>"
+      },
+      "requestBody": "",
+      "status": 204,
+      "headers": {
+        "content-length": "0",
+        "date": "Thu, 27 Aug 2026 05:34:39 GMT",
+        "connection": "close",
+        "server": "Cheroot/11.1.2"
+      },
+      "body": ""
+    },
+    {
+      "method": "GET",
+      "path": "/COPY-wrong-source",
+      "requestHeaders": {},
+      "requestBody": "",
+      "status": 200,
+      "headers": {
+        "content-length": "6",
+        "last-modified": "Thu, 27 Aug 2026 05:34:39 GMT",
+        "content-type": "application/octet-stream",
+        "date": "Thu, 27 Aug 2026 05:34:39 GMT",
+        "etag": "\"171118224-1787808879-6\"",
+        "accept-ranges": "bytes",
+        "connection": "close",
+        "server": "Cheroot/11.1.2"
+      },
+      "body": "source"
+    },
+    {
+      "method": "PROPFIND",
+      "path": "/COPY-wrong-source",
+      "requestHeaders": {
+        "Depth": "0",
+        "Content-Type": "application/xml"
+      },
+      "requestBody": "<d:propfind xmlns:d=\"DAV:\"><d:prop><d:lockdiscovery/></d:prop></d:propfind>",
+      "status": 207,
+      "headers": {
+        "content-type": "application/xml; charset=utf-8",
+        "date": "Thu, 27 Aug 2026 05:34:39 GMT",
+        "content-length": "275",
+        "connection": "close",
+        "server": "Cheroot/11.1.2"
+      },
+      "body": "<?xml version=\"1.0\" encoding=\"utf-8\" ?>\n<ns0:multistatus xmlns:ns0=\"DAV:\"><ns0:response><ns0:href>/dav/COPY-wrong-source</ns0:href><ns0:propstat><ns0:prop><ns0:lockdiscovery /></ns0:prop><ns0:status>HTTP/1.1 200 OK</ns0:status></ns0:propstat></ns0:response></ns0:multistatus>"
+    },
+    {
+      "method": "GET",
+      "path": "/COPY-wrong-target",
+      "requestHeaders": {},
+      "requestBody": "",
+      "status": 200,
+      "headers": {
+        "content-length": "6",
+        "last-modified": "Thu, 27 Aug 2026 05:34:39 GMT",
+        "content-type": "application/octet-stream",
+        "date": "Thu, 27 Aug 2026 05:34:39 GMT",
+        "etag": "\"171118225-1787808879-6\"",
+        "accept-ranges": "bytes",
+        "connection": "close",
+        "server": "Cheroot/11.1.2"
+      },
+      "body": "target"
+    },
+    {
+      "method": "PROPFIND",
+      "path": "/COPY-wrong-target",
+      "requestHeaders": {
+        "Depth": "0",
+        "Content-Type": "application/xml"
+      },
+      "requestBody": "<d:propfind xmlns:d=\"DAV:\"><d:prop><d:lockdiscovery/></d:prop></d:propfind>",
+      "status": 207,
+      "headers": {
+        "content-type": "application/xml; charset=utf-8",
+        "date": "Thu, 27 Aug 2026 05:34:39 GMT",
+        "content-length": "275",
+        "connection": "close",
+        "server": "Cheroot/11.1.2"
+      },
+      "body": "<?xml version=\"1.0\" encoding=\"utf-8\" ?>\n<ns0:multistatus xmlns:ns0=\"DAV:\"><ns0:response><ns0:href>/dav/COPY-wrong-target</ns0:href><ns0:propstat><ns0:prop><ns0:lockdiscovery /></ns0:prop><ns0:status>HTTP/1.1 200 OK</ns0:status></ns0:propstat></ns0:response></ns0:multistatus>"
+    },
+    {
+      "method": "PUT",
+      "path": "/COPY-lock-source",
+      "requestHeaders": {},
+      "requestBody": "source",
+      "status": 201,
+      "headers": {
+        "content-type": "text/html; charset=utf-8",
+        "date": "Thu, 27 Aug 2026 05:34:39 GMT",
+        "content-length": "372",
+        "etag": "\"171118226-1787808879-6\"",
+        "connection": "close",
+        "server": "Cheroot/11.1.2"
+      },
+      "body": "<!DOCTYPE HTML PUBLIC '-//W3C//DTD HTML 4.01//EN' 'http://www.w3.org/TR/html4/strict.dtd'>\n<html><head>\n  <meta http-equiv='Content-Type' content='text/html; charset=utf-8'>\n  <title>201 Created</title>\n</head><body>\n  <h1>201 Created</h1>\n  <p>201 Created</p>\n<hr/>\n<a href='https://github.com/mar10/wsgidav/'>WsgiDAV/4.3.5</a> - 2026-08-27 00:34:39.929089\n</body></html>"
+    },
+    {
+      "method": "PUT",
+      "path": "/COPY-lock-target",
+      "requestHeaders": {},
+      "requestBody": "target",
+      "status": 201,
+      "headers": {
+        "content-type": "text/html; charset=utf-8",
+        "date": "Thu, 27 Aug 2026 05:34:39 GMT",
+        "content-length": "372",
+        "etag": "\"171118227-1787808879-6\"",
+        "connection": "close",
+        "server": "Cheroot/11.1.2"
+      },
+      "body": "<!DOCTYPE HTML PUBLIC '-//W3C//DTD HTML 4.01//EN' 'http://www.w3.org/TR/html4/strict.dtd'>\n<html><head>\n  <meta http-equiv='Content-Type' content='text/html; charset=utf-8'>\n  <title>201 Created</title>\n</head><body>\n  <h1>201 Created</h1>\n  <p>201 Created</p>\n<hr/>\n<a href='https://github.com/mar10/wsgidav/'>WsgiDAV/4.3.5</a> - 2026-08-27 00:34:39.930342\n</body></html>"
+    },
+    {
+      "method": "LOCK",
+      "path": "/COPY-lock-target",
+      "requestHeaders": {
+        "Depth": "infinity",
+        "Timeout": "Second-60",
+        "Content-Type": "application/xml"
+      },
+      "requestBody": "<d:lockinfo xmlns:d=\"DAV:\"><d:lockscope><d:exclusive/></d:lockscope><d:locktype><d:write/></d:locktype></d:lockinfo>",
+      "status": 200,
+      "headers": {
+        "content-type": "application; charset=utf-8",
+        "content-length": "512",
+        "lock-token": "opaquelocktoken:0x88775b967917acb163f245640750e2883da0a2a8e532ff538d66a053b8200d53",
+        "date": "Thu, 27 Aug 2026 05:34:39 GMT",
+        "connection": "close",
+        "server": "Cheroot/11.1.2"
+      },
+      "body": "<?xml version=\"1.0\" encoding=\"utf-8\" ?>\n<ns0:prop xmlns:ns0=\"DAV:\"><ns0:lockdiscovery><ns0:activelock><ns0:locktype><ns0:write /></ns0:locktype><ns0:lockscope><ns0:exclusive /></ns0:lockscope><ns0:depth>infinity</ns0:depth><ns0:timeout>Second-59</ns0:timeout><ns0:locktoken><ns0:href>opaquelocktoken:0x88775b967917acb163f245640750e2883da0a2a8e532ff538d66a053b8200d53</ns0:href></ns0:locktoken><ns0:lockroot><ns0:href>/dav/COPY-lock-target</ns0:href></ns0:lockroot></ns0:activelock></ns0:lockdiscovery></ns0:prop>"
+    },
+    {
+      "method": "PUT",
+      "path": "/COPY-lock-target",
+      "requestHeaders": {},
+      "requestBody": "blocked",
+      "status": 423,
+      "headers": {
+        "content-type": "application/xml; charset=utf-8",
+        "content-length": "173",
+        "date": "Thu, 27 Aug 2026 05:34:39 GMT",
+        "connection": "close",
+        "server": "Cheroot/11.1.2"
+      },
+      "body": "<?xml version=\"1.0\" encoding=\"utf-8\" ?>\n<ns0:error xmlns:ns0=\"DAV:\"><ns0:no-conflicting-lock><ns0:href>/dav/COPY-lock-target</ns0:href></ns0:no-conflicting-lock></ns0:error>"
+    },
+    {
+      "method": "COPY",
+      "path": "/COPY-lock-source",
+      "requestHeaders": {
+        "Destination": "https://127.0.0.1:50416/dav/COPY-lock-target",
+        "Overwrite": "T",
+        "If": "<https://127.0.0.1:50416/dav/COPY-lock-target> (<opaquelocktoken:0x88775b967917acb163f245640750e2883da0a2a8e532ff538d66a053b8200d53>)"
+      },
+      "requestBody": "",
+      "status": 204,
+      "headers": {
+        "content-length": "0",
+        "date": "Thu, 27 Aug 2026 05:34:39 GMT",
+        "connection": "close",
+        "server": "Cheroot/11.1.2"
+      },
+      "body": ""
+    },
+    {
+      "method": "GET",
+      "path": "/COPY-lock-target",
+      "requestHeaders": {},
+      "requestBody": "",
+      "status": 200,
+      "headers": {
+        "content-length": "6",
+        "last-modified": "Thu, 27 Aug 2026 05:34:39 GMT",
+        "content-type": "application/octet-stream",
+        "date": "Thu, 27 Aug 2026 05:34:39 GMT",
+        "etag": "\"171118228-1787808879-6\"",
+        "accept-ranges": "bytes",
+        "connection": "close",
+        "server": "Cheroot/11.1.2"
+      },
+      "body": "source"
+    },
+    {
+      "method": "UNLOCK",
+      "path": "/COPY-lock-target",
+      "requestHeaders": {
+        "Lock-Token": "<opaquelocktoken:0x88775b967917acb163f245640750e2883da0a2a8e532ff538d66a053b8200d53>"
+      },
+      "requestBody": "",
+      "status": 409,
+      "headers": {
+        "content-type": "application/xml; charset=utf-8",
+        "content-length": "118",
+        "date": "Thu, 27 Aug 2026 05:34:39 GMT",
+        "connection": "close",
+        "server": "Cheroot/11.1.2"
+      },
+      "body": "<?xml version=\"1.0\" encoding=\"utf-8\" ?>\n<ns0:error xmlns:ns0=\"DAV:\"><ns0:lock-token-matches-request-uri /></ns0:error>"
+    },
+    {
+      "method": "PROPFIND",
+      "path": "/COPY-lock-target",
+      "requestHeaders": {
+        "Depth": "0",
+        "Content-Type": "application/xml"
+      },
+      "requestBody": "<d:propfind xmlns:d=\"DAV:\"><d:prop><d:lockdiscovery/></d:prop></d:propfind>",
+      "status": 207,
+      "headers": {
+        "content-type": "application/xml; charset=utf-8",
+        "date": "Thu, 27 Aug 2026 05:34:39 GMT",
+        "content-length": "274",
+        "connection": "close",
+        "server": "Cheroot/11.1.2"
+      },
+      "body": "<?xml version=\"1.0\" encoding=\"utf-8\" ?>\n<ns0:multistatus xmlns:ns0=\"DAV:\"><ns0:response><ns0:href>/dav/COPY-lock-target</ns0:href><ns0:propstat><ns0:prop><ns0:lockdiscovery /></ns0:prop><ns0:status>HTTP/1.1 200 OK</ns0:status></ns0:propstat></ns0:response></ns0:multistatus>"
+    },
+    {
+      "method": "GET",
+      "path": "/COPY-lock-source",
+      "requestHeaders": {},
+      "requestBody": "",
+      "status": 200,
+      "headers": {
+        "content-length": "6",
+        "last-modified": "Thu, 27 Aug 2026 05:34:39 GMT",
+        "content-type": "application/octet-stream",
+        "date": "Thu, 27 Aug 2026 05:34:39 GMT",
+        "etag": "\"171118226-1787808879-6\"",
+        "accept-ranges": "bytes",
+        "connection": "close",
+        "server": "Cheroot/11.1.2"
+      },
+      "body": "source"
+    },
+    {
+      "method": "PROPFIND",
+      "path": "/COPY-lock-source",
+      "requestHeaders": {
+        "Depth": "0",
+        "Content-Type": "application/xml"
+      },
+      "requestBody": "<d:propfind xmlns:d=\"DAV:\"><d:prop><d:lockdiscovery/></d:prop></d:propfind>",
+      "status": 207,
+      "headers": {
+        "content-type": "application/xml; charset=utf-8",
+        "date": "Thu, 27 Aug 2026 05:34:39 GMT",
+        "content-length": "274",
+        "connection": "close",
+        "server": "Cheroot/11.1.2"
+      },
+      "body": "<?xml version=\"1.0\" encoding=\"utf-8\" ?>\n<ns0:multistatus xmlns:ns0=\"DAV:\"><ns0:response><ns0:href>/dav/COPY-lock-source</ns0:href><ns0:propstat><ns0:prop><ns0:lockdiscovery /></ns0:prop><ns0:status>HTTP/1.1 200 OK</ns0:status></ns0:propstat></ns0:response></ns0:multistatus>"
+    },
+    {
+      "method": "GET",
+      "path": "/COPY-lock-target",
+      "requestHeaders": {},
+      "requestBody": "",
+      "status": 200,
+      "headers": {
+        "content-length": "6",
+        "last-modified": "Thu, 27 Aug 2026 05:34:39 GMT",
+        "content-type": "application/octet-stream",
+        "date": "Thu, 27 Aug 2026 05:34:39 GMT",
+        "etag": "\"171118228-1787808879-6\"",
+        "accept-ranges": "bytes",
+        "connection": "close",
+        "server": "Cheroot/11.1.2"
+      },
+      "body": "source"
+    },
+    {
+      "method": "PROPFIND",
+      "path": "/COPY-lock-target",
+      "requestHeaders": {
+        "Depth": "0",
+        "Content-Type": "application/xml"
+      },
+      "requestBody": "<d:propfind xmlns:d=\"DAV:\"><d:prop><d:lockdiscovery/></d:prop></d:propfind>",
+      "status": 207,
+      "headers": {
+        "content-type": "application/xml; charset=utf-8",
+        "date": "Thu, 27 Aug 2026 05:34:39 GMT",
+        "content-length": "274",
+        "connection": "close",
+        "server": "Cheroot/11.1.2"
+      },
+      "body": "<?xml version=\"1.0\" encoding=\"utf-8\" ?>\n<ns0:multistatus xmlns:ns0=\"DAV:\"><ns0:response><ns0:href>/dav/COPY-lock-target</ns0:href><ns0:propstat><ns0:prop><ns0:lockdiscovery /></ns0:prop><ns0:status>HTTP/1.1 200 OK</ns0:status></ns0:propstat></ns0:response></ns0:multistatus>"
+    },
+    {
+      "method": "PUT",
+      "path": "/MOVE-stale-source",
+      "requestHeaders": {},
+      "requestBody": "source",
+      "status": 201,
+      "headers": {
+        "content-type": "text/html; charset=utf-8",
+        "date": "Thu, 27 Aug 2026 05:34:39 GMT",
+        "content-length": "372",
+        "etag": "\"171118229-1787808879-6\"",
+        "connection": "close",
+        "server": "Cheroot/11.1.2"
+      },
+      "body": "<!DOCTYPE HTML PUBLIC '-//W3C//DTD HTML 4.01//EN' 'http://www.w3.org/TR/html4/strict.dtd'>\n<html><head>\n  <meta http-equiv='Content-Type' content='text/html; charset=utf-8'>\n  <title>201 Created</title>\n</head><body>\n  <h1>201 Created</h1>\n  <p>201 Created</p>\n<hr/>\n<a href='https://github.com/mar10/wsgidav/'>WsgiDAV/4.3.5</a> - 2026-08-27 00:34:39.945659\n</body></html>"
+    },
+    {
+      "method": "PUT",
+      "path": "/MOVE-stale-target",
+      "requestHeaders": {},
+      "requestBody": "target",
+      "status": 201,
+      "headers": {
+        "content-type": "text/html; charset=utf-8",
+        "date": "Thu, 27 Aug 2026 05:34:39 GMT",
+        "content-length": "372",
+        "etag": "\"171118230-1787808879-6\"",
+        "connection": "close",
+        "server": "Cheroot/11.1.2"
+      },
+      "body": "<!DOCTYPE HTML PUBLIC '-//W3C//DTD HTML 4.01//EN' 'http://www.w3.org/TR/html4/strict.dtd'>\n<html><head>\n  <meta http-equiv='Content-Type' content='text/html; charset=utf-8'>\n  <title>201 Created</title>\n</head><body>\n  <h1>201 Created</h1>\n  <p>201 Created</p>\n<hr/>\n<a href='https://github.com/mar10/wsgidav/'>WsgiDAV/4.3.5</a> - 2026-08-27 00:34:39.947029\n</body></html>"
+    },
+    {
+      "method": "MOVE",
+      "path": "/MOVE-stale-source",
+      "requestHeaders": {
+        "Destination": "https://127.0.0.1:50416/dav/MOVE-stale-target",
+        "Overwrite": "T",
+        "If-Match": "\"stale\""
+      },
+      "requestBody": "",
+      "status": 412,
+      "headers": {
+        "content-type": "text/html; charset=utf-8",
+        "content-length": "442",
+        "date": "Thu, 27 Aug 2026 05:34:39 GMT",
+        "connection": "close",
+        "server": "Cheroot/11.1.2"
+      },
+      "body": "<!DOCTYPE HTML PUBLIC '-//W3C//DTD HTML 4.01//EN' 'http://www.w3.org/TR/html4/strict.dtd'>\n<html><head>\n  <meta http-equiv='Content-Type' content='text/html; charset=utf-8'>\n  <title>412 Precondition Failed</title>\n</head><body>\n  <h1>412 Precondition Failed</h1>\n  <p>412 Precondition Failed: If-Match header condition failed</p>\n<hr/>\n<a href='https://github.com/mar10/wsgidav/'>WsgiDAV/4.3.5</a> - 2026-08-27 00:34:39.948297\n</body></html>"
+    },
+    {
+      "method": "GET",
+      "path": "/MOVE-stale-source",
+      "requestHeaders": {},
+      "requestBody": "",
+      "status": 200,
+      "headers": {
+        "content-length": "6",
+        "last-modified": "Thu, 27 Aug 2026 05:34:39 GMT",
+        "content-type": "application/octet-stream",
+        "date": "Thu, 27 Aug 2026 05:34:39 GMT",
+        "etag": "\"171118229-1787808879-6\"",
+        "accept-ranges": "bytes",
+        "connection": "close",
+        "server": "Cheroot/11.1.2"
+      },
+      "body": "source"
+    },
+    {
+      "method": "GET",
+      "path": "/MOVE-stale-target",
+      "requestHeaders": {},
+      "requestBody": "",
+      "status": 200,
+      "headers": {
+        "content-length": "6",
+        "last-modified": "Thu, 27 Aug 2026 05:34:39 GMT",
+        "content-type": "application/octet-stream",
+        "date": "Thu, 27 Aug 2026 05:34:39 GMT",
+        "etag": "\"171118230-1787808879-6\"",
+        "accept-ranges": "bytes",
+        "connection": "close",
+        "server": "Cheroot/11.1.2"
+      },
+      "body": "target"
+    },
+    {
+      "method": "GET",
+      "path": "/MOVE-stale-source",
+      "requestHeaders": {},
+      "requestBody": "",
+      "status": 200,
+      "headers": {
+        "content-length": "6",
+        "last-modified": "Thu, 27 Aug 2026 05:34:39 GMT",
+        "content-type": "application/octet-stream",
+        "date": "Thu, 27 Aug 2026 05:34:39 GMT",
+        "etag": "\"171118229-1787808879-6\"",
+        "accept-ranges": "bytes",
+        "connection": "close",
+        "server": "Cheroot/11.1.2"
+      },
+      "body": "source"
+    },
+    {
+      "method": "PROPFIND",
+      "path": "/MOVE-stale-source",
+      "requestHeaders": {
+        "Depth": "0",
+        "Content-Type": "application/xml"
+      },
+      "requestBody": "<d:propfind xmlns:d=\"DAV:\"><d:prop><d:lockdiscovery/></d:prop></d:propfind>",
+      "status": 207,
+      "headers": {
+        "content-type": "application/xml; charset=utf-8",
+        "date": "Thu, 27 Aug 2026 05:34:39 GMT",
+        "content-length": "275",
+        "connection": "close",
+        "server": "Cheroot/11.1.2"
+      },
+      "body": "<?xml version=\"1.0\" encoding=\"utf-8\" ?>\n<ns0:multistatus xmlns:ns0=\"DAV:\"><ns0:response><ns0:href>/dav/MOVE-stale-source</ns0:href><ns0:propstat><ns0:prop><ns0:lockdiscovery /></ns0:prop><ns0:status>HTTP/1.1 200 OK</ns0:status></ns0:propstat></ns0:response></ns0:multistatus>"
+    },
+    {
+      "method": "GET",
+      "path": "/MOVE-stale-target",
+      "requestHeaders": {},
+      "requestBody": "",
+      "status": 200,
+      "headers": {
+        "content-length": "6",
+        "last-modified": "Thu, 27 Aug 2026 05:34:39 GMT",
+        "content-type": "application/octet-stream",
+        "date": "Thu, 27 Aug 2026 05:34:39 GMT",
+        "etag": "\"171118230-1787808879-6\"",
+        "accept-ranges": "bytes",
+        "connection": "close",
+        "server": "Cheroot/11.1.2"
+      },
+      "body": "target"
+    },
+    {
+      "method": "PROPFIND",
+      "path": "/MOVE-stale-target",
+      "requestHeaders": {
+        "Depth": "0",
+        "Content-Type": "application/xml"
+      },
+      "requestBody": "<d:propfind xmlns:d=\"DAV:\"><d:prop><d:lockdiscovery/></d:prop></d:propfind>",
+      "status": 207,
+      "headers": {
+        "content-type": "application/xml; charset=utf-8",
+        "date": "Thu, 27 Aug 2026 05:34:39 GMT",
+        "content-length": "275",
+        "connection": "close",
+        "server": "Cheroot/11.1.2"
+      },
+      "body": "<?xml version=\"1.0\" encoding=\"utf-8\" ?>\n<ns0:multistatus xmlns:ns0=\"DAV:\"><ns0:response><ns0:href>/dav/MOVE-stale-target</ns0:href><ns0:propstat><ns0:prop><ns0:lockdiscovery /></ns0:prop><ns0:status>HTTP/1.1 200 OK</ns0:status></ns0:propstat></ns0:response></ns0:multistatus>"
+    },
+    {
+      "method": "PUT",
+      "path": "/MOVE-source",
+      "requestHeaders": {},
+      "requestBody": "source bytes",
+      "status": 201,
+      "headers": {
+        "content-type": "text/html; charset=utf-8",
+        "date": "Thu, 27 Aug 2026 05:34:39 GMT",
+        "content-length": "372",
+        "etag": "\"171118231-1787808879-12\"",
+        "connection": "close",
+        "server": "Cheroot/11.1.2"
+      },
+      "body": "<!DOCTYPE HTML PUBLIC '-//W3C//DTD HTML 4.01//EN' 'http://www.w3.org/TR/html4/strict.dtd'>\n<html><head>\n  <meta http-equiv='Content-Type' content='text/html; charset=utf-8'>\n  <title>201 Created</title>\n</head><body>\n  <h1>201 Created</h1>\n  <p>201 Created</p>\n<hr/>\n<a href='https://github.com/mar10/wsgidav/'>WsgiDAV/4.3.5</a> - 2026-08-27 00:34:39.958381\n</body></html>"
+    },
+    {
+      "method": "PUT",
+      "path": "/MOVE-target",
+      "requestHeaders": {},
+      "requestBody": "OLD",
+      "status": 201,
+      "headers": {
+        "content-type": "text/html; charset=utf-8",
+        "date": "Thu, 27 Aug 2026 05:34:39 GMT",
+        "content-length": "372",
+        "etag": "\"171118232-1787808879-3\"",
+        "connection": "close",
+        "server": "Cheroot/11.1.2"
+      },
+      "body": "<!DOCTYPE HTML PUBLIC '-//W3C//DTD HTML 4.01//EN' 'http://www.w3.org/TR/html4/strict.dtd'>\n<html><head>\n  <meta http-equiv='Content-Type' content='text/html; charset=utf-8'>\n  <title>201 Created</title>\n</head><body>\n  <h1>201 Created</h1>\n  <p>201 Created</p>\n<hr/>\n<a href='https://github.com/mar10/wsgidav/'>WsgiDAV/4.3.5</a> - 2026-08-27 00:34:39.959666\n</body></html>"
+    },
+    {
+      "method": "GET",
+      "path": "/MOVE-source",
+      "requestHeaders": {},
+      "requestBody": "",
+      "status": 200,
+      "headers": {
+        "content-length": "12",
+        "last-modified": "Thu, 27 Aug 2026 05:34:39 GMT",
+        "content-type": "application/octet-stream",
+        "date": "Thu, 27 Aug 2026 05:34:39 GMT",
+        "etag": "\"171118231-1787808879-12\"",
+        "accept-ranges": "bytes",
+        "connection": "close",
+        "server": "Cheroot/11.1.2"
+      },
+      "body": "source bytes"
+    },
+    {
+      "method": "GET",
+      "path": "/MOVE-target",
+      "requestHeaders": {},
+      "requestBody": "",
+      "status": 200,
+      "headers": {
+        "content-length": "3",
+        "last-modified": "Thu, 27 Aug 2026 05:34:39 GMT",
+        "content-type": "application/octet-stream",
+        "date": "Thu, 27 Aug 2026 05:34:39 GMT",
+        "etag": "\"171118232-1787808879-3\"",
+        "accept-ranges": "bytes",
+        "connection": "close",
+        "server": "Cheroot/11.1.2"
+      },
+      "body": "OLD"
+    },
+    {
+      "method": "MOVE",
+      "path": "/MOVE-source",
+      "requestHeaders": {
+        "Destination": "https://127.0.0.1:50416/dav/MOVE-target",
+        "Overwrite": "T",
+        "If-Match": "\"171118231-1787808879-12\"",
+        "If": "<https://127.0.0.1:50416/dav/MOVE-target> ([\"171118232-1787808879-3\"])"
+      },
+      "requestBody": "",
+      "status": 412,
+      "headers": {
+        "content-type": "text/html; charset=utf-8",
+        "content-length": "442",
+        "date": "Thu, 27 Aug 2026 05:34:39 GMT",
+        "connection": "close",
+        "server": "Cheroot/11.1.2"
+      },
+      "body": "<!DOCTYPE HTML PUBLIC '-//W3C//DTD HTML 4.01//EN' 'http://www.w3.org/TR/html4/strict.dtd'>\n<html><head>\n  <meta http-equiv='Content-Type' content='text/html; charset=utf-8'>\n  <title>412 Precondition Failed</title>\n</head><body>\n  <h1>412 Precondition Failed</h1>\n  <p>412 Precondition Failed: If-Match header condition failed</p>\n<hr/>\n<a href='https://github.com/mar10/wsgidav/'>WsgiDAV/4.3.5</a> - 2026-08-27 00:34:39.963252\n</body></html>"
+    },
+    {
+      "method": "GET",
+      "path": "/MOVE-source",
+      "requestHeaders": {},
+      "requestBody": "",
+      "status": 200,
+      "headers": {
+        "content-length": "12",
+        "last-modified": "Thu, 27 Aug 2026 05:34:39 GMT",
+        "content-type": "application/octet-stream",
+        "date": "Thu, 27 Aug 2026 05:34:39 GMT",
+        "etag": "\"171118231-1787808879-12\"",
+        "accept-ranges": "bytes",
+        "connection": "close",
+        "server": "Cheroot/11.1.2"
+      },
+      "body": "source bytes"
+    },
+    {
+      "method": "PROPFIND",
+      "path": "/MOVE-source",
+      "requestHeaders": {
+        "Depth": "0",
+        "Content-Type": "application/xml"
+      },
+      "requestBody": "<d:propfind xmlns:d=\"DAV:\"><d:prop><d:lockdiscovery/></d:prop></d:propfind>",
+      "status": 207,
+      "headers": {
+        "content-type": "application/xml; charset=utf-8",
+        "date": "Thu, 27 Aug 2026 05:34:39 GMT",
+        "content-length": "269",
+        "connection": "close",
+        "server": "Cheroot/11.1.2"
+      },
+      "body": "<?xml version=\"1.0\" encoding=\"utf-8\" ?>\n<ns0:multistatus xmlns:ns0=\"DAV:\"><ns0:response><ns0:href>/dav/MOVE-source</ns0:href><ns0:propstat><ns0:prop><ns0:lockdiscovery /></ns0:prop><ns0:status>HTTP/1.1 200 OK</ns0:status></ns0:propstat></ns0:response></ns0:multistatus>"
+    },
+    {
+      "method": "GET",
+      "path": "/MOVE-target",
+      "requestHeaders": {},
+      "requestBody": "",
+      "status": 200,
+      "headers": {
+        "content-length": "3",
+        "last-modified": "Thu, 27 Aug 2026 05:34:39 GMT",
+        "content-type": "application/octet-stream",
+        "date": "Thu, 27 Aug 2026 05:34:39 GMT",
+        "etag": "\"171118232-1787808879-3\"",
+        "accept-ranges": "bytes",
+        "connection": "close",
+        "server": "Cheroot/11.1.2"
+      },
+      "body": "OLD"
+    },
+    {
+      "method": "PROPFIND",
+      "path": "/MOVE-target",
+      "requestHeaders": {
+        "Depth": "0",
+        "Content-Type": "application/xml"
+      },
+      "requestBody": "<d:propfind xmlns:d=\"DAV:\"><d:prop><d:lockdiscovery/></d:prop></d:propfind>",
+      "status": 207,
+      "headers": {
+        "content-type": "application/xml; charset=utf-8",
+        "date": "Thu, 27 Aug 2026 05:34:39 GMT",
+        "content-length": "269",
+        "connection": "close",
+        "server": "Cheroot/11.1.2"
+      },
+      "body": "<?xml version=\"1.0\" encoding=\"utf-8\" ?>\n<ns0:multistatus xmlns:ns0=\"DAV:\"><ns0:response><ns0:href>/dav/MOVE-target</ns0:href><ns0:propstat><ns0:prop><ns0:lockdiscovery /></ns0:prop><ns0:status>HTTP/1.1 200 OK</ns0:status></ns0:propstat></ns0:response></ns0:multistatus>"
+    },
+    {
+      "method": "PUT",
+      "path": "/MOVE-new-source",
+      "requestHeaders": {},
+      "requestBody": "new bytes",
+      "status": 201,
+      "headers": {
+        "content-type": "text/html; charset=utf-8",
+        "date": "Thu, 27 Aug 2026 05:34:39 GMT",
+        "content-length": "372",
+        "etag": "\"171118233-1787808879-9\"",
+        "connection": "close",
+        "server": "Cheroot/11.1.2"
+      },
+      "body": "<!DOCTYPE HTML PUBLIC '-//W3C//DTD HTML 4.01//EN' 'http://www.w3.org/TR/html4/strict.dtd'>\n<html><head>\n  <meta http-equiv='Content-Type' content='text/html; charset=utf-8'>\n  <title>201 Created</title>\n</head><body>\n  <h1>201 Created</h1>\n  <p>201 Created</p>\n<hr/>\n<a href='https://github.com/mar10/wsgidav/'>WsgiDAV/4.3.5</a> - 2026-08-27 00:34:39.970915\n</body></html>"
+    },
+    {
+      "method": "GET",
+      "path": "/MOVE-new-source",
+      "requestHeaders": {},
+      "requestBody": "",
+      "status": 200,
+      "headers": {
+        "content-length": "9",
+        "last-modified": "Thu, 27 Aug 2026 05:34:39 GMT",
+        "content-type": "application/octet-stream",
+        "date": "Thu, 27 Aug 2026 05:34:39 GMT",
+        "etag": "\"171118233-1787808879-9\"",
+        "accept-ranges": "bytes",
+        "connection": "close",
+        "server": "Cheroot/11.1.2"
+      },
+      "body": "new bytes"
+    },
+    {
+      "method": "MOVE",
+      "path": "/MOVE-new-source",
+      "requestHeaders": {
+        "Destination": "https://127.0.0.1:50416/dav/MOVE-new-target",
+        "Overwrite": "F",
+        "If-Match": "\"171118233-1787808879-9\""
+      },
+      "requestBody": "",
+      "status": 201,
+      "headers": {
+        "content-type": "text/html; charset=utf-8",
+        "date": "Thu, 27 Aug 2026 05:34:39 GMT",
+        "content-length": "372",
+        "connection": "close",
+        "server": "Cheroot/11.1.2"
+      },
+      "body": "<!DOCTYPE HTML PUBLIC '-//W3C//DTD HTML 4.01//EN' 'http://www.w3.org/TR/html4/strict.dtd'>\n<html><head>\n  <meta http-equiv='Content-Type' content='text/html; charset=utf-8'>\n  <title>201 Created</title>\n</head><body>\n  <h1>201 Created</h1>\n  <p>201 Created</p>\n<hr/>\n<a href='https://github.com/mar10/wsgidav/'>WsgiDAV/4.3.5</a> - 2026-08-27 00:34:39.973480\n</body></html>"
+    },
+    {
+      "method": "GET",
+      "path": "/MOVE-new-target",
+      "requestHeaders": {},
+      "requestBody": "",
+      "status": 200,
+      "headers": {
+        "content-length": "9",
+        "last-modified": "Thu, 27 Aug 2026 05:34:39 GMT",
+        "content-type": "application/octet-stream",
+        "date": "Thu, 27 Aug 2026 05:34:39 GMT",
+        "etag": "\"171118233-1787808879-9\"",
+        "accept-ranges": "bytes",
+        "connection": "close",
+        "server": "Cheroot/11.1.2"
+      },
+      "body": "new bytes"
+    },
+    {
+      "method": "GET",
+      "path": "/MOVE-new-source",
+      "requestHeaders": {},
+      "requestBody": "",
+      "status": 404,
+      "headers": {
+        "content-type": "text/html; charset=utf-8",
+        "content-length": "396",
+        "date": "Thu, 27 Aug 2026 05:34:39 GMT",
+        "connection": "close",
+        "server": "Cheroot/11.1.2"
+      },
+      "body": "<!DOCTYPE HTML PUBLIC '-//W3C//DTD HTML 4.01//EN' 'http://www.w3.org/TR/html4/strict.dtd'>\n<html><head>\n  <meta http-equiv='Content-Type' content='text/html; charset=utf-8'>\n  <title>404 Not Found</title>\n</head><body>\n  <h1>404 Not Found</h1>\n  <p>404 Not Found: /MOVE-new-source</p>\n<hr/>\n<a href='https://github.com/mar10/wsgidav/'>WsgiDAV/4.3.5</a> - 2026-08-27 00:34:39.975987\n</body></html>"
+    },
+    {
+      "method": "PROPFIND",
+      "path": "/MOVE-new-source",
+      "requestHeaders": {
+        "Depth": "0",
+        "Content-Type": "application/xml"
+      },
+      "requestBody": "<d:propfind xmlns:d=\"DAV:\"><d:prop><d:lockdiscovery/></d:prop></d:propfind>",
+      "status": 404,
+      "headers": {
+        "content-type": "text/html; charset=utf-8",
+        "content-length": "396",
+        "date": "Thu, 27 Aug 2026 05:34:39 GMT",
+        "connection": "close",
+        "server": "Cheroot/11.1.2"
+      },
+      "body": "<!DOCTYPE HTML PUBLIC '-//W3C//DTD HTML 4.01//EN' 'http://www.w3.org/TR/html4/strict.dtd'>\n<html><head>\n  <meta http-equiv='Content-Type' content='text/html; charset=utf-8'>\n  <title>404 Not Found</title>\n</head><body>\n  <h1>404 Not Found</h1>\n  <p>404 Not Found: /MOVE-new-source</p>\n<hr/>\n<a href='https://github.com/mar10/wsgidav/'>WsgiDAV/4.3.5</a> - 2026-08-27 00:34:39.977096\n</body></html>"
+    },
+    {
+      "method": "GET",
+      "path": "/MOVE-new-target",
+      "requestHeaders": {},
+      "requestBody": "",
+      "status": 200,
+      "headers": {
+        "content-length": "9",
+        "last-modified": "Thu, 27 Aug 2026 05:34:39 GMT",
+        "content-type": "application/octet-stream",
+        "date": "Thu, 27 Aug 2026 05:34:39 GMT",
+        "etag": "\"171118233-1787808879-9\"",
+        "accept-ranges": "bytes",
+        "connection": "close",
+        "server": "Cheroot/11.1.2"
+      },
+      "body": "new bytes"
+    },
+    {
+      "method": "PROPFIND",
+      "path": "/MOVE-new-target",
+      "requestHeaders": {
+        "Depth": "0",
+        "Content-Type": "application/xml"
+      },
+      "requestBody": "<d:propfind xmlns:d=\"DAV:\"><d:prop><d:lockdiscovery/></d:prop></d:propfind>",
+      "status": 207,
+      "headers": {
+        "content-type": "application/xml; charset=utf-8",
+        "date": "Thu, 27 Aug 2026 05:34:39 GMT",
+        "content-length": "273",
+        "connection": "close",
+        "server": "Cheroot/11.1.2"
+      },
+      "body": "<?xml version=\"1.0\" encoding=\"utf-8\" ?>\n<ns0:multistatus xmlns:ns0=\"DAV:\"><ns0:response><ns0:href>/dav/MOVE-new-target</ns0:href><ns0:propstat><ns0:prop><ns0:lockdiscovery /></ns0:prop><ns0:status>HTTP/1.1 200 OK</ns0:status></ns0:propstat></ns0:response></ns0:multistatus>"
+    },
+    {
+      "method": "PUT",
+      "path": "/MOVE-guard-source",
+      "requestHeaders": {},
+      "requestBody": "source",
+      "status": 201,
+      "headers": {
+        "content-type": "text/html; charset=utf-8",
+        "date": "Thu, 27 Aug 2026 05:34:39 GMT",
+        "content-length": "372",
+        "etag": "\"171118234-1787808879-6\"",
+        "connection": "close",
+        "server": "Cheroot/11.1.2"
+      },
+      "body": "<!DOCTYPE HTML PUBLIC '-//W3C//DTD HTML 4.01//EN' 'http://www.w3.org/TR/html4/strict.dtd'>\n<html><head>\n  <meta http-equiv='Content-Type' content='text/html; charset=utf-8'>\n  <title>201 Created</title>\n</head><body>\n  <h1>201 Created</h1>\n  <p>201 Created</p>\n<hr/>\n<a href='https://github.com/mar10/wsgidav/'>WsgiDAV/4.3.5</a> - 2026-08-27 00:34:39.982928\n</body></html>"
+    },
+    {
+      "method": "PUT",
+      "path": "/MOVE-guard-target",
+      "requestHeaders": {},
+      "requestBody": "target",
+      "status": 201,
+      "headers": {
+        "content-type": "text/html; charset=utf-8",
+        "date": "Thu, 27 Aug 2026 05:34:39 GMT",
+        "content-length": "372",
+        "etag": "\"171118235-1787808879-6\"",
+        "connection": "close",
+        "server": "Cheroot/11.1.2"
+      },
+      "body": "<!DOCTYPE HTML PUBLIC '-//W3C//DTD HTML 4.01//EN' 'http://www.w3.org/TR/html4/strict.dtd'>\n<html><head>\n  <meta http-equiv='Content-Type' content='text/html; charset=utf-8'>\n  <title>201 Created</title>\n</head><body>\n  <h1>201 Created</h1>\n  <p>201 Created</p>\n<hr/>\n<a href='https://github.com/mar10/wsgidav/'>WsgiDAV/4.3.5</a> - 2026-08-27 00:34:39.984314\n</body></html>"
+    },
+    {
+      "method": "MOVE",
+      "path": "/MOVE-guard-source",
+      "requestHeaders": {
+        "Destination": "https://127.0.0.1:50416/dav/MOVE-guard-target",
+        "Overwrite": "F"
+      },
+      "requestBody": "",
+      "status": 412,
+      "headers": {
+        "content-type": "text/html; charset=utf-8",
+        "content-length": "466",
+        "date": "Thu, 27 Aug 2026 05:34:39 GMT",
+        "connection": "close",
+        "server": "Cheroot/11.1.2"
+      },
+      "body": "<!DOCTYPE HTML PUBLIC '-//W3C//DTD HTML 4.01//EN' 'http://www.w3.org/TR/html4/strict.dtd'>\n<html><head>\n  <meta http-equiv='Content-Type' content='text/html; charset=utf-8'>\n  <title>412 Precondition Failed</title>\n</head><body>\n  <h1>412 Precondition Failed</h1>\n  <p>412 Precondition Failed: Destination already exists and Overwrite is set to false</p>\n<hr/>\n<a href='https://github.com/mar10/wsgidav/'>WsgiDAV/4.3.5</a> - 2026-08-27 00:34:39.985650\n</body></html>"
+    },
+    {
+      "method": "MOVE",
+      "path": "/MOVE-guard-source",
+      "requestHeaders": {
+        "Destination": "https://127.0.0.1:50416/dav/MOVE-guard-target",
+        "Overwrite": "T",
+        "If": "<https://127.0.0.1:50416/dav/MOVE-guard-target> ([\"stale\"])"
+      },
+      "requestBody": "",
+      "status": 204,
+      "headers": {
+        "content-length": "0",
+        "date": "Thu, 27 Aug 2026 05:34:39 GMT",
+        "connection": "close",
+        "server": "Cheroot/11.1.2"
+      },
+      "body": ""
+    },
+    {
+      "method": "GET",
+      "path": "/MOVE-guard-source",
+      "requestHeaders": {},
+      "requestBody": "",
+      "status": 404,
+      "headers": {
+        "content-type": "text/html; charset=utf-8",
+        "content-length": "398",
+        "date": "Thu, 27 Aug 2026 05:34:39 GMT",
+        "connection": "close",
+        "server": "Cheroot/11.1.2"
+      },
+      "body": "<!DOCTYPE HTML PUBLIC '-//W3C//DTD HTML 4.01//EN' 'http://www.w3.org/TR/html4/strict.dtd'>\n<html><head>\n  <meta http-equiv='Content-Type' content='text/html; charset=utf-8'>\n  <title>404 Not Found</title>\n</head><body>\n  <h1>404 Not Found</h1>\n  <p>404 Not Found: /MOVE-guard-source</p>\n<hr/>\n<a href='https://github.com/mar10/wsgidav/'>WsgiDAV/4.3.5</a> - 2026-08-27 00:34:39.988112\n</body></html>"
+    },
+    {
+      "method": "PROPFIND",
+      "path": "/MOVE-guard-source",
+      "requestHeaders": {
+        "Depth": "0",
+        "Content-Type": "application/xml"
+      },
+      "requestBody": "<d:propfind xmlns:d=\"DAV:\"><d:prop><d:lockdiscovery/></d:prop></d:propfind>",
+      "status": 404,
+      "headers": {
+        "content-type": "text/html; charset=utf-8",
+        "content-length": "398",
+        "date": "Thu, 27 Aug 2026 05:34:39 GMT",
+        "connection": "close",
+        "server": "Cheroot/11.1.2"
+      },
+      "body": "<!DOCTYPE HTML PUBLIC '-//W3C//DTD HTML 4.01//EN' 'http://www.w3.org/TR/html4/strict.dtd'>\n<html><head>\n  <meta http-equiv='Content-Type' content='text/html; charset=utf-8'>\n  <title>404 Not Found</title>\n</head><body>\n  <h1>404 Not Found</h1>\n  <p>404 Not Found: /MOVE-guard-source</p>\n<hr/>\n<a href='https://github.com/mar10/wsgidav/'>WsgiDAV/4.3.5</a> - 2026-08-27 00:34:39.989225\n</body></html>"
+    },
+    {
+      "method": "GET",
+      "path": "/MOVE-guard-target",
+      "requestHeaders": {},
+      "requestBody": "",
+      "status": 200,
+      "headers": {
+        "content-length": "6",
+        "last-modified": "Thu, 27 Aug 2026 05:34:39 GMT",
+        "content-type": "application/octet-stream",
+        "date": "Thu, 27 Aug 2026 05:34:39 GMT",
+        "etag": "\"171118234-1787808879-6\"",
+        "accept-ranges": "bytes",
+        "connection": "close",
+        "server": "Cheroot/11.1.2"
+      },
+      "body": "source"
+    },
+    {
+      "method": "PROPFIND",
+      "path": "/MOVE-guard-target",
+      "requestHeaders": {
+        "Depth": "0",
+        "Content-Type": "application/xml"
+      },
+      "requestBody": "<d:propfind xmlns:d=\"DAV:\"><d:prop><d:lockdiscovery/></d:prop></d:propfind>",
+      "status": 207,
+      "headers": {
+        "content-type": "application/xml; charset=utf-8",
+        "date": "Thu, 27 Aug 2026 05:34:39 GMT",
+        "content-length": "275",
+        "connection": "close",
+        "server": "Cheroot/11.1.2"
+      },
+      "body": "<?xml version=\"1.0\" encoding=\"utf-8\" ?>\n<ns0:multistatus xmlns:ns0=\"DAV:\"><ns0:response><ns0:href>/dav/MOVE-guard-target</ns0:href><ns0:propstat><ns0:prop><ns0:lockdiscovery /></ns0:prop><ns0:status>HTTP/1.1 200 OK</ns0:status></ns0:propstat></ns0:response></ns0:multistatus>"
+    },
+    {
+      "method": "PUT",
+      "path": "/MOVE-wrong-source",
+      "requestHeaders": {},
+      "requestBody": "source",
+      "status": 201,
+      "headers": {
+        "content-type": "text/html; charset=utf-8",
+        "date": "Thu, 27 Aug 2026 05:34:39 GMT",
+        "content-length": "372",
+        "etag": "\"171118236-1787808879-6\"",
+        "connection": "close",
+        "server": "Cheroot/11.1.2"
+      },
+      "body": "<!DOCTYPE HTML PUBLIC '-//W3C//DTD HTML 4.01//EN' 'http://www.w3.org/TR/html4/strict.dtd'>\n<html><head>\n  <meta http-equiv='Content-Type' content='text/html; charset=utf-8'>\n  <title>201 Created</title>\n</head><body>\n  <h1>201 Created</h1>\n  <p>201 Created</p>\n<hr/>\n<a href='https://github.com/mar10/wsgidav/'>WsgiDAV/4.3.5</a> - 2026-08-27 00:34:39.994935\n</body></html>"
+    },
+    {
+      "method": "PUT",
+      "path": "/MOVE-wrong-target",
+      "requestHeaders": {},
+      "requestBody": "target",
+      "status": 201,
+      "headers": {
+        "content-type": "text/html; charset=utf-8",
+        "date": "Thu, 27 Aug 2026 05:34:39 GMT",
+        "content-length": "372",
+        "etag": "\"171118237-1787808879-6\"",
+        "connection": "close",
+        "server": "Cheroot/11.1.2"
+      },
+      "body": "<!DOCTYPE HTML PUBLIC '-//W3C//DTD HTML 4.01//EN' 'http://www.w3.org/TR/html4/strict.dtd'>\n<html><head>\n  <meta http-equiv='Content-Type' content='text/html; charset=utf-8'>\n  <title>201 Created</title>\n</head><body>\n  <h1>201 Created</h1>\n  <p>201 Created</p>\n<hr/>\n<a href='https://github.com/mar10/wsgidav/'>WsgiDAV/4.3.5</a> - 2026-08-27 00:34:39.996245\n</body></html>"
+    },
+    {
+      "method": "LOCK",
+      "path": "/MOVE-wrong-target",
+      "requestHeaders": {
+        "Depth": "infinity",
+        "Timeout": "Second-60",
+        "Content-Type": "application/xml"
+      },
+      "requestBody": "<d:lockinfo xmlns:d=\"DAV:\"><d:lockscope><d:exclusive/></d:lockscope><d:locktype><d:write/></d:locktype></d:lockinfo>",
+      "status": 200,
+      "headers": {
+        "content-type": "application; charset=utf-8",
+        "content-length": "513",
+        "lock-token": "opaquelocktoken:0xf2383d500040dc89d15dc43ac85be2dbe705f368cc2d3ffd685a92ee5818ae61",
+        "date": "Thu, 27 Aug 2026 05:34:39 GMT",
+        "connection": "close",
+        "server": "Cheroot/11.1.2"
+      },
+      "body": "<?xml version=\"1.0\" encoding=\"utf-8\" ?>\n<ns0:prop xmlns:ns0=\"DAV:\"><ns0:lockdiscovery><ns0:activelock><ns0:locktype><ns0:write /></ns0:locktype><ns0:lockscope><ns0:exclusive /></ns0:lockscope><ns0:depth>infinity</ns0:depth><ns0:timeout>Second-59</ns0:timeout><ns0:locktoken><ns0:href>opaquelocktoken:0xf2383d500040dc89d15dc43ac85be2dbe705f368cc2d3ffd685a92ee5818ae61</ns0:href></ns0:locktoken><ns0:lockroot><ns0:href>/dav/MOVE-wrong-target</ns0:href></ns0:lockroot></ns0:activelock></ns0:lockdiscovery></ns0:prop>"
+    },
+    {
+      "method": "MOVE",
+      "path": "/MOVE-wrong-source",
+      "requestHeaders": {
+        "Destination": "https://127.0.0.1:50416/dav/MOVE-wrong-target",
+        "Overwrite": "T",
+        "If": "<https://127.0.0.1:50416/dav/MOVE-wrong-target> (<opaquelocktoken:00000000-0000-4000-8000-000000000000>)"
+      },
+      "requestBody": "",
+      "status": 423,
+      "headers": {
+        "content-type": "application/xml; charset=utf-8",
+        "content-length": "174",
+        "date": "Thu, 27 Aug 2026 05:34:39 GMT",
+        "connection": "close",
+        "server": "Cheroot/11.1.2"
+      },
+      "body": "<?xml version=\"1.0\" encoding=\"utf-8\" ?>\n<ns0:error xmlns:ns0=\"DAV:\"><ns0:no-conflicting-lock><ns0:href>/dav/MOVE-wrong-target</ns0:href></ns0:no-conflicting-lock></ns0:error>"
+    },
+    {
+      "method": "GET",
+      "path": "/MOVE-wrong-target",
+      "requestHeaders": {},
+      "requestBody": "",
+      "status": 200,
+      "headers": {
+        "content-length": "6",
+        "last-modified": "Thu, 27 Aug 2026 05:34:39 GMT",
+        "content-type": "application/octet-stream",
+        "date": "Thu, 27 Aug 2026 05:34:39 GMT",
+        "etag": "\"171118237-1787808879-6\"",
+        "accept-ranges": "bytes",
+        "connection": "close",
+        "server": "Cheroot/11.1.2"
+      },
+      "body": "target"
+    },
+    {
+      "method": "GET",
+      "path": "/MOVE-wrong-source",
+      "requestHeaders": {},
+      "requestBody": "",
+      "status": 200,
+      "headers": {
+        "content-length": "6",
+        "last-modified": "Thu, 27 Aug 2026 05:34:39 GMT",
+        "content-type": "application/octet-stream",
+        "date": "Thu, 27 Aug 2026 05:34:40 GMT",
+        "etag": "\"171118236-1787808879-6\"",
+        "accept-ranges": "bytes",
+        "connection": "close",
+        "server": "Cheroot/11.1.2"
+      },
+      "body": "source"
+    },
+    {
+      "method": "UNLOCK",
+      "path": "/MOVE-wrong-target",
+      "requestHeaders": {
+        "Lock-Token": "<opaquelocktoken:0xf2383d500040dc89d15dc43ac85be2dbe705f368cc2d3ffd685a92ee5818ae61>"
+      },
+      "requestBody": "",
+      "status": 204,
+      "headers": {
+        "content-length": "0",
+        "date": "Thu, 27 Aug 2026 05:34:40 GMT",
+        "connection": "close",
+        "server": "Cheroot/11.1.2"
+      },
+      "body": ""
+    },
+    {
+      "method": "GET",
+      "path": "/MOVE-wrong-source",
+      "requestHeaders": {},
+      "requestBody": "",
+      "status": 200,
+      "headers": {
+        "content-length": "6",
+        "last-modified": "Thu, 27 Aug 2026 05:34:39 GMT",
+        "content-type": "application/octet-stream",
+        "date": "Thu, 27 Aug 2026 05:34:40 GMT",
+        "etag": "\"171118236-1787808879-6\"",
+        "accept-ranges": "bytes",
+        "connection": "close",
+        "server": "Cheroot/11.1.2"
+      },
+      "body": "source"
+    },
+    {
+      "method": "PROPFIND",
+      "path": "/MOVE-wrong-source",
+      "requestHeaders": {
+        "Depth": "0",
+        "Content-Type": "application/xml"
+      },
+      "requestBody": "<d:propfind xmlns:d=\"DAV:\"><d:prop><d:lockdiscovery/></d:prop></d:propfind>",
+      "status": 207,
+      "headers": {
+        "content-type": "application/xml; charset=utf-8",
+        "date": "Thu, 27 Aug 2026 05:34:40 GMT",
+        "content-length": "275",
+        "connection": "close",
+        "server": "Cheroot/11.1.2"
+      },
+      "body": "<?xml version=\"1.0\" encoding=\"utf-8\" ?>\n<ns0:multistatus xmlns:ns0=\"DAV:\"><ns0:response><ns0:href>/dav/MOVE-wrong-source</ns0:href><ns0:propstat><ns0:prop><ns0:lockdiscovery /></ns0:prop><ns0:status>HTTP/1.1 200 OK</ns0:status></ns0:propstat></ns0:response></ns0:multistatus>"
+    },
+    {
+      "method": "GET",
+      "path": "/MOVE-wrong-target",
+      "requestHeaders": {},
+      "requestBody": "",
+      "status": 200,
+      "headers": {
+        "content-length": "6",
+        "last-modified": "Thu, 27 Aug 2026 05:34:39 GMT",
+        "content-type": "application/octet-stream",
+        "date": "Thu, 27 Aug 2026 05:34:40 GMT",
+        "etag": "\"171118237-1787808879-6\"",
+        "accept-ranges": "bytes",
+        "connection": "close",
+        "server": "Cheroot/11.1.2"
+      },
+      "body": "target"
+    },
+    {
+      "method": "PROPFIND",
+      "path": "/MOVE-wrong-target",
+      "requestHeaders": {
+        "Depth": "0",
+        "Content-Type": "application/xml"
+      },
+      "requestBody": "<d:propfind xmlns:d=\"DAV:\"><d:prop><d:lockdiscovery/></d:prop></d:propfind>",
+      "status": 207,
+      "headers": {
+        "content-type": "application/xml; charset=utf-8",
+        "date": "Thu, 27 Aug 2026 05:34:40 GMT",
+        "content-length": "275",
+        "connection": "close",
+        "server": "Cheroot/11.1.2"
+      },
+      "body": "<?xml version=\"1.0\" encoding=\"utf-8\" ?>\n<ns0:multistatus xmlns:ns0=\"DAV:\"><ns0:response><ns0:href>/dav/MOVE-wrong-target</ns0:href><ns0:propstat><ns0:prop><ns0:lockdiscovery /></ns0:prop><ns0:status>HTTP/1.1 200 OK</ns0:status></ns0:propstat></ns0:response></ns0:multistatus>"
+    },
+    {
+      "method": "PUT",
+      "path": "/MOVE-lock-source",
+      "requestHeaders": {},
+      "requestBody": "source",
+      "status": 201,
+      "headers": {
+        "content-type": "text/html; charset=utf-8",
+        "date": "Thu, 27 Aug 2026 05:34:40 GMT",
+        "content-length": "372",
+        "etag": "\"171118239-1787808880-6\"",
+        "connection": "close",
+        "server": "Cheroot/11.1.2"
+      },
+      "body": "<!DOCTYPE HTML PUBLIC '-//W3C//DTD HTML 4.01//EN' 'http://www.w3.org/TR/html4/strict.dtd'>\n<html><head>\n  <meta http-equiv='Content-Type' content='text/html; charset=utf-8'>\n  <title>201 Created</title>\n</head><body>\n  <h1>201 Created</h1>\n  <p>201 Created</p>\n<hr/>\n<a href='https://github.com/mar10/wsgidav/'>WsgiDAV/4.3.5</a> - 2026-08-27 00:34:40.010221\n</body></html>"
+    },
+    {
+      "method": "PUT",
+      "path": "/MOVE-lock-target",
+      "requestHeaders": {},
+      "requestBody": "target",
+      "status": 201,
+      "headers": {
+        "content-type": "text/html; charset=utf-8",
+        "date": "Thu, 27 Aug 2026 05:34:40 GMT",
+        "content-length": "372",
+        "etag": "\"171118240-1787808880-6\"",
+        "connection": "close",
+        "server": "Cheroot/11.1.2"
+      },
+      "body": "<!DOCTYPE HTML PUBLIC '-//W3C//DTD HTML 4.01//EN' 'http://www.w3.org/TR/html4/strict.dtd'>\n<html><head>\n  <meta http-equiv='Content-Type' content='text/html; charset=utf-8'>\n  <title>201 Created</title>\n</head><body>\n  <h1>201 Created</h1>\n  <p>201 Created</p>\n<hr/>\n<a href='https://github.com/mar10/wsgidav/'>WsgiDAV/4.3.5</a> - 2026-08-27 00:34:40.011535\n</body></html>"
+    },
+    {
+      "method": "LOCK",
+      "path": "/MOVE-lock-target",
+      "requestHeaders": {
+        "Depth": "infinity",
+        "Timeout": "Second-60",
+        "Content-Type": "application/xml"
+      },
+      "requestBody": "<d:lockinfo xmlns:d=\"DAV:\"><d:lockscope><d:exclusive/></d:lockscope><d:locktype><d:write/></d:locktype></d:lockinfo>",
+      "status": 200,
+      "headers": {
+        "content-type": "application; charset=utf-8",
+        "content-length": "510",
+        "lock-token": "opaquelocktoken:0x8b4ed54cd743c2269a0c5968c97a05a51cd534833e307a0e3cdc268326ab23",
+        "date": "Thu, 27 Aug 2026 05:34:40 GMT",
+        "connection": "close",
+        "server": "Cheroot/11.1.2"
+      },
+      "body": "<?xml version=\"1.0\" encoding=\"utf-8\" ?>\n<ns0:prop xmlns:ns0=\"DAV:\"><ns0:lockdiscovery><ns0:activelock><ns0:locktype><ns0:write /></ns0:locktype><ns0:lockscope><ns0:exclusive /></ns0:lockscope><ns0:depth>infinity</ns0:depth><ns0:timeout>Second-59</ns0:timeout><ns0:locktoken><ns0:href>opaquelocktoken:0x8b4ed54cd743c2269a0c5968c97a05a51cd534833e307a0e3cdc268326ab23</ns0:href></ns0:locktoken><ns0:lockroot><ns0:href>/dav/MOVE-lock-target</ns0:href></ns0:lockroot></ns0:activelock></ns0:lockdiscovery></ns0:prop>"
+    },
+    {
+      "method": "PUT",
+      "path": "/MOVE-lock-target",
+      "requestHeaders": {},
+      "requestBody": "blocked",
+      "status": 423,
+      "headers": {
+        "content-type": "application/xml; charset=utf-8",
+        "content-length": "173",
+        "date": "Thu, 27 Aug 2026 05:34:40 GMT",
+        "connection": "close",
+        "server": "Cheroot/11.1.2"
+      },
+      "body": "<?xml version=\"1.0\" encoding=\"utf-8\" ?>\n<ns0:error xmlns:ns0=\"DAV:\"><ns0:no-conflicting-lock><ns0:href>/dav/MOVE-lock-target</ns0:href></ns0:no-conflicting-lock></ns0:error>"
+    },
+    {
+      "method": "MOVE",
+      "path": "/MOVE-lock-source",
+      "requestHeaders": {
+        "Destination": "https://127.0.0.1:50416/dav/MOVE-lock-target",
+        "Overwrite": "T",
+        "If": "<https://127.0.0.1:50416/dav/MOVE-lock-target> (<opaquelocktoken:0x8b4ed54cd743c2269a0c5968c97a05a51cd534833e307a0e3cdc268326ab23>)"
+      },
+      "requestBody": "",
+      "status": 204,
+      "headers": {
+        "content-length": "0",
+        "date": "Thu, 27 Aug 2026 05:34:40 GMT",
+        "connection": "close",
+        "server": "Cheroot/11.1.2"
+      },
+      "body": ""
+    },
+    {
+      "method": "GET",
+      "path": "/MOVE-lock-target",
+      "requestHeaders": {},
+      "requestBody": "",
+      "status": 200,
+      "headers": {
+        "content-length": "6",
+        "last-modified": "Thu, 27 Aug 2026 05:34:40 GMT",
+        "content-type": "application/octet-stream",
+        "date": "Thu, 27 Aug 2026 05:34:40 GMT",
+        "etag": "\"171118239-1787808880-6\"",
+        "accept-ranges": "bytes",
+        "connection": "close",
+        "server": "Cheroot/11.1.2"
+      },
+      "body": "source"
+    },
+    {
+      "method": "UNLOCK",
+      "path": "/MOVE-lock-target",
+      "requestHeaders": {
+        "Lock-Token": "<opaquelocktoken:0x8b4ed54cd743c2269a0c5968c97a05a51cd534833e307a0e3cdc268326ab23>"
+      },
+      "requestBody": "",
+      "status": 409,
+      "headers": {
+        "content-type": "application/xml; charset=utf-8",
+        "content-length": "118",
+        "date": "Thu, 27 Aug 2026 05:34:40 GMT",
+        "connection": "close",
+        "server": "Cheroot/11.1.2"
+      },
+      "body": "<?xml version=\"1.0\" encoding=\"utf-8\" ?>\n<ns0:error xmlns:ns0=\"DAV:\"><ns0:lock-token-matches-request-uri /></ns0:error>"
+    },
+    {
+      "method": "PROPFIND",
+      "path": "/MOVE-lock-target",
+      "requestHeaders": {
+        "Depth": "0",
+        "Content-Type": "application/xml"
+      },
+      "requestBody": "<d:propfind xmlns:d=\"DAV:\"><d:prop><d:lockdiscovery/></d:prop></d:propfind>",
+      "status": 207,
+      "headers": {
+        "content-type": "application/xml; charset=utf-8",
+        "date": "Thu, 27 Aug 2026 05:34:40 GMT",
+        "content-length": "274",
+        "connection": "close",
+        "server": "Cheroot/11.1.2"
+      },
+      "body": "<?xml version=\"1.0\" encoding=\"utf-8\" ?>\n<ns0:multistatus xmlns:ns0=\"DAV:\"><ns0:response><ns0:href>/dav/MOVE-lock-target</ns0:href><ns0:propstat><ns0:prop><ns0:lockdiscovery /></ns0:prop><ns0:status>HTTP/1.1 200 OK</ns0:status></ns0:propstat></ns0:response></ns0:multistatus>"
+    },
+    {
+      "method": "GET",
+      "path": "/MOVE-lock-source",
+      "requestHeaders": {},
+      "requestBody": "",
+      "status": 404,
+      "headers": {
+        "content-type": "text/html; charset=utf-8",
+        "content-length": "397",
+        "date": "Thu, 27 Aug 2026 05:34:40 GMT",
+        "connection": "close",
+        "server": "Cheroot/11.1.2"
+      },
+      "body": "<!DOCTYPE HTML PUBLIC '-//W3C//DTD HTML 4.01//EN' 'http://www.w3.org/TR/html4/strict.dtd'>\n<html><head>\n  <meta http-equiv='Content-Type' content='text/html; charset=utf-8'>\n  <title>404 Not Found</title>\n</head><body>\n  <h1>404 Not Found</h1>\n  <p>404 Not Found: /MOVE-lock-source</p>\n<hr/>\n<a href='https://github.com/mar10/wsgidav/'>WsgiDAV/4.3.5</a> - 2026-08-27 00:34:40.020867\n</body></html>"
+    },
+    {
+      "method": "PROPFIND",
+      "path": "/MOVE-lock-source",
+      "requestHeaders": {
+        "Depth": "0",
+        "Content-Type": "application/xml"
+      },
+      "requestBody": "<d:propfind xmlns:d=\"DAV:\"><d:prop><d:lockdiscovery/></d:prop></d:propfind>",
+      "status": 404,
+      "headers": {
+        "content-type": "text/html; charset=utf-8",
+        "content-length": "397",
+        "date": "Thu, 27 Aug 2026 05:34:40 GMT",
+        "connection": "close",
+        "server": "Cheroot/11.1.2"
+      },
+      "body": "<!DOCTYPE HTML PUBLIC '-//W3C//DTD HTML 4.01//EN' 'http://www.w3.org/TR/html4/strict.dtd'>\n<html><head>\n  <meta http-equiv='Content-Type' content='text/html; charset=utf-8'>\n  <title>404 Not Found</title>\n</head><body>\n  <h1>404 Not Found</h1>\n  <p>404 Not Found: /MOVE-lock-source</p>\n<hr/>\n<a href='https://github.com/mar10/wsgidav/'>WsgiDAV/4.3.5</a> - 2026-08-27 00:34:40.022013\n</body></html>"
+    },
+    {
+      "method": "GET",
+      "path": "/MOVE-lock-target",
+      "requestHeaders": {},
+      "requestBody": "",
+      "status": 200,
+      "headers": {
+        "content-length": "6",
+        "last-modified": "Thu, 27 Aug 2026 05:34:40 GMT",
+        "content-type": "application/octet-stream",
+        "date": "Thu, 27 Aug 2026 05:34:40 GMT",
+        "etag": "\"171118239-1787808880-6\"",
+        "accept-ranges": "bytes",
+        "connection": "close",
+        "server": "Cheroot/11.1.2"
+      },
+      "body": "source"
+    },
+    {
+      "method": "PROPFIND",
+      "path": "/MOVE-lock-target",
+      "requestHeaders": {
+        "Depth": "0",
+        "Content-Type": "application/xml"
+      },
+      "requestBody": "<d:propfind xmlns:d=\"DAV:\"><d:prop><d:lockdiscovery/></d:prop></d:propfind>",
+      "status": 207,
+      "headers": {
+        "content-type": "application/xml; charset=utf-8",
+        "date": "Thu, 27 Aug 2026 05:34:40 GMT",
+        "content-length": "274",
+        "connection": "close",
+        "server": "Cheroot/11.1.2"
+      },
+      "body": "<?xml version=\"1.0\" encoding=\"utf-8\" ?>\n<ns0:multistatus xmlns:ns0=\"DAV:\"><ns0:response><ns0:href>/dav/MOVE-lock-target</ns0:href><ns0:propstat><ns0:prop><ns0:lockdiscovery /></ns0:prop><ns0:status>HTTP/1.1 200 OK</ns0:status></ns0:propstat></ns0:response></ns0:multistatus>"
+    },
+    {
+      "method": "PUT",
+      "path": "/property-etag",
+      "requestHeaders": {},
+      "requestBody": "bytes",
+      "status": 201,
+      "headers": {
+        "content-type": "text/html; charset=utf-8",
+        "date": "Thu, 27 Aug 2026 05:34:40 GMT",
+        "content-length": "372",
+        "etag": "\"171118241-1787808880-5\"",
+        "connection": "close",
+        "server": "Cheroot/11.1.2"
+      },
+      "body": "<!DOCTYPE HTML PUBLIC '-//W3C//DTD HTML 4.01//EN' 'http://www.w3.org/TR/html4/strict.dtd'>\n<html><head>\n  <meta http-equiv='Content-Type' content='text/html; charset=utf-8'>\n  <title>201 Created</title>\n</head><body>\n  <h1>201 Created</h1>\n  <p>201 Created</p>\n<hr/>\n<a href='https://github.com/mar10/wsgidav/'>WsgiDAV/4.3.5</a> - 2026-08-27 00:34:40.028036\n</body></html>"
+    },
+    {
+      "method": "PROPFIND",
+      "path": "/property-etag",
+      "requestHeaders": {
+        "Depth": "0",
+        "Content-Type": "application/xml"
+      },
+      "requestBody": "<d:propfind xmlns:d=\"DAV:\"><d:prop><d:getetag/></d:prop></d:propfind>",
+      "status": 207,
+      "headers": {
+        "content-type": "application/xml; charset=utf-8",
+        "date": "Thu, 27 Aug 2026 05:34:40 GMT",
+        "content-length": "299",
+        "connection": "close",
+        "server": "Cheroot/11.1.2"
+      },
+      "body": "<?xml version=\"1.0\" encoding=\"utf-8\" ?>\n<ns0:multistatus xmlns:ns0=\"DAV:\"><ns0:response><ns0:href>/dav/property-etag</ns0:href><ns0:propstat><ns0:prop><ns0:getetag>171118241-1787808880-5</ns0:getetag></ns0:prop><ns0:status>HTTP/1.1 200 OK</ns0:status></ns0:propstat></ns0:response></ns0:multistatus>"
+    },
+    {
+      "method": "GET",
+      "path": "/property-etag",
+      "requestHeaders": {},
+      "requestBody": "",
+      "status": 200,
+      "headers": {
+        "content-length": "5",
+        "last-modified": "Thu, 27 Aug 2026 05:34:40 GMT",
+        "content-type": "application/octet-stream",
+        "date": "Thu, 27 Aug 2026 05:34:40 GMT",
+        "etag": "\"171118241-1787808880-5\"",
+        "accept-ranges": "bytes",
+        "connection": "close",
+        "server": "Cheroot/11.1.2"
+      },
+      "body": "bytes"
+    },
+    {
+      "method": "PROPFIND",
+      "path": "/property-etag",
+      "requestHeaders": {
+        "Depth": "0",
+        "Content-Type": "application/xml"
+      },
+      "requestBody": "<d:propfind xmlns:d=\"DAV:\"><d:prop><d:lockdiscovery/></d:prop></d:propfind>",
+      "status": 207,
+      "headers": {
+        "content-type": "application/xml; charset=utf-8",
+        "date": "Thu, 27 Aug 2026 05:34:40 GMT",
+        "content-length": "271",
+        "connection": "close",
+        "server": "Cheroot/11.1.2"
+      },
+      "body": "<?xml version=\"1.0\" encoding=\"utf-8\" ?>\n<ns0:multistatus xmlns:ns0=\"DAV:\"><ns0:response><ns0:href>/dav/property-etag</ns0:href><ns0:propstat><ns0:prop><ns0:lockdiscovery /></ns0:prop><ns0:status>HTTP/1.1 200 OK</ns0:status></ns0:propstat></ns0:response></ns0:multistatus>"
+    },
+    {
+      "method": "PUT",
+      "path": "/lock-syntax",
+      "requestHeaders": {},
+      "requestBody": "original",
+      "status": 201,
+      "headers": {
+        "content-type": "text/html; charset=utf-8",
+        "date": "Thu, 27 Aug 2026 05:34:40 GMT",
+        "content-length": "372",
+        "etag": "\"171118242-1787808880-8\"",
+        "connection": "close",
+        "server": "Cheroot/11.1.2"
+      },
+      "body": "<!DOCTYPE HTML PUBLIC '-//W3C//DTD HTML 4.01//EN' 'http://www.w3.org/TR/html4/strict.dtd'>\n<html><head>\n  <meta http-equiv='Content-Type' content='text/html; charset=utf-8'>\n  <title>201 Created</title>\n</head><body>\n  <h1>201 Created</h1>\n  <p>201 Created</p>\n<hr/>\n<a href='https://github.com/mar10/wsgidav/'>WsgiDAV/4.3.5</a> - 2026-08-27 00:34:40.035598\n</body></html>"
+    },
+    {
+      "method": "LOCK",
+      "path": "/lock-syntax",
+      "requestHeaders": {
+        "Depth": "infinity",
+        "Timeout": "Second-60",
+        "Content-Type": "application/xml"
+      },
+      "requestBody": "<d:lockinfo xmlns:d=\"DAV:\"><d:lockscope><d:exclusive/></d:lockscope><d:locktype><d:write/></d:locktype></d:lockinfo>",
+      "status": 200,
+      "headers": {
+        "content-type": "application; charset=utf-8",
+        "content-length": "507",
+        "lock-token": "opaquelocktoken:0xdab895d6e498f875d9d62deaadb53243b7e635bea0fff9cabcbf86962c1b3586",
+        "date": "Thu, 27 Aug 2026 05:34:40 GMT",
+        "connection": "close",
+        "server": "Cheroot/11.1.2"
+      },
+      "body": "<?xml version=\"1.0\" encoding=\"utf-8\" ?>\n<ns0:prop xmlns:ns0=\"DAV:\"><ns0:lockdiscovery><ns0:activelock><ns0:locktype><ns0:write /></ns0:locktype><ns0:lockscope><ns0:exclusive /></ns0:lockscope><ns0:depth>infinity</ns0:depth><ns0:timeout>Second-59</ns0:timeout><ns0:locktoken><ns0:href>opaquelocktoken:0xdab895d6e498f875d9d62deaadb53243b7e635bea0fff9cabcbf86962c1b3586</ns0:href></ns0:locktoken><ns0:lockroot><ns0:href>/dav/lock-syntax</ns0:href></ns0:lockroot></ns0:activelock></ns0:lockdiscovery></ns0:prop>"
+    },
+    {
+      "method": "UNLOCK",
+      "path": "/lock-syntax",
+      "requestHeaders": {
+        "Lock-Token": "<opaquelocktoken:0xdab895d6e498f875d9d62deaadb53243b7e635bea0fff9cabcbf86962c1b3586>"
+      },
+      "requestBody": "",
+      "status": 204,
+      "headers": {
+        "content-length": "0",
+        "date": "Thu, 27 Aug 2026 05:34:40 GMT",
+        "connection": "close",
+        "server": "Cheroot/11.1.2"
+      },
+      "body": ""
+    },
+    {
+      "method": "GET",
+      "path": "/lock-syntax",
+      "requestHeaders": {},
+      "requestBody": "",
+      "status": 200,
+      "headers": {
+        "content-length": "8",
+        "last-modified": "Thu, 27 Aug 2026 05:34:40 GMT",
+        "content-type": "application/octet-stream",
+        "date": "Thu, 27 Aug 2026 05:34:40 GMT",
+        "etag": "\"171118242-1787808880-8\"",
+        "accept-ranges": "bytes",
+        "connection": "close",
+        "server": "Cheroot/11.1.2"
+      },
+      "body": "original"
+    },
+    {
+      "method": "PROPFIND",
+      "path": "/lock-syntax",
+      "requestHeaders": {
+        "Depth": "0",
+        "Content-Type": "application/xml"
+      },
+      "requestBody": "<d:propfind xmlns:d=\"DAV:\"><d:prop><d:lockdiscovery/></d:prop></d:propfind>",
+      "status": 207,
+      "headers": {
+        "content-type": "application/xml; charset=utf-8",
+        "date": "Thu, 27 Aug 2026 05:34:40 GMT",
+        "content-length": "269",
+        "connection": "close",
+        "server": "Cheroot/11.1.2"
+      },
+      "body": "<?xml version=\"1.0\" encoding=\"utf-8\" ?>\n<ns0:multistatus xmlns:ns0=\"DAV:\"><ns0:response><ns0:href>/dav/lock-syntax</ns0:href><ns0:propstat><ns0:prop><ns0:lockdiscovery /></ns0:prop><ns0:status>HTTP/1.1 200 OK</ns0:status></ns0:propstat></ns0:response></ns0:multistatus>"
+    }
+  ],
+  "inputSha256": "d5fd973233233446d5626747dfe8028a98f65b2a3e48f3f9146b0a688faa9d28"
+}

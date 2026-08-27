@@ -7,8 +7,7 @@ import { connect } from 'node:net';
 
 const own = dirname(import.meta.filename);
 const repo = resolve(own, '../../../..');
-const baseline = process.argv.find(argument => argument.startsWith('--source='))?.slice('--source='.length) ?? '1ea140b50f0b4edcfa28a60e2f89351b97e509a5';
-if (!/^[0-9a-f]{40}$/.test(baseline)) throw new Error('source must be a full frozen commit hash');
+const baseline = '1ea140b50f0b4edcfa28a60e2f89351b97e509a5';
 const label = process.argv[2] ?? 'wsgidav-raw-initial';
 const provider = process.argv[3] ?? 'wsgidav';
 if (!['wsgidav', 'apache'].includes(provider)) throw new Error('invalid provider');
@@ -53,18 +52,6 @@ try {
   }
   await hashTree(`${workspace}/snapshot`);
   await writeFile(`${evidence}/baseline.json`, JSON.stringify({ baseline, status, archiveSha256: sha(archive.stdout), sourceHashes, package: JSON.parse(await readFile(`${workspace}/snapshot/package.json`, 'utf8')), node: process.version, platform: process.platform, arch: process.arch }, null, 2), { flag: 'wx' });
-  if (process.argv.includes('--validate')) {
-    const testFiles = (await run('git', ['ls-tree', '-r', '--name-only', baseline, '--', 'tests/fs/webdav'])).trim().split('\n').filter(path => /^tests\/fs\/webdav\/[^/]+\.(ts|json)$/.test(path));
-    const testsArchive = spawnSync('git', ['archive', baseline, ...testFiles], { cwd: repo, env, timeout: 30000, maxBuffer: 8 * 1024 * 1024 });
-    if (testsArchive.status !== 0) throw new Error(String(testsArchive.stderr));
-    await writeFile(`${workspace}/tests.tar`, testsArchive.stdout);
-    await run('tar', ['xf', `${workspace}/tests.tar`, '-C', `${workspace}/snapshot`]);
-    const testsHashes = {};
-    for (const file of testFiles) testsHashes[file] = sha(await readFile(`${workspace}/snapshot/${file}`));
-    await writeFile(`${evidence}/existing-test-hashes.json`, JSON.stringify(testsHashes, null, 2), { flag: 'wx' });
-    await run(process.execPath, ['--unhandled-rejections=strict', '--import', 'tsx', '--test', ...testFiles.filter(path => path.endsWith('.test.ts'))], `${workspace}/snapshot`);
-    await run(process.execPath, [join(repo, 'node_modules/typescript/bin/tsc'), '-p', `${workspace}/snapshot/tests/fs/webdav/tsconfig.json`]);
-  }
   await run(process.execPath, [join(repo, 'node_modules/typescript/bin/tsc'), '-p', `${workspace}/snapshot/tsconfig.build.json`]);
   await writeFile(`${workspace}/user.npmrc`, '');
   await writeFile(`${workspace}/global.npmrc`, '');
@@ -90,11 +77,11 @@ try {
   }
   if (provider === 'wsgidav') {
   await copyFile(join(own, 'dependencies.json'), `${evidence}/dependencies.json`);
-  await run('/opt/homebrew/bin/python3', ['-I', '-B', '-m', 'venv', `${workspace}/venv`]);
-  await run(`${workspace}/venv/bin/python`, ['-I', '-B', '-m', 'pip', '--isolated', '--disable-pip-version-check', '--no-cache-dir', 'install', '--no-index', '--no-deps', ...lock.map(item => `${workspace}/downloads/${item.filename}`)]);
-  await run(`${workspace}/venv/bin/python`, ['-I', '-B', '-m', 'pip', '--isolated', '--disable-pip-version-check', '--no-cache-dir', 'check']);
-  await run(`${workspace}/venv/bin/python`, ['-I', '-B', '-m', 'pip', '--isolated', '--disable-pip-version-check', '--no-cache-dir', 'list', '--format=json']);
-  await run(`${workspace}/venv/bin/python`, ['-I', '-B', '-c', 'import sys,ssl,ensurepip,pathlib,hashlib,json; print(json.dumps({"python":sys.version,"ssl":ssl.OPENSSL_VERSION,"bootstrap_wheels":{p.name:hashlib.sha256(p.read_bytes()).hexdigest() for p in (pathlib.Path(ensurepip.__file__).parent / "_bundled").glob("*.whl")}},indent=2))']);
+  await run('/opt/homebrew/bin/python3', ['-I', '-m', 'venv', `${workspace}/venv`]);
+  await run(`${workspace}/venv/bin/python`, ['-I', '-m', 'pip', '--isolated', '--disable-pip-version-check', '--no-cache-dir', 'install', '--no-index', '--no-deps', ...lock.map(item => `${workspace}/downloads/${item.filename}`)]);
+  await run(`${workspace}/venv/bin/python`, ['-I', '-m', 'pip', '--isolated', '--disable-pip-version-check', '--no-cache-dir', 'check']);
+  await run(`${workspace}/venv/bin/python`, ['-I', '-m', 'pip', '--isolated', '--disable-pip-version-check', '--no-cache-dir', 'list', '--format=json']);
+  await run(`${workspace}/venv/bin/python`, ['-I', '-c', 'import sys,ssl,ensurepip,pathlib,hashlib,json; print(json.dumps({"python":sys.version,"ssl":ssl.OPENSSL_VERSION,"bootstrap_wheels":{p.name:hashlib.sha256(p.read_bytes()).hexdigest() for p in (pathlib.Path(ensurepip.__file__).parent / "_bundled").glob("*.whl")}},indent=2))']);
   }
   await run('openssl', ['req', '-x509', '-newkey', 'rsa:2048', '-nodes', '-keyout', `${workspace}/key.pem`, '-out', `${workspace}/cert.pem`, '-days', '1', '-config', join(own, 'openssl.cnf')]);
   await copyFile(`${workspace}/cert.pem`, `${evidence}/cert.pem`);
@@ -107,7 +94,7 @@ try {
     server = spawn('/usr/sbin/httpd', ['-X', '-f', `${workspace}/httpd.conf`], { cwd: workspace, env, stdio: ['ignore', 'pipe', 'pipe'] });
     await writeFile(`${workspace}/ready.json`, JSON.stringify({ port: profile.port }));
   } else {
-    server = spawn(`${workspace}/venv/bin/python`, ['-I', '-B', '-u', join(own, 'server.py'), workspace], { cwd: workspace, env, stdio: ['ignore', 'pipe', 'pipe'] });
+    server = spawn(`${workspace}/venv/bin/python`, ['-I', '-u', join(own, 'server.py'), workspace], { cwd: workspace, env, stdio: ['ignore', 'pipe', 'pipe'] });
   }
   server.stdout.on('data', chunk => { serverLog += chunk; });
   server.stderr.on('data', chunk => { serverLog += chunk; });
@@ -127,13 +114,6 @@ try {
   await copyFile(`${workspace}/config.json`, `${evidence}/literal-config.json`);
   await run(process.execPath, ['--unhandled-rejections=strict', `${workspace}/consumer/out/example.mjs`, `${workspace}/config.json`]);
   await run(process.execPath, ['--unhandled-rejections=strict', `${workspace}/consumer/out/consumer.mjs`, `${workspace}/config.json`, evidence, provider]);
-  const rawReport = JSON.parse(await readFile(`${evidence}/raw.json`));
-  const consumerReport = JSON.parse(await readFile(`${evidence}/consumer.json`));
-  const summarize = rows => Object.fromEntries(['positive', 'guard', 'refusal'].map(kind => [kind, { pass: rows.filter(row => row.kind === kind && row.result === 'pass').length, fail: rows.filter(row => row.kind === kind && row.result === 'fail').length }]));
-  const summary = { provider, raw: summarize(rawReport.rows), consumer: summarize(consumerReport.rows) };
-  await writeFile(`${evidence}/summary.json`, JSON.stringify(summary, null, 2), { flag: 'wx' });
-  console.log(JSON.stringify(summary, null, 2));
-  if ([...rawReport.rows, ...consumerReport.rows].some(row => row.result === 'fail')) process.exitCode = 2;
 } finally {
   if (server) {
     server.kill('SIGTERM');

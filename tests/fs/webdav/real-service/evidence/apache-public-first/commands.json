@@ -1,0 +1,56 @@
+[
+  {
+    "command": "git",
+    "args": [
+      "status",
+      "--porcelain=v1"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash",
+    "status": 0,
+    "signal": null,
+    "stdout": " M tests/fs/webdav/real-service/raw.mjs\n M tests/fs/webdav/real-service/run.mjs\n?? benchmarks/reports/comparison-fairness-20260827/\n?? benchmarks/reports/current-integration/comparison-replay-20260827/\n?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/\n?? tests/commands/search-stress/.native-1m4O1e/\n?? tests/fs/webdav/real-service/apache.mjs\n?? tests/fs/webdav/real-service/evidence/apache-raw-initial/\n?? tests/fs/webdav/real-service/example.mts\n?? tests/fs/webdav/real-service/https.mts\n?? tests/stress/regex-execution/design/revision/\n?? tests/stress/regex-execution/design/validation/\n",
+    "stderr": ""
+  },
+  {
+    "command": "tar",
+    "args": [
+      "xf",
+      "/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/real-service/.work-wYQyHK/baseline.tar",
+      "-C",
+      "/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/real-service/.work-wYQyHK/snapshot"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash",
+    "status": 0,
+    "signal": null,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "args": [
+      "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/bin/tsc",
+      "-p",
+      "/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/real-service/.work-wYQyHK/snapshot/tsconfig.build.json"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash",
+    "status": 0,
+    "signal": null,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "command": "npm",
+    "args": [
+      "pack",
+      "/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/real-service/.work-wYQyHK/snapshot",
+      "--ignore-scripts",
+      "--json",
+      "--pack-destination",
+      "/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/real-service/.work-wYQyHK/consumer"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash",
+    "status": null,
+    "signal": null,
+    "error": "spawnSync npm ENOENT"
+  }
+]

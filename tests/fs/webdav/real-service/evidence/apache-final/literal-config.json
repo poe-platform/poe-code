@@ -1,0 +1,7 @@
+{
+  "baseUrl": "https://127.0.0.1:49761/dav/",
+  "aliasUrl": "https://127.0.0.1:49761/alias/",
+  "serverRoot": "/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/real-service/.work-OAkNq4/root",
+  "caFile": "/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/real-service/.work-OAkNq4/cert.pem",
+  "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ="
+}

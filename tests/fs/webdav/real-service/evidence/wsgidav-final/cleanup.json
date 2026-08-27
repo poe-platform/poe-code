@@ -1,0 +1,10 @@
+{
+  "workspace": "/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/real-service/.work-4sVKTS",
+  "startedAt": "2026-08-27T05:34:33.840Z",
+  "endedAt": "2026-08-27T05:34:41.781Z",
+  "serverPid": 80206,
+  "serverExitCode": null,
+  "serverSignalCode": "SIGTERM",
+  "serviceDurationMs": 2405,
+  "removed": true
+}

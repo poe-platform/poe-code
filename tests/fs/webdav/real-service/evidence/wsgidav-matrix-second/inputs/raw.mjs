@@ -33,25 +33,6 @@ async function row(name, kind, operation) {
   const start = events.length;
   try { await operation(); rows.push({ name, kind, result: 'pass', events: [start, events.length] }); }
   catch (error) { rows.push({ name, kind, result: 'fail', error: String(error), events: [start, events.length] }); }
-  const paths = new Set();
-  for (const event of events.slice(start)) {
-    paths.add(event.path);
-    const destination = event.requestHeaders.Destination;
-    if (destination) {
-      assert.ok(destination.startsWith(`${base}/`));
-      paths.add(destination.slice(base.length));
-    }
-  }
-  const witnessStart = events.length;
-  const witnessErrors = [];
-  for (const path of paths) {
-    try {
-      if (path !== '/') await get(path);
-      await wire('PROPFIND', path, { Depth: '0', 'Content-Type': 'application/xml' }, '<d:propfind xmlns:d="DAV:"><d:prop><d:lockdiscovery/></d:prop></d:propfind>');
-    } catch (error) { witnessErrors.push({ path, error: String(error) }); }
-  }
-  rows.at(-1).witnessEvents = [witnessStart, events.length];
-  rows.at(-1).witnessErrors = witnessErrors;
   const witnesses = {};
   for (const entry of await readdir(`${workspace}/root`, { withFileTypes: true })) {
     if (entry.isFile()) witnesses[entry.name] = (await readFile(`${workspace}/root/${entry.name}`)).toString('base64');
@@ -104,15 +85,15 @@ for (const method of ['COPY', 'MOVE']) {
   });
   await row(`${method} source If-Match with distinct destination ETag`, 'positive', async () => {
     await put(`/${method}-source`, 'source bytes'); await put(`/${method}-target`, 'OLD');
-    const source = await stableGet(`/${method}-source`);
-    const target = await stableGet(`/${method}-target`);
-    status(await wire(method, `/${method}-source`, { Destination: `${base}/${method}-target`, Overwrite: 'T', 'If-Match': source.headers.etag, If: `<${base}/${method}-target> ([${target.headers.etag}])` }), 204);
+    const source = await propEtag(`/${method}-source`);
+    const target = await propEtag(`/${method}-target`);
+    status(await wire(method, `/${method}-source`, { Destination: `${base}/${method}-target`, Overwrite: 'T', 'If-Match': source, If: `<${base}/${method}-target> ([${target}])` }), 204);
     assert.equal((await get(`/${method}-target`)).body, 'source bytes');
   });
   await row(`${method} absent target source If-Match`, 'positive', async () => {
     await put(`/${method}-new-source`, 'new bytes');
-    const source = await stableGet(`/${method}-new-source`);
-    status(await wire(method, `/${method}-new-source`, { Destination: `${base}/${method}-new-target`, Overwrite: 'F', 'If-Match': source.headers.etag }), 201);
+    const source = await propEtag(`/${method}-new-source`);
+    status(await wire(method, `/${method}-new-source`, { Destination: `${base}/${method}-new-target`, Overwrite: 'F', 'If-Match': source }), 201);
     assert.equal((await get(`/${method}-new-target`)).body, 'new bytes');
   });
   await row(`${method} Overwrite F and stale destination tagged If`, 'guard', async () => {
@@ -123,17 +104,6 @@ for (const method of ['COPY', 'MOVE']) {
     assert.equal((await get(`/${method}-guard-target`)).body, 'target');
     assert.equal((await get(`/${method}-guard-source`)).body, 'source');
   });
-  await row(`${method} wrong destination lock token preserves bytes`, 'guard', async () => {
-    await put(`/${method}-wrong-source`, 'source'); await put(`/${method}-wrong-target`, 'target');
-    const lock = await wire('LOCK', `/${method}-wrong-target`, { Depth: 'infinity', Timeout: 'Second-60', 'Content-Type': 'application/xml' }, lockBody);
-    status(lock, 200);
-    const token = lock.headers['lock-token'];
-    const result = await wire(method, `/${method}-wrong-source`, { Destination: `${base}/${method}-wrong-target`, Overwrite: 'T', If: `<${base}/${method}-wrong-target> (<opaquelocktoken:00000000-0000-4000-8000-000000000000>)` });
-    assert.equal((await get(`/${method}-wrong-target`)).body, 'target');
-    assert.equal((await get(`/${method}-wrong-source`)).body, 'source');
-    await wire('UNLOCK', `/${method}-wrong-target`, { 'Lock-Token': token.startsWith('<') ? token : `<${token}>` });
-    status(result, 412);
-  });
   await row(`${method} destination LOCK token and unlock after overwrite`, 'positive', async () => {
     await put(`/${method}-lock-source`, 'source'); await put(`/${method}-lock-target`, 'target');
     const lock = await wire('LOCK', `/${method}-lock-target`, { Depth: 'infinity', Timeout: 'Second-60', 'Content-Type': 'application/xml' }, lockBody);
@@ -141,6 +111,8 @@ for (const method of ['COPY', 'MOVE']) {
     const token = lock.headers['lock-token'];
     const coded = token.startsWith('<') ? token : `<${token}>`;
     status(await wire('PUT', `/${method}-lock-target`, {}, 'blocked'), 423);
+    status(await wire(method, `/${method}-lock-source`, { Destination: `${base}/${method}-lock-target`, Overwrite: 'T', If: `<${base}/${method}-lock-target> (<opaquelocktoken:00000000-0000-4000-8000-000000000000>)` }), 412);
+    assert.equal((await get(`/${method}-lock-target`)).body, 'target');
     status(await wire(method, `/${method}-lock-source`, { Destination: `${base}/${method}-lock-target`, Overwrite: 'T', If: `<${base}/${method}-lock-target> (${coded})` }), 204);
     assert.equal((await get(`/${method}-lock-target`)).body, 'source');
     const unlock = await wire('UNLOCK', `/${method}-lock-target`, { 'Lock-Token': coded });
@@ -148,10 +120,6 @@ for (const method of ['COPY', 'MOVE']) {
     status(unlock, 204);
   });
 }
-await row('PROPFIND getetag is an HTTP entity-tag', 'positive', async () => {
-  await put('/property-etag', 'bytes');
-  await propEtag('/property-etag');
-});
 await row('LOCK header is RFC coded-URL', 'positive', async () => {
   await put('/lock-syntax', 'original');
   const lock = await wire('LOCK', '/lock-syntax', { Depth: 'infinity', Timeout: 'Second-60', 'Content-Type': 'application/xml' }, lockBody);

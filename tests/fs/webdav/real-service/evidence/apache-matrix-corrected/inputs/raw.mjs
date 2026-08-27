@@ -33,25 +33,6 @@ async function row(name, kind, operation) {
   const start = events.length;
   try { await operation(); rows.push({ name, kind, result: 'pass', events: [start, events.length] }); }
   catch (error) { rows.push({ name, kind, result: 'fail', error: String(error), events: [start, events.length] }); }
-  const paths = new Set();
-  for (const event of events.slice(start)) {
-    paths.add(event.path);
-    const destination = event.requestHeaders.Destination;
-    if (destination) {
-      assert.ok(destination.startsWith(`${base}/`));
-      paths.add(destination.slice(base.length));
-    }
-  }
-  const witnessStart = events.length;
-  const witnessErrors = [];
-  for (const path of paths) {
-    try {
-      if (path !== '/') await get(path);
-      await wire('PROPFIND', path, { Depth: '0', 'Content-Type': 'application/xml' }, '<d:propfind xmlns:d="DAV:"><d:prop><d:lockdiscovery/></d:prop></d:propfind>');
-    } catch (error) { witnessErrors.push({ path, error: String(error) }); }
-  }
-  rows.at(-1).witnessEvents = [witnessStart, events.length];
-  rows.at(-1).witnessErrors = witnessErrors;
   const witnesses = {};
   for (const entry of await readdir(`${workspace}/root`, { withFileTypes: true })) {
     if (entry.isFile()) witnesses[entry.name] = (await readFile(`${workspace}/root/${entry.name}`)).toString('base64');

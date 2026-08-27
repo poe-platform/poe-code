@@ -101,11 +101,15 @@ for (const family of ["GNU", "BSD"] as const) {
       run(["-xf", "independent.tar", "-C", "fixture-output"]);
       assert.deepEqual(await readFile(join(temporary, "fixture-output", longName)), pattern(1031));
       assert.deepEqual(await readFile(join(temporary, "fixture-output/following")), pattern(17, 7));
+      const independentFs = await fixture();
+      success(await tar(independentFs, ["-xf", "-", "-C", "/output"], { stdin: source(independent) }));
+      assert.deepEqual(Buffer.from(await independentFs.readFile(`/output/${longName}`)), pattern(1031));
+      assert.deepEqual(Buffer.from(await independentFs.readFile("/output/following")), pattern(17, 7));
       const failures: string[] = [];
       for (const [name, expected] of [[longName, 1700123401125], ["following", 1700123400000]] as const) {
         const actual = (await lstat(join(temporary, "fixture-output", name))).mtimeMs;
-        artifacts[`independentMtime:${name}`] = JSON.stringify({ actual, expected });
-        try { assert.equal(actual, expected, `independent PAX fixture mtime ${name}`); }
+        artifacts[`independentMtime:${name}`] = JSON.stringify({ actual, expected, nativeMatchesPosix: actual === expected, nativeProfileControl: "pax-native.test.ts P12" });
+        try { assert.equal((await independentFs.stat(`/output/${name}`)).mtimeMs, expected, `virtual independent PAX fixture mtime ${name}`); }
         catch (error) { failures.push(error instanceof Error ? error.message : String(error)); }
       }
       try { await bothFormats(async gzip => {

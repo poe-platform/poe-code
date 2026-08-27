@@ -119,11 +119,29 @@ unsupported and produce failure. No option or archive data executes code.
   are rejected. Header checksums use the unsigned POSIX calculation.
 - PAX lengths are **UTF-8 octet lengths including the whole record**, not
   JavaScript string lengths. Embedded newlines and `=` inside values work.
-  Global/local precedence and local deletion of global values are implemented.
+  Nonempty global/local precedence is implemented. Empty values currently clear
+  earlier PAX values and fall back to the USTAR field; POSIX deletion of the
+  corresponding base field remains a separate open semantic concern.
   Recognized keys: `path`, `linkpath`, `size`, `uid`, `gid`, `mtime`, `atime`,
-  `ctime`, `uname`, `gname`, `comment`, `charset`, `hdrcharset`. Unknown vendor
-  keys are rejected, not silently treated as harmless (notably sparse keys).
+  `ctime`, `uname`, `gname`, `comment`, `charset`, `hdrcharset`.
+  Known optional metadata is accepted and discarded: nonempty attribute names
+  under `LIBARCHIVE.xattr.` and `SCHILY.xattr.`, plus `SCHILY.fflags` and
+  `LIBARCHIVE.creationtime`. This is not restoration
+  of xattrs, ACLs, flags, creation time, security labels, or ownership.
+  Record framing and UTF-8 keys are validated before classification; ignored
+  values remain opaque bytes (including binary SCHILY xattrs), are not decoded
+  as paths or retained in global/local state, and still consume header/archive
+  limits. Supported values remain strict UTF-8 with no NUL.
+  Unclassified extensions remain rejected, including `GNU.sparse.*`,
+  `SCHILY.realsize`, `SCHILY.filetype`, `SUN.holesdata`, and volume extensions.
+  ACL, security-label, symlink-type and archived inode/device/link-count keys
+  outside the named xattr namespaces remain unclassified and rejected.
+  No blanket vendor-prefix exemption or sparse/layout fallback is provided.
   Only UTF-8 header encoding is supported; `hdrcharset=BINARY` is rejected.
+- AppleDouble `._*` regular archive members remain ordinary files. They are not
+  interpreted as macOS metadata or hidden from listing. Default macOS BSD tar
+  can present these differently; accepting optional PAX metadata does not claim
+  identical native metadata restoration or default listing presentation.
 - Member/link names are Unicode strings encoded as strict UTF-8. Arbitrary
   non-UTF-8 byte filenames and unpaired UTF-16 surrogates are unsupported.
   **Payload bytes are never decoded or translated**, including NUL and invalid

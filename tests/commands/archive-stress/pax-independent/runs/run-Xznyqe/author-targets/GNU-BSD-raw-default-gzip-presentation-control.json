@@ -1,0 +1,28 @@
+{
+  "defaultBsdListing": "long-abcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcd\nempty\nsymbol\nhard\n",
+  "defaultGnuRawListing": "._long-abcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcd\nlong-abcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcd\n._empty\nempty\n._symbol\nsymbol\n._hard\nhard\n",
+  "presentationMatches": false,
+  "sidecars": [
+    {
+      "name": "._long-abcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcd",
+      "bytes": 163,
+      "sha256": "5934932f7beff3c908b0c8b6af6ea8a142bb02b0c16dc2d411fbde870a31e988"
+    },
+    {
+      "name": "._empty",
+      "bytes": 163,
+      "sha256": "5934932f7beff3c908b0c8b6af6ea8a142bb02b0c16dc2d411fbde870a31e988"
+    },
+    {
+      "name": "._symbol",
+      "bytes": 163,
+      "sha256": "5934932f7beff3c908b0c8b6af6ea8a142bb02b0c16dc2d411fbde870a31e988"
+    },
+    {
+      "name": "._hard",
+      "bytes": 163,
+      "sha256": "5934932f7beff3c908b0c8b6af6ea8a142bb02b0c16dc2d411fbde870a31e988"
+    }
+  ],
+  "classification": "AppleDouble ordinary archive members are preserved, not restored as macOS metadata"
+}

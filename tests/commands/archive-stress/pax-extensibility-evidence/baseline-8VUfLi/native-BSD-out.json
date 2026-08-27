@@ -1,0 +1,91 @@
+{
+  "family": "BSD",
+  "direction": "out",
+  "executable": "/usr/bin/tar",
+  "version": "bsdtar 3.5.3 - libarchive 3.7.4 zlib/1.2.12 liblzma/5.4.3 bz2lib/1.0.8",
+  "executableSha256": "bdccb76a715fbebc4915a1a1b1de0e7050ad842ebb730c47935b3a22c13e3af9",
+  "outcome": "passed",
+  "fixtureSeed": "xorshift32; explicit seeds in fixtures/native tests",
+  "artifacts": {
+    "virtualPlainSha256": "7a3b3714f0584a833dee9bf047859e275f8f7eb767dce3b0f8a2ba37e27d4839",
+    "plainExtractedSymbol": "{\"isSymbolicLink\":true,\"isFile\":false,\"size\":126}",
+    "virtualGzipSha256": "b902a694c8ef9097f85c665517d40ce53a8c93f1a60b0f45ebaed5c911b6f9f7",
+    "gzipExtractedSymbol": "{\"isSymbolicLink\":true,\"isFile\":false,\"size\":126}"
+  },
+  "observations": [
+    {
+      "args": [
+        "-tf",
+        "virtual.tar"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdoutSha256": "576e9d3f6aa963d160490ec4dce70c9816f3aa9e9df1d062efa4dd877afb7b92",
+      "stdoutBytes": 155,
+      "stdoutText": "deep/leaf\nspace name\ncross-namenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamename.bin\nsymbol\n",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "-tvf",
+        "virtual.tar"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdoutSha256": "da9eef1e8d95dc96cc966c81fe88376180c3f0b1031da4717c133135c8ce16e9",
+      "stdoutBytes": 477,
+      "stdoutText": "-rw-rw-rw-  0 0      0        1237 Aug 26 20:50 deep/leaf\n-rw-rw-rw-  0 0      0           0 Aug 26 20:50 space name\n-rw-rw-rw-  0 0      0       65563 Aug 26 20:50 cross-namenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamename.bin\nlrwxrwxrwx  0 0      0           0 Aug 26 20:50 symbol -> cross-namenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamename.bin\n",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "-xf",
+        "virtual.tar",
+        "-C",
+        "plain-output"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdoutBytes": 0,
+      "stderr": ""
+    },
+    {
+      "args": [
+        "-tzf",
+        "virtual.tar"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdoutSha256": "576e9d3f6aa963d160490ec4dce70c9816f3aa9e9df1d062efa4dd877afb7b92",
+      "stdoutBytes": 155,
+      "stdoutText": "deep/leaf\nspace name\ncross-namenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamename.bin\nsymbol\n",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "-tzvf",
+        "virtual.tar"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdoutSha256": "da9eef1e8d95dc96cc966c81fe88376180c3f0b1031da4717c133135c8ce16e9",
+      "stdoutBytes": 477,
+      "stdoutText": "-rw-rw-rw-  0 0      0        1237 Aug 26 20:50 deep/leaf\n-rw-rw-rw-  0 0      0           0 Aug 26 20:50 space name\n-rw-rw-rw-  0 0      0       65563 Aug 26 20:50 cross-namenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamename.bin\nlrwxrwxrwx  0 0      0           0 Aug 26 20:50 symbol -> cross-namenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamename.bin\n",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "-xzf",
+        "virtual.tar",
+        "-C",
+        "gzip-output"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdoutBytes": 0,
+      "stderr": ""
+    }
+  ]
+}

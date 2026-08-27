@@ -143,6 +143,8 @@ function decimalTime(value: number): string {
 }
 
 const supportedKeywords = new Set(["path", "linkpath", "size", "uid", "gid", "mtime", "atime", "ctime", "uname", "gname", "comment", "charset", "hdrcharset"]);
+const optionalKeywords = new Set(["SCHILY.fflags", "LIBARCHIVE.creationtime"]);
+const optionalKeywordPrefixes = ["LIBARCHIVE.xattr.", "SCHILY.xattr."];
 
 export function parsePax(payload: Uint8Array): Map<string, string> {
   const result = new Map<string, string>();
@@ -154,15 +156,18 @@ export function parsePax(payload: Uint8Array): Map<string, string> {
     if (!/^[1-9][0-9]*$/u.test(digits) || payload[space] !== 32) fail("invalid PAX record length");
     const size = Number(digits);
     if (!Number.isSafeInteger(size) || size <= space - offset + 3 || size > payload.length - offset || payload[offset + size - 1] !== 10) fail("invalid PAX record framing");
-    const record = text(payload.subarray(space + 1, offset + size - 1));
-    const equals = record.indexOf("=");
-    if (equals <= 0 || record.includes("\0")) fail("invalid PAX key/value");
-    const key = record.slice(0, equals);
-    const value = record.slice(equals + 1);
+    const record = payload.subarray(space + 1, offset + size - 1);
+    const equals = record.indexOf(61);
+    if (equals <= 0) fail("invalid PAX key/value");
+    const key = text(record.subarray(0, equals));
+    if (/[\0\n]/u.test(key)) fail("invalid PAX key/value");
+    offset += size;
+    if (optionalKeywords.has(key) || optionalKeywordPrefixes.some(prefix => key.startsWith(prefix) && key.length > prefix.length)) continue;
     if (!supportedKeywords.has(key)) fail(`unsupported PAX keyword: ${key}`);
+    const value = text(record.subarray(equals + 1));
+    if (value.includes("\0")) fail("invalid PAX key/value");
     if (key === "hdrcharset" && value !== "" && value !== "ISO-IR 10646 2000 UTF-8") fail("unsupported PAX header charset");
     result.set(key, value);
-    offset += size;
   }
   return result;
 }

@@ -1,0 +1,82 @@
+{
+  "schema": 1,
+  "checkpoint": "partial-nonregex",
+  "immutable": true,
+  "capturedAt": "2026-08-27T16:55:28.808Z",
+  "candidate": {
+    "head": "85675366efe962c0d52993bb8aa286dc9683f6a6",
+    "ownedStatus": "",
+    "source": {
+      "src/commands/expr/evaluate.ts": "80f8b4b7fbcd0552dd91772b941e6654c0b8dd08ce980814b811f08959015d61",
+      "src/commands/expr/index.ts": "afcb4dd7cb5e013ea042a5d064ca9e7646d889c0a08f1e99bd8ad5da23829282",
+      "src/commands/expr/internal.ts": "c49928aeee53de4010679377f4f752eb6612626decb98ff1b008404a457eda12",
+      "src/commands/expr/syntax.ts": "be7e3cfc9c8b7e7ce520bd3f44ccccfb255ad3b249e579e8e80d5a6153f8384e"
+    }
+  },
+  "profile": {
+    "platform": "darwin",
+    "release": "25.4.0",
+    "arch": "arm64",
+    "node": "v22.22.2",
+    "locales": [
+      "C",
+      "C.UTF-8"
+    ]
+  },
+  "oracle": {
+    "path": "tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr",
+    "version": "GNU coreutils 9.7",
+    "sha256": "e8a4e2b58a33d2ad6bfa9eb8a4ed5f62775ab9ceac4b9421680c98973fd9109c"
+  },
+  "total": 1381,
+  "exactMatches": 1381,
+  "corpusSha256": "c373b1392c4a82fc92452ebdd885bb9fe1976b836262a135ca22e98f3bd0c0f0",
+  "resultsSha256": "e964a4998e15122a332618fc7df583237f65e7d4fbbc1ae625367adb4ec1aa53",
+  "limitations": [
+    "Author cohort, not independent holdouts or full gate",
+    "No native Linux or Apple expr qualification",
+    "No deployed-provider or performance claim"
+  ],
+  "sourceHash": "134deecfb48e27ea827963a4a4a1958b1678740f0e2c427b4f656d940dbc573b",
+  "sourceHashAlgorithm": "SHA256 of sorted module TypeScript path + NUL + SHA256 + LF entries",
+  "ownedHashes": {
+    "src/commands/expr/README.md": "1bc4a471f1ec9324d435326d06638ac21088f9a176b60c23a704a8bda45f12c7",
+    "src/commands/expr/evaluate.ts": "80f8b4b7fbcd0552dd91772b941e6654c0b8dd08ce980814b811f08959015d61",
+    "src/commands/expr/index.ts": "afcb4dd7cb5e013ea042a5d064ca9e7646d889c0a08f1e99bd8ad5da23829282",
+    "src/commands/expr/internal.ts": "c49928aeee53de4010679377f4f752eb6612626decb98ff1b008404a457eda12",
+    "src/commands/expr/syntax.ts": "be7e3cfc9c8b7e7ce520bd3f44ccccfb255ad3b249e579e8e80d5a6153f8384e",
+    "tests/commands/expr-author/README.md": "b7b62918f6d404bb62a6a3f7b989fa8b2451914a2c66919baae4d479122a3bbc",
+    "tests/commands/expr-author/capture.ts": "7aa738f8285cd277dfa725c009586572b437a1d8790540f11dddecb9aae46199",
+    "tests/commands/expr/contracts.test.ts": "b3d1ceb1d2a291825886ac96a403c4c4fa516ee64c24ba2d2a4142ee6f1e220a",
+    "tests/commands/expr/grammar.test.ts": "5fb0135c85c09a06f45b92828d736b6fa4e03272993c8362ab834766bd00e727",
+    "tests/commands/expr/helpers.ts": "51448c59444bb12337860c53c6fc2a9b2e4a193e172630f425a096fadee1b390",
+    "tests/commands/expr/native-cases.ts": "e84ba8cb0a41b187949f62d59b3905872997f3e47774d9b6d60f4007da2c4ac1",
+    "tests/commands/expr/native.test.ts": "dd1ceee8f5e70aa02528d0edc69f413397f4e28b1fbb5a90ac5c1778b9156160",
+    "tests/commands/expr/oracle.ts": "3d8862abadcb5b07cf17234df2bedf10cd74ffdcf2d293104bbd9fcb4935cb83"
+  },
+  "validation": {
+    "build": "npm run build",
+    "buildPassed": true,
+    "tests": "node --import tsx --test tests/commands/expr/*.test.ts",
+    "testsPassed": 101,
+    "testsFailed": 0,
+    "testsSkipped": 0,
+    "nativeControls": 1381,
+    "nativeExactMatches": 1381,
+    "strictScopedTypecheckPassed": true,
+    "wholeGateRun": false,
+    "packageInstallProof": false
+  },
+  "pending": [
+    "Root-written shared regex scope approval",
+    "Bounded worker anchored BRE/capture integration",
+    "Independent frozen holdout verification",
+    "Standalone packed moved-package consumer proof"
+  ],
+  "diagnosticGaps": [
+    "AST parses all syntax before evaluation; GNU can report an earlier evaluation error first",
+    "Syntax diagnostics intentionally omit GNU token quoting/help trailers"
+  ],
+  "captureIntegrity": "Module source was hashed before capture and checked against committed owned paths after capture; owned path inventory comes from the immutable Git commit. This does not claim an append-proof live whole-tree audit.",
+  "nativeSourceSha256": "c9dc5e04039505ab48a350e9407b1d83b2574fd7e2c31c9d23f4bf942d1b8af0"
+}

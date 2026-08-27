@@ -1,0 +1,33 @@
+{
+  "at": "2026-08-27T05:14:21.239Z",
+  "ownedOnly": true,
+  "cleaned": [
+    {
+      "directory": "/tmp/safejs-independent-baseline-20260827",
+      "removed": true,
+      "archivedByteIdentityVerified": true
+    },
+    {
+      "directory": "/tmp/safejs-independent-fixed-20260827",
+      "removed": true,
+      "archivedByteIdentityVerified": true
+    },
+    {
+      "directory": "/tmp/safejs-independent-baseline-corrected-20260827",
+      "removed": true,
+      "archivedByteIdentityVerified": true
+    },
+    {
+      "directory": "/tmp/safejs-independent-final-20260827",
+      "removed": true,
+      "archivedByteIdentityVerified": true
+    },
+    {
+      "file": "/tmp/safejs-independent-initial-probe-20260827.json",
+      "removed": true,
+      "archivedDataVerified": true
+    }
+  ],
+  "executionTreesAndChildPids": "Already verified absent in CHECKPOINT.json",
+  "privateWrites": []
+}

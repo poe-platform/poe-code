@@ -1,0 +1,31 @@
+{
+  "baseline": "eaed12f88365e69597994c4f2e6324a020202b66",
+  "fixtureCommit": "0ec75ef320ecaea9fc66e1ba952f3961c917685c",
+  "started": "2026-08-27T15:56:06.197Z",
+  "ended": "2026-08-27T15:56:20.886Z",
+  "behaviorCount": 32,
+  "behaviorPasses": 18,
+  "behaviorFailures": [
+    "shell-eof-sync",
+    "shell-eof-reject",
+    "shell-eof-zero",
+    "shell-early-sync",
+    "shell-early-reject",
+    "shell-early-zero",
+    "shell-status17-unread-sync",
+    "shell-status17-unread-reject",
+    "shell-status17-unread-zero",
+    "shell-deferred-eof-return",
+    "shell-primary-read-zero",
+    "shell-primary-read-error",
+    "shell-primary-sink-error",
+    "shell-sequential-nested-binary"
+  ],
+  "controlsDetected": 2,
+  "childrenClosed": true,
+  "watchdogExpiries": 0,
+  "state": "BASELINE_ONLY_WAITING_FOR_EXPLICIT_ROOT_CANDIDATE",
+  "candidateNotInspected": true,
+  "scratchRetained": "/private/tmp/shared-stdin-independent-work-rYnRh0",
+  "scratchPolicy": "Unique inert archives retained for audit; no processes or servers left running. No broad cleanup."
+}

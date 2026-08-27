@@ -1,0 +1,33 @@
+{
+  "id": "shell-eof-zero",
+  "mutant": "none",
+  "pass": false,
+  "failure": {
+    "name": "AssertionError",
+    "message": "exact owning return count\n\n0 !== 1\n",
+    "stack": "AssertionError [ERR_ASSERTION]: exact owning return count\n\n0 !== 1\n\n    at counts (file:///private/tmp/shared-stdin-independent-work-rYnRh0/moved-consumer/fixtures/probe.mjs:76:115)\n    at run (file:///private/tmp/shared-stdin-independent-work-rYnRh0/moved-consumer/fixtures/probe.mjs:117:5)\n    at async file:///private/tmp/shared-stdin-independent-work-rYnRh0/moved-consumer/fixtures/probe.mjs:286:7"
+  },
+  "events": [
+    "next:0",
+    "next-entered:release",
+    "next:1",
+    "next:2",
+    "fulfilled",
+    "observed-result:{\"stdout\":\"\\u0000��\",\"stderr\":\"\",\"stdoutBytes\":{\"0\":0,\"1\":255,\"2\":128},\"stderrBytes\":{},\"exitCode\":0}",
+    "return-entered:release"
+  ],
+  "input": {
+    "reads": 3,
+    "returns": 0,
+    "acquired": 1,
+    "concurrent": 0,
+    "maxConcurrent": 1
+  },
+  "output": [
+    "00ff",
+    "80"
+  ],
+  "stderr": [],
+  "strictUnhandled": true,
+  "cleanup": "all controlled gates released; all tracked executions and disposals settled; no children or servers created"
+}

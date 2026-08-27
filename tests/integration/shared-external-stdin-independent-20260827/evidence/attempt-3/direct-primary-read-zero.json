@@ -1,0 +1,23 @@
+{
+  "id": "direct-primary-read-zero",
+  "mutant": "none",
+  "pass": true,
+  "events": [
+    "next:0",
+    "next-entered:release",
+    "return",
+    "return-entered:release",
+    "rejected:0"
+  ],
+  "input": {
+    "reads": 1,
+    "returns": 1,
+    "acquired": 1,
+    "concurrent": 0,
+    "maxConcurrent": 1
+  },
+  "output": [],
+  "stderr": [],
+  "strictUnhandled": true,
+  "cleanup": "all controlled gates released; all tracked executions and disposals settled; no children or servers created"
+}

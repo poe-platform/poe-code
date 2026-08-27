@@ -1,0 +1,45 @@
+{
+  "qualification": "Post-settlement built files in the exact archived candidate root; not nextLoad attestation. Fresh verifier computed loadedFiles before its fatal summary assertion but never emitted that JSON.",
+  "modules": [
+    {
+      "path": "dist/fs/memory/index.js",
+      "bytes": 23141,
+      "sha256": "d5aa69848d5c4c0e5da767aec4b785d422561248e750add180fb5e4949fcae6c"
+    },
+    {
+      "path": "dist/fs/overlay/index.js",
+      "bytes": 43700,
+      "sha256": "17244dcf61fe1c33ceb07e9af5d8f87689a76d1895de2594cc0a0be068ea5737"
+    },
+    {
+      "path": "dist/fs/readonly/index.js",
+      "bytes": 4898,
+      "sha256": "813504f497f608fbca31c169d9e01698ab3aa6c3a49ad5bd93f8c7c21ba4876b"
+    },
+    {
+      "path": "dist/fs/mount/index.js",
+      "bytes": 25993,
+      "sha256": "11422b8cfb8a40a999dbe6ec8385d8e5bc1a74a4d91e541f2a0990366b143840"
+    },
+    {
+      "path": "dist/fs/real/index.js",
+      "bytes": 24412,
+      "sha256": "37b1ed78775fcbce6989c869cd547ba0cabedb372aeff7e571882e26fd0a40de"
+    },
+    {
+      "path": "dist/commands/du/index.js",
+      "bytes": 754,
+      "sha256": "b8257103248aa0f4a21cb6dab6d916661a5fb04423e414475e68370807cdc5c4"
+    },
+    {
+      "path": "dist/contracts/index.js",
+      "bytes": 206,
+      "sha256": "7e494e421356e368da43cab478f595600127d8ee345a887838f40bffe2757d27"
+    },
+    {
+      "path": "dist/shell/index.js",
+      "bytes": 175,
+      "sha256": "e4727274e08ff8199102d4826579aaf410b3a72b3a4e0c4dc8864a57bc714afb"
+    }
+  ]
+}

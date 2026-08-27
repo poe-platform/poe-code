@@ -1,0 +1,2344 @@
+{
+  "label": "all-processes-raw",
+  "records": [
+    {
+      "sequence": 1,
+      "command": "git",
+      "args": [
+        "show",
+        "1b2ddea9e38b25cc91134a2f35a318e27f4d7c29:tests/integration/du-overlay-independent-20260827/approved-v9-9a5a6f92/MANIFEST.json"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "status": 0,
+      "signal": null,
+      "pid": 49166,
+      "pgid": 49166,
+      "timedOut": false,
+      "termination": {
+        "termSent": false,
+        "killSent": false,
+        "groupGone": true
+      },
+      "closure": {
+        "descendantGroupDetected": false,
+        "rootPidGone": true,
+        "groupGone": true
+      },
+      "timeoutMs": 120000,
+      "startedAt": "2026-08-27T20:55:14.380Z",
+      "finishedAt": "2026-08-27T20:55:14.420Z",
+      "durationMs": 39.788667,
+      "stdoutSha256": "474a95bd160636cdbabe03943a0a84aaaeb56d04ab87d25915bb1ac8cbdf9fa2",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "sequence": 2,
+      "command": "git",
+      "args": [
+        "rev-parse",
+        "1b2ddea9e38b25cc91134a2f35a318e27f4d7c29:tests/integration/du-overlay-independent-20260827/approved-v9-9a5a6f92/MANIFEST.json"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "status": 0,
+      "signal": null,
+      "pid": 49172,
+      "pgid": 49172,
+      "timedOut": false,
+      "termination": {
+        "termSent": false,
+        "killSent": false,
+        "groupGone": true
+      },
+      "closure": {
+        "descendantGroupDetected": false,
+        "rootPidGone": true,
+        "groupGone": true
+      },
+      "timeoutMs": 120000,
+      "startedAt": "2026-08-27T20:55:14.420Z",
+      "finishedAt": "2026-08-27T20:55:14.457Z",
+      "durationMs": 36.431459,
+      "stdoutSha256": "ffc0ebe21603d02ebe73b3370cd08919b775d30cd6262324905c70e90e46e176",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "sequence": 3,
+      "command": "git",
+      "args": [
+        "ls-tree",
+        "-r",
+        "--name-only",
+        "1b2ddea9e38b25cc91134a2f35a318e27f4d7c29",
+        "--",
+        "tests/integration/du-overlay-independent-20260827/approved-v9-9a5a6f92"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "status": 0,
+      "signal": null,
+      "pid": 49177,
+      "pgid": 49177,
+      "timedOut": false,
+      "termination": {
+        "termSent": false,
+        "killSent": false,
+        "groupGone": true
+      },
+      "closure": {
+        "descendantGroupDetected": false,
+        "rootPidGone": true,
+        "groupGone": true
+      },
+      "timeoutMs": 120000,
+      "startedAt": "2026-08-27T20:55:14.457Z",
+      "finishedAt": "2026-08-27T20:55:14.495Z",
+      "durationMs": 37.772833,
+      "stdoutSha256": "48aaad46311d748a92b0208a9f31783a322dc2e1e5246eba6741c015a9f23975",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "sequence": 4,
+      "command": "git",
+      "args": [
+        "show",
+        "1b2ddea9e38b25cc91134a2f35a318e27f4d7c29:tests/integration/du-overlay-independent-20260827/approved-v9-9a5a6f92/CASE_MAP.md"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "status": 0,
+      "signal": null,
+      "pid": 49186,
+      "pgid": 49186,
+      "timedOut": false,
+      "termination": {
+        "termSent": false,
+        "killSent": false,
+        "groupGone": true
+      },
+      "closure": {
+        "descendantGroupDetected": false,
+        "rootPidGone": true,
+        "groupGone": true
+      },
+      "timeoutMs": 120000,
+      "startedAt": "2026-08-27T20:55:14.495Z",
+      "finishedAt": "2026-08-27T20:55:14.530Z",
+      "durationMs": 34.893208,
+      "stdoutSha256": "8320667ff8497e83c3d687dd070b55bb432a7847e7a18c6711998adb09f1cf18",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "sequence": 5,
+      "command": "git",
+      "args": [
+        "rev-parse",
+        "1b2ddea9e38b25cc91134a2f35a318e27f4d7c29:tests/integration/du-overlay-independent-20260827/approved-v9-9a5a6f92/CASE_MAP.md"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "status": 0,
+      "signal": null,
+      "pid": 49193,
+      "pgid": 49193,
+      "timedOut": false,
+      "termination": {
+        "termSent": false,
+        "killSent": false,
+        "groupGone": true
+      },
+      "closure": {
+        "descendantGroupDetected": false,
+        "rootPidGone": true,
+        "groupGone": true
+      },
+      "timeoutMs": 120000,
+      "startedAt": "2026-08-27T20:55:14.530Z",
+      "finishedAt": "2026-08-27T20:55:14.568Z",
+      "durationMs": 37.665041,
+      "stdoutSha256": "b7d3969b7bdc0e4917dee16f946c18c3a2a2ff78b650b5e3cacf78fb848ba5a1",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "sequence": 6,
+      "command": "git",
+      "args": [
+        "show",
+        "1b2ddea9e38b25cc91134a2f35a318e27f4d7c29:tests/integration/du-overlay-independent-20260827/approved-v9-9a5a6f92/CORRECTION_V7.md"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "status": 0,
+      "signal": null,
+      "pid": 49198,
+      "pgid": 49198,
+      "timedOut": false,
+      "termination": {
+        "termSent": false,
+        "killSent": false,
+        "groupGone": true
+      },
+      "closure": {
+        "descendantGroupDetected": false,
+        "rootPidGone": true,
+        "groupGone": true
+      },
+      "timeoutMs": 120000,
+      "startedAt": "2026-08-27T20:55:14.568Z",
+      "finishedAt": "2026-08-27T20:55:14.606Z",
+      "durationMs": 37.910917,
+      "stdoutSha256": "23f07912e4100758808be61973d208062011467f80d54fe44a70f5d77a474fc4",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "sequence": 7,
+      "command": "git",
+      "args": [
+        "rev-parse",
+        "1b2ddea9e38b25cc91134a2f35a318e27f4d7c29:tests/integration/du-overlay-independent-20260827/approved-v9-9a5a6f92/CORRECTION_V7.md"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "status": 0,
+      "signal": null,
+      "pid": 49205,
+      "pgid": 49205,
+      "timedOut": false,
+      "termination": {
+        "termSent": false,
+        "killSent": false,
+        "groupGone": true
+      },
+      "closure": {
+        "descendantGroupDetected": false,
+        "rootPidGone": true,
+        "groupGone": true
+      },
+      "timeoutMs": 120000,
+      "startedAt": "2026-08-27T20:55:14.606Z",
+      "finishedAt": "2026-08-27T20:55:14.642Z",
+      "durationMs": 35.817416,
+      "stdoutSha256": "a1b70e48f5abb0ab3fac167ce8a6483afe4cfeb62329ca2dd5efc9cb4c754f02",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "sequence": 8,
+      "command": "git",
+      "args": [
+        "show",
+        "1b2ddea9e38b25cc91134a2f35a318e27f4d7c29:tests/integration/du-overlay-independent-20260827/approved-v9-9a5a6f92/CORRECTION_V8.md"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "status": 0,
+      "signal": null,
+      "pid": 49210,
+      "pgid": 49210,
+      "timedOut": false,
+      "termination": {
+        "termSent": false,
+        "killSent": false,
+        "groupGone": true
+      },
+      "closure": {
+        "descendantGroupDetected": false,
+        "rootPidGone": true,
+        "groupGone": true
+      },
+      "timeoutMs": 120000,
+      "startedAt": "2026-08-27T20:55:14.642Z",
+      "finishedAt": "2026-08-27T20:55:14.680Z",
+      "durationMs": 38.440666,
+      "stdoutSha256": "3e7c375cc916684399cecf409e852c51dd9bab9a7a0c27d08c4f7ecf896dbca3",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "sequence": 9,
+      "command": "git",
+      "args": [
+        "rev-parse",
+        "1b2ddea9e38b25cc91134a2f35a318e27f4d7c29:tests/integration/du-overlay-independent-20260827/approved-v9-9a5a6f92/CORRECTION_V8.md"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "status": 0,
+      "signal": null,
+      "pid": 49216,
+      "pgid": 49216,
+      "timedOut": false,
+      "termination": {
+        "termSent": false,
+        "killSent": false,
+        "groupGone": true
+      },
+      "closure": {
+        "descendantGroupDetected": false,
+        "rootPidGone": true,
+        "groupGone": true
+      },
+      "timeoutMs": 120000,
+      "startedAt": "2026-08-27T20:55:14.680Z",
+      "finishedAt": "2026-08-27T20:55:14.718Z",
+      "durationMs": 37.585458,
+      "stdoutSha256": "2b1b4ea92ade2d2e73d48c468ed0189479c60a2738e27434b160a66cc43a8f2b",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "sequence": 10,
+      "command": "git",
+      "args": [
+        "show",
+        "1b2ddea9e38b25cc91134a2f35a318e27f4d7c29:tests/integration/du-overlay-independent-20260827/approved-v9-9a5a6f92/CORRECTION_V9.md"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "status": 0,
+      "signal": null,
+      "pid": 49222,
+      "pgid": 49222,
+      "timedOut": false,
+      "termination": {
+        "termSent": false,
+        "killSent": false,
+        "groupGone": true
+      },
+      "closure": {
+        "descendantGroupDetected": false,
+        "rootPidGone": true,
+        "groupGone": true
+      },
+      "timeoutMs": 120000,
+      "startedAt": "2026-08-27T20:55:14.718Z",
+      "finishedAt": "2026-08-27T20:55:14.756Z",
+      "durationMs": 37.330792,
+      "stdoutSha256": "75934bcc168bb3f4e8314fed3c3ed44ea6b626ba49e69c3a3e124a880b2a3619",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "sequence": 11,
+      "command": "git",
+      "args": [
+        "rev-parse",
+        "1b2ddea9e38b25cc91134a2f35a318e27f4d7c29:tests/integration/du-overlay-independent-20260827/approved-v9-9a5a6f92/CORRECTION_V9.md"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "status": 0,
+      "signal": null,
+      "pid": 49228,
+      "pgid": 49228,
+      "timedOut": false,
+      "termination": {
+        "termSent": false,
+        "killSent": false,
+        "groupGone": true
+      },
+      "closure": {
+        "descendantGroupDetected": false,
+        "rootPidGone": true,
+        "groupGone": true
+      },
+      "timeoutMs": 120000,
+      "startedAt": "2026-08-27T20:55:14.756Z",
+      "finishedAt": "2026-08-27T20:55:14.792Z",
+      "durationMs": 36.095167,
+      "stdoutSha256": "6e64050551589ebe1548f3c6198399c12d086a7c287cf38445133be14c35a230",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "sequence": 12,
+      "command": "git",
+      "args": [
+        "show",
+        "1b2ddea9e38b25cc91134a2f35a318e27f4d7c29:tests/integration/du-overlay-independent-20260827/approved-v9-9a5a6f92/FREEZE.md"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "status": 0,
+      "signal": null,
+      "pid": 49233,
+      "pgid": 49233,
+      "timedOut": false,
+      "termination": {
+        "termSent": false,
+        "killSent": false,
+        "groupGone": true
+      },
+      "closure": {
+        "descendantGroupDetected": false,
+        "rootPidGone": true,
+        "groupGone": true
+      },
+      "timeoutMs": 120000,
+      "startedAt": "2026-08-27T20:55:14.792Z",
+      "finishedAt": "2026-08-27T20:55:14.829Z",
+      "durationMs": 37.479291,
+      "stdoutSha256": "adc3a6bcd12ee4158c5852fd4ef319c1771a85bae73ec1f78a2b76f789ae5473",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "sequence": 13,
+      "command": "git",
+      "args": [
+        "rev-parse",
+        "1b2ddea9e38b25cc91134a2f35a318e27f4d7c29:tests/integration/du-overlay-independent-20260827/approved-v9-9a5a6f92/FREEZE.md"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "status": 0,
+      "signal": null,
+      "pid": 49240,
+      "pgid": 49240,
+      "timedOut": false,
+      "termination": {
+        "termSent": false,
+        "killSent": false,
+        "groupGone": true
+      },
+      "closure": {
+        "descendantGroupDetected": false,
+        "rootPidGone": true,
+        "groupGone": true
+      },
+      "timeoutMs": 120000,
+      "startedAt": "2026-08-27T20:55:14.829Z",
+      "finishedAt": "2026-08-27T20:55:14.863Z",
+      "durationMs": 33.803417,
+      "stdoutSha256": "a4fa4e1898248e7b78191f8eff4667ce71522cdf7b722e6004149ef008d81eac",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "sequence": 14,
+      "command": "git",
+      "args": [
+        "show",
+        "1b2ddea9e38b25cc91134a2f35a318e27f4d7c29:tests/integration/du-overlay-independent-20260827/approved-v9-9a5a6f92/ORIGINS.json"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "status": 0,
+      "signal": null,
+      "pid": 49245,
+      "pgid": 49245,
+      "timedOut": false,
+      "termination": {
+        "termSent": false,
+        "killSent": false,
+        "groupGone": true
+      },
+      "closure": {
+        "descendantGroupDetected": false,
+        "rootPidGone": true,
+        "groupGone": true
+      },
+      "timeoutMs": 120000,
+      "startedAt": "2026-08-27T20:55:14.863Z",
+      "finishedAt": "2026-08-27T20:55:14.901Z",
+      "durationMs": 37.506667,
+      "stdoutSha256": "775fc6e90c74f0706e2cc5509d2178bbbcf3f14b0ba62abce4032fd4eb338794",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "sequence": 15,
+      "command": "git",
+      "args": [
+        "rev-parse",
+        "1b2ddea9e38b25cc91134a2f35a318e27f4d7c29:tests/integration/du-overlay-independent-20260827/approved-v9-9a5a6f92/ORIGINS.json"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "status": 0,
+      "signal": null,
+      "pid": 49250,
+      "pgid": 49250,
+      "timedOut": false,
+      "termination": {
+        "termSent": false,
+        "killSent": false,
+        "groupGone": true
+      },
+      "closure": {
+        "descendantGroupDetected": false,
+        "rootPidGone": true,
+        "groupGone": true
+      },
+      "timeoutMs": 120000,
+      "startedAt": "2026-08-27T20:55:14.901Z",
+      "finishedAt": "2026-08-27T20:55:14.938Z",
+      "durationMs": 36.973041,
+      "stdoutSha256": "1f3d242eefa7ec035ef7fb531821ffe4e123479cc220f0d418e606e8dd897e1a",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "sequence": 16,
+      "command": "git",
+      "args": [
+        "show",
+        "1b2ddea9e38b25cc91134a2f35a318e27f4d7c29:tests/integration/du-overlay-independent-20260827/approved-v9-9a5a6f92/config/candidate-selected-paths.txt"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "status": 0,
+      "signal": null,
+      "pid": 49256,
+      "pgid": 49256,
+      "timedOut": false,
+      "termination": {
+        "termSent": false,
+        "killSent": false,
+        "groupGone": true
+      },
+      "closure": {
+        "descendantGroupDetected": false,
+        "rootPidGone": true,
+        "groupGone": true
+      },
+      "timeoutMs": 120000,
+      "startedAt": "2026-08-27T20:55:14.938Z",
+      "finishedAt": "2026-08-27T20:55:14.973Z",
+      "durationMs": 35.500958,
+      "stdoutSha256": "9427aad46a7f184d94517a666ab02a8f1da43ccf9074c5a15186d4569233679b",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "sequence": 17,
+      "command": "git",
+      "args": [
+        "rev-parse",
+        "1b2ddea9e38b25cc91134a2f35a318e27f4d7c29:tests/integration/du-overlay-independent-20260827/approved-v9-9a5a6f92/config/candidate-selected-paths.txt"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "status": 0,
+      "signal": null,
+      "pid": 49261,
+      "pgid": 49261,
+      "timedOut": false,
+      "termination": {
+        "termSent": false,
+        "killSent": false,
+        "groupGone": true
+      },
+      "closure": {
+        "descendantGroupDetected": false,
+        "rootPidGone": true,
+        "groupGone": true
+      },
+      "timeoutMs": 120000,
+      "startedAt": "2026-08-27T20:55:14.973Z",
+      "finishedAt": "2026-08-27T20:55:15.009Z",
+      "durationMs": 35.482333,
+      "stdoutSha256": "f54c0b12dbc7565acd6bfae588f22a3b17dfcd138c69bde7e36d8a7df083d0a7",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "sequence": 18,
+      "command": "git",
+      "args": [
+        "show",
+        "1b2ddea9e38b25cc91134a2f35a318e27f4d7c29:tests/integration/du-overlay-independent-20260827/approved-v9-9a5a6f92/config/oracle-identity.json"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "status": 0,
+      "signal": null,
+      "pid": 49266,
+      "pgid": 49266,
+      "timedOut": false,
+      "termination": {
+        "termSent": false,
+        "killSent": false,
+        "groupGone": true
+      },
+      "closure": {
+        "descendantGroupDetected": false,
+        "rootPidGone": true,
+        "groupGone": true
+      },
+      "timeoutMs": 120000,
+      "startedAt": "2026-08-27T20:55:15.009Z",
+      "finishedAt": "2026-08-27T20:55:15.045Z",
+      "durationMs": 36.036792,
+      "stdoutSha256": "7bc8e13ea19e432b8320d08f5e19f8e4cbcbe4f8dad19984df6f9259960ebf4f",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "sequence": 19,
+      "command": "git",
+      "args": [
+        "rev-parse",
+        "1b2ddea9e38b25cc91134a2f35a318e27f4d7c29:tests/integration/du-overlay-independent-20260827/approved-v9-9a5a6f92/config/oracle-identity.json"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "status": 0,
+      "signal": null,
+      "pid": 49271,
+      "pgid": 49271,
+      "timedOut": false,
+      "termination": {
+        "termSent": false,
+        "killSent": false,
+        "groupGone": true
+      },
+      "closure": {
+        "descendantGroupDetected": false,
+        "rootPidGone": true,
+        "groupGone": true
+      },
+      "timeoutMs": 120000,
+      "startedAt": "2026-08-27T20:55:15.045Z",
+      "finishedAt": "2026-08-27T20:55:15.082Z",
+      "durationMs": 37.044041,
+      "stdoutSha256": "f267122ad65c1fc8bc1deb282640d449d2912a83efea81f2fec1538071419652",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "sequence": 20,
+      "command": "git",
+      "args": [
+        "show",
+        "1b2ddea9e38b25cc91134a2f35a318e27f4d7c29:tests/integration/du-overlay-independent-20260827/approved-v9-9a5a6f92/config/static-tooling.json"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "status": 0,
+      "signal": null,
+      "pid": 49276,
+      "pgid": 49276,
+      "timedOut": false,
+      "termination": {
+        "termSent": false,
+        "killSent": false,
+        "groupGone": true
+      },
+      "closure": {
+        "descendantGroupDetected": false,
+        "rootPidGone": true,
+        "groupGone": true
+      },
+      "timeoutMs": 120000,
+      "startedAt": "2026-08-27T20:55:15.082Z",
+      "finishedAt": "2026-08-27T20:55:15.118Z",
+      "durationMs": 36.356792,
+      "stdoutSha256": "a665c0d24aedea5a987d444e98d9708378a1db44c49b5a10872cf2a11062506f",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "sequence": 21,
+      "command": "git",
+      "args": [
+        "rev-parse",
+        "1b2ddea9e38b25cc91134a2f35a318e27f4d7c29:tests/integration/du-overlay-independent-20260827/approved-v9-9a5a6f92/config/static-tooling.json"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "status": 0,
+      "signal": null,
+      "pid": 49281,
+      "pgid": 49281,
+      "timedOut": false,
+      "termination": {
+        "termSent": false,
+        "killSent": false,
+        "groupGone": true
+      },
+      "closure": {
+        "descendantGroupDetected": false,
+        "rootPidGone": true,
+        "groupGone": true
+      },
+      "timeoutMs": 120000,
+      "startedAt": "2026-08-27T20:55:15.118Z",
+      "finishedAt": "2026-08-27T20:55:15.152Z",
+      "durationMs": 33.1695,
+      "stdoutSha256": "07dc250cb437cd58f03448625eaa3be4e8202bb0379ee44d0054d3f44f9b0dd3",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "sequence": 22,
+      "command": "git",
+      "args": [
+        "show",
+        "1b2ddea9e38b25cc91134a2f35a318e27f4d7c29:tests/integration/du-overlay-independent-20260827/approved-v9-9a5a6f92/consumer/consumer.ts"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "status": 0,
+      "signal": null,
+      "pid": 49286,
+      "pgid": 49286,
+      "timedOut": false,
+      "termination": {
+        "termSent": false,
+        "killSent": false,
+        "groupGone": true
+      },
+      "closure": {
+        "descendantGroupDetected": false,
+        "rootPidGone": true,
+        "groupGone": true
+      },
+      "timeoutMs": 120000,
+      "startedAt": "2026-08-27T20:55:15.152Z",
+      "finishedAt": "2026-08-27T20:55:15.190Z",
+      "durationMs": 38.322875,
+      "stdoutSha256": "14e55e16f60f8262c2b299fcf48911d2789e3ec1c7b44674dd622f5dab4552b7",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "sequence": 23,
+      "command": "git",
+      "args": [
+        "rev-parse",
+        "1b2ddea9e38b25cc91134a2f35a318e27f4d7c29:tests/integration/du-overlay-independent-20260827/approved-v9-9a5a6f92/consumer/consumer.ts"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "status": 0,
+      "signal": null,
+      "pid": 49292,
+      "pgid": 49292,
+      "timedOut": false,
+      "termination": {
+        "termSent": false,
+        "killSent": false,
+        "groupGone": true
+      },
+      "closure": {
+        "descendantGroupDetected": false,
+        "rootPidGone": true,
+        "groupGone": true
+      },
+      "timeoutMs": 120000,
+      "startedAt": "2026-08-27T20:55:15.190Z",
+      "finishedAt": "2026-08-27T20:55:15.232Z",
+      "durationMs": 41.984209,
+      "stdoutSha256": "be2ba7c5e4bb559d352a5bbd4bb51ae63fbe22d19294855d36d3b11f4fdfd8e1",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "sequence": 24,
+      "command": "git",
+      "args": [
+        "show",
+        "1b2ddea9e38b25cc91134a2f35a318e27f4d7c29:tests/integration/du-overlay-independent-20260827/approved-v9-9a5a6f92/consumer/package.json"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "status": 0,
+      "signal": null,
+      "pid": 49300,
+      "pgid": 49300,
+      "timedOut": false,
+      "termination": {
+        "termSent": false,
+        "killSent": false,
+        "groupGone": true
+      },
+      "closure": {
+        "descendantGroupDetected": false,
+        "rootPidGone": true,
+        "groupGone": true
+      },
+      "timeoutMs": 120000,
+      "startedAt": "2026-08-27T20:55:15.232Z",
+      "finishedAt": "2026-08-27T20:55:15.272Z",
+      "durationMs": 39.357583,
+      "stdoutSha256": "52fe278e686f24c3992cd55042b2a5029bc3de967ab198821020c423fe85344f",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "sequence": 25,
+      "command": "git",
+      "args": [
+        "rev-parse",
+        "1b2ddea9e38b25cc91134a2f35a318e27f4d7c29:tests/integration/du-overlay-independent-20260827/approved-v9-9a5a6f92/consumer/package.json"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "status": 0,
+      "signal": null,
+      "pid": 49307,
+      "pgid": 49307,
+      "timedOut": false,
+      "termination": {
+        "termSent": false,
+        "killSent": false,
+        "groupGone": true
+      },
+      "closure": {
+        "descendantGroupDetected": false,
+        "rootPidGone": true,
+        "groupGone": true
+      },
+      "timeoutMs": 120000,
+      "startedAt": "2026-08-27T20:55:15.272Z",
+      "finishedAt": "2026-08-27T20:55:15.308Z",
+      "durationMs": 36.939625,
+      "stdoutSha256": "9f5db108f4bba7f14ef195c921730cfc8c20f98f4028761ccfbd2f127e559c2e",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "sequence": 26,
+      "command": "git",
+      "args": [
+        "show",
+        "1b2ddea9e38b25cc91134a2f35a318e27f4d7c29:tests/integration/du-overlay-independent-20260827/approved-v9-9a5a6f92/consumer/runtime.mjs"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "status": 0,
+      "signal": null,
+      "pid": 49312,
+      "pgid": 49312,
+      "timedOut": false,
+      "termination": {
+        "termSent": false,
+        "killSent": false,
+        "groupGone": true
+      },
+      "closure": {
+        "descendantGroupDetected": false,
+        "rootPidGone": true,
+        "groupGone": true
+      },
+      "timeoutMs": 120000,
+      "startedAt": "2026-08-27T20:55:15.309Z",
+      "finishedAt": "2026-08-27T20:55:15.344Z",
+      "durationMs": 35.436542,
+      "stdoutSha256": "61e13d86b50487bb6a768859e75d111d896c3502b9ce1b286637b43da2ad87b5",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "sequence": 27,
+      "command": "git",
+      "args": [
+        "rev-parse",
+        "1b2ddea9e38b25cc91134a2f35a318e27f4d7c29:tests/integration/du-overlay-independent-20260827/approved-v9-9a5a6f92/consumer/runtime.mjs"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "status": 0,
+      "signal": null,
+      "pid": 49317,
+      "pgid": 49317,
+      "timedOut": false,
+      "termination": {
+        "termSent": false,
+        "killSent": false,
+        "groupGone": true
+      },
+      "closure": {
+        "descendantGroupDetected": false,
+        "rootPidGone": true,
+        "groupGone": true
+      },
+      "timeoutMs": 120000,
+      "startedAt": "2026-08-27T20:55:15.344Z",
+      "finishedAt": "2026-08-27T20:55:15.379Z",
+      "durationMs": 34.750792,
+      "stdoutSha256": "14f24979e8414cf44e4b4a61195e4e720a4bbfba8f119dfced1f711d3a7898a7",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "sequence": 28,
+      "command": "git",
+      "args": [
+        "show",
+        "1b2ddea9e38b25cc91134a2f35a318e27f4d7c29:tests/integration/du-overlay-independent-20260827/approved-v9-9a5a6f92/consumer/tsconfig.json"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "status": 0,
+      "signal": null,
+      "pid": 49322,
+      "pgid": 49322,
+      "timedOut": false,
+      "termination": {
+        "termSent": false,
+        "killSent": false,
+        "groupGone": true
+      },
+      "closure": {
+        "descendantGroupDetected": false,
+        "rootPidGone": true,
+        "groupGone": true
+      },
+      "timeoutMs": 120000,
+      "startedAt": "2026-08-27T20:55:15.379Z",
+      "finishedAt": "2026-08-27T20:55:15.422Z",
+      "durationMs": 43.271,
+      "stdoutSha256": "1ece8865863403be31eb2601b88f1739c5412dfe495e7dba65b66e43a2fc607b",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "sequence": 29,
+      "command": "git",
+      "args": [
+        "rev-parse",
+        "1b2ddea9e38b25cc91134a2f35a318e27f4d7c29:tests/integration/du-overlay-independent-20260827/approved-v9-9a5a6f92/consumer/tsconfig.json"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "status": 0,
+      "signal": null,
+      "pid": 49329,
+      "pgid": 49329,
+      "timedOut": false,
+      "termination": {
+        "termSent": false,
+        "killSent": false,
+        "groupGone": true
+      },
+      "closure": {
+        "descendantGroupDetected": false,
+        "rootPidGone": true,
+        "groupGone": true
+      },
+      "timeoutMs": 120000,
+      "startedAt": "2026-08-27T20:55:15.422Z",
+      "finishedAt": "2026-08-27T20:55:15.460Z",
+      "durationMs": 38.311333,
+      "stdoutSha256": "58a27ead5d729bd2a2adae162ebe23088bf9f4c4abc5e5dd03782a932697b5f5",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "sequence": 30,
+      "command": "git",
+      "args": [
+        "show",
+        "1b2ddea9e38b25cc91134a2f35a318e27f4d7c29:tests/integration/du-overlay-independent-20260827/approved-v9-9a5a6f92/fixtures/native-env-cases.json"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "status": 0,
+      "signal": null,
+      "pid": 49334,
+      "pgid": 49334,
+      "timedOut": false,
+      "termination": {
+        "termSent": false,
+        "killSent": false,
+        "groupGone": true
+      },
+      "closure": {
+        "descendantGroupDetected": false,
+        "rootPidGone": true,
+        "groupGone": true
+      },
+      "timeoutMs": 120000,
+      "startedAt": "2026-08-27T20:55:15.460Z",
+      "finishedAt": "2026-08-27T20:55:15.503Z",
+      "durationMs": 42.519916,
+      "stdoutSha256": "ba95af81e2ffd7f7b80afb4a49a173487d9dacb7c911c61b31bf80b515c8cd5b",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "sequence": 31,
+      "command": "git",
+      "args": [
+        "rev-parse",
+        "1b2ddea9e38b25cc91134a2f35a318e27f4d7c29:tests/integration/du-overlay-independent-20260827/approved-v9-9a5a6f92/fixtures/native-env-cases.json"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "status": 0,
+      "signal": null,
+      "pid": 49340,
+      "pgid": 49340,
+      "timedOut": false,
+      "termination": {
+        "termSent": false,
+        "killSent": false,
+        "groupGone": true
+      },
+      "closure": {
+        "descendantGroupDetected": false,
+        "rootPidGone": true,
+        "groupGone": true
+      },
+      "timeoutMs": 120000,
+      "startedAt": "2026-08-27T20:55:15.503Z",
+      "finishedAt": "2026-08-27T20:55:15.542Z",
+      "durationMs": 38.87925,
+      "stdoutSha256": "efeef153cd31d5c14928228ff35c659c22aacc12f50f6fe6ce103366b95e6ab5",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "sequence": 32,
+      "command": "git",
+      "args": [
+        "show",
+        "1b2ddea9e38b25cc91134a2f35a318e27f4d7c29:tests/integration/du-overlay-independent-20260827/approved-v9-9a5a6f92/harness/attest-loader.mjs"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "status": 0,
+      "signal": null,
+      "pid": 49345,
+      "pgid": 49345,
+      "timedOut": false,
+      "termination": {
+        "termSent": false,
+        "killSent": false,
+        "groupGone": true
+      },
+      "closure": {
+        "descendantGroupDetected": false,
+        "rootPidGone": true,
+        "groupGone": true
+      },
+      "timeoutMs": 120000,
+      "startedAt": "2026-08-27T20:55:15.542Z",
+      "finishedAt": "2026-08-27T20:55:15.581Z",
+      "durationMs": 38.759875,
+      "stdoutSha256": "856d860f818db6848388be87da7cd59ee4def1bf133abe582206bbd69b083d1d",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "sequence": 33,
+      "command": "git",
+      "args": [
+        "rev-parse",
+        "1b2ddea9e38b25cc91134a2f35a318e27f4d7c29:tests/integration/du-overlay-independent-20260827/approved-v9-9a5a6f92/harness/attest-loader.mjs"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "status": 0,
+      "signal": null,
+      "pid": 49351,
+      "pgid": 49351,
+      "timedOut": false,
+      "termination": {
+        "termSent": false,
+        "killSent": false,
+        "groupGone": true
+      },
+      "closure": {
+        "descendantGroupDetected": false,
+        "rootPidGone": true,
+        "groupGone": true
+      },
+      "timeoutMs": 120000,
+      "startedAt": "2026-08-27T20:55:15.581Z",
+      "finishedAt": "2026-08-27T20:55:15.621Z",
+      "durationMs": 40.475667,
+      "stdoutSha256": "bb9e725fe2f9e61fe6e7cef822c1bdc81cc4dd9a933ac1b033d8e5861b541a1e",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "sequence": 34,
+      "command": "git",
+      "args": [
+        "show",
+        "1b2ddea9e38b25cc91134a2f35a318e27f4d7c29:tests/integration/du-overlay-independent-20260827/approved-v9-9a5a6f92/harness/process-manager.mjs"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "status": 0,
+      "signal": null,
+      "pid": 49356,
+      "pgid": 49356,
+      "timedOut": false,
+      "termination": {
+        "termSent": false,
+        "killSent": false,
+        "groupGone": true
+      },
+      "closure": {
+        "descendantGroupDetected": false,
+        "rootPidGone": true,
+        "groupGone": true
+      },
+      "timeoutMs": 120000,
+      "startedAt": "2026-08-27T20:55:15.621Z",
+      "finishedAt": "2026-08-27T20:55:15.663Z",
+      "durationMs": 41.783292,
+      "stdoutSha256": "f322101cfaa23612287cd728f52f50c672a19325eda00b69d8280827d83cfa5d",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "sequence": 35,
+      "command": "git",
+      "args": [
+        "rev-parse",
+        "1b2ddea9e38b25cc91134a2f35a318e27f4d7c29:tests/integration/du-overlay-independent-20260827/approved-v9-9a5a6f92/harness/process-manager.mjs"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "status": 0,
+      "signal": null,
+      "pid": 49362,
+      "pgid": 49362,
+      "timedOut": false,
+      "termination": {
+        "termSent": false,
+        "killSent": false,
+        "groupGone": true
+      },
+      "closure": {
+        "descendantGroupDetected": false,
+        "rootPidGone": true,
+        "groupGone": true
+      },
+      "timeoutMs": 120000,
+      "startedAt": "2026-08-27T20:55:15.663Z",
+      "finishedAt": "2026-08-27T20:55:15.711Z",
+      "durationMs": 47.891916,
+      "stdoutSha256": "ce8ca972646d18474e26498b530ab3acf3f9a3819ba3e8bf8977c3011a9768e7",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "sequence": 36,
+      "command": "git",
+      "args": [
+        "show",
+        "1b2ddea9e38b25cc91134a2f35a318e27f4d7c29:tests/integration/du-overlay-independent-20260827/approved-v9-9a5a6f92/harness/process-timeout-control.mjs"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "status": 0,
+      "signal": null,
+      "pid": 49367,
+      "pgid": 49367,
+      "timedOut": false,
+      "termination": {
+        "termSent": false,
+        "killSent": false,
+        "groupGone": true
+      },
+      "closure": {
+        "descendantGroupDetected": false,
+        "rootPidGone": true,
+        "groupGone": true
+      },
+      "timeoutMs": 120000,
+      "startedAt": "2026-08-27T20:55:15.711Z",
+      "finishedAt": "2026-08-27T20:55:15.754Z",
+      "durationMs": 42.627875,
+      "stdoutSha256": "2ac32a6d8a09f7f37f157e2adc1ac6b1fbd7cc0899cc7d643542a7dc743dc652",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "sequence": 37,
+      "command": "git",
+      "args": [
+        "rev-parse",
+        "1b2ddea9e38b25cc91134a2f35a318e27f4d7c29:tests/integration/du-overlay-independent-20260827/approved-v9-9a5a6f92/harness/process-timeout-control.mjs"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "status": 0,
+      "signal": null,
+      "pid": 49372,
+      "pgid": 49372,
+      "timedOut": false,
+      "termination": {
+        "termSent": false,
+        "killSent": false,
+        "groupGone": true
+      },
+      "closure": {
+        "descendantGroupDetected": false,
+        "rootPidGone": true,
+        "groupGone": true
+      },
+      "timeoutMs": 120000,
+      "startedAt": "2026-08-27T20:55:15.754Z",
+      "finishedAt": "2026-08-27T20:55:15.799Z",
+      "durationMs": 45.383875,
+      "stdoutSha256": "2698352b0e809c3217ff55459d1e8ff19764cd048f6f8a1e945aaf1d144bc156",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "sequence": 38,
+      "command": "git",
+      "args": [
+        "show",
+        "1b2ddea9e38b25cc91134a2f35a318e27f4d7c29:tests/integration/du-overlay-independent-20260827/approved-v9-9a5a6f92/harness/verify-original.mjs"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "status": 0,
+      "signal": null,
+      "pid": 49377,
+      "pgid": 49377,
+      "timedOut": false,
+      "termination": {
+        "termSent": false,
+        "killSent": false,
+        "groupGone": true
+      },
+      "closure": {
+        "descendantGroupDetected": false,
+        "rootPidGone": true,
+        "groupGone": true
+      },
+      "timeoutMs": 120000,
+      "startedAt": "2026-08-27T20:55:15.799Z",
+      "finishedAt": "2026-08-27T20:55:15.838Z",
+      "durationMs": 38.548916,
+      "stdoutSha256": "c08b96e73891995f329583b7d04d7837e1cd66953e13790b906d833f5fcc1c5a",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "sequence": 39,
+      "command": "git",
+      "args": [
+        "rev-parse",
+        "1b2ddea9e38b25cc91134a2f35a318e27f4d7c29:tests/integration/du-overlay-independent-20260827/approved-v9-9a5a6f92/harness/verify-original.mjs"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "status": 0,
+      "signal": null,
+      "pid": 49382,
+      "pgid": 49382,
+      "timedOut": false,
+      "termination": {
+        "termSent": false,
+        "killSent": false,
+        "groupGone": true
+      },
+      "closure": {
+        "descendantGroupDetected": false,
+        "rootPidGone": true,
+        "groupGone": true
+      },
+      "timeoutMs": 120000,
+      "startedAt": "2026-08-27T20:55:15.838Z",
+      "finishedAt": "2026-08-27T20:55:15.867Z",
+      "durationMs": 29.657125,
+      "stdoutSha256": "52b3b7ad51d10b85eedd18dcc57681b1036d1490f4445203761ec263d20c762b",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "sequence": 40,
+      "command": "git",
+      "args": [
+        "show",
+        "1b2ddea9e38b25cc91134a2f35a318e27f4d7c29:tests/integration/du-overlay-independent-20260827/approved-v9-9a5a6f92/harness/verify-v5.mjs"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "status": 0,
+      "signal": null,
+      "pid": 49387,
+      "pgid": 49387,
+      "timedOut": false,
+      "termination": {
+        "termSent": false,
+        "killSent": false,
+        "groupGone": true
+      },
+      "closure": {
+        "descendantGroupDetected": false,
+        "rootPidGone": true,
+        "groupGone": true
+      },
+      "timeoutMs": 120000,
+      "startedAt": "2026-08-27T20:55:15.867Z",
+      "finishedAt": "2026-08-27T20:55:15.904Z",
+      "durationMs": 36.724916,
+      "stdoutSha256": "447ec395027d6d57902e9c22e5d731519d4205da36ea7256c757b6e9de354cfc",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "sequence": 41,
+      "command": "git",
+      "args": [
+        "rev-parse",
+        "1b2ddea9e38b25cc91134a2f35a318e27f4d7c29:tests/integration/du-overlay-independent-20260827/approved-v9-9a5a6f92/harness/verify-v5.mjs"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "status": 0,
+      "signal": null,
+      "pid": 49392,
+      "pgid": 49392,
+      "timedOut": false,
+      "termination": {
+        "termSent": false,
+        "killSent": false,
+        "groupGone": true
+      },
+      "closure": {
+        "descendantGroupDetected": false,
+        "rootPidGone": true,
+        "groupGone": true
+      },
+      "timeoutMs": 120000,
+      "startedAt": "2026-08-27T20:55:15.904Z",
+      "finishedAt": "2026-08-27T20:55:15.946Z",
+      "durationMs": 41.516625,
+      "stdoutSha256": "f37439141df4179cdc396256db7741f270b92273252b99df761807cbeabd69f1",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "sequence": 42,
+      "command": "git",
+      "args": [
+        "show",
+        "1b2ddea9e38b25cc91134a2f35a318e27f4d7c29:tests/integration/du-overlay-independent-20260827/approved-v9-9a5a6f92/native-env.mjs"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "status": 0,
+      "signal": null,
+      "pid": 49397,
+      "pgid": 49397,
+      "timedOut": false,
+      "termination": {
+        "termSent": false,
+        "killSent": false,
+        "groupGone": true
+      },
+      "closure": {
+        "descendantGroupDetected": false,
+        "rootPidGone": true,
+        "groupGone": true
+      },
+      "timeoutMs": 120000,
+      "startedAt": "2026-08-27T20:55:15.946Z",
+      "finishedAt": "2026-08-27T20:55:15.984Z",
+      "durationMs": 38.476125,
+      "stdoutSha256": "e537055e0b7516e2a2ddcd520f5197625334d2493b1b238d82b99edc94fd7def",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "sequence": 43,
+      "command": "git",
+      "args": [
+        "rev-parse",
+        "1b2ddea9e38b25cc91134a2f35a318e27f4d7c29:tests/integration/du-overlay-independent-20260827/approved-v9-9a5a6f92/native-env.mjs"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "status": 0,
+      "signal": null,
+      "pid": 49402,
+      "pgid": 49402,
+      "timedOut": false,
+      "termination": {
+        "termSent": false,
+        "killSent": false,
+        "groupGone": true
+      },
+      "closure": {
+        "descendantGroupDetected": false,
+        "rootPidGone": true,
+        "groupGone": true
+      },
+      "timeoutMs": 120000,
+      "startedAt": "2026-08-27T20:55:15.984Z",
+      "finishedAt": "2026-08-27T20:55:16.014Z",
+      "durationMs": 30.200875,
+      "stdoutSha256": "a1912a643c07f3caf46288dbc8d3f8c769d29312bfa2a7d31016218fd4416c7c",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "sequence": 44,
+      "command": "git",
+      "args": [
+        "show",
+        "1b2ddea9e38b25cc91134a2f35a318e27f4d7c29:tests/integration/du-overlay-independent-20260827/approved-v9-9a5a6f92/replay.mjs"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "status": 0,
+      "signal": null,
+      "pid": 49407,
+      "pgid": 49407,
+      "timedOut": false,
+      "termination": {
+        "termSent": false,
+        "killSent": false,
+        "groupGone": true
+      },
+      "closure": {
+        "descendantGroupDetected": false,
+        "rootPidGone": true,
+        "groupGone": true
+      },
+      "timeoutMs": 120000,
+      "startedAt": "2026-08-27T20:55:16.015Z",
+      "finishedAt": "2026-08-27T20:55:16.056Z",
+      "durationMs": 41.583042,
+      "stdoutSha256": "e7f135081b91f3ede0a92436b06647b0e1dbbb8ac1c9c5d73edb261ef7f8c7f0",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "sequence": 45,
+      "command": "git",
+      "args": [
+        "rev-parse",
+        "1b2ddea9e38b25cc91134a2f35a318e27f4d7c29:tests/integration/du-overlay-independent-20260827/approved-v9-9a5a6f92/replay.mjs"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "status": 0,
+      "signal": null,
+      "pid": 49412,
+      "pgid": 49412,
+      "timedOut": false,
+      "termination": {
+        "termSent": false,
+        "killSent": false,
+        "groupGone": true
+      },
+      "closure": {
+        "descendantGroupDetected": false,
+        "rootPidGone": true,
+        "groupGone": true
+      },
+      "timeoutMs": 120000,
+      "startedAt": "2026-08-27T20:55:16.056Z",
+      "finishedAt": "2026-08-27T20:55:16.097Z",
+      "durationMs": 41.076084,
+      "stdoutSha256": "26dd681f4729d41be4ceb332a683ad02501b8236ca62635b533abd1146fe923a",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "sequence": 46,
+      "command": "git",
+      "args": [
+        "show",
+        "1b2ddea9e38b25cc91134a2f35a318e27f4d7c29:tests/integration/du-overlay-independent-20260827/approved-v9-9a5a6f92/verify-freeze.mjs"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "status": 0,
+      "signal": null,
+      "pid": 49417,
+      "pgid": 49417,
+      "timedOut": false,
+      "termination": {
+        "termSent": false,
+        "killSent": false,
+        "groupGone": true
+      },
+      "closure": {
+        "descendantGroupDetected": false,
+        "rootPidGone": true,
+        "groupGone": true
+      },
+      "timeoutMs": 120000,
+      "startedAt": "2026-08-27T20:55:16.097Z",
+      "finishedAt": "2026-08-27T20:55:16.139Z",
+      "durationMs": 41.528959,
+      "stdoutSha256": "6b387e2fca6c002a30ce475db2dc10a98994fff00beff929226b6d6e8de18584",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "sequence": 47,
+      "command": "git",
+      "args": [
+        "rev-parse",
+        "1b2ddea9e38b25cc91134a2f35a318e27f4d7c29:tests/integration/du-overlay-independent-20260827/approved-v9-9a5a6f92/verify-freeze.mjs"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "status": 0,
+      "signal": null,
+      "pid": 49422,
+      "pgid": 49422,
+      "timedOut": false,
+      "termination": {
+        "termSent": false,
+        "killSent": false,
+        "groupGone": true
+      },
+      "closure": {
+        "descendantGroupDetected": false,
+        "rootPidGone": true,
+        "groupGone": true
+      },
+      "timeoutMs": 120000,
+      "startedAt": "2026-08-27T20:55:16.139Z",
+      "finishedAt": "2026-08-27T20:55:16.179Z",
+      "durationMs": 39.766125,
+      "stdoutSha256": "48247b76df8c2336f5dd359d9b02a5da48ae3804c662a67adc8582b50bbacb41",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "sequence": 48,
+      "command": "git",
+      "args": [
+        "show",
+        "1b2ddea9e38b25cc91134a2f35a318e27f4d7c29:tests/integration/du-overlay-independent-20260827/approved-v9-9a5a6f92/config/candidate-selected-paths.txt"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "status": 0,
+      "signal": null,
+      "pid": 49428,
+      "pgid": 49428,
+      "timedOut": false,
+      "termination": {
+        "termSent": false,
+        "killSent": false,
+        "groupGone": true
+      },
+      "closure": {
+        "descendantGroupDetected": false,
+        "rootPidGone": true,
+        "groupGone": true
+      },
+      "timeoutMs": 120000,
+      "startedAt": "2026-08-27T20:55:16.192Z",
+      "finishedAt": "2026-08-27T20:55:16.233Z",
+      "durationMs": 40.171083,
+      "stdoutSha256": "9427aad46a7f184d94517a666ab02a8f1da43ccf9074c5a15186d4569233679b",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "sequence": 49,
+      "command": "git",
+      "args": [
+        "ls-tree",
+        "-r",
+        "--name-only",
+        "9a5a6f922beb1bc6ba84a0cd32ea7a12f8ce985d",
+        "--",
+        "package-lock.json",
+        "package.json",
+        "src/commands/README.md",
+        "src/commands/archive/README.md",
+        "src/commands/archive/create.ts",
+        "src/commands/archive/extract.ts",
+        "src/commands/archive/format.ts",
+        "src/commands/archive/index.ts",
+        "src/commands/archive/internal.ts",
+        "src/commands/archive/options.ts",
+        "src/commands/archive/stream.ts",
+        "src/commands/basic.ts",
+        "src/commands/bytes/README.md",
+        "src/commands/bytes/checksums/README.md",
+        "src/commands/bytes/checksums/index.ts",
+        "src/commands/bytes/compression/README.md",
+        "src/commands/bytes/compression/files.ts",
+        "src/commands/bytes/compression/gunzip.ts",
+        "src/commands/bytes/compression/index.ts",
+        "src/commands/bytes/compression/options.ts",
+        "src/commands/bytes/compression/stream.ts",
+        "src/commands/bytes/encoding/README.md",
+        "src/commands/bytes/encoding/base.ts",
+        "src/commands/bytes/encoding/index.ts",
+        "src/commands/bytes/encoding/od.ts",
+        "src/commands/bytes/encoding/shared.ts",
+        "src/commands/bytes/encoding/xxd.ts",
+        "src/commands/bytes/index.ts",
+        "src/commands/column/README.md",
+        "src/commands/column/column.ts",
+        "src/commands/column/display.ts",
+        "src/commands/column/index.ts",
+        "src/commands/column/internal.ts",
+        "src/commands/column/options.ts",
+        "src/commands/column/table.ts",
+        "src/commands/copy-identity.ts",
+        "src/commands/diff-patch/GNU-DIFF.md",
+        "src/commands/diff-patch/GNU-PATCH.md",
+        "src/commands/diff-patch/PARSER.md",
+        "src/commands/diff-patch/README.md",
+        "src/commands/diff-patch/diff-format.ts",
+        "src/commands/diff-patch/diff.ts",
+        "src/commands/diff-patch/index.ts",
+        "src/commands/diff-patch/patch-envelope.ts",
+        "src/commands/diff-patch/patch-formats.ts",
+        "src/commands/diff-patch/patch-gnu-paths.ts",
+        "src/commands/diff-patch/patch-gnu-reject.ts",
+        "src/commands/diff-patch/patch-path.ts",
+        "src/commands/diff-patch/patch.ts",
+        "src/commands/diff-patch/shared.ts",
+        "src/commands/diff-patch/unified.ts",
+        "src/commands/du/README.md",
+        "src/commands/du/arguments.ts",
+        "src/commands/du/budget.ts",
+        "src/commands/du/du.ts",
+        "src/commands/du/format.ts",
+        "src/commands/du/index.ts",
+        "src/commands/du/options.ts",
+        "src/commands/env-split.ts",
+        "src/commands/execution.ts",
+        "src/commands/expr/README.md",
+        "src/commands/expr/bre-worker.ts",
+        "src/commands/expr/evaluate.ts",
+        "src/commands/expr/index.ts",
+        "src/commands/expr/internal.ts",
+        "src/commands/expr/syntax.ts",
+        "src/commands/file/README.md",
+        "src/commands/file/classify.ts",
+        "src/commands/file/index.ts",
+        "src/commands/file/shared.ts",
+        "src/commands/filesystem.ts",
+        "src/commands/find.ts",
+        "src/commands/grep-aliases/README.md",
+        "src/commands/grep-aliases/index.ts",
+        "src/commands/grep.ts",
+        "src/commands/index.ts",
+        "src/commands/internal.ts",
+        "src/commands/metadata/README.md",
+        "src/commands/metadata/chmod.ts",
+        "src/commands/metadata/index.ts",
+        "src/commands/metadata/internal.ts",
+        "src/commands/metadata/mktemp.ts",
+        "src/commands/metadata/stat.ts",
+        "src/commands/move.ts",
+        "src/commands/network/README.md",
+        "src/commands/network/args.ts",
+        "src/commands/network/body.ts",
+        "src/commands/network/curl.ts",
+        "src/commands/network/index.ts",
+        "src/commands/network/output.ts",
+        "src/commands/network/shared.ts",
+        "src/commands/network/transport.ts",
+        "src/commands/network/types.ts",
+        "src/commands/predicates.ts",
+        "src/commands/regex-execution/README.md",
+        "src/commands/regex-execution/client.ts",
+        "src/commands/regex-execution/matching.ts",
+        "src/commands/regex-execution/protocol.ts",
+        "src/commands/regex-execution/worker.ts",
+        "src/commands/safejs/README.md",
+        "src/commands/safejs/index.ts",
+        "src/commands/safejs/io.ts",
+        "src/commands/safejs/options.ts",
+        "src/commands/safejs/render.ts",
+        "src/commands/safejs/types.ts",
+        "src/commands/search/README.md",
+        "src/commands/search/glob.ts",
+        "src/commands/search/index.ts",
+        "src/commands/search/matcher.ts",
+        "src/commands/search/options.ts",
+        "src/commands/search/output.ts",
+        "src/commands/search/rg.ts",
+        "src/commands/search/shared.ts",
+        "src/commands/search/walk.ts",
+        "src/commands/split/README.md",
+        "src/commands/split/index.ts",
+        "src/commands/split/io.ts",
+        "src/commands/split/names.ts",
+        "src/commands/split/options.ts",
+        "src/commands/split/outputs.ts",
+        "src/commands/split/split.ts",
+        "src/commands/stream-format/README.md",
+        "src/commands/stream-format/index.ts",
+        "src/commands/stream-format/nl.ts",
+        "src/commands/stream-format/rev.ts",
+        "src/commands/stream-format/seq.ts",
+        "src/commands/stream-format/shared.ts",
+        "src/commands/stream-format/unexpand.ts",
+        "src/commands/stream-inspection/README.md",
+        "src/commands/stream-inspection/expand.ts",
+        "src/commands/stream-inspection/fold.ts",
+        "src/commands/stream-inspection/index.ts",
+        "src/commands/stream-inspection/numeric-options.ts",
+        "src/commands/stream-inspection/shared.ts",
+        "src/commands/stream-inspection/strings.ts",
+        "src/commands/stream-inspection/tac.ts",
+        "src/commands/streams.ts",
+        "src/commands/structured/README.md",
+        "src/commands/structured/index.ts",
+        "src/commands/structured/input.ts",
+        "src/commands/structured/interpreter.ts",
+        "src/commands/structured/jq.ts",
+        "src/commands/structured/limits.ts",
+        "src/commands/structured/numbers.ts",
+        "src/commands/structured/parser.ts",
+        "src/commands/structured/split.ts",
+        "src/commands/structured/values.ts",
+        "src/commands/table-text/README.md",
+        "src/commands/table-text/comm.ts",
+        "src/commands/table-text/index.ts",
+        "src/commands/table-text/internal.ts",
+        "src/commands/table-text/join.ts",
+        "src/commands/table-text/paste.ts",
+        "src/commands/text-programs/README.md",
+        "src/commands/text-programs/awk-runtime.ts",
+        "src/commands/text-programs/awk-syntax.ts",
+        "src/commands/text-programs/awk-values.ts",
+        "src/commands/text-programs/awk.ts",
+        "src/commands/text-programs/index.ts",
+        "src/commands/text-programs/regex.ts",
+        "src/commands/text-programs/sed.ts",
+        "src/commands/text-programs/shared.ts",
+        "src/commands/text.ts",
+        "src/commands/time-env/README.md",
+        "src/commands/time-env/calendar.ts",
+        "src/commands/time-env/date.ts",
+        "src/commands/time-env/format.ts",
+        "src/commands/time-env/index.ts",
+        "src/commands/time-env/printenv.ts",
+        "src/commands/time-env/shared.ts",
+        "src/commands/time-env/sleep.ts",
+        "src/commands/tree/README.md",
+        "src/commands/tree/arguments.ts",
+        "src/commands/tree/charset.ts",
+        "src/commands/tree/index.ts",
+        "src/commands/tree/io.ts",
+        "src/commands/tree/options.ts",
+        "src/commands/tree/pattern.ts",
+        "src/commands/tree/tree.ts",
+        "src/contracts/command.md",
+        "src/contracts/command.ts",
+        "src/contracts/errors.ts",
+        "src/contracts/filesystem.md",
+        "src/contracts/filesystem.ts",
+        "src/contracts/index.ts",
+        "src/contracts/io.ts",
+        "src/contracts/path.ts",
+        "src/contracts/plugin.ts",
+        "src/fs/memory/index.ts",
+        "src/fs/mount/COMPARISON.md",
+        "src/fs/mount/README.md",
+        "src/fs/mount/comparison.ts",
+        "src/fs/mount/identity.ts",
+        "src/fs/mount/index.ts",
+        "src/fs/overlay/README.md",
+        "src/fs/overlay/index.ts",
+        "src/fs/readonly/README.md",
+        "src/fs/readonly/index.ts",
+        "src/fs/real/allocation.ts",
+        "src/fs/real/index.ts",
+        "src/fs/s3/COMPARISON.md",
+        "src/fs/s3/README.md",
+        "src/fs/s3/SDK_COMPARISON.md",
+        "src/fs/s3/authority.ts",
+        "src/fs/s3/filesystem.ts",
+        "src/fs/s3/http/README.md",
+        "src/fs/s3/http/index.ts",
+        "src/fs/s3/http/request.ts",
+        "src/fs/s3/http/signature.ts",
+        "src/fs/s3/http/transport.ts",
+        "src/fs/s3/http/types.ts",
+        "src/fs/s3/http/xml.ts",
+        "src/fs/s3/index.ts",
+        "src/fs/s3/mock.ts",
+        "src/fs/s3/transport.ts",
+        "src/fs/webdav/PRODUCTION_CHECKPOINT.md",
+        "src/fs/webdav/README.md",
+        "src/fs/webdav/index.ts",
+        "src/fs/webdav/resource-id.ts",
+        "src/fs/webdav/webdav.ts",
+        "src/fs/webdav/xml.ts",
+        "src/index.ts",
+        "src/integrations/safejs/filesystem.ts",
+        "src/integrations/safejs/index.ts",
+        "src/integrations/safejs/shell.ts",
+        "src/integrations/safejs/stats.ts",
+        "src/integrations/safejs/values.ts",
+        "src/plugins/index.ts",
+        "src/shell/arithmetic.ts",
+        "src/shell/cleanup.ts",
+        "src/shell/display.ts",
+        "src/shell/index.ts",
+        "src/shell/input.ts",
+        "src/shell/locale.ts",
+        "src/shell/parser.ts",
+        "src/shell/pattern.ts",
+        "src/shell/runtime.ts",
+        "src/shell/shell.ts",
+        "src/shell/types.ts",
+        "tests/commands/du/backends.test.ts",
+        "tests/commands/du/behavior.test.ts",
+        "tests/commands/du/helpers.ts",
+        "tests/fs/overlay/adversarial.test.ts",
+        "tests/fs/overlay/allocation-evidence/README.md",
+        "tests/fs/overlay/allocation.test.ts",
+        "tests/fs/overlay/helpers.ts",
+        "tests/fs/webdav/mock.ts",
+        "tsconfig.build.json",
+        "tsconfig.json"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "status": 0,
+      "signal": null,
+      "pid": 49433,
+      "pgid": 49433,
+      "timedOut": false,
+      "termination": {
+        "termSent": false,
+        "killSent": false,
+        "groupGone": true
+      },
+      "closure": {
+        "descendantGroupDetected": false,
+        "rootPidGone": true,
+        "groupGone": true
+      },
+      "timeoutMs": 120000,
+      "startedAt": "2026-08-27T20:55:16.233Z",
+      "finishedAt": "2026-08-27T20:55:16.285Z",
+      "durationMs": 52.444292,
+      "stdoutSha256": "9427aad46a7f184d94517a666ab02a8f1da43ccf9074c5a15186d4569233679b",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "sequence": 50,
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/du-v9-final-independent-20260827/replay-once/bootstrap-scratch/extracted/tests/integration/du-overlay-independent-20260827/approved-v9-9a5a6f92/harness/process-timeout-control.mjs",
+        "grandchild"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "status": null,
+      "signal": "SIGTERM",
+      "pid": 49434,
+      "pgid": 49434,
+      "timedOut": true,
+      "terminationReason": "timeout",
+      "termination": {
+        "termSent": true,
+        "killSent": true,
+        "groupGone": true
+      },
+      "closure": {
+        "descendantGroupDetected": true,
+        "rootPidGone": true,
+        "groupGone": true
+      },
+      "timeoutMs": 1500,
+      "startedAt": "2026-08-27T20:55:16.285Z",
+      "finishedAt": "2026-08-27T20:55:18.076Z",
+      "durationMs": 1790.432,
+      "stdoutSha256": "f341274a7e4a38eccde431aecc30a1924b38a9b6b1b2a06e81079c0a12a1e31e",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "sequence": 51,
+      "command": "git",
+      "args": [
+        "diff",
+        "--cached",
+        "--binary"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "status": 0,
+      "signal": null,
+      "pid": 49457,
+      "pgid": 49457,
+      "timedOut": false,
+      "termination": {
+        "termSent": false,
+        "killSent": false,
+        "groupGone": true
+      },
+      "closure": {
+        "descendantGroupDetected": false,
+        "rootPidGone": true,
+        "groupGone": true
+      },
+      "timeoutMs": 120000,
+      "startedAt": "2026-08-27T20:55:18.078Z",
+      "finishedAt": "2026-08-27T20:55:18.117Z",
+      "durationMs": 38.819167,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "sequence": 52,
+      "command": "git",
+      "args": [
+        "archive",
+        "--format=tar",
+        "--output=/Users/kjopek/Workspace/safe-bash/tests/integration/du-v9-final-independent-20260827/replay-once/work-wzQubu/candidate.tar",
+        "9a5a6f922beb1bc6ba84a0cd32ea7a12f8ce985d",
+        "--",
+        "package-lock.json",
+        "package.json",
+        "src/commands/README.md",
+        "src/commands/archive/README.md",
+        "src/commands/archive/create.ts",
+        "src/commands/archive/extract.ts",
+        "src/commands/archive/format.ts",
+        "src/commands/archive/index.ts",
+        "src/commands/archive/internal.ts",
+        "src/commands/archive/options.ts",
+        "src/commands/archive/stream.ts",
+        "src/commands/basic.ts",
+        "src/commands/bytes/README.md",
+        "src/commands/bytes/checksums/README.md",
+        "src/commands/bytes/checksums/index.ts",
+        "src/commands/bytes/compression/README.md",
+        "src/commands/bytes/compression/files.ts",
+        "src/commands/bytes/compression/gunzip.ts",
+        "src/commands/bytes/compression/index.ts",
+        "src/commands/bytes/compression/options.ts",
+        "src/commands/bytes/compression/stream.ts",
+        "src/commands/bytes/encoding/README.md",
+        "src/commands/bytes/encoding/base.ts",
+        "src/commands/bytes/encoding/index.ts",
+        "src/commands/bytes/encoding/od.ts",
+        "src/commands/bytes/encoding/shared.ts",
+        "src/commands/bytes/encoding/xxd.ts",
+        "src/commands/bytes/index.ts",
+        "src/commands/column/README.md",
+        "src/commands/column/column.ts",
+        "src/commands/column/display.ts",
+        "src/commands/column/index.ts",
+        "src/commands/column/internal.ts",
+        "src/commands/column/options.ts",
+        "src/commands/column/table.ts",
+        "src/commands/copy-identity.ts",
+        "src/commands/diff-patch/GNU-DIFF.md",
+        "src/commands/diff-patch/GNU-PATCH.md",
+        "src/commands/diff-patch/PARSER.md",
+        "src/commands/diff-patch/README.md",
+        "src/commands/diff-patch/diff-format.ts",
+        "src/commands/diff-patch/diff.ts",
+        "src/commands/diff-patch/index.ts",
+        "src/commands/diff-patch/patch-envelope.ts",
+        "src/commands/diff-patch/patch-formats.ts",
+        "src/commands/diff-patch/patch-gnu-paths.ts",
+        "src/commands/diff-patch/patch-gnu-reject.ts",
+        "src/commands/diff-patch/patch-path.ts",
+        "src/commands/diff-patch/patch.ts",
+        "src/commands/diff-patch/shared.ts",
+        "src/commands/diff-patch/unified.ts",
+        "src/commands/du/README.md",
+        "src/commands/du/arguments.ts",
+        "src/commands/du/budget.ts",
+        "src/commands/du/du.ts",
+        "src/commands/du/format.ts",
+        "src/commands/du/index.ts",
+        "src/commands/du/options.ts",
+        "src/commands/env-split.ts",
+        "src/commands/execution.ts",
+        "src/commands/expr/README.md",
+        "src/commands/expr/bre-worker.ts",
+        "src/commands/expr/evaluate.ts",
+        "src/commands/expr/index.ts",
+        "src/commands/expr/internal.ts",
+        "src/commands/expr/syntax.ts",
+        "src/commands/file/README.md",
+        "src/commands/file/classify.ts",
+        "src/commands/file/index.ts",
+        "src/commands/file/shared.ts",
+        "src/commands/filesystem.ts",
+        "src/commands/find.ts",
+        "src/commands/grep-aliases/README.md",
+        "src/commands/grep-aliases/index.ts",
+        "src/commands/grep.ts",
+        "src/commands/index.ts",
+        "src/commands/internal.ts",
+        "src/commands/metadata/README.md",
+        "src/commands/metadata/chmod.ts",
+        "src/commands/metadata/index.ts",
+        "src/commands/metadata/internal.ts",
+        "src/commands/metadata/mktemp.ts",
+        "src/commands/metadata/stat.ts",
+        "src/commands/move.ts",
+        "src/commands/network/README.md",
+        "src/commands/network/args.ts",
+        "src/commands/network/body.ts",
+        "src/commands/network/curl.ts",
+        "src/commands/network/index.ts",
+        "src/commands/network/output.ts",
+        "src/commands/network/shared.ts",
+        "src/commands/network/transport.ts",
+        "src/commands/network/types.ts",
+        "src/commands/predicates.ts",
+        "src/commands/regex-execution/README.md",
+        "src/commands/regex-execution/client.ts",
+        "src/commands/regex-execution/matching.ts",
+        "src/commands/regex-execution/protocol.ts",
+        "src/commands/regex-execution/worker.ts",
+        "src/commands/safejs/README.md",
+        "src/commands/safejs/index.ts",
+        "src/commands/safejs/io.ts",
+        "src/commands/safejs/options.ts",
+        "src/commands/safejs/render.ts",
+        "src/commands/safejs/types.ts",
+        "src/commands/search/README.md",
+        "src/commands/search/glob.ts",
+        "src/commands/search/index.ts",
+        "src/commands/search/matcher.ts",
+        "src/commands/search/options.ts",
+        "src/commands/search/output.ts",
+        "src/commands/search/rg.ts",
+        "src/commands/search/shared.ts",
+        "src/commands/search/walk.ts",
+        "src/commands/split/README.md",
+        "src/commands/split/index.ts",
+        "src/commands/split/io.ts",
+        "src/commands/split/names.ts",
+        "src/commands/split/options.ts",
+        "src/commands/split/outputs.ts",
+        "src/commands/split/split.ts",
+        "src/commands/stream-format/README.md",
+        "src/commands/stream-format/index.ts",
+        "src/commands/stream-format/nl.ts",
+        "src/commands/stream-format/rev.ts",
+        "src/commands/stream-format/seq.ts",
+        "src/commands/stream-format/shared.ts",
+        "src/commands/stream-format/unexpand.ts",
+        "src/commands/stream-inspection/README.md",
+        "src/commands/stream-inspection/expand.ts",
+        "src/commands/stream-inspection/fold.ts",
+        "src/commands/stream-inspection/index.ts",
+        "src/commands/stream-inspection/numeric-options.ts",
+        "src/commands/stream-inspection/shared.ts",
+        "src/commands/stream-inspection/strings.ts",
+        "src/commands/stream-inspection/tac.ts",
+        "src/commands/streams.ts",
+        "src/commands/structured/README.md",
+        "src/commands/structured/index.ts",
+        "src/commands/structured/input.ts",
+        "src/commands/structured/interpreter.ts",
+        "src/commands/structured/jq.ts",
+        "src/commands/structured/limits.ts",
+        "src/commands/structured/numbers.ts",
+        "src/commands/structured/parser.ts",
+        "src/commands/structured/split.ts",
+        "src/commands/structured/values.ts",
+        "src/commands/table-text/README.md",
+        "src/commands/table-text/comm.ts",
+        "src/commands/table-text/index.ts",
+        "src/commands/table-text/internal.ts",
+        "src/commands/table-text/join.ts",
+        "src/commands/table-text/paste.ts",
+        "src/commands/text-programs/README.md",
+        "src/commands/text-programs/awk-runtime.ts",
+        "src/commands/text-programs/awk-syntax.ts",
+        "src/commands/text-programs/awk-values.ts",
+        "src/commands/text-programs/awk.ts",
+        "src/commands/text-programs/index.ts",
+        "src/commands/text-programs/regex.ts",
+        "src/commands/text-programs/sed.ts",
+        "src/commands/text-programs/shared.ts",
+        "src/commands/text.ts",
+        "src/commands/time-env/README.md",
+        "src/commands/time-env/calendar.ts",
+        "src/commands/time-env/date.ts",
+        "src/commands/time-env/format.ts",
+        "src/commands/time-env/index.ts",
+        "src/commands/time-env/printenv.ts",
+        "src/commands/time-env/shared.ts",
+        "src/commands/time-env/sleep.ts",
+        "src/commands/tree/README.md",
+        "src/commands/tree/arguments.ts",
+        "src/commands/tree/charset.ts",
+        "src/commands/tree/index.ts",
+        "src/commands/tree/io.ts",
+        "src/commands/tree/options.ts",
+        "src/commands/tree/pattern.ts",
+        "src/commands/tree/tree.ts",
+        "src/contracts/command.md",
+        "src/contracts/command.ts",
+        "src/contracts/errors.ts",
+        "src/contracts/filesystem.md",
+        "src/contracts/filesystem.ts",
+        "src/contracts/index.ts",
+        "src/contracts/io.ts",
+        "src/contracts/path.ts",
+        "src/contracts/plugin.ts",
+        "src/fs/memory/index.ts",
+        "src/fs/mount/COMPARISON.md",
+        "src/fs/mount/README.md",
+        "src/fs/mount/comparison.ts",
+        "src/fs/mount/identity.ts",
+        "src/fs/mount/index.ts",
+        "src/fs/overlay/README.md",
+        "src/fs/overlay/index.ts",
+        "src/fs/readonly/README.md",
+        "src/fs/readonly/index.ts",
+        "src/fs/real/allocation.ts",
+        "src/fs/real/index.ts",
+        "src/fs/s3/COMPARISON.md",
+        "src/fs/s3/README.md",
+        "src/fs/s3/SDK_COMPARISON.md",
+        "src/fs/s3/authority.ts",
+        "src/fs/s3/filesystem.ts",
+        "src/fs/s3/http/README.md",
+        "src/fs/s3/http/index.ts",
+        "src/fs/s3/http/request.ts",
+        "src/fs/s3/http/signature.ts",
+        "src/fs/s3/http/transport.ts",
+        "src/fs/s3/http/types.ts",
+        "src/fs/s3/http/xml.ts",
+        "src/fs/s3/index.ts",
+        "src/fs/s3/mock.ts",
+        "src/fs/s3/transport.ts",
+        "src/fs/webdav/PRODUCTION_CHECKPOINT.md",
+        "src/fs/webdav/README.md",
+        "src/fs/webdav/index.ts",
+        "src/fs/webdav/resource-id.ts",
+        "src/fs/webdav/webdav.ts",
+        "src/fs/webdav/xml.ts",
+        "src/index.ts",
+        "src/integrations/safejs/filesystem.ts",
+        "src/integrations/safejs/index.ts",
+        "src/integrations/safejs/shell.ts",
+        "src/integrations/safejs/stats.ts",
+        "src/integrations/safejs/values.ts",
+        "src/plugins/index.ts",
+        "src/shell/arithmetic.ts",
+        "src/shell/cleanup.ts",
+        "src/shell/display.ts",
+        "src/shell/index.ts",
+        "src/shell/input.ts",
+        "src/shell/locale.ts",
+        "src/shell/parser.ts",
+        "src/shell/pattern.ts",
+        "src/shell/runtime.ts",
+        "src/shell/shell.ts",
+        "src/shell/types.ts",
+        "tests/commands/du/backends.test.ts",
+        "tests/commands/du/behavior.test.ts",
+        "tests/commands/du/helpers.ts",
+        "tests/fs/overlay/adversarial.test.ts",
+        "tests/fs/overlay/allocation-evidence/README.md",
+        "tests/fs/overlay/allocation.test.ts",
+        "tests/fs/overlay/helpers.ts",
+        "tests/fs/webdav/mock.ts",
+        "tsconfig.build.json",
+        "tsconfig.json"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "status": 0,
+      "signal": null,
+      "pid": 49462,
+      "pgid": 49462,
+      "timedOut": false,
+      "termination": {
+        "termSent": false,
+        "killSent": false,
+        "groupGone": true
+      },
+      "closure": {
+        "descendantGroupDetected": false,
+        "rootPidGone": true,
+        "groupGone": true
+      },
+      "timeoutMs": 120000,
+      "startedAt": "2026-08-27T20:55:18.117Z",
+      "finishedAt": "2026-08-27T20:55:18.221Z",
+      "durationMs": 104.59975,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "sequence": 53,
+      "command": "tar",
+      "args": [
+        "-tf",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/du-v9-final-independent-20260827/replay-once/work-wzQubu/candidate.tar"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "status": 0,
+      "signal": null,
+      "pid": 49468,
+      "pgid": 49468,
+      "timedOut": false,
+      "termination": {
+        "termSent": false,
+        "killSent": false,
+        "groupGone": true
+      },
+      "closure": {
+        "descendantGroupDetected": false,
+        "rootPidGone": true,
+        "groupGone": true
+      },
+      "timeoutMs": 120000,
+      "startedAt": "2026-08-27T20:55:18.223Z",
+      "finishedAt": "2026-08-27T20:55:18.234Z",
+      "durationMs": 11.869958,
+      "stdoutSha256": "0717009a6b53e6871fba4700c2593298f4f3d07d86a3ad711f3d27b608a3a732",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "sequence": 54,
+      "command": "tar",
+      "args": [
+        "-xf",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/du-v9-final-independent-20260827/replay-once/work-wzQubu/candidate.tar",
+        "-C",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/du-v9-final-independent-20260827/replay-once/work-wzQubu/source"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "status": 0,
+      "signal": null,
+      "pid": 49473,
+      "pgid": 49473,
+      "timedOut": false,
+      "termination": {
+        "termSent": false,
+        "killSent": false,
+        "groupGone": true
+      },
+      "closure": {
+        "descendantGroupDetected": false,
+        "rootPidGone": true,
+        "groupGone": true
+      },
+      "timeoutMs": 120000,
+      "startedAt": "2026-08-27T20:55:18.235Z",
+      "finishedAt": "2026-08-27T20:55:18.353Z",
+      "durationMs": 118.021958,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "sequence": 55,
+      "command": "which",
+      "args": [
+        "npm"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "status": 0,
+      "signal": null,
+      "pid": 49478,
+      "pgid": 49478,
+      "timedOut": false,
+      "termination": {
+        "termSent": false,
+        "killSent": false,
+        "groupGone": true
+      },
+      "closure": {
+        "descendantGroupDetected": false,
+        "rootPidGone": true,
+        "groupGone": true
+      },
+      "timeoutMs": 120000,
+      "startedAt": "2026-08-27T20:55:18.411Z",
+      "finishedAt": "2026-08-27T20:55:18.420Z",
+      "durationMs": 8.160542,
+      "stdoutSha256": "53031a1e5bb08fe6434ee6cc731d69e29324656b1318fae68b37f7ca0faf41ec",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "sequence": 56,
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--version"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "status": 0,
+      "signal": null,
+      "pid": 49481,
+      "pgid": 49481,
+      "timedOut": false,
+      "termination": {
+        "termSent": false,
+        "killSent": false,
+        "groupGone": true
+      },
+      "closure": {
+        "descendantGroupDetected": false,
+        "rootPidGone": true,
+        "groupGone": true
+      },
+      "timeoutMs": 120000,
+      "startedAt": "2026-08-27T20:55:18.498Z",
+      "finishedAt": "2026-08-27T20:55:18.519Z",
+      "durationMs": 21.914083,
+      "stdoutSha256": "5a64071862e0a30c10895711c2317a83576c2999e2d255bf9d95756c466bd4ce",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "sequence": 57,
+      "command": "npm",
+      "args": [
+        "--version"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "status": 0,
+      "signal": null,
+      "pid": 49501,
+      "pgid": 49501,
+      "timedOut": false,
+      "termination": {
+        "termSent": false,
+        "killSent": false,
+        "groupGone": true
+      },
+      "closure": {
+        "descendantGroupDetected": false,
+        "rootPidGone": true,
+        "groupGone": true
+      },
+      "timeoutMs": 120000,
+      "startedAt": "2026-08-27T20:55:18.520Z",
+      "finishedAt": "2026-08-27T20:55:18.662Z",
+      "durationMs": 141.832292,
+      "stdoutSha256": "35217e32d288f09fea0fe2b8124665225fc00ac7ea72c312bb523db9950a13c4",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "sequence": 58,
+      "command": "/Users/kjopek/Workspace/safe-bash/node_modules/.bin/tsc",
+      "args": [
+        "--version"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "status": 0,
+      "signal": null,
+      "pid": 49502,
+      "pgid": 49502,
+      "timedOut": false,
+      "termination": {
+        "termSent": false,
+        "killSent": false,
+        "groupGone": true
+      },
+      "closure": {
+        "descendantGroupDetected": false,
+        "rootPidGone": true,
+        "groupGone": true
+      },
+      "timeoutMs": 120000,
+      "startedAt": "2026-08-27T20:55:18.662Z",
+      "finishedAt": "2026-08-27T20:55:18.798Z",
+      "durationMs": 135.893083,
+      "stdoutSha256": "4985b444236c5acdb5b850e5d754975e130eed5b033c53f201cdf471e83d7f13",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "sequence": 59,
+      "command": "/Users/kjopek/Workspace/safe-bash/node_modules/.bin/tsc",
+      "args": [
+        "-p",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/du-v9-final-independent-20260827/replay-once/work-wzQubu/source/tsconfig.build.json"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "status": 0,
+      "signal": null,
+      "pid": 49505,
+      "pgid": 49505,
+      "timedOut": false,
+      "termination": {
+        "termSent": false,
+        "killSent": false,
+        "groupGone": true
+      },
+      "closure": {
+        "descendantGroupDetected": false,
+        "rootPidGone": true,
+        "groupGone": true
+      },
+      "timeoutMs": 120000,
+      "startedAt": "2026-08-27T20:55:18.798Z",
+      "finishedAt": "2026-08-27T20:55:23.305Z",
+      "durationMs": 4506.788292,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "sequence": 60,
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/du-v9-final-independent-20260827/replay-once/bootstrap-scratch/extracted/tests/integration/du-overlay-independent-20260827/approved-v9-9a5a6f92/harness/verify-original.mjs",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/du-v9-final-independent-20260827/replay-once/work-wzQubu/source"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "status": 0,
+      "signal": null,
+      "pid": 49630,
+      "pgid": 49630,
+      "timedOut": false,
+      "termination": {
+        "termSent": false,
+        "killSent": false,
+        "groupGone": true
+      },
+      "closure": {
+        "descendantGroupDetected": false,
+        "rootPidGone": true,
+        "groupGone": true
+      },
+      "timeoutMs": 120000,
+      "startedAt": "2026-08-27T20:55:23.307Z",
+      "finishedAt": "2026-08-27T20:55:23.421Z",
+      "durationMs": 114.331459,
+      "stdoutSha256": "daea1323de6dcf6966f6cedb5d7045550d2cf8086588bb34650eaf6da8bc0926",
+      "stderrSha256": "dda3727c055596ac8610c62da04757a77499b63c8b47deed2e9bcf82296f45b5"
+    },
+    {
+      "sequence": 61,
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/du-v9-final-independent-20260827/replay-once/bootstrap-scratch/extracted/tests/integration/du-overlay-independent-20260827/approved-v9-9a5a6f92/harness/verify-v5.mjs",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/du-v9-final-independent-20260827/replay-once/work-wzQubu/source",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/du-v9-final-independent-20260827/replay-once/work-wzQubu"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "status": 1,
+      "signal": null,
+      "pid": 49632,
+      "pgid": 49632,
+      "timedOut": false,
+      "termination": {
+        "termSent": false,
+        "killSent": false,
+        "groupGone": true
+      },
+      "closure": {
+        "descendantGroupDetected": false,
+        "rootPidGone": true,
+        "groupGone": true
+      },
+      "timeoutMs": 120000,
+      "startedAt": "2026-08-27T20:55:23.423Z",
+      "finishedAt": "2026-08-27T20:55:23.696Z",
+      "durationMs": 273.229042,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrSha256": "3181895ddf0bc479f172446aa6aee6f3a1cf22cfc540a43a724dc86da55e0a6d"
+    }
+  ]
+}

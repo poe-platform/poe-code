@@ -1,0 +1,8 @@
+{
+  "freeze": "1b2ddea9e38b25cc91134a2f35a318e27f4d7c29",
+  "tree": "ea0da404c8e9637bfd54f8d0bdbf9bc4dbc78cae",
+  "manifestSha256": "474a95bd160636cdbabe03943a0a84aaaeb56d04ab87d25915bb1ac8cbdf9fa2",
+  "fileCount": 23,
+  "allNonSelfBytesVerified": true,
+  "forbiddenAgents": 0
+}

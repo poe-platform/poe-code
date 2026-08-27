@@ -1,0 +1,107 @@
+diff --git a/tests/integration/du-overlay-independent-20260827/approved-v8-9a5a6f92/harness/verify-v5.mjs b/tests/integration/du-overlay-independent-20260827/approved-v9-9a5a6f92/harness/verify-v5.mjs
+index 53be5871..8b48d1b7 100644
+--- a/tests/integration/du-overlay-independent-20260827/approved-v8-9a5a6f92/harness/verify-v5.mjs
++++ b/tests/integration/du-overlay-independent-20260827/approved-v9-9a5a6f92/harness/verify-v5.mjs
+@@ -599,31 +599,51 @@ await withRealFixture(async ({ root, fs }) => {
+   const afterStats = await measuredStats({ real: fs }, inventory);
+   const after = afterStats.real[0].stat;
+   const deltas = measuredDeltas(beforeStats, afterStats, { real: "real" });
+-  record("observer-only file read visibly changes file atime outside product phase", "v5-observer-policy-control", {
++  const atimeOutcome = after.atimeMs > before.atimeMs ? "advanced-during-read-window"
++    : after.atimeMs === before.atimeMs ? "stable-during-read-window" : "regressed-during-read-window";
++  const setupSurvivedToPreRead = before.atimeMs === fileAtimeSetup.observedAtimeMs;
++  record("observer-only file read calibrates provider atime outside product phase", "v5-observer-policy-control", {
+     observerScope: "real-adapter observer-only read outside product phase",
+     inventoryMethod: "lstat-only",
+     fileAtimeSetup,
++    setupSurvivedToPreRead,
++    atimeOutcome,
+     beforeStats,
+     afterStats,
+     deltas,
+     bytesSha256: createHash("sha256").update(bytes).digest("hex"),
+   }, {
+-    "old file-atime fixture precondition is established": fileAtimeSetup.demonstrablyOld
+-      && before.atimeMs === fileAtimeSetup.observedAtimeMs && before.atimeMs < before.mtimeMs,
++    "old file-atime setup is observed at setup moment": fileAtimeSetup.demonstrablyOld,
+     "locked bytes are read": createHash("sha256").update(bytes).digest("hex") === environmentCases.fixture.sha256,
+-    "file atime change is visible": after.atimeMs > before.atimeMs,
+-    "resulting delta is exactly real file atime": deltas.length === 1
+-      && deltas[0].layer === "real" && deltas[0].path === "/file.bin"
+-      && deltas[0].field === "atimeMs" && deltas[0].type === "file",
++    "provider atime outcome is recorded without a universal read-update premise": [
++      "advanced-during-read-window", "stable-during-read-window", "regressed-during-read-window",
++    ].includes(atimeOutcome),
++    "every resulting delta is confined to real file atime": deltas.every(delta => delta.layer === "real"
++      && delta.path === "/file.bin" && delta.field === "atimeMs" && delta.type === "file"),
+     "all non-atime fields remain exact": Object.keys(before).filter(field => field !== "atimeMs").every(field => equal(before[field], after[field])),
+   });
+ });
+ 
+ await withRealFixture(async ({ root, fs }) => {
+   const observer = instrument(fs, {}, "real");
++  const deterministicFileAtimeMs = 4102444800000;
++  let injectedFileAtime;
++  let mutantBytesSha256;
+   const mutant = proxyWith(observer.fs, {
+     async readdir(path, options) {
+-      await observer.fs.readFile("/file.bin", options);
++      const bytes = await observer.fs.readFile("/file.bin", options);
++      mutantBytesSha256 = createHash("sha256").update(bytes).digest("hex");
++      const hostFile = join(root, "file.bin");
++      const current = await nativeStat(hostFile);
++      await utimes(hostFile, new Date(deterministicFileAtimeMs), current.mtime);
++      const observed = await nativeStat(hostFile);
++      injectedFileAtime = {
++        requestedAtimeMs: deterministicFileAtimeMs,
++        observedAtimeMs: observed.atimeMs,
++        mtimeMs: observed.mtimeMs,
++        dev: observed.dev,
++        ino: observed.ino,
++      };
+       return observer.fs.readdir(path, options);
+     },
+   });
+@@ -646,19 +666,30 @@ await withRealFixture(async ({ root, fs }) => {
+   const beforeRoot = beforeStats.real.find(entry => entry.path === "/").stat;
+   const beforeFile = beforeStats.real.find(entry => entry.path === "/file.bin").stat;
+   const afterFile = afterStats.real.find(entry => entry.path === "/file.bin").stat;
+-  record("atime field scope rejects file-read listing mutant", "negative-control", {
+-    rootAtimeSetup, fileAtimeSetup, beforeStats, afterStats, deltas, authorized, unauthorized, actionCalls,
++  const directoryAtimeDeltas = deltas.filter(delta => delta.field === "atimeMs" && delta.type === "directory");
++  const fileAtimeDeltas = deltas.filter(delta => delta.path === "/file.bin" && delta.field === "atimeMs" && delta.type === "file");
++  const afterBytes = await fs.readFile("/file.bin");
++  record("content-read and deterministic file-atime listing mutant trips independent guards", "negative-control", {
++    rootAtimeSetup, fileAtimeSetup, deterministicFileAtimeMs, injectedFileAtime,
++    beforeStats, afterStats, deltas, authorized, unauthorized, actionCalls,
++    rootSetupSurvivedToPreAction: beforeRoot.atimeMs === rootAtimeSetup.observedAtimeMs,
++    fileSetupSurvivedToPreAction: beforeFile.atimeMs === fileAtimeSetup.observedAtimeMs,
++    mutantBytesSha256,
++    afterBytesSha256: createHash("sha256").update(afterBytes).digest("hex"),
+   }, {
+-    "old file-atime fixture precondition is established": fileAtimeSetup.demonstrablyOld
+-      && beforeFile.atimeMs === fileAtimeSetup.observedAtimeMs,
+-    "old directory-atime fixture precondition is established": rootAtimeSetup.demonstrablyOld
+-      && beforeRoot.atimeMs === rootAtimeSetup.observedAtimeMs,
+-    "mutant really reads content": actionCalls.some(call => call.method === "readFile"),
+-    "target file atime actually changes": afterFile.atimeMs > beforeFile.atimeMs,
+-    "listed-directory atime is visibly and narrowly authorized": authorized.length === 1
+-      && authorized[0].path === "/" && authorized[0].field === "atimeMs" && authorized[0].type === "directory",
+-    "file atime is the sole rejected field": unauthorized.length === 1
+-      && unauthorized[0].path === "/file.bin" && unauthorized[0].field === "atimeMs" && unauthorized[0].type === "file",
++    "old atime setups are observed at setup moment": rootAtimeSetup.demonstrablyOld && fileAtimeSetup.demonstrablyOld,
++    "mutant really reads locked content": actionCalls.some(call => call.method === "readFile")
++      && mutantBytesSha256 === environmentCases.fixture.sha256,
++    "intentional host atime perturbation reaches the actual file": injectedFileAtime?.observedAtimeMs === deterministicFileAtimeMs
++      && injectedFileAtime.dev === beforeFile.dev && injectedFileAtime.ino === beforeFile.ino
++      && afterFile.atimeMs === deterministicFileAtimeMs,
++    "actual file atime delta is rejected": fileAtimeDeltas.length === 1
++      && unauthorized.some(delta => equal(delta, fileAtimeDeltas[0])),
++    "only actual same-layer directory listings authorize directory atime": directoryAtimeDeltas.every(delta => authorizedDirectoryAtime(delta, actionCalls))
++      && authorized.every(delta => directoryAtimeDeltas.some(directoryDelta => equal(delta, directoryDelta))),
++    "complete delta partition retains every other rejected field": deltas.length === authorized.length + unauthorized.length
++      && unauthorized.every(delta => !authorizedDirectoryAtime(delta, actionCalls)),
++    "file bytes remain exact outside the lstat window": createHash("sha256").update(afterBytes).digest("hex") === environmentCases.fixture.sha256,
+   });
+ });
+ 

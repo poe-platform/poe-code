@@ -1,0 +1,1128 @@
+{
+  "verdict": "REJECTED_FROZEN_HARNESS_LINEAGE_ASSERTION",
+  "oneActualReplay": true,
+  "freeze": "1b2ddea9e38b25cc91134a2f35a318e27f4d7c29",
+  "manifestSha256": "474a95bd160636cdbabe03943a0a84aaaeb56d04ab87d25915bb1ac8cbdf9fa2",
+  "candidate": "9a5a6f922beb1bc6ba84a0cd32ea7a12f8ce985d",
+  "fixtureFiles": 23,
+  "candidatePaths": 249,
+  "environmentRows": 16,
+  "build": {
+    "status": 0,
+    "exactCandidateInputsUnchangedIncludingNewEntries": true
+  },
+  "originalSource": {
+    "total": 24,
+    "passed": 24,
+    "failed": 0,
+    "holdouts": {
+      "passed": 17,
+      "failed": 0
+    },
+    "controls": {
+      "passed": 7,
+      "failed": 0
+    }
+  },
+  "freshSource": {
+    "processStatus": 1,
+    "timedOut": false,
+    "rawOkMarkers": 40,
+    "rawNotOkMarkers": 0,
+    "finalSummaryAccepted": false,
+    "stdoutBytes": 0,
+    "byLineageDerivedFromFrozenClassifierAndRawNames": {
+      "historical-frozen-derived": 32,
+      "v5-observer-policy-control": 6,
+      "postfreeze-lifecycle-addition": 2
+    },
+    "requiredLineage": {
+      "historical-frozen-derived": 31,
+      "postfreeze-lifecycle-addition": 2,
+      "v5-observer-policy-control": 7
+    },
+    "records": [
+      {
+        "id": "V5-001",
+        "name": "direct stat v5 measured metadata contract",
+        "rawMarker": "ok",
+        "lineage": "historical-frozen-derived"
+      },
+      {
+        "id": "V5-002",
+        "name": "direct lstat v5 measured metadata contract",
+        "rawMarker": "ok",
+        "lineage": "historical-frozen-derived"
+      },
+      {
+        "id": "V5-003",
+        "name": "direct readdir v5 measured metadata contract",
+        "rawMarker": "ok",
+        "lineage": "historical-frozen-derived"
+      },
+      {
+        "id": "V5-004",
+        "name": "direct du-metadata v5 measured metadata contract",
+        "rawMarker": "ok",
+        "lineage": "historical-frozen-derived"
+      },
+      {
+        "id": "V5-005",
+        "name": "direct du-pending v5 measured metadata contract",
+        "rawMarker": "ok",
+        "lineage": "historical-frozen-derived"
+      },
+      {
+        "id": "V5-006",
+        "name": "readonly stat v5 measured metadata contract",
+        "rawMarker": "ok",
+        "lineage": "historical-frozen-derived"
+      },
+      {
+        "id": "V5-007",
+        "name": "readonly lstat v5 measured metadata contract",
+        "rawMarker": "ok",
+        "lineage": "historical-frozen-derived"
+      },
+      {
+        "id": "V5-008",
+        "name": "readonly readdir v5 measured metadata contract",
+        "rawMarker": "ok",
+        "lineage": "historical-frozen-derived"
+      },
+      {
+        "id": "V5-009",
+        "name": "readonly du-metadata v5 measured metadata contract",
+        "rawMarker": "ok",
+        "lineage": "historical-frozen-derived"
+      },
+      {
+        "id": "V5-010",
+        "name": "readonly du-pending v5 measured metadata contract",
+        "rawMarker": "ok",
+        "lineage": "historical-frozen-derived"
+      },
+      {
+        "id": "V5-011",
+        "name": "mount-over-overlay stat v5 measured metadata contract",
+        "rawMarker": "ok",
+        "lineage": "historical-frozen-derived"
+      },
+      {
+        "id": "V5-012",
+        "name": "mount-over-overlay lstat v5 measured metadata contract",
+        "rawMarker": "ok",
+        "lineage": "historical-frozen-derived"
+      },
+      {
+        "id": "V5-013",
+        "name": "mount-over-overlay readdir v5 measured metadata contract",
+        "rawMarker": "ok",
+        "lineage": "historical-frozen-derived"
+      },
+      {
+        "id": "V5-014",
+        "name": "mount-over-overlay du-metadata v5 measured metadata contract",
+        "rawMarker": "ok",
+        "lineage": "historical-frozen-derived"
+      },
+      {
+        "id": "V5-015",
+        "name": "mount-over-overlay du-pending v5 measured metadata contract",
+        "rawMarker": "ok",
+        "lineage": "historical-frozen-derived"
+      },
+      {
+        "id": "V5-016",
+        "name": "overlay-over-mount stat v5 measured metadata contract",
+        "rawMarker": "ok",
+        "lineage": "historical-frozen-derived"
+      },
+      {
+        "id": "V5-017",
+        "name": "overlay-over-mount lstat v5 measured metadata contract",
+        "rawMarker": "ok",
+        "lineage": "historical-frozen-derived"
+      },
+      {
+        "id": "V5-018",
+        "name": "overlay-over-mount readdir v5 measured metadata contract",
+        "rawMarker": "ok",
+        "lineage": "historical-frozen-derived"
+      },
+      {
+        "id": "V5-019",
+        "name": "overlay-over-mount du-metadata v5 measured metadata contract",
+        "rawMarker": "ok",
+        "lineage": "historical-frozen-derived"
+      },
+      {
+        "id": "V5-020",
+        "name": "exact child lstat EIO suppresses incomplete total and retry is mutation-free",
+        "rawMarker": "ok",
+        "lineage": "historical-frozen-derived"
+      },
+      {
+        "id": "V5-021",
+        "name": "real directory listing visibly changes only directory atime",
+        "rawMarker": "ok",
+        "lineage": "v5-observer-policy-control"
+      },
+      {
+        "id": "V5-022",
+        "name": "real lstat observer is atime-stable",
+        "rawMarker": "ok",
+        "lineage": "v5-observer-policy-control"
+      },
+      {
+        "id": "V5-023",
+        "name": "observer-only file read calibrates provider atime outside product phase",
+        "rawMarker": "ok",
+        "lineage": "v5-observer-policy-control"
+      },
+      {
+        "id": "V5-024",
+        "name": "content-read and deterministic file-atime listing mutant trips independent guards",
+        "rawMarker": "ok",
+        "lineage": "historical-frozen-derived"
+      },
+      {
+        "id": "V5-025",
+        "name": "real non-atime-stat listing mutant fails unchanged assertions",
+        "rawMarker": "ok",
+        "lineage": "v5-observer-policy-control"
+      },
+      {
+        "id": "V5-026",
+        "name": "real byte-change listing mutant fails unchanged assertions",
+        "rawMarker": "ok",
+        "lineage": "v5-observer-policy-control"
+      },
+      {
+        "id": "V5-027",
+        "name": "real entry-change listing mutant fails unchanged assertions",
+        "rawMarker": "ok",
+        "lineage": "v5-observer-policy-control"
+      },
+      {
+        "id": "V5-028",
+        "name": "exact v2 pre-abort reason is preserved",
+        "rawMarker": "ok",
+        "lineage": "historical-frozen-derived"
+      },
+      {
+        "id": "V5-029",
+        "name": "exact v2 mid-traversal reason is preserved",
+        "rawMarker": "ok",
+        "lineage": "historical-frozen-derived"
+      },
+      {
+        "id": "V5-030",
+        "name": "active mkdir-stage queues exactly one readdir read",
+        "rawMarker": "ok",
+        "lineage": "historical-frozen-derived"
+      },
+      {
+        "id": "V5-031",
+        "name": "active mkdir-stage queues exactly one du read",
+        "rawMarker": "ok",
+        "lineage": "historical-frozen-derived"
+      },
+      {
+        "id": "V5-032",
+        "name": "literal 1500-byte three-level environment precedence table",
+        "rawMarker": "ok",
+        "lineage": "historical-frozen-derived"
+      },
+      {
+        "id": "V5-033",
+        "name": "explicit cleanup removes the exact pending stage",
+        "rawMarker": "ok",
+        "lineage": "historical-frozen-derived"
+      },
+      {
+        "id": "V5-034",
+        "name": "consumer-registered pending cleanup runs through actual Shell lifecycle",
+        "rawMarker": "ok",
+        "lineage": "postfreeze-lifecycle-addition"
+      },
+      {
+        "id": "V5-035",
+        "name": "normal mutation cleans pending garbage then publishes exact byte",
+        "rawMarker": "ok",
+        "lineage": "historical-frozen-derived"
+      },
+      {
+        "id": "V5-036",
+        "name": "ordinary content read proves the content oracle",
+        "rawMarker": "ok",
+        "lineage": "historical-frozen-derived"
+      },
+      {
+        "id": "V5-037",
+        "name": "unchanged assertions kill readdir-removal behavior mutant",
+        "rawMarker": "ok",
+        "lineage": "historical-frozen-derived"
+      },
+      {
+        "id": "V5-038",
+        "name": "unchanged assertions kill content-read behavior mutant",
+        "rawMarker": "ok",
+        "lineage": "historical-frozen-derived"
+      },
+      {
+        "id": "V5-039",
+        "name": "unchanged assertions kill copy-up behavior mutant",
+        "rawMarker": "ok",
+        "lineage": "historical-frozen-derived"
+      },
+      {
+        "id": "V5-040",
+        "name": "actual Shell lifecycle runs DU registered cleanup and preserves caller reason",
+        "rawMarker": "ok",
+        "lineage": "postfreeze-lifecycle-addition"
+      }
+    ]
+  },
+  "measuredMetadata": {
+    "rawOkMarkers": 19,
+    "rawNotOkMarkers": 0,
+    "detailedDeltaRecordsEmitted": false,
+    "authorizedDirectoryAtimeDeltaCount": null,
+    "unauthorizedDeltaCount": null,
+    "qualification": "All 19 case checks printed ok, including the zero-unauthorized rule. Full JSON was never emitted, so exact atime-delta counts and values cannot be reported; do not substitute inherited V8 counts."
+  },
+  "candidateEnvironment": {
+    "declaredRows": 16,
+    "aggregateRawMarker": "ok",
+    "all16PassedInferredFromUnchangedEveryRowAssertion": true,
+    "rowPayloadsEmitted": false
+  },
+  "timestampControls": {
+    "V5_023": "ok marker",
+    "V5_024": "ok marker",
+    "rawAtimeStatsEmitted": false
+  },
+  "intentionalNegativeControls": {
+    "originalBehaviorMutants": [
+      {
+        "name": "negative control kills readdir cleanup mutant",
+        "pass": true
+      },
+      {
+        "name": "negative control kills DU content-read mutant",
+        "pass": true
+      },
+      {
+        "name": "negative control kills DU copy-up mutant",
+        "pass": true
+      }
+    ],
+    "freshBehaviorMutantRawOkIds": [
+      "V5-024",
+      "V5-025",
+      "V5-026",
+      "V5-027",
+      "V5-037",
+      "V5-038",
+      "V5-039"
+    ],
+    "agentsAdmission": {
+      "rejected": true,
+      "writes": 0,
+      "forbiddenPathWasNeverCreated": true
+    },
+    "invalidPacklist": {
+      "rejected": true,
+      "archiveCreations": 0,
+      "writes": 0,
+      "extractions": 0,
+      "forbiddenPathWasNeverCreated": true
+    },
+    "timeoutGrandchild": {
+      "rootPid": 49434,
+      "ownedPgid": 49434,
+      "grandchildPid": 49436,
+      "timedOut": true,
+      "rootPidGone": true,
+      "ownedGroupGone": true,
+      "grandchildPidGone": true
+    },
+    "qualification": "Expected mutant detections and the intentional timeout are separate from the unexpected fresh-suite exit 1."
+  },
+  "unexecuted": [
+    "scoped DU/Overlay regressions (declared 128)",
+    "npm dry-run/pack/actual archive admission",
+    "package unpack/dependency admission/install/move",
+    "strict moved-consumer types/runtime",
+    "moved-package original/fresh suites",
+    "nextLoad package-source-byte attestation",
+    "wrong-root/source-fallback negative",
+    "missing-DU negative",
+    "restored-cleanup installed mutant",
+    "semantic-declaration negative",
+    "16 native environment semantic rows"
+  ],
+  "blocker": {
+    "kind": "frozen-harness bookkeeping defect, not an established product or host-atime failure",
+    "changedRecord": "V5-024",
+    "changedName": "content-read and deterministic file-atime listing mutant trips independent guards",
+    "classifierLine": 241,
+    "assertionLine": 1153,
+    "observedHistorical": 32,
+    "requiredHistorical": 31,
+    "consequence": "Name no longer starts with atime field scope; it enters historical-frozen-derived instead of observer-policy-control. Fatal assertion precedes JSON emission. No fixture repair or replay retry performed."
+  },
+  "closure": {
+    "bootstrapRootsAndGroups": 56,
+    "materializedRootsAndGroups": 61,
+    "outerReviewerReplayRootsAndGroups": 1,
+    "replayRootsAndGroupsTotal": 118,
+    "allGoneCheckedAgain": true,
+    "timeoutGrandchildAbsentAgain": true,
+    "processChecks": [
+      {
+        "pid": 48877,
+        "pgid": 48877,
+        "rootAbsentNow": true,
+        "groupAbsentNow": true
+      },
+      {
+        "pid": 48882,
+        "pgid": 48882,
+        "rootAbsentNow": true,
+        "groupAbsentNow": true
+      },
+      {
+        "pid": 48887,
+        "pgid": 48887,
+        "rootAbsentNow": true,
+        "groupAbsentNow": true
+      },
+      {
+        "pid": 48893,
+        "pgid": 48893,
+        "rootAbsentNow": true,
+        "groupAbsentNow": true
+      },
+      {
+        "pid": 48898,
+        "pgid": 48898,
+        "rootAbsentNow": true,
+        "groupAbsentNow": true
+      },
+      {
+        "pid": 48903,
+        "pgid": 48903,
+        "rootAbsentNow": true,
+        "groupAbsentNow": true
+      },
+      {
+        "pid": 48909,
+        "pgid": 48909,
+        "rootAbsentNow": true,
+        "groupAbsentNow": true
+      },
+      {
+        "pid": 48914,
+        "pgid": 48914,
+        "rootAbsentNow": true,
+        "groupAbsentNow": true
+      },
+      {
+        "pid": 48919,
+        "pgid": 48919,
+        "rootAbsentNow": true,
+        "groupAbsentNow": true
+      },
+      {
+        "pid": 48924,
+        "pgid": 48924,
+        "rootAbsentNow": true,
+        "groupAbsentNow": true
+      },
+      {
+        "pid": 48929,
+        "pgid": 48929,
+        "rootAbsentNow": true,
+        "groupAbsentNow": true
+      },
+      {
+        "pid": 48934,
+        "pgid": 48934,
+        "rootAbsentNow": true,
+        "groupAbsentNow": true
+      },
+      {
+        "pid": 48939,
+        "pgid": 48939,
+        "rootAbsentNow": true,
+        "groupAbsentNow": true
+      },
+      {
+        "pid": 48945,
+        "pgid": 48945,
+        "rootAbsentNow": true,
+        "groupAbsentNow": true
+      },
+      {
+        "pid": 48950,
+        "pgid": 48950,
+        "rootAbsentNow": true,
+        "groupAbsentNow": true
+      },
+      {
+        "pid": 48955,
+        "pgid": 48955,
+        "rootAbsentNow": true,
+        "groupAbsentNow": true
+      },
+      {
+        "pid": 48960,
+        "pgid": 48960,
+        "rootAbsentNow": true,
+        "groupAbsentNow": true
+      },
+      {
+        "pid": 48967,
+        "pgid": 48967,
+        "rootAbsentNow": true,
+        "groupAbsentNow": true
+      },
+      {
+        "pid": 48972,
+        "pgid": 48972,
+        "rootAbsentNow": true,
+        "groupAbsentNow": true
+      },
+      {
+        "pid": 48977,
+        "pgid": 48977,
+        "rootAbsentNow": true,
+        "groupAbsentNow": true
+      },
+      {
+        "pid": 48983,
+        "pgid": 48983,
+        "rootAbsentNow": true,
+        "groupAbsentNow": true
+      },
+      {
+        "pid": 48988,
+        "pgid": 48988,
+        "rootAbsentNow": true,
+        "groupAbsentNow": true
+      },
+      {
+        "pid": 48993,
+        "pgid": 48993,
+        "rootAbsentNow": true,
+        "groupAbsentNow": true
+      },
+      {
+        "pid": 48999,
+        "pgid": 48999,
+        "rootAbsentNow": true,
+        "groupAbsentNow": true
+      },
+      {
+        "pid": 49004,
+        "pgid": 49004,
+        "rootAbsentNow": true,
+        "groupAbsentNow": true
+      },
+      {
+        "pid": 49009,
+        "pgid": 49009,
+        "rootAbsentNow": true,
+        "groupAbsentNow": true
+      },
+      {
+        "pid": 49014,
+        "pgid": 49014,
+        "rootAbsentNow": true,
+        "groupAbsentNow": true
+      },
+      {
+        "pid": 49019,
+        "pgid": 49019,
+        "rootAbsentNow": true,
+        "groupAbsentNow": true
+      },
+      {
+        "pid": 49024,
+        "pgid": 49024,
+        "rootAbsentNow": true,
+        "groupAbsentNow": true
+      },
+      {
+        "pid": 49029,
+        "pgid": 49029,
+        "rootAbsentNow": true,
+        "groupAbsentNow": true
+      },
+      {
+        "pid": 49034,
+        "pgid": 49034,
+        "rootAbsentNow": true,
+        "groupAbsentNow": true
+      },
+      {
+        "pid": 49039,
+        "pgid": 49039,
+        "rootAbsentNow": true,
+        "groupAbsentNow": true
+      },
+      {
+        "pid": 49044,
+        "pgid": 49044,
+        "rootAbsentNow": true,
+        "groupAbsentNow": true
+      },
+      {
+        "pid": 49049,
+        "pgid": 49049,
+        "rootAbsentNow": true,
+        "groupAbsentNow": true
+      },
+      {
+        "pid": 49054,
+        "pgid": 49054,
+        "rootAbsentNow": true,
+        "groupAbsentNow": true
+      },
+      {
+        "pid": 49059,
+        "pgid": 49059,
+        "rootAbsentNow": true,
+        "groupAbsentNow": true
+      },
+      {
+        "pid": 49064,
+        "pgid": 49064,
+        "rootAbsentNow": true,
+        "groupAbsentNow": true
+      },
+      {
+        "pid": 49070,
+        "pgid": 49070,
+        "rootAbsentNow": true,
+        "groupAbsentNow": true
+      },
+      {
+        "pid": 49075,
+        "pgid": 49075,
+        "rootAbsentNow": true,
+        "groupAbsentNow": true
+      },
+      {
+        "pid": 49080,
+        "pgid": 49080,
+        "rootAbsentNow": true,
+        "groupAbsentNow": true
+      },
+      {
+        "pid": 49085,
+        "pgid": 49085,
+        "rootAbsentNow": true,
+        "groupAbsentNow": true
+      },
+      {
+        "pid": 49090,
+        "pgid": 49090,
+        "rootAbsentNow": true,
+        "groupAbsentNow": true
+      },
+      {
+        "pid": 49095,
+        "pgid": 49095,
+        "rootAbsentNow": true,
+        "groupAbsentNow": true
+      },
+      {
+        "pid": 49100,
+        "pgid": 49100,
+        "rootAbsentNow": true,
+        "groupAbsentNow": true
+      },
+      {
+        "pid": 49106,
+        "pgid": 49106,
+        "rootAbsentNow": true,
+        "groupAbsentNow": true
+      },
+      {
+        "pid": 49111,
+        "pgid": 49111,
+        "rootAbsentNow": true,
+        "groupAbsentNow": true
+      },
+      {
+        "pid": 49116,
+        "pgid": 49116,
+        "rootAbsentNow": true,
+        "groupAbsentNow": true
+      },
+      {
+        "pid": 49122,
+        "pgid": 49122,
+        "rootAbsentNow": true,
+        "groupAbsentNow": true
+      },
+      {
+        "pid": 49127,
+        "pgid": 49127,
+        "rootAbsentNow": true,
+        "groupAbsentNow": true
+      },
+      {
+        "pid": 49132,
+        "pgid": 49132,
+        "rootAbsentNow": true,
+        "groupAbsentNow": true
+      },
+      {
+        "pid": 49137,
+        "pgid": 49137,
+        "rootAbsentNow": true,
+        "groupAbsentNow": true
+      },
+      {
+        "pid": 49142,
+        "pgid": 49142,
+        "rootAbsentNow": true,
+        "groupAbsentNow": true
+      },
+      {
+        "pid": 49147,
+        "pgid": 49147,
+        "rootAbsentNow": true,
+        "groupAbsentNow": true
+      },
+      {
+        "pid": 49153,
+        "pgid": 49153,
+        "rootAbsentNow": true,
+        "groupAbsentNow": true
+      },
+      {
+        "pid": 49158,
+        "pgid": 49158,
+        "rootAbsentNow": true,
+        "groupAbsentNow": true
+      },
+      {
+        "pid": 49159,
+        "pgid": 49159,
+        "rootAbsentNow": true,
+        "groupAbsentNow": true
+      },
+      {
+        "pid": 49166,
+        "pgid": 49166,
+        "rootAbsentNow": true,
+        "groupAbsentNow": true
+      },
+      {
+        "pid": 49172,
+        "pgid": 49172,
+        "rootAbsentNow": true,
+        "groupAbsentNow": true
+      },
+      {
+        "pid": 49177,
+        "pgid": 49177,
+        "rootAbsentNow": true,
+        "groupAbsentNow": true
+      },
+      {
+        "pid": 49186,
+        "pgid": 49186,
+        "rootAbsentNow": true,
+        "groupAbsentNow": true
+      },
+      {
+        "pid": 49193,
+        "pgid": 49193,
+        "rootAbsentNow": true,
+        "groupAbsentNow": true
+      },
+      {
+        "pid": 49198,
+        "pgid": 49198,
+        "rootAbsentNow": true,
+        "groupAbsentNow": true
+      },
+      {
+        "pid": 49205,
+        "pgid": 49205,
+        "rootAbsentNow": true,
+        "groupAbsentNow": true
+      },
+      {
+        "pid": 49210,
+        "pgid": 49210,
+        "rootAbsentNow": true,
+        "groupAbsentNow": true
+      },
+      {
+        "pid": 49216,
+        "pgid": 49216,
+        "rootAbsentNow": true,
+        "groupAbsentNow": true
+      },
+      {
+        "pid": 49222,
+        "pgid": 49222,
+        "rootAbsentNow": true,
+        "groupAbsentNow": true
+      },
+      {
+        "pid": 49228,
+        "pgid": 49228,
+        "rootAbsentNow": true,
+        "groupAbsentNow": true
+      },
+      {
+        "pid": 49233,
+        "pgid": 49233,
+        "rootAbsentNow": true,
+        "groupAbsentNow": true
+      },
+      {
+        "pid": 49240,
+        "pgid": 49240,
+        "rootAbsentNow": true,
+        "groupAbsentNow": true
+      },
+      {
+        "pid": 49245,
+        "pgid": 49245,
+        "rootAbsentNow": true,
+        "groupAbsentNow": true
+      },
+      {
+        "pid": 49250,
+        "pgid": 49250,
+        "rootAbsentNow": true,
+        "groupAbsentNow": true
+      },
+      {
+        "pid": 49256,
+        "pgid": 49256,
+        "rootAbsentNow": true,
+        "groupAbsentNow": true
+      },
+      {
+        "pid": 49261,
+        "pgid": 49261,
+        "rootAbsentNow": true,
+        "groupAbsentNow": true
+      },
+      {
+        "pid": 49266,
+        "pgid": 49266,
+        "rootAbsentNow": true,
+        "groupAbsentNow": true
+      },
+      {
+        "pid": 49271,
+        "pgid": 49271,
+        "rootAbsentNow": true,
+        "groupAbsentNow": true
+      },
+      {
+        "pid": 49276,
+        "pgid": 49276,
+        "rootAbsentNow": true,
+        "groupAbsentNow": true
+      },
+      {
+        "pid": 49281,
+        "pgid": 49281,
+        "rootAbsentNow": true,
+        "groupAbsentNow": true
+      },
+      {
+        "pid": 49286,
+        "pgid": 49286,
+        "rootAbsentNow": true,
+        "groupAbsentNow": true
+      },
+      {
+        "pid": 49292,
+        "pgid": 49292,
+        "rootAbsentNow": true,
+        "groupAbsentNow": true
+      },
+      {
+        "pid": 49300,
+        "pgid": 49300,
+        "rootAbsentNow": true,
+        "groupAbsentNow": true
+      },
+      {
+        "pid": 49307,
+        "pgid": 49307,
+        "rootAbsentNow": true,
+        "groupAbsentNow": true
+      },
+      {
+        "pid": 49312,
+        "pgid": 49312,
+        "rootAbsentNow": true,
+        "groupAbsentNow": true
+      },
+      {
+        "pid": 49317,
+        "pgid": 49317,
+        "rootAbsentNow": true,
+        "groupAbsentNow": true
+      },
+      {
+        "pid": 49322,
+        "pgid": 49322,
+        "rootAbsentNow": true,
+        "groupAbsentNow": true
+      },
+      {
+        "pid": 49329,
+        "pgid": 49329,
+        "rootAbsentNow": true,
+        "groupAbsentNow": true
+      },
+      {
+        "pid": 49334,
+        "pgid": 49334,
+        "rootAbsentNow": true,
+        "groupAbsentNow": true
+      },
+      {
+        "pid": 49340,
+        "pgid": 49340,
+        "rootAbsentNow": true,
+        "groupAbsentNow": true
+      },
+      {
+        "pid": 49345,
+        "pgid": 49345,
+        "rootAbsentNow": true,
+        "groupAbsentNow": true
+      },
+      {
+        "pid": 49351,
+        "pgid": 49351,
+        "rootAbsentNow": true,
+        "groupAbsentNow": true
+      },
+      {
+        "pid": 49356,
+        "pgid": 49356,
+        "rootAbsentNow": true,
+        "groupAbsentNow": true
+      },
+      {
+        "pid": 49362,
+        "pgid": 49362,
+        "rootAbsentNow": true,
+        "groupAbsentNow": true
+      },
+      {
+        "pid": 49367,
+        "pgid": 49367,
+        "rootAbsentNow": true,
+        "groupAbsentNow": true
+      },
+      {
+        "pid": 49372,
+        "pgid": 49372,
+        "rootAbsentNow": true,
+        "groupAbsentNow": true
+      },
+      {
+        "pid": 49377,
+        "pgid": 49377,
+        "rootAbsentNow": true,
+        "groupAbsentNow": true
+      },
+      {
+        "pid": 49382,
+        "pgid": 49382,
+        "rootAbsentNow": true,
+        "groupAbsentNow": true
+      },
+      {
+        "pid": 49387,
+        "pgid": 49387,
+        "rootAbsentNow": true,
+        "groupAbsentNow": true
+      },
+      {
+        "pid": 49392,
+        "pgid": 49392,
+        "rootAbsentNow": true,
+        "groupAbsentNow": true
+      },
+      {
+        "pid": 49397,
+        "pgid": 49397,
+        "rootAbsentNow": true,
+        "groupAbsentNow": true
+      },
+      {
+        "pid": 49402,
+        "pgid": 49402,
+        "rootAbsentNow": true,
+        "groupAbsentNow": true
+      },
+      {
+        "pid": 49407,
+        "pgid": 49407,
+        "rootAbsentNow": true,
+        "groupAbsentNow": true
+      },
+      {
+        "pid": 49412,
+        "pgid": 49412,
+        "rootAbsentNow": true,
+        "groupAbsentNow": true
+      },
+      {
+        "pid": 49417,
+        "pgid": 49417,
+        "rootAbsentNow": true,
+        "groupAbsentNow": true
+      },
+      {
+        "pid": 49422,
+        "pgid": 49422,
+        "rootAbsentNow": true,
+        "groupAbsentNow": true
+      },
+      {
+        "pid": 49428,
+        "pgid": 49428,
+        "rootAbsentNow": true,
+        "groupAbsentNow": true
+      },
+      {
+        "pid": 49433,
+        "pgid": 49433,
+        "rootAbsentNow": true,
+        "groupAbsentNow": true
+      },
+      {
+        "pid": 49434,
+        "pgid": 49434,
+        "rootAbsentNow": true,
+        "groupAbsentNow": true
+      },
+      {
+        "pid": 49457,
+        "pgid": 49457,
+        "rootAbsentNow": true,
+        "groupAbsentNow": true
+      },
+      {
+        "pid": 49462,
+        "pgid": 49462,
+        "rootAbsentNow": true,
+        "groupAbsentNow": true
+      },
+      {
+        "pid": 49468,
+        "pgid": 49468,
+        "rootAbsentNow": true,
+        "groupAbsentNow": true
+      },
+      {
+        "pid": 49473,
+        "pgid": 49473,
+        "rootAbsentNow": true,
+        "groupAbsentNow": true
+      },
+      {
+        "pid": 49478,
+        "pgid": 49478,
+        "rootAbsentNow": true,
+        "groupAbsentNow": true
+      },
+      {
+        "pid": 49481,
+        "pgid": 49481,
+        "rootAbsentNow": true,
+        "groupAbsentNow": true
+      },
+      {
+        "pid": 49501,
+        "pgid": 49501,
+        "rootAbsentNow": true,
+        "groupAbsentNow": true
+      },
+      {
+        "pid": 49502,
+        "pgid": 49502,
+        "rootAbsentNow": true,
+        "groupAbsentNow": true
+      },
+      {
+        "pid": 49505,
+        "pgid": 49505,
+        "rootAbsentNow": true,
+        "groupAbsentNow": true
+      },
+      {
+        "pid": 49630,
+        "pgid": 49630,
+        "rootAbsentNow": true,
+        "groupAbsentNow": true
+      },
+      {
+        "pid": 49632,
+        "pgid": 49632,
+        "rootAbsentNow": true,
+        "groupAbsentNow": true
+      },
+      {
+        "pid": 48872,
+        "pgid": 48872,
+        "rootAbsentNow": true,
+        "groupAbsentNow": true
+      }
+    ],
+    "archiveProcessRootsAndGroups": 1,
+    "archiveProcessClosed": true,
+    "scratchRemoved": [
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-v9-final-independent-20260827/replay-once/bootstrap-scratch",
+        "actualPostCleanupStat": "ENOENT"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-v9-final-independent-20260827/replay-once/work-wzQubu",
+        "actualPostCleanupStat": "ENOENT"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-v9-final-independent-20260827/temporary",
+        "actualPostCleanupStat": "ENOENT"
+      }
+    ],
+    "zeroLooseTsOrMtsFiles": true,
+    "forbiddenAgentsFiles": 0
+  },
+  "retainedArchive": {
+    "path": "retained-scratch.tar.data",
+    "bytes": 11347968,
+    "sha256": "ed232b29d3800bfa27d600437e09c143f00b0b3d70f3a03988622319c640d2af",
+    "regularFiles": 1132,
+    "everyArchivedPayloadMatchesPreArchiveSha256": true
+  },
+  "scope": {
+    "O060": "deferred/profile-gap/deterministic-ordering",
+    "v2ToV3Delta": "permanently unproved",
+    "priorHistory": "untouched, not replayed",
+    "publicDefaultDu": false,
+    "wholeGate": false,
+    "nativeParity": false
+  },
+  "evidenceDirectory": "replay-once/run-2026-08-27T205514377Z-b2f0fd"
+}

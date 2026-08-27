@@ -1,0 +1,20 @@
+{
+  "at": "2026-08-27T13:20:33.439Z",
+  "firstCommit": "7a571df91569a5bb3706bbfc8c3a3df8b4b6c558",
+  "commitSucceeded": true,
+  "committedFiles": 113,
+  "allCommittedFilesNewAndOwned": true,
+  "failure": {
+    "kind": "post-commit verifier path-string comparison",
+    "code": "ERR_ASSERTION",
+    "cause": "Top-level readdir parentPath retained the trailing separator; concatenation yielded doubled separators. Git normalized them, but the string-equality audit did not.",
+    "manifestRecordsAffected": 8,
+    "originalManifestSha256": "acb5c96895c451edd0c35f5d7ef31e13f04375a70ca7d5f63fdb76caaee6f217",
+    "originalManifestGitObject": "7a571df91569a5bb3706bbfc8c3a3df8b4b6c558:tests/commands/metadata-stress/permission-profile-independent/FINAL_SEAL.json"
+  },
+  "normalizedExpectedAndCommittedPathsEqual": true,
+  "unexpectedCommittedPaths": [],
+  "indexAfterFirstCommit": "",
+  "sourceTestsOrRuntimeResultsChanged": false,
+  "correction": "Normalize only owned manifest-relative paths; retain exact original seal as captured data and record this failed packaging assertion."
+}

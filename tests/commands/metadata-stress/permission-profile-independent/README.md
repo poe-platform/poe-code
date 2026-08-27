@@ -137,6 +137,12 @@ capture, not made a permanent ordinary-test prerequisite.
 member qualification stress plus recorded structural mutation hashes. Changed
 attempt02 harness sources are preserved in `attempt-02-source/`.
 
+The first commit succeeded with exactly113 new owned files. A subsequent packaging
+assertion exposed doubled separators in top-level manifest paths, not a scope or
+runtime failure. `packaging-audit.json.data` records the failure and normalized
+path comparison; `packaging-initial-seal.json.data` preserves the exact initial
+seal. The corrected final manifest uses only relative, normalized owned paths.
+
 From the repository root, with the existing authenticated tools:
 
 ```sh

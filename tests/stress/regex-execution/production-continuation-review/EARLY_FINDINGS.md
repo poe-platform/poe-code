@@ -55,6 +55,11 @@ closure over an initially absent resource before acquisition). Close admissions
 when dispatch is interrupted/settled; reject late registration and never acquire
 a resource after closed scope. Normal command finally and host drain share the
 same cleanup promise; cleanup is once-only and awaited before public exec settles.
+The outer exec drain must itself sit outside cancellation races: racing that
+drain against the already-aborted signal would recreate F1. Scope closure must
+prevent late continuation from acquiring more resources, not merely reject a
+late callback after acquisition. A parent cannot forget a child's registered
+drain just because its command/middleware promise lost a race.
 
 Proposal history: the earlier scope-object draft is preserved unchanged at
 August 27, 2026 commit `ab05eb9` in this same document. It is historical only,

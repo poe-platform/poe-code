@@ -136,6 +136,7 @@ export async function evaluate(node: Node, budget: Budget, match: Matcher, activ
   await budget.yield();
   if (node.kind === "literal") return budget.encode(node.text);
   if (node.kind === "call") {
+    if (!active) return zero;
     const values: Value[] = [];
     for (const argument of node.args) values.push(await evaluate(argument, budget, match, active));
     return call(node.operator, values, active, budget, match);

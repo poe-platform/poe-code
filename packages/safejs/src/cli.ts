@@ -1,7 +1,8 @@
-import { mkdir, readFile, stat, writeFile } from "node:fs/promises";
+#!/usr/bin/env node
+import { mkdir, readFile, realpath, stat, writeFile } from "node:fs/promises";
 import path, { dirname, extname } from "node:path";
 import { formatWithOptions } from "node:util";
-import { pathToFileURL } from "node:url";
+import { fileURLToPath } from "node:url";
 
 import { hasOwnErrorCode } from "./error-codes.js";
 import { formatInterpreterError } from "./error/format.js";
@@ -791,8 +792,22 @@ class CliExitError extends Error {
   }
 }
 
-if (process.argv[1] !== undefined && import.meta.url === pathToFileURL(process.argv[1]).href) {
-  runCli(process.argv.slice(2)).then((exitCode) => {
-    process.exitCode = exitCode;
-  });
+async function isDirectExecution(entryPoint: string | undefined): Promise<boolean> {
+  if (typeof entryPoint !== "string" || entryPoint.length === 0) {
+    return false;
+  }
+
+  try {
+    const [resolvedEntryPoint, resolvedModule] = await Promise.all([
+      realpath(path.resolve(entryPoint)),
+      realpath(fileURLToPath(import.meta.url))
+    ]);
+    return resolvedEntryPoint === resolvedModule;
+  } catch {
+    return false;
+  }
+}
+
+if (await isDirectExecution(process.argv[1])) {
+  process.exitCode = await runCli(process.argv.slice(2));
 }

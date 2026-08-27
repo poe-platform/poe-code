@@ -981,6 +981,57 @@ Released in poe-code 7.0.0:
   suite passed 20,898 tests with 41 skipped across 918 passing files.
 - General prototypes, migration, and the remaining delivery checklist stay open.
 
+### Guidance follow-up — released in poe-code 7.0.1
+
+- Commit `7e802755dac10d295da5873b57e413f1583524cf`; GitHub Release run
+  `33037811316` succeeded. npm publication time is `2026-08-27T04:06:39.095Z`;
+  npm `gitHead` and GitHub tag `v7.0.1` both identify that exact commit.
+- Existing README and skill guidance now matches supported syntax and snapshot
+  compatibility. The normal hooks passed; the installed skills were synced.
+
+### Standalone CLI entrypoint — August 27, 2026
+
+Published-package stress uncovered another real CLI boundary failure rather than
+a syntax mismatch. Running the published 7.0.0 CLI through `/tmp` on macOS exited
+successfully without output: Node resolved the main module to `/private/tmp`,
+while the entrypoint check compared the unresolved argument URL. Canonical paths
+worked; file links, directory links, chains, Unicode/space-containing link names,
+and relative links did not. Five failing memfs regression cases reproduced this
+before the fix. The entrypoint now compares both real paths and still leaves
+programmatic imports inert; ten regression cases pass.
+
+A direct OS-level workspace-bin probe then failed with `Exec format error`:
+the CLI also lacked a Node hashbang. The actual published 7.0.0 file had mode
+0644. Added the hashbang and reused the existing `set-bin-executable` helper in
+the SafeJS build, since the root package embeds this private workspace without
+running a separate private-package prepack hook.
+
+Validation on the corrected implementation:
+
+- Focused CLI tests: 37 passed. SafeJS/agent-harness: 3,732 passed, 39 skipped;
+  opt-in fuzz: 9 passed, 5 skipped. All 67 workspace build tasks, root bundle,
+  typecheck, ESLint, all 17 package-lint rules, and targeted Prettier checks pass.
+- Entry-point stress: 10 invocation variants, 120 execution/replay cases, and
+  402 separate processes. Includes executable links, preserved main-module
+  symlinks, raw scripts/CRLF Markdown, parameters/receivers/collections, widths
+  1/32, two restore generations, help, parse errors, missing files, budget exits,
+  and inert imports. Zero mismatches; no real agents are called.
+- Rebuilt and inspected both standalone-bin and root-harness screenshots. The
+  standalone executable emits the expected structured result, not an empty
+  success; the root harness still passes its 256-iteration fixture.
+- Separately, the actual published 7.0.0 archive passes 60 syntax cases across
+  180 CLI processes when invoked by its canonical path. Its unresolved-alias
+  failure remains the reproduced baseline, not a passing alias test.
+
+Release QA: build the package, verify its declared binary has a Node hashbang
+and executable permissions, then invoke it through canonical paths, file and
+directory links, chained/relative links, and names containing spaces and Unicode.
+Repeat execution and two restores with raw and CRLF Markdown inputs. Check help,
+parse-error, missing-file, and budget exit statuses; importing the module must not
+start the CLI. Inspect the standalone and root CLI screenshots. Repeat the matrix
+against the actual published archive after release, not only the working tree.
+This entrypoint fix does not change `jobs-v3` execution or snapshot semantics.
+
 ## Stale artifact cleanup
 
 - Removed ignored `dist` / `.turbo` output from obsolete `agent-maestro`,

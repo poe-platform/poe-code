@@ -1,0 +1,276 @@
+[
+  {
+    "id": "direct-registered-curl-buffer-307-replay",
+    "profile": "Direct public-root source import through tsx; registered CommandDefinition.execute; NOT Shell, NOT packed",
+    "kind": "Buffer",
+    "byteOffset": 5,
+    "expectedFirst": [
+      0,
+      255,
+      128,
+      195,
+      40,
+      10,
+      13,
+      0,
+      254,
+      65,
+      226,
+      40
+    ],
+    "expectedSecond": [
+      0,
+      255,
+      128,
+      195,
+      40,
+      10,
+      13,
+      0,
+      254,
+      65,
+      226,
+      40
+    ],
+    "exitCode": 0,
+    "requests": [
+      {
+        "url": "https://byte-audit.invalid/first",
+        "method": "PUT",
+        "bytes": [
+          0,
+          255,
+          128,
+          195,
+          40,
+          10,
+          13,
+          0,
+          254,
+          65,
+          226,
+          40
+        ],
+        "finalizedAtStart": 0
+      },
+      {
+        "url": "https://byte-audit.invalid/replay",
+        "method": "PUT",
+        "bytes": [
+          238,
+          238,
+          238,
+          238,
+          238,
+          238,
+          238,
+          238,
+          238,
+          238,
+          238,
+          238
+        ],
+        "finalizedAtStart": 1
+      }
+    ],
+    "authorizations": [
+      {
+        "url": "https://byte-audit.invalid/first",
+        "method": "PUT",
+        "redirectFrom": null
+      },
+      {
+        "url": "https://byte-audit.invalid/replay",
+        "method": "PUT",
+        "redirectFrom": "https://byte-audit.invalid/first"
+      }
+    ],
+    "responseStates": [
+      {
+        "status": 307,
+        "finalized": 0,
+        "disposed": 1,
+        "closed": true
+      },
+      {
+        "status": 200,
+        "finalized": 1,
+        "disposed": 1,
+        "closed": true
+      }
+    ],
+    "stdinYields": 7,
+    "stdinEmptyYields": 4,
+    "stdinFinalizations": 1,
+    "finalizedAtExecuteSettlement": 1,
+    "disposalsAtExecuteSettlement": [
+      1,
+      1
+    ],
+    "activeTransportsAtExecuteSettlement": 0,
+    "activeUploadsAtExecuteSettlement": 0,
+    "activeTransports": 0,
+    "activeUploads": 0,
+    "watchdogFired": false,
+    "errors": [],
+    "stdout": [],
+    "stderr": [],
+    "events": [
+      "transport-1-start",
+      "stdin-data-1",
+      "transport-1-snapshot",
+      "stdin-data-3",
+      "transport-1-snapshot",
+      "stdin-data-5",
+      "transport-1-snapshot",
+      "stdin-finalized",
+      "response-1-disposed",
+      "transport-2-start",
+      "transport-2-snapshot",
+      "transport-2-snapshot",
+      "transport-2-snapshot",
+      "response-2-disposed"
+    ],
+    "activeResourceTypesAfterCleanup": [
+      "PipeWrap",
+      "PipeWrap"
+    ]
+  },
+  {
+    "id": "direct-registered-curl-native-uint8array-307-replay",
+    "profile": "Direct public-root source import through tsx; registered CommandDefinition.execute; NOT Shell, NOT packed",
+    "kind": "Uint8Array",
+    "byteOffset": 5,
+    "expectedFirst": [
+      0,
+      255,
+      128,
+      195,
+      40,
+      10,
+      13,
+      0,
+      254,
+      65,
+      226,
+      40
+    ],
+    "expectedSecond": [
+      0,
+      255,
+      128,
+      195,
+      40,
+      10,
+      13,
+      0,
+      254,
+      65,
+      226,
+      40
+    ],
+    "exitCode": 0,
+    "requests": [
+      {
+        "url": "https://byte-audit.invalid/first",
+        "method": "PUT",
+        "bytes": [
+          0,
+          255,
+          128,
+          195,
+          40,
+          10,
+          13,
+          0,
+          254,
+          65,
+          226,
+          40
+        ],
+        "finalizedAtStart": 0
+      },
+      {
+        "url": "https://byte-audit.invalid/replay",
+        "method": "PUT",
+        "bytes": [
+          0,
+          255,
+          128,
+          195,
+          40,
+          10,
+          13,
+          0,
+          254,
+          65,
+          226,
+          40
+        ],
+        "finalizedAtStart": 1
+      }
+    ],
+    "authorizations": [
+      {
+        "url": "https://byte-audit.invalid/first",
+        "method": "PUT",
+        "redirectFrom": null
+      },
+      {
+        "url": "https://byte-audit.invalid/replay",
+        "method": "PUT",
+        "redirectFrom": "https://byte-audit.invalid/first"
+      }
+    ],
+    "responseStates": [
+      {
+        "status": 307,
+        "finalized": 0,
+        "disposed": 1,
+        "closed": true
+      },
+      {
+        "status": 200,
+        "finalized": 1,
+        "disposed": 1,
+        "closed": true
+      }
+    ],
+    "stdinYields": 7,
+    "stdinEmptyYields": 4,
+    "stdinFinalizations": 1,
+    "finalizedAtExecuteSettlement": 1,
+    "disposalsAtExecuteSettlement": [
+      1,
+      1
+    ],
+    "activeTransportsAtExecuteSettlement": 0,
+    "activeUploadsAtExecuteSettlement": 0,
+    "activeTransports": 0,
+    "activeUploads": 0,
+    "watchdogFired": false,
+    "errors": [],
+    "stdout": [],
+    "stderr": [],
+    "events": [
+      "transport-1-start",
+      "stdin-data-1",
+      "transport-1-snapshot",
+      "stdin-data-3",
+      "transport-1-snapshot",
+      "stdin-data-5",
+      "transport-1-snapshot",
+      "stdin-finalized",
+      "response-1-disposed",
+      "transport-2-start",
+      "transport-2-snapshot",
+      "transport-2-snapshot",
+      "transport-2-snapshot",
+      "response-2-disposed"
+    ],
+    "activeResourceTypesAfterCleanup": [
+      "PipeWrap",
+      "PipeWrap"
+    ]
+  }
+]

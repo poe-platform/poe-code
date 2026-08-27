@@ -1,0 +1,69 @@
+{
+  "baseCommit": "954406871fae381b1c69441b34946a224201d7ad",
+  "profile": "Selected-path clean Git archive with exact owned uncommitted source overlay, existing dependency symlink",
+  "directory": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/byte-writer-fix-author-candidate-5L5uUh",
+  "sourceHashes": {
+    "tests/stress/byte-ownership-20260827/remaining-consumers/direct-curl/direct-curl.test.ts": "f073a596d3dba0cef2126d3eda3ae116651f87a6c95d709ea1e0dcacb08bb621",
+    "tests/stress/byte-ownership-20260827/remaining-consumers/writer-isolation/capture.mjs": "8e9c754fcff2ce05e7211c1a62c720ca66fcf5cff70b61530b76eafe1f97606b",
+    "tests/stress/byte-ownership-20260827/remaining-consumers/writer-isolation/capture.test.ts": "ae8dc306b6abc662ce5acc4fca50bb81aae89a1e2de8c202bc6e50dac3917a8b"
+  },
+  "tests": {
+    "args": [
+      "--unhandled-rejections=strict",
+      "--import",
+      "tsx",
+      "--test",
+      "--test-reporter=tap",
+      "tests/stress/byte-ownership-20260827/remaining-consumers/direct-curl/direct-curl.test.ts",
+      "tests/stress/byte-ownership-20260827/remaining-consumers/writer-isolation/capture.test.ts"
+    ],
+    "status": 1,
+    "signal": null,
+    "error": null,
+    "stdout": "TAP version 13\n# Subtest: direct-registered-curl-buffer-307-replay\nok 1 - direct-registered-curl-buffer-307-replay\n  ---\n  duration_ms: 3.428334\n  type: 'test'\n  ...\n# Subtest: direct-registered-curl-native-uint8array-307-replay\nok 2 - direct-registered-curl-native-uint8array-307-replay\n  ---\n  duration_ms: 1.015875\n  type: 'test'\n  ...\n# Subtest: default parallel canonical runs preserve sealed artifacts without capture\nnot ok 3 - default parallel canonical runs preserve sealed artifacts without capture\n  ---\n  duration_ms: 173.626375\n  type: 'test'\n  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/byte-writer-fix-author-candidate-5L5uUh/tests/stress/byte-ownership-20260827/remaining-consumers/writer-isolation/capture.test.ts:1:2427'\n  failureType: 'testCodeFailure'\n  error: |-\n    The input did not match the regular expression /# pass 2\\n/. Input:\n    \n    '(node:72076) Warning: node:test run() is being called recursively within a test file. skipping running files.\\n' +\n      '(Use `node --trace-warnings ...` to show where the warning was created)\\n'\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n  actual: |-\n    (node:72076) Warning: node:test run() is being called recursively within a test file. skipping running files.\n    (Use `node --trace-warnings ...` to show where the warning was created)\n    \n  operator: 'match'\n  stack: |-\n    TestContext.<anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/byte-writer-fix-author-candidate-5L5uUh/tests/stress/byte-ownership-20260827/remaining-consumers/writer-isolation/capture.test.ts:54:16)\n    process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)\n  ...\n# Subtest: explicit capture preserves success separately\nnot ok 4 - explicit capture preserves success separately\n  ---\n  duration_ms: 123.595\n  type: 'test'\n  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/byte-writer-fix-author-candidate-5L5uUh/tests/stress/byte-ownership-20260827/remaining-consumers/writer-isolation/capture.test.ts:1:3094'\n  failureType: 'testCodeFailure'\n  error: 'Unexpected end of JSON input'\n  code: 'ERR_TEST_FAILURE'\n  name: 'SyntaxError'\n  stack: |-\n    JSON.parse (<anonymous>)\n    TestContext.<anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/byte-writer-fix-author-candidate-5L5uUh/tests/stress/byte-ownership-20260827/remaining-consumers/writer-isolation/capture.test.ts:78:27)\n    Test.runInAsyncScope (node:async_hooks:214:14)\n    Test.run (node:internal/test_runner/test:1047:25)\n    Test.processPendingSubtests (node:internal/test_runner/test:744:18)\n    Test.postRun (node:internal/test_runner/test:1173:19)\n    Test.run (node:internal/test_runner/test:1101:12)\n    process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)\n  ...\n# Subtest: explicit capture preserves byte assertion failure separately\nnot ok 5 - explicit capture preserves byte assertion failure separately\n  ---\n  duration_ms: 122.820917\n  type: 'test'\n  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/byte-writer-fix-author-candidate-5L5uUh/tests/stress/byte-ownership-20260827/remaining-consumers/writer-isolation/capture.test.ts:1:3094'\n  failureType: 'testCodeFailure'\n  error: 'Unexpected end of JSON input'\n  code: 'ERR_TEST_FAILURE'\n  name: 'SyntaxError'\n  stack: |-\n    JSON.parse (<anonymous>)\n    TestContext.<anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/byte-writer-fix-author-candidate-5L5uUh/tests/stress/byte-ownership-20260827/remaining-consumers/writer-isolation/capture.test.ts:78:27)\n    Test.runInAsyncScope (node:async_hooks:214:14)\n    Test.run (node:internal/test_runner/test:1047:25)\n    Test.processPendingSubtests (node:internal/test_runner/test:744:18)\n    Test.postRun (node:internal/test_runner/test:1173:19)\n    Test.run (node:internal/test_runner/test:1101:12)\n    process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n1..5\n# tests 5\n# suites 0\n# pass 2\n# fail 3\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 566.965541\n",
+    "stderr": ""
+  },
+  "types": {
+    "args": [
+      "node_modules/typescript/bin/tsc",
+      "--noEmit",
+      "--target",
+      "ES2023",
+      "--module",
+      "NodeNext",
+      "--moduleResolution",
+      "NodeNext",
+      "--strict",
+      "--noUncheckedIndexedAccess",
+      "--exactOptionalPropertyTypes",
+      "--verbatimModuleSyntax",
+      "--skipLibCheck",
+      "tests/stress/byte-ownership-20260827/remaining-consumers/direct-curl/direct-curl.test.ts",
+      "tests/stress/byte-ownership-20260827/remaining-consumers/writer-isolation/capture.test.ts"
+    ],
+    "status": 2,
+    "signal": null,
+    "error": null,
+    "stdout": "src/fs/webdav/webdav.ts(725,72): error TS2353: Object literal may only specify known properties, and 'duplex' does not exist in type 'RequestInit'.\n",
+    "stderr": ""
+  },
+  "before": {
+    "after.json": "19ebebfb998becf696133b890c01b9151979711bd39bbc238b20ef387676cbd9",
+    "before.json": "19ebebfb998becf696133b890c01b9151979711bd39bbc238b20ef387676cbd9",
+    "direct-registered-curl-buffer-307-replay.json": "de63affa918da53853a7f8bc9ad1d863802c46c524e74af6b48359826139bc17",
+    "direct-registered-curl-native-uint8array-307-replay.json": "dc2022fdd8b4df2a68e10212aab2746081ac0f467a551d364faca5022a55b1a6",
+    "raw.tap": "48349b310c128d03280d4aea9a7e3af4e6df0eb71c83eb88c4af48371ac34c43",
+    "run.json": "b05de45bc0e165a2f126b5500b5beabd54475f017e93ff6303caff79db6e2a79",
+    "stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "after": {
+    "after.json": "19ebebfb998becf696133b890c01b9151979711bd39bbc238b20ef387676cbd9",
+    "before.json": "19ebebfb998becf696133b890c01b9151979711bd39bbc238b20ef387676cbd9",
+    "direct-registered-curl-buffer-307-replay.json": "de63affa918da53853a7f8bc9ad1d863802c46c524e74af6b48359826139bc17",
+    "direct-registered-curl-native-uint8array-307-replay.json": "dc2022fdd8b4df2a68e10212aab2746081ac0f467a551d364faca5022a55b1a6",
+    "raw.tap": "48349b310c128d03280d4aea9a7e3af4e6df0eb71c83eb88c4af48371ac34c43",
+    "run.json": "b05de45bc0e165a2f126b5500b5beabd54475f017e93ff6303caff79db6e2a79",
+    "stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "exactOwnedTempRemoved": true
+}

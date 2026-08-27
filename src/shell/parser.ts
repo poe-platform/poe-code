@@ -14,6 +14,7 @@ export interface Word {
   readonly offset: number;
   readonly plain?: string;
   readonly spelling?: string;
+  readonly printedNewlines?: number;
 }
 
 interface Token {
@@ -81,12 +82,32 @@ export interface Script {
   readonly lists: AndOr[];
   readonly warnings?: readonly string[];
   readonly line?: number;
+  readonly printedLines?: ReadonlyMap<Command, number>;
+  readonly printedNewlines?: number;
+}
+
+function printedSimpleLines(lists: readonly AndOr[], separators: readonly boolean[]): Pick<Script, "printedLines" | "printedNewlines"> {
+  const printedLines = new Map<Command, number>();
+  let line = 1;
+  for (let index = 0; index < lists.length; index++) {
+    for (const pipeline of lists[index]!.pipelines) for (const command of pipeline.commands) {
+      if (command.kind !== "simple" || !command.words.length || command.redirects.some(redirect => redirect.document)) return {};
+      const words = [...command.words, ...command.redirects.map(redirect => redirect.target)];
+      if (words.some(word => word.printedNewlines === undefined)) return {};
+      printedLines.set(command, line + command.words[0]!.printedNewlines!);
+      for (const word of words) line += word.printedNewlines!;
+    }
+    if (index < lists.length - 1 && separators[index]) line++;
+  }
+  return { printedLines, printedNewlines: line - 1 };
 }
 
 class IncompleteShellInput extends Error {}
 
 class Lexer {
   position = 0;
+  printedNewlineReduction = 0;
+  unprintedWords = 0;
   delimiterOperator: string | undefined;
   readonly documents: HereDocument[] = [];
 
@@ -252,6 +273,8 @@ class Lexer {
 
   word(terminator?: string, enclosingQuoted = false, literal = false): Word {
     const offset = this.position;
+    const reduction = this.printedNewlineReduction;
+    const unprinted = this.unprintedWords;
     const parts: WordPart[] = [];
     let plain = true;
     const text = (value: string, quoted: boolean) => {
@@ -264,6 +287,7 @@ class Lexer {
       if (terminator ? terminator.includes(current) : /[ \t\n;|&()<>]/u.test(current)) break;
       if (current === "$" && this.source[this.position + 1] === "'" && !enclosingQuoted && !literal) {
         plain = false;
+        this.unprintedWords++;
         text(this.ansiWord(), true);
       } else if (current === "'" && !enclosingQuoted) {
         plain = false;
@@ -282,6 +306,7 @@ class Lexer {
           else if (inner === "\\" && /[$`"\\\n]/u.test(this.source[this.position + 1] ?? "")) {
             const escaped = this.source[this.position + 1]!;
             if (escaped !== "\n") text(escaped, true);
+            else this.printedNewlineReduction++;
             this.position += 2;
           } else {
             text(inner, true);
@@ -295,6 +320,7 @@ class Lexer {
         this.position++;
         if (this.position === this.source.length) this.error("Trailing escape");
         if (this.source[this.position] !== "\n") text(this.source[this.position]!, true);
+        else this.printedNewlineReduction++;
         this.position++;
       } else if (current === "$" || current === "`") {
         plain = false;
@@ -308,7 +334,8 @@ class Lexer {
         this.position++;
       }
     }
-    return { parts, offset, ...(plain ? { plain: parts.map((part) => part.kind === "text" ? part.value : "").join("") } : {}) };
+    const printedNewlines = this.source.slice(offset, this.position).split("\n").length - 1 - (this.printedNewlineReduction - reduction);
+    return { parts, offset, ...(unprinted === this.unprintedWords ? { printedNewlines } : {}), ...(plain ? { plain: parts.map((part) => part.kind === "text" ? part.value : "").join("") } : {}) };
   }
 
   ansiWord(): string {
@@ -399,6 +426,8 @@ class Lexer {
       }
       if (nested.lexer.documents.length) this.error("Here-document requires a newline before closing command substitution");
       this.position += nested.current.end + 1;
+      if (script.printedNewlines === undefined) this.unprintedWords++;
+      else this.printedNewlineReduction += this.source.slice(start, this.position - 1).split("\n").length - 1 - script.printedNewlines;
       parts.push({ kind: "substitution", script, line, sourceLine: script.line ?? line, quoted });
     } else if (this.source[this.position] === "{") {
       this.position++;
@@ -475,6 +504,7 @@ class Parser {
 
   script(stops = new Set<string>(), inputUnit = false): Script {
     const lists: AndOr[] = [];
+    const separators: boolean[] = [];
     this.newlines();
     const line = this.lexer.lineAt(this.current.offset);
     while (this.current.kind !== "end" && !stops.has(this.current.value)) {
@@ -486,6 +516,7 @@ class Parser {
         pipelines.push(this.pipeline());
       }
       lists.push({ pipelines, operators });
+      separators.push(this.is("\n"));
       if (inputUnit && this.is("\n")) break;
       if (this.is(";") || this.is("\n")) {
         this.advance();
@@ -493,7 +524,8 @@ class Parser {
         this.newlines();
       } else if (!this.isEnd() && !this.is(")") && !(stops.has(this.current.value) && [";;", ";&", ";;&"].includes(this.current.value))) this.error("Expected command separator");
     }
-    return { lists, line };
+    const printed = printedSimpleLines(lists, separators);
+    return { lists, line, ...printed };
   }
 
   pipeline(): Pipeline {

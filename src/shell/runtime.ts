@@ -161,6 +161,8 @@ interface IO {
   readonly stderr: ByteSink;
   readonly diagnosticLine?: number;
   readonly diagnosticOffset?: number;
+  readonly substitutionDiagnosticLine?: number;
+  readonly substitutionDiagnosticLines?: ReadonlyMap<Command, number>;
   readonly scriptName?: string;
   descriptors?: ReadonlyMap<number, Descriptor>;
 }
@@ -387,7 +389,8 @@ export class Runtime {
       [0, { input: originalIO.stdin, ...(originalIO.stdinIsDefault === undefined ? {} : { stdinIsDefault: originalIO.stdinIsDefault }) }],
       [1, { output: originalIO.stdout }], [2, { output: originalIO.stderr }],
     ]);
-    originalIO = { ...originalIO, diagnosticLine: (command.line ?? 1) + (originalIO.diagnosticOffset ?? 0) };
+    const diagnosticLine = (command.line ?? 1) + (originalIO.diagnosticOffset ?? 0);
+    originalIO = { ...originalIO, diagnosticLine, substitutionDiagnosticLine: originalIO.substitutionDiagnosticLines?.get(command) ?? diagnosticLine };
     if (command.kind === "subshell") originalIO = isolateIO(originalIO);
     this.budget.tick();
     if (this.budget.commands % 128 === 0) await interruptible(new Promise<void>((resolve) => setImmediate(resolve)), this.signal);
@@ -547,6 +550,8 @@ export class Runtime {
         ...(io.diagnosticLine === undefined ? {} : { diagnosticLine: io.diagnosticLine }),
         ...(io.diagnosticOffset === undefined ? {} : { diagnosticOffset: io.diagnosticOffset }),
         ...(io.scriptName === undefined ? {} : { scriptName: io.scriptName }),
+        ...(io.substitutionDiagnosticLine === undefined ? {} : { substitutionDiagnosticLine: io.substitutionDiagnosticLine }),
+        ...(io.substitutionDiagnosticLines === undefined ? {} : { substitutionDiagnosticLines: io.substitutionDiagnosticLines }),
         stdin: descriptor?.input ?? closedSource,
         ...(stdinIsDefault === undefined ? {} : { stdinIsDefault }),
         stdout: descriptors.get(1)?.closed ? closedSink : descriptors.get(1)?.output ?? closedSink,
@@ -1530,11 +1535,15 @@ export class Runtime {
       const pipeline = part.script.lists.length === 1 && part.script.lists[0]!.pipelines.length === 1 ? part.script.lists[0]!.pipelines[0] : undefined;
       const command = pipeline && !pipeline.negate && pipeline.commands.length === 1 ? pipeline.commands[0] : undefined;
       const fileShortcut = command?.kind === "simple" && command.words.length === 0 && command.redirects.length === 1 && command.redirects[0]!.operator === "<";
-      const captureIO = { ...isolateIO(io), diagnosticOffset: (io.diagnosticLine ?? part.line) - (part.sourceLine ?? part.line), stdout: this.budget.sink(capture, this.signal) };
+      const warningLine = io.substitutionDiagnosticLine ?? io.diagnosticLine ?? part.line;
+      const substitutionDiagnosticLines = new Map<Command, number>();
+      for (const [command, line] of part.script.printedLines ?? []) substitutionDiagnosticLines.set(command,
+        part.sourceLine === undefined ? warningLine + (command.line ?? part.line) - part.line : warningLine + line - 1);
+      const captureIO = { ...isolateIO(io), substitutionDiagnosticLines, diagnosticOffset: (io.diagnosticLine ?? part.line) - (part.sourceLine ?? part.line), stdout: this.budget.sink(capture, this.signal) };
       state.substitutionStatus = fileShortcut ? await this.runCommandIsolated(command, child, captureIO, true) : await this.run(part.script, child, captureIO);
       state.status = state.substitutionStatus;
       const bytes = capture.bytes();
-      if (bytes.includes(0)) await writeText(io.stderr, `${io.scriptName ?? "shell"}: line ${io.diagnosticLine ?? part.line}: warning: command substitution: ignored null byte in input\n`);
+      if (bytes.includes(0)) await writeText(io.stderr, `${io.scriptName ?? "shell"}: line ${warningLine}: warning: command substitution: ignored null byte in input\n`);
       return new TextDecoder().decode(bytes.includes(0) ? bytes.filter((byte) => byte !== 0) : bytes).replace(/\n+$/u, "");
     }
     let value = part.name === "?" ? String(state.status)

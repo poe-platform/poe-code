@@ -25,7 +25,7 @@ language completeness from passing existing tests alone.
 - [x] Agent failures: provide explicit checked/unchecked result handling with
       CLI/SDK parity rather than an implicit unrecoverable orchestration failure.
 - [x] MCP: provide usable transport integration without requiring custom glue.
-- [ ] Environment: make capability configuration explicit and missing/denied
+- [x] Environment: make capability configuration explicit and missing/denied
       variables distinguishable without granting ambient host access.
 - [ ] Budgets: support an explicit recoverable checkpoint/result policy without
       letting scripts bypass host resource limits.
@@ -1374,7 +1374,7 @@ Manual QA:
   Grants now read only own descriptors; replay preserves already-branded sandbox
   errors instead of wrapping them again as generic host errors.
 - A real 9.0.1 consumer returns `["TypeError","EIO",true]` initially but
-  `["Error",null,false]` on replay. The new runtime restores that same `jobs-v5`
+  `["Error",undefined,false]` on replay. The new runtime restores that same `jobs-v5`
   snapshot to the original result, invoking the host only once. This fixes
   replay fidelity without changing the dump format or claiming migration.
 - Focused suites pass 3,924 tests, with 39 skips. All 67 workspace tasks pass a
@@ -1415,6 +1415,34 @@ early failure may leave only the initial checkpoint. Do not treat either file as
 proof of a completed observation. Retain this failure-path audit under the open
 snapshot/budget items; environment restore claims above use verified completed
 or active checkpoints, not assumed failure checkpoints.
+
+### Verified environment release
+
+- Commit `0e871c24a4866faa6c6cb2cc4ecd0cf656ad6b56` passed all 21,051 local
+  pre-push tests, with 41 skipped. Release run 33051271218 completed successfully,
+  including build, signature audit, package lint, full tests, installation smoke,
+  and publication. npm 10.0.0 and GitHub tag v10.0.0 match that exact commit.
+  npm published on August 27, 2026 at 07:59:37.867 UTC; the GitHub release timestamp
+  is 07:59:39 UTC. The major version explicitly announces denied-read and
+  exact-name behavior changes.
+- Installed exactly `poe-code@10.0.0` into the fresh consumer
+  `/tmp/safejs-env-published.t5cgIz`. It passes the exact installed SDK/CLI CI
+  smoke, strict public declarations, and shared-runtime checks. No workspace
+  dependencies are linked into this consumer.
+- The published package passes the 144-case environment matrix, 432 completed
+  restores, 24 fatal-budget cases, and 64 concurrent runs, plus 54 real-process
+  CLI cases with six completed restores. Both matrices pass independently on
+  Node 18.18.2, 22.22.2, and 24.14.0.
+- Published-package crash tests pass all 12 SDK SIGKILL/restores and six active
+  root-CLI SIGKILL/restores, including changed, revoked, and replaced grants.
+  The existing MCP interruption regression also passes all 24 cases in both
+  CLIs, with no orphaned children or unclosed HTTP sessions.
+- Cleanup again confirms 153 removed files and six obsolete directories absent
+  locally and from the installed package, all five binaries present, and all
+  19 consumer symlinks internal. The archive inventory contains 3,350 entries;
+  the bundler clears its hashed chunk directory before rebuilding it. User
+  terminal-pilot assets remain untouched. Environment is complete; snapshot,
+  budget, class, generator, regex, network/process, and source-module work remain.
 
 ## Stale artifact cleanup
 

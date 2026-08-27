@@ -4,8 +4,9 @@ August 27, 2026. **QUALIFIED ACCEPT — assembly identity only.** This verifier 
 different from original authors and preparer `01a0438a-acfd-7dd0-8d20-a9d07a3c527c`.
 No guest, product runtime, private engine, network probe or native oracle ran.
 No security, capability, lifecycle, promotion, parity or full-gate verdict is made.
-ROOT retains release authority for the next actual-engine probes; the full audit
-and production gate 8670 remain separate and pending.
+The actual capability audit remains pending and does not affect separately
+admitted, launch-authorized frozen production gate 8670 (admission acceptance
+`58130545`), which excludes this prototype and new env-S dispatch.
 
 ## What was independently established
 

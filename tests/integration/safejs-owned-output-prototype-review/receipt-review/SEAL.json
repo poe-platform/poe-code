@@ -1,5 +1,5 @@
 {
-  "sealedAt": "2026-08-27T14:55:05.078Z",
+  "sealedAt": "2026-08-27T14:58:06.277Z",
   "status": "QUALIFIED_ACCEPT_ASSEMBLY_ONLY",
   "scope": "Independent assembly-receipt identity only; no security, guest, capability or lifecycle verdict",
   "provenanceCommit": "f666ad8c76ea4362b093ee52e3e7e3b5c3702916",
@@ -57,8 +57,8 @@
   "files": [
     {
       "path": "REPORT.md",
-      "bytes": 10729,
-      "sha256": "9fa7c7d6ccb629a2b695d890809263828c429708e58b2029481f44d29da708ca"
+      "bytes": 10814,
+      "sha256": "81a8b977284f033824815f601ab6d0f09705779f02515478ae408bf79ec3eee0"
     },
     {
       "path": "STAGES.md",
@@ -201,7 +201,7 @@
       "sha256": "ef9d0bff71f3f33ae89a4e7ca73cbbc3fa688b5c3577acd69425690f6eff295e"
     }
   ],
-  "filesManifestSha256": "b217678d4f903fc1f5681959c459c6e2e2efe722cb48ca408debc18f5b3ef24e",
+  "filesManifestSha256": "ce6dbe8bb62606820e664a229438a09969dd6fbb97f80c4246f25cc2cd5e7ea3",
   "excludes": [
     "SEAL.json itself; commit identity is published in the external readiness receipt after commit"
   ]

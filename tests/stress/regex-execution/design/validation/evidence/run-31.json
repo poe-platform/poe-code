@@ -1,0 +1,78 @@
+{
+  "args": [
+    "policy",
+    "concurrent-shell-pipelines"
+  ],
+  "pid": 69640,
+  "readyAt": 44.39979200000016,
+  "killed": false,
+  "events": [
+    {
+      "event": "disconnect",
+      "values": [],
+      "at": 95.34870799999953
+    },
+    {
+      "event": "stdout-close"
+    },
+    {
+      "event": "stderr-close"
+    },
+    {
+      "event": "exit",
+      "values": [
+        0,
+        null
+      ],
+      "at": 97.24049999999988
+    },
+    {
+      "event": "close",
+      "code": 0,
+      "signal": null,
+      "at": 97.2455829999999
+    }
+  ],
+  "messages": [
+    {
+      "type": "ready"
+    },
+    {
+      "type": "done",
+      "result": {
+        "id": "concurrent-shell-pipelines",
+        "pass": true,
+        "pipelines": 3,
+        "stages": 3,
+        "outputs": [
+          {
+            "stdout": "a\na\n",
+            "status": 0
+          },
+          {
+            "stdout": "a\na\n",
+            "status": 0
+          },
+          {
+            "stdout": "a\na\n",
+            "status": 0
+          }
+        ],
+        "adapter": {
+          "active": 0,
+          "peak": 1,
+          "completed": 18,
+          "created": 2,
+          "terminated": 2,
+          "peakWaiting": 5,
+          "idleWorkers": 0
+        }
+      }
+    }
+  ],
+  "stderr": "",
+  "ipcBytes": 324,
+  "streamBytes": 0,
+  "code": 0,
+  "signal": null
+}

@@ -1,0 +1,80 @@
+{
+  "args": [
+    "vector",
+    "rg-declared-js-digit"
+  ],
+  "pid": 69623,
+  "readyAt": 41.819332999999915,
+  "killed": false,
+  "events": [
+    {
+      "event": "disconnect",
+      "values": [],
+      "at": 69.80570799999987
+    },
+    {
+      "event": "stdout-close"
+    },
+    {
+      "event": "stderr-close"
+    },
+    {
+      "event": "exit",
+      "values": [
+        0,
+        null
+      ],
+      "at": 72.03616599999987
+    },
+    {
+      "event": "close",
+      "code": 0,
+      "signal": null,
+      "at": 72.04104099999995
+    }
+  ],
+  "messages": [
+    {
+      "type": "ready"
+    },
+    {
+      "type": "done",
+      "result": {
+        "id": "rg-declared-js-digit",
+        "expected": {
+          "stdoutHex": "310a",
+          "status": 0
+        },
+        "outputs": {
+          "current": {
+            "stdoutHex": "310a",
+            "stderrHex": "",
+            "status": 0
+          },
+          "worker": {
+            "stdoutHex": "310a",
+            "stderrHex": "",
+            "status": 0
+          }
+        },
+        "matchesExpected": true,
+        "equivalent": true,
+        "pass": true,
+        "adapter": {
+          "active": 0,
+          "peak": 1,
+          "completed": 1,
+          "created": 1,
+          "terminated": 1,
+          "peakWaiting": 1,
+          "idleWorkers": 0
+        }
+      }
+    }
+  ],
+  "stderr": "",
+  "ipcBytes": 396,
+  "streamBytes": 0,
+  "code": 0,
+  "signal": null
+}

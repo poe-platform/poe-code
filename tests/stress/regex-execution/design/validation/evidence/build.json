@@ -1,0 +1,37 @@
+{
+  "command": [
+    "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/bin/tsc",
+    "-p",
+    "/Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/design/validation/.scratch/tsconfig.json"
+  ],
+  "config": {
+    "compilerOptions": {
+      "target": "ES2023",
+      "lib": [
+        "ES2023"
+      ],
+      "module": "NodeNext",
+      "moduleResolution": "NodeNext",
+      "strict": true,
+      "noUncheckedIndexedAccess": true,
+      "exactOptionalPropertyTypes": true,
+      "skipLibCheck": true,
+      "types": [
+        "node"
+      ],
+      "typeRoots": [
+        "/Users/kjopek/Workspace/safe-bash/node_modules/@types"
+      ],
+      "rootDir": "/Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/design/validation/.scratch/source",
+      "outDir": "/Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/design/validation/.scratch/built",
+      "declaration": true
+    },
+    "include": [
+      "/Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/design/validation/.scratch/source/**/*.ts"
+    ]
+  },
+  "status": 0,
+  "stdout": "",
+  "stderr": ""
+}

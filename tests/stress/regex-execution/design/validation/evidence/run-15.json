@@ -1,0 +1,80 @@
+{
+  "args": [
+    "vector",
+    "rg-undocumented-named-backref"
+  ],
+  "pid": 69613,
+  "readyAt": 43.076082999999926,
+  "killed": false,
+  "events": [
+    {
+      "event": "disconnect",
+      "values": [],
+      "at": 73.10862499999985
+    },
+    {
+      "event": "stdout-close"
+    },
+    {
+      "event": "stderr-close"
+    },
+    {
+      "event": "exit",
+      "values": [
+        0,
+        null
+      ],
+      "at": 75.031833
+    },
+    {
+      "event": "close",
+      "code": 0,
+      "signal": null,
+      "at": 75.03804200000013
+    }
+  ],
+  "messages": [
+    {
+      "type": "ready"
+    },
+    {
+      "type": "done",
+      "result": {
+        "id": "rg-undocumented-named-backref",
+        "expected": {
+          "stdoutHex": "61610a",
+          "status": 0
+        },
+        "outputs": {
+          "current": {
+            "stdoutHex": "61610a",
+            "stderrHex": "",
+            "status": 0
+          },
+          "worker": {
+            "stdoutHex": "61610a",
+            "stderrHex": "",
+            "status": 0
+          }
+        },
+        "matchesExpected": true,
+        "equivalent": true,
+        "pass": true,
+        "adapter": {
+          "active": 0,
+          "peak": 1,
+          "completed": 1,
+          "created": 1,
+          "terminated": 1,
+          "peakWaiting": 1,
+          "idleWorkers": 0
+        }
+      }
+    }
+  ],
+  "stderr": "",
+  "ipcBytes": 411,
+  "streamBytes": 0,
+  "code": 0,
+  "signal": null
+}

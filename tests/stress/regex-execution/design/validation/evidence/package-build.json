@@ -1,0 +1,118 @@
+{
+  "command": [
+    "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/bin/npm-cli.js",
+    "pack",
+    "--json",
+    "--ignore-scripts",
+    "--offline",
+    "--cache",
+    "/Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/design/validation/.scratch/npm-cache"
+  ],
+  "cwd": "/Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/design/validation/.scratch/package-staging",
+  "manifest": {
+    "name": "regex-validation-prototype",
+    "version": "0.0.0",
+    "type": "module",
+    "engines": {
+      "node": ">=22"
+    },
+    "exports": {
+      ".": {
+        "types": "./client.d.ts",
+        "import": "./client.js"
+      }
+    },
+    "files": [
+      "*.js",
+      "*.d.ts"
+    ],
+    "dependencies": {}
+  },
+  "status": 0,
+  "stderr": "",
+  "pack": {
+    "id": "regex-validation-prototype@0.0.0",
+    "name": "regex-validation-prototype",
+    "version": "0.0.0",
+    "size": 4630,
+    "unpackedSize": 16498,
+    "shasum": "ea06bd6231c34b270a744f9669a59602f313925b",
+    "integrity": "sha512-yk31SGRR1nI06+aPE5uT0qJyMPdwKYezKq7EJ5+5ZB5sjgIvbptXWfKNk/M7LyYhCswUWmknMmPZTDjwZ36+BA==",
+    "filename": "regex-validation-prototype-0.0.0.tgz",
+    "files": [
+      {
+        "path": "client.d.ts",
+        "size": 1312,
+        "mode": 420
+      },
+      {
+        "path": "client.js",
+        "size": 8427,
+        "mode": 420
+      },
+      {
+        "path": "matching.d.ts",
+        "size": 238,
+        "mode": 420
+      },
+      {
+        "path": "matching.js",
+        "size": 1805,
+        "mode": 420
+      },
+      {
+        "path": "package.json",
+        "size": 288,
+        "mode": 420
+      },
+      {
+        "path": "protocol.d.ts",
+        "size": 975,
+        "mode": 420
+      },
+      {
+        "path": "protocol.js",
+        "size": 2273,
+        "mode": 420
+      },
+      {
+        "path": "worker.d.ts",
+        "size": 11,
+        "mode": 420
+      },
+      {
+        "path": "worker.js",
+        "size": 1169,
+        "mode": 420
+      }
+    ],
+    "entryCount": 9,
+    "bundled": []
+  },
+  "archiveSha256": "3d9fca52b87913301d86e3bea326fdbce2df8ea808db6c0092b818615955bd94",
+  "fileHashes": {
+    "client.js": "abb22e92de0cc3f2a2fea18fed63b6d5b6f7e6694cdea0f72e709129e76b4e01",
+    "client.d.ts": "8582e28ec1db9df7bdceb6ebcc161017cdd352f0d0b1b1c066b33b3c8105aa50",
+    "matching.js": "db041847ef6edba3c94d9f1976ca48b411d5d634256167b6db46b8796585ebe5",
+    "matching.d.ts": "460836b5fa2326d8a003526aefccfa6ee6fb4b816d0f5274225d55d843ea2ede",
+    "protocol.js": "9f8dd011030c486caa597439e6ced4c17a5b3828bf30debee5a468521a6744ba",
+    "protocol.d.ts": "823467a3a3c939055cd264303fe49cead3a082353e7b056a1b8d8f1ee6cd27bf",
+    "worker.js": "a844693c5a080e2a6d93941b577759ff0ad2a4f9f640e28fa877ff0d40c6a911",
+    "worker.d.ts": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881"
+  },
+  "movedHashes": {
+    "client.js": "abb22e92de0cc3f2a2fea18fed63b6d5b6f7e6694cdea0f72e709129e76b4e01",
+    "client.d.ts": "8582e28ec1db9df7bdceb6ebcc161017cdd352f0d0b1b1c066b33b3c8105aa50",
+    "matching.js": "db041847ef6edba3c94d9f1976ca48b411d5d634256167b6db46b8796585ebe5",
+    "matching.d.ts": "460836b5fa2326d8a003526aefccfa6ee6fb4b816d0f5274225d55d843ea2ede",
+    "protocol.js": "9f8dd011030c486caa597439e6ced4c17a5b3828bf30debee5a468521a6744ba",
+    "protocol.d.ts": "823467a3a3c939055cd264303fe49cead3a082353e7b056a1b8d8f1ee6cd27bf",
+    "worker.js": "a844693c5a080e2a6d93941b577759ff0ad2a4f9f640e28fa877ff0d40c6a911",
+    "worker.d.ts": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881"
+  },
+  "installed": "/Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/design/validation/.scratch/moved/node_modules/regex-validation-prototype",
+  "unpackStatus": 0,
+  "runtimeDependencies": 0,
+  "scope": "prototype package only; no root manifest/export integration"
+}

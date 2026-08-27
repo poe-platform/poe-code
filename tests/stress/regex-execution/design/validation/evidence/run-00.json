@@ -1,0 +1,80 @@
+{
+  "args": [
+    "vector",
+    "grep-bre-group"
+  ],
+  "pid": 69541,
+  "readyAt": 46.011458000000005,
+  "killed": false,
+  "events": [
+    {
+      "event": "disconnect",
+      "values": [],
+      "at": 74.89154099999999
+    },
+    {
+      "event": "stdout-close"
+    },
+    {
+      "event": "stderr-close"
+    },
+    {
+      "event": "exit",
+      "values": [
+        0,
+        null
+      ],
+      "at": 77.2115
+    },
+    {
+      "event": "close",
+      "code": 0,
+      "signal": null,
+      "at": 77.231583
+    }
+  ],
+  "messages": [
+    {
+      "type": "ready"
+    },
+    {
+      "type": "done",
+      "result": {
+        "id": "grep-bre-group",
+        "expected": {
+          "stdoutHex": "61620a",
+          "status": 0
+        },
+        "outputs": {
+          "current": {
+            "stdoutHex": "61620a",
+            "stderrHex": "",
+            "status": 0
+          },
+          "worker": {
+            "stdoutHex": "61620a",
+            "stderrHex": "",
+            "status": 0
+          }
+        },
+        "matchesExpected": true,
+        "equivalent": true,
+        "pass": true,
+        "adapter": {
+          "active": 0,
+          "peak": 1,
+          "completed": 1,
+          "created": 1,
+          "terminated": 1,
+          "peakWaiting": 1,
+          "idleWorkers": 0
+        }
+      }
+    }
+  ],
+  "stderr": "",
+  "ipcBytes": 396,
+  "streamBytes": 0,
+  "code": 0,
+  "signal": null
+}

@@ -1,0 +1,15 @@
+{
+  "at": "2026-08-27T05:28:40.169Z",
+  "ownedRoots": [
+    ".scratch",
+    ".scratch-initial"
+  ],
+  "removedFiles": 998,
+  "removedDirectories": 162,
+  "inventorySha256": "b0336cd18c73a2432b92a0873e6735b289a30683b78bf920173c8e98f6705e71",
+  "remainingRoots": [],
+  "productSourcesUnchanged": true,
+  "processesKilled": 0,
+  "exactClosedChildren": 53,
+  "inspectedImmediatelyBeforeRemoval": true
+}

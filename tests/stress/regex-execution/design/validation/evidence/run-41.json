@@ -1,0 +1,89 @@
+{
+  "args": [
+    "bench",
+    "long-linear",
+    "worker",
+    "2"
+  ],
+  "pid": 70956,
+  "readyAt": 42.611375000000066,
+  "killed": false,
+  "events": [
+    {
+      "event": "disconnect",
+      "values": [],
+      "at": 80.81708300000003
+    },
+    {
+      "event": "stdout-close"
+    },
+    {
+      "event": "stderr-close"
+    },
+    {
+      "event": "exit",
+      "values": [
+        0,
+        null
+      ],
+      "at": 82.67166600000007
+    },
+    {
+      "event": "close",
+      "code": 0,
+      "signal": null,
+      "at": 82.67958299999998
+    }
+  ],
+  "messages": [
+    {
+      "type": "ready"
+    },
+    {
+      "type": "done",
+      "result": {
+        "id": "long-linear",
+        "engine": "worker",
+        "pass": true,
+        "workMs": 0.49141600000000096,
+        "startupMs": 12.448875000000001,
+        "cleanupMs": 0.5094160000000016,
+        "streamIncludesAutomaticDisposal": false,
+        "repetitions": 3,
+        "exactOutputGateBeforeTiming": true,
+        "inputUtf8Bytes": 262088,
+        "inputUtf16Bytes": 524176,
+        "rows": 8,
+        "batches": 4,
+        "protocolHitBytes": 628,
+        "hits": 8,
+        "execCalls": 16,
+        "captureValues": 16,
+        "selectedBytes": 80,
+        "selectedSha256": "4e6666657d99ddb9d3220ca2ec2729f0426ae29a6b7da6c8f3133bca4c1018fd",
+        "serializedBytes": 649,
+        "serializedSha256": "5748d54efbe0ecfeeaa5ddb74fbfc549e7fb2c530616b93d04ab473ac635b060",
+        "metrics": {
+          "created": 1,
+          "terminated": 1,
+          "requests": 5,
+          "execCalls": 16,
+          "inputBytes": 524176,
+          "responseBytes": 628,
+          "startupMs": 12.289874999999995,
+          "workMs": 0.5863750000000181,
+          "terminationMs": 0.5040830000000085,
+          "peakInflight": 1,
+          "listenersAfter": 0,
+          "exitCode": 1
+        },
+        "rssAfter": 61440000
+      }
+    }
+  ],
+  "stderr": "",
+  "ipcBytes": 890,
+  "streamBytes": 0,
+  "code": 0,
+  "signal": null
+}

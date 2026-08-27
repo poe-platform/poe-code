@@ -1,0 +1,80 @@
+{
+  "args": [
+    "vector",
+    "grep-word"
+  ],
+  "pid": 69555,
+  "readyAt": 42.01745800000003,
+  "killed": false,
+  "events": [
+    {
+      "event": "disconnect",
+      "values": [],
+      "at": 69.24304100000018
+    },
+    {
+      "event": "stdout-close"
+    },
+    {
+      "event": "stderr-close"
+    },
+    {
+      "event": "exit",
+      "values": [
+        0,
+        null
+      ],
+      "at": 71.13583300000005
+    },
+    {
+      "event": "close",
+      "code": 0,
+      "signal": null,
+      "at": 71.14383300000009
+    }
+  ],
+  "messages": [
+    {
+      "type": "ready"
+    },
+    {
+      "type": "done",
+      "result": {
+        "id": "grep-word",
+        "expected": {
+          "stdoutHex": "6361740a",
+          "status": 0
+        },
+        "outputs": {
+          "current": {
+            "stdoutHex": "6361740a",
+            "stderrHex": "",
+            "status": 0
+          },
+          "worker": {
+            "stdoutHex": "6361740a",
+            "stderrHex": "",
+            "status": 0
+          }
+        },
+        "matchesExpected": true,
+        "equivalent": true,
+        "pass": true,
+        "adapter": {
+          "active": 0,
+          "peak": 1,
+          "completed": 1,
+          "created": 1,
+          "terminated": 1,
+          "peakWaiting": 1,
+          "idleWorkers": 0
+        }
+      }
+    }
+  ],
+  "stderr": "",
+  "ipcBytes": 397,
+  "streamBytes": 0,
+  "code": 0,
+  "signal": null
+}

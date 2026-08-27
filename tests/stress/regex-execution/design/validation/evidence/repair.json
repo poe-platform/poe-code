@@ -1,0 +1,31 @@
+{
+  "at": "2026-08-27T05:26:31.361Z",
+  "harnessCommit": "da8ae9b1991d727652b7a42da6f2288c191f6e91",
+  "originalFrozenSha256": "55e16b071014d7bfed3266c846c4b585a8e07baa6c5f2d36f70f52461458b293",
+  "originalChildrenCompleted": 38,
+  "originalVectorFailure": "run-17.json: JS canonical flags giu were not the protocol gui spelling",
+  "unrelatedLiveDrift": [
+    {
+      "path": "src/commands/stream-inspection/README.md",
+      "previousSha256": "1490e733ae1691da397d9f5efdefe90a904cf89ac585481960343b9bdff49abd",
+      "currentSha256": "2e89966e09cfc4c2d2050ab1186d89819e8c30a2751294b083b112575eda97a3"
+    }
+  ],
+  "reason": "Preserve original build/sources/results; normalize equivalent flag spelling only in owned test adapter; continue remaining fixed schedule plus one Kelvin recheck. Verify copied source and unchanged live command/prototype source, not another owner README.",
+  "prior": {
+    "source": "58789344328501ce856955a1044cb4860ade9bde66b28f3c7b55891a1fb4e7e5",
+    "built": "37b10446f1c4b7721cb7d814fad3130eef020f096f1bebb90dcc60f0d2818151"
+  },
+  "overrides": {
+    "tests/stress/regex-execution/design/validation/adapter.ts": "26156e98ad8109f4eadcdc1cc1d5f9df4fd4885a9930f1c9eed92d25e32aa6e2",
+    "tests/stress/regex-execution/design/validation/run.mjs": "59d675038997cdb6adabe2ba27e3c56a4e203ca0aae36653b9197c7defa437c3",
+    "tests/stress/regex-execution/design/validation/repair.mjs": "4285911d6056554f0788a66e68ad37599107532a49f2d03412eb05ca7e5fda0e",
+    "tests/stress/regex-execution/design/validation/.scratch/built/tests/stress/regex-execution/design/validation/adapter.js": "5ed5e6ac46a06028f8f3d44f43f3cc14da3943333098969baeea409c516afa95"
+  },
+  "compileStatus": 0,
+  "compileStdout": "",
+  "compileStderr": "",
+  "unchangedOtherBuiltFiles": 302,
+  "benchmarkCodeUnchanged": true,
+  "riskyExecutions": 0
+}

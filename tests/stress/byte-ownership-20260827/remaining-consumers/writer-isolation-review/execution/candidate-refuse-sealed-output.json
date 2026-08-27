@@ -1,0 +1,25 @@
+{
+  "command": [
+    "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "--unhandled-rejections=strict",
+    "tests/stress/byte-ownership-20260827/remaining-consumers/writer-isolation/capture.mjs",
+    "/Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/remaining-consumers/writer-isolation-review/.scratch/candidate-clean/tests/stress/byte-ownership-20260827/remaining-consumers/direct-curl/artifacts"
+  ],
+  "cwd": "/Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/remaining-consumers/writer-isolation-review/.scratch/candidate-clean",
+  "environmentOverrides": {
+    "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/remaining-consumers/writer-isolation-review/.scratch/capture-temp",
+    "TMP": "/Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/remaining-consumers/writer-isolation-review/.scratch/capture-temp",
+    "TEMP": "/Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/remaining-consumers/writer-isolation-review/.scratch/capture-temp",
+    "TSX_DISABLE_CACHE": "1",
+    "VIRTUAL_BASH_DIRECT_CURL_CAPTURE": ""
+  },
+  "pid": 77385,
+  "startedAt": "2026-08-27T11:46:42.775Z",
+  "finishedAt": "2026-08-27T11:46:42.801Z",
+  "code": 1,
+  "signal": null,
+  "timedOut": false,
+  "childClosed": true,
+  "stdout": "",
+  "stderr": "file:///Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/remaining-consumers/writer-isolation-review/.scratch/candidate-clean/tests/stress/byte-ownership-20260827/remaining-consumers/writer-isolation/capture.mjs:8\nif (process.argv.length !== 2) throw new Error(\"Capture accepts no paths or options; output is always a new OS-temp directory\");\n                                     ^\n\nError: Capture accepts no paths or options; output is always a new OS-temp directory\n    at file:///Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/remaining-consumers/writer-isolation-review/.scratch/candidate-clean/tests/stress/byte-ownership-20260827/remaining-consumers/writer-isolation/capture.mjs:8:38\n    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)\n\nNode.js v22.22.2\n"
+}

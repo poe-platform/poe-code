@@ -18,7 +18,7 @@ save('execution/candidate-tests-before.json', before);
 save('execution/candidate-source-before.json', sourceBefore);
 const tempRoot = join(review, '.scratch', 'capture-temp');
 mkdirSync(tempRoot);
-const environment = { TMPDIR: tempRoot, TMP: tempRoot, TEMP: tempRoot, VIRTUAL_BASH_DIRECT_CURL_CAPTURE: '' };
+const environment = { TMPDIR: tempRoot, TMP: tempRoot, TEMP: tempRoot, TSX_DISABLE_CACHE: '1', VIRTUAL_BASH_DIRECT_CURL_CAPTURE: '' };
 const sentinels = [join(directory, 'verifier-sentinel.data'), join(directory, fixture, 'artifacts', 'verifier-sentinel.data')];
 for (const path of sentinels) writeFileSync(path, Buffer.from([0, 255, 128, 83, 65, 70, 69, 10]), { flag: 'wx', mode: 0o400 });
 const sentinelBefore = sentinels.map(path => ({ path, sha256: sha256(readFileSync(path)), base64: readFileSync(path).toString('base64') }));
@@ -98,7 +98,7 @@ for (const [label, args, overrides] of [
   const result = await run(directory, args, `candidate-refuse-${label}`, { ...environment, ...overrides });
   assert.equal(result.code, 1);
   assert.equal(result.timedOut, false);
-  assert.match(result.stderr, /Capture accepts no paths or options|Capture temp root must be disjoint/);
+  assert.match(result.stderr, /Capture accepts no paths or options|Capture temp root must be (?:disjoint|outside)/);
   assert.deepEqual(readdirSync(tempRoot).sort(), existingBefore);
   assertSentinels();
 }
@@ -151,7 +151,7 @@ save('execution/candidate-result.json', {
   frozenVectorsSha256: sha256(vectorsBefore), historicalPinUnchanged: true,
   tsxVersion: JSON.parse(readFileSync(join(root, 'node_modules/tsx/package.json'))).version,
   replayProfile: 'No replay acceptance API implemented; capture never repins or converts failure to success',
-  tempProfile: 'TMPDIR/TMP/TEMP explicitly set to disjoint verifier-owned scratch directory; driver uses OS tmpdir API and mkdtemp',
+  tempProfile: 'TMPDIR/TMP/TEMP explicitly set to disjoint verifier-owned scratch directory; driver uses OS tmpdir API and mkdtemp. TSX_DISABLE_CACHE=1 disables compiler disk caching (confirmed in installed tsx) to distinguish fixture persistence from compiler cache; no test/source exclusions',
   safety: 'No external network; only exact owned process watchdogs, none fired; source regression only in separate owned archive',
 });
 console.log(JSON.stringify({ controls: 10, pass: 10, revision, trackedTests: paths.length, outputs: outputs.map(output => ({ label: output.label, exitCode: output.exitCode })) }, null, 2));

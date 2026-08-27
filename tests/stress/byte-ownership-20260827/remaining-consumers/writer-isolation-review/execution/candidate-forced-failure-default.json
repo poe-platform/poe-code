@@ -1,0 +1,27 @@
+{
+  "command": [
+    "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "--unhandled-rejections=strict",
+    "--import",
+    "tsx",
+    "--test",
+    "tests/stress/byte-ownership-20260827/remaining-consumers/direct-curl/direct-curl.test.ts"
+  ],
+  "cwd": "/Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/remaining-consumers/writer-isolation-review/.scratch/failure-copy",
+  "environmentOverrides": {
+    "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/remaining-consumers/writer-isolation-review/.scratch/capture-temp",
+    "TMP": "/Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/remaining-consumers/writer-isolation-review/.scratch/capture-temp",
+    "TEMP": "/Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/remaining-consumers/writer-isolation-review/.scratch/capture-temp",
+    "TSX_DISABLE_CACHE": "1",
+    "VIRTUAL_BASH_DIRECT_CURL_CAPTURE": ""
+  },
+  "pid": 77449,
+  "startedAt": "2026-08-27T11:46:43.124Z",
+  "finishedAt": "2026-08-27T11:46:43.365Z",
+  "code": 1,
+  "signal": null,
+  "timedOut": false,
+  "childClosed": true,
+  "stdout": "TAP version 13\n# Subtest: direct-registered-curl-buffer-307-replay\nnot ok 1 - direct-registered-curl-buffer-307-replay\n  ---\n  duration_ms: 4.078125\n  type: 'test'\n  location: '/Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/remaining-consumers/writer-isolation-review/.scratch/failure-copy/tests/stress/byte-ownership-20260827/remaining-consumers/direct-curl/direct-curl.test.ts:1:495'\n  failureType: 'testCodeFailure'\n  error: |-\n    307 replay must retain original stdin bytes after producer finalization\n    + actual - expected\n    \n      [\n    +   238,\n    +   238,\n    +   238,\n    +   238,\n    +   238,\n    +   238,\n    +   238,\n    +   238,\n    +   238,\n    +   238,\n    +   238,\n    +   238\n    -   0,\n    -   255,\n    -   128,\n    -   195,\n    -   40,\n    -   10,\n    -   13,\n    -   0,\n    -   254,\n    -   65,\n    -   226,\n    -   40\n      ]\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n    0: 0\n    1: 255\n    2: 128\n    3: 195\n    4: 40\n    5: 10\n    6: 13\n    7: 0\n    8: 254\n    9: 65\n    10: 226\n    11: 40\n  actual:\n    0: 238\n    1: 238\n    2: 238\n    3: 238\n    4: 238\n    5: 238\n    6: 238\n    7: 238\n    8: 238\n    9: 238\n    10: 238\n    11: 238\n  operator: 'deepStrictEqual'\n  stack: |-\n    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/remaining-consumers/writer-isolation-review/.scratch/failure-copy/tests/stress/byte-ownership-20260827/remaining-consumers/direct-curl/direct-curl.test.ts:236:12)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)\n  ...\n# Subtest: direct-registered-curl-native-uint8array-307-replay\nok 2 - direct-registered-curl-native-uint8array-307-replay\n  ---\n  duration_ms: 1.18325\n  type: 'test'\n  ...\n1..2\n# tests 2\n# suites 0\n# pass 1\n# fail 1\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 215.015\n",
+  "stderr": ""
+}

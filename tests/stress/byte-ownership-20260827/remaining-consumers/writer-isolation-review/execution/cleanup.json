@@ -1,0 +1,94 @@
+{
+  "completedAt": "2026-08-27T11:47:41.613Z",
+  "scratch": "/Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/remaining-consumers/writer-isolation-review/.scratch",
+  "entries": [
+    "baseline-b494-retained",
+    "baseline-b494-retained.tar.gz",
+    "candidate-clean",
+    "candidate-clean.tar.gz",
+    "capture-temp",
+    "failure-copy",
+    "failure-source.tar.gz"
+  ],
+  "removed": true,
+  "preservedFailedCopy": "Exact affected files and complete before/after manifests retained in execution/baseline-affected and execution/baseline-tests-{before,after}.json; not restored",
+  "preservedFailureControl": "execution/failure-copy-body.ts.data and execution/captures/failure retain modified owned-copy source and observed failure",
+  "historicalSharedFiles": [
+    {
+      "path": "tests/stress/byte-ownership-20260827/remaining-consumers/direct-curl/expectations.json",
+      "bytes": 1305,
+      "sha256": "3a4777de116cb58cb17a029402d7a5d6eae1691dda6244350b75b0d160091704",
+      "gitBlob": "443fd92a057b729420e5482a5f34c8259596f15e",
+      "committedSha256": "3a4777de116cb58cb17a029402d7a5d6eae1691dda6244350b75b0d160091704",
+      "matchesHead": true
+    },
+    {
+      "path": "tests/stress/byte-ownership-20260827/remaining-consumers/direct-curl/source-pin.json",
+      "bytes": 2504,
+      "sha256": "1c9767fc4d8e96044413ceb6b546efafe1f4f6570f2c6d0aee3d71a073ccf500",
+      "gitBlob": "7fa333a10275454eabf601688284e43b8ed4c36f",
+      "committedSha256": "1c9767fc4d8e96044413ceb6b546efafe1f4f6570f2c6d0aee3d71a073ccf500",
+      "matchesHead": true
+    },
+    {
+      "path": "tests/stress/byte-ownership-20260827/remaining-consumers/direct-curl/artifacts/after.json",
+      "bytes": 2782,
+      "sha256": "19ebebfb998becf696133b890c01b9151979711bd39bbc238b20ef387676cbd9",
+      "gitBlob": "bd78abe7e7451f2e7e8e46c5023e1475a01b7bd8",
+      "committedSha256": "19ebebfb998becf696133b890c01b9151979711bd39bbc238b20ef387676cbd9",
+      "matchesHead": true
+    },
+    {
+      "path": "tests/stress/byte-ownership-20260827/remaining-consumers/direct-curl/artifacts/before.json",
+      "bytes": 2782,
+      "sha256": "19ebebfb998becf696133b890c01b9151979711bd39bbc238b20ef387676cbd9",
+      "gitBlob": "bd78abe7e7451f2e7e8e46c5023e1475a01b7bd8",
+      "committedSha256": "19ebebfb998becf696133b890c01b9151979711bd39bbc238b20ef387676cbd9",
+      "matchesHead": true
+    },
+    {
+      "path": "tests/stress/byte-ownership-20260827/remaining-consumers/direct-curl/artifacts/direct-registered-curl-buffer-307-replay.json",
+      "bytes": 2402,
+      "sha256": "de63affa918da53853a7f8bc9ad1d863802c46c524e74af6b48359826139bc17",
+      "gitBlob": "e5960742c04db02e328fdb8a095a841e481b9d7c",
+      "committedSha256": "de63affa918da53853a7f8bc9ad1d863802c46c524e74af6b48359826139bc17",
+      "matchesHead": true
+    },
+    {
+      "path": "tests/stress/byte-ownership-20260827/remaining-consumers/direct-curl/artifacts/direct-registered-curl-native-uint8array-307-replay.json",
+      "bytes": 2408,
+      "sha256": "dc2022fdd8b4df2a68e10212aab2746081ac0f467a551d364faca5022a55b1a6",
+      "gitBlob": "77273ac3a05bfbf7029bfac3c3ae3f0e71bcc1ad",
+      "committedSha256": "dc2022fdd8b4df2a68e10212aab2746081ac0f467a551d364faca5022a55b1a6",
+      "matchesHead": true
+    },
+    {
+      "path": "tests/stress/byte-ownership-20260827/remaining-consumers/direct-curl/artifacts/raw.tap",
+      "bytes": 1731,
+      "sha256": "48349b310c128d03280d4aea9a7e3af4e6df0eb71c83eb88c4af48371ac34c43",
+      "gitBlob": "8f718a78f50b365d3c258debed992236cfeeafc5",
+      "committedSha256": "48349b310c128d03280d4aea9a7e3af4e6df0eb71c83eb88c4af48371ac34c43",
+      "matchesHead": true
+    },
+    {
+      "path": "tests/stress/byte-ownership-20260827/remaining-consumers/direct-curl/artifacts/run.json",
+      "bytes": 737,
+      "sha256": "b05de45bc0e165a2f126b5500b5beabd54475f017e93ff6303caff79db6e2a79",
+      "gitBlob": "e604d923e2e7a6272b714077e156342e1c179bb4",
+      "committedSha256": "b05de45bc0e165a2f126b5500b5beabd54475f017e93ff6303caff79db6e2a79",
+      "matchesHead": true
+    },
+    {
+      "path": "tests/stress/byte-ownership-20260827/remaining-consumers/direct-curl/artifacts/stderr.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "committedSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "matchesHead": true
+    }
+  ],
+  "allSharedHistoricalHashesUnchanged": true,
+  "noHiddenDiscoveryExclusions": "No config/exclusion changes. Full temporary archive trees removed only after permanent failed-byte snapshots and manifests verified, preventing nested test discovery.",
+  "gitStatusAtCleanup": " M tests/stress/byte-ownership-20260827/remaining-consumers/writer-isolation-review/verify.mjs\n?? benchmarks/reports/current-comparison-20260827/execution/\n?? scripts/verify-whole-gate.mjs\n?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/\n?? tests/commands/search-stress/.native-1m4O1e/\n?? tests/integration/current-type-diagnostics-20260827/\n?? tests/integration/full-gate-20260827/preflight-repair/\n?? tests/stress/byte-ownership-20260827/remaining-consumers/writer-isolation-review/cleanup.mjs\n?? tests/stress/byte-ownership-20260827/remaining-consumers/writer-isolation-review/execution/author-ready.txt\n?? tests/stress/byte-ownership-20260827/remaining-consumers/writer-isolation-review/execution/candidate-capture-1.json\n?? tests/stress/byte-ownership-20260827/remaining-consumers/writer-isolation-review/execution/candidate-capture-2.json\n?? tests/stress/byte-ownership-20260827/remaining-consumers/writer-isolation-review/execution/candidate-concurrent-1.json\n?? tests/stress/byte-ownership-20260827/remaining-consumers/writer-isolation-review/execution/candidate-concurrent-2.json\n?? tests/stress/byte-ownership-20260827/remaining-consumers/writer-isolation-review/execution/candidate-default.json\n?? tests/stress/byte-ownership-20260827/remaining-consumers/writer-isolation-review/execution/candidate-forced-failure-capture.json\n?? tests/stress/byte-ownership-20260827/remaining-consumers/writer-isolation-review/execution/candidate-forced-failure-default.json\n?? tests/stress/byte-ownership-20260827/remaining-consumers/writer-isolation-review/execution/candidate-refuse-existing-output.json\n?? tests/stress/byte-ownership-20260827/remaining-consumers/writer-isolation-review/execution/candidate-refuse-sealed-output.json\n?? tests/stress/byte-ownership-20260827/remaining-consumers/writer-isolation-review/execution/candidate-refuse-sealed-temp-root.json\n?? tests/stress/byte-ownership-20260827/remaining-consumers/writer-isolation-review/execution/candidate-refuse-symlink-output.json\n?? tests/stress/byte-ownership-20260827/remaining-consumers/writer-isolation-review/execution/candidate-refuse-symlink-temp-root.json\n?? tests/stress/byte-ownership-20260827/remaining-consumers/writer-isolation-review/execution/candidate-result.json\n?? tests/stress/byte-ownership-20260827/remaining-consumers/writer-isolation-review/execution/candidate-source-before.json\n?? tests/stress/byte-ownership-20260827/remaining-consumers/writer-isolation-review/execution/candidate-tests-after-default.json\n?? tests/stress/byte-ownership-20260827/remaining-consumers/writer-isolation-review/execution/candidate-tests-after.json\n?? tests/stress/byte-ownership-20260827/remaining-consumers/writer-isolation-review/execution/candidate-tests-before.json\n?? tests/stress/byte-ownership-20260827/remaining-consumers/writer-isolation-review/execution/captures/\n?? tests/stress/byte-ownership-20260827/remaining-consumers/writer-isolation-review/execution/failure-copy-body.ts.data\n?? tests/stress/byte-ownership-20260827/remaining-consumers/writer-isolation-review/execution/failure-sentinel-after.data\n?? tests/stress/byte-ownership-20260827/remaining-consumers/writer-isolation-review/execution/failure-sentinel-before.data\n?? tests/stress/byte-ownership-20260827/remaining-consumers/writer-isolation/evidence/\n",
+  "foreignIndexAtCleanup": ""
+}

@@ -1,0 +1,14 @@
+{
+  "status": "READY for independent frozen controls",
+  "sourceHarnessCommit": "5f7fe5d72f031db6cbacc76d9bfefcba2f58d03e",
+  "files": {
+    "tests/stress/byte-ownership-20260827/remaining-consumers/direct-curl/direct-curl.test.ts": "f073a596d3dba0cef2126d3eda3ae116651f87a6c95d709ea1e0dcacb08bb621",
+    "tests/stress/byte-ownership-20260827/remaining-consumers/writer-isolation/capture.mjs": "126dcd9852fe61ae717ab707be74a0b8715e0c675988d11c5a534953767d9c01",
+    "tests/stress/byte-ownership-20260827/remaining-consumers/writer-isolation/capture.test.ts": "666b5e2afc6e49a4897ae0fb6b27d235fe5321b1f3f081b8d69a1c79df2aebf3",
+    "tests/stress/byte-ownership-20260827/remaining-consumers/writer-isolation/README.md": "f0d7db6e8308a253fea6fe210b096452cd3783bac14e25d25ea52774a0747e5a"
+  },
+  "canonicalDefault": "No file writes; unchanged 31 assertion lines and unchanged vectors; 2/2 passes in clean selected-path Git archive",
+  "capture": "node --unhandled-rejections=strict tests/stress/byte-ownership-20260827/remaining-consumers/writer-isolation/capture.mjs; accepts no arguments, stdout JSON {directory,exitCode}, fresh exclusive OS-temp captures; refuses TMPDIR within real repo; temporary-root ancestor of archive allowed so fresh sibling output works",
+  "authorChecks": "5/5 focused tests, strict scoped TypeScript pass; all 1051 other authenticated source/gate/direct-curl files unchanged. Evidence commit follows; first two author validation failures retained.",
+  "cleanup": "Author temp archives and test captures removed via exact owned finally cleanup; no external network or servers"
+}

@@ -1,0 +1,552 @@
+{
+  "schema": 1,
+  "date": "2026-08-27T22:48:46.587Z",
+  "bindingSha256": "8c00abda86917fb7be71f378d94cdcc4fac7e863a859ed8b31c717f565e6c5bf",
+  "counts": {
+    "milestones": 17,
+    "v4Files": 40,
+    "productFiles": 3
+  },
+  "rows": [
+    {
+      "kind": "milestones",
+      "commit": "44eed610f6b656e8c6c78d60a48089569ed5b8d5",
+      "path": "tests/commands/expr-stress/nullable-history-order-v4-20260827/normative/REPORT.md",
+      "sha256": "d5b7dd2af5d8db025406b65f810c1674ac41ef8958bfe9f70a467348d1ea9f27",
+      "gitBlob": "3b58bd85f0da932e11c8a66f51de130a2f8b9ba1",
+      "bytes": 24181,
+      "liveMatches": true
+    },
+    {
+      "kind": "milestones",
+      "commit": "44eed610f6b656e8c6c78d60a48089569ed5b8d5",
+      "path": "tests/commands/expr-stress/nullable-history-order-v4-20260827/normative/SOURCES.json",
+      "sha256": "cd213086dabbf5486926cb67d18b5ae050ab338e019891defdd48dba23f975d8",
+      "gitBlob": "cd31090505d1af3a85970258cdf5b528f661d1ce",
+      "bytes": 3286,
+      "liveMatches": true
+    },
+    {
+      "kind": "milestones",
+      "commit": "c0aec9fc240f153e0fa18d6e2d1e291871dbe1eb",
+      "path": "tests/commands/expr-stress/nullable-history-order-v4-20260827/frozen/FREEZE-MANIFEST.json",
+      "sha256": "458c5c9e5def60b32d963572364998c463f3e185692f6a25ed09d6069f822589",
+      "gitBlob": "82dca1f5c95ed1a55c8f0d4366e19c887fe9263e",
+      "bytes": 123198,
+      "liveMatches": true
+    },
+    {
+      "kind": "milestones",
+      "commit": "c0aec9fc240f153e0fa18d6e2d1e291871dbe1eb",
+      "path": "tests/commands/expr-stress/nullable-history-order-v4-20260827/frozen/INPUTS.json",
+      "sha256": "121d5dde6dd77148828feb775408288f98755c975d855e54a4a00040e25f8504",
+      "gitBlob": "de935791a06b11bdcbd025f84cc56f54a5ee34cf",
+      "bytes": 5320,
+      "liveMatches": true
+    },
+    {
+      "kind": "milestones",
+      "commit": "0939a64af1ad16e68655dd525ea4be0cd8641704",
+      "path": "tests/commands/expr-stress/nullable-history-order-v4-20260827/frozen/BASELINE-SEAL.json",
+      "sha256": "fcba6727a94a01cb7949274d9b3b47a9562772bd4005b0b16bdc8ddd01bca74e",
+      "gitBlob": "08217e571248ee891b3fc4486b28fc04db5c90ff",
+      "bytes": 2714,
+      "liveMatches": true
+    },
+    {
+      "kind": "milestones",
+      "commit": "0939a64af1ad16e68655dd525ea4be0cd8641704",
+      "path": "tests/commands/expr-stress/nullable-history-order-v4-20260827/frozen/BASELINE-REPORT.md",
+      "sha256": "a95445525e034478f7198f0d13e8f6af7b709826b0d4afd50f9784a72f49d265",
+      "gitBlob": "9dd1ecdbaa21628556e7230902a1e05d807c2b91",
+      "bytes": 8958,
+      "liveMatches": true
+    },
+    {
+      "kind": "milestones",
+      "commit": "a6ce736d0130bc26e78f4323f176fa0f7569c2e5",
+      "path": "tests/commands/expr-stress/nullable-history-order-v4-20260827/design/WITNESSES.data",
+      "sha256": "c86c457ba6a4a6d995ba757c23bf2024f7327411dd19dfb5d531a23d7e4c71a5",
+      "gitBlob": "f2c6b28cb79803bdfabced5927a95cef58bc786a",
+      "bytes": 7727,
+      "liveMatches": true
+    },
+    {
+      "kind": "milestones",
+      "commit": "a6ce736d0130bc26e78f4323f176fa0f7569c2e5",
+      "path": "tests/commands/expr-stress/nullable-history-order-v4-20260827/design/DESIGN.md",
+      "sha256": "38c571713defdd7228f6efa145ae655659f17da5111a5fec8b39b1df7d80b1b1",
+      "gitBlob": "3740d80a9c23941e11882c01fb86f12022b88a11",
+      "bytes": 3790,
+      "liveMatches": true
+    },
+    {
+      "kind": "milestones",
+      "commit": "938fdbc6f128c5ba124d13879c3354a9ee46fc95",
+      "path": "tests/commands/expr-stress/nullable-history-order-v4-20260827/design/MANIFEST.data",
+      "sha256": "34efc77d4d53f1bed318f05ca2a948f86ab646ea155d53cadc236dc5004eca90",
+      "gitBlob": "fbb6e29593f2b735f8ded5e54fc2b9bf70a8e6dc",
+      "bytes": 6451,
+      "liveMatches": true
+    },
+    {
+      "kind": "milestones",
+      "commit": "938fdbc6f128c5ba124d13879c3354a9ee46fc95",
+      "path": "tests/commands/expr-stress/nullable-history-order-v4-20260827/design/model.mjs",
+      "sha256": "f04c98a52967f904266660607b0ee2157518cf50d3da260a4aa2b47926c392a0",
+      "gitBlob": "8350e080f3dea30dd0e80b8b96e6723accfb8163",
+      "bytes": 12331,
+      "liveMatches": true
+    },
+    {
+      "kind": "milestones",
+      "commit": "938fdbc6f128c5ba124d13879c3354a9ee46fc95",
+      "path": "tests/commands/expr-stress/nullable-history-order-v4-20260827/design/model-01.data",
+      "sha256": "0fda59281392d7350681628a4b8cd0e79f2190b4f16976160316c0749d382d3c",
+      "gitBlob": "4d286125c48c8cb750c377c97123441767454a6f",
+      "bytes": 6443,
+      "liveMatches": true
+    },
+    {
+      "kind": "milestones",
+      "commit": "938fdbc6f128c5ba124d13879c3354a9ee46fc95",
+      "path": "tests/commands/expr-stress/nullable-history-order-v4-20260827/design/REPORT.md",
+      "sha256": "ccdaf9e31bd546ad0ae3a9622057291415234bf1e31d99131ee19f977da31b18",
+      "gitBlob": "ad0e5b3f54a424490532e8d5062908065750d7ab",
+      "bytes": 17146,
+      "liveMatches": true
+    },
+    {
+      "kind": "milestones",
+      "commit": "a5c2aed54437f68dff5708a0e652fe1e72039c21",
+      "path": "tests/commands/expr-stress/nullable-history-order-v4-20260827/review/CONTROLS.json",
+      "sha256": "7ea6cd225abeee23cad4f9fa323d889348a9b4b95e55c054a05fd8d29ba96d86",
+      "gitBlob": "088290ac59a3600084d2fa08eeed62955bc1f410",
+      "bytes": 6025,
+      "liveMatches": true
+    },
+    {
+      "kind": "milestones",
+      "commit": "e38a68af401990ecd7cb4420825c4f7dc3733e3e",
+      "path": "tests/commands/expr-stress/nullable-history-order-v4-20260827/review/REPORT.md",
+      "sha256": "0f2c32d9b3d445025529b43beeab6886653d730a2ba905718f29f60c8d107dfb",
+      "gitBlob": "533e7270efbf3c61080ce6bc2f824729acfe0e66",
+      "bytes": 10364,
+      "liveMatches": true
+    },
+    {
+      "kind": "milestones",
+      "commit": "e38a68af401990ecd7cb4420825c4f7dc3733e3e",
+      "path": "tests/commands/expr-stress/nullable-history-order-v4-20260827/review/controls-final.json",
+      "sha256": "5d7a6319de8f3cb8966c0a60e8892976e16a25343756268b49299a51e126f8a4",
+      "gitBlob": "5376532e6979918050e4a6b6dc62f9c88a932e10",
+      "bytes": 49404,
+      "liveMatches": true
+    },
+    {
+      "kind": "milestones",
+      "commit": "e38a68af401990ecd7cb4420825c4f7dc3733e3e",
+      "path": "tests/commands/expr-stress/nullable-history-order-v4-20260827/review/controls-01.json",
+      "sha256": "1333b567a390b77ddb7237652c510381784e8b1060e046ee3f8a6bb9f3b893d9",
+      "gitBlob": "a7503f8a694254b2219441ad4e204cdab61ba046",
+      "bytes": 44613,
+      "liveMatches": true
+    },
+    {
+      "kind": "milestones",
+      "commit": "e38a68af401990ecd7cb4420825c4f7dc3733e3e",
+      "path": "tests/commands/expr-stress/nullable-history-order-v4-20260827/review/attempt-01-runner.mjs.data",
+      "sha256": "487370729182e29a9476022564a488e0df181424aec3f64303e55bfaf0c859d3",
+      "gitBlob": "cfbefa0c72aed7c191e93a5c4918543e58b9914f",
+      "bytes": 17963,
+      "liveMatches": true
+    },
+    {
+      "kind": "v4Files",
+      "commit": "e38a68af401990ecd7cb4420825c4f7dc3733e3e",
+      "path": "tests/commands/expr-stress/nullable-history-order-v4-20260827/design/DESIGN.md",
+      "sha256": "38c571713defdd7228f6efa145ae655659f17da5111a5fec8b39b1df7d80b1b1",
+      "gitBlob": "3740d80a9c23941e11882c01fb86f12022b88a11",
+      "bytes": 3790,
+      "liveMatches": true
+    },
+    {
+      "kind": "v4Files",
+      "commit": "e38a68af401990ecd7cb4420825c4f7dc3733e3e",
+      "path": "tests/commands/expr-stress/nullable-history-order-v4-20260827/design/MANIFEST.data",
+      "sha256": "34efc77d4d53f1bed318f05ca2a948f86ab646ea155d53cadc236dc5004eca90",
+      "gitBlob": "fbb6e29593f2b735f8ded5e54fc2b9bf70a8e6dc",
+      "bytes": 6451,
+      "liveMatches": true
+    },
+    {
+      "kind": "v4Files",
+      "commit": "e38a68af401990ecd7cb4420825c4f7dc3733e3e",
+      "path": "tests/commands/expr-stress/nullable-history-order-v4-20260827/design/REPORT.md",
+      "sha256": "ccdaf9e31bd546ad0ae3a9622057291415234bf1e31d99131ee19f977da31b18",
+      "gitBlob": "ad0e5b3f54a424490532e8d5062908065750d7ab",
+      "bytes": 17146,
+      "liveMatches": true
+    },
+    {
+      "kind": "v4Files",
+      "commit": "e38a68af401990ecd7cb4420825c4f7dc3733e3e",
+      "path": "tests/commands/expr-stress/nullable-history-order-v4-20260827/design/WITNESSES.data",
+      "sha256": "c86c457ba6a4a6d995ba757c23bf2024f7327411dd19dfb5d531a23d7e4c71a5",
+      "gitBlob": "f2c6b28cb79803bdfabced5927a95cef58bc786a",
+      "bytes": 7727,
+      "liveMatches": true
+    },
+    {
+      "kind": "v4Files",
+      "commit": "e38a68af401990ecd7cb4420825c4f7dc3733e3e",
+      "path": "tests/commands/expr-stress/nullable-history-order-v4-20260827/design/model-01.data",
+      "sha256": "0fda59281392d7350681628a4b8cd0e79f2190b4f16976160316c0749d382d3c",
+      "gitBlob": "4d286125c48c8cb750c377c97123441767454a6f",
+      "bytes": 6443,
+      "liveMatches": true
+    },
+    {
+      "kind": "v4Files",
+      "commit": "e38a68af401990ecd7cb4420825c4f7dc3733e3e",
+      "path": "tests/commands/expr-stress/nullable-history-order-v4-20260827/design/model.mjs",
+      "sha256": "f04c98a52967f904266660607b0ee2157518cf50d3da260a4aa2b47926c392a0",
+      "gitBlob": "8350e080f3dea30dd0e80b8b96e6723accfb8163",
+      "bytes": 12331,
+      "liveMatches": true
+    },
+    {
+      "kind": "v4Files",
+      "commit": "e38a68af401990ecd7cb4420825c4f7dc3733e3e",
+      "path": "tests/commands/expr-stress/nullable-history-order-v4-20260827/design/run-model.mjs",
+      "sha256": "2d8a7d40f2a16e76dfc86a0728072b4871510474f0c14909e30bd187d7f1ee9d",
+      "gitBlob": "6c2ea6c0abdf36bc3c01c1d62c4e3fe3214f5f13",
+      "bytes": 14601,
+      "liveMatches": true
+    },
+    {
+      "kind": "v4Files",
+      "commit": "e38a68af401990ecd7cb4420825c4f7dc3733e3e",
+      "path": "tests/commands/expr-stress/nullable-history-order-v4-20260827/design/verify.mjs",
+      "sha256": "214059ff7d3b34bfbe34f37c27da56a0f06f72ada18cc7debae27459c45d2302",
+      "gitBlob": "d672e9ec744de8862c632a920cf5e5716c600ac8",
+      "bytes": 2719,
+      "liveMatches": true
+    },
+    {
+      "kind": "v4Files",
+      "commit": "e38a68af401990ecd7cb4420825c4f7dc3733e3e",
+      "path": "tests/commands/expr-stress/nullable-history-order-v4-20260827/frozen/BASELINE-REPORT.md",
+      "sha256": "a95445525e034478f7198f0d13e8f6af7b709826b0d4afd50f9784a72f49d265",
+      "gitBlob": "9dd1ecdbaa21628556e7230902a1e05d807c2b91",
+      "bytes": 8958,
+      "liveMatches": true
+    },
+    {
+      "kind": "v4Files",
+      "commit": "e38a68af401990ecd7cb4420825c4f7dc3733e3e",
+      "path": "tests/commands/expr-stress/nullable-history-order-v4-20260827/frozen/BASELINE-SEAL.json",
+      "sha256": "fcba6727a94a01cb7949274d9b3b47a9562772bd4005b0b16bdc8ddd01bca74e",
+      "gitBlob": "08217e571248ee891b3fc4486b28fc04db5c90ff",
+      "bytes": 2714,
+      "liveMatches": true
+    },
+    {
+      "kind": "v4Files",
+      "commit": "e38a68af401990ecd7cb4420825c4f7dc3733e3e",
+      "path": "tests/commands/expr-stress/nullable-history-order-v4-20260827/frozen/EXPECTED-PROFILES.json",
+      "sha256": "d2e08c7aa9c93da0b56aa4bae4d5314420b71911935d80a85570ae2c3851d08e",
+      "gitBlob": "3c038d5b157fc0a1893e1c43bf9882e8604f31c7",
+      "bytes": 28145,
+      "liveMatches": true
+    },
+    {
+      "kind": "v4Files",
+      "commit": "e38a68af401990ecd7cb4420825c4f7dc3733e3e",
+      "path": "tests/commands/expr-stress/nullable-history-order-v4-20260827/frozen/FREEZE-MANIFEST.json",
+      "sha256": "458c5c9e5def60b32d963572364998c463f3e185692f6a25ed09d6069f822589",
+      "gitBlob": "82dca1f5c95ed1a55c8f0d4366e19c887fe9263e",
+      "bytes": 123198,
+      "liveMatches": true
+    },
+    {
+      "kind": "v4Files",
+      "commit": "e38a68af401990ecd7cb4420825c4f7dc3733e3e",
+      "path": "tests/commands/expr-stress/nullable-history-order-v4-20260827/frozen/INPUTS.json",
+      "sha256": "121d5dde6dd77148828feb775408288f98755c975d855e54a4a00040e25f8504",
+      "gitBlob": "de935791a06b11bdcbd025f84cc56f54a5ee34cf",
+      "bytes": 5320,
+      "liveMatches": true
+    },
+    {
+      "kind": "v4Files",
+      "commit": "e38a68af401990ecd7cb4420825c4f7dc3733e3e",
+      "path": "tests/commands/expr-stress/nullable-history-order-v4-20260827/frozen/README.md",
+      "sha256": "5aa2e6c7779cb94294bec222840377d37b2f02bc61a3ad5f59ebde0e72701d0c",
+      "gitBlob": "56af8aa96eea4f84b1a8692bd67dd58b9deaebed",
+      "bytes": 2930,
+      "liveMatches": true
+    },
+    {
+      "kind": "v4Files",
+      "commit": "e38a68af401990ecd7cb4420825c4f7dc3733e3e",
+      "path": "tests/commands/expr-stress/nullable-history-order-v4-20260827/frozen/baseline-01.json",
+      "sha256": "ba0e829cd2dffdda9a48395cf194a46118de3658cc9bdda9b25194d530a02de7",
+      "gitBlob": "bcaf43e704ef5140fb6dea526c0495e7cd58f20f",
+      "bytes": 359911,
+      "liveMatches": true
+    },
+    {
+      "kind": "v4Files",
+      "commit": "e38a68af401990ecd7cb4420825c4f7dc3733e3e",
+      "path": "tests/commands/expr-stress/nullable-history-order-v4-20260827/frozen/baseline-probe.mjs",
+      "sha256": "87977131accfc4b6f44d0ed12b25caa8611b8ebe8bfe3a1c10ec05f4ec0ecdb7",
+      "gitBlob": "68de320b33bb59fd7a12a7fcf91da18fe4bd1763",
+      "bytes": 10546,
+      "liveMatches": true
+    },
+    {
+      "kind": "v4Files",
+      "commit": "e38a68af401990ecd7cb4420825c4f7dc3733e3e",
+      "path": "tests/commands/expr-stress/nullable-history-order-v4-20260827/frozen/common.mjs",
+      "sha256": "c4ca716dacf8c933df98d517eb628ca10e411a436c6c462af4353f5e23b38127",
+      "gitBlob": "0af194ad6b3e719db798e608ace97366248355f7",
+      "bytes": 3084,
+      "liveMatches": true
+    },
+    {
+      "kind": "v4Files",
+      "commit": "e38a68af401990ecd7cb4420825c4f7dc3733e3e",
+      "path": "tests/commands/expr-stress/nullable-history-order-v4-20260827/frozen/native-01.json",
+      "sha256": "45bc5333b6daa06767c4c9be66d347efcd375dc555061c3f956f446401b4dd29",
+      "gitBlob": "f1db80a3ea93cb252dd0d1921df3348db5573f41",
+      "bytes": 93973,
+      "liveMatches": true
+    },
+    {
+      "kind": "v4Files",
+      "commit": "e38a68af401990ecd7cb4420825c4f7dc3733e3e",
+      "path": "tests/commands/expr-stress/nullable-history-order-v4-20260827/frozen/native-capture.mjs",
+      "sha256": "02e33f8bd1c91773bd4724f15912ace4496bdc05e7f781deba1542214dfe8284",
+      "gitBlob": "b783def89970fa755f85773e74f330055b94fd7b",
+      "bytes": 3605,
+      "liveMatches": true
+    },
+    {
+      "kind": "v4Files",
+      "commit": "e38a68af401990ecd7cb4420825c4f7dc3733e3e",
+      "path": "tests/commands/expr-stress/nullable-history-order-v4-20260827/frozen/run-baseline.mjs",
+      "sha256": "0e6a8e95c04dad6897f56e68533d110b8d20f24eb0fa84833564736ef83b4c8a",
+      "gitBlob": "58ae4fcaf14f0957484ea71c57ad4e19caaf3fbf",
+      "bytes": 5649,
+      "liveMatches": true
+    },
+    {
+      "kind": "v4Files",
+      "commit": "e38a68af401990ecd7cb4420825c4f7dc3733e3e",
+      "path": "tests/commands/expr-stress/nullable-history-order-v4-20260827/frozen/seal-freeze.mjs",
+      "sha256": "5663b69235dab767f71160a24c26fa8ec303c02c95de3eb49fb2c9c381865e7a",
+      "gitBlob": "36cec7d96eecd27ae4ab09bb1e4b22ec8c7ace54",
+      "bytes": 4271,
+      "liveMatches": true
+    },
+    {
+      "kind": "v4Files",
+      "commit": "e38a68af401990ecd7cb4420825c4f7dc3733e3e",
+      "path": "tests/commands/expr-stress/nullable-history-order-v4-20260827/frozen/verify-baseline.mjs",
+      "sha256": "da2950d413925c0995e0581f63a27637f6d96b2707cbdd83ffc3e9b5ce4c420c",
+      "gitBlob": "ff8846e67cb601ad1b1c251d2227e7caba2b7fa8",
+      "bytes": 4788,
+      "liveMatches": true
+    },
+    {
+      "kind": "v4Files",
+      "commit": "e38a68af401990ecd7cb4420825c4f7dc3733e3e",
+      "path": "tests/commands/expr-stress/nullable-history-order-v4-20260827/frozen/verify-freeze.mjs",
+      "sha256": "8c51d3cecb8053089ada55ef9e28805def2479781f8aab604e4d9e0edb4f752c",
+      "gitBlob": "8e7fcb92c3c654e74e5f9dcb45bac3525c8b7f87",
+      "bytes": 1902,
+      "liveMatches": true
+    },
+    {
+      "kind": "v4Files",
+      "commit": "e38a68af401990ecd7cb4420825c4f7dc3733e3e",
+      "path": "tests/commands/expr-stress/nullable-history-order-v4-20260827/normative/CHECKPOINT.txt",
+      "sha256": "c22a8ef2eaf8c13f3eb213401b798a4894abe6daf1dcce67e54fd6fc56f09c70",
+      "gitBlob": "a149222736a41ff842180ebcf594deb7a98f16e9",
+      "bytes": 3319,
+      "liveMatches": true
+    },
+    {
+      "kind": "v4Files",
+      "commit": "e38a68af401990ecd7cb4420825c4f7dc3733e3e",
+      "path": "tests/commands/expr-stress/nullable-history-order-v4-20260827/normative/MANIFEST.json",
+      "sha256": "073024d99726af4286bc1e99e72b9cc3a3ec812c8d07ada49276ed25a0125ecb",
+      "gitBlob": "38f41fda3e96f06125379b2e369425f1168ee30b",
+      "bytes": 3680,
+      "liveMatches": true
+    },
+    {
+      "kind": "v4Files",
+      "commit": "e38a68af401990ecd7cb4420825c4f7dc3733e3e",
+      "path": "tests/commands/expr-stress/nullable-history-order-v4-20260827/normative/REFERENCES.md",
+      "sha256": "6f81a17fec4abe4f9d5eb0ae2ab4d67b8172e29b7e1984bc79faa93cb0f5d04e",
+      "gitBlob": "85d6ff7067d5f6127fe902baec5122374c189271",
+      "bytes": 5770,
+      "liveMatches": true
+    },
+    {
+      "kind": "v4Files",
+      "commit": "e38a68af401990ecd7cb4420825c4f7dc3733e3e",
+      "path": "tests/commands/expr-stress/nullable-history-order-v4-20260827/normative/REPORT.md",
+      "sha256": "d5b7dd2af5d8db025406b65f810c1674ac41ef8958bfe9f70a467348d1ea9f27",
+      "gitBlob": "3b58bd85f0da932e11c8a66f51de130a2f8b9ba1",
+      "bytes": 24181,
+      "liveMatches": true
+    },
+    {
+      "kind": "v4Files",
+      "commit": "e38a68af401990ecd7cb4420825c4f7dc3733e3e",
+      "path": "tests/commands/expr-stress/nullable-history-order-v4-20260827/normative/SOURCES.json",
+      "sha256": "cd213086dabbf5486926cb67d18b5ae050ab338e019891defdd48dba23f975d8",
+      "gitBlob": "cd31090505d1af3a85970258cdf5b528f661d1ce",
+      "bytes": 3286,
+      "liveMatches": true
+    },
+    {
+      "kind": "v4Files",
+      "commit": "e38a68af401990ecd7cb4420825c4f7dc3733e3e",
+      "path": "tests/commands/expr-stress/nullable-history-order-v4-20260827/review/AUTHENTICATION.json",
+      "sha256": "14c6767734b4bc61a3e72962e0f2ee52e66c5d53b21539287ba8af18308d0ab7",
+      "gitBlob": "3e608532fa94757356ec5047ec8f48d587789912",
+      "bytes": 7842,
+      "liveMatches": true
+    },
+    {
+      "kind": "v4Files",
+      "commit": "e38a68af401990ecd7cb4420825c4f7dc3733e3e",
+      "path": "tests/commands/expr-stress/nullable-history-order-v4-20260827/review/CONTROLS.json",
+      "sha256": "7ea6cd225abeee23cad4f9fa323d889348a9b4b95e55c054a05fd8d29ba96d86",
+      "gitBlob": "088290ac59a3600084d2fa08eeed62955bc1f410",
+      "bytes": 6025,
+      "liveMatches": true
+    },
+    {
+      "kind": "v4Files",
+      "commit": "e38a68af401990ecd7cb4420825c4f7dc3733e3e",
+      "path": "tests/commands/expr-stress/nullable-history-order-v4-20260827/review/DESIGN-REVIEW.md",
+      "sha256": "a3fdb22befc70d8b9b65903e503158fcdacc7ec16289bbf61556f1349c568251",
+      "gitBlob": "199f4e3fc75818cf8e294474a688b8ae4b9aaf69",
+      "bytes": 6380,
+      "liveMatches": true
+    },
+    {
+      "kind": "v4Files",
+      "commit": "e38a68af401990ecd7cb4420825c4f7dc3733e3e",
+      "path": "tests/commands/expr-stress/nullable-history-order-v4-20260827/review/FREEZE.md",
+      "sha256": "eda6c0e24e046806472813b0c7de134d873763b8ec4531c3d9f9073da6199441",
+      "gitBlob": "3bd2cfe467ce03645c210366ddfae328fb438842",
+      "bytes": 1551,
+      "liveMatches": true
+    },
+    {
+      "kind": "v4Files",
+      "commit": "e38a68af401990ecd7cb4420825c4f7dc3733e3e",
+      "path": "tests/commands/expr-stress/nullable-history-order-v4-20260827/review/MANIFEST.json",
+      "sha256": "8c7051aa1c77266e8e7530ac6064b15572ec7effa7cf23106c93c490171bf7c6",
+      "gitBlob": "36e2aa13d4cd9d626c5ec073dde17ddf67fbd9e1",
+      "bytes": 4072,
+      "liveMatches": true
+    },
+    {
+      "kind": "v4Files",
+      "commit": "e38a68af401990ecd7cb4420825c4f7dc3733e3e",
+      "path": "tests/commands/expr-stress/nullable-history-order-v4-20260827/review/PRIMARY-SOURCES.json",
+      "sha256": "e68f3180726d23583c07a8f4c3e0918149dfe1df1dabb5b39bd288b86098f78d",
+      "gitBlob": "e7ac7dcf24b7003ed01ddc08ffe5ecc9fd590b54",
+      "bytes": 2394,
+      "liveMatches": true
+    },
+    {
+      "kind": "v4Files",
+      "commit": "e38a68af401990ecd7cb4420825c4f7dc3733e3e",
+      "path": "tests/commands/expr-stress/nullable-history-order-v4-20260827/review/REPORT.md",
+      "sha256": "0f2c32d9b3d445025529b43beeab6886653d730a2ba905718f29f60c8d107dfb",
+      "gitBlob": "533e7270efbf3c61080ce6bc2f824729acfe0e66",
+      "bytes": 10364,
+      "liveMatches": true
+    },
+    {
+      "kind": "v4Files",
+      "commit": "e38a68af401990ecd7cb4420825c4f7dc3733e3e",
+      "path": "tests/commands/expr-stress/nullable-history-order-v4-20260827/review/attempt-01-runner.mjs.data",
+      "sha256": "487370729182e29a9476022564a488e0df181424aec3f64303e55bfaf0c859d3",
+      "gitBlob": "cfbefa0c72aed7c191e93a5c4918543e58b9914f",
+      "bytes": 17963,
+      "liveMatches": true
+    },
+    {
+      "kind": "v4Files",
+      "commit": "e38a68af401990ecd7cb4420825c4f7dc3733e3e",
+      "path": "tests/commands/expr-stress/nullable-history-order-v4-20260827/review/author-replay.json",
+      "sha256": "d3ffb0ff79f8c4aacd738280dff3680931ac46977c0b9108053b43c32792d8a9",
+      "gitBlob": "2b606e2b48d1521ad37900f5161ee231824714ef",
+      "bytes": 569,
+      "liveMatches": true
+    },
+    {
+      "kind": "v4Files",
+      "commit": "e38a68af401990ecd7cb4420825c4f7dc3733e3e",
+      "path": "tests/commands/expr-stress/nullable-history-order-v4-20260827/review/controls-01.json",
+      "sha256": "1333b567a390b77ddb7237652c510381784e8b1060e046ee3f8a6bb9f3b893d9",
+      "gitBlob": "a7503f8a694254b2219441ad4e204cdab61ba046",
+      "bytes": 44613,
+      "liveMatches": true
+    },
+    {
+      "kind": "v4Files",
+      "commit": "e38a68af401990ecd7cb4420825c4f7dc3733e3e",
+      "path": "tests/commands/expr-stress/nullable-history-order-v4-20260827/review/controls-final.json",
+      "sha256": "5d7a6319de8f3cb8966c0a60e8892976e16a25343756268b49299a51e126f8a4",
+      "gitBlob": "5376532e6979918050e4a6b6dc62f9c88a932e10",
+      "bytes": 49404,
+      "liveMatches": true
+    },
+    {
+      "kind": "v4Files",
+      "commit": "e38a68af401990ecd7cb4420825c4f7dc3733e3e",
+      "path": "tests/commands/expr-stress/nullable-history-order-v4-20260827/review/run-controls.mjs",
+      "sha256": "c6b81f9e9c4432e094eeb2c480a25289d126b0476aed30e196e3faef037d607b",
+      "gitBlob": "552c4bceb730d262d2595b15c886e0353352becf",
+      "bytes": 18701,
+      "liveMatches": true
+    },
+    {
+      "kind": "productFiles",
+      "commit": "c3e40f8bd721da5e496f3b3abfd51aee45db5a84",
+      "path": "src/commands/expr/bre-worker.ts",
+      "sha256": "f5c67e9c76b584337ae506b59449ecdcd945207b2269fdb4f79c5d1f7e81aff0",
+      "gitBlob": "95d2fda3b701d095458f83eadb4ebec61eb9f669",
+      "bytes": 17704,
+      "liveMatches": true
+    },
+    {
+      "kind": "productFiles",
+      "commit": "c3e40f8bd721da5e496f3b3abfd51aee45db5a84",
+      "path": "src/commands/expr/internal.ts",
+      "sha256": "07f203d8fc4e991e4d23cab87d67a23911f7960a2ed6d649fd843b0d7060e840",
+      "gitBlob": "46b7604d21fe6823167301e1012d97d0ed7b6342",
+      "bytes": 6600,
+      "liveMatches": true
+    },
+    {
+      "kind": "productFiles",
+      "commit": "c3e40f8bd721da5e496f3b3abfd51aee45db5a84",
+      "path": "src/commands/regex-execution/protocol.ts",
+      "sha256": "3610a50b436e083b2633e08c841978999b5fa61759fcaea224aeec97230c8bc1",
+      "gitBlob": "99f39e111b0e105d8a3c0373266d90f2bd356433",
+      "bytes": 10890,
+      "liveMatches": true
+    }
+  ]
+}

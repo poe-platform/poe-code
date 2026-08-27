@@ -1,0 +1,1028 @@
+{
+  "schema": 1,
+  "inputsSha256": "ef8fa8b247befaba8e6a52b0ef5ea7447a4c449215567ff0f7038be7c5659aa2",
+  "scope": "Independent exact-AST/permissive-plan byte, complete capture-lifetime and reference-origin derivation. No candidate code, ranking, search, native or old cohort execution.",
+  "counts": {
+    "histories": 36,
+    "passed": 36,
+    "failed": 0
+  },
+  "results": [
+    {
+      "id": "p4-aa",
+      "status": "pass",
+      "occurrences": 7,
+      "whole": [
+        0,
+        4
+      ],
+      "captureCompletions": {
+        "1": [
+          [
+            0,
+            2
+          ]
+        ]
+      },
+      "refs": [
+        {
+          "group": 1,
+          "completion": 0,
+          "span": [
+            2,
+            4
+          ]
+        }
+      ]
+    },
+    {
+      "id": "p4-111",
+      "status": "pass",
+      "occurrences": 12,
+      "whole": [
+        0,
+        4
+      ],
+      "captureCompletions": {
+        "1": [
+          [
+            0,
+            1
+          ],
+          [
+            1,
+            2
+          ],
+          [
+            2,
+            3
+          ]
+        ]
+      },
+      "refs": [
+        {
+          "group": 1,
+          "completion": 2,
+          "span": [
+            3,
+            4
+          ]
+        }
+      ]
+    },
+    {
+      "id": "p4-11",
+      "status": "pass",
+      "occurrences": 9,
+      "whole": [
+        0,
+        3
+      ],
+      "captureCompletions": {
+        "1": [
+          [
+            0,
+            1
+          ],
+          [
+            1,
+            2
+          ]
+        ]
+      },
+      "refs": [
+        {
+          "group": 1,
+          "completion": 1,
+          "span": [
+            2,
+            3
+          ]
+        }
+      ]
+    },
+    {
+      "id": "p4-1",
+      "status": "pass",
+      "occurrences": 6,
+      "whole": [
+        0,
+        2
+      ],
+      "captureCompletions": {
+        "1": [
+          [
+            0,
+            1
+          ]
+        ]
+      },
+      "refs": [
+        {
+          "group": 1,
+          "completion": 0,
+          "span": [
+            1,
+            2
+          ]
+        }
+      ]
+    },
+    {
+      "id": "p4-21",
+      "status": "pass",
+      "occurrences": 10,
+      "whole": [
+        0,
+        4
+      ],
+      "captureCompletions": {
+        "1": [
+          [
+            0,
+            2
+          ],
+          [
+            2,
+            3
+          ]
+        ]
+      },
+      "refs": [
+        {
+          "group": 1,
+          "completion": 1,
+          "span": [
+            3,
+            4
+          ]
+        }
+      ]
+    },
+    {
+      "id": "p4-40",
+      "status": "pass",
+      "occurrences": 11,
+      "whole": [
+        0,
+        4
+      ],
+      "captureCompletions": {
+        "1": [
+          [
+            0,
+            4
+          ],
+          [
+            4,
+            4
+          ]
+        ]
+      },
+      "refs": [
+        {
+          "group": 1,
+          "completion": 1,
+          "span": [
+            4,
+            4
+          ]
+        }
+      ]
+    },
+    {
+      "id": "prefix-3",
+      "status": "pass",
+      "occurrences": 7,
+      "whole": [
+        0,
+        3
+      ],
+      "captureCompletions": {
+        "1": [
+          [
+            3,
+            3
+          ]
+        ]
+      },
+      "refs": []
+    },
+    {
+      "id": "prefix-2",
+      "status": "pass",
+      "occurrences": 7,
+      "whole": [
+        0,
+        3
+      ],
+      "captureCompletions": {
+        "1": [
+          [
+            2,
+            3
+          ]
+        ]
+      },
+      "refs": []
+    },
+    {
+      "id": "prefix-0",
+      "status": "pass",
+      "occurrences": 7,
+      "whole": [
+        0,
+        3
+      ],
+      "captureCompletions": {
+        "1": [
+          [
+            0,
+            3
+          ]
+        ]
+      },
+      "refs": []
+    },
+    {
+      "id": "bounded-2",
+      "status": "pass",
+      "occurrences": 7,
+      "whole": [
+        0,
+        3
+      ],
+      "captureCompletions": {
+        "1": [
+          [
+            2,
+            3
+          ]
+        ]
+      },
+      "refs": []
+    },
+    {
+      "id": "bounded-1",
+      "status": "pass",
+      "occurrences": 7,
+      "whole": [
+        0,
+        3
+      ],
+      "captureCompletions": {
+        "1": [
+          [
+            1,
+            3
+          ]
+        ]
+      },
+      "refs": []
+    },
+    {
+      "id": "bounded-0",
+      "status": "pass",
+      "occurrences": 7,
+      "whole": [
+        0,
+        3
+      ],
+      "captureCompletions": {
+        "1": [
+          [
+            0,
+            3
+          ]
+        ]
+      },
+      "refs": []
+    },
+    {
+      "id": "inner-3",
+      "status": "pass",
+      "occurrences": 8,
+      "whole": [
+        0,
+        3
+      ],
+      "captureCompletions": {
+        "1": [
+          [
+            0,
+            3
+          ]
+        ],
+        "2": [
+          [
+            3,
+            3
+          ]
+        ]
+      },
+      "refs": []
+    },
+    {
+      "id": "inner-2",
+      "status": "pass",
+      "occurrences": 8,
+      "whole": [
+        0,
+        3
+      ],
+      "captureCompletions": {
+        "1": [
+          [
+            0,
+            3
+          ]
+        ],
+        "2": [
+          [
+            2,
+            3
+          ]
+        ]
+      },
+      "refs": []
+    },
+    {
+      "id": "inner-0",
+      "status": "pass",
+      "occurrences": 8,
+      "whole": [
+        0,
+        3
+      ],
+      "captureCompletions": {
+        "1": [
+          [
+            0,
+            3
+          ]
+        ],
+        "2": [
+          [
+            0,
+            3
+          ]
+        ]
+      },
+      "refs": []
+    },
+    {
+      "id": "zero",
+      "status": "pass",
+      "occurrences": 1,
+      "whole": [
+        0,
+        0
+      ],
+      "captureCompletions": {
+        "1": []
+      },
+      "refs": []
+    },
+    {
+      "id": "one-empty",
+      "status": "pass",
+      "occurrences": 3,
+      "whole": [
+        0,
+        0
+      ],
+      "captureCompletions": {
+        "1": [
+          [
+            0,
+            0
+          ]
+        ]
+      },
+      "refs": []
+    },
+    {
+      "id": "two-empty",
+      "status": "pass",
+      "occurrences": 5,
+      "whole": [
+        0,
+        0
+      ],
+      "captureCompletions": {
+        "1": [
+          [
+            0,
+            0
+          ],
+          [
+            0,
+            0
+          ]
+        ]
+      },
+      "refs": []
+    },
+    {
+      "id": "q-empty",
+      "status": "pass",
+      "occurrences": 7,
+      "whole": [
+        0,
+        0
+      ],
+      "captureCompletions": {
+        "1": [
+          [
+            0,
+            0
+          ],
+          [
+            0,
+            0
+          ]
+        ]
+      },
+      "refs": [
+        {
+          "group": 1,
+          "completion": 1,
+          "span": [
+            0,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "q3-required-empty",
+      "status": "pass",
+      "occurrences": 10,
+      "whole": [
+        0,
+        3
+      ],
+      "captureCompletions": {
+        "1": [
+          [
+            0,
+            3
+          ],
+          [
+            3,
+            3
+          ]
+        ]
+      },
+      "refs": [
+        {
+          "group": 1,
+          "completion": 1,
+          "span": [
+            3,
+            3
+          ]
+        }
+      ]
+    },
+    {
+      "id": "q3-nonempty",
+      "status": "pass",
+      "occurrences": 9,
+      "whole": [
+        0,
+        3
+      ],
+      "captureCompletions": {
+        "1": [
+          [
+            0,
+            1
+          ],
+          [
+            1,
+            2
+          ]
+        ]
+      },
+      "refs": [
+        {
+          "group": 1,
+          "completion": 1,
+          "span": [
+            2,
+            3
+          ]
+        }
+      ]
+    },
+    {
+      "id": "required-child",
+      "status": "pass",
+      "occurrences": 19,
+      "whole": [
+        0,
+        2
+      ],
+      "captureCompletions": {
+        "1": [
+          [
+            0,
+            1
+          ],
+          [
+            1,
+            2
+          ]
+        ],
+        "2": [
+          [
+            1,
+            1
+          ],
+          [
+            1,
+            1
+          ],
+          [
+            2,
+            2
+          ],
+          [
+            2,
+            2
+          ]
+        ]
+      },
+      "refs": [
+        {
+          "group": 2,
+          "completion": 3,
+          "span": [
+            2,
+            2
+          ]
+        }
+      ]
+    },
+    {
+      "id": "required-prefix",
+      "status": "pass",
+      "occurrences": 9,
+      "whole": [
+        0,
+        1
+      ],
+      "captureCompletions": {
+        "1": [
+          [
+            1,
+            1
+          ],
+          [
+            1,
+            1
+          ]
+        ]
+      },
+      "refs": [
+        {
+          "group": 1,
+          "completion": 1,
+          "span": [
+            1,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "id": "required-nested",
+      "status": "pass",
+      "occurrences": 13,
+      "whole": [
+        0,
+        0
+      ],
+      "captureCompletions": {
+        "1": [
+          [
+            0,
+            0
+          ],
+          [
+            0,
+            0
+          ]
+        ],
+        "2": [
+          [
+            0,
+            0
+          ],
+          [
+            0,
+            0
+          ],
+          [
+            0,
+            0
+          ],
+          [
+            0,
+            0
+          ]
+        ]
+      },
+      "refs": []
+    },
+    {
+      "id": "p3-narrow",
+      "status": "pass",
+      "occurrences": 9,
+      "whole": [
+        0,
+        3
+      ],
+      "captureCompletions": {
+        "1": [
+          [
+            0,
+            1
+          ],
+          [
+            1,
+            2
+          ]
+        ]
+      },
+      "refs": [
+        {
+          "group": 1,
+          "completion": 1,
+          "span": [
+            2,
+            3
+          ]
+        }
+      ]
+    },
+    {
+      "id": "p3-shorter",
+      "status": "pass",
+      "occurrences": 6,
+      "whole": [
+        0,
+        2
+      ],
+      "captureCompletions": {
+        "1": [
+          [
+            0,
+            1
+          ]
+        ]
+      },
+      "refs": [
+        {
+          "group": 1,
+          "completion": 0,
+          "span": [
+            1,
+            2
+          ]
+        }
+      ]
+    },
+    {
+      "id": "p3-empty",
+      "status": "pass",
+      "occurrences": 5,
+      "whole": [
+        0,
+        0
+      ],
+      "captureCompletions": {
+        "1": [
+          [
+            0,
+            0
+          ]
+        ]
+      },
+      "refs": [
+        {
+          "group": 1,
+          "completion": 0,
+          "span": [
+            0,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "p3-tail",
+      "status": "pass",
+      "occurrences": 10,
+      "whole": [
+        0,
+        3
+      ],
+      "captureCompletions": {
+        "1": [
+          [
+            0,
+            3
+          ],
+          [
+            3,
+            3
+          ]
+        ]
+      },
+      "refs": [
+        {
+          "group": 1,
+          "completion": 1,
+          "span": [
+            3,
+            3
+          ]
+        }
+      ]
+    },
+    {
+      "id": "w3-A",
+      "status": "pass",
+      "occurrences": 9,
+      "whole": [
+        0,
+        4
+      ],
+      "captureCompletions": {
+        "1": [
+          [
+            0,
+            3
+          ],
+          [
+            3,
+            4
+          ]
+        ]
+      },
+      "refs": []
+    },
+    {
+      "id": "w3-B",
+      "status": "pass",
+      "occurrences": 11,
+      "whole": [
+        0,
+        4
+      ],
+      "captureCompletions": {
+        "1": [
+          [
+            0,
+            2
+          ],
+          [
+            2,
+            3
+          ],
+          [
+            3,
+            4
+          ]
+        ]
+      },
+      "refs": []
+    },
+    {
+      "id": "w4-A",
+      "status": "pass",
+      "occurrences": 15,
+      "whole": [
+        0,
+        4
+      ],
+      "captureCompletions": {
+        "1": [
+          [
+            0,
+            2
+          ],
+          [
+            2,
+            4
+          ]
+        ],
+        "2": [
+          [
+            0,
+            0
+          ],
+          [
+            2,
+            4
+          ]
+        ]
+      },
+      "refs": []
+    },
+    {
+      "id": "w4-B",
+      "status": "pass",
+      "occurrences": 20,
+      "whole": [
+        0,
+        4
+      ],
+      "captureCompletions": {
+        "1": [
+          [
+            0,
+            2
+          ],
+          [
+            2,
+            3
+          ],
+          [
+            3,
+            4
+          ]
+        ],
+        "2": [
+          [
+            0,
+            2
+          ],
+          [
+            2,
+            3
+          ],
+          [
+            3,
+            4
+          ]
+        ]
+      },
+      "refs": []
+    },
+    {
+      "id": "d-skip",
+      "status": "pass",
+      "occurrences": 13,
+      "whole": [
+        0,
+        4
+      ],
+      "captureCompletions": {
+        "1": [
+          [
+            0,
+            2
+          ],
+          [
+            2,
+            3
+          ]
+        ],
+        "2": [
+          [
+            1,
+            2
+          ]
+        ]
+      },
+      "refs": [
+        {
+          "group": 2,
+          "completion": 0,
+          "span": [
+            3,
+            4
+          ]
+        }
+      ]
+    },
+    {
+      "id": "d-reentry",
+      "status": "pass",
+      "occurrences": 15,
+      "whole": [
+        0,
+        5
+      ],
+      "captureCompletions": {
+        "1": [
+          [
+            0,
+            2
+          ],
+          [
+            2,
+            4
+          ]
+        ],
+        "2": [
+          [
+            1,
+            2
+          ],
+          [
+            3,
+            4
+          ]
+        ]
+      },
+      "refs": [
+        {
+          "group": 2,
+          "completion": 1,
+          "span": [
+            4,
+            5
+          ]
+        }
+      ]
+    },
+    {
+      "id": "e-empty-reentry",
+      "status": "pass",
+      "occurrences": 14,
+      "whole": [
+        0,
+        3
+      ],
+      "captureCompletions": {
+        "1": [
+          [
+            0,
+            2
+          ],
+          [
+            2,
+            3
+          ]
+        ],
+        "2": [
+          [
+            1,
+            2
+          ],
+          [
+            3,
+            3
+          ]
+        ]
+      },
+      "refs": [
+        {
+          "group": 2,
+          "completion": 1,
+          "span": [
+            3,
+            3
+          ]
+        }
+      ]
+    },
+    {
+      "id": "empty-reference",
+      "status": "pass",
+      "occurrences": 7,
+      "whole": [
+        0,
+        1
+      ],
+      "captureCompletions": {
+        "1": [
+          [
+            0,
+            1
+          ]
+        ],
+        "2": [
+          [
+            1,
+            1
+          ]
+        ]
+      },
+      "refs": [
+        {
+          "group": 2,
+          "completion": 0,
+          "span": [
+            1,
+            1
+          ]
+        }
+      ]
+    }
+  ]
+}

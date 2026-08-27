@@ -1,0 +1,10 @@
+{
+  "schema": 1,
+  "status": "Precode profile-name binding from authenticated freeze; candidate source/API not yet inspected or executed",
+  "freezeCommit": "f561bd9fa33afdf8285154237f856ebfd8495ce4",
+  "controlsCommit": "18104988c32c467e4025743927c20ee80eaa1781",
+  "profiles": {"NODE":"HNODE-AGG-v5", "TREE":"HTREE-AGG-v5"},
+  "mutations": [],
+  "plannedMutantsMaximum": 5,
+  "remainingBinding": "Authenticate candidate first. Adapt module/API representation only, source-bind focused mutants, preserve first attempts and any assertion deltas. No expectation change or live engine authorization."
+}

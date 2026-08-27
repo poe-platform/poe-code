@@ -1,0 +1,20 @@
+2026-08-27 independent delegated LEAF; no redelegation.
+Own ONLY new tests/commands/expr-stress/nullable-hierarchy-v5-20260827/review/** and requested receipts/unique scratch.
+Read ../AGENTS.md and project AGENTS. Existing source/public/package edits are unrelated, preserved; index initially empty.
+Read immutable v4 normative/review/frozen inputs and v4 code; read early v5 freeze and architecture-only prototype receipts. NO v5 implementation/results inspected.
+Freezing eight independent groups, five new finite supplied histories (plus reused existing32/W3/W4 plans), not native observations.
+Literal outer-repeat aggregates force B over A for P/aaaa under both NODE/TREE. Preserve old C1 A as conflicting proposed-policy assertion; original 46/52 and adapter44/50 remain untouched.
+NODE/TREE W4 disagreement, wrapper transparency, initial participation versus END, TEMP origins, same-env no-merge, required counts, conditional LOCAL-TAIL-HYPOTHESIS, unchanged v4 limits, refusal-after-incumbent, exact abort are frozen obligations.
+No actual worker/native/product/core/quota run. No live/public/promoted/full parity claim. Initial c3 guard unchanged.
+Controls sealed in 18104988c32c467e4025743927c20ee80eaa1781 before prototype implementation/results inspection.
+Eight groups, five additional histories; exact ASTs/plans/subjects/expected profiles in CONTROLS.json. Candidate pointers absent at this preparatory checkpoint.
+Preparing independent replay/trace validator without author implementation. No idle long-poll.
+Independent no-model AST/byte/reference derivation validates all 31 plans across 17 exact AST/subject cases; five are new, 26 reused. Controls SHA256 af00f1e794152e8f69bfa1641c87cb1e78e9844a768b8220dd79333b45fdf409.
+Unique scratch /tmp/expr-hierarchy-v5-review-iyyUu6 holds first input derivation. Prototype remains uninspected/unexecuted; author receipt still architecture-only.
+Four live guarded files independently hash-match c3e40f8b (bre-worker, regex client/protocol/worker); no live edits by reviewer. Unrelated concurrent commits/edits preserved.
+Independent replay runner now syntax-valid, with eight frozen groups, constructor trace/branch-origin sanity, profile-specific old-C1 observation, and <=5 source-bound mutant hooks. No candidate replay count yet.
+Freeze candidate f561bd9fa33afdf8285154237f856ebfd8495ce4 authenticated in unique OS-temp; 8/8 manifest entries plus manifest itself match committed bytes. Manifest SHA256 d2f9faa1269f8b0d86f070ee7a5c3df4a6cc39af3d71c1343ad826d1922eb632.
+Independent exact-AST derivation checks 36/36 frozen supplied histories, every declared completion and reference origin. This is new input-integrity evidence, not candidate replay/native acceptance. All 17 milestones+40 v4 files+3 product bindings independently match commits/blobs/hashes and current bytes.
+Independent precode oracle validates 20 frozen expected pair matrices, including NODE A/TREE B W4 and wrapper variants. No source-result-driven expectation change. POLICY-REVIEW.md records explicit v5 C1 derivation correction without changing old assertions/data.
+Still awaiting sealed author candidate; actual prototype tests/mutants remain 0, never guessed green. Preparatory work is useful and complete; no idle long polling.
+Final preparatory pointer check 2026-08-27T22:54:08.345Z: /tmp/expr-hierarchy-v5-prototype-candidate.txt absent. No unsealed prototype code/results inspected. Root can route one bounded follow-up using already frozen controls after author seal.

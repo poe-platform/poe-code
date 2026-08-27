@@ -1,0 +1,9 @@
+{
+  "receipts": ["/tmp/expr-hierarchy-v5-freeze-checkpoint.txt", "/tmp/expr-hierarchy-v5-freeze-candidate.txt", "/tmp/expr-hierarchy-v5-prototype-checkpoint.txt"],
+  "archives": [
+    {"label":"sealed-freeze", "commit":"f561bd9fa33afdf8285154237f856ebfd8495ce4", "paths":["tests/commands/expr-stress/nullable-hierarchy-v5-20260827/freeze"]},
+    {"label":"v4-limit-source", "commit":"938fdbc6", "paths":["tests/commands/expr-stress/nullable-history-order-v4-20260827/design/model.mjs"]}
+  ],
+  "guards": ["src/commands/expr/bre-worker.ts", "src/commands/regex-execution/client.ts", "src/commands/regex-execution/protocol.ts", "src/commands/regex-execution/worker.ts"],
+  "controls": ["tests/commands/expr-stress/nullable-hierarchy-v5-20260827/review/CONTROLS.json", "tests/commands/expr-stress/nullable-hierarchy-v5-20260827/review/FREEZE.md"]
+}

@@ -114,8 +114,8 @@ export function currentConsumers(report) {
       assert.ok(compilerFiles.includes(join(groupInstalled, "dist/index.d.ts")));
       assert.ok(!compilerFiles.some(path => path.startsWith(join(report.root, "src/")) || path.startsWith(join(report.root, "dist/"))), "consumer types used source/build fallback");
       for (const runtime of group.runtime) {
-        const execution = step(report, `consumer-${group.name}-${runtime}`, permission.executable, [...consumerPermissionArgs(permission, consumer, true), join(config.compilerOptions.outDir, runtime)], consumer, { env: environment });
         const usesNodeTest = group.nodeTests !== undefined || runtime.endsWith(".test.mjs") || ["s3-constructor", "webdav-loopback"].includes(group.name);
+        const execution = step(report, `consumer-${group.name}-${runtime}`, permission.executable, [...consumerPermissionArgs(permission, consumer, true), ...usesNodeTest ? ["--test-reporter=tap"] : [], join(config.compilerOptions.outDir, runtime)], consumer, { env: environment });
         let counts;
         if (usesNodeTest) {
           counts = Object.fromEntries(["tests", "pass", "fail", "cancelled", "skipped", "todo"].map(name => [name, Number(execution.stdout.match(new RegExp(`^# ${name} (\\d+)$`, "m"))?.[1] ?? NaN)]));

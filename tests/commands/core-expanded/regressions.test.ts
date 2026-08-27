@@ -37,11 +37,11 @@ test("C wc treats arbitrary octets as characters without decoding", async () => 
   assert.equal(result.stdout, "256\n");
 });
 
-test("env preserves exact bindings without inventing portable enumeration order", async () => {
+test("env preserves exact bindings with the pinned gnulib prepend-new profile", async () => {
   const parent = { OUTER: "secret" };
   for (const assignments of [["A=1", "B=2"], ["B=2", "A=1"]]) {
     const result = await run("env", ["-i", ...assignments], { env: parent });
-    assert.equal(result.stdout, assignments.join("\n") + "\n");
+    assert.equal(result.stdout, [...assignments].reverse().join("\n") + "\n");
     assert.deepEqual(Object.fromEntries(result.stdout.trimEnd().split("\n").map(value => value.split("="))), { A: "1", B: "2" });
   }
   assert.deepEqual(parent, { OUTER: "secret" });

@@ -1,0 +1,366 @@
+{
+  "capturedAt": "2026-08-27T02:36:37.205Z",
+  "executable": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/env",
+  "executableSha256": "1026eb36ffd2fdca6d064c0ffd6dd99ceb7bb3f49ec5e804df2c53bef372dbf0",
+  "version": "env (GNU coreutils) 9.7\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Richard Mlynarik, David MacKenzie, and Assaf Gordon.\n",
+  "host": {
+    "platform": "darwin",
+    "release": "25.4.0",
+    "node": "v22.22.2"
+  },
+  "sourceHashes": {
+    "src/env.c": "ed606a062de3f107cd3cb9e1e73c7215272e2a8c7ad6f362aa14e0f6d390a032",
+    "lib/putenv.c": "cb6f73b52609c1d332e3198b31969deb5c6ed6aca00acc40a1fb71abf74f1e87"
+  },
+  "sourceFindings": "Pinned env.c calls putenv per assignment and emits environ in physical order. Included gnulib putenv.c replaces an existing slot; a new name is prepended. Observations establish this actual build profile, not a universal POSIX order or all GNU builds.",
+  "primaryReferences": [
+    "https://raw.githubusercontent.com/coreutils/coreutils/v9.7/src/env.c",
+    "https://raw.githubusercontent.com/coreutils/gnulib/master/lib/putenv.c"
+  ],
+  "observations": [
+    {
+      "args": [
+        "-i"
+      ],
+      "env": {
+        "A": "old",
+        "B": "parent",
+        "C": "before"
+      },
+      "stdout": "",
+      "stderr": "",
+      "exitCode": 0
+    },
+    {
+      "args": [
+        "-i",
+        "A=1",
+        "B=2"
+      ],
+      "env": {
+        "A": "old",
+        "B": "parent",
+        "C": "before"
+      },
+      "stdout": "Qj0yCkE9MQo=",
+      "stderr": "",
+      "exitCode": 0
+    },
+    {
+      "args": [
+        "-i",
+        "B=2",
+        "A=1"
+      ],
+      "env": {
+        "A": "old",
+        "B": "parent",
+        "C": "before"
+      },
+      "stdout": "QT0xCkI9Mgo=",
+      "stderr": "",
+      "exitCode": 0
+    },
+    {
+      "args": [
+        "-i",
+        "A=1",
+        "B=2",
+        "C=3"
+      ],
+      "env": {
+        "A": "old",
+        "B": "parent",
+        "C": "before"
+      },
+      "stdout": "Qz0zCkI9MgpBPTEK",
+      "stderr": "",
+      "exitCode": 0
+    },
+    {
+      "args": [
+        "-i",
+        "A=1",
+        "B=2",
+        "A=3"
+      ],
+      "env": {
+        "A": "old",
+        "B": "parent",
+        "C": "before"
+      },
+      "stdout": "Qj0yCkE9Mwo=",
+      "stderr": "",
+      "exitCode": 0
+    },
+    {
+      "args": [
+        "-i",
+        "Z=1",
+        "A=2",
+        "M=3"
+      ],
+      "env": {
+        "A": "old",
+        "B": "parent",
+        "C": "before"
+      },
+      "stdout": "TT0zCkE9MgpaPTEK",
+      "stderr": "",
+      "exitCode": 0
+    },
+    {
+      "args": [
+        "-i",
+        "ONE=1",
+        "TWO=2",
+        "THREE=3",
+        "FOUR=4"
+      ],
+      "env": {
+        "A": "old",
+        "B": "parent",
+        "C": "before"
+      },
+      "stdout": "Rk9VUj00ClRIUkVFPTMKVFdPPTIKT05FPTEK",
+      "stderr": "",
+      "exitCode": 0
+    },
+    {
+      "args": [
+        "-i",
+        "1=x",
+        "2=y",
+        "X=z"
+      ],
+      "env": {
+        "A": "old",
+        "B": "parent",
+        "C": "before"
+      },
+      "stdout": "WD16CjI9eQoxPXgK",
+      "stderr": "",
+      "exitCode": 0
+    },
+    {
+      "args": [],
+      "env": {
+        "A": "old",
+        "B": "parent",
+        "C": "before"
+      },
+      "stdout": "QT1vbGQKQj1wYXJlbnQKQz1iZWZvcmUK",
+      "stderr": "",
+      "exitCode": 0
+    },
+    {
+      "args": [
+        "NEW=new"
+      ],
+      "env": {
+        "A": "old",
+        "B": "parent",
+        "C": "before"
+      },
+      "stdout": "TkVXPW5ldwpBPW9sZApCPXBhcmVudApDPWJlZm9yZQo=",
+      "stderr": "",
+      "exitCode": 0
+    },
+    {
+      "args": [
+        "A=new"
+      ],
+      "env": {
+        "A": "old",
+        "B": "parent",
+        "C": "before"
+      },
+      "stdout": "QT1uZXcKQj1wYXJlbnQKQz1iZWZvcmUK",
+      "stderr": "",
+      "exitCode": 0
+    },
+    {
+      "args": [
+        "B=new"
+      ],
+      "env": {
+        "A": "old",
+        "B": "parent",
+        "C": "before"
+      },
+      "stdout": "QT1vbGQKQj1uZXcKQz1iZWZvcmUK",
+      "stderr": "",
+      "exitCode": 0
+    },
+    {
+      "args": [
+        "-u",
+        "A",
+        "C=3"
+      ],
+      "env": {
+        "A": "old",
+        "B": "parent",
+        "C": "before"
+      },
+      "stdout": "Qj1wYXJlbnQKQz0zCg==",
+      "stderr": "",
+      "exitCode": 0
+    },
+    {
+      "args": [
+        "A=new",
+        "NEW=new"
+      ],
+      "env": {
+        "A": "old",
+        "B": "parent",
+        "C": "before"
+      },
+      "stdout": "TkVXPW5ldwpBPW5ldwpCPXBhcmVudApDPWJlZm9yZQo=",
+      "stderr": "",
+      "exitCode": 0
+    },
+    {
+      "args": [
+        "-u",
+        "A",
+        "A=again"
+      ],
+      "env": {
+        "A": "old",
+        "B": "parent",
+        "C": "before"
+      },
+      "stdout": "QT1hZ2FpbgpCPXBhcmVudApDPWJlZm9yZQo=",
+      "stderr": "",
+      "exitCode": 0
+    },
+    {
+      "args": [
+        "-u",
+        "B",
+        "B=again",
+        "D=new"
+      ],
+      "env": {
+        "A": "old",
+        "B": "parent",
+        "C": "before"
+      },
+      "stdout": "RD1uZXcKQj1hZ2FpbgpBPW9sZApDPWJlZm9yZQo=",
+      "stderr": "",
+      "exitCode": 0
+    },
+    {
+      "args": [
+        "-u",
+        "MISSING",
+        "NEW=new"
+      ],
+      "env": {
+        "A": "old",
+        "B": "parent",
+        "C": "before"
+      },
+      "stdout": "TkVXPW5ldwpBPW9sZApCPXBhcmVudApDPWJlZm9yZQo=",
+      "stderr": "",
+      "exitCode": 0
+    },
+    {
+      "args": [
+        "-i",
+        "EMPTY=",
+        "VALUE=a=b"
+      ],
+      "env": {
+        "A": "old",
+        "B": "parent",
+        "C": "before"
+      },
+      "stdout": "VkFMVUU9YT1iCkVNUFRZPQo=",
+      "stderr": "",
+      "exitCode": 0
+    },
+    {
+      "args": [
+        "-i",
+        "__proto__=literal",
+        "constructor=value"
+      ],
+      "env": {
+        "A": "old",
+        "B": "parent",
+        "C": "before"
+      },
+      "stdout": "Y29uc3RydWN0b3I9dmFsdWUKX19wcm90b19fPWxpdGVyYWwK",
+      "stderr": "",
+      "exitCode": 0
+    },
+    {
+      "args": [
+        "-0",
+        "-u",
+        "A",
+        "NEW=new"
+      ],
+      "env": {
+        "A": "old",
+        "B": "parent",
+        "C": "before"
+      },
+      "stdout": "TkVXPW5ldwBCPXBhcmVudABDPWJlZm9yZQA=",
+      "stderr": "",
+      "exitCode": 0
+    },
+    {
+      "args": [
+        "-0",
+        "-i",
+        "A=1",
+        "B=2",
+        "A=3"
+      ],
+      "env": {
+        "A": "old",
+        "B": "parent",
+        "C": "before"
+      },
+      "stdout": "Qj0yAEE9MwA=",
+      "stderr": "",
+      "exitCode": 0
+    },
+    {
+      "args": [
+        "-i",
+        "A=one\ntwo",
+        "B=three"
+      ],
+      "env": {
+        "A": "old",
+        "B": "parent",
+        "C": "before"
+      },
+      "stdout": "Qj10aHJlZQpBPW9uZQp0d28K",
+      "stderr": "",
+      "exitCode": 0
+    },
+    {
+      "args": [
+        "-i",
+        "DUP=1",
+        "DUP=2",
+        "LAST=3",
+        "DUP=4"
+      ],
+      "env": {
+        "A": "old",
+        "B": "parent",
+        "C": "before"
+      },
+      "stdout": "TEFTVD0zCkRVUD00Cg==",
+      "stderr": "",
+      "exitCode": 0
+    }
+  ]
+}

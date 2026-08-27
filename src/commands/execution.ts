@@ -51,6 +51,8 @@ export function executionCommands(execute: CommandHandler): CommandDefinition[] 
       const parsed = options(args, "iu:0C:", { "ignore-environment": "i", unset: "u", null: "0", chdir: "C" }, true);
       const env: Record<string, string> = Object.assign(Object.create(null) as Record<string, string>, parsed.flags.has("i") ? {} : context.env);
       for (const name of parsed.values.get("u") ?? []) delete env[name];
+      const inheritedNames = Object.keys(env);
+      const addedNames: string[] = [];
       let offset = 0;
       while (parsed.operands[offset]?.includes("=")) {
         const assignment = parsed.operands[offset++]!;
@@ -59,8 +61,10 @@ export function executionCommands(execute: CommandHandler): CommandDefinition[] 
         if (!name || name.includes("\0")) throw new UsageError("invalid environment variable name");
         const content = assignment.slice(equals + 1);
         if (content.includes("\0")) throw new UsageError("environment values cannot contain NUL");
+        if (!Object.hasOwn(env, name)) addedNames.push(name);
         env[name] = content;
       }
+      const names = [...addedNames.reverse(), ...inheritedNames];
       let cwd = context.cwd;
       const directory = value(parsed, "C");
       if (directory !== undefined) {
@@ -70,13 +74,14 @@ export function executionCommands(execute: CommandHandler): CommandDefinition[] 
       }
       if (offset < parsed.operands.length) {
         if (parsed.flags.has("0")) throw new UsageError("cannot specify --null with a command");
+        const childEnv: Record<string, string> = Object.assign(Object.create(null) as Record<string, string>, Object.fromEntries(names.map(name => [name, env[name]!])));
         if (context.invoke) return context.invoke(parsed.operands[offset]!, parsed.operands.slice(offset + 1), {
-          env, replaceEnv: true, cwd, stdin: context.stdin, stdout: context.stdout, stderr: context.stderr,
+          env: childEnv, replaceEnv: true, cwd, stdin: context.stdin, stdout: context.stdout, stderr: context.stderr,
           ...(context.stdinIsDefault === undefined ? {} : { stdinIsDefault: context.stdinIsDefault }),
         });
-        return execute({ ...context, command: parsed.operands[offset]!, args: parsed.operands.slice(offset + 1), env, cwd });
+        return execute({ ...context, command: parsed.operands[offset]!, args: parsed.operands.slice(offset + 1), env: childEnv, cwd });
       }
-      for (const [name, content] of Object.entries(env)) await output(context, `${name}=${content}${parsed.flags.has("0") ? "\0" : "\n"}`);
+      for (const name of names) await output(context, `${name}=${env[name]}${parsed.flags.has("0") ? "\0" : "\n"}`);
       return { exitCode: 0 };
     }),
     define("xargs", async context => {

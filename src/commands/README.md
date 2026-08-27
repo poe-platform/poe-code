@@ -26,6 +26,12 @@ all collisions before registering anything; replacement must be explicit.
 No root export or package subpath export is added by this family.
 
 `env COMMAND`, `xargs`, and `find -exec` dispatch literal command names and argv.
+`env COMMAND` requests `replaceEnv: true` with its computed exported environment;
+runtime support must honor this without resurrecting removed exports or PWD.
+Other forwarding callers retain default merge behavior. Environment listing
+uses the pinned GNU9.7 gnulib profile: new assignment names are prepended,
+existing names are replaced in place, inherited order is retained. This is a
+specific native profile, not a portable POSIX environment-order guarantee.
 They prefer a structurally available `context.invoke(command, args, options)`
 hook, matching `ShellCommandContext.invoke`. This preserves shell middleware,
 functions, cancellation, filesystem, and execution budgets. Otherwise they use

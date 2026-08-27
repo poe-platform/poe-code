@@ -11,13 +11,14 @@ Capture a new native cohort only under a new filename/directory; capture.mjs
 refuses to overwrite native.json. `COREUTILS_ORACLE_ROOT` selects the existing
 GNU9.7 binaries. Product code never launches these binaries or uses host paths.
 
-The separate env order mismatch remains recorded. This host's GNU9.7 env output
-reverses assignment insertion order, while the virtual command retains insertion
-order. POSIX.1-2017 section8.1 gives environment string order no meaning. Do not
-reverse product output or sort the benchmark to make this profile discrepancy
-disappear. Exact values, parent isolation and NUL/literal behavior remain tested.
-The genuinely wrong nested env clearing still requires shell invocation support;
-the proposed `replaceEnv` option has not been implemented or accepted here.
+The historical env order mismatch remains recorded. Subsequent investigation in
+`../core-env/README.md` identifies the pinned GNU9.7 build's gnulib putenv rule:
+prepend new names, replace existing slots in place. Product env now implements
+that actual profile rather than reversing final output or normalizing benchmark
+bytes. POSIX.1-2017 section8.1 gives environment string order no portable meaning.
+Exact values, parent isolation and NUL/literal behavior remain tested. Approved
+replaceEnv contract/core forwarding is committed in84fc742; the genuinely wrong
+nested clearing still requires Sagan runtime integration and actual-shell proof.
 
 References:
 - https://raw.githubusercontent.com/coreutils/coreutils/v9.7/src/wc.c

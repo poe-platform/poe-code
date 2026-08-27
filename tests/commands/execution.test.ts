@@ -5,7 +5,7 @@ import { chunks, fixture, run } from "./helpers.js";
 
 test("env lists, clears, unsets and sets literal variables without mutating its parent", async () => {
   const env = { FIRST: "one", SECOND: "two" };
-  assert.equal((await run("env", ["-0", "-u", "FIRST", "THIRD=three"], { env })).stdout, "SECOND=two\0THIRD=three\0");
+  assert.equal((await run("env", ["-0", "-u", "FIRST", "THIRD=three"], { env })).stdout, "THIRD=three\0SECOND=two\0");
   assert.equal((await run("env", ["-i", "LITERAL=$(not executed)"])).stdout, "LITERAL=$(not executed)\n");
   assert.deepEqual(env, { FIRST: "one", SECOND: "two" });
   const calls: CommandContext[] = [];

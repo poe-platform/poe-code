@@ -1,0 +1,36 @@
+import assert from 'node:assert/strict';
+import { spawnSync } from 'node:child_process';
+import { createHash } from 'node:crypto';
+import { copyFileSync, mkdirSync, readFileSync, symlinkSync, unlinkSync, writeFileSync } from 'node:fs';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const pack = process.argv[2]; const output = process.argv[3]; assert.ok(pack && output); mkdirSync(output, { recursive: false });
+const base = fileURLToPath(new URL('./', import.meta.url)); const receipt = JSON.parse(readFileSync(join(pack, 'receipt.json'))); const consumer = receipt.consumer;
+const sha256 = bytes => createHash('sha256').update(bytes).digest('hex');
+const result = { classification: 'additive-S02-S03-coverage-not-rewritten-original-evidence', candidate: '04644bc2c15d67155f5f4b170a66fc9bef3f6e3d', sourceSha256: receipt.aliasSourceSha256, packageSha256: receipt.packageSha256, startedAt: new Date().toISOString(), consumer, output, commands: [], status: 'in-progress', forcedCleanup: false };
+const environment = { PATH: `${dirname(process.execPath)}:/usr/bin:/bin`, HOME: join(output, 'home'), TMPDIR: output, LC_ALL: 'C', LANG: 'C', TZ: 'UTC', GREP_ALIAS_SUPPLEMENT_OUTPUT: join(output, 'results') }; mkdirSync(environment.HOME);
+function verify() {
+  assert.equal(sha256(readFileSync(join(pack, 'candidate.tar'))), receipt.archiveSha256);
+  for (const entry of receipt.sourceManifest) assert.equal(sha256(readFileSync(join(pack, 'source', entry.path))), entry.sha256);
+  for (const entry of receipt.packageManifest) assert.equal(sha256(readFileSync(join(consumer, 'node_modules/virtual-bash', entry.path))), entry.sha256);
+}
+function run(name, args, timeout) {
+  const child = spawnSync(process.execPath, args, { cwd: consumer, env: environment, timeout, maxBuffer: 1024 * 1024, killSignal: 'SIGKILL' });
+  result.commands.push({ name, args, status: child.status, signal: child.signal, error: child.error?.message ?? null, stdoutHex: (child.stdout ?? Buffer.alloc(0)).toString('hex'), stderrHex: (child.stderr ?? Buffer.alloc(0)).toString('hex') });
+  if (child.signal || child.error) result.forcedCleanup = true;
+  return child;
+}
+try {
+  verify(); const source = join(base, 'pipeline-holdouts.mts'); result.harnessSha256 = sha256(readFileSync(source)); result.driverSha256 = sha256(readFileSync(fileURLToPath(import.meta.url)));
+  copyFileSync(source, join(consumer, 'pipeline-holdouts.mts')); copyFileSync(source, join(output, 'pipeline-holdouts.mts'));
+  const links = ['@types/node', 'undici-types'];
+  for (const name of links) symlinkSync(join(pack, 'source/node_modules', name), join(consumer, 'node_modules', name));
+  writeFileSync(join(consumer, 'tsconfig.supplement.json'), `${JSON.stringify({ compilerOptions: { target: 'ES2023', lib: ['ES2023'], module: 'NodeNext', moduleResolution: 'NodeNext', strict: true, noUncheckedIndexedAccess: true, exactOptionalPropertyTypes: true, verbatimModuleSyntax: true, skipLibCheck: true, types: ['node'], outDir: 'run-supplement' }, files: ['pipeline-holdouts.mts'] }, null, 2)}\n`);
+  const types = run('strict-types', [join(pack, 'source/node_modules/typescript/lib/tsc.js'), '-p', 'tsconfig.supplement.json', '--noEmitOnError'], 120000);
+  for (const name of links) unlinkSync(join(consumer, 'node_modules', name));
+  assert.equal(types.status, 0, types.stdout?.toString());
+  const tests = run('pipeline-supplement', ['--test', '--test-concurrency=1', 'run-supplement/pipeline-holdouts.mjs'], 30000);
+  result.status = tests.status === 0 && !tests.error && !tests.signal ? 'passed' : 'failed'; verify(); result.archiveAndPackageUnchangedAfter = true;
+} catch (error) { result.status = 'failed'; result.error = { message: error.message, stack: error.stack }; }
+finally { result.endedAt = new Date().toISOString(); writeFileSync(join(output, 'receipt.json'), `${JSON.stringify(result, null, 2)}\n`); console.log(JSON.stringify({ status: result.status, forcedCleanup: result.forcedCleanup, output, error: result.error?.message }, null, 2)); if (result.status !== 'passed') process.exitCode = 1; }

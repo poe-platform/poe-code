@@ -1,0 +1,61 @@
+{
+  "classification": "additive-supplement-static-integrity",
+  "checkedAt": "2026-08-27T15:16:04.659Z",
+  "status": "passed",
+  "decision": "HOLD",
+  "checks": [
+    "Attempt 01: raw receipt/snapshot identity, strict types, preserved outcome and actual worker exits",
+    "Attempt 02: raw receipt/snapshot identity, strict types, preserved outcome and actual worker exits",
+    "Attempt 03: raw receipt/snapshot identity, strict types, preserved outcome and actual worker exits",
+    "Current canonical supplement equals final strictly compiled source; actual target budget selected",
+    "All eleven main source/package/dependency/native/harness checks passed again without candidate reruns"
+  ],
+  "canonicalStrictTypeScript": [
+    "pipeline-holdouts.mts"
+  ],
+  "syntaxCheckedJavaScript": [
+    "run-supplement.mjs"
+  ],
+  "mainPostSupplementIntegrity": {
+    "classification": "static-evidence-integrity-not-candidate-tests",
+    "startedAt": "2026-08-27T15:16:03.914Z",
+    "checks": [
+      "Original preparation payload and separate GNU pre-candidate seal unchanged",
+      "Same 26 GNU inputs, two raw agreeing captures, exact file effects and retained warnings",
+      "GNU executable/wrapper and primary archive pins still authenticated without execution",
+      "All seven original attempt receipts, harness snapshots, strict types and failures retained",
+      "Each actual worker create has exactly one exit; no active workers, late unhandled errors or verifier terminations",
+      "Final original 38 groups present, qualified native rows pass, two exact shared failure identities remain",
+      "Raw native exact and explicit payload-projection counts independently recomputed",
+      "Both immutable source archives and complete physically moved package inventories unchanged",
+      "Read-only reused installed development packages remain byte-identical to locked-cache validation",
+      "Maintained strict consumer and harness bytes equal the final compiled standalone inputs",
+      "All maintained JavaScript helpers pass Node syntax-only checks"
+    ],
+    "candidateRuns": 0,
+    "nativeReruns": 0,
+    "status": "passed",
+    "decision": "HOLD",
+    "checkCount": 11,
+    "canonicalInventory": {
+      "strictTypeScript": [
+        "holdouts.mts",
+        "public-consumer.mts"
+      ],
+      "syntaxCheckedJavaScript": [
+        "gnu/capture-native.mjs",
+        "freeze-pack.mjs",
+        "run-standalone.mjs",
+        "verify-evidence.mjs"
+      ],
+      "capturedSourceData": "attempts/*/harness-source.txt: exact historical previously compiled source, not executable discovery inputs",
+      "testOrTypecheckExclusionsAdded": []
+    },
+    "nodeVersion": "v22.22.2",
+    "nodeExecutableSha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+    "helperSha256": "1e8aeb8a831db0026feed72af9c45dd1c32030ea1168a3bfd82f5d2c6c01cc66",
+    "endedAt": "2026-08-27T15:16:04.591Z"
+  },
+  "candidateRunsInTheseStaticChecks": 0,
+  "nativeReruns": 0
+}

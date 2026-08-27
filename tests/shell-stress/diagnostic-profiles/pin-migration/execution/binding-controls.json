@@ -1,0 +1,68 @@
+{
+  "label": "binding-controls",
+  "command": [
+    "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "--import",
+    "tsx",
+    "--test",
+    "--test-reporter=tap",
+    "tests/shell-stress/diagnostic-profiles/pin-migration/binding.test.ts"
+  ],
+  "cwd": "/Users/kjopek/Workspace/safe-bash",
+  "environment": {
+    "PATH": "/usr/bin:/bin",
+    "HOME": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-oGyQdU/tmp",
+    "TMPDIR": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-oGyQdU/tmp",
+    "LANG": "C",
+    "LC_ALL": "C",
+    "TZ": "UTC",
+    "TSX_DISABLE_CACHE": "1",
+    "TSX_TSCONFIG_PATH": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-oGyQdU/source/tsconfig.json"
+  },
+  "timeout": 240000,
+  "maxBuffer": 16777216,
+  "pid": 15948,
+  "status": 1,
+  "signal": null,
+  "error": null,
+  "elapsedMs": 237,
+  "counts": {
+    "tests": 6,
+    "pass": 3,
+    "fail": 3,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "cohortCounts": {
+    "original-differential": {
+      "tests": 0,
+      "pass": 0,
+      "fail": 0
+    },
+    "original-syntax": {
+      "tests": 0,
+      "pass": 0,
+      "fail": 0
+    },
+    "current-gaps": {
+      "tests": 0,
+      "pass": 0,
+      "fail": 0
+    },
+    "identity": {
+      "tests": 0,
+      "pass": 0,
+      "fail": 0
+    }
+  },
+  "hookFailures": 0,
+  "failures": [
+    "changed driver rejected before case effects: tests/shell-stress/differential.test.ts",
+    "changed driver rejected before case effects: tests/shell-stress/current-gaps/compatibility.test.ts",
+    "unchanged fixture pin still rejects mutation"
+  ],
+  "stdoutSha256": "b33251225a02501cbf8431693f5d18d786324515ea5dc7736a9c58e68ceb9694",
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "processGroupClosed": true
+}

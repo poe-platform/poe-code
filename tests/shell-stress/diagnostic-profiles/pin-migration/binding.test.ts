@@ -13,6 +13,18 @@ const baseline = readFileSync(join(root, "benchmarks/shell-stress/diagnostic-pro
 assert.equal(createHash("sha256").update(baseline).digest("hex"), nativeCaptureSha256);
 const { sources } = JSON.parse(baseline.toString()) as { sources: Record<string, string> };
 
+function hashFailure(path: string, expected: string, bytes: Uint8Array): (error: unknown) => boolean {
+  return error => {
+    assert.ok(error instanceof assert.AssertionError);
+    assert.equal(error.message.split("\n")[0], `Current fixture/helper binding changed: ${path}`);
+    assert.equal(error.code, "ERR_ASSERTION");
+    assert.equal(error.operator, "strictEqual");
+    assert.equal(error.expected, expected);
+    assert.equal(error.actual, createHash("sha256").update(bytes).digest("hex"));
+    return true;
+  };
+}
+
 function withCopiedInputs(run: (directory: string) => void): void {
   const directory = mkdtempSync(join(tmpdir(), "safe-bash-diagnostic-pins-control-"));
   try {
@@ -44,7 +56,7 @@ for (const driver of currentDriverBindings) {
         validateSourceBindings(directory, sources, "current");
         caseEffects++;
         writeFileSync(marker, "must not happen");
-      }, { message: `Current fixture/helper binding changed: ${driver.path}` });
+      }, hashFailure(driver.path, driver.currentSha256, readFileSync(destination)));
       assert.equal(caseEffects, 0);
       assert.equal(existsSync(marker), false);
     });
@@ -71,6 +83,6 @@ test("unchanged fixture pin still rejects mutation", () => {
   withCopiedInputs(directory => {
     const destination = join(directory, "tests/shell-stress/cases.ts");
     writeFileSync(destination, Buffer.concat([readFileSync(destination), Buffer.from("\n")]));
-    assert.throws(() => validateSourceBindings(directory, sources, "current"), { message: "Current fixture/helper binding changed: tests/shell-stress/cases.ts" });
+    assert.throws(() => validateSourceBindings(directory, sources, "current"), hashFailure("tests/shell-stress/cases.ts", sources["tests/shell-stress/cases.ts"]!, readFileSync(destination)));
   });
 });

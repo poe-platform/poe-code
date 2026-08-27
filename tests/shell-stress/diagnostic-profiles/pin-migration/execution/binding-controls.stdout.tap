@@ -1,0 +1,193 @@
+TAP version 13
+# Subtest: current binding authenticates all fourteen inputs with exactly two migrated pins
+ok 1 - current binding authenticates all fourteen inputs with exactly two migrated pins
+  ---
+  duration_ms: 2.924333
+  type: 'test'
+  ...
+# Subtest: changed driver rejected before case effects: tests/shell-stress/differential.test.ts
+not ok 2 - changed driver rejected before case effects: tests/shell-stress/differential.test.ts
+  ---
+  duration_ms: 11.663417
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/shell-stress/diagnostic-profiles/pin-migration/binding.test.ts:1:1774'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+      Comparison {
+    +   message: 'Current fixture/helper binding changed: tests/shell-stress/differential.test.ts\n' +
+    +     '+ actual - expected\n' +
+    +     '\n' +
+    +     "+ '876d8c2f6742bbedb4cc954b35b107ba09b0e756c657ef9b6ca26bfb2e19bf49'\n" +
+    +     "- '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'\n"
+    -   message: 'Current fixture/helper binding changed: tests/shell-stress/differential.test.ts'
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    message: 'Current fixture/helper binding changed: tests/shell-stress/differential.test.ts'
+  actual:
+  error: |-
+    Current fixture/helper binding changed: tests/shell-stress/differential.test.ts
+    + actual - expected
+    
+    + '876d8c2f6742bbedb4cc954b35b107ba09b0e756c657ef9b6ca26bfb2e19bf49'
+    - '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+    
+  stack: |-
+    validateSourceBindings (/Users/kjopek/Workspace/safe-bash/tests/shell-stress/diagnostic-profiles/pin-migration/current-binding.ts:31:12)
+    assert.throws.message (/Users/kjopek/Workspace/safe-bash/tests/shell-stress/diagnostic-profiles/pin-migration/binding.test.ts:44:9)
+    getActual (node:assert:609:5)
+    Function.throws (node:assert:757:24)
+    <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell-stress/diagnostic-profiles/pin-migration/binding.test.ts:43:14)
+    withCopiedInputs (/Users/kjopek/Workspace/safe-bash/tests/shell-stress/diagnostic-profiles/pin-migration/binding.test.ts:26:5)
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell-stress/diagnostic-profiles/pin-migration/binding.test.ts:38:5)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+  operator: 'throws'
+  stack: |-
+    <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell-stress/diagnostic-profiles/pin-migration/binding.test.ts:43:14)
+    withCopiedInputs (/Users/kjopek/Workspace/safe-bash/tests/shell-stress/diagnostic-profiles/pin-migration/binding.test.ts:26:5)
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell-stress/diagnostic-profiles/pin-migration/binding.test.ts:38:5)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# Subtest: changed driver rejected before case effects: tests/shell-stress/current-gaps/compatibility.test.ts
+not ok 3 - changed driver rejected before case effects: tests/shell-stress/current-gaps/compatibility.test.ts
+  ---
+  duration_ms: 9.712083
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/shell-stress/diagnostic-profiles/pin-migration/binding.test.ts:1:1774'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+      Comparison {
+    +   message: 'Current fixture/helper binding changed: tests/shell-stress/current-gaps/compatibility.test.ts\n' +
+    +     '+ actual - expected\n' +
+    +     '\n' +
+    +     "+ '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'\n" +
+    +     "- 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'\n"
+    -   message: 'Current fixture/helper binding changed: tests/shell-stress/current-gaps/compatibility.test.ts'
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    message: 'Current fixture/helper binding changed: tests/shell-stress/current-gaps/compatibility.test.ts'
+  actual:
+  error: |-
+    Current fixture/helper binding changed: tests/shell-stress/current-gaps/compatibility.test.ts
+    + actual - expected
+    
+    + '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+    - 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+    
+  stack: |-
+    validateSourceBindings (/Users/kjopek/Workspace/safe-bash/tests/shell-stress/diagnostic-profiles/pin-migration/current-binding.ts:31:12)
+    assert.throws.message (/Users/kjopek/Workspace/safe-bash/tests/shell-stress/diagnostic-profiles/pin-migration/binding.test.ts:44:9)
+    getActual (node:assert:609:5)
+    Function.throws (node:assert:757:24)
+    <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell-stress/diagnostic-profiles/pin-migration/binding.test.ts:43:14)
+    withCopiedInputs (/Users/kjopek/Workspace/safe-bash/tests/shell-stress/diagnostic-profiles/pin-migration/binding.test.ts:26:5)
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell-stress/diagnostic-profiles/pin-migration/binding.test.ts:38:5)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+  operator: 'throws'
+  stack: |-
+    <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell-stress/diagnostic-profiles/pin-migration/binding.test.ts:43:14)
+    withCopiedInputs (/Users/kjopek/Workspace/safe-bash/tests/shell-stress/diagnostic-profiles/pin-migration/binding.test.ts:26:5)
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell-stress/diagnostic-profiles/pin-migration/binding.test.ts:38:5)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: historical binding replays complete authenticated historical driver bytes
+ok 4 - historical binding replays complete authenticated historical driver bytes
+  ---
+  duration_ms: 49.820291
+  type: 'test'
+  ...
+# Subtest: historical binding still rejects the migrated current drivers
+ok 5 - historical binding still rejects the migrated current drivers
+  ---
+  duration_ms: 0.507875
+  type: 'test'
+  ...
+# Subtest: unchanged fixture pin still rejects mutation
+not ok 6 - unchanged fixture pin still rejects mutation
+  ---
+  duration_ms: 6.767916
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/shell-stress/diagnostic-profiles/pin-migration/binding.test.ts:1:3113'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+      Comparison {
+    +   message: 'Current fixture/helper binding changed: tests/shell-stress/cases.ts\n' +
+    +     '+ actual - expected\n' +
+    +     '\n' +
+    +     "+ 'af4c3ac587f0035981b7812669e099091bf60bcb51d68688c1243534929cf907'\n" +
+    +     "- '650a40d9ae11c771d4924a8b0dba96cc3e2cb0aea5f0cc9f599cd60b9610676a'\n"
+    -   message: 'Current fixture/helper binding changed: tests/shell-stress/cases.ts'
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    message: 'Current fixture/helper binding changed: tests/shell-stress/cases.ts'
+  actual:
+  error: |-
+    Current fixture/helper binding changed: tests/shell-stress/cases.ts
+    + actual - expected
+    
+    + 'af4c3ac587f0035981b7812669e099091bf60bcb51d68688c1243534929cf907'
+    - '650a40d9ae11c771d4924a8b0dba96cc3e2cb0aea5f0cc9f599cd60b9610676a'
+    
+  stack: |-
+    validateSourceBindings (/Users/kjopek/Workspace/safe-bash/tests/shell-stress/diagnostic-profiles/pin-migration/current-binding.ts:31:12)
+    assert.throws.message (/Users/kjopek/Workspace/safe-bash/tests/shell-stress/diagnostic-profiles/pin-migration/binding.test.ts:74:25)
+    getActual (node:assert:609:5)
+    Function.throws (node:assert:757:24)
+    <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell-stress/diagnostic-profiles/pin-migration/binding.test.ts:74:12)
+    withCopiedInputs (/Users/kjopek/Workspace/safe-bash/tests/shell-stress/diagnostic-profiles/pin-migration/binding.test.ts:26:5)
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell-stress/diagnostic-profiles/pin-migration/binding.test.ts:71:3)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+  operator: 'throws'
+  stack: |-
+    <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell-stress/diagnostic-profiles/pin-migration/binding.test.ts:74:12)
+    withCopiedInputs (/Users/kjopek/Workspace/safe-bash/tests/shell-stress/diagnostic-profiles/pin-migration/binding.test.ts:26:5)
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell-stress/diagnostic-profiles/pin-migration/binding.test.ts:71:3)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+1..6
+# tests 6
+# suites 0
+# pass 3
+# fail 3
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 207.611708

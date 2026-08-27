@@ -27,7 +27,7 @@ with the original driver bytes. Canonical `compatibility.test.ts` instead calls
 The additional literal capture hash protects the historical metadata itself.
 
 Before execution, commit the migration, controls, authentication, and runner.
-Run `node tests/shell-stress/diagnostic-profiles/pin-migration/run.mjs CANDIDATE`.
+Run `node tests/shell-stress/diagnostic-profiles/pin-migration/run.mjs CANDIDATE execution-REVIEW_LABEL`.
 The runner checks its committed inputs, uses regular temporary copies of the
 committed source/test tree and installed development tools, and runs the whole89
 first under pinned GNU5.3, then historical GNU3.2, without case-specific switching.
@@ -41,3 +41,9 @@ cleanup receipts. These author tests are not independent acceptance, full native
 parity, a whole-project gate, or evidence about the ten cleanup archive pins or
 the separate 84 pre-env-S failures. A different reviewer must verify the frozen
 candidate. See `RESULTS.md` after execution for the bounded run and limitations.
+
+`ATTEMPT-1.md` discloses the first author control assertion-matcher defect.
+Its unchanged `execution/` logs remain evidence, not successful mutation controls.
+The corrected matcher verifies the exact diagnostic first line, assertion code,
+operator, literal expected SHA, and actual mutated SHA; it does not change the
+guard, native oracle, or any of the89 existing behavioral assertions.

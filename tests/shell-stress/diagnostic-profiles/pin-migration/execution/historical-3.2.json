@@ -1,0 +1,79 @@
+{
+  "label": "historical-3.2",
+  "command": [
+    "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "--import",
+    "tsx",
+    "--test",
+    "--test-reporter=tap",
+    "tests/shell-stress/diagnostic-profiles/compatibility.test.ts"
+  ],
+  "cwd": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-oGyQdU/source",
+  "environment": {
+    "PATH": "/usr/bin:/bin",
+    "HOME": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-oGyQdU/tmp",
+    "TMPDIR": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-oGyQdU/tmp",
+    "LANG": "C",
+    "LC_ALL": "C",
+    "TZ": "UTC",
+    "TSX_DISABLE_CACHE": "1",
+    "VIRTUAL_BASH_DIAGNOSTIC_PROFILE": "historical-3.2"
+  },
+  "timeout": 240000,
+  "maxBuffer": 16777216,
+  "pid": 15376,
+  "status": 1,
+  "signal": null,
+  "error": null,
+  "elapsedMs": 20862,
+  "counts": {
+    "tests": 89,
+    "pass": 75,
+    "fail": 14,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "cohortCounts": {
+    "original-differential": {
+      "tests": 72,
+      "pass": 67,
+      "fail": 5
+    },
+    "original-syntax": {
+      "tests": 5,
+      "pass": 0,
+      "fail": 5
+    },
+    "current-gaps": {
+      "tests": 11,
+      "pass": 7,
+      "fail": 4
+    },
+    "identity": {
+      "tests": 1,
+      "pass": 1,
+      "fail": 0
+    }
+  },
+  "hookFailures": 0,
+  "failures": [
+    "historical-3.2: original-differential: nested-substitution-syntax-error-does-not-prevent-earlier-effects",
+    "historical-3.2: original-differential: fatal-parameter-expansion-prevents-following-file-effect",
+    "historical-3.2: original-differential: fatal-arithmetic-expansion-prevents-following-file-effect",
+    "historical-3.2: original-differential: fatal-expansion-in-substitution-stops-substitution-only",
+    "historical-3.2: original-differential: command-substitution-removes-nul-bytes",
+    "historical-3.2: original-syntax: unterminated-quote-after-write",
+    "historical-3.2: original-syntax: missing-pipeline-command-after-write",
+    "historical-3.2: original-syntax: missing-conditional-operand-after-write",
+    "historical-3.2: original-syntax: missing-group-terminator-after-write",
+    "historical-3.2: original-syntax: missing-if-fi-after-write",
+    "historical-3.2: current-gaps: move-output-really-closes-source",
+    "historical-3.2: current-gaps: move-input-really-closes-source",
+    "historical-3.2: current-gaps: prevalidation-prior-output-and-file",
+    "historical-3.2: current-gaps: fatal-parameter-preserves-only-earlier-effects"
+  ],
+  "stdoutSha256": "b45b54efca835d3ee350e0713957dfc34f2562f72abf2f7d4030a9628767e4d1",
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "processGroupClosed": true
+}

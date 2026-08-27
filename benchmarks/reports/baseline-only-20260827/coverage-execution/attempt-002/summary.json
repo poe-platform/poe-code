@@ -1,0 +1,209 @@
+{
+  "historicalPreserved": {
+    "commit": "20b889b",
+    "totals": {
+      "names": 53,
+      "namesWithPrimaryRecipes": 3,
+      "unmeasuredNames": 50,
+      "recipes": 3,
+      "virtualPass": 0,
+      "virtualFail": 3,
+      "baselinePass": 3,
+      "baselineFail": 0
+    },
+    "input": {
+      "path": "benchmarks/reports/expanded-20260827/baseline-only-frozen/matrix.json",
+      "bytes": 13337,
+      "sha256": "acb1867f74f60f6ebf9a5a28c9f6119a564ccca18d1936d1458f199ca7cf6a40"
+    }
+  },
+  "counts": {
+    "historicalRows": 53,
+    "addedOptionalRows": 4,
+    "primaryTargetNames": 54,
+    "defaultTargetNames": 50,
+    "optionalTargetNames": 4,
+    "primaryRecipes": 61,
+    "historicalOverlapRecipes": 3,
+    "sharedControlRecipes": 4,
+    "diagnosticRecipes": 7,
+    "correctedLaunches": 136,
+    "correctedProductCalls": 136,
+    "correctedReports": 136,
+    "correctedNormalExits": 135,
+    "correctedExceptionalExits": 1,
+    "firstLaunches": 132,
+    "firstProductCalls": 131,
+    "firstReports": 71,
+    "firstNormalExits": 131,
+    "firstExceptionalExits": 1,
+    "totalLaunches": 268,
+    "totalProductCalls": 267,
+    "totalNormalExits": 266,
+    "totalExceptionalExits": 2,
+    "primary54": {
+      "ours": {
+        "missing-name-compatible-handler": 54
+      },
+      "baseline": {
+        "functional-positive": 47,
+        "partial-functionality": 3,
+        "documentation-only": 1,
+        "no-op-not-operational-proof": 1,
+        "cleanup-timeout-after-successful-guest-execution": 1,
+        "baseline-stub": 1
+      }
+    },
+    "default50": {
+      "ours": {
+        "missing-name-compatible-handler": 50
+      },
+      "baseline": {
+        "functional-positive": 45,
+        "partial-functionality": 3,
+        "documentation-only": 1,
+        "no-op-not-operational-proof": 1
+      }
+    },
+    "configuredSetupUnavailable": {
+      "ours": 0,
+      "baseline": 0
+    },
+    "configuredDefaultDisabled": {
+      "ours": 0,
+      "baseline": 0
+    }
+  },
+  "optionalSafejsOutsideTargetCensus": {
+    "available": false,
+    "name": "safejs",
+    "reason": "No installed legitimate runtime in allowed module roots per setup; no plugin registration with fake hooks; no compatible replacement for the four optional names.",
+    "legitimateRuntimeInjected": false,
+    "executionAttempted": false,
+    "includedIn54": false,
+    "missingWorkflowClaim": false
+  },
+  "jsSemantics": {
+    "statusMatches": true,
+    "stdoutMatches": true,
+    "stderrMatches": true,
+    "completeCensus": true,
+    "stableNamespaceEffects": [],
+    "operationalCredit": false,
+    "lifecycleAccepted": false,
+    "reason": "Guest result succeeded; process retained resources beyond10s cleanup. Parent SIGTERM is exceptional. No claim of product-exec timeout or missing runtime, no causal conclusion about tracing."
+  },
+  "firstExceptions": [
+    {
+      "id": "js-exec-positive",
+      "engine": "baseline",
+      "signal": "SIGTERM",
+      "exitCode": null,
+      "reason": "child total setup + product + cleanup exceeded configured envelope",
+      "phases": [
+        {
+          "phase": "constructor",
+          "sinceSpawnMs": 72.21920800000225
+        },
+        {
+          "phase": "fixture-setup",
+          "sinceSpawnMs": 78.69270800000231
+        },
+        {
+          "phase": "product-exec",
+          "sinceSpawnMs": 81.07454100000177
+        },
+        {
+          "phase": "after-census",
+          "sinceSpawnMs": 177.51391599999988
+        },
+        {
+          "phase": "cleanup",
+          "sinceSpawnMs": 179.87725000000137
+        }
+      ],
+      "reportCaptured": false
+    }
+  ],
+  "correctedExceptions": [
+    {
+      "engine": "baseline",
+      "id": "js-exec-positive",
+      "exitCode": null,
+      "signal": "SIGTERM",
+      "reason": "child retained resources after result; cleanup grace exceeded",
+      "productResult": {
+        "exitCode": 0,
+        "stdout": "42\n",
+        "stderr": "",
+        "stdoutKind": null,
+        "stdoutEncoding": null,
+        "stdoutBase64": "NDIK",
+        "stderrBase64": "",
+        "stdoutBoundary": "public stdoutAsBytes ByteString encoded Latin-1; not inferred from text",
+        "stderrBoundary": "derived UTF-8 of public stderr string; no raw byte API"
+      },
+      "productElapsedMs": 196.796541,
+      "totalElapsedMs": 10356.827375,
+      "lifecycleAccepted": false
+    }
+  ],
+  "integrity": {
+    "snapshotUnchanged": true,
+    "liveSourceUnchanged": false,
+    "dependenciesUnchanged": true,
+    "harnessUnchanged": true,
+    "evidenceUnchanged": true,
+    "runtimeExecutableUnchanged": true,
+    "snapshotConfigurationUnchanged": true,
+    "allObservedLoadedFilesMatchedFreeze": true
+  },
+  "liveDrift": [
+    {
+      "path": "shell/parser.ts",
+      "frozenSha256": "28492059750ba7f11fad563dfc03dba049f232b3f2212186cf3553e4559ae905",
+      "liveAfterSha256": "f8a76103ccc3e0f981bdb8cf391f48a8864dbf895c39e459d5f5da7b6ec77b0c"
+    },
+    {
+      "path": "shell/runtime.ts",
+      "frozenSha256": "c7c9d02ddde5576b7810bfecbbd21b70c6eb2c0ea4fe1ee8bee92c21946d8449",
+      "liveAfterSha256": "f307642e52c3bfeb5df64057fb26af6645135bb5bdc307f399de6ce1541c0ddb"
+    }
+  ],
+  "census": {
+    "all136BeforeAfterComplete": true,
+    "entriesBefore": 13480,
+    "entriesAfter": 13503,
+    "bytesBefore": 443158,
+    "bytesAfter": 452211,
+    "normalizedMissingFields": false
+  },
+  "comparisonBoundaries": {
+    "expected": "Predetermined workflow intent, not native captures. Exact status/byte fields and declared includes/excludes, file requirements, input content/type/mode preservation. No equality credit for both failing.",
+    "metadata": "Raw all available fields retained. Stable effects use path,type,permission bits, regular-file bytes, symlink target. Dates, opaque identity, inode/device allocation and directory sizes not cross-engine equality fields.",
+    "namespace": "Full root census including fixture/tmp/infrastructure; all effects listed. Fixture mode differences remain visible. Input preservation ignores read-induced metadata timestamps, not content/mode/type.",
+    "diagnostics": "7 reachability-only sub-attempts per engine; never primary positive coverage.",
+    "timing": "performance.now around product exec only; sleep lower-bound sanity only. No speed comparison.",
+    "optionalSafejs": "No installed legitimate runtime in allowed module roots per setup; no plugin registration with fake hooks; no compatible replacement for the four optional names."
+  },
+  "qualifications": [
+    "No new native reference executions: predetermined workflow expectations, not universal Bash/GNU/POSIX oracle",
+    "Tree traversed correctly but emitted ASCII C-locale connectors versus prepared Unicode expected bytes; strict failure retained, not missing traversal",
+    "Ours wait primary was rejected by parser for &, not a no-op wait implementation; direct wait diagnostic independently returned127",
+    "Binary control mismatches baseline file bytes as well as terminal byte API; no pipe corruption claim from this non-pipeline case",
+    "Shared curl and census output modes differ (ours0666, baseline0644); bounded recipe success is not exact full-effect parity",
+    "Hash proves map retrieval, not hashed dispatch; help/wait/node have no operational credit",
+    "One corrected JavaScript cleanup failure keeps strict all-normal validation red",
+    "Historical SGID/env-order normative records are not rerun or reclassified; Darwin-specific profile evidence is not universal POSIX/Linux"
+  ],
+  "cleanup": {
+    "fixtureServerClosed": true,
+    "allLaunchedChildrenExited": true,
+    "allChildrenNormal": false,
+    "noSIGKILL": true,
+    "snapshotRetainedForReviewer": "/tmp/safe-bash-baseline-coverage-execution-1787803035592-37307",
+    "noNativeFixtureTree": true,
+    "noProductEdits": true,
+    "noInstalls": true
+  }
+}

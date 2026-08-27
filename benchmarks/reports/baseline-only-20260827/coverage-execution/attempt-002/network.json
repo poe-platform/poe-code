@@ -1,0 +1,33 @@
+{
+  "fixture": {
+    "host": "127.0.0.1",
+    "method": "GET",
+    "path": "/fixture.txt",
+    "status": 200,
+    "contentType": "text/plain",
+    "bodyBase64": "bG9vcGJhY2stZml4dHVyZQo=",
+    "url": "http://127.0.0.1:63131/fixture.txt",
+    "port": 63131
+  },
+  "requests": [
+    {
+      "case": {
+        "engine": "ours",
+        "id": "curl-positive"
+      },
+      "method": "GET",
+      "path": "/fixture.txt",
+      "remoteAddress": "127.0.0.1"
+    },
+    {
+      "case": {
+        "engine": "baseline",
+        "id": "curl-positive"
+      },
+      "method": "GET",
+      "path": "/fixture.txt",
+      "remoteAddress": "127.0.0.1"
+    }
+  ],
+  "serverClosed": true
+}

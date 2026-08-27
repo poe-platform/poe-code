@@ -75,7 +75,7 @@ export function formatDate(format: string, instant: bigint, zone: TimeZone, limi
         const year = padding === "" ? String(fields.year) : number(fields.year, yearWidth, padding ?? "0");
         append(`${year}-${number(fields.month)}-${number(fields.day)}`); continue;
       }
-      case "g": value = String((isoYear % 100 + 100) % 100); defaultWidth = 2; break;
+      case "g": value = String(Math.abs(isoYear % 100)); defaultWidth = 2; break;
       case "G": value = String(isoYear); defaultWidth = 4; break;
       case "H": case "k": value = String(fields.hour); defaultWidth = 2; if (code === "k") defaultPadding = " "; break;
       case "I": case "l": value = String(hour12); defaultWidth = 2; if (code === "l") defaultPadding = " "; break;

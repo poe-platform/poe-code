@@ -148,6 +148,14 @@ remaining byte limits are checked before allocating padding. E/O/colon modifiers
 on N still reject. Negative epoch `%s` floors, with a nonnegative fractional
 remainder. UTC/Gregorian and ISO-week formatting do not use host locale.
 
+For a negative ISO week-year at the supported calendar's lower boundary, `%g`
+formats the magnitude of its final two digits, matching the chosen GNU9.7 rule;
+`%G` retains the sign and ISO week arithmetic is unchanged. Thus0000 January1/2
+give `%G=-001`, `%g=01`, not an arithmetic wrap to99. This is a qualified component
+formatting rule, not new negative-calendar-year input support or a claim about
+every platform. Primary-source reasoning and native year neighbors are recorded
+in `tests/commands/time-env/fraction-expansion/SEMANTICS.md`.
+
 Bare `%-N` follows that same unpadded virtual rule and retains all available input
 precision. GNU date9.7 specially rewrites this exact spelling to a precision based
 on the native machine's clock resolution, even for explicit input; the observed

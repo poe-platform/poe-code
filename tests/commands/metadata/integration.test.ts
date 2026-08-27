@@ -10,8 +10,8 @@ import { runMetadata } from "./helpers.js";
 test("metadata root API preflights collisions and excludes optional network/runtime plugins", () => {
   assert.deepEqual(createMetadataCommands().map(command => command.name), ["chmod", "stat", "mktemp"]);
   const names = createAgentCommands().map(command => command.name);
-  assert.equal(names.length, 52);
-  assert.equal(new Set(names).size, 52);
+  for (const name of ["chmod", "stat", "mktemp"]) assert.ok(names.includes(name), `${name} must be available in the aggregate`);
+  assert.equal(new Set(names).size, names.length);
   assert.equal(names.includes("curl"), false);
   assert.equal(names.includes("safejs"), false);
   const commands = new CommandRegistry([{ name: "stat", execute: () => ({ exitCode: 23 }) }]);

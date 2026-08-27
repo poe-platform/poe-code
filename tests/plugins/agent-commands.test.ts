@@ -2,8 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import {
   agentCommands, createAgentCommands, CommandRegistry, createMemoryFileSystem, Shell,
-  createStandardCommands, createTextProgramCommands, createStructuredCommands,
-  createSearchCommands, createByteCommands, createDiffPatchCommands, createMetadataCommands, toByteSource,
+  toByteSource,
   type AgentCommandsOptions, type CommandContext, type PluginHost,
 } from "../../src/index.js";
 
@@ -26,9 +25,12 @@ async function direct(commands: CommandRegistry, command: string, args: readonly
 
 test("aggregate definitions are exactly the seven delivered families, each registered once", async () => {
   const expected = [
-    ...createStandardCommands(), ...createTextProgramCommands(), ...createStructuredCommands(),
-    ...createSearchCommands(), ...createByteCommands(), ...createDiffPatchCommands(), ...createMetadataCommands(),
-  ].map(command => command.name).sort();
+    "true", "false", "echo", "pwd", "basename", "dirname", "printf", "mkdir", "touch",
+    "cp", "mv", "rm", "rmdir", "ln", "readlink", "realpath", "ls", "cat", "head", "tail",
+    "wc", "tee", "tr", "sort", "uniq", "cut", "grep", "test", "[", "env", "xargs", "find",
+    "sed", "awk", "jq", "rg", "base64", "base32", "xxd", "od", "sha256sum", "sha1sum",
+    "md5sum", "cksum", "gzip", "gunzip", "zcat", "diff", "patch", "chmod", "stat", "mktemp",
+  ].sort();
   assert.equal(expected.length, 52);
   assert.equal(new Set(expected).size, 52);
   assert.deepEqual(createAgentCommands().map(command => command.name).sort(), expected);

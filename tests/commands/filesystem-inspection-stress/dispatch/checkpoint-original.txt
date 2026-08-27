@@ -1,0 +1,33 @@
+CURRENT DISPATCH ABSENCE CONFIRMED — bounded leaf discovery only
+
+HEAD at initial inspection: e9daab5722c682377cc59abec099648e3692c6ec.
+Actual current src/index.ts loaded through installed tsx, not dist or old inventory.
+Six Shell.exec calls total, entirely MemoryFileSystem: bare tree/file and
+agentCommands tree/file each exit 127, empty stdout, exact command-not-found
+stderr; type tree file exits 1; registered cat control exits 0 with expected bytes.
+No target stubs/replacements/functions/aliases or VFS executable fallback.
+Both registries lack tree/file; proposed six root exports are undefined.
+src/commands/tree, src/commands/file, tests/commands/tree, tests/commands/file
+are absent. These are available PROPOSED disjoint author scopes, not assignments.
+157 actually loaded source files have matching before/after SHA256; the source
+superset, package inputs and historical inventory also show no changes in-run.
+
+Propose tree author: src/commands/tree/** plus tests/commands/tree/**.
+Propose file author: src/commands/file/** plus tests/commands/file/**.
+Natural family API: treeCommands/createTreeCommands/createTreeCommand and
+fileCommands/createFileCommands/createFileCommand, subject to explicit exports
+by future authors and later root integration. Nothing implemented here.
+Root defaults, package/root exports, FS, core/runtime, metadata and contracts
+remain read-only. This leaf owns only new dispatch evidence plus /tmp.
+Do not start authors until root assigns scopes. No commits/staging performed.
+
+Evidence: /tmp/safe-bash-inspection-discovery-dispatch.json
+Git snapshots: /tmp/safe-bash-inspection-discovery-before.txt and -after.txt.
+Repro harness: tests/commands/filesystem-inspection-stress/dispatch/discover.mjs.
+Historical 54 is optional-inclusive inventory, NOT a current dispatch claim.
+Detailed bounded-I/O, identity and metadata constraints follow in detail file.
+
+FINAL UPDATE: /tmp/safe-bash-inspection-discovery-detail.txt is ready.
+Concurrent HEAD advanced to 90c1a3cb04a6a01e456544cbac747b327a8dfb1d;
+all 160 recorded loaded-source/package/inventory hashes still match at final
+check, and proposed directories remain absent. No extra Shell.exec calls.

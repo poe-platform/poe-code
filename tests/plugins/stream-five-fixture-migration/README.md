@@ -30,6 +30,17 @@ definition to the caller's input object ignores CommandRegistry's shallow copy.
 The correction compares pre/post registered references instead; no product
 change is involved. Its six-case rerun is recorded separately.
 
+The separate helper correction routes its existing options through
+`AgentCommandsOptions.streamFormat` rather than installing the now-default family
+twice. Only an explicitly supplied `replace` moves to the aggregate's top-level
+replacement boundary; no blanket replacement is added. Existing guest locale,
+per-invocation signal and limits remain exercised. `helper-runs.json` records
+189/189 revised author tests passing with no skips. `helper-checks.json` records
+12/12 added registry/options witnesses and the strict scoped typecheck passing,
+including separate `AgentCommandsOptions.split` limits and rejected duplicate
+explicit plugins. The original native inputs and diagnostic assertions are
+unchanged; this helper execution change is disclosed, not unchanged-harness proof.
+
 These are author fixture-availability checks, not an independent packed freeze,
 the historical original82 native oracle, the stream-next-stress harness, or the
 read-only frozen60 independent inspection suite. Historical source-only evidence,

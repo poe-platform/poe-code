@@ -1,10 +1,11 @@
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import { Shell, agentCommands, createMemoryFileSystem } from "../../../src/index.js";
-import { streamFormatCommands, type StreamFormatCommandsOptions } from "../../../src/commands/stream-format/index.js";
+import { type StreamFormatCommandsOptions } from "../../../src/commands/stream-format/index.js";
 
 export function shell(options: StreamFormatCommandsOptions = {}, env: Record<string, string> = { LC_ALL: "C" }): Shell {
-  return new Shell({ fs: createMemoryFileSystem(), env }).use(agentCommands()).use(streamFormatCommands(options));
+  const { replace, ...streamFormat } = options;
+  return new Shell({ fs: createMemoryFileSystem(), env }).use(agentCommands({ streamFormat, ...(replace === undefined ? {} : { replace }) }));
 }
 
 export const quote = (text: string): string => `'${text.replaceAll("'", "'\\''")}'`;

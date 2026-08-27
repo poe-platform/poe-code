@@ -1,0 +1,27 @@
+[
+  {
+    "name": "witnesses",
+    "file": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "args": [
+      "--import",
+      "tsx",
+      "--test",
+      "tests/plugins/stream-five-fixture-migration/registry.test.ts",
+      "tests/plugins/stream-five-fixture-migration/helper-options.test.ts"
+    ],
+    "status": 0,
+    "stdout": "TAP version 13\n# Subtest: migrated helper preserves formatting limits without imposing them on split or cat\nok 1 - migrated helper preserves formatting limits without imposing them on split or cat\n  ---\n  duration_ms: 7.807375\n  type: 'test'\n  ...\n# Subtest: migrated helper preserves explicit locale and supplied cancellation\nok 2 - migrated helper preserves explicit locale and supplied cancellation\n  ---\n  duration_ms: 0.996083\n  type: 'test'\n  ...\n# Subtest: migrated helper retains seq output limits and intentional replacement options\nok 3 - migrated helper retains seq output limits and intentional replacement options\n  ---\n  duration_ms: 1.42475\n  type: 'test'\n  ...\n# Subtest: aggregate split configuration reaches split without constraining formatting\nok 4 - aggregate split configuration reaches split without constraining formatting\n  ---\n  duration_ms: 0.812958\n  type: 'test'\n  ...\n# Subtest: explicit seq family still rejects duplicate default installation\nok 5 - explicit seq family still rejects duplicate default installation\n  ---\n  duration_ms: 0.218875\n  type: 'test'\n  ...\n# Subtest: explicit split family still rejects duplicate default installation\nok 6 - explicit split family still rejects duplicate default installation\n  ---\n  duration_ms: 0.170542\n  type: 'test'\n  ...\n# Subtest: current factory and installed registry are exactly frozen60 plus the approved five\nok 7 - current factory and installed registry are exactly frozen60 plus the approved five\n  ---\n  duration_ms: 2.478166\n  type: 'test'\n  ...\n# Subtest: seq aggregate collision is atomic and replacement remains explicit\nok 8 - seq aggregate collision is atomic and replacement remains explicit\n  ---\n  duration_ms: 0.400125\n  type: 'test'\n  ...\n# Subtest: nl aggregate collision is atomic and replacement remains explicit\nok 9 - nl aggregate collision is atomic and replacement remains explicit\n  ---\n  duration_ms: 0.193375\n  type: 'test'\n  ...\n# Subtest: rev aggregate collision is atomic and replacement remains explicit\nok 10 - rev aggregate collision is atomic and replacement remains explicit\n  ---\n  duration_ms: 0.1115\n  type: 'test'\n  ...\n# Subtest: unexpand aggregate collision is atomic and replacement remains explicit\nok 11 - unexpand aggregate collision is atomic and replacement remains explicit\n  ---\n  duration_ms: 0.303208\n  type: 'test'\n  ...\n# Subtest: split aggregate collision is atomic and replacement remains explicit\nok 12 - split aggregate collision is atomic and replacement remains explicit\n  ---\n  duration_ms: 0.102583\n  type: 'test'\n  ...\n1..12\n# tests 12\n# suites 0\n# pass 12\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 203.86375\n",
+    "stderr": ""
+  },
+  {
+    "name": "types",
+    "file": "node_modules/.bin/tsc",
+    "args": [
+      "-p",
+      "tests/plugins/stream-five-fixture-migration/tsconfig.json"
+    ],
+    "status": 0,
+    "stdout": "",
+    "stderr": ""
+  }
+]

@@ -1,5 +1,6 @@
 import { createHash } from "node:crypto";
 import { collectBytes } from "../../contracts/io.js";
+import { recordMockS3Head, registerMockS3Owner } from "./authority.js";
 import type { S3StreamGetInput, S3StreamGetOutput, S3StreamPutInput } from "./transport.js";
 import { S3ServiceError } from "./transport.js";
 import type {
@@ -57,6 +58,11 @@ export class MockS3Client implements S3Transport {
     this.now = options.now ?? (() => new Date());
     this.authorize = options.authorize;
     for (const bucket of options.buckets) this.buckets.set(bucket, new Map());
+    if (Object.getPrototypeOf(this) === MockS3Client.prototype) {
+      const buckets = this.buckets;
+      registerMockS3Owner(this, name => buckets.get(name), () => this.buckets === buckets
+        && Object.entries(mockImplementation).every(([name, descriptor]) => descriptor.value === undefined || Reflect.get(this, name) === descriptor.value));
+    }
   }
 
   get requests(): readonly MockS3Request[] {
@@ -109,7 +115,9 @@ export class MockS3Client implements S3Transport {
 
   async headObject(input: S3ObjectInput, options?: S3RequestOptions): Promise<S3HeadOutput> {
     await this.begin("headObject", input, options);
-    return this.head(this.object(input));
+    const output = this.head(this.object(input));
+    recordMockS3Head(output, input, this.bucket(input.Bucket));
+    return output;
   }
 
   async getObject(input: S3ObjectInput, options?: S3RequestOptions): Promise<S3GetOutput> {
@@ -254,3 +262,5 @@ export class MockS3Client implements S3Transport {
     };
   }
 }
+
+const mockImplementation = Object.getOwnPropertyDescriptors(MockS3Client.prototype);

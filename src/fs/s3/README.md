@@ -374,8 +374,11 @@ Supported alternatives for **different, explicitly chosen workflows** are:
 The executable examples and exact preservation checks are in
 `tests/stress/adapters/remote-safe-workflows.test.ts`. They use the repository
 mock, not live IAM/provider validation. Modes remain advisory metadata, not an
-authorization boundary; the shared creation-mode/X_OK contract question remains
-open in `tests/stress/adapters/evidence/four-reds-b2d202a`.
+authorization boundary. Contract `5076b32` permits this creation-mode/X_OK profile;
+`d25cb3f` applies the intentional test-expectation delta, not a source fix. The
+earlier RED evidence in `tests/stress/adapters/evidence/four-reds-b2d202a` and
+`tests/stress/adapters/s3-permission-profile/REPORT.md` remains historical and
+unchanged.
 
 An S3 DeleteObject `If-Match` guards the named object's ETag, not the emptiness
 of its prefix. A future safe provider integration would need an authoritative

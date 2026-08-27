@@ -2,11 +2,13 @@ import { posix } from "node:path";
 import { FsError, isFsError } from "../../contracts/errors.js";
 import type { ErrnoCode } from "../../contracts/errors.js";
 import type {
-  AppendFileOptions, CopyFileOptions, DirectoryEntry, FileStat, FileSystem,
+  AppendFileOptions, CopyFileOptions, DirectoryEntry, EntryComparison, FileStat, FileSystem,
   FsOptions, MkdirOptions, ReadFileOptions, ReadStreamOptions, RemoveOptions, WriteFileOptions,
 } from "../../contracts/filesystem.js";
 import { collectBytes, readBytes } from "../../contracts/io.js";
 import type { ByteSource } from "../../contracts/io.js";
+import { compareEntries, registerEntryAuthority } from "../mount/comparison.js";
+import { compareOwnedS3Entries, queryS3Head, recordS3Stat, registerS3EntryOwner } from "./authority.js";
 import { encodeCopySource } from "./transport.js";
 import type {
   S3GetOutput, S3HeadOutput, S3ListOutput, S3ObjectSummary, S3RequestOptions, S3Transport,
@@ -131,6 +133,14 @@ export class S3FileSystem implements FileSystem {
     });
     if (this.capabilities.streamingRead) this.readStream = this.streamRead.bind(this);
     if (this.capabilities.streamingWrite) this.writeStream = this.streamWrite.bind(this);
+    if (Object.getPrototypeOf(this) === S3FileSystem.prototype) {
+      registerS3EntryOwner(this, path => this.path(path), this.transport, this.bucket);
+    }
+    registerEntryAuthority(this, compareOwnedS3Entries);
+  }
+
+  async compareEntry(path: string, peer: FileSystem, peerPath: string, options: FsOptions = {}): Promise<EntryComparison> {
+    return compareEntries(this, path, peer, peerPath, options);
   }
 
   private path(input: string): string {
@@ -202,7 +212,8 @@ export class S3FileSystem implements FileSystem {
 
   private async head(key: string, path: string, options: FsOptions): Promise<S3HeadOutput | undefined> {
     try {
-      return await this.call("headObject", path, options, () => this.transport.headObject({ Bucket: this.bucket, Key: key }, this.requestOptions(options)));
+      const input = { Bucket: this.bucket, Key: key };
+      return await this.call("headObject", path, options, () => queryS3Head(input, () => this.transport.headObject(input, this.requestOptions(options))));
     } catch (error) {
       if (isFsError(error, "ENOENT") && serviceCode(error.cause) !== "NoSuchBucket") return undefined;
       throw error;
@@ -332,6 +343,7 @@ export class S3FileSystem implements FileSystem {
     const info = await this.lookup(path, options);
     this.requireDirectorySuffix(input, info);
     if (!info) fail("ENOENT", "stat", input);
+    recordS3Stat(this, path, info.stat, info.metadata);
     return info.stat;
   }
 

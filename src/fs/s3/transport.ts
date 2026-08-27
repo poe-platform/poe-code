@@ -1,3 +1,5 @@
+import { forwardS3Owner } from "./authority.js";
+
 export interface S3RequestOptions {
   readonly abortSignal?: AbortSignal;
 }
@@ -112,7 +114,7 @@ export function createS3Transport(
   client: S3Client,
   capabilities: S3TransportCapabilities = {},
 ): S3Transport {
-  return {
+  const transport: S3Transport = {
     capabilities: Object.freeze({ ...capabilities }),
     ...(client.getObjectStream ? { getObjectStream: (input: S3StreamGetInput, options?: S3RequestOptions) => client.getObjectStream!(input, options) } : {}),
     ...(client.putObjectStream ? { putObjectStream: (input: S3StreamPutInput, options?: S3RequestOptions) => client.putObjectStream!(input, options) } : {}),
@@ -123,6 +125,8 @@ export function createS3Transport(
     copyObject: (input, options) => client.copyObject(input, options),
     listObjectsV2: (input, options) => client.listObjectsV2(input, options),
   };
+  forwardS3Owner(client, transport);
+  return transport;
 }
 
 export class S3ServiceError extends Error {

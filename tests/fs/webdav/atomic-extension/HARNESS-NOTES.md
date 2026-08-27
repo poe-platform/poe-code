@@ -17,3 +17,8 @@ The next cohort passed 33+568+23+23+5+28+49 but its ad-hoc TypeScript command
 accidentally included default DOM definitions; existing Node `RequestInit.duplex`
 then failed. Adding the project's `--lib ES2023` fixes that invocation without
 changing source/tests. The failed type invocation remains in `evidence/source-final`.
+
+`provider-first` stopped before dependency downloads or server start: the public
+example's `Object.freeze` object method lacked an explicit input parameter type,
+so strict packed-consumer compilation reported two implicit-any errors. The
+parameter now uses the published request type. No production source changed.

@@ -1,0 +1,63 @@
+{
+  "server": "WsgiDAV 4.3.5 / cheroot 11.1.2",
+  "transport": "numeric loopback HTTPS, task-owned certificate",
+  "header": "X-Atomic-Empty-Directory",
+  "primitive": "os.rmdir; early handle_delete before descendants; normal parent and additional actual target/descendant lock checks",
+  "serialization": "one provider RLock covers all /dav handler iterations; stable trusted native ancestors required",
+  "aliases": "none registered",
+  "stock": "separate native subtree and unmodified FilesystemProvider",
+  "installed": [
+    {
+      "name": "bcrypt",
+      "version": "4.3.0"
+    },
+    {
+      "name": "cheroot",
+      "version": "11.1.2"
+    },
+    {
+      "name": "defusedxml",
+      "version": "0.7.1"
+    },
+    {
+      "name": "jaraco.functools",
+      "version": "4.6.0"
+    },
+    {
+      "name": "Jinja2",
+      "version": "3.1.6"
+    },
+    {
+      "name": "json5",
+      "version": "0.15.0"
+    },
+    {
+      "name": "MarkupSafe",
+      "version": "3.0.3"
+    },
+    {
+      "name": "more-itertools",
+      "version": "11.1.0"
+    },
+    {
+      "name": "passlib",
+      "version": "1.7.4"
+    },
+    {
+      "name": "pip",
+      "version": "26.2.1"
+    },
+    {
+      "name": "PyYAML",
+      "version": "6.0.3"
+    },
+    {
+      "name": "wsgidav",
+      "version": "4.3.5"
+    }
+  ],
+  "downloadedBytes": 1769458,
+  "dependenciesSha256": "e80ca4a6c021a346ee88dfe6098f7b87d1fddae72fe470292e24931fd24752a9",
+  "pythonBinarySha256": "87d4df53fd91304be5bac391fb204643c36b7df2023c04a0953bcbc7d4fdf634",
+  "sha256": "a4ce82f78f08f78b04d8dbc6c891120b5fd854e25858d9a93a0ee5b622949c4d"
+}

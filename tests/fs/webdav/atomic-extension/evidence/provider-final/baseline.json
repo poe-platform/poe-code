@@ -1,0 +1,10 @@
+{
+  "source": "d1174e2db9f4a4c92403842dee6fb3d4ff57ec96",
+  "archiveSha256": "e705552cb347ccb7b7e11a4c582591126e75ecd1b0f51d2397efc51843bc114a",
+  "node": "v22.22.2",
+  "nodeBinarySha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+  "movingHead": "8fa7cda806b8b94bb7f27d9c3c72a58290b2ebdb",
+  "status": " M src/shell/shell.ts\n M tests/fs/webdav/atomic-extension/HARNESS-NOTES.md\n?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/\n?? tests/commands/filesystem-inspection-stress/file/\n?? tests/commands/filesystem-inspection-stress/tree/\n?? tests/commands/search-stress/.native-1m4O1e/\n?? tests/commands/time-env/fix-review/README.md\n?? tests/commands/time-env/fix-review/evidence/\n?? tests/fs/webdav/atomic-extension-independent/\n?? tests/fs/webdav/atomic-extension/.service-ieUtCn/\n?? tests/fs/webdav/atomic-extension/audit.mjs\n?? tests/fs/webdav/atomic-extension/closure-loader.mjs\n?? tests/fs/webdav/atomic-extension/consumer.mts\n?? tests/fs/webdav/atomic-extension/dependencies.json\n?? tests/fs/webdav/atomic-extension/evidence/provider-final/\n?? tests/fs/webdav/atomic-extension/evidence/provider-first/\n?? tests/fs/webdav/atomic-extension/evidence/provider-second/\n?? tests/fs/webdav/atomic-extension/example.mts\n?? tests/fs/webdav/atomic-extension/https.mts\n?? tests/fs/webdav/atomic-extension/openssl.cnf\n?? tests/fs/webdav/atomic-extension/run.mjs\n?? tests/fs/webdav/atomic-extension/server.py\n?? tests/shell/invocation-cleanup-setup.test.ts\n",
+  "webdavSha256": "e66a66e2745852c6bd12be12a18c855df069152cf6b8089d2ecee8880c62de94",
+  "indexSha256": "d359fa8a89c30fa7fa06b256c524b4bc1022b3217763051961e579c5fcfd7764"
+}

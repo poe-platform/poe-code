@@ -1,0 +1,8 @@
+{
+  "namespaceUrl": "https://127.0.0.1:52962/dav/",
+  "stockUrl": "https://127.0.0.1:52962/stock/",
+  "caFile": "/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/atomic-extension/.service-J8Kew3/cert.pem",
+  "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+  "serverRoot": "/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/atomic-extension/.service-J8Kew3/root",
+  "controlRoot": "/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/atomic-extension/.service-J8Kew3"
+}

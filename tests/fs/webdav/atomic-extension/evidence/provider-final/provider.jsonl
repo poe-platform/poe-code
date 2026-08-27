@@ -1,0 +1,55 @@
+{"event": "authenticated-extension-request", "method": "OPTIONS", "path": "/", "principal": "fixture"}
+{"event": "authenticated-extension-request", "method": "DELETE", "path": "/empty/", "principal": "fixture"}
+{"event": "hook-after-standard-parent-check", "path": "/empty/", "principal": "fixture"}
+{"event": "actual-lock-manager-approved", "path": "/empty/"}
+{"event": "native-rmdir", "path": "/empty/"}
+{"event": "native-removed", "path": "/empty/"}
+{"event": "authenticated-extension-request", "method": "OPTIONS", "path": "/", "principal": "fixture"}
+{"event": "authenticated-extension-request", "method": "DELETE", "path": "/\u96ea % space/", "principal": "fixture"}
+{"event": "hook-after-standard-parent-check", "path": "/\u96ea % space/", "principal": "fixture"}
+{"event": "actual-lock-manager-approved", "path": "/\u96ea % space/"}
+{"event": "native-rmdir", "path": "/\u96ea % space/"}
+{"event": "native-removed", "path": "/\u96ea % space/"}
+{"event": "authenticated-extension-request", "method": "OPTIONS", "path": "/", "principal": "fixture"}
+{"event": "authenticated-extension-request", "method": "DELETE", "path": "/shell-dir/", "principal": "fixture"}
+{"event": "hook-after-standard-parent-check", "path": "/shell-dir/", "principal": "fixture"}
+{"event": "actual-lock-manager-approved", "path": "/shell-dir/"}
+{"event": "native-rmdir", "path": "/shell-dir/"}
+{"event": "native-removed", "path": "/shell-dir/"}
+{"event": "authenticated-extension-request", "method": "OPTIONS", "path": "/", "principal": "fixture"}
+{"event": "authenticated-extension-request", "method": "DELETE", "path": "/nonempty/", "principal": "fixture"}
+{"event": "hook-after-standard-parent-check", "path": "/nonempty/", "principal": "fixture"}
+{"event": "actual-lock-manager-approved", "path": "/nonempty/"}
+{"event": "native-rmdir", "path": "/nonempty/"}
+{"event": "native-error", "path": "/nonempty/", "code": "ENOTEMPTY"}
+{"event": "authenticated-extension-request", "method": "OPTIONS", "path": "/", "principal": "fixture"}
+{"event": "authenticated-extension-request", "method": "DELETE", "path": "/late-child/", "principal": "fixture"}
+{"event": "hook-after-standard-parent-check", "path": "/late-child/", "principal": "fixture"}
+{"event": "actual-lock-manager-approved", "path": "/late-child/"}
+{"event": "native-rmdir", "path": "/late-child/"}
+{"event": "native-error", "path": "/late-child/", "code": "ENOTEMPTY"}
+{"event": "authenticated-extension-request", "method": "DELETE", "path": "/nonempty/", "principal": "other"}
+{"event": "authenticated-extension-request", "method": "DELETE", "path": "/nonempty/", "principal": "fixture"}
+{"event": "authenticated-extension-request", "method": "DELETE", "path": "/control/", "principal": "fixture"}
+{"event": "authenticated-extension-request", "method": "DELETE", "path": "/control/", "principal": "fixture"}
+{"event": "authenticated-extension-request", "method": "DELETE", "path": "/final-link/", "principal": "fixture"}
+{"event": "authenticated-extension-request", "method": "OPTIONS", "path": "/", "principal": "fixture"}
+{"event": "authenticated-extension-request", "method": "DELETE", "path": "/lock-target/", "principal": "fixture"}
+{"event": "hook-after-standard-parent-check", "path": "/lock-target/", "principal": "fixture"}
+{"event": "actual-lock-manager-rejected", "path": "/lock-target/"}
+{"event": "authenticated-extension-request", "method": "DELETE", "path": "/parent/empty/", "principal": "fixture"}
+{"event": "authenticated-extension-request", "method": "DELETE", "path": "/parent/empty/", "principal": "fixture"}
+{"event": "authenticated-extension-request", "method": "DELETE", "path": "/parent/empty/", "principal": "fixture"}
+{"event": "hook-after-standard-parent-check", "path": "/parent/empty/", "principal": "fixture"}
+{"event": "actual-lock-manager-approved", "path": "/parent/empty/"}
+{"event": "native-rmdir", "path": "/parent/empty/"}
+{"event": "native-removed", "path": "/parent/empty/"}
+{"event": "authenticated-extension-request", "method": "DELETE", "path": "/descendant/", "principal": "fixture"}
+{"event": "hook-after-standard-parent-check", "path": "/descendant/", "principal": "fixture"}
+{"event": "actual-lock-manager-rejected", "path": "/descendant/"}
+{"event": "authenticated-extension-request", "method": "OPTIONS", "path": "/", "principal": "fixture"}
+{"event": "authenticated-extension-request", "method": "DELETE", "path": "/public-example-empty/", "principal": "fixture"}
+{"event": "hook-after-standard-parent-check", "path": "/public-example-empty/", "principal": "fixture"}
+{"event": "actual-lock-manager-approved", "path": "/public-example-empty/"}
+{"event": "native-rmdir", "path": "/public-example-empty/"}
+{"event": "native-removed", "path": "/public-example-empty/"}

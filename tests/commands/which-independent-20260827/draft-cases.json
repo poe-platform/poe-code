@@ -1,0 +1,54 @@
+{
+  "status": "DRAFT: exact root policy and module API awaited; NOT a normative freeze",
+  "families": { "behavior": 18, "limits": 4, "cancellationCleanup": 2, "types": 4, "total": 28 },
+  "commonFixture": {
+    "cwd": "/work",
+    "directories": ["/a", "/b", "/work", "/work/bin", "/a/directory"],
+    "files": [
+      { "path": "/a/tool", "mode": "0755", "bytes": "A" },
+      { "path": "/b/tool", "mode": "0755", "bytes": "B" },
+      { "path": "/work/tool", "mode": "0755", "bytes": "CWD" },
+      { "path": "/work/bin/tool", "mode": "0755", "bytes": "RELATIVE" },
+      { "path": "/a/noexec", "mode": "0644", "bytes": "NOEXEC" },
+      { "path": "/b/noexec", "mode": "0755", "bytes": "EXEC" },
+      { "path": "/a/-dash", "mode": "0755", "bytes": "DASH" },
+      { "path": "/a/a b", "mode": "0755", "bytes": "SPACE" },
+      { "path": "/a/λ😀", "mode": "0755", "bytes": "UTF8" }
+    ],
+    "symlinks": [
+      { "path": "/a/link", "target": "/b/tool" },
+      { "path": "/a/dangling", "target": "/missing" },
+      { "path": "/a/cycle", "target": "cycle" }
+    ]
+  },
+  "cases": [
+    { "id": "B01", "name": "first match", "args": ["tool"], "PATH": "/a:/b", "assert": ["first approved executable candidate wins", "no host search or execution", "bounded first-mode probes"], "pending": ["exact output spelling and status"] },
+    { "id": "B02", "name": "all matches in PATH order", "args": ["-a", "tool"], "PATH": "/b:/a", "assert": ["all eligible virtual candidates in traversal order", "await every output write"], "pending": ["duplicate normalization policy"] },
+    { "id": "B03", "name": "silent and combined flags", "variants": [["-s", "tool"], ["-as", "tool"], ["-sa", "tool"], ["-s", "missing"]], "assert": ["no stdout for silent mode"], "pending": ["silent diagnostic policy", "status aggregation", "whether silent all still probes every candidate"] },
+    { "id": "B04", "name": "multiple programs and mixed results", "variants": [["tool", "missing"], ["missing", "tool"], ["missing", "absent"], ["-a", "tool", "noexec"]], "assert": ["operand order preserved", "one missing operand cannot erase another operand's output"], "pending": ["any-found versus all-found exit rule", "missing-name stderr"] },
+    { "id": "B05", "name": "literal terminator and dash operands", "variants": [["--", "-dash"], ["-a", "--", "-dash"], ["--", "-"], ["--", "--"]], "assert": ["no shell interpolation or option parsing after terminator"], "pending": ["single-dash treatment before terminator"] },
+    { "id": "B06", "name": "explicit slash operands", "variants": [["/a/tool"], ["./tool"], ["bin/tool"], ["/a/../b/tool"]], "PATH": "/not-used", "assert": ["only explicit virtual path is tested", "no registry fallback or PATH search"], "pending": ["lexical versus normalized output", "trailing slash behavior"] },
+    { "id": "B07", "name": "unset empty and empty-component PATH", "variants": [{ "PATH": null }, { "PATH": "" }, { "PATH": ":/a::" }, { "PATH": "/a:" }], "assert": ["no ambient host PATH lookup"], "pending": ["unset PATH behavior", "empty PATH semantics", "empty-component label and duplicates"] },
+    { "id": "B08", "name": "relative PATH and cwd isolation", "PATH": "bin:.", "variants": ["/work", "/different"], "assert": ["current virtual cwd, not process.cwd", "prefix PATH and cwd changes confined to execution"], "pending": ["relative output labels", "symlinked-cwd normalization"] },
+    { "id": "B09", "name": "repeated PATH entries aliases and operands", "args": ["-a", "tool", "tool"], "PATH": "/a:/a:/a/../a:/b", "assert": ["no invented cross-provider identity or blanket inode deduplication"], "pending": ["literal duplicate emission", "normalized duplicate suppression", "repeated-operand multiplicity"] },
+    { "id": "B10", "name": "registry function and builtin names are not fabricated paths", "args": ["true", "registered-only", "function-only", "tool"], "assert": ["registry-only and function-only names yield no invented executable pathname", "an actual same-named VFS file is independently eligible"], "pending": ["exact absent output/status"] },
+    { "id": "B11", "name": "regular files mode and symlink targets", "args": ["noexec", "directory", "link", "dangling", "cycle"], "assert": ["directory is not a command file", "no content read to decide executability"], "pending": ["mode bits versus access X_OK", "permissions capability meaning", "symlink and ELOOP error classification"] },
+    { "id": "B12", "name": "denial and provider error classes", "faults": ["ENOENT", "ENOTDIR", "EACCES", "EPERM", "ELOOP", "EIO", "ENOTSUP"], "assert": ["cancellation is not ordinary not-found", "no fabricated match after error"], "pending": ["which errors continue search", "which diagnose and stop", "module versus shell error result"] },
+    { "id": "B13", "name": "spaces Unicode and non-shell metacharacters", "args": ["a b", "λ😀", "$(touch injected)", "*", ";"], "assert": ["literal argv", "UTF-8 byte accounting", "no injected virtual files", "no host filesystem access"], "pending": ["embedded NUL validation status and timing"] },
+    { "id": "B14", "name": "option validation before provider effects", "variants": [["-z", "tool"], ["-aZ", "tool"], ["--unknown"], ["--help"], ["--version"]], "assert": ["no unrequested flags invented", "complete option admission before metadata where approved"], "pending": ["exact supported flags", "usage status", "diagnostic bytes"] },
+    { "id": "B15", "name": "empty operands and absent program list", "variants": [[], ["-a"], ["--"], [""], ["-s", ""]], "assert": ["no host default command lookup"], "pending": ["usage versus no-match distinction", "empty operand diagnostics"] },
+    { "id": "B16", "name": "metadata-only operation and ignored stdin", "assert": ["no readFile/readStream/copy-up/write/mutation calls", "stdin next count zero", "file bytes and directory entries unchanged"], "pending": ["exact allowed metadata methods", "provider/native atime qualification"] },
+    { "id": "B17", "name": "readonly and unknown permission providers", "providers": ["MemoryFileSystem", "ReadOnlyFileSystem(MemoryFileSystem)", "metadata provider with permissions absent", "provider with permissions false but truthful X_OK"], "assert": ["no writes or false capability", "do not confuse inability to chmod with an invented executable guarantee"], "pending": ["executable permission authority rule", "unsupported versus no-match profile"] },
+    { "id": "B18", "name": "actual Shell pipeline prefix and invocation flow", "recipes": ["PATH=/a:/b which -a tool | head -n 1", "PATH=/b which tool > /result", "invoke literal argv with cwd/env overrides"], "assert": ["ordinary pipeline/output ownership preserved", "following command can execute", "no new Shell or host subprocess inside command"], "pending": ["actual module factory/plugin names", "early-close module versus shell status"] },
+    { "id": "L01", "name": "argv and PATH byte admission", "proposedDefault": "1 MiB", "assert": ["exact boundary and one-byte-over", "UTF-8 multibyte vectors", "safe integer arithmetic", "no large intermediate allocation before size validation"], "pending": ["combined versus separate byte budgets", "argument count or empty-argument loop bound", "limit option names", "zero and invalid config semantics"] },
+    { "id": "L02", "name": "metadata probe budget", "proposedDefault": 100000, "assert": ["boundary and one-extra candidate", "misses denied entries duplicates and symlinks consume documented work", "no hidden unbounded path loop"], "pending": ["candidate versus metadata-call counting", "silent mode count", "small injectable test cap"] },
+    { "id": "L03", "name": "constructed path bound", "proposedDefaultBytes": 16384, "assert": ["prefix plus separator plus operand accounted before construction", "UTF-8 not JS code-unit arithmetic"], "pending": ["normalize before or after cap", "boundary inclusive", "oversize candidate skips or terminates"] },
+    { "id": "L04", "name": "output budget and awaited writes", "proposedDefaultBytes": 1048576, "assert": ["newline bytes counted", "no overlapping sink writes", "held write prevents successful public settlement", "no writes after rejection"], "pending": ["stdout versus combined stderr accounting", "partial output retention", "small injectable test cap"] },
+    { "id": "C01", "name": "preabort and cooperative metadata cancellation", "assert": ["preabort prevents new provider effects", "operation receives command cancellation signal", "exact object and native falsy reasons tested at correct boundary", "cooperative pending metadata settles and listeners detach"], "pending": ["module versus Shell mapping", "resource registration contract if provider owns asynchronous work"] },
+    { "id": "C02", "name": "sink cancellation rejection and teardown", "assert": ["awaited sink failure is not treated as successful match", "no later output after failure", "failure cleanup observed", "unread stdin owned by Shell is finalized by Shell, not consumed by which", "opaque ignored-signal host work is not falsely claimed preempted"], "pending": ["exact sink-error mapping", "output-operation enrollment needs", "no-body versus acquired-resource cleanup distinction"] },
+    { "id": "T01", "name": "actual command factory and definitions", "assert": ["public declared module names compile", "definition executes CommandContext and returns CommandResult"], "pending": ["author module API names and paths"] },
+    { "id": "T02", "name": "actual plugin factory and replacement policy", "assert": ["plugin fits VirtualShellPlugin", "duplicate-registration policy explicit", "no root export required before authorized wiring"], "pending": ["plugin name options and replace semantics"] },
+    { "id": "T03", "name": "limits options strict typing and runtime validation", "assert": ["wrong property types rejected", "NaN infinity fractional negative unsafe integers handled by explicit runtime policy"], "pending": ["limit interface and configurability", "zero-cap policy"] },
+    { "id": "T04", "name": "byte streams signal and zero-runtime-dependency closure", "assert": ["existing readonly command signal and bytes contract preserved", "no new invocation API required", "built module imports do not acquire host environment or dependencies"], "pending": ["actual emitted module closure", "public root/subpath wiring later authorization"] }
+  ]
+}

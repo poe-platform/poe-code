@@ -5,7 +5,7 @@ import { fileURLToPath } from 'node:url';
 import { digest } from '../jq-42-independent-review/common.mjs';
 
 export function artifact(name, document) {
-  assert.match(name, /^[a-z0-9][a-z0-9.-]*$/u);
+  assert.match(name, /^[a-zA-Z0-9][a-zA-Z0-9.-]*$/u);
   const path = fileURLToPath(new URL(name, import.meta.url));
   assert.equal(existsSync(path), false, `never overwrite ${path}`);
   const text = typeof document === 'string' ? document : `${JSON.stringify(document, null, 2)}\n`;

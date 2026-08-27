@@ -4,36 +4,52 @@ import { FsError } from "../../../src/contracts/errors.js";
 import type { FileSystem } from "../../../src/contracts/filesystem.js";
 import { MemoryFileSystem } from "../../../src/fs/memory/index.js";
 import { MockS3Client, S3FileSystem } from "../../../src/fs/s3/index.js";
+import type { MockS3Request } from "../../../src/fs/s3/index.js";
 import { WebDavFileSystem } from "../../../src/fs/webdav/index.js";
 import { binary, errno } from "../../fs/conformance/fixtures.js";
 import { MockDav } from "../../fs/webdav/mock.js";
+import { assertExactMarkerRemoval, assertSnapshotProfile } from "./s3-snapshot-profile/assertions.js";
+import type { ObjectSnapshot } from "./s3-snapshot-profile/assertions.js";
 
-interface RemoteFixture {
+type RemoteFixture = {
   fs: FileSystem;
   mutations(): number;
+} & ({
+  rmdirProfile: "snapshot-marker";
+  bucket: string;
+  mutationRequests(): readonly MockS3Request[];
+  snapshot(): Promise<ObjectSnapshot[]>;
+} | {
+  rmdirProfile: "unsupported";
   snapshot(): Promise<unknown>;
-}
+});
 
-const profiles: { name: string; create(): RemoteFixture }[] = [
-  { name: "s3", create() {
+const profiles: { name: string; cleanupDescription: string; create(): RemoteFixture }[] = [
+  { name: "s3", cleanupDescription: "snapshot rmdir deletes only the empty marker", create() {
     const bucket = "safe-workflows";
     const mock = new MockS3Client({ buckets: [bucket] });
     return {
+      rmdirProfile: "snapshot-marker",
+      bucket,
       fs: new S3FileSystem({ transport: mock, bucket }),
       mutations: () => mock.requests.filter(request => ["putObject", "copyObject", "deleteObject"].includes(request.operation)).length,
+      mutationRequests: () => mock.requests.filter(request => ["putObject", "copyObject", "deleteObject"].includes(request.operation)),
       async snapshot() {
-        const result = [];
+        const result: ObjectSnapshot[] = [];
         for (const entry of (await mock.listObjectsV2({ Bucket: bucket })).Contents ?? []) {
-          const object = await mock.getObject({ Bucket: bucket, Key: entry.Key! });
+          assert.ok(typeof entry.Key === "string");
+          const object = await mock.getObject({ Bucket: bucket, Key: entry.Key });
+          assert.ok(object.Body instanceof Uint8Array);
           result.push({ key: entry.Key, body: object.Body, metadata: object.Metadata, etag: object.ETag });
         }
         return result;
       },
     };
   } },
-  { name: "webdav", create() {
+  { name: "webdav", cleanupDescription: "unsupported empty rmdir has no effects", create() {
     const mock = new MockDav();
     return {
+      rmdirProfile: "unsupported",
       fs: new WebDavFileSystem({ baseUrl: "https://example.test/dav/", fetch: mock.fetch }),
       mutations: () => mock.requests.filter(request => !["PROPFIND", "GET", "HEAD"].includes(request.init.method!)).length,
       async snapshot() { return structuredClone(mock.files); },
@@ -42,7 +58,7 @@ const profiles: { name: string; create(): RemoteFixture }[] = [
 ];
 
 for (const profile of profiles) {
-  test(`${profile.name}: named-file cleanup leaves parents and unsupported empty rmdir has no effects`, async () => {
+  test(`${profile.name}: named-file cleanup leaves parents and ${profile.cleanupDescription}`, async () => {
     const fixture = profile.create();
     const { fs } = fixture;
     const nested = "/work/scratch/nested";
@@ -52,19 +68,32 @@ for (const profile of profiles) {
     await fs.rm(`${nested}/owned-file`);
     await assert.rejects(fs.stat(`${nested}/owned-file`), errno("ENOENT"));
     assert.deepEqual(await fs.readdir(nested), []);
-    const before = await fixture.snapshot();
-    const mutations = fixture.mutations();
     assert.ok(fs.rmdir);
-    await assert.rejects(fs.rmdir(nested), error => {
-      assert.ok(error instanceof FsError);
-      assert.equal(error.code, "ENOTSUP");
-      assert.equal(error.syscall, "rmdir");
-      assert.equal(error.path, nested);
-      return true;
-    });
-    assert.equal(fixture.mutations(), mutations);
-    assert.deepEqual(await fixture.snapshot(), before);
-    for (const path of ["/work", "/work/scratch", nested]) assert.equal((await fs.stat(path)).type, "directory");
+    if (fixture.rmdirProfile === "snapshot-marker") {
+      assertSnapshotProfile(fs.capabilities);
+      const before = await fixture.snapshot();
+      const mutations = fixture.mutations();
+      await fs.rmdir(nested);
+      assertExactMarkerRemoval(before, await fixture.snapshot(), fixture.mutationRequests().slice(mutations), {
+        Bucket: fixture.bucket, Key: `${nested.slice(1)}/`,
+      });
+      for (const path of ["/work", "/work/scratch"]) assert.equal((await fs.stat(path)).type, "directory");
+      await assert.rejects(fs.stat(nested), errno("ENOENT"));
+    } else {
+      assert.notEqual(fs.capabilities.snapshotRmdir, true);
+      const before = await fixture.snapshot();
+      const mutations = fixture.mutations();
+      await assert.rejects(fs.rmdir(nested), error => {
+        assert.ok(error instanceof FsError);
+        assert.equal(error.code, "ENOTSUP");
+        assert.equal(error.syscall, "rmdir");
+        assert.equal(error.path, nested);
+        return true;
+      });
+      assert.equal(fixture.mutations(), mutations);
+      assert.deepEqual(await fixture.snapshot(), before);
+      for (const path of ["/work", "/work/scratch", nested]) assert.equal((await fs.stat(path)).type, "directory");
+    }
     assert.deepEqual(await fs.readFile("/sentinel"), new Uint8Array([255, 3]));
   });
 

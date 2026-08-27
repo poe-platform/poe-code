@@ -37,7 +37,7 @@ export function execute(fs: FileSystem, args: readonly string[], input: string, 
     .exec(["patch", ...args].map(quote).join(" "), { stdin: input, ...(signal ? { signal } : {}) });
 }
 
-export interface Mutation { method: "writeFile" | "rm"; path: string; signal: AbortSignal | undefined }
+export interface Mutation { method: "writeFile" | "rm" | "rmdir"; path: string; signal: AbortSignal | undefined }
 
 export function observe(fs: MemoryFileSystem, fault?: { method: Mutation["method"]; path: string; after: boolean }) {
   const calls: string[] = [];
@@ -48,7 +48,7 @@ export function observe(fs: MemoryFileSystem, fault?: { method: Mutation["method
       if (typeof value !== "function") return value;
       return (...args: unknown[]) => {
         calls.push(String(property));
-        const mutation = property === "writeFile" || property === "rm";
+        const mutation = property === "writeFile" || property === "rm" || property === "rmdir";
         const path = String(args[0]);
         const options = args[property === "writeFile" ? 2 : 1] as { signal?: AbortSignal } | undefined;
         if (mutation) mutations.push({ method: property, path, signal: options?.signal });

@@ -14,11 +14,17 @@ for (const vector of vectors) test(`${vector.status === 0 ? "GNU default" : "ato
   delete before[target(vector)];
   delete after[target(vector)];
   const prunedParent = vector.expected === null && vector.status === 0 && !vector.args.includes("--dry-run") && target(vector) === "/authorized/target";
-  if (prunedParent) delete before["/authorized"];
+  if (prunedParent) {
+    delete before["/authorized"];
+    const root = before["/"];
+    assert(typeof root === "object" && root !== null && "nlink" in root);
+    assert.equal(root.nlink, 4);
+    before["/"] = { ...root, nlink: 3 };
+  }
   assert.deepEqual(after, before, "no decoys, reject files, backup files, or unrelated paths changed");
   if (vector.args.includes("--dry-run") || vector.status !== 0) assert.deepEqual(observed.mutations, []);
   else assert.deepEqual(observed.mutations.map(({ method, path }) => ({ method, path })),
-    [{ method: vector.expected === null ? "rm" : "writeFile", path: target(vector) }, ...(prunedParent ? [{ method: "rm", path: "/authorized" }] : [])]);
+    [{ method: vector.expected === null ? "rm" : "writeFile", path: target(vector) }, ...(prunedParent ? [{ method: "rmdir", path: "/authorized" }] : [])]);
 });
 
 for (const format of formats) for (const reverse of [false, true]) {

@@ -85,7 +85,6 @@ const malformed: Readonly<Record<string, string>> = {
   "empty-incomplete-line": "@@ -1 +1 @@\n-old\n+\n\\ No newline at end of file\n",
   "content-after-incomplete-old": "@@ -1,2 +1 @@\n-old\n\\ No newline at end of file\n-tail\n+new\n",
   "content-after-incomplete-new": "@@ -1 +1,2 @@\n-old\n+new\n\\ No newline at end of file\n+tail\n",
-  "backward-second-hunk": "@@ -1 +1 @@\n-old\n+new\n@@ -1 +1 @@\n-old\n+other\n",
   "missing-physical-newline": "@@ -1 +1 @@\n-old\n+new",
   "header-only": "",
   "context-only-hunk": "@@ -1 +1 @@\n old\n",
@@ -98,6 +97,20 @@ for (const [name, broken] of Object.entries(malformed)) test(`atomic extension m
   assert.equal(result.exitCode, 2, result.stderr);
   assert.equal(await contents(filesystem, "first"), "keep\n");
   assert.equal(await contents(filesystem), "old\nmiddle\ntail\n");
+});
+
+test("atomic extension repeated backward hunk is a conflict without publication", async () => {
+  const first = golden("keep\n", "changed\n", "first");
+  const filesystem = await memory({ first: "keep\n", target: "old\nmiddle\ntail\n" });
+  const before = await snapshot(filesystem);
+  const broken = "@@ -1 +1 @@\n-old\n+new\n@@ -1 +1 @@\n-old\n+other\n";
+  const result = await run("patch", ["--atomic"], filesystem, `${first}--- target\n+++ target\n${broken}`);
+  assert.equal(result.exitCode, 1, result.stderr);
+  assert.equal(result.stdout, "");
+  assert.equal(result.stderr, "patch: hunk 2 does not match target\n");
+  assert.equal(await contents(filesystem, "first"), "keep\n");
+  assert.equal(await contents(filesystem), "old\nmiddle\ntail\n");
+  assert.deepEqual(await snapshot(filesystem), before);
 });
 
 for (const atomic of [false, true]) test(`${atomic ? "atomic extension" : "GNU default"} advisory new coordinate in second hunk remains applicable`, async () => {

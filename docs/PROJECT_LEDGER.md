@@ -2503,3 +2503,48 @@ that any implementation, command, fixture, or test currently exists.
   accessed by this ledger/TAP work. Getopts is a builtin, not a default plugin
   increment. These received acceptances do not establish current whole-product
   green status, full SafeJS closure or superiority.
+
+### 2026-08-27 23:36 UTC — Expr76 public author candidate and received first-read migration
+
+- Root authorized expr76 after the TAP fixture candidatee422ad06 was sealed and
+  Meitner's independent fixture freezef8b982f09e51b9a0a073b0b7bb393cb54796dd62
+  arrived. The preceding HOLD declaration is historical, not current authorization.
+  PRE-WIRING.json authenticates clean root absence at200237e9 and at that freeze;
+  accepted DU750895de2d's literal75 names are unchanged apart from adding expr.
+- Public wiring sourcea1c95fc52ddeef2d753950b09dd2a26b44b4ab6e adds root/explicit
+  commands/expr exports and aggregate expr limits. Global regex and top-level
+  replacement remain authoritative; unknown nested runtime regex is ignored even
+  without a supplied global regex. Direct factories retain their own options.
+  The nine expr/shared-regex TypeScript files remain exact acceptedc3e40f8b bytes.
+  No TEMP regex research, guard relaxation, stdin acquisition or owned-output
+  adoption is included.76 default plugin names exclude builtin getopts and
+  optional curl/SafeJS. HTML74 and DU75 frozen packages are not altered.
+- Final author candidate44f00bf84278e3361b52106478d59c707ab7b2bc produces complete
+  tarballc109372f90b1bd19bcf756cf993bb2976fb52b75fe0c92a1cf96dab4c229b5cd;
+  package.json separately hashes513f26e135e7f499b8fb92b7981b2e82a2e91d512db88518f48daf81c1bbf74a.
+  Build/scoped types and74 source tests pass without skips/TODOs.32 command outcomes
+  and35 supervisor checks match;16 installed/moved programs run across actual
+  Node22.22.2/24.11.1, with strict root/subpath consumers, six negative types in
+  each layout, missing runtime/export/type controls and genuine source-read
+  denial.834 installed/832 emitted files and357 committed input bindings remain
+  unchanged, including added-entry inventories. This is not a whole-repo gate.
+- The12 author public cases per context retire44 observed workers across four
+  contexts, with205 main-thread load hashes per context and actual worker module
+  bindings. R25's author startup marker follows exec plus finally-dispose; the
+  independent protocol must additionally observe exec before dispose. R26 checks
+  exact caller identity, real exec/dispose cleanup and live sibling isolation
+  using held genuine worker replies, not a claim of CPU activity at cancellation.
+  The full package contains a separately authored private cancellation helper
+  change relative to DU75; it is not loaded or approved by these public observations.
+- Evidence8d07bd6e7549aaa9a1096c3e9278b231692bc699 preserves the initial72/74
+  fixture failures and truncated receipt, then74/74 with a synchronous receipt
+  EAGAIN failure, beside the final success. Registry-copy identity and one stale
+  HTML expr-absence assertion were corrected separately from async receipt
+  draining; product bytes and all three tarball hashes are identical. Meitner's
+  unchanged26-case independent review and P01–P08 protocols remain pending.
+  Handoff: tests/plugins/expr-public-author/README.md and evidence-v1/REVIEW-HANDOFF.json.
+- Root separately accepts first-read canonical migration073d39c6 through
+  independentda828571:10 canonical plus10 independent cases,12 controls and199
+  loaded-module bindings. Original1/5 requirements and2/6 extended observations
+  remain historical failures, not rescored. This is a received fixture-profile
+  acceptance, not new runtime source work or a whole-release claim.

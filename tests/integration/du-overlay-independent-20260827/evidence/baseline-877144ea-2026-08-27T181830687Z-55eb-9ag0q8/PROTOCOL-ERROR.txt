@@ -1,0 +1,3 @@
+Error: scoped regressions failed (1): 
+    at requireSuccess (file:///Users/kjopek/Workspace/safe-bash/tests/integration/du-overlay-independent-20260827/capture.mjs:51:11)
+    at file:///Users/kjopek/Workspace/safe-bash/tests/integration/du-overlay-independent-20260827/capture.mjs:135:9

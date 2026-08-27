@@ -1,0 +1,42 @@
+{
+  "originalSha256": "0d58cf989c6655a92ac284340919cb97226819865354125b3cbd43465ad4ad2b",
+  "revisedSha256": "6d31d82b20320c589d76156086cc721267f5041263238a74bf216b58cf072636",
+  "changedRows": [
+    "syntax-output-one"
+  ],
+  "unchangedArgv": [
+    "1",
+    "x"
+  ],
+  "unchangedLimits": {
+    "maxOutputBytes": 1
+  },
+  "before": {
+    "id": "syntax-output-one",
+    "argv": [
+      "1",
+      "x"
+    ],
+    "limits": {
+      "maxOutputBytes": 1
+    },
+    "expectedStatus": 2,
+    "expectedStderr": "expr: syntax error: unexpected argument 'x'\n",
+    "workers": 0
+  },
+  "after": {
+    "id": "syntax-output-one",
+    "argv": [
+      "1",
+      "x"
+    ],
+    "limits": {
+      "maxOutputBytes": 1
+    },
+    "expectedStatus": 3,
+    "expectedStderr": "expr: output bytes limit exceeded\n",
+    "workers": 0
+  },
+  "beforeStderrBytes": 44,
+  "afterStderrBytes": 34
+}

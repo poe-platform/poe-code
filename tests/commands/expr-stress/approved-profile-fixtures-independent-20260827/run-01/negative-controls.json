@@ -1,0 +1,46 @@
+{
+  "freezeCommit": "7f4f187bc29ee211543f040f722367e1404bcb5d",
+  "mutations": [
+    {
+      "name": "changed environment",
+      "rejected": true
+    },
+    {
+      "name": "changed argv",
+      "rejected": true
+    },
+    {
+      "name": "weakened named collation",
+      "rejected": true
+    },
+    {
+      "name": "removed unrepresentable control",
+      "rejected": true
+    },
+    {
+      "name": "second runtime-row change",
+      "rejected": true
+    },
+    {
+      "name": "runtime argv change",
+      "rejected": true
+    },
+    {
+      "name": "runtime limit change",
+      "rejected": true
+    },
+    {
+      "name": "new archived file",
+      "rejected": true
+    },
+    {
+      "name": "changed archived file",
+      "rejected": true
+    },
+    {
+      "name": "new archived directory",
+      "rejected": true
+    }
+  ],
+  "allRejected": true
+}

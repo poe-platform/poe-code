@@ -1,0 +1,236 @@
+{
+  "rows": [
+    {
+      "id": "approved-ascii-length",
+      "status": 0,
+      "stdout": "3\n",
+      "stdoutHex": "330a",
+      "stderr": "",
+      "stderrHex": "",
+      "workers": 0,
+      "activeAtSettlement": 0,
+      "activeAfterCleanup": 0,
+      "dynamicCalls": []
+    },
+    {
+      "id": "named-unicode-scalars",
+      "status": 0,
+      "stdout": "3\n",
+      "stdoutHex": "330a",
+      "stderr": "",
+      "stderrHex": "",
+      "workers": 0,
+      "activeAtSettlement": 0,
+      "activeAfterCleanup": 0,
+      "dynamicCalls": []
+    },
+    {
+      "id": "unknown-name",
+      "status": 2,
+      "stdout": "",
+      "stdoutHex": "",
+      "stderr": "expr: character operations require C/POSIX, C.UTF-8/C.utf8, or qualified en_US.UTF-8 encoding\n",
+      "stderrHex": "657870723a20636861726163746572206f7065726174696f6e73207265717569726520432f504f5349582c20432e5554462d382f432e757466382c206f72207175616c696669656420656e5f55532e5554462d3820656e636f64696e670a",
+      "workers": 0,
+      "activeAtSettlement": 0,
+      "activeAfterCleanup": 0,
+      "dynamicCalls": []
+    },
+    {
+      "id": "unknown-alias",
+      "status": 2,
+      "stdout": "",
+      "stdoutHex": "",
+      "stderr": "expr: character operations require C/POSIX, C.UTF-8/C.utf8, or qualified en_US.UTF-8 encoding\n",
+      "stderrHex": "657870723a20636861726163746572206f7065726174696f6e73207265717569726520432f504f5349582c20432e5554462d382f432e757466382c206f72207175616c696669656420656e5f55532e5554462d3820656e636f64696e670a",
+      "workers": 0,
+      "activeAtSettlement": 0,
+      "activeAfterCleanup": 0,
+      "dynamicCalls": []
+    },
+    {
+      "id": "named-collation",
+      "status": 2,
+      "stdout": "",
+      "stdoutHex": "",
+      "stderr": "expr: string comparison requires C/POSIX or C.UTF-8/C.utf8 byte collation\n",
+      "stderrHex": "657870723a20737472696e6720636f6d70617269736f6e20726571756972657320432f504f534958206f7220432e5554462d382f432e75746638206279746520636f6c6c6174696f6e0a",
+      "workers": 0,
+      "activeAtSettlement": 0,
+      "activeAfterCleanup": 0,
+      "dynamicCalls": []
+    },
+    {
+      "id": "named-bracket",
+      "status": 2,
+      "stdout": "",
+      "stdoutHex": "",
+      "stderr": "expr: unsupported BRE: bracket expressions require C/POSIX or C.UTF-8/C.utf8 LC_CTYPE and LC_COLLATE\n",
+      "stderrHex": "657870723a20756e737570706f72746564204252453a20627261636b65742065787072657373696f6e73207265717569726520432f504f534958206f7220432e5554462d382f432e75746638204c435f435459504520616e64204c435f434f4c4c4154450a",
+      "workers": 0,
+      "activeAtSettlement": 0,
+      "activeAfterCleanup": 0,
+      "dynamicCalls": []
+    },
+    {
+      "id": "nul",
+      "status": 2,
+      "stdout": "",
+      "stdoutHex": "",
+      "stderr": "expr: NUL is not supported in argv\n",
+      "stderrHex": "657870723a204e554c206973206e6f7420737570706f7274656420696e20617267760a",
+      "workers": 0,
+      "activeAtSettlement": 0,
+      "activeAfterCleanup": 0,
+      "dynamicCalls": []
+    },
+    {
+      "id": "lone-high-surrogate",
+      "status": 2,
+      "stdout": "",
+      "stdoutHex": "",
+      "stderr": "expr: argv must contain well-formed Unicode\n",
+      "stderrHex": "657870723a2061726776206d75737420636f6e7461696e2077656c6c2d666f726d656420556e69636f64650a",
+      "workers": 0,
+      "activeAtSettlement": 0,
+      "activeAfterCleanup": 0,
+      "dynamicCalls": []
+    },
+    {
+      "id": "lone-low-surrogate",
+      "status": 2,
+      "stdout": "",
+      "stdoutHex": "",
+      "stderr": "expr: argv must contain well-formed Unicode\n",
+      "stderrHex": "657870723a2061726776206d75737420636f6e7461696e2077656c6c2d666f726d656420556e69636f64650a",
+      "workers": 0,
+      "activeAtSettlement": 0,
+      "activeAfterCleanup": 0,
+      "dynamicCalls": []
+    },
+    {
+      "id": "named-worker-only-match",
+      "status": 0,
+      "stdout": "3\n",
+      "stdoutHex": "330a",
+      "stderr": "",
+      "stderrHex": "",
+      "workers": 1,
+      "activeAtSettlement": 0,
+      "activeAfterCleanup": 0,
+      "dynamicCalls": []
+    },
+    {
+      "id": "syntax-fixed-emergency",
+      "status": 3,
+      "stdout": "",
+      "stdoutHex": "",
+      "stderr": "expr: output bytes limit exceeded\n",
+      "stderrHex": "657870723a206f7574707574206279746573206c696d69742065786365656465640a",
+      "workers": 0,
+      "activeAtSettlement": 0,
+      "activeAfterCleanup": 0,
+      "dynamicCalls": []
+    }
+  ],
+  "imports": [
+    {
+      "parent": "file:///Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/approved-profile-fixtures-independent-20260827/run-01/.work/revised/dist/commands/expr/index.js",
+      "resolved": "file:///Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/approved-profile-fixtures-independent-20260827/run-01/.work/revised/dist/contracts/index.js"
+    },
+    {
+      "parent": "file:///Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/approved-profile-fixtures-independent-20260827/run-01/.work/revised/dist/commands/expr/index.js",
+      "resolved": "file:///Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/approved-profile-fixtures-independent-20260827/run-01/.work/revised/dist/commands/regex-execution/client.js"
+    },
+    {
+      "parent": "file:///Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/approved-profile-fixtures-independent-20260827/run-01/.work/revised/dist/commands/expr/index.js",
+      "resolved": "file:///Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/approved-profile-fixtures-independent-20260827/run-01/.work/revised/dist/commands/regex-execution/protocol.js"
+    },
+    {
+      "parent": "file:///Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/approved-profile-fixtures-independent-20260827/run-01/.work/revised/dist/commands/expr/index.js",
+      "resolved": "file:///Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/approved-profile-fixtures-independent-20260827/run-01/.work/revised/dist/commands/expr/evaluate.js"
+    },
+    {
+      "parent": "file:///Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/approved-profile-fixtures-independent-20260827/run-01/.work/revised/dist/commands/expr/index.js",
+      "resolved": "file:///Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/approved-profile-fixtures-independent-20260827/run-01/.work/revised/dist/commands/expr/internal.js"
+    },
+    {
+      "parent": "file:///Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/approved-profile-fixtures-independent-20260827/run-01/.work/revised/dist/commands/expr/index.js",
+      "resolved": "file:///Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/approved-profile-fixtures-independent-20260827/run-01/.work/revised/dist/commands/expr/syntax.js"
+    },
+    {
+      "parent": "file:///Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/approved-profile-fixtures-independent-20260827/run-01/.work/revised/dist/contracts/index.js",
+      "resolved": "file:///Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/approved-profile-fixtures-independent-20260827/run-01/.work/revised/dist/contracts/command.js"
+    },
+    {
+      "parent": "file:///Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/approved-profile-fixtures-independent-20260827/run-01/.work/revised/dist/contracts/index.js",
+      "resolved": "file:///Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/approved-profile-fixtures-independent-20260827/run-01/.work/revised/dist/contracts/errors.js"
+    },
+    {
+      "parent": "file:///Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/approved-profile-fixtures-independent-20260827/run-01/.work/revised/dist/contracts/index.js",
+      "resolved": "file:///Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/approved-profile-fixtures-independent-20260827/run-01/.work/revised/dist/contracts/filesystem.js"
+    },
+    {
+      "parent": "file:///Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/approved-profile-fixtures-independent-20260827/run-01/.work/revised/dist/contracts/index.js",
+      "resolved": "file:///Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/approved-profile-fixtures-independent-20260827/run-01/.work/revised/dist/contracts/io.js"
+    },
+    {
+      "parent": "file:///Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/approved-profile-fixtures-independent-20260827/run-01/.work/revised/dist/contracts/index.js",
+      "resolved": "file:///Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/approved-profile-fixtures-independent-20260827/run-01/.work/revised/dist/contracts/output.js"
+    },
+    {
+      "parent": "file:///Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/approved-profile-fixtures-independent-20260827/run-01/.work/revised/dist/contracts/index.js",
+      "resolved": "file:///Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/approved-profile-fixtures-independent-20260827/run-01/.work/revised/dist/contracts/path.js"
+    },
+    {
+      "parent": "file:///Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/approved-profile-fixtures-independent-20260827/run-01/.work/revised/dist/contracts/index.js",
+      "resolved": "file:///Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/approved-profile-fixtures-independent-20260827/run-01/.work/revised/dist/contracts/plugin.js"
+    },
+    {
+      "parent": "file:///Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/approved-profile-fixtures-independent-20260827/run-01/.work/revised/dist/commands/regex-execution/client.js",
+      "resolved": "node:worker_threads"
+    },
+    {
+      "parent": "file:///Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/approved-profile-fixtures-independent-20260827/run-01/.work/revised/dist/commands/regex-execution/client.js",
+      "resolved": "file:///Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/approved-profile-fixtures-independent-20260827/run-01/.work/revised/dist/commands/regex-execution/protocol.js"
+    },
+    {
+      "parent": "file:///Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/approved-profile-fixtures-independent-20260827/run-01/.work/revised/dist/commands/expr/evaluate.js",
+      "resolved": "file:///Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/approved-profile-fixtures-independent-20260827/run-01/.work/revised/dist/commands/expr/internal.js"
+    },
+    {
+      "parent": "file:///Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/approved-profile-fixtures-independent-20260827/run-01/.work/revised/dist/commands/expr/internal.js",
+      "resolved": "file:///Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/approved-profile-fixtures-independent-20260827/run-01/.work/revised/dist/commands/regex-execution/protocol.js"
+    },
+    {
+      "parent": "file:///Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/approved-profile-fixtures-independent-20260827/run-01/.work/revised/dist/commands/expr/syntax.js",
+      "resolved": "file:///Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/approved-profile-fixtures-independent-20260827/run-01/.work/revised/dist/commands/expr/internal.js"
+    },
+    {
+      "parent": "file:///Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/approved-profile-fixtures-independent-20260827/run-01/.work/revised/dist/contracts/errors.js",
+      "resolved": "node:util"
+    },
+    {
+      "parent": "file:///Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/approved-profile-fixtures-independent-20260827/run-01/.work/revised/dist/contracts/io.js",
+      "resolved": "node:stream/web"
+    },
+    {
+      "parent": "file:///Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/approved-profile-fixtures-independent-20260827/run-01/.work/revised/dist/contracts/io.js",
+      "resolved": "file:///Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/approved-profile-fixtures-independent-20260827/run-01/.work/revised/dist/contracts/errors.js"
+    },
+    {
+      "parent": "file:///Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/approved-profile-fixtures-independent-20260827/run-01/.work/revised/dist/contracts/output.js",
+      "resolved": "file:///Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/approved-profile-fixtures-independent-20260827/run-01/.work/revised/dist/contracts/io.js"
+    },
+    {
+      "parent": "file:///Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/approved-profile-fixtures-independent-20260827/run-01/.work/revised/dist/contracts/path.js",
+      "resolved": "node:path"
+    },
+    {
+      "parent": "file:///Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/approved-profile-fixtures-independent-20260827/run-01/.work/revised/dist/contracts/path.js",
+      "resolved": "file:///Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/approved-profile-fixtures-independent-20260827/run-01/.work/revised/dist/contracts/errors.js"
+    }
+  ],
+  "forcedCleanup": 0,
+  "activeAfterSafetyCleanup": 0
+}

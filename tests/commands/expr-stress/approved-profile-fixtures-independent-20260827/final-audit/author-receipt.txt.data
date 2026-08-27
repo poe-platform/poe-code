@@ -1,0 +1,9 @@
+- `35db31aa` — test-only migration of the exact en_US length assertion; argv/env and other refusals unchanged.
+- `9fb0e32c` — separate versioned fixture and evidence commit.
+- Contracts: **26/27 original → 27/27 approved**. Unchanged controls: **298/298**. Build and scoped strict typecheck pass.
+- Runtime: original **11/12 retained**; V2 **12/12**, changing only the authorized syntax expectation tuple.
+- **Policy remains blocked:** `["1","/","0"]` at quota1 emits status2 and a 23-byte ordinary diagnostic, bypassing quota. Independent audit corroborates this.
+- Historical 240/241 results and 205 original evidence files remain byte-identical. Owned scratch removed; owned paths clean.
+- No production/docs changes, native recapture, or full-gate claim.
+
+Report: `tests/commands/expr-stress/approved-profile-fixtures-20260827/REPORT.md:1`

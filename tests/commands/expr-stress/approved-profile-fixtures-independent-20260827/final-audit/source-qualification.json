@@ -1,0 +1,54 @@
+{
+  "replayCandidate": "592c864ef62f5a29b1f126c83b6ac532357fb599",
+  "authorCommit": "9fb0e32c015e3597565e60b89b6f02e32188cd45",
+  "proofCommit": "064f3381edd14669528d15c89c71284a0f24694c",
+  "headAtAudit": "099d341d7334a3f51599d70c8af5a9c998004850",
+  "sourceHashes": [
+    {
+      "path": "src/commands/expr/index.ts",
+      "gitBlob": "897b8402127c50086ef292b2862491a2e99e2cc6",
+      "sha256": "4fd60b3b2fec4126e42e492922004e90e870a08aa319d2f088c085255355841d",
+      "proofSha256": "4fd60b3b2fec4126e42e492922004e90e870a08aa319d2f088c085255355841d"
+    },
+    {
+      "path": "src/commands/expr/evaluate.ts",
+      "gitBlob": "f16cd1660764de311dc42f799c71e8712c3f36c7",
+      "sha256": "04ca8f588ccaea97b3801fe30accfa6020636c5f72f156b0d158fa6474f525c9",
+      "proofSha256": "04ca8f588ccaea97b3801fe30accfa6020636c5f72f156b0d158fa6474f525c9"
+    },
+    {
+      "path": "src/commands/expr/syntax.ts",
+      "gitBlob": "767e82b52609e5d37587a79094b176355752f866",
+      "sha256": "4e8d05cc672be9f0786ebd74b09f9524028fd1d4f1491319cccd8a74d1ea3df0",
+      "proofSha256": "4e8d05cc672be9f0786ebd74b09f9524028fd1d4f1491319cccd8a74d1ea3df0"
+    },
+    {
+      "path": "src/commands/expr/internal.ts",
+      "gitBlob": "46b7604d21fe6823167301e1012d97d0ed7b6342",
+      "sha256": "07f203d8fc4e991e4d23cab87d67a23911f7960a2ed6d649fd843b0d7060e840",
+      "proofSha256": "07f203d8fc4e991e4d23cab87d67a23911f7960a2ed6d649fd843b0d7060e840"
+    },
+    {
+      "path": "src/commands/expr/bre-worker.ts",
+      "gitBlob": "95d2fda3b701d095458f83eadb4ebec61eb9f669",
+      "sha256": "f5c67e9c76b584337ae506b59449ecdcd945207b2269fdb4f79c5d1f7e81aff0",
+      "proofSha256": "f5c67e9c76b584337ae506b59449ecdcd945207b2269fdb4f79c5d1f7e81aff0"
+    },
+    {
+      "path": "src/commands/regex-execution/client.ts",
+      "gitBlob": "5bece2d5d06ca6c1ded7b3b99da6a3cb53253ed6",
+      "sha256": "5d086314898c38390753a07ef1c37001890ac2b47f3d0e05e221048b9db42ebc",
+      "proofSha256": "5d086314898c38390753a07ef1c37001890ac2b47f3d0e05e221048b9db42ebc"
+    },
+    {
+      "path": "src/contracts/io.ts",
+      "gitBlob": "6dc0efb87132376763228a845b2e62638898268a",
+      "sha256": "ff792b401508a2ef768aa4f9dd9794e653e1e14f2163e57d137e9cb2b7427809",
+      "proofSha256": "ff792b401508a2ef768aa4f9dd9794e653e1e14f2163e57d137e9cb2b7427809"
+    }
+  ],
+  "authorSelectedSourceDelta": "",
+  "postReplaySelectedSourceDelta": "",
+  "selectedInputsStillIdenticalAtAudit": true,
+  "scope": "Selected committed source/test/config composition authenticated. Reference 4fd60 is not a substitute for actual archive authentication. Concurrent live edits excluded."
+}

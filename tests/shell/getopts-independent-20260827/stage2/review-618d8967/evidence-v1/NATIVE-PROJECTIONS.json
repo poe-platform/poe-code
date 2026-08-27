@@ -1,0 +1,296 @@
+[
+  {
+    "profile": {
+      "id": "bash53",
+      "binary": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+      "sha256": "8cecb482de24198c23a736b931cb7e8cee1f94eb0b51abd54bd99f1d73d9673c",
+      "version": "5.3.0(1)-release",
+      "role": "selected Darwin binding profile"
+    },
+    "historicalCountsUnchanged": {
+      "scripts": 16,
+      "selectedProfileMatches": 14,
+      "selectedProfileMismatches": 2
+    },
+    "nativeExecutionsThisReview": 0,
+    "currentOracleAvailability": "Not probed; reused exact committed captures.",
+    "rows": [
+      {
+        "id": "N01",
+        "productPolicyPassed": true,
+        "stdoutEqualToCapturedNative": true,
+        "stderrByteEqualToCapturedNative": true,
+        "intentionalPolicy": false,
+        "correctedOracle": false
+      },
+      {
+        "id": "N02",
+        "productPolicyPassed": true,
+        "stdoutEqualToCapturedNative": true,
+        "stderrByteEqualToCapturedNative": true,
+        "intentionalPolicy": false,
+        "correctedOracle": false
+      },
+      {
+        "id": "N03",
+        "productPolicyPassed": true,
+        "stdoutEqualToCapturedNative": true,
+        "stderrByteEqualToCapturedNative": true,
+        "intentionalPolicy": false,
+        "correctedOracle": false
+      },
+      {
+        "id": "N04",
+        "productPolicyPassed": true,
+        "stdoutEqualToCapturedNative": false,
+        "stderrByteEqualToCapturedNative": true,
+        "intentionalPolicy": true,
+        "correctedOracle": false
+      },
+      {
+        "id": "N05",
+        "productPolicyPassed": true,
+        "stdoutEqualToCapturedNative": true,
+        "stderrByteEqualToCapturedNative": true,
+        "intentionalPolicy": false,
+        "correctedOracle": true
+      },
+      {
+        "id": "N06",
+        "productPolicyPassed": true,
+        "stdoutEqualToCapturedNative": true,
+        "stderrByteEqualToCapturedNative": true,
+        "intentionalPolicy": false,
+        "correctedOracle": false
+      },
+      {
+        "id": "N07",
+        "productPolicyPassed": true,
+        "stdoutEqualToCapturedNative": true,
+        "stderrByteEqualToCapturedNative": true,
+        "intentionalPolicy": false,
+        "correctedOracle": false
+      },
+      {
+        "id": "N08",
+        "productPolicyPassed": true,
+        "stdoutEqualToCapturedNative": true,
+        "stderrByteEqualToCapturedNative": true,
+        "intentionalPolicy": false,
+        "correctedOracle": false
+      },
+      {
+        "id": "N09",
+        "productPolicyPassed": true,
+        "stdoutEqualToCapturedNative": true,
+        "stderrByteEqualToCapturedNative": true,
+        "intentionalPolicy": false,
+        "correctedOracle": false
+      },
+      {
+        "id": "N10",
+        "productPolicyPassed": true,
+        "stdoutEqualToCapturedNative": true,
+        "stderrByteEqualToCapturedNative": true,
+        "intentionalPolicy": false,
+        "correctedOracle": false
+      },
+      {
+        "id": "N11",
+        "productPolicyPassed": true,
+        "stdoutEqualToCapturedNative": true,
+        "stderrByteEqualToCapturedNative": false,
+        "intentionalPolicy": false,
+        "correctedOracle": false
+      },
+      {
+        "id": "N12",
+        "productPolicyPassed": true,
+        "stdoutEqualToCapturedNative": false,
+        "stderrByteEqualToCapturedNative": false,
+        "intentionalPolicy": true,
+        "correctedOracle": false
+      },
+      {
+        "id": "N13",
+        "productPolicyPassed": true,
+        "stdoutEqualToCapturedNative": false,
+        "stderrByteEqualToCapturedNative": false,
+        "intentionalPolicy": true,
+        "correctedOracle": true
+      },
+      {
+        "id": "N14",
+        "productPolicyPassed": true,
+        "stdoutEqualToCapturedNative": false,
+        "stderrByteEqualToCapturedNative": false,
+        "intentionalPolicy": true,
+        "correctedOracle": false
+      },
+      {
+        "id": "N15",
+        "productPolicyPassed": true,
+        "stdoutEqualToCapturedNative": false,
+        "stderrByteEqualToCapturedNative": false,
+        "intentionalPolicy": true,
+        "correctedOracle": false
+      },
+      {
+        "id": "N16",
+        "productPolicyPassed": true,
+        "stdoutEqualToCapturedNative": true,
+        "stderrByteEqualToCapturedNative": false,
+        "intentionalPolicy": false,
+        "correctedOracle": false
+      }
+    ],
+    "interpretation": "Equality dimensions only, not a native parity gate or historical rescore."
+  },
+  {
+    "profile": {
+      "id": "bash32",
+      "binary": "/bin/bash",
+      "sha256": "35536aea9733aa345b61134a98d00232380898e55b2ea2a07c497011f7dfc7a3",
+      "version": "3.2.57(1)-release",
+      "role": "separate historical Darwin observations; selected-profile mismatches are not candidate failures"
+    },
+    "historicalCountsUnchanged": {
+      "scripts": 16,
+      "selectedProfileMatches": 9,
+      "selectedProfileMismatches": 7
+    },
+    "nativeExecutionsThisReview": 0,
+    "currentOracleAvailability": "Not probed; reused exact committed captures.",
+    "rows": [
+      {
+        "id": "N01",
+        "productPolicyPassed": true,
+        "stdoutEqualToCapturedNative": true,
+        "stderrByteEqualToCapturedNative": true,
+        "intentionalPolicy": false,
+        "correctedOracle": false
+      },
+      {
+        "id": "N02",
+        "productPolicyPassed": true,
+        "stdoutEqualToCapturedNative": true,
+        "stderrByteEqualToCapturedNative": true,
+        "intentionalPolicy": false,
+        "correctedOracle": false
+      },
+      {
+        "id": "N03",
+        "productPolicyPassed": true,
+        "stdoutEqualToCapturedNative": false,
+        "stderrByteEqualToCapturedNative": true,
+        "intentionalPolicy": false,
+        "correctedOracle": false
+      },
+      {
+        "id": "N04",
+        "productPolicyPassed": true,
+        "stdoutEqualToCapturedNative": false,
+        "stderrByteEqualToCapturedNative": true,
+        "intentionalPolicy": true,
+        "correctedOracle": false
+      },
+      {
+        "id": "N05",
+        "productPolicyPassed": true,
+        "stdoutEqualToCapturedNative": false,
+        "stderrByteEqualToCapturedNative": true,
+        "intentionalPolicy": false,
+        "correctedOracle": true
+      },
+      {
+        "id": "N06",
+        "productPolicyPassed": true,
+        "stdoutEqualToCapturedNative": true,
+        "stderrByteEqualToCapturedNative": true,
+        "intentionalPolicy": false,
+        "correctedOracle": false
+      },
+      {
+        "id": "N07",
+        "productPolicyPassed": true,
+        "stdoutEqualToCapturedNative": true,
+        "stderrByteEqualToCapturedNative": true,
+        "intentionalPolicy": false,
+        "correctedOracle": false
+      },
+      {
+        "id": "N08",
+        "productPolicyPassed": true,
+        "stdoutEqualToCapturedNative": true,
+        "stderrByteEqualToCapturedNative": true,
+        "intentionalPolicy": false,
+        "correctedOracle": false
+      },
+      {
+        "id": "N09",
+        "productPolicyPassed": true,
+        "stdoutEqualToCapturedNative": true,
+        "stderrByteEqualToCapturedNative": true,
+        "intentionalPolicy": false,
+        "correctedOracle": false
+      },
+      {
+        "id": "N10",
+        "productPolicyPassed": true,
+        "stdoutEqualToCapturedNative": true,
+        "stderrByteEqualToCapturedNative": true,
+        "intentionalPolicy": false,
+        "correctedOracle": false
+      },
+      {
+        "id": "N11",
+        "productPolicyPassed": true,
+        "stdoutEqualToCapturedNative": true,
+        "stderrByteEqualToCapturedNative": false,
+        "intentionalPolicy": false,
+        "correctedOracle": false
+      },
+      {
+        "id": "N12",
+        "productPolicyPassed": true,
+        "stdoutEqualToCapturedNative": false,
+        "stderrByteEqualToCapturedNative": false,
+        "intentionalPolicy": true,
+        "correctedOracle": false
+      },
+      {
+        "id": "N13",
+        "productPolicyPassed": true,
+        "stdoutEqualToCapturedNative": false,
+        "stderrByteEqualToCapturedNative": false,
+        "intentionalPolicy": true,
+        "correctedOracle": true
+      },
+      {
+        "id": "N14",
+        "productPolicyPassed": true,
+        "stdoutEqualToCapturedNative": false,
+        "stderrByteEqualToCapturedNative": false,
+        "intentionalPolicy": true,
+        "correctedOracle": false
+      },
+      {
+        "id": "N15",
+        "productPolicyPassed": true,
+        "stdoutEqualToCapturedNative": false,
+        "stderrByteEqualToCapturedNative": false,
+        "intentionalPolicy": true,
+        "correctedOracle": false
+      },
+      {
+        "id": "N16",
+        "productPolicyPassed": true,
+        "stdoutEqualToCapturedNative": true,
+        "stderrByteEqualToCapturedNative": false,
+        "intentionalPolicy": false,
+        "correctedOracle": false
+      }
+    ],
+    "interpretation": "Equality dimensions only, not a native parity gate or historical rescore."
+  }
+]

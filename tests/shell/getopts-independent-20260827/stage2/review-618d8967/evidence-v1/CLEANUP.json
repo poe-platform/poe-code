@@ -1,0 +1,10 @@
+{
+  "completedAt": "2026-08-27T21:57:03.111Z",
+  "removedFiles": 8664,
+  "removedDirectories": 694,
+  "method": "Verify exact task-owned snapshot and each regular file hash; unlink only enumerated files and nonrecursively rmdir enumerated directories. Unknown appended entries stop cleanup rather than being recursively deleted.",
+  "sourceAndEmittedEvidenceVerifiedBeforeDeletion": true,
+  "workAbsent": true,
+  "noPrivateRepoOrForeignPathsTouched": true,
+  "noKnownLiveOwnedChildren": true
+}

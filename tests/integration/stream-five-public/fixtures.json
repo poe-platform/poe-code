@@ -1,0 +1,13 @@
+[
+  {"id":"F01","command":"seq -w 8 2 12","input":"","stdout":"30380a31300a31320a"},
+  {"id":"F02","command":"seq -s '|' 0.1 0.2 0.5","input":"","stdout":"302e317c302e337c302e350a"},
+  {"id":"F03","command":"nl -ba -w2 -nrz -s : -v3 -i2","input":"410a0a00ff420d0a5a","stdout":"30333a410a30353a0a30373a00ff420d0a30393a5a0a"},
+  {"id":"F04","command":"rev","input":"4100ff420a5a0d","stdout":"42ff00410a0d5a0a"},
+  {"id":"F05","command":"rev","env":{"LC_ALL":"en_US.UTF-8","LANG":"C"},"input":"41c3a9f09f9982000a","stdout":"00f09f9982c3a9410a"},
+  {"id":"F06","command":"unexpand -a -t4","input":"20202020412020204220202020430a202020202020202000ff0a","stdout":"094109420920430a090900ff0a"},
+  {"id":"F07","command":"split -b3 --additional-suffix=.bin - /parts/p","input":"00ff410a4243fe0d0a5a","stdout":"","files":{"paa.bin":"00ff41","pab.bin":"0a4243","pac.bin":"fe0d0a","pad.bin":"5a"}},
+  {"id":"F08","command":"split -l2 /input.bin /parts/l","inputFile":"41000a0aff420a5a","stdout":"","files":{"laa":"41000a0a","lab":"ff420a5a"}},
+  {"id":"F09","command":"seq 8 2 12 | nl -ba -w1 -s '    ' | rev | unexpand -a -t4 | split -b5 - /parts/all","input":"","stdout":"","files":{"allaa":"380920310a","allab":"3031092020","allac":"320a323109","allad":"2020330a"}},
+  {"id":"F10","command":"producer | rev | rev | unexpand -a -t4 | nl -ba -w1 -s : | split -b7 - /parts/live","producer":"2020202000ff410a422020430a","stdout":"","files":{"liveaa":"313a0900ff410a","liveab":"323a422020430a"}},
+  {"id":"F11","command":"split -b3 - /parts/empty","input":"","stdout":"","files":{}}
+]

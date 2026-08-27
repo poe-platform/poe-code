@@ -1,0 +1,4 @@
+{"order":0,"event":"public-exec-enter","argv":"safejs -e 'import { search } from \"companion\"; import { setExitCode } from \"command\"; setExitCode(await search(\"grep\", [\"-E\",\"^alpha\",\"/work/input\"]));'"}
+{"order":1,"event":"public-exec-settled","cleanupDone":false,"hostCalls":0,"runnerCalls":0,"workers":[]}
+{"order":2,"event":"public-dispose-settled","cleanupDone":false,"hostCalls":0,"runnerCalls":0,"workers":[]}
+{"order":3,"event":"owned-tooling-closed","processes":[],"loader":{"threadId":1,"toolProcesses":[{"pid":79143,"binary":"node_modules/@esbuild/darwin-arm64/bin/esbuild","args":["--service=0.28.2","--ping"],"closed":true,"code":0,"signal":null}],"closed":true}}

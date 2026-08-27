@@ -1,0 +1,2 @@
+{"event":"owned-tool-spawn","parentPid":79152,"threadId":1,"pid":79156,"binary":"node_modules/@esbuild/darwin-arm64/bin/esbuild","args":["--service=0.28.2","--ping"],"closed":false}
+{"event":"owned-tool-close","parentPid":79152,"threadId":1,"pid":79156,"binary":"node_modules/@esbuild/darwin-arm64/bin/esbuild","args":["--service=0.28.2","--ping"],"closed":true,"code":0,"signal":null}

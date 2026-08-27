@@ -35,14 +35,14 @@ for (const backend of ["memory", "explicit-root-real"]) test(`${backend}: opt-in
   }
 });
 
-test("actual default registry contains 70 including split without duplicate installation", async () => {
-  assert.equal(createAgentCommands().length, 70);
+test("actual default registry contains 73 including split without duplicate installation", async () => {
+  assert.equal(createAgentCommands().length, 73);
   assert.equal(createAgentCommands().some(command => command.name === "split"), true);
   const shell = new Shell({ fs: createMemoryFileSystem() }).use(agentCommands());
   try {
     assert.equal((await shell.exec("split")).exitCode, 0);
     assert.equal((await shell.exec("printf abc | split -b2")).exitCode, 0);
-    assert.equal(shell.commands.list().length, 70);
+    assert.equal(shell.commands.list().length, 73);
   } finally { await shell.dispose(); }
 });
 

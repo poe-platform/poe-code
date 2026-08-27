@@ -79,6 +79,17 @@ before their commit; it is an accurately hashed dirty-document snapshot, not a
 clean committed-HEAD claim. All child processes exited; artifacts remain under
 the ignored author dist subtree. Main dist and source were unchanged by checks.
 
+Final `validation-004.json` repeats all 145 tests, scoped noEmit, isolated build,
+pack, type and runtime consumer checks after documentation commit `6db2395`;
+all pass at 2026-08-27T05:26:50.467Z–05:26:55.065Z. The second package has the
+same SHA256 and file count. Source/config/development-tool hashes and main dist
+stay stable during validation; unrelated worktree changes are recorded, not
+claimed clean. `evidence/final-freeze.json` checks the exact seven accepted
+implementation files, public API hashes, unchanged historical source-test
+cohorts, export-map-only package delta, actual 60 names and dated 50+4 inventory.
+Its 2026-08-27T05:27:48.648Z freeze precedes only final evidence publication;
+no later product source edits are made by this author.
+
 Official Node package exports and npm10 pack/config documentation were consulted
 via web.run; exact consulted URLs are recorded in the validation JSON. Actual
 local versions and results, not assumptions about those moving documents,

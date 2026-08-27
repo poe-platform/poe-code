@@ -1,0 +1,235 @@
+{
+  "at": "2026-08-27T05:27:48.648Z",
+  "sourceFreeze": true,
+  "head": "e0f5946172e49759e39ce75ca1df17c37f0bd7a4",
+  "acceptedSource": "335d2c3705b4892a56e807010cd7ca50145fefce",
+  "originalEightFileDigest": "4c52a321778aafad0e41b5858d30746d728306e35e26a44554146a69a05c91a0",
+  "currentEightFileDigest": "1de6a774d98e885fcc4d8ff03ef2a0fc3eba336f74bc0b4e5ced807a51ec8082",
+  "manifest": [
+    {
+      "path": "src/commands/stream-inspection/README.md",
+      "sha256": "519dee9089cdff247f1f137f16a9f8447d96830dfffe2422136c49d55b2fe1d0"
+    },
+    {
+      "path": "src/commands/stream-inspection/expand.ts",
+      "sha256": "d2d9e8b878822f27a74f148c66c0da6edcca3dd40a56749718685d6a5bbf2ff9"
+    },
+    {
+      "path": "src/commands/stream-inspection/fold.ts",
+      "sha256": "608d9392bad152ed35aeabb94cb7a1b455d87f64a4d6b7183b18f463c2184dd2"
+    },
+    {
+      "path": "src/commands/stream-inspection/index.ts",
+      "sha256": "a7af51784ea70f49fd5bbbc686c2bcc289b75d2e837a6e74987dfdf199864842"
+    },
+    {
+      "path": "src/commands/stream-inspection/numeric-options.ts",
+      "sha256": "b09c1781d720c79fbb4ab6b4952616b0455a3214595c7a5649cdfc509752c71a"
+    },
+    {
+      "path": "src/commands/stream-inspection/shared.ts",
+      "sha256": "0df865f2c7d5831acc06903e9fe8b117cd22cb3f1899033a76b0d73a5b46a937"
+    },
+    {
+      "path": "src/commands/stream-inspection/strings.ts",
+      "sha256": "a5d7e051591541ffeb0dd5d51183bb708afaa836f84565368447793949e5b78c"
+    },
+    {
+      "path": "src/commands/stream-inspection/tac.ts",
+      "sha256": "2704f57dc67e6e0197833eb0ca1f85db11b5a8307f5cfb9b0995ad61057fcb36"
+    }
+  ],
+  "sevenTypeScriptFilesUnchanged": true,
+  "documentationOnlyDigestChange": true,
+  "apiSourceHashes": [
+    {
+      "path": "src/index.ts",
+      "sha256": "2257a1ce3acc146ca7a3c1867e8a23153a5a968c96899a533b45cea69a446237"
+    },
+    {
+      "path": "src/plugins/index.ts",
+      "sha256": "df8834110688f62ce16f06d273f783b33e7b0fdf4944e3083da4d360b4fa5045"
+    },
+    {
+      "path": "package.json",
+      "sha256": "1f9579a9be0c1e1f23f03f38babad319fc1f8af941c7755aa7ca8759584cc2f1"
+    },
+    {
+      "path": "src/commands/stream-inspection/README.md",
+      "sha256": "519dee9089cdff247f1f137f16a9f8447d96830dfffe2422136c49d55b2fe1d0"
+    },
+    {
+      "path": "src/commands/stream-inspection/expand.ts",
+      "sha256": "d2d9e8b878822f27a74f148c66c0da6edcca3dd40a56749718685d6a5bbf2ff9"
+    },
+    {
+      "path": "src/commands/stream-inspection/fold.ts",
+      "sha256": "608d9392bad152ed35aeabb94cb7a1b455d87f64a4d6b7183b18f463c2184dd2"
+    },
+    {
+      "path": "src/commands/stream-inspection/index.ts",
+      "sha256": "a7af51784ea70f49fd5bbbc686c2bcc289b75d2e837a6e74987dfdf199864842"
+    },
+    {
+      "path": "src/commands/stream-inspection/numeric-options.ts",
+      "sha256": "b09c1781d720c79fbb4ab6b4952616b0455a3214595c7a5649cdfc509752c71a"
+    },
+    {
+      "path": "src/commands/stream-inspection/shared.ts",
+      "sha256": "0df865f2c7d5831acc06903e9fe8b117cd22cb3f1899033a76b0d73a5b46a937"
+    },
+    {
+      "path": "src/commands/stream-inspection/strings.ts",
+      "sha256": "a5d7e051591541ffeb0dd5d51183bb708afaa836f84565368447793949e5b78c"
+    },
+    {
+      "path": "src/commands/stream-inspection/tac.ts",
+      "sha256": "2704f57dc67e6e0197833eb0ca1f85db11b5a8307f5cfb9b0995ad61057fcb36"
+    }
+  ],
+  "packageOnlyExportMapChanged": true,
+  "existingHistoricalCohortsUnchanged": true,
+  "baselineDefaultCount": 56,
+  "defaultCount": 60,
+  "unique": 60,
+  "names": [
+    "true",
+    "false",
+    "echo",
+    "pwd",
+    "basename",
+    "dirname",
+    "printf",
+    "mkdir",
+    "touch",
+    "cp",
+    "mv",
+    "rm",
+    "rmdir",
+    "ln",
+    "readlink",
+    "realpath",
+    "ls",
+    "cat",
+    "head",
+    "tail",
+    "wc",
+    "tee",
+    "tr",
+    "sort",
+    "uniq",
+    "cut",
+    "grep",
+    "test",
+    "[",
+    "env",
+    "xargs",
+    "find",
+    "sed",
+    "awk",
+    "jq",
+    "rg",
+    "base64",
+    "base32",
+    "xxd",
+    "od",
+    "sha256sum",
+    "sha1sum",
+    "md5sum",
+    "cksum",
+    "gzip",
+    "gunzip",
+    "zcat",
+    "diff",
+    "patch",
+    "chmod",
+    "stat",
+    "mktemp",
+    "tar",
+    "paste",
+    "comm",
+    "join",
+    "tac",
+    "expand",
+    "fold",
+    "strings"
+  ],
+  "optionalAbsent": true,
+  "historicalDefaults": [
+    "alias",
+    "builtin",
+    "clear",
+    "column",
+    "compgen",
+    "complete",
+    "compopt",
+    "date",
+    "declare",
+    "dirs",
+    "du",
+    "egrep",
+    "exec",
+    "expand",
+    "expr",
+    "fgrep",
+    "file",
+    "fold",
+    "getopts",
+    "hash",
+    "help",
+    "history",
+    "hostname",
+    "html-to-markdown",
+    "let",
+    "mapfile",
+    "nl",
+    "popd",
+    "printenv",
+    "pushd",
+    "readarray",
+    "rev",
+    "seq",
+    "shopt",
+    "sleep",
+    "split",
+    "sqlite3",
+    "strings",
+    "tac",
+    "time",
+    "timeout",
+    "tree",
+    "typeset",
+    "unalias",
+    "unexpand",
+    "wait",
+    "which",
+    "whoami",
+    "xan",
+    "yq"
+  ],
+  "historicalOptional": [
+    "js-exec",
+    "node",
+    "python",
+    "python3"
+  ],
+  "historicalInventoryMeaning": "50 default plus 4 optional missing names in dated frozen source; not 54 proven functional baseline workflows",
+  "validation": {
+    "path": "tests/integration/stream-inspection-public-author/evidence/validation-004.json",
+    "sha256": "2a30e833ff1e7f53d9f04a835934c65b20d11167c734644eb5a79f1f062c3659",
+    "head": "6db2395bd83cb2e4803809a179982906c943486f",
+    "started": "2026-08-27T05:26:50.467Z",
+    "finished": "2026-08-27T05:26:55.065Z",
+    "tarball": "tests/integration/stream-inspection-public-author/dist/build-r0zzfH/tarballs/virtual-bash-0.0.0.tgz",
+    "tarballSha256": "50c4bb16174543136f6b7708a6e14b98f615c550cc12b99174ededd910c67d9b",
+    "entryCount": 574,
+    "testSummary": "r writes reserve budget before effects\n  ---\n  duration_ms: 6.037459\n  type: 'test'\n  ...\n1..145\n# tests 145\n# suites 0\n# pass 145\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 352.807833\n",
+    "sourceStable": true,
+    "mainDistStable": true
+  },
+  "ownedStatus": "?? tests/integration/stream-inspection-public-author/evidence/validation-004.json\n",
+  "index": "",
+  "globalStatus": " M tests/fs/webdav/real-service/raw.mjs\n M tests/fs/webdav/real-service/run.mjs\n M tests/fs/webdav/real-service/server.py\n?? benchmarks/reports/comparison-fairness-20260827/\n?? benchmarks/reports/current-integration/comparison-replay-20260827/\n?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/\n?? tests/commands/search-stress/.native-1m4O1e/\n?? tests/fs/webdav/real-service/apache.mjs\n?? tests/fs/webdav/real-service/consumer.mts\n?? tests/fs/webdav/real-service/evidence/apache-matrix-corrected/\n?? tests/fs/webdav/real-service/evidence/apache-matrix-first/\n?? tests/fs/webdav/real-service/evidence/apache-public-first/\n?? tests/fs/webdav/real-service/evidence/apache-public-second/\n?? tests/fs/webdav/real-service/evidence/apache-public-third/\n?? tests/fs/webdav/real-service/evidence/apache-raw-initial/\n?? tests/fs/webdav/real-service/evidence/wsgidav-matrix-first/\n?? tests/fs/webdav/real-service/evidence/wsgidav-matrix-second/\n?? tests/fs/webdav/real-service/example.mts\n?? tests/fs/webdav/real-service/https.mts\n?? tests/integration/full-gate-20260827/\n?? tests/integration/stream-inspection-public-author/evidence/validation-004.json\n?? tests/shell-stress/errexit-holdout/\n?? tests/shell/errexit-cases.ts\n?? tests/shell/errexit-native.json\n?? tests/shell/errexit-native.ts\n?? tests/shell/errexit.test.ts\n?? tests/stress/regex-execution/design/revision-review/REPORT.md\n?? tests/stress/regex-execution/design/validation/evidence/\n",
+  "ownedRealFixtureDirectories": [],
+  "cleanup": "All test/build/pack/consumer child processes completed; no background/native/server/SIGSTOP process created. Own real fixture directories removed. Two isolated ignored build snapshots/tarballs/extracted consumers retained. No further source writes after this freeze."
+}

@@ -1,0 +1,17 @@
+[
+  {
+    "path": "CRITERIA.md",
+    "bytes": 4867,
+    "sha256": "658d60cf955f63746b05dae878e0ff47451eb1240f58c074e63b2007092752f6"
+  },
+  {
+    "path": "fixtures.json",
+    "bytes": 1257,
+    "sha256": "d93e3aaeda49eebe7aa65bd2653dddf92b0e942c246f8fb9faba40b3876c1053"
+  },
+  {
+    "path": "review.mjs",
+    "bytes": 24090,
+    "sha256": "09c014fa17c507891074fa2c0570f1e3392d6433fdb9f3b4d8129560af18075d"
+  }
+]

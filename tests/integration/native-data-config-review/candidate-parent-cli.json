@@ -1,0 +1,20 @@
+{
+  "label": "candidate-parent-cli",
+  "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/bin/tsc",
+    "--noEmit",
+    "--incremental",
+    "false",
+    "--pretty",
+    "false"
+  ],
+  "cwd": "tests/integration/native-data-config-review/.scratch/attempt-03/candidate",
+  "started": "2026-08-27T08:59:56.967Z",
+  "ended": "2026-08-27T09:00:02.366Z",
+  "status": 2,
+  "signal": null,
+  "error": null,
+  "stdout": "tests/commands/regex-execution/continuation/artifacts/native/dialect-bFUsLx/alpha.ts(1,1): error TS2304: Cannot find name 'hit'.\ntests/commands/regex-execution/continuation/artifacts/native/dialect-bFUsLx/beta.ts(1,1): error TS2304: Cannot find name 'hit'.\ntests/commands/regex-execution/continuation/artifacts/native/dialect-uhGVu3/ab.ts(1,1): error TS2304: Cannot find name 'hit'.\ntests/commands/regex-execution/continuation/artifacts/native/dialect-uhGVu3/🙂.ts(1,1): error TS2304: Cannot find name 'hit'.\ntests/commands/regex-execution/continuation/artifacts/native/dialect-xj7h8F/a.ts(1,1): error TS2304: Cannot find name 'hit'.\ntests/commands/regex-execution/continuation/artifacts/native/dialect-xj7h8F/d.ts(1,1): error TS2304: Cannot find name 'hit'.\n",
+  "stderr": ""
+}

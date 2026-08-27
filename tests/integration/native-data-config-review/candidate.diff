@@ -1,0 +1,109 @@
+diff --git a/README.md b/README.md
+index c0419df..2aac0df 100644
+--- a/README.md
++++ b/README.md
+@@ -139,7 +139,10 @@ stages it at both archive fixtures' hardcoded location, and runs build-first
+ current standalone public consumers. `GNU_TAR` alone does not configure those
+ fixtures. Current provider-only programs receive strict public type checks,
+ not an invented deployed-service pass; frozen `.mts` evidence stays historical.
+-The root cold config is unchanged and does **not** include all TypeScript files.
++The root config now excludes only the classified native-glob data subtree in
++addition to its pre-existing exclusions; it still does **not** include all
++TypeScript files. Classification, current type/discovery counts and negative
++controls are recorded in `tests/plugins/qualified-current-release-native-data/REPORT.md`.
+ The recorded current candidate's mandatory job remains **failed** because the
+ unchanged WebDAV consumer reports12/13; see
+ `tests/plugins/qualified-current-release/REPORT.md`. Native/packed successes do
+@@ -375,6 +378,15 @@ npm test
+ SAFEJS_LOCAL_ROOT=/path/to/poe-code/packages/safejs npm test
+ ```
+ 
++Typechecking and default test discovery both omit exactly
++`tests/commands/regex-execution/continuation/artifacts/native`, whose `.ts`
++names are native glob inputs, not maintained TypeScript. Other artifact trees,
++tests and helpers are not broadly excluded. The August 27 native-data correction
++removes six raw-payload diagnostics, but the recorded global typecheck still
++fails with eight foreign filesystem-inspection fixture diagnostics; it is not
++a whole-product pass. Historical standalone `.mts` omissions and the separate
++build-first consumer gate remain unchanged.
++
+ The last form enables actual local SafeJS integration rather than skipping it;
+ no published private SafeJS dependency is required. Optional comparison tooling
+ is isolated: `npm --prefix benchmarks ci --ignore-scripts`, then `npm run benchmark`.
+diff --git a/docs/PROJECT_LEDGER.md b/docs/PROJECT_LEDGER.md
+index 6571a1c..0b512a7 100644
+--- a/docs/PROJECT_LEDGER.md
++++ b/docs/PROJECT_LEDGER.md
+@@ -1749,6 +1749,46 @@ that any implementation, command, fixture, or test currently exists.
+   and its linked evidence. Archived source/consumer/oracle bytes and rootdist
+   remain unchanged during the recorded run; concurrent live work is not certified.
+ 
++### Exact native-data source separation (August 27, 2026)
++
++- Explicit narrow authorization adds only
++  `tests/commands/regex-execution/continuation/artifacts/native` to root
++  `tsconfig.json` exclusions and prunes that exact directory in the existing
++  package test glob. No compiler option, source, producer, other configuration,
++  dependency, root export or immutable fixture changes. The full inspected
++  subtree is 22 raw `hit\n` glob payloads across ten producer cases plus 50
++  generated tsx JSON caches; no maintained test/helper is present. All six raw
++  `.ts` SHA-256 values remain
++  `74a02f560cc1d8e023280b5f08a1ee7266e4bec6cea61ca457dc1a758d080fc8`.
++- Current author `npm run typecheck` genuinely reproduces six TS2304 native-data
++  errors **plus eight new foreign filesystem-inspection sealed-input errors**.
++  Two pre-fix captures race concurrent test/source edits and are preserved, not
++  represented as frozen matched-source evidence. Stable post-fix working-tree
++  capture at HEAD `9f7fed68077a68ef3decb114ace83ad47b75ae14` retains exactly those
++  eight foreign errors and no native-data diagnostic. Global status stays failed.
++- Current post-fix compiler census is 3,882 files: 176 production source inputs,
++  3,533 test-tree inputs and 173 remaining library/type inputs. The actual
++  discovery glob selects 540/540 compiler-included files: 533 already tracked
++  canonical tests, this author's new control, and six pre-existing ignored
++  copied tests elsewhere. That distinction is not a new maintained-test count.
++  All 533 tracked canonical tests and explicit main helper/source controls remain
++  included; no broader copied-artifact exclusion is authorized.
++- Five scoped controls pass with no skips. In isolated copies, six real outside
++  undefined-symbol errors still fail compilation, identical payloads inside the
++  exact subtree are excluded, and actual current `npm test` runs all five
++  canonical/neighbor tests while not selecting two native-data canaries. The
++  old script runs seven and fails on both canaries. Production build-config
++  `--noEmit` passes; no rootdist output or full product test suite is run.
++- Full manifest, per-file source/test/config hashes, raw failed captures,
++  current gate output, discovery limits and handoff are in
++  `tests/plugins/qualified-current-release-native-data/REPORT.md`.
++  Dirac `aac345a0` canonical470/470+485/485 and original standalone omissions11/30
++  remain historical; current build-first22inputs/13groups, `966cfac`/`5456730`
++  release-helper work and prior source-public65 `b7ae`/`66b079a` remain separate.
++  The frozen current-qualified02 WebDAV12/13 failure is not closed, nor are
++  Arch's five public-boundary cleanup replays. Sagan's closed runtime work does
++  not change these limits; independent verification follows actual author exit.
++
+ ### Remaining product validation
+ 
+ - Re-run whole-repo typechecking, tests, build, and export checks as concurrent
+diff --git a/package.json b/package.json
+index 3c5fc67..993420b 100644
+--- a/package.json
++++ b/package.json
+@@ -83,7 +83,7 @@
+     "build": "tsc -p tsconfig.build.json",
+     "typecheck": "tsc --noEmit",
+     "typecheck:consumers": "npm run build && tsc --noEmit -p tests/commands/table-text-stress/shared-stdin-review/tsconfig.consumer.json",
+-    "test": "node --import tsx --test \"tests/**/*.test.ts\"",
++    "test": "node --input-type=module -e \"import { globSync } from 'node:fs'; import { spawnSync } from 'node:child_process'; const files = globSync('tests/**/*.test.ts', { exclude: path => path === 'tests/commands/regex-execution/continuation/artifacts/native' }); if (!files.length) throw new Error('No test files found'); const result = spawnSync(process.execPath, ['--import', 'tsx', '--test', ...files, ...process.argv.slice(1)], { stdio: 'inherit' }); process.exit(result.status ?? 1);\" --",
+     "test:contracts": "node --import tsx --test \"tests/contracts/**/*.test.ts\"",
+     "verify:stream-public": "node tests/plugins/stream-five-public/verify-public.mjs",
+     "verify:release:qualified": "node scripts/verify-qualified-release.mjs"
+diff --git a/tsconfig.json b/tsconfig.json
+index d88bb73..cc967cb 100644
+--- a/tsconfig.json
++++ b/tsconfig.json
+@@ -16,6 +16,7 @@
+   "exclude": [
+     "dist",
+     "node_modules",
+-    "tests/commands/table-text-stress/shared-stdin-review/selected-gnu.ts"
++    "tests/commands/table-text-stress/shared-stdin-review/selected-gnu.ts",
++    "tests/commands/regex-execution/continuation/artifacts/native"
+   ]
+ }

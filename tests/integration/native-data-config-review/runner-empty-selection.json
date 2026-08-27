@@ -1,0 +1,15 @@
+{
+  "label": "runner-empty-selection",
+  "executable": "npm",
+  "args": [
+    "test"
+  ],
+  "cwd": "tests/integration/native-data-config-review/.scratch/attempt-03/empty-runner",
+  "started": "2026-08-27T09:00:19.717Z",
+  "ended": "2026-08-27T09:00:19.849Z",
+  "status": 1,
+  "signal": null,
+  "error": null,
+  "stdout": "\n> virtual-bash@0.0.0 test\n> node --input-type=module -e \"import { globSync } from 'node:fs'; import { spawnSync } from 'node:child_process'; const files = globSync('tests/**/*.test.ts', { exclude: path => path === 'tests/commands/regex-execution/continuation/artifacts/native' }); if (!files.length) throw new Error('No test files found'); const result = spawnSync(process.execPath, ['--import', 'tsx', '--test', ...files, ...process.argv.slice(1)], { stdio: 'inherit' }); process.exit(result.status ?? 1);\" --\n\n",
+  "stderr": "file:///Users/kjopek/Workspace/safe-bash/tests/integration/native-data-config-review/.scratch/attempt-03/empty-runner/[eval1]:1\nimport { globSync } from 'node:fs'; import { spawnSync } from 'node:child_process'; const files = globSync('tests/**/*.test.ts', { exclude: path => path === 'tests/commands/regex-execution/continuation/artifacts/native' }); if (!files.length) throw new Error('No test files found'); const result = spawnSync(process.execPath, ['--import', 'tsx', '--test', ...files, ...process.argv.slice(1)], { stdio: 'inherit' }); process.exit(result.status ?? 1);\n                                                                                                                                                                                                                                                         ^\n\nError: No test files found\n    at file:///Users/kjopek/Workspace/safe-bash/tests/integration/native-data-config-review/.scratch/attempt-03/empty-runner/[eval1]:1:250\n    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:272:26)\n    at async ModuleLoader.executeModuleJob (node:internal/modules/esm/loader:268:20)\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)\n\nNode.js v22.22.2\n"
+}

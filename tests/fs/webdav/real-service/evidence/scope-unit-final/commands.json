@@ -1,0 +1,71 @@
+[
+  {
+    "command": "git",
+    "args": [
+      "archive",
+      "69672fe210fbf8a23cc980828bb46d073b078425",
+      "src",
+      "package.json",
+      "tsconfig.json",
+      "tsconfig.build.json"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash",
+    "status": 0,
+    "signal": null,
+    "stderr": ""
+  },
+  {
+    "command": "tar",
+    "args": [
+      "xf",
+      "/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/real-service/.work-scope-RcH48P/source.tar",
+      "-C",
+      "/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/real-service/.work-scope-RcH48P/snapshot"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash",
+    "status": 0,
+    "signal": null,
+    "stderr": ""
+  },
+  {
+    "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "args": [
+      "--unhandled-rejections=strict",
+      "--import",
+      "tsx",
+      "--test",
+      "tests/fs/webdav/real-service/lock-scope.test.ts"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/real-service/.work-scope-RcH48P/snapshot",
+    "status": 0,
+    "signal": null,
+    "stderr": ""
+  },
+  {
+    "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "args": [
+      "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/bin/tsc",
+      "--noEmit",
+      "--target",
+      "ES2023",
+      "--lib",
+      "ES2023",
+      "--module",
+      "NodeNext",
+      "--moduleResolution",
+      "NodeNext",
+      "--strict",
+      "--noUncheckedIndexedAccess",
+      "--exactOptionalPropertyTypes",
+      "--verbatimModuleSyntax",
+      "--skipLibCheck",
+      "--types",
+      "node",
+      "tests/fs/webdav/real-service/lock-scope.test.ts"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/real-service/.work-scope-RcH48P/snapshot",
+    "status": 0,
+    "signal": null,
+    "stderr": ""
+  }
+]

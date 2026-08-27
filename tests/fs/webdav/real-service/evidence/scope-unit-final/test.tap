@@ -1,0 +1,178 @@
+TAP version 13
+# Subtest: real-grant reduction rejects contradictory shared and exclusive scope and unlocks before publication
+ok 1 - real-grant reduction rejects contradictory shared and exclusive scope and unlocks before publication
+  ---
+  duration_ms: 14.810625
+  type: 'test'
+  ...
+# Subtest: real-grant reduction rejects contradictory shared before exclusive scope and unlocks before publication
+ok 2 - real-grant reduction rejects contradictory shared before exclusive scope and unlocks before publication
+  ---
+  duration_ms: 1.486542
+  type: 'test'
+  ...
+# Subtest: real-grant reduction rejects contradictory scope on MOVE and unlocks before publication
+ok 3 - real-grant reduction rejects contradictory scope on MOVE and unlocks before publication
+  ---
+  duration_ms: 1.855542
+  type: 'test'
+  ...
+# Subtest: real-grant reduction rejects shared only and unlocks before publication
+ok 4 - real-grant reduction rejects shared only and unlocks before publication
+  ---
+  duration_ms: 1.265708
+  type: 'test'
+  ...
+# Subtest: real-grant reduction rejects duplicate exclusive and unlocks before publication
+ok 5 - real-grant reduction rejects duplicate exclusive and unlocks before publication
+  ---
+  duration_ms: 1.489916
+  type: 'test'
+  ...
+# Subtest: real-grant reduction rejects duplicate active grants and unlocks before publication
+ok 6 - real-grant reduction rejects duplicate active grants and unlocks before publication
+  ---
+  duration_ms: 0.882916
+  type: 'test'
+  ...
+# Subtest: real-grant reduction rejects duplicate lockdiscovery and unlocks before publication
+ok 7 - real-grant reduction rejects duplicate lockdiscovery and unlocks before publication
+  ---
+  duration_ms: 0.871459
+  type: 'test'
+  ...
+# Subtest: real-grant reduction rejects duplicate scope and unlocks before publication
+ok 8 - real-grant reduction rejects duplicate scope and unlocks before publication
+  ---
+  duration_ms: 0.694375
+  type: 'test'
+  ...
+# Subtest: real-grant reduction rejects duplicate type and unlocks before publication
+ok 9 - real-grant reduction rejects duplicate type and unlocks before publication
+  ---
+  duration_ms: 2.016959
+  type: 'test'
+  ...
+# Subtest: real-grant reduction rejects duplicate write and unlocks before publication
+ok 10 - real-grant reduction rejects duplicate write and unlocks before publication
+  ---
+  duration_ms: 1.079541
+  type: 'test'
+  ...
+# Subtest: real-grant reduction rejects unknown type without recognized write and unlocks before publication
+ok 11 - real-grant reduction rejects unknown type without recognized write and unlocks before publication
+  ---
+  duration_ms: 0.658833
+  type: 'test'
+  ...
+# Subtest: real-grant reduction rejects foreign write cannot replace recognized write and unlocks before publication
+ok 12 - real-grant reduction rejects foreign write cannot replace recognized write and unlocks before publication
+  ---
+  duration_ms: 0.521125
+  type: 'test'
+  ...
+# Subtest: real-grant reduction rejects duplicate depth and unlocks before publication
+ok 13 - real-grant reduction rejects duplicate depth and unlocks before publication
+  ---
+  duration_ms: 0.498416
+  type: 'test'
+  ...
+# Subtest: real-grant reduction rejects duplicate token and unlocks before publication
+ok 14 - real-grant reduction rejects duplicate token and unlocks before publication
+  ---
+  duration_ms: 0.5825
+  type: 'test'
+  ...
+# Subtest: real-grant reduction rejects duplicate token href and unlocks before publication
+ok 15 - real-grant reduction rejects duplicate token href and unlocks before publication
+  ---
+  duration_ms: 0.566875
+  type: 'test'
+  ...
+# Subtest: real-grant reduction rejects duplicate timeout and unlocks before publication
+ok 16 - real-grant reduction rejects duplicate timeout and unlocks before publication
+  ---
+  duration_ms: 0.968542
+  type: 'test'
+  ...
+# Subtest: valid copyFile tolerates unchanged legacy grant
+ok 17 - valid copyFile tolerates unchanged legacy grant
+  ---
+  duration_ms: 1.062041
+  type: 'test'
+  ...
+# Subtest: valid rename tolerates unchanged legacy grant
+ok 18 - valid rename tolerates unchanged legacy grant
+  ---
+  duration_ms: 1.561875
+  type: 'test'
+  ...
+# Subtest: valid copyFile tolerates unknown DAV read alongside write
+ok 19 - valid copyFile tolerates unknown DAV read alongside write
+  ---
+  duration_ms: 0.569041
+  type: 'test'
+  ...
+# Subtest: valid rename tolerates unknown DAV read alongside write
+ok 20 - valid rename tolerates unknown DAV read alongside write
+  ---
+  duration_ms: 0.543334
+  type: 'test'
+  ...
+# Subtest: valid copyFile tolerates unknown DAV scope child alongside exclusive
+ok 21 - valid copyFile tolerates unknown DAV scope child alongside exclusive
+  ---
+  duration_ms: 0.585958
+  type: 'test'
+  ...
+# Subtest: valid rename tolerates unknown DAV scope child alongside exclusive
+ok 22 - valid rename tolerates unknown DAV scope child alongside exclusive
+  ---
+  duration_ms: 0.498375
+  type: 'test'
+  ...
+# Subtest: valid copyFile tolerates foreign shared alongside exclusive
+ok 23 - valid copyFile tolerates foreign shared alongside exclusive
+  ---
+  duration_ms: 0.521417
+  type: 'test'
+  ...
+# Subtest: valid rename tolerates foreign shared alongside exclusive
+ok 24 - valid rename tolerates foreign shared alongside exclusive
+  ---
+  duration_ms: 0.744917
+  type: 'test'
+  ...
+# Subtest: valid copyFile tolerates unknown extension containing a shared descendant
+ok 25 - valid copyFile tolerates unknown extension containing a shared descendant
+  ---
+  duration_ms: 0.757542
+  type: 'test'
+  ...
+# Subtest: valid rename tolerates unknown extension containing a shared descendant
+ok 26 - valid rename tolerates unknown extension containing a shared descendant
+  ---
+  duration_ms: 1.112875
+  type: 'test'
+  ...
+# Subtest: valid copyFile tolerates foreign write alongside recognized write
+ok 27 - valid copyFile tolerates foreign write alongside recognized write
+  ---
+  duration_ms: 0.412083
+  type: 'test'
+  ...
+# Subtest: valid rename tolerates foreign write alongside recognized write
+ok 28 - valid rename tolerates foreign write alongside recognized write
+  ---
+  duration_ms: 0.317292
+  type: 'test'
+  ...
+1..28
+# tests 28
+# suites 0
+# pass 28
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 199.201958

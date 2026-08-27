@@ -1,0 +1,15 @@
+{
+  "source": "9c85c63d2797e8c8686037ccc8c1a2802bfe32d7",
+  "sourceSha256": "8c280010a9de5f915ebb72be504d79f2a149e95064752c3a4b4a07cd425efd54",
+  "independentCommit": "6e0ff0b52ffcbefcc7b0788c84ab1735b35fe4c9",
+  "inputs": {
+    "run.mjs": "d4507c73ad3efe5df1c283a998549823ab40daa7968d58379297d5005201a495",
+    "independent.mts": "41c2fe53195bc78d7c695836897f6ff1001164b897e68775bf02ce51166d2923",
+    "public-guard.mjs": "1ea17afd3264589c748ceba5293b559c395c1fc452180cf3ea9d612d210aa6c4",
+    "README.md": "871e876f2e78065f3ac9995f21bd5fc378a609470d1162c5c7f485ea2c682236",
+    "REPORT.md": "187fc4aa4c275119363a4506553a600244810c482f6cf10e8efe93bf9d7c659f"
+  },
+  "status": " M src/commands/diff-patch/unified.ts\n M tests/commands/diff-patch-stress/fuzz/edits.test.ts\n?? benchmarks/reports/comparison-fairness-20260827/published-artifact-authentication/\n?? tests/commands/diff-patch-stress/evidence/\n?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/\n?? tests/commands/diff-patch-stress/fuzz/.native-fjXNhM/\n?? tests/commands/metadata-stress/canonical-env/\n?? tests/commands/metadata-stress/evidence/\n?? tests/commands/search-stress/.native-1m4O1e/\n?? tests/fs/webdav/real-service/scope-replay.mjs\n?? tests/integration/full-gate-20260827/authority-reconciliation/\n?? tests/shell-stress/canonical-profile-migration/\n?? tests/shell-stress/canonical-profile-review/\n?? tests/shell-stress/errexit-legacy-policy/.correction-archive-bLk5Ko/\n?? tests/stress/harness-timing-20260827/RUN-PLAN.md\n?? tests/stress/harness-timing-20260827/baseline.mjs\n?? tests/stress/harness-timing-20260827/evidence-tools.mjs\n?? tests/stress/harness-timing-20260827/evidence/\n?? tests/stress/harness-timing-20260827/jq-baseline.ts\n?? tests/stress/harness-timing-20260827/native-baseline.ts\n?? tests/stress/harness-timing-20260827/native-delivery.ts\n?? tests/stress/harness-timing-20260827/review/tools.mjs\n?? tests/stress/harness-timing-20260827/scan-execution.ts\n?? tests/stress/harness-timing-20260827/trace.ts\n?? tests/stress/harness-timing-20260827/watchdog.ts\n",
+  "originalSourceSha256": "8c280010a9de5f915ebb72be504d79f2a149e95064752c3a4b4a07cd425efd54",
+  "startedAt": "2026-08-27T06:34:47.251Z"
+}

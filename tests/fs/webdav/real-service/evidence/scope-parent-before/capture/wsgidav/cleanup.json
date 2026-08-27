@@ -1,0 +1,10 @@
+{
+  "workspace": "/private/tmp/safe-bash-webdav-review-9z2en0/fixtures/.work-mKhkuL",
+  "startedAt": "2026-08-27T06:39:58.787Z",
+  "endedAt": "2026-08-27T06:40:08.382Z",
+  "serverPid": 77485,
+  "serverExitCode": null,
+  "serverSignalCode": "SIGTERM",
+  "serviceDurationMs": 3663,
+  "removed": true
+}

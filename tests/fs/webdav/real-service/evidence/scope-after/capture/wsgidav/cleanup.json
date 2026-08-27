@@ -1,0 +1,10 @@
+{
+  "workspace": "/private/tmp/safe-bash-webdav-review-cDMGEd/fixtures/.work-cySGq9",
+  "startedAt": "2026-08-27T06:40:06.114Z",
+  "endedAt": "2026-08-27T06:40:15.408Z",
+  "serverPid": 77604,
+  "serverExitCode": null,
+  "serverSignalCode": "SIGTERM",
+  "serviceDurationMs": 3384,
+  "removed": true
+}

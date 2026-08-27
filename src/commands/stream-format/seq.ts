@@ -2,7 +2,7 @@ import type { CommandDefinition } from "../../contracts/index.js";
 import { UsageError } from "../internal.js";
 import { command, type Session, type StreamFormatLimits } from "./shared.js";
 
-interface Decimal { readonly coefficient: bigint; readonly scale: number; readonly precision: number }
+interface Decimal { readonly coefficient: bigint; readonly scale: number; readonly precision: number; readonly negativeZero: boolean }
 interface Format { readonly prefix: string; readonly suffix: string; readonly flags: string; readonly width: number; readonly precision: number; readonly kind: string }
 
 function decimal(text: string, session: Session): Decimal {
@@ -15,7 +15,8 @@ function decimal(text: string, session: Session): Decimal {
   session.check(Math.abs(exponent), session.limits.maxNumericDigits, "numeric exponent");
   const scale = fraction.length - exponent;
   session.check(Math.max(digits.length, digits.length - scale, scale), session.limits.maxNumericDigits, "numeric digit");
-  return { coefficient: BigInt((match[1] === "-" ? "-" : "") + digits), scale, precision: Math.max(0, scale) };
+  const coefficient = BigInt((match[1] === "-" ? "-" : "") + digits);
+  return { coefficient, scale, precision: Math.max(0, scale), negativeZero: coefficient === 0n && match[1] === "-" };
 }
 
 function rounded(coefficient: bigint, scale: number, precision: number): bigint {
@@ -38,7 +39,7 @@ function exponentOf(coefficient: bigint, scale: number): number {
   return coefficient === 0n ? 0 : (coefficient < 0n ? -coefficient : coefficient).toString().length - scale - 1;
 }
 
-function formatted(coefficient: bigint, scale: number, format: Format): string {
+function formatted(coefficient: bigint, scale: number, format: Format, negativeZero = false): string {
   const kind = format.kind.toLowerCase();
   let precision = format.precision;
   let exponent = exponentOf(coefficient, scale);
@@ -61,7 +62,8 @@ function formatted(coefficient: bigint, scale: number, format: Format): string {
     }
   }
   if (format.flags.includes("#") && !text.includes(".") && !text.includes("e")) text += ".";
-  if (coefficient >= 0n) text = (format.flags.includes("+") ? "+" : format.flags.includes(" ") ? " " : "") + text;
+  if ((coefficient < 0n || negativeZero) && !text.startsWith("-")) text = "-" + text;
+  if (coefficient >= 0n && !negativeZero) text = (format.flags.includes("+") ? "+" : format.flags.includes(" ") ? " " : "") + text;
   if (format.kind === format.kind.toUpperCase()) text = text.toUpperCase();
   if (format.flags.includes("-")) text = text.padEnd(format.width, " ");
   else if (format.flags.includes("0")) {
@@ -69,6 +71,50 @@ function formatted(coefficient: bigint, scale: number, format: Format): string {
     text = sign + text.slice(sign.length).padStart(Math.max(0, format.width - sign.length), "0");
   } else text = text.padStart(format.width, " ");
   return format.prefix + text + format.suffix;
+}
+
+function binaryDecimal(value: number): { coefficient: bigint; scale: number } {
+  const view = new DataView(new ArrayBuffer(8));
+  view.setFloat64(0, value);
+  const bits = view.getBigUint64(0);
+  const exponent = Number(bits >> 52n & 2047n);
+  let coefficient = bits & ((1n << 52n) - 1n);
+  if (exponent) coefficient += 1n << 52n;
+  const power = exponent ? exponent - 1075 : -1074;
+  if (bits >> 63n) coefficient = -coefficient;
+  return power >= 0 ? { coefficient: coefficient << BigInt(power), scale: 0 }
+    : { coefficient: coefficient * 5n ** BigInt(-power), scale: -power };
+}
+
+async function floatingSequence(first: number, increment: number, last: number, format: Format, separator: string, session: Session): Promise<void> {
+  if (![first, increment, last].every(Number.isFinite) || increment === 0) throw new UsageError("formatted operands must fit finite binary64 with a nonzero increment");
+  if (increment > 0 ? first > last : first < last) return;
+  const render = (number: number): string => {
+    const decimal = binaryDecimal(number);
+    const text = formatted(decimal.coefficient, decimal.scale, format, Object.is(number, -0));
+    session.check(Buffer.byteLength(text), session.limits.maxRecordBytes, "record");
+    return text;
+  };
+  const firstDecimal = binaryDecimal(first), incrementDecimal = binaryDecimal(increment);
+  const scale = Math.max(firstDecimal.scale, incrementDecimal.scale);
+  const firstCoefficient = firstDecimal.coefficient * 10n ** BigInt(scale - firstDecimal.scale);
+  const incrementCoefficient = incrementDecimal.coefficient * 10n ** BigInt(scale - incrementDecimal.scale);
+  let previous = "";
+  for (let index = 0;; index++) {
+    await session.step();
+    const current = index ? Number(fixed(firstCoefficient + BigInt(index) * incrementCoefficient, scale, scale)) : first;
+    if (!Number.isFinite(current)) break;
+    const outside = increment > 0 ? current > last : current < last;
+    const text = render(current);
+    if (outside) {
+      const numeric = text.slice(format.prefix.length, text.length - format.suffix.length);
+      if (Number(numeric) !== last || text === previous) break;
+    }
+    await session.text((index ? separator : "") + text);
+    previous = text;
+    if (outside) break;
+  }
+  await session.text("\n");
 }
 
 function parseFormat(text: string, session: Session): Format {
@@ -135,11 +181,16 @@ export function createSeqCommand(limits: StreamFormatLimits): CommandDefinition 
     const step = align(increment), finish = align(last);
     const precision = Math.max(first.precision, increment.precision);
     const format = formatText === undefined ? undefined : parseFormat(formatText, session);
-    const width = equalWidth ? Math.max(fixed(current, scale, precision).length, fixed(finish, scale, precision).length) : 0;
+    if (format) {
+      await floatingSequence(Number(operands.length === 1 ? "1" : operands[0]), Number(operands.length === 3 ? operands[1] : "1"), Number(operands.at(-1)), format, separator, session);
+      return;
+    }
+    const firstText = (first.negativeZero ? "-" : "") + fixed(current, scale, precision);
+    const width = equalWidth ? Math.max(firstText.length, fixed(finish, scale, precision).length) : 0;
     let written = false;
     while (step > 0n ? current <= finish : current >= finish) {
       await session.step();
-      let text = format ? formatted(current, scale, format) : fixed(current, scale, precision);
+      let text = (!written && first.negativeZero ? "-" : "") + fixed(current, scale, precision);
       if (equalWidth) text = text.startsWith("-") ? "-" + text.slice(1).padStart(width - 1, "0") : text.padStart(width, "0");
       session.check(Buffer.byteLength(text), limits.maxRecordBytes, "record");
       await session.text((written ? separator : "") + text);

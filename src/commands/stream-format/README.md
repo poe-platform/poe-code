@@ -24,12 +24,17 @@ optional `L`), literal text/`%%`, sign/space/zero/left/alternate flags, width an
 precision. Zero steps and combining equal-width with explicit formats fail.
 Formats, exponents and coefficients are bounded before large allocation.
 
-Progression uses exact scaled decimal integers, not floating accumulation.
-Default fixed precision comes from first/increment, not the endpoint. Formatting
-uses decimal round-to-nearest, ties-to-even. This agrees with ordinary exact GNU
-9.7 decimal controls, but is NOT a promise of its binary floating rounding at
-every halfway boundary or its floating-range endpoint heuristics. Exact decimal
-precision beyond native floating precision is a documented extension. Nonfinite,
+Without `-f`, progression uses exact scaled decimal integers, not floating
+accumulation. Default fixed precision comes from first/increment, not the endpoint.
+Exact decimal precision beyond native floating precision is a documented extension.
+With `-f`, finite binary64 operands and a non-underflowed increment are required:
+the value is first + index * increment with one binary64 rounding (the observed
+Darwin arm64 fused-arithmetic profile), then its exact binary64 value is rounded
+ties-to-even for rendering. This matches the pinned GNU9.7 Darwin arm64 floating
+profile, including a boundary value only when its rendered number equals the
+endpoint and differs from the prior output. Negative zero is preserved. This
+does not claim x86 extended-precision GNU behavior. Original decimal-only format
+failures and their source correction are retained in author evidence. Nonfinite,
 hexadecimal floating operands, `%a`, and locale-specific numeric punctuation are
 not supported. Numeric locale is always the C decimal convention.
 

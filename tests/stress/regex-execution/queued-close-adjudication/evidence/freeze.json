@@ -1,0 +1,339 @@
+{
+  "started": "2026-08-27T08:02:59.481Z",
+  "head": "71515770018077c1ae511f41f49e3a39c615cce5",
+  "before": "19669450a3acf869b8885b091db59e0a6e9cb65f",
+  "registration": "01aa1bffe0568cc6787d5ff8e0331e024a787385",
+  "review": "0b370e33cdb42128c6585cbebd1f6bad02753285",
+  "contract": "07acb1a4d30b7592cf247a0220250317be4e2038",
+  "node": "v22.22.2",
+  "platform": "darwin",
+  "arch": "arm64",
+  "tsx": "4.23.12",
+  "typescript": "5.9.3",
+  "statusBefore": " M scripts/verify-qualified-release.mjs\n M tests/integration/stream-five-public/README.md\n?? scripts/verify-current-consumers.mjs\n?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/\n?? tests/commands/filesystem-inspection-stress/\n?? tests/commands/search-stress/.native-1m4O1e/\n?? tests/commands/time-env-stress/\n?? tests/integration/stream-five-public/REPORT.md\n?? tests/integration/stream-five-public/evidence/final/\n?? tests/plugins/qualified-current-release/\n?? tests/shell-stress/invocation-cleanup-holdout/acceptance-first-scratch.json\n?? tests/shell-stress/invocation-cleanup-holdout/acceptance-first.json\n?? tests/shell-stress/invocation-cleanup-holdout/acceptance-source-preflight.json\n?? tests/stress/regex-execution/queued-close-adjudication/controls.test.ts\n?? tests/stress/regex-execution/queued-close-adjudication/run.mjs\n",
+  "indexBefore": "8132634673124352bf532e0a6582a63085d89d300223067118b261dc6f4d5c24",
+  "identities": [
+    {
+      "label": "before",
+      "revision": "19669450a3acf869b8885b091db59e0a6e9cb65f",
+      "path": "tests/commands/regex-execution/followup/messageerror.test.ts",
+      "sha256": "29b38d1603829e8f914410463b0537752aa585444a990e204b96948b92d14214",
+      "gitBlob": "e39cbb43a72ba38bf50d5a7ab42fba8fc158aa9f",
+      "matchesRevision": true
+    },
+    {
+      "label": "before",
+      "revision": "19669450a3acf869b8885b091db59e0a6e9cb65f",
+      "path": "src/commands/regex-execution/client.ts",
+      "sha256": "6745088269d2c9be612cbb55e612fb73d960d1b0df6c02d91e1b8f431f2ef1b9",
+      "gitBlob": "6e380c06219aed06fad7403dc4fe872213d991b4",
+      "matchesRevision": true
+    },
+    {
+      "label": "before",
+      "revision": "19669450a3acf869b8885b091db59e0a6e9cb65f",
+      "path": "src/commands/regex-execution/protocol.ts",
+      "sha256": "0b4f9fac518cd31f403c1c0f49e4c7772f783e32df7cfe83ee5d4906426133e6",
+      "gitBlob": "33c272bd0ffc084bb001ff3320a747b7d747bc33",
+      "matchesRevision": true
+    },
+    {
+      "label": "before",
+      "revision": "19669450a3acf869b8885b091db59e0a6e9cb65f",
+      "path": "src/commands/regex-execution/worker.ts",
+      "sha256": "ad818ba991aa54ce7029e8ca7be7e6d92c326134705c402f244a51da505d044e",
+      "gitBlob": "40dba6290e6b7446683979e88cfd2ddaae0a5c8b",
+      "matchesRevision": true
+    },
+    {
+      "label": "before",
+      "revision": "19669450a3acf869b8885b091db59e0a6e9cb65f",
+      "path": "src/contracts/command.ts",
+      "sha256": "9c2f8ecf50def7250b01152a31a45c449109c3ae4d30878252cffe985c6e9df8",
+      "gitBlob": "671327d43c48c5964658ad8c630578fe889421e2",
+      "matchesRevision": true
+    },
+    {
+      "label": "before",
+      "revision": "19669450a3acf869b8885b091db59e0a6e9cb65f",
+      "path": "src/contracts/command.md",
+      "sha256": "8a5426b1e7a30a03dc62f74b28c6eb7bf9b008b78cb7b521eb7de0bc5c59a3f8",
+      "gitBlob": "16371126acaccd07a8db2505b53a0625eb9b4592",
+      "matchesRevision": true
+    },
+    {
+      "label": "before",
+      "revision": "19669450a3acf869b8885b091db59e0a6e9cb65f",
+      "path": "package.json",
+      "sha256": "c9b768b3ec77ac19262a36ce46f331618916fd7746492d83f0bf6e1212999360",
+      "gitBlob": "3c5fc677b77b569131529ce4471828f689576bff",
+      "matchesRevision": true
+    },
+    {
+      "label": "registration",
+      "revision": "01aa1bffe0568cc6787d5ff8e0331e024a787385",
+      "path": "tests/commands/regex-execution/followup/messageerror.test.ts",
+      "sha256": "29b38d1603829e8f914410463b0537752aa585444a990e204b96948b92d14214",
+      "gitBlob": "e39cbb43a72ba38bf50d5a7ab42fba8fc158aa9f",
+      "matchesRevision": true
+    },
+    {
+      "label": "registration",
+      "revision": "01aa1bffe0568cc6787d5ff8e0331e024a787385",
+      "path": "src/commands/regex-execution/client.ts",
+      "sha256": "1638d492d11d466875b98451a59bace4e60e71fcd5468d671182187549922bca",
+      "gitBlob": "401f00362b232e5b2a8cf330966e9698077b9cbd",
+      "matchesRevision": true
+    },
+    {
+      "label": "registration",
+      "revision": "01aa1bffe0568cc6787d5ff8e0331e024a787385",
+      "path": "src/commands/regex-execution/protocol.ts",
+      "sha256": "0b4f9fac518cd31f403c1c0f49e4c7772f783e32df7cfe83ee5d4906426133e6",
+      "gitBlob": "33c272bd0ffc084bb001ff3320a747b7d747bc33",
+      "matchesRevision": true
+    },
+    {
+      "label": "registration",
+      "revision": "01aa1bffe0568cc6787d5ff8e0331e024a787385",
+      "path": "src/commands/regex-execution/worker.ts",
+      "sha256": "ad818ba991aa54ce7029e8ca7be7e6d92c326134705c402f244a51da505d044e",
+      "gitBlob": "40dba6290e6b7446683979e88cfd2ddaae0a5c8b",
+      "matchesRevision": true
+    },
+    {
+      "label": "registration",
+      "revision": "01aa1bffe0568cc6787d5ff8e0331e024a787385",
+      "path": "src/contracts/command.ts",
+      "sha256": "9c2f8ecf50def7250b01152a31a45c449109c3ae4d30878252cffe985c6e9df8",
+      "gitBlob": "671327d43c48c5964658ad8c630578fe889421e2",
+      "matchesRevision": true
+    },
+    {
+      "label": "registration",
+      "revision": "01aa1bffe0568cc6787d5ff8e0331e024a787385",
+      "path": "src/contracts/command.md",
+      "sha256": "8a5426b1e7a30a03dc62f74b28c6eb7bf9b008b78cb7b521eb7de0bc5c59a3f8",
+      "gitBlob": "16371126acaccd07a8db2505b53a0625eb9b4592",
+      "matchesRevision": true
+    },
+    {
+      "label": "registration",
+      "revision": "01aa1bffe0568cc6787d5ff8e0331e024a787385",
+      "path": "package.json",
+      "sha256": "c9b768b3ec77ac19262a36ce46f331618916fd7746492d83f0bf6e1212999360",
+      "gitBlob": "3c5fc677b77b569131529ce4471828f689576bff",
+      "matchesRevision": true
+    },
+    {
+      "label": "review",
+      "revision": "0b370e33cdb42128c6585cbebd1f6bad02753285",
+      "path": "tests/commands/regex-execution/followup/messageerror.test.ts",
+      "sha256": "29b38d1603829e8f914410463b0537752aa585444a990e204b96948b92d14214",
+      "gitBlob": "e39cbb43a72ba38bf50d5a7ab42fba8fc158aa9f",
+      "matchesRevision": true
+    },
+    {
+      "label": "review",
+      "revision": "0b370e33cdb42128c6585cbebd1f6bad02753285",
+      "path": "src/commands/regex-execution/client.ts",
+      "sha256": "1638d492d11d466875b98451a59bace4e60e71fcd5468d671182187549922bca",
+      "gitBlob": "401f00362b232e5b2a8cf330966e9698077b9cbd",
+      "matchesRevision": true
+    },
+    {
+      "label": "review",
+      "revision": "0b370e33cdb42128c6585cbebd1f6bad02753285",
+      "path": "src/commands/regex-execution/protocol.ts",
+      "sha256": "0b4f9fac518cd31f403c1c0f49e4c7772f783e32df7cfe83ee5d4906426133e6",
+      "gitBlob": "33c272bd0ffc084bb001ff3320a747b7d747bc33",
+      "matchesRevision": true
+    },
+    {
+      "label": "review",
+      "revision": "0b370e33cdb42128c6585cbebd1f6bad02753285",
+      "path": "src/commands/regex-execution/worker.ts",
+      "sha256": "ad818ba991aa54ce7029e8ca7be7e6d92c326134705c402f244a51da505d044e",
+      "gitBlob": "40dba6290e6b7446683979e88cfd2ddaae0a5c8b",
+      "matchesRevision": true
+    },
+    {
+      "label": "review",
+      "revision": "0b370e33cdb42128c6585cbebd1f6bad02753285",
+      "path": "src/contracts/command.ts",
+      "sha256": "9c2f8ecf50def7250b01152a31a45c449109c3ae4d30878252cffe985c6e9df8",
+      "gitBlob": "671327d43c48c5964658ad8c630578fe889421e2",
+      "matchesRevision": true
+    },
+    {
+      "label": "review",
+      "revision": "0b370e33cdb42128c6585cbebd1f6bad02753285",
+      "path": "src/contracts/command.md",
+      "sha256": "8a5426b1e7a30a03dc62f74b28c6eb7bf9b008b78cb7b521eb7de0bc5c59a3f8",
+      "gitBlob": "16371126acaccd07a8db2505b53a0625eb9b4592",
+      "matchesRevision": true
+    },
+    {
+      "label": "review",
+      "revision": "0b370e33cdb42128c6585cbebd1f6bad02753285",
+      "path": "package.json",
+      "sha256": "c9b768b3ec77ac19262a36ce46f331618916fd7746492d83f0bf6e1212999360",
+      "gitBlob": "3c5fc677b77b569131529ce4471828f689576bff",
+      "matchesRevision": true
+    },
+    {
+      "label": "contract",
+      "revision": "07acb1a4d30b7592cf247a0220250317be4e2038",
+      "path": "tests/commands/regex-execution/followup/messageerror.test.ts",
+      "sha256": "29b38d1603829e8f914410463b0537752aa585444a990e204b96948b92d14214",
+      "gitBlob": "e39cbb43a72ba38bf50d5a7ab42fba8fc158aa9f",
+      "matchesRevision": true
+    },
+    {
+      "label": "contract",
+      "revision": "07acb1a4d30b7592cf247a0220250317be4e2038",
+      "path": "src/commands/regex-execution/client.ts",
+      "sha256": "6745088269d2c9be612cbb55e612fb73d960d1b0df6c02d91e1b8f431f2ef1b9",
+      "gitBlob": "6e380c06219aed06fad7403dc4fe872213d991b4",
+      "matchesRevision": true
+    },
+    {
+      "label": "contract",
+      "revision": "07acb1a4d30b7592cf247a0220250317be4e2038",
+      "path": "src/commands/regex-execution/protocol.ts",
+      "sha256": "0b4f9fac518cd31f403c1c0f49e4c7772f783e32df7cfe83ee5d4906426133e6",
+      "gitBlob": "33c272bd0ffc084bb001ff3320a747b7d747bc33",
+      "matchesRevision": true
+    },
+    {
+      "label": "contract",
+      "revision": "07acb1a4d30b7592cf247a0220250317be4e2038",
+      "path": "src/commands/regex-execution/worker.ts",
+      "sha256": "ad818ba991aa54ce7029e8ca7be7e6d92c326134705c402f244a51da505d044e",
+      "gitBlob": "40dba6290e6b7446683979e88cfd2ddaae0a5c8b",
+      "matchesRevision": true
+    },
+    {
+      "label": "contract",
+      "revision": "07acb1a4d30b7592cf247a0220250317be4e2038",
+      "path": "src/contracts/command.ts",
+      "sha256": "9c2f8ecf50def7250b01152a31a45c449109c3ae4d30878252cffe985c6e9df8",
+      "gitBlob": "671327d43c48c5964658ad8c630578fe889421e2",
+      "matchesRevision": true
+    },
+    {
+      "label": "contract",
+      "revision": "07acb1a4d30b7592cf247a0220250317be4e2038",
+      "path": "src/contracts/command.md",
+      "sha256": "8a5426b1e7a30a03dc62f74b28c6eb7bf9b008b78cb7b521eb7de0bc5c59a3f8",
+      "gitBlob": "16371126acaccd07a8db2505b53a0625eb9b4592",
+      "matchesRevision": true
+    },
+    {
+      "label": "contract",
+      "revision": "07acb1a4d30b7592cf247a0220250317be4e2038",
+      "path": "package.json",
+      "sha256": "c9b768b3ec77ac19262a36ce46f331618916fd7746492d83f0bf6e1212999360",
+      "gitBlob": "3c5fc677b77b569131529ce4471828f689576bff",
+      "matchesRevision": true
+    },
+    {
+      "label": "current",
+      "revision": "71515770018077c1ae511f41f49e3a39c615cce5",
+      "path": "tests/commands/regex-execution/followup/messageerror.test.ts",
+      "sha256": "29b38d1603829e8f914410463b0537752aa585444a990e204b96948b92d14214",
+      "gitBlob": "e39cbb43a72ba38bf50d5a7ab42fba8fc158aa9f",
+      "matchesRevision": true
+    },
+    {
+      "label": "current",
+      "revision": "71515770018077c1ae511f41f49e3a39c615cce5",
+      "path": "src/commands/regex-execution/client.ts",
+      "sha256": "1638d492d11d466875b98451a59bace4e60e71fcd5468d671182187549922bca",
+      "gitBlob": "401f00362b232e5b2a8cf330966e9698077b9cbd",
+      "matchesRevision": true
+    },
+    {
+      "label": "current",
+      "revision": "71515770018077c1ae511f41f49e3a39c615cce5",
+      "path": "src/commands/regex-execution/protocol.ts",
+      "sha256": "0b4f9fac518cd31f403c1c0f49e4c7772f783e32df7cfe83ee5d4906426133e6",
+      "gitBlob": "33c272bd0ffc084bb001ff3320a747b7d747bc33",
+      "matchesRevision": true
+    },
+    {
+      "label": "current",
+      "revision": "71515770018077c1ae511f41f49e3a39c615cce5",
+      "path": "src/commands/regex-execution/worker.ts",
+      "sha256": "ad818ba991aa54ce7029e8ca7be7e6d92c326134705c402f244a51da505d044e",
+      "gitBlob": "40dba6290e6b7446683979e88cfd2ddaae0a5c8b",
+      "matchesRevision": true
+    },
+    {
+      "label": "current",
+      "revision": "71515770018077c1ae511f41f49e3a39c615cce5",
+      "path": "src/contracts/command.ts",
+      "sha256": "9c2f8ecf50def7250b01152a31a45c449109c3ae4d30878252cffe985c6e9df8",
+      "gitBlob": "671327d43c48c5964658ad8c630578fe889421e2",
+      "matchesRevision": true
+    },
+    {
+      "label": "current",
+      "revision": "71515770018077c1ae511f41f49e3a39c615cce5",
+      "path": "src/contracts/command.md",
+      "sha256": "8a5426b1e7a30a03dc62f74b28c6eb7bf9b008b78cb7b521eb7de0bc5c59a3f8",
+      "gitBlob": "16371126acaccd07a8db2505b53a0625eb9b4592",
+      "matchesRevision": true
+    },
+    {
+      "label": "current",
+      "revision": "71515770018077c1ae511f41f49e3a39c615cce5",
+      "path": "package.json",
+      "sha256": "c9b768b3ec77ac19262a36ce46f331618916fd7746492d83f0bf6e1212999360",
+      "gitBlob": "3c5fc677b77b569131529ce4471828f689576bff",
+      "matchesRevision": true
+    }
+  ],
+  "historical": [
+    {
+      "revision": "01aa1bffe0568cc6787d5ff8e0331e024a787385",
+      "path": "tests/commands/regex-execution/cleanup-registration/REPORT.md",
+      "sha256": "0bec30cd174ee3f5d2a947235e43b09b0ad30422bdf33a613df8e66eb92eb88f",
+      "currentSha256": "0bec30cd174ee3f5d2a947235e43b09b0ad30422bdf33a613df8e66eb92eb88f"
+    },
+    {
+      "revision": "01aa1bffe0568cc6787d5ff8e0331e024a787385",
+      "path": "tests/commands/regex-execution/cleanup-registration/isolated-validation.json",
+      "sha256": "6d54abccdec2bbd621aca7797cf3d65b6a63dd23dca61ce7ffb16a6cca2fc86b",
+      "currentSha256": "6d54abccdec2bbd621aca7797cf3d65b6a63dd23dca61ce7ffb16a6cca2fc86b"
+    },
+    {
+      "revision": "0b370e33cdb42128c6585cbebd1f6bad02753285",
+      "path": "tests/stress/regex-execution/cleanup-boundary-review/REPORT.md",
+      "sha256": "1e0c1f71eb4fbd4ae565d00ec948329b0bd453cf3dff8208a60421c6928d675e",
+      "currentSha256": "1e0c1f71eb4fbd4ae565d00ec948329b0bd453cf3dff8208a60421c6928d675e"
+    },
+    {
+      "revision": "0b370e33cdb42128c6585cbebd1f6bad02753285",
+      "path": "tests/stress/regex-execution/cleanup-boundary-review/evidence/phase-a-compiled-old-five.json",
+      "sha256": "1b4b4018a421a784fa2c3b3d3a9591dddffbf58e4760a8f2d9d2d827a5c84361",
+      "currentSha256": "1b4b4018a421a784fa2c3b3d3a9591dddffbf58e4760a8f2d9d2d827a5c84361"
+    },
+    {
+      "revision": "0b370e33cdb42128c6585cbebd1f6bad02753285",
+      "path": "tests/stress/regex-execution/cleanup-boundary-review/evidence/phase-a-packed-old-five.json",
+      "sha256": "73f72f69d7753f089eb2147f2f162afbc71c294ee100111330837331a7864cbe",
+      "currentSha256": "73f72f69d7753f089eb2147f2f162afbc71c294ee100111330837331a7864cbe"
+    }
+  ],
+  "harness": [
+    {
+      "path": "tests/stress/regex-execution/queued-close-adjudication/run.mjs",
+      "sha256": "8d6cf46cdf2c6c0f5c54497323ccd80bd777a2e639b19193469efe92657dbd7f"
+    },
+    {
+      "path": "tests/stress/regex-execution/queued-close-adjudication/controls.test.ts",
+      "sha256": "8703a61da44228731ffaf09f0f0fef5373d507458dd4d3dcb098460b704c9cda"
+    }
+  ]
+}

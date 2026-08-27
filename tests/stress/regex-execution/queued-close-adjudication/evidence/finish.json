@@ -1,0 +1,42 @@
+{
+  "finished": "2026-08-27T08:03:00.240Z",
+  "unchanged": true,
+  "historyUnchanged": true,
+  "indexBefore": "8132634673124352bf532e0a6582a63085d89d300223067118b261dc6f4d5c24",
+  "indexAfter": "8132634673124352bf532e0a6582a63085d89d300223067118b261dc6f4d5c24",
+  "indexUnchanged": true,
+  "exactTemporaryRemoved": "/Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/queued-close-adjudication/.run-cNSdPy",
+  "strictUnhandled": true,
+  "nativeWorkers": 0,
+  "riskyRegexProbes": 0,
+  "children": [
+    {
+      "label": "before-canonical",
+      "pid": 37629,
+      "code": 0,
+      "killed": false,
+      "pidAbsent": true
+    },
+    {
+      "label": "registration-canonical",
+      "pid": 37631,
+      "code": 1,
+      "killed": false,
+      "pidAbsent": true
+    },
+    {
+      "label": "current-canonical",
+      "pid": 37633,
+      "code": 1,
+      "killed": false,
+      "pidAbsent": true
+    },
+    {
+      "label": "current-controls",
+      "pid": 37635,
+      "code": 0,
+      "killed": false,
+      "pidAbsent": true
+    }
+  ]
+}

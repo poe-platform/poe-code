@@ -65,7 +65,7 @@ export type Command = (
   | { kind: "for"; name: string; words?: Word[]; body: Script }
   | { kind: "function"; name: string; body: Command }
   | { kind: "arithmetic"; expression: ArithmeticProgram; source: string }
-) & { redirects: Redirect[]; line?: number };
+) & { redirects: Redirect[]; line?: number; sourceName?: string };
 
 export interface Pipeline {
   readonly commands: Command[];

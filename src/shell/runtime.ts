@@ -401,7 +401,7 @@ export class Runtime {
           await this.diagnostic(io, `\`${command.name}': is a special builtin`);
           throw new Flow("exit", 2);
         }
-        state.functions.set(command.name, command.body);
+        state.functions.set(command.name, { ...command.body, sourceName: io.scriptName ?? "shell" });
         return 0;
       }
       if (command.kind === "simple") return await this.simple(command, state, originalIO, inputs, outputs, fileShortcut);
@@ -791,7 +791,7 @@ export class Runtime {
           state.depth++;
           const locals = new Map<string, { value: string | undefined; exported: boolean; readOnly?: boolean }>();
           state.locals.push(locals);
-          try { return { exitCode: await this.command(body, state, context) }; }
+          try { return { exitCode: await this.command(body, state, { ...context, scriptName: body.sourceName ?? io.scriptName ?? "shell" }) }; }
           catch (error) {
             if (error instanceof Flow && error.kind === "return") return { exitCode: error.status };
             throw error;
@@ -1534,7 +1534,7 @@ export class Runtime {
       state.substitutionStatus = fileShortcut ? await this.runCommandIsolated(command, child, captureIO, true) : await this.run(part.script, child, captureIO);
       state.status = state.substitutionStatus;
       const bytes = capture.bytes();
-      if (bytes.includes(0)) await writeText(io.stderr, `shell: line ${io.diagnosticLine ?? part.line}: warning: command substitution: ignored null byte in input\n`);
+      if (bytes.includes(0)) await writeText(io.stderr, `${io.scriptName ?? "shell"}: line ${io.diagnosticLine ?? part.line}: warning: command substitution: ignored null byte in input\n`);
       return new TextDecoder().decode(bytes.includes(0) ? bytes.filter((byte) => byte !== 0) : bytes).replace(/\n+$/u, "");
     }
     let value = part.name === "?" ? String(state.status)

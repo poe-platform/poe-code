@@ -24,6 +24,42 @@ node tests/fs/s3/http/interop/run.mjs /tmp/safe-bash-minio-download-XXXXXX/minio
 node tests/fs/s3/http/interop/run.mjs /tmp/safe-bash-minio-download-XXXXXX/minio fallback
 ```
 
+### Actual public-package consumer
+
+```sh
+node tests/fs/s3/http/interop/public-run.mjs --build-only
+node tests/fs/s3/http/interop/public-run.mjs --download
+```
+
+The public runner copies the actual current source, real package manifest/configs,
+and unchanged author `public-consumer.mts`/`build-public-consumer.mjs` into a fresh
+`/tmp` archive. It invokes that author runner to build the real package, strictly
+compile the consumer against the real export map, and import the compiled module.
+Only after all three succeed does `--download` obtain the verified pinned binary
+and launch an isolated service. An explicit existing binary path may replace
+`--download`; externally supplied binaries are not deleted. Build-only is the
+default and never launches/downloads. The author runner's Git call reads only the
+real repository HEAD through explicit `GIT_DIR`; no temporary Git repo is created.
+Shared dist, author files and package exports are never modified.
+
+The compiled `runPublicS3Example` receives the owned loopback endpoint, synthetic
+credentials, independently provisioned fresh bucket, unique prefix and explicit
+verified-PUT/form-decoding profile. It runs **one workflow with nine named checks**,
+not nine independent tests. Six additional reference-signed wire GETs check exact
+final source/copy/target bytes. Public result, strict build diagnostics, manifests,
+source hashes and lifecycle evidence go to the printed `/tmp` roots. Failures stay
+failures; there is no private HTTP-module fallback or patched export map.
+The service always stops and removes its owned data/home. An automatically
+downloaded binary is hash-checked again and removed after the run.
+
+The first public-runner replay records package-build0 and consumer-compile1:
+TS2724 (`createS3HttpTransport`) and TS2305 (`S3HttpCredentials`) are absent from
+the actual public S3 barrel. No service/download occurs. This blocker is separate
+from the accepted direct-module18/18 and14/14; neither proves public usability.
+The integration owner must supply the real exports before actual public execution.
+Exact diagnostics and source snapshots are preserved in
+`evidence/public-runner-first/REPORT.md`; that cohort has zero service workflows.
+
 `prepare.mjs` verifies the official checksum against the checked-in digest and
 bounds the decompressed binary by exact size and digest before making it
 executable. Chunked/compressed download responses need not have Content-Length.

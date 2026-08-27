@@ -63,6 +63,12 @@
 - Middleware must await/return next(). Preserve shared budgets and explicitly
   propagate signals into host work. Cancellation cannot undo completed effects
   or forcibly stop uncooperative host work; observe late rejections.
+- Register cooperative InvocationCleanup synchronously through registerCleanup
+  before invocation-owned resource acquisition/admission; use the same idempotent
+  cleanup from finally, sharing completion across overlapping calls. Close owned
+  acquisition admission and cover admitted work. Public exec/dispose settlement
+  awaits registered cooperative cleanup/tracked resource work, not opaque host work.
+  Direct/custom hosts may omit the hook; finally remains necessary.
 - CommandContext.invoke dispatches literal argv with existing middleware, FS,
   signal and shared budgets. replaceEnv true uses exactly the supplied exported
   map (omitted means empty), without inherited exports/PWD injection or local
@@ -76,6 +82,12 @@
 - Safe empty-directory removal uses optional FileSystem.rmdir, otherwise ENOTSUP.
   Never approximate it with an empty listing followed by recursive deletion.
   Force flags must not swallow cancellation, including errno-shaped abort reasons.
+- Preserve the explicit weaker capabilities.snapshotRmdir snapshot-marker profile
+  through wrappers or refuse delegation; never erase it or promote it to strong
+  empty-only semantics. Strong consumers must resolve the path's actual contract
+  or refuse. Neither profile permits deleting descendants, including hiding them
+  by overlay whiteouts. Marker success need not mean directory absence; it provides
+  no transaction or ABA guarantee. See src/contracts/filesystem.md.
 - identityScope/device/inode and compareEntry follow src/contracts/filesystem.md.
   Opaque scopes compare by reference and mean real disjoint storage, not different
   clients/protocols. Unknown stays unknown; preserve aliases, conflicts and errors
@@ -99,6 +111,12 @@
   later corrections. Record exact source hashes, profiles, versions, denominators,
   dirty-vs-frozen state and external-oracle availability. Unmeasured/unsupported
   cases and TODOs are not passes; scoped suites do not imply a current full gate.
+- Segregate native oracle/input/captured data from canonical TypeScript inputs and
+  test discovery by explicit data classification; preserve bytes and canonical
+  source/test/helper coverage, not blanket exclusions or test waivers. Qualify each
+  current candidate against its actual committed source/tests, authenticated
+  prerequisites and tracked consumer inventory. Historical cohorts do not certify
+  that candidate; an inventory is not proof that all TypeScript fixtures were checked.
 - Environment ordering is POSIX-unspecified. A GNU capture on Darwin does not
   establish GNU/Linux semantics; qualify host/library profiles. Strict SGID
   differences need host-specific evidence, not a mandatory new API or unsafe rollback.

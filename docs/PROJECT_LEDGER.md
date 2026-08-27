@@ -1789,6 +1789,28 @@ that any implementation, command, fixture, or test currently exists.
   Arch's five public-boundary cleanup replays. Sagan's closed runtime work does
   not change these limits; independent verification follows actual author exit.
 
+### Narrow durable-rule maintenance (August 27, 2026)
+
+- Explicit user authorization permits this leaf to edit only root `AGENTS.md`
+  and this ledger. Both were staged/unstaged clean before editing; foreign changes
+  remain outside the commit. Parent Orchestrator Policy and exact user requirements
+  are unchanged; the additions are normative engineering rules, not invented user facts.
+- Rules align with `src/contracts/command.md` cooperative `InvocationCleanup`
+  admission/shared idempotent finally semantics and `src/contracts/filesystem.md`
+  weaker `snapshotRmdir` propagation/refusal and never-descendant semantics. They
+  neither promise opaque host work drains nor stronger provider race guarantees.
+- Data classification and current-candidate qualification preserve the limits in
+  `tests/plugins/qualified-current-release/README.md` and the native-data report
+  linked above: tracked consumer inventory is not all-TypeScript-fixture coverage.
+  Historical counts and prior failed evidence remain unchanged, not new gate proof.
+- Per the user's handoff, runtime `1b133a8`/Sagan build success does not close
+  Arch's pending five actual public-boundary replays; independent native-config
+  review `14517` is also pending. The current-qualified02 WebDAV failure remains
+  open; scoped native-data author controls do not turn global typing green.
+- Documentation-only validation checks owned diff whitespace, line count, style
+  and local contract alignment; no tests/build, implementation acceptance, full
+  release gate, superiority or work-duration completion is asserted.
+
 ### Remaining product validation
 
 - Re-run whole-repo typechecking, tests, build, and export checks as concurrent

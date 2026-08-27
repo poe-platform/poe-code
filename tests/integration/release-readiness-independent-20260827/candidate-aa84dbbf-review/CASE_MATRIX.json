@@ -1,0 +1,802 @@
+{
+  "fixtureCommit": "0895926bbf0f3cf1439c75f59e5505330afa1a39",
+  "definitions": 78,
+  "referenceSelfcheck": {
+    "checks": 79,
+    "scope": "Fixture machinery only; not added to candidate total"
+  },
+  "results": [
+    {
+      "id": "inventory-unchanged",
+      "group": "inventory",
+      "expected": "accept",
+      "observed": "accept",
+      "status": "PASS",
+      "method": "actual-candidate-api",
+      "target": "tests/integration/full-gate-20260827/integrity-73/tree.mjs#createTreeGuard",
+      "rawReceipt": "evidence/inventory-unchanged.json"
+    },
+    {
+      "id": "inventory-postsetup-baseline",
+      "group": "inventory",
+      "expected": "accept",
+      "observed": "accept",
+      "status": "PASS",
+      "method": "actual-candidate-api",
+      "target": "tests/integration/full-gate-20260827/integrity-73/tree.mjs#createTreeGuard",
+      "rawReceipt": "evidence/inventory-postsetup-baseline.json"
+    },
+    {
+      "id": "inventory-added-file",
+      "group": "inventory",
+      "expected": "reject",
+      "observed": "reject",
+      "status": "PASS",
+      "method": "actual-candidate-api",
+      "target": "tests/integration/full-gate-20260827/integrity-73/tree.mjs#createTreeGuard",
+      "rawReceipt": "evidence/inventory-added-file.json"
+    },
+    {
+      "id": "inventory-added-empty-directory",
+      "group": "inventory",
+      "expected": "reject",
+      "observed": "reject",
+      "status": "PASS",
+      "method": "actual-candidate-api",
+      "target": "tests/integration/full-gate-20260827/integrity-73/tree.mjs#createTreeGuard",
+      "rawReceipt": "evidence/inventory-added-empty-directory.json"
+    },
+    {
+      "id": "inventory-removed-file",
+      "group": "inventory",
+      "expected": "reject",
+      "observed": "reject",
+      "status": "PASS",
+      "method": "actual-candidate-api",
+      "target": "tests/integration/full-gate-20260827/integrity-73/tree.mjs#createTreeGuard",
+      "rawReceipt": "evidence/inventory-removed-file.json"
+    },
+    {
+      "id": "inventory-modified-bytes",
+      "group": "inventory",
+      "expected": "reject",
+      "observed": "reject",
+      "status": "PASS",
+      "method": "actual-candidate-api",
+      "target": "tests/integration/full-gate-20260827/integrity-73/tree.mjs#createTreeGuard",
+      "rawReceipt": "evidence/inventory-modified-bytes.json"
+    },
+    {
+      "id": "inventory-file-to-directory",
+      "group": "inventory",
+      "expected": "reject",
+      "observed": "reject",
+      "status": "PASS",
+      "method": "actual-candidate-api",
+      "target": "tests/integration/full-gate-20260827/integrity-73/tree.mjs#createTreeGuard",
+      "rawReceipt": "evidence/inventory-file-to-directory.json"
+    },
+    {
+      "id": "inventory-directory-to-file",
+      "group": "inventory",
+      "expected": "reject",
+      "observed": "reject",
+      "status": "PASS",
+      "method": "actual-candidate-api",
+      "target": "tests/integration/full-gate-20260827/integrity-73/tree.mjs#createTreeGuard",
+      "rawReceipt": "evidence/inventory-directory-to-file.json"
+    },
+    {
+      "id": "inventory-file-to-symlink",
+      "group": "inventory",
+      "expected": "reject",
+      "observed": "reject",
+      "status": "PASS",
+      "method": "actual-candidate-api",
+      "target": "tests/integration/full-gate-20260827/integrity-73/tree.mjs#createTreeGuard",
+      "rawReceipt": "evidence/inventory-file-to-symlink.json"
+    },
+    {
+      "id": "inventory-symlink-retarget",
+      "group": "inventory",
+      "expected": "reject",
+      "observed": "reject",
+      "status": "PASS",
+      "method": "actual-candidate-api",
+      "target": "tests/integration/full-gate-20260827/integrity-73/tree.mjs#createTreeGuard",
+      "rawReceipt": "evidence/inventory-symlink-retarget.json"
+    },
+    {
+      "id": "inventory-new-symlink",
+      "group": "inventory",
+      "expected": "reject",
+      "observed": "reject",
+      "status": "PASS",
+      "method": "actual-candidate-api",
+      "target": "tests/integration/full-gate-20260827/integrity-73/tree.mjs#createTreeGuard",
+      "rawReceipt": "evidence/inventory-new-symlink.json"
+    },
+    {
+      "id": "inventory-new-dangling-symlink",
+      "group": "inventory",
+      "expected": "reject",
+      "observed": "reject",
+      "status": "PASS",
+      "method": "actual-candidate-api",
+      "target": "tests/integration/full-gate-20260827/integrity-73/tree.mjs#createTreeGuard",
+      "rawReceipt": "evidence/inventory-new-dangling-symlink.json"
+    },
+    {
+      "id": "inventory-symlink-to-file",
+      "group": "inventory",
+      "expected": "reject",
+      "observed": "reject",
+      "status": "PASS",
+      "method": "actual-candidate-api",
+      "target": "tests/integration/full-gate-20260827/integrity-73/tree.mjs#createTreeGuard",
+      "rawReceipt": "evidence/inventory-symlink-to-file.json"
+    },
+    {
+      "id": "inventory-mode-change",
+      "group": "inventory",
+      "expected": "reject",
+      "observed": "reject",
+      "status": "PASS",
+      "method": "actual-candidate-api",
+      "target": "tests/integration/full-gate-20260827/integrity-73/tree.mjs#createTreeGuard",
+      "rawReceipt": "evidence/inventory-mode-change.json"
+    },
+    {
+      "id": "asset-known-control",
+      "group": "asset",
+      "expected": "accept",
+      "observed": "accept",
+      "status": "PASS",
+      "method": "actual-candidate-api",
+      "target": "tests/integration/full-gate-20260827/preflight-repair/preflight.mjs#assessNative",
+      "rawReceipt": "evidence/asset-known-control.json"
+    },
+    {
+      "id": "asset-missing",
+      "group": "asset",
+      "expected": "reject",
+      "observed": "reject",
+      "status": "PASS",
+      "method": "actual-candidate-api",
+      "target": "tests/integration/full-gate-20260827/preflight-repair/preflight.mjs#assessNative",
+      "rawReceipt": "evidence/asset-missing.json"
+    },
+    {
+      "id": "asset-wrong-bytes",
+      "group": "asset",
+      "expected": "reject",
+      "observed": "reject",
+      "status": "PASS",
+      "method": "actual-candidate-api",
+      "target": "tests/integration/full-gate-20260827/preflight-repair/preflight.mjs#assessNative",
+      "rawReceipt": "evidence/asset-wrong-bytes.json"
+    },
+    {
+      "id": "asset-rg-observed-not-expected",
+      "group": "asset",
+      "expected": "reject",
+      "observed": "reject",
+      "status": "PASS",
+      "method": "actual-candidate-api",
+      "target": "tests/integration/full-gate-20260827/preflight-repair/preflight.mjs#assessNative",
+      "rawReceipt": "evidence/asset-rg-observed-not-expected.json"
+    },
+    {
+      "id": "classification-explicit-routes",
+      "group": "classification",
+      "expected": "accept",
+      "observed": "accept",
+      "status": "PASS",
+      "method": "actual-candidate-api",
+      "target": "tests/plugins/qualified-current-release/inventory-check.mjs#verifyInventory",
+      "rawReceipt": "evidence/classification-explicit-routes.json"
+    },
+    {
+      "id": "classification-omission",
+      "group": "classification",
+      "expected": "reject",
+      "observed": "reject",
+      "status": "PASS",
+      "method": "actual-candidate-api",
+      "target": "tests/plugins/qualified-current-release/inventory-check.mjs#verifyInventory",
+      "rawReceipt": "evidence/classification-omission.json"
+    },
+    {
+      "id": "classification-invalid",
+      "group": "classification",
+      "expected": "reject",
+      "observed": "reject",
+      "status": "PASS",
+      "method": "actual-candidate-api",
+      "target": "tests/plugins/qualified-current-release/inventory-check.mjs#verifyInventory",
+      "rawReceipt": "evidence/classification-invalid.json"
+    },
+    {
+      "id": "classification-multiple",
+      "group": "classification",
+      "expected": "reject",
+      "observed": "reject",
+      "status": "PASS",
+      "method": "actual-candidate-api",
+      "target": "tests/plugins/qualified-current-release/inventory-check.mjs#verifyInventory",
+      "rawReceipt": "evidence/classification-multiple.json"
+    },
+    {
+      "id": "classification-current-unrouted",
+      "group": "classification",
+      "expected": "reject",
+      "observed": "reject",
+      "status": "PASS",
+      "method": "actual-candidate-api",
+      "target": "tests/plugins/qualified-current-release/inventory-check.mjs#verifyInventory",
+      "rawReceipt": "evidence/classification-current-unrouted.json"
+    },
+    {
+      "id": "classification-negative-unrouted",
+      "group": "classification",
+      "expected": "reject",
+      "observed": "reject",
+      "status": "PASS",
+      "method": "actual-candidate-api",
+      "target": "tests/plugins/qualified-current-release/inventory-check.mjs#verifyInventory",
+      "rawReceipt": "evidence/classification-negative-unrouted.json"
+    },
+    {
+      "id": "classification-historical-changed",
+      "group": "classification",
+      "expected": "reject",
+      "observed": "reject",
+      "status": "PASS",
+      "method": "actual-candidate-api",
+      "target": "tests/plugins/qualified-current-release/inventory-check.mjs#verifyInventory",
+      "rawReceipt": "evidence/classification-historical-changed.json"
+    },
+    {
+      "id": "classification-historical-not-current-pass",
+      "group": "classification",
+      "expected": "accept",
+      "observed": "accept",
+      "status": "PASS",
+      "method": "actual-candidate-api",
+      "target": "tests/plugins/qualified-current-release/inventory-check.mjs#verifyInventory",
+      "rawReceipt": "evidence/classification-historical-not-current-pass.json"
+    },
+    {
+      "id": "classification-declaration-changed",
+      "group": "classification",
+      "expected": "reject",
+      "observed": "reject",
+      "status": "PASS",
+      "method": "actual-candidate-api",
+      "target": "tests/plugins/qualified-current-release/inventory-check.mjs#verifyInventory",
+      "rawReceipt": "evidence/classification-declaration-changed.json"
+    },
+    {
+      "id": "classification-freeze-evidence-changed",
+      "group": "classification",
+      "expected": "reject",
+      "observed": "reject",
+      "status": "PASS",
+      "method": "actual-candidate-api",
+      "target": "tests/plugins/qualified-current-release/inventory-check.mjs#verifyInventory",
+      "rawReceipt": "evidence/classification-freeze-evidence-changed.json"
+    },
+    {
+      "id": "negative-exact-diagnostic",
+      "group": "negative",
+      "expected": "accept",
+      "observed": "accept",
+      "status": "PASS",
+      "method": "exact-candidate-check-on-real-compiler-receipt-and-frozen-mutations",
+      "target": "scripts/verify-current-consumers.mjs#exact-negative-admission",
+      "rawReceipt": "evidence/negative-exact-diagnostic.json"
+    },
+    {
+      "id": "negative-wrong-line",
+      "group": "negative",
+      "expected": "reject",
+      "observed": "reject",
+      "status": "PASS",
+      "method": "exact-candidate-check-on-real-compiler-receipt-and-frozen-mutations",
+      "target": "scripts/verify-current-consumers.mjs#exact-negative-admission",
+      "rawReceipt": "evidence/negative-wrong-line.json"
+    },
+    {
+      "id": "negative-wrong-code",
+      "group": "negative",
+      "expected": "reject",
+      "observed": "reject",
+      "status": "PASS",
+      "method": "exact-candidate-check-on-real-compiler-receipt-and-frozen-mutations",
+      "target": "scripts/verify-current-consumers.mjs#exact-negative-admission",
+      "rawReceipt": "evidence/negative-wrong-code.json"
+    },
+    {
+      "id": "negative-missing-module",
+      "group": "negative",
+      "expected": "reject",
+      "observed": "reject",
+      "status": "PASS",
+      "method": "exact-candidate-check-on-real-compiler-receipt-and-frozen-mutations",
+      "target": "scripts/verify-current-consumers.mjs#exact-negative-admission",
+      "rawReceipt": "evidence/negative-missing-module.json"
+    },
+    {
+      "id": "negative-positive-control-failed",
+      "group": "negative",
+      "expected": "reject",
+      "observed": "reject",
+      "status": "PASS",
+      "method": "exact-candidate-check-on-real-compiler-receipt-and-frozen-mutations",
+      "target": "scripts/verify-current-consumers.mjs#exact-negative-admission",
+      "rawReceipt": "evidence/negative-positive-control-failed.json"
+    },
+    {
+      "id": "negative-unexpected-success",
+      "group": "negative",
+      "expected": "reject",
+      "observed": "reject",
+      "status": "PASS",
+      "method": "exact-candidate-check-on-real-compiler-receipt-and-frozen-mutations",
+      "target": "scripts/verify-current-consumers.mjs#exact-negative-admission",
+      "rawReceipt": "evidence/negative-unexpected-success.json"
+    },
+    {
+      "id": "defaults-exact73",
+      "group": "defaults",
+      "expected": "accept",
+      "observed": "accept",
+      "status": "PASS",
+      "method": "exact-frozen-mutations-through-candidate-assertions",
+      "target": "tests/integration/full-gate-20260827/candidate-profile-73/public.mjs#exact-name-assertions",
+      "rawReceipt": "DEFAULTS_SUPPLEMENT.json#defaults-exact73",
+      "priorRawReceipt": "evidence/defaults-exact73.json"
+    },
+    {
+      "id": "defaults-old70",
+      "group": "defaults",
+      "expected": "reject",
+      "observed": "reject",
+      "status": "PASS",
+      "method": "exact-frozen-mutations-through-candidate-assertions",
+      "target": "tests/integration/full-gate-20260827/candidate-profile-73/public.mjs#exact-name-assertions",
+      "rawReceipt": "DEFAULTS_SUPPLEMENT.json#defaults-old70",
+      "priorRawReceipt": "evidence/defaults-old70.json"
+    },
+    {
+      "id": "defaults-curl",
+      "group": "defaults",
+      "expected": "reject",
+      "observed": "reject",
+      "status": "PASS",
+      "method": "exact-frozen-mutations-through-candidate-assertions",
+      "target": "tests/integration/full-gate-20260827/candidate-profile-73/public.mjs#exact-name-assertions",
+      "rawReceipt": "DEFAULTS_SUPPLEMENT.json#defaults-curl",
+      "priorRawReceipt": "evidence/defaults-curl.json"
+    },
+    {
+      "id": "defaults-safejs",
+      "group": "defaults",
+      "expected": "reject",
+      "observed": "reject",
+      "status": "PASS",
+      "method": "exact-frozen-mutations-through-candidate-assertions",
+      "target": "tests/integration/full-gate-20260827/candidate-profile-73/public.mjs#exact-name-assertions",
+      "rawReceipt": "DEFAULTS_SUPPLEMENT.json#defaults-safejs",
+      "priorRawReceipt": "evidence/defaults-safejs.json"
+    },
+    {
+      "id": "defaults-expr",
+      "group": "defaults",
+      "expected": "reject",
+      "observed": "reject",
+      "status": "PASS",
+      "method": "exact-frozen-mutations-through-candidate-assertions",
+      "target": "tests/integration/full-gate-20260827/candidate-profile-73/public.mjs#exact-name-assertions",
+      "rawReceipt": "DEFAULTS_SUPPLEMENT.json#defaults-expr",
+      "priorRawReceipt": "evidence/defaults-expr.json"
+    },
+    {
+      "id": "defaults-du",
+      "group": "defaults",
+      "expected": "reject",
+      "observed": "reject",
+      "status": "PASS",
+      "method": "exact-frozen-mutations-through-candidate-assertions",
+      "target": "tests/integration/full-gate-20260827/candidate-profile-73/public.mjs#exact-name-assertions",
+      "rawReceipt": "DEFAULTS_SUPPLEMENT.json#defaults-du",
+      "priorRawReceipt": "evidence/defaults-du.json"
+    },
+    {
+      "id": "counts-exact-two-migrations",
+      "group": "counts",
+      "expected": "accept",
+      "observed": "accept",
+      "status": "PASS",
+      "method": "independent-frozen-input-audit",
+      "target": "frozen0895926b#migrations and exact candidate fixtures",
+      "rawReceipt": "evidence/counts-exact-two-migrations.json"
+    },
+    {
+      "id": "counts-one-migration",
+      "group": "counts",
+      "expected": "reject",
+      "observed": "reject",
+      "status": "PASS",
+      "method": "independent-frozen-input-audit",
+      "target": "frozen0895926b#migrations and exact candidate fixtures",
+      "rawReceipt": "evidence/counts-one-migration.json"
+    },
+    {
+      "id": "counts-historical-rewrite",
+      "group": "counts",
+      "expected": "reject",
+      "observed": "reject",
+      "status": "PASS",
+      "method": "independent-frozen-input-audit",
+      "target": "frozen0895926b#migrations and exact candidate fixtures",
+      "rawReceipt": "evidence/counts-historical-rewrite.json"
+    },
+    {
+      "id": "counts-wrong-value",
+      "group": "counts",
+      "expected": "reject",
+      "observed": "reject",
+      "status": "PASS",
+      "method": "independent-frozen-input-audit",
+      "target": "frozen0895926b#migrations and exact candidate fixtures",
+      "rawReceipt": "evidence/counts-wrong-value.json"
+    },
+    {
+      "id": "cleanup-exact-observation-control",
+      "group": "cleanup",
+      "expected": "accept",
+      "observed": "accept",
+      "status": "PASS",
+      "method": "actual-candidate-api",
+      "target": "tests/integration/full-gate-20260827/candidate-profile-73/prepare.mjs#verifyPrepared",
+      "rawReceipt": "evidence/cleanup-exact-observation-control.json"
+    },
+    {
+      "id": "cleanup-missing-source",
+      "group": "cleanup",
+      "expected": "reject",
+      "observed": "reject",
+      "status": "PASS",
+      "method": "actual-candidate-api",
+      "target": "tests/integration/full-gate-20260827/candidate-profile-73/prepare.mjs#verifyPrepared",
+      "rawReceipt": "evidence/cleanup-missing-source.json"
+    },
+    {
+      "id": "cleanup-stale-source",
+      "group": "cleanup",
+      "expected": "reject",
+      "observed": "reject",
+      "status": "PASS",
+      "method": "actual-candidate-api",
+      "target": "tests/integration/full-gate-20260827/candidate-profile-73/prepare.mjs#verifyPrepared",
+      "rawReceipt": "evidence/cleanup-stale-source.json"
+    },
+    {
+      "id": "cleanup-swapped-path",
+      "group": "cleanup",
+      "expected": "reject",
+      "observed": "reject",
+      "status": "PASS",
+      "method": "actual-candidate-api",
+      "target": "tests/integration/full-gate-20260827/candidate-profile-73/prepare.mjs#verifyPrepared",
+      "rawReceipt": "evidence/cleanup-swapped-path.json"
+    },
+    {
+      "id": "cleanup-wrong-revision",
+      "group": "cleanup",
+      "expected": "reject",
+      "observed": "reject",
+      "status": "PASS",
+      "method": "actual-candidate-api",
+      "target": "tests/integration/full-gate-20260827/candidate-profile-73/prepare.mjs#verifyPrepared",
+      "rawReceipt": "evidence/cleanup-wrong-revision.json"
+    },
+    {
+      "id": "cleanup-wrong-tree",
+      "group": "cleanup",
+      "expected": "reject",
+      "observed": "reject",
+      "status": "PASS",
+      "method": "actual-candidate-api",
+      "target": "tests/integration/full-gate-20260827/candidate-profile-73/prepare.mjs#verifyPrepared",
+      "rawReceipt": "evidence/cleanup-wrong-tree.json"
+    },
+    {
+      "id": "runtime-success",
+      "group": "runtime",
+      "expected": "accept",
+      "observed": "accept",
+      "status": "PASS",
+      "method": "actual-candidate-api",
+      "target": "tests/integration/full-gate-20260827/supervise.mjs + account.mjs + qualified-current-release/runtime-coverage.mjs",
+      "rawReceipt": "evidence/runtime-success.json"
+    },
+    {
+      "id": "runtime-nonzero",
+      "group": "runtime",
+      "expected": "reject",
+      "observed": "reject",
+      "status": "PASS",
+      "method": "actual-candidate-api",
+      "target": "tests/integration/full-gate-20260827/supervise.mjs + account.mjs + qualified-current-release/runtime-coverage.mjs",
+      "rawReceipt": "evidence/runtime-nonzero.json"
+    },
+    {
+      "id": "runtime-abnormal-exit",
+      "group": "runtime",
+      "expected": "reject",
+      "observed": "reject",
+      "status": "PASS",
+      "method": "actual-candidate-api",
+      "target": "tests/integration/full-gate-20260827/supervise.mjs + account.mjs + qualified-current-release/runtime-coverage.mjs",
+      "rawReceipt": "evidence/runtime-abnormal-exit.json"
+    },
+    {
+      "id": "runtime-timeout",
+      "group": "runtime",
+      "expected": "reject",
+      "observed": "reject",
+      "status": "PASS",
+      "method": "actual-candidate-api",
+      "target": "tests/integration/full-gate-20260827/supervise.mjs + account.mjs + qualified-current-release/runtime-coverage.mjs",
+      "rawReceipt": "evidence/runtime-timeout.json"
+    },
+    {
+      "id": "runtime-signal",
+      "group": "runtime",
+      "expected": "reject",
+      "observed": "reject",
+      "status": "PASS",
+      "method": "actual-candidate-api",
+      "target": "tests/integration/full-gate-20260827/supervise.mjs + account.mjs + qualified-current-release/runtime-coverage.mjs",
+      "rawReceipt": "evidence/runtime-signal.json"
+    },
+    {
+      "id": "runtime-missing-tap",
+      "group": "runtime",
+      "expected": "reject",
+      "observed": "reject",
+      "status": "PASS",
+      "method": "actual-candidate-api",
+      "target": "tests/integration/full-gate-20260827/supervise.mjs + account.mjs + qualified-current-release/runtime-coverage.mjs",
+      "rawReceipt": "evidence/runtime-missing-tap.json"
+    },
+    {
+      "id": "runtime-truncated-tap",
+      "group": "runtime",
+      "expected": "reject",
+      "observed": "reject",
+      "status": "PASS",
+      "method": "actual-candidate-api",
+      "target": "tests/integration/full-gate-20260827/supervise.mjs + account.mjs + qualified-current-release/runtime-coverage.mjs",
+      "rawReceipt": "evidence/runtime-truncated-tap.json"
+    },
+    {
+      "id": "runtime-failed",
+      "group": "runtime",
+      "expected": "reject",
+      "observed": "reject",
+      "status": "PASS",
+      "method": "actual-candidate-api",
+      "target": "tests/integration/full-gate-20260827/supervise.mjs + account.mjs + qualified-current-release/runtime-coverage.mjs",
+      "rawReceipt": "evidence/runtime-failed.json"
+    },
+    {
+      "id": "runtime-cancelled",
+      "group": "runtime",
+      "expected": "reject",
+      "observed": "reject",
+      "status": "PASS",
+      "method": "actual-candidate-api",
+      "target": "tests/integration/full-gate-20260827/supervise.mjs + account.mjs + qualified-current-release/runtime-coverage.mjs",
+      "rawReceipt": "evidence/runtime-cancelled.json"
+    },
+    {
+      "id": "runtime-skipped",
+      "group": "runtime",
+      "expected": "reject",
+      "observed": "reject",
+      "status": "PASS",
+      "method": "actual-candidate-api",
+      "target": "tests/integration/full-gate-20260827/supervise.mjs + account.mjs + qualified-current-release/runtime-coverage.mjs",
+      "rawReceipt": "evidence/runtime-skipped.json"
+    },
+    {
+      "id": "runtime-todo",
+      "group": "runtime",
+      "expected": "reject",
+      "observed": "reject",
+      "status": "PASS",
+      "method": "actual-candidate-api",
+      "target": "tests/integration/full-gate-20260827/supervise.mjs + account.mjs + qualified-current-release/runtime-coverage.mjs",
+      "rawReceipt": "evidence/runtime-todo.json"
+    },
+    {
+      "id": "runtime-invalid-count",
+      "group": "runtime",
+      "expected": "reject",
+      "observed": "reject",
+      "status": "PASS",
+      "method": "actual-candidate-api",
+      "target": "tests/integration/full-gate-20260827/supervise.mjs + account.mjs + qualified-current-release/runtime-coverage.mjs",
+      "rawReceipt": "evidence/runtime-invalid-count.json"
+    },
+    {
+      "id": "runtime-wrong-count",
+      "group": "runtime",
+      "expected": "reject",
+      "observed": "reject",
+      "status": "PASS",
+      "method": "actual-candidate-api",
+      "target": "tests/integration/full-gate-20260827/supervise.mjs + account.mjs + qualified-current-release/runtime-coverage.mjs",
+      "rawReceipt": "evidence/runtime-wrong-count.json"
+    },
+    {
+      "id": "permission-positive-and-attributed-denial",
+      "group": "permission",
+      "expected": "accept",
+      "observed": "accept",
+      "status": "PASS",
+      "method": "actual-candidate-api",
+      "target": "scripts/verify-current-consumers.mjs#probeConsumerPermission / scripts/typecheck-consumers.mjs#assertBuiltConsumerResolution",
+      "rawReceipt": "evidence/permission-positive-and-attributed-denial.json"
+    },
+    {
+      "id": "permission-missing-positive",
+      "group": "permission",
+      "expected": "reject",
+      "observed": "reject",
+      "status": "PASS",
+      "method": "actual-candidate-api",
+      "target": "scripts/verify-current-consumers.mjs#probeConsumerPermission / scripts/typecheck-consumers.mjs#assertBuiltConsumerResolution",
+      "rawReceipt": "evidence/permission-missing-positive.json"
+    },
+    {
+      "id": "permission-unknown-flag",
+      "group": "permission",
+      "expected": "reject",
+      "observed": "reject",
+      "status": "PASS",
+      "method": "actual-candidate-api",
+      "target": "scripts/verify-current-consumers.mjs#probeConsumerPermission / scripts/typecheck-consumers.mjs#assertBuiltConsumerResolution",
+      "rawReceipt": "evidence/permission-unknown-flag.json"
+    },
+    {
+      "id": "permission-wrong-resource",
+      "group": "permission",
+      "expected": "reject",
+      "observed": "reject",
+      "status": "PASS",
+      "method": "actual-candidate-api",
+      "target": "scripts/verify-current-consumers.mjs#probeConsumerPermission / scripts/typecheck-consumers.mjs#assertBuiltConsumerResolution",
+      "rawReceipt": "evidence/permission-wrong-resource.json"
+    },
+    {
+      "id": "permission-source-fallback",
+      "group": "permission",
+      "expected": "reject",
+      "observed": "reject",
+      "status": "PASS",
+      "method": "actual-candidate-api",
+      "target": "scripts/verify-current-consumers.mjs#probeConsumerPermission / scripts/typecheck-consumers.mjs#assertBuiltConsumerResolution",
+      "rawReceipt": "evidence/permission-source-fallback.json"
+    },
+    {
+      "id": "permission-live-dist-fallback",
+      "group": "permission",
+      "expected": "reject",
+      "observed": "reject",
+      "status": "PASS",
+      "method": "actual-candidate-api",
+      "target": "scripts/verify-current-consumers.mjs#probeConsumerPermission / scripts/typecheck-consumers.mjs#assertBuiltConsumerResolution",
+      "rawReceipt": "evidence/permission-live-dist-fallback.json"
+    },
+    {
+      "id": "permission-ambient-native",
+      "group": "permission",
+      "expected": "reject",
+      "observed": "reject",
+      "status": "PASS",
+      "method": "actual-candidate-api",
+      "target": "scripts/verify-current-consumers.mjs#probeConsumerPermission / scripts/typecheck-consumers.mjs#assertBuiltConsumerResolution",
+      "rawReceipt": "evidence/permission-ambient-native.json"
+    },
+    {
+      "id": "permission-tap-flag-after-input",
+      "group": "permission",
+      "expected": "reject",
+      "observed": "reject",
+      "status": "PASS",
+      "method": "actual-child-and-candidate-account",
+      "target": "tests/integration/full-gate-20260827/account.mjs#account",
+      "rawReceipt": "evidence/permission-tap-flag-after-input-retry.json"
+    },
+    {
+      "id": "binding-complete-synthetic",
+      "group": "binding",
+      "expected": "accept",
+      "status": "NOTEXECUTED",
+      "method": "not-substituted",
+      "target": "candidate-template.json#candidateParameters",
+      "rawReceipt": "evidence/binding-complete-synthetic.json",
+      "limitation": "No single full successor gate/source/package/native/classification/244 binding declared. Infrastructure522 and productc355 are deliberately distinct. Original synthetic selfcheck proves structure only; unified candidate binding cannot be invented."
+    },
+    {
+      "id": "binding-pending-template",
+      "group": "binding",
+      "expected": "reject",
+      "status": "NOTEXECUTED",
+      "method": "not-substituted",
+      "target": "candidate-template.json#candidateParameters",
+      "rawReceipt": "evidence/binding-pending-template.json",
+      "limitation": "No single full successor gate/source/package/native/classification/244 binding declared. Infrastructure522 and productc355 are deliberately distinct. Original synthetic selfcheck proves structure only; unified candidate binding cannot be invented."
+    },
+    {
+      "id": "binding-mutable-head",
+      "group": "binding",
+      "expected": "reject",
+      "status": "NOTEXECUTED",
+      "method": "not-substituted",
+      "target": "candidate-template.json#candidateParameters",
+      "rawReceipt": "evidence/binding-mutable-head.json",
+      "limitation": "No single full successor gate/source/package/native/classification/244 binding declared. Infrastructure522 and productc355 are deliberately distinct. Original synthetic selfcheck proves structure only; unified candidate binding cannot be invented."
+    },
+    {
+      "id": "binding-missing-asset",
+      "group": "binding",
+      "expected": "reject",
+      "status": "NOTEXECUTED",
+      "method": "not-substituted",
+      "target": "candidate-template.json#candidateParameters",
+      "rawReceipt": "evidence/binding-missing-asset.json",
+      "limitation": "No single full successor gate/source/package/native/classification/244 binding declared. Infrastructure522 and productc355 are deliberately distinct. Original synthetic selfcheck proves structure only; unified candidate binding cannot be invented."
+    },
+    {
+      "id": "binding-missing-classification",
+      "group": "binding",
+      "expected": "reject",
+      "status": "NOTEXECUTED",
+      "method": "not-substituted",
+      "target": "candidate-template.json#candidateParameters",
+      "rawReceipt": "evidence/binding-missing-classification.json",
+      "limitation": "No single full successor gate/source/package/native/classification/244 binding declared. Infrastructure522 and productc355 are deliberately distinct. Original synthetic selfcheck proves structure only; unified candidate binding cannot be invented."
+    },
+    {
+      "id": "binding-missing-cleanup-manifest",
+      "group": "binding",
+      "expected": "reject",
+      "status": "NOTEXECUTED",
+      "method": "not-substituted",
+      "target": "candidate-template.json#candidateParameters",
+      "rawReceipt": "evidence/binding-missing-cleanup-manifest.json",
+      "limitation": "No single full successor gate/source/package/native/classification/244 binding declared. Infrastructure522 and productc355 are deliberately distinct. Original synthetic selfcheck proves structure only; unified candidate binding cannot be invented."
+    },
+    {
+      "id": "binding-skipped-case",
+      "group": "binding",
+      "expected": "reject",
+      "status": "NOTEXECUTED",
+      "method": "not-substituted",
+      "target": "candidate-template.json#candidateParameters",
+      "rawReceipt": "evidence/binding-skipped-case.json",
+      "limitation": "No single full successor gate/source/package/native/classification/244 binding declared. Infrastructure522 and productc355 are deliberately distinct. Original synthetic selfcheck proves structure only; unified candidate binding cannot be invented."
+    }
+  ],
+  "counts": {
+    "PASS": 71,
+    "FAIL": 0,
+    "NOTEXECUTED": 7
+  },
+  "qualification": "Four PASS count cases are independent frozen-input audits, not candidate API controls. Seven binding cases remain unexecuted against a unified successor because no such successor was declared."
+}

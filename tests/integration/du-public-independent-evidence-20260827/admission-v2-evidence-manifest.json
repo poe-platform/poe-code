@@ -1,0 +1,38 @@
+{
+  "role": "stopped admission-only evidence; no retry",
+  "recipeCommit": "5687fe0afe36749a9ec6527357acbb2eec518e4f",
+  "recipeManifestSha256": "420da89268b544b466dda8aa3cc214dab668338233e557b3efe45dee84b6ccd7",
+  "runManifestSha256": "7571013470b55eae25634932ff024bed3eebe33a5c109b4af8aed820a8ca5d0b",
+  "files": [
+    {
+      "path": "admission-v2-outcome.md",
+      "mode": 420,
+      "bytes": 3055,
+      "sha256": "b754db4e1a4ff2f0e40c49b7afbed1ab62715b8b0304a8f39b74aa1bf759c09c"
+    },
+    {
+      "path": "post-run-original-bindings.json",
+      "mode": 420,
+      "bytes": 7804,
+      "sha256": "93bfab141dff4eb911b81b570f513a6fe42e5e3ed1e092c18870b85bcfd6e9fe"
+    },
+    {
+      "path": "run-v2/EVIDENCE-MANIFEST.json",
+      "mode": 420,
+      "bytes": 628,
+      "sha256": "7571013470b55eae25634932ff024bed3eebe33a5c109b4af8aed820a8ca5d0b"
+    },
+    {
+      "path": "run-v2/RESULT.json",
+      "mode": 420,
+      "bytes": 4317,
+      "sha256": "6c7eb1fa420cab84fd23aa48b51d1231c01dfccc45a030ed72269db0de041b3b"
+    },
+    {
+      "path": "run-v2/events.jsonl",
+      "mode": 420,
+      "bytes": 7374,
+      "sha256": "f359f77a479908d09ec840fb0ef1176d5522e1af450fef0dff92ff764a76c333"
+    }
+  ]
+}

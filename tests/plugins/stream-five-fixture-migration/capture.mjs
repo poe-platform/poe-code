@@ -75,9 +75,9 @@ const runtime = command(process.execPath, ["--import", "tsx", "--input-type=modu
 assert.equal(runtime.status, 0, runtime.stderr);
 const names = JSON.parse(runtime.stdout);
 const baseline60 = JSON.parse(readFileSync(`${directory}/baseline60.json`, "utf8"));
-assert.deepEqual(names.factory, [...baseline60, "seq", "nl", "rev", "unexpand", "split"]);
+assert.deepEqual(names.factory, [...baseline60, "seq", "nl", "rev", "unexpand", "split", "date", "sleep", "printenv"]);
 assert.deepEqual(names.registry, names.factory);
-assert.equal(new Set(names.factory).size, 65);
+assert.equal(new Set(names.factory).size, 68);
 const references = Object.fromEntries(["seq", "nl", "unexpand", "split", "rev"].map(name => {
   const file = name === "rev" ? "/usr/bin/rev" : `tests/commands/metadata-stress/.oracle/coreutils-9.7/src/${name}`;
   return [name, existsSync(file) ? { file, sha256: hash(readFileSync(file)), identity: name === "rev" ? "Apple/BSD rev; no version flag" : command(file, ["--version"]).stdout.split("\n")[0] } : { file, unavailable: true }];

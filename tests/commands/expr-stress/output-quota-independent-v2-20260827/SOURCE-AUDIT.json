@@ -1,0 +1,90 @@
+{
+  "candidate": "c25e682a7baa2f2abf70cebf8c01d11d0ad5daee",
+  "baseline": "7623599c995c42f62ec1cd9ad78ced2913970f66",
+  "checkedAt": "2026-08-27T20:52:38.404Z",
+  "sourceCommitChanges": [
+    "src/commands/expr/index.ts"
+  ],
+  "criticalFiles": [
+    {
+      "path": "src/commands/expr/index.ts",
+      "baselineSha256": "4fd60b3b2fec4126e42e492922004e90e870a08aa319d2f088c085255355841d",
+      "candidateSha256": "b1ad46e35f4077659aee2d148ab30a1ac6ba4032a877669ae2c5bfb27447c7fa"
+    },
+    {
+      "path": "src/commands/expr/syntax.ts",
+      "baselineSha256": "4e8d05cc672be9f0786ebd74b09f9524028fd1d4f1491319cccd8a74d1ea3df0",
+      "candidateSha256": "4e8d05cc672be9f0786ebd74b09f9524028fd1d4f1491319cccd8a74d1ea3df0"
+    },
+    {
+      "path": "src/commands/expr/evaluate.ts",
+      "baselineSha256": "04ca8f588ccaea97b3801fe30accfa6020636c5f72f156b0d158fa6474f525c9",
+      "candidateSha256": "04ca8f588ccaea97b3801fe30accfa6020636c5f72f156b0d158fa6474f525c9"
+    },
+    {
+      "path": "src/commands/expr/internal.ts",
+      "baselineSha256": "07f203d8fc4e991e4d23cab87d67a23911f7960a2ed6d649fd843b0d7060e840",
+      "candidateSha256": "07f203d8fc4e991e4d23cab87d67a23911f7960a2ed6d649fd843b0d7060e840"
+    },
+    {
+      "path": "src/commands/expr/bre-worker.ts",
+      "baselineSha256": "f5c67e9c76b584337ae506b59449ecdcd945207b2269fdb4f79c5d1f7e81aff0",
+      "candidateSha256": "f5c67e9c76b584337ae506b59449ecdcd945207b2269fdb4f79c5d1f7e81aff0"
+    },
+    {
+      "path": "src/commands/regex-execution/client.ts",
+      "baselineSha256": "5d086314898c38390753a07ef1c37001890ac2b47f3d0e05e221048b9db42ebc",
+      "candidateSha256": "5d086314898c38390753a07ef1c37001890ac2b47f3d0e05e221048b9db42ebc"
+    },
+    {
+      "path": "src/commands/regex-execution/worker.ts",
+      "baselineSha256": "a442bb67cda6aff313cf3909cbfb0d3d8c12ebc420437d5fd9d7bd51fc6c9da6",
+      "candidateSha256": "a442bb67cda6aff313cf3909cbfb0d3d8c12ebc420437d5fd9d7bd51fc6c9da6"
+    },
+    {
+      "path": "src/contracts/io.ts",
+      "baselineSha256": "ff792b401508a2ef768aa4f9dd9794e653e1e14f2163e57d137e9cb2b7427809",
+      "candidateSha256": "ff792b401508a2ef768aa4f9dd9794e653e1e14f2163e57d137e9cb2b7427809"
+    },
+    {
+      "path": "src/contracts/command.ts",
+      "baselineSha256": "9c2f8ecf50def7250b01152a31a45c449109c3ae4d30878252cffe985c6e9df8",
+      "candidateSha256": "9c2f8ecf50def7250b01152a31a45c449109c3ae4d30878252cffe985c6e9df8"
+    },
+    {
+      "path": "src/index.ts",
+      "baselineSha256": "496b64711dde0f614723e7006a6b1a7e6bce57f45ec255c6134c1292584316e2",
+      "candidateSha256": "496b64711dde0f614723e7006a6b1a7e6bce57f45ec255c6134c1292584316e2"
+    },
+    {
+      "path": "package.json",
+      "baselineSha256": "691426f4934c471d2a76d49675f3fc19f3ddc47c8aa63cc38671d899a09c4535",
+      "candidateSha256": "691426f4934c471d2a76d49675f3fc19f3ddc47c8aa63cc38671d899a09c4535"
+    },
+    {
+      "path": "package-lock.json",
+      "baselineSha256": "9c04bb7d2c7d1894479f0c37ce367987c2130256e5bfbf426cfa1bd2729d740b",
+      "candidateSha256": "9c04bb7d2c7d1894479f0c37ce367987c2130256e5bfbf426cfa1bd2729d740b"
+    }
+  ],
+  "commitPatch": "commit c25e682a7baa2f2abf70cebf8c01d11d0ad5daee\nAuthor:     Kamil Jopek <kjopek@quora.com>\nAuthorDate: Thu Aug 27 15:50:27 2026 -0500\nCommit:     Kamil Jopek <kjopek@quora.com>\nCommitDate: Thu Aug 27 15:50:27 2026 -0500\n\n    fix(expr): bound diagnostics and preserve sink rejection identity\n\ndiff --git a/src/commands/expr/index.ts b/src/commands/expr/index.ts\nindex 897b8402..40238b0d 100644\n--- a/src/commands/expr/index.ts\n+++ b/src/commands/expr/index.ts\n@@ -16,10 +16,10 @@ export function createExprCommand(options: ExprCommandsOptions = {}): CommandDef\n     return withRegexSession(context, executor, async session => {\n       context.signal.throwIfAborted();\n       const budget = new Budget(context, limits);\n+      let output: Uint8Array;\n+      let exitCode = 0;\n       try {\n         budget.arguments();\n-        let output: Uint8Array;\n-        let exitCode = 0;\n         if (context.args.length === 1 && [\"--help\", \"--version\"].includes(context.args[0]!)) {\n           const text = context.args[0] === \"--help\" ? help : \"expr (virtual-bash)\\n\";\n           budget.check(Buffer.byteLength(text), limits.maxOutputBytes, \"output bytes\");\n@@ -54,14 +54,21 @@ export function createExprCommand(options: ExprCommandsOptions = {}): CommandDef\n           output[result.length] = 10;\n         }\n         await budget.yield();\n-        await writeBytes(context.stdout, output, context.signal);\n-        return { exitCode };\n       } catch (error) {\n         context.signal.throwIfAborted();\n         const message = error instanceof ExprError || error instanceof ExprMatchError || error instanceof RegexExecutionError ? error.message : \"execution or output failure\";\n+        try {\n+          budget.check(message.length + 7, limits.maxOutputBytes, \"output bytes\");\n+          budget.check(Buffer.byteLength(message) + 7, limits.maxOutputBytes, \"output bytes\");\n+        } catch {\n+          await writeBytes(context.stderr, new TextEncoder().encode(\"expr: output bytes limit exceeded\\n\"), context.signal);\n+          return { exitCode: 3 };\n+        }\n         await writeBytes(context.stderr, new TextEncoder().encode(`expr: ${message}\\n`), context.signal);\n         return { exitCode: error instanceof ExprError ? error.exitCode : error instanceof ExprMatchError && error.category !== \"limit\" ? 2 : 3 };\n       }\n+      await writeBytes(context.stdout, output, context.signal);\n+      return { exitCode };\n     });\n   } };\n }\n",
+  "selectedSourceChangesFromHistoricalBaseline": [
+    "src/commands/expr/index.ts",
+    "src/commands/html-to-markdown/README.md",
+    "src/commands/html-to-markdown/render.ts"
+  ],
+  "runtimeDependencies": {},
+  "publicExportsUnchanged": true,
+  "globalContractsUnchanged": true,
+  "currentLiveExprStatusNotUsedAsInput": "",
+  "receiptSha256": "6c9428a89f690778242f3a5cfc4f94643ee6bb41ffe2344ebc2f6fd1733b51eb",
+  "reviewedMechanism": [
+    "Message code-unit length plus 7 is checked before UTF-8 byte count plus 7, interpolation and diagnostic encoding.",
+    "Only Budget.check failures enter the emergency writer; writeBytes is outside that inner try, so its rejection is not retried.",
+    "Stdout write is outside the diagnostic catch; even quota-shaped and falsy sink rejections propagate.",
+    "Caller abort is checked before diagnostic work, and writeBytes receives the supplied signal.",
+    "withRegexSession and its cleanup/caller precedence contract are unchanged.",
+    "Expr index adds no regular expression execution, package dependency or public export; matching stays in existing worker-backed session.matchExpr."
+  ],
+  "limit": "Static inspection of index-only patch and critical files plus runtime import/worker instrumentation. Not a general sandbox proof, deployed-service/full-suite acceptance, or validation of unrelated HTML changes."
+}

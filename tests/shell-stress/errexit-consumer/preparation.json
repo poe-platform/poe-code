@@ -1,0 +1,257 @@
+{
+  "at": "2026-08-27T05:25:15.596Z",
+  "head": "fb9c922884cd9d20f9848b980c1f78cea3a5c39b",
+  "sourceRuntimeCommit": "f1bb98b4ec8fd9cc198959e85f96e38880e72243",
+  "mode": "PREPARATION ONLY: no product imports/build/kernel/compiler run; source author cannot inspect fixtures before first READY.",
+  "nativeCount": 10,
+  "hostCount": 2,
+  "nativeCaptures": 20,
+  "profileControls": 2,
+  "versionCaptures": 2,
+  "wholeProfileDifferences": [
+    "conditional-source"
+  ],
+  "fixedInputs": {
+    "tests/shell-stress/errexit-consumer/build-ready.mjs": "f93d22c7a1c2a59111a0469f79ce485edf339d5b4b3d2e0364ac0c208c308629",
+    "tests/shell-stress/errexit-consumer/cases.mjs": "5fd7a335466785cc45a263f9dd69daae2c6c3d732077405df08083102d25556f",
+    "tests/shell-stress/errexit-consumer/consumer.mjs": "d2157b50a33f1ecd6e9bfc483ab1aa2fd30ad993b3ad9125507ce914881c6118",
+    "tests/shell-stress/errexit-consumer/native-frozen.json": "8afcc998b5a51901c4dd7e3213765a90dac5e9d5b34b9aaaf65596f9a1bd03b7",
+    "tests/shell-stress/errexit-consumer/native.mjs": "38be343597439f39b839f16dace32fa4d8fd8897814fabd58eab0b8747e2093c",
+    "tests/shell-stress/errexit-consumer/support.mjs": "97e46a70069d2734531a9d361a9b0882181b4a1deed5a949e45c4d34c0ea96e9",
+    "tests/shell-stress/current-shell/support.mjs": "d7b278db709f869a03e5cce56c501011a1162465b03ecfc1663465b0163c6f8a"
+  },
+  "packageHash": "1f9579a9be0c1e1f23f03f38babad319fc1f8af941c7755aa7ca8759584cc2f1",
+  "manifest": {
+    "name": "virtual-bash",
+    "version": "0.0.0",
+    "private": true,
+    "description": "Extensible virtual shell with pluggable filesystems and streaming commands",
+    "type": "module",
+    "engines": {
+      "node": ">=22"
+    },
+    "main": "./dist/index.js",
+    "types": "./dist/index.d.ts",
+    "exports": {
+      ".": {
+        "types": "./dist/index.d.ts",
+        "import": "./dist/index.js"
+      },
+      "./contracts": {
+        "types": "./dist/contracts/index.d.ts",
+        "import": "./dist/contracts/index.js"
+      },
+      "./contracts/*": {
+        "types": "./dist/contracts/*.d.ts",
+        "import": "./dist/contracts/*.js"
+      },
+      "./commands/network": {
+        "types": "./dist/commands/network/index.d.ts",
+        "import": "./dist/commands/network/index.js"
+      },
+      "./commands/metadata": {
+        "types": "./dist/commands/metadata/index.d.ts",
+        "import": "./dist/commands/metadata/index.js"
+      },
+      "./commands/archive": {
+        "types": "./dist/commands/archive/index.d.ts",
+        "import": "./dist/commands/archive/index.js"
+      },
+      "./commands/table-text": {
+        "types": "./dist/commands/table-text/index.d.ts",
+        "import": "./dist/commands/table-text/index.js"
+      },
+      "./commands/stream-inspection": {
+        "types": "./dist/commands/stream-inspection/index.d.ts",
+        "import": "./dist/commands/stream-inspection/index.js"
+      },
+      "./fs/s3": {
+        "types": "./dist/fs/s3/index.d.ts",
+        "import": "./dist/fs/s3/index.js"
+      },
+      "./fs/s3/http": {
+        "types": "./dist/fs/s3/http/index.d.ts",
+        "import": "./dist/fs/s3/http/index.js"
+      },
+      "./fs/webdav": {
+        "types": "./dist/fs/webdav/index.d.ts",
+        "import": "./dist/fs/webdav/index.js"
+      },
+      "./fs/readonly": {
+        "types": "./dist/fs/readonly/index.d.ts",
+        "import": "./dist/fs/readonly/index.js"
+      },
+      "./fs/mount": {
+        "types": "./dist/fs/mount/index.d.ts",
+        "import": "./dist/fs/mount/index.js"
+      },
+      "./fs/overlay": {
+        "types": "./dist/fs/overlay/index.d.ts",
+        "import": "./dist/fs/overlay/index.js"
+      }
+    },
+    "files": [
+      "dist"
+    ],
+    "scripts": {
+      "benchmark": "node --import tsx benchmarks/run.ts",
+      "build": "tsc -p tsconfig.build.json",
+      "typecheck": "tsc --noEmit",
+      "test": "node --import tsx --test \"tests/**/*.test.ts\"",
+      "test:contracts": "node --import tsx --test \"tests/contracts/**/*.test.ts\""
+    },
+    "devDependencies": {
+      "@types/node": "^22.20.1",
+      "tsx": "^4.23.12",
+      "typescript": "5.9"
+    }
+  },
+  "inspectedHashes": {
+    "src/index.ts": "2257a1ce3acc146ca7a3c1867e8a23153a5a968c96899a533b45cea69a446237",
+    "src/shell/index.ts": "235ad982a7bfe23823b4e07d714ed73e924a5d7759a8664f8533b03517ffa383",
+    "src/shell/shell.ts": "4ac91162195c150848793c92b8b1e90f15a36e67b5ae8a2652fe7ed9dcf4fb5e",
+    "src/shell/types.ts": "fc4133f1fb41283b0586aa7597c766d393d4f91067b613f4777e5adbef230a6d",
+    "src/plugins/index.ts": "df8834110688f62ce16f06d273f783b33e7b0fdf4944e3083da4d360b4fa5045",
+    "src/contracts/index.ts": "fb9a434deb34dbad631166a689b02641c0e1acdbac691f6956a7c76e20729f50",
+    "src/contracts/plugin.ts": "b45e85e0d89f88308caf0b68f0b14f78341c4bba246d02e81103646f5a4c54ae",
+    "src/contracts/command.ts": "1ec2f2907eb123ea366623bda293249a62bad6886a63bebb957930df0d414ffa",
+    "package.json": "1f9579a9be0c1e1f23f03f38babad319fc1f8af941c7755aa7ca8759584cc2f1",
+    "tsconfig.json": "21c3c30b8995b180e079fa8516150f889950d648528de116a32f254f892301cd",
+    "tsconfig.build.json": "b57d3e5aab1f1f7ab7a70f275183ea6de255e65a2c40a0047c08d97769a1a16e"
+  },
+  "officialManual": {
+    "path": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/bash-5.3/doc/bashref.texi",
+    "hash": "f3d37d57a1061e24d266051de9bd47ffa43dc86584afea11576c535ad2be32d5",
+    "section": "The Set Builtin, -e, lines5929–5963"
+  },
+  "toolchain": {
+    "node": "v22.22.2",
+    "nodeExecutable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "typescriptVersion": "5.9.3",
+    "tscHash": "8d5fa5bd883fec0979fc2004f1fe1d99aef40570155d550eadc0b03b55513bf0",
+    "implementationHash": "e8f349eabd48486bdb2bf9dc1a00c89d58297270c54b745838879e2859194419"
+  },
+  "syntax": [
+    {
+      "path": "tests/shell-stress/errexit-consumer/build-ready.mjs",
+      "status": 0
+    },
+    {
+      "path": "tests/shell-stress/errexit-consumer/cases.mjs",
+      "status": 0
+    },
+    {
+      "path": "tests/shell-stress/errexit-consumer/consumer.mjs",
+      "status": 0
+    },
+    {
+      "path": "tests/shell-stress/errexit-consumer/native.mjs",
+      "status": 0
+    },
+    {
+      "path": "tests/shell-stress/errexit-consumer/support.mjs",
+      "status": 0
+    }
+  ],
+  "children": [
+    {
+      "pid": 62086,
+      "groupAlive": false
+    },
+    {
+      "pid": 62087,
+      "groupAlive": false
+    },
+    {
+      "pid": 62088,
+      "groupAlive": false
+    },
+    {
+      "pid": 62089,
+      "groupAlive": false
+    },
+    {
+      "pid": 62090,
+      "groupAlive": false
+    },
+    {
+      "pid": 62091,
+      "groupAlive": false
+    },
+    {
+      "pid": 62092,
+      "groupAlive": false
+    },
+    {
+      "pid": 62093,
+      "groupAlive": false
+    },
+    {
+      "pid": 62096,
+      "groupAlive": false
+    },
+    {
+      "pid": 62099,
+      "groupAlive": false
+    },
+    {
+      "pid": 62101,
+      "groupAlive": false
+    },
+    {
+      "pid": 62103,
+      "groupAlive": false
+    },
+    {
+      "pid": 62104,
+      "groupAlive": false
+    },
+    {
+      "pid": 62105,
+      "groupAlive": false
+    },
+    {
+      "pid": 62106,
+      "groupAlive": false
+    },
+    {
+      "pid": 62107,
+      "groupAlive": false
+    },
+    {
+      "pid": 62108,
+      "groupAlive": false
+    },
+    {
+      "pid": 62109,
+      "groupAlive": false
+    },
+    {
+      "pid": 62110,
+      "groupAlive": false
+    },
+    {
+      "pid": 62111,
+      "groupAlive": false
+    },
+    {
+      "pid": 62114,
+      "groupAlive": false
+    },
+    {
+      "pid": 62117,
+      "groupAlive": false
+    },
+    {
+      "pid": 62119,
+      "groupAlive": false
+    },
+    {
+      "pid": 62122,
+      "groupAlive": false
+    }
+  ],
+  "buildStatus": "UNRUN until ROOT resumes final committed READY and hidden review is clear",
+  "shebangStatus": "Deferred without changing frozen cases or original env-single row",
+  "foreignStatus": "M README.md\n M src/commands/stream-inspection/README.md\n M tests/fs/webdav/real-service/raw.mjs\n M tests/fs/webdav/real-service/run.mjs\n M tests/fs/webdav/real-service/server.py\n?? benchmarks/reports/comparison-fairness-20260827/\n?? benchmarks/reports/current-integration/comparison-replay-20260827/\n?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/\n?? tests/commands/search-stress/.native-1m4O1e/\n?? tests/fs/webdav/real-service/apache.mjs\n?? tests/fs/webdav/real-service/consumer.mts\n?? tests/fs/webdav/real-service/evidence/apache-matrix-first/\n?? tests/fs/webdav/real-service/evidence/apache-public-first/\n?? tests/fs/webdav/real-service/evidence/apache-public-second/\n?? tests/fs/webdav/real-service/evidence/apache-public-third/\n?? tests/fs/webdav/real-service/evidence/apache-raw-initial/\n?? tests/fs/webdav/real-service/evidence/wsgidav-matrix-first/\n?? tests/fs/webdav/real-service/example.mts\n?? tests/fs/webdav/real-service/https.mts\n?? tests/integration/full-gate-20260827/\n?? tests/integration/stream-inspection-public-author/\n?? tests/shell-stress/errexit-consumer/\n?? tests/shell-stress/errexit-holdout/\n?? tests/stress/regex-execution/design/revision-review/REPORT.md\n?? tests/stress/regex-execution/design/validation/evidence/"
+}

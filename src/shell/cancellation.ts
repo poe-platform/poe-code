@@ -33,6 +33,7 @@ export interface CancellationCloseResult {
 
 const boundaryState = Symbol("private cancellation boundary state");
 const reportState = Symbol("private cancellation report state");
+const preparedState = Symbol("private prepared cancellation state");
 
 export interface CancellationBoundary {
   readonly owned: boolean;
@@ -44,6 +45,11 @@ export interface CancellationBoundary {
 export interface CancellationReport {
   readonly origin: CancellationOrigin;
   readonly [reportState]: ReportState;
+}
+
+export interface PreparedChildCancellation {
+  readonly owned: boolean;
+  readonly [preparedState]: PreparedState;
 }
 
 export type CapturedCancellationOutcome<Value> =
@@ -114,6 +120,21 @@ interface ReportState {
   readonly origin: CancellationOrigin;
 }
 
+interface PreparedControl {
+  readonly role: "budget-control" | "pipeline-control";
+  readonly signal: AbortSignal;
+}
+
+interface PreparedState {
+  readonly parent: LinkState;
+  readonly localSignal: AbortSignal | undefined;
+  readonly controls: readonly PreparedControl[];
+  readonly admission: CancellationAdmissionSnapshot | undefined;
+  readonly owned: boolean;
+  readonly replayError: Error;
+  activated: boolean;
+}
+
 const emptyCloseResult: CancellationCloseResult = Object.freeze({ failures: Object.freeze([]) });
 const nativeAbortedGetter = Object.getOwnPropertyDescriptor(AbortSignal.prototype, "aborted")?.get;
 
@@ -134,6 +155,14 @@ class Boundary implements CancellationBoundary {
     if (state.kind === "borrow") return emptyCloseResult;
     return closeLink(state);
   }
+}
+
+class Prepared implements PreparedChildCancellation {
+  readonly [preparedState]: PreparedState;
+
+  constructor(state: PreparedState) { this[preparedState] = state; }
+
+  get owned(): boolean { return this[preparedState].owned; }
 }
 
 function nativeSignal(value: unknown): value is AbortSignal {
@@ -408,6 +437,168 @@ function stagedFailure(state: LinkState, reason: unknown): never {
   throw reason;
 }
 
+function prepareControls(
+  parent: LinkState,
+  controls: readonly CancellationControlOriginInput[] | undefined,
+): readonly PreparedControl[] {
+  if (controls === undefined) return Object.freeze([]);
+  if (!Array.isArray(controls)) return stagedFailure(parent, new TypeError("Cancellation controls must be an array"));
+  const prepared: PreparedControl[] = [];
+  for (const input of controls) {
+    let role: unknown;
+    let signal: unknown;
+    try {
+      if (!input || typeof input !== "object") throw new TypeError("Invalid cancellation control origin");
+      role = input.role;
+      signal = input.signal;
+    } catch (error) {
+      return stagedFailure(parent, error);
+    }
+    if (role !== "budget-control" && role !== "pipeline-control" || !nativeSignal(signal)) {
+      return stagedFailure(parent, new TypeError("Invalid cancellation control origin"));
+    }
+    prepared.push(Object.freeze({ role, signal }));
+  }
+  throwAdmissionFailure(parent);
+  return Object.freeze(prepared);
+}
+
+function makePrepared(
+  parent: LinkState,
+  localSignal: AbortSignal | undefined,
+  controls: readonly PreparedControl[],
+  admission: CancellationAdmissionSnapshot | undefined,
+): PreparedChildCancellation {
+  const state: PreparedState = {
+    parent,
+    localSignal,
+    controls,
+    admission,
+    owned: localSignal !== undefined || controls.length > 0,
+    replayError: new Error("Prepared cancellation admission was already activated"),
+    activated: false,
+  };
+  return new Prepared(state);
+}
+
+function localActivationFailure(state: PreparedState): { readonly failed: boolean; readonly reason: unknown } {
+  const ancestor = admissionFailure(state.parent);
+  if (ancestor.failed) return ancestor;
+  if (state.localSignal && signalAborted(state.localSignal)) {
+    return { failed: true, reason: state.localSignal.reason };
+  }
+  const control = state.controls.find(candidate => signalAborted(candidate.signal));
+  if (control) return { failed: true, reason: control.signal.reason };
+  return { failed: false, reason: undefined };
+}
+
+function throwLocalActivationFailure(state: PreparedState): void {
+  const failure = localActivationFailure(state);
+  if (failure.failed) throw failure.reason;
+}
+
+export function prepareChildCancellation(
+  parent: CancellationBoundary,
+  options?: CancellationInvokeOptions,
+  snapshot?: CancellationAdmissionSnapshot,
+  controls?: readonly CancellationControlOriginInput[],
+): PreparedChildCancellation {
+  const parentState = requireLink(parent);
+  throwAdmissionFailure(parentState);
+
+  let localSignal: AbortSignal | undefined;
+  if (options !== undefined) {
+    if (options === null || typeof options !== "object" && typeof options !== "function") {
+      return stagedFailure(parentState, new TypeError("Cancellation options must be an object or function"));
+    }
+    let candidate: unknown;
+    try { candidate = options.signal; }
+    catch (error) { return stagedFailure(parentState, error); }
+    throwAdmissionFailure(parentState);
+    if (candidate !== undefined && !nativeSignal(candidate)) {
+      return stagedFailure(parentState, new TypeError("Cancellation signal must be an AbortSignal"));
+    }
+    localSignal = candidate;
+    throwAdmissionFailure(parentState);
+    if (localSignal !== undefined && signalAborted(localSignal)) throw localSignal.reason;
+  }
+
+  const preparedControls = prepareControls(parentState, controls);
+  if (localSignal === undefined && preparedControls.length === 0) {
+    return makePrepared(parentState, undefined, preparedControls, undefined);
+  }
+
+  let admission: CancellationAdmissionSnapshot;
+  try { admission = validateSnapshot(snapshot); }
+  catch (error) { return stagedFailure(parentState, error); }
+  throwAdmissionFailure(parentState);
+  if (admission.depth <= parentState.depth || admission.maxDepth !== parentState.maxDepth) {
+    throw new RangeError("Cancellation child depth must advance within its supplied maximum");
+  }
+  const required = 1
+    + Number(localSignal !== undefined)
+    + preparedControls.filter(control => !signalAborted(control.signal)).length;
+  if (admission.resourceLimit < required) throw new CancellationCapacityError();
+  ensureCapacity(parentState);
+  return makePrepared(parentState, localSignal, preparedControls, admission);
+}
+
+export function activateChildCancellation(prepared: PreparedChildCancellation): CancellationBoundary {
+  if (!prepared || typeof prepared !== "object" || !(preparedState in prepared)) {
+    throw new TypeError("Expected a private prepared cancellation admission");
+  }
+  const preparation = prepared[preparedState];
+  if (preparation.activated) throw preparation.replayError;
+  preparation.activated = true;
+
+  throwLocalActivationFailure(preparation);
+  if (!preparation.owned) return new Boundary({ kind: "borrow", lineage: preparation.parent });
+
+  const admission = preparation.admission!;
+  const required = 1
+    + Number(preparation.localSignal !== undefined)
+    + preparation.controls.filter(control => !signalAborted(control.signal)).length;
+  if (admission.resourceLimit < required) throw new CancellationCapacityError();
+  ensureCapacity(preparation.parent);
+  throwLocalActivationFailure(preparation);
+
+  const state = initializeState(preparation.parent, admission);
+  if (preparation.localSignal) {
+    (state as { localInvoke: CancellationOrigin | undefined }).localInvoke = Object.freeze({
+      role: "invoke-option",
+      signal: preparation.localSignal,
+      frame: state.boundary,
+    });
+  }
+  (state as { controls: readonly CancellationOrigin[] }).controls = Object.freeze(preparation.controls.map(control => Object.freeze({
+    role: control.role,
+    signal: control.signal,
+    frame: state.boundary,
+  })));
+
+  try {
+    state.parentDetach = addSubscriber(preparation.parent, inherited => publish(state, inherited));
+    if (state.localInvoke) attachOrigin(state, state.localInvoke);
+    for (const control of state.controls) attachOrigin(state, control);
+    throwAdmissionFailure(preparation.parent);
+    const inherited = preparation.parent.selected ?? preparation.parent.delivered;
+    if (inherited) publish(state, inherited);
+    const cancellation = admissionFailure(state);
+    if (cancellation.failed) throw cancellation.reason;
+    return state.boundary;
+  } catch (error) {
+    const cancellation = admissionFailure(state);
+    const rollback = rollbackState(state);
+    const ancestor = admissionFailure(preparation.parent);
+    if (ancestor.failed) throw ancestor.reason;
+    if (cancellation.failed) throw cancellation.reason;
+    if (rollback.length) {
+      throw new AggregateError([error, ...rollback], "Cancellation child activation failed");
+    }
+    throw error;
+  }
+}
+
 export function createRootCancellationLink(input: RootCancellationInput): CancellationBoundary {
   if (!input || typeof input !== "object") throw new TypeError("Root cancellation input is required");
   const admission = validateSnapshot(input.admission);
@@ -562,4 +753,47 @@ export function selectCancellationOutcome<Value>(
   if (selectedInvoke) return throwingSelection(state, selectedInvoke.signal.reason, selectedInvoke);
   if (captured.kind === "throw") return throwingSelection(state, captured.reason, classified);
   return { outcome: { kind: "return", value: captured.value } };
+}
+
+export function selectRuntimeCancellationOutcome<Value>(
+  boundary: CancellationBoundary,
+  captured: CapturedCancellationOutcome<Value>,
+  observedOrigin?: CancellationOrigin,
+): CancellationSelection<Value> {
+  if (!captured || typeof captured !== "object" || captured.kind !== "return" && captured.kind !== "throw") {
+    throw new TypeError("A captured return or throw outcome is required");
+  }
+  if (!boundary || typeof boundary !== "object" || !(boundaryState in boundary)) {
+    throw new TypeError("Expected a private cancellation boundary");
+  }
+  const state = boundary[boundaryState];
+  const lineage = state.kind === "link" ? state : state.lineage;
+  const origins = visibleOrigins(lineage);
+  const root = origins.find(origin => origin.role === "root-caller");
+  if (root) return throwingSelection(state, root.signal.reason, root);
+
+  const reported = validReport(state, captured as CapturedCancellationOutcome<unknown>);
+  const observed = captured.kind === "throw"
+    && observedOrigin !== undefined
+    && origins.includes(observedOrigin)
+    && Object.is(captured.reason, observedOrigin.signal.reason)
+    ? observedOrigin
+    : undefined;
+  const classified = reported ?? observed;
+
+  if (captured.kind === "throw" && !classified) {
+    return throwingSelection(state, captured.reason);
+  }
+
+  const invokes = origins.filter(origin => origin.role === "invoke-option");
+  if (classified?.role === "invoke-option" && !invokes.includes(classified)) invokes.push(classified);
+  invokes.sort((left, right) => originRank(left) - originRank(right));
+  const selectedInvoke = invokes[0];
+  if (captured.kind === "return") {
+    return selectedInvoke
+      ? throwingSelection(state, selectedInvoke.signal.reason, selectedInvoke)
+      : { outcome: { kind: "return", value: captured.value } };
+  }
+  if (selectedInvoke) return throwingSelection(state, selectedInvoke.signal.reason, selectedInvoke);
+  return throwingSelection(state, captured.reason, classified);
 }

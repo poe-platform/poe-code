@@ -1,0 +1,13 @@
+{
+  "command": [
+    "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "tests/integration/safejs-owned-output-prototype-review/surface/validity-proposal/verify-proposal.mjs"
+  ],
+  "timeoutMs": 30000,
+  "status": 0,
+  "signal": null,
+  "error": null,
+  "stderr": "",
+  "stdout": "{\n  \"status\": \"STATIC_TEXT_CHECK_ONLY\",\n  \"sealSha256\": \"939be6224e470031d69d7756ef361c7eaa0456abb20efde5bee9a5384974fb4b\",\n  \"baseChildSha256\": \"5cab487b9a63feade2048a1f6b13fb3756f668d14f7a3ecacbf7b921da97c13d\",\n  \"originalBoundFilesUnchanged\": 25,\n  \"hunks\": [\n    {\n      \"originalStart\": 19,\n      \"oldCount\": 6,\n      \"proposedStart\": 19,\n      \"newCount\": 7\n    },\n    {\n      \"originalStart\": 132,\n      \"oldCount\": 8,\n      \"proposedStart\": 133,\n      \"newCount\": 24\n    }\n  ],\n  \"addedLines\": 18,\n  \"removedLines\": 1,\n  \"revisedFileMaterialized\": false,\n  \"patchApplied\": false,\n  \"runtimeImports\": 0,\n  \"guestExecutions\": 0,\n  \"originalAssertionChanges\": 0,\n  \"originalGuestChanges\": 0,\n  \"newPassCount\": null\n}\n",
+  "kind": "STATIC ONLY; no runtime/guest execution"
+}

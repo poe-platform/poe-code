@@ -1,0 +1,36 @@
+--- a/child.mjs
++++ b/child.mjs
+@@ -19,6 +19,7 @@
+   argv: ["-e", source, "--", "surface-arg"], events: [], hostDescriptors: [], hostFindings: [],
+   hostCounters: { acquired: 0, released: 0, cleanup: 0, childCleanup: 0 },
+   runtimeCalls: 0, shellsDisposed: 0, knownWorkerCount: 0,
++  engineOutcome: { kind: "not-entered" },
+ };
+ let shell;
+ let innerShell;
+@@ -132,8 +133,24 @@
+           if (typeof value === "function" || value && typeof value === "object") describe(`${name}.${key}`, value);
+         }
+       }
++      record.engineOutcome = { kind: "entered" };
+       record.events.push("actual-engine-run-start");
+-      const result = await run(actualSource, forwarded);
++      let result;
++      let callReturned = false;
++      try {
++        const pending = run(actualSource, forwarded);
++        callReturned = true;
++        result = await pending;
++      } catch (reason) {
++        record.engineOutcome = {
++          kind: callReturned ? "await-rejected" : "call-threw",
++          reasonType: typeof reason,
++          reasonIsNull: reason === null,
++        };
++        record.events.push(callReturned ? "actual-engine-run-rejected" : "actual-engine-run-threw");
++        throw reason;
++      }
++      record.engineOutcome = { kind: "fulfilled" };
+       record.events.push("actual-engine-run-settled");
+       record.engine = result.ok ? { ok: true, returnValue: result.returnValue, resultKeys: Object.keys(result).sort() }
+         : { ok: false, error: errorInfo(result.error), resultKeys: Object.keys(result).sort() };

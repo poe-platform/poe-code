@@ -1,0 +1,121 @@
+import assert from "node:assert/strict";
+import { execFileSync } from "node:child_process";
+import { lstatSync, readFileSync, readdirSync } from "node:fs";
+import { join, relative } from "node:path";
+import { gzipSync } from "node:zlib";
+import { directory, json, owner, regular, sha256 } from "../harness/common.mjs";
+
+const output = `${owner}/results-v1`;
+const publicRoot = "/private/tmp/safe-bash-author-public-current-xcKUBD";
+const roots = { surface: "/private/tmp/safe-bash-author-current-safejs-surface-5FsBtu", lifecycle: "/private/tmp/safe-bash-author-current-safejs-lifecycle-IehwH7", controls: "/private/tmp/safe-bash-author-current-safejs-controls-VLNKqy" };
+const mixedRoot = "/private/tmp/safe-bash-author-current-mixed-1ZGNoZ";
+const exportRoot = "/private/tmp/safe-bash-author-current-exports-ua61me";
+const artifacts = [];
+const bundles = [];
+function emit(path, text) {
+  const lines = text.endsWith("\n") ? text.slice(0, -1).split("\n") : text.split("\n");
+  const patch = `*** Begin Patch\n*** Add File: ${output}/${path}\n${lines.map(line => `+${line}`).join("\n")}\n*** End Patch\n`;
+  execFileSync("apply_patch", [], { input: patch, encoding: "utf8", maxBuffer: 1024 * 1024 });
+}
+const emitJson = (path, value) => emit(path, JSON.stringify(value, null, 2) + "\n");
+function bundle(name, root, selected) {
+  const files = [];
+  function visit(path) {
+    const filename = join(root, path);
+    const stat = lstatSync(filename);
+    assert.ok(!stat.isSymbolicLink());
+    if (stat.isDirectory()) for (const child of readdirSync(filename).sort()) visit(join(path, child));
+    else {
+      const bytes = regular(filename);
+      const entry = { path, bytes: bytes.length, sha256: sha256(bytes), base64: bytes.toString("base64") };
+      files.push(entry);
+      artifacts.push({ bundle: name, path, original: filename, bytes: bytes.length, sha256: entry.sha256 });
+    }
+  }
+  for (const path of selected) visit(path);
+  files.sort((left, right) => left.path.localeCompare(right.path, "en"));
+  const raw = Buffer.from(JSON.stringify({ schema: 1, captureRoot: root, files }));
+  const compressed = gzipSync(raw, { level: 9 });
+  const encoded = compressed.toString("base64");
+  const path = `${name}.json.gz.b64.data`;
+  emit(path, encoded.match(/.{1,76}/gu).join("\n") + "\n");
+  bundles.push({ name, path, files: files.length, originalFileBytes: files.reduce((total, file) => total + file.bytes, 0), bundleJsonBytes: raw.length, bundleJsonSha256: sha256(raw), gzipBytes: compressed.length, gzipSha256: sha256(compressed), encoding: "base64(gzip(JSON with exact per-file base64 bytes))" });
+}
+bundle("public", join(publicRoot, "evidence"), readdirSync(join(publicRoot, "evidence")).sort());
+for (const [family, root] of Object.entries(roots)) bundle(family, root, ["CURRENT-IMPORTS.json", "evidence", "logs"]);
+bundle("mixed", mixedRoot, ["compile.stdout.txt", "compile.stderr.txt", "runtime.stdout.txt", "runtime.stderr.txt", "consumer-before.json", "consumer-after.json", "report.json"]);
+bundle("exports", exportRoot, ["stdout.json", "stderr.txt", "consumer-before.json", "consumer-after.json", "report.json"]);
+bundle("loader-preflight", "/private/tmp/safe-bash-author-safejs-loader-preflight-MR3NlJ", ["report.json", "unknown-import/stdout.txt", "unknown-import/stderr.txt", "unknown-import/imports.ndjson", "changed-source/stdout.txt", "changed-source/stderr.txt", "changed-source/imports.ndjson"]);
+bundle("archive-preflight", "/private/tmp/safe-bash-author-execution-bindings.WjNIfN", ["binding-tests-v2.txt"]);
+bundle("package", join(publicRoot, "pack"), ["virtual-bash-0.0.0.tgz"]);
+
+const publicReport = json(join(publicRoot, "evidence/report.json"));
+const publicCases = json(join(publicRoot, "evidence/public-consumer.stdout.txt"));
+const typecheck = json(join(publicRoot, "evidence/maintained-typecheck/report.json"));
+const diagnosticsBytes = regular(join(publicRoot, "evidence/maintained-typecheck.stdout.txt"));
+const diagnostics = diagnosticsBytes.toString().split("\n").filter(line => /error TS\d+:/u.test(line));
+assert.equal(diagnostics.length, 13);
+assert.equal(diagnostics.filter(line => line.startsWith("src/")).length, 0);
+emit("FOREIGN-TYPECHECK.txt", diagnosticsBytes.toString());
+const binding = json(join(directory, "safejs-execution-v1/PUBLIC-BINDING.json"));
+const networkRows = [];
+const surfaceHandles = [];
+const cohorts = Object.fromEntries(Object.entries(roots).map(([family, root]) => {
+  const report = json(join(root, "evidence/report.json"));
+  assert.equal(report.status, "AUTHOR_COHORT_PASS");
+  assert.equal(report.privateBeforeAfter, "EXACTLY_UNCHANGED");
+  assert.deepEqual(report.knownLiveChildren, []);
+  const beforeBytes = regular(join(root, "evidence/private-before.json"));
+  const afterBytes = regular(join(root, "evidence/private-after.json"));
+  assert.deepEqual(beforeBytes, afterBytes);
+  for (const row of report.rows) {
+    assert.equal(row.classification, "PASS");
+    assert.equal(row.engineSourceFiles, 63);
+    assert.equal(row.productFiles, 184);
+    assert.equal(row.naturalExit, true);
+    const actual = json(row.resultFile);
+    if (family === "surface") surfaceHandles.push({ id: row.id, resourcesAtResult: actual.activeResourcesAtResult, handlesAtResult: actual.activeHandlesAtResult, childExitedNaturally: true });
+    else {
+      assert.equal(actual.guard.activeTimers, 0);
+      assert.deepEqual(actual.guard.failures, []);
+      assert.equal(actual.preTeardown.bridgePending, 0);
+      assert.equal(actual.disposeSettled, true);
+    }
+    if (actual.network) {
+      assert.equal(actual.network.authorizationJournal.length, 1);
+      assert.equal(actual.network.transportJournal.length, 1);
+      assert.equal(actual.network.transportCalls, 1);
+      assert.equal(actual.network.authorizationCallsForRetry, 0);
+      assert.equal(actual.network.authorizationCallsWithRedirectFrom, 0);
+      assert.equal(actual.network.additionalTransportEntries, 0);
+      assert.equal(actual.atSettlement.uploadBeforeEof, true);
+      assert.equal(actual.atSettlement.transportClosed, true);
+      assert.equal(actual.atSettlement.responseDisposed, true);
+      assert.equal(actual.atSettlement.cleanupDone, true);
+      networkRows.push({ family, id: row.id, authorizationCalls: actual.network.authorizationJournal.length, transportCalls: actual.network.transportCalls, retryAuthorizations: 0, redirectedAuthorizations: 0, additionalTransportEntries: 0, uploadBeforeEof: true, cleanupDoneBeforePublicSettlement: true, curlStatus: actual.atSettlement.curlStatus, raw: `${family}:${relative(root, row.resultFile)}` });
+    }
+  }
+  return [family, { status: report.status, counts: report.counts, runtimeRoot: root, frozen: report.frozen, freshPrivateBeforeSha256: sha256(beforeBytes), freshPrivateAfterSha256: sha256(afterBytes), privateBeforeAfter: report.privateBeforeAfter, copiedInputsBeforeAfter: report.copiedInputsBeforeAfter, publicInputsBeforeAfter: report.publicBeforeAfter, privateHead: JSON.parse(beforeBytes).head, privateTree: JSON.parse(beforeBytes).tree, privateIndexSha256: JSON.parse(beforeBytes).index.sha256, metadataFiles: Object.keys(JSON.parse(beforeBytes).metadata).length, eligibleEngineFiles: JSON.parse(beforeBytes).engine.length, engineImportEntriesPerChild: 63, productImportEntriesPerChild: 184, knownLiveChildren: 0, rows: report.rows.map(row => ({ id: row.id, classification: row.classification, engineRuns: row.engineRuns, naturalExit: row.naturalExit })) }];
+}));
+assert.equal(networkRows.length, 8);
+const exports = json(join(exportRoot, "stdout.json"));
+const mixed = json(join(mixedRoot, "report.json"));
+assert.equal(mixed.status, "AUTHOR_MIXED_PUBLIC_4_PASS");
+const result = {
+  schema: 1, date: "2026-08-27", qualification: "AUTHOR_ONLY_NOT_INDEPENDENT_ACCEPTANCE_NOT_RELEASE_OR_FULL_GATE", status: "SCOPED_AUTHOR_RUNTIME_CHECKS_PASS_MAINTAINED_GLOBAL_TYPECHECK_NONPASS", candidateCommit: binding.candidateCommit, candidateTree: binding.candidateTree, sourceFiles: 247, sourceManifestSha256: binding.sourceManifestSha256,
+  frozenInputs: { preparation: "e748f20fe9d0ea1d29aefe70939d3ee76951ef68", publicArchive: "9513946ced0a3b9076770a3e4dfbc18bcd3c1f13", safeJs: "7204b9e01752c700dd791afd332e7f1b5fd8ba73", mixedPublic: "7623599c995c42f62ec1cd9ad78ced2913970f66", packageExports: "d3c04ba39ec2c659d432bf6e0867a3a89ae1a4bc" },
+  artifacts: { archiveSha256: binding.archiveSha256, tarballSha256: binding.tarballSha256, movedPackageManifestSha256: sha256(JSON.stringify(binding.packageEntries)), movedPackageFileCount: binding.packageEntries.filter(entry => entry.kind === "file").length, movedPackageEntriesIncludingDirectories: binding.packageEntries.length, compilerManifestSha256: sha256(JSON.stringify(binding.compilerEntries)), nodeSha256: binding.nodeSha256, originalPublicRoot: publicRoot },
+  sourceBuild: { passes: 1, failures: 0, rebuiltForSafeJs: false, originalCommittedInputs: 32317, sourceFiles: 247, nativeDataSymlinks: 12, literalNativeDataNames: 6, sourceCodeOrTestsChanged: false, isolatedCandidateGitIndexBeforeAfterUnchanged: true, fullInputBeforeAfter: publicReport.sourceToolArchivePackageAfter, appendCheck: "Complete built candidate tree plus source/test subtrees; new file and empty-directory entries checked" },
+  strictPublicConsumer: { pass: true, commandStatus: publicReport.commands.find(row => row.label === "strict-public-consumer").status },
+  publicRuntime: { passed: publicCases.rows.length, failed: 0, rows: publicCases.rows, attempts: 1 },
+  mixedPublic: { passed: 4, failed: 0, attempts: 1, typecheckPass: true, root: mixedRoot, helperBindingDisclosure: "Source-owner exact four test bodies; public createStandardCommands cat-only registration replaces internal stream-family helper; no assertion delta or unchanged-all-input claim", beforeAfter: mixed.beforeAfter },
+  exports: { status: "PASS", declaredExportKeys: exports.declaredExportKeys, probedSpecifiers: exports.probedSpecifiers, rootRuntimeExports: exports.rootRuntimeExports, contractsRuntimeExports: exports.contractsRuntimeExports, outputFactoryIdentity: exports.outputFactoryIdentity, qualification: exports.qualification },
+  maintainedTypecheck: { status: typecheck.status, exitCode: 2, buildCount: typecheck.builds, globalDiagnostics: diagnostics.length, diagnosticPaths: [...new Set(diagnostics.map(line => line.slice(0, line.indexOf("("))))], exactDiagnosticHeadlines: diagnostics, exactFullStdoutSha256: sha256(diagnosticsBytes), sourceDiagnostics: 0, maintainedConsumersPassed: typecheck.consumers?.passed, maintainedConsumerGroups: typecheck.consumers?.groups.length, sourceConsumersPassed: typecheck.sourceConsumers?.passed, unchangedRunner: true, capturedDataExclusionsChanged: false, classification: "Foreign-test diagnostics in the exact candidate; no baseline-origin claim, source weakening, waiver or repair" },
+  safeJs: { intended: 25, uniqueProfilesExecuted: 25, pass: 25, failed: 0, invalid: 0, blocked: 0, attemptsPerProfile: 1, cohortCount: 3, engineImportUniquePaths: 63, productImportUniquePaths: 184, cohorts, networkRows, actualCopiedSourceHooks: ["run", "Budget", "makeFsModule", "declareHostOperation"], privatePackageInstalledOrImported: false, privateCodeCommitted: false, historicalFixtureOrigin: "a61e63bc46e8389e59c0d8fdc1d424003f62c769", privateStatusBindingOrigin: "71abbafc8a9adadf98ed8921b4cc549ae90399ff", surface07: "DIALECT_ONLY_NOT_MEMBRANE_ACCEPTANCE", surface08: "ACTUAL_AWAITED_REJECTION_NOT_FABRICATED_FULFILLED_RESULT", lifecycleL05: "UNCHANGED_APPROVED_owned-guest\\n)_ACTUAL_SELECTED_REJECTION", retryOrRescue: false },
+  handles: { knownLiveChildren: 0, lifecycleAndControlActiveTimers: 0, lifecycleAndControlBridgePending: 0, lifecycleAndControlGuardFailures: 0, all25ChildrenExitedNaturally: true, surfaceHandlesAtResult: surfaceHandles, qualification: "Surface children recorded one PipeWrap/Socket at result and then exited naturally; no global opaque-handle/preemption guarantee" },
+  unresolved: { originalCustomFirstReadRequirements: { count: 5, status: "SEPARATE_UNRESOLVED_CUSTOM_PROFILE_NOT_EXECUTED_MIGRATED_OR_WAIVED" }, maintainedGlobalTypecheck: "13 exact foreign-test diagnostics remain", independentFinalReview: "Curie-owned, not performed or claimed by this author" },
+  limitations: ["No full test gate, release activation, production promotion, superiority, native parity or deployed-provider acceptance", "Actual SafeJS is legitimate copied source-hook injection, not installed private package support", "Private snapshots cover the approved Git state, six metadata files and 264 eligible engine files with metadata; plan contents, ignored build/cache trees and empty-directory inventory are not certified", "Historical raw failures, caps profiles and accepted zero-overlay cohorts remain separate; no historical product is rescored as this candidate", "Runtime attempts were not retried; pre-execution archive binding correction and transcript-only initial static failure are explicitly retained", "No claims of 72 hours or full project completion" ],
+};
+emitJson("REPORT.json", result);
+emitJson("RAW-INVENTORY.json", { schema: 1, candidateCommit: binding.candidateCommit, bundles, artifacts, noPrivateCodeBytes: true, selectedRawRoots: "Only public evidence/logs, cohort evidence/logs/import maps, scoped public outputs, preflight outputs and the public package tarball; no engine/consumer/node_modules/tools directories" });
+console.log(JSON.stringify({ status: result.status, rawArtifacts: artifacts.length, bundles: bundles.length, compressedBytes: bundles.reduce((total, entry) => total + entry.gzipBytes, 0), publicCases: 9, mixedCases: 4, safeJsCases: 25, globalDiagnostics: 13 }));

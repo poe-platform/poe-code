@@ -1,0 +1,97 @@
+{
+  "schema": 1,
+  "candidateCommit": "eba049535d154f4e028f57ffd8efd7622b2239ca",
+  "qualification": "Captured public before/after byte hashes; raw inventories included in the public bundle",
+  "entries": [
+    {
+      "component": "input-src",
+      "beforeJsonSha256": "f279d9ca5f75baa4cece60809a96c6c78cd375edb13fd6c84a4bcaa22d094e3b",
+      "afterJsonSha256": "f279d9ca5f75baa4cece60809a96c6c78cd375edb13fd6c84a4bcaa22d094e3b",
+      "canonicalInventorySha256": "9bd9e2c8e977e3f24f632de5c55b81c01ac3cbf24b3a298fc682fac990bfa1a7",
+      "entries": 287,
+      "byteIdentical": true,
+      "newFileAndDirectoryEntriesChecked": true
+    },
+    {
+      "component": "input-scripts",
+      "beforeJsonSha256": "0a732ca8206bc0e63a3f7f326962bf8db9d6c7ed2eac43ab67d0021c2b96622c",
+      "afterJsonSha256": "0a732ca8206bc0e63a3f7f326962bf8db9d6c7ed2eac43ab67d0021c2b96622c",
+      "canonicalInventorySha256": "9e3d6783231f4746e583a494a2f4397d631d5bbe3dc28e523af48246d04e7a1c",
+      "entries": 6,
+      "byteIdentical": true,
+      "newFileAndDirectoryEntriesChecked": true
+    },
+    {
+      "component": "input-tests",
+      "beforeJsonSha256": "0872d18688791a66d513eb58e875a7be35cea170d7143f2e17e8c0b2bfbf83e8",
+      "afterJsonSha256": "0872d18688791a66d513eb58e875a7be35cea170d7143f2e17e8c0b2bfbf83e8",
+      "canonicalInventorySha256": "dcf9b87d2acbfda1ccc14caa512869efe7c48a3f4156507dbda8c08a83e65895",
+      "entries": 31839,
+      "byteIdentical": true,
+      "newFileAndDirectoryEntriesChecked": true
+    },
+    {
+      "component": "dist",
+      "beforeJsonSha256": "fd2b796cc34ab2f57571f67b7777d9797822313660fbd1ced68db79843f8332f",
+      "afterJsonSha256": "fd2b796cc34ab2f57571f67b7777d9797822313660fbd1ced68db79843f8332f",
+      "canonicalInventorySha256": "3189d7dd493248d41de38f01055e1ecf844bf10e7226d9b453ad3a1f0d03dfd9",
+      "entries": 864,
+      "byteIdentical": true,
+      "newFileAndDirectoryEntriesChecked": true
+    },
+    {
+      "component": "built-candidate-tree",
+      "beforeJsonSha256": "0db30a7be9bcb44b987bba67eaa5207a91b8d7e3b272a084bd8e0c7bdd3d7dcc",
+      "afterJsonSha256": "0db30a7be9bcb44b987bba67eaa5207a91b8d7e3b272a084bd8e0c7bdd3d7dcc",
+      "canonicalInventorySha256": "7152c8b656ff2c26318569a1c27842bf8daf62f8e3ec37b421ddf404b9f2c5fc",
+      "entries": 36104,
+      "byteIdentical": true,
+      "newFileAndDirectoryEntriesChecked": true
+    },
+    {
+      "component": "tool-typescript",
+      "beforeJsonSha256": "6f5a6e998979dcb1495f8205d817e3172fe391f7d52173cb0ac104c61179c70d",
+      "afterJsonSha256": "6f5a6e998979dcb1495f8205d817e3172fe391f7d52173cb0ac104c61179c70d",
+      "canonicalInventorySha256": "21c5947bfe4aed4f6178e384731ce253adf1878a6ac31c3134e3c4676f62514e",
+      "entries": 147,
+      "byteIdentical": true,
+      "newFileAndDirectoryEntriesChecked": true
+    },
+    {
+      "component": "tool-@types_node",
+      "beforeJsonSha256": "cac63d9537e0b73b11e3cf7543abdaed13beb8bbbd7a78e1c84769287f3d53a4",
+      "afterJsonSha256": "cac63d9537e0b73b11e3cf7543abdaed13beb8bbbd7a78e1c84769287f3d53a4",
+      "canonicalInventorySha256": "f61fe2d0f8c21b296c30f8419cd76e18cdd4a82a77f98f28ef6fad1c829c2a9b",
+      "entries": 83,
+      "byteIdentical": true,
+      "newFileAndDirectoryEntriesChecked": true
+    },
+    {
+      "component": "tool-undici-types",
+      "beforeJsonSha256": "22afe49625763237efc0585a915495a8adc36d2c517f4bf23c9994ade1f2b147",
+      "afterJsonSha256": "22afe49625763237efc0585a915495a8adc36d2c517f4bf23c9994ade1f2b147",
+      "canonicalInventorySha256": "054783e5ef7a78a6e6e094fcbd67903d63a89e26248adce69a8668e57f817eda",
+      "entries": 41,
+      "byteIdentical": true,
+      "newFileAndDirectoryEntriesChecked": true
+    },
+    {
+      "component": "tool-npm",
+      "beforeJsonSha256": "b94a2e8878ba3c2ebec6198012a64b40426bb1b4d9f6c1756fa9a0effe6226f2",
+      "afterJsonSha256": "b94a2e8878ba3c2ebec6198012a64b40426bb1b4d9f6c1756fa9a0effe6226f2",
+      "canonicalInventorySha256": "d2ba866f6245bdaf099ca853e29b287bba7cb67f83d840a7f514f5a967d02285",
+      "entries": 2556,
+      "byteIdentical": true,
+      "newFileAndDirectoryEntriesChecked": true
+    },
+    {
+      "component": "moved-consumer",
+      "beforeJsonSha256": "e2b6e412b5078e88795d9b3a951e565e065e949cd26d5eb7b19107d6028dec89",
+      "afterJsonSha256": "e2b6e412b5078e88795d9b3a951e565e065e949cd26d5eb7b19107d6028dec89",
+      "canonicalInventorySha256": "1815274fd1a417a6b50d48b52e17ee5a1880f6a60532a191b40f85039de72d78",
+      "entries": 873,
+      "byteIdentical": true,
+      "newFileAndDirectoryEntriesChecked": true
+    }
+  ]
+}

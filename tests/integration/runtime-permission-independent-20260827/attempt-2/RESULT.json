@@ -1,0 +1,1509 @@
+{
+  "revision": "774644f9ea39b41f824db4c829e7a97e6e1386be",
+  "product": "8670ebe8f0d39966c2de2638780437398e5f8490",
+  "runnerSha256": "b7b37339dc594e9e0e4b15a153d76fe9218676eb8e67e29ed533c110ba7ed3c5",
+  "startedAt": "2026-08-27T15:58:41.198Z",
+  "staged": [
+    {
+      "commit": "774644f9ea39b41f824db4c829e7a97e6e1386be",
+      "path": "tests/integration/runtime-permission-compatibility-20260827/controls.mjs",
+      "destination": "/private/tmp/permission-independent-L2Dl7J/author/tests/integration/runtime-permission-compatibility-20260827/controls.mjs",
+      "sha256": "8c44a150418968b65000994b89165d2cf4ca645279d9a83b2c5daff4245fabab"
+    },
+    {
+      "commit": "774644f9ea39b41f824db4c829e7a97e6e1386be",
+      "path": "scripts/verify-current-consumers.mjs",
+      "destination": "/private/tmp/permission-independent-L2Dl7J/author/scripts/verify-current-consumers.mjs",
+      "sha256": "0877c045fb2c7feb093903ae528ddc518c7d371a73460f69f3ccf853938ed632"
+    },
+    {
+      "commit": "774644f9ea39b41f824db4c829e7a97e6e1386be",
+      "path": "tests/plugins/stream-five-public/harness.mjs",
+      "destination": "/private/tmp/permission-independent-L2Dl7J/author/tests/plugins/stream-five-public/harness.mjs",
+      "sha256": "bc1c0ba95a0b928b6f35bfc6de40ec60006707b162c97b49474ba33ad8ae55dd"
+    },
+    {
+      "commit": "774644f9ea39b41f824db4c829e7a97e6e1386be",
+      "path": "tests/plugins/stream-five-public/current-profile.mjs",
+      "destination": "/private/tmp/permission-independent-L2Dl7J/author/tests/plugins/stream-five-public/current-profile.mjs",
+      "sha256": "929e019df6e9ae45689ef06ff2d3b495d0dbe7ab2a9a6a30e5d2a7666acde958"
+    },
+    {
+      "commit": "774644f9ea39b41f824db4c829e7a97e6e1386be",
+      "path": "tests/plugins/qualified-current-release/consumers.mjs",
+      "destination": "/private/tmp/permission-independent-L2Dl7J/author/tests/plugins/qualified-current-release/consumers.mjs",
+      "sha256": "79fcad55906f7d9d0d9d44423e0972104dc642ea7ea52d4954b6ce870739f7f4"
+    },
+    {
+      "commit": "774644f9ea39b41f824db4c829e7a97e6e1386be",
+      "path": "tests/plugins/qualified-current-release/runtime-coverage.mjs",
+      "destination": "/private/tmp/permission-independent-L2Dl7J/author/tests/plugins/qualified-current-release/runtime-coverage.mjs",
+      "sha256": "96403245ff2ff31b27708d20a56c96c36466551b1a19fcf892e0b0d19ce9e9f5"
+    },
+    {
+      "commit": "774644f9ea39b41f824db4c829e7a97e6e1386be",
+      "path": "tests/plugins/qualified-current-release/snapshot.mjs",
+      "destination": "/private/tmp/permission-independent-L2Dl7J/author/tests/plugins/qualified-current-release/snapshot.mjs",
+      "sha256": "cfe5b508a670e9d1cfd9281381558c0a3c842be3e3060d1f8f8c8c0c66277508"
+    },
+    {
+      "commit": "774644f9ea39b41f824db4c829e7a97e6e1386be",
+      "path": "tests/plugins/qualified-current-release/inventory-check.mjs",
+      "destination": "/private/tmp/permission-independent-L2Dl7J/author/tests/plugins/qualified-current-release/inventory-check.mjs",
+      "sha256": "1afd5cf0b4a1f42ed86330fde6655f5b606eed3be79a4f1026b4c2bf6294b9f3"
+    },
+    {
+      "commit": "774644f9ea39b41f824db4c829e7a97e6e1386be",
+      "path": "scripts/verify-qualified-release.mjs",
+      "destination": "/private/tmp/permission-independent-L2Dl7J/author/scripts/verify-qualified-release.mjs",
+      "sha256": "830043ed51632f12ea1049ef0ed8d4fa369519ef4d3cc3fb7c3a797fc6f69768"
+    },
+    {
+      "commit": "774644f9ea39b41f824db4c829e7a97e6e1386be",
+      "path": "tests/plugins/stream-five-public/current-profile.mjs",
+      "destination": "/private/tmp/permission-independent-L2Dl7J/author/tests/plugins/stream-five-public/current-profile.mjs",
+      "sha256": "929e019df6e9ae45689ef06ff2d3b495d0dbe7ab2a9a6a30e5d2a7666acde958"
+    },
+    {
+      "commit": "774644f9ea39b41f824db4c829e7a97e6e1386be",
+      "path": "tests/plugins/stream-five-public/harness.mjs",
+      "destination": "/private/tmp/permission-independent-L2Dl7J/author/tests/plugins/stream-five-public/harness.mjs",
+      "sha256": "bc1c0ba95a0b928b6f35bfc6de40ec60006707b162c97b49474ba33ad8ae55dd"
+    },
+    {
+      "commit": "774644f9ea39b41f824db4c829e7a97e6e1386be",
+      "path": "tests/plugins/stream-five-public/public-checks.mjs",
+      "destination": "/private/tmp/permission-independent-L2Dl7J/author/tests/plugins/stream-five-public/public-checks.mjs",
+      "sha256": "352147bb6e11be7c0f7796be4adba24562b44b8157e86680a4f73db43661a365"
+    },
+    {
+      "commit": "774644f9ea39b41f824db4c829e7a97e6e1386be",
+      "path": "tests/plugins/qualified-current-release/snapshot.mjs",
+      "destination": "/private/tmp/permission-independent-L2Dl7J/author/tests/plugins/qualified-current-release/snapshot.mjs",
+      "sha256": "cfe5b508a670e9d1cfd9281381558c0a3c842be3e3060d1f8f8c8c0c66277508"
+    },
+    {
+      "commit": "774644f9ea39b41f824db4c829e7a97e6e1386be",
+      "path": "tests/plugins/qualified-current-release/consumers.mjs",
+      "destination": "/private/tmp/permission-independent-L2Dl7J/author/tests/plugins/qualified-current-release/consumers.mjs",
+      "sha256": "79fcad55906f7d9d0d9d44423e0972104dc642ea7ea52d4954b6ce870739f7f4"
+    },
+    {
+      "commit": "774644f9ea39b41f824db4c829e7a97e6e1386be",
+      "path": "tests/plugins/qualified-current-release/inventory-check.mjs",
+      "destination": "/private/tmp/permission-independent-L2Dl7J/author/tests/plugins/qualified-current-release/inventory-check.mjs",
+      "sha256": "1afd5cf0b4a1f42ed86330fde6655f5b606eed3be79a4f1026b4c2bf6294b9f3"
+    },
+    {
+      "commit": "774644f9ea39b41f824db4c829e7a97e6e1386be",
+      "path": "tests/plugins/qualified-current-release/prerequisites.mjs",
+      "destination": "/private/tmp/permission-independent-L2Dl7J/author/tests/plugins/qualified-current-release/prerequisites.mjs",
+      "sha256": "052dc58ece76f3136ad03212b9f938502cf2f0ca5ebfd03876c3be9ea11eaf39"
+    },
+    {
+      "commit": "774644f9ea39b41f824db4c829e7a97e6e1386be",
+      "path": "scripts/verify-current-consumers.mjs",
+      "destination": "/private/tmp/permission-independent-L2Dl7J/author/scripts/verify-current-consumers.mjs",
+      "sha256": "0877c045fb2c7feb093903ae528ddc518c7d371a73460f69f3ccf853938ed632"
+    },
+    {
+      "commit": "774644f9ea39b41f824db4c829e7a97e6e1386be",
+      "path": "tests/plugins/qualified-current-release/runtime-coverage.mjs",
+      "destination": "/private/tmp/permission-independent-L2Dl7J/author/tests/plugins/qualified-current-release/runtime-coverage.mjs",
+      "sha256": "96403245ff2ff31b27708d20a56c96c36466551b1a19fcf892e0b0d19ce9e9f5"
+    },
+    {
+      "commit": "8670ebe8f0d39966c2de2638780437398e5f8490",
+      "path": "tests/plugins/stream-five-public/harness.mjs",
+      "destination": "/private/tmp/permission-independent-L2Dl7J/frozen8670/tests/plugins/stream-five-public/harness.mjs",
+      "sha256": "bc1c0ba95a0b928b6f35bfc6de40ec60006707b162c97b49474ba33ad8ae55dd"
+    },
+    {
+      "commit": "8670ebe8f0d39966c2de2638780437398e5f8490",
+      "path": "tests/plugins/stream-five-public/current-profile.mjs",
+      "destination": "/private/tmp/permission-independent-L2Dl7J/frozen8670/tests/plugins/stream-five-public/current-profile.mjs",
+      "sha256": "929e019df6e9ae45689ef06ff2d3b495d0dbe7ab2a9a6a30e5d2a7666acde958"
+    },
+    {
+      "commit": "8670ebe8f0d39966c2de2638780437398e5f8490",
+      "path": "tests/plugins/stream-five-public/current-profile.mjs",
+      "destination": "/private/tmp/permission-independent-L2Dl7J/frozen8670/tests/plugins/stream-five-public/current-profile.mjs",
+      "sha256": "929e019df6e9ae45689ef06ff2d3b495d0dbe7ab2a9a6a30e5d2a7666acde958"
+    },
+    {
+      "commit": "8670ebe8f0d39966c2de2638780437398e5f8490",
+      "path": "tests/plugins/qualified-current-release/consumers.mjs",
+      "destination": "/private/tmp/permission-independent-L2Dl7J/frozen8670/tests/plugins/qualified-current-release/consumers.mjs",
+      "sha256": "79fcad55906f7d9d0d9d44423e0972104dc642ea7ea52d4954b6ce870739f7f4"
+    },
+    {
+      "commit": "8670ebe8f0d39966c2de2638780437398e5f8490",
+      "path": "tests/plugins/qualified-current-release/runtime-coverage.mjs",
+      "destination": "/private/tmp/permission-independent-L2Dl7J/frozen8670/tests/plugins/qualified-current-release/runtime-coverage.mjs",
+      "sha256": "96403245ff2ff31b27708d20a56c96c36466551b1a19fcf892e0b0d19ce9e9f5"
+    },
+    {
+      "commit": "8670ebe8f0d39966c2de2638780437398e5f8490",
+      "path": "tests/plugins/qualified-current-release/snapshot.mjs",
+      "destination": "/private/tmp/permission-independent-L2Dl7J/frozen8670/tests/plugins/qualified-current-release/snapshot.mjs",
+      "sha256": "cfe5b508a670e9d1cfd9281381558c0a3c842be3e3060d1f8f8c8c0c66277508"
+    },
+    {
+      "commit": "8670ebe8f0d39966c2de2638780437398e5f8490",
+      "path": "tests/plugins/stream-five-public/harness.mjs",
+      "destination": "/private/tmp/permission-independent-L2Dl7J/frozen8670/tests/plugins/stream-five-public/harness.mjs",
+      "sha256": "bc1c0ba95a0b928b6f35bfc6de40ec60006707b162c97b49474ba33ad8ae55dd"
+    },
+    {
+      "commit": "8670ebe8f0d39966c2de2638780437398e5f8490",
+      "path": "tests/plugins/stream-five-public/current-profile.mjs",
+      "destination": "/private/tmp/permission-independent-L2Dl7J/frozen8670/tests/plugins/stream-five-public/current-profile.mjs",
+      "sha256": "929e019df6e9ae45689ef06ff2d3b495d0dbe7ab2a9a6a30e5d2a7666acde958"
+    },
+    {
+      "commit": "8670ebe8f0d39966c2de2638780437398e5f8490",
+      "path": "tests/plugins/qualified-current-release/consumers.mjs",
+      "destination": "/private/tmp/permission-independent-L2Dl7J/frozen8670/tests/plugins/qualified-current-release/consumers.mjs",
+      "sha256": "79fcad55906f7d9d0d9d44423e0972104dc642ea7ea52d4954b6ce870739f7f4"
+    },
+    {
+      "commit": "8670ebe8f0d39966c2de2638780437398e5f8490",
+      "path": "tests/plugins/qualified-current-release/inventory-check.mjs",
+      "destination": "/private/tmp/permission-independent-L2Dl7J/frozen8670/tests/plugins/qualified-current-release/inventory-check.mjs",
+      "sha256": "1afd5cf0b4a1f42ed86330fde6655f5b606eed3be79a4f1026b4c2bf6294b9f3"
+    }
+  ],
+  "checks": [
+    {
+      "name": "v22.22.2 actual binary stable permission qualification",
+      "pass": true
+    },
+    {
+      "name": "v22.22.2 moved package dist matches fresh8670 build",
+      "pass": true
+    },
+    {
+      "name": "v22.22.2 exact worker and strict arguments",
+      "pass": true
+    },
+    {
+      "name": "v22.22.2 actual public worker pipeline VFS and denials",
+      "pass": true,
+      "detail": {
+        "execPath": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "version": "v22.22.2",
+        "registry": 70,
+        "pipeline": true,
+        "vfs": true,
+        "worker": true,
+        "sourceDenied": true,
+        "writeDenied": true
+      }
+    },
+    {
+      "name": "v22.22.2 uncaught exact read denial",
+      "pass": true
+    },
+    {
+      "name": "v22.22.2 uncaught exact write denial",
+      "pass": true
+    },
+    {
+      "name": "v22.22.2 uncaught exact source-import denial",
+      "pass": true
+    },
+    {
+      "name": "v22.22.2 removed permission mutant rejected by behavior",
+      "pass": true
+    },
+    {
+      "name": "v22.22.2 widened read mutant rejected by behavior",
+      "pass": true
+    },
+    {
+      "name": "v22.22.2 bad launch flag is status9 not denial",
+      "pass": true
+    },
+    {
+      "name": "v22.22.2 plain node:test execution preserves TAP consumers",
+      "pass": true
+    },
+    {
+      "name": "v22.22.2 invalid admission and wildcard scopes refuse78",
+      "pass": true
+    },
+    {
+      "name": "v24.11.1 actual binary stable permission qualification",
+      "pass": true
+    },
+    {
+      "name": "v24.11.1 moved package dist matches fresh8670 build",
+      "pass": true
+    },
+    {
+      "name": "v24.11.1 exact worker and strict arguments",
+      "pass": true
+    },
+    {
+      "name": "v24.11.1 actual public worker pipeline VFS and denials",
+      "pass": true,
+      "detail": {
+        "execPath": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+        "version": "v24.11.1",
+        "registry": 70,
+        "pipeline": true,
+        "vfs": true,
+        "worker": true,
+        "sourceDenied": true,
+        "writeDenied": true
+      }
+    },
+    {
+      "name": "v24.11.1 uncaught exact read denial",
+      "pass": true
+    },
+    {
+      "name": "v24.11.1 uncaught exact write denial",
+      "pass": true
+    },
+    {
+      "name": "v24.11.1 uncaught exact source-import denial",
+      "pass": true
+    },
+    {
+      "name": "v24.11.1 removed permission mutant rejected by behavior",
+      "pass": true
+    },
+    {
+      "name": "v24.11.1 widened read mutant rejected by behavior",
+      "pass": true
+    },
+    {
+      "name": "v24.11.1 bad launch flag is status9 not denial",
+      "pass": true
+    },
+    {
+      "name": "v24.11.1 plain node:test execution preserves TAP consumers",
+      "pass": false,
+      "error": "AssertionError [ERR_ASSERTION]: The input did not match the regular expression /^# tests 1$/mu. Input:\n\n'✔ real-body (0.463583ms)\\n' +\n  'ℹ tests 1\\n' +\n  'ℹ suites 0\\n' +\n  'ℹ pass 1\\n' +\n  'ℹ fail 0\\n' +\n  'ℹ cancelled 0\\n' +\n  'ℹ skipped 0\\n' +\n  'ℹ todo 0\\n' +\n  'ℹ duration_ms 3.001416\\n'\n",
+      "stack": "AssertionError [ERR_ASSERTION]: The input did not match the regular expression /^# tests 1$/mu. Input:\n\n'✔ real-body (0.463583ms)\\n' +\n  'ℹ tests 1\\n' +\n  'ℹ suites 0\\n' +\n  'ℹ pass 1\\n' +\n  'ℹ fail 0\\n' +\n  'ℹ cancelled 0\\n' +\n  'ℹ skipped 0\\n' +\n  'ℹ todo 0\\n' +\n  'ℹ duration_ms 3.001416\\n'\n\n    at file:///Users/kjopek/Workspace/safe-bash/tests/integration/runtime-permission-independent-20260827/run.mjs:87:338\n    at check (file:///Users/kjopek/Workspace/safe-bash/tests/integration/runtime-permission-independent-20260827/run.mjs:32:53)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/integration/runtime-permission-independent-20260827/run.mjs:87:5"
+    },
+    {
+      "name": "v24.11.1 invalid admission and wildcard scopes refuse78",
+      "pass": true
+    },
+    {
+      "name": "real copied binary admitted by actual behavior and content identity",
+      "pass": true
+    },
+    {
+      "name": "actual post-admission binary mutation refuses78 before launch",
+      "pass": true
+    },
+    {
+      "name": "actual post-admission missing binary refuses78",
+      "pass": true
+    },
+    {
+      "name": "actual currentConsumers refuses unsupported selected runtime before build",
+      "pass": true
+    },
+    {
+      "name": "source policy both release catch paths propagate78",
+      "pass": true
+    },
+    {
+      "name": "source policy only import mapping differs from reviewed verifier",
+      "pass": true
+    }
+  ],
+  "children": [
+    {
+      "name": "unchanged-author-26",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "/private/tmp/permission-independent-L2Dl7J/author/tests/integration/runtime-permission-compatibility-20260827/controls.mjs",
+        "/tmp/permission-independent-L2Dl7J/author-results.json"
+      ],
+      "cwd": "/private/tmp/permission-independent-L2Dl7J/author",
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "{\"status\":\"author-controls-pass-independent-review-pending\",\"controls\":26,\"failures\":[],\"output\":\"/tmp/permission-independent-L2Dl7J/author-results.json\",\"temporaryRemoved\":true}\n",
+      "stderr": ""
+    },
+    {
+      "name": "fresh8670-build",
+      "executable": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+      "args": [
+        "node_modules/typescript/bin/tsc",
+        "-p",
+        "tsconfig.build.json"
+      ],
+      "cwd": "/private/tmp/permission-independent-L2Dl7J/build",
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "positive-v22.22.2",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--permission",
+        "--allow-fs-read=/private/tmp/permission-independent-L2Dl7J/v22.22.2/consumer",
+        "--allow-worker",
+        "--unhandled-rejections=strict",
+        "/private/tmp/permission-independent-L2Dl7J/v22.22.2/consumer/positive.mjs"
+      ],
+      "cwd": "/private/tmp/permission-independent-L2Dl7J/v22.22.2/consumer",
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "{\"execPath\":\"/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node\",\"version\":\"v22.22.2\",\"registry\":70,\"pipeline\":true,\"vfs\":true,\"worker\":true,\"sourceDenied\":true,\"writeDenied\":true}\n",
+      "stderr": "(node:88821) SecurityWarning: The flag --allow-worker must be used with extreme caution. It could invalidate the permission model.\n(Use `node --trace-warnings ...` to show where the warning was created)\n(node:88821) SecurityWarning: The flag --allow-worker must be used with extreme caution. It could invalidate the permission model.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+    },
+    {
+      "name": "read-v22.22.2",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--permission",
+        "--allow-fs-read=/private/tmp/permission-independent-L2Dl7J/v22.22.2/consumer",
+        "--allow-worker",
+        "--unhandled-rejections=strict",
+        "-e",
+        "require('node:fs').readFileSync(\"/private/tmp/permission-independent-L2Dl7J/v22.22.2/source/src/index.ts\")"
+      ],
+      "cwd": "/private/tmp/permission-independent-L2Dl7J/v22.22.2/consumer",
+      "status": 1,
+      "signal": null,
+      "error": null,
+      "stdout": "",
+      "stderr": "node:fs:560\n  return binding.open(\n                 ^\n\nError: Access to this API has been restricted. Use --allow-fs-read to manage permissions.\n    at Object.openSync (node:fs:560:18)\n    at Object.readFileSync (node:fs:444:35)\n    at [eval]:1:20\n    at runScriptInThisContext (node:internal/vm:209:10)\n    at node:internal/process/execution:446:12\n    at [eval]-wrapper:6:24\n    at runScriptInContext (node:internal/process/execution:444:60)\n    at evalFunction (node:internal/process/execution:279:30)\n    at evalTypeScript (node:internal/process/execution:291:3)\n    at node:internal/main/eval_string:74:3 {\n  code: 'ERR_ACCESS_DENIED',\n  permission: 'FileSystemRead',\n  resource: '/private/tmp/permission-independent-L2Dl7J/v22.22.2/source/src/index.ts'\n}\n\nNode.js v22.22.2\n"
+    },
+    {
+      "name": "write-v22.22.2",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--permission",
+        "--allow-fs-read=/private/tmp/permission-independent-L2Dl7J/v22.22.2/consumer",
+        "--allow-worker",
+        "--unhandled-rejections=strict",
+        "-e",
+        "require('node:fs').writeFileSync(\"/private/tmp/permission-independent-L2Dl7J/v22.22.2/consumer/forbidden-write\",'bad')"
+      ],
+      "cwd": "/private/tmp/permission-independent-L2Dl7J/v22.22.2/consumer",
+      "status": 1,
+      "signal": null,
+      "error": null,
+      "stdout": "",
+      "stderr": "node:fs:2430\n    return binding.writeFileUtf8(\n                   ^\n\nError: Access to this API has been restricted. Use --allow-fs-write to manage permissions.\n    at Object.writeFileSync (node:fs:2430:20)\n    at [eval]:1:20\n    at runScriptInThisContext (node:internal/vm:209:10)\n    at node:internal/process/execution:446:12\n    at [eval]-wrapper:6:24\n    at runScriptInContext (node:internal/process/execution:444:60)\n    at evalFunction (node:internal/process/execution:279:30)\n    at evalTypeScript (node:internal/process/execution:291:3)\n    at node:internal/main/eval_string:74:3 {\n  code: 'ERR_ACCESS_DENIED',\n  permission: 'FileSystemWrite',\n  resource: '/private/tmp/permission-independent-L2Dl7J/v22.22.2/consumer/forbidden-write'\n}\n\nNode.js v22.22.2\n"
+    },
+    {
+      "name": "source-import-v22.22.2",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--permission",
+        "--allow-fs-read=/private/tmp/permission-independent-L2Dl7J/v22.22.2/consumer",
+        "--allow-worker",
+        "--unhandled-rejections=strict",
+        "-e",
+        "import(\"file:///private/tmp/permission-independent-L2Dl7J/v22.22.2/source/src/index.ts\")"
+      ],
+      "cwd": "/private/tmp/permission-independent-L2Dl7J/v22.22.2/consumer",
+      "status": 1,
+      "signal": null,
+      "error": null,
+      "stdout": "",
+      "stderr": "(node:88830) SecurityWarning: The flag --allow-worker must be used with extreme caution. It could invalidate the permission model.\n(Use `node --trace-warnings ...` to show where the warning was created)\nnode:fs:560\n  return binding.open(\n                 ^\n\nError: Access to this API has been restricted. Use --allow-fs-read to manage permissions.\n    at Object.openSync (node:fs:560:18)\n    at readFileSync (node:fs:444:35)\n    at getSourceSync (node:internal/modules/esm/load:41:14)\n    at defaultLoad (node:internal/modules/esm/load:92:34)\n    at ModuleLoader.load (node:internal/modules/esm/loader:815:12)\n    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:594:31)\n    at #createModuleJob (node:internal/modules/esm/loader:624:36)\n    at #getJobFromResolveResult (node:internal/modules/esm/loader:343:34)\n    at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:311:41)\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5) {\n  code: 'ERR_ACCESS_DENIED',\n  permission: 'FileSystemRead',\n  resource: '/private/tmp/permission-independent-L2Dl7J/v22.22.2/source/src/index.ts'\n}\n\nNode.js v22.22.2\n"
+    },
+    {
+      "name": "no-permission-v22.22.2",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--unhandled-rejections=strict",
+        "/private/tmp/permission-independent-L2Dl7J/v22.22.2/consumer/positive.mjs"
+      ],
+      "cwd": "/private/tmp/permission-independent-L2Dl7J/v22.22.2/consumer",
+      "status": 1,
+      "signal": null,
+      "error": null,
+      "stdout": "",
+      "stderr": "node:internal/modules/run_main:123\n    triggerUncaughtException(\n    ^\n\nAssertionError [ERR_ASSERTION]: Missing expected exception.\n    at file:///private/tmp/permission-independent-L2Dl7J/v22.22.2/consumer/positive.mjs:1:597\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5) {\n  generatedMessage: false,\n  code: 'ERR_ASSERTION',\n  actual: undefined,\n  expected: { code: 'ERR_ACCESS_DENIED', permission: 'FileSystemRead' },\n  operator: 'throws',\n  diff: 'simple'\n}\n\nNode.js v22.22.2\n"
+    },
+    {
+      "name": "wide-read-v22.22.2",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--permission",
+        "--allow-fs-read=/private/tmp/permission-independent-L2Dl7J/v22.22.2",
+        "--allow-worker",
+        "--unhandled-rejections=strict",
+        "/private/tmp/permission-independent-L2Dl7J/v22.22.2/consumer/positive.mjs"
+      ],
+      "cwd": "/private/tmp/permission-independent-L2Dl7J/v22.22.2/consumer",
+      "status": 1,
+      "signal": null,
+      "error": null,
+      "stdout": "",
+      "stderr": "(node:88834) SecurityWarning: The flag --allow-worker must be used with extreme caution. It could invalidate the permission model.\n(Use `node --trace-warnings ...` to show where the warning was created)\nnode:internal/modules/run_main:123\n    triggerUncaughtException(\n    ^\n\nAssertionError [ERR_ASSERTION]: Missing expected exception.\n    at file:///private/tmp/permission-independent-L2Dl7J/v22.22.2/consumer/positive.mjs:1:597\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5) {\n  generatedMessage: false,\n  code: 'ERR_ASSERTION',\n  actual: undefined,\n  expected: { code: 'ERR_ACCESS_DENIED', permission: 'FileSystemRead' },\n  operator: 'throws',\n  diff: 'simple'\n}\n\nNode.js v22.22.2\n"
+    },
+    {
+      "name": "bad-flag-v22.22.2",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--definitely-not-a-node-flag",
+        "-e",
+        "0"
+      ],
+      "cwd": "/private/tmp/permission-independent-L2Dl7J/v22.22.2/consumer",
+      "status": 9,
+      "signal": null,
+      "error": null,
+      "stdout": "",
+      "stderr": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node: bad option: --definitely-not-a-node-flag\n"
+    },
+    {
+      "name": "plain-test-v22.22.2",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--permission",
+        "--allow-fs-read=/private/tmp/permission-independent-L2Dl7J/v22.22.2/consumer",
+        "--allow-worker",
+        "--unhandled-rejections=strict",
+        "/private/tmp/permission-independent-L2Dl7J/v22.22.2/consumer/tap.mjs"
+      ],
+      "cwd": "/private/tmp/permission-independent-L2Dl7J/v22.22.2/consumer",
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "TAP version 13\n# Subtest: real-body\nok 1 - real-body\n  ---\n  duration_ms: 0.24175\n  type: 'test'\n  ...\n1..1\n# tests 1\n# suites 0\n# pass 1\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 3.750209\n",
+      "stderr": "(node:88850) SecurityWarning: The flag --allow-worker must be used with extreme caution. It could invalidate the permission model.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+    },
+    {
+      "name": "positive-v24.11.1",
+      "executable": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+      "args": [
+        "--permission",
+        "--allow-fs-read=/private/tmp/permission-independent-L2Dl7J/v24.11.1/consumer",
+        "--allow-worker",
+        "--unhandled-rejections=strict",
+        "/private/tmp/permission-independent-L2Dl7J/v24.11.1/consumer/positive.mjs"
+      ],
+      "cwd": "/private/tmp/permission-independent-L2Dl7J/v24.11.1/consumer",
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "{\"execPath\":\"/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node\",\"version\":\"v24.11.1\",\"registry\":70,\"pipeline\":true,\"vfs\":true,\"worker\":true,\"sourceDenied\":true,\"writeDenied\":true}\n",
+      "stderr": "(node:88919) SecurityWarning: The flag --allow-worker must be used with extreme caution. It could invalidate the permission model.\n(Use `node --trace-warnings ...` to show where the warning was created)\n(node:88919) SecurityWarning: The flag --allow-worker must be used with extreme caution. It could invalidate the permission model.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+    },
+    {
+      "name": "read-v24.11.1",
+      "executable": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+      "args": [
+        "--permission",
+        "--allow-fs-read=/private/tmp/permission-independent-L2Dl7J/v24.11.1/consumer",
+        "--allow-worker",
+        "--unhandled-rejections=strict",
+        "-e",
+        "require('node:fs').readFileSync(\"/private/tmp/permission-independent-L2Dl7J/v24.11.1/source/src/index.ts\")"
+      ],
+      "cwd": "/private/tmp/permission-independent-L2Dl7J/v24.11.1/consumer",
+      "status": 1,
+      "signal": null,
+      "error": null,
+      "stdout": "",
+      "stderr": "node:fs:560\n  return binding.open(\n                 ^\n\nError: Access to this API has been restricted. Use --allow-fs-read to manage permissions.\n    at Object.openSync (node:fs:560:18)\n    at Object.readFileSync (node:fs:444:35)\n    at [eval]:1:20\n    at runScriptInThisContext (node:internal/vm:219:10)\n    at node:internal/process/execution:451:12\n    at [eval]-wrapper:6:24\n    at runScriptInContext (node:internal/process/execution:449:60)\n    at evalFunction (node:internal/process/execution:283:30)\n    at evalTypeScript (node:internal/process/execution:295:3)\n    at node:internal/main/eval_string:71:3 {\n  code: 'ERR_ACCESS_DENIED',\n  permission: 'FileSystemRead',\n  resource: '/private/tmp/permission-independent-L2Dl7J/v24.11.1/source/src/index.ts'\n}\n\nNode.js v24.11.1\n"
+    },
+    {
+      "name": "write-v24.11.1",
+      "executable": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+      "args": [
+        "--permission",
+        "--allow-fs-read=/private/tmp/permission-independent-L2Dl7J/v24.11.1/consumer",
+        "--allow-worker",
+        "--unhandled-rejections=strict",
+        "-e",
+        "require('node:fs').writeFileSync(\"/private/tmp/permission-independent-L2Dl7J/v24.11.1/consumer/forbidden-write\",'bad')"
+      ],
+      "cwd": "/private/tmp/permission-independent-L2Dl7J/v24.11.1/consumer",
+      "status": 1,
+      "signal": null,
+      "error": null,
+      "stdout": "",
+      "stderr": "node:fs:2415\n    return binding.writeFileUtf8(\n                   ^\n\nError: Access to this API has been restricted. Use --allow-fs-write to manage permissions.\n    at Object.writeFileSync (node:fs:2415:20)\n    at [eval]:1:20\n    at runScriptInThisContext (node:internal/vm:219:10)\n    at node:internal/process/execution:451:12\n    at [eval]-wrapper:6:24\n    at runScriptInContext (node:internal/process/execution:449:60)\n    at evalFunction (node:internal/process/execution:283:30)\n    at evalTypeScript (node:internal/process/execution:295:3)\n    at node:internal/main/eval_string:71:3 {\n  code: 'ERR_ACCESS_DENIED',\n  permission: 'FileSystemWrite',\n  resource: '/private/tmp/permission-independent-L2Dl7J/v24.11.1/consumer/forbidden-write'\n}\n\nNode.js v24.11.1\n"
+    },
+    {
+      "name": "source-import-v24.11.1",
+      "executable": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+      "args": [
+        "--permission",
+        "--allow-fs-read=/private/tmp/permission-independent-L2Dl7J/v24.11.1/consumer",
+        "--allow-worker",
+        "--unhandled-rejections=strict",
+        "-e",
+        "import(\"file:///private/tmp/permission-independent-L2Dl7J/v24.11.1/source/src/index.ts\")"
+      ],
+      "cwd": "/private/tmp/permission-independent-L2Dl7J/v24.11.1/consumer",
+      "status": 1,
+      "signal": null,
+      "error": null,
+      "stdout": "",
+      "stderr": "(node:89008) SecurityWarning: The flag --allow-worker must be used with extreme caution. It could invalidate the permission model.\n(Use `node --trace-warnings ...` to show where the warning was created)\nnode:fs:560\n  return binding.open(\n                 ^\n\nError: Access to this API has been restricted. Use --allow-fs-read to manage permissions.\n    at Object.openSync (node:fs:560:18)\n    at readFileSync (node:fs:444:35)\n    at getSourceSync (node:internal/modules/esm/load:37:14)\n    at defaultLoadSync (node:internal/modules/esm/load:153:34)\n    at ModuleLoader.load (node:internal/modules/esm/loader:821:12)\n    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:591:31)\n    at #createModuleJob (node:internal/modules/esm/loader:623:36)\n    at #getJobFromResolveResult (node:internal/modules/esm/loader:329:34)\n    at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:294:41)\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5) {\n  code: 'ERR_ACCESS_DENIED',\n  permission: 'FileSystemRead',\n  resource: '/private/tmp/permission-independent-L2Dl7J/v24.11.1/source/src/index.ts'\n}\n\nNode.js v24.11.1\n"
+    },
+    {
+      "name": "no-permission-v24.11.1",
+      "executable": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+      "args": [
+        "--unhandled-rejections=strict",
+        "/private/tmp/permission-independent-L2Dl7J/v24.11.1/consumer/positive.mjs"
+      ],
+      "cwd": "/private/tmp/permission-independent-L2Dl7J/v24.11.1/consumer",
+      "status": 1,
+      "signal": null,
+      "error": null,
+      "stdout": "",
+      "stderr": "node:internal/modules/run_main:107\n    triggerUncaughtException(\n    ^\n\nAssertionError [ERR_ASSERTION]: Missing expected exception.\n    at file:///private/tmp/permission-independent-L2Dl7J/v24.11.1/consumer/positive.mjs:1:597\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5) {\n  generatedMessage: false,\n  code: 'ERR_ASSERTION',\n  actual: undefined,\n  expected: { code: 'ERR_ACCESS_DENIED', permission: 'FileSystemRead' },\n  operator: 'throws',\n  diff: 'simple'\n}\n\nNode.js v24.11.1\n"
+    },
+    {
+      "name": "wide-read-v24.11.1",
+      "executable": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+      "args": [
+        "--permission",
+        "--allow-fs-read=/private/tmp/permission-independent-L2Dl7J/v24.11.1",
+        "--allow-worker",
+        "--unhandled-rejections=strict",
+        "/private/tmp/permission-independent-L2Dl7J/v24.11.1/consumer/positive.mjs"
+      ],
+      "cwd": "/private/tmp/permission-independent-L2Dl7J/v24.11.1/consumer",
+      "status": 1,
+      "signal": null,
+      "error": null,
+      "stdout": "",
+      "stderr": "(node:89044) SecurityWarning: The flag --allow-worker must be used with extreme caution. It could invalidate the permission model.\n(Use `node --trace-warnings ...` to show where the warning was created)\nnode:internal/modules/run_main:107\n    triggerUncaughtException(\n    ^\n\nAssertionError [ERR_ASSERTION]: Missing expected exception.\n    at file:///private/tmp/permission-independent-L2Dl7J/v24.11.1/consumer/positive.mjs:1:597\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5) {\n  generatedMessage: false,\n  code: 'ERR_ASSERTION',\n  actual: undefined,\n  expected: { code: 'ERR_ACCESS_DENIED', permission: 'FileSystemRead' },\n  operator: 'throws',\n  diff: 'simple'\n}\n\nNode.js v24.11.1\n"
+    },
+    {
+      "name": "bad-flag-v24.11.1",
+      "executable": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+      "args": [
+        "--definitely-not-a-node-flag",
+        "-e",
+        "0"
+      ],
+      "cwd": "/private/tmp/permission-independent-L2Dl7J/v24.11.1/consumer",
+      "status": 9,
+      "signal": null,
+      "error": null,
+      "stdout": "",
+      "stderr": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node: bad option: --definitely-not-a-node-flag\n"
+    },
+    {
+      "name": "plain-test-v24.11.1",
+      "executable": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+      "args": [
+        "--permission",
+        "--allow-fs-read=/private/tmp/permission-independent-L2Dl7J/v24.11.1/consumer",
+        "--allow-worker",
+        "--unhandled-rejections=strict",
+        "/private/tmp/permission-independent-L2Dl7J/v24.11.1/consumer/tap.mjs"
+      ],
+      "cwd": "/private/tmp/permission-independent-L2Dl7J/v24.11.1/consumer",
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "✔ real-body (0.463583ms)\nℹ tests 1\nℹ suites 0\nℹ pass 1\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 3.001416\n",
+      "stderr": "(node:89098) SecurityWarning: The flag --allow-worker must be used with extreme caution. It could invalidate the permission model.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+    },
+    {
+      "name": "early-currentConsumers",
+      "executable": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+      "args": [
+        "/private/tmp/permission-independent-L2Dl7J/early/probe.mjs"
+      ],
+      "cwd": "/private/tmp/permission-independent-L2Dl7J/early",
+      "status": 78,
+      "signal": null,
+      "error": null,
+      "stdout": "{\"exitCode\":78,\"steps\":[],\"buildRan\":false}\n",
+      "stderr": ""
+    }
+  ],
+  "admissions": [
+    {
+      "supported": true,
+      "refusalStatus": 78,
+      "probes": [
+        {
+          "command": [
+            "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+            "--input-type=module",
+            "-e",
+            "console.log(JSON.stringify({executable:process.execPath,version:process.version,platform:process.platform,arch:process.arch,flags:[\"--permission\",\"--experimental-permission\"].filter(flag=>process.allowedNodeEnvironmentFlags.has(flag))}))"
+          ],
+          "cwd": "/private/tmp/permission-independent-L2Dl7J/v22.22.2",
+          "status": 0,
+          "signal": null,
+          "stdout": "{\"executable\":\"/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node\",\"version\":\"v22.22.2\",\"platform\":\"darwin\",\"arch\":\"arm64\",\"flags\":[\"--permission\",\"--experimental-permission\"]}\n",
+          "stderr": ""
+        },
+        {
+          "command": [
+            "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+            "--permission",
+            "--allow-fs-read=/private/tmp/permission-independent-L2Dl7J/v22.22.2/permission-probe",
+            "--allow-worker",
+            "--unhandled-rejections=strict",
+            "--input-type=module",
+            "-e",
+            "import assert from 'node:assert/strict'; import {readFileSync,writeFileSync} from 'node:fs'; assert.equal(readFileSync(\"/private/tmp/permission-independent-L2Dl7J/v22.22.2/permission-probe/allowed.txt\",'utf8'),'permission-positive\\n'); assert.equal(process.permission.has('fs.read',\"/private/tmp/permission-independent-L2Dl7J/v22.22.2/source/src/index.ts\"),false); assert.throws(()=>writeFileSync(\"/private/tmp/permission-independent-L2Dl7J/v22.22.2/permission-probe/allowed.txt\",'changed'),{code:'ERR_ACCESS_DENIED',permission:'FileSystemWrite'}); console.log(JSON.stringify({executable:process.execPath,version:process.version,read:true,writeDenied:true}));"
+          ],
+          "cwd": "/private/tmp/permission-independent-L2Dl7J/v22.22.2/permission-probe",
+          "status": 0,
+          "signal": null,
+          "stdout": "{\"executable\":\"/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node\",\"version\":\"v22.22.2\",\"read\":true,\"writeDenied\":true}\n",
+          "stderr": "(node:88815) SecurityWarning: The flag --allow-worker must be used with extreme caution. It could invalidate the permission model.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+        },
+        {
+          "command": [
+            "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+            "--permission",
+            "--allow-fs-read=/private/tmp/permission-independent-L2Dl7J/v22.22.2/permission-probe",
+            "--allow-worker",
+            "--unhandled-rejections=strict",
+            "--input-type=module",
+            "-e",
+            "import {readFileSync} from 'node:fs'; readFileSync(\"/private/tmp/permission-independent-L2Dl7J/v22.22.2/source/src/index.ts\");"
+          ],
+          "cwd": "/private/tmp/permission-independent-L2Dl7J/v22.22.2/permission-probe",
+          "status": 1,
+          "signal": null,
+          "stdout": "",
+          "stderr": "(node:88817) SecurityWarning: The flag --allow-worker must be used with extreme caution. It could invalidate the permission model.\n(Use `node --trace-warnings ...` to show where the warning was created)\nnode:fs:560\n  return binding.open(\n                 ^\n\nError: Access to this API has been restricted. Use --allow-fs-read to manage permissions.\n    at Object.openSync (node:fs:560:18)\n    at readFileSync (node:fs:444:35)\n    at file:///private/tmp/permission-independent-L2Dl7J/v22.22.2/permission-probe/[eval1]:1:39\n    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:272:26)\n    at async ModuleLoader.executeModuleJob (node:internal/modules/esm/loader:268:20)\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5) {\n  code: 'ERR_ACCESS_DENIED',\n  permission: 'FileSystemRead',\n  resource: '/private/tmp/permission-independent-L2Dl7J/v22.22.2/source/src/index.ts'\n}\n\nNode.js v22.22.2\n"
+        }
+      ],
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+      "identity": {
+        "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "version": "v22.22.2",
+        "platform": "darwin",
+        "arch": "arm64",
+        "flags": [
+          "--permission",
+          "--experimental-permission"
+        ]
+      },
+      "flag": "--permission"
+    },
+    {
+      "supported": true,
+      "refusalStatus": 78,
+      "probes": [
+        {
+          "command": [
+            "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+            "--input-type=module",
+            "-e",
+            "console.log(JSON.stringify({executable:process.execPath,version:process.version,platform:process.platform,arch:process.arch,flags:[\"--permission\",\"--experimental-permission\"].filter(flag=>process.allowedNodeEnvironmentFlags.has(flag))}))"
+          ],
+          "cwd": "/private/tmp/permission-independent-L2Dl7J/v24.11.1",
+          "status": 0,
+          "signal": null,
+          "stdout": "{\"executable\":\"/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node\",\"version\":\"v24.11.1\",\"platform\":\"darwin\",\"arch\":\"arm64\",\"flags\":[\"--permission\"]}\n",
+          "stderr": ""
+        },
+        {
+          "command": [
+            "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+            "--permission",
+            "--allow-fs-read=/private/tmp/permission-independent-L2Dl7J/v24.11.1/permission-probe",
+            "--allow-worker",
+            "--unhandled-rejections=strict",
+            "--input-type=module",
+            "-e",
+            "import assert from 'node:assert/strict'; import {readFileSync,writeFileSync} from 'node:fs'; assert.equal(readFileSync(\"/private/tmp/permission-independent-L2Dl7J/v24.11.1/permission-probe/allowed.txt\",'utf8'),'permission-positive\\n'); assert.equal(process.permission.has('fs.read',\"/private/tmp/permission-independent-L2Dl7J/v24.11.1/source/src/index.ts\"),false); assert.throws(()=>writeFileSync(\"/private/tmp/permission-independent-L2Dl7J/v24.11.1/permission-probe/allowed.txt\",'changed'),{code:'ERR_ACCESS_DENIED',permission:'FileSystemWrite'}); console.log(JSON.stringify({executable:process.execPath,version:process.version,read:true,writeDenied:true}));"
+          ],
+          "cwd": "/private/tmp/permission-independent-L2Dl7J/v24.11.1/permission-probe",
+          "status": 0,
+          "signal": null,
+          "stdout": "{\"executable\":\"/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node\",\"version\":\"v24.11.1\",\"read\":true,\"writeDenied\":true}\n",
+          "stderr": "(node:88887) SecurityWarning: The flag --allow-worker must be used with extreme caution. It could invalidate the permission model.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+        },
+        {
+          "command": [
+            "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+            "--permission",
+            "--allow-fs-read=/private/tmp/permission-independent-L2Dl7J/v24.11.1/permission-probe",
+            "--allow-worker",
+            "--unhandled-rejections=strict",
+            "--input-type=module",
+            "-e",
+            "import {readFileSync} from 'node:fs'; readFileSync(\"/private/tmp/permission-independent-L2Dl7J/v24.11.1/source/src/index.ts\");"
+          ],
+          "cwd": "/private/tmp/permission-independent-L2Dl7J/v24.11.1/permission-probe",
+          "status": 1,
+          "signal": null,
+          "stdout": "",
+          "stderr": "(node:88888) SecurityWarning: The flag --allow-worker must be used with extreme caution. It could invalidate the permission model.\n(Use `node --trace-warnings ...` to show where the warning was created)\nnode:fs:560\n  return binding.open(\n                 ^\n\nError: Access to this API has been restricted. Use --allow-fs-read to manage permissions.\n    at Object.openSync (node:fs:560:18)\n    at readFileSync (node:fs:444:35)\n    at file:///private/tmp/permission-independent-L2Dl7J/v24.11.1/permission-probe/[eval1]:1:39\n    at ModuleJob.run (node:internal/modules/esm/module_job:377:25)\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:254:26)\n    at async ModuleLoader.executeModuleJob (node:internal/modules/esm/loader:251:20)\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:101:5) {\n  code: 'ERR_ACCESS_DENIED',\n  permission: 'FileSystemRead',\n  resource: '/private/tmp/permission-independent-L2Dl7J/v24.11.1/source/src/index.ts'\n}\n\nNode.js v24.11.1\n"
+        }
+      ],
+      "executable": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+      "sha256": "4255a388254ca4319e2f95f1da375d5deaddf25baf9c7c85070b67f9543b15d0",
+      "identity": {
+        "executable": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+        "version": "v24.11.1",
+        "platform": "darwin",
+        "arch": "arm64",
+        "flags": [
+          "--permission"
+        ]
+      },
+      "flag": "--permission"
+    }
+  ],
+  "importMap": [
+    {
+      "specifier": "../tests/plugins/stream-five-public/harness.mjs",
+      "replacement": "file:///private/tmp/permission-independent-L2Dl7J/frozen8670/tests/plugins/stream-five-public/harness.mjs",
+      "commit": "8670ebe8f0d39966c2de2638780437398e5f8490",
+      "path": "tests/plugins/stream-five-public/harness.mjs"
+    },
+    {
+      "specifier": "../tests/plugins/stream-five-public/current-profile.mjs",
+      "replacement": "file:///private/tmp/permission-independent-L2Dl7J/frozen8670/tests/plugins/stream-five-public/current-profile.mjs",
+      "commit": "8670ebe8f0d39966c2de2638780437398e5f8490",
+      "path": "tests/plugins/stream-five-public/current-profile.mjs"
+    },
+    {
+      "specifier": "../tests/plugins/qualified-current-release/consumers.mjs",
+      "replacement": "file:///private/tmp/permission-independent-L2Dl7J/frozen8670/tests/plugins/qualified-current-release/consumers.mjs",
+      "commit": "8670ebe8f0d39966c2de2638780437398e5f8490",
+      "path": "tests/plugins/qualified-current-release/consumers.mjs"
+    },
+    {
+      "specifier": "../tests/plugins/qualified-current-release/runtime-coverage.mjs",
+      "replacement": "file:///private/tmp/permission-independent-L2Dl7J/frozen8670/tests/plugins/qualified-current-release/runtime-coverage.mjs",
+      "commit": "8670ebe8f0d39966c2de2638780437398e5f8490",
+      "path": "tests/plugins/qualified-current-release/runtime-coverage.mjs"
+    },
+    {
+      "specifier": "../tests/plugins/qualified-current-release/snapshot.mjs",
+      "replacement": "file:///private/tmp/permission-independent-L2Dl7J/frozen8670/tests/plugins/qualified-current-release/snapshot.mjs",
+      "commit": "8670ebe8f0d39966c2de2638780437398e5f8490",
+      "path": "tests/plugins/qualified-current-release/snapshot.mjs"
+    }
+  ],
+  "fullRuntimeGroupsExecuted": false,
+  "privateAccess": false,
+  "author": {
+    "candidate": "8670ebe8f0d39966c2de2638780437398e5f8490",
+    "source": {
+      "scripts/verify-current-consumers.mjs": "0877c045fb2c7feb093903ae528ddc518c7d371a73460f69f3ccf853938ed632",
+      "scripts/verify-qualified-release.mjs": "830043ed51632f12ea1049ef0ed8d4fa369519ef4d3cc3fb7c3a797fc6f69768"
+    },
+    "profiles": [
+      {
+        "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "version": "v22.22.2",
+        "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+        "admission": {
+          "supported": true,
+          "refusalStatus": 78,
+          "probes": [
+            {
+              "command": [
+                "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+                "--input-type=module",
+                "-e",
+                "console.log(JSON.stringify({executable:process.execPath,version:process.version,platform:process.platform,arch:process.arch,flags:[\"--permission\",\"--experimental-permission\"].filter(flag=>process.allowedNodeEnvironmentFlags.has(flag))}))"
+              ],
+              "cwd": "/private/tmp/safe-bash-permission-controls-zoMOsO/v22.22.2",
+              "status": 0,
+              "signal": null,
+              "stdout": "{\"executable\":\"/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node\",\"version\":\"v22.22.2\",\"platform\":\"darwin\",\"arch\":\"arm64\",\"flags\":[\"--permission\",\"--experimental-permission\"]}\n",
+              "stderr": ""
+            },
+            {
+              "command": [
+                "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+                "--permission",
+                "--allow-fs-read=/private/tmp/safe-bash-permission-controls-zoMOsO/v22.22.2/permission-probe",
+                "--allow-worker",
+                "--unhandled-rejections=strict",
+                "--input-type=module",
+                "-e",
+                "import assert from 'node:assert/strict'; import {readFileSync,writeFileSync} from 'node:fs'; assert.equal(readFileSync(\"/private/tmp/safe-bash-permission-controls-zoMOsO/v22.22.2/permission-probe/allowed.txt\",'utf8'),'permission-positive\\n'); assert.equal(process.permission.has('fs.read',\"/private/tmp/safe-bash-permission-controls-zoMOsO/v22.22.2/source/src/index.ts\"),false); assert.throws(()=>writeFileSync(\"/private/tmp/safe-bash-permission-controls-zoMOsO/v22.22.2/permission-probe/allowed.txt\",'changed'),{code:'ERR_ACCESS_DENIED',permission:'FileSystemWrite'}); console.log(JSON.stringify({executable:process.execPath,version:process.version,read:true,writeDenied:true}));"
+              ],
+              "cwd": "/private/tmp/safe-bash-permission-controls-zoMOsO/v22.22.2/permission-probe",
+              "status": 0,
+              "signal": null,
+              "stdout": "{\"executable\":\"/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node\",\"version\":\"v22.22.2\",\"read\":true,\"writeDenied\":true}\n",
+              "stderr": "(node:88555) SecurityWarning: The flag --allow-worker must be used with extreme caution. It could invalidate the permission model.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+            },
+            {
+              "command": [
+                "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+                "--permission",
+                "--allow-fs-read=/private/tmp/safe-bash-permission-controls-zoMOsO/v22.22.2/permission-probe",
+                "--allow-worker",
+                "--unhandled-rejections=strict",
+                "--input-type=module",
+                "-e",
+                "import {readFileSync} from 'node:fs'; readFileSync(\"/private/tmp/safe-bash-permission-controls-zoMOsO/v22.22.2/source/src/index.ts\");"
+              ],
+              "cwd": "/private/tmp/safe-bash-permission-controls-zoMOsO/v22.22.2/permission-probe",
+              "status": 1,
+              "signal": null,
+              "stdout": "",
+              "stderr": "(node:88557) SecurityWarning: The flag --allow-worker must be used with extreme caution. It could invalidate the permission model.\n(Use `node --trace-warnings ...` to show where the warning was created)\nnode:fs:560\n  return binding.open(\n                 ^\n\nError: Access to this API has been restricted. Use --allow-fs-read to manage permissions.\n    at Object.openSync (node:fs:560:18)\n    at readFileSync (node:fs:444:35)\n    at file:///private/tmp/safe-bash-permission-controls-zoMOsO/v22.22.2/permission-probe/[eval1]:1:39\n    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:272:26)\n    at async ModuleLoader.executeModuleJob (node:internal/modules/esm/loader:268:20)\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5) {\n  code: 'ERR_ACCESS_DENIED',\n  permission: 'FileSystemRead',\n  resource: '/private/tmp/safe-bash-permission-controls-zoMOsO/v22.22.2/source/src/index.ts'\n}\n\nNode.js v22.22.2\n"
+            }
+          ],
+          "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+          "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+          "identity": {
+            "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+            "version": "v22.22.2",
+            "platform": "darwin",
+            "arch": "arm64",
+            "flags": [
+              "--permission",
+              "--experimental-permission"
+            ]
+          },
+          "flag": "--permission"
+        },
+        "executions": [
+          {
+            "name": "packed-positive",
+            "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+            "args": [
+              "--permission",
+              "--allow-fs-read=/private/tmp/safe-bash-permission-controls-zoMOsO/v22.22.2/consumer",
+              "--allow-worker",
+              "--unhandled-rejections=strict",
+              "/private/tmp/safe-bash-permission-controls-zoMOsO/v22.22.2/consumer/positive.mjs"
+            ],
+            "cwd": "/private/tmp/safe-bash-permission-controls-zoMOsO/v22.22.2/consumer",
+            "status": 0,
+            "signal": null,
+            "stdout": "{\"version\":\"v22.22.2\",\"executable\":\"/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node\",\"pipeline\":true,\"vfs\":true,\"sourceDenied\":true,\"hostWriteDenied\":true}\n",
+            "stderr": "(node:88569) SecurityWarning: The flag --allow-worker must be used with extreme caution. It could invalidate the permission model.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+          },
+          {
+            "name": "uncaught-source-denial",
+            "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+            "args": [
+              "--permission",
+              "--allow-fs-read=/private/tmp/safe-bash-permission-controls-zoMOsO/v22.22.2/consumer",
+              "--input-type=module",
+              "-e",
+              "import {readFileSync} from 'node:fs'; readFileSync(\"/private/tmp/safe-bash-permission-controls-zoMOsO/v22.22.2/source/src/index.ts\");"
+            ],
+            "cwd": "/private/tmp/safe-bash-permission-controls-zoMOsO/v22.22.2/consumer",
+            "status": 1,
+            "signal": null,
+            "stdout": "",
+            "stderr": "node:fs:560\n  return binding.open(\n                 ^\n\nError: Access to this API has been restricted. Use --allow-fs-read to manage permissions.\n    at Object.openSync (node:fs:560:18)\n    at readFileSync (node:fs:444:35)\n    at file:///private/tmp/safe-bash-permission-controls-zoMOsO/v22.22.2/consumer/[eval1]:1:39\n    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:272:26)\n    at async ModuleLoader.executeModuleJob (node:internal/modules/esm/loader:268:20)\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5) {\n  code: 'ERR_ACCESS_DENIED',\n  permission: 'FileSystemRead',\n  resource: '/private/tmp/safe-bash-permission-controls-zoMOsO/v22.22.2/source/src/index.ts'\n}\n\nNode.js v22.22.2\n"
+          },
+          {
+            "name": "permission-removal-mutant",
+            "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+            "args": [
+              "--allow-fs-read=/private/tmp/safe-bash-permission-controls-zoMOsO/v22.22.2/consumer",
+              "--allow-worker",
+              "--unhandled-rejections=strict",
+              "/private/tmp/safe-bash-permission-controls-zoMOsO/v22.22.2/consumer/positive.mjs"
+            ],
+            "cwd": "/private/tmp/safe-bash-permission-controls-zoMOsO/v22.22.2/consumer",
+            "status": 1,
+            "signal": null,
+            "stdout": "",
+            "stderr": "node:internal/process/pre_execution:693\n        throw new ERR_MISSING_OPTION('--permission');\n        ^\n\nTypeError [ERR_MISSING_OPTION]: --permission is required\n    at node:internal/process/pre_execution:693:15\n    at Array.forEach (<anonymous>)\n    at initializePermission (node:internal/process/pre_execution:690:5)\n    at prepareExecution (node:internal/process/pre_execution:120:3)\n    at prepareMainThreadExecution (node:internal/process/pre_execution:53:10)\n    at node:internal/main/run_main_module:15:19 {\n  code: 'ERR_MISSING_OPTION'\n}\n\nNode.js v22.22.2\n"
+          },
+          {
+            "name": "all-permissions-removal-mutant",
+            "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+            "args": [
+              "--unhandled-rejections=strict",
+              "/private/tmp/safe-bash-permission-controls-zoMOsO/v22.22.2/consumer/positive.mjs"
+            ],
+            "cwd": "/private/tmp/safe-bash-permission-controls-zoMOsO/v22.22.2/consumer",
+            "status": 1,
+            "signal": null,
+            "stdout": "",
+            "stderr": "node:internal/modules/run_main:123\n    triggerUncaughtException(\n    ^\n\nAssertionError [ERR_ASSERTION]: Missing expected exception.\n    at file:///private/tmp/safe-bash-permission-controls-zoMOsO/v22.22.2/consumer/positive.mjs:4:8 {\n  generatedMessage: false,\n  code: 'ERR_ASSERTION',\n  actual: undefined,\n  expected: { code: 'ERR_ACCESS_DENIED', permission: 'FileSystemRead' },\n  operator: 'throws',\n  diff: 'simple'\n}\n\nNode.js v22.22.2\n"
+          },
+          {
+            "name": "scope-widening-mutant",
+            "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+            "args": [
+              "--permission",
+              "--allow-fs-read=/private/tmp/safe-bash-permission-controls-zoMOsO/v22.22.2",
+              "--allow-worker",
+              "--unhandled-rejections=strict",
+              "/private/tmp/safe-bash-permission-controls-zoMOsO/v22.22.2/consumer/positive.mjs"
+            ],
+            "cwd": "/private/tmp/safe-bash-permission-controls-zoMOsO/v22.22.2/consumer",
+            "status": 1,
+            "signal": null,
+            "stdout": "",
+            "stderr": "(node:88592) SecurityWarning: The flag --allow-worker must be used with extreme caution. It could invalidate the permission model.\n(Use `node --trace-warnings ...` to show where the warning was created)\nnode:internal/modules/run_main:123\n    triggerUncaughtException(\n    ^\n\nAssertionError [ERR_ASSERTION]: Missing expected exception.\n    at file:///private/tmp/safe-bash-permission-controls-zoMOsO/v22.22.2/consumer/positive.mjs:4:8\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5) {\n  generatedMessage: false,\n  code: 'ERR_ASSERTION',\n  actual: undefined,\n  expected: { code: 'ERR_ACCESS_DENIED', permission: 'FileSystemRead' },\n  operator: 'throws',\n  diff: 'simple'\n}\n\nNode.js v22.22.2\n"
+          }
+        ]
+      },
+      {
+        "executable": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+        "version": "v24.11.1",
+        "sha256": "4255a388254ca4319e2f95f1da375d5deaddf25baf9c7c85070b67f9543b15d0",
+        "admission": {
+          "supported": true,
+          "refusalStatus": 78,
+          "probes": [
+            {
+              "command": [
+                "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+                "--input-type=module",
+                "-e",
+                "console.log(JSON.stringify({executable:process.execPath,version:process.version,platform:process.platform,arch:process.arch,flags:[\"--permission\",\"--experimental-permission\"].filter(flag=>process.allowedNodeEnvironmentFlags.has(flag))}))"
+              ],
+              "cwd": "/private/tmp/safe-bash-permission-controls-zoMOsO/v24.11.1",
+              "status": 0,
+              "signal": null,
+              "stdout": "{\"executable\":\"/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node\",\"version\":\"v24.11.1\",\"platform\":\"darwin\",\"arch\":\"arm64\",\"flags\":[\"--permission\"]}\n",
+              "stderr": ""
+            },
+            {
+              "command": [
+                "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+                "--permission",
+                "--allow-fs-read=/private/tmp/safe-bash-permission-controls-zoMOsO/v24.11.1/permission-probe",
+                "--allow-worker",
+                "--unhandled-rejections=strict",
+                "--input-type=module",
+                "-e",
+                "import assert from 'node:assert/strict'; import {readFileSync,writeFileSync} from 'node:fs'; assert.equal(readFileSync(\"/private/tmp/safe-bash-permission-controls-zoMOsO/v24.11.1/permission-probe/allowed.txt\",'utf8'),'permission-positive\\n'); assert.equal(process.permission.has('fs.read',\"/private/tmp/safe-bash-permission-controls-zoMOsO/v24.11.1/source/src/index.ts\"),false); assert.throws(()=>writeFileSync(\"/private/tmp/safe-bash-permission-controls-zoMOsO/v24.11.1/permission-probe/allowed.txt\",'changed'),{code:'ERR_ACCESS_DENIED',permission:'FileSystemWrite'}); console.log(JSON.stringify({executable:process.execPath,version:process.version,read:true,writeDenied:true}));"
+              ],
+              "cwd": "/private/tmp/safe-bash-permission-controls-zoMOsO/v24.11.1/permission-probe",
+              "status": 0,
+              "signal": null,
+              "stdout": "{\"executable\":\"/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node\",\"version\":\"v24.11.1\",\"read\":true,\"writeDenied\":true}\n",
+              "stderr": "(node:88608) SecurityWarning: The flag --allow-worker must be used with extreme caution. It could invalidate the permission model.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+            },
+            {
+              "command": [
+                "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+                "--permission",
+                "--allow-fs-read=/private/tmp/safe-bash-permission-controls-zoMOsO/v24.11.1/permission-probe",
+                "--allow-worker",
+                "--unhandled-rejections=strict",
+                "--input-type=module",
+                "-e",
+                "import {readFileSync} from 'node:fs'; readFileSync(\"/private/tmp/safe-bash-permission-controls-zoMOsO/v24.11.1/source/src/index.ts\");"
+              ],
+              "cwd": "/private/tmp/safe-bash-permission-controls-zoMOsO/v24.11.1/permission-probe",
+              "status": 1,
+              "signal": null,
+              "stdout": "",
+              "stderr": "(node:88609) SecurityWarning: The flag --allow-worker must be used with extreme caution. It could invalidate the permission model.\n(Use `node --trace-warnings ...` to show where the warning was created)\nnode:fs:560\n  return binding.open(\n                 ^\n\nError: Access to this API has been restricted. Use --allow-fs-read to manage permissions.\n    at Object.openSync (node:fs:560:18)\n    at readFileSync (node:fs:444:35)\n    at file:///private/tmp/safe-bash-permission-controls-zoMOsO/v24.11.1/permission-probe/[eval1]:1:39\n    at ModuleJob.run (node:internal/modules/esm/module_job:377:25)\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:254:26)\n    at async ModuleLoader.executeModuleJob (node:internal/modules/esm/loader:251:20)\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:101:5) {\n  code: 'ERR_ACCESS_DENIED',\n  permission: 'FileSystemRead',\n  resource: '/private/tmp/safe-bash-permission-controls-zoMOsO/v24.11.1/source/src/index.ts'\n}\n\nNode.js v24.11.1\n"
+            }
+          ],
+          "executable": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+          "sha256": "4255a388254ca4319e2f95f1da375d5deaddf25baf9c7c85070b67f9543b15d0",
+          "identity": {
+            "executable": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+            "version": "v24.11.1",
+            "platform": "darwin",
+            "arch": "arm64",
+            "flags": [
+              "--permission"
+            ]
+          },
+          "flag": "--permission"
+        },
+        "executions": [
+          {
+            "name": "packed-positive",
+            "executable": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+            "args": [
+              "--permission",
+              "--allow-fs-read=/private/tmp/safe-bash-permission-controls-zoMOsO/v24.11.1/consumer",
+              "--allow-worker",
+              "--unhandled-rejections=strict",
+              "/private/tmp/safe-bash-permission-controls-zoMOsO/v24.11.1/consumer/positive.mjs"
+            ],
+            "cwd": "/private/tmp/safe-bash-permission-controls-zoMOsO/v24.11.1/consumer",
+            "status": 0,
+            "signal": null,
+            "stdout": "{\"version\":\"v24.11.1\",\"executable\":\"/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node\",\"pipeline\":true,\"vfs\":true,\"sourceDenied\":true,\"hostWriteDenied\":true}\n",
+            "stderr": "(node:88622) SecurityWarning: The flag --allow-worker must be used with extreme caution. It could invalidate the permission model.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+          },
+          {
+            "name": "uncaught-source-denial",
+            "executable": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+            "args": [
+              "--permission",
+              "--allow-fs-read=/private/tmp/safe-bash-permission-controls-zoMOsO/v24.11.1/consumer",
+              "--input-type=module",
+              "-e",
+              "import {readFileSync} from 'node:fs'; readFileSync(\"/private/tmp/safe-bash-permission-controls-zoMOsO/v24.11.1/source/src/index.ts\");"
+            ],
+            "cwd": "/private/tmp/safe-bash-permission-controls-zoMOsO/v24.11.1/consumer",
+            "status": 1,
+            "signal": null,
+            "stdout": "",
+            "stderr": "node:fs:560\n  return binding.open(\n                 ^\n\nError: Access to this API has been restricted. Use --allow-fs-read to manage permissions.\n    at Object.openSync (node:fs:560:18)\n    at readFileSync (node:fs:444:35)\n    at file:///private/tmp/safe-bash-permission-controls-zoMOsO/v24.11.1/consumer/[eval1]:1:39\n    at ModuleJob.run (node:internal/modules/esm/module_job:377:25)\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:254:26)\n    at async ModuleLoader.executeModuleJob (node:internal/modules/esm/loader:251:20)\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:101:5) {\n  code: 'ERR_ACCESS_DENIED',\n  permission: 'FileSystemRead',\n  resource: '/private/tmp/safe-bash-permission-controls-zoMOsO/v24.11.1/source/src/index.ts'\n}\n\nNode.js v24.11.1\n"
+          },
+          {
+            "name": "permission-removal-mutant",
+            "executable": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+            "args": [
+              "--allow-fs-read=/private/tmp/safe-bash-permission-controls-zoMOsO/v24.11.1/consumer",
+              "--allow-worker",
+              "--unhandled-rejections=strict",
+              "/private/tmp/safe-bash-permission-controls-zoMOsO/v24.11.1/consumer/positive.mjs"
+            ],
+            "cwd": "/private/tmp/safe-bash-permission-controls-zoMOsO/v24.11.1/consumer",
+            "status": 1,
+            "signal": null,
+            "stdout": "",
+            "stderr": "node:internal/process/pre_execution:656\n        throw new ERR_MISSING_OPTION('--permission');\n        ^\n\nTypeError [ERR_MISSING_OPTION]: --permission is required\n    at node:internal/process/pre_execution:656:15\n    at Array.forEach (<anonymous>)\n    at initializePermission (node:internal/process/pre_execution:653:5)\n    at prepareExecution (node:internal/process/pre_execution:128:3)\n    at prepareMainThreadExecution (node:internal/process/pre_execution:46:10)\n    at node:internal/main/run_main_module:15:19 {\n  code: 'ERR_MISSING_OPTION'\n}\n\nNode.js v24.11.1\n"
+          },
+          {
+            "name": "all-permissions-removal-mutant",
+            "executable": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+            "args": [
+              "--unhandled-rejections=strict",
+              "/private/tmp/safe-bash-permission-controls-zoMOsO/v24.11.1/consumer/positive.mjs"
+            ],
+            "cwd": "/private/tmp/safe-bash-permission-controls-zoMOsO/v24.11.1/consumer",
+            "status": 1,
+            "signal": null,
+            "stdout": "",
+            "stderr": "node:internal/modules/run_main:107\n    triggerUncaughtException(\n    ^\n\nAssertionError [ERR_ASSERTION]: Missing expected exception.\n    at file:///private/tmp/safe-bash-permission-controls-zoMOsO/v24.11.1/consumer/positive.mjs:4:8 {\n  generatedMessage: false,\n  code: 'ERR_ASSERTION',\n  actual: undefined,\n  expected: { code: 'ERR_ACCESS_DENIED', permission: 'FileSystemRead' },\n  operator: 'throws',\n  diff: 'simple'\n}\n\nNode.js v24.11.1\n"
+          },
+          {
+            "name": "scope-widening-mutant",
+            "executable": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+            "args": [
+              "--permission",
+              "--allow-fs-read=/private/tmp/safe-bash-permission-controls-zoMOsO/v24.11.1",
+              "--allow-worker",
+              "--unhandled-rejections=strict",
+              "/private/tmp/safe-bash-permission-controls-zoMOsO/v24.11.1/consumer/positive.mjs"
+            ],
+            "cwd": "/private/tmp/safe-bash-permission-controls-zoMOsO/v24.11.1/consumer",
+            "status": 1,
+            "signal": null,
+            "stdout": "",
+            "stderr": "(node:88632) SecurityWarning: The flag --allow-worker must be used with extreme caution. It could invalidate the permission model.\n(Use `node --trace-warnings ...` to show where the warning was created)\nnode:internal/modules/run_main:107\n    triggerUncaughtException(\n    ^\n\nAssertionError [ERR_ASSERTION]: Missing expected exception.\n    at file:///private/tmp/safe-bash-permission-controls-zoMOsO/v24.11.1/consumer/positive.mjs:4:8\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5) {\n  generatedMessage: false,\n  code: 'ERR_ASSERTION',\n  actual: undefined,\n  expected: { code: 'ERR_ACCESS_DENIED', permission: 'FileSystemRead' },\n  operator: 'throws',\n  diff: 'simple'\n}\n\nNode.js v24.11.1\n"
+          }
+        ]
+      },
+      {
+        "negative": "no-mode",
+        "admission": {
+          "supported": false,
+          "refusalStatus": 78,
+          "probes": [
+            {
+              "command": [
+                "/private/tmp/safe-bash-permission-controls-zoMOsO/no-mode/fake-node",
+                "--input-type=module",
+                "-e",
+                "console.log(JSON.stringify({executable:process.execPath,version:process.version,platform:process.platform,arch:process.arch,flags:[\"--permission\",\"--experimental-permission\"].filter(flag=>process.allowedNodeEnvironmentFlags.has(flag))}))"
+              ],
+              "cwd": "/private/tmp/safe-bash-permission-controls-zoMOsO/no-mode",
+              "status": 0,
+              "signal": null,
+              "stdout": "{\"executable\":\"/private/tmp/safe-bash-permission-controls-zoMOsO/no-mode/fake-node\",\"version\":\"negative-control\",\"flags\":[]}\n",
+              "stderr": ""
+            }
+          ],
+          "executable": "/private/tmp/safe-bash-permission-controls-zoMOsO/no-mode/fake-node",
+          "sha256": "13dea24bc62dcbe3f8f36e6459a3195a4866b1011a25e46babae673f780a8843",
+          "identity": {
+            "executable": "/private/tmp/safe-bash-permission-controls-zoMOsO/no-mode/fake-node",
+            "version": "negative-control",
+            "flags": []
+          },
+          "reason": "Actual child binary exposes no supported permission mode"
+        }
+      },
+      {
+        "negative": "unknown-option",
+        "admission": {
+          "supported": false,
+          "refusalStatus": 78,
+          "probes": [
+            {
+              "command": [
+                "/private/tmp/safe-bash-permission-controls-zoMOsO/unknown-option/fake-node",
+                "--input-type=module",
+                "-e",
+                "console.log(JSON.stringify({executable:process.execPath,version:process.version,platform:process.platform,arch:process.arch,flags:[\"--permission\",\"--experimental-permission\"].filter(flag=>process.allowedNodeEnvironmentFlags.has(flag))}))"
+              ],
+              "cwd": "/private/tmp/safe-bash-permission-controls-zoMOsO/unknown-option",
+              "status": 0,
+              "signal": null,
+              "stdout": "{\"executable\":\"/private/tmp/safe-bash-permission-controls-zoMOsO/unknown-option/fake-node\",\"version\":\"negative-control\",\"flags\":[\"--permission\"]}\n",
+              "stderr": ""
+            },
+            {
+              "command": [
+                "/private/tmp/safe-bash-permission-controls-zoMOsO/unknown-option/fake-node",
+                "--permission",
+                "--allow-fs-read=/private/tmp/safe-bash-permission-controls-zoMOsO/unknown-option/permission-probe",
+                "--allow-worker",
+                "--unhandled-rejections=strict",
+                "--input-type=module",
+                "-e",
+                "import assert from 'node:assert/strict'; import {readFileSync,writeFileSync} from 'node:fs'; assert.equal(readFileSync(\"/private/tmp/safe-bash-permission-controls-zoMOsO/unknown-option/permission-probe/allowed.txt\",'utf8'),'permission-positive\\n'); assert.equal(process.permission.has('fs.read',\"/private/tmp/safe-bash-permission-controls-zoMOsO/unknown-option/source/src/index.ts\"),false); assert.throws(()=>writeFileSync(\"/private/tmp/safe-bash-permission-controls-zoMOsO/unknown-option/permission-probe/allowed.txt\",'changed'),{code:'ERR_ACCESS_DENIED',permission:'FileSystemWrite'}); console.log(JSON.stringify({executable:process.execPath,version:process.version,read:true,writeDenied:true}));"
+              ],
+              "cwd": "/private/tmp/safe-bash-permission-controls-zoMOsO/unknown-option/permission-probe",
+              "status": 9,
+              "signal": null,
+              "stdout": "",
+              "stderr": "bad option: --permission\n"
+            }
+          ],
+          "executable": "/private/tmp/safe-bash-permission-controls-zoMOsO/unknown-option/fake-node",
+          "sha256": "525467ab3c50348c8faa49864b0d5b2b53e93a2b72c47c89bcef4642de2a220f",
+          "identity": {
+            "executable": "/private/tmp/safe-bash-permission-controls-zoMOsO/unknown-option/fake-node",
+            "version": "negative-control",
+            "flags": [
+              "--permission"
+            ]
+          },
+          "flag": "--permission",
+          "reason": "Permission positive/read-write probe must execute\n\n9 !== 0\n"
+        }
+      },
+      {
+        "negative": "permissive",
+        "admission": {
+          "supported": false,
+          "refusalStatus": 78,
+          "probes": [
+            {
+              "command": [
+                "/private/tmp/safe-bash-permission-controls-zoMOsO/permissive/fake-node",
+                "--input-type=module",
+                "-e",
+                "console.log(JSON.stringify({executable:process.execPath,version:process.version,platform:process.platform,arch:process.arch,flags:[\"--permission\",\"--experimental-permission\"].filter(flag=>process.allowedNodeEnvironmentFlags.has(flag))}))"
+              ],
+              "cwd": "/private/tmp/safe-bash-permission-controls-zoMOsO/permissive",
+              "status": 0,
+              "signal": null,
+              "stdout": "{\"executable\":\"/private/tmp/safe-bash-permission-controls-zoMOsO/permissive/fake-node\",\"version\":\"negative-control\",\"flags\":[\"--permission\"]}\n",
+              "stderr": ""
+            },
+            {
+              "command": [
+                "/private/tmp/safe-bash-permission-controls-zoMOsO/permissive/fake-node",
+                "--permission",
+                "--allow-fs-read=/private/tmp/safe-bash-permission-controls-zoMOsO/permissive/permission-probe",
+                "--allow-worker",
+                "--unhandled-rejections=strict",
+                "--input-type=module",
+                "-e",
+                "import assert from 'node:assert/strict'; import {readFileSync,writeFileSync} from 'node:fs'; assert.equal(readFileSync(\"/private/tmp/safe-bash-permission-controls-zoMOsO/permissive/permission-probe/allowed.txt\",'utf8'),'permission-positive\\n'); assert.equal(process.permission.has('fs.read',\"/private/tmp/safe-bash-permission-controls-zoMOsO/permissive/source/src/index.ts\"),false); assert.throws(()=>writeFileSync(\"/private/tmp/safe-bash-permission-controls-zoMOsO/permissive/permission-probe/allowed.txt\",'changed'),{code:'ERR_ACCESS_DENIED',permission:'FileSystemWrite'}); console.log(JSON.stringify({executable:process.execPath,version:process.version,read:true,writeDenied:true}));"
+              ],
+              "cwd": "/private/tmp/safe-bash-permission-controls-zoMOsO/permissive/permission-probe",
+              "status": 0,
+              "signal": null,
+              "stdout": "{\"executable\":\"/private/tmp/safe-bash-permission-controls-zoMOsO/permissive/fake-node\",\"version\":\"negative-control\",\"read\":true,\"writeDenied\":true}\n",
+              "stderr": ""
+            },
+            {
+              "command": [
+                "/private/tmp/safe-bash-permission-controls-zoMOsO/permissive/fake-node",
+                "--permission",
+                "--allow-fs-read=/private/tmp/safe-bash-permission-controls-zoMOsO/permissive/permission-probe",
+                "--allow-worker",
+                "--unhandled-rejections=strict",
+                "--input-type=module",
+                "-e",
+                "import {readFileSync} from 'node:fs'; readFileSync(\"/private/tmp/safe-bash-permission-controls-zoMOsO/permissive/source/src/index.ts\");"
+              ],
+              "cwd": "/private/tmp/safe-bash-permission-controls-zoMOsO/permissive/permission-probe",
+              "status": 0,
+              "signal": null,
+              "stdout": "",
+              "stderr": "ERR_ACCESS_DENIED FileSystemRead wrong-resource\n"
+            }
+          ],
+          "executable": "/private/tmp/safe-bash-permission-controls-zoMOsO/permissive/fake-node",
+          "sha256": "69f1a748f0c94a60f68d04e77adaf0c182e7903737425e2f4fd396bacb34fc1e",
+          "identity": {
+            "executable": "/private/tmp/safe-bash-permission-controls-zoMOsO/permissive/fake-node",
+            "version": "negative-control",
+            "flags": [
+              "--permission"
+            ]
+          },
+          "flag": "--permission",
+          "reason": "Unknown options or startup failures are not permission denial\n\n0 !== 1\n"
+        }
+      },
+      {
+        "negative": "wrong-resource",
+        "admission": {
+          "supported": false,
+          "refusalStatus": 78,
+          "probes": [
+            {
+              "command": [
+                "/private/tmp/safe-bash-permission-controls-zoMOsO/wrong-resource/fake-node",
+                "--input-type=module",
+                "-e",
+                "console.log(JSON.stringify({executable:process.execPath,version:process.version,platform:process.platform,arch:process.arch,flags:[\"--permission\",\"--experimental-permission\"].filter(flag=>process.allowedNodeEnvironmentFlags.has(flag))}))"
+              ],
+              "cwd": "/private/tmp/safe-bash-permission-controls-zoMOsO/wrong-resource",
+              "status": 0,
+              "signal": null,
+              "stdout": "{\"executable\":\"/private/tmp/safe-bash-permission-controls-zoMOsO/wrong-resource/fake-node\",\"version\":\"negative-control\",\"flags\":[\"--permission\"]}\n",
+              "stderr": ""
+            },
+            {
+              "command": [
+                "/private/tmp/safe-bash-permission-controls-zoMOsO/wrong-resource/fake-node",
+                "--permission",
+                "--allow-fs-read=/private/tmp/safe-bash-permission-controls-zoMOsO/wrong-resource/permission-probe",
+                "--allow-worker",
+                "--unhandled-rejections=strict",
+                "--input-type=module",
+                "-e",
+                "import assert from 'node:assert/strict'; import {readFileSync,writeFileSync} from 'node:fs'; assert.equal(readFileSync(\"/private/tmp/safe-bash-permission-controls-zoMOsO/wrong-resource/permission-probe/allowed.txt\",'utf8'),'permission-positive\\n'); assert.equal(process.permission.has('fs.read',\"/private/tmp/safe-bash-permission-controls-zoMOsO/wrong-resource/source/src/index.ts\"),false); assert.throws(()=>writeFileSync(\"/private/tmp/safe-bash-permission-controls-zoMOsO/wrong-resource/permission-probe/allowed.txt\",'changed'),{code:'ERR_ACCESS_DENIED',permission:'FileSystemWrite'}); console.log(JSON.stringify({executable:process.execPath,version:process.version,read:true,writeDenied:true}));"
+              ],
+              "cwd": "/private/tmp/safe-bash-permission-controls-zoMOsO/wrong-resource/permission-probe",
+              "status": 0,
+              "signal": null,
+              "stdout": "{\"executable\":\"/private/tmp/safe-bash-permission-controls-zoMOsO/wrong-resource/fake-node\",\"version\":\"negative-control\",\"read\":true,\"writeDenied\":true}\n",
+              "stderr": ""
+            },
+            {
+              "command": [
+                "/private/tmp/safe-bash-permission-controls-zoMOsO/wrong-resource/fake-node",
+                "--permission",
+                "--allow-fs-read=/private/tmp/safe-bash-permission-controls-zoMOsO/wrong-resource/permission-probe",
+                "--allow-worker",
+                "--unhandled-rejections=strict",
+                "--input-type=module",
+                "-e",
+                "import {readFileSync} from 'node:fs'; readFileSync(\"/private/tmp/safe-bash-permission-controls-zoMOsO/wrong-resource/source/src/index.ts\");"
+              ],
+              "cwd": "/private/tmp/safe-bash-permission-controls-zoMOsO/wrong-resource/permission-probe",
+              "status": 1,
+              "signal": null,
+              "stdout": "",
+              "stderr": "ERR_ACCESS_DENIED FileSystemRead wrong-resource\n"
+            }
+          ],
+          "executable": "/private/tmp/safe-bash-permission-controls-zoMOsO/wrong-resource/fake-node",
+          "sha256": "a3501f5858de68e44097ccff2dc70584ea34207d0d01156955afcaf186a7397e",
+          "identity": {
+            "executable": "/private/tmp/safe-bash-permission-controls-zoMOsO/wrong-resource/fake-node",
+            "version": "negative-control",
+            "flags": [
+              "--permission"
+            ]
+          },
+          "flag": "--permission",
+          "reason": "The expression evaluated to a falsy value:\n\n  assert.ok(denied.stderr.includes(forbidden))\n"
+        }
+      },
+      {
+        "negative": "fake-code9",
+        "admission": {
+          "supported": false,
+          "refusalStatus": 78,
+          "probes": [
+            {
+              "command": [
+                "/private/tmp/safe-bash-permission-controls-zoMOsO/fake-code9/fake-node",
+                "--input-type=module",
+                "-e",
+                "console.log(JSON.stringify({executable:process.execPath,version:process.version,platform:process.platform,arch:process.arch,flags:[\"--permission\",\"--experimental-permission\"].filter(flag=>process.allowedNodeEnvironmentFlags.has(flag))}))"
+              ],
+              "cwd": "/private/tmp/safe-bash-permission-controls-zoMOsO/fake-code9",
+              "status": 0,
+              "signal": null,
+              "stdout": "{\"executable\":\"/private/tmp/safe-bash-permission-controls-zoMOsO/fake-code9/fake-node\",\"version\":\"negative-control\",\"flags\":[\"--permission\"]}\n",
+              "stderr": ""
+            },
+            {
+              "command": [
+                "/private/tmp/safe-bash-permission-controls-zoMOsO/fake-code9/fake-node",
+                "--permission",
+                "--allow-fs-read=/private/tmp/safe-bash-permission-controls-zoMOsO/fake-code9/permission-probe",
+                "--allow-worker",
+                "--unhandled-rejections=strict",
+                "--input-type=module",
+                "-e",
+                "import assert from 'node:assert/strict'; import {readFileSync,writeFileSync} from 'node:fs'; assert.equal(readFileSync(\"/private/tmp/safe-bash-permission-controls-zoMOsO/fake-code9/permission-probe/allowed.txt\",'utf8'),'permission-positive\\n'); assert.equal(process.permission.has('fs.read',\"/private/tmp/safe-bash-permission-controls-zoMOsO/fake-code9/source/src/index.ts\"),false); assert.throws(()=>writeFileSync(\"/private/tmp/safe-bash-permission-controls-zoMOsO/fake-code9/permission-probe/allowed.txt\",'changed'),{code:'ERR_ACCESS_DENIED',permission:'FileSystemWrite'}); console.log(JSON.stringify({executable:process.execPath,version:process.version,read:true,writeDenied:true}));"
+              ],
+              "cwd": "/private/tmp/safe-bash-permission-controls-zoMOsO/fake-code9/permission-probe",
+              "status": 0,
+              "signal": null,
+              "stdout": "{\"executable\":\"/private/tmp/safe-bash-permission-controls-zoMOsO/fake-code9/fake-node\",\"version\":\"negative-control\",\"read\":true,\"writeDenied\":true}\n",
+              "stderr": ""
+            },
+            {
+              "command": [
+                "/private/tmp/safe-bash-permission-controls-zoMOsO/fake-code9/fake-node",
+                "--permission",
+                "--allow-fs-read=/private/tmp/safe-bash-permission-controls-zoMOsO/fake-code9/permission-probe",
+                "--allow-worker",
+                "--unhandled-rejections=strict",
+                "--input-type=module",
+                "-e",
+                "import {readFileSync} from 'node:fs'; readFileSync(\"/private/tmp/safe-bash-permission-controls-zoMOsO/fake-code9/source/src/index.ts\");"
+              ],
+              "cwd": "/private/tmp/safe-bash-permission-controls-zoMOsO/fake-code9/permission-probe",
+              "status": 9,
+              "signal": null,
+              "stdout": "",
+              "stderr": "ERR_ACCESS_DENIED FileSystemRead wrong-resource\n"
+            }
+          ],
+          "executable": "/private/tmp/safe-bash-permission-controls-zoMOsO/fake-code9/fake-node",
+          "sha256": "c97ddaa8fd4341c5c7bfa1a07210dfdd8543482196c8f5dca0a8472fb6666230",
+          "identity": {
+            "executable": "/private/tmp/safe-bash-permission-controls-zoMOsO/fake-code9/fake-node",
+            "version": "negative-control",
+            "flags": [
+              "--permission"
+            ]
+          },
+          "flag": "--permission",
+          "reason": "Unknown options or startup failures are not permission denial\n\n9 !== 1\n"
+        }
+      }
+    ],
+    "controls": [
+      {
+        "name": "v22.22.2: actual binary identity and behavior select stable permission flag",
+        "status": "pass"
+      },
+      {
+        "name": "v22.22.2: actual packed public pipeline and VFS with denied host read/write",
+        "status": "pass"
+      },
+      {
+        "name": "v22.22.2: uncaught source denial executes, not unknown-option refusal",
+        "status": "pass"
+      },
+      {
+        "name": "v22.22.2: flag-only removal refuses startup with exact missing-option code",
+        "status": "pass"
+      },
+      {
+        "name": "v22.22.2: full permission-removal mutant executes and fails public source denial",
+        "status": "pass"
+      },
+      {
+        "name": "v22.22.2: actual scope-widening mutant fails public source assertion",
+        "status": "pass"
+      },
+      {
+        "name": "v22.22.2: per-launch changed-hash admission refused78",
+        "status": "pass"
+      },
+      {
+        "name": "v22.22.2: unsupported admission refused78",
+        "status": "pass"
+      },
+      {
+        "name": "v22.22.2: worker/strict flags retained and read grant not broadened",
+        "status": "pass"
+      },
+      {
+        "name": "v24.11.1: actual binary identity and behavior select stable permission flag",
+        "status": "pass"
+      },
+      {
+        "name": "v24.11.1: actual packed public pipeline and VFS with denied host read/write",
+        "status": "pass"
+      },
+      {
+        "name": "v24.11.1: uncaught source denial executes, not unknown-option refusal",
+        "status": "pass"
+      },
+      {
+        "name": "v24.11.1: flag-only removal refuses startup with exact missing-option code",
+        "status": "pass"
+      },
+      {
+        "name": "v24.11.1: full permission-removal mutant executes and fails public source denial",
+        "status": "pass"
+      },
+      {
+        "name": "v24.11.1: actual scope-widening mutant fails public source assertion",
+        "status": "pass"
+      },
+      {
+        "name": "v24.11.1: per-launch changed-hash admission refused78",
+        "status": "pass"
+      },
+      {
+        "name": "v24.11.1: unsupported admission refused78",
+        "status": "pass"
+      },
+      {
+        "name": "v24.11.1: worker/strict flags retained and read grant not broadened",
+        "status": "pass"
+      },
+      {
+        "name": "no-mode: truthful admission refusal78 without consumer execution",
+        "status": "pass"
+      },
+      {
+        "name": "unknown-option: truthful admission refusal78 without consumer execution",
+        "status": "pass"
+      },
+      {
+        "name": "permissive: truthful admission refusal78 without consumer execution",
+        "status": "pass"
+      },
+      {
+        "name": "wrong-resource: truthful admission refusal78 without consumer execution",
+        "status": "pass"
+      },
+      {
+        "name": "fake-code9: truthful admission refusal78 without consumer execution",
+        "status": "pass"
+      },
+      {
+        "name": "source policy: actual-child admission precedes build",
+        "status": "pass"
+      },
+      {
+        "name": "source policy: current and aggregate CLI preserve refusal78",
+        "status": "pass"
+      },
+      {
+        "name": "source policy: exact final denial and runtime result coverage retained",
+        "status": "pass"
+      }
+    ],
+    "failures": [],
+    "privateAccess": false,
+    "fullConsumerInventoryExecuted": false,
+    "packageSha256": "96d8256f3d763caa5442ba27b44e6b1f586d82d83d07d7d10369bed12426b5c1",
+    "temporaryRemoved": true,
+    "status": "author-controls-pass-independent-review-pending"
+  },
+  "verifierOriginalSha256": "0877c045fb2c7feb093903ae528ddc518c7d371a73460f69f3ccf853938ed632",
+  "verifierTransformedSha256": "e32daea725b2f166188db71d1df13451522e869bcbb5e558df57d2ca5d928a7c",
+  "packageSha256": "96d8256f3d763caa5442ba27b44e6b1f586d82d83d07d7d10369bed12426b5c1",
+  "freshDistSha256": "1d1899870b37b51824f7d23c7c5e11255418f4555679373e62d33409de566252",
+  "cleaned": true,
+  "finishedAt": "2026-08-27T15:58:53.461Z",
+  "counts": {
+    "independent": 30,
+    "pass": 29,
+    "fail": 1
+  }
+}

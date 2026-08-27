@@ -1,0 +1,14 @@
+{
+  "started": "2026-08-27T06:20:36.081Z",
+  "finished": "2026-08-27T06:20:37.420Z",
+  "command": "node",
+  "args": [
+    "tests/commands/regex-execution/followup/package.mjs"
+  ],
+  "status": 0,
+  "signal": null,
+  "stdoutSha256": "64a9fbb45d839c7b381a9a99df487dbe9ff288578b1f88b0a9e1cdd6e8c8971b",
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "sourceChangedDuringRun": [],
+  "afterHead": "cf1d1f0a5eb3e63022132b3414dc6b8b9624b760"
+}

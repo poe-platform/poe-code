@@ -1,0 +1,118 @@
+TAP version 13
+# Subtest: utimes rejects accepted property with changed observable timestamp binding
+not ok 1 - utimes rejects accepted property with changed observable timestamp binding
+  ---
+  duration_ms: 10.621708
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/real-service/timestamp-postcondition.test.ts:1:1669'
+  failureType: 'testCodeFailure'
+  error: 'Missing expected rejection.'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    code: 'EAGAIN'
+    syscall: 'utimes'
+    path: '/directory'
+  operator: 'rejects'
+  stack: |-
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/real-service/timestamp-postcondition.test.ts:35:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# Subtest: utimes rejects accepted property with omitted observable timestamp binding
+not ok 2 - utimes rejects accepted property with omitted observable timestamp binding
+  ---
+  duration_ms: 0.682833
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/real-service/timestamp-postcondition.test.ts:1:1669'
+  failureType: 'testCodeFailure'
+  error: 'Missing expected rejection.'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    code: 'EAGAIN'
+    syscall: 'utimes'
+    path: '/directory'
+  operator: 'rejects'
+  stack: |-
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/real-service/timestamp-postcondition.test.ts:35:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: utimes validates a stable successful property exactly once without retry
+not ok 3 - utimes validates a stable successful property exactly once without retry
+  ---
+  duration_ms: 0.905416
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/real-service/timestamp-postcondition.test.ts:1:1991'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+      [
+        'PROPFIND',
+        'PROPPATCH',
+    -   'PROPFIND'
+      ]
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    0: 'PROPFIND'
+    1: 'PROPPATCH'
+    2: 'PROPFIND'
+  actual:
+    0: 'PROPFIND'
+    1: 'PROPPATCH'
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/real-service/timestamp-postcondition.test.ts:43:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: utimes postcondition preserves denied instead of returning success
+not ok 4 - utimes postcondition preserves denied instead of returning success
+  ---
+  duration_ms: 0.544125
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/real-service/timestamp-postcondition.test.ts:1:2281'
+  failureType: 'testCodeFailure'
+  error: 'Missing expected rejection.'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    code: 'EACCES'
+  operator: 'rejects'
+  stack: |-
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/real-service/timestamp-postcondition.test.ts:49:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: utimes postcondition preserves abort instead of returning success
+not ok 5 - utimes postcondition preserves abort instead of returning success
+  ---
+  duration_ms: 1.041167
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/real-service/timestamp-postcondition.test.ts:1:2281'
+  failureType: 'testCodeFailure'
+  error: 'Missing expected rejection.'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    code: 'ECANCELED'
+  operator: 'rejects'
+  stack: |-
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/real-service/timestamp-postcondition.test.ts:49:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+1..5
+# tests 5
+# suites 0
+# pass 0
+# fail 5
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 134.564459

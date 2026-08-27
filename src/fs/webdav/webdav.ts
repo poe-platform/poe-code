@@ -918,6 +918,10 @@ export class WebDavFileSystem implements FileSystem {
       const code = statusCode(result);
       if (code !== 200) this.httpError(code, "PROPPATCH", path);
     }, stat.type === "directory");
+    const updated = await this.stat(path, options);
+    if (updated.atimeMs !== atimeMs || updated.mtimeMs !== mtimeMs) {
+      fail("EAGAIN", "utimes", path, "server did not retain requested timestamps for the current representation");
+    }
   }
   async truncate(path: string, _length?: number, _options: FsOptions = {}): Promise<void> { this.unsupported("truncate", path); }
 }

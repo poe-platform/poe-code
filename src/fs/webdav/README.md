@@ -225,6 +225,13 @@ metadata. Malformed successful properties fail with `EIO`, not guessed values.
 Another adapter instance can read the same persisted values. No instance-local
 timestamp map substitutes for a server mutation.
 
+After an accepted PROPPATCH, one additional stat verifies both requested times.
+A changed validator or omitted/changed property that prevents observing those
+times reports `EAGAIN`, rather than silent success. There is no retry or rollback:
+the property write may already have occurred. This bounded postcondition check
+is not a lease against later changes. In particular, providers whose first
+directory property write changes that directory's ETag may reject this workflow.
+
 This is a virtual metadata extension, **not** an attempt to change the server's
 protected `DAV:getlastmodified`, HTTP Last-Modified, or native filesystem atime.
 Reads do not automatically advance atime. Providers must support arbitrary

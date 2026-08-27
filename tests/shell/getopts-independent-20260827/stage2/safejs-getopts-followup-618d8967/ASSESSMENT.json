@@ -1,0 +1,16 @@
+{
+  "candidate": "618d8967009117547ab476256bc6eb0a9463309a",
+  "scope": "NONBLOCKING_BOUNDED_GETOPTS_GUEST_FOLLOWUP",
+  "distinctProbes": { "completePass": 1, "denominator": 2, "incomplete": 1 },
+  "actualEngineAttempts": { "pass": 1, "nonpass": 2, "total": 3 },
+  "correctedCohort": [
+    { "id": "G1", "classification": "PASS", "completedGuestAssertions": 4, "expectedBuiltinCalls": 4, "observedBuiltinCalls": 4, "expectedBridgeCalls": 1, "observedBridgeCalls": 1 },
+    { "id": "G2", "classification": "GUEST_ASSERTION_REJECTION_ON_UNSUPPORTED_EXPORT_LISTING", "rawSupervisorClassification": "INFRASTRUCTURE_NONPASS", "rawSupervisorClassificationLimitation": "Thrown run leaves engine field null; this does not mean guest or builtin did not execute", "completedGuestAssertionMarker": false, "expectedBuiltinCalls": 5, "observedBuiltinCalls": 4, "expectedBridgeCalls": 2, "observedBridgeCalls": 1, "firstScriptStateLinesMatchFrozenExpectation": true, "stateLineAssertionReachedInGuest": false, "bridgeUnexportedDefaultsProven": false, "freshSecondBridgeExecProven": false, "bridgeApiCannotExpressProbe": false }
+  ],
+  "confirmedGetoptsSourceDefects": 0,
+  "observedGeneralShellLimitation": "export -p is rejected by candidate; bare export listing exists by post-run source inspection, not rerun",
+  "laterRerunOrSourceFix": false,
+  "rawRecordsRewritten": false,
+  "generic25ReplayedOrRescored": false,
+  "componentAcceptanceBlocker": false
+}

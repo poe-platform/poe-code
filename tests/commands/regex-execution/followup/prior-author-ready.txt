@@ -1,0 +1,90 @@
+PRODUCTION AUTHOR READY — PARTIAL CONTENT-MATCHER BATCH, NOT DEFAULT ACCEPTANCE
+Date: 2026-08-27. Source edits STOP after this marker pending root/independent
+findings. No subagents used. No additional files beyond authorized production
+paths and specifically authorized option wiring/type-only export were edited.
+
+Commits:
+expectations 1a9b20d (frozen before production edits)
+source b1939d76b8e28687320a7253380a00b446424548
+evidence/report 35249954c1994940a8a89bad295ab34e4285bbee
+Owned paths clean after commits. Other-owner changes/index/native artifacts
+preserved. Independent baseline-ready was read before any production edit.
+
+REMAINING ACCEPTANCE BLOCKER: search/glob.ts:57 constructs and :61/:64 executes
+untrusted CLI/ignore-file regex on host through search/walk.ts. Root explicitly
+instructed do not edit those files pending user's ownership expansion. No walker
+copy or workflow disabling workaround. Broad no-host-regex/default acceptance
+remains BLOCKED. Different verifier must assess even the scoped content batch.
+
+Exact public API:
+import { Shell, MemoryFileSystem, standardCommands, searchCommands,
+  type RegexExecutionOptions } from 'virtual-bash';
+const regex: RegexExecutionOptions = {
+  requestTimeoutMs: 1000, startupTimeoutMs: 3000, maxWorkers: 2
+};
+const shell = new Shell({fs: new MemoryFileSystem()})
+  .use(standardCommands({regex})).use(searchCommands({regex}));
+await shell.exec("printf 'cat\\n' | grep -E 'c.t' | rg cat -");
+await shell.dispose();
+Also createStandardCommands({regex}) / createSearchCommands({regex}).
+
+All content construction/validation/fragment variants/matching worker-only;
+static compiled Node22 ESM assets, no eval/FS/network/subprocess in matching.
+Per configured definition default maxWorkers2 including terminating workers;
+FIFO64 waiting requests /128MiB accounted descriptors+input, idle retirement100ms,
+requested V8 oldgen128MiB/stack4MiB (NOT RSS). Timers activeREQUEST1000/startup3000,
+not Shell/cumulative budgets. Typed internal RegexExecutionError codes; queue
+exhaustion explicit, caller cancellation preserved, exact worker awaited cleanup.
+Request leases released before source/sink/VFS; no idle invocation pinning.
+No private descriptor-session call/input/output limits. One cache per worker.
+Ordinary batching targets128 records/64KiB, single oversized record intact;
+no new chunk fill reads, no arbitrary anchorsplit. Early-stop q/l/L/m/binary
+paths single-record; default ordinary multirow resource failure rejects batch.
+Named rg backreference behavior preserved and documented, not rejected/migrated.
+
+Validation: final scoped730/730 = author56 + existing674; no failures/skips/TODO.
+Build passes; scoped types pass; moved actual PRODUCT package bare-ESM runtime
+and public declarations pass. Earlier unrelated build/global-type failures kept.
+Earlier author Shell fixture error, existing rg match-budget prefix regression
+and four q/m dispatch regressions retained beside unchanged fixed expectations.
+No original native golden changes. Audit confirms659 historical artifact hashes.
+
+Final executor cohort17 exact Workers: zero active BEFORE safety cleanup, zero
+remaining owned listeners. Final package consumer8 exact Workers, all terminated
+once/threadId -1, zero active/listeners. Idle-exit child proves unref non-pinning
+separately from awaited retirement. No process groups/broad kills/artifact removal.
+All owned package children exit0; ignored package snapshots retained for review.
+
+Three small packaging cohorts (initial/final/handoff) preserved, 6 complete benign
+timings each =18 total author observations. ONLY final6 describe this source;
+matching exact expected input/output hashes, startup separate, three/tool in
+alternating order. Final grep12.61–18.50ms, rg12.42–13.88ms, worker startup about
+10.77–12.65ms. No baseline ratio/large duplicate bench/superiority claim; independent
+owns head-to-head measurement. Current Node22.22.2 DarwinARM64/cohost-load caveat.
+
+Risk: author production0/2 USED; no pathological baseline/worker measurement or
+warmup/fuzz. Default1000 inspected, not outwaited. 25ms failure-path controls use
+benign withheld ready/replies only. Historical12 untouched, previousrevision0;
+independentmax4 remains separate, no transfer/retries. No approval refusal.
+
+Source SHA256:
+src/commands/regex-execution/client.ts e34c7d7e9ea0a4e1e8a6faef102c4553b0a7a21461f33066e3fdbb57f81f071d
+src/commands/regex-execution/worker.ts 75ecf3769458cb67872ad8b560491cff28e4735b9f0005a508565d520da709ea
+src/commands/regex-execution/protocol.ts 90abb84b235d6828d4194ea4a749910d128f66387a083767d153c680b9eeac33
+src/commands/regex-execution/matching.ts cae9d51946013e8ea98c80b764c210dcdc2fb7fabb44d5b94bef851eeeb55497
+src/commands/grep.ts 529c84fa5b3a603881fc0844691f2b2c3bd1e9e9cba13fd3bf80a51ad3072f74
+src/commands/search/matcher.ts db1d257b12c3cd11a2c8335fd2b56a3959e95c9a301cd8ed6d3dc16e9744989e
+src/commands/search/rg.ts 6c7f37b46f491b3567b32cd673654d398e3749c4f17689154ac15c67700d69a6
+src/commands/search/options.ts 8e0bd7dea4d395e36ec8ffb6edc8712e3dfacab7cde8e928d8947c7c8aeb5fbf
+src/commands/index.ts 67a0e34ea9a8518d2349b4707ef5214e9da0de790ea5c1973daac71dabc70aa9
+src/index.ts 59feca270ddb39073148032b6d53225b932979faaeb5f244158eff44bd347ff2
+Product tarball SHA25631ed4fbddc7c22b00fb9acb0d5213c8be08a323e4cb0a9079970278b2c48c4dd
+
+Report/API/limits: tests/commands/regex-execution/REPORT.md and
+src/commands/regex-execution/README.md.
+Exact emitted/assets/commands/source/status identities:
+tests/commands/regex-execution/package-handoff-evidence.json and audit.json.
+Final run: scoped-handoff.tap. Evidence scripts are no-overwrite; don't rerun
+existing labels. Static benign harnesses reusable with new evidence ownership.
+No full-project/fullgate/default acceptance, universal parity, superiority or
+72-hour completion claim. Source edits now STOP.

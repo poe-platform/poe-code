@@ -1,0 +1,22 @@
+import { spawnSync } from "node:child_process";
+import { createHash } from "node:crypto";
+import { readFileSync, writeFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
+
+const [label, command, ...args] = process.argv.slice(2);
+if (!label || !/^[a-z-]+$/u.test(label) || !command) throw new Error("supply unique lowercase label and command");
+const root = fileURLToPath(new URL("../../../../", import.meta.url));
+const base = fileURLToPath(new URL("./", import.meta.url));
+const git = (...options) => spawnSync("git", options, { cwd: root, encoding: "utf8" }).stdout;
+const digest = bytes => createHash("sha256").update(bytes).digest("hex");
+const paths = git("ls-files", "src").trim().split("\n");
+const sourceHashes = Object.fromEntries(paths.map(path => [path, digest(readFileSync(`${root}${path}`))]));
+const started = new Date().toISOString();
+const before = { head: git("rev-parse", "HEAD").trim(), status: git("status", "--short"), sourceHashes };
+writeFileSync(`${base}${label}.claim.json`, JSON.stringify({ started, command, args, before }, null, 2) + "\n", { flag: "wx" });
+const result = spawnSync(command, args, { cwd: root, encoding: "utf8", timeout: 120000, maxBuffer: 16 * 1024 * 1024 });
+writeFileSync(`${base}${label}.stdout.txt`, result.stdout ?? "", { flag: "wx" });
+writeFileSync(`${base}${label}.stderr.txt`, result.stderr ?? "", { flag: "wx" });
+writeFileSync(`${base}${label}.result.json`, JSON.stringify({ started, finished: new Date().toISOString(), command, args, status: result.status, signal: result.signal, error: result.error?.message, stdoutSha256: digest(result.stdout ?? ""), stderrSha256: digest(result.stderr ?? ""), sourceChangedDuringRun: paths.filter(path => sourceHashes[path] !== digest(readFileSync(`${root}${path}`))), afterHead: git("rev-parse", "HEAD").trim() }, null, 2) + "\n", { flag: "wx" });
+console.log(JSON.stringify({ label, status: result.status, signal: result.signal, stdout: result.stdout, stderr: result.stderr }));
+process.exitCode = result.status ?? 1;

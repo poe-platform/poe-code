@@ -1,0 +1,115 @@
+{
+  "schema": 1,
+  "classification": "frozen-independent-intentions-not-execution-results",
+  "logicalCaseCount": 16,
+  "adaptedOriginalCaseCount": 5,
+  "newLogicalCaseCount": 11,
+  "innerDeadlineMs": 1200,
+  "originalChildDeadlineMs": 3000,
+  "originalChildMaxOutputBytes": 1048576,
+  "frozenConstants": {
+    "pipeline": "producer | head -n 0; true",
+    "borrowedChunksUtf8": ["first\n", "second\nthird\n"],
+    "curlBodyUtf8": "body-one\nbody-two\n",
+    "curlResponseStatus": 200,
+    "curlResponseHeaders": {"X-Owned-Review": "fixed", "Content-Length": "18"},
+    "curlWriteOut": "done:%{http_code}\n",
+    "curlBodyFile": "/owned-review/body",
+    "curlHeaderFile": "/owned-review/headers",
+    "postCancelFile": "/owned-review/after",
+    "postCancelBytesUtf8": "kept\n",
+    "postCancelStderrUtf8": "independent\n",
+    "dynamicFields": "Bind only ephemeral loopback port and task-owned temporary path. Disable server Date; capture exact HTTP/1.1 response bytes and declared deterministic headers. No blanket stderr normalization."
+  },
+  "cases": [
+    {
+      "id": "H01", "family": "original-adapted", "fixture": "first-read-local",
+      "input": "Accepted original fixture and middleware start barrier; explicit local source ownership bound before first source next, no first write.",
+      "expect": ["source next=1, source returned=1, active=0 before teardown", "start precedes head completion and output-close operation abort", "operation EPIPE; stage/caller live at close; stage effect after abort succeeds", "stdout/stderr empty and exit 0 for original adapted pipeline; separate instrumented effect uses frozen bytes", "no unhandled rejection; cooperative cleanup before public settlement"],
+      "delta": "Optional operation binding and operation-signal assertion replace only the original stage-aborted expectation; exact patch and additional effect instrumentation recorded separately."
+    },
+    {
+      "id": "H02", "family": "original-adapted", "fixture": "first-read-s3",
+      "input": "Accepted original mock S3 named-file source. Enroll before stream acquisition; original metadata/setup and started barrier retained.",
+      "expect": ["one owned source next, one return, zero active before teardown", "only owned operation canceled pre-first-write; stage/caller live", "original adapted empty stdout/stderr and exit 0, inner 1200ms", "signal reaches actual copied S3 transport; no deployed-provider inference"],
+      "delta": "Explicit owned named-file read binding plus signal-identity assertions only, with exact producer patch retained."
+    },
+    {
+      "id": "H03", "family": "original-adapted", "fixture": "first-read-webdav",
+      "input": "Accepted original loopback PROPFIND/GET; response headers sent, body withheld; enrollment before GET and unchanged start barrier.",
+      "expect": ["exactly one GET started; GET count not labeled body next count", "owned request closes before teardown/first write; active=0", "operation EPIPE; stage/caller live; original adapted empty streams and exit 0 within 1200ms", "actual copied WebDAV implementation, no provider correction or claim"],
+      "delta": "Owned-operation binding and signal observation, separately patched against original bytes."
+    },
+    {
+      "id": "H04", "family": "original-adapted", "fixture": "first-read-curl-body",
+      "input": "Accepted actual curl/authorized loopback request sends headers but withholds body; pure stdout ownership enrolled before request.",
+      "expect": ["one request started before head executes; zero first writes", "owned request/body canceled, closed before teardown and active=0", "operation EPIPE not caller/stage abort; empty streams and exit 0 within 1200ms", "no hidden lazy/no-request pass"],
+      "delta": "Explicit curl-owned output policy binding and operation-versus-stage signal assertions, exact patch retained."
+    },
+    {
+      "id": "H05", "family": "original-adapted", "fixture": "first-read-curl-headers",
+      "input": "Accepted actual curl/authorized loopback request starts but sends no response headers; middleware waits for started request.",
+      "expect": ["exactly one request entered before downstream exits", "owned request canceled while response acquisition pending, before any first write", "closed before teardown; active=0; caller/stage remain live", "empty streams and exit 0 within unchanged 1200ms; no body-only cancellation substitute"],
+      "delta": "Pre-response owned-output binding and signal assertion change explicitly retained."
+    },
+    {
+      "id": "H06", "family": "new", "name": "borrowed shared input positive workflow",
+      "input": "Actual shared Shell stdin with frozen two chunks; sequential nested consumers read first line then remainder. Downstream for the first consumer closes without reading its stdout. Do not enroll borrowed source work.",
+      "expect": ["first consumer captures first newline-terminated line without returning shared underlying cursor", "later consumer receives exact second and third lines, no byte loss/duplication", "underlying return count=0 before owner teardown; at most one owner return afterward", "caller/stage live and no unconditional operation enrollment"],
+      "bindingNote": "Use accepted shared-cursor public workflow after binding; transcript and exact shell spelling frozen separately before candidate run, never emulate cursor in a toy mock."
+    },
+    {
+      "id": "H07", "family": "new", "name": "independent no-output and diagnostic effects",
+      "input": "After actual downstream no-read exit, four deterministic unenrolled producer subruns: write frozen VFS/stderr effect; empty success; delayed stderr failure 7; diagnostic then first stdout attempt under pipefail.",
+      "expect": ["effect subrun retains file kept newline and stderr independent newline, status 0", "empty subrun has empty stdout/stderr, status 0", "failure subrun retains exact delayed-error newline, status 7 under pipefail and 0 without pipefail", "attempted-write subrun retains diagnostic newline and pipefail status 141", "stage remains live before any attempted stdout write; no arbitrary all-command cancellation"]
+    },
+    {
+      "id": "H08", "family": "new", "name": "nested and other-output lifetime separation",
+      "input": "Actual nested invoke has one explicit stdout-owned operation and a separate pending stderr/file-producing operation; close only actual stdout reader after the first owned operation starts.",
+      "expect": ["only stdout-bound operation observes output-close EPIPE", "nested unrelated operation and enclosing stage/caller remain live and finish exact independent bytes/effect", "cleanup registration precedes acquisition; each owner release exactly once before settlement", "wrong sink/context must not cause cross-output cancellation; stderr rerouted to same actual closed sink is not asserted independent"]
+    },
+    {
+      "id": "H09", "family": "new", "name": "curl stdout headers with body file",
+      "input": "Actual copied curl -D - -o /owned-review/body URL | head -n 0; request start barrier, close stdout before sending response headers, then release deterministic complete response.",
+      "expect": ["one request remains alive until needed body file completes despite stdout header closure", "body file equals frozen 18 bytes; captured stdout empty; stage/caller remain live at stdout close", "no header-write EPIPE path discards required body-file work", "no unexpected stderr or synthetic successful diagnostics suppression"],
+      "status": "Root must declare mixed-output EPIPE policy before binding: 0 or preserved 141 after required work is permissible, never a hang or lost required file. Record observed pipefail/default selection, not a universal curl-native parity claim."
+    },
+    {
+      "id": "H10", "family": "new", "name": "curl stdout body with header file",
+      "input": "Actual copied curl -D /owned-review/headers URL | head -n 0; request start barrier, close stdout while awaiting response headers, then release deterministic response.",
+      "expect": ["pre-response request not canceled while needed header-file work is pending", "header file exactly matches deterministic captured response header block", "stdout empty; no missing/truncated header file; caller/stage remain live at stdout close", "after required headers complete, redundant stdout-only body cancellation may occur with owned cleanup exactly once"],
+      "status": "Use separately predeclared mixed-output policy as in H09; neither 0 nor 141 excuses missing required header effects."
+    },
+    {
+      "id": "H11", "family": "new", "name": "curl file destinations with write-out stdout",
+      "input": "Actual copied curl -o /owned-review/body -D /owned-review/headers --write-out 'done:%{http_code}\n' URL | head -n 0; close stdout after request starts and before response headers.",
+      "expect": ["one request completes necessary header and body files despite unused write-out stdout", "body and header files exact frozen/captured bytes; stdout empty", "no request cancellation caused solely by future write-out's stdout binding", "stage/caller live at close; no unexpected diagnostic suppression"],
+      "status": "Separately predeclared mixed-output late-write EPIPE policy; compare default and pipefail without inventing an exit code."
+    },
+    {
+      "id": "H12", "family": "new", "name": "public reason and failure precedence",
+      "input": "Controlled cleanup gate after output-close, with subruns for caller-abort during cleanup, a selected middleware execution rejection plus cleanup rejection, sole cleanup rejection, and two cleanup rejections. Use real exec/dispose boundaries.",
+      "expect": ["caller object reason with errno-like EPIPE and separately primitive 0 win by exact identity when observed before settlement", "internal output-close alone is not classified as caller abort", "without caller abort, selected execution rejection retained unchanged", "sole cleanup rejection retained unchanged; multiple cleanup failures aggregate all identities; nonzero result cannot hide cleanup failure", "all registered cleanup started and awaited; secondary failures observed without unhandled events", "existing 0/7/141 controls preserve pipefail/default selection"]
+    },
+    {
+      "id": "H13", "family": "new", "name": "late admission and overlapping disposal",
+      "input": "Register cooperative owner before admitting one acquisition; retain a separate opaque promise that never settles during exec. Close output, attempt late enrollment/acquisition and nested invoke; overlap finally and two dispose calls; release cooperative gate, then reject opaque promise after settlement.",
+      "expect": ["registration precedes initial admission; cleanup closes owner admission before draining", "late enrollment/acquisition refuses without acquiring resource; late nested invoke does not dispatch", "one release and shared cleanup completion across finally/drain/dispose overlap", "exec and dispose await registered gate but settle without awaiting opaque promise", "late opaque rejection observed with no unhandled event; caller-aborted refusal preserves exact caller reason", "no global-worker-zero or opaque-host-drain claim"]
+    },
+    {
+      "id": "H14", "family": "new", "name": "normal completion distinct from reader close",
+      "input": "Actual pipe subruns: enrolled producer returns successful empty result; producer writes frozen payload and reader drains to EOF; producer completes explicit failure before consumer closes. Observe operation/stage signals and cooperative cleanup.",
+      "expect": ["normal writer completion/EOF does not manufacture output-close EPIPE", "payload delivered unchanged on normal drain; empty success settles without a first write or consumer-demand gate", "already selected failure retained instead of replacement by later close", "cleanup/dispose exactly once; no unfinished owned work at settlement"]
+    },
+    {
+      "id": "H15", "family": "new", "name": "unsupported close-notification capability",
+      "input": "Actual command through ordinary custom ByteSink with write only, then same command through supported pipe sink; request optional ownership capability before I/O.",
+      "expect": ["write-only sink reports absent/unsupported notification capability explicitly, never fake readiness or closure", "ordinary non-enrolled write completes exact frozen payload", "supported real pipe sink positively cancels enrolled pending work when its reader closes", "declaration must say how unsupported capability is represented before binding; no invented live API"]
+    },
+    {
+      "id": "H16", "family": "new", "name": "bounded queue and no strict demand scheduling",
+      "input": "Actual copied BytePipe highWaterMark 1: write byte A before consumer next, start byte B write, then abort with unique caller reason. Separate actual Shell middleware awaits started owned work before dispatching no-read downstream.",
+      "expect": ["first one-byte write can be accepted without a consumer read; second write stays pending until capacity or abort", "pending operations reject with exact caller reason and no retained queue work", "middleware barrier has ordered start before next; owned work starts exactly once, never gated on demand", "write acceptance not labeled delivery; bounded byte ownership preserved"]
+    }
+  ]
+}

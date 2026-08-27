@@ -1,0 +1,493 @@
+{
+  "args": [
+    "lifecycle",
+    "fixed"
+  ],
+  "pid": 68439,
+  "readyAt": 39.14449999999988,
+  "killed": false,
+  "events": [
+    {
+      "event": "disconnect",
+      "values": [],
+      "at": 168.4792080000002
+    },
+    {
+      "event": "stdout-close"
+    },
+    {
+      "event": "stderr-close"
+    },
+    {
+      "event": "exit",
+      "values": [
+        0,
+        null
+      ],
+      "at": 170.30000000000018
+    },
+    {
+      "event": "close",
+      "code": 0,
+      "signal": null,
+      "at": 170.30545799999982
+    }
+  ],
+  "messages": [
+    {
+      "type": "ready",
+      "family": "lifecycle",
+      "name": "fixed"
+    },
+    {
+      "type": "done",
+      "result": [
+        {
+          "name": "preabort-zero-work",
+          "metrics": {
+            "created": 0,
+            "terminated": 0,
+            "requests": 0,
+            "execCalls": 0,
+            "inputBytes": 0,
+            "responseBytes": 0,
+            "startupMs": 0,
+            "workMs": 0,
+            "terminationMs": 0.0006669999999999732,
+            "peakInflight": 0,
+            "listenersAfter": 0,
+            "exitCode": null
+          }
+        },
+        {
+          "name": "empty-stream",
+          "metrics": {
+            "created": 0,
+            "terminated": 0,
+            "requests": 0,
+            "execCalls": 0,
+            "inputBytes": 0,
+            "responseBytes": 0,
+            "startupMs": 0,
+            "workMs": 0,
+            "terminationMs": 0.0002500000000011937,
+            "peakInflight": 0,
+            "listenersAfter": 0,
+            "exitCode": null
+          }
+        },
+        {
+          "name": "output-cap-explicit-error",
+          "metrics": {
+            "created": 1,
+            "terminated": 1,
+            "requests": 2,
+            "execCalls": 0,
+            "inputBytes": 20000,
+            "responseBytes": 0,
+            "startupMs": 21.031458999999998,
+            "workMs": 0.982791000000006,
+            "terminationMs": 0.9211249999999964,
+            "peakInflight": 1,
+            "listenersAfter": 0,
+            "exitCode": 1
+          }
+        },
+        {
+          "name": "worker-compile-error",
+          "metrics": {
+            "created": 1,
+            "terminated": 1,
+            "requests": 1,
+            "execCalls": 0,
+            "inputBytes": 2,
+            "responseBytes": 0,
+            "startupMs": 12.701667,
+            "workMs": 0.1370419999999939,
+            "terminationMs": 0.6397910000000024,
+            "peakInflight": 1,
+            "listenersAfter": 0,
+            "exitCode": 1
+          }
+        },
+        {
+          "name": "input-cap-before-worker",
+          "metrics": {
+            "created": 0,
+            "terminated": 0,
+            "requests": 0,
+            "execCalls": 0,
+            "inputBytes": 0,
+            "responseBytes": 0,
+            "startupMs": 0,
+            "workMs": 0,
+            "terminationMs": 0.00016699999999758575,
+            "peakInflight": 0,
+            "listenersAfter": 0,
+            "exitCode": null
+          }
+        },
+        {
+          "name": "backpressure-early-return",
+          "pulled": 16,
+          "closed": true,
+          "metrics": {
+            "created": 1,
+            "terminated": 1,
+            "requests": 2,
+            "execCalls": 32,
+            "inputBytes": 32,
+            "responseBytes": 817,
+            "startupMs": 12.335208999999999,
+            "workMs": 0.3653750000000002,
+            "terminationMs": 0.5701249999999902,
+            "peakInflight": 1,
+            "listenersAfter": 0,
+            "exitCode": 1
+          }
+        },
+        {
+          "name": "capacity-and-inflight-reject-no-queue",
+          "metrics": {
+            "created": 1,
+            "terminated": 1,
+            "requests": 2,
+            "execCalls": 2,
+            "inputBytes": 2,
+            "responseBytes": 52,
+            "startupMs": 12.750332999999998,
+            "workMs": 0.23824999999999363,
+            "terminationMs": 0.5561249999999944,
+            "peakInflight": 1,
+            "listenersAfter": 0,
+            "exitCode": 1
+          },
+          "competing": {
+            "created": 0,
+            "terminated": 0,
+            "requests": 0,
+            "execCalls": 0,
+            "inputBytes": 0,
+            "responseBytes": 0,
+            "startupMs": 0,
+            "workMs": 0,
+            "terminationMs": 0.0003750000000053433,
+            "peakInflight": 0,
+            "listenersAfter": 0,
+            "exitCode": null
+          }
+        },
+        {
+          "name": "abort-after-post",
+          "metrics": {
+            "created": 1,
+            "terminated": 1,
+            "requests": 2,
+            "execCalls": 0,
+            "inputBytes": 2,
+            "responseBytes": 0,
+            "startupMs": 11.966166999999999,
+            "workMs": 0.2000409999999988,
+            "terminationMs": 0.5748749999999916,
+            "peakInflight": 1,
+            "listenersAfter": 0,
+            "exitCode": 1
+          }
+        },
+        {
+          "name": "idle-abort-disposes",
+          "metrics": {
+            "created": 1,
+            "terminated": 1,
+            "requests": 1,
+            "execCalls": 0,
+            "inputBytes": 0,
+            "responseBytes": 0,
+            "startupMs": 12.518749999999997,
+            "workMs": 0.11399999999999011,
+            "terminationMs": 0.5444579999999917,
+            "peakInflight": 1,
+            "listenersAfter": 0,
+            "exitCode": 1
+          }
+        },
+        {
+          "name": "dispose-settles-pending",
+          "metrics": {
+            "created": 1,
+            "terminated": 1,
+            "requests": 2,
+            "execCalls": 0,
+            "inputBytes": 2,
+            "responseBytes": 0,
+            "startupMs": 12.060792000000006,
+            "workMs": 0.1303760000000409,
+            "terminationMs": 0.5310420000000136,
+            "peakInflight": 1,
+            "listenersAfter": 0,
+            "exitCode": 1
+          }
+        },
+        {
+          "name": "lone-surrogate-raw-facade-not-UTF8-tool-profile",
+          "raw": {
+            "hits": [
+              [
+                {
+                  "pattern": 0,
+                  "start": 0,
+                  "end": 1,
+                  "captures": [
+                    "\ud800"
+                  ]
+                }
+              ]
+            ],
+            "bytes": 57,
+            "execCalls": 2
+          },
+          "metrics": {
+            "created": 1,
+            "terminated": 1,
+            "requests": 2,
+            "execCalls": 2,
+            "inputBytes": 2,
+            "responseBytes": 57,
+            "startupMs": 12.012083000000018,
+            "workMs": 0.2530000000000143,
+            "terminationMs": 0.6152079999999955,
+            "peakInflight": 1,
+            "listenersAfter": 0,
+            "exitCode": 1
+          }
+        },
+        {
+          "name": "current-rg-adapter-required-not-raw-facade-parity",
+          "emptyUnicode": [
+            {
+              "start": 0,
+              "end": 0
+            },
+            {
+              "start": 1,
+              "end": 1
+            },
+            {
+              "start": 2,
+              "end": 2
+            },
+            {
+              "start": 3,
+              "end": 3
+            },
+            {
+              "start": 4,
+              "end": 4
+            }
+          ],
+          "invalid": [
+            {
+              "start": 0,
+              "end": 1
+            },
+            {
+              "start": 2,
+              "end": 3
+            }
+          ]
+        }
+      ],
+      "wallMs": 128.438583,
+      "heartbeats": 23,
+      "maxGap": 7.191625000000002,
+      "peakRss": 68009984,
+      "memory": {
+        "rss": 60751872,
+        "heapTotal": 10895360,
+        "heapUsed": 5833784,
+        "external": 2184587,
+        "arrayBuffers": 19089
+      },
+      "flags": [
+        "--unhandled-rejections=strict",
+        "--max-old-space-size=64",
+        "--stack-size=2048"
+      ],
+      "cleanup": [
+        {
+          "created": 0,
+          "terminated": 0,
+          "requests": 0,
+          "execCalls": 0,
+          "inputBytes": 0,
+          "responseBytes": 0,
+          "startupMs": 0,
+          "workMs": 0,
+          "terminationMs": 0.0006669999999999732,
+          "peakInflight": 0,
+          "listenersAfter": 0,
+          "exitCode": null
+        },
+        {
+          "created": 0,
+          "terminated": 0,
+          "requests": 0,
+          "execCalls": 0,
+          "inputBytes": 0,
+          "responseBytes": 0,
+          "startupMs": 0,
+          "workMs": 0,
+          "terminationMs": 0.0002500000000011937,
+          "peakInflight": 0,
+          "listenersAfter": 0,
+          "exitCode": null
+        },
+        {
+          "created": 1,
+          "terminated": 1,
+          "requests": 2,
+          "execCalls": 0,
+          "inputBytes": 20000,
+          "responseBytes": 0,
+          "startupMs": 21.031458999999998,
+          "workMs": 0.982791000000006,
+          "terminationMs": 0.9211249999999964,
+          "peakInflight": 1,
+          "listenersAfter": 0,
+          "exitCode": 1
+        },
+        {
+          "created": 1,
+          "terminated": 1,
+          "requests": 1,
+          "execCalls": 0,
+          "inputBytes": 2,
+          "responseBytes": 0,
+          "startupMs": 12.701667,
+          "workMs": 0.1370419999999939,
+          "terminationMs": 0.6397910000000024,
+          "peakInflight": 1,
+          "listenersAfter": 0,
+          "exitCode": 1
+        },
+        {
+          "created": 0,
+          "terminated": 0,
+          "requests": 0,
+          "execCalls": 0,
+          "inputBytes": 0,
+          "responseBytes": 0,
+          "startupMs": 0,
+          "workMs": 0,
+          "terminationMs": 0.00016699999999758575,
+          "peakInflight": 0,
+          "listenersAfter": 0,
+          "exitCode": null
+        },
+        {
+          "created": 1,
+          "terminated": 1,
+          "requests": 2,
+          "execCalls": 32,
+          "inputBytes": 32,
+          "responseBytes": 817,
+          "startupMs": 12.335208999999999,
+          "workMs": 0.3653750000000002,
+          "terminationMs": 0.5701249999999902,
+          "peakInflight": 1,
+          "listenersAfter": 0,
+          "exitCode": 1
+        },
+        {
+          "created": 1,
+          "terminated": 1,
+          "requests": 2,
+          "execCalls": 2,
+          "inputBytes": 2,
+          "responseBytes": 52,
+          "startupMs": 12.750332999999998,
+          "workMs": 0.23824999999999363,
+          "terminationMs": 0.5561249999999944,
+          "peakInflight": 1,
+          "listenersAfter": 0,
+          "exitCode": 1
+        },
+        {
+          "created": 0,
+          "terminated": 0,
+          "requests": 0,
+          "execCalls": 0,
+          "inputBytes": 0,
+          "responseBytes": 0,
+          "startupMs": 0,
+          "workMs": 0,
+          "terminationMs": 0.0003750000000053433,
+          "peakInflight": 0,
+          "listenersAfter": 0,
+          "exitCode": null
+        },
+        {
+          "created": 1,
+          "terminated": 1,
+          "requests": 2,
+          "execCalls": 0,
+          "inputBytes": 2,
+          "responseBytes": 0,
+          "startupMs": 11.966166999999999,
+          "workMs": 0.2000409999999988,
+          "terminationMs": 0.5748749999999916,
+          "peakInflight": 1,
+          "listenersAfter": 0,
+          "exitCode": 1
+        },
+        {
+          "created": 1,
+          "terminated": 1,
+          "requests": 1,
+          "execCalls": 0,
+          "inputBytes": 0,
+          "responseBytes": 0,
+          "startupMs": 12.518749999999997,
+          "workMs": 0.11399999999999011,
+          "terminationMs": 0.5444579999999917,
+          "peakInflight": 1,
+          "listenersAfter": 0,
+          "exitCode": 1
+        },
+        {
+          "created": 1,
+          "terminated": 1,
+          "requests": 2,
+          "execCalls": 0,
+          "inputBytes": 2,
+          "responseBytes": 0,
+          "startupMs": 12.060792000000006,
+          "workMs": 0.1303760000000409,
+          "terminationMs": 0.5310420000000136,
+          "peakInflight": 1,
+          "listenersAfter": 0,
+          "exitCode": 1
+        },
+        {
+          "created": 1,
+          "terminated": 1,
+          "requests": 2,
+          "execCalls": 2,
+          "inputBytes": 2,
+          "responseBytes": 57,
+          "startupMs": 12.012083000000018,
+          "workMs": 0.2530000000000143,
+          "terminationMs": 0.6152079999999955,
+          "peakInflight": 1,
+          "listenersAfter": 0,
+          "exitCode": 1
+        }
+      ]
+    }
+  ],
+  "stderr": "",
+  "ipcBytes": 6589,
+  "streamBytes": 0,
+  "code": 0,
+  "signal": null
+}

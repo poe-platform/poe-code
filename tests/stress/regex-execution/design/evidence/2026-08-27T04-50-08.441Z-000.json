@@ -1,0 +1,79 @@
+{
+  "args": [
+    "risk",
+    "bounded"
+  ],
+  "pid": 68694,
+  "readyAt": 37.89812499999999,
+  "killed": false,
+  "events": [
+    {
+      "event": "disconnect",
+      "values": [],
+      "at": 39.95725
+    },
+    {
+      "event": "stdout-close"
+    },
+    {
+      "event": "stderr-close"
+    },
+    {
+      "event": "exit",
+      "values": [
+        0,
+        null
+      ],
+      "at": 42.45908299999999
+    },
+    {
+      "event": "close",
+      "code": 0,
+      "signal": null,
+      "at": 42.475583
+    }
+  ],
+  "messages": [
+    {
+      "type": "ready",
+      "family": "risk",
+      "name": "bounded"
+    },
+    {
+      "type": "enter",
+      "subjectBytes": 25,
+      "source": "^(a+)+$",
+      "profile": "bounded"
+    },
+    {
+      "type": "done",
+      "result": {
+        "status": "completed",
+        "outcome": null,
+        "elapsedMs": 1.0667089999999995
+      },
+      "wallMs": 1.1174579999999992,
+      "heartbeats": 0,
+      "maxGap": 0,
+      "peakRss": 53886976,
+      "memory": {
+        "rss": 53886976,
+        "heapTotal": 7487488,
+        "heapUsed": 5954904,
+        "external": 2152973,
+        "arrayBuffers": 18895
+      },
+      "flags": [
+        "--unhandled-rejections=strict",
+        "--max-old-space-size=64",
+        "--stack-size=2048"
+      ],
+      "cleanup": []
+    }
+  ],
+  "stderr": "",
+  "ipcBytes": 494,
+  "streamBytes": 0,
+  "code": 0,
+  "signal": null
+}

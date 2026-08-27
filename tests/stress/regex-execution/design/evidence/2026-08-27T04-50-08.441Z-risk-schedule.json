@@ -1,0 +1,38 @@
+{
+  "schedule": [
+    [
+      "risk",
+      "bounded"
+    ],
+    [
+      "risk",
+      "worker-default"
+    ],
+    [
+      "risk",
+      "worker-abort"
+    ]
+  ],
+  "historical": 7,
+  "newAuthorAllocation": 3,
+  "reviewerReserved": 2,
+  "riskMax": 5,
+  "repetitions": 3,
+  "warmups": 0,
+  "flags": [
+    "--unhandled-rejections=strict",
+    "--max-old-space-size=64",
+    "--stack-size=2048"
+  ],
+  "watchdog": {
+    "riskAfterReady": 250,
+    "vectorAfterReady": 250,
+    "otherAfterReady": 5000,
+    "startup": 3000,
+    "cleanup": 1000,
+    "rssSampleBytes": 536870912,
+    "maxIpcBytes": 1048576,
+    "maxStreamBytes": 65536
+  },
+  "started": "2026-08-27T04-50-08.441Z"
+}

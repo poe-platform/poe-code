@@ -1,0 +1,88 @@
+{
+  "args": [
+    "bench",
+    "short-10000",
+    "grep",
+    "current",
+    "0"
+  ],
+  "pid": 68637,
+  "readyAt": 40.25250000000051,
+  "killed": false,
+  "events": [
+    {
+      "event": "disconnect",
+      "values": [],
+      "at": 53.62712499999907
+    },
+    {
+      "event": "stdout-close"
+    },
+    {
+      "event": "stderr-close"
+    },
+    {
+      "event": "exit",
+      "values": [
+        0,
+        null
+      ],
+      "at": 61.800792
+    },
+    {
+      "event": "close",
+      "code": 0,
+      "signal": null,
+      "at": 61.80720800000017
+    }
+  ],
+  "messages": [
+    {
+      "type": "ready",
+      "family": "bench",
+      "name": "short-10000"
+    },
+    {
+      "type": "done",
+      "result": {
+        "name": "short-10000",
+        "profile": "grep",
+        "engine": "current",
+        "repetition": 0,
+        "status": "completed",
+        "expectedMatches": 10000,
+        "matches": 10000,
+        "declaredInputBytes": 80000,
+        "inputUtf16Bytes": 140000,
+        "responseBytes": 6,
+        "calls": 10000,
+        "startupMs": 0,
+        "setupMs": 0,
+        "steadyMs": 9.107208999999997,
+        "endToEndMs": 9.284374999999997
+      },
+      "wallMs": 12.544166999999998,
+      "heartbeats": 0,
+      "maxGap": 0,
+      "peakRss": 66060288,
+      "memory": {
+        "rss": 66060288,
+        "heapTotal": 16400384,
+        "heapUsed": 10528512,
+        "external": 2257555,
+        "arrayBuffers": 123477
+      },
+      "flags": [
+        "--unhandled-rejections=strict",
+        "--max-old-space-size=64",
+        "--stack-size=2048"
+      ],
+      "cleanup": []
+    }
+  ],
+  "stderr": "",
+  "ipcBytes": 665,
+  "streamBytes": 0,
+  "code": 0,
+  "signal": null
+}

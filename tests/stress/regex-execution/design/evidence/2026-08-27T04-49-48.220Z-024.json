@@ -1,0 +1,83 @@
+{
+  "args": [
+    "vector",
+    "special-group",
+    "grep"
+  ],
+  "pid": 68426,
+  "readyAt": 37.742209,
+  "killed": false,
+  "events": [
+    {
+      "event": "disconnect",
+      "values": [],
+      "at": 39.27354199999991
+    },
+    {
+      "event": "stdout-close"
+    },
+    {
+      "event": "stderr-close"
+    },
+    {
+      "event": "exit",
+      "values": [
+        0,
+        null
+      ],
+      "at": 40.91379199999983
+    },
+    {
+      "event": "close",
+      "code": 0,
+      "signal": null,
+      "at": 40.916999999999916
+    }
+  ],
+  "messages": [
+    {
+      "type": "ready",
+      "family": "vector",
+      "name": "special-group"
+    },
+    {
+      "type": "done",
+      "result": {
+        "name": "special-group",
+        "profile": "grep",
+        "status": "tool-rejection-preserved-no-worker-regex",
+        "current": {
+          "exitCode": 2,
+          "stdout": "",
+          "stderr": "grep: lookaround and special groups are not supported\n"
+        },
+        "bounded": {
+          "status": "unsupported-or-budget",
+          "error": "quantifier without an expression"
+        }
+      },
+      "wallMs": 0.7330830000000006,
+      "heartbeats": 0,
+      "maxGap": 0,
+      "peakRss": 54247424,
+      "memory": {
+        "rss": 54247424,
+        "heapTotal": 7487488,
+        "heapUsed": 5308656,
+        "external": 2153027,
+        "arrayBuffers": 18949
+      },
+      "flags": [
+        "--unhandled-rejections=strict",
+        "--max-old-space-size=64",
+        "--stack-size=2048"
+      ],
+      "cleanup": []
+    }
+  ],
+  "stderr": "",
+  "ipcBytes": 646,
+  "streamBytes": 0,
+  "code": 0,
+  "signal": null
+}

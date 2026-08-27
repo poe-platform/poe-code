@@ -1,0 +1,87 @@
+{
+  "args": [
+    "vector",
+    "digit-class",
+    "rg"
+  ],
+  "pid": 68438,
+  "readyAt": 40.55741699999999,
+  "killed": false,
+  "events": [
+    {
+      "event": "disconnect",
+      "values": [],
+      "at": 42.11641699999973
+    },
+    {
+      "event": "stdout-close"
+    },
+    {
+      "event": "stderr-close"
+    },
+    {
+      "event": "exit",
+      "values": [
+        0,
+        null
+      ],
+      "at": 43.67470800000001
+    },
+    {
+      "event": "close",
+      "code": 0,
+      "signal": null,
+      "at": 43.67862500000001
+    }
+  ],
+  "messages": [
+    {
+      "type": "ready",
+      "family": "vector",
+      "name": "digit-class"
+    },
+    {
+      "type": "done",
+      "result": {
+        "name": "digit-class",
+        "profile": "rg",
+        "status": "tool-rejection-preserved-no-worker-regex",
+        "current": {
+          "rejected": "invalid or unsupported regular expression: Invalid regular expression: /(?:[[:digit:]])/gu: Lone quantifier brackets"
+        },
+        "bounded": {
+          "status": "completed-byte-profile",
+          "first": {
+            "start": 0,
+            "end": 1,
+            "groups": [
+              "7"
+            ]
+          }
+        }
+      },
+      "wallMs": 0.771250000000002,
+      "heartbeats": 0,
+      "maxGap": 0,
+      "peakRss": 54132736,
+      "memory": {
+        "rss": 54132736,
+        "heapTotal": 7487488,
+        "heapUsed": 5303768,
+        "external": 2152973,
+        "arrayBuffers": 18895
+      },
+      "flags": [
+        "--unhandled-rejections=strict",
+        "--max-old-space-size=64",
+        "--stack-size=2048"
+      ],
+      "cleanup": []
+    }
+  ],
+  "stderr": "",
+  "ipcBytes": 678,
+  "streamBytes": 0,
+  "code": 0,
+  "signal": null
+}

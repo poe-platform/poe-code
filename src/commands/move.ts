@@ -1,5 +1,5 @@
 import { dirname, FsError, isPathWithin, joinPath, type CommandContext, type FileStat } from "../contracts/index.js";
-import { compareCopyIdentity } from "./copy-identity.js";
+import { compareCopyIdentity, compareObservedEntries } from "./copy-identity.js";
 import { codeOf, diagnostic } from "./internal.js";
 
 interface MoveEntry {
@@ -46,6 +46,11 @@ export async function moveAcrossDevices(context: CommandContext, source: string,
   const targetStat = await optionalStat(context, target);
   if (noClobber && targetStat) return false;
   if (source === target || compareCopyIdentity(sourceStat, targetStat) === "same") return false;
+  const compare = (origin: string, destination: string, stat: FileStat, existing: FileStat) =>
+    stat.type === "symlink" || existing.type === "symlink" ? Promise.resolve(compareCopyIdentity(stat, existing))
+      : compareObservedEntries(context.fs, origin, stat, context.fs, destination, existing, { signal: context.signal });
+  const rootIdentity = targetStat ? await compare(source, target, sourceStat, targetStat) : "unknown";
+  if (rootIdentity === "same") return false;
   if (source === "/") throw new FsError("EBUSY", { path: source });
   if (sourceStat.type === "directory") {
     if (!context.fs.rmdir) throw new FsError("ENOTSUP", { syscall: "rmdir", path: source });
@@ -63,7 +68,7 @@ export async function moveAcrossDevices(context: CommandContext, source: string,
     await budget.step();
     if (depth > 128) throw new FsError("EFBIG", { message: "cross-device move depth limit exceeded" });
     if (existing) {
-      const identity = compareCopyIdentity(stat, existing);
+      const identity = depth === 0 ? rootIdentity : await compare(origin, destination, stat, existing);
       if (identity === "same") throw new FsError("EINVAL", { path: origin, dest: destination, message: "move source and destination are aliases" });
       if (identity === "unknown") throw new FsError("ENOTSUP", { path: origin, dest: destination, message: "existing move destination lacks authoritative distinctness" });
       if ((stat.type === "directory") !== (existing.type === "directory")) throw new FsError(existing.type === "directory" ? "EISDIR" : "ENOTDIR", { path: destination });

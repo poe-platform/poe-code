@@ -3,7 +3,7 @@ import {
   type CommandContext, type CommandDefinition, type FileStat,
 } from "../contracts/index.js";
 import { codeOf, define, eachOperand, options, output, pathOf, requireOperands, UsageError, value } from "./internal.js";
-import { compareCopyIdentity } from "./copy-identity.js";
+import { compareCopyIdentity, compareObservedEntries } from "./copy-identity.js";
 import { MoveBudget, moveAcrossDevices } from "./move.js";
 
 async function maybeStat(context: CommandContext, path: string, follow = true): Promise<FileStat | undefined> {
@@ -59,6 +59,9 @@ async function copy(
     throw new FsError("EINVAL", { path: source, dest: target, message: "source and destination are the same file" });
   }
   if (flags.has("n") && await maybeStat(context, target, false)) return;
+  if (!preserveLink && targetStat && await compareObservedEntries(context.fs, source, sourceStat, context.fs, target, targetStat, { signal: context.signal }) === "same") {
+    throw new FsError("EINVAL", { path: source, dest: target, message: "source and destination are the same file" });
+  }
   if (sourceStat.type === "directory") {
     if (!flags.has("r") && !flags.has("R")) throw new FsError("EISDIR", { path: source, message: "omitting directory (use -R)" });
     if (isPathWithin(physicalSource, physicalTarget)) throw new FsError("EINVAL", { path: target, message: "cannot copy a directory into itself" });
@@ -87,7 +90,10 @@ async function copy(
       if (existing) {
         const sourceEntry = await context.fs.lstat(source, { signal: context.signal });
         const sourceContents = await context.fs.stat(source, { signal: context.signal });
-        const identities = [compareCopyIdentity(sourceEntry, existing), compareCopyIdentity(sourceContents, existing)];
+        const contentsIdentity = existing.type === "symlink" ? compareCopyIdentity(sourceContents, existing)
+          : await compareObservedEntries(context.fs, source, sourceContents, context.fs, target, existing, { signal: context.signal });
+        const entryIdentity = sourceEntry.type === "symlink" ? compareCopyIdentity(sourceEntry, existing) : contentsIdentity;
+        const identities = [entryIdentity, contentsIdentity];
         if (identities.includes("same")) throw new FsError("EINVAL", { path: source, dest: target, message: "source and destination are the same file" });
         if (identities.includes("unknown")) throw new FsError("ENOTSUP", { path: source, dest: target, message: "forced copy unlink lacks authoritative distinctness" });
         await context.fs.rm(target, { recursive: false, signal: context.signal });

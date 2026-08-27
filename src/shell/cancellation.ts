@@ -194,7 +194,8 @@ function notify(state: LinkState, origin: CancellationOrigin): void {
   state.notifying++;
   try {
     for (const subscriber of [...state.subscribers]) {
-      if (!subscriber.active || state.closed) break;
+      if (state.closed) break;
+      if (!subscriber.active) continue;
       try { subscriber.callback(origin); }
       catch (error) {
         state.failures.push(error);
@@ -296,7 +297,13 @@ function admissionOrigins(state: LinkState): CancellationOrigin[] {
   for (const frame of lineage) {
     if (frame.rootCaller && signalAborted(frame.rootCaller.signal)) origins.push(frame.rootCaller);
     if (frame.localInvoke && signalAborted(frame.localInvoke.signal)) origins.push(frame.localInvoke);
-    for (const control of frame.controls) if (signalAborted(control.signal)) origins.push(control);
+    const deliveredControl = frame.delivered?.role === "budget-control" || frame.delivered?.role === "pipeline-control"
+      ? frame.delivered
+      : undefined;
+    if (deliveredControl && signalAborted(deliveredControl.signal)) origins.push(deliveredControl);
+    for (const control of frame.controls) {
+      if (signalAborted(control.signal) && control !== deliveredControl) origins.push(control);
+    }
   }
   return origins;
 }

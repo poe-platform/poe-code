@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
-import { cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync } from "node:fs";
+import { cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, realpathSync } from "node:fs";
 import { join, resolve } from "node:path";
+import { tmpdir } from "node:os";
 import { fileURLToPath } from "node:url";
 import { environment, finish as finishOriginal, json, manifest, requireSuccess, run, selectedPaths } from "../stream-five-public/harness.mjs";
 import { sha256 } from "../stream-five-public/current-profile.mjs";
@@ -14,8 +15,7 @@ export function snapshot(sourceRef = "HEAD") {
   const inventory = JSON.parse(readFileSync(join(repository, ownerPath, "inventory.json")));
   const currentPaths = currentConsumerPaths();
   verifyInventory(inventory, tracked, currentPaths, negativeGroups.map(group => group.path), path => requireSuccess(run("git", ["--no-replace-objects", "show", `${sourceCommit}:${path}`], repository, { encoding: "buffer" })).stdout);
-  mkdirSync(join(repository, ownerPath, ".runs"), { recursive: true });
-  const directory = mkdtempSync(join(repository, ownerPath, ".runs/qualified-"));
+  const directory = realpathSync(mkdtempSync(join(tmpdir(), "qualified-current-consumers-")));
   const root = join(directory, "snapshot");
   mkdirSync(root);
   const harness = [...tracked.filter(path => path.startsWith(`${ownerPath}/`) && !path.includes("/evidence/")), "scripts/verify-qualified-release.mjs", "scripts/verify-current-consumers.mjs", ...tracked.filter(path => path.startsWith("tests/plugins/stream-five-public/") && !path.includes("/evidence/") && /\.(?:mjs|fixture)$/u.test(path))];

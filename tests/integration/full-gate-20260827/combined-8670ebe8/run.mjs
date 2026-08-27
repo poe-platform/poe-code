@@ -9,6 +9,7 @@ import { account } from "../account.mjs";
 import { supervise } from "../supervise.mjs";
 import { isolatedHistory } from "../history.mjs";
 import { inspectRuntime, probeGuardedRuntime, requireMatchingLauncher } from '../runtime-profile-20260827/profile.mjs';
+import { createTreeGuard } from '../integrity-73/tree.mjs';
 
 const runtimeReceipt = inspectRuntime();
 if (!runtimeReceipt.supported) { console.log(JSON.stringify({ runtime: runtimeReceipt, suiteLaunched: false })); process.exit(78); }
@@ -61,6 +62,14 @@ const report = { startedAt: new Date().toISOString(), revision: discovery.revisi
   npm: { executable: npmPath, sha256: hash(readFileSync(npmPath)), version: execFileSync(process.execPath, [npmPath, "--version"], { encoding: "utf8", env: environment, timeout: 10000 }).trim() }, handoffRequiredDefaultCount: 70, noPrivateEngine: false,
   fullCompatibilityClaim: false, actualSafeJsAcceptance: "current copied engine availability must be proved; actual outcomes and characterizations counted without upstream acceptance inference" };
 const sourceHashes = {};
+const protectedTrees = new Map();
+let inventorySequence = 0;
+function sealTree(name, root) {
+  assert.equal(protectedTrees.has(name), false, 'Never silently rebaseline a protected tree');
+  const guard = createTreeGuard(root);
+  protectedTrees.set(name, guard);
+  save(`integrity-${name}-before.json`, guard.before());
+}
 function verifySource() {
   const changes = [];
   for (const [path, expected] of Object.entries(sourceHashes)) {
@@ -68,6 +77,11 @@ function verifySource() {
     if (!stat || stat.isSymbolicLink() !== expected.symlink ||
       hash(expected.symlink ? Buffer.from(readlinkSync(filename)) : readFileSync(filename)) !== expected.sha256 ||
       (stat.mode & 0o777) !== expected.mode) changes.push(path);
+  }
+  for (const [name, guard] of protectedTrees) {
+    const observation = guard.check();
+    save(`integrity-${name}-after-${inventorySequence++}.json`, observation);
+    changes.push(...observation.changes.map(change => `${name}:${change.kind}:${change.path}`));
   }
   return changes;
 }
@@ -105,6 +119,7 @@ function copyDependencies(origin, destination) {
   return { origin, destination, files, bins, binPolicy: "Regular wrappers preserve the exact installed .bin link target; no symlink is reused and no manifest-based bin selection is invented" };
 }
 async function phase(label, executable, args, cwd = source, timeoutMs = 180000) {
+  assert.deepEqual(verifySource(), [], `Protected inputs changed before ${label}`);
   const env = { ...environment, FULL_GATE_IMPORTS: join(output, "imports", label), NODE_OPTIONS: "--import=" + pathToFileURL(join(temporary, "harness/import-guard.mjs")).href };
   const selectedExecutable = executable === 'npm' ? process.execPath : executable;
   const selectedArgs = executable === 'npm' ? [npmPath, ...args] : args;
@@ -172,13 +187,17 @@ try {
     const path = join(temporary, 'harness', name); return [path, hash(readFileSync(path))];
   }));
   report.launchPreflight = launchPreflight;
+  const integrityModule = fileURLToPath(new URL('../integrity-73/tree.mjs', import.meta.url));
+  report.integrityHarness = { path: integrityModule, sha256: hash(readFileSync(integrityModule)) };
+  report.gateArtifactHashes[integrityModule] = report.integrityHarness.sha256;
   report.prerequisites = await (committedArchive ? archivedPrerequisites : prerequisites)({ repository, source, temporary, environment, candidate: discovery.revision });
   report.mandatoryNativeStaging = stageNative(launchPreflight, { snapshot: source, nativeRoot: join(temporary, "native-bin"), environment });
   save("prerequisites.json", report.prerequisites);
   report.native = {};
   const native = [["bash3.2", "/bin/bash"], ["bash5.3", "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash"], ["sed", "/usr/bin/sed"], ["awk", "/usr/bin/awk"], ["jq", "/usr/bin/jq"], ["gzip", "/usr/bin/gzip"], ["curl", "/usr/bin/curl"]];
-  let rgPath; try { rgPath = execFileSync("/bin/sh", ["-c", "command -v rg"], { encoding: "utf8" }).trim(); } catch {}
-  if (rgPath) { native.push(["rg", rgPath]); copyFileSync(realpathSync(rgPath), join(temporary, "native-bin/rg")); chmodSync(join(temporary, "native-bin/rg"), 0o755); }
+  const rgPath = join(temporary, "native-bin/rg");
+  assert.equal(existsSync(rgPath), true, 'Mandatory rg must come from authenticated staging');
+  native.push(["rg", rgPath]);
   for (const [name, path] of native) {
     if (!existsSync(path)) { report.native[name] = { path, available: false }; continue; }
     const version = spawnSync(path, ["--version"], { encoding: "utf8", timeout: 5000, maxBuffer: 1024 * 1024, env: environment });
@@ -192,6 +211,8 @@ try {
   report.runtimeProbe = probeGuardedRuntime({ executable: process.execPath, root: temporary, source, harness: join(temporary, 'harness'), guard: join(temporary, 'harness/import-guard.mjs'), expectedSource: JSON.parse(readFileSync(environment.FULL_GATE_EXPECTED)), environment });
   save('runtime-probe.json', report.runtimeProbe);
   if (report.runtimeProbe.status !== 0) { const error = new Error('Guarded runtime feature probe refused before suite'); error.exitCode = 78; throw error; }
+  for (const name of ['src', 'tests', 'scripts', 'docs', 'benchmarks']) if (existsSync(join(source, name))) sealTree(`input-${name}`, join(source, name));
+  sealTree('native', join(temporary, 'native-bin'));
   const discovered = await phase("canonical-discovery", process.execPath, ["--input-type=module", "-e", "import{globSync}from'node:fs';const files=globSync('tests/**/*.test.ts',{exclude:path=>path==='tests/commands/regex-execution/continuation/artifacts/native'});console.log(JSON.stringify(files.sort()));"]);
   assert.equal(discovered.status, 0);
   report.actualCanonicalFiles = JSON.parse(readFileSync(join(output, "canonical-discovery.stdout.log"), "utf8"));
@@ -208,6 +229,9 @@ try {
   report.typing = { builds: typeReport.builds, status: typeReport.status, runtimeExecutions: typeReport.runtimeExecutions };
   assert.equal(typeReport.builds, 1);
   const build = { status: typeReport.phases.find(entry => entry.label === 'build')?.status, clean: true };
+  assert.deepEqual(verifySource(), [], 'Build may create outputs, not change protected inputs');
+  sealTree('source-after-build', source);
+  for (const name of ['src', 'tests', 'scripts', 'docs', 'benchmarks']) protectedTrees.delete(`input-${name}`);
   const envProof = await phase('env-source-binding', process.execPath, ['--import', 'tsx', '--input-type=module', '-e', "await import('./src/commands/execution.ts');await import('./src/commands/env-split.ts');console.log('candidate env source loaded')"]);
   assert.equal(envProof.status, 0, 'Env source probe must succeed before canonical execution');
   const envProofDirectory = join(output, 'imports/env-source-binding');
@@ -233,6 +257,7 @@ try {
       if (installed.status === 0 && installed.clean) {
         assert.equal(existsSync(join(consumer, "node_modules/virtual-bash/src")), false);
         copyFileSync(join(harness, "public.mjs"), join(consumer, "public.mjs")); copyFileSync(join(harness, "consumer.mts.fixture"), join(consumer, "consumer.mts"));
+        sealTree('installed-consumer', consumer);
         const publicResult = await phase("public", process.execPath, ["public.mjs"], consumer);
         if (publicResult.status === 0) report.public = JSON.parse(readFileSync(join(output, "public.stdout.log"), "utf8"));
         await phase("public-types", process.execPath, [join(source, "node_modules/typescript/bin/tsc"), "--noEmit", "--target", "ES2023", "--module", "NodeNext", "--moduleResolution", "NodeNext", "--strict", "--noUncheckedIndexedAccess", "--exactOptionalPropertyTypes", "--skipLibCheck", "false", "--types", "node", "--typeRoots", join(source, "node_modules/@types"), "consumer.mts"], consumer);

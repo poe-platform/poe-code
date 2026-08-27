@@ -33,7 +33,7 @@ test("sort awaits backpressure and aborts a blocked output without later writes"
   let first!: () => void;
   const started = new Promise<void>(resolve => { first = resolve; });
   const pending = sort.execute(await context("row\n".repeat(40000), { async write() { writes++; first(); await new Promise<void>(() => {}); } }, controller.signal));
-  const rejection = assert.rejects(pending, /stop sorting/);
+  const rejection = assert.rejects(Promise.resolve(pending), /stop sorting/);
   await started; assert.equal(writes, 1); controller.abort(new Error("stop sorting")); await rejection;
   assert.equal(writes, 1);
 });

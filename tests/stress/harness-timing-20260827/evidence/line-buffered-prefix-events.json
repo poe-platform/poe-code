@@ -1,0 +1,124 @@
+{
+  "failure": null,
+  "argv": [
+    "--no-config",
+    "--line-buffered",
+    "foo",
+    "-"
+  ],
+  "profile": "observed-prefix",
+  "pid": 60027,
+  "code": 0,
+  "signal": null,
+  "stdout": "foo\nbinary file matches (found \"\\0\" byte around offset 4)\n",
+  "stderr": "",
+  "events": [
+    {
+      "event": "launch",
+      "ms": 0.061291999999866675,
+      "detail": {
+        "argv": [
+          "--no-config",
+          "--line-buffered",
+          "foo",
+          "-"
+        ],
+        "profile": "observed-prefix",
+        "options": {
+          "lineBuffered": true
+        }
+      }
+    },
+    {
+      "event": "spawn",
+      "ms": 1.5473329999999805,
+      "detail": {
+        "pid": 60027
+      }
+    },
+    {
+      "event": "write",
+      "ms": 1.554041999999754,
+      "detail": {
+        "hex": "666f6f0a",
+        "end": false
+      }
+    },
+    {
+      "event": "stdout-data",
+      "ms": 10.184792000000016,
+      "detail": {
+        "hex": "666f6f0a"
+      }
+    },
+    {
+      "event": "prefix-consumption-evidenced",
+      "ms": 10.225957999999991,
+      "detail": "stdout is evidence of prior read; not a read syscall timestamp"
+    },
+    {
+      "event": "ready",
+      "ms": 10.226708000000144
+    },
+    {
+      "event": "write",
+      "ms": 10.255832999999711,
+      "detail": {
+        "hex": "000a6e6f0a",
+        "end": true
+      }
+    },
+    {
+      "event": "stdin-close",
+      "ms": 10.417332999999871
+    },
+    {
+      "event": "stdout-data",
+      "ms": 10.432166999999936,
+      "detail": {
+        "hex": "62696e6172792066696c65206d6174636865732028666f756e6420225c302220627974652061726f756e64206f66667365742034290a"
+      }
+    },
+    {
+      "event": "stderr-end",
+      "ms": 10.72375000000011
+    },
+    {
+      "event": "stdout-end",
+      "ms": 10.781124999999975
+    },
+    {
+      "event": "stdout-close",
+      "ms": 10.819167000000107
+    },
+    {
+      "event": "stderr-close",
+      "ms": 10.820374999999785
+    },
+    {
+      "event": "exit",
+      "ms": 10.832667000000129,
+      "detail": {
+        "code": 0,
+        "signal": null
+      }
+    },
+    {
+      "event": "close",
+      "ms": 10.839916999999787,
+      "detail": {
+        "code": 0,
+        "signal": null
+      }
+    }
+  ],
+  "ready": true,
+  "actualClose": true,
+  "ownedListenersRemaining": 0,
+  "streamsDestroyed": [
+    true,
+    true,
+    true
+  ],
+  "activeTimers": 0
+}

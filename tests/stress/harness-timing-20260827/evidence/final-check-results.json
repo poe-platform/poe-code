@@ -1,0 +1,62 @@
+[
+  {
+    "name": "final-streaming",
+    "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "args": [
+      "--unhandled-rejections=strict",
+      "--import",
+      "tsx",
+      "tests/commands/search-stress/streaming.test.ts"
+    ],
+    "code": 0,
+    "signal": null,
+    "failure": null,
+    "durationMs": 341.472542,
+    "ownedListenersRemaining": 0,
+    "streamsDestroyed": [
+      true,
+      true,
+      true
+    ]
+  },
+  {
+    "name": "final-negative-controls",
+    "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "args": [
+      "--unhandled-rejections=strict",
+      "--import",
+      "tsx",
+      "tests/stress/harness-timing-20260827/negative-controls.ts"
+    ],
+    "code": 0,
+    "signal": null,
+    "failure": null,
+    "durationMs": 1637.2226660000001,
+    "ownedListenersRemaining": 0,
+    "streamsDestroyed": [
+      true,
+      true,
+      true
+    ]
+  },
+  {
+    "name": "final-scoped-types",
+    "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "args": [
+      "node_modules/typescript/bin/tsc",
+      "--noEmit",
+      "-p",
+      "tests/stress/harness-timing-20260827/tsconfig.scope.json"
+    ],
+    "code": 0,
+    "signal": null,
+    "failure": null,
+    "durationMs": 1174.15675,
+    "ownedListenersRemaining": 0,
+    "streamsDestroyed": [
+      true,
+      true,
+      true
+    ]
+  }
+]

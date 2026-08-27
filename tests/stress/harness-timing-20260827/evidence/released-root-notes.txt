@@ -1,0 +1,38 @@
+HARNESS-ONLY leaf static checkpoint, 2026-08-27.
+No /tmp/regex-production-checkpoint-closed.txt at initial inspection. NO tests,
+native oracle children, stress or canonical edits executed. Frozen original
+20 harness/fullgate records plus all14 selected failures and192 current source
+hashes under tests/stress/harness-timing-20260827/frozen/manifest.json.
+Confirmed owned jq path: tests/commands/structured-stress/jq-grammar-author-20260827/scan-boundaries.test.ts.
+Confirmed owned native path: tests/commands/search-stress/streaming-cases.ts.
+
+Ownership blocker for root: unowned tests/commands/search-stress/streaming.test.ts
+hard-kills its child at5000ms (bounded spawnSync). Generous internal cold-start /
+ready / completion watchdogs cannot supersede this. Please assign wrapper bound
+to an integration owner or explicitly expand my scope; I will NOT edit it under
+current exact ownership. Its pass6 footer assertion can remain unchanged.
+
+Static jq detail: owned test has15s per vector; unowned jq harness.ts creates
+1500ms AbortSignal per execution AFTER imports. 13 historical failures are
+execution wall-clock aborts, not loader timeouts. Planning a new owned execution
+adapter preserving exact product limits and all330 expected triples, with
+distinct generous HARNESS bounds; original helper and cancellation tests untouched.
+Native rg25ms producers do not prove rg consumed prefix before NUL; original
+warning-only output is already a separate whole-write profile, not regex blocking.
+Need actual progress proof; will not count warning-only observation as native
+matched-delivery parity. All6 pathological regex allocations untouched.
+
+ROOT RELEASE/OWNERSHIP: regex checkpoint marker now exists; harness author may
+proceed. Narrowly authorize tests/commands/search-stress/streaming.test.ts outer
+watchdog/readiness forwarding changes necessary for the SAME native delivery
+harness; keep its pass6 semantic footer expectation unchanged. This is related
+test harness ownership, not product/source/types or broad search-suite changes.
+Keep shared jq harness.ts unchanged unless a concrete need is reported; a
+test-specific execution adapter in the owned evidence subtree may separate
+semantic vector completion watchdogs from intentional product cancellation
+tests. Preserve330 triples and15 canonical cases, native profile/old25ms failure,
+all14 fullgate outcomes. Larger test watchdogs must not change product limits
+or blanket-skip/invert errors. The supplied1500ms signal originates in a TEST
+helper after imports: do not falsely call those failures loader startup time.
+Use actual progress/readiness evidence, bounded serial/concurrent schedule and
+negative controls. No new regex risky probes; no fullgate/default acceptance.

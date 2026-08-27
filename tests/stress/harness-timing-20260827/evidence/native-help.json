@@ -1,0 +1,75 @@
+{
+  "name": "native-help",
+  "command": "rg",
+  "args": [
+    "--help"
+  ],
+  "code": 0,
+  "signal": null,
+  "failure": null,
+  "durationMs": 9.447999999999979,
+  "ownedListenersRemaining": 0,
+  "streamsDestroyed": [
+    true,
+    true,
+    true
+  ],
+  "events": [
+    {
+      "event": "launch",
+      "ms": 0.06537500000001728,
+      "command": "rg",
+      "args": [
+        "--help"
+      ],
+      "timeout": 120000
+    },
+    {
+      "event": "spawn",
+      "ms": 1.7699579999999742,
+      "pid": 53124
+    },
+    {
+      "event": "stdin-close",
+      "ms": 1.829541000000006
+    },
+    {
+      "event": "stdout-data",
+      "ms": 8.995999999999981,
+      "bytes": 65536
+    },
+    {
+      "event": "stdout-data",
+      "ms": 9.11583300000001,
+      "bytes": 9159
+    },
+    {
+      "event": "stderr-end",
+      "ms": 9.23762499999998
+    },
+    {
+      "event": "stdout-end",
+      "ms": 9.26037500000001
+    },
+    {
+      "event": "stdout-close",
+      "ms": 9.356333000000006
+    },
+    {
+      "event": "stderr-close",
+      "ms": 9.35779100000002
+    },
+    {
+      "event": "exit",
+      "ms": 9.36979100000002,
+      "code": 0,
+      "signal": null
+    },
+    {
+      "event": "close",
+      "ms": 9.381250000000023,
+      "code": 0,
+      "signal": null
+    }
+  ]
+}

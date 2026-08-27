@@ -1,0 +1,276 @@
+{
+  "name": "baseline-jq",
+  "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "--unhandled-rejections=strict",
+    "--import",
+    "tsx",
+    "tests/commands/structured-stress/jq-grammar-author-20260827/scan-boundaries.test.ts"
+  ],
+  "code": 0,
+  "signal": null,
+  "failure": null,
+  "durationMs": 8487.880707999999,
+  "ownedListenersRemaining": 0,
+  "streamsDestroyed": [
+    true,
+    true,
+    true
+  ],
+  "events": [
+    {
+      "event": "launch",
+      "ms": 0.13645800000000463,
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "tests/commands/structured-stress/jq-grammar-author-20260827/scan-boundaries.test.ts"
+      ],
+      "timeout": 120000
+    },
+    {
+      "event": "spawn",
+      "ms": 0.9689579999999864,
+      "pid": 53125
+    },
+    {
+      "event": "stdin-close",
+      "ms": 1.0020000000000095
+    },
+    {
+      "event": "stdout-data",
+      "ms": 213.12629199999998,
+      "bytes": 15
+    },
+    {
+      "event": "stdout-data",
+      "ms": 845.4471249999999,
+      "bytes": 51
+    },
+    {
+      "event": "stdout-data",
+      "ms": 845.6066249999999,
+      "bytes": 47
+    },
+    {
+      "event": "stdout-data",
+      "ms": 845.6384579999999,
+      "bytes": 53
+    },
+    {
+      "event": "stdout-data",
+      "ms": 1373.8123329999999,
+      "bytes": 51
+    },
+    {
+      "event": "stdout-data",
+      "ms": 1373.884417,
+      "bytes": 47
+    },
+    {
+      "event": "stdout-data",
+      "ms": 1373.954458,
+      "bytes": 53
+    },
+    {
+      "event": "stdout-data",
+      "ms": 1999.5072499999999,
+      "bytes": 51
+    },
+    {
+      "event": "stdout-data",
+      "ms": 1999.6665419999997,
+      "bytes": 47
+    },
+    {
+      "event": "stdout-data",
+      "ms": 1999.705667,
+      "bytes": 52
+    },
+    {
+      "event": "stdout-data",
+      "ms": 2613.864625,
+      "bytes": 51
+    },
+    {
+      "event": "stdout-data",
+      "ms": 2613.8968330000002,
+      "bytes": 47
+    },
+    {
+      "event": "stdout-data",
+      "ms": 2613.924708,
+      "bytes": 53
+    },
+    {
+      "event": "stdout-data",
+      "ms": 3195.2439170000002,
+      "bytes": 51
+    },
+    {
+      "event": "stdout-data",
+      "ms": 3195.2914170000004,
+      "bytes": 100
+    },
+    {
+      "event": "stdout-data",
+      "ms": 3798.408292,
+      "bytes": 51
+    },
+    {
+      "event": "stdout-data",
+      "ms": 3798.488292,
+      "bytes": 47
+    },
+    {
+      "event": "stdout-data",
+      "ms": 3798.4980000000005,
+      "bytes": 53
+    },
+    {
+      "event": "stdout-data",
+      "ms": 4326.632958,
+      "bytes": 51
+    },
+    {
+      "event": "stdout-data",
+      "ms": 4326.6655,
+      "bytes": 100
+    },
+    {
+      "event": "stdout-data",
+      "ms": 4829.848917,
+      "bytes": 51
+    },
+    {
+      "event": "stdout-data",
+      "ms": 4829.879208,
+      "bytes": 98
+    },
+    {
+      "event": "stdout-data",
+      "ms": 5345.294083,
+      "bytes": 51
+    },
+    {
+      "event": "stdout-data",
+      "ms": 5345.366542,
+      "bytes": 47
+    },
+    {
+      "event": "stdout-data",
+      "ms": 5345.376333,
+      "bytes": 53
+    },
+    {
+      "event": "stdout-data",
+      "ms": 5877.431833000001,
+      "bytes": 51
+    },
+    {
+      "event": "stdout-data",
+      "ms": 5877.4619170000005,
+      "bytes": 101
+    },
+    {
+      "event": "stdout-data",
+      "ms": 6401.2528330000005,
+      "bytes": 52
+    },
+    {
+      "event": "stdout-data",
+      "ms": 6401.283083,
+      "bytes": 102
+    },
+    {
+      "event": "stdout-data",
+      "ms": 6908.367875,
+      "bytes": 151
+    },
+    {
+      "event": "stdout-data",
+      "ms": 7433.975,
+      "bytes": 52
+    },
+    {
+      "event": "stdout-data",
+      "ms": 7434.005417,
+      "bytes": 102
+    },
+    {
+      "event": "stdout-data",
+      "ms": 7946.21475,
+      "bytes": 52
+    },
+    {
+      "event": "stdout-data",
+      "ms": 7946.245167,
+      "bytes": 102
+    },
+    {
+      "event": "stdout-data",
+      "ms": 8474.631249999999,
+      "bytes": 52
+    },
+    {
+      "event": "stdout-data",
+      "ms": 8474.674458,
+      "bytes": 102
+    },
+    {
+      "event": "stdout-data",
+      "ms": 8478.319875,
+      "bytes": 6
+    },
+    {
+      "event": "stdout-data",
+      "ms": 8478.335416999998,
+      "bytes": 22
+    },
+    {
+      "event": "stdout-data",
+      "ms": 8478.346,
+      "bytes": 10
+    },
+    {
+      "event": "stdout-data",
+      "ms": 8478.36925,
+      "bytes": 9
+    },
+    {
+      "event": "stdout-data",
+      "ms": 8478.389083,
+      "bytes": 61
+    },
+    {
+      "event": "stderr-end",
+      "ms": 8487.597042
+    },
+    {
+      "event": "stdout-end",
+      "ms": 8487.626999999999
+    },
+    {
+      "event": "stdout-close",
+      "ms": 8487.830666999998
+    },
+    {
+      "event": "stderr-close",
+      "ms": 8487.832375
+    },
+    {
+      "event": "exit",
+      "ms": 8487.846249999999,
+      "code": 0,
+      "signal": null
+    },
+    {
+      "event": "close",
+      "ms": 8487.857333,
+      "code": 0,
+      "signal": null
+    }
+  ]
+}

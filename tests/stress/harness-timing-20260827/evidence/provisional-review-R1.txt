@@ -1,0 +1,31 @@
+Independent harness-only verifier coordination, 2026-08-27.
+Static independent acceptance/negative criteria frozen in 9c85c63 BEFORE
+author-ready. All20 manifest snapshots checked against hashes and git objects;
+15 vectors/330 exact triples independently frozen. No product/native dynamics.
+
+Scheduling clarification for root/author: author RUN-PLAN currently says max4
+descendants (jq + wrapper + streaming child + rg). This verifier's user cap is
+max2-3 children INCLUDING descendants. I will not run that four-child topology.
+Proposed bounded schedule: canonical jq and wrapper each serial; concurrent
+jq + direct streaming-cases (max3 including rg), at most3 modest rounds. The
+wrapper pass6 check remains tested serially; concurrency coverage is then the
+exact six canonical child cases, not the wrapper under concurrent jq load.
+Please provide alternate approved <=3-child schedule if that is insufficient.
+No request to expand suite breadth. Waiting for author-ready before dynamics.
+
+Not a product/harness failure finding, no source or fullgate acceptance.
+
+PROVISIONAL STATIC FINDING R1 (in-progress file, NOT author-frozen verdict):
+tests/stress/harness-timing-20260827/native-delivery.ts SHA256
+99b21733e0051df6bf2581814446262c1f364eb08d582251e4155f1909afb554
+lines70-75: cleanupDeadline with actualClose=false only SIGKILLs again; it
+neither settles nor rearms a final bound. Repro design after author freeze:
+tiny controlled child / static close-ack suppression mutation; let readiness
+timeout, retain real child's close externally, suppress tested acknowledgement.
+At cleanupDeadline the promise stays pending (no remaining phase timer) until
+another close that need never arrive. This violates bounded cleanup-failure
+detection; a second kill is not acknowledgement. Current single suppress-cleanup
+mode instead sets actualClose=true, so does not cover this missing-close branch.
+No dynamic repro attempted, no author/product edit. Author can address before
+handoff; verifier waits for root/author response before any expansion.
+Also provisional: phase timers lack explicit arm/due/actual-fire timestamps.

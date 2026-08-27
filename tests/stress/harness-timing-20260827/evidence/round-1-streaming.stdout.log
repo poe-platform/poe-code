@@ -1,0 +1,76 @@
+TAP version 13
+HARNESS_TIMING {"pid":71150,"event":"streaming-module-ready","atMs":112.726917,"detail":{}}
+HARNESS_TIMING {"pid":71150,"event":"native-delivery","atMs":122.283917,"detail":{"repetition":1,"argv":["--no-config","--line-buffered","foo","-"],"profile":"observed-prefix","pid":71184,"code":0,"signal":null,"stdout":"foo\nbinary file matches (found \"\\0\" byte around offset 4)\n","stderr":"","events":[{"event":"launch","ms":0.08075000000000898,"detail":{"argv":["--no-config","--line-buffered","foo","-"],"profile":"observed-prefix","options":{"lineBuffered":true}}},{"event":"spawn","ms":3.1345000000000027,"detail":{"pid":71184}},{"event":"write","ms":3.152708000000004,"detail":{"hex":"666f6f0a","end":false}},{"event":"stdout-data","ms":7.759,"detail":{"hex":"666f6f0a"}},{"event":"prefix-consumption-evidenced","ms":7.779250000000005,"detail":"stdout is evidence of prior read; not a read syscall timestamp"},{"event":"ready","ms":7.780208000000002},{"event":"write","ms":7.815166000000005,"detail":{"hex":"000a6e6f0a","end":true}},{"event":"stdin-close","ms":8.078541000000001},{"event":"stdout-data","ms":8.089624999999998,"detail":{"hex":"62696e6172792066696c65206d6174636865732028666f756e6420225c302220627974652061726f756e64206f66667365742034290a"}},{"event":"stderr-end","ms":8.39500000000001},{"event":"stderr-close","ms":8.50137500000001},{"event":"stdout-end","ms":8.51483300000001},{"event":"exit","ms":8.561333000000005,"detail":{"code":0,"signal":null}},{"event":"close","ms":8.62875000000001,"detail":{"code":0,"signal":null}},{"event":"stdout-close","ms":8.766083000000009}],"ready":true,"actualClose":true,"ownedListenersRemaining":0,"streamsDestroyed":[true,true,true],"activeTimers":0}}
+HARNESS_TIMING {"pid":71150,"event":"virtual-entered-read","atMs":131.436834,"detail":{"repetition":1}}
+HARNESS_TIMING {"pid":71150,"event":"virtual-first-data","atMs":132.151834,"detail":{"repetition":1}}
+HARNESS_TIMING {"pid":71150,"event":"virtual-suffix-after-output","atMs":132.213334,"detail":{"repetition":1}}
+# Subtest: output-acknowledged prefix delivery (native explicitly line-buffered) 1
+ok 1 - output-acknowledged prefix delivery (native explicitly line-buffered) 1
+  ---
+  duration_ms: 20.76275
+  type: 'test'
+  ...
+HARNESS_TIMING {"pid":71150,"event":"native-delivery","atMs":142.889334,"detail":{"repetition":2,"argv":["--no-config","--line-buffered","foo","-"],"profile":"observed-prefix","pid":71203,"code":0,"signal":null,"stdout":"foo\nbinary file matches (found \"\\0\" byte around offset 4)\n","stderr":"","events":[{"event":"launch","ms":0.059750000000008185,"detail":{"argv":["--no-config","--line-buffered","foo","-"],"profile":"observed-prefix","options":{"lineBuffered":true}}},{"event":"spawn","ms":2.202416999999997,"detail":{"pid":71203}},{"event":"write","ms":2.2121250000000146,"detail":{"hex":"666f6f0a","end":false}},{"event":"stdout-data","ms":8.042292000000003,"detail":{"hex":"666f6f0a"}},{"event":"prefix-consumption-evidenced","ms":8.056916999999999,"detail":"stdout is evidence of prior read; not a read syscall timestamp"},{"event":"ready","ms":8.057457999999997},{"event":"write","ms":8.077249999999992,"detail":{"hex":"000a6e6f0a","end":true}},{"event":"stdin-close","ms":8.14345800000001},{"event":"stdout-data","ms":8.175000000000011,"detail":{"hex":"62696e6172792066696c65206d6174636865732028666f756e6420225c302220627974652061726f756e64206f66667365742034290a"}},{"event":"stderr-end","ms":8.469957999999991},{"event":"stdout-end","ms":8.527500000000003},{"event":"stdout-close","ms":8.631541999999996},{"event":"stderr-close","ms":8.632916999999992},{"event":"exit","ms":8.645749999999992,"detail":{"code":0,"signal":null}},{"event":"close","ms":8.655625000000015,"detail":{"code":0,"signal":null}}],"ready":true,"actualClose":true,"ownedListenersRemaining":0,"streamsDestroyed":[true,true,true],"activeTimers":0}}
+HARNESS_TIMING {"pid":71150,"event":"virtual-entered-read","atMs":152.04775,"detail":{"repetition":2}}
+HARNESS_TIMING {"pid":71150,"event":"virtual-first-data","atMs":152.542292,"detail":{"repetition":2}}
+HARNESS_TIMING {"pid":71150,"event":"virtual-suffix-after-output","atMs":152.589334,"detail":{"repetition":2}}
+# Subtest: output-acknowledged prefix delivery (native explicitly line-buffered) 2
+ok 2 - output-acknowledged prefix delivery (native explicitly line-buffered) 2
+  ---
+  duration_ms: 19.98375
+  type: 'test'
+  ...
+HARNESS_TIMING {"pid":71150,"event":"native-delivery","atMs":165.607292,"detail":{"repetition":3,"argv":["--no-config","--line-buffered","foo","-"],"profile":"observed-prefix","pid":71222,"code":0,"signal":null,"stdout":"foo\nbinary file matches (found \"\\0\" byte around offset 4)\n","stderr":"","events":[{"event":"launch","ms":0.08320800000001327,"detail":{"argv":["--no-config","--line-buffered","foo","-"],"profile":"observed-prefix","options":{"lineBuffered":true}}},{"event":"spawn","ms":2.8047909999999945,"detail":{"pid":71222}},{"event":"write","ms":2.813582999999994,"detail":{"hex":"666f6f0a","end":false}},{"event":"stdout-data","ms":10.532207999999997,"detail":{"hex":"666f6f0a"}},{"event":"prefix-consumption-evidenced","ms":10.555666000000002,"detail":"stdout is evidence of prior read; not a read syscall timestamp"},{"event":"ready","ms":10.556125000000009},{"event":"write","ms":10.577875000000006,"detail":{"hex":"000a6e6f0a","end":true}},{"event":"stdin-close","ms":10.662624999999991},{"event":"stdout-data","ms":10.671333000000004,"detail":{"hex":"62696e6172792066696c65206d6174636865732028666f756e6420225c302220627974652061726f756e64206f66667365742034290a"}},{"event":"stderr-end","ms":11.223500000000001},{"event":"stdout-end","ms":11.249957999999992},{"event":"stdout-close","ms":11.342874999999992},{"event":"stderr-close","ms":11.344208000000009},{"event":"exit","ms":11.356124999999992,"detail":{"code":0,"signal":null}},{"event":"close","ms":11.36420799999999,"detail":{"code":0,"signal":null}}],"ready":true,"actualClose":true,"ownedListenersRemaining":0,"streamsDestroyed":[true,true,true],"activeTimers":0}}
+HARNESS_TIMING {"pid":71150,"event":"virtual-entered-read","atMs":172.427042,"detail":{"repetition":3}}
+HARNESS_TIMING {"pid":71150,"event":"virtual-first-data","atMs":172.721959,"detail":{"repetition":3}}
+HARNESS_TIMING {"pid":71150,"event":"virtual-suffix-after-output","atMs":172.762709,"detail":{"repetition":3}}
+# Subtest: output-acknowledged prefix delivery (native explicitly line-buffered) 3
+ok 3 - output-acknowledged prefix delivery (native explicitly line-buffered) 3
+  ---
+  duration_ms: 19.828167
+  type: 'test'
+  ...
+# Subtest: whole-write delivery retains the distinct warning-only native result
+ok 4 - whole-write delivery retains the distinct warning-only native result
+  ---
+  duration_ms: 25.232958
+  type: 'test'
+  ...
+# Subtest: binary-aware output respects backpressure before another read
+ok 5 - binary-aware output respects backpressure before another read
+  ---
+  duration_ms: 27.609542
+  type: 'test'
+  ...
+# Subtest: binary-aware output cancels under backpressure before another read
+ok 6 - binary-aware output cancels under backpressure before another read
+  ---
+  duration_ms: 27.366042
+  type: 'test'
+  ...
+1..6
+# tests 6
+# suites 0
+# pass 6
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 241.131834
+
+TAP version 13
+# Subtest: isolated matched-delivery, whole-write and backpressure regressions
+ok 1 - isolated matched-delivery, whole-write and backpressure regressions
+  ---
+  duration_ms: 275.279417
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 277.733167

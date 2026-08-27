@@ -1,0 +1,152 @@
+{
+  "name": "final-streaming",
+  "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "--unhandled-rejections=strict",
+    "--import",
+    "tsx",
+    "tests/commands/search-stress/streaming.test.ts"
+  ],
+  "code": 0,
+  "signal": null,
+  "failure": null,
+  "durationMs": 341.472542,
+  "ownedListenersRemaining": 0,
+  "streamsDestroyed": [
+    true,
+    true,
+    true
+  ],
+  "events": [
+    {
+      "event": "launch",
+      "ms": 0.061042000000014696,
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "tests/commands/search-stress/streaming.test.ts"
+      ],
+      "timeout": 180000
+    },
+    {
+      "event": "outer-timer-armed",
+      "ms": 0.6705420000000117,
+      "armedMs": 0.6665830000000028,
+      "dueMs": 180000.666583,
+      "timeout": 180000
+    },
+    {
+      "event": "spawn",
+      "ms": 0.9508330000000171,
+      "pid": 78976
+    },
+    {
+      "event": "stdin-close",
+      "ms": 1.141458
+    },
+    {
+      "event": "stdout-data",
+      "ms": 335.456333,
+      "bytes": 10204
+    },
+    {
+      "event": "stdout-data",
+      "ms": 336.12704199999996,
+      "bytes": 15
+    },
+    {
+      "event": "stdout-data",
+      "ms": 336.25654199999997,
+      "bytes": 79
+    },
+    {
+      "event": "stdout-data",
+      "ms": 336.487625,
+      "bytes": 75
+    },
+    {
+      "event": "stdout-data",
+      "ms": 336.56125,
+      "bytes": 53
+    },
+    {
+      "event": "stdout-data",
+      "ms": 336.811917,
+      "bytes": 5
+    },
+    {
+      "event": "stdout-data",
+      "ms": 336.83237499999996,
+      "bytes": 10
+    },
+    {
+      "event": "stdout-data",
+      "ms": 336.872875,
+      "bytes": 11
+    },
+    {
+      "event": "stdout-data",
+      "ms": 336.91204200000004,
+      "bytes": 9
+    },
+    {
+      "event": "stdout-data",
+      "ms": 336.990417,
+      "bytes": 9
+    },
+    {
+      "event": "stdout-data",
+      "ms": 337.03091700000004,
+      "bytes": 14
+    },
+    {
+      "event": "stdout-data",
+      "ms": 337.064292,
+      "bytes": 12
+    },
+    {
+      "event": "stdout-data",
+      "ms": 337.08683299999996,
+      "bytes": 9
+    },
+    {
+      "event": "stdout-data",
+      "ms": 337.10362499999997,
+      "bytes": 25
+    },
+    {
+      "event": "stderr-end",
+      "ms": 341.180375
+    },
+    {
+      "event": "stdout-end",
+      "ms": 341.226625
+    },
+    {
+      "event": "stdout-close",
+      "ms": 341.275083
+    },
+    {
+      "event": "stderr-close",
+      "ms": 341.27712499999996
+    },
+    {
+      "event": "exit",
+      "ms": 341.309625,
+      "code": 0,
+      "signal": null
+    },
+    {
+      "event": "outer-timer-cleared",
+      "ms": 341.387708
+    },
+    {
+      "event": "close",
+      "ms": 341.38858300000004,
+      "code": 0,
+      "signal": null
+    }
+  ]
+}

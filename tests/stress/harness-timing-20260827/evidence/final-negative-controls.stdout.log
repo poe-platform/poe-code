@@ -1,0 +1,9 @@
+HARNESS_TIMING {"pid":79043,"event":"semantic-watchdog-armed","atMs":95.492708,"detail":{"timerId":1,"milliseconds":10000,"armedMs":95.477833,"dueMs":10095.477833}}
+HARNESS_TIMING {"pid":79043,"event":"semantic-watchdog-cleared","atMs":132.277875,"detail":{"timerId":1}}
+HARNESS_TIMING {"pid":79043,"event":"semantic-watchdog-armed","atMs":1468.412333,"detail":{"timerId":2,"milliseconds":25,"armedMs":1468.385416,"dueMs":1493.385416}}
+HARNESS_TIMING {"pid":79043,"event":"semantic-watchdog-fired","atMs":1494.759958,"detail":{"timerId":2,"armedMs":1468.385416,"dueMs":1493.385416,"firedMs":1494.695708,"latenessMs":1.3102919999998903}}
+HARNESS_TIMING {"pid":79043,"event":"semantic-watchdog-cleared","atMs":1495.350041,"detail":{"timerId":2}}
+HARNESS_TIMING {"pid":79043,"event":"semantic-watchdog-armed","atMs":1495.828208,"detail":{"timerId":3,"milliseconds":25,"armedMs":1495.811666,"dueMs":1520.811666}}
+HARNESS_TIMING {"pid":79043,"event":"semantic-watchdog-fired","atMs":1523.338833,"detail":{"timerId":3,"armedMs":1495.811666,"dueMs":1520.811666,"firedMs":1523.27875,"latenessMs":2.467083999999886}}
+HARNESS_TIMING {"pid":79043,"event":"semantic-watchdog-cleared","atMs":1524.24625,"detail":{"timerId":3}}
+negative controls: five native phase failures, jq stall, late rejection; sentinel retired separately

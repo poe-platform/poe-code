@@ -1,0 +1,127 @@
+{
+  "name": "final-negative-controls",
+  "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "--unhandled-rejections=strict",
+    "--import",
+    "tsx",
+    "tests/stress/harness-timing-20260827/negative-controls.ts"
+  ],
+  "code": 0,
+  "signal": null,
+  "failure": null,
+  "durationMs": 1637.2226660000001,
+  "ownedListenersRemaining": 0,
+  "streamsDestroyed": [
+    true,
+    true,
+    true
+  ],
+  "events": [
+    {
+      "event": "launch",
+      "ms": 0.05420800000001691,
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "tests/stress/harness-timing-20260827/negative-controls.ts"
+      ],
+      "timeout": 60000
+    },
+    {
+      "event": "outer-timer-armed",
+      "ms": 0.4297080000000051,
+      "armedMs": 0.42837499999996,
+      "dueMs": 60000.428375,
+      "timeout": 60000
+    },
+    {
+      "event": "spawn",
+      "ms": 0.45366599999999835,
+      "pid": 79043
+    },
+    {
+      "event": "stdin-close",
+      "ms": 0.5153330000000551
+    },
+    {
+      "event": "stdout-data",
+      "ms": 115.03312500000004,
+      "bytes": 165
+    },
+    {
+      "event": "stdout-data",
+      "ms": 151.73370799999998,
+      "bytes": 106
+    },
+    {
+      "event": "stdout-data",
+      "ms": 1488.02725,
+      "bytes": 165
+    },
+    {
+      "event": "stdout-data",
+      "ms": 1514.388125,
+      "bytes": 201
+    },
+    {
+      "event": "stdout-data",
+      "ms": 1514.8201249999997,
+      "bytes": 107
+    },
+    {
+      "event": "stdout-data",
+      "ms": 1515.283958,
+      "bytes": 165
+    },
+    {
+      "event": "stdout-data",
+      "ms": 1543.6532499999998,
+      "bytes": 199
+    },
+    {
+      "event": "stdout-data",
+      "ms": 1543.757666,
+      "bytes": 106
+    },
+    {
+      "event": "stdout-data",
+      "ms": 1629.4856249999998,
+      "bytes": 101
+    },
+    {
+      "event": "stderr-end",
+      "ms": 1636.842166
+    },
+    {
+      "event": "stdout-end",
+      "ms": 1636.899
+    },
+    {
+      "event": "stdout-close",
+      "ms": 1636.9804999999997
+    },
+    {
+      "event": "stderr-close",
+      "ms": 1636.9832499999998
+    },
+    {
+      "event": "exit",
+      "ms": 1637.0067909999998,
+      "code": 0,
+      "signal": null
+    },
+    {
+      "event": "outer-timer-cleared",
+      "ms": 1637.0267909999998
+    },
+    {
+      "event": "close",
+      "ms": 1637.0279999999998,
+      "code": 0,
+      "signal": null
+    }
+  ]
+}

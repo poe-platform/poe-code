@@ -13,7 +13,7 @@ const here = path.dirname(fileURLToPath(import.meta.url));
 const output = process.argv[2];
 assert.ok(output?.startsWith("/tmp/shared-stdin-independent-"), "unique owned scratch output required");
 await mkdir(output);
-const scratch = await mkdtemp("/tmp/shared-stdin-independent-work-");
+const scratch = await realpath(await mkdtemp("/tmp/shared-stdin-independent-work-"));
 const source = path.join(scratch, "source");
 const consumer = path.join(scratch, "moved-consumer");
 const packageRoot = path.join(consumer, "node_modules/virtual-bash");

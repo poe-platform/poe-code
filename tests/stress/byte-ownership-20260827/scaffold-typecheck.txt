@@ -1,0 +1,13 @@
+Command: node_modules/.bin/tsc -p tests/stress/byte-ownership-20260827/tsconfig.json
+Exit: 2 (initial scaffold, before any product executions)
+tests/stress/byte-ownership-20260827/ownership.test.ts(5,62): error TS2305: Module '"../../../src/index.js"' has no exported member 'createEncodingCommands'.
+tests/stress/byte-ownership-20260827/ownership.test.ts(260,29): error TS2722: Cannot invoke an object which is possibly 'undefined'.
+tests/stress/byte-ownership-20260827/ownership.test.ts(264,9): error TS2722: Cannot invoke an object which is possibly 'undefined'.
+tests/stress/byte-ownership-20260827/ownership.test.ts(283,27): error TS2550: Property 'withResolvers' does not exist on type 'PromiseConstructor'. Do you need to change your target library? Try changing the 'lib' compiler option to 'es2024' or later.
+tests/stress/byte-ownership-20260827/ownership.test.ts(284,28): error TS2550: Property 'withResolvers' does not exist on type 'PromiseConstructor'. Do you need to change your target library? Try changing the 'lib' compiler option to 'es2024' or later.
+
+Fixture-only correction: inspected public createByteCommands replaces internal
+createEncodingCommands; assert optional S3 stream methods before calling them;
+use an ES2023-compatible explicitly resolved Promise instead of withResolvers.
+Independent expected vectors and allowed mutation schedules are unchanged.
+Original source/test hashes are preserved in scaffold-source-before.json.

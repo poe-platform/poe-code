@@ -1,0 +1,1720 @@
+{
+  "schema": 1,
+  "status": "PREPARED_NOT_RELEASED",
+  "counts": {
+    "unconditional": 8,
+    "conditional": 1,
+    "executed": 0
+  },
+  "inputEncoding": "UTF-8, exact LF-terminated file bytes, no prefix/suffix or helper concatenation",
+  "invocation": {
+    "outerShellSource": "surface-entry",
+    "literalCommand": "safejs",
+    "argsTemplate": [
+      "-e",
+      "<exact source bytes decoded as UTF-8>",
+      "--",
+      "surface-arg"
+    ],
+    "print": false,
+    "cwd": "/work",
+    "hostEnv": {
+      "TAG": "surface"
+    },
+    "expectedGuestEnv": {
+      "PWD": "/work",
+      "TAG": "surface"
+    },
+    "stdinUtf8": "surface-input",
+    "initialFiles": {
+      "/work/input": "seed\n"
+    }
+  },
+  "safeJsLimits": {
+    "maxSourceBytes": 65536,
+    "maxInputBytes": 4096,
+    "maxOutputBytes": 65536,
+    "timeoutMs": 2000,
+    "maxSteps": 20000,
+    "maxCallDepth": 64,
+    "stringLength": 65536,
+    "arrayLength": 4096,
+    "dataSize": 1048576
+  },
+  "deadlines": {
+    "caseAbsoluteMs": 10000,
+    "cohortAbsoluteMs": 100000,
+    "noExtension": true,
+    "noRescueForPass": true
+  },
+  "sensitiveFields": [
+    "ownedOutput",
+    "consumerClosed",
+    "write",
+    "acquire",
+    "child",
+    "close",
+    "registerCleanup",
+    "output",
+    "signal",
+    "context",
+    "__proto__",
+    "prototype",
+    "constructor"
+  ],
+  "expectedShapes": {
+    "command": {
+      "keys": [
+        "args",
+        "cwd",
+        "env",
+        "setExitCode"
+      ],
+      "entries": [
+        [
+          "args",
+          "object"
+        ],
+        [
+          "cwd",
+          "string"
+        ],
+        [
+          "env",
+          "object"
+        ],
+        [
+          "setExitCode",
+          "function"
+        ]
+      ],
+      "types": [
+        [
+          "ownedOutput",
+          "undefined"
+        ],
+        [
+          "consumerClosed",
+          "undefined"
+        ],
+        [
+          "write",
+          "undefined"
+        ],
+        [
+          "acquire",
+          "undefined"
+        ],
+        [
+          "child",
+          "undefined"
+        ],
+        [
+          "close",
+          "undefined"
+        ],
+        [
+          "registerCleanup",
+          "undefined"
+        ],
+        [
+          "output",
+          "undefined"
+        ],
+        [
+          "signal",
+          "undefined"
+        ],
+        [
+          "context",
+          "undefined"
+        ],
+        [
+          "__proto__",
+          "undefined"
+        ],
+        [
+          "prototype",
+          "undefined"
+        ],
+        [
+          "constructor",
+          "undefined"
+        ]
+      ],
+      "own": [
+        [
+          "ownedOutput",
+          false
+        ],
+        [
+          "consumerClosed",
+          false
+        ],
+        [
+          "write",
+          false
+        ],
+        [
+          "acquire",
+          false
+        ],
+        [
+          "child",
+          false
+        ],
+        [
+          "close",
+          false
+        ],
+        [
+          "registerCleanup",
+          false
+        ],
+        [
+          "output",
+          false
+        ],
+        [
+          "signal",
+          false
+        ],
+        [
+          "context",
+          false
+        ],
+        [
+          "__proto__",
+          false
+        ],
+        [
+          "prototype",
+          false
+        ],
+        [
+          "constructor",
+          false
+        ]
+      ]
+    },
+    "stdio": {
+      "keys": [
+        "error",
+        "errorBytes",
+        "readBytes",
+        "readText",
+        "write",
+        "writeBytes"
+      ],
+      "entries": [
+        [
+          "error",
+          "function"
+        ],
+        [
+          "errorBytes",
+          "function"
+        ],
+        [
+          "readBytes",
+          "function"
+        ],
+        [
+          "readText",
+          "function"
+        ],
+        [
+          "write",
+          "function"
+        ],
+        [
+          "writeBytes",
+          "function"
+        ]
+      ],
+      "types": [
+        [
+          "ownedOutput",
+          "undefined"
+        ],
+        [
+          "consumerClosed",
+          "undefined"
+        ],
+        [
+          "write",
+          "function"
+        ],
+        [
+          "acquire",
+          "undefined"
+        ],
+        [
+          "child",
+          "undefined"
+        ],
+        [
+          "close",
+          "undefined"
+        ],
+        [
+          "registerCleanup",
+          "undefined"
+        ],
+        [
+          "output",
+          "undefined"
+        ],
+        [
+          "signal",
+          "undefined"
+        ],
+        [
+          "context",
+          "undefined"
+        ],
+        [
+          "__proto__",
+          "undefined"
+        ],
+        [
+          "prototype",
+          "undefined"
+        ],
+        [
+          "constructor",
+          "undefined"
+        ]
+      ],
+      "own": [
+        [
+          "ownedOutput",
+          false
+        ],
+        [
+          "consumerClosed",
+          false
+        ],
+        [
+          "write",
+          true
+        ],
+        [
+          "acquire",
+          false
+        ],
+        [
+          "child",
+          false
+        ],
+        [
+          "close",
+          false
+        ],
+        [
+          "registerCleanup",
+          false
+        ],
+        [
+          "output",
+          false
+        ],
+        [
+          "signal",
+          false
+        ],
+        [
+          "context",
+          false
+        ],
+        [
+          "__proto__",
+          false
+        ],
+        [
+          "prototype",
+          false
+        ],
+        [
+          "constructor",
+          false
+        ]
+      ]
+    },
+    "fs": {
+      "keys": [
+        "access",
+        "appendFile",
+        "chmod",
+        "constants",
+        "copyFile",
+        "cp",
+        "link",
+        "lstat",
+        "mkdir",
+        "mkdtemp",
+        "readFile",
+        "readdir",
+        "readlink",
+        "realpath",
+        "rename",
+        "rm",
+        "rmdir",
+        "stat",
+        "symlink",
+        "truncate",
+        "utimes",
+        "writeFile"
+      ],
+      "entries": [
+        [
+          "access",
+          "function"
+        ],
+        [
+          "appendFile",
+          "function"
+        ],
+        [
+          "chmod",
+          "function"
+        ],
+        [
+          "constants",
+          "object"
+        ],
+        [
+          "copyFile",
+          "function"
+        ],
+        [
+          "cp",
+          "function"
+        ],
+        [
+          "link",
+          "function"
+        ],
+        [
+          "lstat",
+          "function"
+        ],
+        [
+          "mkdir",
+          "function"
+        ],
+        [
+          "mkdtemp",
+          "function"
+        ],
+        [
+          "readFile",
+          "function"
+        ],
+        [
+          "readdir",
+          "function"
+        ],
+        [
+          "readlink",
+          "function"
+        ],
+        [
+          "realpath",
+          "function"
+        ],
+        [
+          "rename",
+          "function"
+        ],
+        [
+          "rm",
+          "function"
+        ],
+        [
+          "rmdir",
+          "function"
+        ],
+        [
+          "stat",
+          "function"
+        ],
+        [
+          "symlink",
+          "function"
+        ],
+        [
+          "truncate",
+          "function"
+        ],
+        [
+          "utimes",
+          "function"
+        ],
+        [
+          "writeFile",
+          "function"
+        ]
+      ],
+      "types": [
+        [
+          "ownedOutput",
+          "undefined"
+        ],
+        [
+          "consumerClosed",
+          "undefined"
+        ],
+        [
+          "write",
+          "undefined"
+        ],
+        [
+          "acquire",
+          "undefined"
+        ],
+        [
+          "child",
+          "undefined"
+        ],
+        [
+          "close",
+          "undefined"
+        ],
+        [
+          "registerCleanup",
+          "undefined"
+        ],
+        [
+          "output",
+          "undefined"
+        ],
+        [
+          "signal",
+          "undefined"
+        ],
+        [
+          "context",
+          "undefined"
+        ],
+        [
+          "__proto__",
+          "undefined"
+        ],
+        [
+          "prototype",
+          "undefined"
+        ],
+        [
+          "constructor",
+          "undefined"
+        ]
+      ],
+      "own": [
+        [
+          "ownedOutput",
+          false
+        ],
+        [
+          "consumerClosed",
+          false
+        ],
+        [
+          "write",
+          false
+        ],
+        [
+          "acquire",
+          false
+        ],
+        [
+          "child",
+          false
+        ],
+        [
+          "close",
+          false
+        ],
+        [
+          "registerCleanup",
+          false
+        ],
+        [
+          "output",
+          false
+        ],
+        [
+          "signal",
+          false
+        ],
+        [
+          "context",
+          false
+        ],
+        [
+          "__proto__",
+          false
+        ],
+        [
+          "prototype",
+          false
+        ],
+        [
+          "constructor",
+          false
+        ]
+      ]
+    },
+    "args": {
+      "keys": [
+        "0"
+      ],
+      "entries": [
+        [
+          "0",
+          "string"
+        ]
+      ],
+      "types": [
+        [
+          "ownedOutput",
+          "undefined"
+        ],
+        [
+          "consumerClosed",
+          "undefined"
+        ],
+        [
+          "write",
+          "undefined"
+        ],
+        [
+          "acquire",
+          "undefined"
+        ],
+        [
+          "child",
+          "undefined"
+        ],
+        [
+          "close",
+          "undefined"
+        ],
+        [
+          "registerCleanup",
+          "undefined"
+        ],
+        [
+          "output",
+          "undefined"
+        ],
+        [
+          "signal",
+          "undefined"
+        ],
+        [
+          "context",
+          "undefined"
+        ],
+        [
+          "__proto__",
+          "undefined"
+        ],
+        [
+          "prototype",
+          "undefined"
+        ],
+        [
+          "constructor",
+          "undefined"
+        ]
+      ],
+      "own": [
+        [
+          "ownedOutput",
+          false
+        ],
+        [
+          "consumerClosed",
+          false
+        ],
+        [
+          "write",
+          false
+        ],
+        [
+          "acquire",
+          false
+        ],
+        [
+          "child",
+          false
+        ],
+        [
+          "close",
+          false
+        ],
+        [
+          "registerCleanup",
+          false
+        ],
+        [
+          "output",
+          false
+        ],
+        [
+          "signal",
+          false
+        ],
+        [
+          "context",
+          false
+        ],
+        [
+          "__proto__",
+          false
+        ],
+        [
+          "prototype",
+          false
+        ],
+        [
+          "constructor",
+          false
+        ]
+      ]
+    },
+    "env": {
+      "keys": [
+        "PWD",
+        "TAG"
+      ],
+      "entries": [
+        [
+          "PWD",
+          "string"
+        ],
+        [
+          "TAG",
+          "string"
+        ]
+      ],
+      "types": [
+        [
+          "ownedOutput",
+          "undefined"
+        ],
+        [
+          "consumerClosed",
+          "undefined"
+        ],
+        [
+          "write",
+          "undefined"
+        ],
+        [
+          "acquire",
+          "undefined"
+        ],
+        [
+          "child",
+          "undefined"
+        ],
+        [
+          "close",
+          "undefined"
+        ],
+        [
+          "registerCleanup",
+          "undefined"
+        ],
+        [
+          "output",
+          "undefined"
+        ],
+        [
+          "signal",
+          "undefined"
+        ],
+        [
+          "context",
+          "undefined"
+        ],
+        [
+          "__proto__",
+          "undefined"
+        ],
+        [
+          "prototype",
+          "undefined"
+        ],
+        [
+          "constructor",
+          "undefined"
+        ]
+      ],
+      "own": [
+        [
+          "ownedOutput",
+          false
+        ],
+        [
+          "consumerClosed",
+          false
+        ],
+        [
+          "write",
+          false
+        ],
+        [
+          "acquire",
+          false
+        ],
+        [
+          "child",
+          false
+        ],
+        [
+          "close",
+          false
+        ],
+        [
+          "registerCleanup",
+          false
+        ],
+        [
+          "output",
+          false
+        ],
+        [
+          "signal",
+          false
+        ],
+        [
+          "context",
+          false
+        ],
+        [
+          "__proto__",
+          false
+        ],
+        [
+          "prototype",
+          false
+        ],
+        [
+          "constructor",
+          false
+        ]
+      ]
+    },
+    "constants": {
+      "keys": [
+        "COPYFILE_EXCL",
+        "F_OK",
+        "R_OK",
+        "W_OK",
+        "X_OK"
+      ],
+      "entries": [
+        [
+          "COPYFILE_EXCL",
+          "number"
+        ],
+        [
+          "F_OK",
+          "number"
+        ],
+        [
+          "R_OK",
+          "number"
+        ],
+        [
+          "W_OK",
+          "number"
+        ],
+        [
+          "X_OK",
+          "number"
+        ]
+      ],
+      "types": [
+        [
+          "ownedOutput",
+          "undefined"
+        ],
+        [
+          "consumerClosed",
+          "undefined"
+        ],
+        [
+          "write",
+          "undefined"
+        ],
+        [
+          "acquire",
+          "undefined"
+        ],
+        [
+          "child",
+          "undefined"
+        ],
+        [
+          "close",
+          "undefined"
+        ],
+        [
+          "registerCleanup",
+          "undefined"
+        ],
+        [
+          "output",
+          "undefined"
+        ],
+        [
+          "signal",
+          "undefined"
+        ],
+        [
+          "context",
+          "undefined"
+        ],
+        [
+          "__proto__",
+          "undefined"
+        ],
+        [
+          "prototype",
+          "undefined"
+        ],
+        [
+          "constructor",
+          "undefined"
+        ]
+      ],
+      "own": [
+        [
+          "ownedOutput",
+          false
+        ],
+        [
+          "consumerClosed",
+          false
+        ],
+        [
+          "write",
+          false
+        ],
+        [
+          "acquire",
+          false
+        ],
+        [
+          "child",
+          false
+        ],
+        [
+          "close",
+          false
+        ],
+        [
+          "registerCleanup",
+          false
+        ],
+        [
+          "output",
+          false
+        ],
+        [
+          "signal",
+          false
+        ],
+        [
+          "context",
+          false
+        ],
+        [
+          "__proto__",
+          false
+        ],
+        [
+          "prototype",
+          false
+        ],
+        [
+          "constructor",
+          false
+        ]
+      ]
+    },
+    "callable": {
+      "keys": [],
+      "entries": [],
+      "types": [
+        [
+          "ownedOutput",
+          "undefined"
+        ],
+        [
+          "consumerClosed",
+          "undefined"
+        ],
+        [
+          "write",
+          "undefined"
+        ],
+        [
+          "acquire",
+          "undefined"
+        ],
+        [
+          "child",
+          "undefined"
+        ],
+        [
+          "close",
+          "undefined"
+        ],
+        [
+          "registerCleanup",
+          "undefined"
+        ],
+        [
+          "output",
+          "undefined"
+        ],
+        [
+          "signal",
+          "undefined"
+        ],
+        [
+          "context",
+          "undefined"
+        ],
+        [
+          "__proto__",
+          "undefined"
+        ],
+        [
+          "prototype",
+          "undefined"
+        ],
+        [
+          "constructor",
+          "undefined"
+        ]
+      ],
+      "own": [
+        [
+          "ownedOutput",
+          false
+        ],
+        [
+          "consumerClosed",
+          false
+        ],
+        [
+          "write",
+          false
+        ],
+        [
+          "acquire",
+          false
+        ],
+        [
+          "child",
+          false
+        ],
+        [
+          "close",
+          false
+        ],
+        [
+          "registerCleanup",
+          false
+        ],
+        [
+          "output",
+          false
+        ],
+        [
+          "signal",
+          false
+        ],
+        [
+          "context",
+          false
+        ],
+        [
+          "__proto__",
+          false
+        ],
+        [
+          "prototype",
+          false
+        ],
+        [
+          "constructor",
+          false
+        ]
+      ]
+    },
+    "shell": {
+      "keys": [
+        "exec"
+      ],
+      "entries": [
+        [
+          "exec",
+          "function"
+        ]
+      ],
+      "types": [
+        [
+          "ownedOutput",
+          "undefined"
+        ],
+        [
+          "consumerClosed",
+          "undefined"
+        ],
+        [
+          "write",
+          "undefined"
+        ],
+        [
+          "acquire",
+          "undefined"
+        ],
+        [
+          "child",
+          "undefined"
+        ],
+        [
+          "close",
+          "undefined"
+        ],
+        [
+          "registerCleanup",
+          "undefined"
+        ],
+        [
+          "output",
+          "undefined"
+        ],
+        [
+          "signal",
+          "undefined"
+        ],
+        [
+          "context",
+          "undefined"
+        ],
+        [
+          "__proto__",
+          "undefined"
+        ],
+        [
+          "prototype",
+          "undefined"
+        ],
+        [
+          "constructor",
+          "undefined"
+        ]
+      ],
+      "own": [
+        [
+          "ownedOutput",
+          false
+        ],
+        [
+          "consumerClosed",
+          false
+        ],
+        [
+          "write",
+          false
+        ],
+        [
+          "acquire",
+          false
+        ],
+        [
+          "child",
+          false
+        ],
+        [
+          "close",
+          false
+        ],
+        [
+          "registerCleanup",
+          false
+        ],
+        [
+          "output",
+          false
+        ],
+        [
+          "signal",
+          false
+        ],
+        [
+          "context",
+          false
+        ],
+        [
+          "__proto__",
+          false
+        ],
+        [
+          "prototype",
+          false
+        ],
+        [
+          "constructor",
+          false
+        ]
+      ]
+    },
+    "shellResult": {
+      "keys": [
+        "exitCode",
+        "stderr",
+        "stdout"
+      ],
+      "entries": [
+        [
+          "exitCode",
+          "number"
+        ],
+        [
+          "stderr",
+          "string"
+        ],
+        [
+          "stdout",
+          "string"
+        ]
+      ],
+      "types": [
+        [
+          "ownedOutput",
+          "undefined"
+        ],
+        [
+          "consumerClosed",
+          "undefined"
+        ],
+        [
+          "write",
+          "undefined"
+        ],
+        [
+          "acquire",
+          "undefined"
+        ],
+        [
+          "child",
+          "undefined"
+        ],
+        [
+          "close",
+          "undefined"
+        ],
+        [
+          "registerCleanup",
+          "undefined"
+        ],
+        [
+          "output",
+          "undefined"
+        ],
+        [
+          "signal",
+          "undefined"
+        ],
+        [
+          "context",
+          "undefined"
+        ],
+        [
+          "__proto__",
+          "undefined"
+        ],
+        [
+          "prototype",
+          "undefined"
+        ],
+        [
+          "constructor",
+          "undefined"
+        ]
+      ],
+      "own": [
+        [
+          "ownedOutput",
+          false
+        ],
+        [
+          "consumerClosed",
+          false
+        ],
+        [
+          "write",
+          false
+        ],
+        [
+          "acquire",
+          false
+        ],
+        [
+          "child",
+          false
+        ],
+        [
+          "close",
+          false
+        ],
+        [
+          "registerCleanup",
+          false
+        ],
+        [
+          "output",
+          false
+        ],
+        [
+          "signal",
+          false
+        ],
+        [
+          "context",
+          false
+        ],
+        [
+          "__proto__",
+          false
+        ],
+        [
+          "prototype",
+          false
+        ],
+        [
+          "constructor",
+          false
+        ]
+      ]
+    }
+  },
+  "comparison": "Exact payload, keys/types/own rows and effects; unexpected fields/types are retained discrepancies. Unsupported syntax or missing host premise is never denial success.",
+  "cases": [
+    {
+      "id": "01-supported-facades",
+      "purpose": "Real stdio input/output, VFS write/read, command args/cwd/env and setExitCode positive",
+      "conditional": false,
+      "source": {
+        "path": "probes/01-supported-facades.guest.txt",
+        "bytes": 404,
+        "sha256": "4c6885f6a955bfcf152fa3650606509bd69a73afa7f69f6bd769cc54bd564bbb"
+      },
+      "expected": {
+        "exitCode": 7,
+        "stdout": "stdio:surface-input|vfs\n",
+        "stderr": "",
+        "rejected": false,
+        "vfsEffect": {
+          "createFile": "/work/out",
+          "utf8": "surface-input|vfs",
+          "allOtherBytesUnchanged": true
+        },
+        "hostPremiseRequired": true,
+        "hostCounters": {
+          "acquired": 1,
+          "released": 1,
+          "cleanup": 1,
+          "childCleanup": 1
+        },
+        "watchdogRescue": false,
+        "naturalChildExit": true,
+        "engine": {
+          "ok": true,
+          "returnValue": {
+            "input": "surface-input",
+            "saved": "surface-input|vfs",
+            "args": [
+              "surface-arg"
+            ],
+            "cwd": "/work",
+            "tag": "surface"
+          }
+        }
+      }
+    },
+    {
+      "id": "02-direct-surface",
+      "purpose": "Direct namespace/data/callable properties and supported key/entry/own inspection",
+      "conditional": false,
+      "source": {
+        "path": "probes/02-direct-surface.guest.txt",
+        "bytes": 1086,
+        "sha256": "970a33f3f8322914a2ee1b80f42402247e9a2b3c2b7c90cb357c108dc283ca96"
+      },
+      "expected": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": "",
+        "rejected": false,
+        "vfsEffect": "unchanged",
+        "hostPremiseRequired": true,
+        "hostCounters": {
+          "acquired": 1,
+          "released": 1,
+          "cleanup": 1,
+          "childCleanup": 1
+        },
+        "watchdogRescue": false,
+        "naturalChildExit": true,
+        "engine": {
+          "ok": true
+        },
+        "shapeRows": {
+          "command": "command",
+          "stdio": "stdio",
+          "fs": "fs",
+          "args": "args",
+          "env": "env",
+          "constants": "constants",
+          "setExitCode": "callable",
+          "readText": "callable",
+          "write": "callable",
+          "writeBytes": "callable",
+          "readFile": "callable",
+          "writeFile": "callable"
+        },
+        "otherReturnFields": {
+          "functionMethods": [
+            "function",
+            "function"
+          ],
+          "positive": [
+            "surface-arg",
+            "/work",
+            "surface",
+            "/work"
+          ]
+        }
+      }
+    },
+    {
+      "id": "03-namespace-spread",
+      "purpose": "Nested real module aliases, namespace spread/assign and preserved callable identity",
+      "conditional": false,
+      "source": {
+        "path": "probes/03-namespace-spread.guest.txt",
+        "bytes": 1389,
+        "sha256": "9ec871073ce7cca53f43c9cf6a5e8fbb9ffef80f3a988decbf7dcf704b2f72b9"
+      },
+      "expected": {
+        "exitCode": 0,
+        "stdout": "namespace-ok\n",
+        "stderr": "",
+        "rejected": false,
+        "vfsEffect": "unchanged",
+        "hostPremiseRequired": true,
+        "hostCounters": {
+          "acquired": 1,
+          "released": 1,
+          "cleanup": 1,
+          "childCleanup": 1
+        },
+        "watchdogRescue": false,
+        "naturalChildExit": true,
+        "engine": {
+          "ok": true
+        },
+        "shapeRows": {
+          "nestedCommand": "command",
+          "nestedStdio": "stdio",
+          "nestedFs": "fs",
+          "commandCopy": "command",
+          "stdioCopy": "stdio",
+          "fsCopy": "fs",
+          "writeAlias": "callable",
+          "commandCall": "callable",
+          "commandApply": "callable"
+        },
+        "otherReturnFields": {
+          "sameWrite": true,
+          "sameExit": true,
+          "sameRead": true
+        }
+      }
+    },
+    {
+      "id": "04-shell-module",
+      "purpose": "Explicit public shell bridge and whitelisted result plus namespace/callable surface",
+      "conditional": false,
+      "source": {
+        "path": "probes/04-shell-module.guest.txt",
+        "bytes": 837,
+        "sha256": "197fb4d9644385be82ffbd2f2e9544cb43cd078b58f7c0bee9efbebcd4e08b38"
+      },
+      "expected": {
+        "exitCode": 0,
+        "stdout": "shell-positive",
+        "stderr": "",
+        "rejected": false,
+        "vfsEffect": "unchanged",
+        "hostPremiseRequired": true,
+        "hostCounters": {
+          "acquired": 1,
+          "released": 1,
+          "cleanup": 1,
+          "childCleanup": 1
+        },
+        "watchdogRescue": false,
+        "naturalChildExit": true,
+        "engine": {
+          "ok": true
+        },
+        "shapeRows": {
+          "shell": "shell",
+          "shellCopy": "shell",
+          "exec": "callable",
+          "result": "shellResult"
+        },
+        "otherReturnFields": {
+          "reply": {
+            "stdout": "shell-positive",
+            "stderr": "",
+            "exitCode": 0
+          },
+          "sameExec": true
+        }
+      }
+    },
+    {
+      "id": "05-missing-register-cleanup",
+      "purpose": "Bounded no-effect absent callback-registration member call",
+      "conditional": false,
+      "source": {
+        "path": "probes/05-missing-register-cleanup.guest.txt",
+        "bytes": 459,
+        "sha256": "5b6e48ffba4e45212a6e9c4b31c8d445f5a71b2e4d54de28b38e5ba60bb61f50"
+      },
+      "expected": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": "",
+        "rejected": false,
+        "vfsEffect": "unchanged",
+        "hostPremiseRequired": true,
+        "hostCounters": {
+          "acquired": 1,
+          "released": 1,
+          "cleanup": 1,
+          "childCleanup": 1
+        },
+        "watchdogRescue": false,
+        "naturalChildExit": true,
+        "engine": {
+          "ok": true,
+          "returnValue": {
+            "memberType": "undefined",
+            "callbackCalls": 0,
+            "errorMessage": "Attempted to call a non-function value."
+          }
+        },
+        "classification": "Undefined member plus exact caught non-function diagnostic and measured zero guest callback counters; command success alone does not pass"
+      }
+    },
+    {
+      "id": "06-missing-acquire",
+      "purpose": "Bounded no-effect absent acquisition member call",
+      "conditional": false,
+      "source": {
+        "path": "probes/06-missing-acquire.guest.txt",
+        "bytes": 543,
+        "sha256": "07f8c9ad71d5f102ba0b4d6d8388a2e6e085c4a1a2f7b189b4996015f2012a8d"
+      },
+      "expected": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": "",
+        "rejected": false,
+        "vfsEffect": "unchanged",
+        "hostPremiseRequired": true,
+        "hostCounters": {
+          "acquired": 1,
+          "released": 1,
+          "cleanup": 1,
+          "childCleanup": 1
+        },
+        "watchdogRescue": false,
+        "naturalChildExit": true,
+        "engine": {
+          "ok": true,
+          "returnValue": {
+            "memberType": "undefined",
+            "startCalls": 0,
+            "releaseCalls": 0,
+            "errorMessage": "Attempted to call a non-function value."
+          }
+        },
+        "classification": "Undefined member plus exact caught non-function diagnostic and measured zero guest callback counters; command success alone does not pass"
+      }
+    },
+    {
+      "id": "07-reflection-profile",
+      "purpose": "Supported reflection positives and unavailable reflection methods recorded separately",
+      "conditional": false,
+      "source": {
+        "path": "probes/07-reflection-profile.guest.txt",
+        "bytes": 666,
+        "sha256": "f17be70596dafc1d96cc0700f3af708efca0d33f4e4c701ed2d45d0c8310d009"
+      },
+      "expected": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": "",
+        "rejected": false,
+        "vfsEffect": "unchanged",
+        "hostPremiseRequired": true,
+        "hostCounters": {
+          "acquired": 1,
+          "released": 1,
+          "cleanup": 1,
+          "childCleanup": 1
+        },
+        "watchdogRescue": false,
+        "naturalChildExit": true,
+        "engine": {
+          "ok": true,
+          "returnValue": {
+            "reflect": "undefined",
+            "getOwnPropertyDescriptor": "undefined",
+            "getOwnPropertyDescriptors": "undefined",
+            "getOwnPropertyNames": "undefined",
+            "getOwnPropertySymbols": "undefined",
+            "getPrototypeOf": "undefined",
+            "keys": [
+              "error",
+              "errorBytes",
+              "readBytes",
+              "readText",
+              "write",
+              "writeBytes"
+            ],
+            "entries": [
+              [
+                "error",
+                "function"
+              ],
+              [
+                "errorBytes",
+                "function"
+              ],
+              [
+                "readBytes",
+                "function"
+              ],
+              [
+                "readText",
+                "function"
+              ],
+              [
+                "write",
+                "function"
+              ],
+              [
+                "writeBytes",
+                "function"
+              ]
+            ],
+            "ownsWrite": true,
+            "copiedWrite": "function",
+            "sameWrite": true
+          }
+        },
+        "classification": "dialect profile only; not descriptor/prototype membrane acceptance"
+      }
+    },
+    {
+      "id": "08-function-spread-profile",
+      "purpose": "Unsupported function spread recorded separately from namespace spread",
+      "conditional": false,
+      "source": {
+        "path": "probes/08-function-spread-profile.guest.txt",
+        "bytes": 52,
+        "sha256": "96a9b23cc16568b930baaa636e16ed8a6134c9e18f4d8d289d0ccb4378a41462"
+      },
+      "expected": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "safejs: Cannot spread function into object literal.\n",
+        "rejected": false,
+        "vfsEffect": "unchanged",
+        "hostPremiseRequired": true,
+        "hostCounters": {
+          "acquired": 1,
+          "released": 1,
+          "cleanup": 1,
+          "childCleanup": 1
+        },
+        "watchdogRescue": false,
+        "naturalChildExit": true,
+        "engine": {
+          "profile": "AWAITED_REJECTION_PUBLIC_DIAGNOSTIC_NOT_MEMBRANE_ACCEPTANCE",
+          "rejection": {
+            "outcome": {
+              "kind": "await-rejected",
+              "reasonType": "object",
+              "reasonIsNull": false
+            },
+            "eventCounts": {
+              "actual-engine-run-start": 1,
+              "actual-engine-run-rejected": 1,
+              "actual-engine-run-threw": 0,
+              "actual-engine-run-settled": 0
+            }
+          },
+          "resultAndOrder": {
+            "engineOwnField": false,
+            "rejectionBeforeOperationCloseAndPublicSettlement": true
+          }
+        },
+        "classification": "unsupported function spread only; not namespace-spread or non-leak acceptance"
+      }
+    },
+    {
+      "id": "09-conditional-finite-marker",
+      "purpose": "Only after identified exact registerCleanup leak and ROOT notification; one finite marker callback",
+      "conditional": true,
+      "source": {
+        "path": "probes/09-conditional-finite-marker.guest.txt",
+        "bytes": 280,
+        "sha256": "83f4f6eae4a3be6fd789ddaf8e9645393a0e3d0b0adbed7d054ec211d4452af8"
+      },
+      "expected": {
+        "hostPremiseRequired": true,
+        "maximumRegistrations": 1,
+        "maximumGuestCallbacks": 1,
+        "marker": "owned-output-surface-cleanup-marker",
+        "returnIfRegistrationSettles": "registered-once",
+        "watchdogRescue": false,
+        "classification": "authority observation only, never a normal pass; inactive-lifecycle refusal is not callback execution",
+        "record": [
+          "registration result/error",
+          "callback marker/error occurrence",
+          "command status/stdout/stderr",
+          "actual engine result",
+          "host cleanup outcomes",
+          "signal/lifecycle outcome"
+        ],
+        "ifPremiseAbsent": "NOT_RUN_NOT_A_PASS"
+      }
+    }
+  ]
+}

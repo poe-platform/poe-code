@@ -1,9 +1,9 @@
 # Time and environment commands
 
 Opt-in leaf module, zero runtime dependencies. **Root/package exports and the
-default registry are not changed by this batch.** The initial actual default
-dispatch had60 commands; date, sleep and printenv each returned127. This module
-now supplies real implementations, not command-name placeholders.
+default registry are not changed by this batch.** Frozen author/reviewer base
+`d904ca9` has65 default commands, excluding date, sleep and printenv. The earlier
+author narrative claiming60 at that freeze was stale; retained run output says65.
 
 ## API for integration
 
@@ -61,9 +61,13 @@ stdin or mutates command.env, cwd or filesystem contents.
 
 - One or more nonnegative C-decimal operands, optional leading `+`, decimal
   fraction/exponent, and optional lowercase `s`, `m`, `h`, `d` suffix.
-  Durations sum exactly in decimal nanosecond arithmetic, then round upward to
-  whole milliseconds for timers. Thus no binary floating-point rounding can
-  accidentally turn0.00001d into865ms instead of864ms.
+  Durations sum as exact finite decimal quantities, then round upward **once**
+  to whole milliseconds for timers. Sparse base-billion columns retain carries
+  even below nanoseconds without allocating buffers proportional to exponent
+  magnitude. Work/storage follow bounded operand digits/columns, not elapsed
+  duration. No epsilon or per-operand rounding: two subnanosecond fractions can
+  sum to exactly1ms, and any positive excess still rounds to2ms. Timer resolution
+  remains milliseconds; no nanosecond wake-up accuracy is claimed.
 - Total is bounded by Number.MAX_SAFE_INTEGER milliseconds. No operands,
   negative operands (including `-0` option syntax), malformed/overflowing values,
   locale decimal commas, hex floats, NaN and infinity fail with status1 before
@@ -126,6 +130,13 @@ Format directives:
 `%% a A b B h c C d D e F g G H I j k l m M n N p P q r R s S t T u U V w W x X y Y z Z`.
 Usual `-`, `_`, `0`, `^`, `#` padding/case flags and bounded widths are supported;
 C-equivalent E/O modifiers are limited to their supported standard directives.
+Width/padding on `%F` formats its year component (remaining six characters are
+`-MM-DD`); explicit `%D` inherits year padding. C-locale `%c`, `%x`, `%X` are
+opaque composites in the selected GNU9.7/Darwin profile: `#` does not recursively
+toggle case. `^` uppercases text, except `%P` stays lowercase; `#` on `%p`/`%Z`
+forces lowercase even with `^`, and on weekday/month names forces uppercase.
+Numeric zone padding covers the sign and raw offset; colon-separated minutes
+and seconds retain their two digits, while unpadded hours need not have two.
 `%:z`, `%::z`, `%:::z` produce colonized offsets. An unmodified `%%` is literal;
 decorated/width-qualified percent literals reject. `%N` or `%1N`..`%9N` preserves
 explicit input nanoseconds, truncating for smaller widths. Flags or precision

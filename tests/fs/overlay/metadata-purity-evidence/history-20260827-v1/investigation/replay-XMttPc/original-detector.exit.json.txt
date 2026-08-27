@@ -1,0 +1,1 @@
+{"executable":"/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node","args":["--import","tsx","--test","--test-name-pattern=^RED provider no-effects control:","tests/commands/du/backends.test.ts"],"status":0,"signal":null}

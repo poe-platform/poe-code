@@ -1,0 +1,183 @@
+# Overlay metadata-read purity: approval proposal only
+
+No repository edits, staging, commits, builds, installations, native fixtures, or
+public integration changes were made. All new probes/logs are in this task's
+temporary directory. Public DU integration is intentionally withheld by root;
+this investigation does not classify that decision as a module defect.
+
+## Minimal product repair
+
+At `src/fs/overlay/index.ts:536`, pass the existing third argument `false` to
+`this.run(options, operation, false)` for public `readdir`, exactly as `stat`
+(`:524`) and `lstat` (`:528`) already do. Do not change `run`'s default, `listing`,
+garbage removal implementation, or any command. This is a proposal, not a patch.
+
+The root cause is `readdir` opting into `run`'s default housekeeping (`:146`,
+`:158`), before path validation/resolution/listing. `cleanGarbage` then calls
+upper `rm(path, {recursive:true, force:true})` (`:365`). Thus a metadata-only DU
+command mutates storage even when its only FS calls are `lstat` and `readdir`.
+The strict no-mutation requirement is still RED and must not be waived.
+
+## Complete local call-path inspection
+
+- Public `readdir` (`:535`) calls `required` (`:321`), which calls `resolve`
+  (`:212`) with no `createMode`. Its mutation branch (`:253`) is therefore
+  unreachable here. Resolution uses `lookup`/`maybeStat`, with delegated
+  `lstat`; symlinks additionally use backend `readlink` (`:291`) and verified
+  backend `realpath`/`lstat` (`:218`). There is no copy-up or authority comparison
+  along this path.
+- `listing` (`:325`) delegates upper and, when visible/non-opaque, lower
+  `readdir` (`:331`, `:336`); child `lookup` filters hidden/whiteout entries.
+  Its only other callers are `rmdir` (`:580`), nonrecursive `rm` (`:606`),
+  recursive materialization (`:625`, reached by rename), and rename target
+  emptiness checking (`:647`). They call `listing` directly, not public
+  `readdir`, so the proposed flag does not change their local cleanup policy.
+- Nested Overlay instances dispatch to the same public implementation; each
+  nested `readdir` must receive the repaired behavior. ReadOnly simply delegates
+  (`src/fs/readonly/index.ts:68`); Mount resolves/delegates nonsynthetic paths
+  (`src/fs/mount/index.ts:333`) and merges mount entries. Neither calls
+  `compareEntry` from `readdir`. Nested Overlay `lstat`, `realpath`, `readlink`
+  already opt out (`src/fs/overlay/index.ts:527`, `:539`, `:711`). The registered
+  entry-view resolver also opts out (`:116`); comparison/authority negotiation
+  is a separate path (`:531`, `src/fs/mount/comparison.ts:70`).
+- This establishes the local call graph, not runtime acceptance of every
+  composition or arbitrary custom provider. Delegated providers and host getter
+  code are not sandboxed; the proposed change eliminates this Overlay-issued
+  mutation, not every possible side effect of a host implementation.
+
+## Actual garbage lifecycle and retained resources
+
+`staged` (`:376`) checks a fresh UUID root against both layers, marks it active,
+creates the upper directory, and executes work under `root/entry`. Its `finally`
+always moves that root from `activeStages` to `garbage` and awaits non-strict
+cleanup (`:383`), including after failed/canceled work. A failure before creating
+any directory may leave only a queued name until force-removal succeeds.
+
+`cleanGarbage` iterates the pending Set, awaits each recursive forced upper
+removal, and deletes the Set entry only after success. Errors remain queued;
+non-strict calls suppress them, while strict calls aggregate remaining errors.
+Successful publication is not rolled back if cleanup fails. Successful writes
+can leave an empty stage; failed work can retain partial/full staged content;
+upper `rm` can retain an entire removed tree renamed into the stage (`:609`).
+
+`hidden` (`:186`) hides active and pending roots plus their descendants before
+lookup (`:203`); direct resolution of them fails (`:251`). Hiding does not
+require deletion. Whiteouts/opacity/link metadata are separate sets/maps.
+
+There is **no configured garbage-count, total-byte, age, retry, or cleanup-time
+limit**, and no background drain. `maxBufferBytes` bounds particular content
+operations, not aggregate garbage storage or pending names. Repeated failures
+can grow both the in-memory name Set and upper storage; metadata-only workloads
+after the proposed repair will retain pending garbage until another existing
+cleanup trigger. The garbage Set stores names, not open native handles. Active
+streams may separately retain iterators/I/O until their own completion; active
+stages are deliberately excluded from garbage collection.
+
+Cleanup triggers that stay unchanged:
+
+- `staged` finally; explicit `cleanup(options)` (`:372`). Explicit cleanup first
+  gets `run`'s non-strict pass, then a strict pass: a failed entry may be retried
+  twice in one explicit call. There is no Overlay `dispose` API. Shell disposal
+  closes invocation scopes and disposes plugins (`src/shell/shell.ts:186`), not
+  automatic filesystem garbage collection. Crash recovery is not implemented
+  (`src/fs/overlay/README.md:87`).
+- Default-run mutations: write/append, mkdir, rm, rename, symlink,
+  chmod/utimes, truncate, and writeStream admission/publication. `copyFile`
+  explicitly cleans only after its identity checks (`:701`); keep that order.
+  `rmdir` intentionally opts out (`:592`), and must remain nonrecursive-cleanup
+  free. Unsupported hardlink creation performs no housekeeping.
+- Content `readFile` (`:499`) and `readStream` admission (`:793`) still perform
+  housekeeping. This proposal is not an all-reads-no-write change.
+
+Cancellation is checked before admission and after waiting for the serialized
+turn (`:146`). Queued abort does not release another invocation's turn.
+Cleanup's upper `rm` deliberately receives **no caller signal**, so admitted
+cleanup can continue after abort, await uncooperative work, and delay settlement.
+Failed cleanup does not replace the original staging result. The flag repair
+does not alter those existing mutation/cleanup semantics; it removes cleanup
+entirely from enumeration while retaining the same resolution signal/error path.
+
+## Approval-dependent tests and historical controls
+
+Proposed new `tests/fs/overlay/metadata-purity.test.ts`:
+
+1. Preserve the original pending-garbage setup: failed stage cleanup, then allow
+   deletion immediately before metadata calls. Assert **zero upper mutator
+   calls**, identical backing entries/bytes, unchanged selected allocation and
+   identity, correct visible listings, and ENOENT for hidden roots/descendants.
+   Cover stat/lstat/readdir, root/subdirectory/symlink paths, repeated reads,
+   missing/non-directory/permission errors, ReadOnly/Mount/nested Overlay views.
+2. Exercise both empty published stages and retained removed/partial content.
+   Verify whiteouts and opaque directory visibility before/after reads and
+   explicit cleanup; never restore a removed lower entry or undo publication.
+3. Verify existing explicit cleanup failure/AggregateError/retry and success,
+   appropriate mutation cleanup, unchanged readFile/readStream housekeeping,
+   and rmdir's existing refusal to drain garbage. Confirm active stream stages
+   remain hidden and cannot be collected by metadata reads or explicit cleanup.
+4. Preserve pre-aborted and queued-aborted reasons, including errno-shaped
+   reasons; preserve in-flight metadata cancellation and typed errors. Verify
+   no metadata-triggered cleanup even when cleanup would fail, hang, or abort.
+   Add authority spies so listings introduce no compare/authority queries, and
+   check existing selected identity/alias behavior through compositions.
+
+Reuse focused guards in `tests/fs/overlay/adversarial.test.ts:289` (cleanup and
+whiteouts), `:446` (staged cancellation), `:462` (queue cancellation),
+`tests/fs/overlay/streaming.test.ts:63` (active stage/reentrant cleanup),
+`tests/fs/overlay/rmdir.test.ts:163`, plus copy-identity, scoped-links,
+snapshot-rmdir, mount comparison and read-only routing tests. None were changed
+or rerun wholesale here.
+
+Two current canonical controls deliberately assert the old effect:
+`tests/fs/overlay/allocation.test.ts:139`/`:187` and
+`tests/commands/du/backends.test.ts:78`/`:93`. A repair would make those
+mutation-positive expectations fail. Root must explicitly approve their
+versioned treatment: retain original fixtures/expectations as immutable
+historical reproduction, and add separate current zero-mutation regressions
+(including proposed `tests/commands/du/overlay-purity.test.ts`). Do not silently
+flip expectations, erase the original red, or call the old detector a strict
+pass. Keep the original independent reviewer at
+`tests/commands/du/independent/contracts.mjs:250` and its raw evidence intact;
+a later reviewer needs a distinct current acceptance probe.
+
+## Reproduction and observed status
+
+Frozen original: `tests/commands/du/independent/evidence/review-MduamP/independent.json:4234`
+records strict FAIL: DU exits 0, outputs `0\ttree\n`, calls lstat/readdir, and
+deletes one pending upper stage. Current Overlay source exactly matches its
+`877144ea3a5223bbdf3e7ebfd50a8f8caaa474f3` source bytes.
+
+Executed only memory-only bounded probes:
+
+- Original author RED detector, unmodified and name-filtered: 1/1 pass,
+  because it detects the forbidden effect. This is not strict acceptance.
+- Original reviewer callback, byte-identical to its frozen harness, selected
+  without the other callbacks: same FAIL blocker; separate strict assertion
+  exits 1. Exact status/logs are in `replay-XMttPc/`. The earlier duplicate
+  reproduction is retained too; its shell status-printing attempt hit zsh's
+  readonly `status` variable after Node had already emitted the strict failure.
+- `strict-current.mjs`: same original fixture setup and expected strict zero
+  mutations, without a product-source pin or mutation-positive detector.
+  Exits 1 now on one upper rm. It is reusable against a later approved candidate:
+
+```sh
+cd /Users/kjopek/Workspace/safe-bash
+TMPDIR=/tmp/safe-bash-overlay-readpurity-JuB9ca TSX_DISABLE_CACHE=1 node --import tsx /tmp/safe-bash-overlay-readpurity-JuB9ca/strict-current.mjs
+```
+
+Original source/artifact bytes are copied unchanged into this task directory.
+The current probe cleans only its own memory fixture in finally. No expected
+strict result was weakened; no additional product bug is asserted.
+
+Recorded replay HEAD: `27a7793526830768484885afba5832bf8bb248b5`.
+Initial inspection HEAD: `259d983a16f3f419fab3a33ec539ceb4a72ebd2a`.
+Other owners advanced HEAD and staged unrelated work during inspection. The
+replay's tracked-input before/after hashes are identical; this is an original-
+path postcheck, **not append-proof repository integrity or a frozen build**.
+
+SHA-256:
+
+```text
+e5ac4a650662656f4256455ecabb965cb6fb6eb7ab8f01315115aa70a3aa3640  src/fs/overlay/index.ts
+6954f5f86f69ec9aca39f464198d200b0895b6b286df9a5bd08c44444f9b8ca2  src/commands/du/du.ts
+aae689ff0b3316f35663122ac3d7e1c1a43686644f082967168ca8b893907c5b  tests/commands/du/independent/evidence/review-MduamP/independent.json
+```

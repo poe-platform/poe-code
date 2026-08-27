@@ -1,0 +1,30 @@
+{
+  "before": [
+    {
+      "name": ".virtual-bash-overlay-e0dfdfaf-dc8b-4ba0-a7a1-f7689d6e1f62",
+      "type": "directory"
+    },
+    {
+      "name": "tree",
+      "type": "directory"
+    }
+  ],
+  "after": [
+    {
+      "name": "tree",
+      "type": "directory"
+    }
+  ],
+  "mutations": [
+    "/.virtual-bash-overlay-e0dfdfaf-dc8b-4ba0-a7a1-f7689d6e1f62"
+  ],
+  "commandCalls": [
+    "lstat",
+    "readdir"
+  ],
+  "result": {
+    "exitCode": 0,
+    "stdout": "0\ttree\n",
+    "stderr": ""
+  }
+}

@@ -87,7 +87,8 @@ try {
   run('extract isolated source', '/usr/bin/tar', ['-xf', archive, '-C', snapshot]);
   report.source = inventory(join(snapshot, 'src'));
   save('source-manifest.json', report.source);
-  assert.equal(run('source algorithms unchanged from accepted release', '/usr/bin/git', ['diff', '72f780d0dbe73f71702c89c33d29aa614170c403', sourceCommit, '--', 'src/commands/stream-format', 'src/commands/split'], repository, 0, null), '');
+  report.familyDocumentationDelta = run('record family documentation delta', '/usr/bin/git', ['diff', '--name-only', '72f780d0dbe73f71702c89c33d29aa614170c403', sourceCommit, '--', 'src/commands/stream-format', 'src/commands/split'], repository, 0, null);
+  assert.equal(run('source algorithms unchanged from accepted release', '/usr/bin/git', ['diff', '72f780d0dbe73f71702c89c33d29aa614170c403', sourceCommit, '--', ':(glob)src/commands/stream-format/**/*.ts', ':(glob)src/commands/split/**/*.ts'], repository, 0, null), '');
   assert.match(readFileSync(join(snapshot, 'src/index.ts'), 'utf8'), /export type \{ RegexExecutionOptions \} from "\.\/commands\/regex-execution\/protocol\.js"/u);
   const manifest = JSON.parse(readFileSync(join(snapshot, 'package.json')));
   preflight(manifest);

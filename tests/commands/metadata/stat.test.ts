@@ -21,7 +21,7 @@ test("stat prints common mode, type, size, name and UTC millisecond timestamps",
   const fs = await fixture();
   const result = await runMetadata("stat", ["-c", "%n:%s:%a:%A:%F:%x:%y:%Y:%.3Y:%.3X:%%", "file"], fs);
   assert.equal(result.exitCode, 0, result.stderr);
-  assert.equal(result.stdout, "file:4:751:-rwxr-x--x:regular file:1969-12-31 23:59:59.999 +0000:2000-01-01 00:00:00.123 +0000:946684800:946684800.123:-0.001:%\n");
+  assert.equal(result.stdout, "file:4:751:-rwxr-x--x:regular file:1969-12-31 23:59:59.999000000 +0000:2000-01-01 00:00:00.123000000 +0000:946684800:946684800.123:-0.001:%\n");
 });
 
 test("stat lstat/default and -L distinguish links, including dangling links", async () => {

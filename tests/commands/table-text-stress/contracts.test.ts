@@ -2,7 +2,9 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { createMemoryFileSystem } from "../../../src/fs/memory/index.js";
 import { FsError, type ByteSource, type CommandContext, type FileSystem } from "../../../src/contracts/index.js";
-import { createTableTextCommands, type TableTextCommandsOptions } from "../../../src/commands/table-text/index.js";
+import type { TableTextCommandsOptions } from "../../../src/commands/table-text/index.js";
+
+const factory: typeof import("../../../src/commands/table-text/index.js") = await import(process.env.TABLE_TEXT_CONTROL_MODULE ?? "../../../src/commands/table-text/index.js");
 
 function deferred() {
   let resolve!: () => void;
@@ -14,7 +16,7 @@ async function execute(command: string, args: string[], source: ByteSource, file
   for (const [name, text] of Object.entries(files)) await fs.writeFile(`/${name}`, Buffer.from(text));
   const output: Uint8Array[] = [], errors: Uint8Array[] = [];
   const context: CommandContext = { command, args, cwd: "/", fs, env: { LC_ALL: "C" }, stdin: source, signal: new AbortController().signal, stdout: { async write(bytes) { output.push(Uint8Array.from(bytes)); } }, stderr: { async write(bytes) { errors.push(Uint8Array.from(bytes)); } }, ...overrides };
-  const result = await createTableTextCommands(options).find(definition => definition.name === command)!.execute(context);
+  const result = await factory.createTableTextCommands(options).find(definition => definition.name === command)!.execute(context);
   return { ...result, stdout: Buffer.concat(output).toString(), stderr: Buffer.concat(errors).toString() };
 }
 async function* bytes(text: string) { yield Buffer.from(text); }

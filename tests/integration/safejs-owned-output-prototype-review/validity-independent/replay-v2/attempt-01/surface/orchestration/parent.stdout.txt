@@ -1,0 +1,9 @@
+{"id":"01-supported-facades","outcome":"PASS","exit":7,"runtimeCalls":1,"failures":0,"timedOut":false}
+{"id":"02-direct-surface","outcome":"PASS","exit":0,"runtimeCalls":1,"failures":0,"timedOut":false}
+{"id":"03-namespace-spread","outcome":"PASS","exit":0,"runtimeCalls":1,"failures":0,"timedOut":false}
+{"id":"04-shell-module","outcome":"PASS","exit":0,"runtimeCalls":1,"failures":0,"timedOut":false}
+{"id":"05-missing-register-cleanup","outcome":"PASS","exit":0,"runtimeCalls":1,"failures":0,"timedOut":false}
+{"id":"06-missing-acquire","outcome":"PASS","exit":0,"runtimeCalls":1,"failures":0,"timedOut":false}
+{"id":"07-reflection-profile","outcome":"PASS","exit":0,"runtimeCalls":1,"failures":0,"timedOut":false}
+{"id":"08-function-spread-profile","outcome":"PASS","exit":1,"runtimeCalls":1,"failures":0,"timedOut":false}
+{"task":"/private/tmp/safe-bash-independent-surface-v2-1PVw9l","status":"EXECUTION_SETTLED","counts":{"executed":8,"pass":8,"fail":0,"invalid":0,"blocked":0,"conditionalExecuted":0},"privateUnchanged":true,"inputsUnchanged":true,"sharedUnchanged":true,"failures":[],"parent":{"pid":95724,"at":"2026-08-27T16:53:00.801Z","alive":true,"knownLiveChildren":[]}}

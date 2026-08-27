@@ -1,0 +1,75 @@
+{
+  "frozenAt": "2026-08-27T16:23:21.531Z",
+  "profile": "lifecycle-execution-v2",
+  "originalInputsCommit": "c8df5cf2819d7ad9d54c2a70800258c7c200665a",
+  "originalRunnerCommit": "91464989ff4c563195330cc3a7cacc4500c0bad0",
+  "originalEvidenceCommit": "19da254941847de60e80ea18407332bbe10b5265",
+  "proposalCommit": "37b89260c16e51dbf3f825f111d5f5b3c5ea32e8",
+  "signedReviewCommit": "bbb7f807f70c4db7014eee1f151a0ff51ee2a8a2",
+  "releaseReceipt": "07a7dae5db51612a23e74d1d164d33723d4d61b6",
+  "reportCorrection": "db139ae983ad66364e0367f9fb1ed0262ee61f63",
+  "sourceManifestSha256": "6de9b96c7286cc320379d8f7f720f3d1a5ecffdc24b7268b198859550362feea",
+  "rows": 11,
+  "workflows": 6,
+  "unchangedControls": 8,
+  "revisedBindings": 3,
+  "priorV2GuestExecutions": 0,
+  "priorV2ProductImports": 0,
+  "priorV2EngineImports": 0,
+  "noPromotion": true,
+  "files": [
+    {
+      "path": "CASES.json",
+      "bytes": 9256,
+      "sha256": "01d2172b48cfc2f340f085755549e4288da99f76ceddd8770e19c2da096de6b5"
+    },
+    {
+      "path": "DELTA.patch-data",
+      "bytes": 18990,
+      "sha256": "fd074db4720300fc270cde46fee696eefbb9ded8bf1c30e5af2b27706524ce37"
+    },
+    {
+      "path": "PROFILE-PROOF.json",
+      "bytes": 5230,
+      "sha256": "148a931a43b7a8bd6b49c82348549a2bb3bceac5550b8a7fa9602e4750d6efe7"
+    },
+    {
+      "path": "README.md",
+      "bytes": 5410,
+      "sha256": "e44c69786bb3ba359d99f759f95f6d4d2ea6f0bdd7e3617a394faad07235c0e4"
+    },
+    {
+      "path": "REVISION.json",
+      "bytes": 2141,
+      "sha256": "ffce4c0170d9ea49d471a231cb7cb67216ed6f007122f5cda02366e3da6f8313"
+    },
+    {
+      "path": "child.mjs",
+      "bytes": 37926,
+      "sha256": "4977d53279d39c9e53b1583a93558264b140efcc784ee9811db9250c61cb7a2e"
+    },
+    {
+      "path": "common.mjs",
+      "bytes": 4639,
+      "sha256": "ed322786f0c81da997766c9da36a80c5eef6c97a0be90b82162b6fcadc2a1553"
+    },
+    {
+      "path": "guard.mjs",
+      "bytes": 5232,
+      "sha256": "a9b0aac6323730370bd70cc0932d15883653536d187fb934e16e22341d7e54e8"
+    },
+    {
+      "path": "profile.mjs",
+      "bytes": 7775,
+      "sha256": "2a44c6496aace219bec0dbcbbc15d2956ba4c3f6a89b02b892a9e245d7d32e71"
+    },
+    {
+      "path": "run.mjs",
+      "bytes": 16559,
+      "sha256": "1ac6054ad2fd676f40ab01834e80645beb847f5ca3cc537242a5bdf8611a916e"
+    }
+  ],
+  "assertionPolicy": "All original assertions remain verbatim. Only approved new L05 syntax-selector and L06 single-admission/order constraints added; no score migration. Any first non-pass blocks later launch; zero retries.",
+  "sourceGuards": "Original74/proposal5/signed inputs; copied full940/compiled708/package709 and actual engine264+six metadata; whole regular sets before/after, symlinks refused, new files detected, empty-directory additions not covered.",
+  "orderingQualification": "Both response disposal and registered transport cleanup precede nested/public settlement. No ordering between those two independent cleanup callbacks is asserted."
+}

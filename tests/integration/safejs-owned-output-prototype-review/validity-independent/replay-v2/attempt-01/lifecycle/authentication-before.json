@@ -1,0 +1,15 @@
+{
+  "freezeCommit": "c53e63f3bfe26e0f9982f17c391e11255512201d",
+  "extractedFiles": 118,
+  "directories": [
+    "surface/execution-v2",
+    "surface/probes",
+    "lifecycle/execution-v1",
+    "lifecycle/execution-v1/evidence",
+    "lifecycle/execution-v1/evidence/attempt-01",
+    "lifecycle/execution-v2",
+    "lifecycle/guests"
+  ],
+  "nodeSha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+  "bindings": 268
+}

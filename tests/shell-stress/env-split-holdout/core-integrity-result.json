@@ -1,0 +1,11 @@
+{
+  "executedAt": "2026-08-27T11:04:38.100Z",
+  "command": [
+    "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "--test",
+    "tests/shell-stress/env-split-holdout/core-integrity.test.mjs"
+  ],
+  "status": 0,
+  "stdout": "TAP version 13\n# Subtest: all34 frozen files and both red histories remain immutable\nok 1 - all34 frozen files and both red histories remain immutable\n  ---\n  duration_ms: 766.3155\n  type: 'test'\n  ...\n# Subtest: same48 rows and seven hosts run once with unchanged source, fixtures and native assertions\nok 2 - same48 rows and seven hosts run once with unchanged source, fixtures and native assertions\n  ---\n  duration_ms: 0.578416\n  type: 'test'\n  ...\n# Subtest: raw40/48 means exact status and all bytes and effects; eight failures remain failures\nok 3 - raw40/48 means exact status and all bytes and effects; eight failures remain failures\n  ---\n  duration_ms: 0.311292\n  type: 'test'\n  ...\n# Subtest: six real hosts pass; invalid invoke ByteSource host remains one unrepaired raw failure\nok 4 - six real hosts pass; invalid invoke ByteSource host remains one unrepaired raw failure\n  ---\n  duration_ms: 59.017917\n  type: 'test'\n  ...\n# Subtest: full candidate source, manifest, actual imports and dependencies remain authenticated\nok 5 - full candidate source, manifest, actual imports and dependencies remain authenticated\n  ---\n  duration_ms: 2.752292\n  type: 'test'\n  ...\n# Subtest: both complete native profiles retain original captures and current binary identities\nok 6 - both complete native profiles retain original captures and current binary identities\n  ---\n  duration_ms: 4.475583\n  type: 'test'\n  ...\n# Subtest: scoped two-root TypeScript check has actual guarded reads and zero diagnostics\nok 7 - scoped two-root TypeScript check has actual guarded reads and zero diagnostics\n  ---\n  duration_ms: 0.316042\n  type: 'test'\n  ...\n# Subtest: cleanup is bound to this new raw evidence and all owned child groups are absent\nok 8 - cleanup is bound to this new raw evidence and all owned child groups are absent\n  ---\n  duration_ms: 7.532791\n  type: 'test'\n  ...\n1..8\n# tests 8\n# suites 0\n# pass 8\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 976.130458\n",
+  "stderr": ""
+}

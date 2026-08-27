@@ -2,7 +2,9 @@ import { command, CommandFailure, emit, type Settings } from "./shared.js";
 
 function duration(arguments_: readonly string[]): number {
   if (!arguments_.length) throw new CommandFailure("missing operand");
-  let total = 0n;
+  const base = 1000000000n;
+  const maximum = BigInt(Number.MAX_SAFE_INTEGER);
+  const columns = new Map<bigint, bigint>();
   for (const value of arguments_) {
     const match = /^\+?((?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?)([smhd]?)$/.exec(value);
     if (!match) throw new CommandFailure(`invalid time interval: ${value}`);
@@ -10,21 +12,45 @@ function duration(arguments_: readonly string[]): number {
     const fraction = parts[2] ?? "";
     const digits = `${parts[1]}${fraction}`.replace(/^0+/, "");
     if (!digits) continue;
-    const scale = Number(parts[3] ?? "0") - fraction.length;
+    const scale = BigInt(parts[3] ?? "0") - BigInt(fraction.length) + 3n;
     const multiplier = match[2] === "d" ? 86400n : match[2] === "h" ? 3600n : match[2] === "m" ? 60n : 1n;
-    if (digits.length + scale > 13) throw new CommandFailure("time interval exceeds supported finite range");
-    if (digits.length + scale < -15) total += 1n;
-    else {
-      const coefficient = BigInt(digits) * multiplier * 1000000000n;
-      if (scale >= 0) total += coefficient * 10n ** BigInt(scale);
-      else {
-        const divisor = 10n ** BigInt(-scale);
-        total += (coefficient + divisor - 1n) / divisor;
-      }
+    const coefficient = (BigInt(digits) * multiplier).toString();
+    if (BigInt(coefficient.length) + scale > 16n) throw new CommandFailure("time interval exceeds supported finite range");
+    const shift = (scale % 9n + 9n) % 9n;
+    let position = (scale - shift) / 9n;
+    const aligned = coefficient + "0".repeat(Number(shift));
+    for (let end = aligned.length; end > 0; end -= 9, position++) {
+      const column = BigInt(aligned.slice(Math.max(0, end - 9), end));
+      if (column) columns.set(position, (columns.get(position) ?? 0n) + column);
     }
-    if (total > BigInt(Number.MAX_SAFE_INTEGER) * 1000000n) throw new CommandFailure("time interval exceeds supported finite range");
   }
-  return Number((total + 999999n) / 1000000n);
+  let whole = 0n, fractional = false, carry = 0n, carryPosition = 0n;
+  const collect = (value: bigint, position: bigint): void => {
+    if (position < 0n) fractional ||= value !== 0n;
+    else if (value) {
+      if (position > 1n) throw new CommandFailure("time interval exceeds supported finite range");
+      whole += value * base ** position;
+      if (whole > maximum) throw new CommandFailure("time interval exceeds supported finite range");
+    }
+  };
+  const ordered = [...columns].sort(([left], [right]) => left < right ? -1 : left > right ? 1 : 0);
+  for (const [position, value] of ordered) {
+    while (carry && carryPosition < position) {
+      collect(carry % base, carryPosition++);
+      carry /= base;
+    }
+    const combined = value + carry;
+    collect(combined % base, position);
+    carry = combined / base;
+    carryPosition = position + 1n;
+  }
+  while (carry) {
+    collect(carry % base, carryPosition++);
+    carry /= base;
+  }
+  const rounded = whole + BigInt(fractional);
+  if (rounded > maximum) throw new CommandFailure("time interval exceeds supported finite range");
+  return Number(rounded);
 }
 
 function delay(milliseconds: number, signal: AbortSignal, configuration: Settings): Promise<void> {

@@ -1,8 +1,34 @@
 import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
 import { globSync, readFileSync } from "node:fs";
 import { join, relative } from "node:path";
 import test from "node:test";
 import { baseline, compile, createCopy, diagnostics, native, owned, root, run } from "./helpers.js";
+
+const capturedTypePaths = [
+  "tests/commands/filesystem-inspection-stress/tree/sealed/inputs/src__contracts__command.ts",
+  "tests/commands/filesystem-inspection-stress/tree/sealed/inputs/src__contracts__filesystem.ts",
+  "tests/commands/filesystem-inspection-stress/tree/sealed/inputs/src__contracts__io.ts",
+  "tests/commands/filesystem-inspection-stress/tree/sealed/inputs/src__contracts__path.ts",
+  "tests/commands/filesystem-inspection-stress/tree/sealed/inputs/src__contracts__plugin.ts",
+];
+
+interface CompilerConfiguration {
+  compilerOptions: Record<string, unknown>;
+  include: string[];
+  exclude: string[];
+}
+
+function approvedCompilerConfiguration(): CompilerConfiguration {
+  const bytes = readFileSync(join(owned, "before-02.json"));
+  assert.equal(createHash("sha256").update(bytes).digest("hex"), "cb0e439212ffb280f513b6104fa69d99399afc6813cd51fe250df942542f86c1");
+  const before = JSON.parse(bytes.toString()) as { before: { config: CompilerConfiguration } };
+  return { ...before.before.config, exclude: [...before.before.config.exclude, native, ...capturedTypePaths] };
+}
+
+function assertApprovedCompilerConfiguration(current: unknown) {
+  assert.deepEqual(current, approvedCompilerConfiguration());
+}
 
 test("native-data manifest records complete classification and six exact raw payload hashes", () => {
   const manifest = baseline();
@@ -20,10 +46,78 @@ test("native-data manifest records complete classification and six exact raw pay
   assert.ok(rawTypeScript.every(entry => entry.sha256 === "74a02f560cc1d8e023280b5f08a1ee7266e4bec6cea61ca457dc1a758d080fc8"));
 });
 
-test("root compiler configuration differs only by the exact data exclusion", () => {
-  const before = JSON.parse(readFileSync(join(owned, "before-02.json"), "utf8")) as { before: { config: { exclude: string[] } } };
-  const current = JSON.parse(readFileSync(join(root, "tsconfig.json"), "utf8")) as { exclude: string[] };
-  assert.deepEqual(current, { ...before.before.config, exclude: [...before.before.config.exclude, native] });
+test("root compiler configuration contains only the approved raw-data and five captured-type exclusions", () => {
+  assertApprovedCompilerConfiguration(JSON.parse(readFileSync(join(root, "tsconfig.json"), "utf8")));
+});
+
+test("approved captured-type classification retains explicit current-consumer typing routes", async () => {
+  const bytes = readFileSync(join(root, "tests/plugins/qualified-current-release/captured-types.json"));
+  assert.equal(createHash("sha256").update(bytes).digest("hex"), "70fcd5c2b8d8baec26c2c69cc3fb9110de75366757bf36416b52d7838f4b961f");
+  const classification = JSON.parse(bytes.toString()) as { existingExclusions: string[]; entries: { path: string }[] };
+  assert.deepEqual(classification.entries.map(entry => entry.path), capturedTypePaths);
+  assert.deepEqual([...classification.existingExclusions, ...capturedTypePaths], approvedCompilerConfiguration().exclude);
+  const pkg = JSON.parse(readFileSync(join(root, "package.json"), "utf8")) as { scripts: Record<string, string> };
+  assert.equal(pkg.scripts.typecheck, "node scripts/typecheck.mjs");
+  assert.equal(pkg.scripts["typecheck:all"], "node scripts/typecheck.mjs --build");
+  assert.equal(pkg.scripts["typecheck:consumers"], "node scripts/typecheck.mjs --consumers");
+  const { currentSourceConsumerGroups } = await import(new URL("../qualified-current-release/consumers.mjs", import.meta.url).href) as {
+    currentSourceConsumerGroups: { name: string; route: string; files: string[] }[];
+  };
+  const required = [
+    { name: "atomic-webdav-profile-source", files: ["tests/integration/adapter-tools/atomic-webdav-profile/atomic-mock.ts", "tests/integration/adapter-tools/atomic-webdav-profile/controls.ts"] },
+    { name: "atomic-webdav-independent-source", files: ["tests/integration/adapter-tools/atomic-webdav-profile-independent/hidden.ts"] },
+    { name: "env-split-public-source", files: ["tests/shell-stress/env-split-consumer/packed-public-types.ts"] },
+  ];
+  for (const expected of required) {
+    const group = currentSourceConsumerGroups.find(entry => entry.name === expected.name);
+    assert.ok(group, expected.name);
+    assert.deepEqual(group.files, expected.files);
+    assert.equal(group.route, "root-tsconfig-and-strict-build-first-consumer");
+    for (const path of group.files) {
+      assert.ok(readFileSync(join(root, path)).length > 0);
+      assert.ok(!approvedCompilerConfiguration().exclude.includes(path));
+    }
+  }
+});
+
+test("compiler-policy mutations cannot add exclusions or weaken current-source coverage", () => {
+  const mutations: [string, (configuration: CompilerConfiguration) => void][] = [
+    ["unknown exclusion", configuration => configuration.exclude.push("tests/unknown/**")],
+    ["directory-wide captured-data exclusion", configuration => configuration.exclude.push("tests/commands/filesystem-inspection-stress/tree/sealed/inputs")],
+    ["uncaptured sixth contract", configuration => configuration.exclude.push("tests/commands/filesystem-inspection-stress/tree/sealed/inputs/src__contracts__errors.ts")],
+    ["current contract", configuration => configuration.exclude.push("src/contracts/command.ts")],
+    ["missing approved capture", configuration => configuration.exclude.pop()],
+    ["missing native-data exclusion", configuration => { configuration.exclude = configuration.exclude.filter(path => path !== native); }],
+    ["test include removed", configuration => { configuration.include = ["src/**/*.ts"]; }],
+    ["strict typing disabled", configuration => { configuration.compilerOptions.strict = false; }],
+  ];
+  for (const [name, mutate] of mutations) {
+    const configuration = structuredClone(approvedCompilerConfiguration());
+    mutate(configuration);
+    assert.throws(() => assertApprovedCompilerConfiguration(configuration), { name: "AssertionError" }, name);
+  }
+});
+
+test("five captured type files are data but current contracts and adjacent sources still compile", () => {
+  const copy = createCopy();
+  try {
+    const current = ["command", "filesystem", "io", "path", "plugin"].map(name => `src/contracts/${name}.ts`);
+    const neighbors = ["tests/commands/filesystem-inspection-stress/tree/sealed/inputs/src__contracts__errors.ts", "tests/commands/filesystem-inspection-stress/tree/sealed/inputs/neighbor.ts", "tests/canonical/typed-consumer.ts"];
+    const eligible = [...current, ...neighbors];
+    for (const path of eligible) copy.write(path, "export const included: number = 1;\n");
+    for (const path of capturedTypePaths) copy.write(path, "HISTORICAL_DATA_ONLY\n");
+    const positive = compile(copy.directory);
+    assert.equal(positive.status, 0, positive.stdout + positive.stderr);
+    const listed = compile(copy.directory, true);
+    assert.equal(listed.status, 0, listed.stdout + listed.stderr);
+    const program = listed.stdout.trim().split("\n").map(path => relative(copy.directory, path));
+    for (const path of eligible) assert.ok(program.includes(path), path);
+    for (const path of capturedTypePaths) assert.ok(!program.includes(path), path);
+    for (const path of eligible) copy.write(path, "export const included: number = 'not a number';\n");
+    const negative = compile(copy.directory);
+    assert.equal(negative.status, 2);
+    assert.deepEqual(diagnostics(negative.stdout).sort(), eligible.map(path => `${path}(1,14): error TS2322: Type 'string' is not assignable to type 'number'.`).sort());
+  } finally { copy.dispose(); }
 });
 
 test("copied root config includes canonical source, test, helper and artifact neighbors", () => {

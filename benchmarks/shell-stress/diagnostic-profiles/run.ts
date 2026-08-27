@@ -8,7 +8,7 @@ import { isolatedSpawn } from "../../../tests/shell-stress/process.js";
 import { evidence, fixtures, root, runNative, sha256, validateFrozenProfile } from "../../../tests/shell-stress/diagnostic-profiles/profile.js";
 
 const output = process.argv[2];
-assert.ok(output?.startsWith("/tmp/"), "Pass a fresh absolute /tmp/report.json output path");
+assert.ok(typeof output === "string" && output.startsWith("/tmp/"), "Pass a fresh absolute /tmp/report.json output path");
 assert.equal(existsSync(output), false, "Preserve existing raw reports; choose a fresh output path");
 const before = sourceEvidence();
 validateFrozenProfile();

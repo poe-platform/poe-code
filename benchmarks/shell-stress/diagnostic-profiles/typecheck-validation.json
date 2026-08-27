@@ -1,0 +1,111 @@
+{
+  "date": "2026-08-26",
+  "headBefore": "7d0fe7b45578cfc3836e9a8d6a5fd4a4d5e9edd3",
+  "headAfter": "7d0fe7b45578cfc3836e9a8d6a5fd4a4d5e9edd3",
+  "node": "v22.22.2",
+  "typescript": "5.9.3",
+  "originalBenchmarkTypecheck": {
+    "command": "npm --prefix benchmarks run typecheck",
+    "status": 2,
+    "stdout": "shell-stress/diagnostic-profiles/run.ts(12,25): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'PathLike'.\n  Type 'undefined' is not assignable to type 'PathLike'."
+  },
+  "initialProbe": {
+    "exitCode": 1,
+    "reason": "Probe expected exact AssertionError.message for existing /tmp output, but Node appended its true !== false comparison. This was a validation-harness expectation error, not product behavior or a shell invocation failure. No compiler or native/lifecycle cohort started in that attempt."
+  },
+  "probes": {
+    "method": "Extract only the existing output declaration and two assertion statements with the development TypeScript AST; execute in a Node VM with stubbed existsSync. Assert ERR_ASSERTION, exact first message line, and filesystem-call arguments/counts. No profile imports, native commands, lifecycle probes, or report writes executed.",
+    "exitCode": 0,
+    "cases": [
+      {
+        "name": "missing argument",
+        "passed": true
+      },
+      {
+        "name": "empty argument",
+        "passed": true
+      },
+      {
+        "name": "relative argument",
+        "passed": true
+      },
+      {
+        "name": "outside /tmp",
+        "passed": true
+      },
+      {
+        "name": "existing /tmp report",
+        "passed": true
+      },
+      {
+        "name": "fresh /tmp report",
+        "passed": true
+      }
+    ]
+  },
+  "checks": [
+    {
+      "command": [
+        "npm",
+        "--prefix",
+        "benchmarks",
+        "run",
+        "typecheck"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdout": "\n> virtual-bash-comparison@0.0.0 typecheck\n> tsc --noEmit -p tsconfig.json\n\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "npm",
+        "run",
+        "typecheck"
+      ],
+      "status": 2,
+      "signal": null,
+      "stdout": "\n> virtual-bash@0.0.0 typecheck\n> tsc --noEmit\n\ntests/shell-stress/invocation-modes/refresh.ts(52,7): error TS7034: Variable 'records' implicitly has type 'any[]' in some locations where its type cannot be determined.\ntests/shell-stress/invocation-modes/refresh.ts(88,13): error TS7005: Variable 'records' implicitly has an 'any[]' type.\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "node_modules/typescript/bin/tsc",
+        "--noEmit",
+        "-p",
+        "tsconfig.build.json"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": ""
+    }
+  ],
+  "ownedGuard": {
+    "before": {
+      "benchmarks/shell-stress/diagnostic-profiles/BASELINE.txt": "6389a2a16d0c5d4051cc86ed905122644ae9cb3fe693442a019e90d02a03e007",
+      "benchmarks/shell-stress/diagnostic-profiles/README.md": "24cc2e2de0469c0e980e0dcafa57aa6412b609c91c405b72c4f0a512c344575c",
+      "benchmarks/shell-stress/diagnostic-profiles/import-provenance.json": "5305db81b963046a437aa8947665510bc8331260909c3e6aff6b48539e65a229",
+      "benchmarks/shell-stress/diagnostic-profiles/native-baseline.json": "0cb9d0b498331434ec2a49dd4f75b30dcfb10db2ff8fd029613d948f119d4cf3",
+      "benchmarks/shell-stress/diagnostic-profiles/run.ts": "b312e183edde1899bb927e0303ba7deddba0524ef14c3bb20223b46235e75a07",
+      "benchmarks/shell-stress/diagnostic-profiles/virtual-baseline.json": "fd95054242fb24d1b6d8614812a1e14fcdd01a81b71833c905f1f48cc9a5320d"
+    },
+    "after": {
+      "benchmarks/shell-stress/diagnostic-profiles/BASELINE.txt": "6389a2a16d0c5d4051cc86ed905122644ae9cb3fe693442a019e90d02a03e007",
+      "benchmarks/shell-stress/diagnostic-profiles/README.md": "24cc2e2de0469c0e980e0dcafa57aa6412b609c91c405b72c4f0a512c344575c",
+      "benchmarks/shell-stress/diagnostic-profiles/import-provenance.json": "5305db81b963046a437aa8947665510bc8331260909c3e6aff6b48539e65a229",
+      "benchmarks/shell-stress/diagnostic-profiles/native-baseline.json": "0cb9d0b498331434ec2a49dd4f75b30dcfb10db2ff8fd029613d948f119d4cf3",
+      "benchmarks/shell-stress/diagnostic-profiles/run.ts": "b312e183edde1899bb927e0303ba7deddba0524ef14c3bb20223b46235e75a07",
+      "benchmarks/shell-stress/diagnostic-profiles/virtual-baseline.json": "fd95054242fb24d1b6d8614812a1e14fcdd01a81b71833c905f1f48cc9a5320d"
+    },
+    "unchanged": true
+  },
+  "observedSourceGuard": {
+    "files": 796,
+    "before": "6c37c869b6cdb46ffe25a06d888b13dea8ba989229ae079c3884d069dfd49c93",
+    "after": "6c37c869b6cdb46ffe25a06d888b13dea8ba989229ae079c3884d069dfd49c93",
+    "changed": []
+  },
+  "limitations": "Moving worktree only. Typechecks are noEmit, not a build or runtime product validation. Historical native/profile/lifecycle cohorts and full suite were not rerun. No native/tool children were started; synchronous compiler children all exited."
+}

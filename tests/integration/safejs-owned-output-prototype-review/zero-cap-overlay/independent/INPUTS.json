@@ -1,0 +1,337 @@
+{
+  "at": "2026-08-27T17:14:27.178369+00:00",
+  "reviewer": "Codex Independent Leaf Verifier",
+  "thread": "01a043dd-cfc3-7f93-8f3b-70e2d7b1d2a4",
+  "gitBindings": [
+    {
+      "commit": "07a7dae5db51612a23e74d1d164d33723d4d61b6",
+      "path": "tests/integration/safejs-owned-output-prototype-review/provenance/assembly.json",
+      "bytes": 509985,
+      "sha256": "29827a438ce8e33be22a1588a808b2cf7f21909cfaeccb4026405e899fa49199"
+    },
+    {
+      "commit": "07a7dae5db51612a23e74d1d164d33723d4d61b6",
+      "path": "tests/integration/safejs-owned-output-prototype-review/provenance/build-proof.json",
+      "bytes": 186541,
+      "sha256": "7896f394dbcf9b66354e4fad7de867afda29108e46381259464417f0e3ffe926"
+    },
+    {
+      "commit": "07a7dae5db51612a23e74d1d164d33723d4d61b6",
+      "path": "tests/integration/safejs-owned-output-prototype-review/receipt-review/verification.json",
+      "bytes": 2713,
+      "sha256": "28f079b2cc6a7acba9aa11acf1e8b4562f935dd4bf879e81d2621a628c88ba10"
+    },
+    {
+      "commit": "07a7dae5db51612a23e74d1d164d33723d4d61b6",
+      "path": "tests/integration/safejs-owned-output-prototype-review/receipt-review/attempts/r2/proof.json",
+      "bytes": 1130772,
+      "sha256": "fe19612e093ca3ef78152bcca666606966905f5736b2d0e4f090e7854a5ece99"
+    },
+    {
+      "commit": "db139ae983ad66364e0367f9fb1ed0262ee61f63",
+      "path": "tests/integration/safejs-owned-output-prototype-review/receipt-review/REPORT.md",
+      "bytes": 10814,
+      "sha256": "81a8b977284f033824815f601ab6d0f09705779f02515478ae408bf79ec3eee0"
+    },
+    {
+      "commit": "bb7f5972dd54df3ae9c05e745bfab1f1c38a0e29",
+      "path": "src/commands/network/shared.ts",
+      "bytes": 2690,
+      "sha256": "c397734b34fe7447f71e86f2911b96b9dcea9fdde92c3186ff0d9a688a670760"
+    },
+    {
+      "commit": "bb7f5972dd54df3ae9c05e745bfab1f1c38a0e29",
+      "path": "src/commands/network/README.md",
+      "bytes": 12132,
+      "sha256": "71d0f549abd8d3b08dbfdc3455a554149231fe26b1827da9b721ca5d2bde222e"
+    },
+    {
+      "commit": "bb7f5972dd54df3ae9c05e745bfab1f1c38a0e29",
+      "path": "tests/commands/network/zero-caps.test.ts",
+      "bytes": 20600,
+      "sha256": "f7416504487b917ba65edfd0722fd27d47f538b3a6c5fcfb414fb5c2b29269cc"
+    },
+    {
+      "commit": "32debb6a0e43e3ff4e27e43a09a3278b082da86a",
+      "path": "tests/commands/network-zero-caps-review/README.md",
+      "bytes": 7314,
+      "sha256": "0ff65728bebe1dc5a54f95929a9826431263f7adc62e39fb2c60ae85d3ca7705"
+    },
+    {
+      "commit": "32debb6a0e43e3ff4e27e43a09a3278b082da86a",
+      "path": "tests/commands/network-zero-caps-review/evidence-sha256.json",
+      "bytes": 5079,
+      "sha256": "9a686c3acb7a66dbc232a3b368985697d6a12c4e98803b972f8e427259deec2d"
+    },
+    {
+      "commit": "c53e63f3bfe26e0f9982f17c391e11255512201d",
+      "path": "tests/integration/safejs-owned-output-prototype-review/validity-independent/replay-v2/execution/FREEZE.json",
+      "bytes": 2688,
+      "sha256": "40749a32c537ebc7237ea3d7f4dedee6cc0af8cb43dd5baa1201f5553f16f57b"
+    },
+    {
+      "commit": "9f44add1e59ea65af85ece4d2b4eac9af5d02df8",
+      "path": "tests/integration/safejs-owned-output-prototype-review/validity-independent/replay-v2/REPORT.md",
+      "bytes": 13659,
+      "sha256": "48854e8ba4f39e9b04c5b303fb4f6f69327d96161be77b48cc0c43ae8de1ee52"
+    },
+    {
+      "commit": "9f44add1e59ea65af85ece4d2b4eac9af5d02df8",
+      "path": "tests/integration/safejs-owned-output-prototype-review/validity-independent/replay-v2/SEAL.json",
+      "bytes": 30443,
+      "sha256": "389c57932d266720a967ae96092441e47221fdebba41022c9be0aec81a5e6a82"
+    },
+    {
+      "commit": "9f44add1e59ea65af85ece4d2b4eac9af5d02df8",
+      "path": "tests/integration/safejs-owned-output-prototype-review/validity-independent/replay-v2/CLOSURE.json",
+      "bytes": 5766,
+      "sha256": "68975f83960cec9a99baa535e64e2a4b46503a4c0cbe934ed17ee8ad034283cf"
+    },
+    {
+      "commit": "3e6044ff3aabf08a4c49113afda5979f363d9733",
+      "path": "tests/integration/safejs-owned-output-prototype-review/validity-independent/replay-v2/CURRENT_SCOPE.md",
+      "bytes": 1732,
+      "sha256": "4330fb547b224d230bc52b0bd1afd68b7d8aec483c5f3bf2b527e2f14cd563fa"
+    },
+    {
+      "commit": "09ba85cef42898fbc2185d03acc4191f9a4689cd",
+      "path": "tests/integration/safejs-owned-output-prototype-review/surface/execution-v2/CASES.json",
+      "bytes": 33087,
+      "sha256": "c0849f349888c4ab8c3c8be6741136f37bfa34bcd831eee004e757b4b57dd535"
+    },
+    {
+      "commit": "09ba85cef42898fbc2185d03acc4191f9a4689cd",
+      "path": "tests/integration/safejs-owned-output-prototype-review/surface/execution-v2/PINS.json",
+      "bytes": 28218,
+      "sha256": "b8f437199991fd6afda5ba63da4cde9b29d9b3217164e3bbd90969b3c8da7992"
+    },
+    {
+      "commit": "09ba85cef42898fbc2185d03acc4191f9a4689cd",
+      "path": "tests/integration/safejs-owned-output-prototype-review/surface/execution-v2/child.mjs",
+      "bytes": 13365,
+      "sha256": "358dffdec0e11672206beb3c74d97a5cda44f55b83c8104dec9717543a2c64f4"
+    },
+    {
+      "commit": "09ba85cef42898fbc2185d03acc4191f9a4689cd",
+      "path": "tests/integration/safejs-owned-output-prototype-review/surface/execution-v2/controls.mjs",
+      "bytes": 3806,
+      "sha256": "97506ec3a663f784b0ce7f0f8d64479b68948a1ff9b39743b959d9e4d2957c75"
+    },
+    {
+      "commit": "09ba85cef42898fbc2185d03acc4191f9a4689cd",
+      "path": "tests/integration/safejs-owned-output-prototype-review/surface/execution-v2/RUNNER-FREEZE.json",
+      "bytes": 2217,
+      "sha256": "b049cc142ee2b16ae89d3e5a0df1a72292c15808f3f012b24cfafc8b0f3bfb70"
+    },
+    {
+      "commit": "3f6db4dd29950d92410a4d4f9871ba18a5b56e89",
+      "path": "tests/integration/safejs-owned-output-prototype-review/lifecycle/execution-v2/CASES.json",
+      "bytes": 9256,
+      "sha256": "01d2172b48cfc2f340f085755549e4288da99f76ceddd8770e19c2da096de6b5"
+    },
+    {
+      "commit": "3f6db4dd29950d92410a4d4f9871ba18a5b56e89",
+      "path": "tests/integration/safejs-owned-output-prototype-review/lifecycle/execution-v2/REVISION.json",
+      "bytes": 2141,
+      "sha256": "ffce4c0170d9ea49d471a231cb7cb67216ed6f007122f5cda02366e3da6f8313"
+    },
+    {
+      "commit": "3f6db4dd29950d92410a4d4f9871ba18a5b56e89",
+      "path": "tests/integration/safejs-owned-output-prototype-review/lifecycle/execution-v2/child.mjs",
+      "bytes": 37926,
+      "sha256": "4977d53279d39c9e53b1583a93558264b140efcc784ee9811db9250c61cb7a2e"
+    },
+    {
+      "commit": "3f6db4dd29950d92410a4d4f9871ba18a5b56e89",
+      "path": "tests/integration/safejs-owned-output-prototype-review/lifecycle/execution-v2/common.mjs",
+      "bytes": 4639,
+      "sha256": "ed322786f0c81da997766c9da36a80c5eef6c97a0be90b82162b6fcadc2a1553"
+    },
+    {
+      "commit": "3f6db4dd29950d92410a4d4f9871ba18a5b56e89",
+      "path": "tests/integration/safejs-owned-output-prototype-review/lifecycle/execution-v2/guard.mjs",
+      "bytes": 5232,
+      "sha256": "a9b0aac6323730370bd70cc0932d15883653536d187fb934e16e22341d7e54e8"
+    },
+    {
+      "commit": "3f6db4dd29950d92410a4d4f9871ba18a5b56e89",
+      "path": "tests/integration/safejs-owned-output-prototype-review/lifecycle/execution-v2/RUNNER-FREEZE.json",
+      "bytes": 2989,
+      "sha256": "70c5cf226b74308d5223d7102aa90c5b23481c0413dd7ffd6d0235f360f1a80b"
+    },
+    {
+      "commit": "ac549fc392f0853a369e1cef08c6ab08f7b12a95",
+      "path": "tests/integration/safejs-owned-output-prototype-review/surface/execution-v2/attempt-01/SEAL.json",
+      "bytes": 12372,
+      "sha256": "18cb88e2241b1ee1ef186ea8c3ef0d70e744b9f81b63170aeb8abc46f851cfe2"
+    },
+    {
+      "commit": "365ec125589cb41e7e9ea8134314627583ee21dd",
+      "path": "tests/integration/safejs-owned-output-prototype-review/lifecycle/execution-v2/ARTIFACTS.json",
+      "bytes": 13854,
+      "sha256": "2ef85dd6e767d591e1949bd9410a5dd1fb2a43670d41de221e75bdf8deeb3999"
+    },
+    {
+      "commit": "c8df5cf2819d7ad9d54c2a70800258c7c200665a",
+      "path": "tests/integration/safejs-owned-output-prototype-review/lifecycle/guests/curl.ajs.data",
+      "bytes": 355,
+      "sha256": "75da33a2321c9d19efe15ccb64a31b7a309b8d8b6b11abef7464f5ec88a18363"
+    },
+    {
+      "commit": "219790c55c0214e6d46524bbdced63c18c360f62",
+      "path": "src/commands/network/shared.ts",
+      "bytes": 2606,
+      "sha256": "7adab18b67c7584b646b3a6508729d7ab0672e7a0808f512f74ae16464f8842f"
+    }
+  ],
+  "authenticatedS1ReadOnlyFiles": [
+    {
+      "path": "src/commands/network/shared.ts",
+      "bytes": 2606,
+      "sha256": "7adab18b67c7584b646b3a6508729d7ab0672e7a0808f512f74ae16464f8842f"
+    },
+    {
+      "path": "src/commands/network/args.ts",
+      "bytes": 8573,
+      "sha256": "409dac8442c1151d4404d6ce05dd72ab35655aae80c9c0930743ff6af9ea1f4c"
+    },
+    {
+      "path": "src/commands/network/curl.ts",
+      "bytes": 17720,
+      "sha256": "db06650b1b55b994fe5fa83f7489062e91ac83b7d2d9c44bbb7606d57d9df057"
+    },
+    {
+      "path": "src/commands/network/types.ts",
+      "bytes": 1918,
+      "sha256": "be7a2770efdf42e90ca9eb41e37115b28607aeaf99ce95865d44b3625d20aa19"
+    },
+    {
+      "path": "src/commands/network/output.ts",
+      "bytes": 3730,
+      "sha256": "544488561b8ad360c7d41eeec7928659f3a94acd16f196af93ed3349c6a70bab"
+    },
+    {
+      "path": "src/commands/network/body.ts",
+      "bytes": 7380,
+      "sha256": "93d8a8463ac7df91c8ef88368f2ee8524a0abd7e7970badf4d1312587a34c880"
+    },
+    {
+      "path": "src/commands/network/README.md",
+      "bytes": 10805,
+      "sha256": "41e75f9ae587e63a61344df06b0cb518eae1f1d5eab155fd5892026c8c1ccb0f"
+    },
+    {
+      "path": "src/contracts/command.md",
+      "bytes": 8066,
+      "sha256": "8a5426b1e7a30a03dc62f74b28c6eb7bf9b008b78cb7b521eb7de0bc5c59a3f8"
+    },
+    {
+      "path": "package.json",
+      "bytes": 3526,
+      "sha256": "2d98aad926c0a877ed4c3e5ac088cb498526e4769d30f9ab092cfd2bbeb7f9c7"
+    },
+    {
+      "path": "package-lock.json",
+      "bytes": 16734,
+      "sha256": "9c04bb7d2c7d1894479f0c37ce367987c2130256e5bfbf426cfa1bd2729d740b"
+    },
+    {
+      "path": "tsconfig.json",
+      "bytes": 608,
+      "sha256": "f473dbe2230f833bbd374f6d211e843da377973fa96ad0eb38b6b5740dd18027"
+    },
+    {
+      "path": "tsconfig.build.json",
+      "bytes": 260,
+      "sha256": "b57d3e5aab1f1f7ab7a70f275183ea6de255e65a2c40a0047c08d97769a1a16e"
+    }
+  ],
+  "parentCandidateAuthority": {
+    "commit": "07a7dae5db51612a23e74d1d164d33723d4d61b6",
+    "path": "tests/integration/safejs-owned-output-prototype-review/provenance/assembly.json",
+    "entryField": "candidateFiles",
+    "files": 940,
+    "inventorySha256": "a2632992e84344c1a6a92fcee181a1e6d535d6cb87ef1a9a7841e48af9c02e28",
+    "allEntriesBoundByAuthenticatedBlob": true
+  },
+  "parentCompiledManifestSha256": "2578b6ea39cfdeb5b942b9aff20ec9bfff1fcf907cd2af751d8e73f5c24e632f",
+  "parentPackage": {
+    "files": 709,
+    "inventorySha256": "4a81b133665b238545f2111bf349250329e874917691235be67d703056a4f018"
+  },
+  "pinnedTools": [
+    {
+      "name": "typescript",
+      "files": 132,
+      "inventorySha256": "680240908214b87b12bb3e03f5b087525a965d7f805e6fc73579156e69e0db88",
+      "authority": "assembly.json tooling files"
+    },
+    {
+      "name": "@types/node",
+      "files": 74,
+      "inventorySha256": "a704ac7aa70144c5791d2131f469b534abccba6346befd62476aac71d926fabc",
+      "authority": "assembly.json tooling files"
+    },
+    {
+      "name": "undici-types",
+      "files": 41,
+      "inventorySha256": "508ae610e108f7b1e971466c2db233902e7563c2f4778c5a3298d695d7a99830",
+      "authority": "assembly.json tooling files"
+    }
+  ],
+  "pinnedBuildCommandFromOriginalProof": {
+    "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "args": [
+      "/private/tmp/safe-bash-owned-output-prototype-preparation-rE94MK/node_modules/typescript/bin/tsc",
+      "-p",
+      "tsconfig.build.json"
+    ],
+    "cwd": "/private/tmp/safe-bash-owned-output-prototype-preparation-rE94MK/reconstructed"
+  },
+  "pinnedNode": {
+    "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "version": "v22.22.2",
+    "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+  },
+  "copiedEngineQualification": {
+    "recordedHead": "bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e",
+    "recordedTree": "ebcb4508690856b288a40e60e7682331d6fad8ff",
+    "files": 264,
+    "manifestSha256": "e3af7cb5d53cb3c64d22f7ac20c187cc3b7347754857811f210b8c32a937d90f",
+    "sourceHooksNotInstalledPrivatePackage": true,
+    "freshPrivateStateNotQueriedDuringPreparation": true
+  },
+  "readOnlySharedRoots": [
+    "/private/tmp/safe-bash-owned-output-receipt-review-zqBitE/source-route",
+    "/private/tmp/safe-bash-owned-output-receipt-review-zqBitE/packaged-route",
+    "/private/tmp/safe-bash-owned-output-prototype-preparation-rE94MK"
+  ],
+  "pending": {
+    "authorThread": null,
+    "authorFreezeCommit": null,
+    "authorPatchSha256": null,
+    "authorNewSourceInventorySha256": null,
+    "authorCandidateInventorySha256": null,
+    "authorCompiledInventorySha256": null,
+    "authorPackageInventorySha256": null,
+    "authorBuildReceiptSha256": null,
+    "authorFixtureRunnerScorerFreeze": null,
+    "authorExtraExactCaseCount": null,
+    "authorExtraExactCaseHashes": null,
+    "rootInspectionBuildRelease": null,
+    "rootActualReplayRelease": null
+  },
+  "executionsThisPhase": {
+    "builds": 0,
+    "productImports": 0,
+    "guestRuns": 0,
+    "privateEngineImports": 0,
+    "transports": 0,
+    "nativeOracles": 0,
+    "privateCheckoutQueries": 0,
+    "newPasses": 0
+  },
+  "staticReadNote": "One guessed historical guest filename Git lookup was absent; actual guests/curl.ajs.data was resolved from frozen CASES and authenticated. No execution or fixture change resulted.",
+  "authorUncommittedWorkInspected": false,
+  "noPromotion": true
+}

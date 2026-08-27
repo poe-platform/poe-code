@@ -15,6 +15,8 @@ import { byteLocale } from "./locale.js";
 import { functionDisplay } from "./display.js";
 import { invocationScope, type InvocationScope } from "./cleanup.js";
 import { executionCommands } from "../commands/execution.js";
+import { cloneGetoptsState, createGetoptsState, GetoptsError, scanGetopts, withGetoptsIndex } from "./getopts.js";
+import type { GetoptsState } from "./getopts.js";
 
 export const defaultLimits: Required<ShellLimits> = {
   maxOutputBytes: 16 * 1024 * 1024,
@@ -29,7 +31,7 @@ export const defaultLimits: Required<ShellLimits> = {
 
 const shellBuiltinNames = new Set([
   ":", "true", "false", "pwd", "cd", "set", "shift", "export", "local", "unset", "read",
-  "exit", "return", "break", "continue", "command", "type", "readonly", "echo", "printf", "test", "[", ".", "source", "eval",
+  "exit", "return", "break", "continue", "command", "type", "readonly", "echo", "printf", "test", "[", ".", "source", "eval", "getopts",
 ]);
 
 const implementedBuiltins = new Set([...shellBuiltinNames].filter(name => !["echo", "printf", "test", "["].includes(name)));
@@ -143,6 +145,18 @@ export class Capture implements ByteSink {
   }
 }
 
+interface GetoptsBinding {
+  cursor: GetoptsState;
+  integer: boolean;
+}
+
+interface SavedVariable {
+  value: string | undefined;
+  exported: boolean;
+  readOnly?: boolean;
+  getopts?: GetoptsBinding;
+}
+
 export interface State {
   cwd: string;
   variables: Record<string, string>;
@@ -160,7 +174,8 @@ export interface State {
   depth: number;
   loopDepth: number;
   functionDepth: number;
-  locals: Map<string, { value: string | undefined; exported: boolean; readOnly?: boolean }>[];
+  locals: Map<string, SavedVariable>[];
+  getopts?: GetoptsBinding;
   pipefail: boolean;
   errexit?: boolean;
   isolated?: boolean;
@@ -259,8 +274,51 @@ function cloneState(state: State): State {
     variables: Object.assign(Object.create(null) as Record<string, string>, state.variables),
     exported: new Set(state.exported), functions: new Map(state.functions), positional: [...state.positional],
     readonlyVariables: new Set(state.readonlyVariables),
-    locals: state.locals.map((scope) => new Map(scope)),
+    getopts: cloneGetoptsBinding(state),
+    locals: state.locals.map((scope) => new Map([...scope].map(([name, saved]) => [name, { ...saved, ...(saved.getopts ? { getopts: { integer: saved.getopts.integer, cursor: cloneGetoptsState(saved.getopts.cursor) } } : {}) }]))),
   };
+}
+
+function cloneGetoptsBinding(state: State): GetoptsBinding {
+  return { cursor: state.getopts ? cloneGetoptsState(state.getopts.cursor) : createGetoptsState(), integer: state.getopts?.integer ?? false };
+}
+
+function saveVariable(state: State, name: string): SavedVariable {
+  return { value: state.variables[name], exported: state.exported.has(name), readOnly: state.readonlyVariables?.has(name) ?? false, ...(name === "OPTIND" ? { getopts: cloneGetoptsBinding(state) } : {}) };
+}
+
+function restoreVariable(state: State, name: string, saved: SavedVariable): void {
+  if (saved.value === undefined) delete state.variables[name];
+  else state.variables[name] = saved.value;
+  if (saved.exported) state.exported.add(name);
+  else state.exported.delete(name);
+  if (name === "OPTIND" && saved.getopts) {
+    state.getopts = { integer: saved.getopts.integer, cursor: cloneGetoptsState(saved.getopts.cursor) };
+    if (!saved.readOnly) state.readonlyVariables?.delete(name);
+    else { state.readonlyVariables ??= new Set(); state.readonlyVariables.add(name); }
+  }
+}
+
+function decimalIndex(value: string): number {
+  let position = 0;
+  while (position < value.length && /[\t\n\v\f\r ]/u.test(value[position]!)) position++;
+  const negative = value[position] === "-";
+  if (negative || value[position] === "+") position++;
+  let index = 0;
+  for (; position < value.length; position++) {
+    const digit = value.charCodeAt(position) - 48;
+    if (digit < 0 || digit > 9) break;
+    index = (Math.imul(index, 10) + digit) | 0;
+  }
+  return negative ? -index | 0 : index;
+}
+
+function saturatedProduct(left: number, right: number): number {
+  return right !== 0 && left > Math.floor(Number.MAX_SAFE_INTEGER / right) ? Number.MAX_SAFE_INTEGER : left * right;
+}
+
+function saturatedSum(left: number, right: number): number {
+  return left > Number.MAX_SAFE_INTEGER - right ? Number.MAX_SAFE_INTEGER : left + right;
 }
 
 function errorCode(error: unknown): string | undefined {
@@ -294,14 +352,38 @@ export class Runtime {
     return writeText(io.stderr, `${io.scriptName ?? "shell"}: line ${io.diagnosticLine ?? 1}: ${text}\n`);
   }
 
-  writeVariable(state: State, name: string, value: string): void {
+  writeVariable(state: State, name: string, value: string, origin: "assignment" | "arithmetic" | "getopts" = "assignment"): void {
     if (state.readonlyVariables?.has(name)) throw new Error(`${name}: readonly variable`);
+    if (name === "OPTIND" && state.getopts?.integer && origin !== "arithmetic") {
+      try { value = String(evaluateArithmetic(prepareArithmetic(value || "0"), this.arithmeticVariables(state))); }
+      catch (error) { throw new ExpansionFailure(message(error)); }
+    }
     state.variables[name] = value;
+    if (name === "OPTIND" && origin !== "getopts") this.syncGetopts(state);
+  }
+
+  private syncGetopts(state: State): void {
+    state.getopts ??= cloneGetoptsBinding(state);
+    const value = state.variables.OPTIND;
+    if (value === undefined) {
+      state.getopts.integer = false;
+      state.getopts.cursor = createGetoptsState();
+    } else state.getopts.cursor = withGetoptsIndex(state.getopts.cursor, decimalIndex(value));
+  }
+
+  private reconcileGetopts(state: State, previous: string | undefined): void {
+    if (state.variables.OPTIND !== previous) this.syncGetopts(state);
+  }
+
+  private unsetVariable(state: State, name: string, internal = false): void {
+    if (state.readonlyVariables?.has(name)) throw new Error(`${name}: readonly variable`);
+    delete state.variables[name];
+    state.exported.delete(name);
+    if (name === "OPTIND" && !internal) this.syncGetopts(state);
   }
 
   arithmeticVariables(state: State): Record<string, string> {
-    if (!state.readonlyVariables?.size) return state.variables;
-    return new Proxy(state.variables, { set: (_target, key, value: string) => { this.writeVariable(state, String(key), value); return true; } });
+    return new Proxy(state.variables, { set: (_target, key, value: string) => { this.writeVariable(state, String(key), value, "arithmetic"); return true; } });
   }
 
   async run(script: Script, state: State, io: IO): Promise<number> {
@@ -741,7 +823,7 @@ export class Runtime {
     const isolatedInlineInput = inlineInput && words.length > 0 && !shellBuiltinNames.has(words[0]!) && !functionCommand;
     if (isolatedInlineInput) state = cloneState(state);
     let io = originalIO;
-    const previous = new Map<string, { value: string | undefined; exported: boolean }>();
+    const previous = new Map<string, SavedVariable>();
     const assign = async () => {
       for (const assignment of assignments) {
         const value = (await this.word(assignment.value, state, io, false)).join("");
@@ -750,8 +832,8 @@ export class Runtime {
           if (state.profile === "sh" || !words.length) throw new Flow("exit", state.profile === "sh" && (special || !words.length) ? 127 : 1);
           continue;
         }
-        if (!previous.has(assignment.name)) previous.set(assignment.name, { value: state.variables[assignment.name], exported: state.exported.has(assignment.name) });
-        state.variables[assignment.name] = value;
+        if (!previous.has(assignment.name)) previous.set(assignment.name, saveVariable(state, assignment.name));
+        this.writeVariable(state, assignment.name, value);
         if (words.length) state.exported.add(assignment.name);
       }
     };
@@ -765,14 +847,20 @@ export class Runtime {
           if (saved.value === undefined) delete variables[name];
           else variables[name] = saved.value;
         }
-        const redirectState = { ...state, variables, redirectAssignments };
+        const redirectState = { ...state, variables, redirectAssignments, getopts: cloneGetoptsBinding(state) };
+        const savedIndex = previous.get("OPTIND");
+        if (savedIndex?.getopts) redirectState.getopts = { integer: savedIndex.getopts.integer, cursor: cloneGetoptsState(savedIndex.getopts.cursor) };
         try { io = await this.redirect(command.redirects, redirectState, io, inputs, outputs, false, true, false, command.line ?? 1); }
         finally {
           state.substitutionStatus = redirectState.substitutionStatus;
           for (const [name, value] of Object.entries(variables)) {
             if (!previous.has(name)) state.variables[name] = value;
           }
-          for (const [name, saved] of previous) saved.value = variables[name];
+          for (const [name, saved] of previous) {
+            saved.value = variables[name];
+            if (name === "OPTIND") saved.getopts = cloneGetoptsBinding(redirectState);
+          }
+          if (!previous.has("OPTIND")) state.getopts = cloneGetoptsBinding(redirectState);
         }
       } else io = await this.redirect(command.redirects, state, io, inputs, outputs, isolatedInlineInput, !words.length || shellBuiltinNames.has(words[0]!) || functionCommand, fileShortcut, command.line ?? 1);
       if (!inlineInput) await assign();
@@ -794,22 +882,19 @@ export class Runtime {
       throw new ExecutionFailure(error, io);
     } finally {
       if (words.length) for (const [key, saved] of previous) {
-        if (saved.value === undefined) delete state.variables[key];
-        else state.variables[key] = saved.value;
-        if (saved.exported) state.exported.add(key);
-        else state.exported.delete(key);
+        restoreVariable(state, key, saved);
       }
     }
   }
 
-  async dispatch(name: string, args: readonly string[], state: State, io: IO, assignments: Map<string, { value: string | undefined; exported: boolean }>, bypassFunctions = false): Promise<number> {
+  async dispatch(name: string, args: readonly string[], state: State, io: IO, assignments: Map<string, SavedVariable>, bypassFunctions = false): Promise<number> {
     const scope = io[invocationScope].child();
     const runtime = new Runtime(this.fs, this.commands, this.middleware, this.budget, AbortSignal.any([this.signal, scope.signal]), this.fileWrites, this.outputFiles, this.commandSignal);
     try { return await runtime.dispatchScoped(name, args, state, { ...io, [invocationScope]: scope }, assignments, bypassFunctions); }
     finally { await scope.close(); }
   }
 
-  private async dispatchScoped(name: string, args: readonly string[], state: State, io: IO, assignments: Map<string, { value: string | undefined; exported: boolean }>, bypassFunctions: boolean): Promise<number> {
+  private async dispatchScoped(name: string, args: readonly string[], state: State, io: IO, assignments: Map<string, SavedVariable>, bypassFunctions: boolean): Promise<number> {
     const { [invocationScope]: scope, ...publicIO } = io;
     let builtinFailure: { error: unknown; diagnostic: string } | undefined;
     const env = Object.create(null) as Record<string, string>;
@@ -834,16 +919,18 @@ export class Runtime {
     const execute = composeMiddleware(middleware, async (forwarded) => {
       const context = { ...forwarded, [invocationScope]: scope };
       scope.assertOpen();
-      const previous = new Map<string, { value: string | undefined; exported: boolean; overlay: string | undefined }>();
+      const previous = new Map<string, SavedVariable & { overlay: string | undefined }>();
       const cwd = state.cwd;
       state.cwd = resolvePath("/", context.cwd);
       for (const key of new Set([...Object.keys(initialEnv), ...Object.keys(context.env)])) {
+        if (Object.hasOwn(context.env, key) && typeof context.env[key] !== "string") throw new TypeError("Invalid middleware environment value");
         if (initialEnv[key] === context.env[key]) continue;
         const value = context.env[key];
         if (key.includes("\0") || key.includes("=") || (value !== undefined && (typeof value !== "string" || value.includes("\0")))) throw new TypeError("Invalid middleware environment value");
-        previous.set(key, { value: state.variables[key], exported: state.exported.has(key), overlay: value });
+        previous.set(key, { ...saveVariable(state, key), overlay: value });
         if (value === undefined) { delete state.variables[key]; state.exported.delete(key); }
         else { state.variables[key] = value; state.exported.add(key); }
+        if (key === "OPTIND") this.reconcileGetopts(state, previous.get(key)!.value);
       }
       try {
         const selected = this.internalDiscovery(context.command, state, bypassFunctions)[0];
@@ -852,10 +939,11 @@ export class Runtime {
           if (state.depth >= this.budget.limits.maxSubstitutionDepth) this.budget.fail("maxSubstitutionDepth");
           const positional = state.positional;
           const positionalSetVersion = state.positionalSetVersion ?? 0;
+          const getoptsEntry = cloneGetoptsBinding(state);
           state.positional = [...context.args];
           state.functionDepth++;
           state.depth++;
-          const locals = new Map<string, { value: string | undefined; exported: boolean; readOnly?: boolean }>();
+          const locals = new Map<string, SavedVariable>();
           state.locals.push(locals);
           try { return { exitCode: await this.command(body, state, { ...io, ...context, scriptName: body.sourceName ?? io.scriptName ?? "shell" }) }; }
           catch (error) {
@@ -868,11 +956,12 @@ export class Runtime {
             state.depth--;
             state.locals.pop();
             for (const [name, previous] of locals) {
-              if (previous.value === undefined) delete state.variables[name];
-              else state.variables[name] = previous.value;
-              if (previous.exported) state.exported.add(name);
-              else state.exported.delete(name);
+              restoreVariable(state, name, previous);
               if (!previous.readOnly) state.readonlyVariables?.delete(name);
+            }
+            if (locals.has("OPTIND")) {
+              state.getopts ??= cloneGetoptsBinding(state);
+              state.getopts.cursor = cloneGetoptsState(getoptsEntry.cursor);
             }
           }
         }
@@ -902,10 +991,7 @@ export class Runtime {
         if (context.command !== "cd" && state.cwd === context.cwd) state.cwd = cwd;
         for (const [key, saved] of previous) {
           if (state.variables[key] !== saved.overlay) continue;
-          if (saved.value === undefined) delete state.variables[key];
-          else state.variables[key] = saved.value;
-          if (saved.exported) state.exported.add(key);
-          else state.exported.delete(key);
+          restoreVariable(state, key, saved);
         }
       }
     });
@@ -926,7 +1012,7 @@ export class Runtime {
     return matches;
   }
 
-  async discoveryBuiltin(context: CommandContext, state: State, io: IO, assignments: Map<string, { value: string | undefined; exported: boolean }>): Promise<number> {
+  async discoveryBuiltin(context: CommandContext, state: State, io: IO, assignments: Map<string, SavedVariable>): Promise<number> {
     const args = [...context.args];
     const command = context.command === "command";
     let mode: "describe" | "name" | "kind" | "path" = "describe";
@@ -1034,8 +1120,11 @@ export class Runtime {
   processState(context: CommandContext, state: State, arg0: string, args: readonly string[]): State {
     if (state.depth >= this.budget.limits.maxSubstitutionDepth) this.budget.fail("maxSubstitutionDepth");
     const variables = Object.assign(Object.create(null) as Record<string, string>, context.env, { PWD: state.cwd });
+    const exported = new Set(Object.keys(variables));
+    variables.OPTIND = "1";
+    variables.OPTERR = "1";
     return {
-      cwd: state.cwd, variables, exported: new Set(Object.keys(variables)), functions: new Map(),
+      cwd: state.cwd, variables, exported, functions: new Map(), getopts: { cursor: createGetoptsState(), integer: true },
       positional: [...args], arg0, profile: context.command === "sh" ? "sh" : "bash", status: 0, substitutionStatus: 0, depth: state.depth + 1,
       loopDepth: 0, functionDepth: 0, locals: [], pipefail: false, isolated: true,
       errexit: false,
@@ -1162,6 +1251,7 @@ export class Runtime {
       child.variables[key] = value;
     }
     child.exported = new Set(Object.keys(context.env));
+    this.reconcileGetopts(child, state.variables.OPTIND);
     return child;
   }
 
@@ -1490,6 +1580,7 @@ export class Runtime {
       child.variables[key] = value;
     }
     child.exported = new Set(Object.keys(env));
+    this.reconcileGetopts(child, state.variables.OPTIND);
     child.depth++;
     child.loopDepth = 0;
     child.functionDepth = 0;
@@ -1513,10 +1604,80 @@ export class Runtime {
     finally { await input?.close(); }
   }
 
-  async builtin(context: CommandContext & IO, state: State, assignments: Map<string, { value: string | undefined; exported: boolean }>, diagnose?: (error: unknown, diagnostic: string) => void, suppressSpecial = false): Promise<number | undefined> {
+  private async getoptsBuiltin(context: CommandContext & IO, state: State): Promise<number> {
+    this.signal.throwIfAborted();
+    const { maxExpansionBytes: bytes, maxExpansionFields: fields } = this.budget.limits;
+    const admit = (value: unknown): void => {
+      if (typeof value !== "string") throw new CommandFailure("getopts: arguments must be strings without NUL", 2);
+      if (value.length > bytes || Buffer.byteLength(value) > bytes) this.budget.fail("maxExpansionBytes");
+      if (value.includes("\0")) throw new CommandFailure("getopts: arguments must be strings without NUL", 2);
+    };
+    const checkpoint = async (): Promise<void> => {
+      this.signal.throwIfAborted();
+      await interruptible(new Promise<void>(resolve => setImmediate(resolve)), this.signal);
+      this.signal.throwIfAborted();
+    };
+    if (!Array.isArray(context.args)) throw new CommandFailure("getopts: argument array required", 2);
+    if (context.args.length + 1 > fields) this.budget.fail("maxExpansionFields");
+    admit(context.command);
+    for (let index = 0; index < context.args.length; index++) {
+      this.signal.throwIfAborted();
+      admit(context.args[index]);
+      if ((index + 1) % 128 === 0) await checkpoint();
+    }
+    const offset = context.args[0] === "--" ? 1 : 0;
+    if (!offset && context.args[0]?.startsWith("-") && context.args[0] !== "-") {
+      await this.diagnostic(context, `getopts: -${context.args[0][1]}: invalid option`);
+      await writeText(context.stderr, "getopts: usage: getopts optstring name [arg ...]\n");
+      return 2;
+    }
+    if (context.args.length - offset < 2) {
+      await writeText(context.stderr, "getopts: usage: getopts optstring name [arg ...]\n");
+      return 2;
+    }
+    const optstring = context.args[offset]!;
+    const name = context.args[offset + 1]!;
+    const args = context.args.length > offset + 2 ? context.args.slice(offset + 2) : state.positional;
+    if (args.length > fields) this.budget.fail("maxExpansionFields");
+    for (let index = 0; index < args.length; index++) {
+      this.signal.throwIfAborted();
+      admit(args[index]);
+      if ((index + 1) % 128 === 0) await checkpoint();
+    }
+    const maxBytes = saturatedProduct(bytes, saturatedSum(args.length, 1));
+    const maxSteps = saturatedSum(saturatedProduct(maxBytes, 2), saturatedSum(args.length, 2));
+    state.getopts ??= cloneGetoptsBinding(state);
+    let result;
+    try {
+      result = await scanGetopts(state.getopts.cursor, optstring, args, {
+        reportErrors: state.variables.OPTERR === undefined || state.variables.OPTERR === "" || decimalIndex(state.variables.OPTERR) !== 0,
+        work: { maxArguments: fields, maxBytes, maxSteps, yieldEvery: 128, signal: this.signal, checkpoint },
+      });
+    } catch (error) {
+      this.signal.throwIfAborted();
+      if (error instanceof GetoptsError && (error.code === "NON_ASCII_OPTION" || error.code === "INVALID_INPUT")) throw new CommandFailure(`getopts: ${error.message}`, 2);
+      throw error;
+    }
+    this.signal.throwIfAborted();
+    state.getopts.cursor = result.state;
+    if (result.diagnostic) {
+      const explanation = result.diagnostic.kind === "unknown-option" ? "illegal option" : "option requires an argument";
+      await writeText(context.stderr, `${state.arg0 ?? context.scriptName ?? "shell"}: ${explanation} -- ${result.diagnostic.option}\n`);
+    }
+    this.signal.throwIfAborted();
+    this.writeVariable(state, "OPTIND", String(result.optind), "getopts");
+    if (result.argument.kind === "set") this.writeVariable(state, "OPTARG", result.argument.value, "getopts");
+    else this.unsetVariable(state, "OPTARG", true);
+    if (!/^[a-zA-Z_][a-zA-Z_0-9]*$/u.test(name)) throw new Error(`getopts: \`${name}': not a valid identifier`);
+    this.writeVariable(state, name, result.option, "getopts");
+    return result.status;
+  }
+
+  async builtin(context: CommandContext & IO, state: State, assignments: Map<string, SavedVariable>, diagnose?: (error: unknown, diagnostic: string) => void, suppressSpecial = false): Promise<number | undefined> {
     const { command, args, stdout, stderr } = context;
     if (command === ":" || command === "true") return 0;
     if (command === "false") return 1;
+    if (command === "getopts") return this.getoptsBuiltin(context, state);
     if (command === "pwd") {
       if (args.some((arg) => arg !== "-L" && arg !== "-P")) { await writeText(stderr, "pwd: invalid option\n"); return 2; }
       const path = args.at(-1) === "-P" ? await this.fs.realpath(state.cwd, { signal: this.signal }) : state.cwd;
@@ -1601,10 +1762,15 @@ export class Runtime {
           await this.diagnostic(context, `${name}: readonly variable`); status = 1; continue;
         }
         if (command === "local" && !locals!.has(name)) {
-          locals!.set(name, assignments.get(name) ?? { value: state.variables[name], exported: state.exported.has(name) });
+          locals!.set(name, assignments.get(name) ?? saveVariable(state, name));
           if (!assignments.has(name) && match[2] === undefined) delete state.variables[name];
+          if (name === "OPTIND") {
+            state.getopts ??= cloneGetoptsBinding(state);
+            state.getopts.integer = false;
+          }
         }
-        if (match[2] !== undefined) state.variables[name] = match[2];
+        if (match[2] !== undefined) this.writeVariable(state, name, match[2]);
+        else if (command === "local" && name === "OPTIND") this.syncGetopts(state);
         if (command === "export") state.exported.add(name);
         if (command === "readonly") { state.readonlyVariables ??= new Set(); state.readonlyVariables.add(name); }
         assignments.delete(name);
@@ -1617,8 +1783,7 @@ export class Runtime {
         if (!/^[a-zA-Z_][a-zA-Z_0-9]*$/u.test(name)) { await writeText(stderr, `unset: ${name}: not a valid identifier\n`); status = 1; continue; }
         if (state.readonlyVariables?.has(name)) { await this.diagnostic(context, `unset: ${name}: cannot unset: readonly variable`); status = 1; continue; }
         if (name === "PATH") state.pathUnset = true;
-        delete state.variables[name];
-        state.exported.delete(name);
+        this.unsetVariable(state, name);
         if (state.profile === "sh") assignments.delete(name);
       }
       return status;
@@ -1669,7 +1834,7 @@ export class Runtime {
         });
       if (!names.length) {
         if (state.readonlyVariables?.has("REPLY")) { await this.diagnostic(context, "REPLY: readonly variable"); return 1; }
-        state.variables.REPLY = line.value;
+        this.writeVariable(state, "REPLY", line.value);
       }
       else {
         const separators = exact ? "" : state.variables.IFS ?? " \t\n";
@@ -1695,7 +1860,7 @@ export class Runtime {
             return index === names.length - 1 ? 1 : 2;
           }
           const field = fields[index];
-          state.variables[names[index]!] = field ? characters.slice(field.start, index === names.length - 1 && fields.length > names.length ? end : field.end).join("") : "";
+          this.writeVariable(state, names[index]!, field ? characters.slice(field.start, index === names.length - 1 && fields.length > names.length ? end : field.end).join("") : "");
         }
       }
       return line.terminated ? 0 : 1;
@@ -1746,7 +1911,7 @@ export class Runtime {
       child.isolated = true;
       if (state.profile !== "sh") child.errexit = false;
       for (const [name, value] of state.redirectAssignments ?? []) {
-        child.variables[name] = value;
+        this.writeVariable(child, name, value);
         child.exported.add(name);
       }
       delete child.redirectAssignments;

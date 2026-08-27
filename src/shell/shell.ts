@@ -145,8 +145,11 @@ export class Shell implements PluginHost {
         for (const [name, value] of Object.entries(variables)) {
           if (name.includes("\0") || name.includes("=") || typeof value !== "string" || value.includes("\0")) throw new TypeError("Invalid environment entry");
         }
+        const exported = new Set(Object.keys(variables));
+        variables.OPTIND = "1";
+        variables.OPTERR = "1";
         const state: State = {
-          cwd, variables, exported: new Set(Object.keys(variables)), functions: new Map(), positional: [],
+          cwd, variables, exported, functions: new Map(), positional: [], getopts: { cursor: { index: 0 }, integer: true },
           status: 0, substitutionStatus: 0, depth: 0, loopDepth: 0, functionDepth: 0, locals: [], pipefail: false, profile: "bash",
         };
         const runtime = new Runtime(options.fs ?? this.#options.fs, this.commands, [...this.#middleware], budget, AbortSignal.any([budget.signal, scope.signal]), undefined, undefined, budget.signal);

@@ -110,7 +110,7 @@ export class RecordReader {
         const result = await this.iterator.next();
         if (result.done) { this.done = true; this.chunk = empty; break; }
         this.budget.input(result.value.length);
-        this.chunk = result.value.slice();
+        this.chunk = Uint8Array.from(result.value);
         this.offset = 0;
         if (!this.chunk.length) continue;
       }

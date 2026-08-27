@@ -89,6 +89,23 @@ test("paste shares one stdin cursor and owns returned chunk bytes", async () => 
   assert.equal(result.stdoutHex, Buffer.from("a\tb\nc\td\n").toString("hex"));
 });
 
+for (const command of ["paste", "comm", "join"] as const) {
+  test(`${command}: records retain Buffer fragments after producer reuse`, async () => {
+    const fragment = Buffer.from("a ");
+    const stdin = (async function* () {
+      yield fragment;
+      fragment.fill(120);
+      yield Buffer.from("value\n");
+    })();
+    const right = command === "join" ? "a other\n" : "a value\n";
+    const expected = command === "paste" ? "a value\n" : command === "comm" ? "\t\ta value\n" : "a value other\n";
+    const result = await runTable(fixture(command, command === "paste" ? ["-"] : ["-", "right"], { right }), {}, { stdin });
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdoutHex, Buffer.from(expected).toString("hex"));
+    assert.equal(fragment.toString(), "xx");
+  });
+}
+
 test("empty chunk producers cannot starve cancellation or step limits", async () => {
   const controller = new AbortController(), reason = new Error("stop empty chunks");
   let closed = false;

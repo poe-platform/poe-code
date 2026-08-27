@@ -1,0 +1,21 @@
+{
+  "capturedAt": "2026-08-27T04:57:35.087Z",
+  "lock": {
+    "service": "MinIO Community",
+    "release": "RELEASE.2025-09-07T16-13-09Z",
+    "sourceCommit": "07c3a429bfed433e49018cb0f78a52145d4bedeb",
+    "platform": "darwin-arm64",
+    "url": "https://dl.min.io/server/minio/release/darwin-arm64/minio.RELEASE.2025-09-07T16-13-09Z",
+    "checksumUrl": "https://dl.min.io/server/minio/release/darwin-arm64/minio.RELEASE.2025-09-07T16-13-09Z.sha256sum",
+    "sha256": "7c3b3039b76e55a1b80935848ed83998d5e8d317374f87851f46a019ff5c0aa4",
+    "size": 108218434,
+    "releasePage": "https://github.com/minio/minio/releases/tag/RELEASE.2025-09-07T16-13-09Z",
+    "selection": "Pinned historical official binary, not a latest-version or production-security recommendation"
+  },
+  "binary": "/Users/kjopek/Workspace/safe-bash/tests/fs/s3/http/final-verification/service/.scratch-LGUkAL/safe-s3-http-independent-vo3OXe/minio",
+  "sha256": "7c3b3039b76e55a1b80935848ed83998d5e8d317374f87851f46a019ff5c0aa4",
+  "officialChecksum": "7c3b3039b76e55a1b80935848ed83998d5e8d317374f87851f46a019ff5c0aa4 minio.RELEASE.2025-09-07T16-13-09Z\n",
+  "finalDownloadUrl": "https://dl.min.io/server/minio/release/darwin-arm64/minio.RELEASE.2025-09-07T16-13-09Z",
+  "status": 200,
+  "size": 108218434
+}

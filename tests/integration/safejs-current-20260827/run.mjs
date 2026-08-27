@@ -217,27 +217,32 @@ try {
   const commandsFiles = ["command", "lifecycle", "local-safejs"].map(name => `tests/commands/safejs/${name}.test.ts`);
   const stressFiles = ["actual-engine", "lifecycle", "safety", "upstream-limitations"].map(name => `tests/commands/safejs-stress/${name}.test.ts`);
   const bridgeFiles = ["filesystem", "memory-shell", "shell", "local-safejs"].map(name => `tests/integrations/safejs/${name}.test.ts`);
-  cohort("conventional", [...commandsFiles, ...stressFiles]);
-  cohort("bridges", bridgeFiles);
-  cohort("desired-original-plus-action", ["tests/commands/safejs-stress/upstream-desired.probe.ts", "tests/commands/safejs-stress/action-abort.probe.ts"]);
-  cohort("proposal-invariants", ["tests/commands/safejs-stress/wrapper-invariants.probe.mjs"]);
-  cohort("proposal-reason-profile", ["tests/commands/safejs-stress/reason-contract.probe.mjs"]);
-  cohort("unavailable-engine", [...commandsFiles, ...stressFiles, ...bridgeFiles], false);
-  const unavailableCases = new Map(report.cohorts["unavailable-engine"].cases.map(entry => [entry.name, entry]));
-  report.classification = {};
-  for (const label of ["conventional", "bridges"]) {
-    const groups = {};
-    for (const entry of report.cohorts[label].cases) {
-      assert.ok(unavailableCases.has(entry.name), `Unpaired case: ${entry.name}`);
-      const category = /^(KNOWN UPSTREAM LIMITATION:|upstream observation, not constructor support:)/u.test(entry.name)
-        ? "defect-characterization"
-        : /structurally assignable/u.test(entry.name) ? "structural-type-probe"
-        : unavailableCases.get(entry.name).outcome === "skip" ? "actual-engine-behavior" : "fixture-or-configuration";
-      groups[category] ??= { pass: 0, fail: 0, skip: 0, names: [] };
-      groups[category][entry.outcome] += 1;
-      groups[category].names.push(entry.name);
+  if (process.argv[4] === "public-boundary") {
+    report.publicFixtureHashes = copyRegular(join(harness, "public-boundary"), join(consumer, "public-boundary"));
+    cohort("public-boundary", ["public-boundary/supported.probe.mjs"]);
+  } else {
+    cohort("conventional", [...commandsFiles, ...stressFiles]);
+    cohort("bridges", bridgeFiles);
+    cohort("desired-original-plus-action", ["tests/commands/safejs-stress/upstream-desired.probe.ts", "tests/commands/safejs-stress/action-abort.probe.ts"]);
+    cohort("proposal-invariants", ["tests/commands/safejs-stress/wrapper-invariants.probe.mjs"]);
+    cohort("proposal-reason-profile", ["tests/commands/safejs-stress/reason-contract.probe.mjs"]);
+    cohort("unavailable-engine", [...commandsFiles, ...stressFiles, ...bridgeFiles], false);
+    const unavailableCases = new Map(report.cohorts["unavailable-engine"].cases.map(entry => [entry.name, entry]));
+    report.classification = {};
+    for (const label of ["conventional", "bridges"]) {
+      const groups = {};
+      for (const entry of report.cohorts[label].cases) {
+        assert.ok(unavailableCases.has(entry.name), `Unpaired case: ${entry.name}`);
+        const category = /^(KNOWN UPSTREAM LIMITATION:|upstream observation, not constructor support:)/u.test(entry.name)
+          ? "defect-characterization"
+          : /structurally assignable/u.test(entry.name) ? "structural-type-probe"
+          : unavailableCases.get(entry.name).outcome === "skip" ? "actual-engine-behavior" : "fixture-or-configuration";
+        groups[category] ??= { pass: 0, fail: 0, skip: 0, names: [] };
+        groups[category][entry.outcome] += 1;
+        groups[category].names.push(entry.name);
+      }
+      report.classification[label] = groups;
     }
-    report.classification[label] = groups;
   }
   report.importProof = {};
   for (const label of Object.keys(report.cohorts)) {

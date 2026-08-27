@@ -80,6 +80,14 @@ describe("failed run recovery checkpoints", () => {
     await expect(dump(execution, { onFailure: "checkpoint" })).rejects.toThrow();
   });
 
+  it("rejects checkpoint requests after replay initialization fails", async () => {
+    const execution = run("return 1;", {
+      snapshot: { sourceHash: "invalid", promiseReplay: { version: 999 } }
+    });
+    await expect(execution).rejects.toThrow();
+    await expect(dump(execution, { onFailure: "checkpoint" })).rejects.toThrow();
+  });
+
   it.each([
     {
       name: "callDepth",
@@ -183,6 +191,46 @@ describe("failed run recovery checkpoints", () => {
     } finally {
       warning.mockRestore();
     }
+  });
+
+  it("applies the failure policy after resource cleanup rejects", async () => {
+    let effects = 0;
+    const write = vi.fn(async () => undefined);
+    const close = vi.fn(async () => {
+      throw new Error("close failed");
+    });
+    const bindings = {
+      effect() {
+        effects += 1;
+        runResources.getStore()!.add(close);
+      }
+    };
+    const source = "effect(); return 1;";
+    const execution = run(source, {
+      bindings,
+      snapshotBackend: {
+        async read() {
+          return undefined;
+        },
+        async remove() {},
+        write
+      }
+    });
+    await expect(execution).rejects.toThrow("SafeJS resource cleanup failed.");
+    await expect(dump(execution, { onFailure: "throw" })).rejects.toThrow(
+      "SafeJS resource cleanup failed."
+    );
+    const snapshot = JSON.parse(await dump(execution, { onFailure: "checkpoint" }));
+    await expect(run(source, { bindings, snapshot })).resolves.toMatchObject({
+      ok: true,
+      returnValue: 1
+    });
+    expect(effects).toBe(1);
+    expect(close).toHaveBeenCalledOnce();
+    expect(write).toHaveBeenCalledOnce();
+    expect(write).toHaveBeenCalledWith(
+      expect.objectContaining({ replay: expect.any(Object), initialInputs: expect.any(Object) })
+    );
   });
 
   it("requires a new host deadline without repeating effects", async () => {

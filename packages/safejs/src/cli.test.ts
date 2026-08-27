@@ -11,6 +11,7 @@ vi.mock("node:fs/promises", async () => {
 });
 
 const { createSandboxClosure, createSandboxPromise } = await import("./interp/values.js");
+const { runResources } = await import("./interp/resources.js");
 const { runCli } = await import("./cli.js");
 
 async function withObjectPrototypeProperties<T>(
@@ -445,6 +446,30 @@ describe("SafeJS CLI", () => {
     expect(stderr.output()).toContain("failed");
     expect(stderr.output()).not.toContain("source changed");
     expect(effect).toHaveBeenCalledOnce();
+  });
+
+  it("writes a recoverable snapshot when cleanup fails after the script completes", async () => {
+    let effects = 0;
+    vol.writeFileSync("/repo/script.ajs", 'import {effect} from "test"; effect(); return 1;');
+    const options = {
+      cwd: "/repo",
+      stdout: createSink(),
+      stderr: createSink(),
+      modulesFor: () => ({
+        test: {
+          effect() {
+            effects += 1;
+            runResources.getStore()!.add(async () => {
+              throw new Error("close failed");
+            });
+          }
+        }
+      })
+    };
+    expect(await runCli(["--snapshot", "state.json", "script.ajs"], options)).toBe(1);
+    expect(options.stderr.output()).toContain("resource cleanup failed");
+    expect(await runCli(["--restore", "state.json", "script.ajs"], options)).toBe(0);
+    expect(effects).toBe(1);
   });
 
   it("restores from a snapshot and fails clearly when restore is invalid", async () => {

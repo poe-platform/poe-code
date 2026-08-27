@@ -164,6 +164,7 @@ export function run(source: string, options: RunOptions = {}): Promise<RunResult
   const lifecycle = { hostCallbackDepth: 0 };
   const dumpController = createDumpController(lifecycle);
   const promiseTracker = createSandboxPromiseRejectionTracker();
+  let completedSnapshot: RunSnapshot | undefined;
   const execute = async () => {
     const promiseReplay = new PromiseReplay(options.snapshot?.promiseReplay);
     return promiseReplayContext.run(promiseReplay, async () => {
@@ -451,6 +452,7 @@ export function run(source: string, options: RunOptions = {}): Promise<RunResult
         });
         if (replayError !== undefined) snapshot.replayError = replayError;
         dumpController.finalize(snapshot);
+        completedSnapshot = snapshot;
 
         return {
           ...result,
@@ -487,7 +489,17 @@ export function run(source: string, options: RunOptions = {}): Promise<RunResult
   };
   const result = withRunResources(options.signal, () =>
     withSandboxPromiseRejectionTracker(promiseTracker, execute)
-  );
+  ).catch(async (error: unknown) => {
+    if (completedSnapshot !== undefined) {
+      try {
+        await createSnapshotScheduler<RunSnapshot>(options).write(completedSnapshot);
+      } catch (snapshotError) {
+        console.warn("Failed to write failure snapshot.", snapshotError);
+      }
+    }
+    dumpController.fail(error);
+    throw error;
+  });
 
   return attachDumpController(result, dumpController);
 }

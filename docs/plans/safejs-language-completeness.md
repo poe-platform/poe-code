@@ -1540,8 +1540,25 @@ Validation on August 27, 2026, before publication:
   153 removed outputs and six obsolete directories remain absent, all five
   binaries exist, and consumer links stay inside the isolated installation.
 
-Publication, final full-suite counts, and installed release receipt remain
-pending. Keep the budget checklist open until that release is verified.
+The first feature commit is `69e8a64027cf9d8874f39423028117b915f5ec94`;
+pre-push checks pass 21,081 tests with 41 skipped, and Release `33057270790` is
+being monitored. The isolated candidate also passes the matrix on Node 18.18.2,
+22.22.2, and 24.14.0, the real CLI and crash matrices, and strict recovery types.
+
+A final lifecycle audit found a follow-up edge: cleanup rejection happens outside
+the interpreter's catch. The original run rejected, but explicit
+`onFailure: "throw"` could still return a completed snapshot, and a configured
+backend did not receive that final failure checkpoint. The follow-up routes
+post-cleanup errors through the dump controller and persists the already
+completed replay state, preserving the primary error if storage also fails.
+TDD covers SDK policy and standalone CLI restoration. A separate 162-case
+cleanup matrix awaits 1,134 cleanup calls, exercises 81 storage failures, and
+finds zero repeated effects or lost primary failures. It covers synchronous and
+asynchronous entrypoints, ordinary script errors, budget errors, and cleanup
+rejections with Error, string, and null reasons.
+
+Publication and the final installed-release receipt remain pending. Keep the
+budget checklist open until the follow-up release is verified.
 
 ## Stale artifact cleanup
 

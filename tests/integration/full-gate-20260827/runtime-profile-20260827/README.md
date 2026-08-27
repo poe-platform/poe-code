@@ -50,7 +50,11 @@ The actual external gate must instead be launched using the pinned Node24
 absolute path; its archived product candidate and native49 preflight remain
 unchanged. No further whole gate is authorized by this report.
 
-Independent review of **this preflight patch** is pending. Separately, Plato's
+Independent review of **this preflight patch** is accepted in `c7489e14`
+(harness `b7ef6f46`): 24/24 controls, comprising 22 executed controls and two
+source-policy checks, plus the unchanged 11 author controls. `inspectRuntime`
+executes the requested binary before checking its hash: this is trusted-host
+diagnostic admission, not an untrusted-binary sandbox. Separately, Plato's
 `0579a239` evidence in
 `../loader-null-source-review-node24-bodies/README.md` establishes 45/45 actual
 unchanged affected test bodies on this Node24 profile, including isolated actual

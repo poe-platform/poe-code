@@ -1,0 +1,4 @@
+consumer.mts(23,87): error TS2322: Type '(bytes: Uint8Array<ArrayBufferLike>) => void' is not assignable to type '(chunk: Uint8Array<ArrayBufferLike>) => Promise<void>'.
+  Type 'void' is not assignable to type 'Promise<void>'.
+consumer.mts(24,15): error TS2322: Type '(bytes: Uint8Array<ArrayBufferLike>) => void' is not assignable to type '(chunk: Uint8Array<ArrayBufferLike>) => Promise<void>'.
+  Type 'void' is not assignable to type 'Promise<void>'.

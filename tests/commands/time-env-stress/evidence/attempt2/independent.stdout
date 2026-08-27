@@ -1,0 +1,112 @@
+{"name":"frozen actual registry, explicit optional family and default clock","category":"public-api","names":["[","awk","base32","base64","basename","cat","chmod","cksum","comm","cp","cut","diff","dirname","echo","env","expand","false","find","fold","grep","gunzip","gzip","head","join","jq","ln","ls","md5sum","mkdir","mktemp","mv","nl","od","paste","patch","printf","pwd","readlink","realpath","rev","rg","rm","rmdir","sed","seq","sha1sum","sha256sum","sort","split","stat","strings","tac","tail","tar","tee","test","touch","tr","true","unexpand","uniq","wc","xargs","xxd","zcat"],"result":"fail","error":{"name":"AssertionError","message":"Expected values to be strictly equal:\n\n65 !== 60\n","stack":"AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\n65 !== 60\n\n    at <anonymous> (/private/tmp/safe-bash-time-env-independent-uGjDrh/consumer.mts:52:32)\n    at row (/private/tmp/safe-bash-time-env-independent-uGjDrh/consumer.mts:32:15)\n    at <anonymous> (/private/tmp/safe-bash-time-env-independent-uGjDrh/consumer.mts:51:7)"}}
+{"name":"flag %12F","category":"GNU9.7-Darwin-required-date","args":["-d@1704164645.123456789","+%12F"],"env":{},"expected":{"status":0,"stdoutHex":"3030323032342d30312d30320a","stderrHex":""},"actual":{"status":0,"stdoutHex":"2020323032342d30312d30320a","stderrHex":""},"result":"fail","error":{"name":"AssertionError","message":"Expected values to be strictly deep-equal:\n+ actual - expected\n\n  {\n    status: 0,\n    stderrHex: '',\n+   stdoutHex: '2020323032342d30312d30320a'\n-   stdoutHex: '3030323032342d30312d30320a'\n  }\n","stack":"AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:\n+ actual - expected\n\n  {\n    status: 0,\n    stderrHex: '',\n+   stdoutHex: '2020323032342d30312d30320a'\n-   stdoutHex: '3030323032342d30312d30320a'\n  }\n\n    at <anonymous> (/private/tmp/safe-bash-time-env-independent-uGjDrh/consumer.mts:43:12)\n    at async row (/private/tmp/safe-bash-time-env-independent-uGjDrh/consumer.mts:32:9)\n    at async differential (/private/tmp/safe-bash-time-env-independent-uGjDrh/consumer.mts:38:3)\n    at async <anonymous> (/private/tmp/safe-bash-time-env-independent-uGjDrh/consumer.mts:64:69)"}}
+{"name":"flag %#c","category":"GNU9.7-Darwin-required-date","args":["-d@1704164645.123456789","+%#c"],"env":{},"expected":{"status":0,"stdoutHex":"547565204a616e2020322030333a30343a303520323032340a","stderrHex":""},"actual":{"status":0,"stdoutHex":"545545204a414e2020322030333a30343a303520323032340a","stderrHex":""},"result":"fail","error":{"name":"AssertionError","message":"Expected values to be strictly deep-equal:\n+ actual - expected\n\n  {\n    status: 0,\n    stderrHex: '',\n+   stdoutHex: '545545204a414e2020322030333a30343a303520323032340a'\n-   stdoutHex: '547565204a616e2020322030333a30343a303520323032340a'\n  }\n","stack":"AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:\n+ actual - expected\n\n  {\n    status: 0,\n    stderrHex: '',\n+   stdoutHex: '545545204a414e2020322030333a30343a303520323032340a'\n-   stdoutHex: '547565204a616e2020322030333a30343a303520323032340a'\n  }\n\n    at <anonymous> (/private/tmp/safe-bash-time-env-independent-uGjDrh/consumer.mts:43:12)\n    at async row (/private/tmp/safe-bash-time-env-independent-uGjDrh/consumer.mts:32:9)\n    at async differential (/private/tmp/safe-bash-time-env-independent-uGjDrh/consumer.mts:38:3)\n    at async <anonymous> (/private/tmp/safe-bash-time-env-independent-uGjDrh/consumer.mts:64:69)"}}
+{"name":"flag %-z","category":"GNU9.7-Darwin-required-date","args":["-d@1704164645.123456789","+%-z"],"env":{},"expected":{"status":0,"stdoutHex":"2b300a","stderrHex":""},"actual":{"status":0,"stdoutHex":"2b303030300a","stderrHex":""},"result":"fail","error":{"name":"AssertionError","message":"Expected values to be strictly deep-equal:\n+ actual - expected\n\n  {\n    status: 0,\n    stderrHex: '',\n+   stdoutHex: '2b303030300a'\n-   stdoutHex: '2b300a'\n  }\n","stack":"AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:\n+ actual - expected\n\n  {\n    status: 0,\n    stderrHex: '',\n+   stdoutHex: '2b303030300a'\n-   stdoutHex: '2b300a'\n  }\n\n    at <anonymous> (/private/tmp/safe-bash-time-env-independent-uGjDrh/consumer.mts:43:12)\n    at async row (/private/tmp/safe-bash-time-env-independent-uGjDrh/consumer.mts:32:9)\n    at async differential (/private/tmp/safe-bash-time-env-independent-uGjDrh/consumer.mts:38:3)\n    at async <anonymous> (/private/tmp/safe-bash-time-env-independent-uGjDrh/consumer.mts:64:69)"}}
+{"name":"flag %_z","category":"GNU9.7-Darwin-required-date","args":["-d@1704164645.123456789","+%_z"],"env":{},"expected":{"status":0,"stdoutHex":"2020202b300a","stderrHex":""},"actual":{"status":0,"stdoutHex":"2b303030300a","stderrHex":""},"result":"fail","error":{"name":"AssertionError","message":"Expected values to be strictly deep-equal:\n+ actual - expected\n\n  {\n    status: 0,\n    stderrHex: '',\n+   stdoutHex: '2b303030300a'\n-   stdoutHex: '2020202b300a'\n  }\n","stack":"AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:\n+ actual - expected\n\n  {\n    status: 0,\n    stderrHex: '',\n+   stdoutHex: '2b303030300a'\n-   stdoutHex: '2020202b300a'\n  }\n\n    at <anonymous> (/private/tmp/safe-bash-time-env-independent-uGjDrh/consumer.mts:43:12)\n    at async row (/private/tmp/safe-bash-time-env-independent-uGjDrh/consumer.mts:32:9)\n    at async differential (/private/tmp/safe-bash-time-env-independent-uGjDrh/consumer.mts:38:3)\n    at async <anonymous> (/private/tmp/safe-bash-time-env-independent-uGjDrh/consumer.mts:64:69)"}}
+{"name":"flag %_12z","category":"GNU9.7-Darwin-required-date","args":["-d@1704164645.123456789","+%_12z"],"env":{},"expected":{"status":0,"stdoutHex":"202020202020202020202b300a","stderrHex":""},"actual":{"status":0,"stdoutHex":"202020202020202b303030300a","stderrHex":""},"result":"fail","error":{"name":"AssertionError","message":"Expected values to be strictly deep-equal:\n+ actual - expected\n\n  {\n    status: 0,\n    stderrHex: '',\n+   stdoutHex: '202020202020202b303030300a'\n-   stdoutHex: '202020202020202020202b300a'\n  }\n","stack":"AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:\n+ actual - expected\n\n  {\n    status: 0,\n    stderrHex: '',\n+   stdoutHex: '202020202020202b303030300a'\n-   stdoutHex: '202020202020202020202b300a'\n  }\n\n    at <anonymous> (/private/tmp/safe-bash-time-env-independent-uGjDrh/consumer.mts:43:12)\n    at async row (/private/tmp/safe-bash-time-env-independent-uGjDrh/consumer.mts:32:9)\n    at async differential (/private/tmp/safe-bash-time-env-independent-uGjDrh/consumer.mts:38:3)\n    at async <anonymous> (/private/tmp/safe-bash-time-env-independent-uGjDrh/consumer.mts:64:69)"}}
+{"name":"flag %^P","category":"GNU9.7-Darwin-required-date","args":["-d@1704164645.123456789","+%^P"],"env":{},"expected":{"status":0,"stdoutHex":"616d0a","stderrHex":""},"actual":{"status":0,"stdoutHex":"414d0a","stderrHex":""},"result":"fail","error":{"name":"AssertionError","message":"Expected values to be strictly deep-equal:\n+ actual - expected\n\n  {\n    status: 0,\n    stderrHex: '',\n+   stdoutHex: '414d0a'\n-   stdoutHex: '616d0a'\n  }\n","stack":"AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:\n+ actual - expected\n\n  {\n    status: 0,\n    stderrHex: '',\n+   stdoutHex: '414d0a'\n-   stdoutHex: '616d0a'\n  }\n\n    at <anonymous> (/private/tmp/safe-bash-time-env-independent-uGjDrh/consumer.mts:43:12)\n    at async row (/private/tmp/safe-bash-time-env-independent-uGjDrh/consumer.mts:32:9)\n    at async differential (/private/tmp/safe-bash-time-env-independent-uGjDrh/consumer.mts:38:3)\n    at async <anonymous> (/private/tmp/safe-bash-time-env-independent-uGjDrh/consumer.mts:64:69)"}}
+{"name":"sleep exact total 0.0009999999 0.0000000001","category":"sleep-arithmetic","delays":[2],"expectedMilliseconds":1,"result":"fail","error":{"name":"AssertionError","message":"Expected values to be strictly equal:\n\n2 !== 1\n","stack":"AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\n2 !== 1\n\n    at <anonymous> (/private/tmp/safe-bash-time-env-independent-uGjDrh/consumer.mts:146:10)\n    at async row (/private/tmp/safe-bash-time-env-independent-uGjDrh/consumer.mts:32:9)\n    at async <anonymous> (/private/tmp/safe-bash-time-env-independent-uGjDrh/consumer.mts:141:13)"}}
+{"name":"sleep exact total 0.0004999999 0.0005000001","category":"sleep-arithmetic","delays":[2],"expectedMilliseconds":1,"result":"fail","error":{"name":"AssertionError","message":"Expected values to be strictly equal:\n\n2 !== 1\n","stack":"AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\n2 !== 1\n\n    at <anonymous> (/private/tmp/safe-bash-time-env-independent-uGjDrh/consumer.mts:146:10)\n    at async row (/private/tmp/safe-bash-time-env-independent-uGjDrh/consumer.mts:32:9)\n    at async <anonymous> (/private/tmp/safe-bash-time-env-independent-uGjDrh/consumer.mts:141:13)"}}
+{"name":"Apple BSD printenv separate profile","category":"Apple-BSD-observed-not-target","expected":{"status":0,"stdoutHex":"0a","stderrHex":""},"actual":{"status":0,"stdoutHex":"0ae99baa0a","stderrHex":""},"result":"fail","error":{"name":"AssertionError","message":"Expected values to be strictly deep-equal:\n+ actual - expected\n\n  {\n    status: 0,\n    stderrHex: '',\n+   stdoutHex: '0ae99baa0a'\n-   stdoutHex: '0a'\n  }\n","stack":"AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:\n+ actual - expected\n\n  {\n    status: 0,\n    stderrHex: '',\n+   stdoutHex: '0ae99baa0a'\n-   stdoutHex: '0a'\n  }\n\n    at <anonymous> (/private/tmp/safe-bash-time-env-independent-uGjDrh/consumer.mts:180:10)\n    at async row (/private/tmp/safe-bash-time-env-independent-uGjDrh/consumer.mts:32:9)\n    at async <anonymous> (/private/tmp/safe-bash-time-env-independent-uGjDrh/consumer.mts:175:43)"}}
+{
+  "public-api": {
+    "total": 1,
+    "pass": 0,
+    "fail": 1
+  },
+  "GNU9.7-Darwin-required-date": {
+    "total": 239,
+    "pass": 233,
+    "fail": 6
+  },
+  "required-date-errors": {
+    "total": 8,
+    "pass": 8,
+    "fail": 0
+  },
+  "required-declared-rejection": {
+    "total": 5,
+    "pass": 5,
+    "fail": 0
+  },
+  "clock": {
+    "total": 12,
+    "pass": 12,
+    "fail": 0
+  },
+  "clock-vfs": {
+    "total": 1,
+    "pass": 1,
+    "fail": 0
+  },
+  "GNU9.7-Darwin-printenv": {
+    "total": 5,
+    "pass": 5,
+    "fail": 0
+  },
+  "printenv-own-keys": {
+    "total": 1,
+    "pass": 1,
+    "fail": 0
+  },
+  "sleep-arithmetic": {
+    "total": 6,
+    "pass": 4,
+    "fail": 2
+  },
+  "sleep-lifecycle": {
+    "total": 5,
+    "pass": 5,
+    "fail": 0
+  },
+  "GNU9.7-Darwin-sleep": {
+    "total": 5,
+    "pass": 5,
+    "fail": 0
+  },
+  "declared-unsupported-profile": {
+    "total": 1,
+    "pass": 1,
+    "fail": 0
+  },
+  "Apple-BSD-qualified-date": {
+    "total": 3,
+    "pass": 3,
+    "fail": 0
+  },
+  "Apple-BSD-observed-not-target": {
+    "total": 1,
+    "pass": 0,
+    "fail": 1
+  },
+  "Apple-BSD-qualified": {
+    "total": 1,
+    "pass": 1,
+    "fail": 0
+  },
+  "public-shell": {
+    "total": 1,
+    "pass": 1,
+    "fail": 0
+  },
+  "public-sleep-lifecycle": {
+    "total": 7,
+    "pass": 7,
+    "fail": 0
+  },
+  "public-sleep-isolation": {
+    "total": 1,
+    "pass": 1,
+    "fail": 0
+  },
+  "limits-output": {
+    "total": 1,
+    "pass": 1,
+    "fail": 0
+  },
+  "host-isolation": {
+    "total": 1,
+    "pass": 1,
+    "fail": 0
+  }
+}

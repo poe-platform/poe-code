@@ -381,7 +381,7 @@ pre-first-byte `head -n 0` custom lifecycle issue is not fixed by this checkpoin
 it does not prevent delivery of the verified curl scope. Current root assignments
 govern source/test ownership; historical assignments are recorded in the ledger.
 
-The current default aggregate has 68 unique plugin names; optional `curl` and `safejs`
+The current default aggregate has 70 unique plugin names; optional `curl` and `safejs`
 add one each only when explicitly installed. At curl finalization, the committed
 aggregate still had 49 names while uncommitted metadata wiring exposed 52 in
 the working tree and its built package. That historical build/smoke remains a

@@ -84,7 +84,11 @@ try {
     ...["behavior", "safety", "work-budget", "sort-text-bound"].map(name => `tests/commands/tree/${name}.test.ts`),
     ...["file", "stress", "text-bound", "sqlite-regression"].map(name => `tests/commands/file/${name}.test.ts`)];
   report.sourceTests = sourceTests.map(path => ({ path, sha256: hash(readFileSync(join(source, path))) }));
-  run("source-tests", process.execPath, ["--unhandled-rejections=strict", "--import", "tsx", "--test", "--test-concurrency=1", ...sourceTests], source);
+  const scoped = run("source-tests", process.execPath, ["--unhandled-rejections=strict", "--import", "tsx", "--test", "--test-concurrency=1", ...sourceTests], source);
+  assert.match(scoped.stdout, /^# tests 199$/m);
+  assert.match(scoped.stdout, /^# pass 199$/m);
+  assert.match(scoped.stdout, /^# skipped 0$/m);
+  assert.match(scoped.stdout, /^# todo 0$/m);
   const packages = join(work, "packages"); mkdirSync(packages);
   const packed = run("pack", "npm", ["pack", "--ignore-scripts", "--json", "--pack-destination", packages], source);
   const pack = JSON.parse(packed.stdout)[0];
@@ -124,8 +128,13 @@ try {
   assert.deepEqual(diagnostics.sort(), ["TS2322", "TS2322", "TS2353", "TS2353", "TS2353", "TS2353"].sort());
   report.negativeTypeDiagnostics = diagnostics;
   const permissions = ["--unhandled-rejections=strict", "--permission", `--allow-fs-read=${moved}`];
-  for (let repeat = 1; repeat <= 2; repeat++) run(`public-repeat-${repeat}`, process.execPath,
-    [...permissions, "emitted/consumer.mjs"], moved);
+  for (let repeat = 1; repeat <= 2; repeat++) {
+    const executed = run(`public-repeat-${repeat}`, process.execPath, [...permissions, "emitted/consumer.mjs"], moved);
+    assert.match(executed.stdout, /^# tests 13$/m);
+    assert.match(executed.stdout, /^# pass 13$/m);
+    assert.match(executed.stdout, /^# skipped 0$/m);
+    assert.match(executed.stdout, /^# todo 0$/m);
+  }
   for (const [, target] of adjacentConsumers) run(`adjacent-${target}`, process.execPath,
     [...permissions, `emitted/${target.replace(/\.mts$/, ".mjs")}`], moved);
   for (const family of ["tree", "file"]) {

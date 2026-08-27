@@ -1,4 +1,4 @@
-# Bounded content-regex execution
+# Bounded search-regex execution
 
 `grep` and `rg` content patterns compile and execute only in a static Node ESM
 worker. This includes `-F`, compile validation, captures/backreferences affecting
@@ -6,11 +6,13 @@ selection, Unicode processing, invalid-UTF8 fragment variants and empty matches.
 No generated code, `eval`, subprocess, network or VFS operation is used by the
 matching graph. This is execution isolation, not a sandbox for host JavaScript.
 
-**Remaining scope blocker:** `search/glob.ts` still constructs and executes
-host-thread regexes for CLI globs and ignore-file rules through `search/walk.ts`.
-Their length/count limits are not regex execution bounds. This content-matcher
-change does not establish broad untrusted-regex safety or default acceptance for
-all of rg. These additional files require a separate ownership decision.
+CLI filename globs and ignore-file rules also compile and match in that worker.
+`search/glob.ts` is an async byte adapter, not a host RegExp implementation.
+The existing glob compiler/dialect is retained in `matching.ts`; this is not a
+new glob engine or a shell-pattern rewrite. Fixed host regex literals remain,
+and the separate shell pattern module retains its escaped, single-character
+class predicate within its bounded matcher. This does not claim every command
+family's regexes are contained or resolve the public cleanup blocker below.
 
 ## Public policy
 
@@ -110,6 +112,24 @@ variants). Different descriptor requests replace that cache. No call/input/
 result counters are cached by descriptor or leak into subsequent invocations.
 Byte rows and pattern arrays are copied for request ownership; host input buffers
 are not detached. Source generators remain owned by command byte helpers.
+
+Glob requests carry original patterns, independently copied case/parser flags
+(32 accounted bytes per options object), and UTF16LE path bytes so JS code units,
+including lone surrogates, survive transport. One boolean predicate corresponds
+to each row and is represented by an empty range list or the validated range
+`[0, 0]`; no filename text or capture expansion is returned. Validation requests
+have no rows. CLI validation precedes pattern-file reads; ignore-file rules are
+published only after the whole file validates, preserving first-invalid-rule
+and malformed-ignore diagnostic behavior. Worker resource/transport failures
+instead terminate the command; cancellation retains its original reason.
+
+Rule batches target 128 predicates or 64KiB accounted input (one larger valid
+predicate remains intact). CLI rules preserve order; ignore batches group only
+equal adjacent priorities and skip lower-priority groups after a higher match.
+No later filename is read or tested to fill a batch. Worker leases are released
+before VFS/input/output awaits. Existing glob limits (1024 CLI rules, 8192 UTF16
+code units per glob, nesting 8, 10000 ignore rules, 1MiB ignore files) remain.
+This trades per-path request overhead for containment; it is not a speed claim.
 
 Available complete records from one already-read chunk share requests (targets:
 128 records or 64KiB record bytes). These are batching targets, not rejection

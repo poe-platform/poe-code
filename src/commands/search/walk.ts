@@ -1,5 +1,6 @@
 import { dirname, isPathWithin, relativePath, resolvePath, type CommandContext, type FileStat } from "../../contracts/index.js";
-import { Glob, ignoreRules, type IgnoreRule } from "./glob.js";
+import { RegexExecutionError, type RegexSession } from "../regex-execution/client.js";
+import { Glob, ignoreRules, matchGlobs, type IgnoreRule } from "./glob.js";
 import { SearchError, type Arguments } from "./options.js";
 import { Limits, pathFor } from "./shared.js";
 
@@ -9,14 +10,17 @@ export class Walker {
   private readonly globs: { glob: Glob; include: boolean }[];
   private readonly hasPositive: boolean;
   private readonly cache = new Map<string, { rules: IgnoreRule[]; repository: boolean; root: boolean }>();
-  constructor(private readonly context: CommandContext, private readonly args: Arguments, private readonly limits: Limits, private readonly report: (error: unknown) => Promise<void>) {
+  constructor(private readonly context: CommandContext, private readonly args: Arguments, private readonly limits: Limits, private readonly report: (error: unknown) => Promise<void>, private readonly session: RegexSession) {
     if (args.globs.length > 1024) throw new SearchError("glob count limit exceeded");
     this.globs = args.globs.map(({ source, insensitive }) => ({ glob: new Glob(source.startsWith("!") ? source.slice(1) : source, insensitive), include: !source.startsWith("!") }));
     this.hasPositive = this.globs.some(rule => rule.include);
   }
+  async validate(): Promise<void> {
+    await matchGlobs(this.globs.map(rule => rule.glob), [], this.session);
+  }
   private async exists(path: string): Promise<boolean> {
     try { await this.context.fs.lstat(path, { signal: this.context.signal }); return true; }
-    catch (error) { if ((error as { code?: string }).code === "ENOENT") return false; throw error; }
+    catch (error) { this.context.signal.throwIfAborted(); if ((error as { code?: string }).code === "ENOENT") return false; throw error; }
   }
   private async load(directory: string, inherited: readonly IgnoreRule[], repository: boolean): Promise<{ rules: IgnoreRule[]; repository: boolean }> {
     const base = resolvePath("/", directory);
@@ -34,8 +38,10 @@ export class Walker {
       for (const [name, priority] of names) {
         try {
           const data = await this.context.fs.readFile(`${directory}/${name}`, { signal: this.context.signal, maxBytes: 1024 * 1024 });
-          local.push(...ignoreRules(Buffer.from(data).toString("utf8"), base, priority));
+          local.push(...await ignoreRules(Buffer.from(data).toString("utf8"), base, priority, this.session));
         } catch (error) {
+          this.context.signal.throwIfAborted();
+          if (error instanceof RegexExecutionError) throw error;
           if ((error as { code?: string }).code !== "ENOENT") await this.report(error);
         }
       }
@@ -44,19 +50,25 @@ export class Walker {
     if (inherited.length + local.length > 10000) throw new SearchError("ignore rule count limit exceeded");
     return { repository, rules: [...inherited, ...local] };
   }
-  private accepted(path: string, name: string, directory: boolean, rules: readonly IgnoreRule[]): boolean {
+  private async accepted(path: string, name: string, directory: boolean, rules: readonly IgnoreRule[]): Promise<boolean> {
     let override: boolean | undefined;
     const relative = relativePath(this.context.cwd, path);
-    for (const rule of this.globs) if (rule.glob.matches(relative, directory, false)) override = rule.include;
+    const overrides = await matchGlobs(this.globs.map(rule => rule.glob), this.globs.map(() => ({ path: relative, directory, ancestors: false })), this.session);
+    for (let index = 0; index < overrides.length; index++) if (overrides[index]) override = this.globs[index]!.include;
     if (override !== undefined) return override;
     if (this.hasPositive && !directory) return false;
     let include: boolean | undefined;
     let priority = -1;
-    for (const rule of rules) {
-      if (rule.priority < priority || !isPathWithin(rule.base, path)) continue;
-      const candidate = relativePath(rule.base, path);
-      if (rule.glob.matches(candidate, directory, false)) {
-        priority = rule.priority; include = rule.include;
+    for (let offset = 0; offset < rules.length;) {
+      const group: IgnoreRule[] = [];
+      const groupPriority = rules[offset]!.priority;
+      while (offset < rules.length && rules[offset]!.priority === groupPriority) {
+        const rule = rules[offset++]!;
+        if (rule.priority >= priority && isPathWithin(rule.base, path)) group.push(rule);
+      }
+      const matches = await matchGlobs(group.map(rule => rule.glob), group.map(rule => ({ path: relativePath(rule.base, path), directory, ancestors: false })), this.session);
+      for (let index = 0; index < matches.length; index++) if (matches[index]) {
+        priority = groupPriority; include = group[index]!.include;
       }
     }
     if (include !== undefined) return include;
@@ -84,10 +96,10 @@ export class Walker {
             continue;
           }
         }
-        if (!this.accepted(child, entry.name, type === "directory", local.rules)) continue;
+        if (!await this.accepted(child, entry.name, type === "directory", local.rules)) continue;
         if (type === "directory") yield* this.directory(child, display, depth + 1, parents, local.rules, local.repository);
         else if (type === "file") yield { path: child, label: display, explicit: false, recursive: true };
-      } catch (error) { if (error instanceof SearchError) throw error; await this.report(error); }
+      } catch (error) { this.context.signal.throwIfAborted(); if (error instanceof SearchError || error instanceof RegexExecutionError) throw error; await this.report(error); }
     }
   }
   async* targets(paths: readonly string[], implicit = false): AsyncGenerator<FileTarget> {
@@ -113,7 +125,7 @@ export class Walker {
           }
         }
         yield* this.directory(path, implicit ? "" : operand, 0, new Map(), inherited.rules, inherited.repository);
-      } catch (error) { if (error instanceof SearchError) throw error; await this.report(error); }
+      } catch (error) { this.context.signal.throwIfAborted(); if (error instanceof SearchError || error instanceof RegexExecutionError) throw error; await this.report(error); }
     }
   }
 }

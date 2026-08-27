@@ -126,6 +126,22 @@ without resetting `.ignore` or `.rgignore`. Followed cycles are detected before
 ignore filtering, and diagnostics retain the ancestor's displayed path.
 
 This is a scoped gitignore-style implementation, not a git/wildmatch library.
+Glob compilation and predicates execute in the same bounded worker executor as
+content matching, not on the host thread. CLI validation still precedes pattern
+file/input reads; invalid ignore files are diagnosed and discarded as before,
+while worker-resource failures stop traversal. Rules batch per current path and
+priority without speculative filesystem reads. Public early-EOF/abort settlement
+still lacks an awaited resource-cleanup barrier; see the regex-execution README.
+
+The continuation retains the original JS-Unicode glob dialect, not native
+globset byte semantics: `?` consumes a Unicode code point, and globstar's dot does
+not cross line terminators (single-star's negated-slash class does). Malformed
+class diagnostics retain the original parser/V8 wording rather than ripgrep's.
+The ten benign native-profile probes in
+`tests/commands/regex-execution/continuation/dialect-evidence.json` preserve all
+baseline triples and record these differences against Darwin ripgrep 15.2.0;
+six triples match native exactly. No content-regex dialect change is introduced.
+
 It does not read `.git/info/exclude`, global git excludes, `.git` worktree
 metadata, arbitrary `--ignore-file` files, or user configuration. Every virtual
 path is eligible according to the supplied filesystem; no host repository,

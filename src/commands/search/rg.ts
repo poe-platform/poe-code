@@ -4,7 +4,7 @@ import { parse, SearchError, type Arguments, type SearchOptions } from "./option
 import { data, elapsed, Printer, stats, type Stats } from "./output.js";
 import { diagnostic, fileInput, Limits, lines, OutputClosed, pathFor, type Line, type ReadState } from "./shared.js";
 import { Walker, type FileTarget } from "./walk.js";
-import { AvailableRecords, RegexExecutor, RegexExecutionError } from "../regex-execution/client.js";
+import { AvailableRecords, RegexExecutor, RegexExecutionError, type RegexSession } from "../regex-execution/client.js";
 
 interface InputSelection { readonly paths: readonly string[]; readonly implicit: boolean }
 
@@ -127,8 +127,9 @@ export function rgCommand(options: SearchOptions = {}): CommandDefinition {
       let args: Arguments | undefined;
       let failed = false;
       let found = false;
-      const session = executor.open(context.signal);
+      let session: RegexSession | undefined;
       try {
+        session = executor.open(context.signal);
         const limits = new Limits(context, options);
         args = parse(context.args);
         if (args.mode !== "files" && args.patternFiles.includes("-") && args.paths.includes("-")) {
@@ -138,7 +139,8 @@ export function rgCommand(options: SearchOptions = {}): CommandDefinition {
           context.signal.throwIfAborted(); failed = true;
           if (args!.messages) await diagnostic(context, error);
         };
-        const walker = new Walker(context, args, limits, report);
+        const walker = new Walker(context, args, limits, report, session);
+        await walker.validate();
         const matcher = new Matcher(args.mode === "files" ? [] : await patterns(context, args), args, session);
         if (args.mode !== "files") await matcher.batch([]);
         if (args.mode !== "files" && args.maxCount === 0) return { exitCode: 1 };
@@ -162,7 +164,7 @@ export function rgCommand(options: SearchOptions = {}): CommandDefinition {
         if (args?.messages !== false) await diagnostic(context, error);
         return { exitCode: 2 };
       } finally {
-        await session.close();
+        await session?.close();
       }
     },
   };

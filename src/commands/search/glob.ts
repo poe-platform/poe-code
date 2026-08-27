@@ -1,74 +1,47 @@
+import { RegexExecutionError, type RegexSession } from "../regex-execution/client.js";
+import type { GlobDescriptor, Row } from "../regex-execution/protocol.js";
 import { SearchError } from "./options.js";
 
-const quote = (character: string) => character.replace(/[\\^$.*+?()[\]{}|]/gu, "\\$&");
-
-function compile(source: string, literalUnclosedClass: boolean): string {
-  let output = "";
-  let braces = 0;
-  for (let offset = 0; offset < source.length; offset++) {
-    const character = source[offset]!;
-    if (character === "\\") {
-      const next = source[++offset];
-      if (next === undefined) throw new SearchError("trailing glob escape");
-      output += quote(next);
-    } else if (character === "*") {
-      if (source[offset + 1] === "*") {
-        while (source[offset + 1] === "*") offset++;
-        if (source[offset + 1] === "/") { offset++; output += "(?:.*/)?"; }
-        else output += ".*";
-      } else output += "[^/]*";
-    } else if (character === "?") output += "[^/]";
-    else if (character === "[") {
-      const opening = offset;
-      let contents = "";
-      if (source[offset + 1] === "!" || source[offset + 1] === "^") { contents = "^"; offset++; }
-      let closed = false;
-      while (++offset < source.length) {
-        if (source[offset] === "]" && contents !== "" && contents !== "^") { closed = true; break; }
-        contents += source[offset] === "\\" ? "\\\\" : source[offset] === "]" ? "\\]" : source[offset];
-      }
-      if (!closed) {
-        if (!literalUnclosedClass) throw new SearchError("unclosed glob character class");
-        output += "\\["; offset = opening; continue;
-      }
-      output += `[${contents}]`;
-    } else if (character === "{") {
-      if (++braces > 8) throw new SearchError("glob nesting limit exceeded");
-      output += "(?:";
-    } else if (character === "}") {
-      if (!braces--) throw new SearchError("unmatched glob brace");
-      output += ")";
-    } else if (character === "," && braces) output += "|";
-    else output += quote(character);
+export class Glob {
+  constructor(readonly source: string, readonly insensitive = false, readonly literalUnclosedClass = false) {}
+  async matches(path: string, directory: boolean, session: RegexSession, ancestors = true): Promise<boolean> {
+    return (await matchGlobs([this], [{ path, directory, ancestors }], session))[0]!;
   }
-  if (braces) throw new SearchError("unclosed glob brace");
-  return output;
 }
 
-export class Glob {
-  private readonly regex: RegExp;
-  private readonly directory: boolean;
-  constructor(source: string, insensitive = false, literalUnclosedClass = false) {
-    if (!source || source.length > 8192) throw new SearchError("empty or excessive glob");
-    this.directory = source.endsWith("/");
-    if (this.directory) source = source.slice(0, -1);
-    const anchored = source.startsWith("/") || source.includes("/");
-    if (source.startsWith("/")) source = source.slice(1);
-    try { this.regex = new RegExp(`${anchored ? "^" : "(?:^|/)"}${compile(source, literalUnclosedClass)}$`, insensitive ? "ui" : "u"); }
-    catch (error) { throw new SearchError(`invalid glob: ${error instanceof Error ? error.message : String(error)}`); }
+export async function matchGlobs(globs: readonly Glob[], candidates: readonly { readonly path: string; readonly directory: boolean; readonly ancestors?: boolean }[], session: RegexSession): Promise<boolean[]> {
+  if (candidates.length && candidates.length !== globs.length) throw new SearchError("invalid glob candidate count");
+  const results: boolean[] = [];
+  for (let offset = 0; offset < globs.length;) {
+    const batch: Glob[] = [];
+    const rows: Row[] = [];
+    let bytes = 128;
+    while (offset < globs.length && batch.length < 128) {
+      const glob = globs[offset]!;
+      const candidate = candidates[offset];
+      const size = 48 + glob.source.length * 2 + (candidate ? 32 + candidate.path.length * 2 : 0);
+      if (batch.length && bytes + size > 64 * 1024) break;
+      batch.push(glob);
+      if (candidate) rows.push({ bytes: Buffer.from(candidate.path, "utf16le"), all: false, terminated: true, directory: candidate.directory, ancestors: candidate.ancestors ?? true });
+      bytes += size;
+      offset++;
+    }
+    const descriptor: GlobDescriptor = {
+      kind: "glob", patterns: batch.map(glob => glob.source),
+      globOptions: batch.map(glob => ({ insensitive: glob.insensitive, literalUnclosedClass: glob.literalUnclosedClass })),
+    };
+    try { results.push(...(await session.run(descriptor, rows)).map(result => result.length > 0)); }
+    catch (error) {
+      if (error instanceof RegexExecutionError && error.code === "MATCH") throw new SearchError(error.message);
+      throw error;
+    }
   }
-  matches(path: string, directory: boolean, ancestors = true): boolean {
-    if ((!this.directory || directory) && this.regex.test(path)) return true;
-    if (!ancestors) return false;
-    let slash = path.lastIndexOf("/");
-    while (slash >= 0) { if (this.regex.test(path.slice(0, slash))) return true; slash = path.lastIndexOf("/", slash - 1); }
-    return false;
-  }
+  return results;
 }
 
 export interface IgnoreRule { readonly base: string; readonly priority: number; readonly include: boolean; readonly glob: Glob }
 
-export function ignoreRules(contents: string, base: string, priority: number): IgnoreRule[] {
+export async function ignoreRules(contents: string, base: string, priority: number, session: RegexSession): Promise<IgnoreRule[]> {
   const rules: IgnoreRule[] = [];
   for (let source of contents.split(/\r?\n/u)) {
     if (!source || source.startsWith("#")) continue;
@@ -82,7 +55,9 @@ export function ignoreRules(contents: string, base: string, priority: number): I
     const include = source.startsWith("!");
     if (include) source = source.slice(1);
     if (source) rules.push({ base, priority, include, glob: new Glob(source, false, true) });
-    if (rules.length > 10000) throw new SearchError("ignore rule count limit exceeded");
+    if (rules.length > 10000) break;
   }
+  await matchGlobs(rules.map(rule => rule.glob), [], session);
+  if (rules.length > 10000) throw new SearchError("ignore rule count limit exceeded");
   return rules;
 }

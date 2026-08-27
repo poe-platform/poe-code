@@ -1,5 +1,5 @@
 import { isAscii } from "node:buffer";
-import type { Descriptor, GrepDescriptor, SearchDescriptor, Match } from "./protocol.js";
+import type { Descriptor, GrepDescriptor, SearchDescriptor, Match, Row } from "./protocol.js";
 
 class SearchError extends Error {}
 class UsageError extends Error {}
@@ -163,8 +163,87 @@ function grepMatcher(args: GrepDescriptor): (bytes: Uint8Array, all: boolean) =>
   };
 }
 
-export function compile(descriptor: Descriptor): (bytes: Uint8Array, all: boolean, terminated: boolean) => Match[] {
-  if (descriptor.kind === "grep") return grepMatcher(descriptor);
+const quoteGlob = (character: string) => character.replace(/[\\^$.*+?()[\]{}|]/gu, "\\$&");
+
+function globSource(source: string, literalUnclosedClass: boolean): string {
+  let output = "";
+  let braces = 0;
+  for (let offset = 0; offset < source.length; offset++) {
+    const character = source[offset]!;
+    if (character === "\\") {
+      const next = source[++offset];
+      if (next === undefined) throw new SearchError("trailing glob escape");
+      output += quoteGlob(next);
+    } else if (character === "*") {
+      if (source[offset + 1] === "*") {
+        while (source[offset + 1] === "*") offset++;
+        if (source[offset + 1] === "/") { offset++; output += "(?:.*/)?"; }
+        else output += ".*";
+      } else output += "[^/]*";
+    } else if (character === "?") output += "[^/]";
+    else if (character === "[") {
+      const opening = offset;
+      let contents = "";
+      if (source[offset + 1] === "!" || source[offset + 1] === "^") { contents = "^"; offset++; }
+      let closed = false;
+      while (++offset < source.length) {
+        if (source[offset] === "]" && contents !== "" && contents !== "^") { closed = true; break; }
+        contents += source[offset] === "\\" ? "\\\\" : source[offset] === "]" ? "\\]" : source[offset];
+      }
+      if (!closed) {
+        if (!literalUnclosedClass) throw new SearchError("unclosed glob character class");
+        output += "\\["; offset = opening; continue;
+      }
+      output += `[${contents}]`;
+    } else if (character === "{") {
+      if (++braces > 8) throw new SearchError("glob nesting limit exceeded");
+      output += "(?:";
+    } else if (character === "}") {
+      if (!braces--) throw new SearchError("unmatched glob brace");
+      output += ")";
+    } else if (character === "," && braces) output += "|";
+    else output += quoteGlob(character);
+  }
+  if (braces) throw new SearchError("unclosed glob brace");
+  return output;
+}
+
+function globMatcher(source: string, insensitive: boolean, literalUnclosedClass: boolean): (row: Row) => Match[] {
+  if (!source || source.length > 8192) throw new SearchError("empty or excessive glob");
+  const directory = source.endsWith("/");
+  if (directory) source = source.slice(0, -1);
+  const anchored = source.startsWith("/") || source.includes("/");
+  if (source.startsWith("/")) source = source.slice(1);
+  let regex: RegExp;
+  try { regex = new RegExp(`${anchored ? "^" : "(?:^|/)"}${globSource(source, literalUnclosedClass)}$`, insensitive ? "ui" : "u"); }
+  catch (error) { throw new SearchError(`invalid glob: ${error instanceof Error ? error.message : String(error)}`); }
+  return row => {
+    const path = Buffer.from(row.bytes).toString("utf16le");
+    if ((!directory || row.directory) && regex.test(path)) return [{ start: 0, end: 0 }];
+    if (row.ancestors !== false) {
+      let slash = path.lastIndexOf("/");
+      while (slash >= 0) {
+        if (regex.test(path.slice(0, slash))) return [{ start: 0, end: 0 }];
+        slash = path.lastIndexOf("/", slash - 1);
+      }
+    }
+    return [];
+  };
+}
+
+export function compile(descriptor: Descriptor): (row: Row, index: number) => Match[] {
+  if (descriptor.kind === "glob") {
+    if (descriptor.globOptions.length !== descriptor.patterns.length) throw new SearchError("invalid glob options");
+    const matchers = descriptor.patterns.map((pattern, index) => {
+      const options = descriptor.globOptions[index]!;
+      return globMatcher(pattern, options.insensitive, options.literalUnclosedClass);
+    });
+    return (row, index) => matchers[index]!(row);
+  }
+  if (descriptor.kind === "grep") {
+    const matcher = grepMatcher(descriptor);
+    return row => matcher(row.bytes, row.all);
+  }
   const matcher = new SearchMatcher(descriptor.patterns, descriptor);
-  return (bytes, all, terminated) => matcher.matches(bytes, all, terminated);
+  return row => matcher.matches(row.bytes, row.all, row.terminated);
 }

@@ -44,8 +44,14 @@ export interface SearchDescriptor {
   readonly nullData: boolean;
 }
 
-export type Descriptor = GrepDescriptor | SearchDescriptor;
-export interface Row { readonly bytes: Uint8Array; readonly all: boolean; readonly terminated: boolean }
+export interface GlobDescriptor {
+  readonly kind: "glob";
+  readonly patterns: readonly string[];
+  readonly globOptions: readonly { readonly insensitive: boolean; readonly literalUnclosedClass: boolean }[];
+}
+
+export type Descriptor = GrepDescriptor | SearchDescriptor | GlobDescriptor;
+export interface Row { readonly bytes: Uint8Array; readonly all: boolean; readonly terminated: boolean; readonly directory?: boolean; readonly ancestors?: boolean }
 export interface Match { readonly start: number; readonly end: number }
 export interface Request { readonly id: number; readonly descriptor: Descriptor; readonly rows: readonly Row[] }
 export type Reply = { readonly id: number; readonly results: readonly Float64Array[] } | { readonly id: number; readonly error: string };
@@ -63,7 +69,7 @@ export function policy(options: RegexExecutionOptions): Required<RegexExecutionO
 }
 
 export function inputBytes(descriptor: Descriptor, rows: readonly Row[], signal: AbortSignal): number {
-  let total = 128;
+  let total = 128 + (descriptor.kind === "glob" ? descriptor.globOptions.length * 32 : 0);
   for (const pattern of descriptor.patterns) {
     signal.throwIfAborted();
     total += 16 + pattern.length * 2;

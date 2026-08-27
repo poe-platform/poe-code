@@ -1,6 +1,6 @@
 import type { CommandDefinition } from "../contracts/index.js";
 import { bufferLimit, collect, define, diagnostic, input, integer, lines, options as parseOptions, output, UsageError, value } from "./internal.js";
-import { AvailableRecords, RegexExecutor, RegexExecutionError, type RegexExecutionOptions } from "./regex-execution/client.js";
+import { AvailableRecords, RegexExecutor, RegexExecutionError, type RegexExecutionOptions, type RegexSession } from "./regex-execution/client.js";
 import type { GrepDescriptor } from "./regex-execution/protocol.js";
 
 export function grepCommands(options: RegexExecutionOptions = {}): CommandDefinition[] {
@@ -25,8 +25,9 @@ export function grepCommands(options: RegexExecutionOptions = {}): CommandDefini
       kind: "grep", patterns, fixed: parsed.flags.has("F"), extended: parsed.flags.has("E"),
       insensitive: parsed.flags.has("i"), whole: parsed.flags.has("x"), word: parsed.flags.has("w"),
     };
-    const session = executor.open(context.signal);
+    let session: RegexSession | undefined;
     try {
+      session = executor.open(context.signal);
       await session.run(descriptor, []);
       const names = parsed.operands.length ? parsed.operands : ["-"];
       const maxCount = value(parsed, "m") === undefined ? Infinity : integer(value(parsed, "m")!);
@@ -83,6 +84,6 @@ export function grepCommands(options: RegexExecutionOptions = {}): CommandDefini
         }
       }
       return { exitCode: failed ? 2 : anySelected ? 0 : 1 };
-    } finally { await session.close(); }
+    } finally { await session?.close(); }
   }, 2)];
 }

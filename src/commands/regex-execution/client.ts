@@ -129,7 +129,11 @@ export class RegexExecutor {
     const bytes = inputBytes(descriptor, rows, signal);
     const available = this.queue.length === 0 && ([...this.slots].some(slot => !slot.busy && !slot.retired) || this.slots.size < this.options.maxWorkers);
     if (!available && (this.queue.length >= this.options.maxQueuedRequests || bytes > this.options.maxQueuedBytes - this.queuedBytes)) return Promise.reject(new RegexExecutionError("QUEUE_EXHAUSTED", "queued request count or input byte limit exceeded"));
-    const ownedDescriptor = { ...descriptor, patterns: descriptor.patterns.map(pattern => { signal.throwIfAborted(); return pattern; }) };
+    const ownedDescriptor: Descriptor = { ...descriptor, patterns: descriptor.patterns.map(pattern => { signal.throwIfAborted(); return pattern; }) };
+    if (ownedDescriptor.kind === "glob") {
+      const globOptions = ownedDescriptor.globOptions.map(options => { signal.throwIfAborted(); return { ...options }; });
+      Object.assign(ownedDescriptor, { globOptions });
+    }
     const ownedRows = rows.map(row => { signal.throwIfAborted(); return { ...row, bytes: Uint8Array.from(row.bytes) }; });
     return new Promise((resolve, reject) => {
       const pending: Pending = {

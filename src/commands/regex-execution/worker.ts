@@ -15,8 +15,8 @@ port.on("message", (request: Request) => {
       matcher = compile(request.descriptor);
       previous = identity;
     }
-    const results = request.rows.map(row => {
-      const matches = matcher!(row.bytes, row.all, row.terminated);
+    const results = request.rows.map((row, index) => {
+      const matches = matcher!(row, index);
       const ranges = new Float64Array(matches.length * 2);
       for (let index = 0; index < matches.length; index++) {
         ranges[index * 2] = matches[index]!.start;

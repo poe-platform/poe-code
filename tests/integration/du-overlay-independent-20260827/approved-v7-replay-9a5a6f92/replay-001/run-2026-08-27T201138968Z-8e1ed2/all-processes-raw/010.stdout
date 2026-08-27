@@ -1,0 +1,205 @@
+{
+  "schema": 3,
+  "purpose": "fresh recoverable v7 verifier correction from immutable failed v6; not a reconstruction of unavailable historical bytes",
+  "authoredDate": "2026-08-27",
+  "candidateCommit": "9a5a6f922beb1bc6ba84a0cd32ea7a12f8ce985d",
+  "baseFreeze": {
+    "commit": "cea13e21b26e3bf85c60e56e7a846e28b6f68720",
+    "tree": "b61988ff4a23a6a90d5ffa15149b314af0ae6c63",
+    "path": "tests/integration/du-overlay-independent-20260827/approved-v6-9a5a6f92",
+    "fileCount": 20,
+    "manifestGitBlob": "0fb0850e8a9db3962523d32b1ad088b9847670a6",
+    "manifestSha256": "417a776d878fe8bf8ee363327dd603b3b34d64df09f1b3314b2da33b84df4ef7",
+    "disposition": "actual immutable replay rejected as frozen-verifier failure; original 24/24 and fresh 35/40; no candidate defect established"
+  },
+  "rejectedV6Replay": {
+    "preReplayAuditCommit": "3b5a1b18c658826f995b830a813468879598ff0b",
+    "evidenceCommit": "378206a259f55f85090dca4f1828450b60509329",
+    "evidenceTree": "5cf10f6e4aa83b2b1904b01290471ca05ef2f285",
+    "path": "tests/integration/du-overlay-independent-20260827/approved-v6-replay-9a5a6f92",
+    "evidenceManifestGitBlob": "b5de7476c0c27f02fe92fa5eacbb56a338681d22",
+    "evidenceManifestSha256": "b9fb887103ba2ff15f26cb4c43075dae1179315bf1ced679603e9edf3b47310e",
+    "reportGitBlob": "415a94edbd6aabf7e860bf24ed4fd137f85c6e58",
+    "rawFailureIds": [
+      "V5-020",
+      "V5-024",
+      "V5-029",
+      "V5-030",
+      "V5-031"
+    ],
+    "reached": {
+      "original": {
+        "passed": 24,
+        "total": 24
+      },
+      "fresh": {
+        "passed": 35,
+        "total": 40
+      },
+      "literalEnvironmentTable": {
+        "passed": 16,
+        "total": 16
+      }
+    },
+    "notReached": [
+      "package",
+      "moved-package",
+      "moved-consumer",
+      "scoped-regressions",
+      "native-environment"
+    ]
+  },
+  "recoverableHistory": {
+    "v5Commit": "ea02d6b79beeac36d263743c77e15bda7931dc67",
+    "v5Tree": "c35c1a0ff3ae1f93ebdf3e166739cff6b56cffd3",
+    "v5ManifestSha256": "bb3d41beff906a712f4d87de987e6447c897e5704e072b04a75c6926cb482833",
+    "authenticatedCurrentFixtureCommit": "66975ea8ffeedd7c1df510bac2b13e1767bef610",
+    "approvedAtimeDiagnosticCommit": "75b39b40396e68a27121eea9ca2d31c67dee4e9e",
+    "guardedArchiveExampleCommit": "b1b5abe972bbfc2feffbf04b8c2c98f324391923",
+    "unavailableOriginalVerifierBlob": "f127f231fe53392ed3635af1c255b66526b5c485",
+    "v2ToV3ExactDelta": "permanently unproved; unrecoverable bytes are neither guessed nor reconstructed",
+    "old22Failure10PassEvidenceRewritten": false,
+    "later33CaseQualificationRewritten": false,
+    "priorTemporaryAgentsCopyIncidentRewritten": false
+  },
+  "byteIdenticalFromV6": [
+    {
+      "path": "config/candidate-selected-paths.txt",
+      "gitBlob": "65e8eea7ed343140252629a5e030c102033e48d2",
+      "sha256": "9427aad46a7f184d94517a666ab02a8f1da43ccf9074c5a15186d4569233679b"
+    },
+    {
+      "path": "config/oracle-identity.json",
+      "gitBlob": "006e80030216385b81ae0917ab4822ccfd8d18b7",
+      "sha256": "7bc8e13ea19e432b8320d08f5e19f8e4cbcbe4f8dad19984df6f9259960ebf4f"
+    },
+    {
+      "path": "config/static-tooling.json",
+      "gitBlob": "09bca6e67f082086ea7b7020acf08f0ed3eea673",
+      "sha256": "a665c0d24aedea5a987d444e98d9708378a1db44c49b5a10872cf2a11062506f"
+    },
+    {
+      "path": "consumer/consumer.ts",
+      "gitBlob": "6544c8e7f1fb4df43d84ea6c8e1b812fa040ca9d",
+      "sha256": "14e55e16f60f8262c2b299fcf48911d2789e3ec1c7b44674dd622f5dab4552b7"
+    },
+    {
+      "path": "consumer/package.json",
+      "gitBlob": "58b3477b86fba4b5cf05ed7ac6715996ea6e9fce",
+      "sha256": "52fe278e686f24c3992cd55042b2a5029bc3de967ab198821020c423fe85344f"
+    },
+    {
+      "path": "consumer/runtime.mjs",
+      "gitBlob": "5d4b023c175da6084b26875a9431b0ea27ff20fe",
+      "sha256": "61e13d86b50487bb6a768859e75d111d896c3502b9ce1b286637b43da2ad87b5"
+    },
+    {
+      "path": "consumer/tsconfig.json",
+      "gitBlob": "9be38da0ab7fecf777ed8667dce8015956f9af16",
+      "sha256": "1ece8865863403be31eb2601b88f1739c5412dfe495e7dba65b66e43a2fc607b"
+    },
+    {
+      "path": "fixtures/native-env-cases.json",
+      "gitBlob": "5d10b771614815024262bce0ccd7f4bda843cadd",
+      "sha256": "ba95af81e2ffd7f7b80afb4a49a173487d9dacb7c911c61b31bf80b515c8cd5b"
+    },
+    {
+      "path": "harness/attest-loader.mjs",
+      "gitBlob": "f3ecf208359702d9946f13b5da8558fa0792bea2",
+      "sha256": "856d860f818db6848388be87da7cd59ee4def1bf133abe582206bbd69b083d1d"
+    },
+    {
+      "path": "harness/process-manager.mjs",
+      "gitBlob": "28e7ac96913d169bb1f2bee3c2c63736ade16c63",
+      "sha256": "f322101cfaa23612287cd728f52f50c672a19325eda00b69d8280827d83cfa5d"
+    },
+    {
+      "path": "harness/process-timeout-control.mjs",
+      "gitBlob": "b1d7d317bc8d48b1b07a20d79d2308cea603d28d",
+      "sha256": "2ac32a6d8a09f7f37f157e2adc1ac6b1fbd7cc0899cc7d643542a7dc743dc652"
+    },
+    {
+      "path": "harness/verify-original.mjs",
+      "gitBlob": "14a93028c2c9dcb4ba9fee4a44d8acb18055dd6c",
+      "sha256": "c08b96e73891995f329583b7d04d7837e1cd66953e13790b906d833f5fcc1c5a"
+    },
+    {
+      "path": "native-env.mjs",
+      "gitBlob": "894f6b7aae57e800d8e5eb603a9ea33cb665a38f",
+      "sha256": "e537055e0b7516e2a2ddcd520f5197625334d2493b1b238d82b99edc94fd7def"
+    }
+  ],
+  "modifiedFromV6": [
+    {
+      "path": "CASE_MAP.md",
+      "v6GitBlob": "37676beffba4e75715c494c2e8b3d9348f096668",
+      "v6Sha256": "9c29bae3b8cd364e51f7a6842983d44bdd338437354bb23605068c835f37b794",
+      "delta": "v7 correction and observer-isolated policy classified without changing the 24/40/16 counts"
+    },
+    {
+      "path": "FREEZE.md",
+      "v6GitBlob": "10c218f19a26372c62207b9210ec6ddb1e1255ab",
+      "v6Sha256": "6308a5d530fbf21ae4d290618a76fcf2a5c01b9517064c648ff0151fd60a5c82",
+      "delta": "v6 failure chronology, root-approved v7 correction, static-only status and later exact replay instructions"
+    },
+    {
+      "path": "ORIGINS.json",
+      "v6GitBlob": "2b04b362da8314bf42e44bcc6ffdeadf01002c75",
+      "v6Sha256": "032b5c4cf268dd05aa58de35174a598080639a597e2e5baa1fbb33b1a710bb7e",
+      "delta": "complete v6 base/evidence binding, exact v6-to-v7 classification and corrected selected-path digest record"
+    },
+    {
+      "path": "harness/verify-v5.mjs",
+      "v6GitBlob": "5ebbf27cbcf94ebec1e0ec93592d94fde3e9d262",
+      "v6Sha256": "f40777ca6cf3e8cbc0ca86b1750ce80162e9bb5e565da77bdabdd778645185ce",
+      "delta": "observer-isolated lstat-only windows for V5-020/028/029/030/031 and mutant controls; deterministic real file-atime V5-024"
+    },
+    {
+      "path": "replay.mjs",
+      "v6GitBlob": "055fb0d782c3408c2d1382a2fe035c97a88d2641",
+      "v6Sha256": "8ebffca4e09583065699aabf6ade4918adfc1e8cdd23c858d90109b2b2ea2b1f",
+      "delta": "frozen relative path changed from approved-v6 to approved-v7; all replay protocol logic otherwise byte-identical"
+    },
+    {
+      "path": "verify-freeze.mjs",
+      "v6GitBlob": "8650210d1dd27f342cc3903db75b4ee31352c690",
+      "v6Sha256": "6644f474bcf2077cf1f8b35602bb0e53c23623b281cfeec357dad6578c1166da",
+      "delta": "frozen relative path changed from approved-v6 to approved-v7; all verifier logic otherwise byte-identical"
+    }
+  ],
+  "newV7Files": [
+    {
+      "path": "CORRECTION_V7.md",
+      "purpose": "versioned failure-ID-level rationale and exact immutable evidence chronology"
+    }
+  ],
+  "manifestTransition": {
+    "v6GitBlob": "0fb0850e8a9db3962523d32b1ad088b9847670a6",
+    "v6Sha256": "417a776d878fe8bf8ee363327dd603b3b34d64df09f1b3314b2da33b84df4ef7",
+    "delta": "regenerated complete self-excluded v7 inventory for 20 non-self files and 21 total files"
+  },
+  "candidateSelectedPathDigestCorrection": {
+    "path": "config/candidate-selected-paths.txt",
+    "v6OriginsRecordedTypo": "9427aad46a7f184d94517a666ab02a8f1da43ccf9074c5a15186d4569233679",
+    "independentlyComputedSha256": "9427aad46a7f184d94517a666ab02a8f1da43ccf9074c5a15186d4569233679b",
+    "v6ManifestAlreadyCorrect": true,
+    "v6GitFileBytesAlreadyCorrect": true
+  },
+  "originalVerifier": {
+    "path": "harness/verify-original.mjs",
+    "v6GitBlob": "14a93028c2c9dcb4ba9fee4a44d8acb18055dd6c",
+    "v6Sha256": "c08b96e73891995f329583b7d04d7837e1cd66953e13790b906d833f5fcc1c5a",
+    "expectedCaseCount": 24,
+    "byteIdentical": true
+  },
+  "literalEnvironmentControl": {
+    "path": "fixtures/native-env-cases.json",
+    "v6GitBlob": "5d10b771614815024262bce0ccd7f4bda843cadd",
+    "v6Sha256": "ba95af81e2ffd7f7b80afb4a49a173487d9dacb7c911c61b31bf80b515c8cd5b",
+    "caseCount": 16,
+    "byteIdentical": true
+  },
+  "semanticCandidateCasesExecutedBeforeV7Freeze": false,
+  "semanticNativeCasesExecutedBeforeV7Freeze": false,
+  "productBuildOrPackageExecutedBeforeV7Freeze": false
+}

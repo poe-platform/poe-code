@@ -1,0 +1,9 @@
+{
+  "schema": 1,
+  "observedAtUtc": "2026-08-27T19:22:08Z",
+  "node": "v22.22.2",
+  "npm": "10.9.7",
+  "typescript": "5.9.3",
+  "semanticCandidateCasesExecuted": false,
+  "semanticNativeCasesExecuted": false
+}

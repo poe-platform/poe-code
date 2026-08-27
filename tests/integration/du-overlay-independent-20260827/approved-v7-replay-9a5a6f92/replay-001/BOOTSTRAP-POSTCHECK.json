@@ -1,0 +1,9 @@
+{
+  "materializedAfterChild": {
+    "phase": "bootstrap-materialized-after-child",
+    "completeFileCount": 21,
+    "everyByteSizeSha256AndGitBlobVerified": true,
+    "exactInventoryNoNewOrDeletedEntries": true,
+    "inventorySha256": "db144097a79a98f9101a1d7cc2a2ac504861edc5f2099602ce2e6bfbca7c1728"
+  }
+}

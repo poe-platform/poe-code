@@ -85,7 +85,7 @@ try {
       const nativeEnvironment = { ...environment, TMPDIR: report.fixtureAuthority.TMPDIR };
       if (!options["--check-only"]) {
         try { currentConsumers(report); }
-        catch (error) { report.currentConsumerFailure = error.stack; }
+        catch (error) { if (error.exitCode === 78) throw error; report.currentConsumerFailure = error.stack; }
         const archive = step(report, "current-archive-tests", process.execPath, ["--unhandled-rejections=strict", "--import", "tsx", "--test", "--test-reporter=tap", "--test-concurrency=1", ...archiveTests], report.root, { env: nativeEnvironment });
         report.archive = { tests: archiveTests.map(path => ({ path, sha256: sha256(readFileSync(join(report.root, path))) })), counts: Object.fromEntries(["tests", "pass", "fail", "cancelled", "skipped", "todo"].map(name => [name, Number(archive.stdout.match(new RegExp(`^# ${name} (\\d+)$`, "m"))?.[1] ?? NaN)])) };
         assert.deepEqual(report.archive.counts, { tests: 11, pass: 11, fail: 0, cancelled: 0, skipped: 0, todo: 0 });
@@ -124,5 +124,5 @@ try {
     }
   }
 } catch (error) {
-  finish(report, 1, error);
+  finish(report, error.exitCode === 78 ? 78 : 1, error);
 }

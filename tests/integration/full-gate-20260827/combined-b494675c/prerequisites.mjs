@@ -36,7 +36,7 @@ export async function prerequisites({ repository, source, temporary, environment
   result.native.archive = archives.archiveSetup(join(repository, archives.tarRelative), repository);
   assert.deepEqual(result.native.archive.issues, [], "mandatory archive native profile unavailable");
   result.native.archiveOverlay = archives.stageArchiveTar({ root: source, directory: temporary }, result.native.archive);
-  result.native.authority = archives.fixtureAuthority({ directory: temporary }, canonical.oracleDirectory);
+  result.native.authority = archives.fixtureAuthority({ directory: temporary, root: source }, canonical.oracleDirectory);
   assert.deepEqual(result.native.authority.issues, [], "mandatory native fixture authority profile unavailable");
   const coreutils = dirname(canonical.benchmarkStat), byteRoot = join(temporary, "byte-oracles"); mkdirSync(byteRoot);
   const identities = JSON.parse(readFileSync(join(source, "tests/commands/bytes-stress/gnu-evidence.json"))).identities;

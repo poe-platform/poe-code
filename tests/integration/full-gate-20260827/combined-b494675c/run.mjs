@@ -1,10 +1,10 @@
 import assert from "node:assert/strict";
 import { execFileSync, spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
-import { chmodSync, copyFileSync, createReadStream, existsSync, lstatSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, realpathSync, rmSync, writeFileSync } from "node:fs";
+import { chmodSync, copyFileSync, createReadStream, existsSync, lstatSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, readlinkSync, realpathSync, rmSync, writeFileSync } from "node:fs";
 import { dirname, join, relative, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
-import { inspect, git, hash, repository } from "../inspect.mjs";
+import { inspect, git, hash, repository } from "./inspect.mjs";
 import { account } from "../account.mjs";
 import { supervise } from "../supervise.mjs";
 import { isolatedHistory } from "../history.mjs";
@@ -39,7 +39,12 @@ const report = { startedAt: new Date().toISOString(), revision: discovery.revisi
 const sourceHashes = {};
 function verifySource() {
   const changes = [];
-  for (const [path, expected] of Object.entries(sourceHashes)) if (!existsSync(join(source, path)) || hash(readFileSync(join(source, path))) !== expected.sha256 || (lstatSync(join(source, path)).mode & 0o777) !== expected.mode) changes.push(path);
+  for (const [path, expected] of Object.entries(sourceHashes)) {
+    const filename = join(source, path), stat = lstatSync(filename, { throwIfNoEntry: false });
+    if (!stat || stat.isSymbolicLink() !== expected.symlink ||
+      hash(expected.symlink ? Buffer.from(readlinkSync(filename)) : readFileSync(filename)) !== expected.sha256 ||
+      (stat.mode & 0o777) !== expected.mode) changes.push(path);
+  }
   return changes;
 }
 function copyDependencies(origin, destination) {
@@ -85,7 +90,7 @@ async function phase(label, executable, args, cwd = source, timeoutMs = 180000) 
   return result;
 }
 try {
-  const expected = { test: 'node --import tsx --test "tests/**/*.test.ts"', "test:contracts": 'node --import tsx --test "tests/contracts/**/*.test.ts"', typecheck: "tsc --noEmit", build: "tsc -p tsconfig.build.json" };
+  const expected = { test: "node --input-type=module -e \"import { globSync } from 'node:fs'; import { spawnSync } from 'node:child_process'; const files = globSync('tests/**/*.test.ts', { exclude: path => path === 'tests/commands/regex-execution/continuation/artifacts/native' }); if (!files.length) throw new Error('No test files found'); const result = spawnSync(process.execPath, ['--import', 'tsx', '--test', ...files, ...process.argv.slice(1)], { stdio: 'inherit' }); process.exit(result.status ?? 1);\" --", "test:contracts": 'node --import tsx --test "tests/contracts/**/*.test.ts"', typecheck: "tsc --noEmit", build: "tsc -p tsconfig.build.json" };
   for (const [name, value] of Object.entries(expected)) assert.equal(discovery.configuration["package.json"].value.scripts[name], value, `Declared command changed: ${name}`);
   assert.equal(discovery.configuration["benchmarks/package.json"].value.scripts.typecheck, "tsc --noEmit -p tsconfig.json");
   assert.deepEqual(discovery.configuration["package.json"].value.dependencies ?? {}, {});
@@ -94,10 +99,12 @@ try {
   const archiveHash = createHash("sha256"); for await (const chunk of createReadStream(archive)) archiveHash.update(chunk);
   report.archiveSha256 = archiveHash.digest("hex"); execFileSync("tar", ["-xf", archive, "-C", source], { timeout: 180000 });
   for (const entry of discovery.tree) {
-    const path = join(source, entry.path), stat = lstatSync(path); assert.ok(stat.isFile() && !stat.isSymbolicLink() && stat.nlink === 1);
-    const bytes = readFileSync(path); assert.equal(bytes.length, entry.bytes);
+    const path = join(source, entry.path), stat = lstatSync(path), symlink = entry.mode === "120000";
+    assert.equal(stat.isSymbolicLink(), symlink);
+    assert.ok(symlink || (stat.isFile() && stat.nlink === 1));
+    const bytes = symlink ? Buffer.from(readlinkSync(path)) : readFileSync(path); assert.equal(bytes.length, entry.bytes);
     assert.equal(createHash("sha1").update(`blob ${bytes.length}\0`).update(bytes).digest("hex"), entry.blob, entry.path);
-    sourceHashes[entry.path] = { sha256: hash(bytes), mode: stat.mode & 0o777, bytes: bytes.length };
+    sourceHashes[entry.path] = { sha256: hash(bytes), mode: stat.mode & 0o777, bytes: bytes.length, symlink };
   }
   report.sourceHashes = sourceHashes;
   report.history = await isolatedHistory(repository, source, discovery.revision, join(temporary, "history.pack"), environment);

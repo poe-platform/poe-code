@@ -1,0 +1,50 @@
+{
+  "date": "2026-08-27",
+  "role": "AUTHOR_SECOND_ACTUAL_ATTEMPT_NOT_INDEPENDENT_ACCEPTANCE",
+  "bindingPreparationCommit": "71abbafc8a9adadf98ed8921b4cc549ae90399ff",
+  "bindingReviewCommit": "758880944964ed1bb9f9cbb524dfeb14e88b3047",
+  "bindingReviewPath": "tests/integration/safejs-owned-output-prototype-review/zero-cap-overlay/independent/status-review-v1/ADMISSION.json",
+  "bindingReviewSha256": "68eed8703df8bb18b63f6b29c05831502c7bf3e3a8997c23e4768122d951cef4",
+  "sourceAdmissionCommit": "88367f70feb90b589a3aa2651700ba187b1336dc",
+  "authorFreezeCommit": "a61e63bc46e8389e59c0d8fdc1d424003f62c769",
+  "wrapper": "/Users/kjopek/Workspace/safe-bash/tests/integration/safejs-owned-output-prototype-review/zero-cap-overlay/author/status-binding-v2/run.py",
+  "wrapperSha256": "76e4565d545648a97bb185bf68a32e3164d451f125e430a5480c6aff7bc4bd3c",
+  "runtimeRoot": "/private/tmp/safe-bash-zero-status-binding-v2-5b3t7ehd/runtime",
+  "runtimeFiles": 38,
+  "originalFrozenRoot": "/private/tmp/safe-bash-zero-status-binding-v2-5b3t7ehd/frozen-author",
+  "originalFrozenFiles": 88,
+  "temporary": "/private/tmp/safe-bash-zero-status-binding-v2-5b3t7ehd",
+  "attemptRoot": "/private/tmp/safe-bash-zero-status-binding-v2-5b3t7ehd/author-attempt-01",
+  "rawRoot": "/private/tmp/safe-bash-zero-status-binding-v2-5b3t7ehd/raw",
+  "controllerCapture": "/private/tmp/safe-bash-zero-status-binding-v2-5b3t7ehd/author-controller-v2",
+  "controllerArgv": [
+    "/opt/homebrew/opt/python@3.14/bin/python3.14",
+    "/Users/kjopek/Workspace/safe-bash/tests/integration/safejs-owned-output-prototype-review/zero-cap-overlay/author/status-binding-v2/run.py"
+  ],
+  "controllerCwd": "/Users/kjopek/Workspace/safe-bash",
+  "controllerEnvironmentBindings": {
+    "PYTHONDONTWRITEBYTECODE": "1",
+    "ZERO_OVERLAY_ROOT_RELEASE": "/Users/kjopek/Workspace/safe-bash/tests/integration/safejs-owned-output-prototype-review/zero-cap-overlay/author/execution-v2/ROOT-RELEASE.json"
+  },
+  "node": {
+    "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "version": "v22.22.2",
+    "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+    "matchesAuthorNode": true
+  },
+  "scheduledProfiles": {
+    "surface": 8,
+    "lifecycle": 11,
+    "controls": 6
+  },
+  "rootDescriptorSha256": "54f630bc7d06e11fe7416075b0d59d530ab2b0c91a59182cbe3213c3479430cd",
+  "sourceIdentities": {
+    "sourceManifestSha256": "2dc95c3abd7656de60d10a2f339a80d14d31ecc2b6d1a8f037769826cc8479f1",
+    "compiledManifestSha256": "65dda12bcf3536eefb49745037b468e7ecbf424626d1d5db137a84e12bd9298e",
+    "candidateManifestSha256": "a7333f1942956f73a0cf7d16a35685f23a81186df18d89e55fe07e5a94b32b4a",
+    "packageManifestSha256": "e207a231248d81156b6fc7b608785eb7f27cda4d34263dbee088210a19c9d010"
+  },
+  "originalBoundsAndExecutableInputsUnchanged": true,
+  "automaticRetry": false,
+  "noPromotion": true
+}

@@ -1,0 +1,188 @@
+{
+  "at": "2026-08-27T05:18:30.223Z",
+  "head": "398143a253ada226340c05a8028add4df78d00ae",
+  "status": " M tests/fs/webdav/real-service/raw.mjs\n M tests/fs/webdav/real-service/run.mjs\n?? benchmarks/reports/comparison-fairness-20260827/\n?? benchmarks/reports/current-integration/comparison-replay-20260827/\n?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/\n?? tests/commands/search-stress/.native-1m4O1e/\n?? tests/fs/webdav/real-service/apache.mjs\n?? tests/fs/webdav/real-service/evidence/apache-public-first/\n?? tests/fs/webdav/real-service/evidence/apache-public-second/\n?? tests/fs/webdav/real-service/evidence/apache-raw-initial/\n?? tests/fs/webdav/real-service/example.mts\n?? tests/fs/webdav/real-service/https.mts\n?? tests/integration/stream-inspection-public-author/\n?? tests/integration/stream-inspection-public/\n?? tests/shell-stress/errexit-consumer/\n?? tests/stress/regex-execution/design/revision-review/REPORT.md\n?? tests/stress/regex-execution/design/revision/evidence/\n?? tests/stress/regex-execution/design/validation/\n",
+  "index": "",
+  "acceptedSource": "335d2c3705b4892a56e807010cd7ca50145fefce",
+  "manifest": [
+    {
+      "path": "src/commands/stream-inspection/README.md",
+      "sha256": "1490e733ae1691da397d9f5efdefe90a904cf89ac585481960343b9bdff49abd"
+    },
+    {
+      "path": "src/commands/stream-inspection/expand.ts",
+      "sha256": "d2d9e8b878822f27a74f148c66c0da6edcca3dd40a56749718685d6a5bbf2ff9"
+    },
+    {
+      "path": "src/commands/stream-inspection/fold.ts",
+      "sha256": "608d9392bad152ed35aeabb94cb7a1b455d87f64a4d6b7183b18f463c2184dd2"
+    },
+    {
+      "path": "src/commands/stream-inspection/index.ts",
+      "sha256": "a7af51784ea70f49fd5bbbc686c2bcc289b75d2e837a6e74987dfdf199864842"
+    },
+    {
+      "path": "src/commands/stream-inspection/numeric-options.ts",
+      "sha256": "b09c1781d720c79fbb4ab6b4952616b0455a3214595c7a5649cdfc509752c71a"
+    },
+    {
+      "path": "src/commands/stream-inspection/shared.ts",
+      "sha256": "0df865f2c7d5831acc06903e9fe8b117cd22cb3f1899033a76b0d73a5b46a937"
+    },
+    {
+      "path": "src/commands/stream-inspection/strings.ts",
+      "sha256": "a5d7e051591541ffeb0dd5d51183bb708afaa836f84565368447793949e5b78c"
+    },
+    {
+      "path": "src/commands/stream-inspection/tac.ts",
+      "sha256": "2704f57dc67e6e0197833eb0ca1f85db11b5a8307f5cfb9b0995ad61057fcb36"
+    }
+  ],
+  "digest": "4c52a321778aafad0e41b5858d30746d728306e35e26a44554146a69a05c91a0",
+  "files": [
+    {
+      "path": "src/index.ts",
+      "sha256": "93db829fa8897c5978d6a7e19e6fc974f980cd659f79be6fcfd2f868bad76613"
+    },
+    {
+      "path": "src/plugins/index.ts",
+      "sha256": "b42974c3208fda3c9e4378b235d6d5d955f1c753c8bfb5e5dd31e22355323f0d"
+    },
+    {
+      "path": "package.json",
+      "sha256": "b183a9d2d451b5888b951a4e84656f6c18a94f09e7bd97e0a6af89ac48657e9b"
+    },
+    {
+      "path": "tests/plugins/agent-commands.test.ts",
+      "sha256": "55c605690f0f2bb7e10ffd10528f9f36f9d39a4a4c45bbf4a9cf587e06a46517"
+    },
+    {
+      "path": "README.md",
+      "sha256": "4fa96b13624a2fc067200e8a43e1d47da8f91a6bc16c9445d3097664dbd4eb50"
+    },
+    {
+      "path": "docs/PROJECT_LEDGER.md",
+      "sha256": "96344f080721278721b765c1e693b6cf0bbe622fab119ee43834bde5a4c492fa"
+    }
+  ],
+  "originalAggregateTest": "import assert from \"node:assert/strict\";\nimport test from \"node:test\";\nimport {\n  agentCommands, createAgentCommands, CommandRegistry, createMemoryFileSystem, Shell,\n  toByteSource,\n  type AgentCommandsOptions, type CommandContext, type PluginHost,\n} from \"../../src/index.js\";\n\nfunction host(commands = new CommandRegistry()): PluginHost {\n  return { commands, use() { throw new Error(\"Unexpected middleware installation\"); }, registerFileSystem() { throw new Error(\"Unexpected filesystem installation\"); } };\n}\n\nasync function direct(commands: CommandRegistry, command: string, args: readonly string[], input = \"\") {\n  const chunks: Uint8Array[] = [];\n  const errors: Uint8Array[] = [];\n  const context: CommandContext = {\n    command, args, stdin: toByteSource(input), stdinIsDefault: false,\n    stdout: { async write(chunk) { chunks.push(chunk.slice()); } },\n    stderr: { async write(chunk) { errors.push(chunk.slice()); } },\n    fs: createMemoryFileSystem(), cwd: \"/\", env: {}, signal: new AbortController().signal,\n  };\n  const result = await commands.get(command)!.execute(context);\n  return { ...result, stdout: Buffer.concat(chunks).toString(), stderr: Buffer.concat(errors).toString() };\n}\n\ntest(\"aggregate definitions are exactly the nine delivered families, each registered once\", async () => {\n  const expected = [\n    \"true\", \"false\", \"echo\", \"pwd\", \"basename\", \"dirname\", \"printf\", \"mkdir\", \"touch\",\n    \"cp\", \"mv\", \"rm\", \"rmdir\", \"ln\", \"readlink\", \"realpath\", \"ls\", \"cat\", \"head\", \"tail\",\n    \"wc\", \"tee\", \"tr\", \"sort\", \"uniq\", \"cut\", \"grep\", \"test\", \"[\", \"env\", \"xargs\", \"find\",\n    \"sed\", \"awk\", \"jq\", \"rg\", \"base64\", \"base32\", \"xxd\", \"od\", \"sha256sum\", \"sha1sum\",\n    \"md5sum\", \"cksum\", \"gzip\", \"gunzip\", \"zcat\", \"diff\", \"patch\", \"chmod\", \"stat\", \"mktemp\", \"tar\",\n    \"paste\", \"comm\", \"join\",\n  ].sort();\n  assert.equal(expected.length, 56);\n  assert.equal(new Set(expected).size, 56);\n  assert.deepEqual(createAgentCommands().map(command => command.name).sort(), expected);\n  const target = host();\n  await agentCommands().setup(target);\n  assert.deepEqual(target.commands.list().map(command => command.name).sort(), expected);\n});\n\nfor (const conflict of [\"printf\", \"sed\", \"jq\", \"rg\", \"gzip\", \"patch\", \"chmod\", \"stat\", \"mktemp\", \"tar\", \"paste\", \"comm\", \"join\"]) {\n  test(`collision with ${conflict} leaves the entire host registry untouched`, () => {\n    const commands = new CommandRegistry([{ name: conflict, execute: () => ({ exitCode: 23 }) }]);\n    const before = commands.list();\n    assert.throws(() => agentCommands().setup(host(commands)), /already registered/u);\n    assert.deepEqual(commands.list(), before);\n  });\n}\n\ntest(\"explicit replacement affects all families once and preserves unrelated commands\", async () => {\n  const target = host(new CommandRegistry([{ name: \"custom\", execute: () => ({ exitCode: 23 }) }]));\n  await agentCommands().setup(target);\n  const original = target.commands.list();\n  assert.throws(() => agentCommands().setup(target), /already registered/u);\n  assert.deepEqual(target.commands.list(), original);\n  await agentCommands({ replace: true }).setup(target);\n  assert.equal(target.commands.list().length, 57);\n  assert.equal(target.commands.get(\"custom\"), original[0]);\n  for (const name of [\"printf\", \"sed\", \"jq\", \"rg\", \"gzip\", \"patch\", \"chmod\", \"stat\", \"mktemp\", \"tar\", \"paste\", \"comm\", \"join\"]) {\n    assert.notEqual(target.commands.get(name), original.find(command => command.name === name));\n  }\n});\n\ntest(\"invalid eager family limits install no commands\", () => {\n  const target = host();\n  assert.throws(() => agentCommands({ structured: { limits: { maxSteps: 0 } } }).setup(target), /positive/u);\n  assert.equal(target.commands.list().length, 0);\n});\n\nfor (const kind of [\"definitions\", \"plugin\"] as const) {\n  test(`${kind} fallback resolves nested argv across families without a shell`, async () => {\n    const commands = kind === \"definitions\" ? new CommandRegistry(createAgentCommands()) : new CommandRegistry();\n    if (kind === \"plugin\") await agentCommands().setup(host(commands));\n    assert.deepEqual(await direct(commands, \"env\", [\"sed\", \"s/a/A/\"], \"a\\n\"), { exitCode: 0, stdout: \"A\\n\", stderr: \"\" });\n    assert.deepEqual(await direct(commands, \"xargs\", [\"jq\", \"-nc\"], \"'1+1'\"), { exitCode: 0, stdout: \"2\\n\", stderr: \"\" });\n    assert.deepEqual(await direct(commands, \"env\", [\"env\", \"rg\", \"a\", \"-\"], \"a\\n\"), { exitCode: 0, stdout: \"a\\n\", stderr: \"\" });\n    const missing = await direct(commands, \"env\", [\"not-a-command\"]);\n    assert.equal(missing.exitCode, 127);\n    assert.match(missing.stderr, /command not found/u);\n  });\n}\n\ntest(\"plugin fallback can resolve host commands outside the aggregate\", async () => {\n  const target = host(new CommandRegistry([{ name: \"custom\", execute: () => ({ exitCode: 23 }) }]));\n  await agentCommands().setup(target);\n  assert.equal((await direct(target.commands, \"env\", [\"custom\"])).exitCode, 23);\n});\n\ntest(\"custom fallback applies only without the shell invocation hook\", async () => {\n  let calls = 0;\n  const options = { execute: () => { calls++; return { exitCode: 17 }; } };\n  const commands = new CommandRegistry(createAgentCommands(options));\n  assert.equal((await direct(commands, \"env\", [\"sed\", \"s/a/A/\"], \"a\")).exitCode, 17);\n  assert.equal(calls, 1);\n  const shell = new Shell({ fs: createMemoryFileSystem() }).use(agentCommands(options));\n  const invoked: string[] = [];\n  shell.use(async (context, next) => { invoked.push(context.command); return next(); });\n  try {\n    assert.equal((await shell.exec(\"env sed 's/a/A/'\", { stdin: \"a\\n\" })).stdout, \"A\\n\");\n    assert.deepEqual(invoked, [\"env\", \"sed\"]);\n    assert.equal(calls, 1);\n  } finally { await shell.dispose(); }\n});\n\nconst limited: readonly [AgentCommandsOptions, string, string, RegExp][] = [\n  [{ text: { maxBufferBytes: 1 } }, \"sed p\", \"long\\n\", /buffer limit/u],\n  [{ structured: { limits: { maxInputBytes: 1 } } }, \"jq .\", \"[1]\", /maxInputBytes/u],\n  [{ search: { maxLineBytes: 1 } }, \"rg x -\", \"xxxx\\n\", /limit/u],\n  [{ diffPatch: { maxInputBytes: 1 } }, \"printf 'ab\\\\n' > first; printf 'cd\\\\n' > second; diff first second\", \"\", /limit|maxBytes/u],\n  [{ metadata: { limits: { maxOutputBytes: 1 } } }, \"mkdir /tmp; mktemp\", \"\", /limit/u],\n  [{ archive: { limits: { maxArchiveBytes: 1 } } }, \"printf content > input; tar -cf - input\", \"\", /limit/u],\n  [{ tableText: { limits: { maxRecordBytes: 1 } } }, \"paste -\", \"ab\\n\", /record limit/u],\n];\nfor (const [options, source, stdin, diagnostic] of limited) {\n  test(`aggregate forwards ${Object.keys(options)[0]} limits without rewriting them`, async () => {\n    const shell = new Shell({ fs: createMemoryFileSystem() }).use(agentCommands(options));\n    try {\n      const result = await shell.exec(source, { stdin });\n      assert.notEqual(result.exitCode, 0);\n      assert.match(result.stderr, diagnostic);\n    } finally { await shell.dispose(); }\n  });\n}\n\ntest(\"search defaultInput remains an explicit family override\", async () => {\n  const fs = createMemoryFileSystem();\n  await fs.writeFile(\"/file\", Buffer.from(\"match\\n\"));\n  const shell = new Shell({ fs }).use(agentCommands({ search: { defaultInput: \"stdin\" } }));\n  try {\n    const result = await shell.exec(\"rg match\");\n    assert.equal(result.exitCode, 1);\n    assert.equal(result.stdout, \"\");\n  } finally { await shell.dispose(); }\n});\n\ntest(\"README aggregate example and binary pipelines use the actual shell\", async () => {\n  const shell = new Shell({ fs: createMemoryFileSystem() }).use(agentCommands());\n  try {\n    const result = await shell.exec(\"printf 'hello\\\\n' | sed 's/hello/world/' | awk '{print $1}'\");\n    assert.equal(result.stdout, \"world\\n\");\n    assert.equal(result.stderr, \"\");\n    assert.equal(result.exitCode, 0);\n    const bytes = await shell.exec(\"printf '\\\\000\\\\377A' | base64 | base64 -d | gzip -c | gunzip -c\");\n    assert.equal(bytes.exitCode, 0, bytes.stderr);\n    assert.deepEqual(bytes.stdoutBytes, Uint8Array.of(0, 255, 65));\n  } finally { await shell.dispose(); }\n});\n\ntest(\"aggregate tar streams binary archives through the actual VFS pipeline\", async () => {\n  const fs = createMemoryFileSystem();\n  await fs.mkdir(\"/input\"); await fs.mkdir(\"/output\");\n  await fs.writeFile(\"/input/bytes\", Uint8Array.of(0, 255, 65, 10));\n  const shell = new Shell({ fs }).use(agentCommands());\n  try {\n    const result = await shell.exec(\"tar -cf - -C /input bytes | tar -xf - -C /output\");\n    assert.equal(result.exitCode, 0, result.stderr);\n    assert.equal(result.stderr, \"\");\n    assert.deepEqual(await fs.readFile(\"/output/bytes\"), Uint8Array.of(0, 255, 65, 10));\n    assert.deepEqual(await fs.readFile(\"/input/bytes\"), Uint8Array.of(0, 255, 65, 10));\n    assert.equal(createAgentCommands().some(command => command.name === \"curl\" || command.name === \"safejs\"), false);\n  } finally { await shell.dispose(); }\n});\n\ntest(\"aggregate table-text composes with existing cut and virtual files\", async () => {\n  const shell = new Shell({ fs: createMemoryFileSystem(), env: { LC_ALL: \"C\" } }).use(agentCommands());\n  try {\n    const result = await shell.exec(\"printf '1 alice\\n2 bob\\n' > names; printf '1 red\\n2 blue\\n' > colors; join names colors | cut -d ' ' -f2,3 | paste -sd, -\");\n    assert.equal(result.exitCode, 0, result.stderr);\n    assert.equal(result.stdout, \"alice red,bob blue\\n\");\n    assert.equal(result.stderr, \"\");\n    const common = await shell.exec(\"printf 'a\\nb\\n' > first; printf 'b\\nc\\n' > second; comm -12 first second\");\n    assert.equal(common.exitCode, 0, common.stderr);\n    assert.equal(common.stdout, \"b\\n\");\n    assert.equal(createAgentCommands().filter(command => command.name === \"cut\").length, 1);\n  } finally { await shell.dispose(); }\n});\n",
+  "names": [
+    "true",
+    "false",
+    "echo",
+    "pwd",
+    "basename",
+    "dirname",
+    "printf",
+    "mkdir",
+    "touch",
+    "cp",
+    "mv",
+    "rm",
+    "rmdir",
+    "ln",
+    "readlink",
+    "realpath",
+    "ls",
+    "cat",
+    "head",
+    "tail",
+    "wc",
+    "tee",
+    "tr",
+    "sort",
+    "uniq",
+    "cut",
+    "grep",
+    "test",
+    "[",
+    "env",
+    "xargs",
+    "find",
+    "sed",
+    "awk",
+    "jq",
+    "rg",
+    "base64",
+    "base32",
+    "xxd",
+    "od",
+    "sha256sum",
+    "sha1sum",
+    "md5sum",
+    "cksum",
+    "gzip",
+    "gunzip",
+    "zcat",
+    "diff",
+    "patch",
+    "chmod",
+    "stat",
+    "mktemp",
+    "tar",
+    "paste",
+    "comm",
+    "join"
+  ],
+  "count": 56,
+  "unique": 56,
+  "pluginNames": [
+    "true",
+    "false",
+    "echo",
+    "pwd",
+    "basename",
+    "dirname",
+    "printf",
+    "mkdir",
+    "touch",
+    "cp",
+    "mv",
+    "rm",
+    "rmdir",
+    "ln",
+    "readlink",
+    "realpath",
+    "ls",
+    "cat",
+    "head",
+    "tail",
+    "wc",
+    "tee",
+    "tr",
+    "sort",
+    "uniq",
+    "cut",
+    "grep",
+    "test",
+    "[",
+    "env",
+    "xargs",
+    "find",
+    "sed",
+    "awk",
+    "jq",
+    "rg",
+    "base64",
+    "base32",
+    "xxd",
+    "od",
+    "sha256sum",
+    "sha1sum",
+    "md5sum",
+    "cksum",
+    "gzip",
+    "gunzip",
+    "zcat",
+    "diff",
+    "patch",
+    "chmod",
+    "stat",
+    "mktemp",
+    "tar",
+    "paste",
+    "comm",
+    "join"
+  ],
+  "rootApproval": "ROOT APPROVAL — 2026-08-27. Exact scope proposal accepted; author may implement now.\nProduction wiring ONLY src/index.ts, src/plugins/index.ts, package.json export map. Add existing streamInspectionCommands/createStreamInspectionCommands and actual StreamInspectionCommandsOptions/StreamInspectionLimits public types, conventional ./commands/stream-inspection subpath, aggregate streamInspection option following existing family convention, and actual four defaults. Measure actual60unique after wiring; preserve measured56 baseline. No curl/SafeJS default activation or new runtime deps.\nExisting test-only changes ONLY tests/plugins/agent-commands.test.ts described in proposal: exact name list/family title/numeric counts justified by measured addition. Preserve old test text/results before source change; capture unchanged test outcome after source wiring then separate TEST-ONLY commit for literal/name expectation updates. Other baseline tests listed remain READONLY unless a concrete stale coupled assertion is reported for narrow approval. No broad rebaseline.\nNew author tests/evidence ONLY tests/integration/stream-inspection-public-author/**. Independent reviewer owns tests/integration/stream-inspection-public/**, do not inspect hidden expected corpus. Atomic exactowned --only commits, sourcewiring vs existing expectation-only vs author tests/docs/evidence clearly separated.\nDocs ONLY README.md relevant tool inventory/public/default API/profile/count and docs/PROJECT_LEDGER.md small dated batch entry. src/commands/stream-inspection/README.md current documentation may receive narrow corrections for implemented numeric flags AND now-approved public/default availability; don't leave current usage docs falsely opt-in-only. Preserve historical AUTHOR_HANDOFF and all original evidence text unmodified, no AGENTS edits or broad ledger rewrite. Distinguish old opt-in stage from now public/default integration. Existing source runtime code remains untouched.\nIsolated build/pack explicitly APPROVED using existing local devtoolchain and scratch snapshot only. No main dist emission, no installing/building new native providers, no new scripts/runtime deps/lockfile or package metadata beyond export map. Snapshot source/config/dependencies accurately, actual Node/npm/TypeScript version verification, pack with scripts disabled and offline/no ambient network dependency. Primary routing note available. Author proof separate from frozen offline consumer verifier proof.\nRetain original84/85, separate native semantic85/85, strict68/85 with17 diagnostics, corrected39 contracts and all raw history unchanged. No full GNU/superiority claim. Finalhandoff exact54 list INLINE to root plus actual60names/types/exports/sourcehashes/scopedtestcounts/commits/ownedstatus/cleanup. After finalsourcefreeze close normally; root verifies actual exit before releasing reviewer. No new tools/breadth after integration.\n"
+}

@@ -1,9 +1,10 @@
 import assert from "node:assert/strict";
-import { readFile, writeFile } from "node:fs/promises";
+import { readFile, readdir, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import test from "node:test";
 import { diffPatchCommands } from "../../../../src/commands/diff-patch/index.js";
 import { Shell } from "../../../../src/shell/index.js";
+import { snapshot } from "../safety/helpers.js";
 import { contents, example, golden, memory, native, nativeDirectory, nativeIdentity, nativePatch, random, run } from "./helpers.js";
 
 test("64 seeded handwritten adjacent/separated hunks retain displaced anchors and reverse", { timeout: 30_000 }, async context => {
@@ -139,4 +140,35 @@ test("12 actual Shell plugin seeded pipeline/redirection/dry-run/reverse flows",
 
 test("record native identities without assuming GNU is installed", { timeout: 5000 }, async context => {
   context.diagnostic(JSON.stringify(await nativeIdentity()));
+});
+
+for (const atomic of [false, true]) test(`${atomic ? "atomic extension" : "GNU default"} repeated hunk cannot bypass its first misordered match for a later duplicate`, async () => {
+  const initial = "old\nmiddle\nold\n";
+  const input = golden("keep\n", "changed\n", "first") + "--- target\n+++ target\n@@ -1 +1 @@\n-old\n+new\n@@ -1 +1 @@\n-old\n+other\n";
+  const filesystem = await memory({ first: "keep\n", target: initial });
+  const before = await snapshot(filesystem);
+  await nativeDirectory(async root => {
+    await writeFile(join(root, "first"), "keep\n");
+    await writeFile(join(root, "target"), initial);
+    const reference = native(root, "patch", ["--batch"], input);
+    assert.equal(reference.exitCode, 1, reference.stderr);
+    assert.equal(reference.stdout, "patching file first\npatching file target\nmisordered hunks! output would be garbled\nHunk #2 FAILED at 1.\n1 out of 2 hunks FAILED -- saving rejects to file target.rej\n");
+    assert.equal(reference.stderr, "");
+    const expected = { first: "changed\n", target: "new\nmiddle\nold\n", "target.orig": initial,
+      "target.rej": "--- target\n+++ target\n@@ -1 +1 @@\n-old\n+other\n" };
+    assert.deepEqual((await readdir(root)).sort(), Object.keys(expected).sort());
+    for (const [name, bytes] of Object.entries(expected)) assert.equal(await readFile(join(root, name), "utf8"), bytes);
+    const result = await run("patch", atomic ? ["--atomic"] : [], filesystem, input);
+    assert.equal(result.exitCode, 1, result.stderr);
+    if (atomic) {
+      assert.equal(result.stdout, "");
+      assert.equal(result.stderr, "patch: hunk 2 does not match target\n");
+      assert.deepEqual(await snapshot(filesystem), before);
+    } else {
+      assert.equal(result.stdout, reference.stdout);
+      assert.equal(result.stderr, reference.stderr);
+      assert.deepEqual((await filesystem.readdir("/work")).map(entry => entry.name).sort(), Object.keys(expected).sort());
+      for (const [name, bytes] of Object.entries(expected)) assert.equal(await contents(filesystem, name), bytes);
+    }
+  });
 });

@@ -180,7 +180,7 @@ export async function applyHunks(original: string, patch: FilePatch, fuzz: numbe
           ignoreWhitespace ? expectedLine.replace(/[ \t]+/gu, " ") : expectedLine)) return false;
         await budget.checkpoint();
       }
-      if (position < cursor) { misordered = true; return false; }
+      if (position < cursor) misordered = true;
       return true;
     };
     for (let tolerance = 0; tolerance <= Math.min(fuzz, context); tolerance++) {
@@ -210,6 +210,7 @@ export async function applyHunks(original: string, patch: FilePatch, fuzz: numbe
       }
       if (found >= 0) break;
     }
+    if (misordered) found = -1;
     application.outcomes?.push({ hunk, index: hunkIndex + 1, failed: found < 0, misordered: found < 0 && misordered,
       line: (found < 0 ? startIndex(hunk.oldStart, hunk.oldCount) : found) + 1 + outputOffset,
       outputOffset, offset: found - startIndex(hunk.oldStart, hunk.oldCount), fuzz: usedFuzz });

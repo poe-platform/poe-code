@@ -1,0 +1,9 @@
+{
+  "extends": "../../../../../tsconfig.json",
+  "include": [
+    "../../fuzz/edits.test.ts",
+    "../../emptyfile-delta/**/*.ts",
+    "../../editflows/quoted-safety.test.ts"
+  ],
+  "exclude": []
+}

@@ -1,0 +1,30 @@
+diff --git a/tests/fs/webdav/mock.ts b/tests/fs/webdav/mock.ts
+index 66899a4..1336483 100644
+--- a/tests/fs/webdav/mock.ts
++++ b/tests/fs/webdav/mock.ts
+@@ -1,6 +1,6 @@
+ import { createHash, randomUUID } from "node:crypto";
+ import type { WebDavFetch } from "../../../src/fs/webdav/index.js";
+-import { forwardOwnedWebDavFetch, registerMockWebDavFetch, registerOwnedResourceResponse } from "../../../src/fs/webdav/resource-id.js";
++import { registerOwnedResourceResponse } from "../../../src/fs/webdav/resource-id.js";
+ 
+ function resourceMap() {
+   const files = new Map<string, Uint8Array | null>();
+@@ -63,15 +63,9 @@ export class MockDav {
+   readonly files = this.resources.files.set("/", null);
+   readonly requests: MockRequest[] = [];
+   readonly locks = new Map<string, { token: string; expires: number }>();
+-  constructor() {
+-    const files = this.files;
+-    const names = ["get", "set", "has", "delete", "clear", "entries", "keys", Symbol.iterator] as const;
+-    const methods = names.map(name => files[name]);
+-    registerMockWebDavFetch(this.fetch, files, () => this.files === files && names.every((name, index) => files[name] === methods[index]));
+-  }
+-
+   createFetch(): WebDavFetch {
+-    return forwardOwnedWebDavFetch(this.fetch);
++    const fetch = this.fetch;
++    return (url, init) => fetch(url, init);
+   }
+   etag(path: string): string | undefined {
+     const data = this.files.get(path);

@@ -1,0 +1,2 @@
+tests/fs/webdav/mock.ts(3,10): error TS2305: Module '"../../../src/fs/webdav/resource-id.js"' has no exported member 'forwardOwnedWebDavFetch'.
+tests/fs/webdav/mock.ts(3,35): error TS2305: Module '"../../../src/fs/webdav/resource-id.js"' has no exported member 'registerMockWebDavFetch'.

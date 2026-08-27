@@ -1,0 +1,31 @@
+import * as shell from "shell";
+import * as command from "command";
+let assertions = 0;
+function check(condition, label) {
+  if (!condition) throw new Error(label);
+  assertions += 1;
+}
+check(!Object.hasOwn(command.env, "OPTIND") && !Object.hasOwn(command.env, "OPTERR"), "outer locals not exported");
+const parent = await shell.exec(`printf 'G2|fresh|%s|%s\n' "$OPTIND" "$OPTERR"
+export -p
+set -- -ab
+getopts ab option
+printf 'G2|parent-first|%s|%s|%s|%s\n' "$?" "$option" "$OPTIND" "$OPTERR"
+(getopts ab option; status=$?; OPTERR=0; printf 'G2|child|%s|%s|%s|%s\n' "$status" "$option" "$OPTIND" "$OPTERR")
+printf 'G2|parent-unchanged|%s|%s|%s\n' "$option" "$OPTIND" "$OPTERR"
+getopts ab option
+printf 'G2|parent-resume|%s|%s|%s|%s\n' "$?" "$option" "$OPTIND" "$OPTERR"
+(OPTIND=1; getopts ab option; printf 'G2|sibling|%s|%s|%s|%s\n' "$?" "$option" "$OPTIND" "$OPTERR")
+printf 'G2|parent-final|%s|%s|%s|%s|%s\n' "$option" "$OPTIND" "$OPTERR" "$#" "$1"`);
+check(parent.exitCode === 0 && parent.stderr === "", "parent status diagnostics");
+check(parent.stdout.indexOf("OPTIND=") === -1 && parent.stdout.indexOf("OPTERR=") === -1, "fresh defaults not exported");
+const parentLines = parent.stdout.split("\n").filter(line => line.startsWith("G2|"));
+check(parentLines.join("\n") === "G2|fresh|1|1\nG2|parent-first|0|a|1|1\nG2|child|0|b|2|0\nG2|parent-unchanged|a|1|1\nG2|parent-resume|0|b|2|1\nG2|sibling|0|a|1|1\nG2|parent-final|b|2|1|1|-ab", "subshell scan and state isolation");
+const sibling = await shell.exec(`printf 'G2|exec-fresh|%s|%s\n' "$OPTIND" "$OPTERR"
+export -p
+getopts ab option -a
+printf 'G2|exec-scan|%s|%s|%s|%s\n' "$?" "$option" "$OPTIND" "$OPTERR"`);
+check(sibling.exitCode === 0 && sibling.stderr === "", "sibling status diagnostics");
+check(sibling.stdout.indexOf("OPTIND=") === -1 && sibling.stdout.indexOf("OPTERR=") === -1, "sibling defaults not exported");
+check(sibling.stdout.split("\n").filter(line => line.startsWith("G2|")).join("\n") === "G2|exec-fresh|1|1\nG2|exec-scan|0|a|2|1", "fresh exec sibling state");
+return { marker: "G2_GUEST_ASSERTIONS_COMPLETE", assertions, observations: [parent, sibling] };

@@ -1,0 +1,24 @@
+node:internal/modules/run_main:107
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: package.json
++ actual - expected
+
++ 'aaea215e419a64b08e4739dee1a6b7bba5f41f9d5e1c93d4d1771f939e904842'
+- '691426f4934c471d2a76d49675f3fc19f3ddc47c8aa63cc38671d899a09c4535'
+
+    at protectedLive (file:///Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/stage2/safejs-getopts-followup-618d8967/common.mjs:88:86)
+    at file:///Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/stage2/safejs-getopts-followup-618d8967/prepare.mjs:12:20
+    at ModuleJob.run (node:internal/modules/esm/module_job:377:25)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:671:26)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:101:5) {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: 'aaea215e419a64b08e4739dee1a6b7bba5f41f9d5e1c93d4d1771f939e904842',
+  expected: '691426f4934c471d2a76d49675f3fc19f3ddc47c8aa63cc38671d899a09c4535',
+  operator: 'strictEqual',
+  diff: 'simple'
+}
+
+Node.js v24.11.1

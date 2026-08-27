@@ -139,7 +139,7 @@ export function createBody(context: CommandContext, args: CurlArguments, limits:
             if (hasStdin && replayable) {
               cachedBytes += chunk.length;
               if (cachedBytes > limits.maxBufferBytes) { replayable = false; cache = []; }
-              else cache.push(chunk.slice());
+              else cache.push(new Uint8Array(chunk));
             }
             if (chunk.length) yield chunk;
           }

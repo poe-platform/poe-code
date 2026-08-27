@@ -78,7 +78,7 @@ async function readProgram(context: CommandContext, path: string, limits: JqLimi
     for await (const chunk of readBytes(context.fs.readStream(absolute, { signal: context.signal }), context.signal)) {
       size += chunk.byteLength;
       if (size > limits.maxSourceBytes) throw new JqLimitError("maxSourceBytes");
-      if (chunk.byteLength) chunks.push(chunk.slice());
+      if (chunk.byteLength) chunks.push(new Uint8Array(chunk));
     }
   } else {
     const chunk = await interruptible(() => context.fs.readFile(absolute, { signal: context.signal, maxBytes: limits.maxSourceBytes }), context.signal);

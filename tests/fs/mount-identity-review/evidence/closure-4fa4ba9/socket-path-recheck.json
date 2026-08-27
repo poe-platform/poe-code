@@ -1,0 +1,159 @@
+{
+  "revision": "4fa4ba9502dac843bd13aa5031d128a3171f597d",
+  "archiveSha256": "f2bda1ba689dbe82a91b7f158e83120242800ab808d2ce8d0cd3573c2c8e2ba4",
+  "originalRun": "fs-real.json",
+  "originalCounts": {
+    "tests": 94,
+    "pass": 93,
+    "fail": 1,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "originalError": "EADDRINUSE before product assertions in server.listen",
+  "originalSocketPath": "/Users/kjopek/Workspace/safe-bash/tests/fs/mount-identity-review/.closure-archive-PBV23w/fixed/.fixtures/virtual-bash-real-lzDHCh/root/socket",
+  "originalSocketPathBytes": 141,
+  "correctedTmpdir": "/Users/kjopek/Workspace/safe-bash/tests/fs/mount-identity-review/",
+  "resultingSocketPathBytes": 101,
+  "onlyEnvironmentChanged": true,
+  "testFixturesUnchanged": true,
+  "real": {
+    "name": "real94-short-owned-tmp",
+    "argv": [
+      "--unhandled-rejections=strict",
+      "--import",
+      "tsx",
+      "--test",
+      "--test-concurrency=1",
+      "tests/fs/real/adversarial.test.ts",
+      "tests/fs/real/cancellation-regression.test.ts",
+      "tests/fs/real/conformance.test.ts",
+      "tests/fs/real/copy-identity.test.ts",
+      "tests/fs/real/rmdir.test.ts",
+      "tests/fs/real/stress.test.ts",
+      "tests/fs/real/timestamps.test.ts",
+      "tests/fs/real/traversal-regression.test.ts"
+    ],
+    "started": "2026-08-26T23:59:32.094Z",
+    "ended": "2026-08-26T23:59:34.527Z",
+    "exit": 0,
+    "signal": null,
+    "stdout": "TAP version 13\n# Subtest: raw traversal cannot turn virtual absolute or parent paths into host paths\nok 1 - raw traversal cannot turn virtual absolute or parent paths into host paths\n  ---\n  duration_ms: 7.909917\n  type: 'test'\n  ...\n# Subtest: POSIX names are not URL decoded or interpreted as Windows paths\nok 2 - POSIX names are not URL decoded or interpreted as Windows paths\n  ---\n  duration_ms: 5.549125\n  type: 'test'\n  ...\n# Subtest: all following operations refuse absolute symlink escapes\nok 3 - all following operations refuse absolute symlink escapes\n  ---\n  duration_ms: 9.582667\n  type: 'test'\n  ...\n# Subtest: all following operations refuse relative symlink escapes\nok 4 - all following operations refuse relative symlink escapes\n  ---\n  duration_ms: 6.032292\n  type: 'test'\n  ...\n# Subtest: all following operations refuse nested symlink escapes\nok 5 - all following operations refuse nested symlink escapes\n  ---\n  duration_ms: 8.7965\n  type: 'test'\n  ...\n# Subtest: all following operations refuse absolute-parent symlink escapes\nok 6 - all following operations refuse absolute-parent symlink escapes\n  ---\n  duration_ms: 5.878834\n  type: 'test'\n  ...\n# Subtest: final external symlinks can be inspected, renamed, replaced, and removed without following\nok 7 - final external symlinks can be inspected, renamed, replaced, and removed without following\n  ---\n  duration_ms: 2.99425\n  type: 'test'\n  ...\n# Subtest: recursive removal never follows symlink children to an outside tree\nok 8 - recursive removal never follows symlink children to an outside tree\n  ---\n  duration_ms: 1.772583\n  type: 'test'\n  ...\n# Subtest: dangling external symlinks cannot create files or recursive directories outside\nok 9 - dangling external symlinks cannot create files or recursive directories outside\n  ---\n  duration_ms: 2.126333\n  type: 'test'\n  ...\n# Subtest: symlink creation refuses relative escape, including prefix lookalikes\nok 10 - symlink creation refuses relative escape, including prefix lookalikes\n  ---\n  duration_ms: 2.31875\n  type: 'test'\n  ...\n# Subtest: symlink target dot-dot follows actual directories rather than lexical shortcuts\nok 11 - symlink target dot-dot follows actual directories rather than lexical shortcuts\n  ---\n  duration_ms: 3.557125\n  type: 'test'\n  ...\n# Subtest: self and multi-link cycles produce ELOOP, while lstat and rm do not follow them\nok 12 - self and multi-link cycles produce ELOOP, while lstat and rm do not follow them\n  ---\n  duration_ms: 171.945083\n  type: 'test'\n  ...\n# Subtest: 40 symlink traversals succeed but 41 report ELOOP\nok 13 - 40 symlink traversals succeed but 41 report ELOOP\n  ---\n  duration_ms: 28.538875\n  type: 'test'\n  ...\n# Subtest: all root aliases resist removal and replacement\nok 14 - all root aliases resist removal and replacement\n  ---\n  duration_ms: 3.9625\n  type: 'test'\n  ...\n# Subtest: root aliases pin the initial canonical directory and refuse later canonical-root symlink replacement\nok 15 - root aliases pin the initial canonical directory and refuse later canonical-root symlink replacement\n  ---\n  duration_ms: 2.319541\n  type: 'test'\n  ...\n# Subtest: invalid paths and numeric arguments are rejected without mutation\nok 16 - invalid paths and numeric arguments are rejected without mutation\n  ---\n  duration_ms: 1.92075\n  type: 'test'\n  ...\n# Subtest: special filesystem nodes are rejected instead of pretending to be regular files\nok 17 - special filesystem nodes are rejected instead of pretending to be regular files\n  ---\n  duration_ms: 2.148375\n  type: 'test'\n  ...\n# Subtest: cancellation after rm resolution does not start a mutation\nok 18 - cancellation after rm resolution does not start a mutation\n  ---\n  duration_ms: 6.5375\n  type: 'test'\n  ...\n# Subtest: cancellation after rename source resolution does not start a mutation\nok 19 - cancellation after rename source resolution does not start a mutation\n  ---\n  duration_ms: 3.347625\n  type: 'test'\n  ...\n# Subtest: cancellation after rename destination resolution does not start a mutation\nok 20 - cancellation after rename destination resolution does not start a mutation\n  ---\n  duration_ms: 3.534291\n  type: 'test'\n  ...\n# Subtest: cancellation after copyFile source resolution does not start a mutation\nok 21 - cancellation after copyFile source resolution does not start a mutation\n  ---\n  duration_ms: 2.394917\n  type: 'test'\n  ...\n# Subtest: cancellation after copyFile destination resolution does not start a mutation\nok 22 - cancellation after copyFile destination resolution does not start a mutation\n  ---\n  duration_ms: 3.62625\n  type: 'test'\n  ...\n# Subtest: cancellation after mkdir resolution does not start a mutation\nok 23 - cancellation after mkdir resolution does not start a mutation\n  ---\n  duration_ms: 4.005792\n  type: 'test'\n  ...\n# Subtest: cancellation after symlink resolution does not start a mutation\nok 24 - cancellation after symlink resolution does not start a mutation\n  ---\n  duration_ms: 2.494875\n  type: 'test'\n  ...\n# Subtest: cancellation after link resolution does not start a mutation\nok 25 - cancellation after link resolution does not start a mutation\n  ---\n  duration_ms: 2.902125\n  type: 'test'\n  ...\n# Subtest: cancellation after chmod resolution does not start a mutation\nok 26 - cancellation after chmod resolution does not start a mutation\n  ---\n  duration_ms: 3.476333\n  type: 'test'\n  ...\n# Subtest: cancellation after utimes resolution does not start a mutation\nok 27 - cancellation after utimes resolution does not start a mutation\n  ---\n  duration_ms: 2.331416\n  type: 'test'\n  ...\n# Subtest: cancellation after truncate resolution does not start a mutation\nok 28 - cancellation after truncate resolution does not start a mutation\n  ---\n  duration_ms: 2.235583\n  type: 'test'\n  ...\n# Subtest: cancellation after writeFile resolution does not start a mutation\nok 29 - cancellation after writeFile resolution does not start a mutation\n  ---\n  duration_ms: 2.636625\n  type: 'test'\n  ...\n# Subtest: cancellation after appendFile resolution does not start a mutation\nok 30 - cancellation after appendFile resolution does not start a mutation\n  ---\n  duration_ms: 2.566333\n  type: 'test'\n  ...\n# Subtest: rm checks cancellation after final root verification\nok 31 - rm checks cancellation after final root verification\n  ---\n  duration_ms: 2.961292\n  type: 'test'\n  ...\n# Subtest: rename checks cancellation after final root verification\nok 32 - rename checks cancellation after final root verification\n  ---\n  duration_ms: 2.373542\n  type: 'test'\n  ...\n# Subtest: recursive mkdir checks cancellation after root resolution before creating parents\nok 33 - recursive mkdir checks cancellation after root resolution before creating parents\n  ---\n  duration_ms: 1.149\n  type: 'test'\n  ...\n# Subtest: symlink checks cancellation after target traversal before creation\nok 34 - symlink checks cancellation after target traversal before creation\n  ---\n  duration_ms: 1.302625\n  type: 'test'\n  ...\n# Subtest: cancellation keeps completed stream writes without promising rollback\nok 35 - cancellation keeps completed stream writes without promising rollback\n  ---\n  duration_ms: 1.633917\n  type: 'test'\n  ...\n# Subtest: exports implement the FileSystem contract with an explicitly existing root\nok 36 - exports implement the FileSystem contract with an explicitly existing root\n  ---\n  duration_ms: 5.992292\n  type: 'test'\n  ...\n# Subtest: binary data round-trips without text coercion or shared mutable views\nok 37 - binary data round-trips without text coercion or shared mutable views\n  ---\n  duration_ms: 3.8005\n  type: 'test'\n  ...\n# Subtest: writes replace, append preserves bytes, and exclusive flags never overwrite\nok 38 - writes replace, append preserves bytes, and exclusive flags never overwrite\n  ---\n  duration_ms: 6.368166\n  type: 'test'\n  ...\n# Subtest: empty writes and truncate shrink, extend with zeroes, and default to zero\nok 39 - empty writes and truncate shrink, extend with zeroes, and default to zero\n  ---\n  duration_ms: 4.592041\n  type: 'test'\n  ...\n# Subtest: directories support recursive creation, typed entries, and removal\nok 40 - directories support recursive creation, typed entries, and removal\n  ---\n  duration_ms: 11.041375\n  type: 'test'\n  ...\n# Subtest: stat metadata exposes host identity, mode, size, and millisecond times\nok 41 - stat metadata exposes host identity, mode, size, and millisecond times\n  ---\n  duration_ms: 3.813459\n  type: 'test'\n  ...\n# Subtest: copy and rename overwrite files and preserve directory trees\nok 42 - copy and rename overwrite files and preserve directory trees\n  ---\n  duration_ms: 7.933458\n  type: 'test'\n  ...\n# Subtest: relative and absolute symlinks have virtual readlink and realpath semantics\nok 43 - relative and absolute symlinks have virtual readlink and realpath semantics\n  ---\n  duration_ms: 5.034834\n  type: 'test'\n  ...\n# Subtest: dangling links are inspectable and ordinary writes create their in-root targets\nok 44 - dangling links are inspectable and ordinary writes create their in-root targets\n  ---\n  duration_ms: 3.226042\n  type: 'test'\n  ...\n# Subtest: copy follows symlinks while exclusive copy and rename operate on destination entries\nok 45 - copy follows symlinks while exclusive copy and rename operate on destination entries\n  ---\n  duration_ms: 5.296417\n  type: 'test'\n  ...\n# Subtest: hardlinks share inode and data, and removing one preserves the other\nok 46 - hardlinks share inode and data, and removing one preserves the other\n  ---\n  duration_ms: 5.149375\n  type: 'test'\n  ...\n# Subtest: common type errors use contract FsError with virtual paths and errno\nok 47 - common type errors use contract FsError with virtual paths and errno\n  ---\n  duration_ms: 4.199042\n  type: 'test'\n  ...\n# Subtest: bounded reads enforce exact byte limits including an empty file\nok 48 - bounded reads enforce exact byte limits including an empty file\n  ---\n  duration_ms: 3.865584\n  type: 'test'\n  ...\n# Subtest: byte streams honor offsets, chunk size, end-exclusive limits, and early return\nok 49 - byte streams honor offsets, chunk size, end-exclusive limits, and early return\n  ---\n  duration_ms: 5.395209\n  type: 'test'\n  ...\n# Subtest: stream failure closes files and preserves explicitly documented partial writes\nok 50 - stream failure closes files and preserves explicitly documented partial writes\n  ---\n  duration_ms: 2.688\n  type: 'test'\n  ...\n# Subtest: cancellation preserves the abort reason and stops a streaming write\nok 51 - cancellation preserves the abort reason and stops a streaming write\n  ---\n  duration_ms: 3.196125\n  type: 'test'\n  ...\n# Subtest: native copy rejects same-path, exclusive=false, before mutation\nok 52 - native copy rejects same-path, exclusive=false, before mutation\n  ---\n  duration_ms: 7.0645\n  type: 'test'\n  ...\n# Subtest: native copy rejects same-path, exclusive=true, before mutation\nok 53 - native copy rejects same-path, exclusive=true, before mutation\n  ---\n  duration_ms: 3.871375\n  type: 'test'\n  ...\n# Subtest: native copy rejects hardlink, exclusive=false, before mutation\nok 54 - native copy rejects hardlink, exclusive=false, before mutation\n  ---\n  duration_ms: 5.022083\n  type: 'test'\n  ...\n# Subtest: native copy rejects hardlink, exclusive=true, before mutation\nok 55 - native copy rejects hardlink, exclusive=true, before mutation\n  ---\n  duration_ms: 5.581083\n  type: 'test'\n  ...\n# Subtest: native copy rejects symlink, exclusive=false, before mutation\nok 56 - native copy rejects symlink, exclusive=false, before mutation\n  ---\n  duration_ms: 6.317625\n  type: 'test'\n  ...\n# Subtest: native copy rejects symlink, exclusive=true, before mutation\nok 57 - native copy rejects symlink, exclusive=true, before mutation\n  ---\n  duration_ms: 3.950792\n  type: 'test'\n  ...\n# Subtest: native identity guard keeps distinct overwrites and exclusive creation supported\nok 58 - native identity guard keeps distinct overwrites and exclusive creation supported\n  ---\n  duration_ms: 4.953417\n  type: 'test'\n  ...\n# Subtest: real rmdir removes empty directories and preserves rm semantics\nok 59 - real rmdir removes empty directories and preserves rm semantics\n  ---\n  duration_ms: 6.820125\n  type: 'test'\n  ...\n# Subtest: real rmdir /missing reports ENOENT with its exact virtual operand\nok 60 - real rmdir /missing reports ENOENT with its exact virtual operand\n  ---\n  duration_ms: 7.832375\n  type: 'test'\n  ...\n# Subtest: real rmdir /file reports ENOTDIR with its exact virtual operand\nok 61 - real rmdir /file reports ENOTDIR with its exact virtual operand\n  ---\n  duration_ms: 6.090542\n  type: 'test'\n  ...\n# Subtest: real rmdir /link reports ENOTDIR with its exact virtual operand\nok 62 - real rmdir /link reports ENOTDIR with its exact virtual operand\n  ---\n  duration_ms: 4.848833\n  type: 'test'\n  ...\n# Subtest: real rmdir /link/ reports ENOTDIR with its exact virtual operand\nok 63 - real rmdir /link/ reports ENOTDIR with its exact virtual operand\n  ---\n  duration_ms: 6.598125\n  type: 'test'\n  ...\n# Subtest: real rmdir /tree reports ENOTEMPTY with its exact virtual operand\nok 64 - real rmdir /tree reports ENOTEMPTY with its exact virtual operand\n  ---\n  duration_ms: 5.788375\n  type: 'test'\n  ...\n# Subtest: real rmdir / reports EBUSY with its exact virtual operand\nok 65 - real rmdir / reports EBUSY with its exact virtual operand\n  ---\n  duration_ms: 5.723709\n  type: 'test'\n  ...\n# Subtest: real rmdir /empty/. reports EINVAL with its exact virtual operand\nok 66 - real rmdir /empty/. reports EINVAL with its exact virtual operand\n  ---\n  duration_ms: 5.237292\n  type: 'test'\n  ...\n# Subtest: real rmdir preserves a child inserted immediately before the native deletion\nok 67 - real rmdir preserves a child inserted immediately before the native deletion\n  ---\n  duration_ms: 4.051042\n  type: 'test'\n  ...\n# Subtest: real rmdir preserves a directory replaced with a symlink just before native deletion\nok 68 - real rmdir preserves a directory replaced with a symlink just before native deletion\n  ---\n  duration_ms: 4.100416\n  type: 'test'\n  ...\n# Subtest: real rmdir observes pre-aborted cancellation without removing its directory\nok 69 - real rmdir observes pre-aborted cancellation without removing its directory\n  ---\n  duration_ms: 2.564875\n  type: 'test'\n  ...\n# Subtest: 400 deterministic mixed operations agree with an independent native filesystem\nok 70 - 400 deterministic mixed operations agree with an independent native filesystem\n  ---\n  duration_ms: 118.536333\n  type: 'test'\n  ...\n# Subtest: concurrent independent writes, appends, reads, and renames preserve all data\nok 71 - concurrent independent writes, appends, reads, and renames preserve all data\n  ---\n  duration_ms: 30.881833\n  type: 'test'\n  ...\n# Subtest: exclusive concurrent creation has exactly one winner\nok 72 - exclusive concurrent creation has exactly one winner\n  ---\n  duration_ms: 4.074791\n  type: 'test'\n  ...\n# Subtest: multi-megabyte streaming and bounded rejection leave subsequent access usable\nok 73 - multi-megabyte streaming and bounded rejection leave subsequent access usable\n  ---\n  duration_ms: 18.314417\n  type: 'test'\n  ...\n# Subtest: utimes forwards exact historical millisecond Dates to the native host\nok 74 - utimes forwards exact historical millisecond Dates to the native host\n  ---\n  duration_ms: 6.985792\n  type: 'test'\n  ...\n# HISTORICAL ATIME OBSERVATION: requested=10000 observed=10000; forwarding is asserted, host atime persistence is not\n# HISTORICAL ATIME OBSERVATION: requested=1600000000125 observed=1600000000125; forwarding is asserted, host atime persistence is not\n# Subtest: verifier: operation paths follow a symlink before dot-dot for reads and writes\nok 75 - verifier: operation paths follow a symlink before dot-dot for reads and writes\n  ---\n  duration_ms: 13.747334\n  type: 'test'\n  ...\n# Subtest: verifier: dot, dot-dot, and trailing slash require traversable existing prefixes\nok 76 - verifier: dot, dot-dot, and trailing slash require traversable existing prefixes\n  ---\n  duration_ms: 5.864208\n  type: 'test'\n  ...\n# Subtest: verifier: trailing slash never lets rm delete a regular file\nok 77 - verifier: trailing slash never lets rm delete a regular file\n  ---\n  duration_ms: 5.974334\n  type: 'test'\n  ...\n# Subtest: verifier: empty paths reject instead of silently referring to the root\nok 78 - verifier: empty paths reject instead of silently referring to the root\n  ---\n  duration_ms: 4.7615\n  type: 'test'\n  ...\n# Subtest: verifier: destructive terminal . operands preserve directories and content\nok 79 - verifier: destructive terminal . operands preserve directories and content\n  ---\n  duration_ms: 6.616458\n  type: 'test'\n  ...\n# Subtest: verifier: destructive terminal ./ operands preserve directories and content\nok 80 - verifier: destructive terminal ./ operands preserve directories and content\n  ---\n  duration_ms: 6.102208\n  type: 'test'\n  ...\n# Subtest: verifier: destructive terminal ././ operands preserve directories and content\nok 81 - verifier: destructive terminal ././ operands preserve directories and content\n  ---\n  duration_ms: 4.2175\n  type: 'test'\n  ...\n# Subtest: verifier: destructive terminal child/.. operands preserve directories and content\nok 82 - verifier: destructive terminal child/.. operands preserve directories and content\n  ---\n  duration_ms: 5.672041\n  type: 'test'\n  ...\n# Subtest: verifier: destructive terminal child/..// operands preserve directories and content\nok 83 - verifier: destructive terminal child/..// operands preserve directories and content\n  ---\n  duration_ms: 4.236709\n  type: 'test'\n  ...\n# Subtest: invalid prefixes retain their errno before destructive terminal validation\nok 84 - invalid prefixes retain their errno before destructive terminal validation\n  ---\n  duration_ms: 3.492375\n  type: 'test'\n  ...\n# Subtest: verifier: absolute symlink targets retain their raw components and resolve before dot-dot\nok 85 - verifier: absolute symlink targets retain their raw components and resolve before dot-dot\n  ---\n  duration_ms: 6.024375\n  type: 'test'\n  ...\n# Subtest: verifier: safe nontraversable symlink targets can be created without resolving them\nok 86 - verifier: safe nontraversable symlink targets can be created without resolving them\n  ---\n  duration_ms: 51.756917\n  type: 'test'\n  ...\n# Subtest: verifier: missing trailing-slash destinations accept directories but never files\nok 87 - verifier: missing trailing-slash destinations accept directories but never files\n  ---\n  duration_ms: 7.4925\n  type: 'test'\n  ...\n# Subtest: trailing directory requirements follow final symlinks, unlike ordinary lstat and rm\nok 88 - trailing directory requirements follow final symlinks, unlike ordinary lstat and rm\n  ---\n  duration_ms: 4.571\n  type: 'test'\n  ...\n# Subtest: recursive mkdir creates the prefixes actually traversed before dot-dot\nok 89 - recursive mkdir creates the prefixes actually traversed before dot-dot\n  ---\n  duration_ms: 3.037209\n  type: 'test'\n  ...\n# Subtest: configured root resolution preserves symlink-before-dot-dot semantics\nok 90 - configured root resolution preserves symlink-before-dot-dot semantics\n  ---\n  duration_ms: 2.510708\n  type: 'test'\n  ...\n# Subtest: verifier: public errors omit native host paths throughout inspection and cause chains\nok 91 - verifier: public errors omit native host paths throughout inspection and cause chains\n  ---\n  duration_ms: 8.0025\n  type: 'test'\n  ...\n# Subtest: 140 raw-path read operations match an independently populated native tree\nok 92 - 140 raw-path read operations match an independently populated native tree\n  ---\n  duration_ms: 183.226583\n  type: 'test'\n  ...\n# Subtest: dot-dot never cancels an external symlink before containment checks\nok 93 - dot-dot never cancels an external symlink before containment checks\n  ---\n  duration_ms: 3.449\n  type: 'test'\n  ...\n# Subtest: 80 raw-path mutations match native outcomes and complete tree snapshots\nok 94 - 80 raw-path mutations match native outcomes and complete tree snapshots\n  ---\n  duration_ms: 432.690333\n  type: 'test'\n  ...\n1..94\n# tests 94\n# suites 0\n# pass 94\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 2402.900875\n",
+    "stderr": "",
+    "summary": {
+      "tests": 94,
+      "pass": 94,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    }
+  },
+  "types": {
+    "name": "seven-fs-noEmit",
+    "argv": [
+      "node_modules/typescript/bin/tsc",
+      "--noEmit",
+      "-p",
+      "tests/fs/mount-identity-review/closure-seven-fs-tsconfig.json"
+    ],
+    "started": "2026-08-26T23:59:34.527Z",
+    "ended": "2026-08-26T23:59:36.651Z",
+    "exit": 0,
+    "signal": null,
+    "stdout": "",
+    "stderr": "",
+    "summary": {
+      "tests": null,
+      "pass": null,
+      "fail": null,
+      "cancelled": null,
+      "skipped": null,
+      "todo": null
+    }
+  },
+  "sourceHashesStable": true,
+  "realFixtureHashes": [
+    {
+      "path": "tests/fs/real/adversarial.test.ts",
+      "blob": "9883b7a29ba920897696531f17a58c2c1b7885e4",
+      "sha256": "a04ce637795b184e7ac636d137579e87ee11a4c1bd937a0cf918ce23be8b55b0"
+    },
+    {
+      "path": "tests/fs/real/cancellation-regression.test.ts",
+      "blob": "353231b7e7828052a3a904f61173ebd6744458db",
+      "sha256": "5188309877fa0ca8fa5179a484de6974386f5aa9679b6a4426228716ba695dbb"
+    },
+    {
+      "path": "tests/fs/real/conformance.test.ts",
+      "blob": "496845452c6bad81adc15171568a2c51c039902d",
+      "sha256": "48a9587cc2483c0924b176ca1ec3fedd5fdf417a96f898f5ab9e4200316a468c"
+    },
+    {
+      "path": "tests/fs/real/copy-identity.test.ts",
+      "blob": "596685c40777a44818c13d093fdee59ab1520d53",
+      "sha256": "d039f18ffa080d86ac22156aae1df11bca0fb45561590e32fed88b6c0811513d"
+    },
+    {
+      "path": "tests/fs/real/helpers.ts",
+      "blob": "977f1013153ccf7edb3cf96c9009bfebe929114b",
+      "sha256": "7e796cabc885da663b37b67aa71b1b6e669fc7497ef2d25283db3a593c0149e2"
+    },
+    {
+      "path": "tests/fs/real/rmdir.test.ts",
+      "blob": "c309b970afa116d5ee912e0f358b6922ce837819",
+      "sha256": "962d3fadc307a257d82730a6c4e8710c2c8498abdb1b17b65ca0c780280dd8f8"
+    },
+    {
+      "path": "tests/fs/real/stress.test.ts",
+      "blob": "83f1ea9ecda9e7ab2f09ef48be9da0ad2c7620e0",
+      "sha256": "757309b5e32c607955dcb43d7f6948760385f82a96c9e5caad2a003e7b198e7e"
+    },
+    {
+      "path": "tests/fs/real/timestamps.test.ts",
+      "blob": "1282a3b21dd834304fad28b9061a9abbb2518c45",
+      "sha256": "1805d914017e8a26e91ddd5ac809feaf0ec92a9c78ab8f180453e7a9eb960fdc"
+    },
+    {
+      "path": "tests/fs/real/traversal-regression.test.ts",
+      "blob": "1757828b0425c548fb456b986a3fce1a1279bb3e",
+      "sha256": "c283c7dc39019ef030790040e089fa90dac0bdc74d3843c05f92af5c656901fa"
+    }
+  ],
+  "newConfigSha256": "d3413f9d6df8c3d1489b97177f8fe4ba2049effeaf0f382405ac09bcb2eac062",
+  "independentHashes": [
+    {
+      "name": "identity-review.test.ts",
+      "sha256": "2bc38df054648975d1c66e7a445c6efcb761b69802b57ade24ff736737837845"
+    },
+    {
+      "name": "native-review.test.ts",
+      "sha256": "d89eef71b1430a91fb8af3ecccae930bf40e3558d785579f9777419f4c4d3065"
+    },
+    {
+      "name": "contract-edges.test.ts",
+      "sha256": "0b21a6e8a5a0d481ad91a35c7b12301da5aa7c39c1addd4c602ca392cfd6c71f"
+    },
+    {
+      "name": "tsconfig.json",
+      "sha256": "acc4aeeed2da6c84e9516678b995c718d5c87d6a5cf1bdf99484ea1223ee7743"
+    },
+    {
+      "name": "native-tsconfig.json",
+      "sha256": "04ece0f51ebae76712457f09f2ccebe022e8dabc757e8926fe6b15775ee15990"
+    },
+    {
+      "name": "closure-fs-tsconfig.json",
+      "sha256": "46e1dbdeac1db64bacccbca4135393158b64b30facf965b952a51215e1a6eb6a"
+    },
+    {
+      "name": "closure-capture.mjs",
+      "sha256": "7e14c3b3a892d67246d7db84010b530cdd1ace6fefc1929b99ebf3c88bdbc377"
+    },
+    {
+      "name": "closure-seven-fs-tsconfig.json",
+      "sha256": "d3413f9d6df8c3d1489b97177f8fe4ba2049effeaf0f382405ac09bcb2eac062"
+    }
+  ],
+  "newNativeFixtureEntriesAfterRun": []
+}

@@ -1,0 +1,5282 @@
+{
+  "name": "restored-independent-and-edges",
+  "revision": "4fa4ba9502dac843bd13aa5031d128a3171f597d",
+  "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "argv": [
+    "--unhandled-rejections=strict",
+    "--import",
+    "tsx",
+    "--test",
+    "--test-concurrency=1",
+    "tests/fs/mount-identity-review/identity-review.test.ts",
+    "tests/fs/mount-identity-review/contract-edges.test.ts"
+  ],
+  "started": "2026-08-26T23:57:10.992Z",
+  "ended": "2026-08-26T23:57:11.302Z",
+  "exit": 0,
+  "signal": null,
+  "stdout": "TAP version 13\n# Subtest: unknown identity: missing scope rejects before acquisition in both directions\nok 1 - unknown identity: missing scope rejects before acquisition in both directions\n  ---\n  duration_ms: 2.019834\n  type: 'test'\n  ...\n# Subtest: unknown identity: null scope rejects before acquisition in both directions\nok 2 - unknown identity: null scope rejects before acquisition in both directions\n  ---\n  duration_ms: 0.469459\n  type: 'test'\n  ...\n# Subtest: unknown identity: string scope rejects before acquisition in both directions\nok 3 - unknown identity: string scope rejects before acquisition in both directions\n  ---\n  duration_ms: 0.466375\n  type: 'test'\n  ...\n# Subtest: unknown identity: function scope rejects before acquisition in both directions\nok 4 - unknown identity: function scope rejects before acquisition in both directions\n  ---\n  duration_ms: 0.58725\n  type: 'test'\n  ...\n# Subtest: unknown identity: negative device rejects before acquisition in both directions\nok 5 - unknown identity: negative device rejects before acquisition in both directions\n  ---\n  duration_ms: 0.428292\n  type: 'test'\n  ...\n# Subtest: unknown identity: negative inode rejects before acquisition in both directions\nok 6 - unknown identity: negative inode rejects before acquisition in both directions\n  ---\n  duration_ms: 0.234958\n  type: 'test'\n  ...\n# Subtest: unknown identity: unsafe inode rejects before acquisition in both directions\nok 7 - unknown identity: unsafe inode rejects before acquisition in both directions\n  ---\n  duration_ms: 0.291042\n  type: 'test'\n  ...\n# Subtest: unknown identity: nonfinite device rejects before acquisition in both directions\nok 8 - unknown identity: nonfinite device rejects before acquisition in both directions\n  ---\n  duration_ms: 0.382\n  type: 'test'\n  ...\n# Subtest: unknown identity: missing inode rejects before acquisition in both directions\nok 9 - unknown identity: missing inode rejects before acquisition in both directions\n  ---\n  duration_ms: 0.768083\n  type: 'test'\n  ...\n# Subtest: truthful disjoint object scopes permit synthetic coordinate collisions without coercion\nok 10 - truthful disjoint object scopes permit synthetic coordinate collisions without coercion\n  ---\n  duration_ms: 0.542542\n  type: 'test'\n  ...\n# Subtest: prototype scope getter survives readonly and nested mount without premature source acquisition\nok 11 - prototype scope getter survives readonly and nested mount without premature source acquisition\n  ---\n  duration_ms: 0.482083\n  type: 'test'\n  ...\n# Subtest: overlay copy-up replaces exposed backing identity and permits a truly distinct subsequent copy\nok 12 - overlay copy-up replaces exposed backing identity and permits a truly distinct subsequent copy\n  ---\n  duration_ms: 1.924458\n  type: 'test'\n  ...\n# Subtest: new repeated-backend constructor input retains hardlink protection and rejects duplicate mount paths\nok 13 - new repeated-backend constructor input retains hardlink protection and rejects duplicate mount paths\n  ---\n  duration_ms: 0.425916\n  type: 'test'\n  ...\n# Subtest: default missing-target alias race uses exclusive creation, streaming=true\nok 14 - default missing-target alias race uses exclusive creation, streaming=true\n  ---\n  duration_ms: 0.212084\n  type: 'test'\n  ...\n# Subtest: default missing-target alias race uses exclusive creation, streaming=false\nok 15 - default missing-target alias race uses exclusive creation, streaming=false\n  ---\n  duration_ms: 0.187875\n  type: 'test'\n  ...\n# Subtest: ENOENT-shaped cancellation during target lookup is not missing-file permission, overlay=false\nok 16 - ENOENT-shaped cancellation during target lookup is not missing-file permission, overlay=false\n  ---\n  duration_ms: 0.234125\n  type: 'test'\n  ...\n# Subtest: ENOENT-shaped cancellation during target lookup is not missing-file permission, overlay=true\nok 17 - ENOENT-shaped cancellation during target lookup is not missing-file permission, overlay=true\n  ---\n  duration_ms: 0.254209\n  type: 'test'\n  ...\n# Subtest: unknown same-mount identity cannot delegate to an arbitrary destructive copyFile method\nok 18 - unknown same-mount identity cannot delegate to an arbitrary destructive copyFile method\n  ---\n  duration_ms: 0.174833\n  type: 'test'\n  ...\n# Subtest: real same-path across same-root instances\nok 19 - real same-path across same-root instances\n  ---\n  duration_ms: 7.845292\n  type: 'test'\n  ...\n# Subtest: real hardlink across same-root instances\nok 20 - real hardlink across same-root instances\n  ---\n  duration_ms: 6.155125\n  type: 'test'\n  ...\n# Subtest: real symlink across same-root instances\nok 21 - real symlink across same-root instances\n  ---\n  duration_ms: 5.023542\n  type: 'test'\n  ...\n# Subtest: nested mounts retain real same-path identity\nok 22 - nested mounts retain real same-path identity\n  ---\n  duration_ms: 3.613625\n  type: 'test'\n  ...\n# Subtest: readonly over nested mount retains real hardlink identity\nok 23 - readonly over nested mount retains real hardlink identity\n  ---\n  duration_ms: 4.473916\n  type: 'test'\n  ...\n# Subtest: overlay lower read aliases direct real destination\nok 24 - overlay lower read aliases direct real destination\n  ---\n  duration_ms: 3.132416\n  type: 'test'\n  ...\n# Subtest: overlay upper read aliases direct real symlink destination\nok 25 - overlay upper read aliases direct real symlink destination\n  ---\n  duration_ms: 6.333166\n  type: 'test'\n  ...\n# Subtest: memory shared backend same-path alias\nok 26 - memory shared backend same-path alias\n  ---\n  duration_ms: 0.318416\n  type: 'test'\n  ...\n# Subtest: memory shared backend nested hardlink alias\nok 27 - memory shared backend nested hardlink alias\n  ---\n  duration_ms: 0.260584\n  type: 'test'\n  ...\n# Subtest: distinct synthetic dev/ino collisions still perform the copy\nok 28 - distinct synthetic dev/ino collisions still perform the copy\n  ---\n  duration_ms: 0.526041\n  type: 'test'\n  ...\n# Subtest: equal-content real files are not samefile or a no-op\nok 29 - equal-content real files are not samefile or a no-op\n  ---\n  duration_ms: 4.326125\n  type: 'test'\n  ...\n# Subtest: distinct real roots with identical local pathname remain copyable\nok 30 - distinct real roots with identical local pathname remain copyable\n  ---\n  duration_ms: 4.159667\n  type: 'test'\n  ...\n# Subtest: exclusive real alias rejects EEXIST before either stream\nok 31 - exclusive real alias rejects EEXIST before either stream\n  ---\n  duration_ms: 4.581\n  type: 'test'\n  ...\n# Subtest: readonly destination rejects EROFS before either stream\nok 32 - readonly destination rejects EROFS before either stream\n  ---\n  duration_ms: 3.312791\n  type: 'test'\n  ...\n# Subtest: exclusive target created during stream acquisition is preserved\nok 33 - exclusive target created during stream acquisition is preserved\n  ---\n  duration_ms: 5.286959\n  type: 'test'\n  ...\n# Subtest: synchronous source acquisition failure preserves real destination\nok 34 - synchronous source acquisition failure preserves real destination\n  ---\n  duration_ms: 4.45975\n  type: 'test'\n  ...\n# Subtest: overlay destination preserves namespace on source-failure\nok 35 - overlay destination preserves namespace on source-failure\n  ---\n  duration_ms: 2.997583\n  type: 'test'\n  ...\n# Subtest: overlay destination preserves namespace on publication-failure\nok 36 - overlay destination preserves namespace on publication-failure\n  ---\n  duration_ms: 2.994375\n  type: 'test'\n  ...\n# Subtest: overlay destination preserves namespace on exclusive-race\nok 37 - overlay destination preserves namespace on exclusive-race\n  ---\n  duration_ms: 2.828958\n  type: 'test'\n  ...\n1..37\n# tests 37\n# suites 0\n# pass 37\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 282.063208\n",
+  "stderr": "",
+  "summary": {
+    "tests": 37,
+    "pass": 37,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "failures": [],
+  "observations": {
+    "MOUNT_IDENTITY_REVIEW_EVIDENCE": [
+      {
+        "name": "real same-path across same-root instances",
+        "source": "/left/file",
+        "destination": "/right/file",
+        "options": {
+          "exclusive": false
+        },
+        "before": {
+          "left": {
+            "/": {
+              "type": "directory",
+              "mode": 16832,
+              "dev": 16777232,
+              "ino": 169815370,
+              "nlink": 3
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33188,
+              "size": 30,
+              "dev": 16777232,
+              "ino": 169815371,
+              "nlink": 1,
+              "base64": "aW5kZXBlbmRlbnQgYWxpYXMgc2VudGluZWwKAP8K",
+              "sha256": "788202b75b5920364e178ec35710dd21b110f6a7e8f931939da0a7c6474d8aa9"
+            }
+          },
+          "right": {
+            "/": {
+              "type": "directory",
+              "mode": 16832,
+              "dev": 16777232,
+              "ino": 169815370,
+              "nlink": 3
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33188,
+              "size": 30,
+              "dev": 16777232,
+              "ino": 169815371,
+              "nlink": 1,
+              "base64": "aW5kZXBlbmRlbnQgYWxpYXMgc2VudGluZWwKAP8K",
+              "sha256": "788202b75b5920364e178ec35710dd21b110f6a7e8f931939da0a7c6474d8aa9"
+            }
+          }
+        },
+        "after": {
+          "left": {
+            "/": {
+              "type": "directory",
+              "mode": 16832,
+              "dev": 16777232,
+              "ino": 169815370,
+              "nlink": 3
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33188,
+              "size": 30,
+              "dev": 16777232,
+              "ino": 169815371,
+              "nlink": 1,
+              "base64": "aW5kZXBlbmRlbnQgYWxpYXMgc2VudGluZWwKAP8K",
+              "sha256": "788202b75b5920364e178ec35710dd21b110f6a7e8f931939da0a7c6474d8aa9"
+            }
+          },
+          "right": {
+            "/": {
+              "type": "directory",
+              "mode": 16832,
+              "dev": 16777232,
+              "ino": 169815370,
+              "nlink": 3
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33188,
+              "size": 30,
+              "dev": 16777232,
+              "ino": 169815371,
+              "nlink": 1,
+              "base64": "aW5kZXBlbmRlbnQgYWxpYXMgc2VudGluZWwKAP8K",
+              "sha256": "788202b75b5920364e178ec35710dd21b110f6a7e8f931939da0a7c6474d8aa9"
+            }
+          }
+        },
+        "failure": {
+          "name": "FsError",
+          "code": "EINVAL",
+          "syscall": "copyFile",
+          "path": "/left/file",
+          "dest": "/right/file"
+        },
+        "events": []
+      },
+      {
+        "name": "real hardlink across same-root instances",
+        "source": "/left/file",
+        "destination": "/right/alias",
+        "options": {
+          "exclusive": false
+        },
+        "before": {
+          "left": {
+            "/": {
+              "type": "directory",
+              "mode": 16832,
+              "dev": 16777232,
+              "ino": 169815372,
+              "nlink": 4
+            },
+            "/alias": {
+              "type": "file",
+              "mode": 33188,
+              "size": 30,
+              "dev": 16777232,
+              "ino": 169815373,
+              "nlink": 2,
+              "base64": "aW5kZXBlbmRlbnQgYWxpYXMgc2VudGluZWwKAP8K",
+              "sha256": "788202b75b5920364e178ec35710dd21b110f6a7e8f931939da0a7c6474d8aa9"
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33188,
+              "size": 30,
+              "dev": 16777232,
+              "ino": 169815373,
+              "nlink": 2,
+              "base64": "aW5kZXBlbmRlbnQgYWxpYXMgc2VudGluZWwKAP8K",
+              "sha256": "788202b75b5920364e178ec35710dd21b110f6a7e8f931939da0a7c6474d8aa9"
+            }
+          },
+          "right": {
+            "/": {
+              "type": "directory",
+              "mode": 16832,
+              "dev": 16777232,
+              "ino": 169815372,
+              "nlink": 4
+            },
+            "/alias": {
+              "type": "file",
+              "mode": 33188,
+              "size": 30,
+              "dev": 16777232,
+              "ino": 169815373,
+              "nlink": 2,
+              "base64": "aW5kZXBlbmRlbnQgYWxpYXMgc2VudGluZWwKAP8K",
+              "sha256": "788202b75b5920364e178ec35710dd21b110f6a7e8f931939da0a7c6474d8aa9"
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33188,
+              "size": 30,
+              "dev": 16777232,
+              "ino": 169815373,
+              "nlink": 2,
+              "base64": "aW5kZXBlbmRlbnQgYWxpYXMgc2VudGluZWwKAP8K",
+              "sha256": "788202b75b5920364e178ec35710dd21b110f6a7e8f931939da0a7c6474d8aa9"
+            }
+          }
+        },
+        "after": {
+          "left": {
+            "/": {
+              "type": "directory",
+              "mode": 16832,
+              "dev": 16777232,
+              "ino": 169815372,
+              "nlink": 4
+            },
+            "/alias": {
+              "type": "file",
+              "mode": 33188,
+              "size": 30,
+              "dev": 16777232,
+              "ino": 169815373,
+              "nlink": 2,
+              "base64": "aW5kZXBlbmRlbnQgYWxpYXMgc2VudGluZWwKAP8K",
+              "sha256": "788202b75b5920364e178ec35710dd21b110f6a7e8f931939da0a7c6474d8aa9"
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33188,
+              "size": 30,
+              "dev": 16777232,
+              "ino": 169815373,
+              "nlink": 2,
+              "base64": "aW5kZXBlbmRlbnQgYWxpYXMgc2VudGluZWwKAP8K",
+              "sha256": "788202b75b5920364e178ec35710dd21b110f6a7e8f931939da0a7c6474d8aa9"
+            }
+          },
+          "right": {
+            "/": {
+              "type": "directory",
+              "mode": 16832,
+              "dev": 16777232,
+              "ino": 169815372,
+              "nlink": 4
+            },
+            "/alias": {
+              "type": "file",
+              "mode": 33188,
+              "size": 30,
+              "dev": 16777232,
+              "ino": 169815373,
+              "nlink": 2,
+              "base64": "aW5kZXBlbmRlbnQgYWxpYXMgc2VudGluZWwKAP8K",
+              "sha256": "788202b75b5920364e178ec35710dd21b110f6a7e8f931939da0a7c6474d8aa9"
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33188,
+              "size": 30,
+              "dev": 16777232,
+              "ino": 169815373,
+              "nlink": 2,
+              "base64": "aW5kZXBlbmRlbnQgYWxpYXMgc2VudGluZWwKAP8K",
+              "sha256": "788202b75b5920364e178ec35710dd21b110f6a7e8f931939da0a7c6474d8aa9"
+            }
+          }
+        },
+        "failure": {
+          "name": "FsError",
+          "code": "EINVAL",
+          "syscall": "copyFile",
+          "path": "/left/file",
+          "dest": "/right/alias"
+        },
+        "events": []
+      },
+      {
+        "name": "real symlink across same-root instances",
+        "source": "/left/file",
+        "destination": "/right/alias",
+        "options": {
+          "exclusive": false
+        },
+        "before": {
+          "left": {
+            "/": {
+              "type": "directory",
+              "mode": 16832,
+              "dev": 16777232,
+              "ino": 169815376,
+              "nlink": 4
+            },
+            "/alias": {
+              "type": "symlink",
+              "mode": 41453,
+              "size": 146,
+              "dev": 16777232,
+              "ino": 169815378,
+              "nlink": 1,
+              "target": "/file"
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33188,
+              "size": 30,
+              "dev": 16777232,
+              "ino": 169815377,
+              "nlink": 1,
+              "base64": "aW5kZXBlbmRlbnQgYWxpYXMgc2VudGluZWwKAP8K",
+              "sha256": "788202b75b5920364e178ec35710dd21b110f6a7e8f931939da0a7c6474d8aa9"
+            }
+          },
+          "right": {
+            "/": {
+              "type": "directory",
+              "mode": 16832,
+              "dev": 16777232,
+              "ino": 169815376,
+              "nlink": 4
+            },
+            "/alias": {
+              "type": "symlink",
+              "mode": 41453,
+              "size": 146,
+              "dev": 16777232,
+              "ino": 169815378,
+              "nlink": 1,
+              "target": "/file"
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33188,
+              "size": 30,
+              "dev": 16777232,
+              "ino": 169815377,
+              "nlink": 1,
+              "base64": "aW5kZXBlbmRlbnQgYWxpYXMgc2VudGluZWwKAP8K",
+              "sha256": "788202b75b5920364e178ec35710dd21b110f6a7e8f931939da0a7c6474d8aa9"
+            }
+          }
+        },
+        "after": {
+          "left": {
+            "/": {
+              "type": "directory",
+              "mode": 16832,
+              "dev": 16777232,
+              "ino": 169815376,
+              "nlink": 4
+            },
+            "/alias": {
+              "type": "symlink",
+              "mode": 41453,
+              "size": 146,
+              "dev": 16777232,
+              "ino": 169815378,
+              "nlink": 1,
+              "target": "/file"
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33188,
+              "size": 30,
+              "dev": 16777232,
+              "ino": 169815377,
+              "nlink": 1,
+              "base64": "aW5kZXBlbmRlbnQgYWxpYXMgc2VudGluZWwKAP8K",
+              "sha256": "788202b75b5920364e178ec35710dd21b110f6a7e8f931939da0a7c6474d8aa9"
+            }
+          },
+          "right": {
+            "/": {
+              "type": "directory",
+              "mode": 16832,
+              "dev": 16777232,
+              "ino": 169815376,
+              "nlink": 4
+            },
+            "/alias": {
+              "type": "symlink",
+              "mode": 41453,
+              "size": 146,
+              "dev": 16777232,
+              "ino": 169815378,
+              "nlink": 1,
+              "target": "/file"
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33188,
+              "size": 30,
+              "dev": 16777232,
+              "ino": 169815377,
+              "nlink": 1,
+              "base64": "aW5kZXBlbmRlbnQgYWxpYXMgc2VudGluZWwKAP8K",
+              "sha256": "788202b75b5920364e178ec35710dd21b110f6a7e8f931939da0a7c6474d8aa9"
+            }
+          }
+        },
+        "failure": {
+          "name": "FsError",
+          "code": "EINVAL",
+          "syscall": "copyFile",
+          "path": "/left/file",
+          "dest": "/right/alias"
+        },
+        "events": []
+      },
+      {
+        "name": "nested mounts retain real same-path identity",
+        "source": "/left/inner/file",
+        "destination": "/right/file",
+        "options": {
+          "exclusive": false
+        },
+        "before": {
+          "left": {
+            "/": {
+              "type": "directory",
+              "mode": 16832,
+              "dev": 16777232,
+              "ino": 169815379,
+              "nlink": 3
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33188,
+              "size": 30,
+              "dev": 16777232,
+              "ino": 169815380,
+              "nlink": 1,
+              "base64": "aW5kZXBlbmRlbnQgYWxpYXMgc2VudGluZWwKAP8K",
+              "sha256": "788202b75b5920364e178ec35710dd21b110f6a7e8f931939da0a7c6474d8aa9"
+            }
+          },
+          "right": {
+            "/": {
+              "type": "directory",
+              "mode": 16832,
+              "dev": 16777232,
+              "ino": 169815379,
+              "nlink": 3
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33188,
+              "size": 30,
+              "dev": 16777232,
+              "ino": 169815380,
+              "nlink": 1,
+              "base64": "aW5kZXBlbmRlbnQgYWxpYXMgc2VudGluZWwKAP8K",
+              "sha256": "788202b75b5920364e178ec35710dd21b110f6a7e8f931939da0a7c6474d8aa9"
+            }
+          }
+        },
+        "after": {
+          "left": {
+            "/": {
+              "type": "directory",
+              "mode": 16832,
+              "dev": 16777232,
+              "ino": 169815379,
+              "nlink": 3
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33188,
+              "size": 30,
+              "dev": 16777232,
+              "ino": 169815380,
+              "nlink": 1,
+              "base64": "aW5kZXBlbmRlbnQgYWxpYXMgc2VudGluZWwKAP8K",
+              "sha256": "788202b75b5920364e178ec35710dd21b110f6a7e8f931939da0a7c6474d8aa9"
+            }
+          },
+          "right": {
+            "/": {
+              "type": "directory",
+              "mode": 16832,
+              "dev": 16777232,
+              "ino": 169815379,
+              "nlink": 3
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33188,
+              "size": 30,
+              "dev": 16777232,
+              "ino": 169815380,
+              "nlink": 1,
+              "base64": "aW5kZXBlbmRlbnQgYWxpYXMgc2VudGluZWwKAP8K",
+              "sha256": "788202b75b5920364e178ec35710dd21b110f6a7e8f931939da0a7c6474d8aa9"
+            }
+          }
+        },
+        "failure": {
+          "name": "FsError",
+          "code": "EINVAL",
+          "syscall": "copyFile",
+          "path": "/left/inner/file",
+          "dest": "/right/file"
+        },
+        "events": []
+      },
+      {
+        "name": "readonly over nested mount retains real hardlink identity",
+        "source": "/left/inner/file",
+        "destination": "/right/alias",
+        "options": {
+          "exclusive": false
+        },
+        "before": {
+          "left": {
+            "/": {
+              "type": "directory",
+              "mode": 16832,
+              "dev": 16777232,
+              "ino": 169815381,
+              "nlink": 4
+            },
+            "/alias": {
+              "type": "file",
+              "mode": 33188,
+              "size": 30,
+              "dev": 16777232,
+              "ino": 169815382,
+              "nlink": 2,
+              "base64": "aW5kZXBlbmRlbnQgYWxpYXMgc2VudGluZWwKAP8K",
+              "sha256": "788202b75b5920364e178ec35710dd21b110f6a7e8f931939da0a7c6474d8aa9"
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33188,
+              "size": 30,
+              "dev": 16777232,
+              "ino": 169815382,
+              "nlink": 2,
+              "base64": "aW5kZXBlbmRlbnQgYWxpYXMgc2VudGluZWwKAP8K",
+              "sha256": "788202b75b5920364e178ec35710dd21b110f6a7e8f931939da0a7c6474d8aa9"
+            }
+          },
+          "right": {
+            "/": {
+              "type": "directory",
+              "mode": 16832,
+              "dev": 16777232,
+              "ino": 169815381,
+              "nlink": 4
+            },
+            "/alias": {
+              "type": "file",
+              "mode": 33188,
+              "size": 30,
+              "dev": 16777232,
+              "ino": 169815382,
+              "nlink": 2,
+              "base64": "aW5kZXBlbmRlbnQgYWxpYXMgc2VudGluZWwKAP8K",
+              "sha256": "788202b75b5920364e178ec35710dd21b110f6a7e8f931939da0a7c6474d8aa9"
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33188,
+              "size": 30,
+              "dev": 16777232,
+              "ino": 169815382,
+              "nlink": 2,
+              "base64": "aW5kZXBlbmRlbnQgYWxpYXMgc2VudGluZWwKAP8K",
+              "sha256": "788202b75b5920364e178ec35710dd21b110f6a7e8f931939da0a7c6474d8aa9"
+            }
+          }
+        },
+        "after": {
+          "left": {
+            "/": {
+              "type": "directory",
+              "mode": 16832,
+              "dev": 16777232,
+              "ino": 169815381,
+              "nlink": 4
+            },
+            "/alias": {
+              "type": "file",
+              "mode": 33188,
+              "size": 30,
+              "dev": 16777232,
+              "ino": 169815382,
+              "nlink": 2,
+              "base64": "aW5kZXBlbmRlbnQgYWxpYXMgc2VudGluZWwKAP8K",
+              "sha256": "788202b75b5920364e178ec35710dd21b110f6a7e8f931939da0a7c6474d8aa9"
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33188,
+              "size": 30,
+              "dev": 16777232,
+              "ino": 169815382,
+              "nlink": 2,
+              "base64": "aW5kZXBlbmRlbnQgYWxpYXMgc2VudGluZWwKAP8K",
+              "sha256": "788202b75b5920364e178ec35710dd21b110f6a7e8f931939da0a7c6474d8aa9"
+            }
+          },
+          "right": {
+            "/": {
+              "type": "directory",
+              "mode": 16832,
+              "dev": 16777232,
+              "ino": 169815381,
+              "nlink": 4
+            },
+            "/alias": {
+              "type": "file",
+              "mode": 33188,
+              "size": 30,
+              "dev": 16777232,
+              "ino": 169815382,
+              "nlink": 2,
+              "base64": "aW5kZXBlbmRlbnQgYWxpYXMgc2VudGluZWwKAP8K",
+              "sha256": "788202b75b5920364e178ec35710dd21b110f6a7e8f931939da0a7c6474d8aa9"
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33188,
+              "size": 30,
+              "dev": 16777232,
+              "ino": 169815382,
+              "nlink": 2,
+              "base64": "aW5kZXBlbmRlbnQgYWxpYXMgc2VudGluZWwKAP8K",
+              "sha256": "788202b75b5920364e178ec35710dd21b110f6a7e8f931939da0a7c6474d8aa9"
+            }
+          }
+        },
+        "failure": {
+          "name": "FsError",
+          "code": "EINVAL",
+          "syscall": "copyFile",
+          "path": "/left/inner/file",
+          "dest": "/right/alias"
+        },
+        "events": []
+      },
+      {
+        "name": "overlay lower read aliases direct real destination",
+        "source": "/left/file",
+        "destination": "/right/file",
+        "options": {
+          "exclusive": false
+        },
+        "before": {
+          "left": {
+            "/": {
+              "type": "directory",
+              "mode": 16832,
+              "dev": 16777232,
+              "ino": 169815385,
+              "nlink": 3
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33188,
+              "size": 30,
+              "dev": 16777232,
+              "ino": 169815386,
+              "nlink": 1,
+              "base64": "aW5kZXBlbmRlbnQgYWxpYXMgc2VudGluZWwKAP8K",
+              "sha256": "788202b75b5920364e178ec35710dd21b110f6a7e8f931939da0a7c6474d8aa9"
+            }
+          },
+          "right": {
+            "/": {
+              "type": "directory",
+              "mode": 16832,
+              "dev": 16777232,
+              "ino": 169815385,
+              "nlink": 3
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33188,
+              "size": 30,
+              "dev": 16777232,
+              "ino": 169815386,
+              "nlink": 1,
+              "base64": "aW5kZXBlbmRlbnQgYWxpYXMgc2VudGluZWwKAP8K",
+              "sha256": "788202b75b5920364e178ec35710dd21b110f6a7e8f931939da0a7c6474d8aa9"
+            }
+          },
+          "otherLayer": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2
+            }
+          }
+        },
+        "after": {
+          "left": {
+            "/": {
+              "type": "directory",
+              "mode": 16832,
+              "dev": 16777232,
+              "ino": 169815385,
+              "nlink": 3
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33188,
+              "size": 30,
+              "dev": 16777232,
+              "ino": 169815386,
+              "nlink": 1,
+              "base64": "aW5kZXBlbmRlbnQgYWxpYXMgc2VudGluZWwKAP8K",
+              "sha256": "788202b75b5920364e178ec35710dd21b110f6a7e8f931939da0a7c6474d8aa9"
+            }
+          },
+          "right": {
+            "/": {
+              "type": "directory",
+              "mode": 16832,
+              "dev": 16777232,
+              "ino": 169815385,
+              "nlink": 3
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33188,
+              "size": 30,
+              "dev": 16777232,
+              "ino": 169815386,
+              "nlink": 1,
+              "base64": "aW5kZXBlbmRlbnQgYWxpYXMgc2VudGluZWwKAP8K",
+              "sha256": "788202b75b5920364e178ec35710dd21b110f6a7e8f931939da0a7c6474d8aa9"
+            }
+          },
+          "otherLayer": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2
+            }
+          }
+        },
+        "failure": {
+          "name": "FsError",
+          "code": "EINVAL",
+          "syscall": "copyFile",
+          "path": "/left/file",
+          "dest": "/right/file"
+        },
+        "events": []
+      },
+      {
+        "name": "overlay upper read aliases direct real symlink destination",
+        "source": "/left/file",
+        "destination": "/right/alias",
+        "options": {
+          "exclusive": false
+        },
+        "before": {
+          "left": {
+            "/": {
+              "type": "directory",
+              "mode": 16832,
+              "dev": 16777232,
+              "ino": 169815387,
+              "nlink": 4
+            },
+            "/alias": {
+              "type": "symlink",
+              "mode": 41453,
+              "size": 146,
+              "dev": 16777232,
+              "ino": 169815389,
+              "nlink": 1,
+              "target": "/file"
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33188,
+              "size": 30,
+              "dev": 16777232,
+              "ino": 169815388,
+              "nlink": 1,
+              "base64": "aW5kZXBlbmRlbnQgYWxpYXMgc2VudGluZWwKAP8K",
+              "sha256": "788202b75b5920364e178ec35710dd21b110f6a7e8f931939da0a7c6474d8aa9"
+            }
+          },
+          "right": {
+            "/": {
+              "type": "directory",
+              "mode": 16832,
+              "dev": 16777232,
+              "ino": 169815387,
+              "nlink": 4
+            },
+            "/alias": {
+              "type": "symlink",
+              "mode": 41453,
+              "size": 146,
+              "dev": 16777232,
+              "ino": 169815389,
+              "nlink": 1,
+              "target": "/file"
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33188,
+              "size": 30,
+              "dev": 16777232,
+              "ino": 169815388,
+              "nlink": 1,
+              "base64": "aW5kZXBlbmRlbnQgYWxpYXMgc2VudGluZWwKAP8K",
+              "sha256": "788202b75b5920364e178ec35710dd21b110f6a7e8f931939da0a7c6474d8aa9"
+            }
+          },
+          "otherLayer": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2
+            }
+          }
+        },
+        "after": {
+          "left": {
+            "/": {
+              "type": "directory",
+              "mode": 16832,
+              "dev": 16777232,
+              "ino": 169815387,
+              "nlink": 4
+            },
+            "/alias": {
+              "type": "symlink",
+              "mode": 41453,
+              "size": 146,
+              "dev": 16777232,
+              "ino": 169815389,
+              "nlink": 1,
+              "target": "/file"
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33188,
+              "size": 30,
+              "dev": 16777232,
+              "ino": 169815388,
+              "nlink": 1,
+              "base64": "aW5kZXBlbmRlbnQgYWxpYXMgc2VudGluZWwKAP8K",
+              "sha256": "788202b75b5920364e178ec35710dd21b110f6a7e8f931939da0a7c6474d8aa9"
+            }
+          },
+          "right": {
+            "/": {
+              "type": "directory",
+              "mode": 16832,
+              "dev": 16777232,
+              "ino": 169815387,
+              "nlink": 4
+            },
+            "/alias": {
+              "type": "symlink",
+              "mode": 41453,
+              "size": 146,
+              "dev": 16777232,
+              "ino": 169815389,
+              "nlink": 1,
+              "target": "/file"
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33188,
+              "size": 30,
+              "dev": 16777232,
+              "ino": 169815388,
+              "nlink": 1,
+              "base64": "aW5kZXBlbmRlbnQgYWxpYXMgc2VudGluZWwKAP8K",
+              "sha256": "788202b75b5920364e178ec35710dd21b110f6a7e8f931939da0a7c6474d8aa9"
+            }
+          },
+          "otherLayer": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2
+            }
+          }
+        },
+        "failure": {
+          "name": "FsError",
+          "code": "EINVAL",
+          "syscall": "copyFile",
+          "path": "/left/file",
+          "dest": "/right/alias"
+        },
+        "events": []
+      },
+      {
+        "name": "memory shared backend same-path alias",
+        "source": "/left/file",
+        "destination": "/right/file",
+        "options": {
+          "exclusive": false
+        },
+        "before": {
+          "backend": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33206,
+              "size": 30,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 1,
+              "base64": "aW5kZXBlbmRlbnQgYWxpYXMgc2VudGluZWwKAP8K",
+              "sha256": "788202b75b5920364e178ec35710dd21b110f6a7e8f931939da0a7c6474d8aa9"
+            }
+          }
+        },
+        "after": {
+          "backend": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33206,
+              "size": 30,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 1,
+              "base64": "aW5kZXBlbmRlbnQgYWxpYXMgc2VudGluZWwKAP8K",
+              "sha256": "788202b75b5920364e178ec35710dd21b110f6a7e8f931939da0a7c6474d8aa9"
+            }
+          }
+        },
+        "failure": {
+          "name": "FsError",
+          "code": "EINVAL",
+          "syscall": "copyFile",
+          "path": "/left/file",
+          "dest": "/right/file"
+        },
+        "events": []
+      },
+      {
+        "name": "memory shared backend nested hardlink alias",
+        "source": "/left/file",
+        "destination": "/right/alias",
+        "options": {
+          "exclusive": false
+        },
+        "before": {
+          "backend": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2
+            },
+            "/alias": {
+              "type": "file",
+              "mode": 33206,
+              "size": 30,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 2,
+              "base64": "aW5kZXBlbmRlbnQgYWxpYXMgc2VudGluZWwKAP8K",
+              "sha256": "788202b75b5920364e178ec35710dd21b110f6a7e8f931939da0a7c6474d8aa9"
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33206,
+              "size": 30,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 2,
+              "base64": "aW5kZXBlbmRlbnQgYWxpYXMgc2VudGluZWwKAP8K",
+              "sha256": "788202b75b5920364e178ec35710dd21b110f6a7e8f931939da0a7c6474d8aa9"
+            }
+          }
+        },
+        "after": {
+          "backend": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2
+            },
+            "/alias": {
+              "type": "file",
+              "mode": 33206,
+              "size": 30,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 2,
+              "base64": "aW5kZXBlbmRlbnQgYWxpYXMgc2VudGluZWwKAP8K",
+              "sha256": "788202b75b5920364e178ec35710dd21b110f6a7e8f931939da0a7c6474d8aa9"
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33206,
+              "size": 30,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 2,
+              "base64": "aW5kZXBlbmRlbnQgYWxpYXMgc2VudGluZWwKAP8K",
+              "sha256": "788202b75b5920364e178ec35710dd21b110f6a7e8f931939da0a7c6474d8aa9"
+            }
+          }
+        },
+        "failure": {
+          "name": "FsError",
+          "code": "EINVAL",
+          "syscall": "copyFile",
+          "path": "/left/file",
+          "dest": "/right/alias"
+        },
+        "events": []
+      },
+      {
+        "name": "distinct synthetic dev/ino collisions still perform the copy",
+        "source": "/left/file",
+        "destination": "/right/target",
+        "options": {
+          "exclusive": false
+        },
+        "before": {
+          "left": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 7,
+              "ino": 11,
+              "nlink": 2
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33206,
+              "size": 30,
+              "dev": 7,
+              "ino": 11,
+              "nlink": 1,
+              "base64": "aW5kZXBlbmRlbnQgYWxpYXMgc2VudGluZWwKAP8K",
+              "sha256": "788202b75b5920364e178ec35710dd21b110f6a7e8f931939da0a7c6474d8aa9"
+            }
+          },
+          "right": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 7,
+              "ino": 11,
+              "nlink": 2
+            },
+            "/target": {
+              "type": "file",
+              "mode": 33206,
+              "size": 35,
+              "dev": 7,
+              "ino": 11,
+              "nlink": 1,
+              "base64": "dW5yZWxhdGVkIGRlc3RpbmF0aW9uIG11c3Qgc3Vydml2ZQo=",
+              "sha256": "e314ee083fcb42912a2e58834c3a358b93932cd5aeedc0e1dc84349a08943eca"
+            }
+          }
+        },
+        "after": {
+          "left": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 7,
+              "ino": 11,
+              "nlink": 2
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33206,
+              "size": 30,
+              "dev": 7,
+              "ino": 11,
+              "nlink": 1,
+              "base64": "aW5kZXBlbmRlbnQgYWxpYXMgc2VudGluZWwKAP8K",
+              "sha256": "788202b75b5920364e178ec35710dd21b110f6a7e8f931939da0a7c6474d8aa9"
+            }
+          },
+          "right": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 7,
+              "ino": 11,
+              "nlink": 2
+            },
+            "/target": {
+              "type": "file",
+              "mode": 33206,
+              "size": 30,
+              "dev": 7,
+              "ino": 11,
+              "nlink": 1,
+              "base64": "aW5kZXBlbmRlbnQgYWxpYXMgc2VudGluZWwKAP8K",
+              "sha256": "788202b75b5920364e178ec35710dd21b110f6a7e8f931939da0a7c6474d8aa9"
+            }
+          }
+        },
+        "failure": null,
+        "events": [
+          {
+            "backend": "left",
+            "operation": "readStream.acquire",
+            "path": "/file"
+          },
+          {
+            "backend": "right",
+            "operation": "writeStream.enter",
+            "path": "/target",
+            "flag": "w"
+          },
+          {
+            "backend": "left",
+            "operation": "readStream.next",
+            "path": "/file"
+          },
+          {
+            "backend": "left",
+            "operation": "readStream.chunk",
+            "path": "/file",
+            "bytes": 30
+          },
+          {
+            "backend": "left",
+            "operation": "readStream.return",
+            "path": "/file"
+          },
+          {
+            "backend": "right",
+            "operation": "writeStream.complete",
+            "path": "/target"
+          }
+        ]
+      },
+      {
+        "name": "equal-content real files are not samefile or a no-op",
+        "source": "/left/file",
+        "destination": "/right/target",
+        "options": {
+          "exclusive": false
+        },
+        "before": {
+          "left": {
+            "/": {
+              "type": "directory",
+              "mode": 16832,
+              "dev": 16777232,
+              "ino": 169815390,
+              "nlink": 4
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33188,
+              "size": 30,
+              "dev": 16777232,
+              "ino": 169815391,
+              "nlink": 1,
+              "base64": "aW5kZXBlbmRlbnQgYWxpYXMgc2VudGluZWwKAP8K",
+              "sha256": "788202b75b5920364e178ec35710dd21b110f6a7e8f931939da0a7c6474d8aa9"
+            },
+            "/target": {
+              "type": "file",
+              "mode": 33188,
+              "size": 30,
+              "dev": 16777232,
+              "ino": 169815392,
+              "nlink": 1,
+              "base64": "aW5kZXBlbmRlbnQgYWxpYXMgc2VudGluZWwKAP8K",
+              "sha256": "788202b75b5920364e178ec35710dd21b110f6a7e8f931939da0a7c6474d8aa9"
+            }
+          },
+          "right": {
+            "/": {
+              "type": "directory",
+              "mode": 16832,
+              "dev": 16777232,
+              "ino": 169815390,
+              "nlink": 4
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33188,
+              "size": 30,
+              "dev": 16777232,
+              "ino": 169815391,
+              "nlink": 1,
+              "base64": "aW5kZXBlbmRlbnQgYWxpYXMgc2VudGluZWwKAP8K",
+              "sha256": "788202b75b5920364e178ec35710dd21b110f6a7e8f931939da0a7c6474d8aa9"
+            },
+            "/target": {
+              "type": "file",
+              "mode": 33188,
+              "size": 30,
+              "dev": 16777232,
+              "ino": 169815392,
+              "nlink": 1,
+              "base64": "aW5kZXBlbmRlbnQgYWxpYXMgc2VudGluZWwKAP8K",
+              "sha256": "788202b75b5920364e178ec35710dd21b110f6a7e8f931939da0a7c6474d8aa9"
+            }
+          }
+        },
+        "after": {
+          "left": {
+            "/": {
+              "type": "directory",
+              "mode": 16832,
+              "dev": 16777232,
+              "ino": 169815390,
+              "nlink": 4
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33188,
+              "size": 30,
+              "dev": 16777232,
+              "ino": 169815391,
+              "nlink": 1,
+              "base64": "aW5kZXBlbmRlbnQgYWxpYXMgc2VudGluZWwKAP8K",
+              "sha256": "788202b75b5920364e178ec35710dd21b110f6a7e8f931939da0a7c6474d8aa9"
+            },
+            "/target": {
+              "type": "file",
+              "mode": 33188,
+              "size": 30,
+              "dev": 16777232,
+              "ino": 169815392,
+              "nlink": 1,
+              "base64": "aW5kZXBlbmRlbnQgYWxpYXMgc2VudGluZWwKAP8K",
+              "sha256": "788202b75b5920364e178ec35710dd21b110f6a7e8f931939da0a7c6474d8aa9"
+            }
+          },
+          "right": {
+            "/": {
+              "type": "directory",
+              "mode": 16832,
+              "dev": 16777232,
+              "ino": 169815390,
+              "nlink": 4
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33188,
+              "size": 30,
+              "dev": 16777232,
+              "ino": 169815391,
+              "nlink": 1,
+              "base64": "aW5kZXBlbmRlbnQgYWxpYXMgc2VudGluZWwKAP8K",
+              "sha256": "788202b75b5920364e178ec35710dd21b110f6a7e8f931939da0a7c6474d8aa9"
+            },
+            "/target": {
+              "type": "file",
+              "mode": 33188,
+              "size": 30,
+              "dev": 16777232,
+              "ino": 169815392,
+              "nlink": 1,
+              "base64": "aW5kZXBlbmRlbnQgYWxpYXMgc2VudGluZWwKAP8K",
+              "sha256": "788202b75b5920364e178ec35710dd21b110f6a7e8f931939da0a7c6474d8aa9"
+            }
+          }
+        },
+        "failure": null,
+        "events": [
+          {
+            "backend": "left",
+            "operation": "readStream.acquire",
+            "path": "/file"
+          },
+          {
+            "backend": "right",
+            "operation": "writeStream.enter",
+            "path": "/target",
+            "flag": "w"
+          },
+          {
+            "backend": "left",
+            "operation": "readStream.next",
+            "path": "/file"
+          },
+          {
+            "backend": "left",
+            "operation": "readStream.chunk",
+            "path": "/file",
+            "bytes": 30
+          },
+          {
+            "backend": "left",
+            "operation": "readStream.return",
+            "path": "/file"
+          },
+          {
+            "backend": "right",
+            "operation": "writeStream.complete",
+            "path": "/target"
+          }
+        ]
+      },
+      {
+        "name": "distinct real roots with identical local pathname remain copyable",
+        "source": "/left/file",
+        "destination": "/right/file",
+        "options": {
+          "exclusive": false
+        },
+        "before": {
+          "left": {
+            "/": {
+              "type": "directory",
+              "mode": 16832,
+              "dev": 16777232,
+              "ino": 169815393,
+              "nlink": 3
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33188,
+              "size": 30,
+              "dev": 16777232,
+              "ino": 169815394,
+              "nlink": 1,
+              "base64": "aW5kZXBlbmRlbnQgYWxpYXMgc2VudGluZWwKAP8K",
+              "sha256": "788202b75b5920364e178ec35710dd21b110f6a7e8f931939da0a7c6474d8aa9"
+            }
+          },
+          "right": {
+            "/": {
+              "type": "directory",
+              "mode": 16832,
+              "dev": 16777232,
+              "ino": 169815395,
+              "nlink": 3
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33188,
+              "size": 35,
+              "dev": 16777232,
+              "ino": 169815396,
+              "nlink": 1,
+              "base64": "dW5yZWxhdGVkIGRlc3RpbmF0aW9uIG11c3Qgc3Vydml2ZQo=",
+              "sha256": "e314ee083fcb42912a2e58834c3a358b93932cd5aeedc0e1dc84349a08943eca"
+            }
+          }
+        },
+        "after": {
+          "left": {
+            "/": {
+              "type": "directory",
+              "mode": 16832,
+              "dev": 16777232,
+              "ino": 169815393,
+              "nlink": 3
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33188,
+              "size": 30,
+              "dev": 16777232,
+              "ino": 169815394,
+              "nlink": 1,
+              "base64": "aW5kZXBlbmRlbnQgYWxpYXMgc2VudGluZWwKAP8K",
+              "sha256": "788202b75b5920364e178ec35710dd21b110f6a7e8f931939da0a7c6474d8aa9"
+            }
+          },
+          "right": {
+            "/": {
+              "type": "directory",
+              "mode": 16832,
+              "dev": 16777232,
+              "ino": 169815395,
+              "nlink": 3
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33188,
+              "size": 30,
+              "dev": 16777232,
+              "ino": 169815396,
+              "nlink": 1,
+              "base64": "aW5kZXBlbmRlbnQgYWxpYXMgc2VudGluZWwKAP8K",
+              "sha256": "788202b75b5920364e178ec35710dd21b110f6a7e8f931939da0a7c6474d8aa9"
+            }
+          }
+        },
+        "failure": null,
+        "events": [
+          {
+            "backend": "left",
+            "operation": "readStream.acquire",
+            "path": "/file"
+          },
+          {
+            "backend": "right",
+            "operation": "writeStream.enter",
+            "path": "/file",
+            "flag": "w"
+          },
+          {
+            "backend": "left",
+            "operation": "readStream.next",
+            "path": "/file"
+          },
+          {
+            "backend": "left",
+            "operation": "readStream.chunk",
+            "path": "/file",
+            "bytes": 30
+          },
+          {
+            "backend": "left",
+            "operation": "readStream.return",
+            "path": "/file"
+          },
+          {
+            "backend": "right",
+            "operation": "writeStream.complete",
+            "path": "/file"
+          }
+        ]
+      },
+      {
+        "name": "exclusive real alias rejects EEXIST before either stream",
+        "source": "/left/file",
+        "destination": "/right/target",
+        "options": {
+          "exclusive": true
+        },
+        "before": {
+          "left": {
+            "/": {
+              "type": "directory",
+              "mode": 16832,
+              "dev": 16777232,
+              "ino": 169815397,
+              "nlink": 4
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33188,
+              "size": 30,
+              "dev": 16777232,
+              "ino": 169815398,
+              "nlink": 2,
+              "base64": "aW5kZXBlbmRlbnQgYWxpYXMgc2VudGluZWwKAP8K",
+              "sha256": "788202b75b5920364e178ec35710dd21b110f6a7e8f931939da0a7c6474d8aa9"
+            },
+            "/target": {
+              "type": "file",
+              "mode": 33188,
+              "size": 30,
+              "dev": 16777232,
+              "ino": 169815398,
+              "nlink": 2,
+              "base64": "aW5kZXBlbmRlbnQgYWxpYXMgc2VudGluZWwKAP8K",
+              "sha256": "788202b75b5920364e178ec35710dd21b110f6a7e8f931939da0a7c6474d8aa9"
+            }
+          },
+          "right": {
+            "/": {
+              "type": "directory",
+              "mode": 16832,
+              "dev": 16777232,
+              "ino": 169815397,
+              "nlink": 4
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33188,
+              "size": 30,
+              "dev": 16777232,
+              "ino": 169815398,
+              "nlink": 2,
+              "base64": "aW5kZXBlbmRlbnQgYWxpYXMgc2VudGluZWwKAP8K",
+              "sha256": "788202b75b5920364e178ec35710dd21b110f6a7e8f931939da0a7c6474d8aa9"
+            },
+            "/target": {
+              "type": "file",
+              "mode": 33188,
+              "size": 30,
+              "dev": 16777232,
+              "ino": 169815398,
+              "nlink": 2,
+              "base64": "aW5kZXBlbmRlbnQgYWxpYXMgc2VudGluZWwKAP8K",
+              "sha256": "788202b75b5920364e178ec35710dd21b110f6a7e8f931939da0a7c6474d8aa9"
+            }
+          }
+        },
+        "after": {
+          "left": {
+            "/": {
+              "type": "directory",
+              "mode": 16832,
+              "dev": 16777232,
+              "ino": 169815397,
+              "nlink": 4
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33188,
+              "size": 30,
+              "dev": 16777232,
+              "ino": 169815398,
+              "nlink": 2,
+              "base64": "aW5kZXBlbmRlbnQgYWxpYXMgc2VudGluZWwKAP8K",
+              "sha256": "788202b75b5920364e178ec35710dd21b110f6a7e8f931939da0a7c6474d8aa9"
+            },
+            "/target": {
+              "type": "file",
+              "mode": 33188,
+              "size": 30,
+              "dev": 16777232,
+              "ino": 169815398,
+              "nlink": 2,
+              "base64": "aW5kZXBlbmRlbnQgYWxpYXMgc2VudGluZWwKAP8K",
+              "sha256": "788202b75b5920364e178ec35710dd21b110f6a7e8f931939da0a7c6474d8aa9"
+            }
+          },
+          "right": {
+            "/": {
+              "type": "directory",
+              "mode": 16832,
+              "dev": 16777232,
+              "ino": 169815397,
+              "nlink": 4
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33188,
+              "size": 30,
+              "dev": 16777232,
+              "ino": 169815398,
+              "nlink": 2,
+              "base64": "aW5kZXBlbmRlbnQgYWxpYXMgc2VudGluZWwKAP8K",
+              "sha256": "788202b75b5920364e178ec35710dd21b110f6a7e8f931939da0a7c6474d8aa9"
+            },
+            "/target": {
+              "type": "file",
+              "mode": 33188,
+              "size": 30,
+              "dev": 16777232,
+              "ino": 169815398,
+              "nlink": 2,
+              "base64": "aW5kZXBlbmRlbnQgYWxpYXMgc2VudGluZWwKAP8K",
+              "sha256": "788202b75b5920364e178ec35710dd21b110f6a7e8f931939da0a7c6474d8aa9"
+            }
+          }
+        },
+        "failure": {
+          "name": "FsError",
+          "code": "EEXIST",
+          "syscall": "copyFile",
+          "path": "/left/file",
+          "dest": "/right/target"
+        },
+        "events": []
+      },
+      {
+        "name": "readonly destination rejects EROFS before either stream",
+        "source": "/left/file",
+        "destination": "/right/target",
+        "options": {
+          "exclusive": false
+        },
+        "before": {
+          "left": {
+            "/": {
+              "type": "directory",
+              "mode": 16832,
+              "dev": 16777232,
+              "ino": 169815401,
+              "nlink": 4
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33188,
+              "size": 30,
+              "dev": 16777232,
+              "ino": 169815402,
+              "nlink": 1,
+              "base64": "aW5kZXBlbmRlbnQgYWxpYXMgc2VudGluZWwKAP8K",
+              "sha256": "788202b75b5920364e178ec35710dd21b110f6a7e8f931939da0a7c6474d8aa9"
+            },
+            "/target": {
+              "type": "file",
+              "mode": 33188,
+              "size": 35,
+              "dev": 16777232,
+              "ino": 169815403,
+              "nlink": 1,
+              "base64": "dW5yZWxhdGVkIGRlc3RpbmF0aW9uIG11c3Qgc3Vydml2ZQo=",
+              "sha256": "e314ee083fcb42912a2e58834c3a358b93932cd5aeedc0e1dc84349a08943eca"
+            }
+          },
+          "right": {
+            "/": {
+              "type": "directory",
+              "mode": 16832,
+              "dev": 16777232,
+              "ino": 169815401,
+              "nlink": 4
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33188,
+              "size": 30,
+              "dev": 16777232,
+              "ino": 169815402,
+              "nlink": 1,
+              "base64": "aW5kZXBlbmRlbnQgYWxpYXMgc2VudGluZWwKAP8K",
+              "sha256": "788202b75b5920364e178ec35710dd21b110f6a7e8f931939da0a7c6474d8aa9"
+            },
+            "/target": {
+              "type": "file",
+              "mode": 33188,
+              "size": 35,
+              "dev": 16777232,
+              "ino": 169815403,
+              "nlink": 1,
+              "base64": "dW5yZWxhdGVkIGRlc3RpbmF0aW9uIG11c3Qgc3Vydml2ZQo=",
+              "sha256": "e314ee083fcb42912a2e58834c3a358b93932cd5aeedc0e1dc84349a08943eca"
+            }
+          }
+        },
+        "after": {
+          "left": {
+            "/": {
+              "type": "directory",
+              "mode": 16832,
+              "dev": 16777232,
+              "ino": 169815401,
+              "nlink": 4
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33188,
+              "size": 30,
+              "dev": 16777232,
+              "ino": 169815402,
+              "nlink": 1,
+              "base64": "aW5kZXBlbmRlbnQgYWxpYXMgc2VudGluZWwKAP8K",
+              "sha256": "788202b75b5920364e178ec35710dd21b110f6a7e8f931939da0a7c6474d8aa9"
+            },
+            "/target": {
+              "type": "file",
+              "mode": 33188,
+              "size": 35,
+              "dev": 16777232,
+              "ino": 169815403,
+              "nlink": 1,
+              "base64": "dW5yZWxhdGVkIGRlc3RpbmF0aW9uIG11c3Qgc3Vydml2ZQo=",
+              "sha256": "e314ee083fcb42912a2e58834c3a358b93932cd5aeedc0e1dc84349a08943eca"
+            }
+          },
+          "right": {
+            "/": {
+              "type": "directory",
+              "mode": 16832,
+              "dev": 16777232,
+              "ino": 169815401,
+              "nlink": 4
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33188,
+              "size": 30,
+              "dev": 16777232,
+              "ino": 169815402,
+              "nlink": 1,
+              "base64": "aW5kZXBlbmRlbnQgYWxpYXMgc2VudGluZWwKAP8K",
+              "sha256": "788202b75b5920364e178ec35710dd21b110f6a7e8f931939da0a7c6474d8aa9"
+            },
+            "/target": {
+              "type": "file",
+              "mode": 33188,
+              "size": 35,
+              "dev": 16777232,
+              "ino": 169815403,
+              "nlink": 1,
+              "base64": "dW5yZWxhdGVkIGRlc3RpbmF0aW9uIG11c3Qgc3Vydml2ZQo=",
+              "sha256": "e314ee083fcb42912a2e58834c3a358b93932cd5aeedc0e1dc84349a08943eca"
+            }
+          }
+        },
+        "failure": {
+          "name": "FsError",
+          "code": "EROFS",
+          "syscall": "copyFile",
+          "path": "/left/file",
+          "dest": "/right/target"
+        },
+        "events": []
+      },
+      {
+        "name": "exclusive target created during stream acquisition is preserved",
+        "source": "/left/file",
+        "destination": "/right/target",
+        "options": {
+          "exclusive": true
+        },
+        "before": {
+          "left": {
+            "/": {
+              "type": "directory",
+              "mode": 16832,
+              "dev": 16777232,
+              "ino": 169815404,
+              "nlink": 3
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33188,
+              "size": 30,
+              "dev": 16777232,
+              "ino": 169815405,
+              "nlink": 1,
+              "base64": "aW5kZXBlbmRlbnQgYWxpYXMgc2VudGluZWwKAP8K",
+              "sha256": "788202b75b5920364e178ec35710dd21b110f6a7e8f931939da0a7c6474d8aa9"
+            }
+          },
+          "right": {
+            "/": {
+              "type": "directory",
+              "mode": 16832,
+              "dev": 16777232,
+              "ino": 169815404,
+              "nlink": 3
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33188,
+              "size": 30,
+              "dev": 16777232,
+              "ino": 169815405,
+              "nlink": 1,
+              "base64": "aW5kZXBlbmRlbnQgYWxpYXMgc2VudGluZWwKAP8K",
+              "sha256": "788202b75b5920364e178ec35710dd21b110f6a7e8f931939da0a7c6474d8aa9"
+            }
+          }
+        },
+        "after": {
+          "left": {
+            "/": {
+              "type": "directory",
+              "mode": 16832,
+              "dev": 16777232,
+              "ino": 169815404,
+              "nlink": 4
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33188,
+              "size": 30,
+              "dev": 16777232,
+              "ino": 169815405,
+              "nlink": 2,
+              "base64": "aW5kZXBlbmRlbnQgYWxpYXMgc2VudGluZWwKAP8K",
+              "sha256": "788202b75b5920364e178ec35710dd21b110f6a7e8f931939da0a7c6474d8aa9"
+            },
+            "/target": {
+              "type": "file",
+              "mode": 33188,
+              "size": 30,
+              "dev": 16777232,
+              "ino": 169815405,
+              "nlink": 2,
+              "base64": "aW5kZXBlbmRlbnQgYWxpYXMgc2VudGluZWwKAP8K",
+              "sha256": "788202b75b5920364e178ec35710dd21b110f6a7e8f931939da0a7c6474d8aa9"
+            }
+          },
+          "right": {
+            "/": {
+              "type": "directory",
+              "mode": 16832,
+              "dev": 16777232,
+              "ino": 169815404,
+              "nlink": 4
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33188,
+              "size": 30,
+              "dev": 16777232,
+              "ino": 169815405,
+              "nlink": 2,
+              "base64": "aW5kZXBlbmRlbnQgYWxpYXMgc2VudGluZWwKAP8K",
+              "sha256": "788202b75b5920364e178ec35710dd21b110f6a7e8f931939da0a7c6474d8aa9"
+            },
+            "/target": {
+              "type": "file",
+              "mode": 33188,
+              "size": 30,
+              "dev": 16777232,
+              "ino": 169815405,
+              "nlink": 2,
+              "base64": "aW5kZXBlbmRlbnQgYWxpYXMgc2VudGluZWwKAP8K",
+              "sha256": "788202b75b5920364e178ec35710dd21b110f6a7e8f931939da0a7c6474d8aa9"
+            }
+          }
+        },
+        "failure": {
+          "name": "FsError",
+          "code": "EEXIST",
+          "syscall": "copyFile",
+          "path": "/left/file",
+          "dest": "/right/target"
+        },
+        "events": [
+          {
+            "backend": "left",
+            "operation": "readStream.acquire",
+            "path": "/file"
+          },
+          {
+            "backend": "race",
+            "operation": "target.create",
+            "path": "/target"
+          },
+          {
+            "backend": "right",
+            "operation": "writeStream.enter",
+            "path": "/target",
+            "flag": "wx"
+          }
+        ],
+        "insertedState": {
+          "left": {
+            "/": {
+              "type": "directory",
+              "mode": 16832,
+              "dev": 16777232,
+              "ino": 169815404,
+              "nlink": 4
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33188,
+              "size": 30,
+              "dev": 16777232,
+              "ino": 169815405,
+              "nlink": 2,
+              "base64": "aW5kZXBlbmRlbnQgYWxpYXMgc2VudGluZWwKAP8K",
+              "sha256": "788202b75b5920364e178ec35710dd21b110f6a7e8f931939da0a7c6474d8aa9"
+            },
+            "/target": {
+              "type": "file",
+              "mode": 33188,
+              "size": 30,
+              "dev": 16777232,
+              "ino": 169815405,
+              "nlink": 2,
+              "base64": "aW5kZXBlbmRlbnQgYWxpYXMgc2VudGluZWwKAP8K",
+              "sha256": "788202b75b5920364e178ec35710dd21b110f6a7e8f931939da0a7c6474d8aa9"
+            }
+          },
+          "right": {
+            "/": {
+              "type": "directory",
+              "mode": 16832,
+              "dev": 16777232,
+              "ino": 169815404,
+              "nlink": 4
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33188,
+              "size": 30,
+              "dev": 16777232,
+              "ino": 169815405,
+              "nlink": 2,
+              "base64": "aW5kZXBlbmRlbnQgYWxpYXMgc2VudGluZWwKAP8K",
+              "sha256": "788202b75b5920364e178ec35710dd21b110f6a7e8f931939da0a7c6474d8aa9"
+            },
+            "/target": {
+              "type": "file",
+              "mode": 33188,
+              "size": 30,
+              "dev": 16777232,
+              "ino": 169815405,
+              "nlink": 2,
+              "base64": "aW5kZXBlbmRlbnQgYWxpYXMgc2VudGluZWwKAP8K",
+              "sha256": "788202b75b5920364e178ec35710dd21b110f6a7e8f931939da0a7c6474d8aa9"
+            }
+          }
+        }
+      },
+      {
+        "name": "synchronous source acquisition failure preserves real destination",
+        "source": "/left/file",
+        "destination": "/right/target",
+        "options": {
+          "exclusive": false
+        },
+        "before": {
+          "left": {
+            "/": {
+              "type": "directory",
+              "mode": 16832,
+              "dev": 16777232,
+              "ino": 169815408,
+              "nlink": 4
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33188,
+              "size": 30,
+              "dev": 16777232,
+              "ino": 169815409,
+              "nlink": 1,
+              "base64": "aW5kZXBlbmRlbnQgYWxpYXMgc2VudGluZWwKAP8K",
+              "sha256": "788202b75b5920364e178ec35710dd21b110f6a7e8f931939da0a7c6474d8aa9"
+            },
+            "/target": {
+              "type": "file",
+              "mode": 33188,
+              "size": 35,
+              "dev": 16777232,
+              "ino": 169815410,
+              "nlink": 1,
+              "base64": "dW5yZWxhdGVkIGRlc3RpbmF0aW9uIG11c3Qgc3Vydml2ZQo=",
+              "sha256": "e314ee083fcb42912a2e58834c3a358b93932cd5aeedc0e1dc84349a08943eca"
+            }
+          },
+          "right": {
+            "/": {
+              "type": "directory",
+              "mode": 16832,
+              "dev": 16777232,
+              "ino": 169815408,
+              "nlink": 4
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33188,
+              "size": 30,
+              "dev": 16777232,
+              "ino": 169815409,
+              "nlink": 1,
+              "base64": "aW5kZXBlbmRlbnQgYWxpYXMgc2VudGluZWwKAP8K",
+              "sha256": "788202b75b5920364e178ec35710dd21b110f6a7e8f931939da0a7c6474d8aa9"
+            },
+            "/target": {
+              "type": "file",
+              "mode": 33188,
+              "size": 35,
+              "dev": 16777232,
+              "ino": 169815410,
+              "nlink": 1,
+              "base64": "dW5yZWxhdGVkIGRlc3RpbmF0aW9uIG11c3Qgc3Vydml2ZQo=",
+              "sha256": "e314ee083fcb42912a2e58834c3a358b93932cd5aeedc0e1dc84349a08943eca"
+            }
+          }
+        },
+        "after": {
+          "left": {
+            "/": {
+              "type": "directory",
+              "mode": 16832,
+              "dev": 16777232,
+              "ino": 169815408,
+              "nlink": 4
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33188,
+              "size": 30,
+              "dev": 16777232,
+              "ino": 169815409,
+              "nlink": 1,
+              "base64": "aW5kZXBlbmRlbnQgYWxpYXMgc2VudGluZWwKAP8K",
+              "sha256": "788202b75b5920364e178ec35710dd21b110f6a7e8f931939da0a7c6474d8aa9"
+            },
+            "/target": {
+              "type": "file",
+              "mode": 33188,
+              "size": 35,
+              "dev": 16777232,
+              "ino": 169815410,
+              "nlink": 1,
+              "base64": "dW5yZWxhdGVkIGRlc3RpbmF0aW9uIG11c3Qgc3Vydml2ZQo=",
+              "sha256": "e314ee083fcb42912a2e58834c3a358b93932cd5aeedc0e1dc84349a08943eca"
+            }
+          },
+          "right": {
+            "/": {
+              "type": "directory",
+              "mode": 16832,
+              "dev": 16777232,
+              "ino": 169815408,
+              "nlink": 4
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33188,
+              "size": 30,
+              "dev": 16777232,
+              "ino": 169815409,
+              "nlink": 1,
+              "base64": "aW5kZXBlbmRlbnQgYWxpYXMgc2VudGluZWwKAP8K",
+              "sha256": "788202b75b5920364e178ec35710dd21b110f6a7e8f931939da0a7c6474d8aa9"
+            },
+            "/target": {
+              "type": "file",
+              "mode": 33188,
+              "size": 35,
+              "dev": 16777232,
+              "ino": 169815410,
+              "nlink": 1,
+              "base64": "dW5yZWxhdGVkIGRlc3RpbmF0aW9uIG11c3Qgc3Vydml2ZQo=",
+              "sha256": "e314ee083fcb42912a2e58834c3a358b93932cd5aeedc0e1dc84349a08943eca"
+            }
+          }
+        },
+        "failure": {
+          "name": "FsError",
+          "code": "EIO",
+          "syscall": "copyFile",
+          "path": "/left/file",
+          "dest": "/right/target"
+        },
+        "events": [
+          {
+            "backend": "left",
+            "operation": "readStream.acquire",
+            "path": "/file"
+          }
+        ]
+      },
+      {
+        "name": "overlay destination preserves namespace on source-failure",
+        "source": "/left/file",
+        "destination": "/right/target",
+        "options": {
+          "exclusive": false
+        },
+        "before": {
+          "left": {
+            "/": {
+              "type": "directory",
+              "mode": 16832,
+              "dev": 16777232,
+              "ino": 169815411,
+              "nlink": 3
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33188,
+              "size": 30,
+              "dev": 16777232,
+              "ino": 169815412,
+              "nlink": 1,
+              "base64": "aW5kZXBlbmRlbnQgYWxpYXMgc2VudGluZWwKAP8K",
+              "sha256": "788202b75b5920364e178ec35710dd21b110f6a7e8f931939da0a7c6474d8aa9"
+            }
+          },
+          "upper": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2
+            },
+            "/target": {
+              "type": "file",
+              "mode": 33206,
+              "size": 35,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 1,
+              "base64": "dW5yZWxhdGVkIGRlc3RpbmF0aW9uIG11c3Qgc3Vydml2ZQo=",
+              "sha256": "e314ee083fcb42912a2e58834c3a358b93932cd5aeedc0e1dc84349a08943eca"
+            }
+          },
+          "lower": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2
+            }
+          }
+        },
+        "after": {
+          "left": {
+            "/": {
+              "type": "directory",
+              "mode": 16832,
+              "dev": 16777232,
+              "ino": 169815411,
+              "nlink": 3
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33188,
+              "size": 30,
+              "dev": 16777232,
+              "ino": 169815412,
+              "nlink": 1,
+              "base64": "aW5kZXBlbmRlbnQgYWxpYXMgc2VudGluZWwKAP8K",
+              "sha256": "788202b75b5920364e178ec35710dd21b110f6a7e8f931939da0a7c6474d8aa9"
+            }
+          },
+          "upper": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2
+            },
+            "/target": {
+              "type": "file",
+              "mode": 33206,
+              "size": 35,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 1,
+              "base64": "dW5yZWxhdGVkIGRlc3RpbmF0aW9uIG11c3Qgc3Vydml2ZQo=",
+              "sha256": "e314ee083fcb42912a2e58834c3a358b93932cd5aeedc0e1dc84349a08943eca"
+            }
+          },
+          "lower": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2
+            }
+          }
+        },
+        "failure": {
+          "name": "FsError",
+          "code": "EIO",
+          "syscall": "copyFile",
+          "path": "/left/file",
+          "dest": "/right/target"
+        },
+        "events": [
+          {
+            "backend": "left",
+            "operation": "readStream.acquire",
+            "path": "/file"
+          },
+          {
+            "backend": "overlay",
+            "operation": "writeStream.enter",
+            "path": "/target",
+            "flag": "w"
+          },
+          {
+            "backend": "upper",
+            "operation": "writeStream.enter",
+            "path": "/.virtual-bash-overlay-684e817d-6816-4aa7-bbdf-0afb45c14c53/entry",
+            "flag": "wx"
+          },
+          {
+            "backend": "left",
+            "operation": "readStream.next",
+            "path": "/file"
+          },
+          {
+            "backend": "left",
+            "operation": "readStream.chunk",
+            "path": "/file",
+            "bytes": 30
+          },
+          {
+            "backend": "left",
+            "operation": "readStream.return",
+            "path": "/file"
+          }
+        ]
+      },
+      {
+        "name": "overlay destination preserves namespace on publication-failure",
+        "source": "/left/file",
+        "destination": "/right/target",
+        "options": {
+          "exclusive": false
+        },
+        "before": {
+          "left": {
+            "/": {
+              "type": "directory",
+              "mode": 16832,
+              "dev": 16777232,
+              "ino": 169815413,
+              "nlink": 3
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33188,
+              "size": 30,
+              "dev": 16777232,
+              "ino": 169815414,
+              "nlink": 1,
+              "base64": "aW5kZXBlbmRlbnQgYWxpYXMgc2VudGluZWwKAP8K",
+              "sha256": "788202b75b5920364e178ec35710dd21b110f6a7e8f931939da0a7c6474d8aa9"
+            }
+          },
+          "upper": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2
+            },
+            "/target": {
+              "type": "file",
+              "mode": 33206,
+              "size": 35,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 1,
+              "base64": "dW5yZWxhdGVkIGRlc3RpbmF0aW9uIG11c3Qgc3Vydml2ZQo=",
+              "sha256": "e314ee083fcb42912a2e58834c3a358b93932cd5aeedc0e1dc84349a08943eca"
+            }
+          },
+          "lower": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2
+            }
+          }
+        },
+        "after": {
+          "left": {
+            "/": {
+              "type": "directory",
+              "mode": 16832,
+              "dev": 16777232,
+              "ino": 169815413,
+              "nlink": 3
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33188,
+              "size": 30,
+              "dev": 16777232,
+              "ino": 169815414,
+              "nlink": 1,
+              "base64": "aW5kZXBlbmRlbnQgYWxpYXMgc2VudGluZWwKAP8K",
+              "sha256": "788202b75b5920364e178ec35710dd21b110f6a7e8f931939da0a7c6474d8aa9"
+            }
+          },
+          "upper": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2
+            },
+            "/target": {
+              "type": "file",
+              "mode": 33206,
+              "size": 35,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 1,
+              "base64": "dW5yZWxhdGVkIGRlc3RpbmF0aW9uIG11c3Qgc3Vydml2ZQo=",
+              "sha256": "e314ee083fcb42912a2e58834c3a358b93932cd5aeedc0e1dc84349a08943eca"
+            }
+          },
+          "lower": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2
+            }
+          }
+        },
+        "failure": {
+          "name": "FsError",
+          "code": "EACCES",
+          "syscall": "copyFile",
+          "path": "/left/file",
+          "dest": "/right/target"
+        },
+        "events": [
+          {
+            "backend": "left",
+            "operation": "readStream.acquire",
+            "path": "/file"
+          },
+          {
+            "backend": "overlay",
+            "operation": "writeStream.enter",
+            "path": "/target",
+            "flag": "w"
+          },
+          {
+            "backend": "upper",
+            "operation": "writeStream.enter",
+            "path": "/.virtual-bash-overlay-a5d65860-41ec-48e0-806f-660e23bb63cd/entry",
+            "flag": "wx"
+          },
+          {
+            "backend": "left",
+            "operation": "readStream.next",
+            "path": "/file"
+          },
+          {
+            "backend": "left",
+            "operation": "readStream.chunk",
+            "path": "/file",
+            "bytes": 30
+          },
+          {
+            "backend": "left",
+            "operation": "readStream.return",
+            "path": "/file"
+          },
+          {
+            "backend": "upper",
+            "operation": "writeStream.complete",
+            "path": "/.virtual-bash-overlay-a5d65860-41ec-48e0-806f-660e23bb63cd/entry"
+          },
+          {
+            "backend": "upper",
+            "operation": "readStream.acquire",
+            "path": "/target"
+          },
+          {
+            "backend": "upper",
+            "operation": "writeStream.enter",
+            "path": "/.virtual-bash-overlay-6604df60-2629-4aad-9e1e-4f4793213bcf/entry",
+            "flag": "wx"
+          },
+          {
+            "backend": "upper",
+            "operation": "readStream.next",
+            "path": "/target"
+          },
+          {
+            "backend": "upper",
+            "operation": "readStream.chunk",
+            "path": "/target",
+            "bytes": 35
+          },
+          {
+            "backend": "upper",
+            "operation": "readStream.return",
+            "path": "/target"
+          },
+          {
+            "backend": "upper",
+            "operation": "writeStream.complete",
+            "path": "/.virtual-bash-overlay-6604df60-2629-4aad-9e1e-4f4793213bcf/entry"
+          },
+          {
+            "backend": "upper",
+            "operation": "readStream.acquire",
+            "path": "/.virtual-bash-overlay-a5d65860-41ec-48e0-806f-660e23bb63cd/entry"
+          },
+          {
+            "backend": "upper",
+            "operation": "writeStream.enter",
+            "path": "/.virtual-bash-overlay-6604df60-2629-4aad-9e1e-4f4793213bcf/entry",
+            "flag": "w"
+          },
+          {
+            "backend": "upper",
+            "operation": "readStream.next",
+            "path": "/.virtual-bash-overlay-a5d65860-41ec-48e0-806f-660e23bb63cd/entry"
+          },
+          {
+            "backend": "upper",
+            "operation": "readStream.chunk",
+            "path": "/.virtual-bash-overlay-a5d65860-41ec-48e0-806f-660e23bb63cd/entry",
+            "bytes": 30
+          },
+          {
+            "backend": "upper",
+            "operation": "readStream.return",
+            "path": "/.virtual-bash-overlay-a5d65860-41ec-48e0-806f-660e23bb63cd/entry"
+          },
+          {
+            "backend": "upper",
+            "operation": "writeStream.complete",
+            "path": "/.virtual-bash-overlay-6604df60-2629-4aad-9e1e-4f4793213bcf/entry"
+          },
+          {
+            "backend": "upper",
+            "operation": "rename",
+            "path": "/.virtual-bash-overlay-6604df60-2629-4aad-9e1e-4f4793213bcf/entry",
+            "destination": "/target"
+          }
+        ]
+      },
+      {
+        "name": "overlay destination preserves namespace on exclusive-race",
+        "source": "/left/file",
+        "destination": "/right/target",
+        "options": {
+          "exclusive": true
+        },
+        "before": {
+          "left": {
+            "/": {
+              "type": "directory",
+              "mode": 16832,
+              "dev": 16777232,
+              "ino": 169815415,
+              "nlink": 3
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33188,
+              "size": 30,
+              "dev": 16777232,
+              "ino": 169815416,
+              "nlink": 1,
+              "base64": "aW5kZXBlbmRlbnQgYWxpYXMgc2VudGluZWwKAP8K",
+              "sha256": "788202b75b5920364e178ec35710dd21b110f6a7e8f931939da0a7c6474d8aa9"
+            }
+          },
+          "upper": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2
+            }
+          },
+          "lower": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2
+            }
+          }
+        },
+        "after": {
+          "left": {
+            "/": {
+              "type": "directory",
+              "mode": 16832,
+              "dev": 16777232,
+              "ino": 169815415,
+              "nlink": 3
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33188,
+              "size": 30,
+              "dev": 16777232,
+              "ino": 169815416,
+              "nlink": 1,
+              "base64": "aW5kZXBlbmRlbnQgYWxpYXMgc2VudGluZWwKAP8K",
+              "sha256": "788202b75b5920364e178ec35710dd21b110f6a7e8f931939da0a7c6474d8aa9"
+            }
+          },
+          "upper": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2
+            },
+            "/target": {
+              "type": "file",
+              "mode": 33206,
+              "size": 35,
+              "dev": 0,
+              "ino": 4,
+              "nlink": 1,
+              "base64": "dW5yZWxhdGVkIGRlc3RpbmF0aW9uIG11c3Qgc3Vydml2ZQo=",
+              "sha256": "e314ee083fcb42912a2e58834c3a358b93932cd5aeedc0e1dc84349a08943eca"
+            }
+          },
+          "lower": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2
+            }
+          }
+        },
+        "failure": {
+          "name": "FsError",
+          "code": "EEXIST",
+          "syscall": "copyFile",
+          "path": "/left/file",
+          "dest": "/right/target"
+        },
+        "events": [
+          {
+            "backend": "left",
+            "operation": "readStream.acquire",
+            "path": "/file"
+          },
+          {
+            "backend": "overlay",
+            "operation": "writeStream.enter",
+            "path": "/target",
+            "flag": "wx"
+          },
+          {
+            "backend": "upper",
+            "operation": "writeStream.enter",
+            "path": "/.virtual-bash-overlay-7597ceb9-aab0-4fa7-982f-b05205a53107/entry",
+            "flag": "wx"
+          },
+          {
+            "backend": "left",
+            "operation": "readStream.next",
+            "path": "/file"
+          },
+          {
+            "backend": "left",
+            "operation": "readStream.chunk",
+            "path": "/file",
+            "bytes": 30
+          },
+          {
+            "backend": "race",
+            "operation": "target.create",
+            "path": "/target"
+          },
+          {
+            "backend": "left",
+            "operation": "readStream.return",
+            "path": "/file"
+          },
+          {
+            "backend": "upper",
+            "operation": "writeStream.complete",
+            "path": "/.virtual-bash-overlay-7597ceb9-aab0-4fa7-982f-b05205a53107/entry"
+          }
+        ],
+        "insertedTarget": {
+          "type": "file",
+          "mode": 33206,
+          "size": 35,
+          "dev": 0,
+          "ino": 4,
+          "nlink": 1,
+          "base64": "dW5yZWxhdGVkIGRlc3RpbmF0aW9uIG11c3Qgc3Vydml2ZQo=",
+          "sha256": "e314ee083fcb42912a2e58834c3a358b93932cd5aeedc0e1dc84349a08943eca"
+        }
+      }
+    ],
+    "IDENTITY_EDGE_EVIDENCE": [
+      {
+        "name": "missing scope",
+        "source": "/left/file",
+        "destination": "/right/file",
+        "before": {
+          "left": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 1
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 1,
+              "scope": 1,
+              "bytesBase64": "c2NvcGUA/wo="
+            }
+          },
+          "right": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 2
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 1,
+              "scope": 2,
+              "bytesBase64": "b2xkAP4="
+            }
+          }
+        },
+        "after": {
+          "left": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 1
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 1,
+              "scope": 1,
+              "bytesBase64": "c2NvcGUA/wo="
+            }
+          },
+          "right": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 2
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 1,
+              "scope": 2,
+              "bytesBase64": "b2xkAP4="
+            }
+          }
+        },
+        "events": [],
+        "failure": {
+          "code": "ENOTSUP",
+          "syscall": "copyFile",
+          "path": "/left/file",
+          "dest": "/right/file"
+        }
+      },
+      {
+        "name": "missing scope",
+        "source": "/right/file",
+        "destination": "/left/file",
+        "before": {
+          "left": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 1
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 1,
+              "scope": 1,
+              "bytesBase64": "c2NvcGUA/wo="
+            }
+          },
+          "right": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 2
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 1,
+              "scope": 2,
+              "bytesBase64": "b2xkAP4="
+            }
+          }
+        },
+        "after": {
+          "left": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 1
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 1,
+              "scope": 1,
+              "bytesBase64": "c2NvcGUA/wo="
+            }
+          },
+          "right": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 2
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 1,
+              "scope": 2,
+              "bytesBase64": "b2xkAP4="
+            }
+          }
+        },
+        "events": [],
+        "failure": {
+          "code": "ENOTSUP",
+          "syscall": "copyFile",
+          "path": "/right/file",
+          "dest": "/left/file"
+        }
+      },
+      {
+        "name": "null scope",
+        "source": "/left/file",
+        "destination": "/right/file",
+        "before": {
+          "left": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 3
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 1,
+              "scope": 3,
+              "bytesBase64": "c2NvcGUA/wo="
+            }
+          },
+          "right": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 4
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 1,
+              "scope": 4,
+              "bytesBase64": "b2xkAP4="
+            }
+          }
+        },
+        "after": {
+          "left": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 3
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 1,
+              "scope": 3,
+              "bytesBase64": "c2NvcGUA/wo="
+            }
+          },
+          "right": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 4
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 1,
+              "scope": 4,
+              "bytesBase64": "b2xkAP4="
+            }
+          }
+        },
+        "events": [],
+        "failure": {
+          "code": "ENOTSUP",
+          "syscall": "copyFile",
+          "path": "/left/file",
+          "dest": "/right/file"
+        }
+      },
+      {
+        "name": "null scope",
+        "source": "/right/file",
+        "destination": "/left/file",
+        "before": {
+          "left": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 3
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 1,
+              "scope": 3,
+              "bytesBase64": "c2NvcGUA/wo="
+            }
+          },
+          "right": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 4
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 1,
+              "scope": 4,
+              "bytesBase64": "b2xkAP4="
+            }
+          }
+        },
+        "after": {
+          "left": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 3
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 1,
+              "scope": 3,
+              "bytesBase64": "c2NvcGUA/wo="
+            }
+          },
+          "right": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 4
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 1,
+              "scope": 4,
+              "bytesBase64": "b2xkAP4="
+            }
+          }
+        },
+        "events": [],
+        "failure": {
+          "code": "ENOTSUP",
+          "syscall": "copyFile",
+          "path": "/right/file",
+          "dest": "/left/file"
+        }
+      },
+      {
+        "name": "string scope",
+        "source": "/left/file",
+        "destination": "/right/file",
+        "before": {
+          "left": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 5
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 1,
+              "scope": 5,
+              "bytesBase64": "c2NvcGUA/wo="
+            }
+          },
+          "right": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 6
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 1,
+              "scope": 6,
+              "bytesBase64": "b2xkAP4="
+            }
+          }
+        },
+        "after": {
+          "left": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 5
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 1,
+              "scope": 5,
+              "bytesBase64": "c2NvcGUA/wo="
+            }
+          },
+          "right": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 6
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 1,
+              "scope": 6,
+              "bytesBase64": "b2xkAP4="
+            }
+          }
+        },
+        "events": [],
+        "failure": {
+          "code": "ENOTSUP",
+          "syscall": "copyFile",
+          "path": "/left/file",
+          "dest": "/right/file"
+        }
+      },
+      {
+        "name": "string scope",
+        "source": "/right/file",
+        "destination": "/left/file",
+        "before": {
+          "left": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 5
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 1,
+              "scope": 5,
+              "bytesBase64": "c2NvcGUA/wo="
+            }
+          },
+          "right": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 6
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 1,
+              "scope": 6,
+              "bytesBase64": "b2xkAP4="
+            }
+          }
+        },
+        "after": {
+          "left": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 5
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 1,
+              "scope": 5,
+              "bytesBase64": "c2NvcGUA/wo="
+            }
+          },
+          "right": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 6
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 1,
+              "scope": 6,
+              "bytesBase64": "b2xkAP4="
+            }
+          }
+        },
+        "events": [],
+        "failure": {
+          "code": "ENOTSUP",
+          "syscall": "copyFile",
+          "path": "/right/file",
+          "dest": "/left/file"
+        }
+      },
+      {
+        "name": "function scope",
+        "source": "/left/file",
+        "destination": "/right/file",
+        "before": {
+          "left": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 7
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 1,
+              "scope": 7,
+              "bytesBase64": "c2NvcGUA/wo="
+            }
+          },
+          "right": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 8
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 1,
+              "scope": 8,
+              "bytesBase64": "b2xkAP4="
+            }
+          }
+        },
+        "after": {
+          "left": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 7
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 1,
+              "scope": 7,
+              "bytesBase64": "c2NvcGUA/wo="
+            }
+          },
+          "right": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 8
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 1,
+              "scope": 8,
+              "bytesBase64": "b2xkAP4="
+            }
+          }
+        },
+        "events": [],
+        "failure": {
+          "code": "ENOTSUP",
+          "syscall": "copyFile",
+          "path": "/left/file",
+          "dest": "/right/file"
+        }
+      },
+      {
+        "name": "function scope",
+        "source": "/right/file",
+        "destination": "/left/file",
+        "before": {
+          "left": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 7
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 1,
+              "scope": 7,
+              "bytesBase64": "c2NvcGUA/wo="
+            }
+          },
+          "right": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 8
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 1,
+              "scope": 8,
+              "bytesBase64": "b2xkAP4="
+            }
+          }
+        },
+        "after": {
+          "left": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 7
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 1,
+              "scope": 7,
+              "bytesBase64": "c2NvcGUA/wo="
+            }
+          },
+          "right": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 8
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 1,
+              "scope": 8,
+              "bytesBase64": "b2xkAP4="
+            }
+          }
+        },
+        "events": [],
+        "failure": {
+          "code": "ENOTSUP",
+          "syscall": "copyFile",
+          "path": "/right/file",
+          "dest": "/left/file"
+        }
+      },
+      {
+        "name": "negative device",
+        "source": "/left/file",
+        "destination": "/right/file",
+        "before": {
+          "left": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 9
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 1,
+              "scope": 9,
+              "bytesBase64": "c2NvcGUA/wo="
+            }
+          },
+          "right": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 10
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 1,
+              "scope": 10,
+              "bytesBase64": "b2xkAP4="
+            }
+          }
+        },
+        "after": {
+          "left": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 9
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 1,
+              "scope": 9,
+              "bytesBase64": "c2NvcGUA/wo="
+            }
+          },
+          "right": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 10
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 1,
+              "scope": 10,
+              "bytesBase64": "b2xkAP4="
+            }
+          }
+        },
+        "events": [],
+        "failure": {
+          "code": "ENOTSUP",
+          "syscall": "copyFile",
+          "path": "/left/file",
+          "dest": "/right/file"
+        }
+      },
+      {
+        "name": "negative device",
+        "source": "/right/file",
+        "destination": "/left/file",
+        "before": {
+          "left": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 9
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 1,
+              "scope": 9,
+              "bytesBase64": "c2NvcGUA/wo="
+            }
+          },
+          "right": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 10
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 1,
+              "scope": 10,
+              "bytesBase64": "b2xkAP4="
+            }
+          }
+        },
+        "after": {
+          "left": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 9
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 1,
+              "scope": 9,
+              "bytesBase64": "c2NvcGUA/wo="
+            }
+          },
+          "right": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 10
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 1,
+              "scope": 10,
+              "bytesBase64": "b2xkAP4="
+            }
+          }
+        },
+        "events": [],
+        "failure": {
+          "code": "ENOTSUP",
+          "syscall": "copyFile",
+          "path": "/right/file",
+          "dest": "/left/file"
+        }
+      },
+      {
+        "name": "negative inode",
+        "source": "/left/file",
+        "destination": "/right/file",
+        "before": {
+          "left": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 11
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 1,
+              "scope": 11,
+              "bytesBase64": "c2NvcGUA/wo="
+            }
+          },
+          "right": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 12
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 1,
+              "scope": 12,
+              "bytesBase64": "b2xkAP4="
+            }
+          }
+        },
+        "after": {
+          "left": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 11
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 1,
+              "scope": 11,
+              "bytesBase64": "c2NvcGUA/wo="
+            }
+          },
+          "right": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 12
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 1,
+              "scope": 12,
+              "bytesBase64": "b2xkAP4="
+            }
+          }
+        },
+        "events": [],
+        "failure": {
+          "code": "ENOTSUP",
+          "syscall": "copyFile",
+          "path": "/left/file",
+          "dest": "/right/file"
+        }
+      },
+      {
+        "name": "negative inode",
+        "source": "/right/file",
+        "destination": "/left/file",
+        "before": {
+          "left": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 11
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 1,
+              "scope": 11,
+              "bytesBase64": "c2NvcGUA/wo="
+            }
+          },
+          "right": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 12
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 1,
+              "scope": 12,
+              "bytesBase64": "b2xkAP4="
+            }
+          }
+        },
+        "after": {
+          "left": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 11
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 1,
+              "scope": 11,
+              "bytesBase64": "c2NvcGUA/wo="
+            }
+          },
+          "right": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 12
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 1,
+              "scope": 12,
+              "bytesBase64": "b2xkAP4="
+            }
+          }
+        },
+        "events": [],
+        "failure": {
+          "code": "ENOTSUP",
+          "syscall": "copyFile",
+          "path": "/right/file",
+          "dest": "/left/file"
+        }
+      },
+      {
+        "name": "unsafe inode",
+        "source": "/left/file",
+        "destination": "/right/file",
+        "before": {
+          "left": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 13
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 1,
+              "scope": 13,
+              "bytesBase64": "c2NvcGUA/wo="
+            }
+          },
+          "right": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 14
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 1,
+              "scope": 14,
+              "bytesBase64": "b2xkAP4="
+            }
+          }
+        },
+        "after": {
+          "left": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 13
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 1,
+              "scope": 13,
+              "bytesBase64": "c2NvcGUA/wo="
+            }
+          },
+          "right": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 14
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 1,
+              "scope": 14,
+              "bytesBase64": "b2xkAP4="
+            }
+          }
+        },
+        "events": [],
+        "failure": {
+          "code": "ENOTSUP",
+          "syscall": "copyFile",
+          "path": "/left/file",
+          "dest": "/right/file"
+        }
+      },
+      {
+        "name": "unsafe inode",
+        "source": "/right/file",
+        "destination": "/left/file",
+        "before": {
+          "left": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 13
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 1,
+              "scope": 13,
+              "bytesBase64": "c2NvcGUA/wo="
+            }
+          },
+          "right": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 14
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 1,
+              "scope": 14,
+              "bytesBase64": "b2xkAP4="
+            }
+          }
+        },
+        "after": {
+          "left": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 13
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 1,
+              "scope": 13,
+              "bytesBase64": "c2NvcGUA/wo="
+            }
+          },
+          "right": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 14
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 1,
+              "scope": 14,
+              "bytesBase64": "b2xkAP4="
+            }
+          }
+        },
+        "events": [],
+        "failure": {
+          "code": "ENOTSUP",
+          "syscall": "copyFile",
+          "path": "/right/file",
+          "dest": "/left/file"
+        }
+      },
+      {
+        "name": "nonfinite device",
+        "source": "/left/file",
+        "destination": "/right/file",
+        "before": {
+          "left": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 15
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 1,
+              "scope": 15,
+              "bytesBase64": "c2NvcGUA/wo="
+            }
+          },
+          "right": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 16
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 1,
+              "scope": 16,
+              "bytesBase64": "b2xkAP4="
+            }
+          }
+        },
+        "after": {
+          "left": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 15
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 1,
+              "scope": 15,
+              "bytesBase64": "c2NvcGUA/wo="
+            }
+          },
+          "right": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 16
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 1,
+              "scope": 16,
+              "bytesBase64": "b2xkAP4="
+            }
+          }
+        },
+        "events": [],
+        "failure": {
+          "code": "ENOTSUP",
+          "syscall": "copyFile",
+          "path": "/left/file",
+          "dest": "/right/file"
+        }
+      },
+      {
+        "name": "nonfinite device",
+        "source": "/right/file",
+        "destination": "/left/file",
+        "before": {
+          "left": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 15
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 1,
+              "scope": 15,
+              "bytesBase64": "c2NvcGUA/wo="
+            }
+          },
+          "right": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 16
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 1,
+              "scope": 16,
+              "bytesBase64": "b2xkAP4="
+            }
+          }
+        },
+        "after": {
+          "left": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 15
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 1,
+              "scope": 15,
+              "bytesBase64": "c2NvcGUA/wo="
+            }
+          },
+          "right": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 16
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 1,
+              "scope": 16,
+              "bytesBase64": "b2xkAP4="
+            }
+          }
+        },
+        "events": [],
+        "failure": {
+          "code": "ENOTSUP",
+          "syscall": "copyFile",
+          "path": "/right/file",
+          "dest": "/left/file"
+        }
+      },
+      {
+        "name": "missing inode",
+        "source": "/left/file",
+        "destination": "/right/file",
+        "before": {
+          "left": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 17
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 1,
+              "scope": 17,
+              "bytesBase64": "c2NvcGUA/wo="
+            }
+          },
+          "right": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 18
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 1,
+              "scope": 18,
+              "bytesBase64": "b2xkAP4="
+            }
+          }
+        },
+        "after": {
+          "left": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 17
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 1,
+              "scope": 17,
+              "bytesBase64": "c2NvcGUA/wo="
+            }
+          },
+          "right": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 18
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 1,
+              "scope": 18,
+              "bytesBase64": "b2xkAP4="
+            }
+          }
+        },
+        "events": [],
+        "failure": {
+          "code": "ENOTSUP",
+          "syscall": "copyFile",
+          "path": "/left/file",
+          "dest": "/right/file"
+        }
+      },
+      {
+        "name": "missing inode",
+        "source": "/right/file",
+        "destination": "/left/file",
+        "before": {
+          "left": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 17
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 1,
+              "scope": 17,
+              "bytesBase64": "c2NvcGUA/wo="
+            }
+          },
+          "right": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 18
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 1,
+              "scope": 18,
+              "bytesBase64": "b2xkAP4="
+            }
+          }
+        },
+        "after": {
+          "left": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 17
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 1,
+              "scope": 17,
+              "bytesBase64": "c2NvcGUA/wo="
+            }
+          },
+          "right": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 18
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 1,
+              "scope": 18,
+              "bytesBase64": "b2xkAP4="
+            }
+          }
+        },
+        "events": [],
+        "failure": {
+          "code": "ENOTSUP",
+          "syscall": "copyFile",
+          "path": "/right/file",
+          "dest": "/left/file"
+        }
+      },
+      {
+        "name": "truthful disjoint object scopes",
+        "source": "/left/file",
+        "destination": "/right/file",
+        "before": {
+          "left": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 19
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 1,
+              "scope": 19,
+              "bytesBase64": "c2NvcGUA/wo="
+            }
+          },
+          "right": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 20
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 1,
+              "scope": 20,
+              "bytesBase64": "b2xkAP4="
+            }
+          }
+        },
+        "after": {
+          "left": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 19
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 1,
+              "scope": 19,
+              "bytesBase64": "c2NvcGUA/wo="
+            }
+          },
+          "right": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 20
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 1,
+              "scope": 20,
+              "bytesBase64": "c2NvcGUA/wo="
+            }
+          }
+        },
+        "events": [
+          {
+            "backend": "left",
+            "operation": "readStream.acquire",
+            "path": "/file"
+          },
+          {
+            "backend": "right",
+            "operation": "writeStream.enter",
+            "path": "/file",
+            "flag": "w"
+          },
+          {
+            "backend": "left",
+            "operation": "readStream.next",
+            "path": "/file"
+          },
+          {
+            "backend": "left",
+            "operation": "readStream.chunk",
+            "path": "/file",
+            "size": 8
+          }
+        ],
+        "failure": null
+      },
+      {
+        "name": "getter forwarding",
+        "source": "/left/nested/file",
+        "destination": "/right/target",
+        "before": {
+          "backend": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 21
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 2,
+              "scope": 21,
+              "bytesBase64": "c2NvcGUA/wo="
+            },
+            "/target": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 2,
+              "scope": 21,
+              "bytesBase64": "c2NvcGUA/wo="
+            }
+          }
+        },
+        "after": {
+          "backend": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 21
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 2,
+              "scope": 21,
+              "bytesBase64": "c2NvcGUA/wo="
+            },
+            "/target": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 2,
+              "scope": 21,
+              "bytesBase64": "c2NvcGUA/wo="
+            }
+          }
+        },
+        "events": [],
+        "failure": {
+          "code": "EINVAL",
+          "syscall": "copyFile",
+          "path": "/left/nested/file",
+          "dest": "/right/target"
+        },
+        "getterReads": 2
+      },
+      {
+        "name": "overlay before copy-up",
+        "source": "/left/file",
+        "destination": "/right/file",
+        "before": {
+          "upper": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 22
+            }
+          },
+          "lower": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 23
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 1,
+              "scope": 23,
+              "bytesBase64": "c2NvcGUA/wo="
+            }
+          }
+        },
+        "after": {
+          "upper": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 22
+            }
+          },
+          "lower": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 23
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 1,
+              "scope": 23,
+              "bytesBase64": "c2NvcGUA/wo="
+            }
+          }
+        },
+        "events": [],
+        "failure": {
+          "code": "EINVAL",
+          "syscall": "copyFile",
+          "path": "/left/file",
+          "dest": "/right/file"
+        }
+      },
+      {
+        "name": "overlay after copy-up",
+        "source": "/left/file",
+        "destination": "/right/file",
+        "before": {
+          "upper": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 22
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 3,
+              "nlink": 1,
+              "scope": 22,
+              "bytesBase64": "b2xkAP4="
+            }
+          },
+          "lower": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 23
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 1,
+              "scope": 23,
+              "bytesBase64": "c2NvcGUA/wo="
+            }
+          }
+        },
+        "after": {
+          "upper": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 22
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 3,
+              "nlink": 1,
+              "scope": 22,
+              "bytesBase64": "b2xkAP4="
+            }
+          },
+          "lower": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 23
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 1,
+              "scope": 23,
+              "bytesBase64": "b2xkAP4="
+            }
+          }
+        },
+        "events": [
+          {
+            "backend": "target",
+            "operation": "writeStream.enter",
+            "path": "/file",
+            "flag": "w"
+          },
+          {
+            "backend": "upper",
+            "operation": "readStream.acquire",
+            "path": "/file"
+          },
+          {
+            "backend": "upper",
+            "operation": "readStream.next",
+            "path": "/file"
+          },
+          {
+            "backend": "upper",
+            "operation": "readStream.chunk",
+            "path": "/file",
+            "size": 5
+          }
+        ],
+        "failure": null
+      },
+      {
+        "name": "repeated backend hardlink",
+        "source": "/left/file",
+        "destination": "/right/target",
+        "before": {
+          "backend": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 24
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 2,
+              "scope": 24,
+              "bytesBase64": "c2NvcGUA/wo="
+            },
+            "/target": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 2,
+              "scope": 24,
+              "bytesBase64": "c2NvcGUA/wo="
+            }
+          }
+        },
+        "after": {
+          "backend": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 24
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 2,
+              "scope": 24,
+              "bytesBase64": "c2NvcGUA/wo="
+            },
+            "/target": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 2,
+              "scope": 24,
+              "bytesBase64": "c2NvcGUA/wo="
+            }
+          }
+        },
+        "events": [],
+        "failure": {
+          "code": "EINVAL",
+          "syscall": "copyFile",
+          "path": "/left/file",
+          "dest": "/right/target"
+        }
+      },
+      {
+        "name": "repeated backend distinct target",
+        "source": "/left/file",
+        "destination": "/right/new",
+        "before": {
+          "backend": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 24
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 2,
+              "scope": 24,
+              "bytesBase64": "c2NvcGUA/wo="
+            },
+            "/target": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 2,
+              "scope": 24,
+              "bytesBase64": "c2NvcGUA/wo="
+            }
+          }
+        },
+        "after": {
+          "backend": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 24
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 2,
+              "scope": 24,
+              "bytesBase64": "c2NvcGUA/wo="
+            },
+            "/new": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 3,
+              "nlink": 1,
+              "scope": 24,
+              "bytesBase64": "c2NvcGUA/wo="
+            },
+            "/target": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 2,
+              "scope": 24,
+              "bytesBase64": "c2NvcGUA/wo="
+            }
+          }
+        },
+        "events": [
+          {
+            "backend": "shared",
+            "operation": "readStream.acquire",
+            "path": "/file"
+          },
+          {
+            "backend": "shared",
+            "operation": "writeStream.enter",
+            "path": "/new",
+            "flag": "wx"
+          },
+          {
+            "backend": "shared",
+            "operation": "readStream.next",
+            "path": "/file"
+          },
+          {
+            "backend": "shared",
+            "operation": "readStream.chunk",
+            "path": "/file",
+            "size": 8
+          }
+        ],
+        "failure": null
+      },
+      {
+        "name": "default missing target race true",
+        "source": "/left/file",
+        "destination": "/right/new",
+        "before": {
+          "backend": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 25
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 1,
+              "scope": 25,
+              "bytesBase64": "c2NvcGUA/wo="
+            }
+          }
+        },
+        "after": {
+          "backend": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 25
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 2,
+              "scope": 25,
+              "bytesBase64": "c2NvcGUA/wo="
+            },
+            "/new": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 2,
+              "scope": 25,
+              "bytesBase64": "c2NvcGUA/wo="
+            }
+          }
+        },
+        "events": [
+          {
+            "backend": "source",
+            "operation": "readStream.acquire",
+            "path": "/file"
+          },
+          {
+            "backend": "target",
+            "operation": "writeStream.enter",
+            "path": "/new",
+            "flag": "wx"
+          },
+          {
+            "backend": "external-writer",
+            "operation": "link",
+            "path": "/new"
+          }
+        ],
+        "failure": {
+          "code": "EEXIST",
+          "syscall": "copyFile",
+          "path": "/left/file",
+          "dest": "/right/new"
+        },
+        "inserted": {
+          "/": {
+            "type": "directory",
+            "mode": 16877,
+            "dev": 0,
+            "ino": 1,
+            "nlink": 2,
+            "scope": 25
+          },
+          "/file": {
+            "type": "file",
+            "mode": 33206,
+            "dev": 0,
+            "ino": 2,
+            "nlink": 2,
+            "scope": 25,
+            "bytesBase64": "c2NvcGUA/wo="
+          },
+          "/new": {
+            "type": "file",
+            "mode": 33206,
+            "dev": 0,
+            "ino": 2,
+            "nlink": 2,
+            "scope": 25,
+            "bytesBase64": "c2NvcGUA/wo="
+          }
+        }
+      },
+      {
+        "name": "default missing target race false",
+        "source": "/left/file",
+        "destination": "/right/new",
+        "before": {
+          "backend": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 26
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 1,
+              "scope": 26,
+              "bytesBase64": "c2NvcGUA/wo="
+            }
+          }
+        },
+        "after": {
+          "backend": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 26
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 2,
+              "scope": 26,
+              "bytesBase64": "c2NvcGUA/wo="
+            },
+            "/new": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 2,
+              "scope": 26,
+              "bytesBase64": "c2NvcGUA/wo="
+            }
+          }
+        },
+        "events": [
+          {
+            "backend": "source",
+            "operation": "readFile",
+            "path": "/file"
+          },
+          {
+            "backend": "target",
+            "operation": "writeFile",
+            "path": "/new",
+            "flag": "wx"
+          },
+          {
+            "backend": "external-writer",
+            "operation": "link",
+            "path": "/new"
+          }
+        ],
+        "failure": {
+          "code": "EEXIST",
+          "syscall": "copyFile",
+          "path": "/left/file",
+          "dest": "/right/new"
+        },
+        "inserted": {
+          "/": {
+            "type": "directory",
+            "mode": 16877,
+            "dev": 0,
+            "ino": 1,
+            "nlink": 2,
+            "scope": 26
+          },
+          "/file": {
+            "type": "file",
+            "mode": 33206,
+            "dev": 0,
+            "ino": 2,
+            "nlink": 2,
+            "scope": 26,
+            "bytesBase64": "c2NvcGUA/wo="
+          },
+          "/new": {
+            "type": "file",
+            "mode": 33206,
+            "dev": 0,
+            "ino": 2,
+            "nlink": 2,
+            "scope": 26,
+            "bytesBase64": "c2NvcGUA/wo="
+          }
+        }
+      },
+      {
+        "name": "ENOENT cancellation false",
+        "source": "/left/file",
+        "destination": "/right/target",
+        "before": {
+          "left": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 27
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 1,
+              "scope": 27,
+              "bytesBase64": "c2NvcGUA/wo="
+            }
+          },
+          "right": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 28
+            },
+            "/target": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 1,
+              "scope": 28,
+              "bytesBase64": "b2xkAP4="
+            }
+          },
+          "upper": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 29
+            }
+          }
+        },
+        "after": {
+          "left": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 27
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 1,
+              "scope": 27,
+              "bytesBase64": "c2NvcGUA/wo="
+            }
+          },
+          "right": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 28
+            },
+            "/target": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 1,
+              "scope": 28,
+              "bytesBase64": "b2xkAP4="
+            }
+          },
+          "upper": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 29
+            }
+          }
+        },
+        "events": [],
+        "failure": {
+          "code": "ENOENT",
+          "syscall": "caller-abort",
+          "path": "/cancellation"
+        },
+        "sameAbortReason": true
+      },
+      {
+        "name": "ENOENT cancellation true",
+        "source": "/left/file",
+        "destination": "/right/target",
+        "before": {
+          "left": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 30
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 1,
+              "scope": 30,
+              "bytesBase64": "c2NvcGUA/wo="
+            }
+          },
+          "right": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 31
+            },
+            "/target": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 1,
+              "scope": 31,
+              "bytesBase64": "b2xkAP4="
+            }
+          },
+          "upper": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 32
+            }
+          }
+        },
+        "after": {
+          "left": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 30
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 1,
+              "scope": 30,
+              "bytesBase64": "c2NvcGUA/wo="
+            }
+          },
+          "right": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 31
+            },
+            "/target": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 1,
+              "scope": 31,
+              "bytesBase64": "b2xkAP4="
+            }
+          },
+          "upper": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 32
+            }
+          }
+        },
+        "events": [],
+        "failure": {
+          "code": "ENOENT",
+          "syscall": "caller-abort",
+          "path": "/cancellation"
+        },
+        "sameAbortReason": true
+      },
+      {
+        "name": "unknown same-mount delegation",
+        "source": "/file",
+        "destination": "/target",
+        "before": {
+          "backend": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 33
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 2,
+              "scope": 33,
+              "bytesBase64": "c2NvcGUA/wo="
+            },
+            "/target": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 2,
+              "scope": 33,
+              "bytesBase64": "c2NvcGUA/wo="
+            }
+          }
+        },
+        "after": {
+          "backend": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 33
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 2,
+              "scope": 33,
+              "bytesBase64": "c2NvcGUA/wo="
+            },
+            "/target": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 2,
+              "scope": 33,
+              "bytesBase64": "c2NvcGUA/wo="
+            }
+          }
+        },
+        "events": [],
+        "failure": {
+          "code": "ENOTSUP",
+          "syscall": "copyFile",
+          "path": "/file",
+          "dest": "/target"
+        }
+      }
+    ]
+  }
+}

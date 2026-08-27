@@ -1,0 +1,2481 @@
+{
+  "name": "fixed-native12",
+  "revision": "4fa4ba9502dac843bd13aa5031d128a3171f597d",
+  "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "argv": [
+    "--unhandled-rejections=strict",
+    "--import",
+    "tsx",
+    "--test",
+    "--test-concurrency=1",
+    "tests/fs/mount-identity-review/native-review.test.ts"
+  ],
+  "started": "2026-08-26T23:57:04.098Z",
+  "ended": "2026-08-26T23:57:04.296Z",
+  "exit": 0,
+  "signal": null,
+  "stdout": "TAP version 13\n# Subtest: direct native same-path alias rejects before any native write\nok 1 - direct native same-path alias rejects before any native write\n  ---\n  duration_ms: 7.30775\n  type: 'test'\n  ...\n# Subtest: direct native hardlink alias rejects before any native write\nok 2 - direct native hardlink alias rejects before any native write\n  ---\n  duration_ms: 5.424542\n  type: 'test'\n  ...\n# Subtest: direct native symlink alias rejects before any native write\nok 3 - direct native symlink alias rejects before any native write\n  ---\n  duration_ms: 5.353125\n  type: 'test'\n  ...\n# Subtest: exclusive same-path alias gives EEXIST before EINVAL\nok 4 - exclusive same-path alias gives EEXIST before EINVAL\n  ---\n  duration_ms: 3.355042\n  type: 'test'\n  ...\n# Subtest: exclusive hardlink alias gives EEXIST before EINVAL\nok 5 - exclusive hardlink alias gives EEXIST before EINVAL\n  ---\n  duration_ms: 4.765333\n  type: 'test'\n  ...\n# Subtest: exclusive symlink alias gives EEXIST before EINVAL\nok 6 - exclusive symlink alias gives EEXIST before EINVAL\n  ---\n  duration_ms: 4.120542\n  type: 'test'\n  ...\n# Subtest: missing source gives ENOENT before existing exclusive destination\nok 7 - missing source gives ENOENT before existing exclusive destination\n  ---\n  duration_ms: 4.200042\n  type: 'test'\n  ...\n# Subtest: exclusive dangling destination gives EEXIST without following link\nok 8 - exclusive dangling destination gives EEXIST without following link\n  ---\n  duration_ms: 3.4625\n  type: 'test'\n  ...\n# Subtest: unrelated exclusive existing destination rejects without native copy\nok 9 - unrelated exclusive existing destination rejects without native copy\n  ---\n  duration_ms: 3.141833\n  type: 'test'\n  ...\n# Subtest: distinct overwrite reaches native copy only after identity preflight\nok 10 - distinct overwrite reaches native copy only after identity preflight\n  ---\n  duration_ms: 3.721083\n  type: 'test'\n  ...\n# Subtest: default new destination copies complete binary payload\nok 11 - default new destination copies complete binary payload\n  ---\n  duration_ms: 3.435458\n  type: 'test'\n  ...\n# Subtest: exclusive new destination copies complete binary payload\nok 12 - exclusive new destination copies complete binary payload\n  ---\n  duration_ms: 4.577959\n  type: 'test'\n  ...\n1..12\n# tests 12\n# suites 0\n# pass 12\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 166.766792\n",
+  "stderr": "",
+  "summary": {
+    "tests": 12,
+    "pass": 12,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "failures": [],
+  "observations": {
+    "NATIVE_IDENTITY_REVIEW_EVIDENCE": [
+      {
+        "name": "direct native same-path alias rejects before any native write",
+        "source": "/source",
+        "destination": "/source",
+        "exclusive": false,
+        "before": {
+          "/": {
+            "type": "directory",
+            "size": 96,
+            "mode": 16832,
+            "dev": 16777232,
+            "ino": 169815047,
+            "nlink": 3,
+            "mtimeMs": 1787788624237.509,
+            "ctimeMs": 1787788624237.509,
+            "birthtimeMs": 1787788624235.3235
+          },
+          "/source": {
+            "type": "file",
+            "size": 35,
+            "mode": 33188,
+            "dev": 16777232,
+            "ino": 169815048,
+            "nlink": 1,
+            "mtimeMs": 1787788624237.73,
+            "ctimeMs": 1787788624237.73,
+            "birthtimeMs": 1787788624237.5051,
+            "base64": "aW5kZXBlbmRlbnQgbmF0aXZlIHByZXNlcnZhdGlvbgoA/wo=",
+            "sha256": "3f5b6dcbb1f4e73de8106ab1877c8ba9e8f39b3630df4a61721584235db48eed"
+          }
+        },
+        "after": {
+          "/": {
+            "type": "directory",
+            "size": 96,
+            "mode": 16832,
+            "dev": 16777232,
+            "ino": 169815047,
+            "nlink": 3,
+            "mtimeMs": 1787788624237.509,
+            "ctimeMs": 1787788624237.509,
+            "birthtimeMs": 1787788624235.3235
+          },
+          "/source": {
+            "type": "file",
+            "size": 35,
+            "mode": 33188,
+            "dev": 16777232,
+            "ino": 169815048,
+            "nlink": 1,
+            "mtimeMs": 1787788624237.73,
+            "ctimeMs": 1787788624237.73,
+            "birthtimeMs": 1787788624237.5051,
+            "base64": "aW5kZXBlbmRlbnQgbmF0aXZlIHByZXNlcnZhdGlvbgoA/wo=",
+            "sha256": "3f5b6dcbb1f4e73de8106ab1877c8ba9e8f39b3630df4a61721584235db48eed"
+          }
+        },
+        "failure": {
+          "name": "FsError",
+          "code": "EINVAL",
+          "syscall": "copyFile",
+          "path": "/source",
+          "dest": "/source"
+        },
+        "events": [
+          {
+            "method": "realpath",
+            "phase": "call",
+            "path": "/",
+            "destructive": false
+          },
+          {
+            "method": "realpath",
+            "phase": "return",
+            "path": "/",
+            "destructive": false
+          },
+          {
+            "method": "stat",
+            "phase": "call",
+            "path": "/",
+            "destructive": false,
+            "bigint": false
+          },
+          {
+            "method": "stat",
+            "phase": "return",
+            "path": "/",
+            "destructive": false,
+            "bigint": false,
+            "dev": "16777232",
+            "ino": "169815047"
+          },
+          {
+            "method": "lstat",
+            "phase": "call",
+            "path": "/source",
+            "destructive": false,
+            "bigint": false
+          },
+          {
+            "method": "lstat",
+            "phase": "return",
+            "path": "/source",
+            "destructive": false,
+            "bigint": false,
+            "dev": "16777232",
+            "ino": "169815048"
+          },
+          {
+            "method": "realpath",
+            "phase": "call",
+            "path": "/",
+            "destructive": false
+          },
+          {
+            "method": "realpath",
+            "phase": "return",
+            "path": "/",
+            "destructive": false
+          },
+          {
+            "method": "stat",
+            "phase": "call",
+            "path": "/",
+            "destructive": false,
+            "bigint": false
+          },
+          {
+            "method": "stat",
+            "phase": "return",
+            "path": "/",
+            "destructive": false,
+            "bigint": false,
+            "dev": "16777232",
+            "ino": "169815047"
+          },
+          {
+            "method": "lstat",
+            "phase": "call",
+            "path": "/source",
+            "destructive": false,
+            "bigint": false
+          },
+          {
+            "method": "lstat",
+            "phase": "return",
+            "path": "/source",
+            "destructive": false,
+            "bigint": false,
+            "dev": "16777232",
+            "ino": "169815048"
+          },
+          {
+            "method": "stat",
+            "phase": "call",
+            "path": "/source",
+            "destructive": false,
+            "bigint": true
+          },
+          {
+            "method": "stat",
+            "phase": "return",
+            "path": "/source",
+            "destructive": false,
+            "bigint": true,
+            "dev": "16777232",
+            "ino": "169815048"
+          },
+          {
+            "method": "lstat",
+            "phase": "call",
+            "path": "/source",
+            "destructive": false,
+            "bigint": true
+          },
+          {
+            "method": "lstat",
+            "phase": "return",
+            "path": "/source",
+            "destructive": false,
+            "bigint": true,
+            "dev": "16777232",
+            "ino": "169815048"
+          }
+        ]
+      },
+      {
+        "name": "direct native hardlink alias rejects before any native write",
+        "source": "/source",
+        "destination": "/target",
+        "exclusive": false,
+        "before": {
+          "/": {
+            "type": "directory",
+            "size": 128,
+            "mode": 16832,
+            "dev": 16777232,
+            "ino": 169815049,
+            "nlink": 4,
+            "mtimeMs": 1787788624243.729,
+            "ctimeMs": 1787788624243.729,
+            "birthtimeMs": 1787788624242.5964
+          },
+          "/source": {
+            "type": "file",
+            "size": 35,
+            "mode": 33188,
+            "dev": 16777232,
+            "ino": 169815050,
+            "nlink": 2,
+            "mtimeMs": 1787788624243.1863,
+            "ctimeMs": 1787788624243.7285,
+            "birthtimeMs": 1787788624243.089,
+            "base64": "aW5kZXBlbmRlbnQgbmF0aXZlIHByZXNlcnZhdGlvbgoA/wo=",
+            "sha256": "3f5b6dcbb1f4e73de8106ab1877c8ba9e8f39b3630df4a61721584235db48eed"
+          },
+          "/target": {
+            "type": "file",
+            "size": 35,
+            "mode": 33188,
+            "dev": 16777232,
+            "ino": 169815050,
+            "nlink": 2,
+            "mtimeMs": 1787788624243.1863,
+            "ctimeMs": 1787788624243.7285,
+            "birthtimeMs": 1787788624243.089,
+            "base64": "aW5kZXBlbmRlbnQgbmF0aXZlIHByZXNlcnZhdGlvbgoA/wo=",
+            "sha256": "3f5b6dcbb1f4e73de8106ab1877c8ba9e8f39b3630df4a61721584235db48eed"
+          }
+        },
+        "after": {
+          "/": {
+            "type": "directory",
+            "size": 128,
+            "mode": 16832,
+            "dev": 16777232,
+            "ino": 169815049,
+            "nlink": 4,
+            "mtimeMs": 1787788624243.729,
+            "ctimeMs": 1787788624243.729,
+            "birthtimeMs": 1787788624242.5964
+          },
+          "/source": {
+            "type": "file",
+            "size": 35,
+            "mode": 33188,
+            "dev": 16777232,
+            "ino": 169815050,
+            "nlink": 2,
+            "mtimeMs": 1787788624243.1863,
+            "ctimeMs": 1787788624243.7285,
+            "birthtimeMs": 1787788624243.089,
+            "base64": "aW5kZXBlbmRlbnQgbmF0aXZlIHByZXNlcnZhdGlvbgoA/wo=",
+            "sha256": "3f5b6dcbb1f4e73de8106ab1877c8ba9e8f39b3630df4a61721584235db48eed"
+          },
+          "/target": {
+            "type": "file",
+            "size": 35,
+            "mode": 33188,
+            "dev": 16777232,
+            "ino": 169815050,
+            "nlink": 2,
+            "mtimeMs": 1787788624243.1863,
+            "ctimeMs": 1787788624243.7285,
+            "birthtimeMs": 1787788624243.089,
+            "base64": "aW5kZXBlbmRlbnQgbmF0aXZlIHByZXNlcnZhdGlvbgoA/wo=",
+            "sha256": "3f5b6dcbb1f4e73de8106ab1877c8ba9e8f39b3630df4a61721584235db48eed"
+          }
+        },
+        "failure": {
+          "name": "FsError",
+          "code": "EINVAL",
+          "syscall": "copyFile",
+          "path": "/source",
+          "dest": "/target"
+        },
+        "events": [
+          {
+            "method": "realpath",
+            "phase": "call",
+            "path": "/",
+            "destructive": false
+          },
+          {
+            "method": "realpath",
+            "phase": "return",
+            "path": "/",
+            "destructive": false
+          },
+          {
+            "method": "stat",
+            "phase": "call",
+            "path": "/",
+            "destructive": false,
+            "bigint": false
+          },
+          {
+            "method": "stat",
+            "phase": "return",
+            "path": "/",
+            "destructive": false,
+            "bigint": false,
+            "dev": "16777232",
+            "ino": "169815049"
+          },
+          {
+            "method": "lstat",
+            "phase": "call",
+            "path": "/source",
+            "destructive": false,
+            "bigint": false
+          },
+          {
+            "method": "lstat",
+            "phase": "return",
+            "path": "/source",
+            "destructive": false,
+            "bigint": false,
+            "dev": "16777232",
+            "ino": "169815050"
+          },
+          {
+            "method": "realpath",
+            "phase": "call",
+            "path": "/",
+            "destructive": false
+          },
+          {
+            "method": "realpath",
+            "phase": "return",
+            "path": "/",
+            "destructive": false
+          },
+          {
+            "method": "stat",
+            "phase": "call",
+            "path": "/",
+            "destructive": false,
+            "bigint": false
+          },
+          {
+            "method": "stat",
+            "phase": "return",
+            "path": "/",
+            "destructive": false,
+            "bigint": false,
+            "dev": "16777232",
+            "ino": "169815049"
+          },
+          {
+            "method": "lstat",
+            "phase": "call",
+            "path": "/target",
+            "destructive": false,
+            "bigint": false
+          },
+          {
+            "method": "lstat",
+            "phase": "return",
+            "path": "/target",
+            "destructive": false,
+            "bigint": false,
+            "dev": "16777232",
+            "ino": "169815050"
+          },
+          {
+            "method": "stat",
+            "phase": "call",
+            "path": "/source",
+            "destructive": false,
+            "bigint": true
+          },
+          {
+            "method": "stat",
+            "phase": "return",
+            "path": "/source",
+            "destructive": false,
+            "bigint": true,
+            "dev": "16777232",
+            "ino": "169815050"
+          },
+          {
+            "method": "lstat",
+            "phase": "call",
+            "path": "/target",
+            "destructive": false,
+            "bigint": true
+          },
+          {
+            "method": "lstat",
+            "phase": "return",
+            "path": "/target",
+            "destructive": false,
+            "bigint": true,
+            "dev": "16777232",
+            "ino": "169815050"
+          }
+        ]
+      },
+      {
+        "name": "direct native symlink alias rejects before any native write",
+        "source": "/source",
+        "destination": "/target",
+        "exclusive": false,
+        "before": {
+          "/": {
+            "type": "directory",
+            "size": 128,
+            "mode": 16832,
+            "dev": 16777232,
+            "ino": 169815053,
+            "nlink": 4,
+            "mtimeMs": 1787788624248.9016,
+            "ctimeMs": 1787788624248.9016,
+            "birthtimeMs": 1787788624248.0347
+          },
+          "/source": {
+            "type": "file",
+            "size": 35,
+            "mode": 33188,
+            "dev": 16777232,
+            "ino": 169815054,
+            "nlink": 1,
+            "mtimeMs": 1787788624248.5215,
+            "ctimeMs": 1787788624248.5215,
+            "birthtimeMs": 1787788624248.4321,
+            "base64": "aW5kZXBlbmRlbnQgbmF0aXZlIHByZXNlcnZhdGlvbgoA/wo=",
+            "sha256": "3f5b6dcbb1f4e73de8106ab1877c8ba9e8f39b3630df4a61721584235db48eed"
+          },
+          "/target": {
+            "type": "symlink",
+            "size": 155,
+            "mode": 41453,
+            "dev": 16777232,
+            "ino": 169815055,
+            "nlink": 1,
+            "mtimeMs": 1787788624248.899,
+            "ctimeMs": 1787788624248.9167,
+            "birthtimeMs": 1787788624248.899,
+            "target": "/source"
+          }
+        },
+        "after": {
+          "/": {
+            "type": "directory",
+            "size": 128,
+            "mode": 16832,
+            "dev": 16777232,
+            "ino": 169815053,
+            "nlink": 4,
+            "mtimeMs": 1787788624248.9016,
+            "ctimeMs": 1787788624248.9016,
+            "birthtimeMs": 1787788624248.0347
+          },
+          "/source": {
+            "type": "file",
+            "size": 35,
+            "mode": 33188,
+            "dev": 16777232,
+            "ino": 169815054,
+            "nlink": 1,
+            "mtimeMs": 1787788624248.5215,
+            "ctimeMs": 1787788624248.5215,
+            "birthtimeMs": 1787788624248.4321,
+            "base64": "aW5kZXBlbmRlbnQgbmF0aXZlIHByZXNlcnZhdGlvbgoA/wo=",
+            "sha256": "3f5b6dcbb1f4e73de8106ab1877c8ba9e8f39b3630df4a61721584235db48eed"
+          },
+          "/target": {
+            "type": "symlink",
+            "size": 155,
+            "mode": 41453,
+            "dev": 16777232,
+            "ino": 169815055,
+            "nlink": 1,
+            "mtimeMs": 1787788624248.899,
+            "ctimeMs": 1787788624248.9167,
+            "birthtimeMs": 1787788624248.899,
+            "target": "/source"
+          }
+        },
+        "failure": {
+          "name": "FsError",
+          "code": "EINVAL",
+          "syscall": "copyFile",
+          "path": "/source",
+          "dest": "/target"
+        },
+        "events": [
+          {
+            "method": "realpath",
+            "phase": "call",
+            "path": "/",
+            "destructive": false
+          },
+          {
+            "method": "realpath",
+            "phase": "return",
+            "path": "/",
+            "destructive": false
+          },
+          {
+            "method": "stat",
+            "phase": "call",
+            "path": "/",
+            "destructive": false,
+            "bigint": false
+          },
+          {
+            "method": "stat",
+            "phase": "return",
+            "path": "/",
+            "destructive": false,
+            "bigint": false,
+            "dev": "16777232",
+            "ino": "169815053"
+          },
+          {
+            "method": "lstat",
+            "phase": "call",
+            "path": "/source",
+            "destructive": false,
+            "bigint": false
+          },
+          {
+            "method": "lstat",
+            "phase": "return",
+            "path": "/source",
+            "destructive": false,
+            "bigint": false,
+            "dev": "16777232",
+            "ino": "169815054"
+          },
+          {
+            "method": "realpath",
+            "phase": "call",
+            "path": "/",
+            "destructive": false
+          },
+          {
+            "method": "realpath",
+            "phase": "return",
+            "path": "/",
+            "destructive": false
+          },
+          {
+            "method": "stat",
+            "phase": "call",
+            "path": "/",
+            "destructive": false,
+            "bigint": false
+          },
+          {
+            "method": "stat",
+            "phase": "return",
+            "path": "/",
+            "destructive": false,
+            "bigint": false,
+            "dev": "16777232",
+            "ino": "169815053"
+          },
+          {
+            "method": "lstat",
+            "phase": "call",
+            "path": "/target",
+            "destructive": false,
+            "bigint": false
+          },
+          {
+            "method": "lstat",
+            "phase": "return",
+            "path": "/target",
+            "destructive": false,
+            "bigint": false,
+            "dev": "16777232",
+            "ino": "169815055"
+          },
+          {
+            "method": "readlink",
+            "phase": "call",
+            "path": "/target",
+            "destructive": false
+          },
+          {
+            "method": "readlink",
+            "phase": "return",
+            "path": "/target",
+            "destructive": false
+          },
+          {
+            "method": "lstat",
+            "phase": "call",
+            "path": "/source",
+            "destructive": false,
+            "bigint": false
+          },
+          {
+            "method": "lstat",
+            "phase": "return",
+            "path": "/source",
+            "destructive": false,
+            "bigint": false,
+            "dev": "16777232",
+            "ino": "169815054"
+          },
+          {
+            "method": "stat",
+            "phase": "call",
+            "path": "/source",
+            "destructive": false,
+            "bigint": true
+          },
+          {
+            "method": "stat",
+            "phase": "return",
+            "path": "/source",
+            "destructive": false,
+            "bigint": true,
+            "dev": "16777232",
+            "ino": "169815054"
+          },
+          {
+            "method": "lstat",
+            "phase": "call",
+            "path": "/source",
+            "destructive": false,
+            "bigint": true
+          },
+          {
+            "method": "lstat",
+            "phase": "return",
+            "path": "/source",
+            "destructive": false,
+            "bigint": true,
+            "dev": "16777232",
+            "ino": "169815054"
+          }
+        ]
+      },
+      {
+        "name": "exclusive same-path alias gives EEXIST before EINVAL",
+        "source": "/source",
+        "destination": "/source",
+        "exclusive": true,
+        "before": {
+          "/": {
+            "type": "directory",
+            "size": 96,
+            "mode": 16832,
+            "dev": 16777232,
+            "ino": 169815056,
+            "nlink": 3,
+            "mtimeMs": 1787788624253.985,
+            "ctimeMs": 1787788624253.985,
+            "birthtimeMs": 1787788624253.5393
+          },
+          "/source": {
+            "type": "file",
+            "size": 35,
+            "mode": 33188,
+            "dev": 16777232,
+            "ino": 169815057,
+            "nlink": 1,
+            "mtimeMs": 1787788624254.0674,
+            "ctimeMs": 1787788624254.0674,
+            "birthtimeMs": 1787788624253.9832,
+            "base64": "aW5kZXBlbmRlbnQgbmF0aXZlIHByZXNlcnZhdGlvbgoA/wo=",
+            "sha256": "3f5b6dcbb1f4e73de8106ab1877c8ba9e8f39b3630df4a61721584235db48eed"
+          }
+        },
+        "after": {
+          "/": {
+            "type": "directory",
+            "size": 96,
+            "mode": 16832,
+            "dev": 16777232,
+            "ino": 169815056,
+            "nlink": 3,
+            "mtimeMs": 1787788624253.985,
+            "ctimeMs": 1787788624253.985,
+            "birthtimeMs": 1787788624253.5393
+          },
+          "/source": {
+            "type": "file",
+            "size": 35,
+            "mode": 33188,
+            "dev": 16777232,
+            "ino": 169815057,
+            "nlink": 1,
+            "mtimeMs": 1787788624254.0674,
+            "ctimeMs": 1787788624254.0674,
+            "birthtimeMs": 1787788624253.9832,
+            "base64": "aW5kZXBlbmRlbnQgbmF0aXZlIHByZXNlcnZhdGlvbgoA/wo=",
+            "sha256": "3f5b6dcbb1f4e73de8106ab1877c8ba9e8f39b3630df4a61721584235db48eed"
+          }
+        },
+        "failure": {
+          "name": "FsError",
+          "code": "EEXIST",
+          "syscall": "copyFile",
+          "path": "/source",
+          "dest": "/source"
+        },
+        "events": [
+          {
+            "method": "realpath",
+            "phase": "call",
+            "path": "/",
+            "destructive": false
+          },
+          {
+            "method": "realpath",
+            "phase": "return",
+            "path": "/",
+            "destructive": false
+          },
+          {
+            "method": "stat",
+            "phase": "call",
+            "path": "/",
+            "destructive": false,
+            "bigint": false
+          },
+          {
+            "method": "stat",
+            "phase": "return",
+            "path": "/",
+            "destructive": false,
+            "bigint": false,
+            "dev": "16777232",
+            "ino": "169815056"
+          },
+          {
+            "method": "lstat",
+            "phase": "call",
+            "path": "/source",
+            "destructive": false,
+            "bigint": false
+          },
+          {
+            "method": "lstat",
+            "phase": "return",
+            "path": "/source",
+            "destructive": false,
+            "bigint": false,
+            "dev": "16777232",
+            "ino": "169815057"
+          },
+          {
+            "method": "realpath",
+            "phase": "call",
+            "path": "/",
+            "destructive": false
+          },
+          {
+            "method": "realpath",
+            "phase": "return",
+            "path": "/",
+            "destructive": false
+          },
+          {
+            "method": "stat",
+            "phase": "call",
+            "path": "/",
+            "destructive": false,
+            "bigint": false
+          },
+          {
+            "method": "stat",
+            "phase": "return",
+            "path": "/",
+            "destructive": false,
+            "bigint": false,
+            "dev": "16777232",
+            "ino": "169815056"
+          },
+          {
+            "method": "lstat",
+            "phase": "call",
+            "path": "/source",
+            "destructive": false,
+            "bigint": false
+          },
+          {
+            "method": "lstat",
+            "phase": "return",
+            "path": "/source",
+            "destructive": false,
+            "bigint": false,
+            "dev": "16777232",
+            "ino": "169815057"
+          },
+          {
+            "method": "stat",
+            "phase": "call",
+            "path": "/source",
+            "destructive": false,
+            "bigint": true
+          },
+          {
+            "method": "stat",
+            "phase": "return",
+            "path": "/source",
+            "destructive": false,
+            "bigint": true,
+            "dev": "16777232",
+            "ino": "169815057"
+          },
+          {
+            "method": "lstat",
+            "phase": "call",
+            "path": "/source",
+            "destructive": false,
+            "bigint": true
+          },
+          {
+            "method": "lstat",
+            "phase": "return",
+            "path": "/source",
+            "destructive": false,
+            "bigint": true,
+            "dev": "16777232",
+            "ino": "169815057"
+          }
+        ]
+      },
+      {
+        "name": "exclusive hardlink alias gives EEXIST before EINVAL",
+        "source": "/source",
+        "destination": "/target",
+        "exclusive": true,
+        "before": {
+          "/": {
+            "type": "directory",
+            "size": 128,
+            "mode": 16832,
+            "dev": 16777232,
+            "ino": 169815058,
+            "nlink": 4,
+            "mtimeMs": 1787788624257.7402,
+            "ctimeMs": 1787788624257.7402,
+            "birthtimeMs": 1787788624256.9006
+          },
+          "/source": {
+            "type": "file",
+            "size": 35,
+            "mode": 33188,
+            "dev": 16777232,
+            "ino": 169815059,
+            "nlink": 2,
+            "mtimeMs": 1787788624257.313,
+            "ctimeMs": 1787788624257.74,
+            "birthtimeMs": 1787788624257.2258,
+            "base64": "aW5kZXBlbmRlbnQgbmF0aXZlIHByZXNlcnZhdGlvbgoA/wo=",
+            "sha256": "3f5b6dcbb1f4e73de8106ab1877c8ba9e8f39b3630df4a61721584235db48eed"
+          },
+          "/target": {
+            "type": "file",
+            "size": 35,
+            "mode": 33188,
+            "dev": 16777232,
+            "ino": 169815059,
+            "nlink": 2,
+            "mtimeMs": 1787788624257.313,
+            "ctimeMs": 1787788624257.74,
+            "birthtimeMs": 1787788624257.2258,
+            "base64": "aW5kZXBlbmRlbnQgbmF0aXZlIHByZXNlcnZhdGlvbgoA/wo=",
+            "sha256": "3f5b6dcbb1f4e73de8106ab1877c8ba9e8f39b3630df4a61721584235db48eed"
+          }
+        },
+        "after": {
+          "/": {
+            "type": "directory",
+            "size": 128,
+            "mode": 16832,
+            "dev": 16777232,
+            "ino": 169815058,
+            "nlink": 4,
+            "mtimeMs": 1787788624257.7402,
+            "ctimeMs": 1787788624257.7402,
+            "birthtimeMs": 1787788624256.9006
+          },
+          "/source": {
+            "type": "file",
+            "size": 35,
+            "mode": 33188,
+            "dev": 16777232,
+            "ino": 169815059,
+            "nlink": 2,
+            "mtimeMs": 1787788624257.313,
+            "ctimeMs": 1787788624257.74,
+            "birthtimeMs": 1787788624257.2258,
+            "base64": "aW5kZXBlbmRlbnQgbmF0aXZlIHByZXNlcnZhdGlvbgoA/wo=",
+            "sha256": "3f5b6dcbb1f4e73de8106ab1877c8ba9e8f39b3630df4a61721584235db48eed"
+          },
+          "/target": {
+            "type": "file",
+            "size": 35,
+            "mode": 33188,
+            "dev": 16777232,
+            "ino": 169815059,
+            "nlink": 2,
+            "mtimeMs": 1787788624257.313,
+            "ctimeMs": 1787788624257.74,
+            "birthtimeMs": 1787788624257.2258,
+            "base64": "aW5kZXBlbmRlbnQgbmF0aXZlIHByZXNlcnZhdGlvbgoA/wo=",
+            "sha256": "3f5b6dcbb1f4e73de8106ab1877c8ba9e8f39b3630df4a61721584235db48eed"
+          }
+        },
+        "failure": {
+          "name": "FsError",
+          "code": "EEXIST",
+          "syscall": "copyFile",
+          "path": "/source",
+          "dest": "/target"
+        },
+        "events": [
+          {
+            "method": "realpath",
+            "phase": "call",
+            "path": "/",
+            "destructive": false
+          },
+          {
+            "method": "realpath",
+            "phase": "return",
+            "path": "/",
+            "destructive": false
+          },
+          {
+            "method": "stat",
+            "phase": "call",
+            "path": "/",
+            "destructive": false,
+            "bigint": false
+          },
+          {
+            "method": "stat",
+            "phase": "return",
+            "path": "/",
+            "destructive": false,
+            "bigint": false,
+            "dev": "16777232",
+            "ino": "169815058"
+          },
+          {
+            "method": "lstat",
+            "phase": "call",
+            "path": "/source",
+            "destructive": false,
+            "bigint": false
+          },
+          {
+            "method": "lstat",
+            "phase": "return",
+            "path": "/source",
+            "destructive": false,
+            "bigint": false,
+            "dev": "16777232",
+            "ino": "169815059"
+          },
+          {
+            "method": "realpath",
+            "phase": "call",
+            "path": "/",
+            "destructive": false
+          },
+          {
+            "method": "realpath",
+            "phase": "return",
+            "path": "/",
+            "destructive": false
+          },
+          {
+            "method": "stat",
+            "phase": "call",
+            "path": "/",
+            "destructive": false,
+            "bigint": false
+          },
+          {
+            "method": "stat",
+            "phase": "return",
+            "path": "/",
+            "destructive": false,
+            "bigint": false,
+            "dev": "16777232",
+            "ino": "169815058"
+          },
+          {
+            "method": "lstat",
+            "phase": "call",
+            "path": "/target",
+            "destructive": false,
+            "bigint": false
+          },
+          {
+            "method": "lstat",
+            "phase": "return",
+            "path": "/target",
+            "destructive": false,
+            "bigint": false,
+            "dev": "16777232",
+            "ino": "169815059"
+          },
+          {
+            "method": "stat",
+            "phase": "call",
+            "path": "/source",
+            "destructive": false,
+            "bigint": true
+          },
+          {
+            "method": "stat",
+            "phase": "return",
+            "path": "/source",
+            "destructive": false,
+            "bigint": true,
+            "dev": "16777232",
+            "ino": "169815059"
+          },
+          {
+            "method": "lstat",
+            "phase": "call",
+            "path": "/target",
+            "destructive": false,
+            "bigint": true
+          },
+          {
+            "method": "lstat",
+            "phase": "return",
+            "path": "/target",
+            "destructive": false,
+            "bigint": true,
+            "dev": "16777232",
+            "ino": "169815059"
+          }
+        ]
+      },
+      {
+        "name": "exclusive symlink alias gives EEXIST before EINVAL",
+        "source": "/source",
+        "destination": "/target",
+        "exclusive": true,
+        "before": {
+          "/": {
+            "type": "directory",
+            "size": 128,
+            "mode": 16832,
+            "dev": 16777232,
+            "ino": 169815062,
+            "nlink": 4,
+            "mtimeMs": 1787788624262.5583,
+            "ctimeMs": 1787788624262.5583,
+            "birthtimeMs": 1787788624261.664
+          },
+          "/source": {
+            "type": "file",
+            "size": 35,
+            "mode": 33188,
+            "dev": 16777232,
+            "ino": 169815063,
+            "nlink": 1,
+            "mtimeMs": 1787788624262.1792,
+            "ctimeMs": 1787788624262.1792,
+            "birthtimeMs": 1787788624262.0933,
+            "base64": "aW5kZXBlbmRlbnQgbmF0aXZlIHByZXNlcnZhdGlvbgoA/wo=",
+            "sha256": "3f5b6dcbb1f4e73de8106ab1877c8ba9e8f39b3630df4a61721584235db48eed"
+          },
+          "/target": {
+            "type": "symlink",
+            "size": 155,
+            "mode": 41453,
+            "dev": 16777232,
+            "ino": 169815064,
+            "nlink": 1,
+            "mtimeMs": 1787788624262.5566,
+            "ctimeMs": 1787788624262.572,
+            "birthtimeMs": 1787788624262.5566,
+            "target": "/source"
+          }
+        },
+        "after": {
+          "/": {
+            "type": "directory",
+            "size": 128,
+            "mode": 16832,
+            "dev": 16777232,
+            "ino": 169815062,
+            "nlink": 4,
+            "mtimeMs": 1787788624262.5583,
+            "ctimeMs": 1787788624262.5583,
+            "birthtimeMs": 1787788624261.664
+          },
+          "/source": {
+            "type": "file",
+            "size": 35,
+            "mode": 33188,
+            "dev": 16777232,
+            "ino": 169815063,
+            "nlink": 1,
+            "mtimeMs": 1787788624262.1792,
+            "ctimeMs": 1787788624262.1792,
+            "birthtimeMs": 1787788624262.0933,
+            "base64": "aW5kZXBlbmRlbnQgbmF0aXZlIHByZXNlcnZhdGlvbgoA/wo=",
+            "sha256": "3f5b6dcbb1f4e73de8106ab1877c8ba9e8f39b3630df4a61721584235db48eed"
+          },
+          "/target": {
+            "type": "symlink",
+            "size": 155,
+            "mode": 41453,
+            "dev": 16777232,
+            "ino": 169815064,
+            "nlink": 1,
+            "mtimeMs": 1787788624262.5566,
+            "ctimeMs": 1787788624262.572,
+            "birthtimeMs": 1787788624262.5566,
+            "target": "/source"
+          }
+        },
+        "failure": {
+          "name": "FsError",
+          "code": "EEXIST",
+          "syscall": "copyFile",
+          "path": "/source",
+          "dest": "/target"
+        },
+        "events": [
+          {
+            "method": "realpath",
+            "phase": "call",
+            "path": "/",
+            "destructive": false
+          },
+          {
+            "method": "realpath",
+            "phase": "return",
+            "path": "/",
+            "destructive": false
+          },
+          {
+            "method": "stat",
+            "phase": "call",
+            "path": "/",
+            "destructive": false,
+            "bigint": false
+          },
+          {
+            "method": "stat",
+            "phase": "return",
+            "path": "/",
+            "destructive": false,
+            "bigint": false,
+            "dev": "16777232",
+            "ino": "169815062"
+          },
+          {
+            "method": "lstat",
+            "phase": "call",
+            "path": "/source",
+            "destructive": false,
+            "bigint": false
+          },
+          {
+            "method": "lstat",
+            "phase": "return",
+            "path": "/source",
+            "destructive": false,
+            "bigint": false,
+            "dev": "16777232",
+            "ino": "169815063"
+          },
+          {
+            "method": "realpath",
+            "phase": "call",
+            "path": "/",
+            "destructive": false
+          },
+          {
+            "method": "realpath",
+            "phase": "return",
+            "path": "/",
+            "destructive": false
+          },
+          {
+            "method": "stat",
+            "phase": "call",
+            "path": "/",
+            "destructive": false,
+            "bigint": false
+          },
+          {
+            "method": "stat",
+            "phase": "return",
+            "path": "/",
+            "destructive": false,
+            "bigint": false,
+            "dev": "16777232",
+            "ino": "169815062"
+          },
+          {
+            "method": "lstat",
+            "phase": "call",
+            "path": "/target",
+            "destructive": false,
+            "bigint": false
+          },
+          {
+            "method": "lstat",
+            "phase": "return",
+            "path": "/target",
+            "destructive": false,
+            "bigint": false,
+            "dev": "16777232",
+            "ino": "169815064"
+          },
+          {
+            "method": "stat",
+            "phase": "call",
+            "path": "/source",
+            "destructive": false,
+            "bigint": true
+          },
+          {
+            "method": "stat",
+            "phase": "return",
+            "path": "/source",
+            "destructive": false,
+            "bigint": true,
+            "dev": "16777232",
+            "ino": "169815063"
+          },
+          {
+            "method": "lstat",
+            "phase": "call",
+            "path": "/target",
+            "destructive": false,
+            "bigint": true
+          },
+          {
+            "method": "lstat",
+            "phase": "return",
+            "path": "/target",
+            "destructive": false,
+            "bigint": true,
+            "dev": "16777232",
+            "ino": "169815064"
+          }
+        ]
+      },
+      {
+        "name": "missing source gives ENOENT before existing exclusive destination",
+        "source": "/missing-source",
+        "destination": "/target",
+        "exclusive": true,
+        "before": {
+          "/": {
+            "type": "directory",
+            "size": 128,
+            "mode": 16832,
+            "dev": 16777232,
+            "ino": 169815065,
+            "nlink": 4,
+            "mtimeMs": 1787788624266.4712,
+            "ctimeMs": 1787788624266.4712,
+            "birthtimeMs": 1787788624265.8047
+          },
+          "/source": {
+            "type": "file",
+            "size": 35,
+            "mode": 33188,
+            "dev": 16777232,
+            "ino": 169815066,
+            "nlink": 1,
+            "mtimeMs": 1787788624266.2761,
+            "ctimeMs": 1787788624266.2761,
+            "birthtimeMs": 1787788624266.1936,
+            "base64": "aW5kZXBlbmRlbnQgbmF0aXZlIHByZXNlcnZhdGlvbgoA/wo=",
+            "sha256": "3f5b6dcbb1f4e73de8106ab1877c8ba9e8f39b3630df4a61721584235db48eed"
+          },
+          "/target": {
+            "type": "file",
+            "size": 7,
+            "mode": 33188,
+            "dev": 16777232,
+            "ino": 169815067,
+            "nlink": 1,
+            "mtimeMs": 1787788624266.5334,
+            "ctimeMs": 1787788624266.5334,
+            "birthtimeMs": 1787788624266.4692,
+            "base64": "AP4BCk9MRA==",
+            "sha256": "dfcb30df49d66a8fc31693204abc261e17fddcab0fdce4ccbac4557bbf22b484"
+          }
+        },
+        "after": {
+          "/": {
+            "type": "directory",
+            "size": 128,
+            "mode": 16832,
+            "dev": 16777232,
+            "ino": 169815065,
+            "nlink": 4,
+            "mtimeMs": 1787788624266.4712,
+            "ctimeMs": 1787788624266.4712,
+            "birthtimeMs": 1787788624265.8047
+          },
+          "/source": {
+            "type": "file",
+            "size": 35,
+            "mode": 33188,
+            "dev": 16777232,
+            "ino": 169815066,
+            "nlink": 1,
+            "mtimeMs": 1787788624266.2761,
+            "ctimeMs": 1787788624266.2761,
+            "birthtimeMs": 1787788624266.1936,
+            "base64": "aW5kZXBlbmRlbnQgbmF0aXZlIHByZXNlcnZhdGlvbgoA/wo=",
+            "sha256": "3f5b6dcbb1f4e73de8106ab1877c8ba9e8f39b3630df4a61721584235db48eed"
+          },
+          "/target": {
+            "type": "file",
+            "size": 7,
+            "mode": 33188,
+            "dev": 16777232,
+            "ino": 169815067,
+            "nlink": 1,
+            "mtimeMs": 1787788624266.5334,
+            "ctimeMs": 1787788624266.5334,
+            "birthtimeMs": 1787788624266.4692,
+            "base64": "AP4BCk9MRA==",
+            "sha256": "dfcb30df49d66a8fc31693204abc261e17fddcab0fdce4ccbac4557bbf22b484"
+          }
+        },
+        "failure": {
+          "name": "FsError",
+          "code": "ENOENT",
+          "syscall": "copyFile",
+          "path": "/missing-source",
+          "dest": "/target"
+        },
+        "events": [
+          {
+            "method": "realpath",
+            "phase": "call",
+            "path": "/",
+            "destructive": false
+          },
+          {
+            "method": "realpath",
+            "phase": "return",
+            "path": "/",
+            "destructive": false
+          },
+          {
+            "method": "stat",
+            "phase": "call",
+            "path": "/",
+            "destructive": false,
+            "bigint": false
+          },
+          {
+            "method": "stat",
+            "phase": "return",
+            "path": "/",
+            "destructive": false,
+            "bigint": false,
+            "dev": "16777232",
+            "ino": "169815065"
+          },
+          {
+            "method": "lstat",
+            "phase": "call",
+            "path": "/missing-source",
+            "destructive": false,
+            "bigint": false
+          },
+          {
+            "method": "lstat",
+            "phase": "throw",
+            "path": "/missing-source",
+            "destructive": false,
+            "bigint": false,
+            "code": "ENOENT"
+          }
+        ]
+      },
+      {
+        "name": "exclusive dangling destination gives EEXIST without following link",
+        "source": "/source",
+        "destination": "/target",
+        "exclusive": true,
+        "before": {
+          "/": {
+            "type": "directory",
+            "size": 128,
+            "mode": 16832,
+            "dev": 16777232,
+            "ino": 169815068,
+            "nlink": 4,
+            "mtimeMs": 1787788624270.891,
+            "ctimeMs": 1787788624270.891,
+            "birthtimeMs": 1787788624270.0686
+          },
+          "/source": {
+            "type": "file",
+            "size": 35,
+            "mode": 33188,
+            "dev": 16777232,
+            "ino": 169815069,
+            "nlink": 1,
+            "mtimeMs": 1787788624270.5908,
+            "ctimeMs": 1787788624270.5908,
+            "birthtimeMs": 1787788624270.4978,
+            "base64": "aW5kZXBlbmRlbnQgbmF0aXZlIHByZXNlcnZhdGlvbgoA/wo=",
+            "sha256": "3f5b6dcbb1f4e73de8106ab1877c8ba9e8f39b3630df4a61721584235db48eed"
+          },
+          "/target": {
+            "type": "symlink",
+            "size": 155,
+            "mode": 41453,
+            "dev": 16777232,
+            "ino": 169815070,
+            "nlink": 1,
+            "mtimeMs": 1787788624270.8894,
+            "ctimeMs": 1787788624270.9087,
+            "birthtimeMs": 1787788624270.8894,
+            "target": "/absent"
+          }
+        },
+        "after": {
+          "/": {
+            "type": "directory",
+            "size": 128,
+            "mode": 16832,
+            "dev": 16777232,
+            "ino": 169815068,
+            "nlink": 4,
+            "mtimeMs": 1787788624270.891,
+            "ctimeMs": 1787788624270.891,
+            "birthtimeMs": 1787788624270.0686
+          },
+          "/source": {
+            "type": "file",
+            "size": 35,
+            "mode": 33188,
+            "dev": 16777232,
+            "ino": 169815069,
+            "nlink": 1,
+            "mtimeMs": 1787788624270.5908,
+            "ctimeMs": 1787788624270.5908,
+            "birthtimeMs": 1787788624270.4978,
+            "base64": "aW5kZXBlbmRlbnQgbmF0aXZlIHByZXNlcnZhdGlvbgoA/wo=",
+            "sha256": "3f5b6dcbb1f4e73de8106ab1877c8ba9e8f39b3630df4a61721584235db48eed"
+          },
+          "/target": {
+            "type": "symlink",
+            "size": 155,
+            "mode": 41453,
+            "dev": 16777232,
+            "ino": 169815070,
+            "nlink": 1,
+            "mtimeMs": 1787788624270.8894,
+            "ctimeMs": 1787788624270.9087,
+            "birthtimeMs": 1787788624270.8894,
+            "target": "/absent"
+          }
+        },
+        "failure": {
+          "name": "FsError",
+          "code": "EEXIST",
+          "syscall": "copyFile",
+          "path": "/source",
+          "dest": "/target"
+        },
+        "events": [
+          {
+            "method": "realpath",
+            "phase": "call",
+            "path": "/",
+            "destructive": false
+          },
+          {
+            "method": "realpath",
+            "phase": "return",
+            "path": "/",
+            "destructive": false
+          },
+          {
+            "method": "stat",
+            "phase": "call",
+            "path": "/",
+            "destructive": false,
+            "bigint": false
+          },
+          {
+            "method": "stat",
+            "phase": "return",
+            "path": "/",
+            "destructive": false,
+            "bigint": false,
+            "dev": "16777232",
+            "ino": "169815068"
+          },
+          {
+            "method": "lstat",
+            "phase": "call",
+            "path": "/source",
+            "destructive": false,
+            "bigint": false
+          },
+          {
+            "method": "lstat",
+            "phase": "return",
+            "path": "/source",
+            "destructive": false,
+            "bigint": false,
+            "dev": "16777232",
+            "ino": "169815069"
+          },
+          {
+            "method": "realpath",
+            "phase": "call",
+            "path": "/",
+            "destructive": false
+          },
+          {
+            "method": "realpath",
+            "phase": "return",
+            "path": "/",
+            "destructive": false
+          },
+          {
+            "method": "stat",
+            "phase": "call",
+            "path": "/",
+            "destructive": false,
+            "bigint": false
+          },
+          {
+            "method": "stat",
+            "phase": "return",
+            "path": "/",
+            "destructive": false,
+            "bigint": false,
+            "dev": "16777232",
+            "ino": "169815068"
+          },
+          {
+            "method": "lstat",
+            "phase": "call",
+            "path": "/target",
+            "destructive": false,
+            "bigint": false
+          },
+          {
+            "method": "lstat",
+            "phase": "return",
+            "path": "/target",
+            "destructive": false,
+            "bigint": false,
+            "dev": "16777232",
+            "ino": "169815070"
+          },
+          {
+            "method": "stat",
+            "phase": "call",
+            "path": "/source",
+            "destructive": false,
+            "bigint": true
+          },
+          {
+            "method": "stat",
+            "phase": "return",
+            "path": "/source",
+            "destructive": false,
+            "bigint": true,
+            "dev": "16777232",
+            "ino": "169815069"
+          },
+          {
+            "method": "lstat",
+            "phase": "call",
+            "path": "/target",
+            "destructive": false,
+            "bigint": true
+          },
+          {
+            "method": "lstat",
+            "phase": "return",
+            "path": "/target",
+            "destructive": false,
+            "bigint": true,
+            "dev": "16777232",
+            "ino": "169815070"
+          }
+        ]
+      },
+      {
+        "name": "unrelated exclusive existing destination rejects without native copy",
+        "source": "/source",
+        "destination": "/target",
+        "exclusive": true,
+        "before": {
+          "/": {
+            "type": "directory",
+            "size": 128,
+            "mode": 16832,
+            "dev": 16777232,
+            "ino": 169815071,
+            "nlink": 4,
+            "mtimeMs": 1787788624274.1624,
+            "ctimeMs": 1787788624274.1624,
+            "birthtimeMs": 1787788624273.5806
+          },
+          "/source": {
+            "type": "file",
+            "size": 35,
+            "mode": 33188,
+            "dev": 16777232,
+            "ino": 169815072,
+            "nlink": 1,
+            "mtimeMs": 1787788624273.9429,
+            "ctimeMs": 1787788624273.9429,
+            "birthtimeMs": 1787788624273.877,
+            "base64": "aW5kZXBlbmRlbnQgbmF0aXZlIHByZXNlcnZhdGlvbgoA/wo=",
+            "sha256": "3f5b6dcbb1f4e73de8106ab1877c8ba9e8f39b3630df4a61721584235db48eed"
+          },
+          "/target": {
+            "type": "file",
+            "size": 7,
+            "mode": 33188,
+            "dev": 16777232,
+            "ino": 169815073,
+            "nlink": 1,
+            "mtimeMs": 1787788624274.2175,
+            "ctimeMs": 1787788624274.2175,
+            "birthtimeMs": 1787788624274.161,
+            "base64": "AP4BCk9MRA==",
+            "sha256": "dfcb30df49d66a8fc31693204abc261e17fddcab0fdce4ccbac4557bbf22b484"
+          }
+        },
+        "after": {
+          "/": {
+            "type": "directory",
+            "size": 128,
+            "mode": 16832,
+            "dev": 16777232,
+            "ino": 169815071,
+            "nlink": 4,
+            "mtimeMs": 1787788624274.1624,
+            "ctimeMs": 1787788624274.1624,
+            "birthtimeMs": 1787788624273.5806
+          },
+          "/source": {
+            "type": "file",
+            "size": 35,
+            "mode": 33188,
+            "dev": 16777232,
+            "ino": 169815072,
+            "nlink": 1,
+            "mtimeMs": 1787788624273.9429,
+            "ctimeMs": 1787788624273.9429,
+            "birthtimeMs": 1787788624273.877,
+            "base64": "aW5kZXBlbmRlbnQgbmF0aXZlIHByZXNlcnZhdGlvbgoA/wo=",
+            "sha256": "3f5b6dcbb1f4e73de8106ab1877c8ba9e8f39b3630df4a61721584235db48eed"
+          },
+          "/target": {
+            "type": "file",
+            "size": 7,
+            "mode": 33188,
+            "dev": 16777232,
+            "ino": 169815073,
+            "nlink": 1,
+            "mtimeMs": 1787788624274.2175,
+            "ctimeMs": 1787788624274.2175,
+            "birthtimeMs": 1787788624274.161,
+            "base64": "AP4BCk9MRA==",
+            "sha256": "dfcb30df49d66a8fc31693204abc261e17fddcab0fdce4ccbac4557bbf22b484"
+          }
+        },
+        "failure": {
+          "name": "FsError",
+          "code": "EEXIST",
+          "syscall": "copyFile",
+          "path": "/source",
+          "dest": "/target"
+        },
+        "events": [
+          {
+            "method": "realpath",
+            "phase": "call",
+            "path": "/",
+            "destructive": false
+          },
+          {
+            "method": "realpath",
+            "phase": "return",
+            "path": "/",
+            "destructive": false
+          },
+          {
+            "method": "stat",
+            "phase": "call",
+            "path": "/",
+            "destructive": false,
+            "bigint": false
+          },
+          {
+            "method": "stat",
+            "phase": "return",
+            "path": "/",
+            "destructive": false,
+            "bigint": false,
+            "dev": "16777232",
+            "ino": "169815071"
+          },
+          {
+            "method": "lstat",
+            "phase": "call",
+            "path": "/source",
+            "destructive": false,
+            "bigint": false
+          },
+          {
+            "method": "lstat",
+            "phase": "return",
+            "path": "/source",
+            "destructive": false,
+            "bigint": false,
+            "dev": "16777232",
+            "ino": "169815072"
+          },
+          {
+            "method": "realpath",
+            "phase": "call",
+            "path": "/",
+            "destructive": false
+          },
+          {
+            "method": "realpath",
+            "phase": "return",
+            "path": "/",
+            "destructive": false
+          },
+          {
+            "method": "stat",
+            "phase": "call",
+            "path": "/",
+            "destructive": false,
+            "bigint": false
+          },
+          {
+            "method": "stat",
+            "phase": "return",
+            "path": "/",
+            "destructive": false,
+            "bigint": false,
+            "dev": "16777232",
+            "ino": "169815071"
+          },
+          {
+            "method": "lstat",
+            "phase": "call",
+            "path": "/target",
+            "destructive": false,
+            "bigint": false
+          },
+          {
+            "method": "lstat",
+            "phase": "return",
+            "path": "/target",
+            "destructive": false,
+            "bigint": false,
+            "dev": "16777232",
+            "ino": "169815073"
+          },
+          {
+            "method": "stat",
+            "phase": "call",
+            "path": "/source",
+            "destructive": false,
+            "bigint": true
+          },
+          {
+            "method": "stat",
+            "phase": "return",
+            "path": "/source",
+            "destructive": false,
+            "bigint": true,
+            "dev": "16777232",
+            "ino": "169815072"
+          },
+          {
+            "method": "lstat",
+            "phase": "call",
+            "path": "/target",
+            "destructive": false,
+            "bigint": true
+          },
+          {
+            "method": "lstat",
+            "phase": "return",
+            "path": "/target",
+            "destructive": false,
+            "bigint": true,
+            "dev": "16777232",
+            "ino": "169815073"
+          }
+        ]
+      },
+      {
+        "name": "distinct overwrite reaches native copy only after identity preflight",
+        "source": "/source",
+        "destination": "/target",
+        "exclusive": false,
+        "before": {
+          "/": {
+            "type": "directory",
+            "size": 128,
+            "mode": 16832,
+            "dev": 16777232,
+            "ino": 169815074,
+            "nlink": 4,
+            "mtimeMs": 1787788624277.3684,
+            "ctimeMs": 1787788624277.3684,
+            "birthtimeMs": 1787788624276.753
+          },
+          "/source": {
+            "type": "file",
+            "size": 35,
+            "mode": 33188,
+            "dev": 16777232,
+            "ino": 169815075,
+            "nlink": 1,
+            "mtimeMs": 1787788624277.1797,
+            "ctimeMs": 1787788624277.1797,
+            "birthtimeMs": 1787788624277.115,
+            "base64": "aW5kZXBlbmRlbnQgbmF0aXZlIHByZXNlcnZhdGlvbgoA/wo=",
+            "sha256": "3f5b6dcbb1f4e73de8106ab1877c8ba9e8f39b3630df4a61721584235db48eed"
+          },
+          "/target": {
+            "type": "file",
+            "size": 7,
+            "mode": 33188,
+            "dev": 16777232,
+            "ino": 169815076,
+            "nlink": 1,
+            "mtimeMs": 1787788624277.4307,
+            "ctimeMs": 1787788624277.4307,
+            "birthtimeMs": 1787788624277.3665,
+            "base64": "AP4BCk9MRA==",
+            "sha256": "dfcb30df49d66a8fc31693204abc261e17fddcab0fdce4ccbac4557bbf22b484"
+          }
+        },
+        "after": {
+          "/": {
+            "type": "directory",
+            "size": 128,
+            "mode": 16832,
+            "dev": 16777232,
+            "ino": 169815074,
+            "nlink": 4,
+            "mtimeMs": 1787788624277.3684,
+            "ctimeMs": 1787788624277.3684,
+            "birthtimeMs": 1787788624276.753
+          },
+          "/source": {
+            "type": "file",
+            "size": 35,
+            "mode": 33188,
+            "dev": 16777232,
+            "ino": 169815075,
+            "nlink": 1,
+            "mtimeMs": 1787788624277.1797,
+            "ctimeMs": 1787788624277.1797,
+            "birthtimeMs": 1787788624277.115,
+            "base64": "aW5kZXBlbmRlbnQgbmF0aXZlIHByZXNlcnZhdGlvbgoA/wo=",
+            "sha256": "3f5b6dcbb1f4e73de8106ab1877c8ba9e8f39b3630df4a61721584235db48eed"
+          },
+          "/target": {
+            "type": "file",
+            "size": 35,
+            "mode": 33188,
+            "dev": 16777232,
+            "ino": 169815076,
+            "nlink": 1,
+            "mtimeMs": 1787788624278.7488,
+            "ctimeMs": 1787788624278.7488,
+            "birthtimeMs": 1787788624277.1797,
+            "base64": "aW5kZXBlbmRlbnQgbmF0aXZlIHByZXNlcnZhdGlvbgoA/wo=",
+            "sha256": "3f5b6dcbb1f4e73de8106ab1877c8ba9e8f39b3630df4a61721584235db48eed"
+          }
+        },
+        "failure": null,
+        "events": [
+          {
+            "method": "realpath",
+            "phase": "call",
+            "path": "/",
+            "destructive": false
+          },
+          {
+            "method": "realpath",
+            "phase": "return",
+            "path": "/",
+            "destructive": false
+          },
+          {
+            "method": "stat",
+            "phase": "call",
+            "path": "/",
+            "destructive": false,
+            "bigint": false
+          },
+          {
+            "method": "stat",
+            "phase": "return",
+            "path": "/",
+            "destructive": false,
+            "bigint": false,
+            "dev": "16777232",
+            "ino": "169815074"
+          },
+          {
+            "method": "lstat",
+            "phase": "call",
+            "path": "/source",
+            "destructive": false,
+            "bigint": false
+          },
+          {
+            "method": "lstat",
+            "phase": "return",
+            "path": "/source",
+            "destructive": false,
+            "bigint": false,
+            "dev": "16777232",
+            "ino": "169815075"
+          },
+          {
+            "method": "realpath",
+            "phase": "call",
+            "path": "/",
+            "destructive": false
+          },
+          {
+            "method": "realpath",
+            "phase": "return",
+            "path": "/",
+            "destructive": false
+          },
+          {
+            "method": "stat",
+            "phase": "call",
+            "path": "/",
+            "destructive": false,
+            "bigint": false
+          },
+          {
+            "method": "stat",
+            "phase": "return",
+            "path": "/",
+            "destructive": false,
+            "bigint": false,
+            "dev": "16777232",
+            "ino": "169815074"
+          },
+          {
+            "method": "lstat",
+            "phase": "call",
+            "path": "/target",
+            "destructive": false,
+            "bigint": false
+          },
+          {
+            "method": "lstat",
+            "phase": "return",
+            "path": "/target",
+            "destructive": false,
+            "bigint": false,
+            "dev": "16777232",
+            "ino": "169815076"
+          },
+          {
+            "method": "stat",
+            "phase": "call",
+            "path": "/source",
+            "destructive": false,
+            "bigint": true
+          },
+          {
+            "method": "stat",
+            "phase": "return",
+            "path": "/source",
+            "destructive": false,
+            "bigint": true,
+            "dev": "16777232",
+            "ino": "169815075"
+          },
+          {
+            "method": "lstat",
+            "phase": "call",
+            "path": "/target",
+            "destructive": false,
+            "bigint": true
+          },
+          {
+            "method": "lstat",
+            "phase": "return",
+            "path": "/target",
+            "destructive": false,
+            "bigint": true,
+            "dev": "16777232",
+            "ino": "169815076"
+          },
+          {
+            "method": "copyFile",
+            "phase": "call",
+            "path": "/source",
+            "destructive": true,
+            "destination": "/target",
+            "flags": 0
+          },
+          {
+            "method": "copyFile",
+            "phase": "return",
+            "path": "/source",
+            "destructive": true,
+            "destination": "/target",
+            "flags": 0
+          }
+        ]
+      },
+      {
+        "name": "default new destination copies complete binary payload",
+        "source": "/source",
+        "destination": "/target",
+        "exclusive": false,
+        "before": {
+          "/": {
+            "type": "directory",
+            "size": 96,
+            "mode": 16832,
+            "dev": 16777232,
+            "ino": 169815077,
+            "nlink": 3,
+            "mtimeMs": 1787788624280.7856,
+            "ctimeMs": 1787788624280.7856,
+            "birthtimeMs": 1787788624280.488
+          },
+          "/source": {
+            "type": "file",
+            "size": 35,
+            "mode": 33188,
+            "dev": 16777232,
+            "ino": 169815078,
+            "nlink": 1,
+            "mtimeMs": 1787788624280.87,
+            "ctimeMs": 1787788624280.87,
+            "birthtimeMs": 1787788624280.7847,
+            "base64": "aW5kZXBlbmRlbnQgbmF0aXZlIHByZXNlcnZhdGlvbgoA/wo=",
+            "sha256": "3f5b6dcbb1f4e73de8106ab1877c8ba9e8f39b3630df4a61721584235db48eed"
+          }
+        },
+        "after": {
+          "/": {
+            "type": "directory",
+            "size": 128,
+            "mode": 16832,
+            "dev": 16777232,
+            "ino": 169815077,
+            "nlink": 4,
+            "mtimeMs": 1787788624281.7812,
+            "ctimeMs": 1787788624281.7812,
+            "birthtimeMs": 1787788624280.488
+          },
+          "/source": {
+            "type": "file",
+            "size": 35,
+            "mode": 33188,
+            "dev": 16777232,
+            "ino": 169815078,
+            "nlink": 1,
+            "mtimeMs": 1787788624280.87,
+            "ctimeMs": 1787788624280.87,
+            "birthtimeMs": 1787788624280.7847,
+            "base64": "aW5kZXBlbmRlbnQgbmF0aXZlIHByZXNlcnZhdGlvbgoA/wo=",
+            "sha256": "3f5b6dcbb1f4e73de8106ab1877c8ba9e8f39b3630df4a61721584235db48eed"
+          },
+          "/target": {
+            "type": "file",
+            "size": 35,
+            "mode": 33188,
+            "dev": 16777232,
+            "ino": 169815079,
+            "nlink": 1,
+            "mtimeMs": 1787788624281.9507,
+            "ctimeMs": 1787788624281.9507,
+            "birthtimeMs": 1787788624280.87,
+            "base64": "aW5kZXBlbmRlbnQgbmF0aXZlIHByZXNlcnZhdGlvbgoA/wo=",
+            "sha256": "3f5b6dcbb1f4e73de8106ab1877c8ba9e8f39b3630df4a61721584235db48eed"
+          }
+        },
+        "failure": null,
+        "events": [
+          {
+            "method": "realpath",
+            "phase": "call",
+            "path": "/",
+            "destructive": false
+          },
+          {
+            "method": "realpath",
+            "phase": "return",
+            "path": "/",
+            "destructive": false
+          },
+          {
+            "method": "stat",
+            "phase": "call",
+            "path": "/",
+            "destructive": false,
+            "bigint": false
+          },
+          {
+            "method": "stat",
+            "phase": "return",
+            "path": "/",
+            "destructive": false,
+            "bigint": false,
+            "dev": "16777232",
+            "ino": "169815077"
+          },
+          {
+            "method": "lstat",
+            "phase": "call",
+            "path": "/source",
+            "destructive": false,
+            "bigint": false
+          },
+          {
+            "method": "lstat",
+            "phase": "return",
+            "path": "/source",
+            "destructive": false,
+            "bigint": false,
+            "dev": "16777232",
+            "ino": "169815078"
+          },
+          {
+            "method": "realpath",
+            "phase": "call",
+            "path": "/",
+            "destructive": false
+          },
+          {
+            "method": "realpath",
+            "phase": "return",
+            "path": "/",
+            "destructive": false
+          },
+          {
+            "method": "stat",
+            "phase": "call",
+            "path": "/",
+            "destructive": false,
+            "bigint": false
+          },
+          {
+            "method": "stat",
+            "phase": "return",
+            "path": "/",
+            "destructive": false,
+            "bigint": false,
+            "dev": "16777232",
+            "ino": "169815077"
+          },
+          {
+            "method": "lstat",
+            "phase": "call",
+            "path": "/target",
+            "destructive": false,
+            "bigint": false
+          },
+          {
+            "method": "lstat",
+            "phase": "throw",
+            "path": "/target",
+            "destructive": false,
+            "bigint": false,
+            "code": "ENOENT"
+          },
+          {
+            "method": "stat",
+            "phase": "call",
+            "path": "/source",
+            "destructive": false,
+            "bigint": true
+          },
+          {
+            "method": "stat",
+            "phase": "return",
+            "path": "/source",
+            "destructive": false,
+            "bigint": true,
+            "dev": "16777232",
+            "ino": "169815078"
+          },
+          {
+            "method": "lstat",
+            "phase": "call",
+            "path": "/target",
+            "destructive": false,
+            "bigint": true
+          },
+          {
+            "method": "lstat",
+            "phase": "throw",
+            "path": "/target",
+            "destructive": false,
+            "bigint": true,
+            "code": "ENOENT"
+          },
+          {
+            "method": "copyFile",
+            "phase": "call",
+            "path": "/source",
+            "destructive": true,
+            "destination": "/target",
+            "flags": 1
+          },
+          {
+            "method": "copyFile",
+            "phase": "return",
+            "path": "/source",
+            "destructive": true,
+            "destination": "/target",
+            "flags": 1
+          }
+        ]
+      },
+      {
+        "name": "exclusive new destination copies complete binary payload",
+        "source": "/source",
+        "destination": "/target",
+        "exclusive": true,
+        "before": {
+          "/": {
+            "type": "directory",
+            "size": 96,
+            "mode": 16832,
+            "dev": 16777232,
+            "ino": 169815080,
+            "nlink": 3,
+            "mtimeMs": 1787788624285.6497,
+            "ctimeMs": 1787788624285.6497,
+            "birthtimeMs": 1787788624284.001
+          },
+          "/source": {
+            "type": "file",
+            "size": 35,
+            "mode": 33188,
+            "dev": 16777232,
+            "ino": 169815081,
+            "nlink": 1,
+            "mtimeMs": 1787788624285.746,
+            "ctimeMs": 1787788624285.746,
+            "birthtimeMs": 1787788624285.6472,
+            "base64": "aW5kZXBlbmRlbnQgbmF0aXZlIHByZXNlcnZhdGlvbgoA/wo=",
+            "sha256": "3f5b6dcbb1f4e73de8106ab1877c8ba9e8f39b3630df4a61721584235db48eed"
+          }
+        },
+        "after": {
+          "/": {
+            "type": "directory",
+            "size": 128,
+            "mode": 16832,
+            "dev": 16777232,
+            "ino": 169815080,
+            "nlink": 4,
+            "mtimeMs": 1787788624286.6555,
+            "ctimeMs": 1787788624286.6555,
+            "birthtimeMs": 1787788624284.001
+          },
+          "/source": {
+            "type": "file",
+            "size": 35,
+            "mode": 33188,
+            "dev": 16777232,
+            "ino": 169815081,
+            "nlink": 1,
+            "mtimeMs": 1787788624285.746,
+            "ctimeMs": 1787788624285.746,
+            "birthtimeMs": 1787788624285.6472,
+            "base64": "aW5kZXBlbmRlbnQgbmF0aXZlIHByZXNlcnZhdGlvbgoA/wo=",
+            "sha256": "3f5b6dcbb1f4e73de8106ab1877c8ba9e8f39b3630df4a61721584235db48eed"
+          },
+          "/target": {
+            "type": "file",
+            "size": 35,
+            "mode": 33188,
+            "dev": 16777232,
+            "ino": 169815082,
+            "nlink": 1,
+            "mtimeMs": 1787788624286.8132,
+            "ctimeMs": 1787788624286.8132,
+            "birthtimeMs": 1787788624285.746,
+            "base64": "aW5kZXBlbmRlbnQgbmF0aXZlIHByZXNlcnZhdGlvbgoA/wo=",
+            "sha256": "3f5b6dcbb1f4e73de8106ab1877c8ba9e8f39b3630df4a61721584235db48eed"
+          }
+        },
+        "failure": null,
+        "events": [
+          {
+            "method": "realpath",
+            "phase": "call",
+            "path": "/",
+            "destructive": false
+          },
+          {
+            "method": "realpath",
+            "phase": "return",
+            "path": "/",
+            "destructive": false
+          },
+          {
+            "method": "stat",
+            "phase": "call",
+            "path": "/",
+            "destructive": false,
+            "bigint": false
+          },
+          {
+            "method": "stat",
+            "phase": "return",
+            "path": "/",
+            "destructive": false,
+            "bigint": false,
+            "dev": "16777232",
+            "ino": "169815080"
+          },
+          {
+            "method": "lstat",
+            "phase": "call",
+            "path": "/source",
+            "destructive": false,
+            "bigint": false
+          },
+          {
+            "method": "lstat",
+            "phase": "return",
+            "path": "/source",
+            "destructive": false,
+            "bigint": false,
+            "dev": "16777232",
+            "ino": "169815081"
+          },
+          {
+            "method": "realpath",
+            "phase": "call",
+            "path": "/",
+            "destructive": false
+          },
+          {
+            "method": "realpath",
+            "phase": "return",
+            "path": "/",
+            "destructive": false
+          },
+          {
+            "method": "stat",
+            "phase": "call",
+            "path": "/",
+            "destructive": false,
+            "bigint": false
+          },
+          {
+            "method": "stat",
+            "phase": "return",
+            "path": "/",
+            "destructive": false,
+            "bigint": false,
+            "dev": "16777232",
+            "ino": "169815080"
+          },
+          {
+            "method": "lstat",
+            "phase": "call",
+            "path": "/target",
+            "destructive": false,
+            "bigint": false
+          },
+          {
+            "method": "lstat",
+            "phase": "throw",
+            "path": "/target",
+            "destructive": false,
+            "bigint": false,
+            "code": "ENOENT"
+          },
+          {
+            "method": "stat",
+            "phase": "call",
+            "path": "/source",
+            "destructive": false,
+            "bigint": true
+          },
+          {
+            "method": "stat",
+            "phase": "return",
+            "path": "/source",
+            "destructive": false,
+            "bigint": true,
+            "dev": "16777232",
+            "ino": "169815081"
+          },
+          {
+            "method": "lstat",
+            "phase": "call",
+            "path": "/target",
+            "destructive": false,
+            "bigint": true
+          },
+          {
+            "method": "lstat",
+            "phase": "throw",
+            "path": "/target",
+            "destructive": false,
+            "bigint": true,
+            "code": "ENOENT"
+          },
+          {
+            "method": "copyFile",
+            "phase": "call",
+            "path": "/source",
+            "destructive": true,
+            "destination": "/target",
+            "flags": 1
+          },
+          {
+            "method": "copyFile",
+            "phase": "return",
+            "path": "/source",
+            "destructive": true,
+            "destination": "/target",
+            "flags": 1
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "name": "fixed-original4",
+  "revision": "4fa4ba9502dac843bd13aa5031d128a3171f597d",
+  "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "argv": [
+    "--unhandled-rejections=strict",
+    "--import",
+    "tsx",
+    "--test",
+    "--test-concurrency=1",
+    "tests/fs/mount/copy-identity.test.ts"
+  ],
+  "started": "2026-08-26T23:57:03.092Z",
+  "ended": "2026-08-26T23:57:03.259Z",
+  "exit": 0,
+  "signal": null,
+  "stdout": "TAP version 13\n# Subtest: direct cross-mount copy rejects a real same-path alias without touching source bytes\nok 1 - direct cross-mount copy rejects a real same-path alias without touching source bytes\n  ---\n  duration_ms: 6.259541\n  type: 'test'\n  ...\n# Subtest: direct cross-mount copy rejects a real hardlink alias without touching source bytes\nok 2 - direct cross-mount copy rejects a real hardlink alias without touching source bytes\n  ---\n  duration_ms: 3.827958\n  type: 'test'\n  ...\n# Subtest: direct cross-mount copy rejects a real symlink alias without touching source bytes\nok 3 - direct cross-mount copy rejects a real symlink alias without touching source bytes\n  ---\n  duration_ms: 4.24125\n  type: 'test'\n  ...\n# Subtest: cross-mount copy does not treat unrelated synthetic dev/ino collisions as identity\nok 4 - cross-mount copy does not treat unrelated synthetic dev/ino collisions as identity\n  ---\n  duration_ms: 0.519416\n  type: 'test'\n  ...\n1..4\n# tests 4\n# suites 0\n# pass 4\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 136.178417\n",
+  "stderr": "",
+  "summary": {
+    "tests": 4,
+    "pass": 4,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "failures": [],
+  "observations": {}
+}

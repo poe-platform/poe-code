@@ -1,0 +1,26 @@
+{
+  "name": "fixed-fs-types",
+  "revision": "4fa4ba9502dac843bd13aa5031d128a3171f597d",
+  "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "argv": [
+    "node_modules/typescript/bin/tsc",
+    "--noEmit",
+    "-p",
+    "tests/fs/mount-identity-review/closure-fs-tsconfig.json"
+  ],
+  "started": "2026-08-26T23:57:04.850Z",
+  "ended": "2026-08-26T23:57:05.693Z",
+  "exit": 0,
+  "signal": null,
+  "stdout": "",
+  "stderr": "",
+  "summary": {
+    "tests": null,
+    "pass": null,
+    "fail": null,
+    "cancelled": null,
+    "skipped": null,
+    "todo": null
+  },
+  "failures": []
+}

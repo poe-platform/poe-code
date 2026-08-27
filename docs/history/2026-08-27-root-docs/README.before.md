@@ -18,18 +18,42 @@ injected SafeJS bridges. They are not complete Bash or native-utility parity.
 The user's requirement **"IT MUST BE BETTER than just-bash, much better"** remains
 unproven; command counts and selected passing fixtures do not establish it.
 
-Whole-suite and comparison scores are historical, revision-specific evidence,
-not a current clean-worktree claim. See [the timestamped project ledger](docs/PROJECT_LEDGER.md)
-and its linked reports for original failures, later source fixes, fixture/profile
-changes and scoped acceptance. Original reports are preserved; no selected suite
-or command count establishes the full product goal.
+The committed snapshot `f4eb0b327fd5a14f49dc6007f14f613b43cdaeea` builds and
+typechecks, but its 4,815 tests include 51 failures, 5 skips, and 4 TODOs
+(4,755 passes). Its all-plugin comparison is 116/118 passes versus pinned
+just-bash 3.4.2's 108 passes, 9 failures, and 1 unsupported case. These are
+snapshot-specific results, not a clean bill of health for the moving worktree.
+See `benchmarks/reports/aggregate-head-integration.json` for exact failures and
+environment metadata; the companion `-comparison.json` retains both engines.
+The failures include 30 diff/patch cases, 10 shell differential gaps, and 11
+stdin-origin integrations whose rg consumer changes were not yet committed in
+that snapshot. All 19 aggregate tests pass. Earlier evidence remains recorded.
 
-The package currently exposes S3FileSystem plus createS3Transport for an explicit
-caller-supplied minimal client. The HTTP/SigV4 transport under src/fs/s3/http is
-incoming author work, not yet root/package-exported or accepted as a bundled
-real-service integration. Public built-package consumer and actual-service
-proof are required before documenting that factory as ready. Mock/loopback and
-trusted host-resolver tests do not establish arbitrary-provider support.
+A later complete archive, `22fd7e5d46fb00409761196cbaf1ddc27f16f9bf`, has
+6,729 passes, 59 failures, 9 external-oracle skips and zero TODOs out of 6,797;
+build/typecheck and actual-local SafeJS pass. Newly added tests and native
+reference differences affect the totals. `benchmarks/reports/FAILURE_TRIAGE.md`
+classifies every original failure and distinguishes source fixes, live gaps,
+fixture changes, dialects and oracle limitations. No clean full-suite claim is made.
+
+A later **comparison-only** archive at
+`e432c52147a4f355fbae9083cfe1d94a3f78f86d` includes the committed rg provenance
+and absolute patch-target fixes: virtual passes 118/118, while just-bash retains
+108 passes, 9 failures, and 1 unsupported case. See
+`benchmarks/reports/post-integration-comparison.json`. This does not replace the
+earlier full-suite result, prove all its failures fixed, or establish superiority.
+
+A broader, separate 224-case comparison freezes product source at
+`bd2cacb3a20403302fd0a49441932d5522793e56`: **206 pass / 18 fail** versus
+just-bash 3.4.2's **155 pass / 69 fail**, with zero skips/timeouts/errors.
+It executes all 53 unshadowed default plugins and explicitly measures shell
+gaps: the kernel cohort is 29/36 versus 36/36. These are 223 unique input
+workloads, not full option coverage. Two initial oracle defects and their old
+scores remain preserved; no production code changed to improve these results.
+See `benchmarks/reports/expanded-20260827/ANALYSIS.md` for failure ownership,
+missing baseline tools, byte-API controls, matched performance wins **and losses**,
+and the still-pending independent fairness review. This is not a global suite or
+superiority claim; `benchmarks/expanded/README.md` gives reproduction commands.
 
 ## Use the command bundle
 
@@ -54,7 +78,8 @@ The result contains `world` followed by a newline.
 `agentCommands(options?)` installs nine delivered families once: standard,
 text programs, structured (`jq`), search (`rg`), byte tools, diff/patch,
 metadata (`chmod`, `stat`, `mktemp`), archives (`tar`), and table-text
-(`paste`, `comm`, `join`), totaling 56 registered plugin names. These families have separate scoped evidence;
+(`paste`, `comm`, `join`), totaling 56 registered plugin names. Table-text is an
+delivery with a bounded 104/104 independent checkpoint; archive review is in progress;
 name registration is not proof of complete utility semantics.
 Do not also install those families unless you deliberately request replacement.
 The bundle checks every name for collisions before changing the registry;
@@ -211,8 +236,8 @@ denominator. Historical **80/81 author**, **57/60 independent** and **14/15
 lifecycle** observations remain preserved, not relabeled as original passes.
 This is not full curl parity or DNS/socket confinement. The separately tracked
 pre-first-byte `head -n 0` custom lifecycle issue is not fixed by this checkpoint;
-it does not prevent delivery of the verified curl scope. Current root assignments
-govern source/test ownership; historical assignments are recorded in the ledger.
+it does not prevent delivery of the verified curl scope. Archimedes retains
+network source/test ownership until reassigned.
 
 The current default aggregate has 56 plugin names; optional `curl` and `safejs`
 add one each only when explicitly installed. At curl finalization, the committed
@@ -251,9 +276,8 @@ Dispose the returned shell after use. Explicitly registering the optional plugin
 without a runtime does not enable execution: source execution returns status
 127. There is no host JavaScript evaluator or native-process fallback. See the
 [command documentation](src/commands/safejs/README.md) for guest modules, limits
-and actual-host setup. Actual SafeJS integration is not closed. The upstream
-proposal 0c1bfe2 is not approved; isolated patched runs do not establish accepted integration, guest
-lifecycle success or replay durability. See the ledger for separate cohorts.
+and actual-host setup. Independent verification is ongoing; author integration
+results do not establish blanket SafeJS lifecycle or replay guarantees.
 
 ## Validate
 

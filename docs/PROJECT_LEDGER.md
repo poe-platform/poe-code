@@ -1,5 +1,9 @@
 # Requirements and Progress Ledger
 
+Entries retain historical observations, failures and assignments. Later dated
+clarifications do not erase earlier evidence; current root assignments override
+historical ownership. Durable working rules are in AGENTS.md, not old status text.
+
 ## Urgent mount identity dependency — August 26, 2026
 
 Root routes Poincare checkpoint `421ce3f`: three original mount alias
@@ -1511,6 +1515,78 @@ that any implementation, command, fixture, or test currently exists.
   superiority or72-hour completion claim. Fifty baseline-only names remain
   unmeasured. The old transient pending-runtime AGENTS sentence is replaced
   by the durable actual-Shell acceptance rule; its history remains in this ledger.
+
+### August27,2026 root documentation hygiene and export audit
+
+- No product/test source, root export, manifest, dependency or private poe-code
+  change. Current root assignments limit this leaf to root docs/integration;
+  older ownership snapshots no longer grant command/FS/runtime write authority.
+  Workspace orchestrator instructions remain byte-identical. All substantive
+  audit/edit work here is performed by the assigned documentation leaf.
+- AGENTS is reduced from330 to128 lines of durable rules and exact user
+  requirements. Before edits, complete AGENTS and README bytes were archived
+  under docs/history/2026-08-27-root-docs/, captured03:53:57.855 UTC at
+  42bffab57cbaccbf08648527fc88d85e21a2ee4a. Manifest hashes prove exact copies;
+  historical counts, limits, instructions, evidence paths and assignments are
+  migrated, not discarded. Archives are historical documents, not active rules.
+  README changes are limited to stale status/ownership and explicit S3/SafeJS
+  acceptance boundaries; working aggregate/curl examples remain in place.
+- Root-supplied acceptance1f2aa30 is corroborated by the independent report:
+  f7000b0 fixes all8 old output-charge failures; unchanged accounting cohort is
+  17/18, not18/18, because one raw Apple env-order mismatch remains. Original
+  budget controls9/9, new independent guards8/8 and seven detected mutants are
+  separate evidence. No suite is rerun here. See
+  tests/commands/core-regression-stress/OUTPUT_ACCOUNTING_REVIEW.md and
+  NORMATIVE_PROFILES.md. Environment order is POSIX-unspecified; the passing
+  GNU9.7 capture is Darwin/gnulib, not universal GNU/Linux acceptance.
+- Curl remains an implemented explicitly registered optional plugin. Its
+  independently reviewed finalization17285d1 retains214 targeted passes across
+  author/independent cohorts plus5/5 built-package loopback checks, not214 unique
+  native-parity cases or a whole-product pass. README retains exact cohort and
+  source references; no network execution is added or enabled by default.
+- Structured3758/3758 in the independent seal-final evidence and archive177/177
+  in pax-independent/ACCEPTANCE.md are separate scoped suites. The archive gate
+  includes explicit fixture-profile/B02 changes and a distinct historical
+  control, with a sealed dirty input snapshot; neither total is a fresh full
+  committed-product validation. See structured-stress/jq-grammar-doc-closure/
+  REPORT.md for the docs-only source-hash distinction. These suites were not rerun.
+- Clarification supplied by root: provider positive38/38 includes a WebDAV
+  helper semantic change; it is not unchanged all-input proof. Preserve earlier
+  author/qualified/independent cohorts and disclose helper changes. The authority
+  boundary remains explicit truthful trusted host backing-resource binding,
+  never fabricated per-client disjointness. Strict SGID6 remain host-specific
+  profile differences, not a mandatory new shared API or unsafe command rollback.
+- SafeJS upstream0c1bfe2 remains unapproved with prior caveats. Actual SafeJS
+  integration is not closed; isolated patched observations and known-defect
+  characterizations must not become accepted guest/replay results. No private
+  repository was accessed or modified in this audit.
+- The9920 whole-suite result is historical DIRTY57d9d986 evidence:9686 pass,
+  164 fail,70 skip; not today's result. Its root build/typecheck and narrower
+  comparisons remain tied to that snapshot. No current total is inferred from
+  later component passes. See benchmarks/reports/current-integration/HANDOFF.md.
+- Incoming real HTTP/SigV4 source now exists in Poincare's src/fs/s3/http, while
+  the existing public createS3Transport still wraps caller-supplied minimal
+  clients. Isolated42bffab build/export audit exits0: HTTP JS/types are emitted
+  and packed, but root and ./fs/s3 lack the factory and ./fs/s3/http rejects with
+  ERR_PACKAGE_PATH_NOT_EXPORTED. Zero runtime/optional/peer dependencies; no
+  source/manifest/export edit, service contact or other authors' suite run.
+  Audit JSON and integration checklist: docs/integration/2026-08-27-s3-http-root-audit.json
+  and 2026-08-27-S3_HTTP_EXPORT_REVIEW.md, including full source hashes.
+- During this audit14b872c adds independent pinned-service18/18 and14/14 proof
+  against42bffab; native guard13/17 remains visible, and explicit form-list
+  encoding is a fixture configuration delta. Inspection is not a rerun. The
+  harness imports the internal built HTTP module, so public built-package
+  consumer proof remains required before presenting a bundled realS3 factory
+  as ready. Root wiring is a bounded next integration, not another global
+  contract design gate. Broader provider, full-suite, superiority and72-hour
+  requirements remain unproven.
+- Documentation integrity checks at04:01:44.061 UTC pass: both archives match
+  their original hashes, Workspace AGENTS is unchanged, all five exact quoted
+  user requirements remain, AGENTS has no transient pass fractions, all eight
+  README fenced examples are byte-identical and its local links resolve.
+  Root package/lock/export files remain untouched. Details are in
+  docs/history/2026-08-27-root-docs/validation.json; these are documentation
+  checks, not product-suite passes.
 
 ### Remaining product validation
 

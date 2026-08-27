@@ -1,0 +1,20 @@
+{
+  "capturedAt": "2026-08-27T03:53:57.855Z",
+  "revision": "42bffab57cbaccbf08648527fc88d85e21a2ee4a",
+  "scope": "Verbatim pre-hygiene documents; historical evidence and assignments, not current instructions. Current root assignments supersede historical ownership. No source/test edits.",
+  "files": [
+    {
+      "original": "AGENTS.md",
+      "archive": "docs/history/2026-08-27-root-docs/AGENTS.before.md",
+      "sha256": "23dc7a2bb8299e61a9553c93799a33b43ec4fd1c272e536e8fadd3e4d19b3009",
+      "bytes": 23881
+    },
+    {
+      "original": "README.md",
+      "archive": "docs/history/2026-08-27-root-docs/README.before.md",
+      "sha256": "7b522c6a6e113ca595248d158ad9fb76f33d0ae61afc36d0083d12c79a5d80a3",
+      "bytes": 15892
+    }
+  ],
+  "workspaceOrchestratorSha256": "a57c7dc70a12ec6f8d26a2c3ac908d81a66b3a268c782f42926c2b7e840b23b7"
+}

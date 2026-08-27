@@ -1,0 +1,84 @@
+{
+  "scope": "read-only consistency audit of final-01, not new product execution",
+  "candidate": "28cfe0f2cdc9b82c940523fce7d6fc08dacaeb94",
+  "counts": {
+    "author-core": 9,
+    "author-legacy": 42,
+    "author-wrappers": 425,
+    "independent-boundary": 3,
+    "packed-runtime": 21
+  },
+  "emittedFiles": 740,
+  "loadedPackageModules": 175,
+  "nativeRows": 12,
+  "mutationChecks": [
+    {
+      "name": "wrong-unit",
+      "loadedPackageModules": 175,
+      "changedModules": [
+        "dist/fs/real/allocation.js"
+      ],
+      "assertionFailures": 3,
+      "passes": 18
+    },
+    {
+      "name": "size-fallback",
+      "loadedPackageModules": 175,
+      "changedModules": [
+        "dist/fs/real/index.js"
+      ],
+      "assertionFailures": 1,
+      "passes": 20
+    },
+    {
+      "name": "zero-omission",
+      "loadedPackageModules": 175,
+      "changedModules": [
+        "dist/fs/real/index.js"
+      ],
+      "assertionFailures": 3,
+      "passes": 18
+    },
+    {
+      "name": "overflow",
+      "loadedPackageModules": 175,
+      "changedModules": [
+        "dist/fs/real/allocation.js"
+      ],
+      "assertionFailures": 1,
+      "passes": 20
+    },
+    {
+      "name": "forwarding-readonly",
+      "loadedPackageModules": 175,
+      "changedModules": [
+        "dist/fs/readonly/index.js"
+      ],
+      "assertionFailures": 11,
+      "passes": 10
+    },
+    {
+      "name": "forwarding-mount",
+      "loadedPackageModules": 175,
+      "changedModules": [
+        "dist/fs/mount/index.js"
+      ],
+      "assertionFailures": 9,
+      "passes": 12
+    },
+    {
+      "name": "forwarding-overlay",
+      "loadedPackageModules": 175,
+      "changedModules": [
+        "dist/fs/overlay/index.js"
+      ],
+      "assertionFailures": 10,
+      "passes": 11
+    }
+  ],
+  "stableInputs": true,
+  "cleanup": {
+    "scratchRemoved": true,
+    "remainingOwnedWorkRoots": []
+  }
+}

@@ -1,0 +1,73 @@
+{
+  "candidate": "28cfe0f2cdc9b82c940523fce7d6fc08dacaeb94",
+  "startedAt": "2026-08-27T16:43:37.459Z",
+  "headBefore": "b67eabd289997b2daf8b9cf04dd48aea9cb48282",
+  "statusBefore": "?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/\n?? tests/commands/search-stress/.native-1m4O1e/\n?? tests/fs/real/allocation-independent/\n",
+  "profile": {
+    "node": "v22.22.2",
+    "uv": "1.51.0",
+    "platform": "darwin",
+    "arch": "arm64",
+    "release": "25.4.0",
+    "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node"
+  },
+  "commands": [],
+  "mutants": [],
+  "cohorts": {
+    "core": [
+      "tests/contracts/filesystem-allocation.test.ts",
+      "tests/fs/real/allocation.test.ts"
+    ],
+    "legacy": [
+      "tests/contracts/filesystem.test.ts",
+      "tests/contracts/filesystem-identity.test.ts",
+      "tests/fs/real/conformance.test.ts",
+      "tests/fs/real/cancellation-regression.test.ts"
+    ],
+    "wrappers": [
+      "tests/fs/readonly/allocation.test.ts",
+      "tests/fs/mount/allocation.test.ts",
+      "tests/fs/overlay/allocation.test.ts",
+      "tests/fs/readonly/metadata.test.ts",
+      "tests/fs/readonly/readonly.test.ts",
+      "tests/fs/readonly/streaming.test.ts",
+      "tests/fs/readonly/rmdir.test.ts",
+      "tests/fs/readonly/snapshot-rmdir.test.ts",
+      "tests/fs/mount/review-regressions.test.ts",
+      "tests/fs/mount/comparison.test.ts",
+      "tests/fs/mount/identity-scope.test.ts",
+      "tests/fs/mount/copy-identity.test.ts",
+      "tests/fs/mount/copy-identity-guards.test.ts",
+      "tests/fs/mount/snapshot-rmdir.test.ts",
+      "tests/fs/mount/identity-authority-review/authority.test.ts",
+      "tests/fs/overlay/review-regressions.test.ts",
+      "tests/fs/overlay/copy-identity.test.ts",
+      "tests/fs/overlay/scoped-links.test.ts",
+      "tests/fs/overlay/rmdir.test.ts",
+      "tests/fs/overlay/snapshot-rmdir.test.ts",
+      "tests/fs/overlay/streaming.test.ts"
+    ]
+  },
+  "scratch": "/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-nZ3gSF",
+  "qualifications": [
+    "committed full archive, not a strict-live or whole-product gate",
+    "Linux native execution not performed",
+    "copied preexisting development dependencies; no install or network services",
+    "SafeJS synthetic blocks outside this feature",
+    "historical source/evidence remain untouched; scoped counts are not superiority or full gate evidence"
+  ],
+  "archiveSha256": "1b767862b0b9e45f95af751140ec03b12bb0e9c7c0c2a5b8c4ced6de89a2daa2",
+  "archiveBytes": 1735127040,
+  "verdict": "failed or incomplete; see preserved evidence",
+  "error": {
+    "message": "ENOENT: no such file or directory, lstat '/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-nZ3gSF/candidate/\"tests/commands/filesystem-inspection-stress/tree/evidence/final-436bda3/harness/derived/native-fixtures/controls/back\\\\slash\"'",
+    "stack": "Error: ENOENT: no such file or directory, lstat '/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-nZ3gSF/candidate/\"tests/commands/filesystem-inspection-stress/tree/evidence/final-436bda3/harness/derived/native-fixtures/controls/back\\\\slash\"'\n    at lstatSync (node:fs:1722:25)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/verify.mjs:45:18\n    at Array.map (<anonymous>)\n    at treeManifest (file:///Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/verify.mjs:43:35)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/verify.mjs:96:19\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)"
+  },
+  "authorInputsUnchanged": true,
+  "cleanup": {
+    "scratchRemoved": true,
+    "remainingOwnedWorkRoots": []
+  },
+  "finishedAt": "2026-08-27T16:43:57.246Z",
+  "headAfter": "b67eabd289997b2daf8b9cf04dd48aea9cb48282"
+}

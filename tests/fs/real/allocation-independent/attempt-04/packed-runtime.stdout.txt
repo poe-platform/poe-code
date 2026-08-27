@@ -1,0 +1,208 @@
+TAP version 13
+# (node:86894) ExperimentalWarning: `--experimental-loader` may be removed in the future; instead use `register()`:
+# --import 'data:text/javascript,import { register } from "node:module"; import { pathToFileURL } from "node:url"; register("./load-trace.mjs", pathToFileURL("./"));'
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: packed root and declared subpath exports preserve optional readonly structural types
+ok 1 - packed root and declared subpath exports preserve optional readonly structural types
+  ---
+  duration_ms: 0.564708
+  type: 'test'
+  ...
+# Subtest: packed OWN native entries match bigint stat/lstat allocation without changing data
+ok 2 - packed OWN native entries match bigint stat/lstat allocation without changing data
+  ---
+  duration_ms: 9.658958
+  type: 'test'
+  ...
+# {"profile":{"node":"v22.22.2","uv":"1.51.0","platform":"darwin","release":"25.4.0","arch":"arm64","statfsType":26},"observations":[{"name":"empty","method":"stat","blocks":"0","size":0,"allocatedBytes":0,"dev":16777232,"ino":175770622,"nlink":1,"type":"file"},{"name":"empty","method":"lstat","blocks":"0","size":0,"allocatedBytes":0,"dev":16777232,"ino":175770622,"nlink":1,"type":"file"},{"name":"dense","method":"stat","blocks":"136","size":65537,"allocatedBytes":69632,"dev":16777232,"ino":175770623,"nlink":2,"type":"file"},{"name":"dense","method":"lstat","blocks":"136","size":65537,"allocatedBytes":69632,"dev":16777232,"ino":175770623,"nlink":2,"type":"file"},{"name":"sparse","method":"stat","blocks":"0","size":8388608,"allocatedBytes":0,"dev":16777232,"ino":175770624,"nlink":1,"type":"file"},{"name":"sparse","method":"lstat","blocks":"0","size":8388608,"allocatedBytes":0,"dev":16777232,"ino":175770624,"nlink":1,"type":"file"},{"name":"hardlink","method":"stat","blocks":"136","size":65537,"allocatedBytes":69632,"dev":16777232,"ino":175770623,"nlink":2,"type":"file"},{"name":"hardlink","method":"lstat","blocks":"136","size":65537,"allocatedBytes":69632,"dev":16777232,"ino":175770623,"nlink":2,"type":"file"},{"name":"directory","method":"stat","blocks":"0","size":64,"allocatedBytes":0,"dev":16777232,"ino":175770627,"nlink":2,"type":"directory"},{"name":"directory","method":"lstat","blocks":"0","size":64,"allocatedBytes":0,"dev":16777232,"ino":175770627,"nlink":2,"type":"directory"},{"name":"symlink","method":"stat","blocks":"136","size":65537,"allocatedBytes":69632,"dev":16777232,"ino":175770623,"nlink":2,"type":"file"},{"name":"symlink","method":"lstat","blocks":"0","size":5,"allocatedBytes":0,"dev":16777232,"ino":175770628,"nlink":1,"type":"symlink"}],"meaning":"per-entry allocation; hardlink observations are not unique physical storage"}
+# Subtest: packed Real rejects invalid native blocks with no size or blksize fallback
+ok 3 - packed Real rejects invalid native blocks with no size or blksize fallback
+  ---
+  duration_ms: 3.971833
+  type: 'test'
+  ...
+# {"injectedNativeReports":30,"note":"synthetic host responses exercise public Real mapping, not actual native allocation"}
+# Subtest: packed errors and errno-shaped abort reasons preserve identity and content
+ok 4 - packed errors and errno-shaped abort reasons preserve identity and content
+  ---
+  duration_ms: 5.283917
+  type: 'test'
+  ...
+# Subtest: packed readonly snapshots named own-hidden metadata and dynamic reports
+not ok 5 - packed readonly snapshots named own-hidden metadata and dynamic reports
+  ---
+  duration_ms: 0.555292
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-1Q0YV8/consumer/emitted/public-consumer.mjs:178:9'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    undefined !== 0
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 0
+  operator: 'strictEqual'
+  stack: |-
+    hasAllocation (file:///Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-1Q0YV8/consumer/emitted/public-consumer.mjs:22:12)
+    TestContext.<anonymous> (file:///Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-1Q0YV8/consumer/emitted/public-consumer.mjs:193:21)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: packed mount snapshots named own-hidden metadata and dynamic reports
+ok 6 - packed mount snapshots named own-hidden metadata and dynamic reports
+  ---
+  duration_ms: 0.813208
+  type: 'test'
+  ...
+# Subtest: packed overlay-upper snapshots named own-hidden metadata and dynamic reports
+ok 7 - packed overlay-upper snapshots named own-hidden metadata and dynamic reports
+  ---
+  duration_ms: 0.738667
+  type: 'test'
+  ...
+# Subtest: packed overlay-lower snapshots named own-hidden metadata and dynamic reports
+ok 8 - packed overlay-lower snapshots named own-hidden metadata and dynamic reports
+  ---
+  duration_ms: 0.639458
+  type: 'test'
+  ...
+# Subtest: packed nested snapshots named own-hidden metadata and dynamic reports
+ok 9 - packed nested snapshots named own-hidden metadata and dynamic reports
+  ---
+  duration_ms: 1.10025
+  type: 'test'
+  ...
+# Subtest: packed readonly snapshots named prototype metadata and dynamic reports
+not ok 10 - packed readonly snapshots named prototype metadata and dynamic reports
+  ---
+  duration_ms: 0.2115
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-1Q0YV8/consumer/emitted/public-consumer.mjs:178:9'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    undefined !== 0
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 0
+  operator: 'strictEqual'
+  stack: |-
+    hasAllocation (file:///Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-1Q0YV8/consumer/emitted/public-consumer.mjs:22:12)
+    TestContext.<anonymous> (file:///Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-1Q0YV8/consumer/emitted/public-consumer.mjs:193:21)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: packed mount snapshots named prototype metadata and dynamic reports
+ok 11 - packed mount snapshots named prototype metadata and dynamic reports
+  ---
+  duration_ms: 0.286458
+  type: 'test'
+  ...
+# Subtest: packed overlay-upper snapshots named prototype metadata and dynamic reports
+ok 12 - packed overlay-upper snapshots named prototype metadata and dynamic reports
+  ---
+  duration_ms: 0.333375
+  type: 'test'
+  ...
+# Subtest: packed overlay-lower snapshots named prototype metadata and dynamic reports
+ok 13 - packed overlay-lower snapshots named prototype metadata and dynamic reports
+  ---
+  duration_ms: 0.452625
+  type: 'test'
+  ...
+# Subtest: packed nested snapshots named prototype metadata and dynamic reports
+ok 14 - packed nested snapshots named prototype metadata and dynamic reports
+  ---
+  duration_ms: 1.975917
+  type: 'test'
+  ...
+# Subtest: packed synthetic mount ancestors stay unknown while backing metadata and capability change
+not ok 15 - packed synthetic mount ancestors stay unknown while backing metadata and capability change
+  ---
+  duration_ms: 0.720875
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-1Q0YV8/consumer/emitted/public-consumer.mjs:211:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + undefined
+    - false
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: false
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-1Q0YV8/consumer/emitted/public-consumer.mjs:237:12)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: packed OWN native nested wrappers select the new upper entry after copy-up
+ok 16 - packed OWN native nested wrappers select the new upper entry after copy-up
+  ---
+  duration_ms: 18.609834
+  type: 'test'
+  ...
+# {"nativeCopyUp":{"lowerBlocks":"0","upperBlocks":"2048","lowerIno":"175770636","upperIno":"175770639","size":"1048576"}}
+# Subtest: packed copy-up switches allocation to upper 0 without metadata-read copy-up
+ok 17 - packed copy-up switches allocation to upper 0 without metadata-read copy-up
+  ---
+  duration_ms: 0.960417
+  type: 'test'
+  ...
+# Subtest: packed copy-up switches allocation to upper undefined without metadata-read copy-up
+ok 18 - packed copy-up switches allocation to upper undefined without metadata-read copy-up
+  ---
+  duration_ms: 0.583833
+  type: 'test'
+  ...
+# Subtest: packed copy-up switches allocation to upper 8192 without metadata-read copy-up
+not ok 19 - packed copy-up switches allocation to upper 8192 without metadata-read copy-up
+  ---
+  duration_ms: 0.984709
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-1Q0YV8/consumer/emitted/public-consumer.mjs:288:5'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+      {
+    +   atimeMs: 1787849282952,
+    -   atimeMs: 1787849282951,
+        birthtimeMs: 1787849282951,
+        ctimeMs: 1787849282951,
+        dev: 0,
+        gid: 0,
+        identityScope: Symbol(),
+    
+  code: 'ERR_TEST_FAILURE'
+  ...
+# Subtest: packed stat/lstat do not clean pending staging; existing readFile housekeeping does
+ok 20 - packed stat/lstat do not clean pending staging; existing readFile housekeeping does
+  ---
+  duration_ms: 0.624084
+  type: 'test'
+  ...
+# {"housekeeping":"readFile removed preexisting pending staging","removals":["/.virtual-bash-overlay-5d6b7553-da1f-4c95-a2ab-2c18e9264dab"]}
+# Subtest: packed Memory, mock S3 and injected WebDAV metadata remain unknown
+ok 21 - packed Memory, mock S3 and injected WebDAV metadata remain unknown
+  ---
+  duration_ms: 4.512958
+  type: 'test'
+  ...
+1..21
+# tests 21
+# suites 0
+# pass 17
+# fail 4
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 171.744416

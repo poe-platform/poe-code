@@ -1,0 +1,193 @@
+TAP version 13
+# (node:88798) ExperimentalWarning: `--experimental-loader` may be removed in the future; instead use `register()`:
+# --import 'data:text/javascript,import { register } from "node:module"; import { pathToFileURL } from "node:url"; register("./load-trace.mjs", pathToFileURL("./"));'
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: packed root and declared subpath exports preserve optional readonly structural types
+ok 1 - packed root and declared subpath exports preserve optional readonly structural types
+  ---
+  duration_ms: 0.568208
+  type: 'test'
+  ...
+# Subtest: packed OWN native entries match bigint stat/lstat allocation without changing data
+not ok 2 - packed OWN native entries match bigint stat/lstat allocation without changing data
+  ---
+  duration_ms: 5.611375
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-cqc3sB/consumer/emitted/public-consumer.mjs:72:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    557056 !== 69632
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 69632
+  actual: 557056
+  operator: 'strictEqual'
+  stack: |-
+    hasAllocation (file:///Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-cqc3sB/consumer/emitted/public-consumer.mjs:22:12)
+    TestContext.<anonymous> (file:///Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-cqc3sB/consumer/emitted/public-consumer.mjs:99:13)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: packed Real rejects invalid native blocks with no size or blksize fallback
+not ok 3 - packed Real rejects invalid native blocks with no size or blksize fallback
+  ---
+  duration_ms: 2.160666
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-cqc3sB/consumer/emitted/public-consumer.mjs:117:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    4096 !== 512
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 512
+  actual: 4096
+  operator: 'strictEqual'
+  stack: |-
+    hasAllocation (file:///Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-cqc3sB/consumer/emitted/public-consumer.mjs:22:12)
+    TestContext.<anonymous> (file:///Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-cqc3sB/consumer/emitted/public-consumer.mjs:145:17)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: packed errors and errno-shaped abort reasons preserve identity and content
+ok 4 - packed errors and errno-shaped abort reasons preserve identity and content
+  ---
+  duration_ms: 6.659166
+  type: 'test'
+  ...
+# Subtest: packed readonly snapshots named own-hidden metadata and dynamic reports
+ok 5 - packed readonly snapshots named own-hidden metadata and dynamic reports
+  ---
+  duration_ms: 0.716167
+  type: 'test'
+  ...
+# Subtest: packed mount snapshots named own-hidden metadata and dynamic reports
+ok 6 - packed mount snapshots named own-hidden metadata and dynamic reports
+  ---
+  duration_ms: 0.736083
+  type: 'test'
+  ...
+# Subtest: packed overlay-upper snapshots named own-hidden metadata and dynamic reports
+ok 7 - packed overlay-upper snapshots named own-hidden metadata and dynamic reports
+  ---
+  duration_ms: 0.896
+  type: 'test'
+  ...
+# Subtest: packed overlay-lower snapshots named own-hidden metadata and dynamic reports
+ok 8 - packed overlay-lower snapshots named own-hidden metadata and dynamic reports
+  ---
+  duration_ms: 0.99275
+  type: 'test'
+  ...
+# Subtest: packed nested snapshots named own-hidden metadata and dynamic reports
+ok 9 - packed nested snapshots named own-hidden metadata and dynamic reports
+  ---
+  duration_ms: 1.515125
+  type: 'test'
+  ...
+# Subtest: packed readonly snapshots named prototype metadata and dynamic reports
+ok 10 - packed readonly snapshots named prototype metadata and dynamic reports
+  ---
+  duration_ms: 0.266375
+  type: 'test'
+  ...
+# Subtest: packed mount snapshots named prototype metadata and dynamic reports
+ok 11 - packed mount snapshots named prototype metadata and dynamic reports
+  ---
+  duration_ms: 0.326209
+  type: 'test'
+  ...
+# Subtest: packed overlay-upper snapshots named prototype metadata and dynamic reports
+ok 12 - packed overlay-upper snapshots named prototype metadata and dynamic reports
+  ---
+  duration_ms: 0.41425
+  type: 'test'
+  ...
+# Subtest: packed overlay-lower snapshots named prototype metadata and dynamic reports
+ok 13 - packed overlay-lower snapshots named prototype metadata and dynamic reports
+  ---
+  duration_ms: 0.677625
+  type: 'test'
+  ...
+# Subtest: packed nested snapshots named prototype metadata and dynamic reports
+ok 14 - packed nested snapshots named prototype metadata and dynamic reports
+  ---
+  duration_ms: 1.140291
+  type: 'test'
+  ...
+# Subtest: packed synthetic mount ancestors stay unknown while backing metadata and capability change
+ok 15 - packed synthetic mount ancestors stay unknown while backing metadata and capability change
+  ---
+  duration_ms: 0.779416
+  type: 'test'
+  ...
+# Subtest: packed OWN native nested wrappers select the new upper entry after copy-up
+not ok 16 - packed OWN native nested wrappers select the new upper entry after copy-up
+  ---
+  duration_ms: 15.181542
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-cqc3sB/consumer/emitted/public-consumer.mjs:253:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + 8388608
+    - 1048576
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 1048576
+  actual: 8388608
+  operator: 'strictEqual'
+  stack: |-
+    hasAllocation (file:///Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-cqc3sB/consumer/emitted/public-consumer.mjs:22:12)
+    TestContext.<anonymous> (file:///Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-cqc3sB/consumer/emitted/public-consumer.mjs:286:9)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: packed copy-up switches allocation to upper 0 without metadata-read copy-up
+ok 17 - packed copy-up switches allocation to upper 0 without metadata-read copy-up
+  ---
+  duration_ms: 0.932125
+  type: 'test'
+  ...
+# Subtest: packed copy-up switches allocation to upper undefined without metadata-read copy-up
+ok 18 - packed copy-up switches allocation to upper undefined without metadata-read copy-up
+  ---
+  duration_ms: 0.511875
+  type: 'test'
+  ...
+# Subtest: packed copy-up switches allocation to upper 8192 without metadata-read copy-up
+ok 19 - packed copy-up switches allocation to upper 8192 without metadata-read copy-up
+  ---
+  duration_ms: 0.490458
+  type: 'test'
+  ...
+# Subtest: packed stat/lstat do not clean pending staging; existing readFile housekeeping does
+ok 20 - packed stat/lstat do not clean pending staging; existing readFile housekeeping does
+  ---
+  duration_ms: 0.551667
+  type: 'test'
+  ...
+# {"housekeeping":"readFile removed preexisting pending staging","removals":["/.virtual-bash-overlay-95eee1e9-c126-4407-b3cc-4a1bc7dadba1"]}
+# Subtest: packed Memory, mock S3 and injected WebDAV metadata remain unknown
+ok 21 - packed Memory, mock S3 and injected WebDAV metadata remain unknown
+  ---
+  duration_ms: 4.960541
+  type: 'test'
+  ...
+1..21
+# tests 21
+# suites 0
+# pass 18
+# fail 3
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 165.4715

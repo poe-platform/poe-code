@@ -1,0 +1,1 @@
+{"name":"allocation-independent-public-consumer","private":true,"type":"module"}

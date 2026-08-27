@@ -1,0 +1,324 @@
+TAP version 13
+# (node:90932) ExperimentalWarning: `--experimental-loader` may be removed in the future; instead use `register()`:
+# --import 'data:text/javascript,import { register } from "node:module"; import { pathToFileURL } from "node:url"; register("./load-trace.mjs", pathToFileURL("./"));'
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: packed root and declared subpath exports preserve optional readonly structural types
+ok 1 - packed root and declared subpath exports preserve optional readonly structural types
+  ---
+  duration_ms: 0.589041
+  type: 'test'
+  ...
+# Subtest: packed OWN native entries match bigint stat/lstat allocation without changing data
+ok 2 - packed OWN native entries match bigint stat/lstat allocation without changing data
+  ---
+  duration_ms: 11.165292
+  type: 'test'
+  ...
+# {"profile":{"node":"v22.22.2","uv":"1.51.0","platform":"darwin","release":"25.4.0","arch":"arm64","statfsType":26},"observations":[{"name":"empty","method":"stat","blocks":"0","size":0,"allocatedBytes":0,"dev":16777232,"ino":175844181,"nlink":1,"type":"file"},{"name":"empty","method":"lstat","blocks":"0","size":0,"allocatedBytes":0,"dev":16777232,"ino":175844181,"nlink":1,"type":"file"},{"name":"dense","method":"stat","blocks":"136","size":65537,"allocatedBytes":69632,"dev":16777232,"ino":175844182,"nlink":2,"type":"file"},{"name":"dense","method":"lstat","blocks":"136","size":65537,"allocatedBytes":69632,"dev":16777232,"ino":175844182,"nlink":2,"type":"file"},{"name":"sparse","method":"stat","blocks":"0","size":8388608,"allocatedBytes":0,"dev":16777232,"ino":175844183,"nlink":1,"type":"file"},{"name":"sparse","method":"lstat","blocks":"0","size":8388608,"allocatedBytes":0,"dev":16777232,"ino":175844183,"nlink":1,"type":"file"},{"name":"hardlink","method":"stat","blocks":"136","size":65537,"allocatedBytes":69632,"dev":16777232,"ino":175844182,"nlink":2,"type":"file"},{"name":"hardlink","method":"lstat","blocks":"136","size":65537,"allocatedBytes":69632,"dev":16777232,"ino":175844182,"nlink":2,"type":"file"},{"name":"directory","method":"stat","blocks":"0","size":64,"allocatedBytes":0,"dev":16777232,"ino":175844186,"nlink":2,"type":"directory"},{"name":"directory","method":"lstat","blocks":"0","size":64,"allocatedBytes":0,"dev":16777232,"ino":175844186,"nlink":2,"type":"directory"},{"name":"symlink","method":"stat","blocks":"136","size":65537,"allocatedBytes":69632,"dev":16777232,"ino":175844182,"nlink":2,"type":"file"},{"name":"symlink","method":"lstat","blocks":"0","size":5,"allocatedBytes":0,"dev":16777232,"ino":175844187,"nlink":1,"type":"symlink"}],"meaning":"per-entry allocation; hardlink observations are not unique physical storage"}
+# Subtest: packed Real rejects invalid native blocks with no size or blksize fallback
+ok 3 - packed Real rejects invalid native blocks with no size or blksize fallback
+  ---
+  duration_ms: 4.811
+  type: 'test'
+  ...
+# {"injectedNativeReports":30,"note":"synthetic host responses exercise public Real mapping, not actual native allocation"}
+# Subtest: packed errors and errno-shaped abort reasons preserve identity and content
+ok 4 - packed errors and errno-shaped abort reasons preserve identity and content
+  ---
+  duration_ms: 5.471708
+  type: 'test'
+  ...
+# Subtest: packed readonly snapshots named own-hidden metadata and dynamic reports
+not ok 5 - packed readonly snapshots named own-hidden metadata and dynamic reports
+  ---
+  duration_ms: 0.606125
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-vz3dPQ/mutant-forwarding-readonly/emitted/public-consumer.mjs:183:9'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    undefined !== 0
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 0
+  operator: 'strictEqual'
+  stack: |-
+    hasAllocation (file:///Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-vz3dPQ/mutant-forwarding-readonly/emitted/public-consumer.mjs:22:12)
+    TestContext.<anonymous> (file:///Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-vz3dPQ/mutant-forwarding-readonly/emitted/public-consumer.mjs:198:21)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: packed mount snapshots named own-hidden metadata and dynamic reports
+ok 6 - packed mount snapshots named own-hidden metadata and dynamic reports
+  ---
+  duration_ms: 0.658666
+  type: 'test'
+  ...
+# Subtest: packed overlay-upper snapshots named own-hidden metadata and dynamic reports
+ok 7 - packed overlay-upper snapshots named own-hidden metadata and dynamic reports
+  ---
+  duration_ms: 0.703459
+  type: 'test'
+  ...
+# Subtest: packed overlay-lower snapshots named own-hidden metadata and dynamic reports
+not ok 8 - packed overlay-lower snapshots named own-hidden metadata and dynamic reports
+  ---
+  duration_ms: 0.249208
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-vz3dPQ/mutant-forwarding-readonly/emitted/public-consumer.mjs:183:9'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    undefined !== 0
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 0
+  operator: 'strictEqual'
+  stack: |-
+    hasAllocation (file:///Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-vz3dPQ/mutant-forwarding-readonly/emitted/public-consumer.mjs:22:12)
+    TestContext.<anonymous> (file:///Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-vz3dPQ/mutant-forwarding-readonly/emitted/public-consumer.mjs:198:21)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: packed nested snapshots named own-hidden metadata and dynamic reports
+not ok 9 - packed nested snapshots named own-hidden metadata and dynamic reports
+  ---
+  duration_ms: 0.395542
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-vz3dPQ/mutant-forwarding-readonly/emitted/public-consumer.mjs:183:9'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    undefined !== 0
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 0
+  operator: 'strictEqual'
+  stack: |-
+    hasAllocation (file:///Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-vz3dPQ/mutant-forwarding-readonly/emitted/public-consumer.mjs:22:12)
+    TestContext.<anonymous> (file:///Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-vz3dPQ/mutant-forwarding-readonly/emitted/public-consumer.mjs:198:21)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: packed readonly snapshots named prototype metadata and dynamic reports
+not ok 10 - packed readonly snapshots named prototype metadata and dynamic reports
+  ---
+  duration_ms: 0.210583
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-vz3dPQ/mutant-forwarding-readonly/emitted/public-consumer.mjs:183:9'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    undefined !== 0
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 0
+  operator: 'strictEqual'
+  stack: |-
+    hasAllocation (file:///Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-vz3dPQ/mutant-forwarding-readonly/emitted/public-consumer.mjs:22:12)
+    TestContext.<anonymous> (file:///Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-vz3dPQ/mutant-forwarding-readonly/emitted/public-consumer.mjs:198:21)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: packed mount snapshots named prototype metadata and dynamic reports
+ok 11 - packed mount snapshots named prototype metadata and dynamic reports
+  ---
+  duration_ms: 0.31925
+  type: 'test'
+  ...
+# Subtest: packed overlay-upper snapshots named prototype metadata and dynamic reports
+ok 12 - packed overlay-upper snapshots named prototype metadata and dynamic reports
+  ---
+  duration_ms: 0.335375
+  type: 'test'
+  ...
+# Subtest: packed overlay-lower snapshots named prototype metadata and dynamic reports
+not ok 13 - packed overlay-lower snapshots named prototype metadata and dynamic reports
+  ---
+  duration_ms: 0.172041
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-vz3dPQ/mutant-forwarding-readonly/emitted/public-consumer.mjs:183:9'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    undefined !== 0
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 0
+  operator: 'strictEqual'
+  stack: |-
+    hasAllocation (file:///Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-vz3dPQ/mutant-forwarding-readonly/emitted/public-consumer.mjs:22:12)
+    TestContext.<anonymous> (file:///Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-vz3dPQ/mutant-forwarding-readonly/emitted/public-consumer.mjs:198:21)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: packed nested snapshots named prototype metadata and dynamic reports
+not ok 14 - packed nested snapshots named prototype metadata and dynamic reports
+  ---
+  duration_ms: 0.164958
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-vz3dPQ/mutant-forwarding-readonly/emitted/public-consumer.mjs:183:9'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    undefined !== 0
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 0
+  operator: 'strictEqual'
+  stack: |-
+    hasAllocation (file:///Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-vz3dPQ/mutant-forwarding-readonly/emitted/public-consumer.mjs:22:12)
+    TestContext.<anonymous> (file:///Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-vz3dPQ/mutant-forwarding-readonly/emitted/public-consumer.mjs:198:21)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: packed synthetic mount ancestors stay unknown while backing metadata and capability change
+not ok 15 - packed synthetic mount ancestors stay unknown while backing metadata and capability change
+  ---
+  duration_ms: 0.253792
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-vz3dPQ/mutant-forwarding-readonly/emitted/public-consumer.mjs:216:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    undefined !== 0
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 0
+  operator: 'strictEqual'
+  stack: |-
+    hasAllocation (file:///Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-vz3dPQ/mutant-forwarding-readonly/emitted/public-consumer.mjs:22:12)
+    TestContext.<anonymous> (file:///Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-vz3dPQ/mutant-forwarding-readonly/emitted/public-consumer.mjs:236:13)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: packed OWN native nested wrappers select the new upper entry after copy-up
+not ok 16 - packed OWN native nested wrappers select the new upper entry after copy-up
+  ---
+  duration_ms: 5.364209
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-vz3dPQ/mutant-forwarding-readonly/emitted/public-consumer.mjs:253:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    undefined !== 0
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 0
+  operator: 'strictEqual'
+  stack: |-
+    hasAllocation (file:///Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-vz3dPQ/mutant-forwarding-readonly/emitted/public-consumer.mjs:22:12)
+    TestContext.<anonymous> (file:///Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-vz3dPQ/mutant-forwarding-readonly/emitted/public-consumer.mjs:277:13)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: packed copy-up switches allocation to upper 0 without metadata-read copy-up
+not ok 17 - packed copy-up switches allocation to upper 0 without metadata-read copy-up
+  ---
+  duration_ms: 0.566958
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-vz3dPQ/mutant-forwarding-readonly/emitted/public-consumer.mjs:299:5'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + undefined
+    - 4096
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 4096
+  operator: 'strictEqual'
+  stack: |-
+    hasAllocation (file:///Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-vz3dPQ/mutant-forwarding-readonly/emitted/public-consumer.mjs:22:12)
+    TestContext.<anonymous> (file:///Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-vz3dPQ/mutant-forwarding-readonly/emitted/public-consumer.mjs:309:13)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: packed copy-up switches allocation to upper undefined without metadata-read copy-up
+not ok 18 - packed copy-up switches allocation to upper undefined without metadata-read copy-up
+  ---
+  duration_ms: 0.214459
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-vz3dPQ/mutant-forwarding-readonly/emitted/public-consumer.mjs:299:5'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + undefined
+    - 4096
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 4096
+  operator: 'strictEqual'
+  stack: |-
+    hasAllocation (file:///Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-vz3dPQ/mutant-forwarding-readonly/emitted/public-consumer.mjs:22:12)
+    TestContext.<anonymous> (file:///Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-vz3dPQ/mutant-forwarding-readonly/emitted/public-consumer.mjs:309:13)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: packed copy-up switches allocation to upper 8192 without metadata-read copy-up
+not ok 19 - packed copy-up switches allocation to upper 8192 without metadata-read copy-up
+  ---
+  duration_ms: 0.196666
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-vz3dPQ/mutant-forwarding-readonly/emitted/public-consumer.mjs:299:5'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + undefined
+    - 4096
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 4096
+  operator: 'strictEqual'
+  stack: |-
+    hasAllocation (file:///Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-vz3dPQ/mutant-forwarding-readonly/emitted/public-consumer.mjs:22:12)
+    TestContext.<anonymous> (file:///Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-vz3dPQ/mutant-forwarding-readonly/emitted/public-consumer.mjs:309:13)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: packed stat/lstat do not clean pending staging; existing readFile housekeeping does
+ok 20 - packed stat/lstat do not clean pending staging; existing readFile housekeeping does
+  ---
+  duration_ms: 0.98575
+  type: 'test'
+  ...
+# {"housekeeping":"readFile removed preexisting pending staging","removals":["/.virtual-bash-overlay-6a32b631-3116-4e86-87db-277eced4c865"]}
+# Subtest: packed Memory, mock S3 and injected WebDAV metadata remain unknown
+ok 21 - packed Memory, mock S3 and injected WebDAV metadata remain unknown
+  ---
+  duration_ms: 4.85675
+  type: 'test'
+  ...
+1..21
+# tests 21
+# suites 0
+# pass 10
+# fail 11
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 152.271958

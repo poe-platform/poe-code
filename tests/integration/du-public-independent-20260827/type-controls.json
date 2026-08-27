@@ -1,0 +1,23 @@
+{
+  "status": "staged data only; never compiled in freeze turn",
+  "materialization": "Copy exactly one .ts.data payload at a time to consumer.ts inside an authenticated physically moved installed consumer; never add loose TS to repository discovery. Positive baseline must succeed before negative controls.",
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "strict": true,
+    "exactOptionalPropertyTypes": true,
+    "noUncheckedIndexedAccess": true,
+    "skipLibCheck": false,
+    "noEmit": true,
+    "types": ["node"]
+  },
+  "forbiddenRescue": ["paths", "baseUrl", "workspace symlink", "tsx source loader", "source import", "skipLibCheck:true", "any/assertion patch", "expect-error/suppressions"],
+  "controls": [
+    {"case":"T01","file":"consumers/positive.ts.data","exitCode":0,"diagnostics":[]},
+    {"case":"T02","file":"consumers/negative-options.ts.data","exitCode":2,"diagnostics":[{"line":3,"code":2353,"mentions":"notADuOption"},{"line":4,"code":2353,"mentions":"notADuOption"}]},
+    {"case":"T03","file":"consumers/negative-limits.ts.data","exitCode":2,"diagnostics":[{"line":2,"code":2322,"mentions":"number"}]},
+    {"case":"T04","file":"consumers/negative-readonly.ts.data","exitCode":2,"diagnostics":[{"line":2,"code":2339,"mentions":"push"}]}
+  ],
+  "acceptance": "Require exact exit and complete designated diagnostic set on materialized consumer.ts. Any missing module/export, unrelated declaration failure or additional diagnostic rejects the control. Bind the actual TypeScript executable/package bytes and version before use; changed compiler diagnostics need explicit disclosed fixture revision, never silent relaxation."
+}

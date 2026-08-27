@@ -1,0 +1,2 @@
+import { createDuCommand } from 'virtual-bash/commands/du';
+createDuCommand({ limits: { maxEntries: 'one' } });

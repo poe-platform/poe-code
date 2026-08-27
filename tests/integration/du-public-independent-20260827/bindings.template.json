@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "state": "pre-public-candidate-freeze",
+  "fixedScope": {
+    "package": "virtual-bash",
+    "subpath": "virtual-bash/commands/du",
+    "defaultPluginCount": 75,
+    "htmlCheckpointPluginCount": 74,
+    "getoptsIsBuiltinNotPlugin": true,
+    "htmlRequired": true,
+    "curlAndSafejsOptional": true,
+    "exprDefault": false,
+    "physicalStorageClaims": false,
+    "wholeGate": false
+  },
+  "required": {
+    "candidateCommit": null,
+    "freezeCommit": null,
+    "freezeManifestSha256": null,
+    "sourceInventory": null,
+    "html74Checkpoint": null,
+    "approved75Inventory": null,
+    "sourcePathsAndPolicy": null,
+    "aggregateDuOptions": null,
+    "diagnostics": null,
+    "outputOperationIntegration": null,
+    "supervisorIdentity": null,
+    "toolIdentities": null,
+    "admissionPolicy": null,
+    "replayAuthorization": null
+  }
+}

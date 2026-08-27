@@ -60,10 +60,12 @@ for (const name of readdirSync(fixtureRoot).filter(name => name.startsWith('.nat
   assert.ok(match, name);
   cleanup.push({ path: directory, exactBytesAndNames: true, existingFixture: match.fixture.name });
 }
-assert.deepEqual(readdirSync(join(runtime, 'tmp')), []);
+const temporaryEntries = readdirSync(join(runtime, 'tmp'));
+if (phase === 'types') assert.ok(temporaryEntries.every(name => name === 'node-compile-cache'));
+else assert.deepEqual(temporaryEntries, []);
 assert.equal(readFileSync(join(runtime, 'sentinel'), 'utf8'), `obsolete-two-${phase}-owned\n`);
 const after = hashes(paths);
-const record = { at: new Date().toISOString(), phase, headLabelOnly: spawnSync('git', ['rev-parse', 'HEAD'], { cwd: root, encoding: 'utf8' }).stdout.trim(), node: { version: process.version, executable: process.execPath, sha256: sha(readFileSync(process.execPath)) }, resolutions, commands, before, after, liveDuringRunDrift: drift(before, after), priorReviewToLiveDrift: drift(historical.manifest, before).filter(entry => entry.path !== 'comm-review-types.json'), sourceDigest: sha(JSON.stringify(Object.fromEntries(Object.entries(before).filter(([path]) => path.startsWith('src/'))))), helperSha256: before['tests/fs/webdav/mock.ts'], cleanup, remainingTmpEntries: [], runtimeCleanup: 'Verified owned sentinel, exact fixture namespaces/bytes and empty TMPDIR; removed only this fresh phase directory.', allChildrenExited: commands.every(command => command.signal === null && command.error === null), noRootBuildOrEmission: true };
+const record = { at: new Date().toISOString(), phase, headLabelOnly: spawnSync('git', ['rev-parse', 'HEAD'], { cwd: root, encoding: 'utf8' }).stdout.trim(), node: { version: process.version, executable: process.execPath, sha256: sha(readFileSync(process.execPath)) }, resolutions, commands, before, after, liveDuringRunDrift: drift(before, after), priorReviewToLiveDrift: drift(historical.manifest, before).filter(entry => entry.path !== 'comm-review-types.json'), sourceDigest: sha(JSON.stringify(Object.fromEntries(Object.entries(before).filter(([path]) => path.startsWith('src/'))))), helperSha256: before['tests/fs/webdav/mock.ts'], cleanup, tmpEntriesBeforeCleanup: temporaryEntries, remainingTmpEntries: [], runtimeCleanup: 'Verified owned sentinel, exact fixture namespaces/bytes and TMPDIR (empty for tests; only generated node-compile-cache permitted for types); removed only this fresh phase directory.', allChildrenExited: commands.every(command => command.signal === null && command.error === null), noRootBuildOrEmission: true };
 rmSync(runtime, { recursive: true });
 assert.ok(!existsSync(runtime));
 save(`${owned}/${phase}-validation.json`, record);

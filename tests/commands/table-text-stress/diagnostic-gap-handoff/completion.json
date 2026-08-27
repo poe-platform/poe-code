@@ -1,0 +1,336 @@
+{
+  "at": "2026-08-27T03:32:39.650Z",
+  "commits": {
+    "beforeEditEvidence": "db62cc6e5a2742aeefdb1f9631758e71efdfe6ca",
+    "testOnly": "bc08c8d73ed759ba0980d723086a728832eea211",
+    "validationEvidence": "Commit containing this file; see final handoff for its resolved SHA."
+  },
+  "exactTestOnlyPaths": [
+    "tests/commands/table-text-stress/corpus.test.ts",
+    "tests/commands/table-text/differential.test.ts"
+  ],
+  "deltas": [
+    {
+      "path": "tests/commands/table-text-stress/corpus.test.ts",
+      "lines": [
+        19,
+        20
+      ],
+      "old": "actual.exitCode=0; actual.stderrHex=\"\"",
+      "current": "actual.exitCode=1; decoded actual.stderrHex equals literal comm: -: Bad file descriptor newline",
+      "stdoutAndFilesAssertionsUnchanged": true
+    },
+    {
+      "path": "tests/commands/table-text/differential.test.ts",
+      "lines": [
+        12,
+        20,
+        21,
+        22
+      ],
+      "old": "shared-case title describes disagreement; expected stderr regex /Bad file descriptor/; actual.exitCode=0; actual.stderr=\"\"",
+      "current": "shared-case title describes regression; expected and actual stderr equal the full literal comm: -: Bad file descriptor newline; actual.exitCode=1",
+      "stdoutAndFilesAssertionsUnchanged": true
+    }
+  ],
+  "counts": {
+    "red104": {
+      "pass": 103,
+      "fail": 1,
+      "total": 104
+    },
+    "green104": {
+      "pass": 104,
+      "fail": 0,
+      "total": 104
+    },
+    "red311": {
+      "pass": 310,
+      "fail": 1,
+      "total": 311
+    },
+    "green311": {
+      "pass": 311,
+      "fail": 0,
+      "total": 311
+    },
+    "scopedNoEmit": {
+      "compilerExitCode": 0,
+      "finalWrapperExitCode": 0,
+      "initialCleanupOnlyWrapperExitCode": 1
+    },
+    "historicalStrict216": {
+      "pass": 195,
+      "total": 216,
+      "remaining": 21,
+      "notRerun": true
+    },
+    "historicalBuilt": {
+      "pass": 134,
+      "total": 142,
+      "notRerun": true
+    }
+  },
+  "originalAndCurrentTestHashes": [
+    {
+      "path": "tests/commands/table-text-stress/corpus.test.ts",
+      "archivePath": "tests/commands/table-text-stress/diagnostic-gap-handoff/originals/corpus.test.ts.txt",
+      "sha256": "765eb2bd9f78ef12dfd877206bff31bbbddf36e04ea066041d61d71894d994e5",
+      "currentSha256": "1d5c823f6e3c9a0cad43f3a58295700e82ce5392d2250a90a67663a20f4a9e93"
+    },
+    {
+      "path": "tests/commands/table-text/differential.test.ts",
+      "archivePath": "tests/commands/table-text-stress/diagnostic-gap-handoff/originals/differential.test.ts.txt",
+      "sha256": "8534dd83c9b2c2e125027718ac336cc9ba4c3189e33a185e46c6482e98a55048",
+      "currentSha256": "f8fb768f93a23a0c4a19d045d2ae51e5a4996d950963c1df19c60d321ce063c7"
+    }
+  ],
+  "source": {
+    "table": {
+      "src/commands/table-text/README.md": "f47536847f3cadb6e87d6fecbc55f4c8496772ec95421d5fc720d2dd4671bce8",
+      "src/commands/table-text/comm.ts": "34df22e9b6e1ca23ec14e83003aa9758c7d9fc1b1473828429e2ae713e4219cd",
+      "src/commands/table-text/index.ts": "9003d5c6d85d283eca5a5e1e50750eae10639ce1830bf68427536c50d40848a9",
+      "src/commands/table-text/internal.ts": "544935927754e228711318a299c20d95b3954bc756e14785722d0eac67a436d9",
+      "src/commands/table-text/join.ts": "83704c0da1bcd137fedf1e90e1d922af482bcfac290bc90f6b7ef3e36b6429b0",
+      "src/commands/table-text/paste.ts": "39b236794d5254d3e40471d9cb867d488ab4c57c236c2730bd2640ded84d1ba5"
+    },
+    "helperSha256": "177f79ee640460822cfe0486c87f7cc61ac7c8b84389abe32b48ef27f4b4ef36",
+    "liveSnapshotListedSourceDigest": "3949d53e535a3605a0e4e409bd7162a3474429a4a837b7106493d1b05f162f26",
+    "frozenReviewSourceDigest": "e796b3ca1b3cc3582b40e8fac18877aa93e3d1203dcd08e82ffccc6e61eb81af",
+    "note": "Not a clean-HEAD or global validation; source digest covers paths from the pinned review manifest."
+  },
+  "node": {
+    "version": "v22.22.2",
+    "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+  },
+  "native": {
+    "inputCorpusSha256": "e35622a71e5df49af1bba6634ff19b6250266dea7a5955691e5e3b6a8dd0a02c",
+    "casesFileSha256": "17118aa95f15c8cd1d47d6aebf624b7013df965e87c39fb81bfebfa63b95070d",
+    "evidenceFileSha256": "42e8b27580243212a341edd8b8a106f4d52f81164f5ae56567dd3c738d6a8caa",
+    "identities": {
+      "paste": {
+        "binary": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/paste",
+        "sha256": "2386f4764d553fcd831e5bbe7a3a6b43110dd2d2cabd610115a3cc427acf323c",
+        "version": "paste (GNU coreutils) 9.7\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by David M. Ihnat and David MacKenzie.\n",
+        "sourceSha256": "79dc9c4e93b710cd3ef5fda20b5a448fa07e8bc5b3664164d97164a801b47e2e"
+      },
+      "comm": {
+        "binary": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/comm",
+        "sha256": "86a541de8aa5d90c3404d5b88bc3646be9b2481736be5bafe5ee234522416fd3",
+        "version": "comm (GNU coreutils) 9.7\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Richard M. Stallman and David MacKenzie.\n",
+        "sourceSha256": "3517b5f9e88bbb67ce93e3075811d0856647104ca83c40001f7fa2dcf07c7336"
+      },
+      "join": {
+        "binary": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/join",
+        "sha256": "70364217db6a709fb414718e3941f4dd40b4810f51f5b58047e58e1cb4f6e123",
+        "version": "join (GNU coreutils) 9.7\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Mike Haertel.\n",
+        "sourceSha256": "47a21232aaae4f45343a3021b30927ecae00c7ed5af705db2323990ba4d18558"
+      }
+    },
+    "authorArgv0Directory": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src",
+    "archiveSha256": "e8bb26ad0293f9b5a1fc43fb42ba970e312c66ce92c1b0b16713d7500db251bf",
+    "manualSha256": "39b126752866fff675e462bd44d76f3e034abafe462a069cebd53ef39fc53eca",
+    "authorBinaryIdentities": {
+      "paste": {
+        "version": "paste (GNU coreutils) 9.7",
+        "sha256": "1916958b8ae7c602acf473b4d3c7928945394ec0598a7dc4c04ed015733c0cbc"
+      },
+      "comm": {
+        "version": "comm (GNU coreutils) 9.7",
+        "sha256": "de6214ad2723e5c660d4fe2d7bcc01b1abb7604403c2ecc06ba5218544215718"
+      },
+      "join": {
+        "version": "join (GNU coreutils) 9.7",
+        "sha256": "dc44314f9b47e818b2c0467c38813684e1a18f9a35229fd9ad55012684bd4c3e"
+      }
+    },
+    "sourcePins": {
+      "src/comm": "86a541de8aa5d90c3404d5b88bc3646be9b2481736be5bafe5ee234522416fd3",
+      "src/paste": "2386f4764d553fcd831e5bbe7a3a6b43110dd2d2cabd610115a3cc427acf323c",
+      "src/join": "70364217db6a709fb414718e3941f4dd40b4810f51f5b58047e58e1cb4f6e123",
+      "src/comm.c": "3517b5f9e88bbb67ce93e3075811d0856647104ca83c40001f7fa2dcf07c7336",
+      "doc/coreutils.texi": "39b126752866fff675e462bd44d76f3e034abafe462a069cebd53ef39fc53eca"
+    }
+  },
+  "diagnosticInventory": [
+    {
+      "index": 38,
+      "name": "paste: missing parallel file",
+      "inputSha256": "00179ef18a3c88be14b5a6d03321138faf82158af05e18cbce175b63c6ec3b2e",
+      "classification": "other-text-or-context-difference"
+    },
+    {
+      "index": 39,
+      "name": "paste: missing serial file continues",
+      "inputSha256": "318aed1b28ab2cdcc9aacd3e525303899c9a19dadf8eb85155336348302d0f85",
+      "classification": "other-text-or-context-difference"
+    },
+    {
+      "index": 40,
+      "name": "paste: invalid trailing escape",
+      "inputSha256": "7dc28200b87010b8fb948302617185de0c50b9f4a17f9ac4bf525773cb58ba46",
+      "classification": "other-text-or-context-difference"
+    },
+    {
+      "index": 41,
+      "name": "paste: invalid flag",
+      "inputSha256": "b3634cc704b3ede23396b766c771d83a70c13e196d081933c70e0cffc90a4819",
+      "classification": "other-text-or-context-difference"
+    },
+    {
+      "index": 73,
+      "name": "comm: unsorted empty side ",
+      "inputSha256": "3f51bd5f218cfd64c0bc4243ed11c080c91f5a7a05ef81d8a539924fd064bd0c",
+      "classification": "other-text-or-context-difference"
+    },
+    {
+      "index": 74,
+      "name": "comm: unsorted paired --check-order",
+      "inputSha256": "8b4d1704031e919a32fa9278fd8cfc83a1c5b659962175a16ae93bf45cfb0158",
+      "classification": "errno-prefix-only"
+    },
+    {
+      "index": 75,
+      "name": "comm: unsorted unpaired --check-order",
+      "inputSha256": "727676e7b2a59ff2b753a705f1509b38b76c6b462a5142686dbd55309b74be94",
+      "classification": "errno-prefix-only"
+    },
+    {
+      "index": 76,
+      "name": "comm: unsorted empty side --check-order",
+      "inputSha256": "d9950192add2f66eec57d136b35f7dffea39a869bad04fee91cc89c0e1d6f835",
+      "classification": "errno-prefix-only"
+    },
+    {
+      "index": 81,
+      "name": "comm: missing file",
+      "inputSha256": "09501f78c77269f56aebadb34cb5caa38bcb3a67a7bb21da29dbfac598f3ba6e",
+      "classification": "other-text-or-context-difference"
+    },
+    {
+      "index": 82,
+      "name": "comm: too few files",
+      "inputSha256": "6efc4fbcb09e764e22dd91c63a17bc5cd152935e2ae3bb49eefd832c886ebf1a",
+      "classification": "other-text-or-context-difference"
+    },
+    {
+      "index": 110,
+      "name": "join: both stdin invalid",
+      "inputSha256": "8375cb67bfb6df73e899d3d4e828500f83a09a4f5d998d35f1ff1279675a6ed8",
+      "classification": "errno-prefix-only"
+    },
+    {
+      "index": 119,
+      "name": "join: unsorted paired --check-order",
+      "inputSha256": "736607b082f56b6a7771aa1775bbb225563fc3389d0ad531f925c10fd8d0977e",
+      "classification": "other-text-or-context-difference"
+    },
+    {
+      "index": 120,
+      "name": "join: unsorted unpaired --check-order",
+      "inputSha256": "577a63408a5d06a20a7ed009f26748b7371c5b8a2e477261e37da4aae827bffd",
+      "classification": "other-text-or-context-difference"
+    },
+    {
+      "index": 121,
+      "name": "join: unsorted empty side --check-order",
+      "inputSha256": "f99300bde2110f7faa5f095ab4fe9ae215e8011974676a58d80085a6be1a8b6b",
+      "classification": "other-text-or-context-difference"
+    },
+    {
+      "index": 125,
+      "name": "join: invalidField",
+      "inputSha256": "09fc5caae97b1d7e102976f1bc83845fb49e2c610b1539b43bc9cac5a5f37255",
+      "classification": "other-text-or-context-difference"
+    },
+    {
+      "index": 126,
+      "name": "join: invalidOutput",
+      "inputSha256": "0dd26ca350403fa99c985317997a5e2a7aabb7da1d2e3f92da22dbd3ffee53b6",
+      "classification": "other-text-or-context-difference"
+    },
+    {
+      "index": 127,
+      "name": "join: invalidDelimiter",
+      "inputSha256": "9a97e2655023a8b1acd68e2e258f21e43992e8ecb52db6b0063c67ecf76405c2",
+      "classification": "other-text-or-context-difference"
+    },
+    {
+      "index": 128,
+      "name": "join: missingArgument",
+      "inputSha256": "55d7cd28e54348ab36f7010fd08ba8c4b77c180695a8b97263109de398f14aff",
+      "classification": "other-text-or-context-difference"
+    },
+    {
+      "index": 129,
+      "name": "join: unknown",
+      "inputSha256": "f81837b7d20b17ffba7d11691ede369d8ac5a4fb25fba021bf4e13490e5d91a8",
+      "classification": "other-text-or-context-difference"
+    },
+    {
+      "index": 207,
+      "name": "join: incompatible delimiters",
+      "inputSha256": "d800a0af58ce418644aa54270e5cbc36db5e1b7bdab67e5c989761084f80fc3d",
+      "classification": "other-text-or-context-difference"
+    },
+    {
+      "index": 213,
+      "name": "comm: incompatible delimiters",
+      "inputSha256": "ed676288c0999d1fd2621d2f446df73e04b116314d3e6cddb8683878dfd8498c",
+      "classification": "other-text-or-context-difference"
+    }
+  ],
+  "redToGreenDrift": [
+    {
+      "path": "tests/commands/table-text-stress/corpus.test.ts",
+      "before": "765eb2bd9f78ef12dfd877206bff31bbbddf36e04ea066041d61d71894d994e5",
+      "after": "1d5c823f6e3c9a0cad43f3a58295700e82ce5392d2250a90a67663a20f4a9e93"
+    },
+    {
+      "path": "tests/commands/table-text/differential.test.ts",
+      "before": "8534dd83c9b2c2e125027718ac336cc9ba4c3189e33a185e46c6482e98a55048",
+      "after": "f8fb768f93a23a0c4a19d045d2ae51e5a4996d950963c1df19c60d321ce063c7"
+    }
+  ],
+  "greenToTypesDrift": [
+    {
+      "path": "tests/commands/table-text-stress/diagnostic-gap-handoff/run.mjs",
+      "before": "b4f55b57fd67d95cc47a33d6db9332f04c6c6bb61728d3545df2756c6614e4dd",
+      "after": "90e4756b2714eb88e5753c56c4c1b91839b5078fdd0d73a807d0aba5c265617e"
+    }
+  ],
+  "postTypesLiveDrift": [
+    {
+      "path": "src/shell/runtime.ts",
+      "before": "fc8b4fc043068c2b8ad5efbb0a7100720424e307f54c8574bdf901a99aecd29f",
+      "after": "c7c9d02ddde5576b7810bfecbbd21b70c6eb2c0ea4fe1ee8bee92c21946d8449"
+    }
+  ],
+  "historicalReferenceDrift": [],
+  "evidenceDriverDelta": {
+    "path": "tests/commands/table-text-stress/diagnostic-gap-handoff/run.mjs",
+    "initialSha256": "b4f55b57fd67d95cc47a33d6db9332f04c6c6bb61728d3545df2756c6614e4dd",
+    "currentSha256": "90e4756b2714eb88e5753c56c4c1b91839b5078fdd0d73a807d0aba5c265617e",
+    "reason": "Initial types compiler exited0 but the harness expected empty TMPDIR. TypeScript generated node-compile-cache. Narrow evidence-cleanup correction permits only that name for types; both test phases still require empty TMPDIR. Initial script preserved in evidence commit and incident separately recorded."
+  },
+  "cleanup": {
+    "redOwnedNativeFixtures": 71,
+    "greenOwnedNativeFixtures": 71,
+    "distinctExistingFixtureCount": 71,
+    "unattributedArtifactsTouched": false,
+    "remainingOwnedRuntimeDirectory": false,
+    "allValidationChildrenExited": true,
+    "noDelegation": true,
+    "noStoppedOrDormantWorkers": true
+  },
+  "beforeFinalEvidenceCommitStatus": " M src/shell/runtime.ts\n M tests/commands/table-text-stress/diagnostic-gap-handoff/run.mjs\n M tests/shell-stress/invocation-modes/cases.ts\n M tests/shell-stress/invocation-modes/holdout.test.ts\n?? benchmarks/reports/baseline-only-20260827/\n?? src/fs/s3/http/\n?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/\n?? tests/commands/search-stress/.native-1m4O1e/\n?? tests/commands/table-text-stress/diagnostic-gap-handoff/green-validation.json\n?? tests/commands/table-text-stress/diagnostic-gap-handoff/logs/green-original104.stdout\n?? tests/commands/table-text-stress/diagnostic-gap-handoff/logs/green-original311-current-helper.stdout\n?? tests/commands/table-text-stress/diagnostic-gap-handoff/types-cleanup-incident.json\n?? tests/commands/table-text-stress/diagnostic-gap-handoff/types-validation.json\n?? tests/fs/s3/http/\n?? tests/shell/output-accounting.test.ts\n",
+  "sharedIndexBeforeFinalCommit": "",
+  "exclusions": [
+    "no product/source/helper/FS/SGID/metadata changes",
+    "no native JSON or benchmark edits",
+    "no global suite, builds, live emission or permission retries",
+    "no runtime or test-support dependencies added",
+    "no new cases, no diagnostic fixes, no universal parity/superiority claim"
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "at": "2026-08-27T03:30:49.842Z",
+  "compilerExitCode": 0,
+  "compilerStdoutBytes": 0,
+  "compilerStderrBytes": 0,
+  "wrapperExitCode": 1,
+  "wrapperError": "AssertionError [ERR_ASSERTION]: expected empty TMPDIR; actual ['node-compile-cache'] at run.mjs:63:8",
+  "evidenceOrigin": "Observed terminal output from first run.mjs types; no standalone raw compiler stream existed because both streams were empty.",
+  "cacheFiles": [
+    {
+      "path": "tmp/node-compile-cache/v22.22.2-arm64-2b4477fa-501/42fceb84",
+      "bytes": 1322004,
+      "sha256": "d6886bc080205b282bca26ac91b8ef57fb3693234ae2eae76cfeb7435c484085"
+    }
+  ],
+  "cause": "TypeScript/Node created its compile cache under this fresh owned TMPDIR; no product/typecheck failure and no permission retry.",
+  "action": "Verified owned sentinel and only node-compile-cache in TMPDIR; remove only this fresh types directory, then accept/hash this known generated cache in evidence cleanup and rerun scoped noEmit."
+}

@@ -1,0 +1,634 @@
+TAP version 13
+# Subtest: paste fragmented reused Buffer has consumer-owned records
+ok 1 - paste fragmented reused Buffer has consumer-owned records
+  ---
+  duration_ms: 1.424
+  type: 'test'
+  ...
+# Subtest: paste blocked sink awaits writes and observes cancellation
+ok 2 - paste blocked sink awaits writes and observes cancellation
+  ---
+  duration_ms: 3.044
+  type: 'test'
+  ...
+# Subtest: paste input failure is not silently successful
+ok 3 - paste input failure is not silently successful
+  ---
+  duration_ms: 0.412375
+  type: 'test'
+  ...
+# Subtest: paste blocked VFS stat receives cancellation
+ok 4 - paste blocked VFS stat receives cancellation
+  ---
+  duration_ms: 0.243167
+  type: 'test'
+  ...
+# Subtest: paste maxInputBytes is an explicit bounded failure
+ok 5 - paste maxInputBytes is an explicit bounded failure
+  ---
+  duration_ms: 0.188209
+  type: 'test'
+  ...
+# Subtest: paste maxChunkBytes is an explicit bounded failure
+ok 6 - paste maxChunkBytes is an explicit bounded failure
+  ---
+  duration_ms: 0.220292
+  type: 'test'
+  ...
+# Subtest: paste maxRecordBytes is an explicit bounded failure
+ok 7 - paste maxRecordBytes is an explicit bounded failure
+  ---
+  duration_ms: 0.183583
+  type: 'test'
+  ...
+# Subtest: paste maxOutputBytes is an explicit bounded failure
+ok 8 - paste maxOutputBytes is an explicit bounded failure
+  ---
+  duration_ms: 0.154917
+  type: 'test'
+  ...
+# Subtest: comm fragmented reused Buffer has consumer-owned records
+ok 9 - comm fragmented reused Buffer has consumer-owned records
+  ---
+  duration_ms: 0.691625
+  type: 'test'
+  ...
+# Subtest: comm blocked sink awaits writes and observes cancellation
+ok 10 - comm blocked sink awaits writes and observes cancellation
+  ---
+  duration_ms: 2.113958
+  type: 'test'
+  ...
+# Subtest: comm input failure is not silently successful
+ok 11 - comm input failure is not silently successful
+  ---
+  duration_ms: 0.328791
+  type: 'test'
+  ...
+# Subtest: comm blocked VFS stat receives cancellation
+ok 12 - comm blocked VFS stat receives cancellation
+  ---
+  duration_ms: 0.11
+  type: 'test'
+  ...
+# Subtest: comm maxInputBytes is an explicit bounded failure
+ok 13 - comm maxInputBytes is an explicit bounded failure
+  ---
+  duration_ms: 0.230792
+  type: 'test'
+  ...
+# Subtest: comm maxChunkBytes is an explicit bounded failure
+ok 14 - comm maxChunkBytes is an explicit bounded failure
+  ---
+  duration_ms: 0.097958
+  type: 'test'
+  ...
+# Subtest: comm maxRecordBytes is an explicit bounded failure
+ok 15 - comm maxRecordBytes is an explicit bounded failure
+  ---
+  duration_ms: 0.088583
+  type: 'test'
+  ...
+# Subtest: comm maxOutputBytes is an explicit bounded failure
+ok 16 - comm maxOutputBytes is an explicit bounded failure
+  ---
+  duration_ms: 0.152583
+  type: 'test'
+  ...
+# Subtest: join fragmented reused Buffer has consumer-owned records
+ok 17 - join fragmented reused Buffer has consumer-owned records
+  ---
+  duration_ms: 0.610417
+  type: 'test'
+  ...
+# Subtest: join blocked sink awaits writes and observes cancellation
+ok 18 - join blocked sink awaits writes and observes cancellation
+  ---
+  duration_ms: 1.014625
+  type: 'test'
+  ...
+# Subtest: join input failure is not silently successful
+ok 19 - join input failure is not silently successful
+  ---
+  duration_ms: 0.322834
+  type: 'test'
+  ...
+# Subtest: join blocked VFS stat receives cancellation
+ok 20 - join blocked VFS stat receives cancellation
+  ---
+  duration_ms: 0.188208
+  type: 'test'
+  ...
+# Subtest: join maxInputBytes is an explicit bounded failure
+ok 21 - join maxInputBytes is an explicit bounded failure
+  ---
+  duration_ms: 0.165209
+  type: 'test'
+  ...
+# Subtest: join maxChunkBytes is an explicit bounded failure
+ok 22 - join maxChunkBytes is an explicit bounded failure
+  ---
+  duration_ms: 0.152625
+  type: 'test'
+  ...
+# Subtest: join maxRecordBytes is an explicit bounded failure
+ok 23 - join maxRecordBytes is an explicit bounded failure
+  ---
+  duration_ms: 0.195958
+  type: 'test'
+  ...
+# Subtest: join maxOutputBytes is an explicit bounded failure
+ok 24 - join maxOutputBytes is an explicit bounded failure
+  ---
+  duration_ms: 0.160291
+  type: 'test'
+  ...
+# Subtest: shared stdin creates one cursor and closes one producer
+ok 25 - shared stdin creates one cursor and closes one producer
+  ---
+  duration_ms: 0.180709
+  type: 'test'
+  ...
+# Subtest: join maxGroupBytes bounds independent work
+ok 26 - join maxGroupBytes bounds independent work
+  ---
+  duration_ms: 0.191958
+  type: 'test'
+  ...
+# Subtest: join maxGroupRecords bounds independent work
+ok 27 - join maxGroupRecords bounds independent work
+  ---
+  duration_ms: 0.112958
+  type: 'test'
+  ...
+# Subtest: join maxFields bounds independent work
+ok 28 - join maxFields bounds independent work
+  ---
+  duration_ms: 0.076542
+  type: 'test'
+  ...
+# Subtest: join maxFiles bounds independent work
+ok 29 - join maxFiles bounds independent work
+  ---
+  duration_ms: 0.065125
+  type: 'test'
+  ...
+# Subtest: join maxSteps bounds independent work
+ok 30 - join maxSteps bounds independent work
+  ---
+  duration_ms: 0.095458
+  type: 'test'
+  ...
+# Subtest: join maxArgumentBytes bounds independent work
+ok 31 - join maxArgumentBytes bounds independent work
+  ---
+  duration_ms: 0.054375
+  type: 'test'
+  ...
+# Subtest: C/POSIX locale accepted while non-C ordering is explicit
+ok 32 - C/POSIX locale accepted while non-C ordering is explicit
+  ---
+  duration_ms: 0.385667
+  type: 'test'
+  ...
+# Subtest: independent frozen GNU: comm shared original
+ok 33 - independent frozen GNU: comm shared original
+  ---
+  duration_ms: 8.430416
+  type: 'test'
+  ...
+# Subtest: independent frozen GNU: paste shared alternating empty EOF
+ok 34 - independent frozen GNU: paste shared alternating empty EOF
+  ---
+  duration_ms: 1.560333
+  type: 'test'
+  ...
+# Subtest: independent frozen GNU: paste serial shared cursor
+ok 35 - independent frozen GNU: paste serial shared cursor
+  ---
+  duration_ms: 1.296
+  type: 'test'
+  ...
+# Subtest: independent frozen GNU: paste NUL shared invalid bytes
+ok 36 - independent frozen GNU: paste NUL shared invalid bytes
+  ---
+  duration_ms: 1.685166
+  type: 'test'
+  ...
+# Subtest: independent frozen GNU: paste CR invalid bytes
+ok 37 - independent frozen GNU: paste CR invalid bytes
+  ---
+  duration_ms: 1.674875
+  type: 'test'
+  ...
+# Subtest: independent frozen GNU: paste empty serial files
+ok 38 - independent frozen GNU: paste empty serial files
+  ---
+  duration_ms: 0.630833
+  type: 'test'
+  ...
+# Subtest: independent frozen GNU: comm C byte collation
+ok 39 - independent frozen GNU: comm C byte collation
+  ---
+  duration_ms: 0.819125
+  type: 'test'
+  ...
+# Subtest: independent frozen GNU: comm duplicate multiplicity totals
+ok 40 - independent frozen GNU: comm duplicate multiplicity totals
+  ---
+  duration_ms: 1.011583
+  type: 'test'
+  ...
+# Subtest: independent frozen GNU: comm NUL empty delimiter
+ok 41 - independent frozen GNU: comm NUL empty delimiter
+  ---
+  duration_ms: 1.842916
+  type: 'test'
+  ...
+# Subtest: independent frozen GNU: comm order 
+ok 42 - independent frozen GNU: comm order 
+  ---
+  duration_ms: 0.660959
+  type: 'test'
+  ...
+# Subtest: independent frozen GNU: join first unpaired inversion 
+ok 43 - independent frozen GNU: join first unpaired inversion 
+  ---
+  duration_ms: 0.760708
+  type: 'test'
+  ...
+# Subtest: independent frozen GNU: join empty opposite inversion 
+ok 44 - independent frozen GNU: join empty opposite inversion 
+  ---
+  duration_ms: 0.419666
+  type: 'test'
+  ...
+# Subtest: independent frozen GNU: comm order --check-order
+ok 45 - independent frozen GNU: comm order --check-order
+  ---
+  duration_ms: 0.37125
+  type: 'test'
+  ...
+# Subtest: independent frozen GNU: join first unpaired inversion --check-order
+ok 46 - independent frozen GNU: join first unpaired inversion --check-order
+  ---
+  duration_ms: 0.449417
+  type: 'test'
+  ...
+# Subtest: independent frozen GNU: join empty opposite inversion --check-order
+ok 47 - independent frozen GNU: join empty opposite inversion --check-order
+  ---
+  duration_ms: 0.379708
+  type: 'test'
+  ...
+# Subtest: independent frozen GNU: comm order --nocheck-order
+ok 48 - independent frozen GNU: comm order --nocheck-order
+  ---
+  duration_ms: 0.398084
+  type: 'test'
+  ...
+# Subtest: independent frozen GNU: join first unpaired inversion --nocheck-order
+ok 49 - independent frozen GNU: join first unpaired inversion --nocheck-order
+  ---
+  duration_ms: 0.880541
+  type: 'test'
+  ...
+# Subtest: independent frozen GNU: join empty opposite inversion --nocheck-order
+ok 50 - independent frozen GNU: join empty opposite inversion --nocheck-order
+  ---
+  duration_ms: 0.522333
+  type: 'test'
+  ...
+# Subtest: independent frozen GNU: join header auto empty fields
+ok 51 - independent frozen GNU: join header auto empty fields
+  ---
+  duration_ms: 0.602875
+  type: 'test'
+  ...
+# Subtest: independent frozen GNU: join NUL newline fields invalid bytes
+ok 52 - independent frozen GNU: join NUL newline fields invalid bytes
+  ---
+  duration_ms: 0.451166
+  type: 'test'
+  ...
+# Subtest: independent frozen GNU: join whole record empty key
+ok 53 - independent frozen GNU: join whole record empty key
+  ---
+  duration_ms: 0.34725
+  type: 'test'
+  ...
+# Subtest: independent frozen GNU: join large Cartesian
+ok 54 - independent frozen GNU: join large Cartesian
+  ---
+  duration_ms: 58.192583
+  type: 'test'
+  ...
+# Subtest: independent frozen GNU: join repeated format and delimiter
+ok 55 - independent frozen GNU: join repeated format and delimiter
+  ---
+  duration_ms: 0.714666
+  type: 'test'
+  ...
+# Subtest: independent frozen GNU: paste seed 0
+ok 56 - independent frozen GNU: paste seed 0
+  ---
+  duration_ms: 0.466084
+  type: 'test'
+  ...
+# Subtest: independent frozen GNU: comm seed 0
+ok 57 - independent frozen GNU: comm seed 0
+  ---
+  duration_ms: 0.323792
+  type: 'test'
+  ...
+# Subtest: independent frozen GNU: join seed 0
+ok 58 - independent frozen GNU: join seed 0
+  ---
+  duration_ms: 0.45
+  type: 'test'
+  ...
+# Subtest: independent frozen GNU: paste seed 1
+ok 59 - independent frozen GNU: paste seed 1
+  ---
+  duration_ms: 0.572542
+  type: 'test'
+  ...
+# Subtest: independent frozen GNU: comm seed 1
+ok 60 - independent frozen GNU: comm seed 1
+  ---
+  duration_ms: 1.41075
+  type: 'test'
+  ...
+# Subtest: independent frozen GNU: join seed 1
+ok 61 - independent frozen GNU: join seed 1
+  ---
+  duration_ms: 0.615917
+  type: 'test'
+  ...
+# Subtest: independent frozen GNU: paste seed 2
+ok 62 - independent frozen GNU: paste seed 2
+  ---
+  duration_ms: 0.411291
+  type: 'test'
+  ...
+# Subtest: independent frozen GNU: comm seed 2
+ok 63 - independent frozen GNU: comm seed 2
+  ---
+  duration_ms: 0.289667
+  type: 'test'
+  ...
+# Subtest: independent frozen GNU: join seed 2
+ok 64 - independent frozen GNU: join seed 2
+  ---
+  duration_ms: 0.436334
+  type: 'test'
+  ...
+# Subtest: independent frozen GNU: paste seed 3
+ok 65 - independent frozen GNU: paste seed 3
+  ---
+  duration_ms: 0.323167
+  type: 'test'
+  ...
+# Subtest: independent frozen GNU: comm seed 3
+ok 66 - independent frozen GNU: comm seed 3
+  ---
+  duration_ms: 0.263583
+  type: 'test'
+  ...
+# Subtest: independent frozen GNU: join seed 3
+ok 67 - independent frozen GNU: join seed 3
+  ---
+  duration_ms: 0.321584
+  type: 'test'
+  ...
+# Subtest: independent frozen GNU: paste seed 4
+ok 68 - independent frozen GNU: paste seed 4
+  ---
+  duration_ms: 0.599625
+  type: 'test'
+  ...
+# Subtest: independent frozen GNU: comm seed 4
+ok 69 - independent frozen GNU: comm seed 4
+  ---
+  duration_ms: 0.472792
+  type: 'test'
+  ...
+# Subtest: independent frozen GNU: join seed 4
+ok 70 - independent frozen GNU: join seed 4
+  ---
+  duration_ms: 0.640209
+  type: 'test'
+  ...
+# Subtest: independent frozen GNU: paste seed 5
+ok 71 - independent frozen GNU: paste seed 5
+  ---
+  duration_ms: 0.474208
+  type: 'test'
+  ...
+# Subtest: independent frozen GNU: comm seed 5
+ok 72 - independent frozen GNU: comm seed 5
+  ---
+  duration_ms: 0.365334
+  type: 'test'
+  ...
+# Subtest: independent frozen GNU: join seed 5
+ok 73 - independent frozen GNU: join seed 5
+  ---
+  duration_ms: 3.227208
+  type: 'test'
+  ...
+# Subtest: independent frozen GNU: paste seed 6
+ok 74 - independent frozen GNU: paste seed 6
+  ---
+  duration_ms: 0.374
+  type: 'test'
+  ...
+# Subtest: independent frozen GNU: comm seed 6
+ok 75 - independent frozen GNU: comm seed 6
+  ---
+  duration_ms: 0.322
+  type: 'test'
+  ...
+# Subtest: independent frozen GNU: join seed 6
+ok 76 - independent frozen GNU: join seed 6
+  ---
+  duration_ms: 0.4055
+  type: 'test'
+  ...
+# Subtest: independent frozen GNU: paste seed 7
+ok 77 - independent frozen GNU: paste seed 7
+  ---
+  duration_ms: 0.334458
+  type: 'test'
+  ...
+# Subtest: independent frozen GNU: comm seed 7
+ok 78 - independent frozen GNU: comm seed 7
+  ---
+  duration_ms: 0.314583
+  type: 'test'
+  ...
+# Subtest: independent frozen GNU: join seed 7
+ok 79 - independent frozen GNU: join seed 7
+  ---
+  duration_ms: 0.469083
+  type: 'test'
+  ...
+# Subtest: independent frozen GNU: paste seed 8
+ok 80 - independent frozen GNU: paste seed 8
+  ---
+  duration_ms: 0.404291
+  type: 'test'
+  ...
+# Subtest: independent frozen GNU: comm seed 8
+ok 81 - independent frozen GNU: comm seed 8
+  ---
+  duration_ms: 0.311708
+  type: 'test'
+  ...
+# Subtest: independent frozen GNU: join seed 8
+ok 82 - independent frozen GNU: join seed 8
+  ---
+  duration_ms: 0.572791
+  type: 'test'
+  ...
+# Subtest: independent frozen GNU: paste seed 9
+ok 83 - independent frozen GNU: paste seed 9
+  ---
+  duration_ms: 0.330583
+  type: 'test'
+  ...
+# Subtest: independent frozen GNU: comm seed 9
+ok 84 - independent frozen GNU: comm seed 9
+  ---
+  duration_ms: 1.412292
+  type: 'test'
+  ...
+# Subtest: independent frozen GNU: join seed 9
+ok 85 - independent frozen GNU: join seed 9
+  ---
+  duration_ms: 0.712583
+  type: 'test'
+  ...
+# Subtest: independent frozen GNU: paste seed 10
+ok 86 - independent frozen GNU: paste seed 10
+  ---
+  duration_ms: 0.404125
+  type: 'test'
+  ...
+# Subtest: independent frozen GNU: comm seed 10
+ok 87 - independent frozen GNU: comm seed 10
+  ---
+  duration_ms: 0.307208
+  type: 'test'
+  ...
+# Subtest: independent frozen GNU: join seed 10
+ok 88 - independent frozen GNU: join seed 10
+  ---
+  duration_ms: 0.44225
+  type: 'test'
+  ...
+# Subtest: independent frozen GNU: paste seed 11
+ok 89 - independent frozen GNU: paste seed 11
+  ---
+  duration_ms: 0.446334
+  type: 'test'
+  ...
+# Subtest: independent frozen GNU: comm seed 11
+ok 90 - independent frozen GNU: comm seed 11
+  ---
+  duration_ms: 0.275833
+  type: 'test'
+  ...
+# Subtest: independent frozen GNU: join seed 11
+ok 91 - independent frozen GNU: join seed 11
+  ---
+  duration_ms: 0.367333
+  type: 'test'
+  ...
+# Subtest: independent frozen GNU: paste seed 12
+ok 92 - independent frozen GNU: paste seed 12
+  ---
+  duration_ms: 0.341875
+  type: 'test'
+  ...
+# Subtest: independent frozen GNU: comm seed 12
+ok 93 - independent frozen GNU: comm seed 12
+  ---
+  duration_ms: 0.346791
+  type: 'test'
+  ...
+# Subtest: independent frozen GNU: join seed 12
+ok 94 - independent frozen GNU: join seed 12
+  ---
+  duration_ms: 0.430125
+  type: 'test'
+  ...
+# Subtest: independent frozen GNU: paste seed 13
+ok 95 - independent frozen GNU: paste seed 13
+  ---
+  duration_ms: 0.311917
+  type: 'test'
+  ...
+# Subtest: independent frozen GNU: comm seed 13
+ok 96 - independent frozen GNU: comm seed 13
+  ---
+  duration_ms: 2.492625
+  type: 'test'
+  ...
+# Subtest: independent frozen GNU: join seed 13
+ok 97 - independent frozen GNU: join seed 13
+  ---
+  duration_ms: 0.386917
+  type: 'test'
+  ...
+# Subtest: independent frozen GNU: paste seed 14
+ok 98 - independent frozen GNU: paste seed 14
+  ---
+  duration_ms: 0.380583
+  type: 'test'
+  ...
+# Subtest: independent frozen GNU: comm seed 14
+ok 99 - independent frozen GNU: comm seed 14
+  ---
+  duration_ms: 0.300166
+  type: 'test'
+  ...
+# Subtest: independent frozen GNU: join seed 14
+ok 100 - independent frozen GNU: join seed 14
+  ---
+  duration_ms: 0.492333
+  type: 'test'
+  ...
+# Subtest: independent frozen GNU: paste seed 15
+ok 101 - independent frozen GNU: paste seed 15
+  ---
+  duration_ms: 0.33025
+  type: 'test'
+  ...
+# Subtest: independent frozen GNU: comm seed 15
+ok 102 - independent frozen GNU: comm seed 15
+  ---
+  duration_ms: 0.448709
+  type: 'test'
+  ...
+# Subtest: independent frozen GNU: join seed 15
+ok 103 - independent frozen GNU: join seed 15
+  ---
+  duration_ms: 0.41975
+  type: 'test'
+  ...
+# Subtest: independent live GNU rechecks all 71 frozen rows exactly
+ok 104 - independent live GNU rechecks all 71 frozen rows exactly
+  ---
+  duration_ms: 476.4865
+  type: 'test'
+  ...
+1..104
+# tests 104
+# suites 0
+# pass 104
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 735.296542

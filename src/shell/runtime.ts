@@ -1075,6 +1075,7 @@ export class Runtime {
     if (state.depth >= this.budget.limits.maxSubstitutionDepth) this.budget.fail("maxSubstitutionDepth");
     const path = resolvePath(state.cwd, target);
     let source: string;
+    let interpreterProfile: "bash" | "sh" | undefined;
     try {
       const options = { signal: this.signal };
       const stat = await interruptible(this.fs.stat(path, options), this.signal);
@@ -1088,7 +1089,11 @@ export class Runtime {
       source = this.sourceText(bytes, target);
       if (source.startsWith("#!")) {
         const interpreter = source.split("\n", 1)[0]!.slice(2).replace(/^[ \t]+|[ \t]+$/gu, "");
-        if (interpreter !== "/bin/bash" && interpreter !== "/usr/bin/bash") throw new CommandFailure(`${target}: unsupported interpreter: ${interpreter}`, 126);
+        const environmentInterpreter = /^\/usr\/bin\/env[ \t]+(bash|sh)$/u.exec(interpreter)?.[1];
+        if (environmentInterpreter) {
+          if (this.commands.get(environmentInterpreter)) throw new CommandFailure(`${target}: unsupported interpreter override: ${environmentInterpreter}`, 126);
+          interpreterProfile = environmentInterpreter === "sh" ? "sh" : "bash";
+        } else if (interpreter !== "/bin/bash" && interpreter !== "/usr/bin/bash") throw new CommandFailure(`${target}: unsupported interpreter: ${interpreter}`, 126);
       }
     } catch (error) {
       this.signal.throwIfAborted();
@@ -1113,6 +1118,7 @@ export class Runtime {
     }
     const child = this.processState(context, state, target, args);
     if (direct && !source.startsWith("#!")) child.profile = state.profile;
+    if (direct && interpreterProfile) child.profile = interpreterProfile;
     const childIO = isolateIO({ ...io, ...context, diagnosticLine: 1, diagnosticOffset: 0, scriptName: target });
     let status = 0;
     for (const unit of units) {

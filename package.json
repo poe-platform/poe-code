@@ -42,6 +42,10 @@
       "types": "./dist/fs/s3/index.d.ts",
       "import": "./dist/fs/s3/index.js"
     },
+    "./fs/s3/http": {
+      "types": "./dist/fs/s3/http/index.d.ts",
+      "import": "./dist/fs/s3/http/index.js"
+    },
     "./fs/webdav": {
       "types": "./dist/fs/webdav/index.d.ts",
       "import": "./dist/fs/webdav/index.js"

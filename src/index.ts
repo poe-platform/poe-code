@@ -15,6 +15,7 @@ export * from "./commands/table-text/index.js";
 export * from "./fs/memory/index.js";
 export * from "./fs/real/index.js";
 export * from "./fs/s3/index.js";
+export * from "./fs/s3/http/index.js";
 export * from "./fs/webdav/index.js";
 export * from "./fs/readonly/index.js";
 export * from "./fs/mount/index.js";

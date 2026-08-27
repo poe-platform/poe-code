@@ -89,11 +89,11 @@ Defaults (all positive safe integers; maxDurationMs <= 2147483647):
 | --- | ---: | --- |
 | maxSniffBytes | 65536 | retained sample per operand |
 | maxReadFileBytes | 1048576 | maximum authorized whole-read fallback |
-| maxInputBytes | 8388608 | aggregate delivered input bytes |
+| maxInputBytes | 8388608 | aggregate ByteIO and admitted metadata UTF-8 bytes |
 | maxOutputBytes | 1048576 | combined stdout and stderr bytes |
 | maxChunkBytes | 1048576 | maximum delivered input chunk/output chunk |
 | maxEntries | 1024 | operand count, preflighted |
-| maxSteps | 1048576 | stream iterations plus sampled bytes and operands |
+| maxSteps | 1048576 | iterations, sampled bytes, operands and text work units |
 | maxArgumentBytes | 65536 | UTF-8 arguments plus one separator each |
 | maxDurationMs | 10000 | active invocation deadline |
 
@@ -122,6 +122,44 @@ host work can outlive cancellation and completed effects cannot be undone, but
 late promise rejections are observed. Diagnostic output obeys the combined byte
 budget and can be truncated or absent if the budget is exhausted. Parent shell
 limits still apply separately; family limits are not one shared shell quota.
+
+### TEXT-BOUND-001: metadata and diagnostic admission
+
+The text-safety correction extends these existing family limits; it does not add
+flags or filesystem contracts. Raw readlink targets and backend error messages
+first undergo constant-time UTF-16 length checks against remaining input/work
+budgets, and against remaining output for text that will be rendered. Only then
+are codepoints examined. Actual UTF-8 metadata bytes are charged cumulatively
+with ByteIO bytes; labels/arguments use the separate argument quota and shared
+work quota. Argument count and string length are checked before UTF-8 scans.
+
+Escaping admits each generated piece against remaining output before retaining
+it, works on one Unicode codepoint per regex call, and yields/checks cancellation
+after at most4096 UTF-16 units. Metadata and label work is charged before the
+loop; output text length/work and exact UTF-8 bytes are admitted before encoding.
+Each field is bounded by remaining output; the final line (at most two such
+fields plus fixed formatting) is checked again before any full-line encoding.
+Admission is cumulative across operands/errors, not a fresh per-entry allowance.
+MIME-only symlink handling still calls readlink and preserves its errors, and
+admits/charges its target, but does not escape/build an unused human description.
+
+Normal usage and filesystem diagnostics preserve their existing complete text
+when admitted. A quota error uses a known short diagnostic instead of trying to
+escape the rejected backend text again. To report exhausted work safely, the
+family has a fixed, cumulative **64 UTF-16-unit emergency diagnostic reserve**
+separate from maxSteps. It still obeys the shared maxOutputBytes, maxChunkBytes,
+signal and deadline. Its input is sliced before encoding, UTF-8 accounting
+precedes encoding, and truncation preserves whole Unicode codepoints. This
+bounded reserve is not a reset of the ordinary work budget. The command uses
+it only for terminal limit messages; long admitted usage errors are not silently
+reduced to64 units. No ordinary scan is exempted from work/input admission.
+
+This closes command-owned preprocessing on unrestricted metadata/error strings,
+not a catastrophic-regex issue or a host-JavaScript sandbox guarantee. Backend
+string construction/allocation, getters, whole readFile allocation, and arbitrary
+host execution still precede or lie outside command admission. The configured
+limits authorize bounded work, not a hard heap ceiling or preemption within a
+single JavaScript primitive. No decompression or native libmagic is involved.
 
 ## Evidence
 

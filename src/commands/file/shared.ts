@@ -1,4 +1,4 @@
-import { FsError, writeBytes, type ByteSink, type CommandContext } from "../../contracts/index.js";
+import { writeBytes, type ByteSink, type CommandContext } from "../../contracts/index.js";
 
 export interface FileLimits {
   readonly maxSniffBytes: number;
@@ -38,6 +38,7 @@ export class SharedBudget {
   private inputBytes = 0;
   private outputBytes = 0;
   private steps = 0;
+  private failureUnits = 64;
   private untilYield = 128;
   private readonly controller = new AbortController();
   private readonly timer: ReturnType<typeof setTimeout>;
@@ -62,10 +63,14 @@ export class SharedBudget {
     this.signal.throwIfAborted();
   }
 
-  async step(count = 1): Promise<void> {
+  work(count: number): void {
     this.checkTime();
+    this.check(count, this.limits.maxSteps - this.steps, "step");
     this.steps += count;
-    this.check(this.steps, this.limits.maxSteps, "step");
+  }
+
+  async step(count = 1): Promise<void> {
+    this.work(count);
     if (--this.untilYield <= 0) {
       this.untilYield = 128;
       await new Promise<void>(resolve => setImmediate(resolve));
@@ -79,10 +84,46 @@ export class SharedBudget {
     this.inputBytes += size;
   }
 
+  async escapeName(value: string, metadata = false, render = true): Promise<string> {
+    this.checkTime();
+    if (metadata) this.check(value.length, this.remainingInputBytes, "input");
+    if (render) this.check(value.length, this.limits.maxOutputBytes - this.outputBytes, "output");
+    this.work(value.length);
+    const pieces: string[] = [];
+    let outputBytes = 0;
+    let untilYield = 4096;
+    for (const character of value) {
+      if (metadata) {
+        const size = Buffer.byteLength(character);
+        this.check(size, this.remainingInputBytes, "input");
+        this.inputBytes += size;
+      }
+      if (render) {
+        const piece = character === "\\" ? "\\\\" : /[\p{Cc}\p{Cf}\p{Zl}\p{Zp}]/u.test(character)
+          ? `\\u{${character.codePointAt(0)!.toString(16)}}` : character;
+        outputBytes += Buffer.byteLength(piece);
+        this.check(outputBytes, this.limits.maxOutputBytes - this.outputBytes, "output");
+        pieces.push(piece);
+      }
+      untilYield -= character.length;
+      if (untilYield <= 0) {
+        untilYield = 4096;
+        await new Promise<void>(resolve => setImmediate(resolve));
+        this.checkTime();
+      }
+    }
+    this.checkTime();
+    return pieces.join("");
+  }
+
   async output(sink: ByteSink, text: string, signal = this.signal): Promise<void> {
+    this.checkTime();
+    this.check(text.length, this.limits.maxOutputBytes - this.outputBytes, "output");
+    this.work(text.length);
+    const size = Buffer.byteLength(text);
+    this.check(size, this.limits.maxOutputBytes - this.outputBytes, "output");
+    this.outputBytes += size;
     const bytes = new TextEncoder().encode(text);
-    this.check(bytes.length, this.limits.maxOutputBytes - this.outputBytes, "output");
-    this.outputBytes += bytes.length;
     const width = Math.min(16384, this.limits.maxChunkBytes);
     for (let offset = 0; offset < bytes.length; offset += width) {
       await writeBytes(sink, bytes.slice(offset, offset + width), signal);
@@ -90,8 +131,22 @@ export class SharedBudget {
   }
 
   async failure(text: string): Promise<void> {
-    const bytes = new TextEncoder().encode(text).slice(0, this.limits.maxOutputBytes - this.outputBytes);
-    this.outputBytes += bytes.length;
+    this.checkTime();
+    const units = Math.min(this.failureUnits, this.limits.maxOutputBytes - this.outputBytes, text.length);
+    this.failureUnits -= units;
+    let end = units;
+    if (end > 0 && end < text.length && text.charCodeAt(end - 1) >= 0xd800 && text.charCodeAt(end - 1) <= 0xdbff
+      && text.charCodeAt(end) >= 0xdc00 && text.charCodeAt(end) <= 0xdfff) end--;
+    let bounded = "";
+    let size = 0;
+    for (const character of text.slice(0, end)) {
+      const width = Buffer.byteLength(character);
+      if (width > this.limits.maxOutputBytes - this.outputBytes - size) break;
+      size += width;
+      bounded += character;
+    }
+    this.outputBytes += size;
+    const bytes = new TextEncoder().encode(bounded);
     const width = Math.min(16384, this.limits.maxChunkBytes);
     for (let offset = 0; offset < bytes.length; offset += width) {
       await writeBytes(this.context.stderr, bytes.slice(offset, offset + width), this.signal);
@@ -116,14 +171,8 @@ export class SharedBudget {
   }
 }
 
-export function escapeName(value: string): string {
-  return value.replace(/[\\\p{Cc}\p{Cf}\p{Zl}\p{Zp}]/gu, character => {
-    if (character === "\\") return "\\\\";
-    return `\\u{${character.codePointAt(0)!.toString(16)}}`;
-  });
-}
-
-export function diagnostic(error: unknown): string {
-  if (error instanceof FsError) return escapeName(error.message);
-  return escapeName(error instanceof Error ? error.message : String(error));
+export function limitMessage(error: FileLimitError): string {
+  const message = error.message;
+  return message.length <= 32 && ["argument", "entry", "readFile", "input", "chunk", "output", "step", "time"]
+    .some(label => message === `${label} limit exceeded`) ? message : "resource limit exceeded";
 }

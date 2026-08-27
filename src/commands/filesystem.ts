@@ -83,8 +83,16 @@ async function copy(
     catch (error) {
       context.signal.throwIfAborted();
       if (!flags.has("f") || !targetStat || codeOf(error) !== "EACCES") throw error;
-      await context.fs.rm(target, { signal: context.signal });
-      await context.fs.copyFile(source, target, { signal: context.signal });
+      const existing = await maybeStat(context, target, false);
+      if (existing) {
+        const sourceEntry = await context.fs.lstat(source, { signal: context.signal });
+        const sourceContents = await context.fs.stat(source, { signal: context.signal });
+        const identities = [compareCopyIdentity(sourceEntry, existing), compareCopyIdentity(sourceContents, existing)];
+        if (identities.includes("same")) throw new FsError("EINVAL", { path: source, dest: target, message: "source and destination are the same file" });
+        if (identities.includes("unknown")) throw new FsError("ENOTSUP", { path: source, dest: target, message: "forced copy unlink lacks authoritative distinctness" });
+        await context.fs.rm(target, { recursive: false, signal: context.signal });
+      }
+      await context.fs.copyFile(source, target, { exclusive: true, signal: context.signal });
     }
   }
   if (flags.has("v")) await output(context, `'${source}' -> '${target}'\n`);

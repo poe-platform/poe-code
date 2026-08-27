@@ -72,3 +72,28 @@ test("ENOENT-shaped stat abort is not reinterpreted as a missing path", async ()
   await assert.rejects(run("cp", ["source", "target"], { fs, signal: controller.signal }), error => error === reason);
   assert.equal(mutations, 0);
 });
+
+test("cp -f refuses unproven unlink authority after EACCES", async () => {
+  const base = await fixture({ source: "source", target: "keep" }); let removals = 0;
+  const withoutScope = async (path: string): Promise<FileStat> => { const { identityScope: ignored, ...stat } = await base.lstat(path); void ignored; return stat; };
+  const fs = proxy(base, { stat: withoutScope, lstat: withoutScope, copyFile: async () => { throw new FsError("EACCES"); }, rm: async () => { removals++; } });
+  const result = await run("cp", ["-f", "source", "target"], { fs });
+  assert.equal(result.exitCode, 1); assert.match(result.stderr, /authoritative distinctness/u); assert.equal(removals, 0);
+  assert.equal(Buffer.from(await base.readFile("/work/source")).toString(), "source"); assert.equal(Buffer.from(await base.readFile("/work/target")).toString(), "keep");
+});
+
+test("cp -f rechecks a destination replaced by a source hardlink before unlink", async () => {
+  const base = await fixture({ source: "source", target: "keep" }); let removals = 0;
+  const fs = proxy(base, { copyFile: async () => { await base.rm("/work/target"); await base.link("/work/source", "/work/target"); throw new FsError("EACCES"); }, rm: async () => { removals++; } });
+  const result = await run("cp", ["-f", "source", "target"], { fs });
+  assert.equal(result.exitCode, 1); assert.match(result.stderr, /same file/u); assert.equal(removals, 0);
+  assert.equal(Buffer.from(await base.readFile("/work/source")).toString(), "source"); assert.equal(Buffer.from(await base.readFile("/work/target")).toString(), "source");
+});
+
+test("cp -f retains legitimate unlink retry, but uses exclusive replacement creation", async () => {
+  const base = await fixture({ source: "source", target: "keep" }); let copies = 0;
+  const fs = proxy(base, { copyFile: async (source, target, options) => { if (++copies === 1) throw new FsError("EACCES"); assert.equal(options?.exclusive, true); await base.copyFile(source, target, options); } });
+  const result = await run("cp", ["-f", "source", "target"], { fs });
+  assert.equal(result.exitCode, 0, result.stderr); assert.equal(copies, 2);
+  assert.equal(Buffer.from(await base.readFile("/work/source")).toString(), "source"); assert.equal(Buffer.from(await base.readFile("/work/target")).toString(), "source");
+});

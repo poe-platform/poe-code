@@ -1,0 +1,58 @@
+{
+  "sourceCommit": "07acb1a4d30b7592cf247a0220250317be4e2038",
+  "sourceReadPolicy": "Git 07acb1a only; no live implementation, author patches/new tests or candidate read.",
+  "identities": {
+    "src/contracts/command.md": {
+      "blob": "16371126acaccd07a8db2505b53a0625eb9b4592",
+      "sha256": "8a5426b1e7a30a03dc62f74b28c6eb7bf9b008b78cb7b521eb7de0bc5c59a3f8"
+    },
+    "src/contracts/command.ts": {
+      "blob": "671327d43c48c5964658ad8c630578fe889421e2",
+      "sha256": "9c2f8ecf50def7250b01152a31a45c449109c3ae4d30878252cffe985c6e9df8"
+    },
+    "src/contracts/plugin.ts": {
+      "blob": "69b685ebbf6cfb7d1068c419b7e4109e4f9179d4",
+      "sha256": "b45e85e0d89f88308caf0b68f0b14f78341c4bba246d02e81103646f5a4c54ae"
+    },
+    "src/shell/runtime.ts": {
+      "blob": "601e33d653261161fa9b76009df0824a8871af27",
+      "sha256": "5589f60a1db983538d37168e3b9276555ef71a2bc67446783535e47789f9d6eb"
+    },
+    "src/shell/shell.ts": {
+      "blob": "d5e12cb3b52e6d8e220d399ecf9856359bdc5906",
+      "sha256": "4ac91162195c150848793c92b8b1e90f15a36e67b5ae8a2652fe7ed9dcf4fb5e"
+    },
+    "src/shell/input.ts": {
+      "blob": "5af0daa5145c816b653d34751aa3ce417065cbe2",
+      "sha256": "7af2dac6dfd6290e9f189590e9190b2e0703dcd99998212e471378063cd9a7b4"
+    },
+    "src/shell/types.ts": {
+      "blob": "4684a5ad1f8b76c721a6f827646f289eda4c44ef",
+      "sha256": "fc4133f1fb41283b0586aa7597c766d393d4f91067b613f4777e5adbef230a6d"
+    },
+    "src/shell/index.ts": {
+      "blob": "0110bd9d5c0388dc6fe15abc27f27a18dd7a6b38",
+      "sha256": "235ad982a7bfe23823b4e07d714ed73e924a5d7759a8664f8533b03517ffa383"
+    },
+    "src/index.ts": {
+      "blob": "9728843177b2e1acc8f1b6f77fc93dac480499e1",
+      "sha256": "c9d4d5693dd65dfcb90ff14c43631d00d9d2975a5f58ab03df7ff0e1d34a3e6e"
+    },
+    "package.json": {
+      "blob": "3c5fc677b77b569131529ce4471828f689576bff",
+      "sha256": "c9b768b3ec77ac19262a36ce46f331618916fd7746492d83f0bf6e1212999360"
+    },
+    "tsconfig.json": {
+      "blob": "d88bb739f6c298272a80da3796a7e901e409062e",
+      "sha256": "31a3ef68430276b806701fe5d24d86aa7bb3d1630d79b4d5f381d6cd2c2a4c08"
+    },
+    "tsconfig.build.json": {
+      "blob": "89e6b5617b949858c6e90953b561b38089c78dd7",
+      "sha256": "b57d3e5aab1f1f7ab7a70f275183ea6de255e65a2c40a0047c08d97769a1a16e"
+    }
+  },
+  "contractText": "# Literal invocation environment\n\n`CommandInvokeOptions.replaceEnv?: boolean` is additive. Absent or false retains\nthe runtime's existing environment merge behavior and PWD treatment. True uses\na fresh copy of exactly `options.env ?? {}` as the exported environment at\ncommand entry: no merge with inherited exports, implicit PWD or promotion of\nunexported/local variables. Supplied PWD is an environment value, not a cwd setter.\nEnvironment key/value validation remains required before child execution.\n\nThis replaces the child environment, not generic shell state. Parent values,\nexport attributes and function locals must remain unchanged on success, error\nor cancellation. Cwd resolution remains independent. A child Bash interpreter's\nown initialization is separate from the environment passed to it.\n\nLiteral argv, middleware, shared execution/output/depth budgets, signal,\nstdout/stderr transfer and stdin cursor/origin rules are unchanged. Do not\nimplement replacement with a new Shell, new budget or a callback-only bypass.\n\nCore `env COMMAND` explicitly requests replacement for its already-computed\nenvironment, including plain assignments and `-u`, not just `-i`. With no invoke\nhook, its existing registry/callback fallback still receives that exact map.\nGeneric directExecutor/xargs/find callers retain their existing default behavior.\n\nCurie owns the contract/core consumer; Sagan owns runtime/types. The additive\nfield and boundary-forwarding tests do not establish runtime support. Acceptance\nrequires the actual-shell nested env row and export/local/parent/cancellation\nregressions after both implementations are committed. Preserve the historical\nleak reproduction and original six-row cohort.\n\n# Cooperative invocation cleanup\n\n```ts\nexport type InvocationCleanup = () => void | Promise<void>;\n\ninterface CommandContext {\n  readonly registerCleanup?: (cleanup: InvocationCleanup) => void;\n}\n```\n\nThis additive hook registers **cooperative, invocation-owned resource cleanup**.\nIt does not expose drain/close authority, change CommandInvokeOptions, add plugin\nconfiguration or establish a global output/first-read lifecycle. Direct/custom\nhosts may omit it; command finally cleanup remains necessary, but omission does\nnot promise a public cancellation-settlement barrier. Existing structural contexts\nremain valid. The existing contract/root star exports expose the new type without\nbarrel changes; packed consumer verification belongs to integration acceptance.\n\n## Admission and ownership\n\n- Register synchronously **before acquisition**, including admission of work that\n  can create a worker/lease later. A callback may close an initially empty owner.\n  Registration itself does not acquire or invoke cleanup and returns no handle.\n- Each dispatch has an invocation scope. Nested invoke, pipelines and substitutions\n  remain tracked by the enclosing exec even when an outer abort race stops awaiting\n  a handler. Closing begins on dispatch settlement, interruption or owning-shell\n  disposal. Close admissions before starting drains, including descendant scopes.\n- Registration on a closing/closed scope throws synchronously. New nested invoke\n  through such a context rejects before child dispatch, middleware, filesystem work\n  or resource creation. A caller-aborted scope preserves the exact caller reason;\n  otherwise an Error indicates closed admission (message is not contractual).\n  A non-callable cleanup is a synchronous TypeError, not an accepted registration.\n- Registration is not permission for a late continuation to acquire resources.\n  The resource owner must permanently close its own acquisition admission during\n  cleanup and cover already admitted cooperative acquisitions. An asynchronous\n  continuation cannot reopen it after drain completion. Arbitrary host promises\n  and input reads are not acquisitions the runtime must wait for.\n\nThe runtime's drain is idempotent: it invokes each accepted registration at most\nonce and repeated drain/dispose calls await the same outstanding cleanup work.\nThe callback must also be idempotent across a command's normal finally path and\nruntime drain, including overlapping calls: release once and share the completion\npromise. Registering the same callback twice creates two registrations, not two\nresource ownership rights. Callbacks must not depend on cleanup registration order\nor use a closing context to start new nested work.\n\nOwnership is local, not a global worker-count assertion. Release the invocation's\nrequests/leases and await retirement owed by that ownership. Concurrent invocations\nor another Shell can still legitimately own shared workers; cleanup must neither\nterminate their leases nor await global worker zero. Plugin disposal remains a\nseparate lifecycle, not a substitute for delaying an already returned exec.\n\n## Settlement and failures\n\nBefore public exec resolves **or rejects**, the runtime must close its admissions\nand drain every accepted cleanup in its invocation tree, including nested scopes\nwhose handler promise lost an abort race. Shell.dispose must likewise await its\noutstanding registered drains before settling. A concurrent/repeated dispose must\nnot return early merely because another dispose marked the shell closed.\n\nStart all eligible cleanups even if one throws, rejects or is still pending; await\ntheir completion and observe every failure. Do not race the drain against the\nalready-aborted signal or impose an arbitrary short timeout that abandons owned\nworkers. Await only explicitly registered cooperative cleanup and its tracked\nresource work, not opaque handler/middleware/FS/sink/input promises. Observe late\nhandler rejections without waiting for uncooperative host execution to finish.\nAn uncooperative nonsettling registered hook violates this contract; the hook is\nnot universal hard preemption of arbitrary trusted host JavaScript.\n\nChoose the public outcome after draining, with this precedence:\n\n1. A caller abort observed before public settlement wins **by exact reason identity**,\n   even if the reason is a primitive or resembles an errno/execution failure.\n2. Otherwise preserve the original execution rejection selected by the existing\n   execution path, again without wrapping or mutating it to attach cleanup errors.\n   Do not wait for an opaque losing handler to discover hypothetical later errors.\n3. Otherwise reject with the sole cleanup failure unchanged, or AggregateError\n   containing all cleanup failures when multiple registrations fail. A completed\n   CommandResult, including a nonzero exit code, does not hide a cleanup rejection.\n4. With no such failure, return the existing selected command/pipeline result.\n\nInternal downstream-close cancellation is **not caller abort**. Track its origin,\nnot merely an AbortError name, errno, truthiness or the fact that a combined signal\nis aborted. Preserve existing early-pipe/pipefail status selection, but drain owned\nresources before returning even a successful `grep ... | head -n 1`. Secondary\ncleanup failures must all be handled/retained by the drain when a primary reason\nwins; do not replace the primary, emit unhandled rejections, or report cleanup-only\nfailure as success. This adds no public diagnostics/configuration API.\n\n## Acceptance boundary\n\nThe contract/type addition alone does not fix the outer runtime/public exec races.\nThe retained regex review at `ef8bbe7`/`839f2d4` reports five premature-settlement\nobservations per compiled/packed run; those remain unresolved by this type commit.\nRuntime scope/drain implementation and pre-acquisition regex registration need\nseparate source ownership and actual public-boundary independent verification.\nRequired follow-up controls include sync/async/throwing cleanups, drain-all,\nrepeated/overlapping finally and dispose, caller reason identity, early pipe close,\nnested admission after closing, and concurrent sibling/other-Shell lease isolation.\nFive custom pre-first-read requirements are separate; this hook introduces no\nbeginOutput, probe reads, implicit pipe activation or budget reset.\n",
+  "preservedPriorInvestigation": "274b7c47eea01a72db61c39775a97c882983cc7b",
+  "authorImplementationTestsNotRead": "9dccc4c",
+  "baselineExecutions": 0
+}

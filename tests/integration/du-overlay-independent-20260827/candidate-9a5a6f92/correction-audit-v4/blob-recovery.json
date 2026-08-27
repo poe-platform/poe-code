@@ -1,0 +1,77 @@
+{
+  "schema": 1,
+  "date": "2026-08-27",
+  "recordedPreCorrectionVerifierBlob": "f127f231fe53392ed3635af1c255b66526b5c485",
+  "outcome": "unrecoverable",
+  "exactOriginalBytesCommitted": false,
+  "exactVersionDeltaProvable": false,
+  "attempts": [
+    {
+      "method": "git cat-file -t",
+      "result": "fatal: git cat-file: could not get object info"
+    },
+    {
+      "method": "git fsck --full --no-reflogs --unreachable",
+      "exactObjectReported": false
+    },
+    {
+      "method": "git rev-list --objects --all --reflog",
+      "exactObjectReported": false
+    },
+    {
+      "method": "workspace and .git textual search for exact object ID",
+      "result": "only the four retained copies of FIXTURE_CORRECTION_V3.md name the ID; no byte source names it"
+    },
+    {
+      "method": "retained verifier snapshots",
+      "result": "three later verifier snapshots exist and none has the recorded object ID",
+      "snapshots": [
+        {
+          "gitBlob": "028118b85a1f3b1c7e926ee76f3354434d8f5e16",
+          "sha256": "a67a436d9d8d485a87ce83e5fc29461cb6550132586b4d6a5da4d2585be7a3e0"
+        },
+        {
+          "gitBlob": "1803fd994ad1349b3fe7f5cdc21c4f10378cf90a",
+          "sha256": "5f8cede5849344f910d1bb1065174c06b02273ec0af7f88a9ae5202c3b75b87e"
+        },
+        {
+          "gitBlob": "3fdf528c593efbf88b154834291550cce6c81095",
+          "sha256": "67f9854e10246f99cc9d2060e05ff51c1ce4be1a965a9e94f627c6ecaa487138"
+        }
+      ]
+    },
+    {
+      "method": "in-memory exact-hash probes from the current verifier using the declared atime/retry edits, with and without the later consumer-cleanup case",
+      "savedAsOriginal": false,
+      "variantsTested": 12,
+      "exactMatches": 0,
+      "gitBlobResults": [
+        "c48f3885e42192f0c5e54d969831f4af10a20a1a",
+        "9e2f886476d1ee8b3331e1e6f771d453589f5beb",
+        "705403e016deaa249f322a1de10f9c9d5c70a5fe",
+        "12c86697a482fb918f238bc8fe187eea697175bb",
+        "95b19a5d7ecc6f527a4d2d0dc3c081173be3a0bb",
+        "f1b075217224dbfa95bfe082dacef15f9ce1ee31",
+        "04bef4da073f26d92b54aa7f20443f89aa30c911",
+        "2ff7bfd86964ec21661cd40f24942bf7255cba8d",
+        "686881c4c713a1db59abdf53de8305e353dd9563",
+        "73c9f70d793ac368f97de4182d8d8f9a98666fb2",
+        "42e1eefd7e2712cde12d66d166615d8e3e29c6da",
+        "68d258971c2c94534ebeeea6fe7f85833741598e"
+      ]
+    }
+  ],
+  "retainedFailedExecution": {
+    "stdoutBytes": 867078,
+    "exitStatus": 1,
+    "cases": 32,
+    "passed": 10,
+    "failed": 22,
+    "sha256": {
+      "run.stdout": "3fa5f7e7cc3a1bb9133086b06c41ac4f671e562a62192d144e9c800dd9df5e14",
+      "run.stderr": "5fa997f91509e743cd70fb5fd20f5a6dffd35bc5e074e0cf8038ec235a4571fe",
+      "run.status.json": "93d7432ac47672a3e8d78119710975fa84c477a7db057947787cc24874586082"
+    }
+  },
+  "conclusion": "The retained failed output remains authentic, but it does not contain the verifier source. The exact v2-to-v3 byte delta cannot be independently reconstructed from the available object database, refs, reflogs, captures, or exact-hash probes."
+}

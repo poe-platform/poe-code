@@ -106,17 +106,38 @@ status 2 instead of silently replacing/truncating information. Valid argv is
 encoded as UTF-8. Intermediate/result values are bytes: C-locale `substr é 1 1`
 returns byte `c3` followed by LF, without replacement decoding.
 
-- `LC_ALL`, then `LC_CTYPE`, then `LANG`, default `C`, selects character behavior.
+- The first nonempty `LC_ALL`, `LC_CTYPE`, then `LANG`, default virtual `C`,
+  selects character behavior. Empty values fall through; whitespace does not.
 - `C`/`POSIX`: UTF-8 encoded **bytes** are the character units.
 - `C.UTF-8`/`C.utf8`: Unicode scalar units, not UTF-16 units or graphemes.
   Combining marks count separately. No normalization is performed. The scanner
   treats malformed intermediate bytes individually; no scalar-array allocation
   or silent replacement decoding is used for string operations.
+- Exactly `en_US.UTF-8` additionally selects qualified Unicode scalar **character
+  encoding** for `length`, `index`, `substr`, and admitted BRE literals, dot and
+  captures. This is not full named-locale ctype or collation support and does not
+  rewrite the name to `C.UTF-8`. Other spellings, modifiers and UTF-8 suffixes
+  are not aliases. Combining marks remain separate, without normalization.
 - Comparison independently consults `LC_ALL`, `LC_COLLATE`, `LANG`, default `C`.
-  Only the same four profile names are supported, with byte collation; no
+  It uses the same nonempty precedence, but accepts only `C`, `POSIX`, `C.UTF-8`
+  and `C.utf8`, with byte collation. Nonnumeric comparisons under named or
+  unknown collation still explicitly fail, even ASCII equality. There is no
   `localeCompare`, ambient locale, language-specific collation or libc guarantee.
+- If either effective `LC_CTYPE` or `LC_COLLATE` is outside those four baseline
+  names, matching refuses every unescaped bracket opener before worker admission.
+  This covers locale-sensitive ranges, classes, equivalence and collating elements,
+  **and conservatively refuses literal and negated lists** such as `[a]`, `[é]`
+  and `[^a]`; these lists are not being classified as inherently locale-sensitive.
+  Escaped literal brackets (`\[`) remain admissible. Plain literals, dot,
+  captures and other admitted forms reuse the unchanged bounded worker; admission
+  does not promise that every BRE is valid or supported.
+  Both subject and pattern byte caps precede the escape-aware byte scan. Its
+  entire linear work is charged before reading pattern bytes; the worker receives
+  the remaining invocation work budget. No locale protocol, main-thread regex,
+  host locale lookup or additional dependency is introduced.
 - Unsupported profiles fail only when the relevant character/string comparison
-  operation executes. Pure arithmetic is not locale-dependent.
+  operation executes. Arithmetic, numeric comparisons and literal values do not
+  reject irrelevant locale categories.
 
 The local pinned Darwin GNU oracle supports the tested `C` and `C.UTF-8`
 profiles. Its `C.utf8` name falls back to bytes, so the virtual `C.utf8` scalar
@@ -190,7 +211,8 @@ whole lengths the first greedy/ordered path wins; GNU9.7 controls include
 `\\(a\\|aa\\)a*` versus `\\(a*\\)a*`. This is not a claim that every POSIX
 subexpression tie or GNU implementation corner has been reproduced.
 
-Supported common constructs: literals, dot (including newline), contextual
+Within the locale admission boundary above, supported common constructs are
+literals, dot (including newline), contextual
 `^`/`$` (no per-line anchors), bracket lists/negation/ASCII ranges, ASCII named
 classes, escaped groups, backreferences 1–9 to closed groups, `*`, GNU `\\+`,
 `\\?`, `\\|`, and `\\{m\\}`, `\\{m,n\\}`, `\\{m,\\}`. Numeric intervals

@@ -1,0 +1,86 @@
+{
+  "source": "246aa440c988d6c09464480956c4eff69009f7e4",
+  "designCommit": "47309c0be322f685431e2b6579edd86d56b79fdd",
+  "toolchain": {
+    "node": "v22.22.2",
+    "platform": "darwin",
+    "arch": "arm64",
+    "typescript": "5.9.3",
+    "tsx": "4.23.12"
+  },
+  "named": {
+    "tests": 86,
+    "pass": 86,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "legacyNonnative": {
+    "tests": 308,
+    "pass": 307,
+    "fail": 1,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "shared": {
+    "tests": 85,
+    "pass": 85,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "overlapSubsetNotAdditive": {
+    "tests": 48,
+    "pass": 47,
+    "fail": 1,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "expectedStaleFailure": {
+    "path": "tests/commands/expr/contracts.test.ts",
+    "line": 40,
+    "failures": [
+      "unsupported locales and unrepresentable argv are explicit errors"
+    ]
+  },
+  "runtime": [
+    {
+      "locale": "C",
+      "scalarSuccesses": 9,
+      "continuedCollationRefusals": 1,
+      "admissionControls": 517,
+      "defaultControls": 2,
+      "cleanup": {
+        "workers": 130,
+        "activeBeforeSafetyCleanup": 0
+      }
+    },
+    {
+      "locale": "en_US.UTF-8",
+      "scalarSuccesses": 9,
+      "continuedCollationRefusals": 1,
+      "admissionControls": 517,
+      "defaultControls": 2,
+      "cleanup": {
+        "workers": 130,
+        "activeBeforeSafetyCleanup": 0
+      }
+    }
+  ],
+  "historical10": "Preserved separately unchanged; not relabeled as new passes.",
+  "native": "No native execution or recapture. native.test.ts and regex-native.test.ts are outside this explicitly nonnative scope, not skipped tests.",
+  "redOutputCap": "Separate unresolved contract at 0a86a4b43fc9173d0cd6bb49da93bf77f0d4bdd6; no cap or output-contract wording edits.",
+  "integrity": {
+    "archiveInputPrePostComplete": true,
+    "detectsAddedEntries": true,
+    "builtOutputPrePostComplete": true,
+    "designPrePostComplete": true,
+    "liveSourcesOverlaid": false,
+    "unrelatedLiveEditsVetoArchive": false
+  },
+  "independentFinalReview": "Pending separate reviewer"
+}

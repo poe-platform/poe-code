@@ -1,0 +1,21 @@
+{
+  "revision": "b02bbe855b6b45d635b521e3dc2f31ea2b04e215",
+  "auditedAt": "2026-08-27T01:53:37.933Z",
+  "committedInputsVerified": 282,
+  "sources": 156,
+  "stableSourceCohorts": 20,
+  "historicalFilesUnchanged": 160,
+  "originalPositivePass": 31,
+  "originalPositiveFail": 7,
+  "originalGuardsPass": 5,
+  "diagnosticPositivePass": 38,
+  "diagnosticGuardsPass": 5,
+  "assertionCallsByteIdentical": 30,
+  "originalAndQualifiedTypesExit": [
+    0,
+    0
+  ],
+  "allRecordedChildrenClosed": true,
+  "ownScratchRemoved": true,
+  "ownedStatus": "?? tests/fs/mount/identity-compatibility-review/checkpoint-b02bbe8.mjs\n?? tests/fs/mount/identity-compatibility-review/evidence/final-checkpoint-b02bbe8/\n"
+}

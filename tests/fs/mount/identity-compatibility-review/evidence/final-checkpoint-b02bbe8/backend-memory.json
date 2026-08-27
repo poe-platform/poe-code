@@ -1,0 +1,40 @@
+{
+  "name": "backend-memory",
+  "sourceStability": {
+    "revision": "b02bbe855b6b45d635b521e3dc2f31ea2b04e215",
+    "beforeSha256": "ddc369b8b7cc9ec8323a62c99afbf2762503887df9397b1ecafde935129d3cef",
+    "afterSha256": "ddc369b8b7cc9ec8323a62c99afbf2762503887df9397b1ecafde935129d3cef",
+    "stable": true
+  },
+  "command": [
+    "node",
+    "--unhandled-rejections=strict",
+    "--import",
+    "tsx",
+    "--test",
+    "--test-reporter=tap",
+    "tests/fs/memory/comparison.test.ts",
+    "tests/fs/memory/conformance.test.ts",
+    "tests/fs/memory/late-authority.test.ts",
+    "tests/fs/memory/memory.test.ts",
+    "tests/fs/memory/review-regressions.test.ts",
+    "tests/fs/memory/rmdir.test.ts"
+  ],
+  "environment": {},
+  "startedAt": "2026-08-27T01:50:34.135Z",
+  "finishedAt": "2026-08-27T01:50:34.866Z",
+  "code": 0,
+  "signal": null,
+  "timedOut": false,
+  "residualGroup": false,
+  "counts": {
+    "tests": 143,
+    "pass": 143,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "stdoutSha256": "2f0c60b57a667430fb9d17227dacbb6a2cb57e26ab3cd7f6ad73b68110110cbe",
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

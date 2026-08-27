@@ -1,0 +1,36 @@
+{
+  "name": "s3-policy86",
+  "sourceStability": {
+    "revision": "b02bbe855b6b45d635b521e3dc2f31ea2b04e215",
+    "beforeSha256": "ddc369b8b7cc9ec8323a62c99afbf2762503887df9397b1ecafde935129d3cef",
+    "afterSha256": "ddc369b8b7cc9ec8323a62c99afbf2762503887df9397b1ecafde935129d3cef",
+    "stable": true
+  },
+  "command": [
+    "node",
+    "--unhandled-rejections=strict",
+    "--import",
+    "tsx",
+    "--test",
+    "--test-reporter=tap",
+    "tests/stress/s3-policy/rename.test.ts",
+    "tests/stress/s3-policy/bounded-races.test.ts"
+  ],
+  "environment": {},
+  "startedAt": "2026-08-27T01:50:41.434Z",
+  "finishedAt": "2026-08-27T01:50:41.630Z",
+  "code": 0,
+  "signal": null,
+  "timedOut": false,
+  "residualGroup": false,
+  "counts": {
+    "tests": 86,
+    "pass": 86,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "stdoutSha256": "a7449197a5c19f93900111d19504746da5ffcfb5b289f3bef24d4dfbe3c9973f",
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

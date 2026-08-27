@@ -1,0 +1,36 @@
+{
+  "name": "required49",
+  "sourceStability": {
+    "revision": "b02bbe855b6b45d635b521e3dc2f31ea2b04e215",
+    "beforeSha256": "ddc369b8b7cc9ec8323a62c99afbf2762503887df9397b1ecafde935129d3cef",
+    "afterSha256": "ddc369b8b7cc9ec8323a62c99afbf2762503887df9397b1ecafde935129d3cef",
+    "stable": true
+  },
+  "command": [
+    "node",
+    "--unhandled-rejections=strict",
+    "--import",
+    "tsx",
+    "--test",
+    "--test-reporter=tap",
+    "tests/fs/mount/copy-identity-guards.test.ts",
+    "tests/fs/overlay/copy-identity.test.ts"
+  ],
+  "environment": {},
+  "startedAt": "2026-08-27T01:50:32.955Z",
+  "finishedAt": "2026-08-27T01:50:33.855Z",
+  "code": 0,
+  "signal": null,
+  "timedOut": false,
+  "residualGroup": false,
+  "counts": {
+    "tests": 49,
+    "pass": 49,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "stdoutSha256": "e6569d579e6690f46238db68a812953a190d03e7f69f4640f49a5d565d2aaa65",
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

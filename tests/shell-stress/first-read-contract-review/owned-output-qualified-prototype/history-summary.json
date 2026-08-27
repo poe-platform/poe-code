@@ -1,0 +1,801 @@
+{
+  "completedAt": "2026-08-27T12:27:10.358Z",
+  "environment": {
+    "PATH": "/usr/bin:/bin",
+    "LANG": "C",
+    "LC_ALL": "C",
+    "TZ": "UTC",
+    "HOME": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA",
+    "TMPDIR": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA",
+    "TMP": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA",
+    "TEMP": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA",
+    "TSX_DISABLE_CACHE": "1",
+    "TSX_CACHE_DIR": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA/tsx-cache-disabled"
+  },
+  "unchangedHistoricalControlSha256": "03098a87e9e4345749ba33442b171545abdaf19454088e1b93c1aa544f9568eb",
+  "records": [
+    {
+      "label": "unchanged-S1-author6",
+      "args": [
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "--test",
+        "--test-concurrency=1",
+        "tests/shell/owned-output-streaming-author.test.ts"
+      ],
+      "cwd": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA/candidate",
+      "env": {
+        "PATH": "/usr/bin:/bin",
+        "LANG": "C",
+        "LC_ALL": "C",
+        "TZ": "UTC",
+        "HOME": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA",
+        "TMPDIR": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA",
+        "TMP": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA",
+        "TEMP": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA",
+        "TSX_DISABLE_CACHE": "1",
+        "TSX_CACHE_DIR": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA/tsx-cache-disabled"
+      },
+      "pid": 43760,
+      "status": 0,
+      "signal": null,
+      "killed": false,
+      "reaped": true,
+      "groupAbsent": true
+    },
+    {
+      "label": "legacy57-remote19",
+      "args": [
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "--test",
+        "--test-concurrency=1",
+        "--test-name-pattern=pipeline close: (?!first-read-)",
+        "tests/shell/remote-close.test.ts"
+      ],
+      "cwd": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA/candidate",
+      "env": {
+        "PATH": "/usr/bin:/bin",
+        "LANG": "C",
+        "LC_ALL": "C",
+        "TZ": "UTC",
+        "HOME": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA",
+        "TMPDIR": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA",
+        "TMP": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA",
+        "TEMP": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA",
+        "TSX_DISABLE_CACHE": "1",
+        "TSX_CACHE_DIR": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA/tsx-cache-disabled"
+      },
+      "pid": 43774,
+      "status": 0,
+      "signal": null,
+      "killed": false,
+      "reaped": true,
+      "groupAbsent": true
+    },
+    {
+      "label": "legacy57-byteio28",
+      "args": [
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "--test",
+        "--test-concurrency=1",
+        "tests/contracts/io.test.ts",
+        "tests/contracts/io.stress.test.ts"
+      ],
+      "cwd": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA/candidate",
+      "env": {
+        "PATH": "/usr/bin:/bin",
+        "LANG": "C",
+        "LC_ALL": "C",
+        "TZ": "UTC",
+        "HOME": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA",
+        "TMPDIR": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA",
+        "TMP": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA",
+        "TEMP": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA",
+        "TSX_DISABLE_CACHE": "1",
+        "TSX_CACHE_DIR": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA/tsx-cache-disabled"
+      },
+      "pid": 43824,
+      "status": 0,
+      "signal": null,
+      "killed": false,
+      "reaped": true,
+      "groupAbsent": true
+    },
+    {
+      "label": "legacy57-shared5",
+      "args": [
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "--test",
+        "--test-concurrency=1",
+        "--test-name-pattern=hard-timeout lifecycle regression: shared-",
+        "tests/shell/lifecycle.test.ts"
+      ],
+      "cwd": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA/candidate",
+      "env": {
+        "PATH": "/usr/bin:/bin",
+        "LANG": "C",
+        "LC_ALL": "C",
+        "TZ": "UTC",
+        "HOME": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA",
+        "TMPDIR": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA",
+        "TMP": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA",
+        "TEMP": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA",
+        "TSX_DISABLE_CACHE": "1",
+        "TSX_CACHE_DIR": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA/tsx-cache-disabled"
+      },
+      "pid": 43829,
+      "status": 0,
+      "signal": null,
+      "killed": false,
+      "reaped": true,
+      "groupAbsent": true
+    },
+    {
+      "label": "legacy57-streaming4",
+      "args": [
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "--test",
+        "--test-concurrency=1",
+        "--test-name-pattern=pipes preserve|early downstream|pipeline redirects|AbortSignal reaches",
+        "tests/shell/streaming.test.ts"
+      ],
+      "cwd": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA/candidate",
+      "env": {
+        "PATH": "/usr/bin:/bin",
+        "LANG": "C",
+        "LC_ALL": "C",
+        "TZ": "UTC",
+        "HOME": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA",
+        "TMPDIR": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA",
+        "TMP": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA",
+        "TEMP": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA",
+        "TSX_DISABLE_CACHE": "1",
+        "TSX_CACHE_DIR": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA/tsx-cache-disabled"
+      },
+      "pid": 43854,
+      "status": 0,
+      "signal": null,
+      "killed": false,
+      "reaped": true,
+      "groupAbsent": true
+    },
+    {
+      "label": "original-first-read-head-zero",
+      "args": [
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "tests/shell/first-read-probe.ts",
+        "first-read-head-zero"
+      ],
+      "cwd": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA/candidate",
+      "env": {
+        "PATH": "/usr/bin:/bin",
+        "LANG": "C",
+        "LC_ALL": "C",
+        "TZ": "UTC",
+        "HOME": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA",
+        "TMPDIR": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA",
+        "TMP": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA",
+        "TEMP": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA",
+        "TSX_DISABLE_CACHE": "1",
+        "TSX_CACHE_DIR": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA/tsx-cache-disabled"
+      },
+      "pid": 43857,
+      "status": 0,
+      "signal": null,
+      "killed": false,
+      "reaped": true,
+      "groupAbsent": true
+    },
+    {
+      "label": "original-first-read-local",
+      "args": [
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "tests/shell/first-read-probe.ts",
+        "first-read-local"
+      ],
+      "cwd": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA/candidate",
+      "env": {
+        "PATH": "/usr/bin:/bin",
+        "LANG": "C",
+        "LC_ALL": "C",
+        "TZ": "UTC",
+        "HOME": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA",
+        "TMPDIR": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA",
+        "TMP": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA",
+        "TEMP": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA",
+        "TSX_DISABLE_CACHE": "1",
+        "TSX_CACHE_DIR": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA/tsx-cache-disabled"
+      },
+      "pid": 43862,
+      "status": 1,
+      "signal": null,
+      "killed": false,
+      "reaped": true,
+      "groupAbsent": true
+    },
+    {
+      "label": "original-first-read-s3",
+      "args": [
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "tests/shell/first-read-probe.ts",
+        "first-read-s3"
+      ],
+      "cwd": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA/candidate",
+      "env": {
+        "PATH": "/usr/bin:/bin",
+        "LANG": "C",
+        "LC_ALL": "C",
+        "TZ": "UTC",
+        "HOME": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA",
+        "TMPDIR": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA",
+        "TMP": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA",
+        "TEMP": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA",
+        "TSX_DISABLE_CACHE": "1",
+        "TSX_CACHE_DIR": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA/tsx-cache-disabled"
+      },
+      "pid": 43878,
+      "status": 0,
+      "signal": null,
+      "killed": false,
+      "reaped": true,
+      "groupAbsent": true
+    },
+    {
+      "label": "original-first-read-webdav",
+      "args": [
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "tests/shell/first-read-probe.ts",
+        "first-read-webdav"
+      ],
+      "cwd": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA/candidate",
+      "env": {
+        "PATH": "/usr/bin:/bin",
+        "LANG": "C",
+        "LC_ALL": "C",
+        "TZ": "UTC",
+        "HOME": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA",
+        "TMPDIR": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA",
+        "TMP": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA",
+        "TEMP": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA",
+        "TSX_DISABLE_CACHE": "1",
+        "TSX_CACHE_DIR": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA/tsx-cache-disabled"
+      },
+      "pid": 43880,
+      "status": 1,
+      "signal": null,
+      "killed": false,
+      "reaped": true,
+      "groupAbsent": true
+    },
+    {
+      "label": "original-first-read-curl-body",
+      "args": [
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "tests/shell/first-read-probe.ts",
+        "first-read-curl-body"
+      ],
+      "cwd": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA/candidate",
+      "env": {
+        "PATH": "/usr/bin:/bin",
+        "LANG": "C",
+        "LC_ALL": "C",
+        "TZ": "UTC",
+        "HOME": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA",
+        "TMPDIR": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA",
+        "TMP": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA",
+        "TEMP": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA",
+        "TSX_DISABLE_CACHE": "1",
+        "TSX_CACHE_DIR": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA/tsx-cache-disabled"
+      },
+      "pid": 43882,
+      "status": 1,
+      "signal": null,
+      "killed": false,
+      "reaped": true,
+      "groupAbsent": true
+    },
+    {
+      "label": "original-first-read-curl-headers",
+      "args": [
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "tests/shell/first-read-probe.ts",
+        "first-read-curl-headers"
+      ],
+      "cwd": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA/candidate",
+      "env": {
+        "PATH": "/usr/bin:/bin",
+        "LANG": "C",
+        "LC_ALL": "C",
+        "TZ": "UTC",
+        "HOME": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA",
+        "TMPDIR": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA",
+        "TMP": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA",
+        "TEMP": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA",
+        "TSX_DISABLE_CACHE": "1",
+        "TSX_CACHE_DIR": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA/tsx-cache-disabled"
+      },
+      "pid": 43884,
+      "status": 1,
+      "signal": null,
+      "killed": false,
+      "reaped": true,
+      "groupAbsent": true
+    },
+    {
+      "label": "optin-first-read-local",
+      "args": [
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "tests/shell/adapted-first-read-probe.ts",
+        "first-read-local"
+      ],
+      "cwd": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA/candidate",
+      "env": {
+        "PATH": "/usr/bin:/bin",
+        "LANG": "C",
+        "LC_ALL": "C",
+        "TZ": "UTC",
+        "HOME": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA",
+        "TMPDIR": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA",
+        "TMP": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA",
+        "TEMP": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA",
+        "TSX_DISABLE_CACHE": "1",
+        "TSX_CACHE_DIR": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA/tsx-cache-disabled"
+      },
+      "pid": 43886,
+      "status": 0,
+      "signal": null,
+      "killed": false,
+      "reaped": true,
+      "groupAbsent": true
+    },
+    {
+      "label": "optin-first-read-s3",
+      "args": [
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "tests/shell/adapted-first-read-probe.ts",
+        "first-read-s3"
+      ],
+      "cwd": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA/candidate",
+      "env": {
+        "PATH": "/usr/bin:/bin",
+        "LANG": "C",
+        "LC_ALL": "C",
+        "TZ": "UTC",
+        "HOME": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA",
+        "TMPDIR": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA",
+        "TMP": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA",
+        "TEMP": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA",
+        "TSX_DISABLE_CACHE": "1",
+        "TSX_CACHE_DIR": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA/tsx-cache-disabled"
+      },
+      "pid": 43888,
+      "status": 0,
+      "signal": null,
+      "killed": false,
+      "reaped": true,
+      "groupAbsent": true
+    },
+    {
+      "label": "optin-first-read-webdav",
+      "args": [
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "tests/shell/adapted-first-read-probe.ts",
+        "first-read-webdav"
+      ],
+      "cwd": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA/candidate",
+      "env": {
+        "PATH": "/usr/bin:/bin",
+        "LANG": "C",
+        "LC_ALL": "C",
+        "TZ": "UTC",
+        "HOME": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA",
+        "TMPDIR": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA",
+        "TMP": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA",
+        "TEMP": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA",
+        "TSX_DISABLE_CACHE": "1",
+        "TSX_CACHE_DIR": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA/tsx-cache-disabled"
+      },
+      "pid": 43890,
+      "status": 0,
+      "signal": null,
+      "killed": false,
+      "reaped": true,
+      "groupAbsent": true
+    },
+    {
+      "label": "optin-first-read-curl-body",
+      "args": [
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "tests/shell/adapted-first-read-probe.ts",
+        "first-read-curl-body"
+      ],
+      "cwd": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA/candidate",
+      "env": {
+        "PATH": "/usr/bin:/bin",
+        "LANG": "C",
+        "LC_ALL": "C",
+        "TZ": "UTC",
+        "HOME": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA",
+        "TMPDIR": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA",
+        "TMP": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA",
+        "TEMP": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA",
+        "TSX_DISABLE_CACHE": "1",
+        "TSX_CACHE_DIR": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA/tsx-cache-disabled"
+      },
+      "pid": 43892,
+      "status": 0,
+      "signal": null,
+      "killed": false,
+      "reaped": true,
+      "groupAbsent": true
+    },
+    {
+      "label": "optin-first-read-curl-headers",
+      "args": [
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "tests/shell/adapted-first-read-probe.ts",
+        "first-read-curl-headers"
+      ],
+      "cwd": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA/candidate",
+      "env": {
+        "PATH": "/usr/bin:/bin",
+        "LANG": "C",
+        "LC_ALL": "C",
+        "TZ": "UTC",
+        "HOME": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA",
+        "TMPDIR": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA",
+        "TMP": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA",
+        "TEMP": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA",
+        "TSX_DISABLE_CACHE": "1",
+        "TSX_CACHE_DIR": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA/tsx-cache-disabled"
+      },
+      "pid": 43895,
+      "status": 0,
+      "signal": null,
+      "killed": false,
+      "reaped": true,
+      "groupAbsent": true
+    },
+    {
+      "label": "legacy9-C1",
+      "args": [
+        "--unhandled-rejections=strict",
+        "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA/historical-controls.mjs",
+        "C1"
+      ],
+      "cwd": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA",
+      "env": {
+        "PATH": "/usr/bin:/bin",
+        "LANG": "C",
+        "LC_ALL": "C",
+        "TZ": "UTC",
+        "HOME": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA",
+        "TMPDIR": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA",
+        "TMP": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA",
+        "TEMP": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA",
+        "TSX_DISABLE_CACHE": "1",
+        "TSX_CACHE_DIR": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA/tsx-cache-disabled"
+      },
+      "pid": 43897,
+      "status": 0,
+      "signal": null,
+      "killed": false,
+      "reaped": true,
+      "groupAbsent": true
+    },
+    {
+      "label": "legacy9-C2",
+      "args": [
+        "--unhandled-rejections=strict",
+        "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA/historical-controls.mjs",
+        "C2"
+      ],
+      "cwd": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA",
+      "env": {
+        "PATH": "/usr/bin:/bin",
+        "LANG": "C",
+        "LC_ALL": "C",
+        "TZ": "UTC",
+        "HOME": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA",
+        "TMPDIR": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA",
+        "TMP": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA",
+        "TEMP": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA",
+        "TSX_DISABLE_CACHE": "1",
+        "TSX_CACHE_DIR": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA/tsx-cache-disabled"
+      },
+      "pid": 43898,
+      "status": 0,
+      "signal": null,
+      "killed": false,
+      "reaped": true,
+      "groupAbsent": true
+    },
+    {
+      "label": "legacy9-C3",
+      "args": [
+        "--unhandled-rejections=strict",
+        "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA/historical-controls.mjs",
+        "C3"
+      ],
+      "cwd": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA",
+      "env": {
+        "PATH": "/usr/bin:/bin",
+        "LANG": "C",
+        "LC_ALL": "C",
+        "TZ": "UTC",
+        "HOME": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA",
+        "TMPDIR": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA",
+        "TMP": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA",
+        "TEMP": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA",
+        "TSX_DISABLE_CACHE": "1",
+        "TSX_CACHE_DIR": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA/tsx-cache-disabled"
+      },
+      "pid": 43899,
+      "status": 0,
+      "signal": null,
+      "killed": false,
+      "reaped": true,
+      "groupAbsent": true
+    },
+    {
+      "label": "legacy9-C4",
+      "args": [
+        "--unhandled-rejections=strict",
+        "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA/historical-controls.mjs",
+        "C4"
+      ],
+      "cwd": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA",
+      "env": {
+        "PATH": "/usr/bin:/bin",
+        "LANG": "C",
+        "LC_ALL": "C",
+        "TZ": "UTC",
+        "HOME": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA",
+        "TMPDIR": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA",
+        "TMP": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA",
+        "TEMP": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA",
+        "TSX_DISABLE_CACHE": "1",
+        "TSX_CACHE_DIR": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA/tsx-cache-disabled"
+      },
+      "pid": 43902,
+      "status": 0,
+      "signal": null,
+      "killed": false,
+      "reaped": true,
+      "groupAbsent": true
+    },
+    {
+      "label": "legacy9-C5",
+      "args": [
+        "--unhandled-rejections=strict",
+        "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA/historical-controls.mjs",
+        "C5"
+      ],
+      "cwd": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA",
+      "env": {
+        "PATH": "/usr/bin:/bin",
+        "LANG": "C",
+        "LC_ALL": "C",
+        "TZ": "UTC",
+        "HOME": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA",
+        "TMPDIR": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA",
+        "TMP": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA",
+        "TEMP": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA",
+        "TSX_DISABLE_CACHE": "1",
+        "TSX_CACHE_DIR": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA/tsx-cache-disabled"
+      },
+      "pid": 43908,
+      "status": 0,
+      "signal": null,
+      "killed": false,
+      "reaped": true,
+      "groupAbsent": true
+    },
+    {
+      "label": "legacy9-C6",
+      "args": [
+        "--unhandled-rejections=strict",
+        "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA/historical-controls.mjs",
+        "C6"
+      ],
+      "cwd": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA",
+      "env": {
+        "PATH": "/usr/bin:/bin",
+        "LANG": "C",
+        "LC_ALL": "C",
+        "TZ": "UTC",
+        "HOME": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA",
+        "TMPDIR": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA",
+        "TMP": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA",
+        "TEMP": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA",
+        "TSX_DISABLE_CACHE": "1",
+        "TSX_CACHE_DIR": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA/tsx-cache-disabled"
+      },
+      "pid": 43909,
+      "status": 0,
+      "signal": null,
+      "killed": false,
+      "reaped": true,
+      "groupAbsent": true
+    },
+    {
+      "label": "legacy9-C7",
+      "args": [
+        "--unhandled-rejections=strict",
+        "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA/historical-controls.mjs",
+        "C7"
+      ],
+      "cwd": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA",
+      "env": {
+        "PATH": "/usr/bin:/bin",
+        "LANG": "C",
+        "LC_ALL": "C",
+        "TZ": "UTC",
+        "HOME": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA",
+        "TMPDIR": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA",
+        "TMP": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA",
+        "TEMP": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA",
+        "TSX_DISABLE_CACHE": "1",
+        "TSX_CACHE_DIR": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA/tsx-cache-disabled"
+      },
+      "pid": 43910,
+      "status": 0,
+      "signal": null,
+      "killed": false,
+      "reaped": true,
+      "groupAbsent": true
+    },
+    {
+      "label": "legacy9-C8",
+      "args": [
+        "--unhandled-rejections=strict",
+        "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA/historical-controls.mjs",
+        "C8"
+      ],
+      "cwd": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA",
+      "env": {
+        "PATH": "/usr/bin:/bin",
+        "LANG": "C",
+        "LC_ALL": "C",
+        "TZ": "UTC",
+        "HOME": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA",
+        "TMPDIR": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA",
+        "TMP": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA",
+        "TEMP": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA",
+        "TSX_DISABLE_CACHE": "1",
+        "TSX_CACHE_DIR": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA/tsx-cache-disabled"
+      },
+      "pid": 43911,
+      "status": 0,
+      "signal": null,
+      "killed": false,
+      "reaped": true,
+      "groupAbsent": true
+    },
+    {
+      "label": "legacy9-C9",
+      "args": [
+        "--unhandled-rejections=strict",
+        "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA/historical-controls.mjs",
+        "C9"
+      ],
+      "cwd": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA",
+      "env": {
+        "PATH": "/usr/bin:/bin",
+        "LANG": "C",
+        "LC_ALL": "C",
+        "TZ": "UTC",
+        "HOME": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA",
+        "TMPDIR": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA",
+        "TMP": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA",
+        "TEMP": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA",
+        "TSX_DISABLE_CACHE": "1",
+        "TSX_CACHE_DIR": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA/tsx-cache-disabled"
+      },
+      "pid": 43912,
+      "status": 0,
+      "signal": null,
+      "killed": false,
+      "reaped": true,
+      "groupAbsent": true
+    },
+    {
+      "label": "new-consumer-typecheck",
+      "args": [
+        "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/bin/tsc",
+        "--noEmit",
+        "--listFiles",
+        "--strict",
+        "--target",
+        "ES2023",
+        "--module",
+        "NodeNext",
+        "--moduleResolution",
+        "NodeNext",
+        "--types",
+        "node",
+        "--typeRoots",
+        "/Users/kjopek/Workspace/safe-bash/node_modules/@types",
+        "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA/consumer.mts"
+      ],
+      "cwd": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA",
+      "env": {
+        "PATH": "/usr/bin:/bin",
+        "LANG": "C",
+        "LC_ALL": "C",
+        "TZ": "UTC",
+        "HOME": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA",
+        "TMPDIR": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA",
+        "TMP": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA",
+        "TEMP": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA",
+        "TSX_DISABLE_CACHE": "1",
+        "TSX_CACHE_DIR": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA/tsx-cache-disabled"
+      },
+      "pid": 43913,
+      "status": 0,
+      "signal": null,
+      "killed": false,
+      "reaped": true,
+      "groupAbsent": true
+    },
+    {
+      "label": "new-consumer-runtime",
+      "args": [
+        "--unhandled-rejections=strict",
+        "--import",
+        "/Users/kjopek/Workspace/safe-bash/node_modules/tsx/dist/loader.mjs",
+        "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA/consumer.mts"
+      ],
+      "cwd": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA",
+      "env": {
+        "PATH": "/usr/bin:/bin",
+        "LANG": "C",
+        "LC_ALL": "C",
+        "TZ": "UTC",
+        "HOME": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA",
+        "TMPDIR": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA",
+        "TMP": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA",
+        "TEMP": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA",
+        "TSX_DISABLE_CACHE": "1",
+        "TSX_CACHE_DIR": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA/tsx-cache-disabled"
+      },
+      "pid": 43926,
+      "status": 0,
+      "signal": null,
+      "killed": false,
+      "reaped": true,
+      "groupAbsent": true
+    }
+  ]
+}

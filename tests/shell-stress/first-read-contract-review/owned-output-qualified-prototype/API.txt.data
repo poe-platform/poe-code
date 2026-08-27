@@ -1,0 +1,52 @@
+QUALIFIED TEMP API Q1 — published 2026-08-27 before source changes; no promotion.
+S1 authenticated source 6de9b96c7286cc320379d8f7f720f3d1a5ecffdc24b7268b198859550362feea.
+Task candidate /tmp/safe-bash-owned-output-qualified-prototype-C5XVrA/candidate
+Compiled import (after copied build): dist/index.js; dist/contracts/output.js
+Declaration: dist/contracts/output.d.ts. S2 MAY equal S1; no new helper planned.
+
+export type InvocationCleanup = () => void | Promise<void>;
+export interface ByteSink {
+  readonly ownedOutput?: {
+    readonly consumerClosed: AbortSignal;
+    write(chunk: Uint8Array): Promise<void>;
+  };
+  write(chunk: Uint8Array): Promise<void>;
+}
+export interface OutputOperation {
+  readonly signal: AbortSignal;
+  readonly output: ByteSink;
+  child(destination: ByteSink): OutputOperation;
+  registerCleanup(cleanup: InvocationCleanup): void;
+  acquire<Value>(start: (signal: AbortSignal) => Value | Promise<Value>,
+    release: (resource: Value) => void | Promise<void>): Promise<Value>;
+  close(): Promise<void>;
+}
+export declare function createOutputOperation(
+  context: Pick<CommandContext, "signal" | "registerCleanup">,
+  destination: ByteSink): OutputOperation;
+CommandContext.registerCleanup?: (cleanup: InvocationCleanup) => void is existing.
+TEMP HttpRequest.registerCleanup?: (cleanup: InvocationCleanup) => void is unchanged S1.
+
+Public selection remains registerCleanup contract: caller abort exact reason >
+selected execution rejection > cleanup failure (single unchanged, multiple aggregate).
+Local thrown IO identity is independent of public outcome. Normal close does not abort
+or later retroactively abort the local signal. AbortController.abort(undefined) defaults
+its reason; no literal-undefined native-abort claim. No competing precedence API.
+Owned code MUST preserve its primary using an explicit failed boolean and captured value;
+await close with both outcomes observed, rethrow primary if present, else cleanup failure.
+The same registered close promise leaves secondary failure visible to invocation drain.
+Never use blanket finally-close-masks-primary or unconditional catch-to-success.
+Direct hosts may omit registration; close remains required and cleanup-only rejects.
+
+Synchronous registration precedes admission. Parent close closes admission and cooperative
+children, sharing settlement. Child close is independent. No opaque handler wait/lease.
+Known cat/curl enroll; arbitrary commands opt in. No prebuffer or demand gate. Operation
+does not return borrowed stdin or abort sibling/file/stderr; top-level ownership unchanged.
+Known stdout closure allows no write attempt but must retain requested writeout's existing
+status/error semantics. Required file/header and independent stderr work remain separate.
+Capture profile current cbdddeb2d6b319c688c38573e89b334dd5fab66f11403f8469e543dfd92f54b9
+at 2026-08-27T12:13:59.628Z..12:14:00.623Z; dirty HEAD e0aa2d2314de815dcf2773889c5a46ae2d04ed8e.
+Relevant current curl/runtime bytes equal original pre-operation capture, not S1.
+Native oracle is separately pinned local curl8.7.1/Bash3.2 Darwin; not product policy.
+SAFEJS PRIVILEGED FACADE/GUEST MEMBRANE AUDIT: NOT AUDITED. Required before promotion.
+Audit ownedOutput/consumerClosed/accounted-write/cleanup hooks; no metadata safety assumption.

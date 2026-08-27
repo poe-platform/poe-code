@@ -1,0 +1,27 @@
+import { createOutputOperation, MemoryFileSystem, Shell, type ByteSink, type OutputOperation } from './candidate/dist/index.js';
+async function executeOwned<Value>(operation: OutputOperation, execute: () => Promise<Value>): Promise<Value> {
+  let failed = false;
+  let failure: unknown;
+  let result: Value | undefined;
+  try { result = await execute(); } catch (error) { failed = true; failure = error; }
+  let cleanupFailed = false;
+  let cleanupFailure: unknown;
+  try { await operation.close(); } catch (error) { cleanupFailed = true; cleanupFailure = error; }
+  if (failed) throw failure;
+  if (cleanupFailed) throw cleanupFailure;
+  return result as Value;
+}
+const sink: ByteSink = { async write() {} };
+const shell = new Shell({ fs: new MemoryFileSystem() });
+shell.register({ name: 'typed-owned', async execute(context) {
+  const parent: OutputOperation = createOutputOperation(context, sink);
+  return executeOwned(parent, async () => {
+    const child = parent.child(sink);
+    await child.acquire(() => new Uint8Array([0, 255]), async bytes => { await sink.write(bytes); });
+    await child.close();
+    return { exitCode: 0 };
+  });
+} });
+const result = await shell.exec('typed-owned');
+await shell.dispose();
+if (result.exitCode !== 0) throw new Error('Typed consumer failed');

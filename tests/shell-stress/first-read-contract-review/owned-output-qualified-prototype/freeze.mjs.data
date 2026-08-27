@@ -1,0 +1,24 @@
+import assert from 'node:assert/strict';
+import { readFileSync, writeFileSync, copyFileSync, existsSync } from 'node:fs';
+import { createHash } from 'node:crypto';
+import { spawnSync } from 'node:child_process';
+import { resolve } from 'node:path';
+const root = '/Users/kjopek/Workspace/safe-bash';
+const task = '/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA';
+const owned = resolve(root, 'tests/shell-stress/first-read-contract-review/owned-output-qualified-prototype');
+const hash = bytes => createHash('sha256').update(bytes).digest('hex');
+const env = { PATH: '/usr/bin:/bin', HOME: task, CURL_HOME: task, TMPDIR: task, TMP: task, TEMP: task, LANG: 'C', LC_ALL: 'C' };
+const run = (command, args) => {
+  const result = spawnSync(command, args, { env, encoding: 'utf8', timeout: 10000 });
+  assert.equal(result.error, undefined); assert.equal(result.status, 0); assert.throws(() => process.kill(result.pid, 0), { code: 'ESRCH' });
+  return { command, args, pid: result.pid, status: result.status, stdout: result.stdout, stderr: result.stderr, sha256: hash(readFileSync(command)) };
+};
+const files = ['prepare.mjs', 'build.mjs', 'controls.mjs', 'native-helper.mjs', 'baseline-snapshot.json', 'build-identities.json'].map(name => ({ path: resolve(task, name), sha256: hash(readFileSync(resolve(task, name))) }));
+const api = '/tmp/safe-bash-owned-output-qualified-prototype-api.txt';
+copyFileSync(api, resolve(owned, 'API.txt.data'));
+const contract = ['CONTRACT.md', 'PRE-RUN.md', 'BASELINE.md', 'API.txt.data'].map(name => ({ path: resolve(owned, name), sha256: hash(readFileSync(resolve(owned, name))) }));
+const tools = [run('/usr/bin/curl', ['-q', '--version']), run('/bin/bash', ['--noprofile', '--norc', '--version']), run('/usr/bin/uname', ['-a']), run('/usr/bin/otool', ['-L', '/usr/bin/curl']), run('/usr/bin/otool', ['-L', '/bin/bash']), run(process.execPath, ['--version'])];
+const frozen = { frozenAt: new Date().toISOString(), sourceChanges: 0, apiSha256: hash(readFileSync(api)), files, contract, tools, logicalControls: 4, curlProfiles: 8, separateCurlCohorts: ['original-preoperation', 'current-capture', 'candidate', 'native'], focusedPrecedenceParameters: 12, nativeLibraryQualification: 'Actual curl --version and otool runtime-library metadata pinned. System dyld shared-cache library contents not separately hashed; no universal binary/library equivalence.', callerProfile: 'Native AbortController only; no synthetic reasonundefined', executionEnvironment: env };
+assert.equal(existsSync(resolve(task, 'freeze-r0.json')), false);
+writeFileSync(resolve(task, 'freeze-r0.json'), JSON.stringify(frozen, null, 2) + '\n');
+console.log(JSON.stringify({ frozenAt: frozen.frozenAt, files, contract }, null, 2));

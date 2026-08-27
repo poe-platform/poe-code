@@ -1,0 +1,50 @@
+import assert from 'node:assert/strict';
+import { readFileSync, readdirSync, mkdirSync, copyFileSync, writeFileSync, chmodSync, statSync } from 'node:fs';
+import { resolve, relative } from 'node:path';
+import { createHash } from 'node:crypto';
+import { spawnSync } from 'node:child_process';
+const root = '/Users/kjopek/Workspace/safe-bash';
+const task = '/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA';
+const owned = resolve(root, 'tests/shell-stress/first-read-contract-review/owned-output-qualified-prototype');
+const hash = bytes => createHash('sha256').update(bytes).digest('hex');
+const walk = directory => readdirSync(directory, { withFileTypes: true }).flatMap(entry => entry.isDirectory() ? walk(resolve(directory, entry.name)) : entry.isFile() ? [resolve(directory, entry.name)] : []).sort();
+const inventory = (base, directory) => walk(resolve(base, directory)).map(path => ({ path: relative(base, path), bytes: readFileSync(path).length, sha256: hash(readFileSync(path)) }));
+const builds = JSON.parse(readFileSync(resolve(task, 'build-identities.json')));
+const snapshot = JSON.parse(readFileSync(resolve(task, 'baseline-snapshot.json')));
+const current = resolve(task, 'current-capture');
+for (const entry of snapshot.current.before) assert.equal(hash(readFileSync(resolve(current, entry.path))), entry.sha256);
+for (const entry of snapshot.compilerInputs.filter(entry => entry.classification === 'existing-authenticated-development-tooling')) assert.equal(hash(readFileSync(entry.path)), entry.sha256);
+const children = []; const archives = [];
+for (const record of builds.records) {
+  const base = resolve(task, record.name);
+  assert.deepEqual(inventory(base, 'src'), record.source);
+  assert.deepEqual(inventory(base, 'dist'), record.compiled);
+  if (record.tests.length) assert.deepEqual(inventory(base, 'tests'), record.tests);
+  for (const input of record.inputs) assert.equal(hash(readFileSync(input.path)), input.sha256);
+  const members = ['src', 'dist', ...(record.tests.length ? ['tests'] : []), 'package.json', 'package-lock.json', 'tsconfig.json', 'tsconfig.build.json'];
+  const path = resolve(owned, record.name + '.tar.gz.data');
+  const result = spawnSync('/usr/bin/tar', ['-czf', path, ...members], { cwd: base, env: { PATH: '/usr/bin:/bin', COPYFILE_DISABLE: '1' }, encoding: 'utf8', timeout: 20000, maxBuffer: 1024 * 1024 });
+  assert.equal(result.error, undefined); assert.equal(result.status, 0, result.stderr); assert.throws(() => process.kill(result.pid, 0), { code: 'ESRCH' });
+  children.push({ pid: result.pid, status: result.status, signal: result.signal, reaped: true });
+  archives.push({ name: record.name, path: relative(owned, path), bytes: statSync(path).size, sha256: hash(readFileSync(path)), files: members.flatMap(member => statSync(resolve(base, member)).isDirectory() ? inventory(base, member) : [{ path: member, bytes: statSync(resolve(base, member)).size, sha256: hash(readFileSync(resolve(base, member))) }]) });
+  for (const member of members) {
+    const lock = path => { if (statSync(path).isDirectory()) { for (const name of readdirSync(path)) lock(resolve(path, name)); chmodSync(path, 0o555); } else chmodSync(path, 0o444); };
+    lock(resolve(base, member));
+  }
+  chmodSync(base, 0o555);
+}
+for (const name of readdirSync(task)) {
+  if (name.endsWith('.mjs') || name.endsWith('.mts')) copyFileSync(resolve(task, name), resolve(owned, name + '.data'));
+  if (name.endsWith('.json')) copyFileSync(resolve(task, name), resolve(owned, name));
+}
+mkdirSync(resolve(owned, 'history'), { recursive: true });
+for (const name of readdirSync(resolve(task, 'history'))) copyFileSync(resolve(task, 'history', name), resolve(owned, 'history', name));
+mkdirSync(resolve(owned, 'declarations'), { recursive: true });
+for (const name of ['output', 'io', 'command']) copyFileSync(resolve(task, 'candidate/dist/contracts', name + '.d.ts'), resolve(owned, 'declarations', name + '.d.ts.data'));
+const publicApi = readFileSync('/tmp/safe-bash-owned-output-qualified-prototype-api.txt');
+assert.equal(hash(publicApi), hash(readFileSync(resolve(owned, 'API.txt.data'))));
+const tools = ['/usr/bin/tar', '/usr/bin/git', process.execPath].map(path => ({ path, sha256: hash(readFileSync(path)) }));
+const sourceProfile = { sealedAt: new Date().toISOString(), status: 'SEALED_READONLY_AWAIT_ROOT_OBSERVED_AUTHOR_EXIT', liveImplementedThrough: 'Not applicable', version: 'S2 source equals S1; Q1 contract/profile clarification only', sourceManifestSha256: snapshot.authenticatedS1.source, testManifestSha256: snapshot.authenticatedS1.tests, compiledManifestSha256: snapshot.authenticatedS1.compiled, sourceFixRounds: 0, apiSha256: hash(publicApi), contractSha256: hash(readFileSync(resolve(owned, 'CONTRACT.md'))), candidate: resolve(task, 'candidate'), importPath: resolve(task, 'candidate/dist/index.js'), operationImportPath: resolve(task, 'candidate/dist/contracts/output.js'), declarationPath: resolve(task, 'candidate/dist/contracts/output.d.ts'), archives, tools, children, safejsAudit: 'NOT AUDITED; privileged membrane audit required before promotion', qualifier: 'No current release gate. API/source contracts proposed; raw failures and gaps retained. Author does not write root readiness marker.' };
+writeFileSync(resolve(owned, 'SOURCE-PROFILE.json'), JSON.stringify(sourceProfile, null, 2) + '\n');
+writeFileSync(resolve(task, 'source-profile.json'), JSON.stringify(sourceProfile, null, 2) + '\n');
+console.log(JSON.stringify({ source: sourceProfile.sourceManifestSha256, tests: sourceProfile.testManifestSha256, compiled: sourceProfile.compiledManifestSha256, api: sourceProfile.apiSha256, contract: sourceProfile.contractSha256, archives: archives.map(({ files, ...archive }) => archive) }, null, 2));

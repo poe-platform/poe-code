@@ -1,0 +1,31 @@
+{
+  "label": "optin-first-read-local",
+  "args": [
+    "--unhandled-rejections=strict",
+    "--import",
+    "tsx",
+    "tests/shell/adapted-first-read-probe.ts",
+    "first-read-local"
+  ],
+  "cwd": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA/candidate",
+  "env": {
+    "PATH": "/usr/bin:/bin",
+    "LANG": "C",
+    "LC_ALL": "C",
+    "TZ": "UTC",
+    "HOME": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA",
+    "TMPDIR": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA",
+    "TMP": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA",
+    "TEMP": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA",
+    "TSX_DISABLE_CACHE": "1",
+    "TSX_CACHE_DIR": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA/tsx-cache-disabled"
+  },
+  "pid": 43886,
+  "status": 0,
+  "signal": null,
+  "killed": false,
+  "reaped": true,
+  "groupAbsent": true,
+  "stdout": "first-read-local: passed\n{\"scenario\":\"first-read-local\",\"active\":0,\"reads\":1,\"returned\":1,\"writes\":0,\"stageAborted\":false,\"operationAborted\":true,\"abortedBeforeTeardown\":false,\"events\":[\"source.next:pending-before-first-byte\",\"command.settled:head:0\",\"source.finally\",\"command.settled:pending-stream:141\",\"command.settled:true:0\"]}\n",
+  "stderr": ""
+}

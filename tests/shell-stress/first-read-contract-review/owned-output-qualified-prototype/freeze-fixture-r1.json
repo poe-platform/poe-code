@@ -1,0 +1,6 @@
+{
+  "frozenAt": "2026-08-27T12:23:16.112Z",
+  "sourceChanges": 0,
+  "change": "authorizer NetworkAuthorization.url shape only; no precedence re-execution or expectation alteration",
+  "sha256": "d3fe5300e1e16ad5b6f7bb5011330dcff9b629ac45952d35e9fb1791eeab71f8"
+}

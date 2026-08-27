@@ -1,0 +1,6 @@
+{
+  "frozenAt": "2026-08-27T12:23:41.555Z",
+  "sourceChanges": 0,
+  "change": "await actual socket close promises rather than one turn",
+  "sha256": "a89cc03edfef3c163e1e80559185802882ec0ad6426bd08c2264b7cb7f7be139"
+}

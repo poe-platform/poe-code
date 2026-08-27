@@ -1,0 +1,34 @@
+import assert from 'node:assert/strict';
+import { readFileSync, readdirSync, mkdtempSync, mkdirSync, chmodSync, writeFileSync, symlinkSync, statSync } from 'node:fs';
+import { resolve } from 'node:path';
+import { spawnSync } from 'node:child_process';
+import { createHash } from 'node:crypto';
+const root = '/Users/kjopek/Workspace/safe-bash';
+const owned = resolve(root, 'tests/shell-stress/first-read-contract-review/owned-output-qualified-prototype');
+const profile = JSON.parse(readFileSync(resolve(owned, 'SOURCE-PROFILE.json')));
+const hash = bytes => createHash('sha256').update(bytes).digest('hex');
+for (const tool of profile.tools) assert.equal(hash(readFileSync(tool.path)), tool.sha256);
+const task = mkdtempSync('/tmp/safe-bash-owned-output-qualified-prototype-restore-');
+const children = []; const restored = [];
+for (const archive of profile.archives) {
+  const file = resolve(owned, archive.path); assert.equal(hash(readFileSync(file)), archive.sha256);
+  const base = resolve(task, archive.name); mkdirSync(base);
+  const run = args => {
+    const result = spawnSync('/usr/bin/tar', args, { encoding: 'utf8', timeout: 15000, maxBuffer: 4 * 1024 * 1024 });
+    assert.equal(result.error, undefined); assert.equal(result.status, 0, result.stderr); assert.throws(() => process.kill(result.pid, 0), { code: 'ESRCH' });
+    children.push({ pid: result.pid, args, status: result.status, signal: result.signal, reaped: true });
+    return result.stdout;
+  };
+  const names = run(['-tzf', file]).trim().split('\n');
+  assert.ok(names.every(name => !name.startsWith('/') && !name.split('/').includes('..')));
+  run(['-xzf', file, '-C', base]);
+  for (const entry of archive.files) assert.equal(hash(readFileSync(resolve(base, entry.path))), entry.sha256, entry.path);
+  const actualFiles = directory => readdirSync(directory, { withFileTypes: true }).flatMap(entry => entry.isDirectory() ? actualFiles(resolve(directory, entry.name)) : entry.isFile() ? [resolve(directory, entry.name)] : []);
+  assert.equal(actualFiles(base).length, archive.files.length);
+  const lock = path => { if (statSync(path).isDirectory()) { for (const name of readdirSync(path)) lock(resolve(path, name)); chmodSync(path, 0o555); } else chmodSync(path, 0o444); };
+  lock(base);
+  restored.push({ name: archive.name, base, filesMatched: archive.files.length, archiveSha256: archive.sha256, readonly: true });
+}
+const proof = { completedAt: new Date().toISOString(), task, sourceProfileSha256: hash(readFileSync(resolve(owned, 'SOURCE-PROFILE.json'))), sourceManifestSha256: profile.sourceManifestSha256, testManifestSha256: profile.testManifestSha256, compiledManifestSha256: profile.compiledManifestSha256, sourceFallback: false, rebuilt: false, qualifier: 'Exact source/tests/config/compiled archive restoration. Original copied build/typecheck evidence remains separate; no live build or independent acceptance claimed.', restored, children };
+writeFileSync(resolve(task, 'reconstruction-proof.json'), JSON.stringify(proof, null, 2) + '\n');
+console.log(JSON.stringify(proof, null, 2));

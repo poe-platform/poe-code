@@ -1,0 +1,29 @@
+{
+  "label": "legacy9-C4",
+  "args": [
+    "--unhandled-rejections=strict",
+    "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA/historical-controls.mjs",
+    "C4"
+  ],
+  "cwd": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA",
+  "env": {
+    "PATH": "/usr/bin:/bin",
+    "LANG": "C",
+    "LC_ALL": "C",
+    "TZ": "UTC",
+    "HOME": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA",
+    "TMPDIR": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA",
+    "TMP": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA",
+    "TEMP": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA",
+    "TSX_DISABLE_CACHE": "1",
+    "TSX_CACHE_DIR": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA/tsx-cache-disabled"
+  },
+  "pid": 43902,
+  "status": 0,
+  "signal": null,
+  "killed": false,
+  "reaped": true,
+  "groupAbsent": true,
+  "stdout": "{\"scenario\":\"C4\",\"verdict\":\"PASS\",\"result\":{\"stdout\":\"\",\"stderr\":\"\",\"exitCode\":0,\"effect\":\"kept\"},\"cleanup\":1,\"reads\":0,\"events\":[{\"order\":1,\"value\":\"middleware.enter:set\"},{\"order\":2,\"value\":\"middleware.finally:set\"},{\"order\":3,\"value\":\"middleware.enter:produce\"},{\"order\":4,\"value\":\"producer.invoked\"},{\"order\":5,\"value\":\"middleware.enter:consume\"},{\"order\":6,\"value\":\"consumer.invoked\"},{\"order\":7,\"value\":\"consumer.return:no-more-reads\"},{\"order\":8,\"value\":\"middleware.finally:consume\"},{\"order\":9,\"value\":\"producer.after-downstream-close\"},{\"order\":10,\"value\":\"effect:kept\"},{\"order\":11,\"value\":\"producer.finally:live\"},{\"order\":12,\"value\":\"middleware.finally:produce\"},{\"order\":13,\"value\":\"public.exec.settled\"}]}\n{\"scenario\":\"C4\",\"teardown\":\"disposed\",\"cleanup\":1}\n",
+  "stderr": ""
+}

@@ -1,0 +1,38 @@
+import assert from 'node:assert/strict';
+import { readFileSync, readdirSync, statSync, writeFileSync, copyFileSync } from 'node:fs';
+import { resolve, relative } from 'node:path';
+import { createHash } from 'node:crypto';
+import { spawnSync } from 'node:child_process';
+const root = '/Users/kjopek/Workspace/safe-bash';
+const task = '/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA';
+const owned = resolve(root, 'tests/shell-stress/first-read-contract-review/owned-output-qualified-prototype');
+const hash = bytes => createHash('sha256').update(bytes).digest('hex');
+const walk = directory => readdirSync(directory, { withFileTypes: true }).flatMap(entry => entry.isDirectory() ? walk(resolve(directory, entry.name)) : entry.isFile() ? [resolve(directory, entry.name)] : []).sort();
+const profile = JSON.parse(readFileSync(resolve(owned, 'SOURCE-PROFILE.json')));
+for (const archive of profile.archives) {
+  assert.equal(hash(readFileSync(resolve(owned, archive.path))), archive.sha256);
+  for (const entry of archive.files) {
+    const path = resolve(task, archive.name, entry.path);
+    assert.equal(hash(readFileSync(path)), entry.sha256); assert.equal(statSync(path).mode & 0o222, 0);
+  }
+}
+assert.equal(hash(readFileSync(resolve(owned, 'CONTRACT.md'))), profile.contractSha256);
+assert.equal(hash(readFileSync('/tmp/safe-bash-owned-output-qualified-prototype-api.txt')), profile.apiSha256);
+const curl = JSON.parse(readFileSync(resolve(task, 'results-curl.json')));
+const historical = JSON.parse(readFileSync(resolve(task, 'history-summary.json')));
+const native = curl.curl.filter(record => record.profile.startsWith('native-'));
+for (const record of [...native, ...historical.records]) {
+  assert.throws(() => process.kill(record.pid, 0), { code: 'ESRCH' });
+  assert.throws(() => process.kill(-record.pid, 0), { code: 'ESRCH' });
+}
+assert.ok(curl.curl.every(record => record.closure.sockets === 0 && record.closure.tasks === 0 && !record.closure.listening));
+const checker = '/Users/kjopek/.codex/skills/write-spec/scripts/check_spec.py';
+const checked = spawnSync('python3', [checker, resolve(owned, 'CONTRACT.md')], { encoding: 'utf8', timeout: 10000 });
+assert.equal(checked.status, 0); assert.throws(() => process.kill(checked.pid, 0), { code: 'ESRCH' });
+const closure = { recordedAt: new Date().toISOString(), sourceAfterBuildAndExecutionAuthenticated: true, candidateReadonly: true, curlRecordCount: curl.curl.length, nativeChildrenReaped: native.length, historicalAndConsumerChildrenReaped: historical.records.length, nativeAndHistoricalProcessGroupsAbsent: true, socketsAndFixtureTasksZero: true, noOpaqueFixtureProcessLeft: true, noHardSupervisorKills: historical.records.every(record => !record.killed), originalHistoricalFailuresPreserved: true, rootObservedAuthorExit: false, qualifier: 'This finite verification process is not the leaf agent exit. Root must observe actual author return; no readiness marker is written.', specCheck: { checker, checkerSha256: hash(readFileSync(checker)), status: checked.status, stdout: checked.stdout, stderr: checked.stderr } };
+writeFileSync(resolve(owned, 'closure.json'), JSON.stringify(closure, null, 2) + '\n');
+copyFileSync(resolve(task, 'finish-evidence.mjs'), resolve(owned, 'finish-evidence.mjs.data'));
+const artifacts = walk(owned).filter(path => !path.endsWith('/ARTIFACTS.json')).map(path => ({ path: relative(owned, path), bytes: statSync(path).size, sha256: hash(readFileSync(path)) }));
+assert.ok(artifacts.every(entry => !/\.(?:mjs|js|mts|ts|cjs|sh)$/.test(entry.path)), 'Repository contains executable prototype instead of inert capture');
+writeFileSync(resolve(owned, 'ARTIFACTS.json'), JSON.stringify({ recordedAt: closure.recordedAt, files: artifacts }, null, 2) + '\n');
+console.log(JSON.stringify({ ...closure, artifactCount: artifacts.length }, null, 2));

@@ -1,0 +1,82 @@
+{
+  "completedAt": "2026-08-27T12:25:23.313Z",
+  "records": [
+    {
+      "id": "P05",
+      "binding": "Same frozen value parameter, separate explicit outer syntax-diagnostic sink rejection after command-status conversion; not silent command-throw promotion",
+      "passed": false,
+      "public": {
+        "kind": "Error",
+        "name": "Error",
+        "message": "cleanup"
+      },
+      "localIdentity": true,
+      "publicIdentity": false,
+      "selectedSeen": false,
+      "cleanupIdentity": true,
+      "cleanupCalls": 1,
+      "operationAborted": false,
+      "events": [
+        "local-throw",
+        "cleanup",
+        {
+          "diagnostic": "shell: line 1: 0\n"
+        },
+        {
+          "diagnostic": "shell: Expected command at offset 9\n"
+        }
+      ]
+    },
+    {
+      "id": "P06",
+      "binding": "Same frozen value parameter, separate explicit outer syntax-diagnostic sink rejection after command-status conversion; not silent command-throw promotion",
+      "passed": false,
+      "public": {
+        "kind": "Error",
+        "name": "Error",
+        "message": "cleanup"
+      },
+      "localIdentity": true,
+      "publicIdentity": false,
+      "selectedSeen": false,
+      "cleanupIdentity": true,
+      "cleanupCalls": 1,
+      "operationAborted": false,
+      "events": [
+        "local-throw",
+        "cleanup",
+        {
+          "diagnostic": "shell: line 1: undefined\n"
+        },
+        {
+          "diagnostic": "shell: Expected command at offset 9\n"
+        }
+      ]
+    },
+    {
+      "id": "P07",
+      "binding": "Same frozen value parameter, separate explicit outer syntax-diagnostic sink rejection after command-status conversion; not silent command-throw promotion",
+      "passed": false,
+      "public": {
+        "kind": "number",
+        "value": 0
+      },
+      "localIdentity": true,
+      "publicIdentity": false,
+      "selectedSeen": false,
+      "cleanupIdentity": true,
+      "cleanupCalls": 1,
+      "operationAborted": false,
+      "events": [
+        "local-throw",
+        "cleanup",
+        {
+          "diagnostic": "shell: line 1: local IO\n"
+        },
+        {
+          "diagnostic": "shell: Expected command at offset 9\n"
+        }
+      ]
+    }
+  ]
+}

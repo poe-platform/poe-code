@@ -1,0 +1,12 @@
+import type { CommandContext, InvocationCleanup } from "./command.js";
+import { type ByteSink } from "./io.js";
+export interface OutputOperation {
+    readonly signal: AbortSignal;
+    readonly output: ByteSink;
+    child(destination: ByteSink): OutputOperation;
+    registerCleanup(cleanup: InvocationCleanup): void;
+    acquire<Value>(start: (signal: AbortSignal) => Value | Promise<Value>, release: (resource: Value) => void | Promise<void>): Promise<Value>;
+    close(): Promise<void>;
+}
+export declare function createOutputOperation(context: Pick<CommandContext, "signal" | "registerCleanup">, destination: ByteSink): OutputOperation;
+//# sourceMappingURL=output.d.ts.map

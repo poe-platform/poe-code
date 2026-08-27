@@ -1,0 +1,31 @@
+{
+  "label": "original-first-read-local",
+  "args": [
+    "--unhandled-rejections=strict",
+    "--import",
+    "tsx",
+    "tests/shell/first-read-probe.ts",
+    "first-read-local"
+  ],
+  "cwd": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA/candidate",
+  "env": {
+    "PATH": "/usr/bin:/bin",
+    "LANG": "C",
+    "LC_ALL": "C",
+    "TZ": "UTC",
+    "HOME": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA",
+    "TMPDIR": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA",
+    "TMP": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA",
+    "TEMP": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA",
+    "TSX_DISABLE_CACHE": "1",
+    "TSX_CACHE_DIR": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA/tsx-cache-disabled"
+  },
+  "pid": 43862,
+  "status": 1,
+  "signal": null,
+  "killed": false,
+  "reaped": true,
+  "groupAbsent": true,
+  "stdout": "{\"scenario\":\"first-read-local\",\"active\":1,\"reads\":1,\"returned\":0,\"abortedBeforeTeardown\":false,\"events\":[\"source.next:pending-before-first-byte\",\"command.settled:head:0\"]}\n",
+  "stderr": "/private/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA/candidate/tests/stress/remote-cancellation/helpers.ts:29\n      timer = setTimeout(() => reject(new Error(`DEADLINE: ${label} (${milliseconds}ms)`)), milliseconds);\n                                      ^\n\nError: DEADLINE: first-read-local (1200ms)\n    at Timeout.<anonymous> (/private/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA/candidate/tests/stress/remote-cancellation/helpers.ts:29:39)\n    at listOnTimeout (node:internal/timers:585:17)\n    at process.processTimers (node:internal/timers:521:7)\n\nNode.js v22.22.2\n"
+}

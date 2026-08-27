@@ -1,0 +1,31 @@
+{
+  "label": "original-first-read-curl-headers",
+  "args": [
+    "--unhandled-rejections=strict",
+    "--import",
+    "tsx",
+    "tests/shell/first-read-probe.ts",
+    "first-read-curl-headers"
+  ],
+  "cwd": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA/candidate",
+  "env": {
+    "PATH": "/usr/bin:/bin",
+    "LANG": "C",
+    "LC_ALL": "C",
+    "TZ": "UTC",
+    "HOME": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA",
+    "TMPDIR": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA",
+    "TMP": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA",
+    "TEMP": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA",
+    "TSX_DISABLE_CACHE": "1",
+    "TSX_CACHE_DIR": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA/tsx-cache-disabled"
+  },
+  "pid": 43884,
+  "status": 1,
+  "signal": null,
+  "killed": false,
+  "reaped": true,
+  "groupAbsent": true,
+  "stdout": "{\"scenario\":\"first-read-curl-headers\",\"active\":1,\"reads\":1,\"returned\":0,\"abortedBeforeTeardown\":false,\"events\":[\"http.socket.open\",\"http.request:GET:/dav/input\",\"http.GET:pending-before-first-byte\",\"command.settled:head:0\",\"command.settled:curl:141\",\"command.settled:true:0\"]}\n",
+  "stderr": "node:internal/modules/run_main:123\n    triggerUncaughtException(\n    ^\n\nAssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\nfalse !== true\n\n    at <anonymous> (/private/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA/candidate/tests/shell/first-read-probe.ts:103:12) {\n  generatedMessage: true,\n  code: 'ERR_ASSERTION',\n  actual: false,\n  expected: true,\n  operator: 'strictEqual',\n  diff: 'simple'\n}\n\nNode.js v22.22.2\n"
+}

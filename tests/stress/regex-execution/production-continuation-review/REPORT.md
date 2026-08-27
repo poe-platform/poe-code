@@ -19,9 +19,15 @@ were made by this verifier. All six additional pathological probes remain UNUSED
   `FileSystemCapabilities.snapshotRmdir` type field. This is not a regex-only
   whole-repository differential or a gate on the moving worktree.
 - The original24 command fixtures and production-final triples are reused,
-  including the already-approved named-backreference rejection. Historical
-  handwritten expectation disagreements and the old packaging false-positive
-  remain unchanged. All510 tracked prior production-review identities verify.
+  including retained JS named-backreference acceptance (`rg-namedbackref`): argv
+  `["rg", "(?<word>a)\\k<word>", "-"]`, stdin `aa\n`; expected and observed status0,
+  stdout `aa\n` (base64 `YWEK`), empty stderr in original baseline/final and all
+  three continuation captures. Frozen native default-engine rg15.2.0 instead
+  returns status2, empty stdout, `unrecognized escape sequence` parse-error stderr.
+  Explicit default-rg rejection was permitted subject to oracle proof, not
+  implemented or accepted as a dialect migration. Historical handwritten
+  expectation disagreements and the old packaging false-positive remain
+  unchanged. All510 tracked prior production-review identities verify.
 
 ## Separate replay denominators
 

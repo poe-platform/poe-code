@@ -1,0 +1,121 @@
+{
+  "classification": "static finite preparation artifact seal, no product qualification",
+  "freezeCommit": "266abd7c85bd3d33981ce4e7985a59d2a7485c0c",
+  "preparationParentHead": "547160e8a81d07a7f78de3092321c217e51c5f3c",
+  "sealedAt": "2026-08-27T12:22:58.888Z",
+  "scope": "all existing owned files except this seal; later Final-result.txt and its commit are separate handoff metadata",
+  "files": [
+    {
+      "path": "binding-map.json",
+      "bytes": 36454,
+      "sha256": "f1cdac57e9665f4bb91a483b1d984e40691c45274583fb4b3402ba6afae79233"
+    },
+    {
+      "path": "binding-requirements.json",
+      "bytes": 2783,
+      "sha256": "12621990340392da79627afc2eb7c016344640140f65f544835f0ee8bd35662d"
+    },
+    {
+      "path": "driver-qualified-delta.patch-data",
+      "bytes": 8903,
+      "sha256": "3122439861df1539fb6cbfa9c2f92e896eb7cb58a33fc1cac0ed0dae66d78b52"
+    },
+    {
+      "path": "driver-qualified.mjs.data",
+      "bytes": 54514,
+      "sha256": "66d145aa6c06f717fcf2e50330ae76c3ac846899b5a351b3ebebea14d0de99c3"
+    },
+    {
+      "path": "extra-parameters.json",
+      "bytes": 4477,
+      "sha256": "f7dca112cd1e7a62999e6ef823142cb2780cbac52f7a1e873150e7aad1998bda"
+    },
+    {
+      "path": "FREEZE.md",
+      "bytes": 8803,
+      "sha256": "0e560ee1a35d729e6669087ce79403264d84cbbb2dff8e3710839701e2d54b8a"
+    },
+    {
+      "path": "historical/binding-map.json.data",
+      "bytes": 24201,
+      "sha256": "2fb108c178225e3381c693fb796a13b53389a2db74607158c608af9c3b4eb3f2"
+    },
+    {
+      "path": "historical/case-plan.json.data",
+      "bytes": 3672,
+      "sha256": "03dfb836e8aa16a107c5ba344981aa4df58131a78f57df3354ac0695f69bf3dd"
+    },
+    {
+      "path": "historical/driver-fixture-delta.patch-data",
+      "bytes": 6774,
+      "sha256": "1f44d0a78d2664a78281e5dac9e5bc8ffe28071a10c4cbdcfe3c784dcba12e31"
+    },
+    {
+      "path": "historical/driver-r1.mjs.data",
+      "bytes": 54631,
+      "sha256": "28c090b7b2cfa0a6d9cb1f5c1837ca3d0726734dea630ab4557beb0a9da8bd82"
+    },
+    {
+      "path": "historical/expected-observations.json.data",
+      "bytes": 11386,
+      "sha256": "cfbaf336e5ba3dc31cc43384718c608cfebf4df8b4b3744c10b6a2c090b4ec25"
+    },
+    {
+      "path": "historical/FREEZE.md.data",
+      "bytes": 11790,
+      "sha256": "4095cb141a9e7d7e715daa99fc713f8734e00255969e76bdf49e4f82401040ca"
+    },
+    {
+      "path": "historical/historical-inputs.json.data",
+      "bytes": 10497,
+      "sha256": "fe5bec0edc1d55cf574d035c36f7c41b2967cb9e3f43660b980773bec786acf2"
+    },
+    {
+      "path": "historical/REPORT.md.data",
+      "bytes": 12984,
+      "sha256": "7cddb885236dce8335997433636ca712bc21987e85f5db722526032e23bf9bcc"
+    },
+    {
+      "path": "input-identities.json",
+      "bytes": 3593,
+      "sha256": "d01897a85f4d80f08cb58a296a6b7012089c1e0b622cc8e34fa94ddc9024b82a"
+    },
+    {
+      "path": "LIFETIME-PROTOCOL.md",
+      "bytes": 6219,
+      "sha256": "f791859a3230e184d773fb1299576fbf49b335fe53271b5ff744dd8322fa9e8c"
+    },
+    {
+      "path": "needs-root.txt",
+      "bytes": 1676,
+      "sha256": "3b935919827a883677235761a1fb7efd47f38d5a6fbeb5c0bacfb24d1535208f"
+    },
+    {
+      "path": "preparation-checks.json",
+      "bytes": 2630,
+      "sha256": "032929477a72951007fab199b1c2a53291af577fd20fe4d4e20ea88055e71902"
+    },
+    {
+      "path": "preparation-final-checks.json",
+      "bytes": 556,
+      "sha256": "620075d518d400c4bde737977ca0456fd3569db1acb3fff0c106685039bacc0d"
+    },
+    {
+      "path": "PREPARATION.md",
+      "bytes": 4792,
+      "sha256": "85d8af53fbec99fe198b5803de3a5709c36f82351c7f2034bfbd2e2479e40ba6"
+    },
+    {
+      "path": "qualified-criteria.mjs.data",
+      "bytes": 5650,
+      "sha256": "f26ade56d9da48780a4344c31c5f23f2d2247d8cb3b44f7b43f76330e39825c2"
+    }
+  ],
+  "productExecutions": 0,
+  "nativeExecutions": 0,
+  "fixtureChildren": 0,
+  "loopbacks": 0,
+  "readiness": "UNBOUND",
+  "declarationCheck": "single post-freeze check ABSENT; never rechecked",
+  "foreignIndexPaths": []
+}

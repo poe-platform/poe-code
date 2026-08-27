@@ -1,0 +1,74 @@
+{
+  "classification": "static capture/count/byte comparisons and syntax only; no fixture/product execution",
+  "nodeVersion": "v22.22.2",
+  "nodeExecutable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "nodeExecutableSha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+  "scratch": "/tmp/safe-bash-owned-output-qualified-review-prep-ryyXw9/",
+  "counts": {
+    "logical": 12,
+    "parameters": 32,
+    "original": 20,
+    "extra": 12,
+    "authorizedDeltaRecords": 3
+  },
+  "textualAssertionLineAudit": {
+    "method": "assert-containing line comparison, NOT a full AST assertion audit; exact driver patch authoritative",
+    "oldMatchedLines": 128,
+    "retainedExactLines": 124,
+    "changedOrRemovedLines": [
+      "      if (bodyFile) assertProfile(stdoutWriteout, profile.stdoutWriteout, 'authoritatively bound positive retained stdout-writeout observation');",
+      "    assertProfile(result.publicResult, profile.publicResult, 'declared exact IO/caller/pipefail result');",
+      "  assert.equal(mapping.records.length, 20);",
+      "  assert.ok(entry, 'record must belong to the exact frozen 20');"
+    ]
+  },
+  "checks": [
+    {
+      "command": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--check",
+        "/tmp/safe-bash-owned-output-qualified-review-prep-ryyXw9/driver-r1.mjs"
+      ],
+      "pid": 35080,
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": "",
+      "error": null,
+      "classification": "syntax-only tooling process; no module evaluation, product import or fixture process"
+    },
+    {
+      "command": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--check",
+        "/tmp/safe-bash-owned-output-qualified-review-prep-ryyXw9/driver-qualified.mjs"
+      ],
+      "pid": 35081,
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": "",
+      "error": null,
+      "classification": "syntax-only tooling process; no module evaluation, product import or fixture process"
+    },
+    {
+      "command": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--check",
+        "/tmp/safe-bash-owned-output-qualified-review-prep-ryyXw9/qualified-criteria.mjs"
+      ],
+      "pid": 35082,
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": "",
+      "error": null,
+      "classification": "syntax-only tooling process; no module evaluation, product import or fixture process"
+    }
+  ],
+  "productExecutions": 0,
+  "nativeExecutions": 0,
+  "fixtureChildren": 0,
+  "loopbacks": 0,
+  "outstandingOwnedToolProcesses": 0
+}

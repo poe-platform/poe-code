@@ -1,0 +1,99 @@
+import assert from 'node:assert/strict';
+
+export class Unbound extends Error {
+  constructor(message) {
+    super(message);
+    this.code = 'QUALIFIED_BINDING_UNBOUND';
+  }
+}
+
+export function requireQualifiedBinding() {
+  throw new Unbound('Public declaration absent at the single post-freeze check. No source/import/execution permission. Fresh executor must authenticate new actual-close/ready/source/profiles and commit a binding supplement before replacing this guard or the historical S1 prelude.');
+}
+
+export function requireWriteoutTriplet(_config, entry) {
+  throw new Unbound(`${entry.id}/${entry.parameter}: closed/open/genuine-failure fixture binding, public reachability/intentional-close witness, exact baseline and pinned-native profiles are UNBOUND. Author totals are not authentication.`);
+}
+
+export async function qualifiedLifetime(_api, _config, entry) {
+  throw new Unbound(`${entry.id}/${entry.parameter}: frozen reason/cleanup protocol has no authorized new public API binding; do not invent operation/child/cleanup/synthetic-signal signatures.`);
+}
+
+export function assertRejectedIdentity(actual, reason, label) {
+  assert.equal(actual.kind, 'error', `${label}: rejection tag`);
+  assert.ok(Object.hasOwn(actual, 'error'), `${label}: reason presence, including undefined`);
+  assert.ok(Object.is(actual.error, reason), `${label}: exact rejection identity`);
+}
+
+export function assertReasonPriority(actual, reasons) {
+  for (const name of ['caller', 'execution', 'cleanup']) {
+    assert.equal(typeof reasons[name].present, 'boolean', `${name}: explicit presence`);
+    if (reasons[name].present) {
+      assert.ok(Object.hasOwn(reasons[name], 'reason'), `${name}: exact reason supplied`);
+    }
+  }
+  const primary = [reasons.caller, reasons.execution, reasons.cleanup].find(reason => reason.present);
+  if (primary) assertRejectedIdentity(actual, primary.reason, 'caller > execution > cleanup');
+  else assert.equal(actual.kind, 'value', 'no fabricated primary error');
+}
+
+export function assertNativeDefaultUndefined(signal, publicResult) {
+  assert.equal(signal.aborted, true);
+  assert.notEqual(signal.reason, undefined, 'native abort(undefined) is defaulted, not literal undefined');
+  assertRejectedIdentity(publicResult, signal.reason, 'captured native default reason');
+}
+
+export function assertLiteralUndefinedCaller(signal, publicResult, bindingEvidence) {
+  if (!bindingEvidence?.syntheticSignalPublicCompatibilityAuthenticated) {
+    throw new Unbound('Literal undefined caller requires an authenticated legitimate public synthetic signal; native defaulting is not coverage.');
+  }
+  assert.equal(signal.aborted, true);
+  assert.ok(Object.is(signal.reason, undefined));
+  assertRejectedIdentity(publicResult, undefined, 'literal undefined caller');
+}
+
+export function assertClosedWriteout(observation, intent, _profile) {
+  if (!intent) throw new Unbound('No declared public binding witnesses writeout reached and intentional known closure. No-attempt alone is not a pass.');
+  assert.equal(intent.writeoutReached, true);
+  assert.equal(intent.consumerKnownClosed, true);
+  assert.equal(intent.intentionalClose, true);
+  assert.equal(intent.genuineOutputFailure, false);
+  assert.equal(observation.delivered, '');
+  assert.ok(observation.attempted === '' || observation.attempted === 'code=200\n', 'no required pointless positive attempt; no unrelated attempted bytes');
+}
+
+export function assertWriteoutControls(arms, expectedProfiles, failureReason) {
+  if (!expectedProfiles) throw new Unbound('Exact source-authentic product profiles are not bound; native outcomes do not supply them.');
+  assert.deepEqual(Object.keys(arms).sort(), ['closed', 'failure', 'open']);
+  for (const name of ['closed', 'open', 'failure']) {
+    const arm = arms[name];
+    const expected = expectedProfiles[name];
+    if (!expected || !Object.hasOwn(expected, 'publicResult') || !Object.hasOwn(expected, 'diagnostic') || !Object.hasOwn(expected, 'pipefailResult') || !Object.hasOwn(expected, 'effects')) {
+      throw new Unbound(`${name}: exact public/stderr/pipefail/effects profile required before observations`);
+    }
+    assert.equal(arm.writeoutReached, true, `${name}: genuine path control`);
+    assert.deepEqual(arm.publicResult, expected.publicResult, `${name}: established status/error profile`);
+    assert.equal(arm.diagnostic, expected.diagnostic, `${name}: exact diagnostic`);
+    assert.deepEqual(arm.pipefailResult, expected.pipefailResult, `${name}: pipefail profile`);
+    assert.deepEqual(arm.effects, expected.effects, `${name}: independently completed required effects`);
+  }
+  assertClosedWriteout(arms.closed.writeout, arms.closed.intent);
+  assert.equal(arms.open.writeout.attempted, 'code=200\n');
+  assert.equal(arms.open.writeout.delivered, 'code=200\n');
+  assert.equal(arms.failure.writeout.attempted, 'code=200\n');
+  assert.equal(arms.failure.writeout.delivered, '');
+  assertRejectedIdentity(arms.failure.sinkWriteResult, failureReason, 'genuine output failure');
+  assert.equal(arms.failure.intentionalClose, false);
+}
+
+export function assertLifetimeObservations(observed) {
+  assert.equal(observed.cleanupRegisteredBeforeAcquisition, true);
+  assert.equal(observed.cleanupRegisteredBeforeAdmission, true);
+  assert.equal(observed.lateAdmissionStarted, false);
+  assert.equal(observed.publicSettledBeforeCooperativeDrain, false);
+  assert.equal(observed.registeredAndFinallyShareCompletion, true);
+  assert.equal(observed.cleanupCount, 1);
+  assert.equal(observed.borrowedInputReturnsByOperation, 0);
+  assert.equal(observed.opaqueHandlerWaited, false);
+  assert.deepEqual(observed.unhandled, []);
+}

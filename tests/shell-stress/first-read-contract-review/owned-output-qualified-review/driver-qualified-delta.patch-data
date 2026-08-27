@@ -1,0 +1,121 @@
+diff --git a/tmp/safe-bash-owned-output-qualified-review-prep-ryyXw9/driver-r1.mjs b/tmp/safe-bash-owned-output-qualified-review-prep-ryyXw9/driver-qualified.mjs
+index 6abeeb91..662ed7a9 100644
+--- a/tmp/safe-bash-owned-output-qualified-review-prep-ryyXw9/driver-r1.mjs
++++ b/tmp/safe-bash-owned-output-qualified-review-prep-ryyXw9/driver-qualified.mjs
+@@ -5,6 +5,7 @@ import { createServer } from 'node:http';
+ import { readFile, realpath, writeFile } from 'node:fs/promises';
+ import { dirname, join, resolve } from 'node:path';
+ import { fileURLToPath, pathToFileURL } from 'node:url';
++import { Unbound as Blocked, requireQualifiedBinding, requireWriteoutTriplet, assertClosedWriteout, qualifiedLifetime } from './qualified-criteria.mjs';
+ 
+ const directory = dirname(fileURLToPath(import.meta.url));
+ const innerDeadlineMs = 1200;
+@@ -20,8 +21,6 @@ const observe = promise => Promise.resolve(promise).then(value => ({ kind: 'valu
+ const encodeJson = value => JSON.stringify(value, (_key, item) => item instanceof Error ? { name: item.name, message: item.message, code: item.code } : item);
+ const pipeReason = () => Object.assign(new Error('binding destination consumer closed'), { code: 'EPIPE' });
+ 
+-class Blocked extends Error {}
+-
+ function gate() {
+   let resolveGate;
+   let rejectGate;
+@@ -472,11 +471,7 @@ function validateRecordBinding(config, entry) {
+     if (!profile.nestedPublicResult || typeof profile.diagnostic !== 'string') throw new Blocked('exact nested result/stderr profile remains UNBOUND');
+   }
+   if (entry.id === 'S08' && entry.parameter !== 'stdout-body-and-required-header-file') {
+-    if (profile.stdoutWriteoutRetentionBindingAuthenticated !== true || !profile.stdoutWriteout ||
+-      typeof profile.stdoutWriteout.attempted !== 'string' || typeof profile.stdoutWriteout.delivered !== 'string' ||
+-      !profile.stdoutWriteout.attempted.includes('code=200\n')) {
+-      throw new Blocked('This frozen driver can witness retained stdout writeout only by a positive write attempt; no such authoritative binding is supplied. Do not weaken into an absence-of-abort pass.');
+-    }
++    requireWriteoutTriplet(config, entry);
+   }
+   if (entry.id === 'S11' && (!profile.publicResult || !profile.operationSignal || profile.command !== 'set -o pipefail; precedence-probe | cat')) {
+     throw new Blocked('exact IO/public/first-reason/pipefail profile remains UNBOUND');
+@@ -538,8 +533,8 @@ async function borrowedCurl(api, config, entry, scope, result) {
+ 
+ async function mixedCurl(api, config, entry, scope, result) {
+   const profile = requireProfile(config, entry);
+-  if (!profile.diagnosticOnly && entry.parameter !== 'stdout-body-and-required-header-file' && profile.stdoutWriteoutRetentionBindingAuthenticated !== true) {
+-    throw new Blocked('Frozen stdout writeout cannot be silently rerouted: exact positive retained-work observation after stdout close is UNBOUND in S1');
++  if (!profile.diagnosticOnly && entry.parameter !== 'stdout-body-and-required-header-file') {
++    requireWriteoutTriplet(config, entry);
+   }
+   const started = gate();
+   const releaseResponse = gate();
+@@ -593,7 +588,7 @@ async function mixedCurl(api, config, entry, scope, result) {
+       const stdoutWriteout = { attempted: text(Buffer.concat(output.attempted)), delivered: text(output.contents()) };
+       result.stdoutWriteoutObservation = stdoutWriteout;
+       result.nestedDiagnostic = stderr;
+-      if (bodyFile) assertProfile(stdoutWriteout, profile.stdoutWriteout, 'authoritatively bound positive retained stdout-writeout observation');
++      if (bodyFile) assertClosedWriteout(stdoutWriteout, result.writeoutIntent, profile);
+       assertProfile(stderr, profile.diagnostic, 'required mixed diagnostic');
+       assert.equal(text(await context.fs.readFile('/independent', { signal: context.signal })), 'independent-file\n');
+       assert.equal(owner.alive, true);
+@@ -749,7 +744,7 @@ async function precedence(api, config, entry, scope, result) {
+         throw operation.signal.reason;
+       }
+       try { await releaseIo.promise; }
+-      catch (error) { scope.event('io.error.delivered', error); ioDelivered.resolve(); throw error; }
++      catch (error) { result.localThrown = { kind: 'error', error }; scope.event('io.error.delivered', error); ioDelivered.resolve(); throw error; }
+       return { exitCode: 0 };
+     } finally { await operation.close(); result.operationClosed = true; }
+   } });
+@@ -777,7 +772,12 @@ async function precedence(api, config, entry, scope, result) {
+     assert.equal(result.publicResult.kind, 'error');
+     assert.equal(result.publicResult.error, 0);
+   } else {
+-    assertProfile(result.publicResult, profile.publicResult, 'declared exact IO/caller/pipefail result');
++    if (entry.parameter === 'io-error-before-caller-abort') {
++      assert.equal(result.publicResult.kind, 'error');
++      assert.equal(result.publicResult.error, scope.controller.signal.reason);
++      assert.equal(result.localThrown.kind, 'error');
++      assert.equal(result.localThrown.error, ioError);
++    } else assertProfile(result.publicResult, profile.publicResult, 'declared exact IO/caller/pipefail result');
+     assertProfile({ aborted: operation.signal.aborted, reason: operation.signal.reason }, profile.operationSignal, 'declared first operation reason');
+   }
+   await immediate();
+@@ -848,7 +848,7 @@ async function opaque(api, _config, entry, scope, result) {
+   result.nonpreemption = 'opaque fixture remained pending until external release; no universal public nonhang or opaque drainage asserted';
+ }
+ 
+-const handlers = { positive, streaming, borrowedCurl, mixedCurl, treeDrain, treeIsolation, precedence, opaque };
++const handlers = { positive, streaming, borrowedCurl, mixedCurl, treeDrain, treeIsolation, precedence, opaque, qualifiedLifetime };
+ 
+ async function verifiedArtifact(artifact, label) {
+   if (!artifact || typeof artifact.path !== 'string' || !/^[a-f0-9]{64}$/.test(artifact.sha256 ?? '')) throw new Blocked(`${label} identity UNBOUND`);
+@@ -858,6 +858,7 @@ async function verifiedArtifact(artifact, label) {
+ }
+ 
+ async function executionConfig(configPath) {
++  requireQualifiedBinding();
+   const physicalDirectory = await realpath(directory);
+   assert.match(physicalDirectory, /^\/(?:private\/)?tmp\/safe-bash-owned-output-streaming-fixture-replay-[^/]+$/);
+   assert.equal(process.env.TSX_DISABLE_CACHE, '1');
+@@ -986,7 +987,7 @@ async function boundedChild(argumentsList, label) {
+ async function supervise(configPath, historicalOnly) {
+   const config = await executionConfig(configPath);
+   const mapping = JSON.parse(await readFile(join(directory, 'binding-map.json'), 'utf8'));
+-  assert.equal(mapping.records.length, 20);
++  assert.equal(mapping.records.length, 32);
+   assert.equal(new Set(mapping.records.map(entry => entry.id)).size, 12);
+   const records = historicalOnly ? mapping.records.filter(entry => entry.family === 'explicit-api-optin-positive') : mapping.records;
+   const runs = [];
+@@ -1024,7 +1025,7 @@ async function supervise(configPath, historicalOnly) {
+     const status = parameters.every(run => run.status === 'PASS') ? 'PASS' : parameters.some(run => run.status === 'FAIL' || run.status === 'TIMEOUT') ? 'FAIL' : 'BLOCKED';
+     return { id, status, parameterCount: parameters.length };
+   });
+-  const report = { classification: historicalOnly ? 'separate immutable original-five replay; NOT new acceptance' : 'new S1 acceptance execution', sourceIdentity: config.sourceIdentity, logicalCases: historicalOnly ? 5 : 12, parameterizedRecords: records.length, logical, runs };
++  const report = { classification: historicalOnly ? 'separate immutable original-five replay; NOT new acceptance' : 'distinct qualified-output cohort; original20 plus reason/cleanup12', sourceIdentity: config.sourceIdentity, logicalCases: historicalOnly ? 5 : 12, parameterizedRecords: records.length, logical, runs };
+   const target = join(directory, historicalOnly ? 'historical-five.result.json' : 'acceptance.result.json');
+   await writeFile(target, `${encodeJson(report)}\n`);
+   console.log(encodeJson({ report: target, logical, directChildrenReaped: runs.filter(run => run.execution?.reapedDirectChild).length, historicalOnly, supervisorInterrupted }));
+@@ -1036,7 +1037,7 @@ if (mode === '--record') {
+   const config = await executionConfig(resolve(configPath));
+   const mapping = JSON.parse(await readFile(join(directory, 'binding-map.json'), 'utf8'));
+   const entry = mapping.records.find(record => record.id === id && record.parameter === parameter);
+-  assert.ok(entry, 'record must belong to the exact frozen 20');
++  assert.ok(entry, 'record must belong to the exact frozen 32');
+   await runRecord(config, entry);
+ } else if (mode === '--execute') await supervise(resolve(configPath), false);
+ else if (mode === '--historical-five') await supervise(resolve(configPath), true);

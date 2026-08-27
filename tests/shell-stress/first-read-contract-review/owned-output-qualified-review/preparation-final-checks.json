@@ -1,0 +1,18 @@
+{
+  "classification": "final syntax and inert-byte authentication only; no module evaluation",
+  "command": [
+    "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "--check",
+    "/tmp/safe-bash-owned-output-qualified-review-prep-ryyXw9/driver-qualified.mjs"
+  ],
+  "pid": 36443,
+  "status": 0,
+  "signal": null,
+  "stdout": "",
+  "stderr": "",
+  "sha256": "66d145aa6c06f717fcf2e50330ae76c3ac846899b5a351b3ebebea14d0de99c3",
+  "totalCompletedSyntaxProcesses": 4,
+  "outstandingOwnedProcesses": 0,
+  "productExecutions": 0,
+  "fixtureChildren": 0
+}

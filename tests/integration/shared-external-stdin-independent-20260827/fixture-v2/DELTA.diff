@@ -1,0 +1,18 @@
+--- 92f76262/probe.mjs
++++ fixture-v2/probe.mjs
+@@ -127,1 +127,4 @@
+-    rejected(actual, closeError);
++    assert.equal(actual.ok, true, "ordinary primary read failure fulfills");
++    assert.equal(actual.value.exitCode, 1);
++    assert.equal(actual.value.stdout, "");
++    assert.equal(output.join(""), "");
+--- 92f76262/cases.mjs
++++ fixture-v2/cases.mjs
+@@ -13,1 +13,1 @@
+-  ...["zero", "error"].map(mode => ({ id: `shell-primary-read-${mode}`, kind: "primary", mode, expected: "ordinary read error becomes command status/diagnostic, not selected rejection; awaited outer return failure must still reject" })),
++  ...["zero", "error"].map(mode => ({ id: `shell-primary-read-${mode}`, kind: "primary", mode, expected: "ordinary primary read error fulfills with status 1 and exact primary diagnostic; secondary return rejection does not replace it; no output, one read and one return" })),
+--- 79f0f917/column-close.mjs
++++ fixture-v2/column-close.mjs
+@@ -33,1 +33,1 @@
+-      assert.equal(Buffer.concat(errors).toString(), "column: input limit exceeded\n");
++      assert.equal(Buffer.concat(errors).toString(), "column: EFBIG: column input limit exceeded\n");

@@ -1,0 +1,37 @@
+{
+  "date": "2026-08-27",
+  "scope": "Bounded independent verification of three primary sources, not duplicate research; older interpretation documents were not independently reopened.",
+  "sources": [
+    {
+      "id": "N8",
+      "url": "https://pubs.opengroup.org/onlinepubs/9799919799/basedefs/V1_chap09.html",
+      "webAttempt": "web.run open returned no usable Issue8 text; no older edition substituted",
+      "fallback": "curl --fail --silent --show-error --location --max-time 30, exact publisher URL",
+      "finalUrl": "https://pubs.opengroup.org/onlinepubs/9799919799/basedefs/V1_chap09.html",
+      "httpStatus": 200,
+      "bytes": 60438,
+      "sha256": "2f5f60e9fe2954fe09dc0991f5c03b7c1de771b0ae2104e4a8a5745187c64e24",
+      "matchesNormativeLedger": true,
+      "locator": "XBD 9.3.6, original HTML lines 343-354 and 375-377",
+      "verified": "The explicit nested repeated-backreference D example fails on abab. TEMP retained completed b after the later parent iteration deliberately departs from that example. The same section limits null repetitions with exact/minimum-count exceptions. No upstream bug claim."
+    },
+    {
+      "id": "BT19",
+      "url": "https://re2c.org/2019_borsotti_trofimovich_efficient_posix_submatch_extraction_on_nfa.pdf",
+      "retrieval": "web.run primary author-hosted PDF open and find",
+      "locator": "Physical PDF p1 introduction, p4 Definition1, p13 Lemma4",
+      "verified": "The paper excludes backreferences. Its right-distributivity statement concerns ambiguous TNFA paths with a common epsilon suffix and no tagged epsilon loops in the extensions. This is not a pruning or nullable-cycle theorem for arbitrary backreference capture environments.",
+      "independentBodyHash": null
+    },
+    {
+      "id": "T17",
+      "url": "https://re2c.org/2017_trofimovich_tagged_deterministic_finite_automata_with_lookahead.pdf",
+      "retrieval": "web.run primary author-hosted PDF open and find",
+      "locator": "Physical PDF pp13-14, Definition25 and Lemmas3-4",
+      "verified": "Incremental subhistory comparison assumes comparable ambiguous-path prefixes and agreement of higher-priority tags. End/start-tag cases differ. No transfer to TEMP backreference pruning or activation-local cycle equivalence was established.",
+      "independentBodyHash": null
+    }
+  ],
+  "quotesStored": false,
+  "primaryBodiesVendored": false
+}

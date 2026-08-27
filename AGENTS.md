@@ -101,6 +101,16 @@
 - Middleware must await or return `next()`. Filesystem adapters and command
   implementations must propagate the supplied signal into host work; helper
   cancellation does not forcibly terminate an uncooperative host operation.
+- Fresh provider-owned entry observations may survive faithful opaque forwarding
+  without client/fetch/factory method-reference eligibility. Preserve fresh query
+  provenance and FS/path/stat binding; identity must describe the resource used
+  by corresponding content operations. Remappers/cache gateways omit or replace
+  assertions when binding changes. Host JavaScript is trusted to honor this
+  semantic contract, not sandboxed; legitimate cross-backend aliases still need
+  protection. No fabricated scope or broad trust flag. See the exact approved
+  rule in `src/contracts/filesystem.md`; Poincare implements and Dirac reviews.
+  Generic SDK/copied-metadata integration remains open, and qualified38/38 does
+  not close original31/38 or the broader backend goal.
 - `CommandContext.invoke?: CommandInvoker` invokes literal argv; its optional
   overrides are stdin, stdout, stderr, cwd, and env. The shell retains filesystem,
   cancellation, middleware, and execution budgets; there is no signal override.

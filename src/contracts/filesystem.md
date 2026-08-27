@@ -133,6 +133,39 @@ delete, provider authentication or ABA/pathname-race guarantee. The backend owne
 implements qualified positive workflows and tests authority; method presence is
 not proof that every arbitrary provider pair can be compared.
 
+## Faithful forwarding of provider-owned observations
+
+Approved implementation rule, August27,2026: a fresh provider-owned identity
+observation describes the actual backing resource used by the corresponding
+content operations. A faithful opaque client/fetch/transport forwarder may
+preserve that assertion only while it preserves that backing-resource binding.
+Different method/factory references alone do not invalidate otherwise fresh,
+provider-owned provenance. Do not require recognition of the forwarder's entire
+method table as an additional identity eligibility condition.
+
+Fresh query provenance and filesystem/path/stat binding remain required for
+the provider-owned observation mechanism. Wrong-path, stale, replayed,
+manufactured or copied/serialized metadata does not acquire that provenance.
+Retain all permission, cancellation, conflict and alias checks. This rule does
+not change complete native/scoped identity semantics or invent scopes for
+clients, transports, protocols or storage views.
+
+A remapper or cache gateway must omit the forwarded assertion or replace it
+with truthful authority for the actual backing resource its content operations
+use. Describing one resource while reading/writing another violates the host
+transport's semantic contract. Host-supplied JavaScript is not sandboxed by this
+API, and method-reference checks cannot provide that security boundary. Faithful
+overlapping configurations remain legitimate: Real and WebDAV may address one
+entry; prefixes, mounts and separate clients can alias shared storage. Preserve
+their actual relation rather than declaring disjointness by protocol or class.
+
+This is neither a broad trust flag nor a new public binding API. Generic SDKs
+and copied/serialized metadata lacking recognized fresh provenance still require
+real-provider identity integration and remain an open product requirement.
+Poincare owns backend implementation; distinct Dirac review is required before
+acceptance. Qualified-mock38/38 is additional evidence, not closure of the
+original31/38 or proof of arbitrary real-provider interoperability.
+
 # Permission capability and remote access profile
 
 `capabilities.permissions === true` promises supported POSIX-style mode handling;

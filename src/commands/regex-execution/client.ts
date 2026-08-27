@@ -96,16 +96,16 @@ class Slot {
     signal.throwIfAborted();
     if (this.terminal !== undefined) return Promise.reject(this.terminal);
     return new Promise((resolve, reject) => {
-      const finish = (error: unknown, value?: unknown) => {
+      const finish = (rejected: boolean, value: unknown) => {
         clearTimeout(timer);
         this.receiver = undefined;
         this.failure = undefined;
-        if (error !== undefined) reject(error); else resolve(value);
+        if (rejected) reject(value); else resolve(value);
       };
-      const timer = setTimeout(() => finish(new RegexExecutionError(startup ? "STARTUP_TIMEOUT" : "REQUEST_TIMEOUT", `${startup ? "startup" : "active request"} exceeded ${timeout}ms`)), timeout);
-      this.receiver = value => finish(undefined, value);
-      this.failure = error => finish(error);
-      try { signal.throwIfAborted(); send?.(); } catch (error) { finish(error); }
+      const timer = setTimeout(() => finish(true, new RegexExecutionError(startup ? "STARTUP_TIMEOUT" : "REQUEST_TIMEOUT", `${startup ? "startup" : "active request"} exceeded ${timeout}ms`)), timeout);
+      this.receiver = value => finish(false, value);
+      this.failure = error => finish(true, error);
+      try { signal.throwIfAborted(); send?.(); } catch (error) { finish(true, error); }
     });
   }
   retire(): Promise<void> {
@@ -223,6 +223,7 @@ export class RegexExecutor {
   private async run(slot: Slot, pending: Pending): Promise<void> {
     let result: Match[][] | ExprMatchResult | undefined;
     let failure: unknown;
+    let rejected = false;
     try {
       pending.signal.throwIfAborted();
       if (!slot.ready) {
@@ -240,6 +241,7 @@ export class RegexExecutor {
       if (performance.now() - started > this.options.requestTimeoutMs) throw new RegexExecutionError("REQUEST_TIMEOUT", `active request exceeded ${this.options.requestTimeoutMs}ms`);
       pending.signal.throwIfAborted();
     } catch (error) {
+      rejected = true;
       failure = pending.signal.aborted ? pending.signal.reason : error;
       const retirement = slot.retire();
       pending.retirements.add(retirement);
@@ -255,7 +257,7 @@ export class RegexExecutor {
       }
       this.pump();
     }
-    if (failure !== undefined) pending.reject(failure); else pending.resolve(result!);
+    if (rejected) pending.reject(failure); else pending.resolve(result!);
   }
 }
 

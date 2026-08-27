@@ -1,0 +1,148 @@
+{
+  "capturedAt": "2026-08-27T09:01:16.682Z",
+  "identity": "Independent TIME-ENV fraction semantics reviewer, fresh thread 2026-08-27; neither Curie nor prior fix verifier; no delegation",
+  "casesSha256": "9dcdf67fbbf41076c96a5160d7a44edebd081b7b067bb11f919e1f10c71932f5",
+  "binary": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/date",
+  "binarySha256": "8d7c339a192d04e3de9768ebe4330d68bb541a4ed6c82f2bc3a807a270b156ff",
+  "authorBinarySha256": "14c1c04f8a1e859e9421993856ba1d29f49dc750d91be5dd299841f970f31f44",
+  "archive": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7.tar.xz",
+  "archiveSha256": "e8bb26ad0293f9b5a1fc43fb42ba970e312c66ce92c1b0b16713d7500db251bf",
+  "sources": [
+    {
+      "path": "src/date.c",
+      "archiveHash": "d4c2bea0c20c63d1879eba0c80f7fabba933535828fc473bcee01926b15f5ccc",
+      "localHash": "d4c2bea0c20c63d1879eba0c80f7fabba933535828fc473bcee01926b15f5ccc",
+      "matchesOfficialArchive": true
+    },
+    {
+      "path": "lib/strftime.c",
+      "archiveHash": "b1acd5ae751c54eb3ed11d63b4b4cdf0bf86b560b3f85534b1f7a7b497ecad54",
+      "localHash": "b1acd5ae751c54eb3ed11d63b4b4cdf0bf86b560b3f85534b1f7a7b497ecad54",
+      "matchesOfficialArchive": true
+    },
+    {
+      "path": "lib/gettime-res.c",
+      "archiveHash": "8e497d52c60eee2621afef9698ad99f5655bf3c569479c35afd40eeea83df96e",
+      "localHash": "8e497d52c60eee2621afef9698ad99f5655bf3c569479c35afd40eeea83df96e",
+      "matchesOfficialArchive": true
+    },
+    {
+      "path": "src/show-date.c",
+      "archiveHash": "65eb9adabbc6650acc23cdafdd57aa140ce37d1a426e70bd8ad8b0868866e5d2",
+      "localHash": "65eb9adabbc6650acc23cdafdd57aa140ce37d1a426e70bd8ad8b0868866e5d2",
+      "matchesOfficialArchive": true
+    },
+    {
+      "path": "doc/coreutils.texi",
+      "archiveHash": "39b126752866fff675e462bd44d76f3e034abafe462a069cebd53ef39fc53eca",
+      "localHash": "39b126752866fff675e462bd44d76f3e034abafe462a069cebd53ef39fc53eca",
+      "matchesOfficialArchive": true
+    }
+  ],
+  "version": {
+    "program": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/date",
+    "args": [
+      "--version"
+    ],
+    "env": {
+      "LC_ALL": "C",
+      "TZ": "UTC0"
+    },
+    "status": 0,
+    "signal": null,
+    "stdoutHex": "646174652028474e5520636f72657574696c732920392e370a436f70797269676874202843292032303235204672656520536f66747761726520466f756e646174696f6e2c20496e632e0a4c6963656e73652047504c76332b3a20474e552047504c2076657273696f6e2033206f72206c61746572203c68747470733a2f2f676e752e6f72672f6c6963656e7365732f67706c2e68746d6c3e2e0a54686973206973206672656520736f6674776172653a20796f7520617265206672656520746f206368616e676520616e64207265646973747269627574652069742e0a5468657265206973204e4f2057415252414e54592c20746f2074686520657874656e74207065726d6974746564206279206c61772e0a0a5772697474656e206279204461766964204d61634b656e7a69652e0a",
+    "stderrHex": "",
+    "error": null,
+    "milliseconds": 8.564833000000135
+  },
+  "resolution": {
+    "program": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/date",
+    "args": [
+      "--resolution"
+    ],
+    "env": {
+      "LC_ALL": "C",
+      "TZ": "UTC0"
+    },
+    "status": 0,
+    "signal": null,
+    "stdoutHex": "302e3030303030313030300a",
+    "stderrHex": "",
+    "error": null,
+    "milliseconds": 7.769209000000046
+  },
+  "uname": {
+    "program": "/usr/bin/uname",
+    "args": [
+      "-a"
+    ],
+    "env": {
+      "LC_ALL": "C",
+      "TZ": "UTC0"
+    },
+    "status": 0,
+    "signal": null,
+    "stdoutHex": "44617277696e206d356d622d6b6a6f70656b2032352e342e302044617277696e204b65726e656c2056657273696f6e2032352e342e303a20546875204d61722031392031393a33333a35302050445420323032363b20726f6f743a786e752d31323337372e3130312e31357e312f52454c454153455f41524d36345f54363035302061726d36340a",
+    "stderrHex": "",
+    "error": null,
+    "milliseconds": 6.61974999999984
+  },
+  "dylibs": {
+    "program": "/usr/bin/otool",
+    "args": [
+      "-L",
+      "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/date"
+    ],
+    "env": {
+      "LC_ALL": "C",
+      "TZ": "UTC0"
+    },
+    "status": 0,
+    "signal": null,
+    "stdoutHex": "2f7661722f666f6c646572732f72772f733463793736686e36763535717270306468636274706c6330303030676e2f542f736166652d627974652d676e752e30536e4a4d582f636f72657574696c732d392e372f7372632f646174653a0a092f7573722f6c69622f6c696253797374656d2e422e64796c69622028636f6d7061746962696c6974792076657273696f6e20312e302e302c2063757272656e742076657273696f6e20313335362e302e30290a",
+    "stderrHex": "",
+    "error": null,
+    "milliseconds": 31.414457999999968
+  },
+  "configSha256": "6f15eca3598508011df7593e320cdbd80d89bfc5c4e017c2c396848f2570c365",
+  "configLogSha256": "a1fa20c04942876ff219ea9e424e53636acdb0c412527aa938eec628f38a38b1",
+  "node": "v22.22.2",
+  "versions": {
+    "node": "22.22.2",
+    "acorn": "8.15.0",
+    "ada": "2.9.2",
+    "amaro": "1.1.5",
+    "ares": "1.34.6",
+    "brotli": "1.1.0",
+    "cjs_module_lexer": "2.2.0",
+    "cldr": "48.0",
+    "icu": "78.2",
+    "llhttp": "9.3.0",
+    "modules": "127",
+    "napi": "10",
+    "nbytes": "0.1.1",
+    "ncrypto": "0.0.1",
+    "nghttp2": "1.64.0",
+    "openssl": "3.5.5",
+    "simdjson": "4.2.4",
+    "simdutf": "6.4.2",
+    "sqlite": "3.51.2",
+    "tz": "2025c",
+    "undici": "6.24.1",
+    "unicode": "17.0",
+    "uv": "1.51.0",
+    "uvwasi": "0.0.23",
+    "v8": "12.4.254.21-node.39",
+    "zlib": "1.3.1-e00f703",
+    "zstd": "1.5.7"
+  },
+  "env": {
+    "LC_ALL": "C",
+    "TZ": "per-row"
+  },
+  "cwd": "/tmp/fraction-semantics-native-66K0f2",
+  "deadlinePerInvocationMs": 3000,
+  "maxBufferBytes": 4194304,
+  "noClockSetting": true,
+  "claim": "Existing independently hashed GNU9.7 Darwin arm64 binary; matching release source members, not a reproducible-build equivalence claim."
+}

@@ -1,0 +1,64 @@
+{
+  "sealedAt": "2026-08-27T09:11:32.148Z",
+  "identity": "Independent TIME-ENV fraction semantics reviewer, fresh thread 2026-08-27; neither Curie nor prior fix verifier; no delegation",
+  "freezeCommit": "c7e7145",
+  "sourceCommit": "c7823633ee99f711f1319ace59d4cf2b7f622ecc",
+  "files": {
+    "ATTEMPTS.md": "64c48c0b440ecaeb20e583670d8c84eda9836086f00240afd40d055970d01b32",
+    "FREEZE.json": "4690e7653de6cd530087685ec5a8d8e027b2e815ef2ea4e0853aa31da081f336",
+    "README.md": "41b4f066de3ae0566e18a26590b1d5180e001e0542e66e3a49f86527454ba19f",
+    "SOURCE_PROOF.md": "c2a010009ad9d2f34fac7d70b5ae141746a4520e48999fc192511037885b9b2e",
+    "canonical-native-proposals.json": "cea5ec1c5ef4342c45f5069a23ee83d4c4dd1d85adf0c2a9b73fadc938ffdaa4",
+    "cases.frozen.json": "9dcdf67fbbf41076c96a5160d7a44edebd081b7b067bb11f919e1f10c71932f5",
+    "cases.mjs": "704eb08d62a4b0e955bfa71c0b3dd531160bb6e64160c0523844210219046871",
+    "classification-v2.json": "7238dae3a3b56c63b4ff523cb2ebe607e6b0ecec062e7d75e5d928365ae6b5de",
+    "classification.json": "60d428fbaaf0d73a5a6e370c65c47cd3fd6c7724e7b039ce835db184e052cb21",
+    "classify.mjs": "6e3204eed14e328af0b64d9de11b4ee297ced0baa795d12452277e3990a8a197",
+    "consumer.mjs": "c4dffcf02890ed20d057c4c1287f616547c1a4f40b63618f51b6e85067eb870e",
+    "consumer.stderr": "88b0936b5d5a961ef882d539794d15cb93972bd3e9f4cf4d2f2ce7482223515b",
+    "consumer.stdout": "d61a9ca4258ea4056f48bd2b99a4aef5182d5692d1bc645b9c0df5e8cd7af429",
+    "dist-hashes.json": "0ae7b0561c53d45c486914311bafa83144acf348201ce8bb8a595a7fc9f51ac4",
+    "freeze.mjs": "7aead52884955b0347d3dfa19bf1ac1471a7f5dce370428afb6a66d4c0e76c48",
+    "native-profile.json": "7dce546fb5f6c3a7ef136d2d88f230b86ddbbc14c7836974ede3acb2aff63732",
+    "native-results.jsonl": "92d2e95211e46aa50a0ded6c690ef07f1fb2916783d5940d7fda315477fabafc",
+    "native-summary.json": "02992c54a9b8715c9519964902e405a891642f697e7f2f27b5813c8e099cc024",
+    "native.mjs": "5cc422a3f96d8e9a839246fe8d1e82c363f4a6caac8c4cbc646e706f72f14868",
+    "preserved-ICU-profile-v2.json": "66e3433b9256a9ea4b9d4bcb0ac3ba1ef2a0666e8566fe8394abc19c32f5bf54",
+    "preserved-ICU-profile.json": "2e0fe95a5e7cf96bdab06d65d997f54b9bf5d99a9442519d3a83e614c0de30ab",
+    "primary-fetch.json": "d7bd9af1d4651fd1ab0ee323b311f1e9bbb52924123ecf91a376aa5c9f1fffd8",
+    "primary-sources.mjs": "e54e361f50770cd46a4c0de6346b4a9e3710b1726fc639a9d8cc51565efcfcfd",
+    "product-results.jsonl": "2a2d4f3193002b7fdf603db5d28dcacd6ebece5e5e0402b212f5afa0604d116d",
+    "run.mjs": "f6e56cd10926c026bebe23213c031980279a37c979d392ee36a444468a3ec3b2",
+    "source-manifest.json": "6e2180fac42be4c600af6c659531319505677511b259456b1a943a4f951c0a79",
+    "verify.mjs": "46673736066a0161ca83ef51975bf2a2a8baee7c87cd07b558a2aeaf17e72955"
+  },
+  "immutableInputs": [
+    {
+      "path": "tests/commands/time-env/date.test.ts",
+      "sha256": "9fab5e8bdcf0044fea983fa78159bf9ab7163167be12b263a95c8e969bfcafbd",
+      "referenceCommit": "4a0cbe7"
+    },
+    {
+      "path": "tests/commands/time-env/fraction-expansion/AUTHOR_HANDOFF.md",
+      "sha256": "1e707b26af651bf3187fe52dc44fee1e332530c7723b7e8aeff0a9da5a43c750",
+      "referenceCommit": "4a0cbe7"
+    },
+    {
+      "path": "tests/commands/time-env/fraction-expansion/SEMANTICS.md",
+      "sha256": "284bee4c773a53e1daa0ad346f3e2cb2cfd1d59f217ab052d07eb76edd85f785",
+      "referenceCommit": "4a0cbe7"
+    }
+  ],
+  "authoritativeClassification": "classification-v2.json",
+  "supersededButRetained": [
+    "classification.json",
+    "preserved-ICU-profile.json"
+  ],
+  "proof": "SOURCE_PROOF.md",
+  "verdicts": "README.md",
+  "originalProductExitCode": 1,
+  "noProductRerun": true,
+  "noSourceChanges": true,
+  "noCanonicalEdits": true,
+  "noDelegation": true
+}

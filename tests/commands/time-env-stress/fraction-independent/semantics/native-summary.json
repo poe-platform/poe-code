@@ -1,0 +1,12 @@
+{
+  "rows": 1910,
+  "proofRows": 1624,
+  "sourceBranchMatches": 1624,
+  "magnitudeMatches": 1622,
+  "magnitudeFailures": [
+    "proof-804",
+    "proof-1204"
+  ],
+  "processErrors": 0,
+  "rawSha256": "92d2e95211e46aa50a0ded6c690ef07f1fb2916783d5940d7fda315477fabafc"
+}

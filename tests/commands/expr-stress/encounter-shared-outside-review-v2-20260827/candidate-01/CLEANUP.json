@@ -1,0 +1,9 @@
+{
+  "removedExactDirectory": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-expr-shared-v2-hAyApW",
+  "absent": true,
+  "remainingOwnedProcesses": [],
+  "childrenSettledBeforeDeletion": true,
+  "sigstopUsed": false,
+  "workerQualification": "Shared runner and test processes exited normally; no separate thread-level observer injected. Worker threads cannot survive their exited owning process.",
+  "completedAt": "2026-08-27T21:17:10.865Z"
+}

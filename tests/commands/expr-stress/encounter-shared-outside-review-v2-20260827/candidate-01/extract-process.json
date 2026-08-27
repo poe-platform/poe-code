@@ -1,0 +1,17 @@
+{
+  "executable": "/usr/bin/tar",
+  "args": [
+    "-xf",
+    "-",
+    "-C",
+    "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-expr-shared-v2-hAyApW/source"
+  ],
+  "cwd": "/Users/kjopek/Workspace/safe-bash",
+  "started": "2026-08-27T21:16:47.434Z",
+  "finished": "2026-08-27T21:16:47.598Z",
+  "status": 0,
+  "signal": null,
+  "error": null,
+  "stdout": "",
+  "stderr": ""
+}

@@ -1,0 +1,29 @@
+{
+  "candidate": "c3e40f8bd721da5e496f3b3abfd51aee45db5a84",
+  "originalCommit": "beba7b00d5ba277d2ac6770968d8e4b15c846171",
+  "original": {
+    "tests": 276,
+    "pass": 275,
+    "fail": 1
+  },
+  "corrected": {
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "tests": 276,
+    "pass": 276,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "separatelyQualified": true,
+  "setupOnly": true,
+  "noOriginalResultRewrite": true,
+  "failingCase": {
+    "name": "rg native differential: gitignore requires git by default",
+    "passed": true
+  },
+  "nativeObservedRoots": 37,
+  "manifestSha256": "9334d9391b60c4d430885eb2a2d896b3ddafbdd3d980ee1e5f89023917523945"
+}

@@ -1,0 +1,126 @@
+{
+  "scratch": {
+    "result": {
+      "executable": "/usr/bin/git",
+      "args": [
+        "-C",
+        "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-expr-shared-v2-hAyApW",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "started": "2026-08-27T21:17:09.906Z",
+      "finished": "2026-08-27T21:17:09.943Z",
+      "status": 128,
+      "signal": null,
+      "error": null,
+      "stdout": "",
+      "stderr": "fatal: not a git repository (or any of the parent directories): .git\n"
+    },
+    "environment": {
+      "PATH": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/@openai/codex/node_modules/@openai/codex-darwin-arm64/vendor/aarch64-apple-darwin/codex-path:/Users/kjopek/Library/Application Support/Garmin/ConnectIQ/Sdks/connectiq-sdk-mac-9.2.0-2026-06-09-92a1605b2/bin:/Users/kjopek/.nvm/versions/node/v22.22.2/bin:/Users/kjopek/.nvm/versions/node/v22.22.2/bin:/Users/kjopek/.bun/bin:/opt/homebrew/bin:/Users/kjopek/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin:/opt/pkg/env/active/bin:/opt/pmk/env/global/bin:/Library/Apple/usr/bin:/Library/TeX/texbin:/Users/kjopek/.codex/tmp/arg0/codex-arg0yhLJpu:/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/@openai/codex/node_modules/@openai/codex-darwin-arm64/vendor/aarch64-apple-darwin/codex-path:/Users/kjopek/.codex/tmp/arg0/codex-arg0wITElD:/Users/kjopek/Library/Application Support/Garmin/ConnectIQ/Sdks/connectiq-sdk-mac-9.2.0-2026-06-09-92a1605b2/bin:/Users/kjopek/.nvm/versions/node/v22.22.2/bin:/Users/kjopek/.local/bin:/Users/kjopek/.bun/bin:/Users/kjopek/bin:/Users/kjopek/.cargo/bin:/Applications/iTerm.app/Contents/Resources/utilities",
+      "LC_ALL": "C",
+      "LANG": "C",
+      "HOME": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-expr-shared-v2-hAyApW"
+    },
+    "excludesAllGitEnvironmentOverrides": true,
+    "ancestors": [
+      {
+        "realpath": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-expr-shared-v2-hAyApW",
+        "gitMarkerPresent": false
+      },
+      {
+        "realpath": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T",
+        "gitMarkerPresent": false
+      },
+      {
+        "realpath": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn",
+        "gitMarkerPresent": false
+      },
+      {
+        "realpath": "/private/var/folders/rw",
+        "gitMarkerPresent": false
+      },
+      {
+        "realpath": "/private/var/folders",
+        "gitMarkerPresent": false
+      },
+      {
+        "realpath": "/private/var",
+        "gitMarkerPresent": false
+      },
+      {
+        "realpath": "/private",
+        "gitMarkerPresent": false
+      },
+      {
+        "realpath": "/",
+        "gitMarkerPresent": false
+      }
+    ]
+  },
+  "fixtureParent": {
+    "result": {
+      "executable": "/usr/bin/git",
+      "args": [
+        "-C",
+        "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-expr-shared-v2-hAyApW/temporary",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "started": "2026-08-27T21:17:09.944Z",
+      "finished": "2026-08-27T21:17:09.975Z",
+      "status": 128,
+      "signal": null,
+      "error": null,
+      "stdout": "",
+      "stderr": "fatal: not a git repository (or any of the parent directories): .git\n"
+    },
+    "environment": {
+      "PATH": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/@openai/codex/node_modules/@openai/codex-darwin-arm64/vendor/aarch64-apple-darwin/codex-path:/Users/kjopek/Library/Application Support/Garmin/ConnectIQ/Sdks/connectiq-sdk-mac-9.2.0-2026-06-09-92a1605b2/bin:/Users/kjopek/.nvm/versions/node/v22.22.2/bin:/Users/kjopek/.nvm/versions/node/v22.22.2/bin:/Users/kjopek/.bun/bin:/opt/homebrew/bin:/Users/kjopek/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin:/opt/pkg/env/active/bin:/opt/pmk/env/global/bin:/Library/Apple/usr/bin:/Library/TeX/texbin:/Users/kjopek/.codex/tmp/arg0/codex-arg0yhLJpu:/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/@openai/codex/node_modules/@openai/codex-darwin-arm64/vendor/aarch64-apple-darwin/codex-path:/Users/kjopek/.codex/tmp/arg0/codex-arg0wITElD:/Users/kjopek/Library/Application Support/Garmin/ConnectIQ/Sdks/connectiq-sdk-mac-9.2.0-2026-06-09-92a1605b2/bin:/Users/kjopek/.nvm/versions/node/v22.22.2/bin:/Users/kjopek/.local/bin:/Users/kjopek/.bun/bin:/Users/kjopek/bin:/Users/kjopek/.cargo/bin:/Applications/iTerm.app/Contents/Resources/utilities",
+      "LC_ALL": "C",
+      "LANG": "C",
+      "HOME": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-expr-shared-v2-hAyApW"
+    },
+    "excludesAllGitEnvironmentOverrides": true,
+    "ancestors": [
+      {
+        "realpath": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-expr-shared-v2-hAyApW/temporary",
+        "gitMarkerPresent": false
+      },
+      {
+        "realpath": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-expr-shared-v2-hAyApW",
+        "gitMarkerPresent": false
+      },
+      {
+        "realpath": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T",
+        "gitMarkerPresent": false
+      },
+      {
+        "realpath": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn",
+        "gitMarkerPresent": false
+      },
+      {
+        "realpath": "/private/var/folders/rw",
+        "gitMarkerPresent": false
+      },
+      {
+        "realpath": "/private/var/folders",
+        "gitMarkerPresent": false
+      },
+      {
+        "realpath": "/private/var",
+        "gitMarkerPresent": false
+      },
+      {
+        "realpath": "/private",
+        "gitMarkerPresent": false
+      },
+      {
+        "realpath": "/",
+        "gitMarkerPresent": false
+      }
+    ]
+  }
+}

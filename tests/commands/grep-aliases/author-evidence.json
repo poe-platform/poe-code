@@ -1,10 +1,10 @@
 {
-  "startedAt": "2026-08-27T14:18:32.703Z",
+  "startedAt": "2026-08-27T14:21:47.920Z",
   "node": "v22.22.2",
   "platform": "darwin",
   "architecture": "arm64",
-  "commitBefore": "b871222100d0453a570b80fa7b41b1181be8eb67",
-  "statusBefore": "?? src/commands/column/\n?? src/commands/grep-aliases/\n?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/\n?? tests/commands/grep-aliases/\n?? tests/commands/search-stress/.native-1m4O1e/\n?? tests/integration/safejs-owned-output-prototype-review/",
+  "commitBefore": "c9bd0dbb05553dc1f1cf9136a4e11ed6a3767bc8",
+  "statusBefore": "?? src/commands/column/\n?? tests/commands/column/\n?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/\n?? tests/commands/search-stress/.native-1m4O1e/\n?? tests/integration/safejs-owned-output-prototype-review/",
   "sourceAndCanonicalInputs": {
     "package-lock.json": "9c04bb7d2c7d1894479f0c37ce367987c2130256e5bfbf426cfa1bd2729d740b",
     "package.json": "2127bbfed020aeb7873462ae65224e6ee73069425c878aa2ceee9816b2191245",
@@ -32,7 +32,7 @@
     "src/commands/column/display.ts": "94f6bdd07ec153d6d011447562c053ba70ec89fbd6958636f56aad8228116d97",
     "src/commands/column/index.ts": "0585011a2c4f2f5c38359fcfa7bc801f7c390074fc0f1d031a458cb7a609fd3d",
     "src/commands/column/internal.ts": "78141f00a57762fbb3adff88d12064c79bc4f105abdfd823f3c825cc1da726bc",
-    "src/commands/column/options.ts": "50a9076db1df46bcb530e5e4692b9d46bfa3583ecfc04f12bca5bf70dd91ec53",
+    "src/commands/column/options.ts": "4eccf2713398a8be9688bcc7f47b4f99d88bfc32bff24a1250b85a0dc246e07c",
     "src/commands/copy-identity.ts": "f1a03403fadc0138377bd3b215dafecf4b28a187549da8e80764a3fd08238dfe",
     "src/commands/diff-patch/diff-format.ts": "e7d66d54d65e28d152fc451d63aae1813eddf450001c0dd4dcb15ca67c941e24",
     "src/commands/diff-patch/diff.ts": "c3eb090a70a590992cd165486911aec51fa5dbac0e746453dbc0809fe76bc06e",
@@ -206,7 +206,7 @@
     "tsconfig.build.json": "b57d3e5aab1f1f7ab7a70f275183ea6de255e65a2c40a0047c08d97769a1a16e",
     "tsconfig.json": "86adf86ecb49df322e08438453c00ef14d922c0785f7d879498b1fc8cb48e5d4"
   },
-  "manifestSha256": "0c0e1e8cc9795ab2f522507fd7222339f3842e23a0ebeb0fe5ad575b2c8ff54b",
+  "manifestSha256": "cede29ac556483949fe3eaffe293098471abf87a4ecb399bf2325f75d593eb13",
   "commands": [
     {
       "name": "build",
@@ -219,7 +219,7 @@
       "code": 0,
       "signal": null,
       "error": null,
-      "elapsedMs": 2041.6270409999997,
+      "elapsedMs": 1746.688958,
       "stdoutSha256": "192358b3fd3475b4bb505c07ba0b5608c6e4aa06624198bba950fe56e278e6f0",
       "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
     },
@@ -234,7 +234,7 @@
       "code": 0,
       "signal": null,
       "error": null,
-      "elapsedMs": 591.0096669999998,
+      "elapsedMs": 573.4350840000002,
       "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
       "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
     },
@@ -255,8 +255,8 @@
       "code": 0,
       "signal": null,
       "error": null,
-      "elapsedMs": 1050.9992079999997,
-      "stdoutSha256": "7d2ad5d92bffd20df55e57dfc87c481a6685136251391f35554de1b4ace0aeb6",
+      "elapsedMs": 1088.261208,
+      "stdoutSha256": "ec0c4cbdcc7bdbdaed6dbe8ebbaf54cdc71ab0abc0fe1cdc8271e05abeadc20a",
       "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
     },
     {
@@ -271,7 +271,7 @@
       "code": 0,
       "signal": null,
       "error": null,
-      "elapsedMs": 199.5509159999997,
+      "elapsedMs": 177.713667,
       "stdoutSha256": "a9c4419dc4c6aea74368b2f52749b25a0a1f4ed278677d07df182fbb6b95ab02",
       "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
     }
@@ -280,9 +280,9 @@
     "bsd": "frozen binary identities and raw replay",
     "gnu": "unavailable; not a native pass"
   },
-  "commitAfter": "b871222100d0453a570b80fa7b41b1181be8eb67",
-  "manifestAfterSha256": "0c0e1e8cc9795ab2f522507fd7222339f3842e23a0ebeb0fe5ad575b2c8ff54b",
+  "commitAfter": "c9bd0dbb05553dc1f1cf9136a4e11ed6a3767bc8",
+  "manifestAfterSha256": "cede29ac556483949fe3eaffe293098471abf87a4ecb399bf2325f75d593eb13",
   "sourceStable": true,
   "builtWorkerSha256": "bb568433f1194d957dd14d1eb8229e9733bd13cd42db7ca5f2ac77b5f739b8f7",
-  "finishedAt": "2026-08-27T14:18:36.817Z"
+  "finishedAt": "2026-08-27T14:21:51.715Z"
 }

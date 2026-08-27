@@ -24,6 +24,7 @@ const commands: Record<string, { args: string[]; types?: boolean; label: string 
     { label: "unchanged 132", args: [...hook, "--test", "tests/shell/invocation-modes.test.ts"] },
   ],
   author: [{ label: "new author 211", args: [...hook, "--test", ...["discovery", "read", "sh"].map(group => `tests/shell/invocation-closure-${group}.test.ts`)] }],
+  "discovery-fixes": [{ label: "author discovery fixes", args: [...hook, "--test", "tests/shell/invocation-discovery-fixes.test.ts"] }],
   precedence: [{ label: "revised prior file 58", args: [...hook, "--test", "tests/shell/script-entrypoint.test.ts", "tests/shell-stress/script-entrypoint/holdout.test.ts"] }],
   previous: [
     { label: "previous file 58", args: [...hook, "--test", "tests/shell/script-entrypoint.test.ts", "tests/shell-stress/script-entrypoint/holdout.test.ts"] },
@@ -62,6 +63,7 @@ try {
     if (startingList) for (const path of compilerPaths(startingList.stdout)) inputsBefore[path] = sha256(await readFile(path));
     const configBefore = Object.fromEntries(await Promise.all(["tsconfig.json", "tsconfig.build.json"].map(async path => [path, sha256(await readFile(path))])));
     const executionPaths = [...new Set([...command.args.filter(path => /\.(?:ts|mjs)$/u.test(path)), ...["cases.ts", "probe.ts", "holdout.test.ts"].map(path => `${owned}/${path}`), "tests/shell-stress/invocation-modes/cases.ts", "tests/shell-stress/invocation-modes/harness.ts", "tests/shell-stress/invocation-modes/virtual-child.ts", "tests/shell-stress/script-entrypoint/cases.ts", "tests/shell-stress/script-entrypoint/probe.ts", "package.json", "package-lock.json", "benchmarks/tsconfig.json"] )];
+    if (process.env.CLOSURE_V2 === "1") executionPaths.push(...["v2-cases.ts", "v2-probe.ts", "v2-holdout.test.ts", "v2-registry.test.ts", "v2-native.json", "native-preparation.json", "post-ready-legacy-native.json"].map(path => `${owned}/${path}`));
     const executionBefore = Object.fromEntries(await Promise.all(executionPaths.map(async path => [path, sha256(await readFile(path))])));
     const run = await boundedProcess(process.execPath, [...command.args, ...(command.types ? ["--listFiles"] : [])], { cwd: process.cwd(), env, deadlineMs: 120000 });
     const sourceAfter = await sourceHashes();

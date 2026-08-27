@@ -9,7 +9,7 @@ classification defect. No builtin-label substitution is allowed.
 `v2-cases.ts` derives all 26 rows from the original module and changes only the
 queried introspection operand in `query-V-verbose` and `type-multiple-status`:
 `printf` becomes actual builtin `true` in command-V/type queries. The later
-`printf "mixed:%s\\n" "$?"` output utility is untouched. Function/VFS/missing-name,
+status-printing `printf` output utility is untouched. Function/VFS/missing-name,
 status and output assertion structure remain; all other 24 rows are identical.
 Exact before/after source strings are in `v2-preparation-audit.json` and
 `v2-native.json`. There is no per-case oracle or label normalization.
@@ -55,4 +55,21 @@ Original expected postfix outcome is 32/34, with the two legitimate registry-rol
 differences still red. That is a forecast, not a measured pass. V2 must separately
 pass its assertions without changing role labels or diagnostics to green.
 All historical raw losses, unsupported policies and previous red/seal evidence
-remain. No NUL/lifecycle/first-read/remote/full-suite/source-eval/JSON/BOM breadth.
+remain. The whole26 retains its original read-N byte/NUL rows; no paused-NUL,
+lifecycle, known first-read, remote/full-suite/source-eval/JSON/BOM extras.
+
+## Actual preparation handoff
+
+Fixture/native-proof commit: **225f992f0dde918c1a3e169fccb81d547d783cb2**.
+The single READY wait ran **2026-08-27 01:44:07.963–01:47:02.967 UTC**,
+175.004 seconds, under the 180-second cap. READY was absent and the watcher
+exited. **No original34/v2-34/registry1 or other runtime replay ran.** Root can
+resume after the source owner's discovery-fixes READY handoff.
+
+The follow-up verifier wiring explicitly guards v2 probes/oracles and includes
+the observed author-fix test path `tests/shell/invocation-discovery-fixes.test.ts`.
+No author expectations were copied. Scoped type-only follow-ups and final
+original-file/process guards are retained in `v2-final-preparation-types.json`,
+`v2-handoff-types.json`, `v2-ready-wait.json` and `v2-handoff-audit.json`.
+These compiler snapshots do not establish source acceptance while the author
+is still writing. Original 31/34 and all prior native/raw losses remain unchanged.

@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
-import { Shell, MemoryFileSystem, CommandRegistry } from "../../../dist/index.js";
-import { createGrepAliasCommands, egrepCommand, fgrepCommand, grepAliasCommands, type GrepAliasOptions } from "../../../dist/commands/grep-aliases/index.js";
+import { Shell, MemoryFileSystem, CommandRegistry } from "virtual-bash";
+import { createGrepAliasCommands, egrepCommand, fgrepCommand, grepAliasCommands, type GrepAliasOptions } from "virtual-bash/commands/grep-aliases";
 
 const options: GrepAliasOptions = { regex: { maxWorkers: 1, maxQueuedRequests: 2 }, replace: false };
 assert.deepEqual(createGrepAliasCommands(options).map(command => command.name), ["egrep", "fgrep"]);

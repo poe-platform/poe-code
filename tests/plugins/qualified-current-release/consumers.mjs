@@ -1,6 +1,9 @@
 const group = (name, directory, files, runtime, existingCoverage, qualification = "unchanged public consumer; strict declarations and emitted runtime") => ({ name, files: files.map(file => `${directory}/${file}`), runtime, existingCoverage, qualification });
 
 export const consumerGroups = [
+  group("grep-aliases-public", "tests/commands/grep-aliases", ["consumer.mts"], ["consumer.mjs"], "tests/commands/grep-aliases/verify-author.mjs", "maintained original alias assertions; two approved imports migrated to public root/subpath in the same built package"),
+  group("column-public", "tests/plugins/qualified-current-release", ["current-column.mts"], ["current-column.mjs"], "tests/commands/column-stress/current-contract-review/REPORT.md", "current public replacement for three preserved sealed internal-import type captures; direct command, awaited middleware, stdin and VFS output"),
+  group("network-zero-caps-public", "tests/commands/network-zero-caps-review", ["consumer.mts"], ["consumer.mjs"], "tests/commands/network-zero-caps-review/README.md", "unchanged meaningful public root/subpath zero-cap consumer with injected offline transport"),
   group("regex", "tests/commands/regex-execution", ["package-consumer.mts"], ["package-consumer.mjs"], "tests/commands/regex-execution/package.mjs"),
   group("regex-continuation", "tests/commands/regex-execution/continuation", ["package-consumer.mts"], ["package-consumer.mjs"], "tests/commands/regex-execution/continuation/package.mjs"),
   group("regex-followup", "tests/commands/regex-execution/followup", ["product-consumer.mts"], ["product-consumer.mjs"], "tests/commands/regex-execution/followup/package.mjs"),

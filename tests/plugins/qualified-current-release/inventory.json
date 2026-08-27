@@ -4,13 +4,199 @@
   "scope": "Explicit census of all tracked .mts paths, with no prefix exclusion. Current consumers compile/run by explicit route; negative types use exact diagnostics; frozen inputs authenticate source/package evidence. New paths fail closed. Root typecheck still does not discover .mts. Typecheck workflow also consumes these existing routes without executing runtimes; two env-split declaration fixtures are explicitly added, preserving the historical177 census.",
   "historicalColdReview": "aac345a0: canonical470/470 and485/485; standalone omissions11/30 at respective frozen commits, not current denominator.",
   "counts": {
-    "current": 30,
-    "declaration": 4,
+    "frozen-evidence": 147,
+    "current": 33,
+    "declaration": 7,
     "frozen-oracle": 1,
-    "frozen-evidence": 141,
     "negative-types": 3
   },
   "entries": [
+    {
+      "path": "tests/commands/column-stress/current-contract-review/consumer.mts",
+      "sha256": "b2b44e440153be72a34aff617b27f02b4c52b508295ce6a81904322ba82ef35d",
+      "classification": "frozen-evidence",
+      "reason": "Sealed pre-public current-contract sidecar for exact3af source; internal installed-file import and deliberately unawaited type-only call. Preserve capture, do not silently rewrite into public runtime acceptance. Current-column separately awaits these capabilities.",
+      "existingCoverage": "tests/commands/column-stress/current-contract-review/REPORT.md",
+      "qualifiedCoverage": "Authenticated historical input only; new column-public/grep-aliases-public current groups retain meaningful API/runtime coverage; no old failure rescoring",
+      "freeze": {
+        "sourceCommit": "3af3f62890c528bd40da56514e4b08f44b2e6cf0",
+        "packageSha256": "27ea798e910a97ddaf9b066e6d869967ed5475eaaa98f0151016c4aaf88cf268",
+        "evidence": [
+          {
+            "path": "tests/commands/column-stress/current-contract-review/REPORT.md",
+            "sha256": "7981ff7ad7a374e79089c4a776c7b7cf0787855760c13027da4ace8f0814efb3"
+          },
+          {
+            "path": "tests/commands/column-stress/current-contract-review/capture-2/PACK.json",
+            "sha256": "7e76a88380ed2050c723382d99ca93d478232963899528f86aa18aa66d2e937e"
+          }
+        ]
+      }
+    },
+    {
+      "path": "tests/commands/column-stress/handoff-20260827/packed-types.mts",
+      "sha256": "b8ee0c9c82cc6ce08b9c297711aac74ce05ce53e5c69ff9ab6ccefb2f4bf81d7",
+      "classification": "frozen-evidence",
+      "reason": "Sealed38cb internal module type capture alongside historical HOLD; unused invoke function is not executed runtime evidence. Current-column preserves meaningful option/type and execution checks.",
+      "existingCoverage": "tests/commands/column-stress/handoff-20260827/REPORT.md",
+      "qualifiedCoverage": "Authenticated historical input only; new column-public/grep-aliases-public current groups retain meaningful API/runtime coverage; no old failure rescoring",
+      "freeze": {
+        "sourceCommit": "38cb670acf0826467e928ea30cdcb0524436d144",
+        "packageSha256": "b8b17b6d9dedbf91fa63e89782335c324cda5b8f985a13328b991a4f170baa84",
+        "evidence": [
+          {
+            "path": "tests/commands/column-stress/handoff-20260827/REPORT.md",
+            "sha256": "0016caffa85278af703e930edf2e36c0566502ed46707316fed77c9624e6c12c"
+          },
+          {
+            "path": "tests/commands/column-stress/handoff-20260827/MANIFEST.json",
+            "sha256": "f880ebacd7f239acad879df2a5beb92e43853e508d4d5151ef8a6448ab3df37d"
+          }
+        ]
+      }
+    },
+    {
+      "path": "tests/commands/column-stress/padding-evolution/execution-20260827/packed-types.mts",
+      "sha256": "b8ee0c9c82cc6ce08b9c297711aac74ce05ce53e5c69ff9ab6ccefb2f4bf81d7",
+      "classification": "frozen-evidence",
+      "reason": "Distinct authenticated a809 padding cohort; duplicate text does not merge historical package identities. Same current-column replacement route, no old HOLD waiver.",
+      "existingCoverage": "tests/commands/column-stress/padding-evolution/execution-20260827/REPORT.md",
+      "qualifiedCoverage": "Authenticated historical input only; new column-public/grep-aliases-public current groups retain meaningful API/runtime coverage; no old failure rescoring",
+      "freeze": {
+        "sourceCommit": "a809635432f18a235b8fb622a05367bedc54b315",
+        "packageSha256": "529496a1e75423c0de50415afca2098b421c11617447ba155799e2afdbd4a684",
+        "evidence": [
+          {
+            "path": "tests/commands/column-stress/padding-evolution/execution-20260827/REPORT.md",
+            "sha256": "b44b609b458ece3cb667707c26d315a8b2f73b53aedbd5d3e2bd1416a8fe3b91"
+          },
+          {
+            "path": "tests/commands/column-stress/padding-evolution/execution-20260827/MANIFEST.json",
+            "sha256": "de1b2f91f0031100f739c5d27c32afefa698cdac3087b277bb697265ba64e61e"
+          }
+        ]
+      }
+    },
+    {
+      "path": "tests/commands/grep-aliases-stress/verification/coverage-supplement/pipeline-holdouts.mts",
+      "sha256": "ca8c863323effd4e3765177a8bec4df224921ef5f2f6c389ea91db0c0a8c0f25",
+      "classification": "frozen-evidence",
+      "reason": "Original frozen04644 holdout/capture driver requires task output/worker hooks, retains75/77 plus5/5 historical result; separate settlement-v2 corrected only two expectations. Not a reusable current default test; immutable originals and failures retained.",
+      "existingCoverage": "tests/commands/grep-aliases-stress/verification/REPORT.md",
+      "qualifiedCoverage": "Authenticated historical input only; new column-public/grep-aliases-public current groups retain meaningful API/runtime coverage; no old failure rescoring",
+      "freeze": {
+        "sourceCommit": "04644bc2c15d67155f5f4b170a66fc9bef3f6e3d",
+        "packageSha256": "3757f9f11c9894d94cec8bbd7cdd45380633757f6894a252bdd977e12a5052bb",
+        "evidence": [
+          {
+            "path": "tests/commands/grep-aliases-stress/verification/REPORT.md",
+            "sha256": "6911758ed7bdbffbc2338fb5c4dc00d94416df24a530e712058419b71aa68e47"
+          },
+          {
+            "path": "tests/commands/grep-aliases-stress/verification/summary.json",
+            "sha256": "b43f7cd8e70539b26a7a511ceffb01c37951bf4c35e79d3a2d1e28269e2ead9e"
+          },
+          {
+            "path": "tests/commands/grep-aliases-stress/verification/coverage-supplement/summary.json",
+            "sha256": "89d92f738e48a916a866a852df32725b918602e24fd26d8a188e4cab9fc26f33"
+          }
+        ]
+      }
+    },
+    {
+      "path": "tests/commands/grep-aliases-stress/verification/holdouts.mts",
+      "sha256": "d454002f97fa37b6546bad238feec5472774646a6bf0d766fea32c2c0c32977b",
+      "classification": "frozen-evidence",
+      "reason": "Original frozen04644 holdout/capture driver requires task output/worker hooks, retains75/77 plus5/5 historical result; separate settlement-v2 corrected only two expectations. Not a reusable current default test; immutable originals and failures retained.",
+      "existingCoverage": "tests/commands/grep-aliases-stress/verification/REPORT.md",
+      "qualifiedCoverage": "Authenticated historical input only; new column-public/grep-aliases-public current groups retain meaningful API/runtime coverage; no old failure rescoring",
+      "freeze": {
+        "sourceCommit": "04644bc2c15d67155f5f4b170a66fc9bef3f6e3d",
+        "packageSha256": "3757f9f11c9894d94cec8bbd7cdd45380633757f6894a252bdd977e12a5052bb",
+        "evidence": [
+          {
+            "path": "tests/commands/grep-aliases-stress/verification/REPORT.md",
+            "sha256": "6911758ed7bdbffbc2338fb5c4dc00d94416df24a530e712058419b71aa68e47"
+          },
+          {
+            "path": "tests/commands/grep-aliases-stress/verification/summary.json",
+            "sha256": "b43f7cd8e70539b26a7a511ceffb01c37951bf4c35e79d3a2d1e28269e2ead9e"
+          },
+          {
+            "path": "tests/commands/grep-aliases-stress/verification/coverage-supplement/summary.json",
+            "sha256": "89d92f738e48a916a866a852df32725b918602e24fd26d8a188e4cab9fc26f33"
+          }
+        ]
+      }
+    },
+    {
+      "path": "tests/commands/grep-aliases-stress/verification/public-consumer.mts",
+      "sha256": "7a9b9b87209490941c88f3896f92c40d3f6bda215887f245c1a3e5aca8671b94",
+      "classification": "frozen-evidence",
+      "reason": "Sealed internal installed-module type-only capture, no runtime invocation; maintained original alias public consumer now routes through approved exports.",
+      "existingCoverage": "tests/commands/grep-aliases-stress/verification/REPORT.md",
+      "qualifiedCoverage": "Authenticated historical input only; new column-public/grep-aliases-public current groups retain meaningful API/runtime coverage; no old failure rescoring",
+      "freeze": {
+        "sourceCommit": "04644bc2c15d67155f5f4b170a66fc9bef3f6e3d",
+        "packageSha256": "3757f9f11c9894d94cec8bbd7cdd45380633757f6894a252bdd977e12a5052bb",
+        "evidence": [
+          {
+            "path": "tests/commands/grep-aliases-stress/verification/REPORT.md",
+            "sha256": "6911758ed7bdbffbc2338fb5c4dc00d94416df24a530e712058419b71aa68e47"
+          },
+          {
+            "path": "tests/commands/grep-aliases-stress/verification/summary.json",
+            "sha256": "b43f7cd8e70539b26a7a511ceffb01c37951bf4c35e79d3a2d1e28269e2ead9e"
+          },
+          {
+            "path": "tests/commands/grep-aliases-stress/verification/coverage-supplement/summary.json",
+            "sha256": "89d92f738e48a916a866a852df32725b918602e24fd26d8a188e4cab9fc26f33"
+          }
+        ]
+      }
+    },
+    {
+      "path": "tests/commands/grep-aliases/consumer.mts",
+      "sha256": "4b8028bf709e6b73eea7f91e30cf2fd4b45e7709455f0209612b1b6978f995ac",
+      "classification": "current",
+      "group": "grep-aliases-public",
+      "reason": "Maintained actual public consumer; strict same-package declarations and emitted runtime, not historical exclusion.",
+      "existingCoverage": "grep-aliases-public",
+      "qualifiedCoverage": "scripts/verify-current-consumers.mjs: strict and runtime grep-aliases-public"
+    },
+    {
+      "path": "tests/commands/network-zero-caps-review/consumer.mts",
+      "sha256": "6e7cf339e0414a58c68cb46e95bcc4a59a349c94d346c8389f9b5445c75a87a1",
+      "classification": "current",
+      "group": "network-zero-caps-public",
+      "reason": "Maintained actual public consumer; strict same-package declarations and emitted runtime, not historical exclusion.",
+      "existingCoverage": "network-zero-caps-public",
+      "qualifiedCoverage": "scripts/verify-current-consumers.mjs: strict and runtime network-zero-caps-public"
+    },
+    {
+      "path": "tests/commands/network-zero-caps-review/mutations.d.mts",
+      "sha256": "09cda7f29f79d2625f9c892c0c25c1c65cc3d3f23942a60349599b42a6c53d8f",
+      "classification": "declaration",
+      "reason": "Imported support declarations for adjacent .mjs review helpers, not standalone executable or negative API test; exact bytes retained.",
+      "existingCoverage": "tests/commands/network-zero-caps-review/holdout.test.ts under root typecheck; paired .mjs helpers run by review harness",
+      "qualifiedCoverage": "Root typecheck through imports; hash-authenticated declaration inventory, not a standalone runtime pass"
+    },
+    {
+      "path": "tests/commands/network-zero-caps-review/offline.d.mts",
+      "sha256": "1d6020b8dd8f6ba0d5f1a4b73615832499bbd3ec3e147aa469e6f78ffbfb3836",
+      "classification": "declaration",
+      "reason": "Imported support declarations for adjacent .mjs review helpers, not standalone executable or negative API test; exact bytes retained.",
+      "existingCoverage": "tests/commands/network-zero-caps-review/holdout.test.ts under root typecheck; paired .mjs helpers run by review harness",
+      "qualifiedCoverage": "Root typecheck through imports; hash-authenticated declaration inventory, not a standalone runtime pass"
+    },
+    {
+      "path": "tests/commands/network-zero-caps-review/runtime.d.mts",
+      "sha256": "83a8579f6bcf3e42adda383e3519edaeb3fb49b98b471b8a56ebe758595aa1bc",
+      "classification": "declaration",
+      "reason": "Imported support declarations for adjacent .mjs review helpers, not standalone executable or negative API test; exact bytes retained.",
+      "existingCoverage": "tests/commands/network-zero-caps-review/holdout.test.ts under root typecheck; paired .mjs helpers run by review harness",
+      "qualifiedCoverage": "Root typecheck through imports; hash-authenticated declaration inventory, not a standalone runtime pass"
+    },
     {
       "path": "tests/commands/regex-execution/continuation/package-consumer.mts",
       "sha256": "7e27be9c20ee8fd7413e60c4424221520a1856ddfe2b8b80d19d1c1443eea4b3",
@@ -1673,6 +1859,15 @@
       "qualifiedCoverage": "scripts/verify-current-consumers.mjs: strict stream-inspection; runtime consumer.mjs"
     },
     {
+      "path": "tests/plugins/qualified-current-release/current-column.mts",
+      "sha256": "c74ed7b2dd94ca0bbd236db5f7a2f843f082313aa673fa69abf4ca99a8c13f3a",
+      "classification": "current",
+      "group": "column-public",
+      "reason": "Maintained actual public consumer; strict same-package declarations and emitted runtime, not historical exclusion.",
+      "existingCoverage": "column-public",
+      "qualifiedCoverage": "scripts/verify-current-consumers.mjs: strict and runtime column-public"
+    },
+    {
       "path": "tests/plugins/stream-five-fixture-migration/public-options.mts",
       "sha256": "e4ab1b52cfd29465fa064dea6b1ff5cb6e5648463aace59beec41e5eaee1468e",
       "classification": "current",
@@ -1725,5 +1920,265 @@
       "qualifiedCoverage": "scripts/verify-current-consumers.mjs: strict regex-production; runtime package-consumer.mjs"
     }
   ],
-  "inventoryFollowup": "Original20 at6ffe4f4:6 current,2 negative-types,12 frozen evidence. Later WebDAV independent.test.mts gets current23-test runtime route (20 controls+3mutant kills), not raw data. Earlier11/30 omissions remain separate historical evidence."
+  "inventoryFollowup": {
+    "0": "O",
+    "1": "r",
+    "2": "i",
+    "3": "g",
+    "4": "i",
+    "5": "n",
+    "6": "a",
+    "7": "l",
+    "8": "2",
+    "9": "0",
+    "10": " ",
+    "11": "a",
+    "12": "t",
+    "13": "6",
+    "14": "f",
+    "15": "f",
+    "16": "e",
+    "17": "4",
+    "18": "f",
+    "19": "4",
+    "20": ":",
+    "21": "6",
+    "22": " ",
+    "23": "c",
+    "24": "u",
+    "25": "r",
+    "26": "r",
+    "27": "e",
+    "28": "n",
+    "29": "t",
+    "30": ",",
+    "31": "2",
+    "32": " ",
+    "33": "n",
+    "34": "e",
+    "35": "g",
+    "36": "a",
+    "37": "t",
+    "38": "i",
+    "39": "v",
+    "40": "e",
+    "41": "-",
+    "42": "t",
+    "43": "y",
+    "44": "p",
+    "45": "e",
+    "46": "s",
+    "47": ",",
+    "48": "1",
+    "49": "2",
+    "50": " ",
+    "51": "f",
+    "52": "r",
+    "53": "o",
+    "54": "z",
+    "55": "e",
+    "56": "n",
+    "57": " ",
+    "58": "e",
+    "59": "v",
+    "60": "i",
+    "61": "d",
+    "62": "e",
+    "63": "n",
+    "64": "c",
+    "65": "e",
+    "66": ".",
+    "67": " ",
+    "68": "L",
+    "69": "a",
+    "70": "t",
+    "71": "e",
+    "72": "r",
+    "73": " ",
+    "74": "W",
+    "75": "e",
+    "76": "b",
+    "77": "D",
+    "78": "A",
+    "79": "V",
+    "80": " ",
+    "81": "i",
+    "82": "n",
+    "83": "d",
+    "84": "e",
+    "85": "p",
+    "86": "e",
+    "87": "n",
+    "88": "d",
+    "89": "e",
+    "90": "n",
+    "91": "t",
+    "92": ".",
+    "93": "t",
+    "94": "e",
+    "95": "s",
+    "96": "t",
+    "97": ".",
+    "98": "m",
+    "99": "t",
+    "100": "s",
+    "101": " ",
+    "102": "g",
+    "103": "e",
+    "104": "t",
+    "105": "s",
+    "106": " ",
+    "107": "c",
+    "108": "u",
+    "109": "r",
+    "110": "r",
+    "111": "e",
+    "112": "n",
+    "113": "t",
+    "114": "2",
+    "115": "3",
+    "116": "-",
+    "117": "t",
+    "118": "e",
+    "119": "s",
+    "120": "t",
+    "121": " ",
+    "122": "r",
+    "123": "u",
+    "124": "n",
+    "125": "t",
+    "126": "i",
+    "127": "m",
+    "128": "e",
+    "129": " ",
+    "130": "r",
+    "131": "o",
+    "132": "u",
+    "133": "t",
+    "134": "e",
+    "135": " ",
+    "136": "(",
+    "137": "2",
+    "138": "0",
+    "139": " ",
+    "140": "c",
+    "141": "o",
+    "142": "n",
+    "143": "t",
+    "144": "r",
+    "145": "o",
+    "146": "l",
+    "147": "s",
+    "148": "+",
+    "149": "3",
+    "150": "m",
+    "151": "u",
+    "152": "t",
+    "153": "a",
+    "154": "n",
+    "155": "t",
+    "156": " ",
+    "157": "k",
+    "158": "i",
+    "159": "l",
+    "160": "l",
+    "161": "s",
+    "162": ")",
+    "163": ",",
+    "164": " ",
+    "165": "n",
+    "166": "o",
+    "167": "t",
+    "168": " ",
+    "169": "r",
+    "170": "a",
+    "171": "w",
+    "172": " ",
+    "173": "d",
+    "174": "a",
+    "175": "t",
+    "176": "a",
+    "177": ".",
+    "178": " ",
+    "179": "E",
+    "180": "a",
+    "181": "r",
+    "182": "l",
+    "183": "i",
+    "184": "e",
+    "185": "r",
+    "186": "1",
+    "187": "1",
+    "188": "/",
+    "189": "3",
+    "190": "0",
+    "191": " ",
+    "192": "o",
+    "193": "m",
+    "194": "i",
+    "195": "s",
+    "196": "s",
+    "197": "i",
+    "198": "o",
+    "199": "n",
+    "200": "s",
+    "201": " ",
+    "202": "r",
+    "203": "e",
+    "204": "m",
+    "205": "a",
+    "206": "i",
+    "207": "n",
+    "208": " ",
+    "209": "s",
+    "210": "e",
+    "211": "p",
+    "212": "a",
+    "213": "r",
+    "214": "a",
+    "215": "t",
+    "216": "e",
+    "217": " ",
+    "218": "h",
+    "219": "i",
+    "220": "s",
+    "221": "t",
+    "222": "o",
+    "223": "r",
+    "224": "i",
+    "225": "c",
+    "226": "a",
+    "227": "l",
+    "228": " ",
+    "229": "e",
+    "230": "v",
+    "231": "i",
+    "232": "d",
+    "233": "e",
+    "234": "n",
+    "235": "c",
+    "236": "e",
+    "237": ".",
+    "registry73": {
+      "observedCommit": "c355751f36ca3fdbab8f888eaab30203c1bcd343",
+      "originalUnknown": 11,
+      "newMaintained": 1,
+      "additions": [
+        "tests/commands/column-stress/current-contract-review/consumer.mts",
+        "tests/commands/column-stress/handoff-20260827/packed-types.mts",
+        "tests/commands/column-stress/padding-evolution/execution-20260827/packed-types.mts",
+        "tests/commands/grep-aliases-stress/verification/public-consumer.mts",
+        "tests/commands/grep-aliases-stress/verification/holdouts.mts",
+        "tests/commands/grep-aliases-stress/verification/coverage-supplement/pipeline-holdouts.mts",
+        "tests/commands/network-zero-caps-review/mutations.d.mts",
+        "tests/commands/network-zero-caps-review/offline.d.mts",
+        "tests/commands/network-zero-caps-review/runtime.d.mts",
+        "tests/commands/grep-aliases/consumer.mts",
+        "tests/commands/network-zero-caps-review/consumer.mts",
+        "tests/plugins/qualified-current-release/current-column.mts"
+      ],
+      "evidence": "tests/integration/full-gate-20260827/consumer-inventory-73/README.md",
+      "qualification": "No source approval or runtime execution implied by classification"
+    }
+  }
 }

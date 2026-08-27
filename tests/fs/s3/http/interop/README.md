@@ -52,13 +52,21 @@ failures; there is no private HTTP-module fallback or patched export map.
 The service always stops and removes its owned data/home. An automatically
 downloaded binary is hash-checked again and removed after the run.
 
-The first public-runner replay records package-build0 and consumer-compile1:
+The historical first public-runner replay records package-build0 and consumer-compile1:
 TS2724 (`createS3HttpTransport`) and TS2305 (`S3HttpCredentials`) are absent from
 the actual public S3 barrel. No service/download occurs. This blocker is separate
 from the accepted direct-module18/18 and14/14; neither proves public usability.
-The integration owner must supply the real exports before actual public execution.
 Exact diagnostics and source snapshots are preserved in
 `evidence/public-runner-first/REPORT.md`; that cohort has zero service workflows.
+
+After real root/HTTP-subpath exports in `3c45ca2` and the aligned author consumer
+in `b0ecf6a`, a fresh public run passes package build, strict consumer compilation
+and import (all exit0), then **one actual-service workflow with nine named checks**
+and **six independently signed final-object byte reads**. Root and
+`virtual-bash/fs/s3/http` factory identity is asserted by the unchanged consumer.
+See `evidence/public-acceptance/REPORT.md` for exact source/fixture hashes, raw
+results and cleanup. This is author-example service acceptance, not the separate
+root-independent adversarial review or a positive guarded-move result.
 
 `prepare.mjs` verifies the official checksum against the checked-in digest and
 bounds the decompressed binary by exact size and digest before making it
@@ -71,9 +79,10 @@ not ambient credentials. `finally` stops the owned PID and removes its data/home
 logs, raw requests and exact input snapshots remain in the printed temp directory.
 
 `run.mjs` builds a fresh archive of the recorded HEAD plus the current new
-`src/fs/s3/http` source overlay, without changing shared `dist`. The new transport
-is imported from the isolated build's direct module until root approves package
-export wiring. Existing Shell/VFS APIs use public `virtual-bash` exports. Every
+`src/fs/s3/http` source overlay, without changing shared `dist`. This historical
+direct-module cohort keeps its isolated direct transport import; it is not
+retrospectively reclassified as public-package acceptance. Existing Shell/VFS APIs
+use public `virtual-bash` exports. Every
 run records source/test hashes, build output, raw transport requests and results.
 No whole-repository suite is run. `.mjs` checks are explicitly invoked, not silent
 skips in the normal `.test.ts` suite.
@@ -135,11 +144,11 @@ The native-COPY-enabled control still advertises false. Source predicates protec
 snapshot acquisition, not later destination publication; this is neither an
 atomic copy nor a snapshot/ABA guarantee. Conditional DELETE remains false.
 
-These runs use the isolated direct HTTP module. They do not establish the newly
-requested typed public-package factory consumer: its author fixture and real
-export-map wiring were not yet available at this checkpoint. That separate
-actual-service usability acceptance remains required, without changing exports
-in this harness or pretending an undefined comparison resolver is usable.
+These direct-module runs did not establish the typed public-package factory
+consumer: its author fixture and real export-map wiring were not yet available
+at that checkpoint. The subsequent, separately recorded public workflow above
+executes that consumer without changing exports in this harness or substituting
+an undefined comparison resolver.
 
 ## Authority and limits
 

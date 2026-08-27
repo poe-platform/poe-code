@@ -16,10 +16,10 @@ export function createExprCommand(options: ExprCommandsOptions = {}): CommandDef
     return withRegexSession(context, executor, async session => {
       context.signal.throwIfAborted();
       const budget = new Budget(context, limits);
+      let output: Uint8Array;
+      let exitCode = 0;
       try {
         budget.arguments();
-        let output: Uint8Array;
-        let exitCode = 0;
         if (context.args.length === 1 && ["--help", "--version"].includes(context.args[0]!)) {
           const text = context.args[0] === "--help" ? help : "expr (virtual-bash)\n";
           budget.check(Buffer.byteLength(text), limits.maxOutputBytes, "output bytes");
@@ -54,14 +54,21 @@ export function createExprCommand(options: ExprCommandsOptions = {}): CommandDef
           output[result.length] = 10;
         }
         await budget.yield();
-        await writeBytes(context.stdout, output, context.signal);
-        return { exitCode };
       } catch (error) {
         context.signal.throwIfAborted();
         const message = error instanceof ExprError || error instanceof ExprMatchError || error instanceof RegexExecutionError ? error.message : "execution or output failure";
+        try {
+          budget.check(message.length + 7, limits.maxOutputBytes, "output bytes");
+          budget.check(Buffer.byteLength(message) + 7, limits.maxOutputBytes, "output bytes");
+        } catch {
+          await writeBytes(context.stderr, new TextEncoder().encode("expr: output bytes limit exceeded\n"), context.signal);
+          return { exitCode: 3 };
+        }
         await writeBytes(context.stderr, new TextEncoder().encode(`expr: ${message}\n`), context.signal);
         return { exitCode: error instanceof ExprError ? error.exitCode : error instanceof ExprMatchError && error.category !== "limit" ? 2 : 3 };
       }
+      await writeBytes(context.stdout, output, context.signal);
+      return { exitCode };
     });
   } };
 }

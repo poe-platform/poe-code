@@ -1,0 +1,298 @@
+TAP version 13
+# Subtest: independent memory: faithful late writers copy bytes but cannot overwrite a readonly-view alias
+ok 1 - independent memory: faithful late writers copy bytes but cannot overwrite a readonly-view alias
+  ---
+  duration_ms: 2.374833
+  type: 'test'
+  ...
+# Subtest: independent memory: honest opaque remapping refuses both directions before content acquisition
+not ok 2 - independent memory: honest opaque remapping refuses both directions before content acquisition
+  ---
+  duration_ms: 1.236917
+  type: 'test'
+  location: '/private/tmp/safe-bash-authority-reconciliation-CYffZ2/tests/integration/full-gate-20260827/authority-reconciliation-independent/controls.test.ts:1:3873'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + 'distinct'
+    - 'unknown'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'unknown'
+  actual: 'distinct'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/private/tmp/safe-bash-authority-reconciliation-CYffZ2/tests/integration/full-gate-20260827/authority-reconciliation-independent/controls.test.ts:75:12)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: independent memory: explicit error cannot become qualified publication
+not ok 3 - independent memory: explicit error cannot become qualified publication
+  ---
+  duration_ms: 2.16775
+  type: 'test'
+  location: '/private/tmp/safe-bash-authority-reconciliation-CYffZ2/tests/integration/full-gate-20260827/authority-reconciliation-independent/controls.test.ts:1:4736'
+  failureType: 'testCodeFailure'
+  error: 'Missing expected rejection.'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  stack: |-
+    async TestContext.<anonymous> (/private/tmp/safe-bash-authority-reconciliation-CYffZ2/tests/integration/full-gate-20260827/authority-reconciliation-independent/controls.test.ts:90:7)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: independent memory: explicit cancel cannot become qualified publication
+not ok 4 - independent memory: explicit cancel cannot become qualified publication
+  ---
+  duration_ms: 0.868209
+  type: 'test'
+  location: '/private/tmp/safe-bash-authority-reconciliation-CYffZ2/tests/integration/full-gate-20260827/authority-reconciliation-independent/controls.test.ts:1:4736'
+  failureType: 'testCodeFailure'
+  error: 'Missing expected rejection.'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  stack: |-
+    async TestContext.<anonymous> (/private/tmp/safe-bash-authority-reconciliation-CYffZ2/tests/integration/full-gate-20260827/authority-reconciliation-independent/controls.test.ts:90:7)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: independent s3: faithful late writers copy bytes but cannot overwrite a readonly-view alias
+not ok 5 - independent s3: faithful late writers copy bytes but cannot overwrite a readonly-view alias
+  ---
+  duration_ms: 2.437916
+  type: 'test'
+  location: '/private/tmp/safe-bash-authority-reconciliation-CYffZ2/tests/integration/full-gate-20260827/authority-reconciliation-independent/controls.test.ts:1:2770'
+  failureType: 'testCodeFailure'
+  error: 'Missing expected rejection.'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    code: 'EINVAL'
+  operator: 'rejects'
+  stack: |-
+    async TestContext.<anonymous> (/private/tmp/safe-bash-authority-reconciliation-CYffZ2/tests/integration/full-gate-20260827/authority-reconciliation-independent/controls.test.ts:65:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: independent s3: honest opaque remapping refuses both directions before content acquisition
+not ok 6 - independent s3: honest opaque remapping refuses both directions before content acquisition
+  ---
+  duration_ms: 0.621833
+  type: 'test'
+  location: '/private/tmp/safe-bash-authority-reconciliation-CYffZ2/tests/integration/full-gate-20260827/authority-reconciliation-independent/controls.test.ts:1:3873'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + 'distinct'
+    - 'unknown'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'unknown'
+  actual: 'distinct'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/private/tmp/safe-bash-authority-reconciliation-CYffZ2/tests/integration/full-gate-20260827/authority-reconciliation-independent/controls.test.ts:75:12)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: independent s3: explicit error cannot become qualified publication
+not ok 7 - independent s3: explicit error cannot become qualified publication
+  ---
+  duration_ms: 0.529791
+  type: 'test'
+  location: '/private/tmp/safe-bash-authority-reconciliation-CYffZ2/tests/integration/full-gate-20260827/authority-reconciliation-independent/controls.test.ts:1:4736'
+  failureType: 'testCodeFailure'
+  error: 'Missing expected rejection.'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  stack: |-
+    async TestContext.<anonymous> (/private/tmp/safe-bash-authority-reconciliation-CYffZ2/tests/integration/full-gate-20260827/authority-reconciliation-independent/controls.test.ts:90:7)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: independent s3: explicit cancel cannot become qualified publication
+not ok 8 - independent s3: explicit cancel cannot become qualified publication
+  ---
+  duration_ms: 0.5665
+  type: 'test'
+  location: '/private/tmp/safe-bash-authority-reconciliation-CYffZ2/tests/integration/full-gate-20260827/authority-reconciliation-independent/controls.test.ts:1:4736'
+  failureType: 'testCodeFailure'
+  error: 'Missing expected rejection.'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  stack: |-
+    async TestContext.<anonymous> (/private/tmp/safe-bash-authority-reconciliation-CYffZ2/tests/integration/full-gate-20260827/authority-reconciliation-independent/controls.test.ts:90:7)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: independent webdav: faithful late writers copy bytes but cannot overwrite a readonly-view alias
+not ok 9 - independent webdav: faithful late writers copy bytes but cannot overwrite a readonly-view alias
+  ---
+  duration_ms: 18.665292
+  type: 'test'
+  location: '/private/tmp/safe-bash-authority-reconciliation-CYffZ2/tests/integration/full-gate-20260827/authority-reconciliation-independent/controls.test.ts:1:2770'
+  failureType: 'testCodeFailure'
+  error: 'Missing expected rejection.'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    code: 'EINVAL'
+  operator: 'rejects'
+  stack: |-
+    async TestContext.<anonymous> (/private/tmp/safe-bash-authority-reconciliation-CYffZ2/tests/integration/full-gate-20260827/authority-reconciliation-independent/controls.test.ts:65:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: independent webdav: honest opaque remapping refuses both directions before content acquisition
+not ok 10 - independent webdav: honest opaque remapping refuses both directions before content acquisition
+  ---
+  duration_ms: 1.350333
+  type: 'test'
+  location: '/private/tmp/safe-bash-authority-reconciliation-CYffZ2/tests/integration/full-gate-20260827/authority-reconciliation-independent/controls.test.ts:1:3873'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + 'distinct'
+    - 'unknown'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'unknown'
+  actual: 'distinct'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/private/tmp/safe-bash-authority-reconciliation-CYffZ2/tests/integration/full-gate-20260827/authority-reconciliation-independent/controls.test.ts:75:12)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: independent webdav: explicit error cannot become qualified publication
+not ok 11 - independent webdav: explicit error cannot become qualified publication
+  ---
+  duration_ms: 1.211958
+  type: 'test'
+  location: '/private/tmp/safe-bash-authority-reconciliation-CYffZ2/tests/integration/full-gate-20260827/authority-reconciliation-independent/controls.test.ts:1:4736'
+  failureType: 'testCodeFailure'
+  error: 'Missing expected rejection.'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  stack: |-
+    async TestContext.<anonymous> (/private/tmp/safe-bash-authority-reconciliation-CYffZ2/tests/integration/full-gate-20260827/authority-reconciliation-independent/controls.test.ts:90:7)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: independent webdav: explicit cancel cannot become qualified publication
+not ok 12 - independent webdav: explicit cancel cannot become qualified publication
+  ---
+  duration_ms: 0.846083
+  type: 'test'
+  location: '/private/tmp/safe-bash-authority-reconciliation-CYffZ2/tests/integration/full-gate-20260827/authority-reconciliation-independent/controls.test.ts:1:4736'
+  failureType: 'testCodeFailure'
+  error: 'Missing expected rejection.'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  stack: |-
+    async TestContext.<anonymous> (/private/tmp/safe-bash-authority-reconciliation-CYffZ2/tests/integration/full-gate-20260827/authority-reconciliation-independent/controls.test.ts:90:7)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: independent truthful remapping retains actual native identity rather than making all remappers unusable
+ok 13 - independent truthful remapping retains actual native identity rather than making all remappers unusable
+  ---
+  duration_ms: 0.304959
+  type: 'test'
+  ...
+# Subtest: independent S3 faithful HEAD binds only a fresh corresponding query
+ok 14 - independent S3 faithful HEAD binds only a fresh corresponding query
+  ---
+  duration_ms: 0.280875
+  type: 'test'
+  ...
+# Subtest: independent S3 serialized HEAD binds only a fresh corresponding query
+not ok 15 - independent S3 serialized HEAD binds only a fresh corresponding query
+  ---
+  duration_ms: 0.304791
+  type: 'test'
+  location: '/private/tmp/safe-bash-authority-reconciliation-CYffZ2/tests/integration/full-gate-20260827/authority-reconciliation-independent/controls.test.ts:1:6735'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + 'distinct'
+    - 'unknown'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'unknown'
+  actual: 'distinct'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/private/tmp/safe-bash-authority-reconciliation-CYffZ2/tests/integration/full-gate-20260827/authority-reconciliation-independent/controls.test.ts:137:12)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: independent S3 replayed HEAD binds only a fresh corresponding query
+not ok 16 - independent S3 replayed HEAD binds only a fresh corresponding query
+  ---
+  duration_ms: 0.23975
+  type: 'test'
+  location: '/private/tmp/safe-bash-authority-reconciliation-CYffZ2/tests/integration/full-gate-20260827/authority-reconciliation-independent/controls.test.ts:1:6735'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + 'distinct'
+    - 'unknown'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'unknown'
+  actual: 'distinct'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/private/tmp/safe-bash-authority-reconciliation-CYffZ2/tests/integration/full-gate-20260827/authority-reconciliation-independent/controls.test.ts:137:12)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: independent S3 wrong-path HEAD binds only a fresh corresponding query
+not ok 17 - independent S3 wrong-path HEAD binds only a fresh corresponding query
+  ---
+  duration_ms: 0.617583
+  type: 'test'
+  location: '/private/tmp/safe-bash-authority-reconciliation-CYffZ2/tests/integration/full-gate-20260827/authority-reconciliation-independent/controls.test.ts:1:6735'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + 'distinct'
+    - 'unknown'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'unknown'
+  actual: 'distinct'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/private/tmp/safe-bash-authority-reconciliation-CYffZ2/tests/integration/full-gate-20260827/authority-reconciliation-independent/controls.test.ts:137:12)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+1..17
+# tests 17
+# suites 0
+# pass 3
+# fail 14
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 168.975917

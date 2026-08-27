@@ -1,0 +1,112 @@
+TAP version 13
+# Subtest: independent memory: faithful late writers copy bytes but cannot overwrite a readonly-view alias
+ok 1 - independent memory: faithful late writers copy bytes but cannot overwrite a readonly-view alias
+  ---
+  duration_ms: 2.238042
+  type: 'test'
+  ...
+# Subtest: independent memory: honest opaque remapping refuses both directions before content acquisition
+ok 2 - independent memory: honest opaque remapping refuses both directions before content acquisition
+  ---
+  duration_ms: 0.644542
+  type: 'test'
+  ...
+# Subtest: independent memory: explicit error cannot become qualified publication
+ok 3 - independent memory: explicit error cannot become qualified publication
+  ---
+  duration_ms: 2.580959
+  type: 'test'
+  ...
+# Subtest: independent memory: explicit cancel cannot become qualified publication
+ok 4 - independent memory: explicit cancel cannot become qualified publication
+  ---
+  duration_ms: 1.243084
+  type: 'test'
+  ...
+# Subtest: independent s3: faithful late writers copy bytes but cannot overwrite a readonly-view alias
+ok 5 - independent s3: faithful late writers copy bytes but cannot overwrite a readonly-view alias
+  ---
+  duration_ms: 2.459833
+  type: 'test'
+  ...
+# Subtest: independent s3: honest opaque remapping refuses both directions before content acquisition
+ok 6 - independent s3: honest opaque remapping refuses both directions before content acquisition
+  ---
+  duration_ms: 2.100708
+  type: 'test'
+  ...
+# Subtest: independent s3: explicit error cannot become qualified publication
+ok 7 - independent s3: explicit error cannot become qualified publication
+  ---
+  duration_ms: 0.665583
+  type: 'test'
+  ...
+# Subtest: independent s3: explicit cancel cannot become qualified publication
+ok 8 - independent s3: explicit cancel cannot become qualified publication
+  ---
+  duration_ms: 1.274917
+  type: 'test'
+  ...
+# Subtest: independent webdav: faithful late writers copy bytes but cannot overwrite a readonly-view alias
+ok 9 - independent webdav: faithful late writers copy bytes but cannot overwrite a readonly-view alias
+  ---
+  duration_ms: 21.73825
+  type: 'test'
+  ...
+# Subtest: independent webdav: honest opaque remapping refuses both directions before content acquisition
+ok 10 - independent webdav: honest opaque remapping refuses both directions before content acquisition
+  ---
+  duration_ms: 4.417333
+  type: 'test'
+  ...
+# Subtest: independent webdav: explicit error cannot become qualified publication
+ok 11 - independent webdav: explicit error cannot become qualified publication
+  ---
+  duration_ms: 1.165167
+  type: 'test'
+  ...
+# Subtest: independent webdav: explicit cancel cannot become qualified publication
+ok 12 - independent webdav: explicit cancel cannot become qualified publication
+  ---
+  duration_ms: 0.825084
+  type: 'test'
+  ...
+# Subtest: independent truthful remapping retains actual native identity rather than making all remappers unusable
+ok 13 - independent truthful remapping retains actual native identity rather than making all remappers unusable
+  ---
+  duration_ms: 0.22075
+  type: 'test'
+  ...
+# Subtest: independent S3 faithful HEAD binds only a fresh corresponding query
+ok 14 - independent S3 faithful HEAD binds only a fresh corresponding query
+  ---
+  duration_ms: 0.332209
+  type: 'test'
+  ...
+# Subtest: independent S3 serialized HEAD binds only a fresh corresponding query
+ok 15 - independent S3 serialized HEAD binds only a fresh corresponding query
+  ---
+  duration_ms: 0.222125
+  type: 'test'
+  ...
+# Subtest: independent S3 replayed HEAD binds only a fresh corresponding query
+ok 16 - independent S3 replayed HEAD binds only a fresh corresponding query
+  ---
+  duration_ms: 0.178958
+  type: 'test'
+  ...
+# Subtest: independent S3 wrong-path HEAD binds only a fresh corresponding query
+ok 17 - independent S3 wrong-path HEAD binds only a fresh corresponding query
+  ---
+  duration_ms: 0.132375
+  type: 'test'
+  ...
+1..17
+# tests 17
+# suites 0
+# pass 17
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 181.20125

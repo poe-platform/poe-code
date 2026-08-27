@@ -1,0 +1,4 @@
+final {"status":0,"counts":{"tests":85,"pass":85,"fail":0,"cancelled":0,"skipped":0,"todo":0},"failures":[]}
+final-guards53 {"status":0,"counts":{"tests":53,"pass":53,"fail":0,"cancelled":0,"skipped":0,"todo":0},"failures":[]}
+final-adjacent {"status":0,"counts":{"tests":112,"pass":112,"fail":0,"cancelled":0,"skipped":0,"todo":0},"failures":[]}
+final-scoped-types {"status":0,"counts":{},"failures":[]}

@@ -1,0 +1,626 @@
+TAP version 13
+# AUTHORITY_OBSERVATION eyJjYXNlIjoiczMtcG9zaXRpdmUiLCJkYXRhIjp7InJlY2VpcHRzIjpbeyJkaXN0aW5jdCI6dHJ1ZSwiYmFzaXMiOiJjb21wYXJpc29uIn0seyJkaXN0aW5jdCI6dHJ1ZSwiYmFzaXMiOiJjb21wYXJpc29uIn1dLCJvcGVyYXRpb25zIjpbImxpc3RPYmplY3RzVjIiLCJoZWFkT2JqZWN0IiwiaGVhZE9iamVjdCIsImxpc3RPYmplY3RzVjIiLCJwdXRPYmplY3QiLCJsaXN0T2JqZWN0c1YyIiwiaGVhZE9iamVjdCIsImhlYWRPYmplY3QiLCJsaXN0T2JqZWN0c1YyIiwicHV0T2JqZWN0IiwibGlzdE9iamVjdHNWMiIsImhlYWRPYmplY3QiLCJoZWFkT2JqZWN0IiwibGlzdE9iamVjdHNWMiIsImxpc3RPYmplY3RzVjIiLCJoZWFkT2JqZWN0IiwiaGVhZE9iamVjdCIsImxpc3RPYmplY3RzVjIiLCJsaXN0T2JqZWN0c1YyIiwiaGVhZE9iamVjdCIsImhlYWRPYmplY3QiLCJsaXN0T2JqZWN0c1YyIiwibGlzdE9iamVjdHNWMiIsImhlYWRPYmplY3QiLCJoZWFkT2JqZWN0IiwibGlzdE9iamVjdHNWMiIsImxpc3RPYmplY3RzVjIiLCJoZWFkT2JqZWN0IiwiaGVhZE9iamVjdCIsImxpc3RPYmplY3RzVjIiLCJnZXRPYmplY3QiLCJsaXN0T2JqZWN0c1YyIiwiaGVhZE9iamVjdCIsImhlYWRPYmplY3QiLCJsaXN0T2JqZWN0c1YyIiwicHV0T2JqZWN0IiwibGlzdE9iamVjdHNWMiIsImhlYWRPYmplY3QiLCJoZWFkT2JqZWN0IiwibGlzdE9iamVjdHNWMiIsInB1dE9iamVjdCIsImxpc3RPYmplY3RzVjIiLCJoZWFkT2JqZWN0IiwiaGVhZE9iamVjdCIsImxpc3RPYmplY3RzVjIiLCJsaXN0T2JqZWN0c1YyIiwiaGVhZE9iamVjdCIsImhlYWRPYmplY3QiLCJsaXN0T2JqZWN0c1YyIiwibGlzdE9iamVjdHNWMiIsImhlYWRPYmplY3QiLCJoZWFkT2JqZWN0IiwibGlzdE9iamVjdHNWMiIsImxpc3RPYmplY3RzVjIiLCJoZWFkT2JqZWN0IiwiaGVhZE9iamVjdCIsImxpc3RPYmplY3RzVjIiLCJsaXN0T2JqZWN0c1YyIiwiaGVhZE9iamVjdCIsImhlYWRPYmplY3QiLCJsaXN0T2JqZWN0c1YyIiwibGlzdE9iamVjdHNWMiIsImhlYWRPYmplY3QiLCJoZWFkT2JqZWN0IiwibGlzdE9iamVjdHNWMiIsImxpc3RPYmplY3RzVjIiLCJoZWFkT2JqZWN0IiwiaGVhZE9iamVjdCIsImxpc3RPYmplY3RzVjIiLCJnZXRPYmplY3QiLCJsaXN0T2JqZWN0c1YyIiwiaGVhZE9iamVjdCIsImhlYWRPYmplY3QiLCJsaXN0T2JqZWN0c1YyIiwicHV0T2JqZWN0IiwibGlzdE9iamVjdHNWMiIsImhlYWRPYmplY3QiLCJoZWFkT2JqZWN0IiwibGlzdE9iamVjdHNWMiIsImdldE9iamVjdCIsImxpc3RPYmplY3RzVjIiLCJoZWFkT2JqZWN0IiwiaGVhZE9iamVjdCIsImxpc3RPYmplY3RzVjIiLCJnZXRPYmplY3QiLCJsaXN0T2JqZWN0c1YyIiwiaGVhZE9iamVjdCIsImhlYWRPYmplY3QiLCJsaXN0T2JqZWN0c1YyIl19fQ==
+# AUTHORITY_OBSERVATION eyJjYXNlIjoiczMtYWxpYXMiLCJkYXRhIjpbImxpc3RPYmplY3RzVjIiLCJoZWFkT2JqZWN0IiwiaGVhZE9iamVjdCIsImxpc3RPYmplY3RzVjIiLCJsaXN0T2JqZWN0c1YyIiwiaGVhZE9iamVjdCIsImhlYWRPYmplY3QiLCJsaXN0T2JqZWN0c1YyIiwibGlzdE9iamVjdHNWMiIsImhlYWRPYmplY3QiLCJoZWFkT2JqZWN0IiwibGlzdE9iamVjdHNWMiIsImxpc3RPYmplY3RzVjIiLCJoZWFkT2JqZWN0IiwiaGVhZE9iamVjdCIsImxpc3RPYmplY3RzVjIiLCJsaXN0T2JqZWN0c1YyIiwiaGVhZE9iamVjdCIsImhlYWRPYmplY3QiLCJsaXN0T2JqZWN0c1YyIiwibGlzdE9iamVjdHNWMiIsImhlYWRPYmplY3QiLCJoZWFkT2JqZWN0IiwibGlzdE9iamVjdHNWMiJdfQ==
+# AUTHORITY_OBSERVATION eyJjYXNlIjoid2ViZGF2LXBvc2l0aXZlIiwiZGF0YSI6eyJyZWNlaXB0cyI6W3siZGlzdGluY3QiOnRydWUsImJhc2lzIjoiY29tcGFyaXNvbiJ9LHsiZGlzdGluY3QiOnRydWUsImJhc2lzIjoiY29tcGFyaXNvbiJ9XSwib3BlcmF0aW9ucyI6WyJQUk9QRklORCIsIlBVVCIsIlBST1BGSU5EIiwiUFVUIiwiUFJPUEZJTkQiLCJQUk9QRklORCIsIlBST1BGSU5EIiwiUFJPUEZJTkQiLCJQUk9QRklORCIsIkdFVCIsIlBST1BGSU5EIiwiUFVUIiwiUFJPUEZJTkQiLCJQVVQiLCJQUk9QRklORCIsIlBST1BGSU5EIiwiUFJPUEZJTkQiLCJQUk9QRklORCIsIlBST1BGSU5EIiwiUFJPUEZJTkQiLCJQUk9QRklORCIsIkdFVCIsIlBST1BGSU5EIiwiUFVUIiwiUFJPUEZJTkQiLCJHRVQiLCJQUk9QRklORCIsIkdFVCIsIlBST1BGSU5EIl19fQ==
+# AUTHORITY_OBSERVATION eyJjYXNlIjoid2ViZGF2LWFsaWFzIiwiZGF0YSI6WyJQUk9QRklORCIsIlBST1BGSU5EIiwiUFJPUEZJTkQiLCJQUk9QRklORCIsIlBST1BGSU5EIiwiUFJPUEZJTkQiXX0=
+# AUTHORITY_OBSERVATION eyJjYXNlIjoiczMtbmF0aXZlLWV4Y2x1c2l2ZSIsImRhdGEiOnsib3BlcmF0aW9uIjoiY29weU9iamVjdCIsImlucHV0Ijp7IkJ1Y2tldCI6ImJ1Y2tldCIsIktleSI6InRhcmdldCIsIkNvcHlTb3VyY2UiOiJidWNrZXQvc291cmNlIiwiQ29weVNvdXJjZUlmTWF0Y2giOiJcIjM2Y2QzOGY0OWI5YWZhMDgyMjJjMGRjOWViZmUzNWViXCIiLCJNZXRhZGF0YURpcmVjdGl2ZSI6IkNPUFkiLCJJZk5vbmVNYXRjaCI6IioifX19
+# AUTHORITY_OBSERVATION eyJjYXNlIjoiZGF2LW5hdGl2ZS1leGNsdXNpdmUiLCJkYXRhIjp7Im92ZXJ3cml0ZSI6IkYifX0=
+# AUTHORITY_OBSERVATION eyJjYXNlIjoiZGF2LWFsaWFzLW5hdGl2ZS1jb3VudGVyZXhhbXBsZSIsImRhdGEiOnsic291cmNlTG9zdCI6dHJ1ZSwibW9ja0lzTm90QWxpYXNTYWZlU2VydmVyIjp0cnVlfX0=
+# AUTHORITY_OBSERVATION eyJjYXNlIjoibW92ZS1vcmRlcmluZyIsImRhdGEiOlsiY29weS1zdGFydCIsImNvcHktc3VjY2VzcyIsInJlbW92ZSJdfQ==
+# AUTHORITY_OBSERVATION eyJjYXNlIjoicGF0aG5hbWUtcmFjZS1saW1pdCIsImRhdGEiOnsic291cmNlTG9zdEFmdGVyRXh0ZXJuYWxBbGlhc1JlcGxhY2VtZW50Ijp0cnVlfX0=
+# AUTHORITY_OBSERVATION eyJjYXNlIjoibW92ZS1hYmEtbGltaXQiLCJkYXRhIjp7InJlcGxhY2VtZW50RGVsZXRlZCI6dHJ1ZSwib3JpZ2luYWxJbm9kZSI6MiwicmVwbGFjZW1lbnRJbm9kZSI6NH19
+# AUTHORITY_OBSERVATION eyJjYXNlIjoiZGF2LXJlc291cmNlLWlkIiwiZGF0YSI6eyJzYW1lVmlld0NvcHkiOnRydWUsImNyb3NzVmlld0NvcHkiOnRydWUsImVuZHBvaW50QWxpYXNSZWplY3RlZCI6dHJ1ZSwibWlzc2luZ1Byb3BlcnR5SXNVbmtub3duIjp0cnVlLCJkdXBsaWNhdGVQcm9wZXJ0eUlzVW5rbm93biI6dHJ1ZX19
+# Subtest: s3: negotiated authority permits same-view and separate-client ordinary overwrites
+ok 1 - s3: negotiated authority permits same-view and separate-client ordinary overwrites
+  ---
+  duration_ms: 4.689584
+  type: 'test'
+  ...
+# Subtest: s3: shared storage through distinct clients/endpoint aliases rejects before body IO
+ok 2 - s3: shared storage through distinct clients/endpoint aliases rejects before body IO
+  ---
+  duration_ms: 1.0035
+  type: 'test'
+  ...
+# Subtest: s3: unregistered peer stays unknown despite distinct client and equal metadata
+ok 3 - s3: unregistered peer stays unknown despite distinct client and equal metadata
+  ---
+  duration_ms: 1.124792
+  type: 'test'
+  ...
+# Subtest: s3: missing unknown target uses real exclusive creation; existing exclusive target rejects
+ok 4 - s3: missing unknown target uses real exclusive creation; existing exclusive target rejects
+  ---
+  duration_ms: 0.943625
+  type: 'test'
+  ...
+# Subtest: webdav: negotiated authority permits same-view and separate-client ordinary overwrites
+ok 5 - webdav: negotiated authority permits same-view and separate-client ordinary overwrites
+  ---
+  duration_ms: 18.850667
+  type: 'test'
+  ...
+# Subtest: webdav: shared storage through distinct clients/endpoint aliases rejects before body IO
+ok 6 - webdav: shared storage through distinct clients/endpoint aliases rejects before body IO
+  ---
+  duration_ms: 1.748833
+  type: 'test'
+  ...
+# Subtest: webdav: unregistered peer stays unknown despite distinct client and equal metadata
+ok 7 - webdav: unregistered peer stays unknown despite distinct client and equal metadata
+  ---
+  duration_ms: 1.864417
+  type: 'test'
+  ...
+# Subtest: webdav: missing unknown target uses real exclusive creation; existing exclusive target rejects
+ok 8 - webdav: missing unknown target uses real exclusive creation; existing exclusive target rejects
+  ---
+  duration_ms: 1.851833
+  type: 'test'
+  ...
+# Subtest: S3 native same-path copy is successful no-op, not the proposed guardedCopy rejection
+ok 9 - S3 native same-path copy is successful no-op, not the proposed guardedCopy rejection
+  ---
+  duration_ms: 0.685959
+  type: 'test'
+  ...
+# Subtest: S3 actual conditional CopyObject preserves a raced exclusive destination
+ok 10 - S3 actual conditional CopyObject preserves a raced exclusive destination
+  ---
+  duration_ms: 0.749042
+  type: 'test'
+  ...
+# Subtest: WebDAV actual native COPY uses Overwrite F against a raced missing target
+ok 11 - WebDAV actual native COPY uses Overwrite F against a raced missing target
+  ---
+  duration_ms: 1.001875
+  type: 'test'
+  ...
+# Subtest: WebDAV native COPY plus ETags is not an alias-safe guard in an alias-routing mock
+ok 12 - WebDAV native COPY plus ETags is not an alias-safe guard in an alias-routing mock
+  ---
+  duration_ms: 1.47675
+  type: 'test'
+  ...
+# Subtest: different authority objects remain unknown until the owner certifies genuinely disjoint stores
+ok 13 - different authority objects remain unknown until the owner certifies genuinely disjoint stores
+  ---
+  duration_ms: 0.5655
+  type: 'test'
+  ...
+# Subtest: read-only forwarding preserves backing aliases without granting destination writes
+ok 14 - read-only forwarding preserves backing aliases without granting destination writes
+  ---
+  duration_ms: 0.4135
+  type: 'test'
+  ...
+# Subtest: overlay comparison re-observes selected backing after copy-up, not a wrapper-local token
+ok 15 - overlay comparison re-observes selected backing after copy-up, not a wrapper-local token
+  ---
+  duration_ms: 1.0795
+  type: 'test'
+  ...
+# Subtest: contradictory authoritative answers fail before source acquisition
+ok 16 - contradictory authoritative answers fail before source acquisition
+  ---
+  duration_ms: 0.132292
+  type: 'test'
+  ...
+# Subtest: failed metadata and pre-cancel do not become missing targets
+ok 17 - failed metadata and pre-cancel do not become missing targets
+  ---
+  duration_ms: 0.156833
+  type: 'test'
+  ...
+# Subtest: a raced generic exclusive target is preserved
+ok 18 - a raced generic exclusive target is preserved
+  ---
+  duration_ms: 0.0945
+  type: 'test'
+  ...
+# Subtest: move: source failure never removes source (partial destination is disclosed)
+ok 19 - move: source failure never removes source (partial destination is disclosed)
+  ---
+  duration_ms: 0.220542
+  type: 'test'
+  ...
+# Subtest: move: target failure never removes source (partial destination is disclosed)
+ok 20 - move: target failure never removes source (partial destination is disclosed)
+  ---
+  duration_ms: 0.152958
+  type: 'test'
+  ...
+# Subtest: move: cancel failure never removes source (partial destination is disclosed)
+ok 21 - move: cancel failure never removes source (partial destination is disclosed)
+  ---
+  duration_ms: 0.58925
+  type: 'test'
+  ...
+# Subtest: move: alias and unknown are not successful no-op receipts; distinct copy completes before remove
+ok 22 - move: alias and unknown are not successful no-op receipts; distinct copy completes before remove
+  ---
+  duration_ms: 0.532375
+  type: 'test'
+  ...
+# Subtest: observation-time comparison is not a lease: post-comparison alias replacement can destroy source
+ok 23 - observation-time comparison is not a lease: post-comparison alias replacement can destroy source
+  ---
+  duration_ms: 0.3045
+  type: 'test'
+  ...
+# Subtest: generic move rm has no incarnation condition: source ABA after copy deletes replacement
+ok 24 - generic move rm has no incarnation condition: source ABA after copy deletes replacement
+  ---
+  duration_ms: 0.166375
+  type: 'test'
+  ...
+# Subtest: S3 native copy source failure is not a successful move receipt
+ok 25 - S3 native copy source failure is not a successful move receipt
+  ---
+  duration_ms: 0.451416
+  type: 'test'
+  ...
+# Subtest: S3 negotiated overlapping prefix views compare effective keys, not local paths
+ok 26 - S3 negotiated overlapping prefix views compare effective keys, not local paths
+  ---
+  duration_ms: 0.818541
+  type: 'test'
+  ...
+# Subtest: fresh comparison observes pre-call rebinding instead of reusing old metadata
+ok 27 - fresh comparison observes pre-call rebinding instead of reusing old metadata
+  ---
+  duration_ms: 0.162542
+  type: 'test'
+  ...
+# Subtest: cancellation during authority resolution is forwarded and precedes content reads
+ok 28 - cancellation during authority resolution is forwarded and precedes content reads
+  ---
+  duration_ms: 0.076125
+  type: 'test'
+  ...
+# Subtest: WebDAV resource-id protocol fixture supports pairwise proof without content or numeric inode IDs
+ok 29 - WebDAV resource-id protocol fixture supports pairwise proof without content or numeric inode IDs
+  ---
+  duration_ms: 5.696334
+  type: 'test'
+  ...
+# IMPLEMENTATION_OBSERVATION eyJuYW1lIjoibWVtb3J5LXN1YmNsYXNzLWJlZm9yZS1idWZmZXIiLCJkYXRhIjp7ImFuc3dlciI6ImRpc3RpbmN0IiwiZWZmZWN0cyI6WyJmb3J3YXJkZWQtd3JpdGUiXSwic291cmNlIjoiYzI5MWNtTmxJSE4xY25acGRtVnpBTysvdlE9PSIsInRhcmdldCI6ImMyOTFjbU5sSUhOMWNuWnBkbVZ6QU8rL3ZRPT0ifX0=
+# IMPLEMENTATION_OBSERVATION eyJuYW1lIjoibWVtb3J5LXByb3RvdHlwZS1iZWZvcmUtYnVmZmVyIiwiZGF0YSI6eyJhbnN3ZXIiOiJkaXN0aW5jdCIsImVmZmVjdHMiOlsiZm9yd2FyZGVkLXdyaXRlIl0sInNvdXJjZSI6ImMyOTFjbU5sSUhOMWNuWnBkbVZ6QU8rL3ZRPT0iLCJ0YXJnZXQiOiJjMjkxY21ObElITjFjblpwZG1WekFPKy92UT09In19
+# IMPLEMENTATION_OBSERVATION eyJuYW1lIjoibWVtb3J5LW93bi1hZnRlci1idWZmZXIiLCJkYXRhIjp7ImFuc3dlciI6ImRpc3RpbmN0IiwiZWZmZWN0cyI6WyJmb3J3YXJkZWQtd3JpdGUiXSwic291cmNlIjoiYzI5MWNtTmxJSE4xY25acGRtVnpBTysvdlE9PSIsInRhcmdldCI6ImMyOTFjbU5sSUhOMWNuWnBkbVZ6QU8rL3ZRPT0ifX0=
+# IMPLEMENTATION_OBSERVATION eyJuYW1lIjoibWVtb3J5LXByb3RvdHlwZS1hZnRlci1idWZmZXIiLCJkYXRhIjp7ImFuc3dlciI6ImRpc3RpbmN0IiwiZWZmZWN0cyI6WyJmb3J3YXJkZWQtd3JpdGUiXSwic291cmNlIjoiYzI5MWNtTmxJSE4xY25acGRtVnpBTysvdlE9PSIsInRhcmdldCI6ImMyOTFjbU5sSUhOMWNuWnBkbVZ6QU8rL3ZRPT0ifX0=
+# IMPLEMENTATION_OBSERVATION eyJuYW1lIjoibWVtb3J5LXN1YmNsYXNzLWJlZm9yZS1zdHJlYW0iLCJkYXRhIjp7ImFuc3dlciI6ImRpc3RpbmN0IiwiZWZmZWN0cyI6WyJmb3J3YXJkZWQtd3JpdGUiXSwic291cmNlIjoiYzI5MWNtTmxJSE4xY25acGRtVnpBTysvdlE9PSIsInRhcmdldCI6ImMyOTFjbU5sSUhOMWNuWnBkbVZ6QU8rL3ZRPT0ifX0=
+# IMPLEMENTATION_OBSERVATION eyJuYW1lIjoibWVtb3J5LXByb3RvdHlwZS1iZWZvcmUtc3RyZWFtIiwiZGF0YSI6eyJhbnN3ZXIiOiJkaXN0aW5jdCIsImVmZmVjdHMiOlsiZm9yd2FyZGVkLXdyaXRlIl0sInNvdXJjZSI6ImMyOTFjbU5sSUhOMWNuWnBkbVZ6QU8rL3ZRPT0iLCJ0YXJnZXQiOiJjMjkxY21ObElITjFjblpwZG1WekFPKy92UT09In19
+# IMPLEMENTATION_OBSERVATION eyJuYW1lIjoibWVtb3J5LW93bi1hZnRlci1zdHJlYW0iLCJkYXRhIjp7ImFuc3dlciI6ImRpc3RpbmN0IiwiZWZmZWN0cyI6WyJmb3J3YXJkZWQtd3JpdGUiXSwic291cmNlIjoiYzI5MWNtTmxJSE4xY25acGRtVnpBTysvdlE9PSIsInRhcmdldCI6ImMyOTFjbU5sSUhOMWNuWnBkbVZ6QU8rL3ZRPT0ifX0=
+# IMPLEMENTATION_OBSERVATION eyJuYW1lIjoibWVtb3J5LXByb3RvdHlwZS1hZnRlci1zdHJlYW0iLCJkYXRhIjp7ImFuc3dlciI6ImRpc3RpbmN0IiwiZWZmZWN0cyI6WyJmb3J3YXJkZWQtd3JpdGUiXSwic291cmNlIjoiYzI5MWNtTmxJSE4xY25acGRtVnpBTysvdlE9PSIsInRhcmdldCI6ImMyOTFjbU5sSUhOMWNuWnBkbVZ6QU8rL3ZRPT0ifX0=
+# IMPLEMENTATION_OBSERVATION eyJuYW1lIjoiczMtc3ViY2xhc3MtYmVmb3JlLWJ1ZmZlciIsImRhdGEiOnsiYW5zd2VyIjoidW5rbm93biIsImVycm9yIjoiRU5PVFNVUCIsImVmZmVjdHMiOltdLCJzb3VyY2UiOiJjMjkxY21ObElITjFjblpwZG1WekFPKy92UT09IiwidGFyZ2V0IjoiYVc1a1pYQmxibVJsYm5RZ2RHRnlaMlYwSUhOMWNuWnBkbVZ6In19
+# IMPLEMENTATION_OBSERVATION eyJuYW1lIjoiczMtcHJvdG90eXBlLWJlZm9yZS1idWZmZXIiLCJkYXRhIjp7ImFuc3dlciI6InVua25vd24iLCJlcnJvciI6IkVOT1RTVVAiLCJlZmZlY3RzIjpbXSwic291cmNlIjoiYzI5MWNtTmxJSE4xY25acGRtVnpBTysvdlE9PSIsInRhcmdldCI6ImFXNWtaWEJsYm1SbGJuUWdkR0Z5WjJWMElITjFjblpwZG1WeiJ9fQ==
+# IMPLEMENTATION_OBSERVATION eyJuYW1lIjoiczMtb3duLWFmdGVyLWJ1ZmZlciIsImRhdGEiOnsiYW5zd2VyIjoidW5rbm93biIsImVycm9yIjoiRU5PVFNVUCIsImVmZmVjdHMiOltdLCJzb3VyY2UiOiJjMjkxY21ObElITjFjblpwZG1WekFPKy92UT09IiwidGFyZ2V0IjoiYVc1a1pYQmxibVJsYm5RZ2RHRnlaMlYwSUhOMWNuWnBkbVZ6In19
+# IMPLEMENTATION_OBSERVATION eyJuYW1lIjoiczMtcHJvdG90eXBlLWFmdGVyLWJ1ZmZlciIsImRhdGEiOnsiYW5zd2VyIjoidW5rbm93biIsImVycm9yIjoiRU5PVFNVUCIsImVmZmVjdHMiOltdLCJzb3VyY2UiOiJjMjkxY21ObElITjFjblpwZG1WekFPKy92UT09IiwidGFyZ2V0IjoiYVc1a1pYQmxibVJsYm5RZ2RHRnlaMlYwSUhOMWNuWnBkbVZ6In19
+# IMPLEMENTATION_OBSERVATION eyJuYW1lIjoiczMtc3ViY2xhc3MtYmVmb3JlLXN0cmVhbSIsImRhdGEiOnsiYW5zd2VyIjoiZGlzdGluY3QiLCJlZmZlY3RzIjpbImZvcndhcmRlZC13cml0ZSJdLCJzb3VyY2UiOiJjMjkxY21ObElITjFjblpwZG1WekFPKy92UT09IiwidGFyZ2V0IjoiYzI5MWNtTmxJSE4xY25acGRtVnpBTysvdlE9PSJ9fQ==
+# IMPLEMENTATION_OBSERVATION eyJuYW1lIjoiczMtcHJvdG90eXBlLWJlZm9yZS1zdHJlYW0iLCJkYXRhIjp7ImFuc3dlciI6ImRpc3RpbmN0IiwiZWZmZWN0cyI6WyJmb3J3YXJkZWQtd3JpdGUiXSwic291cmNlIjoiYzI5MWNtTmxJSE4xY25acGRtVnpBTysvdlE9PSIsInRhcmdldCI6ImMyOTFjbU5sSUhOMWNuWnBkbVZ6QU8rL3ZRPT0ifX0=
+# IMPLEMENTATION_OBSERVATION eyJuYW1lIjoiczMtb3duLWFmdGVyLXN0cmVhbSIsImRhdGEiOnsiYW5zd2VyIjoiZGlzdGluY3QiLCJlZmZlY3RzIjpbImZvcndhcmRlZC13cml0ZSJdLCJzb3VyY2UiOiJjMjkxY21ObElITjFjblpwZG1WekFPKy92UT09IiwidGFyZ2V0IjoiYzI5MWNtTmxJSE4xY25acGRtVnpBTysvdlE9PSJ9fQ==
+# IMPLEMENTATION_OBSERVATION eyJuYW1lIjoiczMtcHJvdG90eXBlLWFmdGVyLXN0cmVhbSIsImRhdGEiOnsiYW5zd2VyIjoiZGlzdGluY3QiLCJlZmZlY3RzIjpbImZvcndhcmRlZC13cml0ZSJdLCJzb3VyY2UiOiJjMjkxY21ObElITjFjblpwZG1WekFPKy92UT09IiwidGFyZ2V0IjoiYzI5MWNtTmxJSE4xY25acGRtVnpBTysvdlE9PSJ9fQ==
+# IMPLEMENTATION_OBSERVATION eyJuYW1lIjoibWVtb3J5LWV4cGxpY2l0LWxhdGUtZXJyb3IiLCJkYXRhIjp7ImNvbXBhcmVFcnJvciI6IkVBQ0NFUyIsImNvbXBhcmVRdWVyaWVzIjoxLCJjb3B5RXJyb3IiOiJFQUNDRVMiLCJjb3B5UXVlcmllcyI6MSwidGFyZ2V0IjoiYVc1a1pYQmxibVJsYm5RZ2RHRnlaMlYwSUhOMWNuWnBkbVZ6In19
+# IMPLEMENTATION_OBSERVATION eyJuYW1lIjoiczMtZXhwbGljaXQtbGF0ZS1lcnJvciIsImRhdGEiOnsiY29tcGFyZUVycm9yIjoiRUFDQ0VTIiwiY29tcGFyZVF1ZXJpZXMiOjEsImNvcHlFcnJvciI6IkVBQ0NFUyIsImNvcHlRdWVyaWVzIjoxLCJ0YXJnZXQiOiJhVzVrWlhCbGJtUmxiblFnZEdGeVoyVjBJSE4xY25acGRtVnoifX0=
+# IMPLEMENTATION_OBSERVATION eyJuYW1lIjoid2ViZGF2LWV4cGxpY2l0LWxhdGUtZXJyb3IiLCJkYXRhIjp7ImNvbXBhcmVFcnJvciI6IkVBQ0NFUyIsImNvbXBhcmVRdWVyaWVzIjoxLCJjb3B5RXJyb3IiOiJFQUNDRVMiLCJjb3B5UXVlcmllcyI6MSwidGFyZ2V0IjoiYVc1a1pYQmxibVJsYm5RZ2RHRnlaMlYwSUhOMWNuWnBkbVZ6In19
+# Subtest: memory subclass-before buffered: faithful writer preserves qualified copy and alias rejection
+ok 30 - memory subclass-before buffered: faithful writer preserves qualified copy and alias rejection
+  ---
+  duration_ms: 2.963
+  type: 'test'
+  ...
+# Subtest: memory prototype-before buffered: faithful writer preserves qualified copy and alias rejection
+ok 31 - memory prototype-before buffered: faithful writer preserves qualified copy and alias rejection
+  ---
+  duration_ms: 0.58025
+  type: 'test'
+  ...
+# Subtest: memory own-after buffered: faithful writer preserves qualified copy and alias rejection
+ok 32 - memory own-after buffered: faithful writer preserves qualified copy and alias rejection
+  ---
+  duration_ms: 0.537
+  type: 'test'
+  ...
+# Subtest: memory prototype-after buffered: faithful writer preserves qualified copy and alias rejection
+ok 33 - memory prototype-after buffered: faithful writer preserves qualified copy and alias rejection
+  ---
+  duration_ms: 0.924625
+  type: 'test'
+  ...
+# Subtest: memory subclass-before streamed: faithful writer preserves qualified copy and alias rejection
+ok 34 - memory subclass-before streamed: faithful writer preserves qualified copy and alias rejection
+  ---
+  duration_ms: 0.608083
+  type: 'test'
+  ...
+# Subtest: memory prototype-before streamed: faithful writer preserves qualified copy and alias rejection
+ok 35 - memory prototype-before streamed: faithful writer preserves qualified copy and alias rejection
+  ---
+  duration_ms: 0.360875
+  type: 'test'
+  ...
+# Subtest: memory own-after streamed: faithful writer preserves qualified copy and alias rejection
+ok 36 - memory own-after streamed: faithful writer preserves qualified copy and alias rejection
+  ---
+  duration_ms: 0.368584
+  type: 'test'
+  ...
+# Subtest: memory prototype-after streamed: faithful writer preserves qualified copy and alias rejection
+ok 37 - memory prototype-after streamed: faithful writer preserves qualified copy and alias rejection
+  ---
+  duration_ms: 0.347875
+  type: 'test'
+  ...
+# Subtest: s3 subclass-before buffered: faithful writer preserves qualified copy and alias rejection
+not ok 38 - s3 subclass-before buffered: faithful writer preserves qualified copy and alias rejection
+  ---
+  duration_ms: 5.159375
+  type: 'test'
+  location: '/private/tmp/safe-bash-authority-reconciliation-CYffZ2/tests/fs/mount/identity-authority-review/implementation/adapter-binding.test.ts:1:1446'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + 'unknown'
+    - 'distinct'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'distinct'
+  actual: 'unknown'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/private/tmp/safe-bash-authority-reconciliation-CYffZ2/tests/fs/mount/identity-authority-review/implementation/adapter-binding.test.ts:81:18)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: s3 prototype-before buffered: faithful writer preserves qualified copy and alias rejection
+not ok 39 - s3 prototype-before buffered: faithful writer preserves qualified copy and alias rejection
+  ---
+  duration_ms: 2.449292
+  type: 'test'
+  location: '/private/tmp/safe-bash-authority-reconciliation-CYffZ2/tests/fs/mount/identity-authority-review/implementation/adapter-binding.test.ts:1:1446'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + 'unknown'
+    - 'distinct'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'distinct'
+  actual: 'unknown'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/private/tmp/safe-bash-authority-reconciliation-CYffZ2/tests/fs/mount/identity-authority-review/implementation/adapter-binding.test.ts:81:18)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: s3 own-after buffered: faithful writer preserves qualified copy and alias rejection
+not ok 40 - s3 own-after buffered: faithful writer preserves qualified copy and alias rejection
+  ---
+  duration_ms: 1.569375
+  type: 'test'
+  location: '/private/tmp/safe-bash-authority-reconciliation-CYffZ2/tests/fs/mount/identity-authority-review/implementation/adapter-binding.test.ts:1:1446'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + 'unknown'
+    - 'distinct'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'distinct'
+  actual: 'unknown'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/private/tmp/safe-bash-authority-reconciliation-CYffZ2/tests/fs/mount/identity-authority-review/implementation/adapter-binding.test.ts:81:18)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: s3 prototype-after buffered: faithful writer preserves qualified copy and alias rejection
+not ok 41 - s3 prototype-after buffered: faithful writer preserves qualified copy and alias rejection
+  ---
+  duration_ms: 1.213333
+  type: 'test'
+  location: '/private/tmp/safe-bash-authority-reconciliation-CYffZ2/tests/fs/mount/identity-authority-review/implementation/adapter-binding.test.ts:1:1446'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + 'unknown'
+    - 'distinct'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'distinct'
+  actual: 'unknown'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/private/tmp/safe-bash-authority-reconciliation-CYffZ2/tests/fs/mount/identity-authority-review/implementation/adapter-binding.test.ts:81:18)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: s3 subclass-before streamed: faithful writer preserves qualified copy and alias rejection
+ok 42 - s3 subclass-before streamed: faithful writer preserves qualified copy and alias rejection
+  ---
+  duration_ms: 3.678875
+  type: 'test'
+  ...
+# Subtest: s3 prototype-before streamed: faithful writer preserves qualified copy and alias rejection
+ok 43 - s3 prototype-before streamed: faithful writer preserves qualified copy and alias rejection
+  ---
+  duration_ms: 2.337
+  type: 'test'
+  ...
+# Subtest: s3 own-after streamed: faithful writer preserves qualified copy and alias rejection
+ok 44 - s3 own-after streamed: faithful writer preserves qualified copy and alias rejection
+  ---
+  duration_ms: 1.586459
+  type: 'test'
+  ...
+# Subtest: s3 prototype-after streamed: faithful writer preserves qualified copy and alias rejection
+ok 45 - s3 prototype-after streamed: faithful writer preserves qualified copy and alias rejection
+  ---
+  duration_ms: 3.750459
+  type: 'test'
+  ...
+# Subtest: memory faithful content acquisition retains authority without reading during comparison
+ok 46 - memory faithful content acquisition retains authority without reading during comparison
+  ---
+  duration_ms: 0.245917
+  type: 'test'
+  ...
+# Subtest: s3 faithful content acquisition retains authority without reading during comparison
+ok 47 - s3 faithful content acquisition retains authority without reading during comparison
+  ---
+  duration_ms: 0.601542
+  type: 'test'
+  ...
+# Subtest: memory honest path remapper omits changed authority and refuses an unproven existing-target overwrite
+ok 48 - memory honest path remapper omits changed authority and refuses an unproven existing-target overwrite
+  ---
+  duration_ms: 0.477792
+  type: 'test'
+  ...
+# Subtest: s3 honest path remapper omits changed authority and refuses an unproven existing-target overwrite
+ok 49 - s3 honest path remapper omits changed authority and refuses an unproven existing-target overwrite
+  ---
+  duration_ms: 1.217333
+  type: 'test'
+  ...
+# Subtest: memory harmless subclass inherited: preserve real qualified workflows and explicit authority
+ok 50 - memory harmless subclass inherited: preserve real qualified workflows and explicit authority
+  ---
+  duration_ms: 1.248792
+  type: 'test'
+  ...
+# Subtest: memory harmless subclass explicit-distinct: preserve real qualified workflows and explicit authority
+ok 51 - memory harmless subclass explicit-distinct: preserve real qualified workflows and explicit authority
+  ---
+  duration_ms: 0.715042
+  type: 'test'
+  ...
+# Subtest: memory harmless subclass explicit-denial: preserve real qualified workflows and explicit authority
+ok 52 - memory harmless subclass explicit-denial: preserve real qualified workflows and explicit authority
+  ---
+  duration_ms: 0.55025
+  type: 'test'
+  ...
+# Subtest: s3 harmless subclass inherited: preserve real qualified workflows and explicit authority
+ok 53 - s3 harmless subclass inherited: preserve real qualified workflows and explicit authority
+  ---
+  duration_ms: 0.583833
+  type: 'test'
+  ...
+# Subtest: s3 harmless subclass explicit-distinct: preserve real qualified workflows and explicit authority
+ok 54 - s3 harmless subclass explicit-distinct: preserve real qualified workflows and explicit authority
+  ---
+  duration_ms: 0.683334
+  type: 'test'
+  ...
+# Subtest: s3 harmless subclass explicit-denial: preserve real qualified workflows and explicit authority
+ok 55 - s3 harmless subclass explicit-denial: preserve real qualified workflows and explicit authority
+  ---
+  duration_ms: 0.501
+  type: 'test'
+  ...
+# Subtest: memory post-construction explicit comparison error is not hidden by cached authority
+ok 56 - memory post-construction explicit comparison error is not hidden by cached authority
+  ---
+  duration_ms: 1.066375
+  type: 'test'
+  ...
+# Subtest: s3 post-construction explicit comparison error is not hidden by cached authority
+ok 57 - s3 post-construction explicit comparison error is not hidden by cached authority
+  ---
+  duration_ms: 0.492916
+  type: 'test'
+  ...
+# Subtest: webdav post-construction explicit comparison error is not hidden by cached authority
+ok 58 - webdav post-construction explicit comparison error is not hidden by cached authority
+  ---
+  duration_ms: 16.993041
+  type: 'test'
+  ...
+# IMPLEMENTATION_OBSERVATION eyJuYW1lIjoic3BsaXQtczMtY29weSIsImRhdGEiOnsicmVzdWx0IjoidW5rbm93biIsImNvZGUiOiJFTk9UU1VQIiwiZWZmZWN0cyI6W10sInNvdXJjZSI6InNvdXJjZSBzZW50aW5lbCJ9fQ==
+# IMPLEMENTATION_OBSERVATION eyJuYW1lIjoic3BsaXQtZGF2LWNvbXBhcmlzb24iLCJkYXRhIjp7InJlc3VsdCI6InVua25vd24iLCJlZmZlY3RzIjpbXX19
+# IMPLEMENTATION_OBSERVATION eyJuYW1lIjoic3BsaXQtZGF2LWNvcHkiLCJkYXRhIjp7ImNvZGUiOiJFTk9UU1VQIiwiZWZmZWN0cyI6W10sInNvdXJjZSI6InNvdXJjZSBzZW50aW5lbCJ9fQ==
+# IMPLEMENTATION_OBSERVATION eyJuYW1lIjoic3ViY2xhc3MtZGF2LWNvcHkiLCJkYXRhIjp7InJlc3VsdCI6InVua25vd24iLCJjb2RlIjoiRU5PVFNVUCIsImVmZmVjdHMiOltdLCJzb3VyY2UiOiJzb3VyY2Ugc2VudGluZWwifX0=
+# Subtest: S3 actual shared store through different clients/prefixes: aliases and qualified copies
+ok 59 - S3 actual shared store through different clients/prefixes: aliases and qualified copies
+  ---
+  duration_ms: 7.992334
+  type: 'test'
+  ...
+# Subtest: independent private S3 stores are distinct without per-client invented identity tuples
+ok 60 - independent private S3 stores are distinct without per-client invented identity tuples
+  ---
+  duration_ms: 1.277583
+  type: 'test'
+  ...
+# Subtest: qualified distinct S3 copy preserves source on source failure
+ok 61 - qualified distinct S3 copy preserves source on source failure
+  ---
+  duration_ms: 2.326875
+  type: 'test'
+  ...
+# Subtest: qualified distinct S3 copy preserves source on target failure
+ok 62 - qualified distinct S3 copy preserves source on target failure
+  ---
+  duration_ms: 1.324375
+  type: 'test'
+  ...
+# Subtest: qualified distinct S3 copy preserves source on cancel failure
+ok 63 - qualified distinct S3 copy preserves source on cancel failure
+  ---
+  duration_ms: 1.288291
+  type: 'test'
+  ...
+# Subtest: S3 honest local-data remapper strips unrelated HEAD authority before destructive copy
+ok 64 - S3 honest local-data remapper strips unrelated HEAD authority before destructive copy
+  ---
+  duration_ms: 1.092083
+  type: 'test'
+  ...
+# Subtest: S3 faithful subclass and late content decorator retain fresh backing authority
+ok 65 - S3 faithful subclass and late content decorator retain fresh backing authority
+  ---
+  duration_ms: 2.164125
+  type: 'test'
+  ...
+# Subtest: S3 two honest clients omit unrelated mock authority for shared local data
+ok 66 - S3 two honest clients omit unrelated mock authority for shared local data
+  ---
+  duration_ms: 1.029959
+  type: 'test'
+  ...
+# Subtest: S3 metadata NoSuchKey propagates through public comparison with no content operations
+ok 67 - S3 metadata NoSuchKey propagates through public comparison with no content operations
+  ---
+  duration_ms: 0.24825
+  type: 'test'
+  ...
+# Subtest: S3 metadata AccessDenied propagates through public comparison with no content operations
+ok 68 - S3 metadata AccessDenied propagates through public comparison with no content operations
+  ---
+  duration_ms: 0.271708
+  type: 'test'
+  ...
+# Subtest: S3 metadata InternalError propagates through public comparison with no content operations
+ok 69 - S3 metadata InternalError propagates through public comparison with no content operations
+  ---
+  duration_ms: 0.122333
+  type: 'test'
+  ...
+# Subtest: WebDAV actual provider metadata: endpoint aliases, equal ETags, and qualified nested-wrapper copies
+ok 70 - WebDAV actual provider metadata: endpoint aliases, equal ETags, and qualified nested-wrapper copies
+  ---
+  duration_ms: 28.073791
+  type: 'test'
+  ...
+# Subtest: WebDAV protocol identity survives Response cloning without private mock provenance
+ok 71 - WebDAV protocol identity survives Response cloning without private mock provenance
+  ---
+  duration_ms: 2.197834
+  type: 'test'
+  ...
+# Subtest: WebDAV mock identity is stable through PUT/MOVE/COPY overwrite, fresh for COPY creation and recreation
+ok 72 - WebDAV mock identity is stable through PUT/MOVE/COPY overwrite, fresh for COPY creation and recreation
+  ---
+  duration_ms: 5.556875
+  type: 'test'
+  ...
+# Subtest: WebDAV cancellation after first protocol identity query prevents the peer query
+ok 73 - WebDAV cancellation after first protocol identity query prevents the peer query
+  ---
+  duration_ms: 1.379917
+  type: 'test'
+  ...
+# Subtest: WebDAV identity multistatus missing is not a distinctness shortcut
+ok 74 - WebDAV identity multistatus missing is not a distinctness shortcut
+  ---
+  duration_ms: 1.145042
+  type: 'test'
+  ...
+# Subtest: WebDAV identity multistatus foreign-namespace is not a distinctness shortcut
+ok 75 - WebDAV identity multistatus foreign-namespace is not a distinctness shortcut
+  ---
+  duration_ms: 0.915542
+  type: 'test'
+  ...
+# Subtest: WebDAV identity multistatus property-404 is not a distinctness shortcut
+ok 76 - WebDAV identity multistatus property-404 is not a distinctness shortcut
+  ---
+  duration_ms: 1.396875
+  type: 'test'
+  ...
+# Subtest: WebDAV identity multistatus duplicate-property is not a distinctness shortcut
+ok 77 - WebDAV identity multistatus duplicate-property is not a distinctness shortcut
+  ---
+  duration_ms: 1.338375
+  type: 'test'
+  ...
+# Subtest: WebDAV identity multistatus duplicate-response is not a distinctness shortcut
+ok 78 - WebDAV identity multistatus duplicate-response is not a distinctness shortcut
+  ---
+  duration_ms: 1.062667
+  type: 'test'
+  ...
+# Subtest: WebDAV identity multistatus wrong-response-href is not a distinctness shortcut
+ok 79 - WebDAV identity multistatus wrong-response-href is not a distinctness shortcut
+  ---
+  duration_ms: 1.053125
+  type: 'test'
+  ...
+# Subtest: WebDAV identity multistatus invalid-uri is not a distinctness shortcut
+ok 80 - WebDAV identity multistatus invalid-uri is not a distinctness shortcut
+  ---
+  duration_ms: 1.724875
+  type: 'test'
+  ...
+# Subtest: WebDAV identity multistatus property-403 is not a distinctness shortcut
+ok 81 - WebDAV identity multistatus property-403 is not a distinctness shortcut
+  ---
+  duration_ms: 0.829
+  type: 'test'
+  ...
+# Subtest: WebDAV identity multistatus resource-404 is not a distinctness shortcut
+ok 82 - WebDAV identity multistatus resource-404 is not a distinctness shortcut
+  ---
+  duration_ms: 0.7625
+  type: 'test'
+  ...
+# Subtest: WebDAV honest local-data fetch omits unrelated private and protocol identity
+ok 83 - WebDAV honest local-data fetch omits unrelated private and protocol identity
+  ---
+  duration_ms: 0.647416
+  type: 'test'
+  ...
+# Subtest: WebDAV honest remapper cannot authorize truncating an unproven aliased local source
+ok 84 - WebDAV honest remapper cannot authorize truncating an unproven aliased local source
+  ---
+  duration_ms: 0.797208
+  type: 'test'
+  ...
+# Subtest: WebDAV data-method remapper strips inherited authority at its public filesystem view
+ok 85 - WebDAV data-method remapper strips inherited authority at its public filesystem view
+  ---
+  duration_ms: 0.697209
+  type: 'test'
+  ...
+1..85
+# tests 85
+# suites 0
+# pass 81
+# fail 4
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 564.593333

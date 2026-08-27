@@ -1,0 +1,293 @@
+{
+  "source": "26e40698176bbbfc0e5891439ee74885aafb96be",
+  "canonical": "92e41185d0f44971998d8324f6775b8c5f71cb8f",
+  "authorEvidence": "9122522174ce104c4a58d6cc4284dd3398b57154",
+  "startedAt": "2026-08-27T06:48:07.170Z",
+  "finishedAt": "2026-08-27T06:48:32.744Z",
+  "sourceSetSha256": "6ffe80960b47c6dda21069ac15c4079505355cf42b24226df6fc4709674d11be",
+  "controlsSha256": "33b9d608e1ce67ec97c0fa4cda5e79ea0cdac0900f0fa4a183624e84980d4317",
+  "commands": [
+    {
+      "role": "author-baseline",
+      "status": 0,
+      "survivors": [],
+      "timedOut": false
+    },
+    {
+      "role": "author-candidate",
+      "status": 0,
+      "survivors": [],
+      "timedOut": false
+    },
+    {
+      "role": "author-mutants",
+      "status": 0,
+      "survivors": [],
+      "timedOut": false
+    },
+    {
+      "role": "independent-controls",
+      "status": 0,
+      "counts": {
+        "tests": 17,
+        "pass": 17,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "failures": [],
+      "survivors": [],
+      "timedOut": false
+    },
+    {
+      "role": "independent-types",
+      "status": 0,
+      "counts": {},
+      "failures": [],
+      "survivors": [],
+      "timedOut": false
+    },
+    {
+      "role": "independent-mutant-stale-s3-proof",
+      "status": 1,
+      "counts": {
+        "tests": 17,
+        "pass": 16,
+        "fail": 1,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "failures": [
+        "independent S3 replayed HEAD binds only a fresh corresponding query"
+      ],
+      "survivors": [],
+      "timedOut": false
+    },
+    {
+      "role": "independent-mutant-wrong-path-s3-proof",
+      "status": 1,
+      "counts": {
+        "tests": 17,
+        "pass": 16,
+        "fail": 1,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "failures": [
+        "independent S3 wrong-path HEAD binds only a fresh corresponding query"
+      ],
+      "survivors": [],
+      "timedOut": false
+    },
+    {
+      "role": "independent-mutant-fabricated-unknown-native-identity",
+      "status": 1,
+      "counts": {
+        "tests": 17,
+        "pass": 3,
+        "fail": 14,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "failures": [
+        "independent memory: honest opaque remapping refuses both directions before content acquisition",
+        "independent memory: explicit error cannot become qualified publication",
+        "independent memory: explicit cancel cannot become qualified publication",
+        "independent s3: faithful late writers copy bytes but cannot overwrite a readonly-view alias",
+        "independent s3: honest opaque remapping refuses both directions before content acquisition",
+        "independent s3: explicit error cannot become qualified publication",
+        "independent s3: explicit cancel cannot become qualified publication",
+        "independent webdav: faithful late writers copy bytes but cannot overwrite a readonly-view alias",
+        "independent webdav: honest opaque remapping refuses both directions before content acquisition",
+        "independent webdav: explicit error cannot become qualified publication",
+        "independent webdav: explicit cancel cannot become qualified publication",
+        "independent S3 serialized HEAD binds only a fresh corresponding query",
+        "independent S3 replayed HEAD binds only a fresh corresponding query",
+        "independent S3 wrong-path HEAD binds only a fresh corresponding query"
+      ],
+      "survivors": [],
+      "timedOut": false
+    },
+    {
+      "role": "independent-mutant-shaped-away-explicit-error",
+      "status": 1,
+      "counts": {
+        "tests": 17,
+        "pass": 14,
+        "fail": 3,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "failures": [
+        "independent memory: explicit error cannot become qualified publication",
+        "independent s3: explicit error cannot become qualified publication",
+        "independent webdav: explicit error cannot become qualified publication"
+      ],
+      "survivors": [],
+      "timedOut": false
+    },
+    {
+      "role": "independent-restored",
+      "status": 0,
+      "counts": {
+        "tests": 17,
+        "pass": 17,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "failures": [],
+      "survivors": [],
+      "timedOut": false
+    },
+    {
+      "role": "old-helper-compatibility",
+      "status": 1,
+      "counts": {
+        "tests": 43,
+        "pass": 38,
+        "fail": 5,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "failures": [
+        "REQUIRED webdav one-mount copy, target existing",
+        "REQUIRED webdav separate-clients copy, target existing",
+        "REQUIRED webdav separate-clients cross-mount mv, target existing",
+        "REQUIRED memory to-remote webdav copy, target existing",
+        "REQUIRED memory from-remote webdav copy, target existing"
+      ],
+      "survivors": [],
+      "timedOut": false
+    },
+    {
+      "role": "current-helper-compatibility",
+      "status": 0,
+      "counts": {
+        "tests": 43,
+        "pass": 43,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "failures": [],
+      "survivors": [],
+      "timedOut": false
+    },
+    {
+      "role": "isolated-build-for-matrix",
+      "status": 0,
+      "counts": {},
+      "failures": [],
+      "survivors": [],
+      "timedOut": false
+    },
+    {
+      "role": "unchanged-adapter-matrix",
+      "status": 1,
+      "counts": {
+        "tests": 79,
+        "pass": 77,
+        "fail": 2,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "failures": [
+        "s3: create, copy, append, inspect and remove files",
+        "webdav: create, copy, append, inspect and remove files"
+      ],
+      "survivors": [],
+      "timedOut": false
+    },
+    {
+      "role": "author-cleanup",
+      "status": 0,
+      "survivors": [],
+      "timedOut": false
+    }
+  ],
+  "independentMutants": [
+    {
+      "name": "stale-s3-proof",
+      "file": "src/fs/s3/authority.ts",
+      "before": "if (proof?.query === query) acceptedHeads.set(output, proof.entry);",
+      "after": "if (proof) acceptedHeads.set(output, proof.entry);",
+      "catcher": "replayed HEAD",
+      "beforeSha256": "1a95f7a28904b8607948673db3e99d3d4a49b2a3839d980143fe13c25e1af344",
+      "afterSha256": "3434b1a7afcbab2dbd4db66ab8fb8851a8c680a586b3706d20f5704639efcf4c",
+      "failures": [
+        "independent S3 replayed HEAD binds only a fresh corresponding query"
+      ],
+      "isolatedOnly": true
+    },
+    {
+      "name": "wrong-path-s3-proof",
+      "file": "src/fs/s3/authority.ts",
+      "before": "query.Bucket === input.Bucket && query.Key === input.Key",
+      "after": "query.Bucket === input.Bucket",
+      "catcher": "wrong-path HEAD",
+      "beforeSha256": "1a95f7a28904b8607948673db3e99d3d4a49b2a3839d980143fe13c25e1af344",
+      "afterSha256": "1bdf27094b26eaf0cb01cc40eae53aab2012d8fa660706e3f249c213659135de",
+      "failures": [
+        "independent S3 wrong-path HEAD binds only a fresh corresponding query"
+      ],
+      "isolatedOnly": true
+    },
+    {
+      "name": "fabricated-unknown-native-identity",
+      "file": "src/fs/mount/identity.ts",
+      "before": "if (!left || !right || !complete(left) || !complete(right)) return \"unknown\";",
+      "after": "if (!left || !right || !complete(left) || !complete(right)) return \"distinct\";",
+      "catcher": "honest opaque remapping",
+      "beforeSha256": "a561928d082232d034c436a89a63b85e5f137c82879281adc9f6aacfcb54d2d2",
+      "afterSha256": "5b4d1f1b3802e49a3f84344189e36e55fd8808256d37db77f5bac235705ebd9e",
+      "failures": [
+        "independent memory: honest opaque remapping refuses both directions before content acquisition",
+        "independent memory: explicit error cannot become qualified publication",
+        "independent memory: explicit cancel cannot become qualified publication",
+        "independent s3: faithful late writers copy bytes but cannot overwrite a readonly-view alias",
+        "independent s3: honest opaque remapping refuses both directions before content acquisition",
+        "independent s3: explicit error cannot become qualified publication",
+        "independent s3: explicit cancel cannot become qualified publication",
+        "independent webdav: faithful late writers copy bytes but cannot overwrite a readonly-view alias",
+        "independent webdav: honest opaque remapping refuses both directions before content acquisition",
+        "independent webdav: explicit error cannot become qualified publication",
+        "independent webdav: explicit cancel cannot become qualified publication",
+        "independent S3 serialized HEAD binds only a fresh corresponding query",
+        "independent S3 replayed HEAD binds only a fresh corresponding query",
+        "independent S3 wrong-path HEAD binds only a fresh corresponding query"
+      ],
+      "isolatedOnly": true
+    },
+    {
+      "name": "shaped-away-explicit-error",
+      "file": "src/fs/mount/comparison.ts",
+      "before": "throw error;",
+      "after": "throw new FsError(\"EIO\", { cause: error });",
+      "count": 3,
+      "catcher": "explicit error",
+      "beforeSha256": "cedfd2b4a586ddf85eaac30e1ce7797b290b712b744498e84df5036c89f64a2c",
+      "afterSha256": "70d7e049ea3bcb1748449e272731ee922b6450e787f2f3516d40d46e72ef4c70",
+      "failures": [
+        "independent memory: explicit error cannot become qualified publication",
+        "independent s3: explicit error cannot become qualified publication",
+        "independent webdav: explicit error cannot become qualified publication"
+      ],
+      "isolatedOnly": true
+    }
+  ],
+  "scopeAcceptance": true,
+  "wholeProductAcceptance": false,
+  "cleanup": true,
+  "removedSnapshot": "/tmp/safe-bash-authority-reconciliation-CYffZ2",
+  "harnessSha256": "08f613b08b01a05905592f89a6ff2e3ba4fd9e273cb85ff74287d186a34d779d"
+}

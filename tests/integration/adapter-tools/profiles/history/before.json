@@ -1,0 +1,48 @@
+{
+  "beforeHead": "d206c17bf3019971d619fdad6b42382cfeb84b3b",
+  "sourceTree": "782cbec72259112e0810f9d6d9d55f2e7f37992f",
+  "classification": "historical input data; .ts.txt is not canonical TypeScript and must not be discovered as tests",
+  "inputs": [
+    {
+      "path": "tests/integration/adapter-tools/matrix.test.ts",
+      "gitBlob": "6c7991d140658eb67ef248dc3a8e4ec1980efbed",
+      "sha256": "14d9150068fa2b28acd671b6077e56b08c7565840c1760af9387cb5dbba2030d",
+      "bytes": 17200
+    },
+    {
+      "path": "tests/integration/adapter-tools/fixtures.ts",
+      "gitBlob": "dc9c07cd52dc6143967fa515278a52fe970baf90",
+      "sha256": "127a6910a2733d6b6df01285d37d5c90ccbeeeefda40e0869dc633ef8f6d14e5",
+      "bytes": 9519
+    },
+    {
+      "path": "tests/integration/adapter-tools/preflight-review/preflight.ts",
+      "gitBlob": "b221c9a0aa2f587a8b26254a32ee9a5a8f9a31f1",
+      "sha256": "0cca6e8941bde1ebd89e3eaaf856d77047b1bd91219446ba8e732bd7c4c5b2cf",
+      "bytes": 889
+    },
+    {
+      "path": "tests/fs/webdav/mock.ts",
+      "gitBlob": "1336483dea51168dbbe378225622b2399c5f6e0b",
+      "sha256": "177f79ee640460822cfe0486c87f7cc61ac7c8b84389abe32b48ef27f4b4ef36",
+      "bytes": 11188
+    },
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile/atomic-mock.ts",
+      "gitBlob": "f5d6fb2a295bdcf124c67c3da0b71456e6916c49",
+      "sha256": "70a52a3f2f8df440f6b038c19af02f2d63f79d1b4f099e934b4e2d30c23998bf",
+      "bytes": 2166
+    }
+  ],
+  "row": {
+    "source": "tests/integration/adapter-tools/matrix.test.ts",
+    "startLine": 100,
+    "endLine": 107,
+    "sha256": "1b6bec20f3a9cae1f04ed30f8e21f758e5ba72d48715dc5c18e4770c310fe0ba",
+    "commandAssertionBodySha256": "81ca50e611045a348db5954c53b26762da66ff4ba2c4af530349601f8d910b5e"
+  },
+  "preservedEvidence": [
+    "atomic-webdav-profile/evidence",
+    "atomic-webdav-profile-independent/evidence"
+  ]
+}

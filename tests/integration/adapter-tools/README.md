@@ -1,5 +1,14 @@
 # Cross-adapter agent-tool integration checkpoint
 
+## Canonical rmdir profile reconciliation
+
+`profiles/README.md` describes the explicit configured WebDAV positive lifecycle
+row and two stock-WebDAV refusal rows. The old command/assertion body is retained;
+S3 remains the weaker snapshot-marker profile. Before-change canonical bytes are
+classified historical data under `profiles/history/`. Historical measurements
+below and the sealed stock 78/79 / configured 79/79 artifacts are unchanged, not
+current-source certification. Fresh results are recorded separately by profile.
+
 ## Required-command preflight correction (separate current cohort)
 
 See `preflight-review/README.md` and its committed raw evidence for the intentional

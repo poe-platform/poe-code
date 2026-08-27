@@ -1,0 +1,8 @@
+  test(`${backend}: create, copy, append, inspect and remove files`, options, async () => {
+    await withFixture(backend, async ({ exec, fs }) => {
+      success(await exec("mkdir -p scratch/nested && cp old.txt scratch/nested/copy.txt && printf 'gamma\\n' >> scratch/nested/copy.txt && cat scratch/nested/copy.txt"), `${original}gamma\n`);
+      assert.equal(Buffer.from(await fs.readFile("/work/old.txt")).toString(), original);
+      success(await exec("find scratch -type f | sort"), "scratch/nested/copy.txt\n");
+      success(await exec("rm scratch/nested/copy.txt && rmdir scratch/nested && rmdir scratch && test ! -e scratch"), "");
+    });
+  });

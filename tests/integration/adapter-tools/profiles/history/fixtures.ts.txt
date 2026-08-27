@@ -9,7 +9,6 @@ import {
   FsError, MountFileSystem, OverlayFileSystem, ReadOnlyFileSystem, S3FileSystem, Shell,
   WebDavFileSystem,
   type FileSystem, type ShellExecOptions, type ShellResult, type VirtualShellPlugin,
-  type WebDavAtomicEmptyDirectoryBinding,
 } from "../../../src/index.js";
 import { MockDav } from "../../fs/webdav/mock.js";
 import { assertWorkflowCommands } from "./preflight-review/preflight.js";
@@ -30,10 +29,6 @@ export const families = {
 };
 
 type Cleanup = () => Promise<void>;
-
-export interface FixtureProfileOptions {
-  readonly webdavAtomicBinding?: (dav: MockDav, namespaceUrl: string) => WebDavAtomicEmptyDirectoryBinding;
-}
 
 export interface Fixture {
   fs: FileSystem;
@@ -73,7 +68,7 @@ async function realFixture(cleanups: Cleanup[]): Promise<FileSystem> {
   return createRealFileSystem({ root });
 }
 
-async function davFixture(cleanups: Cleanup[], profile: FixtureProfileOptions): Promise<{ fs: WebDavFileSystem; dav: MockDav }> {
+async function davFixture(cleanups: Cleanup[]): Promise<{ fs: WebDavFileSystem; dav: MockDav }> {
   const dav = new MockDav();
   const handlers = new Set<Promise<void>>();
   const failures: unknown[] = [];
@@ -129,7 +124,6 @@ async function davFixture(cleanups: Cleanup[], profile: FixtureProfileOptions): 
   assert.ok(address && typeof address !== "string");
   const baseUrl = new URL(`http://127.0.0.1:${address.port}/dav/`);
   const fs = new WebDavFileSystem({
-    ...(profile.webdavAtomicBinding ? { atomicEmptyDirectory: profile.webdavAtomicBinding(dav, baseUrl.href) } : {}),
     baseUrl: baseUrl.href, timeoutMs: 3000, maxResponseBytes: 1024 * 1024,
     fetch: (url, init) => {
       assert.equal(new URL(url).origin, baseUrl.origin, "no remote network access");
@@ -143,7 +137,6 @@ export async function withFixture(
   name: AdapterName,
   run: (fixture: Fixture) => Promise<void>,
   plugin: VirtualShellPlugin = agentCommands(),
-  profile: FixtureProfileOptions = {},
 ): Promise<void> {
   const cleanups: Cleanup[] = [];
   const controller = new AbortController();
@@ -155,7 +148,7 @@ export async function withFixture(
     let dav: MockDav | undefined;
     if (name === "real") fs = await realFixture(cleanups);
     else if (name === "s3") ({ fs, s3 } = s3Fixture());
-    else if (name === "webdav") ({ fs, dav } = await davFixture(cleanups, profile));
+    else if (name === "webdav") ({ fs, dav } = await davFixture(cleanups));
     else if (name === "mount") {
       const objects = s3Fixture();
       s3 = objects.s3;

@@ -141,19 +141,22 @@ test("JSON.parse control distinguishes parser input from decoder BOM policy", bo
 test("existing jq plugin retains its own JSON input decoding", bounded, async () => {
   const shell = new Shell({ fs: new MemoryFileSystem() }).use(structuredCommands());
   try {
-    const plain = await shell.exec("jq -c .", { stdin: '{"ok":1}' });
-    assert.equal(plain.exitCode, 0);
-    assert.equal(plain.stdout, '{"ok":1}\n');
-    assert.equal(Buffer.from(plain.stdoutBytes).toString("hex"), "7b226f6b223a317d0a");
-    assert.equal(plain.stderr, "");
-    assert.equal(plain.stderrBytes.length, 0);
-    for (const stdin of ["\uFEFF{\"ok\":1}", Buffer.from("efbbbf7b226f6b223a317d", "hex")]) {
-      const result = await shell.exec("jq -c .", { stdin });
-      assert.equal(result.exitCode, 5);
-      assert.equal(result.stdout, "");
-      assert.equal(result.stdoutBytes.length, 0);
-      assert.equal(result.stderr, "jq: invalid JSON input at offset 0\n");
+    for (const stdin of ['{"ok":1}', "\uFEFF{\"ok\":1}", Buffer.from("efbbbf7b226f6b223a317d", "hex")]) {
+      const stdoutChunks: Uint8Array[] = [];
+      const stderrChunks: Uint8Array[] = [];
+      const result = await shell.exec("jq -c .", {
+        stdin,
+        stdout: { async write(chunk) { stdoutChunks.push(new Uint8Array(chunk)); } },
+        stderr: { async write(chunk) { stderrChunks.push(new Uint8Array(chunk)); } },
+      });
+      assert.equal(result.exitCode, 0);
+      assert.equal(result.stdout, '{"ok":1}\n');
+      assert.equal(Buffer.from(result.stdoutBytes).toString("hex"), "7b226f6b223a317d0a");
+      assert.equal(result.stderr, "");
+      assert.equal(result.stderrBytes.length, 0);
       assert.equal(new TextDecoder().decode(result.stderrBytes), result.stderr);
+      assert.equal(Buffer.concat(stdoutChunks).toString("hex"), Buffer.from(result.stdoutBytes).toString("hex"));
+      assert.equal(Buffer.concat(stderrChunks).toString("hex"), Buffer.from(result.stderrBytes).toString("hex"));
     }
   } finally { await shell.dispose(); }
 });

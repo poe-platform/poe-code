@@ -1,0 +1,16 @@
+{
+  "id": "full-native-candidate",
+  "scriptSha256": "e3a6f2d40b4c468e41fa42fcb77633c68b41b16deadf7008e9d2fc408960532e",
+  "binary": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "tests/commands/expr-stress/diagnostics-candidate-review/replay/accept-native.mjs",
+    "acceptance-diagnostics"
+  ],
+  "cwd": "/Users/kjopek/Workspace/safe-bash",
+  "timeoutMs": 240000,
+  "status": 0,
+  "signal": null,
+  "failure": null,
+  "stdout": "{\n  \"cohort\": \"original95\",\n  \"profiles\": [\n    {\n      \"id\": \"gnu-9.7-darwin-C\",\n      \"denominator\": 95,\n      \"semanticMatches\": 95,\n      \"diagnosticMatches\": 95,\n      \"strictMatches\": 95\n    },\n    {\n      \"id\": \"gnu-9.7-darwin-en_US.UTF-8\",\n      \"denominator\": 9,\n      \"semanticMatches\": 2,\n      \"diagnosticMatches\": 2,\n      \"strictMatches\": 2\n    },\n    {\n      \"id\": \"apple-darwin-C\",\n      \"denominator\": 95,\n      \"semanticMatches\": 61,\n      \"diagnosticMatches\": 46,\n      \"strictMatches\": 42\n    },\n    {\n      \"id\": \"apple-darwin-en_US.UTF-8\",\n      \"denominator\": 9,\n      \"semanticMatches\": 5,\n      \"diagnosticMatches\": 0,\n      \"strictMatches\": 0\n    }\n  ]\n}\n\n{\n  \"cohort\": \"extension-original20\",\n  \"profiles\": [\n    {\n      \"id\": \"gnu-9.7-darwin-C\",\n      \"denominator\": 20,\n      \"semanticMatches\": 20,\n      \"diagnosticMatches\": 20,\n      \"strictMatches\": 20\n    },\n    {\n      \"id\": \"gnu-9.7-darwin-en_US.UTF-8\",\n      \"denominator\": 3,\n      \"semanticMatches\": 0,\n      \"diagnosticMatches\": 0,\n      \"strictMatches\": 0\n    },\n    {\n      \"id\": \"apple-darwin-C\",\n      \"denominator\": 20,\n      \"semanticMatches\": 16,\n      \"diagnosticMatches\": 19,\n      \"strictMatches\": 15\n    },\n    {\n      \"id\": \"apple-darwin-en_US.UTF-8\",\n      \"denominator\": 3,\n      \"semanticMatches\": 0,\n      \"diagnosticMatches\": 0,\n      \"strictMatches\": 0\n    }\n  ]\n}\n\n{\n  \"cohort\": \"extension-correction1\",\n  \"profiles\": [\n    {\n      \"id\": \"gnu-9.7-darwin-C\",\n      \"denominator\": 1,\n      \"semanticMatches\": 1,\n      \"diagnosticMatches\": 1,\n      \"strictMatches\": 1\n    },\n    {\n      \"id\": \"apple-darwin-C\",\n      \"denominator\": 1,\n      \"semanticMatches\": 0,\n      \"diagnosticMatches\": 0,\n      \"strictMatches\": 0\n    }\n  ]\n}\n\n",
+  "stderr": ""
+}

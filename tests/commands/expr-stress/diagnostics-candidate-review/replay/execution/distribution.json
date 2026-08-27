@@ -1,0 +1,16 @@
+{
+  "id": "distribution",
+  "scriptSha256": "cc65dcb177350c1b2868b497e0cf77ac13fa737927e77b8b4b818f6aa9f5be44",
+  "binary": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "tests/commands/expr-stress/diagnostics-candidate-review/replay/distribution.mjs",
+    "capture"
+  ],
+  "cwd": "/Users/kjopek/Workspace/safe-bash",
+  "timeoutMs": 240000,
+  "status": 0,
+  "signal": null,
+  "failure": null,
+  "stdout": "{\"typecheck\":0,\"runtime\":0,\"runtimeOutput\":\"{\\\"rootImport\\\":\\\"virtual-bash\\\",\\\"standalone\\\":\\\"./node_modules/virtual-bash/dist/commands/expr/index.js\\\",\\\"rootExprIntegrated\\\":false,\\\"stdout\\\":\\\"42\\\\n1\\\\n\\\",\\\"mainThreadCompilerBlockedBeforeInvalidPattern\\\":true}\\n\",\"runtimeError\":\"\",\"workerModules\":4}\n",
+  "stderr": ""
+}

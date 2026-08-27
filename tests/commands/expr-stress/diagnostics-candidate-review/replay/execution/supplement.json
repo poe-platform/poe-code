@@ -1,0 +1,16 @@
+{
+  "id": "supplement",
+  "scriptSha256": "4df7544c5b0a7847b88c34283ba073e5c7cb98ccfc729dbd3139b48e98cb7f65",
+  "binary": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "tests/commands/expr-stress/diagnostics-candidate-review/replay/supplement.mjs",
+    "capture"
+  ],
+  "cwd": "/Users/kjopek/Workspace/safe-bash",
+  "timeoutMs": 240000,
+  "status": 0,
+  "signal": null,
+  "failure": null,
+  "stdout": "{\"rows\":42,\"failed\":[],\"legacyProtocolEqual\":true,\"transcriptMismatches\":[],\"nullableMismatches\":[\"empty\",\"a\",\"aa\",\"aaa\",\"mandatory-empty\"]}\n",
+  "stderr": ""
+}

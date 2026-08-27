@@ -1,0 +1,8 @@
+{
+  "candidate": "21220b465537bf45ffcfb36740956a69f43bf75e",
+  "symlinkRemoved": true,
+  "beforeDigest": "5c4a65fc6f22f5068223be1bf039040688b395cbf7f1e18a8febda7c343c412b",
+  "afterDigest": "5c4a65fc6f22f5068223be1bf039040688b395cbf7f1e18a8febda7c343c412b",
+  "sourceAndTestsIncludingAddedEntriesUnchanged": true,
+  "externalExecutableUnchanged": true
+}

@@ -1,0 +1,206 @@
+{
+  "commit": "1231700a9f049262235759bbf07f58b939ae646b",
+  "candidate": "21220b465537bf45ffcfb36740956a69f43bf75e",
+  "authorEvidence": "7fc76f3917a38c0cc39d46c02383c947fa3ac110",
+  "independentFreeze": "d0fb3ef0bc9c3c04cae829a47454c10e565ad971",
+  "bindings": [
+    {
+      "original": "1231700a9f049262235759bbf07f58b939ae646b:tests/commands/expr-stress/diagnostics-review/freeze/baseline-source.txt",
+      "destination": "tests/commands/expr-stress/diagnostics-candidate-review/freeze/baseline-source.txt",
+      "originalSha256": "ba791eba95ef220c2e8af9f1d26c15daa8ff28a77121a3fd4d52128e859731ee",
+      "boundSha256": "ba791eba95ef220c2e8af9f1d26c15daa8ff28a77121a3fd4d52128e859731ee",
+      "deltas": []
+    },
+    {
+      "original": "1231700a9f049262235759bbf07f58b939ae646b:tests/commands/expr-stress/diagnostics-review/freeze/independent-native.json",
+      "destination": "tests/commands/expr-stress/diagnostics-candidate-review/freeze/independent-native.json",
+      "originalSha256": "252a342ef50d6721bd156d80efa602b988f2b3e600edca3cf42c7e8901ad2ea0",
+      "boundSha256": "252a342ef50d6721bd156d80efa602b988f2b3e600edca3cf42c7e8901ad2ea0",
+      "deltas": []
+    },
+    {
+      "original": "1231700a9f049262235759bbf07f58b939ae646b:tests/commands/expr-stress/diagnostics-review/freeze/native-original-replay.json",
+      "destination": "tests/commands/expr-stress/diagnostics-candidate-review/freeze/native-original-replay.json",
+      "originalSha256": "73963033fae8bb782a0d22e73ebe199fec39d97e354cb6ececf0692dbeb94352",
+      "boundSha256": "73963033fae8bb782a0d22e73ebe199fec39d97e354cb6ececf0692dbeb94352",
+      "deltas": []
+    },
+    {
+      "original": "1231700a9f049262235759bbf07f58b939ae646b:tests/commands/expr-stress/diagnostics-review/freeze/nine-unchanged.json",
+      "destination": "tests/commands/expr-stress/diagnostics-candidate-review/freeze/nine-unchanged.json",
+      "originalSha256": "e8f45a480018d1fb52727c9a5fd9448350df35bcfcdd33739e469cd287604e4d",
+      "boundSha256": "e8f45a480018d1fb52727c9a5fd9448350df35bcfcdd33739e469cd287604e4d",
+      "deltas": []
+    },
+    {
+      "original": "1231700a9f049262235759bbf07f58b939ae646b:tests/commands/expr-stress/diagnostics-review/freeze/runtime-binding.json",
+      "destination": "tests/commands/expr-stress/diagnostics-candidate-review/freeze/runtime-binding.json",
+      "originalSha256": "0d58cf989c6655a92ac284340919cb97226819865354125b3cbd43465ad4ad2b",
+      "boundSha256": "0d58cf989c6655a92ac284340919cb97226819865354125b3cbd43465ad4ad2b",
+      "deltas": []
+    },
+    {
+      "original": "1231700a9f049262235759bbf07f58b939ae646b:tests/commands/expr-stress/diagnostics-review/freeze/seal.json",
+      "destination": "tests/commands/expr-stress/diagnostics-candidate-review/freeze/seal.json",
+      "originalSha256": "2b813ece23533035090eb28da77160e73e5ed0b8cc297d7b56101b24bf1bf0fd",
+      "boundSha256": "2b813ece23533035090eb28da77160e73e5ed0b8cc297d7b56101b24bf1bf0fd",
+      "deltas": []
+    },
+    {
+      "original": "1231700a9f049262235759bbf07f58b939ae646b:tests/commands/expr-stress/diagnostics-review/independent.mjs",
+      "destination": "tests/commands/expr-stress/diagnostics-candidate-review/independent.mjs",
+      "originalSha256": "1133db0f2de868259835e3adfbef45b55a865f6bbf8eb1888a7fca8919924d6b",
+      "boundSha256": "1133db0f2de868259835e3adfbef45b55a865f6bbf8eb1888a7fca8919924d6b",
+      "deltas": []
+    },
+    {
+      "original": "1231700a9f049262235759bbf07f58b939ae646b:tests/commands/expr-stress/diagnostics-review/inputs.json",
+      "destination": "tests/commands/expr-stress/diagnostics-candidate-review/inputs.json",
+      "originalSha256": "dc758ff0c657d6ce7366e5f9b96af97d73a97773e092b17ed899f769ec251f28",
+      "boundSha256": "dc758ff0c657d6ce7366e5f9b96af97d73a97773e092b17ed899f769ec251f28",
+      "deltas": []
+    },
+    {
+      "original": "1231700a9f049262235759bbf07f58b939ae646b:tests/commands/expr-stress/diagnostics-review/integrity.mjs",
+      "destination": "tests/commands/expr-stress/diagnostics-candidate-review/integrity.mjs",
+      "originalSha256": "0f660f28b11d11d283846a2a2a0aa320c88d8989effe44f2b97c601b121978ad",
+      "boundSha256": "0f660f28b11d11d283846a2a2a0aa320c88d8989effe44f2b97c601b121978ad",
+      "deltas": []
+    },
+    {
+      "original": "1231700a9f049262235759bbf07f58b939ae646b:tests/commands/expr-stress/diagnostics-review/replay/accept-controls.mjs",
+      "destination": "tests/commands/expr-stress/diagnostics-candidate-review/replay/accept-controls.mjs",
+      "originalSha256": "47119f8655136b9eccc9578ecb569b72f2955a1f5703b635c480f9c2c8fcf97b",
+      "boundSha256": "47119f8655136b9eccc9578ecb569b72f2955a1f5703b635c480f9c2c8fcf97b",
+      "deltas": []
+    },
+    {
+      "original": "1231700a9f049262235759bbf07f58b939ae646b:tests/commands/expr-stress/diagnostics-review/replay/accept-native.mjs",
+      "destination": "tests/commands/expr-stress/diagnostics-candidate-review/replay/accept-native.mjs",
+      "originalSha256": "e3a6f2d40b4c468e41fa42fcb77633c68b41b16deadf7008e9d2fc408960532e",
+      "boundSha256": "e3a6f2d40b4c468e41fa42fcb77633c68b41b16deadf7008e9d2fc408960532e",
+      "deltas": []
+    },
+    {
+      "original": "1231700a9f049262235759bbf07f58b939ae646b:tests/commands/expr-stress/diagnostics-review/replay/comparators.mjs",
+      "destination": "tests/commands/expr-stress/diagnostics-candidate-review/replay/comparators.mjs",
+      "originalSha256": "983eb4e43f8178300534074c0f41fab5d9b814d20c9c858caa945509b8f353de",
+      "boundSha256": "bb234f6c5baeb04d42cd1e0733a87164c5e0b587936513e4b36757143e19d9ab",
+      "deltas": [
+        {
+          "from": "acceptance-27a77935",
+          "to": "acceptance-diagnostics",
+          "occurrences": 1
+        }
+      ]
+    },
+    {
+      "original": "1231700a9f049262235759bbf07f58b939ae646b:tests/commands/expr-stress/diagnostics-review/replay/devdeps-authentication.json",
+      "destination": "tests/commands/expr-stress/diagnostics-candidate-review/replay/devdeps-authentication.json",
+      "originalSha256": "4bfdf12d2d2eb073bdc62b56176e806d24c585a2e4a190792e396ded54cb98ae",
+      "boundSha256": "4bfdf12d2d2eb073bdc62b56176e806d24c585a2e4a190792e396ded54cb98ae",
+      "deltas": []
+    },
+    {
+      "original": "1231700a9f049262235759bbf07f58b939ae646b:tests/commands/expr-stress/diagnostics-review/replay/distribution.mjs",
+      "destination": "tests/commands/expr-stress/diagnostics-candidate-review/replay/distribution.mjs",
+      "originalSha256": "cc65dcb177350c1b2868b497e0cf77ac13fa737927e77b8b4b818f6aa9f5be44",
+      "boundSha256": "cc65dcb177350c1b2868b497e0cf77ac13fa737927e77b8b4b818f6aa9f5be44",
+      "deltas": []
+    },
+    {
+      "original": "1231700a9f049262235759bbf07f58b939ae646b:tests/commands/expr-stress/diagnostics-review/replay/extra-driver.mjs",
+      "destination": "tests/commands/expr-stress/diagnostics-candidate-review/replay/extra-driver.mjs",
+      "originalSha256": "c05bc59571949eebfc14074b8e03bb4a0c87a00069e86bc44801db7ec82cdbf2",
+      "boundSha256": "c05bc59571949eebfc14074b8e03bb4a0c87a00069e86bc44801db7ec82cdbf2",
+      "deltas": []
+    },
+    {
+      "original": "1231700a9f049262235759bbf07f58b939ae646b:tests/commands/expr-stress/diagnostics-review/replay/legacy-plan.json",
+      "destination": "tests/commands/expr-stress/diagnostics-candidate-review/replay/legacy-plan.json",
+      "originalSha256": "ddf86e33953c6c84eff2a2a8702226907fb2833023ee3a183dede3c3bc25207a",
+      "boundSha256": "ddf86e33953c6c84eff2a2a8702226907fb2833023ee3a183dede3c3bc25207a",
+      "deltas": []
+    },
+    {
+      "original": "1231700a9f049262235759bbf07f58b939ae646b:tests/commands/expr-stress/diagnostics-review/replay/lifecycle-driver.mjs",
+      "destination": "tests/commands/expr-stress/diagnostics-candidate-review/replay/lifecycle-driver.mjs",
+      "originalSha256": "1246aa9d53aabb47b825133634b458a9f2ce958f3d32c758c28e7c76668c2e37",
+      "boundSha256": "1246aa9d53aabb47b825133634b458a9f2ce958f3d32c758c28e7c76668c2e37",
+      "deltas": []
+    },
+    {
+      "original": "1231700a9f049262235759bbf07f58b939ae646b:tests/commands/expr-stress/diagnostics-review/replay/protocol-driver.mjs",
+      "destination": "tests/commands/expr-stress/diagnostics-candidate-review/replay/protocol-driver.mjs",
+      "originalSha256": "3f87c282e60a67388e64bf6fdd0b2b445778171fbb93c0190a237c53f2fc77bc",
+      "boundSha256": "3f87c282e60a67388e64bf6fdd0b2b445778171fbb93c0190a237c53f2fc77bc",
+      "deltas": []
+    },
+    {
+      "original": "1231700a9f049262235759bbf07f58b939ae646b:tests/commands/expr-stress/diagnostics-review/replay/review.mjs",
+      "destination": "tests/commands/expr-stress/diagnostics-candidate-review/replay/review.mjs",
+      "originalSha256": "f4ad8610633523eae4c510f396c54c78c9f050c3d0780e166012f25a39c7765b",
+      "boundSha256": "f2a18aae775f0b72d224643865d98d88ef555d25c631d68fdfa4e09e4b1b8949",
+      "deltas": [
+        {
+          "from": "tests/commands/expr-stress/diagnostics-review",
+          "to": "tests/commands/expr-stress/diagnostics-candidate-review",
+          "occurrences": 1
+        }
+      ]
+    },
+    {
+      "original": "1231700a9f049262235759bbf07f58b939ae646b:tests/commands/expr-stress/diagnostics-review/replay/runtime-driver.mjs",
+      "destination": "tests/commands/expr-stress/diagnostics-candidate-review/replay/runtime-driver.mjs",
+      "originalSha256": "5ae25ca13f47fcf2715ca0336149b41faf3d70fafa83ef42c667c9be054ca686",
+      "boundSha256": "5ae25ca13f47fcf2715ca0336149b41faf3d70fafa83ef42c667c9be054ca686",
+      "deltas": []
+    },
+    {
+      "original": "1231700a9f049262235759bbf07f58b939ae646b:tests/commands/expr-stress/diagnostics-review/replay/shell-lifecycle-driver.mjs",
+      "destination": "tests/commands/expr-stress/diagnostics-candidate-review/replay/shell-lifecycle-driver.mjs",
+      "originalSha256": "00a054683c0694edae9484591ef8b99642c39c49153c2b0a1b4414b5cedf24c6",
+      "boundSha256": "00a054683c0694edae9484591ef8b99642c39c49153c2b0a1b4414b5cedf24c6",
+      "deltas": []
+    },
+    {
+      "original": "1231700a9f049262235759bbf07f58b939ae646b:tests/commands/expr-stress/diagnostics-review/replay/stage.mjs",
+      "destination": "tests/commands/expr-stress/diagnostics-candidate-review/replay/stage.mjs",
+      "originalSha256": "ed6fa329fa1f6816b69f9658e3d27428f2bb4bad0e0c4fd259c60724146b14bd",
+      "boundSha256": "29a023099d0d65528791f80848fe951475d90a58b5206ee8b3b70394766d944a",
+      "deltas": [
+        {
+          "from": "tests/commands/expr-stress/diagnostics-review",
+          "to": "tests/commands/expr-stress/diagnostics-candidate-review",
+          "occurrences": 1
+        },
+        {
+          "from": "tests/commands/expr-stress/diagnostics-candidate-review/freeze/baseline-source.txt",
+          "to": "/tmp/expr-cdiagnostics-candidate.txt",
+          "occurrences": 1
+        }
+      ]
+    },
+    {
+      "original": "1231700a9f049262235759bbf07f58b939ae646b:tests/commands/expr-stress/diagnostics-review/replay/supplement.mjs",
+      "destination": "tests/commands/expr-stress/diagnostics-candidate-review/replay/supplement.mjs",
+      "originalSha256": "4df7544c5b0a7847b88c34283ba073e5c7cb98ccfc729dbd3139b48e98cb7f65",
+      "boundSha256": "4df7544c5b0a7847b88c34283ba073e5c7cb98ccfc729dbd3139b48e98cb7f65",
+      "deltas": []
+    },
+    {
+      "original": "1231700a9f049262235759bbf07f58b939ae646b:tests/commands/expr-stress/diagnostics-review/replay/watchdog.mjs",
+      "destination": "tests/commands/expr-stress/diagnostics-candidate-review/replay/watchdog.mjs",
+      "originalSha256": "bef0f71905b37dbfd461f211214760ffc2ba8ae9039859f5736c3234309a92ee",
+      "boundSha256": "bef0f71905b37dbfd461f211214760ffc2ba8ae9039859f5736c3234309a92ee",
+      "deltas": []
+    },
+    {
+      "original": "1231700a9f049262235759bbf07f58b939ae646b:tests/commands/expr-stress/diagnostics-review/runtime-driver.mjs",
+      "destination": "tests/commands/expr-stress/diagnostics-candidate-review/runtime-driver.mjs",
+      "originalSha256": "649443266097a92d93e8e58e408c34a688a66b724a510a433be80eea11a1caf8",
+      "boundSha256": "649443266097a92d93e8e58e408c34a688a66b724a510a433be80eea11a1caf8",
+      "deltas": []
+    }
+  ]
+}

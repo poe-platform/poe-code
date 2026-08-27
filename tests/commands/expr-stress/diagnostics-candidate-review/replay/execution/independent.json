@@ -1,0 +1,17 @@
+{
+  "id": "independent",
+  "scriptSha256": "1133db0f2de868259835e3adfbef45b55a865f6bbf8eb1888a7fca8919924d6b",
+  "binary": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "tests/commands/expr-stress/diagnostics-candidate-review/replay/../independent.mjs",
+    "candidate-diagnostics",
+    "independent-first"
+  ],
+  "cwd": "/Users/kjopek/Workspace/safe-bash",
+  "timeoutMs": 240000,
+  "status": 0,
+  "signal": null,
+  "failure": null,
+  "stdout": "{\"nineStrict\":9,\"nineTotal\":9,\"independentStrict\":25,\"independentTotal\":26,\"runtimePassed\":11,\"runtimeTotal\":12,\"workers\":0}\n",
+  "stderr": ""
+}

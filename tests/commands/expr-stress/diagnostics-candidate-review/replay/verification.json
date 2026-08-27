@@ -1,0 +1,12 @@
+{
+  "verifiedAt": "2026-08-27T18:56:07.375Z",
+  "candidate": "21220b465537bf45ffcfb36740956a69f43bf75e",
+  "evidenceFiles": 88,
+  "manifestSha256": "113f13561839c7211f92ac741d93c32a16b146ae11694cf0b87a0774c81fbb97",
+  "verificationHelperSha256": "9ebdd029e91cc47cfa53dc660cfd5c2c538902e29e0b6b4edbbd7e3d1854401a",
+  "immutableGitSourceTestInventoriesVerifiedIncludingAddedEntries": true,
+  "originalExprFilesUnchanged": 13,
+  "historicalPreparationUnchangedIncludingAddedEntries": true,
+  "fourOwnedRootsStillAbsent": true,
+  "noCurrentRuntimeReexecution": true
+}

@@ -1,0 +1,16 @@
+{
+  "id": "core-controls",
+  "scriptSha256": "47119f8655136b9eccc9578ecb569b72f2955a1f5703b635c480f9c2c8fcf97b",
+  "binary": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "tests/commands/expr-stress/diagnostics-candidate-review/replay/accept-controls.mjs",
+    "core-controls"
+  ],
+  "cwd": "/Users/kjopek/Workspace/safe-bash",
+  "timeoutMs": 240000,
+  "status": 0,
+  "signal": null,
+  "failure": null,
+  "stdout": "{\"subcases\":146,\"failed\":[],\"destination\":\"tests/commands/expr-stress/diagnostics-candidate-review/replay/core-controls\"}\n",
+  "stderr": ""
+}

@@ -1,0 +1,3893 @@
+{
+  "schema": 1,
+  "startedAt": "2026-08-27T18:33:38.022Z",
+  "host": {
+    "type": "Darwin",
+    "release": "25.4.0",
+    "arch": "arm64",
+    "node": "v22.22.2"
+  },
+  "identities": [
+    {
+      "name": "gnu",
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr",
+      "sha256": "e8a4e2b58a33d2ad6bfa9eb8a4ed5f62775ab9ceac4b9421680c98973fd9109c",
+      "version": {
+        "status": 0,
+        "signal": null,
+        "failure": null,
+        "stdoutBase64": "ZXhwciAoR05VIGNvcmV1dGlscykgOS43CkNvcHlyaWdodCAoQykgMjAyNSBGcmVlIFNvZnR3YXJlIEZvdW5kYXRpb24sIEluYy4KTGljZW5zZSBHUEx2Mys6IEdOVSBHUEwgdmVyc2lvbiAzIG9yIGxhdGVyIDxodHRwczovL2dudS5vcmcvbGljZW5zZXMvZ3BsLmh0bWw+LgpUaGlzIGlzIGZyZWUgc29mdHdhcmU6IHlvdSBhcmUgZnJlZSB0byBjaGFuZ2UgYW5kIHJlZGlzdHJpYnV0ZSBpdC4KVGhlcmUgaXMgTk8gV0FSUkFOVFksIHRvIHRoZSBleHRlbnQgcGVybWl0dGVkIGJ5IGxhdy4KCldyaXR0ZW4gYnkgTWlrZSBQYXJrZXIsIEphbWVzIFlvdW5nbWFuLCBhbmQgUGF1bCBFZ2dlcnQuCg==",
+        "stderrBase64": ""
+      },
+      "linkedLibraries": {
+        "status": 0,
+        "signal": null,
+        "failure": null,
+        "stdoutBase64": "L1VzZXJzL2tqb3Blay9Xb3Jrc3BhY2Uvc2FmZS1iYXNoL3Rlc3RzL2NvbW1hbmRzL21ldGFkYXRhLXN0cmVzcy8ub3JhY2xlL2NvcmV1dGlscy05Ljcvc3JjL2V4cHI6CgkvdXNyL2xpYi9saWJTeXN0ZW0uQi5keWxpYiAoY29tcGF0aWJpbGl0eSB2ZXJzaW9uIDEuMC4wLCBjdXJyZW50IHZlcnNpb24gMTM1Ni4wLjApCg==",
+        "stderrBase64": ""
+      }
+    },
+    {
+      "name": "apple",
+      "path": "/bin/expr",
+      "sha256": "584ea6af503bdb3cc647c128a16a1aa9d22d3eeab136671f746a209bfef7db9f",
+      "version": {
+        "status": 0,
+        "signal": null,
+        "failure": null,
+        "stdoutBase64": "LS12ZXJzaW9uCg==",
+        "stderrBase64": ""
+      },
+      "linkedLibraries": {
+        "status": 0,
+        "signal": null,
+        "failure": null,
+        "stdoutBase64": "L2Jpbi9leHByOgoJL3Vzci9saWIvbGliU3lzdGVtLkIuZHlsaWIgKGNvbXBhdGliaWxpdHkgdmVyc2lvbiAxLjAuMCwgY3VycmVudCB2ZXJzaW9uIDEzNTYuMC4wKQo=",
+        "stderrBase64": ""
+      }
+    },
+    {
+      "name": "archive",
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7.tar.xz",
+      "sha256": "e8bb26ad0293f9b5a1fc43fb42ba970e312c66ce92c1b0b16713d7500db251bf"
+    },
+    {
+      "name": "source",
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr.c",
+      "sha256": "c9dc5e04039505ab48a350e9407b1d83b2574fd7e2c31c9d23f4bf942d1b8af0"
+    }
+  ],
+  "cohorts": [
+    {
+      "id": "original95",
+      "profiles": [
+        {
+          "id": "gnu-9.7-darwin-C",
+          "environment": {
+            "PATH": "/usr/bin:/bin",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "LANGUAGE": "C",
+            "TZ": "UTC"
+          },
+          "results": [
+            {
+              "id": "precedence",
+              "caseSha256": "fe22525ddf1f6d8ea1d98794c6d67f0c874c6c89c8781720b61f902db6d150bb",
+              "status": 0,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "MTQK",
+              "stderrBase64": "",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "parentheses",
+              "caseSha256": "cdbff1328e981a81daaae151c443bc37ac5efb858c548835ad39f653b859f625",
+              "status": 0,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "MjAK",
+              "stderrBase64": "",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "left-associative",
+              "caseSha256": "a22950747ae9636d7060095cd38d665eb8e1268e6cfbb78e6267d4cb672e3724",
+              "status": 0,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "MTEK",
+              "stderrBase64": "",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "relational-connective-precedence",
+              "caseSha256": "a3d8bab880aced49450d5b75dca287af21f1197ecd24486f99439c0bae3b10f7",
+              "status": 0,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "MQo=",
+              "stderrBase64": "",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "single-token-not-shell",
+              "caseSha256": "514c0a9a5fafd453636c41b0b07a15c26f3afb6b34eaf3f23099657b77cb83d7",
+              "status": 0,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "MiArIDMK",
+              "stderrBase64": "",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "literal-shell-metacharacters",
+              "caseSha256": "46302e37372ac08bac13b87d13a2d43e52763c6979411ebfa8902962ad53db5b",
+              "status": 0,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "JCh0b3VjaCBORVZFUik7ICogPiAvbm90LWEtZmlsZQo=",
+              "stderrBase64": "",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "forced-operator",
+              "caseSha256": "1f80a48541f232269f448a70632554234aa17ecbcbc88409fd09e9e5eb7444b7",
+              "status": 0,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "Kwo=",
+              "stderrBase64": "",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "forced-parenthesis",
+              "caseSha256": "326f039bf05fa77c0305b95178d0cd76dd7aaddd85486dff79fea8e3a2e5ebf9",
+              "status": 0,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "KQo=",
+              "stderrBase64": "",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "nested-forced-keyword",
+              "caseSha256": "11d558cfa444b2ddbe93f6d0ecd7be79ee71e134fa5efd72a3e3fc146540fe3b",
+              "status": 0,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "Ngo=",
+              "stderrBase64": "",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "ambiguous-index-keyword",
+              "caseSha256": "a52fa42f88e5db31153ee11742544466639f17403b91beab71ba7002c0466592",
+              "status": 2,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "",
+              "stderrBase64": "ZXhwcjogc3ludGF4IGVycm9yOiBtaXNzaW5nIGFyZ3VtZW50IGFmdGVyICdhJwo=",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "forced-index-keyword",
+              "caseSha256": "2556f2b969c419e9dfed25f491139cf68c19b92763741fac799cda21e2addd31",
+              "status": 0,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "NQo=",
+              "stderrBase64": "",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "missing-operands",
+              "caseSha256": "bf2996230689ea4cc8f3a332bbd7483af620af274efb0c80e939f193833c0cad",
+              "status": 2,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "",
+              "stderrBase64": "ZXhwcjogbWlzc2luZyBvcGVyYW5kClRyeSAnZXhwciAtLWhlbHAnIGZvciBtb3JlIGluZm9ybWF0aW9uLgo=",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "missing-rhs",
+              "caseSha256": "94649841eb7369097acc58e53e0b52044cc395b95678936e372d7eb5bdd0429f",
+              "status": 2,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "",
+              "stderrBase64": "ZXhwcjogc3ludGF4IGVycm9yOiBtaXNzaW5nIGFyZ3VtZW50IGFmdGVyICcrJwo=",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "missing-close",
+              "caseSha256": "9f90a574fae5942e61f4bb2627fe88912350744f5583de2cffbde81c27c9ba46",
+              "status": 2,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "",
+              "stderrBase64": "ZXhwcjogc3ludGF4IGVycm9yOiBleHBlY3RpbmcgJyknIGFmdGVyICcyJwo=",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "unexpected-close",
+              "caseSha256": "5c0869fc81e02afa16ae44a694bab30f84136b2fc6d969021ed3d277e505b7db",
+              "status": 2,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "",
+              "stderrBase64": "ZXhwcjogc3ludGF4IGVycm9yOiB1bmV4cGVjdGVkICcpJwo=",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "trailing-token",
+              "caseSha256": "8ea6f9e3db9b6cb6a6b125347b6369686cae1e34907ca8c6b1649be981d5b585",
+              "status": 2,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "",
+              "stderrBase64": "ZXhwcjogc3ludGF4IGVycm9yOiB1bmV4cGVjdGVkIGFyZ3VtZW50ICcyJwo=",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "end-options-negative",
+              "caseSha256": "ea2d3c16c05d274f9b8b16239acf85dabba3c2061e678eab13156a62d2092ae9",
+              "status": 0,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "LTUK",
+              "stderrBase64": "",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "bare-negative",
+              "caseSha256": "664623447dcb7f2b8a47b71306cb6697de080f9a8a75d308c3625b94f12b985d",
+              "status": 0,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "LTUK",
+              "stderrBase64": "",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "signed-division",
+              "caseSha256": "03e125e529536d8f6503c490b08522d47b82d1358d08e6544bc39b3127f8883a",
+              "status": 0,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "LTIK",
+              "stderrBase64": "",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "signed-remainder",
+              "caseSha256": "9d9770c75808086a582ec24a5a5a24648d1b2358dd414d77e433e6356911f966",
+              "status": 0,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "LTEK",
+              "stderrBase64": "",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "negative-divisor",
+              "caseSha256": "75d59fed4161570045fc3545e8aadf76833cc55859424c575755e25e694738eb",
+              "status": 0,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "LTIK",
+              "stderrBase64": "",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "negative-remainder-divisor",
+              "caseSha256": "62767008bbf388d7d96216ed3bee7823714f2dc01492fdb41ec95cb24730f58c",
+              "status": 0,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "MQo=",
+              "stderrBase64": "",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "leading-zero-decimal",
+              "caseSha256": "3ebf5901a4d1d32603e622f8202e7aeb6a64d7c5c03ac071acc2255821871008",
+              "status": 0,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "MTAK",
+              "stderrBase64": "",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "leading-plus-not-integer",
+              "caseSha256": "5ac1623ef39bbef142c28abb6b224a701cadbb249ffd6252ec5e75478aae017f",
+              "status": 2,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "",
+              "stderrBase64": "ZXhwcjogbm9uLWludGVnZXIgYXJndW1lbnQK",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "whitespace-not-integer",
+              "caseSha256": "cbd8f9dba9028edcb1018d14744054573afc0dda61df02611fdafcb985996cf3",
+              "status": 2,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "",
+              "stderrBase64": "ZXhwcjogbm9uLWludGVnZXIgYXJndW1lbnQK",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "hex-not-integer",
+              "caseSha256": "7ba2ad21850ec2fcff90502b423bf4c4a19f2f99dca0fb8c01ceb6e257de485e",
+              "status": 2,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "",
+              "stderrBase64": "ZXhwcjogbm9uLWludGVnZXIgYXJndW1lbnQK",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "fraction-not-integer",
+              "caseSha256": "7d45416cb78179b67b673dac5de77182011e6e19a42d01c4d8722f9884d39b84",
+              "status": 2,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "",
+              "stderrBase64": "ZXhwcjogbm9uLWludGVnZXIgYXJndW1lbnQK",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "empty-not-integer",
+              "caseSha256": "8d1e145e826be493aa451489decc2e43af2177f25be7e320a61c5222830c90f7",
+              "status": 2,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "",
+              "stderrBase64": "ZXhwcjogbm9uLWludGVnZXIgYXJndW1lbnQK",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "divide-zero",
+              "caseSha256": "0a260c928f22da83221dce67b3b3bf7aaf01cbba31907a8be6b65ec75f60dd6f",
+              "status": 2,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "",
+              "stderrBase64": "ZXhwcjogZGl2aXNpb24gYnkgemVybwo=",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "remainder-zero",
+              "caseSha256": "85d205a70a818776ad5bb254e368f7ea82c4a0e1ed2e8e76d5c44f928da059b9",
+              "status": 2,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "",
+              "stderrBase64": "ZXhwcjogZGl2aXNpb24gYnkgemVybwo=",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "beyond-safe-js-integer",
+              "caseSha256": "616187b0deac513e051002974e20c3d1dc2187d71def9f36616366f3c33cbf3c",
+              "status": 0,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "OTAwNzE5OTI1NDc0MDk5NAo=",
+              "stderrBase64": "",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "big-multiply",
+              "caseSha256": "bbf60bef3034b7bceda9cc4d998e6d0b2fa3f2bdd9a73b13cd04b33f9b80d72c",
+              "status": 0,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "LTEyMTkzMjYzMTEzNzAyMTc5NTIyNjE4NTAzMjczMzYyMjkyMzMzMjIzNzQ2MzgwMTExMTI2MzUyNjkwMAo=",
+              "stderrBase64": "",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "big-digit-carry",
+              "caseSha256": "a8b5a0e9174fa38aafc7257d46256af031c361bf48b128f296ae44652c9894f9",
+              "status": 0,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "MTAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAK",
+              "stderrBase64": "",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "truth-empty",
+              "caseSha256": "3e98e4cb3625ef302523ae5e7a963abc013e63c4ff4e3fa2c4d6da03f878463f",
+              "status": 1,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "Cg==",
+              "stderrBase64": "",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "truth-zero-spelling",
+              "caseSha256": "a8fd0e4a280988b629af522b25cf3b79914f6904f52fe33a713cea228d211b6c",
+              "status": 1,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "LTAwMAo=",
+              "stderrBase64": "",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "truth-plus-zero-string",
+              "caseSha256": "48fff58a1310b3a4255cd80f50bd6e743bdfcefbeea6b22f3b1af59d54c6ba39",
+              "status": 0,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "KzAK",
+              "stderrBase64": "",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "or-return-operand",
+              "caseSha256": "212e3604b730d1387bd823e92aae3ff44edbf6190c9143a19c78945da6a145fb",
+              "status": 0,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "ZmFsbGJhY2sK",
+              "stderrBase64": "",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "or-both-empty",
+              "caseSha256": "aebaab1d77b00e94d23b6be54fce5da9945ad5bdafdd089c4b6b539484fb73ed",
+              "status": 1,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "MAo=",
+              "stderrBase64": "",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "and-return-left",
+              "caseSha256": "dad142b9d0bdffc645a39bb49340927aa65b5fabce9e941d98f8a9818c44d8a0",
+              "status": 0,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "MDAwNwo=",
+              "stderrBase64": "",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "and-false",
+              "caseSha256": "721eaf13d85562e97ceb2e18396735d0c99165832a1b4cc239af1ab1f3df5589",
+              "status": 1,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "MAo=",
+              "stderrBase64": "",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "numeric-comparison",
+              "caseSha256": "c304024effbf9c629944d31868c72f2644cec9e761ac9514d7b46b8ef86e1ad0",
+              "status": 1,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "MAo=",
+              "stderrBase64": "",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "string-comparison",
+              "caseSha256": "e9818f7093f442038b0b4081fc59fc4a063d41d4c105c0aeaa6aae21a553cf67",
+              "status": 0,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "MQo=",
+              "stderrBase64": "",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "numeric-equality",
+              "caseSha256": "092ae5025762d92ce99f5bbc084e623a10ff92a7a83b193ead9e91711cbae56d",
+              "status": 0,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "MQo=",
+              "stderrBase64": "",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "plus-string-equality",
+              "caseSha256": "7a8a893d2102672ac66412897fdd5da1596166cfcb53ab274012468a33355fe1",
+              "status": 1,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "MAo=",
+              "stderrBase64": "",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "negative-big-comparison",
+              "caseSha256": "7e5dd778ea4bb2ed1ec26618d34b1685a3afc4fbef60acf423d03cc08b8462e1",
+              "status": 0,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "MQo=",
+              "stderrBase64": "",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "relational-chain",
+              "caseSha256": "45e4354c2f2d4b1d3a914cfcda4b02e6e1827c9dda6075212f22dd8e0506535a",
+              "status": 0,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "MQo=",
+              "stderrBase64": "",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "or-skip-numeric-error",
+              "caseSha256": "636ff7c13b03534f236f3bfc929568742915d7f55f73768699cd4e339ca8a998",
+              "status": 0,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "a2VwdAo=",
+              "stderrBase64": "",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "or-skip-division",
+              "caseSha256": "0f455a92bfa73ab87fdc2c54187db506c78c3a4fbee566e9ebf8fa3196ccd9b1",
+              "status": 0,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "a2VwdAo=",
+              "stderrBase64": "",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "and-skip-remainder",
+              "caseSha256": "828ebbf9fadc0e50283ee5262420bc6e8f9a431f409e1d166069023164205269",
+              "status": 1,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "MAo=",
+              "stderrBase64": "",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "or-skip-invalid-regex",
+              "caseSha256": "755e425d091840101ee1787404cd5bf37b7f10f39801f2e14505fceea881359e",
+              "status": 0,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "a2VwdAo=",
+              "stderrBase64": "",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "and-skip-invalid-match",
+              "caseSha256": "94256241fdee2765192e4a1dc9ba23304062c68089d60d2399f7a504aa839148",
+              "status": 1,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "MAo=",
+              "stderrBase64": "",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "skip-still-requires-rhs",
+              "caseSha256": "33a6ff6a3e379b636bbc734f78d8dcc0217aeeb5094b6825c1185797548dbd4c",
+              "status": 2,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "",
+              "stderrBase64": "ZXhwcjogc3ludGF4IGVycm9yOiBtaXNzaW5nIGFyZ3VtZW50IGFmdGVyICcrJwo=",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "skip-still-requires-close",
+              "caseSha256": "70b870de36489bf821fa48aaeb286d77da0aba2f357d6acecc2cd898f637c1df",
+              "status": 2,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "",
+              "stderrBase64": "ZXhwcjogc3ludGF4IGVycm9yOiBleHBlY3RpbmcgJyknIGFmdGVyICcxJwo=",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "skip-still-requires-keyword-args",
+              "caseSha256": "824c58c6a0803f332ca6e2a151a9c2139dc6d9eba2cc66ff408e57d770fbd65d",
+              "status": 2,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "",
+              "stderrBase64": "ZXhwcjogc3ludGF4IGVycm9yOiBtaXNzaW5nIGFyZ3VtZW50IGFmdGVyICcxJwo=",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "evaluated-regex-error",
+              "caseSha256": "54f86a7c012fa49d3d94d424f031c74bbdac52f5337e1208d209cb911b50579d",
+              "status": 2,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "",
+              "stderrBase64": "ZXhwcjogSW52YWxpZCByZWd1bGFyIGV4cHJlc3Npb24K",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "length-empty",
+              "caseSha256": "66483c805bd4d6a8716e86ec578c3fe8a7f76c1efca55964156df63e1aab4630",
+              "status": 1,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "MAo=",
+              "stderrBase64": "",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "substr-one-based",
+              "caseSha256": "93e248409d54180bb52f0bd6371f01f5e01bc5ed244f56f497eacea167dc50b1",
+              "status": 0,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "YmNkCg==",
+              "stderrBase64": "",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "substr-overlong",
+              "caseSha256": "4b1bb0882202db238405c6f4e679cfa6938c266fbf2ab60f76b234e5a57da1ea",
+              "status": 0,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "ZWYK",
+              "stderrBase64": "",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "substr-invalid-position",
+              "caseSha256": "9e8a925ec5422279dbf344fe78a67bfac38548465d57bcb34e5f47b819034d5c",
+              "status": 1,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "Cg==",
+              "stderrBase64": "",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "substr-zero",
+              "caseSha256": "ff00242c853224c025ec1c93ac01ad3ff56afc7ee27b706dc4014ee1ef339b5a",
+              "status": 1,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "Cg==",
+              "stderrBase64": "",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "substr-negative-length",
+              "caseSha256": "5e5a25616e70b11f9ae69e9b2a0ee777ddabe7c0a80ff403ffacd071f5767dc5",
+              "status": 1,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "Cg==",
+              "stderrBase64": "",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "index-earliest-position-not-set-order",
+              "caseSha256": "85911bdcf26f0429768f5d35a4f52934ace9e747e0702776fcdb6f8fd9d1ad21",
+              "status": 0,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "MQo=",
+              "stderrBase64": "",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "index-empty-set",
+              "caseSha256": "e45d02dba3647ce3ecaffca4d0f088f088b31513c22b5cb5949375e899a86754",
+              "status": 1,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "MAo=",
+              "stderrBase64": "",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "regex-anchored-not-search",
+              "caseSha256": "7152ebffee3f4e7ec1a0b57b429dd49587546c3de4b14ff092060b10e46c627f",
+              "status": 1,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "MAo=",
+              "stderrBase64": "",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "regex-length",
+              "caseSha256": "c397c97067feb05be5986065798510c942b78d7bfbfe9d8dcfcd555948594765",
+              "status": 0,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "Mwo=",
+              "stderrBase64": "",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "match-prefix-keyword",
+              "caseSha256": "4052050448a0934ee1466013e7408010f8926a1e39641d17bf2937736ecede0a",
+              "status": 0,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "Ygo=",
+              "stderrBase64": "",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "regex-first-capture",
+              "caseSha256": "9ca269b4fa83cda8b808b562e4f55037dc21e6027c589b6a4f44545465f229d4",
+              "status": 0,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "YQo=",
+              "stderrBase64": "",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "regex-unmatched-capture",
+              "caseSha256": "06a478eee836d68ca56509801e1e38f0f71a3661620a69406cfc9751e88c9335",
+              "status": 1,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "Cg==",
+              "stderrBase64": "",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "regex-empty-capture",
+              "caseSha256": "ebe6bd6ed553e0808768974b171565f166581e44382a97a9bc6f3702773992ea",
+              "status": 1,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "Cg==",
+              "stderrBase64": "",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "regex-no-match-capture",
+              "caseSha256": "378836f6e4405d90c5d0219579d009463e823e7e1f93e6d3c2086327e94df17c",
+              "status": 1,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "Cg==",
+              "stderrBase64": "",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "regex-empty-pattern",
+              "caseSha256": "d10c93b2d8dc35f8eaf43d8bc9f63274719e08234ca05ad09e49f7c0ff6edf10",
+              "status": 1,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "MAo=",
+              "stderrBase64": "",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "regex-backreference",
+              "caseSha256": "82e4dd2a6799d3a1fa43c9c9af2baab9271aa6b5b6f9eacadfec1d7aea968de2",
+              "status": 0,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "YWIK",
+              "stderrBase64": "",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "regex-longest-alternative",
+              "caseSha256": "0645598f31ab5885051ccc8b1d43c42489b6cd011abb723749aa211ee3047ab8",
+              "status": 0,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "YWEK",
+              "stderrBase64": "",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "regex-bre-literal-plus",
+              "caseSha256": "e44c16f40d6b8adb793ec00806fd3945b97e832d8e0cc808c09e07a5aa1610d7",
+              "status": 0,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "Mgo=",
+              "stderrBase64": "",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "regex-gnu-quantifiers",
+              "caseSha256": "a1f4796f8a3d4cc6ab909783aaec15dcf7ca3db4f6513881bd956975080f96d1",
+              "status": 0,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "NAo=",
+              "stderrBase64": "",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "regex-interval-class",
+              "caseSha256": "905be61c7120bba47ee06c9825ccb1f9b544a345d7485f44cb1c6324c7e500ab",
+              "status": 0,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "Mwo=",
+              "stderrBase64": "",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "regex-newline-dot",
+              "caseSha256": "4c29ef6f4b3e2f1acd54a991571c65cb4d27364e52293c168668e1886a568cdb",
+              "status": 0,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "Mwo=",
+              "stderrBase64": "",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "regex-dollar-not-line-anchor",
+              "caseSha256": "60dd89519088e766ec5f4122d36177316533bdcc4fdbd6221f02af7a2217d5c8",
+              "status": 1,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "MAo=",
+              "stderrBase64": "",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "regex-invalid-backreference",
+              "caseSha256": "a04f541dd6e8348c57a8e7947f658bff8bb37ff39199d2d04b73e62b535a5df8",
+              "status": 2,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "",
+              "stderrBase64": "ZXhwcjogSW52YWxpZCBiYWNrIHJlZmVyZW5jZQo=",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "regex-invalid-capture",
+              "caseSha256": "bbeb31267da6b681fc834b5186cfbb5f0a9ba7b54df37535c7694a5e74c1155f",
+              "status": 2,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "",
+              "stderrBase64": "ZXhwcjogVW5tYXRjaGVkICggb3IgXCgK",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "regex-invalid-trailing-backslash",
+              "caseSha256": "4279071251588bde8b196fc91d43d3b972d9df7fbd5f445a6bd143543cc1d60c",
+              "status": 2,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "",
+              "stderrBase64": "ZXhwcjogVHJhaWxpbmcgYmFja3NsYXNoCg==",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "workflow-build-counter",
+              "caseSha256": "f013e8861433dc887844bf34c62de1532aa170ea212ae2a1d6557e87c535bc8e",
+              "status": 0,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "NDIK",
+              "stderrBase64": "",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "workflow-basename-fallback",
+              "caseSha256": "438cd077b8d728499a932bcb3fa7bd94c4e3f0e6a80eccf56b9983dbec4800f2",
+              "status": 0,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "d29ya2VyLnRzCg==",
+              "stderrBase64": "",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "workflow-version-major",
+              "caseSha256": "5b5bee9a9e6e753fc17af50860d4c6af45bcf90f0c1fc363933a50e10fe0505e",
+              "status": 0,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "MTIK",
+              "stderrBase64": "",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "workflow-range-size",
+              "caseSha256": "fe846e731bf264370f81b0fffe349d1b7cdbd59ac8c0063465b5ab9a133c58c7",
+              "status": 0,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "MjA0OAo=",
+              "stderrBase64": "",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "workflow-cache-key-prefix",
+              "caseSha256": "280dcdd3785b51ac08e2e61f6c72d634b7e563e4785fd25ebe9f0b315a977682",
+              "status": 0,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "MDEyMzQ1NjcK",
+              "stderrBase64": "",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "unicode-length",
+              "caseSha256": "f9f342c29f6fcbc7b59b9c605b93953b56fb735d8a7f6329988d631b6aeb7d64",
+              "status": 0,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "MTAK",
+              "stderrBase64": "",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "unicode-substr",
+              "caseSha256": "7fb01da6c4626122192737fd389ed803391a6b768deb30aa42dfce8df40257b1",
+              "status": 0,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "qQo=",
+              "stderrBase64": "",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "unicode-index",
+              "caseSha256": "8e2f5db8faca56b5695294e65ac3c5c3a72af90becb95f247aa118526cfd7e65",
+              "status": 0,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "NAo=",
+              "stderrBase64": "",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "unicode-regex-dot",
+              "caseSha256": "0ddf811594106aeb735da310be08db91f8b39c48d42be08e90dde53a7f116a79",
+              "status": 0,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "MQo=",
+              "stderrBase64": "",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "unicode-capture",
+              "caseSha256": "1de7d961dd4312114bf13beb50f80dbae19a388f95239f866541e2e2e752db4d",
+              "status": 0,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "wwo=",
+              "stderrBase64": "",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "unicode-combining-not-graphemes",
+              "caseSha256": "d2921e5f2602872e586db18980046194f128b9dea30550045d2563a34ea4f6d4",
+              "status": 0,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "Mwo=",
+              "stderrBase64": "",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "unicode-collation",
+              "caseSha256": "acd32acc4715ff73508a71c39d2f8a9c17cbe6e3bb9f7f50c9eafe23b7976447",
+              "status": 1,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "MAo=",
+              "stderrBase64": "",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "unicode-digit-not-decimal",
+              "caseSha256": "a04255b0a07220c09ee95a98445bc4eda83b14052ca923b7f6e670e5fdac0e4f",
+              "status": 2,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "",
+              "stderrBase64": "ZXhwcjogbm9uLWludGVnZXIgYXJndW1lbnQK",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "non-nul-control-bytes",
+              "caseSha256": "d9e6c334c562e3aaae251fcef145e4a32582e3a8b915f2fd389019d28827f0c0",
+              "status": 0,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "AQkNCn8K",
+              "stderrBase64": "",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            }
+          ],
+          "charmap": {
+            "status": 0,
+            "signal": null,
+            "failure": null,
+            "stdoutBase64": "VVMtQVNDSUkK",
+            "stderrBase64": ""
+          },
+          "denominator": 95,
+          "strictMatches": 95
+        },
+        {
+          "id": "gnu-9.7-darwin-en_US.UTF-8",
+          "environment": {
+            "PATH": "/usr/bin:/bin",
+            "LC_ALL": "en_US.UTF-8",
+            "LANG": "en_US.UTF-8",
+            "LANGUAGE": "C",
+            "TZ": "UTC"
+          },
+          "results": [
+            {
+              "id": "unicode-length",
+              "caseSha256": "f9f342c29f6fcbc7b59b9c605b93953b56fb735d8a7f6329988d631b6aeb7d64",
+              "status": 0,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "NQo=",
+              "stderrBase64": "",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "unicode-substr",
+              "caseSha256": "7fb01da6c4626122192737fd389ed803391a6b768deb30aa42dfce8df40257b1",
+              "status": 0,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "8J+YgAo=",
+              "stderrBase64": "",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "unicode-index",
+              "caseSha256": "8e2f5db8faca56b5695294e65ac3c5c3a72af90becb95f247aa118526cfd7e65",
+              "status": 0,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "Mwo=",
+              "stderrBase64": "",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "unicode-regex-dot",
+              "caseSha256": "0ddf811594106aeb735da310be08db91f8b39c48d42be08e90dde53a7f116a79",
+              "status": 0,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "MQo=",
+              "stderrBase64": "",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "unicode-capture",
+              "caseSha256": "1de7d961dd4312114bf13beb50f80dbae19a388f95239f866541e2e2e752db4d",
+              "status": 0,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "w6kK",
+              "stderrBase64": "",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "unicode-combining-not-graphemes",
+              "caseSha256": "d2921e5f2602872e586db18980046194f128b9dea30550045d2563a34ea4f6d4",
+              "status": 0,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "Mgo=",
+              "stderrBase64": "",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "unicode-collation",
+              "caseSha256": "acd32acc4715ff73508a71c39d2f8a9c17cbe6e3bb9f7f50c9eafe23b7976447",
+              "status": 0,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "MQo=",
+              "stderrBase64": "",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "unicode-digit-not-decimal",
+              "caseSha256": "a04255b0a07220c09ee95a98445bc4eda83b14052ca923b7f6e670e5fdac0e4f",
+              "status": 2,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "",
+              "stderrBase64": "ZXhwcjogbm9uLWludGVnZXIgYXJndW1lbnQK",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "non-nul-control-bytes",
+              "caseSha256": "d9e6c334c562e3aaae251fcef145e4a32582e3a8b915f2fd389019d28827f0c0",
+              "status": 0,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "AQkNCn8K",
+              "stderrBase64": "",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            }
+          ],
+          "charmap": {
+            "status": 0,
+            "signal": null,
+            "failure": null,
+            "stdoutBase64": "VVRGLTgK",
+            "stderrBase64": ""
+          },
+          "denominator": 9,
+          "strictMatches": 9
+        },
+        {
+          "id": "apple-darwin-C",
+          "environment": {
+            "PATH": "/usr/bin:/bin",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "LANGUAGE": "C",
+            "TZ": "UTC"
+          },
+          "results": [
+            {
+              "id": "precedence",
+              "caseSha256": "fe22525ddf1f6d8ea1d98794c6d67f0c874c6c89c8781720b61f902db6d150bb",
+              "status": 0,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "MTQK",
+              "stderrBase64": "",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "parentheses",
+              "caseSha256": "cdbff1328e981a81daaae151c443bc37ac5efb858c548835ad39f653b859f625",
+              "status": 0,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "MjAK",
+              "stderrBase64": "",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "left-associative",
+              "caseSha256": "a22950747ae9636d7060095cd38d665eb8e1268e6cfbb78e6267d4cb672e3724",
+              "status": 0,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "MTEK",
+              "stderrBase64": "",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "relational-connective-precedence",
+              "caseSha256": "a3d8bab880aced49450d5b75dca287af21f1197ecd24486f99439c0bae3b10f7",
+              "status": 0,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "MQo=",
+              "stderrBase64": "",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "single-token-not-shell",
+              "caseSha256": "514c0a9a5fafd453636c41b0b07a15c26f3afb6b34eaf3f23099657b77cb83d7",
+              "status": 0,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "MiArIDMK",
+              "stderrBase64": "",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "literal-shell-metacharacters",
+              "caseSha256": "46302e37372ac08bac13b87d13a2d43e52763c6979411ebfa8902962ad53db5b",
+              "status": 2,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "",
+              "stderrBase64": "ZXhwcjogc3ludGF4IGVycm9yCg==",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "forced-operator",
+              "caseSha256": "1f80a48541f232269f448a70632554234aa17ecbcbc88409fd09e9e5eb7444b7",
+              "status": 2,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "",
+              "stderrBase64": "ZXhwcjogc3ludGF4IGVycm9yCg==",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "forced-parenthesis",
+              "caseSha256": "326f039bf05fa77c0305b95178d0cd76dd7aaddd85486dff79fea8e3a2e5ebf9",
+              "status": 2,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "",
+              "stderrBase64": "ZXhwcjogc3ludGF4IGVycm9yCg==",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "nested-forced-keyword",
+              "caseSha256": "11d558cfa444b2ddbe93f6d0ecd7be79ee71e134fa5efd72a3e3fc146540fe3b",
+              "status": 2,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "",
+              "stderrBase64": "ZXhwcjogbm90IGEgZGVjaW1hbCBudW1iZXI6ICdsZW5ndGgnCg==",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "ambiguous-index-keyword",
+              "caseSha256": "a52fa42f88e5db31153ee11742544466639f17403b91beab71ba7002c0466592",
+              "status": 2,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "",
+              "stderrBase64": "ZXhwcjogc3ludGF4IGVycm9yCg==",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "forced-index-keyword",
+              "caseSha256": "2556f2b969c419e9dfed25f491139cf68c19b92763741fac799cda21e2addd31",
+              "status": 2,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "",
+              "stderrBase64": "ZXhwcjogbm90IGEgZGVjaW1hbCBudW1iZXI6ICdpbmRleCcK",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "missing-operands",
+              "caseSha256": "bf2996230689ea4cc8f3a332bbd7483af620af274efb0c80e939f193833c0cad",
+              "status": 2,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "",
+              "stderrBase64": "ZXhwcjogc3ludGF4IGVycm9yCg==",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "missing-rhs",
+              "caseSha256": "94649841eb7369097acc58e53e0b52044cc395b95678936e372d7eb5bdd0429f",
+              "status": 2,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "",
+              "stderrBase64": "ZXhwcjogc3ludGF4IGVycm9yCg==",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "missing-close",
+              "caseSha256": "9f90a574fae5942e61f4bb2627fe88912350744f5583de2cffbde81c27c9ba46",
+              "status": 2,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "",
+              "stderrBase64": "ZXhwcjogc3ludGF4IGVycm9yCg==",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "unexpected-close",
+              "caseSha256": "5c0869fc81e02afa16ae44a694bab30f84136b2fc6d969021ed3d277e505b7db",
+              "status": 2,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "",
+              "stderrBase64": "ZXhwcjogc3ludGF4IGVycm9yCg==",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "trailing-token",
+              "caseSha256": "8ea6f9e3db9b6cb6a6b125347b6369686cae1e34907ca8c6b1649be981d5b585",
+              "status": 2,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "",
+              "stderrBase64": "ZXhwcjogc3ludGF4IGVycm9yCg==",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "end-options-negative",
+              "caseSha256": "ea2d3c16c05d274f9b8b16239acf85dabba3c2061e678eab13156a62d2092ae9",
+              "status": 0,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "LTUK",
+              "stderrBase64": "",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "bare-negative",
+              "caseSha256": "664623447dcb7f2b8a47b71306cb6697de080f9a8a75d308c3625b94f12b985d",
+              "status": 0,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "LTUK",
+              "stderrBase64": "",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "signed-division",
+              "caseSha256": "03e125e529536d8f6503c490b08522d47b82d1358d08e6544bc39b3127f8883a",
+              "status": 0,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "LTIK",
+              "stderrBase64": "",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "signed-remainder",
+              "caseSha256": "9d9770c75808086a582ec24a5a5a24648d1b2358dd414d77e433e6356911f966",
+              "status": 0,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "LTEK",
+              "stderrBase64": "",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "negative-divisor",
+              "caseSha256": "75d59fed4161570045fc3545e8aadf76833cc55859424c575755e25e694738eb",
+              "status": 0,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "LTIK",
+              "stderrBase64": "",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "negative-remainder-divisor",
+              "caseSha256": "62767008bbf388d7d96216ed3bee7823714f2dc01492fdb41ec95cb24730f58c",
+              "status": 0,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "MQo=",
+              "stderrBase64": "",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "leading-zero-decimal",
+              "caseSha256": "3ebf5901a4d1d32603e622f8202e7aeb6a64d7c5c03ac071acc2255821871008",
+              "status": 0,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "MTAK",
+              "stderrBase64": "",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "leading-plus-not-integer",
+              "caseSha256": "5ac1623ef39bbef142c28abb6b224a701cadbb249ffd6252ec5e75478aae017f",
+              "status": 2,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "",
+              "stderrBase64": "ZXhwcjogbm90IGEgZGVjaW1hbCBudW1iZXI6ICcrNycK",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "whitespace-not-integer",
+              "caseSha256": "cbd8f9dba9028edcb1018d14744054573afc0dda61df02611fdafcb985996cf3",
+              "status": 2,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "",
+              "stderrBase64": "ZXhwcjogbm90IGEgZGVjaW1hbCBudW1iZXI6ICcgNycK",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "hex-not-integer",
+              "caseSha256": "7ba2ad21850ec2fcff90502b423bf4c4a19f2f99dca0fb8c01ceb6e257de485e",
+              "status": 2,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "",
+              "stderrBase64": "ZXhwcjogbm90IGEgZGVjaW1hbCBudW1iZXI6ICcweDEwJwo=",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "fraction-not-integer",
+              "caseSha256": "7d45416cb78179b67b673dac5de77182011e6e19a42d01c4d8722f9884d39b84",
+              "status": 2,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "",
+              "stderrBase64": "ZXhwcjogbm90IGEgZGVjaW1hbCBudW1iZXI6ICcxLjUnCg==",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "empty-not-integer",
+              "caseSha256": "8d1e145e826be493aa451489decc2e43af2177f25be7e320a61c5222830c90f7",
+              "status": 2,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "",
+              "stderrBase64": "ZXhwcjogbm90IGEgZGVjaW1hbCBudW1iZXI6ICcnCg==",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "divide-zero",
+              "caseSha256": "0a260c928f22da83221dce67b3b3bf7aaf01cbba31907a8be6b65ec75f60dd6f",
+              "status": 2,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "",
+              "stderrBase64": "ZXhwcjogZGl2aXNpb24gYnkgemVybwo=",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "remainder-zero",
+              "caseSha256": "85d205a70a818776ad5bb254e368f7ea82c4a0e1ed2e8e76d5c44f928da059b9",
+              "status": 2,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "",
+              "stderrBase64": "ZXhwcjogZGl2aXNpb24gYnkgemVybwo=",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "beyond-safe-js-integer",
+              "caseSha256": "616187b0deac513e051002974e20c3d1dc2187d71def9f36616366f3c33cbf3c",
+              "status": 0,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "OTAwNzE5OTI1NDc0MDk5NAo=",
+              "stderrBase64": "",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "big-multiply",
+              "caseSha256": "bbf60bef3034b7bceda9cc4d998e6d0b2fa3f2bdd9a73b13cd04b33f9b80d72c",
+              "status": 2,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "",
+              "stderrBase64": "ZXhwcjogb3BlcmFuZCB0b28gbGFyZ2U6ICcxMjM0NTY3ODkwMTIzNDU2Nzg5MDEyMzQ1Njc4OTAnCg==",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "big-digit-carry",
+              "caseSha256": "a8b5a0e9174fa38aafc7257d46256af031c361bf48b128f296ae44652c9894f9",
+              "status": 2,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "",
+              "stderrBase64": "ZXhwcjogb3BlcmFuZCB0b28gbGFyZ2U6ICc5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5Jwo=",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "truth-empty",
+              "caseSha256": "3e98e4cb3625ef302523ae5e7a963abc013e63c4ff4e3fa2c4d6da03f878463f",
+              "status": 1,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "Cg==",
+              "stderrBase64": "",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "truth-zero-spelling",
+              "caseSha256": "a8fd0e4a280988b629af522b25cf3b79914f6904f52fe33a713cea228d211b6c",
+              "status": 1,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "MAo=",
+              "stderrBase64": "",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "truth-plus-zero-string",
+              "caseSha256": "48fff58a1310b3a4255cd80f50bd6e743bdfcefbeea6b22f3b1af59d54c6ba39",
+              "status": 0,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "KzAK",
+              "stderrBase64": "",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "or-return-operand",
+              "caseSha256": "212e3604b730d1387bd823e92aae3ff44edbf6190c9143a19c78945da6a145fb",
+              "status": 0,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "ZmFsbGJhY2sK",
+              "stderrBase64": "",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "or-both-empty",
+              "caseSha256": "aebaab1d77b00e94d23b6be54fce5da9945ad5bdafdd089c4b6b539484fb73ed",
+              "status": 1,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "MAo=",
+              "stderrBase64": "",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "and-return-left",
+              "caseSha256": "dad142b9d0bdffc645a39bb49340927aa65b5fabce9e941d98f8a9818c44d8a0",
+              "status": 0,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "Nwo=",
+              "stderrBase64": "",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "and-false",
+              "caseSha256": "721eaf13d85562e97ceb2e18396735d0c99165832a1b4cc239af1ab1f3df5589",
+              "status": 1,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "MAo=",
+              "stderrBase64": "",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "numeric-comparison",
+              "caseSha256": "c304024effbf9c629944d31868c72f2644cec9e761ac9514d7b46b8ef86e1ad0",
+              "status": 1,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "MAo=",
+              "stderrBase64": "",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "string-comparison",
+              "caseSha256": "e9818f7093f442038b0b4081fc59fc4a063d41d4c105c0aeaa6aae21a553cf67",
+              "status": 0,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "MQo=",
+              "stderrBase64": "",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "numeric-equality",
+              "caseSha256": "092ae5025762d92ce99f5bbc084e623a10ff92a7a83b193ead9e91711cbae56d",
+              "status": 2,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "",
+              "stderrBase64": "ZXhwcjogc3ludGF4IGVycm9yCg==",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "plus-string-equality",
+              "caseSha256": "7a8a893d2102672ac66412897fdd5da1596166cfcb53ab274012468a33355fe1",
+              "status": 1,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "MAo=",
+              "stderrBase64": "",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "negative-big-comparison",
+              "caseSha256": "7e5dd778ea4bb2ed1ec26618d34b1685a3afc4fbef60acf423d03cc08b8462e1",
+              "status": 2,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "",
+              "stderrBase64": "ZXhwcjogb3BlcmFuZCB0b28gbGFyZ2U6ICctOTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5Jwo=",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "relational-chain",
+              "caseSha256": "45e4354c2f2d4b1d3a914cfcda4b02e6e1827c9dda6075212f22dd8e0506535a",
+              "status": 0,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "MQo=",
+              "stderrBase64": "",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "or-skip-numeric-error",
+              "caseSha256": "636ff7c13b03534f236f3bfc929568742915d7f55f73768699cd4e339ca8a998",
+              "status": 2,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "",
+              "stderrBase64": "ZXhwcjogbm90IGEgZGVjaW1hbCBudW1iZXI6ICdiYWQnCg==",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "or-skip-division",
+              "caseSha256": "0f455a92bfa73ab87fdc2c54187db506c78c3a4fbee566e9ebf8fa3196ccd9b1",
+              "status": 2,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "",
+              "stderrBase64": "ZXhwcjogZGl2aXNpb24gYnkgemVybwo=",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "and-skip-remainder",
+              "caseSha256": "828ebbf9fadc0e50283ee5262420bc6e8f9a431f409e1d166069023164205269",
+              "status": 2,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "",
+              "stderrBase64": "ZXhwcjogZGl2aXNpb24gYnkgemVybwo=",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "or-skip-invalid-regex",
+              "caseSha256": "755e425d091840101ee1787404cd5bf37b7f10f39801f2e14505fceea881359e",
+              "status": 2,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "",
+              "stderrBase64": "ZXhwcjogYnJhY2tldHMgKFsgXSkgbm90IGJhbGFuY2VkCg==",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "and-skip-invalid-match",
+              "caseSha256": "94256241fdee2765192e4a1dc9ba23304062c68089d60d2399f7a504aa839148",
+              "status": 2,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "",
+              "stderrBase64": "ZXhwcjogc3ludGF4IGVycm9yCg==",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "skip-still-requires-rhs",
+              "caseSha256": "33a6ff6a3e379b636bbc734f78d8dcc0217aeeb5094b6825c1185797548dbd4c",
+              "status": 2,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "",
+              "stderrBase64": "ZXhwcjogc3ludGF4IGVycm9yCg==",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "skip-still-requires-close",
+              "caseSha256": "70b870de36489bf821fa48aaeb286d77da0aba2f357d6acecc2cd898f637c1df",
+              "status": 2,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "",
+              "stderrBase64": "ZXhwcjogc3ludGF4IGVycm9yCg==",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "skip-still-requires-keyword-args",
+              "caseSha256": "824c58c6a0803f332ca6e2a151a9c2139dc6d9eba2cc66ff408e57d770fbd65d",
+              "status": 2,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "",
+              "stderrBase64": "ZXhwcjogc3ludGF4IGVycm9yCg==",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "evaluated-regex-error",
+              "caseSha256": "54f86a7c012fa49d3d94d424f031c74bbdac52f5337e1208d209cb911b50579d",
+              "status": 2,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "",
+              "stderrBase64": "ZXhwcjogYnJhY2tldHMgKFsgXSkgbm90IGJhbGFuY2VkCg==",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "length-empty",
+              "caseSha256": "66483c805bd4d6a8716e86ec578c3fe8a7f76c1efca55964156df63e1aab4630",
+              "status": 2,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "",
+              "stderrBase64": "ZXhwcjogc3ludGF4IGVycm9yCg==",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "substr-one-based",
+              "caseSha256": "93e248409d54180bb52f0bd6371f01f5e01bc5ed244f56f497eacea167dc50b1",
+              "status": 2,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "",
+              "stderrBase64": "ZXhwcjogc3ludGF4IGVycm9yCg==",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "substr-overlong",
+              "caseSha256": "4b1bb0882202db238405c6f4e679cfa6938c266fbf2ab60f76b234e5a57da1ea",
+              "status": 2,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "",
+              "stderrBase64": "ZXhwcjogc3ludGF4IGVycm9yCg==",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "substr-invalid-position",
+              "caseSha256": "9e8a925ec5422279dbf344fe78a67bfac38548465d57bcb34e5f47b819034d5c",
+              "status": 2,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "",
+              "stderrBase64": "ZXhwcjogc3ludGF4IGVycm9yCg==",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "substr-zero",
+              "caseSha256": "ff00242c853224c025ec1c93ac01ad3ff56afc7ee27b706dc4014ee1ef339b5a",
+              "status": 2,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "",
+              "stderrBase64": "ZXhwcjogc3ludGF4IGVycm9yCg==",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "substr-negative-length",
+              "caseSha256": "5e5a25616e70b11f9ae69e9b2a0ee777ddabe7c0a80ff403ffacd071f5767dc5",
+              "status": 2,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "",
+              "stderrBase64": "ZXhwcjogc3ludGF4IGVycm9yCg==",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "index-earliest-position-not-set-order",
+              "caseSha256": "85911bdcf26f0429768f5d35a4f52934ace9e747e0702776fcdb6f8fd9d1ad21",
+              "status": 2,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "",
+              "stderrBase64": "ZXhwcjogc3ludGF4IGVycm9yCg==",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "index-empty-set",
+              "caseSha256": "e45d02dba3647ce3ecaffca4d0f088f088b31513c22b5cb5949375e899a86754",
+              "status": 2,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "",
+              "stderrBase64": "ZXhwcjogc3ludGF4IGVycm9yCg==",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "regex-anchored-not-search",
+              "caseSha256": "7152ebffee3f4e7ec1a0b57b429dd49587546c3de4b14ff092060b10e46c627f",
+              "status": 1,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "MAo=",
+              "stderrBase64": "",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "regex-length",
+              "caseSha256": "c397c97067feb05be5986065798510c942b78d7bfbfe9d8dcfcd555948594765",
+              "status": 0,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "Mwo=",
+              "stderrBase64": "",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "match-prefix-keyword",
+              "caseSha256": "4052050448a0934ee1466013e7408010f8926a1e39641d17bf2937736ecede0a",
+              "status": 2,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "",
+              "stderrBase64": "ZXhwcjogc3ludGF4IGVycm9yCg==",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "regex-first-capture",
+              "caseSha256": "9ca269b4fa83cda8b808b562e4f55037dc21e6027c589b6a4f44545465f229d4",
+              "status": 0,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "YQo=",
+              "stderrBase64": "",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "regex-unmatched-capture",
+              "caseSha256": "06a478eee836d68ca56509801e1e38f0f71a3661620a69406cfc9751e88c9335",
+              "status": 1,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "Cg==",
+              "stderrBase64": "",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "regex-empty-capture",
+              "caseSha256": "ebe6bd6ed553e0808768974b171565f166581e44382a97a9bc6f3702773992ea",
+              "status": 1,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "Cg==",
+              "stderrBase64": "",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "regex-no-match-capture",
+              "caseSha256": "378836f6e4405d90c5d0219579d009463e823e7e1f93e6d3c2086327e94df17c",
+              "status": 1,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "Cg==",
+              "stderrBase64": "",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "regex-empty-pattern",
+              "caseSha256": "d10c93b2d8dc35f8eaf43d8bc9f63274719e08234ca05ad09e49f7c0ff6edf10",
+              "status": 2,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "",
+              "stderrBase64": "ZXhwcjogZW1wdHkgKHN1YilleHByZXNzaW9uCg==",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "regex-backreference",
+              "caseSha256": "82e4dd2a6799d3a1fa43c9c9af2baab9271aa6b5b6f9eacadfec1d7aea968de2",
+              "status": 0,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "YWIK",
+              "stderrBase64": "",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "regex-longest-alternative",
+              "caseSha256": "0645598f31ab5885051ccc8b1d43c42489b6cd011abb723749aa211ee3047ab8",
+              "status": 1,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "Cg==",
+              "stderrBase64": "",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "regex-bre-literal-plus",
+              "caseSha256": "e44c16f40d6b8adb793ec00806fd3945b97e832d8e0cc808c09e07a5aa1610d7",
+              "status": 0,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "Mgo=",
+              "stderrBase64": "",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "regex-gnu-quantifiers",
+              "caseSha256": "a1f4796f8a3d4cc6ab909783aaec15dcf7ca3db4f6513881bd956975080f96d1",
+              "status": 1,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "MAo=",
+              "stderrBase64": "",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "regex-interval-class",
+              "caseSha256": "905be61c7120bba47ee06c9825ccb1f9b544a345d7485f44cb1c6324c7e500ab",
+              "status": 0,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "Mwo=",
+              "stderrBase64": "",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "regex-newline-dot",
+              "caseSha256": "4c29ef6f4b3e2f1acd54a991571c65cb4d27364e52293c168668e1886a568cdb",
+              "status": 0,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "Mwo=",
+              "stderrBase64": "",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "regex-dollar-not-line-anchor",
+              "caseSha256": "60dd89519088e766ec5f4122d36177316533bdcc4fdbd6221f02af7a2217d5c8",
+              "status": 1,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "MAo=",
+              "stderrBase64": "",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "regex-invalid-backreference",
+              "caseSha256": "a04f541dd6e8348c57a8e7947f658bff8bb37ff39199d2d04b73e62b535a5df8",
+              "status": 2,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "",
+              "stderrBase64": "ZXhwcjogaW52YWxpZCBiYWNrcmVmZXJlbmNlIG51bWJlcgo=",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "regex-invalid-capture",
+              "caseSha256": "bbeb31267da6b681fc834b5186cfbb5f0a9ba7b54df37535c7694a5e74c1155f",
+              "status": 2,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "",
+              "stderrBase64": "ZXhwcjogcGFyZW50aGVzZXMgbm90IGJhbGFuY2VkCg==",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "regex-invalid-trailing-backslash",
+              "caseSha256": "4279071251588bde8b196fc91d43d3b972d9df7fbd5f445a6bd143543cc1d60c",
+              "status": 2,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "",
+              "stderrBase64": "ZXhwcjogdHJhaWxpbmcgYmFja3NsYXNoIChcKQo=",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "workflow-build-counter",
+              "caseSha256": "f013e8861433dc887844bf34c62de1532aa170ea212ae2a1d6557e87c535bc8e",
+              "status": 0,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "NDIK",
+              "stderrBase64": "",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "workflow-basename-fallback",
+              "caseSha256": "438cd077b8d728499a932bcb3fa7bd94c4e3f0e6a80eccf56b9983dbec4800f2",
+              "status": 0,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "d29ya2VyLnRzCg==",
+              "stderrBase64": "",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "workflow-version-major",
+              "caseSha256": "5b5bee9a9e6e753fc17af50860d4c6af45bcf90f0c1fc363933a50e10fe0505e",
+              "status": 0,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "MTIK",
+              "stderrBase64": "",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "workflow-range-size",
+              "caseSha256": "fe846e731bf264370f81b0fffe349d1b7cdbd59ac8c0063465b5ab9a133c58c7",
+              "status": 0,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "MjA0OAo=",
+              "stderrBase64": "",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "workflow-cache-key-prefix",
+              "caseSha256": "280dcdd3785b51ac08e2e61f6c72d634b7e563e4785fd25ebe9f0b315a977682",
+              "status": 2,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "",
+              "stderrBase64": "ZXhwcjogc3ludGF4IGVycm9yCg==",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "unicode-length",
+              "caseSha256": "f9f342c29f6fcbc7b59b9c605b93953b56fb735d8a7f6329988d631b6aeb7d64",
+              "status": 2,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "",
+              "stderrBase64": "ZXhwcjogc3ludGF4IGVycm9yCg==",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "unicode-substr",
+              "caseSha256": "7fb01da6c4626122192737fd389ed803391a6b768deb30aa42dfce8df40257b1",
+              "status": 2,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "",
+              "stderrBase64": "ZXhwcjogc3ludGF4IGVycm9yCg==",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "unicode-index",
+              "caseSha256": "8e2f5db8faca56b5695294e65ac3c5c3a72af90becb95f247aa118526cfd7e65",
+              "status": 2,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "",
+              "stderrBase64": "ZXhwcjogc3ludGF4IGVycm9yCg==",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "unicode-regex-dot",
+              "caseSha256": "0ddf811594106aeb735da310be08db91f8b39c48d42be08e90dde53a7f116a79",
+              "status": 0,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "MQo=",
+              "stderrBase64": "",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "unicode-capture",
+              "caseSha256": "1de7d961dd4312114bf13beb50f80dbae19a388f95239f866541e2e2e752db4d",
+              "status": 0,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "wwo=",
+              "stderrBase64": "",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "unicode-combining-not-graphemes",
+              "caseSha256": "d2921e5f2602872e586db18980046194f128b9dea30550045d2563a34ea4f6d4",
+              "status": 2,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "",
+              "stderrBase64": "ZXhwcjogc3ludGF4IGVycm9yCg==",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "unicode-collation",
+              "caseSha256": "acd32acc4715ff73508a71c39d2f8a9c17cbe6e3bb9f7f50c9eafe23b7976447",
+              "status": 1,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "MAo=",
+              "stderrBase64": "",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "unicode-digit-not-decimal",
+              "caseSha256": "a04255b0a07220c09ee95a98445bc4eda83b14052ca923b7f6e670e5fdac0e4f",
+              "status": 2,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "",
+              "stderrBase64": "ZXhwcjogbm90IGEgZGVjaW1hbCBudW1iZXI6ICfZoScK",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "non-nul-control-bytes",
+              "caseSha256": "d9e6c334c562e3aaae251fcef145e4a32582e3a8b915f2fd389019d28827f0c0",
+              "status": 2,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "",
+              "stderrBase64": "ZXhwcjogc3ludGF4IGVycm9yCg==",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            }
+          ],
+          "charmap": {
+            "status": 0,
+            "signal": null,
+            "failure": null,
+            "stdoutBase64": "VVMtQVNDSUkK",
+            "stderrBase64": ""
+          },
+          "denominator": 95,
+          "strictMatches": 95
+        },
+        {
+          "id": "apple-darwin-en_US.UTF-8",
+          "environment": {
+            "PATH": "/usr/bin:/bin",
+            "LC_ALL": "en_US.UTF-8",
+            "LANG": "en_US.UTF-8",
+            "LANGUAGE": "C",
+            "TZ": "UTC"
+          },
+          "results": [
+            {
+              "id": "unicode-length",
+              "caseSha256": "f9f342c29f6fcbc7b59b9c605b93953b56fb735d8a7f6329988d631b6aeb7d64",
+              "status": 2,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "",
+              "stderrBase64": "ZXhwcjogc3ludGF4IGVycm9yCg==",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "unicode-substr",
+              "caseSha256": "7fb01da6c4626122192737fd389ed803391a6b768deb30aa42dfce8df40257b1",
+              "status": 2,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "",
+              "stderrBase64": "ZXhwcjogc3ludGF4IGVycm9yCg==",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "unicode-index",
+              "caseSha256": "8e2f5db8faca56b5695294e65ac3c5c3a72af90becb95f247aa118526cfd7e65",
+              "status": 2,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "",
+              "stderrBase64": "ZXhwcjogc3ludGF4IGVycm9yCg==",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "unicode-regex-dot",
+              "caseSha256": "0ddf811594106aeb735da310be08db91f8b39c48d42be08e90dde53a7f116a79",
+              "status": 0,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "Mgo=",
+              "stderrBase64": "",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "unicode-capture",
+              "caseSha256": "1de7d961dd4312114bf13beb50f80dbae19a388f95239f866541e2e2e752db4d",
+              "status": 0,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "w6kK",
+              "stderrBase64": "",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "unicode-combining-not-graphemes",
+              "caseSha256": "d2921e5f2602872e586db18980046194f128b9dea30550045d2563a34ea4f6d4",
+              "status": 2,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "",
+              "stderrBase64": "ZXhwcjogc3ludGF4IGVycm9yCg==",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "unicode-collation",
+              "caseSha256": "acd32acc4715ff73508a71c39d2f8a9c17cbe6e3bb9f7f50c9eafe23b7976447",
+              "status": 0,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "MQo=",
+              "stderrBase64": "",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "unicode-digit-not-decimal",
+              "caseSha256": "a04255b0a07220c09ee95a98445bc4eda83b14052ca923b7f6e670e5fdac0e4f",
+              "status": 2,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "",
+              "stderrBase64": "ZXhwcjogbm90IGEgZGVjaW1hbCBudW1iZXI6ICfZoScK",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "non-nul-control-bytes",
+              "caseSha256": "d9e6c334c562e3aaae251fcef145e4a32582e3a8b915f2fd389019d28827f0c0",
+              "status": 2,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "",
+              "stderrBase64": "ZXhwcjogc3ludGF4IGVycm9yCg==",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            }
+          ],
+          "charmap": {
+            "status": 0,
+            "signal": null,
+            "failure": null,
+            "stdoutBase64": "VVRGLTgK",
+            "stderrBase64": ""
+          },
+          "denominator": 9,
+          "strictMatches": 9
+        }
+      ]
+    },
+    {
+      "id": "extension-original20",
+      "profiles": [
+        {
+          "id": "gnu-9.7-darwin-C",
+          "environment": {
+            "PATH": "/usr/bin:/bin",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "LANGUAGE": "C",
+            "TZ": "UTC"
+          },
+          "results": [
+            {
+              "id": "alternative-anchored-positive",
+              "caseSha256": "8957ad31ba2034b0fe3a3f97fc7011fde6d668d21e651e5ccd3365b78b3ebf43",
+              "status": 0,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "Mgo=",
+              "stderrBase64": "",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "alternative-anchored-negative",
+              "caseSha256": "f4f86f193a3d40df17531670bf46511fd494a7a82b07417f4534a8868a36ffd0",
+              "status": 1,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "MAo=",
+              "stderrBase64": "",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "unescaped-parentheses-literal",
+              "caseSha256": "751f1511266261ad348ecab9b86165945c54073b0cbe9057689aeb3ef8ea9ef5",
+              "status": 0,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "NAo=",
+              "stderrBase64": "",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "escaped-backslash-before-parenthesis",
+              "caseSha256": "8e7fe0ab785c0dcf6b0c0e6e0f890249855712e25ec0b50bd04f13b814052d2a",
+              "status": 0,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "NQo=",
+              "stderrBase64": "",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "class-parenthesis-not-capture",
+              "caseSha256": "d40a5fe9e9ef6c56ec0d90be52277aea1947ee415c9b958126bae891f66bef7f",
+              "status": 2,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "",
+              "stderrBase64": "ZXhwcjogc3ludGF4IGVycm9yOiBleHBlY3RpbmcgJyknIGluc3RlYWQgb2YgJ1soXScK",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "escaped-dot-positive",
+              "caseSha256": "f983d538fca60d7147d95b23e6287db95ae4ff88657ae8940dc46ca536f0ce76",
+              "status": 0,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "Mwo=",
+              "stderrBase64": "",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "escaped-dot-negative",
+              "caseSha256": "d7b3303c9454df207c4d5df9a8b4cffffec06f0a60d33c352365b41fdb3c4964",
+              "status": 1,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "MAo=",
+              "stderrBase64": "",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "optional-first-unmatched",
+              "caseSha256": "a8473786421d9777255c4fc589dd64e32f75c43e9a9f6212a658c17dcea0f778",
+              "status": 1,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "Cg==",
+              "stderrBase64": "",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "optional-without-capture",
+              "caseSha256": "8269f268bbd41658edfcd95e1b8f0e0c82850c03d2221f8838675683f552df1c",
+              "status": 0,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "MQo=",
+              "stderrBase64": "",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "first-empty-before-tail",
+              "caseSha256": "a44890a9fa599e1e8c9170908423be9150a8619ec84b8c341eb922a647154e8d",
+              "status": 1,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "Cg==",
+              "stderrBase64": "",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "optional-first-no-match",
+              "caseSha256": "0cf2b821f444e4ccd752bcc3a33a75e41bdfefe3e583b8861615c07185a54b41",
+              "status": 1,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "Cg==",
+              "stderrBase64": "",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "repeated-first-last-iteration",
+              "caseSha256": "4a53277afdae8b45e296730f03568274fcff4bbb96f820afd5fa4bde5df5a3ac",
+              "status": 0,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "YWMK",
+              "stderrBase64": "",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "nested-first-outer",
+              "caseSha256": "50797ad157982c433acfca8122586087b04bdb8cacd67181c6ed8dde5eb17af1",
+              "status": 0,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "YWJjCg==",
+              "stderrBase64": "",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "backreference-negative",
+              "caseSha256": "0648936d989e63c216417810a42254ac424be7a1b02d7dd102718f99fe126b97",
+              "status": 1,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "Cg==",
+              "stderrBase64": "",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "backreference-twice",
+              "caseSha256": "4d0c4358576f45c418714bc1e53ecdb49f6964aa69a21da0bd16ac05b4a59f23",
+              "status": 0,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "YWIK",
+              "stderrBase64": "",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "longest-with-optional-suffix",
+              "caseSha256": "f1ba499b4374f7850a79526f9fa1e47235cb7c9788a8ba2341ad3e87ef470b8d",
+              "status": 0,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "YWEK",
+              "stderrBase64": "",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "longest-no-capture",
+              "caseSha256": "6ad705555188e0952f6e02abd1ba25b8747f85b04ee619b55a19cf58cca5270f",
+              "status": 0,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "NAo=",
+              "stderrBase64": "",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "utf8-whole-prefix-span",
+              "caseSha256": "0bb37cc26ec4d90d6b114dcf7b30fd18d0e36d32f72dfc0363772ea863e849f8",
+              "status": 0,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "Mwo=",
+              "stderrBase64": "",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "utf8-shifted-first-span",
+              "caseSha256": "10182080c533b68db6d5f19bc9840d89daf74dd317aadfbe198a71fd7f1afbe1",
+              "status": 0,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "8Ao=",
+              "stderrBase64": "",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "combining-first-span",
+              "caseSha256": "a8df1bb202cb696c455abd4868e75dd7869aa94c62fb0a203e934311324e530d",
+              "status": 0,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "ZcwK",
+              "stderrBase64": "",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            }
+          ],
+          "charmap": {
+            "status": 0,
+            "signal": null,
+            "failure": null,
+            "stdoutBase64": "VVMtQVNDSUkK",
+            "stderrBase64": ""
+          },
+          "denominator": 20,
+          "strictMatches": 20
+        },
+        {
+          "id": "gnu-9.7-darwin-en_US.UTF-8",
+          "environment": {
+            "PATH": "/usr/bin:/bin",
+            "LC_ALL": "en_US.UTF-8",
+            "LANG": "en_US.UTF-8",
+            "LANGUAGE": "C",
+            "TZ": "UTC"
+          },
+          "results": [
+            {
+              "id": "utf8-whole-prefix-span",
+              "caseSha256": "0bb37cc26ec4d90d6b114dcf7b30fd18d0e36d32f72dfc0363772ea863e849f8",
+              "status": 0,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "Mwo=",
+              "stderrBase64": "",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "utf8-shifted-first-span",
+              "caseSha256": "10182080c533b68db6d5f19bc9840d89daf74dd317aadfbe198a71fd7f1afbe1",
+              "status": 0,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "8J+YgAo=",
+              "stderrBase64": "",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "combining-first-span",
+              "caseSha256": "a8df1bb202cb696c455abd4868e75dd7869aa94c62fb0a203e934311324e530d",
+              "status": 0,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "ZcyBCg==",
+              "stderrBase64": "",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            }
+          ],
+          "charmap": {
+            "status": 0,
+            "signal": null,
+            "failure": null,
+            "stdoutBase64": "VVRGLTgK",
+            "stderrBase64": ""
+          },
+          "denominator": 3,
+          "strictMatches": 3
+        },
+        {
+          "id": "apple-darwin-C",
+          "environment": {
+            "PATH": "/usr/bin:/bin",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "LANGUAGE": "C",
+            "TZ": "UTC"
+          },
+          "results": [
+            {
+              "id": "alternative-anchored-positive",
+              "caseSha256": "8957ad31ba2034b0fe3a3f97fc7011fde6d668d21e651e5ccd3365b78b3ebf43",
+              "status": 1,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "MAo=",
+              "stderrBase64": "",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "alternative-anchored-negative",
+              "caseSha256": "f4f86f193a3d40df17531670bf46511fd494a7a82b07417f4534a8868a36ffd0",
+              "status": 1,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "MAo=",
+              "stderrBase64": "",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "unescaped-parentheses-literal",
+              "caseSha256": "751f1511266261ad348ecab9b86165945c54073b0cbe9057689aeb3ef8ea9ef5",
+              "status": 0,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "NAo=",
+              "stderrBase64": "",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "escaped-backslash-before-parenthesis",
+              "caseSha256": "8e7fe0ab785c0dcf6b0c0e6e0f890249855712e25ec0b50bd04f13b814052d2a",
+              "status": 0,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "NQo=",
+              "stderrBase64": "",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "class-parenthesis-not-capture",
+              "caseSha256": "d40a5fe9e9ef6c56ec0d90be52277aea1947ee415c9b958126bae891f66bef7f",
+              "status": 2,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "",
+              "stderrBase64": "ZXhwcjogc3ludGF4IGVycm9yCg==",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "escaped-dot-positive",
+              "caseSha256": "f983d538fca60d7147d95b23e6287db95ae4ff88657ae8940dc46ca536f0ce76",
+              "status": 0,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "Mwo=",
+              "stderrBase64": "",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "escaped-dot-negative",
+              "caseSha256": "d7b3303c9454df207c4d5df9a8b4cffffec06f0a60d33c352365b41fdb3c4964",
+              "status": 1,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "MAo=",
+              "stderrBase64": "",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "optional-first-unmatched",
+              "caseSha256": "a8473786421d9777255c4fc589dd64e32f75c43e9a9f6212a658c17dcea0f778",
+              "status": 1,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "Cg==",
+              "stderrBase64": "",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "optional-without-capture",
+              "caseSha256": "8269f268bbd41658edfcd95e1b8f0e0c82850c03d2221f8838675683f552df1c",
+              "status": 1,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "MAo=",
+              "stderrBase64": "",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "first-empty-before-tail",
+              "caseSha256": "a44890a9fa599e1e8c9170908423be9150a8619ec84b8c341eb922a647154e8d",
+              "status": 1,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "Cg==",
+              "stderrBase64": "",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "optional-first-no-match",
+              "caseSha256": "0cf2b821f444e4ccd752bcc3a33a75e41bdfefe3e583b8861615c07185a54b41",
+              "status": 1,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "Cg==",
+              "stderrBase64": "",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "repeated-first-last-iteration",
+              "caseSha256": "4a53277afdae8b45e296730f03568274fcff4bbb96f820afd5fa4bde5df5a3ac",
+              "status": 0,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "YWMK",
+              "stderrBase64": "",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "nested-first-outer",
+              "caseSha256": "50797ad157982c433acfca8122586087b04bdb8cacd67181c6ed8dde5eb17af1",
+              "status": 0,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "YWJjCg==",
+              "stderrBase64": "",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "backreference-negative",
+              "caseSha256": "0648936d989e63c216417810a42254ac424be7a1b02d7dd102718f99fe126b97",
+              "status": 1,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "Cg==",
+              "stderrBase64": "",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "backreference-twice",
+              "caseSha256": "4d0c4358576f45c418714bc1e53ecdb49f6964aa69a21da0bd16ac05b4a59f23",
+              "status": 0,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "YWIK",
+              "stderrBase64": "",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "longest-with-optional-suffix",
+              "caseSha256": "f1ba499b4374f7850a79526f9fa1e47235cb7c9788a8ba2341ad3e87ef470b8d",
+              "status": 1,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "Cg==",
+              "stderrBase64": "",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "longest-no-capture",
+              "caseSha256": "6ad705555188e0952f6e02abd1ba25b8747f85b04ee619b55a19cf58cca5270f",
+              "status": 1,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "MAo=",
+              "stderrBase64": "",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "utf8-whole-prefix-span",
+              "caseSha256": "0bb37cc26ec4d90d6b114dcf7b30fd18d0e36d32f72dfc0363772ea863e849f8",
+              "status": 0,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "Mwo=",
+              "stderrBase64": "",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "utf8-shifted-first-span",
+              "caseSha256": "10182080c533b68db6d5f19bc9840d89daf74dd317aadfbe198a71fd7f1afbe1",
+              "status": 0,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "8Ao=",
+              "stderrBase64": "",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "combining-first-span",
+              "caseSha256": "a8df1bb202cb696c455abd4868e75dd7869aa94c62fb0a203e934311324e530d",
+              "status": 0,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "ZcwK",
+              "stderrBase64": "",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            }
+          ],
+          "charmap": {
+            "status": 0,
+            "signal": null,
+            "failure": null,
+            "stdoutBase64": "VVMtQVNDSUkK",
+            "stderrBase64": ""
+          },
+          "denominator": 20,
+          "strictMatches": 20
+        },
+        {
+          "id": "apple-darwin-en_US.UTF-8",
+          "environment": {
+            "PATH": "/usr/bin:/bin",
+            "LC_ALL": "en_US.UTF-8",
+            "LANG": "en_US.UTF-8",
+            "LANGUAGE": "C",
+            "TZ": "UTC"
+          },
+          "results": [
+            {
+              "id": "utf8-whole-prefix-span",
+              "caseSha256": "0bb37cc26ec4d90d6b114dcf7b30fd18d0e36d32f72dfc0363772ea863e849f8",
+              "status": 0,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "Nwo=",
+              "stderrBase64": "",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "utf8-shifted-first-span",
+              "caseSha256": "10182080c533b68db6d5f19bc9840d89daf74dd317aadfbe198a71fd7f1afbe1",
+              "status": 0,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "8J+YgAo=",
+              "stderrBase64": "",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            },
+            {
+              "id": "combining-first-span",
+              "caseSha256": "a8df1bb202cb696c455abd4868e75dd7869aa94c62fb0a203e934311324e530d",
+              "status": 0,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "ZcyBCg==",
+              "stderrBase64": "",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            }
+          ],
+          "charmap": {
+            "status": 0,
+            "signal": null,
+            "failure": null,
+            "stdoutBase64": "VVRGLTgK",
+            "stderrBase64": ""
+          },
+          "denominator": 3,
+          "strictMatches": 3
+        }
+      ]
+    },
+    {
+      "id": "extension-correction1",
+      "profiles": [
+        {
+          "id": "gnu-9.7-darwin-C",
+          "environment": {
+            "PATH": "/usr/bin:/bin",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "LANGUAGE": "C",
+            "TZ": "UTC"
+          },
+          "results": [
+            {
+              "id": "class-parenthesis-quoted-correction",
+              "caseSha256": null,
+              "status": 0,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "MQo=",
+              "stderrBase64": "",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            }
+          ],
+          "charmap": {
+            "status": 0,
+            "signal": null,
+            "failure": null,
+            "stdoutBase64": "VVMtQVNDSUkK",
+            "stderrBase64": ""
+          },
+          "denominator": 1,
+          "strictMatches": 1
+        },
+        {
+          "id": "apple-darwin-C",
+          "environment": {
+            "PATH": "/usr/bin:/bin",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "LANGUAGE": "C",
+            "TZ": "UTC"
+          },
+          "results": [
+            {
+              "id": "class-parenthesis-quoted-correction",
+              "caseSha256": null,
+              "status": 2,
+              "signal": null,
+              "failure": null,
+              "stdoutBase64": "",
+              "stderrBase64": "ZXhwcjogc3ludGF4IGVycm9yCg==",
+              "comparison": {
+                "semantic": true,
+                "diagnostic": true,
+                "strict": true
+              }
+            }
+          ],
+          "charmap": {
+            "status": 0,
+            "signal": null,
+            "failure": null,
+            "stdoutBase64": "VVMtQVNDSUkK",
+            "stderrBase64": ""
+          },
+          "denominator": 1,
+          "strictMatches": 1
+        }
+      ]
+    }
+  ],
+  "candidate": null,
+  "limits": {
+    "timeoutMs": 2000,
+    "combinedOutputBytes": 65536,
+    "argumentBytes": 8192,
+    "argumentCount": 128
+  },
+  "sourceMemberSha256": "c9dc5e04039505ab48a350e9407b1d83b2574fd7e2c31c9d23f4bf942d1b8af0",
+  "macOS": {
+    "status": 0,
+    "signal": null,
+    "failure": null,
+    "stdoutBase64": "UHJvZHVjdE5hbWU6CQltYWNPUwpQcm9kdWN0VmVyc2lvbjoJCTI2LjQuMQpCdWlsZFZlcnNpb246CQkyNUUyNTMK",
+    "stderrBase64": ""
+  },
+  "qualification": "PASS NATIVE REPLAY ONLY",
+  "cleanup": {
+    "childrenRemaining": 0,
+    "scratchRemoved": true,
+    "fixture": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-final-native-R4UGmw"
+  },
+  "completedAt": "2026-08-27T18:33:39.891Z"
+}

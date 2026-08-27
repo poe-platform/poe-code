@@ -16,7 +16,7 @@
     "priorUncommittedDesignSha256": "61cd7b70e04c97829985b49fd80f79e9e7eb5184d3af82a5b2affb4ee56cf063",
     "priorUncommittedIdentitySha256": "1c73b2a24e4d5dd8482f7c39a5fecc1916047ac3bdd6fca966c8c34fe1c6812f",
     "priorCommittedDesignSha256": "48141bead582558fce6227d205a72cef418b39ceb254bea4bf7812123d19f97e",
-    "refinedDesignSha256": "997680bcd7b7c72b4f67dda02b22ad60344495df24b960d726fb43f724a9f835",
+    "refinedDesignSha256": "2cbdaa8416922202cbd90035e672280e386c57cfffa63210666e0bc1eebcabdc",
     "freezeClaimed": false,
     "implementationAuthorized": false
   },
@@ -47,6 +47,20 @@
     "customUndefinedScope": "native-branded own-reason preabort fixture plus actual getter and cleanup throws",
     "executionRejection": "only an actual escaping rejection; preserve existing handler/middleware diagnostic and numeric-status mapping",
     "nonzeroStatusIsRejection": false
+  },
+  "rootPolicy": {
+    "stage2R08": {
+      "innerOutcome": "inner local option abort makes the inner invoke reject with the exact reason",
+      "outerOutcome": "while the outer context remains live, a branch handler catch/rethrow is an ordinary handler throw mapped by executeCommand to exitCode 1 plus diagnostic; the outer invoke returns and does not reject",
+      "publicWrapperOutcome": "returns 0 with caller still live",
+      "poincareV3OuterAssertion": "returned exitCode 1 across all seven falsy reasons",
+      "outcomeTransport": "consume ownership and discard the authenticated report at handled/mapped numeric status; never transfer it across the mapping or into a borrowed parent",
+      "r09AndR10": "still reject because the outer/root boundary actually aborts",
+      "r08OriginalBaselineRetained": "14/26; seven outer rows passed because the future option was ignored",
+      "integratedExitCode1Observed": false,
+      "v3FreezeHashClaimed": false,
+      "arbitraryAsyncPrimitiveProvenanceSolved": false
+    }
   },
   "provenanceCommits": [
     {

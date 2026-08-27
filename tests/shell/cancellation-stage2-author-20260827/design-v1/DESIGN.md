@@ -252,6 +252,31 @@ status remain on that path. A nonzero status is a return, not a rejection; this
 mechanism must not bypass or disrupt current diagnostic, `CommandFailure`,
 `Flow`, pipefail, errexit, or numeric-status behavior.
 
+#### R08 mapped-handler boundary — resolved root policy
+
+R08 is the deliberate handled/mapped boundary. An inner local option abort makes
+that inner invoke reject with the exact reason. If a branch handler catches and
+rethrows it while the outer context remains live, existing `executeCommand`
+handling maps the ordinary handler throw to exit code 1 plus its diagnostic. The
+outer invoke therefore returns a numeric-status `CommandResult`; it does not
+reject, and the public test wrapper returns 0 with its caller still live. This is
+the approved Poincare v3 outer-assert expectation for all seven falsy reasons.
+R09 and R10 still reject because their outer/root boundary actually aborts.
+
+At the mapping boundary, `InvokeOutcomeRecord`/report transport is consumed only
+to settle ownership and then the report is discarded: it must not classify the
+mapped handler throw as an outer cancellation. No report transfers across a
+caught, handled, or numeric-status mapping, and no report is written into or
+used to poison a borrowed parent. This rule does not authenticate arbitrary
+async primitive provenance; the conservative unknown-escaping rule below
+remains a separate root decision.
+
+The R08 amendment retains its original 14/26 baseline (the seven outer rows
+passed because the future option was ignored). Integrated exit-code-1 behavior
+has not yet been observed. No v3 freeze hash is claimed or invented here; the
+main sealed freeze remains `98f400c4a33eeb03f825213054f90adc1fd979c4` with
+its historical 13/26, corrected 14/26, and ten unrun mutants.
+
 There is an irreducible limit in the current public chain. `composeMiddleware`
 and an `async` command/middleware can adopt the invoke promise and reject with
 the same arbitrary primitive through a different Promise object. Catching and

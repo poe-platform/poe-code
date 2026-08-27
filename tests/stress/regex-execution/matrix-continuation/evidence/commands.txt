@@ -1,0 +1,11 @@
+Freeze commit before case execution: 8f5f185
+Before each parent, git diff --exit-code 8f5f185 checked the five manifest/harness/protocol paths.
+
+env -i LANG=C LC_ALL=C /Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --unhandled-rejections=strict --max-old-space-size=64 --max-semi-space-size=1 --stack-size=512 tests/stress/regex-execution/matrix-continuation/run.mjs grep-linear-nonmatch
+Parent tool exit: 0. Parent stdout: exact evidence/grep-linear-nonmatch.json. Parent stderr: empty.
+Raw JSON saved with apply_patch before the next invocation.
+
+env -i LANG=C LC_ALL=C /Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --unhandled-rejections=strict --max-old-space-size=64 --max-semi-space-size=1 --stack-size=512 tests/stress/regex-execution/matrix-continuation/run.mjs rg-linear-match
+Parent tool exit: 1. Parent stdout: exact evidence/rg-linear-match.json. Parent stderr: empty (child stderr is inside JSON).
+Raw JSON saved with apply_patch. Mandatory cohort stop; no subsequent parent/case invocation.
+Nine explicit skip records saved with apply_patch; not returned parent measurements.

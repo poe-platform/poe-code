@@ -1,0 +1,353 @@
+{
+  "utc": "2026-08-27T04:17:42.173Z",
+  "freezeCommit": "8f5f1854fe5c7e27a0da04d4b4107a2683d93eba",
+  "frozenManifestSha256": "fd072c70ed947344b68c6c0f93f5105d6aa0fd0460b824a8506c8edcc0141650",
+  "executionHashes": {
+    "src/commands/grep.ts": "5e5255a1cce15bfa57f1ba4ffd46e5b4ff7810c37aba8522fd50cdb482edba3d",
+    "src/commands/internal.ts": "28d83d91d5086b39b50494ea1130d34c3b48b22a15dc04c2912ee2503a7536d5",
+    "src/contracts/index.ts": "fb9a434deb34dbad631166a689b02641c0e1acdbac691f6956a7c76e20729f50",
+    "src/contracts/command.ts": "1ec2f2907eb123ea366623bda293249a62bad6886a63bebb957930df0d414ffa",
+    "src/contracts/errors.ts": "66455381fe9d9e5357d08942e73de6ea1d613a03b09acaab77a5ccccde0f2840",
+    "src/contracts/filesystem.ts": "7c72ddef5660c9a1bd62910d3155a4278ce8d7607f811b32d27cf21149be4009",
+    "src/contracts/io.ts": "e925ab08a5ad41862d3f5c031164cc7310bc28397455b11b37b75b55a9dbacdb",
+    "src/contracts/path.ts": "948a1ceb19fd87fa4931974282ec4d68217dbd2353fac6ce6eabd48d3b5a2f34",
+    "src/contracts/plugin.ts": "b45e85e0d89f88308caf0b68f0b14f78341c4bba246d02e81103646f5a4c54ae",
+    "src/commands/search/rg.ts": "c677f831e8e9dcc5051713d894d277ffa9646d2de358c1970b2dd0a9dfb44417",
+    "src/commands/search/matcher.ts": "499848186cde72bd696cba1fc7d53af39354ba74ea63c42acd92d5eb1cda1cfb",
+    "src/commands/search/options.ts": "828d97d930dc615089a29efd3fe463293d4f61bf4dd33c81c2ceb6b910eb6ef8",
+    "src/commands/search/output.ts": "6a9ebaed985637a62b89978d32a7424c5756104f4b6c2f286106150a819cbcd1",
+    "src/commands/search/shared.ts": "83d436b5d602cb45cf31bdf6124e4d4696532b67c1d7737712c00e632eb3e724",
+    "src/commands/search/walk.ts": "474b87aa10e7daf0506edd7408d3a1b48c2bf7e644e8f585f1f5930bb658686a",
+    "src/commands/search/glob.ts": "d6fc574fbfde82b459426875801a36aaaf5ec9536ce25d1f5876215396094425",
+    "tests/stress/regex-execution/bounded-matrix/cases.mjs": "99a5392e48f0602599dc8da88400ff5f9c34781fe608b320250a0486178df7be",
+    "tests/stress/regex-execution/bounded-matrix/child.mjs": "c2f3c0c9c0382260d10dbefe600f34c60d1746ac36fbb91b06e30acb2aa8428e",
+    "tests/stress/regex-execution/bounded-matrix/run.mjs": "fd9ee1186344e94c907476f1f2d27493eb9cb7ade0cbee4a934f54ff510043c9",
+    "tests/stress/regex-execution/bounded-matrix/snapshot.mjs": "4086ae716ee1d8c65c7ffeb38d573957bb543d4145c565efcdd8d69533dc0254",
+    "package.json": "b183a9d2d451b5888b951a4e84656f6c18a94f09e7bd97e0a6af89ac48657e9b",
+    "tsconfig.json": "21c3c30b8995b180e079fa8516150f889950d648528de116a32f254f892301cd",
+    "tests/stress/regex-execution/matrix-continuation/guard.mjs": "fb3ee2a44e678997687970d133b7e50d99d0e1fa1d4bd9514bfdc4750d742a34",
+    "tests/stress/regex-execution/matrix-continuation/run.mjs": "ee03d0da367107ce09daeba99cceb73812a06bd94b49d5952c2069507f14efb9",
+    "tests/stress/regex-execution/matrix-continuation/freeze.mjs": "62f211ef09bde24be91ae0d8296cd70e65253d452385dd935a0bfa88ea0abdb4",
+    "tests/stress/regex-execution/matrix-continuation/README.md": "b7ab08bbce6b83f561bc2a070cbf74d05c268b36767d9718d20c9cc15c968437"
+  },
+  "executionStable": true,
+  "observationHashes": {
+    "src/commands/README.md": "9097c69fa577369b5afda3589a496639c7a594cbd1766d331f17ebc4e642daac",
+    "src/commands/search/README.md": "99385bcf106ecbe66185c285cc10626a487f748b8dc14562e7d47451aa9bca72",
+    "src/contracts/command.md": "8201518b283448f6cc038b8a4c7239b28fd495738493179d6f4708cd848e3e2e",
+    "src/shell/types.ts": "fc4133f1fb41283b0586aa7597c766d393d4f91067b613f4777e5adbef230a6d",
+    "src/shell/runtime.ts": "f307642e52c3bfeb5df64057fb26af6645135bb5bdc307f399de6ce1541c0ddb",
+    "src/commands/text-programs/regex.ts": "23df19386627659c3a5175562a2f8eeda873b81e3dc3e78d3cf51aafa7b3b06f",
+    "src/commands/text-programs/shared.ts": "fec28a956be858e725811f9e83a7f325d99d3152da0231af0d619847e8e6206e",
+    "src/commands/text-programs/README.md": "b39d89bf294fecc3da6d9ecff88aa07e8d7b0d12e0471d3c7974538907d1552a",
+    "tests/stress/regex-execution/REPORT.md": "496fdb15a0a60b22e2f611be5a24dd8c1e4120eb07f86894423a0f5ba2f62856",
+    "tests/stress/regex-execution/RESEARCH.md": "1db522f0b795d4b52be372667ce0ab581ad8eb5ab06292a1859aa2bf4e3b05d1",
+    "tests/stress/regex-execution/SOURCE_MAP.json": "808632b0f5deed935568ec0f9d808294293ea7a8bfd832547b7f9132601c326c",
+    "tests/stress/regex-execution/staged-controls/supervisor.mjs": "a41fa8f503f6b1d748c49dafce15c4e7cb4a0ee14b1a830274987486961b665a",
+    "tests/stress/regex-execution/staged-controls/README.md": "9320b50ee713ad1a231492ee14cc9cbdf85fb8cc5d71883f0727ecc91cb0615f",
+    "tests/stress/regex-execution/staged-controls/REPORT.md": "bcc66570c3950e23cb630927ba647f3384b987159c2d033ff5367225b5992875",
+    "tests/stress/regex-execution/single-grep/fixed-case.mjs": "b8b2177605dbddab8028a64045146d15a0dfdd365f8bc2adb576495ad329fdaa",
+    "tests/stress/regex-execution/single-grep/child.mjs": "84de776cc07363f9e110a3d983feb37bf5222e16371ce8f34d36148bad9e1b16",
+    "tests/stress/regex-execution/single-grep/run.mjs": "b348bd0ecb573223bca48a34080a1508e2eb9bfc780064669e0e565540128136",
+    "tests/stress/regex-execution/single-grep/README.md": "81758584ee8f3fe3f810c09d6e10140767f84f2013ace94cb06b0e011920397f",
+    "tests/stress/regex-execution/single-grep/REPORT.md": "5f582264839904f15d15f20357123488f568fb1d3e954d06d09246fb744795fa",
+    "tests/stress/regex-execution/bounded-matrix/README.md": "3c7e13de7cf4e95dd472d0de87e4b798909a9121a4670121767682e9ffd0c25f",
+    "tests/stress/regex-execution/bounded-matrix/commands.txt": "ac33d6a140131b21c0970fdeb0e29075e40b932b77d1abd849c2c76e983d9a8e"
+  },
+  "observationDriftFromOriginal": [
+    "src/shell/runtime.ts"
+  ],
+  "observationDriftFromContinuationFreeze": [],
+  "immutableArtifactHashes": {
+    "tests/stress/regex-execution/REPORT.md": "496fdb15a0a60b22e2f611be5a24dd8c1e4120eb07f86894423a0f5ba2f62856",
+    "tests/stress/regex-execution/RESEARCH.md": "1db522f0b795d4b52be372667ce0ab581ad8eb5ab06292a1859aa2bf4e3b05d1",
+    "tests/stress/regex-execution/SOURCE_MAP.json": "808632b0f5deed935568ec0f9d808294293ea7a8bfd832547b7f9132601c326c",
+    "tests/stress/regex-execution/bounded-matrix/DESIGN_NOTES.md": "1324652c88d1d04ab3a83aa15e19aba7474f2986882e44bdb935263a9139afc2",
+    "tests/stress/regex-execution/bounded-matrix/README.md": "3c7e13de7cf4e95dd472d0de87e4b798909a9121a4670121767682e9ffd0c25f",
+    "tests/stress/regex-execution/bounded-matrix/REPORT.md": "6f3162b3fde33415329b96e3c1d34a47fcb55743a4a5f6c00df6a9746849a495",
+    "tests/stress/regex-execution/bounded-matrix/audit-evidence.mjs": "a35a456b16758096666a62e527caa8de2c8cbf222eb3ea1b3ee79a351b5ec2db",
+    "tests/stress/regex-execution/bounded-matrix/cases.mjs": "99a5392e48f0602599dc8da88400ff5f9c34781fe608b320250a0486178df7be",
+    "tests/stress/regex-execution/bounded-matrix/child.mjs": "c2f3c0c9c0382260d10dbefe600f34c60d1746ac36fbb91b06e30acb2aa8428e",
+    "tests/stress/regex-execution/bounded-matrix/commands.txt": "ac33d6a140131b21c0970fdeb0e29075e40b932b77d1abd849c2c76e983d9a8e",
+    "tests/stress/regex-execution/bounded-matrix/evidence/after.json": "d875e808b7f7bba2db8f48f89b2cfd672e051809170f3cdce0efbfde72ca0b82",
+    "tests/stress/regex-execution/bounded-matrix/evidence/audit.txt": "41bb93523237b1a145bc1e137ccefb2e5f9ce0abb26a2fcc6c658dc49838efa2",
+    "tests/stress/regex-execution/bounded-matrix/evidence/grep-linear-match.json": "9b31e3a617caa3e757382f44f93b3b05b43fc35fc81abab975f7e052ea9f2228",
+    "tests/stress/regex-execution/bounded-matrix/evidence/grep-linear-nonmatch.json": "ff0d9c7d7a210029c537ed827bf24cdbfb0bfc2ad2ead8b809831cd7cca74921",
+    "tests/stress/regex-execution/bounded-matrix/evidence/grep-linear-nonmatch.tool.txt": "34abeb7f34ab29d6c33acf4704129c038faa5d4cd3cb5f10f48ebec157635aac",
+    "tests/stress/regex-execution/bounded-matrix/evidence/grep-nested-16.json": "ec9befda632172a290bda856d1dd609820749bfed8ce888e8f5069e8a24c87b9",
+    "tests/stress/regex-execution/bounded-matrix/evidence/grep-nested-20.json": "ac59d6d2db8ecd876583457a184fcd3ba45428c921fdf6d276b46487f08db319",
+    "tests/stress/regex-execution/bounded-matrix/evidence/grep-nested-24.json": "1851c025c5208467217283e0d05865ea124d3d00788754cfaf983195b17e0e2c",
+    "tests/stress/regex-execution/bounded-matrix/evidence/grep-nested-28.json": "74bfc5c8c6998c30f45e0bb22ffdad23c0829fd917c1a24871c6fd378e7b9929",
+    "tests/stress/regex-execution/bounded-matrix/evidence/rg-linear-match.json": "5a9c0cb37afa482a1e99e8aed7c26916b1fc1d2cced2b7a0cc029b104efb9421",
+    "tests/stress/regex-execution/bounded-matrix/evidence/rg-linear-nonmatch.json": "94846df43eb28a2cf6dc163ce195d5c08da013b11797c9ae80cdf18607448d05",
+    "tests/stress/regex-execution/bounded-matrix/evidence/rg-nested-16.json": "8475d3cd84acfee4590800e3fbdc67719e9cd142f299de52338ab56a87319424",
+    "tests/stress/regex-execution/bounded-matrix/evidence/rg-nested-20.json": "727302a81bbf06f666032cd2c6c67b67d33f6aeb84285a72a52f56df21286456",
+    "tests/stress/regex-execution/bounded-matrix/evidence/rg-nested-24.json": "2d4be10b3b06afe2c3e181c7df31fd49899b835c1587d3a9fc179321c25c28fc",
+    "tests/stress/regex-execution/bounded-matrix/evidence/rg-nested-28.json": "900ae08431d14f91bbc5a018608180575438a3feccda4923afa971fd00fadfb2",
+    "tests/stress/regex-execution/bounded-matrix/evidence/summary.json": "b14361a8294225e0ad25311e0ef2391d11c9007aa006ba053316548bcc6f57c1",
+    "tests/stress/regex-execution/bounded-matrix/frozen.json": "26251cb53797f16bb87310d9d52a2ab763584b315032006bd8cdcaa0f1459aa1",
+    "tests/stress/regex-execution/bounded-matrix/run.mjs": "fd9ee1186344e94c907476f1f2d27493eb9cb7ade0cbee4a934f54ff510043c9",
+    "tests/stress/regex-execution/bounded-matrix/snapshot.mjs": "4086ae716ee1d8c65c7ffeb38d573957bb543d4145c565efcdd8d69533dc0254",
+    "tests/stress/regex-execution/matrix-scope-review/REPORT.md": "dff24c6668cd56e1bd50bf193da7ae029dfda584553aa85425929a8259f4861f",
+    "tests/stress/regex-execution/single-grep/README.md": "81758584ee8f3fe3f810c09d6e10140767f84f2013ace94cb06b0e011920397f",
+    "tests/stress/regex-execution/single-grep/REPORT.md": "5f582264839904f15d15f20357123488f568fb1d3e954d06d09246fb744795fa",
+    "tests/stress/regex-execution/single-grep/child.mjs": "84de776cc07363f9e110a3d983feb37bf5222e16371ce8f34d36148bad9e1b16",
+    "tests/stress/regex-execution/single-grep/evidence/after.sha256": "6ff1e6de0f8fb59c350679c3fceb017eab1ea0e81070b85e2d6d1aed50bc1a8a",
+    "tests/stress/regex-execution/single-grep/evidence/before.sha256": "6ff1e6de0f8fb59c350679c3fceb017eab1ea0e81070b85e2d6d1aed50bc1a8a",
+    "tests/stress/regex-execution/single-grep/evidence/run.json": "39804f00a8f71f9c1b083d55e1f03ee2212ddbd082af003e936609cb4ecfbd59",
+    "tests/stress/regex-execution/single-grep/fixed-case.mjs": "b8b2177605dbddab8028a64045146d15a0dfdd365f8bc2adb576495ad329fdaa",
+    "tests/stress/regex-execution/single-grep/run.mjs": "b348bd0ecb573223bca48a34080a1508e2eb9bfc780064669e0e565540128136",
+    "tests/stress/regex-execution/staged-controls/README.md": "9320b50ee713ad1a231492ee14cc9cbdf85fb8cc5d71883f0727ecc91cb0615f",
+    "tests/stress/regex-execution/staged-controls/REPORT.md": "bcc66570c3950e23cb630927ba647f3384b987159c2d033ff5367225b5992875",
+    "tests/stress/regex-execution/staged-controls/benign.mjs": "2999704577f6e5e844dab35b3fc7c3677e790f0eb3b32b06b0a8faaf00c49984",
+    "tests/stress/regex-execution/staged-controls/evidence/final-benign.stdout.json": "17c6b3264d883b039d15744c8d9f4ace3faedc527162c4fca03d80da1f1b2c1e",
+    "tests/stress/regex-execution/staged-controls/evidence/final-waiting.stdout.json": "436262dd46c0535b5d302d262c9c41746a53f65d32159bc21c3a2d3c681dd154",
+    "tests/stress/regex-execution/staged-controls/evidence/initial-benign.stdout.json": "09090fed3206025c65099623037a1537280cb15696bc7203c883d33c4fa60458",
+    "tests/stress/regex-execution/staged-controls/evidence/initial-waiting.stdout.json": "00c61a1846c3bd9cfcca13726befd367352bac8b5dfce7af149892b971e8d333",
+    "tests/stress/regex-execution/staged-controls/evidence/manifest.json": "3939c67b131e14a64165b9876ae96f5a1e76ca06eb85c4552079f447917a535c",
+    "tests/stress/regex-execution/staged-controls/run.mjs": "c8f63b8f8f6671532845a4766d2c8bfad1bfe47bf3102504cfc37c4899502be0",
+    "tests/stress/regex-execution/staged-controls/supervisor.mjs": "a41fa8f503f6b1d748c49dafce15c4e7cb4a0ee14b1a830274987486961b665a",
+    "tests/stress/regex-execution/staged-controls/waiting.mjs": "02848973691fc43b0dbd1d21a8f177367fd03f9e69e63761b116c051f94fe17e"
+  },
+  "artifactCommitChecks": {
+    "tests/stress/regex-execution/REPORT.md": {
+      "commit": "0d625f3348b883593e89b1c7eec70b7df9324f12",
+      "sha256": "496fdb15a0a60b22e2f611be5a24dd8c1e4120eb07f86894423a0f5ba2f62856"
+    },
+    "tests/stress/regex-execution/RESEARCH.md": {
+      "commit": "0d625f3348b883593e89b1c7eec70b7df9324f12",
+      "sha256": "1db522f0b795d4b52be372667ce0ab581ad8eb5ab06292a1859aa2bf4e3b05d1"
+    },
+    "tests/stress/regex-execution/SOURCE_MAP.json": {
+      "commit": "0d625f3348b883593e89b1c7eec70b7df9324f12",
+      "sha256": "808632b0f5deed935568ec0f9d808294293ea7a8bfd832547b7f9132601c326c"
+    },
+    "tests/stress/regex-execution/bounded-matrix/DESIGN_NOTES.md": {
+      "commit": "b0ff710b7177a4528d38aa3d92a531ada4f873ac",
+      "sha256": "1324652c88d1d04ab3a83aa15e19aba7474f2986882e44bdb935263a9139afc2"
+    },
+    "tests/stress/regex-execution/bounded-matrix/README.md": {
+      "commit": "9653d91fdc11077235c7c698877aa531ca7df901",
+      "sha256": "3c7e13de7cf4e95dd472d0de87e4b798909a9121a4670121767682e9ffd0c25f"
+    },
+    "tests/stress/regex-execution/bounded-matrix/REPORT.md": {
+      "commit": "b0ff710b7177a4528d38aa3d92a531ada4f873ac",
+      "sha256": "6f3162b3fde33415329b96e3c1d34a47fcb55743a4a5f6c00df6a9746849a495"
+    },
+    "tests/stress/regex-execution/bounded-matrix/audit-evidence.mjs": {
+      "commit": "b0ff710b7177a4528d38aa3d92a531ada4f873ac",
+      "sha256": "a35a456b16758096666a62e527caa8de2c8cbf222eb3ea1b3ee79a351b5ec2db"
+    },
+    "tests/stress/regex-execution/bounded-matrix/cases.mjs": {
+      "commit": "9653d91fdc11077235c7c698877aa531ca7df901",
+      "sha256": "99a5392e48f0602599dc8da88400ff5f9c34781fe608b320250a0486178df7be"
+    },
+    "tests/stress/regex-execution/bounded-matrix/child.mjs": {
+      "commit": "9653d91fdc11077235c7c698877aa531ca7df901",
+      "sha256": "c2f3c0c9c0382260d10dbefe600f34c60d1746ac36fbb91b06e30acb2aa8428e"
+    },
+    "tests/stress/regex-execution/bounded-matrix/commands.txt": {
+      "commit": "9653d91fdc11077235c7c698877aa531ca7df901",
+      "sha256": "ac33d6a140131b21c0970fdeb0e29075e40b932b77d1abd849c2c76e983d9a8e"
+    },
+    "tests/stress/regex-execution/bounded-matrix/evidence/after.json": {
+      "commit": "b0ff710b7177a4528d38aa3d92a531ada4f873ac",
+      "sha256": "d875e808b7f7bba2db8f48f89b2cfd672e051809170f3cdce0efbfde72ca0b82"
+    },
+    "tests/stress/regex-execution/bounded-matrix/evidence/audit.txt": {
+      "commit": "b0ff710b7177a4528d38aa3d92a531ada4f873ac",
+      "sha256": "41bb93523237b1a145bc1e137ccefb2e5f9ce0abb26a2fcc6c658dc49838efa2"
+    },
+    "tests/stress/regex-execution/bounded-matrix/evidence/grep-linear-match.json": {
+      "commit": "b0ff710b7177a4528d38aa3d92a531ada4f873ac",
+      "sha256": "9b31e3a617caa3e757382f44f93b3b05b43fc35fc81abab975f7e052ea9f2228"
+    },
+    "tests/stress/regex-execution/bounded-matrix/evidence/grep-linear-nonmatch.json": {
+      "commit": "b0ff710b7177a4528d38aa3d92a531ada4f873ac",
+      "sha256": "ff0d9c7d7a210029c537ed827bf24cdbfb0bfc2ad2ead8b809831cd7cca74921"
+    },
+    "tests/stress/regex-execution/bounded-matrix/evidence/grep-linear-nonmatch.tool.txt": {
+      "commit": "b0ff710b7177a4528d38aa3d92a531ada4f873ac",
+      "sha256": "34abeb7f34ab29d6c33acf4704129c038faa5d4cd3cb5f10f48ebec157635aac"
+    },
+    "tests/stress/regex-execution/bounded-matrix/evidence/grep-nested-16.json": {
+      "commit": "b0ff710b7177a4528d38aa3d92a531ada4f873ac",
+      "sha256": "ec9befda632172a290bda856d1dd609820749bfed8ce888e8f5069e8a24c87b9"
+    },
+    "tests/stress/regex-execution/bounded-matrix/evidence/grep-nested-20.json": {
+      "commit": "b0ff710b7177a4528d38aa3d92a531ada4f873ac",
+      "sha256": "ac59d6d2db8ecd876583457a184fcd3ba45428c921fdf6d276b46487f08db319"
+    },
+    "tests/stress/regex-execution/bounded-matrix/evidence/grep-nested-24.json": {
+      "commit": "b0ff710b7177a4528d38aa3d92a531ada4f873ac",
+      "sha256": "1851c025c5208467217283e0d05865ea124d3d00788754cfaf983195b17e0e2c"
+    },
+    "tests/stress/regex-execution/bounded-matrix/evidence/grep-nested-28.json": {
+      "commit": "b0ff710b7177a4528d38aa3d92a531ada4f873ac",
+      "sha256": "74bfc5c8c6998c30f45e0bb22ffdad23c0829fd917c1a24871c6fd378e7b9929"
+    },
+    "tests/stress/regex-execution/bounded-matrix/evidence/rg-linear-match.json": {
+      "commit": "b0ff710b7177a4528d38aa3d92a531ada4f873ac",
+      "sha256": "5a9c0cb37afa482a1e99e8aed7c26916b1fc1d2cced2b7a0cc029b104efb9421"
+    },
+    "tests/stress/regex-execution/bounded-matrix/evidence/rg-linear-nonmatch.json": {
+      "commit": "b0ff710b7177a4528d38aa3d92a531ada4f873ac",
+      "sha256": "94846df43eb28a2cf6dc163ce195d5c08da013b11797c9ae80cdf18607448d05"
+    },
+    "tests/stress/regex-execution/bounded-matrix/evidence/rg-nested-16.json": {
+      "commit": "b0ff710b7177a4528d38aa3d92a531ada4f873ac",
+      "sha256": "8475d3cd84acfee4590800e3fbdc67719e9cd142f299de52338ab56a87319424"
+    },
+    "tests/stress/regex-execution/bounded-matrix/evidence/rg-nested-20.json": {
+      "commit": "b0ff710b7177a4528d38aa3d92a531ada4f873ac",
+      "sha256": "727302a81bbf06f666032cd2c6c67b67d33f6aeb84285a72a52f56df21286456"
+    },
+    "tests/stress/regex-execution/bounded-matrix/evidence/rg-nested-24.json": {
+      "commit": "b0ff710b7177a4528d38aa3d92a531ada4f873ac",
+      "sha256": "2d4be10b3b06afe2c3e181c7df31fd49899b835c1587d3a9fc179321c25c28fc"
+    },
+    "tests/stress/regex-execution/bounded-matrix/evidence/rg-nested-28.json": {
+      "commit": "b0ff710b7177a4528d38aa3d92a531ada4f873ac",
+      "sha256": "900ae08431d14f91bbc5a018608180575438a3feccda4923afa971fd00fadfb2"
+    },
+    "tests/stress/regex-execution/bounded-matrix/evidence/summary.json": {
+      "commit": "b0ff710b7177a4528d38aa3d92a531ada4f873ac",
+      "sha256": "b14361a8294225e0ad25311e0ef2391d11c9007aa006ba053316548bcc6f57c1"
+    },
+    "tests/stress/regex-execution/bounded-matrix/frozen.json": {
+      "commit": "9653d91fdc11077235c7c698877aa531ca7df901",
+      "sha256": "26251cb53797f16bb87310d9d52a2ab763584b315032006bd8cdcaa0f1459aa1"
+    },
+    "tests/stress/regex-execution/bounded-matrix/run.mjs": {
+      "commit": "9653d91fdc11077235c7c698877aa531ca7df901",
+      "sha256": "fd9ee1186344e94c907476f1f2d27493eb9cb7ade0cbee4a934f54ff510043c9"
+    },
+    "tests/stress/regex-execution/bounded-matrix/snapshot.mjs": {
+      "commit": "9653d91fdc11077235c7c698877aa531ca7df901",
+      "sha256": "4086ae716ee1d8c65c7ffeb38d573957bb543d4145c565efcdd8d69533dc0254"
+    },
+    "tests/stress/regex-execution/matrix-scope-review/REPORT.md": {
+      "commit": "3d8f96e4ad557d7a644f85cda032a23c3faf1b09",
+      "sha256": "dff24c6668cd56e1bd50bf193da7ae029dfda584553aa85425929a8259f4861f"
+    },
+    "tests/stress/regex-execution/single-grep/README.md": {
+      "commit": "ac84d52f21a2b7a964681f71cfe8030279f6462a",
+      "sha256": "81758584ee8f3fe3f810c09d6e10140767f84f2013ace94cb06b0e011920397f"
+    },
+    "tests/stress/regex-execution/single-grep/REPORT.md": {
+      "commit": "1207189043f9b9a3b75e0ab1af45fd71d3dfc33a",
+      "sha256": "5f582264839904f15d15f20357123488f568fb1d3e954d06d09246fb744795fa"
+    },
+    "tests/stress/regex-execution/single-grep/child.mjs": {
+      "commit": "ac84d52f21a2b7a964681f71cfe8030279f6462a",
+      "sha256": "84de776cc07363f9e110a3d983feb37bf5222e16371ce8f34d36148bad9e1b16"
+    },
+    "tests/stress/regex-execution/single-grep/evidence/after.sha256": {
+      "commit": "1207189043f9b9a3b75e0ab1af45fd71d3dfc33a",
+      "sha256": "6ff1e6de0f8fb59c350679c3fceb017eab1ea0e81070b85e2d6d1aed50bc1a8a"
+    },
+    "tests/stress/regex-execution/single-grep/evidence/before.sha256": {
+      "commit": "1207189043f9b9a3b75e0ab1af45fd71d3dfc33a",
+      "sha256": "6ff1e6de0f8fb59c350679c3fceb017eab1ea0e81070b85e2d6d1aed50bc1a8a"
+    },
+    "tests/stress/regex-execution/single-grep/evidence/run.json": {
+      "commit": "1207189043f9b9a3b75e0ab1af45fd71d3dfc33a",
+      "sha256": "39804f00a8f71f9c1b083d55e1f03ee2212ddbd082af003e936609cb4ecfbd59"
+    },
+    "tests/stress/regex-execution/single-grep/fixed-case.mjs": {
+      "commit": "ac84d52f21a2b7a964681f71cfe8030279f6462a",
+      "sha256": "b8b2177605dbddab8028a64045146d15a0dfdd365f8bc2adb576495ad329fdaa"
+    },
+    "tests/stress/regex-execution/single-grep/run.mjs": {
+      "commit": "ac84d52f21a2b7a964681f71cfe8030279f6462a",
+      "sha256": "b348bd0ecb573223bca48a34080a1508e2eb9bfc780064669e0e565540128136"
+    },
+    "tests/stress/regex-execution/staged-controls/README.md": {
+      "commit": "3b4784febbf60d333590841032ff0c79409e8ea6",
+      "sha256": "9320b50ee713ad1a231492ee14cc9cbdf85fb8cc5d71883f0727ecc91cb0615f"
+    },
+    "tests/stress/regex-execution/staged-controls/REPORT.md": {
+      "commit": "3b4784febbf60d333590841032ff0c79409e8ea6",
+      "sha256": "bcc66570c3950e23cb630927ba647f3384b987159c2d033ff5367225b5992875"
+    },
+    "tests/stress/regex-execution/staged-controls/benign.mjs": {
+      "commit": "2cd1673e4e04720eb4994d295005778e85460545",
+      "sha256": "2999704577f6e5e844dab35b3fc7c3677e790f0eb3b32b06b0a8faaf00c49984"
+    },
+    "tests/stress/regex-execution/staged-controls/evidence/final-benign.stdout.json": {
+      "commit": "d6ff6d0a8306680d2eb3376405155fa23e9e69de",
+      "sha256": "17c6b3264d883b039d15744c8d9f4ace3faedc527162c4fca03d80da1f1b2c1e"
+    },
+    "tests/stress/regex-execution/staged-controls/evidence/final-waiting.stdout.json": {
+      "commit": "d6ff6d0a8306680d2eb3376405155fa23e9e69de",
+      "sha256": "436262dd46c0535b5d302d262c9c41746a53f65d32159bc21c3a2d3c681dd154"
+    },
+    "tests/stress/regex-execution/staged-controls/evidence/initial-benign.stdout.json": {
+      "commit": "d6ff6d0a8306680d2eb3376405155fa23e9e69de",
+      "sha256": "09090fed3206025c65099623037a1537280cb15696bc7203c883d33c4fa60458"
+    },
+    "tests/stress/regex-execution/staged-controls/evidence/initial-waiting.stdout.json": {
+      "commit": "d6ff6d0a8306680d2eb3376405155fa23e9e69de",
+      "sha256": "00c61a1846c3bd9cfcca13726befd367352bac8b5dfce7af149892b971e8d333"
+    },
+    "tests/stress/regex-execution/staged-controls/evidence/manifest.json": {
+      "commit": "d6ff6d0a8306680d2eb3376405155fa23e9e69de",
+      "sha256": "3939c67b131e14a64165b9876ae96f5a1e76ca06eb85c4552079f447917a535c"
+    },
+    "tests/stress/regex-execution/staged-controls/run.mjs": {
+      "commit": "2cd1673e4e04720eb4994d295005778e85460545",
+      "sha256": "c8f63b8f8f6671532845a4766d2c8bfad1bfe47bf3102504cfc37c4899502be0"
+    },
+    "tests/stress/regex-execution/staged-controls/supervisor.mjs": {
+      "commit": "72a0d51d066b361586c983f28690c7ff0372e522",
+      "sha256": "a41fa8f503f6b1d748c49dafce15c4e7cb4a0ee14b1a830274987486961b665a"
+    },
+    "tests/stress/regex-execution/staged-controls/waiting.mjs": {
+      "commit": "2cd1673e4e04720eb4994d295005778e85460545",
+      "sha256": "02848973691fc43b0dbd1d21a8f177367fd03f9e69e63761b116c051f94fe17e"
+    }
+  },
+  "boundaries": {
+    "src/commands/package.json": null,
+    "src/commands/search/package.json": null,
+    "src/contracts/package.json": null,
+    "src/package.json": null,
+    "tests/package.json": null,
+    "tests/stress/package.json": null,
+    "tests/stress/regex-execution/bounded-matrix/package.json": null,
+    "tests/stress/regex-execution/matrix-continuation/package.json": null,
+    "tests/stress/regex-execution/package.json": null
+  },
+  "runtime": {
+    "node": "v22.22.2",
+    "v8": "12.4.254.21-node.39",
+    "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "binaryDigest": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+    "historicalBinaryDigest": null
+  },
+  "evidenceHashes": {
+    "tests/stress/regex-execution/matrix-continuation/evidence/grep-linear-nonmatch.json": "f94765488f62a743b54f5e640bff69f11876fab47a57637bdad5f9fba683610a",
+    "tests/stress/regex-execution/matrix-continuation/evidence/rg-linear-match.json": "1827927f251f942a00b0ce1fdd34a8430d5a4a188dbff78c3af7b65c27afbea0",
+    "tests/stress/regex-execution/matrix-continuation/evidence/rg-linear-nonmatch.json": "782e83ac71c119b248d3477249c0f5cb1ef7242ce07989da942bc996d2c4170a",
+    "tests/stress/regex-execution/matrix-continuation/evidence/grep-nested-16.json": "ad39b7eac79447a9f23c8b4b77e84f2676c11ba663673b2d9002a58d8432c330",
+    "tests/stress/regex-execution/matrix-continuation/evidence/grep-nested-20.json": "664330272b1f2fb985812fb2d04509cd7312e6573b7ef61497686f47d09d6512",
+    "tests/stress/regex-execution/matrix-continuation/evidence/grep-nested-24.json": "03d270b4192612e8302fbef40db6557461c21c8133554cf6a334f41264608035",
+    "tests/stress/regex-execution/matrix-continuation/evidence/grep-nested-28.json": "dff872699d6c73a6b67c35a7ec41ccdcb9d114780ed1a0389374f74b456daecc",
+    "tests/stress/regex-execution/matrix-continuation/evidence/rg-nested-16.json": "79aa2635a3c71f31f071a7f3dbcd245c0aefd76d56721507156307bd822f21f1",
+    "tests/stress/regex-execution/matrix-continuation/evidence/rg-nested-20.json": "4bc0006d2e75a9a2936cc14b299873374a9303cc21682448b42895de81203add",
+    "tests/stress/regex-execution/matrix-continuation/evidence/rg-nested-24.json": "76c76cf26fb7fc6d4e3ce61ffa6045500bd3b0a5dcfbd66558cf8471bd766357",
+    "tests/stress/regex-execution/matrix-continuation/evidence/rg-nested-28.json": "03ab78672bbdf592a498294dbc7eb0e00d8b39f63b2c3bb1c52cc6e3c4e9d22e",
+    "tests/stress/regex-execution/matrix-continuation/claims/grep-linear-nonmatch.json": "7ae429b1165e5be5f28d03ba04d5350c9b0ae031856908cb12d22b2f70266f9a",
+    "tests/stress/regex-execution/matrix-continuation/claims/rg-linear-match.json": "f8cba27f3bae1596cfa1385407cdee03900fc15d66e7bd44961de71982a8ce75"
+  },
+  "activeOwnedChildren": 0,
+  "activeLockAbsent": true,
+  "validation": {
+    "newScriptSyntaxChecks": 3,
+    "parentTimingIpcCleanupCoreByteIdentical": true,
+    "originalArtifactsMatched": 49,
+    "executionFilesMatched": 26,
+    "observationFiles": 21,
+    "broadTestsOrBuild": false
+  }
+}

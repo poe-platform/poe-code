@@ -1,0 +1,44 @@
+{
+  "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "node_modules/typescript/bin/tsc",
+    "--noEmit",
+    "--strict",
+    "--module",
+    "NodeNext",
+    "--moduleResolution",
+    "NodeNext",
+    "--target",
+    "ES2022",
+    "--skipLibCheck",
+    "false",
+    "consumer.mts"
+  ],
+  "cwd": "/tmp/safe-bash-time-env-frozen-FgDvzh",
+  "pid": 93576,
+  "status": 0,
+  "signal": null,
+  "timedOut": false,
+  "outputExceeded": false,
+  "closed": true,
+  "elapsedMs": 1007,
+  "timeoutMs": 120000,
+  "outputBytes": 0,
+  "observed": [
+    {
+      "pid": 93576,
+      "parent": 93300,
+      "group": 93576,
+      "born": "Thu Aug 27 02:43:53 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node node_modules/typescript/bin/tsc --noEmit --strict --module NodeNext --moduleResolution NodeNext --target ES2022 --skipLibCheck false consumer.mts"
+    }
+  ],
+  "signals": [],
+  "survivors": [],
+  "listeners": [],
+  "cleanupRequired": false,
+  "clean": true,
+  "counts": {},
+  "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

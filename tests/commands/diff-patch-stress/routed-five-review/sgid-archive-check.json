@@ -1,0 +1,84 @@
+{
+  "at": "2026-08-27T02:26:44.987Z",
+  "headLabel": "b9db51671338d8759af8980758ea5f53bdae0112",
+  "checks": [
+    {
+      "source": "/tmp/safe-bash-metadata-sgid-feasibility.txt",
+      "destination": "safe-bash-metadata-sgid-feasibility.txt",
+      "bytes": 16540,
+      "sha256": "92777ed384b1512d537c042b12c3bbeeae857211714a50593026ee9016b52737",
+      "originalAndArchiveEqual": true
+    },
+    {
+      "source": "/tmp/safe-bash-metadata-sgid-status.txt",
+      "destination": "safe-bash-metadata-sgid-status.txt",
+      "bytes": 678,
+      "sha256": "59d43720a03a9492b0ee31eb47aa4f43892af462997c3074e3564e26d69b14f5",
+      "originalAndArchiveEqual": true
+    },
+    {
+      "source": "/tmp/safe-bash-metadata-sgid-replay.mjs",
+      "destination": "safe-bash-metadata-sgid-replay.mjs",
+      "bytes": 17181,
+      "sha256": "0725f3aa137c0a86d6fb0d6cb9fe067508178f694e465a61878427d6f225df49",
+      "originalAndArchiveEqual": true
+    },
+    {
+      "source": "/tmp/safe-bash-metadata-sgid-replay.json",
+      "destination": "safe-bash-metadata-sgid-replay.json",
+      "bytes": 287688,
+      "sha256": "0fa98f7ded51eb0024f631c35aefcc5b1592c2aa5395622c8da965be42825328",
+      "originalAndArchiveEqual": true
+    },
+    {
+      "source": "/tmp/safe-bash-metadata-sgid-controls.mjs",
+      "destination": "safe-bash-metadata-sgid-controls.mjs",
+      "bytes": 8797,
+      "sha256": "34a1dfc0df80ef3a0b333c997162b2e2766e7ecba291290849ef261554fcb842",
+      "originalAndArchiveEqual": true
+    },
+    {
+      "source": "/tmp/safe-bash-metadata-sgid-controls.json",
+      "destination": "safe-bash-metadata-sgid-controls.json",
+      "bytes": 32313,
+      "sha256": "44a87a141f596bef65418723ad35b460ec3376d294d77d08573a89e387af382a",
+      "originalAndArchiveEqual": true
+    },
+    {
+      "source": "tests/fs/real/metadata-review/source-proof.json",
+      "destination": "support/source-proof.json",
+      "bytes": 5160,
+      "sha256": "010a22e7ddffc00436f258274d500b9432fb13841aeb40207e7cf77afbe3a67f",
+      "originalAndArchiveEqual": true
+    },
+    {
+      "source": "tests/fs/real/metadata-review/source-proof.mjs",
+      "destination": "support/source-proof.mjs",
+      "bytes": 3470,
+      "sha256": "92b88ad09ea8e199ccfd4b1540bb294902902aa2c8d2bd033a8cddb34b5ac438",
+      "originalAndArchiveEqual": true
+    },
+    {
+      "source": "tests/fs/real/metadata-review/syscall-probe.c",
+      "destination": "support/syscall-probe.c",
+      "bytes": 1084,
+      "sha256": "86e14248249ec20ca08e9c5a04008028883e0f19c254230353bbfe71f619cb40",
+      "originalAndArchiveEqual": true
+    },
+    {
+      "source": "tests/fs/real/metadata-review/trace-fchmodat.c",
+      "destination": "support/trace-fchmodat.c",
+      "bytes": 737,
+      "sha256": "b87b6da606aa4213c867745b5efafce76b709515c2296e4e23da342dec8b2045",
+      "originalAndArchiveEqual": true
+    }
+  ],
+  "unresolvedCases": 6,
+  "historicalInputHashes": 97,
+  "historicalDigest": "1ae6a983ac29a446d4f5f9a444428b164e2ef171adba66a2813c57ddc63cc121",
+  "originalsUnchanged": true,
+  "freshSGIDExecutionCount": 0,
+  "permissionContractChangesByReviewer": 0,
+  "limits": "Read-only verification of existing historical capture, not rerun or new compatibility evidence.",
+  "inputHashReference": "snapshot-inputs.json"
+}

@@ -1,0 +1,194 @@
+{
+  "at": "2026-08-27T02:18:32.791Z",
+  "priorRoot": "/tmp/safe-bash-table-review-owned/closed",
+  "priorAcceptanceSha256": "f43232d748ea1b8318498f58014265fe44cc00af6e315e6d25c75bd11f0e050b",
+  "author": [
+    "tests/commands/table-text/contracts.test.ts",
+    "tests/commands/table-text/differential.test.ts",
+    "tests/commands/table-text/integration.test.ts",
+    "tests/plugins/agent-commands.test.ts",
+    "tests/integration/adapter-tools-diagnostics/eight-cases.test.ts",
+    "tests/commands/structured-stress/split-increment/interop.test.ts",
+    "tests/commands/structured-stress/final-increment/fresh-interop.test.ts"
+  ],
+  "independent": [
+    "tests/commands/table-text-stress/contracts.test.ts",
+    "tests/commands/table-text-stress/corpus.test.ts"
+  ],
+  "records": [
+    {
+      "path": "tests/commands/table-text/contracts.test.ts",
+      "frozenSha256": "df0fea627ba8f15b1f2c2abd6ed3fb53a1758a82cf021f153adf2789603bb39c",
+      "currentSha256": "df0fea627ba8f15b1f2c2abd6ed3fb53a1758a82cf021f153adf2789603bb39c"
+    },
+    {
+      "path": "tests/commands/table-text/differential.test.ts",
+      "frozenSha256": "8534dd83c9b2c2e125027718ac336cc9ba4c3189e33a185e46c6482e98a55048",
+      "currentSha256": "8534dd83c9b2c2e125027718ac336cc9ba4c3189e33a185e46c6482e98a55048"
+    },
+    {
+      "path": "tests/commands/table-text/integration.test.ts",
+      "frozenSha256": "e41520962e5c1906293f6a01723382cc589c791664251429f8f61df770665ec4",
+      "currentSha256": "e41520962e5c1906293f6a01723382cc589c791664251429f8f61df770665ec4"
+    },
+    {
+      "path": "tests/plugins/agent-commands.test.ts",
+      "frozenSha256": "55c605690f0f2bb7e10ffd10528f9f36f9d39a4a4c45bbf4a9cf587e06a46517",
+      "currentSha256": "55c605690f0f2bb7e10ffd10528f9f36f9d39a4a4c45bbf4a9cf587e06a46517"
+    },
+    {
+      "path": "tests/integration/adapter-tools-diagnostics/eight-cases.test.ts",
+      "frozenSha256": "c2235df1ef0a872af09ca01baaffb34ba68bc7e7f249fc04c7a2e8b3d39d9336",
+      "currentSha256": "c2235df1ef0a872af09ca01baaffb34ba68bc7e7f249fc04c7a2e8b3d39d9336"
+    },
+    {
+      "path": "tests/commands/structured-stress/split-increment/interop.test.ts",
+      "frozenSha256": "36fd0f134e7de263345e222ab449705c06fd69570c37d261c96045289b73df9f",
+      "currentSha256": "36fd0f134e7de263345e222ab449705c06fd69570c37d261c96045289b73df9f"
+    },
+    {
+      "path": "tests/commands/structured-stress/final-increment/fresh-interop.test.ts",
+      "frozenSha256": "8f2fb779603124626130089a706faa55778ef2e22637044b2bafa14bc53fd76e",
+      "currentSha256": "8f2fb779603124626130089a706faa55778ef2e22637044b2bafa14bc53fd76e"
+    },
+    {
+      "path": "tests/commands/table-text-stress/contracts.test.ts",
+      "frozenSha256": "65a0c124ca264527a15c93d3526b648ae05edb4160948f7b2bca7e384b1dc5c0",
+      "currentSha256": "65a0c124ca264527a15c93d3526b648ae05edb4160948f7b2bca7e384b1dc5c0"
+    },
+    {
+      "path": "tests/commands/table-text-stress/corpus.test.ts",
+      "frozenSha256": "765eb2bd9f78ef12dfd877206bff31bbbddf36e04ea066041d61d71894d994e5",
+      "currentSha256": "765eb2bd9f78ef12dfd877206bff31bbbddf36e04ea066041d61d71894d994e5"
+    },
+    {
+      "path": "tests/commands/table-text-stress/support.ts",
+      "frozenSha256": "54cc1fc805761d2a78985609b6af521dfdd487c69259490d9147834b8eb2dadc",
+      "currentSha256": "54cc1fc805761d2a78985609b6af521dfdd487c69259490d9147834b8eb2dadc"
+    },
+    {
+      "path": "tests/commands/table-text-stress/cases.ts",
+      "frozenSha256": "9ee35efa4acee5608703bac2866c080a3898b1bb675dde70d5b3df2036133395",
+      "currentSha256": "9ee35efa4acee5608703bac2866c080a3898b1bb675dde70d5b3df2036133395"
+    },
+    {
+      "path": "tests/commands/table-text-stress/frozen-corpus.json",
+      "frozenSha256": "65702ba5bb31442e24f4c0b00ce9ec052bf64f37c48d8a428a68c45fed82a166",
+      "currentSha256": "65702ba5bb31442e24f4c0b00ce9ec052bf64f37c48d8a428a68c45fed82a166"
+    },
+    {
+      "path": "tests/commands/table-text-stress/first-discrepancy.json",
+      "frozenSha256": "80b63700c51ed605b3c6fa6b29819f92972f39462cae017666b5c864dd81506f",
+      "currentSha256": "80b63700c51ed605b3c6fa6b29819f92972f39462cae017666b5c864dd81506f"
+    },
+    {
+      "path": "tests/commands/table-text-stress/tsconfig.json",
+      "frozenSha256": "0d6227b746f3d6ed7248316400601343cbe80a97d74176249277a03ec3ac530a",
+      "currentSha256": "0d6227b746f3d6ed7248316400601343cbe80a97d74176249277a03ec3ac530a"
+    },
+    {
+      "path": "tests/integration/adapter-tools-diagnostics/reference.json",
+      "frozenSha256": "c62e4e68b6c2d79ce6e88ce958cc7df37a5b2cfa306d9779e0ba48f7f55039b4",
+      "currentSha256": "c62e4e68b6c2d79ce6e88ce958cc7df37a5b2cfa306d9779e0ba48f7f55039b4"
+    },
+    {
+      "path": "tests/integration/adapter-tools/fixtures.ts",
+      "frozenSha256": "127a6910a2733d6b6df01285d37d5c90ccbeeeefda40e0869dc633ef8f6d14e5",
+      "currentSha256": "127a6910a2733d6b6df01285d37d5c90ccbeeeefda40e0869dc633ef8f6d14e5"
+    },
+    {
+      "path": "tests/integration/adapter-tools/preflight-review/preflight.ts",
+      "frozenSha256": "0cca6e8941bde1ebd89e3eaaf856d77047b1bd91219446ba8e732bd7c4c5b2cf",
+      "currentSha256": "0cca6e8941bde1ebd89e3eaaf856d77047b1bd91219446ba8e732bd7c4c5b2cf"
+    },
+    {
+      "path": "tests/fs/webdav/mock.ts",
+      "frozenSha256": "e4f8a6806c1dd6f0622cce9f3b487f530011c39b7ca95cc2543002ce4da95266",
+      "currentSha256": "177f79ee640460822cfe0486c87f7cc61ac7c8b84389abe32b48ef27f4b4ef36"
+    },
+    {
+      "path": "tests/commands/structured-stress/split-increment/evidence.ts",
+      "frozenSha256": "7c3437e366a5c034d87560189015b7cd132fea3727d3fd600acfe9c09c3561b0",
+      "currentSha256": "7c3437e366a5c034d87560189015b7cd132fea3727d3fd600acfe9c09c3561b0"
+    },
+    {
+      "path": "tests/commands/structured-stress/split-increment/native.json",
+      "frozenSha256": "cdee2e3a38d929e66d8fdf3917bed62ea46ccff86091de0816128c38176bd8d3",
+      "currentSha256": "cdee2e3a38d929e66d8fdf3917bed62ea46ccff86091de0816128c38176bd8d3"
+    },
+    {
+      "path": "tests/commands/structured-stress/final-increment/fresh-native.json",
+      "frozenSha256": "2724f85ce5745706a96fb9c0052d84df2cabd28e00811eb9e42ad34be105a4ca",
+      "currentSha256": "2724f85ce5745706a96fb9c0052d84df2cabd28e00811eb9e42ad34be105a4ca"
+    },
+    {
+      "path": "src/commands/table-text/comm.ts",
+      "frozenSha256": "7a9a3d591dd3fda338748019b8c3e6eeb7e77db2f15f18bf20e041a80b894b4f",
+      "currentSha256": "7a9a3d591dd3fda338748019b8c3e6eeb7e77db2f15f18bf20e041a80b894b4f"
+    },
+    {
+      "path": "src/commands/table-text/index.ts",
+      "frozenSha256": "9003d5c6d85d283eca5a5e1e50750eae10639ce1830bf68427536c50d40848a9",
+      "currentSha256": "9003d5c6d85d283eca5a5e1e50750eae10639ce1830bf68427536c50d40848a9"
+    },
+    {
+      "path": "src/commands/table-text/internal.ts",
+      "frozenSha256": "fc43999fdddaccb282e2a6bb868421c395804092076ecf2645554a80f9a3b7a8",
+      "currentSha256": "fc43999fdddaccb282e2a6bb868421c395804092076ecf2645554a80f9a3b7a8"
+    },
+    {
+      "path": "src/commands/table-text/join.ts",
+      "frozenSha256": "83704c0da1bcd137fedf1e90e1d922af482bcfac290bc90f6b7ef3e36b6429b0",
+      "currentSha256": "83704c0da1bcd137fedf1e90e1d922af482bcfac290bc90f6b7ef3e36b6429b0"
+    },
+    {
+      "path": "src/commands/table-text/paste.ts",
+      "frozenSha256": "39b236794d5254d3e40471d9cb867d488ab4c57c236c2730bd2640ded84d1ba5",
+      "currentSha256": "39b236794d5254d3e40471d9cb867d488ab4c57c236c2730bd2640ded84d1ba5"
+    },
+    {
+      "path": "src/commands/table-text/README.md",
+      "frozenSha256": "96a3fc81954835657dcb7a88dbb073999aa12d857bdf5fb1228d00a77e4a2d66",
+      "currentSha256": "96a3fc81954835657dcb7a88dbb073999aa12d857bdf5fb1228d00a77e4a2d66"
+    },
+    {
+      "path": "tests/commands/table-text/AUTHOR_HANDOFF.md",
+      "frozenSha256": "d7dd954c96c2c26217e6c18c0f5885d4187305316805c775352e43fd74704d99",
+      "currentSha256": "d7dd954c96c2c26217e6c18c0f5885d4187305316805c775352e43fd74704d99"
+    },
+    {
+      "path": "tests/commands/table-text/author-verification.json",
+      "frozenSha256": "849bb4b6b901c59123c0f2b568e5f70c26cb8c85e85e539fc61217d6e6231476",
+      "currentSha256": "849bb4b6b901c59123c0f2b568e5f70c26cb8c85e85e539fc61217d6e6231476"
+    },
+    {
+      "path": "tests/commands/table-text/buffer-ownership-regression.json",
+      "frozenSha256": "e9bd14ba90f974983757f846a6be8df3407cbda1e9f7e9370d65441540210ca4",
+      "currentSha256": "e9bd14ba90f974983757f846a6be8df3407cbda1e9f7e9370d65441540210ca4"
+    },
+    {
+      "path": "tests/commands/table-text/cases.ts",
+      "frozenSha256": "17118aa95f15c8cd1d47d6aebf624b7013df965e87c39fb81bfebfa63b95070d",
+      "currentSha256": "17118aa95f15c8cd1d47d6aebf624b7013df965e87c39fb81bfebfa63b95070d"
+    },
+    {
+      "path": "tests/commands/table-text/gnu-evidence.json",
+      "frozenSha256": "42e8b27580243212a341edd8b8a106f4d52f81164f5ae56567dd3c738d6a8caa",
+      "currentSha256": "42e8b27580243212a341edd8b8a106f4d52f81164f5ae56567dd3c738d6a8caa"
+    },
+    {
+      "path": "tests/commands/table-text/helpers.ts",
+      "frozenSha256": "5925232dc94a5b2badba373111198f6ef1b534d63a767fe8cfd22ed3f472d6e5",
+      "currentSha256": "5925232dc94a5b2badba373111198f6ef1b534d63a767fe8cfd22ed3f472d6e5"
+    },
+    {
+      "path": "tests/commands/table-text/oracle.ts",
+      "frozenSha256": "53b85ddb847ccd19b5a9111e652332dbaa4bc9a2a8d9c1b798e2233d454f34de",
+      "currentSha256": "53b85ddb847ccd19b5a9111e652332dbaa4bc9a2a8d9c1b798e2233d454f34de"
+    }
+  ],
+  "builtReplaySha256": "127f9f22e3dbc8c36bd8380220eacea2de3d6f986ce994d570966da40c21ff05",
+  "priorMutationProof": "tests/commands/table-text-stress/review/mutation-results-verified.json",
+  "limitation": "Preparation only; no table corpus execution before root phase release.",
+  "inputHashReference": "snapshot-inputs.json"
+}

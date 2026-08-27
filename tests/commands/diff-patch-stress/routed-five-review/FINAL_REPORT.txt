@@ -1,0 +1,26 @@
+BOUNDED INDEPENDENT FIVE-SOURCE AND TABLE REVIEW — FINAL
+
+Source checkpoint snapshot:386196bc39bedd61910abf42b044cab7a2a83cdc, actual worktree bytes, not globally clean committed HEAD. All156 source files and5,434 source/test/dependency files frozen; zero source/input drift in isolated executions. Final live tree has259 file deltas from that snapshot (recorded individually), not silently revalidated as current product.
+
+Two disjoint product source fixes verified: patch96564fe and stat386196b. Reviewer production edits:0. Separate historical archives:916fbb4 and277a635. Reviewer original recipe/oracle edits:0. Six live benchmark helper changes are explicitly captured but not adopted for the old-five replay.
+
+EXACT OLD FIVE:4/5 full rows,19/20 fields. All5 exact streams/status and intended captured file effects. Fresh pinned GNU native5/5 equals historical raw bytes/status/full namespace (20/20 fields). Dry-run native-only empty tmp is the sole mismatch; no false5green or product-manufactured tmp. Original13 benchmark helper hashes and8e09db9/bd2cacb inputs/observations preserved; no full224 rerun.
+
+TARGETS: quiet41/41; human40/40; relevant original patch270/270; existing epoch/fraction/width9/9; scoped noEmit passes. Native human19 fixtures:15 exact numeric/output,2 rounding-to-native matches,2 unavailable-precision gaps. Quiet deletion warning, birth availability and large-epoch precision limits remain explicit. Minimal exact-input source controls for each family:3/3 current,0/3 historical with3 semantic assertion failures,3/3 restored. No compiler/load-error mutation proof.
+
+Old human three-digit author fixture remains unchanged and failing against nine-digit selected profile. Corrected named product-only selection4/5; historical full author42/43 unchanged. Initial filter accidentally executed one prohibited Apple numeric-size/name check:5/6 passed, one profile failure. Raw result, command and incident retained, excluded from GNU acceptance; corrected selection avoids that check. No Apple expectation enters exact-five or new quiet/human native acceptance.
+
+TABLE PHASE: root release observed only after source checkpoint was published/reported. Existing independent104/104 passes; all71 frozen native observations rechecked, known70/71 comm discrepancy retained. Strict historical-helper311 is LOAD-BLOCKED:291 tests pass,3 files fail to import removed private WebDAV forwarding export,20 intended integration cases unexecuted. This is not3 semantic failures or311 acceptance.
+
+Root separately authorized exactly ONE same311 current-frozen-helper compatibility replay:311/311 passes. All case-source/native input/expectation bytes remain unchanged; isolated snapshot only adopts its already-frozen current WebDAV mock. Old/current full helper diff/hashes, source hashes, successful import control and root authorization recorded. This is NOT unchanged-historical-dependency311. No live helper/FS/table/cut/source changes or broad debugging.
+
+Existing scoped table noEmit and isolated dist build pass. Existing public built71 cases run in pipeline and redirection modes:70 matches plus known comm gap each. Current142 executions are not the unavailable historical author's6 checks. Four prior table semantic mutation proofs retained/hash-verified, not rerun or expanded.
+
+ARCHIVES: routed10/10 plus SGID10/10 originals byte-identical; all original18/224 failures and five old failures preserved. SGID97 input hashes preserved, six original failures unresolved, zero freshSGID execution or permission/retry/rollback changes. Original author reds/calibration failures unchanged.
+
+FINAL: five evidence-integrity tests pass5/5; owned scoped noEmit passes. Native executables/Node/dependencies rehashed.71 owned table native directories verified against sentinels/exact fixture files and removed; five-replay native profile and owned runtime fixtures removed; no owned residual native directories or child processes. All children exited normally, no SIGSTOP. Unattributed native artifacts untouched; no binaries/native fixture trees/dist outputs committed.
+
+Owned durable evidence:tests/commands/diff-patch-stress/routed-five-review/
+Raw exact byte logs:execution-logs.json; full old/current harness comparison:five-replay.json; manifests:snapshot-inputs.json/final-verification.json; strict/current-helper table records separate. Local scripts and5 evidence-only integrity tests included. Atomic explicit-owned-path commit is recorded in /tmp/safe-bash-five-and-table-review.closed after commit.
+
+No original/revised3758, global tests, root build, full benchmark or baseline rerun, new corpus, universal shell/GNU parity, superiority,72-hour work or full-goal completion claim. Full user goal remains active beyond this bounded leaf.

@@ -1,0 +1,30 @@
+INDEPENDENT FIVE-SOURCE CHECKPOINT — 2026-08-27T02:29:20.833Z
+
+Frozen actual worktree HEAD label: 386196bc39bedd61910abf42b044cab7a2a83cdc; 156 source files and 5434 source/test/dependency files hashed. Snapshot copy and all source-consuming checks show zero frozen-input drift. Not a clean whole-product HEAD claim.
+
+SOURCE FIXES (two disjoint atomic commits; zero reviewer production edits)
+patch 96564fe99fdfb36392fbbb3afd1cf070cd608201
+stat 386196bc39bedd61910abf42b044cab7a2a83cdc
+src/commands/diff-patch/patch.ts SHA256 72bfb60c502ac5bcaf2efa3e0f044b0ab1d89a54293f829d62f011e7c10e82d7
+src/commands/metadata/stat.ts SHA256 fab291cc4e5668526fc1247e155f5878e1235d9d95a5096d34bcfa9f022d7f3b
+
+EXACT ORIGINAL FIVE, ORIGINAL ENGINE/NATIVE FUNCTIONS
+Original13 helper hashes verified at 0294afb6e690433aed994868e5ed437ecf58ae48; original8e09db9 evidence bytes and bd2cacb observations retained. GNU patch2.8/stat9.7 recorded builds verified by executable SHA256 and version, before/after; no Apple oracle substitutes in this replay.
+Fresh native5/5 equals frozen raw observations (20/20 stdout/stderr/status/namespace fields). Current source4/5 exact full rows (19/20 fields). All5 have exact streams/status and intended file effects. Dry-run alone retains native-only empty tmp directory; product does not manufacture it. No false5green. Live harness differs in six files: capture.mjs, common.mjs, engine.mjs, harness.test.mjs, native.mjs, run.mjs. Full old/current helper texts and hashes retained; new scratch-profile behavior was NOT adopted.
+
+TARGETED INDEPENDENT EXECUTIONS
+Quiet41/41; human40/40 (39 deterministic plus one measured native cohort); relevant original patch270/270; original epoch/fraction/width9/9; scoped TypeScript --noEmit exit0. Human native19 fixtures:15 exact numeric/output,2 rounded output matches,2 precision gaps retained. Shared birthtime availability and fractional ctime/birthtime limitations remain. Quiet failure summaries/rejects/errors remain visible, including the deliberate GNU-quiet deletion-warning difference.
+Original human author fixture file is unchanged. Corrected five named non-Apple product tests:4 pass,1 expected profile failure (three digits versus nine). The first negative-lookahead filter unexpectedly selected the file ancestor and ran all six tests:5 pass,1 fail, including one legacy /usr/bin/stat -f %z:%N file check. That prohibited incidental Apple execution is retained in raw evidence, excluded from GNU acceptance, and not concealed; positive-name rerun excludes it. Historical full author42/43 remains separate.
+Minimal same-input mutation controls: each family current3/3, historical-source0/3 with3 semantic assertion failures, restored3/3. No compiler/load-error proof.
+
+ARCHIVES / UNCHANGED BOUNDARIES
+Routed archive 916fbb4eae610752f34ec25354f6bc2dff28925b:10/10 byte-identical originals, original five failed observations and all18/224 failures preserved. SGID archive 277a63577aa03bbac1ff5c68eac0b04842ff5cd6:10/10 byte-identical originals;97 historical input hashes preserved; archive checks2/2. Six SGID failures unresolved; zero fresh SGID executions or permission/retry/rollback changes. Archival commits and six live harness file changes are not source fixes. Initial author quiet39/40 and human2/39 red, native calibration failures and later author evidence remain untouched.
+
+TABLE PHASE NOT STARTED
+Waiting for root /tmp/safe-bash-table-text-resume-after-five.ready AFTER root reports this source checkpoint. Only existing104/311 and same71 built inputs will run. Prior table source/author/corpus bytes frozen; old inherited WebDAV mock helper retained explicitly rather than silently changing inputs.
+
+Full record: /tmp/safe-bash-five-final-review/source-checkpoint.json
+Raw five: /tmp/safe-bash-five-final-review/five-replay.json
+Target commands/results: /tmp/safe-bash-five-final-review/target-verification.json
+Original-filter incident: /tmp/safe-bash-five-final-review/profile-correction.json
+No full224, baseline rerun, original/revised3758, global tests, root build, new features or72hour/superiority claim.

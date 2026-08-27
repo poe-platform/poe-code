@@ -1,0 +1,14 @@
+{
+  "frozenAt": "2026-08-27T08:59:27.911Z",
+  "identity": "Independent TIME-ENV fraction semantics reviewer, fresh thread 2026-08-27; neither Curie nor prior fix verifier; no delegation",
+  "commit": "c7823633ee99f711f1319ace59d4cf2b7f622ecc",
+  "productRows": 312,
+  "sourceProofRows": 1624,
+  "files": {
+    "cases.mjs": "704eb08d62a4b0e955bfa71c0b3dd531160bb6e64160c0523844210219046871",
+    "cases.frozen.json": "9dcdf67fbbf41076c96a5160d7a44edebd081b7b067bb11f919e1f10c71932f5",
+    "freeze.mjs": "7aead52884955b0347d3dfa19bf1ac1471a7f5dce370428afb6a66d4c0e76c48"
+  },
+  "otherReviewerCasesRead": false,
+  "productRunOccurred": false
+}

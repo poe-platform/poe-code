@@ -1,0 +1,42 @@
+{
+  "started": "2026-08-27T07:40:05.020Z",
+  "finished": "2026-08-27T07:40:05.163Z",
+  "node": "v22.22.2",
+  "platform": "darwin",
+  "arch": "arm64",
+  "head": "0ada1bfa7f5163b6b94ca8fd628b41d96e1797bb",
+  "status": "?? src/commands/time-env/\n?? tests/commands/archive-stress/native-prerequisite-review/\n?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/\n?? tests/commands/regex-execution/cleanup-registration/\n?? tests/commands/search-stress/.native-1m4O1e/\n?? tests/commands/time-env/\n?? tests/shell-stress/env-split-author/\n?? tests/shell-stress/env-split-holdout/\n?? tests/stress/regex-execution/cleanup-boundary-review/build.mjs\n?? tests/stress/regex-execution/cleanup-boundary-review/evidence/baseline-build.json\n?? tests/stress/regex-execution/cleanup-boundary-review/guard.mjs\n",
+  "command": [
+    "node",
+    "--import",
+    "tsx",
+    "--test",
+    "tests/commands/regex-execution/cleanup-registration/controls.test.ts"
+  ],
+  "before": {
+    "src/commands/grep.ts": "f2f76418ee409c998b5c20d5ad28c93dd2ff5918eea42c81d93db7832fdbff23",
+    "src/commands/search/rg.ts": "4a16dea4fbd70155998f59689bec0a3678a9445fa76cd3c62e3c4f88caec0999",
+    "src/commands/regex-execution/client.ts": "6745088269d2c9be612cbb55e612fb73d960d1b0df6c02d91e1b8f431f2ef1b9",
+    "src/commands/regex-execution/protocol.ts": "0b4f9fac518cd31f403c1c0f49e4c7772f783e32df7cfe83ee5d4906426133e6",
+    "src/commands/regex-execution/worker.ts": "ad818ba991aa54ce7029e8ca7be7e6d92c326134705c402f244a51da505d044e",
+    "src/commands/regex-execution/matching.ts": "1d21b81ebbfe361405556aa59b58f6e2cf9f6d487e9518c5d77a90af36690737",
+    "src/contracts/command.ts": "9c2f8ecf50def7250b01152a31a45c449109c3ae4d30878252cffe985c6e9df8",
+    "src/contracts/command.md": "8a5426b1e7a30a03dc62f74b28c6eb7bf9b008b78cb7b521eb7de0bc5c59a3f8",
+    "tests/commands/regex-execution/cleanup-registration/controls.test.ts": "8f4c509a89f030a7bb769183d11a297b78d4d0f8126166102430304264d1bfd2"
+  },
+  "after": {
+    "src/commands/grep.ts": "f2f76418ee409c998b5c20d5ad28c93dd2ff5918eea42c81d93db7832fdbff23",
+    "src/commands/search/rg.ts": "4a16dea4fbd70155998f59689bec0a3678a9445fa76cd3c62e3c4f88caec0999",
+    "src/commands/regex-execution/client.ts": "6745088269d2c9be612cbb55e612fb73d960d1b0df6c02d91e1b8f431f2ef1b9",
+    "src/commands/regex-execution/protocol.ts": "0b4f9fac518cd31f403c1c0f49e4c7772f783e32df7cfe83ee5d4906426133e6",
+    "src/commands/regex-execution/worker.ts": "ad818ba991aa54ce7029e8ca7be7e6d92c326134705c402f244a51da505d044e",
+    "src/commands/regex-execution/matching.ts": "1d21b81ebbfe361405556aa59b58f6e2cf9f6d487e9518c5d77a90af36690737",
+    "src/contracts/command.ts": "9c2f8ecf50def7250b01152a31a45c449109c3ae4d30878252cffe985c6e9df8",
+    "src/contracts/command.md": "8a5426b1e7a30a03dc62f74b28c6eb7bf9b008b78cb7b521eb7de0bc5c59a3f8",
+    "tests/commands/regex-execution/cleanup-registration/controls.test.ts": "8f4c509a89f030a7bb769183d11a297b78d4d0f8126166102430304264d1bfd2"
+  },
+  "statusCode": 1,
+  "signal": null,
+  "stdout": "TAP version 13\n# node:internal/modules/run_main:123\n#     triggerUncaughtException(\n#     ^\n# Error [ERR_MODULE_NOT_FOUND]: Cannot find module '/Users/kjopek/Workspace/safe-bash/src/fs/memory.js' imported from /Users/kjopek/Workspace/safe-bash/tests/commands/regex-execution/cleanup-registration/controls.test.ts\n#     at finalizeResolution (node:internal/modules/esm/resolve:275:11)\n#     at moduleResolve (node:internal/modules/esm/resolve:861:10)\n#     at defaultResolve (node:internal/modules/esm/resolve:985:11)\n#     at nextResolve (node:internal/modules/esm/hooks:748:28)\n#     at resolveBase (file:///Users/kjopek/Workspace/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:10334)\n#     at async resolveDirectory (file:///Users/kjopek/Workspace/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:11415) {\n#   code: 'ERR_MODULE_NOT_FOUND',\n#   url: 'file:///Users/kjopek/Workspace/safe-bash/src/fs/memory.js'\n# }\n# Node.js v22.22.2\n# Subtest: tests/commands/regex-execution/cleanup-registration/controls.test.ts\nnot ok 1 - tests/commands/regex-execution/cleanup-registration/controls.test.ts\n  ---\n  duration_ms: 105.14925\n  type: 'test'\n  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/regex-execution/cleanup-registration/controls.test.ts:1:1'\n  failureType: 'testCodeFailure'\n  exitCode: 1\n  signal: ~\n  error: 'test failed'\n  code: 'ERR_TEST_FAILURE'\n  ...\n1..1\n# tests 1\n# suites 0\n# pass 0\n# fail 1\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 108.373666\n",
+  "stderr": ""
+}

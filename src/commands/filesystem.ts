@@ -4,6 +4,7 @@ import {
 } from "../contracts/index.js";
 import { codeOf, define, eachOperand, options, output, pathOf, requireOperands, UsageError, value } from "./internal.js";
 import { compareCopyIdentity } from "./copy-identity.js";
+import { MoveBudget, moveAcrossDevices } from "./move.js";
 
 async function maybeStat(context: CommandContext, path: string, follow = true): Promise<FileStat | undefined> {
   try { return await context.fs[follow ? "stat" : "lstat"](path, { signal: context.signal }); }
@@ -148,11 +149,17 @@ export function filesystemCommands(): CommandDefinition[] {
     define("mv", async context => {
       const parsed = options(context.args, "fnv", { force: "f", "no-clobber": "n", verbose: "v" });
       const destination = await destinations(context, parsed.operands);
+      const budget = new MoveBudget(context.signal);
       return eachOperand(context, destination.sources, async operand => {
         const source = pathOf(context, operand);
         const target = destination.directory ? joinPath(destination.target, basename(source)) : destination.target;
         if (parsed.flags.has("n") && await maybeStat(context, target, false)) return;
-        await context.fs.rename(source, target, { signal: context.signal });
+        try { await context.fs.rename(source, target, { signal: context.signal }); }
+        catch (error) {
+          context.signal.throwIfAborted();
+          if (codeOf(error) !== "EXDEV") throw error;
+          if (!await moveAcrossDevices(context, source, target, parsed.flags.has("n"), budget)) return;
+        }
         if (parsed.flags.has("v")) await output(context, `'${operand}' -> '${target}'\n`);
       });
     }),

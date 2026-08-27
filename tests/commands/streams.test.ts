@@ -2,7 +2,117 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { FsError, Shell, standardCommands } from "../../src/index.js";
 import { bufferLimit } from "../../src/commands/internal.js";
+import { streamCommands } from "../../src/commands/streams.js";
 import { chunks, fixture, run } from "./helpers.js";
+
+async function observeByteTail(command: "head" | "tail", count: number, sizes: number[], kind: "Buffer" | "Uint8Array", reuse: boolean) {
+  const NativeUint8Array = Uint8Array;
+  const nativeSlice = NativeUint8Array.prototype.slice;
+  const nativePush = Array.prototype.push;
+  const owned = new WeakSet<Uint8Array>();
+  let queue: Uint8Array[] | undefined;
+  let copiedBytes = 0;
+  let allocations = 0;
+  let maxBacking = 0;
+  let maxSlots = 0;
+  let checkpoints = 0;
+  const input = Buffer.alloc(sizes.reduce((total, size) => total + size, 0));
+  for (let index = 0; index < input.length; index++) input[index] = (index * 29 + 137) % 256;
+  const backing = kind === "Buffer" ? Buffer.alloc(Math.max(...sizes) + 6) : new NativeUint8Array(Math.max(...sizes) + 6);
+  backing.fill(0x7e);
+  const stdout: Buffer[] = [];
+  const stderr: Buffer[] = [];
+  const fs = await fixture();
+  let finalized = false;
+  const source = (async function* () {
+    let offset = 0;
+    try {
+      for (const size of sizes) {
+        const expected = input.subarray(offset, offset + size);
+        const chunk = reuse ? backing.subarray(3, 3 + size)
+          : kind === "Buffer" ? Buffer.from(expected) : new NativeUint8Array(expected);
+        if (reuse) chunk.set(expected);
+        yield chunk;
+        assert.deepEqual(Buffer.from(chunk), expected);
+        const buffers = new Set(queue?.filter(Boolean).map(bytes => bytes.buffer));
+        const retained = [...buffers].reduce((total, buffer) => total + buffer.byteLength, 0);
+        maxBacking = Math.max(maxBacking, retained);
+        maxSlots = Math.max(maxSlots, queue?.length ?? 0);
+        checkpoints++;
+        offset += size;
+      }
+    } finally {
+      backing.fill(0);
+      finalized = true;
+    }
+  })();
+  globalThis.Uint8Array = new Proxy(NativeUint8Array, {
+    construct(target, args) {
+      const result = Reflect.construct(target, args) as Uint8Array;
+      owned.add(result);
+      allocations++;
+      copiedBytes += result.byteLength;
+      return result;
+    },
+  });
+  NativeUint8Array.prototype.slice = function (start, end) {
+    const result = nativeSlice.call(this, start, end);
+    copiedBytes += result.byteLength;
+    allocations++;
+    return result;
+  };
+  Array.prototype.push = function <Entry>(this: Entry[], ...items: Entry[]): number {
+    if (items.length === 1 && owned.has(items[0] as Uint8Array)) queue = this as Uint8Array[];
+    return nativePush.apply(this, items);
+  };
+  let result;
+  try {
+    result = await streamCommands().find(definition => definition.name === command)!.execute({
+      command, args: ["-c", `${command === "head" ? "-" : ""}${count}`], cwd: "/work", env: {}, fs,
+      signal: new AbortController().signal, stdin: source,
+      stdout: { async write(bytes) { stdout.push(Buffer.from(bytes)); } },
+      stderr: { async write(bytes) { stderr.push(Buffer.from(bytes)); } },
+    });
+  } finally {
+    globalThis.Uint8Array = NativeUint8Array;
+    NativeUint8Array.prototype.slice = nativeSlice;
+    Array.prototype.push = nativePush;
+  }
+  assert.equal(result.exitCode, 0);
+  assert.equal(Buffer.concat(stderr).toString(), "");
+  assert.deepEqual(Buffer.concat(stdout), command === "head"
+    ? input.subarray(0, Math.max(0, input.length - count)) : input.subarray(input.length - Math.min(count, input.length)));
+  assert.equal(finalized, true);
+  assert.equal(checkpoints, sizes.length);
+  assert.ok(queue, "observation must capture the owned queue");
+  return { copiedBytes, allocations, maxBacking, maxSlots, inputBytes: input.length };
+}
+
+for (const command of ["head", "tail"] as const) {
+  for (const kind of ["Buffer", "Uint8Array"] as const) {
+    for (const reuse of [false, true]) {
+      test(`${command} byte trimming has linear copies for ${reuse ? "reused" : "immutable"} ${kind}`, async () => {
+        for (const count of [521, 2081, 8329]) {
+          const sizes = [count, ...Array<number>(count + 13).fill(1)];
+          const observed = await observeByteTail(command, count, sizes, kind, reuse);
+          assert.ok(observed.copiedBytes <= 2 * observed.inputBytes, JSON.stringify(observed));
+          assert.ok(observed.allocations <= 2 * sizes.length, JSON.stringify(observed));
+          assert.ok(observed.maxBacking <= 2 * count, JSON.stringify(observed));
+          assert.ok(observed.maxSlots <= 1025 + count, JSON.stringify(observed));
+        }
+      });
+    }
+    test(`${command} byte queue releases oversized and consumed ${kind} backing with zero/empty controls`, async () => {
+      for (const count of [0, 1, 37]) {
+        const sizes = [0, 24577, 0, 24577, 0, 47, ...Array<number>(2051).fill(0), 59];
+        const observed = await observeByteTail(command, count, sizes, kind, true);
+        assert.ok(observed.maxBacking <= 2 * count, JSON.stringify(observed));
+        assert.ok(observed.maxSlots <= 1025 + count, JSON.stringify(observed));
+        assert.ok(observed.copiedBytes <= 2 * observed.inputBytes, JSON.stringify(observed));
+      }
+    });
+  }
+}
 
 for (const kind of ["Buffer", "Uint8Array"] as const) {
   for (const [command, args, expected] of [

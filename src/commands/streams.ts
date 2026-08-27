@@ -40,6 +40,7 @@ async function suffix(context: CommandContext, source: ByteSource, count: number
   })();
   for await (const chunk of records) {
     context.signal.throwIfAborted();
+    if (bytes && !chunk.length) continue;
     pending.push(new Uint8Array(chunk));
     size += chunk.length;
     if (bytes) {
@@ -48,8 +49,11 @@ async function suffix(context: CommandContext, source: ByteSource, count: number
         const first = pending[start]!;
         const consume = Math.min(excess, first.length);
         if (omit) await output(context, first.subarray(0, consume));
-        if (consume === first.length) start++;
-        else pending[start] = first.slice(consume);
+        if (consume === first.length) delete pending[start++];
+        else {
+          const remaining = first.subarray(consume);
+          pending[start] = remaining.length * 2 <= first.buffer.byteLength ? new Uint8Array(remaining) : remaining;
+        }
         size -= consume; excess -= consume;
       }
     } else while (pending.length - start > count) {

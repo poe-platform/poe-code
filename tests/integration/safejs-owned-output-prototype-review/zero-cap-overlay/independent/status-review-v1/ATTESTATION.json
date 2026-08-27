@@ -1,0 +1,33 @@
+{
+  "reviewerIdentity": "Codex Independent Leaf Verifier",
+  "thread": "01a043dd-cfc3-7f93-8f3b-70e2d7b1d2a4",
+  "files": [
+    {
+      "path": "ADMISSION.json",
+      "bytes": 1664,
+      "sha256": "68eed8703df8bb18b63f6b29c05831502c7bf3e3a8997c23e4768122d951cef4"
+    },
+    {
+      "path": "DELTA-PROOF.json",
+      "bytes": 555,
+      "sha256": "b6eaedc33b64dfe73fb9412da3ee62d7808cc18788b262476ab21907af6760e8"
+    },
+    {
+      "path": "REPORT.md",
+      "bytes": 3582,
+      "sha256": "fc6a9f25bf22cdb11acc4fd25b7567ba0cc942c6973049c4252bfd91d65a0430"
+    },
+    {
+      "path": "STATIC-REVIEW.json",
+      "bytes": 9763,
+      "sha256": "99702858ce776b35dcdfab3cca8e3201e5497f6551a460813d236cb1e843690f"
+    },
+    {
+      "path": "inspect.py",
+      "bytes": 10852,
+      "sha256": "430f208d2e931062e06ec12d6019911ad8a9bfce40778a561508a7a44b713f77"
+    }
+  ],
+  "claim": "SHA-256 artifact attestation, not cryptographic personal identity",
+  "noPromotion": true
+}

@@ -13,6 +13,7 @@ export interface Word {
   readonly parts: WordPart[];
   readonly offset: number;
   readonly plain?: string;
+  readonly spelling?: string;
 }
 
 interface Token {
@@ -145,7 +146,7 @@ class Lexer {
       };
       this.documents.push(document);
     }
-    return { kind: "word", value: word.plain ?? "", offset, end: this.position, word, ...(document ? { document } : {}) };
+    return { kind: "word", value: word.plain ?? "", offset, end: this.position, word: { ...word, spelling: this.source.slice(offset, this.position) }, ...(document ? { document } : {}) };
   }
 
   readDocuments(): void {

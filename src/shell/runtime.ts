@@ -12,6 +12,7 @@ import { ShellInput } from "./input.js";
 import { evaluateArithmetic } from "./arithmetic.js";
 import { compilePattern, matchesPattern } from "./pattern.js";
 import { byteLocale } from "./locale.js";
+import { functionDisplay } from "./display.js";
 
 export const defaultLimits: Required<ShellLimits> = {
   maxOutputBytes: 16 * 1024 * 1024,
@@ -26,8 +27,11 @@ export const defaultLimits: Required<ShellLimits> = {
 
 const shellBuiltinNames = new Set([
   ":", "true", "false", "pwd", "cd", "set", "shift", "export", "local", "unset", "read",
-  "exit", "return", "break", "continue", "echo", "printf", "test", "[",
+  "exit", "return", "break", "continue", "command", "type", "echo", "printf", "test", "[",
 ]);
+
+const implementedBuiltins = new Set([...shellBuiltinNames].filter(name => !["echo", "printf", "test", "["].includes(name)));
+type Discovery = { kind: "function" | "builtin" | "command" | "interpreter" | "file"; name: string };
 
 export function resolveLimits(...limits: (ShellLimits | undefined)[]): Required<ShellLimits> {
   const result = Object.assign({}, defaultLimits, ...limits) as Required<ShellLimits>;
@@ -127,6 +131,7 @@ export interface State {
   functions: Map<string, Command>;
   positional: string[];
   arg0?: string;
+  profile?: "bash" | "sh";
   pathUnset?: boolean;
   status: number;
   substitutionStatus: number;
@@ -640,7 +645,12 @@ export class Runtime {
       assignments.push(assignment);
     }
     const commandWords = command.words.slice(wordIndex);
-    const words = await this.words(commandWords, state, originalIO, ["export", "local"].includes(commandWords[0]?.plain ?? ""));
+    let declarationIndex = 0;
+    while (commandWords[declarationIndex]?.plain === "command") {
+      declarationIndex++;
+      if (commandWords[declarationIndex]?.plain === "--") declarationIndex++;
+    }
+    const words = await this.words(commandWords, state, originalIO, ["export", "local"].includes(commandWords[declarationIndex]?.plain ?? ""));
     const inlineInput = command.redirects.some((redirect) => redirect.document || redirect.operator === "<<<");
     const functionCommand = words.length > 0 && state.functions.has(words[0]!);
     const isolatedInlineInput = inlineInput && words.length > 0 && !shellBuiltinNames.has(words[0]!) && !functionCommand;
@@ -695,7 +705,7 @@ export class Runtime {
     }
   }
 
-  async dispatch(name: string, args: readonly string[], state: State, io: IO, assignments: Map<string, { value: string | undefined; exported: boolean }>): Promise<number> {
+  async dispatch(name: string, args: readonly string[], state: State, io: IO, assignments: Map<string, { value: string | undefined; exported: boolean }>, bypassFunctions = false): Promise<number> {
     let builtinFailure: { error: unknown; diagnostic: string } | undefined;
     const env = Object.create(null) as Record<string, string>;
     for (const key of state.exported) {
@@ -704,7 +714,7 @@ export class Runtime {
     }
     const initialEnv = { ...env };
     const context: ShellCommandContext = {
-      command: name, args, ...io, env, cwd: state.cwd, fs: this.fs, signal: this.signal,
+      ...io, command: name, args, env, cwd: state.cwd, fs: this.fs, signal: this.signal,
       invoke: (name, args, options) => this.invoke(name, args, options, context, state),
     };
     const execute = composeMiddleware(this.middleware, async (context) => {
@@ -720,9 +730,8 @@ export class Runtime {
         else { state.variables[key] = value; state.exported.add(key); }
       }
       try {
-        const builtin = await this.builtin(context, state, assignments, (error, diagnostic) => { builtinFailure = { error, diagnostic }; });
-        if (builtin !== undefined) return { exitCode: builtin };
-        const body = state.functions.get(context.command);
+        const selected = this.internalDiscovery(context.command, state, bypassFunctions)[0];
+        const body = selected?.kind === "function" ? state.functions.get(context.command) : undefined;
         if (body) {
           if (state.depth >= this.budget.limits.maxSubstitutionDepth) this.budget.fail("maxSubstitutionDepth");
           const positional = state.positional;
@@ -747,6 +756,11 @@ export class Runtime {
               else state.exported.delete(name);
             }
           }
+        }
+        if (selected?.kind === "builtin") {
+          if (context.command === "command" || context.command === "type") return { exitCode: await this.discoveryBuiltin(context, state, io, assignments) };
+          const builtin = await this.builtin(context, state, assignments, (error, diagnostic) => { builtinFailure = { error, diagnostic }; });
+          if (builtin !== undefined) return { exitCode: builtin };
         }
         const definition = this.commands.get(context.command);
         if (!definition) {
@@ -777,13 +791,83 @@ export class Runtime {
     }
   }
 
+  internalDiscovery(name: string, state: State, bypassFunctions = false): Discovery[] {
+    const matches: Discovery[] = [];
+    if (!bypassFunctions && state.functions.has(name)) matches.push({ kind: "function", name });
+    if (implementedBuiltins.has(name)) matches.push({ kind: "builtin", name });
+    else if (this.commands.has(name)) matches.push({ kind: "command", name });
+    else if (name === "bash" || name === "sh") matches.push({ kind: "interpreter", name });
+    return matches;
+  }
+
+  async discoveryBuiltin(context: CommandContext, state: State, io: IO, assignments: Map<string, { value: string | undefined; exported: boolean }>): Promise<number> {
+    const args = [...context.args];
+    const command = context.command === "command";
+    let mode: "describe" | "name" | "kind" | "path" = "describe";
+    let discover = !command;
+    let all = false;
+    let skipFunctions = false;
+    let forcePath = false;
+    while (args[0]?.startsWith("-") && args[0] !== "-") {
+      const option = args.shift()!;
+      if (option === "--") break;
+      for (const flag of option.slice(1)) {
+        if (command && (flag === "v" || flag === "V")) { discover = true; mode = flag === "v" ? "name" : "describe"; }
+        else if (!command && flag === "a") all = true;
+        else if (!command && flag === "f") skipFunctions = true;
+        else if (!command && flag === "t") mode = "kind";
+        else if (!command && (flag === "p" || flag === "P")) { mode = "path"; if (flag === "P") forcePath = true; }
+        else { await writeText(context.stderr, `${context.command}: ${option}: unsupported option\n`); return 2; }
+      }
+    }
+    if (!discover) {
+      const target = args.shift();
+      if (target === undefined) return 0;
+      this.budget.tick();
+      if (state.depth >= this.budget.limits.maxSubstitutionDepth) this.budget.fail("maxSubstitutionDepth");
+      state.depth++;
+      try { return await this.dispatch(target, args, state, { ...io, ...context }, assignments, true); }
+      finally { state.depth--; }
+    }
+    let found = 0;
+    for (const name of args) {
+      this.signal.throwIfAborted();
+      let matches = forcePath || all && mode === "path" ? [] : this.internalDiscovery(name, state, skipFunctions);
+      if (!all) matches = matches.slice(0, 1);
+      if (all || !matches.length) {
+        const paths = await this.searchPaths(name, state, all, true);
+        matches.push(...paths.map(path => ({ kind: "file" as const, name: state.profile === "sh" && !name.includes("/") && !path.startsWith("/") ? `${state.cwd === "/" ? "" : state.cwd}/${path}` : path })));
+      }
+      if (!matches.length) {
+        if (mode === "describe") await writeText(context.stderr, `${io.scriptName ?? "shell"}: line ${io.diagnosticLine ?? 1}: ${context.command}: ${name}: not found\n`);
+        continue;
+      }
+      found++;
+      for (const match of matches) {
+        if (mode === "path" && match.kind !== "file") continue;
+        let text: string;
+        if (mode === "kind") text = `${match.kind}\n`;
+        else if (mode === "name" || mode === "path") text = `${match.name}\n`;
+        else if (match.kind === "function") text = `${name} is a function\n${functionDisplay(name, state.functions.get(name)!)}`;
+        else text = `${name} is ${match.kind === "builtin" ? "a shell builtin" : match.kind === "command" ? "a registered command" : match.kind === "interpreter" ? "a virtual shell interpreter" : match.name}\n`;
+        await writeText(context.stdout, text);
+      }
+    }
+    return (command ? found > 0 || args.length === 0 : found === args.length) ? 0 : 1;
+  }
+
   async searchPath(name: string, state: State): Promise<string | undefined> {
-    if (!name) return undefined;
+    return (await this.searchPaths(name, state))[0];
+  }
+
+  async searchPaths(name: string, state: State, all = false, discovery = false): Promise<string[]> {
+    if (!name) return [];
     const path = state.variables.PATH;
     if (path !== undefined && Buffer.byteLength(path) > this.budget.limits.maxExpansionBytes) this.budget.fail("maxExpansionBytes");
-    const components = path === undefined ? [undefined] : path.split(":");
+    const components = name.includes("/") || path === undefined ? [undefined] : path.split(":");
     if (components.length > this.budget.limits.maxExpansionFields) this.budget.fail("maxExpansionFields");
     let denied: CommandFailure | undefined;
+    const matches: string[] = [];
     for (const component of components) {
       this.signal.throwIfAborted();
       const target = component === undefined ? name : `${component || "."}${component?.endsWith("/") ? "" : "/"}${name}`;
@@ -793,18 +877,19 @@ export class Runtime {
         if ((await interruptible(this.fs.stat(resolved, options), this.signal)).type !== "file") continue;
         if (this.fs.capabilities.permissions !== true) throw new CommandFailure(`${target}: execution permissions are not supported by this filesystem`, 126);
         await interruptible(this.fs.access(resolved, ACCESS_MODES.X_OK, options), this.signal);
-        return target;
+        matches.push(target);
+        if (!all) return matches;
       } catch (error) {
         this.signal.throwIfAborted();
-        if (error instanceof CommandFailure) throw error;
+        if (error instanceof CommandFailure) { if (discovery) continue; throw error; }
         const code = errorCode(error);
         if (code === "ENOENT" || code === "ENOTDIR") continue;
         if (code !== "EACCES" && code !== "EPERM") throw new CommandFailure(filesystemDiagnostic(error, target) ?? `${target}: ${message(error)}`, 126);
         denied ??= new CommandFailure(filesystemDiagnostic(error, target) ?? `${target}: ${message(error)}`, 126);
       }
     }
-    if (denied) throw denied;
-    return undefined;
+    if (denied && !matches.length && !discovery) throw denied;
+    return matches;
   }
 
   processState(context: CommandContext, state: State, arg0: string, args: readonly string[]): State {
@@ -812,7 +897,7 @@ export class Runtime {
     const variables = Object.assign(Object.create(null) as Record<string, string>, context.env, { PWD: state.cwd });
     return {
       cwd: state.cwd, variables, exported: new Set(Object.keys(variables)), functions: new Map(),
-      positional: [...args], arg0, status: 0, substitutionStatus: 0, depth: state.depth + 1,
+      positional: [...args], arg0, profile: context.command === "sh" ? "sh" : "bash", status: 0, substitutionStatus: 0, depth: state.depth + 1,
       loopDepth: 0, functionDepth: 0, locals: [], pipefail: false, isolated: true,
     };
   }

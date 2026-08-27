@@ -56,3 +56,9 @@ virtual pipeline on both MemoryFS and explicit-root RealFS.
 No remote provider, native inode/allocated-block guarantee, race-free namespace
 authority, package-public API, current whole-product gate, time/performance
 superiority, or runtime duration completion is claimed by these controls.
+
+An additional pre-exposure preparation control checks same-input split aliases
+using the supplied adapters' own `compareEntry` relation before and after the
+rejected invocation, alongside unchanged namespace bytes. This verifies preserved
+alias relationships rather than treating equal file contents as identity, and
+does not assert numeric host inode values or stability against external races.

@@ -228,6 +228,26 @@ contract("binary split files rejoin through verified cat byte pipeline", async (
   }
 });
 
+contract("split same-input aliases retain bytes and VFS identity relation", async () => {
+  for (const backend of ["memory", "real"]) for (const alias of ["hardlink", "symlink"]) {
+    const fs = await filesystem(backend);
+    await fs.writeFile("/fixture/input", bytes("abcdef"));
+    if (alias === "hardlink") { assert.ok(fs.link); await fs.link("/fixture/input", "/fixture/alias.aa"); }
+    else { assert.ok(fs.symlink); await fs.symlink("input", "/fixture/alias.aa"); }
+    assert.ok(fs.compareEntry);
+    assert.equal(await fs.compareEntry("/fixture/input", fs, "/fixture/alias.aa"), "same");
+    const before = await snapshot(fs);
+    const instance = shell(fs);
+    try {
+      const result = await instance.exec("split -b2 input alias.");
+      assert.notEqual(result.exitCode, 0);
+      assert.match(result.stderr, /input|same|overwrite/iu);
+      assert.deepEqual(await snapshot(fs), before);
+      assert.equal(await fs.compareEntry("/fixture/input", fs, "/fixture/alias.aa"), "same");
+    } finally { await instance.dispose(); }
+  }
+});
+
 contract("literal invoke middleware preserves nested dispatch and shared budgets", async () => {
   const fs = await filesystem("memory");
   const instance = shell(fs);

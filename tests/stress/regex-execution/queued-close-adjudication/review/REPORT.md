@@ -6,11 +6,16 @@ The retained second-worker/success expectation is obsolete for the current
 invocation-owned close contract. No source regression is demonstrated by these
 bounded controls. This is not a passing99/100 replay or public/runtime acceptance.
 
-**Adjudicator proposal concurrence remains PENDING.** Its ready note was absent
-before and after a60-second bounded wait. `INITIAL.md` was sent through the
-requested `/tmp/regex-queued-close-reviewer-initial.txt`. No new adjudicator
-findings or proposed patch have been read, so no agreement/disagreement with an
-unseen delta is claimed. Canonical mutation is neither performed nor approved.
+**Final concurrence: agree with the test-only proposal at adjudicator commit
+`6dbd7d06f9c1901602b415773bb33ba1522a1c6e`.** See `POST-HANDOFF.md` for the
+separate critical review and exact proposal hash. No source fix is indicated;
+canonical application remains the canonical owner's decision, not performed here.
+
+The ready note was initially absent before and after a60-second bounded wait.
+`INITIAL.md` was sent through `/tmp/regex-queued-close-reviewer-initial.txt` and
+the pending checkpoint committed at `a2c9949`. The note arrived during that
+commit; review resumed only afterward. This chronology preserves the independent
+freeze and the genuine pending checkpoint instead of implying prior concurrence.
 
 ## Independence and provenance
 
@@ -92,7 +97,8 @@ stderr, or runtime cancellation behavior. No exit-status assertion was relaxed.
 
 ## Required scope of a separate test-only proposal
 
-Review the adjudicator's precise delta when its report is announced. In the
+The following criteria were recorded before handoff; `POST-HANDOFF.md` records
+their subsequent application to the precise announced delta. In the
 retained test, replacing the after-release worker-count assertion2 with1 must
 also remove the nonexistent worker2 reply/success expectation and explicitly
 assert the queued rejection is RegexExecutionError/CLOSED. Keep the pre-release

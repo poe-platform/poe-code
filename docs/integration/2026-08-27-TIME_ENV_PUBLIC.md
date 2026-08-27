@@ -63,3 +63,21 @@ count fixtures describe intentional registration, not a runtime bug fix.
 Packed public integration requires its own frozen evidence and a different
 reviewer; source approval alone is not that approval. The qualified release's
 WebDAV12/13 checkpoint remains separate pending its owner's correction.
+
+## Frozen mechanical integration checkpoint
+
+Root wiring41298e6 and count-only migrationsba58068/2a8be2e are verified at
+candidate6ffe4f4f17637e44b55cc0455394513e8d6b94de:306 scoped source tests,
+18 packed public checks twice, two adjacent public consumers, production build/
+typecheck and strict public declarations pass, with six negative type controls
+and three missing-runtime/source-access denials. This is integration-author
+evidence awaiting a different reviewer, not source self-approval or a full gate.
+See `tests/plugins/time-env-public/README.md` for exact scope, hashes, preserved
+failed harness attempts and the unchanged qualified-release command.
+
+A separate read-only release preflight found20 unclassified .mts paths, already
+present at pre-integrationf534134 (176 tracked/156 inventoried). The unchanged
+fail-closed inventory assertion blocks the qualified command before service
+execution. Exact paths/hashes are recorded in the public integration evidence;
+classification and current consumer coverage remain a release-owner follow-up,
+not an excuse to disable the inventory guard or count historical inputs as passes.

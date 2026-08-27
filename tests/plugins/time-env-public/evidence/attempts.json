@@ -1,0 +1,950 @@
+[
+  {
+    "run": 1,
+    "originalReportPath": "/tmp/safe-bash-time-env-public-run01-20260827/report.json",
+    "originalReportSha256": "fc68c00d4b27c45c534910bdc0e84fcd0af78dba5a83406caaf916893ae9aeda",
+    "sourceCommit": "fe1e099242eb56567a03ae0ec5859532652c7544",
+    "sourceTreeSha256": "011f274582c14ba014704dda019bd01ba55c740bd0caf1ff964338c64fd26898",
+    "packageSha256": "886abaa12224883a4c6efe728347e06fa1b17965b756b37f1dba1bea2f1d245f",
+    "startedAt": "2026-08-27T09:32:36.578Z",
+    "finishedAt": "2026-08-27T09:32:43.952Z",
+    "status": "failed",
+    "resources": {
+      "work": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-4g0qxN",
+      "cleaned": true
+    },
+    "steps": [
+      {
+        "name": "revision",
+        "status": 0,
+        "stdoutSha256": "27d9b499ac8eb702a2ca05e31d30c59973b64bbd97e9ab275a00c55ded0726e6",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "counts": {}
+      },
+      {
+        "name": "archive",
+        "status": 0,
+        "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "counts": {}
+      },
+      {
+        "name": "extract",
+        "status": 0,
+        "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "counts": {}
+      },
+      {
+        "name": "canonical-migration",
+        "status": 0,
+        "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "counts": {}
+      },
+      {
+        "name": "build",
+        "status": 0,
+        "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "counts": {}
+      },
+      {
+        "name": "source-types",
+        "status": 0,
+        "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "counts": {}
+      },
+      {
+        "name": "source-tests",
+        "status": 0,
+        "stdoutSha256": "3b7a14fe4b319eeffc2232b143b96b9a19e4cef8517dc506c19137980b1eac64",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "counts": {
+          "tests": 259,
+          "pass": 259,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "name": "pack",
+        "status": 0,
+        "stdoutSha256": "7cfb6b5e338138645cf0733844976f19d9daaa3060813b3900a92ab0673282ef",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "counts": {}
+      },
+      {
+        "name": "unpack",
+        "status": 0,
+        "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "counts": {}
+      },
+      {
+        "name": "consumer-types",
+        "status": 0,
+        "stdoutSha256": "7d5355d18cfa7b27681b310882424a7ee246d3f29be1c0d8c341b0aae1a527e6",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "counts": {}
+      },
+      {
+        "name": "negative-types",
+        "command": [
+          "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+          "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/bin/tsc",
+          "-p",
+          "negative.json"
+        ],
+        "cwd": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-4g0qxN/moved-consumer",
+        "status": 2,
+        "signal": null,
+        "stdout": "negative.mts(3,28): error TS2353: Object literal may only specify known properties, and 'replace' does not exist in type 'Omit<TimeEnvCommandsOptions, \"replace\">'.\nnegative.mts(4,19): error TS2322: Type '() => string' is not assignable to type '() => number'.\n  Type 'string' is not assignable to type 'number'.\nnegative.mts(5,25): error TS2322: Type 'number' is not assignable to type 'string'.\nnegative.mts(6,35): error TS2322: Type 'string' is not assignable to type 'number'.\nnegative.mts(7,7): error TS2741: Property 'clearTimeout' is missing in type '{ now: () => number; setTimeout: () => number; }' but required in type 'SleepScheduler'.\nnegative.mts(8,7): error TS2739: Type '{ maxFormatWidth: number; }' is missing the following properties from type 'TimeEnvLimits': maxArguments, maxArgumentBytes, maxOutputBytes, maxEnvironmentEntries\n",
+        "stderr": ""
+      },
+      {
+        "name": "public-repeat-1",
+        "command": [
+          "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+          "--unhandled-rejections=strict",
+          "--permission",
+          "--allow-fs-read=/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-4g0qxN/moved-consumer",
+          "--test",
+          "--test-concurrency=1",
+          "emitted/consumer.mjs"
+        ],
+        "cwd": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-4g0qxN/moved-consumer",
+        "status": 1,
+        "signal": null,
+        "stdout": "TAP version 13\n# Subtest: emitted/consumer.mjs\nnot ok 1 - emitted/consumer.mjs\n  ---\n  duration_ms: 0.676333\n  type: 'test'\n  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-4g0qxN/moved-consumer/emitted/consumer.mjs:1:1'\n  failureType: 'testCodeFailure'\n  error: 'Access to this API has been restricted. Use --allow-child-process to manage permissions.'\n  code: 'ERR_ACCESS_DENIED'\n  stack: |-\n    ChildProcess.spawn (node:internal/child_process:395:28)\n    spawn (node:child_process:787:9)\n    TestContext.<anonymous> (node:internal/test_runner/runner:377:19)\n    FileTest.runInAsyncScope (node:async_hooks:214:14)\n    FileTest.run (node:internal/test_runner/test:1047:25)\n    FileTest.start (node:internal/test_runner/test:944:17)\n    runTestFile (node:internal/test_runner/runner:456:32)\n    node:internal/test_runner/runner:727:25\n    node:internal/per_context/primordials:561:37\n    new Promise (<anonymous>)\n  ...\n1..1\n# tests 1\n# suites 0\n# pass 0\n# fail 1\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 3.618125\n",
+        "stderr": ""
+      }
+    ]
+  },
+  {
+    "run": 2,
+    "originalReportPath": "/tmp/safe-bash-time-env-public-run02-20260827/report.json",
+    "originalReportSha256": "06e4ee2107ce86d1c0057a80fa9673e5d219f35813e59090979d7e6fe9608b98",
+    "sourceCommit": "8476a3edf07e0336999cb46d69b15fd4c19c980c",
+    "sourceTreeSha256": "011f274582c14ba014704dda019bd01ba55c740bd0caf1ff964338c64fd26898",
+    "packageSha256": "886abaa12224883a4c6efe728347e06fa1b17965b756b37f1dba1bea2f1d245f",
+    "startedAt": "2026-08-27T09:32:53.763Z",
+    "finishedAt": "2026-08-27T09:33:00.864Z",
+    "status": "failed",
+    "resources": {
+      "work": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-zfKcez",
+      "cleaned": true
+    },
+    "steps": [
+      {
+        "name": "revision",
+        "status": 0,
+        "stdoutSha256": "d742a416d687441ccf508956569c5acb2ea78cc2798cd20778c3431dd57c73bd",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "counts": {}
+      },
+      {
+        "name": "archive",
+        "status": 0,
+        "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "counts": {}
+      },
+      {
+        "name": "extract",
+        "status": 0,
+        "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "counts": {}
+      },
+      {
+        "name": "canonical-migration",
+        "status": 0,
+        "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "counts": {}
+      },
+      {
+        "name": "build",
+        "status": 0,
+        "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "counts": {}
+      },
+      {
+        "name": "source-types",
+        "status": 0,
+        "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "counts": {}
+      },
+      {
+        "name": "source-tests",
+        "status": 0,
+        "stdoutSha256": "12ce3d5785ea6543135e0e04b9012edc4b0e390635c580755dd86669beda62f1",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "counts": {
+          "tests": 259,
+          "pass": 259,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "name": "pack",
+        "status": 0,
+        "stdoutSha256": "7cfb6b5e338138645cf0733844976f19d9daaa3060813b3900a92ab0673282ef",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "counts": {}
+      },
+      {
+        "name": "unpack",
+        "status": 0,
+        "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "counts": {}
+      },
+      {
+        "name": "consumer-types",
+        "status": 0,
+        "stdoutSha256": "a75ef45d92fa5f71521df206d7195db7d1bfbfa9f8d59453504c69d836a31a56",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "counts": {}
+      },
+      {
+        "name": "negative-types",
+        "command": [
+          "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+          "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/bin/tsc",
+          "-p",
+          "negative.json"
+        ],
+        "cwd": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-zfKcez/moved-consumer",
+        "status": 2,
+        "signal": null,
+        "stdout": "negative.mts(3,28): error TS2353: Object literal may only specify known properties, and 'replace' does not exist in type 'Omit<TimeEnvCommandsOptions, \"replace\">'.\nnegative.mts(4,19): error TS2322: Type '() => string' is not assignable to type '() => number'.\n  Type 'string' is not assignable to type 'number'.\nnegative.mts(5,25): error TS2322: Type 'number' is not assignable to type 'string'.\nnegative.mts(6,35): error TS2322: Type 'string' is not assignable to type 'number'.\nnegative.mts(7,7): error TS2741: Property 'clearTimeout' is missing in type '{ now: () => number; setTimeout: () => number; }' but required in type 'SleepScheduler'.\nnegative.mts(8,7): error TS2739: Type '{ maxFormatWidth: number; }' is missing the following properties from type 'TimeEnvLimits': maxArguments, maxArgumentBytes, maxOutputBytes, maxEnvironmentEntries\n",
+        "stderr": ""
+      },
+      {
+        "name": "public-repeat-1",
+        "command": [
+          "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+          "--unhandled-rejections=strict",
+          "--permission",
+          "--allow-fs-read=/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-zfKcez/moved-consumer",
+          "emitted/consumer.mjs"
+        ],
+        "cwd": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-zfKcez/moved-consumer",
+        "status": 1,
+        "signal": null,
+        "stdout": "TAP version 13\n# Subtest: public root/subpath declarations and runtime resolve only moved packed dist\nok 1 - public root/subpath declarations and runtime resolve only moved packed dist\n  ---\n  duration_ms: 1.122125\n  type: 'test'\n  ...\n# Subtest: factory and installed registry have the explicit68 names, optional capabilities absent\nnot ok 2 - factory and installed registry have the explicit68 names, optional capabilities absent\n  ---\n  duration_ms: 2.856625\n  type: 'test'\n  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-zfKcez/moved-consumer/emitted/consumer.mjs:48:1'\n  failureType: 'testCodeFailure'\n  error: |-\n    Expected values to be strictly deep-equal:\n    + actual - expected\n    \n    + []\n    - [\n    -   '[',\n    -   'awk',\n    -   'base32',\n    -   'base64',\n    -   'basename',\n    -   'cat',\n    -   'chmod',\n    -   'cksum',\n    -   'comm',\n    -   'cp',\n    -   'cut',\n    -   'date',\n    -   'diff',\n    -   'dirname',\n    -   'echo',\n    -   'env',\n    -   'expand',\n    -   'false',\n    -   'find',\n    -   'fold',\n    -   'grep',\n    -   'gunzip',\n    -   'gzip',\n    -   'head',\n    -   'join',\n    -   'jq',\n    -   'ln',\n    -   'ls',\n    -   'md5sum',\n    -   'mkdir',\n    -   'mktemp',\n    -   'mv',\n    -   'nl',\n    -   'od',\n    -   'paste',\n    -   'patch',\n    -   'printenv',\n    -   'printf',\n    -   'pwd',\n    -   'readlink',\n    -   'realpath',\n    -   'rev',\n    -   'rg',\n    -   'rm',\n    -   'rmdir',\n    -   'sed',\n    -   'seq',\n    -   'sha1sum',\n    -   'sha256sum',\n    -   'sleep',\n    -   'sort',\n    -   'split',\n    -   'stat',\n    -   'strings',\n    -   'tac',\n    -   'tail',\n    -   'tar',\n    -   'tee',\n    -   'test',\n    -   'touch',\n    -   'tr',\n    -   'true',\n    -   'unexpand',\n    -   'uniq',\n    -   'wc',\n    -   'xargs',\n    -   'xxd',\n    -   'zcat'\n    - ]\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n    0: '['\n    1: 'awk'\n    2: 'base32'\n    3: 'base64'\n    4: 'basename'\n    5: 'cat'\n    6: 'chmod'\n    7: 'cksum'\n    8: 'comm'\n    9: 'cp'\n    10: 'cut'\n    11: 'date'\n    12: 'diff'\n    13: 'dirname'\n    14: 'echo'\n    15: 'env'\n    16: 'expand'\n    17: 'false'\n    18: 'find'\n    19: 'fold'\n    20: 'grep'\n    21: 'gunzip'\n    22: 'gzip'\n    23: 'head'\n    24: 'join'\n    25: 'jq'\n    26: 'ln'\n    27: 'ls'\n    28: 'md5sum'\n    29: 'mkdir'\n    30: 'mktemp'\n    31: 'mv'\n    32: 'nl'\n    33: 'od'\n    34: 'paste'\n    35: 'patch'\n    36: 'printenv'\n    37: 'printf'\n    38: 'pwd'\n    39: 'readlink'\n    40: 'realpath'\n    41: 'rev'\n    42: 'rg'\n    43: 'rm'\n    44: 'rmdir'\n    45: 'sed'\n    46: 'seq'\n    47: 'sha1sum'\n    48: 'sha256sum'\n    49: 'sleep'\n    50: 'sort'\n    51: 'split'\n    52: 'stat'\n    53: 'strings'\n    54: 'tac'\n    55: 'tail'\n    56: 'tar'\n    57: 'tee'\n    58: 'test'\n    59: 'touch'\n    60: 'tr'\n    61: 'true'\n    62: 'unexpand'\n    63: 'uniq'\n    64: 'wc'\n    65: 'xargs'\n    66: 'xxd'\n    67: 'zcat'\n  actual:\n  operator: 'deepStrictEqual'\n  stack: |-\n    file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-zfKcez/moved-consumer/emitted/consumer.mjs:53:16\n    usingShell (file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-zfKcez/moved-consumer/emitted/consumer.mjs:26:15)\n    TestContext.<anonymous> (file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-zfKcez/moved-consumer/emitted/consumer.mjs:52:11)\n    Test.runInAsyncScope (node:async_hooks:214:14)\n    Test.run (node:internal/test_runner/test:1047:25)\n    Test.processPendingSubtests (node:internal/test_runner/test:744:18)\n    Test.postRun (node:internal/test_runner/test:1173:19)\n    Test.run (node:internal/test_runner/test:1101:12)\n    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)\n  ...\n# Subtest: standalone public family requires no options and does not install the aggregate\nnot ok 3 - standalone public family requires no options and does not install the aggregate\n  ---\n  duration_ms: 0.215416\n  type: 'test'\n  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-zfKcez/moved-consumer/emitted/consumer.mjs:58:1'\n  failureType: 'testCodeFailure'\n  error: |-\n    Expected values to be strictly deep-equal:\n    + actual - expected\n    \n    + []\n    - [\n    -   'date',\n    -   'sleep',\n    -   'printenv'\n    - ]\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n    0: 'date'\n    1: 'sleep'\n    2: 'printenv'\n  actual:\n  operator: 'deepStrictEqual'\n  stack: |-\n    TestContext.<anonymous> (file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-zfKcez/moved-consumer/emitted/consumer.mjs:61:16)\n    Test.runInAsyncScope (node:async_hooks:214:14)\n    Test.run (node:internal/test_runner/test:1047:25)\n    Test.processPendingSubtests (node:internal/test_runner/test:744:18)\n    Test.postRun (node:internal/test_runner/test:1173:19)\n    Test.run (node:internal/test_runner/test:1101:12)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n# Subtest: default clock observes real wall time and virtual timezone defaults to UTC\nok 4 - default clock observes real wall time and virtual timezone defaults to UTC\n  ---\n  duration_ms: 2.802625\n  type: 'test'\n  ...\n# Subtest: configured clock read once, fractional forms and year-zero formats dispatch through defaults\nok 5 - configured clock read once, fractional forms and year-zero formats dispatch through defaults\n  ---\n  duration_ms: 1.656666\n  type: 'test'\n  ...\n# Subtest: timezone precedence stays virtual and date-reference/VFS pipelines preserve bytes\nok 6 - timezone precedence stays virtual and date-reference/VFS pipelines preserve bytes\n  ---\n  duration_ms: 5.532542\n  type: 'test'\n  ...\n# Subtest: printenv own special names, empty/missing values and NUL termination survive public env\nok 7 - printenv own special names, empty/missing values and NUL termination survive public env\n  ---\n  duration_ms: 1.652791\n  type: 'test'\n  ...\n# Subtest: date collision is atomic; only top-level replacement authorizes overwrite\nnot ok 8 - date collision is atomic; only top-level replacement authorizes overwrite\n  ---\n  duration_ms: 0.29475\n  type: 'test'\n  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-zfKcez/moved-consumer/emitted/consumer.mjs:124:5'\n  failureType: 'testCodeFailure'\n  error: 'Missing expected exception.'\n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n  operator: 'throws'\n  stack: |-\n    TestContext.<anonymous> (file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-zfKcez/moved-consumer/emitted/consumer.mjs:130:20)\n    Test.runInAsyncScope (node:async_hooks:214:14)\n    Test.run (node:internal/test_runner/test:1047:25)\n    Test.processPendingSubtests (node:internal/test_runner/test:744:18)\n    Test.postRun (node:internal/test_runner/test:1173:19)\n    Test.run (node:internal/test_runner/test:1101:12)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n# Subtest: sleep collision is atomic; only top-level replacement authorizes overwrite\nnot ok 9 - sleep collision is atomic; only top-level replacement authorizes overwrite\n  ---\n  duration_ms: 0.164583\n  type: 'test'\n  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-zfKcez/moved-consumer/emitted/consumer.mjs:124:5'\n  failureType: 'testCodeFailure'\n  error: 'Missing expected exception.'\n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n  operator: 'throws'\n  stack: |-\n    TestContext.<anonymous> (file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-zfKcez/moved-consumer/emitted/consumer.mjs:130:20)\n    Test.runInAsyncScope (node:async_hooks:214:14)\n    Test.run (node:internal/test_runner/test:1047:25)\n    Test.processPendingSubtests (node:internal/test_runner/test:744:18)\n    Test.postRun (node:internal/test_runner/test:1173:19)\n    Test.run (node:internal/test_runner/test:1101:12)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n# Subtest: printenv collision is atomic; only top-level replacement authorizes overwrite\nnot ok 10 - printenv collision is atomic; only top-level replacement authorizes overwrite\n  ---\n  duration_ms: 0.53025\n  type: 'test'\n  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-zfKcez/moved-consumer/emitted/consumer.mjs:124:5'\n  failureType: 'testCodeFailure'\n  error: 'Missing expected exception.'\n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n  operator: 'throws'\n  stack: |-\n    TestContext.<anonymous> (file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-zfKcez/moved-consumer/emitted/consumer.mjs:130:20)\n    Test.runInAsyncScope (node:async_hooks:214:14)\n    Test.run (node:internal/test_runner/test:1047:25)\n    Test.processPendingSubtests (node:internal/test_runner/test:744:18)\n    Test.postRun (node:internal/test_runner/test:1173:19)\n    Test.run (node:internal/test_runner/test:1101:12)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n# Subtest: family limits fail before output publication and bad options fail registration\nnot ok 11 - family limits fail before output publication and bad options fail registration\n  ---\n  duration_ms: 0.657791\n  type: 'test'\n  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-zfKcez/moved-consumer/emitted/consumer.mjs:142:1'\n  failureType: 'testCodeFailure'\n  error: 'Missing expected rejection.'\n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n    code: 'EFBIG'\n  operator: 'rejects'\n  stack: |-\n    async usingShell.timeEnv.limits.maxOutputBytes (file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-zfKcez/moved-consumer/emitted/consumer.mjs:146:9)\n    async usingShell (file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-zfKcez/moved-consumer/emitted/consumer.mjs:26:9)\n    async TestContext.<anonymous> (file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-zfKcez/moved-consumer/emitted/consumer.mjs:144:5)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n# Subtest: exact decimal sleep sums once and chunks a monotonic injected timer\nok 12 - exact decimal sleep sums once and chunks a monotonic injected timer\n  ---\n  duration_ms: 0.575459\n  type: 'test'\n  ...\n# Subtest: sleep preabort drains its timer without host leaks\nok 13 - sleep preabort drains its timer without host leaks\n  ---\n  duration_ms: 2.919458\n  type: 'test'\n  ...\n# Subtest: sleep abort drains its timer without host leaks\nok 14 - sleep abort drains its timer without host leaks\n  ---\n  duration_ms: 0.811083\n  type: 'test'\n  ...\n# Subtest: sleep dispose drains its timer without host leaks\nok 15 - sleep dispose drains its timer without host leaks\n  ---\n  duration_ms: 0.618541\n  type: 'test'\n  ...\n# Subtest: public workflows leave host environment unchanged\nok 16 - public workflows leave host environment unchanged\n  ---\n  duration_ms: 1.174625\n  type: 'test'\n  ...\n1..16\n# tests 16\n# suites 0\n# pass 10\n# fail 6\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 26.748084\n",
+        "stderr": ""
+      }
+    ]
+  },
+  {
+    "run": 3,
+    "originalReportPath": "/tmp/safe-bash-time-env-public-run03-20260827/report.json",
+    "originalReportSha256": "f4c5dd3f6a9cd70da07a3c2640b9ebdc04e4f99585ccbd8cb8d44c3590d65e51",
+    "sourceCommit": "f44958bf48778737a58535e2bc9b37c292ac28c4",
+    "sourceTreeSha256": "011f274582c14ba014704dda019bd01ba55c740bd0caf1ff964338c64fd26898",
+    "packageSha256": "886abaa12224883a4c6efe728347e06fa1b17965b756b37f1dba1bea2f1d245f",
+    "startedAt": "2026-08-27T09:33:45.677Z",
+    "finishedAt": "2026-08-27T09:33:52.427Z",
+    "status": "failed",
+    "resources": {
+      "work": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-gmwnmy",
+      "cleaned": true
+    },
+    "steps": [
+      {
+        "name": "revision",
+        "status": 0,
+        "stdoutSha256": "dcbb71bc0f7a47054cbf167a6abf62de80947031ff2ed34f132ad0166c8919a9",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "counts": {}
+      },
+      {
+        "name": "archive",
+        "status": 0,
+        "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "counts": {}
+      },
+      {
+        "name": "extract",
+        "status": 0,
+        "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "counts": {}
+      },
+      {
+        "name": "canonical-migration",
+        "status": 0,
+        "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "counts": {}
+      },
+      {
+        "name": "build",
+        "status": 0,
+        "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "counts": {}
+      },
+      {
+        "name": "source-types",
+        "status": 0,
+        "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "counts": {}
+      },
+      {
+        "name": "source-tests",
+        "status": 0,
+        "stdoutSha256": "aac14696d87ad957991b581362c03d4dceb2390337f15c80f5c5de335378ca4a",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "counts": {
+          "tests": 259,
+          "pass": 259,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "name": "pack",
+        "status": 0,
+        "stdoutSha256": "7cfb6b5e338138645cf0733844976f19d9daaa3060813b3900a92ab0673282ef",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "counts": {}
+      },
+      {
+        "name": "unpack",
+        "status": 0,
+        "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "counts": {}
+      },
+      {
+        "name": "consumer-types",
+        "command": [
+          "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+          "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/bin/tsc",
+          "-p",
+          "tsconfig.json",
+          "--listFiles"
+        ],
+        "cwd": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-gmwnmy/moved-consumer",
+        "status": 2,
+        "signal": null,
+        "stdout": "consumer.mts(168,24): error TS2769: No overload matches this call.\n  Overload 1 of 2, '(block: Promise<unknown> | (() => Promise<unknown>), message?: string | Error | undefined): Promise<void>', gave the following error.\n    Argument of type 'CommandResult | Promise<CommandResult>' is not assignable to parameter of type 'Promise<unknown> | (() => Promise<unknown>)'.\n      Type 'CommandResult' is not assignable to type 'Promise<unknown> | (() => Promise<unknown>)'.\n  Overload 2 of 2, '(block: Promise<unknown> | (() => Promise<unknown>), error: AssertPredicate, message?: string | Error | undefined): Promise<void>', gave the following error.\n    Argument of type 'CommandResult | Promise<CommandResult>' is not assignable to parameter of type 'Promise<unknown> | (() => Promise<unknown>)'.\n      Type 'CommandResult' is not assignable to type 'Promise<unknown> | (() => Promise<unknown>)'.\n/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es5.d.ts\n/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2015.d.ts\n/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2016.d.ts\n/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2017.d.ts\n/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2018.d.ts\n/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2019.d.ts\n/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2020.d.ts\n/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2021.d.ts\n/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2022.d.ts\n/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2023.d.ts\n/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2015.core.d.ts\n/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2015.collection.d.ts\n/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2015.generator.d.ts\n/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2015.iterable.d.ts\n/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2015.promise.d.ts\n/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2015.proxy.d.ts\n/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2015.reflect.d.ts\n/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2015.symbol.d.ts\n/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2015.symbol.wellknown.d.ts\n/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2016.array.include.d.ts\n/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2016.intl.d.ts\n/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2017.arraybuffer.d.ts\n/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2017.date.d.ts\n/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2017.object.d.ts\n/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2017.sharedmemory.d.ts\n/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2017.string.d.ts\n/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2017.intl.d.ts\n/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2017.typedarrays.d.ts\n/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2018.asyncgenerator.d.ts\n/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2018.asynciterable.d.ts\n/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2018.intl.d.ts\n/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2018.promise.d.ts\n/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2018.regexp.d.ts\n/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2019.array.d.ts\n/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2019.object.d.ts\n/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2019.string.d.ts\n/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2019.symbol.d.ts\n/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2019.intl.d.ts\n/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2020.bigint.d.ts\n/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2020.date.d.ts\n/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2020.promise.d.ts\n/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2020.sharedmemory.d.ts\n/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2020.string.d.ts\n/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2020.symbol.wellknown.d.ts\n/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2020.intl.d.ts\n/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2020.number.d.ts\n/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2021.promise.d.ts\n/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2021.string.d.ts\n/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2021.weakref.d.ts\n/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2021.intl.d.ts\n/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2022.array.d.ts\n/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2022.error.d.ts\n/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2022.intl.d.ts\n/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2022.object.d.ts\n/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2022.string.d.ts\n/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2022.regexp.d.ts\n/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2023.array.d.ts\n/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2023.collection.d.ts\n/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2023.intl.d.ts\n/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.decorators.d.ts\n/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.decorators.legacy.d.ts\n/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-gmwnmy/moved-consumer/node_modules/virtual-bash/dist/contracts/io.d.ts\n/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-gmwnmy/moved-consumer/node_modules/virtual-bash/dist/contracts/filesystem.d.ts\n/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-gmwnmy/moved-consumer/node_modules/virtual-bash/dist/contracts/command.d.ts\n/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-gmwnmy/moved-consumer/node_modules/virtual-bash/dist/contracts/errors.d.ts\n/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-gmwnmy/moved-consumer/node_modules/virtual-bash/dist/contracts/path.d.ts\n/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-gmwnmy/moved-consumer/node_modules/virtual-bash/dist/contracts/plugin.d.ts\n/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-gmwnmy/moved-consumer/node_modules/virtual-bash/dist/contracts/index.d.ts\n/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-gmwnmy/moved-consumer/node_modules/virtual-bash/dist/commands/text-programs/shared.d.ts\n/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-gmwnmy/moved-consumer/node_modules/virtual-bash/dist/commands/text-programs/index.d.ts\n/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-gmwnmy/moved-consumer/node_modules/virtual-bash/dist/commands/structured/numbers.d.ts\n/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-gmwnmy/moved-consumer/node_modules/virtual-bash/dist/commands/structured/limits.d.ts\n/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-gmwnmy/moved-consumer/node_modules/virtual-bash/dist/commands/structured/index.d.ts\n/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-gmwnmy/moved-consumer/node_modules/virtual-bash/dist/commands/regex-execution/protocol.d.ts\n/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-gmwnmy/moved-consumer/node_modules/virtual-bash/dist/commands/search/options.d.ts\n/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-gmwnmy/moved-consumer/node_modules/virtual-bash/dist/commands/search/index.d.ts\n/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-gmwnmy/moved-consumer/node_modules/virtual-bash/dist/commands/diff-patch/shared.d.ts\n/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-gmwnmy/moved-consumer/node_modules/virtual-bash/dist/commands/diff-patch/index.d.ts\n/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-gmwnmy/moved-consumer/node_modules/virtual-bash/dist/commands/metadata/internal.d.ts\n/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-gmwnmy/moved-consumer/node_modules/virtual-bash/dist/commands/metadata/index.d.ts\n/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-gmwnmy/moved-consumer/node_modules/virtual-bash/dist/commands/archive/internal.d.ts\n/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-gmwnmy/moved-consumer/node_modules/virtual-bash/dist/commands/archive/index.d.ts\n/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-gmwnmy/moved-consumer/node_modules/virtual-bash/dist/commands/table-text/internal.d.ts\n/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-gmwnmy/moved-consumer/node_modules/virtual-bash/dist/commands/table-text/index.d.ts\n/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-gmwnmy/moved-consumer/node_modules/virtual-bash/dist/commands/stream-inspection/shared.d.ts\n/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-gmwnmy/moved-consumer/node_modules/virtual-bash/dist/commands/stream-inspection/index.d.ts\n/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-gmwnmy/moved-consumer/node_modules/virtual-bash/dist/commands/stream-format/shared.d.ts\n/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-gmwnmy/moved-consumer/node_modules/virtual-bash/dist/commands/stream-format/index.d.ts\n/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-gmwnmy/moved-consumer/node_modules/virtual-bash/dist/commands/split/options.d.ts\n/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-gmwnmy/moved-consumer/node_modules/virtual-bash/dist/commands/split/index.d.ts\n/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-gmwnmy/moved-consumer/node_modules/virtual-bash/dist/commands/time-env/shared.d.ts\n/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-gmwnmy/moved-consumer/node_modules/virtual-bash/dist/commands/time-env/index.d.ts\n/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-gmwnmy/moved-consumer/node_modules/virtual-bash/dist/plugins/index.d.ts\n/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-gmwnmy/moved-consumer/node_modules/virtual-bash/dist/shell/types.d.ts\n/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-gmwnmy/moved-consumer/node_modules/virtual-bash/dist/shell/shell.d.ts\n/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-gmwnmy/moved-consumer/node_modules/virtual-bash/dist/shell/arithmetic.d.ts\n/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-gmwnmy/moved-consumer/node_modules/virtual-bash/dist/shell/parser.d.ts\n/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-gmwnmy/moved-consumer/node_modules/virtual-bash/dist/shell/index.d.ts\n/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-gmwnmy/moved-consumer/node_modules/virtual-bash/dist/commands/index.d.ts\n/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-gmwnmy/moved-consumer/node_modules/virtual-bash/dist/commands/bytes/index.d.ts\n/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-gmwnmy/moved-consumer/node_modules/virtual-bash/dist/integrations/safejs/filesystem.d.ts\n/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-gmwnmy/moved-consumer/node_modules/virtual-bash/dist/integrations/safejs/shell.d.ts\n/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-gmwnmy/moved-consumer/node_modules/virtual-bash/dist/integrations/safejs/index.d.ts\n/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-gmwnmy/moved-consumer/node_modules/virtual-bash/dist/commands/safejs/types.d.ts\n/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-gmwnmy/moved-consumer/node_modules/virtual-bash/dist/commands/safejs/options.d.ts\n/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-gmwnmy/moved-consumer/node_modules/virtual-bash/dist/commands/safejs/index.d.ts\n/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-gmwnmy/moved-consumer/node_modules/virtual-bash/dist/commands/network/types.d.ts\n/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-gmwnmy/moved-consumer/node_modules/virtual-bash/dist/commands/network/transport.d.ts\n/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-gmwnmy/moved-consumer/node_modules/virtual-bash/dist/commands/network/curl.d.ts\n/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-gmwnmy/moved-consumer/node_modules/virtual-bash/dist/commands/network/index.d.ts\n/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-gmwnmy/moved-consumer/node_modules/virtual-bash/dist/fs/memory/index.d.ts\n/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-gmwnmy/moved-consumer/node_modules/virtual-bash/dist/fs/real/index.d.ts\n/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-gmwnmy/moved-consumer/node_modules/virtual-bash/dist/fs/s3/transport.d.ts\n/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-gmwnmy/moved-consumer/node_modules/virtual-bash/dist/fs/s3/filesystem.d.ts\n/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-gmwnmy/moved-consumer/node_modules/virtual-bash/dist/fs/s3/mock.d.ts\n/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-gmwnmy/moved-consumer/node_modules/virtual-bash/dist/fs/s3/index.d.ts\n/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-gmwnmy/moved-consumer/node_modules/virtual-bash/dist/fs/s3/http/types.d.ts\n/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-gmwnmy/moved-consumer/node_modules/virtual-bash/dist/fs/s3/http/transport.d.ts\n/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-gmwnmy/moved-consumer/node_modules/virtual-bash/dist/fs/s3/http/index.d.ts\n/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-gmwnmy/moved-consumer/node_modules/virtual-bash/dist/fs/webdav/webdav.d.ts\n/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-gmwnmy/moved-consumer/node_modules/virtual-bash/dist/fs/webdav/index.d.ts\n/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-gmwnmy/moved-consumer/node_modules/virtual-bash/dist/fs/readonly/index.d.ts\n/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-gmwnmy/moved-consumer/node_modules/virtual-bash/dist/fs/mount/index.d.ts\n/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-gmwnmy/moved-consumer/node_modules/virtual-bash/dist/fs/overlay/index.d.ts\n/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-gmwnmy/moved-consumer/node_modules/virtual-bash/dist/index.d.ts\n/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-gmwnmy/moved-consumer/consumer.mts\n/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-gmwnmy/moved-consumer/node_modules/@types/node/compatibility/disposable.d.ts\n/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-gmwnmy/moved-consumer/node_modules/@types/node/compatibility/indexable.d.ts\n/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-gmwnmy/moved-consumer/node_modules/@types/node/compatibility/iterators.d.ts\n/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-gmwnmy/moved-consumer/node_modules/@types/node/compatibility/index.d.ts\n/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-gmwnmy/moved-consumer/node_modules/@types/node/globals.typedarray.d.ts\n/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-gmwnmy/moved-consumer/node_modules/@types/node/buffer.buffer.d.ts\n/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-gmwnmy/moved-consumer/node_modules/@types/node/globals.d.ts\n/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-gmwnmy/moved-consumer/node_modules/@types/node/web-globals/abortcontroller.d.ts\n/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-gmwnmy/moved-consumer/node_modules/@types/node/web-globals/domexception.d.ts\n/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-gmwnmy/moved-consumer/node_modules/@types/node/web-globals/events.d.ts\n/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-gmwnmy/moved-consumer/node_modules/undici-types/header.d.ts\n/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-gmwnmy/moved-consumer/node_modules/undici-types/readable.d.ts\n/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-gmwnmy/moved-consumer/node_modules/undici-types/file.d.ts\n/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-gmwnmy/moved-consumer/node_modules/undici-types/fetch.d.ts\n/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-gmwnmy/moved-consumer/node_modules/undici-types/formdata.d.ts\n/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-gmwnmy/moved-consumer/node_modules/undici-types/connector.d.ts\n/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-gmwnmy/moved-consumer/node_modules/undici-types/client.d.ts\n/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-gmwnmy/moved-consumer/node_modules/undici-types/errors.d.ts\n/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-gmwnmy/moved-consumer/node_modules/undici-types/dispatcher.d.ts\n/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-gmwnmy/moved-consumer/node_modules/undici-types/global-dispatcher.d.ts\n/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-gmwnmy/moved-consumer/node_modules/undici-types/global-origin.d.ts\n/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-gmwnmy/moved-consumer/node_modules/undici-types/pool-stats.d.ts\n/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-gmwnmy/moved-consumer/node_modules/undici-types/pool.d.ts\n/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-gmwnmy/moved-consumer/node_modules/undici-types/handlers.d.ts\n/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-gmwnmy/moved-consumer/node_modules/undici-types/balanced-pool.d.ts\n/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-gmwnmy/moved-consumer/node_modules/undici-types/agent.d.ts\n/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-gmwnmy/moved-consumer/node_modules/undici-types/mock-interceptor.d.ts\n/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-gmwnmy/moved-consumer/node_modules/undici-types/mock-agent.d.ts\n/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-gmwnmy/moved-consumer/node_modules/undici-types/mock-client.d.ts\n/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-gmwnmy/moved-consumer/node_modules/undici-types/mock-pool.d.ts\n/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-gmwnmy/moved-consumer/node_modules/undici-types/mock-errors.d.ts\n/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-gmwnmy/moved-consumer/node_modules/undici-types/proxy-agent.d.ts\n/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-gmwnmy/moved-consumer/node_modules/undici-types/env-http-proxy-agent.d.ts\n/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-gmwnmy/moved-consumer/node_modules/undici-types/retry-handler.d.ts\n/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-gmwnmy/moved-consumer/node_modules/undici-types/retry-agent.d.ts\n/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-gmwnmy/moved-consumer/node_modules/undici-types/api.d.ts\n/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-gmwnmy/moved-consumer/node_modules/undici-types/interceptors.d.ts\n/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-gmwnmy/moved-consumer/node_modules/undici-types/util.d.ts\n/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-gmwnmy/moved-consumer/node_modules/undici-types/cookies.d.ts\n/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-gmwnmy/moved-consumer/node_modules/undici-types/patch.d.ts\n/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-gmwnmy/moved-consumer/node_modules/undici-types/websocket.d.ts\n/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-gmwnmy/moved-consumer/node_modules/undici-types/eventsource.d.ts\n/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-gmwnmy/moved-consumer/node_modules/undici-types/filereader.d.ts\n/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-gmwnmy/moved-consumer/node_modules/undici-types/diagnostics-channel.d.ts\n/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-gmwnmy/moved-consumer/node_modules/undici-types/content-type.d.ts\n/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-gmwnmy/moved-consumer/node_modules/undici-types/cache.d.ts\n/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-gmwnmy/moved-consumer/node_modules/undici-types/index.d.ts\n/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-gmwnmy/moved-consumer/node_modules/@types/node/web-globals/fetch.d.ts\n/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-gmwnmy/moved-consumer/node_modules/@types/node/web-globals/navigator.d.ts\n/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-gmwnmy/moved-consumer/node_modules/@types/node/web-globals/storage.d.ts\n/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-gmwnmy/moved-consumer/node_modules/@types/node/web-globals/streams.d.ts\n/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-gmwnmy/moved-consumer/node_modules/@types/node/assert.d.ts\n/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-gmwnmy/moved-consumer/node_modules/@types/node/assert/strict.d.ts\n/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-gmwnmy/moved-consumer/node_modules/@types/node/async_hooks.d.ts\n/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-gmwnmy/moved-consumer/node_modules/@types/node/buffer.d.ts\n/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-gmwnmy/moved-consumer/node_modules/@types/node/child_process.d.ts\n/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-gmwnmy/moved-consumer/node_modules/@types/node/cluster.d.ts\n/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-gmwnmy/moved-consumer/node_modules/@types/node/console.d.ts\n/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-gmwnmy/moved-consumer/node_modules/@types/node/constants.d.ts\n/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-gmwnmy/moved-consumer/node_modules/@types/node/crypto.d.ts\n/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-gmwnmy/moved-consumer/node_modules/@types/node/dgram.d.ts\n/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-gmwnmy/moved-consumer/node_modules/@types/node/diagnostics_channel.d.ts\n/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-gmwnmy/moved-consumer/node_modules/@types/node/dns.d.ts\n/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-gmwnmy/moved-consumer/node_modules/@types/node/dns/promises.d.ts\n/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-gmwnmy/moved-consumer/node_modules/@types/node/domain.d.ts\n/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-gmwnmy/moved-consumer/node_modules/@types/node/events.d.ts\n/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-gmwnmy/moved-consumer/node_modules/@types/node/fs.d.ts\n/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-gmwnmy/moved-consumer/node_modules/@types/node/fs/promises.d.ts\n/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-gmwnmy/moved-consumer/node_modules/@types/node/http.d.ts\n/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-gmwnmy/moved-consumer/node_modules/@types/node/http2.d.ts\n/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-gmwnmy/moved-consumer/node_modules/@types/node/https.d.ts\n/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-gmwnmy/moved-consumer/node_modules/@types/node/inspector.d.ts\n/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-gmwnmy/moved-consumer/node_modules/@types/node/inspector.generated.d.ts\n/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-gmwnmy/moved-consumer/node_modules/@types/node/module.d.ts\n/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-gmwnmy/moved-consumer/node_modules/@types/node/net.d.ts\n/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-gmwnmy/moved-consumer/node_modules/@types/node/os.d.ts\n/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-gmwnmy/moved-consumer/node_modules/@types/node/path.d.ts\n/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-gmwnmy/moved-consumer/node_modules/@types/node/perf_hooks.d.ts\n/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-gmwnmy/moved-consumer/node_modules/@types/node/process.d.ts\n/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-gmwnmy/moved-consumer/node_modules/@types/node/punycode.d.ts\n/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-gmwnmy/moved-consumer/node_modules/@types/node/querystring.d.ts\n/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-gmwnmy/moved-consumer/node_modules/@types/node/readline.d.ts\n/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-gmwnmy/moved-consumer/node_modules/@types/node/readline/promises.d.ts\n/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-gmwnmy/moved-consumer/node_modules/@types/node/repl.d.ts\n/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-gmwnmy/moved-consumer/node_modules/@types/node/sea.d.ts\n/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-gmwnmy/moved-consumer/node_modules/@types/node/sqlite.d.ts\n/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-gmwnmy/moved-consumer/node_modules/@types/node/stream.d.ts\n/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-gmwnmy/moved-consumer/node_modules/@types/node/stream/promises.d.ts\n/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-gmwnmy/moved-consumer/node_modules/@types/node/stream/consumers.d.ts\n/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-gmwnmy/moved-consumer/node_modules/@types/node/stream/web.d.ts\n/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-gmwnmy/moved-consumer/node_modules/@types/node/string_decoder.d.ts\n/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-gmwnmy/moved-consumer/node_modules/@types/node/test.d.ts\n/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-gmwnmy/moved-consumer/node_modules/@types/node/timers.d.ts\n/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-gmwnmy/moved-consumer/node_modules/@types/node/timers/promises.d.ts\n/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-gmwnmy/moved-consumer/node_modules/@types/node/tls.d.ts\n/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-gmwnmy/moved-consumer/node_modules/@types/node/trace_events.d.ts\n/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-gmwnmy/moved-consumer/node_modules/@types/node/tty.d.ts\n/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-gmwnmy/moved-consumer/node_modules/@types/node/url.d.ts\n/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-gmwnmy/moved-consumer/node_modules/@types/node/util.d.ts\n/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-gmwnmy/moved-consumer/node_modules/@types/node/v8.d.ts\n/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-gmwnmy/moved-consumer/node_modules/@types/node/vm.d.ts\n/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-gmwnmy/moved-consumer/node_modules/@types/node/wasi.d.ts\n/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-gmwnmy/moved-consumer/node_modules/@types/node/worker_threads.d.ts\n/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-gmwnmy/moved-consumer/node_modules/@types/node/zlib.d.ts\n/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-gmwnmy/moved-consumer/node_modules/@types/node/index.d.ts\n",
+        "stderr": ""
+      }
+    ]
+  },
+  {
+    "run": 4,
+    "originalReportPath": "/tmp/safe-bash-time-env-public-run04-20260827/report.json",
+    "originalReportSha256": "7cef181a287a219ef056610c9701efd99f88dabb8a023756e0dc483e58b2d6d0",
+    "sourceCommit": "5bf3aab4548a4a7d8920a6252ba8aaff706a5f8a",
+    "sourceTreeSha256": "011f274582c14ba014704dda019bd01ba55c740bd0caf1ff964338c64fd26898",
+    "packageSha256": "886abaa12224883a4c6efe728347e06fa1b17965b756b37f1dba1bea2f1d245f",
+    "startedAt": "2026-08-27T09:34:24.447Z",
+    "finishedAt": "2026-08-27T09:34:31.771Z",
+    "status": "failed",
+    "resources": {
+      "work": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-TqLiN3",
+      "cleaned": true
+    },
+    "steps": [
+      {
+        "name": "revision",
+        "status": 0,
+        "stdoutSha256": "f8f05e2e0670afb04944f365635176909c497c0b66621e5f4a3cdc23f13da20a",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "counts": {}
+      },
+      {
+        "name": "archive",
+        "status": 0,
+        "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "counts": {}
+      },
+      {
+        "name": "extract",
+        "status": 0,
+        "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "counts": {}
+      },
+      {
+        "name": "canonical-migration",
+        "status": 0,
+        "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "counts": {}
+      },
+      {
+        "name": "build",
+        "status": 0,
+        "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "counts": {}
+      },
+      {
+        "name": "source-types",
+        "status": 0,
+        "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "counts": {}
+      },
+      {
+        "name": "source-tests",
+        "status": 0,
+        "stdoutSha256": "92e169cde67acadeb6035942e21c3ef249a387b5b38454a91a8c951aba17089e",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "counts": {
+          "tests": 259,
+          "pass": 259,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "name": "pack",
+        "status": 0,
+        "stdoutSha256": "7cfb6b5e338138645cf0733844976f19d9daaa3060813b3900a92ab0673282ef",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "counts": {}
+      },
+      {
+        "name": "unpack",
+        "status": 0,
+        "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "counts": {}
+      },
+      {
+        "name": "consumer-types",
+        "status": 0,
+        "stdoutSha256": "685b100d55a676cd6f12ced292887861ee5416515a93c33f86e734dd1abd2155",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "counts": {}
+      },
+      {
+        "name": "negative-types",
+        "command": [
+          "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+          "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/bin/tsc",
+          "-p",
+          "negative.json"
+        ],
+        "cwd": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-TqLiN3/moved-consumer",
+        "status": 2,
+        "signal": null,
+        "stdout": "negative.mts(3,28): error TS2353: Object literal may only specify known properties, and 'replace' does not exist in type 'Omit<TimeEnvCommandsOptions, \"replace\">'.\nnegative.mts(4,19): error TS2322: Type '() => string' is not assignable to type '() => number'.\n  Type 'string' is not assignable to type 'number'.\nnegative.mts(5,25): error TS2322: Type 'number' is not assignable to type 'string'.\nnegative.mts(6,35): error TS2322: Type 'string' is not assignable to type 'number'.\nnegative.mts(7,7): error TS2741: Property 'clearTimeout' is missing in type '{ now: () => number; setTimeout: () => number; }' but required in type 'SleepScheduler'.\nnegative.mts(8,7): error TS2739: Type '{ maxFormatWidth: number; }' is missing the following properties from type 'TimeEnvLimits': maxArguments, maxArgumentBytes, maxOutputBytes, maxEnvironmentEntries\n",
+        "stderr": ""
+      },
+      {
+        "name": "public-repeat-1",
+        "command": [
+          "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+          "--unhandled-rejections=strict",
+          "--permission",
+          "--allow-fs-read=/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-TqLiN3/moved-consumer",
+          "emitted/consumer.mjs"
+        ],
+        "cwd": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-TqLiN3/moved-consumer",
+        "status": 1,
+        "signal": null,
+        "stdout": "TAP version 13\n# Subtest: public root/subpath declarations and runtime resolve only moved packed dist\nok 1 - public root/subpath declarations and runtime resolve only moved packed dist\n  ---\n  duration_ms: 1.317875\n  type: 'test'\n  ...\n# Subtest: factory and installed registry have the explicit68 names, optional capabilities absent\nok 2 - factory and installed registry have the explicit68 names, optional capabilities absent\n  ---\n  duration_ms: 3.172834\n  type: 'test'\n  ...\n# Subtest: standalone public family requires no options and does not install the aggregate\nok 3 - standalone public family requires no options and does not install the aggregate\n  ---\n  duration_ms: 3.554083\n  type: 'test'\n  ...\n# Subtest: default clock observes real wall time and virtual timezone defaults to UTC\nok 4 - default clock observes real wall time and virtual timezone defaults to UTC\n  ---\n  duration_ms: 0.71175\n  type: 'test'\n  ...\n# Subtest: configured clock read once, fractional forms and year-zero formats dispatch through defaults\nok 5 - configured clock read once, fractional forms and year-zero formats dispatch through defaults\n  ---\n  duration_ms: 1.458\n  type: 'test'\n  ...\n# Subtest: timezone precedence stays virtual and date-reference/VFS pipelines preserve bytes\nok 6 - timezone precedence stays virtual and date-reference/VFS pipelines preserve bytes\n  ---\n  duration_ms: 5.814333\n  type: 'test'\n  ...\n# Subtest: printenv own special names, empty/missing values and NUL termination survive public env\nok 7 - printenv own special names, empty/missing values and NUL termination survive public env\n  ---\n  duration_ms: 0.821708\n  type: 'test'\n  ...\n# Subtest: date collision is atomic; only top-level replacement authorizes overwrite\nnot ok 8 - date collision is atomic; only top-level replacement authorizes overwrite\n  ---\n  duration_ms: 1.028833\n  type: 'test'\n  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-TqLiN3/moved-consumer/emitted/consumer.mjs:126:5'\n  failureType: 'testCodeFailure'\n  error: |-\n    Values have same structure but are not reference-equal:\n    \n    {\n      execute: [Function: execute],\n      name: 'custom'\n    }\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n    name: 'custom'\n    execute: [Function: execute]\n  actual:\n    name: 'custom'\n    execute: [Function: execute]\n  operator: 'strictEqual'\n  stack: |-\n    TestContext.<anonymous> (file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-TqLiN3/moved-consumer/emitted/consumer.mjs:147:20)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n# Subtest: sleep collision is atomic; only top-level replacement authorizes overwrite\nnot ok 9 - sleep collision is atomic; only top-level replacement authorizes overwrite\n  ---\n  duration_ms: 0.553041\n  type: 'test'\n  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-TqLiN3/moved-consumer/emitted/consumer.mjs:126:5'\n  failureType: 'testCodeFailure'\n  error: |-\n    Values have same structure but are not reference-equal:\n    \n    {\n      execute: [Function: execute],\n      name: 'custom'\n    }\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n    name: 'custom'\n    execute: [Function: execute]\n  actual:\n    name: 'custom'\n    execute: [Function: execute]\n  operator: 'strictEqual'\n  stack: |-\n    TestContext.<anonymous> (file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-TqLiN3/moved-consumer/emitted/consumer.mjs:147:20)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n# Subtest: printenv collision is atomic; only top-level replacement authorizes overwrite\nnot ok 10 - printenv collision is atomic; only top-level replacement authorizes overwrite\n  ---\n  duration_ms: 0.630292\n  type: 'test'\n  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-TqLiN3/moved-consumer/emitted/consumer.mjs:126:5'\n  failureType: 'testCodeFailure'\n  error: |-\n    Values have same structure but are not reference-equal:\n    \n    {\n      execute: [Function: execute],\n      name: 'custom'\n    }\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n    name: 'custom'\n    execute: [Function: execute]\n  actual:\n    name: 'custom'\n    execute: [Function: execute]\n  operator: 'strictEqual'\n  stack: |-\n    TestContext.<anonymous> (file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-TqLiN3/moved-consumer/emitted/consumer.mjs:147:20)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n# Subtest: family limits fail before output publication and bad options fail registration\nok 11 - family limits fail before output publication and bad options fail registration\n  ---\n  duration_ms: 0.514\n  type: 'test'\n  ...\n# Subtest: exact decimal sleep sums once and chunks a monotonic injected timer\nok 12 - exact decimal sleep sums once and chunks a monotonic injected timer\n  ---\n  duration_ms: 0.504\n  type: 'test'\n  ...\n# Subtest: sleep preabort drains its timer without host leaks\nok 13 - sleep preabort drains its timer without host leaks\n  ---\n  duration_ms: 2.923791\n  type: 'test'\n  ...\n# Subtest: sleep abort drains its timer without host leaks\nok 14 - sleep abort drains its timer without host leaks\n  ---\n  duration_ms: 0.6845\n  type: 'test'\n  ...\n# Subtest: sleep dispose drains its timer without host leaks\nok 15 - sleep dispose drains its timer without host leaks\n  ---\n  duration_ms: 1.724291\n  type: 'test'\n  ...\n# Subtest: public workflows leave host environment unchanged\nok 16 - public workflows leave host environment unchanged\n  ---\n  duration_ms: 0.8875\n  type: 'test'\n  ...\n# Subtest: default sleep cancels its actual Node timer before public settlement\nok 17 - default sleep cancels its actual Node timer before public settlement\n  ---\n  duration_ms: 0.711667\n  type: 'test'\n  ...\n# Subtest: large printenv output honors asynchronous sink backpressure without chunk aliasing\nok 18 - large printenv output honors asynchronous sink backpressure without chunk aliasing\n  ---\n  duration_ms: 1.146791\n  type: 'test'\n  ...\n1..18\n# tests 18\n# suites 0\n# pass 15\n# fail 3\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 30.594333\n",
+        "stderr": ""
+      }
+    ]
+  },
+  {
+    "run": 5,
+    "originalReportPath": "/tmp/safe-bash-time-env-public-run05-20260827/report.json",
+    "originalReportSha256": "da0277a7648d293d170b09696073aab0df460f05f51c706657fd76f426b950ae",
+    "sourceCommit": "8e1298b02966a1a2344d81c04f3eddd906828682",
+    "sourceTreeSha256": "011f274582c14ba014704dda019bd01ba55c740bd0caf1ff964338c64fd26898",
+    "packageSha256": "1a757856aff57daa1fd3e5c40f4e011b1bb1ec43877f2fd5c8b6fae7f8e3ff5e",
+    "startedAt": "2026-08-27T09:34:51.724Z",
+    "finishedAt": "2026-08-27T09:34:59.442Z",
+    "status": "passed-scoped-author-integration",
+    "resources": {
+      "work": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-tlPWsK",
+      "cleaned": true
+    },
+    "steps": [
+      {
+        "name": "revision",
+        "status": 0,
+        "stdoutSha256": "5d77b011bfa66cfacf075e585c6427baccab89b05d1948b7b3229e4ec31ec816",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "counts": {}
+      },
+      {
+        "name": "archive",
+        "status": 0,
+        "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "counts": {}
+      },
+      {
+        "name": "extract",
+        "status": 0,
+        "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "counts": {}
+      },
+      {
+        "name": "canonical-migration",
+        "status": 0,
+        "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "counts": {}
+      },
+      {
+        "name": "build",
+        "status": 0,
+        "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "counts": {}
+      },
+      {
+        "name": "source-types",
+        "status": 0,
+        "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "counts": {}
+      },
+      {
+        "name": "source-tests",
+        "status": 0,
+        "stdoutSha256": "7703a07021fd8b26e70b62e860c232fcbf2664a9c22044212b50f1d77b0e97e3",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "counts": {
+          "tests": 259,
+          "pass": 259,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "name": "pack",
+        "status": 0,
+        "stdoutSha256": "e0e99b0d558afaa203a65e2535fca3d768fcda26a8b307401aeec427b96f25b7",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "counts": {}
+      },
+      {
+        "name": "unpack",
+        "status": 0,
+        "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "counts": {}
+      },
+      {
+        "name": "consumer-types",
+        "status": 0,
+        "stdoutSha256": "3b01038b7c84f7d5007dfe930c988a33335a838d9f42b4d66ee0ec7eb4f0e382",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "counts": {}
+      },
+      {
+        "name": "negative-types",
+        "command": [
+          "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+          "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/bin/tsc",
+          "-p",
+          "negative.json"
+        ],
+        "cwd": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-tlPWsK/moved-consumer",
+        "status": 2,
+        "signal": null,
+        "stdout": "negative.mts(3,28): error TS2353: Object literal may only specify known properties, and 'replace' does not exist in type 'Omit<TimeEnvCommandsOptions, \"replace\">'.\nnegative.mts(4,19): error TS2322: Type '() => string' is not assignable to type '() => number'.\n  Type 'string' is not assignable to type 'number'.\nnegative.mts(5,25): error TS2322: Type 'number' is not assignable to type 'string'.\nnegative.mts(6,35): error TS2322: Type 'string' is not assignable to type 'number'.\nnegative.mts(7,7): error TS2741: Property 'clearTimeout' is missing in type '{ now: () => number; setTimeout: () => number; }' but required in type 'SleepScheduler'.\nnegative.mts(8,7): error TS2739: Type '{ maxFormatWidth: number; }' is missing the following properties from type 'TimeEnvLimits': maxArguments, maxArgumentBytes, maxOutputBytes, maxEnvironmentEntries\n",
+        "stderr": ""
+      },
+      {
+        "name": "public-repeat-1",
+        "status": 0,
+        "stdoutSha256": "22924873ef2a23e1da336bfd32df732959eaff0cd2f31bd3c212d509b7b9441f",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "counts": {
+          "tests": 18,
+          "pass": 18,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "name": "public-repeat-2",
+        "status": 0,
+        "stdoutSha256": "0b716b8ba108ecf0e29f6408ad27018d18a2ca5fea1882a6c66419215d7d0627",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "counts": {
+          "tests": 18,
+          "pass": 18,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "name": "missing-runtime-root",
+        "command": [
+          "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+          "--unhandled-rejections=strict",
+          "--permission",
+          "--allow-fs-read=/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-tlPWsK/moved-consumer",
+          "--input-type=module",
+          "-e",
+          "await import(\"virtual-bash\")"
+        ],
+        "cwd": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-tlPWsK/moved-consumer",
+        "status": 1,
+        "signal": null,
+        "stdout": "",
+        "stderr": "node:internal/modules/esm/resolve:275\n    throw new ERR_MODULE_NOT_FOUND(\n          ^\n\nError [ERR_MODULE_NOT_FOUND]: Cannot find module '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-tlPWsK/moved-consumer/node_modules/virtual-bash/dist/commands/time-env/index.js' imported from /private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-tlPWsK/moved-consumer/node_modules/virtual-bash/dist/index.js\n    at finalizeResolution (node:internal/modules/esm/resolve:275:11)\n    at moduleResolve (node:internal/modules/esm/resolve:861:10)\n    at defaultResolve (node:internal/modules/esm/resolve:985:11)\n    at #cachedDefaultResolve (node:internal/modules/esm/loader:731:20)\n    at ModuleLoader.resolve (node:internal/modules/esm/loader:708:38)\n    at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:310:38)\n    at ModuleJob._link (node:internal/modules/esm/module_job:182:49) {\n  code: 'ERR_MODULE_NOT_FOUND',\n  url: 'file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-tlPWsK/moved-consumer/node_modules/virtual-bash/dist/commands/time-env/index.js'\n}\n\nNode.js v22.22.2\n"
+      },
+      {
+        "name": "missing-runtime-subpath",
+        "command": [
+          "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+          "--unhandled-rejections=strict",
+          "--permission",
+          "--allow-fs-read=/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-tlPWsK/moved-consumer",
+          "--input-type=module",
+          "-e",
+          "await import(\"virtual-bash/commands/time-env\")"
+        ],
+        "cwd": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-tlPWsK/moved-consumer",
+        "status": 1,
+        "signal": null,
+        "stdout": "",
+        "stderr": "node:internal/modules/esm/resolve:275\n    throw new ERR_MODULE_NOT_FOUND(\n          ^\n\nError [ERR_MODULE_NOT_FOUND]: Cannot find module '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-tlPWsK/moved-consumer/node_modules/virtual-bash/dist/commands/time-env/index.js' imported from /private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-tlPWsK/moved-consumer/[eval1]\n    at finalizeResolution (node:internal/modules/esm/resolve:275:11)\n    at moduleResolve (node:internal/modules/esm/resolve:861:10)\n    at defaultResolve (node:internal/modules/esm/resolve:985:11)\n    at #cachedDefaultResolve (node:internal/modules/esm/loader:731:20)\n    at ModuleLoader.resolve (node:internal/modules/esm/loader:708:38)\n    at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:310:38)\n    at onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:664:36)\n    at TracingChannel.tracePromise (node:diagnostics_channel:350:14)\n    at ModuleLoader.import (node:internal/modules/esm/loader:663:21)\n    at defaultImportModuleDynamicallyForModule (node:internal/modules/esm/utils:222:31) {\n  code: 'ERR_MODULE_NOT_FOUND',\n  url: 'file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-tlPWsK/moved-consumer/node_modules/virtual-bash/dist/commands/time-env/index.js'\n}\n\nNode.js v22.22.2\n"
+      },
+      {
+        "name": "source-permission-negative",
+        "command": [
+          "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+          "--unhandled-rejections=strict",
+          "--permission",
+          "--allow-fs-read=/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-tlPWsK/moved-consumer",
+          "--input-type=module",
+          "-e",
+          "import { readFileSync } from 'node:fs'; readFileSync(\"/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-tlPWsK/withdrawn-source/src/index.ts\");"
+        ],
+        "cwd": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-tlPWsK/moved-consumer",
+        "status": 1,
+        "signal": null,
+        "stdout": "",
+        "stderr": "node:fs:560\n  return binding.open(\n                 ^\n\nError: Access to this API has been restricted. Use --allow-fs-read to manage permissions.\n    at Object.openSync (node:fs:560:18)\n    at readFileSync (node:fs:444:35)\n    at file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-tlPWsK/moved-consumer/[eval1]:1:41\n    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:272:26)\n    at async ModuleLoader.executeModuleJob (node:internal/modules/esm/loader:268:20)\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5) {\n  code: 'ERR_ACCESS_DENIED',\n  permission: 'FileSystemRead',\n  resource: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-tlPWsK/withdrawn-source/src/index.ts'\n}\n\nNode.js v22.22.2\n"
+      }
+    ]
+  },
+  {
+    "run": 6,
+    "originalReportPath": "/tmp/safe-bash-time-env-public-run06-20260827/report.json",
+    "originalReportSha256": "58b65758cc98b3cb0b8fa5b5a981414222316767912e03bfd86834bb1ad02c34",
+    "sourceCommit": "93c0bcde9afa05c98c2a2747090f743af2afadc1",
+    "sourceTreeSha256": "011f274582c14ba014704dda019bd01ba55c740bd0caf1ff964338c64fd26898",
+    "startedAt": "2026-08-27T09:36:55.075Z",
+    "finishedAt": "2026-08-27T09:37:00.859Z",
+    "status": "failed",
+    "resources": {
+      "work": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-ukS9za",
+      "cleaned": true
+    },
+    "steps": [
+      {
+        "name": "revision",
+        "status": 0,
+        "stdoutSha256": "f7a953ff7217ebcb3e8529c3b4637d624ab1ced08d95b089d77dae56b9db0bf0",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "counts": {}
+      },
+      {
+        "name": "archive",
+        "status": 0,
+        "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "counts": {}
+      },
+      {
+        "name": "extract",
+        "status": 0,
+        "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "counts": {}
+      },
+      {
+        "name": "canonical-migration",
+        "status": 0,
+        "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "counts": {}
+      },
+      {
+        "name": "build",
+        "status": 0,
+        "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "counts": {}
+      },
+      {
+        "name": "source-types",
+        "status": 0,
+        "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "counts": {}
+      },
+      {
+        "name": "source-tests",
+        "command": [
+          "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+          "--unhandled-rejections=strict",
+          "--import",
+          "tsx",
+          "--test",
+          "--test-concurrency=1",
+          "tests/plugins/agent-commands.test.ts",
+          "tests/plugins/stream-five-fixture-migration/registry.test.ts",
+          "tests/integration/stream-inspection-public-author/public.test.ts",
+          "tests/commands/split/integration.test.ts",
+          "tests/commands/stream-format-author-stress/contracts.test.ts",
+          "tests/commands/time-env/date.test.ts",
+          "tests/commands/time-env/sleep.test.ts",
+          "tests/commands/time-env/printenv.test.ts",
+          "tests/commands/time-env/integration.test.ts",
+          "tests/commands/time-env/stress.test.ts",
+          "tests/commands/time-env/sleep-regressions.test.ts",
+          "tests/commands/time-env/fraction-expansion/nanoseconds.test.ts",
+          "tests/commands/time-env/fraction-expansion/iso-year.test.ts"
+        ],
+        "cwd": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-ukS9za/source",
+        "status": 1,
+        "signal": null,
+        "stdout": "TAP version 13\n# Subtest: memory: opt-in Shell byte pipeline and existing-file workflow\nok 1 - memory: opt-in Shell byte pipeline and existing-file workflow\n  ---\n  duration_ms: 11.816083\n  type: 'test'\n  ...\n# Subtest: explicit-root-real: opt-in Shell byte pipeline and existing-file workflow\nok 2 - explicit-root-real: opt-in Shell byte pipeline and existing-file workflow\n  ---\n  duration_ms: 15.915792\n  type: 'test'\n  ...\n# Subtest: actual default registry contains 68 including split without duplicate installation\nok 3 - actual default registry contains 68 including split without duplicate installation\n  ---\n  duration_ms: 2.226875\n  type: 'test'\n  ...\n# Subtest: plugin collision preflight and replacement use actual registry\nok 4 - plugin collision preflight and replacement use actual registry\n  ---\n  duration_ms: 0.478542\n  type: 'test'\n  ...\n# Subtest: shared shell pipe/output budget remains active beside VFS payload budget\nok 5 - shared shell pipe/output budget remains active beside VFS payload budget\n  ---\n  duration_ms: 0.754417\n  type: 'test'\n  ...\n# Subtest: explicit-root RealFS streaming large file reassembles bytes\nok 6 - explicit-root RealFS streaming large file reassembles bytes\n  ---\n  duration_ms: 17.426709\n  type: 'test'\n  ...\n# Subtest: configured S3 mock supports streamed split and known-distinct overwrite\nok 7 - configured S3 mock supports streamed split and known-distinct overwrite\n  ---\n  duration_ms: 8.863667\n  type: 'test'\n  ...\n# node:internal/modules/run_main:123\n#     triggerUncaughtException(\n#     ^\n# Error [ERR_MODULE_NOT_FOUND]: Cannot find module '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-ukS9za/source/tests/commands/stream-format/helpers.js' imported from /private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-ukS9za/source/tests/commands/stream-format-author-stress/contracts.test.ts\n#     at finalizeResolution (node:internal/modules/esm/resolve:275:11)\n#     at moduleResolve (node:internal/modules/esm/resolve:861:10)\n#     at defaultResolve (node:internal/modules/esm/resolve:985:11)\n#     at nextResolve (node:internal/modules/esm/hooks:748:28)\n#     at resolveBase (file:///Users/kjopek/Workspace/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:10334)\n#     at async resolveDirectory (file:///Users/kjopek/Workspace/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:11415) {\n#   code: 'ERR_MODULE_NOT_FOUND',\n#   url: 'file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-ukS9za/source/tests/commands/stream-format/helpers.js'\n# }\n# Node.js v22.22.2\n# Subtest: tests/commands/stream-format-author-stress/contracts.test.ts\nnot ok 2 - tests/commands/stream-format-author-stress/contracts.test.ts\n  ---\n  duration_ms: 99.725666\n  type: 'test'\n  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-ukS9za/source/tests/commands/stream-format-author-stress/contracts.test.ts:1:1'\n  failureType: 'testCodeFailure'\n  exitCode: 1\n  signal: ~\n  error: 'test failed'\n  code: 'ERR_TEST_FAILURE'\n  ...\n# Subtest: date default current time falls within the surrounding wall-clock samples\nok 9 - date default current time falls within the surrounding wall-clock samples\n  ---\n  duration_ms: 1.129167\n  type: 'test'\n  ...\n# Subtest: date vector: epoch\nok 10 - date vector: epoch\n  ---\n  duration_ms: 0.291625\n  type: 'test'\n  ...\n# Subtest: date vector: negative nanosecond\nok 11 - date vector: negative nanosecond\n  ---\n  duration_ms: 0.297042\n  type: 'test'\n  ...\n# Subtest: date vector: negative fractional epoch\nok 12 - date vector: negative fractional epoch\n  ---\n  duration_ms: 0.122667\n  type: 'test'\n  ...\n# Subtest: date vector: positive signed epoch\nok 13 - date vector: positive signed epoch\n  ---\n  duration_ms: 0.470458\n  type: 'test'\n  ...\n# Subtest: date vector: comma epoch\nok 14 - date vector: comma epoch\n  ---\n  duration_ms: 0.079833\n  type: 'test'\n  ...\n# Subtest: date vector: leap day ISO nanoseconds\nok 15 - date vector: leap day ISO nanoseconds\n  ---\n  duration_ms: 0.239958\n  type: 'test'\n  ...\n# Subtest: date vector: date only midnight\nok 16 - date vector: date only midnight\n  ---\n  duration_ms: 0.149334\n  type: 'test'\n  ...\n# Subtest: date vector: century nonleap ordinal\nok 17 - date vector: century nonleap ordinal\n  ---\n  duration_ms: 0.20425\n  type: 'test'\n  ...\n# Subtest: date vector: early year avoids Date.UTC 1900 adjustment\nok 18 - date vector: early year avoids Date.UTC 1900 adjustment\n  ---\n  duration_ms: 0.233375\n  type: 'test'\n  ...\n# Subtest: date vector: year zero leap\nok 19 - date vector: year zero leap\n  ---\n  duration_ms: 0.058375\n  type: 'test'\n  ...\n# Subtest: date vector: numeric offset\nok 20 - date vector: numeric offset\n  ---\n  duration_ms: 0.074291\n  type: 'test'\n  ...\n# Subtest: date vector: negative offset\nok 21 - date vector: negative offset\n  ---\n  duration_ms: 0.054375\n  type: 'test'\n  ...\n# Subtest: date vector: RFC email input\nok 22 - date vector: RFC email input\n  ---\n  duration_ms: 0.114542\n  type: 'test'\n  ...\n# Subtest: date vector: HTTP RFC GMT\nok 23 - date vector: HTTP RFC GMT\n  ---\n  duration_ms: 0.085875\n  type: 'test'\n  ...\n# Subtest: date vector: ISO date\nok 24 - date vector: ISO date\n  ---\n  duration_ms: 0.053208\n  type: 'test'\n  ...\n# Subtest: date vector: ISO hours\nok 25 - date vector: ISO hours\n  ---\n  duration_ms: 0.066625\n  type: 'test'\n  ...\n# Subtest: date vector: ISO minutes\nok 26 - date vector: ISO minutes\n  ---\n  duration_ms: 0.0545\n  type: 'test'\n  ...\n# Subtest: date vector: ISO seconds\nok 27 - date vector: ISO seconds\n  ---\n  duration_ms: 0.03325\n  type: 'test'\n  ...\n# Subtest: date vector: ISO nanoseconds\nok 28 - date vector: ISO nanoseconds\n  ---\n  duration_ms: 0.033042\n  type: 'test'\n  ...\n# Subtest: date vector: RFC3339 date\nok 29 - date vector: RFC3339 date\n  ---\n  duration_ms: 0.030375\n  type: 'test'\n  ...\n# Subtest: date vector: RFC3339 seconds\nok 30 - date vector: RFC3339 seconds\n  ---\n  duration_ms: 0.033916\n  type: 'test'\n  ...\n# Subtest: date vector: RFC3339 nanoseconds\nok 31 - date vector: RFC3339 nanoseconds\n  ---\n  duration_ms: 0.0325\n  type: 'test'\n  ...\n# Subtest: date vector: format before options\nok 32 - date vector: format before options\n  ---\n  duration_ms: 0.042292\n  type: 'test'\n  ...\n# Subtest: date vector: empty format\nok 33 - date vector: empty format\n  ---\n  duration_ms: 0.030042\n  type: 'test'\n  ...\n# Subtest: date vector: literal Unicode\nok 34 - date vector: literal Unicode\n  ---\n  duration_ms: 0.044166\n  type: 'test'\n  ...\n# Subtest: date vector: C names and composite formats\nok 35 - date vector: C names and composite formats\n  ---\n  duration_ms: 0.04425\n  type: 'test'\n  ...\n# Subtest: date vector: padding casing and C modifiers\nok 36 - date vector: padding casing and C modifiers\n  ---\n  duration_ms: 0.044\n  type: 'test'\n  ...\n# Subtest: date vector: precision truncates not rounds\nok 37 - date vector: precision truncates not rounds\n  ---\n  duration_ms: 0.036166\n  type: 'test'\n  ...\n# Subtest: date vector: ISO previous year week\nok 38 - date vector: ISO previous year week\n  ---\n  duration_ms: 0.0745\n  type: 'test'\n  ...\n# Subtest: date vector: ISO next year week\nok 39 - date vector: ISO next year week\n  ---\n  duration_ms: 0.04325\n  type: 'test'\n  ...\n# Subtest: date vector: POSIX reversed offset\nok 40 - date vector: POSIX reversed offset\n  ---\n  duration_ms: 0.410792\n  type: 'test'\n  ...\n# Subtest: date vector: POSIX seconds offset\nok 41 - date vector: POSIX seconds offset\n  ---\n  duration_ms: 0.071666\n  type: 'test'\n  ...\n# Subtest: date vector: IANA New York winter\nok 42 - date vector: IANA New York winter\n  ---\n  duration_ms: 7.827791\n  type: 'test'\n  ...\n# Subtest: date vector: IANA New York summer\nok 43 - date vector: IANA New York summer\n  ---\n  duration_ms: 0.168333\n  type: 'test'\n  ...\n# Subtest: date vector: IANA wall time\nok 44 - date vector: IANA wall time\n  ---\n  duration_ms: 0.139625\n  type: 'test'\n  ...\n# Subtest: date vector: IANA half hour\nok 45 - date vector: IANA half hour\n  ---\n  duration_ms: 0.104375\n  type: 'test'\n  ...\n# Subtest: date vector: IANA quarter hour\nok 46 - date vector: IANA quarter hour\n  ---\n  duration_ms: 0.091\n  type: 'test'\n  ...\n# Subtest: date vector: UTC overrides invalid virtual TZ\nok 47 - date vector: UTC overrides invalid virtual TZ\n  ---\n  duration_ms: 0.036\n  type: 'test'\n  ...\n# Subtest: date vector: numeric default widths\nok 48 - date vector: numeric default widths\n  ---\n  duration_ms: 0.034375\n  type: 'test'\n  ...\n# Subtest: date vector: timezone signed zero padding\nok 49 - date vector: timezone signed zero padding\n  ---\n  duration_ms: 0.035542\n  type: 'test'\n  ...\n# Subtest: date vector: C change-case flags\nok 50 - date vector: C change-case flags\n  ---\n  duration_ms: 0.034\n  type: 'test'\n  ...\n# Subtest: date vector: Etc GMT label\nok 51 - date vector: Etc GMT label\n  ---\n  duration_ms: 0.044458\n  type: 'test'\n  ...\n# Subtest: date vector: Z zone label\nok 52 - date vector: Z zone label\n  ---\n  duration_ms: 0.036958\n  type: 'test'\n  ...\n# Subtest: date vector: IANA lower calendar endpoint\nok 53 - date vector: IANA lower calendar endpoint\n  ---\n  duration_ms: 0.112084\n  type: 'test'\n  ...\n# Subtest: date vector: IANA upper calendar endpoint\nok 54 - date vector: IANA upper calendar endpoint\n  ---\n  duration_ms: 0.164417\n  type: 'test'\n  ...\n# Subtest: date injected clock is read once and only provides millisecond precision\nok 55 - date injected clock is read once and only provides millisecond precision\n  ---\n  duration_ms: 0.1345\n  type: 'test'\n  ...\n# Subtest: date explicit relative grammar: now\nok 56 - date explicit relative grammar: now\n  ---\n  duration_ms: 0.105083\n  type: 'test'\n  ...\n# Subtest: date explicit relative grammar: today\nok 57 - date explicit relative grammar: today\n  ---\n  duration_ms: 0.087875\n  type: 'test'\n  ...\n# Subtest: date explicit relative grammar: yesterday\nok 58 - date explicit relative grammar: yesterday\n  ---\n  duration_ms: 0.125667\n  type: 'test'\n  ...\n# Subtest: date explicit relative grammar: tomorrow\nok 59 - date explicit relative grammar: tomorrow\n  ---\n  duration_ms: 0.121\n  type: 'test'\n  ...\n# Subtest: date explicit relative grammar: now -1 hour\nok 60 - date explicit relative grammar: now -1 hour\n  ---\n  duration_ms: 0.104209\n  type: 'test'\n  ...\n# Subtest: date explicit relative grammar: 2 minutes ago\nok 61 - date explicit relative grammar: 2 minutes ago\n  ---\n  duration_ms: 0.089209\n  type: 'test'\n  ...\n# Subtest: date explicit relative grammar: +3 seconds\nok 62 - date explicit relative grammar: +3 seconds\n  ---\n  duration_ms: 0.074167\n  type: 'test'\n  ...\n# Subtest: date DST gaps and ambiguous folds require an explicit offset rather than a guessed occurrence\nok 63 - date DST gaps and ambiguous folds require an explicit offset rather than a guessed occurrence\n  ---\n  duration_ms: 0.373625\n  type: 'test'\n  ...\n# Subtest: date uses only an own virtual TZ and ignores locale environment under its explicit C profile\nok 64 - date uses only an own virtual TZ and ignores locale environment under its explicit C profile\n  ---\n  duration_ms: 0.201209\n  type: 'test'\n  ...\n# Subtest: date reference reads VFS mtime through a symlink, preserves bytes and never uses the injected clock\nok 65 - date reference reads VFS mtime through a symlink, preserves bytes and never uses the injected clock\n  ---\n  duration_ms: 0.740666\n  type: 'test'\n  ...\n# Subtest: date %12N zero-padding at epoch matches the accepted GNU9.7 profile\nok 66 - date %12N zero-padding at epoch matches the accepted GNU9.7 profile\n  ---\n  duration_ms: 0.063292\n  type: 'test'\n  ...\n# Subtest: date bare %-N at epoch uses virtual-clock ordinary formatting, not GNU9.7/Darwin bare parity\nok 67 - date bare %-N at epoch uses virtual-clock ordinary formatting, not GNU9.7/Darwin bare parity\n  ---\n  duration_ms: 0.052292\n  type: 'test'\n  ...\n# Subtest: date rejects unsupported/invalid input without stdout: -d2023-02-29\nok 68 - date rejects unsupported/invalid input without stdout: -d2023-02-29\n  ---\n  duration_ms: 0.061959\n  type: 'test'\n  ...\n# Subtest: date rejects unsupported/invalid input without stdout: -d1900-02-29\nok 69 - date rejects unsupported/invalid input without stdout: -d1900-02-29\n  ---\n  duration_ms: 0.037292\n  type: 'test'\n  ...\n# Subtest: date rejects unsupported/invalid input without stdout: -d2024-13-01\nok 70 - date rejects unsupported/invalid input without stdout: -d2024-13-01\n  ---\n  duration_ms: 0.033625\n  type: 'test'\n  ...\n# Subtest: date rejects unsupported/invalid input without stdout: -d2024-04-31\nok 71 - date rejects unsupported/invalid input without stdout: -d2024-04-31\n  ---\n  duration_ms: 0.039792\n  type: 'test'\n  ...\n# Subtest: date rejects unsupported/invalid input without stdout: -d2024-01-00\nok 72 - date rejects unsupported/invalid input without stdout: -d2024-01-00\n  ---\n  duration_ms: 0.032833\n  type: 'test'\n  ...\n# Subtest: date rejects unsupported/invalid input without stdout: -d2024-02-29T24:00:00Z\nok 73 - date rejects unsupported/invalid input without stdout: -d2024-02-29T24:00:00Z\n  ---\n  duration_ms: 0.034042\n  type: 'test'\n  ...\n# Subtest: date rejects unsupported/invalid input without stdout: -d2024-02-29T23:59:60Z\nok 74 - date rejects unsupported/invalid input without stdout: -d2024-02-29T23:59:60Z\n  ---\n  duration_ms: 0.044042\n  type: 'test'\n  ...\n# Subtest: date rejects unsupported/invalid input without stdout: -d2024-01-01T00:00:00+25:00\nok 75 - date rejects unsupported/invalid input without stdout: -d2024-01-01T00:00:00+25:00\n  ---\n  duration_ms: 0.045917\n  type: 'test'\n  ...\n# Subtest: date rejects unsupported/invalid input without stdout: -d@0.1234567890\nok 76 - date rejects unsupported/invalid input without stdout: -d@0.1234567890\n  ---\n  duration_ms: 0.041875\n  type: 'test'\n  ...\n# Subtest: date rejects unsupported/invalid input without stdout: -d@NaN\nok 77 - date rejects unsupported/invalid input without stdout: -d@NaN\n  ---\n  duration_ms: 0.078792\n  type: 'test'\n  ...\n# Subtest: date rejects unsupported/invalid input without stdout: -d@1e3\nok 78 - date rejects unsupported/invalid input without stdout: -d@1e3\n  ---\n  duration_ms: 0.053208\n  type: 'test'\n  ...\n# Subtest: date rejects unsupported/invalid input without stdout: -d@99999999999999999\nok 79 - date rejects unsupported/invalid input without stdout: -d@99999999999999999\n  ---\n  duration_ms: 0.043167\n  type: 'test'\n  ...\n# Subtest: date rejects unsupported/invalid input without stdout: -d\nok 80 - date rejects unsupported/invalid input without stdout: -d\n  ---\n  duration_ms: 0.035792\n  type: 'test'\n  ...\n# Subtest: date rejects unsupported/invalid input without stdout: --date=\nok 81 - date rejects unsupported/invalid input without stdout: --date=\n  ---\n  duration_ms: 0.036292\n  type: 'test'\n  ...\n# Subtest: date rejects unsupported/invalid input without stdout: --date next Friday\nok 82 - date rejects unsupported/invalid input without stdout: --date next Friday\n  ---\n  duration_ms: 0.035958\n  type: 'test'\n  ...\n# Subtest: date rejects unsupported/invalid input without stdout: --date 01/02/03\nok 83 - date rejects unsupported/invalid input without stdout: --date 01/02/03\n  ---\n  duration_ms: 0.03825\n  type: 'test'\n  ...\n# Subtest: date rejects unsupported/invalid input without stdout: --date Fri, 29 Feb 2024 12:34:56 GMT\nok 84 - date rejects unsupported/invalid input without stdout: --date Fri, 29 Feb 2024 12:34:56 GMT\n  ---\n  duration_ms: 0.049125\n  type: 'test'\n  ...\n# Subtest: date rejects unsupported/invalid input without stdout: -s 2024-01-01\nok 85 - date rejects unsupported/invalid input without stdout: -s 2024-01-01\n  ---\n  duration_ms: 0.035708\n  type: 'test'\n  ...\n# Subtest: date rejects unsupported/invalid input without stdout: --set=2024-01-01\nok 86 - date rejects unsupported/invalid input without stdout: --set=2024-01-01\n  ---\n  duration_ms: 0.037625\n  type: 'test'\n  ...\n# Subtest: date rejects unsupported/invalid input without stdout: 082712002026\nok 87 - date rejects unsupported/invalid input without stdout: 082712002026\n  ---\n  duration_ms: 0.034166\n  type: 'test'\n  ...\n# Subtest: date rejects unsupported/invalid input without stdout: --file=/etc/passwd\nok 88 - date rejects unsupported/invalid input without stdout: --file=/etc/passwd\n  ---\n  duration_ms: 0.057708\n  type: 'test'\n  ...\n# Subtest: date rejects unsupported/invalid input without stdout: --debug\nok 89 - date rejects unsupported/invalid input without stdout: --debug\n  ---\n  duration_ms: 0.033042\n  type: 'test'\n  ...\n# Subtest: date rejects unsupported/invalid input without stdout: --utc=yes\nok 90 - date rejects unsupported/invalid input without stdout: --utc=yes\n  ---\n  duration_ms: 0.034375\n  type: 'test'\n  ...\n# Subtest: date rejects unsupported/invalid input without stdout: -r file -d@0\nok 91 - date rejects unsupported/invalid input without stdout: -r file -d@0\n  ---\n  duration_ms: 0.033416\n  type: 'test'\n  ...\n# Subtest: date rejects unsupported/invalid input without stdout: -I +%s\nok 92 - date rejects unsupported/invalid input without stdout: -I +%s\n  ---\n  duration_ms: 0.03625\n  type: 'test'\n  ...\n# Subtest: date rejects unsupported/invalid input without stdout: -Iinvalid\nok 93 - date rejects unsupported/invalid input without stdout: -Iinvalid\n  ---\n  duration_ms: 0.033333\n  type: 'test'\n  ...\n# Subtest: date rejects unsupported/invalid input without stdout: --rfc-3339=hours\nok 94 - date rejects unsupported/invalid input without stdout: --rfc-3339=hours\n  ---\n  duration_ms: 0.03625\n  type: 'test'\n  ...\n# Subtest: date rejects unsupported/invalid input without stdout: -d@0 +%Q\nok 95 - date rejects unsupported/invalid input without stdout: -d@0 +%Q\n  ---\n  duration_ms: 0.044334\n  type: 'test'\n  ...\n# Subtest: date rejects unsupported/invalid input without stdout: -d@0 +%\nok 96 - date rejects unsupported/invalid input without stdout: -d@0 +%\n  ---\n  duration_ms: 0.061042\n  type: 'test'\n  ...\n# Subtest: date rejects unsupported/invalid input without stdout: -d@0 +%::::z\nok 97 - date rejects unsupported/invalid input without stdout: -d@0 +%::::z\n  ---\n  duration_ms: 0.037541\n  type: 'test'\n  ...\n# Subtest: date rejects unsupported/invalid input without stdout: -d@0 +%5%\nok 98 - date rejects unsupported/invalid input without stdout: -d@0 +%5%\n  ---\n  duration_ms: 0.04325\n  type: 'test'\n  ...\n# Subtest: date rejects invalid clocks and bounded format expansion without writing stdout\nok 99 - date rejects invalid clocks and bounded format expansion without writing stdout\n  ---\n  duration_ms: 0.479375\n  type: 'test'\n  ...\n# Subtest: ISO year v1 pinned GNU9.7 Darwin 0000-01-01T12:00:00Z UTC\nok 100 - ISO year v1 pinned GNU9.7 Darwin 0000-01-01T12:00:00Z UTC\n  ---\n  duration_ms: 1.5115\n  type: 'test'\n  ...\n# Subtest: ISO year v1 pinned GNU9.7 Darwin 0000-01-01T12:00:00Z UTC-14\nok 101 - ISO year v1 pinned GNU9.7 Darwin 0000-01-01T12:00:00Z UTC-14\n  ---\n  duration_ms: 0.294917\n  type: 'test'\n  ...\n# Subtest: ISO year v1 pinned GNU9.7 Darwin 0000-01-02T12:00:00Z UTC\nok 102 - ISO year v1 pinned GNU9.7 Darwin 0000-01-02T12:00:00Z UTC\n  ---\n  duration_ms: 0.15175\n  type: 'test'\n  ...\n# Subtest: ISO year v1 pinned GNU9.7 Darwin 0000-01-02T12:00:00Z UTC-14\nok 103 - ISO year v1 pinned GNU9.7 Darwin 0000-01-02T12:00:00Z UTC-14\n  ---\n  duration_ms: 0.112167\n  type: 'test'\n  ...\n# Subtest: ISO year v1 pinned GNU9.7 Darwin 0000-01-03T12:00:00Z UTC\nok 104 - ISO year v1 pinned GNU9.7 Darwin 0000-01-03T12:00:00Z UTC\n  ---\n  duration_ms: 0.164708\n  type: 'test'\n  ...\n# Subtest: ISO year v1 pinned GNU9.7 Darwin 0000-01-03T12:00:00Z UTC-14\nok 105 - ISO year v1 pinned GNU9.7 Darwin 0000-01-03T12:00:00Z UTC-14\n  ---\n  duration_ms: 0.115542\n  type: 'test'\n  ...\n# Subtest: ISO year v1 pinned GNU9.7 Darwin 0000-12-31T12:00:00Z UTC\nok 106 - ISO year v1 pinned GNU9.7 Darwin 0000-12-31T12:00:00Z UTC\n  ---\n  duration_ms: 0.067875\n  type: 'test'\n  ...\n# Subtest: ISO year v1 pinned GNU9.7 Darwin 0000-12-31T12:00:00Z UTC-14\nok 107 - ISO year v1 pinned GNU9.7 Darwin 0000-12-31T12:00:00Z UTC-14\n  ---\n  duration_ms: 0.110625\n  type: 'test'\n  ...\n# Subtest: ISO year v1 pinned GNU9.7 Darwin 0001-01-01T12:00:00Z UTC\nok 108 - ISO year v1 pinned GNU9.7 Darwin 0001-01-01T12:00:00Z UTC\n  ---\n  duration_ms: 0.285791\n  type: 'test'\n  ...\n# Subtest: ISO year v1 pinned GNU9.7 Darwin 0001-01-01T12:00:00Z UTC-14\nok 109 - ISO year v1 pinned GNU9.7 Darwin 0001-01-01T12:00:00Z UTC-14\n  ---\n  duration_ms: 0.263708\n  type: 'test'\n  ...\n# Subtest: ISO year v1 pinned GNU9.7 Darwin 0004-01-01T12:00:00Z UTC\nok 110 - ISO year v1 pinned GNU9.7 Darwin 0004-01-01T12:00:00Z UTC\n  ---\n  duration_ms: 0.062833\n  type: 'test'\n  ...\n# Subtest: ISO year v1 pinned GNU9.7 Darwin 0004-01-01T12:00:00Z UTC-14\nok 111 - ISO year v1 pinned GNU9.7 Darwin 0004-01-01T12:00:00Z UTC-14\n  ---\n  duration_ms: 0.053\n  type: 'test'\n  ...\n# Subtest: ISO year v1 pinned GNU9.7 Darwin 0099-01-01T12:00:00Z UTC\nok 112 - ISO year v1 pinned GNU9.7 Darwin 0099-01-01T12:00:00Z UTC\n  ---\n  duration_ms: 0.369834\n  type: 'test'\n  ...\n# Subtest: ISO year v1 pinned GNU9.7 Darwin 0099-01-01T12:00:00Z UTC-14\nok 113 - ISO year v1 pinned GNU9.7 Darwin 0099-01-01T12:00:00Z UTC-14\n  ---\n  duration_ms: 0.083083\n  type: 'test'\n  ...\n# Subtest: ISO year v1 pinned GNU9.7 Darwin 0099-12-31T12:00:00Z UTC\nok 114 - ISO year v1 pinned GNU9.7 Darwin 0099-12-31T12:00:00Z UTC\n  ---\n  duration_ms: 0.05125\n  type: 'test'\n  ...\n# Subtest: ISO year v1 pinned GNU9.7 Darwin 0099-12-31T12:00:00Z UTC-14\nok 115 - ISO year v1 pinned GNU9.7 Darwin 0099-12-31T12:00:00Z UTC-14\n  ---\n  duration_ms: 0.04275\n  type: 'test'\n  ...\n# Subtest: ISO year v1 pinned GNU9.7 Darwin 0100-01-01T12:00:00Z UTC\nok 116 - ISO year v1 pinned GNU9.7 Darwin 0100-01-01T12:00:00Z UTC\n  ---\n  duration_ms: 0.039916\n  type: 'test'\n  ...\n# Subtest: ISO year v1 pinned GNU9.7 Darwin 0100-01-01T12:00:00Z UTC-14\nok 117 - ISO year v1 pinned GNU9.7 Darwin 0100-01-01T12:00:00Z UTC-14\n  ---\n  duration_ms: 0.039292\n  type: 'test'\n  ...\n# Subtest: ISO year v1 pinned GNU9.7 Darwin 0100-01-04T12:00:00Z UTC\nok 118 - ISO year v1 pinned GNU9.7 Darwin 0100-01-04T12:00:00Z UTC\n  ---\n  duration_ms: 0.035417\n  type: 'test'\n  ...\n# Subtest: ISO year v1 pinned GNU9.7 Darwin 0100-01-04T12:00:00Z UTC-14\nok 119 - ISO year v1 pinned GNU9.7 Darwin 0100-01-04T12:00:00Z UTC-14\n  ---\n  duration_ms: 0.03825\n  type: 'test'\n  ...\n# Subtest: ISO year v1 pinned GNU9.7 Darwin 1899-12-31T12:00:00Z UTC\nok 120 - ISO year v1 pinned GNU9.7 Darwin 1899-12-31T12:00:00Z UTC\n  ---\n  duration_ms: 0.035042\n  type: 'test'\n  ...\n# Subtest: ISO year v1 pinned GNU9.7 Darwin 1899-12-31T12:00:00Z UTC-14\nok 121 - ISO year v1 pinned GNU9.7 Darwin 1899-12-31T12:00:00Z UTC-14\n  ---\n  duration_ms: 0.036833\n  type: 'test'\n  ...\n# Subtest: ISO year v1 pinned GNU9.7 Darwin 1900-01-01T12:00:00Z UTC\nok 122 - ISO year v1 pinned GNU9.7 Darwin 1900-01-01T12:00:00Z UTC\n  ---\n  duration_ms: 0.034334\n  type: 'test'\n  ...\n# Subtest: ISO year v1 pinned GNU9.7 Darwin 1900-01-01T12:00:00Z UTC-14\nok 123 - ISO year v1 pinned GNU9.7 Darwin 1900-01-01T12:00:00Z UTC-14\n  ---\n  duration_ms: 0.038125\n  type: 'test'\n  ...\n# Subtest: ISO year v1 pinned GNU9.7 Darwin 1999-01-01T12:00:00Z UTC\nok 124 - ISO year v1 pinned GNU9.7 Darwin 1999-01-01T12:00:00Z UTC\n  ---\n  duration_ms: 0.033834\n  type: 'test'\n  ...\n# Subtest: ISO year v1 pinned GNU9.7 Darwin 1999-01-01T12:00:00Z UTC-14\nok 125 - ISO year v1 pinned GNU9.7 Darwin 1999-01-01T12:00:00Z UTC-14\n  ---\n  duration_ms: 0.034\n  type: 'test'\n  ...\n# Subtest: ISO year v1 pinned GNU9.7 Darwin 2000-01-01T12:00:00Z UTC\nok 126 - ISO year v1 pinned GNU9.7 Darwin 2000-01-01T12:00:00Z UTC\n  ---\n  duration_ms: 0.034167\n  type: 'test'\n  ...\n# Subtest: ISO year v1 pinned GNU9.7 Darwin 2000-01-01T12:00:00Z UTC-14\nok 127 - ISO year v1 pinned GNU9.7 Darwin 2000-01-01T12:00:00Z UTC-14\n  ---\n  duration_ms: 0.051625\n  type: 'test'\n  ...\n# Subtest: ISO year v1 pinned GNU9.7 Darwin 2021-01-01T12:00:00Z UTC\nok 128 - ISO year v1 pinned GNU9.7 Darwin 2021-01-01T12:00:00Z UTC\n  ---\n  duration_ms: 0.0345\n  type: 'test'\n  ...\n# Subtest: ISO year v1 pinned GNU9.7 Darwin 2021-01-01T12:00:00Z UTC-14\nok 129 - ISO year v1 pinned GNU9.7 Darwin 2021-01-01T12:00:00Z UTC-14\n  ---\n  duration_ms: 0.03475\n  type: 'test'\n  ...\n# Subtest: ISO year digit presentation does not change signed year, week or calendar year\nok 130 - ISO year digit presentation does not change signed year, week or calendar year\n  ---\n  duration_ms: 0.173875\n  type: 'test'\n  ...\n# Subtest: native negative-year witnesses do not expand accepted calendar grammar\nok 131 - native negative-year witnesses do not expand accepted calendar grammar\n  ---\n  duration_ms: 0.167875\n  type: 'test'\n  ...\n# Subtest: fraction expansion v1 pinned GNU9.7 Darwin @0\nok 132 - fraction expansion v1 pinned GNU9.7 Darwin @0\n  ---\n  duration_ms: 1.455083\n  type: 'test'\n  ...\n# Subtest: fraction expansion v1 pinned GNU9.7 Darwin @0.100000000\nok 133 - fraction expansion v1 pinned GNU9.7 Darwin @0.100000000\n  ---\n  duration_ms: 0.255917\n  type: 'test'\n  ...\n# Subtest: fraction expansion v1 pinned GNU9.7 Darwin @0.000000001\nok 134 - fraction expansion v1 pinned GNU9.7 Darwin @0.000000001\n  ---\n  duration_ms: 0.201625\n  type: 'test'\n  ...\n# Subtest: fraction expansion v1 pinned GNU9.7 Darwin @0.000000100\nok 135 - fraction expansion v1 pinned GNU9.7 Darwin @0.000000100\n  ---\n  duration_ms: 0.137917\n  type: 'test'\n  ...\n# Subtest: fraction expansion v1 pinned GNU9.7 Darwin @0.001200000\nok 136 - fraction expansion v1 pinned GNU9.7 Darwin @0.001200000\n  ---\n  duration_ms: 0.219583\n  type: 'test'\n  ...\n# Subtest: fraction expansion v1 pinned GNU9.7 Darwin @0.123456789\nok 137 - fraction expansion v1 pinned GNU9.7 Darwin @0.123456789\n  ---\n  duration_ms: 0.172291\n  type: 'test'\n  ...\n# Subtest: fraction expansion v1 pinned GNU9.7 Darwin @0.999999999\nok 138 - fraction expansion v1 pinned GNU9.7 Darwin @0.999999999\n  ---\n  duration_ms: 0.155291\n  type: 'test'\n  ...\n# Subtest: fraction expansion v1 pinned GNU9.7 Darwin @-0.000000001\nok 139 - fraction expansion v1 pinned GNU9.7 Darwin @-0.000000001\n  ---\n  duration_ms: 0.426541\n  type: 'test'\n  ...\n# Subtest: fraction expansion v1 pinned GNU9.7 Darwin @-0.123456789\nok 140 - fraction expansion v1 pinned GNU9.7 Darwin @-0.123456789\n  ---\n  duration_ms: 0.370291\n  type: 'test'\n  ...\n# Subtest: fraction expansion v1 pinned GNU9.7 Darwin @-1.000000001\nok 141 - fraction expansion v1 pinned GNU9.7 Darwin @-1.000000001\n  ---\n  duration_ms: 0.323042\n  type: 'test'\n  ...\n# Subtest: fraction expansion v1 pinned GNU9.7 Darwin @1704164645.123000000\nok 142 - fraction expansion v1 pinned GNU9.7 Darwin @1704164645.123000000\n  ---\n  duration_ms: 0.117709\n  type: 'test'\n  ...\n# Subtest: fraction expansion v1 pinned GNU9.7 Darwin @1704164645.000001000\nok 143 - fraction expansion v1 pinned GNU9.7 Darwin @1704164645.000001000\n  ---\n  duration_ms: 0.12075\n  type: 'test'\n  ...\n# Subtest: fraction widths preserve actual millisecond clock precision and sample once\nok 144 - fraction widths preserve actual millisecond clock precision and sample once\n  ---\n  duration_ms: 0.134\n  type: 'test'\n  ...\n# Subtest: unpadded virtual fractions do not infer native hardware resolution or discard explicit precision\nok 145 - unpadded virtual fractions do not infer native hardware resolution or discard explicit precision\n  ---\n  duration_ms: 0.145875\n  type: 'test'\n  ...\n# Subtest: fraction width truncation never rounds into the next second\nok 146 - fraction width truncation never rounds into the next second\n  ---\n  duration_ms: 0.089666\n  type: 'test'\n  ...\n# Subtest: fraction allocation preflight %1000000000N\nok 147 - fraction allocation preflight %1000000000N\n  ---\n  duration_ms: 0.244917\n  type: 'test'\n  ...\n# Subtest: fraction allocation preflight %_1000000000N\nok 148 - fraction allocation preflight %_1000000000N\n  ---\n  duration_ms: 0.053958\n  type: 'test'\n  ...\n# Subtest: fraction allocation preflight %01000000000N\nok 149 - fraction allocation preflight %01000000000N\n  ---\n  duration_ms: 0.046542\n  type: 'test'\n  ...\n# Subtest: fraction allocation preflight %\\#^1000000000N\nok 150 - fraction allocation preflight %\\#^1000000000N\n  ---\n  duration_ms: 0.041333\n  type: 'test'\n  ...\n# Subtest: unpadded huge explicit width allocates only significant digits but respects width admission\nok 151 - unpadded huge explicit width allocates only significant digits but respects width admission\n  ---\n  duration_ms: 0.067625\n  type: 'test'\n  ...\n# Subtest: fraction budget includes preceding UTF8 bytes, every field and the newline\nok 152 - fraction budget includes preceding UTF8 bytes, every field and the newline\n  ---\n  duration_ms: 0.082125\n  type: 'test'\n  ...\n# Subtest: fraction modifiers and argument quotas still reject without partial publication\nok 153 - fraction modifiers and argument quotas still reject without partial publication\n  ---\n  duration_ms: 0.163583\n  type: 'test'\n  ...\n# Subtest: time-env definitions and plugin collision preflight are atomic\nok 154 - time-env definitions and plugin collision preflight are atomic\n  ---\n  duration_ms: 0.8365\n  type: 'test'\n  ...\n# Subtest: actual Shell pipelines, virtual files, command substitutions and replaced environments\nok 155 - actual Shell pipelines, virtual files, command substitutions and replaced environments\n  ---\n  duration_ms: 12.581417\n  type: 'test'\n  ...\n# Subtest: actual shell propagates own prototype-shaped environment data through printenv\nok 156 - actual shell propagates own prototype-shaped environment data through printenv\n  ---\n  duration_ms: 0.308666\n  type: 'test'\n  ...\n# Subtest: sleep output is zero under a zero shared output budget; real writes still charge\nok 157 - sleep output is zero under a zero shared output budget; real writes still charge\n  ---\n  duration_ms: 1.220792\n  type: 'test'\n  ...\n# Subtest: actual Shell cancellation stops sleep before following command and clears the timer\nok 158 - actual Shell cancellation stops sleep before following command and clears the timer\n  ---\n  duration_ms: 1.542292\n  type: 'test'\n  ...\n# Subtest: default long timer cancellation permits its isolated process to exit\nok 159 - default long timer cancellation permits its isolated process to exit\n  ---\n  duration_ms: 141.649292\n  type: 'test'\n  ...\n# Subtest: date and printenv await sink backpressure and preserve cancellation\nok 160 - date and printenv await sink backpressure and preserve cancellation\n  ---\n  duration_ms: 0.540584\n  type: 'test'\n  ...\n# Subtest: all three validate bounded arguments and factory settings\nok 161 - all three validate bounded arguments and factory settings\n  ---\n  duration_ms: 8.140875\n  type: 'test'\n  ...\n# Subtest: VFS reference decimal millisecond precision and empty operands are explicit\nok 162 - VFS reference decimal millisecond precision and empty operands are explicit\n  ---\n  duration_ms: 0.810625\n  type: 'test'\n  ...\n# Subtest: printenv own dictionary []\nok 163 - printenv own dictionary []\n  ---\n  duration_ms: 0.686375\n  type: 'test'\n  ...\n# Subtest: printenv own dictionary [\"A\",\"EMPTY\",\"UNICODE\"]\nok 164 - printenv own dictionary [\"A\",\"EMPTY\",\"UNICODE\"]\n  ---\n  duration_ms: 0.096792\n  type: 'test'\n  ...\n# Subtest: printenv own dictionary [\"missing\",\"A\",\"missing\",\"EMPTY\"]\nok 165 - printenv own dictionary [\"missing\",\"A\",\"missing\",\"EMPTY\"]\n  ---\n  duration_ms: 0.151375\n  type: 'test'\n  ...\n# Subtest: printenv own dictionary [\"A\",\"A\"]\nok 166 - printenv own dictionary [\"A\",\"A\"]\n  ---\n  duration_ms: 0.057875\n  type: 'test'\n  ...\n# Subtest: printenv own dictionary [\"--null\",\"EMPTY\",\"UNICODE\"]\nok 167 - printenv own dictionary [\"--null\",\"EMPTY\",\"UNICODE\"]\n  ---\n  duration_ms: 0.120458\n  type: 'test'\n  ...\n# Subtest: printenv own dictionary [\"-00\",\"A\"]\nok 168 - printenv own dictionary [\"-00\",\"A\"]\n  ---\n  duration_ms: 0.098334\n  type: 'test'\n  ...\n# Subtest: printenv own dictionary [\"A\",\"-0\"]\nok 169 - printenv own dictionary [\"A\",\"-0\"]\n  ---\n  duration_ms: 0.047\n  type: 'test'\n  ...\n# Subtest: printenv own dictionary [\"A=one\"]\nok 170 - printenv own dictionary [\"A=one\"]\n  ---\n  duration_ms: 0.033125\n  type: 'test'\n  ...\n# Subtest: printenv own dictionary [\"--\",\"-0\"]\nok 171 - printenv own dictionary [\"--\",\"-0\"]\n  ---\n  duration_ms: 0.1965\n  type: 'test'\n  ...\n# Subtest: printenv own prototype-shaped and nonenumerable names never consult inherited or host environment\nok 172 - printenv own prototype-shaped and nonenumerable names never consult inherited or host environment\n  ---\n  duration_ms: 0.280334\n  type: 'test'\n  ...\n# Subtest: printenv empty dictionary and missing name do not acquire stdin or write output\nok 173 - printenv empty dictionary and missing name do not acquire stdin or write output\n  ---\n  duration_ms: 0.060958\n  type: 'test'\n  ...\n# Subtest: printenv invalid option -i is status2 without stdout\nok 174 - printenv invalid option -i is status2 without stdout\n  ---\n  duration_ms: 0.099709\n  type: 'test'\n  ...\n# Subtest: printenv invalid option -u is status2 without stdout\nok 175 - printenv invalid option -u is status2 without stdout\n  ---\n  duration_ms: 0.041375\n  type: 'test'\n  ...\n# Subtest: printenv invalid option --null=yes is status2 without stdout\nok 176 - printenv invalid option --null=yes is status2 without stdout\n  ---\n  duration_ms: 0.0405\n  type: 'test'\n  ...\n# Subtest: printenv invalid option --invalid is status2 without stdout\nok 177 - printenv invalid option --invalid is status2 without stdout\n  ---\n  duration_ms: 0.037084\n  type: 'test'\n  ...\n# Subtest: printenv bounds output before effects and propagates sink rejection unchanged\nok 178 - printenv bounds output before effects and propagates sink rejection unchanged\n  ---\n  duration_ms: 0.346417\n  type: 'test'\n  ...\n# Subtest: sleep exact decimal carry [\"0.0009999999\",\"0.0000000001\"]\nok 179 - sleep exact decimal carry [\"0.0009999999\",\"0.0000000001\"]\n  ---\n  duration_ms: 1.144833\n  type: 'test'\n  ...\n# Subtest: sleep exact decimal carry [\"0.0004999999\",\"0.0005000001\"]\nok 180 - sleep exact decimal carry [\"0.0004999999\",\"0.0005000001\"]\n  ---\n  duration_ms: 0.21425\n  type: 'test'\n  ...\n# Subtest: sleep exact decimal carry [\"0.0009999999\",\"0.0000000000999999999999\"]\nok 181 - sleep exact decimal carry [\"0.0009999999\",\"0.0000000000999999999999\"]\n  ---\n  duration_ms: 0.18175\n  type: 'test'\n  ...\n# Subtest: sleep exact decimal carry [\"0.0009999999\",\"0.0000000001000000000001\"]\nok 182 - sleep exact decimal carry [\"0.0009999999\",\"0.0000000001000000000001\"]\n  ---\n  duration_ms: 0.195667\n  type: 'test'\n  ...\n# Subtest: sleep exact decimal carry [\"0.001\",\"1e-1000000000000000000000\"]\nok 183 - sleep exact decimal carry [\"0.001\",\"1e-1000000000000000000000\"]\n  ---\n  duration_ms: 0.264166\n  type: 'test'\n  ...\n# Subtest: sleep exact decimal carry [\"1e-1000000000000000000000\"]\nok 184 - sleep exact decimal carry [\"1e-1000000000000000000000\"]\n  ---\n  duration_ms: 0.05275\n  type: 'test'\n  ...\n# Subtest: sleep exact decimal carry [\".000016666666666666m\",\".00000000000000000004\"]\nok 185 - sleep exact decimal carry [\".000016666666666666m\",\".00000000000000000004\"]\n  ---\n  duration_ms: 0.076375\n  type: 'test'\n  ...\n# Subtest: sleep exact decimal carry [\".0000000001d\",\".0000000001h\",\".0000000001m\",\".000990994\"]\nok 186 - sleep exact decimal carry [\".0000000001d\",\".0000000001h\",\".0000000001m\",\".000990994\"]\n  ---\n  duration_ms: 0.049291\n  type: 'test'\n  ...\n# Subtest: sleep exact decimal carry [\"0.000000000000000000000000000001\",\"0.000999999999999999999999999999\"]\nok 187 - sleep exact decimal carry [\"0.000000000000000000000000000001\",\"0.000999999999999999999999999999\"]\n  ---\n  duration_ms: 0.124333\n  type: 'test'\n  ...\n# Subtest: sleep exact decimal carry [\".0005\",\".0005\",\"1e-999999999999999999999\"]\nok 188 - sleep exact decimal carry [\".0005\",\".0005\",\"1e-999999999999999999999\"]\n  ---\n  duration_ms: 0.215458\n  type: 'test'\n  ...\n# Subtest: sleep exact decimal carry [\"0e9999999999999999999999\",\"0e-9999999999999999999999\"]\nok 189 - sleep exact decimal carry [\"0e9999999999999999999999\",\"0e-9999999999999999999999\"]\n  ---\n  duration_ms: 0.050416\n  type: 'test'\n  ...\n# Subtest: sleep bounded exact rational properties across decimal positions and units\nok 190 - sleep bounded exact rational properties across decimal positions and units\n  ---\n  duration_ms: 6.839917\n  type: 'test'\n  ...\n# Subtest: sleep sparse decimal positions bound huge exponents without allocating exponent-sized buffers\nok 191 - sleep sparse decimal positions bound huge exponents without allocating exponent-sized buffers\n  ---\n  duration_ms: 1.478291\n  type: 'test'\n  ...\n# Subtest: sleep exact range boundary preserves chunking and rejects excess before scheduling\nok 192 - sleep exact range boundary preserves chunking and rejects excess before scheduling\n  ---\n  duration_ms: 0.319041\n  type: 'test'\n  ...\n# Subtest: sleep many fractional carries reach the boundary without per-operand rounding\nok 193 - sleep many fractional carries reach the boundary without per-operand rounding\n  ---\n  duration_ms: 2.036833\n  type: 'test'\n  ...\n# Subtest: sleep summed fractional intervals 0.125\nok 194 - sleep summed fractional intervals 0.125\n  ---\n  duration_ms: 0.813625\n  type: 'test'\n  ...\n# Subtest: sleep summed fractional intervals .001s 0.002\nok 195 - sleep summed fractional intervals .001s 0.002\n  ---\n  duration_ms: 0.160334\n  type: 'test'\n  ...\n# Subtest: sleep summed fractional intervals 1e-3m\nok 196 - sleep summed fractional intervals 1e-3m\n  ---\n  duration_ms: 0.100625\n  type: 'test'\n  ...\n# Subtest: sleep summed fractional intervals +0.0001h\nok 197 - sleep summed fractional intervals +0.0001h\n  ---\n  duration_ms: 0.0555\n  type: 'test'\n  ...\n# Subtest: sleep summed fractional intervals 0.00001d\nok 198 - sleep summed fractional intervals 0.00001d\n  ---\n  duration_ms: 0.171833\n  type: 'test'\n  ...\n# Subtest: sleep summed fractional intervals 0.02\nok 199 - sleep summed fractional intervals 0.02\n  ---\n  duration_ms: 0.053125\n  type: 'test'\n  ...\n# Subtest: sleep summed fractional intervals 1. 0.5s\nok 200 - sleep summed fractional intervals 1. 0.5s\n  ---\n  duration_ms: 0.079\n  type: 'test'\n  ...\n# Subtest: sleep never finishes early and chunks intervals above timer range\nok 201 - sleep never finishes early and chunks intervals above timer range\n  ---\n  duration_ms: 0.259542\n  type: 'test'\n  ...\n# Subtest: sleep configurable timer quantum and submillisecond durations do not spin\nok 202 - sleep configurable timer quantum and submillisecond durations do not spin\n  ---\n  duration_ms: 0.241417\n  type: 'test'\n  ...\n# Subtest: sleep abort before/during clears listeners and pending timers\nok 203 - sleep abort before/during clears listeners and pending timers\n  ---\n  duration_ms: 0.405709\n  type: 'test'\n  ...\n# Subtest: sleep handles abort synchronously triggered by a trusted scheduler setup without leaking its handle\nok 204 - sleep handles abort synchronously triggered by a trusted scheduler setup without leaking its handle\n  ---\n  duration_ms: 0.076334\n  type: 'test'\n  ...\n# Subtest: sleep rejects nonmonotonic scheduler time and cleans the subscription\nok 205 - sleep rejects nonmonotonic scheduler time and cleans the subscription\n  ---\n  duration_ms: 0.064291\n  type: 'test'\n  ...\n# Subtest: sleep validates all operands before waiting: []\nok 206 - sleep validates all operands before waiting: []\n  ---\n  duration_ms: 0.114792\n  type: 'test'\n  ...\n# Subtest: sleep validates all operands before waiting: [\"-1\"]\nok 207 - sleep validates all operands before waiting: [\"-1\"]\n  ---\n  duration_ms: 0.047291\n  type: 'test'\n  ...\n# Subtest: sleep validates all operands before waiting: [\"1ms\"]\nok 208 - sleep validates all operands before waiting: [\"1ms\"]\n  ---\n  duration_ms: 0.051375\n  type: 'test'\n  ...\n# Subtest: sleep validates all operands before waiting: [\"NaN\"]\nok 209 - sleep validates all operands before waiting: [\"NaN\"]\n  ---\n  duration_ms: 0.072875\n  type: 'test'\n  ...\n# Subtest: sleep validates all operands before waiting: [\"Infinity\"]\nok 210 - sleep validates all operands before waiting: [\"Infinity\"]\n  ---\n  duration_ms: 0.042208\n  type: 'test'\n  ...\n# Subtest: sleep validates all operands before waiting: [\"1e999\"]\nok 211 - sleep validates all operands before waiting: [\"1e999\"]\n  ---\n  duration_ms: 0.066708\n  type: 'test'\n  ...\n# Subtest: sleep validates all operands before waiting: [\"0x1\"]\nok 212 - sleep validates all operands before waiting: [\"0x1\"]\n  ---\n  duration_ms: 0.042083\n  type: 'test'\n  ...\n# Subtest: sleep validates all operands before waiting: [\"1\",\"bad\"]\nok 213 - sleep validates all operands before waiting: [\"1\",\"bad\"]\n  ---\n  duration_ms: 0.04775\n  type: 'test'\n  ...\n# Subtest: sleep validates all operands before waiting: [\"1,2\"]\nok 214 - sleep validates all operands before waiting: [\"1,2\"]\n  ---\n  duration_ms: 0.34075\n  type: 'test'\n  ...\n# Subtest: sleep validates all operands before waiting: [\"1D\"]\nok 215 - sleep validates all operands before waiting: [\"1D\"]\n  ---\n  duration_ms: 0.043583\n  type: 'test'\n  ...\n# Subtest: sleep validates all operands before waiting: [\"--invalid\"]\nok 216 - sleep validates all operands before waiting: [\"--invalid\"]\n  ---\n  duration_ms: 0.034167\n  type: 'test'\n  ...\n# Subtest: sleep validates all operands before waiting: [\"--\",\"0\"]\nok 217 - sleep validates all operands before waiting: [\"--\",\"0\"]\n  ---\n  duration_ms: 0.060292\n  type: 'test'\n  ...\n# Subtest: sleep validates all operands before waiting: [\"-0.00\"]\nok 218 - sleep validates all operands before waiting: [\"-0.00\"]\n  ---\n  duration_ms: 0.033834\n  type: 'test'\n  ...\n# Subtest: sleep zero does not consume stdin or write either channel\nok 219 - sleep zero does not consume stdin or write either channel\n  ---\n  duration_ms: 0.04775\n  type: 'test'\n  ...\n# Subtest: sleep default scheduler waits against monotonic elapsed time\nok 220 - sleep default scheduler waits against monotonic elapsed time\n  ---\n  duration_ms: 17.405916\n  type: 'test'\n  ...\n# Subtest: 256 signed epoch/fraction vectors preserve independent floor-seconds arithmetic\nok 221 - 256 signed epoch/fraction vectors preserve independent floor-seconds arithmetic\n  ---\n  duration_ms: 6.933791\n  type: 'test'\n  ...\n# Subtest: 256 finite decimal sleep sums never schedule earlier than their exact rational duration\nok 222 - 256 finite decimal sleep sums never schedule earlier than their exact rational duration\n  ---\n  duration_ms: 3.6355\n  type: 'test'\n  ...\n# Subtest: date and printenv honor byte rather than character limits, including output chunk ownership\nok 223 - date and printenv honor byte rather than character limits, including output chunk ownership\n  ---\n  duration_ms: 0.660083\n  type: 'test'\n  ...\n# Subtest: date rejects clock setting before clock/metadata access and pre-abort wins\nok 224 - date rejects clock setting before clock/metadata access and pre-abort wins\n  ---\n  duration_ms: 0.142625\n  type: 'test'\n  ...\n# Subtest: date reference preserves authorization errors and abort during cooperative metadata work\nok 225 - date reference preserves authorization errors and abort during cooperative metadata work\n  ---\n  duration_ms: 0.143584\n  type: 'test'\n  ...\n# Subtest: sleep timer creation failure and successful completion remove abort listeners\nok 226 - sleep timer creation failure and successful completion remove abort listeners\n  ---\n  duration_ms: 0.051875\n  type: 'test'\n  ...\n# Subtest: actual Shell date loop, sorting pipeline, references and null-delimited environment publication\nok 227 - actual Shell date loop, sorting pipeline, references and null-delimited environment publication\n  ---\n  duration_ms: 10.726875\n  type: 'test'\n  ...\n# Subtest: root family exports preserve four inspection definitions in the 68-command aggregate\nok 228 - root family exports preserve four inspection definitions in the 68-command aggregate\n  ---\n  duration_ms: 2.845583\n  type: 'test'\n  ...\n# Subtest: factory actual Shell dispatch: tac\nok 229 - factory actual Shell dispatch: tac\n  ---\n  duration_ms: 2.957792\n  type: 'test'\n  ...\n# Subtest: factory actual Shell dispatch: expand\nok 230 - factory actual Shell dispatch: expand\n  ---\n  duration_ms: 0.849583\n  type: 'test'\n  ...\n# Subtest: factory actual Shell dispatch: fold\nok 231 - factory actual Shell dispatch: fold\n  ---\n  duration_ms: 0.807959\n  type: 'test'\n  ...\n# Subtest: factory actual Shell dispatch: strings\nok 232 - factory actual Shell dispatch: strings\n  ---\n  duration_ms: 0.734667\n  type: 'test'\n  ...\n# Subtest: plugin actual Shell dispatch: tac\nok 233 - plugin actual Shell dispatch: tac\n  ---\n  duration_ms: 0.598083\n  type: 'test'\n  ...\n# Subtest: plugin actual Shell dispatch: expand\nok 234 - plugin actual Shell dispatch: expand\n  ---\n  duration_ms: 0.498209\n  type: 'test'\n  ...\n# Subtest: plugin actual Shell dispatch: fold\nok 235 - plugin actual Shell dispatch: fold\n  ---\n  duration_ms: 0.773125\n  type: 'test'\n  ...\n# Subtest: plugin actual Shell dispatch: strings\nok 236 - plugin actual Shell dispatch: strings\n  ---\n  duration_ms: 0.92275\n  type: 'test'\n  ...\n# Subtest: aggregate preflights tac before installing any family\nok 237 - aggregate preflights tac before installing any family\n  ---\n  duration_ms: 0.364375\n  type: 'test'\n  ...\n# Subtest: aggregate preflights expand before installing any family\nok 238 - aggregate preflights expand before installing any family\n  ---\n  duration_ms: 0.077792\n  type: 'test'\n  ...\n# Subtest: aggregate preflights fold before installing any family\nok 239 - aggregate preflights fold before installing any family\n  ---\n  duration_ms: 0.073834\n  type: 'test'\n  ...\n# Subtest: aggregate preflights strings before installing any family\nok 240 - aggregate preflights strings before installing any family\n  ---\n  duration_ms: 0.063959\n  type: 'test'\n  ...\n# Subtest: standalone and aggregate share one explicit replacement boundary\nok 241 - standalone and aggregate share one explicit replacement boundary\n  ---\n  duration_ms: 0.211875\n  type: 'test'\n  ...\n# Subtest: aggregate validates stream limits before registration\nok 242 - aggregate validates stream limits before registration\n  ---\n  duration_ms: 0.060791\n  type: 'test'\n  ...\n# Subtest: stream family limits reach all four defaults without restricting other families\nok 243 - stream family limits reach all four defaults without restricting other families\n  ---\n  duration_ms: 2.24125\n  type: 'test'\n  ...\n# Subtest: memory defaults preserve byte pipes and VFS publication\nok 244 - memory defaults preserve byte pipes and VFS publication\n  ---\n  duration_ms: 7.876708\n  type: 'test'\n  ...\n# Subtest: real defaults preserve byte pipes and VFS publication\nok 245 - real defaults preserve byte pipes and VFS publication\n  ---\n  duration_ms: 14.690417\n  type: 'test'\n  ...\n# Subtest: registry-only fallback dispatches all four without an invocation stub\nok 246 - registry-only fallback dispatches all four without an invocation stub\n  ---\n  duration_ms: 0.627542\n  type: 'test'\n  ...\n# Subtest: actual invoke retains literal argv, middleware, VFS and shared output budget\nok 247 - actual invoke retains literal argv, middleware, VFS and shared output budget\n  ---\n  duration_ms: 0.912417\n  type: 'test'\n  ...\n# Subtest: default bundle leaves optional curl and SafeJS unavailable\nok 248 - default bundle leaves optional curl and SafeJS unavailable\n  ---\n  duration_ms: 0.367708\n  type: 'test'\n  ...\n# Subtest: aggregate definitions are exactly the delivered families, each registered once\nok 249 - aggregate definitions are exactly the delivered families, each registered once\n  ---\n  duration_ms: 2.811916\n  type: 'test'\n  ...\n# Subtest: collision with printf leaves the entire host registry untouched\nok 250 - collision with printf leaves the entire host registry untouched\n  ---\n  duration_ms: 0.304375\n  type: 'test'\n  ...\n# Subtest: collision with sed leaves the entire host registry untouched\nok 251 - collision with sed leaves the entire host registry untouched\n  ---\n  duration_ms: 0.156958\n  type: 'test'\n  ...\n# Subtest: collision with jq leaves the entire host registry untouched\nok 252 - collision with jq leaves the entire host registry untouched\n  ---\n  duration_ms: 0.084958\n  type: 'test'\n  ...\n# Subtest: collision with rg leaves the entire host registry untouched\nok 253 - collision with rg leaves the entire host registry untouched\n  ---\n  duration_ms: 0.120083\n  type: 'test'\n  ...\n# Subtest: collision with gzip leaves the entire host registry untouched\nok 254 - collision with gzip leaves the entire host registry untouched\n  ---\n  duration_ms: 0.06425\n  type: 'test'\n  ...\n# Subtest: collision with patch leaves the entire host registry untouched\nok 255 - collision with patch leaves the entire host registry untouched\n  ---\n  duration_ms: 0.062291\n  type: 'test'\n  ...\n# Subtest: collision with chmod leaves the entire host registry untouched\nok 256 - collision with chmod leaves the entire host registry untouched\n  ---\n  duration_ms: 0.254791\n  type: 'test'\n  ...\n# Subtest: collision with stat leaves the entire host registry untouched\nok 257 - collision with stat leaves the entire host registry untouched\n  ---\n  duration_ms: 0.194084\n  type: 'test'\n  ...\n# Subtest: collision with mktemp leaves the entire host registry untouched\nok 258 - collision with mktemp leaves the entire host registry untouched\n  ---\n  duration_ms: 0.247875\n  type: 'test'\n  ...\n# Subtest: collision with tar leaves the entire host registry untouched\nok 259 - collision with tar leaves the entire host registry untouched\n  ---\n  duration_ms: 0.06775\n  type: 'test'\n  ...\n# Subtest: collision with paste leaves the entire host registry untouched\nok 260 - collision with paste leaves the entire host registry untouched\n  ---\n  duration_ms: 0.056292\n  type: 'test'\n  ...\n# Subtest: collision with comm leaves the entire host registry untouched\nok 261 - collision with comm leaves the entire host registry untouched\n  ---\n  duration_ms: 0.052875\n  type: 'test'\n  ...\n# Subtest: collision with join leaves the entire host registry untouched\nok 262 - collision with join leaves the entire host registry untouched\n  ---\n  duration_ms: 0.049375\n  type: 'test'\n  ...\n# Subtest: collision with date leaves the entire host registry untouched\nok 263 - collision with date leaves the entire host registry untouched\n  ---\n  duration_ms: 0.049083\n  type: 'test'\n  ...\n# Subtest: collision with sleep leaves the entire host registry untouched\nok 264 - collision with sleep leaves the entire host registry untouched\n  ---\n  duration_ms: 0.050459\n  type: 'test'\n  ...\n# Subtest: collision with printenv leaves the entire host registry untouched\nok 265 - collision with printenv leaves the entire host registry untouched\n  ---\n  duration_ms: 0.051125\n  type: 'test'\n  ...\n# Subtest: explicit replacement affects all families once and preserves unrelated commands\nok 266 - explicit replacement affects all families once and preserves unrelated commands\n  ---\n  duration_ms: 0.19225\n  type: 'test'\n  ...\n# Subtest: invalid eager family limits install no commands\nok 267 - invalid eager family limits install no commands\n  ---\n  duration_ms: 0.047417\n  type: 'test'\n  ...\n# Subtest: definitions fallback resolves nested argv across families without a shell\nok 268 - definitions fallback resolves nested argv across families without a shell\n  ---\n  duration_ms: 18.197083\n  type: 'test'\n  ...\n# Subtest: plugin fallback resolves nested argv across families without a shell\nok 269 - plugin fallback resolves nested argv across families without a shell\n  ---\n  duration_ms: 13.818375\n  type: 'test'\n  ...\n# Subtest: plugin fallback can resolve host commands outside the aggregate\nok 270 - plugin fallback can resolve host commands outside the aggregate\n  ---\n  duration_ms: 0.214459\n  type: 'test'\n  ...\n# Subtest: custom fallback applies only without the shell invocation hook\nok 271 - custom fallback applies only without the shell invocation hook\n  ---\n  duration_ms: 3.143541\n  type: 'test'\n  ...\n# Subtest: aggregate forwards text limits without rewriting them\nok 272 - aggregate forwards text limits without rewriting them\n  ---\n  duration_ms: 0.611458\n  type: 'test'\n  ...\n# Subtest: aggregate forwards structured limits without rewriting them\nok 273 - aggregate forwards structured limits without rewriting them\n  ---\n  duration_ms: 0.735667\n  type: 'test'\n  ...\n# Subtest: aggregate forwards search limits without rewriting them\nok 274 - aggregate forwards search limits without rewriting them\n  ---\n  duration_ms: 13.262\n  type: 'test'\n  ...\n# Subtest: aggregate forwards diffPatch limits without rewriting them\nok 275 - aggregate forwards diffPatch limits without rewriting them\n  ---\n  duration_ms: 2.009375\n  type: 'test'\n  ...\n# Subtest: aggregate forwards metadata limits without rewriting them\nok 276 - aggregate forwards metadata limits without rewriting them\n  ---\n  duration_ms: 1.038834\n  type: 'test'\n  ...\n# Subtest: aggregate forwards archive limits without rewriting them\nok 277 - aggregate forwards archive limits without rewriting them\n  ---\n  duration_ms: 1.485875\n  type: 'test'\n  ...\n# Subtest: aggregate forwards tableText limits without rewriting them\nok 278 - aggregate forwards tableText limits without rewriting them\n  ---\n  duration_ms: 0.518125\n  type: 'test'\n  ...\n# Subtest: search defaultInput remains an explicit family override\nok 279 - search defaultInput remains an explicit family override\n  ---\n  duration_ms: 12.955541\n  type: 'test'\n  ...\n# Subtest: README aggregate example and binary pipelines use the actual shell\nok 280 - README aggregate example and binary pipelines use the actual shell\n  ---\n  duration_ms: 8.010958\n  type: 'test'\n  ...\n# Subtest: aggregate tar streams binary archives through the actual VFS pipeline\nok 281 - aggregate tar streams binary archives through the actual VFS pipeline\n  ---\n  duration_ms: 2.631208\n  type: 'test'\n  ...\n# Subtest: aggregate table-text composes with existing cut and virtual files\nok 282 - aggregate table-text composes with existing cut and virtual files\n  ---\n  duration_ms: 2.861417\n  type: 'test'\n  ...\n# Subtest: current factory and installed registry are frozen60 plus approved five and time-env three\nok 283 - current factory and installed registry are frozen60 plus approved five and time-env three\n  ---\n  duration_ms: 2.719708\n  type: 'test'\n  ...\n# Subtest: seq aggregate collision is atomic and replacement remains explicit\nok 284 - seq aggregate collision is atomic and replacement remains explicit\n  ---\n  duration_ms: 0.447083\n  type: 'test'\n  ...\n# Subtest: nl aggregate collision is atomic and replacement remains explicit\nok 285 - nl aggregate collision is atomic and replacement remains explicit\n  ---\n  duration_ms: 0.198208\n  type: 'test'\n  ...\n# Subtest: rev aggregate collision is atomic and replacement remains explicit\nok 286 - rev aggregate collision is atomic and replacement remains explicit\n  ---\n  duration_ms: 0.116667\n  type: 'test'\n  ...\n# Subtest: unexpand aggregate collision is atomic and replacement remains explicit\nok 287 - unexpand aggregate collision is atomic and replacement remains explicit\n  ---\n  duration_ms: 0.320041\n  type: 'test'\n  ...\n# Subtest: split aggregate collision is atomic and replacement remains explicit\nok 288 - split aggregate collision is atomic and replacement remains explicit\n  ---\n  duration_ms: 0.11\n  type: 'test'\n  ...\n1..288\n# tests 288\n# suites 0\n# pass 287\n# fail 1\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 2363.953625\n",
+        "stderr": ""
+      }
+    ]
+  },
+  {
+    "run": 7,
+    "originalReportPath": "/tmp/safe-bash-time-env-public-run07-20260827/report.json",
+    "originalReportSha256": "d20610df3f1d6c7a5999adec8a91728963f6b00d9bdd69522c128862c3cb2610",
+    "sourceCommit": "6ffe4f4f17637e44b55cc0455394513e8d6b94de",
+    "sourceTreeSha256": "011f274582c14ba014704dda019bd01ba55c740bd0caf1ff964338c64fd26898",
+    "packageSha256": "1a757856aff57daa1fd3e5c40f4e011b1bb1ec43877f2fd5c8b6fae7f8e3ff5e",
+    "startedAt": "2026-08-27T09:37:22.351Z",
+    "finishedAt": "2026-08-27T09:37:31.156Z",
+    "status": "passed-scoped-author-integration",
+    "resources": {
+      "work": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-xfRKQb",
+      "cleaned": true
+    },
+    "steps": [
+      {
+        "name": "revision",
+        "status": 0,
+        "stdoutSha256": "d6f370c32bfe966b8a7cf8ccd4d12b6af196dd36952a530d1d3cd802f5179bfd",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "counts": {}
+      },
+      {
+        "name": "archive",
+        "status": 0,
+        "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "counts": {}
+      },
+      {
+        "name": "extract",
+        "status": 0,
+        "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "counts": {}
+      },
+      {
+        "name": "canonical-migration",
+        "status": 0,
+        "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "counts": {}
+      },
+      {
+        "name": "build",
+        "status": 0,
+        "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "counts": {}
+      },
+      {
+        "name": "source-types",
+        "status": 0,
+        "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "counts": {}
+      },
+      {
+        "name": "source-tests",
+        "status": 0,
+        "stdoutSha256": "5160bf91737c97ecea7e38484ecc9e3edf47389f81530442f9a4278bddb7f3fb",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "counts": {
+          "tests": 306,
+          "pass": 306,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "name": "pack",
+        "status": 0,
+        "stdoutSha256": "e0e99b0d558afaa203a65e2535fca3d768fcda26a8b307401aeec427b96f25b7",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "counts": {}
+      },
+      {
+        "name": "unpack",
+        "status": 0,
+        "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "counts": {}
+      },
+      {
+        "name": "consumer-types",
+        "status": 0,
+        "stdoutSha256": "c11ecae5e78866ad7f1a40cbc1355c108a108bd15d07b31cfed0027e814f6669",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "counts": {}
+      },
+      {
+        "name": "negative-types",
+        "command": [
+          "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+          "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/bin/tsc",
+          "-p",
+          "negative.json"
+        ],
+        "cwd": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-xfRKQb/moved/consumer",
+        "status": 2,
+        "signal": null,
+        "stdout": "negative.mts(3,28): error TS2353: Object literal may only specify known properties, and 'replace' does not exist in type 'Omit<TimeEnvCommandsOptions, \"replace\">'.\nnegative.mts(4,19): error TS2322: Type '() => string' is not assignable to type '() => number'.\n  Type 'string' is not assignable to type 'number'.\nnegative.mts(5,25): error TS2322: Type 'number' is not assignable to type 'string'.\nnegative.mts(6,35): error TS2322: Type 'string' is not assignable to type 'number'.\nnegative.mts(7,7): error TS2741: Property 'clearTimeout' is missing in type '{ now: () => number; setTimeout: () => number; }' but required in type 'SleepScheduler'.\nnegative.mts(8,7): error TS2739: Type '{ maxFormatWidth: number; }' is missing the following properties from type 'TimeEnvLimits': maxArguments, maxArgumentBytes, maxOutputBytes, maxEnvironmentEntries\n",
+        "stderr": ""
+      },
+      {
+        "name": "public-repeat-1",
+        "status": 0,
+        "stdoutSha256": "58df651a6d13c129de027d0c4372d29bde299b9e6f7eea06ee5d19c9b94a58df",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "counts": {
+          "tests": 18,
+          "pass": 18,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "name": "public-repeat-2",
+        "status": 0,
+        "stdoutSha256": "780a08c2e3f5133e045b5729faa3af916d457a96f9c8659e732fb35bbfa4f270",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "counts": {
+          "tests": 18,
+          "pass": 18,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "name": "adjacent-stream-options.mts",
+        "status": 0,
+        "stdoutSha256": "4f00b6ffdec81e4651021bdfcba7a00f03dc597c28623ee11126c308260914cb",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "counts": {}
+      },
+      {
+        "name": "adjacent-inspection-consumer.mts",
+        "status": 0,
+        "stdoutSha256": "4a635f5e38bb5ef7182a22609864ce78106e133dc551dddd6369716b37b9d4af",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "counts": {}
+      },
+      {
+        "name": "missing-runtime-root",
+        "command": [
+          "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+          "--unhandled-rejections=strict",
+          "--permission",
+          "--allow-fs-read=/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-xfRKQb/moved/consumer",
+          "--input-type=module",
+          "-e",
+          "await import(\"virtual-bash\")"
+        ],
+        "cwd": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-xfRKQb/moved/consumer",
+        "status": 1,
+        "signal": null,
+        "stdout": "",
+        "stderr": "node:internal/modules/esm/resolve:275\n    throw new ERR_MODULE_NOT_FOUND(\n          ^\n\nError [ERR_MODULE_NOT_FOUND]: Cannot find module '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-xfRKQb/moved/consumer/node_modules/virtual-bash/dist/commands/time-env/index.js' imported from /private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-xfRKQb/moved/consumer/node_modules/virtual-bash/dist/index.js\n    at finalizeResolution (node:internal/modules/esm/resolve:275:11)\n    at moduleResolve (node:internal/modules/esm/resolve:861:10)\n    at defaultResolve (node:internal/modules/esm/resolve:985:11)\n    at #cachedDefaultResolve (node:internal/modules/esm/loader:731:20)\n    at ModuleLoader.resolve (node:internal/modules/esm/loader:708:38)\n    at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:310:38)\n    at ModuleJob._link (node:internal/modules/esm/module_job:182:49) {\n  code: 'ERR_MODULE_NOT_FOUND',\n  url: 'file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-xfRKQb/moved/consumer/node_modules/virtual-bash/dist/commands/time-env/index.js'\n}\n\nNode.js v22.22.2\n"
+      },
+      {
+        "name": "missing-runtime-subpath",
+        "command": [
+          "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+          "--unhandled-rejections=strict",
+          "--permission",
+          "--allow-fs-read=/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-xfRKQb/moved/consumer",
+          "--input-type=module",
+          "-e",
+          "await import(\"virtual-bash/commands/time-env\")"
+        ],
+        "cwd": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-xfRKQb/moved/consumer",
+        "status": 1,
+        "signal": null,
+        "stdout": "",
+        "stderr": "node:internal/modules/esm/resolve:275\n    throw new ERR_MODULE_NOT_FOUND(\n          ^\n\nError [ERR_MODULE_NOT_FOUND]: Cannot find module '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-xfRKQb/moved/consumer/node_modules/virtual-bash/dist/commands/time-env/index.js' imported from /private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-xfRKQb/moved/consumer/[eval1]\n    at finalizeResolution (node:internal/modules/esm/resolve:275:11)\n    at moduleResolve (node:internal/modules/esm/resolve:861:10)\n    at defaultResolve (node:internal/modules/esm/resolve:985:11)\n    at #cachedDefaultResolve (node:internal/modules/esm/loader:731:20)\n    at ModuleLoader.resolve (node:internal/modules/esm/loader:708:38)\n    at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:310:38)\n    at onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:664:36)\n    at TracingChannel.tracePromise (node:diagnostics_channel:350:14)\n    at ModuleLoader.import (node:internal/modules/esm/loader:663:21)\n    at defaultImportModuleDynamicallyForModule (node:internal/modules/esm/utils:222:31) {\n  code: 'ERR_MODULE_NOT_FOUND',\n  url: 'file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-xfRKQb/moved/consumer/node_modules/virtual-bash/dist/commands/time-env/index.js'\n}\n\nNode.js v22.22.2\n"
+      },
+      {
+        "name": "source-permission-negative",
+        "command": [
+          "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+          "--unhandled-rejections=strict",
+          "--permission",
+          "--allow-fs-read=/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-xfRKQb/moved/consumer",
+          "--input-type=module",
+          "-e",
+          "import { readFileSync } from 'node:fs'; readFileSync(\"/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-xfRKQb/withdrawn-source/src/index.ts\");"
+        ],
+        "cwd": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-xfRKQb/moved/consumer",
+        "status": 1,
+        "signal": null,
+        "stdout": "",
+        "stderr": "node:fs:560\n  return binding.open(\n                 ^\n\nError: Access to this API has been restricted. Use --allow-fs-read to manage permissions.\n    at Object.openSync (node:fs:560:18)\n    at readFileSync (node:fs:444:35)\n    at file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-xfRKQb/moved/consumer/[eval1]:1:41\n    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:272:26)\n    at async ModuleLoader.executeModuleJob (node:internal/modules/esm/loader:268:20)\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5) {\n  code: 'ERR_ACCESS_DENIED',\n  permission: 'FileSystemRead',\n  resource: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-xfRKQb/withdrawn-source/src/index.ts'\n}\n\nNode.js v22.22.2\n"
+      }
+    ]
+  }
+]

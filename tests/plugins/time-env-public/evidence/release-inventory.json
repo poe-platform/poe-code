@@ -1,0 +1,181 @@
+{
+  "scope": "Read-only exact tracked-path preflight, not execution of the full qualified release. Existing fail-closed inventory guard unchanged; no classification or test exclusion added.",
+  "rows": [
+    {
+      "commit": "f5341340bcbc9e4c4d46d6eb3f1759da73713097",
+      "tracked": 176,
+      "inventoried": 156,
+      "unclassified": [
+        {
+          "path": "tests/commands/time-env-stress/fix-review/holdout.mts",
+          "sha256": "a4013ca7e8bd8b7006350d8f4120eb9313317d6bbd2dd0d85cf870f162708823"
+        },
+        {
+          "path": "tests/commands/time-env-stress/fraction-independent/packed/controls.mts",
+          "sha256": "9e4e037fb68ff027e97712ed7db9a7eb117c2d3818829a9c81db378b73cd3c19"
+        },
+        {
+          "path": "tests/commands/time-env-stress/fraction-independent/packed/leaf-negative.mts",
+          "sha256": "95bea0f4174db8f3abcf1df9930721edf33e261ac6ba9c7550e08306835e9fa0"
+        },
+        {
+          "path": "tests/commands/time-env-stress/fraction-independent/packed/leaf-positive.mts",
+          "sha256": "04612e41329331b9699d82af7632650e582a4b9d700b29128b91c35d78cd55ac"
+        },
+        {
+          "path": "tests/commands/time-env-stress/fraction-independent/packed/public-negative.mts",
+          "sha256": "1edc12f034e43292c8332997a0793fe5dedeecc7d81b2696aeea5057670f70af"
+        },
+        {
+          "path": "tests/commands/time-env-stress/fraction-independent/packed/public-positive.mts",
+          "sha256": "7aea50f6aa8cfbcd54f686a9b7f8741500dabd3f3cb423ffbafbcbc53c2982f4"
+        },
+        {
+          "path": "tests/commands/time-env-stress/fraction-independent/packed/public-time-env-unavailable.mts",
+          "sha256": "c64cf98af455e8ad338b22e84e518dbdbc039abc45be1ce69d1ffa62cdf9e273"
+        },
+        {
+          "path": "tests/fs/webdav/atomic-extension-independent/consumer.mts",
+          "sha256": "097fb4af66360dde04e79a9520bfd06a00e8213bc9f686d88c5a7ed52310dc46"
+        },
+        {
+          "path": "tests/fs/webdav/atomic-extension/consumer.mts",
+          "sha256": "2a975eda5ba8035eb4ac3b9932a990b2cd2e0038349b99c5aa4575e8e323e4fd"
+        },
+        {
+          "path": "tests/fs/webdav/atomic-extension/evidence/provider-final/inputs/consumer.mts",
+          "sha256": "2a975eda5ba8035eb4ac3b9932a990b2cd2e0038349b99c5aa4575e8e323e4fd"
+        },
+        {
+          "path": "tests/fs/webdav/atomic-extension/evidence/provider-final/inputs/example.mts",
+          "sha256": "0a477635fa96ed8a68c200b279ed1f78889296fc9cea1ed414df722416d6ec04"
+        },
+        {
+          "path": "tests/fs/webdav/atomic-extension/evidence/provider-final/inputs/https.mts",
+          "sha256": "c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d"
+        },
+        {
+          "path": "tests/fs/webdav/atomic-extension/evidence/provider-first/inputs/consumer.mts",
+          "sha256": "2a975eda5ba8035eb4ac3b9932a990b2cd2e0038349b99c5aa4575e8e323e4fd"
+        },
+        {
+          "path": "tests/fs/webdav/atomic-extension/evidence/provider-first/inputs/example.mts",
+          "sha256": "6c299e206c0f3942ca11de35e8f75b79dfebbcc5bf82e3a10958d6e138f6fbc7"
+        },
+        {
+          "path": "tests/fs/webdav/atomic-extension/evidence/provider-first/inputs/https.mts",
+          "sha256": "c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d"
+        },
+        {
+          "path": "tests/fs/webdav/atomic-extension/evidence/provider-second/inputs/consumer.mts",
+          "sha256": "2a975eda5ba8035eb4ac3b9932a990b2cd2e0038349b99c5aa4575e8e323e4fd"
+        },
+        {
+          "path": "tests/fs/webdav/atomic-extension/evidence/provider-second/inputs/example.mts",
+          "sha256": "0a477635fa96ed8a68c200b279ed1f78889296fc9cea1ed414df722416d6ec04"
+        },
+        {
+          "path": "tests/fs/webdav/atomic-extension/evidence/provider-second/inputs/https.mts",
+          "sha256": "c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d"
+        },
+        {
+          "path": "tests/fs/webdav/atomic-extension/example.mts",
+          "sha256": "0a477635fa96ed8a68c200b279ed1f78889296fc9cea1ed414df722416d6ec04"
+        },
+        {
+          "path": "tests/fs/webdav/atomic-extension/https.mts",
+          "sha256": "c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d"
+        }
+      ],
+      "removed": []
+    },
+    {
+      "commit": "6ffe4f4f17637e44b55cc0455394513e8d6b94de",
+      "tracked": 176,
+      "inventoried": 156,
+      "unclassified": [
+        {
+          "path": "tests/commands/time-env-stress/fix-review/holdout.mts",
+          "sha256": "a4013ca7e8bd8b7006350d8f4120eb9313317d6bbd2dd0d85cf870f162708823"
+        },
+        {
+          "path": "tests/commands/time-env-stress/fraction-independent/packed/controls.mts",
+          "sha256": "9e4e037fb68ff027e97712ed7db9a7eb117c2d3818829a9c81db378b73cd3c19"
+        },
+        {
+          "path": "tests/commands/time-env-stress/fraction-independent/packed/leaf-negative.mts",
+          "sha256": "95bea0f4174db8f3abcf1df9930721edf33e261ac6ba9c7550e08306835e9fa0"
+        },
+        {
+          "path": "tests/commands/time-env-stress/fraction-independent/packed/leaf-positive.mts",
+          "sha256": "04612e41329331b9699d82af7632650e582a4b9d700b29128b91c35d78cd55ac"
+        },
+        {
+          "path": "tests/commands/time-env-stress/fraction-independent/packed/public-negative.mts",
+          "sha256": "1edc12f034e43292c8332997a0793fe5dedeecc7d81b2696aeea5057670f70af"
+        },
+        {
+          "path": "tests/commands/time-env-stress/fraction-independent/packed/public-positive.mts",
+          "sha256": "7aea50f6aa8cfbcd54f686a9b7f8741500dabd3f3cb423ffbafbcbc53c2982f4"
+        },
+        {
+          "path": "tests/commands/time-env-stress/fraction-independent/packed/public-time-env-unavailable.mts",
+          "sha256": "c64cf98af455e8ad338b22e84e518dbdbc039abc45be1ce69d1ffa62cdf9e273"
+        },
+        {
+          "path": "tests/fs/webdav/atomic-extension-independent/consumer.mts",
+          "sha256": "097fb4af66360dde04e79a9520bfd06a00e8213bc9f686d88c5a7ed52310dc46"
+        },
+        {
+          "path": "tests/fs/webdav/atomic-extension/consumer.mts",
+          "sha256": "2a975eda5ba8035eb4ac3b9932a990b2cd2e0038349b99c5aa4575e8e323e4fd"
+        },
+        {
+          "path": "tests/fs/webdav/atomic-extension/evidence/provider-final/inputs/consumer.mts",
+          "sha256": "2a975eda5ba8035eb4ac3b9932a990b2cd2e0038349b99c5aa4575e8e323e4fd"
+        },
+        {
+          "path": "tests/fs/webdav/atomic-extension/evidence/provider-final/inputs/example.mts",
+          "sha256": "0a477635fa96ed8a68c200b279ed1f78889296fc9cea1ed414df722416d6ec04"
+        },
+        {
+          "path": "tests/fs/webdav/atomic-extension/evidence/provider-final/inputs/https.mts",
+          "sha256": "c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d"
+        },
+        {
+          "path": "tests/fs/webdav/atomic-extension/evidence/provider-first/inputs/consumer.mts",
+          "sha256": "2a975eda5ba8035eb4ac3b9932a990b2cd2e0038349b99c5aa4575e8e323e4fd"
+        },
+        {
+          "path": "tests/fs/webdav/atomic-extension/evidence/provider-first/inputs/example.mts",
+          "sha256": "6c299e206c0f3942ca11de35e8f75b79dfebbcc5bf82e3a10958d6e138f6fbc7"
+        },
+        {
+          "path": "tests/fs/webdav/atomic-extension/evidence/provider-first/inputs/https.mts",
+          "sha256": "c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d"
+        },
+        {
+          "path": "tests/fs/webdav/atomic-extension/evidence/provider-second/inputs/consumer.mts",
+          "sha256": "2a975eda5ba8035eb4ac3b9932a990b2cd2e0038349b99c5aa4575e8e323e4fd"
+        },
+        {
+          "path": "tests/fs/webdav/atomic-extension/evidence/provider-second/inputs/example.mts",
+          "sha256": "0a477635fa96ed8a68c200b279ed1f78889296fc9cea1ed414df722416d6ec04"
+        },
+        {
+          "path": "tests/fs/webdav/atomic-extension/evidence/provider-second/inputs/https.mts",
+          "sha256": "c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d"
+        },
+        {
+          "path": "tests/fs/webdav/atomic-extension/example.mts",
+          "sha256": "0a477635fa96ed8a68c200b279ed1f78889296fc9cea1ed414df722416d6ec04"
+        },
+        {
+          "path": "tests/fs/webdav/atomic-extension/https.mts",
+          "sha256": "c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d"
+        }
+      ],
+      "removed": []
+    }
+  ]
+}

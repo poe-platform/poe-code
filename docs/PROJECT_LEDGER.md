@@ -1832,3 +1832,43 @@ that any implementation, command, fixture, or test currently exists.
   72-hour request; no fulfillment or finish time is asserted here.
 - Keep this ledger and `AGENTS.md` current and update the README only from
   inspected APIs and recorded validation. Continue using atomic owned-file commits.
+
+## Time/environment public integration — 2026-08-27T09:37:31.156Z
+
+- Root approved f6406cd/c782363 after Sagan source reviews c9b9626/61c66bc;
+  canonical migration f534134 independently reviewed14d42e2. Supported-domain
+  source acceptance is not this author's independent public-integration approval.
+- Root wiring41298e6 exports timeEnvCommands/createTimeEnvCommands and types at
+  root plus ./commands/time-env. AgentCommandsOptions.timeEnv omits replace;
+  top-level replacement remains authoritative. Explicit registry65→68 adds
+  only date/sleep/printenv; Date.now/UTC defaults, curl/SafeJS optional, zero
+  runtime dependencies. Package lock, TS configs, AGENTS5c644ba, qualified
+  scripts/data exclusions/consumer inventory remain unchanged.
+- Separate count-only commitsba58068/2a8be2e preserve old37/37→29/37 before
+  migration and revised40/40 (three added collision controls); adjacent43/47
+  before count migration→47/47. Historical65 independent holdout is untouched.
+- Exact frozen candidate6ffe4f4f17637e44b55cc0455394513e8d6b94de:306/306 scoped source tests,
+  18/18 packed tests twice, two adjacent strict public consumers, build and
+  production/public types pass; six invalid type uses and three unavailable-
+  runtime/source-access denials detected. No new production fix after wiring.
+  Full source/package hashes and all failed harness attempts are preserved in
+  tests/plugins/time-env-public. Every attempt removed its exact owned scratch;
+  no service suite, private source, dependency install or current full gate.
+- DOC-only ISO rationale correction: verified rendered calendar0000–9999, not
+  unrestricted abs(ISOyear%100). Native negative-century counterexamples
+  -0200-12-31/-0100-12-31 remain; wider bounded epoch conversion is not falsely
+  described as parser rejection. No parser/input restriction was added. Bare
+  %-N remains virtual-clock policy; padded zeros do not imply measured precision.
+  Five ICU differences and semantics-harness11/terminal-env failures remain
+  separate, not a wholly green native harness. Root integration note records it.
+- Different public integration reviewer required. Known qualified WebDAV12/13
+  belongs to its owner's fix/replay; exact release command is handed off in
+  tests/plugins/time-env-public/README.md, not run/claimed green here. No overall
+  superiority or72-hour completion claim.
+- Bounded read-only qualified-release preflight:20 .mts paths unclassified,
+  176 tracked/156 inventoried, already present at pre-integrationf534134 and at
+  final6ffe4f4. Exact seven time-env/four WebDAV current-like/nine captured
+  WebDAV input paths and hashes are in time-env-public/evidence/release-inventory.json.
+  No new .mts file was added by this integration. The unchanged release guard
+  stops before service execution; owner classification/current coverage is a
+  separate follow-up. Do not infer the only remaining release issue is WebDAV.

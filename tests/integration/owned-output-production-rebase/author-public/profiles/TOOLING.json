@@ -1,0 +1,150 @@
+{
+  "schema": 1,
+  "qualification": "EXISTING_PUBLIC_TOOLS_HASHED_NOT_EXECUTED",
+  "node": {
+    "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "version": "v22.22.2",
+    "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+  },
+  "packages": [
+    {
+      "name": "typescript",
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript",
+      "version": "5.9.3",
+      "entries": 147,
+      "inventorySha256": "21c5947bfe4aed4f6178e384731ce253adf1878a6ac31c3134e3c4676f62514e",
+      "normalizedSymlinks": []
+    },
+    {
+      "name": "@types/node",
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node",
+      "version": "22.20.1",
+      "entries": 83,
+      "inventorySha256": "f61fe2d0f8c21b296c30f8419cd76e18cdd4a82a77f98f28ef6fad1c829c2a9b",
+      "normalizedSymlinks": []
+    },
+    {
+      "name": "undici-types",
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/undici-types",
+      "version": "6.21.0",
+      "entries": 41,
+      "inventorySha256": "054783e5ef7a78a6e6e094fcbd67903d63a89e26248adce69a8668e57f817eda",
+      "normalizedSymlinks": []
+    },
+    {
+      "name": "npm",
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm",
+      "version": "10.9.7",
+      "entries": 2556,
+      "inventorySha256": "c3400afec0260bb5d1d775a2950efb7181fc445a76747baa21e4cc2d189e39ea",
+      "normalizedSymlinks": [
+        {
+          "path": "node_modules/.bin/arborist",
+          "kind": "symlink",
+          "target": "../@npmcli/arborist/bin/index.js",
+          "mode": 493,
+          "bytes": 3346,
+          "sha256": "bbf30a5caa388ef12374b22baddc8914d567842fb216e24eb1c6f18c189530fe"
+        },
+        {
+          "path": "node_modules/.bin/cssesc",
+          "kind": "symlink",
+          "target": "../cssesc/bin/cssesc",
+          "mode": 493,
+          "bytes": 3103,
+          "sha256": "d46f3b9e3de9d4a40489fe2fb144429de2aa53ea5d7e4c856b1fa3ccaecc6e44"
+        },
+        {
+          "path": "node_modules/.bin/glob",
+          "kind": "symlink",
+          "target": "../glob/dist/esm/bin.mjs",
+          "mode": 493,
+          "bytes": 12645,
+          "sha256": "eb77a6b359958f341aa9cca28270b1f73939c7e698d38fa6ea8b494c562cf021"
+        },
+        {
+          "path": "node_modules/.bin/installed-package-contents",
+          "kind": "symlink",
+          "target": "../@npmcli/installed-package-contents/bin/index.js",
+          "mode": 493,
+          "bytes": 1109,
+          "sha256": "9a7da3ca72951dee31cdcc04ae700361c003d9c30c29403d3063499be60e613a"
+        },
+        {
+          "path": "node_modules/.bin/node-gyp",
+          "kind": "symlink",
+          "target": "../node-gyp/bin/node-gyp.js",
+          "mode": 493,
+          "bytes": 3414,
+          "sha256": "fe32cca2954bb37ac0c600ade11cf8a204184d04c3ce0176ca6a7831c644d0ab"
+        },
+        {
+          "path": "node_modules/.bin/node-which",
+          "kind": "symlink",
+          "target": "../which/bin/which.js",
+          "mode": 493,
+          "bytes": 960,
+          "sha256": "7c37493fcac8af6526f51f4d83606a733ca7ca3c7b943d1e9239bb30346b019d"
+        },
+        {
+          "path": "node_modules/.bin/nopt",
+          "kind": "symlink",
+          "target": "../nopt/bin/nopt.js",
+          "mode": 493,
+          "bytes": 644,
+          "sha256": "95527c67ac7a1e294f7fcb09e648d1e454f6cfef06346a18a297173389b97d21"
+        },
+        {
+          "path": "node_modules/.bin/pacote",
+          "kind": "symlink",
+          "target": "../pacote/bin/index.js",
+          "mode": 493,
+          "bytes": 3982,
+          "sha256": "fbcdd6e4d3ea97e03d45a908cc143760e8908b59aadf7c27384a148ae19455c7"
+        },
+        {
+          "path": "node_modules/.bin/qrcode-terminal",
+          "kind": "symlink",
+          "target": "../qrcode-terminal/bin/qrcode-terminal.js",
+          "mode": 493,
+          "bytes": 1836,
+          "sha256": "ca492212f6251d730aaaf738262819c9a9aa3fc81d5af51fab47094913e69f74"
+        },
+        {
+          "path": "node_modules/.bin/semver",
+          "kind": "symlink",
+          "target": "../semver/bin/semver.js",
+          "mode": 493,
+          "bytes": 4748,
+          "sha256": "82c28f9bc9e598d255edd507d1e9b157f37b8dac0f2da25a813b5e7121600be8"
+        },
+        {
+          "path": "node_modules/@npmcli/metavuln-calculator/node_modules/.bin/pacote",
+          "kind": "symlink",
+          "target": "../pacote/bin/index.js",
+          "mode": 493,
+          "bytes": 3982,
+          "sha256": "fbcdd6e4d3ea97e03d45a908cc143760e8908b59aadf7c27384a148ae19455c7"
+        },
+        {
+          "path": "node_modules/cross-spawn/node_modules/.bin/node-which",
+          "kind": "symlink",
+          "target": "../which/bin/node-which",
+          "mode": 493,
+          "bytes": 985,
+          "sha256": "055f0ac4eed1a1591d033d59462972968bf3483b4cc07e163589569c0fb999f0"
+        }
+      ]
+    }
+  ],
+  "system": [
+    {
+      "path": "/usr/bin/git",
+      "sha256": "12bed4523661307059b879b9b54e77a73176e9d27d27a0e40363271d8f0668ba"
+    },
+    {
+      "path": "/usr/bin/bsdtar",
+      "sha256": "bdccb76a715fbebc4915a1a1b1de0e7050ad842ebb730c47935b3a22c13e3af9"
+    }
+  ]
+}

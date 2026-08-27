@@ -1,0 +1,77 @@
+{
+  "schema": 1,
+  "qualification": "AUTHOR_PREPARATION_INPUTS_ONLY_NO_CANDIDATE_ACCEPTANCE",
+  "selfAuthentication": "INPUTS.json and each exact path must match the explicitly released author Git commit; evidence stays outside this tree",
+  "files": [
+    {
+      "path": "fixtures/consumer.ts.data",
+      "bytes": 1551,
+      "sha256": "8c96a7409d81d1d5e10fd46ff1d79c9f5271a30427820aa3ea1ce0bf2750f5d4"
+    },
+    {
+      "path": "fixtures/public.mjs",
+      "bytes": 8702,
+      "sha256": "477869ad86b301e363855a995fc528a735ffe16d2d31f802160ef6738373845b"
+    },
+    {
+      "path": "harness/common.mjs",
+      "bytes": 8058,
+      "sha256": "d7d8854d727391f0971d63c8672218bca8f089f4ec66e0da8dea1dbd957a464f"
+    },
+    {
+      "path": "harness/preparation.test.mjs",
+      "bytes": 6565,
+      "sha256": "4be0f56ead1da5e9fbefb346a5b74c1e81cb7baa8f2cfb28a2a75784704838fb"
+    },
+    {
+      "path": "harness/prepare.mjs",
+      "bytes": 1858,
+      "sha256": "5ec5b0ecb917f3c0b3a6a22c268eb414a2a1160655021a745feae218bc6be302"
+    },
+    {
+      "path": "harness/safejs-binding.mjs",
+      "bytes": 5767,
+      "sha256": "bea4e85e8acacdcde834a884ed5b76c6b7c3facfbd01144673856986b68dbad4"
+    },
+    {
+      "path": "harness/stage-candidate.mjs",
+      "bytes": 10945,
+      "sha256": "ce3616e090734009c3eefffaffdd2d02c79a258192f873001fd73afc3d4b43df"
+    },
+    {
+      "path": "PREPARATION.json",
+      "bytes": 4324,
+      "sha256": "9a76924538aa8f6d2e055149627b41ca4002aaadd83f02885172d9a24a5faa32"
+    },
+    {
+      "path": "profiles/API-CHECKPOINT.txt",
+      "bytes": 4959,
+      "sha256": "40cf02113a28acc1c6639a655c8a0abd05240b6b17233c870efde3260c835aa8"
+    },
+    {
+      "path": "profiles/REFERENCES.json",
+      "bytes": 18815,
+      "sha256": "0d434ce8e2e5bcedddfa00b4303e1def6a2580b3cecb7c03ff42b4993ba5d201"
+    },
+    {
+      "path": "profiles/ROOT-RELEASE.template.json",
+      "bytes": 319,
+      "sha256": "8f1b300ef01bff85dd1538bfb83f6cfd51727a56c518dd9038cc9e0929bcda8f"
+    },
+    {
+      "path": "profiles/SAFEJS.json",
+      "bytes": 1504,
+      "sha256": "70a24c49808a134f2ad7f9ab9a4f57a96971fc7c6c7e90a879b60ef8a2bd1ef9"
+    },
+    {
+      "path": "profiles/TOOLING.json",
+      "bytes": 5216,
+      "sha256": "7b96e3e5950a396c2644eeff5bbd96147326ad4b15c3e28d3f67d20f3404dcc9"
+    },
+    {
+      "path": "README.md",
+      "bytes": 8156,
+      "sha256": "a2be7f625d4e4d473c6cc07bcf4d600a04a257d7807b3cf5a19b356768281469"
+    }
+  ]
+}

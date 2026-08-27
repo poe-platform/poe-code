@@ -1,0 +1,2016 @@
+{
+  "schemaVersion": 1,
+  "capturedAt": "2026-08-27T03:37:56.929Z",
+  "status": "PREPARATION_ONLY_NOT_EXECUTED",
+  "productExecutions": 0,
+  "node": "v22.22.2",
+  "head": "e2082b3621ca312fee8d6b0fe25a697ffaac5e7f",
+  "sourceSnapshot": null,
+  "sourceSnapshotReason": "Freeze one current source tree only after root release; no live-HEAD acceptance claim.",
+  "releaseMarkerPresent": false,
+  "setupResultPresent": false,
+  "counts": {
+    "recipes": 60,
+    "historicalUnmeasured": 50,
+    "optional": 4,
+    "historicalRows": 53,
+    "historicalOverlapControls": 3,
+    "sharedControls": 3
+  },
+  "evidence": [
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-execution/cases.mjs",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/baseline-only-20260827/coverage-execution/cases.mjs",
+      "symlink": null,
+      "bytes": 19373,
+      "sha256": "45cfbf02a4e68483e2b4f0fe85dc2c72d40a2a6c16ede16420480c80eb160b72"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-execution/prepare.mjs",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/baseline-only-20260827/coverage-execution/prepare.mjs",
+      "symlink": null,
+      "bytes": 6821,
+      "sha256": "ed3cae99aa8d43b9e43195c6b76da2bd60a3baa1acee6fdbad5b46b975d6f3bb"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-execution/README.md",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/baseline-only-20260827/coverage-execution/README.md",
+      "symlink": null,
+      "bytes": 5297,
+      "sha256": "03896ced2254051882ab45395d3dd883eddb19543aaabc1211cfbb4e5756bf16"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-execution/RUNNER_PLAN.md",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/baseline-only-20260827/coverage-execution/RUNNER_PLAN.md",
+      "symlink": null,
+      "bytes": 8730,
+      "sha256": "849352ebf97ab0fe7525ee214737e0df757ef78bcdc38bc2579ecf2496fd4b7d"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-setup/inventory.json",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/baseline-only-20260827/coverage-setup/inventory.json",
+      "symlink": null,
+      "bytes": 84954,
+      "sha256": "a09a4165d64067a33e42bd48ae7400b49e4776942045d21a2c9634797d295ad9"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-setup/SETUP.md",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/baseline-only-20260827/coverage-setup/SETUP.md",
+      "symlink": null,
+      "bytes": 9358,
+      "sha256": "f20e44b7a7382389a7b0dd38947341874176f0d766505c36d12fc6512ecba78c"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-setup/setup-profiles.json",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/baseline-only-20260827/coverage-setup/setup-profiles.json",
+      "symlink": null,
+      "bytes": 5438,
+      "sha256": "5fb5659fe666b9638b3d399fa4066b3ea064f344fa8d467dda0e32930ead1ab2"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-setup/setup-local.json",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/baseline-only-20260827/coverage-setup/setup-local.json",
+      "symlink": null,
+      "bytes": 26233,
+      "sha256": "cfddcc7d0d5c5728fdcee007230561ad437a8f5b0abb639a7050566ee9e11f0c"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-setup/primary-sources.json",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/baseline-only-20260827/coverage-setup/primary-sources.json",
+      "symlink": null,
+      "bytes": 8089,
+      "sha256": "d13060468195ee3f398089667ce98fe12ad1e6d8ebda8f18553c61a803060f89"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/package.json",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/just-bash/package.json",
+      "symlink": null,
+      "bytes": 7757,
+      "sha256": "b49c28900fe0640b12b9f9e9bb45feebbfa1e94b1a03b0ba7e076a0cb548f3fd"
+    },
+    {
+      "path": "benchmarks/package-lock.json",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/package-lock.json",
+      "symlink": null,
+      "bytes": 38701,
+      "sha256": "6aad93176a9f7fc2578dd720802ce93a1e71b3be9dd9052ef0a54fab8bdc7d70"
+    },
+    {
+      "path": "package.json",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/package.json",
+      "symlink": null,
+      "bytes": 2206,
+      "sha256": "216554f6115e7254b471b1e3b91319e516a80682b59a0b7fe6d8df16b2cb164b"
+    },
+    {
+      "path": "package-lock.json",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/package-lock.json",
+      "symlink": null,
+      "bytes": 16734,
+      "sha256": "9c04bb7d2c7d1894479f0c37ce367987c2130256e5bfbf426cfa1bd2729d740b"
+    }
+  ],
+  "baselineIntegrity": "sha512-T0Vpy7YRgCjxJdqG3tkxn0ZnIDLJvVwb8hH4L+6NVdp+Te27jQxjxnszW9ODjEKbWxWujj83rP5S0GQxCSufgg==",
+  "integrityLimit": "Preparation verifies package/lock version and hashes listed evidence only. Full source, dependency, runtime and symlink-chain freeze is still required before execution.",
+  "environment": {
+    "PATH": "/usr/bin:/bin",
+    "HOME": "/home/user",
+    "TMPDIR": "/tmp",
+    "LANG": "C",
+    "LC_ALL": "C",
+    "TZ": "UTC",
+    "USER": "user"
+  },
+  "budgets": {
+    "ordinaryMs": 30000,
+    "optionalMs": 120000,
+    "childGraceMs": 10000,
+    "maxOutputBytes": 4194304,
+    "maxCensusBytes": 33554432,
+    "maxEntries": 4096,
+    "maxDepth": 32
+  },
+  "networkFixture": {
+    "host": "127.0.0.1",
+    "method": "GET",
+    "path": "/fixture.txt",
+    "status": 200,
+    "contentType": "text/plain",
+    "bodyBase64": "bG9vcGJhY2stZml4dHVyZQo="
+  },
+  "configurationAuthority": "benchmarks/reports/baseline-only-20260827/coverage-setup/setup-profiles.json",
+  "cases": [
+    {
+      "id": "alias-positive",
+      "name": "alias",
+      "cohort": "historical-unmeasured",
+      "configuration": "default",
+      "cwd": "/fixture",
+      "env": {},
+      "stdinBase64": "",
+      "files": {},
+      "directories": [],
+      "symlinks": {},
+      "script": "alias greet='printf alias-ok' && shopt -s expand_aliases && eval greet",
+      "targetArgv": [
+        "alias",
+        "greet=printf alias-ok"
+      ],
+      "expected": {
+        "exitCode": 0,
+        "stdoutBase64": "YWxpYXMtb2s=",
+        "stderrBase64": "",
+        "files": {},
+        "absent": [],
+        "preserveInputs": true
+      },
+      "intent": "Define and expand an alias into an actual command, not merely list its definition.",
+      "proofLimit": "One bounded positive recipe, not complete command or option coverage.",
+      "inputSha256": "fa93d010a494b91bff87e3942691b529b86edf48b9dd7297eb3348ecd02809d8"
+    },
+    {
+      "id": "builtin-positive",
+      "name": "builtin",
+      "cohort": "historical-unmeasured",
+      "configuration": "default",
+      "cwd": "/fixture",
+      "env": {},
+      "stdinBase64": "",
+      "files": {},
+      "directories": [],
+      "symlinks": {},
+      "script": "builtin printf '%s\\n' builtin-ok",
+      "targetArgv": [
+        "builtin",
+        "printf",
+        "%s\\n",
+        "builtin-ok"
+      ],
+      "expected": {
+        "exitCode": 0,
+        "stdoutBase64": "YnVpbHRpbi1vawo=",
+        "stderrBase64": "",
+        "files": {},
+        "absent": [],
+        "preserveInputs": true
+      },
+      "intent": "Dispatch the printf builtin through builtin.",
+      "proofLimit": "One bounded positive recipe, not complete command or option coverage.",
+      "inputSha256": "8f34f1319893e6c8bf963ca86a9ca6157dd3c94b95a1672abf9764afc7196454"
+    },
+    {
+      "id": "clear-positive",
+      "name": "clear",
+      "cohort": "historical-unmeasured",
+      "configuration": "default",
+      "cwd": "/fixture",
+      "env": {},
+      "stdinBase64": "",
+      "files": {},
+      "directories": [],
+      "symlinks": {},
+      "script": "clear",
+      "targetArgv": [
+        "clear"
+      ],
+      "expected": {
+        "exitCode": 0,
+        "stdoutBase64": "G1syShtbSA==",
+        "stderrBase64": "",
+        "files": {},
+        "absent": [],
+        "preserveInputs": true
+      },
+      "intent": "Emit the documented terminal erase/home control sequence; capture raw terminal bytes.",
+      "proofLimit": "One bounded positive recipe, not complete command or option coverage.",
+      "inputSha256": "e40ab57f96776467ac3240d5a7268aaed8e3142d548057dc09547a41124eba6f"
+    },
+    {
+      "id": "column-positive",
+      "name": "column",
+      "cohort": "historical-unmeasured",
+      "configuration": "default",
+      "cwd": "/fixture",
+      "env": {},
+      "stdinBase64": "",
+      "files": {
+        "input.csv": {
+          "base64": "YSxiYgpjYyxkCg==",
+          "mode": 420
+        }
+      },
+      "directories": [],
+      "symlinks": {},
+      "script": "column -t -s , -o '|' input.csv",
+      "targetArgv": [
+        "column",
+        "-t",
+        "-s",
+        ",",
+        "-o",
+        "|",
+        "input.csv"
+      ],
+      "expected": {
+        "exitCode": 0,
+        "stdoutBase64": "YSB8YmIKY2N8ZAo=",
+        "stderrBase64": "",
+        "files": {},
+        "absent": [],
+        "preserveInputs": true
+      },
+      "intent": "Align unequal-width CSV fields into an exact table.",
+      "proofLimit": "One bounded positive recipe, not complete command or option coverage.",
+      "inputSha256": "daac41f6b12a826cef17e1ff58d2eb56ba4c6eb609f023c2334e2df2d7b8c43c"
+    },
+    {
+      "id": "compgen-positive",
+      "name": "compgen",
+      "cohort": "historical-unmeasured",
+      "configuration": "default",
+      "cwd": "/fixture",
+      "env": {},
+      "stdinBase64": "",
+      "files": {},
+      "directories": [],
+      "symlinks": {},
+      "script": "compgen -W 'alpha alpine beta' al",
+      "targetArgv": [
+        "compgen",
+        "-W",
+        "alpha alpine beta",
+        "al"
+      ],
+      "expected": {
+        "exitCode": 0,
+        "stdoutBase64": "YWxwaGEKYWxwaW5lCg==",
+        "stderrBase64": "",
+        "files": {},
+        "absent": [],
+        "preserveInputs": true
+      },
+      "intent": "Compute prefix-filtered completion candidates.",
+      "proofLimit": "One bounded positive recipe, not complete command or option coverage.",
+      "inputSha256": "0cb2c3a2aba46096ba1ca1a27bd3fc1ef536d5f0ddbf64543227a4ab37461e3f"
+    },
+    {
+      "id": "complete-positive",
+      "name": "complete",
+      "cohort": "historical-unmeasured",
+      "configuration": "default",
+      "cwd": "/fixture",
+      "env": {},
+      "stdinBase64": "",
+      "files": {},
+      "directories": [],
+      "symlinks": {},
+      "script": "complete -W 'alpha beta' deploy && complete -p deploy",
+      "targetArgv": null,
+      "expected": {
+        "exitCode": 0,
+        "stdoutIncludes": [
+          "complete",
+          "alpha beta",
+          "deploy"
+        ],
+        "stderrBase64": "",
+        "files": {},
+        "absent": [],
+        "preserveInputs": true
+      },
+      "intent": "Create and retrieve a named completion specification; no interactive completion claim.",
+      "proofLimit": "Stored specification only; an interactive completion engine is not exercised.",
+      "inputSha256": "700071396b40d0a2b87050fd2e2cd395b5e53733454f657751f88d96bb964f15"
+    },
+    {
+      "id": "compopt-positive",
+      "name": "compopt",
+      "cohort": "historical-unmeasured",
+      "configuration": "default",
+      "cwd": "/fixture",
+      "env": {},
+      "stdinBase64": "",
+      "files": {},
+      "directories": [],
+      "symlinks": {},
+      "script": "complete -W 'alpha beta' deploy && compopt -o nospace deploy && compopt deploy",
+      "targetArgv": null,
+      "expected": {
+        "exitCode": 0,
+        "stdoutIncludes": [
+          "nospace",
+          "deploy"
+        ],
+        "stderrBase64": "",
+        "files": {},
+        "absent": [],
+        "preserveInputs": true
+      },
+      "intent": "Mutate and retrieve options on an existing completion specification.",
+      "proofLimit": "Stored completion option only, not interactive behavior; complete is a prerequisite.",
+      "inputSha256": "ef44bd4feec504fe27b04b4328a0f57a17dd65d7019c8db0e6cfca51f3cde23a"
+    },
+    {
+      "id": "date-positive",
+      "name": "date",
+      "cohort": "historical-unmeasured",
+      "configuration": "default",
+      "cwd": "/fixture",
+      "env": {},
+      "stdinBase64": "",
+      "files": {},
+      "directories": [],
+      "symlinks": {},
+      "script": "date -u -d @0 '+%Y-%m-%dT%H:%M:%SZ'",
+      "targetArgv": [
+        "date",
+        "-u",
+        "-d",
+        "@0",
+        "+%Y-%m-%dT%H:%M:%SZ"
+      ],
+      "expected": {
+        "exitCode": 0,
+        "stdoutBase64": "MTk3MC0wMS0wMVQwMDowMDowMFoK",
+        "stderrBase64": "",
+        "files": {},
+        "absent": [],
+        "preserveInputs": true
+      },
+      "intent": "Format a fixed epoch in UTC; do not query the wall clock.",
+      "proofLimit": "One bounded positive recipe, not complete command or option coverage.",
+      "inputSha256": "2e375fc9ce308b74cd2bcfca22877b68aeab206ec1bae8e558d3c29f408d2115"
+    },
+    {
+      "id": "declare-positive",
+      "name": "declare",
+      "cohort": "historical-unmeasured",
+      "configuration": "default",
+      "cwd": "/fixture",
+      "env": {},
+      "stdinBase64": "",
+      "files": {},
+      "directories": [],
+      "symlinks": {},
+      "script": "declare -i count=6 && count=count+7 && printf '%s\\n' \"$count\"",
+      "targetArgv": null,
+      "expected": {
+        "exitCode": 0,
+        "stdoutBase64": "MTMK",
+        "stderrBase64": "",
+        "files": {},
+        "absent": [],
+        "preserveInputs": true
+      },
+      "intent": "Declare an integer variable and observe arithmetic assignment semantics.",
+      "proofLimit": "One bounded positive recipe, not complete command or option coverage.",
+      "inputSha256": "d51f099f0692a4ae7e6bd35eb3e248fc874b00a66dd84c69e0a75d9c5f49a2c1"
+    },
+    {
+      "id": "dirs-positive",
+      "name": "dirs",
+      "cohort": "historical-unmeasured",
+      "configuration": "default",
+      "cwd": "/fixture",
+      "env": {},
+      "stdinBase64": "",
+      "files": {},
+      "directories": [
+        "sub"
+      ],
+      "symlinks": {},
+      "script": "pushd /fixture/sub > /fixture/push-output && dirs -p",
+      "targetArgv": null,
+      "expected": {
+        "exitCode": 0,
+        "stdoutBase64": "L2ZpeHR1cmUvc3ViCi9maXh0dXJlCg==",
+        "stderrBase64": "",
+        "files": {},
+        "absent": [],
+        "preserveInputs": true
+      },
+      "intent": "Observe a nonempty directory stack after navigation; preserve pushd output separately.",
+      "proofLimit": "One bounded positive recipe, not complete command or option coverage.",
+      "inputSha256": "d9fcd8b27c0c3cf0e8d190707f9bba39e908781709aa181c0d7677cf1d710327"
+    },
+    {
+      "id": "du-positive",
+      "name": "du",
+      "cohort": "historical-unmeasured",
+      "configuration": "default",
+      "cwd": "/fixture",
+      "env": {},
+      "stdinBase64": "",
+      "files": {
+        "data.txt": {
+          "base64": "eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHg=",
+          "mode": 420
+        }
+      },
+      "directories": [],
+      "symlinks": {},
+      "script": "du data.txt",
+      "targetArgv": [
+        "du",
+        "data.txt"
+      ],
+      "expected": {
+        "exitCode": 0,
+        "stdoutBase64": "MglkYXRhLnR4dAo=",
+        "stderrBase64": "",
+        "files": {},
+        "absent": [],
+        "preserveInputs": true
+      },
+      "intent": "Measure a 2048-byte file using the pinned logical-VFS-size profile.",
+      "proofLimit": "The baseline reports ceiling(logical bytes/1024), not native allocated blocks. No native disk-allocation parity claim; -b is not a supported pinned baseline option.",
+      "inputSha256": "2dc0a6aa51ad78523c7bf818370ab9bdadd02c4aea8ca9a58c7e45bcd10f98f5"
+    },
+    {
+      "id": "egrep-positive",
+      "name": "egrep",
+      "cohort": "historical-unmeasured",
+      "configuration": "default",
+      "cwd": "/fixture",
+      "env": {},
+      "stdinBase64": "",
+      "files": {
+        "colors": {
+          "base64": "cmVkCmdyZWVuCmJsdWUK",
+          "mode": 420
+        }
+      },
+      "directories": [],
+      "symlinks": {},
+      "script": "egrep '^(red|blue)$' colors",
+      "targetArgv": [
+        "egrep",
+        "^(red|blue)$",
+        "colors"
+      ],
+      "expected": {
+        "exitCode": 0,
+        "stdoutBase64": "cmVkCmJsdWUK",
+        "stderrBase64": "",
+        "files": {},
+        "absent": [],
+        "preserveInputs": true
+      },
+      "intent": "Use extended alternation through the actual egrep alias handler.",
+      "proofLimit": "One bounded positive recipe, not complete command or option coverage.",
+      "inputSha256": "6a182cc6584e1518ae9446de0cd31612b79e0a2bb925d236d0223a9d5637c4eb"
+    },
+    {
+      "id": "exec-positive",
+      "name": "exec",
+      "cohort": "historical-unmeasured",
+      "configuration": "default",
+      "cwd": "/fixture",
+      "env": {},
+      "stdinBase64": "",
+      "files": {},
+      "directories": [],
+      "symlinks": {},
+      "script": "exec printf '%s\\n' exec-ok; target_status=$?; printf 'unexpected-tail\\n' > /fixture/after-exec; exit \"$target_status\"",
+      "targetArgv": [
+        "exec",
+        "printf",
+        "%s\\n",
+        "exec-ok"
+      ],
+      "expected": {
+        "exitCode": 0,
+        "stdoutBase64": "ZXhlYy1vawo=",
+        "stderrBase64": "",
+        "files": {},
+        "absent": [
+          "after-exec"
+        ],
+        "preserveInputs": true
+      },
+      "intent": "Dispatch a real command through exec and require subsequent statements not to run. If they do run, preserve the target's own status rather than masking it.",
+      "proofLimit": "Virtual control-flow replacement only, never host-process replacement.",
+      "inputSha256": "a213b6d7ebbcea6e80192c616c56e2d1c4517c26de3d687b63fffe1e0418ede6"
+    },
+    {
+      "id": "expand-positive",
+      "name": "expand",
+      "cohort": "historical-unmeasured",
+      "configuration": "default",
+      "cwd": "/fixture",
+      "env": {},
+      "stdinBase64": "",
+      "files": {
+        "tabs": {
+          "base64": "YQliCg==",
+          "mode": 420
+        }
+      },
+      "directories": [],
+      "symlinks": {},
+      "script": "expand -t 4 tabs",
+      "targetArgv": [
+        "expand",
+        "-t",
+        "4",
+        "tabs"
+      ],
+      "expected": {
+        "exitCode": 0,
+        "stdoutBase64": "YSAgIGIK",
+        "stderrBase64": "",
+        "files": {},
+        "absent": [],
+        "preserveInputs": true
+      },
+      "intent": "Expand a tab to a fixed four-column stop.",
+      "proofLimit": "One bounded positive recipe, not complete command or option coverage.",
+      "inputSha256": "fbcdb5f5d05c223d2fdd8eb5548c262b1f34dec2dd48982f1303ec6026a3a31c"
+    },
+    {
+      "id": "expr-positive",
+      "name": "expr",
+      "cohort": "historical-unmeasured",
+      "configuration": "default",
+      "cwd": "/fixture",
+      "env": {},
+      "stdinBase64": "",
+      "files": {},
+      "directories": [],
+      "symlinks": {},
+      "script": "expr 7 + 5",
+      "targetArgv": [
+        "expr",
+        "7",
+        "+",
+        "5"
+      ],
+      "expected": {
+        "exitCode": 0,
+        "stdoutBase64": "MTIK",
+        "stderrBase64": "",
+        "files": {},
+        "absent": [],
+        "preserveInputs": true
+      },
+      "intent": "Evaluate a nonzero arithmetic expression.",
+      "proofLimit": "One bounded positive recipe, not complete command or option coverage.",
+      "inputSha256": "95e8f3df9d93e0fca837c08d13a0d38ad96a7a433b90530ae3ce2b2b1939d150"
+    },
+    {
+      "id": "fgrep-positive",
+      "name": "fgrep",
+      "cohort": "historical-unmeasured",
+      "configuration": "default",
+      "cwd": "/fixture",
+      "env": {},
+      "stdinBase64": "",
+      "files": {
+        "literals": {
+          "base64": "YS5iCmF4Ygo=",
+          "mode": 420
+        }
+      },
+      "directories": [],
+      "symlinks": {},
+      "script": "fgrep 'a.b' literals",
+      "targetArgv": [
+        "fgrep",
+        "a.b",
+        "literals"
+      ],
+      "expected": {
+        "exitCode": 0,
+        "stdoutBase64": "YS5iCg==",
+        "stderrBase64": "",
+        "files": {},
+        "absent": [],
+        "preserveInputs": true
+      },
+      "intent": "Match a literal dot without regex interpretation.",
+      "proofLimit": "One bounded positive recipe, not complete command or option coverage.",
+      "inputSha256": "bb17688d13d207304a280458fc0c96de901a0a1981ca0fe73a5012f915bd45f2"
+    },
+    {
+      "id": "file-positive",
+      "name": "file",
+      "cohort": "historical-unmeasured",
+      "configuration": "default",
+      "cwd": "/fixture",
+      "env": {},
+      "stdinBase64": "",
+      "files": {
+        "note.txt": {
+          "base64": "cGxhaW4gdGV4dAo=",
+          "mode": 420
+        }
+      },
+      "directories": [],
+      "symlinks": {},
+      "script": "file -b note.txt",
+      "targetArgv": [
+        "file",
+        "-b",
+        "note.txt"
+      ],
+      "expected": {
+        "exitCode": 0,
+        "stdoutIncludes": [
+          "ASCII text"
+        ],
+        "stderrBase64": "",
+        "files": {},
+        "absent": [],
+        "preserveInputs": true
+      },
+      "intent": "Classify deterministic ASCII text content, not a command label.",
+      "proofLimit": "One bounded positive recipe, not complete command or option coverage.",
+      "inputSha256": "fe9372be967bdf5da50aa15e653379b40618c153ad795a16662a5467ffa0211c"
+    },
+    {
+      "id": "fold-positive",
+      "name": "fold",
+      "cohort": "historical-unmeasured",
+      "configuration": "default",
+      "cwd": "/fixture",
+      "env": {},
+      "stdinBase64": "",
+      "files": {
+        "lines": {
+          "base64": "YWJjZGVmZ2hpago=",
+          "mode": 420
+        }
+      },
+      "directories": [],
+      "symlinks": {},
+      "script": "fold -w 4 lines",
+      "targetArgv": [
+        "fold",
+        "-w",
+        "4",
+        "lines"
+      ],
+      "expected": {
+        "exitCode": 0,
+        "stdoutBase64": "YWJjZAplZmdoCmlqCg==",
+        "stderrBase64": "",
+        "files": {},
+        "absent": [],
+        "preserveInputs": true
+      },
+      "intent": "Wrap a ten-character line at four columns.",
+      "proofLimit": "One bounded positive recipe, not complete command or option coverage.",
+      "inputSha256": "f0c00411708317feb94e759339dddeabcb4aebee7e69ad0a9ebd38fd1e2c28c1"
+    },
+    {
+      "id": "getopts-positive",
+      "name": "getopts",
+      "cohort": "historical-unmeasured",
+      "configuration": "default",
+      "cwd": "/fixture",
+      "env": {},
+      "stdinBase64": "",
+      "files": {},
+      "directories": [],
+      "symlinks": {},
+      "script": "getopts 'n:' option -n value && printf '%s:%s:%s\\n' \"$option\" \"$OPTARG\" \"$OPTIND\"",
+      "targetArgv": [
+        "getopts",
+        "n:",
+        "option",
+        "-n",
+        "value"
+      ],
+      "expected": {
+        "exitCode": 0,
+        "stdoutBase64": "bjp2YWx1ZTozCg==",
+        "stderrBase64": "",
+        "files": {},
+        "absent": [],
+        "preserveInputs": true
+      },
+      "intent": "Parse an option argument and observe all three resulting variables.",
+      "proofLimit": "One bounded positive recipe, not complete command or option coverage.",
+      "inputSha256": "9f4aeaabd60db59b00996b0b6ed06611d9307bab83f95f047a128b30d98167d4"
+    },
+    {
+      "id": "hash-positive",
+      "name": "hash",
+      "cohort": "historical-unmeasured",
+      "configuration": "default",
+      "cwd": "/fixture",
+      "env": {},
+      "stdinBase64": "",
+      "files": {},
+      "directories": [],
+      "symlinks": {},
+      "script": "hash -p /bin/echo echo && hash -t echo && echo hash-ok",
+      "targetArgv": null,
+      "expected": {
+        "exitCode": 0,
+        "stdoutBase64": "L2Jpbi9lY2hvCmhhc2gtb2sK",
+        "stderrBase64": "",
+        "files": {},
+        "absent": [],
+        "preserveInputs": true
+      },
+      "intent": "Assign and retrieve a command hash mapping, then dispatch the mapped command.",
+      "proofLimit": "Mapping and invocation do not establish cache performance or native PATH-search equivalence.",
+      "inputSha256": "b0ebb3bc646087c4706f9d5e0b3ac24d63e06aa6cfb7e2dbe4cdbdc0ef83155d"
+    },
+    {
+      "id": "help-positive",
+      "name": "help",
+      "cohort": "historical-unmeasured",
+      "configuration": "default",
+      "cwd": "/fixture",
+      "env": {},
+      "stdinBase64": "",
+      "files": {},
+      "directories": [],
+      "symlinks": {},
+      "script": "help printf > /fixture/help.txt",
+      "targetArgv": [
+        "help",
+        "printf"
+      ],
+      "expected": {
+        "exitCode": 0,
+        "stdoutBase64": "",
+        "stderrBase64": "",
+        "files": {
+          "help.txt": {
+            "includes": [
+              "printf"
+            ]
+          }
+        },
+        "absent": [],
+        "preserveInputs": true
+      },
+      "intent": "Attempt the intrinsic documentation operation and retain output as a VFS artifact; explicitly excluded from operational-tool success.",
+      "proofLimit": "User prohibits help/usage as operational proof. This name is attempted but can never earn functional credit from this recipe.",
+      "operationalCredit": false,
+      "inputSha256": "8a0de6e8efd844c5745f69a3ccf433a8b24c31667ae8330dab4268606e9f257b"
+    },
+    {
+      "id": "history-positive",
+      "name": "history",
+      "cohort": "historical-unmeasured",
+      "configuration": "default",
+      "cwd": "/fixture",
+      "env": {
+        "BASH_HISTORY": "[\"printf old-entry\"]"
+      },
+      "stdinBase64": "",
+      "files": {},
+      "directories": [],
+      "symlinks": {},
+      "script": "history -c && history",
+      "targetArgv": null,
+      "expected": {
+        "exitCode": 0,
+        "stdoutBase64": "",
+        "stderrBase64": "",
+        "files": {},
+        "absent": [],
+        "preserveInputs": true
+      },
+      "intent": "Clear a deliberately seeded history list and verify retrieval is empty.",
+      "proofLimit": "Seeded public environment storage, not proof that interactive commands are automatically recorded.",
+      "inputSha256": "26c92fb4ef1716f71b9c49ab61b4da2c0e4aa7b01379e6d1478ac54dc8391266"
+    },
+    {
+      "id": "hostname-positive",
+      "name": "hostname",
+      "cohort": "historical-unmeasured",
+      "configuration": "default",
+      "cwd": "/fixture",
+      "env": {},
+      "stdinBase64": "",
+      "files": {},
+      "directories": [],
+      "symlinks": {},
+      "script": "hostname",
+      "targetArgv": [
+        "hostname"
+      ],
+      "expected": {
+        "exitCode": 0,
+        "stdoutBase64": "bG9jYWxob3N0Cg==",
+        "stderrBase64": "",
+        "files": {},
+        "absent": [],
+        "preserveInputs": true
+      },
+      "intent": "Read the sandbox's virtual hostname, not the host machine identity.",
+      "proofLimit": "Pinned baseline returns a fixed virtual identity; no configurable/network hostname claim.",
+      "inputSha256": "5155a7cac2ec6d0cc61d80da88490beb2328487b458716e944b6dc79ffc3c32f"
+    },
+    {
+      "id": "html-to-markdown-positive",
+      "name": "html-to-markdown",
+      "cohort": "historical-unmeasured",
+      "configuration": "default",
+      "cwd": "/fixture",
+      "env": {},
+      "stdinBase64": "",
+      "files": {
+        "page.html": {
+          "base64": "PGgxPlJlbGVhc2U8L2gxPjxwPlJlYWR5IDxzdHJvbmc+bm93PC9zdHJvbmc+LjwvcD4=",
+          "mode": 420
+        }
+      },
+      "directories": [],
+      "symlinks": {},
+      "script": "html-to-markdown page.html",
+      "targetArgv": [
+        "html-to-markdown",
+        "page.html"
+      ],
+      "expected": {
+        "exitCode": 0,
+        "stdoutIncludes": [
+          "# Release",
+          "**now**"
+        ],
+        "stdoutExcludes": [
+          "<h1>",
+          "<strong>"
+        ],
+        "stderrBase64": "",
+        "files": {},
+        "absent": [],
+        "preserveInputs": true
+      },
+      "intent": "Convert structured HTML heading and emphasis into Markdown.",
+      "proofLimit": "One bounded positive recipe, not complete command or option coverage.",
+      "inputSha256": "393eb915f9850692f6b3e762aae05c9c8e8345f19c22f5ef7405b50a499328f9"
+    },
+    {
+      "id": "let-positive",
+      "name": "let",
+      "cohort": "historical-unmeasured",
+      "configuration": "default",
+      "cwd": "/fixture",
+      "env": {},
+      "stdinBase64": "",
+      "files": {},
+      "directories": [],
+      "symlinks": {},
+      "script": "count=6; let 'count+=7' && printf '%s\\n' \"$count\"",
+      "targetArgv": [
+        "let",
+        "count+=7"
+      ],
+      "expected": {
+        "exitCode": 0,
+        "stdoutBase64": "MTMK",
+        "stderrBase64": "",
+        "files": {},
+        "absent": [],
+        "preserveInputs": true
+      },
+      "intent": "Mutate an arithmetic variable and observe its value.",
+      "proofLimit": "One bounded positive recipe, not complete command or option coverage.",
+      "inputSha256": "b3490d4964ada6ab6f87dc1fdf19eb5d231aa6b43177783aac642892dae0330b"
+    },
+    {
+      "id": "mapfile-positive",
+      "name": "mapfile",
+      "cohort": "historical-unmeasured",
+      "configuration": "default",
+      "cwd": "/fixture",
+      "env": {},
+      "stdinBase64": "",
+      "files": {
+        "rows.txt": {
+          "base64": "YWxwaGEKYmV0YQo=",
+          "mode": 420
+        }
+      },
+      "directories": [],
+      "symlinks": {},
+      "script": "mapfile -t rows < rows.txt && printf '%s|%s\\n' \"${rows[0]}\" \"${rows[1]}\"",
+      "targetArgv": null,
+      "expected": {
+        "exitCode": 0,
+        "stdoutBase64": "YWxwaGF8YmV0YQo=",
+        "stderrBase64": "",
+        "files": {},
+        "absent": [],
+        "preserveInputs": true
+      },
+      "intent": "Read two VFS lines into an indexed array without trailing delimiters.",
+      "proofLimit": "One bounded positive recipe, not complete command or option coverage.",
+      "inputSha256": "4e461737391958a09d75476abc4f4894f8d4e6d2023506df6cd9d5f199783da6"
+    },
+    {
+      "id": "nl-positive",
+      "name": "nl",
+      "cohort": "historical-unmeasured",
+      "configuration": "default",
+      "cwd": "/fixture",
+      "env": {},
+      "stdinBase64": "",
+      "files": {
+        "lines": {
+          "base64": "YWxwaGEKCmJldGEK",
+          "mode": 420
+        }
+      },
+      "directories": [],
+      "symlinks": {},
+      "script": "nl -ba -w 1 -s ':' lines",
+      "targetArgv": [
+        "nl",
+        "-ba",
+        "-w",
+        "1",
+        "-s",
+        ":",
+        "lines"
+      ],
+      "expected": {
+        "exitCode": 0,
+        "stdoutBase64": "MTphbHBoYQoyOgozOmJldGEK",
+        "stderrBase64": "",
+        "files": {},
+        "absent": [],
+        "preserveInputs": true
+      },
+      "intent": "Number every line, including an empty line.",
+      "proofLimit": "One bounded positive recipe, not complete command or option coverage.",
+      "inputSha256": "77ce2974bc8b998d12344cf12b0d3d3ec24205ad29bc7837b27909f22c481520"
+    },
+    {
+      "id": "popd-positive",
+      "name": "popd",
+      "cohort": "historical-unmeasured",
+      "configuration": "default",
+      "cwd": "/fixture",
+      "env": {},
+      "stdinBase64": "",
+      "files": {},
+      "directories": [
+        "sub"
+      ],
+      "symlinks": {},
+      "script": "pushd /fixture/sub > /fixture/push-output && popd > /fixture/pop-output && pwd",
+      "targetArgv": null,
+      "expected": {
+        "exitCode": 0,
+        "stdoutBase64": "L2ZpeHR1cmUK",
+        "stderrBase64": "",
+        "files": {},
+        "absent": [],
+        "preserveInputs": true
+      },
+      "intent": "Return from a previously pushed directory; redirected target output remains captured in VFS.",
+      "proofLimit": "One bounded positive recipe, not complete command or option coverage.",
+      "inputSha256": "1f1687fd649e45a962c109193f748ac80430e46c0a90ba4ff719205f49f99927"
+    },
+    {
+      "id": "printenv-positive",
+      "name": "printenv",
+      "cohort": "historical-unmeasured",
+      "configuration": "default",
+      "cwd": "/fixture",
+      "env": {
+        "COVERAGE_VALUE": "fixture-value"
+      },
+      "stdinBase64": "",
+      "files": {},
+      "directories": [],
+      "symlinks": {},
+      "script": "printenv COVERAGE_VALUE",
+      "targetArgv": [
+        "printenv",
+        "COVERAGE_VALUE"
+      ],
+      "expected": {
+        "exitCode": 0,
+        "stdoutBase64": "Zml4dHVyZS12YWx1ZQo=",
+        "stderrBase64": "",
+        "files": {},
+        "absent": [],
+        "preserveInputs": true
+      },
+      "intent": "Retrieve a deliberately supplied environment variable.",
+      "proofLimit": "One bounded positive recipe, not complete command or option coverage.",
+      "inputSha256": "bb72efb6af3d7c8bbd0dcb272e4ab4a300691e48d04d6436b6e84ef4e9e7ed60"
+    },
+    {
+      "id": "pushd-positive",
+      "name": "pushd",
+      "cohort": "historical-unmeasured",
+      "configuration": "default",
+      "cwd": "/fixture",
+      "env": {},
+      "stdinBase64": "",
+      "files": {},
+      "directories": [
+        "sub"
+      ],
+      "symlinks": {},
+      "script": "pushd /fixture/sub > /fixture/push-output && pwd",
+      "targetArgv": null,
+      "expected": {
+        "exitCode": 0,
+        "stdoutBase64": "L2ZpeHR1cmUvc3ViCg==",
+        "stderrBase64": "",
+        "files": {},
+        "absent": [],
+        "preserveInputs": true
+      },
+      "intent": "Change the current directory through stack navigation.",
+      "proofLimit": "One bounded positive recipe, not complete command or option coverage.",
+      "inputSha256": "8c91dffe7feef857cac271e83b01b7dfa54734c9555cc2a1008c2fdac1985875"
+    },
+    {
+      "id": "readarray-positive",
+      "name": "readarray",
+      "cohort": "historical-unmeasured",
+      "configuration": "default",
+      "cwd": "/fixture",
+      "env": {},
+      "stdinBase64": "",
+      "files": {
+        "rows.txt": {
+          "base64": "YWxwaGEKYmV0YQo=",
+          "mode": 420
+        }
+      },
+      "directories": [],
+      "symlinks": {},
+      "script": "readarray -t rows < rows.txt && printf '%s|%s\\n' \"${rows[0]}\" \"${rows[1]}\"",
+      "targetArgv": null,
+      "expected": {
+        "exitCode": 0,
+        "stdoutBase64": "YWxwaGF8YmV0YQo=",
+        "stderrBase64": "",
+        "files": {},
+        "absent": [],
+        "preserveInputs": true
+      },
+      "intent": "Invoke the readarray name to populate and read a two-element array.",
+      "proofLimit": "One bounded positive recipe, not complete command or option coverage.",
+      "inputSha256": "b43f1421149f1eda0015496bd3d332801e0c532983a729ca4a9de89c9880084f"
+    },
+    {
+      "id": "rev-positive",
+      "name": "rev",
+      "cohort": "historical-unmeasured",
+      "configuration": "default",
+      "cwd": "/fixture",
+      "env": {},
+      "stdinBase64": "",
+      "files": {
+        "lines": {
+          "base64": "YWJjCjEyMwo=",
+          "mode": 420
+        }
+      },
+      "directories": [],
+      "symlinks": {},
+      "script": "rev lines",
+      "targetArgv": [
+        "rev",
+        "lines"
+      ],
+      "expected": {
+        "exitCode": 0,
+        "stdoutBase64": "Y2JhCjMyMQo=",
+        "stderrBase64": "",
+        "files": {},
+        "absent": [],
+        "preserveInputs": true
+      },
+      "intent": "Reverse characters independently on each line.",
+      "proofLimit": "One bounded positive recipe, not complete command or option coverage.",
+      "inputSha256": "3eb5afd4590d039b2dbbf8698bda6c943fa6f1a778ff0c9d6645fdb4828f6d8f"
+    },
+    {
+      "id": "seq-positive",
+      "name": "seq",
+      "cohort": "historical-unmeasured",
+      "configuration": "default",
+      "cwd": "/fixture",
+      "env": {},
+      "stdinBase64": "",
+      "files": {},
+      "directories": [],
+      "symlinks": {},
+      "script": "seq 2 3 8",
+      "targetArgv": [
+        "seq",
+        "2",
+        "3",
+        "8"
+      ],
+      "expected": {
+        "exitCode": 0,
+        "stdoutBase64": "Mgo1CjgK",
+        "stderrBase64": "",
+        "files": {},
+        "absent": [],
+        "preserveInputs": true
+      },
+      "intent": "Generate an inclusive stepped numeric sequence.",
+      "proofLimit": "One bounded positive recipe, not complete command or option coverage.",
+      "inputSha256": "142251b6c6934626edf56d06347ce2b687f05719d32be869aaf3215ecd051514"
+    },
+    {
+      "id": "shopt-positive",
+      "name": "shopt",
+      "cohort": "historical-unmeasured",
+      "configuration": "default",
+      "cwd": "/fixture",
+      "env": {},
+      "stdinBase64": "",
+      "files": {
+        ".hidden": {
+          "base64": "aGlkZGVuCg==",
+          "mode": 420
+        },
+        "visible": {
+          "base64": "dmlzaWJsZQo=",
+          "mode": 420
+        }
+      },
+      "directories": [],
+      "symlinks": {},
+      "script": "shopt -s dotglob && printf '%s\\n' *",
+      "targetArgv": null,
+      "expected": {
+        "exitCode": 0,
+        "stdoutBase64": "LmhpZGRlbgp2aXNpYmxlCg==",
+        "stderrBase64": "",
+        "files": {},
+        "absent": [],
+        "preserveInputs": true
+      },
+      "intent": "Enable dotglob and verify that glob expansion changes.",
+      "proofLimit": "One bounded positive recipe, not complete command or option coverage.",
+      "inputSha256": "56d09949a4f7b421c9de583b9370c685ab6e53bbe8417172fa01c5b2a02bb1e4"
+    },
+    {
+      "id": "sleep-positive",
+      "name": "sleep",
+      "cohort": "historical-unmeasured",
+      "configuration": "default",
+      "cwd": "/fixture",
+      "env": {},
+      "stdinBase64": "",
+      "files": {},
+      "directories": [],
+      "symlinks": {},
+      "script": "sleep 0.02",
+      "targetArgv": [
+        "sleep",
+        "0.02"
+      ],
+      "expected": {
+        "exitCode": 0,
+        "stdoutBase64": "",
+        "stderrBase64": "",
+        "elapsedAtLeastMs": 10,
+        "files": {},
+        "absent": [],
+        "preserveInputs": true
+      },
+      "intent": "Await a nonzero short timer without an injected sleep shim.",
+      "proofLimit": "A broad lower-bound sanity check only; elapsed time is retained raw and is not a performance comparison.",
+      "inputSha256": "ec2c1632d19afc56305c49a8e84631a84fa41bf2e97bb09ca9d4cf30303016d2"
+    },
+    {
+      "id": "split-positive",
+      "name": "split",
+      "cohort": "historical-unmeasured",
+      "configuration": "default",
+      "cwd": "/fixture",
+      "env": {},
+      "stdinBase64": "",
+      "files": {
+        "rows": {
+          "base64": "YWxwaGEKYmV0YQpnYW1tYQo=",
+          "mode": 420
+        }
+      },
+      "directories": [],
+      "symlinks": {},
+      "script": "split -l 2 rows part-",
+      "targetArgv": [
+        "split",
+        "-l",
+        "2",
+        "rows",
+        "part-"
+      ],
+      "expected": {
+        "exitCode": 0,
+        "stdoutBase64": "",
+        "stderrBase64": "",
+        "files": {
+          "part-aa": {
+            "base64": "YWxwaGEKYmV0YQo="
+          },
+          "part-ab": {
+            "base64": "Z2FtbWEK"
+          }
+        },
+        "absent": [],
+        "preserveInputs": true
+      },
+      "intent": "Split a three-line file into exact two-line/one-line VFS outputs.",
+      "proofLimit": "One bounded positive recipe, not complete command or option coverage.",
+      "inputSha256": "935862f2d705b8599382bc6d3edc5363178c66f2dd991e3d7b9d96ab9f8666ad"
+    },
+    {
+      "id": "sqlite3-positive",
+      "name": "sqlite3",
+      "cohort": "historical-unmeasured",
+      "configuration": "sqlite",
+      "cwd": "/fixture",
+      "env": {},
+      "stdinBase64": "",
+      "files": {},
+      "directories": [],
+      "symlinks": {},
+      "script": "sqlite3 /fixture/data.db 'CREATE TABLE items(name TEXT, value INTEGER); INSERT INTO items VALUES (\"alpha\", 2), (\"beta\", 3); SELECT sum(value) FROM items;'",
+      "targetArgv": [
+        "sqlite3",
+        "/fixture/data.db",
+        "CREATE TABLE items(name TEXT, value INTEGER); INSERT INTO items VALUES (\"alpha\", 2), (\"beta\", 3); SELECT sum(value) FROM items;"
+      ],
+      "expected": {
+        "exitCode": 0,
+        "stdoutBase64": "NQo=",
+        "stderrBase64": "",
+        "files": {
+          "data.db": {
+            "prefixBase64": "U1FMaXRlIGZvcm1hdCAzAA==",
+            "minBytes": 100
+          }
+        },
+        "absent": [],
+        "preserveInputs": true
+      },
+      "intent": "Create a real virtual SQLite database, insert rows, and aggregate them.",
+      "proofLimit": "One bounded positive recipe, not complete command or option coverage.",
+      "inputSha256": "5382b05e174ba2a6cfb5f99bc54e20bb687820292056b999515882ef23041ee9"
+    },
+    {
+      "id": "strings-positive",
+      "name": "strings",
+      "cohort": "historical-unmeasured",
+      "configuration": "default",
+      "cwd": "/fixture",
+      "env": {},
+      "stdinBase64": "",
+      "files": {
+        "blob": {
+          "base64": "AAFIRUxMTwACV09STEQA",
+          "mode": 420
+        }
+      },
+      "directories": [],
+      "symlinks": {},
+      "script": "strings -n 4 blob",
+      "targetArgv": [
+        "strings",
+        "-n",
+        "4",
+        "blob"
+      ],
+      "expected": {
+        "exitCode": 0,
+        "stdoutBase64": "SEVMTE8KV09STEQK",
+        "stderrBase64": "",
+        "files": {},
+        "absent": [],
+        "preserveInputs": true
+      },
+      "intent": "Extract printable spans from binary VFS bytes.",
+      "proofLimit": "One bounded positive recipe, not complete command or option coverage.",
+      "inputSha256": "59d7c90340374077671ba3e0b2e59ae1440753922da02d34f7b6afb5b7fe5942"
+    },
+    {
+      "id": "tac-positive",
+      "name": "tac",
+      "cohort": "historical-unmeasured",
+      "configuration": "default",
+      "cwd": "/fixture",
+      "env": {},
+      "stdinBase64": "",
+      "files": {
+        "rows": {
+          "base64": "YWxwaGEKYmV0YQpnYW1tYQo=",
+          "mode": 420
+        }
+      },
+      "directories": [],
+      "symlinks": {},
+      "script": "tac rows",
+      "targetArgv": [
+        "tac",
+        "rows"
+      ],
+      "expected": {
+        "exitCode": 0,
+        "stdoutBase64": "Z2FtbWEKYmV0YQphbHBoYQo=",
+        "stderrBase64": "",
+        "files": {},
+        "absent": [],
+        "preserveInputs": true
+      },
+      "intent": "Reverse complete line order.",
+      "proofLimit": "One bounded positive recipe, not complete command or option coverage.",
+      "inputSha256": "75fd1251b58adaf651fa4ed7f31fa9fe4a0c2c6eca1839d53a248729bcc9c0d2"
+    },
+    {
+      "id": "time-positive",
+      "name": "time",
+      "cohort": "historical-unmeasured",
+      "configuration": "default",
+      "cwd": "/fixture",
+      "env": {},
+      "stdinBase64": "",
+      "files": {},
+      "directories": [],
+      "symlinks": {},
+      "script": "command time -f completed printf '%s\\n' timed",
+      "targetArgv": [
+        "time",
+        "-f",
+        "completed",
+        "printf",
+        "%s\\n",
+        "timed"
+      ],
+      "expected": {
+        "exitCode": 0,
+        "stdoutBase64": "dGltZWQK",
+        "stderrBase64": "Y29tcGxldGVkCg==",
+        "files": {},
+        "absent": [],
+        "preserveInputs": true
+      },
+      "intent": "Force the time registry wrapper, execute a child, and emit a deterministic format string rather than accidentally measuring the shell keyword.",
+      "proofLimit": "Custom-format dispatch control, not timer accuracy or performance evidence.",
+      "inputSha256": "3bae65dd2aa8a4f890165b32f6a6ca00056874afa8c128a65c4efdedf8c98c12"
+    },
+    {
+      "id": "timeout-positive",
+      "name": "timeout",
+      "cohort": "historical-unmeasured",
+      "configuration": "default",
+      "cwd": "/fixture",
+      "env": {},
+      "stdinBase64": "",
+      "files": {},
+      "directories": [],
+      "symlinks": {},
+      "script": "timeout 5 printf '%s\\n' bounded",
+      "targetArgv": [
+        "timeout",
+        "5",
+        "printf",
+        "%s\\n",
+        "bounded"
+      ],
+      "expected": {
+        "exitCode": 0,
+        "stdoutBase64": "Ym91bmRlZAo=",
+        "stderrBase64": "",
+        "files": {},
+        "absent": [],
+        "preserveInputs": true
+      },
+      "intent": "Run a successful child inside a deadline; this is not timeout-expiry/cancellation proof.",
+      "proofLimit": "One bounded positive recipe, not complete command or option coverage.",
+      "inputSha256": "5dd2e79700045e4ede295c901cac4b271e592cfbfb2dd8f6a2b5aec220253092"
+    },
+    {
+      "id": "tree-positive",
+      "name": "tree",
+      "cohort": "historical-unmeasured",
+      "configuration": "default",
+      "cwd": "/fixture",
+      "env": {},
+      "stdinBase64": "",
+      "files": {
+        "tree-input/a.txt": {
+          "base64": "YQo=",
+          "mode": 420
+        },
+        "tree-input/sub/b.txt": {
+          "base64": "Ygo=",
+          "mode": 420
+        }
+      },
+      "directories": [],
+      "symlinks": {},
+      "script": "tree tree-input",
+      "targetArgv": [
+        "tree",
+        "tree-input"
+      ],
+      "expected": {
+        "exitCode": 0,
+        "stdoutBase64": "dHJlZS1pbnB1dArilJzilIDilIAgYS50eHQK4pSU4pSA4pSAIHN1YgogICAg4pSU4pSA4pSAIGIudHh0CgoxIGRpcmVjdG9yeSwgMiBmaWxlcwo=",
+        "stderrBase64": "",
+        "files": {},
+        "absent": [],
+        "preserveInputs": true
+      },
+      "intent": "Traverse a deterministic nested VFS tree using the supported default interface.",
+      "proofLimit": "One bounded positive recipe, not complete command or option coverage.",
+      "inputSha256": "2047a0dfb76e72703a1428b69ced9ba4a580358d3f0296cdbbde60a20ca1ac56"
+    },
+    {
+      "id": "typeset-positive",
+      "name": "typeset",
+      "cohort": "historical-unmeasured",
+      "configuration": "default",
+      "cwd": "/fixture",
+      "env": {},
+      "stdinBase64": "",
+      "files": {},
+      "directories": [],
+      "symlinks": {},
+      "script": "typeset -i count=6 && count=count+7 && printf '%s\\n' \"$count\"",
+      "targetArgv": null,
+      "expected": {
+        "exitCode": 0,
+        "stdoutBase64": "MTMK",
+        "stderrBase64": "",
+        "files": {},
+        "absent": [],
+        "preserveInputs": true
+      },
+      "intent": "Exercise integer declaration and arithmetic assignment via the typeset spelling.",
+      "proofLimit": "One bounded positive recipe, not complete command or option coverage.",
+      "inputSha256": "fdefcde42d94bddc22038a016444707047ba6f3f7f17cc22845312d8131b37f0"
+    },
+    {
+      "id": "unalias-positive",
+      "name": "unalias",
+      "cohort": "historical-unmeasured",
+      "configuration": "default",
+      "cwd": "/fixture",
+      "env": {},
+      "stdinBase64": "",
+      "files": {},
+      "directories": [],
+      "symlinks": {},
+      "script": "alias echo='printf wrong' && unalias echo && eval 'echo restored'",
+      "targetArgv": null,
+      "expected": {
+        "exitCode": 0,
+        "stdoutBase64": "cmVzdG9yZWQK",
+        "stderrBase64": "",
+        "files": {},
+        "absent": [],
+        "preserveInputs": true
+      },
+      "intent": "Remove an alias and verify normal dispatch is restored.",
+      "proofLimit": "One bounded positive recipe, not complete command or option coverage.",
+      "inputSha256": "800a2cd0c3c7f9652c763add8c408c6f5e7ef09b4d1d709a624257b3e3e1920c"
+    },
+    {
+      "id": "unexpand-positive",
+      "name": "unexpand",
+      "cohort": "historical-unmeasured",
+      "configuration": "default",
+      "cwd": "/fixture",
+      "env": {},
+      "stdinBase64": "",
+      "files": {
+        "spaces": {
+          "base64": "YSAgIGIK",
+          "mode": 420
+        }
+      },
+      "directories": [],
+      "symlinks": {},
+      "script": "unexpand -a -t 4 spaces",
+      "targetArgv": [
+        "unexpand",
+        "-a",
+        "-t",
+        "4",
+        "spaces"
+      ],
+      "expected": {
+        "exitCode": 0,
+        "stdoutBase64": "YQliCg==",
+        "stderrBase64": "",
+        "files": {},
+        "absent": [],
+        "preserveInputs": true
+      },
+      "intent": "Compress spaces to a fixed tab stop.",
+      "proofLimit": "One bounded positive recipe, not complete command or option coverage.",
+      "inputSha256": "f1daf6430480f3a812fa6e3d0f8e25704a4ff793a33567efa0ae75fb31ccb26e"
+    },
+    {
+      "id": "wait-positive",
+      "name": "wait",
+      "cohort": "historical-unmeasured",
+      "configuration": "default",
+      "cwd": "/fixture",
+      "env": {},
+      "stdinBase64": "",
+      "files": {},
+      "directories": [],
+      "symlinks": {},
+      "script": "printf 'child-done\\n' > /fixture/child.txt & wait",
+      "targetArgv": null,
+      "expected": {
+        "exitCode": 0,
+        "stdoutBase64": "",
+        "stderrBase64": "",
+        "files": {
+          "child.txt": {
+            "base64": "Y2hpbGQtZG9uZQo="
+          }
+        },
+        "absent": [],
+        "preserveInputs": true
+      },
+      "intent": "Launch a virtual background write, wait, then inspect the resulting file outside the script.",
+      "proofLimit": "Pinned source says wait is a no-op and background execution is unsupported. Even matching output cannot establish asynchronous job-join semantics; never functional-credit a no-op.",
+      "operationalCredit": false,
+      "inputSha256": "e4bd0ec8f97eea07215606d0fc0275b7e83366d250c0ac473b3ddcc0af6429d6"
+    },
+    {
+      "id": "which-positive",
+      "name": "which",
+      "cohort": "historical-unmeasured",
+      "configuration": "default",
+      "cwd": "/fixture",
+      "env": {},
+      "stdinBase64": "",
+      "files": {},
+      "directories": [],
+      "symlinks": {},
+      "script": "which echo",
+      "targetArgv": [
+        "which",
+        "echo"
+      ],
+      "expected": {
+        "exitCode": 0,
+        "stdoutBase64": "L3Vzci9iaW4vZWNobwo=",
+        "stderrBase64": "",
+        "files": {},
+        "absent": [],
+        "preserveInputs": true
+      },
+      "intent": "Resolve a callable command's virtual path; separate from builtin type labels.",
+      "proofLimit": "One bounded positive recipe, not complete command or option coverage.",
+      "inputSha256": "7207b2765ac6eaf617dfcf0cdea66a022fdc468293cc5dfb3f3ad7e1bf213bd0"
+    },
+    {
+      "id": "whoami-positive",
+      "name": "whoami",
+      "cohort": "historical-unmeasured",
+      "configuration": "default",
+      "cwd": "/fixture",
+      "env": {},
+      "stdinBase64": "",
+      "files": {},
+      "directories": [],
+      "symlinks": {},
+      "script": "whoami",
+      "targetArgv": [
+        "whoami"
+      ],
+      "expected": {
+        "exitCode": 0,
+        "stdoutBase64": "dXNlcgo=",
+        "stderrBase64": "",
+        "files": {},
+        "absent": [],
+        "preserveInputs": true
+      },
+      "intent": "Read the sandbox's virtual user identity.",
+      "proofLimit": "Pinned baseline's fixed virtual user is not host-user or permission enforcement evidence.",
+      "inputSha256": "7387af119fd720cdc40a58c71294b9abe9f7f4be40d83e436e95307fff2dd76b"
+    },
+    {
+      "id": "xan-positive",
+      "name": "xan",
+      "cohort": "historical-unmeasured",
+      "configuration": "default",
+      "cwd": "/fixture",
+      "env": {},
+      "stdinBase64": "",
+      "files": {
+        "rows.csv": {
+          "base64": "bmFtZSx2YWx1ZQphbHBoYSwyCmJldGEsMwo=",
+          "mode": 420
+        }
+      },
+      "directories": [],
+      "symlinks": {},
+      "script": "xan select name rows.csv",
+      "targetArgv": [
+        "xan",
+        "select",
+        "name",
+        "rows.csv"
+      ],
+      "expected": {
+        "exitCode": 0,
+        "stdoutBase64": "bmFtZQphbHBoYQpiZXRhCg==",
+        "stderrBase64": "",
+        "files": {},
+        "absent": [],
+        "preserveInputs": true
+      },
+      "intent": "Project one named column from a CSV table.",
+      "proofLimit": "One bounded positive recipe, not complete command or option coverage.",
+      "inputSha256": "b34d5cd1ef8e243df8300a6e72c606c7f61a8562f2cc0672086cfd1b93635635"
+    },
+    {
+      "id": "yq-positive",
+      "name": "yq",
+      "cohort": "historical-unmeasured",
+      "configuration": "default",
+      "cwd": "/fixture",
+      "env": {},
+      "stdinBase64": "",
+      "files": {
+        "data.yaml": {
+          "base64": "aXRlbXM6CiAgLSBuYW1lOiBhbHBoYQogIC0gbmFtZTogYmV0YQo=",
+          "mode": 420
+        }
+      },
+      "directories": [],
+      "symlinks": {},
+      "script": "yq -o json '.items[1].name' data.yaml",
+      "targetArgv": [
+        "yq",
+        "-o",
+        "json",
+        ".items[1].name",
+        "data.yaml"
+      ],
+      "expected": {
+        "exitCode": 0,
+        "stdoutBase64": "ImJldGEiCg==",
+        "stderrBase64": "",
+        "files": {},
+        "absent": [],
+        "preserveInputs": true
+      },
+      "intent": "Parse YAML and extract a nested scalar as JSON.",
+      "proofLimit": "One bounded positive recipe, not complete command or option coverage.",
+      "inputSha256": "5cf6b749e03ec265f4e852045f8301dedce107f3c1e6af6208284e8b704a4ec4"
+    },
+    {
+      "id": "js-exec-positive",
+      "name": "js-exec",
+      "cohort": "additional-optional",
+      "configuration": "javascript",
+      "cwd": "/fixture",
+      "env": {},
+      "stdinBase64": "",
+      "files": {},
+      "directories": [],
+      "symlinks": {},
+      "script": "js-exec -c 'console.log(6 * 7)'",
+      "targetArgv": [
+        "js-exec",
+        "-c",
+        "console.log(6 * 7)"
+      ],
+      "expected": {
+        "exitCode": 0,
+        "stdoutBase64": "NDIK",
+        "stderrBase64": "",
+        "files": {},
+        "absent": [],
+        "preserveInputs": true
+      },
+      "intent": "Execute guest JavaScript arithmetic in the shipped QuickJS worker, not host Node.",
+      "proofLimit": "One bounded positive recipe, not complete command or option coverage.",
+      "inputSha256": "680070a819f7d372a97d8c6aa8b82d79dff2c1c8a8e9fdb0b9bef2cf86f0cb76"
+    },
+    {
+      "id": "node-positive",
+      "name": "node",
+      "cohort": "additional-optional",
+      "configuration": "javascript",
+      "cwd": "/fixture",
+      "env": {},
+      "stdinBase64": "",
+      "files": {},
+      "directories": [],
+      "symlinks": {},
+      "script": "node -e 'console.log(6 * 7)'",
+      "targetArgv": [
+        "node",
+        "-e",
+        "console.log(6 * 7)"
+      ],
+      "expected": {
+        "exitCode": 0,
+        "stdoutBase64": "NDIK",
+        "stderrBase64": "",
+        "files": {},
+        "absent": [],
+        "preserveInputs": true
+      },
+      "intent": "Attempt actual JavaScript execution through node and preserve the pinned diagnostic-stub response.",
+      "proofLimit": "No native Node fallback or js-exec substitution. A diagnostic response is baseline-stub, not a working runtime.",
+      "inputSha256": "172d33c52100e931a5abb970b8e04c3c1610786188be6d17b16419a99387d4a5"
+    },
+    {
+      "id": "python-positive",
+      "name": "python",
+      "cohort": "additional-optional",
+      "configuration": "python",
+      "cwd": "/fixture",
+      "env": {},
+      "stdinBase64": "",
+      "files": {},
+      "directories": [],
+      "symlinks": {},
+      "script": "python -c 'from pathlib import Path; Path(\"/fixture/result.txt\").write_text(\"42\\n\"); print(6 * 7)'",
+      "targetArgv": [
+        "python",
+        "-c",
+        "from pathlib import Path; Path(\"/fixture/result.txt\").write_text(\"42\\n\"); print(6 * 7)"
+      ],
+      "expected": {
+        "exitCode": 0,
+        "stdoutBase64": "NDIK",
+        "stderrBase64": "",
+        "files": {
+          "result.txt": {
+            "base64": "NDIK"
+          }
+        },
+        "absent": [],
+        "preserveInputs": true
+      },
+      "intent": "Run guest Python arithmetic and write exact bytes through the shipped CPython VFS bridge.",
+      "proofLimit": "One bounded positive recipe, not complete command or option coverage.",
+      "inputSha256": "9b312c17b55a36ce0db5bfe397b65685afe93d3dacc6a915d1f60dbe3332bc46"
+    },
+    {
+      "id": "python3-positive",
+      "name": "python3",
+      "cohort": "additional-optional",
+      "configuration": "python",
+      "cwd": "/fixture",
+      "env": {},
+      "stdinBase64": "",
+      "files": {},
+      "directories": [],
+      "symlinks": {},
+      "script": "python3 -c 'from pathlib import Path; Path(\"/fixture/result.txt\").write_text(\"42\\n\"); print(6 * 7)'",
+      "targetArgv": [
+        "python3",
+        "-c",
+        "from pathlib import Path; Path(\"/fixture/result.txt\").write_text(\"42\\n\"); print(6 * 7)"
+      ],
+      "expected": {
+        "exitCode": 0,
+        "stdoutBase64": "NDIK",
+        "stderrBase64": "",
+        "files": {
+          "result.txt": {
+            "base64": "NDIK"
+          }
+        },
+        "absent": [],
+        "preserveInputs": true
+      },
+      "intent": "Run guest Python arithmetic and write exact bytes through the shipped CPython VFS bridge.",
+      "proofLimit": "One bounded positive recipe, not complete command or option coverage.",
+      "inputSha256": "3a27ea8965808d2edf16f470e4edb41c95ae358793464c00f2940c4880da4b5e"
+    },
+    {
+      "id": "dot-positive",
+      "name": ".",
+      "cohort": "historical-measured-control",
+      "configuration": "default",
+      "cwd": "/fixture",
+      "env": {},
+      "stdinBase64": "",
+      "files": {
+        "loaded.sh": {
+          "base64": "TE9BREVEX1ZBTFVFPWxvYWRlZAo=",
+          "mode": 420
+        }
+      },
+      "directories": [],
+      "symlinks": {},
+      "script": ". /fixture/loaded.sh && printf '%s\\n' \"$LOADED_VALUE\"",
+      "targetArgv": null,
+      "expected": {
+        "exitCode": 0,
+        "stdoutBase64": "bG9hZGVkCg==",
+        "stderrBase64": "",
+        "files": {},
+        "absent": [],
+        "preserveInputs": true
+      },
+      "intent": "Exercise the now-overlapping source handler, preserving its historical inventory row.",
+      "proofLimit": "One bounded positive recipe, not complete command or option coverage.",
+      "inputSha256": "126f00d2474e92cafd2bc29abe373ba07ea8cef2348d967b9cb83c528d67edef"
+    },
+    {
+      "id": "source-positive",
+      "name": "source",
+      "cohort": "historical-measured-control",
+      "configuration": "default",
+      "cwd": "/fixture",
+      "env": {},
+      "stdinBase64": "",
+      "files": {
+        "loaded.sh": {
+          "base64": "TE9BREVEX1ZBTFVFPWxvYWRlZAo=",
+          "mode": 420
+        }
+      },
+      "directories": [],
+      "symlinks": {},
+      "script": "source /fixture/loaded.sh && printf '%s\\n' \"$LOADED_VALUE\"",
+      "targetArgv": null,
+      "expected": {
+        "exitCode": 0,
+        "stdoutBase64": "bG9hZGVkCg==",
+        "stderrBase64": "",
+        "files": {},
+        "absent": [],
+        "preserveInputs": true
+      },
+      "intent": "Exercise the now-overlapping source handler, preserving its historical inventory row.",
+      "proofLimit": "One bounded positive recipe, not complete command or option coverage.",
+      "inputSha256": "c12a2d6ab68709e947dd2e453549a0dd54aaa89fe7f6923c3f135fc55ad5a9b3"
+    },
+    {
+      "id": "eval-positive",
+      "name": "eval",
+      "cohort": "historical-measured-control",
+      "configuration": "default",
+      "cwd": "/fixture",
+      "env": {},
+      "stdinBase64": "",
+      "files": {},
+      "directories": [],
+      "symlinks": {},
+      "script": "eval 'VALUE=loaded' && printf '%s\\n' \"$VALUE\"",
+      "targetArgv": null,
+      "expected": {
+        "exitCode": 0,
+        "stdoutBase64": "bG9hZGVkCg==",
+        "stderrBase64": "",
+        "files": {},
+        "absent": [],
+        "preserveInputs": true
+      },
+      "intent": "Exercise now-overlapping eval state mutation without changing historical results.",
+      "proofLimit": "One bounded positive recipe, not complete command or option coverage.",
+      "inputSha256": "864f7269661ebb395b6e0f5017e134f9c9a712ce4378fc6138e40d0b453cf3b9"
+    },
+    {
+      "id": "printf-positive",
+      "name": "printf",
+      "cohort": "shared-control",
+      "configuration": "default",
+      "cwd": "/fixture",
+      "env": {},
+      "stdinBase64": "",
+      "files": {},
+      "directories": [],
+      "symlinks": {},
+      "script": "printf 'ascii:%s\\n' control",
+      "targetArgv": [
+        "printf",
+        "ascii:%s\\n",
+        "control"
+      ],
+      "expected": {
+        "exitCode": 0,
+        "stdoutBase64": "YXNjaWk6Y29udHJvbAo=",
+        "stderrBase64": "",
+        "files": {},
+        "absent": [],
+        "preserveInputs": true
+      },
+      "intent": "Check shell invocation, terminal capture and known shared behavior.",
+      "proofLimit": "One bounded positive recipe, not complete command or option coverage.",
+      "inputSha256": "e35b517e690ca072e600a3fbce1cac4820e51666941faaae450a51c0d17a6ab3"
+    },
+    {
+      "id": "terminal-byte-control",
+      "name": "printf",
+      "cohort": "shared-control",
+      "configuration": "default",
+      "cwd": "/fixture",
+      "env": {},
+      "stdinBase64": "",
+      "files": {},
+      "directories": [],
+      "symlinks": {},
+      "script": "printf '\\000\\177\\200\\377' > bytes; cat bytes",
+      "targetArgv": null,
+      "expected": {
+        "exitCode": 0,
+        "stdoutBase64": "AH+A/w==",
+        "stderrBase64": "",
+        "files": {
+          "bytes": {
+            "base64": "AH+A/w=="
+          }
+        },
+        "absent": [],
+        "preserveInputs": true
+      },
+      "intent": "Separate exact internal VFS bytes from the public terminal-byte API.",
+      "proofLimit": "One bounded positive recipe, not complete command or option coverage.",
+      "inputSha256": "123dd89aab4b3abf59460ae9ac1172e58a4d970e0b93e05b5e4e4f08e3b29d2f"
+    },
+    {
+      "id": "curl-positive",
+      "name": "curl",
+      "cohort": "shared-optional-control",
+      "configuration": "loopback-network",
+      "cwd": "/fixture",
+      "env": {},
+      "stdinBase64": "",
+      "files": {},
+      "directories": [],
+      "symlinks": {},
+      "script": "curl -sS '{{BASE}}/fixture.txt' -o /fixture/download.txt",
+      "targetArgv": [
+        "curl",
+        "-sS",
+        "{{BASE}}/fixture.txt",
+        "-o",
+        "/fixture/download.txt"
+      ],
+      "expected": {
+        "exitCode": 0,
+        "stdoutBase64": "",
+        "stderrBase64": "",
+        "files": {
+          "download.txt": {
+            "base64": "bG9vcGJhY2stZml4dHVyZQo="
+          }
+        },
+        "absent": [],
+        "preserveInputs": true
+      },
+      "intent": "Use each documented optional network plugin to download fixed loopback-only response bytes.",
+      "proofLimit": "One bounded positive recipe, not complete command or option coverage.",
+      "inputSha256": "499ea1f9ebfa885a73eb31df030575c2296927e4b9794c02e712a05063750b45"
+    }
+  ]
+}

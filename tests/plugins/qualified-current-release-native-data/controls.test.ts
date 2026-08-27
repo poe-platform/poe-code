@@ -13,6 +13,23 @@ const capturedTypePaths = [
   "tests/commands/filesystem-inspection-stress/tree/sealed/inputs/src__contracts__plugin.ts",
 ];
 
+const stagedDuPaths = [
+  "tests/integration/du-overlay-independent-20260827/approved-v5-9a5a6f92/consumer/consumer.ts",
+  "tests/integration/du-overlay-independent-20260827/approved-v6-9a5a6f92/consumer/consumer.ts",
+  "tests/integration/du-overlay-independent-20260827/approved-v7-9a5a6f92/consumer/consumer.ts",
+  "tests/integration/du-overlay-independent-20260827/approved-v8-9a5a6f92/consumer/consumer.ts",
+  "tests/integration/du-overlay-independent-20260827/approved-v9-9a5a6f92/consumer/consumer.ts",
+  "tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/evidence/candidate-9a5a6f92-2026-08-27T184628110Z-fdd7-TvfiaD/harness/harness/consumer-v2/consumer.ts",
+  "tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/evidence/candidate-9a5a6f92-2026-08-27T184718966Z-42b7-ik3KTO/harness/harness/consumer-v2/consumer.ts",
+  "tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/evidence/candidate-9a5a6f92-2026-08-27T184742640Z-4378-47r2eR/harness/harness/consumer-v2/consumer.ts",
+  "tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/evidence/supplied-revision-9a5a6f92-2026-08-27T183910720Z-c216-VLoupP/harness/harness/consumer/consumer.ts",
+  "tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/harness/consumer-v2/consumer.ts",
+  "tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/harness/consumer/consumer.ts",
+  "tests/integration/du-overlay-independent-20260827/consumer/consumer.ts",
+  "tests/integration/du-overlay-independent-20260827/evidence/baseline-877144ea-2026-08-27T182017267Z-cbc5-YXsTka/harness/consumer/consumer.ts",
+  "tests/integration/du-overlay-independent-20260827/evidence/baseline-877144ea-2026-08-27T182141438Z-2e8b-bTCRpv/harness/consumer/consumer.ts",
+];
+
 interface CompilerConfiguration {
   compilerOptions: Record<string, unknown>;
   include: string[];
@@ -23,7 +40,7 @@ function approvedCompilerConfiguration(): CompilerConfiguration {
   const bytes = readFileSync(join(owned, "before-02.json"));
   assert.equal(createHash("sha256").update(bytes).digest("hex"), "cb0e439212ffb280f513b6104fa69d99399afc6813cd51fe250df942542f86c1");
   const before = JSON.parse(bytes.toString()) as { before: { config: CompilerConfiguration } };
-  return { ...before.before.config, exclude: [...before.before.config.exclude, native, ...capturedTypePaths] };
+  return { ...before.before.config, exclude: [...before.before.config.exclude, native, ...capturedTypePaths, ...stagedDuPaths] };
 }
 
 function assertApprovedCompilerConfiguration(current: unknown) {
@@ -46,7 +63,7 @@ test("native-data manifest records complete classification and six exact raw pay
   assert.ok(rawTypeScript.every(entry => entry.sha256 === "74a02f560cc1d8e023280b5f08a1ee7266e4bec6cea61ca457dc1a758d080fc8"));
 });
 
-test("root compiler configuration contains only the approved raw-data and five captured-type exclusions", () => {
+test("root compiler configuration contains only approved raw-data, captured types and fourteen staged DU inputs", () => {
   assertApprovedCompilerConfiguration(JSON.parse(readFileSync(join(root, "tsconfig.json"), "utf8")));
 });
 
@@ -55,14 +72,28 @@ test("approved captured-type classification retains explicit current-consumer ty
   assert.equal(createHash("sha256").update(bytes).digest("hex"), "70fcd5c2b8d8baec26c2c69cc3fb9110de75366757bf36416b52d7838f4b961f");
   const classification = JSON.parse(bytes.toString()) as { existingExclusions: string[]; entries: { path: string }[] };
   assert.deepEqual(classification.entries.map(entry => entry.path), capturedTypePaths);
-  assert.deepEqual([...classification.existingExclusions, ...capturedTypePaths], approvedCompilerConfiguration().exclude);
+  assert.deepEqual([...classification.existingExclusions, ...capturedTypePaths, ...stagedDuPaths], approvedCompilerConfiguration().exclude);
+  const stagedBytes = readFileSync(join(root, "tests/plugins/qualified-current-release/staged-types.json"));
+  assert.equal(createHash("sha256").update(stagedBytes).digest("hex"), "74c0e75d5ae06a28db0647545387a2827ca3d51394aae19c4656dcb6bf9a1e43");
+  const staged = JSON.parse(stagedBytes.toString()) as { entries: { path: string; role: string; currentGroup: string }[] };
+  assert.deepEqual(staged.entries.map(entry => entry.path), stagedDuPaths);
+  assert.equal(staged.entries.filter(entry => entry.role === "sealed-capture").length, 6);
+  assert.equal(staged.entries.filter(entry => entry.role === "versioned-template").length, 5);
+  assert.equal(staged.entries.filter(entry => entry.role === "reusable-template").length, 3);
+  assert.ok(staged.entries.every(entry => entry.currentGroup === "du-leaf"));
   const pkg = JSON.parse(readFileSync(join(root, "package.json"), "utf8")) as { scripts: Record<string, string> };
   assert.equal(pkg.scripts.typecheck, "node scripts/typecheck.mjs");
   assert.equal(pkg.scripts["typecheck:all"], "node scripts/typecheck.mjs --build");
   assert.equal(pkg.scripts["typecheck:consumers"], "node scripts/typecheck.mjs --consumers");
-  const { currentSourceConsumerGroups } = await import(new URL("../qualified-current-release/consumers.mjs", import.meta.url).href) as {
+  const { currentSourceConsumerGroups, consumerGroups } = await import(new URL("../qualified-current-release/consumers.mjs", import.meta.url).href) as {
     currentSourceConsumerGroups: { name: string; route: string; files: string[] }[];
+    consumerGroups: { name: string; localPackage?: boolean; files: string[]; runtime: string[] }[];
   };
+  const du = consumerGroups.find(group => group.name === "du-leaf");
+  assert.ok(du);
+  assert.equal(du.localPackage, true);
+  assert.deepEqual(du.files, ["tests/plugins/qualified-current-release/du-leaf.mts"]);
+  assert.deepEqual(du.runtime, ["du-leaf.mjs"]);
   const required = [
     { name: "atomic-webdav-profile-source", files: ["tests/integration/adapter-tools/atomic-webdav-profile/atomic-mock.ts", "tests/integration/adapter-tools/atomic-webdav-profile/controls.ts"] },
     { name: "atomic-webdav-independent-source", files: ["tests/integration/adapter-tools/atomic-webdav-profile-independent/hidden.ts"] },
@@ -86,7 +117,9 @@ test("compiler-policy mutations cannot add exclusions or weaken current-source c
     ["directory-wide captured-data exclusion", configuration => configuration.exclude.push("tests/commands/filesystem-inspection-stress/tree/sealed/inputs")],
     ["uncaptured sixth contract", configuration => configuration.exclude.push("tests/commands/filesystem-inspection-stress/tree/sealed/inputs/src__contracts__errors.ts")],
     ["current contract", configuration => configuration.exclude.push("src/contracts/command.ts")],
-    ["missing approved capture", configuration => configuration.exclude.pop()],
+    ["missing approved capture", configuration => { configuration.exclude = configuration.exclude.filter(path => path !== capturedTypePaths[4]); }],
+    ["missing staged DU input", configuration => configuration.exclude.pop()],
+    ["directory-wide DU exclusion", configuration => configuration.exclude.push("tests/integration/du-overlay-independent-20260827")],
     ["missing native-data exclusion", configuration => { configuration.exclude = configuration.exclude.filter(path => path !== native); }],
     ["test include removed", configuration => { configuration.include = ["src/**/*.ts"]; }],
     ["strict typing disabled", configuration => { configuration.compilerOptions.strict = false; }],

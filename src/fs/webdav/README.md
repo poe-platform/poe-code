@@ -422,6 +422,16 @@ negotiation stays unknown; known complete aliases retain precedence.
 
 ### Application-supplied comparison callback
 
+Direct `copyFile` and `rename` also consult a configured callback (or public
+method override) before replacing an existing entry. Known aliases are rejected
+before LOCK or transfer; an explicitly unknown relationship is `ENOTSUP`.
+Callback errors, cancellation and conflicting identity assertions remain visible,
+including for an otherwise no-op self-rename. Each direct operation negotiates
+once; a composing wrapper can independently negotiate before delegating and the
+adapter does not cache that earlier observation as a lease. Without an explicit
+comparison authority, native provider guards remain in use; unequal WebDAV paths
+alone do not prove physical distinctness or provider alias-lock isolation.
+
 The optional constructor `compareEntry` accepts the existing
 `FileSystem["compareEntry"]` arguments and promise result. Its explicit `this`
 type is `FileSystem`; use a normal function to access the actual WebDAV backend

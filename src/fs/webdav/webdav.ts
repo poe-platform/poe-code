@@ -115,6 +115,7 @@ export class WebDavFileSystem implements FileSystem {
   private readonly maxEntries: number;
   private readonly timeoutMs: number;
   private readonly overwritePolicy: "lock" | "etag";
+  private readonly configuredComparison: boolean;
   private readonly etags = new WeakMap<FileStat, string>();
 
   constructor(options: WebDavFileSystemOptions) {
@@ -148,6 +149,7 @@ export class WebDavFileSystem implements FileSystem {
     this.maxEntries = positive(options.maxEntries ?? 10_000, "maxEntries");
     this.timeoutMs = positive(options.timeoutMs ?? 30_000, "timeoutMs");
     this.overwritePolicy = options.overwritePolicy ?? "lock";
+    this.configuredComparison = options.compareEntry !== undefined;
     if (!["lock", "etag"].includes(this.overwritePolicy)) throw new FsError("EINVAL", { message: "invalid overwritePolicy" });
     if (this.timeoutMs > 2_147_483_647) throw new FsError("EINVAL", { message: "timeoutMs exceeds timer range" });
     registerResourceQuery(this, (path, settings) => this.resourceId(path, settings), originalWebDavComparison, options.compareEntry);
@@ -767,6 +769,17 @@ export class WebDavFileSystem implements FileSystem {
     }
   }
 
+  private async guardTransferIdentity(source: string, destination: string, options: FsOptions): Promise<void> {
+    if (!this.configuredComparison && this.compareEntry === originalWebDavComparison) return;
+    const comparison = await compareEntries(this, source, this, destination, options);
+    if (source === destination) {
+      if (comparison === "distinct") fail("EIO", "compareEntry", source, "comparison contradicts identical WebDAV paths");
+      return;
+    }
+    if (comparison === "same") fail("EINVAL", "compareEntry", destination, "source and destination refer to the same entry");
+    if (comparison === "unknown") fail("ENOTSUP", "compareEntry", destination, "configured authority cannot establish distinct entries");
+  }
+
   private async transfer(method: "MOVE" | "COPY", source: string, destination: string,
     options: CopyFileOptions): Promise<void> {
     const from = normalize(source);
@@ -776,11 +789,13 @@ export class WebDavFileSystem implements FileSystem {
     if (method === "COPY" && stat.type === "directory") fail("EISDIR", "copyFile", source);
     if (requiresCollection(destination) && stat.type !== "directory") fail("ENOTDIR", method, destination);
     if (from === to) {
+      await this.guardTransferIdentity(from, to, options);
       if (method === "MOVE") return;
       fail(options.exclusive ? "EEXIST" : "EINVAL", "copyFile", source, "source and destination are identical");
     }
     if (stat.type === "directory" && to.startsWith(`${from}/`)) fail("EINVAL", method, destination, "cannot move directory into itself");
     const existing = await this.maybeStat(destination, options);
+    if (existing) await this.guardTransferIdentity(from, to, options);
     if (existing && options.exclusive) fail("EEXIST", method, destination);
     const checkType = (target: FileStat): void => {
       if (target.type === "directory" && stat.type === "file") fail("EISDIR", method, destination);

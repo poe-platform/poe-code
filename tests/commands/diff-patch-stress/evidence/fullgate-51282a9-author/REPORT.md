@@ -114,6 +114,60 @@ coordinates or a different host profile, establishes the repeated-hunk result.
 
 ## Reproduction
 
+## Separate fixture-only correction and final checks
+
+Source/regression commit: `d841ece8fcc6a3333ad4de49fd94e9059f9b35fa`.
+Separate fixture-only commit: `f73ff3aacd8889fbc2c1e835e2d237f572879ab7`.
+The latter changes only the three assigned canonical test files and their
+owned emptyfile-delta observer; it contains no production changes.
+
+- The original repeated-hunk input moves from the malformed table to an
+  explicitly named conflict test. It retains both original target-preservation
+  assertions and adds exact stderr, empty stdout and full snapshot preservation.
+- Six deletion expectations retain complete namespace/byte comparisons, assert
+  original root nlink 4 and resulting nlink 3, and explicitly require `rmdir`
+  for `/authorized`. The observer now records that mutation; neither deletion
+  asserts nor directory safety are bypassed. All other vectors remain intact.
+- The original quoted-ancestor input and default argv are tested with the
+  independently observed basename-success result, exact diagnostics, exactly
+  two authorized writes, and an unchanged complete namespace except those two
+  file contents. A separately selected `-p0` ancestor continues to require
+  pre-publication refusal and original file/symlink preservation. All existing
+  malicious-header cases and final-symlink refusal remain.
+
+| Profile | Total | Pass | Fail | Skips/cancellations/TODOs |
+| --- | ---: | ---: | ---: | ---: |
+| Exact unchanged original three files | 121 | 113 | 8 | 0 |
+| Source fix plus two regression rows, old assertions unchanged | 123 | 115 | 8 | 0 |
+| Corrected three files, including three extra regression rows | 124 | 124 | 0 | 0 |
+| Existing six matcher/publication/property suites, source-fixed | 164 | 164 | 0 | 0 |
+| Same six suites, fixture-corrected | 164 | 164 | 0 | 0 |
+
+The final canonical split is emptyfile **89/89**, fuzz edits **25/25**, and
+quoted safety **10/10**. The denominator grows by two duplicate-line source
+regressions and one selected-ancestor policy control. This is not an unchanged
+all-input claim: the exact original eight failures remain archived.
+
+`validation-corrected.json` records complete stdout/stderr/status and source
+hashes for the targeted run, all six existing suites, strict scoped TypeScript,
+build and whitespace checks. Every command succeeds. `native-controls-corrected.json`
+retains the final complete raw GNU/Apple captures, including intentionally
+different security behavior and Apple's leftover reject-temporary namespace.
+No capture is overwritten. `.build` is ignored author-local compiler output;
+root `dist`, root configs and runtime dependencies are untouched.
+
+`final-manifest.json` checks all **30 archived files** against their embedded
+SHA-256 and the initial git commit bytes, records final source/test hashes and
+both implementation commits, and confirms the checked diff/patch source equals
+the committed source. Final diff/patch aggregate:
+`31b08f43832b920df149d5bc78e16a67751dcfcaca99a0c7b0916d08b0c2d06f`.
+The recorded capture window is August 27, 2026, **06:30:21.714–06:38:43.336 UTC**
+(501.622 elapsed seconds), not a claim of 72 hours or full project completion.
+Other owners continue working; source hashes/status snapshots disclose that
+shared-worktree context. Independent review remains outstanding.
+
+## Reproduction commands
+
 Run from the repository root with existing pinned local native fixtures:
 
 ```sh

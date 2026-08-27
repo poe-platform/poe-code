@@ -1,0 +1,10 @@
+{
+  "extends": "/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-AS61yj/tsconfig.json",
+  "include": [
+    "/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-AS61yj/tests/fs/mount/identity-authority-review/implementation/adapter-binding.test.ts",
+    "/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-AS61yj/tests/fs/mount/identity-authority-review/implementation/core-ordering.test.ts"
+  ],
+  "compilerOptions": {
+    "noEmit": true
+  }
+}

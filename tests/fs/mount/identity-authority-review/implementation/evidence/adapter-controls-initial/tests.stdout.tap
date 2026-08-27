@@ -1,0 +1,210 @@
+TAP version 13
+# IMPLEMENTATION_OBSERVATION eyJuYW1lIjoibWVtb3J5LXN1YmNsYXNzLWJlZm9yZS1idWZmZXIiLCJkYXRhIjp7ImFuc3dlciI6InVua25vd24iLCJlcnJvciI6IkVOT1RTVVAiLCJlZmZlY3RzIjpbXSwic291cmNlIjoiYzI5MWNtTmxJSE4xY25acGRtVnpBTysvdlE9PSIsInRhcmdldCI6ImFXNWtaWEJsYm1SbGJuUWdkR0Z5WjJWMElITjFjblpwZG1WeiJ9fQ==
+# IMPLEMENTATION_OBSERVATION eyJuYW1lIjoibWVtb3J5LXByb3RvdHlwZS1iZWZvcmUtYnVmZmVyIiwiZGF0YSI6eyJhbnN3ZXIiOiJ1bmtub3duIiwiZXJyb3IiOiJFTk9UU1VQIiwiZWZmZWN0cyI6W10sInNvdXJjZSI6ImMyOTFjbU5sSUhOMWNuWnBkbVZ6QU8rL3ZRPT0iLCJ0YXJnZXQiOiJhVzVrWlhCbGJtUmxiblFnZEdGeVoyVjBJSE4xY25acGRtVnoifX0=
+# IMPLEMENTATION_OBSERVATION eyJuYW1lIjoibWVtb3J5LW93bi1hZnRlci1idWZmZXIiLCJkYXRhIjp7ImFuc3dlciI6InVua25vd24iLCJlcnJvciI6IkVOT1RTVVAiLCJlZmZlY3RzIjpbXSwic291cmNlIjoiYzI5MWNtTmxJSE4xY25acGRtVnpBTysvdlE9PSIsInRhcmdldCI6ImFXNWtaWEJsYm1SbGJuUWdkR0Z5WjJWMElITjFjblpwZG1WeiJ9fQ==
+# IMPLEMENTATION_OBSERVATION eyJuYW1lIjoibWVtb3J5LXByb3RvdHlwZS1hZnRlci1idWZmZXIiLCJkYXRhIjp7ImFuc3dlciI6InVua25vd24iLCJlcnJvciI6IkVOT1RTVVAiLCJlZmZlY3RzIjpbXSwic291cmNlIjoiYzI5MWNtTmxJSE4xY25acGRtVnpBTysvdlE9PSIsInRhcmdldCI6ImFXNWtaWEJsYm1SbGJuUWdkR0Z5WjJWMElITjFjblpwZG1WeiJ9fQ==
+# IMPLEMENTATION_OBSERVATION eyJuYW1lIjoibWVtb3J5LXN1YmNsYXNzLWJlZm9yZS1zdHJlYW0iLCJkYXRhIjp7ImFuc3dlciI6InVua25vd24iLCJlcnJvciI6IkVOT1RTVVAiLCJlZmZlY3RzIjpbXSwic291cmNlIjoiYzI5MWNtTmxJSE4xY25acGRtVnpBTysvdlE9PSIsInRhcmdldCI6ImFXNWtaWEJsYm1SbGJuUWdkR0Z5WjJWMElITjFjblpwZG1WeiJ9fQ==
+# IMPLEMENTATION_OBSERVATION eyJuYW1lIjoibWVtb3J5LXByb3RvdHlwZS1iZWZvcmUtc3RyZWFtIiwiZGF0YSI6eyJhbnN3ZXIiOiJ1bmtub3duIiwiZXJyb3IiOiJFTk9UU1VQIiwiZWZmZWN0cyI6W10sInNvdXJjZSI6ImMyOTFjbU5sSUhOMWNuWnBkbVZ6QU8rL3ZRPT0iLCJ0YXJnZXQiOiJhVzVrWlhCbGJtUmxiblFnZEdGeVoyVjBJSE4xY25acGRtVnoifX0=
+# IMPLEMENTATION_OBSERVATION eyJuYW1lIjoibWVtb3J5LW93bi1hZnRlci1zdHJlYW0iLCJkYXRhIjp7ImFuc3dlciI6InVua25vd24iLCJlcnJvciI6IkVOT1RTVVAiLCJlZmZlY3RzIjpbXSwic291cmNlIjoiYzI5MWNtTmxJSE4xY25acGRtVnpBTysvdlE9PSIsInRhcmdldCI6ImFXNWtaWEJsYm1SbGJuUWdkR0Z5WjJWMElITjFjblpwZG1WeiJ9fQ==
+# IMPLEMENTATION_OBSERVATION eyJuYW1lIjoibWVtb3J5LXByb3RvdHlwZS1hZnRlci1zdHJlYW0iLCJkYXRhIjp7ImFuc3dlciI6InVua25vd24iLCJlcnJvciI6IkVOT1RTVVAiLCJlZmZlY3RzIjpbXSwic291cmNlIjoiYzI5MWNtTmxJSE4xY25acGRtVnpBTysvdlE9PSIsInRhcmdldCI6ImFXNWtaWEJsYm1SbGJuUWdkR0Z5WjJWMElITjFjblpwZG1WeiJ9fQ==
+# IMPLEMENTATION_OBSERVATION eyJuYW1lIjoiczMtc3ViY2xhc3MtYmVmb3JlLWJ1ZmZlciIsImRhdGEiOnsiYW5zd2VyIjoidW5rbm93biIsImVycm9yIjoiRU5PVFNVUCIsImVmZmVjdHMiOltdLCJzb3VyY2UiOiJjMjkxY21ObElITjFjblpwZG1WekFPKy92UT09IiwidGFyZ2V0IjoiYVc1a1pYQmxibVJsYm5RZ2RHRnlaMlYwSUhOMWNuWnBkbVZ6In19
+# IMPLEMENTATION_OBSERVATION eyJuYW1lIjoiczMtcHJvdG90eXBlLWJlZm9yZS1idWZmZXIiLCJkYXRhIjp7ImFuc3dlciI6InVua25vd24iLCJlcnJvciI6IkVOT1RTVVAiLCJlZmZlY3RzIjpbXSwic291cmNlIjoiYzI5MWNtTmxJSE4xY25acGRtVnpBTysvdlE9PSIsInRhcmdldCI6ImFXNWtaWEJsYm1SbGJuUWdkR0Z5WjJWMElITjFjblpwZG1WeiJ9fQ==
+# IMPLEMENTATION_OBSERVATION eyJuYW1lIjoiczMtb3duLWFmdGVyLWJ1ZmZlciIsImRhdGEiOnsiYW5zd2VyIjoidW5rbm93biIsImVycm9yIjoiRU5PVFNVUCIsImVmZmVjdHMiOltdLCJzb3VyY2UiOiJjMjkxY21ObElITjFjblpwZG1WekFPKy92UT09IiwidGFyZ2V0IjoiYVc1a1pYQmxibVJsYm5RZ2RHRnlaMlYwSUhOMWNuWnBkbVZ6In19
+# IMPLEMENTATION_OBSERVATION eyJuYW1lIjoiczMtcHJvdG90eXBlLWFmdGVyLWJ1ZmZlciIsImRhdGEiOnsiYW5zd2VyIjoidW5rbm93biIsImVycm9yIjoiRU5PVFNVUCIsImVmZmVjdHMiOltdLCJzb3VyY2UiOiJjMjkxY21ObElITjFjblpwZG1WekFPKy92UT09IiwidGFyZ2V0IjoiYVc1a1pYQmxibVJsYm5RZ2RHRnlaMlYwSUhOMWNuWnBkbVZ6In19
+# IMPLEMENTATION_OBSERVATION eyJuYW1lIjoiczMtc3ViY2xhc3MtYmVmb3JlLXN0cmVhbSIsImRhdGEiOnsiYW5zd2VyIjoidW5rbm93biIsImVycm9yIjoiRU5PVFNVUCIsImVmZmVjdHMiOltdLCJzb3VyY2UiOiJjMjkxY21ObElITjFjblpwZG1WekFPKy92UT09IiwidGFyZ2V0IjoiYVc1a1pYQmxibVJsYm5RZ2RHRnlaMlYwSUhOMWNuWnBkbVZ6In19
+# IMPLEMENTATION_OBSERVATION eyJuYW1lIjoiczMtcHJvdG90eXBlLWJlZm9yZS1zdHJlYW0iLCJkYXRhIjp7ImFuc3dlciI6InVua25vd24iLCJlcnJvciI6IkVOT1RTVVAiLCJlZmZlY3RzIjpbXSwic291cmNlIjoiYzI5MWNtTmxJSE4xY25acGRtVnpBTysvdlE9PSIsInRhcmdldCI6ImFXNWtaWEJsYm1SbGJuUWdkR0Z5WjJWMElITjFjblpwZG1WeiJ9fQ==
+# IMPLEMENTATION_OBSERVATION eyJuYW1lIjoiczMtb3duLWFmdGVyLXN0cmVhbSIsImRhdGEiOnsiYW5zd2VyIjoidW5rbm93biIsImVycm9yIjoiRU5PVFNVUCIsImVmZmVjdHMiOltdLCJzb3VyY2UiOiJjMjkxY21ObElITjFjblpwZG1WekFPKy92UT09IiwidGFyZ2V0IjoiYVc1a1pYQmxibVJsYm5RZ2RHRnlaMlYwSUhOMWNuWnBkbVZ6In19
+# IMPLEMENTATION_OBSERVATION eyJuYW1lIjoiczMtcHJvdG90eXBlLWFmdGVyLXN0cmVhbSIsImRhdGEiOnsiYW5zd2VyIjoidW5rbm93biIsImVycm9yIjoiRU5PVFNVUCIsImVmZmVjdHMiOltdLCJzb3VyY2UiOiJjMjkxY21ObElITjFjblpwZG1WekFPKy92UT09IiwidGFyZ2V0IjoiYVc1a1pYQmxibVJsYm5RZ2RHRnlaMlYwSUhOMWNuWnBkbVZ6In19
+# Subtest: memory subclass-before buffered: changed writer cannot redirect qualified target into source
+ok 1 - memory subclass-before buffered: changed writer cannot redirect qualified target into source
+  ---
+  duration_ms: 3.862709
+  type: 'test'
+  ...
+# Subtest: memory prototype-before buffered: changed writer cannot redirect qualified target into source
+ok 2 - memory prototype-before buffered: changed writer cannot redirect qualified target into source
+  ---
+  duration_ms: 0.70725
+  type: 'test'
+  ...
+# Subtest: memory own-after buffered: changed writer cannot redirect qualified target into source
+ok 3 - memory own-after buffered: changed writer cannot redirect qualified target into source
+  ---
+  duration_ms: 0.723458
+  type: 'test'
+  ...
+# Subtest: memory prototype-after buffered: changed writer cannot redirect qualified target into source
+ok 4 - memory prototype-after buffered: changed writer cannot redirect qualified target into source
+  ---
+  duration_ms: 0.42775
+  type: 'test'
+  ...
+# Subtest: memory subclass-before streamed: changed writer cannot redirect qualified target into source
+ok 5 - memory subclass-before streamed: changed writer cannot redirect qualified target into source
+  ---
+  duration_ms: 0.675917
+  type: 'test'
+  ...
+# Subtest: memory prototype-before streamed: changed writer cannot redirect qualified target into source
+ok 6 - memory prototype-before streamed: changed writer cannot redirect qualified target into source
+  ---
+  duration_ms: 1.10575
+  type: 'test'
+  ...
+# Subtest: memory own-after streamed: changed writer cannot redirect qualified target into source
+ok 7 - memory own-after streamed: changed writer cannot redirect qualified target into source
+  ---
+  duration_ms: 0.437625
+  type: 'test'
+  ...
+# Subtest: memory prototype-after streamed: changed writer cannot redirect qualified target into source
+ok 8 - memory prototype-after streamed: changed writer cannot redirect qualified target into source
+  ---
+  duration_ms: 0.464958
+  type: 'test'
+  ...
+# Subtest: s3 subclass-before buffered: changed writer cannot redirect qualified target into source
+ok 9 - s3 subclass-before buffered: changed writer cannot redirect qualified target into source
+  ---
+  duration_ms: 5.734
+  type: 'test'
+  ...
+# Subtest: s3 prototype-before buffered: changed writer cannot redirect qualified target into source
+ok 10 - s3 prototype-before buffered: changed writer cannot redirect qualified target into source
+  ---
+  duration_ms: 3.787541
+  type: 'test'
+  ...
+# Subtest: s3 own-after buffered: changed writer cannot redirect qualified target into source
+ok 11 - s3 own-after buffered: changed writer cannot redirect qualified target into source
+  ---
+  duration_ms: 2.332542
+  type: 'test'
+  ...
+# Subtest: s3 prototype-after buffered: changed writer cannot redirect qualified target into source
+ok 12 - s3 prototype-after buffered: changed writer cannot redirect qualified target into source
+  ---
+  duration_ms: 1.759959
+  type: 'test'
+  ...
+# Subtest: s3 subclass-before streamed: changed writer cannot redirect qualified target into source
+ok 13 - s3 subclass-before streamed: changed writer cannot redirect qualified target into source
+  ---
+  duration_ms: 2.469709
+  type: 'test'
+  ...
+# Subtest: s3 prototype-before streamed: changed writer cannot redirect qualified target into source
+ok 14 - s3 prototype-before streamed: changed writer cannot redirect qualified target into source
+  ---
+  duration_ms: 1.157792
+  type: 'test'
+  ...
+# Subtest: s3 own-after streamed: changed writer cannot redirect qualified target into source
+ok 15 - s3 own-after streamed: changed writer cannot redirect qualified target into source
+  ---
+  duration_ms: 1.10625
+  type: 'test'
+  ...
+# Subtest: s3 prototype-after streamed: changed writer cannot redirect qualified target into source
+ok 16 - s3 prototype-after streamed: changed writer cannot redirect qualified target into source
+  ---
+  duration_ms: 1.1855
+  type: 'test'
+  ...
+# Subtest: memory harmless subclass inherited: preserve real qualified workflows and explicit authority
+ok 17 - memory harmless subclass inherited: preserve real qualified workflows and explicit authority
+  ---
+  duration_ms: 2.053459
+  type: 'test'
+  ...
+# Subtest: memory harmless subclass explicit-distinct: preserve real qualified workflows and explicit authority
+ok 18 - memory harmless subclass explicit-distinct: preserve real qualified workflows and explicit authority
+  ---
+  duration_ms: 0.94725
+  type: 'test'
+  ...
+# Subtest: memory harmless subclass explicit-denial: preserve real qualified workflows and explicit authority
+not ok 19 - memory harmless subclass explicit-denial: preserve real qualified workflows and explicit authority
+  ---
+  duration_ms: 1.569875
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-dSAsKT/tests/fs/mount/identity-authority-review/implementation/adapter-binding.test.ts:1:4519'
+  failureType: 'testCodeFailure'
+  error: |-
+    The validation function is expected to return "true". Received false
+    
+    Caught error:
+    
+    FsError: EACCES: permission denied, compareEntry '/left/source' -> '/right/target'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  stack: |-
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-dSAsKT/tests/fs/mount/identity-authority-review/implementation/adapter-binding.test.ts:105:9)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: s3 harmless subclass inherited: preserve real qualified workflows and explicit authority
+ok 20 - s3 harmless subclass inherited: preserve real qualified workflows and explicit authority
+  ---
+  duration_ms: 1.072709
+  type: 'test'
+  ...
+# Subtest: s3 harmless subclass explicit-distinct: preserve real qualified workflows and explicit authority
+ok 21 - s3 harmless subclass explicit-distinct: preserve real qualified workflows and explicit authority
+  ---
+  duration_ms: 0.875959
+  type: 'test'
+  ...
+# Subtest: s3 harmless subclass explicit-denial: preserve real qualified workflows and explicit authority
+not ok 22 - s3 harmless subclass explicit-denial: preserve real qualified workflows and explicit authority
+  ---
+  duration_ms: 2.941625
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-dSAsKT/tests/fs/mount/identity-authority-review/implementation/adapter-binding.test.ts:1:4519'
+  failureType: 'testCodeFailure'
+  error: |-
+    The validation function is expected to return "true". Received false
+    
+    Caught error:
+    
+    FsError: EACCES: permission denied, compareEntry '/left/source' -> '/right/target'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  stack: |-
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-dSAsKT/tests/fs/mount/identity-authority-review/implementation/adapter-binding.test.ts:105:9)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: current core cp -P: unscoped source symlink across two aliases is never unlinked
+ok 23 - current core cp -P: unscoped source symlink across two aliases is never unlinked
+  ---
+  duration_ms: 3.738958
+  type: 'test'
+  ...
+# Subtest: current core EXDEV mv: a known hardlink alias returns GNU status1 without copy or unlink
+ok 24 - current core EXDEV mv: a known hardlink alias returns GNU status1 without copy or unlink
+  ---
+  duration_ms: 0.707125
+  type: 'test'
+  ...
+# Subtest: current core EXDEV mv known-distinct success: remove follows completed copy only
+ok 25 - current core EXDEV mv known-distinct success: remove follows completed copy only
+  ---
+  duration_ms: 1.160583
+  type: 'test'
+  ...
+# Subtest: current core EXDEV mv known-distinct partial-failure: remove follows completed copy only
+ok 26 - current core EXDEV mv known-distinct partial-failure: remove follows completed copy only
+  ---
+  duration_ms: 0.283625
+  type: 'test'
+  ...
+1..26
+# tests 26
+# suites 0
+# pass 24
+# fail 2
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 194.32925

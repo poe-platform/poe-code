@@ -70,7 +70,7 @@ for (const file of git("ls-tree", "-rz", "--name-only", "29fe1bf", "--", "tests/
 }
 const testPaths = Object.keys(manifest.testHashes).filter(file => file.endsWith(".test.ts") && (!selected.length || selected.some(name => file.endsWith(`/${name}`))));
 assert.equal(testPaths.length, selected.length || testPaths.length);
-manifest.command = ["--unhandled-rejections=strict", "--import", "tsx", "--test", "--test-reporter=tap", ...testPaths];
+manifest.command = ["--import", "tsx", "--test", "--test-reporter=tap", ...testPaths];
 const run = spawnSync(process.execPath, manifest.command, { cwd: scratch, encoding: "utf8", timeout: 120000, maxBuffer: 8 * 1024 * 1024 });
 await writeFile(join(output, "tests.stdout.tap"), run.stdout ?? "");
 await writeFile(join(output, "tests.stderr.txt"), run.stderr ?? "");

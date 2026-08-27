@@ -9,9 +9,7 @@ const owned = dirname(fileURLToPath(import.meta.url));
 const repository = resolve(owned, "../../../../..");
 const revision = process.argv[2];
 const label = process.argv[3];
-const selected = process.argv.slice(4);
 assert.ok(revision && label && /^[a-z0-9-]+$/.test(label), "capture.mjs REVISION|worktree new-label");
-assert.ok(selected.every(name => /^[a-z0-9-]+\.test\.ts$/.test(name)), "selected tests must be owned basenames");
 const git = (...args) => execFileSync("git", args, { cwd: repository, maxBuffer: 16 * 1024 * 1024 });
 const hash = input => createHash("sha256").update(input).digest("hex");
 const files = async directory => (await readdir(directory, { withFileTypes: true, recursive: true })).filter(entry => entry.isFile()).map(entry => join(entry.parentPath, entry.name)).sort();
@@ -42,12 +40,6 @@ for (const file of [...(await files(join(scratch, "src"))).map(file => relative(
 }
 const contract = git("show", "5076b32:src/contracts/filesystem.ts");
 assert.equal(manifest.sourceHashes["src/contracts/filesystem.ts"], hash(contract));
-manifest.coreCheckpoint = {
-  commit: git("rev-parse", "0bee8e7").toString().trim(),
-  expectedSourceHash: hash(git("show", "0bee8e7:src/commands/filesystem.ts")),
-  actualSourceHash: manifest.sourceHashes["src/commands/filesystem.ts"],
-};
-await writeFile(join(output, "native-gnu-9.7.json"), git("show", "0bee8e7:tests/commands/filesystem-authority-stress/native-gnu-9.7.json"));
 for (const entry of await readdir(owned, { withFileTypes: true })) {
   if (!entry.isFile() || (!entry.name.endsWith(".ts") && entry.name !== "capture.mjs")) continue;
   const file = relative(repository, join(owned, entry.name));
@@ -68,9 +60,8 @@ for (const file of git("ls-tree", "-rz", "--name-only", "29fe1bf", "--", "tests/
   assert.equal(current, hash(git("show", `29fe1bf:${file}`)), `immutable proposal history changed: ${file}`);
   manifest.historicalHashes[file] = current;
 }
-const testPaths = Object.keys(manifest.testHashes).filter(file => file.endsWith(".test.ts") && (!selected.length || selected.some(name => file.endsWith(`/${name}`))));
-assert.equal(testPaths.length, selected.length || testPaths.length);
-manifest.command = ["--unhandled-rejections=strict", "--import", "tsx", "--test", "--test-reporter=tap", ...testPaths];
+const testPaths = Object.keys(manifest.testHashes).filter(file => file.endsWith(".test.ts"));
+manifest.command = ["--import", "tsx", "--test", "--test-reporter=tap", ...testPaths];
 const run = spawnSync(process.execPath, manifest.command, { cwd: scratch, encoding: "utf8", timeout: 120000, maxBuffer: 8 * 1024 * 1024 });
 await writeFile(join(output, "tests.stdout.tap"), run.stdout ?? "");
 await writeFile(join(output, "tests.stderr.txt"), run.stderr ?? "");

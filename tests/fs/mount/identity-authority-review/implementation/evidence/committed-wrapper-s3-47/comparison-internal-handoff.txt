@@ -1,0 +1,123 @@
+Wrapper/helper lead to S3, WebDAV, Curie/root — 2026-08-27.
+Approved authority5076b32 / core consumerf291156; no guardedCopy flag.
+Implementing internal module src/fs/mount/comparison.ts NOW. No root exports,
+shared-contract changes, or public authority registry. Remote leaves may import
+from ../mount/comparison.js. Exact internal types/functions to target:
+
+export interface EntryLocation {
+  readonly filesystem: FileSystem;
+  readonly path: string;
+  readonly readOnly?: boolean;
+  readonly stat?: FileStat;
+}
+export interface EntryView extends EntryLocation {
+  readonly stat: FileStat;
+  readonly readOnly: boolean;
+}
+export type EntryViewResolver =
+  (path: string, options: FsOptions) => Promise<EntryLocation>;
+export type EntryAuthority =
+  (own: EntryView, peer: EntryView, options: FsOptions) => Promise<EntryComparison>;
+export function registerEntryView(fs: FileSystem, resolver: EntryViewResolver): void;
+export function registerEntryAuthority(fs: FileSystem, authority: EntryAuthority): void;
+export function resolveEntryView(fs: FileSystem, path: string, options?: FsOptions): Promise<EntryView>;
+export function compareResolvedEntries(own: EntryView, peer: EntryView, options?: FsOptions): Promise<EntryComparison>;
+export function compareEntries(fs: FileSystem, path: string, peer: FileSystem, peerPath: string, options?: FsOptions): Promise<EntryComparison>;
+
+Single module-private WeakMaps hold trusted wrapper resolvers and terminal
+authority callbacks. registerEntryView is for transparent policy-aware view
+resolution ONLY: return immediate backing filesystem/path, never a synthetic
+identity. Resolver chains are cycle checked; readonly accumulates, never erased.
+Optional EntryLocation.stat is a trusted terminal snapshot, used for mount's
+synthetic directory view (unknown authority); normal provider views omit it.
+The final view obtains followed stat metadata (realpath then lstat), forwards signal and propagates
+missing/auth/IO/cancellation. Resolution performs no content acquisition, copy-up,
+lock-null creation, cleanup or mutation. Overlay registers selected READ view;
+mutation consumers still resolve and guard the actual destination separately.
+
+Public backend compareEntry should call compareEntries(this,path,peer,peerPath,options).
+If it does so, registerEntryAuthority(this, terminalCallback) in construction:
+terminal callbacks MUST NOT call compareEntry/compareEntries/peer negotiation.
+Recursive helper negotiation returns unknown before further metadata/authority
+queries; opaque unregistered proxies that merely forward a negotiating wrapper
+method are not trusted view registration. Invalid/conflicting actual answers
+still fail EIO, and cancellation still propagates before the reentry check.
+Memory/real already expose complete actual tuples and need no extra callbacks or
+negotiating method; their unknown/incomplete metadata remains unknown.
+Callbacks can share the same function reference for one actual authority; engine
+deduplicates it. Unregistered external providers retain optional compareEntry as
+one-shot terminal fallback; do not assume arbitrary objects are trusted wrappers.
+Complete observed scope/dev/ino tuples win without callbacks. Otherwise query
+each distinct terminal authority at most once, validate all answers, conflict or
+invalid => EIO before effects, propagate real errors and cancellation. No cache.
+
+Remote callback recognition must come from actual native/provider/shared
+negotiated authority. Use your provider-owned metadata map if needed, not another
+wrapper-view registry. Merely sharing protocol/baseURL/bucket/key strings or
+having different clients/functions/tokens cannot prove disjointness. No global
+"native vs remote" or S3-vs-WebDAV disjointness rule. An unrecognized peer remains
+unknown, including when a custom remote transport accesses a local memory/real
+store. Distinct opaque client objects in positive fixtures hide shared service
+authority; if that authority is not discoverable truthfully, report the exact
+provider hook needed rather than certify by URL or alter fixtures.
+
+Scope: I edit only five local FS source/test directories and this common helper.
+S3/WebDAV leaves own their respective adapters/tests. No remote source overlap.
+Please write your hook/commit/result to a shared /tmp handoff; parent can route.
+Core currently queries same context.fs once, allowing a mount wrapper to resolve
+both leaves and negotiate each once. A caller must not recursively negotiate
+through terminal callbacks. No observation cache/lease across later copy calls.
+
+IMPLEMENTED CHECKPOINT: 745eaa62eebbe07b7fd30dccad4a73a1669f7124.
+Exact API durable in src/fs/mount/COMPARISON.md and comparison.ts.
+53 immutable original/required guards +17 new authority regressions pass70/70;
+scoped five-backend TypeScript passed. Whole owned/shared validation follows.
+Registered provider callbacks are integrated before same-backend native delegation
+or cross-backend content acquisition. Actual same backend mounted twice can use
+native copy AFTER proof; no client-token disjointness or guardedCopy flag.
+Remote source imports seen in progress match this API. Please notify parent with
+your commit and exact provider recognition limits; no positive fixture weakening.
+
+2026-08-27 SAFETY COORDINATION UPDATE:
+No Memory-vs-Mock callback has been implemented; memory/real source stays at4fa.
+I will not consume HEAD/PROPFIND provenance alone as whole-provider mapping proof.
+Genuine metadata can be combined with custom GET/PUT to local aliases. Strong
+provider-owned factory/full operation binding is needed before any mixed-store
+distinctness rule. Original opaque/manual client fixtures remain mandatory and
+red where unqualified; a new qualified factory is not the same acceptance input.
+Reproduced unchanged original S3 filter15:12pass/3fail (opaque alias EIO and two
+existing-target Memory/S3 proof gates). Helper reentry now stays unknown without
+any recursive metadata/query; rerun pending. No oracle or remote-source edits.
+
+BOUNDED SAFE CHECKPOINT: e8d308a11bf562efcfba1d8a861503883b4952a3
+(on top of internal API745eaa62eebbe07b7fd30dccad4a73a1669f7124).
+Original S3 filter15 rerun:13pass/2fail. The exact unchanged opaque FS alias
+control now passes ENOTSUP and its byte guards. Both mixed-memory existing-target
+positive cases remain mandatory RED; no Memory-vs-Mock inference was added.
+Original compatibility fixture SHA256 remains
+9d11741fd9b37757046c1278fdaa00c734633bfd9a1fc58ae479415c2f5a6734.
+53 immutable guards +18 helper tests +9 identity-scope tests =80/80 pass;
+scoped noEmit passed; existing six isolated source mutants detected6/6.
+The paused four observation-guard regressions are fixed by preserving followed
+realpath/lstat metadata. Before this correction, owned run was665/677: four
+observation failures plus eight WebDAV Map-representation assertions. Those
+eight remain WebDAV leaf-owned; I have not edited the fixture assertions.
+No remote source commit is included, and remote HEAD/metadata witnesses are NOT
+accepted as proof of the full GET/PUT/copy/delete mapping. Strong qualification
+or an explicitly root-approved input-factory delta remains a dependency. Such a
+delta must not claim the unchanged manual/opaque-provider positive gate closed.
+All own launched bounded validation processes exited. Core/contracts untouched.
+
+2026-08-27 QUALIFIED MEMORY IMPLEMENTATION IN PROGRESS:
+Shared helper API unchanged. Memory will register one shared terminal authority,
+with private constructor enrollment, fresh filesystem/path/root-bound lstat
+observations, and intact original implementation/root checks. It accepts only
+getOwnedS3Entry(view) from s3/authority.ts and getOwnedWebDavEntry(view) from
+webdav/resource-id.ts after those owners validate FULL operation bindings.
+No exported Memory registry, new contract, root export, or recursive callback.
+Imports are descriptor-only modules (their adapter/helper imports are type-only),
+not remote index modules. Recognized closed Memory storage versus a qualified
+closed mock store is distinct; arbitrary manual forwarding transports, genuine
+metadata with local GET/PUT, native and unrecognized peers remain unknown.
+Qualified author positives are separate from unchanged original opaque fixtures;
+this source checkpoint cannot close their still-open input-qualification gate.

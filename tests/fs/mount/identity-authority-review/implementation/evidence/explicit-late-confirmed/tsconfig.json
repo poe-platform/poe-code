@@ -1,0 +1,12 @@
+{
+  "extends": "/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-s9rlJx/tsconfig.json",
+  "include": [
+    "/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-s9rlJx/tests/fs/mount/identity-authority-review/implementation/adapter-binding.test.ts",
+    "/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-s9rlJx/tests/fs/mount/identity-authority-review/implementation/core-ordering.test.ts",
+    "/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-s9rlJx/tests/fs/mount/identity-authority-review/implementation/public-comparison.test.ts",
+    "/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-s9rlJx/tests/fs/mount/identity-authority-review/implementation/remote-comparison.test.ts"
+  ],
+  "compilerOptions": {
+    "noEmit": true
+  }
+}

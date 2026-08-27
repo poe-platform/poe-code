@@ -1,0 +1,21 @@
+{
+  "command": [
+    "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "--unhandled-rejections=strict",
+    "--import",
+    "tsx",
+    "--test",
+    "tests/stress/byte-ownership-20260827/remaining-consumers/direct-curl/direct-curl.test.ts"
+  ],
+  "cwd": "/Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/remaining-consumers/writer-isolation-review/.scratch/baseline-b494-retained",
+  "environmentOverrides": {},
+  "pid": 71480,
+  "startedAt": "2026-08-27T11:42:09.238Z",
+  "finishedAt": "2026-08-27T11:42:09.502Z",
+  "code": 0,
+  "signal": null,
+  "timedOut": false,
+  "childClosed": true,
+  "stdout": "TAP version 13\n# Subtest: direct-registered-curl-buffer-307-replay\nok 1 - direct-registered-curl-buffer-307-replay\n  ---\n  duration_ms: 3.154958\n  type: 'test'\n  ...\n# Subtest: direct-registered-curl-native-uint8array-307-replay\nok 2 - direct-registered-curl-native-uint8array-307-replay\n  ---\n  duration_ms: 1.164167\n  type: 'test'\n  ...\n1..2\n# tests 2\n# suites 0\n# pass 2\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 235.866042\n",
+  "stderr": ""
+}

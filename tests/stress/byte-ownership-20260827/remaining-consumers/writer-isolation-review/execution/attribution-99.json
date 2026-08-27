@@ -1,0 +1,1013 @@
+{
+  "revision": "b494675c34dc289f4ad4b10a9201e1211eb0a7d8",
+  "beforeAnyWriter": true,
+  "diagnosticPreflight": {
+    "code": 1,
+    "exactRefusal": true
+  },
+  "cleanupPreflight": {
+    "code": 1,
+    "failedHooks": 10
+  },
+  "rows": [
+    {
+      "id": "tap-line-89762",
+      "name": "primary-5.3: pinned identity and original native lifecycle control",
+      "group": "historical-diagnostic-pin",
+      "path": "tests/shell-stress/differential.test.ts",
+      "expected": "985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118",
+      "actual": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "cleanArchivedActual": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "matchesWriterChangedPath": false
+    },
+    {
+      "id": "tap-line-89793",
+      "name": "primary-5.3: original-differential: descriptor-save-and-restore-routes-stderr-through-pipe",
+      "group": "historical-diagnostic-pin",
+      "path": "tests/shell-stress/differential.test.ts",
+      "expected": "985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118",
+      "actual": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "cleanArchivedActual": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "matchesWriterChangedPath": false
+    },
+    {
+      "id": "tap-line-89824",
+      "name": "primary-5.3: original-differential: descriptor-move-closes-original-after-copy",
+      "group": "historical-diagnostic-pin",
+      "path": "tests/shell-stress/differential.test.ts",
+      "expected": "985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118",
+      "actual": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "cleanArchivedActual": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "matchesWriterChangedPath": false
+    },
+    {
+      "id": "tap-line-89855",
+      "name": "primary-5.3: original-differential: closing-stdout-then-reopening-is-left-to-right",
+      "group": "historical-diagnostic-pin",
+      "path": "tests/shell-stress/differential.test.ts",
+      "expected": "985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118",
+      "actual": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "cleanArchivedActual": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "matchesWriterChangedPath": false
+    },
+    {
+      "id": "tap-line-89886",
+      "name": "primary-5.3: original-differential: closing-stderr-does-not-close-duplicated-stdout",
+      "group": "historical-diagnostic-pin",
+      "path": "tests/shell-stress/differential.test.ts",
+      "expected": "985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118",
+      "actual": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "cleanArchivedActual": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "matchesWriterChangedPath": false
+    },
+    {
+      "id": "tap-line-89917",
+      "name": "primary-5.3: original-differential: group-redirection-is-restored-after-return",
+      "group": "historical-diagnostic-pin",
+      "path": "tests/shell-stress/differential.test.ts",
+      "expected": "985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118",
+      "actual": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "cleanArchivedActual": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "matchesWriterChangedPath": false
+    },
+    {
+      "id": "tap-line-89948",
+      "name": "primary-5.3: original-differential: pipe-established-before-stderr-copy-and-output-redirect",
+      "group": "historical-diagnostic-pin",
+      "path": "tests/shell-stress/differential.test.ts",
+      "expected": "985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118",
+      "actual": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "cleanArchivedActual": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "matchesWriterChangedPath": false
+    },
+    {
+      "id": "tap-line-89979",
+      "name": "primary-5.3: original-differential: nested-truncate-does-not-reset-outer-file-offset",
+      "group": "historical-diagnostic-pin",
+      "path": "tests/shell-stress/differential.test.ts",
+      "expected": "985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118",
+      "actual": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "cleanArchivedActual": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "matchesWriterChangedPath": false
+    },
+    {
+      "id": "tap-line-90010",
+      "name": "primary-5.3: original-differential: independent-output-descriptors-have-separate-offsets",
+      "group": "historical-diagnostic-pin",
+      "path": "tests/shell-stress/differential.test.ts",
+      "expected": "985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118",
+      "actual": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "cleanArchivedActual": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "matchesWriterChangedPath": false
+    },
+    {
+      "id": "tap-line-90041",
+      "name": "primary-5.3: original-differential: duplicated-output-descriptors-share-offset",
+      "group": "historical-diagnostic-pin",
+      "path": "tests/shell-stress/differential.test.ts",
+      "expected": "985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118",
+      "actual": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "cleanArchivedActual": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "matchesWriterChangedPath": false
+    },
+    {
+      "id": "tap-line-90072",
+      "name": "primary-5.3: original-differential: append-descriptor-observes-intervening-truncation",
+      "group": "historical-diagnostic-pin",
+      "path": "tests/shell-stress/differential.test.ts",
+      "expected": "985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118",
+      "actual": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "cleanArchivedActual": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "matchesWriterChangedPath": false
+    },
+    {
+      "id": "tap-line-90103",
+      "name": "primary-5.3: original-differential: redirect-expansion-side-effect-precedes-truncate",
+      "group": "historical-diagnostic-pin",
+      "path": "tests/shell-stress/differential.test.ts",
+      "expected": "985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118",
+      "actual": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "cleanArchivedActual": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "matchesWriterChangedPath": false
+    },
+    {
+      "id": "tap-line-90134",
+      "name": "primary-5.3: original-differential: read-and-substitution-consume-one-inherited-offset",
+      "group": "historical-diagnostic-pin",
+      "path": "tests/shell-stress/differential.test.ts",
+      "expected": "985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118",
+      "actual": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "cleanArchivedActual": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "matchesWriterChangedPath": false
+    },
+    {
+      "id": "tap-line-90165",
+      "name": "primary-5.3: original-differential: read-in-subshell-consumes-input-but-not-parent-variable",
+      "group": "historical-diagnostic-pin",
+      "path": "tests/shell-stress/differential.test.ts",
+      "expected": "985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118",
+      "actual": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "cleanArchivedActual": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "matchesWriterChangedPath": false
+    },
+    {
+      "id": "tap-line-90196",
+      "name": "primary-5.3: original-differential: multiple-input-redirections-only-last-is-consumed",
+      "group": "historical-diagnostic-pin",
+      "path": "tests/shell-stress/differential.test.ts",
+      "expected": "985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118",
+      "actual": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "cleanArchivedActual": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "matchesWriterChangedPath": false
+    },
+    {
+      "id": "tap-line-90227",
+      "name": "primary-5.3: original-differential: read-n-consumes-exactly-two-characters",
+      "group": "historical-diagnostic-pin",
+      "path": "tests/shell-stress/differential.test.ts",
+      "expected": "985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118",
+      "actual": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "cleanArchivedActual": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "matchesWriterChangedPath": false
+    },
+    {
+      "id": "tap-line-90258",
+      "name": "primary-5.3: original-differential: read-d-consumes-through-delimiter-only",
+      "group": "historical-diagnostic-pin",
+      "path": "tests/shell-stress/differential.test.ts",
+      "expected": "985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118",
+      "actual": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "cleanArchivedActual": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "matchesWriterChangedPath": false
+    },
+    {
+      "id": "tap-line-90289",
+      "name": "primary-5.3: original-differential: read-backslash-newline-joins-before-splitting",
+      "group": "historical-diagnostic-pin",
+      "path": "tests/shell-stress/differential.test.ts",
+      "expected": "985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118",
+      "actual": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "cleanArchivedActual": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "matchesWriterChangedPath": false
+    },
+    {
+      "id": "tap-line-90320",
+      "name": "primary-5.3: original-differential: read-last-variable-preserves-inner-separators",
+      "group": "historical-diagnostic-pin",
+      "path": "tests/shell-stress/differential.test.ts",
+      "expected": "985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118",
+      "actual": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "cleanArchivedActual": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "matchesWriterChangedPath": false
+    },
+    {
+      "id": "tap-line-90351",
+      "name": "primary-5.3: original-differential: redirected-pipeline-input-leaves-inherited-input-intact",
+      "group": "historical-diagnostic-pin",
+      "path": "tests/shell-stress/differential.test.ts",
+      "expected": "985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118",
+      "actual": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "cleanArchivedActual": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "matchesWriterChangedPath": false
+    },
+    {
+      "id": "tap-line-90382",
+      "name": "primary-5.3: original-differential: pipefail-picks-rightmost-nonzero-not-first",
+      "group": "historical-diagnostic-pin",
+      "path": "tests/shell-stress/differential.test.ts",
+      "expected": "985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118",
+      "actual": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "cleanArchivedActual": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "matchesWriterChangedPath": false
+    },
+    {
+      "id": "tap-line-90413",
+      "name": "primary-5.3: original-differential: pipeline-negation-with-pipefail-controls-conditional",
+      "group": "historical-diagnostic-pin",
+      "path": "tests/shell-stress/differential.test.ts",
+      "expected": "985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118",
+      "actual": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "cleanArchivedActual": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "matchesWriterChangedPath": false
+    },
+    {
+      "id": "tap-line-90444",
+      "name": "primary-5.3: original-differential: function-in-middle-of-pipeline-preserves-bytes",
+      "group": "historical-diagnostic-pin",
+      "path": "tests/shell-stress/differential.test.ts",
+      "expected": "985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118",
+      "actual": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "cleanArchivedActual": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "matchesWriterChangedPath": false
+    },
+    {
+      "id": "tap-line-90475",
+      "name": "primary-5.3: original-differential: early-pipeline-reader-closes-bounded-producer",
+      "group": "historical-diagnostic-pin",
+      "path": "tests/shell-stress/differential.test.ts",
+      "expected": "985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118",
+      "actual": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "cleanArchivedActual": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "matchesWriterChangedPath": false
+    },
+    {
+      "id": "tap-line-90506",
+      "name": "primary-5.3: original-differential: quoted-positional-at-concatenates-only-edge-fields",
+      "group": "historical-diagnostic-pin",
+      "path": "tests/shell-stress/differential.test.ts",
+      "expected": "985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118",
+      "actual": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "cleanArchivedActual": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "matchesWriterChangedPath": false
+    },
+    {
+      "id": "tap-line-90537",
+      "name": "primary-5.3: original-differential: quoted-star-uses-first-ifs-character",
+      "group": "historical-diagnostic-pin",
+      "path": "tests/shell-stress/differential.test.ts",
+      "expected": "985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118",
+      "actual": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "cleanArchivedActual": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "matchesWriterChangedPath": false
+    },
+    {
+      "id": "tap-line-90568",
+      "name": "primary-5.3: original-differential: ifs-nonwhitespace-delimiters-retain-empty-fields",
+      "group": "historical-diagnostic-pin",
+      "path": "tests/shell-stress/differential.test.ts",
+      "expected": "985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118",
+      "actual": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "cleanArchivedActual": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "matchesWriterChangedPath": false
+    },
+    {
+      "id": "tap-line-90599",
+      "name": "primary-5.3: original-differential: quoted-empty-prefix-preserves-otherwise-empty-field",
+      "group": "historical-diagnostic-pin",
+      "path": "tests/shell-stress/differential.test.ts",
+      "expected": "985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118",
+      "actual": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "cleanArchivedActual": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "matchesWriterChangedPath": false
+    },
+    {
+      "id": "tap-line-90630",
+      "name": "primary-5.3: original-differential: default-operator-does-not-evaluate-unused-substitution",
+      "group": "historical-diagnostic-pin",
+      "path": "tests/shell-stress/differential.test.ts",
+      "expected": "985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118",
+      "actual": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "cleanArchivedActual": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "matchesWriterChangedPath": false
+    },
+    {
+      "id": "tap-line-90661",
+      "name": "primary-5.3: original-differential: assignment-default-side-effect-persists-outside-expansion",
+      "group": "historical-diagnostic-pin",
+      "path": "tests/shell-stress/differential.test.ts",
+      "expected": "985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118",
+      "actual": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "cleanArchivedActual": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "matchesWriterChangedPath": false
+    },
+    {
+      "id": "tap-line-90692",
+      "name": "primary-5.3: original-differential: prefix-assignment-value-expansion-sees-prior-assignment",
+      "group": "historical-diagnostic-pin",
+      "path": "tests/shell-stress/differential.test.ts",
+      "expected": "985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118",
+      "actual": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "cleanArchivedActual": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "matchesWriterChangedPath": false
+    },
+    {
+      "id": "tap-line-90723",
+      "name": "primary-5.3: original-differential: command-substitution-file-shortcut-reads-and-trims",
+      "group": "historical-diagnostic-pin",
+      "path": "tests/shell-stress/differential.test.ts",
+      "expected": "985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118",
+      "actual": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "cleanArchivedActual": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "matchesWriterChangedPath": false
+    },
+    {
+      "id": "tap-line-90754",
+      "name": "primary-5.3: original-differential: substitution-retains-interior-newlines-and-isolates-variable",
+      "group": "historical-diagnostic-pin",
+      "path": "tests/shell-stress/differential.test.ts",
+      "expected": "985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118",
+      "actual": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "cleanArchivedActual": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "matchesWriterChangedPath": false
+    },
+    {
+      "id": "tap-line-90785",
+      "name": "primary-5.3: original-differential: last-assignment-substitution-status-wins",
+      "group": "historical-diagnostic-pin",
+      "path": "tests/shell-stress/differential.test.ts",
+      "expected": "985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118",
+      "actual": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "cleanArchivedActual": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "matchesWriterChangedPath": false
+    },
+    {
+      "id": "tap-line-90816",
+      "name": "primary-5.3: original-differential: substitution-does-not-reparse-metacharacters",
+      "group": "historical-diagnostic-pin",
+      "path": "tests/shell-stress/differential.test.ts",
+      "expected": "985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118",
+      "actual": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "cleanArchivedActual": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "matchesWriterChangedPath": false
+    },
+    {
+      "id": "tap-line-90847",
+      "name": "primary-5.3: original-differential: ansi-c-quoted-word-decodes-escape-before-argument-passing",
+      "group": "historical-diagnostic-pin",
+      "path": "tests/shell-stress/differential.test.ts",
+      "expected": "985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118",
+      "actual": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "cleanArchivedActual": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "matchesWriterChangedPath": false
+    },
+    {
+      "id": "tap-line-90878",
+      "name": "primary-5.3: original-differential: backquote-substitution-preserves-double-quoted-result",
+      "group": "historical-diagnostic-pin",
+      "path": "tests/shell-stress/differential.test.ts",
+      "expected": "985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118",
+      "actual": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "cleanArchivedActual": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "matchesWriterChangedPath": false
+    },
+    {
+      "id": "tap-line-90909",
+      "name": "primary-5.3: original-differential: quoted-glob-fragment-remains-literal-inside-pattern",
+      "group": "historical-diagnostic-pin",
+      "path": "tests/shell-stress/differential.test.ts",
+      "expected": "985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118",
+      "actual": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "cleanArchivedActual": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "matchesWriterChangedPath": false
+    },
+    {
+      "id": "tap-line-90940",
+      "name": "primary-5.3: original-differential: glob-question-mark-matches-one-character-including-brackets",
+      "group": "historical-diagnostic-pin",
+      "path": "tests/shell-stress/differential.test.ts",
+      "expected": "985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118",
+      "actual": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "cleanArchivedActual": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "matchesWriterChangedPath": false
+    },
+    {
+      "id": "tap-line-90971",
+      "name": "primary-5.3: original-differential: glob-hidden-directory-requires-explicit-dot",
+      "group": "historical-diagnostic-pin",
+      "path": "tests/shell-stress/differential.test.ts",
+      "expected": "985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118",
+      "actual": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "cleanArchivedActual": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "matchesWriterChangedPath": false
+    },
+    {
+      "id": "tap-line-91002",
+      "name": "primary-5.3: original-differential: redirect-glob-resolves-single-match-with-space",
+      "group": "historical-diagnostic-pin",
+      "path": "tests/shell-stress/differential.test.ts",
+      "expected": "985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118",
+      "actual": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "cleanArchivedActual": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "matchesWriterChangedPath": false
+    },
+    {
+      "id": "tap-line-91033",
+      "name": "primary-5.3: original-differential: tilde-prefix-in-assignment-not-in-quoted-word",
+      "group": "historical-diagnostic-pin",
+      "path": "tests/shell-stress/differential.test.ts",
+      "expected": "985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118",
+      "actual": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "cleanArchivedActual": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "matchesWriterChangedPath": false
+    },
+    {
+      "id": "tap-line-91064",
+      "name": "primary-5.3: original-differential: heredoc-tab-stripping-keeps-other-whitespace",
+      "group": "historical-diagnostic-pin",
+      "path": "tests/shell-stress/differential.test.ts",
+      "expected": "985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118",
+      "actual": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "cleanArchivedActual": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "matchesWriterChangedPath": false
+    },
+    {
+      "id": "tap-line-91095",
+      "name": "primary-5.3: original-differential: multiple-heredocs-last-input-wins",
+      "group": "historical-diagnostic-pin",
+      "path": "tests/shell-stress/differential.test.ts",
+      "expected": "985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118",
+      "actual": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "cleanArchivedActual": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "matchesWriterChangedPath": false
+    },
+    {
+      "id": "tap-line-91126",
+      "name": "primary-5.3: original-differential: here-string-expands-without-splitting-or-globbing",
+      "group": "historical-diagnostic-pin",
+      "path": "tests/shell-stress/differential.test.ts",
+      "expected": "985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118",
+      "actual": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "cleanArchivedActual": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "matchesWriterChangedPath": false
+    },
+    {
+      "id": "tap-line-91157",
+      "name": "primary-5.3: original-differential: arithmetic-logical-branch-does-not-mutate-unused-side",
+      "group": "historical-diagnostic-pin",
+      "path": "tests/shell-stress/differential.test.ts",
+      "expected": "985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118",
+      "actual": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "cleanArchivedActual": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "matchesWriterChangedPath": false
+    },
+    {
+      "id": "tap-line-91188",
+      "name": "primary-5.3: original-differential: compound-loop-return-restores-outer-function-positionals",
+      "group": "historical-diagnostic-pin",
+      "path": "tests/shell-stress/differential.test.ts",
+      "expected": "985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118",
+      "actual": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "cleanArchivedActual": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "matchesWriterChangedPath": false
+    },
+    {
+      "id": "tap-line-91219",
+      "name": "primary-5.3: original-differential: nested-substitution-syntax-error-does-not-prevent-earlier-effects",
+      "group": "historical-diagnostic-pin",
+      "path": "tests/shell-stress/differential.test.ts",
+      "expected": "985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118",
+      "actual": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "cleanArchivedActual": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "matchesWriterChangedPath": false
+    },
+    {
+      "id": "tap-line-91250",
+      "name": "primary-5.3: original-differential: early-reader-must-not-cancel-upstream-non-pipe-effects",
+      "group": "historical-diagnostic-pin",
+      "path": "tests/shell-stress/differential.test.ts",
+      "expected": "985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118",
+      "actual": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "cleanArchivedActual": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "matchesWriterChangedPath": false
+    },
+    {
+      "id": "tap-line-91281",
+      "name": "primary-5.3: original-differential: early-reader-must-not-cancel-redirected-producer-output",
+      "group": "historical-diagnostic-pin",
+      "path": "tests/shell-stress/differential.test.ts",
+      "expected": "985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118",
+      "actual": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "cleanArchivedActual": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "matchesWriterChangedPath": false
+    },
+    {
+      "id": "tap-line-91312",
+      "name": "primary-5.3: original-differential: early-reader-must-not-replace-upstream-failure-with-sigpipe",
+      "group": "historical-diagnostic-pin",
+      "path": "tests/shell-stress/differential.test.ts",
+      "expected": "985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118",
+      "actual": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "cleanArchivedActual": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "matchesWriterChangedPath": false
+    },
+    {
+      "id": "tap-line-91343",
+      "name": "primary-5.3: original-differential: fatal-parameter-expansion-prevents-following-file-effect",
+      "group": "historical-diagnostic-pin",
+      "path": "tests/shell-stress/differential.test.ts",
+      "expected": "985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118",
+      "actual": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "cleanArchivedActual": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "matchesWriterChangedPath": false
+    },
+    {
+      "id": "tap-line-91374",
+      "name": "primary-5.3: original-differential: fatal-arithmetic-expansion-prevents-following-file-effect",
+      "group": "historical-diagnostic-pin",
+      "path": "tests/shell-stress/differential.test.ts",
+      "expected": "985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118",
+      "actual": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "cleanArchivedActual": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "matchesWriterChangedPath": false
+    },
+    {
+      "id": "tap-line-91405",
+      "name": "primary-5.3: original-differential: fatal-expansion-in-substitution-stops-substitution-only",
+      "group": "historical-diagnostic-pin",
+      "path": "tests/shell-stress/differential.test.ts",
+      "expected": "985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118",
+      "actual": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "cleanArchivedActual": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "matchesWriterChangedPath": false
+    },
+    {
+      "id": "tap-line-91436",
+      "name": "primary-5.3: original-differential: group-inherits-descriptor-three-for-inner-redirection",
+      "group": "historical-diagnostic-pin",
+      "path": "tests/shell-stress/differential.test.ts",
+      "expected": "985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118",
+      "actual": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "cleanArchivedActual": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "matchesWriterChangedPath": false
+    },
+    {
+      "id": "tap-line-91467",
+      "name": "primary-5.3: original-differential: group-inherits-input-descriptor-and-shared-read-offset",
+      "group": "historical-diagnostic-pin",
+      "path": "tests/shell-stress/differential.test.ts",
+      "expected": "985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118",
+      "actual": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "cleanArchivedActual": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "matchesWriterChangedPath": false
+    },
+    {
+      "id": "tap-line-91498",
+      "name": "primary-5.3: original-differential: redirect-target-substitution-inherits-earlier-stderr-redirect",
+      "group": "historical-diagnostic-pin",
+      "path": "tests/shell-stress/differential.test.ts",
+      "expected": "985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118",
+      "actual": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "cleanArchivedActual": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "matchesWriterChangedPath": false
+    },
+    {
+      "id": "tap-line-91529",
+      "name": "primary-5.3: original-differential: read-escaped-ifs-character-is-not-a-field-separator",
+      "group": "historical-diagnostic-pin",
+      "path": "tests/shell-stress/differential.test.ts",
+      "expected": "985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118",
+      "actual": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "cleanArchivedActual": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "matchesWriterChangedPath": false
+    },
+    {
+      "id": "tap-line-91560",
+      "name": "primary-5.3: original-differential: read-mixed-ifs-whitespace-does-not-create-spurious-fields",
+      "group": "historical-diagnostic-pin",
+      "path": "tests/shell-stress/differential.test.ts",
+      "expected": "985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118",
+      "actual": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "cleanArchivedActual": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "matchesWriterChangedPath": false
+    },
+    {
+      "id": "tap-line-91591",
+      "name": "primary-5.3: original-differential: read-discards-single-trailing-nonwhitespace-ifs-delimiter",
+      "group": "historical-diagnostic-pin",
+      "path": "tests/shell-stress/differential.test.ts",
+      "expected": "985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118",
+      "actual": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "cleanArchivedActual": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "matchesWriterChangedPath": false
+    },
+    {
+      "id": "tap-line-91622",
+      "name": "primary-5.3: original-differential: quoted-pattern-removal-star-is-literal",
+      "group": "historical-diagnostic-pin",
+      "path": "tests/shell-stress/differential.test.ts",
+      "expected": "985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118",
+      "actual": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "cleanArchivedActual": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "matchesWriterChangedPath": false
+    },
+    {
+      "id": "tap-line-91653",
+      "name": "primary-5.3: original-differential: glob-posix-bracket-digit-class",
+      "group": "historical-diagnostic-pin",
+      "path": "tests/shell-stress/differential.test.ts",
+      "expected": "985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118",
+      "actual": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "cleanArchivedActual": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "matchesWriterChangedPath": false
+    },
+    {
+      "id": "tap-line-91684",
+      "name": "primary-5.3: original-differential: command-substitution-removes-nul-bytes",
+      "group": "historical-diagnostic-pin",
+      "path": "tests/shell-stress/differential.test.ts",
+      "expected": "985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118",
+      "actual": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "cleanArchivedActual": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "matchesWriterChangedPath": false
+    },
+    {
+      "id": "tap-line-91715",
+      "name": "primary-5.3: original-differential: export-prefix-assignment-persists-in-shell",
+      "group": "historical-diagnostic-pin",
+      "path": "tests/shell-stress/differential.test.ts",
+      "expected": "985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118",
+      "actual": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "cleanArchivedActual": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "matchesWriterChangedPath": false
+    },
+    {
+      "id": "tap-line-91746",
+      "name": "primary-5.3: original-differential: local-without-assignment-starts-unset",
+      "group": "historical-diagnostic-pin",
+      "path": "tests/shell-stress/differential.test.ts",
+      "expected": "985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118",
+      "actual": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "cleanArchivedActual": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "matchesWriterChangedPath": false
+    },
+    {
+      "id": "tap-line-91777",
+      "name": "primary-5.3: original-differential: glob-matches-newline-bytes-and-the-exact-filename",
+      "group": "historical-diagnostic-pin",
+      "path": "tests/shell-stress/differential.test.ts",
+      "expected": "985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118",
+      "actual": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "cleanArchivedActual": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "matchesWriterChangedPath": false
+    },
+    {
+      "id": "tap-line-91808",
+      "name": "primary-5.3: original-differential: parameter-patterns-match-newlines-with-exact-boundaries",
+      "group": "historical-diagnostic-pin",
+      "path": "tests/shell-stress/differential.test.ts",
+      "expected": "985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118",
+      "actual": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "cleanArchivedActual": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "matchesWriterChangedPath": false
+    },
+    {
+      "id": "tap-line-91839",
+      "name": "primary-5.3: original-differential: seed-5eed1234-glob-pipeline-0",
+      "group": "historical-diagnostic-pin",
+      "path": "tests/shell-stress/differential.test.ts",
+      "expected": "985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118",
+      "actual": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "cleanArchivedActual": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "matchesWriterChangedPath": false
+    },
+    {
+      "id": "tap-line-91870",
+      "name": "primary-5.3: original-differential: seed-5eed1234-glob-pipeline-1",
+      "group": "historical-diagnostic-pin",
+      "path": "tests/shell-stress/differential.test.ts",
+      "expected": "985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118",
+      "actual": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "cleanArchivedActual": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "matchesWriterChangedPath": false
+    },
+    {
+      "id": "tap-line-91901",
+      "name": "primary-5.3: original-differential: seed-5eed1234-glob-pipeline-2",
+      "group": "historical-diagnostic-pin",
+      "path": "tests/shell-stress/differential.test.ts",
+      "expected": "985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118",
+      "actual": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "cleanArchivedActual": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "matchesWriterChangedPath": false
+    },
+    {
+      "id": "tap-line-91932",
+      "name": "primary-5.3: original-differential: seed-5eed1234-glob-pipeline-3",
+      "group": "historical-diagnostic-pin",
+      "path": "tests/shell-stress/differential.test.ts",
+      "expected": "985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118",
+      "actual": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "cleanArchivedActual": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "matchesWriterChangedPath": false
+    },
+    {
+      "id": "tap-line-91963",
+      "name": "primary-5.3: original-differential: seed-5eed1234-glob-pipeline-4",
+      "group": "historical-diagnostic-pin",
+      "path": "tests/shell-stress/differential.test.ts",
+      "expected": "985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118",
+      "actual": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "cleanArchivedActual": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "matchesWriterChangedPath": false
+    },
+    {
+      "id": "tap-line-91994",
+      "name": "primary-5.3: original-differential: seed-5eed1234-glob-pipeline-5",
+      "group": "historical-diagnostic-pin",
+      "path": "tests/shell-stress/differential.test.ts",
+      "expected": "985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118",
+      "actual": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "cleanArchivedActual": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "matchesWriterChangedPath": false
+    },
+    {
+      "id": "tap-line-92025",
+      "name": "primary-5.3: original-syntax: unterminated-quote-after-write",
+      "group": "historical-diagnostic-pin",
+      "path": "tests/shell-stress/differential.test.ts",
+      "expected": "985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118",
+      "actual": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "cleanArchivedActual": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "matchesWriterChangedPath": false
+    },
+    {
+      "id": "tap-line-92056",
+      "name": "primary-5.3: original-syntax: missing-pipeline-command-after-write",
+      "group": "historical-diagnostic-pin",
+      "path": "tests/shell-stress/differential.test.ts",
+      "expected": "985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118",
+      "actual": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "cleanArchivedActual": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "matchesWriterChangedPath": false
+    },
+    {
+      "id": "tap-line-92087",
+      "name": "primary-5.3: original-syntax: missing-conditional-operand-after-write",
+      "group": "historical-diagnostic-pin",
+      "path": "tests/shell-stress/differential.test.ts",
+      "expected": "985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118",
+      "actual": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "cleanArchivedActual": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "matchesWriterChangedPath": false
+    },
+    {
+      "id": "tap-line-92118",
+      "name": "primary-5.3: original-syntax: missing-group-terminator-after-write",
+      "group": "historical-diagnostic-pin",
+      "path": "tests/shell-stress/differential.test.ts",
+      "expected": "985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118",
+      "actual": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "cleanArchivedActual": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "matchesWriterChangedPath": false
+    },
+    {
+      "id": "tap-line-92149",
+      "name": "primary-5.3: original-syntax: missing-if-fi-after-write",
+      "group": "historical-diagnostic-pin",
+      "path": "tests/shell-stress/differential.test.ts",
+      "expected": "985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118",
+      "actual": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "cleanArchivedActual": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "matchesWriterChangedPath": false
+    },
+    {
+      "id": "tap-line-92180",
+      "name": "primary-5.3: current-gaps: move-output-really-closes-source",
+      "group": "historical-diagnostic-pin",
+      "path": "tests/shell-stress/differential.test.ts",
+      "expected": "985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118",
+      "actual": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "cleanArchivedActual": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "matchesWriterChangedPath": false
+    },
+    {
+      "id": "tap-line-92211",
+      "name": "primary-5.3: current-gaps: move-input-really-closes-source",
+      "group": "historical-diagnostic-pin",
+      "path": "tests/shell-stress/differential.test.ts",
+      "expected": "985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118",
+      "actual": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "cleanArchivedActual": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "matchesWriterChangedPath": false
+    },
+    {
+      "id": "tap-line-92242",
+      "name": "primary-5.3: current-gaps: read-n-stops-at-newline-before-count",
+      "group": "historical-diagnostic-pin",
+      "path": "tests/shell-stress/differential.test.ts",
+      "expected": "985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118",
+      "actual": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "cleanArchivedActual": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "matchesWriterChangedPath": false
+    },
+    {
+      "id": "tap-line-92273",
+      "name": "primary-5.3: current-gaps: read-d-empty-selects-nul",
+      "group": "historical-diagnostic-pin",
+      "path": "tests/shell-stress/differential.test.ts",
+      "expected": "985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118",
+      "actual": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "cleanArchivedActual": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "matchesWriterChangedPath": false
+    },
+    {
+      "id": "tap-line-92304",
+      "name": "primary-5.3: current-gaps: read-d-missing-delimiter-retains-data-with-failure",
+      "group": "historical-diagnostic-pin",
+      "path": "tests/shell-stress/differential.test.ts",
+      "expected": "985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118",
+      "actual": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "cleanArchivedActual": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "matchesWriterChangedPath": false
+    },
+    {
+      "id": "tap-line-92335",
+      "name": "primary-5.3: current-gaps: file-shortcut-does-not-consume-inherited-stdin",
+      "group": "historical-diagnostic-pin",
+      "path": "tests/shell-stress/differential.test.ts",
+      "expected": "985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118",
+      "actual": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "cleanArchivedActual": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "matchesWriterChangedPath": false
+    },
+    {
+      "id": "tap-line-92366",
+      "name": "primary-5.3: current-gaps: ansi-c-word-is-quoted-not-split-or-globbed",
+      "group": "historical-diagnostic-pin",
+      "path": "tests/shell-stress/differential.test.ts",
+      "expected": "985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118",
+      "actual": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "cleanArchivedActual": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "matchesWriterChangedPath": false
+    },
+    {
+      "id": "tap-line-92397",
+      "name": "primary-5.3: current-gaps: pathname-classes-c-locale-alpha-negation",
+      "group": "historical-diagnostic-pin",
+      "path": "tests/shell-stress/differential.test.ts",
+      "expected": "985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118",
+      "actual": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "cleanArchivedActual": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "matchesWriterChangedPath": false
+    },
+    {
+      "id": "tap-line-92428",
+      "name": "primary-5.3: current-gaps: prevalidation-prior-output-and-file",
+      "group": "historical-diagnostic-pin",
+      "path": "tests/shell-stress/differential.test.ts",
+      "expected": "985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118",
+      "actual": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "cleanArchivedActual": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "matchesWriterChangedPath": false
+    },
+    {
+      "id": "tap-line-92459",
+      "name": "primary-5.3: current-gaps: fatal-parameter-preserves-only-earlier-effects",
+      "group": "historical-diagnostic-pin",
+      "path": "tests/shell-stress/differential.test.ts",
+      "expected": "985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118",
+      "actual": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "cleanArchivedActual": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "matchesWriterChangedPath": false
+    },
+    {
+      "id": "tap-line-92490",
+      "name": "primary-5.3: current-gaps: unmatched-case-bracket-literal-control",
+      "group": "historical-diagnostic-pin",
+      "path": "tests/shell-stress/differential.test.ts",
+      "expected": "985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118",
+      "actual": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "cleanArchivedActual": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32",
+      "matchesWriterChangedPath": false
+    },
+    {
+      "id": "tap-line-103145",
+      "name": "real registered grep: normal waits owned native retirement",
+      "group": "historical-cleanup-pin",
+      "path": "src/shell/shell.ts",
+      "expected": "0e1d1396490970bf8db4d74ab07115d73e8303d29d7b748e145a06b13b316fee",
+      "actual": "538f7ea1504019fcde03abc2781c1f903573243a0332033b87501804a1c4ac5c",
+      "cleanArchivedActual": "538f7ea1504019fcde03abc2781c1f903573243a0332033b87501804a1c4ac5c",
+      "matchesWriterChangedPath": false
+    },
+    {
+      "id": "tap-line-103168",
+      "name": "real registered grep: early-pipe waits owned native retirement",
+      "group": "historical-cleanup-pin",
+      "path": "src/shell/shell.ts",
+      "expected": "0e1d1396490970bf8db4d74ab07115d73e8303d29d7b748e145a06b13b316fee",
+      "actual": "538f7ea1504019fcde03abc2781c1f903573243a0332033b87501804a1c4ac5c",
+      "cleanArchivedActual": "538f7ea1504019fcde03abc2781c1f903573243a0332033b87501804a1c4ac5c",
+      "matchesWriterChangedPath": false
+    },
+    {
+      "id": "tap-line-103191",
+      "name": "real registered grep: caller-abort waits owned native retirement",
+      "group": "historical-cleanup-pin",
+      "path": "src/shell/shell.ts",
+      "expected": "0e1d1396490970bf8db4d74ab07115d73e8303d29d7b748e145a06b13b316fee",
+      "actual": "538f7ea1504019fcde03abc2781c1f903573243a0332033b87501804a1c4ac5c",
+      "cleanArchivedActual": "538f7ea1504019fcde03abc2781c1f903573243a0332033b87501804a1c4ac5c",
+      "matchesWriterChangedPath": false
+    },
+    {
+      "id": "tap-line-103214",
+      "name": "real registered grep: same-shell-sibling waits owned native retirement",
+      "group": "historical-cleanup-pin",
+      "path": "src/shell/shell.ts",
+      "expected": "0e1d1396490970bf8db4d74ab07115d73e8303d29d7b748e145a06b13b316fee",
+      "actual": "538f7ea1504019fcde03abc2781c1f903573243a0332033b87501804a1c4ac5c",
+      "cleanArchivedActual": "538f7ea1504019fcde03abc2781c1f903573243a0332033b87501804a1c4ac5c",
+      "matchesWriterChangedPath": false
+    },
+    {
+      "id": "tap-line-103237",
+      "name": "real registered grep: other-shell-sibling waits owned native retirement",
+      "group": "historical-cleanup-pin",
+      "path": "src/shell/shell.ts",
+      "expected": "0e1d1396490970bf8db4d74ab07115d73e8303d29d7b748e145a06b13b316fee",
+      "actual": "538f7ea1504019fcde03abc2781c1f903573243a0332033b87501804a1c4ac5c",
+      "cleanArchivedActual": "538f7ea1504019fcde03abc2781c1f903573243a0332033b87501804a1c4ac5c",
+      "matchesWriterChangedPath": false
+    },
+    {
+      "id": "tap-line-103260",
+      "name": "real registered rg: normal waits owned native retirement",
+      "group": "historical-cleanup-pin",
+      "path": "src/shell/shell.ts",
+      "expected": "0e1d1396490970bf8db4d74ab07115d73e8303d29d7b748e145a06b13b316fee",
+      "actual": "538f7ea1504019fcde03abc2781c1f903573243a0332033b87501804a1c4ac5c",
+      "cleanArchivedActual": "538f7ea1504019fcde03abc2781c1f903573243a0332033b87501804a1c4ac5c",
+      "matchesWriterChangedPath": false
+    },
+    {
+      "id": "tap-line-103283",
+      "name": "real registered rg: early-pipe waits owned native retirement",
+      "group": "historical-cleanup-pin",
+      "path": "src/shell/shell.ts",
+      "expected": "0e1d1396490970bf8db4d74ab07115d73e8303d29d7b748e145a06b13b316fee",
+      "actual": "538f7ea1504019fcde03abc2781c1f903573243a0332033b87501804a1c4ac5c",
+      "cleanArchivedActual": "538f7ea1504019fcde03abc2781c1f903573243a0332033b87501804a1c4ac5c",
+      "matchesWriterChangedPath": false
+    },
+    {
+      "id": "tap-line-103306",
+      "name": "real registered rg: caller-abort waits owned native retirement",
+      "group": "historical-cleanup-pin",
+      "path": "src/shell/shell.ts",
+      "expected": "0e1d1396490970bf8db4d74ab07115d73e8303d29d7b748e145a06b13b316fee",
+      "actual": "538f7ea1504019fcde03abc2781c1f903573243a0332033b87501804a1c4ac5c",
+      "cleanArchivedActual": "538f7ea1504019fcde03abc2781c1f903573243a0332033b87501804a1c4ac5c",
+      "matchesWriterChangedPath": false
+    },
+    {
+      "id": "tap-line-103329",
+      "name": "real registered rg: same-shell-sibling waits owned native retirement",
+      "group": "historical-cleanup-pin",
+      "path": "src/shell/shell.ts",
+      "expected": "0e1d1396490970bf8db4d74ab07115d73e8303d29d7b748e145a06b13b316fee",
+      "actual": "538f7ea1504019fcde03abc2781c1f903573243a0332033b87501804a1c4ac5c",
+      "cleanArchivedActual": "538f7ea1504019fcde03abc2781c1f903573243a0332033b87501804a1c4ac5c",
+      "matchesWriterChangedPath": false
+    },
+    {
+      "id": "tap-line-103352",
+      "name": "real registered rg: other-shell-sibling waits owned native retirement",
+      "group": "historical-cleanup-pin",
+      "path": "src/shell/shell.ts",
+      "expected": "0e1d1396490970bf8db4d74ab07115d73e8303d29d7b748e145a06b13b316fee",
+      "actual": "538f7ea1504019fcde03abc2781c1f903573243a0332033b87501804a1c4ac5c",
+      "cleanArchivedActual": "538f7ea1504019fcde03abc2781c1f903573243a0332033b87501804a1c4ac5c",
+      "matchesWriterChangedPath": false
+    }
+  ],
+  "conclusions": {
+    "exactRows": 99,
+    "diagnostic": 89,
+    "cleanup": 10,
+    "cleanMismatchProven": 99,
+    "writerChangedPathOverlap": 0,
+    "tapGuardFailuresCausedByWriter": 0,
+    "gateImmutabilityFailureCausedByWriter": true
+  }
+}

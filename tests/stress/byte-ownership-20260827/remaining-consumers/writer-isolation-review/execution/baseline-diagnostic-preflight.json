@@ -1,0 +1,22 @@
+{
+  "command": [
+    "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "--unhandled-rejections=strict",
+    "--import",
+    "tsx",
+    "--input-type=module",
+    "-e",
+    "const profile = await import(\"./tests/shell-stress/diagnostic-profiles/profile.ts\"); profile.validateFrozenProfile();"
+  ],
+  "cwd": "/Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/remaining-consumers/writer-isolation-review/.scratch/baseline-b494-retained",
+  "environmentOverrides": {},
+  "pid": 71473,
+  "startedAt": "2026-08-27T11:42:07.787Z",
+  "finishedAt": "2026-08-27T11:42:07.950Z",
+  "code": 1,
+  "signal": null,
+  "timedOut": false,
+  "childClosed": true,
+  "stdout": "",
+  "stderr": "node:internal/modules/run_main:123\n    triggerUncaughtException(\n    ^\n\nAssertionError [ERR_ASSERTION]: Frozen historical fixture/helper changed: tests/shell-stress/differential.test.ts\n+ actual - expected\n\n+ '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'\n- '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'\n\n    at Module.validateFrozenProfile (/Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/remaining-consumers/writer-isolation-review/.scratch/baseline-b494-retained/tests/shell-stress/diagnostic-profiles/profile.ts:97:43)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/remaining-consumers/writer-isolation-review/.scratch/baseline-b494-retained/[eval1]:1:94 {\n  generatedMessage: false,\n  code: 'ERR_ASSERTION',\n  actual: '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32',\n  expected: '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118',\n  operator: 'strictEqual',\n  diff: 'simple'\n}\n\nNode.js v22.22.2\n"
+}

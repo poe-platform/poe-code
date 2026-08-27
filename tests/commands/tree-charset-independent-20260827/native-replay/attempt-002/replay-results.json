@@ -1,0 +1,1288 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-08-27T17:41:13.081Z",
+  "runner": {
+    "version": "v2",
+    "childDeadlineMilliseconds": 5000,
+    "childStdoutAndStderrByteCap": 262144,
+    "childEnvironment": {
+      "PATH": "/usr/bin:/bin"
+    },
+    "stdin": "ignored",
+    "node": {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "version": "v22.22.2"
+    }
+  },
+  "freeze": {
+    "commit": "55bd112804564605e397d3ee9948226d89efd457",
+    "capturedAt": "2026-08-27T17:32:48.856Z",
+    "chronology": "independent-post-source-commit-freeze",
+    "candidate": "f1a90436c45208ca248e058a039893233c608daa",
+    "oracleSha256": "34a794e5737d4b09a20a58dc0b7231e6300a3d229be5065c3a549969d205f10a",
+    "caseCount": 20,
+    "literalCaseCount": 11,
+    "observationalCaseCount": 9
+  },
+  "runtimeInputs": {
+    "sourceRoot": "/private/tmp/safe-bash-tree-native-replay.kffYq0/candidate",
+    "installedRoot": "/private/tmp/safe-bash-tree-native-replay.kffYq0/install-moved",
+    "freezePath": "/private/tmp/safe-bash-tree-native-replay.kffYq0/freeze/native-capture.json",
+    "copiedInstalledConsumer": "/private/tmp/safe-bash-tree-native-replay.kffYq0/install-moved/replay-consumer-v1.mjs"
+  },
+  "totals": {
+    "children": 40,
+    "closeEventsObserved": 40,
+    "cleanChildExits": 0,
+    "deadlineExceeded": 0,
+    "capExceeded": 0,
+    "literalAssertions": 0,
+    "literalPasses": 0,
+    "observationalRuns": 0,
+    "observationalNativeMatches": 0,
+    "observationalNativeDivergences": 0,
+    "contractOutcomesObserved": 0
+  },
+  "records": [
+    {
+      "boundary": "source-build",
+      "caseId": "ascii_fallback_minimal_env",
+      "frozenClassification": "native-parity-literal",
+      "frozenNative": {
+        "exitCode": 0,
+        "stdoutLabel": "ascii",
+        "stdoutBase64": "Lgp8LS0gYWxwaGEudHh0CnwtLSBlbXB0eQpgLS0gbmVzdAogICAgfC0tIGJldGEudHh0CiAgICBgLS0gZGVlcAogICAgICAgIGAtLSBnYW1tYS50eHQKCjQgZGlyZWN0b3JpZXMsIDMgZmlsZXMK",
+        "stderrBase64": ""
+      },
+      "child": {
+        "closeEventObserved": true,
+        "close": {
+          "code": 1,
+          "signal": null
+        },
+        "deadlineExceeded": false,
+        "capExceeded": null,
+        "spawnError": null,
+        "stdoutBytes": 0,
+        "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderrBytes": 964,
+        "stderrSha256": "31b1d7a83589d731fba6b3e9b3039cb0096421dcd6121a502694ed5edb3995fe"
+      },
+      "parseError": "SyntaxError: Unexpected end of JSON input\n    at JSON.parse (<anonymous>)\n    at main (file:///Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/native-replay/replay-v2.mjs:126:28)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/native-replay/replay-v2.mjs:207:1",
+      "virtual": null,
+      "outcome": {
+        "pass": false,
+        "assertion": "child-result-unavailable"
+      }
+    },
+    {
+      "boundary": "source-build",
+      "caseId": "cli_ascii_over_tree_utf8_and_locale_utf8",
+      "frozenClassification": "native-parity-literal",
+      "frozenNative": {
+        "exitCode": 0,
+        "stdoutLabel": "ascii",
+        "stdoutBase64": "Lgp8LS0gYWxwaGEudHh0CnwtLSBlbXB0eQpgLS0gbmVzdAogICAgfC0tIGJldGEudHh0CiAgICBgLS0gZGVlcAogICAgICAgIGAtLSBnYW1tYS50eHQKCjQgZGlyZWN0b3JpZXMsIDMgZmlsZXMK",
+        "stderrBase64": ""
+      },
+      "child": {
+        "closeEventObserved": true,
+        "close": {
+          "code": 1,
+          "signal": null
+        },
+        "deadlineExceeded": false,
+        "capExceeded": null,
+        "spawnError": null,
+        "stdoutBytes": 0,
+        "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderrBytes": 964,
+        "stderrSha256": "31b1d7a83589d731fba6b3e9b3039cb0096421dcd6121a502694ed5edb3995fe"
+      },
+      "parseError": "SyntaxError: Unexpected end of JSON input\n    at JSON.parse (<anonymous>)\n    at main (file:///Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/native-replay/replay-v2.mjs:126:28)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/native-replay/replay-v2.mjs:207:1",
+      "virtual": null,
+      "outcome": {
+        "pass": false,
+        "assertion": "child-result-unavailable"
+      }
+    },
+    {
+      "boundary": "source-build",
+      "caseId": "cli_utf8_over_tree_ascii_and_locale_c",
+      "frozenClassification": "native-parity-literal",
+      "frozenNative": {
+        "exitCode": 0,
+        "stdoutLabel": "utf8",
+        "stdoutBase64": "LgrilJzilIDilIAgYWxwaGEudHh0CuKUnOKUgOKUgCBlbXB0eQrilJTilIDilIAgbmVzdAogICAg4pSc4pSA4pSAIGJldGEudHh0CiAgICDilJTilIDilIAgZGVlcAogICAgICAgIOKUlOKUgOKUgCBnYW1tYS50eHQKCjQgZGlyZWN0b3JpZXMsIDMgZmlsZXMK",
+        "stderrBase64": ""
+      },
+      "child": {
+        "closeEventObserved": true,
+        "close": {
+          "code": 1,
+          "signal": null
+        },
+        "deadlineExceeded": false,
+        "capExceeded": null,
+        "spawnError": null,
+        "stdoutBytes": 0,
+        "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderrBytes": 964,
+        "stderrSha256": "31b1d7a83589d731fba6b3e9b3039cb0096421dcd6121a502694ed5edb3995fe"
+      },
+      "parseError": "SyntaxError: Unexpected end of JSON input\n    at JSON.parse (<anonymous>)\n    at main (file:///Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/native-replay/replay-v2.mjs:126:28)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/native-replay/replay-v2.mjs:207:1",
+      "virtual": null,
+      "outcome": {
+        "pass": false,
+        "assertion": "child-result-unavailable"
+      }
+    },
+    {
+      "boundary": "source-build",
+      "caseId": "tree_ascii_over_locale_utf8",
+      "frozenClassification": "native-parity-literal",
+      "frozenNative": {
+        "exitCode": 0,
+        "stdoutLabel": "ascii",
+        "stdoutBase64": "Lgp8LS0gYWxwaGEudHh0CnwtLSBlbXB0eQpgLS0gbmVzdAogICAgfC0tIGJldGEudHh0CiAgICBgLS0gZGVlcAogICAgICAgIGAtLSBnYW1tYS50eHQKCjQgZGlyZWN0b3JpZXMsIDMgZmlsZXMK",
+        "stderrBase64": ""
+      },
+      "child": {
+        "closeEventObserved": true,
+        "close": {
+          "code": 1,
+          "signal": null
+        },
+        "deadlineExceeded": false,
+        "capExceeded": null,
+        "spawnError": null,
+        "stdoutBytes": 0,
+        "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderrBytes": 964,
+        "stderrSha256": "31b1d7a83589d731fba6b3e9b3039cb0096421dcd6121a502694ed5edb3995fe"
+      },
+      "parseError": "SyntaxError: Unexpected end of JSON input\n    at JSON.parse (<anonymous>)\n    at main (file:///Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/native-replay/replay-v2.mjs:126:28)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/native-replay/replay-v2.mjs:207:1",
+      "virtual": null,
+      "outcome": {
+        "pass": false,
+        "assertion": "child-result-unavailable"
+      }
+    },
+    {
+      "boundary": "source-build",
+      "caseId": "tree_utf8_over_locale_c",
+      "frozenClassification": "native-parity-literal",
+      "frozenNative": {
+        "exitCode": 0,
+        "stdoutLabel": "utf8",
+        "stdoutBase64": "LgrilJzilIDilIAgYWxwaGEudHh0CuKUnOKUgOKUgCBlbXB0eQrilJTilIDilIAgbmVzdAogICAg4pSc4pSA4pSAIGJldGEudHh0CiAgICDilJTilIDilIAgZGVlcAogICAgICAgIOKUlOKUgOKUgCBnYW1tYS50eHQKCjQgZGlyZWN0b3JpZXMsIDMgZmlsZXMK",
+        "stderrBase64": ""
+      },
+      "child": {
+        "closeEventObserved": true,
+        "close": {
+          "code": 1,
+          "signal": null
+        },
+        "deadlineExceeded": false,
+        "capExceeded": null,
+        "spawnError": null,
+        "stdoutBytes": 0,
+        "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderrBytes": 964,
+        "stderrSha256": "31b1d7a83589d731fba6b3e9b3039cb0096421dcd6121a502694ed5edb3995fe"
+      },
+      "parseError": "SyntaxError: Unexpected end of JSON input\n    at JSON.parse (<anonymous>)\n    at main (file:///Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/native-replay/replay-v2.mjs:126:28)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/native-replay/replay-v2.mjs:207:1",
+      "virtual": null,
+      "outcome": {
+        "pass": false,
+        "assertion": "child-result-unavailable"
+      }
+    },
+    {
+      "boundary": "source-build",
+      "caseId": "lc_all_c_over_ctype_and_lang_utf8",
+      "frozenClassification": "native-parity-literal",
+      "frozenNative": {
+        "exitCode": 0,
+        "stdoutLabel": "ascii",
+        "stdoutBase64": "Lgp8LS0gYWxwaGEudHh0CnwtLSBlbXB0eQpgLS0gbmVzdAogICAgfC0tIGJldGEudHh0CiAgICBgLS0gZGVlcAogICAgICAgIGAtLSBnYW1tYS50eHQKCjQgZGlyZWN0b3JpZXMsIDMgZmlsZXMK",
+        "stderrBase64": ""
+      },
+      "child": {
+        "closeEventObserved": true,
+        "close": {
+          "code": 1,
+          "signal": null
+        },
+        "deadlineExceeded": false,
+        "capExceeded": null,
+        "spawnError": null,
+        "stdoutBytes": 0,
+        "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderrBytes": 964,
+        "stderrSha256": "31b1d7a83589d731fba6b3e9b3039cb0096421dcd6121a502694ed5edb3995fe"
+      },
+      "parseError": "SyntaxError: Unexpected end of JSON input\n    at JSON.parse (<anonymous>)\n    at main (file:///Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/native-replay/replay-v2.mjs:126:28)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/native-replay/replay-v2.mjs:207:1",
+      "virtual": null,
+      "outcome": {
+        "pass": false,
+        "assertion": "child-result-unavailable"
+      }
+    },
+    {
+      "boundary": "source-build",
+      "caseId": "lc_ctype_c_over_lang_utf8",
+      "frozenClassification": "native-parity-literal",
+      "frozenNative": {
+        "exitCode": 0,
+        "stdoutLabel": "ascii",
+        "stdoutBase64": "Lgp8LS0gYWxwaGEudHh0CnwtLSBlbXB0eQpgLS0gbmVzdAogICAgfC0tIGJldGEudHh0CiAgICBgLS0gZGVlcAogICAgICAgIGAtLSBnYW1tYS50eHQKCjQgZGlyZWN0b3JpZXMsIDMgZmlsZXMK",
+        "stderrBase64": ""
+      },
+      "child": {
+        "closeEventObserved": true,
+        "close": {
+          "code": 1,
+          "signal": null
+        },
+        "deadlineExceeded": false,
+        "capExceeded": null,
+        "spawnError": null,
+        "stdoutBytes": 0,
+        "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderrBytes": 964,
+        "stderrSha256": "31b1d7a83589d731fba6b3e9b3039cb0096421dcd6121a502694ed5edb3995fe"
+      },
+      "parseError": "SyntaxError: Unexpected end of JSON input\n    at JSON.parse (<anonymous>)\n    at main (file:///Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/native-replay/replay-v2.mjs:126:28)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/native-replay/replay-v2.mjs:207:1",
+      "virtual": null,
+      "outcome": {
+        "pass": false,
+        "assertion": "child-result-unavailable"
+      }
+    },
+    {
+      "boundary": "source-build",
+      "caseId": "lc_ctype_utf8_over_lang_c",
+      "frozenClassification": "native-parity-literal",
+      "frozenNative": {
+        "exitCode": 0,
+        "stdoutLabel": "utf8",
+        "stdoutBase64": "LgrilJzilIDilIAgYWxwaGEudHh0CuKUnOKUgOKUgCBlbXB0eQrilJTilIDilIAgbmVzdAogICAg4pSc4pSA4pSAIGJldGEudHh0CiAgICDilJTilIDilIAgZGVlcAogICAgICAgIOKUlOKUgOKUgCBnYW1tYS50eHQKCjQgZGlyZWN0b3JpZXMsIDMgZmlsZXMK",
+        "stderrBase64": ""
+      },
+      "child": {
+        "closeEventObserved": true,
+        "close": {
+          "code": 1,
+          "signal": null
+        },
+        "deadlineExceeded": false,
+        "capExceeded": null,
+        "spawnError": null,
+        "stdoutBytes": 0,
+        "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderrBytes": 964,
+        "stderrSha256": "31b1d7a83589d731fba6b3e9b3039cb0096421dcd6121a502694ed5edb3995fe"
+      },
+      "parseError": "SyntaxError: Unexpected end of JSON input\n    at JSON.parse (<anonymous>)\n    at main (file:///Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/native-replay/replay-v2.mjs:126:28)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/native-replay/replay-v2.mjs:207:1",
+      "virtual": null,
+      "outcome": {
+        "pass": false,
+        "assertion": "child-result-unavailable"
+      }
+    },
+    {
+      "boundary": "source-build",
+      "caseId": "lang_utf8",
+      "frozenClassification": "native-parity-literal",
+      "frozenNative": {
+        "exitCode": 0,
+        "stdoutLabel": "utf8",
+        "stdoutBase64": "LgrilJzilIDilIAgYWxwaGEudHh0CuKUnOKUgOKUgCBlbXB0eQrilJTilIDilIAgbmVzdAogICAg4pSc4pSA4pSAIGJldGEudHh0CiAgICDilJTilIDilIAgZGVlcAogICAgICAgIOKUlOKUgOKUgCBnYW1tYS50eHQKCjQgZGlyZWN0b3JpZXMsIDMgZmlsZXMK",
+        "stderrBase64": ""
+      },
+      "child": {
+        "closeEventObserved": true,
+        "close": {
+          "code": 1,
+          "signal": null
+        },
+        "deadlineExceeded": false,
+        "capExceeded": null,
+        "spawnError": null,
+        "stdoutBytes": 0,
+        "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderrBytes": 964,
+        "stderrSha256": "31b1d7a83589d731fba6b3e9b3039cb0096421dcd6121a502694ed5edb3995fe"
+      },
+      "parseError": "SyntaxError: Unexpected end of JSON input\n    at JSON.parse (<anonymous>)\n    at main (file:///Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/native-replay/replay-v2.mjs:126:28)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/native-replay/replay-v2.mjs:207:1",
+      "virtual": null,
+      "outcome": {
+        "pass": false,
+        "assertion": "child-result-unavailable"
+      }
+    },
+    {
+      "boundary": "source-build",
+      "caseId": "native_lowercase_dot_utf8_locale",
+      "frozenClassification": "native-only-not-virtual-parity",
+      "frozenNative": {
+        "exitCode": 0,
+        "stdoutLabel": "ascii",
+        "stdoutBase64": "Lgp8LS0gYWxwaGEudHh0CnwtLSBlbXB0eQpgLS0gbmVzdAogICAgfC0tIGJldGEudHh0CiAgICBgLS0gZGVlcAogICAgICAgIGAtLSBnYW1tYS50eHQKCjQgZGlyZWN0b3JpZXMsIDMgZmlsZXMK",
+        "stderrBase64": ""
+      },
+      "child": {
+        "closeEventObserved": true,
+        "close": {
+          "code": 1,
+          "signal": null
+        },
+        "deadlineExceeded": false,
+        "capExceeded": null,
+        "spawnError": null,
+        "stdoutBytes": 0,
+        "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderrBytes": 964,
+        "stderrSha256": "31b1d7a83589d731fba6b3e9b3039cb0096421dcd6121a502694ed5edb3995fe"
+      },
+      "parseError": "SyntaxError: Unexpected end of JSON input\n    at JSON.parse (<anonymous>)\n    at main (file:///Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/native-replay/replay-v2.mjs:126:28)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/native-replay/replay-v2.mjs:207:1",
+      "virtual": null,
+      "outcome": {
+        "pass": false,
+        "assertion": "child-result-unavailable"
+      }
+    },
+    {
+      "boundary": "source-build",
+      "caseId": "empty_tree_charset_over_locale_utf8",
+      "frozenClassification": "native-only-observation",
+      "frozenNative": {
+        "exitCode": 0,
+        "stdoutLabel": "ascii",
+        "stdoutBase64": "Lgp8LS0gYWxwaGEudHh0CnwtLSBlbXB0eQpgLS0gbmVzdAogICAgfC0tIGJldGEudHh0CiAgICBgLS0gZGVlcAogICAgICAgIGAtLSBnYW1tYS50eHQKCjQgZGlyZWN0b3JpZXMsIDMgZmlsZXMK",
+        "stderrBase64": ""
+      },
+      "child": {
+        "closeEventObserved": true,
+        "close": {
+          "code": 1,
+          "signal": null
+        },
+        "deadlineExceeded": false,
+        "capExceeded": null,
+        "spawnError": null,
+        "stdoutBytes": 0,
+        "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderrBytes": 964,
+        "stderrSha256": "31b1d7a83589d731fba6b3e9b3039cb0096421dcd6121a502694ed5edb3995fe"
+      },
+      "parseError": "SyntaxError: Unexpected end of JSON input\n    at JSON.parse (<anonymous>)\n    at main (file:///Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/native-replay/replay-v2.mjs:126:28)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/native-replay/replay-v2.mjs:207:1",
+      "virtual": null,
+      "outcome": {
+        "pass": false,
+        "assertion": "child-result-unavailable"
+      }
+    },
+    {
+      "boundary": "source-build",
+      "caseId": "unknown_tree_charset_over_locale_utf8",
+      "frozenClassification": "native-only-observation",
+      "frozenNative": {
+        "exitCode": 0,
+        "stdoutLabel": "ascii",
+        "stdoutBase64": "Lgp8LS0gYWxwaGEudHh0CnwtLSBlbXB0eQpgLS0gbmVzdAogICAgfC0tIGJldGEudHh0CiAgICBgLS0gZGVlcAogICAgICAgIGAtLSBnYW1tYS50eHQKCjQgZGlyZWN0b3JpZXMsIDMgZmlsZXMK",
+        "stderrBase64": ""
+      },
+      "child": {
+        "closeEventObserved": true,
+        "close": {
+          "code": 1,
+          "signal": null
+        },
+        "deadlineExceeded": false,
+        "capExceeded": null,
+        "spawnError": null,
+        "stdoutBytes": 0,
+        "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderrBytes": 964,
+        "stderrSha256": "31b1d7a83589d731fba6b3e9b3039cb0096421dcd6121a502694ed5edb3995fe"
+      },
+      "parseError": "SyntaxError: Unexpected end of JSON input\n    at JSON.parse (<anonymous>)\n    at main (file:///Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/native-replay/replay-v2.mjs:126:28)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/native-replay/replay-v2.mjs:207:1",
+      "virtual": null,
+      "outcome": {
+        "pass": false,
+        "assertion": "child-result-unavailable"
+      }
+    },
+    {
+      "boundary": "source-build",
+      "caseId": "empty_cli_charset_over_tree_and_locale_utf8",
+      "frozenClassification": "native-only-observation",
+      "frozenNative": {
+        "exitCode": 0,
+        "stdoutLabel": "ascii",
+        "stdoutBase64": "Lgp8LS0gYWxwaGEudHh0CnwtLSBlbXB0eQpgLS0gbmVzdAogICAgfC0tIGJldGEudHh0CiAgICBgLS0gZGVlcAogICAgICAgIGAtLSBnYW1tYS50eHQKCjQgZGlyZWN0b3JpZXMsIDMgZmlsZXMK",
+        "stderrBase64": ""
+      },
+      "child": {
+        "closeEventObserved": true,
+        "close": {
+          "code": 1,
+          "signal": null
+        },
+        "deadlineExceeded": false,
+        "capExceeded": null,
+        "spawnError": null,
+        "stdoutBytes": 0,
+        "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderrBytes": 964,
+        "stderrSha256": "31b1d7a83589d731fba6b3e9b3039cb0096421dcd6121a502694ed5edb3995fe"
+      },
+      "parseError": "SyntaxError: Unexpected end of JSON input\n    at JSON.parse (<anonymous>)\n    at main (file:///Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/native-replay/replay-v2.mjs:126:28)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/native-replay/replay-v2.mjs:207:1",
+      "virtual": null,
+      "outcome": {
+        "pass": false,
+        "assertion": "child-result-unavailable"
+      }
+    },
+    {
+      "boundary": "source-build",
+      "caseId": "unknown_cli_charset_over_tree_and_locale_utf8",
+      "frozenClassification": "native-only-observation",
+      "frozenNative": {
+        "exitCode": 0,
+        "stdoutLabel": "ascii",
+        "stdoutBase64": "Lgp8LS0gYWxwaGEudHh0CnwtLSBlbXB0eQpgLS0gbmVzdAogICAgfC0tIGJldGEudHh0CiAgICBgLS0gZGVlcAogICAgICAgIGAtLSBnYW1tYS50eHQKCjQgZGlyZWN0b3JpZXMsIDMgZmlsZXMK",
+        "stderrBase64": ""
+      },
+      "child": {
+        "closeEventObserved": true,
+        "close": {
+          "code": 1,
+          "signal": null
+        },
+        "deadlineExceeded": false,
+        "capExceeded": null,
+        "spawnError": null,
+        "stdoutBytes": 0,
+        "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderrBytes": 964,
+        "stderrSha256": "31b1d7a83589d731fba6b3e9b3039cb0096421dcd6121a502694ed5edb3995fe"
+      },
+      "parseError": "SyntaxError: Unexpected end of JSON input\n    at JSON.parse (<anonymous>)\n    at main (file:///Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/native-replay/replay-v2.mjs:126:28)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/native-replay/replay-v2.mjs:207:1",
+      "virtual": null,
+      "outcome": {
+        "pass": false,
+        "assertion": "child-result-unavailable"
+      }
+    },
+    {
+      "boundary": "source-build",
+      "caseId": "empty_lc_all_defers_to_ctype_utf8",
+      "frozenClassification": "native-only-observation",
+      "frozenNative": {
+        "exitCode": 0,
+        "stdoutLabel": "utf8",
+        "stdoutBase64": "LgrilJzilIDilIAgYWxwaGEudHh0CuKUnOKUgOKUgCBlbXB0eQrilJTilIDilIAgbmVzdAogICAg4pSc4pSA4pSAIGJldGEudHh0CiAgICDilJTilIDilIAgZGVlcAogICAgICAgIOKUlOKUgOKUgCBnYW1tYS50eHQKCjQgZGlyZWN0b3JpZXMsIDMgZmlsZXMK",
+        "stderrBase64": ""
+      },
+      "child": {
+        "closeEventObserved": true,
+        "close": {
+          "code": 1,
+          "signal": null
+        },
+        "deadlineExceeded": false,
+        "capExceeded": null,
+        "spawnError": null,
+        "stdoutBytes": 0,
+        "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderrBytes": 964,
+        "stderrSha256": "31b1d7a83589d731fba6b3e9b3039cb0096421dcd6121a502694ed5edb3995fe"
+      },
+      "parseError": "SyntaxError: Unexpected end of JSON input\n    at JSON.parse (<anonymous>)\n    at main (file:///Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/native-replay/replay-v2.mjs:126:28)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/native-replay/replay-v2.mjs:207:1",
+      "virtual": null,
+      "outcome": {
+        "pass": false,
+        "assertion": "child-result-unavailable"
+      }
+    },
+    {
+      "boundary": "source-build",
+      "caseId": "empty_lc_ctype_defers_to_lang_utf8",
+      "frozenClassification": "native-only-observation",
+      "frozenNative": {
+        "exitCode": 0,
+        "stdoutLabel": "utf8",
+        "stdoutBase64": "LgrilJzilIDilIAgYWxwaGEudHh0CuKUnOKUgOKUgCBlbXB0eQrilJTilIDilIAgbmVzdAogICAg4pSc4pSA4pSAIGJldGEudHh0CiAgICDilJTilIDilIAgZGVlcAogICAgICAgIOKUlOKUgOKUgCBnYW1tYS50eHQKCjQgZGlyZWN0b3JpZXMsIDMgZmlsZXMK",
+        "stderrBase64": ""
+      },
+      "child": {
+        "closeEventObserved": true,
+        "close": {
+          "code": 1,
+          "signal": null
+        },
+        "deadlineExceeded": false,
+        "capExceeded": null,
+        "spawnError": null,
+        "stdoutBytes": 0,
+        "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderrBytes": 964,
+        "stderrSha256": "31b1d7a83589d731fba6b3e9b3039cb0096421dcd6121a502694ed5edb3995fe"
+      },
+      "parseError": "SyntaxError: Unexpected end of JSON input\n    at JSON.parse (<anonymous>)\n    at main (file:///Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/native-replay/replay-v2.mjs:126:28)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/native-replay/replay-v2.mjs:207:1",
+      "virtual": null,
+      "outcome": {
+        "pass": false,
+        "assertion": "child-result-unavailable"
+      }
+    },
+    {
+      "boundary": "source-build",
+      "caseId": "empty_lang_ascii_fallback",
+      "frozenClassification": "native-only-observation",
+      "frozenNative": {
+        "exitCode": 0,
+        "stdoutLabel": "ascii",
+        "stdoutBase64": "Lgp8LS0gYWxwaGEudHh0CnwtLSBlbXB0eQpgLS0gbmVzdAogICAgfC0tIGJldGEudHh0CiAgICBgLS0gZGVlcAogICAgICAgIGAtLSBnYW1tYS50eHQKCjQgZGlyZWN0b3JpZXMsIDMgZmlsZXMK",
+        "stderrBase64": ""
+      },
+      "child": {
+        "closeEventObserved": true,
+        "close": {
+          "code": 1,
+          "signal": null
+        },
+        "deadlineExceeded": false,
+        "capExceeded": null,
+        "spawnError": null,
+        "stdoutBytes": 0,
+        "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderrBytes": 964,
+        "stderrSha256": "31b1d7a83589d731fba6b3e9b3039cb0096421dcd6121a502694ed5edb3995fe"
+      },
+      "parseError": "SyntaxError: Unexpected end of JSON input\n    at JSON.parse (<anonymous>)\n    at main (file:///Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/native-replay/replay-v2.mjs:126:28)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/native-replay/replay-v2.mjs:207:1",
+      "virtual": null,
+      "outcome": {
+        "pass": false,
+        "assertion": "child-result-unavailable"
+      }
+    },
+    {
+      "boundary": "source-build",
+      "caseId": "unknown_lc_all_native_fallback",
+      "frozenClassification": "native-only-observation",
+      "frozenNative": {
+        "exitCode": 0,
+        "stdoutLabel": "ascii",
+        "stdoutBase64": "Lgp8LS0gYWxwaGEudHh0CnwtLSBlbXB0eQpgLS0gbmVzdAogICAgfC0tIGJldGEudHh0CiAgICBgLS0gZGVlcAogICAgICAgIGAtLSBnYW1tYS50eHQKCjQgZGlyZWN0b3JpZXMsIDMgZmlsZXMK",
+        "stderrBase64": ""
+      },
+      "child": {
+        "closeEventObserved": true,
+        "close": {
+          "code": 1,
+          "signal": null
+        },
+        "deadlineExceeded": false,
+        "capExceeded": null,
+        "spawnError": null,
+        "stdoutBytes": 0,
+        "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderrBytes": 964,
+        "stderrSha256": "31b1d7a83589d731fba6b3e9b3039cb0096421dcd6121a502694ed5edb3995fe"
+      },
+      "parseError": "SyntaxError: Unexpected end of JSON input\n    at JSON.parse (<anonymous>)\n    at main (file:///Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/native-replay/replay-v2.mjs:126:28)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/native-replay/replay-v2.mjs:207:1",
+      "virtual": null,
+      "outcome": {
+        "pass": false,
+        "assertion": "child-result-unavailable"
+      }
+    },
+    {
+      "boundary": "source-build",
+      "caseId": "cli_compact_utf8_alias_over_c",
+      "frozenClassification": "native-parity-literal",
+      "frozenNative": {
+        "exitCode": 0,
+        "stdoutLabel": "utf8",
+        "stdoutBase64": "LgrilJzilIDilIAgYWxwaGEudHh0CuKUnOKUgOKUgCBlbXB0eQrilJTilIDilIAgbmVzdAogICAg4pSc4pSA4pSAIGJldGEudHh0CiAgICDilJTilIDilIAgZGVlcAogICAgICAgIOKUlOKUgOKUgCBnYW1tYS50eHQKCjQgZGlyZWN0b3JpZXMsIDMgZmlsZXMK",
+        "stderrBase64": ""
+      },
+      "child": {
+        "closeEventObserved": true,
+        "close": {
+          "code": 1,
+          "signal": null
+        },
+        "deadlineExceeded": false,
+        "capExceeded": null,
+        "spawnError": null,
+        "stdoutBytes": 0,
+        "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderrBytes": 964,
+        "stderrSha256": "31b1d7a83589d731fba6b3e9b3039cb0096421dcd6121a502694ed5edb3995fe"
+      },
+      "parseError": "SyntaxError: Unexpected end of JSON input\n    at JSON.parse (<anonymous>)\n    at main (file:///Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/native-replay/replay-v2.mjs:126:28)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/native-replay/replay-v2.mjs:207:1",
+      "virtual": null,
+      "outcome": {
+        "pass": false,
+        "assertion": "child-result-unavailable"
+      }
+    },
+    {
+      "boundary": "source-build",
+      "caseId": "cli_lowercase_utf8_alias_over_c",
+      "frozenClassification": "native-parity-literal",
+      "frozenNative": {
+        "exitCode": 0,
+        "stdoutLabel": "utf8",
+        "stdoutBase64": "LgrilJzilIDilIAgYWxwaGEudHh0CuKUnOKUgOKUgCBlbXB0eQrilJTilIDilIAgbmVzdAogICAg4pSc4pSA4pSAIGJldGEudHh0CiAgICDilJTilIDilIAgZGVlcAogICAgICAgIOKUlOKUgOKUgCBnYW1tYS50eHQKCjQgZGlyZWN0b3JpZXMsIDMgZmlsZXMK",
+        "stderrBase64": ""
+      },
+      "child": {
+        "closeEventObserved": true,
+        "close": {
+          "code": 1,
+          "signal": null
+        },
+        "deadlineExceeded": false,
+        "capExceeded": null,
+        "spawnError": null,
+        "stdoutBytes": 0,
+        "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderrBytes": 964,
+        "stderrSha256": "31b1d7a83589d731fba6b3e9b3039cb0096421dcd6121a502694ed5edb3995fe"
+      },
+      "parseError": "SyntaxError: Unexpected end of JSON input\n    at JSON.parse (<anonymous>)\n    at main (file:///Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/native-replay/replay-v2.mjs:126:28)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/native-replay/replay-v2.mjs:207:1",
+      "virtual": null,
+      "outcome": {
+        "pass": false,
+        "assertion": "child-result-unavailable"
+      }
+    },
+    {
+      "boundary": "installed-package",
+      "caseId": "ascii_fallback_minimal_env",
+      "frozenClassification": "native-parity-literal",
+      "frozenNative": {
+        "exitCode": 0,
+        "stdoutLabel": "ascii",
+        "stdoutBase64": "Lgp8LS0gYWxwaGEudHh0CnwtLSBlbXB0eQpgLS0gbmVzdAogICAgfC0tIGJldGEudHh0CiAgICBgLS0gZGVlcAogICAgICAgIGAtLSBnYW1tYS50eHQKCjQgZGlyZWN0b3JpZXMsIDMgZmlsZXMK",
+        "stderrBase64": ""
+      },
+      "child": {
+        "closeEventObserved": true,
+        "close": {
+          "code": 1,
+          "signal": null
+        },
+        "deadlineExceeded": false,
+        "capExceeded": null,
+        "spawnError": null,
+        "stdoutBytes": 0,
+        "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderrBytes": 922,
+        "stderrSha256": "0f3915ef010d75445e779bea0fd7565f923f794e361bc754f7c34aea6ac9606c"
+      },
+      "parseError": "SyntaxError: Unexpected end of JSON input\n    at JSON.parse (<anonymous>)\n    at main (file:///Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/native-replay/replay-v2.mjs:126:28)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/native-replay/replay-v2.mjs:207:1",
+      "virtual": null,
+      "outcome": {
+        "pass": false,
+        "assertion": "child-result-unavailable"
+      }
+    },
+    {
+      "boundary": "installed-package",
+      "caseId": "cli_ascii_over_tree_utf8_and_locale_utf8",
+      "frozenClassification": "native-parity-literal",
+      "frozenNative": {
+        "exitCode": 0,
+        "stdoutLabel": "ascii",
+        "stdoutBase64": "Lgp8LS0gYWxwaGEudHh0CnwtLSBlbXB0eQpgLS0gbmVzdAogICAgfC0tIGJldGEudHh0CiAgICBgLS0gZGVlcAogICAgICAgIGAtLSBnYW1tYS50eHQKCjQgZGlyZWN0b3JpZXMsIDMgZmlsZXMK",
+        "stderrBase64": ""
+      },
+      "child": {
+        "closeEventObserved": true,
+        "close": {
+          "code": 1,
+          "signal": null
+        },
+        "deadlineExceeded": false,
+        "capExceeded": null,
+        "spawnError": null,
+        "stdoutBytes": 0,
+        "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderrBytes": 922,
+        "stderrSha256": "0f3915ef010d75445e779bea0fd7565f923f794e361bc754f7c34aea6ac9606c"
+      },
+      "parseError": "SyntaxError: Unexpected end of JSON input\n    at JSON.parse (<anonymous>)\n    at main (file:///Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/native-replay/replay-v2.mjs:126:28)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/native-replay/replay-v2.mjs:207:1",
+      "virtual": null,
+      "outcome": {
+        "pass": false,
+        "assertion": "child-result-unavailable"
+      }
+    },
+    {
+      "boundary": "installed-package",
+      "caseId": "cli_utf8_over_tree_ascii_and_locale_c",
+      "frozenClassification": "native-parity-literal",
+      "frozenNative": {
+        "exitCode": 0,
+        "stdoutLabel": "utf8",
+        "stdoutBase64": "LgrilJzilIDilIAgYWxwaGEudHh0CuKUnOKUgOKUgCBlbXB0eQrilJTilIDilIAgbmVzdAogICAg4pSc4pSA4pSAIGJldGEudHh0CiAgICDilJTilIDilIAgZGVlcAogICAgICAgIOKUlOKUgOKUgCBnYW1tYS50eHQKCjQgZGlyZWN0b3JpZXMsIDMgZmlsZXMK",
+        "stderrBase64": ""
+      },
+      "child": {
+        "closeEventObserved": true,
+        "close": {
+          "code": 1,
+          "signal": null
+        },
+        "deadlineExceeded": false,
+        "capExceeded": null,
+        "spawnError": null,
+        "stdoutBytes": 0,
+        "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderrBytes": 922,
+        "stderrSha256": "0f3915ef010d75445e779bea0fd7565f923f794e361bc754f7c34aea6ac9606c"
+      },
+      "parseError": "SyntaxError: Unexpected end of JSON input\n    at JSON.parse (<anonymous>)\n    at main (file:///Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/native-replay/replay-v2.mjs:126:28)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/native-replay/replay-v2.mjs:207:1",
+      "virtual": null,
+      "outcome": {
+        "pass": false,
+        "assertion": "child-result-unavailable"
+      }
+    },
+    {
+      "boundary": "installed-package",
+      "caseId": "tree_ascii_over_locale_utf8",
+      "frozenClassification": "native-parity-literal",
+      "frozenNative": {
+        "exitCode": 0,
+        "stdoutLabel": "ascii",
+        "stdoutBase64": "Lgp8LS0gYWxwaGEudHh0CnwtLSBlbXB0eQpgLS0gbmVzdAogICAgfC0tIGJldGEudHh0CiAgICBgLS0gZGVlcAogICAgICAgIGAtLSBnYW1tYS50eHQKCjQgZGlyZWN0b3JpZXMsIDMgZmlsZXMK",
+        "stderrBase64": ""
+      },
+      "child": {
+        "closeEventObserved": true,
+        "close": {
+          "code": 1,
+          "signal": null
+        },
+        "deadlineExceeded": false,
+        "capExceeded": null,
+        "spawnError": null,
+        "stdoutBytes": 0,
+        "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderrBytes": 922,
+        "stderrSha256": "0f3915ef010d75445e779bea0fd7565f923f794e361bc754f7c34aea6ac9606c"
+      },
+      "parseError": "SyntaxError: Unexpected end of JSON input\n    at JSON.parse (<anonymous>)\n    at main (file:///Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/native-replay/replay-v2.mjs:126:28)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/native-replay/replay-v2.mjs:207:1",
+      "virtual": null,
+      "outcome": {
+        "pass": false,
+        "assertion": "child-result-unavailable"
+      }
+    },
+    {
+      "boundary": "installed-package",
+      "caseId": "tree_utf8_over_locale_c",
+      "frozenClassification": "native-parity-literal",
+      "frozenNative": {
+        "exitCode": 0,
+        "stdoutLabel": "utf8",
+        "stdoutBase64": "LgrilJzilIDilIAgYWxwaGEudHh0CuKUnOKUgOKUgCBlbXB0eQrilJTilIDilIAgbmVzdAogICAg4pSc4pSA4pSAIGJldGEudHh0CiAgICDilJTilIDilIAgZGVlcAogICAgICAgIOKUlOKUgOKUgCBnYW1tYS50eHQKCjQgZGlyZWN0b3JpZXMsIDMgZmlsZXMK",
+        "stderrBase64": ""
+      },
+      "child": {
+        "closeEventObserved": true,
+        "close": {
+          "code": 1,
+          "signal": null
+        },
+        "deadlineExceeded": false,
+        "capExceeded": null,
+        "spawnError": null,
+        "stdoutBytes": 0,
+        "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderrBytes": 922,
+        "stderrSha256": "0f3915ef010d75445e779bea0fd7565f923f794e361bc754f7c34aea6ac9606c"
+      },
+      "parseError": "SyntaxError: Unexpected end of JSON input\n    at JSON.parse (<anonymous>)\n    at main (file:///Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/native-replay/replay-v2.mjs:126:28)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/native-replay/replay-v2.mjs:207:1",
+      "virtual": null,
+      "outcome": {
+        "pass": false,
+        "assertion": "child-result-unavailable"
+      }
+    },
+    {
+      "boundary": "installed-package",
+      "caseId": "lc_all_c_over_ctype_and_lang_utf8",
+      "frozenClassification": "native-parity-literal",
+      "frozenNative": {
+        "exitCode": 0,
+        "stdoutLabel": "ascii",
+        "stdoutBase64": "Lgp8LS0gYWxwaGEudHh0CnwtLSBlbXB0eQpgLS0gbmVzdAogICAgfC0tIGJldGEudHh0CiAgICBgLS0gZGVlcAogICAgICAgIGAtLSBnYW1tYS50eHQKCjQgZGlyZWN0b3JpZXMsIDMgZmlsZXMK",
+        "stderrBase64": ""
+      },
+      "child": {
+        "closeEventObserved": true,
+        "close": {
+          "code": 1,
+          "signal": null
+        },
+        "deadlineExceeded": false,
+        "capExceeded": null,
+        "spawnError": null,
+        "stdoutBytes": 0,
+        "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderrBytes": 922,
+        "stderrSha256": "0f3915ef010d75445e779bea0fd7565f923f794e361bc754f7c34aea6ac9606c"
+      },
+      "parseError": "SyntaxError: Unexpected end of JSON input\n    at JSON.parse (<anonymous>)\n    at main (file:///Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/native-replay/replay-v2.mjs:126:28)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/native-replay/replay-v2.mjs:207:1",
+      "virtual": null,
+      "outcome": {
+        "pass": false,
+        "assertion": "child-result-unavailable"
+      }
+    },
+    {
+      "boundary": "installed-package",
+      "caseId": "lc_ctype_c_over_lang_utf8",
+      "frozenClassification": "native-parity-literal",
+      "frozenNative": {
+        "exitCode": 0,
+        "stdoutLabel": "ascii",
+        "stdoutBase64": "Lgp8LS0gYWxwaGEudHh0CnwtLSBlbXB0eQpgLS0gbmVzdAogICAgfC0tIGJldGEudHh0CiAgICBgLS0gZGVlcAogICAgICAgIGAtLSBnYW1tYS50eHQKCjQgZGlyZWN0b3JpZXMsIDMgZmlsZXMK",
+        "stderrBase64": ""
+      },
+      "child": {
+        "closeEventObserved": true,
+        "close": {
+          "code": 1,
+          "signal": null
+        },
+        "deadlineExceeded": false,
+        "capExceeded": null,
+        "spawnError": null,
+        "stdoutBytes": 0,
+        "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderrBytes": 922,
+        "stderrSha256": "0f3915ef010d75445e779bea0fd7565f923f794e361bc754f7c34aea6ac9606c"
+      },
+      "parseError": "SyntaxError: Unexpected end of JSON input\n    at JSON.parse (<anonymous>)\n    at main (file:///Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/native-replay/replay-v2.mjs:126:28)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/native-replay/replay-v2.mjs:207:1",
+      "virtual": null,
+      "outcome": {
+        "pass": false,
+        "assertion": "child-result-unavailable"
+      }
+    },
+    {
+      "boundary": "installed-package",
+      "caseId": "lc_ctype_utf8_over_lang_c",
+      "frozenClassification": "native-parity-literal",
+      "frozenNative": {
+        "exitCode": 0,
+        "stdoutLabel": "utf8",
+        "stdoutBase64": "LgrilJzilIDilIAgYWxwaGEudHh0CuKUnOKUgOKUgCBlbXB0eQrilJTilIDilIAgbmVzdAogICAg4pSc4pSA4pSAIGJldGEudHh0CiAgICDilJTilIDilIAgZGVlcAogICAgICAgIOKUlOKUgOKUgCBnYW1tYS50eHQKCjQgZGlyZWN0b3JpZXMsIDMgZmlsZXMK",
+        "stderrBase64": ""
+      },
+      "child": {
+        "closeEventObserved": true,
+        "close": {
+          "code": 1,
+          "signal": null
+        },
+        "deadlineExceeded": false,
+        "capExceeded": null,
+        "spawnError": null,
+        "stdoutBytes": 0,
+        "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderrBytes": 922,
+        "stderrSha256": "0f3915ef010d75445e779bea0fd7565f923f794e361bc754f7c34aea6ac9606c"
+      },
+      "parseError": "SyntaxError: Unexpected end of JSON input\n    at JSON.parse (<anonymous>)\n    at main (file:///Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/native-replay/replay-v2.mjs:126:28)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/native-replay/replay-v2.mjs:207:1",
+      "virtual": null,
+      "outcome": {
+        "pass": false,
+        "assertion": "child-result-unavailable"
+      }
+    },
+    {
+      "boundary": "installed-package",
+      "caseId": "lang_utf8",
+      "frozenClassification": "native-parity-literal",
+      "frozenNative": {
+        "exitCode": 0,
+        "stdoutLabel": "utf8",
+        "stdoutBase64": "LgrilJzilIDilIAgYWxwaGEudHh0CuKUnOKUgOKUgCBlbXB0eQrilJTilIDilIAgbmVzdAogICAg4pSc4pSA4pSAIGJldGEudHh0CiAgICDilJTilIDilIAgZGVlcAogICAgICAgIOKUlOKUgOKUgCBnYW1tYS50eHQKCjQgZGlyZWN0b3JpZXMsIDMgZmlsZXMK",
+        "stderrBase64": ""
+      },
+      "child": {
+        "closeEventObserved": true,
+        "close": {
+          "code": 1,
+          "signal": null
+        },
+        "deadlineExceeded": false,
+        "capExceeded": null,
+        "spawnError": null,
+        "stdoutBytes": 0,
+        "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderrBytes": 922,
+        "stderrSha256": "0f3915ef010d75445e779bea0fd7565f923f794e361bc754f7c34aea6ac9606c"
+      },
+      "parseError": "SyntaxError: Unexpected end of JSON input\n    at JSON.parse (<anonymous>)\n    at main (file:///Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/native-replay/replay-v2.mjs:126:28)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/native-replay/replay-v2.mjs:207:1",
+      "virtual": null,
+      "outcome": {
+        "pass": false,
+        "assertion": "child-result-unavailable"
+      }
+    },
+    {
+      "boundary": "installed-package",
+      "caseId": "native_lowercase_dot_utf8_locale",
+      "frozenClassification": "native-only-not-virtual-parity",
+      "frozenNative": {
+        "exitCode": 0,
+        "stdoutLabel": "ascii",
+        "stdoutBase64": "Lgp8LS0gYWxwaGEudHh0CnwtLSBlbXB0eQpgLS0gbmVzdAogICAgfC0tIGJldGEudHh0CiAgICBgLS0gZGVlcAogICAgICAgIGAtLSBnYW1tYS50eHQKCjQgZGlyZWN0b3JpZXMsIDMgZmlsZXMK",
+        "stderrBase64": ""
+      },
+      "child": {
+        "closeEventObserved": true,
+        "close": {
+          "code": 1,
+          "signal": null
+        },
+        "deadlineExceeded": false,
+        "capExceeded": null,
+        "spawnError": null,
+        "stdoutBytes": 0,
+        "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderrBytes": 922,
+        "stderrSha256": "0f3915ef010d75445e779bea0fd7565f923f794e361bc754f7c34aea6ac9606c"
+      },
+      "parseError": "SyntaxError: Unexpected end of JSON input\n    at JSON.parse (<anonymous>)\n    at main (file:///Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/native-replay/replay-v2.mjs:126:28)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/native-replay/replay-v2.mjs:207:1",
+      "virtual": null,
+      "outcome": {
+        "pass": false,
+        "assertion": "child-result-unavailable"
+      }
+    },
+    {
+      "boundary": "installed-package",
+      "caseId": "empty_tree_charset_over_locale_utf8",
+      "frozenClassification": "native-only-observation",
+      "frozenNative": {
+        "exitCode": 0,
+        "stdoutLabel": "ascii",
+        "stdoutBase64": "Lgp8LS0gYWxwaGEudHh0CnwtLSBlbXB0eQpgLS0gbmVzdAogICAgfC0tIGJldGEudHh0CiAgICBgLS0gZGVlcAogICAgICAgIGAtLSBnYW1tYS50eHQKCjQgZGlyZWN0b3JpZXMsIDMgZmlsZXMK",
+        "stderrBase64": ""
+      },
+      "child": {
+        "closeEventObserved": true,
+        "close": {
+          "code": 1,
+          "signal": null
+        },
+        "deadlineExceeded": false,
+        "capExceeded": null,
+        "spawnError": null,
+        "stdoutBytes": 0,
+        "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderrBytes": 922,
+        "stderrSha256": "0f3915ef010d75445e779bea0fd7565f923f794e361bc754f7c34aea6ac9606c"
+      },
+      "parseError": "SyntaxError: Unexpected end of JSON input\n    at JSON.parse (<anonymous>)\n    at main (file:///Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/native-replay/replay-v2.mjs:126:28)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/native-replay/replay-v2.mjs:207:1",
+      "virtual": null,
+      "outcome": {
+        "pass": false,
+        "assertion": "child-result-unavailable"
+      }
+    },
+    {
+      "boundary": "installed-package",
+      "caseId": "unknown_tree_charset_over_locale_utf8",
+      "frozenClassification": "native-only-observation",
+      "frozenNative": {
+        "exitCode": 0,
+        "stdoutLabel": "ascii",
+        "stdoutBase64": "Lgp8LS0gYWxwaGEudHh0CnwtLSBlbXB0eQpgLS0gbmVzdAogICAgfC0tIGJldGEudHh0CiAgICBgLS0gZGVlcAogICAgICAgIGAtLSBnYW1tYS50eHQKCjQgZGlyZWN0b3JpZXMsIDMgZmlsZXMK",
+        "stderrBase64": ""
+      },
+      "child": {
+        "closeEventObserved": true,
+        "close": {
+          "code": 1,
+          "signal": null
+        },
+        "deadlineExceeded": false,
+        "capExceeded": null,
+        "spawnError": null,
+        "stdoutBytes": 0,
+        "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderrBytes": 922,
+        "stderrSha256": "0f3915ef010d75445e779bea0fd7565f923f794e361bc754f7c34aea6ac9606c"
+      },
+      "parseError": "SyntaxError: Unexpected end of JSON input\n    at JSON.parse (<anonymous>)\n    at main (file:///Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/native-replay/replay-v2.mjs:126:28)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/native-replay/replay-v2.mjs:207:1",
+      "virtual": null,
+      "outcome": {
+        "pass": false,
+        "assertion": "child-result-unavailable"
+      }
+    },
+    {
+      "boundary": "installed-package",
+      "caseId": "empty_cli_charset_over_tree_and_locale_utf8",
+      "frozenClassification": "native-only-observation",
+      "frozenNative": {
+        "exitCode": 0,
+        "stdoutLabel": "ascii",
+        "stdoutBase64": "Lgp8LS0gYWxwaGEudHh0CnwtLSBlbXB0eQpgLS0gbmVzdAogICAgfC0tIGJldGEudHh0CiAgICBgLS0gZGVlcAogICAgICAgIGAtLSBnYW1tYS50eHQKCjQgZGlyZWN0b3JpZXMsIDMgZmlsZXMK",
+        "stderrBase64": ""
+      },
+      "child": {
+        "closeEventObserved": true,
+        "close": {
+          "code": 1,
+          "signal": null
+        },
+        "deadlineExceeded": false,
+        "capExceeded": null,
+        "spawnError": null,
+        "stdoutBytes": 0,
+        "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderrBytes": 922,
+        "stderrSha256": "0f3915ef010d75445e779bea0fd7565f923f794e361bc754f7c34aea6ac9606c"
+      },
+      "parseError": "SyntaxError: Unexpected end of JSON input\n    at JSON.parse (<anonymous>)\n    at main (file:///Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/native-replay/replay-v2.mjs:126:28)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/native-replay/replay-v2.mjs:207:1",
+      "virtual": null,
+      "outcome": {
+        "pass": false,
+        "assertion": "child-result-unavailable"
+      }
+    },
+    {
+      "boundary": "installed-package",
+      "caseId": "unknown_cli_charset_over_tree_and_locale_utf8",
+      "frozenClassification": "native-only-observation",
+      "frozenNative": {
+        "exitCode": 0,
+        "stdoutLabel": "ascii",
+        "stdoutBase64": "Lgp8LS0gYWxwaGEudHh0CnwtLSBlbXB0eQpgLS0gbmVzdAogICAgfC0tIGJldGEudHh0CiAgICBgLS0gZGVlcAogICAgICAgIGAtLSBnYW1tYS50eHQKCjQgZGlyZWN0b3JpZXMsIDMgZmlsZXMK",
+        "stderrBase64": ""
+      },
+      "child": {
+        "closeEventObserved": true,
+        "close": {
+          "code": 1,
+          "signal": null
+        },
+        "deadlineExceeded": false,
+        "capExceeded": null,
+        "spawnError": null,
+        "stdoutBytes": 0,
+        "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderrBytes": 922,
+        "stderrSha256": "0f3915ef010d75445e779bea0fd7565f923f794e361bc754f7c34aea6ac9606c"
+      },
+      "parseError": "SyntaxError: Unexpected end of JSON input\n    at JSON.parse (<anonymous>)\n    at main (file:///Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/native-replay/replay-v2.mjs:126:28)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/native-replay/replay-v2.mjs:207:1",
+      "virtual": null,
+      "outcome": {
+        "pass": false,
+        "assertion": "child-result-unavailable"
+      }
+    },
+    {
+      "boundary": "installed-package",
+      "caseId": "empty_lc_all_defers_to_ctype_utf8",
+      "frozenClassification": "native-only-observation",
+      "frozenNative": {
+        "exitCode": 0,
+        "stdoutLabel": "utf8",
+        "stdoutBase64": "LgrilJzilIDilIAgYWxwaGEudHh0CuKUnOKUgOKUgCBlbXB0eQrilJTilIDilIAgbmVzdAogICAg4pSc4pSA4pSAIGJldGEudHh0CiAgICDilJTilIDilIAgZGVlcAogICAgICAgIOKUlOKUgOKUgCBnYW1tYS50eHQKCjQgZGlyZWN0b3JpZXMsIDMgZmlsZXMK",
+        "stderrBase64": ""
+      },
+      "child": {
+        "closeEventObserved": true,
+        "close": {
+          "code": 1,
+          "signal": null
+        },
+        "deadlineExceeded": false,
+        "capExceeded": null,
+        "spawnError": null,
+        "stdoutBytes": 0,
+        "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderrBytes": 922,
+        "stderrSha256": "0f3915ef010d75445e779bea0fd7565f923f794e361bc754f7c34aea6ac9606c"
+      },
+      "parseError": "SyntaxError: Unexpected end of JSON input\n    at JSON.parse (<anonymous>)\n    at main (file:///Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/native-replay/replay-v2.mjs:126:28)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/native-replay/replay-v2.mjs:207:1",
+      "virtual": null,
+      "outcome": {
+        "pass": false,
+        "assertion": "child-result-unavailable"
+      }
+    },
+    {
+      "boundary": "installed-package",
+      "caseId": "empty_lc_ctype_defers_to_lang_utf8",
+      "frozenClassification": "native-only-observation",
+      "frozenNative": {
+        "exitCode": 0,
+        "stdoutLabel": "utf8",
+        "stdoutBase64": "LgrilJzilIDilIAgYWxwaGEudHh0CuKUnOKUgOKUgCBlbXB0eQrilJTilIDilIAgbmVzdAogICAg4pSc4pSA4pSAIGJldGEudHh0CiAgICDilJTilIDilIAgZGVlcAogICAgICAgIOKUlOKUgOKUgCBnYW1tYS50eHQKCjQgZGlyZWN0b3JpZXMsIDMgZmlsZXMK",
+        "stderrBase64": ""
+      },
+      "child": {
+        "closeEventObserved": true,
+        "close": {
+          "code": 1,
+          "signal": null
+        },
+        "deadlineExceeded": false,
+        "capExceeded": null,
+        "spawnError": null,
+        "stdoutBytes": 0,
+        "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderrBytes": 922,
+        "stderrSha256": "0f3915ef010d75445e779bea0fd7565f923f794e361bc754f7c34aea6ac9606c"
+      },
+      "parseError": "SyntaxError: Unexpected end of JSON input\n    at JSON.parse (<anonymous>)\n    at main (file:///Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/native-replay/replay-v2.mjs:126:28)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/native-replay/replay-v2.mjs:207:1",
+      "virtual": null,
+      "outcome": {
+        "pass": false,
+        "assertion": "child-result-unavailable"
+      }
+    },
+    {
+      "boundary": "installed-package",
+      "caseId": "empty_lang_ascii_fallback",
+      "frozenClassification": "native-only-observation",
+      "frozenNative": {
+        "exitCode": 0,
+        "stdoutLabel": "ascii",
+        "stdoutBase64": "Lgp8LS0gYWxwaGEudHh0CnwtLSBlbXB0eQpgLS0gbmVzdAogICAgfC0tIGJldGEudHh0CiAgICBgLS0gZGVlcAogICAgICAgIGAtLSBnYW1tYS50eHQKCjQgZGlyZWN0b3JpZXMsIDMgZmlsZXMK",
+        "stderrBase64": ""
+      },
+      "child": {
+        "closeEventObserved": true,
+        "close": {
+          "code": 1,
+          "signal": null
+        },
+        "deadlineExceeded": false,
+        "capExceeded": null,
+        "spawnError": null,
+        "stdoutBytes": 0,
+        "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderrBytes": 922,
+        "stderrSha256": "0f3915ef010d75445e779bea0fd7565f923f794e361bc754f7c34aea6ac9606c"
+      },
+      "parseError": "SyntaxError: Unexpected end of JSON input\n    at JSON.parse (<anonymous>)\n    at main (file:///Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/native-replay/replay-v2.mjs:126:28)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/native-replay/replay-v2.mjs:207:1",
+      "virtual": null,
+      "outcome": {
+        "pass": false,
+        "assertion": "child-result-unavailable"
+      }
+    },
+    {
+      "boundary": "installed-package",
+      "caseId": "unknown_lc_all_native_fallback",
+      "frozenClassification": "native-only-observation",
+      "frozenNative": {
+        "exitCode": 0,
+        "stdoutLabel": "ascii",
+        "stdoutBase64": "Lgp8LS0gYWxwaGEudHh0CnwtLSBlbXB0eQpgLS0gbmVzdAogICAgfC0tIGJldGEudHh0CiAgICBgLS0gZGVlcAogICAgICAgIGAtLSBnYW1tYS50eHQKCjQgZGlyZWN0b3JpZXMsIDMgZmlsZXMK",
+        "stderrBase64": ""
+      },
+      "child": {
+        "closeEventObserved": true,
+        "close": {
+          "code": 1,
+          "signal": null
+        },
+        "deadlineExceeded": false,
+        "capExceeded": null,
+        "spawnError": null,
+        "stdoutBytes": 0,
+        "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderrBytes": 922,
+        "stderrSha256": "0f3915ef010d75445e779bea0fd7565f923f794e361bc754f7c34aea6ac9606c"
+      },
+      "parseError": "SyntaxError: Unexpected end of JSON input\n    at JSON.parse (<anonymous>)\n    at main (file:///Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/native-replay/replay-v2.mjs:126:28)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/native-replay/replay-v2.mjs:207:1",
+      "virtual": null,
+      "outcome": {
+        "pass": false,
+        "assertion": "child-result-unavailable"
+      }
+    },
+    {
+      "boundary": "installed-package",
+      "caseId": "cli_compact_utf8_alias_over_c",
+      "frozenClassification": "native-parity-literal",
+      "frozenNative": {
+        "exitCode": 0,
+        "stdoutLabel": "utf8",
+        "stdoutBase64": "LgrilJzilIDilIAgYWxwaGEudHh0CuKUnOKUgOKUgCBlbXB0eQrilJTilIDilIAgbmVzdAogICAg4pSc4pSA4pSAIGJldGEudHh0CiAgICDilJTilIDilIAgZGVlcAogICAgICAgIOKUlOKUgOKUgCBnYW1tYS50eHQKCjQgZGlyZWN0b3JpZXMsIDMgZmlsZXMK",
+        "stderrBase64": ""
+      },
+      "child": {
+        "closeEventObserved": true,
+        "close": {
+          "code": 1,
+          "signal": null
+        },
+        "deadlineExceeded": false,
+        "capExceeded": null,
+        "spawnError": null,
+        "stdoutBytes": 0,
+        "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderrBytes": 922,
+        "stderrSha256": "0f3915ef010d75445e779bea0fd7565f923f794e361bc754f7c34aea6ac9606c"
+      },
+      "parseError": "SyntaxError: Unexpected end of JSON input\n    at JSON.parse (<anonymous>)\n    at main (file:///Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/native-replay/replay-v2.mjs:126:28)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/native-replay/replay-v2.mjs:207:1",
+      "virtual": null,
+      "outcome": {
+        "pass": false,
+        "assertion": "child-result-unavailable"
+      }
+    },
+    {
+      "boundary": "installed-package",
+      "caseId": "cli_lowercase_utf8_alias_over_c",
+      "frozenClassification": "native-parity-literal",
+      "frozenNative": {
+        "exitCode": 0,
+        "stdoutLabel": "utf8",
+        "stdoutBase64": "LgrilJzilIDilIAgYWxwaGEudHh0CuKUnOKUgOKUgCBlbXB0eQrilJTilIDilIAgbmVzdAogICAg4pSc4pSA4pSAIGJldGEudHh0CiAgICDilJTilIDilIAgZGVlcAogICAgICAgIOKUlOKUgOKUgCBnYW1tYS50eHQKCjQgZGlyZWN0b3JpZXMsIDMgZmlsZXMK",
+        "stderrBase64": ""
+      },
+      "child": {
+        "closeEventObserved": true,
+        "close": {
+          "code": 1,
+          "signal": null
+        },
+        "deadlineExceeded": false,
+        "capExceeded": null,
+        "spawnError": null,
+        "stdoutBytes": 0,
+        "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderrBytes": 922,
+        "stderrSha256": "0f3915ef010d75445e779bea0fd7565f923f794e361bc754f7c34aea6ac9606c"
+      },
+      "parseError": "SyntaxError: Unexpected end of JSON input\n    at JSON.parse (<anonymous>)\n    at main (file:///Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/native-replay/replay-v2.mjs:126:28)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/native-replay/replay-v2.mjs:207:1",
+      "virtual": null,
+      "outcome": {
+        "pass": false,
+        "assertion": "child-result-unavailable"
+      }
+    }
+  ]
+}

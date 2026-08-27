@@ -1,0 +1,13 @@
+Corrected selected-input authentication succeeded before this build-wrapper failure:
+
+selected-git-blobs-checked=232 mismatches=0
+
+> virtual-bash@0.0.0 build
+> tsc -p tsconfig.build.json
+
+sh: tsc: command not found
+
+The prompt copy was interrupted while copying the large candidate directory, after
+the TypeScript package itself arrived but before node_modules/.bin. The immutable
+source was unaffected. The corrected invocation called the copied, authenticated
+compiler entry directly; see build-001.txt.

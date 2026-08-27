@@ -1,0 +1,16 @@
+Preflight attempt: authenticate frozen artifacts, fresh candidate archive, then compare
+the copied candidate tree to the archive with the host tar implementation.
+
+The freeze SHA256SUMS checks all passed and the streamed fresh Git archive SHA-256 was:
+fe133818ee69dcbdac7e2330e97fefa1dd07037ba73c6135ccf106b770e7f325  -
+
+The next command, `tar -df`, was not supported by the host BSD tar and stopped the
+attempt before build or replay:
+
+Usage:
+  List:    tar -tf <archive-filename>
+  Extract: tar -xf <archive-filename>
+  Create:  tar -cf <archive-filename> [filenames...]
+  Help:    tar --help
+
+Correction: authenticate selected source/build inputs by exact Git blob identity.

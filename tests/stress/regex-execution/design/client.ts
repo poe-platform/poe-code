@@ -49,7 +49,7 @@ export class Client {
     else pending.resolve(reply.data);
   };
   private readonly error = (error: Error): void => { this.fail(error); void this.dispose().catch(() => {}); };
-  private readonly exit = (code: number): void => { this.metrics.exitCode = code; this.fail(new Error("WORKER_EXIT")); };
+  private readonly exit = (code: number): void => { this.metrics.exitCode = code; this.fail(new Error("WORKER_EXIT")); void this.dispose().catch(() => {}); };
   private wait(id: number, timeout: number, send?: () => void): Promise<unknown> {
     return new Promise((resolve, reject) => {
       const timer = setTimeout(() => this.fail(new Error(id === 0 ? "STARTUP_DEADLINE" : "WORK_DEADLINE")), timeout);
@@ -114,18 +114,28 @@ export class Client {
   async *stream(source: AsyncIterable<Row>, batchSize: number): AsyncGenerator<Result> {
     this.check();
     if (!Number.isInteger(batchSize) || batchSize < 1 || batchSize > caps.rows) throw new Error("BATCH_SIZE");
-    let batch: Row[] = [];
-    let bytes = 0;
+    let iterator: AsyncIterator<Row> | undefined;
+    let finished = false;
+    let failed = false;
     try {
-      for await (const row of source) {
+      iterator = source[Symbol.asyncIterator]();
+      while (true) {
         this.check();
-        rows([row]);
-        if (batch.length && bytes + row.text.length * 2 > caps.subjectBytes) { yield await this.batch(batch); batch = []; bytes = 0; }
-        batch.push(row); bytes += row.text.length * 2;
-        if (batch.length === batchSize) { yield await this.batch(batch); batch = []; bytes = 0; }
+        const next = await iterator.next();
+        this.check();
+        if (next.done) { finished = true; break; }
+        yield await this.batch([next.value]);
       }
-      if (batch.length) yield await this.batch(batch);
-    } finally { await this.dispose(); }
+    } catch (error) { failed = true; throw error; }
+    finally {
+      try { await this.dispose(); }
+      finally {
+        if (iterator && !finished) {
+          try { await iterator.return?.(); }
+          catch (error) { if (!failed) throw error; }
+        }
+      }
+    }
   }
   async dispose(): Promise<void> {
     if (this.stopPromise) return this.stopPromise;
@@ -134,7 +144,8 @@ export class Client {
     this.stopPromise = (async () => {
       const start = performance.now();
       if (this.worker) {
-        this.metrics.exitCode = await this.worker.terminate();
+        const code = await this.worker.terminate();
+        if (typeof code === "number") this.metrics.exitCode = code;
         this.metrics.terminated++;
         this.worker.removeListener("message", this.message).removeListener("error", this.error).removeListener("exit", this.exit).removeListener("messageerror", this.error);
         this.worker.stdout.removeAllListeners("data");

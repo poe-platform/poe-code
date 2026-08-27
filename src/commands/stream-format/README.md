@@ -35,3 +35,30 @@ not supported. Numeric locale is always the C decimal convention.
 
 Author native controls use pinned GNU coreutils 9.7 executables built on Darwin
 arm64, not GNU/Linux. Author tests are not an independent verifier or a full gate.
+
+## nl
+
+Supports header/body/footer styles `a`, `t`, `n`, `pBRE` with `-h`, `-b`, `-f`;
+`-v` starting number, `-i` increment, `-l` blank joining, `-w` width, `-s`
+separator, `-n ln|rn|rz`, `-d` section delimiter, `-p` no-renumber, `--`, and
+their GNU long names. Width must be positive; blank joining is nonnegative, with
+zero treated as one as measured on GNU9.7. Numbering
+and increments use signed 64-bit integers; overflow fails before printing the
+next numbered line. Missing files diagnose and continue. Files retain numbering
+and section state; each unterminated final line is completed with LF.
+
+The default delimiter pair is backslash/colon. One, two or three repetitions
+select footer, body or header. Every recognized section delimiter outputs a blank
+line and resets the counter unless `-p`. `-d ''` disables delimiter matching;
+long delimiter strings are accepted. A one-byte `-d` retains the second delimiter
+byte. Blank joining counts only truly empty lines, not whitespace-only lines.
+
+Patterns reuse the existing read-only text-programs BRE `Pattern`, not JavaScript
+user-supplied RegExp. Its instruction execution, backreference comparisons and
+state memory are bounded; a local Budget adapter charges this invocation's same
+step counter. Compilation is bounded at 8192 pattern bytes, nesting64,
+16384 instructions and repetition1000. Execution is synchronous within one
+bounded match; cancellation is checked on instructions, with event-loop yields
+between input work. This is byte/C-locale matching: ASCII POSIX classes and
+byte ranges, no locale collation/equivalence classes or Unicode character classes.
+The inherited matcher dialect is not a claim of all GNU BRE behavior.

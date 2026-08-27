@@ -1,0 +1,527 @@
+{
+  "profile": "GNU coreutils9.7 Darwin25.4.0 arm64 LC_ALL=C",
+  "cases": [
+    {
+      "args": [],
+      "inputHex": "610a0a620a6c617374",
+      "native": {
+        "exitCode": 0,
+        "stdoutHex": "20202020203109610a202020202020200a20202020203209620a202020202033096c6173740a",
+        "stderr": ""
+      },
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "20202020203109610a202020202020200a20202020203209620a202020202033096c6173740a",
+        "stderr": ""
+      },
+      "strict": true,
+      "selectedSemantic": true
+    },
+    {
+      "args": [
+        "-ba"
+      ],
+      "inputHex": "0a610a0a",
+      "native": {
+        "exitCode": 0,
+        "stdoutHex": "202020202031090a20202020203209610a202020202033090a",
+        "stderr": ""
+      },
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "202020202031090a20202020203209610a202020202033090a",
+        "stderr": ""
+      },
+      "strict": true,
+      "selectedSemantic": true
+    },
+    {
+      "args": [
+        "-bt"
+      ],
+      "inputHex": "200a090a0a",
+      "native": {
+        "exitCode": 0,
+        "stdoutHex": "20202020203109200a20202020203209090a202020202020200a",
+        "stderr": ""
+      },
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "20202020203109200a20202020203209090a202020202020200a",
+        "stderr": ""
+      },
+      "strict": true,
+      "selectedSemantic": true
+    },
+    {
+      "args": [
+        "-bn"
+      ],
+      "inputHex": "610a0a62",
+      "native": {
+        "exitCode": 0,
+        "stdoutHex": "20202020202020610a202020202020200a20202020202020620a",
+        "stderr": ""
+      },
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "20202020202020610a202020202020200a20202020202020620a",
+        "stderr": ""
+      },
+      "strict": true,
+      "selectedSemantic": true
+    },
+    {
+      "args": [],
+      "inputHex": "686561640a5c3a5c3a5c3a0a480a0a5c3a5c3a0a410a0a420a5c3a0a460a5c3a5c3a0a430a",
+      "native": {
+        "exitCode": 0,
+        "stdoutHex": "20202020203109686561640a0a20202020202020480a202020202020200a0a20202020203109410a202020202020200a20202020203209420a0a20202020202020460a0a20202020203109430a",
+        "stderr": ""
+      },
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "20202020203109686561640a0a20202020202020480a202020202020200a0a20202020203109410a202020202020200a20202020203209420a0a20202020202020460a0a20202020203109430a",
+        "stderr": ""
+      },
+      "strict": true,
+      "selectedSemantic": true
+    },
+    {
+      "args": [
+        "-ha",
+        "-fa"
+      ],
+      "inputHex": "686561640a5c3a5c3a5c3a0a480a0a5c3a5c3a0a410a0a420a5c3a0a460a5c3a5c3a0a430a",
+      "native": {
+        "exitCode": 0,
+        "stdoutHex": "20202020203109686561640a0a20202020203109480a202020202032090a0a20202020203109410a202020202020200a20202020203209420a0a20202020203109460a0a20202020203109430a",
+        "stderr": ""
+      },
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "20202020203109686561640a0a20202020203109480a202020202032090a0a20202020203109410a202020202020200a20202020203209420a0a20202020203109460a0a20202020203109430a",
+        "stderr": ""
+      },
+      "strict": true,
+      "selectedSemantic": true
+    },
+    {
+      "args": [
+        "-p",
+        "-ha",
+        "-fa"
+      ],
+      "inputHex": "686561640a5c3a5c3a5c3a0a480a0a5c3a5c3a0a410a0a420a5c3a0a460a5c3a5c3a0a430a",
+      "native": {
+        "exitCode": 0,
+        "stdoutHex": "20202020203109686561640a0a20202020203209480a202020202033090a0a20202020203409410a202020202020200a20202020203509420a0a20202020203609460a0a20202020203709430a",
+        "stderr": ""
+      },
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "20202020203109686561640a0a20202020203209480a202020202033090a0a20202020203409410a202020202020200a20202020203509420a0a20202020203609460a0a20202020203709430a",
+        "stderr": ""
+      },
+      "strict": true,
+      "selectedSemantic": true
+    },
+    {
+      "args": [
+        "-ba",
+        "-l2"
+      ],
+      "inputHex": "0a0a0a580a0a0a",
+      "native": {
+        "exitCode": 0,
+        "stdoutHex": "202020202020200a202020202031090a202020202020200a20202020203209580a202020202020200a202020202033090a",
+        "stderr": ""
+      },
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "202020202020200a202020202031090a202020202020200a20202020203209580a202020202020200a202020202033090a",
+        "stderr": ""
+      },
+      "strict": true,
+      "selectedSemantic": true
+    },
+    {
+      "args": [
+        "-ba",
+        "-l2",
+        "-ha"
+      ],
+      "inputHex": "0a5c3a5c3a5c3a0a0a",
+      "native": {
+        "exitCode": 0,
+        "stdoutHex": "202020202020200a0a202020202031090a",
+        "stderr": ""
+      },
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "202020202020200a0a202020202031090a",
+        "stderr": ""
+      },
+      "strict": true,
+      "selectedSemantic": true
+    },
+    {
+      "args": [
+        "-v-2",
+        "-i2",
+        "-nrz",
+        "-w4",
+        "-s|"
+      ],
+      "inputHex": "610a620a630a",
+      "native": {
+        "exitCode": 0,
+        "stdoutHex": "2d3030327c610a303030307c620a303030327c630a",
+        "stderr": ""
+      },
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "2d3030327c610a303030307c620a303030327c630a",
+        "stderr": ""
+      },
+      "strict": true,
+      "selectedSemantic": true
+    },
+    {
+      "args": [
+        "-nln",
+        "-w2",
+        "-s",
+        ""
+      ],
+      "inputHex": "610a0a62",
+      "native": {
+        "exitCode": 0,
+        "stdoutHex": "3120610a20200a3220620a",
+        "stderr": ""
+      },
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "3120610a20200a3220620a",
+        "stderr": ""
+      },
+      "strict": true,
+      "selectedSemantic": true
+    },
+    {
+      "args": [
+        "-i0"
+      ],
+      "inputHex": "610a62",
+      "native": {
+        "exitCode": 0,
+        "stdoutHex": "20202020203109610a20202020203109620a",
+        "stderr": ""
+      },
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "20202020203109610a20202020203109620a",
+        "stderr": ""
+      },
+      "strict": true,
+      "selectedSemantic": true
+    },
+    {
+      "args": [
+        "-i-1",
+        "-v2"
+      ],
+      "inputHex": "610a620a630a64",
+      "native": {
+        "exitCode": 0,
+        "stdoutHex": "20202020203209610a20202020203109620a20202020203009630a202020202d3109640a",
+        "stderr": ""
+      },
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "20202020203209610a20202020203109620a20202020203009630a202020202d3109640a",
+        "stderr": ""
+      },
+      "strict": true,
+      "selectedSemantic": true
+    },
+    {
+      "args": [
+        "-d",
+        ""
+      ],
+      "inputHex": "686561640a5c3a5c3a5c3a0a480a0a5c3a5c3a0a410a0a420a5c3a0a460a5c3a5c3a0a430a",
+      "native": {
+        "exitCode": 0,
+        "stdoutHex": "20202020203109686561640a202020202032095c3a5c3a5c3a0a20202020203309480a202020202020200a202020202034095c3a5c3a0a20202020203509410a202020202020200a20202020203609420a202020202037095c3a0a20202020203809460a202020202039095c3a5c3a0a20202020313009430a",
+        "stderr": ""
+      },
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "20202020203109686561640a202020202032095c3a5c3a5c3a0a20202020203309480a202020202020200a202020202034095c3a5c3a0a20202020203509410a202020202020200a20202020203609420a202020202037095c3a0a20202020203809460a202020202039095c3a5c3a0a20202020313009430a",
+        "stderr": ""
+      },
+      "strict": true,
+      "selectedSemantic": true
+    },
+    {
+      "args": [
+        "-d",
+        "@"
+      ],
+      "inputHex": "610a403a403a0a62",
+      "native": {
+        "exitCode": 0,
+        "stdoutHex": "20202020203109610a0a20202020203109620a",
+        "stderr": ""
+      },
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "20202020203109610a0a20202020203109620a",
+        "stderr": ""
+      },
+      "strict": true,
+      "selectedSemantic": true
+    },
+    {
+      "args": [
+        "-d",
+        "XYZ",
+        "-ha"
+      ],
+      "inputHex": "610a58595a58595a58595a0a62",
+      "native": {
+        "exitCode": 0,
+        "stdoutHex": "20202020203109610a0a20202020203109620a",
+        "stderr": ""
+      },
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "20202020203109610a0a20202020203109620a",
+        "stderr": ""
+      },
+      "strict": true,
+      "selectedSemantic": true
+    },
+    {
+      "args": [
+        "--body-numbering=a",
+        "--number-width=3",
+        "--number-format=rz",
+        "--number-separator=:"
+      ],
+      "inputHex": "780a0a",
+      "native": {
+        "exitCode": 0,
+        "stdoutHex": "3030313a780a3030323a0a",
+        "stderr": ""
+      },
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "3030313a780a3030323a0a",
+        "stderr": ""
+      },
+      "strict": true,
+      "selectedSemantic": true
+    },
+    {
+      "args": [
+        "-bp^[[:digit:]]"
+      ],
+      "inputHex": "31320a6162630a330a",
+      "native": {
+        "exitCode": 0,
+        "stdoutHex": "2020202020310931320a202020202020206162630a20202020203209330a",
+        "stderr": ""
+      },
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "2020202020310931320a202020202020206162630a20202020203209330a",
+        "stderr": ""
+      },
+      "strict": true,
+      "selectedSemantic": true
+    },
+    {
+      "args": [
+        "-bp^\\(ab\\)\\1$"
+      ],
+      "inputHex": "616261620a61620a",
+      "native": {
+        "exitCode": 0,
+        "stdoutHex": "20202020203109616261620a2020202020202061620a",
+        "stderr": ""
+      },
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "20202020203109616261620a2020202020202061620a",
+        "stderr": ""
+      },
+      "strict": true,
+      "selectedSemantic": true
+    },
+    {
+      "args": [
+        "-bp"
+      ],
+      "inputHex": "0a78",
+      "native": {
+        "exitCode": 0,
+        "stdoutHex": "202020202031090a20202020203209780a",
+        "stderr": ""
+      },
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "202020202031090a20202020203209780a",
+        "stderr": ""
+      },
+      "strict": true,
+      "selectedSemantic": true
+    },
+    {
+      "args": [
+        "-ba"
+      ],
+      "inputHex": "ff00610a",
+      "native": {
+        "exitCode": 0,
+        "stdoutHex": "20202020203109ff00610a",
+        "stderr": ""
+      },
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "20202020203109ff00610a",
+        "stderr": ""
+      },
+      "strict": true,
+      "selectedSemantic": true
+    },
+    {
+      "args": [
+        "-ba",
+        "-l0"
+      ],
+      "inputHex": "0a0a0a580a",
+      "native": {
+        "exitCode": 0,
+        "stdoutHex": "202020202031090a202020202032090a202020202033090a20202020203409580a",
+        "stderr": ""
+      },
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "202020202031090a202020202032090a202020202033090a20202020203409580a",
+        "stderr": ""
+      },
+      "strict": true,
+      "selectedSemantic": true
+    },
+    {
+      "args": [
+        "-w0"
+      ],
+      "inputHex": "",
+      "native": {
+        "exitCode": 1,
+        "stdoutHex": "",
+        "stderr": "nl: invalid line number field width: '0': Result too large\n"
+      },
+      "actual": {
+        "exitCode": 1,
+        "stdoutHex": "",
+        "stderr": "nl: invalid number '0'\n"
+      },
+      "strict": false,
+      "selectedSemantic": true
+    },
+    {
+      "args": [
+        "-bq"
+      ],
+      "inputHex": "",
+      "native": {
+        "exitCode": 1,
+        "stdoutHex": "",
+        "stderr": "nl: invalid body numbering style: 'q'\nTry 'tests/commands/metadata-stress/.oracle/coreutils-9.7/src/nl --help' for more information.\n"
+      },
+      "actual": {
+        "exitCode": 1,
+        "stdoutHex": "",
+        "stderr": "nl: invalid numbering style: 'q'\n"
+      },
+      "strict": false,
+      "selectedSemantic": true
+    },
+    {
+      "args": [
+        "-nxx"
+      ],
+      "inputHex": "",
+      "native": {
+        "exitCode": 1,
+        "stdoutHex": "",
+        "stderr": "nl: invalid line numbering format: 'xx'\nTry 'tests/commands/metadata-stress/.oracle/coreutils-9.7/src/nl --help' for more information.\n"
+      },
+      "actual": {
+        "exitCode": 1,
+        "stdoutHex": "",
+        "stderr": "nl: invalid line numbering format: 'xx'\n"
+      },
+      "strict": false,
+      "selectedSemantic": true
+    },
+    {
+      "args": [
+        "-bp["
+      ],
+      "inputHex": "",
+      "native": {
+        "exitCode": 1,
+        "stdoutHex": "",
+        "stderr": "nl: Invalid regular expression\n"
+      },
+      "actual": {
+        "exitCode": 1,
+        "stdoutHex": "",
+        "stderr": "nl: unterminated bracket expression\n"
+      },
+      "strict": false,
+      "selectedSemantic": true
+    },
+    {
+      "args": [
+        "--bad"
+      ],
+      "inputHex": "",
+      "native": {
+        "exitCode": 1,
+        "stdoutHex": "",
+        "stderr": "tests/commands/metadata-stress/.oracle/coreutils-9.7/src/nl: unrecognized option '--bad'\nTry 'tests/commands/metadata-stress/.oracle/coreutils-9.7/src/nl --help' for more information.\n"
+      },
+      "actual": {
+        "exitCode": 1,
+        "stdoutHex": "",
+        "stderr": "nl: unrecognized option '--bad'\n"
+      },
+      "strict": false,
+      "selectedSemantic": true
+    },
+    {
+      "args": [
+        "-l-1"
+      ],
+      "inputHex": "",
+      "native": {
+        "exitCode": 1,
+        "stdoutHex": "",
+        "stderr": "nl: invalid line number of blank lines: '-1': Result too large\n"
+      },
+      "actual": {
+        "exitCode": 1,
+        "stdoutHex": "",
+        "stderr": "nl: invalid number '-1'\n"
+      },
+      "strict": false,
+      "selectedSemantic": true
+    }
+  ]
+}

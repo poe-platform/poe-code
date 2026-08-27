@@ -1,0 +1,268 @@
+{
+  "schema": 1,
+  "status": "sealed-preparation-only-awaiting-closed-author-handoff",
+  "date": "2026-08-27",
+  "candidate": "0123c83d3aae72a15621acbb29a165b97b2c6ab6",
+  "originalEvidence": "154a8d227b79e1f86566e9a98ea353239b8dddc8",
+  "sourcePins": {
+    "inputCommit": "f8819e9d6b6d535b0626e0aa004bb10a7bc36785",
+    "inputBlob": "3eec71b72f87dd48ddac572d6e7feb9097d32be4",
+    "aliasCommit": "04644bc2c15d67155f5f4b170a66fc9bef3f6e3d",
+    "aliasTree": "5e8ac069bfa6ead7a337130457cd6519f2066e2c",
+    "columnTree": "8b32998383d1372a8624ac41d2e747551e5b6d4c"
+  },
+  "package": {
+    "sha256": "62228b67ca6793544f0f4374ca00fbbb6e627f514f184d5880fd7723ccf179c6",
+    "historicalLocationHint": "/tmp/safe-bash-alias-final-0123-20260827T1634-02",
+    "locationInspectedNow": false,
+    "authority": "authenticate original retained tar and original preparation receipt; path hint is not proof",
+    "imports": [
+      "virtual-bash public root Shell",
+      "packed INTERNAL dist/commands/grep-aliases/index.js file URL"
+    ],
+    "publicAliasSubpathClaim": false
+  },
+  "allowedExpectationChanges": [
+    {
+      "name": "S07/borrowed-external-Shell-stdin-return-rejection-not-waived",
+      "originalLines": [
+        408,
+        412
+      ],
+      "command": "egrep -q keep",
+      "sentinelMessage": "external-return-sentinel",
+      "registration": "alias plugin",
+      "observations": [
+        "returns",
+        "nextCalls"
+      ],
+      "inputUtf8": "keep:01\n",
+      "inputBehavior": "each next returns these same bytes, done false; return asynchronously rejects the original sentinel",
+      "expected": {
+        "settlement": "rejected",
+        "reasonIdentity": "same sentinel object, not message/name equivalence",
+        "fulfilledShellResult": false,
+        "fulfilledStatus": false,
+        "returns": 1
+      },
+      "preserve": "literal setup/input/options/limits, observations, byte/effect guards, finally disposal, worker/unhandled checks"
+    },
+    {
+      "name": "ROOT-CONTROL/public-registered-grep-reproduces-external-return-failure",
+      "originalLines": [
+        580,
+        591
+      ],
+      "command": "grep -q keep",
+      "sentinelMessage": "shared-grep-return-sentinel",
+      "registration": "standard grep only",
+      "observations": [
+        "returns",
+        "aliasesRegistered"
+      ],
+      "inputUtf8": "keep:01\n",
+      "inputBehavior": "each next returns these same bytes, done false; return asynchronously rejects the original sentinel",
+      "expected": {
+        "settlement": "rejected",
+        "reasonIdentity": "same sentinel object, not message/name equivalence",
+        "fulfilledShellResult": false,
+        "fulfilledStatus": false,
+        "returns": 1
+      },
+      "preserve": "literal setup/input/options/limits, observations, byte/effect guards, finally disposal, worker/unhandled checks"
+    }
+  ],
+  "inverseCheck": {
+    "originalPath": "tests/commands/grep-aliases-stress/verification/holdouts.mts",
+    "sha256": "d454002f97fa37b6546bad238feec5472774646a6bf0d766fea32c2c0c32977b",
+    "gitBlob": "6f6c38676da4585f40f3b8cf0a95eb30d43692d9",
+    "spans": 2,
+    "rule": "replace only the two derivative settlement blocks with their original bytes; require whole-file SHA256 and Git blob equality; no normalization"
+  },
+  "cohorts": {
+    "base": {
+      "count": 77,
+      "originalPass": 75,
+      "originalFail": 2,
+      "names": [
+        "N01/native-byte-exact",
+        "N02/native-byte-exact",
+        "N03/matcher-profile-evidence",
+        "N04/matcher-profile-evidence",
+        "N05/matcher-profile-evidence",
+        "N06/matcher-profile-evidence",
+        "N07/matcher-profile-evidence",
+        "N08/matcher-profile-evidence",
+        "N09/native-byte-exact",
+        "N10/native-byte-exact",
+        "N11/native-byte-exact",
+        "N12/native-byte-exact",
+        "N13/native-byte-exact",
+        "N14/native-byte-exact",
+        "N15/native-byte-exact",
+        "N16/native-byte-exact",
+        "N17/diagnostic-profile-evidence",
+        "N18/diagnostic-profile-evidence",
+        "N19/diagnostic-profile-evidence",
+        "N20/native-byte-exact",
+        "N21/native-byte-exact",
+        "N22/native-byte-exact",
+        "N23/native-byte-exact",
+        "N24/native-byte-exact",
+        "N25/native-byte-exact",
+        "N26/diagnostic-profile-evidence",
+        "S01/standalone-without-grep-and-malicious-shadow",
+        "S01/direct-invoke-bypass-and-frozen-argv",
+        "S01/collision-preflight-and-explicit-replacement",
+        "S02/egrep-4-direct-owned-fragments",
+        "S02/egrep-4-borrowed-shell-stdin",
+        "S02/egrep-4-owned-VFS-to-file",
+        "S02/egrep-8-direct-owned-fragments",
+        "S02/egrep-8-borrowed-shell-stdin",
+        "S02/egrep-8-owned-VFS-to-file",
+        "S02/fgrep-4-direct-owned-fragments",
+        "S02/fgrep-4-borrowed-shell-stdin",
+        "S02/fgrep-4-owned-VFS-to-file",
+        "S02/fgrep-8-direct-owned-fragments",
+        "S02/fgrep-8-borrowed-shell-stdin",
+        "S02/fgrep-8-owned-VFS-to-file",
+        "S03/cumulative-output-across-two-aliases",
+        "S03/nested-output-and-command-budget",
+        "S04/shared-family-worker-queue-cancel-sibling",
+        "S04/queued-byte-limit-and-independent-factory-control",
+        "S05/pre-abort-no-acquisition-both-aliases",
+        "S05/owned-file-signal-and-pending-abort",
+        "S06/registered-regex-cleanup-overlaps-held-output-and-finally",
+        "S06/cleanup-registration-before-acquisition-and-overlap",
+        "S06/registration-throw-and-synchronous-close-block-admission",
+        "S07/egrep-direct-return-throw",
+        "S07/egrep-direct-return-reject",
+        "S07/fgrep-direct-return-throw",
+        "S07/fgrep-direct-return-reject",
+        "S07/owned-VFS-return-rejection-not-hidden",
+        "S07/borrowed-external-Shell-stdin-return-rejection-not-waived",
+        "S07/actual-registered-cleanup-failure-and-abort-precedence",
+        "S08/egrep-awaited-backpressure-and-sink-errors",
+        "S08/fgrep-awaited-backpressure-and-sink-errors",
+        "S09/late-stdin-error-after-caller-abort",
+        "S09/late-owned-VFS-error-after-caller-abort",
+        "S09/late-sink-error-after-caller-abort",
+        "S10/complex-pipeline-redirection-byte-readback",
+        "S10/pipefail-status-one-not-error",
+        "S11/early-head-close-and-independent-sibling-lease",
+        "S11/registered-cleanup-bars-exec-and-overlapping-dispose",
+        "S12/substitution-and-grouped-pipelines",
+        "A01/egrep-inherited-structural-CommandContext-fields",
+        "A01/fgrep-inherited-structural-CommandContext-fields",
+        "A02/egrep-nonenumerable-cleanup-hook",
+        "A02/fgrep-nonenumerable-cleanup-hook",
+        "A03/definition-registry-replace-and-factory-option-validation",
+        "A04/egrep-class-getters-and-cleanup-receiver",
+        "A04/fgrep-class-getters-and-cleanup-receiver",
+        "A05/real-catastrophic-ERE-request-timeout-and-fixed-control",
+        "A05/caller-abort-in-flight-real-worker-request",
+        "ROOT-CONTROL/public-registered-grep-reproduces-external-return-failure"
+      ]
+    },
+    "supplement": {
+      "count": 5,
+      "originalPass": 5,
+      "originalFail": 0,
+      "names": [
+        "S02/egrep-4-owned-reuse-internal-pipe-to-file",
+        "S02/egrep-8-owned-reuse-internal-pipe-to-file",
+        "S02/fgrep-4-owned-reuse-internal-pipe-to-file",
+        "S02/fgrep-8-owned-reuse-internal-pipe-to-file",
+        "S03/pipeline-output-budget"
+      ]
+    },
+    "total": 82,
+    "unchangedSubcases": 80,
+    "newReplayExecuted": 0
+  },
+  "toolsOnlyControls": {
+    "executed": 0,
+    "negativeCount": 6,
+    "positiveCount": 2,
+    "codeBinding": "actual authenticated closed-author v2 assertion code, not a reimplemented comparator",
+    "perSite": [
+      {
+        "name": "S07/borrowed-external-Shell-stdin-return-rejection-not-waived",
+        "negative": [
+          {
+            "id": "swallowed-fulfilled-zero",
+            "settlement": "fulfilled",
+            "exitCode": 0
+          },
+          {
+            "id": "wrong-identity-same-message",
+            "settlement": "rejected",
+            "reason": "new Error(sentinel.message), distinct object"
+          },
+          {
+            "id": "handler-style-fulfilled-two",
+            "settlement": "fulfilled",
+            "exitCode": 2,
+            "stderr": "include sentinel message to catch status/diagnostic fallback"
+          }
+        ],
+        "positive": {
+          "settlement": "rejected",
+          "reason": "original sentinel object"
+        },
+        "require": "all supporting setup/cleanup/counts valid; failure must be an actual settlement assertion, with site evidence"
+      },
+      {
+        "name": "ROOT-CONTROL/public-registered-grep-reproduces-external-return-failure",
+        "negative": [
+          {
+            "id": "swallowed-fulfilled-zero",
+            "settlement": "fulfilled",
+            "exitCode": 0
+          },
+          {
+            "id": "wrong-identity-same-message",
+            "settlement": "rejected",
+            "reason": "new Error(sentinel.message), distinct object"
+          },
+          {
+            "id": "handler-style-fulfilled-two",
+            "settlement": "fulfilled",
+            "exitCode": 2,
+            "stderr": "include sentinel message to catch status/diagnostic fallback"
+          }
+        ],
+        "positive": {
+          "settlement": "rejected",
+          "reason": "original sentinel object"
+        },
+        "require": "all supporting setup/cleanup/counts valid; failure must be an actual settlement assertion, with site evidence"
+      }
+    ]
+  },
+  "futureGates": [
+    "closed full commits and actual parents authenticated",
+    "two inverse-hash-matched assertion deltas only",
+    "all other 80 cases and original source/limits/native bytes unchanged",
+    "append-aware package/harness/import inventories before and after",
+    "six negative and two positive actual-assertion tools controls separately counted",
+    "same-package full77+5 runtime replay with exact membership",
+    "scoped strict harness types only; no full build/gate",
+    "all raw attempts retained; worker retirement and noUnhandled checks preserved",
+    "timeout/cap/forced cleanup never pass",
+    "root public integration remains HOLD"
+  ],
+  "executionNow": {
+    "candidateImports": 0,
+    "productCalls": 0,
+    "tests": 0,
+    "builds": 0,
+    "nativeCalls": 0,
+    "dependencyInstalls": 0,
+    "workersLaunched": 0,
+    "retainedChildren": 0
+  },
+  "authorSettlementV2Read": false,
+  "changesToOriginalEvidence": false,
+  "stop": "no polling or concurrent worker resume; wait for root closed-author handoff"
+}

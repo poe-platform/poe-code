@@ -1,0 +1,20 @@
+import assert from 'node:assert/strict';
+import { chmodSync, mkdirSync, statSync, writeFileSync } from 'node:fs';
+import { spawnSync } from 'node:child_process';
+import { join, resolve } from 'node:path';
+
+const root = resolve(process.argv[2] ?? '');
+const binary = resolve(process.argv[3] ?? '');
+assert.ok(root.startsWith('/tmp/safe-bash-stream-five-public-verifier.'));
+assert.ok(binary.startsWith('/tmp/safe-bash-stream-five-public-verifier.'));
+mkdirSync(root);
+const directory = join(root, 'directory');
+mkdirSync(directory);
+chmodSync(directory, 0o6755);
+const before = statSync(directory);
+const args = ['-c', 'umask "$1"; shift; exec "$@"', 'metadata-oracle', '22', binary, '--', '+2000', 'directory'];
+const native = spawnSync('/bin/bash', args, { cwd: root, env: { PATH: '/usr/bin:/bin', LC_ALL: 'C', LANG: 'C', TZ: 'UTC', TMPDIR: root }, encoding: 'utf8', timeout: 5000 });
+const after = statSync(directory);
+const result = { uid: process.getuid(), gid: process.getgid(), groups: process.getgroups(), requestedInitial: '6755', mode: '+2000', before: { gid: before.gid, mode: (before.mode & 0o7777).toString(8) }, native: { status: native.status, stdout: native.stdout, stderr: native.stderr }, after: { gid: after.gid, mode: (after.mode & 0o7777).toString(8) } };
+writeFileSync(join(root, 'result.json'), JSON.stringify(result, null, 2) + '\n');
+console.log(JSON.stringify(result, null, 2));

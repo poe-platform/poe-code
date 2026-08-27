@@ -73,3 +73,29 @@ strict classifiers and original host pins. Prior attempts/native artifacts
 remain unchanged. `native-group-control.mjs` and its raw evidence reproduce the
 profile distinction; no new corpus row is counted. Full positive replay remains
 required after this disclosed harness-environment correction.
+
+## Outer release attempt 3: setup itself inside sandbox strips setid
+
+Aligning the inherited group alone did not qualify the native run: 316/318 and
+20/22 again. The earlier control initialized modes OUTSIDE the sandbox, so its
+passing gid20 case did not isolate the complete native fixture lifecycle.
+`native-setid-child.mjs` repeats the exact existing first failure with creation
+and initial chmod inside the child. With gid20, plain execution measures6755 and
+native +2000 exits0; network-sandboxed execution measures0755 and native exits1
+with EPERM. This corrects the earlier incomplete causal claim, retaining both
+the original group control and both full failed qualification attempts.
+
+Native qualification must use the canonical unsandboxed host permission
+profile, not a sandbox that changes the oracle's permission semantics. The
+exact committed outer npm command now runs in the same authenticated isolated
+workspace without sandbox-exec, with explicit C/UTC and npm offline settings,
+copied/hashed tooling and native assets, no downloads or network operations.
+The committed outer scripts were inspected: only the existing bounded native,
+compiler, package and local consumer workflows execute. Original pins remain
+read-only by operation and are rehashed afterward; they are not chmod'd.
+
+This boundary distinction is explicit: the independent packed consumer STILL
+runs under OS network and repository/build-read denial with actual failing
+controls. No claim is made that native qualification ran under that same OS
+sandbox, nor are native failures waived or fixture diagnostics relaxed. Full
+318/318 plus current82-input release success remains required.

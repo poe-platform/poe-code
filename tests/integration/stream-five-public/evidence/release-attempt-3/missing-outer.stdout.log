@@ -1,0 +1,6 @@
+
+> virtual-bash@0.0.0 verify:release:qualified
+> node scripts/verify-qualified-release.mjs --source-commit b7ae676a57adec1193b51fe08a91b17eac6f5884 --native-assets-from /tmp/safe-bash-stream-five-public-verifier.29433-release-3/missing/oracle/coreutils-9.7
+
+{"directory":"/private/tmp/safe-bash-stream-five-public-verifier.29433-release-3/authenticated-workspace/tests/plugins/stream-five-public/.runs/qualified-E9rvV7","sourceCommit":"b7ae676a57adec1193b51fe08a91b17eac6f5884","sourceTreeSha256":"26894f5cac0c7f294538d64fcfab39bca5218ca37dd41843660dbeb184b13c86"}
+{"directory":"/private/tmp/safe-bash-stream-five-public-verifier.29433-release-3/authenticated-workspace/tests/plugins/stream-five-public/.runs/qualified-E9rvV7","sourceCommit":"b7ae676a57adec1193b51fe08a91b17eac6f5884","exitCode":78,"sourceUnchanged":true}

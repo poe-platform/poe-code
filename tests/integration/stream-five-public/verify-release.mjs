@@ -125,7 +125,7 @@ try {
       }
     }
     const args = [npm, 'run', 'verify:release:qualified', '--', '--source-commit', commit, '--native-assets-from', primary];
-    const outer = run(`EXACT committed npm qualified release ${label}`, node, args, authenticated, null, true, 900000);
+    const outer = run(`EXACT committed npm qualified release ${label}`, node, args, authenticated, null, false, 900000);
     const records = outer.output.split('\n').filter(line => line.startsWith('{')).map(line => { try { return JSON.parse(line); } catch { return null; } }).filter(Boolean);
     const runDirectory = records.find(record => record.directory)?.directory;
     assert.ok(runDirectory?.startsWith(join(realpathSync(authenticated), 'tests/plugins/stream-five-public/.runs/')));

@@ -83,7 +83,7 @@ try {
   for (const key of frozen.controls.limits) await control(`budget/${key}`, async () => {
     const session = new RegexExecutor().open(signal());
     try {
-      await assert.rejects(session.matchExpr(descriptor(frozen.controls.limitPattern, 'byte', { [key]: 1 }), Buffer.from(frozen.controls.limitSubject)), error => {
+      await assert.rejects(async () => session.matchExpr(descriptor(frozen.controls.limitPattern, 'byte', { [key]: 1 }), Buffer.from(frozen.controls.limitSubject)), error => {
         assert.ok(error instanceof protocol.ExprMatchError);
         assert.equal(error.category, 'limit');
         return true;
@@ -116,7 +116,7 @@ try {
     const reason = Object.freeze({ code: 'ENOENT', marker: 'independent-abort-reason' });
     controller.abort(reason);
     const session = new RegexExecutor().open(controller.signal);
-    try { await assert.rejects(session.matchExpr(request, subject), error => error === reason); }
+    try { await assert.rejects(async () => session.matchExpr(request, subject), error => error === reason); }
     finally { await session.close(); }
     return { exactReasonPreserved: true };
   });

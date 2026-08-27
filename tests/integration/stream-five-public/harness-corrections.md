@@ -25,3 +25,16 @@ It still requires every real product JS/declaration edge to resolve inside the
 packed dist or to an inspected builtin. No dependency was installed, no product
 or fixture changed, and no runtime check was counted from this failed attempt.
 The raw original report is preserved in `evidence/packed-attempt-2/report.json`.
+
+## Outer release attempt 1: Darwin /tmp alias comparison
+
+The exact committed npm command correctly propagated exit78 for the copied
+missing chmod asset, before product tests. The verifier then rejected the
+reported run directory because Node canonicalized `/tmp` to `/private/tmp`,
+while the verifier compared an unresolved spelling. The correction compares
+against realpath(authenticated workspace), retaining the strict descendant
+requirement. No release script/native pin/product/input change is involved.
+Original outer stdout and raw author result are preserved under
+`evidence/release-attempt-1/`; the full original verifier report remains in its
+immutable temporary attempt directory. This failed attempt is not a positive
+qualified-release pass.

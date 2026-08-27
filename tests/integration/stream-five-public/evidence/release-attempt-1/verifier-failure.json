@@ -1,0 +1,152 @@
+{
+  "commit": "b7ae676a57adec1193b51fe08a91b17eac6f5884",
+  "steps": [
+    {
+      "label": "authenticate release source",
+      "executable": "/usr/bin/git",
+      "args": [
+        "--no-replace-objects",
+        "rev-parse",
+        "b7ae676a57adec1193b51fe08a91b17eac6f5884^{commit}"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "status": 0,
+      "signal": null,
+      "expected": 0,
+      "stdout": "01.stdout.log",
+      "stderr": "01.stderr.log"
+    },
+    {
+      "label": "release harness HEAD",
+      "executable": "/usr/bin/git",
+      "args": [
+        "rev-parse",
+        "HEAD"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "status": 0,
+      "signal": null,
+      "expected": 0,
+      "stdout": "02.stdout.log",
+      "stderr": "02.stderr.log"
+    },
+    {
+      "label": "authenticate exact outer-command verifier",
+      "executable": "/usr/bin/git",
+      "args": [
+        "show",
+        "ed0051aae7109958df65993099b6013ffdf92b67:tests/integration/stream-five-public/verify-release.mjs"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "status": 0,
+      "signal": null,
+      "expected": 0,
+      "stdout": "03.stdout.log",
+      "stderr": "03.stderr.log"
+    },
+    {
+      "label": "archive exact gated source",
+      "executable": "/usr/bin/git",
+      "args": [
+        "--no-replace-objects",
+        "archive",
+        "--format=tar",
+        "--output=/tmp/safe-bash-stream-five-public-verifier.29433-release-1/source.tar",
+        "b7ae676a57adec1193b51fe08a91b17eac6f5884"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "status": 0,
+      "signal": null,
+      "expected": 0,
+      "stdout": "04.stdout.log",
+      "stderr": "04.stderr.log"
+    },
+    {
+      "label": "extract authenticated workspace",
+      "executable": "/usr/bin/tar",
+      "args": [
+        "-xf",
+        "/tmp/safe-bash-stream-five-public-verifier.29433-release-1/source.tar",
+        "-C",
+        "/tmp/safe-bash-stream-five-public-verifier.29433-release-1/authenticated-workspace"
+      ],
+      "cwd": "/tmp/safe-bash-stream-five-public-verifier.29433-release-1",
+      "status": 0,
+      "signal": null,
+      "expected": 0,
+      "stdout": "05.stdout.log",
+      "stderr": "05.stderr.log"
+    },
+    {
+      "label": "authenticate detached isolated HEAD",
+      "executable": "/usr/bin/git",
+      "args": [
+        "rev-parse",
+        "HEAD"
+      ],
+      "cwd": "/tmp/safe-bash-stream-five-public-verifier.29433-release-1/authenticated-workspace",
+      "status": 0,
+      "signal": null,
+      "expected": 0,
+      "stdout": "06.stdout.log",
+      "stderr": "06.stderr.log"
+    },
+    {
+      "label": "populate isolated index only",
+      "executable": "/usr/bin/git",
+      "args": [
+        "read-tree",
+        "b7ae676a57adec1193b51fe08a91b17eac6f5884"
+      ],
+      "cwd": "/tmp/safe-bash-stream-five-public-verifier.29433-release-1/authenticated-workspace",
+      "status": 0,
+      "signal": null,
+      "expected": 0,
+      "stdout": "07.stdout.log",
+      "stderr": "07.stderr.log"
+    },
+    {
+      "label": "isolated committed files clean",
+      "executable": "/usr/bin/git",
+      "args": [
+        "status",
+        "--short",
+        "--untracked-files=no"
+      ],
+      "cwd": "/tmp/safe-bash-stream-five-public-verifier.29433-release-1/authenticated-workspace",
+      "status": 0,
+      "signal": null,
+      "expected": 0,
+      "stdout": "08.stdout.log",
+      "stderr": "08.stderr.log"
+    },
+    {
+      "label": "EXACT committed npm qualified release missing",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/bin/npm-cli.js",
+        "run",
+        "verify:release:qualified",
+        "--",
+        "--source-commit",
+        "b7ae676a57adec1193b51fe08a91b17eac6f5884",
+        "--native-assets-from",
+        "/tmp/safe-bash-stream-five-public-verifier.29433-release-1/missing/oracle/coreutils-9.7"
+      ],
+      "cwd": "/tmp/safe-bash-stream-five-public-verifier.29433-release-1/authenticated-workspace",
+      "status": 78,
+      "signal": null,
+      "expected": null,
+      "stdout": "09.stdout.log",
+      "stderr": "09.stderr.log"
+    }
+  ],
+  "failures": [
+    {
+      "message": "The expression evaluated to a falsy value:\n\n  assert.ok(runDirectory?.startsWith(join(authenticated, 'tests/plugins/stream-five-public/.runs/')))\n",
+      "stack": "AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:\n\n  assert.ok(runDirectory?.startsWith(join(authenticated, 'tests/plugins/stream-five-public/.runs/')))\n\n    at file:///Users/kjopek/Workspace/safe-bash/tests/integration/stream-five-public/verify-release.mjs:125:12"
+    }
+  ],
+  "originalReport": "/tmp/safe-bash-stream-five-public-verifier.29433-release-1/report.json",
+  "originalReportSha256": "7da67e86197097326ac3d99a46fb0d64bc1b41f0a079b0dfc787e2a62a4f3b04"
+}

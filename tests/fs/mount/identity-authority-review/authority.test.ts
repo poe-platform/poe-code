@@ -415,13 +415,16 @@ test("WebDAV resource-id protocol fixture supports pairwise proof without conten
     ["/source", "urn:uuid:59b88385-6b77-4fae-9ab6-72ee0c2d9483"],
     ["/target", "urn:uuid:4a4a3d01-9604-4f47-87e7-ac93d1cc72e8"],
   ]);
+  let duplicateProperty = false;
   const fetch: WebDavFetch = async (url, init) => {
     const response = await store.fetch(url, init);
     if (init.method !== "PROPFIND" || !String(init.body).includes("resource-id") || response.status !== 207) return response;
     const identifier = identifiers.get(new URL(url).pathname.slice(4));
-    const xml = await response.text();
+    const suppliedXml = await response.text();
+    assert.equal([...suppliedXml.matchAll(/<z:resource-id>.*?<\/z:resource-id>/gs)].length, 1);
+    const xml = suppliedXml.replace(/<z:resource-id>.*?<\/z:resource-id>/gs, "");
     const extra = identifier ? `<z:resource-id><z:href>${identifier}</z:href></z:resource-id>` : "";
-    return new Response(xml.replace("</z:prop>", `${extra}</z:prop>`), { status: 207, headers: response.headers });
+    return new Response(xml.replace("</z:prop>", `${extra}${duplicateProperty ? extra : ""}</z:prop>`), { status: 207, headers: response.headers });
   };
   const first = new WebDavFileSystem({ baseUrl: "https://one.example/dav/", fetch, overwritePolicy: "etag" });
   const second = new WebDavFileSystem({ baseUrl: "https://alias.example/dav/", fetch, overwritePolicy: "etag" });
@@ -460,12 +463,23 @@ test("WebDAV resource-id protocol fixture supports pairwise proof without conten
   };
   const source = authority.enroll(first, resolve("https://one.example/dav"));
   const target = authority.enroll(second, resolve("https://alias.example/dav"));
+  assert.equal((await resolve("https://one.example/dav")("/source", {}))?.entry, identifiers.get("/source"));
+  assert.equal((await resolve("https://alias.example/dav")("/target", {}))?.entry, identifiers.get("/target"));
   await proofCopy(source, "/source", source, "/target");
   await proofCopy(source, "/source", target, "/target");
   await assert.rejects(proofCopy(source, "/source", target, "/source"), { code: "EINVAL" });
+  duplicateProperty = true;
+  const duplicateStart = store.requests.length;
+  assert.equal(await resolve("https://alias.example/dav")("/target", {}), undefined);
+  await assert.rejects(proofCopy(source, "/source", target, "/target"), { code: "ENOTSUP" });
+  assert.ok(store.requests.slice(duplicateStart).every(request => request.init.method === "PROPFIND"));
+  duplicateProperty = false;
   identifiers.delete("/target");
+  assert.equal(await resolve("https://alias.example/dav")("/target", {}), undefined);
   const start = store.requests.length;
   await assert.rejects(proofCopy(source, "/source", target, "/target"), { code: "ENOTSUP" });
   assert.ok(store.requests.slice(start).every(request => request.init.method === "PROPFIND"));
-  record("dav-resource-id", { sameViewCopy: true, crossViewCopy: true, endpointAliasRejected: true, missingPropertyIsUnknown: true });
+  assert.equal(await text(first, "/source"), "identical");
+  assert.equal(await text(second, "/target"), "identical");
+  record("dav-resource-id", { sameViewCopy: true, crossViewCopy: true, endpointAliasRejected: true, missingPropertyIsUnknown: true, duplicatePropertyIsUnknown: true });
 });

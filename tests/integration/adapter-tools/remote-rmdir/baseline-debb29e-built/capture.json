@@ -1,0 +1,124 @@
+{
+  "capturedAt": "2026-08-27T06:50:29.832Z",
+  "sourceRevision": "debb29ead94ae387f359d9d04b333ee4380f88d6",
+  "inputRevision": "debb29ead94ae387f359d9d04b333ee4380f88d6",
+  "helperRevision": "debb29ead94ae387f359d9d04b333ee4380f88d6",
+  "sourceTree": "05ecc9d1c914bb7a959ba5a77f51e0820738d5d8",
+  "liveHeadAtCapture": "0dd9b70816828922c86160f501eb6f161a307cfa",
+  "liveStatusAtCapture": " M tests/shell/invocation-discovery-fixes.test.ts\n?? benchmarks/reports/comparison-fairness-20260827/published-artifact-authentication/\n?? tests/commands/diff-patch-stress/evidence/fullgate-51282a9-followup/.gitignore\n?? tests/commands/diff-patch-stress/evidence/fullgate-51282a9-followup/acceptance-guard.mjs\n?? tests/commands/diff-patch-stress/evidence/fullgate-51282a9-followup/acceptance.mjs\n?? tests/commands/diff-patch-stress/evidence/fullgate-51282a9-followup/regressions-first-fix.json\n?? tests/commands/diff-patch-stress/evidence/fullgate-51282a9-followup/tsconfig.json\n?? tests/commands/diff-patch-stress/evidence/fullgate-51282a9-followup/validate.mjs\n?? tests/commands/diff-patch-stress/evidence/fullgate-51282a9-followup/validation-build.json\n?? tests/commands/diff-patch-stress/evidence/fullgate-51282a9-followup/validation-canonical.json\n?? tests/commands/diff-patch-stress/evidence/fullgate-51282a9-followup/validation-matcher.json\n?? tests/commands/diff-patch-stress/evidence/fullgate-51282a9-followup/validation-regressions.json\n?? tests/commands/diff-patch-stress/evidence/fullgate-51282a9-followup/validation-types.json\n?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/\n?? tests/commands/search-stress/.native-1m4O1e/\n?? tests/integration/adapter-tools/remote-rmdir/\n?? tests/integration/full-gate-20260827/authority-reconciliation-independent/\n?? tests/shell-stress/canonical-profile-migration/.candidate-A-MCzKZA/\n?? tests/shell-stress/canonical-profile-migration/.candidate-A-Utom8y/\n?? tests/shell-stress/canonical-profile-migration/.source-6e-9PS0KC/\n?? tests/shell-stress/canonical-profile-migration/candidate-A-execution.json\n?? tests/shell-stress/canonical-profile-migration/candidate-A.json\n?? tests/shell-stress/canonical-profile-migration/candidate-run.mjs\n?? tests/shell-stress/canonical-profile-migration/candidate-trace.mjs\n?? tests/shell-stress/canonical-profile-migration/candidate-typecheck.mjs\n?? tests/shell-stress/canonical-profile-migration/discovery-profile.ts\n?? tests/shell-stress/canonical-profile-migration/historical-discovery.ts\n?? tests/shell-stress/canonical-profile-review/ALIGNED_PREPARATION.md\n?? tests/shell-stress/canonical-profile-review/aligned-compare.mjs\n?? tests/shell-stress/canonical-profile-review/aligned-comparison-20260827.json\n?? tests/shell-stress/canonical-profile-review/aligned-freeze.json\n?? tests/shell-stress/canonical-profile-review/aligned-integrity.test.mjs\n?? tests/shell-stress/canonical-profile-review/aligned-native-20260827.json\n?? tests/shell-stress/canonical-profile-review/aligned-native.mjs\n?? tests/shell-stress/errexit-legacy-policy/.correction-archive-bLk5Ko/\n",
+  "archivedCommittedFilesOnly": true,
+  "archives": [
+    {
+      "name": "source",
+      "revision": "debb29ead94ae387f359d9d04b333ee4380f88d6",
+      "paths": [
+        "src",
+        "package.json",
+        "package-lock.json",
+        "tsconfig.json",
+        "tsconfig.build.json"
+      ],
+      "file": "source.tar.gz",
+      "bytes": 498125,
+      "sha256": "b9871276bf4fee62983bac2be6626a430ca42a2881298fc212ad3af5fd2a5dcf"
+    },
+    {
+      "name": "input",
+      "revision": "debb29ead94ae387f359d9d04b333ee4380f88d6",
+      "paths": [
+        "tests/integration/adapter-tools/fixtures.ts",
+        "tests/integration/adapter-tools/matrix.test.ts",
+        "tests/integration/adapter-tools/preflight-review/preflight.ts",
+        "tests/integration/adapter-tools/preflight-review/preflight.test.ts"
+      ],
+      "file": "input.tar.gz",
+      "bytes": 8415,
+      "sha256": "540620f175fe23252753b51f723debc2a382e857f406e3b0461edfcbac7e977c"
+    },
+    {
+      "name": "helper",
+      "revision": "debb29ead94ae387f359d9d04b333ee4380f88d6",
+      "paths": [
+        "tests/fs/webdav/mock.ts"
+      ],
+      "file": "helper.tar.gz",
+      "bytes": 3519,
+      "sha256": "69f19140159bb724dd34df3f87f4e36598bd2a47acdbbd87cc55d8c127abb80e"
+    }
+  ],
+  "buildProfile": "Build archived source using its tsconfig.build.json before matrix execution; source-mode regex client requires the resulting dist worker.",
+  "inputHash": "8f23448e026a03e1b8ec87f1784e2b73b4cc63a9f8b4d1f198b1c449c6661908",
+  "groupHashes": {
+    "source": "11ada26e691086a51f2c8929347511a4b99a4472dc1f74b259660945760983a3",
+    "input": "6f259e4705e7e504dec6849c8ef1c997829e0e8bedaf9d95fd2e3c271ae7cf15",
+    "helper": "d636e8cacb636e08d57d45d0d1a33432cc6f9e50c1d18ea3145c907b5a876e18"
+  },
+  "node": {
+    "version": "v22.22.2",
+    "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+    "versions": {
+      "node": "22.22.2",
+      "acorn": "8.15.0",
+      "ada": "2.9.2",
+      "amaro": "1.1.5",
+      "ares": "1.34.6",
+      "brotli": "1.1.0",
+      "cjs_module_lexer": "2.2.0",
+      "cldr": "48.0",
+      "icu": "78.2",
+      "llhttp": "9.3.0",
+      "modules": "127",
+      "napi": "10",
+      "nbytes": "0.1.1",
+      "ncrypto": "0.0.1",
+      "nghttp2": "1.64.0",
+      "openssl": "3.5.5",
+      "simdjson": "4.2.4",
+      "simdutf": "6.4.2",
+      "sqlite": "3.51.2",
+      "tz": "2025c",
+      "undici": "6.24.1",
+      "unicode": "17.0",
+      "uv": "1.51.0",
+      "uvwasi": "0.0.23",
+      "v8": "12.4.254.21-node.39",
+      "zlib": "1.3.1-e00f703",
+      "zstd": "1.5.7"
+    }
+  },
+  "platform": "darwin",
+  "arch": "arm64",
+  "toolchain": [
+    {
+      "name": "tsx",
+      "version": "4.23.12",
+      "packageJsonSha256": "96aee9fd252d0cc31f3c01468250961f5b338c797bc208700d7db926450c7659"
+    },
+    {
+      "name": "esbuild",
+      "version": "0.28.2",
+      "packageJsonSha256": "9d0bc453f4e791553c4cc2298ba023b409241fd9801e494741666eb0f6051490"
+    },
+    {
+      "name": "typescript",
+      "version": "5.9.3",
+      "packageJsonSha256": "822ef7ca6452205657b6288b066481ecf508bfbf43455d715cf7d3ec457561e6"
+    },
+    {
+      "name": "@types/node",
+      "version": "22.20.1",
+      "packageJsonSha256": "1e6d3bbbc5082745123d236b38dce0eacdab987d4ac9e57e299e55f780c170de"
+    }
+  ],
+  "toolchainPolicy": "Existing local development dependencies resolved from repository node_modules; no install; package metadata hashed, entire dependency trees not frozen.",
+  "subprocessEnvironmentOverrides": {
+    "NO_COLOR": "1",
+    "FORCE_COLOR": "0",
+    "TSX_DISABLE_CACHE": "1",
+    "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/integration/adapter-tools/remote-rmdir/.archive-YhduEE"
+  },
+  "networkProfile": "S3 in-process MockS3Client; WebDAV MockDav over loopback HTTP; no native provider replay or external oracle.",
+  "cohostLoad": "Other authors active; elapsed time is execution metadata, not a performance comparison.",
+  "runnerSha256": "ba46d32f8547e05a0d98e9f2bcfa72f907d92df4a05c317bb7a8e257ccc202c4"
+}

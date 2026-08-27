@@ -1,5 +1,5 @@
 {
-  "frozenAt": "2026-08-27T05:31:50.770Z",
+  "frozenAt": "2026-08-27T05:26:59.671Z",
   "dataFreezeSha256": "d15b0852401a4c09da680a5ef05247b02c33db3e1b0223e97ac3d03db77745c7",
   "categories": 10,
   "syntheticCases": 9,
@@ -28,7 +28,7 @@
     },
     {
       "path": "verify.mjs",
-      "sha256": "961c5bbbea618b90b67d9250ebbd58384cb037c295a0d9e6f8c90ba268027672"
+      "sha256": "6aa87b6aad8396943ad85617ecfd1838d1f2885062ea4171a0a82f97165935e6"
     },
     {
       "path": "offline-controls.mjs",
@@ -36,7 +36,5 @@
     }
   ],
   "originalFreezeSha256": "b3bbdee7e92dbebd4bdccd8418925917436f66b645b8cda231d9b919bbe5c39e",
-  "amendment": "Before first product execution: reject lifecycle scripts after independent npm prepare bypass control; acceptance bytes and 27 runtime checks unchanged.",
-  "gatedFreezeSha256": "47c7f321594dedcc38c25260f440a096a7afe2ec4d8372653ad6dbb73145080f",
-  "helperCorrection": "Attempt1 pre-build helper fault: npm tooling internal file symlinks inventoried with contained target hashes; product/source/consumer no-symlink policy unchanged. All27 runtime checks and TS/input fixtures unchanged."
+  "amendment": "Before first product execution: reject lifecycle scripts after independent npm prepare bypass control; acceptance bytes and 27 runtime checks unchanged."
 }

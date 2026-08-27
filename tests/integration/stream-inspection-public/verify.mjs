@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
-import { cpSync, existsSync, lstatSync, mkdirSync, readFileSync, readdirSync, realpathSync, writeFileSync } from 'node:fs';
+import { cpSync, existsSync, lstatSync, mkdirSync, readFileSync, readdirSync, readlinkSync, realpathSync, writeFileSync } from 'node:fs';
 import { dirname, join, relative, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { spawnSync } from 'node:child_process';
@@ -15,12 +15,19 @@ assert.equal(existsSync(output), false, 'Every attempt needs a fresh output dire
 mkdirSync(output, { recursive: true });
 const report = { started: new Date().toISOString(), commit, output, steps: [], failures: [], baseline: '488cc2398a55326dd6efee809b71d7b9bf4edf4b' };
 const digest = bytes => createHash('sha256').update(bytes).digest('hex');
-function inventory(root) {
+function inventory(root, allowToolLinks = false) {
   const entries = [];
   function walk(directory) {
     for (const name of readdirSync(directory).sort()) {
       const filename = join(directory, name);
       const stat = lstatSync(filename);
+      if (stat.isSymbolicLink() && allowToolLinks) {
+        const target = realpathSync(filename);
+        assert.ok(target.startsWith(realpathSync(root) + sep), `External tooling symlink: ${filename}`);
+        assert.ok(lstatSync(target).isFile(), `Non-file tooling symlink: ${filename}`);
+        entries.push({ path: relative(root, filename), link: readlinkSync(filename), target: relative(realpathSync(root), target), sha256: digest(readFileSync(target)) });
+        continue;
+      }
       assert.equal(stat.isSymbolicLink(), false, `Symlink forbidden: ${filename}`);
       if (stat.isDirectory()) walk(filename);
       else entries.push({ path: relative(root, filename), size: stat.size, sha256: digest(readFileSync(filename)) });
@@ -83,7 +90,7 @@ try {
   for (const [name, filename] of [['node', node], ['npm', npm], ['sandbox-exec', '/usr/bin/sandbox-exec'], ['tar', '/usr/bin/tar'], ['git', '/usr/bin/git']]) report.tools[name] = { realpath: realpathSync(filename), sha256: digest(readFileSync(filename)) };
   report.tools.node.version = run('actual Node version', node, ['--version']);
   report.tools.npm.version = run('actual npm version', node, [npm, '--version']);
-  report.tools.npm.tree = inventory(resolve(dirname(npm), '..')).sha256;
+  report.tools.npm.tree = inventory(resolve(dirname(npm), '..'), true).sha256;
   report.devDependencies = {};
   for (const name of ['typescript', '@types/node', 'undici-types']) {
     const source = realpathSync(join(repository, 'node_modules', name));
@@ -164,7 +171,7 @@ try {
   for (const entry of originals.entries) assert.equal(digest(readFileSync(join(snapshot, entry.path))), entry.sha256, `Snapshot modified: ${entry.path}`);
   for (const entry of freeze.files) assert.equal(digest(readFileSync(join(owned, entry.path))), entry.sha256, `Consumer freeze changed: ${entry.path}`);
   for (const [name, entry] of Object.entries(report.devDependencies)) assert.equal(inventory(entry.sourceRealpath).sha256, entry.original, `Original tool dependency changed: ${name}`);
-  assert.equal(inventory(resolve(dirname(npm), '..')).sha256, report.tools.npm.tree);
+  assert.equal(inventory(resolve(dirname(npm), '..'), true).sha256, report.tools.npm.tree);
   report.unchanged = { originalSource: true, originalToolDependencies: true, copiedTooling: true, packedNamespace: true, consumerBeforeAfterRuntime: true, consumerBeforeAfterTypecheck: true, frozenHarness: true };
   save('consumer-after.json', inventory(consumer));
   report.status = report.failures.length ? 'fail' : 'pass';

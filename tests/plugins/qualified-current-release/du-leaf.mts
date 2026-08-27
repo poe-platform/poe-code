@@ -23,8 +23,9 @@ try {
   const limited = new Shell({ fs: lower }).use(duCommands({ limits: { maxOutputBytes: 1 } }));
   try {
     const refusal = await limited.exec("du -b /payload");
-    assert.notEqual(refusal.exitCode, 0);
+    assert.equal(refusal.exitCode, 1);
     assert.equal(refusal.stdout, "");
-    assert.notEqual(refusal.stderr, "");
+    assert.equal(refusal.stderr, "");
+    assert.deepEqual(await lower.readFile("/payload"), Uint8Array.of(0, 128, 255, 10));
   } finally { await limited.dispose(); }
 } finally { await shell.dispose(); }

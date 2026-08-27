@@ -1869,7 +1869,7 @@
     },
     {
       "path": "tests/plugins/qualified-current-release/du-leaf.mts",
-      "sha256": "8e22f8d4d6f171f28ff7b5478b8257c5120a16a50998b5d0bcf4a2f40374ca2d",
+      "sha256": "c141a7c1877d033b6e38b4251eab67e807c56307d16cd665b015f6e73d12ea0f",
       "classification": "current",
       "group": "du-leaf",
       "reason": "maintained internal DU leaf declarations, VFS execution and limits; not a public export/default acceptance",

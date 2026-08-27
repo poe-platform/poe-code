@@ -42,6 +42,10 @@ declaration authentication and moved runtime permissions as other current
 consumers. It is not public DU export/default integration, full DU behavioral
 acceptance, or a rerun of historical source revisions. Unknown `.mts` inputs
 still fail classification; neighboring `.ts` sources remain compiler inputs.
+The one-byte output-limit control requires status1 and both streams empty:
+DU's documented cap combines stdout and stderr, so no diagnostic fits. The
+original author consumer incorrectly required diagnostic text; its failed
+packed runs remain evidence rather than a DU product defect or a waived limit.
 
 The owned snapshot helper reuses existing `run`/`step`/`finish` conventions,
 without modifying the previous stream-public helpers or independent holdouts.

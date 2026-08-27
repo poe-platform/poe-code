@@ -10,6 +10,7 @@ import { Budget, Capture, interruptible, resolveLimits, Runtime } from "./runtim
 import type { State } from "./runtime.js";
 import { ShellLimitError, ShellSyntaxError } from "./types.js";
 import type { ShellExecOptions, ShellOptions, ShellResult } from "./types.js";
+import { InvocationScope, invocationScope, throwCleanupFailures } from "./cleanup.js";
 
 export class Shell implements PluginHost {
   readonly commands: CommandRegistry;
@@ -19,6 +20,8 @@ export class Shell implements PluginHost {
   readonly #options: ShellOptions;
   #ready: Promise<void> = Promise.resolve();
   #disposed = false;
+  #disposal: Promise<void> | undefined;
+  readonly #active = new Set<{ scope: InvocationScope; budget: Budget }>();
 
   constructor(options: ShellOptions) {
     if (!options?.fs) throw new TypeError("Shell requires an explicit filesystem");
@@ -64,10 +67,28 @@ export class Shell implements PluginHost {
 
   async exec(source: string, options: ShellExecOptions = {}): Promise<ShellResult> {
     if (this.#disposed) throw new Error("Shell is disposed");
+    const budget = new Budget(resolveLimits(this.#options.limits, options.limits), options.signal);
+    const scope = new InvocationScope(options.signal);
+    const active = { scope, budget };
+    this.#active.add(active);
+    let failed = false;
+    let failure: unknown;
+    let result: ShellResult | undefined;
+    try { result = await this.#execute(source, options, scope, budget); }
+    catch (error) { failed = true; failure = error; }
+    finally {
+      await scope.close();
+      this.#active.delete(active);
+    }
+    options.signal?.throwIfAborted();
+    if (failed) throw failure;
+    throwCleanupFailures(scope.failures);
+    return result!;
+  }
+
+  async #execute(source: string, options: ShellExecOptions, scope: InvocationScope, budget: Budget): Promise<ShellResult> {
     if (typeof source !== "string") throw new TypeError("Shell source must be a string");
-    const limits = resolveLimits(this.#options.limits, options.limits);
-    if (Buffer.byteLength(source) > limits.maxSourceBytes) throw new ShellLimitError("maxSourceBytes");
-    const budget = new Budget(limits, options.signal);
+    if (Buffer.byteLength(source) > budget.limits.maxSourceBytes) throw new ShellLimitError("maxSourceBytes");
     budget.source(Buffer.byteLength(source));
     budget.signal.throwIfAborted();
     const stdout = new Capture();
@@ -80,52 +101,60 @@ export class Shell implements PluginHost {
     });
     let stdin: ShellInput | undefined;
     const io = {
+      [invocationScope]: scope,
       stdin: toByteSource(""),
       stdinIsDefault: options.stdin === undefined,
       stdout: sink(stdout, options.stdout), stderr: sink(stderr, options.stderr),
     };
     let exitCode: number;
+    let failed = false;
     try {
-      let unit = parseShellUnit(source, 0, byteLocale({ ...this.#options.env, ...options.env }));
-      stdin = new ShellInput(typeof options.stdin === "string" || options.stdin instanceof Uint8Array ? toByteSource(options.stdin) : options.stdin ?? toByteSource(""), budget);
-      io.stdin = stdin;
-      await interruptible(this.#ready, budget.signal);
-      const cwd = resolvePath("/", options.cwd ?? this.#options.cwd ?? "/");
-      const variables = Object.assign(Object.create(null) as Record<string, string>, this.#options.env, options.env, { PWD: cwd });
-      for (const [name, value] of Object.entries(variables)) {
-        if (name.includes("\0") || name.includes("=") || typeof value !== "string" || value.includes("\0")) throw new TypeError("Invalid environment entry");
-      }
-      const state: State = {
-        cwd, variables, exported: new Set(Object.keys(variables)), functions: new Map(), positional: [],
-        status: 0, substitutionStatus: 0, depth: 0, loopDepth: 0, functionDepth: 0, locals: [], pipefail: false, profile: "bash",
-      };
-      const runtime = new Runtime(options.fs ?? this.#options.fs, this.commands, [...this.#middleware], budget);
-      exitCode = 0;
-      while (true) {
-        for (const warning of unit.script.warnings ?? []) await writeText(io.stderr, `shell: warning: ${warning}\n`);
-        if (unit.script.lists.length) {
-          const result = await interruptible(runtime.runUnit(unit.script, state, io), budget.signal);
-          exitCode = result.exitCode;
-          if (result.terminated) break;
+      try {
+        let unit = parseShellUnit(source, 0, byteLocale({ ...this.#options.env, ...options.env }));
+        stdin = new ShellInput(typeof options.stdin === "string" || options.stdin instanceof Uint8Array ? toByteSource(options.stdin) : options.stdin ?? toByteSource(""), budget);
+        io.stdin = stdin;
+        await interruptible(this.#ready, budget.signal);
+        const cwd = resolvePath("/", options.cwd ?? this.#options.cwd ?? "/");
+        const variables = Object.assign(Object.create(null) as Record<string, string>, this.#options.env, options.env, { PWD: cwd });
+        for (const [name, value] of Object.entries(variables)) {
+          if (name.includes("\0") || name.includes("=") || typeof value !== "string" || value.includes("\0")) throw new TypeError("Invalid environment entry");
         }
-        if (unit.next >= source.length) break;
-        budget.signal.throwIfAborted();
-        unit = parseShellUnit(source, unit.next, byteLocale(state.variables));
+        const state: State = {
+          cwd, variables, exported: new Set(Object.keys(variables)), functions: new Map(), positional: [],
+          status: 0, substitutionStatus: 0, depth: 0, loopDepth: 0, functionDepth: 0, locals: [], pipefail: false, profile: "bash",
+        };
+        const runtime = new Runtime(options.fs ?? this.#options.fs, this.commands, [...this.#middleware], budget, AbortSignal.any([budget.signal, scope.signal]), undefined, undefined, budget.signal);
+        exitCode = 0;
+        while (true) {
+          for (const warning of unit.script.warnings ?? []) await writeText(io.stderr, `shell: warning: ${warning}\n`);
+          if (unit.script.lists.length) {
+            const result = await interruptible(runtime.runUnit(unit.script, state, io), budget.signal);
+            exitCode = result.exitCode;
+            if (result.terminated) break;
+          }
+          if (unit.next >= source.length) break;
+          budget.signal.throwIfAborted();
+          unit = parseShellUnit(source, unit.next, byteLocale(state.variables));
+        }
+      } catch (error) {
+        if (!(error instanceof ShellSyntaxError)) throw error;
+        const line = source.slice(0, error.offset).split("\n").length;
+        if (error.unclosedQuote) {
+          await writeText(io.stderr, `shell: -c: line ${error.unclosedQuote.line}: unexpected EOF while looking for matching \`${error.unclosedQuote.quote}'\n`);
+        } else if (error.exitCode === 127) {
+          const token = /^[;&|()<>]|^[^\s;&|()<>]+/u.exec(source.slice(error.offset))?.[0] ?? "newline";
+          await writeText(io.stderr, `shell: -c: line ${line}: syntax error near unexpected token \`${token}'\nshell: -c: line ${line}: \`${source.split("\n")[line - 1] ?? ""}'\n`);
+        } else if (error.offset >= source.length && !/Unterminated|nesting|Unsupported/u.test(error.reason)) {
+          const context = error.incompleteCommand ? ` from \`${error.incompleteCommand.name}' command on line ${error.incompleteCommand.line}` : "";
+          await writeText(io.stderr, `shell: -c: line ${source.split("\n").length + Number(!source.endsWith("\n"))}: syntax error: unexpected end of file${context}\n`);
+        } else await writeText(io.stderr, `shell: ${error.message}\n`);
+        exitCode = error.exitCode;
       }
-    } catch (error) {
-      if (!(error instanceof ShellSyntaxError)) throw error;
-      const line = source.slice(0, error.offset).split("\n").length;
-      if (error.unclosedQuote) {
-        await writeText(io.stderr, `shell: -c: line ${error.unclosedQuote.line}: unexpected EOF while looking for matching \`${error.unclosedQuote.quote}'\n`);
-      } else if (error.exitCode === 127) {
-        const token = /^[;&|()<>]|^[^\s;&|()<>]+/u.exec(source.slice(error.offset))?.[0] ?? "newline";
-        await writeText(io.stderr, `shell: -c: line ${line}: syntax error near unexpected token \`${token}'\nshell: -c: line ${line}: \`${source.split("\n")[line - 1] ?? ""}'\n`);
-      } else if (error.offset >= source.length && !/Unterminated|nesting|Unsupported/u.test(error.reason)) {
-        const context = error.incompleteCommand ? ` from \`${error.incompleteCommand.name}' command on line ${error.incompleteCommand.line}` : "";
-        await writeText(io.stderr, `shell: -c: line ${source.split("\n").length + Number(!source.endsWith("\n"))}: syntax error: unexpected end of file${context}\n`);
-      } else await writeText(io.stderr, `shell: ${error.message}\n`);
-      exitCode = error.exitCode;
-    } finally { await stdin?.close(); }
+    } catch (error) { failed = true; throw error; }
+    finally {
+      try { await stdin?.close(); }
+      catch (error) { if (!failed) throw error; }
+    }
     const stdoutBytes = stdout.bytes();
     const stderrBytes = stderr.bytes();
     return {
@@ -135,14 +164,29 @@ export class Shell implements PluginHost {
     };
   }
 
-  async dispose(): Promise<void> {
-    if (this.#disposed) return;
-    await this.#ready.catch(() => undefined);
+  dispose(): Promise<void> {
+    if (this.#disposal) return this.#disposal;
     this.#disposed = true;
+    const active = [...this.#active];
+    const drains: Promise<void>[] = [];
+    this.#disposal = Promise.resolve().then(() => this.#dispose(active, drains));
+    for (const { scope, budget } of active) {
+      const drain = scope.close();
+      budget.controller.abort(new Error("Shell is disposed"));
+      drains.push(drain);
+    }
+    return this.#disposal;
+  }
+
+  async #dispose(active: readonly { scope: InvocationScope }[], drains: readonly Promise<void>[]): Promise<void> {
+    await Promise.all(drains);
+    await this.#ready.catch(() => undefined);
     const failures: unknown[] = [];
     for (const plugin of [...this.#plugins].reverse()) {
       try { await plugin.dispose?.(); } catch (error) { failures.push(error); }
     }
-    if (failures.length) throw new AggregateError(failures, "Plugin disposal failed");
+    const cleanupFailures = active.flatMap(({ scope }) => scope.failures);
+    if (failures.length) throw new AggregateError([...cleanupFailures, ...failures], "Plugin disposal failed");
+    throwCleanupFailures(cleanupFailures);
   }
 }

@@ -13,6 +13,7 @@ import { evaluateArithmetic, prepareArithmetic } from "./arithmetic.js";
 import { compilePattern, matchesPattern } from "./pattern.js";
 import { byteLocale } from "./locale.js";
 import { functionDisplay } from "./display.js";
+import { invocationScope, type InvocationScope } from "./cleanup.js";
 
 export const defaultLimits: Required<ShellLimits> = {
   maxOutputBytes: 16 * 1024 * 1024,
@@ -156,6 +157,7 @@ export interface State {
 }
 
 interface IO {
+  readonly [invocationScope]: InvocationScope;
   readonly execution?: { readonly ignoreErrexit: boolean };
   readonly stdin: ByteSource;
   readonly stdinIsDefault?: boolean;
@@ -268,6 +270,7 @@ export class Runtime {
     readonly signal: AbortSignal = budget.signal,
     readonly fileWrites = new Map<string, Promise<void>>(),
     readonly outputFiles = new Map<string, OutputFile>(),
+    readonly commandSignal: AbortSignal = signal,
   ) {}
 
   diagnostic(io: IO, text: string): Promise<void> {
@@ -325,7 +328,8 @@ export class Runtime {
         const incoming = pipes[index - 1];
         const outgoing = pipes[index];
         const signal = AbortSignal.any([this.signal, controllers[index]!.signal]);
-        const runtime = new Runtime(this.fs, this.commands, this.middleware, this.budget, signal, this.fileWrites, this.outputFiles);
+        const commandSignal = AbortSignal.any([this.commandSignal, controllers[index]!.signal]);
+        const runtime = new Runtime(this.fs, this.commands, this.middleware, this.budget, signal, this.fileWrites, this.outputFiles, commandSignal);
         const input = new ShellInput(incoming?.readable ?? io.stdin, this.budget, signal);
         const pipeOutput: ByteSink | undefined = outgoing && { write: async (chunk) => {
           try {
@@ -394,6 +398,7 @@ export class Runtime {
   }
 
   async command(command: Command, state: State, io: IO, fileShortcut = false): Promise<number> {
+    io[invocationScope].assertOpen();
     const status = await this.executeCommand(command, state, io, fileShortcut);
     if (command.kind === "simple" || command.kind === "subshell" || command.kind === "arithmetic") this.errexit(status, state, io);
     return status;
@@ -565,6 +570,7 @@ export class Runtime {
       const descriptor = descriptors.get(0)?.closed ? undefined : descriptors.get(0);
       const stdinIsDefault = descriptor?.input ? descriptor.stdinIsDefault : false;
       return {
+        [invocationScope]: io[invocationScope],
         ...(io.execution === undefined ? {} : { execution: io.execution }),
         ...(io.diagnosticLine === undefined ? {} : { diagnosticLine: io.diagnosticLine }),
         ...(io.diagnosticOffset === undefined ? {} : { diagnosticOffset: io.diagnosticOffset }),
@@ -780,6 +786,14 @@ export class Runtime {
   }
 
   async dispatch(name: string, args: readonly string[], state: State, io: IO, assignments: Map<string, { value: string | undefined; exported: boolean }>, bypassFunctions = false): Promise<number> {
+    const scope = io[invocationScope].child();
+    const runtime = new Runtime(this.fs, this.commands, this.middleware, this.budget, AbortSignal.any([this.signal, scope.signal]), this.fileWrites, this.outputFiles, this.commandSignal);
+    try { return await runtime.dispatchScoped(name, args, state, { ...io, [invocationScope]: scope }, assignments, bypassFunctions); }
+    finally { await scope.close(); }
+  }
+
+  private async dispatchScoped(name: string, args: readonly string[], state: State, io: IO, assignments: Map<string, { value: string | undefined; exported: boolean }>, bypassFunctions: boolean): Promise<number> {
+    const { [invocationScope]: scope, ...publicIO } = io;
     let builtinFailure: { error: unknown; diagnostic: string } | undefined;
     const env = Object.create(null) as Record<string, string>;
     for (const key of state.exported) {
@@ -788,10 +802,21 @@ export class Runtime {
     }
     const initialEnv = { ...env };
     const context: ShellCommandContext = {
-      ...io, command: name, args, env, cwd: state.cwd, fs: this.fs, signal: this.signal,
-      invoke: (name, args, options) => this.invoke(name, args, options, context, state),
+      ...publicIO, command: name, args, env, cwd: state.cwd, fs: this.fs, signal: this.commandSignal,
+      registerCleanup: (cleanup) => scope.register(cleanup),
+      invoke: (name, args, options) => {
+        const invocation = this.invoke(name, args, options, context, state, scope);
+        void invocation.catch(() => undefined);
+        return invocation;
+      },
     };
-    const execute = composeMiddleware(this.middleware, async (context) => {
+    const middleware = this.middleware.map<Middleware>((handler) => (context, next) => {
+      scope.assertOpen();
+      return handler(context, next);
+    });
+    const execute = composeMiddleware(middleware, async (forwarded) => {
+      const context = { ...forwarded, [invocationScope]: scope };
+      scope.assertOpen();
       const previous = new Map<string, { value: string | undefined; exported: boolean; overlay: string | undefined }>();
       const cwd = state.cwd;
       state.cwd = resolvePath("/", context.cwd);
@@ -855,7 +880,7 @@ export class Runtime {
           await this.diagnostic({ ...io, ...context }, `${context.command}: command not found`);
           return { exitCode: 127 };
         }
-        return await definition.execute(context);
+        return await definition.execute(forwarded);
       } finally {
         if (context.command !== "cd" && state.cwd === context.cwd) state.cwd = cwd;
         for (const [key, saved] of previous) {
@@ -1300,7 +1325,14 @@ export class Runtime {
     }
   }
 
-  async invoke(name: string, args: readonly string[], options: ShellInvokeOptions = {}, context: ShellCommandContext, state: State): Promise<{ exitCode: number }> {
+  async invoke(name: string, args: readonly string[], options: ShellInvokeOptions = {}, context: ShellCommandContext, state: State, parent: InvocationScope): Promise<{ exitCode: number }> {
+    const scope = parent.child();
+    const runtime = new Runtime(this.fs, this.commands, this.middleware, this.budget, AbortSignal.any([this.signal, scope.signal]), this.fileWrites, this.outputFiles, this.commandSignal);
+    try { return await runtime.invokeScoped(name, args, options, context, state, scope); }
+    finally { await scope.close(); }
+  }
+
+  private async invokeScoped(name: string, args: readonly string[], options: ShellInvokeOptions, context: ShellCommandContext, state: State, scope: InvocationScope): Promise<{ exitCode: number }> {
     this.signal.throwIfAborted();
     if (typeof name !== "string" || name.includes("\0") || !Array.isArray(args) || args.some((arg) => typeof arg !== "string" || arg.includes("\0"))) throw new TypeError("invoke requires a command and literal string arguments without NUL");
     if (state.depth >= this.budget.limits.maxSubstitutionDepth) this.budget.fail("maxSubstitutionDepth");
@@ -1322,6 +1354,7 @@ export class Runtime {
     const stdinIsDefault = options.stdin === undefined ? context.stdinIsDefault : (options.stdinIsDefault ?? false);
     const io = {
       ...context,
+      [invocationScope]: scope,
       stdin: input ?? context.stdin,
       ...(stdinIsDefault === undefined ? {} : { stdinIsDefault }),
       stdout: options.stdout ? this.budget.sink(options.stdout, this.signal) : context.stdout,
@@ -1335,7 +1368,7 @@ export class Runtime {
     finally { await input?.close(); }
   }
 
-  async builtin(context: CommandContext, state: State, assignments: Map<string, { value: string | undefined; exported: boolean }>, diagnose?: (error: unknown, diagnostic: string) => void, suppressSpecial = false): Promise<number | undefined> {
+  async builtin(context: CommandContext & IO, state: State, assignments: Map<string, { value: string | undefined; exported: boolean }>, diagnose?: (error: unknown, diagnostic: string) => void, suppressSpecial = false): Promise<number | undefined> {
     const { command, args, stdout, stderr } = context;
     if (command === ":" || command === "true") return 0;
     if (command === "false") return 1;

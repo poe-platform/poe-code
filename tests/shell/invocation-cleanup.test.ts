@@ -69,6 +69,7 @@ test("normal completion seals saved registration and invoke before input acquisi
   let acquisitions = 0;
   commands.register({ name: "save", execute(context) { saved = context; return { exitCode: 0 }; } });
   await shell.exec("save");
+  assert.equal(saved.signal.aborted, false);
   assert.throws(() => saved.registerCleanup!(() => {}), Error);
   await assert.rejects(saved.invoke!("pass", [], { stdin: { [Symbol.asyncIterator]() {
     acquisitions++;

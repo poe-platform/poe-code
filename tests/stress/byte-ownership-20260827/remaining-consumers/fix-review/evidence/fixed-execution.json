@@ -1,0 +1,13 @@
+{
+  "command": [
+    "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "--unhandled-rejections=strict",
+    "--experimental-loader",
+    "/Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/remaining-consumers/fix-review/loader.mjs",
+    "/Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/remaining-consumers/fix-review/.work/fixed/moved-consumer/matrix.mjs"
+  ],
+  "status": 0,
+  "signal": null,
+  "stdout": "PASS curl-307-buffer-stdin\nPASS curl-307-buffer-mixed\nPASS curl-307-native-stdin\nPASS curl-307-native-mixed\nPASS curl-308-buffer-stdin\nPASS curl-308-buffer-mixed\nPASS curl-308-native-stdin\nPASS curl-308-native-mixed\nPASS curl-503-buffer-stdin\nPASS curl-503-buffer-mixed\nPASS curl-503-native-stdin\nPASS curl-503-native-mixed\nPASS curl-deny-hop\nPASS curl-cross-origin\nPASS curl-downgrade\nPASS curl-userinfo\nPASS curl-replay-limit\nPASS curl-upload-limit\nPASS curl-retry-deny\nPASS curl-abort\nPASS jq-json-buffer\nPASS jq-json-native\nPASS jq-raw-buffer\nPASS jq-raw-native\nPASS jq-null-buffer\nPASS jq-null-native\nPASS jq-pipeline-buffer\nPASS jq-pipeline-native\nPASS jq-source-exact\nPASS jq-source-excess\nPASS jq-reader-error\nPASS jq-utf8\nPASS jq-input-limit\nPASS jq-abort\n{\"count\":34,\"passed\":34,\"failed\":0}\n",
+  "stderr": "(node:50599) ExperimentalWarning: `--experimental-loader` may be removed in the future; instead use `register()`:\n--import 'data:text/javascript,import { register } from \"node:module\"; import { pathToFileURL } from \"node:url\"; register(\"/Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/remaining-consumers/fix-review/loader.mjs\", pathToFileURL(\"./\"));'\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+}

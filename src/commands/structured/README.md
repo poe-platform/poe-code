@@ -103,8 +103,10 @@ prevents conversion to a jq filter status or fallback diagnostic. No further
 output or input acquisition is attempted after such failure; iterator cleanup
 still runs. This root-approved command policy retains the grammar handoff's
 behavior and is an **observable typed-sink behavior change** from older source,
-not native parity or a stale-native assertion. The old canonical sink assertion
-remains read-only pending a separate independently reviewed test-only change.
+not native parity or a stale-native assertion. The canonical sink assertion's
+separate independently reviewed test-only update is complete (`538a7f8`); see
+`tests/commands/structured-stress/jq-grammar-final-review/REPORT.md` and the final
+`tests/commands/structured-stress/jq-grammar-seal-final/REPORT.md` (`ea11ceb`).
 Shared byte I/O and shell contracts are unchanged. Cancellation and downstream
 pipe closure propagate; shell handling is separate.
 
@@ -305,8 +307,15 @@ The following sections retain historical checkpoints, not current aggregate
 acceptance. Later grammar work supersedes their strict-decoder, stop-first and
 nonfinite-rejection statements. The two review fixes and unchanged-cohort
 evidence are recorded in
-`tests/commands/structured-stress/jq-grammar-review-fixes/REPORT.md`; source stays
-frozen for a different independent reviewer. No self-acceptance or full-jq claim.
+`tests/commands/structured-stress/jq-grammar-review-fixes/REPORT.md`; a different
+independent reviewer completed source acceptance and separate test-only updates
+(`95966ca`/`1d93186`, native `50434b3`, host `538a7f8`, seal `c0055e1`). See
+`tests/commands/structured-stress/jq-grammar-final-review/REPORT.md` for unchanged
+source/compiled 1344/1344 pre/post and
+`tests/commands/structured-stress/jq-grammar-seal-final/REPORT.md` (`ea11ceb`) for
+3758/3758 structured tests and scoped typecheck success; its global typecheck
+retains 14 unowned WebDAV consumer errors. These are prior independent results,
+not reruns for this documentation update. No self-acceptance or full-jq claim.
 
 Verified August 26, 2026 against the local native oracle `jq-1.7.1-apple` and
 the primary [jq 1.8 manual](https://jqlang.org/manual/v1.8/). The manual is a

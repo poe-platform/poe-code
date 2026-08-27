@@ -1,0 +1,13 @@
+{
+  "id": "grep-linear-match",
+  "utc": "2026-08-27T04:30:08.372Z",
+  "command": [
+    "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "--unhandled-rejections=strict",
+    "--max-old-space-size=64",
+    "--max-semi-space-size=1",
+    "--stack-size=512",
+    "/Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/compiled-matrix/run.mjs",
+    "grep-linear-match"
+  ]
+}

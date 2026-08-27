@@ -1,0 +1,1119 @@
+{
+  "schema": 1,
+  "inputSha256": "121d5dde6dd77148828feb775408288f98755c975d855e54a4a00040e25f8504",
+  "nativeCaptureSha256": "45bc5333b6daa06767c4c9be66d347efcd375dc555061c3f956f446401b4dd29",
+  "interpretation": "Frozen observed command profiles, not normative votes. Portable and GNU-style + forms are distinct even when bytes agree; Apple + errors are invocation differences, not regex failures. No native spans invented.",
+  "projectRules": {
+    "P-aaa": {
+      "command": {
+        "status": 0,
+        "stdoutHex": "610a",
+        "stderrHex": ""
+      },
+      "matched": true,
+      "overall": {
+        "start": 0,
+        "end": 3
+      },
+      "capture": {
+        "start": 1,
+        "end": 2
+      },
+      "authority": "explicit root decision and qualified prior narrow evidence; not GNU-wide/POSIX-wide ruling"
+    },
+    "activation": "Required empty/progress is activation-local. Ancestor/sibling progress is not this activation's progress.",
+    "descendants": "Retain last completed descendant until THAT descendant reentry; opening invalidates completion.",
+    "comparator": "No first-DFS promotion and no longest-final-capture-only comparator.",
+    "unresolved": "No general history comparator or normative outcome inferred from native votes. Other per-case normative outcomes remain unresolved in this freeze. Guarded unsupported is not a pass."
+  },
+  "rows": [
+    {
+      "id": "P-empty",
+      "qualified": {
+        "gnu-portable": {
+          "status": 1,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "0a",
+          "stderrHex": ""
+        },
+        "gnu-plus": {
+          "status": 1,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "0a",
+          "stderrHex": ""
+        },
+        "apple-portable": {
+          "status": 1,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "0a",
+          "stderrHex": ""
+        },
+        "apple-plus": {
+          "status": 2,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "",
+          "stderrHex": "657870723a2073796e746178206572726f720a"
+        }
+      },
+      "normative": "unresolved in this freeze"
+    },
+    {
+      "id": "P-a",
+      "qualified": {
+        "gnu-portable": {
+          "status": 1,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "0a",
+          "stderrHex": ""
+        },
+        "gnu-plus": {
+          "status": 1,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "0a",
+          "stderrHex": ""
+        },
+        "apple-portable": {
+          "status": 1,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "0a",
+          "stderrHex": ""
+        },
+        "apple-plus": {
+          "status": 2,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "",
+          "stderrHex": "657870723a2073796e746178206572726f720a"
+        }
+      },
+      "normative": "unresolved in this freeze"
+    },
+    {
+      "id": "P-aaa",
+      "qualified": {
+        "gnu-portable": {
+          "status": 1,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "0a",
+          "stderrHex": ""
+        },
+        "gnu-plus": {
+          "status": 1,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "0a",
+          "stderrHex": ""
+        },
+        "apple-portable": {
+          "status": 0,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "610a",
+          "stderrHex": ""
+        },
+        "apple-plus": {
+          "status": 2,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "",
+          "stderrHex": "657870723a2073796e746178206572726f720a"
+        }
+      },
+      "normative": "root narrow completed a; GNU discrepancy retained"
+    },
+    {
+      "id": "P-aaaa",
+      "qualified": {
+        "gnu-portable": {
+          "status": 0,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "61610a",
+          "stderrHex": ""
+        },
+        "gnu-plus": {
+          "status": 0,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "61610a",
+          "stderrHex": ""
+        },
+        "apple-portable": {
+          "status": 0,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "610a",
+          "stderrHex": ""
+        },
+        "apple-plus": {
+          "status": 2,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "",
+          "stderrHex": "657870723a2073796e746178206572726f720a"
+        }
+      },
+      "normative": "unresolved in this freeze"
+    },
+    {
+      "id": "Q-empty",
+      "qualified": {
+        "gnu-portable": {
+          "status": 1,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "0a",
+          "stderrHex": ""
+        },
+        "gnu-plus": {
+          "status": 1,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "0a",
+          "stderrHex": ""
+        },
+        "apple-portable": {
+          "status": 1,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "0a",
+          "stderrHex": ""
+        },
+        "apple-plus": {
+          "status": 2,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "",
+          "stderrHex": "657870723a2073796e746178206572726f720a"
+        }
+      },
+      "normative": "unresolved in this freeze"
+    },
+    {
+      "id": "Q-aaa",
+      "qualified": {
+        "gnu-portable": {
+          "status": 1,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "0a",
+          "stderrHex": ""
+        },
+        "gnu-plus": {
+          "status": 1,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "0a",
+          "stderrHex": ""
+        },
+        "apple-portable": {
+          "status": 0,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "610a",
+          "stderrHex": ""
+        },
+        "apple-plus": {
+          "status": 2,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "",
+          "stderrHex": "657870723a2073796e746178206572726f720a"
+        }
+      },
+      "normative": "unresolved in this freeze"
+    },
+    {
+      "id": "F-aa",
+      "qualified": {
+        "gnu-portable": {
+          "status": 1,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "0a",
+          "stderrHex": ""
+        },
+        "gnu-plus": {
+          "status": 1,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "0a",
+          "stderrHex": ""
+        },
+        "apple-portable": {
+          "status": 0,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "610a",
+          "stderrHex": ""
+        },
+        "apple-plus": {
+          "status": 2,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "",
+          "stderrHex": "657870723a2073796e746178206572726f720a"
+        }
+      },
+      "normative": "unresolved in this freeze"
+    },
+    {
+      "id": "D-abab",
+      "qualified": {
+        "gnu-portable": {
+          "status": 0,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "610a",
+          "stderrHex": ""
+        },
+        "gnu-plus": {
+          "status": 0,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "610a",
+          "stderrHex": ""
+        },
+        "apple-portable": {
+          "status": 1,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "0a",
+          "stderrHex": ""
+        },
+        "apple-plus": {
+          "status": 2,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "",
+          "stderrHex": "657870723a2073796e746178206572726f720a"
+        }
+      },
+      "normative": "unresolved in this freeze"
+    },
+    {
+      "id": "D-abaab",
+      "qualified": {
+        "gnu-portable": {
+          "status": 0,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "610a",
+          "stderrHex": ""
+        },
+        "gnu-plus": {
+          "status": 0,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "610a",
+          "stderrHex": ""
+        },
+        "apple-portable": {
+          "status": 1,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "0a",
+          "stderrHex": ""
+        },
+        "apple-plus": {
+          "status": 2,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "",
+          "stderrHex": "657870723a2073796e746178206572726f720a"
+        }
+      },
+      "normative": "unresolved in this freeze"
+    },
+    {
+      "id": "E-aaa",
+      "qualified": {
+        "gnu-portable": {
+          "status": 0,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "610a",
+          "stderrHex": ""
+        },
+        "gnu-plus": {
+          "status": 0,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "610a",
+          "stderrHex": ""
+        },
+        "apple-portable": {
+          "status": 0,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "610a",
+          "stderrHex": ""
+        },
+        "apple-plus": {
+          "status": 2,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "",
+          "stderrHex": "657870723a2073796e746178206572726f720a"
+        }
+      },
+      "normative": "unresolved in this freeze"
+    },
+    {
+      "id": "historical-mandatory-no-reference",
+      "qualified": {
+        "gnu-portable": {
+          "status": 1,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "0a",
+          "stderrHex": ""
+        },
+        "gnu-plus": {
+          "status": 1,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "0a",
+          "stderrHex": ""
+        },
+        "apple-portable": {
+          "status": 1,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "0a",
+          "stderrHex": ""
+        },
+        "apple-plus": {
+          "status": 2,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "",
+          "stderrHex": "657870723a2073796e746178206572726f720a"
+        }
+      },
+      "normative": "unresolved in this freeze"
+    },
+    {
+      "id": "historical-alternation-longest",
+      "qualified": {
+        "gnu-portable": {
+          "status": 0,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "610a",
+          "stderrHex": ""
+        },
+        "gnu-plus": {
+          "status": 0,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "610a",
+          "stderrHex": ""
+        },
+        "apple-portable": {
+          "status": 1,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "0a",
+          "stderrHex": ""
+        },
+        "apple-plus": {
+          "status": 2,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "",
+          "stderrHex": "657870723a2073796e746178206572726f720a"
+        }
+      },
+      "normative": "unresolved in this freeze"
+    },
+    {
+      "id": "absent-zero-repeat",
+      "qualified": {
+        "gnu-portable": {
+          "status": 1,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "0a",
+          "stderrHex": ""
+        },
+        "gnu-plus": {
+          "status": 1,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "0a",
+          "stderrHex": ""
+        },
+        "apple-portable": {
+          "status": 1,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "0a",
+          "stderrHex": ""
+        },
+        "apple-plus": {
+          "status": 2,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "",
+          "stderrHex": "657870723a2073796e746178206572726f720a"
+        }
+      },
+      "normative": "unresolved in this freeze"
+    },
+    {
+      "id": "absent-branch-reference",
+      "qualified": {
+        "gnu-portable": {
+          "status": 2,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "",
+          "stderrHex": "657870723a20496e76616c6964206261636b207265666572656e63650a"
+        },
+        "gnu-plus": {
+          "status": 2,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "",
+          "stderrHex": "657870723a20496e76616c6964206261636b207265666572656e63650a"
+        },
+        "apple-portable": {
+          "status": 1,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "0a",
+          "stderrHex": ""
+        },
+        "apple-plus": {
+          "status": 2,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "",
+          "stderrHex": "657870723a2073796e746178206572726f720a"
+        }
+      },
+      "normative": "unresolved in this freeze"
+    },
+    {
+      "id": "prefix-star",
+      "qualified": {
+        "gnu-portable": {
+          "status": 1,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "0a",
+          "stderrHex": ""
+        },
+        "gnu-plus": {
+          "status": 1,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "0a",
+          "stderrHex": ""
+        },
+        "apple-portable": {
+          "status": 1,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "0a",
+          "stderrHex": ""
+        },
+        "apple-plus": {
+          "status": 2,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "",
+          "stderrHex": "657870723a2073796e746178206572726f720a"
+        }
+      },
+      "normative": "unresolved in this freeze"
+    },
+    {
+      "id": "prefix-interval",
+      "qualified": {
+        "gnu-portable": {
+          "status": 0,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "610a",
+          "stderrHex": ""
+        },
+        "gnu-plus": {
+          "status": 0,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "610a",
+          "stderrHex": ""
+        },
+        "apple-portable": {
+          "status": 0,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "610a",
+          "stderrHex": ""
+        },
+        "apple-plus": {
+          "status": 2,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "",
+          "stderrHex": "657870723a2073796e746178206572726f720a"
+        }
+      },
+      "normative": "unresolved in this freeze"
+    },
+    {
+      "id": "prefix-dot",
+      "qualified": {
+        "gnu-portable": {
+          "status": 1,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "0a",
+          "stderrHex": ""
+        },
+        "gnu-plus": {
+          "status": 1,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "0a",
+          "stderrHex": ""
+        },
+        "apple-portable": {
+          "status": 1,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "0a",
+          "stderrHex": ""
+        },
+        "apple-plus": {
+          "status": 2,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "",
+          "stderrHex": "657870723a2073796e746178206572726f720a"
+        }
+      },
+      "normative": "unresolved in this freeze"
+    },
+    {
+      "id": "prefix-plus-extension",
+      "qualified": {
+        "gnu-portable": {
+          "status": 1,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "0a",
+          "stderrHex": ""
+        },
+        "gnu-plus": {
+          "status": 1,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "0a",
+          "stderrHex": ""
+        },
+        "apple-portable": {
+          "status": 1,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "0a",
+          "stderrHex": ""
+        },
+        "apple-plus": {
+          "status": 2,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "",
+          "stderrHex": "657870723a2073796e746178206572726f720a"
+        }
+      },
+      "normative": "unresolved in this freeze"
+    },
+    {
+      "id": "nested-prefix",
+      "qualified": {
+        "gnu-portable": {
+          "status": 0,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "6161610a",
+          "stderrHex": ""
+        },
+        "gnu-plus": {
+          "status": 0,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "6161610a",
+          "stderrHex": ""
+        },
+        "apple-portable": {
+          "status": 0,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "6161610a",
+          "stderrHex": ""
+        },
+        "apple-plus": {
+          "status": 2,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "",
+          "stderrHex": "657870723a2073796e746178206572726f720a"
+        }
+      },
+      "normative": "unresolved in this freeze"
+    },
+    {
+      "id": "nested-prefix-reference",
+      "qualified": {
+        "gnu-portable": {
+          "status": 0,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "616161610a",
+          "stderrHex": ""
+        },
+        "gnu-plus": {
+          "status": 0,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "616161610a",
+          "stderrHex": ""
+        },
+        "apple-portable": {
+          "status": 0,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "6161610a",
+          "stderrHex": ""
+        },
+        "apple-plus": {
+          "status": 2,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "",
+          "stderrHex": "657870723a2073796e746178206572726f720a"
+        }
+      },
+      "normative": "unresolved in this freeze"
+    },
+    {
+      "id": "prefix-two-captures",
+      "qualified": {
+        "gnu-portable": {
+          "status": 1,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "0a",
+          "stderrHex": ""
+        },
+        "gnu-plus": {
+          "status": 1,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "0a",
+          "stderrHex": ""
+        },
+        "apple-portable": {
+          "status": 1,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "0a",
+          "stderrHex": ""
+        },
+        "apple-plus": {
+          "status": 2,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "",
+          "stderrHex": "657870723a2073796e746178206572726f720a"
+        }
+      },
+      "normative": "unresolved in this freeze"
+    },
+    {
+      "id": "prefix-reference",
+      "qualified": {
+        "gnu-portable": {
+          "status": 1,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "0a",
+          "stderrHex": ""
+        },
+        "gnu-plus": {
+          "status": 1,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "0a",
+          "stderrHex": ""
+        },
+        "apple-portable": {
+          "status": 0,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "610a",
+          "stderrHex": ""
+        },
+        "apple-plus": {
+          "status": 2,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "",
+          "stderrHex": "657870723a2073796e746178206572726f720a"
+        }
+      },
+      "normative": "unresolved in this freeze"
+    },
+    {
+      "id": "two-references",
+      "qualified": {
+        "gnu-portable": {
+          "status": 0,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "610a",
+          "stderrHex": ""
+        },
+        "gnu-plus": {
+          "status": 0,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "610a",
+          "stderrHex": ""
+        },
+        "apple-portable": {
+          "status": 1,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "0a",
+          "stderrHex": ""
+        },
+        "apple-plus": {
+          "status": 2,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "",
+          "stderrHex": "657870723a2073796e746178206572726f720a"
+        }
+      },
+      "normative": "unresolved in this freeze"
+    },
+    {
+      "id": "alternation-reversed",
+      "qualified": {
+        "gnu-portable": {
+          "status": 0,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "61610a",
+          "stderrHex": ""
+        },
+        "gnu-plus": {
+          "status": 0,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "61610a",
+          "stderrHex": ""
+        },
+        "apple-portable": {
+          "status": 1,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "0a",
+          "stderrHex": ""
+        },
+        "apple-plus": {
+          "status": 2,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "",
+          "stderrHex": "657870723a2073796e746178206572726f720a"
+        }
+      },
+      "normative": "unresolved in this freeze"
+    },
+    {
+      "id": "prefix-alternation",
+      "qualified": {
+        "gnu-portable": {
+          "status": 0,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "610a",
+          "stderrHex": ""
+        },
+        "gnu-plus": {
+          "status": 0,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "610a",
+          "stderrHex": ""
+        },
+        "apple-portable": {
+          "status": 1,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "0a",
+          "stderrHex": ""
+        },
+        "apple-plus": {
+          "status": 2,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "",
+          "stderrHex": "657870723a2073796e746178206572726f720a"
+        }
+      },
+      "normative": "unresolved in this freeze"
+    },
+    {
+      "id": "required-child-empty",
+      "qualified": {
+        "gnu-portable": {
+          "status": 1,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "0a",
+          "stderrHex": ""
+        },
+        "gnu-plus": {
+          "status": 1,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "0a",
+          "stderrHex": ""
+        },
+        "apple-portable": {
+          "status": 0,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "610a",
+          "stderrHex": ""
+        },
+        "apple-plus": {
+          "status": 2,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "",
+          "stderrHex": "657870723a2073796e746178206572726f720a"
+        }
+      },
+      "normative": "unresolved in this freeze"
+    },
+    {
+      "id": "descendant-reentered",
+      "qualified": {
+        "gnu-portable": {
+          "status": 0,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "61620a",
+          "stderrHex": ""
+        },
+        "gnu-plus": {
+          "status": 0,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "61620a",
+          "stderrHex": ""
+        },
+        "apple-portable": {
+          "status": 0,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "61620a",
+          "stderrHex": ""
+        },
+        "apple-plus": {
+          "status": 2,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "",
+          "stderrHex": "657870723a2073796e746178206572726f720a"
+        }
+      },
+      "normative": "unresolved in this freeze"
+    },
+    {
+      "id": "descendant-reentered-empty",
+      "qualified": {
+        "gnu-portable": {
+          "status": 0,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "610a",
+          "stderrHex": ""
+        },
+        "gnu-plus": {
+          "status": 0,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "610a",
+          "stderrHex": ""
+        },
+        "apple-portable": {
+          "status": 0,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "610a",
+          "stderrHex": ""
+        },
+        "apple-plus": {
+          "status": 2,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "",
+          "stderrHex": "657870723a2073796e746178206572726f720a"
+        }
+      },
+      "normative": "unresolved in this freeze"
+    },
+    {
+      "id": "open-self-reference",
+      "qualified": {
+        "gnu-portable": {
+          "status": 2,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "",
+          "stderrHex": "657870723a20496e76616c6964206261636b207265666572656e63650a"
+        },
+        "gnu-plus": {
+          "status": 2,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "",
+          "stderrHex": "657870723a20496e76616c6964206261636b207265666572656e63650a"
+        },
+        "apple-portable": {
+          "status": 2,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "",
+          "stderrHex": "657870723a20696e76616c6964206261636b7265666572656e6365206e756d6265720a"
+        },
+        "apple-plus": {
+          "status": 2,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "",
+          "stderrHex": "657870723a2073796e746178206572726f720a"
+        }
+      },
+      "normative": "unresolved in this freeze"
+    },
+    {
+      "id": "open-reentry-reference",
+      "qualified": {
+        "gnu-portable": {
+          "status": 2,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "",
+          "stderrHex": "657870723a20496e76616c6964206261636b207265666572656e63650a"
+        },
+        "gnu-plus": {
+          "status": 2,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "",
+          "stderrHex": "657870723a20496e76616c6964206261636b207265666572656e63650a"
+        },
+        "apple-portable": {
+          "status": 2,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "",
+          "stderrHex": "657870723a20696e76616c6964206261636b7265666572656e6365206e756d6265720a"
+        },
+        "apple-plus": {
+          "status": 2,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "",
+          "stderrHex": "657870723a2073796e746178206572726f720a"
+        }
+      },
+      "normative": "unresolved in this freeze"
+    },
+    {
+      "id": "completed-empty-reference",
+      "qualified": {
+        "gnu-portable": {
+          "status": 0,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "610a",
+          "stderrHex": ""
+        },
+        "gnu-plus": {
+          "status": 0,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "610a",
+          "stderrHex": ""
+        },
+        "apple-portable": {
+          "status": 1,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "0a",
+          "stderrHex": ""
+        },
+        "apple-plus": {
+          "status": 2,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "",
+          "stderrHex": "657870723a2073796e746178206572726f720a"
+        }
+      },
+      "normative": "unresolved in this freeze"
+    },
+    {
+      "id": "required-empty-after-prefix",
+      "qualified": {
+        "gnu-portable": {
+          "status": 1,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "0a",
+          "stderrHex": ""
+        },
+        "gnu-plus": {
+          "status": 1,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "0a",
+          "stderrHex": ""
+        },
+        "apple-portable": {
+          "status": 1,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "0a",
+          "stderrHex": ""
+        },
+        "apple-plus": {
+          "status": 2,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "",
+          "stderrHex": "657870723a2073796e746178206572726f720a"
+        }
+      },
+      "normative": "unresolved in this freeze"
+    }
+  ]
+}

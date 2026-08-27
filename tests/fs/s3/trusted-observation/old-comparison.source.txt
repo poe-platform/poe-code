@@ -32,7 +32,7 @@ function metadataOnly(client: MockS3Client, start: number) {
   return requests;
 }
 
-for (const route of ["direct", "transport", "transport-chain"] as const) test(`fresh provider authority survives ${route} clients and overlapping prefixes`, async () => {
+for (const route of ["direct", "transport", "transport-chain"] as const) test(`full mapping authority survives ${route} clients and overlapping prefixes`, async () => {
   const service = new MockS3Client({ buckets: ["bucket"] });
   const client = () => route === "direct" ? service : route === "transport" ? createS3Transport(service, service.capabilities)
     : createS3Transport(createS3Transport(service, service.capabilities), service.capabilities);
@@ -183,20 +183,20 @@ test("recognized aliases reject before GET/mutation; readonly destination remain
   assert.deepEqual(await right.readFile("/target", { maxBytes: 64 }), oldBytes);
 });
 
-test("faithful opaque forwarding preserves genuine fresh HEAD entry bindings", async () => {
+test("manual opaque forwarding clients are unqualified even when genuine HEAD objects survive", async () => {
   const service = new MockS3Client({ buckets: ["bucket"] });
   const known = adapter(service);
   await known.writeFile("/file", bytes);
   for (const client of [opaque(service), createS3Transport(opaque(service), service.capabilities)]) {
-    const forwarded = adapter(client);
-    const stat = await forwarded.stat("/file");
-    assert.ok(getOwnedS3Entry({ filesystem: forwarded, path: "/file", stat, readOnly: false }));
-    assert.equal(await known.compareEntry("/file", forwarded, "/file"), "same");
+    const unqualified = adapter(client);
+    const stat = await unqualified.stat("/file");
+    assert.equal(getOwnedS3Entry({ filesystem: unqualified, path: "/file", stat, readOnly: false }), undefined);
+    assert.equal(await known.compareEntry("/file", unqualified, "/file"), "unknown");
   }
 });
 
 for (const operation of ["headObject", "getObject", "putObject", "deleteObject", "copyObject", "listObjectsV2", "getObjectStream", "putObjectStream"] as const) {
-  test(`faithful ${operation} method replacement preserves the actual entry binding`, async () => {
+  test(`changing ${operation} invalidates the complete forwarding mapping`, async () => {
     const service = new MockS3Client({ buckets: ["bucket"] });
     const known = adapter(service);
     await known.writeFile("/file", bytes);
@@ -205,11 +205,11 @@ for (const operation of ["headObject", "getObject", "putObject", "deleteObject",
     const peer = adapter(forwarded);
     assert.equal(await known.compareEntry("/file", peer, "/file"), "same");
     Object.defineProperty(transport, operation, { value: service[operation]!.bind(service), configurable: true });
-    assert.equal(await known.compareEntry("/file", peer, "/file"), "same");
+    assert.equal(await known.compareEntry("/file", peer, "/file"), "unknown");
   });
 }
 
-test("remapped Memory content drops the unrelated Mock HEAD binding before comparison", async () => {
+test("genuine Mock HEAD with local Memory GET/PUT never proves a disjoint closed store", async () => {
   const memory = new MemoryFileSystem();
   await memory.writeFile("/source", bytes);
   const service = new MockS3Client({ buckets: ["bucket"] });
@@ -217,7 +217,6 @@ test("remapped Memory content drops the unrelated Mock HEAD binding before compa
   let reads = 0;
   let writes = 0;
   const mixed = createS3Transport(service, service.capabilities);
-  mixed.headObject = async (input, options) => ({ ...await service.headObject(input, options) });
   mixed.getObject = async () => { reads++; return { Body: await memory.readFile("/source"), ContentLength: bytes.length }; };
   mixed.putObject = async input => { writes++; await memory.writeFile("/source", input.Body); };
   mixed.getObjectStream = async () => { reads++; return { Body: memory.readStream("/source"), ContentLength: bytes.length }; };
@@ -235,7 +234,7 @@ test("remapped Memory content drops the unrelated Mock HEAD binding before compa
   assert.deepEqual(await memory.readdir("/"), [{ name: "source", type: "file" }]);
 });
 
-test("faithful provider forwarding before construction retains observed storage authority", async () => {
+test("provider method substitution before construction is not registered as trusted implementation", async () => {
   const original = MockS3Client.prototype.getObject;
   try {
     MockS3Client.prototype.getObject = async function (input, options) { return original.call(this, input, options); };
@@ -243,12 +242,12 @@ test("faithful provider forwarding before construction retains observed storage 
     const fs = adapter(service);
     await fs.writeFile("/file", bytes);
     const stat = await fs.stat("/file");
-    assert.ok(getOwnedS3Entry({ filesystem: fs, path: "/file", stat, readOnly: false }));
-    assert.equal(await fs.compareEntry("/file", fs, "/file"), "same");
+    assert.equal(getOwnedS3Entry({ filesystem: fs, path: "/file", stat, readOnly: false }), undefined);
+    assert.equal(await fs.compareEntry("/file", fs, "/file"), "unknown");
   } finally { MockS3Client.prototype.getObject = original; }
 });
 
-test("faithful method replacement during peer metadata work preserves actual distinct stores", async () => {
+test("operation binding is checked again after peer metadata work", async () => {
   const service = new MockS3Client({ buckets: ["bucket"] });
   const transport = createS3Transport(service, service.capabilities);
   let change = false;
@@ -261,16 +260,16 @@ test("faithful method replacement during peer metadata work preserves actual dis
   await peer.writeFile("/file", bytes);
   assert.equal(await fs.compareEntry("/file", peer, "/file"), "distinct");
   change = true;
-  assert.equal(await fs.compareEntry("/file", peer, "/file"), "distinct");
+  assert.equal(await fs.compareEntry("/file", peer, "/file"), "unknown");
 });
 
-test("faithful opaque client alias copy is EINVAL and exact-byte preserving before body work", async () => {
+test("unqualified alias copy remains ENOTSUP and exact-byte preserving before body work", async () => {
   const service = new MockS3Client({ buckets: ["bucket"] });
   const left = adapter(opaque(service));
   const right = adapter(opaque(service));
   await left.writeFile("/source", bytes);
   const start = service.requests.length;
-  await assert.rejects(mounted(left, right).copyFile("/left/source", "/right/source"), { code: "EINVAL" });
+  await assert.rejects(mounted(left, right).copyFile("/left/source", "/right/source"), { code: "ENOTSUP" });
   metadataOnly(service, start);
   assert.deepEqual(await left.readFile("/source", { maxBytes: 64 }), bytes);
   assert.deepEqual(await left.readdir("/"), [{ name: "source", type: "file" }]);

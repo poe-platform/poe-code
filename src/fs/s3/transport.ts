@@ -1,5 +1,3 @@
-import { forwardS3Owner } from "./authority.js";
-
 export interface S3RequestOptions {
   readonly abortSignal?: AbortSignal;
 }
@@ -125,7 +123,6 @@ export function createS3Transport(
     copyObject: (input, options) => client.copyObject(input, options),
     listObjectsV2: (input, options) => client.listObjectsV2(input, options),
   };
-  forwardS3Owner(client, transport);
   return transport;
 }
 

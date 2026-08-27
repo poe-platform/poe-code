@@ -1,0 +1,105 @@
+{
+  "authority": "root approval and contract cd8b5c8",
+  "oldFixtureSha256": "7b3238fc289dffef790ba029a0094d6c0c73c44016fef30d421800c30ee4f95d",
+  "newFixtureSha256": "a9187d8bf038d453715bb9cf13c9cb0d3a3f845f7a4ab518106f46df675b01c8",
+  "beforeCount": 75,
+  "afterCount": 82,
+  "changes": [
+    {
+      "oldCaseId": "full mapping authority survives direct clients and overlapping prefixes",
+      "newCaseId": "fresh provider authority survives direct clients and overlapping prefixes",
+      "baselineOrdinal": 14,
+      "classification": "label-only; relation and byte assertions unchanged"
+    },
+    {
+      "oldCaseId": "full mapping authority survives transport clients and overlapping prefixes",
+      "newCaseId": "fresh provider authority survives transport clients and overlapping prefixes",
+      "baselineOrdinal": 15,
+      "classification": "label-only; relation and byte assertions unchanged"
+    },
+    {
+      "oldCaseId": "full mapping authority survives transport-chain clients and overlapping prefixes",
+      "newCaseId": "fresh provider authority survives transport-chain clients and overlapping prefixes",
+      "baselineOrdinal": 16,
+      "classification": "label-only; relation and byte assertions unchanged"
+    },
+    {
+      "oldCaseId": "manual opaque forwarding clients are unqualified even when genuine HEAD objects survive",
+      "newCaseId": "faithful opaque forwarding preserves genuine fresh HEAD entry bindings",
+      "baselineOrdinal": 30,
+      "classification": "faithful forwarding: unknown becomes same actual backing entry"
+    },
+    {
+      "oldCaseId": "changing headObject invalidates the complete forwarding mapping",
+      "newCaseId": "faithful headObject method replacement preserves the actual entry binding",
+      "baselineOrdinal": 31,
+      "classification": "faithful forwarding: unknown becomes same actual backing entry"
+    },
+    {
+      "oldCaseId": "changing getObject invalidates the complete forwarding mapping",
+      "newCaseId": "faithful getObject method replacement preserves the actual entry binding",
+      "baselineOrdinal": 32,
+      "classification": "faithful forwarding: unknown becomes same actual backing entry"
+    },
+    {
+      "oldCaseId": "changing putObject invalidates the complete forwarding mapping",
+      "newCaseId": "faithful putObject method replacement preserves the actual entry binding",
+      "baselineOrdinal": 33,
+      "classification": "faithful forwarding: unknown becomes same actual backing entry"
+    },
+    {
+      "oldCaseId": "changing deleteObject invalidates the complete forwarding mapping",
+      "newCaseId": "faithful deleteObject method replacement preserves the actual entry binding",
+      "baselineOrdinal": 34,
+      "classification": "faithful forwarding: unknown becomes same actual backing entry"
+    },
+    {
+      "oldCaseId": "changing copyObject invalidates the complete forwarding mapping",
+      "newCaseId": "faithful copyObject method replacement preserves the actual entry binding",
+      "baselineOrdinal": 35,
+      "classification": "faithful forwarding: unknown becomes same actual backing entry"
+    },
+    {
+      "oldCaseId": "changing listObjectsV2 invalidates the complete forwarding mapping",
+      "newCaseId": "faithful listObjectsV2 method replacement preserves the actual entry binding",
+      "baselineOrdinal": 36,
+      "classification": "faithful forwarding: unknown becomes same actual backing entry"
+    },
+    {
+      "oldCaseId": "changing getObjectStream invalidates the complete forwarding mapping",
+      "newCaseId": "faithful getObjectStream method replacement preserves the actual entry binding",
+      "baselineOrdinal": 37,
+      "classification": "faithful forwarding: unknown becomes same actual backing entry"
+    },
+    {
+      "oldCaseId": "changing putObjectStream invalidates the complete forwarding mapping",
+      "newCaseId": "faithful putObjectStream method replacement preserves the actual entry binding",
+      "baselineOrdinal": 38,
+      "classification": "faithful forwarding: unknown becomes same actual backing entry"
+    },
+    {
+      "oldCaseId": "genuine Mock HEAD with local Memory GET/PUT never proves a disjoint closed store",
+      "newCaseId": "remapped Memory content drops the unrelated Mock HEAD binding before comparison",
+      "baselineOrdinal": 39,
+      "classification": "false-binding host is out of contract; revised compliant cache drops the unrelated binding; preservation assertions unchanged"
+    },
+    {
+      "oldCaseId": "provider method substitution before construction is not registered as trusted implementation",
+      "newCaseId": "faithful provider forwarding before construction retains observed storage authority",
+      "baselineOrdinal": 40,
+      "classification": "faithful forwarding: unknown becomes same actual backing entry"
+    },
+    {
+      "oldCaseId": "operation binding is checked again after peer metadata work",
+      "newCaseId": "faithful method replacement during peer metadata work preserves actual distinct stores",
+      "baselineOrdinal": 41,
+      "classification": "faithful replacement during peer query: unknown becomes distinct actual owned stores"
+    },
+    {
+      "oldCaseId": "unqualified alias copy remains ENOTSUP and exact-byte preserving before body work",
+      "newCaseId": "faithful opaque client alias copy is EINVAL and exact-byte preserving before body work",
+      "baselineOrdinal": 42,
+      "classification": "real alias now proven: ENOTSUP becomes EINVAL; zero-effects and exact bytes unchanged"
+    }
+  ]
+}

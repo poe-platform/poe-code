@@ -1,0 +1,442 @@
+{
+  "schemaVersion": 2,
+  "startedAt": "2026-08-27T19:00:04.580Z",
+  "completedAt": "2026-08-27T19:00:08.318Z",
+  "runId": "run-2026-08-27T190004580Z-fe09c9a6",
+  "scope": "only the exact four canonical DU expectation migrations; no whole gate, package suite, product repair, or native rerun",
+  "revisions": {
+    "baseline": {
+      "commit": "877144ea3a5223bbdf3e7ebfd50a8f8caaa474f3",
+      "parents": [
+        "dbceec2b9890927ea93cee3b416f78908c648cc6"
+      ],
+      "tree": "b3d6a55e1adb54bae1a76255cd2469f396d1a28c",
+      "authoredAt": "2026-08-27T12:22:14-05:00",
+      "subject": "feat(du): add bounded metadata-only usage command and scoped tests"
+    },
+    "parent": {
+      "commit": "31f5678e62e3f3d43b4825d839ec970e7768da7d",
+      "parents": [
+        "aa84dbbfae5c2f394dc1ec2516a809d659f72b4a"
+      ],
+      "tree": "dadc0a2958b54cc94d4ee2114c46549e305d4877",
+      "authoredAt": "2026-08-27T13:28:17-05:00",
+      "subject": "audit: preserve attempt2 private-status refusal and exact fresh closure"
+    },
+    "candidate": {
+      "commit": "9a5a6f922beb1bc6ba84a0cd32ea7a12f8ce985d",
+      "parents": [
+        "31f5678e62e3f3d43b4825d839ec970e7768da7d"
+      ],
+      "tree": "62c1b2f2784ca465b17d4b15a5736c42b8bdcf2d",
+      "authoredAt": "2026-08-27T13:30:15-05:00",
+      "subject": "test(du): migrate four superseded environment and empty-operand expectations"
+    }
+  },
+  "selection": {
+    "roots": [
+      "package.json",
+      "package-lock.json",
+      "tsconfig.json",
+      "tsconfig.build.json",
+      "src",
+      "tests/commands/du/behavior.test.ts",
+      "tests/commands/du/native.test.ts",
+      "tests/commands/du/helpers.ts",
+      "tests/commands/du/native-profile.json"
+    ],
+    "fullManifest": "selected-paths.txt",
+    "count": 245
+  },
+  "guard": {
+    "negativeControl": {
+      "executable": true,
+      "admitted": false,
+      "syntheticOnly": true,
+      "createdProhibitedFile": false,
+      "message": "negative control: prohibited basename rejected before archive or write: synthetic/AGENTS.md",
+      "countersBefore": {
+        "filesystemWrites": 0,
+        "archiveCreations": 0,
+        "extractionAttempts": 0
+      },
+      "countersAfter": {
+        "filesystemWrites": 0,
+        "archiveCreations": 0,
+        "extractionAttempts": 0
+      }
+    },
+    "archiveInventoryInspectedBeforeEveryExtraction": true,
+    "prohibitedCopiesFound": 0,
+    "symlinkOrSpecialEntriesAdmitted": 0
+  },
+  "incident": {
+    "acknowledged": true,
+    "copiesCreatedThenRemoved": 15,
+    "perTreeCount": 5,
+    "oldScratchRandomSuffixRecorded": false,
+    "oldCleanupResult": {
+      "artifact": "2dd6d631f1862487b0874e03f07301769c3a4271:tests/integration/du-overlay-independent-20260827/migration-audit-9a5a6f92/RESULTS.json",
+      "line": 499,
+      "text": "scratchCleanup: performed in finally after results write; paths are not retained"
+    },
+    "unsafeCode": {
+      "artifact": "2dd6d631f1862487b0874e03f07301769c3a4271:tests/integration/du-overlay-independent-20260827/migration-audit-9a5a6f92/audit.mjs",
+      "archiveAndExtractLines": "82-90",
+      "invocationLines": "131-135",
+      "cleanupLines": "229-230"
+    },
+    "oldAudit": {
+      "commit": "2dd6d631f1862487b0874e03f07301769c3a4271",
+      "path": "tests/integration/du-overlay-independent-20260827/migration-audit-9a5a6f92/audit.mjs",
+      "mode": "100644",
+      "gitBlob": "b2a371621e634f38892819332446b0c5c99eb30b",
+      "bytes": 13227,
+      "sha256": "51176a14154a6da707828f58bc1a7fb4b46e2f2ade91bfb4e8469d92bf90ade6"
+    },
+    "trees": {
+      "baseline": [
+        "AGENTS.md",
+        "tests/commands/filesystem-inspection-stress/tree/sealed/inputs/AGENTS.md",
+        "tests/stress/regex-execution/production-review/snapshots/baseline/AGENTS.md",
+        "tests/stress/regex-execution/production-review/snapshots/production-final/AGENTS.md",
+        "tests/stress/regex-execution/production-review/snapshots/production-first/AGENTS.md"
+      ],
+      "parent": [
+        "AGENTS.md",
+        "tests/commands/filesystem-inspection-stress/tree/sealed/inputs/AGENTS.md",
+        "tests/stress/regex-execution/production-review/snapshots/baseline/AGENTS.md",
+        "tests/stress/regex-execution/production-review/snapshots/production-final/AGENTS.md",
+        "tests/stress/regex-execution/production-review/snapshots/production-first/AGENTS.md"
+      ],
+      "candidate": [
+        "AGENTS.md",
+        "tests/commands/filesystem-inspection-stress/tree/sealed/inputs/AGENTS.md",
+        "tests/stress/regex-execution/production-review/snapshots/baseline/AGENTS.md",
+        "tests/stress/regex-execution/production-review/snapshots/production-final/AGENTS.md",
+        "tests/stress/regex-execution/production-review/snapshots/production-first/AGENTS.md"
+      ]
+    },
+    "realRepositoryFilesModifiedByIncident": false,
+    "disclosure": "root already disclosed the violation to the user; this rerun does not undo or minimize it",
+    "oldHarnessStatus": "use prohibited; retained unchanged as incident evidence"
+  },
+  "snapshots": {
+    "baseline": {
+      "revision": "877144ea3a5223bbdf3e7ebfd50a8f8caaa474f3",
+      "selectedPathCount": 245,
+      "archiveSha256": "1a8981cb26c52fa56f8a9b0c1ed197fe08fb568e5ab9fa70796f96ef84617f54",
+      "archiveEntryCount": 289,
+      "manifestBeforeSha256": "3a2ffcc7c90130c297c6505a2c264b284ead88e2920df09de9f23fbb1786a786",
+      "manifestAfterSha256": "3a2ffcc7c90130c297c6505a2c264b284ead88e2920df09de9f23fbb1786a786",
+      "unchanged": true,
+      "runs": {
+        "behavior": {
+          "program": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+          "args": [
+            "--import",
+            "file:///Users/kjopek/Workspace/safe-bash/node_modules/tsx/dist/loader.mjs",
+            "--test",
+            "--test-name-pattern=^all argument and environment validation happens before any filesystem call$",
+            "tests/commands/du/behavior.test.ts"
+          ],
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-overlay-independent-20260827/migration-audit-9a5a6f92/protocol-correction-v2/.scratch/run-2026-08-27T190004580Z-fe09c9a6/baseline/extracted",
+          "status": 0,
+          "signal": null,
+          "stdoutBytes": 338,
+          "stderrBytes": 0,
+          "stdoutSha256": "c55edbb42c39fbd970c2e8f53325f3199186e23205e9de3216ce39e20350662b",
+          "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "tap": {
+            "tests": 1,
+            "pass": 1,
+            "fail": 0,
+            "skipped": 0
+          }
+        },
+        "native": {
+          "program": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+          "args": [
+            "--import",
+            "file:///Users/kjopek/Workspace/safe-bash/node_modules/tsx/dist/loader.mjs",
+            "--test",
+            "--test-name-pattern=^GNU 9\\.7 captured profile: (-b |env:\\{\\\"DU_BLOCK_SIZE\\\":(\\\"bad\\\"|\\\"\\\",\\\"BLOCK_SIZE\\\":\\\"2K\\\")\\})$",
+            "tests/commands/du/native.test.ts"
+          ],
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-overlay-independent-20260827/migration-audit-9a5a6f92/protocol-correction-v2/.scratch/run-2026-08-27T190004580Z-fe09c9a6/baseline/extracted",
+          "status": 0,
+          "signal": null,
+          "stdoutBytes": 627,
+          "stderrBytes": 0,
+          "stdoutSha256": "694f0a4a06eb5b5f23dcced84dfa99725eecc018d2559597165b17ff52591c2e",
+          "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "tap": {
+            "tests": 3,
+            "pass": 3,
+            "fail": 0,
+            "skipped": 0
+          }
+        }
+      },
+      "totals": {
+        "pass": 4,
+        "fail": 0,
+        "selected": 4
+      }
+    },
+    "parent": {
+      "revision": "31f5678e62e3f3d43b4825d839ec970e7768da7d",
+      "selectedPathCount": 245,
+      "archiveSha256": "10526ed45eec412ec5871e3ee54a12494a51aeaafeb07ad904c52c78595dfd38",
+      "archiveEntryCount": 289,
+      "manifestBeforeSha256": "792dc2503a2ef2ee8cb68bed68acb929b5361ba3e1ba751faab065d8fa15097c",
+      "manifestAfterSha256": "792dc2503a2ef2ee8cb68bed68acb929b5361ba3e1ba751faab065d8fa15097c",
+      "unchanged": true,
+      "runs": {
+        "behavior": {
+          "program": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+          "args": [
+            "--import",
+            "file:///Users/kjopek/Workspace/safe-bash/node_modules/tsx/dist/loader.mjs",
+            "--test",
+            "--test-name-pattern=^all argument and environment validation happens before any filesystem call$",
+            "tests/commands/du/behavior.test.ts"
+          ],
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-overlay-independent-20260827/migration-audit-9a5a6f92/protocol-correction-v2/.scratch/run-2026-08-27T190004580Z-fe09c9a6/parent/extracted",
+          "status": 1,
+          "signal": null,
+          "stdoutBytes": 1216,
+          "stderrBytes": 0,
+          "stdoutSha256": "c8624191a8d02b8dbbe1af979975c0a232f45ee655113f75d3ccffb957b50b86",
+          "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "tap": {
+            "tests": 1,
+            "pass": 0,
+            "fail": 1,
+            "skipped": 0
+          }
+        },
+        "native": {
+          "program": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+          "args": [
+            "--import",
+            "file:///Users/kjopek/Workspace/safe-bash/node_modules/tsx/dist/loader.mjs",
+            "--test",
+            "--test-name-pattern=^GNU 9\\.7 captured profile: (-b |env:\\{\\\"DU_BLOCK_SIZE\\\":(\\\"bad\\\"|\\\"\\\",\\\"BLOCK_SIZE\\\":\\\"2K\\\")\\})$",
+            "tests/commands/du/native.test.ts"
+          ],
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-overlay-independent-20260827/migration-audit-9a5a6f92/protocol-correction-v2/.scratch/run-2026-08-27T190004580Z-fe09c9a6/parent/extracted",
+          "status": 1,
+          "signal": null,
+          "stdoutBytes": 3452,
+          "stderrBytes": 0,
+          "stdoutSha256": "25616055440e4b3e8c3ee47a4fa0be4c9ae6e229e33c1b9ab0177b215de201df",
+          "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "tap": {
+            "tests": 3,
+            "pass": 0,
+            "fail": 3,
+            "skipped": 0
+          }
+        }
+      },
+      "totals": {
+        "pass": 0,
+        "fail": 4,
+        "selected": 4
+      }
+    },
+    "candidate": {
+      "revision": "9a5a6f922beb1bc6ba84a0cd32ea7a12f8ce985d",
+      "selectedPathCount": 245,
+      "archiveSha256": "79e98be2b895d23d2fc96753c0468e0bc62688347e6d4009e6137a972bfe61b1",
+      "archiveEntryCount": 289,
+      "manifestBeforeSha256": "f8a9938c0d7a344527a223e01cc1dfcd46b7ed04f0ab9cbbb49e3b77e7f340b5",
+      "manifestAfterSha256": "f8a9938c0d7a344527a223e01cc1dfcd46b7ed04f0ab9cbbb49e3b77e7f340b5",
+      "unchanged": true,
+      "runs": {
+        "behavior": {
+          "program": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+          "args": [
+            "--import",
+            "file:///Users/kjopek/Workspace/safe-bash/node_modules/tsx/dist/loader.mjs",
+            "--test",
+            "--test-name-pattern=^invalid arguments fail before filesystem calls; selected invalid environment falls back$",
+            "tests/commands/du/behavior.test.ts"
+          ],
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-overlay-independent-20260827/migration-audit-9a5a6f92/protocol-correction-v2/.scratch/run-2026-08-27T190004580Z-fe09c9a6/candidate/extracted",
+          "status": 0,
+          "signal": null,
+          "stdoutBytes": 361,
+          "stderrBytes": 0,
+          "stdoutSha256": "2b187303361ea22b1a97339cb325ee046a507196002b6131e5a7fa660471b58b",
+          "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "tap": {
+            "tests": 1,
+            "pass": 1,
+            "fail": 0,
+            "skipped": 0
+          }
+        },
+        "native": {
+          "program": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+          "args": [
+            "--import",
+            "file:///Users/kjopek/Workspace/safe-bash/node_modules/tsx/dist/loader.mjs",
+            "--test",
+            "--test-name-pattern=^GNU 9\\.7 captured profile: (-b |env:\\{\\\"DU_BLOCK_SIZE\\\":(\\\"bad\\\"|\\\"\\\",\\\"BLOCK_SIZE\\\":\\\"2K\\\")\\})$",
+            "tests/commands/du/native.test.ts"
+          ],
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-overlay-independent-20260827/migration-audit-9a5a6f92/protocol-correction-v2/.scratch/run-2026-08-27T190004580Z-fe09c9a6/candidate/extracted",
+          "status": 0,
+          "signal": null,
+          "stdoutBytes": 632,
+          "stderrBytes": 0,
+          "stdoutSha256": "d5366d97b7ee97dd943b043b1ec301d646b37e8e527e9af2a422116f616dfd00",
+          "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "tap": {
+            "tests": 3,
+            "pass": 3,
+            "fail": 0,
+            "skipped": 0
+          }
+        }
+      },
+      "totals": {
+        "pass": 4,
+        "fail": 0,
+        "selected": 4
+      }
+    }
+  },
+  "tools": {
+    "node": {
+      "version": "v22.22.2",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "executableSha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+    },
+    "tsxLoader": {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/tsx/dist/loader.mjs",
+      "sha256": "49fb46730ddeb226ac4fa9fb990d3573ac8f18fa4de02f1bf723c61d715710c2"
+    },
+    "tsxPackage": {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/tsx/package.json",
+      "sha256": "96aee9fd252d0cc31f3c01468250961f5b338c797bc208700d7db926450c7659"
+    },
+    "packageLock": {
+      "commit": "9a5a6f922beb1bc6ba84a0cd32ea7a12f8ce985d",
+      "path": "package-lock.json",
+      "mode": "100644",
+      "gitBlob": "5d6562da663aa1b363c5ce5f101ed8469cece4da",
+      "bytes": 16734,
+      "sha256": "9c04bb7d2c7d1894479f0c37ce367987c2130256e5bfbf426cfa1bd2729d740b"
+    },
+    "gitVersion": "git version 2.50.1 (Apple Git-155)",
+    "tarVersion": "bsdtar 3.5.3 - libarchive 3.7.4 zlib/1.2.12 liblzma/5.4.3 bz2lib/1.0.8"
+  },
+  "nativeProvenance": {
+    "rerun": false,
+    "reason": "bounded protocol correction reuses authenticated immutable GNU 9.7 corroboration and does not duplicate the native audit",
+    "oldResults": {
+      "commit": "2dd6d631f1862487b0874e03f07301769c3a4271",
+      "path": "tests/integration/du-overlay-independent-20260827/migration-audit-9a5a6f92/RESULTS.json",
+      "mode": "100644",
+      "gitBlob": "88eff43632da42d63a4e5c8f145c59d8fcbc060b",
+      "bytes": 20480,
+      "sha256": "b6ada9d27f713cecf7bbd5f292c4cb67e343f50a58e95370d1800d3cf79f8915"
+    },
+    "authorCombinedEvidence": {
+      "commit": "c5fe1a68341b3a2ebbefd9fee6793a1e6c5df10b",
+      "parents": [
+        "87833f33cb7fa6d2a6c098201dd53fe5404a7fcb"
+      ],
+      "tree": "5c0924f929fb9851bab50f5cd5d9b00c023314c2",
+      "authoredAt": "2026-08-27T13:35:15-05:00",
+      "subject": "test(du): seal canonical migration and combined committed-snapshot evidence"
+    },
+    "oracleBinarySha256BeforeAfter": "f1df033deed07d208d80128568404c1043b283c59f294164f1240789bfadcf2b",
+    "oracleSourceSha256": "3cd1c0120881ba28da3345b1324e9d146f948a95db6ce2900ba27b3fe8f45bf9",
+    "corroboratedCases": [
+      "O062",
+      "O086",
+      "O087",
+      "scope-BLOCK_SIZE-invalid",
+      "scope-BLOCKSIZE-invalid"
+    ],
+    "platformQualification": "Darwin GNU coreutils 9.7 observation; not GNU/Linux or universal parity"
+  },
+  "openPolicyQuestion": "32c5b60c3323101ebd3d4a3339931caa93867ae5 also applies fallback to invalid/empty selected BLOCK_SIZE and BLOCKSIZE; native behavior is corroborated, but root authorization remains explicit only for invalid selected DU_BLOCK_SIZE and ambiguous for empty/lower-priority selected values.",
+  "retainedLimits": {
+    "nativeOrderingDifferences": 3,
+    "O060Implemented": false,
+    "rootWiringChanged": false
+  },
+  "repositoryProhibitedFiles": {
+    "before": [
+      {
+        "path": "AGENTS.md",
+        "bytes": 11954,
+        "sha256": "6fc4b23357522dd3c3cf20347a9d6586268fb8e42cc04f35d3cbe3e4beeac75c"
+      },
+      {
+        "path": "tests/commands/filesystem-inspection-stress/tree/sealed/inputs/AGENTS.md",
+        "bytes": 8857,
+        "sha256": "b36a619e3ba5a1a849d198d8d785857da9a7a9dd7c896cffab4118bfbf35d678"
+      },
+      {
+        "path": "tests/stress/regex-execution/production-review/snapshots/baseline/AGENTS.md",
+        "bytes": 8857,
+        "sha256": "b36a619e3ba5a1a849d198d8d785857da9a7a9dd7c896cffab4118bfbf35d678"
+      },
+      {
+        "path": "tests/stress/regex-execution/production-review/snapshots/production-final/AGENTS.md",
+        "bytes": 8857,
+        "sha256": "b36a619e3ba5a1a849d198d8d785857da9a7a9dd7c896cffab4118bfbf35d678"
+      },
+      {
+        "path": "tests/stress/regex-execution/production-review/snapshots/production-first/AGENTS.md",
+        "bytes": 8857,
+        "sha256": "b36a619e3ba5a1a849d198d8d785857da9a7a9dd7c896cffab4118bfbf35d678"
+      }
+    ],
+    "after": [
+      {
+        "path": "AGENTS.md",
+        "bytes": 11954,
+        "sha256": "6fc4b23357522dd3c3cf20347a9d6586268fb8e42cc04f35d3cbe3e4beeac75c"
+      },
+      {
+        "path": "tests/commands/filesystem-inspection-stress/tree/sealed/inputs/AGENTS.md",
+        "bytes": 8857,
+        "sha256": "b36a619e3ba5a1a849d198d8d785857da9a7a9dd7c896cffab4118bfbf35d678"
+      },
+      {
+        "path": "tests/stress/regex-execution/production-review/snapshots/baseline/AGENTS.md",
+        "bytes": 8857,
+        "sha256": "b36a619e3ba5a1a849d198d8d785857da9a7a9dd7c896cffab4118bfbf35d678"
+      },
+      {
+        "path": "tests/stress/regex-execution/production-review/snapshots/production-final/AGENTS.md",
+        "bytes": 8857,
+        "sha256": "b36a619e3ba5a1a849d198d8d785857da9a7a9dd7c896cffab4118bfbf35d678"
+      },
+      {
+        "path": "tests/stress/regex-execution/production-review/snapshots/production-first/AGENTS.md",
+        "bytes": 8857,
+        "sha256": "b36a619e3ba5a1a849d198d8d785857da9a7a9dd7c896cffab4118bfbf35d678"
+      }
+    ],
+    "unchanged": true
+  },
+  "counters": {
+    "filesystemWrites": 51,
+    "archiveCreations": 3,
+    "extractionAttempts": 3
+  },
+  "closure": {
+    "allChildrenAwaited": true,
+    "activeChildren": [],
+    "scratchRemoved": true,
+    "cleanupMethod": "authenticated exact recursive unlink/rmdir; no broad shell removal"
+  }
+}

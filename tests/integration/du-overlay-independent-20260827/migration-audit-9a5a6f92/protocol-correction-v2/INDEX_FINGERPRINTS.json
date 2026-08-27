@@ -1,0 +1,14 @@
+{
+  "beforeOwnedStaging": {
+    "head": "d05932474728a93e416ecb23eb2a1c925571dfa9",
+    "foreignCachedBinaryDiffSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "completeIndexEntriesSha256": "9ab114e385014f451ad09583f16e573ba51ef887c77846fff79b476279b98737"
+  },
+  "afterOwnedStaging": {
+    "head": "650c96fd6957945b32d6a4bc71f016a8e611cade",
+    "foreignCachedBinaryDiffSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "ownedStagedPathCount": 42,
+    "allStagedPathCount": 42
+  },
+  "definition": "foreign excludes tests/integration/du-overlay-independent-20260827/migration-audit-9a5a6f92/protocol-correction-v2/**"
+}

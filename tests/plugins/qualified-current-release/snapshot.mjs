@@ -10,7 +10,7 @@ import { verifyInventory } from "./inventory-check.mjs";
 const repository = fileURLToPath(new URL("../../../", import.meta.url));
 export function snapshot(sourceRef = "HEAD") {
   const sourceCommit = requireSuccess(run("git", ["--no-replace-objects", "rev-parse", "--verify", `${sourceRef}^{commit}`], repository)).stdout.trim();
-  const tracked = requireSuccess(run("git", ["--no-replace-objects", "ls-tree", "-r", "--name-only", sourceCommit, "tests", "scripts"], repository)).stdout.trim().split("\n").filter(path => !path.startsWith("tests/integration/stream-five-public/"));
+  const tracked = requireSuccess(run("git", ["--no-replace-objects", "ls-tree", "-r", "--name-only", sourceCommit], repository)).stdout.trim().split("\n").filter(path => !path.startsWith("tests/integration/stream-five-public/"));
   const inventory = JSON.parse(readFileSync(join(repository, ownerPath, "inventory.json")));
   const currentPaths = currentConsumerPaths();
   verifyInventory(inventory, tracked, currentPaths, negativeGroups.map(group => group.path), path => requireSuccess(run("git", ["--no-replace-objects", "show", `${sourceCommit}:${path}`], repository, { encoding: "buffer" })).stdout);
@@ -19,7 +19,7 @@ export function snapshot(sourceRef = "HEAD") {
   const root = join(directory, "snapshot");
   mkdirSync(root);
   const harness = [...tracked.filter(path => path.startsWith(`${ownerPath}/`) && !path.includes("/evidence/")), "scripts/verify-qualified-release.mjs", "scripts/verify-current-consumers.mjs", ...tracked.filter(path => path.startsWith("tests/plugins/stream-five-public/") && !path.includes("/evidence/") && /\.(?:mjs|fixture)$/u.test(path))];
-  const paths = [...new Set([...selectedPaths, ownerPath, "scripts/verify-current-consumers.mjs", ...archiveInputs, ...currentPaths, ...negativeGroups.flatMap(group => [group.path, group.expected])])];
+  const paths = [...new Set([...selectedPaths, "README.md", ownerPath, "scripts/verify-current-consumers.mjs", ...archiveInputs, ...currentPaths, ...negativeGroups.flatMap(group => [group.path, group.expected])])];
   requireSuccess(run("git", ["--no-replace-objects", "archive", "--format=tar", `--output=${join(directory, "source.tar")}`, sourceCommit, ...paths], repository));
   requireSuccess(run("/usr/bin/tar", ["-xf", join(directory, "source.tar"), "-C", root], repository));
   for (const path of harness) assert.equal(sha256(readFileSync(join(root, path))), sha256(readFileSync(join(repository, path))), `runner differs from committed candidate: ${path}`);

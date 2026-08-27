@@ -8,7 +8,7 @@ import { verifyInventory } from '../../plugins/qualified-current-release/invento
 const repo = resolve(dirname(import.meta.filename), '../../..');
 const commit = process.argv[2] ?? 'HEAD';
 const git = args => execFileSync('git', args, { cwd: repo, maxBuffer: 32000000 });
-const tracked = git(['ls-tree', '-r', '--name-only', commit, 'tests', 'scripts']).toString().trim().split('\n').filter(path => !path.startsWith('tests/integration/stream-five-public/'));
+const tracked = git(['ls-tree', '-r', '--name-only', commit]).toString().trim().split('\n').filter(path => !path.startsWith('tests/integration/stream-five-public/'));
 const inventory = JSON.parse(readFileSync(resolve(repo, 'tests/plugins/qualified-current-release/inventory.json')));
 const read = path => git(['show', `${commit}:${path}`]);
 const current = currentConsumerPaths(), negative = negativeGroups.map(group => group.path);
@@ -16,7 +16,7 @@ const check = (value = inventory, paths = tracked, maintained = current, negativ
 const counts = check();
 const controls = [];
 function reject(name, action) { assert.throws(action); controls.push(name); }
-reject('new unclassified executable cannot disappear', () => check(inventory, [...tracked, 'tests/new.test.mts']));
+reject('new unclassified executable outside tests cannot disappear', () => check(inventory, [...tracked, 'examples/new.test.mts']));
 reject('current route omission cannot become inventory-only', () => check(inventory, tracked, current.slice(1)));
 reject('negative route omission is rejected', () => check(inventory, tracked, current, negative.slice(1)));
 reject('negative fixture bytes cannot change silently', () => check(inventory, tracked, current, negative, path => negative.includes(path) ? Buffer.from('void 0;') : read(path)));

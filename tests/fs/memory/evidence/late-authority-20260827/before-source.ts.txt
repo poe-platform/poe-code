@@ -54,32 +54,8 @@ interface ResolveOptions {
 const typeModes = { file: 0o100000, directory: 0o040000, symlink: 0o120000 } as const;
 const ownedStats = new WeakMap<FileStat, { filesystem: FileSystem; path: string; root: DirectoryNode }>();
 const ownedStores = new WeakMap<FileSystem, { root: DirectoryNode; intact: () => boolean }>();
-const registeredAuthorities = new WeakSet<FileSystem>();
 const compareOwnedMemory: EntryAuthority = async (own, peer, options) => {
   options.signal?.throwIfAborted();
-  let explicit = false;
-  let answer: EntryComparison = "unknown";
-  const visited = new Set<FileSystem>();
-  for (const [left, right] of [[own, peer], [peer, own]] as const) {
-    if (!registeredAuthorities.has(left.filesystem) || visited.has(left.filesystem)) continue;
-    visited.add(left.filesystem);
-    const comparison = left.filesystem.compareEntry;
-    if (comparison === memoryImplementation.compareEntry?.value) continue;
-    explicit = true;
-    if (!comparison) continue;
-    options.signal?.throwIfAborted();
-    const result = await comparison.call(left.filesystem, left.path, right.filesystem, right.path, options);
-    options.signal?.throwIfAborted();
-    if (result !== "same" && result !== "distinct" && result !== "unknown") {
-      throw new FsError("EIO", { path: own.path, dest: peer.path, message: "invalid explicit Memory comparison" });
-    }
-    if (result === "unknown") continue;
-    if (answer !== "unknown" && answer !== result) {
-      throw new FsError("EIO", { path: own.path, dest: peer.path, message: "conflicting explicit Memory comparisons" });
-    }
-    answer = result;
-  }
-  if (explicit) return answer;
   const owner = ownedStores.get(own.filesystem);
   const observation = ownedStats.get(own.stat);
   if (!owner?.intact() || observation?.filesystem !== own.filesystem || observation.path !== own.path
@@ -112,10 +88,7 @@ export class MemoryFileSystem implements FileSystem {
       intact: () => this.root === root && Object.entries(memoryImplementation).every(([name, descriptor]) =>
         name === "constructor" || name === "compareEntry" || descriptor.value === undefined || Reflect.get(this, name) === descriptor.value),
     });
-    if (this.compareEntry === memoryImplementation.compareEntry?.value) {
-      registeredAuthorities.add(this);
-      registerEntryAuthority(this, compareOwnedMemory);
-    }
+    if (this.compareEntry === memoryImplementation.compareEntry?.value) registerEntryAuthority(this, compareOwnedMemory);
   }
 
   compareEntry(path: string, peer: FileSystem, peerPath: string, options: FsOptions = {}): Promise<EntryComparison> {

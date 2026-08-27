@@ -1,0 +1,12 @@
+{
+  "head": "d02c3b53982d84d6ae74887c2fbf85510f4628bc",
+  "sourceSha256": "d1b0a082ece95555f740419b276d5565757fe3c3c3ba1555b927e9640dbcc62d",
+  "fixture": "tests/fs/mount/identity-authority-review/implementation/adapter-binding.test.ts",
+  "fixtureSha256": "f90f1da067ec03ed467aeaa39d50114d9e03a4e13da8fb5548a2f49e1fdac712",
+  "command": "node --unhandled-rejections=strict --import tsx --test --test-name-pattern='^memory post-construction explicit comparison error' tests/fs/mount/identity-authority-review/implementation/adapter-binding.test.ts",
+  "result": {
+    "pass": 0,
+    "total": 1,
+    "exit": 1
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "--unhandled-rejections=strict",
+    "--import",
+    "tsx",
+    "--test",
+    "--test-name-pattern=^s3:|^independent conformance source provenance$|^conformance source state remained stable during suite$",
+    "tests/fs/conformance/shared.test.ts"
+  ],
+  "started": "2026-08-27T00:22:53.031Z",
+  "finished": "2026-08-27T00:22:53.238Z",
+  "status": 0,
+  "signal": null,
+  "error": null
+}

@@ -1,0 +1,568 @@
+TAP version 13
+# Subtest: modern-copy: legitimate new destination uses actually supported destination guards
+ok 1 - modern-copy: legitimate new destination uses actually supported destination guards
+  ---
+  duration_ms: 3.100667
+  type: 'test'
+  ...
+# {"profile":"modern-copy","error":null,"mutations":[{"operation":"copy","input":{"Bucket":"bounded-rename-policy","Key":"target","CopySource":"bounded-rename-policy/source","CopySourceIfMatch":"\\"919c8b643b7133116b02fc0d9bb7df3f\\"","MetadataDirective":"COPY","IfNoneMatch":"*"}},{"operation":"delete","input":{"Bucket":"bounded-rename-policy","Key":"source","IfMatch":"\\"919c8b643b7133116b02fc0d9bb7df3f\\""}}]}
+# Subtest: modern-copy: concurrent destination creation cannot destroy the writer
+ok 2 - modern-copy: concurrent destination creation cannot destroy the writer
+  ---
+  duration_ms: 0.590458
+  type: 'test'
+  ...
+# {"resolved":false,"state":{"source":{"text":"original","metadata":{"origin":"seed"},"etag":"\\"919c8b643b7133116b02fc0d9bb7df3f\\""},"target":{"text":"concurrent destination","metadata":{"writer":"concurrent"},"etag":"\\"5b0f98877d09b01ed55a6bb16b7f3fff\\""}},"mutations":[{"operation":"copy","input":{"Bucket":"bounded-rename-policy","Key":"target","CopySource":"bounded-rename-policy/source","CopySourceIfMatch":"\\"919c8b643b7133116b02fc0d9bb7df3f\\"","MetadataDirective":"COPY","IfNoneMatch":"*"}}]}
+# Subtest: modern-copy: legitimate replacement uses actually supported destination guards
+ok 3 - modern-copy: legitimate replacement uses actually supported destination guards
+  ---
+  duration_ms: 0.680791
+  type: 'test'
+  ...
+# {"profile":"modern-copy","error":null,"mutations":[{"operation":"copy","input":{"Bucket":"bounded-rename-policy","Key":"target","CopySource":"bounded-rename-policy/source","CopySourceIfMatch":"\\"919c8b643b7133116b02fc0d9bb7df3f\\"","MetadataDirective":"COPY","IfMatch":"\\"149603e6c03516362a8da23f624db945\\""}},{"operation":"delete","input":{"Bucket":"bounded-rename-policy","Key":"source","IfMatch":"\\"919c8b643b7133116b02fc0d9bb7df3f\\""}}]}
+# Subtest: modern-copy: concurrent destination replacement cannot destroy the writer
+ok 4 - modern-copy: concurrent destination replacement cannot destroy the writer
+  ---
+  duration_ms: 0.798666
+  type: 'test'
+  ...
+# {"resolved":false,"state":{"source":{"text":"original","metadata":{"origin":"seed"},"etag":"\\"919c8b643b7133116b02fc0d9bb7df3f\\""},"target":{"text":"concurrent destination","metadata":{"writer":"concurrent"},"etag":"\\"5b0f98877d09b01ed55a6bb16b7f3fff\\""}},"mutations":[{"operation":"copy","input":{"Bucket":"bounded-rename-policy","Key":"target","CopySource":"bounded-rename-policy/source","CopySourceIfMatch":"\\"919c8b643b7133116b02fc0d9bb7df3f\\"","MetadataDirective":"COPY","IfMatch":"\\"149603e6c03516362a8da23f624db945\\""}}]}
+# Subtest: modern-copy: different-content mutation before publish is retained
+ok 5 - modern-copy: different-content mutation before publish is retained
+  ---
+  duration_ms: 0.682083
+  type: 'test'
+  ...
+# {"fired":true,"resolved":false,"state":{"source":{"text":"new source","metadata":{"writer":"concurrent"},"etag":"\\"3fd7012014017b8cd5c1b79601a7d80f\\""}}}
+# Subtest: modern-copy: different-content recreation before publish is retained
+ok 6 - modern-copy: different-content recreation before publish is retained
+  ---
+  duration_ms: 0.673834
+  type: 'test'
+  ...
+# {"fired":true,"resolved":false,"state":{"source":{"text":"new source","metadata":{"writer":"concurrent"},"etag":"\\"3fd7012014017b8cd5c1b79601a7d80f\\""}}}
+# Subtest: modern-copy: different-content mutation before delete is retained
+ok 7 - modern-copy: different-content mutation before delete is retained
+  ---
+  duration_ms: 1.187209
+  type: 'test'
+  ...
+# {"fired":true,"resolved":false,"state":{"source":{"text":"new source","metadata":{"writer":"concurrent"},"etag":"\\"3fd7012014017b8cd5c1b79601a7d80f\\""},"target":{"text":"original","metadata":{"origin":"seed"},"etag":"\\"919c8b643b7133116b02fc0d9bb7df3f\\""}}}
+# Subtest: modern-copy: different-content recreation before delete is retained
+ok 8 - modern-copy: different-content recreation before delete is retained
+  ---
+  duration_ms: 0.359042
+  type: 'test'
+  ...
+# {"fired":true,"resolved":false,"state":{"source":{"text":"new source","metadata":{"writer":"concurrent"},"etag":"\\"3fd7012014017b8cd5c1b79601a7d80f\\""},"target":{"text":"original","metadata":{"origin":"seed"},"etag":"\\"919c8b643b7133116b02fc0d9bb7df3f\\""}}}
+# Subtest: modern-copy: publication failure never permits source delete
+ok 9 - modern-copy: publication failure never permits source delete
+  ---
+  duration_ms: 0.580375
+  type: 'test'
+  ...
+# Subtest: modern-copy: publication lost acknowledgement never permits source delete
+ok 10 - modern-copy: publication lost acknowledgement never permits source delete
+  ---
+  duration_ms: 0.580041
+  type: 'test'
+  ...
+# Subtest: modern-copy: preserves 1 late source children without bulk deletion
+ok 11 - modern-copy: preserves 1 late source children without bulk deletion
+  ---
+  duration_ms: 0.479167
+  type: 'test'
+  ...
+# {"resolved":true,"remainingSourceKeys":["source/new-0"]}
+# Subtest: modern-copy: preserves 2 late source children without bulk deletion
+ok 12 - modern-copy: preserves 2 late source children without bulk deletion
+  ---
+  duration_ms: 0.493291
+  type: 'test'
+  ...
+# {"resolved":true,"remainingSourceKeys":["source/new-0","source/new-1"]}
+# Subtest: modern-copy: preserves 4 late source children without bulk deletion
+ok 13 - modern-copy: preserves 4 late source children without bulk deletion
+  ---
+  duration_ms: 0.608417
+  type: 'test'
+  ...
+# {"resolved":true,"remainingSourceKeys":["source/new-0","source/new-1","source/new-2","source/new-3"]}
+# Subtest: classic-put: legitimate new destination uses actually supported destination guards
+ok 14 - classic-put: legitimate new destination uses actually supported destination guards
+  ---
+  duration_ms: 0.678625
+  type: 'test'
+  ...
+# {"profile":"classic-put","error":null,"mutations":[{"operation":"put","input":{"Bucket":"bounded-rename-policy","Key":"target","IfNoneMatch":"*","Metadata":{"origin":"seed"},"Body":{"0":111,"1":114,"2":105,"3":103,"4":105,"5":110,"6":97,"7":108}}},{"operation":"delete","input":{"Bucket":"bounded-rename-policy","Key":"source","IfMatch":"\\"919c8b643b7133116b02fc0d9bb7df3f\\""}}]}
+# Subtest: classic-put: concurrent destination creation cannot destroy the writer
+ok 15 - classic-put: concurrent destination creation cannot destroy the writer
+  ---
+  duration_ms: 0.612708
+  type: 'test'
+  ...
+# {"resolved":false,"state":{"source":{"text":"original","metadata":{"origin":"seed"},"etag":"\\"919c8b643b7133116b02fc0d9bb7df3f\\""},"target":{"text":"concurrent destination","metadata":{"writer":"concurrent"},"etag":"\\"5b0f98877d09b01ed55a6bb16b7f3fff\\""}},"mutations":[{"operation":"put","input":{"Bucket":"bounded-rename-policy","Key":"target","IfNoneMatch":"*","Metadata":{"origin":"seed"},"Body":{"0":111,"1":114,"2":105,"3":103,"4":105,"5":110,"6":97,"7":108}}}]}
+# Subtest: classic-put: legitimate replacement uses actually supported destination guards
+ok 16 - classic-put: legitimate replacement uses actually supported destination guards
+  ---
+  duration_ms: 0.532667
+  type: 'test'
+  ...
+# {"profile":"classic-put","error":null,"mutations":[{"operation":"put","input":{"Bucket":"bounded-rename-policy","Key":"target","IfMatch":"\\"149603e6c03516362a8da23f624db945\\"","Metadata":{"origin":"seed"},"Body":{"0":111,"1":114,"2":105,"3":103,"4":105,"5":110,"6":97,"7":108}}},{"operation":"delete","input":{"Bucket":"bounded-rename-policy","Key":"source","IfMatch":"\\"919c8b643b7133116b02fc0d9bb7df3f\\""}}]}
+# Subtest: classic-put: concurrent destination replacement cannot destroy the writer
+ok 17 - classic-put: concurrent destination replacement cannot destroy the writer
+  ---
+  duration_ms: 0.399667
+  type: 'test'
+  ...
+# {"resolved":false,"state":{"source":{"text":"original","metadata":{"origin":"seed"},"etag":"\\"919c8b643b7133116b02fc0d9bb7df3f\\""},"target":{"text":"concurrent destination","metadata":{"writer":"concurrent"},"etag":"\\"5b0f98877d09b01ed55a6bb16b7f3fff\\""}},"mutations":[{"operation":"put","input":{"Bucket":"bounded-rename-policy","Key":"target","IfMatch":"\\"149603e6c03516362a8da23f624db945\\"","Metadata":{"origin":"seed"},"Body":{"0":111,"1":114,"2":105,"3":103,"4":105,"5":110,"6":97,"7":108}}}]}
+# Subtest: classic-put: different-content mutation before publish is retained
+ok 18 - classic-put: different-content mutation before publish is retained
+  ---
+  duration_ms: 0.392959
+  type: 'test'
+  ...
+# {"fired":true,"resolved":false,"state":{"source":{"text":"new source","metadata":{"writer":"concurrent"},"etag":"\\"3fd7012014017b8cd5c1b79601a7d80f\\""},"target":{"text":"original","metadata":{"origin":"seed"},"etag":"\\"919c8b643b7133116b02fc0d9bb7df3f\\""}}}
+# Subtest: classic-put: different-content recreation before publish is retained
+ok 19 - classic-put: different-content recreation before publish is retained
+  ---
+  duration_ms: 0.436208
+  type: 'test'
+  ...
+# {"fired":true,"resolved":false,"state":{"source":{"text":"new source","metadata":{"writer":"concurrent"},"etag":"\\"3fd7012014017b8cd5c1b79601a7d80f\\""},"target":{"text":"original","metadata":{"origin":"seed"},"etag":"\\"919c8b643b7133116b02fc0d9bb7df3f\\""}}}
+# Subtest: classic-put: different-content mutation before delete is retained
+ok 20 - classic-put: different-content mutation before delete is retained
+  ---
+  duration_ms: 0.288125
+  type: 'test'
+  ...
+# {"fired":true,"resolved":false,"state":{"source":{"text":"new source","metadata":{"writer":"concurrent"},"etag":"\\"3fd7012014017b8cd5c1b79601a7d80f\\""},"target":{"text":"original","metadata":{"origin":"seed"},"etag":"\\"919c8b643b7133116b02fc0d9bb7df3f\\""}}}
+# Subtest: classic-put: different-content recreation before delete is retained
+ok 21 - classic-put: different-content recreation before delete is retained
+  ---
+  duration_ms: 0.49675
+  type: 'test'
+  ...
+# {"fired":true,"resolved":false,"state":{"source":{"text":"new source","metadata":{"writer":"concurrent"},"etag":"\\"3fd7012014017b8cd5c1b79601a7d80f\\""},"target":{"text":"original","metadata":{"origin":"seed"},"etag":"\\"919c8b643b7133116b02fc0d9bb7df3f\\""}}}
+# Subtest: classic-put: publication failure never permits source delete
+ok 22 - classic-put: publication failure never permits source delete
+  ---
+  duration_ms: 0.5285
+  type: 'test'
+  ...
+# Subtest: classic-put: publication lost acknowledgement never permits source delete
+ok 23 - classic-put: publication lost acknowledgement never permits source delete
+  ---
+  duration_ms: 0.261
+  type: 'test'
+  ...
+# Subtest: classic-put: preserves 1 late source children without bulk deletion
+ok 24 - classic-put: preserves 1 late source children without bulk deletion
+  ---
+  duration_ms: 0.808833
+  type: 'test'
+  ...
+# {"resolved":true,"remainingSourceKeys":["source/new-0"]}
+# Subtest: classic-put: preserves 2 late source children without bulk deletion
+ok 25 - classic-put: preserves 2 late source children without bulk deletion
+  ---
+  duration_ms: 0.339375
+  type: 'test'
+  ...
+# {"resolved":true,"remainingSourceKeys":["source/new-0","source/new-1"]}
+# Subtest: classic-put: preserves 4 late source children without bulk deletion
+ok 26 - classic-put: preserves 4 late source children without bulk deletion
+  ---
+  duration_ms: 0.279666
+  type: 'test'
+  ...
+# {"resolved":true,"remainingSourceKeys":["source/new-0","source/new-1","source/new-2","source/new-3"]}
+# Subtest: stream-put: legitimate new destination uses actually supported destination guards
+ok 27 - stream-put: legitimate new destination uses actually supported destination guards
+  ---
+  duration_ms: 0.619959
+  type: 'test'
+  ...
+# {"profile":"stream-put","error":null,"mutations":[{"operation":"stream-put","input":{"Bucket":"bounded-rename-policy","Key":"target","IfNoneMatch":"*","Metadata":{"origin":"seed"},"Body":{}}},{"operation":"delete","input":{"Bucket":"bounded-rename-policy","Key":"source","IfMatch":"\\"919c8b643b7133116b02fc0d9bb7df3f\\""}}]}
+# Subtest: stream-put: concurrent destination creation cannot destroy the writer
+ok 28 - stream-put: concurrent destination creation cannot destroy the writer
+  ---
+  duration_ms: 0.3215
+  type: 'test'
+  ...
+# {"resolved":false,"state":{"source":{"text":"original","metadata":{"origin":"seed"},"etag":"\\"919c8b643b7133116b02fc0d9bb7df3f\\""},"target":{"text":"concurrent destination","metadata":{"writer":"concurrent"},"etag":"\\"5b0f98877d09b01ed55a6bb16b7f3fff\\""}},"mutations":[{"operation":"stream-put","input":{"Bucket":"bounded-rename-policy","Key":"target","IfNoneMatch":"*","Metadata":{"origin":"seed"},"Body":{}}}]}
+# Subtest: stream-put: legitimate replacement uses actually supported destination guards
+ok 29 - stream-put: legitimate replacement uses actually supported destination guards
+  ---
+  duration_ms: 0.269833
+  type: 'test'
+  ...
+# {"profile":"stream-put","error":null,"mutations":[{"operation":"stream-put","input":{"Bucket":"bounded-rename-policy","Key":"target","IfMatch":"\\"149603e6c03516362a8da23f624db945\\"","Metadata":{"origin":"seed"},"Body":{}}},{"operation":"delete","input":{"Bucket":"bounded-rename-policy","Key":"source","IfMatch":"\\"919c8b643b7133116b02fc0d9bb7df3f\\""}}]}
+# Subtest: stream-put: concurrent destination replacement cannot destroy the writer
+ok 30 - stream-put: concurrent destination replacement cannot destroy the writer
+  ---
+  duration_ms: 0.311
+  type: 'test'
+  ...
+# {"resolved":false,"state":{"source":{"text":"original","metadata":{"origin":"seed"},"etag":"\\"919c8b643b7133116b02fc0d9bb7df3f\\""},"target":{"text":"concurrent destination","metadata":{"writer":"concurrent"},"etag":"\\"5b0f98877d09b01ed55a6bb16b7f3fff\\""}},"mutations":[{"operation":"stream-put","input":{"Bucket":"bounded-rename-policy","Key":"target","IfMatch":"\\"149603e6c03516362a8da23f624db945\\"","Metadata":{"origin":"seed"},"Body":{}}}]}
+# Subtest: stream-put: different-content mutation before publish is retained
+ok 31 - stream-put: different-content mutation before publish is retained
+  ---
+  duration_ms: 0.328333
+  type: 'test'
+  ...
+# {"fired":true,"resolved":false,"state":{"source":{"text":"new source","metadata":{"writer":"concurrent"},"etag":"\\"3fd7012014017b8cd5c1b79601a7d80f\\""},"target":{"text":"original","metadata":{"origin":"seed"},"etag":"\\"919c8b643b7133116b02fc0d9bb7df3f\\""}}}
+# Subtest: stream-put: different-content recreation before publish is retained
+ok 32 - stream-put: different-content recreation before publish is retained
+  ---
+  duration_ms: 0.392958
+  type: 'test'
+  ...
+# {"fired":true,"resolved":false,"state":{"source":{"text":"new source","metadata":{"writer":"concurrent"},"etag":"\\"3fd7012014017b8cd5c1b79601a7d80f\\""},"target":{"text":"original","metadata":{"origin":"seed"},"etag":"\\"919c8b643b7133116b02fc0d9bb7df3f\\""}}}
+# Subtest: stream-put: different-content mutation before delete is retained
+ok 33 - stream-put: different-content mutation before delete is retained
+  ---
+  duration_ms: 0.238708
+  type: 'test'
+  ...
+# {"fired":true,"resolved":false,"state":{"source":{"text":"new source","metadata":{"writer":"concurrent"},"etag":"\\"3fd7012014017b8cd5c1b79601a7d80f\\""},"target":{"text":"original","metadata":{"origin":"seed"},"etag":"\\"919c8b643b7133116b02fc0d9bb7df3f\\""}}}
+# Subtest: stream-put: different-content recreation before delete is retained
+ok 34 - stream-put: different-content recreation before delete is retained
+  ---
+  duration_ms: 0.241125
+  type: 'test'
+  ...
+# {"fired":true,"resolved":false,"state":{"source":{"text":"new source","metadata":{"writer":"concurrent"},"etag":"\\"3fd7012014017b8cd5c1b79601a7d80f\\""},"target":{"text":"original","metadata":{"origin":"seed"},"etag":"\\"919c8b643b7133116b02fc0d9bb7df3f\\""}}}
+# Subtest: stream-put: publication failure never permits source delete
+ok 35 - stream-put: publication failure never permits source delete
+  ---
+  duration_ms: 0.229583
+  type: 'test'
+  ...
+# Subtest: stream-put: publication lost acknowledgement never permits source delete
+ok 36 - stream-put: publication lost acknowledgement never permits source delete
+  ---
+  duration_ms: 0.207584
+  type: 'test'
+  ...
+# Subtest: stream-put: preserves 1 late source children without bulk deletion
+ok 37 - stream-put: preserves 1 late source children without bulk deletion
+  ---
+  duration_ms: 0.339583
+  type: 'test'
+  ...
+# {"resolved":true,"remainingSourceKeys":["source/new-0"]}
+# Subtest: stream-put: preserves 2 late source children without bulk deletion
+ok 38 - stream-put: preserves 2 late source children without bulk deletion
+  ---
+  duration_ms: 0.321584
+  type: 'test'
+  ...
+# {"resolved":true,"remainingSourceKeys":["source/new-0","source/new-1"]}
+# Subtest: stream-put: preserves 4 late source children without bulk deletion
+ok 39 - stream-put: preserves 4 late source children without bulk deletion
+  ---
+  duration_ms: 0.389375
+  type: 'test'
+  ...
+# {"resolved":true,"remainingSourceKeys":["source/new-0","source/new-1","source/new-2","source/new-3"]}
+# Subtest: classic-put: buffered fallback refuses over-budget source before any publication
+ok 40 - classic-put: buffered fallback refuses over-budget source before any publication
+  ---
+  duration_ms: 0.258167
+  type: 'test'
+  ...
+# {"resolved":false,"mutations":[],"state":{"source":{"text":"12345","metadata":{"origin":"seed"},"etag":"\\"827ccb0eea8a706c4c34a16891f84e7b\\""},"target":{"text":"keep","metadata":{"origin":"seed"},"etag":"\\"18ccf61d533b600bbf5a963359223fe4\\""}}}
+# Subtest: classic-put: conditional publication preserves binary bytes and source metadata
+ok 41 - classic-put: conditional publication preserves binary bytes and source metadata
+  ---
+  duration_ms: 0.222666
+  type: 'test'
+  ...
+# Subtest: stream-put: negotiated streaming avoids the smaller buffered-copy budget
+ok 42 - stream-put: negotiated streaming avoids the smaller buffered-copy budget
+  ---
+  duration_ms: 0.256708
+  type: 'test'
+  ...
+# Subtest: classic-put: abort before conditional publication retains source
+ok 43 - classic-put: abort before conditional publication retains source
+  ---
+  duration_ms: 0.507875
+  type: 'test'
+  ...
+# Subtest: stream-put: abort before conditional publication retains source
+ok 44 - stream-put: abort before conditional publication retains source
+  ---
+  duration_ms: 1.192917
+  type: 'test'
+  ...
+# Subtest: default guarded rename succeeds and advertises non-atomic semantics
+ok 45 - default guarded rename succeeds and advertises non-atomic semantics
+  ---
+  duration_ms: 3.371333
+  type: 'test'
+  ...
+# Subtest: stable existing destination is legitimately replaced with destination ETag guard
+ok 46 - stable existing destination is legitimately replaced with destination ETag guard
+  ---
+  duration_ms: 0.573458
+  type: 'test'
+  ...
+# Subtest: explicit atomic-policy opt-out rejects before host effects
+ok 47 - explicit atomic-policy opt-out rejects before host effects
+  ---
+  duration_ms: 0.315042
+  type: 'test'
+  ...
+# Subtest: minimum mutation capabilities preflight {}
+ok 48 - minimum mutation capabilities preflight {}
+  ---
+  duration_ms: 0.261417
+  type: 'test'
+  ...
+# {"resolved":false,"code":"ENOTSUP","calls":[],"state":{"source":"original","target":"keep"}}
+# Subtest: minimum mutation capabilities preflight {"conditionalCopy":true}
+ok 49 - minimum mutation capabilities preflight {"conditionalCopy":true}
+  ---
+  duration_ms: 0.356917
+  type: 'test'
+  ...
+# {"resolved":false,"code":"ENOTSUP","calls":[],"state":{"source":"original","target":"keep"}}
+# Subtest: minimum mutation capabilities preflight {"conditionalDelete":true}
+ok 50 - minimum mutation capabilities preflight {"conditionalDelete":true}
+  ---
+  duration_ms: 0.176083
+  type: 'test'
+  ...
+# {"resolved":false,"code":"ENOTSUP","calls":[],"state":{"source":"original","target":"keep"}}
+# Subtest: minimum mutation capabilities preflight {"conditionalCopy":false,"conditionalDelete":true}
+ok 51 - minimum mutation capabilities preflight {"conditionalCopy":false,"conditionalDelete":true}
+  ---
+  duration_ms: 0.151291
+  type: 'test'
+  ...
+# {"resolved":false,"code":"ENOTSUP","calls":[],"state":{"source":"original","target":"keep"}}
+# Subtest: no destination guard capability must not clobber concurrent create
+ok 52 - no destination guard capability must not clobber concurrent create
+  ---
+  duration_ms: 0.241167
+  type: 'test'
+  ...
+# {"resolved":false,"calls":[],"state":{"source":"original"}}
+# Subtest: destination creation race retains both current writers
+ok 53 - destination creation race retains both current writers
+  ---
+  duration_ms: 1.032792
+  type: 'test'
+  ...
+# {"resolved":false,"state":{"source":"original","target":"concurrent writer"}}
+# Subtest: destination replacement race retains both current writers
+ok 54 - destination replacement race retains both current writers
+  ---
+  duration_ms: 1.9275
+  type: 'test'
+  ...
+# {"resolved":false,"state":{"source":"original","target":"concurrent writer"}}
+# Subtest: changed source before copy is never deleted
+ok 55 - changed source before copy is never deleted
+  ---
+  duration_ms: 0.5125
+  type: 'test'
+  ...
+# Subtest: changed source before delete is never deleted
+ok 56 - changed source before delete is never deleted
+  ---
+  duration_ms: 0.335833
+  type: 'test'
+  ...
+# Subtest: deleted and recreated source with different bytes survives guarded deletion
+ok 57 - deleted and recreated source with different bytes survives guarded deletion
+  ---
+  duration_ms: 0.333667
+  type: 'test'
+  ...
+# Subtest: paginated directory move completes every copy before any delete
+ok 58 - paginated directory move completes every copy before any delete
+  ---
+  duration_ms: 0.722375
+  type: 'test'
+  ...
+# Subtest: copy failure 1/3 reports acknowledged partial directory state
+ok 59 - copy failure 1/3 reports acknowledged partial directory state
+  ---
+  duration_ms: 0.717375
+  type: 'test'
+  ...
+# Subtest: copy failure 2/3 reports acknowledged partial directory state
+ok 60 - copy failure 2/3 reports acknowledged partial directory state
+  ---
+  duration_ms: 0.640959
+  type: 'test'
+  ...
+# Subtest: copy failure 3/3 reports acknowledged partial directory state
+ok 61 - copy failure 3/3 reports acknowledged partial directory state
+  ---
+  duration_ms: 0.417375
+  type: 'test'
+  ...
+# Subtest: delete failure 1/3 reports acknowledged partial directory state
+ok 62 - delete failure 1/3 reports acknowledged partial directory state
+  ---
+  duration_ms: 0.744
+  type: 'test'
+  ...
+# Subtest: delete failure 2/3 reports acknowledged partial directory state
+ok 63 - delete failure 2/3 reports acknowledged partial directory state
+  ---
+  duration_ms: 0.864416
+  type: 'test'
+  ...
+# Subtest: delete failure 3/3 reports acknowledged partial directory state
+ok 64 - delete failure 3/3 reports acknowledged partial directory state
+  ---
+  duration_ms: 0.504292
+  type: 'test'
+  ...
+# Subtest: copy rejection PreconditionFailed preserves source and typed cause
+ok 65 - copy rejection PreconditionFailed preserves source and typed cause
+  ---
+  duration_ms: 0.261416
+  type: 'test'
+  ...
+# Subtest: copy rejection ConditionalRequestConflict preserves source and typed cause
+ok 66 - copy rejection ConditionalRequestConflict preserves source and typed cause
+  ---
+  duration_ms: 0.218792
+  type: 'test'
+  ...
+# Subtest: copy rejection NoSuchKey preserves source and typed cause
+ok 67 - copy rejection NoSuchKey preserves source and typed cause
+  ---
+  duration_ms: 0.211792
+  type: 'test'
+  ...
+# Subtest: copy rejection RequestTimeout preserves source and typed cause
+ok 68 - copy rejection RequestTimeout preserves source and typed cause
+  ---
+  duration_ms: 0.17625
+  type: 'test'
+  ...
+# Subtest: copy rejection InternalError preserves source and typed cause
+ok 69 - copy rejection InternalError preserves source and typed cause
+  ---
+  duration_ms: 0.384791
+  type: 'test'
+  ...
+# Subtest: unconfirmed copy response never authorizes source deletion
+ok 70 - unconfirmed copy response never authorizes source deletion
+  ---
+  duration_ms: 1.077709
+  type: 'test'
+  ...
+# Subtest: lost copy acknowledgement rejects rather than reporting success
+ok 71 - lost copy acknowledgement rejects rather than reporting success
+  ---
+  duration_ms: 0.27525
+  type: 'test'
+  ...
+# Subtest: abort during copy preserves acknowledged state and propagates signal
+ok 72 - abort during copy preserves acknowledged state and propagates signal
+  ---
+  duration_ms: 0.343083
+  type: 'test'
+  ...
+# Subtest: lost delete acknowledgement rejects rather than reporting success
+ok 73 - lost delete acknowledgement rejects rather than reporting success
+  ---
+  duration_ms: 0.277625
+  type: 'test'
+  ...
+# Subtest: abort during delete preserves acknowledged state and propagates signal
+ok 74 - abort during delete preserves acknowledged state and propagates signal
+  ---
+  duration_ms: 0.28475
+  type: 'test'
+  ...
+# Subtest: pre-aborted rename performs no mutation
+ok 75 - pre-aborted rename performs no mutation
+  ---
+  duration_ms: 0.12
+  type: 'test'
+  ...
+# Subtest: new source child after enumeration is retained, not included in bulk deletion
+ok 76 - new source child after enumeration is retained, not included in bulk deletion
+  ---
+  duration_ms: 0.359958
+  type: 'test'
+  ...
+# Subtest: prefix isolation and encoded Unicode keys preserve unrelated objects
+ok 77 - prefix isolation and encoded Unicode keys preserve unrelated objects
+  ---
+  duration_ms: 0.3115
+  type: 'test'
+  ...
+# Subtest: same-path default rename succeeds without copy or deletion
+ok 78 - same-path default rename succeeds without copy or deletion
+  ---
+  duration_ms: 0.149208
+  type: 'test'
+  ...
+# Subtest: concurrent source removal before copy reports explicit partial state
+ok 79 - concurrent source removal before copy reports explicit partial state
+  ---
+  duration_ms: 0.255709
+  type: 'test'
+  ...
+# Subtest: concurrent source removal before delete reports explicit partial state
+ok 80 - concurrent source removal before delete reports explicit partial state
+  ---
+  duration_ms: 0.189917
+  type: 'test'
+  ...
+# Subtest: concurrent destination child blocks its copy without deleting any source keys
+ok 81 - concurrent destination child blocks its copy without deleting any source keys
+  ---
+  duration_ms: 0.394333
+  type: 'test'
+  ...
+# {"resolved":false,"state":{"source/":"","source/alpha":"A","source/beta":"B","target/":"","target/alpha":"new destination child","unrelated":"keep"}}
+# Subtest: changed later source child remains after earlier conditional deletions
+ok 82 - changed later source child remains after earlier conditional deletions
+  ---
+  duration_ms: 0.440666
+  type: 'test'
+  ...
+# Subtest: structural preflight /source to /source/nested returns EINVAL without mutation
+ok 83 - structural preflight /source to /source/nested returns EINVAL without mutation
+  ---
+  duration_ms: 0.256791
+  type: 'test'
+  ...
+# Subtest: structural preflight /missing to /target returns ENOENT without mutation
+ok 84 - structural preflight /missing to /target returns ENOENT without mutation
+  ---
+  duration_ms: 0.382167
+  type: 'test'
+  ...
+# Subtest: structural preflight /source/alpha to /source returns EISDIR without mutation
+ok 85 - structural preflight /source/alpha to /source returns EISDIR without mutation
+  ---
+  duration_ms: 0.345958
+  type: 'test'
+  ...
+# Subtest: structural preflight /source to /source/alpha returns EINVAL without mutation
+ok 86 - structural preflight /source to /source/alpha returns EINVAL without mutation
+  ---
+  duration_ms: 0.258583
+  type: 'test'
+  ...
+1..86
+# tests 86
+# suites 0
+# pass 86
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 157.330541

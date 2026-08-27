@@ -1,0 +1,10 @@
+tests/commands/split/dangling-contracts.test.ts(25,36): error TS2379: Argument of type '{ writeStream: ((path: string, source: ByteSource, options: WriteFileOptions | undefined) => Promise<void>) | undefined; writeFile(path: string, bytes: Uint8Array<...>, options: WriteFileOptions | undefined): Promise<...>; }' is not assignable to parameter of type 'Partial<FileSystem>' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Types of property 'writeStream' are incompatible.
+    Type '((path: string, source: ByteSource, options: WriteFileOptions | undefined) => Promise<void>) | undefined' is not assignable to type '(path: string, source: ByteSource, options?: WriteFileOptions | undefined) => Promise<void>'.
+      Type 'undefined' is not assignable to type '(path: string, source: ByteSource, options?: WriteFileOptions | undefined) => Promise<void>'.
+tests/commands/split/dangling-contracts.test.ts(154,39): error TS2379: Argument of type '{ readlink: undefined; }' is not assignable to parameter of type 'Partial<FileSystem>' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Types of property 'readlink' are incompatible.
+    Type 'undefined' is not assignable to type '(path: string, options?: FsOptions | undefined) => Promise<string>'.
+tests/commands/split/dangling-contracts.test.ts(174,32): error TS2379: Argument of type '{ compareEntry: undefined; stat(path: string, options: FsOptions | undefined): Promise<FileStat>; lstat(path: string, options: FsOptions | undefined): Promise<...>; }' is not assignable to parameter of type 'Partial<FileSystem>' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Types of property 'compareEntry' are incompatible.
+    Type 'undefined' is not assignable to type '(path: string, peer: FileSystem, peerPath: string, options?: FsOptions | undefined) => Promise<EntryComparison>'.

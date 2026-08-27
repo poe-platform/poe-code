@@ -101,8 +101,12 @@ Known aliases are rejected; ordinary proven-distinct outputs truncate faithfully
 Opaque existing identities without authority fail closed (`ENOTSUP`), while actual
 MemoryFS/RealFS/scoped or truthful comparison paths support positive overwrites.
 stdin has no pathname identity; no promise to detect redirected-input aliasing.
-Missing names use `wx`: raced files and dangling symlinks remain intact with
-`EEXIST`. Prior output aliases are conservatively rejected; GNU can overwrite them.
+Missing names use `wx`: raced files remain intact with `EEXIST`. The original
+author characterized dangling symlink rejection as acceptable; this was a product
+defect. The follow-up resolves stable dangling links and exclusively creates their
+missing targets. Original handoff/test/result and raw initial native failures are
+preserved in `evidence/dangling`; the original 43 count above is historical, not
+the follow-up test count. Prior output aliases are conservatively rejected; GNU can overwrite them.
 Observation is not a lease/ABA guard or a guarantee against hostile external races.
 
 No rollback/delete cleanup exists. Completed outputs and adapter-written current

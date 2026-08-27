@@ -107,9 +107,14 @@ before reading an empty input; no content is acquired after an unsafe identity
 observation.
 
 New names use actual `wx` creation. An existing path raced into that name fails
-`EEXIST` instead of being truncated. A dangling final symlink also fails exclusive
-creation, preserving both link and absent target; GNU may instead create its
-target. Existing, followed symlinks to distinct files may be overwritten. VFS
+`EEXIST` instead of being truncated. A stable dangling final symlink is followed
+using the supplied VFS `readlink`, `realpath`, `lstat` and `stat`; its missing target
+is created exclusively instead of opening the link itself with `wx`. Relative
+targets use the resolved parent; target components are not lexically collapsed
+before adapter traversal. Missing `readlink` is an explicit `ENOTSUP` gap for this
+case, not a ban on supported existing symlinks. Missing parents, loops and other
+resolution errors propagate. Existing, followed symlinks to distinct files may
+be overwritten. VFS
 path traversal and read-only policy remain adapter responsibilities. Identity
 observations are not leases, transactions, an ABA defense, or protection against
 external path replacement after observation. No allocated-block, strong host

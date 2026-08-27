@@ -1,0 +1,51 @@
+ M src/commands/split/README.md
+ M src/commands/split/outputs.ts
+ M tests/commands/split/AUTHOR_HANDOFF.md
+ M tests/commands/split/compiled-consumer.mjs
+?? benchmarks/reports/comparison-fairness-20260827/published-artifact-authentication/
+?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/
+?? tests/commands/regex-execution/followup/after-messageerror.claim.json
+?? tests/commands/regex-execution/followup/after-messageerror.result.json
+?? tests/commands/regex-execution/followup/after-messageerror.stderr.txt
+?? tests/commands/regex-execution/followup/after-messageerror.stdout.txt
+?? tests/commands/regex-execution/followup/author-types.claim.json
+?? tests/commands/regex-execution/followup/author-types.result.json
+?? tests/commands/regex-execution/followup/author-types.stderr.txt
+?? tests/commands/regex-execution/followup/author-types.stdout.txt
+?? tests/commands/regex-execution/followup/frozen-build.claim.json
+?? tests/commands/regex-execution/followup/frozen-build.result.json
+?? tests/commands/regex-execution/followup/frozen-build.stderr.txt
+?? tests/commands/regex-execution/followup/frozen-build.stdout.txt
+?? tests/commands/regex-execution/followup/frozen-cohort.claim.json
+?? tests/commands/regex-execution/followup/frozen-cohort.result.json
+?? tests/commands/regex-execution/followup/frozen-cohort.stderr.txt
+?? tests/commands/regex-execution/followup/frozen-cohort.stdout.txt
+?? tests/commands/regex-execution/followup/frozen-package.claim.json
+?? tests/commands/regex-execution/followup/frozen-package.result.json
+?? tests/commands/regex-execution/followup/frozen-package.stderr.txt
+?? tests/commands/regex-execution/followup/frozen-package.stdout.txt
+?? tests/commands/regex-execution/followup/frozen-types.claim.json
+?? tests/commands/regex-execution/followup/frozen-types.result.json
+?? tests/commands/regex-execution/followup/frozen-types.stderr.txt
+?? tests/commands/regex-execution/followup/frozen-types.stdout.txt
+?? tests/commands/regex-execution/followup/global-types.claim.json
+?? tests/commands/regex-execution/followup/global-types.result.json
+?? tests/commands/regex-execution/followup/global-types.stderr.txt
+?? tests/commands/regex-execution/followup/global-types.stdout.txt
+?? tests/commands/regex-execution/followup/package-evidence.json
+?? tests/commands/regex-execution/followup/package.claim.json
+?? tests/commands/regex-execution/followup/package.mjs
+?? tests/commands/regex-execution/followup/product-consumer.mjs
+?? tests/commands/regex-execution/followup/product-consumer.mts
+?? tests/commands/search-stress/.native-1m4O1e/
+?? tests/commands/split/dangling-contracts.test.ts
+?? tests/commands/split/evidence/dangling/final-contracts.tap
+?? tests/commands/split/evidence/dangling/final-typecheck.log
+?? tests/commands/split/evidence/dangling/fixed-contracts.tap
+?? tests/commands/split/evidence/dangling/fixed-core-tests.tap
+?? tests/commands/split/evidence/dangling/native-fixed.json
+?? tests/commands/split/evidence/dangling/pre-source-commit-status.txt
+?? tests/commands/split/evidence/dangling/typecheck.log
+?? tests/commands/stream-next-stress/strong-diagnostics.mjs
+?? tests/fs/webdav/real-service-independent/
+?? tests/shell-stress/errexit-legacy-policy/.correction-archive-bLk5Ko/

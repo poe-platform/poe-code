@@ -34,3 +34,33 @@ local pinned captures govern the tested GNU9.7/Darwin behavior. No downloads or
 native builds occurred. Negative diagnostics are separately asserted typed-error
 human-readable profiles, with exact original raw strings retained, not blanket
 stderr normalization. Successful outputs require exact empty stderr.
+
+## Source correction and fixture-only corrections
+
+`Outputs.destination` separates absent names from dangling final links. It follows
+only the latter with supplied capabilities, delegates component traversal to the
+VFS, and retains `wx` at a missing target. Existing-file identity and compareEntry
+checks remain unchanged. There is no remove, rollback, host fallback, fabricated
+identity or external hostile mutation protection. Stable missing-parent failure
+now reports ENOENT rather than incorrectly rejecting the link with EEXIST.
+
+`fixed-core-tests.tap` is 31/31 passing against the unchanged corrected/native
+fixtures. `native-fixed.json` is 22/22 matching backend-case observations (11 GNU
+inputs times two adapters), with Apple observations retained separately. Thus the
+16 initial native mismatches were fixed in source, not by changing fixtures.
+
+The additional contract suite first yielded 15/16 (`fixed-contracts.tap` retains
+that raw initial result despite its phase-oriented filename). One new fixture
+incorrectly assumed the MemoryFS budget diagnostic on RealFS. Inspection of
+`src/fs/real/index.ts` operation wrapping shows it preserves EFBIG but reconstructs
+the syscall/path message. The corrected RealFS assertion is the exact observed
+`split: file too large, writeStream '/second'` plus newline; the MemoryFS assertion
+is unchanged. Status and exact completed/partial file bytes remain asserted. This
+is a disclosed fixture profile correction, not a product diagnostic fix or a
+blanket waiver. Final contracts: 16/16 in `final-contracts.tap`.
+
+`typecheck.log` retains three initial fixture errors from assigning undefined to
+optional methods with exactOptionalPropertyTypes. The fixture now hides absent
+methods through a truthful forwarding Proxy, as existing author fixtures do;
+`final-typecheck.log` is the succeeding noEmit run. Neither correction changes FS
+code, oracle inputs or the split source fix.

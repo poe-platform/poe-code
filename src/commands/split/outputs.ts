@@ -47,17 +47,33 @@ export class Outputs {
     if (relation === "unknown") throw new FsError("ENOTSUP", { path: current.path, message: "cannot establish that existing output is distinct from input or earlier output" });
   }
 
-  async prepare(name: string): Promise<{ path: string; flag: NonNullable<WriteFileOptions["flag"]> }> {
-    const path = pathOf(this.context, name);
-    let stat: FileStat;
+  private async destination(path: string, links = 0): Promise<{ path: string; stat?: FileStat }> {
+    await this.budget.step();
+    let entry: FileStat;
     try {
-      const entry = await interruptible(() => this.context.fs.lstat(path, { signal: this.budget.signal }), this.budget.signal);
-      stat = entry.type === "symlink" ? await this.stat(path) : entry;
+      entry = await interruptible(() => this.context.fs.lstat(path, { signal: this.budget.signal }), this.budget.signal);
     } catch (error) {
       this.budget.signal.throwIfAborted();
-      if (isFsError(error, "ENOENT")) return { path, flag: "wx" };
+      if (isFsError(error, "ENOENT")) return { path };
       throw error;
     }
+    if (entry.type !== "symlink") return { path, stat: entry };
+    try { return { path, stat: await this.stat(path) }; }
+    catch (error) {
+      this.budget.signal.throwIfAborted();
+      if (!isFsError(error, "ENOENT")) throw error;
+    }
+    if (!this.context.fs.readlink) throw new FsError("ENOTSUP", { path, message: "cannot resolve dangling output symlink without readlink" });
+    if (links >= 40) throw new FsError("ELOOP", { path });
+    const target = await interruptible(() => this.context.fs.readlink!(path, { signal: this.budget.signal }), this.budget.signal);
+    const parent = target.startsWith("/") ? "" : await interruptible(
+      () => this.context.fs.realpath(path.slice(0, path.lastIndexOf("/")) || "/", { signal: this.budget.signal }), this.budget.signal);
+    return this.destination(target.startsWith("/") ? target : `${parent.replace(/\/$/u, "")}/${target}`, links + 1);
+  }
+
+  async prepare(name: string): Promise<{ path: string; flag: NonNullable<WriteFileOptions["flag"]> }> {
+    const { path, stat } = await this.destination(pathOf(this.context, name));
+    if (!stat) return { path, flag: "wx" };
     if (stat.type === "directory") throw new FsError("EISDIR", { path });
     if (stat.type !== "file") throw new FsError("ENOTSUP", { path, message: "output is not a regular file" });
     const current = { path, stat };

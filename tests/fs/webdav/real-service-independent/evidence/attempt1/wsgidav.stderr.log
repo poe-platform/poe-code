@@ -1,0 +1,15 @@
+file:///private/tmp/safe-bash-webdav-review-F6XucT/fixtures/run.mjs:27
+  if (result.status !== 0) throw new Error(`${command} failed: ${result.stderr || result.stdout || result.error}`);
+                                 ^
+
+Error: /Users/kjopek/.nvm/versions/node/v22.22.2/bin/node failed: independent.mts(88,13): error TS7022: 'filesystem' implicitly has type 'any' because it does not have a type annotation and is referenced directly or indirectly in its own initializer.
+independent.mts(88,62): error TS7023: 'compareEntry' implicitly has return type 'any' because it does not have a return type annotation and is referenced directly or indirectly in one of its return expressions.
+independent.mts(140,95): error TS2339: Property 'startsWith' does not exist on type 'never'.
+independent.mts(189,74): error TS2353: Object literal may only specify known properties, and 'end' does not exist in type 'ReadStreamOptions'.
+independent.mts(193,16): error TS2554: Expected 1 arguments, but got 0.
+independent.mts(207,16): error TS2554: Expected 1 arguments, but got 0.
+
+    at run (file:///private/tmp/safe-bash-webdav-review-F6XucT/fixtures/run.mjs:27:34)
+    at file:///private/tmp/safe-bash-webdav-review-F6XucT/fixtures/run.mjs:81:9
+
+Node.js v22.22.2

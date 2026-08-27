@@ -1,0 +1,150 @@
+{
+  "boundary": "unmodified frozen npm pack extracted into consumer/node_modules/virtual-bash; public imports only",
+  "checks": [
+    {
+      "backend": "memory",
+      "status": "pass",
+      "result": {
+        "stdout": "4\n",
+        "stderr": "",
+        "stdoutBytes": {
+          "0": 52,
+          "1": 10
+        },
+        "stderrBytes": {},
+        "exitCode": 0
+      }
+    },
+    {
+      "backend": "real",
+      "status": "pass",
+      "result": {
+        "stdout": "4\n",
+        "stderr": "",
+        "stdoutBytes": {
+          "0": 52,
+          "1": 10
+        },
+        "stderrBytes": {},
+        "exitCode": 0
+      }
+    },
+    {
+      "backend": "readonly",
+      "status": "pass",
+      "result": {
+        "stdout": "4\n",
+        "stderr": "",
+        "stdoutBytes": {
+          "0": 52,
+          "1": 10
+        },
+        "stderrBytes": {},
+        "exitCode": 0
+      }
+    },
+    {
+      "backend": "mount",
+      "status": "pass",
+      "result": {
+        "stdout": "4\n",
+        "stderr": "",
+        "stdoutBytes": {
+          "0": 52,
+          "1": 10
+        },
+        "stderrBytes": {},
+        "exitCode": 0
+      }
+    },
+    {
+      "backend": "overlay",
+      "status": "pass",
+      "result": {
+        "stdout": "4\n",
+        "stderr": "",
+        "stdoutBytes": {
+          "0": 52,
+          "1": 10
+        },
+        "stderrBytes": {},
+        "exitCode": 0
+      }
+    },
+    {
+      "backend": "s3-mock",
+      "status": "pass",
+      "result": {
+        "stdout": "4\n",
+        "stderr": "",
+        "stdoutBytes": {
+          "0": 52,
+          "1": 10
+        },
+        "stderrBytes": {},
+        "exitCode": 0
+      }
+    }
+  ],
+  "du": {
+    "rootExports": {
+      "createDuCommand": "undefined",
+      "createDuCommands": "undefined",
+      "duCommands": "undefined"
+    },
+    "subpath": {
+      "status": "refused",
+      "code": "ERR_PACKAGE_PATH_NOT_EXPORTED",
+      "message": "Package subpath './commands/du' is not defined by \"exports\" in /Users/kjopek/Workspace/safe-bash/tests/commands/du/independent/.work/run-06SjXH/consumer/node_modules/virtual-bash/package.json imported from /Users/kjopek/Workspace/safe-bash/tests/commands/du/independent/.work/run-06SjXH/consumer/consumer.mjs"
+    },
+    "aggregateExecution": {
+      "stdout": "",
+      "stderr": "shell: line 1: du: command not found\n",
+      "stdoutBytes": {},
+      "stderrBytes": {
+        "0": 115,
+        "1": 104,
+        "2": 101,
+        "3": 108,
+        "4": 108,
+        "5": 58,
+        "6": 32,
+        "7": 108,
+        "8": 105,
+        "9": 110,
+        "10": 101,
+        "11": 32,
+        "12": 49,
+        "13": 58,
+        "14": 32,
+        "15": 100,
+        "16": 117,
+        "17": 58,
+        "18": 32,
+        "19": 99,
+        "20": 111,
+        "21": 109,
+        "22": 109,
+        "23": 97,
+        "24": 110,
+        "25": 100,
+        "26": 32,
+        "27": 110,
+        "28": 111,
+        "29": 116,
+        "30": 32,
+        "31": 102,
+        "32": 111,
+        "33": 117,
+        "34": 110,
+        "35": 100,
+        "36": 10
+      },
+      "exitCode": 127
+    }
+  },
+  "entry": {
+    "resolved": "file:///Users/kjopek/Workspace/safe-bash/tests/commands/du/independent/.work/run-06SjXH/consumer/node_modules/virtual-bash/dist/index.js",
+    "sha256": "fca3b3db1ff1cfbc8ed59d1eefce52d088839288109990d9fa05bd9200a5aa54"
+  }
+}

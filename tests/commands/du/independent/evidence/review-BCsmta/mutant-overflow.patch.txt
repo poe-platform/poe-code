@@ -1,0 +1,6 @@
+*** Begin Patch
+*** Update File: src/commands/du/du.ts
+@@
+-    if (right.bytes > Number.MAX_SAFE_INTEGER - left.bytes) {
++    if (false) {
+*** End Patch

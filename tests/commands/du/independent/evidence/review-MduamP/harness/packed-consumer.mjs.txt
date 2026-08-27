@@ -1,0 +1,42 @@
+import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
+import { mkdir, readFile, rm, writeFile } from "node:fs/promises";
+import { fileURLToPath } from "node:url";
+import { join } from "node:path";
+import * as api from "virtual-bash";
+
+const output = process.argv[2];
+const directory = fileURLToPath(new URL(".", import.meta.url));
+const results = { boundary: "unmodified frozen npm pack extracted into consumer/node_modules/virtual-bash; public imports only", checks: [], du: {} };
+const entry = import.meta.resolve("virtual-bash");
+assert.equal(fileURLToPath(entry), join(directory, "node_modules/virtual-bash/dist/index.js"), "public probe must load packed module, never repository self-reference");
+results.entry = { resolved: entry, sha256: createHash("sha256").update(await readFile(fileURLToPath(entry))).digest("hex") };
+results.du.rootExports = Object.fromEntries(["createDuCommand", "createDuCommands", "duCommands"].map(name => [name, typeof api[name]]));
+try { const imported = await import("virtual-bash/commands/du"); results.du.subpath = { status: "available", exports: Object.keys(imported) }; }
+catch (error) { results.du.subpath = { status: "refused", code: error.code, message: error.message }; }
+const root = join(directory, "real-fixture"); await mkdir(root);
+try {
+  for (const backend of ["memory", "real", "readonly", "mount", "overlay", "s3-mock"]) {
+    let fs = backend === "real" ? await api.createRealFileSystem({ root }) : api.createMemoryFileSystem();
+    if (backend === "s3-mock") fs = new api.S3FileSystem({ transport: new api.MockS3Client({ buckets: ["packed"] }), bucket: "packed" });
+    await fs.mkdir("/tree"); await fs.writeFile("/tree/file", new TextEncoder().encode("abc\n"));
+    if (backend === "readonly") fs = api.createReadOnlyFileSystem(fs);
+    if (backend === "mount") fs = api.createMountFileSystem({ root: fs, mounts: { "/unrelated": api.createMemoryFileSystem() } });
+    if (backend === "overlay") fs = api.createOverlayFileSystem({ lower: fs, upper: api.createMemoryFileSystem() });
+    const shell = new api.Shell({ fs }).use(api.standardCommands());
+    try {
+      const result = await shell.exec("cat /tree/file | wc -c");
+      assert.equal(result.exitCode, 0, result.stderr); assert.equal(result.stdout.trim(), "4");
+      results.checks.push({ backend, status: "pass", result });
+    } finally { await shell.dispose(); }
+  }
+  const shell = new api.Shell({ fs: api.createMemoryFileSystem() }).use(api.agentCommands());
+  try { results.du.aggregateExecution = await shell.exec("du -b ."); }
+  finally { await shell.dispose(); }
+  assert.equal(results.du.aggregateExecution.exitCode, 127);
+} catch (error) { results.error = error.stack; process.exitCode = 1; }
+finally {
+  await rm(root, { recursive: true, force: true });
+  await writeFile(join(output, "packed-public.json"), JSON.stringify(results, null, 2) + "\n");
+  console.log(JSON.stringify(results));
+}

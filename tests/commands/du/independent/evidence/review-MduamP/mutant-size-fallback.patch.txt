@@ -1,0 +1,6 @@
+*** Begin Patch
+*** Update File: src/commands/du/du.ts
+@@
+-    const bytes = this.args.apparent ? stat.type === "directory" ? 0 : stat.size : stat.allocatedBytes;
++    const bytes = this.args.apparent ? stat.type === "directory" ? 0 : stat.size : (stat.allocatedBytes ?? stat.size);
+*** End Patch

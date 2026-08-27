@@ -1,0 +1,127 @@
+{
+  "candidateInspected": false,
+  "bindings": [
+    {
+      "file": "stage.mjs",
+      "origin": "50b1e560:tests/commands/expr-stress/extension-review/after-abort-fix/replay/stage.mjs",
+      "originalSha256": "8230ad2d4ad80e5ac8ae1e5c6b945a7f649ad807567f368768315ba86788b263",
+      "boundSha256": "ed6fa329fa1f6816b69f9658e3d27428f2bb4bad0e0c4fd259c60724146b14bd",
+      "deltas": [
+        {
+          "from": "/tmp/expr-cancel-fix-candidate.txt",
+          "to": "tests/commands/expr-stress/diagnostics-review/freeze/baseline-source.txt"
+        }
+      ]
+    },
+    {
+      "file": "runtime-driver.mjs",
+      "origin": "50b1e560:tests/commands/expr-stress/extension-review/after-abort-fix/replay/runtime-driver.mjs",
+      "originalSha256": "5ae25ca13f47fcf2715ca0336149b41faf3d70fafa83ef42c667c9be054ca686",
+      "boundSha256": "5ae25ca13f47fcf2715ca0336149b41faf3d70fafa83ef42c667c9be054ca686",
+      "deltas": []
+    },
+    {
+      "file": "watchdog.mjs",
+      "origin": "50b1e560:tests/commands/expr-stress/extension-review/after-abort-fix/replay/watchdog.mjs",
+      "originalSha256": "bef0f71905b37dbfd461f211214760ffc2ba8ae9039859f5736c3234309a92ee",
+      "boundSha256": "bef0f71905b37dbfd461f211214760ffc2ba8ae9039859f5736c3234309a92ee",
+      "deltas": []
+    },
+    {
+      "file": "protocol-driver.mjs",
+      "origin": "50b1e560:tests/commands/expr-stress/extension-review/after-abort-fix/replay/protocol-driver.mjs",
+      "originalSha256": "3f87c282e60a67388e64bf6fdd0b2b445778171fbb93c0190a237c53f2fc77bc",
+      "boundSha256": "3f87c282e60a67388e64bf6fdd0b2b445778171fbb93c0190a237c53f2fc77bc",
+      "deltas": []
+    },
+    {
+      "file": "lifecycle-driver.mjs",
+      "origin": "50b1e560:tests/commands/expr-stress/extension-review/after-abort-fix/replay/lifecycle-driver.mjs",
+      "originalSha256": "1246aa9d53aabb47b825133634b458a9f2ce958f3d32c758c28e7c76668c2e37",
+      "boundSha256": "1246aa9d53aabb47b825133634b458a9f2ce958f3d32c758c28e7c76668c2e37",
+      "deltas": []
+    },
+    {
+      "file": "extra-driver.mjs",
+      "origin": "50b1e560:tests/commands/expr-stress/extension-review/after-abort-fix/replay/extra-driver.mjs",
+      "originalSha256": "c05bc59571949eebfc14074b8e03bb4a0c87a00069e86bc44801db7ec82cdbf2",
+      "boundSha256": "c05bc59571949eebfc14074b8e03bb4a0c87a00069e86bc44801db7ec82cdbf2",
+      "deltas": []
+    },
+    {
+      "file": "shell-lifecycle-driver.mjs",
+      "origin": "50b1e560:tests/commands/expr-stress/extension-review/after-abort-fix/replay/shell-lifecycle-driver.mjs",
+      "originalSha256": "00a054683c0694edae9484591ef8b99642c39c49153c2b0a1b4414b5cedf24c6",
+      "boundSha256": "00a054683c0694edae9484591ef8b99642c39c49153c2b0a1b4414b5cedf24c6",
+      "deltas": []
+    },
+    {
+      "file": "accept-native.mjs",
+      "origin": "50b1e560:tests/commands/expr-stress/extension-review/after-abort-fix/replay/accept-native.mjs",
+      "originalSha256": "e60f1a08bf120c50381fa43ecbf6cf3bd6d4a20ae3498d1887c581b0f22d9fed",
+      "boundSha256": "e3a6f2d40b4c468e41fa42fcb77633c68b41b16deadf7008e9d2fc408960532e",
+      "deltas": [
+        {
+          "from": "candidate-27a77935",
+          "to": "candidate-diagnostics"
+        }
+      ]
+    },
+    {
+      "file": "accept-controls.mjs",
+      "origin": "50b1e560:tests/commands/expr-stress/extension-review/after-abort-fix/replay/accept-controls.mjs",
+      "originalSha256": "0c3c374b2fbddf72aa14de31ead41aa06f02e5bb72f89c2d540998f52c644866",
+      "boundSha256": "47119f8655136b9eccc9578ecb569b72f2955a1f5703b635c480f9c2c8fcf97b",
+      "deltas": [
+        {
+          "from": "candidate-27a77935",
+          "to": "candidate-diagnostics"
+        }
+      ]
+    },
+    {
+      "file": "distribution.mjs",
+      "origin": "50b1e560:tests/commands/expr-stress/extension-review/after-abort-fix/replay/distribution.mjs",
+      "originalSha256": "6bc4f01ab7b11a35f090831f396b7571c7d77182b980226bbb82eae4a9df698e",
+      "boundSha256": "cc65dcb177350c1b2868b497e0cf77ac13fa737927e77b8b4b818f6aa9f5be44",
+      "deltas": [
+        {
+          "from": "candidate-27a77935",
+          "to": "candidate-diagnostics"
+        },
+        {
+          "from": "distribution-27a77935",
+          "to": "distribution-diagnostics"
+        }
+      ]
+    },
+    {
+      "file": "supplement.mjs",
+      "origin": "50b1e560:tests/commands/expr-stress/extension-review/after-abort-fix/replay/supplement.mjs",
+      "originalSha256": "8eb61b1e2790f6bd534c20257e8ade3ae8487a24a705346de6e5217fc526f4df",
+      "boundSha256": "4df7544c5b0a7847b88c34283ba073e5c7cb98ccfc729dbd3139b48e98cb7f65",
+      "deltas": [
+        {
+          "from": "candidate-27a77935",
+          "to": "candidate-diagnostics"
+        },
+        {
+          "from": "supplement-27a77935",
+          "to": "supplement-diagnostics"
+        }
+      ]
+    },
+    {
+      "file": "comparators.mjs",
+      "origin": "50b1e560:tests/commands/expr-stress/extension-review/after-abort-fix/replay/comparators.mjs",
+      "originalSha256": "4b99eec899085abcc20945aaafdff6553ae1d0b472221acdd5f326fc6ecac4b3",
+      "boundSha256": "983eb4e43f8178300534074c0f41fab5d9b814d20c9c858caa945509b8f353de",
+      "deltas": [
+        {
+          "from": "candidate-27a77935",
+          "to": "candidate-diagnostics"
+        }
+      ]
+    }
+  ]
+}

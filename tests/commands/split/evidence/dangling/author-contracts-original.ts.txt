@@ -189,14 +189,14 @@ test("ordinary existing symlink output overwrites its distinct target", async ()
   assert.equal(Buffer.from(await fs.readFile("/target")).toString(), "abc");
 });
 
-test("dangling output symlink preserves link and creates target", async () => {
+test("dangling output symlink conservatively preserves link and absent target", async () => {
   const fs = createMemoryFileSystem();
   await fs.symlink("/missing", "/xaa");
   const result = await run(["-b2"], "abc", {}, { fs });
-  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(result.exitCode, 1);
+  assert.match(result.stderr, /file already exists/);
   assert.equal(await fs.readlink("/xaa"), "/missing");
-  assert.equal(Buffer.from(await fs.readFile("/missing")).toString(), "ab");
-  assert.equal(Buffer.from(await fs.readFile("/xab")).toString(), "c");
+  await assert.rejects(fs.stat("/missing"), { code: "ENOENT" });
 });
 
 test("exclusive missing-output race never truncates raced file", async () => {

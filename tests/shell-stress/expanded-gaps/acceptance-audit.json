@@ -1,0 +1,483 @@
+{
+  "captured": "2026-08-27T03:26:04.074Z",
+  "sourceRevision": "0f5dbb3b5c65f773eada40876fa18098c36a5fbd",
+  "endpointAnchors": {
+    "src/shell/runtime.ts": "fc8b4fc043068c2b8ad5efbb0a7100720424e307f54c8574bdf901a99aecd29f",
+    "src/shell/parser.ts": "28492059750ba7f11fad563dfc03dba049f232b3f2212186cf3553e4559ae905",
+    "src/shell/shell.ts": "4ac91162195c150848793c92b8b1e90f15a36e67b5ae8a2652fe7ed9dcf4fb5e",
+    "src/shell/types.ts": "fc4133f1fb41283b0586aa7597c766d393d4f91067b613f4777e5adbef230a6d"
+  },
+  "anchorsMatch": true,
+  "legacyRevision": "NOT APPLIED: whole-cases hash guard outside authorized row scope",
+  "strict": {
+    "primary": 29,
+    "nativeTotal": 36,
+    "historical": 28,
+    "hostPass": 9,
+    "hostTotal": 10,
+    "invalid": 1,
+    "totalPass": 38,
+    "total": 46
+  },
+  "rawHostAssertions": 10,
+  "failures": [
+    {
+      "id": "header-execute-no-read",
+      "valid": true,
+      "drift": [],
+      "actual": {
+        "stdout": "",
+        "stderr": "c2hlbGw6IGxpbmUgMTogLi9zY3JpcHQ6IFBlcm1pc3Npb24gZGVuaWVkCg==",
+        "status": 126,
+        "entries": {
+          "bin/": null,
+          "script": {
+            "bytes": "cHJpbnRmIGZvcmJpZGRlbiA+IG1hcmtlcgo=",
+            "mode": 73
+          },
+          "work/": null
+        }
+      },
+      "expected": {
+        "stdout": "",
+        "stderr": "c2hlbGw6IC4vc2NyaXB0OiBQZXJtaXNzaW9uIGRlbmllZAo=",
+        "status": 126,
+        "entries": {
+          "bin/": null,
+          "script": {
+            "bytes": "cHJpbnRmIGZvcmJpZGRlbiA+IG1hcmtlcgo=",
+            "mode": 73
+          },
+          "work/": null
+        }
+      },
+      "unchangedFromPreparation": true
+    },
+    {
+      "id": "env-single-kernel-argument",
+      "valid": true,
+      "drift": [],
+      "actual": {
+        "stdout": "",
+        "stderr": "c2hlbGw6IGxpbmUgMTogLi9zY3JpcHQ6IHVuc3VwcG9ydGVkIGludGVycHJldGVyOiAvdXNyL2Jpbi9lbnYgYmFzaCAtZQo=",
+        "status": 126,
+        "entries": {
+          "bin/": null,
+          "script": {
+            "bytes": "IyEvdXNyL2Jpbi9lbnYgYmFzaCAtZQpwcmludGYgc2hvdWxkLW5vdC1ydW4gPiBtYXJrZXIK",
+            "mode": 493
+          },
+          "work/": null
+        }
+      },
+      "expected": {
+        "stdout": "",
+        "stderr": "",
+        "status": 0,
+        "entries": {
+          "bin/": null,
+          "marker": {
+            "bytes": "c2hvdWxkLW5vdC1ydW4=",
+            "mode": 420
+          },
+          "script": {
+            "bytes": "IyEvdXNyL2Jpbi9lbnYgYmFzaCAtZQpwcmludGYgc2hvdWxkLW5vdC1ydW4gPiBtYXJrZXIK",
+            "mode": 493
+          },
+          "work/": null
+        }
+      },
+      "unchangedFromPreparation": true
+    },
+    {
+      "id": "env-injection-text",
+      "valid": true,
+      "drift": [],
+      "actual": {
+        "stdout": "",
+        "stderr": "c2hlbGw6IGxpbmUgMTogLi9zY3JpcHQ6IHVuc3VwcG9ydGVkIGludGVycHJldGVyOiAvdXNyL2Jpbi9lbnYgYmFzaDt0b3VjaCBtYXJrZXIK",
+        "status": 126,
+        "entries": {
+          "bin/": null,
+          "script": {
+            "bytes": "IyEvdXNyL2Jpbi9lbnYgYmFzaDt0b3VjaCBtYXJrZXIKcHJpbnRmIHNob3VsZC1ub3QtcnVuID4gbWFya2VyCg==",
+            "mode": 493
+          },
+          "work/": null
+        }
+      },
+      "expected": {
+        "stdout": "",
+        "stderr": "ZW52OiBiYXNoO3RvdWNoOiBObyBzdWNoIGZpbGUgb3IgZGlyZWN0b3J5Cg==",
+        "status": 127,
+        "entries": {
+          "bin/": null,
+          "script": {
+            "bytes": "IyEvdXNyL2Jpbi9lbnYgYmFzaDt0b3VjaCBtYXJrZXIKcHJpbnRmIHNob3VsZC1ub3QtcnVuID4gbWFya2VyCg==",
+            "mode": 493
+          },
+          "work/": null
+        }
+      },
+      "unchangedFromPreparation": true
+    },
+    {
+      "id": "env-missing-target",
+      "valid": true,
+      "drift": [],
+      "actual": {
+        "stdout": "",
+        "stderr": "c2hlbGw6IGxpbmUgMTogLi9zY3JpcHQ6IHVuc3VwcG9ydGVkIGludGVycHJldGVyOiAvdXNyL2Jpbi9lbnYgdmVyaWZpZXItbm8tc3VjaC1pbnRlcnByZXRlcgo=",
+        "status": 126,
+        "entries": {
+          "bin/": null,
+          "script": {
+            "bytes": "IyEvdXNyL2Jpbi9lbnYgdmVyaWZpZXItbm8tc3VjaC1pbnRlcnByZXRlcgpwcmludGYgZm9yYmlkZGVuID4gbWFya2VyCg==",
+            "mode": 493
+          },
+          "work/": null
+        }
+      },
+      "expected": {
+        "stdout": "",
+        "stderr": "ZW52OiB2ZXJpZmllci1uby1zdWNoLWludGVycHJldGVyOiBObyBzdWNoIGZpbGUgb3IgZGlyZWN0b3J5Cg==",
+        "status": 127,
+        "entries": {
+          "bin/": null,
+          "script": {
+            "bytes": "IyEvdXNyL2Jpbi9lbnYgdmVyaWZpZXItbm8tc3VjaC1pbnRlcnByZXRlcgpwcmludGYgZm9yYmlkZGVuID4gbWFya2VyCg==",
+            "mode": 493
+          },
+          "work/": null
+        }
+      },
+      "unchangedFromPreparation": true
+    },
+    {
+      "id": "env-unsupported-interpreter",
+      "valid": true,
+      "drift": [],
+      "actual": {
+        "stdout": "",
+        "stderr": "c2hlbGw6IGxpbmUgMTogLi9zY3JpcHQ6IHVuc3VwcG9ydGVkIGludGVycHJldGVyOiAvdmVyaWZpZXItbWlzc2luZy9pbnRlcnByZXRlcgo=",
+        "status": 126,
+        "entries": {
+          "bin/": null,
+          "script": {
+            "bytes": "IyEvdmVyaWZpZXItbWlzc2luZy9pbnRlcnByZXRlcgpwcmludGYgZm9yYmlkZGVuID4gbWFya2VyCg==",
+            "mode": 493
+          },
+          "work/": null
+        }
+      },
+      "expected": {
+        "stdout": "",
+        "stderr": "c2hlbGw6IC4vc2NyaXB0OiAvdmVyaWZpZXItbWlzc2luZy9pbnRlcnByZXRlcjogYmFkIGludGVycHJldGVyOiBObyBzdWNoIGZpbGUgb3IgZGlyZWN0b3J5Cg==",
+        "status": 126,
+        "entries": {
+          "bin/": null,
+          "script": {
+            "bytes": "IyEvdmVyaWZpZXItbWlzc2luZy9pbnRlcnByZXRlcgpwcmludGYgZm9yYmlkZGVuID4gbWFya2VyCg==",
+            "mode": 493
+          },
+          "work/": null
+        }
+      },
+      "unchangedFromPreparation": true
+    },
+    {
+      "id": "parameter-substitution-order",
+      "valid": true,
+      "drift": [],
+      "actual": {
+        "stdout": "WGJY",
+        "stderr": "",
+        "status": 0,
+        "entries": {
+          "bin/": null,
+          "marker": {
+            "bytes": "cGF0dGVybnJlcGxhY2VtZW50",
+            "mode": 438
+          },
+          "work/": null
+        }
+      },
+      "expected": {
+        "stdout": "WGJY",
+        "stderr": "",
+        "status": 0,
+        "entries": {
+          "bin/": null,
+          "marker": {
+            "bytes": "cGF0dGVybnJlcGxhY2VtZW50",
+            "mode": 420
+          },
+          "work/": null
+        }
+      },
+      "unchangedFromPreparation": true
+    },
+    {
+      "id": "parameter-existing-controls",
+      "valid": true,
+      "drift": [],
+      "actual": {
+        "stdout": "",
+        "stderr": "c2hlbGw6IFVudGVybWluYXRlZCBvciB1bnN1cHBvcnRlZCBwYXJhbWV0ZXIgZXhwYW5zaW9uIGF0IG9mZnNldCA1NQo=",
+        "status": 2,
+        "entries": {
+          "bin/": null,
+          "work/": null
+        }
+      },
+      "expected": {
+        "stdout": "NjpiY2E6ZGVmYXVsdDpzZXQ=",
+        "stderr": "",
+        "status": 0,
+        "entries": {
+          "bin/": null,
+          "work/": null
+        }
+      },
+      "unchangedFromPreparation": true
+    },
+    {
+      "id": "host-source-budget",
+      "valid": false,
+      "drift": [
+        "src/fs/s3/http/transport.ts"
+      ],
+      "actual": {
+        "passed": true,
+        "seen": [
+          {
+            "args": [],
+            "cwd": "/fixture",
+            "env": {
+              "PATH": "/fixture/bin:/fixture/.roles",
+              "HOME": "/fixture",
+              "LANG": "C",
+              "LC_ALL": "C",
+              "TZ": "UTC",
+              "PWD": "/fixture"
+            },
+            "origin": true
+          }
+        ],
+        "calls": [
+          "./script",
+          "tick",
+          "./script"
+        ],
+        "forbiddenHostCalls": [],
+        "error": {
+          "name": "ShellLimitError",
+          "limit": "maxSourceBytes",
+          "message": "Shell limit exceeded: maxSourceBytes"
+        }
+      },
+      "unchangedFromPreparation": true
+    }
+  ],
+  "statuses": [
+    {
+      "label": "original72",
+      "status": 1,
+      "counts": {
+        "tests": 72,
+        "pass": 71,
+        "fail": 1,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "guarded": true,
+      "actualInputCount": 39,
+      "actualSourceCount": 34,
+      "actualBoundsEngine": []
+    },
+    {
+      "label": "independent46",
+      "status": 1,
+      "counts": {},
+      "guarded": true,
+      "actualInputCount": 136,
+      "actualSourceCount": 130,
+      "actualBoundsEngine": []
+    },
+    {
+      "label": "author58",
+      "status": 0,
+      "counts": {
+        "tests": 58,
+        "pass": 58,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "guarded": true,
+      "actualInputCount": 139,
+      "actualSourceCount": 130,
+      "actualBoundsEngine": [
+        "tests/shell/expanded-gaps-bounds.ts"
+      ]
+    },
+    {
+      "label": "current-shell43",
+      "status": 0,
+      "counts": {
+        "tests": 44,
+        "pass": 44,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "guarded": true,
+      "actualInputCount": 39,
+      "actualSourceCount": 34,
+      "actualBoundsEngine": []
+    },
+    {
+      "label": "env-author31",
+      "status": 0,
+      "counts": {
+        "tests": 31,
+        "pass": 31,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "guarded": true,
+      "actualInputCount": 133,
+      "actualSourceCount": 130,
+      "actualBoundsEngine": [
+        "tests/shell/env-replacement-bounds.ts"
+      ]
+    },
+    {
+      "label": "source-eval86",
+      "status": 0,
+      "counts": {
+        "tests": 86,
+        "pass": 86,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "guarded": true,
+      "actualInputCount": 45,
+      "actualSourceCount": 34,
+      "actualBoundsEngine": []
+    },
+    {
+      "label": "author132",
+      "status": 0,
+      "counts": {
+        "tests": 132,
+        "pass": 132,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "guarded": true,
+      "actualInputCount": 39,
+      "actualSourceCount": 34,
+      "actualBoundsEngine": []
+    },
+    {
+      "label": "prior211",
+      "status": 0,
+      "counts": {
+        "tests": 211,
+        "pass": 211,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "guarded": true,
+      "actualInputCount": 43,
+      "actualSourceCount": 34,
+      "actualBoundsEngine": []
+    },
+    {
+      "label": "global",
+      "status": 0,
+      "counts": {},
+      "guarded": true,
+      "actualInputCount": 1061,
+      "actualSourceCount": 136,
+      "actualBoundsEngine": [
+        "tests/shell/env-replacement-bounds.ts",
+        "tests/shell/expanded-gaps-bounds.ts"
+      ]
+    },
+    {
+      "label": "build",
+      "status": 0,
+      "counts": {},
+      "guarded": true,
+      "actualInputCount": 302,
+      "actualSourceCount": 136,
+      "actualBoundsEngine": []
+    },
+    {
+      "label": "benchmark",
+      "status": 0,
+      "counts": {},
+      "guarded": true,
+      "actualInputCount": 411,
+      "actualSourceCount": 130,
+      "actualBoundsEngine": []
+    }
+  ],
+  "foreignDuringRun": [
+    {
+      "id": "host-source-budget",
+      "paths": [
+        "src/fs/s3/http/transport.ts"
+      ],
+      "loadedAffected": [],
+      "before": "37b9cf9455416ab6beb227502a1094b7e098320b0450dd5c1d0d6aedac251e9f",
+      "after": "4bc879d2687555fb71721da57c710426d5a418c846ed692635120e3dad7f1a76"
+    }
+  ],
+  "nativeReferences": {
+    "fresh": false,
+    "ownWhole36Hash": "9afb51e0eed4f9fe1a61c52a146066edf11a6cc53408dd0b442186bbcd25a302",
+    "legacyWhole57Hash": "86e6be4ec1ad22f3c5956ed0b37d8091653c4858fbf143f35b2e80eae4b67e45",
+    "authorWhole45Hash": "eee939985b59feb7236bfb7aabbe1046b1e2c0936b3d4fa53f537484dfe5e95f",
+    "authorShape": 2
+  },
+  "recordedChildrenRechecked": 132,
+  "visible": [],
+  "otherPhasePidChecks": 11,
+  "perArtifactPidChecks": [
+    74,
+    152
+  ],
+  "perArtifactVisible": [
+    [],
+    []
+  ],
+  "envPolicy": {
+    "product": {
+      "PATH": "/fixture/bin:/fixture/.roles",
+      "HOME": "/fixture",
+      "LANG": "C",
+      "LC_ALL": "C",
+      "TZ": "UTC"
+    },
+    "cohortRunner": "env plus explicit apply_patch directory:/usr/bin:/bin PATH and GAPS_ACCEPTANCE_TRACE temp path; no ambient inherited env",
+    "node": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "version": "v22.22.2"
+  },
+  "gitStatus": " M tests/shell/script-entrypoint.test.ts\n?? benchmarks/reports/baseline-only-20260827/\n?? src/fs/s3/http/\n?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/\n?? tests/commands/search-stress/.native-1m4O1e/\n?? tests/commands/table-text-stress/diagnostic-gap-handoff/\n?? tests/fs/s3/http/\n?? tests/shell-stress/entrypoint-policy-review/\n?? tests/shell-stress/expanded-gaps/acceptance-0f5dbb3.json\n?? tests/shell-stress/expanded-gaps/ready-0f5dbb3.json\n",
+  "staging": "",
+  "legacyCaseHash": "788539627f6f5d8a8b31702ec3b9c7a6477efe8878fa88fa7fd0ae955553ed3b"
+}

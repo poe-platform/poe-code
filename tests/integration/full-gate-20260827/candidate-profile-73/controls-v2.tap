@@ -1,0 +1,149 @@
+TAP version 13
+# fatal: Needed a single revision
+# Subtest: explicit historical calibration has exact244 inputs,600 paths and unresolved11 inventory entries
+ok 1 - explicit historical calibration has exact244 inputs,600 paths and unresolved11 inventory entries
+  ---
+  duration_ms: 6353.19775
+  type: 'test'
+  ...
+# Subtest: refuse candidate HEAD
+ok 2 - refuse candidate HEAD
+  ---
+  duration_ms: 0.701417
+  type: 'test'
+  ...
+# Subtest: refuse candidate c355751f
+ok 3 - refuse candidate c355751f
+  ---
+  duration_ms: 0.094208
+  type: 'test'
+  ...
+# Subtest: refuse candidate 0000000000000000000000000000000000000000
+ok 4 - refuse candidate 0000000000000000000000000000000000000000
+  ---
+  duration_ms: 24.458125
+  type: 'test'
+  ...
+# Subtest: existing capture cannot be overwritten
+ok 5 - existing capture cannot be overwritten
+  ---
+  duration_ms: 7232.356833
+  type: 'test'
+  ...
+# Subtest: added entry
+ok 6 - added entry
+  ---
+  duration_ms: 63.274708
+  type: 'test'
+  ...
+# Subtest: removed entry
+ok 7 - removed entry
+  ---
+  duration_ms: 66.8735
+  type: 'test'
+  ...
+# Subtest: changed entry
+ok 8 - changed entry
+  ---
+  duration_ms: 67.723916
+  type: 'test'
+  ...
+# Subtest: symlink entry
+ok 9 - symlink entry
+  ---
+  duration_ms: 59.691375
+  type: 'test'
+  ...
+# Subtest: missing cleanup input with rehashed receipt
+ok 10 - missing cleanup input with rehashed receipt
+  ---
+  duration_ms: 187.615916
+  type: 'test'
+  ...
+# Subtest: wrong cleanup source bytes with rehashed receipt
+ok 11 - wrong cleanup source bytes with rehashed receipt
+  ---
+  duration_ms: 244.356459
+  type: 'test'
+  ...
+# Subtest: missing policy input with rehashed receipt
+ok 12 - missing policy input with rehashed receipt
+  ---
+  duration_ms: 7742.679334
+  type: 'test'
+  ...
+# Subtest: missing canonical path with rehashed receipt
+ok 13 - missing canonical path with rehashed receipt
+  ---
+  duration_ms: 6484.300333
+  type: 'test'
+  ...
+# Subtest: native hash rebaseline with rehashed receipt
+ok 14 - native hash rebaseline with rehashed receipt
+  ---
+  duration_ms: 6841.982458
+  type: 'test'
+  ...
+# Subtest: missing native extension with rehashed receipt
+ok 15 - missing native extension with rehashed receipt
+  ---
+  duration_ms: 6345.221875
+  type: 'test'
+  ...
+# Subtest: changed native extension with rehashed receipt
+ok 16 - changed native extension with rehashed receipt
+  ---
+  duration_ms: 6527.811916
+  type: 'test'
+  ...
+# Subtest: false approval with rehashed receipt
+ok 17 - false approval with rehashed receipt
+  ---
+  duration_ms: 7400.544666
+  type: 'test'
+  ...
+# Subtest: wrong source tree with rehashed receipt
+ok 18 - wrong source tree with rehashed receipt
+  ---
+  duration_ms: 7053.742791
+  type: 'test'
+  ...
+# Subtest: silent concurrency change
+ok 19 - silent concurrency change
+  ---
+  duration_ms: 6699.349209
+  type: 'test'
+  ...
+# Subtest: package metadata rebind
+ok 20 - package metadata rebind
+  ---
+  duration_ms: 7691.780417
+  type: 'test'
+  ...
+# Subtest: wrong candidate argument never rebinds the receipt
+ok 21 - wrong candidate argument never rebinds the receipt
+  ---
+  duration_ms: 28.086916
+  type: 'test'
+  ...
+# Subtest: symlink profile root refused
+ok 22 - symlink profile root refused
+  ---
+  duration_ms: 25.373083
+  type: 'test'
+  ...
+# Subtest: capture cannot write into live repo through a parent alias
+ok 23 - capture cannot write into live repo through a parent alias
+  ---
+  duration_ms: 28.035708
+  type: 'test'
+  ...
+1..23
+# tests 23
+# suites 0
+# pass 23
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 83821.123625

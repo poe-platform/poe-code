@@ -16,7 +16,7 @@ language completeness from passing existing tests alone.
       strict-mode semantics and arrow inheritance in this item.
 - [x] Markdown: handle multiple executable blocks explicitly rather than quietly
       ignoring code; verify fenced-block boundaries and actionable errors.
-- [ ] Snapshot evolution: provide an explicit, validated migration path without
+- [x] Snapshot evolution: provide an explicit, validated migration path without
       silently restoring incompatible execution state or repeating side effects.
 - [x] Randomness: make default randomness resumable and deterministic without
       requiring callers to remember an extra option.
@@ -1625,8 +1625,7 @@ boundaries are not evidence of universal conformance or perfection.
 
 ## Explicit snapshot migration — August 27, 2026
 
-Implementation and local validation are complete; the release/installed-registry
-verification gate remains open until the receipt below is recorded.
+Released and verified as `poe-code@10.0.4`; the exact registry receipt follows.
 
 - Added `inspectSnapshotMigration`, `migrateSnapshot`, and
   `migrateSnapshotFile`, plus standalone `migrate` and `poe-code harness migrate`.
@@ -1649,8 +1648,9 @@ verification gate remains open until the receipt below is recorded.
   decorated rather than parseable inspection JSON; both have regressions.
 - The full repository suite before the final paired-retention regression passed
   21,136 tests, with 41 skipped. The subsequent focused integration suite passed
-  236 tests, and the final diagnostics subset passed 149. The push gate reruns
-  the entire final suite. Build, eslint, TypeScript, workflow lint, and all 17
+  236 tests, and the final diagnostics subset passed 149. The final push gate
+  passed 21,137 tests, with 41 skipped, across 927 passing files and three skipped
+  files. Build, eslint, TypeScript, workflow lint, and all 17
   package-lint rules pass. No release is inferred solely from these local checks.
 - Fresh candidate: `/tmp/safejs-migration-verified-consumer.wdvVqq/project`;
   installed from the local tarball with no workspace runtime symlinks. The actual
@@ -1700,4 +1700,30 @@ verification gate remains open until the receipt below is recorded.
 
 ### Registry release receipt
 
-Pending publication and verification of the exact released package and commit.
+- Code commit: `259b7e651207289b2cd8e9a01419aafebd2883bc`
+  (`feat(safejs): support explicit snapshot migration`).
+- Release run `33063629185` succeeds in 11m4s, including the forced CI test suite,
+  package checks, smoke checks, and stable publication. npm publishes 10.0.4 at
+  `2026-08-27T10:45:33.374Z`; the GitHub release follows at
+  `2026-08-27T10:45:34Z`. npm `gitHead` and tag `v10.0.4` both identify the exact
+  code commit above.
+- Fresh registry consumer: `/tmp/safejs-migration-published.17nsH9`, installed
+  using exact `poe-code@10.0.4`, without workspace runtime symlinks or lifecycle
+  scripts that alter global skills. Re-ran all three 810-case Node matrices,
+  the 90 actual-legacy cases, 24 CLI cases, 18 SIGKILL cases, corruption/state
+  checks, and 192 publication-race attempts against this installed package.
+  Every assertion passes; these repeats preserve the per-script counts above,
+  not an inflated claim that the repeated cases are independent new coverage.
+- The actual current CI SDK smoke, strict migration types, and shared index/core
+  runtime checks pass in the registry consumer. Its stale-artifact audit again
+  confirms 153 removed outputs, six absent obsolete directories, five executable
+  binaries, and 19 internal symlinks with zero external runtime symlinks.
+- Additional recovery regression on the installed candidate passes 138 budget
+  cases, 27 ordinary-failure cases, 468 restores, and 48 concurrent recoveries
+  with no repeated effects or catch escapes. The separate fatal-promise matrix
+  passes 360 cases, with zero escaped effects, 360 cleanups, and zero pending
+  escapes. Evidence is retained under `/tmp/safejs-migration-*`.
+- This completes the explicit snapshot-evolution item and its cleanup gate.
+  Classes/prototypes, generators, full budgeted regular expressions, scoped
+  network/process modules, and multi-file source imports remain open. The overall
+  language-completeness goal remains active.

@@ -1,6 +1,8 @@
 # Explicit SafeJS checkpoint migration
 
-Status: implementation and local validation complete; published-consumer verification pending.
+Status: released as `poe-code@10.0.4` and verified against a fresh registry install
+on Node 18.18.2, 22.22.2, and 24.14.0. The full receipt is in
+`docs/plans/safejs-language-completeness.md`.
 
 ## Contract
 

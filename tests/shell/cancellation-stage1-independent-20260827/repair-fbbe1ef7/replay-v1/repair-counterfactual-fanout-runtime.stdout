@@ -1,0 +1,41 @@
+TAP version 13
+# Subtest: H04b detaching one later subscriber does not skip unrelated admitted subscribers
+not ok 1 - H04b detaching one later subscriber does not skip unrelated admitted subscribers
+  ---
+  duration_ms: 1.529
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-stage1-independent-20260827/repair-fbbe1ef7/replay-v1/scratch/fixtures/cohort-v1.mjs:149:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    only the detached subscription is skipped
+    + actual - expected
+    
+      [
+        'first',
+    -   'third'
+      ]
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    0: 'first'
+    1: 'third'
+  actual:
+    0: 'first'
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-stage1-independent-20260827/repair-fbbe1ef7/replay-v1/scratch/fixtures/cohort-v1.mjs:159:10)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.start (node:internal/test_runner/test:944:17)
+    startSubtestAfterBootstrap (node:internal/test_runner/harness:296:17)
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 0
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 48.59725

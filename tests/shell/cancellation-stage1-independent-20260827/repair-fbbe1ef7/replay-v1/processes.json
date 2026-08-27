@@ -1,0 +1,343 @@
+[
+  {
+    "name": "candidate-build",
+    "command": [
+      "/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-stage1-independent-20260827/repair-fbbe1ef7/replay-v1/scratch/tools/node",
+      "/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-stage1-independent-20260827/repair-fbbe1ef7/replay-v1/scratch/tools/typescript/lib/tsc.js",
+      "-p",
+      "/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-stage1-independent-20260827/repair-fbbe1ef7/replay-v1/scratch/candidate/tsconfig.json"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-stage1-independent-20260827/repair-fbbe1ef7/replay-v1/scratch",
+    "environment": {},
+    "started": "2026-08-27T23:10:32.070Z",
+    "finished": "2026-08-27T23:10:33.510Z",
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "watchdogMilliseconds": 90000,
+    "watchdogUsed": false
+  },
+  {
+    "name": "original12-isolated",
+    "command": [
+      "/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-stage1-independent-20260827/repair-fbbe1ef7/replay-v1/scratch/tools/node",
+      "--test",
+      "/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-stage1-independent-20260827/repair-fbbe1ef7/replay-v1/scratch/fixtures/cohort-v1.mjs"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-stage1-independent-20260827/repair-fbbe1ef7/replay-v1/scratch",
+    "environment": {
+      "CANCELLATION_MODULE": "/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-stage1-independent-20260827/repair-fbbe1ef7/replay-v1/scratch/candidate/emitted/cancellation.js"
+    },
+    "started": "2026-08-27T23:10:33.512Z",
+    "finished": "2026-08-27T23:10:33.614Z",
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "watchdogMilliseconds": 90000,
+    "watchdogUsed": false
+  },
+  {
+    "name": "nearby4-isolated",
+    "command": [
+      "/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-stage1-independent-20260827/repair-fbbe1ef7/replay-v1/scratch/tools/node",
+      "--test",
+      "/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-stage1-independent-20260827/repair-fbbe1ef7/replay-v1/scratch/fixtures/nearby-v1.mjs"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-stage1-independent-20260827/repair-fbbe1ef7/replay-v1/scratch",
+    "environment": {
+      "CANCELLATION_MODULE": "/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-stage1-independent-20260827/repair-fbbe1ef7/replay-v1/scratch/candidate/emitted/cancellation.js"
+    },
+    "started": "2026-08-27T23:10:33.614Z",
+    "finished": "2026-08-27T23:10:33.710Z",
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "watchdogMilliseconds": 90000,
+    "watchdogUsed": false
+  },
+  {
+    "name": "six-negatives-isolated",
+    "command": [
+      "/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-stage1-independent-20260827/repair-fbbe1ef7/replay-v1/scratch/tools/node",
+      "/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-stage1-independent-20260827/repair-fbbe1ef7/replay-v1/scratch/tools/typescript/lib/tsc.js",
+      "-p",
+      "/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-stage1-independent-20260827/repair-fbbe1ef7/replay-v1/scratch/candidate/negative.json",
+      "--pretty",
+      "false"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-stage1-independent-20260827/repair-fbbe1ef7/replay-v1/scratch",
+    "environment": {},
+    "started": "2026-08-27T23:10:33.711Z",
+    "finished": "2026-08-27T23:10:34.147Z",
+    "status": 2,
+    "signal": null,
+    "error": null,
+    "watchdogMilliseconds": 90000,
+    "watchdogUsed": false
+  },
+  {
+    "name": "original12-moved",
+    "command": [
+      "/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-stage1-independent-20260827/repair-fbbe1ef7/replay-v1/scratch/tools/node",
+      "--test",
+      "/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-stage1-independent-20260827/repair-fbbe1ef7/replay-v1/scratch/moved-internal/cohort-v1.mjs"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-stage1-independent-20260827/repair-fbbe1ef7/replay-v1/scratch",
+    "environment": {
+      "CANCELLATION_MODULE": "/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-stage1-independent-20260827/repair-fbbe1ef7/replay-v1/scratch/moved-internal/cancellation.js"
+    },
+    "started": "2026-08-27T23:10:34.153Z",
+    "finished": "2026-08-27T23:10:34.247Z",
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "watchdogMilliseconds": 90000,
+    "watchdogUsed": false
+  },
+  {
+    "name": "nearby4-moved",
+    "command": [
+      "/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-stage1-independent-20260827/repair-fbbe1ef7/replay-v1/scratch/tools/node",
+      "--test",
+      "/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-stage1-independent-20260827/repair-fbbe1ef7/replay-v1/scratch/moved-internal/nearby-v1.mjs"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-stage1-independent-20260827/repair-fbbe1ef7/replay-v1/scratch",
+    "environment": {
+      "CANCELLATION_MODULE": "/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-stage1-independent-20260827/repair-fbbe1ef7/replay-v1/scratch/moved-internal/cancellation.js"
+    },
+    "started": "2026-08-27T23:10:34.247Z",
+    "finished": "2026-08-27T23:10:34.338Z",
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "watchdogMilliseconds": 90000,
+    "watchdogUsed": false
+  },
+  {
+    "name": "positive-moved",
+    "command": [
+      "/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-stage1-independent-20260827/repair-fbbe1ef7/replay-v1/scratch/tools/node",
+      "/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-stage1-independent-20260827/repair-fbbe1ef7/replay-v1/scratch/tools/typescript/lib/tsc.js",
+      "-p",
+      "/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-stage1-independent-20260827/repair-fbbe1ef7/replay-v1/scratch/moved-internal/positive.json"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-stage1-independent-20260827/repair-fbbe1ef7/replay-v1/scratch",
+    "environment": {},
+    "started": "2026-08-27T23:10:34.338Z",
+    "finished": "2026-08-27T23:10:34.708Z",
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "watchdogMilliseconds": 90000,
+    "watchdogUsed": false
+  },
+  {
+    "name": "six-negatives-moved",
+    "command": [
+      "/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-stage1-independent-20260827/repair-fbbe1ef7/replay-v1/scratch/tools/node",
+      "/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-stage1-independent-20260827/repair-fbbe1ef7/replay-v1/scratch/tools/typescript/lib/tsc.js",
+      "-p",
+      "/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-stage1-independent-20260827/repair-fbbe1ef7/replay-v1/scratch/moved-internal/negative.json",
+      "--pretty",
+      "false"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-stage1-independent-20260827/repair-fbbe1ef7/replay-v1/scratch",
+    "environment": {},
+    "started": "2026-08-27T23:10:34.708Z",
+    "finished": "2026-08-27T23:10:35.084Z",
+    "status": 2,
+    "signal": null,
+    "error": null,
+    "watchdogMilliseconds": 90000,
+    "watchdogUsed": false
+  },
+  {
+    "name": "mutant-provenance-build",
+    "command": [
+      "/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-stage1-independent-20260827/repair-fbbe1ef7/replay-v1/scratch/tools/node",
+      "/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-stage1-independent-20260827/repair-fbbe1ef7/replay-v1/scratch/tools/typescript/lib/tsc.js",
+      "-p",
+      "/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-stage1-independent-20260827/repair-fbbe1ef7/replay-v1/scratch/mutant-provenance/tsconfig.json"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-stage1-independent-20260827/repair-fbbe1ef7/replay-v1/scratch",
+    "environment": {},
+    "started": "2026-08-27T23:10:35.088Z",
+    "finished": "2026-08-27T23:10:35.510Z",
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "watchdogMilliseconds": 90000,
+    "watchdogUsed": false
+  },
+  {
+    "name": "mutant-provenance-runtime",
+    "command": [
+      "/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-stage1-independent-20260827/repair-fbbe1ef7/replay-v1/scratch/tools/node",
+      "--test",
+      "/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-stage1-independent-20260827/repair-fbbe1ef7/replay-v1/scratch/fixtures/cohort-v1.mjs"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-stage1-independent-20260827/repair-fbbe1ef7/replay-v1/scratch",
+    "environment": {
+      "CANCELLATION_MODULE": "/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-stage1-independent-20260827/repair-fbbe1ef7/replay-v1/scratch/mutant-provenance/emitted/cancellation.js"
+    },
+    "started": "2026-08-27T23:10:35.511Z",
+    "finished": "2026-08-27T23:10:35.611Z",
+    "status": 1,
+    "signal": null,
+    "error": null,
+    "watchdogMilliseconds": 90000,
+    "watchdogUsed": false
+  },
+  {
+    "name": "mutant-capacity-build",
+    "command": [
+      "/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-stage1-independent-20260827/repair-fbbe1ef7/replay-v1/scratch/tools/node",
+      "/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-stage1-independent-20260827/repair-fbbe1ef7/replay-v1/scratch/tools/typescript/lib/tsc.js",
+      "-p",
+      "/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-stage1-independent-20260827/repair-fbbe1ef7/replay-v1/scratch/mutant-capacity/tsconfig.json"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-stage1-independent-20260827/repair-fbbe1ef7/replay-v1/scratch",
+    "environment": {},
+    "started": "2026-08-27T23:10:35.613Z",
+    "finished": "2026-08-27T23:10:36.045Z",
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "watchdogMilliseconds": 90000,
+    "watchdogUsed": false
+  },
+  {
+    "name": "mutant-capacity-runtime",
+    "command": [
+      "/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-stage1-independent-20260827/repair-fbbe1ef7/replay-v1/scratch/tools/node",
+      "--test",
+      "/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-stage1-independent-20260827/repair-fbbe1ef7/replay-v1/scratch/fixtures/cohort-v1.mjs"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-stage1-independent-20260827/repair-fbbe1ef7/replay-v1/scratch",
+    "environment": {
+      "CANCELLATION_MODULE": "/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-stage1-independent-20260827/repair-fbbe1ef7/replay-v1/scratch/mutant-capacity/emitted/cancellation.js"
+    },
+    "started": "2026-08-27T23:10:36.046Z",
+    "finished": "2026-08-27T23:10:36.148Z",
+    "status": 1,
+    "signal": null,
+    "error": null,
+    "watchdogMilliseconds": 90000,
+    "watchdogUsed": false
+  },
+  {
+    "name": "mutant-listener-cleanup-build",
+    "command": [
+      "/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-stage1-independent-20260827/repair-fbbe1ef7/replay-v1/scratch/tools/node",
+      "/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-stage1-independent-20260827/repair-fbbe1ef7/replay-v1/scratch/tools/typescript/lib/tsc.js",
+      "-p",
+      "/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-stage1-independent-20260827/repair-fbbe1ef7/replay-v1/scratch/mutant-listener-cleanup/tsconfig.json"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-stage1-independent-20260827/repair-fbbe1ef7/replay-v1/scratch",
+    "environment": {},
+    "started": "2026-08-27T23:10:36.150Z",
+    "finished": "2026-08-27T23:10:36.583Z",
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "watchdogMilliseconds": 90000,
+    "watchdogUsed": false
+  },
+  {
+    "name": "mutant-listener-cleanup-runtime",
+    "command": [
+      "/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-stage1-independent-20260827/repair-fbbe1ef7/replay-v1/scratch/tools/node",
+      "--test",
+      "/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-stage1-independent-20260827/repair-fbbe1ef7/replay-v1/scratch/fixtures/cohort-v1.mjs"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-stage1-independent-20260827/repair-fbbe1ef7/replay-v1/scratch",
+    "environment": {
+      "CANCELLATION_MODULE": "/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-stage1-independent-20260827/repair-fbbe1ef7/replay-v1/scratch/mutant-listener-cleanup/emitted/cancellation.js"
+    },
+    "started": "2026-08-27T23:10:36.584Z",
+    "finished": "2026-08-27T23:10:36.683Z",
+    "status": 1,
+    "signal": null,
+    "error": null,
+    "watchdogMilliseconds": 90000,
+    "watchdogUsed": false
+  },
+  {
+    "name": "repair-counterfactual-fanout-build",
+    "command": [
+      "/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-stage1-independent-20260827/repair-fbbe1ef7/replay-v1/scratch/tools/node",
+      "/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-stage1-independent-20260827/repair-fbbe1ef7/replay-v1/scratch/tools/typescript/lib/tsc.js",
+      "-p",
+      "/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-stage1-independent-20260827/repair-fbbe1ef7/replay-v1/scratch/repair-counterfactual-fanout/tsconfig.json"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-stage1-independent-20260827/repair-fbbe1ef7/replay-v1/scratch",
+    "environment": {},
+    "started": "2026-08-27T23:10:36.684Z",
+    "finished": "2026-08-27T23:10:37.135Z",
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "watchdogMilliseconds": 90000,
+    "watchdogUsed": false
+  },
+  {
+    "name": "repair-counterfactual-fanout-runtime",
+    "command": [
+      "/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-stage1-independent-20260827/repair-fbbe1ef7/replay-v1/scratch/tools/node",
+      "--test",
+      "--test-name-pattern",
+      "^H04b ",
+      "/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-stage1-independent-20260827/repair-fbbe1ef7/replay-v1/scratch/fixtures/cohort-v1.mjs"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-stage1-independent-20260827/repair-fbbe1ef7/replay-v1/scratch",
+    "environment": {
+      "CANCELLATION_MODULE": "/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-stage1-independent-20260827/repair-fbbe1ef7/replay-v1/scratch/repair-counterfactual-fanout/emitted/cancellation.js"
+    },
+    "started": "2026-08-27T23:10:37.136Z",
+    "finished": "2026-08-27T23:10:37.223Z",
+    "status": 1,
+    "signal": null,
+    "error": null,
+    "watchdogMilliseconds": 90000,
+    "watchdogUsed": false
+  },
+  {
+    "name": "repair-counterfactual-observation-build",
+    "command": [
+      "/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-stage1-independent-20260827/repair-fbbe1ef7/replay-v1/scratch/tools/node",
+      "/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-stage1-independent-20260827/repair-fbbe1ef7/replay-v1/scratch/tools/typescript/lib/tsc.js",
+      "-p",
+      "/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-stage1-independent-20260827/repair-fbbe1ef7/replay-v1/scratch/repair-counterfactual-observation/tsconfig.json"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-stage1-independent-20260827/repair-fbbe1ef7/replay-v1/scratch",
+    "environment": {},
+    "started": "2026-08-27T23:10:37.225Z",
+    "finished": "2026-08-27T23:10:37.643Z",
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "watchdogMilliseconds": 90000,
+    "watchdogUsed": false
+  },
+  {
+    "name": "repair-counterfactual-observation-runtime",
+    "command": [
+      "/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-stage1-independent-20260827/repair-fbbe1ef7/replay-v1/scratch/tools/node",
+      "--test",
+      "--test-name-pattern",
+      "^H07b ",
+      "/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-stage1-independent-20260827/repair-fbbe1ef7/replay-v1/scratch/fixtures/cohort-v1.mjs"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-stage1-independent-20260827/repair-fbbe1ef7/replay-v1/scratch",
+    "environment": {
+      "CANCELLATION_MODULE": "/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-stage1-independent-20260827/repair-fbbe1ef7/replay-v1/scratch/repair-counterfactual-observation/emitted/cancellation.js"
+    },
+    "started": "2026-08-27T23:10:37.644Z",
+    "finished": "2026-08-27T23:10:37.736Z",
+    "status": 1,
+    "signal": null,
+    "error": null,
+    "watchdogMilliseconds": 90000,
+    "watchdogUsed": false
+  }
+]

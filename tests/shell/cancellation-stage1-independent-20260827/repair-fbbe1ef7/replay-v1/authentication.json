@@ -1,0 +1,26 @@
+{
+  "candidate": "fbbe1ef793b7434871403125efbeb46624a8e081",
+  "parent": "d28083dd43c7d1b513ec195b38df2f7fd3e15b48",
+  "tree": "840983102d0ba9d0aba5c2a1662518d0f7b649c6",
+  "rawCommitSha256": "f86d811c54b7910f8efa2d7d60c5936898b55129670460b5324428ab283596de",
+  "helperBlob": "a7742b7f7e81bcd8c1c2a6be35092d8b5f41102f",
+  "helperSha256": "ee048f6c38086dd40573db57e002e596029174ee2afc5f888e516779e5a718ac",
+  "emptyImportClosure": true,
+  "onlyHelperChanged": true,
+  "reservedUnchangedRelativeToOwnParent": [
+    "src/shell/cleanup.ts",
+    "src/shell/runtime.ts",
+    "src/shell/shell.ts",
+    "src/shell/types.ts",
+    "src/index.ts",
+    "src/plugins/index.ts",
+    "package.json",
+    "package-lock.json"
+  ],
+  "historicalIndependentTreeUnchanged": true,
+  "originalAuthorHashesVerified": 8,
+  "repairAuthorHashesVerified": 5,
+  "rawObjects": 92,
+  "reachablePaths": 110,
+  "reconstruction": "raw Git objects and changed-path trees; no loose-object assumption, branch or full repository clone"
+}

@@ -1,0 +1,144 @@
+{
+  "inputsBefore": [
+    {
+      "path": "cancellation.ts",
+      "kind": "file",
+      "size": 22439,
+      "sha256": "ee048f6c38086dd40573db57e002e596029174ee2afc5f888e516779e5a718ac"
+    },
+    {
+      "path": "negative.json",
+      "kind": "file",
+      "size": 302,
+      "sha256": "d3b992868e744fe0317bbda5502480db82002a5ed9f5c20407fe3b90e7eaacc0"
+    },
+    {
+      "path": "negative.ts",
+      "kind": "file",
+      "size": 683,
+      "sha256": "43a63f7795344ea6ad8b840954320a55241b916c592c6fa9bc1a6396bdf4fc9f"
+    },
+    {
+      "path": "package.json",
+      "kind": "file",
+      "size": 18,
+      "sha256": "1239d4d885dcad42201a27ed9324f8f0f760b78700d8db9ced39a511cffe7eae"
+    },
+    {
+      "path": "positive.ts",
+      "kind": "file",
+      "size": 1315,
+      "sha256": "508ae8d6c2277845f3477e20a5ba95cce62c19201ad5d9c80614a4f85607a03f"
+    },
+    {
+      "path": "tsconfig.json",
+      "kind": "file",
+      "size": 327,
+      "sha256": "448be926e1476a4f4cebc6db576da1809f263e29983bb52df6068f8d27a0dd4b"
+    }
+  ],
+  "inputsAfter": [
+    {
+      "path": "cancellation.ts",
+      "kind": "file",
+      "size": 22439,
+      "sha256": "ee048f6c38086dd40573db57e002e596029174ee2afc5f888e516779e5a718ac"
+    },
+    {
+      "path": "negative.json",
+      "kind": "file",
+      "size": 302,
+      "sha256": "d3b992868e744fe0317bbda5502480db82002a5ed9f5c20407fe3b90e7eaacc0"
+    },
+    {
+      "path": "negative.ts",
+      "kind": "file",
+      "size": 683,
+      "sha256": "43a63f7795344ea6ad8b840954320a55241b916c592c6fa9bc1a6396bdf4fc9f"
+    },
+    {
+      "path": "package.json",
+      "kind": "file",
+      "size": 18,
+      "sha256": "1239d4d885dcad42201a27ed9324f8f0f760b78700d8db9ced39a511cffe7eae"
+    },
+    {
+      "path": "positive.ts",
+      "kind": "file",
+      "size": 1315,
+      "sha256": "508ae8d6c2277845f3477e20a5ba95cce62c19201ad5d9c80614a4f85607a03f"
+    },
+    {
+      "path": "tsconfig.json",
+      "kind": "file",
+      "size": 327,
+      "sha256": "448be926e1476a4f4cebc6db576da1809f263e29983bb52df6068f8d27a0dd4b"
+    }
+  ],
+  "allAfter": [
+    {
+      "path": "cancellation.ts",
+      "kind": "file",
+      "size": 22439,
+      "sha256": "ee048f6c38086dd40573db57e002e596029174ee2afc5f888e516779e5a718ac"
+    },
+    {
+      "path": "emitted/",
+      "kind": "directory"
+    },
+    {
+      "path": "emitted/cancellation.d.ts",
+      "kind": "file",
+      "size": 3951,
+      "sha256": "67b90043f40ef0c5a53ae0be912351cb05f51707523ca4a3ae4e7d8b9f432e65"
+    },
+    {
+      "path": "emitted/cancellation.js",
+      "kind": "file",
+      "size": 18909,
+      "sha256": "ef09ed467282c95ef729be71999b9945e7b16ddfaf90c1bc3d2688d30c138d13"
+    },
+    {
+      "path": "emitted/positive.d.ts",
+      "kind": "file",
+      "size": 11,
+      "sha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881"
+    },
+    {
+      "path": "emitted/positive.js",
+      "kind": "file",
+      "size": 1039,
+      "sha256": "0c0a6ee988b7893915a44b181abfa83f2b93be9e97f77f6e3c6d108d590d380f"
+    },
+    {
+      "path": "negative.json",
+      "kind": "file",
+      "size": 302,
+      "sha256": "d3b992868e744fe0317bbda5502480db82002a5ed9f5c20407fe3b90e7eaacc0"
+    },
+    {
+      "path": "negative.ts",
+      "kind": "file",
+      "size": 683,
+      "sha256": "43a63f7795344ea6ad8b840954320a55241b916c592c6fa9bc1a6396bdf4fc9f"
+    },
+    {
+      "path": "package.json",
+      "kind": "file",
+      "size": 18,
+      "sha256": "1239d4d885dcad42201a27ed9324f8f0f760b78700d8db9ced39a511cffe7eae"
+    },
+    {
+      "path": "positive.ts",
+      "kind": "file",
+      "size": 1315,
+      "sha256": "508ae8d6c2277845f3477e20a5ba95cce62c19201ad5d9c80614a4f85607a03f"
+    },
+    {
+      "path": "tsconfig.json",
+      "kind": "file",
+      "size": 327,
+      "sha256": "448be926e1476a4f4cebc6db576da1809f263e29983bb52df6068f8d27a0dd4b"
+    }
+  ]
+}

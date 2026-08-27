@@ -1,4 +1,4 @@
-import { writeBytes, type CommandDefinition, type VirtualShellPlugin } from "../../contracts/index.js";
+import { createOutputOperation, writeBytes, type CommandDefinition, type OutputOperation, type VirtualShellPlugin } from "../../contracts/index.js";
 import { Budget } from "./budget.js";
 import { Inputs } from "./input.js";
 import { argumentsFor, HtmlUsageError, settings, type HtmlToMarkdownCommandsOptions } from "./options.js";
@@ -10,12 +10,15 @@ export function createHtmlToMarkdownCommand(options: HtmlToMarkdownCommandsOptio
   const limits = settings(options);
   return { name: "html-to-markdown", description: "Convert bounded VFS/stdin HTML to Markdown without fetching or executing", async execute(context) {
     context.signal.throwIfAborted();
-    const budget = new Budget(context, limits);
+    let operation: OutputOperation | undefined;
     let inputs: Inputs | undefined, failed = false;
     try {
       const parsed = argumentsFor(context.args, limits);
+      operation = createOutputOperation(context, context.stdout);
+      const work = { ...context, signal: operation.signal, stdout: operation.output, registerCleanup: operation.registerCleanup };
+      const budget = new Budget(work, limits);
       if (parsed.info !== undefined) { await budget.emit(parsed.info); return { exitCode: 0 }; }
-      inputs = new Inputs(context, budget);
+      inputs = new Inputs(work, budget);
       const renderer = new Renderer(budget);
       let written = false;
       for (const name of parsed.files) {
@@ -29,6 +32,7 @@ export function createHtmlToMarkdownCommand(options: HtmlToMarkdownCommandsOptio
       failed = true;
       inputs?.preservePrimaryFailure();
       context.signal.throwIfAborted();
+      if (operation?.signal.aborted && error === operation.signal.reason) throw error;
       const message = error instanceof Error ? error.message : String(error);
       const text = `html-to-markdown: ${message.slice(0, limits.maxDiagnosticBytes)}\n`;
       let bytes = Buffer.from(text);
@@ -40,8 +44,13 @@ export function createHtmlToMarkdownCommand(options: HtmlToMarkdownCommandsOptio
       await writeBytes(context.stderr, bytes, context.signal);
       return { exitCode: error instanceof HtmlUsageError ? 2 : 1 };
     } finally {
-      try { await inputs?.close(); }
-      catch (error) { context.signal.throwIfAborted(); if (!failed) throw error; }
+      try {
+        try { await inputs?.close(); }
+        catch (error) { context.signal.throwIfAborted(); if (!failed) throw error; }
+      } finally {
+        try { await operation?.close(); }
+        catch (error) { context.signal.throwIfAborted(); if (!failed) throw error; }
+      }
       context.signal.throwIfAborted();
     }
   } };

@@ -70,13 +70,14 @@ try {
 
 The result contains `world` followed by a newline.
 
-`agentCommands(options?)` installs fifteen delivered families once: standard,
+`agentCommands(options?)` installs the delivered families once: standard,
 text programs, structured (`jq`), search (`rg`), byte tools, diff/patch,
 metadata (`chmod`, `stat`, `mktemp`), archives (`tar`), table-text
 (`paste`, `comm`, `join`), stream inspection (`tac`, `expand`, `fold`, `strings`),
 stream formatting (`seq`, `nl`, `rev`, `unexpand`), splitting (`split`), and
 time/environment (`date`, `sleep`, `printenv`), tree (`tree`), file (`file`),
-grep aliases (`egrep`, `fgrep`), and table layout (`column`), totaling 73 unique registered
+grep aliases (`egrep`, `fgrep`), table layout (`column`), and bounded HTML conversion
+(`html-to-markdown`), totaling 74 unique registered
 plugin names. These families have separate scoped evidence;
 name registration is not proof of complete utility semantics.
 Do not also install those families unless you deliberately request replacement.
@@ -400,7 +401,7 @@ pre-first-byte `head -n 0` custom lifecycle issue is not fixed by this checkpoin
 it does not prevent delivery of the verified curl scope. Current root assignments
 govern source/test ownership; historical assignments are recorded in the ledger.
 
-The current default aggregate has 73 unique plugin names; optional `curl` and `safejs`
+The current default aggregate has 74 unique plugin names; optional `curl` and `safejs`
 add one each only when explicitly installed. At curl finalization, the committed
 aggregate still had 49 names while uncommitted metadata wiring exposed 52 in
 the working tree and its built package. That historical build/smoke remains a
@@ -543,3 +544,44 @@ Filesystem callers receive typed `FsError` values with a stable `code` field.
 Shell stderr instead follows human-readable Bash/utility diagnostics; do not
 treat it as an errno serialization format. Integration checks must preserve
 exit status, error meaning/path and filesystem effects when reconciling wording.
+
+## Bounded HTML conversion
+
+`html-to-markdown` is a default command. Root and the explicit
+`virtual-bash/commands/html-to-markdown` subpath export
+`createHtmlToMarkdownCommand`, `createHtmlToMarkdownCommands`,
+`htmlToMarkdownCommands`, `HtmlToMarkdownCommandsOptions`, and
+`HtmlToMarkdownLimits`. Aggregate limits use `htmlToMarkdown`; only the
+aggregate's top-level `replace` controls replacement.
+
+```ts
+import { Shell, agentCommands, createMemoryFileSystem, networkCommands } from "virtual-bash";
+
+const shell = new Shell({ fs: createMemoryFileSystem() })
+  .use(agentCommands({ htmlToMarkdown: { limits: { maxInputBytes: 1024 * 1024 } } }))
+  .use(networkCommands({ authorize: request => new URL(request.url).origin === "https://docs.example.com" }));
+try {
+  const result = await shell.exec("curl https://docs.example.com/page | html-to-markdown > /page.md");
+  if (result.exitCode !== 0) throw new Error(result.stderr);
+} finally { await shell.dispose(); }
+```
+
+Network capability remains explicit and every hop is authorized. HTML conversion
+does not fetch images/styles, execute scripts, or access implicit host paths.
+The tokenizer/tree renderer handles its documented subset with finite input,
+token, depth, work and output limits. Each operand is buffered within those
+bounds: this is not constant-memory conversion, an HTML5 browser parser, a
+sanitizer, or Pandoc-equivalent output. Link/image title attributes are not
+rendered. Unsafe destinations are suppressed by the documented destination
+policy; downstream Markdown remains untrusted content.
+
+Pure conversion explicitly enrolls owned stdout operations. Cooperative input
+and parser work can stop on downstream closure before the first write; cleanup
+is awaited. Diagnostics retain the original caller context, and required file/
+header destinations are not canceled merely because an unrelated stdout pipe
+closes. Opaque producer/cleanup promises still require host cooperation. This is
+a new HTML adoption, not a retroactive pass for the original first-read cohort.
+The renderer's independent module acceptance and this new public/lifecycle
+integration are separate scopes; integration still requires its different-agent
+review. Exact CLI, limits and limitations are in
+`src/commands/html-to-markdown/README.md`.

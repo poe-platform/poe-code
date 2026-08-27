@@ -70,6 +70,10 @@
       "types": "./dist/commands/column/index.d.ts",
       "import": "./dist/commands/column/index.js"
     },
+    "./commands/html-to-markdown": {
+      "types": "./dist/commands/html-to-markdown/index.d.ts",
+      "import": "./dist/commands/html-to-markdown/index.js"
+    },
     "./fs/s3": {
       "types": "./dist/fs/s3/index.d.ts",
       "import": "./dist/fs/s3/index.js"

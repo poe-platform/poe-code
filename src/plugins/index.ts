@@ -17,9 +17,11 @@ import { createTreeCommands, type TreeCommandsOptions } from "../commands/tree/i
 import { createFileCommands, type FileCommandsOptions } from "../commands/file/index.js";
 import { createGrepAliasCommands } from "../commands/grep-aliases/index.js";
 import { createColumnCommands, type ColumnCommandsOptions } from "../commands/column/index.js";
+import { createHtmlToMarkdownCommands, type HtmlToMarkdownCommandsOptions } from "../commands/html-to-markdown/index.js";
 import type { RegexExecutionOptions } from "../commands/regex-execution/protocol.js";
 
 export interface AgentCommandsOptions {
+  readonly htmlToMarkdown?: Omit<HtmlToMarkdownCommandsOptions, "replace">;
   readonly replace?: boolean;
   readonly execute?: CommandHandler;
   readonly regex?: RegexExecutionOptions;
@@ -68,6 +70,7 @@ export function createAgentCommands(options: AgentCommandsOptions = {}): readonl
     ...createFileCommands({ ...options.file }),
     ...createGrepAliasCommands(options.regex === undefined ? {} : { regex: options.regex }),
     ...createColumnCommands({ ...options.column }),
+    ...createHtmlToMarkdownCommands({ ...options.htmlToMarkdown }),
   );
   return new CommandRegistry(commands).list();
 }

@@ -1,11 +1,12 @@
 # html-to-markdown: bounded conversion profile
 
-This standalone family is not wired into root exports, package subpaths or
-`agentCommands`. It adds no runtime dependency. Native programs are test
+This family is available from root exports, the explicit
+`virtual-bash/commands/html-to-markdown` subpath and `agentCommands`.
+It adds no runtime dependency. Native programs are test
 references only; the implementation never spawns a process, fetches a resource,
 executes scripts or reads implicit host files.
 
-## Module-local API and CLI
+## Public API and CLI
 
 `src/commands/html-to-markdown/index.ts` exports:
 
@@ -16,6 +17,11 @@ executes scripts or reads implicit host files.
 - `HtmlToMarkdownCommandsOptions`: optional `replace` and
   `limits?: Partial<HtmlToMarkdownLimits>`.
 - `HtmlToMarkdownLimits`: the fields listed below.
+
+The root and explicit subpath export those same symbols. Aggregate configuration
+uses `htmlToMarkdown: { limits: ... }`; it omits family `replace`, because the
+aggregate's top-level replacement policy is authoritative. Curl and SafeJS remain
+separate opt-in plugins.
 
 `html-to-markdown [--] [FILE|-] ...` reads ordered VFS operands; no operands means
 stdin. Repeated `-` shares one cursor, including EOF; it does not replay input.
@@ -28,6 +34,17 @@ failure is1 with a bounded command-prefixed diagnostic. Processing stops at the
 first failed operand. Previously written operands or output prefixes are not
 rolled back. Cancellation preserves the caller's reason rather than returning a
 successful status. A sink failure is not successful conversion.
+
+Pure conversion enrolls an owned stdout operation after argument validation.
+Its input/parser/render work uses the operation signal and its accounted output;
+stdout closure can cooperatively stop pending input before the first output byte.
+Input cleanup registers on that operation before input acquisition, and completion
+awaits iterator cleanup and operation close. Expected operation-closure rejection
+is not a new command diagnostic; Shell maps EPIPE to141 for that stage. Caller
+abort retains its original reason. Usage/FS/limit diagnostics use the original
+caller context, not the closed stdout operation. File redirection uses its actual
+destination rather than borrowing an unrelated pipe's close signal. This explicit
+adoption does not settle opaque producer/return promises that do not cooperate.
 
 ## Rendering rules
 
@@ -117,6 +134,9 @@ but generated Markdown is still untrusted content. Downstream renderers have
 different extensions, link behavior and security policies. Remote images/links
 can be requested later by a renderer; this command never requests them. Its
 destination policy is not universal browser/DNS/socket confinement.
+
+Link/image `title` attributes are not rendered. Title-preservation expectations
+remain unsupported; this is not Pandoc-equivalent Markdown formatting.
 
 ## Bounds, streaming and ownership
 

@@ -1,0 +1,33 @@
+{
+  "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "node_modules/typescript/bin/tsc",
+    "-p",
+    "tsconfig.build.json"
+  ],
+  "cwd": "/tmp/safe-bash-time-env-independent-yAl4cQ",
+  "pid": 53025,
+  "status": 0,
+  "signal": null,
+  "timedOut": false,
+  "outputExceeded": false,
+  "closed": true,
+  "elapsedMs": 1801,
+  "timeoutMs": 90000,
+  "outputBytes": 0,
+  "observed": [
+    {
+      "pid": 53025,
+      "parent": 52730,
+      "group": 53025,
+      "born": "Thu Aug 27 03:09:54 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node node_modules/typescript/bin/tsc -p tsconfig.build.json"
+    }
+  ],
+  "signals": [],
+  "survivors": [],
+  "listeners": [],
+  "cleanupRequired": false,
+  "clean": true,
+  "counts": {}
+}

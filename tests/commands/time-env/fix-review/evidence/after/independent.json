@@ -1,0 +1,141 @@
+{
+  "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "--unhandled-rejections=strict",
+    "--import",
+    "tsx",
+    "--import",
+    "./guard.mjs",
+    "consumer.mts"
+  ],
+  "cwd": "/tmp/safe-bash-time-env-independent-ymzuqP",
+  "pid": 69545,
+  "status": 1,
+  "signal": null,
+  "timedOut": false,
+  "outputExceeded": false,
+  "closed": true,
+  "elapsedMs": 1772,
+  "timeoutMs": 90000,
+  "outputBytes": 2460,
+  "observed": [
+    {
+      "pid": 69545,
+      "parent": 68492,
+      "group": 69545,
+      "born": "Thu Aug 27 03:17:13 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --unhandled-rejections=strict --import tsx --import ./guard.mjs consumer.mts"
+    },
+    {
+      "pid": 69547,
+      "parent": 69545,
+      "group": 69545,
+      "born": "Thu Aug 27 03:17:13 2026",
+      "command": "/private/tmp/safe-bash-time-env-independent-ymzuqP/node_modules/@esbuild/darwin-arm64/bin/esbuild --service=0.28.2 --ping"
+    },
+    {
+      "pid": 69551,
+      "parent": 69545,
+      "group": 69545,
+      "born": "Thu Aug 27 03:17:13 2026",
+      "command": "(date)"
+    },
+    {
+      "pid": 69568,
+      "parent": 69545,
+      "group": 69545,
+      "born": "Thu Aug 27 03:17:13 2026",
+      "command": "(date)"
+    },
+    {
+      "pid": 69587,
+      "parent": 69545,
+      "group": 69545,
+      "born": "Thu Aug 27 03:17:13 2026",
+      "command": "(date)"
+    },
+    {
+      "pid": 69607,
+      "parent": 69545,
+      "group": 69545,
+      "born": "Thu Aug 27 03:17:13 2026",
+      "command": "(date)"
+    },
+    {
+      "pid": 69626,
+      "parent": 69545,
+      "group": 69545,
+      "born": "Thu Aug 27 03:17:13 2026",
+      "command": "(date)"
+    },
+    {
+      "pid": 69648,
+      "parent": 69545,
+      "group": 69545,
+      "born": "Thu Aug 27 03:17:13 2026",
+      "command": "(date)"
+    },
+    {
+      "pid": 69669,
+      "parent": 69545,
+      "group": 69545,
+      "born": "Thu Aug 27 03:17:14 2026",
+      "command": "(date)"
+    },
+    {
+      "pid": 69690,
+      "parent": 69545,
+      "group": 69545,
+      "born": "Thu Aug 27 03:17:14 2026",
+      "command": "(date)"
+    },
+    {
+      "pid": 69711,
+      "parent": 69545,
+      "group": 69545,
+      "born": "Thu Aug 27 03:17:14 2026",
+      "command": "(date)"
+    },
+    {
+      "pid": 69732,
+      "parent": 69545,
+      "group": 69545,
+      "born": "Thu Aug 27 03:17:14 2026",
+      "command": "(date)"
+    },
+    {
+      "pid": 69753,
+      "parent": 69545,
+      "group": 69545,
+      "born": "Thu Aug 27 03:17:14 2026",
+      "command": "(date)"
+    },
+    {
+      "pid": 69774,
+      "parent": 69545,
+      "group": 69545,
+      "born": "Thu Aug 27 03:17:14 2026",
+      "command": "(date)"
+    },
+    {
+      "pid": 69794,
+      "parent": 69545,
+      "group": 69545,
+      "born": "Thu Aug 27 03:17:14 2026",
+      "command": "(date)"
+    },
+    {
+      "pid": 69813,
+      "parent": 69545,
+      "group": 69545,
+      "born": "Thu Aug 27 03:17:14 2026",
+      "command": "(sleep)"
+    }
+  ],
+  "signals": [],
+  "survivors": [],
+  "listeners": [],
+  "cleanupRequired": false,
+  "clean": true,
+  "counts": {}
+}

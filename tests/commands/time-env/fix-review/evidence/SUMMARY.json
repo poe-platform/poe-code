@@ -1,0 +1,506 @@
+{
+  "frozenBase": "d904ca986fa945df8aef6e11b4165e2c2a63f814",
+  "sourceOverlay": "db369efca5cab0385e195ae7f7f0b8fa680c00a3",
+  "reviewerRevision": "75d4e0c47f1061df2f5381d9185837057ca8386a",
+  "stages": {
+    "before": {
+      "sourceHashsetSha256": "0ee06393ab74374e14163c2748f5acce5c6f71de6e19d70b62596f06ee56b247",
+      "sourceFileCount": 200,
+      "leafHashes": {
+        "src/commands/time-env/README.md": "5988969d14e93fb5cf00668f51320f8bf1b8aa646489ddaa5050bd5f4b966d00",
+        "src/commands/time-env/calendar.ts": "a761667dddc8ca42df81bfad154c04d433d63a243432d4299a5704a1d16f31ec",
+        "src/commands/time-env/date.ts": "e1e2df940c7464112279eba3e407b80a3fb2f792932763300c85748825add726",
+        "src/commands/time-env/format.ts": "742160b2a241aeabae58f7b198b901ae109b9806dc75b176fbfb1a77594e70fd",
+        "src/commands/time-env/index.ts": "ddbad0cf7599324eb165b14ae9352326de57d817f5302f16f4737915aa1aed60",
+        "src/commands/time-env/printenv.ts": "ee13e1a416da4f7ed153fa9535a716fb3c43d4e5d07444efdc0a7d88075d0c33",
+        "src/commands/time-env/shared.ts": "e7572901c107373afa51adba1b4e97d01ced89e71e53e4ad0affefbdaab5f532",
+        "src/commands/time-env/sleep.ts": "130fa7b2e9f2d838b8908d47f89a61b67964ed3b36ed3f42d23624898fe4aed1"
+      },
+      "unchangedAuthor": {
+        "tests": 223,
+        "pass": 223,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "newRegressions": {
+        "tests": 83,
+        "pass": 11,
+        "fail": 72,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "independent": {
+        "total": 305,
+        "pass": 296,
+        "failures": [
+          {
+            "name": "flag %12F",
+            "category": "GNU9.7-Darwin-required-date"
+          },
+          {
+            "name": "flag %#c",
+            "category": "GNU9.7-Darwin-required-date"
+          },
+          {
+            "name": "flag %-z",
+            "category": "GNU9.7-Darwin-required-date"
+          },
+          {
+            "name": "flag %_z",
+            "category": "GNU9.7-Darwin-required-date"
+          },
+          {
+            "name": "flag %_12z",
+            "category": "GNU9.7-Darwin-required-date"
+          },
+          {
+            "name": "flag %^P",
+            "category": "GNU9.7-Darwin-required-date"
+          },
+          {
+            "name": "sleep exact total 0.0009999999 0.0000000001",
+            "category": "sleep-arithmetic"
+          },
+          {
+            "name": "sleep exact total 0.0004999999 0.0005000001",
+            "category": "sleep-arithmetic"
+          },
+          {
+            "name": "Apple BSD printenv separate profile",
+            "category": "Apple-BSD-observed-not-target"
+          }
+        ]
+      },
+      "publicSleep": [
+        {
+          "name": "compiled public sleep cancellation repeat0",
+          "result": "pass"
+        },
+        {
+          "name": "compiled public sleep cancellation repeat1",
+          "result": "pass"
+        },
+        {
+          "name": "compiled public sleep cancellation repeat2",
+          "result": "pass"
+        },
+        {
+          "name": "compiled public sleep cancellation repeat3",
+          "result": "pass"
+        },
+        {
+          "name": "compiled public sleep cancellation repeat4",
+          "result": "pass"
+        },
+        {
+          "name": "compiled public sleep cancellation repeat5",
+          "result": "pass"
+        },
+        {
+          "name": "public preabort creates no timer and preserves caller identity",
+          "result": "pass"
+        },
+        {
+          "name": "cancelling one Shell does not clear a sibling timer",
+          "result": "pass"
+        }
+      ],
+      "nativeMatrix": {
+        "required-format": {
+          "total": 18,
+          "gnuMatches": 0,
+          "appleMatches": 0
+        },
+        "zone-label-profile": {
+          "total": 18,
+          "gnuMatches": 0,
+          "appleMatches": 0
+        }
+      },
+      "nativeMatrixDifferences": [
+        {
+          "category": "required-format",
+          "input": "0008-01-02T03:04:05Z",
+          "zone": "UTC"
+        },
+        {
+          "category": "zone-label-profile",
+          "input": "0008-01-02T03:04:05Z",
+          "zone": "UTC"
+        },
+        {
+          "category": "required-format",
+          "input": "0008-01-02T03:04:05Z",
+          "zone": "UTC-0:30:07"
+        },
+        {
+          "category": "zone-label-profile",
+          "input": "0008-01-02T03:04:05Z",
+          "zone": "UTC-0:30:07"
+        },
+        {
+          "category": "required-format",
+          "input": "0008-01-02T03:04:05Z",
+          "zone": "UTC+0:00:07"
+        },
+        {
+          "category": "zone-label-profile",
+          "input": "0008-01-02T03:04:05Z",
+          "zone": "UTC+0:00:07"
+        },
+        {
+          "category": "required-format",
+          "input": "0008-01-02T03:04:05Z",
+          "zone": "UTC-5:45"
+        },
+        {
+          "category": "zone-label-profile",
+          "input": "0008-01-02T03:04:05Z",
+          "zone": "UTC-5:45"
+        },
+        {
+          "category": "required-format",
+          "input": "0008-01-02T03:04:05Z",
+          "zone": "America/New_York"
+        },
+        {
+          "category": "zone-label-profile",
+          "input": "0008-01-02T03:04:05Z",
+          "zone": "America/New_York"
+        },
+        {
+          "category": "required-format",
+          "input": "0008-01-02T03:04:05Z",
+          "zone": "Europe/Paris"
+        },
+        {
+          "category": "zone-label-profile",
+          "input": "0008-01-02T03:04:05Z",
+          "zone": "Europe/Paris"
+        },
+        {
+          "category": "required-format",
+          "input": "2024-02-29T15:06:07Z",
+          "zone": "UTC"
+        },
+        {
+          "category": "zone-label-profile",
+          "input": "2024-02-29T15:06:07Z",
+          "zone": "UTC"
+        },
+        {
+          "category": "required-format",
+          "input": "2024-02-29T15:06:07Z",
+          "zone": "UTC-0:30:07"
+        },
+        {
+          "category": "zone-label-profile",
+          "input": "2024-02-29T15:06:07Z",
+          "zone": "UTC-0:30:07"
+        },
+        {
+          "category": "required-format",
+          "input": "2024-02-29T15:06:07Z",
+          "zone": "UTC+0:00:07"
+        },
+        {
+          "category": "zone-label-profile",
+          "input": "2024-02-29T15:06:07Z",
+          "zone": "UTC+0:00:07"
+        },
+        {
+          "category": "required-format",
+          "input": "2024-02-29T15:06:07Z",
+          "zone": "UTC-5:45"
+        },
+        {
+          "category": "zone-label-profile",
+          "input": "2024-02-29T15:06:07Z",
+          "zone": "UTC-5:45"
+        },
+        {
+          "category": "required-format",
+          "input": "2024-02-29T15:06:07Z",
+          "zone": "America/New_York"
+        },
+        {
+          "category": "zone-label-profile",
+          "input": "2024-02-29T15:06:07Z",
+          "zone": "America/New_York"
+        },
+        {
+          "category": "required-format",
+          "input": "2024-02-29T15:06:07Z",
+          "zone": "Europe/Paris"
+        },
+        {
+          "category": "zone-label-profile",
+          "input": "2024-02-29T15:06:07Z",
+          "zone": "Europe/Paris"
+        },
+        {
+          "category": "required-format",
+          "input": "@-1",
+          "zone": "UTC"
+        },
+        {
+          "category": "zone-label-profile",
+          "input": "@-1",
+          "zone": "UTC"
+        },
+        {
+          "category": "required-format",
+          "input": "@-1",
+          "zone": "UTC-0:30:07"
+        },
+        {
+          "category": "zone-label-profile",
+          "input": "@-1",
+          "zone": "UTC-0:30:07"
+        },
+        {
+          "category": "required-format",
+          "input": "@-1",
+          "zone": "UTC+0:00:07"
+        },
+        {
+          "category": "zone-label-profile",
+          "input": "@-1",
+          "zone": "UTC+0:00:07"
+        },
+        {
+          "category": "required-format",
+          "input": "@-1",
+          "zone": "UTC-5:45"
+        },
+        {
+          "category": "zone-label-profile",
+          "input": "@-1",
+          "zone": "UTC-5:45"
+        },
+        {
+          "category": "required-format",
+          "input": "@-1",
+          "zone": "America/New_York"
+        },
+        {
+          "category": "zone-label-profile",
+          "input": "@-1",
+          "zone": "America/New_York"
+        },
+        {
+          "category": "required-format",
+          "input": "@-1",
+          "zone": "Europe/Paris"
+        },
+        {
+          "category": "zone-label-profile",
+          "input": "@-1",
+          "zone": "Europe/Paris"
+        }
+      ],
+      "reviewerInputs": {
+        "consumer.mts": "7cede429d70acd5ffdb63cf15af06ff126fe04c06f7e9e744d0cebeca5338d1b",
+        "guard.mjs": "6513e46e3de7e012d0f192b3490084724ac1169fc233f9051c127d8f4852b12b"
+      },
+      "native": {
+        "date": {
+          "sha256": "14c1c04f8a1e859e9421993856ba1d29f49dc750d91be5dd299841f970f31f44",
+          "version": "date (GNU coreutils) 9.7\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by David MacKenzie.\n"
+        },
+        "sleep": {
+          "sha256": "6b90f4cbba603c981bbf7324026ea99fe30efb167ccae0e1d579b54cab86a95f",
+          "version": "sleep (GNU coreutils) 9.7\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Jim Meyering and Paul Eggert.\n"
+        },
+        "printenv": {
+          "sha256": "8c2d4675579df37dd2cd6eac8a9d27e61a5b92e4c18d830110a85c04cffab4d9",
+          "version": "printenv (GNU coreutils) 9.7\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by David MacKenzie and Richard Mlynarik.\n"
+        },
+        "/bin/date": {
+          "sha256": "9964fccef703f02120a04a06f6349b82057697617e025d05a9c93bb10799f0a3"
+        },
+        "/bin/sleep": {
+          "sha256": "00c84d198e2b80da7dc47c0e30d311cd632f74c257793c4b45723f2cb7ca5d2c"
+        },
+        "/usr/bin/printenv": {
+          "sha256": "1146eee6351e08f609d8a0b69aca0bd601223a932c9e00ef56a7b392c4df0331"
+        }
+      },
+      "primarySourceHashes": {
+        "src/date.c": "d4c2bea0c20c63d1879eba0c80f7fabba933535828fc473bcee01926b15f5ccc",
+        "src/sleep.c": "775bd20d7276e69efa7251df84ea3c45ad6e835b0f4f5737a5378d547bfcb8a6",
+        "src/printenv.c": "026aa9149812871df72f2a485ab3f327c47efa147fd99e5af3dd9ec32e746ac9",
+        "doc/coreutils.texi": "39b126752866fff675e462bd44d76f3e034abafe462a069cebd53ef39fc53eca",
+        "lib/strftime.c": "b1acd5ae751c54eb3ed11d63b4b4cdf0bf86b560b3f85534b1f7a7b497ecad54"
+      },
+      "cleanup": {
+        "snapshotRemoved": true,
+        "inputsUnchanged": true,
+        "outerChildren": 8,
+        "observedProcessIdentities": 50,
+        "allClosed": true,
+        "survivors": []
+      }
+    },
+    "after": {
+      "sourceHashsetSha256": "d2ef50d79de1c5c65356fc683e4dfde7870484e7c0efd15636495349e20cd825",
+      "sourceFileCount": 200,
+      "leafHashes": {
+        "src/commands/time-env/README.md": "8bca1f9447d8461c0c5381ed39d0a62c5a62685219861034a3dc888576ad0849",
+        "src/commands/time-env/calendar.ts": "a761667dddc8ca42df81bfad154c04d433d63a243432d4299a5704a1d16f31ec",
+        "src/commands/time-env/date.ts": "e1e2df940c7464112279eba3e407b80a3fb2f792932763300c85748825add726",
+        "src/commands/time-env/format.ts": "1ce9deaa9eb5c187e70650957f745f9a78db56a1ffee675d1d981cecf699be59",
+        "src/commands/time-env/index.ts": "ddbad0cf7599324eb165b14ae9352326de57d817f5302f16f4737915aa1aed60",
+        "src/commands/time-env/printenv.ts": "ee13e1a416da4f7ed153fa9535a716fb3c43d4e5d07444efdc0a7d88075d0c33",
+        "src/commands/time-env/shared.ts": "e7572901c107373afa51adba1b4e97d01ced89e71e53e4ad0affefbdaab5f532",
+        "src/commands/time-env/sleep.ts": "b0e8aca87bbcc690653f8c6db3cb0039832a481f6bedfbc381deb12bb6b4de96"
+      },
+      "unchangedAuthor": {
+        "tests": 223,
+        "pass": 223,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "newRegressions": {
+        "tests": 83,
+        "pass": 83,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "independent": {
+        "total": 305,
+        "pass": 304,
+        "failures": [
+          {
+            "name": "Apple BSD printenv separate profile",
+            "category": "Apple-BSD-observed-not-target"
+          }
+        ]
+      },
+      "publicSleep": [
+        {
+          "name": "compiled public sleep cancellation repeat0",
+          "result": "pass"
+        },
+        {
+          "name": "compiled public sleep cancellation repeat1",
+          "result": "pass"
+        },
+        {
+          "name": "compiled public sleep cancellation repeat2",
+          "result": "pass"
+        },
+        {
+          "name": "compiled public sleep cancellation repeat3",
+          "result": "pass"
+        },
+        {
+          "name": "compiled public sleep cancellation repeat4",
+          "result": "pass"
+        },
+        {
+          "name": "compiled public sleep cancellation repeat5",
+          "result": "pass"
+        },
+        {
+          "name": "public preabort creates no timer and preserves caller identity",
+          "result": "pass"
+        },
+        {
+          "name": "cancelling one Shell does not clear a sibling timer",
+          "result": "pass"
+        }
+      ],
+      "nativeMatrix": {
+        "required-format": {
+          "total": 18,
+          "gnuMatches": 18,
+          "appleMatches": 0
+        },
+        "zone-label-profile": {
+          "total": 18,
+          "gnuMatches": 13,
+          "appleMatches": 0
+        }
+      },
+      "nativeMatrixDifferences": [
+        {
+          "category": "zone-label-profile",
+          "input": "0008-01-02T03:04:05Z",
+          "zone": "America/New_York"
+        },
+        {
+          "category": "zone-label-profile",
+          "input": "0008-01-02T03:04:05Z",
+          "zone": "Europe/Paris"
+        },
+        {
+          "category": "zone-label-profile",
+          "input": "2024-02-29T15:06:07Z",
+          "zone": "Europe/Paris"
+        },
+        {
+          "category": "zone-label-profile",
+          "input": "@-1",
+          "zone": "America/New_York"
+        },
+        {
+          "category": "zone-label-profile",
+          "input": "@-1",
+          "zone": "Europe/Paris"
+        }
+      ],
+      "reviewerInputs": {
+        "consumer.mts": "7cede429d70acd5ffdb63cf15af06ff126fe04c06f7e9e744d0cebeca5338d1b",
+        "guard.mjs": "6513e46e3de7e012d0f192b3490084724ac1169fc233f9051c127d8f4852b12b"
+      },
+      "native": {
+        "date": {
+          "sha256": "14c1c04f8a1e859e9421993856ba1d29f49dc750d91be5dd299841f970f31f44",
+          "version": "date (GNU coreutils) 9.7\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by David MacKenzie.\n"
+        },
+        "sleep": {
+          "sha256": "6b90f4cbba603c981bbf7324026ea99fe30efb167ccae0e1d579b54cab86a95f",
+          "version": "sleep (GNU coreutils) 9.7\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Jim Meyering and Paul Eggert.\n"
+        },
+        "printenv": {
+          "sha256": "8c2d4675579df37dd2cd6eac8a9d27e61a5b92e4c18d830110a85c04cffab4d9",
+          "version": "printenv (GNU coreutils) 9.7\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by David MacKenzie and Richard Mlynarik.\n"
+        },
+        "/bin/date": {
+          "sha256": "9964fccef703f02120a04a06f6349b82057697617e025d05a9c93bb10799f0a3"
+        },
+        "/bin/sleep": {
+          "sha256": "00c84d198e2b80da7dc47c0e30d311cd632f74c257793c4b45723f2cb7ca5d2c"
+        },
+        "/usr/bin/printenv": {
+          "sha256": "1146eee6351e08f609d8a0b69aca0bd601223a932c9e00ef56a7b392c4df0331"
+        }
+      },
+      "primarySourceHashes": {
+        "src/date.c": "d4c2bea0c20c63d1879eba0c80f7fabba933535828fc473bcee01926b15f5ccc",
+        "src/sleep.c": "775bd20d7276e69efa7251df84ea3c45ad6e835b0f4f5737a5378d547bfcb8a6",
+        "src/printenv.c": "026aa9149812871df72f2a485ab3f327c47efa147fd99e5af3dd9ec32e746ac9",
+        "doc/coreutils.texi": "39b126752866fff675e462bd44d76f3e034abafe462a069cebd53ef39fc53eca",
+        "lib/strftime.c": "b1acd5ae751c54eb3ed11d63b4b4cdf0bf86b560b3f85534b1f7a7b497ecad54"
+      },
+      "cleanup": {
+        "snapshotRemoved": true,
+        "inputsUnchanged": true,
+        "outerChildren": 8,
+        "observedProcessIdentities": 50,
+        "allClosed": true,
+        "survivors": []
+      }
+    }
+  },
+  "hashsetMethod": "SHA256 of UTF-8 JSON.stringify(sorted [path, sha256] entries), code-point ascending paths, only src/",
+  "primaryStrftimeMatchesArchive": true
+}

@@ -1,0 +1,1945 @@
+TAP version 13
+# Subtest: date independent-review regression %12F
+not ok 1 - date independent-review regression %12F
+  ---
+  duration_ms: 1.901458
+  type: 'test'
+  location: '/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:1:762'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + '  2024-01-02\n'
+    - '002024-01-02\n'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: |-
+    002024-01-02
+    
+  actual: |-
+      2024-01-02
+    
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:21:79)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# Subtest: date independent-review regression %\#c
+not ok 2 - date independent-review regression %\#c
+  ---
+  duration_ms: 0.259041
+  type: 'test'
+  location: '/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:1:762'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + 'TUE JAN  2 03:04:05 2024\n'
+    - 'Tue Jan  2 03:04:05 2024\n'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: |-
+    Tue Jan  2 03:04:05 2024
+    
+  actual: |-
+    TUE JAN  2 03:04:05 2024
+    
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:21:79)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: date independent-review regression %-z
+not ok 3 - date independent-review regression %-z
+  ---
+  duration_ms: 0.230417
+  type: 'test'
+  location: '/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:1:762'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    '+0000\n' !== '+0\n'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: |-
+    +0
+    
+  actual: |-
+    +0000
+    
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:21:79)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: date independent-review regression %_z
+not ok 4 - date independent-review regression %_z
+  ---
+  duration_ms: 0.105375
+  type: 'test'
+  location: '/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:1:762'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + '+0000\n'
+    - '   +0\n'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: |-
+       +0
+    
+  actual: |-
+    +0000
+    
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:21:79)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: date independent-review regression %_12z
+not ok 5 - date independent-review regression %_12z
+  ---
+  duration_ms: 0.333292
+  type: 'test'
+  location: '/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:1:762'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + '       +0000\n'
+    - '          +0\n'
+              ^
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: |-
+              +0
+    
+  actual: |-
+           +0000
+    
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:21:79)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: date independent-review regression %^P
+not ok 6 - date independent-review regression %^P
+  ---
+  duration_ms: 0.122167
+  type: 'test'
+  location: '/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:1:762'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    'AM\n' !== 'am\n'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: |-
+    am
+    
+  actual: |-
+    AM
+    
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:21:79)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: date independent-review regression %\#^p|%^\#p|%\#^P|%^\#P|%\#^Z
+not ok 7 - date independent-review regression %\#^p|%^\#p|%\#^P|%^\#P|%\#^Z
+  ---
+  duration_ms: 0.122209
+  type: 'test'
+  location: '/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:1:762'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + 'AM|AM|AM|AM|UTC\n'
+    - 'am|am|am|am|utc\n'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: |-
+    am|am|am|am|utc
+    
+  actual: |-
+    AM|AM|AM|AM|UTC
+    
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:21:79)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: date independent-review regression %\#A|%\#b|%^c|%\#r
+ok 8 - date independent-review regression %\#A|%\#b|%^c|%\#r
+  ---
+  duration_ms: 0.072209
+  type: 'test'
+  ...
+# Subtest: date independent-review regression %-:z|%_:z|%-::z|%_::z|%-:::z|%_:::z
+not ok 9 - date independent-review regression %-:z|%_:z|%-::z|%_::z|%-:::z|%_:::z
+  ---
+  duration_ms: 0.356125
+  type: 'test'
+  location: '/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:1:762'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + '+00:00|+00:00|+00:00:00|+00:00:00|+00|+00\n'
+    - '+0:00| +0:00|+0:00:00| +0:00:00|+0| +0\n'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: |-
+    +0:00| +0:00|+0:00:00| +0:00:00|+0| +0
+    
+  actual: |-
+    +00:00|+00:00|+00:00:00|+00:00:00|+00|+00
+    
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:21:79)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: date independent-review regression %_12F|%-12F|%012F|%_012F|%0_12F
+ok 10 - date independent-review regression %_12F|%-12F|%012F|%_012F|%0_12F
+  ---
+  duration_ms: 0.229541
+  type: 'test'
+  ...
+# Subtest: date compound year width belongs to the year, including short years
+not ok 11 - date compound year width belongs to the year, including short years
+  ---
+  duration_ms: 0.354542
+  type: 'test'
+  location: '/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:1:1003'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + '0008-01-02|0008-01-02|0008-01-02|0008-01-02|0008-01-02|0008-01-02|0008-01-02|  0008-01-02|  0008-01-02|0008-01-02\n'
+    - '0008-01-02|8-01-02|8-01-02|8-01-02|8-01-02|08-01-02|008-01-02|000008-01-02|     8-01-02|8-01-02\n'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: |-
+    0008-01-02|8-01-02|8-01-02|8-01-02|8-01-02|08-01-02|008-01-02|000008-01-02|     8-01-02|8-01-02
+    
+  actual: |-
+    0008-01-02|0008-01-02|0008-01-02|0008-01-02|0008-01-02|0008-01-02|0008-01-02|  0008-01-02|  0008-01-02|0008-01-02
+    
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:28:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: date explicit D inherits year padding while C-locale x remains opaque
+not ok 12 - date explicit D inherits year padding while C-locale x remains opaque
+  ---
+  duration_ms: 0.164042
+  type: 'test'
+  location: '/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:1:1386'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + '01/02/08|01/02/08|01/02/08|01/02/08|    01/02/08|01/02/08|01/02/08\n'
+    - '01/02/8|01/02/ 8|01/02/08|01/02/8|    01/02/ 8|01/02/08|01/02/08\n'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: |-
+    01/02/8|01/02/ 8|01/02/08|01/02/8|    01/02/ 8|01/02/08|01/02/08
+    
+  actual: |-
+    01/02/08|01/02/08|01/02/08|01/02/08|    01/02/08|01/02/08|01/02/08
+    
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:34:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: date timezone padding applies to signed numeric offsets, not pre-padded strings
+not ok 13 - date timezone padding applies to signed numeric offsets, not pre-padded strings
+  ---
+  duration_ms: 0.182792
+  type: 'test'
+  location: '/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:1:1728'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + '+0030|+0030|+0030|+00:30|+00:30|+00:30:07|+00:30:07\n'
+    - '+0030|+30|  +30|+0:30| +0:30|+0:30:07| +0:30:07\n'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: |-
+    +0030|+30|  +30|+0:30| +0:30|+0:30:07| +0:30:07
+    
+  actual: |-
+    +0030|+0030|+0030|+00:30|+00:30|+00:30:07|+00:30:07
+    
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:44:46)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: fresh GNU9.7 C-locale flag/width/compound/timezone matrix
+    # Subtest: 0008-01-02T03:04:05Z UTC aAbBhcpPrZ
+    not ok 1 - 0008-01-02T03:04:05Z UTC aAbBhcpPrZ
+      ---
+      duration_ms: 12.447917
+      type: 'test'
+      location: '/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:1:3002'
+      failureType: 'testCodeFailure'
+      error: |-
+        %#c
+        + actual - expected
+        
+        + 'WED JAN  2 03:04:05 0008'
+        - 'Wed Jan  2 03:04:05 0008'
+        
+      code: 'ERR_ASSERTION'
+      name: 'AssertionError'
+      expected: 'Wed Jan  2 03:04:05 0008'
+      actual: 'WED JAN  2 03:04:05 0008'
+      operator: 'strictEqual'
+      stack: |-
+        TestContext.<anonymous> (/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:70:73)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async TestContext.<anonymous> (/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:59:11)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+      ...
+    # Subtest: 0008-01-02T03:04:05Z UTC FDxRXTYy
+    not ok 2 - 0008-01-02T03:04:05Z UTC FDxRXTYy
+      ---
+      duration_ms: 9.975708
+      type: 'test'
+      location: '/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:1:3002'
+      failureType: 'testCodeFailure'
+      error: |-
+        %-F
+        + actual - expected
+        
+        + '0008-01-02'
+        - '8-01-02'
+        
+      code: 'ERR_ASSERTION'
+      name: 'AssertionError'
+      expected: '8-01-02'
+      actual: '0008-01-02'
+      operator: 'strictEqual'
+      stack: |-
+        TestContext.<anonymous> (/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:70:73)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async TestContext.<anonymous> (/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:59:11)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+      ...
+    # Subtest: 0008-01-02T03:04:05Z UTC z
+    not ok 3 - 0008-01-02T03:04:05Z UTC z
+      ---
+      duration_ms: 6.690958
+      type: 'test'
+      location: '/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:1:3002'
+      failureType: 'testCodeFailure'
+      error: |-
+        %-z
+        
+        '+0000' !== '+0'
+        
+      code: 'ERR_ASSERTION'
+      name: 'AssertionError'
+      expected: '+0'
+      actual: '+0000'
+      operator: 'strictEqual'
+      stack: |-
+        TestContext.<anonymous> (/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:70:73)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async TestContext.<anonymous> (/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:59:11)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+      ...
+    # Subtest: 0008-01-02T03:04:05Z UTC-0:30:07 aAbBhcpPrZ
+    not ok 4 - 0008-01-02T03:04:05Z UTC-0:30:07 aAbBhcpPrZ
+      ---
+      duration_ms: 9.376583
+      type: 'test'
+      location: '/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:1:3002'
+      failureType: 'testCodeFailure'
+      error: |-
+        %#c
+        + actual - expected
+        
+        + 'WED JAN  2 03:34:12 0008'
+        - 'Wed Jan  2 03:34:12 0008'
+        
+      code: 'ERR_ASSERTION'
+      name: 'AssertionError'
+      expected: 'Wed Jan  2 03:34:12 0008'
+      actual: 'WED JAN  2 03:34:12 0008'
+      operator: 'strictEqual'
+      stack: |-
+        TestContext.<anonymous> (/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:70:73)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async TestContext.<anonymous> (/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:59:11)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+      ...
+    # Subtest: 0008-01-02T03:04:05Z UTC-0:30:07 FDxRXTYy
+    not ok 5 - 0008-01-02T03:04:05Z UTC-0:30:07 FDxRXTYy
+      ---
+      duration_ms: 7.777708
+      type: 'test'
+      location: '/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:1:3002'
+      failureType: 'testCodeFailure'
+      error: |-
+        %-F
+        + actual - expected
+        
+        + '0008-01-02'
+        - '8-01-02'
+        
+      code: 'ERR_ASSERTION'
+      name: 'AssertionError'
+      expected: '8-01-02'
+      actual: '0008-01-02'
+      operator: 'strictEqual'
+      stack: |-
+        TestContext.<anonymous> (/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:70:73)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async TestContext.<anonymous> (/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:59:11)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+      ...
+    # Subtest: 0008-01-02T03:04:05Z UTC-0:30:07 z
+    not ok 6 - 0008-01-02T03:04:05Z UTC-0:30:07 z
+      ---
+      duration_ms: 6.359542
+      type: 'test'
+      location: '/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:1:3002'
+      failureType: 'testCodeFailure'
+      error: |-
+        %-z
+        
+        '+0030' !== '+30'
+        
+      code: 'ERR_ASSERTION'
+      name: 'AssertionError'
+      expected: '+30'
+      actual: '+0030'
+      operator: 'strictEqual'
+      stack: |-
+        TestContext.<anonymous> (/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:70:73)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async TestContext.<anonymous> (/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:59:11)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+      ...
+    # Subtest: 0008-01-02T03:04:05Z UTC+0:00:07 aAbBhcpPrZ
+    not ok 7 - 0008-01-02T03:04:05Z UTC+0:00:07 aAbBhcpPrZ
+      ---
+      duration_ms: 6.932167
+      type: 'test'
+      location: '/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:1:3002'
+      failureType: 'testCodeFailure'
+      error: |-
+        %#c
+        + actual - expected
+        
+        + 'WED JAN  2 03:03:58 0008'
+        - 'Wed Jan  2 03:03:58 0008'
+        
+      code: 'ERR_ASSERTION'
+      name: 'AssertionError'
+      expected: 'Wed Jan  2 03:03:58 0008'
+      actual: 'WED JAN  2 03:03:58 0008'
+      operator: 'strictEqual'
+      stack: |-
+        TestContext.<anonymous> (/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:70:73)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async TestContext.<anonymous> (/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:59:11)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+      ...
+    # Subtest: 0008-01-02T03:04:05Z UTC+0:00:07 FDxRXTYy
+    not ok 8 - 0008-01-02T03:04:05Z UTC+0:00:07 FDxRXTYy
+      ---
+      duration_ms: 6.123875
+      type: 'test'
+      location: '/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:1:3002'
+      failureType: 'testCodeFailure'
+      error: |-
+        %-F
+        + actual - expected
+        
+        + '0008-01-02'
+        - '8-01-02'
+        
+      code: 'ERR_ASSERTION'
+      name: 'AssertionError'
+      expected: '8-01-02'
+      actual: '0008-01-02'
+      operator: 'strictEqual'
+      stack: |-
+        TestContext.<anonymous> (/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:70:73)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async TestContext.<anonymous> (/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:59:11)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+      ...
+    # Subtest: 0008-01-02T03:04:05Z UTC+0:00:07 z
+    not ok 9 - 0008-01-02T03:04:05Z UTC+0:00:07 z
+      ---
+      duration_ms: 5.8895
+      type: 'test'
+      location: '/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:1:3002'
+      failureType: 'testCodeFailure'
+      error: |-
+        %-z
+        
+        '-0000' !== '-0'
+        
+      code: 'ERR_ASSERTION'
+      name: 'AssertionError'
+      expected: '-0'
+      actual: '-0000'
+      operator: 'strictEqual'
+      stack: |-
+        TestContext.<anonymous> (/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:70:73)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async TestContext.<anonymous> (/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:59:11)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+      ...
+    # Subtest: 0008-01-02T03:04:05Z UTC-5:45 aAbBhcpPrZ
+    not ok 10 - 0008-01-02T03:04:05Z UTC-5:45 aAbBhcpPrZ
+      ---
+      duration_ms: 7.338208
+      type: 'test'
+      location: '/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:1:3002'
+      failureType: 'testCodeFailure'
+      error: |-
+        %#c
+        + actual - expected
+        
+        + 'WED JAN  2 08:49:05 0008'
+        - 'Wed Jan  2 08:49:05 0008'
+        
+      code: 'ERR_ASSERTION'
+      name: 'AssertionError'
+      expected: 'Wed Jan  2 08:49:05 0008'
+      actual: 'WED JAN  2 08:49:05 0008'
+      operator: 'strictEqual'
+      stack: |-
+        TestContext.<anonymous> (/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:70:73)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async TestContext.<anonymous> (/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:59:11)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+      ...
+    # Subtest: 0008-01-02T03:04:05Z UTC-5:45 FDxRXTYy
+    not ok 11 - 0008-01-02T03:04:05Z UTC-5:45 FDxRXTYy
+      ---
+      duration_ms: 6.649875
+      type: 'test'
+      location: '/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:1:3002'
+      failureType: 'testCodeFailure'
+      error: |-
+        %-F
+        + actual - expected
+        
+        + '0008-01-02'
+        - '8-01-02'
+        
+      code: 'ERR_ASSERTION'
+      name: 'AssertionError'
+      expected: '8-01-02'
+      actual: '0008-01-02'
+      operator: 'strictEqual'
+      stack: |-
+        TestContext.<anonymous> (/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:70:73)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async TestContext.<anonymous> (/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:59:11)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+      ...
+    # Subtest: 0008-01-02T03:04:05Z UTC-5:45 z
+    not ok 12 - 0008-01-02T03:04:05Z UTC-5:45 z
+      ---
+      duration_ms: 6.407875
+      type: 'test'
+      location: '/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:1:3002'
+      failureType: 'testCodeFailure'
+      error: |-
+        %-z
+        
+        '+0545' !== '+545'
+        
+      code: 'ERR_ASSERTION'
+      name: 'AssertionError'
+      expected: '+545'
+      actual: '+0545'
+      operator: 'strictEqual'
+      stack: |-
+        TestContext.<anonymous> (/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:70:73)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async TestContext.<anonymous> (/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:59:11)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+      ...
+    # Subtest: 0008-01-02T03:04:05Z America/New_York aAbBhcpPrZ
+    not ok 13 - 0008-01-02T03:04:05Z America/New_York aAbBhcpPrZ
+      ---
+      duration_ms: 14.153208
+      type: 'test'
+      location: '/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:1:3002'
+      failureType: 'testCodeFailure'
+      error: |-
+        %#c
+        + actual - expected
+        
+        + 'TUE JAN  1 22:08:03 0008'
+        - 'Tue Jan  1 22:08:03 0008'
+        
+      code: 'ERR_ASSERTION'
+      name: 'AssertionError'
+      expected: 'Tue Jan  1 22:08:03 0008'
+      actual: 'TUE JAN  1 22:08:03 0008'
+      operator: 'strictEqual'
+      stack: |-
+        TestContext.<anonymous> (/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:70:73)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async TestContext.<anonymous> (/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:59:11)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+      ...
+    # Subtest: 0008-01-02T03:04:05Z America/New_York FDxRXTYy
+    not ok 14 - 0008-01-02T03:04:05Z America/New_York FDxRXTYy
+      ---
+      duration_ms: 7.798291
+      type: 'test'
+      location: '/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:1:3002'
+      failureType: 'testCodeFailure'
+      error: |-
+        %-F
+        + actual - expected
+        
+        + '0008-01-01'
+        - '8-01-01'
+        
+      code: 'ERR_ASSERTION'
+      name: 'AssertionError'
+      expected: '8-01-01'
+      actual: '0008-01-01'
+      operator: 'strictEqual'
+      stack: |-
+        TestContext.<anonymous> (/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:70:73)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async TestContext.<anonymous> (/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:59:11)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+      ...
+    # Subtest: 0008-01-02T03:04:05Z America/New_York z
+    not ok 15 - 0008-01-02T03:04:05Z America/New_York z
+      ---
+      duration_ms: 6.38825
+      type: 'test'
+      location: '/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:1:3002'
+      failureType: 'testCodeFailure'
+      error: |-
+        %-z
+        
+        '-0456' !== '-456'
+        
+      code: 'ERR_ASSERTION'
+      name: 'AssertionError'
+      expected: '-456'
+      actual: '-0456'
+      operator: 'strictEqual'
+      stack: |-
+        TestContext.<anonymous> (/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:70:73)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async TestContext.<anonymous> (/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:59:11)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+      ...
+    # Subtest: 0008-01-02T03:04:05Z Europe/Paris aAbBhcpPrZ
+    not ok 16 - 0008-01-02T03:04:05Z Europe/Paris aAbBhcpPrZ
+      ---
+      duration_ms: 7.57675
+      type: 'test'
+      location: '/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:1:3002'
+      failureType: 'testCodeFailure'
+      error: |-
+        %#c
+        + actual - expected
+        
+        + 'WED JAN  2 03:13:26 0008'
+        - 'Wed Jan  2 03:13:26 0008'
+        
+      code: 'ERR_ASSERTION'
+      name: 'AssertionError'
+      expected: 'Wed Jan  2 03:13:26 0008'
+      actual: 'WED JAN  2 03:13:26 0008'
+      operator: 'strictEqual'
+      stack: |-
+        TestContext.<anonymous> (/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:70:73)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async TestContext.<anonymous> (/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:59:11)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+      ...
+    # Subtest: 0008-01-02T03:04:05Z Europe/Paris FDxRXTYy
+    not ok 17 - 0008-01-02T03:04:05Z Europe/Paris FDxRXTYy
+      ---
+      duration_ms: 9.744208
+      type: 'test'
+      location: '/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:1:3002'
+      failureType: 'testCodeFailure'
+      error: |-
+        %-F
+        + actual - expected
+        
+        + '0008-01-02'
+        - '8-01-02'
+        
+      code: 'ERR_ASSERTION'
+      name: 'AssertionError'
+      expected: '8-01-02'
+      actual: '0008-01-02'
+      operator: 'strictEqual'
+      stack: |-
+        TestContext.<anonymous> (/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:70:73)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async TestContext.<anonymous> (/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:59:11)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+      ...
+    # Subtest: 0008-01-02T03:04:05Z Europe/Paris z
+    not ok 18 - 0008-01-02T03:04:05Z Europe/Paris z
+      ---
+      duration_ms: 9.364458
+      type: 'test'
+      location: '/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:1:3002'
+      failureType: 'testCodeFailure'
+      error: |-
+        %-z
+        
+        '+0009' !== '+9'
+        
+      code: 'ERR_ASSERTION'
+      name: 'AssertionError'
+      expected: '+9'
+      actual: '+0009'
+      operator: 'strictEqual'
+      stack: |-
+        TestContext.<anonymous> (/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:70:73)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async TestContext.<anonymous> (/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:59:11)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+      ...
+    # Subtest: 2024-02-29T15:06:07Z UTC aAbBhcpPrZ
+    not ok 19 - 2024-02-29T15:06:07Z UTC aAbBhcpPrZ
+      ---
+      duration_ms: 7.711792
+      type: 'test'
+      location: '/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:1:3002'
+      failureType: 'testCodeFailure'
+      error: |-
+        %#c
+        + actual - expected
+        
+        + 'THU FEB 29 15:06:07 2024'
+        - 'Thu Feb 29 15:06:07 2024'
+        
+      code: 'ERR_ASSERTION'
+      name: 'AssertionError'
+      expected: 'Thu Feb 29 15:06:07 2024'
+      actual: 'THU FEB 29 15:06:07 2024'
+      operator: 'strictEqual'
+      stack: |-
+        TestContext.<anonymous> (/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:70:73)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async TestContext.<anonymous> (/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:59:11)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+      ...
+    # Subtest: 2024-02-29T15:06:07Z UTC FDxRXTYy
+    not ok 20 - 2024-02-29T15:06:07Z UTC FDxRXTYy
+      ---
+      duration_ms: 6.910708
+      type: 'test'
+      location: '/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:1:3002'
+      failureType: 'testCodeFailure'
+      error: |-
+        %12F
+        + actual - expected
+        
+        + '  2024-02-29'
+        - '002024-02-29'
+        
+      code: 'ERR_ASSERTION'
+      name: 'AssertionError'
+      expected: '002024-02-29'
+      actual: '  2024-02-29'
+      operator: 'strictEqual'
+      stack: |-
+        TestContext.<anonymous> (/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:70:73)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async TestContext.<anonymous> (/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:59:11)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+      ...
+    # Subtest: 2024-02-29T15:06:07Z UTC z
+    not ok 21 - 2024-02-29T15:06:07Z UTC z
+      ---
+      duration_ms: 6.5035
+      type: 'test'
+      location: '/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:1:3002'
+      failureType: 'testCodeFailure'
+      error: |-
+        %-z
+        
+        '+0000' !== '+0'
+        
+      code: 'ERR_ASSERTION'
+      name: 'AssertionError'
+      expected: '+0'
+      actual: '+0000'
+      operator: 'strictEqual'
+      stack: |-
+        TestContext.<anonymous> (/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:70:73)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async TestContext.<anonymous> (/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:59:11)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+      ...
+    # Subtest: 2024-02-29T15:06:07Z UTC-0:30:07 aAbBhcpPrZ
+    not ok 22 - 2024-02-29T15:06:07Z UTC-0:30:07 aAbBhcpPrZ
+      ---
+      duration_ms: 7.193958
+      type: 'test'
+      location: '/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:1:3002'
+      failureType: 'testCodeFailure'
+      error: |-
+        %#c
+        + actual - expected
+        
+        + 'THU FEB 29 15:36:14 2024'
+        - 'Thu Feb 29 15:36:14 2024'
+        
+      code: 'ERR_ASSERTION'
+      name: 'AssertionError'
+      expected: 'Thu Feb 29 15:36:14 2024'
+      actual: 'THU FEB 29 15:36:14 2024'
+      operator: 'strictEqual'
+      stack: |-
+        TestContext.<anonymous> (/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:70:73)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async TestContext.<anonymous> (/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:59:11)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+      ...
+    # Subtest: 2024-02-29T15:06:07Z UTC-0:30:07 FDxRXTYy
+    not ok 23 - 2024-02-29T15:06:07Z UTC-0:30:07 FDxRXTYy
+      ---
+      duration_ms: 6.582292
+      type: 'test'
+      location: '/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:1:3002'
+      failureType: 'testCodeFailure'
+      error: |-
+        %12F
+        + actual - expected
+        
+        + '  2024-02-29'
+        - '002024-02-29'
+        
+      code: 'ERR_ASSERTION'
+      name: 'AssertionError'
+      expected: '002024-02-29'
+      actual: '  2024-02-29'
+      operator: 'strictEqual'
+      stack: |-
+        TestContext.<anonymous> (/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:70:73)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async TestContext.<anonymous> (/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:59:11)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+      ...
+    # Subtest: 2024-02-29T15:06:07Z UTC-0:30:07 z
+    not ok 24 - 2024-02-29T15:06:07Z UTC-0:30:07 z
+      ---
+      duration_ms: 6.507375
+      type: 'test'
+      location: '/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:1:3002'
+      failureType: 'testCodeFailure'
+      error: |-
+        %-z
+        
+        '+0030' !== '+30'
+        
+      code: 'ERR_ASSERTION'
+      name: 'AssertionError'
+      expected: '+30'
+      actual: '+0030'
+      operator: 'strictEqual'
+      stack: |-
+        TestContext.<anonymous> (/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:70:73)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async TestContext.<anonymous> (/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:59:11)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+      ...
+    # Subtest: 2024-02-29T15:06:07Z UTC+0:00:07 aAbBhcpPrZ
+    not ok 25 - 2024-02-29T15:06:07Z UTC+0:00:07 aAbBhcpPrZ
+      ---
+      duration_ms: 6.983292
+      type: 'test'
+      location: '/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:1:3002'
+      failureType: 'testCodeFailure'
+      error: |-
+        %#c
+        + actual - expected
+        
+        + 'THU FEB 29 15:06:00 2024'
+        - 'Thu Feb 29 15:06:00 2024'
+        
+      code: 'ERR_ASSERTION'
+      name: 'AssertionError'
+      expected: 'Thu Feb 29 15:06:00 2024'
+      actual: 'THU FEB 29 15:06:00 2024'
+      operator: 'strictEqual'
+      stack: |-
+        TestContext.<anonymous> (/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:70:73)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async TestContext.<anonymous> (/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:59:11)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+      ...
+    # Subtest: 2024-02-29T15:06:07Z UTC+0:00:07 FDxRXTYy
+    not ok 26 - 2024-02-29T15:06:07Z UTC+0:00:07 FDxRXTYy
+      ---
+      duration_ms: 6.493583
+      type: 'test'
+      location: '/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:1:3002'
+      failureType: 'testCodeFailure'
+      error: |-
+        %12F
+        + actual - expected
+        
+        + '  2024-02-29'
+        - '002024-02-29'
+        
+      code: 'ERR_ASSERTION'
+      name: 'AssertionError'
+      expected: '002024-02-29'
+      actual: '  2024-02-29'
+      operator: 'strictEqual'
+      stack: |-
+        TestContext.<anonymous> (/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:70:73)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async TestContext.<anonymous> (/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:59:11)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+      ...
+    # Subtest: 2024-02-29T15:06:07Z UTC+0:00:07 z
+    not ok 27 - 2024-02-29T15:06:07Z UTC+0:00:07 z
+      ---
+      duration_ms: 5.749625
+      type: 'test'
+      location: '/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:1:3002'
+      failureType: 'testCodeFailure'
+      error: |-
+        %-z
+        
+        '-0000' !== '-0'
+        
+      code: 'ERR_ASSERTION'
+      name: 'AssertionError'
+      expected: '-0'
+      actual: '-0000'
+      operator: 'strictEqual'
+      stack: |-
+        TestContext.<anonymous> (/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:70:73)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async TestContext.<anonymous> (/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:59:11)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+      ...
+    # Subtest: 2024-02-29T15:06:07Z UTC-5:45 aAbBhcpPrZ
+    not ok 28 - 2024-02-29T15:06:07Z UTC-5:45 aAbBhcpPrZ
+      ---
+      duration_ms: 6.167834
+      type: 'test'
+      location: '/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:1:3002'
+      failureType: 'testCodeFailure'
+      error: |-
+        %#c
+        + actual - expected
+        
+        + 'THU FEB 29 20:51:07 2024'
+        - 'Thu Feb 29 20:51:07 2024'
+        
+      code: 'ERR_ASSERTION'
+      name: 'AssertionError'
+      expected: 'Thu Feb 29 20:51:07 2024'
+      actual: 'THU FEB 29 20:51:07 2024'
+      operator: 'strictEqual'
+      stack: |-
+        TestContext.<anonymous> (/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:70:73)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async TestContext.<anonymous> (/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:59:11)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+      ...
+    # Subtest: 2024-02-29T15:06:07Z UTC-5:45 FDxRXTYy
+    not ok 29 - 2024-02-29T15:06:07Z UTC-5:45 FDxRXTYy
+      ---
+      duration_ms: 5.6255
+      type: 'test'
+      location: '/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:1:3002'
+      failureType: 'testCodeFailure'
+      error: |-
+        %12F
+        + actual - expected
+        
+        + '  2024-02-29'
+        - '002024-02-29'
+        
+      code: 'ERR_ASSERTION'
+      name: 'AssertionError'
+      expected: '002024-02-29'
+      actual: '  2024-02-29'
+      operator: 'strictEqual'
+      stack: |-
+        TestContext.<anonymous> (/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:70:73)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async TestContext.<anonymous> (/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:59:11)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+      ...
+    # Subtest: 2024-02-29T15:06:07Z UTC-5:45 z
+    not ok 30 - 2024-02-29T15:06:07Z UTC-5:45 z
+      ---
+      duration_ms: 5.52425
+      type: 'test'
+      location: '/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:1:3002'
+      failureType: 'testCodeFailure'
+      error: |-
+        %-z
+        
+        '+0545' !== '+545'
+        
+      code: 'ERR_ASSERTION'
+      name: 'AssertionError'
+      expected: '+545'
+      actual: '+0545'
+      operator: 'strictEqual'
+      stack: |-
+        TestContext.<anonymous> (/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:70:73)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async TestContext.<anonymous> (/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:59:11)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+      ...
+    # Subtest: 2024-02-29T15:06:07Z America/New_York aAbBhcpPrZ
+    not ok 31 - 2024-02-29T15:06:07Z America/New_York aAbBhcpPrZ
+      ---
+      duration_ms: 6.748208
+      type: 'test'
+      location: '/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:1:3002'
+      failureType: 'testCodeFailure'
+      error: |-
+        %#c
+        + actual - expected
+        
+        + 'THU FEB 29 10:06:07 2024'
+        - 'Thu Feb 29 10:06:07 2024'
+        
+      code: 'ERR_ASSERTION'
+      name: 'AssertionError'
+      expected: 'Thu Feb 29 10:06:07 2024'
+      actual: 'THU FEB 29 10:06:07 2024'
+      operator: 'strictEqual'
+      stack: |-
+        TestContext.<anonymous> (/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:70:73)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async TestContext.<anonymous> (/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:59:11)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+      ...
+    # Subtest: 2024-02-29T15:06:07Z America/New_York FDxRXTYy
+    not ok 32 - 2024-02-29T15:06:07Z America/New_York FDxRXTYy
+      ---
+      duration_ms: 5.837125
+      type: 'test'
+      location: '/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:1:3002'
+      failureType: 'testCodeFailure'
+      error: |-
+        %12F
+        + actual - expected
+        
+        + '  2024-02-29'
+        - '002024-02-29'
+        
+      code: 'ERR_ASSERTION'
+      name: 'AssertionError'
+      expected: '002024-02-29'
+      actual: '  2024-02-29'
+      operator: 'strictEqual'
+      stack: |-
+        TestContext.<anonymous> (/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:70:73)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async TestContext.<anonymous> (/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:59:11)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+      ...
+    # Subtest: 2024-02-29T15:06:07Z America/New_York z
+    not ok 33 - 2024-02-29T15:06:07Z America/New_York z
+      ---
+      duration_ms: 5.514792
+      type: 'test'
+      location: '/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:1:3002'
+      failureType: 'testCodeFailure'
+      error: |-
+        %-z
+        
+        '-0500' !== '-500'
+        
+      code: 'ERR_ASSERTION'
+      name: 'AssertionError'
+      expected: '-500'
+      actual: '-0500'
+      operator: 'strictEqual'
+      stack: |-
+        TestContext.<anonymous> (/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:70:73)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async TestContext.<anonymous> (/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:59:11)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+      ...
+    # Subtest: 2024-02-29T15:06:07Z Europe/Paris aAbBhcpPrZ
+    not ok 34 - 2024-02-29T15:06:07Z Europe/Paris aAbBhcpPrZ
+      ---
+      duration_ms: 5.870875
+      type: 'test'
+      location: '/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:1:3002'
+      failureType: 'testCodeFailure'
+      error: |-
+        %#c
+        + actual - expected
+        
+        + 'THU FEB 29 16:06:07 2024'
+        - 'Thu Feb 29 16:06:07 2024'
+        
+      code: 'ERR_ASSERTION'
+      name: 'AssertionError'
+      expected: 'Thu Feb 29 16:06:07 2024'
+      actual: 'THU FEB 29 16:06:07 2024'
+      operator: 'strictEqual'
+      stack: |-
+        TestContext.<anonymous> (/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:70:73)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async TestContext.<anonymous> (/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:59:11)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+      ...
+    # Subtest: 2024-02-29T15:06:07Z Europe/Paris FDxRXTYy
+    not ok 35 - 2024-02-29T15:06:07Z Europe/Paris FDxRXTYy
+      ---
+      duration_ms: 6.075875
+      type: 'test'
+      location: '/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:1:3002'
+      failureType: 'testCodeFailure'
+      error: |-
+        %12F
+        + actual - expected
+        
+        + '  2024-02-29'
+        - '002024-02-29'
+        
+      code: 'ERR_ASSERTION'
+      name: 'AssertionError'
+      expected: '002024-02-29'
+      actual: '  2024-02-29'
+      operator: 'strictEqual'
+      stack: |-
+        TestContext.<anonymous> (/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:70:73)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async TestContext.<anonymous> (/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:59:11)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+      ...
+    # Subtest: 2024-02-29T15:06:07Z Europe/Paris z
+    not ok 36 - 2024-02-29T15:06:07Z Europe/Paris z
+      ---
+      duration_ms: 6.253
+      type: 'test'
+      location: '/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:1:3002'
+      failureType: 'testCodeFailure'
+      error: |-
+        %-z
+        
+        '+0100' !== '+100'
+        
+      code: 'ERR_ASSERTION'
+      name: 'AssertionError'
+      expected: '+100'
+      actual: '+0100'
+      operator: 'strictEqual'
+      stack: |-
+        TestContext.<anonymous> (/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:70:73)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async TestContext.<anonymous> (/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:59:11)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+      ...
+    # Subtest: @-1.000000001 UTC aAbBhcpPrZ
+    not ok 37 - @-1.000000001 UTC aAbBhcpPrZ
+      ---
+      duration_ms: 6.330708
+      type: 'test'
+      location: '/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:1:3002'
+      failureType: 'testCodeFailure'
+      error: |-
+        %#c
+        + actual - expected
+        
+        + 'WED DEC 31 23:59:58 1969'
+        - 'Wed Dec 31 23:59:58 1969'
+        
+      code: 'ERR_ASSERTION'
+      name: 'AssertionError'
+      expected: 'Wed Dec 31 23:59:58 1969'
+      actual: 'WED DEC 31 23:59:58 1969'
+      operator: 'strictEqual'
+      stack: |-
+        TestContext.<anonymous> (/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:70:73)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async TestContext.<anonymous> (/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:59:11)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+      ...
+    # Subtest: @-1.000000001 UTC FDxRXTYy
+    not ok 38 - @-1.000000001 UTC FDxRXTYy
+      ---
+      duration_ms: 6.017666
+      type: 'test'
+      location: '/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:1:3002'
+      failureType: 'testCodeFailure'
+      error: |-
+        %12F
+        + actual - expected
+        
+        + '  1969-12-31'
+        - '001969-12-31'
+        
+      code: 'ERR_ASSERTION'
+      name: 'AssertionError'
+      expected: '001969-12-31'
+      actual: '  1969-12-31'
+      operator: 'strictEqual'
+      stack: |-
+        TestContext.<anonymous> (/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:70:73)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async TestContext.<anonymous> (/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:59:11)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+      ...
+    # Subtest: @-1.000000001 UTC z
+    not ok 39 - @-1.000000001 UTC z
+      ---
+      duration_ms: 5.93325
+      type: 'test'
+      location: '/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:1:3002'
+      failureType: 'testCodeFailure'
+      error: |-
+        %-z
+        
+        '+0000' !== '+0'
+        
+      code: 'ERR_ASSERTION'
+      name: 'AssertionError'
+      expected: '+0'
+      actual: '+0000'
+      operator: 'strictEqual'
+      stack: |-
+        TestContext.<anonymous> (/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:70:73)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async TestContext.<anonymous> (/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:59:11)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+      ...
+    # Subtest: @-1.000000001 UTC-0:30:07 aAbBhcpPrZ
+    not ok 40 - @-1.000000001 UTC-0:30:07 aAbBhcpPrZ
+      ---
+      duration_ms: 6.40475
+      type: 'test'
+      location: '/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:1:3002'
+      failureType: 'testCodeFailure'
+      error: |-
+        %#c
+        + actual - expected
+        
+        + 'THU JAN  1 00:30:05 1970'
+        - 'Thu Jan  1 00:30:05 1970'
+        
+      code: 'ERR_ASSERTION'
+      name: 'AssertionError'
+      expected: 'Thu Jan  1 00:30:05 1970'
+      actual: 'THU JAN  1 00:30:05 1970'
+      operator: 'strictEqual'
+      stack: |-
+        TestContext.<anonymous> (/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:70:73)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async TestContext.<anonymous> (/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:59:11)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+      ...
+    # Subtest: @-1.000000001 UTC-0:30:07 FDxRXTYy
+    not ok 41 - @-1.000000001 UTC-0:30:07 FDxRXTYy
+      ---
+      duration_ms: 5.90275
+      type: 'test'
+      location: '/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:1:3002'
+      failureType: 'testCodeFailure'
+      error: |-
+        %12F
+        + actual - expected
+        
+        + '  1970-01-01'
+        - '001970-01-01'
+        
+      code: 'ERR_ASSERTION'
+      name: 'AssertionError'
+      expected: '001970-01-01'
+      actual: '  1970-01-01'
+      operator: 'strictEqual'
+      stack: |-
+        TestContext.<anonymous> (/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:70:73)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async TestContext.<anonymous> (/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:59:11)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+      ...
+    # Subtest: @-1.000000001 UTC-0:30:07 z
+    not ok 42 - @-1.000000001 UTC-0:30:07 z
+      ---
+      duration_ms: 5.411583
+      type: 'test'
+      location: '/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:1:3002'
+      failureType: 'testCodeFailure'
+      error: |-
+        %-z
+        
+        '+0030' !== '+30'
+        
+      code: 'ERR_ASSERTION'
+      name: 'AssertionError'
+      expected: '+30'
+      actual: '+0030'
+      operator: 'strictEqual'
+      stack: |-
+        TestContext.<anonymous> (/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:70:73)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async TestContext.<anonymous> (/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:59:11)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+      ...
+    # Subtest: @-1.000000001 UTC+0:00:07 aAbBhcpPrZ
+    not ok 43 - @-1.000000001 UTC+0:00:07 aAbBhcpPrZ
+      ---
+      duration_ms: 6.014958
+      type: 'test'
+      location: '/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:1:3002'
+      failureType: 'testCodeFailure'
+      error: |-
+        %#c
+        + actual - expected
+        
+        + 'WED DEC 31 23:59:51 1969'
+        - 'Wed Dec 31 23:59:51 1969'
+        
+      code: 'ERR_ASSERTION'
+      name: 'AssertionError'
+      expected: 'Wed Dec 31 23:59:51 1969'
+      actual: 'WED DEC 31 23:59:51 1969'
+      operator: 'strictEqual'
+      stack: |-
+        TestContext.<anonymous> (/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:70:73)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async TestContext.<anonymous> (/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:59:11)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+      ...
+    # Subtest: @-1.000000001 UTC+0:00:07 FDxRXTYy
+    not ok 44 - @-1.000000001 UTC+0:00:07 FDxRXTYy
+      ---
+      duration_ms: 5.603
+      type: 'test'
+      location: '/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:1:3002'
+      failureType: 'testCodeFailure'
+      error: |-
+        %12F
+        + actual - expected
+        
+        + '  1969-12-31'
+        - '001969-12-31'
+        
+      code: 'ERR_ASSERTION'
+      name: 'AssertionError'
+      expected: '001969-12-31'
+      actual: '  1969-12-31'
+      operator: 'strictEqual'
+      stack: |-
+        TestContext.<anonymous> (/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:70:73)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async TestContext.<anonymous> (/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:59:11)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+      ...
+    # Subtest: @-1.000000001 UTC+0:00:07 z
+    not ok 45 - @-1.000000001 UTC+0:00:07 z
+      ---
+      duration_ms: 5.531042
+      type: 'test'
+      location: '/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:1:3002'
+      failureType: 'testCodeFailure'
+      error: |-
+        %-z
+        
+        '-0000' !== '-0'
+        
+      code: 'ERR_ASSERTION'
+      name: 'AssertionError'
+      expected: '-0'
+      actual: '-0000'
+      operator: 'strictEqual'
+      stack: |-
+        TestContext.<anonymous> (/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:70:73)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async TestContext.<anonymous> (/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:59:11)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+      ...
+    # Subtest: @-1.000000001 UTC-5:45 aAbBhcpPrZ
+    not ok 46 - @-1.000000001 UTC-5:45 aAbBhcpPrZ
+      ---
+      duration_ms: 5.798791
+      type: 'test'
+      location: '/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:1:3002'
+      failureType: 'testCodeFailure'
+      error: |-
+        %#c
+        + actual - expected
+        
+        + 'THU JAN  1 05:44:58 1970'
+        - 'Thu Jan  1 05:44:58 1970'
+        
+      code: 'ERR_ASSERTION'
+      name: 'AssertionError'
+      expected: 'Thu Jan  1 05:44:58 1970'
+      actual: 'THU JAN  1 05:44:58 1970'
+      operator: 'strictEqual'
+      stack: |-
+        TestContext.<anonymous> (/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:70:73)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async TestContext.<anonymous> (/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:59:11)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+      ...
+    # Subtest: @-1.000000001 UTC-5:45 FDxRXTYy
+    not ok 47 - @-1.000000001 UTC-5:45 FDxRXTYy
+      ---
+      duration_ms: 5.820833
+      type: 'test'
+      location: '/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:1:3002'
+      failureType: 'testCodeFailure'
+      error: |-
+        %12F
+        + actual - expected
+        
+        + '  1970-01-01'
+        - '001970-01-01'
+        
+      code: 'ERR_ASSERTION'
+      name: 'AssertionError'
+      expected: '001970-01-01'
+      actual: '  1970-01-01'
+      operator: 'strictEqual'
+      stack: |-
+        TestContext.<anonymous> (/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:70:73)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async TestContext.<anonymous> (/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:59:11)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+      ...
+    # Subtest: @-1.000000001 UTC-5:45 z
+    not ok 48 - @-1.000000001 UTC-5:45 z
+      ---
+      duration_ms: 5.954334
+      type: 'test'
+      location: '/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:1:3002'
+      failureType: 'testCodeFailure'
+      error: |-
+        %-z
+        
+        '+0545' !== '+545'
+        
+      code: 'ERR_ASSERTION'
+      name: 'AssertionError'
+      expected: '+545'
+      actual: '+0545'
+      operator: 'strictEqual'
+      stack: |-
+        TestContext.<anonymous> (/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:70:73)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async TestContext.<anonymous> (/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:59:11)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+      ...
+    # Subtest: @-1.000000001 America/New_York aAbBhcpPrZ
+    not ok 49 - @-1.000000001 America/New_York aAbBhcpPrZ
+      ---
+      duration_ms: 6.429625
+      type: 'test'
+      location: '/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:1:3002'
+      failureType: 'testCodeFailure'
+      error: |-
+        %#c
+        + actual - expected
+        
+        + 'WED DEC 31 18:59:58 1969'
+        - 'Wed Dec 31 18:59:58 1969'
+        
+      code: 'ERR_ASSERTION'
+      name: 'AssertionError'
+      expected: 'Wed Dec 31 18:59:58 1969'
+      actual: 'WED DEC 31 18:59:58 1969'
+      operator: 'strictEqual'
+      stack: |-
+        TestContext.<anonymous> (/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:70:73)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async TestContext.<anonymous> (/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:59:11)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+      ...
+    # Subtest: @-1.000000001 America/New_York FDxRXTYy
+    not ok 50 - @-1.000000001 America/New_York FDxRXTYy
+      ---
+      duration_ms: 6.290958
+      type: 'test'
+      location: '/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:1:3002'
+      failureType: 'testCodeFailure'
+      error: |-
+        %12F
+        + actual - expected
+        
+        + '  1969-12-31'
+        - '001969-12-31'
+        
+      code: 'ERR_ASSERTION'
+      name: 'AssertionError'
+      expected: '001969-12-31'
+      actual: '  1969-12-31'
+      operator: 'strictEqual'
+      stack: |-
+        TestContext.<anonymous> (/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:70:73)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async TestContext.<anonymous> (/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:59:11)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+      ...
+    # Subtest: @-1.000000001 America/New_York z
+    not ok 51 - @-1.000000001 America/New_York z
+      ---
+      duration_ms: 5.809125
+      type: 'test'
+      location: '/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:1:3002'
+      failureType: 'testCodeFailure'
+      error: |-
+        %-z
+        
+        '-0500' !== '-500'
+        
+      code: 'ERR_ASSERTION'
+      name: 'AssertionError'
+      expected: '-500'
+      actual: '-0500'
+      operator: 'strictEqual'
+      stack: |-
+        TestContext.<anonymous> (/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:70:73)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async TestContext.<anonymous> (/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:59:11)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+      ...
+    # Subtest: @-1.000000001 Europe/Paris aAbBhcpPrZ
+    not ok 52 - @-1.000000001 Europe/Paris aAbBhcpPrZ
+      ---
+      duration_ms: 6.262417
+      type: 'test'
+      location: '/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:1:3002'
+      failureType: 'testCodeFailure'
+      error: |-
+        %#c
+        + actual - expected
+        
+        + 'THU JAN  1 00:59:58 1970'
+        - 'Thu Jan  1 00:59:58 1970'
+        
+      code: 'ERR_ASSERTION'
+      name: 'AssertionError'
+      expected: 'Thu Jan  1 00:59:58 1970'
+      actual: 'THU JAN  1 00:59:58 1970'
+      operator: 'strictEqual'
+      stack: |-
+        TestContext.<anonymous> (/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:70:73)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async TestContext.<anonymous> (/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:59:11)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+      ...
+    # Subtest: @-1.000000001 Europe/Paris FDxRXTYy
+    not ok 53 - @-1.000000001 Europe/Paris FDxRXTYy
+      ---
+      duration_ms: 6.059792
+      type: 'test'
+      location: '/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:1:3002'
+      failureType: 'testCodeFailure'
+      error: |-
+        %12F
+        + actual - expected
+        
+        + '  1970-01-01'
+        - '001970-01-01'
+        
+      code: 'ERR_ASSERTION'
+      name: 'AssertionError'
+      expected: '001970-01-01'
+      actual: '  1970-01-01'
+      operator: 'strictEqual'
+      stack: |-
+        TestContext.<anonymous> (/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:70:73)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async TestContext.<anonymous> (/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:59:11)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+      ...
+    # Subtest: @-1.000000001 Europe/Paris z
+    not ok 54 - @-1.000000001 Europe/Paris z
+      ---
+      duration_ms: 5.941583
+      type: 'test'
+      location: '/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:1:3002'
+      failureType: 'testCodeFailure'
+      error: |-
+        %-z
+        
+        '+0100' !== '+100'
+        
+      code: 'ERR_ASSERTION'
+      name: 'AssertionError'
+      expected: '+100'
+      actual: '+0100'
+      operator: 'strictEqual'
+      stack: |-
+        TestContext.<anonymous> (/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:70:73)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async TestContext.<anonymous> (/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:59:11)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+      ...
+    1..54
+not ok 14 - fresh GNU9.7 C-locale flag/width/compound/timezone matrix
+  ---
+  duration_ms: 381.45575
+  type: 'test'
+  location: '/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/format-regressions.test.ts:1:2358'
+  failureType: 'subtestsFailed'
+  error: '54 subtests failed'
+  code: 'ERR_TEST_FAILURE'
+  ...
+# Subtest: sleep exact decimal carry ["0.0009999999","0.0000000001"]
+not ok 15 - sleep exact decimal carry ["0.0009999999","0.0000000001"]
+  ---
+  duration_ms: 1.924834
+  type: 'test'
+  location: '/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/sleep-regressions.test.ts:1:728'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+      [
+    +   2
+    -   1
+      ]
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    0: 1
+  actual:
+    0: 2
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/sleep-regressions.test.ts:21:14)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.start (node:internal/test_runner/test:944:17)
+    startSubtestAfterBootstrap (node:internal/test_runner/harness:296:17)
+  ...
+# Subtest: sleep exact decimal carry ["0.0004999999","0.0005000001"]
+not ok 16 - sleep exact decimal carry ["0.0004999999","0.0005000001"]
+  ---
+  duration_ms: 0.241083
+  type: 'test'
+  location: '/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/sleep-regressions.test.ts:1:728'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+      [
+    +   2
+    -   1
+      ]
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    0: 1
+  actual:
+    0: 2
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/sleep-regressions.test.ts:21:14)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# Subtest: sleep exact decimal carry ["0.0009999999","0.0000000000999999999999"]
+not ok 17 - sleep exact decimal carry ["0.0009999999","0.0000000000999999999999"]
+  ---
+  duration_ms: 0.152125
+  type: 'test'
+  location: '/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/sleep-regressions.test.ts:1:728'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+      [
+    +   2
+    -   1
+      ]
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    0: 1
+  actual:
+    0: 2
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/sleep-regressions.test.ts:21:14)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: sleep exact decimal carry ["0.0009999999","0.0000000001000000000001"]
+ok 18 - sleep exact decimal carry ["0.0009999999","0.0000000001000000000001"]
+  ---
+  duration_ms: 0.201042
+  type: 'test'
+  ...
+# Subtest: sleep exact decimal carry ["0.001","1e-1000000000000000000000"]
+ok 19 - sleep exact decimal carry ["0.001","1e-1000000000000000000000"]
+  ---
+  duration_ms: 0.154375
+  type: 'test'
+  ...
+# Subtest: sleep exact decimal carry ["1e-1000000000000000000000"]
+ok 20 - sleep exact decimal carry ["1e-1000000000000000000000"]
+  ---
+  duration_ms: 0.244875
+  type: 'test'
+  ...
+# Subtest: sleep exact decimal carry [".000016666666666666m",".00000000000000000004"]
+not ok 21 - sleep exact decimal carry [".000016666666666666m",".00000000000000000004"]
+  ---
+  duration_ms: 0.137375
+  type: 'test'
+  location: '/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/sleep-regressions.test.ts:1:728'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+      [
+    +   2
+    -   1
+      ]
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    0: 1
+  actual:
+    0: 2
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/sleep-regressions.test.ts:21:14)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: sleep exact decimal carry [".0000000001d",".0000000001h",".0000000001m",".000990994"]
+ok 22 - sleep exact decimal carry [".0000000001d",".0000000001h",".0000000001m",".000990994"]
+  ---
+  duration_ms: 0.102417
+  type: 'test'
+  ...
+# Subtest: sleep exact decimal carry ["0.000000000000000000000000000001","0.000999999999999999999999999999"]
+not ok 23 - sleep exact decimal carry ["0.000000000000000000000000000001","0.000999999999999999999999999999"]
+  ---
+  duration_ms: 0.292208
+  type: 'test'
+  location: '/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/sleep-regressions.test.ts:1:728'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+      [
+    +   2
+    -   1
+      ]
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    0: 1
+  actual:
+    0: 2
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/sleep-regressions.test.ts:21:14)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: sleep exact decimal carry [".0005",".0005","1e-999999999999999999999"]
+ok 24 - sleep exact decimal carry [".0005",".0005","1e-999999999999999999999"]
+  ---
+  duration_ms: 0.258625
+  type: 'test'
+  ...
+# Subtest: sleep exact decimal carry ["0e9999999999999999999999","0e-9999999999999999999999"]
+ok 25 - sleep exact decimal carry ["0e9999999999999999999999","0e-9999999999999999999999"]
+  ---
+  duration_ms: 0.05225
+  type: 'test'
+  ...
+# Subtest: sleep bounded exact rational properties across decimal positions and units
+ok 26 - sleep bounded exact rational properties across decimal positions and units
+  ---
+  duration_ms: 6.103583
+  type: 'test'
+  ...
+# Subtest: sleep sparse decimal positions bound huge exponents without allocating exponent-sized buffers
+ok 27 - sleep sparse decimal positions bound huge exponents without allocating exponent-sized buffers
+  ---
+  duration_ms: 0.557416
+  type: 'test'
+  ...
+# Subtest: sleep exact range boundary preserves chunking and rejects excess before scheduling
+not ok 28 - sleep exact range boundary preserves chunking and rejects excess before scheduling
+  ---
+  duration_ms: 0.413583
+  type: 'test'
+  location: '/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/sleep-regressions.test.ts:1:2643'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+    + []
+    - [
+    -   2147483647
+    - ]
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    0: 2147483647
+  actual:
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (/private/tmp/safe-bash-time-env-independent-cB2beD/tests/commands/time-env/sleep-regressions.test.ts:70:14)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: sleep many fractional carries reach the boundary without per-operand rounding
+ok 29 - sleep many fractional carries reach the boundary without per-operand rounding
+  ---
+  duration_ms: 1.806167
+  type: 'test'
+  ...
+1..29
+# tests 83
+# suites 0
+# pass 11
+# fail 72
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 632.88475

@@ -1,0 +1,1848 @@
+TAP version 13
+# Subtest: date default current time falls within the surrounding wall-clock samples
+ok 1 - date default current time falls within the surrounding wall-clock samples
+  ---
+  duration_ms: 1.31975
+  type: 'test'
+  ...
+# Subtest: date vector: epoch
+ok 2 - date vector: epoch
+  ---
+  duration_ms: 0.319334
+  type: 'test'
+  ...
+# Subtest: date vector: negative nanosecond
+ok 3 - date vector: negative nanosecond
+  ---
+  duration_ms: 0.303833
+  type: 'test'
+  ...
+# Subtest: date vector: negative fractional epoch
+ok 4 - date vector: negative fractional epoch
+  ---
+  duration_ms: 0.13575
+  type: 'test'
+  ...
+# Subtest: date vector: positive signed epoch
+ok 5 - date vector: positive signed epoch
+  ---
+  duration_ms: 0.439625
+  type: 'test'
+  ...
+# Subtest: date vector: comma epoch
+ok 6 - date vector: comma epoch
+  ---
+  duration_ms: 0.066916
+  type: 'test'
+  ...
+# Subtest: date vector: leap day ISO nanoseconds
+ok 7 - date vector: leap day ISO nanoseconds
+  ---
+  duration_ms: 0.222166
+  type: 'test'
+  ...
+# Subtest: date vector: date only midnight
+ok 8 - date vector: date only midnight
+  ---
+  duration_ms: 0.172667
+  type: 'test'
+  ...
+# Subtest: date vector: century nonleap ordinal
+ok 9 - date vector: century nonleap ordinal
+  ---
+  duration_ms: 0.221709
+  type: 'test'
+  ...
+# Subtest: date vector: early year avoids Date.UTC 1900 adjustment
+ok 10 - date vector: early year avoids Date.UTC 1900 adjustment
+  ---
+  duration_ms: 0.249291
+  type: 'test'
+  ...
+# Subtest: date vector: year zero leap
+ok 11 - date vector: year zero leap
+  ---
+  duration_ms: 0.070167
+  type: 'test'
+  ...
+# Subtest: date vector: numeric offset
+ok 12 - date vector: numeric offset
+  ---
+  duration_ms: 0.075125
+  type: 'test'
+  ...
+# Subtest: date vector: negative offset
+ok 13 - date vector: negative offset
+  ---
+  duration_ms: 0.054542
+  type: 'test'
+  ...
+# Subtest: date vector: RFC email input
+ok 14 - date vector: RFC email input
+  ---
+  duration_ms: 0.119708
+  type: 'test'
+  ...
+# Subtest: date vector: HTTP RFC GMT
+ok 15 - date vector: HTTP RFC GMT
+  ---
+  duration_ms: 0.084042
+  type: 'test'
+  ...
+# Subtest: date vector: ISO date
+ok 16 - date vector: ISO date
+  ---
+  duration_ms: 0.044083
+  type: 'test'
+  ...
+# Subtest: date vector: ISO hours
+ok 17 - date vector: ISO hours
+  ---
+  duration_ms: 0.070333
+  type: 'test'
+  ...
+# Subtest: date vector: ISO minutes
+ok 18 - date vector: ISO minutes
+  ---
+  duration_ms: 0.056333
+  type: 'test'
+  ...
+# Subtest: date vector: ISO seconds
+ok 19 - date vector: ISO seconds
+  ---
+  duration_ms: 0.035584
+  type: 'test'
+  ...
+# Subtest: date vector: ISO nanoseconds
+ok 20 - date vector: ISO nanoseconds
+  ---
+  duration_ms: 0.035167
+  type: 'test'
+  ...
+# Subtest: date vector: RFC3339 date
+ok 21 - date vector: RFC3339 date
+  ---
+  duration_ms: 0.033
+  type: 'test'
+  ...
+# Subtest: date vector: RFC3339 seconds
+ok 22 - date vector: RFC3339 seconds
+  ---
+  duration_ms: 0.038583
+  type: 'test'
+  ...
+# Subtest: date vector: RFC3339 nanoseconds
+ok 23 - date vector: RFC3339 nanoseconds
+  ---
+  duration_ms: 0.036375
+  type: 'test'
+  ...
+# Subtest: date vector: format before options
+ok 24 - date vector: format before options
+  ---
+  duration_ms: 0.033625
+  type: 'test'
+  ...
+# Subtest: date vector: empty format
+ok 25 - date vector: empty format
+  ---
+  duration_ms: 0.042083
+  type: 'test'
+  ...
+# Subtest: date vector: literal Unicode
+ok 26 - date vector: literal Unicode
+  ---
+  duration_ms: 0.048041
+  type: 'test'
+  ...
+# Subtest: date vector: C names and composite formats
+ok 27 - date vector: C names and composite formats
+  ---
+  duration_ms: 0.050292
+  type: 'test'
+  ...
+# Subtest: date vector: padding casing and C modifiers
+ok 28 - date vector: padding casing and C modifiers
+  ---
+  duration_ms: 0.052583
+  type: 'test'
+  ...
+# Subtest: date vector: precision truncates not rounds
+ok 29 - date vector: precision truncates not rounds
+  ---
+  duration_ms: 0.039417
+  type: 'test'
+  ...
+# Subtest: date vector: ISO previous year week
+ok 30 - date vector: ISO previous year week
+  ---
+  duration_ms: 0.078458
+  type: 'test'
+  ...
+# Subtest: date vector: ISO next year week
+ok 31 - date vector: ISO next year week
+  ---
+  duration_ms: 0.042583
+  type: 'test'
+  ...
+# Subtest: date vector: POSIX reversed offset
+ok 32 - date vector: POSIX reversed offset
+  ---
+  duration_ms: 0.588667
+  type: 'test'
+  ...
+# Subtest: date vector: POSIX seconds offset
+ok 33 - date vector: POSIX seconds offset
+  ---
+  duration_ms: 0.125459
+  type: 'test'
+  ...
+# Subtest: date vector: IANA New York winter
+ok 34 - date vector: IANA New York winter
+  ---
+  duration_ms: 8.3995
+  type: 'test'
+  ...
+# Subtest: date vector: IANA New York summer
+ok 35 - date vector: IANA New York summer
+  ---
+  duration_ms: 0.173417
+  type: 'test'
+  ...
+# Subtest: date vector: IANA wall time
+ok 36 - date vector: IANA wall time
+  ---
+  duration_ms: 0.141667
+  type: 'test'
+  ...
+# Subtest: date vector: IANA half hour
+ok 37 - date vector: IANA half hour
+  ---
+  duration_ms: 0.107083
+  type: 'test'
+  ...
+# Subtest: date vector: IANA quarter hour
+ok 38 - date vector: IANA quarter hour
+  ---
+  duration_ms: 0.088542
+  type: 'test'
+  ...
+# Subtest: date vector: UTC overrides invalid virtual TZ
+ok 39 - date vector: UTC overrides invalid virtual TZ
+  ---
+  duration_ms: 0.037166
+  type: 'test'
+  ...
+# Subtest: date vector: numeric default widths
+ok 40 - date vector: numeric default widths
+  ---
+  duration_ms: 0.034917
+  type: 'test'
+  ...
+# Subtest: date vector: timezone signed zero padding
+ok 41 - date vector: timezone signed zero padding
+  ---
+  duration_ms: 0.036666
+  type: 'test'
+  ...
+# Subtest: date vector: C change-case flags
+ok 42 - date vector: C change-case flags
+  ---
+  duration_ms: 0.036125
+  type: 'test'
+  ...
+# Subtest: date vector: Etc GMT label
+ok 43 - date vector: Etc GMT label
+  ---
+  duration_ms: 0.043625
+  type: 'test'
+  ...
+# Subtest: date vector: Z zone label
+ok 44 - date vector: Z zone label
+  ---
+  duration_ms: 0.034625
+  type: 'test'
+  ...
+# Subtest: date vector: IANA lower calendar endpoint
+ok 45 - date vector: IANA lower calendar endpoint
+  ---
+  duration_ms: 0.12
+  type: 'test'
+  ...
+# Subtest: date vector: IANA upper calendar endpoint
+ok 46 - date vector: IANA upper calendar endpoint
+  ---
+  duration_ms: 0.239292
+  type: 'test'
+  ...
+# Subtest: date injected clock is read once and only provides millisecond precision
+ok 47 - date injected clock is read once and only provides millisecond precision
+  ---
+  duration_ms: 0.141459
+  type: 'test'
+  ...
+# Subtest: date explicit relative grammar: now
+ok 48 - date explicit relative grammar: now
+  ---
+  duration_ms: 0.1085
+  type: 'test'
+  ...
+# Subtest: date explicit relative grammar: today
+ok 49 - date explicit relative grammar: today
+  ---
+  duration_ms: 0.132208
+  type: 'test'
+  ...
+# Subtest: date explicit relative grammar: yesterday
+ok 50 - date explicit relative grammar: yesterday
+  ---
+  duration_ms: 0.127708
+  type: 'test'
+  ...
+# Subtest: date explicit relative grammar: tomorrow
+ok 51 - date explicit relative grammar: tomorrow
+  ---
+  duration_ms: 0.115125
+  type: 'test'
+  ...
+# Subtest: date explicit relative grammar: now -1 hour
+ok 52 - date explicit relative grammar: now -1 hour
+  ---
+  duration_ms: 0.102958
+  type: 'test'
+  ...
+# Subtest: date explicit relative grammar: 2 minutes ago
+ok 53 - date explicit relative grammar: 2 minutes ago
+  ---
+  duration_ms: 0.087584
+  type: 'test'
+  ...
+# Subtest: date explicit relative grammar: +3 seconds
+ok 54 - date explicit relative grammar: +3 seconds
+  ---
+  duration_ms: 0.075709
+  type: 'test'
+  ...
+# Subtest: date DST gaps and ambiguous folds require an explicit offset rather than a guessed occurrence
+ok 55 - date DST gaps and ambiguous folds require an explicit offset rather than a guessed occurrence
+  ---
+  duration_ms: 0.391667
+  type: 'test'
+  ...
+# Subtest: date uses only an own virtual TZ and ignores locale environment under its explicit C profile
+ok 56 - date uses only an own virtual TZ and ignores locale environment under its explicit C profile
+  ---
+  duration_ms: 0.224542
+  type: 'test'
+  ...
+# Subtest: date reference reads VFS mtime through a symlink, preserves bytes and never uses the injected clock
+ok 57 - date reference reads VFS mtime through a symlink, preserves bytes and never uses the injected clock
+  ---
+  duration_ms: 0.748625
+  type: 'test'
+  ...
+# Subtest: date rejects unsupported/invalid input without stdout: -d2023-02-29
+ok 58 - date rejects unsupported/invalid input without stdout: -d2023-02-29
+  ---
+  duration_ms: 0.059334
+  type: 'test'
+  ...
+# Subtest: date rejects unsupported/invalid input without stdout: -d1900-02-29
+ok 59 - date rejects unsupported/invalid input without stdout: -d1900-02-29
+  ---
+  duration_ms: 0.03975
+  type: 'test'
+  ...
+# Subtest: date rejects unsupported/invalid input without stdout: -d2024-13-01
+ok 60 - date rejects unsupported/invalid input without stdout: -d2024-13-01
+  ---
+  duration_ms: 0.037
+  type: 'test'
+  ...
+# Subtest: date rejects unsupported/invalid input without stdout: -d2024-04-31
+ok 61 - date rejects unsupported/invalid input without stdout: -d2024-04-31
+  ---
+  duration_ms: 0.03725
+  type: 'test'
+  ...
+# Subtest: date rejects unsupported/invalid input without stdout: -d2024-01-00
+ok 62 - date rejects unsupported/invalid input without stdout: -d2024-01-00
+  ---
+  duration_ms: 0.035916
+  type: 'test'
+  ...
+# Subtest: date rejects unsupported/invalid input without stdout: -d2024-02-29T24:00:00Z
+ok 63 - date rejects unsupported/invalid input without stdout: -d2024-02-29T24:00:00Z
+  ---
+  duration_ms: 0.03975
+  type: 'test'
+  ...
+# Subtest: date rejects unsupported/invalid input without stdout: -d2024-02-29T23:59:60Z
+ok 64 - date rejects unsupported/invalid input without stdout: -d2024-02-29T23:59:60Z
+  ---
+  duration_ms: 0.037667
+  type: 'test'
+  ...
+# Subtest: date rejects unsupported/invalid input without stdout: -d2024-01-01T00:00:00+25:00
+ok 65 - date rejects unsupported/invalid input without stdout: -d2024-01-01T00:00:00+25:00
+  ---
+  duration_ms: 0.035125
+  type: 'test'
+  ...
+# Subtest: date rejects unsupported/invalid input without stdout: -d@0.1234567890
+ok 66 - date rejects unsupported/invalid input without stdout: -d@0.1234567890
+  ---
+  duration_ms: 0.037291
+  type: 'test'
+  ...
+# Subtest: date rejects unsupported/invalid input without stdout: -d@NaN
+ok 67 - date rejects unsupported/invalid input without stdout: -d@NaN
+  ---
+  duration_ms: 0.092291
+  type: 'test'
+  ...
+# Subtest: date rejects unsupported/invalid input without stdout: -d@1e3
+ok 68 - date rejects unsupported/invalid input without stdout: -d@1e3
+  ---
+  duration_ms: 0.03875
+  type: 'test'
+  ...
+# Subtest: date rejects unsupported/invalid input without stdout: -d@99999999999999999
+ok 69 - date rejects unsupported/invalid input without stdout: -d@99999999999999999
+  ---
+  duration_ms: 0.03475
+  type: 'test'
+  ...
+# Subtest: date rejects unsupported/invalid input without stdout: -d
+ok 70 - date rejects unsupported/invalid input without stdout: -d
+  ---
+  duration_ms: 0.036375
+  type: 'test'
+  ...
+# Subtest: date rejects unsupported/invalid input without stdout: --date=
+ok 71 - date rejects unsupported/invalid input without stdout: --date=
+  ---
+  duration_ms: 0.036
+  type: 'test'
+  ...
+# Subtest: date rejects unsupported/invalid input without stdout: --date next Friday
+ok 72 - date rejects unsupported/invalid input without stdout: --date next Friday
+  ---
+  duration_ms: 0.036166
+  type: 'test'
+  ...
+# Subtest: date rejects unsupported/invalid input without stdout: --date 01/02/03
+ok 73 - date rejects unsupported/invalid input without stdout: --date 01/02/03
+  ---
+  duration_ms: 0.035
+  type: 'test'
+  ...
+# Subtest: date rejects unsupported/invalid input without stdout: --date Fri, 29 Feb 2024 12:34:56 GMT
+ok 74 - date rejects unsupported/invalid input without stdout: --date Fri, 29 Feb 2024 12:34:56 GMT
+  ---
+  duration_ms: 0.0415
+  type: 'test'
+  ...
+# Subtest: date rejects unsupported/invalid input without stdout: -s 2024-01-01
+ok 75 - date rejects unsupported/invalid input without stdout: -s 2024-01-01
+  ---
+  duration_ms: 0.034208
+  type: 'test'
+  ...
+# Subtest: date rejects unsupported/invalid input without stdout: --set=2024-01-01
+ok 76 - date rejects unsupported/invalid input without stdout: --set=2024-01-01
+  ---
+  duration_ms: 0.032291
+  type: 'test'
+  ...
+# Subtest: date rejects unsupported/invalid input without stdout: 082712002026
+ok 77 - date rejects unsupported/invalid input without stdout: 082712002026
+  ---
+  duration_ms: 0.032167
+  type: 'test'
+  ...
+# Subtest: date rejects unsupported/invalid input without stdout: --file=/etc/passwd
+ok 78 - date rejects unsupported/invalid input without stdout: --file=/etc/passwd
+  ---
+  duration_ms: 0.037667
+  type: 'test'
+  ...
+# Subtest: date rejects unsupported/invalid input without stdout: --debug
+ok 79 - date rejects unsupported/invalid input without stdout: --debug
+  ---
+  duration_ms: 0.031125
+  type: 'test'
+  ...
+# Subtest: date rejects unsupported/invalid input without stdout: --utc=yes
+ok 80 - date rejects unsupported/invalid input without stdout: --utc=yes
+  ---
+  duration_ms: 0.031167
+  type: 'test'
+  ...
+# Subtest: date rejects unsupported/invalid input without stdout: -r file -d@0
+ok 81 - date rejects unsupported/invalid input without stdout: -r file -d@0
+  ---
+  duration_ms: 0.032958
+  type: 'test'
+  ...
+# Subtest: date rejects unsupported/invalid input without stdout: -I +%s
+ok 82 - date rejects unsupported/invalid input without stdout: -I +%s
+  ---
+  duration_ms: 0.033333
+  type: 'test'
+  ...
+# Subtest: date rejects unsupported/invalid input without stdout: -Iinvalid
+ok 83 - date rejects unsupported/invalid input without stdout: -Iinvalid
+  ---
+  duration_ms: 0.032666
+  type: 'test'
+  ...
+# Subtest: date rejects unsupported/invalid input without stdout: --rfc-3339=hours
+ok 84 - date rejects unsupported/invalid input without stdout: --rfc-3339=hours
+  ---
+  duration_ms: 0.035291
+  type: 'test'
+  ...
+# Subtest: date rejects unsupported/invalid input without stdout: -d@0 +%Q
+ok 85 - date rejects unsupported/invalid input without stdout: -d@0 +%Q
+  ---
+  duration_ms: 0.048041
+  type: 'test'
+  ...
+# Subtest: date rejects unsupported/invalid input without stdout: -d@0 +%
+ok 86 - date rejects unsupported/invalid input without stdout: -d@0 +%
+  ---
+  duration_ms: 0.044959
+  type: 'test'
+  ...
+# Subtest: date rejects unsupported/invalid input without stdout: -d@0 +%::::z
+ok 87 - date rejects unsupported/invalid input without stdout: -d@0 +%::::z
+  ---
+  duration_ms: 0.039291
+  type: 'test'
+  ...
+# Subtest: date rejects unsupported/invalid input without stdout: -d@0 +%12N
+ok 88 - date rejects unsupported/invalid input without stdout: -d@0 +%12N
+  ---
+  duration_ms: 0.041791
+  type: 'test'
+  ...
+# Subtest: date rejects unsupported/invalid input without stdout: -d@0 +%-N
+ok 89 - date rejects unsupported/invalid input without stdout: -d@0 +%-N
+  ---
+  duration_ms: 0.040167
+  type: 'test'
+  ...
+# Subtest: date rejects unsupported/invalid input without stdout: -d@0 +%5%
+ok 90 - date rejects unsupported/invalid input without stdout: -d@0 +%5%
+  ---
+  duration_ms: 0.04075
+  type: 'test'
+  ...
+# Subtest: date rejects invalid clocks and bounded format expansion without writing stdout
+ok 91 - date rejects invalid clocks and bounded format expansion without writing stdout
+  ---
+  duration_ms: 0.305084
+  type: 'test'
+  ...
+# Subtest: date independent-review regression %12F
+ok 92 - date independent-review regression %12F
+  ---
+  duration_ms: 1.036333
+  type: 'test'
+  ...
+# Subtest: date independent-review regression %\#c
+ok 93 - date independent-review regression %\#c
+  ---
+  duration_ms: 0.207209
+  type: 'test'
+  ...
+# Subtest: date independent-review regression %-z
+ok 94 - date independent-review regression %-z
+  ---
+  duration_ms: 0.173375
+  type: 'test'
+  ...
+# Subtest: date independent-review regression %_z
+ok 95 - date independent-review regression %_z
+  ---
+  duration_ms: 0.081125
+  type: 'test'
+  ...
+# Subtest: date independent-review regression %_12z
+ok 96 - date independent-review regression %_12z
+  ---
+  duration_ms: 0.28775
+  type: 'test'
+  ...
+# Subtest: date independent-review regression %^P
+ok 97 - date independent-review regression %^P
+  ---
+  duration_ms: 0.067792
+  type: 'test'
+  ...
+# Subtest: date independent-review regression %\#^p|%^\#p|%\#^P|%^\#P|%\#^Z
+ok 98 - date independent-review regression %\#^p|%^\#p|%\#^P|%^\#P|%\#^Z
+  ---
+  duration_ms: 0.0895
+  type: 'test'
+  ...
+# Subtest: date independent-review regression %\#A|%\#b|%^c|%\#r
+ok 99 - date independent-review regression %\#A|%\#b|%^c|%\#r
+  ---
+  duration_ms: 0.057958
+  type: 'test'
+  ...
+# Subtest: date independent-review regression %-:z|%_:z|%-::z|%_::z|%-:::z|%_:::z
+ok 100 - date independent-review regression %-:z|%_:z|%-::z|%_::z|%-:::z|%_:::z
+  ---
+  duration_ms: 0.283667
+  type: 'test'
+  ...
+# Subtest: date independent-review regression %_12F|%-12F|%012F|%_012F|%0_12F
+ok 101 - date independent-review regression %_12F|%-12F|%012F|%_012F|%0_12F
+  ---
+  duration_ms: 0.224958
+  type: 'test'
+  ...
+# Subtest: date compound year width belongs to the year, including short years
+ok 102 - date compound year width belongs to the year, including short years
+  ---
+  duration_ms: 0.177417
+  type: 'test'
+  ...
+# Subtest: date explicit D inherits year padding while C-locale x remains opaque
+ok 103 - date explicit D inherits year padding while C-locale x remains opaque
+  ---
+  duration_ms: 0.140083
+  type: 'test'
+  ...
+# Subtest: date timezone padding applies to signed numeric offsets, not pre-padded strings
+ok 104 - date timezone padding applies to signed numeric offsets, not pre-padded strings
+  ---
+  duration_ms: 0.229167
+  type: 'test'
+  ...
+# Subtest: fresh GNU9.7 C-locale flag/width/compound/timezone matrix
+    # Subtest: 0008-01-02T03:04:05Z UTC aAbBhcpPrZ
+    ok 1 - 0008-01-02T03:04:05Z UTC aAbBhcpPrZ
+      ---
+      duration_ms: 14.506625
+      type: 'test'
+      ...
+    # Subtest: 0008-01-02T03:04:05Z UTC FDxRXTYy
+    ok 2 - 0008-01-02T03:04:05Z UTC FDxRXTYy
+      ---
+      duration_ms: 11.10625
+      type: 'test'
+      ...
+    # Subtest: 0008-01-02T03:04:05Z UTC z
+    ok 3 - 0008-01-02T03:04:05Z UTC z
+      ---
+      duration_ms: 9.148125
+      type: 'test'
+      ...
+    # Subtest: 0008-01-02T03:04:05Z UTC-0:30:07 aAbBhcpPrZ
+    ok 4 - 0008-01-02T03:04:05Z UTC-0:30:07 aAbBhcpPrZ
+      ---
+      duration_ms: 8.948459
+      type: 'test'
+      ...
+    # Subtest: 0008-01-02T03:04:05Z UTC-0:30:07 FDxRXTYy
+    ok 5 - 0008-01-02T03:04:05Z UTC-0:30:07 FDxRXTYy
+      ---
+      duration_ms: 6.014416
+      type: 'test'
+      ...
+    # Subtest: 0008-01-02T03:04:05Z UTC-0:30:07 z
+    ok 6 - 0008-01-02T03:04:05Z UTC-0:30:07 z
+      ---
+      duration_ms: 7.02225
+      type: 'test'
+      ...
+    # Subtest: 0008-01-02T03:04:05Z UTC+0:00:07 aAbBhcpPrZ
+    ok 7 - 0008-01-02T03:04:05Z UTC+0:00:07 aAbBhcpPrZ
+      ---
+      duration_ms: 7.436708
+      type: 'test'
+      ...
+    # Subtest: 0008-01-02T03:04:05Z UTC+0:00:07 FDxRXTYy
+    ok 8 - 0008-01-02T03:04:05Z UTC+0:00:07 FDxRXTYy
+      ---
+      duration_ms: 7.401667
+      type: 'test'
+      ...
+    # Subtest: 0008-01-02T03:04:05Z UTC+0:00:07 z
+    ok 9 - 0008-01-02T03:04:05Z UTC+0:00:07 z
+      ---
+      duration_ms: 5.898416
+      type: 'test'
+      ...
+    # Subtest: 0008-01-02T03:04:05Z UTC-5:45 aAbBhcpPrZ
+    ok 10 - 0008-01-02T03:04:05Z UTC-5:45 aAbBhcpPrZ
+      ---
+      duration_ms: 6.607083
+      type: 'test'
+      ...
+    # Subtest: 0008-01-02T03:04:05Z UTC-5:45 FDxRXTYy
+    ok 11 - 0008-01-02T03:04:05Z UTC-5:45 FDxRXTYy
+      ---
+      duration_ms: 6.497458
+      type: 'test'
+      ...
+    # Subtest: 0008-01-02T03:04:05Z UTC-5:45 z
+    ok 12 - 0008-01-02T03:04:05Z UTC-5:45 z
+      ---
+      duration_ms: 6.102958
+      type: 'test'
+      ...
+    # Subtest: 0008-01-02T03:04:05Z America/New_York aAbBhcpPrZ
+    ok 13 - 0008-01-02T03:04:05Z America/New_York aAbBhcpPrZ
+      ---
+      duration_ms: 16.912166
+      type: 'test'
+      ...
+    # Subtest: 0008-01-02T03:04:05Z America/New_York FDxRXTYy
+    ok 14 - 0008-01-02T03:04:05Z America/New_York FDxRXTYy
+      ---
+      duration_ms: 6.685625
+      type: 'test'
+      ...
+    # Subtest: 0008-01-02T03:04:05Z America/New_York z
+    ok 15 - 0008-01-02T03:04:05Z America/New_York z
+      ---
+      duration_ms: 7.265125
+      type: 'test'
+      ...
+    # Subtest: 0008-01-02T03:04:05Z Europe/Paris aAbBhcpPrZ
+    ok 16 - 0008-01-02T03:04:05Z Europe/Paris aAbBhcpPrZ
+      ---
+      duration_ms: 6.770792
+      type: 'test'
+      ...
+    # Subtest: 0008-01-02T03:04:05Z Europe/Paris FDxRXTYy
+    ok 17 - 0008-01-02T03:04:05Z Europe/Paris FDxRXTYy
+      ---
+      duration_ms: 7.303125
+      type: 'test'
+      ...
+    # Subtest: 0008-01-02T03:04:05Z Europe/Paris z
+    ok 18 - 0008-01-02T03:04:05Z Europe/Paris z
+      ---
+      duration_ms: 6.576041
+      type: 'test'
+      ...
+    # Subtest: 2024-02-29T15:06:07Z UTC aAbBhcpPrZ
+    ok 19 - 2024-02-29T15:06:07Z UTC aAbBhcpPrZ
+      ---
+      duration_ms: 6.930916
+      type: 'test'
+      ...
+    # Subtest: 2024-02-29T15:06:07Z UTC FDxRXTYy
+    ok 20 - 2024-02-29T15:06:07Z UTC FDxRXTYy
+      ---
+      duration_ms: 7.328166
+      type: 'test'
+      ...
+    # Subtest: 2024-02-29T15:06:07Z UTC z
+    ok 21 - 2024-02-29T15:06:07Z UTC z
+      ---
+      duration_ms: 6.525625
+      type: 'test'
+      ...
+    # Subtest: 2024-02-29T15:06:07Z UTC-0:30:07 aAbBhcpPrZ
+    ok 22 - 2024-02-29T15:06:07Z UTC-0:30:07 aAbBhcpPrZ
+      ---
+      duration_ms: 7.344167
+      type: 'test'
+      ...
+    # Subtest: 2024-02-29T15:06:07Z UTC-0:30:07 FDxRXTYy
+    ok 23 - 2024-02-29T15:06:07Z UTC-0:30:07 FDxRXTYy
+      ---
+      duration_ms: 5.872583
+      type: 'test'
+      ...
+    # Subtest: 2024-02-29T15:06:07Z UTC-0:30:07 z
+    ok 24 - 2024-02-29T15:06:07Z UTC-0:30:07 z
+      ---
+      duration_ms: 6.366292
+      type: 'test'
+      ...
+    # Subtest: 2024-02-29T15:06:07Z UTC+0:00:07 aAbBhcpPrZ
+    ok 25 - 2024-02-29T15:06:07Z UTC+0:00:07 aAbBhcpPrZ
+      ---
+      duration_ms: 7.07425
+      type: 'test'
+      ...
+    # Subtest: 2024-02-29T15:06:07Z UTC+0:00:07 FDxRXTYy
+    ok 26 - 2024-02-29T15:06:07Z UTC+0:00:07 FDxRXTYy
+      ---
+      duration_ms: 5.821041
+      type: 'test'
+      ...
+    # Subtest: 2024-02-29T15:06:07Z UTC+0:00:07 z
+    ok 27 - 2024-02-29T15:06:07Z UTC+0:00:07 z
+      ---
+      duration_ms: 5.427833
+      type: 'test'
+      ...
+    # Subtest: 2024-02-29T15:06:07Z UTC-5:45 aAbBhcpPrZ
+    ok 28 - 2024-02-29T15:06:07Z UTC-5:45 aAbBhcpPrZ
+      ---
+      duration_ms: 5.980625
+      type: 'test'
+      ...
+    # Subtest: 2024-02-29T15:06:07Z UTC-5:45 FDxRXTYy
+    ok 29 - 2024-02-29T15:06:07Z UTC-5:45 FDxRXTYy
+      ---
+      duration_ms: 6.75
+      type: 'test'
+      ...
+    # Subtest: 2024-02-29T15:06:07Z UTC-5:45 z
+    ok 30 - 2024-02-29T15:06:07Z UTC-5:45 z
+      ---
+      duration_ms: 5.762042
+      type: 'test'
+      ...
+    # Subtest: 2024-02-29T15:06:07Z America/New_York aAbBhcpPrZ
+    ok 31 - 2024-02-29T15:06:07Z America/New_York aAbBhcpPrZ
+      ---
+      duration_ms: 7.363375
+      type: 'test'
+      ...
+    # Subtest: 2024-02-29T15:06:07Z America/New_York FDxRXTYy
+    ok 32 - 2024-02-29T15:06:07Z America/New_York FDxRXTYy
+      ---
+      duration_ms: 7.836084
+      type: 'test'
+      ...
+    # Subtest: 2024-02-29T15:06:07Z America/New_York z
+    ok 33 - 2024-02-29T15:06:07Z America/New_York z
+      ---
+      duration_ms: 6.04075
+      type: 'test'
+      ...
+    # Subtest: 2024-02-29T15:06:07Z Europe/Paris aAbBhcpPrZ
+    ok 34 - 2024-02-29T15:06:07Z Europe/Paris aAbBhcpPrZ
+      ---
+      duration_ms: 6.499333
+      type: 'test'
+      ...
+    # Subtest: 2024-02-29T15:06:07Z Europe/Paris FDxRXTYy
+    ok 35 - 2024-02-29T15:06:07Z Europe/Paris FDxRXTYy
+      ---
+      duration_ms: 6.295917
+      type: 'test'
+      ...
+    # Subtest: 2024-02-29T15:06:07Z Europe/Paris z
+    ok 36 - 2024-02-29T15:06:07Z Europe/Paris z
+      ---
+      duration_ms: 6.119125
+      type: 'test'
+      ...
+    # Subtest: @-1.000000001 UTC aAbBhcpPrZ
+    ok 37 - @-1.000000001 UTC aAbBhcpPrZ
+      ---
+      duration_ms: 7.486375
+      type: 'test'
+      ...
+    # Subtest: @-1.000000001 UTC FDxRXTYy
+    ok 38 - @-1.000000001 UTC FDxRXTYy
+      ---
+      duration_ms: 6.690916
+      type: 'test'
+      ...
+    # Subtest: @-1.000000001 UTC z
+    ok 39 - @-1.000000001 UTC z
+      ---
+      duration_ms: 6.331583
+      type: 'test'
+      ...
+    # Subtest: @-1.000000001 UTC-0:30:07 aAbBhcpPrZ
+    ok 40 - @-1.000000001 UTC-0:30:07 aAbBhcpPrZ
+      ---
+      duration_ms: 6.37075
+      type: 'test'
+      ...
+    # Subtest: @-1.000000001 UTC-0:30:07 FDxRXTYy
+    ok 41 - @-1.000000001 UTC-0:30:07 FDxRXTYy
+      ---
+      duration_ms: 6.395792
+      type: 'test'
+      ...
+    # Subtest: @-1.000000001 UTC-0:30:07 z
+    ok 42 - @-1.000000001 UTC-0:30:07 z
+      ---
+      duration_ms: 6.22575
+      type: 'test'
+      ...
+    # Subtest: @-1.000000001 UTC+0:00:07 aAbBhcpPrZ
+    ok 43 - @-1.000000001 UTC+0:00:07 aAbBhcpPrZ
+      ---
+      duration_ms: 6.353709
+      type: 'test'
+      ...
+    # Subtest: @-1.000000001 UTC+0:00:07 FDxRXTYy
+    ok 44 - @-1.000000001 UTC+0:00:07 FDxRXTYy
+      ---
+      duration_ms: 6.421375
+      type: 'test'
+      ...
+    # Subtest: @-1.000000001 UTC+0:00:07 z
+    ok 45 - @-1.000000001 UTC+0:00:07 z
+      ---
+      duration_ms: 6.168334
+      type: 'test'
+      ...
+    # Subtest: @-1.000000001 UTC-5:45 aAbBhcpPrZ
+    ok 46 - @-1.000000001 UTC-5:45 aAbBhcpPrZ
+      ---
+      duration_ms: 7.875958
+      type: 'test'
+      ...
+    # Subtest: @-1.000000001 UTC-5:45 FDxRXTYy
+    ok 47 - @-1.000000001 UTC-5:45 FDxRXTYy
+      ---
+      duration_ms: 6.928917
+      type: 'test'
+      ...
+    # Subtest: @-1.000000001 UTC-5:45 z
+    ok 48 - @-1.000000001 UTC-5:45 z
+      ---
+      duration_ms: 6.417583
+      type: 'test'
+      ...
+    # Subtest: @-1.000000001 America/New_York aAbBhcpPrZ
+    ok 49 - @-1.000000001 America/New_York aAbBhcpPrZ
+      ---
+      duration_ms: 6.726334
+      type: 'test'
+      ...
+    # Subtest: @-1.000000001 America/New_York FDxRXTYy
+    ok 50 - @-1.000000001 America/New_York FDxRXTYy
+      ---
+      duration_ms: 7.748333
+      type: 'test'
+      ...
+    # Subtest: @-1.000000001 America/New_York z
+    ok 51 - @-1.000000001 America/New_York z
+      ---
+      duration_ms: 6.424041
+      type: 'test'
+      ...
+    # Subtest: @-1.000000001 Europe/Paris aAbBhcpPrZ
+    ok 52 - @-1.000000001 Europe/Paris aAbBhcpPrZ
+      ---
+      duration_ms: 7.105167
+      type: 'test'
+      ...
+    # Subtest: @-1.000000001 Europe/Paris FDxRXTYy
+    ok 53 - @-1.000000001 Europe/Paris FDxRXTYy
+      ---
+      duration_ms: 7.067459
+      type: 'test'
+      ...
+    # Subtest: @-1.000000001 Europe/Paris z
+    ok 54 - @-1.000000001 Europe/Paris z
+      ---
+      duration_ms: 7.237
+      type: 'test'
+      ...
+    1..54
+ok 105 - fresh GNU9.7 C-locale flag/width/compound/timezone matrix
+  ---
+  duration_ms: 398.092667
+  type: 'test'
+  ...
+# Subtest: time-env definitions and plugin collision preflight are atomic
+ok 106 - time-env definitions and plugin collision preflight are atomic
+  ---
+  duration_ms: 0.883417
+  type: 'test'
+  ...
+# Subtest: actual Shell pipelines, virtual files, command substitutions and replaced environments
+ok 107 - actual Shell pipelines, virtual files, command substitutions and replaced environments
+  ---
+  duration_ms: 12.583541
+  type: 'test'
+  ...
+# Subtest: actual shell propagates own prototype-shaped environment data through printenv
+ok 108 - actual shell propagates own prototype-shaped environment data through printenv
+  ---
+  duration_ms: 0.335542
+  type: 'test'
+  ...
+# Subtest: sleep output is zero under a zero shared output budget; real writes still charge
+ok 109 - sleep output is zero under a zero shared output budget; real writes still charge
+  ---
+  duration_ms: 1.131708
+  type: 'test'
+  ...
+# Subtest: actual Shell cancellation stops sleep before following command and clears the timer
+ok 110 - actual Shell cancellation stops sleep before following command and clears the timer
+  ---
+  duration_ms: 1.327834
+  type: 'test'
+  ...
+# Subtest: default long timer cancellation permits its isolated process to exit
+ok 111 - default long timer cancellation permits its isolated process to exit
+  ---
+  duration_ms: 154.284083
+  type: 'test'
+  ...
+# Subtest: date and printenv await sink backpressure and preserve cancellation
+ok 112 - date and printenv await sink backpressure and preserve cancellation
+  ---
+  duration_ms: 0.511042
+  type: 'test'
+  ...
+# Subtest: all three validate bounded arguments and factory settings
+ok 113 - all three validate bounded arguments and factory settings
+  ---
+  duration_ms: 8.398375
+  type: 'test'
+  ...
+# Subtest: VFS reference decimal millisecond precision and empty operands are explicit
+ok 114 - VFS reference decimal millisecond precision and empty operands are explicit
+  ---
+  duration_ms: 0.728125
+  type: 'test'
+  ...
+# Subtest: pinned local GNU9.7 differential (external oracle; not a pass when absent)
+    # Subtest: GNU date epoch
+    ok 1 - GNU date epoch
+      ---
+      duration_ms: 10.308042
+      type: 'test'
+      ...
+    # Subtest: GNU date negative nanosecond
+    ok 2 - GNU date negative nanosecond
+      ---
+      duration_ms: 9.532292
+      type: 'test'
+      ...
+    # Subtest: GNU date negative fractional epoch
+    ok 3 - GNU date negative fractional epoch
+      ---
+      duration_ms: 8.753208
+      type: 'test'
+      ...
+    # Subtest: GNU date positive signed epoch
+    ok 4 - GNU date positive signed epoch
+      ---
+      duration_ms: 8.588917
+      type: 'test'
+      ...
+    # Subtest: GNU date comma epoch
+    ok 5 - GNU date comma epoch
+      ---
+      duration_ms: 8.146333
+      type: 'test'
+      ...
+    # Subtest: GNU date leap day ISO nanoseconds
+    ok 6 - GNU date leap day ISO nanoseconds
+      ---
+      duration_ms: 8.501542
+      type: 'test'
+      ...
+    # Subtest: GNU date date only midnight
+    ok 7 - GNU date date only midnight
+      ---
+      duration_ms: 8.77
+      type: 'test'
+      ...
+    # Subtest: GNU date century nonleap ordinal
+    ok 8 - GNU date century nonleap ordinal
+      ---
+      duration_ms: 8.557333
+      type: 'test'
+      ...
+    # Subtest: GNU date early year avoids Date.UTC 1900 adjustment
+    ok 9 - GNU date early year avoids Date.UTC 1900 adjustment
+      ---
+      duration_ms: 8.487958
+      type: 'test'
+      ...
+    # Subtest: GNU date year zero leap
+    ok 10 - GNU date year zero leap
+      ---
+      duration_ms: 8.216
+      type: 'test'
+      ...
+    # Subtest: GNU date numeric offset
+    ok 11 - GNU date numeric offset
+      ---
+      duration_ms: 10.235167
+      type: 'test'
+      ...
+    # Subtest: GNU date negative offset
+    ok 12 - GNU date negative offset
+      ---
+      duration_ms: 7.407708
+      type: 'test'
+      ...
+    # Subtest: GNU date RFC email input
+    ok 13 - GNU date RFC email input
+      ---
+      duration_ms: 8.376625
+      type: 'test'
+      ...
+    # Subtest: GNU date HTTP RFC GMT
+    ok 14 - GNU date HTTP RFC GMT
+      ---
+      duration_ms: 7.702542
+      type: 'test'
+      ...
+    # Subtest: GNU date ISO date
+    ok 15 - GNU date ISO date
+      ---
+      duration_ms: 6.968334
+      type: 'test'
+      ...
+    # Subtest: GNU date ISO hours
+    ok 16 - GNU date ISO hours
+      ---
+      duration_ms: 6.231959
+      type: 'test'
+      ...
+    # Subtest: GNU date ISO minutes
+    ok 17 - GNU date ISO minutes
+      ---
+      duration_ms: 5.328084
+      type: 'test'
+      ...
+    # Subtest: GNU date ISO seconds
+    ok 18 - GNU date ISO seconds
+      ---
+      duration_ms: 6.230625
+      type: 'test'
+      ...
+    # Subtest: GNU date ISO nanoseconds
+    ok 19 - GNU date ISO nanoseconds
+      ---
+      duration_ms: 5.64075
+      type: 'test'
+      ...
+    # Subtest: GNU date RFC3339 date
+    ok 20 - GNU date RFC3339 date
+      ---
+      duration_ms: 5.12125
+      type: 'test'
+      ...
+    # Subtest: GNU date RFC3339 seconds
+    ok 21 - GNU date RFC3339 seconds
+      ---
+      duration_ms: 7.963083
+      type: 'test'
+      ...
+    # Subtest: GNU date RFC3339 nanoseconds
+    ok 22 - GNU date RFC3339 nanoseconds
+      ---
+      duration_ms: 6.055583
+      type: 'test'
+      ...
+    # Subtest: GNU date format before options
+    ok 23 - GNU date format before options
+      ---
+      duration_ms: 6.483667
+      type: 'test'
+      ...
+    # Subtest: GNU date empty format
+    ok 24 - GNU date empty format
+      ---
+      duration_ms: 6.634375
+      type: 'test'
+      ...
+    # Subtest: GNU date literal Unicode
+    ok 25 - GNU date literal Unicode
+      ---
+      duration_ms: 6.185625
+      type: 'test'
+      ...
+    # Subtest: GNU date C names and composite formats
+    ok 26 - GNU date C names and composite formats
+      ---
+      duration_ms: 6.9305
+      type: 'test'
+      ...
+    # Subtest: GNU date padding casing and C modifiers
+    ok 27 - GNU date padding casing and C modifiers
+      ---
+      duration_ms: 6.799792
+      type: 'test'
+      ...
+    # Subtest: GNU date precision truncates not rounds
+    ok 28 - GNU date precision truncates not rounds
+      ---
+      duration_ms: 5.99525
+      type: 'test'
+      ...
+    # Subtest: GNU date ISO previous year week
+    ok 29 - GNU date ISO previous year week
+      ---
+      duration_ms: 28.718666
+      type: 'test'
+      ...
+    # Subtest: GNU date ISO next year week
+    ok 30 - GNU date ISO next year week
+      ---
+      duration_ms: 7.104292
+      type: 'test'
+      ...
+    # Subtest: GNU date POSIX reversed offset
+    ok 31 - GNU date POSIX reversed offset
+      ---
+      duration_ms: 5.946
+      type: 'test'
+      ...
+    # Subtest: GNU date POSIX seconds offset
+    ok 32 - GNU date POSIX seconds offset
+      ---
+      duration_ms: 10.447625
+      type: 'test'
+      ...
+    # Subtest: GNU date IANA New York winter
+    ok 33 - GNU date IANA New York winter
+      ---
+      duration_ms: 16.44225
+      type: 'test'
+      ...
+    # Subtest: GNU date IANA New York summer
+    ok 34 - GNU date IANA New York summer
+      ---
+      duration_ms: 5.558333
+      type: 'test'
+      ...
+    # Subtest: GNU date IANA wall time
+    ok 35 - GNU date IANA wall time
+      ---
+      duration_ms: 6.183792
+      type: 'test'
+      ...
+    # Subtest: GNU date IANA half hour
+    ok 36 - GNU date IANA half hour
+      ---
+      duration_ms: 6.816958
+      type: 'test'
+      ...
+    # Subtest: GNU date IANA quarter hour
+    ok 37 - GNU date IANA quarter hour
+      ---
+      duration_ms: 6.317708
+      type: 'test'
+      ...
+    # Subtest: GNU date UTC overrides invalid virtual TZ
+    ok 38 - GNU date UTC overrides invalid virtual TZ
+      ---
+      duration_ms: 5.537458
+      type: 'test'
+      ...
+    # Subtest: GNU date numeric default widths
+    ok 39 - GNU date numeric default widths
+      ---
+      duration_ms: 5.701625
+      type: 'test'
+      ...
+    # Subtest: GNU date timezone signed zero padding
+    ok 40 - GNU date timezone signed zero padding
+      ---
+      duration_ms: 5.202459
+      type: 'test'
+      ...
+    # Subtest: GNU date C change-case flags
+    ok 41 - GNU date C change-case flags
+      ---
+      duration_ms: 5.100875
+      type: 'test'
+      ...
+    # Subtest: GNU date Etc GMT label
+    ok 42 - GNU date Etc GMT label
+      ---
+      duration_ms: 5.027209
+      type: 'test'
+      ...
+    # Subtest: GNU date Z zone label
+    ok 43 - GNU date Z zone label
+      ---
+      duration_ms: 4.61575
+      type: 'test'
+      ...
+    # Subtest: GNU date IANA lower calendar endpoint
+    ok 44 - GNU date IANA lower calendar endpoint
+      ---
+      duration_ms: 5.007291
+      type: 'test'
+      ...
+    # Subtest: GNU date IANA upper calendar endpoint
+    ok 45 - GNU date IANA upper calendar endpoint
+      ---
+      duration_ms: 4.923334
+      type: 'test'
+      ...
+    # Subtest: GNU printenv []
+    ok 46 - GNU printenv []
+      ---
+      duration_ms: 4.524833
+      type: 'test'
+      ...
+    # Subtest: GNU printenv ["A"]
+    ok 47 - GNU printenv ["A"]
+      ---
+      duration_ms: 4.570041
+      type: 'test'
+      ...
+    # Subtest: GNU printenv ["EMPTY"]
+    ok 48 - GNU printenv ["EMPTY"]
+      ---
+      duration_ms: 5.331875
+      type: 'test'
+      ...
+    # Subtest: GNU printenv ["missing","A"]
+    ok 49 - GNU printenv ["missing","A"]
+      ---
+      duration_ms: 4.709625
+      type: 'test'
+      ...
+    # Subtest: GNU printenv ["A","A"]
+    ok 50 - GNU printenv ["A","A"]
+      ---
+      duration_ms: 4.791459
+      type: 'test'
+      ...
+    # Subtest: GNU printenv ["--null","A","EMPTY"]
+    ok 51 - GNU printenv ["--null","A","EMPTY"]
+      ---
+      duration_ms: 5.886083
+      type: 'test'
+      ...
+    # Subtest: GNU printenv ["-00","A"]
+    ok 52 - GNU printenv ["-00","A"]
+      ---
+      duration_ms: 4.928458
+      type: 'test'
+      ...
+    # Subtest: GNU printenv ["A","-0"]
+    ok 53 - GNU printenv ["A","-0"]
+      ---
+      duration_ms: 4.3665
+      type: 'test'
+      ...
+    # Subtest: GNU printenv ["A=value"]
+    ok 54 - GNU printenv ["A=value"]
+      ---
+      duration_ms: 4.476291
+      type: 'test'
+      ...
+    # Subtest: GNU printenv ["--","-0"]
+    ok 55 - GNU printenv ["--","-0"]
+      ---
+      duration_ms: 5.801333
+      type: 'test'
+      ...
+    # Subtest: GNU printenv ["__proto__","constructor","toString"]
+    ok 56 - GNU printenv ["__proto__","constructor","toString"]
+      ---
+      duration_ms: 4.512542
+      type: 'test'
+      ...
+    # Subtest: GNU sleep ["0"]
+    ok 57 - GNU sleep ["0"]
+      ---
+      duration_ms: 4.527375
+      type: 'test'
+      ...
+    # Subtest: GNU sleep ["0d","0h","0m","0s"]
+    ok 58 - GNU sleep ["0d","0h","0m","0s"]
+      ---
+      duration_ms: 4.254792
+      type: 'test'
+      ...
+    # Subtest: GNU sleep [".001"]
+    ok 59 - GNU sleep [".001"]
+      ---
+      duration_ms: 14.345917
+      type: 'test'
+      ...
+    # Subtest: GNU sleep ["1e-3"]
+    ok 60 - GNU sleep ["1e-3"]
+      ---
+      duration_ms: 7.3995
+      type: 'test'
+      ...
+    # Subtest: GNU sleep [".00000001d"]
+    ok 61 - GNU sleep [".00000001d"]
+      ---
+      duration_ms: 6.857291
+      type: 'test'
+      ...
+    # Subtest: GNU sleep [".0000001h"]
+    ok 62 - GNU sleep [".0000001h"]
+      ---
+      duration_ms: 5.958709
+      type: 'test'
+      ...
+    # Subtest: GNU sleep [".00001m",".0004s"]
+    ok 63 - GNU sleep [".00001m",".0004s"]
+      ---
+      duration_ms: 7.425084
+      type: 'test'
+      ...
+    # Subtest: GNU sleep ["--","0"]
+    ok 64 - GNU sleep ["--","0"]
+      ---
+      duration_ms: 4.224291
+      type: 'test'
+      ...
+    # Subtest: GNU sleep ["+0.001"]
+    ok 65 - GNU sleep ["+0.001"]
+      ---
+      duration_ms: 7.675708
+      type: 'test'
+      ...
+    # Subtest: GNU sleep ["-0.00"]
+    ok 66 - GNU sleep ["-0.00"]
+      ---
+      duration_ms: 4.361958
+      type: 'test'
+      ...
+    # Subtest: GNU sleep ["1ms"]
+    ok 67 - GNU sleep ["1ms"]
+      ---
+      duration_ms: 4.06675
+      type: 'test'
+      ...
+    # Subtest: GNU sleep ["-1"]
+    ok 68 - GNU sleep ["-1"]
+      ---
+      duration_ms: 4.2125
+      type: 'test'
+      ...
+    # Subtest: GNU sleep ["NaN"]
+    ok 69 - GNU sleep ["NaN"]
+      ---
+      duration_ms: 4.285375
+      type: 'test'
+      ...
+    # Subtest: GNU sleep []
+    ok 70 - GNU sleep []
+      ---
+      duration_ms: 3.838875
+      type: 'test'
+      ...
+    # Subtest: GNU sleep help scans past duration operands without waiting
+    ok 71 - GNU sleep help scans past duration operands without waiting
+      ---
+      duration_ms: 8.393292
+      type: 'test'
+      ...
+    # Subtest: GNU reference file uses observed metadata, including Node/Apple mtime quantization
+    ok 72 - GNU reference file uses observed metadata, including Node/Apple mtime quantization
+      ---
+      duration_ms: 6.258208
+      type: 'test'
+      ...
+    1..72
+ok 115 - pinned local GNU9.7 differential (external oracle; not a pass when absent)
+  ---
+  duration_ms: 548.576292
+  type: 'test'
+  ...
+# Subtest: printenv own dictionary []
+ok 116 - printenv own dictionary []
+  ---
+  duration_ms: 0.734
+  type: 'test'
+  ...
+# Subtest: printenv own dictionary ["A","EMPTY","UNICODE"]
+ok 117 - printenv own dictionary ["A","EMPTY","UNICODE"]
+  ---
+  duration_ms: 0.108542
+  type: 'test'
+  ...
+# Subtest: printenv own dictionary ["missing","A","missing","EMPTY"]
+ok 118 - printenv own dictionary ["missing","A","missing","EMPTY"]
+  ---
+  duration_ms: 0.163
+  type: 'test'
+  ...
+# Subtest: printenv own dictionary ["A","A"]
+ok 119 - printenv own dictionary ["A","A"]
+  ---
+  duration_ms: 0.068542
+  type: 'test'
+  ...
+# Subtest: printenv own dictionary ["--null","EMPTY","UNICODE"]
+ok 120 - printenv own dictionary ["--null","EMPTY","UNICODE"]
+  ---
+  duration_ms: 0.128375
+  type: 'test'
+  ...
+# Subtest: printenv own dictionary ["-00","A"]
+ok 121 - printenv own dictionary ["-00","A"]
+  ---
+  duration_ms: 0.104625
+  type: 'test'
+  ...
+# Subtest: printenv own dictionary ["A","-0"]
+ok 122 - printenv own dictionary ["A","-0"]
+  ---
+  duration_ms: 0.053
+  type: 'test'
+  ...
+# Subtest: printenv own dictionary ["A=one"]
+ok 123 - printenv own dictionary ["A=one"]
+  ---
+  duration_ms: 0.035959
+  type: 'test'
+  ...
+# Subtest: printenv own dictionary ["--","-0"]
+ok 124 - printenv own dictionary ["--","-0"]
+  ---
+  duration_ms: 0.204
+  type: 'test'
+  ...
+# Subtest: printenv own prototype-shaped and nonenumerable names never consult inherited or host environment
+ok 125 - printenv own prototype-shaped and nonenumerable names never consult inherited or host environment
+  ---
+  duration_ms: 0.360416
+  type: 'test'
+  ...
+# Subtest: printenv empty dictionary and missing name do not acquire stdin or write output
+ok 126 - printenv empty dictionary and missing name do not acquire stdin or write output
+  ---
+  duration_ms: 0.071
+  type: 'test'
+  ...
+# Subtest: printenv invalid option -i is status2 without stdout
+ok 127 - printenv invalid option -i is status2 without stdout
+  ---
+  duration_ms: 0.111667
+  type: 'test'
+  ...
+# Subtest: printenv invalid option -u is status2 without stdout
+ok 128 - printenv invalid option -u is status2 without stdout
+  ---
+  duration_ms: 0.05175
+  type: 'test'
+  ...
+# Subtest: printenv invalid option --null=yes is status2 without stdout
+ok 129 - printenv invalid option --null=yes is status2 without stdout
+  ---
+  duration_ms: 0.044083
+  type: 'test'
+  ...
+# Subtest: printenv invalid option --invalid is status2 without stdout
+ok 130 - printenv invalid option --invalid is status2 without stdout
+  ---
+  duration_ms: 0.042291
+  type: 'test'
+  ...
+# Subtest: printenv bounds output before effects and propagates sink rejection unchanged
+ok 131 - printenv bounds output before effects and propagates sink rejection unchanged
+  ---
+  duration_ms: 0.385791
+  type: 'test'
+  ...
+# Subtest: sleep exact decimal carry ["0.0009999999","0.0000000001"]
+ok 132 - sleep exact decimal carry ["0.0009999999","0.0000000001"]
+  ---
+  duration_ms: 1.203125
+  type: 'test'
+  ...
+# Subtest: sleep exact decimal carry ["0.0004999999","0.0005000001"]
+ok 133 - sleep exact decimal carry ["0.0004999999","0.0005000001"]
+  ---
+  duration_ms: 0.226541
+  type: 'test'
+  ...
+# Subtest: sleep exact decimal carry ["0.0009999999","0.0000000000999999999999"]
+ok 134 - sleep exact decimal carry ["0.0009999999","0.0000000000999999999999"]
+  ---
+  duration_ms: 0.176834
+  type: 'test'
+  ...
+# Subtest: sleep exact decimal carry ["0.0009999999","0.0000000001000000000001"]
+ok 135 - sleep exact decimal carry ["0.0009999999","0.0000000001000000000001"]
+  ---
+  duration_ms: 0.159167
+  type: 'test'
+  ...
+# Subtest: sleep exact decimal carry ["0.001","1e-1000000000000000000000"]
+ok 136 - sleep exact decimal carry ["0.001","1e-1000000000000000000000"]
+  ---
+  duration_ms: 0.259542
+  type: 'test'
+  ...
+# Subtest: sleep exact decimal carry ["1e-1000000000000000000000"]
+ok 137 - sleep exact decimal carry ["1e-1000000000000000000000"]
+  ---
+  duration_ms: 0.055834
+  type: 'test'
+  ...
+# Subtest: sleep exact decimal carry [".000016666666666666m",".00000000000000000004"]
+ok 138 - sleep exact decimal carry [".000016666666666666m",".00000000000000000004"]
+  ---
+  duration_ms: 0.083208
+  type: 'test'
+  ...
+# Subtest: sleep exact decimal carry [".0000000001d",".0000000001h",".0000000001m",".000990994"]
+ok 139 - sleep exact decimal carry [".0000000001d",".0000000001h",".0000000001m",".000990994"]
+  ---
+  duration_ms: 0.046375
+  type: 'test'
+  ...
+# Subtest: sleep exact decimal carry ["0.000000000000000000000000000001","0.000999999999999999999999999999"]
+ok 140 - sleep exact decimal carry ["0.000000000000000000000000000001","0.000999999999999999999999999999"]
+  ---
+  duration_ms: 0.121375
+  type: 'test'
+  ...
+# Subtest: sleep exact decimal carry [".0005",".0005","1e-999999999999999999999"]
+ok 141 - sleep exact decimal carry [".0005",".0005","1e-999999999999999999999"]
+  ---
+  duration_ms: 0.227542
+  type: 'test'
+  ...
+# Subtest: sleep exact decimal carry ["0e9999999999999999999999","0e-9999999999999999999999"]
+ok 142 - sleep exact decimal carry ["0e9999999999999999999999","0e-9999999999999999999999"]
+  ---
+  duration_ms: 0.051916
+  type: 'test'
+  ...
+# Subtest: sleep bounded exact rational properties across decimal positions and units
+ok 143 - sleep bounded exact rational properties across decimal positions and units
+  ---
+  duration_ms: 7.715958
+  type: 'test'
+  ...
+# Subtest: sleep sparse decimal positions bound huge exponents without allocating exponent-sized buffers
+ok 144 - sleep sparse decimal positions bound huge exponents without allocating exponent-sized buffers
+  ---
+  duration_ms: 1.701875
+  type: 'test'
+  ...
+# Subtest: sleep exact range boundary preserves chunking and rejects excess before scheduling
+ok 145 - sleep exact range boundary preserves chunking and rejects excess before scheduling
+  ---
+  duration_ms: 0.356417
+  type: 'test'
+  ...
+# Subtest: sleep many fractional carries reach the boundary without per-operand rounding
+ok 146 - sleep many fractional carries reach the boundary without per-operand rounding
+  ---
+  duration_ms: 2.164792
+  type: 'test'
+  ...
+# Subtest: sleep summed fractional intervals 0.125
+ok 147 - sleep summed fractional intervals 0.125
+  ---
+  duration_ms: 0.947083
+  type: 'test'
+  ...
+# Subtest: sleep summed fractional intervals .001s 0.002
+ok 148 - sleep summed fractional intervals .001s 0.002
+  ---
+  duration_ms: 0.223417
+  type: 'test'
+  ...
+# Subtest: sleep summed fractional intervals 1e-3m
+ok 149 - sleep summed fractional intervals 1e-3m
+  ---
+  duration_ms: 0.113167
+  type: 'test'
+  ...
+# Subtest: sleep summed fractional intervals +0.0001h
+ok 150 - sleep summed fractional intervals +0.0001h
+  ---
+  duration_ms: 0.062916
+  type: 'test'
+  ...
+# Subtest: sleep summed fractional intervals 0.00001d
+ok 151 - sleep summed fractional intervals 0.00001d
+  ---
+  duration_ms: 0.187917
+  type: 'test'
+  ...
+# Subtest: sleep summed fractional intervals 0.02
+ok 152 - sleep summed fractional intervals 0.02
+  ---
+  duration_ms: 0.057875
+  type: 'test'
+  ...
+# Subtest: sleep summed fractional intervals 1. 0.5s
+ok 153 - sleep summed fractional intervals 1. 0.5s
+  ---
+  duration_ms: 0.090209
+  type: 'test'
+  ...
+# Subtest: sleep never finishes early and chunks intervals above timer range
+ok 154 - sleep never finishes early and chunks intervals above timer range
+  ---
+  duration_ms: 0.436625
+  type: 'test'
+  ...
+# Subtest: sleep configurable timer quantum and submillisecond durations do not spin
+ok 155 - sleep configurable timer quantum and submillisecond durations do not spin
+  ---
+  duration_ms: 0.281208
+  type: 'test'
+  ...
+# Subtest: sleep abort before/during clears listeners and pending timers
+ok 156 - sleep abort before/during clears listeners and pending timers
+  ---
+  duration_ms: 0.447959
+  type: 'test'
+  ...
+# Subtest: sleep handles abort synchronously triggered by a trusted scheduler setup without leaking its handle
+ok 157 - sleep handles abort synchronously triggered by a trusted scheduler setup without leaking its handle
+  ---
+  duration_ms: 0.090333
+  type: 'test'
+  ...
+# Subtest: sleep rejects nonmonotonic scheduler time and cleans the subscription
+ok 158 - sleep rejects nonmonotonic scheduler time and cleans the subscription
+  ---
+  duration_ms: 0.069792
+  type: 'test'
+  ...
+# Subtest: sleep validates all operands before waiting: []
+ok 159 - sleep validates all operands before waiting: []
+  ---
+  duration_ms: 0.142417
+  type: 'test'
+  ...
+# Subtest: sleep validates all operands before waiting: ["-1"]
+ok 160 - sleep validates all operands before waiting: ["-1"]
+  ---
+  duration_ms: 0.05425
+  type: 'test'
+  ...
+# Subtest: sleep validates all operands before waiting: ["1ms"]
+ok 161 - sleep validates all operands before waiting: ["1ms"]
+  ---
+  duration_ms: 0.053959
+  type: 'test'
+  ...
+# Subtest: sleep validates all operands before waiting: ["NaN"]
+ok 162 - sleep validates all operands before waiting: ["NaN"]
+  ---
+  duration_ms: 0.079583
+  type: 'test'
+  ...
+# Subtest: sleep validates all operands before waiting: ["Infinity"]
+ok 163 - sleep validates all operands before waiting: ["Infinity"]
+  ---
+  duration_ms: 0.044666
+  type: 'test'
+  ...
+# Subtest: sleep validates all operands before waiting: ["1e999"]
+ok 164 - sleep validates all operands before waiting: ["1e999"]
+  ---
+  duration_ms: 0.070333
+  type: 'test'
+  ...
+# Subtest: sleep validates all operands before waiting: ["0x1"]
+ok 165 - sleep validates all operands before waiting: ["0x1"]
+  ---
+  duration_ms: 0.044708
+  type: 'test'
+  ...
+# Subtest: sleep validates all operands before waiting: ["1","bad"]
+ok 166 - sleep validates all operands before waiting: ["1","bad"]
+  ---
+  duration_ms: 0.324333
+  type: 'test'
+  ...
+# Subtest: sleep validates all operands before waiting: ["1,2"]
+ok 167 - sleep validates all operands before waiting: ["1,2"]
+  ---
+  duration_ms: 0.079417
+  type: 'test'
+  ...
+# Subtest: sleep validates all operands before waiting: ["1D"]
+ok 168 - sleep validates all operands before waiting: ["1D"]
+  ---
+  duration_ms: 0.044958
+  type: 'test'
+  ...
+# Subtest: sleep validates all operands before waiting: ["--invalid"]
+ok 169 - sleep validates all operands before waiting: ["--invalid"]
+  ---
+  duration_ms: 0.037
+  type: 'test'
+  ...
+# Subtest: sleep validates all operands before waiting: ["--","0"]
+ok 170 - sleep validates all operands before waiting: ["--","0"]
+  ---
+  duration_ms: 0.065042
+  type: 'test'
+  ...
+# Subtest: sleep validates all operands before waiting: ["-0.00"]
+ok 171 - sleep validates all operands before waiting: ["-0.00"]
+  ---
+  duration_ms: 0.03525
+  type: 'test'
+  ...
+# Subtest: sleep zero does not consume stdin or write either channel
+ok 172 - sleep zero does not consume stdin or write either channel
+  ---
+  duration_ms: 0.059583
+  type: 'test'
+  ...
+# Subtest: sleep default scheduler waits against monotonic elapsed time
+ok 173 - sleep default scheduler waits against monotonic elapsed time
+  ---
+  duration_ms: 17.607042
+  type: 'test'
+  ...
+# Subtest: 256 signed epoch/fraction vectors preserve independent floor-seconds arithmetic
+ok 174 - 256 signed epoch/fraction vectors preserve independent floor-seconds arithmetic
+  ---
+  duration_ms: 7.835
+  type: 'test'
+  ...
+# Subtest: 256 finite decimal sleep sums never schedule earlier than their exact rational duration
+ok 175 - 256 finite decimal sleep sums never schedule earlier than their exact rational duration
+  ---
+  duration_ms: 3.819125
+  type: 'test'
+  ...
+# Subtest: date and printenv honor byte rather than character limits, including output chunk ownership
+ok 176 - date and printenv honor byte rather than character limits, including output chunk ownership
+  ---
+  duration_ms: 0.732958
+  type: 'test'
+  ...
+# Subtest: date rejects clock setting before clock/metadata access and pre-abort wins
+ok 177 - date rejects clock setting before clock/metadata access and pre-abort wins
+  ---
+  duration_ms: 0.169416
+  type: 'test'
+  ...
+# Subtest: date reference preserves authorization errors and abort during cooperative metadata work
+ok 178 - date reference preserves authorization errors and abort during cooperative metadata work
+  ---
+  duration_ms: 0.158459
+  type: 'test'
+  ...
+# Subtest: sleep timer creation failure and successful completion remove abort listeners
+ok 179 - sleep timer creation failure and successful completion remove abort listeners
+  ---
+  duration_ms: 0.057333
+  type: 'test'
+  ...
+# Subtest: actual Shell date loop, sorting pipeline, references and null-delimited environment publication
+ok 180 - actual Shell date loop, sorting pipeline, references and null-delimited environment publication
+  ---
+  duration_ms: 11.162542
+  type: 'test'
+  ...
+1..180
+# tests 306
+# suites 0
+# pass 306
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 2196.415625

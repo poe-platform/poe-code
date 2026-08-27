@@ -1,0 +1,509 @@
+TAP version 13
+# Subtest: date independent-review regression %12F
+ok 1 - date independent-review regression %12F
+  ---
+  duration_ms: 1.1325
+  type: 'test'
+  ...
+# Subtest: date independent-review regression %\#c
+ok 2 - date independent-review regression %\#c
+  ---
+  duration_ms: 0.231583
+  type: 'test'
+  ...
+# Subtest: date independent-review regression %-z
+ok 3 - date independent-review regression %-z
+  ---
+  duration_ms: 0.178542
+  type: 'test'
+  ...
+# Subtest: date independent-review regression %_z
+ok 4 - date independent-review regression %_z
+  ---
+  duration_ms: 0.085917
+  type: 'test'
+  ...
+# Subtest: date independent-review regression %_12z
+ok 5 - date independent-review regression %_12z
+  ---
+  duration_ms: 0.309708
+  type: 'test'
+  ...
+# Subtest: date independent-review regression %^P
+ok 6 - date independent-review regression %^P
+  ---
+  duration_ms: 0.071583
+  type: 'test'
+  ...
+# Subtest: date independent-review regression %\#^p|%^\#p|%\#^P|%^\#P|%\#^Z
+ok 7 - date independent-review regression %\#^p|%^\#p|%\#^P|%^\#P|%\#^Z
+  ---
+  duration_ms: 0.095166
+  type: 'test'
+  ...
+# Subtest: date independent-review regression %\#A|%\#b|%^c|%\#r
+ok 8 - date independent-review regression %\#A|%\#b|%^c|%\#r
+  ---
+  duration_ms: 0.06125
+  type: 'test'
+  ...
+# Subtest: date independent-review regression %-:z|%_:z|%-::z|%_::z|%-:::z|%_:::z
+ok 9 - date independent-review regression %-:z|%_:z|%-::z|%_::z|%-:::z|%_:::z
+  ---
+  duration_ms: 0.288167
+  type: 'test'
+  ...
+# Subtest: date independent-review regression %_12F|%-12F|%012F|%_012F|%0_12F
+ok 10 - date independent-review regression %_12F|%-12F|%012F|%_012F|%0_12F
+  ---
+  duration_ms: 0.236666
+  type: 'test'
+  ...
+# Subtest: date compound year width belongs to the year, including short years
+ok 11 - date compound year width belongs to the year, including short years
+  ---
+  duration_ms: 0.198791
+  type: 'test'
+  ...
+# Subtest: date explicit D inherits year padding while C-locale x remains opaque
+ok 12 - date explicit D inherits year padding while C-locale x remains opaque
+  ---
+  duration_ms: 0.14725
+  type: 'test'
+  ...
+# Subtest: date timezone padding applies to signed numeric offsets, not pre-padded strings
+ok 13 - date timezone padding applies to signed numeric offsets, not pre-padded strings
+  ---
+  duration_ms: 0.240292
+  type: 'test'
+  ...
+# Subtest: fresh GNU9.7 C-locale flag/width/compound/timezone matrix
+    # Subtest: 0008-01-02T03:04:05Z UTC aAbBhcpPrZ
+    ok 1 - 0008-01-02T03:04:05Z UTC aAbBhcpPrZ
+      ---
+      duration_ms: 8.237708
+      type: 'test'
+      ...
+    # Subtest: 0008-01-02T03:04:05Z UTC FDxRXTYy
+    ok 2 - 0008-01-02T03:04:05Z UTC FDxRXTYy
+      ---
+      duration_ms: 5.901875
+      type: 'test'
+      ...
+    # Subtest: 0008-01-02T03:04:05Z UTC z
+    ok 3 - 0008-01-02T03:04:05Z UTC z
+      ---
+      duration_ms: 5.815666
+      type: 'test'
+      ...
+    # Subtest: 0008-01-02T03:04:05Z UTC-0:30:07 aAbBhcpPrZ
+    ok 4 - 0008-01-02T03:04:05Z UTC-0:30:07 aAbBhcpPrZ
+      ---
+      duration_ms: 6.240542
+      type: 'test'
+      ...
+    # Subtest: 0008-01-02T03:04:05Z UTC-0:30:07 FDxRXTYy
+    ok 5 - 0008-01-02T03:04:05Z UTC-0:30:07 FDxRXTYy
+      ---
+      duration_ms: 5.665292
+      type: 'test'
+      ...
+    # Subtest: 0008-01-02T03:04:05Z UTC-0:30:07 z
+    ok 6 - 0008-01-02T03:04:05Z UTC-0:30:07 z
+      ---
+      duration_ms: 5.893
+      type: 'test'
+      ...
+    # Subtest: 0008-01-02T03:04:05Z UTC+0:00:07 aAbBhcpPrZ
+    ok 7 - 0008-01-02T03:04:05Z UTC+0:00:07 aAbBhcpPrZ
+      ---
+      duration_ms: 6.208041
+      type: 'test'
+      ...
+    # Subtest: 0008-01-02T03:04:05Z UTC+0:00:07 FDxRXTYy
+    ok 8 - 0008-01-02T03:04:05Z UTC+0:00:07 FDxRXTYy
+      ---
+      duration_ms: 5.548875
+      type: 'test'
+      ...
+    # Subtest: 0008-01-02T03:04:05Z UTC+0:00:07 z
+    ok 9 - 0008-01-02T03:04:05Z UTC+0:00:07 z
+      ---
+      duration_ms: 5.498708
+      type: 'test'
+      ...
+    # Subtest: 0008-01-02T03:04:05Z UTC-5:45 aAbBhcpPrZ
+    ok 10 - 0008-01-02T03:04:05Z UTC-5:45 aAbBhcpPrZ
+      ---
+      duration_ms: 5.588
+      type: 'test'
+      ...
+    # Subtest: 0008-01-02T03:04:05Z UTC-5:45 FDxRXTYy
+    ok 11 - 0008-01-02T03:04:05Z UTC-5:45 FDxRXTYy
+      ---
+      duration_ms: 5.7105
+      type: 'test'
+      ...
+    # Subtest: 0008-01-02T03:04:05Z UTC-5:45 z
+    ok 12 - 0008-01-02T03:04:05Z UTC-5:45 z
+      ---
+      duration_ms: 5.377125
+      type: 'test'
+      ...
+    # Subtest: 0008-01-02T03:04:05Z America/New_York aAbBhcpPrZ
+    ok 13 - 0008-01-02T03:04:05Z America/New_York aAbBhcpPrZ
+      ---
+      duration_ms: 14.887417
+      type: 'test'
+      ...
+    # Subtest: 0008-01-02T03:04:05Z America/New_York FDxRXTYy
+    ok 14 - 0008-01-02T03:04:05Z America/New_York FDxRXTYy
+      ---
+      duration_ms: 7.110208
+      type: 'test'
+      ...
+    # Subtest: 0008-01-02T03:04:05Z America/New_York z
+    ok 15 - 0008-01-02T03:04:05Z America/New_York z
+      ---
+      duration_ms: 5.701458
+      type: 'test'
+      ...
+    # Subtest: 0008-01-02T03:04:05Z Europe/Paris aAbBhcpPrZ
+    ok 16 - 0008-01-02T03:04:05Z Europe/Paris aAbBhcpPrZ
+      ---
+      duration_ms: 6.252708
+      type: 'test'
+      ...
+    # Subtest: 0008-01-02T03:04:05Z Europe/Paris FDxRXTYy
+    ok 17 - 0008-01-02T03:04:05Z Europe/Paris FDxRXTYy
+      ---
+      duration_ms: 6.112375
+      type: 'test'
+      ...
+    # Subtest: 0008-01-02T03:04:05Z Europe/Paris z
+    ok 18 - 0008-01-02T03:04:05Z Europe/Paris z
+      ---
+      duration_ms: 5.814834
+      type: 'test'
+      ...
+    # Subtest: 2024-02-29T15:06:07Z UTC aAbBhcpPrZ
+    ok 19 - 2024-02-29T15:06:07Z UTC aAbBhcpPrZ
+      ---
+      duration_ms: 5.995792
+      type: 'test'
+      ...
+    # Subtest: 2024-02-29T15:06:07Z UTC FDxRXTYy
+    ok 20 - 2024-02-29T15:06:07Z UTC FDxRXTYy
+      ---
+      duration_ms: 6.058958
+      type: 'test'
+      ...
+    # Subtest: 2024-02-29T15:06:07Z UTC z
+    ok 21 - 2024-02-29T15:06:07Z UTC z
+      ---
+      duration_ms: 5.403334
+      type: 'test'
+      ...
+    # Subtest: 2024-02-29T15:06:07Z UTC-0:30:07 aAbBhcpPrZ
+    ok 22 - 2024-02-29T15:06:07Z UTC-0:30:07 aAbBhcpPrZ
+      ---
+      duration_ms: 5.882292
+      type: 'test'
+      ...
+    # Subtest: 2024-02-29T15:06:07Z UTC-0:30:07 FDxRXTYy
+    ok 23 - 2024-02-29T15:06:07Z UTC-0:30:07 FDxRXTYy
+      ---
+      duration_ms: 5.590958
+      type: 'test'
+      ...
+    # Subtest: 2024-02-29T15:06:07Z UTC-0:30:07 z
+    ok 24 - 2024-02-29T15:06:07Z UTC-0:30:07 z
+      ---
+      duration_ms: 5.237
+      type: 'test'
+      ...
+    # Subtest: 2024-02-29T15:06:07Z UTC+0:00:07 aAbBhcpPrZ
+    ok 25 - 2024-02-29T15:06:07Z UTC+0:00:07 aAbBhcpPrZ
+      ---
+      duration_ms: 5.809292
+      type: 'test'
+      ...
+    # Subtest: 2024-02-29T15:06:07Z UTC+0:00:07 FDxRXTYy
+    ok 26 - 2024-02-29T15:06:07Z UTC+0:00:07 FDxRXTYy
+      ---
+      duration_ms: 5.750209
+      type: 'test'
+      ...
+    # Subtest: 2024-02-29T15:06:07Z UTC+0:00:07 z
+    ok 27 - 2024-02-29T15:06:07Z UTC+0:00:07 z
+      ---
+      duration_ms: 6.000792
+      type: 'test'
+      ...
+    # Subtest: 2024-02-29T15:06:07Z UTC-5:45 aAbBhcpPrZ
+    ok 28 - 2024-02-29T15:06:07Z UTC-5:45 aAbBhcpPrZ
+      ---
+      duration_ms: 5.966042
+      type: 'test'
+      ...
+    # Subtest: 2024-02-29T15:06:07Z UTC-5:45 FDxRXTYy
+    ok 29 - 2024-02-29T15:06:07Z UTC-5:45 FDxRXTYy
+      ---
+      duration_ms: 13.142375
+      type: 'test'
+      ...
+    # Subtest: 2024-02-29T15:06:07Z UTC-5:45 z
+    ok 30 - 2024-02-29T15:06:07Z UTC-5:45 z
+      ---
+      duration_ms: 7.058584
+      type: 'test'
+      ...
+    # Subtest: 2024-02-29T15:06:07Z America/New_York aAbBhcpPrZ
+    ok 31 - 2024-02-29T15:06:07Z America/New_York aAbBhcpPrZ
+      ---
+      duration_ms: 5.897583
+      type: 'test'
+      ...
+    # Subtest: 2024-02-29T15:06:07Z America/New_York FDxRXTYy
+    ok 32 - 2024-02-29T15:06:07Z America/New_York FDxRXTYy
+      ---
+      duration_ms: 5.82125
+      type: 'test'
+      ...
+    # Subtest: 2024-02-29T15:06:07Z America/New_York z
+    ok 33 - 2024-02-29T15:06:07Z America/New_York z
+      ---
+      duration_ms: 6.215125
+      type: 'test'
+      ...
+    # Subtest: 2024-02-29T15:06:07Z Europe/Paris aAbBhcpPrZ
+    ok 34 - 2024-02-29T15:06:07Z Europe/Paris aAbBhcpPrZ
+      ---
+      duration_ms: 6.173708
+      type: 'test'
+      ...
+    # Subtest: 2024-02-29T15:06:07Z Europe/Paris FDxRXTYy
+    ok 35 - 2024-02-29T15:06:07Z Europe/Paris FDxRXTYy
+      ---
+      duration_ms: 5.728333
+      type: 'test'
+      ...
+    # Subtest: 2024-02-29T15:06:07Z Europe/Paris z
+    ok 36 - 2024-02-29T15:06:07Z Europe/Paris z
+      ---
+      duration_ms: 6.357667
+      type: 'test'
+      ...
+    # Subtest: @-1.000000001 UTC aAbBhcpPrZ
+    ok 37 - @-1.000000001 UTC aAbBhcpPrZ
+      ---
+      duration_ms: 5.883417
+      type: 'test'
+      ...
+    # Subtest: @-1.000000001 UTC FDxRXTYy
+    ok 38 - @-1.000000001 UTC FDxRXTYy
+      ---
+      duration_ms: 5.610208
+      type: 'test'
+      ...
+    # Subtest: @-1.000000001 UTC z
+    ok 39 - @-1.000000001 UTC z
+      ---
+      duration_ms: 5.122958
+      type: 'test'
+      ...
+    # Subtest: @-1.000000001 UTC-0:30:07 aAbBhcpPrZ
+    ok 40 - @-1.000000001 UTC-0:30:07 aAbBhcpPrZ
+      ---
+      duration_ms: 5.238459
+      type: 'test'
+      ...
+    # Subtest: @-1.000000001 UTC-0:30:07 FDxRXTYy
+    ok 41 - @-1.000000001 UTC-0:30:07 FDxRXTYy
+      ---
+      duration_ms: 5.111041
+      type: 'test'
+      ...
+    # Subtest: @-1.000000001 UTC-0:30:07 z
+    ok 42 - @-1.000000001 UTC-0:30:07 z
+      ---
+      duration_ms: 5.052541
+      type: 'test'
+      ...
+    # Subtest: @-1.000000001 UTC+0:00:07 aAbBhcpPrZ
+    ok 43 - @-1.000000001 UTC+0:00:07 aAbBhcpPrZ
+      ---
+      duration_ms: 5.0355
+      type: 'test'
+      ...
+    # Subtest: @-1.000000001 UTC+0:00:07 FDxRXTYy
+    ok 44 - @-1.000000001 UTC+0:00:07 FDxRXTYy
+      ---
+      duration_ms: 4.951083
+      type: 'test'
+      ...
+    # Subtest: @-1.000000001 UTC+0:00:07 z
+    ok 45 - @-1.000000001 UTC+0:00:07 z
+      ---
+      duration_ms: 4.773167
+      type: 'test'
+      ...
+    # Subtest: @-1.000000001 UTC-5:45 aAbBhcpPrZ
+    ok 46 - @-1.000000001 UTC-5:45 aAbBhcpPrZ
+      ---
+      duration_ms: 5.166958
+      type: 'test'
+      ...
+    # Subtest: @-1.000000001 UTC-5:45 FDxRXTYy
+    ok 47 - @-1.000000001 UTC-5:45 FDxRXTYy
+      ---
+      duration_ms: 4.885459
+      type: 'test'
+      ...
+    # Subtest: @-1.000000001 UTC-5:45 z
+    ok 48 - @-1.000000001 UTC-5:45 z
+      ---
+      duration_ms: 5.91575
+      type: 'test'
+      ...
+    # Subtest: @-1.000000001 America/New_York aAbBhcpPrZ
+    ok 49 - @-1.000000001 America/New_York aAbBhcpPrZ
+      ---
+      duration_ms: 5.637416
+      type: 'test'
+      ...
+    # Subtest: @-1.000000001 America/New_York FDxRXTYy
+    ok 50 - @-1.000000001 America/New_York FDxRXTYy
+      ---
+      duration_ms: 5.3755
+      type: 'test'
+      ...
+    # Subtest: @-1.000000001 America/New_York z
+    ok 51 - @-1.000000001 America/New_York z
+      ---
+      duration_ms: 4.896209
+      type: 'test'
+      ...
+    # Subtest: @-1.000000001 Europe/Paris aAbBhcpPrZ
+    ok 52 - @-1.000000001 Europe/Paris aAbBhcpPrZ
+      ---
+      duration_ms: 5.47025
+      type: 'test'
+      ...
+    # Subtest: @-1.000000001 Europe/Paris FDxRXTYy
+    ok 53 - @-1.000000001 Europe/Paris FDxRXTYy
+      ---
+      duration_ms: 5.3515
+      type: 'test'
+      ...
+    # Subtest: @-1.000000001 Europe/Paris z
+    ok 54 - @-1.000000001 Europe/Paris z
+      ---
+      duration_ms: 5.000166
+      type: 'test'
+      ...
+    1..54
+ok 14 - fresh GNU9.7 C-locale flag/width/compound/timezone matrix
+  ---
+  duration_ms: 336.351875
+  type: 'test'
+  ...
+# Subtest: sleep exact decimal carry ["0.0009999999","0.0000000001"]
+ok 15 - sleep exact decimal carry ["0.0009999999","0.0000000001"]
+  ---
+  duration_ms: 1.353208
+  type: 'test'
+  ...
+# Subtest: sleep exact decimal carry ["0.0004999999","0.0005000001"]
+ok 16 - sleep exact decimal carry ["0.0004999999","0.0005000001"]
+  ---
+  duration_ms: 0.234042
+  type: 'test'
+  ...
+# Subtest: sleep exact decimal carry ["0.0009999999","0.0000000000999999999999"]
+ok 17 - sleep exact decimal carry ["0.0009999999","0.0000000000999999999999"]
+  ---
+  duration_ms: 0.186625
+  type: 'test'
+  ...
+# Subtest: sleep exact decimal carry ["0.0009999999","0.0000000001000000000001"]
+ok 18 - sleep exact decimal carry ["0.0009999999","0.0000000001000000000001"]
+  ---
+  duration_ms: 0.170291
+  type: 'test'
+  ...
+# Subtest: sleep exact decimal carry ["0.001","1e-1000000000000000000000"]
+ok 19 - sleep exact decimal carry ["0.001","1e-1000000000000000000000"]
+  ---
+  duration_ms: 0.266625
+  type: 'test'
+  ...
+# Subtest: sleep exact decimal carry ["1e-1000000000000000000000"]
+ok 20 - sleep exact decimal carry ["1e-1000000000000000000000"]
+  ---
+  duration_ms: 0.062667
+  type: 'test'
+  ...
+# Subtest: sleep exact decimal carry [".000016666666666666m",".00000000000000000004"]
+ok 21 - sleep exact decimal carry [".000016666666666666m",".00000000000000000004"]
+  ---
+  duration_ms: 0.084125
+  type: 'test'
+  ...
+# Subtest: sleep exact decimal carry [".0000000001d",".0000000001h",".0000000001m",".000990994"]
+ok 22 - sleep exact decimal carry [".0000000001d",".0000000001h",".0000000001m",".000990994"]
+  ---
+  duration_ms: 0.0535
+  type: 'test'
+  ...
+# Subtest: sleep exact decimal carry ["0.000000000000000000000000000001","0.000999999999999999999999999999"]
+ok 23 - sleep exact decimal carry ["0.000000000000000000000000000001","0.000999999999999999999999999999"]
+  ---
+  duration_ms: 0.122167
+  type: 'test'
+  ...
+# Subtest: sleep exact decimal carry [".0005",".0005","1e-999999999999999999999"]
+ok 24 - sleep exact decimal carry [".0005",".0005","1e-999999999999999999999"]
+  ---
+  duration_ms: 0.229542
+  type: 'test'
+  ...
+# Subtest: sleep exact decimal carry ["0e9999999999999999999999","0e-9999999999999999999999"]
+ok 25 - sleep exact decimal carry ["0e9999999999999999999999","0e-9999999999999999999999"]
+  ---
+  duration_ms: 0.050375
+  type: 'test'
+  ...
+# Subtest: sleep bounded exact rational properties across decimal positions and units
+ok 26 - sleep bounded exact rational properties across decimal positions and units
+  ---
+  duration_ms: 7.069333
+  type: 'test'
+  ...
+# Subtest: sleep sparse decimal positions bound huge exponents without allocating exponent-sized buffers
+ok 27 - sleep sparse decimal positions bound huge exponents without allocating exponent-sized buffers
+  ---
+  duration_ms: 1.611959
+  type: 'test'
+  ...
+# Subtest: sleep exact range boundary preserves chunking and rejects excess before scheduling
+ok 28 - sleep exact range boundary preserves chunking and rejects excess before scheduling
+  ---
+  duration_ms: 0.334916
+  type: 'test'
+  ...
+# Subtest: sleep many fractional carries reach the boundary without per-operand rounding
+ok 29 - sleep many fractional carries reach the boundary without per-operand rounding
+  ---
+  duration_ms: 2.208042
+  type: 'test'
+  ...
+1..29
+# tests 83
+# suites 0
+# pass 83
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 599.886167

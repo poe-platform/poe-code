@@ -21,7 +21,7 @@ for (const kind of ['Buffer', 'Uint8Array']) {
   });
   test(`internal exact collector overflow closes source ${kind}`, watchdog, async () => {
     const { source, state } = borrowed(kind, vectors.binary.chunks);
-    await assert.rejects(collect(source, new AbortController().signal, 5), error => error.code === 'EFBIG' && error.message === 'buffer limit exceeded (5 bytes)');
+    await assert.rejects(collect(source, new AbortController().signal, 5), error => error.code === 'EFBIG' && error.message === 'EFBIG: buffer limit exceeded (5 bytes)');
     assert.deepEqual(state, { resumed: 2, finalized: true, noMutationChecks: 3 });
   });
   test(`internal cooperative abort preserves reason ${kind}`, watchdog, async () => {

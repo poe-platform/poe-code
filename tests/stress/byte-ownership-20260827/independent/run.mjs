@@ -21,7 +21,8 @@ const sourceSnapshot = () => mapHashes([
   ...walk(join(root, 'src')),
   ...['package.json', 'tsconfig.json', 'tsconfig.build.json', 'tests/contracts/io.test.ts', 'AGENTS.md'].map(filename => join(root, filename)),
 ]);
-const frozenNames = ['vectors.mjs', 'fixtures.mjs', 'internal.mjs', 'public.mjs', 'loaded-hashes.mjs', 'run.mjs', 'README.md', '.gitignore'];
+const frozenNames = ['vectors.mjs', 'fixtures.mjs', 'internal.mjs', 'public.mjs', 'loaded-hashes.mjs', 'run.mjs', 'README.md', '.gitignore', 'consumer-package.json', 'scaffolding-correction.md'];
+const freezeName = 'freeze-scaffold-v2.json';
 const fixtureSnapshot = () => mapHashes(frozenNames.map(filename => join(owned, filename)));
 const addEvidence = (name, content) => {
   const filename = relative(root, join(owned, name));
@@ -41,15 +42,15 @@ if (process.argv[2] === '--freeze') {
     node: process.version, platform: process.platform, arch: process.arch,
     status: run('git', ['status', '--short']).stdout,
   };
-  addEvidence('freeze.json', JSON.stringify(binding, null, 2));
-  console.log(JSON.stringify({ counts, freezeSha256: digest(join(owned, 'freeze.json')), sourceFiles: Object.keys(source).length }));
+  addEvidence(freezeName, JSON.stringify(binding, null, 2));
+  console.log(JSON.stringify({ counts, freezeSha256: digest(join(owned, freezeName)), sourceFiles: Object.keys(source).length }));
 } else {
   const phase = process.argv[2];
   assert.match(phase ?? '', /^[a-z][a-z0-9-]*$/);
-  const freeze = JSON.parse(readFileSync(join(owned, 'freeze.json'), 'utf8'));
+  const freeze = JSON.parse(readFileSync(join(owned, freezeName), 'utf8'));
   assert.deepEqual(fixtureSnapshot(), freeze.fixtures, 'frozen holdout files changed');
   const before = sourceSnapshot();
-  if (phase === 'prepatch') assert.deepEqual(before, freeze.source, 'source changed before baseline');
+  if (phase.startsWith('prepatch')) assert.deepEqual(before, freeze.source, 'source changed before baseline');
   const scratch = join(owned, '.work', phase);
   assert.ok(!existsSync(scratch), 'use a unique phase; do not erase previous attempts');
   const staged = join(scratch, 'staged', 'virtual-bash');
@@ -63,6 +64,7 @@ if (process.argv[2] === '--freeze') {
   const consumer = join(scratch, 'moved', 'consumer');
   const destination = join(consumer, 'node_modules', 'virtual-bash');
   mkdirSync(dirname(destination), { recursive: true });
+  copyFileSync(join(owned, 'consumer-package.json'), join(consumer, 'package.json'));
   renameSync(staged, destination);
   assert.ok(!existsSync(staged));
   for (const filename of ['public.mjs', 'internal.mjs', 'vectors.mjs', 'fixtures.mjs']) copyFileSync(join(owned, filename), join(consumer, filename));
@@ -104,7 +106,7 @@ if (process.argv[2] === '--freeze') {
   }
   const evidence = {
     phase, timestamp: new Date().toISOString(), head: run('git', ['rev-parse', 'HEAD']).stdout.trim(),
-    freezeSha256: digest(join(owned, 'freeze.json')), source: before,
+    freezeSha256: digest(join(owned, freezeName)), source: before,
     changedSinceFreeze: Object.keys(before).filter(filename => before[filename] !== freeze.source[filename]),
     sourceUnchangedDuringRun: true, fixturesUnchanged: true,
     sourceWasMoved: false, packageWasMoved: true, movedPackageUnchanged: true,

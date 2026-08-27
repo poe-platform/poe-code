@@ -1,0 +1,21 @@
+node:fs:1590
+  const result = binding.readdir(
+                         ^
+
+Error: ENOENT: no such file or directory, scandir '/Users/kjopek/.nvm/versions/node/v24.11.1/lib/node_modules/npm'
+    at readdirSync (node:fs:1590:26)
+    at walk (file:///Users/kjopek/Workspace/safe-bash/tests/integration/du-type-workflow-independent-20260827/review.mjs:26:24)
+    at manifest (file:///Users/kjopek/Workspace/safe-bash/tests/integration/du-type-workflow-independent-20260827/review.mjs:43:3)
+    at file:///Users/kjopek/Workspace/safe-bash/tests/integration/du-type-workflow-independent-20260827/review.mjs:134:109
+    at Array.map (<anonymous>)
+    at file:///Users/kjopek/Workspace/safe-bash/tests/integration/du-type-workflow-independent-20260827/review.mjs:134:33
+    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5) {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'scandir',
+  path: '/Users/kjopek/.nvm/versions/node/v24.11.1/lib/node_modules/npm'
+}
+
+Node.js v22.22.2

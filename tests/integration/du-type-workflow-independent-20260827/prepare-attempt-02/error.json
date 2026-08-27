@@ -1,0 +1,7 @@
+{
+  "naturalExit": 1,
+  "phase": "pre-execution authentication",
+  "supervisor": "../prepare-attempt-02.mjs.fixture",
+  "stderr": "node:internal/modules/run_main:123\n    triggerUncaughtException(\n    ^\n\nAssertionError [ERR_ASSERTION]: tool link escapes pinned tree: .bin/esbuild\n    at walk (file:///Users/kjopek/Workspace/safe-bash/tests/integration/du-type-workflow-independent-20260827/review.mjs:31:16)\n    at walk (file:///Users/kjopek/Workspace/safe-bash/tests/integration/du-type-workflow-independent-20260827/review.mjs:35:31)\n    at manifest (file:///Users/kjopek/Workspace/safe-bash/tests/integration/du-type-workflow-independent-20260827/review.mjs:39:3)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/integration/du-type-workflow-independent-20260827/review.mjs:121:28\n    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5) {\n  generatedMessage: false,\n  code: 'ERR_ASSERTION',\n  actual: false,\n  expected: true,\n  operator: '==',\n  diff: 'simple'\n}\n\nNode.js v22.22.2\n",
+  "correction": "Author archive tool .bin links are absolute references to this repository's development tools. Verify each target equals the archived regular tool bytes, record original link identities, then dereference into the isolated tool copy. No product source fallback, package symlinks, fixture changes, or outcome adjustments."
+}

@@ -1,0 +1,9 @@
+{
+  "naturalExit": 1,
+  "phase": "pre-execution authentication",
+  "supervisor": "../prepare-attempt-04.mjs.fixture",
+  "rawStdout": "stdout",
+  "rawStderr": "stderr",
+  "cause": "The installed Node24 binary has a broken npm link; its lib/node_modules/npm tree does not exist.",
+  "correction": "Explicitly pin Node22's existing npm implementation for both runtimes; place each selected Node binary first in PATH, then Node22's npm path. No installation, fixture edits, reporter changes, or expected-result adjustments. Both profiles run the same authenticated npm code using their selected Node binary."
+}

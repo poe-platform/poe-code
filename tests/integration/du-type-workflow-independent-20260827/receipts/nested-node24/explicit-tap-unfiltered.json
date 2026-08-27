@@ -1,0 +1,14 @@
+{
+  "executable": "npm",
+  "args": [
+    "test",
+    "--",
+    "--test-reporter=tap"
+  ],
+  "cwd": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-type-workflow-independent-20260827/.work-SGGK2P/reporter-probe-sL5x92",
+  "node": "v24.11.1",
+  "status": 1,
+  "signal": null,
+  "stdout": "\n> virtual-bash@0.0.0 test\n> node --import tsx --test \"tests/**/*.test.ts\" --test-reporter=tap\n\n✔ canonical-test-and-helper (0.256167ms)\n✔ neighbor-1 (0.218167ms)\n✔ neighbor-0 (0.28125ms)\n/Users/kjopek/Workspace/safe-bash/tests/integration/du-type-workflow-independent-20260827/.work-SGGK2P/reporter-probe-sL5x92/tests/commands/regex-execution/continuation/artifacts/native/arbitrary.test.ts:1\nthrow new Error('NATIVE_DATA_MUST_NOT_EXECUTE');\n      ^\n\nError: NATIVE_DATA_MUST_NOT_EXECUTE\n    at <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/integration/du-type-workflow-independent-20260827/.work-SGGK2P/reporter-probe-sL5x92/tests/commands/regex-execution/continuation/artifacts/native/arbitrary.test.ts:1:7)\n    at ModuleJob.run (node:internal/modules/esm/module_job:377:25)\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:671:26)\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:101:5)\n\nNode.js v24.11.1\n✖ tests/commands/regex-execution/continuation/artifacts/native/arbitrary.test.ts (126.231583ms)\n/Users/kjopek/Workspace/safe-bash/tests/integration/du-type-workflow-independent-20260827/.work-SGGK2P/reporter-probe-sL5x92/tests/commands/regex-execution/continuation/artifacts/native/nested/space 🙂.test.ts:1\nthrow new Error('NATIVE_DATA_MUST_NOT_EXECUTE');\n      ^\n\nError: NATIVE_DATA_MUST_NOT_EXECUTE\n    at <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/integration/du-type-workflow-independent-20260827/.work-SGGK2P/reporter-probe-sL5x92/tests/commands/regex-execution/continuation/artifacts/native/nested/space 🙂.test.ts:1:7)\n    at ModuleJob.run (node:internal/modules/esm/module_job:377:25)\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:671:26)\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:101:5)\n\nNode.js v24.11.1\n✖ tests/commands/regex-execution/continuation/artifacts/native/nested/space 🙂.test.ts (104.462834ms)\n✔ neighbor-2 (0.271291ms)\n✔ neighbor-3 (0.218833ms)\nℹ tests 7\nℹ suites 0\nℹ pass 5\nℹ fail 2\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 151.2095\n\n✖ failing tests:\n\ntest at tests/commands/regex-execution/continuation/artifacts/native/arbitrary.test.ts:1:1\n✖ tests/commands/regex-execution/continuation/artifacts/native/arbitrary.test.ts (126.231583ms)\n  'test failed'\n\ntest at tests/commands/regex-execution/continuation/artifacts/native/nested/space 🙂.test.ts:1:1\n✖ tests/commands/regex-execution/continuation/artifacts/native/nested/space 🙂.test.ts (104.462834ms)\n  'test failed'\n",
+  "stderr": ""
+}

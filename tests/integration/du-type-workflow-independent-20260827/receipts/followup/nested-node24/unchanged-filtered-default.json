@@ -1,0 +1,12 @@
+{
+  "executable": "npm",
+  "args": [
+    "test"
+  ],
+  "cwd": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-type-workflow-independent-20260827/.work-SGGK2P/reporter-probe-YaYdFD",
+  "node": "v24.11.1",
+  "status": 0,
+  "signal": null,
+  "stdout": "\n> virtual-bash@0.0.0 test\n> node --input-type=module -e \"import { globSync } from 'node:fs'; import { spawnSync } from 'node:child_process'; const files = globSync('tests/**/*.test.ts', { exclude: path => path === 'tests/commands/regex-execution/continuation/artifacts/native' }); if (!files.length) throw new Error('No test files found'); const result = spawnSync(process.execPath, ['--import', 'tsx', '--test', ...process.argv.slice(1), ...files], { stdio: 'inherit' }); process.exit(result.status ?? 1);\" --\n\n✔ canonical-test-and-helper (0.316958ms)\n✔ neighbor-1 (0.298334ms)\n✔ neighbor-0 (0.233125ms)\n✔ neighbor-2 (0.283667ms)\n✔ neighbor-3 (0.236208ms)\nℹ tests 5\nℹ suites 0\nℹ pass 5\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 141.38\n",
+  "stderr": ""
+}

@@ -1,0 +1,267 @@
+import assert from "node:assert/strict";
+import { execFileSync, spawnSync } from "node:child_process";
+import { createHash } from "node:crypto";
+import { copyFileSync, cpSync, existsSync, lstatSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, readlinkSync, realpathSync, renameSync, rmSync, writeFileSync } from "node:fs";
+import { dirname, join, relative } from "node:path";
+import { fileURLToPath, pathToFileURL } from "node:url";
+import { gunzipSync, gzipSync } from "node:zlib";
+
+const owned = dirname(fileURLToPath(import.meta.url));
+const repository = realpathSync(join(owned, "../../.."));
+const candidate = "491da31cc6ef07a3bc4584c15ae2efe9f0482c96";
+const evidence = "e9843e601859282de25fa40742529c6be6668bf3";
+const commits = ["5f6960a277f37c69bc6ec04b74018438db46e956", "bca8848f2cf5e843efe51298eea5897943b32ce0", candidate, evidence];
+const owner = "tests/plugins/qualified-current-release";
+const nativeOwner = "tests/plugins/qualified-current-release-native-data";
+const authorOwner = "tests/integration/du-type-workflow-20260827";
+const digest = bytes => createHash("sha256").update(bytes).digest("hex");
+const json = (filename, value) => { mkdirSync(dirname(filename), { recursive: true }); writeFileSync(filename, JSON.stringify(value, null, 2) + "\n"); };
+const git = args => execFileSync("/usr/bin/git", args, { cwd: repository, maxBuffer: 96 * 1024 * 1024 });
+const text = args => git(args).toString().trim();
+const blob = (path, revision = candidate) => git(["show", `${revision}:${path}`]);
+const parse = (path, revision = candidate) => JSON.parse(blob(path, revision));
+const manifest = (directory, allowToolLinks = false) => {
+  const records = [];
+  const walk = prefix => {
+    for (const name of readdirSync(join(directory, prefix)).sort()) {
+      const path = prefix ? `${prefix}/${name}` : name;
+      const info = lstatSync(join(directory, path));
+      if (info.isSymbolicLink() && allowToolLinks) {
+        const target = realpathSync(join(directory, path));
+        if (!target.startsWith(realpathSync(directory) + "/")) {
+          assert.ok(path.startsWith(".bin/") && target.startsWith(join(repository, "node_modules") + "/"), `tool link escapes explicit development tools: ${path}`);
+          const counterpart = join(directory, relative(join(repository, "node_modules"), target));
+          assert.equal(digest(readFileSync(target)), digest(readFileSync(counterpart)), `external tool link differs from archived tool bytes: ${path}`);
+        }
+        const bytes = readFileSync(target); records.push({ path, symlink: readlinkSync(join(directory, path)), bytes: bytes.length, sha256: digest(bytes) }); continue;
+      }
+      assert.ok(!info.isSymbolicLink(), `unexpected symlink: ${path}`);
+      if (info.isDirectory()) walk(path);
+      else { assert.ok(info.isFile()); const bytes = readFileSync(join(directory, path)); records.push({ path, bytes: bytes.length, sha256: digest(bytes) }); }
+    }
+  };
+  walk(""); return records;
+};
+const tree = text(["ls-tree", "-r", candidate]).split("\n").map(line => {
+  const [metadata, path] = line.split("\t"); const [mode, type, oid] = metadata.split(" "); return { path, mode, type, oid };
+});
+const records = new Map(tree.map(entry => [entry.path, entry]));
+
+if (process.argv[2] === "prepare") {
+  const destination = join(owned, process.argv[3] ?? "receipts");
+  assert.ok(!existsSync(destination), "refusing to replace existing receipts"); mkdirSync(destination);
+  const work = mkdtempSync(join(owned, ".work-"));
+  const root = join(work, "candidate"); mkdirSync(root);
+  const runtimePaths = ["/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node", "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node"];
+  const toolPins = [...runtimePaths, "/usr/bin/git", "/usr/bin/tar"].map(path => ({ path, bytes: readFileSync(path).length, sha256: digest(readFileSync(path)) }));
+  const identities = commits.map(commit => ({ commit, tree: text(["rev-parse", `${commit}^{tree}`]), parents: text(["rev-list", "--parents", "-n", "1", commit]).split(" ").slice(1), delta: text(["diff-tree", "--no-commit-id", "--name-status", "-r", commit]) }));
+  for (let index = 1; index < commits.length; index++) git(["merge-base", "--is-ancestor", commits[index - 1], commits[index]]);
+  assert.equal(identities[2].tree, "0682029eeea9c0b0a639e450ff86288f210735c0");
+  assert.equal(text(["diff", commits[1], candidate, "--", "src", "package.json", "package-lock.json", "tsconfig.build.json", "README.md"]), "");
+  const evidenceManifest = parse(`${authorOwner}/data/MANIFEST.json`, evidence);
+  const encoded = blob(`${authorOwner}/data/EVIDENCE.json.gz.base64`, evidence);
+  const payload = gunzipSync(Buffer.from(encoded.toString().replace(/\s/gu, ""), "base64"));
+  assert.equal(digest(payload), evidenceManifest.payloadSha256);
+  const files = JSON.parse(payload);
+  assert.deepEqual(files.map(file => ({ path: file.path, bytes: Buffer.byteLength(file.text), sha256: digest(file.text) })), evidenceManifest.files);
+  assert.equal(new Set(files.map(file => file.path)).size, files.length);
+  const reports = files.filter(file => file.path.endsWith("/REPORT.json")).map(file => ({ path: file.path, report: JSON.parse(file.text) }));
+  const completed = reports.filter(entry => entry.report.completed && entry.report.status === "author-scoped-pass");
+  assert.equal(completed.length, 1);
+  const author = completed[0].report;
+  assert.equal(author.candidate, candidate); assert.equal(author.tree, identities[2].tree);
+  assert.deepEqual(author.sourceBefore, author.sourceAfter); assert.deepEqual(author.package.before, author.package.after);
+  assert.deepEqual(author.originalInputsBefore, author.originalInputsAfter);
+  for (const entry of author.sourceBefore) {
+    const bytes = blob(entry.path); assert.equal(digest(bytes), entry.sha256, entry.path); assert.equal(records.get(entry.path).oid, entry.blob);
+  }
+  for (const entry of author.harnessInputs) assert.equal(digest(blob(`${authorOwner}/${entry.name}`, evidence)), entry.sha256);
+  json(join(destination, "author-binding.json"), { evidence, candidate, tree: author.tree, evidenceManifest, reportPath: completed[0].path, sourceInputs: author.sourceBefore, package: author.package, declarationBinding: author.typecheck.candidateBinding, counts: { controls: author.controls.length, strictGroups: author.typecheck.consumers.groups.length, negativeGroups: author.typecheck.consumers.negative?.length, builds: author.typecheck.builds, runtimeExecutionsWithinTypecheck: author.typecheck.runtimeExecutions }, unsuccessfulAttempts: reports.filter(entry => entry !== completed[0]).map(entry => ({ path: entry.path, status: entry.report.status, failures: entry.report.failures })) });
+  const staged = parse(`${owner}/staged-types.json`);
+  const captured = parse(`${owner}/captured-types.json`);
+  const inventory = parse(`${owner}/inventory.json`);
+  assert.equal(staged.entries.length, 14);
+  const originalInputs = staged.entries.map(entry => {
+    const bytes = blob(entry.path); const before = blob(entry.path, `${commits[0]}^`); const owningBytes = blob(entry.owner.path);
+    assert.deepEqual(bytes, before); assert.deepEqual(bytes, blob(entry.path, evidence));
+    assert.deepEqual(owningBytes, blob(entry.owner.path, `${commits[0]}^`));
+    assert.equal(bytes.length, entry.bytes); assert.equal(digest(bytes), entry.sha256); assert.equal(digest(owningBytes), entry.owner.sha256);
+    const expectedRole = /\/approved-v[5-9]-/u.test(entry.path) ? "versioned-template" : entry.path.includes("/evidence/") ? "sealed-capture" : "reusable-template";
+    assert.equal(entry.role, expectedRole);
+    const owning = JSON.parse(owningBytes); const inputs = entry.owner.collection === "files" ? owning.files : owning.harness.inputs;
+    const matches = inputs.filter(input => input.path === entry.owner.input); assert.equal(matches.length, 1); assert.equal(matches[0].sha256, entry.sha256); assert.equal(matches[0].bytes, entry.bytes);
+    return { ...entry, oid: records.get(entry.path).oid, preClassificationOid: text(["rev-parse", `${commits[0]}^:${entry.path}`]), independentlyInferredRole: expectedRole };
+  });
+  assert.deepEqual(Object.fromEntries(["sealed-capture", "versioned-template", "reusable-template"].map(role => [role, originalInputs.filter(entry => entry.role === role).length])), { "sealed-capture": 6, "versioned-template": 5, "reusable-template": 3 });
+  assert.deepEqual(tree.filter(entry => entry.path.startsWith("tests/integration/du-overlay-independent-20260827/") && entry.path.endsWith("/consumer.ts")).map(entry => entry.path).sort(), staged.entries.map(entry => entry.path).sort());
+  const config = parse("tsconfig.json"), oldConfig = parse("tsconfig.json", `${commits[0]}^`);
+  assert.deepEqual(config.include, ["src/**/*.ts", "tests/**/*.ts"]); assert.deepEqual(config.compilerOptions, oldConfig.compilerOptions);
+  assert.deepEqual(config.exclude, [...oldConfig.exclude, ...staged.entries.map(entry => entry.path)]);
+  assert.deepEqual(config.exclude, [...captured.existingExclusions, ...captured.entries.map(entry => entry.path), ...staged.entries.map(entry => entry.path)]);
+  assert.deepEqual(tree.filter(entry => entry.path.endsWith(".mts")).map(entry => entry.path).sort(), inventory.entries.map(entry => entry.path).sort());
+  const selected = new Set(["package.json", "package-lock.json", "tsconfig.json", "src/commands/du/index.ts", "scripts/typecheck-inputs.mjs", "scripts/typecheck-staged-inputs.mjs", "scripts/typecheck-consumers.mjs", `${owner}/consumers.mjs`, `${owner}/inventory-check.mjs`, `${owner}/runtime-coverage.mjs`, `${owner}/inventory.json`, `${owner}/captured-types.json`, `${owner}/staged-types.json`, `${owner}/tsconfig.consumer.json`, "tests/plugins/stream-five-public/current-profile.mjs", `${nativeOwner}/controls.test.ts`, `${nativeOwner}/helpers.ts`, `${nativeOwner}/before-02.json`, `${nativeOwner}/classification.json`, captured.provenance]);
+  for (const entry of staged.entries) { selected.add(entry.path); selected.add(entry.owner.path); }
+  for (const entry of captured.entries) { selected.add(entry.path); selected.add(entry.originalPath); }
+  for (const entry of captured.evidence) selected.add(entry.path);
+  for (const entry of inventory.entries) { selected.add(entry.path); for (const witness of entry.freeze?.evidence ?? []) selected.add(witness.path); }
+  const groupSource = blob(`${owner}/consumers.mjs`).toString();
+  for (const match of groupSource.matchAll(/"(tests\/[^"\n]+\.ts)"/gu)) selected.add(match[1]);
+  const inputs = [];
+  for (const path of [...selected].sort()) {
+    const entry = records.get(path); assert.equal(entry?.type, "blob", path); assert.equal(entry.mode, "100644", path);
+    const bytes = blob(path); const target = join(root, path); mkdirSync(dirname(target), { recursive: true }); writeFileSync(target, bytes);
+    inputs.push({ ...entry, bytes: bytes.length, sha256: digest(bytes) });
+  }
+  const artifact = join(author.directory, "pack/virtual-bash-0.0.0.tgz");
+  assert.equal(digest(readFileSync(artifact)), author.package.tarballSha256);
+  const artifacts = join(destination, "artifacts"); mkdirSync(artifacts);
+  copyFileSync(artifact, join(artifacts, "candidate.tgz"));
+  const extraction = join(work, "extracted"); mkdirSync(extraction);
+  execFileSync("/usr/bin/tar", ["-xf", join(artifacts, "candidate.tgz"), "-C", extraction]);
+  assert.deepEqual(manifest(join(extraction, "package")), author.package.before);
+  assert.equal(existsSync(join(extraction, "package/src")), false);
+  assert.equal(digest(readFileSync(join(extraction, "package/package.json"))), digest(blob("package.json")));
+  const dependencies = join(author.directory, "candidate/node_modules");
+  const originalDependencies = manifest(dependencies, true);
+  const dependencyBefore = originalDependencies.map(({ symlink, ...entry }) => entry);
+  cpSync(dependencies, join(root, "node_modules"), { recursive: true, dereference: true });
+  assert.deepEqual(manifest(join(root, "node_modules"), true), dependencyBefore);
+  assert.equal(digest(readFileSync(join(root, "node_modules/typescript/lib/_tsc.js"))), "e8f349eabd48486bdb2bf9dc1a00c89d58297270c54b745838879e2859194419");
+  const npmTrees = runtimePaths.map(path => ({ root: join(dirname(path), "../lib/node_modules/npm"), files: manifest(join(dirname(path), "../lib/node_modules/npm"), true) }));
+  const index = join(work, "candidate.index");
+  execFileSync("/usr/bin/git", ["read-tree", candidate], { cwd: repository, env: { ...process.env, GIT_INDEX_FILE: index } });
+  const unique = [...new Map(staged.entries.map(entry => [entry.sha256, entry])).values()]; assert.equal(unique.length, 2);
+  for (const [index, entry] of unique.entries()) { mkdirSync(join(destination, "fixtures"), { recursive: true }); writeFileSync(join(destination, `fixtures/original-${index}.ts.fixture`), blob(entry.path)); }
+  writeFileSync(join(destination, "fixtures/du-leaf.mts.fixture"), blob(`${owner}/du-leaf.mts`));
+  json(join(destination, "authentication.json"), { startedAt: new Date().toISOString(), identities, evidenceFiles: files.length, evidencePayloadSha256: digest(payload), originalInputs, rootPolicy: config, selectedInputs: inputs, completeTrackedMts: inventory.entries.map(entry => entry.path), tools: toolPins, originalDevelopmentDependencies: originalDependencies, developmentDependencies: dependencyBefore, npmTrees, supervisors: ["review.mjs", "reporter-probe.mjs"].map(path => ({ path, sha256: digest(readFileSync(join(owned, path))) })), packageTarballSha256: author.package.tarballSha256 });
+  json(join(destination, "state.json"), { work, root, index, destination, runtimePaths, package: join(extraction, "package") });
+  console.log(JSON.stringify({ authentication: "complete", destination, selectedInputs: inputs.length, originalInputs: originalInputs.length, packageFiles: author.package.before.length }));
+} else if (process.argv[2] === "run") {
+  const destination = join(owned, process.argv[3] ?? "receipts");
+  const state = JSON.parse(readFileSync(join(destination, "state.json")));
+  const authentication = JSON.parse(readFileSync(join(destination, "authentication.json")));
+  const binding = JSON.parse(readFileSync(join(destination, "author-binding.json")));
+  for (const supervisor of authentication.supervisors) assert.equal(digest(readFileSync(join(owned, supervisor.path))), supervisor.sha256);
+  for (const tool of authentication.tools) assert.equal(digest(readFileSync(tool.path)), tool.sha256);
+  for (const tool of authentication.npmTrees) assert.deepEqual(manifest(tool.root, true), tool.files);
+  assert.deepEqual(manifest(join(state.root, "node_modules"), true), authentication.developmentDependencies);
+  const logs = join(destination, "commands"); assert.ok(!existsSync(logs)); mkdirSync(logs);
+  const report = { candidate, evidence, startedAt: new Date().toISOString(), commands: [], checks: [], observations: [], failures: [] };
+  const save = () => json(join(destination, "execution.json"), report);
+  const check = (name, operation) => { try { const detail = operation(); report.checks.push({ name, status: "pass", detail }); } catch (error) { report.checks.push({ name, status: "fail", error: error.stack }); report.failures.push({ name, error: error.message }); } save(); };
+  const execute = (name, executable, args, cwd, expected = 0) => {
+    const env = { ...process.env, PATH: dirname(executable) + ":/usr/bin:/bin:/usr/sbin:/sbin", TSX_DISABLE_CACHE: "1", npm_config_cache: join(state.work, "npm-cache"), npm_config_update_notifier: "false", TMPDIR: state.work };
+    delete env.NODE_OPTIONS; delete env.NODE_TEST_CONTEXT; delete env.GIT_INDEX_FILE; delete env.GIT_WORK_TREE; delete env.GIT_DIR;
+    const startedAt = new Date().toISOString();
+    const result = spawnSync(executable, args, { cwd, env, encoding: "utf8", timeout: 120000, maxBuffer: 8 * 1024 * 1024 });
+    const receipt = { name, executable, args, cwd, startedAt, finishedAt: new Date().toISOString(), status: result.status, signal: result.signal, error: result.error?.message, stdout: result.stdout, stderr: result.stderr };
+    const bytes = Buffer.from(JSON.stringify(receipt, null, 2) + "\n"); writeFileSync(join(logs, `${name}.json.gz`), gzipSync(bytes));
+    report.commands.push({ name, status: result.status, signal: result.signal, expected, bytes: bytes.length, sha256: digest(bytes), file: `commands/${name}.json.gz` });
+    if (result.status !== expected || result.signal || result.error) report.failures.push({ name, expected, actual: result.status, error: result.error?.message });
+    save(); return result;
+  };
+  const mutate = (path, bytes, operation) => { const target = join(state.root, path), before = readFileSync(target); writeFileSync(target, bytes); try { return operation(); } finally { writeFileSync(target, before); } };
+  try {
+    for (const entry of authentication.selectedInputs) assert.equal(digest(readFileSync(join(state.root, entry.path))), entry.sha256);
+    process.env.GIT_INDEX_FILE = state.index; process.env.GIT_WORK_TREE = state.root; process.env.GIT_DIR = join(repository, ".git");
+    const inputs = await import(pathToFileURL(join(state.root, "scripts/typecheck-inputs.mjs")));
+    const stages = await import(pathToFileURL(join(state.root, "scripts/typecheck-staged-inputs.mjs")));
+    const groups = await import(pathToFileURL(join(state.root, `${owner}/consumers.mjs`)));
+    const resolutions = await import(pathToFileURL(join(state.root, "scripts/typecheck-consumers.mjs")));
+    const staged = JSON.parse(readFileSync(join(state.root, `${owner}/staged-types.json`)));
+    const verify = () => inputs.verifyTypecheckInputs(state.root);
+    check("complete candidate inventory admission", () => { const actual = verify(); assert.equal(actual.stagedInputs.length, 14); return actual; });
+    for (const entry of staged.entries) {
+      check(`missing original: ${entry.path}`, () => { const target = join(state.root, entry.path); renameSync(target, target + ".saved"); try { assert.throws(verify, /ENOENT/u); } finally { renameSync(target + ".saved", target); } });
+      check(`mutated original: ${entry.path}`, () => { const bytes = readFileSync(join(state.root, entry.path)); bytes[0] ^= 1; mutate(entry.path, bytes, () => assert.throws(verify, /staged input changed/u)); });
+    }
+    const stagedPath = `${owner}/staged-types.json`;
+    const mutations = [
+      ["unknown role", value => { value.entries[0].role = "discardable"; }],
+      ["duplicate input", value => { value.entries.push(value.entries[0]); }],
+      ["wildcard path", value => { value.entries[0].path = "tests/**/consumer.ts"; }],
+      ["unbound owner input", value => { value.entries[0].owner.input = "absent.ts"; }],
+      ["missing maintained route", value => { value.entries[0].currentGroup = "absent"; }],
+    ];
+    for (const [name, change] of mutations) check(name, () => { const next = structuredClone(staged); change(next); mutate(stagedPath, JSON.stringify(next), () => assert.throws(verify)); });
+    check("changed owning manifest", () => mutate(staged.entries[0].owner.path, "{}\n", () => assert.throws(verify, /owning manifest changed/u)));
+    const config = JSON.parse(readFileSync(join(state.root, "tsconfig.json")));
+    for (const [name, change] of [
+      ["whole DU directory omission", value => value.exclude.push("tests/integration/du-overlay-independent-20260827")],
+      ["current source omission", value => value.exclude.push("src/contracts/command.ts")],
+      ["test include omission", value => { value.include = ["src/**/*.ts"]; }],
+      ["missing literal staged exclusion", value => value.exclude.pop()],
+    ]) check(name, () => { const next = structuredClone(config); change(next); mutate("tsconfig.json", JSON.stringify(next), () => assert.throws(verify, /coverage|exclusions/u)); });
+    for (const [name, replacement] of [["local package route removed", { localPackage: false }], ["runtime route removed", { runtime: [] }]]) check(name, () => assert.throws(() => stages.verifyStagedTypeInputs(state.root, groups.consumerGroups.map(group => group.name === "du-leaf" ? { ...group, ...replacement } : group)), /maintained local-package runtime route/u));
+    const duPath = `${owner}/du-leaf.mts`;
+    check("missing maintained consumer", () => { const target = join(state.root, duPath); renameSync(target, target + ".saved"); try { assert.throws(verify, /ENOENT/u); } finally { renameSync(target + ".saved", target); } });
+    const [node22, node24] = state.runtimePaths;
+    const controlPath = `${nativeOwner}/controls.test.ts`;
+    const testArgs = pattern => ["--import", "tsx", "--test", "--test-reporter=tap", "--test-name-pattern", pattern, controlPath];
+    const validRoleSwap = structuredClone(staged);
+    const sealedIndex = validRoleSwap.entries.findIndex(entry => entry.role === "sealed-capture");
+    [validRoleSwap.entries[0].role, validRoleSwap.entries[sealedIndex].role] = [validRoleSwap.entries[sealedIndex].role, validRoleSwap.entries[0].role];
+    mutate(stagedPath, JSON.stringify(validRoleSwap), () => {
+      check("valid-role swap accepted by structural verifier (boundary observation)", () => assert.equal(verify().stagedInputs.length, 14));
+      const result = execute("misclassified-valid-role-swap", node22, testArgs("approved captured-type classification"), state.root, 1);
+      check("canonical policy hash rejects count-preserving role swap", () => assert.match(result.stdout, /74c0e75d5ae06a28db0647545387a2827ca3d51394aae19c4656dcb6bf9a1e43/u));
+    });
+    for (const [label, runtime] of [["node22", node22], ["node24", node24]]) execute(`unchanged-canonical-fixture-${label}`, runtime, ["--import", "tsx", "--test", "--test-reporter=tap", controlPath], state.root, label === "node22" ? 0 : 1);
+    for (const [label, runtime] of [["node22", node22], ["node24", node24]]) execute(`direct-nested-reporter-${label}`, runtime, [join(owned, "reporter-probe.mjs"), state.root, join(destination, `nested-${label}`)], state.root);
+    const installed = join(state.work, "installed"); mkdirSync(join(installed, "node_modules"), { recursive: true }); renameSync(state.package, join(installed, "node_modules/virtual-bash"));
+    json(join(installed, "package.json"), { private: true, type: "module" }); copyFileSync(join(destination, "fixtures/du-leaf.mts.fixture"), join(installed, "du-leaf.mts"));
+    const compiler = join(state.root, "node_modules/typescript/bin/tsc");
+    const consumerConfig = JSON.parse(readFileSync(join(state.root, `${owner}/tsconfig.consumer.json`)));
+    consumerConfig.compilerOptions.typeRoots = [join(state.root, "node_modules/@types")]; consumerConfig.files = ["du-leaf.mts"];
+    json(join(installed, "tsconfig.json"), consumerConfig);
+    const packageBinding = { metadataSha256: binding.declarationBinding.metadataSha256, exports: JSON.parse(readFileSync(join(installed, "node_modules/virtual-bash/package.json"))).exports, declarations: new Map(binding.declarationBinding.declarations.map(entry => [entry.path, entry.sha256])) };
+    const compiled = execute("installed-du-strict", node22, [compiler, "-p", join(installed, "tsconfig.json"), "--traceResolution"], installed);
+    check("installed declaration resolution bound to candidate", () => resolutions.assertBuiltConsumerResolution(compiled.stdout, installed, state.root, packageBinding));
+    execute("installed-du-runtime-node22", node22, ["--experimental-permission", `--allow-fs-read=${installed}`, join(installed, "du-leaf.mjs")], installed);
+    const moved = join(state.work, "moved package with spaces"); renameSync(installed, moved);
+    for (const [label, runtime] of [["node22", node22], ["node24", node24]]) execute(`moved-du-runtime-${label}`, runtime, ["--experimental-permission", `--allow-fs-read=${moved}`, join(moved, "du-leaf.mjs")], moved);
+    const movedCompile = execute("moved-du-strict", node22, [compiler, "-p", join(moved, "tsconfig.json"), "--noEmit", "--traceResolution"], moved);
+    check("moved declaration resolution bound to candidate", () => resolutions.assertBuiltConsumerResolution(movedCompile.stdout, moved, state.root, packageBinding));
+    const denied = execute("source-read-denied", node24, ["--experimental-permission", `--allow-fs-read=${moved}`, "--input-type=module", "-e", `import {readFileSync} from 'node:fs'; readFileSync(${JSON.stringify(join(state.root, "src/commands/du/index.ts"))});`], moved, 1);
+    check("source refusal is an actual permission failure", () => assert.match(denied.stderr, /ERR_ACCESS_DENIED/u));
+    for (let index = 0; index < 2; index++) {
+      const bytes = readFileSync(join(destination, `fixtures/original-${index}.ts.fixture`)); writeFileSync(join(moved, "consumer.ts"), bytes);
+      assert.equal(digest(readFileSync(join(moved, "consumer.ts"))), digest(bytes));
+      json(join(moved, "template.json"), { ...consumerConfig, files: ["consumer.ts"], compilerOptions: { ...consumerConfig.compilerOptions, noEmit: true } });
+      const result = execute(`original-template-${index}-type-only`, node22, [compiler, "-p", join(moved, "template.json"), "--traceResolution"], moved);
+      check(`original template ${index} package binding`, () => resolutions.assertBuiltConsumerResolution(result.stdout, moved, state.root, packageBinding));
+    }
+    const packageRoot = join(moved, "node_modules/virtual-bash");
+    const declaration = join(packageRoot, "dist/commands/du/index.d.ts"); const runtimeLeaf = join(packageRoot, "dist/commands/du/index.js");
+    renameSync(declaration, declaration + ".saved"); renameSync(runtimeLeaf, runtimeLeaf + ".saved");
+    try {
+      const types = execute("missing-leaf-types", node22, [compiler, "-p", join(moved, "tsconfig.json"), "--noEmit"], moved, 2);
+      check("missing leaf cannot resolve repository source", () => assert.match(types.stdout, /TS2307.*node_modules\/virtual-bash\/dist\/commands\/du\/index.js/u));
+      const runtime = execute("missing-leaf-runtime", node24, [join(moved, "du-leaf.mjs")], moved, 1);
+      check("missing runtime cannot resolve repository source", () => assert.match(runtime.stderr, /ERR_MODULE_NOT_FOUND/u));
+    } finally { renameSync(declaration + ".saved", declaration); renameSync(runtimeLeaf + ".saved", runtimeLeaf); }
+    const originalDeclaration = readFileSync(declaration);
+    writeFileSync(declaration, Buffer.concat([originalDeclaration, Buffer.from("\nexport declare const independentForeign: 1;\n")]));
+    try {
+      const result = execute("foreign-declaration-compiler-positive", node22, [compiler, "-p", join(moved, "tsconfig.json"), "--noEmit", "--traceResolution"], moved);
+      check("binding rejects changed declaration despite compiler success", () => assert.throws(() => resolutions.assertBuiltConsumerResolution(result.stdout, moved, state.root, packageBinding), /candidate declaration bytes or file set changed/u));
+    } finally { writeFileSync(declaration, originalDeclaration); }
+    const policy = join(state.work, "compiler-boundary"); mkdirSync(policy);
+    const boundaryConfig = structuredClone(config); boundaryConfig.compilerOptions.typeRoots = [join(state.root, "node_modules/@types")]; json(join(policy, "tsconfig.json"), boundaryConfig); json(join(policy, "package.json"), { type: "module", private: true });
+    for (const entry of staged.entries) { const target = join(policy, entry.path); mkdirSync(dirname(target), { recursive: true }); writeFileSync(target, "RAW_DU_STAGING_DATA\n"); }
+    const neighbors = ["src/review-boundary.ts", "tests/canonical/review-boundary.ts", ...staged.entries.filter(entry => entry.role === "versioned-template").map(entry => join(dirname(entry.path), "neighbor.ts"))];
+    for (const path of neighbors) { const target = join(policy, path); mkdirSync(dirname(target), { recursive: true }); writeFileSync(target, "export const retained: number = 'invalid';\n"); }
+    const boundary = execute("exact-du-exclusion-boundary", node22, [compiler, "--noEmit", "--pretty", "false", "-p", join(policy, "tsconfig.json")], policy, 2);
+    check("seven neighbors fail while fourteen exact data paths stay excluded", () => { const diagnostics = boundary.stdout.split("\n").filter(line => line.includes("error TS")); assert.equal(diagnostics.length, 7); for (const path of neighbors) assert.ok(diagnostics.some(line => line.startsWith(path + "(") && line.includes("TS2322")), path); });
+    check("candidate package complete inventory unchanged after execution", () => assert.deepEqual(manifest(packageRoot), binding.package.before));
+    check("selected Git inputs unchanged and no new selected-tree files", () => {
+      const current = manifest(state.root, true).filter(entry => !entry.path.startsWith("node_modules/"));
+      assert.deepEqual(current, authentication.selectedInputs.map(({ path, bytes, sha256 }) => ({ path, bytes, sha256 })));
+    });
+    check("development tool inventory unchanged", () => assert.deepEqual(manifest(join(state.root, "node_modules"), true), authentication.developmentDependencies));
+    report.observations.push("Known-role swaps pass the structural typecheck verifier but fail the separately pinned canonical policy fixture. No claim of structural per-role immutability.");
+    report.finishedAt = new Date().toISOString();
+  } catch (error) { report.failures.push({ name: "reviewer supervisor", error: error.stack }); }
+  save(); console.log(JSON.stringify({ checks: report.checks.length, failures: report.failures, commands: report.commands.map(({ name, status }) => ({ name, status })) }));
+  process.exitCode = report.failures.length ? 1 : 0;
+} else throw new Error("usage: review.mjs prepare|run [new-receipts-directory]");

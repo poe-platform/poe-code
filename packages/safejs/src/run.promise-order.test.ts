@@ -6,7 +6,18 @@ import { restore } from "./restore.js";
 const AsyncFunction = Object.getPrototypeOf(async () => undefined).constructor;
 
 describe("native promise execution order", () => {
-  it.each([undefined, "legacy", "jobs-v2", null])(
+  it.each(["race", "any"])(
+    "preserves %s ordering between constructor adoption and async thenable returns",
+    async (method) => {
+      const source = `return await Promise.${method}([new Promise(resolve => resolve(Promise.resolve('left'))), (async () => ({ then: resolve => resolve('right') }))()]);`;
+      expect(await run(source, { signal: new AbortController().signal })).toMatchObject({
+        ok: true,
+        returnValue: await new AsyncFunction(source)()
+      });
+    }
+  );
+
+  it.each([undefined, "legacy", "jobs-v1", "jobs-v3", null])(
     "rejects incompatible execution semantics %s before host effects",
     async (executionSemantics) => {
       const source = "await read(); return 42;";

@@ -139,16 +139,16 @@ describe("function methods", () => {
     });
   });
 
-  it("does not expose bind and reports the closed-world method error", async () => {
+  it("does not expose unknown methods and reports the closed-world method error", async () => {
     const target = createSandboxClosure({ call: () => undefined });
 
     expect(
-      getFunctionMember(target, "bind", {
+      getFunctionMember(target, "missing", {
         callClosure: async () => undefined
       })
     ).toBeUndefined();
     await expect(
-      interpret(parse("return target.bind"), {
+      interpret(parse("return target.missing"), {
         bindings: { target }
       })
     ).resolves.toMatchObject({
@@ -156,12 +156,12 @@ describe("function methods", () => {
       returnValue: undefined
     });
     await expect(
-      interpret(parse("return target.bind(null)"), {
+      interpret(parse("return target.missing(null)"), {
         bindings: { target }
       })
     ).rejects.toMatchObject({
       name: "TypeError",
-      message: "Function#bind is not a supported method."
+      message: "Function#missing is not a supported method."
     });
   });
 });

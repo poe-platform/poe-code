@@ -20,6 +20,7 @@ export function getNumberMember(
   }
 
   return createSandboxClosure({
+    sandbox: true,
     name: `Number#${property}`,
     call: (args) => callNumberMethod(value, property, args, budget)
   });

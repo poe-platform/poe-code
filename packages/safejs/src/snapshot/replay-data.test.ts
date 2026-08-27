@@ -38,7 +38,7 @@ describe("replay result data", () => {
     });
     box.value = 99;
     const restored = decodeReplayData(encoded, { resolveCapability: () => closure }) as any[];
-    expect(restored[0].call).toBe(closure.call);
+    expect(restored[0].call([])).toBe(42);
     expect(restored[0].properties.box).toBe(restored[1]);
     expect(restored[1].owner).toBe(restored[0]);
     expect(restored[1].value).toBe(5);

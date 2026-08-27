@@ -5,6 +5,25 @@ import { AS001 } from "./AS001.js";
 describe("AS001", () => {
   const messages = (source: string) => AS001(source).map((diagnostic) => diagnostic.message);
 
+  it.each([
+    "new Promise(resolve => resolve(1))",
+    "new /* executor */ Promise(() => {})",
+    "new RegExp('x')",
+    "const Constructor = Promise; new Constructor(() => {});",
+    "new constructors.Promise(() => {})",
+    "new Map()",
+    "new Set()"
+  ])("allows constructor expressions in %s", (source) => {
+    expect(AS001(source)).toEqual([]);
+  });
+
+  it.each(["new PromiseLike()", "new RegExpLike()"])(
+    "leaves dynamic constructor resolution to the runtime in %s",
+    (source) => {
+      expect(messages(source)).toEqual([]);
+    }
+  );
+
   it.each(["\n", "\r\n", "\r"])("counts %j line endings in diagnostic spans", (newline) => {
     const source = `const value = 1;${newline}  eval("value");`;
     expect(AS001(source)).toEqual([
@@ -38,20 +57,7 @@ describe("AS001", () => {
       }
     ]);
 
-    expect(AS001("new Example()")).toEqual([
-      {
-        code: "AS001",
-        severity: "error",
-        message: "Disallowed syntax: new.",
-        filename: "<input>",
-        line: 1,
-        column: 1,
-        span: {
-          start: { line: 1, column: 1, offset: 0 },
-          end: { line: 1, column: 4, offset: 3 }
-        }
-      }
-    ]);
+    expect(AS001("new Example()")).toEqual([]);
 
     expect(AS001("this.value")).toEqual([
       {
@@ -260,18 +266,20 @@ describe("AS001", () => {
   });
 
   it("reports disallowed syntax inside nested expression positions", () => {
-    expect(messages("const value = { nested: new Example() };")).toEqual([
-      "Disallowed syntax: new."
+    expect(messages("const value = { nested: new Function() };")).toEqual([
+      "Disallowed syntax: Function."
     ]);
-    expect(messages("const value = `${new Example()}`;")).toEqual(["Disallowed syntax: new."]);
+    expect(messages("const value = `${new Function()}`;")).toEqual([
+      "Disallowed syntax: Function."
+    ]);
     expect(messages("const read = (value = Function('return 1')) => value;")).toEqual([
       "Disallowed syntax: Function."
     ]);
   });
 
   it("reports disallowed syntax in binding defaults and catch patterns", () => {
-    expect(messages("const { value = new Example() } = input;")).toEqual([
-      "Disallowed syntax: new."
+    expect(messages("const { value = new Function() } = input;")).toEqual([
+      "Disallowed syntax: Function."
     ]);
     expect(
       messages("try { work(); } catch ({ recover = Function('return 1') }) { recover(); }")
@@ -279,7 +287,7 @@ describe("AS001", () => {
   });
 
   it("reports disallowed syntax at file boundaries and exported nested arrows", () => {
-    expect(messages("new Example();")).toEqual(["Disallowed syntax: new."]);
+    expect(messages("new Function();")).toEqual(["Disallowed syntax: Function."]);
     expect(messages("const done = true;\nFunction('return 1')")).toEqual([
       "Disallowed syntax: Function."
     ]);
@@ -289,8 +297,8 @@ describe("AS001", () => {
   });
 
   it("reports disallowed syntax nested inside conditional and logical expressions", () => {
-    expect(messages("const value = ready ? ok : new Example();")).toEqual([
-      "Disallowed syntax: new."
+    expect(messages("const value = ready ? ok : new Function();")).toEqual([
+      "Disallowed syntax: Function."
     ]);
     expect(messages("const value = ready && Function('return 1');")).toEqual([
       "Disallowed syntax: Function."

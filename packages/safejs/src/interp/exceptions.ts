@@ -27,6 +27,7 @@ import {
 } from "../error/shape.js";
 import { SandboxError, type Budget } from "./budget.js";
 import { HostCallResumabilityError } from "./host-call.js";
+import { withFatalPromiseCleanup } from "./promise-tracker.js";
 import type { Scope } from "./scope.js";
 import { deepCopyToSandbox, type SandboxObject, type SandboxValue } from "./values.js";
 
@@ -150,12 +151,15 @@ export async function evaluateTryStatement<TContext extends ExceptionContext, TE
     return tryOrCatchResult;
   }
 
-  const finalizerResult =
+  const evaluateFinalizer = () =>
     fatalBudgetError?.budget === "deadline"
-      ? await evaluateWithoutDeadlineChecks(context, () =>
+      ? evaluateWithoutDeadlineChecks(context, () =>
           evaluateBlockCompletion(node.finalizer as BlockStatement, context, evaluateNode)
         )
-      : await evaluateBlockCompletion(node.finalizer, context, evaluateNode);
+      : evaluateBlockCompletion(node.finalizer as BlockStatement, context, evaluateNode);
+  const finalizerResult = await (fatalBudgetError === undefined
+    ? evaluateFinalizer()
+    : withFatalPromiseCleanup(evaluateFinalizer));
 
   if (fatalBudgetError !== undefined) {
     throw fatalBudgetError;

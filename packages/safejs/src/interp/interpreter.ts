@@ -1,5 +1,7 @@
 import { promiseReplayContext } from "./promise-replay.js";
+import { assertPromiseExecutionAllowed } from "./promise-tracker.js";
 import { SandboxJobQueue, suspendJob } from "./jobs.js";
+import { withCancellationSignal } from "./cancel.js";
 import type {
   ArrayExpression,
   ArrayPattern,
@@ -101,7 +103,7 @@ import {
   type MapMethodOptions
 } from "./methods/map.js";
 import { callNumberMethod, getNumberMember, isNumberMethodName } from "./methods/number.js";
-import { getPromiseMember } from "./promise.js";
+import { getPromiseMember, isSandboxPromiseConstructor } from "./promise.js";
 import { getSandboxIterator, type SandboxIterator } from "./iteration.js";
 import { assertCollectionMutable } from "./running-state.js";
 import { getGeneratorMember } from "./methods/generator.js";
@@ -330,7 +332,9 @@ export async function interpret(
     generatorYield: options.generatorYield,
     resumeTarget: { nodeId: options.snapshot?.resumeNodeId }
   };
-  const evaluation = await jobs.run(() => evaluateNode(node, context));
+  const evaluation = await withCancellationSignal(options.signal, () =>
+    jobs.run(() => evaluateNode(node, context))
+  );
   await jobs.drain();
   const snapshot = scope.snapshot();
   reconcileDataBudget(
@@ -397,6 +401,7 @@ async function evaluateNode(
 ): Promise<EvaluationResult> {
   const replayWait = promiseReplayContext.getStore()?.beforeNode(node.nodeId);
   if (replayWait !== undefined) await suspendJob(replayWait);
+  assertPromiseExecutionAllowed();
   context.budget.visitNode();
   context.stats.nodeVisits += 1;
 
@@ -2372,7 +2377,7 @@ async function evaluateMemberExpression(
     return {
       kind: "normal",
       hasValue: true,
-      value: getPromiseMember(member.object, member.property, context.budget)
+      value: getPromiseMember(member.property, context.budget)
     };
   }
 
@@ -2423,39 +2428,28 @@ async function evaluateNewExpression(
   }
 
   const name = getConstructorName(node.callee);
-  if (!isSandboxClosure(callee.value) || callee.value.construct === undefined) {
-    throw new TypeError(`${name} is not a constructor.`);
-  }
-
   const args = await evaluateCallArguments(node.arguments, context);
   if (!args.ok) {
     return args.result;
   }
+  if (!isSandboxClosure(callee.value) || callee.value.construct === undefined) {
+    throw new TypeError(`${name} is not a constructor.`);
+  }
 
   const stack = [...context.callStack, formatStackFrame(node, callee.value.name ?? name)];
-  const leaveCall = context.budget.enterCall();
-
-  try {
-    return {
-      kind: "normal",
-      hasValue: true,
-      value: await wrapHostResult(
-        callee.value.construct(args.value, {
-          stack,
-          thisValue: undefined,
-          span: node.span
-        }),
-        stack
-      )
-    };
-  } catch (error) {
-    if (isFatalSandboxError(error)) {
-      throw error;
-    }
-    throw captureException(error, stack);
-  } finally {
-    leaveCall();
-  }
+  return {
+    kind: "normal",
+    hasValue: true,
+    value: await invokeSandboxClosure(
+      callee.value,
+      args.value,
+      context,
+      stack,
+      node.span,
+      undefined,
+      true
+    )
+  };
 }
 
 function getConstructorName(callee: Expression): string {
@@ -2737,7 +2731,7 @@ async function evaluateMemberCallExpression(
   if (isSandboxPromise(member.object)) {
     return evaluateResolvedCallExpression(
       node,
-      getPromiseMember(member.object, member.property, context.budget),
+      getPromiseMember(member.property, context.budget),
       context,
       member.object
     );
@@ -3008,6 +3002,8 @@ function applyBinaryOperator(
     case ">>>":
       return toNumber(left) >>> toNumber(right);
     case "instanceof":
+      while (isSandboxClosure(right) && right.boundTarget !== undefined) right = right.boundTarget;
+      if (isSandboxPromiseConstructor(right)) return isSandboxPromise(left);
       if (isSandboxMapConstructor(right) && isSandboxMap(left)) {
         return true;
       }
@@ -3443,8 +3439,8 @@ function createSetMethodOptions(context: EvaluationContext): SetMethodOptions {
 
 function createFunctionMethodOptions(context: EvaluationContext): FunctionMethodOptions {
   return {
-    callClosure: (closure, args, stack, thisValue) =>
-      invokeSandboxClosure(closure, args, context, stack, undefined, thisValue)
+    callClosure: (closure, args, stack, thisValue, construct) =>
+      invokeSandboxClosure(closure, args, context, stack, undefined, thisValue, construct)
   };
 }
 
@@ -3454,12 +3450,15 @@ async function invokeSandboxClosure(
   context: EvaluationContext,
   stack: readonly string[],
   span?: SourceSpan,
-  thisValue: SandboxValue = undefined
+  thisValue: SandboxValue = undefined,
+  construct = false
 ): Promise<SandboxValue> {
   const leaveCall = context.budget.enterCall();
 
   try {
-    const result = Reflect.apply(callee.call, undefined, [
+    const invoke = construct ? callee.construct : callee.call;
+    if (invoke === undefined) throw new TypeError("Value is not a constructor.");
+    const result = Reflect.apply(invoke, undefined, [
       args,
       {
         stack,
@@ -3472,7 +3471,7 @@ async function invokeSandboxClosure(
       await result.synchronousPrefix;
     }
 
-    return callee.async === true
+    return !construct && callee.async === true
       ? normalizeClosureResult(wrapHostResult(result, stack), context.budget)
       : await wrapHostResult(result, stack);
   } catch (error) {

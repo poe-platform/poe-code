@@ -2254,12 +2254,9 @@ describe("makeFsModule", () => {
             modules: { fs }
           })
         ).rejects.toMatchObject({
-          name: "UnhandledRejectionError",
-          reason: {
-            name: "SandboxError",
-            code: "budgetExceeded",
-            budget: "dataSize"
-          }
+          name: "SandboxError",
+          code: "budgetExceeded",
+          budget: "dataSize"
         });
       });
 

@@ -390,10 +390,12 @@ describe("run snapshot checkpointing", () => {
       withoutCheckpointPosition(firstSnapshot)
     );
     expect(secondSnapshot.promiseReplay.steps).toBeGreaterThan(firstSnapshot.promiseReplay.steps);
-    expect(secondSnapshot.promiseReplay.promises).toBe(firstSnapshot.promiseReplay.promises + 1);
+    expect(secondSnapshot.promiseReplay.promises).toBe(firstSnapshot.promiseReplay.promises + 3);
     expect(secondSnapshot.promiseReplay.settlements).toEqual([
       ...firstSnapshot.promiseReplay.settlements,
-      expect.objectContaining({ id: 2 })
+      expect.objectContaining({ id: 4 }),
+      expect.objectContaining({ id: 5 }),
+      expect.objectContaining({ id: 6 })
     ]);
     expect(secondSnapshot.pendingAwaits).toEqual([
       expect.objectContaining({

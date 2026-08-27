@@ -32,10 +32,12 @@ export function createConsoleJsonGlobals(
   return {
     JSON: {
       parse: createSandboxClosure({
+        sandbox: true,
         call: async ([text]) => parseJson(text, options.budget),
         name: "parse"
       }),
       stringify: createSandboxClosure({
+        sandbox: true,
         call: async ([value, replacer, indent]) =>
           stringifyJson(value, replacer, indent, options.budget),
         name: "stringify"
@@ -45,6 +47,7 @@ export function createConsoleJsonGlobals(
       options.hostCalls === undefined
         ? {
             error: createSandboxClosure({
+              sandbox: true,
               call: async (args) => {
                 sink.error(...args.map((value) => deepCopyFromSandbox(value)));
                 return undefined;
@@ -52,6 +55,7 @@ export function createConsoleJsonGlobals(
               name: "error"
             }),
             log: createSandboxClosure({
+              sandbox: true,
               call: async (args) => {
                 sink.log(...args.map((value) => deepCopyFromSandbox(value)));
                 return undefined;

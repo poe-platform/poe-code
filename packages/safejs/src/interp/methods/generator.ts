@@ -20,6 +20,7 @@ export function getGeneratorMember(
   }
 
   return createSandboxClosure({
+    sandbox: true,
     name: property,
     call: async ([value]) => {
       const iterator = getSandboxIterator(target)!;

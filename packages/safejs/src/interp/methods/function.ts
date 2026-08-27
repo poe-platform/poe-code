@@ -5,13 +5,14 @@ export type FunctionMethodOptions = {
     closure: SandboxClosure,
     args: readonly SandboxValue[],
     stack: readonly string[],
-    thisValue: SandboxValue
+    thisValue: SandboxValue,
+    construct?: boolean
   ) => Promise<SandboxValue> | SandboxValue;
 };
 
-type FunctionMethodName = "apply" | "call";
+type FunctionMethodName = "apply" | "bind" | "call";
 
-const functionMethodNames = new Set<FunctionMethodName>(["apply", "call"]);
+const functionMethodNames = new Set<FunctionMethodName>(["apply", "bind", "call"]);
 
 export function getFunctionMember(
   target: SandboxClosure,
@@ -28,6 +29,7 @@ export function getFunctionMember(
   }
 
   return createSandboxClosure({
+    sandbox: true,
     name: `Function#${property}`,
     call: (args, context) =>
       callFunctionMethod(target, property, args, options, context?.stack ?? [])
@@ -46,6 +48,30 @@ function callFunctionMethod(
   stack: readonly string[]
 ): Promise<SandboxValue> | SandboxValue {
   const thisValue = args[0];
+
+  if (methodName === "bind") {
+    const boundArgs = args.slice(1);
+    return createSandboxClosure({
+      sandbox: true,
+      name: `bound ${target.name ?? ""}`,
+      boundTarget: target,
+      retainedValues: () => [target, thisValue, ...boundArgs],
+      call: (callArgs, context) =>
+        options.callClosure(target, [...boundArgs, ...callArgs], context?.stack ?? [], thisValue),
+      ...(target.construct === undefined
+        ? {}
+        : {
+            construct: (callArgs, context) =>
+              options.callClosure(
+                target,
+                [...boundArgs, ...callArgs],
+                context?.stack ?? [],
+                undefined,
+                true
+              )
+          })
+    });
+  }
 
   if (methodName === "call") {
     return options.callClosure(target, args.slice(1), stack, thisValue);

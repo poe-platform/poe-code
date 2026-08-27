@@ -53,7 +53,7 @@ describe("interpreter running-state guards", () => {
       [Symbol.iterator]() {
         return {
           next: async () => {
-            await expect(holder.iterator?.return?.()).rejects.toEqual(
+            expect(() => holder.iterator?.return?.()).toThrow(
               expect.objectContaining({ code: "reentry", name: "SandboxError" })
             );
             return { value: 1, done: false };
@@ -69,11 +69,11 @@ describe("interpreter running-state guards", () => {
     holder.iterator = iterator;
 
     await expect(iterator?.next()).resolves.toEqual({ value: 1, done: false });
-    await expect(iterator?.return?.()).resolves.toEqual({ value: undefined, done: true });
+    expect(iterator?.return?.()).toEqual({ value: undefined, done: true });
     expect(finallyCount).toBe(1);
   });
 
-  it("keeps an iterator guarded until an asynchronous next callback settles", async () => {
+  it("releases a synchronous iterator after next returns a promise object", async () => {
     let releaseNext: (() => void) | undefined;
     const source = {
       [Symbol.iterator]() {
@@ -89,12 +89,10 @@ describe("interpreter running-state guards", () => {
     const iterator = getSandboxIterator(source)!;
     const pendingNext = iterator.next();
 
-    await expect(iterator.return?.()).rejects.toEqual(
-      expect.objectContaining({ code: "reentry", name: "SandboxError" })
-    );
+    expect(iterator.return?.()).toEqual({ value: undefined, done: true });
     releaseNext?.();
     await expect(pendingNext).resolves.toEqual({ value: 1, done: false });
-    await expect(iterator.return?.()).resolves.toEqual({ value: undefined, done: true });
+    expect(iterator.return?.()).toEqual({ value: undefined, done: true });
   });
 
   it("rejects structural array mutation from a comparator and leaves the array usable", async () => {

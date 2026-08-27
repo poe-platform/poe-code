@@ -59,6 +59,7 @@ export function getMapMember(
   }
 
   return createSandboxClosure({
+    sandbox: true,
     call: (args, context) => callMapMethod(target, property, args, options, context?.stack ?? []),
     name: property
   });

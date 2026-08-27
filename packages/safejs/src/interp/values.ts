@@ -4,6 +4,11 @@ import type { GeneratorChannel } from "./generator.js";
 import { SandboxError } from "./budget.js";
 import { observeSandboxPromise, trackSandboxPromise } from "./promise-tracker.js";
 import { promiseReplayContext } from "./promise-replay.js";
+import {
+  invokeCancelableClosure,
+  readPromiseCancellation,
+  registerPromiseCancellation
+} from "./cancel.js";
 import { parseRegex, type RegexPattern } from "./regex/parse.js";
 import { assertSandboxDataDepth } from "../graph-depth.js";
 import {
@@ -83,6 +88,9 @@ export type SandboxCallContext = {
 
 export type SandboxClosure = {
   readonly async?: true;
+  readonly sandbox?: true;
+  readonly boundTarget?: SandboxClosure;
+  readonly cancellationSignal?: AbortSignal;
   readonly kind: "fn";
   readonly name?: string;
   readonly properties?: SandboxObject;
@@ -127,6 +135,9 @@ type CopyState<TValue> = {
 
 export function createSandboxClosure(input: {
   async?: boolean;
+  sandbox?: boolean;
+  boundTarget?: SandboxClosure;
+  cancellationSignal?: AbortSignal;
   call: (
     args: readonly SandboxValue[],
     context?: SandboxCallContext
@@ -141,9 +152,15 @@ export function createSandboxClosure(input: {
 }): SandboxClosure {
   const closure = {
     kind: "fn" as const,
-    call: input.call,
+    call: (args: readonly SandboxValue[], context?: SandboxCallContext) =>
+      invokeCancelableClosure(closure, input.call, args, context),
     name: input.name,
-    ...(input.construct === undefined ? {} : { construct: input.construct }),
+    ...(input.construct === undefined
+      ? {}
+      : {
+          construct: (args: readonly SandboxValue[], context?: SandboxCallContext) =>
+            invokeCancelableClosure(closure, input.construct!, args, context, true)
+        }),
     ...(input.async === true ? { async: true as const } : {})
   } as SandboxClosure;
 
@@ -151,6 +168,20 @@ export function createSandboxClosure(input: {
     enumerable: false,
     value: true
   });
+
+  if (input.sandbox === true) {
+    Object.defineProperty(closure, "sandbox", { value: true });
+  }
+
+  if (input.boundTarget !== undefined) {
+    Object.defineProperty(closure, "boundTarget", { value: input.boundTarget });
+  }
+
+  if (input.cancellationSignal !== undefined) {
+    Object.defineProperty(closure, "cancellationSignal", {
+      value: input.cancellationSignal
+    });
+  }
 
   if (input.properties !== undefined) {
     Object.defineProperty(closure, "properties", {
@@ -180,12 +211,15 @@ export function createSandboxPromise(
     span?: SandboxCallContext["span"];
   } = {}
 ): SandboxPromise {
+  const original =
+    metadata.trackReplay === false
+      ? promise
+      : (promiseReplayContext.getStore()?.track(promise) ?? promise);
   const sandboxPromise = {
     kind: "promise" as const,
-    promise:
-      metadata.trackReplay === false
-        ? promise
-        : (promiseReplayContext.getStore()?.track(promise) ?? promise)
+    get promise() {
+      return readPromiseCancellation(sandboxPromise, original);
+    }
   } as SandboxPromise;
 
   Object.defineProperty(sandboxPromise, sandboxPromiseBrand, {
@@ -217,6 +251,7 @@ export function createSandboxPromise(
   }
 
   trackSandboxPromise(sandboxPromise);
+  registerPromiseCancellation(sandboxPromise);
 
   return Object.freeze(sandboxPromise);
 }

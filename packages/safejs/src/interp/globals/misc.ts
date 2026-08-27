@@ -23,22 +23,27 @@ export type MiscGlobals = {
 export function createMiscGlobals(options: { budget: Budget }): MiscGlobals {
   return {
     structuredClone: createSandboxClosure({
+      sandbox: true,
       call: ([value]) => structuredCloneSandboxValue(value, options.budget),
       name: "structuredClone"
     }),
     parseInt: createSandboxClosure({
+      sandbox: true,
       call: (args) => Reflect.apply(globalThis.parseInt, globalThis, [...args]),
       name: "parseInt"
     }),
     parseFloat: createSandboxClosure({
+      sandbox: true,
       call: (args) => Reflect.apply(globalThis.parseFloat, globalThis, [...args]),
       name: "parseFloat"
     }),
     isNaN: createSandboxClosure({
+      sandbox: true,
       call: ([value]) => globalThis.isNaN(value as number),
       name: "isNaN"
     }),
     isFinite: createSandboxClosure({
+      sandbox: true,
       call: ([value]) => globalThis.isFinite(value as number),
       name: "isFinite"
     })

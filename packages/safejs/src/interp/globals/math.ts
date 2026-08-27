@@ -64,14 +64,12 @@ export function createMathGlobals(options: MathGlobalsOptions = {}): MathGlobals
     PI: Math.PI,
     SQRT1_2: Math.SQRT1_2,
     SQRT2: Math.SQRT2,
-    random: createSandboxClosure({
-      call: () => random(),
-      name: "random"
-    })
+    random: createSandboxClosure({ sandbox: true, call: () => random(), name: "random" })
   };
 
   for (const [name, method] of Object.entries(mathMethods)) {
     mathObject[name] = createSandboxClosure({
+      sandbox: true,
       call: (args) => Reflect.apply(method, Math, args as number[]),
       name
     });

@@ -107,6 +107,7 @@ export function getArrayMember(
 
   if (isArrayMethodName(property)) {
     return createSandboxClosure({
+      sandbox: true,
       name: `Array#${property}`,
       call: (args, context) => callArrayMethod(value, property, args, options, context?.stack ?? [])
     });

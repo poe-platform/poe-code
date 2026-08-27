@@ -126,8 +126,10 @@ function wrapCallerInjectedFunction(
 
   return createSandboxClosure({
     ...(isAsyncFunction(callable) ? { async: true as const } : {}),
+    cancellationSignal: options.signal,
     call: (args, context) => {
       try {
+        if (options.signal?.aborted) throw readAbortReason(options.signal);
         const stackFrames = context?.stack ?? [];
         const callbacks: HostCallbacks = {
           journal: options.hostCalls,
@@ -299,11 +301,11 @@ function executeHostCall(
       }
     })();
     void promise.catch(() => undefined);
-    return createSandboxPromise(promise);
+    return createSandboxPromise(promise, { hostCall: record, hostCallJournal: hostCalls });
   }
   if (replayed !== undefined) {
     restoreReplayedHostState(record, replayed, onReplay);
-    if (record.asynchronous) return createReplayedHostCallResult(replayed);
+    if (record.asynchronous) return createReplayedHostCallResult(replayed, record, hostCalls);
     if (replayed.status === "rejected") throw replayed.reason;
     return replayed.value;
   }
@@ -313,7 +315,7 @@ function executeHostCall(
     record.lifecycle === "consumed" &&
     record.outcome !== undefined
   ) {
-    return createReplayedHostCallResult(record.outcome);
+    return createReplayedHostCallResult(record.outcome, record, hostCalls);
   }
   if (
     restored &&
@@ -421,13 +423,17 @@ function restoreReplayedHostState(
   }
 }
 
-function createReplayedHostCallResult(outcome: HostCallOutcome): SandboxValue {
+function createReplayedHostCallResult(
+  outcome: HostCallOutcome,
+  record: HostCallRecord,
+  hostCalls: HostCallJournal
+): SandboxValue {
   const promise =
     outcome.status === "fulfilled"
       ? Promise.resolve(outcome.value)
       : Promise.reject(outcome.reason);
   promise.catch(() => undefined);
-  return createSandboxPromise(promise);
+  return createSandboxPromise(promise, { hostCall: record, hostCallJournal: hostCalls });
 }
 
 function createHostCallPromise(

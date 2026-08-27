@@ -57,6 +57,7 @@ export function getSetMember(
   }
 
   return createSandboxClosure({
+    sandbox: true,
     call: (args, context) => callSetMethod(target, property, args, options, context?.stack ?? []),
     name: property
   });

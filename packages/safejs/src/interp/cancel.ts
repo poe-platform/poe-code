@@ -1,138 +1,172 @@
+import { AsyncLocalStorage } from "node:async_hooks";
 import {
-  createSandboxClosure,
   createSandboxPromise,
   isSandboxClosure,
+  isSandboxMap,
   isSandboxPromise,
-  type SandboxArray,
-  type SandboxObject,
+  isSandboxSet,
+  type SandboxCallContext,
+  type SandboxClosure,
   type SandboxPromise,
   type SandboxValue
 } from "./values.js";
-import { observeSandboxPromise } from "./promise-tracker.js";
+import {
+  assertPromiseExecutionAllowed,
+  interruptOnFatalPromiseRejection,
+  onFatalPromiseRejection,
+  observeSandboxPromise,
+  trackSandboxPromise
+} from "./promise-tracker.js";
 import { replaceErrorStack } from "../error/shape.js";
-import { resolveSandboxValue } from "./promise.js";
+import { consumeSettledHostCall, resolveSandboxValue } from "./promise.js";
+import type { Budget } from "./budget.js";
 
-const cancellationSignals = new WeakMap<SandboxPromise, AbortSignal>();
+const activeCancellation = new AsyncLocalStorage<{ signal?: AbortSignal; host: boolean }>();
+const sandboxPromises = new WeakSet<SandboxPromise>();
+const cancelableOutcomes = new WeakMap<
+  SandboxPromise,
+  WeakMap<AbortSignal, Promise<SandboxValue>>
+>();
+
+export function withCancellationSignal<T>(signal: AbortSignal | undefined, task: () => T): T {
+  return activeCancellation.run({ signal, host: false }, task);
+}
+
+export function invokeCancelableClosure(
+  closure: SandboxClosure,
+  operation: SandboxClosure["call"],
+  args: readonly SandboxValue[],
+  context?: SandboxCallContext,
+  construct = false
+): SandboxValue | Promise<SandboxValue> {
+  assertPromiseExecutionAllowed();
+  const active = activeCancellation.getStore();
+  if (active === undefined) return operation(args, context);
+  if (closure.sandbox === true) {
+    return activeCancellation.run({ signal: active.signal, host: false }, () =>
+      operation(args, context)
+    );
+  }
+  const signal = active.signal;
+  const managed = signal !== undefined && closure.cancellationSignal === signal;
+  if (signal?.aborted && !managed) {
+    if (!construct && closure.async === true)
+      return createRejectedSandboxPromise(readAbortReason(signal));
+    throw readAbortReason(signal);
+  }
+  return activeCancellation.run({ signal, host: true }, () => {
+    const result = operation(args, context);
+    if (signal === undefined || managed) return result;
+    if (isPromiseLike(result))
+      return awaitWithSignal(result, signal).then((value) => {
+        registerCancelablePromises(value, signal);
+        return value;
+      });
+    registerCancelablePromises(result, signal);
+    return result;
+  });
+}
 
 export function wrapCancelableBindings(
   bindings: Record<string, SandboxValue>,
   signal?: AbortSignal
 ): Record<string, SandboxValue> {
-  if (signal === undefined) {
-    return bindings;
-  }
-
-  return wrapCancelableValue(bindings, signal, new WeakMap()) as Record<string, SandboxValue>;
+  if (signal !== undefined) registerCancelablePromises(bindings, signal);
+  return bindings;
 }
 
-function wrapCancelableValue(
-  value: SandboxValue,
-  signal: AbortSignal,
-  seen: WeakMap<object, SandboxValue>
-): SandboxValue {
-  if (typeof value !== "object" || value === null) {
-    return value;
-  }
-
-  const existing = seen.get(value);
-  if (existing !== undefined) {
-    return existing;
-  }
-
-  if (isSandboxClosure(value)) {
-    const wrapped = createSandboxClosure({
-      ...(value.async === true ? { async: true } : {}),
-      call: (args, context) => {
-        if (signal.aborted) {
-          if (value.async === true) {
-            return createRejectedSandboxPromise(readAbortReason(signal));
-          }
-
-          throw readAbortReason(signal);
-        }
-
-        return wrapCancelableResult(value.call(args, context), signal, seen);
-      },
-      name: value.name
-    });
-    seen.set(value, wrapped);
-    return wrapped;
-  }
-
-  if (isSandboxPromise(value)) {
-    // The wrapper delivers this promise's rejection to the sandbox in its place, so
-    // the sandbox never awaits the original and it would otherwise read as unhandled.
-    observeSandboxPromise(value);
-    const wrapped = createSandboxPromise(wrapCancelablePromise(value.promise, signal, seen), {
-      trackReplay: false,
-      ...(value.synchronousPrefix === undefined
-        ? {}
-        : { synchronousPrefix: value.synchronousPrefix }),
-      ...(value.hostCall === undefined ? {} : { hostCall: value.hostCall }),
-      ...(value.hostCallJournal === undefined ? {} : { hostCallJournal: value.hostCallJournal }),
-      ...(value.span === undefined ? {} : { span: value.span })
-    });
-    seen.set(value, wrapped);
-    cancellationSignals.set(wrapped, signal);
-    return wrapped;
-  }
-
-  if (Array.isArray(value)) {
-    const wrapped = new Array(value.length) as SandboxArray;
-    seen.set(value, wrapped);
-
-    for (let index = 0; index < value.length; index += 1) {
-      wrapped[index] = wrapCancelableValue(value[index], signal, seen);
-    }
-
-    return wrapped;
-  }
-
-  const wrapped = Object.create(Object.getPrototypeOf(value)) as SandboxObject;
-  seen.set(value, wrapped);
-
-  for (const [key, entry] of Object.entries(value)) {
-    wrapped[key] = wrapCancelableValue(entry, signal, seen);
-  }
-
-  return wrapped;
+export function registerPromiseCancellation(promise: SandboxPromise): void {
+  const active = activeCancellation.getStore();
+  if (active?.host === false) sandboxPromises.add(promise);
+  else if (active?.signal !== undefined) managePromiseCancellation(promise, active.signal);
 }
 
-function wrapCancelableResult(
-  result: SandboxValue | Promise<SandboxValue> | PromiseLike<SandboxValue>,
-  signal: AbortSignal,
-  seen: WeakMap<object, SandboxValue>
-): SandboxValue | Promise<SandboxValue> {
-  if (!isPromiseLike(result)) {
-    return wrapCancelableValue(result, signal, seen);
-  }
-
-  return wrapCancelablePromise(result, signal, seen);
-}
-
-function wrapCancelablePromise(
-  promise: PromiseLike<SandboxValue>,
-  signal: AbortSignal,
-  seen: WeakMap<object, SandboxValue>
+export function readPromiseCancellation(
+  promise: SandboxPromise,
+  original: Promise<SandboxValue>
 ): Promise<SandboxValue> {
-  return awaitWithSignal(promise, signal).then(
-    (value) => wrapCancelableValue(value, signal, seen),
-    (reason: unknown) => {
-      if (signal.aborted && reason === signal.reason) throw reason;
-      throw wrapCancelableUnknown(reason, signal, seen);
+  const signal = activeCancellation.getStore()?.signal;
+  return signal === undefined
+    ? original
+    : (cancelableOutcomes.get(promise)?.get(signal) ?? original);
+}
+
+function managePromiseCancellation(promise: SandboxPromise, signal: AbortSignal): void {
+  let outcomes = cancelableOutcomes.get(promise);
+  if (outcomes?.has(signal)) return;
+  if (outcomes === undefined) {
+    outcomes = new WeakMap();
+    cancelableOutcomes.set(promise, outcomes);
+  }
+  const outcome = awaitWithSignal(promise.promise, signal);
+  outcomes.set(signal, outcome);
+  trackSandboxPromise(promise, outcome);
+}
+
+function registerCancelablePromises(value: SandboxValue, signal: AbortSignal): void {
+  const seen = new WeakSet<object>();
+  const pending = [value];
+  while (pending.length > 0) {
+    const current = pending.pop();
+    if (typeof current !== "object" || current === null || seen.has(current)) continue;
+    seen.add(current);
+    if (isSandboxPromise(current)) {
+      if (!sandboxPromises.has(current)) managePromiseCancellation(current, signal);
+      continue;
     }
-  );
+    if (isSandboxClosure(current)) {
+      if (current.properties !== undefined) pending.push(current.properties);
+    } else if (isSandboxMap(current)) {
+      for (const [key, entry] of current.entries) pending.push(key, entry);
+    } else if (isSandboxSet(current)) {
+      for (const entry of current.values) pending.push(entry);
+    } else {
+      for (const descriptor of Object.values(Object.getOwnPropertyDescriptors(current))) {
+        if ("value" in descriptor) pending.push(descriptor.value as SandboxValue);
+      }
+    }
+  }
 }
 
 export function awaitSandboxValue(
   value: SandboxValue,
-  signal?: AbortSignal
+  signal?: AbortSignal,
+  budget?: Budget
 ): Promise<SandboxValue> {
-  const resolved = resolveSandboxValue(value);
-  return isSandboxPromise(value) &&
-    (value.synchronousPrefix !== undefined || cancellationSignals.get(value) === signal)
-    ? resolved
-    : awaitWithSignal(resolved, signal);
+  let resolved: Promise<SandboxValue>;
+  if (isSandboxPromise(value)) {
+    observeSandboxPromise(value);
+    const outcome =
+      signal === undefined
+        ? value.promise
+        : (cancelableOutcomes.get(value)?.get(signal) ?? value.promise);
+    resolved = new Promise((resolve, reject) => {
+      const detach = onFatalPromiseRejection(reject);
+      const complete = (state: "fulfilled" | "rejected", result: unknown) => {
+        detach?.();
+        try {
+          consumeSettledHostCall(value);
+          if (state === "fulfilled") resolve(result as SandboxValue);
+          else reject(result);
+        } catch (error) {
+          reject(error);
+        }
+      };
+      outcome.then(
+        (result) => complete("fulfilled", result),
+        (reason: unknown) => complete("rejected", reason)
+      );
+    });
+  } else {
+    resolved = resolveSandboxValue(value, { budget });
+  }
+  const pending =
+    isSandboxPromise(value) &&
+    (value.synchronousPrefix !== undefined ||
+      (signal !== undefined && cancelableOutcomes.get(value)?.has(signal)))
+      ? resolved
+      : awaitWithSignal(resolved, signal);
+  return isSandboxPromise(value) ? pending : interruptOnFatalPromiseRejection(pending);
 }
 
 function awaitWithSignal<T>(promise: PromiseLike<T>, signal?: AbortSignal): Promise<T> {
@@ -182,33 +216,6 @@ function awaitWithSignal<T>(promise: PromiseLike<T>, signal?: AbortSignal): Prom
   });
 }
 
-function wrapCancelableUnknown(
-  value: unknown,
-  signal: AbortSignal,
-  seen: WeakMap<object, SandboxValue>
-): unknown {
-  if (
-    value === null ||
-    value === undefined ||
-    typeof value === "string" ||
-    typeof value === "number" ||
-    typeof value === "boolean"
-  ) {
-    return value;
-  }
-
-  if (
-    isSandboxClosure(value) ||
-    isSandboxPromise(value) ||
-    Array.isArray(value) ||
-    (typeof value === "object" && value !== null)
-  ) {
-    return wrapCancelableValue(value as SandboxValue, signal, seen);
-  }
-
-  return value;
-}
-
 function readAbortReason(signal: AbortSignal): unknown {
   return signal.reason ?? createAbortError();
 }
@@ -233,5 +240,10 @@ function createRejectedSandboxPromise(reason: unknown): ReturnType<typeof create
 }
 
 function isPromiseLike(value: unknown): value is PromiseLike<SandboxValue> {
-  return typeof value === "object" && value !== null && "then" in value;
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    "then" in value &&
+    typeof (value as { then: unknown }).then === "function"
+  );
 }

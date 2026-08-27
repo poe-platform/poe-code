@@ -25,6 +25,7 @@ export function getRegexMember(
     return undefined;
   }
   return createSandboxClosure({
+    sandbox: true,
     name: `RegExp#${property}`,
     call: (args) => callRegexMethod(target, property, args)
   });

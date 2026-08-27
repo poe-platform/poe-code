@@ -150,9 +150,9 @@ and 2000 respectively. No LLM calls or external services were needed.
 The same three large scripts also matched native strict JavaScript through the
 public SDK at widths 64, 128, and 1,000.
 
-## Randomness work in progress
+## Randomness implementation history
 
-Not released. Tests first reproduced missing default RNG snapshot state and
+Initial tests reproduced missing default RNG snapshot state and
 seeded top-level replay drift. The implementation now auto-seeds, normalizes
 seeds, records the run's initial state and pre-await argument state, and shares a
 replayable generator factory between the SDK and paired harness loader.
@@ -598,6 +598,245 @@ The final width and 54-process CLI matrices passed again after the cancellation
 fixes, along with the 12-case/36-generation completed-snapshot regression matrix.
 Both new CLI screenshots were inspected: successful 256-callback execution and
 an actionable compatibility error for a real previous-runtime snapshot.
+
+Released as `poe-code@5.0.0` in commit `3466520a`, after preserving five newer
+main commits. Pre-push passed 20,460 tests, with 41 skipped. GitHub Release run
+`33026187986` completed successfully, including build, package signatures, lint,
+tests, smoke, and publication. Verified npm gitHead exactly matches the commit
+and GitHub `v5.0.0` was published August 27, 2026 at 00:24:53 UTC. The breaking
+snapshot compatibility requirement is present in the published release notes.
+
+## Promise construction work in progress
+
+This item is not released. Seventeen failing regressions preceded the initial
+implementation. `Promise` is now a sandbox constructor with its existing static
+helpers. Executors run immediately through their synchronous prefix, ignore
+return values, and use first-settlement-wins resolving functions. Direct self
+resolution rejects. `instanceof Promise` uses a sandbox constructor brand.
+
+The follow-up native audit found and fixed additional problems with failing
+regressions first:
+
+- Detached static helpers now reject invalid receivers synchronously. Promise
+  methods use their actual receiver instead of capturing the object they were
+  read from. Methods share identity within a run and the intrinsic prototype
+  methods are non-enumerable. Sequential budget reuse resets the prototype.
+- Cancelable native host bindings no longer double-wrap returned source functions
+  and lose their identity, static properties, or constructor capability. The host
+  bridge checks cancellation before invoking native effects and marks closures
+  whose cancellation it already manages. Existing cancellation tests still pass.
+- Fatal executor budgets and re-entry errors cannot be swallowed by an earlier
+  resolve/reject. Native user throws after settlement remain ignored.
+- `bind` preserves the first receiver and argument order, supports ordinary and
+  async executors, forwards construction without the bound receiver, and retains
+  captured data for budgets. Nested bound construction consumes call depth.
+  Constructor argument effects run before the non-constructable-target error.
+- AS001 now permits constructor expressions, including aliases and Map/Set,
+  rather than guessing constructability from an identifier prefix. Dynamic
+  constructability stays a runtime check; `Function` and `eval` remain forbidden.
+
+The 49 focused constructor tests pass, including completed replay, pending
+resolver reconstruction through an explicitly re-issuable operation, preserved
+completed host effects, budget exhaustion after settlement, and bound aliases.
+The pending test uses automatic checkpointing: manual dump during an active host
+operation remains rejected by the existing re-entry guard. Host reconciliation
+policy was not weakened. Expanded SafeJS/agent-harness validation passes 3,527
+tests, with 39 skipped. Package typecheck, focused ESLint, all 67 workspace build
+tasks, the root bundle, and root typecheck pass. Opt-in adversarial/parser fuzz
+passes 9 tests, with 5 skipped; those skipped cases remain unverified.
+
+### Constructor stress evidence and repeatable QA
+
+1. Cross all pairings of eleven expressions through `all`, `allSettled`, `race`,
+   and `any`: resolved/rejected promises, synchronous/asynchronous functions,
+   thenables, reactions, direct constructors, and two bound-constructor forms.
+   Compare with strict native JavaScript and restore every completed run twice,
+   with cancellation armed and real watchdogs. Passed 484 comparisons and 968
+   restored generations, with zero mismatches in this matrix.
+2. Exercise direct settlement, async executor prefixes, captured resolving
+   functions, borrowed methods, and bound constructors at widths 1, 32, and 256
+   through the standalone CLI. Use both raw source and CRLF Markdown with three
+   executable fences. Compare exact results against native execution. Passed 30
+   cases, each executed originally and restored twice in separate processes:
+   90 CLI processes.
+3. Kill a harness process after a durable mid-loop checkpoint, then resume in a
+   fresh process with cancellation armed. Pre-create pending constructor
+   promises and retain their resolving functions across the checkpoint. Exercise
+   fulfillment, rejection, and resolver callbacks returned by a host operation,
+   at widths 1, 32, and 256, with and without the legacy host-call sidecar. Check
+   exact results and that every recorded external effect occurs once. The final
+   expanded pass completed 42 cases, including bound constructors and the
+   previous RNG/time, caught-failure, and returned-callback regression families.
+   Every expected effect occurred exactly once.
+4. Build the actual published 5.0.0 source in an isolated temporary directory.
+   Produce snapshots for `typeof Promise`, method identity, detached static
+   calls, and borrowed method receivers. All four examples have different fresh
+   results under the new implementation. The new `jobs-v2` execution marker
+   rejects all four old `jobs-v1` snapshots before replay. This is a fail-closed
+   compatibility boundary, not an implemented snapshot migration.
+5. Inspect the root CLI screenshot of 256 nested-bound constructors. Assert
+   executor prefix 256, checksum 32,640, and borrowed receiver result 42 inside
+   the script; the harness reports success and zero agent spawns. Both the success
+   screenshot and the standalone compatibility-error screenshot using an actual
+   5.0.0 snapshot were inspected; the latter exits with code 1 and explains why
+   changing the execution marker is not a migration.
+
+The first crash fixture incorrectly omitted the required `(frontmatter)` export
+signature; correcting that test fixture did not change production validation.
+The first CLI prototype-inspection fixture hit the existing AS011 ban. The CLI
+matrix now exercises receiver identity through instance methods; direct
+prototype inspection remains covered in SDK tests, not misreported as accepted
+by harness lint.
+
+### Expanded receiver and adoption audit — August 27, 2026
+
+Failing native-reference regressions drove the following additional fixes:
+
+- Static helpers construct generic capabilities. Resolve/reject preserve the
+  constructor result, callback receiver, executor validation, and asynchronous
+  callback prefixes. Aggregates capture the static resolver once, invoke it
+  during iteration, and preserve direct callbacks and per-element settlement
+  guards. Repeated resolve/reject sequences match native JavaScript.
+- Catch/finally invoke the receiver's actual `then`, including custom and replaced
+  methods. Cleanup preserves intrinsic promise identity rather than adding
+  extra adoption jobs. Constructor-property errors remain synchronous.
+- Aggregates accept Map, Set, and synchronous generators. Iterator `next` is
+  captured once, receives no argument, and is distinct from an asynchronous
+  iterator protocol. Closing reads the current return method only when needed;
+  iterator-step failures and resolver failures follow different closing rules.
+- Promise adoption uses source jobs for constructor resolution, async returns,
+  reaction results, and nested thenables. Settlements happen before releasing
+  the owning job. The `then` method is captured before the adoption job runs.
+  Await preserves opaque fulfilled promise values instead of assimilating them
+  again. Indirect promise self-resolution rejects, while a thenable may resolve
+  to itself repeatedly before eventually fulfilling.
+- Fatal thenable call-depth failures cannot be hidden by earlier settlement.
+  Endless self-resolving source thenables exhaust execution budgets. Rejection
+  callbacks receive sandbox error values with the correct error brand.
+- Live and restored host promises preserve the same host-call metadata. Missing
+  replay metadata had produced different normalization jobs and restore hangs;
+  the completed-replay regressions now pass. Raw injected asynchronous closures
+  also retain nested-promise adoption and cancellation behavior.
+- Legacy cancellation wrappers now preserve construction, static properties,
+  cyclic function properties, bound targets, and retained captures. This is not
+  a complete cancellation identity fix: the live-result failure below remains.
+
+The expanded source matrix crosses 27 promise expressions through four
+aggregates: 2,916 native comparisons and 5,832 completed restores passed. Earlier
+expansions found 76 adoption mismatches and then 16 cleanup-order mismatches;
+both batches received failing regressions and root scheduling fixes. The final
+matrix has zero mismatches, not a claim that all promise behavior is proven.
+
+Repeatable manual QA, extending the steps above:
+
+1. Add nested async/constructor/reaction adoption, finally with synchronous,
+   asynchronous, promise, and thenable cleanup, Map/Set/generator aggregates,
+   missing-handler chains, and recovery callbacks to the native pair matrix.
+   Restore each completed case twice with cancellation armed and watchdogs.
+2. Run iterable, adoption, and generic-constructor families alongside the five
+   existing CLI families, at widths 1, 32, and 256 in raw source and CRLF
+   three-fence Markdown. Passed 48 cases and 144 separate CLI processes. A
+   fixture initially compared JSON `0` with native `-0`; it now uses nonzero
+   rejection values. A generic fixture initially used lint-forbidden `this`;
+   it now returns an explicit capability result object. Neither fixture change
+   is reported as a runtime fix for those separate concerns.
+3. Add pending constructor adoption, finally cleanup, and Set aggregation to
+   the hard-crash matrix. Passed 60 SIGKILL/restart cases across ten families,
+   all three widths, and both host-sidecar modes. Every external effect occurs
+   exactly once, and recovered values match the reference.
+4. Rerun completed replay, pending checkpoints, budgets, host bridging, and
+   cancellation tests, plus parser/snapshot fuzz. The last green expanded
+   SafeJS/agent-harness suite passed 3,644 tests with 39 skipped; SafeJS alone
+   passed 3,512 with 39 skipped. Opt-in fuzz passed 9 with 5 skipped. All 67
+   workspace build tasks and the root bundle passed. These counts precede the
+   newly added failing cancellation regression below, so they are not a green
+   release gate for the current worktree.
+5. Recheck real 5.0.0 snapshot rejection and the root constructor screenshot.
+   All four published-runtime fixtures still reject before incompatible replay.
+   The 256-constructor screenshot was regenerated and inspected successfully;
+   the fixture checks prefix, checksum, and borrowed receiver results, with zero
+   agent spawns. Root typecheck and SafeJS ESLint pass. The six obsolete package
+   output directories remain absent after the full build.
+
+### Cancellation and fatal-rejection audit — August 27, 2026
+
+The live capability identity failure described in the preceding audit is fixed:
+
+- Cancellation no longer clones returned objects, functions, collections, or
+  promises. Closures explicitly distinguish sandbox execution from native SDK
+  execution. Native capabilities are guarded when invoked, including detached
+  functions reached later through object, array, Map, and Set aliases. Source
+  callbacks and intrinsic functions retain their sandbox ownership during cleanup.
+- One logical SDK promise retains its identity across concurrent runs while each
+  AbortSignal selects its own cancellation outcome. Cancellation registration
+  traverses own data descriptors without invoking accessors. Frozen objects,
+  captured result objects, constructor callbacks, and completed replay retain
+  their aliases. The cancellation suite passes 42 tests.
+- A separate SDK capability matrix passes 64 native comparisons and 128 completed
+  restores: four aggregates, widths 1/32/256/1024, mixed versus all-rejected input,
+  and cancellation off/on. Comparison uses structured cloning to normalize the
+  sandbox's intentional null-prototype output, preserving undefined values.
+
+Additional red tests exposed fatal promise errors that could leave adoption
+pending or allow later host effects. Ordinary `aborted` sandbox errors were also
+incorrectly bypassing rejection handlers. Both paths are corrected:
+
+- The run tracks the first fatal budget/reentry rejection independently of
+  ordinary unhandled rejection reporting. Pending awaits are interrupted and
+  subsequent source evaluation and capability calls stop. Budget failures remain
+  fatal even when the source ignores a promise or installs a catch callback.
+- Fatal budget cleanup uses an async-context-local scope, allowing awaited finally
+  cleanup without clearing the run's failure or enabling unrelated jobs. The
+  original fatal error is rethrown afterward. Ordinary aborted rejections remain
+  recoverable. Unawaited filesystem budget failures now retain their original
+  SandboxError rather than being wrapped as ordinary unhandled rejections.
+- Internal promise adoption propagates fatal errors even without a run-level
+  rejection tracker. Async SDK then results are normalized and tracked without
+  treating their ignored return values as ordinary adoption settlements.
+- Adding a separate fatal-race wrapper initially changed two signal-enabled
+  native race/any outcomes. Both became failing unit regressions. Fatal handling
+  now shares the existing settlement continuation rather than inserting another
+  bookkeeping turn for sandbox promises.
+
+Validation executed after these fixes:
+
+1. Run SafeJS and agent-harness suites: 3,675 passed, 39 skipped across 141 passing
+   files and one skipped file. No failing tests or unhandled test-process errors.
+2. Compare all 2,916 constructor/adoption/aggregate combinations with native
+   execution and replay every successful result twice: 5,832 completed restores,
+   zero mismatches.
+3. Exercise fatal errors through five async/constructor/thenable families, four
+   aggregates, three call-depth limits, widths 1/16/256, and cancellation off/on:
+   360 cases, zero escaped effects, 360 awaited cleanups, no pending escapes.
+4. Repeat the standalone CLI matrix: all 48 cases pass across 144 separate
+   processes, including raw source and CRLF Markdown. Repeat the SDK capability
+   matrix: all 64 comparisons and 128 restores pass again.
+5. Run opt-in parser/snapshot fuzz: 9 passed, 5 skipped. All four real 5.0.0
+   compatibility fixtures reject safely before incompatible execution.
+6. Build the workspace and root bundle: all 67 build tasks pass. Root typecheck,
+   ESLint, package lint (17 rules), and diff whitespace checks pass. Regenerate
+   and inspect the 256-constructor CLI screenshot: harness passed, coherent
+   result summary, zero agent spawns. All six obsolete output directories remain
+   absent after rebuilding.
+7. Rerun hard-crash recovery after all builds finish. The first attempt was
+   interrupted by the screenshot command rebuilding dependency output while a
+   child process was importing it; it is not counted as a successful gate.
+   The clean rerun passes all 60 SIGKILL/restart cases across ten families,
+   widths 1/32/256, and both sidecar modes, with exactly-once external effects.
+
+No constructor release has been made at this checkpoint. Passing these gates is
+evidence for this item, not proof that the full language-completeness goal is done.
+
+### Remaining constructor-adjacent work
+
+- AS011 still rejects direct `prototype`/`constructor` access in harness source.
+  Keep this in the broader prototype/lint parity work without removing runtime
+  host-escape protections. Its existence is not a successful CLI prototype test.
+  Obsolete README restrictions have been removed; release gates remain pending.
+  Explicit snapshot
+  migration, general prototype chains, and the rest of the delivery checklist
+  remain open. The `await 0` lint warning also says a non-promise await has no
+  effect, despite its scheduling effect; include that diagnostic in syntax parity.
 
 ## Stale artifact cleanup
 

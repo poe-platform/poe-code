@@ -20,6 +20,7 @@ const setConstructors = new WeakSet<SandboxClosure>();
 
 export function createCollectionGlobals(options: { budget: Budget }): CollectionGlobals {
   const mapConstructor = createSandboxClosure({
+    sandbox: true,
     call: () => {
       throw new TypeError("Constructor Map requires 'new'.");
     },
@@ -33,6 +34,7 @@ export function createCollectionGlobals(options: { budget: Budget }): Collection
     name: "Map"
   });
   const setConstructor = createSandboxClosure({
+    sandbox: true,
     call: () => {
       throw new TypeError("Constructor Set requires 'new'.");
     },

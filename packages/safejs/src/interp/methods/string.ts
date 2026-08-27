@@ -94,6 +94,7 @@ export function getStringMember(
   }
 
   return createSandboxClosure({
+    sandbox: true,
     name: `String#${property}`,
     call: (args) => callStringMethod(value, property, args, budget)
   });

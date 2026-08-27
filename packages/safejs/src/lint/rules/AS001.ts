@@ -296,11 +296,6 @@ class AS001Scanner {
       case "with":
         this.report(token.value, token.start, token.end);
         return;
-      case "new":
-        if (!this.source.slice(this.skipTriviaFrom(token.end.offset)).startsWith("RegExp")) {
-          this.report(token.value, token.start, token.end);
-        }
-        return;
       default:
         return;
     }

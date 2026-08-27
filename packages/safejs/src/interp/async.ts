@@ -32,6 +32,7 @@ import {
   createSandboxClosure,
   createSandboxGenerator,
   createSandboxPromise,
+  allocateProducedSandboxValue,
   isSandboxPromise,
   type SandboxCallContext,
   type SandboxValue
@@ -158,6 +159,7 @@ export function createInterpretedClosure(
       : undefined;
 
   return createSandboxClosure({
+    sandbox: true,
     ...(node.async ? { async: true } : {}),
     ...(node.type === "FunctionDeclaration" || node.type === "FunctionExpression"
       ? node.id === undefined
@@ -178,27 +180,38 @@ export function createInterpretedClosure(
       const synchronousPrefix = new Promise<void>((resolve) => {
         completePrefix = resolve;
       });
-      const execution = runAsyncPrefix(() =>
-        executeClosure(
-          node,
-          args,
-          callContext?.thisValue,
-          { ...invocationContext, onSuspend: completePrefix },
-          evaluateNode
-        )
-      );
-      execution.then(completePrefix, completePrefix);
-      return createSandboxPromise(
-        resolveSandboxValue(
-          execution.then((value) =>
-            isSandboxPromise(value) || getThenable(value) !== undefined
-              ? awaitSandboxValue(value, context.signal)
-              : value
-          ),
-          { budget: context.budget }
-        ),
-        { synchronousPrefix }
-      );
+      const promise = new Promise<SandboxValue>((resolve, reject) => {
+        runAsyncPrefix(async () => {
+          try {
+            const value = await executeClosure(
+              node,
+              args,
+              callContext?.thisValue,
+              { ...invocationContext, onSuspend: completePrefix },
+              evaluateNode
+            );
+            resolve(
+              isSandboxPromise(value) || getThenable(value) !== undefined
+                ? awaitSandboxValue(
+                    createSandboxPromise(resolveSandboxValue(value, { budget: context.budget }), {
+                      trackReplay: false
+                    }),
+                    context.signal,
+                    context.budget
+                  )
+                : allocateProducedSandboxValue(value, context.budget)
+            );
+          } catch (error) {
+            reject(error);
+          } finally {
+            completePrefix();
+          }
+        }).catch((error: unknown) => {
+          reject(error);
+          completePrefix();
+        });
+      });
+      return createSandboxPromise(promise, { synchronousPrefix });
     }
   });
 }
@@ -209,6 +222,7 @@ function createGeneratorClosure(
   evaluateNode: EvaluateAsyncNode
 ) {
   return createSandboxClosure({
+    sandbox: true,
     ...(node.id === undefined ? {} : { name: node.id.name }),
     retainedValues: () => context.scope.retainedValues(),
     call: async (args, callContext) => {
@@ -279,7 +293,7 @@ export async function evaluateAwaitExpression(
     return {
       kind: "normal",
       hasValue: true,
-      value: await suspendJob(awaitSandboxValue(argument.value, context.signal))
+      value: await suspendJob(awaitSandboxValue(argument.value, context.signal, context.budget))
     };
   } finally {
     leaveAwait();
@@ -420,9 +434,14 @@ export function normalizeClosureResult(
   result: SandboxValue | Promise<SandboxValue> | PromiseLike<SandboxValue>,
   budget?: Budget
 ): SandboxValue {
-  if (isSandboxPromise(result)) {
+  if (
+    isSandboxPromise(result) &&
+    (result.synchronousPrefix !== undefined || result.hostCall !== undefined)
+  ) {
     return result;
   }
 
-  return createSandboxPromise(resolveSandboxValue(result, { budget }));
+  return createSandboxPromise(resolveSandboxValue(result, { budget }), {
+    ...(isSandboxPromise(result) ? { synchronousPrefix: Promise.resolve() } : {})
+  });
 }

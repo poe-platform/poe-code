@@ -226,6 +226,9 @@ export function decodeReplayData(
       }
       return createSandboxClosure({
         ...capability,
+        boundTarget: capability.boundTarget,
+        cancellationSignal: capability.cancellationSignal,
+        sandbox: capability.sandbox,
         retainedValues: () => [capability],
         properties: (closure) => {
           restored.set(id, closure);

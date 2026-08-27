@@ -1,17 +1,77 @@
 import { describe, expect, it, vi } from "vitest";
 
 import { run } from "../run.js";
-import { wrapCancelableBindings } from "./cancel.js";
+import { dump } from "../dump.js";
+import { awaitSandboxValue, withCancellationSignal, wrapCancelableBindings } from "./cancel.js";
 import {
   createSandboxClosure,
   createSandboxPromise,
+  createSandboxMap,
+  createSandboxSet,
   isSandboxClosure,
   isSandboxPromise,
+  measureSandboxData,
   type SandboxClosure,
   type SandboxObject
 } from "./values.js";
 
-describe("wrapCancelableBindings", () => {
+describe("cancellation boundaries", () => {
+  it("honors an explicit await signal outside an active invocation context", async () => {
+    const controller = new AbortController();
+    const promise = createSandboxPromise(new Promise(() => undefined));
+    wrapCancelableBindings({ promise }, controller.signal);
+    const pending = awaitSandboxValue(promise, controller.signal);
+    controller.abort(new Error("explicit await"));
+    await expect(pending).rejects.toThrow("explicit await");
+  });
+  it("preserves constructor capabilities, static properties, and cycles", async () => {
+    const controller = new AbortController();
+    const constructor = createSandboxClosure({
+      call: () => undefined,
+      construct: ([value]) => ({ value }),
+      properties: (closure) => ({ self: closure, read: createSandboxClosure({ call: () => 42 }) })
+    });
+    const bindings = wrapCancelableBindings({ Constructor: constructor }, controller.signal);
+    const wrapped = resolveClosure(bindings, "Constructor");
+    expect(wrapped.properties?.self).toBe(wrapped);
+    expect(await wrapped.construct?.([13])).toEqual({ value: 13 });
+    const read = wrapped.properties?.read;
+    if (!isSandboxClosure(read)) throw new Error("missing static method");
+    expect(await read.call([])).toBe(42);
+    expect(wrapCancelableBindings({ Constructor: wrapped }, controller.signal).Constructor).toBe(
+      wrapped
+    );
+  });
+
+  it("retains captured values for data budget accounting", () => {
+    const captured = { text: "x".repeat(100) };
+    const closure = createSandboxClosure({
+      call: () => captured,
+      retainedValues: () => [captured]
+    });
+    const wrapped = wrapCancelableBindings({ closure }, new AbortController().signal).closure;
+    expect(measureSandboxData([wrapped])).toBeGreaterThanOrEqual(measureSandboxData([closure]));
+  });
+
+  it("checks cancellation before invoking an injected constructor", () => {
+    const controller = new AbortController();
+    const construct = vi.fn(() => ({}));
+    const wrapped = resolveClosure(
+      wrapCancelableBindings(
+        {
+          Constructor: createSandboxClosure({ call: () => undefined, construct })
+        },
+        controller.signal
+      ),
+      "Constructor"
+    );
+    controller.abort(new Error("stop constructor"));
+    expect(() => withCancellationSignal(controller.signal, () => wrapped.construct?.([]))).toThrow(
+      "stop constructor"
+    );
+    expect(construct).not.toHaveBeenCalled();
+  });
+
   it("rejects the first await immediately with the abort reason when pre-aborted", async () => {
     const controller = new AbortController();
     const reason = new Error("stop before start");
@@ -28,9 +88,11 @@ describe("wrapCancelableBindings", () => {
       controller.signal
     );
 
-    await expect(resolveSandboxPromise(resolveClosure(bindings, "wait").call([]))).rejects.toBe(
-      reason
-    );
+    await expect(
+      withCancellationSignal(controller.signal, () =>
+        resolveSandboxPromise(resolveClosure(bindings, "wait").call([]))
+      )
+    ).rejects.toBe(reason);
   });
 
   it("yields to abort within one tick during a long microtask chain", async () => {
@@ -54,7 +116,9 @@ describe("wrapCancelableBindings", () => {
       },
       controller.signal
     );
-    const waitResult = resolveSandboxPromise(resolveClosure(bindings, "wait").call([]));
+    const waitResult = withCancellationSignal(controller.signal, () =>
+      resolveSandboxPromise(resolveClosure(bindings, "wait").call([]))
+    );
 
     queueMicrotask(() => {
       controller.abort(reason);
@@ -79,7 +143,9 @@ describe("wrapCancelableBindings", () => {
       controller.signal
     );
 
-    const waitResult = resolveSandboxPromise(resolveClosure(bindings, "wait").call([]));
+    const waitResult = withCancellationSignal(controller.signal, () =>
+      resolveSandboxPromise(resolveClosure(bindings, "wait").call([]))
+    );
     controller.abort(reason);
     deferred.resolve("late");
 
@@ -100,7 +166,9 @@ describe("wrapCancelableBindings", () => {
       controller.signal
     );
 
-    const result = resolveSandboxPromise(resolveClosure(bindings, "done").call([]));
+    const result = withCancellationSignal(controller.signal, () =>
+      resolveSandboxPromise(resolveClosure(bindings, "done").call([]))
+    );
     controller.abort(reason);
 
     await expect(result).resolves.toBe("done");
@@ -122,7 +190,9 @@ describe("wrapCancelableBindings", () => {
       controller.signal
     );
 
-    const waitResult = resolveSandboxPromise(resolveClosure(bindings, "wait").call([]));
+    const waitResult = withCancellationSignal(controller.signal, () =>
+      resolveSandboxPromise(resolveClosure(bindings, "wait").call([]))
+    );
     controller.abort(reason);
     controller.abort(new Error("second abort"));
     deferred.resolve("done");
@@ -141,7 +211,9 @@ describe("wrapCancelableBindings", () => {
       name: "wait"
     });
     const firstBindings = wrapCancelableBindings({ wait }, firstController.signal);
-    const firstResult = resolveSandboxPromise(resolveClosure(firstBindings, "wait").call([]));
+    const firstResult = withCancellationSignal(firstController.signal, () =>
+      resolveSandboxPromise(resolveClosure(firstBindings, "wait").call([]))
+    );
 
     firstController.abort(new Error("first abort"));
 
@@ -160,7 +232,9 @@ describe("wrapCancelableBindings", () => {
       },
       secondController.signal
     );
-    const secondResult = resolveSandboxPromise(resolveClosure(secondBindings, "wait").call([]));
+    const secondResult = withCancellationSignal(secondController.signal, () =>
+      resolveSandboxPromise(resolveClosure(secondBindings, "wait").call([]))
+    );
     secondController.abort(new Error("second abort"));
 
     await expect(secondResult).resolves.toBe("second");
@@ -179,7 +253,9 @@ describe("wrapCancelableBindings", () => {
       },
       controller.signal
     );
-    const result = resolveSandboxPromise(resolveClosure(bindings, "wait").call([]));
+    const result = withCancellationSignal(controller.signal, () =>
+      resolveSandboxPromise(resolveClosure(bindings, "wait").call([]))
+    );
 
     controller.abort();
 
@@ -193,6 +269,271 @@ describe("wrapCancelableBindings", () => {
 });
 
 describe("run cancellation", () => {
+  it("reports an unobserved cancelled SDK promise", async () => {
+    const controller = new AbortController();
+    const wait = createSandboxClosure({
+      async: true,
+      call: () => createSandboxPromise(new Promise(() => undefined))
+    });
+    await expect(
+      run("wait(); abort(); return 42;", {
+        bindings: { wait, abort: () => controller.abort(new Error("unobserved stop")) },
+        signal: controller.signal
+      })
+    ).rejects.toMatchObject({
+      name: "UnhandledRejectionError",
+      reason: { message: "unobserved stop" }
+    });
+  });
+
+  it("keeps one SDK promise identity while isolating concurrent cancellation outcomes", async () => {
+    const first = new AbortController();
+    const second = new AbortController();
+    const started = createDeferred<void>();
+    const finish = createDeferred<string>();
+    const shared = createSandboxPromise(finish.promise);
+    let calls = 0;
+    const load = createSandboxClosure({
+      call: () => {
+        if (++calls === 4) started.resolve();
+        return shared;
+      }
+    });
+    const source =
+      "const value = load(); const same = value === load(); try { return [same, await value]; } catch (error) { return [same, error.message]; }";
+    const firstRun = run(source, { bindings: { load }, signal: first.signal });
+    const secondRun = run(source, { bindings: { load }, signal: second.signal });
+    await started.promise;
+    first.abort(new Error("first stopped"));
+    finish.resolve("second finished");
+    expect(await firstRun).toMatchObject({ ok: true, returnValue: [true, "first stopped"] });
+    expect(await secondRun).toMatchObject({ ok: true, returnValue: [true, "second finished"] });
+  });
+
+  it.each(["{ nested: {} }", "[1, 2]", "() => 42", "Promise.resolve(42)"])(
+    "preserves source %s identity through a legacy binding",
+    async (expression) => {
+      const echo = createSandboxClosure({ call: ([value]) => value });
+      expect(
+        await run(`const value = ${expression}; return echo(value) === value;`, {
+          bindings: { echo },
+          signal: new AbortController().signal
+        })
+      ).toMatchObject({ ok: true, returnValue: true });
+    }
+  );
+
+  it.each([false, true])(
+    "cancels a newly installed nested capability, detached=%s",
+    async (detached) => {
+      const controller = new AbortController();
+      const effect = vi.fn(() => 42);
+      const shared: SandboxObject = {};
+      const load = createSandboxClosure({ call: () => shared });
+      const install = createSandboxClosure({
+        call: () => {
+          shared.action = createSandboxClosure({ call: effect });
+          return undefined;
+        }
+      });
+      const source = `const value = load(); install(); ${detached ? "const action = value.action;" : ""} abort(); try { ${detached ? "action()" : "value.action()"}; return 'missed'; } catch (error) { return error.message; }`;
+      expect(
+        await run(source, {
+          bindings: { load, install, abort: () => controller.abort(new Error("stop nested")) },
+          signal: controller.signal
+        })
+      ).toMatchObject({ ok: true, returnValue: "stop nested" });
+      expect(effect).not.toHaveBeenCalled();
+    }
+  );
+
+  it("preserves frozen host result aliases and descriptors", async () => {
+    const shared = Object.freeze({ child: Object.freeze({ value: 42 }) });
+    const load = createSandboxClosure({ call: () => shared });
+    expect(
+      await run(
+        "const value = load(); return [value === load(), Object.isFrozen(value), Object.isFrozen(value.child)];",
+        {
+          bindings: { load },
+          signal: new AbortController().signal
+        }
+      )
+    ).toMatchObject({ ok: true, returnValue: [true, true, true] });
+  });
+
+  it("does not classify source callbacks installed on host data as native effects", async () => {
+    const controller = new AbortController();
+    expect(
+      await run("const value = load(); value.action = () => 42; abort(); return value.action();", {
+        bindings: {
+          load: createSandboxClosure({ call: () => ({}) }),
+          abort: () => controller.abort(new Error("stop"))
+        },
+        signal: controller.signal
+      })
+    ).toMatchObject({ ok: true, returnValue: 42 });
+  });
+
+  it("preserves source-owned callback results through legacy host invocation", async () => {
+    const controller = new AbortController();
+    const invoke = createSandboxClosure({
+      call: async ([callback]) => {
+        if (!isSandboxClosure(callback)) throw new Error("missing callback");
+        return await callback.call([]);
+      }
+    });
+    expect(
+      await run(
+        "const Constructor = await invoke(() => Promise); abort(); return Constructor.resolve(42) instanceof Constructor;",
+        {
+          bindings: { invoke, abort: () => controller.abort(new Error("stop")) },
+          signal: controller.signal
+        }
+      )
+    ).toMatchObject({ ok: true, returnValue: true });
+  });
+
+  it("isolates cancellation for shared capabilities across concurrent runs", async () => {
+    const first = new AbortController();
+    const second = new AbortController();
+    const firstStarted = createDeferred<void>();
+    const secondStarted = createDeferred<void>();
+    const secondFinish = createDeferred<void>();
+    const effect = vi.fn(() => 42);
+    const shared = { action: createSandboxClosure({ call: effect }) };
+    const load = createSandboxClosure({ call: () => shared });
+    const source =
+      "const value = load(); try { await pause(); } catch {} try { return value.action(); } catch (error) { return error.message; }";
+    const firstRun = run(source, {
+      signal: first.signal,
+      bindings: {
+        load,
+        pause: () => {
+          firstStarted.resolve();
+          return new Promise(() => undefined);
+        }
+      }
+    });
+    const secondRun = run(source, {
+      signal: second.signal,
+      bindings: {
+        load,
+        pause: () => {
+          secondStarted.resolve();
+          return secondFinish.promise;
+        }
+      }
+    });
+    await Promise.all([firstStarted.promise, secondStarted.promise]);
+    first.abort(new Error("first stopped"));
+    secondFinish.resolve();
+    expect(await firstRun).toMatchObject({ ok: true, returnValue: "first stopped" });
+    expect(await secondRun).toMatchObject({ ok: true, returnValue: 42 });
+    expect(effect).toHaveBeenCalledOnce();
+  });
+
+  it.each(["all", "allSettled", "any", "race"])(
+    "preserves live custom %s capability results with cancellation armed",
+    async (method) => {
+      const constructor = createSandboxClosure({
+        call: () => undefined,
+        construct: ([executor]) => {
+          const result: SandboxObject = {};
+          if (!isSandboxClosure(executor)) throw new Error("missing executor");
+          executor.call([
+            createSandboxClosure({
+              call: ([value]) => {
+                result.value = value;
+                return undefined;
+              }
+            }),
+            createSandboxClosure({
+              call: ([reason]) => {
+                result.reason = reason;
+                return undefined;
+              }
+            })
+          ]);
+          return result;
+        },
+        properties: {
+          resolve: createSandboxClosure({
+            call: ([value]) => ({
+              then: createSandboxClosure({
+                call: ([fulfill]) => {
+                  if (!isSandboxClosure(fulfill)) throw new Error("missing fulfill");
+                  return fulfill.call([value]);
+                }
+              })
+            })
+          })
+        }
+      });
+      for (const signal of [undefined, new AbortController().signal]) {
+        const source = `return Promise.${method}.call(Container, [1, 2]).value;`;
+        const expected =
+          method === "all"
+            ? [1, 2]
+            : method === "allSettled"
+              ? [
+                  { status: "fulfilled", value: 1 },
+                  { status: "fulfilled", value: 2 }
+                ]
+              : 2;
+        const result = await run(source, {
+          bindings: { Container: constructor },
+          signal
+        });
+        expect(result).toMatchObject({ ok: true, returnValue: expected });
+        expect(
+          await run(source, {
+            bindings: { Container: constructor },
+            signal: new AbortController().signal,
+            snapshot: JSON.parse(await dump(result))
+          })
+        ).toMatchObject({ ok: true, returnValue: expected });
+      }
+    }
+  );
+
+  it.each(["array", "map", "set"])(
+    "guards late SDK capabilities reached through a %s",
+    async (kind) => {
+      const controller = new AbortController();
+      const effect = vi.fn(() => 42);
+      const action = createSandboxClosure({ call: effect });
+      const array: SandboxClosure[] = [];
+      const map = createSandboxMap();
+      const set = createSandboxSet();
+      const container = kind === "array" ? array : kind === "map" ? map : set;
+      const load = createSandboxClosure({ call: () => container });
+      const install = createSandboxClosure({
+        call: () => {
+          array.push(action);
+          map.entries.set("action", action);
+          set.values.add(action);
+          return undefined;
+        }
+      });
+      const read =
+        kind === "array"
+          ? "value[0]"
+          : kind === "map"
+            ? "value.get('action')"
+            : "value.values()[0]";
+      expect(
+        await run(
+          `const value = load(); install(); const action = ${read}; abort(); try { action(); return 'missed'; } catch (error) { return error.message; }`,
+          {
+            bindings: { load, install, abort: () => controller.abort(new Error("stop container")) },
+            signal: controller.signal
+          }
+        )
+      ).toMatchObject({ ok: true, returnValue: "stop container" });
+      expect(effect).not.toHaveBeenCalled();
+    }
+  );
+
   it.each([
     "return Array.from([1, 2], value => value * 2);",
     "const values = new Map([[1, 2]]); return [values.get(1), values instanceof Map];",

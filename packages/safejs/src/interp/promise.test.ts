@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 
 import { Budget, SandboxError } from "./budget.js";
+import { SandboxJobQueue } from "./jobs.js";
 import { createPromiseGlobals, getPromiseMember, resolveSandboxValue } from "./promise.js";
 import {
   createSandboxClosure,
@@ -13,6 +14,113 @@ import {
 } from "./values.js";
 
 describe("createPromiseGlobals", () => {
+  it.each(["budgetExceeded", "reentry"])(
+    "propagates %s during adoption without an active rejection tracker",
+    async (code) => {
+      const budget = new Budget();
+      createPromiseGlobals({ budget });
+      const error = new SandboxError(
+        code === "reentry" ? "reentry" : { budget: "callDepth", current: 9, limit: 8 }
+      );
+      const failed = createSandboxPromise(Promise.reject(error));
+      const result = resolveSandboxValue(failed, { budget });
+      const outcome = await Promise.race([
+        result.then(
+          (value) => ({ value }),
+          (reason: unknown) => ({ reason })
+        ),
+        new Promise((resolve) => setImmediate(() => resolve("pending")))
+      ]);
+      expect(outcome).toEqual({ reason: error });
+    }
+  );
+
+  it("does not pass an argument to iterator next during aggregation", async () => {
+    const calls: number[] = [];
+    const iterable = {
+      [Symbol.iterator]() {
+        return {
+          next(...args: unknown[]) {
+            calls.push(args.length);
+            return { done: true, value: undefined };
+          }
+        };
+      }
+    };
+    await Promise.all(iterable);
+    const expected = calls.splice(0);
+    const globals = createPromiseGlobals({ budget: new Budget() });
+    await resolvePromise(resolveClosure(globals.Promise, "all").call([iterable as never]));
+    expect(calls).toEqual(expected);
+  });
+
+  it("captures the iterator next method once like native aggregation", async () => {
+    const createIterable = () => ({
+      [Symbol.iterator]() {
+        let index = 0;
+        const iterator: Iterator<number> = {
+          next() {
+            index++;
+            iterator.next = () => ({ done: true, value: undefined });
+            return index <= 2 ? { done: false, value: index } : { done: true, value: undefined };
+          }
+        };
+        return iterator;
+      }
+    });
+    const globals = createPromiseGlobals({ budget: new Budget() });
+    await expect(
+      resolvePromise(resolveClosure(globals.Promise, "all").call([createIterable() as never]))
+    ).resolves.toEqual(await Promise.all(createIterable()));
+  });
+
+  it("does not read iterator return during normal consumption", async () => {
+    const iterable = {
+      [Symbol.iterator]() {
+        return {
+          next: () => ({ done: true, value: undefined }),
+          get return() {
+            throw new Error("return must not be read");
+          }
+        };
+      }
+    };
+    const globals = createPromiseGlobals({ budget: new Budget() });
+    await expect(
+      resolvePromise(resolveClosure(globals.Promise, "all").call([iterable as never]))
+    ).resolves.toEqual(await Promise.all(iterable));
+  });
+
+  it.each([false, true])(
+    "closes an iterator using its current return method when allocation fails (%s)",
+    async (throws) => {
+      const close = vi.fn(() => {
+        if (throws) throw new Error("close failure");
+        return { done: true, value: undefined };
+      });
+      const iterable = {
+        [Symbol.iterator]() {
+          const iterator: Iterator<number> = {
+            next() {
+              iterator.return = close;
+              return { done: false, value: 1 };
+            }
+          };
+          return iterator;
+        }
+      };
+      const globals = createPromiseGlobals({ budget: new Budget({ arrayLength: 0 }) });
+      await expect(
+        resolvePromise(resolveClosure(globals.Promise, "all").call([iterable as never]))
+      ).rejects.toMatchObject({
+        name: "SandboxError",
+        code: "budgetExceeded",
+        budget: "arrayLength"
+      });
+      expect(close).toHaveBeenCalledTimes(1);
+    }
+  );
+
   it.each(
     ["resolve", "reject"].flatMap((first) =>
       ["resolve", "reject", "throw"].map((second) => ({ first, second }))
@@ -220,12 +328,14 @@ describe("createPromiseGlobals", () => {
 
     await expect(
       resolvePromise(
-        resolveClosure(globals.Promise, "race").call([
-          [
-            createThenable((_resolve, reject) => reject("sync")),
-            createSandboxPromise(Promise.resolve("ignored"))
-          ]
-        ])
+        new SandboxJobQueue().run(() =>
+          resolveClosure(globals.Promise, "race").call([
+            [
+              createThenable((_resolve, reject) => reject("sync")),
+              createSandboxPromise(Promise.resolve("ignored"))
+            ]
+          ])
+        )
       )
     ).resolves.toBe(expected);
   });
@@ -324,7 +434,7 @@ describe("createPromiseGlobals", () => {
 
       await expect(
         resolvePromise(resolveClosure(globals.Promise, name).call([123]))
-      ).rejects.toThrow(TypeError);
+      ).rejects.toMatchObject({ name: "TypeError" });
     }
   );
 
@@ -340,7 +450,7 @@ describe("createPromiseGlobals", () => {
         resolvePromise(
           resolveClosure(globals.Promise, name).call([createThrowingIterable(failure)])
         )
-      ).rejects.toBe(failure);
+      ).rejects.toMatchObject({ name: failure.name, message: failure.message });
     }
   );
 
@@ -705,13 +815,15 @@ describe("getPromiseMember", () => {
     }
   );
 
-  it("only exposes closed-world promise members", () => {
-    const target = createSandboxPromise(Promise.resolve("value"));
-
-    expect(getPromiseMember(target, "then", new Budget())).toSatisfy(isSandboxClosure);
-    expect(getPromiseMember(target, "catch", new Budget())).toSatisfy(isSandboxClosure);
-    expect(getPromiseMember(target, "finally", new Budget())).toSatisfy(isSandboxClosure);
-    expect(getPromiseMember(target, "constructor", new Budget())).toBeUndefined();
+  it("shares intrinsic promise members within the execution budget", () => {
+    const budget = new Budget();
+    const globals = createPromiseGlobals({ budget });
+    expect(getPromiseMember("then", budget)).toSatisfy(isSandboxClosure);
+    expect(getPromiseMember("catch", budget)).toSatisfy(isSandboxClosure);
+    expect(getPromiseMember("finally", budget)).toSatisfy(isSandboxClosure);
+    expect(getPromiseMember("constructor", budget)).toBe(globals.Promise);
+    expect(getPromiseMember("then", budget)).toBe(getPromiseMember("then", budget));
+    expect(getPromiseMember("missing", budget)).toBeUndefined();
   });
 
   it("chains catch before finally", async () => {
@@ -740,8 +852,8 @@ describe("getPromiseMember", () => {
   });
 });
 
-function resolveClosure(value: SandboxObject, name: string): SandboxClosure {
-  const closure = value[name];
+function resolveClosure(value: SandboxObject | SandboxClosure, name: string): SandboxClosure {
+  const closure = isSandboxClosure(value) ? value.properties?.[name] : value[name];
 
   if (!isSandboxClosure(closure)) {
     throw new TypeError(`Expected Promise.${name} to be a sandbox closure.`);
@@ -751,6 +863,7 @@ function resolveClosure(value: SandboxObject, name: string): SandboxClosure {
 }
 
 async function resolvePromise(value: unknown): Promise<unknown> {
+  value = await value;
   if (!isSandboxPromise(value)) {
     throw new TypeError("Expected a subset Promise value.");
   }
@@ -763,12 +876,12 @@ function callPromiseMember(
   name: string,
   args: SandboxValue[]
 ): ReturnType<typeof createSandboxPromise> {
-  const member = getPromiseMember(target, name, new Budget());
+  const member = getPromiseMember(name, new Budget());
   if (!isSandboxClosure(member)) {
     throw new TypeError(`Expected Promise.${name} to be a sandbox closure.`);
   }
 
-  const result = member.call(args);
+  const result = member.call(args, { stack: [], thisValue: target });
   if (!isSandboxPromise(result)) {
     throw new TypeError(`Expected Promise.${name} to return a sandbox promise.`);
   }

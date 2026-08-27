@@ -431,6 +431,14 @@ describe("JavaScript conformance matrix", () => {
     });
   });
 
+  it("binds function arguments without invoking the target early", async () => {
+    await expect(
+      run(
+        "let calls = 0; const target = (first, second) => { calls++; return first + second; }; const bound = target.bind(null, 20); const before = calls; return [before, bound(22), calls];"
+      )
+    ).resolves.toEqual([0, 42, 1]);
+  });
+
   describe("documented deviations", () => {
     it("returns eager arrays from Map and Set iteration methods", async () => {
       await expect(
@@ -445,10 +453,6 @@ describe("JavaScript conformance matrix", () => {
         undefined,
         undefined
       ]);
-    });
-
-    it("does not provide Function bind", async () => {
-      await expect(run("return (() => 1).bind")).resolves.toBeUndefined();
     });
 
     it("rejects destructuring heads in for-in", () => {

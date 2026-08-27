@@ -147,23 +147,23 @@ Embed SafeJS in your own product when you want to let users (or models) write sm
 
 These are pre-bound in every script — you don't need to import them.
 
-- **`Promise`** — `all`, `race`, `allSettled`, `any`, `resolve`, `reject`; sandbox promises expose `then`, `catch`, and `finally`
+- **`Promise`** — constructor and static `all`, `race`, `allSettled`, `any`, `resolve`, `reject`; sandbox promises expose `then`, `catch`, and `finally`
 - **`Math`** — numeric methods including `abs`, `acos`, `acosh`, `asin`, `asinh`, `atan`, `atan2`, `atanh`, `ceil`, `cbrt`, `clz32`, `cos`, `cosh`, `exp`, `expm1`, `floor`, `fround`, `hypot`, `imul`, `log`, `log1p`, `log10`, `log2`, `max`, `min`, `pow`, `round`, `sign`, `sin`, `sinh`, `sqrt`, `tan`, `tanh`, `trunc`, plus standard constants and `random`
 - **`Object`** — `keys`, `values`, `entries`, `hasOwn`, `is`, `fromEntries`, `assign`, `freeze`, `isFrozen`
 - **`Array`** — callable/constructable array factory plus `isArray`, `from`, `of`
 - **`String`** — value coercion plus `raw`, `fromCharCode`, `fromCodePoint`
 - **`Number`** — value coercion plus `isFinite`, `isNaN`, `isInteger`, `isSafeInteger`, `parseInt`, `parseFloat`, and standard numeric constants
 - **`Boolean`** — value coercion
-- **`Map`, `Set`** — sandbox collection constructors and methods (`get`/`set`/`has`/`delete`/`clear`/`forEach`/`keys`/`values`/`entries`, as applicable). Harness lint reports most `new` expressions, so direct harness code should avoid these unless the lint diagnostic is deliberately suppressed.
+- **`Map`, `Set`** — sandbox collection constructors and methods (`get`/`set`/`has`/`delete`/`clear`/`forEach`/`keys`/`values`/`entries`, as applicable).
 - **`RegExp`** — callable or constructable regex factory; regex literals are supported
-- **`Error`, `TypeError`, `RangeError`, `ReferenceError`, `SyntaxError`, `AggregateError`** — callable factories; constructor calls work at runtime, but harness lint accepts the callable form by default
+- **`Error`, `TypeError`, `RangeError`, `ReferenceError`, `SyntaxError`, `AggregateError`** — callable and constructable factories
 - **`JSON`** — `parse`, `stringify` (replacer must be `null`/`undefined`; indent must be number/string/undefined)
 - **`console`** — `log`, `error` (routed to the `sink` you pass to `run()`)
 - **Miscellaneous** — `structuredClone`, `parseInt`, `parseFloat`, `isNaN`, `isFinite`, `Infinity`, `NaN`
 
-What is **not** available as a global: the `Promise` constructor, `Date`, `WeakMap`, `WeakSet`, `Symbol`, `BigInt`, `Reflect`, `Proxy`, `globalThis`, `setTimeout`, `setInterval`, `fetch`, `URL`, and other browser or Node globals. Expose a host module if you need any of them.
+What is **not** available as a global: `Date`, `WeakMap`, `WeakSet`, `Symbol`, `BigInt`, `Reflect`, `Proxy`, `globalThis`, `setTimeout`, `setInterval`, `fetch`, `URL`, and other browser or Node globals. Expose a host module if you need any of them.
 
-Method coverage on plain values follows ECMAScript with a few removals. Arrays include the common iteration, search, copy, and mutation methods; strings include regex-aware `match`, `matchAll`, `search`, `split`, `replace`, and `replaceAll`; numbers include `toString`, `toFixed`, `toExponential`, and `toPrecision`; functions expose `call` and `apply`, but not `bind`. See `src/interp/methods/` for the full list.
+Method coverage on plain values follows ECMAScript with a few removals. Arrays include the common iteration, search, copy, and mutation methods; strings include regex-aware `match`, `matchAll`, `search`, `split`, `replace`, and `replaceAll`; numbers include `toString`, `toFixed`, `toExponential`, and `toPrecision`; functions expose `call`, `apply`, and `bind`. See `src/interp/methods/` for the full list.
 
 ## Built-in host modules
 
@@ -323,7 +323,6 @@ no module bodies to inspect.
 ## Gotchas
 
 - **Snapshots are source- and execution-pinned.** Changes to parsed structure invalidate prior snapshots; formatting-only changes can remain compatible. Replay snapshots from older asynchronous execution semantics are rejected before execution. Resume them with their original runtime; automatic migration is not yet available.
-- **`Promise.all` is fine; user-defined promise constructors are not.** `Promise` is exposed for static helpers and promise instances expose `then`, `catch`, and `finally`. There is no `new Promise(...)`.
 - **Agent failures throw.** `agent.spawn` rejects when the child agent's `exitCode !== 0`. Catch it if your shape needs to recover.
 - **MCP module is BYO transport.** `makeMcpModule` requires a `connectMcp` callback that returns a working `listTools` / `callTool` connection. The package does not bundle a transport.
 - **`env` module is allowlisted.** `makeEnvModule(["FOO"])` will only return `FOO`. Anything else returns `undefined` even if it's set in `process.env`.
@@ -331,11 +330,10 @@ no module bodies to inspect.
 
 ## What's intentionally limited
 
-- Harness lint rejects `var`, `switch`, `this`, and most `new` expressions even though the parser/runtime can execute many of them. Prefer arrows, `const`/`let`, `if`/loops, callable error factories, and `RegExp(...)` / regex literals in harness code.
+- Harness lint rejects `var`, `switch`, and `this` even though the parser/runtime can execute them. Prefer arrows, `const`/`let`, and `if`/loops in harness code.
 - No user-defined classes or prototype chains.
 - No async generators. Synchronous generators work, but a generator suspended mid-iteration cannot be snapshotted.
 - Regex support covers common literals, `RegExp`, and string methods, but not backreferences, lookaround, named groups, or Unicode property escapes.
-- `Map` and `Set` work at runtime, but their constructors require `new`, so linted harnesses need an explicit suppression to construct them directly.
 - No network or process modules in the box. Build them as host modules with the surface you want to expose. The bundled `fs` module is off until registered, and a narrower module is preferable when a harness only needs a few paths.
 - No multi-file imports — a script is a single module body. Compose by registering more modules.
 

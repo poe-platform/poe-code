@@ -10,9 +10,13 @@ import { enterRunningState } from "./running-state.js";
 
 export type SandboxIterator = {
   readonly generator?: true;
-  next(value?: SandboxValue): Promise<IteratorResult<SandboxValue>>;
-  return?(value?: SandboxValue): Promise<IteratorResult<SandboxValue>>;
-  throw?(error?: SandboxValue): Promise<IteratorResult<SandboxValue>>;
+  next(value?: SandboxValue): IteratorResult<SandboxValue> | Promise<IteratorResult<SandboxValue>>;
+  return?(
+    value?: SandboxValue
+  ): IteratorResult<SandboxValue> | Promise<IteratorResult<SandboxValue>>;
+  throw?(
+    error?: SandboxValue
+  ): IteratorResult<SandboxValue> | Promise<IteratorResult<SandboxValue>>;
 };
 
 export function getSandboxIterator(value: SandboxValue): SandboxIterator | undefined {
@@ -74,21 +78,31 @@ function generatorIterator(generator: SandboxGenerator): SandboxIterator {
 }
 
 function syncIterator(iterator: Iterator<SandboxValue>): SandboxIterator {
-  const invoke = async (method: "next" | "return" | "throw", value?: SandboxValue) => {
+  const next = iterator.next;
+  const invoke = (
+    method: (...args: [] | [SandboxValue]) => IteratorResult<SandboxValue>,
+    args: readonly SandboxValue[]
+  ) => {
     const leaveRunning = enterRunningState(iterator as object);
     try {
-      return await iterator[method]!(value);
+      return Reflect.apply(method, iterator, args);
     } finally {
       leaveRunning();
     }
   };
   return {
-    next: (value) => invoke("next", value),
-    ...(typeof iterator.return === "function"
-      ? { return: (value?: SandboxValue) => invoke("return", value) }
-      : {}),
-    ...(typeof iterator.throw === "function"
-      ? { throw: (error?: SandboxValue) => invoke("throw", error) }
-      : {})
+    next: (...args: [value?: SandboxValue]) => invoke(next, args),
+    get return() {
+      const method = iterator.return;
+      if (method === undefined || method === null) return undefined;
+      if (typeof method !== "function") throw new TypeError("Iterator return must be callable.");
+      return (...args: [value?: SandboxValue]) => invoke(method, args);
+    },
+    get throw() {
+      const method = iterator.throw;
+      if (method === undefined || method === null) return undefined;
+      if (typeof method !== "function") throw new TypeError("Iterator throw must be callable.");
+      return (...args: [value?: SandboxValue]) => invoke(method, args);
+    }
   };
 }

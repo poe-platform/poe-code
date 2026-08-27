@@ -9,8 +9,23 @@ policy: re-issue or external reconciliation.
 Cancellation preserves the most recently captured checkpoint instead of replacing
 its replay history with an unwind-time snapshot. Adding or removing an
 `AbortSignal` on resume does not add promise-settlement events to that history.
-Synchronous functions returning promises preserve those promises; only an
-explicit `await` consumes them and creates an await checkpoint.
+Synchronous functions returning promises preserve those promises. Promise
+reactions can consume settled host results; an explicit `await` creates an
+await checkpoint.
+
+Cancellation guards native capabilities at invocation boundaries without copying
+their live result graphs. Aliased objects, captured constructor result objects,
+and promise identities stay intact. A shared SDK promise can have a different
+cancellation outcome in each run; those outcomes do not introduce new logical
+promise identifiers into replay history. Sandbox callbacks remain distinct from
+native capabilities so that source-level cleanup can run after cancellation.
+
+Fatal budget and reentry rejections stop subsequent source execution and interrupt
+pending promise waits even when a source handler ignores the rejection. Budget
+unwinding still runs awaited `finally` cleanup and then rethrows the original
+fatal error. Ordinary promise rejections, including aborted operations, retain
+their normal handler behavior. This is not a recoverable-budget checkpoint policy;
+that remains a separate language-completeness item.
 
 Completed-run snapshots also retain portable replay history and original inputs.
 Restoring one reuses the original random sequence and completed host outcomes,
@@ -139,12 +154,18 @@ callback execution traces also consume the aggregate data budget.
 
 ## Execution compatibility
 
-New run snapshots carry `executionSemantics: "jobs-v1"`. Promise jobs run after
+New run snapshots carry `executionSemantics: "jobs-v2"`. Promise jobs run after
 the surrounding synchronous source execution yields. Async functions execute
 their synchronous prefix before returning a promise, and synchronous builtin
 callbacks do not implicitly await returned promises. Thenables preserve their
 receiver, ignore settlement attempts after the first, and finish their current
 synchronous invocation before await continuations execute.
+
+The `jobs-v2` marker also covers the callable `Promise` constructor, its shared
+prototype methods and receiver checks, and identity-preserving cancellation at
+host boundaries. `jobs-v1` snapshots from poe-code 5.0.0 are incompatible: even
+unchanged source such as `return typeof Promise` observes a different global.
+They are rejected before host operations, not silently replayed under new rules.
 
 These corrections change execution ordering, not the parsed source hash. An
 upgrade probe against poe-code 4.0.71 reproduced both changed results and stalled

@@ -27,31 +27,38 @@ export function createObjectArrayGlobals(options: { budget: Budget }): ObjectArr
   return {
     Object: {
       keys: createSandboxClosure({
+        sandbox: true,
         call: ([value]) => budgetSandboxValue(getOwnEnumerableKeys(value), options.budget),
         name: "keys"
       }),
       values: createSandboxClosure({
+        sandbox: true,
         call: ([value]) => budgetSandboxValue(getOwnEnumerableValues(value), options.budget),
         name: "values"
       }),
       entries: createSandboxClosure({
+        sandbox: true,
         call: ([value]) => budgetSandboxValue(getOwnEnumerableEntries(value), options.budget),
         name: "entries"
       }),
       hasOwn: createSandboxClosure({
+        sandbox: true,
         call: ([value, key]) => Reflect.apply(Object.hasOwn, Object, [value, key]),
         name: "hasOwn"
       }),
       is: createSandboxClosure({
+        sandbox: true,
         call: ([left, right]) => Reflect.apply(Object.is, Object, [left, right]),
         name: "is"
       }),
       fromEntries: createSandboxClosure({
+        sandbox: true,
         call: ([value]) =>
           budgetSandboxValue(Reflect.apply(Object.fromEntries, Object, [value]), options.budget),
         name: "fromEntries"
       }),
       freeze: createSandboxClosure({
+        sandbox: true,
         call: ([value]) => {
           if (typeof value === "object" && value !== null) {
             Object.freeze(value);
@@ -62,28 +69,34 @@ export function createObjectArrayGlobals(options: { budget: Budget }): ObjectArr
         name: "freeze"
       }),
       isFrozen: createSandboxClosure({
+        sandbox: true,
         call: ([value]) => Object.isFrozen(value),
         name: "isFrozen"
       }),
       assign: createSandboxClosure({
+        sandbox: true,
         call: ([target, ...sources]) => assignSandboxValues(target, sources),
         name: "assign"
       })
     },
     Array: createSandboxClosure({
+      sandbox: true,
       call: (args) => createArrayFromConstructorArgs(args, options.budget),
       construct: (args) => createArrayFromConstructorArgs(args, options.budget),
       name: "Array",
       properties: {
         isArray: createSandboxClosure({
+          sandbox: true,
           call: ([value]) => Array.isArray(value),
           name: "isArray"
         }),
         from: createSandboxClosure({
+          sandbox: true,
           call: (args) => arrayFromSandboxValues(args, options.budget),
           name: "from"
         }),
         of: createSandboxClosure({
+          sandbox: true,
           call: (args) =>
             budgetSandboxValue(Reflect.apply(Array.of, Array, [...args]), options.budget),
           name: "of"
@@ -91,19 +104,23 @@ export function createObjectArrayGlobals(options: { budget: Budget }): ObjectArr
       }
     }),
     String: createSandboxClosure({
+      sandbox: true,
       call: ([value]) => options.budget.allocateString(String(value)),
       name: "String",
       properties: {
         raw: createSandboxClosure({
+          sandbox: true,
           call: (args) => stringRaw(args, options.budget),
           name: "raw"
         }),
         fromCharCode: createSandboxClosure({
+          sandbox: true,
           call: (args) =>
             options.budget.allocateString(Reflect.apply(String.fromCharCode, String, [...args])),
           name: "fromCharCode"
         }),
         fromCodePoint: createSandboxClosure({
+          sandbox: true,
           call: (args) =>
             options.budget.allocateString(Reflect.apply(String.fromCodePoint, String, [...args])),
           name: "fromCodePoint"
@@ -111,30 +128,37 @@ export function createObjectArrayGlobals(options: { budget: Budget }): ObjectArr
       }
     }),
     Number: createSandboxClosure({
+      sandbox: true,
       call: ([value]) => Number(value),
       name: "Number",
       properties: {
         isFinite: createSandboxClosure({
+          sandbox: true,
           call: ([value]) => typeof value === "number" && Number.isFinite(value),
           name: "isFinite"
         }),
         isNaN: createSandboxClosure({
+          sandbox: true,
           call: ([value]) => typeof value === "number" && Number.isNaN(value),
           name: "isNaN"
         }),
         isInteger: createSandboxClosure({
+          sandbox: true,
           call: ([value]) => typeof value === "number" && Number.isInteger(value),
           name: "isInteger"
         }),
         parseInt: createSandboxClosure({
+          sandbox: true,
           call: (args) => Reflect.apply(Number.parseInt, Number, [...args]),
           name: "parseInt"
         }),
         parseFloat: createSandboxClosure({
+          sandbox: true,
           call: (args) => Reflect.apply(Number.parseFloat, Number, [...args]),
           name: "parseFloat"
         }),
         isSafeInteger: createSandboxClosure({
+          sandbox: true,
           call: ([value]) => typeof value === "number" && Number.isSafeInteger(value),
           name: "isSafeInteger"
         }),
@@ -146,6 +170,7 @@ export function createObjectArrayGlobals(options: { budget: Budget }): ObjectArr
       }
     }),
     Boolean: createSandboxClosure({
+      sandbox: true,
       call: ([value]) => Boolean(value),
       name: "Boolean"
     })

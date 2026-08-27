@@ -56,11 +56,7 @@ export function isSandboxErrorConstructor(value: SandboxValue): value is Sandbox
 function createErrorConstructor(name: ErrorName, budget: Budget): SandboxClosure {
   const call = (args: readonly SandboxValue[], context?: Parameters<SandboxClosure["call"]>[1]) =>
     createSubsetError(name, args, context?.stack ?? [], budget);
-  const closure = createSandboxClosure({
-    call,
-    construct: call,
-    name
-  });
+  const closure = createSandboxClosure({ sandbox: true, call, construct: call, name });
 
   errorConstructorNames.set(closure, name);
   return closure;

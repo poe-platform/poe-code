@@ -81,12 +81,12 @@ export class Inputs {
       this.budget.work(Math.max(1, chunk.byteLength));
       const owned = new Uint8Array(chunk);
       for (let offset = 0; offset < owned.length; offset += 4096) {
-        parser.feed(decoder.decode(owned.subarray(offset, offset + 4096), { stream: true }));
+        await parser.feed(decoder.decode(owned.subarray(offset, offset + 4096), { stream: true }));
         await this.budget.checkpoint();
       }
       await this.budget.checkpoint();
     }
-    parser.feed(decoder.decode());
+    await parser.feed(decoder.decode());
     this.context.signal.throwIfAborted();
     return parser.finish();
   }

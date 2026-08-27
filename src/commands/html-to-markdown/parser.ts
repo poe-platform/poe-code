@@ -24,43 +24,43 @@ export class Parser {
   private rawText: "drop" | "entities" | "literal" = "drop";
   constructor(readonly budget: Budget) {}
 
-  private appendText(text: string, decode = true): void {
+  private async appendText(text: string, decode = true): Promise<void> {
     if (!text) return;
     this.budget.add("tokens"); this.budget.add("nodes");
-    this.stack.at(-1)!.children.push({ tag: "text", attributes: new Map(), children: [], text: (decode ? entities(text, this.budget) : text).replaceAll("\0", "�") });
+    this.stack.at(-1)!.children.push({ tag: "text", attributes: new Map(), children: [], text: (decode ? await entities(text, this.budget) : text).replaceAll("\0", "�") });
   }
 
-  private flushText(final: boolean, decode = true): void {
+  private async flushText(final: boolean, decode = true): Promise<void> {
     let end = this.buffer.length;
     if (!final && decode) {
       const ampersand = this.buffer.lastIndexOf("&");
       if (ampersand >= 0 && end - ampersand <= 34 && !this.buffer.slice(ampersand).includes(";")) end = ampersand;
     }
-    this.appendText(this.buffer.slice(0, end), decode);
+    await this.appendText(this.buffer.slice(0, end), decode);
     this.buffer = this.buffer.slice(end);
     this.bufferBytes = Buffer.byteLength(this.buffer);
   }
 
-  private rawContent(text: string): void {
+  private async rawContent(text: string): Promise<void> {
     if (this.rawText === "drop") return;
     for (const character of text) {
       this.budget.work(character.length);
       const bytes = Buffer.byteLength(character);
-      if (bytes > this.budget.limits.maxTokenBytes - this.bufferBytes) this.flushText(true, this.rawText === "entities");
+      if (bytes > this.budget.limits.maxTokenBytes - this.bufferBytes) await this.flushText(false, this.rawText === "entities");
       this.budget.check(bytes, this.budget.limits.maxTokenBytes - this.bufferBytes, "token bytes");
       this.bufferBytes += bytes; this.buffer += character;
-      if (this.bufferBytes >= 4096) this.flushText(false, this.rawText === "entities");
+      if (this.bufferBytes >= 4096) await this.flushText(false, this.rawText === "entities");
     }
   }
 
-  private rawCharacter(character: string): void {
-    if (!this.rawName) { this.rawContent(character); return; }
+  private async rawCharacter(character: string): Promise<void> {
+    if (!this.rawName) { await this.rawContent(character); return; }
     const target = `</${this.rawName}`;
     if (character === "<") {
-      this.rawContent(this.rawCandidate); this.rawCandidate = "<"; this.rawCandidateBytes = 1;
+      await this.rawContent(this.rawCandidate); this.rawCandidate = "<"; this.rawCandidateBytes = 1;
     } else if (this.rawCandidate) {
       if (this.rawCandidate.length >= target.length && character === ">") {
-        this.budget.add("tokens"); this.flushText(true, this.rawText === "entities");
+        this.budget.add("tokens"); await this.flushText(true, this.rawText === "entities");
         if (this.rawText !== "drop") this.pop(this.rawName);
         this.rawCandidate = ""; this.rawCandidateBytes = 0; this.mode = "text";
       } else if (this.rawCandidate.length < target.length && target.startsWith((this.rawCandidate + character).toLowerCase())
@@ -70,9 +70,9 @@ export class Parser {
         this.budget.check(bytes, this.budget.limits.maxTokenBytes - this.rawCandidateBytes, "token bytes");
         this.rawCandidateBytes += bytes; this.rawCandidate += character;
       } else {
-        this.rawContent(this.rawCandidate); this.rawContent(character); this.rawCandidate = ""; this.rawCandidateBytes = 0;
+        await this.rawContent(this.rawCandidate); await this.rawContent(character); this.rawCandidate = ""; this.rawCandidateBytes = 0;
       }
-    } else this.rawContent(character);
+    } else await this.rawContent(character);
   }
 
   private pop(name: string): void {
@@ -81,37 +81,39 @@ export class Parser {
     }
   }
 
-  private tag(raw: string): void {
+  private async tag(raw: string): Promise<void> {
     this.budget.add("tokens"); this.budget.work(raw.length);
     if (/^<!|^<\?/u.test(raw)) return;
     const match = /^<(\/)?([A-Za-z][A-Za-z0-9:_-]*)([\s\S]*)>$/u.exec(raw);
-    if (!match || match[3] && !/^[\t\n\r\f /]/u.test(match[3])) { this.appendText(raw); return; }
+    if (!match || match[3] && !/^[\t\n\r\f /]/u.test(match[3])) { await this.appendText(raw); return; }
     const name = match[2]!.toLowerCase();
     if (match[1]) { this.pop(name); return; }
     const tail = match[3]!, attributes = new Map<string, string>();
+    let lastContent = tail.length - 1;
+    while (lastContent >= 0 && /\s/u.test(tail[lastContent]!)) { this.budget.work(1); lastContent--; await this.budget.checkpoint(); }
     let position = 0, count = 0, selfClosing = false;
     while (position < tail.length) {
       this.budget.work(1);
-      while (/\s/u.test(tail[position] ?? "") && position < tail.length) position++;
+      while (/\s/u.test(tail[position] ?? "") && position < tail.length) { this.budget.work(1); position++; await this.budget.checkpoint(); }
       if (position === tail.length) break;
-      if (tail[position] === "/" && !tail.slice(position + 1).trim()) { selfClosing = true; break; }
+      if (tail[position] === "/" && position === lastContent) { selfClosing = true; break; }
       this.budget.check(++count, this.budget.limits.maxAttributes, "attributes");
       const start = position;
-      while (position < tail.length && !/[\s=/>]/u.test(tail[position]!)) position++;
+      while (position < tail.length && !/[\s=/>]/u.test(tail[position]!)) { this.budget.work(1); position++; await this.budget.checkpoint(); }
       if (position === start) { position++; continue; }
       const key = tail.slice(start, position).toLowerCase();
-      while (position < tail.length && /\s/u.test(tail[position]!)) position++;
+      while (position < tail.length && /\s/u.test(tail[position]!)) { this.budget.work(1); position++; await this.budget.checkpoint(); }
       let value = "";
       if (tail[position] === "=") {
         position++;
-        while (position < tail.length && /\s/u.test(tail[position]!)) position++;
+        while (position < tail.length && /\s/u.test(tail[position]!)) { this.budget.work(1); position++; await this.budget.checkpoint(); }
         const quote = tail[position] === '"' || tail[position] === "'" ? tail[position++]! : "";
         const startValue = position;
-        while (position < tail.length && (quote ? tail[position] !== quote : !/\s/u.test(tail[position]!))) position++;
+        while (position < tail.length && (quote ? tail[position] !== quote : !/\s/u.test(tail[position]!))) { this.budget.work(1); position++; await this.budget.checkpoint(); }
         value = tail.slice(startValue, position);
         if (quote && tail[position] === quote) position++;
       }
-      if (!attributes.has(key)) attributes.set(key, entities(value, this.budget));
+      if (!attributes.has(key)) attributes.set(key, await entities(value, this.budget));
     }
     if (name === "script" || name === "style") { this.mode = "raw"; this.rawName = name; this.rawText = "drop"; return; }
     if (name === "a") this.pop("a");
@@ -137,18 +139,18 @@ export class Parser {
     }
   }
 
-  feed(text: string): void {
+  async feed(text: string): Promise<void> {
     for (const character of text) {
       this.budget.work(character.length);
       if (this.mode === "raw") {
-        this.rawCharacter(character);
+        await this.rawCharacter(character);
         continue;
       }
       if (this.mode === "text" && character === "<") {
-        this.flushText(true); this.mode = "tag"; this.buffer = "<"; this.bufferBytes = 1; continue;
+        await this.flushText(true); this.mode = "tag"; this.buffer = "<"; this.bufferBytes = 1; continue;
       }
       const bytes = Buffer.byteLength(character);
-      if (this.mode === "text" && bytes > this.budget.limits.maxTokenBytes - this.bufferBytes) this.flushText(true);
+      if (this.mode === "text" && bytes > this.budget.limits.maxTokenBytes - this.bufferBytes) await this.flushText(false);
       this.budget.check(bytes, this.budget.limits.maxTokenBytes - this.bufferBytes, "token bytes");
       this.bufferBytes += bytes;
       if (this.mode === "comment") {
@@ -157,23 +159,23 @@ export class Parser {
         continue;
       }
       this.buffer += character;
-      if (this.mode === "text") { if (this.bufferBytes >= 4096) this.flushText(false); continue; }
+      if (this.mode === "text") { if (this.bufferBytes >= 4096) await this.flushText(false); continue; }
       if (this.buffer === "<!--") { this.mode = "comment"; this.buffer = ""; continue; }
       if (this.quote) { if (character === this.quote) this.quote = ""; continue; }
       if (character === '"' || character === "'") { this.quote = character; continue; }
       if (character === ">") {
-        const raw = this.buffer; this.buffer = ""; this.bufferBytes = 0; this.mode = "text"; this.tag(raw);
+        const raw = this.buffer; this.buffer = ""; this.bufferBytes = 0; this.mode = "text"; await this.tag(raw);
       } else if (character === "<") {
-        this.appendText(this.buffer.slice(0, -1)); this.buffer = "<"; this.bufferBytes = 1;
+        await this.appendText(this.buffer.slice(0, -1)); this.buffer = "<"; this.bufferBytes = 1;
       }
     }
   }
 
-  finish(): HtmlNode {
-    if (this.mode === "text") this.flushText(true);
-    else if (this.mode === "tag") this.appendText(this.buffer);
+  async finish(): Promise<HtmlNode> {
+    if (this.mode === "text") await this.flushText(true);
+    else if (this.mode === "tag") await this.appendText(this.buffer);
     else if (this.mode === "comment") this.budget.add("tokens");
-    else if (this.mode === "raw" && this.rawText !== "drop") { this.rawContent(this.rawCandidate); this.flushText(true, this.rawText === "entities"); }
+    else if (this.mode === "raw" && this.rawText !== "drop") { await this.rawContent(this.rawCandidate); await this.flushText(true, this.rawText === "entities"); }
     this.buffer = ""; this.stack.length = 1;
     return this.root;
   }

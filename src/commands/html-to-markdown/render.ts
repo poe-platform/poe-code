@@ -1,12 +1,81 @@
 import { Builder, type Budget } from "./budget.js";
 import { destination, escapeText } from "./entities.js";
 import { blockTags, type HtmlNode } from "./parser.js";
+import { htmlSpace, normalizeText, trimText } from "./text.js";
 
-const trim = (text: string): string => text.replace(/^[ \t\r\n\f]+|[ \t\r\n\f]+$/gu, "");
-const space = (text: string): string => text.replace(/[ \t\r\n\f]+/gu, " ");
+const format = (tag: string): "em" | "strong" | "del" | undefined => tag === "em" || tag === "i" ? "em" : tag === "strong" || tag === "b" ? "strong" : tag === "del" || tag === "s" ? "del" : undefined;
+const inlineAtoms = new Set(["a", "img", "code", "br"]);
 
 export class Renderer {
   constructor(readonly budget: Budget) {}
+
+  private trim(text: string): Promise<string> { return trimText(text, this.budget); }
+  private space(text: string, maximum?: number): Promise<string> { return normalizeText(text, this.budget, "space", maximum); }
+
+  private async language(text: string): Promise<string> {
+    let start = 0;
+    for (let offset = 0; offset <= text.length; offset++) {
+      this.budget.work(1);
+      if (offset === text.length || /\s/u.test(text[offset]!)) {
+        if (offset - start <= 41) {
+          const match = /^language-([A-Za-z0-9_+-]{1,32})$/u.exec(text.slice(start, offset));
+          if (match) return match[1]!;
+        }
+        start = offset + 1;
+      }
+      await this.budget.checkpoint();
+    }
+    return "";
+  }
+
+  private async nonSpace(text: string): Promise<boolean> {
+    for (const character of text) {
+      this.budget.work(1);
+      if (character !== " ") return true;
+      await this.budget.checkpoint();
+    }
+    return false;
+  }
+
+  private async inlineChildren(node: HtmlNode): Promise<HtmlNode[]> {
+    const result: HtmlNode[] = [];
+    const visit = async (child: HtmlNode): Promise<void> => {
+      this.budget.work(1); await this.budget.checkpoint();
+      const style = format(child.tag);
+      if (child.tag !== "text" && !blockTags.has(child.tag) && !inlineAtoms.has(child.tag)
+        && (!style || style === format(node.tag))) {
+        for (const nested of child.children) await visit(nested);
+        return;
+      }
+      const previous = result.at(-1);
+      if (style && previous && format(previous.tag) === style) {
+        for (const nested of child.children) { this.budget.work(1); previous.children.push(nested); await this.budget.checkpoint(); }
+      } else if (style) {
+        this.budget.work(child.children.length);
+        result.push({ ...child, children: [...child.children] });
+      } else result.push(child);
+    };
+    for (const child of node.children) await visit(child);
+    return result;
+  }
+
+  private async punctuationBoundary(node: HtmlNode | undefined, ending: boolean): Promise<boolean> {
+    if (!node || !format(node.tag)) return false;
+    const edge = async (parent: HtmlNode): Promise<string | undefined> => {
+      for (let step = 0; step < parent.children.length; step++) {
+        this.budget.work(1); await this.budget.checkpoint();
+        const child = parent.children[ending ? parent.children.length - 1 - step : step]!;
+        if (child.tag === "text") {
+          if (child.text) return ending ? Array.from(child.text.slice(-2)).at(-1) : String.fromCodePoint(child.text.codePointAt(0)!);
+        } else if (child.tag === "br" || blockTags.has(child.tag)) return " ";
+        else if (format(child.tag) || inlineAtoms.has(child.tag)) return "*";
+        else { const nested = await edge(child); if (nested !== undefined) return nested; }
+      }
+      return undefined;
+    };
+    const character = await edge(node);
+    return character !== undefined && /[\p{P}\p{S}]/u.test(character);
+  }
 
   private async raw(node: HtmlNode, maximum: number): Promise<string> {
     const result = new Builder(this.budget, maximum);
@@ -35,12 +104,18 @@ export class Renderer {
 
   async children(node: HtmlNode, maximum = this.budget.limits.maxOutputBytes - this.budget.output): Promise<string> {
     const result = new Builder(this.budget, maximum);
-    for (const child of node.children) {
+    const children = await this.inlineChildren(node);
+    const alternate = (index: number): boolean => format(node.tag) === "em" || format(children[index - 1]?.tag ?? "") === "em" || format(children[index + 1]?.tag ?? "") === "em";
+    const separate = async (index: number, ending: boolean): Promise<boolean> => format(children[index]?.tag ?? "") === "strong" && alternate(index) || await this.punctuationBoundary(children[index], ending);
+    for (let index = 0; index < children.length; index++) {
+      const child = children[index]!;
       this.budget.work(1); await this.budget.checkpoint();
       const block = blockTags.has(child.tag);
       if (block) result.separate();
-      let rendered = await this.node(child, maximum);
-      if (child.tag === "text" && result.blockBoundary && (!result.empty || node.tag === "root" || blockTags.has(node.tag))) rendered = rendered.replace(/^ +/u, "");
+      const edges: readonly [boolean, boolean] = [await separate(index - 1, true), await separate(index + 1, false)];
+      const precedingDigit = children[index - 1]?.tag === "text" && /[0-9]/u.test(children[index - 1]?.text?.at(-1) ?? "");
+      let rendered = await this.node(child, maximum, edges, alternate(index), precedingDigit);
+      if (child.tag === "text" && result.blockBoundary && (!result.empty || node.tag === "root" || blockTags.has(node.tag)) && rendered.startsWith(" ")) rendered = rendered.slice(1);
       if (child.tag !== "br" && result.trailingSpace && rendered.startsWith(" ")) rendered = rendered.slice(1);
       result.append(rendered);
       if (block) result.separate();
@@ -55,16 +130,17 @@ export class Renderer {
     for (const child of node.children) {
       this.budget.work(1); await this.budget.checkpoint();
       if (child.tag !== "li") {
-        const extra = trim(await this.node(child, maximum));
+        const extra = await this.trim(await this.node(child, maximum));
         if (extra) { result.append(extra); result.append("\n"); }
         continue;
       }
-      const content = trim(await this.children(child, maximum));
+      const content = await this.trim(await this.children(child, maximum));
       const marker = node.tag === "ol" ? `${ordinal++}. ` : "- ";
       this.budget.check(marker.length, maximum, "list indentation");
       const parts = content.split("\n");
       result.append(marker); result.append(parts[0] ?? "");
       for (const part of parts.slice(1)) {
+        this.budget.work(1); await this.budget.checkpoint();
         result.append("\n");
         if (part) { result.append(" ".repeat(marker.length)); result.append(part); }
       }
@@ -83,17 +159,17 @@ export class Renderer {
         for (const child of entry.children) {
           if (child.tag === "td" || child.tag === "th") { this.budget.add("cells"); cells.push(child); }
           else {
-            const text = trim(await this.node(child, maximum));
+            const text = await this.trim(await this.node(child, maximum));
             if (text) { extra.append(text); extra.append(" "); }
           }
         }
         if (cells.length) rows.push(cells);
-      } else if (entry.tag === "text") extra.append(escapeText(space(entry.text!), this.budget, maximum));
+      } else if (entry.tag === "text") extra.append(await escapeText(await this.space(entry.text!, maximum), this.budget, maximum));
       else for (const child of entry.children) await visit(child);
     };
     await visit(node);
     const result = new Builder(this.budget, maximum);
-    const loose = trim(extra.finish());
+    const loose = await this.trim(extra.finish());
     if (loose) { result.append(loose); result.separate(); }
     if (!rows.length) return result.finish();
     const width = rows.reduce((largest, row) => Math.max(largest, row.length), 0);
@@ -105,13 +181,14 @@ export class Renderer {
         if (index) result.append(" | ");
         const cell = row[index];
         if (!cell) continue;
-        const content = trim(space(await this.children(cell, Math.min(maximum, this.budget.limits.maxTableCellBytes))));
+        const content = await this.trim(await this.space(await this.children(cell, Math.min(maximum, this.budget.limits.maxTableCellBytes))));
         const escaped = new Builder(this.budget, this.budget.limits.maxTableCellBytes);
         let backslashes = 0;
         for (const character of content) {
           this.budget.work(1);
           escaped.append(character === "|" && backslashes % 2 === 0 ? "\\|" : character);
           backslashes = character === "\\" ? backslashes + 1 : 0;
+          await this.budget.checkpoint();
         }
         result.append(escaped.finish());
       }
@@ -119,31 +196,31 @@ export class Renderer {
     };
     if (header) await renderRow(rows[0]!); else await renderRow([]);
     result.append("|");
-    for (let index = 0; index < width; index++) { this.budget.work(1); result.append(" --- |"); }
+    for (let index = 0; index < width; index++) { this.budget.work(1); result.append(" --- |"); await this.budget.checkpoint(); }
     result.append("\n");
     for (const row of rows.slice(header ? 1 : 0)) await renderRow(row);
     return result.finish().replace(/\n$/u, "");
   }
 
-  private async node(node: HtmlNode, maximum: number): Promise<string> {
-    if (node.tag === "text") return escapeText(space(node.text!), this.budget, maximum);
+  private async node(node: HtmlNode, maximum: number, edges: readonly [boolean, boolean] = [false, false], alternateStrong = false, precedingDigit = false): Promise<string> {
+    if (node.tag === "text") return escapeText(await this.space(node.text!, maximum), this.budget, maximum, edges, precedingDigit);
     if (node.tag === "br") return "  \n";
     if (node.tag === "hr") return "---";
     if (node.tag === "pre" || node.tag === "code") {
-      const raw = (await this.raw(node, maximum)).replace(/\r\n?/gu, "\n");
+      const raw = await normalizeText(await this.raw(node, maximum), this.budget, "lines", maximum);
       const result = new Builder(this.budget, maximum);
       if (node.tag === "pre") {
         const fence = await this.fence(raw, 3);
         const code = node.children.find(child => child.tag === "code");
-        const language = /(?:^|\s)language-([A-Za-z0-9_+-]{1,32})(?:\s|$)/u.exec(code?.attributes.get("class") ?? "")?.[1] ?? "";
+        const language = await this.language(code?.attributes.get("class") ?? "");
         result.append(fence); result.append(language); result.append("\n"); result.append(raw);
         if (!raw.endsWith("\n")) result.append("\n");
         result.append(fence);
       } else {
-        const inline = raw.replaceAll("\n", " ");
+        const inline = await normalizeText(raw, this.budget, "inline", maximum);
         if (!inline) return "";
         const fence = await this.fence(inline, 1);
-        const pad = inline.startsWith("`") || inline.endsWith("`") || /^ .* $/su.test(inline) && /[^ ]/u.test(inline);
+        const pad = inline.startsWith("`") || inline.endsWith("`") || inline.startsWith(" ") && inline.endsWith(" ") && await this.nonSpace(inline);
         result.append(fence); if (pad) result.append(" "); result.append(inline); if (pad) result.append(" "); result.append(fence);
       }
       return result.finish();
@@ -153,25 +230,26 @@ export class Renderer {
     const content = await this.children(node, maximum);
     const result = new Builder(this.budget, maximum);
     if (/^h[1-6]$/u.test(node.tag)) {
-      result.append("#".repeat(Number(node.tag[1]))); result.append(" "); result.append(trim(space(content)));
+      result.append("#".repeat(Number(node.tag[1]))); result.append(" "); result.append(await this.trim(await this.space(content, maximum)));
     } else if (node.tag === "em" || node.tag === "i" || node.tag === "strong" || node.tag === "b" || node.tag === "del" || node.tag === "s") {
-      const marker = node.tag === "em" || node.tag === "i" ? "*" : node.tag === "del" || node.tag === "s" ? "~~" : "**";
-      const trimmed = trim(content);
+      const trimmed = await this.trim(content);
+      const marker = node.tag === "em" || node.tag === "i" ? "*" : node.tag === "del" || node.tag === "s" ? "~~" : alternateStrong && trimmed === content ? "__" : "**";
       if (!trimmed || content.includes("\n\n")) return content;
-      if (/^[ \t\r\n]/u.test(content)) result.append(" ");
+      if (htmlSpace(content[0])) result.append(" ");
       result.append(marker); result.append(trimmed); result.append(marker);
-      if (/[ \t\r\n]$/u.test(content)) result.append(" ");
+      if (htmlSpace(content.at(-1))) result.append(" ");
     } else if (node.tag === "a" || node.tag === "img") {
       const image = node.tag === "img";
-      const label = image ? escapeText(space(node.attributes.get("alt") ?? ""), this.budget, maximum) : trim(content);
-      const url = destination(node.attributes.get(image ? "src" : "href"), image, this.budget);
+      const label = image ? await escapeText(await this.space(node.attributes.get("alt") ?? "", maximum), this.budget, maximum) : await this.trim(content);
+      const url = await destination(node.attributes.get(image ? "src" : "href"), image, this.budget);
       if (!url) return image ? label : content;
-      if (!image && /^[ \t\r\n]/u.test(content)) result.append(" ");
+      if (!image && htmlSpace(content[0])) result.append(" ");
       result.append(image ? "![" : "["); result.append(label); result.append("](<"); result.append(url); result.append(">)");
-      if (!image && /[ \t\r\n]$/u.test(content)) result.append(" ");
+      if (!image && htmlSpace(content.at(-1))) result.append(" ");
     } else if (node.tag === "blockquote") {
-      const parts = trim(content).split("\n");
+      const parts = (await this.trim(content)).split("\n");
       for (let index = 0; index < parts.length; index++) {
+        this.budget.work(1); await this.budget.checkpoint();
         if (index) result.append("\n");
         result.append(parts[index] ? "> " : ">"); result.append(parts[index]!);
       }
@@ -180,7 +258,7 @@ export class Renderer {
   }
 
   async document(root: HtmlNode): Promise<string> {
-    const output = trim(await this.children(root));
+    const output = await this.trim(await this.children(root));
     if (!output) return "";
     const result = new Builder(this.budget);
     result.append(output); result.append("\n");

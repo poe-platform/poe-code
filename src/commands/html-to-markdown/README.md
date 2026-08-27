@@ -36,16 +36,27 @@ successful status. A sink failure is not successful conversion.
   per operand; NUL becomes U+FFFD. ASCII HTML whitespace collapses outside code;
   NBSP remains NBSP. Ordinary Markdown punctuation is escaped. Inline boundary
   whitespace is retained/collapsed, not joined into adjacent words.
+  In particular, numeric period/parenthesis prefixes, literal tildes and equals
+  signs cannot become lists, strikethrough or setext headings. Harmless sentence
+  punctuation need not be escaped. Code content is not Markdown-escaped.
 - `h1`–`h6`, paragraphs and common structural block elements use ATX headings and
   blank-line block separation. `br` is a hard line break, `hr` a thematic break.
   `em/i`, `strong/b` and `del/s` produce emphasis/strong/strikethrough; the latter
   and pipe tables are Markdown extensions, not universal CommonMark features.
+  Adjacent equivalent emphasis aliases coalesce, including through transparent
+  elements; redundant same-style nesting is flattened. Different styles use
+  distinct delimiter families where needed. Numeric character references at
+  punctuation-sensitive text boundaries preserve delimiter flanking without
+  adding visible markers or enabling raw HTML. These choices target the named
+  CommonMark/strikeout profile, not every Markdown extension combination.
 - Links and images preserve visible text/alt text, not arbitrary attributes or
   titles. Destinations allow HTTP(S), relative paths/fragments, and mailto for
   links only. They reject other schemes, network-path `//` references,
   backslashes, controls, percent-encoded ASCII controls, and unresolved entity
   references. HTML references are decoded once before policy checks. Dangerous
   or unsupported destinations become inactive labels, not active Markdown.
+  Controls are checked before removing leading/trailing ASCII spaces: an edge
+  TAB/LF/C1 control is refused, not stripped into an accepted destination.
   Spaces/syntax delimiters are percent-encoded; normal query separators remain.
 - Ordered/unordered lists preserve nesting through indentation. `ol start`
   accepts1–999999999, otherwise defaults to1. `li value`, reversed lists and CSS
@@ -89,6 +100,10 @@ cent, times, divide, colon, Tab, NewLine. Unknown/unterminated references remain
 literal, escaped against a second Markdown entity decode. Numeric zero,
 surrogates and out-of-range scalars become U+FFFD; there is no Windows-1252 numeric
 remapping. Unsupported reference grammar is not silently discarded.
+An unfinished reference is retained across text fragments. If it cannot fit
+the configured token bound, conversion fails with EFBIG instead of succeeding
+with different text. For example, `&amp;` needs a token bound of at least5 bytes;
+cap4 fails explicitly. This is a limit refusal, not an alternate entity dialect.
 
 **This converter is not a sanitizer.** It has no arbitrary raw-HTML passthrough,
 but generated Markdown is still untrusted content. Downstream renderers have
@@ -132,6 +147,11 @@ stream reads receive cancellation; fallback reads receive the remaining byte cap
 Providers remain responsible for honoring their readFile bound before allocation.
 
 Cooperative work checkpoints permit cancellation during long parsing/rendering.
+Whitespace normalization/edge trimming, destination validation and entity scans
+use charged linear or bounded-window scans with cooperative checkpoints. The
+work bound also applies to attribute scanning and Markdown-boundary traversal;
+it is not just an input-size check. Native string copies/joins and fixed bounded
+token operations are not individually preemptible or hard wall-time guarantees.
 Cleanup registers before acquisition, closes acquired iterators idempotently,
 and preserves primary execution/caller-abort failures over secondary cleanup.
 Opaque host-provided producer/return promises are not hard-preemptible; cleanup

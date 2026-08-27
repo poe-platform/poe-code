@@ -1,4 +1,5 @@
 import { AsyncLocalStorage } from "node:async_hooks";
+import { FsError } from "../../contracts/errors.js";
 import type { EntryComparison, FileStat, FileSystem, FsOptions } from "../../contracts/filesystem.js";
 import type { EntryView } from "../mount/comparison.js";
 import type { S3Client, S3HeadOutput, S3ObjectInput } from "./transport.js";
@@ -18,6 +19,7 @@ const providerHeads = new WeakMap<S3HeadOutput, HeadProof>();
 const acceptedHeads = new WeakMap<S3HeadOutput, OwnedS3Entry>();
 const observedStats = new WeakMap<FileStat, { filesystem: FileSystem; path: string; entry: OwnedS3Entry }>();
 const entries = new WeakMap<FileSystem, (view: EntryView) => OwnedS3Entry | undefined>();
+const comparisons = new WeakMap<FileSystem, NonNullable<FileSystem["compareEntry"]>>();
 interface ProviderOwner {
   readonly unchanged: () => boolean;
   readonly bucket?: (name: string) => object | undefined;
@@ -78,7 +80,9 @@ export function recordS3Stat(filesystem: FileSystem, path: string, stat: FileSta
   if (entry) observedStats.set(stat, { filesystem, path, entry });
 }
 
-export function registerS3EntryOwner(filesystem: FileSystem, normalize: (path: string) => string, client: S3Client, bucket: string, intact: () => boolean): void {
+export function registerS3EntryOwner(filesystem: FileSystem, normalize: (path: string) => string, client: S3Client, bucket: string,
+  intact: () => boolean, baseComparison: NonNullable<FileSystem["compareEntry"]>): void {
+  comparisons.set(filesystem, baseComparison);
   const names = ["stat", "lstat", "realpath", "readFile", "writeFile", "copyFile", "rename", "readStream", "writeStream"] as const;
   const methods = names.map(name => filesystem[name]);
   entries.set(filesystem, view => {
@@ -97,6 +101,33 @@ export function getOwnedS3Entry(view: EntryView): OwnedS3Entry | undefined {
 
 export async function compareOwnedS3Entries(own: EntryView, peer: EntryView, options: FsOptions): Promise<EntryComparison> {
   options.signal?.throwIfAborted();
+  let explicit = false;
+  let answer: EntryComparison = "unknown";
+  const visited = new Set<FileSystem>();
+  for (const [left, right] of [[own, peer], [peer, own]] as const) {
+    const baseComparison = comparisons.get(left.filesystem);
+    if (!baseComparison || visited.has(left.filesystem)) continue;
+    visited.add(left.filesystem);
+    const comparison = left.filesystem.compareEntry;
+    if (comparison === baseComparison) continue;
+    explicit = true;
+    if (comparison === undefined) continue;
+    options.signal?.throwIfAborted();
+    if (typeof comparison !== "function") {
+      throw new FsError("EIO", { path: own.path, dest: peer.path, message: "invalid explicit S3 comparison method" });
+    }
+    const result = await comparison.call(left.filesystem, left.path, right.filesystem, right.path, options);
+    options.signal?.throwIfAborted();
+    if (result !== "same" && result !== "distinct" && result !== "unknown") {
+      throw new FsError("EIO", { path: own.path, dest: peer.path, message: "invalid explicit S3 comparison" });
+    }
+    if (result === "unknown") continue;
+    if (answer !== "unknown" && answer !== result) {
+      throw new FsError("EIO", { path: own.path, dest: peer.path, message: "conflicting explicit S3 comparisons" });
+    }
+    answer = result;
+  }
+  if (explicit) return answer;
   const left = getOwnedS3Entry(own);
   options.signal?.throwIfAborted();
   const right = getOwnedS3Entry(peer);

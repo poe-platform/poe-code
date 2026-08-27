@@ -139,8 +139,8 @@ export class S3FileSystem implements FileSystem {
     registerS3EntryOwner(this, path => this.path(path), transport, bucket, () => this.transport === transport
       && this.bucket === bucket && this.prefix === registeredPrefix
       && Object.entries(s3Implementation).every(([name, descriptor]) => name === "constructor" || name === "compareEntry"
-        || descriptor.value === undefined || Reflect.get(this, name) === descriptor.value));
-    if (this.compareEntry === s3Implementation.compareEntry!.value) registerEntryAuthority(this, compareOwnedS3Entries);
+        || descriptor.value === undefined || Reflect.get(this, name) === descriptor.value), s3Implementation.compareEntry!.value!);
+    registerEntryAuthority(this, compareOwnedS3Entries);
   }
 
   async compareEntry(path: string, peer: FileSystem, peerPath: string, options: FsOptions = {}): Promise<EntryComparison> {

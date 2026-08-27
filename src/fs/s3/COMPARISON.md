@@ -106,3 +106,26 @@ sentinel and provider-byte preservation, not only an unknown comparison result.
 `tests/fs/s3/authority-safety/REPORT.md` records the baseline loss and fixed
 validation, with core `0bee8e7` included in both snapshots. Earlier sealed reports
 are historical evidence, not claims that this subsequently found hole was absent.
+
+## Late explicit authority followup
+
+The accepted `37edad8` adapter-integrity fix still registered a terminal callback
+that ignored later replacements of `compareEntry`. A late EACCES callback was
+never called, allowing a qualified copy to overwrite its existing target. This
+was an authorization-error bypass even though the source bytes survived.
+
+The S3 terminal callback now compares each enrolled operand's current method
+with the original base method, including instance/prototype changes after
+construction. Explicit callbacks run once per distinct S3 operand with their
+actual receiver, followed paths, peer and signal. Their answers replace S3's
+inferred fallback; missing/unknown explicit authority does not revive that
+fallback. Invalid or conflicting answers fail EIO, and real errors/cancellation
+propagate before data operations. The common helper still handles other operand
+authorities, complete-identity priority and recursive-negotiation suppression.
+
+Constructor-time explicit subclasses use this same terminal dispatch rather than
+an unregistered bypass. Original adapter/provider operation checks and the private
+`getOwnedS3Entry(view)` descriptor interface are unchanged. No public registry or
+shared-helper API change is introduced. `tests/fs/s3/late-authority/REPORT.md`
+records the frozen baseline, exact bytes/request effects, failed first validation
+and final scoped replay. This does not close the opaque-provider positive gate.

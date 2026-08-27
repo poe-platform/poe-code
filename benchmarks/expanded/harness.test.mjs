@@ -24,11 +24,27 @@ test("native-first observations preserve recipe hashes and intentional error exi
   assert.equal(hash(await readFile(new URL("recipes.mjs", import.meta.url))), gold.sourceHashes["recipes.mjs"]);
 });
 
-test("corrected native capture changes no recipe and matches capture sources", async () => {
+test("historical corrected native capture changes no recipe", async () => {
   const gold = JSON.parse(await readFile(new URL("../reports/expanded-20260827/native-corrected/native.json", import.meta.url), "utf8"));
   assert.equal(gold.invalidCount, 0);
   for (const row of [...recipes(), ...performanceRecipes()]) assert.equal(gold.observations.find(observation => observation.id === row.id).recipeHash, hash(JSON.stringify(row)), row.id);
-  for (const [path, digest] of Object.entries(gold.sourceHashes)) assert.equal(hash(await readFile(new URL(path, import.meta.url))), digest, path);
+});
+
+test("aligned scratch profile preserves all recipes and changes exactly one native effect", async () => {
+  const current = JSON.parse(await readFile(new URL("../reports/expanded-20260827/native-scratch-aligned/native.json", import.meta.url), "utf8"));
+  const previous = JSON.parse(await readFile(new URL("../reports/expanded-20260827/native-corrected/native.json", import.meta.url), "utf8"));
+  assert.equal(current.invalidCount, 0); assert.deepEqual(current.recipes, previous.recipes); assert.deepEqual(current.performanceRecipes, previous.performanceRecipes);
+  for (const [path, digest] of Object.entries(current.sourceHashes)) assert.equal(hash(await readFile(new URL(path, import.meta.url))), digest, path);
+  const changed = [];
+  for (const row of current.observations) {
+    const old = previous.observations.find(observation => observation.id === row.id);
+    for (const field of ["recipeHash", "stdout", "stderr", "exitCode"]) assert.deepEqual(row[field], old[field], `${row.id}/${field}`);
+    if (JSON.stringify(row.entries) !== JSON.stringify(old.entries)) changed.push(row.id);
+  }
+  assert.deepEqual(changed, ["command/patch/dry-run"]);
+  const latest = current.observations.find(row => row.id === "command/patch/dry-run"), old = previous.observations.find(row => row.id === latest.id);
+  const { tmp, ...entries } = old.entries;
+  assert.deepEqual(tmp, { type: "directory" }); assert.deepEqual(latest.entries, entries);
 });
 
 test("path projection leaves non-text bytes untouched", () => {

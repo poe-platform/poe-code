@@ -1,0 +1,153 @@
+{
+  "capturedAt": "2026-08-27T02:19:02.083Z",
+  "recipe": {
+    "id": "command/patch/dry-run",
+    "group": "command",
+    "command": "patch",
+    "optionFamily": "dry-run",
+    "script": "patch -s --dry-run -p0 < change",
+    "files": {
+      "input": "b2xkCg==",
+      "change": "LS0tIGlucHV0CisrKyBpbnB1dApAQCAtMSArMSBAQAotb2xkCituZXcK"
+    },
+    "stdin": "",
+    "nativeExit": 0,
+    "modes": false,
+    "directories": [],
+    "fileModes": {},
+    "fileTimes": {},
+    "network": false,
+    "stderrPolicy": "exact-after-root-path-projection"
+  },
+  "observations": [
+    {
+      "externalScratch": false,
+      "command": ":",
+      "script": "export TMPDIR=\"$PWD/tmp\"; if test -e \"$TMPDIR\"; then printf 'before:present\\n'; else printf 'before:absent\\n'; fi; :; status=$?; if test -e \"$TMPDIR\"; then printf 'after:present\\n'; else printf 'after:absent\\n'; fi; exit \"$status\"",
+      "stdout": "YmVmb3JlOmFic2VudAphZnRlcjphYnNlbnQK",
+      "stderr": "",
+      "exitCode": 0,
+      "entries": {
+        "change": {
+          "type": "file",
+          "bytes": "LS0tIGlucHV0CisrKyBpbnB1dApAQCAtMSArMSBAQAotb2xkCituZXcK"
+        },
+        "input": {
+          "type": "file",
+          "bytes": "b2xkCg=="
+        }
+      },
+      "oracleValid": true,
+      "reason": null,
+      "signal": null
+    },
+    {
+      "externalScratch": false,
+      "command": "patch -s --dry-run -p0 < change",
+      "script": "export TMPDIR=\"$PWD/tmp\"; if test -e \"$TMPDIR\"; then printf 'before:present\\n'; else printf 'before:absent\\n'; fi; patch -s --dry-run -p0 < change; status=$?; if test -e \"$TMPDIR\"; then printf 'after:present\\n'; else printf 'after:absent\\n'; fi; exit \"$status\"",
+      "stdout": "YmVmb3JlOmFic2VudAphZnRlcjpwcmVzZW50Cg==",
+      "stderr": "",
+      "exitCode": 0,
+      "entries": {
+        "change": {
+          "type": "file",
+          "bytes": "LS0tIGlucHV0CisrKyBpbnB1dApAQCAtMSArMSBAQAotb2xkCituZXcK"
+        },
+        "input": {
+          "type": "file",
+          "bytes": "b2xkCg=="
+        },
+        "tmp": {
+          "type": "directory"
+        }
+      },
+      "oracleValid": true,
+      "reason": null,
+      "signal": null
+    },
+    {
+      "externalScratch": true,
+      "command": ":",
+      "script": "export TMPDIR='/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-expanded-native-UfFfSY/preexisting-scratch'; if test -e \"$TMPDIR\"; then printf 'before:present\\n'; else printf 'before:absent\\n'; fi; :; status=$?; if test -e \"$TMPDIR\"; then printf 'after:present\\n'; else printf 'after:absent\\n'; fi; exit \"$status\"",
+      "stdout": "YmVmb3JlOnByZXNlbnQKYWZ0ZXI6cHJlc2VudAo=",
+      "stderr": "",
+      "exitCode": 0,
+      "entries": {
+        "change": {
+          "type": "file",
+          "bytes": "LS0tIGlucHV0CisrKyBpbnB1dApAQCAtMSArMSBAQAotb2xkCituZXcK"
+        },
+        "input": {
+          "type": "file",
+          "bytes": "b2xkCg=="
+        }
+      },
+      "oracleValid": true,
+      "reason": null,
+      "signal": null
+    },
+    {
+      "externalScratch": true,
+      "command": "patch -s --dry-run -p0 < change",
+      "script": "export TMPDIR='/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-expanded-native-UfFfSY/preexisting-scratch'; if test -e \"$TMPDIR\"; then printf 'before:present\\n'; else printf 'before:absent\\n'; fi; patch -s --dry-run -p0 < change; status=$?; if test -e \"$TMPDIR\"; then printf 'after:present\\n'; else printf 'after:absent\\n'; fi; exit \"$status\"",
+      "stdout": "YmVmb3JlOnByZXNlbnQKYWZ0ZXI6cHJlc2VudAo=",
+      "stderr": "",
+      "exitCode": 0,
+      "entries": {
+        "change": {
+          "type": "file",
+          "bytes": "LS0tIGlucHV0CisrKyBpbnB1dApAQCAtMSArMSBAQAotb2xkCituZXcK"
+        },
+        "input": {
+          "type": "file",
+          "bytes": "b2xkCg=="
+        }
+      },
+      "oracleValid": true,
+      "reason": null,
+      "signal": null
+    }
+  ],
+  "alignedDefault": {
+    "stdout": "",
+    "stderr": "",
+    "exitCode": 0,
+    "entries": {
+      "change": {
+        "type": "file",
+        "bytes": "LS0tIGlucHV0CisrKyBpbnB1dApAQCAtMSArMSBAQAotb2xkCituZXcK"
+      },
+      "input": {
+        "type": "file",
+        "bytes": "b2xkCg=="
+      }
+    },
+    "oracleValid": true,
+    "reason": null,
+    "signal": null
+  },
+  "tools": {
+    "bash": {
+      "executable": "/private/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+      "sha256": "8cecb482de24198c23a736b931cb7e8cee1f94eb0b51abd54bd99f1d73d9673c",
+      "versionExit": 0,
+      "versionStdout": "GNU bash, version 5.3.0(1)-release (aarch64-apple-darwin25.4.0)\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>\n\nThis is free software; you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n",
+      "versionStderr": ""
+    },
+    "patch": {
+      "executable": "/private/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch",
+      "sha256": "c060444da0e547de6f17594baf0b5015a04f5b3277131ca12b1da27c621aee00",
+      "versionExit": 0,
+      "versionStdout": "GNU patch 2.8\nCopyright 1989-2025 Free Software Foundation, Inc.\nCopyright 1984-1988 Larry Wall\n\nLicense GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Larry Wall and Paul Eggert\n",
+      "versionStderr": ""
+    }
+  },
+  "harnessHashes": {
+    "scratch-control.mjs": "ead6472b3fddb57e5b9f190c702f5e66fa48bf42d72c93fec2271aea5fca6923",
+    "native.mjs": "14d0ac24733a6f4b84965c1dbb68e4108904bb3a52768ee03281e847fb490055",
+    "common.mjs": "c07b1f7f3eec500591cab8dda06ed247be040aeeee1e085533371fea28c3d9fe",
+    "recipes.mjs": "0dc4535976308a3b44da7216507ffc26d1e44f4e52c53834652e756f27c2ca94"
+  },
+  "finding": "tmp is absent before command and after noop; native patch creates the empty directory because the harness supplied a nonexistent TMPDIR inside the fixture. With a preexisting external owned scratch directory, patch dry-run leaves exactly the same fixture namespace as noop. This is a real native effect of unequal harness scratch configuration, not a preexisting fixture artifact and not a product requirement to fabricate tmp.",
+  "scope": "Controls only; no original native JSON, recipe or product result overwritten. Scratch profile correction requires a separate documented cohort."
+}

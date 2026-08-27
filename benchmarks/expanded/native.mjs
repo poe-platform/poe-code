@@ -55,8 +55,9 @@ export async function prepareNative(repo) {
 
 export async function observeNative(profile, specimen, baseUrl) {
   const cwd = await mkdtemp(join(profile.workspace, "case-"));
-  const env = { ...environment, PATH: profile.bin, HOME: cwd, TMPDIR: join(cwd, "tmp") };
-  const replacements = [[await realpath(cwd), fixtureRoot], [cwd, fixtureRoot], [await realpath(profile.bin), "/usr/bin"], [profile.bin, "/usr/bin"], ...(baseUrl ? [[baseUrl, "{{BASE}}"]] : [])];
+  const scratch = await mkdtemp(join(profile.workspace, "scratch-"));
+  const env = { ...environment, PATH: profile.bin, HOME: cwd, TMPDIR: scratch };
+  const replacements = [[await realpath(cwd), fixtureRoot], [cwd, fixtureRoot], [await realpath(scratch), "/tmp"], [scratch, "/tmp"], [await realpath(profile.bin), "/usr/bin"], [profile.bin, "/usr/bin"], ...(baseUrl ? [[baseUrl, "{{BASE}}"]] : [])];
   try {
     await chmod(cwd, 0o755);
     for (const path of specimen.directories) await mkdir(join(cwd, relativePath(path)), { recursive: true, mode: 0o755 });
@@ -72,5 +73,5 @@ export async function observeNative(profile, specimen, baseUrl) {
       stat: async path => { const info = await lstat(path); return { type: info.isSymbolicLink() ? "symlink" : info.isDirectory() ? "directory" : info.isFile() ? "file" : "other", mode: info.mode }; } }, specimen, cwd, replacements);
     return { stdout: encode(projectBytes(result.stdout, replacements)), stderr: encode(projectBytes(result.stderr, replacements)), exitCode: result.exitCode,
       entries, oracleValid: !result.reason && result.exitCode === specimen.nativeExit, reason: result.reason ?? null, signal: result.signal };
-  } finally { await rm(cwd, { recursive: true, force: true }); }
+  } finally { await rm(cwd, { recursive: true, force: true }); await rm(scratch, { recursive: true, force: true }); }
 }

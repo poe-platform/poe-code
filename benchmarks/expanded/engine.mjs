@@ -20,6 +20,7 @@ try {
 
 async function observe(specimen, baseUrl, instrument, warmup = 0) {
   const fs = engine === "virtual-bash" ? library.createMemoryFileSystem() : new library.InMemoryFs();
+  await fs.mkdir("/tmp", { recursive: true });
   await fs.mkdir(fixtureRoot, { recursive: true });
   await fs.chmod(fixtureRoot, 0o755);
   for (const path of specimen.directories) { const target = `${fixtureRoot}/${relativePath(path)}`; await fs.mkdir(target, { recursive: true }); await fs.chmod(target, 0o755); }

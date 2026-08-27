@@ -4,7 +4,7 @@ import { posix } from "node:path";
 export const fixtureRoot = "/fixture";
 export const maximumBytes = 4 * 1024 * 1024;
 export const fixedTime = 1_700_000_000_000;
-export const environment = { PATH: "/usr/bin:/bin", HOME: fixtureRoot, LANG: "C", LC_ALL: "C", TZ: "UTC" };
+export const environment = { PATH: "/usr/bin:/bin", HOME: fixtureRoot, TMPDIR: "/tmp", LANG: "C", LC_ALL: "C", TZ: "UTC" };
 export const hash = value => createHash("sha256").update(value).digest("hex");
 export const encode = bytes => Buffer.from(bytes).toString("base64");
 export const decode = bytes => Buffer.from(bytes, "base64");

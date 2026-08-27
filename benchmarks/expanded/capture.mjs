@@ -17,7 +17,7 @@ try {
   const report = { createdAt: new Date().toISOString(), primaryProfile: "GNU Bash5.3 and coreutils9.7, LC_ALL=C, TZ=UTC; other executable profiles individually recorded",
     toolIdentities: profile.tools, recipeCount: corpus.length, performanceCount: performance.length,
     recipes: corpus, performanceRecipes: performance, observations, invalidCount: invalid.length,
-    projections: ["native temporary fixture root to /fixture", "native role-bin root to /usr/bin", "loopback origin to {{BASE}}"],
+    projections: ["native temporary fixture root to /fixture", "preexisting external native scratch to /tmp; TMPDIR=/tmp in both virtual engines", "native role-bin root to /usr/bin", "loopback origin to {{BASE}}"],
     sourceHashes: Object.fromEntries(await Promise.all(["recipes.mjs", "native.mjs", "common.mjs", "server.mjs", "capture.mjs"].map(async path => [path, hash(await readFile(new URL(path, import.meta.url)))]))) };
   await writeFile(resolve(output, "native.json"), JSON.stringify(report, null, 2) + "\n", { flag: "wx" });
   console.log(JSON.stringify({ output, total: observations.length, invalid: invalid.map(({ id, exitCode, reason, stderr }) => ({ id, exitCode, reason, stderr: Buffer.from(stderr, "base64").toString() })) }, null, 2));

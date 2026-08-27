@@ -18,7 +18,7 @@ const harnessRevision = git("rev-parse", process.argv[4] ?? "HEAD");
 const harnessRoot = dirname(fileURLToPath(import.meta.url));
 const trackedHarness = git("ls-tree", "--name-only", harnessRevision, "benchmarks/expanded");
 assert.ok(trackedHarness, "Commit the corpus and harness before scoring product outcomes");
-const goldPath = resolve(process.argv[5] ?? "benchmarks/reports/expanded-20260827/native-corrected/native.json");
+const goldPath = resolve(process.argv[5] ?? "benchmarks/reports/expanded-20260827/native-scratch-aligned/native.json");
 const goldBytes = await readFile(goldPath), gold = JSON.parse(goldBytes);
 const corpus = recipes(), performanceCorpus = performanceRecipes();
 for (const specimen of [...corpus, ...performanceCorpus]) assert.equal(gold.observations.find(row => row.id === specimen.id)?.recipeHash, hash(JSON.stringify(specimen)), `Native-first recipe changed: ${specimen.id}`);

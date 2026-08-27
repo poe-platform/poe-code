@@ -21,15 +21,20 @@ files. It records all source hashes, baseline bundle/manifest/isolated-lock
 hashes, runtime details and moving worktree status. It does not run the global
 product suite or certify the moving worktree.
 
-The first native capture is immutable but superseded for acceptance by the
-corrected native capture (`native-corrected/native.json`); see
+The first native capture is immutable. The historical corrected capture is
+`native-corrected/native.json`; see
 `benchmarks/reports/expanded-20260827/ORACLE_CORRECTIONS.md` for the two harness
 defects and unchanged recipes. The historical first capture is:
 `benchmarks/reports/expanded-20260827/native-first/native.json`. All 224 functional
 recipes and four performance recipes had their declared native exit status
 before initial product scoring. Declared exit validity alone was insufficient;
 the corrected capture adds independent launcher/path controls. Native errors intentionally expected by a recipe are
-valid observations, not exclusions. To capture another explicitly separate native
+valid observations, not exclusions. The current default is a separately retained
+`native-scratch-aligned/native.json`: all engines receive a preexisting scratch
+directory outside the asserted fixture. All228 native stdout/stderr/status
+observations and recipes are unchanged; only patch dry-run's empty directory
+effect changes. See `benchmarks/reports/expanded-20260827/SCRATCH_PROFILE_DELTA.md`.
+The old scores are not retroactively changed. To capture another explicitly separate native
 cohort with the installed, hashed oracles:
 
 ```sh
@@ -45,7 +50,7 @@ do not spawn processes. Fixtures use private temporary directories and loopback
 HTTP, never external uploads or user files.
 
 The runner accepts output, product revision, harness revision (default HEAD),
-then native JSON path (default corrected capture). To hold product source fixed
+then native JSON path (default scratch-aligned capture). To hold product source fixed
 while independently correcting the oracle harness:
 
 ```sh
@@ -67,7 +72,7 @@ timeouts, capture errors and both-engine failures. Pass means exact output bytes
 stderr bytes, status and fixture-tree entries. Directories, symlink targets and
 file bytes are included; selected permission recipes additionally compare mode
 bits. Only temporary fixture roots, native role-bin paths and loopback origins
-are projected, using byte-safe replacement. There is no error-message whitening,
+and the native scratch role are projected, using byte-safe replacement. There is no error-message whitening,
 sort-to-green, content trimming or alternate product expectation.
 
 The primary oracle is GNU Bash 5.3/coreutils 9.7, C locale, UTC; sed 4.9, gzip

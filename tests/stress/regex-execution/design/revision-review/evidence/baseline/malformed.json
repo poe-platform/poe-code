@@ -1,0 +1,137 @@
+{
+  "name": "malformed",
+  "pid": 54783,
+  "readyAt": 48.47300000000041,
+  "killed": false,
+  "code": 0,
+  "signal": null,
+  "ipcBytes": 1410,
+  "streamBytes": 0,
+  "stderr": "",
+  "events": [
+    {
+      "event": "disconnect",
+      "values": [],
+      "atMs": 100.98062500000015
+    },
+    {
+      "event": "stdout-close"
+    },
+    {
+      "event": "stderr-close"
+    },
+    {
+      "event": "exit",
+      "values": [
+        0,
+        null
+      ],
+      "atMs": 102.97012500000028
+    },
+    {
+      "event": "close",
+      "code": 0,
+      "signal": null,
+      "atMs": 102.97937500000035
+    }
+  ],
+  "messages": [
+    {
+      "type": "ready",
+      "name": "malformed"
+    },
+    {
+      "type": "done",
+      "name": "malformed",
+      "observations": [
+        {
+          "label": "malformed-reply",
+          "value": {
+            "status": "rejected",
+            "error": "RESPONSE_PROTOCOL"
+          }
+        },
+        {
+          "label": "compile-error",
+          "value": {
+            "status": "rejected",
+            "error": "Invalid regular expression: /[/g: Unterminated character class"
+          }
+        }
+      ],
+      "elapsedMs": 50.279832999999996,
+      "heartbeats": 8,
+      "maxGap": 6.345624999999998,
+      "cleanup": [
+        {
+          "metrics": {
+            "created": 1,
+            "terminated": 1,
+            "requests": 2,
+            "execCalls": 0,
+            "inputBytes": 2,
+            "responseBytes": 0,
+            "startupMs": 31.080875,
+            "workMs": 0.226625999999996,
+            "terminationMs": 1.4230419999999953,
+            "peakInflight": 1,
+            "listenersAfter": 0,
+            "exitCode": 1
+          },
+          "pending": false,
+          "busy": false,
+          "releaseHeld": false,
+          "capacityActive": 0,
+          "workerThreadId": -1,
+          "workerListeners": {
+            "message": 0,
+            "error": 0,
+            "exit": 0,
+            "messageerror": 0
+          },
+          "signalListeners": 0
+        },
+        {
+          "metrics": {
+            "created": 1,
+            "terminated": 1,
+            "requests": 1,
+            "execCalls": 0,
+            "inputBytes": 2,
+            "responseBytes": 0,
+            "startupMs": 15.849833000000004,
+            "workMs": 0.15333299999998928,
+            "terminationMs": 0.6720839999999981,
+            "peakInflight": 1,
+            "listenersAfter": 0,
+            "exitCode": 1
+          },
+          "pending": false,
+          "busy": false,
+          "releaseHeld": false,
+          "capacityActive": 0,
+          "workerThreadId": -1,
+          "workerListeners": {
+            "message": 0,
+            "error": 0,
+            "exit": 0,
+            "messageerror": 0
+          },
+          "signalListeners": 0
+        }
+      ],
+      "memory": {
+        "rss": 60751872,
+        "heapTotal": 7749632,
+        "heapUsed": 5660632,
+        "external": 2155284,
+        "arrayBuffers": 18951
+      },
+      "flags": [
+        "--unhandled-rejections=strict",
+        "--max-old-space-size=64",
+        "--stack-size=2048"
+      ]
+    }
+  ]
+}

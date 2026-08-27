@@ -1,0 +1,819 @@
+{
+  "originalAssertionsUnchanged": true,
+  "originalRunnerBenignOnly": true,
+  "emittedHashesExactlyMatch": 17,
+  "pass": 14,
+  "fail": 2,
+  "newRiskConsumed": 0,
+  "results": [
+    {
+      "name": "captures",
+      "expected": "pass",
+      "actual": "pass",
+      "matchesExpectation": true,
+      "cleanup": [
+        {
+          "metrics": {
+            "created": 1,
+            "terminated": 1,
+            "requests": 2,
+            "execCalls": 2,
+            "inputBytes": 2,
+            "responseBytes": 117,
+            "startupMs": 33.171375,
+            "workMs": 0.523541999999992,
+            "terminationMs": 2.5232500000000044,
+            "peakInflight": 1,
+            "listenersAfter": 0,
+            "exitCode": 1
+          },
+          "pending": false,
+          "busy": false,
+          "releaseHeld": false,
+          "capacityActive": 0,
+          "workerThreadId": -1,
+          "workerListeners": {
+            "message": 0,
+            "error": 0,
+            "exit": 0,
+            "messageerror": 0
+          },
+          "signalListeners": 0
+        }
+      ]
+    },
+    {
+      "name": "unicode",
+      "expected": "pass",
+      "actual": "pass",
+      "matchesExpectation": true,
+      "cleanup": [
+        {
+          "metrics": {
+            "created": 1,
+            "terminated": 1,
+            "requests": 2,
+            "execCalls": 3,
+            "inputBytes": 4,
+            "responseBytes": 113,
+            "startupMs": 32.942417,
+            "workMs": 0.9198759999999879,
+            "terminationMs": 3.7094589999999954,
+            "peakInflight": 1,
+            "listenersAfter": 0,
+            "exitCode": 1
+          },
+          "pending": false,
+          "busy": false,
+          "releaseHeld": false,
+          "capacityActive": 0,
+          "workerThreadId": -1,
+          "workerListeners": {
+            "message": 0,
+            "error": 0,
+            "exit": 0,
+            "messageerror": 0
+          },
+          "signalListeners": 0
+        },
+        {
+          "metrics": {
+            "created": 1,
+            "terminated": 1,
+            "requests": 2,
+            "execCalls": 4,
+            "inputBytes": 6,
+            "responseBytes": 195,
+            "startupMs": 19.873541000000003,
+            "workMs": 1.4841669999999993,
+            "terminationMs": 1.2787090000000063,
+            "peakInflight": 1,
+            "listenersAfter": 0,
+            "exitCode": 1
+          },
+          "pending": false,
+          "busy": false,
+          "releaseHeld": false,
+          "capacityActive": 0,
+          "workerThreadId": -1,
+          "workerListeners": {
+            "message": 0,
+            "error": 0,
+            "exit": 0,
+            "messageerror": 0
+          },
+          "signalListeners": 0
+        },
+        {
+          "metrics": {
+            "created": 1,
+            "terminated": 1,
+            "requests": 2,
+            "execCalls": 3,
+            "inputBytes": 6,
+            "responseBytes": 147,
+            "startupMs": 19.597707999999997,
+            "workMs": 0.603833999999992,
+            "terminationMs": 1.2595830000000063,
+            "peakInflight": 1,
+            "listenersAfter": 0,
+            "exitCode": 1
+          },
+          "pending": false,
+          "busy": false,
+          "releaseHeld": false,
+          "capacityActive": 0,
+          "workerThreadId": -1,
+          "workerListeners": {
+            "message": 0,
+            "error": 0,
+            "exit": 0,
+            "messageerror": 0
+          },
+          "signalListeners": 0
+        }
+      ]
+    },
+    {
+      "name": "selection",
+      "expected": "pass",
+      "actual": "pass",
+      "matchesExpectation": true,
+      "cleanup": [
+        {
+          "metrics": {
+            "created": 1,
+            "terminated": 1,
+            "requests": 2,
+            "execCalls": 1,
+            "inputBytes": 4,
+            "responseBytes": 56,
+            "startupMs": 30.820207999999994,
+            "workMs": 0.497374999999991,
+            "terminationMs": 1.5326659999999919,
+            "peakInflight": 1,
+            "listenersAfter": 0,
+            "exitCode": 1
+          },
+          "pending": false,
+          "busy": false,
+          "releaseHeld": false,
+          "capacityActive": 0,
+          "workerThreadId": -1,
+          "workerListeners": {
+            "message": 0,
+            "error": 0,
+            "exit": 0,
+            "messageerror": 0
+          },
+          "signalListeners": 0
+        },
+        {
+          "metrics": {
+            "created": 1,
+            "terminated": 1,
+            "requests": 2,
+            "execCalls": 5,
+            "inputBytes": 8,
+            "responseBytes": 152,
+            "startupMs": 19.536,
+            "workMs": 0.5229170000000067,
+            "terminationMs": 1.185541999999998,
+            "peakInflight": 1,
+            "listenersAfter": 0,
+            "exitCode": 1
+          },
+          "pending": false,
+          "busy": false,
+          "releaseHeld": false,
+          "capacityActive": 0,
+          "workerThreadId": -1,
+          "workerListeners": {
+            "message": 0,
+            "error": 0,
+            "exit": 0,
+            "messageerror": 0
+          },
+          "signalListeners": 0
+        }
+      ]
+    },
+    {
+      "name": "dialects",
+      "expected": "pass",
+      "actual": "pass",
+      "matchesExpectation": true,
+      "cleanup": []
+    },
+    {
+      "name": "preabort",
+      "expected": "pass",
+      "actual": "pass",
+      "matchesExpectation": true,
+      "cleanup": [
+        {
+          "metrics": {
+            "created": 0,
+            "terminated": 0,
+            "requests": 0,
+            "execCalls": 0,
+            "inputBytes": 0,
+            "responseBytes": 0,
+            "startupMs": 0,
+            "workMs": 0,
+            "terminationMs": 0.0007080000000030395,
+            "peakInflight": 0,
+            "listenersAfter": 0,
+            "exitCode": null
+          },
+          "pending": false,
+          "busy": false,
+          "releaseHeld": false,
+          "capacityActive": 0,
+          "workerThreadId": null,
+          "workerListeners": {},
+          "signalListeners": 0
+        }
+      ]
+    },
+    {
+      "name": "startup-abort",
+      "expected": "pass",
+      "actual": "pass",
+      "matchesExpectation": true,
+      "cleanup": [
+        {
+          "metrics": {
+            "created": 1,
+            "terminated": 1,
+            "requests": 0,
+            "execCalls": 0,
+            "inputBytes": 0,
+            "responseBytes": 0,
+            "startupMs": 0,
+            "workMs": 0,
+            "terminationMs": 2.5418330000000005,
+            "peakInflight": 1,
+            "listenersAfter": 0,
+            "exitCode": 0
+          },
+          "pending": false,
+          "busy": false,
+          "releaseHeld": false,
+          "capacityActive": 0,
+          "workerThreadId": -1,
+          "workerListeners": {
+            "message": 0,
+            "error": 0,
+            "exit": 0,
+            "messageerror": 0
+          },
+          "signalListeners": 0
+        }
+      ]
+    },
+    {
+      "name": "idle-abort",
+      "expected": "pass",
+      "actual": "pass",
+      "matchesExpectation": true,
+      "cleanup": [
+        {
+          "metrics": {
+            "created": 1,
+            "terminated": 1,
+            "requests": 1,
+            "execCalls": 0,
+            "inputBytes": 0,
+            "responseBytes": 0,
+            "startupMs": 29.751832999999998,
+            "workMs": 0.15241600000000233,
+            "terminationMs": 1.3353330000000057,
+            "peakInflight": 1,
+            "listenersAfter": 0,
+            "exitCode": 1
+          },
+          "pending": false,
+          "busy": false,
+          "releaseHeld": false,
+          "capacityActive": 0,
+          "workerThreadId": -1,
+          "workerListeners": {
+            "message": 0,
+            "error": 0,
+            "exit": 0,
+            "messageerror": 0
+          },
+          "signalListeners": 0
+        }
+      ]
+    },
+    {
+      "name": "paused-abort",
+      "expected": "pass",
+      "actual": "pass",
+      "matchesExpectation": true,
+      "cleanup": [
+        {
+          "metrics": {
+            "created": 1,
+            "terminated": 1,
+            "requests": 2,
+            "execCalls": 2,
+            "inputBytes": 2,
+            "responseBytes": 52,
+            "startupMs": 29.431999999999995,
+            "workMs": 0.5630840000000177,
+            "terminationMs": 1.5949169999999953,
+            "peakInflight": 1,
+            "listenersAfter": 0,
+            "exitCode": 1
+          },
+          "pending": false,
+          "busy": false,
+          "releaseHeld": false,
+          "capacityActive": 0,
+          "workerThreadId": -1,
+          "workerListeners": {
+            "message": 0,
+            "error": 0,
+            "exit": 0,
+            "messageerror": 0
+          },
+          "signalListeners": 0
+        }
+      ]
+    },
+    {
+      "name": "idle-exit",
+      "expected": "fail",
+      "actual": "fail",
+      "matchesExpectation": true,
+      "failure": {
+        "message": "Expected values to be strictly equal:\n\n1 !== 0\n",
+        "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\n1 !== 0\n\n    at clean (file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/design/revision-review/.temporary/baseline/tests/stress/regex-execution/design/review/child.mjs:34:10)\n    at benign (file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/design/revision-review/.temporary/baseline/tests/stress/regex-execution/design/review/child.mjs:116:66)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/design/revision-review/.temporary/baseline/tests/stress/regex-execution/design/review/child.mjs:220:10"
+      },
+      "cleanup": [
+        {
+          "metrics": {
+            "created": 1,
+            "terminated": 1,
+            "requests": 1,
+            "execCalls": 0,
+            "inputBytes": 0,
+            "responseBytes": 0,
+            "startupMs": 32.457459,
+            "workMs": 0.1574590000000029,
+            "terminationMs": 0.027416000000002327,
+            "peakInflight": 1,
+            "listenersAfter": 0
+          },
+          "pending": false,
+          "busy": false,
+          "releaseHeld": false,
+          "capacityActive": 0,
+          "workerThreadId": -1,
+          "workerListeners": {
+            "message": 0,
+            "error": 0,
+            "exit": 0,
+            "messageerror": 0
+          },
+          "signalListeners": 0
+        }
+      ]
+    },
+    {
+      "name": "idle-error",
+      "expected": "pass",
+      "actual": "pass",
+      "matchesExpectation": true,
+      "cleanup": [
+        {
+          "metrics": {
+            "created": 1,
+            "terminated": 1,
+            "requests": 1,
+            "execCalls": 0,
+            "inputBytes": 0,
+            "responseBytes": 0,
+            "startupMs": 27.653041,
+            "workMs": 0.14350000000000307,
+            "terminationMs": 1.3836670000000026,
+            "peakInflight": 1,
+            "listenersAfter": 0,
+            "exitCode": 1
+          },
+          "pending": false,
+          "busy": false,
+          "releaseHeld": false,
+          "capacityActive": 0,
+          "workerThreadId": -1,
+          "workerListeners": {
+            "message": 0,
+            "error": 0,
+            "exit": 0,
+            "messageerror": 0
+          },
+          "signalListeners": 0
+        }
+      ]
+    },
+    {
+      "name": "malformed",
+      "expected": "pass",
+      "actual": "pass",
+      "matchesExpectation": true,
+      "cleanup": [
+        {
+          "metrics": {
+            "created": 1,
+            "terminated": 1,
+            "requests": 2,
+            "execCalls": 0,
+            "inputBytes": 2,
+            "responseBytes": 0,
+            "startupMs": 31.080875,
+            "workMs": 0.226625999999996,
+            "terminationMs": 1.4230419999999953,
+            "peakInflight": 1,
+            "listenersAfter": 0,
+            "exitCode": 1
+          },
+          "pending": false,
+          "busy": false,
+          "releaseHeld": false,
+          "capacityActive": 0,
+          "workerThreadId": -1,
+          "workerListeners": {
+            "message": 0,
+            "error": 0,
+            "exit": 0,
+            "messageerror": 0
+          },
+          "signalListeners": 0
+        },
+        {
+          "metrics": {
+            "created": 1,
+            "terminated": 1,
+            "requests": 1,
+            "execCalls": 0,
+            "inputBytes": 2,
+            "responseBytes": 0,
+            "startupMs": 15.849833000000004,
+            "workMs": 0.15333299999998928,
+            "terminationMs": 0.6720839999999981,
+            "peakInflight": 1,
+            "listenersAfter": 0,
+            "exitCode": 1
+          },
+          "pending": false,
+          "busy": false,
+          "releaseHeld": false,
+          "capacityActive": 0,
+          "workerThreadId": -1,
+          "workerListeners": {
+            "message": 0,
+            "error": 0,
+            "exit": 0,
+            "messageerror": 0
+          },
+          "signalListeners": 0
+        }
+      ]
+    },
+    {
+      "name": "caps",
+      "expected": "pass",
+      "actual": "pass",
+      "matchesExpectation": true,
+      "cleanup": [
+        {
+          "metrics": {
+            "created": 0,
+            "terminated": 0,
+            "requests": 0,
+            "execCalls": 0,
+            "inputBytes": 0,
+            "responseBytes": 0,
+            "startupMs": 0,
+            "workMs": 0,
+            "terminationMs": 0.0012079999999983215,
+            "peakInflight": 0,
+            "listenersAfter": 0,
+            "exitCode": null
+          },
+          "pending": false,
+          "busy": false,
+          "releaseHeld": false,
+          "capacityActive": 0,
+          "workerThreadId": null,
+          "workerListeners": {},
+          "signalListeners": 0
+        },
+        {
+          "metrics": {
+            "created": 0,
+            "terminated": 0,
+            "requests": 0,
+            "execCalls": 0,
+            "inputBytes": 2,
+            "responseBytes": 0,
+            "startupMs": 0,
+            "workMs": 0,
+            "terminationMs": 0.0003750000000053433,
+            "peakInflight": 0,
+            "listenersAfter": 0,
+            "exitCode": null
+          },
+          "pending": false,
+          "busy": false,
+          "releaseHeld": false,
+          "capacityActive": 0,
+          "workerThreadId": null,
+          "workerListeners": {},
+          "signalListeners": 0
+        },
+        {
+          "metrics": {
+            "created": 1,
+            "terminated": 1,
+            "requests": 2,
+            "execCalls": 0,
+            "inputBytes": 256,
+            "responseBytes": 0,
+            "startupMs": 31.524834,
+            "workMs": 1.577374000000006,
+            "terminationMs": 2.1460419999999942,
+            "peakInflight": 1,
+            "listenersAfter": 0,
+            "exitCode": 1
+          },
+          "pending": false,
+          "busy": false,
+          "releaseHeld": false,
+          "capacityActive": 0,
+          "workerThreadId": -1,
+          "workerListeners": {
+            "message": 0,
+            "error": 0,
+            "exit": 0,
+            "messageerror": 0
+          },
+          "signalListeners": 0
+        }
+      ]
+    },
+    {
+      "name": "live-source",
+      "expected": "fail",
+      "actual": "fail",
+      "matchesExpectation": true,
+      "failure": {
+        "message": "First ordinary output must not wait for a full batch or EOF\n+ actual - expected\n\n+ 'observation-timeout'\n- 'fulfilled'\n",
+        "stack": "AssertionError [ERR_ASSERTION]: First ordinary output must not wait for a full batch or EOF\n+ actual - expected\n\n+ 'observation-timeout'\n- 'fulfilled'\n\n    at benign (file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/design/revision-review/.temporary/baseline/tests/stress/regex-execution/design/review/child.mjs:169:14)\n    at runNextTicks (node:internal/process/task_queues:64:5)\n    at process.processTimers (node:internal/timers:518:9)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/design/revision-review/.temporary/baseline/tests/stress/regex-execution/design/review/child.mjs:220:10"
+      },
+      "cleanup": [
+        {
+          "metrics": {
+            "created": 1,
+            "terminated": 1,
+            "requests": 2,
+            "execCalls": 2,
+            "inputBytes": 2,
+            "responseBytes": 52,
+            "startupMs": 31.511750000000006,
+            "workMs": 0.5672500000000014,
+            "terminationMs": 1.5981660000000062,
+            "peakInflight": 1,
+            "listenersAfter": 0,
+            "exitCode": 1
+          },
+          "pending": false,
+          "busy": false,
+          "releaseHeld": false,
+          "capacityActive": 0,
+          "workerThreadId": -1,
+          "workerListeners": {
+            "message": 0,
+            "error": 0,
+            "exit": 0,
+            "messageerror": 0
+          },
+          "signalListeners": 0
+        }
+      ]
+    },
+    {
+      "name": "consumer-return",
+      "expected": "pass",
+      "actual": "pass",
+      "matchesExpectation": true,
+      "cleanup": [
+        {
+          "metrics": {
+            "created": 1,
+            "terminated": 1,
+            "requests": 2,
+            "execCalls": 2,
+            "inputBytes": 2,
+            "responseBytes": 52,
+            "startupMs": 31.277625,
+            "workMs": 0.3968330000000009,
+            "terminationMs": 1.6128340000000065,
+            "peakInflight": 1,
+            "listenersAfter": 0,
+            "exitCode": 1
+          },
+          "pending": false,
+          "busy": false,
+          "releaseHeld": false,
+          "capacityActive": 0,
+          "workerThreadId": -1,
+          "workerListeners": {
+            "message": 0,
+            "error": 0,
+            "exit": 0,
+            "messageerror": 0
+          },
+          "signalListeners": 0
+        },
+        {
+          "metrics": {
+            "created": 1,
+            "terminated": 1,
+            "requests": 4,
+            "execCalls": 6,
+            "inputBytes": 6,
+            "responseBytes": 156,
+            "startupMs": 17.997625,
+            "workMs": 0.5931670000000224,
+            "terminationMs": 0.9262499999999818,
+            "peakInflight": 1,
+            "listenersAfter": 0,
+            "exitCode": 1
+          },
+          "pending": false,
+          "busy": false,
+          "releaseHeld": false,
+          "capacityActive": 0,
+          "workerThreadId": -1,
+          "workerListeners": {
+            "message": 0,
+            "error": 0,
+            "exit": 0,
+            "messageerror": 0
+          },
+          "signalListeners": 0
+        }
+      ]
+    },
+    {
+      "name": "capacity",
+      "expected": "pass",
+      "actual": "pass",
+      "matchesExpectation": true,
+      "cleanup": [
+        {
+          "metrics": {
+            "created": 1,
+            "terminated": 1,
+            "requests": 2,
+            "execCalls": 2,
+            "inputBytes": 2,
+            "responseBytes": 52,
+            "startupMs": 28.241082999999996,
+            "workMs": 0.5326249999999959,
+            "terminationMs": 1.5777079999999941,
+            "peakInflight": 1,
+            "listenersAfter": 0,
+            "exitCode": 1
+          },
+          "pending": false,
+          "busy": false,
+          "releaseHeld": false,
+          "capacityActive": 0,
+          "workerThreadId": -1,
+          "workerListeners": {
+            "message": 0,
+            "error": 0,
+            "exit": 0,
+            "messageerror": 0
+          },
+          "signalListeners": 0
+        },
+        {
+          "metrics": {
+            "created": 0,
+            "terminated": 0,
+            "requests": 0,
+            "execCalls": 0,
+            "inputBytes": 0,
+            "responseBytes": 0,
+            "startupMs": 0,
+            "workMs": 0,
+            "terminationMs": 0.0008330000000000837,
+            "peakInflight": 0,
+            "listenersAfter": 0,
+            "exitCode": null
+          },
+          "pending": false,
+          "busy": false,
+          "releaseHeld": false,
+          "capacityActive": 0,
+          "workerThreadId": null,
+          "workerListeners": {},
+          "signalListeners": 0
+        },
+        {
+          "metrics": {
+            "created": 0,
+            "terminated": 0,
+            "requests": 0,
+            "execCalls": 0,
+            "inputBytes": 0,
+            "responseBytes": 0,
+            "startupMs": 0,
+            "workMs": 0,
+            "terminationMs": 0.001041999999998211,
+            "peakInflight": 0,
+            "listenersAfter": 0,
+            "exitCode": null
+          },
+          "pending": false,
+          "busy": false,
+          "releaseHeld": false,
+          "capacityActive": 0,
+          "workerThreadId": null,
+          "workerListeners": {},
+          "signalListeners": 0
+        },
+        {
+          "metrics": {
+            "created": 1,
+            "terminated": 1,
+            "requests": 2,
+            "execCalls": 2,
+            "inputBytes": 2,
+            "responseBytes": 52,
+            "startupMs": 17.850667,
+            "workMs": 0.30862500000000637,
+            "terminationMs": 1.0163749999999965,
+            "peakInflight": 1,
+            "listenersAfter": 0,
+            "exitCode": 1
+          },
+          "pending": false,
+          "busy": false,
+          "releaseHeld": false,
+          "capacityActive": 0,
+          "workerThreadId": -1,
+          "workerListeners": {
+            "message": 0,
+            "error": 0,
+            "exit": 0,
+            "messageerror": 0
+          },
+          "signalListeners": 0
+        }
+      ]
+    },
+    {
+      "name": "dispose-late",
+      "expected": "pass",
+      "actual": "pass",
+      "matchesExpectation": true,
+      "cleanup": [
+        {
+          "metrics": {
+            "created": 1,
+            "terminated": 1,
+            "requests": 1,
+            "execCalls": 0,
+            "inputBytes": 0,
+            "responseBytes": 0,
+            "startupMs": 25.668457999999998,
+            "workMs": 0.136458999999995,
+            "terminationMs": 1.2206249999999983,
+            "peakInflight": 1,
+            "listenersAfter": 0,
+            "exitCode": 1
+          },
+          "pending": false,
+          "busy": false,
+          "releaseHeld": false,
+          "capacityActive": 0,
+          "workerThreadId": -1,
+          "workerListeners": {
+            "message": 0,
+            "error": 0,
+            "exit": 0,
+            "messageerror": 0
+          },
+          "signalListeners": 0
+        }
+      ]
+    }
+  ]
+}

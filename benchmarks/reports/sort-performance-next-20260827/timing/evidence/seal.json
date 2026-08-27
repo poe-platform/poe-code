@@ -1,0 +1,53 @@
+{
+  "planCommit": "bac58e3e9f11283b95f592080ba43d5e17a859e7",
+  "generatedAt": "2026-08-27T20:42:00.526Z",
+  "files": [
+    {
+      "path": "build-A.json",
+      "bytes": 103,
+      "sha256": "71e22db14e7e8a3fe41beff6176020c553bcf1c52f1f75f8097e7427b18064e3"
+    },
+    {
+      "path": "cleanup.json",
+      "bytes": 766,
+      "sha256": "1854a8cd5a5a4d15287061825036513212855a76daa558ed12df79ff6e6573d1"
+    },
+    {
+      "path": "host.json",
+      "bytes": 2369,
+      "sha256": "441d3588e9023aca8bcaddfebae71f65e0d8735483b0f2114895d0bb23046b3d"
+    },
+    {
+      "path": "integrity.json",
+      "bytes": 123,
+      "sha256": "87db21c74ae04b9943e7e82d8eb174f09d04ded9177a422a60075933d557bba5"
+    },
+    {
+      "path": "pack-A.json",
+      "bytes": 229,
+      "sha256": "19b45105d5abe0909bac58902fa242fe18794b6c7c1822c0d073eacc3536cd86"
+    },
+    {
+      "path": "readiness-frozen.json",
+      "bytes": 14524,
+      "sha256": "9fc01acfbb46028265960e7d978b35e5c80e0fa09f3117b60c44f067e458b189"
+    },
+    {
+      "path": "REPORT.md",
+      "bytes": 498,
+      "sha256": "1328bf04b91d3c341a04d988139eb0a1d66813a321016e71a54f3d1e4f60d36a"
+    },
+    {
+      "path": "summary.json",
+      "bytes": 1104,
+      "sha256": "7090dc3c75a22c04166f732ef182220cae2bccdb95072ac6028b06f24ef85b31"
+    },
+    {
+      "path": "top-manual.raw.txt",
+      "bytes": 14447,
+      "sha256": "2724edd9908605761fca700de8b15ff7fae78f3d8cb7c408d505ffbe89bf652f"
+    }
+  ],
+  "sealExcludesOnlyItself": true,
+  "addedEntriesMustBeRejectedOnReview": true
+}

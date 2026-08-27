@@ -1,0 +1,21 @@
+{
+  "status": "BLOCKED — NO TIMING CLAIM",
+  "reason": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\n1 !== 0\n\n    at file:///Users/kjopek/Workspace/safe-bash/benchmarks/reports/sort-performance-next-20260827/timing/run.mjs:177:68",
+  "planCommit": "bac58e3e9f11283b95f592080ba43d5e17a859e7",
+  "measuredSamples": 0,
+  "correctnessPassed": 0,
+  "correctnessExpected": 93,
+  "warmups": 0,
+  "admissions": [],
+  "elapsedExecutionSecondsNotBenchmark": 6.93,
+  "inputManifestSha256": "55dd5cdcde68818797b6ccd0c9cbe9cafa8dcd5969516759b8d8cc361dd22672",
+  "root": "/private/tmp/sort-cache-timing-EmcEYN",
+  "allTimingClaims": "PENDING DIFFERENT ROOT-ROUTED REVIEWER",
+  "limits": [
+    "Narrow own-cache effects only; no comparator or old 720 campaign.",
+    "Host load qualification is not isolation, thermal or frequency assurance.",
+    "Synthetic common-base archives, not full historical packages or current HEAD.",
+    "Correctness admission is not the full accepted regression/native suite.",
+    "No counter-to-speed, RSS, overall superiority or completion claim."
+  ]
+}

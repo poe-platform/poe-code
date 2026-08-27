@@ -1,0 +1,349 @@
+TOP(1)                      General Commands Manual                     TOP(1)
+
+NNAAMMEE
+     ttoopp - display sorted information about processes
+
+SSYYNNOOPPSSIISS
+     ttoopp [--aa | --dd | --ee | --cc _m_o_d_e]
+         [--FF | --ff]
+         [--hh]
+         [--ii _i_n_t_e_r_v_a_l]
+         [--ll _s_a_m_p_l_e_s]
+         [--nnccoollss _c_o_l_u_m_n_s]
+         [--oo _k_e_y | --OO _s_k_e_y]
+         [--RR | --rr]
+         [--SS]
+         [--ss _d_e_l_a_y_-_s_e_c_s]
+         [--nn _n_p_r_o_c_s]
+         [--ssttaattss _k_e_y_s]
+         [--ppiidd _p_r_o_c_e_s_s_i_d]
+         [--uusseerr _u_s_e_r_n_a_m_e]
+         [--UU _u_s_e_r_n_a_m_e]
+         [--uu]
+
+DDEESSCCRRIIPPTTIIOONN
+     The ttoopp program periodically displays a sorted list of system processes.
+     The default sorting key is pid, but other keys can be used instead.
+     Various output options are available.
+
+OOPPTTIIOONNSS
+     Command line option specifications are processed from left to right.
+     Options can be specified more than once.  If conflicting options are
+     specified, later specifications override earlier ones.  This makes it
+     viable to create a shell alias for ttoopp with preferred defaults specified,
+     then override those preferred defaults as desired on the command line.
+
+     --aa      Equivalent to --cc _a.
+
+     --cc _m_o_d_e
+             Set event counting mode to _m_o_d_e.  The supported modes are
+
+             a       Accumulative mode.  Count events cumulatively, starting
+                     at the launch of ttoopp.  Calculate CPU usage and CPU time
+                     since the launch of ttoopp.
+
+             d       Delta mode.  Count events relative to the previous
+                     sample.  Calculate CPU usage since the previous sample.
+                     This mode by default disables the memory object map
+                     reporting.  The memory object map reporting may be re-
+                     enabled with the --rr option or the interactive rr command.
+
+             e       Absolute mode.  Count events using absolute counters.
+
+             n       Non-event mode (default).  Calculate CPU usage since the
+                     previous sample.
+
+     --dd      Equivalent to --cc _d.
+
+     --ee      Equivalent to --cc _e.
+
+     --FF      Do not calculate statistics on shared libraries, also known as
+             frameworks.
+
+     --ff      Calculate statistics on shared libraries, also known as
+             frameworks (default).
+
+     --hh      Print command line usage information and exit.
+
+     --ii _i_n_t_e_r_v_a_l
+             Update framework (--ff) info every _i_n_t_e_r_v_a_l samples; see the
+             _P_E_R_F_O_R_M_A_N_C_E_/_A_C_C_U_R_A_C_Y _T_R_A_D_E_O_F_F section for more details.
+
+     --ll _s_a_m_p_l_e_s
+             Use logging mode and display _s_a_m_p_l_e_s samples, even if standard
+             output is a terminal.  0 is treated as infinity.  Rather than
+             redisplaying, output is periodically printed in raw form.  Note
+             that the first sample displayed will have an invalid %CPU
+             displayed for each process, as it is calculated using the delta
+             between samples.
+
+     --nnccoollss _c_o_l_u_m_n_s
+             Display _c_o_l_u_m_n_s when using logging mode.  The default is
+             infinite.  The number must be > 0 or an error will occur.
+
+     --nn _n_p_r_o_c_s
+             Only display up to _n_p_r_o_c_s processes.
+
+     --OO _s_k_e_y
+             Use _s_k_e_y as a secondary key when ordering the process display.
+             See --oo for key names (pid is the default).
+
+     --oo _k_e_y  Order the process display by sorting on _k_e_y in descending order.
+             A + or - can be prefixed to the key name to specify ascending or
+             descending order, respectively.  The supported keys are:
+
+             pid     Process ID
+
+             command
+                     Command name.
+
+             cpu     CPU usage.  (default).
+
+             cpu_me  CPU time charged to me by other processes.
+
+             cpu_others
+                     CPU time charged to other processes by me.
+
+             csw     The number of context switches.
+
+             time    Execution time.
+
+             threads
+                     alias: th
+                     Number of threads (total/running).
+
+             ports   alias: prt
+                     Number of Mach ports.
+
+             mregion
+                     alias: mreg, reg
+                     Number of memory regions.
+
+             mem     Physical memory footprint of the process.
+
+             rprvt   Resident private address space size.
+
+             purg    Purgeable memory size.
+
+             vsize   Total memory size.
+
+             vprvt   Private address space size.
+
+             kprvt   Private kernel memory size.
+
+             kshrd   Shared kernel memory size.
+
+             pgrp    Process group ID.
+
+             ppid    Parent process ID.
+
+             state   alias: pstate
+                     Process state.
+                     One of "zombie", "running", "stuck" (i.e. uninterruptible
+                     sleep),  "sleeping", "idle", "stopped", "halted", or
+                     "unknown".
+
+             uid     User ID.
+
+             wq      alias: #wq, workqueue
+                     The workqueue total/running.
+
+             faults  alias: fault
+                     The number of page faults.
+
+             cow     alias: cow_faults
+                     The copy-on-write faults.
+
+             user    alias: username
+                     Username.
+
+             msgsent
+                     Total number of Mach messages sent.
+
+             msgrecv
+                     Total number of Mach messages received.
+
+             sysbsd  Total BSD syscalls.
+
+             sysmach
+                     Total Mach syscalls.
+
+             pageins
+                     Total pageins.
+
+             boosts  The number of boosts held by the process.  This is
+                     followed by the number of times the process has
+                     transitioned from unboosted to boosted in brackets.  An
+                     asterisk before the value indicates that the process was
+                     able to send boosts at some point since the previous
+                     update.  For more information about boosts, see
+                     xpc_transaction_begin(3).
+
+             instrs  The number of instructions retired by the process in both
+                     user space and the kernel.
+
+             cycles  The number of cycles spent executing instructions in the
+                     process in both user space and the kernel.
+
+             jetpri  Jetsam priority of the process.
+
+     --RR      Do not traverse and report the memory object map for each process
+             (default).
+
+     --rr      Traverse and report the memory object map for each process.
+
+     --SS      Display the global statistics for swap and purgeable memory.
+
+     --ss _d_e_l_a_y_-_s_e_c_s
+             Set the delay between updates to _d_e_l_a_y_-_s_e_c_s seconds.  The default
+             delay between updates is 1 second.
+
+     --ssttaattss _k_e_y_s
+             Only display the comma separated statistics.  See the --oo flag for
+             the valid _k_e_y_s.
+
+     --ppiidd _p_r_o_c_e_s_s_i_d
+             Only display _p_r_o_c_e_s_s_i_d in ttoopp.  This option may be specified
+             multiple times.
+
+     --uusseerr _u_s_e_r
+             Only display processes owned by _u_s_e_r
+
+     --UU _u_s_e_r
+             This is an alias for --uusseerr.
+
+     --uu      This is an alias equivalent to: --oo _c_p_u --OO _t_i_m_e
+
+DDIISSPPLLAAYY
+     The first several lines of the ttoopp display show various global state.
+     All of the information is labeled.  Following is an alphabetical list of
+     global state fields and their descriptions.
+
+     CPU         Percentage of processor usage, broken into user, system, and
+                 idle components.  The time period for which these percentages
+                 are calculated depends on the event counting mode.
+
+     Disks       Number and total size of disk reads and writes.
+
+     LoadAvg     Load average over 1, 5, and 15 minutes.  The load average is
+                 the average number of jobs in the run queue.
+
+     MemRegions  Number and total size of memory regions, and total size of
+                 memory regions broken into private (broken into non-library
+                 and library) and shared components.
+
+     Networks    Number and total size of input and output network packets.
+
+     PhysMem     Physical memory usage, broken into wired, active, inactive,
+                 used, and free components.
+
+     Procs       Total number of processes and number of processes in each
+                 process state.
+
+     SharedLibs  Resident sizes of code and data segments, and link editor
+                 memory usage.
+
+     Threads     Number of threads.
+
+     Time        Time, in H:MM:SS format.  When running in logging mode, Time
+                 is in YYYY/MM/DD HH:MM:SS format by default, but may be
+                 overridden with accumulative mode.  When running in
+                 accumulative event counting mode, the Time is in HH:MM:SS
+                 since the beginning of the ttoopp process.
+
+     VirtMem     Total virtual memory, virtual memory consumed by shared
+                 libraries, and number of pageins and pageouts.
+
+     Swap        Swap usage: total size of swap areas, amount of swap space in
+                 use and amount of swap space available.
+
+     Purgeable   Number of pages purged and number of pages currently
+                 purgeable.
+
+     Below the global state fields, a list of processes is displayed.  The
+     fields that are displayed depend on the options that are set.  The pid
+     field displays the following for the architecture:
+
+     + for 64-bit native architecture, or - for 32-bit native architecture, or
+     * for a non-native architecture.
+
+IINNTTEERRAACCTTIIOONN
+     When ttoopp is run in interactive (non-logging) mode, it is possible to
+     control the output of ttoopp, as well as interactively send signals to
+     processes.  The interactive command syntax is terse.  Each command is one
+     character, followed by 0 to 2 arguments.  Commands that take arguments
+     prompt interactively for the arguments, and where applicable, the default
+     value is shown in square brackets.  The default value can be selected by
+     leaving the input field blank and pressing enter.  ^G escapes the
+     interactive argument prompt, and has the same effect as leaving the input
+     field blank and pressing enter.
+
+     The following commands are supported:
+
+     ?       Display the help screen.  Any character exits help screen mode.
+             This command always works, even in the middle of a command.
+
+     ^L      Redraw the screen.
+
+     c_m_o_d_e   Set output mode to _m_o_d_e.  See the --cc option for descriptions of
+             the allowed modes.
+
+     O_s_k_e_y   Use _s_k_e_y as a secondary key when ordering the process display.
+             See the --oo option for key names.
+
+     o_k_e_y    Order the process display by sorting on _k_e_y in descending order.
+             A + or - can be prefixed to the key name to specify ascending or
+             descending order, respectively.  The supported keys and alises
+             are listed with the --oo option above.
+
+     q       Quit.
+
+     r       Toggle traversal and reporting of the memory object map for each
+             process.
+
+     S_s_i_g_n_a_l_p_i_d
+             Send signal _s_i_g_n_a_l to _p_i_d.  _s_i_g_n_a_l can be specified either as a
+             number or as a name (for example, HUP).  The default signal
+             starts out as TERM.  Each time a signal is successfully sent, the
+             default signal is updated to be that signal.  _p_i_d is a process
+             id.
+
+     s _d_e_l_a_y_-_s_e_c_s
+             Set the delay between updates to _d_e_l_a_y_-_s_e_c_s seconds.
+
+     U _u_s_e_r  Only display processes owned by _u_s_e_r_. Either the username or uid
+             number can be specified.  To display all processes, press enter
+             without entering a username or uid number.
+
+PPEERRFFOORRMMAANNCCEE//AACCCCUURRAACCYY TTRRAADDEEOOFFFF
+     Calculating detailed memory statistics is fundamentally resource-
+     intensive.  To reduce the CPU usage in ttoopp, the --ii option has been
+     introduced to allow the user to tune this tradeoff.  With the default
+     value of 10, framework stats will be updated once every 10 samples.
+     Specifying --ii _1 will result in the most accurate display, at the expense
+     of system resources.
+
+NNOOTT AAVVAAIILLAABBLLEE
+     When N/A occurs in a stat, it's caused by the memory object map reporting
+     being disabled.  Memory object map reporting is disabled by default in
+     delta mode, but may be optionally enabled via --rr or the interactive rr
+     command.  To enable the --rr option, use it after any --cc mode options.
+
+EEXXAAMMPPLLEESS
+     top -o cpu -O +rsize -s 5 -n 20
+             Sort the processes according to CPU usage (descending) and
+             resident memory size (ascending), sample and update the display
+             at 5 second intervals, and limit the display to 20 processes.
+
+     top -c d
+             Run ttoopp in delta mode.
+
+     top -stats pid,command,cpu,th,pstate,time
+             Display only the specified statistics, regardless of any growth
+             of the terminal.  If the terminal is too small, only the
+             statistics that fit will be displayed.
+
+SSEEEE AALLSSOO
+     taskinfo(1), vm_stat(1), vmmap(1), kill(2), signal(3)
+
+Darwin                         February 10, 2020                        Darwin

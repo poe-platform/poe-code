@@ -1,0 +1,92 @@
+{
+  "schema": 1,
+  "status": "Authenticated binding-only replay; no expectation changes or policy acceptance",
+  "freezeCommit": "f561bd9fa33afdf8285154237f856ebfd8495ce4",
+  "controlsCommit": "18104988c32c467e4025743927c20ee80eaa1781",
+  "profiles": {
+    "NODE": "HNODE-AGG-v5",
+    "TREE": "HTREE-AGG-v5"
+  },
+  "mutations": [
+    {
+      "name": "erase-aggregate",
+      "file": "model.mjs",
+      "groups": [
+        1
+      ],
+      "before": "    return first.start - second.start || second.end - first.end;",
+      "after": "    if (first.node.kind === 'repeat') return 0;\n    return first.start - second.start || second.end - first.end;",
+      "originalPath": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-v5-final-replay-kSGdP4/sealed/model.mjs",
+      "modifiedPath": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-v5-final-replay-kSGdP4/mutants/erase-aggregate/model.mjs",
+      "modulePath": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-v5-final-replay-kSGdP4/mutants/erase-aggregate/model.mjs",
+      "originalSha256": "9e411191722e796460f347b0848c32da60abaea108bdd78bdf8886ab8c1a8e86",
+      "modifiedSha256": "e6e9af740d7b3a21c9a3be7904e380dcac927405699a861032641b979bfd052f"
+    },
+    {
+      "name": "NODE-as-TREE",
+      "file": "model.mjs",
+      "groups": [
+        3
+      ],
+      "before": "    const order = policy === 'HNODE-AGG-v5' ? this.nodeOrder(first, second) : this.treeOrder(first.tree, second.tree);",
+      "after": "    const order = this.treeOrder(first.tree, second.tree);",
+      "originalPath": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-v5-final-replay-kSGdP4/sealed/model.mjs",
+      "modifiedPath": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-v5-final-replay-kSGdP4/mutants/NODE-as-TREE/model.mjs",
+      "modulePath": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-v5-final-replay-kSGdP4/mutants/NODE-as-TREE/model.mjs",
+      "originalSha256": "9e411191722e796460f347b0848c32da60abaea108bdd78bdf8886ab8c1a8e86",
+      "modifiedSha256": "970665a87d658a8c8ac386be67a2fd219c716ecdf5e8934d84c4fb82af3b515e"
+    },
+    {
+      "name": "skip-clears",
+      "file": "inherited-model.mjs",
+      "groups": [
+        4,
+        5,
+        6
+      ],
+      "before": "        event('skip', node.children[0], null, activation, count, position, position);",
+      "after": "        if (count === 0 && node.children[0].kind === 'group') update(node.children[0].group, 'absent', undefined, undefined, undefined);\n        event('skip', node.children[0], null, activation, count, position, position);",
+      "originalPath": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-v5-final-replay-kSGdP4/sealed/inherited-model.mjs",
+      "modifiedPath": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-v5-final-replay-kSGdP4/mutants/skip-clears/inherited-model.mjs",
+      "modulePath": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-v5-final-replay-kSGdP4/mutants/skip-clears/model.mjs",
+      "originalSha256": "f04c98a52967f904266660607b0ee2157518cf50d3da260a4aa2b47926c392a0",
+      "modifiedSha256": "64bc0f1fc6db91239d08c8e1235b8d66d7064fe753464d1585dd37402da60531"
+    },
+    {
+      "name": "disable-budget",
+      "file": "inherited-model.mjs",
+      "groups": [
+        7
+      ],
+      "before": "    if (work > this.workLimit - this.work || allocation > this.allocationLimit - this.allocation) throw new Refusal('LIMIT');",
+      "after": "    if (false) throw new Refusal('LIMIT');",
+      "originalPath": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-v5-final-replay-kSGdP4/sealed/inherited-model.mjs",
+      "modifiedPath": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-v5-final-replay-kSGdP4/mutants/disable-budget/inherited-model.mjs",
+      "modulePath": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-v5-final-replay-kSGdP4/mutants/disable-budget/model.mjs",
+      "originalSha256": "f04c98a52967f904266660607b0ee2157518cf50d3da260a4aa2b47926c392a0",
+      "modifiedSha256": "aa47d145bc527506a9087b412dbeae071c7f43776b9949bb17ba2af0b0c7c9da"
+    },
+    {
+      "name": "swallow-abort-incumbent-fallback",
+      "file": "model.mjs",
+      "groups": [
+        8
+      ],
+      "before": "    return super.rank(histories, policy);",
+      "after": "    try { return super.rank(histories, policy); } catch (error) { if (this.meter.signal?.aborted) return histories[0]; throw error; }",
+      "originalPath": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-v5-final-replay-kSGdP4/sealed/model.mjs",
+      "modifiedPath": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-v5-final-replay-kSGdP4/mutants/swallow-abort-incumbent-fallback/model.mjs",
+      "modulePath": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-v5-final-replay-kSGdP4/mutants/swallow-abort-incumbent-fallback/model.mjs",
+      "originalSha256": "9e411191722e796460f347b0848c32da60abaea108bdd78bdf8886ab8c1a8e86",
+      "modifiedSha256": "e9f54eacb51f97f9f403c55dd1249647ff1c2c649a559d2de50629a31b4021d1"
+    }
+  ],
+  "plannedMutantsMaximum": 5,
+  "remainingBinding": "Authenticate candidate first. Adapt module/API representation only, source-bind focused mutants, preserve first attempts and any assertion deltas. No expectation change or live engine authorization.",
+  "candidate": "0af75465914815055dd2982f40859ba41dbffcf7",
+  "seal": "a995616a48ccc3d712f2fec4f68f7a8b639086f3",
+  "eligibilityBinding": {
+    "trueOrOmitted": "LOCAL-TAIL-HYPOTHESIS",
+    "false": "FINITE-PERMISSIVE"
+  }
+}

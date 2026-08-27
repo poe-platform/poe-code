@@ -1,0 +1,77 @@
+{
+  "entries": [
+    {
+      "mutant": "erase-aggregate",
+      "file": "model.mjs",
+      "sha256": "e6e9af740d7b3a21c9a3be7904e380dcac927405699a861032641b979bfd052f",
+      "originalSha256": "9e411191722e796460f347b0848c32da60abaea108bdd78bdf8886ab8c1a8e86",
+      "changed": true
+    },
+    {
+      "mutant": "erase-aggregate",
+      "file": "inherited-model.mjs",
+      "sha256": "f04c98a52967f904266660607b0ee2157518cf50d3da260a4aa2b47926c392a0",
+      "originalSha256": "f04c98a52967f904266660607b0ee2157518cf50d3da260a4aa2b47926c392a0",
+      "changed": false
+    },
+    {
+      "mutant": "NODE-as-TREE",
+      "file": "model.mjs",
+      "sha256": "970665a87d658a8c8ac386be67a2fd219c716ecdf5e8934d84c4fb82af3b515e",
+      "originalSha256": "9e411191722e796460f347b0848c32da60abaea108bdd78bdf8886ab8c1a8e86",
+      "changed": true
+    },
+    {
+      "mutant": "NODE-as-TREE",
+      "file": "inherited-model.mjs",
+      "sha256": "f04c98a52967f904266660607b0ee2157518cf50d3da260a4aa2b47926c392a0",
+      "originalSha256": "f04c98a52967f904266660607b0ee2157518cf50d3da260a4aa2b47926c392a0",
+      "changed": false
+    },
+    {
+      "mutant": "skip-clears",
+      "file": "model.mjs",
+      "sha256": "9e411191722e796460f347b0848c32da60abaea108bdd78bdf8886ab8c1a8e86",
+      "originalSha256": "9e411191722e796460f347b0848c32da60abaea108bdd78bdf8886ab8c1a8e86",
+      "changed": false
+    },
+    {
+      "mutant": "skip-clears",
+      "file": "inherited-model.mjs",
+      "sha256": "64bc0f1fc6db91239d08c8e1235b8d66d7064fe753464d1585dd37402da60531",
+      "originalSha256": "f04c98a52967f904266660607b0ee2157518cf50d3da260a4aa2b47926c392a0",
+      "changed": true
+    },
+    {
+      "mutant": "disable-budget",
+      "file": "model.mjs",
+      "sha256": "9e411191722e796460f347b0848c32da60abaea108bdd78bdf8886ab8c1a8e86",
+      "originalSha256": "9e411191722e796460f347b0848c32da60abaea108bdd78bdf8886ab8c1a8e86",
+      "changed": false
+    },
+    {
+      "mutant": "disable-budget",
+      "file": "inherited-model.mjs",
+      "sha256": "aa47d145bc527506a9087b412dbeae071c7f43776b9949bb17ba2af0b0c7c9da",
+      "originalSha256": "f04c98a52967f904266660607b0ee2157518cf50d3da260a4aa2b47926c392a0",
+      "changed": true
+    },
+    {
+      "mutant": "swallow-abort-incumbent-fallback",
+      "file": "model.mjs",
+      "sha256": "e9f54eacb51f97f9f403c55dd1249647ff1c2c649a559d2de50629a31b4021d1",
+      "originalSha256": "9e411191722e796460f347b0848c32da60abaea108bdd78bdf8886ab8c1a8e86",
+      "changed": true
+    },
+    {
+      "mutant": "swallow-abort-incumbent-fallback",
+      "file": "inherited-model.mjs",
+      "sha256": "f04c98a52967f904266660607b0ee2157518cf50d3da260a4aa2b47926c392a0",
+      "originalSha256": "f04c98a52967f904266660607b0ee2157518cf50d3da260a4aa2b47926c392a0",
+      "changed": false
+    }
+  ],
+  "fullDirectoryInventoryAndTypesEqual": true,
+  "completeDependencyClosure": true,
+  "setupErrorsCountedAsKills": false
+}

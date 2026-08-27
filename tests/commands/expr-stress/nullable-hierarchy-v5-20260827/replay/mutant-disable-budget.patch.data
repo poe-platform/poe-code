@@ -1,0 +1,5 @@
+--- inherited-model.mjs (f04c98a52967f904266660607b0ee2157518cf50d3da260a4aa2b47926c392a0)
++++ inherited-model.mjs (aa47d145bc527506a9087b412dbeae071c7f43776b9949bb17ba2af0b0c7c9da)
+@@ exact unique replacement @@
+-    if (work > this.workLimit - this.work || allocation > this.allocationLimit - this.allocation) throw new Refusal('LIMIT');
++    if (false) throw new Refusal('LIMIT');

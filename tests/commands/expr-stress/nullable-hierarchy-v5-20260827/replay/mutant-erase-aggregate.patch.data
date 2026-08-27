@@ -1,0 +1,6 @@
+--- model.mjs (9e411191722e796460f347b0848c32da60abaea108bdd78bdf8886ab8c1a8e86)
++++ model.mjs (e6e9af740d7b3a21c9a3be7904e380dcac927405699a861032641b979bfd052f)
+@@ exact unique replacement @@
+-    return first.start - second.start || second.end - first.end;
++    if (first.node.kind === 'repeat') return 0;
++    return first.start - second.start || second.end - first.end;

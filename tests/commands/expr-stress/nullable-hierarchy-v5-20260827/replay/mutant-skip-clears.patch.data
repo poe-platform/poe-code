@@ -1,0 +1,6 @@
+--- inherited-model.mjs (f04c98a52967f904266660607b0ee2157518cf50d3da260a4aa2b47926c392a0)
++++ inherited-model.mjs (64bc0f1fc6db91239d08c8e1235b8d66d7064fe753464d1585dd37402da60531)
+@@ exact unique replacement @@
+-        event('skip', node.children[0], null, activation, count, position, position);
++        if (count === 0 && node.children[0].kind === 'group') update(node.children[0].group, 'absent', undefined, undefined, undefined);
++        event('skip', node.children[0], null, activation, count, position, position);

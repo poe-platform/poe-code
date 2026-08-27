@@ -1,0 +1,630 @@
+{
+  "schema": 1,
+  "controlsCommit": "18104988c32c467e4025743927c20ee80eaa1781",
+  "controlsSha256": "af00f1e794152e8f69bfa1641c87cb1e78e9844a768b8220dd79333b45fdf409",
+  "modelSha256": "9e411191722e796460f347b0848c32da60abaea108bdd78bdf8886ab8c1a8e86",
+  "binding": {
+    "schema": 1,
+    "status": "Precode profile-name binding from authenticated freeze; candidate source/API not yet inspected or executed",
+    "freezeCommit": "f561bd9fa33afdf8285154237f856ebfd8495ce4",
+    "controlsCommit": "18104988c32c467e4025743927c20ee80eaa1781",
+    "profiles": {
+      "NODE": "HNODE-AGG-v5",
+      "TREE": "HTREE-AGG-v5"
+    },
+    "mutations": [],
+    "plannedMutantsMaximum": 5,
+    "remainingBinding": "Authenticate candidate first. Adapt module/API representation only, source-bind focused mutants, preserve first attempts and any assertion deltas. No expectation change or live engine authorization."
+  },
+  "counts": {
+    "groups": 8,
+    "newHistories": 5,
+    "assertions": 95,
+    "passed": 14,
+    "failed": 81,
+    "mutantsAttempted": 0,
+    "mutantsKilled": 0,
+    "actualWorkers": 0
+  },
+  "grouped": {
+    "G1": {
+      "assertions": 13,
+      "passed": 0,
+      "failed": 13
+    },
+    "G2": {
+      "assertions": 10,
+      "passed": 0,
+      "failed": 10
+    },
+    "G3": {
+      "assertions": 8,
+      "passed": 0,
+      "failed": 8
+    },
+    "G4": {
+      "assertions": 4,
+      "passed": 0,
+      "failed": 4
+    },
+    "G5": {
+      "assertions": 29,
+      "passed": 5,
+      "failed": 24
+    },
+    "G6": {
+      "assertions": 3,
+      "passed": 0,
+      "failed": 3
+    },
+    "G7": {
+      "assertions": 21,
+      "passed": 8,
+      "failed": 13
+    },
+    "G8": {
+      "assertions": 5,
+      "passed": 1,
+      "failed": 4
+    }
+  },
+  "results": [
+    {
+      "id": "G1/NODE/P4",
+      "status": "fail",
+      "message": "ELIGIBILITY",
+      "code": "ELIGIBILITY"
+    },
+    {
+      "id": "G1/NODE/prefix",
+      "status": "fail",
+      "message": "ELIGIBILITY",
+      "code": "ELIGIBILITY"
+    },
+    {
+      "id": "G1/NODE/boundedPrefix",
+      "status": "fail",
+      "message": "ELIGIBILITY",
+      "code": "ELIGIBILITY"
+    },
+    {
+      "id": "G1/NODE/nestedPrefix",
+      "status": "fail",
+      "message": "ELIGIBILITY",
+      "code": "ELIGIBILITY"
+    },
+    {
+      "id": "G1/NODE/all24-orders",
+      "status": "fail",
+      "message": "ELIGIBILITY",
+      "code": "ELIGIBILITY"
+    },
+    {
+      "id": "G1/NODE/finite-order-laws",
+      "status": "fail",
+      "message": "ELIGIBILITY",
+      "code": "ELIGIBILITY"
+    },
+    {
+      "id": "G1/TREE/P4",
+      "status": "fail",
+      "message": "ELIGIBILITY",
+      "code": "ELIGIBILITY"
+    },
+    {
+      "id": "G1/TREE/prefix",
+      "status": "fail",
+      "message": "ELIGIBILITY",
+      "code": "ELIGIBILITY"
+    },
+    {
+      "id": "G1/TREE/boundedPrefix",
+      "status": "fail",
+      "message": "ELIGIBILITY",
+      "code": "ELIGIBILITY"
+    },
+    {
+      "id": "G1/TREE/nestedPrefix",
+      "status": "fail",
+      "message": "ELIGIBILITY",
+      "code": "ELIGIBILITY"
+    },
+    {
+      "id": "G1/TREE/all24-orders",
+      "status": "fail",
+      "message": "ELIGIBILITY",
+      "code": "ELIGIBILITY"
+    },
+    {
+      "id": "G1/TREE/finite-order-laws",
+      "status": "fail",
+      "message": "ELIGIBILITY",
+      "code": "ELIGIBILITY"
+    },
+    {
+      "id": "G1/over-max",
+      "status": "fail",
+      "message": "ELIGIBILITY",
+      "code": "ELIGIBILITY"
+    },
+    {
+      "id": "G2/NODE/initial-participation",
+      "status": "fail",
+      "message": "ELIGIBILITY",
+      "code": "ELIGIBILITY"
+    },
+    {
+      "id": "G2/NODE/END-after-prefix",
+      "status": "fail",
+      "message": "ELIGIBILITY",
+      "code": "ELIGIBILITY"
+    },
+    {
+      "id": "G2/NODE/permissive-tail-not-cycle",
+      "status": "fail",
+      "message": "ELIGIBILITY",
+      "code": "ELIGIBILITY"
+    },
+    {
+      "id": "G2/TREE/initial-participation",
+      "status": "fail",
+      "message": "ELIGIBILITY",
+      "code": "ELIGIBILITY"
+    },
+    {
+      "id": "G2/TREE/END-after-prefix",
+      "status": "fail",
+      "message": "ELIGIBILITY",
+      "code": "ELIGIBILITY"
+    },
+    {
+      "id": "G2/TREE/permissive-tail-not-cycle",
+      "status": "fail",
+      "message": "ELIGIBILITY",
+      "code": "ELIGIBILITY"
+    },
+    {
+      "id": "G2/LOCAL-TAIL-HYPOTHESIS-only",
+      "status": "fail",
+      "message": "ELIGIBILITY",
+      "code": "ELIGIBILITY"
+    },
+    {
+      "id": "G2/required-two",
+      "status": "fail",
+      "message": "ELIGIBILITY",
+      "code": "ELIGIBILITY"
+    },
+    {
+      "id": "G2/requiredChild/local-counts",
+      "status": "fail",
+      "message": "ELIGIBILITY",
+      "code": "ELIGIBILITY"
+    },
+    {
+      "id": "G2/requiredPrefix/local-counts",
+      "status": "fail",
+      "message": "ELIGIBILITY",
+      "code": "ELIGIBILITY"
+    },
+    {
+      "id": "G3/NODE/W3",
+      "status": "fail",
+      "message": "ELIGIBILITY",
+      "code": "ELIGIBILITY"
+    },
+    {
+      "id": "G3/NODE/W4",
+      "status": "fail",
+      "message": "ELIGIBILITY",
+      "code": "ELIGIBILITY"
+    },
+    {
+      "id": "G3/NODE/W4bare",
+      "status": "fail",
+      "message": "ELIGIBILITY",
+      "code": "ELIGIBILITY"
+    },
+    {
+      "id": "G3/NODE/W4wrapped",
+      "status": "fail",
+      "message": "ELIGIBILITY",
+      "code": "ELIGIBILITY"
+    },
+    {
+      "id": "G3/TREE/W3",
+      "status": "fail",
+      "message": "ELIGIBILITY",
+      "code": "ELIGIBILITY"
+    },
+    {
+      "id": "G3/TREE/W4",
+      "status": "fail",
+      "message": "ELIGIBILITY",
+      "code": "ELIGIBILITY"
+    },
+    {
+      "id": "G3/TREE/W4bare",
+      "status": "fail",
+      "message": "ELIGIBILITY",
+      "code": "ELIGIBILITY"
+    },
+    {
+      "id": "G3/TREE/W4wrapped",
+      "status": "fail",
+      "message": "ELIGIBILITY",
+      "code": "ELIGIBILITY"
+    },
+    {
+      "id": "G4/TEMP-origin-not-final-parent",
+      "status": "fail",
+      "message": "ELIGIBILITY",
+      "code": "ELIGIBILITY"
+    },
+    {
+      "id": "G4/failed-branch-isolation",
+      "status": "fail",
+      "message": "ELIGIBILITY",
+      "code": "ELIGIBILITY"
+    },
+    {
+      "id": "G4/Dreentry/open-replace",
+      "status": "fail",
+      "message": "ELIGIBILITY",
+      "code": "ELIGIBILITY"
+    },
+    {
+      "id": "G4/E/open-replace",
+      "status": "fail",
+      "message": "ELIGIBILITY",
+      "code": "ELIGIBILITY"
+    },
+    {
+      "id": "G5/P4/exact-AST-subject-trace",
+      "status": "fail",
+      "message": "ELIGIBILITY",
+      "code": "ELIGIBILITY"
+    },
+    {
+      "id": "G5/P3/exact-AST-subject-trace",
+      "status": "fail",
+      "message": "ELIGIBILITY",
+      "code": "ELIGIBILITY"
+    },
+    {
+      "id": "G5/prefix/exact-AST-subject-trace",
+      "status": "fail",
+      "message": "ELIGIBILITY",
+      "code": "ELIGIBILITY"
+    },
+    {
+      "id": "G5/boundedPrefix/exact-AST-subject-trace",
+      "status": "fail",
+      "message": "ELIGIBILITY",
+      "code": "ELIGIBILITY"
+    },
+    {
+      "id": "G5/nestedPrefix/exact-AST-subject-trace",
+      "status": "fail",
+      "message": "ELIGIBILITY",
+      "code": "ELIGIBILITY"
+    },
+    {
+      "id": "G5/emptyBody/exact-AST-subject-trace",
+      "status": "fail",
+      "message": "ELIGIBILITY",
+      "code": "ELIGIBILITY"
+    },
+    {
+      "id": "G5/Q0/exact-AST-subject-trace",
+      "status": "fail",
+      "message": "ELIGIBILITY",
+      "code": "ELIGIBILITY"
+    },
+    {
+      "id": "G5/requiredChild/exact-AST-subject-trace",
+      "status": "fail",
+      "message": "ELIGIBILITY",
+      "code": "ELIGIBILITY"
+    },
+    {
+      "id": "G5/requiredPrefix/exact-AST-subject-trace",
+      "status": "fail",
+      "message": "ELIGIBILITY",
+      "code": "ELIGIBILITY"
+    },
+    {
+      "id": "G5/W3/exact-AST-subject-trace",
+      "status": "fail",
+      "message": "ELIGIBILITY",
+      "code": "ELIGIBILITY"
+    },
+    {
+      "id": "G5/W4/exact-AST-subject-trace",
+      "status": "fail",
+      "message": "ELIGIBILITY",
+      "code": "ELIGIBILITY"
+    },
+    {
+      "id": "G5/W4bare/exact-AST-subject-trace",
+      "status": "fail",
+      "message": "ELIGIBILITY",
+      "code": "ELIGIBILITY"
+    },
+    {
+      "id": "G5/W4wrapped/exact-AST-subject-trace",
+      "status": "fail",
+      "message": "ELIGIBILITY",
+      "code": "ELIGIBILITY"
+    },
+    {
+      "id": "G5/D/exact-AST-subject-trace",
+      "status": "fail",
+      "message": "ELIGIBILITY",
+      "code": "ELIGIBILITY"
+    },
+    {
+      "id": "G5/Dreentry/exact-AST-subject-trace",
+      "status": "fail",
+      "message": "ELIGIBILITY",
+      "code": "ELIGIBILITY"
+    },
+    {
+      "id": "G5/E/exact-AST-subject-trace",
+      "status": "fail",
+      "message": "ELIGIBILITY",
+      "code": "ELIGIBILITY"
+    },
+    {
+      "id": "G5/emptyRef/exact-AST-subject-trace",
+      "status": "fail",
+      "message": "ELIGIBILITY",
+      "code": "ELIGIBILITY"
+    },
+    {
+      "id": "G5/span/negative",
+      "status": "pass"
+    },
+    {
+      "id": "G5/span/reversed",
+      "status": "pass"
+    },
+    {
+      "id": "G5/span/fractional",
+      "status": "pass"
+    },
+    {
+      "id": "G5/span/beyond",
+      "status": "pass"
+    },
+    {
+      "id": "G5/span/unsafe",
+      "status": "pass"
+    },
+    {
+      "id": "G5/forged-parent/ownership-only",
+      "status": "fail",
+      "message": "ELIGIBILITY",
+      "code": "ELIGIBILITY"
+    },
+    {
+      "id": "G5/forged-ordinal/ownership-only",
+      "status": "fail",
+      "message": "ELIGIBILITY",
+      "code": "ELIGIBILITY"
+    },
+    {
+      "id": "G5/forged-span/ownership-only",
+      "status": "fail",
+      "message": "ELIGIBILITY",
+      "code": "ELIGIBILITY"
+    },
+    {
+      "id": "G5/forged-unclosed/ownership-only",
+      "status": "fail",
+      "message": "ELIGIBILITY",
+      "code": "ELIGIBILITY"
+    },
+    {
+      "id": "G5/forged-origin/ownership-only",
+      "status": "fail",
+      "message": "ELIGIBILITY",
+      "code": "ELIGIBILITY"
+    },
+    {
+      "id": "G5/expected-span",
+      "status": "fail",
+      "message": "ELIGIBILITY",
+      "code": "ELIGIBILITY"
+    },
+    {
+      "id": "G5/missing-plan-child",
+      "status": "fail",
+      "message": "ELIGIBILITY",
+      "code": "ELIGIBILITY"
+    },
+    {
+      "id": "G6/same-position-different-env",
+      "status": "fail",
+      "message": "ELIGIBILITY",
+      "code": "ELIGIBILITY"
+    },
+    {
+      "id": "G6/NODE/no-merge-equivalent-rebuild",
+      "status": "fail",
+      "message": "ELIGIBILITY",
+      "code": "ELIGIBILITY"
+    },
+    {
+      "id": "G6/TREE/no-merge-equivalent-rebuild",
+      "status": "fail",
+      "message": "ELIGIBILITY",
+      "code": "ELIGIBILITY"
+    },
+    {
+      "id": "G7/work/zero",
+      "status": "pass"
+    },
+    {
+      "id": "G7/work/failed-build-cumulative",
+      "status": "fail",
+      "message": "ELIGIBILITY",
+      "code": "ELIGIBILITY"
+    },
+    {
+      "id": "G7/NODE/work/after-incumbent",
+      "status": "fail",
+      "message": "ELIGIBILITY",
+      "code": "ELIGIBILITY"
+    },
+    {
+      "id": "G7/NODE/work/comparison-preadmission",
+      "status": "fail",
+      "message": "ELIGIBILITY",
+      "code": "ELIGIBILITY"
+    },
+    {
+      "id": "G7/TREE/work/after-incumbent",
+      "status": "fail",
+      "message": "ELIGIBILITY",
+      "code": "ELIGIBILITY"
+    },
+    {
+      "id": "G7/TREE/work/comparison-preadmission",
+      "status": "fail",
+      "message": "ELIGIBILITY",
+      "code": "ELIGIBILITY"
+    },
+    {
+      "id": "G7/allocation/zero",
+      "status": "pass"
+    },
+    {
+      "id": "G7/allocation/failed-build-cumulative",
+      "status": "fail",
+      "message": "ELIGIBILITY",
+      "code": "ELIGIBILITY"
+    },
+    {
+      "id": "G7/NODE/allocation/after-incumbent",
+      "status": "fail",
+      "message": "ELIGIBILITY",
+      "code": "ELIGIBILITY"
+    },
+    {
+      "id": "G7/NODE/allocation/comparison-preadmission",
+      "status": "fail",
+      "message": "ELIGIBILITY",
+      "code": "ELIGIBILITY"
+    },
+    {
+      "id": "G7/TREE/allocation/after-incumbent",
+      "status": "fail",
+      "message": "ELIGIBILITY",
+      "code": "ELIGIBILITY"
+    },
+    {
+      "id": "G7/TREE/allocation/comparison-preadmission",
+      "status": "fail",
+      "message": "ELIGIBILITY",
+      "code": "ELIGIBILITY"
+    },
+    {
+      "id": "G7/candidate-state-cap",
+      "status": "fail",
+      "message": "ELIGIBILITY",
+      "code": "ELIGIBILITY"
+    },
+    {
+      "id": "G7/events-cap",
+      "status": "fail",
+      "message": "The validation function is expected to return \"true\". Received false\n\nCaught error:\n\nError: ELIGIBILITY",
+      "code": "ERR_ASSERTION"
+    },
+    {
+      "id": "G7/depth-cap",
+      "status": "pass"
+    },
+    {
+      "id": "G7/input-cap",
+      "status": "pass"
+    },
+    {
+      "id": "G7/nodes-cap",
+      "status": "pass"
+    },
+    {
+      "id": "G7/repeat-count-cap",
+      "status": "fail",
+      "message": "The validation function is expected to return \"true\". Received false\n\nCaught error:\n\nError: ELIGIBILITY",
+      "code": "ERR_ASSERTION"
+    },
+    {
+      "id": "G7/depth/no-cap-raise",
+      "status": "pass"
+    },
+    {
+      "id": "G7/events/no-cap-raise",
+      "status": "pass"
+    },
+    {
+      "id": "G7/candidates/no-cap-raise",
+      "status": "pass"
+    },
+    {
+      "id": "G8/exact-initial-abort",
+      "status": "pass"
+    },
+    {
+      "id": "G8/NODE/exact-after-incumbent",
+      "status": "fail",
+      "message": "ELIGIBILITY",
+      "code": "ELIGIBILITY"
+    },
+    {
+      "id": "G8/NODE/exact-during-comparison",
+      "status": "fail",
+      "message": "ELIGIBILITY",
+      "code": "ELIGIBILITY"
+    },
+    {
+      "id": "G8/TREE/exact-after-incumbent",
+      "status": "fail",
+      "message": "ELIGIBILITY",
+      "code": "ELIGIBILITY"
+    },
+    {
+      "id": "G8/TREE/exact-during-comparison",
+      "status": "fail",
+      "message": "ELIGIBILITY",
+      "code": "ELIGIBILITY"
+    },
+    {
+      "id": "historical-conflict-observation/NODE/literal-B-vs-old-C1-A",
+      "status": "fail",
+      "message": "ELIGIBILITY",
+      "code": "ELIGIBILITY"
+    },
+    {
+      "id": "historical-conflict-observation/TREE/literal-B-vs-old-C1-A",
+      "status": "fail",
+      "message": "ELIGIBILITY",
+      "code": "ELIGIBILITY"
+    }
+  ],
+  "observations": [],
+  "mutants": [],
+  "limits": {
+    "work": 1000000,
+    "allocation": 1000000,
+    "depth": 24,
+    "events": 2048,
+    "candidates": 32,
+    "input": 32,
+    "nodes": 64,
+    "catChildren": 16,
+    "groups": 16,
+    "repeatCount": 32
+  },
+  "scope": "New supplied-history review only; no v4 rescore, native/product execution, generic external-log validator, async preemption, worker cleanup or promotion claim."
+}

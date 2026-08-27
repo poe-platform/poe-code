@@ -1,0 +1,5 @@
+--- model.mjs (9e411191722e796460f347b0848c32da60abaea108bdd78bdf8886ab8c1a8e86)
++++ model.mjs (e9f54eacb51f97f9f403c55dd1249647ff1c2c649a559d2de50629a31b4021d1)
+@@ exact unique replacement @@
+-    return super.rank(histories, policy);
++    try { return super.rank(histories, policy); } catch (error) { if (this.meter.signal?.aborted) return histories[0]; throw error; }

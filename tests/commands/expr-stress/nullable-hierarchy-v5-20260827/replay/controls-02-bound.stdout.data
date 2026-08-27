@@ -1,0 +1,1020 @@
+{
+  "schema": 1,
+  "controlsCommit": "18104988c32c467e4025743927c20ee80eaa1781",
+  "controlsSha256": "af00f1e794152e8f69bfa1641c87cb1e78e9844a768b8220dd79333b45fdf409",
+  "modelSha256": "9e411191722e796460f347b0848c32da60abaea108bdd78bdf8886ab8c1a8e86",
+  "binding": {
+    "schema": 1,
+    "status": "Authenticated binding-only replay; no expectation changes or policy acceptance",
+    "freezeCommit": "f561bd9fa33afdf8285154237f856ebfd8495ce4",
+    "controlsCommit": "18104988c32c467e4025743927c20ee80eaa1781",
+    "profiles": {
+      "NODE": "HNODE-AGG-v5",
+      "TREE": "HTREE-AGG-v5"
+    },
+    "mutations": [
+      {
+        "name": "erase-aggregate",
+        "file": "model.mjs",
+        "groups": [
+          1
+        ],
+        "before": "    return first.start - second.start || second.end - first.end;",
+        "after": "    if (first.node.kind === 'repeat') return 0;\n    return first.start - second.start || second.end - first.end;",
+        "originalPath": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-v5-final-replay-kSGdP4/sealed/model.mjs",
+        "modifiedPath": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-v5-final-replay-kSGdP4/mutants/erase-aggregate/model.mjs",
+        "modulePath": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-v5-final-replay-kSGdP4/mutants/erase-aggregate/model.mjs",
+        "originalSha256": "9e411191722e796460f347b0848c32da60abaea108bdd78bdf8886ab8c1a8e86",
+        "modifiedSha256": "e6e9af740d7b3a21c9a3be7904e380dcac927405699a861032641b979bfd052f"
+      },
+      {
+        "name": "NODE-as-TREE",
+        "file": "model.mjs",
+        "groups": [
+          3
+        ],
+        "before": "    const order = policy === 'HNODE-AGG-v5' ? this.nodeOrder(first, second) : this.treeOrder(first.tree, second.tree);",
+        "after": "    const order = this.treeOrder(first.tree, second.tree);",
+        "originalPath": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-v5-final-replay-kSGdP4/sealed/model.mjs",
+        "modifiedPath": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-v5-final-replay-kSGdP4/mutants/NODE-as-TREE/model.mjs",
+        "modulePath": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-v5-final-replay-kSGdP4/mutants/NODE-as-TREE/model.mjs",
+        "originalSha256": "9e411191722e796460f347b0848c32da60abaea108bdd78bdf8886ab8c1a8e86",
+        "modifiedSha256": "970665a87d658a8c8ac386be67a2fd219c716ecdf5e8934d84c4fb82af3b515e"
+      },
+      {
+        "name": "skip-clears",
+        "file": "inherited-model.mjs",
+        "groups": [
+          4,
+          5,
+          6
+        ],
+        "before": "        event('skip', node.children[0], null, activation, count, position, position);",
+        "after": "        if (count === 0 && node.children[0].kind === 'group') update(node.children[0].group, 'absent', undefined, undefined, undefined);\n        event('skip', node.children[0], null, activation, count, position, position);",
+        "originalPath": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-v5-final-replay-kSGdP4/sealed/inherited-model.mjs",
+        "modifiedPath": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-v5-final-replay-kSGdP4/mutants/skip-clears/inherited-model.mjs",
+        "modulePath": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-v5-final-replay-kSGdP4/mutants/skip-clears/model.mjs",
+        "originalSha256": "f04c98a52967f904266660607b0ee2157518cf50d3da260a4aa2b47926c392a0",
+        "modifiedSha256": "64bc0f1fc6db91239d08c8e1235b8d66d7064fe753464d1585dd37402da60531"
+      },
+      {
+        "name": "disable-budget",
+        "file": "inherited-model.mjs",
+        "groups": [
+          7
+        ],
+        "before": "    if (work > this.workLimit - this.work || allocation > this.allocationLimit - this.allocation) throw new Refusal('LIMIT');",
+        "after": "    if (false) throw new Refusal('LIMIT');",
+        "originalPath": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-v5-final-replay-kSGdP4/sealed/inherited-model.mjs",
+        "modifiedPath": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-v5-final-replay-kSGdP4/mutants/disable-budget/inherited-model.mjs",
+        "modulePath": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-v5-final-replay-kSGdP4/mutants/disable-budget/model.mjs",
+        "originalSha256": "f04c98a52967f904266660607b0ee2157518cf50d3da260a4aa2b47926c392a0",
+        "modifiedSha256": "aa47d145bc527506a9087b412dbeae071c7f43776b9949bb17ba2af0b0c7c9da"
+      },
+      {
+        "name": "swallow-abort-incumbent-fallback",
+        "file": "model.mjs",
+        "groups": [
+          8
+        ],
+        "before": "    return super.rank(histories, policy);",
+        "after": "    try { return super.rank(histories, policy); } catch (error) { if (this.meter.signal?.aborted) return histories[0]; throw error; }",
+        "originalPath": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-v5-final-replay-kSGdP4/sealed/model.mjs",
+        "modifiedPath": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-v5-final-replay-kSGdP4/mutants/swallow-abort-incumbent-fallback/model.mjs",
+        "modulePath": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-v5-final-replay-kSGdP4/mutants/swallow-abort-incumbent-fallback/model.mjs",
+        "originalSha256": "9e411191722e796460f347b0848c32da60abaea108bdd78bdf8886ab8c1a8e86",
+        "modifiedSha256": "e9f54eacb51f97f9f403c55dd1249647ff1c2c649a559d2de50629a31b4021d1"
+      }
+    ],
+    "plannedMutantsMaximum": 5,
+    "remainingBinding": "Authenticate candidate first. Adapt module/API representation only, source-bind focused mutants, preserve first attempts and any assertion deltas. No expectation change or live engine authorization.",
+    "candidate": "0af75465914815055dd2982f40859ba41dbffcf7",
+    "seal": "a995616a48ccc3d712f2fec4f68f7a8b639086f3",
+    "eligibilityBinding": {
+      "trueOrOmitted": "LOCAL-TAIL-HYPOTHESIS",
+      "false": "FINITE-PERMISSIVE"
+    }
+  },
+  "counts": {
+    "groups": 8,
+    "newHistories": 5,
+    "assertions": 95,
+    "passed": 95,
+    "failed": 0,
+    "mutantsAttempted": 5,
+    "mutantsKilled": 5,
+    "actualWorkers": 0
+  },
+  "grouped": {
+    "G1": {
+      "assertions": 13,
+      "passed": 13,
+      "failed": 0
+    },
+    "G2": {
+      "assertions": 10,
+      "passed": 10,
+      "failed": 0
+    },
+    "G3": {
+      "assertions": 8,
+      "passed": 8,
+      "failed": 0
+    },
+    "G4": {
+      "assertions": 4,
+      "passed": 4,
+      "failed": 0
+    },
+    "G5": {
+      "assertions": 29,
+      "passed": 29,
+      "failed": 0
+    },
+    "G6": {
+      "assertions": 3,
+      "passed": 3,
+      "failed": 0
+    },
+    "G7": {
+      "assertions": 21,
+      "passed": 21,
+      "failed": 0
+    },
+    "G8": {
+      "assertions": 5,
+      "passed": 5,
+      "failed": 0
+    }
+  },
+  "results": [
+    {
+      "id": "G1/NODE/P4",
+      "status": "pass"
+    },
+    {
+      "id": "G1/NODE/prefix",
+      "status": "pass"
+    },
+    {
+      "id": "G1/NODE/boundedPrefix",
+      "status": "pass"
+    },
+    {
+      "id": "G1/NODE/nestedPrefix",
+      "status": "pass"
+    },
+    {
+      "id": "G1/NODE/all24-orders",
+      "status": "pass"
+    },
+    {
+      "id": "G1/NODE/finite-order-laws",
+      "status": "pass"
+    },
+    {
+      "id": "G1/TREE/P4",
+      "status": "pass"
+    },
+    {
+      "id": "G1/TREE/prefix",
+      "status": "pass"
+    },
+    {
+      "id": "G1/TREE/boundedPrefix",
+      "status": "pass"
+    },
+    {
+      "id": "G1/TREE/nestedPrefix",
+      "status": "pass"
+    },
+    {
+      "id": "G1/TREE/all24-orders",
+      "status": "pass"
+    },
+    {
+      "id": "G1/TREE/finite-order-laws",
+      "status": "pass"
+    },
+    {
+      "id": "G1/over-max",
+      "status": "pass"
+    },
+    {
+      "id": "G2/NODE/initial-participation",
+      "status": "pass"
+    },
+    {
+      "id": "G2/NODE/END-after-prefix",
+      "status": "pass"
+    },
+    {
+      "id": "G2/NODE/permissive-tail-not-cycle",
+      "status": "pass"
+    },
+    {
+      "id": "G2/TREE/initial-participation",
+      "status": "pass"
+    },
+    {
+      "id": "G2/TREE/END-after-prefix",
+      "status": "pass"
+    },
+    {
+      "id": "G2/TREE/permissive-tail-not-cycle",
+      "status": "pass"
+    },
+    {
+      "id": "G2/LOCAL-TAIL-HYPOTHESIS-only",
+      "status": "pass"
+    },
+    {
+      "id": "G2/required-two",
+      "status": "pass"
+    },
+    {
+      "id": "G2/requiredChild/local-counts",
+      "status": "pass"
+    },
+    {
+      "id": "G2/requiredPrefix/local-counts",
+      "status": "pass"
+    },
+    {
+      "id": "G3/NODE/W3",
+      "status": "pass"
+    },
+    {
+      "id": "G3/NODE/W4",
+      "status": "pass"
+    },
+    {
+      "id": "G3/NODE/W4bare",
+      "status": "pass"
+    },
+    {
+      "id": "G3/NODE/W4wrapped",
+      "status": "pass"
+    },
+    {
+      "id": "G3/TREE/W3",
+      "status": "pass"
+    },
+    {
+      "id": "G3/TREE/W4",
+      "status": "pass"
+    },
+    {
+      "id": "G3/TREE/W4bare",
+      "status": "pass"
+    },
+    {
+      "id": "G3/TREE/W4wrapped",
+      "status": "pass"
+    },
+    {
+      "id": "G4/TEMP-origin-not-final-parent",
+      "status": "pass"
+    },
+    {
+      "id": "G4/failed-branch-isolation",
+      "status": "pass"
+    },
+    {
+      "id": "G4/Dreentry/open-replace",
+      "status": "pass"
+    },
+    {
+      "id": "G4/E/open-replace",
+      "status": "pass"
+    },
+    {
+      "id": "G5/P4/exact-AST-subject-trace",
+      "status": "pass"
+    },
+    {
+      "id": "G5/P3/exact-AST-subject-trace",
+      "status": "pass"
+    },
+    {
+      "id": "G5/prefix/exact-AST-subject-trace",
+      "status": "pass"
+    },
+    {
+      "id": "G5/boundedPrefix/exact-AST-subject-trace",
+      "status": "pass"
+    },
+    {
+      "id": "G5/nestedPrefix/exact-AST-subject-trace",
+      "status": "pass"
+    },
+    {
+      "id": "G5/emptyBody/exact-AST-subject-trace",
+      "status": "pass"
+    },
+    {
+      "id": "G5/Q0/exact-AST-subject-trace",
+      "status": "pass"
+    },
+    {
+      "id": "G5/requiredChild/exact-AST-subject-trace",
+      "status": "pass"
+    },
+    {
+      "id": "G5/requiredPrefix/exact-AST-subject-trace",
+      "status": "pass"
+    },
+    {
+      "id": "G5/W3/exact-AST-subject-trace",
+      "status": "pass"
+    },
+    {
+      "id": "G5/W4/exact-AST-subject-trace",
+      "status": "pass"
+    },
+    {
+      "id": "G5/W4bare/exact-AST-subject-trace",
+      "status": "pass"
+    },
+    {
+      "id": "G5/W4wrapped/exact-AST-subject-trace",
+      "status": "pass"
+    },
+    {
+      "id": "G5/D/exact-AST-subject-trace",
+      "status": "pass"
+    },
+    {
+      "id": "G5/Dreentry/exact-AST-subject-trace",
+      "status": "pass"
+    },
+    {
+      "id": "G5/E/exact-AST-subject-trace",
+      "status": "pass"
+    },
+    {
+      "id": "G5/emptyRef/exact-AST-subject-trace",
+      "status": "pass"
+    },
+    {
+      "id": "G5/span/negative",
+      "status": "pass"
+    },
+    {
+      "id": "G5/span/reversed",
+      "status": "pass"
+    },
+    {
+      "id": "G5/span/fractional",
+      "status": "pass"
+    },
+    {
+      "id": "G5/span/beyond",
+      "status": "pass"
+    },
+    {
+      "id": "G5/span/unsafe",
+      "status": "pass"
+    },
+    {
+      "id": "G5/forged-parent/ownership-only",
+      "status": "pass"
+    },
+    {
+      "id": "G5/forged-ordinal/ownership-only",
+      "status": "pass"
+    },
+    {
+      "id": "G5/forged-span/ownership-only",
+      "status": "pass"
+    },
+    {
+      "id": "G5/forged-unclosed/ownership-only",
+      "status": "pass"
+    },
+    {
+      "id": "G5/forged-origin/ownership-only",
+      "status": "pass"
+    },
+    {
+      "id": "G5/expected-span",
+      "status": "pass"
+    },
+    {
+      "id": "G5/missing-plan-child",
+      "status": "pass"
+    },
+    {
+      "id": "G6/same-position-different-env",
+      "status": "pass"
+    },
+    {
+      "id": "G6/NODE/no-merge-equivalent-rebuild",
+      "status": "pass"
+    },
+    {
+      "id": "G6/TREE/no-merge-equivalent-rebuild",
+      "status": "pass"
+    },
+    {
+      "id": "G7/work/zero",
+      "status": "pass"
+    },
+    {
+      "id": "G7/work/failed-build-cumulative",
+      "status": "pass"
+    },
+    {
+      "id": "G7/NODE/work/after-incumbent",
+      "status": "pass"
+    },
+    {
+      "id": "G7/NODE/work/comparison-preadmission",
+      "status": "pass"
+    },
+    {
+      "id": "G7/TREE/work/after-incumbent",
+      "status": "pass"
+    },
+    {
+      "id": "G7/TREE/work/comparison-preadmission",
+      "status": "pass"
+    },
+    {
+      "id": "G7/allocation/zero",
+      "status": "pass"
+    },
+    {
+      "id": "G7/allocation/failed-build-cumulative",
+      "status": "pass"
+    },
+    {
+      "id": "G7/NODE/allocation/after-incumbent",
+      "status": "pass"
+    },
+    {
+      "id": "G7/NODE/allocation/comparison-preadmission",
+      "status": "pass"
+    },
+    {
+      "id": "G7/TREE/allocation/after-incumbent",
+      "status": "pass"
+    },
+    {
+      "id": "G7/TREE/allocation/comparison-preadmission",
+      "status": "pass"
+    },
+    {
+      "id": "G7/candidate-state-cap",
+      "status": "pass"
+    },
+    {
+      "id": "G7/events-cap",
+      "status": "pass"
+    },
+    {
+      "id": "G7/depth-cap",
+      "status": "pass"
+    },
+    {
+      "id": "G7/input-cap",
+      "status": "pass"
+    },
+    {
+      "id": "G7/nodes-cap",
+      "status": "pass"
+    },
+    {
+      "id": "G7/repeat-count-cap",
+      "status": "pass"
+    },
+    {
+      "id": "G7/depth/no-cap-raise",
+      "status": "pass"
+    },
+    {
+      "id": "G7/events/no-cap-raise",
+      "status": "pass"
+    },
+    {
+      "id": "G7/candidates/no-cap-raise",
+      "status": "pass"
+    },
+    {
+      "id": "G8/exact-initial-abort",
+      "status": "pass"
+    },
+    {
+      "id": "G8/NODE/exact-after-incumbent",
+      "status": "pass"
+    },
+    {
+      "id": "G8/NODE/exact-during-comparison",
+      "status": "pass"
+    },
+    {
+      "id": "G8/TREE/exact-after-incumbent",
+      "status": "pass"
+    },
+    {
+      "id": "G8/TREE/exact-during-comparison",
+      "status": "pass"
+    },
+    {
+      "id": "historical-conflict-observation/NODE/literal-B-vs-old-C1-A",
+      "status": "pass"
+    },
+    {
+      "id": "historical-conflict-observation/TREE/literal-B-vs-old-C1-A",
+      "status": "pass"
+    }
+  ],
+  "observations": [
+    {
+      "id": "old-C1-not-rescored",
+      "profile": "NODE",
+      "actualPairWinner": "B",
+      "frozenV4Expectation": "A",
+      "newLiteralExpectation": "B",
+      "oldAssertionSatisfied": false
+    },
+    {
+      "id": "old-C1-not-rescored",
+      "profile": "TREE",
+      "actualPairWinner": "B",
+      "frozenV4Expectation": "A",
+      "newLiteralExpectation": "B",
+      "oldAssertionSatisfied": false
+    }
+  ],
+  "mutants": [
+    {
+      "name": "erase-aggregate",
+      "status": "killed",
+      "sha256": "e6e9af740d7b3a21c9a3be7904e380dcac927405699a861032641b979bfd052f",
+      "additionalFailures": [
+        "mutant/erase-aggregate/G1/NODE/P4",
+        "mutant/erase-aggregate/G1/NODE/prefix",
+        "mutant/erase-aggregate/G1/NODE/all24-orders",
+        "mutant/erase-aggregate/G1/TREE/prefix"
+      ],
+      "outcomes": [
+        {
+          "id": "mutant/erase-aggregate/G1/NODE/P4",
+          "status": "fail",
+          "message": "Expected \"actual\" to be reference-equal to \"expected\":\n+ actual - expected\n... Skipped lines\n\n  {\n    env: [\n      {\n        state: 'absent'\n      },\n      {\n+       activation: 2,\n+       end: 2,\n+       start: 0,\n-       activation: 8,\n-       end: 3,\n-       start: 2,\n        state: 'completed-nonempty'\n      }\n    ],\n    events: [\n      {\n...\n      {\n+       activation: 5,\n+       end: undefined,\n-       activation: null,\n-       end: 1,\n        env: [\n          {\n            state: 'absent'\n          },\n          {\n...\n        start: 1,\n+       type: 'enter'\n-       type: 'skip'\n      },\n      {\n+       activation: 5,\n+       end: 2,\n-       activation: 3,\n-       end: 1,\n        env: [\n          {\n            state: 'absent'\n          },\n          {\n...\n        ],\n+       node: 'r.0.0.0.0',\n-       node: 'r.0.0.0',\n-       ordinal: null,\n-       parent: 2,\n-       start: 0,\n-       type: 'exit'\n-     },\n-     {\n-       activation: 2,\n-       end: 1,\n-       env: [\n-         {\n-           state: 'absent'\n-         },\n-         {\n-           activation: 2,\n-           end: 1,\n-           start: 0,\n-           state: 'completed-nonempty'\n-         }\n-       ],\n-       node: 'r.0.0',\n-       ordinal: 0,\n-       parent: 1,\n-       start: 0,\n-       type: 'exit'\n-     },\n-     {\n-       activation: 5,\n-       end: undefined,\n-       env: [\n-         {\n-           state: 'absent'\n-         },\n-         {\n-           activation: 5,\n-           end: undefined,\n-           start: 1,\n-           state: 'open'\n-         }\n-       ],\n-       node: 'r.0.0',\n        ordinal: 1,\n+       parent: 3,\n-       parent: 1,\n        start: 1,\n-       type: 'enter'\n-     },\n-     {\n-       activation: 6,\n-       end: undefined,\n-       env: [\n-         {\n-           state: 'absent'\n-         },\n-         {\n-           activation: 5,\n-           end: undefined,\n-           start: 1,\n-           state: 'open'\n-         }\n-       ],\n-       node: 'r.0.0.0',\n-       ordinal: null,\n-       parent: 5,\n-       start: 1,\n-       type: 'enter'\n-     },\n-     {\n-       activation: 7,\n-       end: undefined,\n-       env: [\n-         {\n-           state: 'absent'\n-         },\n-         {\n-           activation: 5,\n-           end: undefined,\n-           start: 1,\n-           state: 'open'\n-         }\n-       ],\n-       node: 'r.0.0.0.0',\n-       ordinal: 0,\n-       parent: 6,\n-       start: 1,\n-       type: 'enter'\n-     },\n-     {\n-       activation: 7,\n-       end: 2,\n-       env: [\n-         {\n-           state: 'absent'\n-         },\n-         {\n-           activation: 5,\n-           end: undefined,\n-           start: 1,\n-           state: 'open'\n-         }\n-       ],\n-       node: 'r.0.0.0.0',\n-       ordinal: 0,\n-       parent: 6,\n-       start: 1,\n        type: 'exit'\n      },\n      {\n        activation: null,\n        end: 2,\n...\n          {\n+           activation: 2,\n-           activation: 5,\n            end: undefined,\n+           start: 0,\n-           start: 1,\n            state: 'open'\n          }\n        ],\n        node: 'r.0.0.0.0',\n+       ordinal: 2,\n+       parent: 3,\n-       ordinal: 1,\n-       parent: 6,\n        start: 2,\n        type: 'skip'\n      },\n      {\n+       activation: 3,\n-       activation: 6,\n        end: 2,\n        env: [\n          {\n            state: 'absent'\n          },\n          {\n+           activation: 2,\n-           activation: 5,\n            end: undefined,\n+           start: 0,\n-           start: 1,\n            state: 'open'\n          }\n        ],\n        node: 'r.0.0.0',\n        ordinal: null,\n+       parent: 2,\n+       start: 0,\n-       parent: 5,\n-       start: 1,\n        type: 'exit'\n      },\n      {\n+       activation: 2,\n-       activation: 5,\n        end: 2,\n        env: [\n          {\n            state: 'absent'\n          },\n          {\n+           activation: 2,\n-           activation: 5,\n            end: 2,\n+           start: 0,\n-           start: 1,\n            state: 'completed-nonempty'\n          }\n        ],\n        node: 'r.0.0',\n+       ordinal: 0,\n-       ordinal: 1,\n        parent: 1,\n+       start: 0,\n-       start: 1,\n        type: 'exit'\n      },\n      {\n-       activation: 8,\n-       end: undefined,\n-       env: [\n-         {\n-           state: 'absent'\n-         },\n-         {\n-           activation: 8,\n-           end: undefined,\n-           start: 2,\n-           state: 'open'\n-         }\n-       ],\n-       node: 'r.0.0',\n-       ordinal: 2,\n-       parent: 1,\n-       start: 2,\n-       type: 'enter'\n-     },\n-     {\n-       activation: 9,\n-       end: undefined,\n-       env: [\n-         {\n-           state: 'absent'\n-         },\n-         {\n-           activation: 8,\n-           end: undefined,\n-           start: 2,\n-           state: 'open'\n-         }\n-       ],\n-       node: 'r.0.0.0',\n-       ordinal: null,\n-       parent: 8,\n-       start: 2,\n-       type: 'enter'\n-     },\n-     {\n-       activation: 10,\n-       end: undefined,\n-       env: [\n-         {\n-           state: 'absent'\n-         },\n-         {\n-           activation: 8,\n-           end: undefined,\n-           start: 2,\n-           state: 'open'\n-         }\n-       ],\n-       node: 'r.0.0.0.0',\n-       ordinal: 0,\n-       parent: 9,\n-       start: 2,\n-       type: 'enter'\n-     },\n-     {\n-       activation: 10,\n-       end: 3,\n-       env: [\n-         {\n-           state: 'absent'\n-         },\n-         {\n-           activation: 8,\n-           end: undefined,\n-           start: 2,\n-           state: 'open'\n-         }\n-       ],\n-       node: 'r.0.0.0.0',\n-       ordinal: 0,\n-       parent: 9,\n-       start: 2,\n-       type: 'exit'\n-     },\n-     {\n        activation: null,\n+       end: 2,\n-       end: 3,\n        env: [\n          {\n            state: 'absent'\n          },\n          {\n+           activation: 2,\n+           end: 2,\n+           start: 0,\n-           activation: 8,\n-           end: undefined,\n-           start: 2,\n-           state: 'open'\n-         }\n-       ],\n-       node: 'r.0.0.0.0',\n-       ordinal: 1,\n-       parent: 9,\n-       start: 3,\n-       type: 'skip'\n-     },\n-     {\n-       activation: 9,\n-       end: 3,\n-       env: [\n-         {\n-           state: 'absent'\n-         },\n-         {\n-           activation: 8,\n-           end: undefined,\n-           start: 2,\n-           state: 'open'\n-         }\n-       ],\n-       node: 'r.0.0.0',\n-       ordinal: null,\n-       parent: 8,\n-       start: 2,\n-       type: 'exit'\n-     },\n-     {\n-       activation: 8,\n-       end: 3,\n-       env: [\n-         {\n-           state: 'absent'\n-         },\n-         {\n-           activation: 8,\n-           end: 3,\n-           start: 2,\n            state: 'completed-nonempty'\n          }\n        ],\n        node: 'r.0.0',\n+       ordinal: 1,\n-       ordinal: 2,\n        parent: 1,\n        start: 2,\n-       type: 'exit'\n-     },\n-     {\n-       activation: null,\n-       end: 3,\n-       env: [\n-         {\n-           state: 'absent'\n-         },\n-         {\n-           activation: 8,\n-           end: 3,\n-           start: 2,\n-           state: 'completed-nonempty'\n-         }\n-       ],\n-       node: 'r.0.0',\n-       ordinal: 3,\n-       parent: 1,\n-       start: 3,\n        type: 'skip'\n      },\n      {\n        activation: 1,\n+       end: 2,\n-       end: 3,\n        env: [\n          {\n            state: 'absent'\n          },\n          {\n+           activation: 2,\n+           end: 2,\n+           start: 0,\n-           activation: 8,\n-           end: 3,\n-           start: 2,\n            state: 'completed-nonempty'\n          }\n        ],\n        node: 'r.0',\n        ordinal: null,\n...\n      {\n+       activation: 6,\n-       activation: 11,\n        end: undefined,\n        env: [\n          {\n            state: 'absent'\n          },\n          {\n+           activation: 2,\n+           end: 2,\n+           start: 0,\n-           activation: 8,\n-           end: 3,\n-           start: 2,\n            state: 'completed-nonempty'\n          }\n        ],\n        node: 'r.1',\n        ordinal: null,\n        parent: 0,\n+       start: 2,\n-       start: 3,\n        type: 'enter'\n      },\n      {\n+       activation: 6,\n-       activation: 11,\n        end: 4,\n        env: [\n          {\n            state: 'absent'\n          },\n          {\n+           activation: 2,\n+           end: 2,\n+           start: 0,\n-           activation: 8,\n-           end: 3,\n-           start: 2,\n            state: 'completed-nonempty'\n          }\n        ],\n        node: 'r.1',\n        ordinal: null,\n        parent: 0,\n+       start: 2,\n-       start: 3,\n        type: 'exit'\n      },\n      {\n        activation: 0,\n        end: 4,\n...\n          {\n+           activation: 2,\n+           end: 2,\n+           start: 0,\n-           activation: 8,\n-           end: 3,\n-           start: 2,\n            state: 'completed-nonempty'\n          }\n        ],\n        node: 'r',\n        ordinal: null,\n...\n                    },\n-                 ],\n-                 end: 1,\n-                 node: {\n-                   byte: undefined,\n-                   children: [\n-                     {\n-                       byte: 'a',\n-                       children: [],\n-                       group: 0,\n-                       id: 'r.0.0.0.0',\n-                       kind: 'byte',\n-                       maximum: 0,\n-                       minimum: 0\n-                     }\n-                   ],\n-                   group: 0,\n-                   id: 'r.0.0.0',\n-                   kind: 'repeat',\n-                   maximum: null,\n-                   minimum: 0\n-                 },\n-                 ordinal: null,\n-                 parent: 2,\n-                 start: 0\n-               }\n-             ],\n-             end: 1,\n-             node: {\n-               byte: undefined,\n-               children: [\n-                 {\n-                   byte: undefined,\n-                   children: [\n-                     {\n-                       byte: 'a',\n-                       children: [],\n-                       group: 0,\n-                       id: 'r.0.0.0.0',\n-                       kind: 'byte',\n-                       maximum: 0,\n-                       minimum: 0\n-                     }\n-                   ],\n-                   group: 0,\n-                   id: 'r.0.0.0',\n-                   kind: 'repeat',\n-                   maximum: null,\n-                   minimum: 0\n-                 }\n-               ],\n-               group: 1,\n-               id: 'r.0.0',\n-               kind: 'group',\n-               maximum: 0,\n-               minimum: 0\n-             },\n-             ordinal: 0,\n-             parent: 1,\n-             start: 0\n-           },\n-           {\n-             activation: 5,\n-             children: [\n-               {\n-                 activation: 6,\n-                 children: [\n                    {\n+                     activation: 5,\n-                     activation: 7,\n                      children: [],\n                      end: 2,\n                      node: {\n                        byte: 'a',\n                        children: [],\n...\n                      },\n+                     ordinal: 1,\n+                     parent: 3,\n-                     ordinal: 0,\n-                     parent: 6,\n                      start: 1\n                    }\n                  ],\n                  end: 2,\n                  node: {\n...\n                  ordinal: null,\n+                 parent: 2,\n+                 start: 0\n-                 parent: 5,\n-                 start: 1\n                }\n              ],\n              end: 2,\n              node: {\n                byte: undefined,\n...\n              },\n+             ordinal: 0,\n-             ordinal: 1,\n              parent: 1,\n+             start: 0\n-             start: 1\n            },\n-           {\n-             activation: 8,\n-             children: [\n-               {\n-                 activation: 9,\n-                 children: [\n-                   {\n-                     activation: 10,\n-                     children: [],\n-                     end: 3,\n-                     node: {\n-                       byte: 'a',\n-                       children: [],\n-                       group: 0,\n-                       id: 'r.0.0.0.0',\n-                       kind: 'byte',\n-                       maximum: 0,\n-                       minimum: 0\n-                     },\n-                     ordinal: 0,\n-                     parent: 9,\n-                     start: 2\n-                   }\n-                 ],\n-                 end: 3,\n-                 node: {\n-                   byte: undefined,\n-                   children: [\n-                     {\n-                       byte: 'a',\n-                       children: [],\n-                       group: 0,\n-                       id: 'r.0.0.0.0',\n-                       kind: 'byte',\n-                       maximum: 0,\n-                       minimum: 0\n-                     }\n-                   ],\n-                   group: 0,\n-                   id: 'r.0.0.0',\n-                   kind: 'repeat',\n-                   maximum: null,\n-                   minimum: 0\n-                 },\n-                 ordinal: null,\n-                 parent: 8,\n-                 start: 2\n-               }\n-             ],\n-             end: 3,\n-             node: {\n-               byte: undefined,\n-               children: [\n-                 {\n-                   byte: undefined,\n-                   children: [\n-                     {\n-                       byte: 'a',\n-                       children: [],\n-                       group: 0,\n-                       id: 'r.0.0.0.0',\n-                       kind: 'byte',\n-                       maximum: 0,\n-                       minimum: 0\n-                     }\n-                   ],\n-                   group: 0,\n-                   id: 'r.0.0.0',\n-                   kind: 'repeat',\n-                   maximum: null,\n-                   minimum: 0\n-                 }\n-               ],\n-               group: 1,\n-               id: 'r.0.0',\n-               kind: 'group',\n-               maximum: 0,\n-               minimum: 0\n-             },\n-             ordinal: 2,\n-             parent: 1,\n-             start: 2\n-           }\n          ],\n+         end: 2,\n-         end: 3,\n          node: {\n            byte: undefined,\n            children: [\n              {\n                byte: undefined,\n...\n        {\n+         activation: 6,\n-         activation: 11,\n          children: [],\n          end: 4,\n          node: {\n            byte: undefined,\n            children: [],\n...\n          parent: 0,\n+         start: 2\n-         start: 3\n        }\n      ],\n      end: 4,\n      node: {\n        byte: undefined,\n",
+          "code": "ERR_ASSERTION"
+        },
+        {
+          "id": "mutant/erase-aggregate/G1/NODE/prefix",
+          "status": "fail",
+          "message": "Expected \"actual\" to be reference-equal to \"expected\":\n+ actual - expected\n... Skipped lines\n\n  {\n    env: [\n      {\n        state: 'absent'\n      },\n      {\n+       activation: 3,\n-       activation: 5,\n        end: 3,\n+       start: 1,\n+       state: 'completed-nonempty'\n-       start: 3,\n-       state: 'completed-empty'\n      }\n    ],\n    events: [\n      {\n        activation: 0,\n...\n      {\n+       activation: null,\n+       end: 1,\n-       activation: 3,\n-       end: undefined,\n        env: [\n          {\n            state: 'absent'\n          },\n          {\n...\n        start: 1,\n+       type: 'skip'\n-       type: 'enter'\n      },\n      {\n+       activation: 1,\n+       end: 1,\n-       activation: 3,\n-       end: 2,\n        env: [\n          {\n            state: 'absent'\n          },\n          {\n...\n        ],\n+       node: 'r.0',\n+       ordinal: null,\n+       parent: 0,\n+       start: 0,\n-       node: 'r.0.0',\n-       ordinal: 1,\n-       parent: 1,\n-       start: 1,\n        type: 'exit'\n      },\n      {\n+       activation: 3,\n-       activation: 4,\n        end: undefined,\n        env: [\n          {\n            state: 'absent'\n          },\n          {\n+           activation: 3,\n+           end: undefined,\n+           start: 1,\n+           state: 'open'\n-           state: 'absent'\n          }\n        ],\n+       node: 'r.1',\n+       ordinal: null,\n+       parent: 0,\n+       start: 1,\n-       node: 'r.0.0',\n-       ordinal: 2,\n-       parent: 1,\n-       start: 2,\n        type: 'enter'\n      },\n      {\n        activation: 4,\n+       end: undefined,\n-       end: 3,\n        env: [\n          {\n            state: 'absent'\n          },\n          {\n+           activation: 3,\n+           end: undefined,\n+           start: 1,\n+           state: 'open'\n-           state: 'absent'\n          }\n        ],\n+       node: 'r.1.0',\n+       ordinal: null,\n+       parent: 3,\n+       start: 1,\n+       type: 'enter'\n-       node: 'r.0.0',\n-       ordinal: 2,\n-       parent: 1,\n-       start: 2,\n-       type: 'exit'\n      },\n      {\n+       activation: 5,\n+       end: undefined,\n-       activation: null,\n-       end: 3,\n        env: [\n          {\n            state: 'absent'\n          },\n          {\n+           activation: 3,\n+           end: undefined,\n+           start: 1,\n+           state: 'open'\n-           state: 'absent'\n          }\n        ],\n+       node: 'r.1.0.0',\n+       ordinal: 0,\n+       parent: 4,\n+       start: 1,\n+       type: 'enter'\n-       node: 'r.0.0',\n-       ordinal: 3,\n-       parent: 1,\n-       start: 3,\n-       type: 'skip'\n      },\n      {\n+       activation: 5,\n+       end: 2,\n-       activation: 1,\n-       end: 3,\n        env: [\n          {\n            state: 'absent'\n          },\n          {\n+           activation: 3,\n+           end: undefined,\n+           start: 1,\n+           state: 'open'\n-           state: 'absent'\n          }\n        ],\n+       node: 'r.1.0.0',\n+       ordinal: 0,\n+       parent: 4,\n+       start: 1,\n-       node: 'r.0',\n-       ordinal: null,\n-       parent: 0,\n-       start: 0,\n        type: 'exit'\n      },\n      {\n+       activation: 6,\n-       activation: 5,\n        end: undefined,\n        env: [\n          {\n            state: 'absent'\n          },\n          {\n+           activation: 3,\n-           activation: 5,\n            end: undefined,\n+           start: 1,\n-           start: 3,\n            state: 'open'\n          }\n        ],\n+       node: 'r.1.0.0',\n+       ordinal: 1,\n+       parent: 4,\n+       start: 2,\n-       node: 'r.1',\n-       ordinal: null,\n-       parent: 0,\n-       start: 3,\n        type: 'enter'\n      },\n      {\n        activation: 6,\n+       end: 3,\n-       end: undefined,\n        env: [\n          {\n            state: 'absent'\n          },\n          {\n+           activation: 3,\n-           activation: 5,\n            end: undefined,\n+           start: 1,\n-           start: 3,\n            state: 'open'\n          }\n        ],\n+       node: 'r.1.0.0',\n+       ordinal: 1,\n+       parent: 4,\n+       start: 2,\n+       type: 'exit'\n-       node: 'r.1.0',\n-       ordinal: null,\n-       parent: 5,\n-       start: 3,\n-       type: 'enter'\n      },\n      {\n        activation: null,\n        end: 3,\n        env: [\n...\n          {\n+           activation: 3,\n-           activation: 5,\n            end: undefined,\n+           start: 1,\n-           start: 3,\n            state: 'open'\n          }\n        ],\n        node: 'r.1.0.0',\n+       ordinal: 2,\n+       parent: 4,\n-       ordinal: 0,\n-       parent: 6,\n        start: 3,\n        type: 'skip'\n      },\n      {\n+       activation: 4,\n-       activation: 6,\n        end: 3,\n        env: [\n          {\n            state: 'absent'\n          },\n          {\n+           activation: 3,\n-           activation: 5,\n            end: undefined,\n+           start: 1,\n-           start: 3,\n            state: 'open'\n          }\n        ],\n        node: 'r.1.0',\n        ordinal: null,\n+       parent: 3,\n+       start: 1,\n-       parent: 5,\n-       start: 3,\n        type: 'exit'\n      },\n      {\n+       activation: 3,\n-       activation: 5,\n        end: 3,\n        env: [\n          {\n            state: 'absent'\n          },\n          {\n+           activation: 3,\n-           activation: 5,\n            end: 3,\n+           start: 1,\n+           state: 'completed-nonempty'\n-           start: 3,\n-           state: 'completed-empty'\n          }\n        ],\n        node: 'r.1',\n        ordinal: null,\n        parent: 0,\n+       start: 1,\n-       start: 3,\n        type: 'exit'\n      },\n      {\n        activation: 0,\n        end: 3,\n...\n          {\n+           activation: 3,\n-           activation: 5,\n            end: 3,\n+           start: 1,\n+           state: 'completed-nonempty'\n-           start: 3,\n-           state: 'completed-empty'\n          }\n        ],\n        node: 'r',\n        ordinal: null,\n        parent: null,\n...\n            },\n-           {\n-             activation: 3,\n-             children: [],\n-             end: 2,\n-             node: {\n-               byte: 'a',\n-               children: [],\n-               group: 0,\n-               id: 'r.0.0',\n-               kind: 'byte',\n-               maximum: 0,\n-               minimum: 0\n-             },\n-             ordinal: 1,\n-             parent: 1,\n-             start: 1\n-           },\n-           {\n-             activation: 4,\n-             children: [],\n-             end: 3,\n-             node: {\n-               byte: 'a',\n-               children: [],\n-               group: 0,\n-               id: 'r.0.0',\n-               kind: 'byte',\n-               maximum: 0,\n-               minimum: 0\n-             },\n-             ordinal: 2,\n-             parent: 1,\n-             start: 2\n-           }\n          ],\n+         end: 1,\n-         end: 3,\n          node: {\n            byte: undefined,\n            children: [\n              {\n                byte: 'a',\n...\n        {\n+         activation: 3,\n-         activation: 5,\n          children: [\n            {\n+             activation: 4,\n+             children: [\n+               {\n+                 activation: 5,\n+                 children: [],\n+                 end: 2,\n+                 node: {\n+                   byte: 'a',\n+                   children: [],\n+                   group: 0,\n+                   id: 'r.1.0.0',\n+                   kind: 'byte',\n+                   maximum: 0,\n+                   minimum: 0\n+                 },\n+                 ordinal: 0,\n+                 parent: 4,\n+                 start: 1\n+               },\n+               {\n+                 activation: 6,\n+                 children: [],\n+                 end: 3,\n+                 node: {\n+                   byte: 'a',\n+                   children: [],\n+                   group: 0,\n+                   id: 'r.1.0.0',\n+                   kind: 'byte',\n+                   maximum: 0,\n+                   minimum: 0\n+                 },\n+                 ordinal: 1,\n+                 parent: 4,\n+                 start: 2\n+               }\n+             ],\n-             activation: 6,\n-             children: [],\n              end: 3,\n              node: {\n                byte: undefined,\n                children: [\n                  {\n...\n              ordinal: null,\n+             parent: 3,\n+             start: 1\n-             parent: 5,\n-             start: 3\n            }\n          ],\n          end: 3,\n          node: {\n            byte: undefined,\n...\n          parent: 0,\n+         start: 1\n-         start: 3\n        }\n      ],\n      end: 3,\n      node: {\n        byte: undefined,\n",
+          "code": "ERR_ASSERTION"
+        },
+        {
+          "id": "mutant/erase-aggregate/G1/NODE/boundedPrefix",
+          "status": "pass"
+        },
+        {
+          "id": "mutant/erase-aggregate/G1/NODE/nestedPrefix",
+          "status": "pass"
+        },
+        {
+          "id": "mutant/erase-aggregate/G1/NODE/all24-orders",
+          "status": "fail",
+          "message": "Expected \"actual\" to be reference-equal to \"expected\":\n+ actual - expected\n... Skipped lines\n\n  {\n    env: [\n      {\n        state: 'absent'\n      },\n      {\n+       activation: 2,\n+       end: 2,\n+       start: 0,\n-       activation: 8,\n-       end: 3,\n-       start: 2,\n        state: 'completed-nonempty'\n      }\n    ],\n    events: [\n      {\n...\n      {\n+       activation: 5,\n+       end: undefined,\n-       activation: null,\n-       end: 1,\n        env: [\n          {\n            state: 'absent'\n          },\n          {\n...\n        start: 1,\n+       type: 'enter'\n-       type: 'skip'\n      },\n      {\n+       activation: 5,\n+       end: 2,\n-       activation: 3,\n-       end: 1,\n        env: [\n          {\n            state: 'absent'\n          },\n          {\n...\n        ],\n+       node: 'r.0.0.0.0',\n-       node: 'r.0.0.0',\n-       ordinal: null,\n-       parent: 2,\n-       start: 0,\n-       type: 'exit'\n-     },\n-     {\n-       activation: 2,\n-       end: 1,\n-       env: [\n-         {\n-           state: 'absent'\n-         },\n-         {\n-           activation: 2,\n-           end: 1,\n-           start: 0,\n-           state: 'completed-nonempty'\n-         }\n-       ],\n-       node: 'r.0.0',\n-       ordinal: 0,\n-       parent: 1,\n-       start: 0,\n-       type: 'exit'\n-     },\n-     {\n-       activation: 5,\n-       end: undefined,\n-       env: [\n-         {\n-           state: 'absent'\n-         },\n-         {\n-           activation: 5,\n-           end: undefined,\n-           start: 1,\n-           state: 'open'\n-         }\n-       ],\n-       node: 'r.0.0',\n        ordinal: 1,\n+       parent: 3,\n-       parent: 1,\n        start: 1,\n-       type: 'enter'\n-     },\n-     {\n-       activation: 6,\n-       end: undefined,\n-       env: [\n-         {\n-           state: 'absent'\n-         },\n-         {\n-           activation: 5,\n-           end: undefined,\n-           start: 1,\n-           state: 'open'\n-         }\n-       ],\n-       node: 'r.0.0.0',\n-       ordinal: null,\n-       parent: 5,\n-       start: 1,\n-       type: 'enter'\n-     },\n-     {\n-       activation: 7,\n-       end: undefined,\n-       env: [\n-         {\n-           state: 'absent'\n-         },\n-         {\n-           activation: 5,\n-           end: undefined,\n-           start: 1,\n-           state: 'open'\n-         }\n-       ],\n-       node: 'r.0.0.0.0',\n-       ordinal: 0,\n-       parent: 6,\n-       start: 1,\n-       type: 'enter'\n-     },\n-     {\n-       activation: 7,\n-       end: 2,\n-       env: [\n-         {\n-           state: 'absent'\n-         },\n-         {\n-           activation: 5,\n-           end: undefined,\n-           start: 1,\n-           state: 'open'\n-         }\n-       ],\n-       node: 'r.0.0.0.0',\n-       ordinal: 0,\n-       parent: 6,\n-       start: 1,\n        type: 'exit'\n      },\n      {\n        activation: null,\n        end: 2,\n...\n          {\n+           activation: 2,\n-           activation: 5,\n            end: undefined,\n+           start: 0,\n-           start: 1,\n            state: 'open'\n          }\n        ],\n        node: 'r.0.0.0.0',\n+       ordinal: 2,\n+       parent: 3,\n-       ordinal: 1,\n-       parent: 6,\n        start: 2,\n        type: 'skip'\n      },\n      {\n+       activation: 3,\n-       activation: 6,\n        end: 2,\n        env: [\n          {\n            state: 'absent'\n          },\n          {\n+           activation: 2,\n-           activation: 5,\n            end: undefined,\n+           start: 0,\n-           start: 1,\n            state: 'open'\n          }\n        ],\n        node: 'r.0.0.0',\n        ordinal: null,\n+       parent: 2,\n+       start: 0,\n-       parent: 5,\n-       start: 1,\n        type: 'exit'\n      },\n      {\n+       activation: 2,\n-       activation: 5,\n        end: 2,\n        env: [\n          {\n            state: 'absent'\n          },\n          {\n+           activation: 2,\n-           activation: 5,\n            end: 2,\n+           start: 0,\n-           start: 1,\n            state: 'completed-nonempty'\n          }\n        ],\n        node: 'r.0.0',\n+       ordinal: 0,\n-       ordinal: 1,\n        parent: 1,\n+       start: 0,\n-       start: 1,\n        type: 'exit'\n      },\n      {\n-       activation: 8,\n-       end: undefined,\n-       env: [\n-         {\n-           state: 'absent'\n-         },\n-         {\n-           activation: 8,\n-           end: undefined,\n-           start: 2,\n-           state: 'open'\n-         }\n-       ],\n-       node: 'r.0.0',\n-       ordinal: 2,\n-       parent: 1,\n-       start: 2,\n-       type: 'enter'\n-     },\n-     {\n-       activation: 9,\n-       end: undefined,\n-       env: [\n-         {\n-           state: 'absent'\n-         },\n-         {\n-           activation: 8,\n-           end: undefined,\n-           start: 2,\n-           state: 'open'\n-         }\n-       ],\n-       node: 'r.0.0.0',\n-       ordinal: null,\n-       parent: 8,\n-       start: 2,\n-       type: 'enter'\n-     },\n-     {\n-       activation: 10,\n-       end: undefined,\n-       env: [\n-         {\n-           state: 'absent'\n-         },\n-         {\n-           activation: 8,\n-           end: undefined,\n-           start: 2,\n-           state: 'open'\n-         }\n-       ],\n-       node: 'r.0.0.0.0',\n-       ordinal: 0,\n-       parent: 9,\n-       start: 2,\n-       type: 'enter'\n-     },\n-     {\n-       activation: 10,\n-       end: 3,\n-       env: [\n-         {\n-           state: 'absent'\n-         },\n-         {\n-           activation: 8,\n-           end: undefined,\n-           start: 2,\n-           state: 'open'\n-         }\n-       ],\n-       node: 'r.0.0.0.0',\n-       ordinal: 0,\n-       parent: 9,\n-       start: 2,\n-       type: 'exit'\n-     },\n-     {\n        activation: null,\n+       end: 2,\n-       end: 3,\n        env: [\n          {\n            state: 'absent'\n          },\n          {\n+           activation: 2,\n+           end: 2,\n+           start: 0,\n-           activation: 8,\n-           end: undefined,\n-           start: 2,\n-           state: 'open'\n-         }\n-       ],\n-       node: 'r.0.0.0.0',\n-       ordinal: 1,\n-       parent: 9,\n-       start: 3,\n-       type: 'skip'\n-     },\n-     {\n-       activation: 9,\n-       end: 3,\n-       env: [\n-         {\n-           state: 'absent'\n-         },\n-         {\n-           activation: 8,\n-           end: undefined,\n-           start: 2,\n-           state: 'open'\n-         }\n-       ],\n-       node: 'r.0.0.0',\n-       ordinal: null,\n-       parent: 8,\n-       start: 2,\n-       type: 'exit'\n-     },\n-     {\n-       activation: 8,\n-       end: 3,\n-       env: [\n-         {\n-           state: 'absent'\n-         },\n-         {\n-           activation: 8,\n-           end: 3,\n-           start: 2,\n            state: 'completed-nonempty'\n          }\n        ],\n        node: 'r.0.0',\n+       ordinal: 1,\n-       ordinal: 2,\n        parent: 1,\n        start: 2,\n-       type: 'exit'\n-     },\n-     {\n-       activation: null,\n-       end: 3,\n-       env: [\n-         {\n-           state: 'absent'\n-         },\n-         {\n-           activation: 8,\n-           end: 3,\n-           start: 2,\n-           state: 'completed-nonempty'\n-         }\n-       ],\n-       node: 'r.0.0',\n-       ordinal: 3,\n-       parent: 1,\n-       start: 3,\n        type: 'skip'\n      },\n      {\n        activation: 1,\n+       end: 2,\n-       end: 3,\n        env: [\n          {\n            state: 'absent'\n          },\n          {\n+           activation: 2,\n+           end: 2,\n+           start: 0,\n-           activation: 8,\n-           end: 3,\n-           start: 2,\n            state: 'completed-nonempty'\n          }\n        ],\n        node: 'r.0',\n        ordinal: null,\n...\n      {\n+       activation: 6,\n-       activation: 11,\n        end: undefined,\n        env: [\n          {\n            state: 'absent'\n          },\n          {\n+           activation: 2,\n+           end: 2,\n+           start: 0,\n-           activation: 8,\n-           end: 3,\n-           start: 2,\n            state: 'completed-nonempty'\n          }\n        ],\n        node: 'r.1',\n        ordinal: null,\n        parent: 0,\n+       start: 2,\n-       start: 3,\n        type: 'enter'\n      },\n      {\n+       activation: 6,\n-       activation: 11,\n        end: 4,\n        env: [\n          {\n            state: 'absent'\n          },\n          {\n+           activation: 2,\n+           end: 2,\n+           start: 0,\n-           activation: 8,\n-           end: 3,\n-           start: 2,\n            state: 'completed-nonempty'\n          }\n        ],\n        node: 'r.1',\n        ordinal: null,\n        parent: 0,\n+       start: 2,\n-       start: 3,\n        type: 'exit'\n      },\n      {\n        activation: 0,\n        end: 4,\n...\n          {\n+           activation: 2,\n+           end: 2,\n+           start: 0,\n-           activation: 8,\n-           end: 3,\n-           start: 2,\n            state: 'completed-nonempty'\n          }\n        ],\n        node: 'r',\n        ordinal: null,\n...\n                    },\n-                 ],\n-                 end: 1,\n-                 node: {\n-                   byte: undefined,\n-                   children: [\n-                     {\n-                       byte: 'a',\n-                       children: [],\n-                       group: 0,\n-                       id: 'r.0.0.0.0',\n-                       kind: 'byte',\n-                       maximum: 0,\n-                       minimum: 0\n-                     }\n-                   ],\n-                   group: 0,\n-                   id: 'r.0.0.0',\n-                   kind: 'repeat',\n-                   maximum: null,\n-                   minimum: 0\n-                 },\n-                 ordinal: null,\n-                 parent: 2,\n-                 start: 0\n-               }\n-             ],\n-             end: 1,\n-             node: {\n-               byte: undefined,\n-               children: [\n-                 {\n-                   byte: undefined,\n-                   children: [\n-                     {\n-                       byte: 'a',\n-                       children: [],\n-                       group: 0,\n-                       id: 'r.0.0.0.0',\n-                       kind: 'byte',\n-                       maximum: 0,\n-                       minimum: 0\n-                     }\n-                   ],\n-                   group: 0,\n-                   id: 'r.0.0.0',\n-                   kind: 'repeat',\n-                   maximum: null,\n-                   minimum: 0\n-                 }\n-               ],\n-               group: 1,\n-               id: 'r.0.0',\n-               kind: 'group',\n-               maximum: 0,\n-               minimum: 0\n-             },\n-             ordinal: 0,\n-             parent: 1,\n-             start: 0\n-           },\n-           {\n-             activation: 5,\n-             children: [\n-               {\n-                 activation: 6,\n-                 children: [\n                    {\n+                     activation: 5,\n-                     activation: 7,\n                      children: [],\n                      end: 2,\n                      node: {\n                        byte: 'a',\n                        children: [],\n...\n                      },\n+                     ordinal: 1,\n+                     parent: 3,\n-                     ordinal: 0,\n-                     parent: 6,\n                      start: 1\n                    }\n                  ],\n                  end: 2,\n                  node: {\n...\n                  ordinal: null,\n+                 parent: 2,\n+                 start: 0\n-                 parent: 5,\n-                 start: 1\n                }\n              ],\n              end: 2,\n              node: {\n                byte: undefined,\n...\n              },\n+             ordinal: 0,\n-             ordinal: 1,\n              parent: 1,\n+             start: 0\n-             start: 1\n            },\n-           {\n-             activation: 8,\n-             children: [\n-               {\n-                 activation: 9,\n-                 children: [\n-                   {\n-                     activation: 10,\n-                     children: [],\n-                     end: 3,\n-                     node: {\n-                       byte: 'a',\n-                       children: [],\n-                       group: 0,\n-                       id: 'r.0.0.0.0',\n-                       kind: 'byte',\n-                       maximum: 0,\n-                       minimum: 0\n-                     },\n-                     ordinal: 0,\n-                     parent: 9,\n-                     start: 2\n-                   }\n-                 ],\n-                 end: 3,\n-                 node: {\n-                   byte: undefined,\n-                   children: [\n-                     {\n-                       byte: 'a',\n-                       children: [],\n-                       group: 0,\n-                       id: 'r.0.0.0.0',\n-                       kind: 'byte',\n-                       maximum: 0,\n-                       minimum: 0\n-                     }\n-                   ],\n-                   group: 0,\n-                   id: 'r.0.0.0',\n-                   kind: 'repeat',\n-                   maximum: null,\n-                   minimum: 0\n-                 },\n-                 ordinal: null,\n-                 parent: 8,\n-                 start: 2\n-               }\n-             ],\n-             end: 3,\n-             node: {\n-               byte: undefined,\n-               children: [\n-                 {\n-                   byte: undefined,\n-                   children: [\n-                     {\n-                       byte: 'a',\n-                       children: [],\n-                       group: 0,\n-                       id: 'r.0.0.0.0',\n-                       kind: 'byte',\n-                       maximum: 0,\n-                       minimum: 0\n-                     }\n-                   ],\n-                   group: 0,\n-                   id: 'r.0.0.0',\n-                   kind: 'repeat',\n-                   maximum: null,\n-                   minimum: 0\n-                 }\n-               ],\n-               group: 1,\n-               id: 'r.0.0',\n-               kind: 'group',\n-               maximum: 0,\n-               minimum: 0\n-             },\n-             ordinal: 2,\n-             parent: 1,\n-             start: 2\n-           }\n          ],\n+         end: 2,\n-         end: 3,\n          node: {\n            byte: undefined,\n            children: [\n              {\n                byte: undefined,\n...\n        {\n+         activation: 6,\n-         activation: 11,\n          children: [],\n          end: 4,\n          node: {\n            byte: undefined,\n            children: [],\n...\n          parent: 0,\n+         start: 2\n-         start: 3\n        }\n      ],\n      end: 4,\n      node: {\n        byte: undefined,\n",
+          "code": "ERR_ASSERTION"
+        },
+        {
+          "id": "mutant/erase-aggregate/G1/NODE/finite-order-laws",
+          "status": "pass"
+        },
+        {
+          "id": "mutant/erase-aggregate/G1/TREE/P4",
+          "status": "pass"
+        },
+        {
+          "id": "mutant/erase-aggregate/G1/TREE/prefix",
+          "status": "fail",
+          "message": "Expected \"actual\" to be reference-equal to \"expected\":\n+ actual - expected\n... Skipped lines\n\n  {\n    env: [\n      {\n        state: 'absent'\n      },\n      {\n+       activation: 3,\n-       activation: 5,\n        end: 3,\n+       start: 1,\n+       state: 'completed-nonempty'\n-       start: 3,\n-       state: 'completed-empty'\n      }\n    ],\n    events: [\n      {\n        activation: 0,\n...\n      {\n+       activation: null,\n+       end: 1,\n-       activation: 3,\n-       end: undefined,\n        env: [\n          {\n            state: 'absent'\n          },\n          {\n...\n        start: 1,\n+       type: 'skip'\n-       type: 'enter'\n      },\n      {\n+       activation: 1,\n+       end: 1,\n-       activation: 3,\n-       end: 2,\n        env: [\n          {\n            state: 'absent'\n          },\n          {\n...\n        ],\n+       node: 'r.0',\n+       ordinal: null,\n+       parent: 0,\n+       start: 0,\n-       node: 'r.0.0',\n-       ordinal: 1,\n-       parent: 1,\n-       start: 1,\n        type: 'exit'\n      },\n      {\n+       activation: 3,\n-       activation: 4,\n        end: undefined,\n        env: [\n          {\n            state: 'absent'\n          },\n          {\n+           activation: 3,\n+           end: undefined,\n+           start: 1,\n+           state: 'open'\n-           state: 'absent'\n          }\n        ],\n+       node: 'r.1',\n+       ordinal: null,\n+       parent: 0,\n+       start: 1,\n-       node: 'r.0.0',\n-       ordinal: 2,\n-       parent: 1,\n-       start: 2,\n        type: 'enter'\n      },\n      {\n        activation: 4,\n+       end: undefined,\n-       end: 3,\n        env: [\n          {\n            state: 'absent'\n          },\n          {\n+           activation: 3,\n+           end: undefined,\n+           start: 1,\n+           state: 'open'\n-           state: 'absent'\n          }\n        ],\n+       node: 'r.1.0',\n+       ordinal: null,\n+       parent: 3,\n+       start: 1,\n+       type: 'enter'\n-       node: 'r.0.0',\n-       ordinal: 2,\n-       parent: 1,\n-       start: 2,\n-       type: 'exit'\n      },\n      {\n+       activation: 5,\n+       end: undefined,\n-       activation: null,\n-       end: 3,\n        env: [\n          {\n            state: 'absent'\n          },\n          {\n+           activation: 3,\n+           end: undefined,\n+           start: 1,\n+           state: 'open'\n-           state: 'absent'\n          }\n        ],\n+       node: 'r.1.0.0',\n+       ordinal: 0,\n+       parent: 4,\n+       start: 1,\n+       type: 'enter'\n-       node: 'r.0.0',\n-       ordinal: 3,\n-       parent: 1,\n-       start: 3,\n-       type: 'skip'\n      },\n      {\n+       activation: 5,\n+       end: 2,\n-       activation: 1,\n-       end: 3,\n        env: [\n          {\n            state: 'absent'\n          },\n          {\n+           activation: 3,\n+           end: undefined,\n+           start: 1,\n+           state: 'open'\n-           state: 'absent'\n          }\n        ],\n+       node: 'r.1.0.0',\n+       ordinal: 0,\n+       parent: 4,\n+       start: 1,\n-       node: 'r.0',\n-       ordinal: null,\n-       parent: 0,\n-       start: 0,\n        type: 'exit'\n      },\n      {\n+       activation: 6,\n-       activation: 5,\n        end: undefined,\n        env: [\n          {\n            state: 'absent'\n          },\n          {\n+           activation: 3,\n-           activation: 5,\n            end: undefined,\n+           start: 1,\n-           start: 3,\n            state: 'open'\n          }\n        ],\n+       node: 'r.1.0.0',\n+       ordinal: 1,\n+       parent: 4,\n+       start: 2,\n-       node: 'r.1',\n-       ordinal: null,\n-       parent: 0,\n-       start: 3,\n        type: 'enter'\n      },\n      {\n        activation: 6,\n+       end: 3,\n-       end: undefined,\n        env: [\n          {\n            state: 'absent'\n          },\n          {\n+           activation: 3,\n-           activation: 5,\n            end: undefined,\n+           start: 1,\n-           start: 3,\n            state: 'open'\n          }\n        ],\n+       node: 'r.1.0.0',\n+       ordinal: 1,\n+       parent: 4,\n+       start: 2,\n+       type: 'exit'\n-       node: 'r.1.0',\n-       ordinal: null,\n-       parent: 5,\n-       start: 3,\n-       type: 'enter'\n      },\n      {\n        activation: null,\n        end: 3,\n        env: [\n...\n          {\n+           activation: 3,\n-           activation: 5,\n            end: undefined,\n+           start: 1,\n-           start: 3,\n            state: 'open'\n          }\n        ],\n        node: 'r.1.0.0',\n+       ordinal: 2,\n+       parent: 4,\n-       ordinal: 0,\n-       parent: 6,\n        start: 3,\n        type: 'skip'\n      },\n      {\n+       activation: 4,\n-       activation: 6,\n        end: 3,\n        env: [\n          {\n            state: 'absent'\n          },\n          {\n+           activation: 3,\n-           activation: 5,\n            end: undefined,\n+           start: 1,\n-           start: 3,\n            state: 'open'\n          }\n        ],\n        node: 'r.1.0',\n        ordinal: null,\n+       parent: 3,\n+       start: 1,\n-       parent: 5,\n-       start: 3,\n        type: 'exit'\n      },\n      {\n+       activation: 3,\n-       activation: 5,\n        end: 3,\n        env: [\n          {\n            state: 'absent'\n          },\n          {\n+           activation: 3,\n-           activation: 5,\n            end: 3,\n+           start: 1,\n+           state: 'completed-nonempty'\n-           start: 3,\n-           state: 'completed-empty'\n          }\n        ],\n        node: 'r.1',\n        ordinal: null,\n        parent: 0,\n+       start: 1,\n-       start: 3,\n        type: 'exit'\n      },\n      {\n        activation: 0,\n        end: 3,\n...\n          {\n+           activation: 3,\n-           activation: 5,\n            end: 3,\n+           start: 1,\n+           state: 'completed-nonempty'\n-           start: 3,\n-           state: 'completed-empty'\n          }\n        ],\n        node: 'r',\n        ordinal: null,\n        parent: null,\n...\n            },\n-           {\n-             activation: 3,\n-             children: [],\n-             end: 2,\n-             node: {\n-               byte: 'a',\n-               children: [],\n-               group: 0,\n-               id: 'r.0.0',\n-               kind: 'byte',\n-               maximum: 0,\n-               minimum: 0\n-             },\n-             ordinal: 1,\n-             parent: 1,\n-             start: 1\n-           },\n-           {\n-             activation: 4,\n-             children: [],\n-             end: 3,\n-             node: {\n-               byte: 'a',\n-               children: [],\n-               group: 0,\n-               id: 'r.0.0',\n-               kind: 'byte',\n-               maximum: 0,\n-               minimum: 0\n-             },\n-             ordinal: 2,\n-             parent: 1,\n-             start: 2\n-           }\n          ],\n+         end: 1,\n-         end: 3,\n          node: {\n            byte: undefined,\n            children: [\n              {\n                byte: 'a',\n...\n        {\n+         activation: 3,\n-         activation: 5,\n          children: [\n            {\n+             activation: 4,\n+             children: [\n+               {\n+                 activation: 5,\n+                 children: [],\n+                 end: 2,\n+                 node: {\n+                   byte: 'a',\n+                   children: [],\n+                   group: 0,\n+                   id: 'r.1.0.0',\n+                   kind: 'byte',\n+                   maximum: 0,\n+                   minimum: 0\n+                 },\n+                 ordinal: 0,\n+                 parent: 4,\n+                 start: 1\n+               },\n+               {\n+                 activation: 6,\n+                 children: [],\n+                 end: 3,\n+                 node: {\n+                   byte: 'a',\n+                   children: [],\n+                   group: 0,\n+                   id: 'r.1.0.0',\n+                   kind: 'byte',\n+                   maximum: 0,\n+                   minimum: 0\n+                 },\n+                 ordinal: 1,\n+                 parent: 4,\n+                 start: 2\n+               }\n+             ],\n-             activation: 6,\n-             children: [],\n              end: 3,\n              node: {\n                byte: undefined,\n                children: [\n                  {\n...\n              ordinal: null,\n+             parent: 3,\n+             start: 1\n-             parent: 5,\n-             start: 3\n            }\n          ],\n          end: 3,\n          node: {\n            byte: undefined,\n...\n          parent: 0,\n+         start: 1\n-         start: 3\n        }\n      ],\n      end: 3,\n      node: {\n        byte: undefined,\n",
+          "code": "ERR_ASSERTION"
+        },
+        {
+          "id": "mutant/erase-aggregate/G1/TREE/boundedPrefix",
+          "status": "pass"
+        },
+        {
+          "id": "mutant/erase-aggregate/G1/TREE/nestedPrefix",
+          "status": "pass"
+        },
+        {
+          "id": "mutant/erase-aggregate/G1/TREE/all24-orders",
+          "status": "pass"
+        },
+        {
+          "id": "mutant/erase-aggregate/G1/TREE/finite-order-laws",
+          "status": "pass"
+        },
+        {
+          "id": "mutant/erase-aggregate/G1/over-max",
+          "status": "pass"
+        }
+      ]
+    },
+    {
+      "name": "NODE-as-TREE",
+      "status": "killed",
+      "sha256": "970665a87d658a8c8ac386be67a2fd219c716ecdf5e8934d84c4fb82af3b515e",
+      "additionalFailures": [
+        "mutant/NODE-as-TREE/G3/NODE/W4",
+        "mutant/NODE-as-TREE/G3/NODE/W4bare",
+        "mutant/NODE-as-TREE/G3/NODE/W4wrapped"
+      ],
+      "outcomes": [
+        {
+          "id": "mutant/NODE-as-TREE/G3/NODE/W3",
+          "status": "pass"
+        },
+        {
+          "id": "mutant/NODE-as-TREE/G3/NODE/W4",
+          "status": "fail",
+          "message": "Expected \"actual\" to be reference-equal to \"expected\":\n+ actual - expected\n... Skipped lines\n\n  {\n    env: [\n      {\n        state: 'absent'\n      },\n      {\n+       activation: 14,\n-       activation: 8,\n        end: 4,\n+       start: 3,\n-       start: 2,\n        state: 'completed-nonempty'\n      },\n      {\n+       activation: 16,\n-       activation: 10,\n        end: 4,\n+       start: 3,\n-       start: 2,\n        state: 'completed-nonempty'\n      }\n    ],\n    events: [\n      {\n...\n      {\n+       activation: 5,\n+       end: undefined,\n-       activation: null,\n-       end: 0,\n        env: [\n          {\n            state: 'absent'\n          },\n          {\n...\n        start: 0,\n+       type: 'enter'\n-       type: 'skip'\n      },\n      {\n+       activation: 5,\n+       end: 1,\n-       activation: 4,\n-       end: 0,\n        env: [\n          {\n            state: 'absent'\n          },\n          {\n...\n        ],\n+       node: 'r.0.0.0.0.0',\n+       ordinal: 0,\n+       parent: 4,\n-       node: 'r.0.0.0.0',\n-       ordinal: null,\n-       parent: 3,\n        start: 0,\n        type: 'exit'\n      },\n      {\n+       activation: 6,\n+       end: undefined,\n-       activation: 3,\n-       end: 0,\n        env: [\n          {\n            state: 'absent'\n          },\n          {\n...\n            activation: 3,\n+           end: undefined,\n-           end: 0,\n            start: 0,\n+           state: 'open'\n-           state: 'completed-empty'\n          }\n        ],\n+       node: 'r.0.0.0.0.0',\n+       ordinal: 1,\n+       parent: 4,\n+       start: 1,\n+       type: 'enter'\n-       node: 'r.0.0.0',\n-       ordinal: null,\n-       parent: 2,\n-       start: 0,\n-       type: 'exit'\n      },\n      {\n+       activation: 6,\n+       end: 2,\n-       activation: 5,\n-       end: undefined,\n        env: [\n          {\n            state: 'absent'\n          },\n          {\n...\n            activation: 3,\n+           end: undefined,\n-           end: 0,\n            start: 0,\n+           state: 'open'\n-           state: 'completed-empty'\n          }\n        ],\n+       node: 'r.0.0.0.0.0',\n+       ordinal: 1,\n+       parent: 4,\n+       start: 1,\n+       type: 'exit'\n-       node: 'r.0.0.1',\n-       ordinal: null,\n-       parent: 2,\n-       start: 0,\n-       type: 'enter'\n      },\n      {\n+       activation: null,\n+       end: 2,\n-       activation: 6,\n-       end: undefined,\n        env: [\n          {\n            state: 'absent'\n          },\n          {\n...\n            activation: 3,\n+           end: undefined,\n-           end: 0,\n            start: 0,\n+           state: 'open'\n-           state: 'completed-empty'\n          }\n        ],\n+       node: 'r.0.0.0.0.0',\n+       ordinal: 2,\n+       parent: 4,\n+       start: 2,\n+       type: 'skip'\n-       node: 'r.0.0.1.0',\n-       ordinal: 0,\n-       parent: 5,\n-       start: 0,\n-       type: 'enter'\n      },\n      {\n+       activation: 4,\n+       end: 2,\n-       activation: 6,\n-       end: 1,\n        env: [\n          {\n            state: 'absent'\n          },\n          {\n...\n            activation: 3,\n+           end: undefined,\n-           end: 0,\n            start: 0,\n+           state: 'open'\n-           state: 'completed-empty'\n          }\n        ],\n+       node: 'r.0.0.0.0',\n+       ordinal: null,\n+       parent: 3,\n-       node: 'r.0.0.1.0',\n-       ordinal: 0,\n-       parent: 5,\n        start: 0,\n        type: 'exit'\n      },\n      {\n+       activation: 3,\n+       end: 2,\n-       activation: 7,\n-       end: undefined,\n        env: [\n          {\n            state: 'absent'\n          },\n          {\n...\n            activation: 3,\n+           end: 2,\n-           end: 0,\n            start: 0,\n+           state: 'completed-nonempty'\n-           state: 'completed-empty'\n          }\n        ],\n+       node: 'r.0.0.0',\n+       ordinal: null,\n+       parent: 2,\n+       start: 0,\n+       type: 'exit'\n-       node: 'r.0.0.1.0',\n-       ordinal: 1,\n-       parent: 5,\n-       start: 1,\n-       type: 'enter'\n      },\n      {\n        activation: 7,\n+       end: undefined,\n-       end: 2,\n        env: [\n          {\n            state: 'absent'\n          },\n          {\n...\n            activation: 3,\n+           end: 2,\n-           end: 0,\n            start: 0,\n+           state: 'completed-nonempty'\n-           state: 'completed-empty'\n          }\n        ],\n+       node: 'r.0.0.1',\n+       ordinal: null,\n+       parent: 2,\n+       start: 2,\n+       type: 'enter'\n-       node: 'r.0.0.1.0',\n-       ordinal: 1,\n-       parent: 5,\n-       start: 1,\n-       type: 'exit'\n      },\n      {\n        activation: null,\n        end: 2,\n        env: [\n...\n            activation: 3,\n+           end: 2,\n-           end: 0,\n            start: 0,\n+           state: 'completed-nonempty'\n-           state: 'completed-empty'\n          }\n        ],\n        node: 'r.0.0.1.0',\n+       ordinal: 0,\n+       parent: 7,\n-       ordinal: 2,\n-       parent: 5,\n        start: 2,\n        type: 'skip'\n      },\n      {\n+       activation: 7,\n-       activation: 5,\n        end: 2,\n        env: [\n          {\n            state: 'absent'\n          },\n...\n            activation: 3,\n+           end: 2,\n-           end: 0,\n            start: 0,\n+           state: 'completed-nonempty'\n-           state: 'completed-empty'\n          }\n        ],\n        node: 'r.0.0.1',\n        ordinal: null,\n        parent: 2,\n+       start: 2,\n-       start: 0,\n        type: 'exit'\n      },\n      {\n        activation: 2,\n        end: 2,\n...\n            activation: 3,\n+           end: 2,\n-           end: 0,\n            start: 0,\n+           state: 'completed-nonempty'\n-           state: 'completed-empty'\n          }\n        ],\n        node: 'r.0.0',\n        ordinal: null,\n        parent: 1,\n...\n            activation: 3,\n+           end: 2,\n-           end: 0,\n            start: 0,\n+           state: 'completed-nonempty'\n-           state: 'completed-empty'\n          }\n        ],\n        node: 'r.0',\n        ordinal: 0,\n        parent: 0,\n...\n            activation: 3,\n+           end: 2,\n-           end: 0,\n            start: 0,\n+           state: 'completed-nonempty'\n-           state: 'completed-empty'\n          }\n        ],\n        node: 'r.0',\n        ordinal: 1,\n        parent: 0,\n...\n            activation: 3,\n+           end: 2,\n-           end: 0,\n            start: 0,\n+           state: 'completed-nonempty'\n-           state: 'completed-empty'\n          }\n        ],\n        node: 'r.0.0',\n        ordinal: null,\n        parent: 8,\n...\n      {\n+       activation: null,\n+       end: 3,\n-       activation: 13,\n-       end: undefined,\n        env: [\n          {\n            state: 'absent'\n          },\n          {\n...\n        start: 3,\n+       type: 'skip'\n-       type: 'enter'\n      },\n      {\n+       activation: 11,\n+       end: 3,\n-       activation: 13,\n-       end: 4,\n        env: [\n          {\n            state: 'absent'\n          },\n          {\n...\n        ],\n+       node: 'r.0.0.0.0',\n+       ordinal: null,\n+       parent: 10,\n+       start: 2,\n-       node: 'r.0.0.0.0.0',\n-       ordinal: 1,\n-       parent: 11,\n-       start: 3,\n        type: 'exit'\n      },\n      {\n+       activation: 10,\n+       end: 3,\n-       activation: null,\n-       end: 4,\n        env: [\n          {\n            state: 'absent'\n          },\n          {\n...\n            activation: 10,\n+           end: 3,\n+           start: 2,\n+           state: 'completed-nonempty'\n+         }\n+       ],\n+       node: 'r.0.0.0',\n+       ordinal: null,\n+       parent: 9,\n+       start: 2,\n+       type: 'exit'\n+     },\n+     {\n+       activation: 13,\n+       end: undefined,\n+       env: [\n+         {\n+           state: 'absent'\n+         },\n+         {\n+           activation: 8,\n            end: undefined,\n            start: 2,\n            state: 'open'\n          },\n+         {\n+           activation: 10,\n+           end: 3,\n+           start: 2,\n+           state: 'completed-nonempty'\n+         }\n        ],\n+       node: 'r.0.0.1',\n+       ordinal: null,\n+       parent: 9,\n+       start: 3,\n+       type: 'enter'\n-       node: 'r.0.0.0.0.0',\n-       ordinal: 2,\n-       parent: 11,\n-       start: 4,\n-       type: 'skip'\n      },\n      {\n+       activation: null,\n+       end: 3,\n-       activation: 11,\n-       end: 4,\n        env: [\n          {\n            state: 'absent'\n          },\n          {\n...\n            activation: 10,\n+           end: 3,\n+           start: 2,\n+           state: 'completed-nonempty'\n+         }\n+       ],\n+       node: 'r.0.0.1.0',\n+       ordinal: 0,\n+       parent: 13,\n+       start: 3,\n+       type: 'skip'\n+     },\n+     {\n+       activation: 13,\n+       end: 3,\n+       env: [\n+         {\n+           state: 'absent'\n+         },\n+         {\n+           activation: 8,\n            end: undefined,\n            start: 2,\n            state: 'open'\n          },\n+         {\n+           activation: 10,\n+           end: 3,\n+           start: 2,\n+           state: 'completed-nonempty'\n+         }\n        ],\n+       node: 'r.0.0.1',\n-       node: 'r.0.0.0.0',\n        ordinal: null,\n+       parent: 9,\n+       start: 3,\n-       parent: 10,\n-       start: 2,\n        type: 'exit'\n      },\n      {\n+       activation: 9,\n+       end: 3,\n-       activation: 10,\n-       end: 4,\n        env: [\n          {\n            state: 'absent'\n          },\n          {\n...\n            activation: 10,\n+           end: 3,\n-           end: 4,\n            start: 2,\n            state: 'completed-nonempty'\n          }\n        ],\n+       node: 'r.0.0',\n-       node: 'r.0.0.0',\n        ordinal: null,\n+       parent: 8,\n-       parent: 9,\n        start: 2,\n        type: 'exit'\n      },\n      {\n+       activation: 8,\n+       end: 3,\n+       env: [\n+         {\n+           state: 'absent'\n+         },\n+         {\n+           activation: 8,\n+           end: 3,\n+           start: 2,\n+           state: 'completed-nonempty'\n+         },\n+         {\n+           activation: 10,\n+           end: 3,\n+           start: 2,\n+           state: 'completed-nonempty'\n+         }\n+       ],\n+       node: 'r.0',\n+       ordinal: 1,\n+       parent: 0,\n+       start: 2,\n+       type: 'exit'\n+     },\n+     {\n        activation: 14,\n        end: undefined,\n        env: [\n          {\n            state: 'absent'\n          },\n          {\n+           activation: 14,\n-           activation: 8,\n            end: undefined,\n+           start: 3,\n+           state: 'open'\n+         },\n+         {\n+           activation: 10,\n+           end: 3,\n            start: 2,\n+           state: 'completed-nonempty'\n+         }\n+       ],\n+       node: 'r.0',\n+       ordinal: 2,\n+       parent: 0,\n+       start: 3,\n+       type: 'enter'\n+     },\n+     {\n+       activation: 15,\n+       end: undefined,\n+       env: [\n+         {\n+           state: 'absent'\n+         },\n+         {\n+           activation: 14,\n+           end: undefined,\n+           start: 3,\n            state: 'open'\n          },\n          {\n            activation: 10,\n+           end: 3,\n-           end: 4,\n            start: 2,\n            state: 'completed-nonempty'\n          }\n        ],\n+       node: 'r.0.0',\n+       ordinal: null,\n+       parent: 14,\n+       start: 3,\n+       type: 'enter'\n+     },\n+     {\n+       activation: 16,\n+       end: undefined,\n+       env: [\n+         {\n+           state: 'absent'\n+         },\n+         {\n+           activation: 14,\n+           end: undefined,\n+           start: 3,\n+           state: 'open'\n+         },\n+         {\n+           activation: 16,\n+           end: undefined,\n+           start: 3,\n+           state: 'open'\n+         }\n+       ],\n+       node: 'r.0.0.0',\n+       ordinal: null,\n+       parent: 15,\n+       start: 3,\n+       type: 'enter'\n+     },\n+     {\n+       activation: 17,\n+       end: undefined,\n+       env: [\n+         {\n+           state: 'absent'\n+         },\n+         {\n+           activation: 14,\n+           end: undefined,\n+           start: 3,\n+           state: 'open'\n+         },\n+         {\n+           activation: 16,\n+           end: undefined,\n+           start: 3,\n+           state: 'open'\n+         }\n+       ],\n+       node: 'r.0.0.0.0',\n+       ordinal: null,\n+       parent: 16,\n+       start: 3,\n+       type: 'enter'\n+     },\n+     {\n+       activation: 18,\n+       end: undefined,\n+       env: [\n+         {\n+           state: 'absent'\n+         },\n+         {\n+           activation: 14,\n+           end: undefined,\n+           start: 3,\n+           state: 'open'\n+         },\n+         {\n+           activation: 16,\n+           end: undefined,\n+           start: 3,\n+           state: 'open'\n+         }\n+       ],\n+       node: 'r.0.0.0.0.0',\n+       ordinal: 0,\n+       parent: 17,\n+       start: 3,\n+       type: 'enter'\n+     },\n+     {\n+       activation: 18,\n+       end: 4,\n+       env: [\n+         {\n+           state: 'absent'\n+         },\n+         {\n+           activation: 14,\n+           end: undefined,\n+           start: 3,\n+           state: 'open'\n+         },\n+         {\n+           activation: 16,\n+           end: undefined,\n+           start: 3,\n+           state: 'open'\n+         }\n+       ],\n+       node: 'r.0.0.0.0.0',\n+       ordinal: 0,\n+       parent: 17,\n+       start: 3,\n+       type: 'exit'\n+     },\n+     {\n+       activation: null,\n+       end: 4,\n+       env: [\n+         {\n+           state: 'absent'\n+         },\n+         {\n+           activation: 14,\n+           end: undefined,\n+           start: 3,\n+           state: 'open'\n+         },\n+         {\n+           activation: 16,\n+           end: undefined,\n+           start: 3,\n+           state: 'open'\n+         }\n+       ],\n+       node: 'r.0.0.0.0.0',\n+       ordinal: 1,\n+       parent: 17,\n+       start: 4,\n+       type: 'skip'\n+     },\n+     {\n+       activation: 17,\n+       end: 4,\n+       env: [\n+         {\n+           state: 'absent'\n+         },\n+         {\n+           activation: 14,\n+           end: undefined,\n+           start: 3,\n+           state: 'open'\n+         },\n+         {\n+           activation: 16,\n+           end: undefined,\n+           start: 3,\n+           state: 'open'\n+         }\n+       ],\n+       node: 'r.0.0.0.0',\n+       ordinal: null,\n+       parent: 16,\n+       start: 3,\n+       type: 'exit'\n+     },\n+     {\n+       activation: 16,\n+       end: 4,\n+       env: [\n+         {\n+           state: 'absent'\n+         },\n+         {\n+           activation: 14,\n+           end: undefined,\n+           start: 3,\n+           state: 'open'\n+         },\n+         {\n+           activation: 16,\n+           end: 4,\n+           start: 3,\n+           state: 'completed-nonempty'\n+         }\n+       ],\n+       node: 'r.0.0.0',\n+       ordinal: null,\n+       parent: 15,\n+       start: 3,\n+       type: 'exit'\n+     },\n+     {\n+       activation: 19,\n+       end: undefined,\n+       env: [\n+         {\n+           state: 'absent'\n+         },\n+         {\n+           activation: 14,\n+           end: undefined,\n+           start: 3,\n+           state: 'open'\n+         },\n+         {\n+           activation: 16,\n+           end: 4,\n+           start: 3,\n+           state: 'completed-nonempty'\n+         }\n+       ],\n        node: 'r.0.0.1',\n        ordinal: null,\n+       parent: 15,\n-       parent: 9,\n        start: 4,\n        type: 'enter'\n      },\n      {\n        activation: null,\n...\n          {\n+           activation: 14,\n-           activation: 8,\n            end: undefined,\n+           start: 3,\n-           start: 2,\n            state: 'open'\n          },\n          {\n+           activation: 16,\n-           activation: 10,\n            end: 4,\n+           start: 3,\n-           start: 2,\n            state: 'completed-nonempty'\n          }\n        ],\n        node: 'r.0.0.1.0',\n        ordinal: 0,\n+       parent: 19,\n-       parent: 14,\n        start: 4,\n        type: 'skip'\n      },\n      {\n+       activation: 19,\n-       activation: 14,\n        end: 4,\n        env: [\n          {\n            state: 'absent'\n          },\n          {\n+           activation: 14,\n-           activation: 8,\n            end: undefined,\n+           start: 3,\n-           start: 2,\n            state: 'open'\n          },\n          {\n+           activation: 16,\n-           activation: 10,\n            end: 4,\n+           start: 3,\n-           start: 2,\n            state: 'completed-nonempty'\n          }\n        ],\n        node: 'r.0.0.1',\n        ordinal: null,\n+       parent: 15,\n-       parent: 9,\n        start: 4,\n        type: 'exit'\n      },\n      {\n+       activation: 15,\n-       activation: 9,\n        end: 4,\n        env: [\n          {\n            state: 'absent'\n          },\n          {\n+           activation: 14,\n-           activation: 8,\n            end: undefined,\n+           start: 3,\n-           start: 2,\n            state: 'open'\n          },\n          {\n+           activation: 16,\n-           activation: 10,\n            end: 4,\n+           start: 3,\n-           start: 2,\n            state: 'completed-nonempty'\n          }\n        ],\n        node: 'r.0.0',\n        ordinal: null,\n+       parent: 14,\n+       start: 3,\n-       parent: 8,\n-       start: 2,\n        type: 'exit'\n      },\n      {\n+       activation: 14,\n-       activation: 8,\n        end: 4,\n        env: [\n          {\n            state: 'absent'\n          },\n          {\n+           activation: 14,\n-           activation: 8,\n            end: 4,\n+           start: 3,\n-           start: 2,\n            state: 'completed-nonempty'\n          },\n          {\n+           activation: 16,\n-           activation: 10,\n            end: 4,\n+           start: 3,\n-           start: 2,\n            state: 'completed-nonempty'\n          }\n        ],\n        node: 'r.0',\n+       ordinal: 2,\n-       ordinal: 1,\n        parent: 0,\n+       start: 3,\n-       start: 2,\n        type: 'exit'\n      },\n      {\n        activation: null,\n        end: 4,\n...\n          {\n+           activation: 14,\n-           activation: 8,\n            end: 4,\n+           start: 3,\n-           start: 2,\n            state: 'completed-nonempty'\n          },\n          {\n+           activation: 16,\n-           activation: 10,\n            end: 4,\n+           start: 3,\n-           start: 2,\n            state: 'completed-nonempty'\n          }\n        ],\n        node: 'r.0',\n+       ordinal: 3,\n-       ordinal: 2,\n        parent: 0,\n        start: 4,\n        type: 'skip'\n      },\n      {\n...\n          {\n+           activation: 14,\n-           activation: 8,\n            end: 4,\n+           start: 3,\n-           start: 2,\n            state: 'completed-nonempty'\n          },\n          {\n+           activation: 16,\n-           activation: 10,\n            end: 4,\n+           start: 3,\n-           start: 2,\n            state: 'completed-nonempty'\n          }\n        ],\n        node: 'r',\n        ordinal: null,\n...\n                      activation: 4,\n+                     children: [\n+                       {\n+                         activation: 5,\n+                         children: [],\n+                         end: 1,\n+                         node: {\n+                           byte: 'a',\n+                           children: [],\n+                           group: 0,\n+                           id: 'r.0.0.0.0.0',\n+                           kind: 'byte',\n+                           maximum: 0,\n+                           minimum: 0\n+                         },\n+                         ordinal: 0,\n+                         parent: 4,\n+                         start: 0\n+                       },\n+                       {\n+                         activation: 6,\n+                         children: [],\n+                         end: 2,\n+                         node: {\n+                           byte: 'a',\n+                           children: [],\n+                           group: 0,\n+                           id: 'r.0.0.0.0.0',\n+                           kind: 'byte',\n+                           maximum: 0,\n+                           minimum: 0\n+                         },\n+                         ordinal: 1,\n+                         parent: 4,\n+                         start: 1\n+                       }\n+                     ],\n+                     end: 2,\n-                     children: [],\n-                     end: 0,\n                      node: {\n                        byte: undefined,\n                        children: [\n                          {\n                            byte: 'a',\n...\n                  ],\n+                 end: 2,\n-                 end: 0,\n                  node: {\n                    byte: undefined,\n                    children: [\n                      {\n                        byte: undefined,\n...\n                {\n+                 activation: 7,\n+                 children: [],\n-                 activation: 5,\n-                 children: [\n-                   {\n-                     activation: 6,\n-                     children: [],\n-                     end: 1,\n-                     node: {\n-                       byte: 'a',\n-                       children: [],\n-                       group: 0,\n-                       id: 'r.0.0.1.0',\n-                       kind: 'byte',\n-                       maximum: 0,\n-                       minimum: 0\n-                     },\n-                     ordinal: 0,\n-                     parent: 5,\n-                     start: 0\n-                   },\n-                   {\n-                     activation: 7,\n-                     children: [],\n-                     end: 2,\n-                     node: {\n-                       byte: 'a',\n-                       children: [],\n-                       group: 0,\n-                       id: 'r.0.0.1.0',\n-                       kind: 'byte',\n-                       maximum: 0,\n-                       minimum: 0\n-                     },\n-                     ordinal: 1,\n-                     parent: 5,\n-                     start: 1\n-                   }\n-                 ],\n                  end: 2,\n                  node: {\n                    byte: undefined,\n                    children: [\n                      {\n...\n                  parent: 2,\n+                 start: 2\n-                 start: 0\n                }\n              ],\n              end: 2,\n              node: {\n                byte: undefined,\n...\n                        },\n+                     ],\n+                     end: 3,\n+                     node: {\n+                       byte: undefined,\n+                       children: [\n+                         {\n+                           byte: 'a',\n+                           children: [],\n+                           group: 0,\n+                           id: 'r.0.0.0.0.0',\n+                           kind: 'byte',\n+                           maximum: 0,\n+                           minimum: 0\n+                         }\n+                       ],\n+                       group: 0,\n+                       id: 'r.0.0.0.0',\n+                       kind: 'repeat',\n+                       maximum: null,\n+                       minimum: 0\n+                     },\n+                     ordinal: null,\n+                     parent: 10,\n+                     start: 2\n+                   }\n+                 ],\n+                 end: 3,\n+                 node: {\n+                   byte: undefined,\n+                   children: [\n+                     {\n+                       byte: undefined,\n+                       children: [\n+                         {\n+                           byte: 'a',\n+                           children: [],\n+                           group: 0,\n+                           id: 'r.0.0.0.0.0',\n+                           kind: 'byte',\n+                           maximum: 0,\n+                           minimum: 0\n+                         }\n+                       ],\n+                       group: 0,\n+                       id: 'r.0.0.0.0',\n+                       kind: 'repeat',\n+                       maximum: null,\n+                       minimum: 0\n+                     }\n+                   ],\n+                   group: 2,\n+                   id: 'r.0.0.0',\n+                   kind: 'group',\n+                   maximum: 0,\n+                   minimum: 0\n+                 },\n+                 ordinal: null,\n+                 parent: 9,\n+                 start: 2\n+               },\n+               {\n+                 activation: 13,\n+                 children: [],\n+                 end: 3,\n+                 node: {\n+                   byte: undefined,\n+                   children: [\n+                     {\n+                       byte: 'a',\n+                       children: [],\n+                       group: 0,\n+                       id: 'r.0.0.1.0',\n+                       kind: 'byte',\n+                       maximum: 0,\n+                       minimum: 0\n+                     }\n+                   ],\n+                   group: 0,\n+                   id: 'r.0.0.1',\n+                   kind: 'repeat',\n+                   maximum: null,\n+                   minimum: 0\n+                 },\n+                 ordinal: null,\n+                 parent: 9,\n+                 start: 3\n+               }\n+             ],\n+             end: 3,\n+             node: {\n+               byte: undefined,\n+               children: [\n+                 {\n+                   byte: undefined,\n+                   children: [\n+                     {\n+                       byte: undefined,\n+                       children: [\n+                         {\n+                           byte: 'a',\n+                           children: [],\n+                           group: 0,\n+                           id: 'r.0.0.0.0.0',\n+                           kind: 'byte',\n+                           maximum: 0,\n+                           minimum: 0\n+                         }\n+                       ],\n+                       group: 0,\n+                       id: 'r.0.0.0.0',\n+                       kind: 'repeat',\n+                       maximum: null,\n+                       minimum: 0\n+                     }\n+                   ],\n+                   group: 2,\n+                   id: 'r.0.0.0',\n+                   kind: 'group',\n+                   maximum: 0,\n+                   minimum: 0\n+                 },\n+                 {\n+                   byte: undefined,\n+                   children: [\n+                     {\n+                       byte: 'a',\n+                       children: [],\n+                       group: 0,\n+                       id: 'r.0.0.1.0',\n+                       kind: 'byte',\n+                       maximum: 0,\n+                       minimum: 0\n+                     }\n+                   ],\n+                   group: 0,\n+                   id: 'r.0.0.1',\n+                   kind: 'repeat',\n+                   maximum: null,\n+                   minimum: 0\n+                 }\n+               ],\n+               group: 0,\n+               id: 'r.0.0',\n+               kind: 'cat',\n+               maximum: 0,\n+               minimum: 0\n+             },\n+             ordinal: null,\n+             parent: 8,\n+             start: 2\n+           }\n+         ],\n+         end: 3,\n+         node: {\n+           byte: undefined,\n+           children: [\n+             {\n+               byte: undefined,\n+               children: [\n+                 {\n+                   byte: undefined,\n+                   children: [\n+                     {\n+                       byte: undefined,\n+                       children: [\n+                         {\n+                           byte: 'a',\n+                           children: [],\n+                           group: 0,\n+                           id: 'r.0.0.0.0.0',\n+                           kind: 'byte',\n+                           maximum: 0,\n+                           minimum: 0\n+                         }\n+                       ],\n+                       group: 0,\n+                       id: 'r.0.0.0.0',\n+                       kind: 'repeat',\n+                       maximum: null,\n+                       minimum: 0\n+                     }\n+                   ],\n+                   group: 2,\n+                   id: 'r.0.0.0',\n+                   kind: 'group',\n+                   maximum: 0,\n+                   minimum: 0\n+                 },\n+                 {\n+                   byte: undefined,\n+                   children: [\n+                     {\n+                       byte: 'a',\n+                       children: [],\n+                       group: 0,\n+                       id: 'r.0.0.1.0',\n+                       kind: 'byte',\n+                       maximum: 0,\n+                       minimum: 0\n+                     }\n+                   ],\n+                   group: 0,\n+                   id: 'r.0.0.1',\n+                   kind: 'repeat',\n+                   maximum: null,\n+                   minimum: 0\n+                 }\n+               ],\n+               group: 0,\n+               id: 'r.0.0',\n+               kind: 'cat',\n+               maximum: 0,\n+               minimum: 0\n+             }\n+           ],\n+           group: 1,\n+           id: 'r.0',\n+           kind: 'group',\n+           maximum: 0,\n+           minimum: 0\n+         },\n+         ordinal: 1,\n+         parent: 0,\n+         start: 2\n+       },\n+       {\n+         activation: 14,\n+         children: [\n+           {\n+             activation: 15,\n+             children: [\n+               {\n+                 activation: 16,\n+                 children: [\n+                   {\n+                     activation: 17,\n+                     children: [\n                        {\n+                         activation: 18,\n-                         activation: 13,\n                          children: [],\n                          end: 4,\n                          node: {\n                            byte: 'a',\n                            children: [],\n...\n                          },\n+                         ordinal: 0,\n+                         parent: 17,\n-                         ordinal: 1,\n-                         parent: 11,\n                          start: 3\n                        }\n                      ],\n                      end: 4,\n                      node: {\n...\n                      ordinal: null,\n+                     parent: 16,\n+                     start: 3\n-                     parent: 10,\n-                     start: 2\n                    }\n                  ],\n                  end: 4,\n                  node: {\n                    byte: undefined,\n...\n                  ordinal: null,\n+                 parent: 15,\n+                 start: 3\n-                 parent: 9,\n-                 start: 2\n                },\n                {\n+                 activation: 19,\n-                 activation: 14,\n                  children: [],\n                  end: 4,\n                  node: {\n                    byte: undefined,\n                    children: [\n...\n                  ordinal: null,\n+                 parent: 15,\n-                 parent: 9,\n                  start: 4\n                }\n              ],\n              end: 4,\n              node: {\n...\n              ordinal: null,\n+             parent: 14,\n+             start: 3\n-             parent: 8,\n-             start: 2\n            }\n          ],\n          end: 4,\n          node: {\n            byte: undefined,\n...\n          },\n+         ordinal: 2,\n-         ordinal: 1,\n          parent: 0,\n+         start: 3\n-         start: 2\n        }\n      ],\n      end: 4,\n      node: {\n        byte: undefined,\n",
+          "code": "ERR_ASSERTION"
+        },
+        {
+          "id": "mutant/NODE-as-TREE/G3/NODE/W4bare",
+          "status": "fail",
+          "message": "Expected \"actual\" to be reference-equal to \"expected\":\n+ actual - expected\n... Skipped lines\n\n  {\n    env: [\n      {\n        state: 'absent'\n      }\n...\n      {\n+       activation: 3,\n+       end: undefined,\n-       activation: null,\n-       end: 0,\n        env: [\n          {\n            state: 'absent'\n          }\n        ],\n...\n        start: 0,\n+       type: 'enter'\n-       type: 'skip'\n      },\n      {\n+       activation: 3,\n+       end: 1,\n-       activation: 2,\n-       end: 0,\n        env: [\n          {\n            state: 'absent'\n          }\n        ],\n+       node: 'r.0.0.0',\n+       ordinal: 0,\n+       parent: 2,\n-       node: 'r.0.0',\n-       ordinal: null,\n-       parent: 1,\n        start: 0,\n        type: 'exit'\n      },\n      {\n+       activation: 4,\n-       activation: 3,\n        end: undefined,\n        env: [\n          {\n            state: 'absent'\n          }\n        ],\n+       node: 'r.0.0.0',\n+       ordinal: 1,\n+       parent: 2,\n+       start: 1,\n-       node: 'r.0.1',\n-       ordinal: null,\n-       parent: 1,\n-       start: 0,\n        type: 'enter'\n      },\n      {\n        activation: 4,\n+       end: 2,\n-       end: undefined,\n        env: [\n          {\n            state: 'absent'\n          }\n        ],\n+       node: 'r.0.0.0',\n+       ordinal: 1,\n+       parent: 2,\n+       start: 1,\n+       type: 'exit'\n-       node: 'r.0.1.0',\n-       ordinal: 0,\n-       parent: 3,\n-       start: 0,\n-       type: 'enter'\n      },\n      {\n+       activation: null,\n+       end: 2,\n-       activation: 4,\n-       end: 1,\n        env: [\n          {\n            state: 'absent'\n          }\n        ],\n+       node: 'r.0.0.0',\n+       ordinal: 2,\n+       parent: 2,\n+       start: 2,\n+       type: 'skip'\n-       node: 'r.0.1.0',\n-       ordinal: 0,\n-       parent: 3,\n-       start: 0,\n-       type: 'exit'\n      },\n      {\n+       activation: 2,\n+       end: 2,\n-       activation: 5,\n-       end: undefined,\n        env: [\n          {\n            state: 'absent'\n          }\n        ],\n+       node: 'r.0.0',\n+       ordinal: null,\n+       parent: 1,\n+       start: 0,\n+       type: 'exit'\n-       node: 'r.0.1.0',\n-       ordinal: 1,\n-       parent: 3,\n-       start: 1,\n-       type: 'enter'\n      },\n      {\n        activation: 5,\n+       end: undefined,\n-       end: 2,\n        env: [\n          {\n            state: 'absent'\n          }\n        ],\n+       node: 'r.0.1',\n+       ordinal: null,\n+       parent: 1,\n+       start: 2,\n+       type: 'enter'\n-       node: 'r.0.1.0',\n-       ordinal: 1,\n-       parent: 3,\n-       start: 1,\n-       type: 'exit'\n      },\n      {\n        activation: null,\n        end: 2,\n        env: [\n...\n        node: 'r.0.1.0',\n+       ordinal: 0,\n+       parent: 5,\n-       ordinal: 2,\n-       parent: 3,\n        start: 2,\n        type: 'skip'\n      },\n      {\n+       activation: 5,\n-       activation: 3,\n        end: 2,\n        env: [\n          {\n            state: 'absent'\n          }\n...\n        parent: 1,\n+       start: 2,\n-       start: 0,\n        type: 'exit'\n      },\n      {\n        activation: 1,\n        end: 2,\n...\n      {\n+       activation: null,\n+       end: 3,\n-       activation: 9,\n-       end: undefined,\n        env: [\n          {\n            state: 'absent'\n          }\n        ],\n...\n        start: 3,\n+       type: 'skip'\n+     },\n+     {\n+       activation: 7,\n+       end: 3,\n+       env: [\n+         {\n+           state: 'absent'\n+         }\n+       ],\n+       node: 'r.0.0',\n+       ordinal: null,\n+       parent: 6,\n+       start: 2,\n+       type: 'exit'\n+     },\n+     {\n+       activation: 9,\n+       end: undefined,\n+       env: [\n+         {\n+           state: 'absent'\n+         }\n+       ],\n+       node: 'r.0.1',\n+       ordinal: null,\n+       parent: 6,\n+       start: 3,\n        type: 'enter'\n      },\n      {\n+       activation: null,\n+       end: 3,\n+       env: [\n+         {\n+           state: 'absent'\n+         }\n+       ],\n+       node: 'r.0.1.0',\n+       ordinal: 0,\n+       parent: 9,\n+       start: 3,\n+       type: 'skip'\n+     },\n+     {\n        activation: 9,\n+       end: 3,\n+       env: [\n+         {\n+           state: 'absent'\n+         }\n+       ],\n+       node: 'r.0.1',\n+       ordinal: null,\n+       parent: 6,\n+       start: 3,\n+       type: 'exit'\n+     },\n+     {\n+       activation: 6,\n+       end: 3,\n+       env: [\n+         {\n+           state: 'absent'\n+         }\n+       ],\n+       node: 'r.0',\n+       ordinal: 1,\n+       parent: 0,\n+       start: 2,\n+       type: 'exit'\n+     },\n+     {\n+       activation: 10,\n+       end: undefined,\n+       env: [\n+         {\n+           state: 'absent'\n+         }\n+       ],\n+       node: 'r.0',\n+       ordinal: 2,\n+       parent: 0,\n+       start: 3,\n+       type: 'enter'\n+     },\n+     {\n+       activation: 11,\n+       end: undefined,\n+       env: [\n+         {\n+           state: 'absent'\n+         }\n+       ],\n+       node: 'r.0.0',\n+       ordinal: null,\n+       parent: 10,\n+       start: 3,\n+       type: 'enter'\n+     },\n+     {\n+       activation: 12,\n+       end: undefined,\n+       env: [\n+         {\n+           state: 'absent'\n+         }\n+       ],\n+       node: 'r.0.0.0',\n+       ordinal: 0,\n+       parent: 11,\n+       start: 3,\n+       type: 'enter'\n+     },\n+     {\n+       activation: 12,\n        end: 4,\n        env: [\n          {\n            state: 'absent'\n          }\n        ],\n        node: 'r.0.0.0',\n+       ordinal: 0,\n+       parent: 11,\n-       ordinal: 1,\n-       parent: 7,\n        start: 3,\n        type: 'exit'\n      },\n      {\n        activation: null,\n...\n        node: 'r.0.0.0',\n+       ordinal: 1,\n+       parent: 11,\n-       ordinal: 2,\n-       parent: 7,\n        start: 4,\n        type: 'skip'\n      },\n      {\n+       activation: 11,\n-       activation: 7,\n        end: 4,\n        env: [\n          {\n            state: 'absent'\n          }\n...\n        ordinal: null,\n+       parent: 10,\n+       start: 3,\n-       parent: 6,\n-       start: 2,\n        type: 'exit'\n      },\n      {\n+       activation: 13,\n-       activation: 10,\n        end: undefined,\n        env: [\n          {\n            state: 'absent'\n          }\n...\n        ordinal: null,\n+       parent: 10,\n-       parent: 6,\n        start: 4,\n        type: 'enter'\n      },\n      {\n        activation: null,\n...\n        ordinal: 0,\n+       parent: 13,\n-       parent: 10,\n        start: 4,\n        type: 'skip'\n      },\n      {\n+       activation: 13,\n-       activation: 10,\n        end: 4,\n        env: [\n          {\n            state: 'absent'\n          }\n...\n        ordinal: null,\n+       parent: 10,\n-       parent: 6,\n        start: 4,\n        type: 'exit'\n      },\n      {\n+       activation: 10,\n-       activation: 6,\n        end: 4,\n        env: [\n          {\n            state: 'absent'\n          }\n        ],\n        node: 'r.0',\n+       ordinal: 2,\n-       ordinal: 1,\n        parent: 0,\n+       start: 3,\n-       start: 2,\n        type: 'exit'\n      },\n      {\n        activation: null,\n        end: 4,\n...\n        node: 'r.0',\n+       ordinal: 3,\n-       ordinal: 2,\n        parent: 0,\n        start: 4,\n        type: 'skip'\n      },\n      {\n...\n              activation: 2,\n-             children: [],\n-             end: 0,\n-             node: {\n-               byte: undefined,\n-               children: [\n-                 {\n-                   byte: 'a',\n-                   children: [],\n-                   group: 0,\n-                   id: 'r.0.0.0',\n-                   kind: 'byte',\n-                   maximum: 0,\n-                   minimum: 0\n-                 }\n-               ],\n-               group: 0,\n-               id: 'r.0.0',\n-               kind: 'repeat',\n-               maximum: null,\n-               minimum: 0\n-             },\n-             ordinal: null,\n-             parent: 1,\n-             start: 0\n-           },\n-           {\n-             activation: 3,\n              children: [\n                {\n+                 activation: 3,\n-                 activation: 4,\n                  children: [],\n                  end: 1,\n                  node: {\n                    byte: 'a',\n                    children: [],\n                    group: 0,\n+                   id: 'r.0.0.0',\n-                   id: 'r.0.1.0',\n                    kind: 'byte',\n                    maximum: 0,\n                    minimum: 0\n                  },\n                  ordinal: 0,\n+                 parent: 2,\n-                 parent: 3,\n                  start: 0\n                },\n                {\n+                 activation: 4,\n-                 activation: 5,\n                  children: [],\n                  end: 2,\n                  node: {\n                    byte: 'a',\n                    children: [],\n                    group: 0,\n+                   id: 'r.0.0.0',\n-                   id: 'r.0.1.0',\n                    kind: 'byte',\n                    maximum: 0,\n                    minimum: 0\n                  },\n                  ordinal: 1,\n+                 parent: 2,\n-                 parent: 3,\n                  start: 1\n                }\n              ],\n              end: 2,\n              node: {\n...\n                    group: 0,\n+                   id: 'r.0.0.0',\n+                   kind: 'byte',\n+                   maximum: 0,\n+                   minimum: 0\n+                 }\n+               ],\n+               group: 0,\n+               id: 'r.0.0',\n+               kind: 'repeat',\n+               maximum: null,\n+               minimum: 0\n+             },\n+             ordinal: null,\n+             parent: 1,\n+             start: 0\n+           },\n+           {\n+             activation: 5,\n+             children: [],\n+             end: 2,\n+             node: {\n+               byte: undefined,\n+               children: [\n+                 {\n+                   byte: 'a',\n+                   children: [],\n+                   group: 0,\n                    id: 'r.0.1.0',\n                    kind: 'byte',\n                    maximum: 0,\n                    minimum: 0\n                  }\n...\n              parent: 1,\n+             start: 2\n-             start: 0\n            }\n          ],\n          end: 2,\n          node: {\n            byte: undefined,\n...\n                },\n+             ],\n+             end: 3,\n+             node: {\n+               byte: undefined,\n+               children: [\n+                 {\n+                   byte: 'a',\n+                   children: [],\n+                   group: 0,\n+                   id: 'r.0.0.0',\n+                   kind: 'byte',\n+                   maximum: 0,\n+                   minimum: 0\n+                 }\n+               ],\n+               group: 0,\n+               id: 'r.0.0',\n+               kind: 'repeat',\n+               maximum: null,\n+               minimum: 0\n+             },\n+             ordinal: null,\n+             parent: 6,\n+             start: 2\n+           },\n+           {\n+             activation: 9,\n+             children: [],\n+             end: 3,\n+             node: {\n+               byte: undefined,\n+               children: [\n+                 {\n+                   byte: 'a',\n+                   children: [],\n+                   group: 0,\n+                   id: 'r.0.1.0',\n+                   kind: 'byte',\n+                   maximum: 0,\n+                   minimum: 0\n+                 }\n+               ],\n+               group: 0,\n+               id: 'r.0.1',\n+               kind: 'repeat',\n+               maximum: null,\n+               minimum: 0\n+             },\n+             ordinal: null,\n+             parent: 6,\n+             start: 3\n+           }\n+         ],\n+         end: 3,\n+         node: {\n+           byte: undefined,\n+           children: [\n+             {\n+               byte: undefined,\n+               children: [\n+                 {\n+                   byte: 'a',\n+                   children: [],\n+                   group: 0,\n+                   id: 'r.0.0.0',\n+                   kind: 'byte',\n+                   maximum: 0,\n+                   minimum: 0\n+                 }\n+               ],\n+               group: 0,\n+               id: 'r.0.0',\n+               kind: 'repeat',\n+               maximum: null,\n+               minimum: 0\n+             },\n+             {\n+               byte: undefined,\n+               children: [\n+                 {\n+                   byte: 'a',\n+                   children: [],\n+                   group: 0,\n+                   id: 'r.0.1.0',\n+                   kind: 'byte',\n+                   maximum: 0,\n+                   minimum: 0\n+                 }\n+               ],\n+               group: 0,\n+               id: 'r.0.1',\n+               kind: 'repeat',\n+               maximum: null,\n+               minimum: 0\n+             }\n+           ],\n+           group: 0,\n+           id: 'r.0',\n+           kind: 'cat',\n+           maximum: 0,\n+           minimum: 0\n+         },\n+         ordinal: 1,\n+         parent: 0,\n+         start: 2\n+       },\n+       {\n+         activation: 10,\n+         children: [\n+           {\n+             activation: 11,\n+             children: [\n                {\n+                 activation: 12,\n-                 activation: 9,\n                  children: [],\n                  end: 4,\n                  node: {\n                    byte: 'a',\n                    children: [],\n...\n                  },\n+                 ordinal: 0,\n+                 parent: 11,\n-                 ordinal: 1,\n-                 parent: 7,\n                  start: 3\n                }\n              ],\n              end: 4,\n              node: {\n...\n              ordinal: null,\n+             parent: 10,\n+             start: 3\n-             parent: 6,\n-             start: 2\n            },\n            {\n+             activation: 13,\n-             activation: 10,\n              children: [],\n              end: 4,\n              node: {\n                byte: undefined,\n                children: [\n...\n              ordinal: null,\n+             parent: 10,\n-             parent: 6,\n              start: 4\n            }\n          ],\n          end: 4,\n          node: {\n...\n          },\n+         ordinal: 2,\n-         ordinal: 1,\n          parent: 0,\n+         start: 3\n-         start: 2\n        }\n      ],\n      end: 4,\n      node: {\n        byte: undefined,\n",
+          "code": "ERR_ASSERTION"
+        },
+        {
+          "id": "mutant/NODE-as-TREE/G3/NODE/W4wrapped",
+          "status": "fail",
+          "message": "Expected \"actual\" to be reference-equal to \"expected\":\n+ actual - expected\n... Skipped lines\n\n  {\n    env: [\n      {\n        state: 'absent'\n      },\n      {\n+       activation: 19,\n-       activation: 11,\n        end: 4,\n+       start: 3,\n-       start: 2,\n        state: 'completed-nonempty'\n      },\n      {\n+       activation: 22,\n-       activation: 14,\n        end: 4,\n+       start: 3,\n-       start: 2,\n        state: 'completed-nonempty'\n      },\n      {\n        activation: 0,\n        end: 4,\n...\n      {\n+       activation: 20,\n-       activation: 12,\n        end: 4,\n+       start: 3,\n-       start: 2,\n        state: 'completed-nonempty'\n      },\n      {\n+       activation: 23,\n-       activation: 15,\n        end: 4,\n+       start: 3,\n-       start: 2,\n        state: 'completed-nonempty'\n      }\n    ],\n    events: [\n      {\n...\n      {\n+       activation: 8,\n+       end: undefined,\n-       activation: null,\n-       end: 0,\n        env: [\n          {\n            state: 'absent'\n          },\n          {\n...\n        start: 0,\n+       type: 'enter'\n-       type: 'skip'\n      },\n      {\n+       activation: 8,\n+       end: 1,\n-       activation: 7,\n-       end: 0,\n        env: [\n          {\n            state: 'absent'\n          },\n          {\n...\n        ],\n+       node: 'r.0.0.0.0.0.0.0.0',\n+       ordinal: 0,\n+       parent: 7,\n-       node: 'r.0.0.0.0.0.0.0',\n-       ordinal: null,\n-       parent: 6,\n        start: 0,\n        type: 'exit'\n      },\n      {\n+       activation: 9,\n+       end: undefined,\n-       activation: 6,\n-       end: 0,\n        env: [\n          {\n            state: 'absent'\n          },\n          {\n...\n            activation: 6,\n+           end: undefined,\n-           end: 0,\n            start: 0,\n+           state: 'open'\n-           state: 'completed-empty'\n          }\n        ],\n+       node: 'r.0.0.0.0.0.0.0.0',\n+       ordinal: 1,\n+       parent: 7,\n+       start: 1,\n+       type: 'enter'\n-       node: 'r.0.0.0.0.0.0',\n-       ordinal: null,\n-       parent: 5,\n-       start: 0,\n-       type: 'exit'\n      },\n      {\n+       activation: 9,\n+       end: 2,\n-       activation: 5,\n-       end: 0,\n        env: [\n          {\n            state: 'absent'\n          },\n          {\n...\n            activation: 5,\n+           end: undefined,\n-           end: 0,\n            start: 0,\n+           state: 'open'\n-           state: 'completed-empty'\n          },\n          {\n            activation: 0,\n            end: undefined,\n            start: 0,\n...\n            activation: 6,\n+           end: undefined,\n-           end: 0,\n            start: 0,\n+           state: 'open'\n-           state: 'completed-empty'\n          }\n        ],\n+       node: 'r.0.0.0.0.0.0.0.0',\n+       ordinal: 1,\n+       parent: 7,\n+       start: 1,\n-       node: 'r.0.0.0.0.0',\n-       ordinal: null,\n-       parent: 4,\n-       start: 0,\n        type: 'exit'\n      },\n      {\n+       activation: null,\n+       end: 2,\n-       activation: 8,\n-       end: undefined,\n        env: [\n          {\n            state: 'absent'\n          },\n          {\n...\n            activation: 5,\n+           end: undefined,\n-           end: 0,\n            start: 0,\n+           state: 'open'\n-           state: 'completed-empty'\n          },\n          {\n            activation: 0,\n            end: undefined,\n            start: 0,\n...\n            activation: 6,\n+           end: undefined,\n-           end: 0,\n            start: 0,\n+           state: 'open'\n-           state: 'completed-empty'\n          }\n        ],\n+       node: 'r.0.0.0.0.0.0.0.0',\n+       ordinal: 2,\n+       parent: 7,\n+       start: 2,\n+       type: 'skip'\n-       node: 'r.0.0.0.0.1',\n-       ordinal: null,\n-       parent: 4,\n-       start: 0,\n-       type: 'enter'\n      },\n      {\n+       activation: 7,\n+       end: 2,\n-       activation: 9,\n-       end: undefined,\n        env: [\n          {\n            state: 'absent'\n          },\n          {\n...\n            activation: 5,\n+           end: undefined,\n-           end: 0,\n            start: 0,\n+           state: 'open'\n-           state: 'completed-empty'\n          },\n          {\n            activation: 0,\n            end: undefined,\n            start: 0,\n...\n            activation: 6,\n+           end: undefined,\n-           end: 0,\n            start: 0,\n+           state: 'open'\n-           state: 'completed-empty'\n          }\n        ],\n+       node: 'r.0.0.0.0.0.0.0',\n+       ordinal: null,\n+       parent: 6,\n-       node: 'r.0.0.0.0.1.0',\n-       ordinal: 0,\n-       parent: 8,\n        start: 0,\n+       type: 'exit'\n-       type: 'enter'\n      },\n      {\n+       activation: 6,\n+       end: 2,\n-       activation: 9,\n-       end: 1,\n        env: [\n          {\n            state: 'absent'\n          },\n          {\n...\n            activation: 5,\n+           end: undefined,\n-           end: 0,\n            start: 0,\n+           state: 'open'\n-           state: 'completed-empty'\n          },\n          {\n            activation: 0,\n            end: undefined,\n            start: 0,\n...\n            activation: 6,\n+           end: 2,\n-           end: 0,\n            start: 0,\n+           state: 'completed-nonempty'\n-           state: 'completed-empty'\n          }\n        ],\n+       node: 'r.0.0.0.0.0.0',\n+       ordinal: null,\n+       parent: 5,\n-       node: 'r.0.0.0.0.1.0',\n-       ordinal: 0,\n-       parent: 8,\n        start: 0,\n        type: 'exit'\n      },\n      {\n+       activation: 5,\n+       end: 2,\n-       activation: 10,\n-       end: undefined,\n        env: [\n          {\n            state: 'absent'\n          },\n          {\n...\n            activation: 5,\n+           end: 2,\n-           end: 0,\n            start: 0,\n+           state: 'completed-nonempty'\n-           state: 'completed-empty'\n          },\n          {\n            activation: 0,\n            end: undefined,\n            start: 0,\n...\n            activation: 6,\n+           end: 2,\n-           end: 0,\n            start: 0,\n+           state: 'completed-nonempty'\n-           state: 'completed-empty'\n          }\n        ],\n+       node: 'r.0.0.0.0.0',\n+       ordinal: null,\n+       parent: 4,\n+       start: 0,\n+       type: 'exit'\n-       node: 'r.0.0.0.0.1.0',\n-       ordinal: 1,\n-       parent: 8,\n-       start: 1,\n-       type: 'enter'\n      },\n      {\n        activation: 10,\n+       end: undefined,\n-       end: 2,\n        env: [\n          {\n            state: 'absent'\n          },\n          {\n...\n            activation: 5,\n+           end: 2,\n-           end: 0,\n            start: 0,\n+           state: 'completed-nonempty'\n-           state: 'completed-empty'\n          },\n          {\n            activation: 0,\n            end: undefined,\n            start: 0,\n...\n            activation: 6,\n+           end: 2,\n-           end: 0,\n            start: 0,\n+           state: 'completed-nonempty'\n-           state: 'completed-empty'\n          }\n        ],\n+       node: 'r.0.0.0.0.1',\n+       ordinal: null,\n+       parent: 4,\n+       start: 2,\n+       type: 'enter'\n-       node: 'r.0.0.0.0.1.0',\n-       ordinal: 1,\n-       parent: 8,\n-       start: 1,\n-       type: 'exit'\n      },\n      {\n        activation: null,\n        end: 2,\n        env: [\n...\n            activation: 5,\n+           end: 2,\n-           end: 0,\n            start: 0,\n+           state: 'completed-nonempty'\n-           state: 'completed-empty'\n          },\n          {\n            activation: 0,\n            end: undefined,\n            start: 0,\n...\n            activation: 6,\n+           end: 2,\n-           end: 0,\n            start: 0,\n+           state: 'completed-nonempty'\n-           state: 'completed-empty'\n          }\n        ],\n        node: 'r.0.0.0.0.1.0',\n+       ordinal: 0,\n+       parent: 10,\n-       ordinal: 2,\n-       parent: 8,\n        start: 2,\n        type: 'skip'\n      },\n      {\n+       activation: 10,\n-       activation: 8,\n        end: 2,\n        env: [\n          {\n            state: 'absent'\n          },\n...\n            activation: 5,\n+           end: 2,\n-           end: 0,\n            start: 0,\n+           state: 'completed-nonempty'\n-           state: 'completed-empty'\n          },\n          {\n            activation: 0,\n            end: undefined,\n            start: 0,\n...\n            activation: 6,\n+           end: 2,\n-           end: 0,\n            start: 0,\n+           state: 'completed-nonempty'\n-           state: 'completed-empty'\n          }\n        ],\n        node: 'r.0.0.0.0.1',\n        ordinal: null,\n        parent: 4,\n+       start: 2,\n-       start: 0,\n        type: 'exit'\n      },\n      {\n        activation: 4,\n        end: 2,\n...\n            activation: 5,\n+           end: 2,\n-           end: 0,\n            start: 0,\n+           state: 'completed-nonempty'\n-           state: 'completed-empty'\n          },\n          {\n            activation: 0,\n            end: undefined,\n            start: 0,\n...\n            activation: 6,\n+           end: 2,\n-           end: 0,\n            start: 0,\n+           state: 'completed-nonempty'\n-           state: 'completed-empty'\n          }\n        ],\n        node: 'r.0.0.0.0',\n        ordinal: null,\n        parent: 3,\n...\n            activation: 5,\n+           end: 2,\n-           end: 0,\n            start: 0,\n+           state: 'completed-nonempty'\n-           state: 'completed-empty'\n          },\n          {\n            activation: 0,\n            end: undefined,\n            start: 0,\n...\n            activation: 6,\n+           end: 2,\n-           end: 0,\n            start: 0,\n+           state: 'completed-nonempty'\n-           state: 'completed-empty'\n          }\n        ],\n        node: 'r.0.0.0',\n        ordinal: null,\n        parent: 2,\n...\n            activation: 5,\n+           end: 2,\n-           end: 0,\n            start: 0,\n+           state: 'completed-nonempty'\n-           state: 'completed-empty'\n          },\n          {\n            activation: 0,\n            end: undefined,\n            start: 0,\n...\n            activation: 6,\n+           end: 2,\n-           end: 0,\n            start: 0,\n+           state: 'completed-nonempty'\n-           state: 'completed-empty'\n          }\n        ],\n        node: 'r.0.0',\n        ordinal: 0,\n        parent: 1,\n...\n            activation: 5,\n+           end: 2,\n-           end: 0,\n            start: 0,\n+           state: 'completed-nonempty'\n-           state: 'completed-empty'\n          },\n          {\n            activation: 0,\n            end: undefined,\n            start: 0,\n...\n            activation: 6,\n+           end: 2,\n-           end: 0,\n            start: 0,\n+           state: 'completed-nonempty'\n-           state: 'completed-empty'\n          }\n        ],\n        node: 'r.0.0',\n        ordinal: 1,\n        parent: 1,\n...\n            activation: 5,\n+           end: 2,\n-           end: 0,\n            start: 0,\n+           state: 'completed-nonempty'\n-           state: 'completed-empty'\n          },\n          {\n            activation: 0,\n            end: undefined,\n            start: 0,\n...\n            activation: 6,\n+           end: 2,\n-           end: 0,\n            start: 0,\n+           state: 'completed-nonempty'\n-           state: 'completed-empty'\n          }\n        ],\n        node: 'r.0.0.0',\n        ordinal: null,\n        parent: 11,\n...\n            activation: 5,\n+           end: 2,\n-           end: 0,\n            start: 0,\n+           state: 'completed-nonempty'\n-           state: 'completed-empty'\n          },\n          {\n            activation: 0,\n            end: undefined,\n            start: 0,\n...\n            activation: 6,\n+           end: 2,\n-           end: 0,\n            start: 0,\n+           state: 'completed-nonempty'\n-           state: 'completed-empty'\n          }\n        ],\n        node: 'r.0.0.0.0',\n        ordinal: null,\n        parent: 12,\n...\n            activation: 6,\n+           end: 2,\n-           end: 0,\n            start: 0,\n+           state: 'completed-nonempty'\n-           state: 'completed-empty'\n          }\n        ],\n        node: 'r.0.0.0.0.0',\n        ordinal: null,\n        parent: 13,\n...\n      {\n+       activation: null,\n+       end: 3,\n-       activation: 18,\n-       end: undefined,\n        env: [\n          {\n            state: 'absent'\n          },\n          {\n...\n        start: 3,\n+       type: 'skip'\n-       type: 'enter'\n      },\n      {\n+       activation: 16,\n+       end: 3,\n-       activation: 18,\n-       end: 4,\n        env: [\n          {\n            state: 'absent'\n          },\n          {\n...\n        ],\n+       node: 'r.0.0.0.0.0.0.0',\n+       ordinal: null,\n+       parent: 15,\n+       start: 2,\n-       node: 'r.0.0.0.0.0.0.0.0',\n-       ordinal: 1,\n-       parent: 16,\n-       start: 3,\n        type: 'exit'\n      },\n      {\n+       activation: 15,\n+       end: 3,\n-       activation: null,\n-       end: 4,\n        env: [\n          {\n            state: 'absent'\n          },\n          {\n...\n            activation: 15,\n+           end: 3,\n+           start: 2,\n+           state: 'completed-nonempty'\n+         }\n+       ],\n+       node: 'r.0.0.0.0.0.0',\n+       ordinal: null,\n+       parent: 14,\n+       start: 2,\n+       type: 'exit'\n+     },\n+     {\n+       activation: 14,\n+       end: 3,\n+       env: [\n+         {\n+           state: 'absent'\n+         },\n+         {\n+           activation: 11,\n            end: undefined,\n            start: 2,\n            state: 'open'\n          },\n+         {\n+           activation: 14,\n+           end: 3,\n+           start: 2,\n+           state: 'completed-nonempty'\n+         },\n+         {\n+           activation: 0,\n+           end: undefined,\n+           start: 0,\n+           state: 'open'\n+         },\n+         {\n+           activation: 12,\n+           end: undefined,\n+           start: 2,\n+           state: 'open'\n+         },\n+         {\n+           activation: 15,\n+           end: 3,\n+           start: 2,\n+           state: 'completed-nonempty'\n+         }\n        ],\n+       node: 'r.0.0.0.0.0',\n+       ordinal: null,\n+       parent: 13,\n+       start: 2,\n+       type: 'exit'\n-       node: 'r.0.0.0.0.0.0.0.0',\n-       ordinal: 2,\n-       parent: 16,\n-       start: 4,\n-       type: 'skip'\n      },\n      {\n+       activation: 18,\n+       end: undefined,\n-       activation: 16,\n-       end: 4,\n        env: [\n          {\n            state: 'absent'\n          },\n          {\n...\n            activation: 14,\n+           end: 3,\n+           start: 2,\n+           state: 'completed-nonempty'\n+         },\n+         {\n+           activation: 0,\n            end: undefined,\n+           start: 0,\n+           state: 'open'\n+         },\n+         {\n+           activation: 12,\n+           end: undefined,\n            start: 2,\n            state: 'open'\n          },\n          {\n+           activation: 15,\n+           end: 3,\n+           start: 2,\n+           state: 'completed-nonempty'\n+         }\n+       ],\n+       node: 'r.0.0.0.0.1',\n+       ordinal: null,\n+       parent: 13,\n+       start: 3,\n+       type: 'enter'\n+     },\n+     {\n+       activation: null,\n+       end: 3,\n+       env: [\n+         {\n+           state: 'absent'\n+         },\n+         {\n+           activation: 11,\n+           end: undefined,\n+           start: 2,\n+           state: 'open'\n+         },\n+         {\n+           activation: 14,\n+           end: 3,\n+           start: 2,\n+           state: 'completed-nonempty'\n+         },\n+         {\n            activation: 0,\n            end: undefined,\n            start: 0,\n            state: 'open'\n          },\n...\n            activation: 15,\n+           end: 3,\n+           start: 2,\n+           state: 'completed-nonempty'\n+         }\n+       ],\n+       node: 'r.0.0.0.0.1.0',\n+       ordinal: 0,\n+       parent: 18,\n+       start: 3,\n+       type: 'skip'\n+     },\n+     {\n+       activation: 18,\n+       end: 3,\n+       env: [\n+         {\n+           state: 'absent'\n+         },\n+         {\n+           activation: 11,\n            end: undefined,\n            start: 2,\n            state: 'open'\n          },\n+         {\n+           activation: 14,\n+           end: 3,\n+           start: 2,\n+           state: 'completed-nonempty'\n+         },\n+         {\n+           activation: 0,\n+           end: undefined,\n+           start: 0,\n+           state: 'open'\n+         },\n+         {\n+           activation: 12,\n+           end: undefined,\n+           start: 2,\n+           state: 'open'\n+         },\n+         {\n+           activation: 15,\n+           end: 3,\n+           start: 2,\n+           state: 'completed-nonempty'\n+         }\n        ],\n+       node: 'r.0.0.0.0.1',\n-       node: 'r.0.0.0.0.0.0.0',\n        ordinal: null,\n+       parent: 13,\n+       start: 3,\n-       parent: 15,\n-       start: 2,\n        type: 'exit'\n      },\n      {\n+       activation: 13,\n+       end: 3,\n-       activation: 15,\n-       end: 4,\n        env: [\n          {\n            state: 'absent'\n          },\n          {\n...\n            activation: 14,\n+           end: 3,\n-           end: undefined,\n            start: 2,\n+           state: 'completed-nonempty'\n-           state: 'open'\n          },\n          {\n            activation: 0,\n            end: undefined,\n            start: 0,\n...\n            activation: 15,\n+           end: 3,\n-           end: 4,\n            start: 2,\n            state: 'completed-nonempty'\n          }\n        ],\n+       node: 'r.0.0.0.0',\n-       node: 'r.0.0.0.0.0.0',\n        ordinal: null,\n+       parent: 12,\n-       parent: 14,\n        start: 2,\n        type: 'exit'\n      },\n      {\n+       activation: 12,\n+       end: 3,\n-       activation: 14,\n-       end: 4,\n        env: [\n          {\n            state: 'absent'\n          },\n          {\n...\n            activation: 14,\n+           end: 3,\n-           end: 4,\n            start: 2,\n            state: 'completed-nonempty'\n          },\n          {\n            activation: 0,\n...\n            activation: 12,\n+           end: 3,\n-           end: undefined,\n            start: 2,\n+           state: 'completed-nonempty'\n-           state: 'open'\n          },\n          {\n            activation: 15,\n+           end: 3,\n-           end: 4,\n            start: 2,\n            state: 'completed-nonempty'\n          }\n        ],\n+       node: 'r.0.0.0',\n-       node: 'r.0.0.0.0.0',\n        ordinal: null,\n+       parent: 11,\n-       parent: 13,\n        start: 2,\n        type: 'exit'\n      },\n      {\n+       activation: 11,\n+       end: 3,\n+       env: [\n+         {\n+           state: 'absent'\n+         },\n+         {\n+           activation: 11,\n+           end: 3,\n+           start: 2,\n+           state: 'completed-nonempty'\n+         },\n+         {\n+           activation: 14,\n+           end: 3,\n+           start: 2,\n+           state: 'completed-nonempty'\n+         },\n+         {\n+           activation: 0,\n+           end: undefined,\n+           start: 0,\n+           state: 'open'\n+         },\n+         {\n+           activation: 12,\n+           end: 3,\n+           start: 2,\n+           state: 'completed-nonempty'\n+         },\n+         {\n+           activation: 15,\n+           end: 3,\n+           start: 2,\n+           state: 'completed-nonempty'\n+         }\n+       ],\n+       node: 'r.0.0',\n+       ordinal: 1,\n+       parent: 1,\n+       start: 2,\n+       type: 'exit'\n+     },\n+     {\n        activation: 19,\n        end: undefined,\n        env: [\n          {\n            state: 'absent'\n          },\n          {\n+           activation: 19,\n-           activation: 11,\n            end: undefined,\n+           start: 3,\n-           start: 2,\n            state: 'open'\n          },\n          {\n            activation: 14,\n+           end: 3,\n-           end: 4,\n            start: 2,\n            state: 'completed-nonempty'\n          },\n          {\n            activation: 0,\n...\n            activation: 12,\n+           end: 3,\n+           start: 2,\n+           state: 'completed-nonempty'\n+         },\n+         {\n+           activation: 15,\n+           end: 3,\n+           start: 2,\n+           state: 'completed-nonempty'\n+         }\n+       ],\n+       node: 'r.0.0',\n+       ordinal: 2,\n+       parent: 1,\n+       start: 3,\n+       type: 'enter'\n+     },\n+     {\n+       activation: 20,\n+       end: undefined,\n+       env: [\n+         {\n+           state: 'absent'\n+         },\n+         {\n+           activation: 19,\n            end: undefined,\n+           start: 3,\n+           state: 'open'\n+         },\n+         {\n+           activation: 14,\n+           end: 3,\n            start: 2,\n+           state: 'completed-nonempty'\n+         },\n+         {\n+           activation: 0,\n+           end: undefined,\n+           start: 0,\n            state: 'open'\n          },\n          {\n+           activation: 20,\n+           end: undefined,\n+           start: 3,\n+           state: 'open'\n+         },\n+         {\n            activation: 15,\n+           end: 3,\n-           end: 4,\n            start: 2,\n            state: 'completed-nonempty'\n          }\n        ],\n+       node: 'r.0.0.0',\n+       ordinal: null,\n+       parent: 19,\n+       start: 3,\n+       type: 'enter'\n+     },\n+     {\n+       activation: 21,\n+       end: undefined,\n+       env: [\n+         {\n+           state: 'absent'\n+         },\n+         {\n+           activation: 19,\n+           end: undefined,\n+           start: 3,\n+           state: 'open'\n+         },\n+         {\n+           activation: 14,\n+           end: 3,\n+           start: 2,\n+           state: 'completed-nonempty'\n+         },\n+         {\n+           activation: 0,\n+           end: undefined,\n+           start: 0,\n+           state: 'open'\n+         },\n+         {\n+           activation: 20,\n+           end: undefined,\n+           start: 3,\n+           state: 'open'\n+         },\n+         {\n+           activation: 15,\n+           end: 3,\n+           start: 2,\n+           state: 'completed-nonempty'\n+         }\n+       ],\n+       node: 'r.0.0.0.0',\n+       ordinal: null,\n+       parent: 20,\n+       start: 3,\n+       type: 'enter'\n+     },\n+     {\n+       activation: 22,\n+       end: undefined,\n+       env: [\n+         {\n+           state: 'absent'\n+         },\n+         {\n+           activation: 19,\n+           end: undefined,\n+           start: 3,\n+           state: 'open'\n+         },\n+         {\n+           activation: 22,\n+           end: undefined,\n+           start: 3,\n+           state: 'open'\n+         },\n+         {\n+           activation: 0,\n+           end: undefined,\n+           start: 0,\n+           state: 'open'\n+         },\n+         {\n+           activation: 20,\n+           end: undefined,\n+           start: 3,\n+           state: 'open'\n+         },\n+         {\n+           activation: 15,\n+           end: 3,\n+           start: 2,\n+           state: 'completed-nonempty'\n+         }\n+       ],\n+       node: 'r.0.0.0.0.0',\n+       ordinal: null,\n+       parent: 21,\n+       start: 3,\n+       type: 'enter'\n+     },\n+     {\n+       activation: 23,\n+       end: undefined,\n+       env: [\n+         {\n+           state: 'absent'\n+         },\n+         {\n+           activation: 19,\n+           end: undefined,\n+           start: 3,\n+           state: 'open'\n+         },\n+         {\n+           activation: 22,\n+           end: undefined,\n+           start: 3,\n+           state: 'open'\n+         },\n+         {\n+           activation: 0,\n+           end: undefined,\n+           start: 0,\n+           state: 'open'\n+         },\n+         {\n+           activation: 20,\n+           end: undefined,\n+           start: 3,\n+           state: 'open'\n+         },\n+         {\n+           activation: 23,\n+           end: undefined,\n+           start: 3,\n+           state: 'open'\n+         }\n+       ],\n+       node: 'r.0.0.0.0.0.0',\n+       ordinal: null,\n+       parent: 22,\n+       start: 3,\n+       type: 'enter'\n+     },\n+     {\n+       activation: 24,\n+       end: undefined,\n+       env: [\n+         {\n+           state: 'absent'\n+         },\n+         {\n+           activation: 19,\n+           end: undefined,\n+           start: 3,\n+           state: 'open'\n+         },\n+         {\n+           activation: 22,\n+           end: undefined,\n+           start: 3,\n+           state: 'open'\n+         },\n+         {\n+           activation: 0,\n+           end: undefined,\n+           start: 0,\n+           state: 'open'\n+         },\n+         {\n+           activation: 20,\n+           end: undefined,\n+           start: 3,\n+           state: 'open'\n+         },\n+         {\n+           activation: 23,\n+           end: undefined,\n+           start: 3,\n+           state: 'open'\n+         }\n+       ],\n+       node: 'r.0.0.0.0.0.0.0',\n+       ordinal: null,\n+       parent: 23,\n+       start: 3,\n+       type: 'enter'\n+     },\n+     {\n+       activation: 25,\n+       end: undefined,\n+       env: [\n+         {\n+           state: 'absent'\n+         },\n+         {\n+           activation: 19,\n+           end: undefined,\n+           start: 3,\n+           state: 'open'\n+         },\n+         {\n+           activation: 22,\n+           end: undefined,\n+           start: 3,\n+           state: 'open'\n+         },\n+         {\n+           activation: 0,\n+           end: undefined,\n+           start: 0,\n+           state: 'open'\n+         },\n+         {\n+           activation: 20,\n+           end: undefined,\n+           start: 3,\n+           state: 'open'\n+         },\n+         {\n+           activation: 23,\n+           end: undefined,\n+           start: 3,\n+           state: 'open'\n+         }\n+       ],\n+       node: 'r.0.0.0.0.0.0.0.0',\n+       ordinal: 0,\n+       parent: 24,\n+       start: 3,\n+       type: 'enter'\n+     },\n+     {\n+       activation: 25,\n+       end: 4,\n+       env: [\n+         {\n+           state: 'absent'\n+         },\n+         {\n+           activation: 19,\n+           end: undefined,\n+           start: 3,\n+           state: 'open'\n+         },\n+         {\n+           activation: 22,\n+           end: undefined,\n+           start: 3,\n+           state: 'open'\n+         },\n+         {\n+           activation: 0,\n+           end: undefined,\n+           start: 0,\n+           state: 'open'\n+         },\n+         {\n+           activation: 20,\n+           end: undefined,\n+           start: 3,\n+           state: 'open'\n+         },\n+         {\n+           activation: 23,\n+           end: undefined,\n+           start: 3,\n+           state: 'open'\n+         }\n+       ],\n+       node: 'r.0.0.0.0.0.0.0.0',\n+       ordinal: 0,\n+       parent: 24,\n+       start: 3,\n+       type: 'exit'\n+     },\n+     {\n+       activation: null,\n+       end: 4,\n+       env: [\n+         {\n+           state: 'absent'\n+         },\n+         {\n+           activation: 19,\n+           end: undefined,\n+           start: 3,\n+           state: 'open'\n+         },\n+         {\n+           activation: 22,\n+           end: undefined,\n+           start: 3,\n+           state: 'open'\n+         },\n+         {\n+           activation: 0,\n+           end: undefined,\n+           start: 0,\n+           state: 'open'\n+         },\n+         {\n+           activation: 20,\n+           end: undefined,\n+           start: 3,\n+           state: 'open'\n+         },\n+         {\n+           activation: 23,\n+           end: undefined,\n+           start: 3,\n+           state: 'open'\n+         }\n+       ],\n+       node: 'r.0.0.0.0.0.0.0.0',\n+       ordinal: 1,\n+       parent: 24,\n+       start: 4,\n+       type: 'skip'\n+     },\n+     {\n+       activation: 24,\n+       end: 4,\n+       env: [\n+         {\n+           state: 'absent'\n+         },\n+         {\n+           activation: 19,\n+           end: undefined,\n+           start: 3,\n+           state: 'open'\n+         },\n+         {\n+           activation: 22,\n+           end: undefined,\n+           start: 3,\n+           state: 'open'\n+         },\n+         {\n+           activation: 0,\n+           end: undefined,\n+           start: 0,\n+           state: 'open'\n+         },\n+         {\n+           activation: 20,\n+           end: undefined,\n+           start: 3,\n+           state: 'open'\n+         },\n+         {\n+           activation: 23,\n+           end: undefined,\n+           start: 3,\n+           state: 'open'\n+         }\n+       ],\n+       node: 'r.0.0.0.0.0.0.0',\n+       ordinal: null,\n+       parent: 23,\n+       start: 3,\n+       type: 'exit'\n+     },\n+     {\n+       activation: 23,\n+       end: 4,\n+       env: [\n+         {\n+           state: 'absent'\n+         },\n+         {\n+           activation: 19,\n+           end: undefined,\n+           start: 3,\n+           state: 'open'\n+         },\n+         {\n+           activation: 22,\n+           end: undefined,\n+           start: 3,\n+           state: 'open'\n+         },\n+         {\n+           activation: 0,\n+           end: undefined,\n+           start: 0,\n+           state: 'open'\n+         },\n+         {\n+           activation: 20,\n+           end: undefined,\n+           start: 3,\n+           state: 'open'\n+         },\n+         {\n+           activation: 23,\n+           end: 4,\n+           start: 3,\n+           state: 'completed-nonempty'\n+         }\n+       ],\n+       node: 'r.0.0.0.0.0.0',\n+       ordinal: null,\n+       parent: 22,\n+       start: 3,\n+       type: 'exit'\n+     },\n+     {\n+       activation: 22,\n+       end: 4,\n+       env: [\n+         {\n+           state: 'absent'\n+         },\n+         {\n+           activation: 19,\n+           end: undefined,\n+           start: 3,\n+           state: 'open'\n+         },\n+         {\n+           activation: 22,\n+           end: 4,\n+           start: 3,\n+           state: 'completed-nonempty'\n+         },\n+         {\n+           activation: 0,\n+           end: undefined,\n+           start: 0,\n+           state: 'open'\n+         },\n+         {\n+           activation: 20,\n+           end: undefined,\n+           start: 3,\n+           state: 'open'\n+         },\n+         {\n+           activation: 23,\n+           end: 4,\n+           start: 3,\n+           state: 'completed-nonempty'\n+         }\n+       ],\n+       node: 'r.0.0.0.0.0',\n+       ordinal: null,\n+       parent: 21,\n+       start: 3,\n+       type: 'exit'\n+     },\n+     {\n+       activation: 26,\n+       end: undefined,\n+       env: [\n+         {\n+           state: 'absent'\n+         },\n+         {\n+           activation: 19,\n+           end: undefined,\n+           start: 3,\n+           state: 'open'\n+         },\n+         {\n+           activation: 22,\n+           end: 4,\n+           start: 3,\n+           state: 'completed-nonempty'\n+         },\n+         {\n+           activation: 0,\n+           end: undefined,\n+           start: 0,\n+           state: 'open'\n+         },\n+         {\n+           activation: 20,\n+           end: undefined,\n+           start: 3,\n+           state: 'open'\n+         },\n+         {\n+           activation: 23,\n+           end: 4,\n+           start: 3,\n+           state: 'completed-nonempty'\n+         }\n+       ],\n        node: 'r.0.0.0.0.1',\n        ordinal: null,\n+       parent: 21,\n-       parent: 13,\n        start: 4,\n        type: 'enter'\n      },\n      {\n        activation: null,\n...\n          {\n+           activation: 19,\n-           activation: 11,\n            end: undefined,\n+           start: 3,\n-           start: 2,\n            state: 'open'\n          },\n          {\n+           activation: 22,\n-           activation: 14,\n            end: 4,\n+           start: 3,\n-           start: 2,\n            state: 'completed-nonempty'\n          },\n          {\n            activation: 0,\n            end: undefined,\n...\n          {\n+           activation: 20,\n-           activation: 12,\n            end: undefined,\n+           start: 3,\n-           start: 2,\n            state: 'open'\n          },\n          {\n+           activation: 23,\n-           activation: 15,\n            end: 4,\n+           start: 3,\n-           start: 2,\n            state: 'completed-nonempty'\n          }\n        ],\n        node: 'r.0.0.0.0.1.0',\n        ordinal: 0,\n+       parent: 26,\n-       parent: 19,\n        start: 4,\n        type: 'skip'\n      },\n      {\n+       activation: 26,\n-       activation: 19,\n        end: 4,\n        env: [\n          {\n            state: 'absent'\n          },\n          {\n+           activation: 19,\n-           activation: 11,\n            end: undefined,\n+           start: 3,\n-           start: 2,\n            state: 'open'\n          },\n          {\n+           activation: 22,\n-           activation: 14,\n            end: 4,\n+           start: 3,\n-           start: 2,\n            state: 'completed-nonempty'\n          },\n          {\n            activation: 0,\n            end: undefined,\n...\n          {\n+           activation: 20,\n-           activation: 12,\n            end: undefined,\n+           start: 3,\n-           start: 2,\n            state: 'open'\n          },\n          {\n+           activation: 23,\n-           activation: 15,\n            end: 4,\n+           start: 3,\n-           start: 2,\n            state: 'completed-nonempty'\n          }\n        ],\n        node: 'r.0.0.0.0.1',\n        ordinal: null,\n+       parent: 21,\n-       parent: 13,\n        start: 4,\n        type: 'exit'\n      },\n      {\n+       activation: 21,\n-       activation: 13,\n        end: 4,\n        env: [\n          {\n            state: 'absent'\n          },\n          {\n+           activation: 19,\n-           activation: 11,\n            end: undefined,\n+           start: 3,\n-           start: 2,\n            state: 'open'\n          },\n          {\n+           activation: 22,\n-           activation: 14,\n            end: 4,\n+           start: 3,\n-           start: 2,\n            state: 'completed-nonempty'\n          },\n          {\n            activation: 0,\n            end: undefined,\n...\n          {\n+           activation: 20,\n-           activation: 12,\n            end: undefined,\n+           start: 3,\n-           start: 2,\n            state: 'open'\n          },\n          {\n+           activation: 23,\n-           activation: 15,\n            end: 4,\n+           start: 3,\n-           start: 2,\n            state: 'completed-nonempty'\n          }\n        ],\n        node: 'r.0.0.0.0',\n        ordinal: null,\n+       parent: 20,\n+       start: 3,\n-       parent: 12,\n-       start: 2,\n        type: 'exit'\n      },\n      {\n+       activation: 20,\n-       activation: 12,\n        end: 4,\n        env: [\n          {\n            state: 'absent'\n          },\n          {\n+           activation: 19,\n-           activation: 11,\n            end: undefined,\n+           start: 3,\n-           start: 2,\n            state: 'open'\n          },\n          {\n+           activation: 22,\n-           activation: 14,\n            end: 4,\n+           start: 3,\n-           start: 2,\n            state: 'completed-nonempty'\n          },\n          {\n            activation: 0,\n            end: undefined,\n...\n          {\n+           activation: 20,\n-           activation: 12,\n            end: 4,\n+           start: 3,\n-           start: 2,\n            state: 'completed-nonempty'\n          },\n          {\n+           activation: 23,\n-           activation: 15,\n            end: 4,\n+           start: 3,\n-           start: 2,\n            state: 'completed-nonempty'\n          }\n        ],\n        node: 'r.0.0.0',\n        ordinal: null,\n+       parent: 19,\n+       start: 3,\n-       parent: 11,\n-       start: 2,\n        type: 'exit'\n      },\n      {\n+       activation: 19,\n-       activation: 11,\n        end: 4,\n        env: [\n          {\n            state: 'absent'\n          },\n          {\n+           activation: 19,\n-           activation: 11,\n            end: 4,\n+           start: 3,\n-           start: 2,\n            state: 'completed-nonempty'\n          },\n          {\n+           activation: 22,\n-           activation: 14,\n            end: 4,\n+           start: 3,\n-           start: 2,\n            state: 'completed-nonempty'\n          },\n          {\n            activation: 0,\n            end: undefined,\n...\n          {\n+           activation: 20,\n-           activation: 12,\n            end: 4,\n+           start: 3,\n-           start: 2,\n            state: 'completed-nonempty'\n          },\n          {\n+           activation: 23,\n-           activation: 15,\n            end: 4,\n+           start: 3,\n-           start: 2,\n            state: 'completed-nonempty'\n          }\n        ],\n        node: 'r.0.0',\n+       ordinal: 2,\n-       ordinal: 1,\n        parent: 1,\n+       start: 3,\n-       start: 2,\n        type: 'exit'\n      },\n      {\n        activation: null,\n        end: 4,\n...\n          {\n+           activation: 19,\n-           activation: 11,\n            end: 4,\n+           start: 3,\n-           start: 2,\n            state: 'completed-nonempty'\n          },\n          {\n+           activation: 22,\n-           activation: 14,\n            end: 4,\n+           start: 3,\n-           start: 2,\n            state: 'completed-nonempty'\n          },\n          {\n            activation: 0,\n            end: undefined,\n...\n          {\n+           activation: 20,\n-           activation: 12,\n            end: 4,\n+           start: 3,\n-           start: 2,\n            state: 'completed-nonempty'\n          },\n          {\n+           activation: 23,\n-           activation: 15,\n            end: 4,\n+           start: 3,\n-           start: 2,\n            state: 'completed-nonempty'\n          }\n        ],\n        node: 'r.0.0',\n+       ordinal: 3,\n-       ordinal: 2,\n        parent: 1,\n        start: 4,\n        type: 'skip'\n      },\n      {\n...\n          {\n+           activation: 19,\n-           activation: 11,\n            end: 4,\n+           start: 3,\n-           start: 2,\n            state: 'completed-nonempty'\n          },\n          {\n+           activation: 22,\n-           activation: 14,\n            end: 4,\n+           start: 3,\n-           start: 2,\n            state: 'completed-nonempty'\n          },\n          {\n            activation: 0,\n            end: undefined,\n...\n          {\n+           activation: 20,\n-           activation: 12,\n            end: 4,\n+           start: 3,\n-           start: 2,\n            state: 'completed-nonempty'\n          },\n          {\n+           activation: 23,\n-           activation: 15,\n            end: 4,\n+           start: 3,\n-           start: 2,\n            state: 'completed-nonempty'\n          }\n        ],\n        node: 'r.0',\n        ordinal: null,\n...\n          {\n+           activation: 19,\n-           activation: 11,\n            end: 4,\n+           start: 3,\n-           start: 2,\n            state: 'completed-nonempty'\n          },\n          {\n+           activation: 22,\n-           activation: 14,\n            end: 4,\n+           start: 3,\n-           start: 2,\n            state: 'completed-nonempty'\n          },\n          {\n            activation: 0,\n            end: 4,\n...\n          {\n+           activation: 20,\n-           activation: 12,\n            end: 4,\n+           start: 3,\n-           start: 2,\n            state: 'completed-nonempty'\n          },\n          {\n+           activation: 23,\n-           activation: 15,\n            end: 4,\n+           start: 3,\n-           start: 2,\n            state: 'completed-nonempty'\n          }\n        ],\n        node: 'r',\n        ordinal: null,\n...\n                                  activation: 7,\n+                                 children: [\n+                                   {\n+                                     activation: 8,\n+                                     children: [],\n+                                     end: 1,\n+                                     node: {\n+                                       byte: 'a',\n+                                       children: [],\n+                                       group: 0,\n+                                       id: 'r.0.0.0.0.0.0.0.0',\n+                                       kind: 'byte',\n+                                       maximum: 0,\n+                                       minimum: 0\n+                                     },\n+                                     ordinal: 0,\n+                                     parent: 7,\n+                                     start: 0\n+                                   },\n+                                   {\n+                                     activation: 9,\n+                                     children: [],\n+                                     end: 2,\n+                                     node: {\n+                                       byte: 'a',\n+                                       children: [],\n+                                       group: 0,\n+                                       id: 'r.0.0.0.0.0.0.0.0',\n+                                       kind: 'byte',\n+                                       maximum: 0,\n+                                       minimum: 0\n+                                     },\n+                                     ordinal: 1,\n+                                     parent: 7,\n+                                     start: 1\n+                                   }\n+                                 ],\n+                                 end: 2,\n-                                 children: [],\n-                                 end: 0,\n                                  node: {\n                                    byte: undefined,\n                                    children: [\n                                      {\n                                        byte: 'a',\n...\n                              ],\n+                             end: 2,\n-                             end: 0,\n                              node: {\n                                byte: undefined,\n                                children: [\n                                  {\n                                    byte: undefined,\n...\n                          ],\n+                         end: 2,\n-                         end: 0,\n                          node: {\n                            byte: undefined,\n                            children: [\n                              {\n                                byte: undefined,\n...\n                        {\n+                         activation: 10,\n+                         children: [],\n-                         activation: 8,\n-                         children: [\n-                           {\n-                             activation: 9,\n-                             children: [],\n-                             end: 1,\n-                             node: {\n-                               byte: 'a',\n-                               children: [],\n-                               group: 0,\n-                               id: 'r.0.0.0.0.1.0',\n-                               kind: 'byte',\n-                               maximum: 0,\n-                               minimum: 0\n-                             },\n-                             ordinal: 0,\n-                             parent: 8,\n-                             start: 0\n-                           },\n-                           {\n-                             activation: 10,\n-                             children: [],\n-                             end: 2,\n-                             node: {\n-                               byte: 'a',\n-                               children: [],\n-                               group: 0,\n-                               id: 'r.0.0.0.0.1.0',\n-                               kind: 'byte',\n-                               maximum: 0,\n-                               minimum: 0\n-                             },\n-                             ordinal: 1,\n-                             parent: 8,\n-                             start: 1\n-                           }\n-                         ],\n                          end: 2,\n                          node: {\n                            byte: undefined,\n                            children: [\n                              {\n...\n                          parent: 4,\n+                         start: 2\n-                         start: 0\n                        }\n                      ],\n                      end: 2,\n                      node: {\n                        byte: undefined,\n...\n                                    },\n+                                 ],\n+                                 end: 3,\n+                                 node: {\n+                                   byte: undefined,\n+                                   children: [\n+                                     {\n+                                       byte: 'a',\n+                                       children: [],\n+                                       group: 0,\n+                                       id: 'r.0.0.0.0.0.0.0.0',\n+                                       kind: 'byte',\n+                                       maximum: 0,\n+                                       minimum: 0\n+                                     }\n+                                   ],\n+                                   group: 0,\n+                                   id: 'r.0.0.0.0.0.0.0',\n+                                   kind: 'repeat',\n+                                   maximum: null,\n+                                   minimum: 0\n+                                 },\n+                                 ordinal: null,\n+                                 parent: 15,\n+                                 start: 2\n+                               }\n+                             ],\n+                             end: 3,\n+                             node: {\n+                               byte: undefined,\n+                               children: [\n+                                 {\n+                                   byte: undefined,\n+                                   children: [\n+                                     {\n+                                       byte: 'a',\n+                                       children: [],\n+                                       group: 0,\n+                                       id: 'r.0.0.0.0.0.0.0.0',\n+                                       kind: 'byte',\n+                                       maximum: 0,\n+                                       minimum: 0\n+                                     }\n+                                   ],\n+                                   group: 0,\n+                                   id: 'r.0.0.0.0.0.0.0',\n+                                   kind: 'repeat',\n+                                   maximum: null,\n+                                   minimum: 0\n+                                 }\n+                               ],\n+                               group: 5,\n+                               id: 'r.0.0.0.0.0.0',\n+                               kind: 'group',\n+                               maximum: 0,\n+                               minimum: 0\n+                             },\n+                             ordinal: null,\n+                             parent: 14,\n+                             start: 2\n+                           }\n+                         ],\n+                         end: 3,\n+                         node: {\n+                           byte: undefined,\n+                           children: [\n+                             {\n+                               byte: undefined,\n+                               children: [\n+                                 {\n+                                   byte: undefined,\n+                                   children: [\n+                                     {\n+                                       byte: 'a',\n+                                       children: [],\n+                                       group: 0,\n+                                       id: 'r.0.0.0.0.0.0.0.0',\n+                                       kind: 'byte',\n+                                       maximum: 0,\n+                                       minimum: 0\n+                                     }\n+                                   ],\n+                                   group: 0,\n+                                   id: 'r.0.0.0.0.0.0.0',\n+                                   kind: 'repeat',\n+                                   maximum: null,\n+                                   minimum: 0\n+                                 }\n+                               ],\n+                               group: 5,\n+                               id: 'r.0.0.0.0.0.0',\n+                               kind: 'group',\n+                               maximum: 0,\n+                               minimum: 0\n+                             }\n+                           ],\n+                           group: 2,\n+                           id: 'r.0.0.0.0.0',\n+                           kind: 'group',\n+                           maximum: 0,\n+                           minimum: 0\n+                         },\n+                         ordinal: null,\n+                         parent: 13,\n+                         start: 2\n+                       },\n+                       {\n+                         activation: 18,\n+                         children: [],\n+                         end: 3,\n+                         node: {\n+                           byte: undefined,\n+                           children: [\n+                             {\n+                               byte: 'a',\n+                               children: [],\n+                               group: 0,\n+                               id: 'r.0.0.0.0.1.0',\n+                               kind: 'byte',\n+                               maximum: 0,\n+                               minimum: 0\n+                             }\n+                           ],\n+                           group: 0,\n+                           id: 'r.0.0.0.0.1',\n+                           kind: 'repeat',\n+                           maximum: null,\n+                           minimum: 0\n+                         },\n+                         ordinal: null,\n+                         parent: 13,\n+                         start: 3\n+                       }\n+                     ],\n+                     end: 3,\n+                     node: {\n+                       byte: undefined,\n+                       children: [\n+                         {\n+                           byte: undefined,\n+                           children: [\n+                             {\n+                               byte: undefined,\n+                               children: [\n+                                 {\n+                                   byte: undefined,\n+                                   children: [\n+                                     {\n+                                       byte: 'a',\n+                                       children: [],\n+                                       group: 0,\n+                                       id: 'r.0.0.0.0.0.0.0.0',\n+                                       kind: 'byte',\n+                                       maximum: 0,\n+                                       minimum: 0\n+                                     }\n+                                   ],\n+                                   group: 0,\n+                                   id: 'r.0.0.0.0.0.0.0',\n+                                   kind: 'repeat',\n+                                   maximum: null,\n+                                   minimum: 0\n+                                 }\n+                               ],\n+                               group: 5,\n+                               id: 'r.0.0.0.0.0.0',\n+                               kind: 'group',\n+                               maximum: 0,\n+                               minimum: 0\n+                             }\n+                           ],\n+                           group: 2,\n+                           id: 'r.0.0.0.0.0',\n+                           kind: 'group',\n+                           maximum: 0,\n+                           minimum: 0\n+                         },\n+                         {\n+                           byte: undefined,\n+                           children: [\n+                             {\n+                               byte: 'a',\n+                               children: [],\n+                               group: 0,\n+                               id: 'r.0.0.0.0.1.0',\n+                               kind: 'byte',\n+                               maximum: 0,\n+                               minimum: 0\n+                             }\n+                           ],\n+                           group: 0,\n+                           id: 'r.0.0.0.0.1',\n+                           kind: 'repeat',\n+                           maximum: null,\n+                           minimum: 0\n+                         }\n+                       ],\n+                       group: 0,\n+                       id: 'r.0.0.0.0',\n+                       kind: 'cat',\n+                       maximum: 0,\n+                       minimum: 0\n+                     },\n+                     ordinal: null,\n+                     parent: 12,\n+                     start: 2\n+                   }\n+                 ],\n+                 end: 3,\n+                 node: {\n+                   byte: undefined,\n+                   children: [\n+                     {\n+                       byte: undefined,\n+                       children: [\n+                         {\n+                           byte: undefined,\n+                           children: [\n+                             {\n+                               byte: undefined,\n+                               children: [\n+                                 {\n+                                   byte: undefined,\n+                                   children: [\n+                                     {\n+                                       byte: 'a',\n+                                       children: [],\n+                                       group: 0,\n+                                       id: 'r.0.0.0.0.0.0.0.0',\n+                                       kind: 'byte',\n+                                       maximum: 0,\n+                                       minimum: 0\n+                                     }\n+                                   ],\n+                                   group: 0,\n+                                   id: 'r.0.0.0.0.0.0.0',\n+                                   kind: 'repeat',\n+                                   maximum: null,\n+                                   minimum: 0\n+                                 }\n+                               ],\n+                               group: 5,\n+                               id: 'r.0.0.0.0.0.0',\n+                               kind: 'group',\n+                               maximum: 0,\n+                               minimum: 0\n+                             }\n+                           ],\n+                           group: 2,\n+                           id: 'r.0.0.0.0.0',\n+                           kind: 'group',\n+                           maximum: 0,\n+                           minimum: 0\n+                         },\n+                         {\n+                           byte: undefined,\n+                           children: [\n+                             {\n+                               byte: 'a',\n+                               children: [],\n+                               group: 0,\n+                               id: 'r.0.0.0.0.1.0',\n+                               kind: 'byte',\n+                               maximum: 0,\n+                               minimum: 0\n+                             }\n+                           ],\n+                           group: 0,\n+                           id: 'r.0.0.0.0.1',\n+                           kind: 'repeat',\n+                           maximum: null,\n+                           minimum: 0\n+                         }\n+                       ],\n+                       group: 0,\n+                       id: 'r.0.0.0.0',\n+                       kind: 'cat',\n+                       maximum: 0,\n+                       minimum: 0\n+                     }\n+                   ],\n+                   group: 4,\n+                   id: 'r.0.0.0',\n+                   kind: 'group',\n+                   maximum: 0,\n+                   minimum: 0\n+                 },\n+                 ordinal: null,\n+                 parent: 11,\n+                 start: 2\n+               }\n+             ],\n+             end: 3,\n+             node: {\n+               byte: undefined,\n+               children: [\n+                 {\n+                   byte: undefined,\n+                   children: [\n+                     {\n+                       byte: undefined,\n+                       children: [\n+                         {\n+                           byte: undefined,\n+                           children: [\n+                             {\n+                               byte: undefined,\n+                               children: [\n+                                 {\n+                                   byte: undefined,\n+                                   children: [\n+                                     {\n+                                       byte: 'a',\n+                                       children: [],\n+                                       group: 0,\n+                                       id: 'r.0.0.0.0.0.0.0.0',\n+                                       kind: 'byte',\n+                                       maximum: 0,\n+                                       minimum: 0\n+                                     }\n+                                   ],\n+                                   group: 0,\n+                                   id: 'r.0.0.0.0.0.0.0',\n+                                   kind: 'repeat',\n+                                   maximum: null,\n+                                   minimum: 0\n+                                 }\n+                               ],\n+                               group: 5,\n+                               id: 'r.0.0.0.0.0.0',\n+                               kind: 'group',\n+                               maximum: 0,\n+                               minimum: 0\n+                             }\n+                           ],\n+                           group: 2,\n+                           id: 'r.0.0.0.0.0',\n+                           kind: 'group',\n+                           maximum: 0,\n+                           minimum: 0\n+                         },\n+                         {\n+                           byte: undefined,\n+                           children: [\n+                             {\n+                               byte: 'a',\n+                               children: [],\n+                               group: 0,\n+                               id: 'r.0.0.0.0.1.0',\n+                               kind: 'byte',\n+                               maximum: 0,\n+                               minimum: 0\n+                             }\n+                           ],\n+                           group: 0,\n+                           id: 'r.0.0.0.0.1',\n+                           kind: 'repeat',\n+                           maximum: null,\n+                           minimum: 0\n+                         }\n+                       ],\n+                       group: 0,\n+                       id: 'r.0.0.0.0',\n+                       kind: 'cat',\n+                       maximum: 0,\n+                       minimum: 0\n+                     }\n+                   ],\n+                   group: 4,\n+                   id: 'r.0.0.0',\n+                   kind: 'group',\n+                   maximum: 0,\n+                   minimum: 0\n+                 }\n+               ],\n+               group: 1,\n+               id: 'r.0.0',\n+               kind: 'group',\n+               maximum: 0,\n+               minimum: 0\n+             },\n+             ordinal: 1,\n+             parent: 1,\n+             start: 2\n+           },\n+           {\n+             activation: 19,\n+             children: [\n+               {\n+                 activation: 20,\n+                 children: [\n+                   {\n+                     activation: 21,\n+                     children: [\n+                       {\n+                         activation: 22,\n+                         children: [\n+                           {\n+                             activation: 23,\n+                             children: [\n+                               {\n+                                 activation: 24,\n+                                 children: [\n                                    {\n+                                     activation: 25,\n-                                     activation: 18,\n                                      children: [],\n                                      end: 4,\n                                      node: {\n                                        byte: 'a',\n                                        children: [],\n...\n                                      },\n+                                     ordinal: 0,\n+                                     parent: 24,\n-                                     ordinal: 1,\n-                                     parent: 16,\n                                      start: 3\n                                    }\n                                  ],\n                                  end: 4,\n                                  node: {\n...\n                                  ordinal: null,\n+                                 parent: 23,\n+                                 start: 3\n-                                 parent: 15,\n-                                 start: 2\n                                }\n                              ],\n                              end: 4,\n                              node: {\n                                byte: undefined,\n...\n                              ordinal: null,\n+                             parent: 22,\n+                             start: 3\n-                             parent: 14,\n-                             start: 2\n                            }\n                          ],\n                          end: 4,\n                          node: {\n                            byte: undefined,\n...\n                          ordinal: null,\n+                         parent: 21,\n+                         start: 3\n-                         parent: 13,\n-                         start: 2\n                        },\n                        {\n+                         activation: 26,\n-                         activation: 19,\n                          children: [],\n                          end: 4,\n                          node: {\n                            byte: undefined,\n                            children: [\n...\n                          ordinal: null,\n+                         parent: 21,\n-                         parent: 13,\n                          start: 4\n                        }\n                      ],\n                      end: 4,\n                      node: {\n...\n                      ordinal: null,\n+                     parent: 20,\n+                     start: 3\n-                     parent: 12,\n-                     start: 2\n                    }\n                  ],\n                  end: 4,\n                  node: {\n                    byte: undefined,\n...\n                  ordinal: null,\n+                 parent: 19,\n+                 start: 3\n-                 parent: 11,\n-                 start: 2\n                }\n              ],\n              end: 4,\n              node: {\n                byte: undefined,\n...\n              },\n+             ordinal: 2,\n-             ordinal: 1,\n              parent: 1,\n+             start: 3\n-             start: 2\n            }\n          ],\n          end: 4,\n          node: {\n            byte: undefined,\n",
+          "code": "ERR_ASSERTION"
+        },
+        {
+          "id": "mutant/NODE-as-TREE/G3/TREE/W3",
+          "status": "pass"
+        },
+        {
+          "id": "mutant/NODE-as-TREE/G3/TREE/W4",
+          "status": "pass"
+        },
+        {
+          "id": "mutant/NODE-as-TREE/G3/TREE/W4bare",
+          "status": "pass"
+        },
+        {
+          "id": "mutant/NODE-as-TREE/G3/TREE/W4wrapped",
+          "status": "pass"
+        }
+      ]
+    },
+    {
+      "name": "skip-clears",
+      "status": "killed",
+      "sha256": "64bc0f1fc6db91239d08c8e1235b8d66d7064fe753464d1585dd37402da60531",
+      "additionalFailures": [
+        "mutant/skip-clears/G4/TEMP-origin-not-final-parent",
+        "mutant/skip-clears/G4/failed-branch-isolation",
+        "mutant/skip-clears/G5/emptyBody/exact-AST-subject-trace",
+        "mutant/skip-clears/G5/D/exact-AST-subject-trace",
+        "mutant/skip-clears/G6/same-position-different-env"
+      ],
+      "outcomes": [
+        {
+          "id": "mutant/skip-clears/G4/TEMP-origin-not-final-parent",
+          "status": "fail",
+          "message": "REFERENCE",
+          "code": "REFERENCE"
+        },
+        {
+          "id": "mutant/skip-clears/G4/failed-branch-isolation",
+          "status": "fail",
+          "message": "REFERENCE",
+          "code": "REFERENCE"
+        },
+        {
+          "id": "mutant/skip-clears/G4/Dreentry/open-replace",
+          "status": "pass"
+        },
+        {
+          "id": "mutant/skip-clears/G4/E/open-replace",
+          "status": "pass"
+        },
+        {
+          "id": "mutant/skip-clears/G5/P4/exact-AST-subject-trace",
+          "status": "pass"
+        },
+        {
+          "id": "mutant/skip-clears/G5/P3/exact-AST-subject-trace",
+          "status": "pass"
+        },
+        {
+          "id": "mutant/skip-clears/G5/prefix/exact-AST-subject-trace",
+          "status": "pass"
+        },
+        {
+          "id": "mutant/skip-clears/G5/boundedPrefix/exact-AST-subject-trace",
+          "status": "pass"
+        },
+        {
+          "id": "mutant/skip-clears/G5/nestedPrefix/exact-AST-subject-trace",
+          "status": "pass"
+        },
+        {
+          "id": "mutant/skip-clears/G5/emptyBody/exact-AST-subject-trace",
+          "status": "fail",
+          "message": "Expected values to be strictly deep-equal:\n+ actual - expected\n\n  [\n    {\n      state: 'absent'\n    },\n    {\n+     activation: undefined,\n+     end: undefined,\n+     start: undefined,\n      state: 'absent'\n    }\n  ]\n",
+          "code": "ERR_ASSERTION"
+        },
+        {
+          "id": "mutant/skip-clears/G5/Q0/exact-AST-subject-trace",
+          "status": "pass"
+        },
+        {
+          "id": "mutant/skip-clears/G5/requiredChild/exact-AST-subject-trace",
+          "status": "pass"
+        },
+        {
+          "id": "mutant/skip-clears/G5/requiredPrefix/exact-AST-subject-trace",
+          "status": "pass"
+        },
+        {
+          "id": "mutant/skip-clears/G5/W3/exact-AST-subject-trace",
+          "status": "pass"
+        },
+        {
+          "id": "mutant/skip-clears/G5/W4/exact-AST-subject-trace",
+          "status": "pass"
+        },
+        {
+          "id": "mutant/skip-clears/G5/W4bare/exact-AST-subject-trace",
+          "status": "pass"
+        },
+        {
+          "id": "mutant/skip-clears/G5/W4wrapped/exact-AST-subject-trace",
+          "status": "pass"
+        },
+        {
+          "id": "mutant/skip-clears/G5/D/exact-AST-subject-trace",
+          "status": "fail",
+          "message": "REFERENCE",
+          "code": "REFERENCE"
+        },
+        {
+          "id": "mutant/skip-clears/G5/Dreentry/exact-AST-subject-trace",
+          "status": "pass"
+        },
+        {
+          "id": "mutant/skip-clears/G5/E/exact-AST-subject-trace",
+          "status": "pass"
+        },
+        {
+          "id": "mutant/skip-clears/G5/emptyRef/exact-AST-subject-trace",
+          "status": "pass"
+        },
+        {
+          "id": "mutant/skip-clears/G5/span/negative",
+          "status": "pass"
+        },
+        {
+          "id": "mutant/skip-clears/G5/span/reversed",
+          "status": "pass"
+        },
+        {
+          "id": "mutant/skip-clears/G5/span/fractional",
+          "status": "pass"
+        },
+        {
+          "id": "mutant/skip-clears/G5/span/beyond",
+          "status": "pass"
+        },
+        {
+          "id": "mutant/skip-clears/G5/span/unsafe",
+          "status": "pass"
+        },
+        {
+          "id": "mutant/skip-clears/G5/forged-parent/ownership-only",
+          "status": "pass"
+        },
+        {
+          "id": "mutant/skip-clears/G5/forged-ordinal/ownership-only",
+          "status": "pass"
+        },
+        {
+          "id": "mutant/skip-clears/G5/forged-span/ownership-only",
+          "status": "pass"
+        },
+        {
+          "id": "mutant/skip-clears/G5/forged-unclosed/ownership-only",
+          "status": "pass"
+        },
+        {
+          "id": "mutant/skip-clears/G5/forged-origin/ownership-only",
+          "status": "pass"
+        },
+        {
+          "id": "mutant/skip-clears/G5/expected-span",
+          "status": "pass"
+        },
+        {
+          "id": "mutant/skip-clears/G5/missing-plan-child",
+          "status": "pass"
+        },
+        {
+          "id": "mutant/skip-clears/G6/same-position-different-env",
+          "status": "fail",
+          "message": "REFERENCE",
+          "code": "REFERENCE"
+        },
+        {
+          "id": "mutant/skip-clears/G6/NODE/no-merge-equivalent-rebuild",
+          "status": "pass"
+        },
+        {
+          "id": "mutant/skip-clears/G6/TREE/no-merge-equivalent-rebuild",
+          "status": "pass"
+        }
+      ]
+    },
+    {
+      "name": "disable-budget",
+      "status": "killed",
+      "sha256": "aa47d145bc527506a9087b412dbeae071c7f43776b9949bb17ba2af0b0c7c9da",
+      "additionalFailures": [
+        "mutant/disable-budget/G7/work/zero",
+        "mutant/disable-budget/G7/work/failed-build-cumulative",
+        "mutant/disable-budget/G7/NODE/work/after-incumbent",
+        "mutant/disable-budget/G7/NODE/work/comparison-preadmission",
+        "mutant/disable-budget/G7/TREE/work/after-incumbent",
+        "mutant/disable-budget/G7/TREE/work/comparison-preadmission",
+        "mutant/disable-budget/G7/allocation/zero",
+        "mutant/disable-budget/G7/allocation/failed-build-cumulative",
+        "mutant/disable-budget/G7/NODE/allocation/after-incumbent",
+        "mutant/disable-budget/G7/NODE/allocation/comparison-preadmission",
+        "mutant/disable-budget/G7/TREE/allocation/after-incumbent",
+        "mutant/disable-budget/G7/TREE/allocation/comparison-preadmission"
+      ],
+      "outcomes": [
+        {
+          "id": "mutant/disable-budget/G7/work/zero",
+          "status": "fail",
+          "message": "Missing expected exception.",
+          "code": "ERR_ASSERTION"
+        },
+        {
+          "id": "mutant/disable-budget/G7/work/failed-build-cumulative",
+          "status": "fail",
+          "message": "Missing expected exception.",
+          "code": "ERR_ASSERTION"
+        },
+        {
+          "id": "mutant/disable-budget/G7/NODE/work/after-incumbent",
+          "status": "fail",
+          "message": "The validation function is expected to return \"true\". Received false\n\nCaught error:\n\nTypeError: Cannot read properties of undefined (reading 'tree')",
+          "code": "ERR_ASSERTION"
+        },
+        {
+          "id": "mutant/disable-budget/G7/NODE/work/comparison-preadmission",
+          "status": "fail",
+          "message": "Missing expected exception.",
+          "code": "ERR_ASSERTION"
+        },
+        {
+          "id": "mutant/disable-budget/G7/TREE/work/after-incumbent",
+          "status": "fail",
+          "message": "The validation function is expected to return \"true\". Received false\n\nCaught error:\n\nTypeError: Cannot read properties of undefined (reading 'tree')",
+          "code": "ERR_ASSERTION"
+        },
+        {
+          "id": "mutant/disable-budget/G7/TREE/work/comparison-preadmission",
+          "status": "fail",
+          "message": "Missing expected exception.",
+          "code": "ERR_ASSERTION"
+        },
+        {
+          "id": "mutant/disable-budget/G7/allocation/zero",
+          "status": "fail",
+          "message": "Missing expected exception.",
+          "code": "ERR_ASSERTION"
+        },
+        {
+          "id": "mutant/disable-budget/G7/allocation/failed-build-cumulative",
+          "status": "fail",
+          "message": "Missing expected exception.",
+          "code": "ERR_ASSERTION"
+        },
+        {
+          "id": "mutant/disable-budget/G7/NODE/allocation/after-incumbent",
+          "status": "fail",
+          "message": "The validation function is expected to return \"true\". Received false\n\nCaught error:\n\nTypeError: Cannot read properties of undefined (reading 'tree')",
+          "code": "ERR_ASSERTION"
+        },
+        {
+          "id": "mutant/disable-budget/G7/NODE/allocation/comparison-preadmission",
+          "status": "fail",
+          "message": "Missing expected exception.",
+          "code": "ERR_ASSERTION"
+        },
+        {
+          "id": "mutant/disable-budget/G7/TREE/allocation/after-incumbent",
+          "status": "fail",
+          "message": "The validation function is expected to return \"true\". Received false\n\nCaught error:\n\nTypeError: Cannot read properties of undefined (reading 'tree')",
+          "code": "ERR_ASSERTION"
+        },
+        {
+          "id": "mutant/disable-budget/G7/TREE/allocation/comparison-preadmission",
+          "status": "fail",
+          "message": "Missing expected exception.",
+          "code": "ERR_ASSERTION"
+        },
+        {
+          "id": "mutant/disable-budget/G7/candidate-state-cap",
+          "status": "pass"
+        },
+        {
+          "id": "mutant/disable-budget/G7/events-cap",
+          "status": "pass"
+        },
+        {
+          "id": "mutant/disable-budget/G7/depth-cap",
+          "status": "pass"
+        },
+        {
+          "id": "mutant/disable-budget/G7/input-cap",
+          "status": "pass"
+        },
+        {
+          "id": "mutant/disable-budget/G7/nodes-cap",
+          "status": "pass"
+        },
+        {
+          "id": "mutant/disable-budget/G7/repeat-count-cap",
+          "status": "pass"
+        },
+        {
+          "id": "mutant/disable-budget/G7/depth/no-cap-raise",
+          "status": "pass"
+        },
+        {
+          "id": "mutant/disable-budget/G7/events/no-cap-raise",
+          "status": "pass"
+        },
+        {
+          "id": "mutant/disable-budget/G7/candidates/no-cap-raise",
+          "status": "pass"
+        }
+      ]
+    },
+    {
+      "name": "swallow-abort-incumbent-fallback",
+      "status": "killed",
+      "sha256": "e9f54eacb51f97f9f403c55dd1249647ff1c2c649a559d2de50629a31b4021d1",
+      "additionalFailures": [
+        "mutant/swallow-abort-incumbent-fallback/G8/NODE/exact-after-incumbent",
+        "mutant/swallow-abort-incumbent-fallback/G8/TREE/exact-after-incumbent"
+      ],
+      "outcomes": [
+        {
+          "id": "mutant/swallow-abort-incumbent-fallback/G8/exact-initial-abort",
+          "status": "pass"
+        },
+        {
+          "id": "mutant/swallow-abort-incumbent-fallback/G8/NODE/exact-after-incumbent",
+          "status": "fail",
+          "message": "Missing expected exception.",
+          "code": "ERR_ASSERTION"
+        },
+        {
+          "id": "mutant/swallow-abort-incumbent-fallback/G8/NODE/exact-during-comparison",
+          "status": "pass"
+        },
+        {
+          "id": "mutant/swallow-abort-incumbent-fallback/G8/TREE/exact-after-incumbent",
+          "status": "fail",
+          "message": "Missing expected exception.",
+          "code": "ERR_ASSERTION"
+        },
+        {
+          "id": "mutant/swallow-abort-incumbent-fallback/G8/TREE/exact-during-comparison",
+          "status": "pass"
+        }
+      ]
+    }
+  ],
+  "limits": {
+    "work": 1000000,
+    "allocation": 1000000,
+    "depth": 24,
+    "events": 2048,
+    "candidates": 32,
+    "input": 32,
+    "nodes": 64,
+    "catChildren": 16,
+    "groups": 16,
+    "repeatCount": 32
+  },
+  "scope": "New supplied-history review only; no v4 rescore, native/product execution, generic external-log validator, async preemption, worker cleanup or promotion claim."
+}

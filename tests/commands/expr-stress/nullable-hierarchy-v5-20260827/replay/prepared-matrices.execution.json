@@ -1,0 +1,17 @@
+{
+  "started": "2026-08-27T23:13:28.790Z",
+  "ended": "2026-08-27T23:13:28.833Z",
+  "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "node": "v22.22.2",
+  "args": [
+    "/Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/nullable-hierarchy-v5-20260827/replay/replay-matrices.mjs",
+    "/Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/nullable-hierarchy-v5-20260827/replay/authentication.json"
+  ],
+  "cwd": "/Users/kjopek/Workspace/safe-bash",
+  "status": 0,
+  "signal": null,
+  "error": null,
+  "stdoutSha256": "fa42b17444e743625a9686fe7eaefb01ce82021cb6b8755bca80aa7d42dd60db",
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "synchronousChildSettled": true
+}

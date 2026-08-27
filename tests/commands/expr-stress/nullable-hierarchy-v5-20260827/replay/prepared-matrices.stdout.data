@@ -1,0 +1,437 @@
+{
+  "candidate": "0af75465914815055dd2982f40859ba41dbffcf7",
+  "controlsSha256": "af00f1e794152e8f69bfa1641c87cb1e78e9844a768b8220dd79333b45fdf409",
+  "frozenMatricesSha256": "14de560ddca4046b5d2e112bb976f3b3941d34c418e921758695ba6ff52adbb8",
+  "modelSha256": "9e411191722e796460f347b0848c32da60abaea108bdd78bdf8886ab8c1a8e86",
+  "counts": {
+    "frozenMatrices": 20,
+    "passedMatrices": 20,
+    "pairCells": 124,
+    "newCases": 0,
+    "newPlans": 0,
+    "derivedOrChangedExpectations": 0
+  },
+  "rows": [
+    {
+      "case": "P4",
+      "profile": "NODE",
+      "eligibility": "LOCAL-TAIL-HYPOTHESIS",
+      "matrix": [
+        [
+          0,
+          1,
+          -1,
+          -1
+        ],
+        [
+          -1,
+          0,
+          -1,
+          -1
+        ],
+        [
+          1,
+          1,
+          0,
+          -1
+        ],
+        [
+          1,
+          1,
+          1,
+          0
+        ]
+      ],
+      "winner": 1,
+      "work": 55420,
+      "allocation": 28178
+    },
+    {
+      "case": "P4",
+      "profile": "TREE",
+      "eligibility": "LOCAL-TAIL-HYPOTHESIS",
+      "matrix": [
+        [
+          0,
+          1,
+          -1,
+          -1
+        ],
+        [
+          -1,
+          0,
+          -1,
+          -1
+        ],
+        [
+          1,
+          1,
+          0,
+          -1
+        ],
+        [
+          1,
+          1,
+          1,
+          0
+        ]
+      ],
+      "winner": 1,
+      "work": 55164,
+      "allocation": 28238
+    },
+    {
+      "case": "P3",
+      "profile": "NODE",
+      "eligibility": "FINITE-PERMISSIVE",
+      "matrix": [
+        [
+          0,
+          1
+        ],
+        [
+          -1,
+          0
+        ]
+      ],
+      "winner": 1,
+      "work": 29595,
+      "allocation": 15007
+    },
+    {
+      "case": "P3",
+      "profile": "TREE",
+      "eligibility": "FINITE-PERMISSIVE",
+      "matrix": [
+        [
+          0,
+          1
+        ],
+        [
+          -1,
+          0
+        ]
+      ],
+      "winner": 1,
+      "work": 29411,
+      "allocation": 15039
+    },
+    {
+      "case": "prefix",
+      "profile": "NODE",
+      "eligibility": "LOCAL-TAIL-HYPOTHESIS",
+      "matrix": [
+        [
+          0,
+          -1,
+          -1
+        ],
+        [
+          1,
+          0,
+          1
+        ],
+        [
+          1,
+          -1,
+          0
+        ]
+      ],
+      "winner": 0,
+      "work": 38579,
+      "allocation": 20147
+    },
+    {
+      "case": "prefix",
+      "profile": "TREE",
+      "eligibility": "LOCAL-TAIL-HYPOTHESIS",
+      "matrix": [
+        [
+          0,
+          -1,
+          -1
+        ],
+        [
+          1,
+          0,
+          1
+        ],
+        [
+          1,
+          -1,
+          0
+        ]
+      ],
+      "winner": 0,
+      "work": 38107,
+      "allocation": 20175
+    },
+    {
+      "case": "boundedPrefix",
+      "profile": "NODE",
+      "eligibility": "LOCAL-TAIL-HYPOTHESIS",
+      "matrix": [
+        [
+          0,
+          -1
+        ],
+        [
+          1,
+          0
+        ]
+      ],
+      "winner": 0,
+      "work": 25668,
+      "allocation": 13665
+    },
+    {
+      "case": "boundedPrefix",
+      "profile": "TREE",
+      "eligibility": "LOCAL-TAIL-HYPOTHESIS",
+      "matrix": [
+        [
+          0,
+          -1
+        ],
+        [
+          1,
+          0
+        ]
+      ],
+      "winner": 0,
+      "work": 25452,
+      "allocation": 13685
+    },
+    {
+      "case": "nestedPrefix",
+      "profile": "NODE",
+      "eligibility": "LOCAL-TAIL-HYPOTHESIS",
+      "matrix": [
+        [
+          0,
+          -1
+        ],
+        [
+          1,
+          0
+        ]
+      ],
+      "winner": 0,
+      "work": 28773,
+      "allocation": 14817
+    },
+    {
+      "case": "nestedPrefix",
+      "profile": "TREE",
+      "eligibility": "LOCAL-TAIL-HYPOTHESIS",
+      "matrix": [
+        [
+          0,
+          -1
+        ],
+        [
+          1,
+          0
+        ]
+      ],
+      "winner": 0,
+      "work": 28541,
+      "allocation": 14833
+    },
+    {
+      "case": "emptyBody",
+      "profile": "NODE",
+      "eligibility": "FINITE-PERMISSIVE",
+      "matrix": [
+        [
+          0,
+          1,
+          1
+        ],
+        [
+          -1,
+          0,
+          -1
+        ],
+        [
+          -1,
+          1,
+          0
+        ]
+      ],
+      "winner": 1,
+      "work": 28902,
+      "allocation": 16712
+    },
+    {
+      "case": "emptyBody",
+      "profile": "TREE",
+      "eligibility": "FINITE-PERMISSIVE",
+      "matrix": [
+        [
+          0,
+          1,
+          1
+        ],
+        [
+          -1,
+          0,
+          -1
+        ],
+        [
+          -1,
+          1,
+          0
+        ]
+      ],
+      "winner": 1,
+      "work": 28270,
+      "allocation": 16676
+    },
+    {
+      "case": "W3",
+      "profile": "NODE",
+      "eligibility": "LOCAL-TAIL-HYPOTHESIS",
+      "matrix": [
+        [
+          0,
+          -1
+        ],
+        [
+          1,
+          0
+        ]
+      ],
+      "winner": 0,
+      "work": 28748,
+      "allocation": 14696
+    },
+    {
+      "case": "W3",
+      "profile": "TREE",
+      "eligibility": "LOCAL-TAIL-HYPOTHESIS",
+      "matrix": [
+        [
+          0,
+          -1
+        ],
+        [
+          1,
+          0
+        ]
+      ],
+      "winner": 0,
+      "work": 28668,
+      "allocation": 14740
+    },
+    {
+      "case": "W4",
+      "profile": "NODE",
+      "eligibility": "LOCAL-TAIL-HYPOTHESIS",
+      "matrix": [
+        [
+          0,
+          -1
+        ],
+        [
+          1,
+          0
+        ]
+      ],
+      "winner": 0,
+      "work": 47391,
+      "allocation": 21304
+    },
+    {
+      "case": "W4",
+      "profile": "TREE",
+      "eligibility": "LOCAL-TAIL-HYPOTHESIS",
+      "matrix": [
+        [
+          0,
+          1
+        ],
+        [
+          -1,
+          0
+        ]
+      ],
+      "winner": 1,
+      "work": 47239,
+      "allocation": 21372
+    },
+    {
+      "case": "W4bare",
+      "profile": "NODE",
+      "eligibility": "LOCAL-TAIL-HYPOTHESIS",
+      "matrix": [
+        [
+          0,
+          -1
+        ],
+        [
+          1,
+          0
+        ]
+      ],
+      "winner": 0,
+      "work": 34203,
+      "allocation": 16472
+    },
+    {
+      "case": "W4bare",
+      "profile": "TREE",
+      "eligibility": "LOCAL-TAIL-HYPOTHESIS",
+      "matrix": [
+        [
+          0,
+          1
+        ],
+        [
+          -1,
+          0
+        ]
+      ],
+      "winner": 1,
+      "work": 34051,
+      "allocation": 16540
+    },
+    {
+      "case": "W4wrapped",
+      "profile": "NODE",
+      "eligibility": "LOCAL-TAIL-HYPOTHESIS",
+      "matrix": [
+        [
+          0,
+          -1
+        ],
+        [
+          1,
+          0
+        ]
+      ],
+      "winner": 0,
+      "work": 72358,
+      "allocation": 30186
+    },
+    {
+      "case": "W4wrapped",
+      "profile": "TREE",
+      "eligibility": "LOCAL-TAIL-HYPOTHESIS",
+      "matrix": [
+        [
+          0,
+          1
+        ],
+        [
+          -1,
+          0
+        ]
+      ],
+      "winner": 1,
+      "work": 72206,
+      "allocation": 30254
+    }
+  ],
+  "scope": "Actual replay of twenty ALREADY PREPARED independent matrices, not a new cohort or oracle derivation. Eligibility preserves each frozen case binding."
+}

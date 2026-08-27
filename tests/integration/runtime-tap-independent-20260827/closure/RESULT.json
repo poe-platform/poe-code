@@ -1,0 +1,1799 @@
+{
+  "revision": "c800c899114c6c83b3d3eb67231176d124abaf49",
+  "baseline": "774644f9ea39b41f824db4c829e7a97e6e1386be",
+  "product": "8670ebe8f0d39966c2de2638780437398e5f8490",
+  "runnerSha256": "e2fefed0a3838ed10e2850147a6675e2c72eed5117af47c9303baaa6188a4348",
+  "startedAt": "2026-08-27T16:11:13.935Z",
+  "source": [
+    {
+      "commit": "c800c899114c6c83b3d3eb67231176d124abaf49",
+      "path": "tests/integration/runtime-permission-compatibility-20260827/tap-v1/controls.mjs",
+      "destination": "/private/tmp/tap-closure-independent-kQvvhx/author/tests/integration/runtime-permission-compatibility-20260827/tap-v1/controls.mjs",
+      "sha256": "7e49238d1cd37b3f31d98c819dc95e0b8a4e4c1da345c1be4440677c54dda02c"
+    },
+    {
+      "commit": "c800c899114c6c83b3d3eb67231176d124abaf49",
+      "path": "scripts/verify-current-consumers.mjs",
+      "destination": "/private/tmp/tap-closure-independent-kQvvhx/author/scripts/verify-current-consumers.mjs",
+      "sha256": "09d04680a1dd80059fd31da73068c919bb0402d8bdd31a4d0a971a67d8e1259c"
+    },
+    {
+      "commit": "c800c899114c6c83b3d3eb67231176d124abaf49",
+      "path": "tests/plugins/stream-five-public/harness.mjs",
+      "destination": "/private/tmp/tap-closure-independent-kQvvhx/author/tests/plugins/stream-five-public/harness.mjs",
+      "sha256": "bc1c0ba95a0b928b6f35bfc6de40ec60006707b162c97b49474ba33ad8ae55dd"
+    },
+    {
+      "commit": "c800c899114c6c83b3d3eb67231176d124abaf49",
+      "path": "tests/plugins/stream-five-public/current-profile.mjs",
+      "destination": "/private/tmp/tap-closure-independent-kQvvhx/author/tests/plugins/stream-five-public/current-profile.mjs",
+      "sha256": "929e019df6e9ae45689ef06ff2d3b495d0dbe7ab2a9a6a30e5d2a7666acde958"
+    },
+    {
+      "commit": "c800c899114c6c83b3d3eb67231176d124abaf49",
+      "path": "tests/plugins/qualified-current-release/consumers.mjs",
+      "destination": "/private/tmp/tap-closure-independent-kQvvhx/author/tests/plugins/qualified-current-release/consumers.mjs",
+      "sha256": "79fcad55906f7d9d0d9d44423e0972104dc642ea7ea52d4954b6ce870739f7f4"
+    },
+    {
+      "commit": "c800c899114c6c83b3d3eb67231176d124abaf49",
+      "path": "tests/plugins/qualified-current-release/runtime-coverage.mjs",
+      "destination": "/private/tmp/tap-closure-independent-kQvvhx/author/tests/plugins/qualified-current-release/runtime-coverage.mjs",
+      "sha256": "96403245ff2ff31b27708d20a56c96c36466551b1a19fcf892e0b0d19ce9e9f5"
+    },
+    {
+      "commit": "c800c899114c6c83b3d3eb67231176d124abaf49",
+      "path": "tests/plugins/qualified-current-release/snapshot.mjs",
+      "destination": "/private/tmp/tap-closure-independent-kQvvhx/author/tests/plugins/qualified-current-release/snapshot.mjs",
+      "sha256": "cfe5b508a670e9d1cfd9281381558c0a3c842be3e3060d1f8f8c8c0c66277508"
+    },
+    {
+      "commit": "c800c899114c6c83b3d3eb67231176d124abaf49",
+      "path": "tests/plugins/qualified-current-release/inventory-check.mjs",
+      "destination": "/private/tmp/tap-closure-independent-kQvvhx/author/tests/plugins/qualified-current-release/inventory-check.mjs",
+      "sha256": "1afd5cf0b4a1f42ed86330fde6655f5b606eed3be79a4f1026b4c2bf6294b9f3"
+    },
+    {
+      "commit": "8670ebe8f0d39966c2de2638780437398e5f8490",
+      "path": "tests/plugins/stream-five-public/harness.mjs",
+      "destination": "/private/tmp/tap-closure-independent-kQvvhx/frozen8670/tests/plugins/stream-five-public/harness.mjs",
+      "sha256": "bc1c0ba95a0b928b6f35bfc6de40ec60006707b162c97b49474ba33ad8ae55dd"
+    },
+    {
+      "commit": "8670ebe8f0d39966c2de2638780437398e5f8490",
+      "path": "tests/plugins/stream-five-public/current-profile.mjs",
+      "destination": "/private/tmp/tap-closure-independent-kQvvhx/frozen8670/tests/plugins/stream-five-public/current-profile.mjs",
+      "sha256": "929e019df6e9ae45689ef06ff2d3b495d0dbe7ab2a9a6a30e5d2a7666acde958"
+    },
+    {
+      "commit": "8670ebe8f0d39966c2de2638780437398e5f8490",
+      "path": "tests/plugins/stream-five-public/current-profile.mjs",
+      "destination": "/private/tmp/tap-closure-independent-kQvvhx/frozen8670/tests/plugins/stream-five-public/current-profile.mjs",
+      "sha256": "929e019df6e9ae45689ef06ff2d3b495d0dbe7ab2a9a6a30e5d2a7666acde958"
+    },
+    {
+      "commit": "8670ebe8f0d39966c2de2638780437398e5f8490",
+      "path": "tests/plugins/qualified-current-release/consumers.mjs",
+      "destination": "/private/tmp/tap-closure-independent-kQvvhx/frozen8670/tests/plugins/qualified-current-release/consumers.mjs",
+      "sha256": "79fcad55906f7d9d0d9d44423e0972104dc642ea7ea52d4954b6ce870739f7f4"
+    },
+    {
+      "commit": "8670ebe8f0d39966c2de2638780437398e5f8490",
+      "path": "tests/plugins/qualified-current-release/runtime-coverage.mjs",
+      "destination": "/private/tmp/tap-closure-independent-kQvvhx/frozen8670/tests/plugins/qualified-current-release/runtime-coverage.mjs",
+      "sha256": "96403245ff2ff31b27708d20a56c96c36466551b1a19fcf892e0b0d19ce9e9f5"
+    },
+    {
+      "commit": "8670ebe8f0d39966c2de2638780437398e5f8490",
+      "path": "tests/plugins/qualified-current-release/snapshot.mjs",
+      "destination": "/private/tmp/tap-closure-independent-kQvvhx/frozen8670/tests/plugins/qualified-current-release/snapshot.mjs",
+      "sha256": "cfe5b508a670e9d1cfd9281381558c0a3c842be3e3060d1f8f8c8c0c66277508"
+    },
+    {
+      "commit": "8670ebe8f0d39966c2de2638780437398e5f8490",
+      "path": "tests/plugins/stream-five-public/harness.mjs",
+      "destination": "/private/tmp/tap-closure-independent-kQvvhx/frozen8670/tests/plugins/stream-five-public/harness.mjs",
+      "sha256": "bc1c0ba95a0b928b6f35bfc6de40ec60006707b162c97b49474ba33ad8ae55dd"
+    },
+    {
+      "commit": "8670ebe8f0d39966c2de2638780437398e5f8490",
+      "path": "tests/plugins/stream-five-public/current-profile.mjs",
+      "destination": "/private/tmp/tap-closure-independent-kQvvhx/frozen8670/tests/plugins/stream-five-public/current-profile.mjs",
+      "sha256": "929e019df6e9ae45689ef06ff2d3b495d0dbe7ab2a9a6a30e5d2a7666acde958"
+    },
+    {
+      "commit": "8670ebe8f0d39966c2de2638780437398e5f8490",
+      "path": "tests/plugins/qualified-current-release/consumers.mjs",
+      "destination": "/private/tmp/tap-closure-independent-kQvvhx/frozen8670/tests/plugins/qualified-current-release/consumers.mjs",
+      "sha256": "79fcad55906f7d9d0d9d44423e0972104dc642ea7ea52d4954b6ce870739f7f4"
+    },
+    {
+      "commit": "8670ebe8f0d39966c2de2638780437398e5f8490",
+      "path": "tests/plugins/qualified-current-release/inventory-check.mjs",
+      "destination": "/private/tmp/tap-closure-independent-kQvvhx/frozen8670/tests/plugins/qualified-current-release/inventory-check.mjs",
+      "sha256": "1afd5cf0b4a1f42ed86330fde6655f5b606eed3be79a4f1026b4c2bf6294b9f3"
+    }
+  ],
+  "importMap": [
+    {
+      "specifier": "../tests/plugins/stream-five-public/harness.mjs",
+      "replacement": "file:///private/tmp/tap-closure-independent-kQvvhx/frozen8670/tests/plugins/stream-five-public/harness.mjs",
+      "path": "tests/plugins/stream-five-public/harness.mjs",
+      "commit": "8670ebe8f0d39966c2de2638780437398e5f8490"
+    },
+    {
+      "specifier": "../tests/plugins/stream-five-public/current-profile.mjs",
+      "replacement": "file:///private/tmp/tap-closure-independent-kQvvhx/frozen8670/tests/plugins/stream-five-public/current-profile.mjs",
+      "path": "tests/plugins/stream-five-public/current-profile.mjs",
+      "commit": "8670ebe8f0d39966c2de2638780437398e5f8490"
+    },
+    {
+      "specifier": "../tests/plugins/qualified-current-release/consumers.mjs",
+      "replacement": "file:///private/tmp/tap-closure-independent-kQvvhx/frozen8670/tests/plugins/qualified-current-release/consumers.mjs",
+      "path": "tests/plugins/qualified-current-release/consumers.mjs",
+      "commit": "8670ebe8f0d39966c2de2638780437398e5f8490"
+    },
+    {
+      "specifier": "../tests/plugins/qualified-current-release/runtime-coverage.mjs",
+      "replacement": "file:///private/tmp/tap-closure-independent-kQvvhx/frozen8670/tests/plugins/qualified-current-release/runtime-coverage.mjs",
+      "path": "tests/plugins/qualified-current-release/runtime-coverage.mjs",
+      "commit": "8670ebe8f0d39966c2de2638780437398e5f8490"
+    },
+    {
+      "specifier": "../tests/plugins/qualified-current-release/snapshot.mjs",
+      "replacement": "file:///private/tmp/tap-closure-independent-kQvvhx/frozen8670/tests/plugins/qualified-current-release/snapshot.mjs",
+      "path": "tests/plugins/qualified-current-release/snapshot.mjs",
+      "commit": "8670ebe8f0d39966c2de2638780437398e5f8490"
+    }
+  ],
+  "checks": [
+    {
+      "name": "entire count/result block remains byte-identical",
+      "pass": true
+    },
+    {
+      "name": "permission helpers and complete non-loop verifier remain unchanged",
+      "pass": true
+    },
+    {
+      "name": "v22.22.2:mandatory23 actual counted dispatch and fences",
+      "pass": true
+    },
+    {
+      "name": "v22.22.2:loopback13 actual counted dispatch and fences",
+      "pass": true
+    },
+    {
+      "name": "v22.22.2:constructor actual counted dispatch and fences",
+      "pass": true
+    },
+    {
+      "name": "v22.22.2:suffix actual counted dispatch and fences",
+      "pass": true
+    },
+    {
+      "name": "v22.22.2:plain runtime argument vector unchanged",
+      "pass": true
+    },
+    {
+      "name": "v22.22.2:missing-summary rejected after successful process execution",
+      "pass": true,
+      "detail": {
+        "error": "AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:\n\n  assert.ok(counts.tests > 0)\n"
+      }
+    },
+    {
+      "name": "v22.22.2:malformed-summary rejected after successful process execution",
+      "pass": true,
+      "detail": {
+        "error": "AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:\n\n  assert.ok(counts.tests > 0)\n"
+      }
+    },
+    {
+      "name": "v22.22.2:zero-summary rejected after successful process execution",
+      "pass": true,
+      "detail": {
+        "error": "AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:\n\n  assert.ok(counts.tests > 0)\n"
+      }
+    },
+    {
+      "name": "v22.22.2:mandatory-short rejected after successful process execution",
+      "pass": true,
+      "detail": {
+        "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\n22 !== 23\n"
+      }
+    },
+    {
+      "name": "v22.22.2:loopback-short rejected after successful process execution",
+      "pass": true,
+      "detail": {
+        "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\n12 !== 13\n"
+      }
+    },
+    {
+      "name": "v22.22.2:skip rejected after successful process execution",
+      "pass": true,
+      "detail": {
+        "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\n0 !== 1\n"
+      }
+    },
+    {
+      "name": "v22.22.2:todo rejected after successful process execution",
+      "pass": true,
+      "detail": {
+        "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\n0 !== 1\n"
+      }
+    },
+    {
+      "name": "v22.22.2:wrong-reporter-mutant rejected after successful process execution",
+      "pass": true,
+      "detail": {
+        "error": "AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:\n\n  assert.ok(counts.tests > 0)\n"
+      }
+    },
+    {
+      "name": "v22.22.2:same fixed source body through original launch block",
+      "pass": true,
+      "detail": {
+        "baselineAccepted": true
+      }
+    },
+    {
+      "name": "v24.11.1:mandatory23 actual counted dispatch and fences",
+      "pass": true
+    },
+    {
+      "name": "v24.11.1:loopback13 actual counted dispatch and fences",
+      "pass": true
+    },
+    {
+      "name": "v24.11.1:constructor actual counted dispatch and fences",
+      "pass": true
+    },
+    {
+      "name": "v24.11.1:suffix actual counted dispatch and fences",
+      "pass": true
+    },
+    {
+      "name": "v24.11.1:plain runtime argument vector unchanged",
+      "pass": true
+    },
+    {
+      "name": "v24.11.1:missing-summary rejected after successful process execution",
+      "pass": true,
+      "detail": {
+        "error": "AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:\n\n  assert.ok(counts.tests > 0)\n"
+      }
+    },
+    {
+      "name": "v24.11.1:malformed-summary rejected after successful process execution",
+      "pass": true,
+      "detail": {
+        "error": "AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:\n\n  assert.ok(counts.tests > 0)\n"
+      }
+    },
+    {
+      "name": "v24.11.1:zero-summary rejected after successful process execution",
+      "pass": true,
+      "detail": {
+        "error": "AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:\n\n  assert.ok(counts.tests > 0)\n"
+      }
+    },
+    {
+      "name": "v24.11.1:mandatory-short rejected after successful process execution",
+      "pass": true,
+      "detail": {
+        "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\n22 !== 23\n"
+      }
+    },
+    {
+      "name": "v24.11.1:loopback-short rejected after successful process execution",
+      "pass": true,
+      "detail": {
+        "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\n12 !== 13\n"
+      }
+    },
+    {
+      "name": "v24.11.1:skip rejected after successful process execution",
+      "pass": true,
+      "detail": {
+        "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\n0 !== 1\n"
+      }
+    },
+    {
+      "name": "v24.11.1:todo rejected after successful process execution",
+      "pass": true,
+      "detail": {
+        "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\n0 !== 1\n"
+      }
+    },
+    {
+      "name": "v24.11.1:wrong-reporter-mutant rejected after successful process execution",
+      "pass": true,
+      "detail": {
+        "error": "AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:\n\n  assert.ok(counts.tests > 0)\n"
+      }
+    },
+    {
+      "name": "v24.11.1:same fixed source body through original launch block",
+      "pass": true,
+      "detail": {
+        "baselineAccepted": false
+      }
+    },
+    {
+      "name": "exact external helper map preserves original8670 inventory",
+      "pass": true
+    }
+  ],
+  "children": [
+    {
+      "name": "unchanged-author24",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "/private/tmp/tap-closure-independent-kQvvhx/author/tests/integration/runtime-permission-compatibility-20260827/tap-v1/controls.mjs",
+        "/tmp/tap-closure-independent-kQvvhx/author24.json"
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "{\"status\":\"author-controls-pass-independent-review-pending\",\"controls\":24,\"failures\":[],\"temporaryRemoved\":true,\"output\":\"/tmp/tap-closure-independent-kQvvhx/author24.json\"}\n",
+      "stderr": ""
+    },
+    {
+      "name": "v22.22.2:mandatory23",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--permission",
+        "--allow-fs-read=/private/tmp/tap-closure-independent-kQvvhx/v22.22.2/consumer",
+        "--allow-worker",
+        "--unhandled-rejections=strict",
+        "--test-reporter=tap",
+        "/private/tmp/tap-closure-independent-kQvvhx/v22.22.2/consumer/mandatory23.mjs"
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "TAP version 13\n# Subtest: body-0\nok 1 - body-0\n  ---\n  duration_ms: 1.138458\n  type: 'test'\n  ...\n# Subtest: body-1\nok 2 - body-1\n  ---\n  duration_ms: 0.190375\n  type: 'test'\n  ...\n# Subtest: body-2\nok 3 - body-2\n  ---\n  duration_ms: 0.139542\n  type: 'test'\n  ...\n# Subtest: body-3\nok 4 - body-3\n  ---\n  duration_ms: 0.10825\n  type: 'test'\n  ...\n# Subtest: body-4\nok 5 - body-4\n  ---\n  duration_ms: 0.181625\n  type: 'test'\n  ...\n# Subtest: body-5\nok 6 - body-5\n  ---\n  duration_ms: 0.203875\n  type: 'test'\n  ...\n# Subtest: body-6\nok 7 - body-6\n  ---\n  duration_ms: 0.118042\n  type: 'test'\n  ...\n# Subtest: body-7\nok 8 - body-7\n  ---\n  duration_ms: 0.096375\n  type: 'test'\n  ...\n# Subtest: body-8\nok 9 - body-8\n  ---\n  duration_ms: 0.270125\n  type: 'test'\n  ...\n# Subtest: body-9\nok 10 - body-9\n  ---\n  duration_ms: 0.274666\n  type: 'test'\n  ...\n# Subtest: body-10\nok 11 - body-10\n  ---\n  duration_ms: 0.142125\n  type: 'test'\n  ...\n# Subtest: body-11\nok 12 - body-11\n  ---\n  duration_ms: 0.100458\n  type: 'test'\n  ...\n# Subtest: body-12\nok 13 - body-12\n  ---\n  duration_ms: 0.091625\n  type: 'test'\n  ...\n# Subtest: body-13\nok 14 - body-13\n  ---\n  duration_ms: 0.087583\n  type: 'test'\n  ...\n# Subtest: body-14\nok 15 - body-14\n  ---\n  duration_ms: 0.089042\n  type: 'test'\n  ...\n# Subtest: body-15\nok 16 - body-15\n  ---\n  duration_ms: 0.086625\n  type: 'test'\n  ...\n# Subtest: body-16\nok 17 - body-16\n  ---\n  duration_ms: 0.085291\n  type: 'test'\n  ...\n# Subtest: body-17\nok 18 - body-17\n  ---\n  duration_ms: 0.107625\n  type: 'test'\n  ...\n# Subtest: body-18\nok 19 - body-18\n  ---\n  duration_ms: 0.083041\n  type: 'test'\n  ...\n# Subtest: body-19\nok 20 - body-19\n  ---\n  duration_ms: 0.077875\n  type: 'test'\n  ...\n# Subtest: body-20\nok 21 - body-20\n  ---\n  duration_ms: 0.080458\n  type: 'test'\n  ...\n# Subtest: body-21\nok 22 - body-21\n  ---\n  duration_ms: 0.080709\n  type: 'test'\n  ...\n# Subtest: body-22\nok 23 - body-22\n  ---\n  duration_ms: 0.077375\n  type: 'test'\n  ...\n1..23\n# tests 23\n# suites 0\n# pass 23\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 11.775292\n",
+      "stderr": "(node:10719) SecurityWarning: The flag --allow-worker must be used with extreme caution. It could invalidate the permission model.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+    },
+    {
+      "name": "v22.22.2:loopback13",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--permission",
+        "--allow-fs-read=/private/tmp/tap-closure-independent-kQvvhx/v22.22.2/consumer",
+        "--allow-worker",
+        "--unhandled-rejections=strict",
+        "--test-reporter=tap",
+        "/private/tmp/tap-closure-independent-kQvvhx/v22.22.2/consumer/loopback13.mjs"
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "TAP version 13\n# Subtest: body-0\nok 1 - body-0\n  ---\n  duration_ms: 1.2865\n  type: 'test'\n  ...\n# Subtest: body-1\nok 2 - body-1\n  ---\n  duration_ms: 0.18875\n  type: 'test'\n  ...\n# Subtest: body-2\nok 3 - body-2\n  ---\n  duration_ms: 0.150916\n  type: 'test'\n  ...\n# Subtest: body-3\nok 4 - body-3\n  ---\n  duration_ms: 0.094459\n  type: 'test'\n  ...\n# Subtest: body-4\nok 5 - body-4\n  ---\n  duration_ms: 0.167125\n  type: 'test'\n  ...\n# Subtest: body-5\nok 6 - body-5\n  ---\n  duration_ms: 0.169333\n  type: 'test'\n  ...\n# Subtest: body-6\nok 7 - body-6\n  ---\n  duration_ms: 0.128583\n  type: 'test'\n  ...\n# Subtest: body-7\nok 8 - body-7\n  ---\n  duration_ms: 0.122084\n  type: 'test'\n  ...\n# Subtest: body-8\nok 9 - body-8\n  ---\n  duration_ms: 0.277917\n  type: 'test'\n  ...\n# Subtest: body-9\nok 10 - body-9\n  ---\n  duration_ms: 0.271542\n  type: 'test'\n  ...\n# Subtest: body-10\nok 11 - body-10\n  ---\n  duration_ms: 0.128\n  type: 'test'\n  ...\n# Subtest: body-11\nok 12 - body-11\n  ---\n  duration_ms: 0.085083\n  type: 'test'\n  ...\n# Subtest: body-12\nok 13 - body-12\n  ---\n  duration_ms: 0.117667\n  type: 'test'\n  ...\n1..13\n# tests 13\n# suites 0\n# pass 13\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 8.119458\n",
+      "stderr": "(node:10722) SecurityWarning: The flag --allow-worker must be used with extreme caution. It could invalidate the permission model.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+    },
+    {
+      "name": "v22.22.2:constructor",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--permission",
+        "--allow-fs-read=/private/tmp/tap-closure-independent-kQvvhx/v22.22.2/consumer",
+        "--allow-worker",
+        "--unhandled-rejections=strict",
+        "--test-reporter=tap",
+        "/private/tmp/tap-closure-independent-kQvvhx/v22.22.2/consumer/constructor.mjs"
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "TAP version 13\n# Subtest: body-0\nok 1 - body-0\n  ---\n  duration_ms: 0.670041\n  type: 'test'\n  ...\n# Subtest: body-1\nok 2 - body-1\n  ---\n  duration_ms: 0.141625\n  type: 'test'\n  ...\n# Subtest: body-2\nok 3 - body-2\n  ---\n  duration_ms: 0.156375\n  type: 'test'\n  ...\n# Subtest: body-3\nok 4 - body-3\n  ---\n  duration_ms: 0.14\n  type: 'test'\n  ...\n1..4\n# tests 4\n# suites 0\n# pass 4\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 5.087666\n",
+      "stderr": "(node:10728) SecurityWarning: The flag --allow-worker must be used with extreme caution. It could invalidate the permission model.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+    },
+    {
+      "name": "v22.22.2:suffix",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--permission",
+        "--allow-fs-read=/private/tmp/tap-closure-independent-kQvvhx/v22.22.2/consumer",
+        "--allow-worker",
+        "--unhandled-rejections=strict",
+        "--test-reporter=tap",
+        "/private/tmp/tap-closure-independent-kQvvhx/v22.22.2/consumer/suffix.test.mjs"
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "TAP version 13\n# Subtest: body-0\nok 1 - body-0\n  ---\n  duration_ms: 0.56675\n  type: 'test'\n  ...\n# Subtest: body-1\nok 2 - body-1\n  ---\n  duration_ms: 0.234125\n  type: 'test'\n  ...\n# Subtest: body-2\nok 3 - body-2\n  ---\n  duration_ms: 0.143084\n  type: 'test'\n  ...\n1..3\n# tests 3\n# suites 0\n# pass 3\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 4.24225\n",
+      "stderr": "(node:10729) SecurityWarning: The flag --allow-worker must be used with extreme caution. It could invalidate the permission model.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+    },
+    {
+      "name": "v22.22.2:plain",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--permission",
+        "--allow-fs-read=/private/tmp/tap-closure-independent-kQvvhx/v22.22.2/consumer",
+        "--allow-worker",
+        "--unhandled-rejections=strict",
+        "/private/tmp/tap-closure-independent-kQvvhx/v22.22.2/consumer/plain.mjs"
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "plain-executed\n",
+      "stderr": "(node:10730) SecurityWarning: The flag --allow-worker must be used with extreme caution. It could invalidate the permission model.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+    },
+    {
+      "name": "v22.22.2:missing-summary",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--permission",
+        "--allow-fs-read=/private/tmp/tap-closure-independent-kQvvhx/v22.22.2/consumer",
+        "--allow-worker",
+        "--unhandled-rejections=strict",
+        "--test-reporter=tap",
+        "/private/tmp/tap-closure-independent-kQvvhx/v22.22.2/consumer/missing-summary.mjs"
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "no-summary\n",
+      "stderr": "(node:10731) SecurityWarning: The flag --allow-worker must be used with extreme caution. It could invalidate the permission model.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+    },
+    {
+      "name": "v22.22.2:malformed-summary",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--permission",
+        "--allow-fs-read=/private/tmp/tap-closure-independent-kQvvhx/v22.22.2/consumer",
+        "--allow-worker",
+        "--unhandled-rejections=strict",
+        "--test-reporter=tap",
+        "/private/tmp/tap-closure-independent-kQvvhx/v22.22.2/consumer/malformed-summary.mjs"
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "# tests NaN\n# pass 1\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n",
+      "stderr": "(node:10732) SecurityWarning: The flag --allow-worker must be used with extreme caution. It could invalidate the permission model.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+    },
+    {
+      "name": "v22.22.2:zero-summary",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--permission",
+        "--allow-fs-read=/private/tmp/tap-closure-independent-kQvvhx/v22.22.2/consumer",
+        "--allow-worker",
+        "--unhandled-rejections=strict",
+        "--test-reporter=tap",
+        "/private/tmp/tap-closure-independent-kQvvhx/v22.22.2/consumer/zero-summary.mjs"
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "# tests 0\n# pass 0\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n",
+      "stderr": "(node:10733) SecurityWarning: The flag --allow-worker must be used with extreme caution. It could invalidate the permission model.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+    },
+    {
+      "name": "v22.22.2:mandatory-short",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--permission",
+        "--allow-fs-read=/private/tmp/tap-closure-independent-kQvvhx/v22.22.2/consumer",
+        "--allow-worker",
+        "--unhandled-rejections=strict",
+        "--test-reporter=tap",
+        "/private/tmp/tap-closure-independent-kQvvhx/v22.22.2/consumer/mandatory-short.mjs"
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "TAP version 13\n# Subtest: body-0\nok 1 - body-0\n  ---\n  duration_ms: 1.203458\n  type: 'test'\n  ...\n# Subtest: body-1\nok 2 - body-1\n  ---\n  duration_ms: 0.200166\n  type: 'test'\n  ...\n# Subtest: body-2\nok 3 - body-2\n  ---\n  duration_ms: 0.171792\n  type: 'test'\n  ...\n# Subtest: body-3\nok 4 - body-3\n  ---\n  duration_ms: 0.118917\n  type: 'test'\n  ...\n# Subtest: body-4\nok 5 - body-4\n  ---\n  duration_ms: 0.187584\n  type: 'test'\n  ...\n# Subtest: body-5\nok 6 - body-5\n  ---\n  duration_ms: 0.167584\n  type: 'test'\n  ...\n# Subtest: body-6\nok 7 - body-6\n  ---\n  duration_ms: 0.090625\n  type: 'test'\n  ...\n# Subtest: body-7\nok 8 - body-7\n  ---\n  duration_ms: 0.093792\n  type: 'test'\n  ...\n# Subtest: body-8\nok 9 - body-8\n  ---\n  duration_ms: 0.23825\n  type: 'test'\n  ...\n# Subtest: body-9\nok 10 - body-9\n  ---\n  duration_ms: 0.268917\n  type: 'test'\n  ...\n# Subtest: body-10\nok 11 - body-10\n  ---\n  duration_ms: 0.127208\n  type: 'test'\n  ...\n# Subtest: body-11\nok 12 - body-11\n  ---\n  duration_ms: 0.103917\n  type: 'test'\n  ...\n# Subtest: body-12\nok 13 - body-12\n  ---\n  duration_ms: 0.093125\n  type: 'test'\n  ...\n# Subtest: body-13\nok 14 - body-13\n  ---\n  duration_ms: 0.085666\n  type: 'test'\n  ...\n# Subtest: body-14\nok 15 - body-14\n  ---\n  duration_ms: 0.078084\n  type: 'test'\n  ...\n# Subtest: body-15\nok 16 - body-15\n  ---\n  duration_ms: 0.079333\n  type: 'test'\n  ...\n# Subtest: body-16\nok 17 - body-16\n  ---\n  duration_ms: 0.077958\n  type: 'test'\n  ...\n# Subtest: body-17\nok 18 - body-17\n  ---\n  duration_ms: 0.379584\n  type: 'test'\n  ...\n# Subtest: body-18\nok 19 - body-18\n  ---\n  duration_ms: 0.076916\n  type: 'test'\n  ...\n# Subtest: body-19\nok 20 - body-19\n  ---\n  duration_ms: 0.073625\n  type: 'test'\n  ...\n# Subtest: body-20\nok 21 - body-20\n  ---\n  duration_ms: 0.070125\n  type: 'test'\n  ...\n# Subtest: body-21\nok 22 - body-21\n  ---\n  duration_ms: 0.068083\n  type: 'test'\n  ...\n1..22\n# tests 22\n# suites 0\n# pass 22\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 9.461709\n",
+      "stderr": "(node:10734) SecurityWarning: The flag --allow-worker must be used with extreme caution. It could invalidate the permission model.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+    },
+    {
+      "name": "v22.22.2:loopback-short",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--permission",
+        "--allow-fs-read=/private/tmp/tap-closure-independent-kQvvhx/v22.22.2/consumer",
+        "--allow-worker",
+        "--unhandled-rejections=strict",
+        "--test-reporter=tap",
+        "/private/tmp/tap-closure-independent-kQvvhx/v22.22.2/consumer/loopback-short.mjs"
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "TAP version 13\n# Subtest: body-0\nok 1 - body-0\n  ---\n  duration_ms: 0.635375\n  type: 'test'\n  ...\n# Subtest: body-1\nok 2 - body-1\n  ---\n  duration_ms: 0.538792\n  type: 'test'\n  ...\n# Subtest: body-2\nok 3 - body-2\n  ---\n  duration_ms: 0.183708\n  type: 'test'\n  ...\n# Subtest: body-3\nok 4 - body-3\n  ---\n  duration_ms: 0.107666\n  type: 'test'\n  ...\n# Subtest: body-4\nok 5 - body-4\n  ---\n  duration_ms: 0.172375\n  type: 'test'\n  ...\n# Subtest: body-5\nok 6 - body-5\n  ---\n  duration_ms: 0.228\n  type: 'test'\n  ...\n# Subtest: body-6\nok 7 - body-6\n  ---\n  duration_ms: 0.097709\n  type: 'test'\n  ...\n# Subtest: body-7\nok 8 - body-7\n  ---\n  duration_ms: 0.094708\n  type: 'test'\n  ...\n# Subtest: body-8\nok 9 - body-8\n  ---\n  duration_ms: 0.2755\n  type: 'test'\n  ...\n# Subtest: body-9\nok 10 - body-9\n  ---\n  duration_ms: 0.2715\n  type: 'test'\n  ...\n# Subtest: body-10\nok 11 - body-10\n  ---\n  duration_ms: 0.130042\n  type: 'test'\n  ...\n# Subtest: body-11\nok 12 - body-11\n  ---\n  duration_ms: 0.100209\n  type: 'test'\n  ...\n1..12\n# tests 12\n# suites 0\n# pass 12\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 7.900542\n",
+      "stderr": "(node:10735) SecurityWarning: The flag --allow-worker must be used with extreme caution. It could invalidate the permission model.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+    },
+    {
+      "name": "v22.22.2:skip",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--permission",
+        "--allow-fs-read=/private/tmp/tap-closure-independent-kQvvhx/v22.22.2/consumer",
+        "--allow-worker",
+        "--unhandled-rejections=strict",
+        "--test-reporter=tap",
+        "/private/tmp/tap-closure-independent-kQvvhx/v22.22.2/consumer/skip.mjs"
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "TAP version 13\n# Subtest: body-0\nok 1 - body-0 # SKIP\n  ---\n  duration_ms: 0.216375\n  type: 'test'\n  ...\n1..1\n# tests 1\n# suites 0\n# pass 0\n# fail 0\n# cancelled 0\n# skipped 1\n# todo 0\n# duration_ms 2.812291\n",
+      "stderr": "(node:10737) SecurityWarning: The flag --allow-worker must be used with extreme caution. It could invalidate the permission model.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+    },
+    {
+      "name": "v22.22.2:todo",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--permission",
+        "--allow-fs-read=/private/tmp/tap-closure-independent-kQvvhx/v22.22.2/consumer",
+        "--allow-worker",
+        "--unhandled-rejections=strict",
+        "--test-reporter=tap",
+        "/private/tmp/tap-closure-independent-kQvvhx/v22.22.2/consumer/todo.mjs"
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "TAP version 13\n# Subtest: body-0\nok 1 - body-0 # TODO\n  ---\n  duration_ms: 0.572959\n  type: 'test'\n  ...\n1..1\n# tests 1\n# suites 0\n# pass 0\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 1\n# duration_ms 3.170917\n",
+      "stderr": "(node:10738) SecurityWarning: The flag --allow-worker must be used with extreme caution. It could invalidate the permission model.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+    },
+    {
+      "name": "v22.22.2:wrong-reporter-mutant",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--permission",
+        "--allow-fs-read=/private/tmp/tap-closure-independent-kQvvhx/v22.22.2/consumer",
+        "--allow-worker",
+        "--unhandled-rejections=strict",
+        "--test-reporter=spec",
+        "/private/tmp/tap-closure-independent-kQvvhx/v22.22.2/consumer/wrong-reporter-mutant.mjs"
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "✔ body-0 (0.631ms)\nℹ tests 1\nℹ suites 0\nℹ pass 1\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 2.806042\n",
+      "stderr": "(node:10739) SecurityWarning: The flag --allow-worker must be used with extreme caution. It could invalidate the permission model.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+    },
+    {
+      "name": "v22.22.2:old-launch",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--permission",
+        "--allow-fs-read=/private/tmp/tap-closure-independent-kQvvhx/v22.22.2/consumer",
+        "--allow-worker",
+        "--unhandled-rejections=strict",
+        "/private/tmp/tap-closure-independent-kQvvhx/v22.22.2/consumer/old-launch.mjs"
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "TAP version 13\n# Subtest: body-0\nok 1 - body-0\n  ---\n  duration_ms: 0.514125\n  type: 'test'\n  ...\n1..1\n# tests 1\n# suites 0\n# pass 1\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 3.357542\n",
+      "stderr": "(node:10740) SecurityWarning: The flag --allow-worker must be used with extreme caution. It could invalidate the permission model.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+    },
+    {
+      "name": "v24.11.1:mandatory23",
+      "executable": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+      "args": [
+        "--permission",
+        "--allow-fs-read=/private/tmp/tap-closure-independent-kQvvhx/v24.11.1/consumer",
+        "--allow-worker",
+        "--unhandled-rejections=strict",
+        "--test-reporter=tap",
+        "/private/tmp/tap-closure-independent-kQvvhx/v24.11.1/consumer/mandatory23.mjs"
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "TAP version 13\n# Subtest: body-0\nok 1 - body-0\n  ---\n  duration_ms: 0.841292\n  type: 'test'\n  ...\n# Subtest: body-1\nok 2 - body-1\n  ---\n  duration_ms: 0.125709\n  type: 'test'\n  ...\n# Subtest: body-2\nok 3 - body-2\n  ---\n  duration_ms: 0.14025\n  type: 'test'\n  ...\n# Subtest: body-3\nok 4 - body-3\n  ---\n  duration_ms: 0.136791\n  type: 'test'\n  ...\n# Subtest: body-4\nok 5 - body-4\n  ---\n  duration_ms: 0.114333\n  type: 'test'\n  ...\n# Subtest: body-5\nok 6 - body-5\n  ---\n  duration_ms: 0.134708\n  type: 'test'\n  ...\n# Subtest: body-6\nok 7 - body-6\n  ---\n  duration_ms: 0.1095\n  type: 'test'\n  ...\n# Subtest: body-7\nok 8 - body-7\n  ---\n  duration_ms: 0.090708\n  type: 'test'\n  ...\n# Subtest: body-8\nok 9 - body-8\n  ---\n  duration_ms: 0.093958\n  type: 'test'\n  ...\n# Subtest: body-9\nok 10 - body-9\n  ---\n  duration_ms: 0.149375\n  type: 'test'\n  ...\n# Subtest: body-10\nok 11 - body-10\n  ---\n  duration_ms: 0.101958\n  type: 'test'\n  ...\n# Subtest: body-11\nok 12 - body-11\n  ---\n  duration_ms: 0.109916\n  type: 'test'\n  ...\n# Subtest: body-12\nok 13 - body-12\n  ---\n  duration_ms: 0.08075\n  type: 'test'\n  ...\n# Subtest: body-13\nok 14 - body-13\n  ---\n  duration_ms: 0.0855\n  type: 'test'\n  ...\n# Subtest: body-14\nok 15 - body-14\n  ---\n  duration_ms: 0.090708\n  type: 'test'\n  ...\n# Subtest: body-15\nok 16 - body-15\n  ---\n  duration_ms: 0.075\n  type: 'test'\n  ...\n# Subtest: body-16\nok 17 - body-16\n  ---\n  duration_ms: 0.075166\n  type: 'test'\n  ...\n# Subtest: body-17\nok 18 - body-17\n  ---\n  duration_ms: 0.07575\n  type: 'test'\n  ...\n# Subtest: body-18\nok 19 - body-18\n  ---\n  duration_ms: 0.429541\n  type: 'test'\n  ...\n# Subtest: body-19\nok 20 - body-19\n  ---\n  duration_ms: 0.085167\n  type: 'test'\n  ...\n# Subtest: body-20\nok 21 - body-20\n  ---\n  duration_ms: 0.071709\n  type: 'test'\n  ...\n# Subtest: body-21\nok 22 - body-21\n  ---\n  duration_ms: 0.073125\n  type: 'test'\n  ...\n# Subtest: body-22\nok 23 - body-22\n  ---\n  duration_ms: 0.077709\n  type: 'test'\n  ...\n1..23\n# tests 23\n# suites 0\n# pass 23\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 7.303375\n",
+      "stderr": "(node:10745) SecurityWarning: The flag --allow-worker must be used with extreme caution. It could invalidate the permission model.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+    },
+    {
+      "name": "v24.11.1:loopback13",
+      "executable": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+      "args": [
+        "--permission",
+        "--allow-fs-read=/private/tmp/tap-closure-independent-kQvvhx/v24.11.1/consumer",
+        "--allow-worker",
+        "--unhandled-rejections=strict",
+        "--test-reporter=tap",
+        "/private/tmp/tap-closure-independent-kQvvhx/v24.11.1/consumer/loopback13.mjs"
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "TAP version 13\n# Subtest: body-0\nok 1 - body-0\n  ---\n  duration_ms: 0.683083\n  type: 'test'\n  ...\n# Subtest: body-1\nok 2 - body-1\n  ---\n  duration_ms: 0.446708\n  type: 'test'\n  ...\n# Subtest: body-2\nok 3 - body-2\n  ---\n  duration_ms: 0.125291\n  type: 'test'\n  ...\n# Subtest: body-3\nok 4 - body-3\n  ---\n  duration_ms: 0.113833\n  type: 'test'\n  ...\n# Subtest: body-4\nok 5 - body-4\n  ---\n  duration_ms: 0.119916\n  type: 'test'\n  ...\n# Subtest: body-5\nok 6 - body-5\n  ---\n  duration_ms: 0.112875\n  type: 'test'\n  ...\n# Subtest: body-6\nok 7 - body-6\n  ---\n  duration_ms: 0.090792\n  type: 'test'\n  ...\n# Subtest: body-7\nok 8 - body-7\n  ---\n  duration_ms: 0.082792\n  type: 'test'\n  ...\n# Subtest: body-8\nok 9 - body-8\n  ---\n  duration_ms: 0.097583\n  type: 'test'\n  ...\n# Subtest: body-9\nok 10 - body-9\n  ---\n  duration_ms: 0.112084\n  type: 'test'\n  ...\n# Subtest: body-10\nok 11 - body-10\n  ---\n  duration_ms: 0.087209\n  type: 'test'\n  ...\n# Subtest: body-11\nok 12 - body-11\n  ---\n  duration_ms: 0.092083\n  type: 'test'\n  ...\n# Subtest: body-12\nok 13 - body-12\n  ---\n  duration_ms: 0.091084\n  type: 'test'\n  ...\n1..13\n# tests 13\n# suites 0\n# pass 13\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 6.010333\n",
+      "stderr": "(node:10746) SecurityWarning: The flag --allow-worker must be used with extreme caution. It could invalidate the permission model.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+    },
+    {
+      "name": "v24.11.1:constructor",
+      "executable": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+      "args": [
+        "--permission",
+        "--allow-fs-read=/private/tmp/tap-closure-independent-kQvvhx/v24.11.1/consumer",
+        "--allow-worker",
+        "--unhandled-rejections=strict",
+        "--test-reporter=tap",
+        "/private/tmp/tap-closure-independent-kQvvhx/v24.11.1/consumer/constructor.mjs"
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "TAP version 13\n# Subtest: body-0\nok 1 - body-0\n  ---\n  duration_ms: 0.6105\n  type: 'test'\n  ...\n# Subtest: body-1\nok 2 - body-1\n  ---\n  duration_ms: 0.119709\n  type: 'test'\n  ...\n# Subtest: body-2\nok 3 - body-2\n  ---\n  duration_ms: 0.108416\n  type: 'test'\n  ...\n# Subtest: body-3\nok 4 - body-3\n  ---\n  duration_ms: 0.101958\n  type: 'test'\n  ...\n1..4\n# tests 4\n# suites 0\n# pass 4\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 4.047042\n",
+      "stderr": "(node:10747) SecurityWarning: The flag --allow-worker must be used with extreme caution. It could invalidate the permission model.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+    },
+    {
+      "name": "v24.11.1:suffix",
+      "executable": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+      "args": [
+        "--permission",
+        "--allow-fs-read=/private/tmp/tap-closure-independent-kQvvhx/v24.11.1/consumer",
+        "--allow-worker",
+        "--unhandled-rejections=strict",
+        "--test-reporter=tap",
+        "/private/tmp/tap-closure-independent-kQvvhx/v24.11.1/consumer/suffix.test.mjs"
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "TAP version 13\n# Subtest: body-0\nok 1 - body-0\n  ---\n  duration_ms: 0.590958\n  type: 'test'\n  ...\n# Subtest: body-1\nok 2 - body-1\n  ---\n  duration_ms: 0.114625\n  type: 'test'\n  ...\n# Subtest: body-2\nok 3 - body-2\n  ---\n  duration_ms: 0.104417\n  type: 'test'\n  ...\n1..3\n# tests 3\n# suites 0\n# pass 3\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 3.713833\n",
+      "stderr": "(node:10748) SecurityWarning: The flag --allow-worker must be used with extreme caution. It could invalidate the permission model.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+    },
+    {
+      "name": "v24.11.1:plain",
+      "executable": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+      "args": [
+        "--permission",
+        "--allow-fs-read=/private/tmp/tap-closure-independent-kQvvhx/v24.11.1/consumer",
+        "--allow-worker",
+        "--unhandled-rejections=strict",
+        "/private/tmp/tap-closure-independent-kQvvhx/v24.11.1/consumer/plain.mjs"
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "plain-executed\n",
+      "stderr": "(node:10749) SecurityWarning: The flag --allow-worker must be used with extreme caution. It could invalidate the permission model.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+    },
+    {
+      "name": "v24.11.1:missing-summary",
+      "executable": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+      "args": [
+        "--permission",
+        "--allow-fs-read=/private/tmp/tap-closure-independent-kQvvhx/v24.11.1/consumer",
+        "--allow-worker",
+        "--unhandled-rejections=strict",
+        "--test-reporter=tap",
+        "/private/tmp/tap-closure-independent-kQvvhx/v24.11.1/consumer/missing-summary.mjs"
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "no-summary\n",
+      "stderr": "(node:10762) SecurityWarning: The flag --allow-worker must be used with extreme caution. It could invalidate the permission model.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+    },
+    {
+      "name": "v24.11.1:malformed-summary",
+      "executable": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+      "args": [
+        "--permission",
+        "--allow-fs-read=/private/tmp/tap-closure-independent-kQvvhx/v24.11.1/consumer",
+        "--allow-worker",
+        "--unhandled-rejections=strict",
+        "--test-reporter=tap",
+        "/private/tmp/tap-closure-independent-kQvvhx/v24.11.1/consumer/malformed-summary.mjs"
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "# tests NaN\n# pass 1\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n",
+      "stderr": "(node:10763) SecurityWarning: The flag --allow-worker must be used with extreme caution. It could invalidate the permission model.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+    },
+    {
+      "name": "v24.11.1:zero-summary",
+      "executable": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+      "args": [
+        "--permission",
+        "--allow-fs-read=/private/tmp/tap-closure-independent-kQvvhx/v24.11.1/consumer",
+        "--allow-worker",
+        "--unhandled-rejections=strict",
+        "--test-reporter=tap",
+        "/private/tmp/tap-closure-independent-kQvvhx/v24.11.1/consumer/zero-summary.mjs"
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "# tests 0\n# pass 0\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n",
+      "stderr": "(node:10764) SecurityWarning: The flag --allow-worker must be used with extreme caution. It could invalidate the permission model.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+    },
+    {
+      "name": "v24.11.1:mandatory-short",
+      "executable": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+      "args": [
+        "--permission",
+        "--allow-fs-read=/private/tmp/tap-closure-independent-kQvvhx/v24.11.1/consumer",
+        "--allow-worker",
+        "--unhandled-rejections=strict",
+        "--test-reporter=tap",
+        "/private/tmp/tap-closure-independent-kQvvhx/v24.11.1/consumer/mandatory-short.mjs"
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "TAP version 13\n# Subtest: body-0\nok 1 - body-0\n  ---\n  duration_ms: 1.313458\n  type: 'test'\n  ...\n# Subtest: body-1\nok 2 - body-1\n  ---\n  duration_ms: 0.143667\n  type: 'test'\n  ...\n# Subtest: body-2\nok 3 - body-2\n  ---\n  duration_ms: 0.187\n  type: 'test'\n  ...\n# Subtest: body-3\nok 4 - body-3\n  ---\n  duration_ms: 0.12525\n  type: 'test'\n  ...\n# Subtest: body-4\nok 5 - body-4\n  ---\n  duration_ms: 0.105583\n  type: 'test'\n  ...\n# Subtest: body-5\nok 6 - body-5\n  ---\n  duration_ms: 0.172834\n  type: 'test'\n  ...\n# Subtest: body-6\nok 7 - body-6\n  ---\n  duration_ms: 0.106041\n  type: 'test'\n  ...\n# Subtest: body-7\nok 8 - body-7\n  ---\n  duration_ms: 0.104125\n  type: 'test'\n  ...\n# Subtest: body-8\nok 9 - body-8\n  ---\n  duration_ms: 0.09125\n  type: 'test'\n  ...\n# Subtest: body-9\nok 10 - body-9\n  ---\n  duration_ms: 0.158125\n  type: 'test'\n  ...\n# Subtest: body-10\nok 11 - body-10\n  ---\n  duration_ms: 0.203042\n  type: 'test'\n  ...\n# Subtest: body-11\nok 12 - body-11\n  ---\n  duration_ms: 0.108875\n  type: 'test'\n  ...\n# Subtest: body-12\nok 13 - body-12\n  ---\n  duration_ms: 0.146333\n  type: 'test'\n  ...\n# Subtest: body-13\nok 14 - body-13\n  ---\n  duration_ms: 0.131459\n  type: 'test'\n  ...\n# Subtest: body-14\nok 15 - body-14\n  ---\n  duration_ms: 0.092709\n  type: 'test'\n  ...\n# Subtest: body-15\nok 16 - body-15\n  ---\n  duration_ms: 0.103708\n  type: 'test'\n  ...\n# Subtest: body-16\nok 17 - body-16\n  ---\n  duration_ms: 0.107959\n  type: 'test'\n  ...\n# Subtest: body-17\nok 18 - body-17\n  ---\n  duration_ms: 0.093083\n  type: 'test'\n  ...\n# Subtest: body-18\nok 19 - body-18\n  ---\n  duration_ms: 0.562417\n  type: 'test'\n  ...\n# Subtest: body-19\nok 20 - body-19\n  ---\n  duration_ms: 0.122083\n  type: 'test'\n  ...\n# Subtest: body-20\nok 21 - body-20\n  ---\n  duration_ms: 0.083333\n  type: 'test'\n  ...\n# Subtest: body-21\nok 22 - body-21\n  ---\n  duration_ms: 0.0735\n  type: 'test'\n  ...\n1..22\n# tests 22\n# suites 0\n# pass 22\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 9.068083\n",
+      "stderr": "(node:10766) SecurityWarning: The flag --allow-worker must be used with extreme caution. It could invalidate the permission model.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+    },
+    {
+      "name": "v24.11.1:loopback-short",
+      "executable": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+      "args": [
+        "--permission",
+        "--allow-fs-read=/private/tmp/tap-closure-independent-kQvvhx/v24.11.1/consumer",
+        "--allow-worker",
+        "--unhandled-rejections=strict",
+        "--test-reporter=tap",
+        "/private/tmp/tap-closure-independent-kQvvhx/v24.11.1/consumer/loopback-short.mjs"
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "TAP version 13\n# Subtest: body-0\nok 1 - body-0\n  ---\n  duration_ms: 0.627834\n  type: 'test'\n  ...\n# Subtest: body-1\nok 2 - body-1\n  ---\n  duration_ms: 0.5065\n  type: 'test'\n  ...\n# Subtest: body-2\nok 3 - body-2\n  ---\n  duration_ms: 0.110791\n  type: 'test'\n  ...\n# Subtest: body-3\nok 4 - body-3\n  ---\n  duration_ms: 0.087875\n  type: 'test'\n  ...\n# Subtest: body-4\nok 5 - body-4\n  ---\n  duration_ms: 0.094417\n  type: 'test'\n  ...\n# Subtest: body-5\nok 6 - body-5\n  ---\n  duration_ms: 0.144167\n  type: 'test'\n  ...\n# Subtest: body-6\nok 7 - body-6\n  ---\n  duration_ms: 0.111542\n  type: 'test'\n  ...\n# Subtest: body-7\nok 8 - body-7\n  ---\n  duration_ms: 0.0765\n  type: 'test'\n  ...\n# Subtest: body-8\nok 9 - body-8\n  ---\n  duration_ms: 0.196916\n  type: 'test'\n  ...\n# Subtest: body-9\nok 10 - body-9\n  ---\n  duration_ms: 0.169125\n  type: 'test'\n  ...\n# Subtest: body-10\nok 11 - body-10\n  ---\n  duration_ms: 0.095333\n  type: 'test'\n  ...\n# Subtest: body-11\nok 12 - body-11\n  ---\n  duration_ms: 0.103333\n  type: 'test'\n  ...\n1..12\n# tests 12\n# suites 0\n# pass 12\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 7.1235\n",
+      "stderr": "(node:10770) SecurityWarning: The flag --allow-worker must be used with extreme caution. It could invalidate the permission model.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+    },
+    {
+      "name": "v24.11.1:skip",
+      "executable": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+      "args": [
+        "--permission",
+        "--allow-fs-read=/private/tmp/tap-closure-independent-kQvvhx/v24.11.1/consumer",
+        "--allow-worker",
+        "--unhandled-rejections=strict",
+        "--test-reporter=tap",
+        "/private/tmp/tap-closure-independent-kQvvhx/v24.11.1/consumer/skip.mjs"
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "TAP version 13\n# Subtest: body-0\nok 1 - body-0 # SKIP\n  ---\n  duration_ms: 0.223167\n  type: 'test'\n  ...\n1..1\n# tests 1\n# suites 0\n# pass 0\n# fail 0\n# cancelled 0\n# skipped 1\n# todo 0\n# duration_ms 2.568792\n",
+      "stderr": "(node:10775) SecurityWarning: The flag --allow-worker must be used with extreme caution. It could invalidate the permission model.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+    },
+    {
+      "name": "v24.11.1:todo",
+      "executable": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+      "args": [
+        "--permission",
+        "--allow-fs-read=/private/tmp/tap-closure-independent-kQvvhx/v24.11.1/consumer",
+        "--allow-worker",
+        "--unhandled-rejections=strict",
+        "--test-reporter=tap",
+        "/private/tmp/tap-closure-independent-kQvvhx/v24.11.1/consumer/todo.mjs"
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "TAP version 13\n# Subtest: body-0\nok 1 - body-0 # TODO\n  ---\n  duration_ms: 0.563042\n  type: 'test'\n  ...\n1..1\n# tests 1\n# suites 0\n# pass 0\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 1\n# duration_ms 3.094209\n",
+      "stderr": "(node:10776) SecurityWarning: The flag --allow-worker must be used with extreme caution. It could invalidate the permission model.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+    },
+    {
+      "name": "v24.11.1:wrong-reporter-mutant",
+      "executable": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+      "args": [
+        "--permission",
+        "--allow-fs-read=/private/tmp/tap-closure-independent-kQvvhx/v24.11.1/consumer",
+        "--allow-worker",
+        "--unhandled-rejections=strict",
+        "--test-reporter=spec",
+        "/private/tmp/tap-closure-independent-kQvvhx/v24.11.1/consumer/wrong-reporter-mutant.mjs"
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "✔ body-0 (0.582875ms)\nℹ tests 1\nℹ suites 0\nℹ pass 1\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 2.489459\n",
+      "stderr": "(node:10777) SecurityWarning: The flag --allow-worker must be used with extreme caution. It could invalidate the permission model.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+    },
+    {
+      "name": "v24.11.1:old-launch",
+      "executable": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+      "args": [
+        "--permission",
+        "--allow-fs-read=/private/tmp/tap-closure-independent-kQvvhx/v24.11.1/consumer",
+        "--allow-worker",
+        "--unhandled-rejections=strict",
+        "/private/tmp/tap-closure-independent-kQvvhx/v24.11.1/consumer/old-launch.mjs"
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "✔ body-0 (0.624125ms)\nℹ tests 1\nℹ suites 0\nℹ pass 1\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 2.585667\n",
+      "stderr": "(node:10778) SecurityWarning: The flag --allow-worker must be used with extreme caution. It could invalidate the permission model.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+    }
+  ],
+  "profiles": [
+    {
+      "version": "v22.22.2",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+      "permission": {
+        "supported": true,
+        "refusalStatus": 78,
+        "probes": [
+          {
+            "command": [
+              "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+              "--input-type=module",
+              "-e",
+              "console.log(JSON.stringify({executable:process.execPath,version:process.version,platform:process.platform,arch:process.arch,flags:[\"--permission\",\"--experimental-permission\"].filter(flag=>process.allowedNodeEnvironmentFlags.has(flag))}))"
+            ],
+            "cwd": "/private/tmp/tap-closure-independent-kQvvhx/v22.22.2",
+            "status": 0,
+            "signal": null,
+            "stdout": "{\"executable\":\"/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node\",\"version\":\"v22.22.2\",\"platform\":\"darwin\",\"arch\":\"arm64\",\"flags\":[\"--permission\",\"--experimental-permission\"]}\n",
+            "stderr": ""
+          },
+          {
+            "command": [
+              "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+              "--permission",
+              "--allow-fs-read=/private/tmp/tap-closure-independent-kQvvhx/v22.22.2/permission-probe",
+              "--allow-worker",
+              "--unhandled-rejections=strict",
+              "--input-type=module",
+              "-e",
+              "import assert from 'node:assert/strict'; import {readFileSync,writeFileSync} from 'node:fs'; assert.equal(readFileSync(\"/private/tmp/tap-closure-independent-kQvvhx/v22.22.2/permission-probe/allowed.txt\",'utf8'),'permission-positive\\n'); assert.equal(process.permission.has('fs.read',\"/private/tmp/tap-closure-independent-kQvvhx/v22.22.2/source/src/index.ts\"),false); assert.throws(()=>writeFileSync(\"/private/tmp/tap-closure-independent-kQvvhx/v22.22.2/permission-probe/allowed.txt\",'changed'),{code:'ERR_ACCESS_DENIED',permission:'FileSystemWrite'}); console.log(JSON.stringify({executable:process.execPath,version:process.version,read:true,writeDenied:true}));"
+            ],
+            "cwd": "/private/tmp/tap-closure-independent-kQvvhx/v22.22.2/permission-probe",
+            "status": 0,
+            "signal": null,
+            "stdout": "{\"executable\":\"/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node\",\"version\":\"v22.22.2\",\"read\":true,\"writeDenied\":true}\n",
+            "stderr": "(node:10717) SecurityWarning: The flag --allow-worker must be used with extreme caution. It could invalidate the permission model.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+          },
+          {
+            "command": [
+              "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+              "--permission",
+              "--allow-fs-read=/private/tmp/tap-closure-independent-kQvvhx/v22.22.2/permission-probe",
+              "--allow-worker",
+              "--unhandled-rejections=strict",
+              "--input-type=module",
+              "-e",
+              "import {readFileSync} from 'node:fs'; readFileSync(\"/private/tmp/tap-closure-independent-kQvvhx/v22.22.2/source/src/index.ts\");"
+            ],
+            "cwd": "/private/tmp/tap-closure-independent-kQvvhx/v22.22.2/permission-probe",
+            "status": 1,
+            "signal": null,
+            "stdout": "",
+            "stderr": "(node:10718) SecurityWarning: The flag --allow-worker must be used with extreme caution. It could invalidate the permission model.\n(Use `node --trace-warnings ...` to show where the warning was created)\nnode:fs:560\n  return binding.open(\n                 ^\n\nError: Access to this API has been restricted. Use --allow-fs-read to manage permissions.\n    at Object.openSync (node:fs:560:18)\n    at readFileSync (node:fs:444:35)\n    at file:///private/tmp/tap-closure-independent-kQvvhx/v22.22.2/permission-probe/[eval1]:1:39\n    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:272:26)\n    at async ModuleLoader.executeModuleJob (node:internal/modules/esm/loader:268:20)\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5) {\n  code: 'ERR_ACCESS_DENIED',\n  permission: 'FileSystemRead',\n  resource: '/private/tmp/tap-closure-independent-kQvvhx/v22.22.2/source/src/index.ts'\n}\n\nNode.js v22.22.2\n"
+          }
+        ],
+        "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+        "identity": {
+          "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+          "version": "v22.22.2",
+          "platform": "darwin",
+          "arch": "arm64",
+          "flags": [
+            "--permission",
+            "--experimental-permission"
+          ]
+        },
+        "flag": "--permission"
+      }
+    },
+    {
+      "version": "v24.11.1",
+      "executable": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+      "sha256": "4255a388254ca4319e2f95f1da375d5deaddf25baf9c7c85070b67f9543b15d0",
+      "permission": {
+        "supported": true,
+        "refusalStatus": 78,
+        "probes": [
+          {
+            "command": [
+              "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+              "--input-type=module",
+              "-e",
+              "console.log(JSON.stringify({executable:process.execPath,version:process.version,platform:process.platform,arch:process.arch,flags:[\"--permission\",\"--experimental-permission\"].filter(flag=>process.allowedNodeEnvironmentFlags.has(flag))}))"
+            ],
+            "cwd": "/private/tmp/tap-closure-independent-kQvvhx/v24.11.1",
+            "status": 0,
+            "signal": null,
+            "stdout": "{\"executable\":\"/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node\",\"version\":\"v24.11.1\",\"platform\":\"darwin\",\"arch\":\"arm64\",\"flags\":[\"--permission\"]}\n",
+            "stderr": ""
+          },
+          {
+            "command": [
+              "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+              "--permission",
+              "--allow-fs-read=/private/tmp/tap-closure-independent-kQvvhx/v24.11.1/permission-probe",
+              "--allow-worker",
+              "--unhandled-rejections=strict",
+              "--input-type=module",
+              "-e",
+              "import assert from 'node:assert/strict'; import {readFileSync,writeFileSync} from 'node:fs'; assert.equal(readFileSync(\"/private/tmp/tap-closure-independent-kQvvhx/v24.11.1/permission-probe/allowed.txt\",'utf8'),'permission-positive\\n'); assert.equal(process.permission.has('fs.read',\"/private/tmp/tap-closure-independent-kQvvhx/v24.11.1/source/src/index.ts\"),false); assert.throws(()=>writeFileSync(\"/private/tmp/tap-closure-independent-kQvvhx/v24.11.1/permission-probe/allowed.txt\",'changed'),{code:'ERR_ACCESS_DENIED',permission:'FileSystemWrite'}); console.log(JSON.stringify({executable:process.execPath,version:process.version,read:true,writeDenied:true}));"
+            ],
+            "cwd": "/private/tmp/tap-closure-independent-kQvvhx/v24.11.1/permission-probe",
+            "status": 0,
+            "signal": null,
+            "stdout": "{\"executable\":\"/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node\",\"version\":\"v24.11.1\",\"read\":true,\"writeDenied\":true}\n",
+            "stderr": "(node:10743) SecurityWarning: The flag --allow-worker must be used with extreme caution. It could invalidate the permission model.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+          },
+          {
+            "command": [
+              "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+              "--permission",
+              "--allow-fs-read=/private/tmp/tap-closure-independent-kQvvhx/v24.11.1/permission-probe",
+              "--allow-worker",
+              "--unhandled-rejections=strict",
+              "--input-type=module",
+              "-e",
+              "import {readFileSync} from 'node:fs'; readFileSync(\"/private/tmp/tap-closure-independent-kQvvhx/v24.11.1/source/src/index.ts\");"
+            ],
+            "cwd": "/private/tmp/tap-closure-independent-kQvvhx/v24.11.1/permission-probe",
+            "status": 1,
+            "signal": null,
+            "stdout": "",
+            "stderr": "(node:10744) SecurityWarning: The flag --allow-worker must be used with extreme caution. It could invalidate the permission model.\n(Use `node --trace-warnings ...` to show where the warning was created)\nnode:fs:560\n  return binding.open(\n                 ^\n\nError: Access to this API has been restricted. Use --allow-fs-read to manage permissions.\n    at Object.openSync (node:fs:560:18)\n    at readFileSync (node:fs:444:35)\n    at file:///private/tmp/tap-closure-independent-kQvvhx/v24.11.1/permission-probe/[eval1]:1:39\n    at ModuleJob.run (node:internal/modules/esm/module_job:377:25)\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:254:26)\n    at async ModuleLoader.executeModuleJob (node:internal/modules/esm/loader:251:20)\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:101:5) {\n  code: 'ERR_ACCESS_DENIED',\n  permission: 'FileSystemRead',\n  resource: '/private/tmp/tap-closure-independent-kQvvhx/v24.11.1/source/src/index.ts'\n}\n\nNode.js v24.11.1\n"
+          }
+        ],
+        "executable": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+        "sha256": "4255a388254ca4319e2f95f1da375d5deaddf25baf9c7c85070b67f9543b15d0",
+        "identity": {
+          "executable": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+          "version": "v24.11.1",
+          "platform": "darwin",
+          "arch": "arm64",
+          "flags": [
+            "--permission"
+          ]
+        },
+        "flag": "--permission"
+      }
+    }
+  ],
+  "full16Groups": false,
+  "privateAccess": false,
+  "author24": {
+    "sourceSha256": "09d04680a1dd80059fd31da73068c919bb0402d8bdd31a4d0a971a67d8e1259c",
+    "baseline": "774644f9",
+    "countBlockSha256": "82108e0a6b2c3e2204024cc3f5ce15a1dd9669abd890bb206a941dd43a01d8b1",
+    "profiles": [
+      {
+        "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "version": "v22.22.2",
+        "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+        "permission": {
+          "supported": true,
+          "refusalStatus": 78,
+          "probes": [
+            {
+              "command": [
+                "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+                "--input-type=module",
+                "-e",
+                "console.log(JSON.stringify({executable:process.execPath,version:process.version,platform:process.platform,arch:process.arch,flags:[\"--permission\",\"--experimental-permission\"].filter(flag=>process.allowedNodeEnvironmentFlags.has(flag))}))"
+              ],
+              "cwd": "/private/tmp/safe-bash-tap-controls-R5Y7fn/v22.22.2",
+              "status": 0,
+              "signal": null,
+              "stdout": "{\"executable\":\"/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node\",\"version\":\"v22.22.2\",\"platform\":\"darwin\",\"arch\":\"arm64\",\"flags\":[\"--permission\",\"--experimental-permission\"]}\n",
+              "stderr": ""
+            },
+            {
+              "command": [
+                "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+                "--permission",
+                "--allow-fs-read=/private/tmp/safe-bash-tap-controls-R5Y7fn/v22.22.2/permission-probe",
+                "--allow-worker",
+                "--unhandled-rejections=strict",
+                "--input-type=module",
+                "-e",
+                "import assert from 'node:assert/strict'; import {readFileSync,writeFileSync} from 'node:fs'; assert.equal(readFileSync(\"/private/tmp/safe-bash-tap-controls-R5Y7fn/v22.22.2/permission-probe/allowed.txt\",'utf8'),'permission-positive\\n'); assert.equal(process.permission.has('fs.read',\"/private/tmp/safe-bash-tap-controls-R5Y7fn/v22.22.2/source/src/index.ts\"),false); assert.throws(()=>writeFileSync(\"/private/tmp/safe-bash-tap-controls-R5Y7fn/v22.22.2/permission-probe/allowed.txt\",'changed'),{code:'ERR_ACCESS_DENIED',permission:'FileSystemWrite'}); console.log(JSON.stringify({executable:process.execPath,version:process.version,read:true,writeDenied:true}));"
+              ],
+              "cwd": "/private/tmp/safe-bash-tap-controls-R5Y7fn/v22.22.2/permission-probe",
+              "status": 0,
+              "signal": null,
+              "stdout": "{\"executable\":\"/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node\",\"version\":\"v22.22.2\",\"read\":true,\"writeDenied\":true}\n",
+              "stderr": "(node:10647) SecurityWarning: The flag --allow-worker must be used with extreme caution. It could invalidate the permission model.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+            },
+            {
+              "command": [
+                "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+                "--permission",
+                "--allow-fs-read=/private/tmp/safe-bash-tap-controls-R5Y7fn/v22.22.2/permission-probe",
+                "--allow-worker",
+                "--unhandled-rejections=strict",
+                "--input-type=module",
+                "-e",
+                "import {readFileSync} from 'node:fs'; readFileSync(\"/private/tmp/safe-bash-tap-controls-R5Y7fn/v22.22.2/source/src/index.ts\");"
+              ],
+              "cwd": "/private/tmp/safe-bash-tap-controls-R5Y7fn/v22.22.2/permission-probe",
+              "status": 1,
+              "signal": null,
+              "stdout": "",
+              "stderr": "(node:10648) SecurityWarning: The flag --allow-worker must be used with extreme caution. It could invalidate the permission model.\n(Use `node --trace-warnings ...` to show where the warning was created)\nnode:fs:560\n  return binding.open(\n                 ^\n\nError: Access to this API has been restricted. Use --allow-fs-read to manage permissions.\n    at Object.openSync (node:fs:560:18)\n    at readFileSync (node:fs:444:35)\n    at file:///private/tmp/safe-bash-tap-controls-R5Y7fn/v22.22.2/permission-probe/[eval1]:1:39\n    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:272:26)\n    at async ModuleLoader.executeModuleJob (node:internal/modules/esm/loader:268:20)\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5) {\n  code: 'ERR_ACCESS_DENIED',\n  permission: 'FileSystemRead',\n  resource: '/private/tmp/safe-bash-tap-controls-R5Y7fn/v22.22.2/source/src/index.ts'\n}\n\nNode.js v22.22.2\n"
+            }
+          ],
+          "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+          "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+          "identity": {
+            "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+            "version": "v22.22.2",
+            "platform": "darwin",
+            "arch": "arm64",
+            "flags": [
+              "--permission",
+              "--experimental-permission"
+            ]
+          },
+          "flag": "--permission"
+        },
+        "executions": [
+          {
+            "label": "consumer-webdav-timestamp-independent-mandatory23.mjs",
+            "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+            "originalArgs": [
+              "--permission",
+              "--allow-fs-read=/private/tmp/safe-bash-tap-controls-R5Y7fn/v22.22.2/consumer",
+              "--allow-worker",
+              "--unhandled-rejections=strict",
+              "--test-reporter=tap",
+              "/private/tmp/safe-bash-tap-controls-R5Y7fn/v22.22.2/consumer/mandatory23.mjs"
+            ],
+            "args": [
+              "--permission",
+              "--allow-fs-read=/private/tmp/safe-bash-tap-controls-R5Y7fn/v22.22.2/consumer",
+              "--allow-worker",
+              "--unhandled-rejections=strict",
+              "--test-reporter=tap",
+              "/private/tmp/safe-bash-tap-controls-R5Y7fn/v22.22.2/consumer/mandatory23.mjs"
+            ],
+            "status": 0,
+            "signal": null,
+            "stdout": "TAP version 13\n# Subtest: actual-fenced-0\nok 1 - actual-fenced-0\n  ---\n  duration_ms: 0.994417\n  type: 'test'\n  ...\n# Subtest: actual-fenced-1\nok 2 - actual-fenced-1\n  ---\n  duration_ms: 0.176875\n  type: 'test'\n  ...\n# Subtest: actual-fenced-2\nok 3 - actual-fenced-2\n  ---\n  duration_ms: 0.126416\n  type: 'test'\n  ...\n# Subtest: actual-fenced-3\nok 4 - actual-fenced-3\n  ---\n  duration_ms: 0.091625\n  type: 'test'\n  ...\n# Subtest: actual-fenced-4\nok 5 - actual-fenced-4\n  ---\n  duration_ms: 0.166208\n  type: 'test'\n  ...\n# Subtest: actual-fenced-5\nok 6 - actual-fenced-5\n  ---\n  duration_ms: 0.150125\n  type: 'test'\n  ...\n# Subtest: actual-fenced-6\nok 7 - actual-fenced-6\n  ---\n  duration_ms: 0.088833\n  type: 'test'\n  ...\n# Subtest: actual-fenced-7\nok 8 - actual-fenced-7\n  ---\n  duration_ms: 0.078542\n  type: 'test'\n  ...\n# Subtest: actual-fenced-8\nok 9 - actual-fenced-8\n  ---\n  duration_ms: 0.242\n  type: 'test'\n  ...\n# Subtest: actual-fenced-9\nok 10 - actual-fenced-9\n  ---\n  duration_ms: 0.255166\n  type: 'test'\n  ...\n# Subtest: actual-fenced-10\nok 11 - actual-fenced-10\n  ---\n  duration_ms: 0.11725\n  type: 'test'\n  ...\n# Subtest: actual-fenced-11\nok 12 - actual-fenced-11\n  ---\n  duration_ms: 0.079083\n  type: 'test'\n  ...\n# Subtest: actual-fenced-12\nok 13 - actual-fenced-12\n  ---\n  duration_ms: 0.072042\n  type: 'test'\n  ...\n# Subtest: actual-fenced-13\nok 14 - actual-fenced-13\n  ---\n  duration_ms: 0.072333\n  type: 'test'\n  ...\n# Subtest: actual-fenced-14\nok 15 - actual-fenced-14\n  ---\n  duration_ms: 0.074167\n  type: 'test'\n  ...\n# Subtest: actual-fenced-15\nok 16 - actual-fenced-15\n  ---\n  duration_ms: 0.068209\n  type: 'test'\n  ...\n# Subtest: actual-fenced-16\nok 17 - actual-fenced-16\n  ---\n  duration_ms: 0.070042\n  type: 'test'\n  ...\n# Subtest: actual-fenced-17\nok 18 - actual-fenced-17\n  ---\n  duration_ms: 0.37925\n  type: 'test'\n  ...\n# Subtest: actual-fenced-18\nok 19 - actual-fenced-18\n  ---\n  duration_ms: 0.104667\n  type: 'test'\n  ...\n# Subtest: actual-fenced-19\nok 20 - actual-fenced-19\n  ---\n  duration_ms: 0.077\n  type: 'test'\n  ...\n# Subtest: actual-fenced-20\nok 21 - actual-fenced-20\n  ---\n  duration_ms: 0.06925\n  type: 'test'\n  ...\n# Subtest: actual-fenced-21\nok 22 - actual-fenced-21\n  ---\n  duration_ms: 0.070583\n  type: 'test'\n  ...\n# Subtest: actual-fenced-22\nok 23 - actual-fenced-22\n  ---\n  duration_ms: 0.070916\n  type: 'test'\n  ...\n1..23\n# tests 23\n# suites 0\n# pass 23\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 10.129709\n",
+            "stderr": "(node:10649) SecurityWarning: The flag --allow-worker must be used with extreme caution. It could invalidate the permission model.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+          },
+          {
+            "label": "consumer-webdav-loopback-loopback13.mjs",
+            "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+            "originalArgs": [
+              "--permission",
+              "--allow-fs-read=/private/tmp/safe-bash-tap-controls-R5Y7fn/v22.22.2/consumer",
+              "--allow-worker",
+              "--unhandled-rejections=strict",
+              "--test-reporter=tap",
+              "/private/tmp/safe-bash-tap-controls-R5Y7fn/v22.22.2/consumer/loopback13.mjs"
+            ],
+            "args": [
+              "--permission",
+              "--allow-fs-read=/private/tmp/safe-bash-tap-controls-R5Y7fn/v22.22.2/consumer",
+              "--allow-worker",
+              "--unhandled-rejections=strict",
+              "--test-reporter=tap",
+              "/private/tmp/safe-bash-tap-controls-R5Y7fn/v22.22.2/consumer/loopback13.mjs"
+            ],
+            "status": 0,
+            "signal": null,
+            "stdout": "TAP version 13\n# Subtest: actual-fenced-0\nok 1 - actual-fenced-0\n  ---\n  duration_ms: 0.7255\n  type: 'test'\n  ...\n# Subtest: actual-fenced-1\nok 2 - actual-fenced-1\n  ---\n  duration_ms: 0.271833\n  type: 'test'\n  ...\n# Subtest: actual-fenced-2\nok 3 - actual-fenced-2\n  ---\n  duration_ms: 0.14375\n  type: 'test'\n  ...\n# Subtest: actual-fenced-3\nok 4 - actual-fenced-3\n  ---\n  duration_ms: 0.149833\n  type: 'test'\n  ...\n# Subtest: actual-fenced-4\nok 5 - actual-fenced-4\n  ---\n  duration_ms: 0.165292\n  type: 'test'\n  ...\n# Subtest: actual-fenced-5\nok 6 - actual-fenced-5\n  ---\n  duration_ms: 0.145708\n  type: 'test'\n  ...\n# Subtest: actual-fenced-6\nok 7 - actual-fenced-6\n  ---\n  duration_ms: 0.061292\n  type: 'test'\n  ...\n# Subtest: actual-fenced-7\nok 8 - actual-fenced-7\n  ---\n  duration_ms: 0.081\n  type: 'test'\n  ...\n# Subtest: actual-fenced-8\nok 9 - actual-fenced-8\n  ---\n  duration_ms: 0.241459\n  type: 'test'\n  ...\n# Subtest: actual-fenced-9\nok 10 - actual-fenced-9\n  ---\n  duration_ms: 0.310208\n  type: 'test'\n  ...\n# Subtest: actual-fenced-10\nok 11 - actual-fenced-10\n  ---\n  duration_ms: 0.16975\n  type: 'test'\n  ...\n# Subtest: actual-fenced-11\nok 12 - actual-fenced-11\n  ---\n  duration_ms: 0.072\n  type: 'test'\n  ...\n# Subtest: actual-fenced-12\nok 13 - actual-fenced-12\n  ---\n  duration_ms: 0.074375\n  type: 'test'\n  ...\n1..13\n# tests 13\n# suites 0\n# pass 13\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 9.773958\n",
+            "stderr": "(node:10660) SecurityWarning: The flag --allow-worker must be used with extreme caution. It could invalidate the permission model.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+          },
+          {
+            "label": "consumer-s3-constructor-constructor.mjs",
+            "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+            "originalArgs": [
+              "--permission",
+              "--allow-fs-read=/private/tmp/safe-bash-tap-controls-R5Y7fn/v22.22.2/consumer",
+              "--allow-worker",
+              "--unhandled-rejections=strict",
+              "--test-reporter=tap",
+              "/private/tmp/safe-bash-tap-controls-R5Y7fn/v22.22.2/consumer/constructor.mjs"
+            ],
+            "args": [
+              "--permission",
+              "--allow-fs-read=/private/tmp/safe-bash-tap-controls-R5Y7fn/v22.22.2/consumer",
+              "--allow-worker",
+              "--unhandled-rejections=strict",
+              "--test-reporter=tap",
+              "/private/tmp/safe-bash-tap-controls-R5Y7fn/v22.22.2/consumer/constructor.mjs"
+            ],
+            "status": 0,
+            "signal": null,
+            "stdout": "TAP version 13\n# Subtest: actual-fenced-0\nok 1 - actual-fenced-0\n  ---\n  duration_ms: 0.59175\n  type: 'test'\n  ...\n1..1\n# tests 1\n# suites 0\n# pass 1\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 3.83925\n",
+            "stderr": "(node:10664) SecurityWarning: The flag --allow-worker must be used with extreme caution. It could invalidate the permission model.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+          },
+          {
+            "label": "consumer-suffix-case-suffix.test.mjs",
+            "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+            "originalArgs": [
+              "--permission",
+              "--allow-fs-read=/private/tmp/safe-bash-tap-controls-R5Y7fn/v22.22.2/consumer",
+              "--allow-worker",
+              "--unhandled-rejections=strict",
+              "--test-reporter=tap",
+              "/private/tmp/safe-bash-tap-controls-R5Y7fn/v22.22.2/consumer/suffix.test.mjs"
+            ],
+            "args": [
+              "--permission",
+              "--allow-fs-read=/private/tmp/safe-bash-tap-controls-R5Y7fn/v22.22.2/consumer",
+              "--allow-worker",
+              "--unhandled-rejections=strict",
+              "--test-reporter=tap",
+              "/private/tmp/safe-bash-tap-controls-R5Y7fn/v22.22.2/consumer/suffix.test.mjs"
+            ],
+            "status": 0,
+            "signal": null,
+            "stdout": "TAP version 13\n# Subtest: actual-fenced-0\nok 1 - actual-fenced-0\n  ---\n  duration_ms: 0.508458\n  type: 'test'\n  ...\n# Subtest: actual-fenced-1\nok 2 - actual-fenced-1\n  ---\n  duration_ms: 0.148917\n  type: 'test'\n  ...\n1..2\n# tests 2\n# suites 0\n# pass 2\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 3.536875\n",
+            "stderr": "(node:10665) SecurityWarning: The flag --allow-worker must be used with extreme caution. It could invalidate the permission model.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+          },
+          {
+            "label": "consumer-plain-plain.mjs",
+            "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+            "originalArgs": [
+              "--permission",
+              "--allow-fs-read=/private/tmp/safe-bash-tap-controls-R5Y7fn/v22.22.2/consumer",
+              "--allow-worker",
+              "--unhandled-rejections=strict",
+              "/private/tmp/safe-bash-tap-controls-R5Y7fn/v22.22.2/consumer/plain.mjs"
+            ],
+            "args": [
+              "--permission",
+              "--allow-fs-read=/private/tmp/safe-bash-tap-controls-R5Y7fn/v22.22.2/consumer",
+              "--allow-worker",
+              "--unhandled-rejections=strict",
+              "/private/tmp/safe-bash-tap-controls-R5Y7fn/v22.22.2/consumer/plain.mjs"
+            ],
+            "status": 0,
+            "signal": null,
+            "stdout": "plain-body\n",
+            "stderr": "(node:10670) SecurityWarning: The flag --allow-worker must be used with extreme caution. It could invalidate the permission model.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+          },
+          {
+            "label": "consumer-counted-spec.mjs",
+            "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+            "originalArgs": [
+              "--permission",
+              "--allow-fs-read=/private/tmp/safe-bash-tap-controls-R5Y7fn/v22.22.2/consumer",
+              "--allow-worker",
+              "--unhandled-rejections=strict",
+              "--test-reporter=tap",
+              "/private/tmp/safe-bash-tap-controls-R5Y7fn/v22.22.2/consumer/spec.mjs"
+            ],
+            "args": [
+              "--permission",
+              "--allow-fs-read=/private/tmp/safe-bash-tap-controls-R5Y7fn/v22.22.2/consumer",
+              "--allow-worker",
+              "--unhandled-rejections=strict",
+              "--test-reporter=spec",
+              "/private/tmp/safe-bash-tap-controls-R5Y7fn/v22.22.2/consumer/spec.mjs"
+            ],
+            "status": 0,
+            "signal": null,
+            "stdout": "✔ actual-fenced-0 (0.618625ms)\nℹ tests 1\nℹ suites 0\nℹ pass 1\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 2.758084\n",
+            "stderr": "(node:10675) SecurityWarning: The flag --allow-worker must be used with extreme caution. It could invalidate the permission model.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+          },
+          {
+            "label": "consumer-counted-missing.mjs",
+            "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+            "originalArgs": [
+              "--permission",
+              "--allow-fs-read=/private/tmp/safe-bash-tap-controls-R5Y7fn/v22.22.2/consumer",
+              "--allow-worker",
+              "--unhandled-rejections=strict",
+              "--test-reporter=tap",
+              "/private/tmp/safe-bash-tap-controls-R5Y7fn/v22.22.2/consumer/missing.mjs"
+            ],
+            "args": [
+              "--permission",
+              "--allow-fs-read=/private/tmp/safe-bash-tap-controls-R5Y7fn/v22.22.2/consumer",
+              "--allow-worker",
+              "--unhandled-rejections=strict",
+              "--test-reporter=tap",
+              "/private/tmp/safe-bash-tap-controls-R5Y7fn/v22.22.2/consumer/missing.mjs"
+            ],
+            "status": 0,
+            "signal": null,
+            "stdout": "no test summary\n",
+            "stderr": "(node:10676) SecurityWarning: The flag --allow-worker must be used with extreme caution. It could invalidate the permission model.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+          },
+          {
+            "label": "consumer-counted-zero.mjs",
+            "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+            "originalArgs": [
+              "--permission",
+              "--allow-fs-read=/private/tmp/safe-bash-tap-controls-R5Y7fn/v22.22.2/consumer",
+              "--allow-worker",
+              "--unhandled-rejections=strict",
+              "--test-reporter=tap",
+              "/private/tmp/safe-bash-tap-controls-R5Y7fn/v22.22.2/consumer/zero.mjs"
+            ],
+            "args": [
+              "--permission",
+              "--allow-fs-read=/private/tmp/safe-bash-tap-controls-R5Y7fn/v22.22.2/consumer",
+              "--allow-worker",
+              "--unhandled-rejections=strict",
+              "--test-reporter=tap",
+              "/private/tmp/safe-bash-tap-controls-R5Y7fn/v22.22.2/consumer/zero.mjs"
+            ],
+            "status": 0,
+            "signal": null,
+            "stdout": "# tests 0\n# pass 0\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n",
+            "stderr": "(node:10677) SecurityWarning: The flag --allow-worker must be used with extreme caution. It could invalidate the permission model.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+          },
+          {
+            "label": "consumer-counted-wrong23.mjs",
+            "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+            "originalArgs": [
+              "--permission",
+              "--allow-fs-read=/private/tmp/safe-bash-tap-controls-R5Y7fn/v22.22.2/consumer",
+              "--allow-worker",
+              "--unhandled-rejections=strict",
+              "--test-reporter=tap",
+              "/private/tmp/safe-bash-tap-controls-R5Y7fn/v22.22.2/consumer/wrong23.mjs"
+            ],
+            "args": [
+              "--permission",
+              "--allow-fs-read=/private/tmp/safe-bash-tap-controls-R5Y7fn/v22.22.2/consumer",
+              "--allow-worker",
+              "--unhandled-rejections=strict",
+              "--test-reporter=tap",
+              "/private/tmp/safe-bash-tap-controls-R5Y7fn/v22.22.2/consumer/wrong23.mjs"
+            ],
+            "status": 0,
+            "signal": null,
+            "stdout": "TAP version 13\n# Subtest: actual-fenced-0\nok 1 - actual-fenced-0\n  ---\n  duration_ms: 1.0975\n  type: 'test'\n  ...\n# Subtest: actual-fenced-1\nok 2 - actual-fenced-1\n  ---\n  duration_ms: 0.190541\n  type: 'test'\n  ...\n# Subtest: actual-fenced-2\nok 3 - actual-fenced-2\n  ---\n  duration_ms: 0.141084\n  type: 'test'\n  ...\n# Subtest: actual-fenced-3\nok 4 - actual-fenced-3\n  ---\n  duration_ms: 0.094625\n  type: 'test'\n  ...\n# Subtest: actual-fenced-4\nok 5 - actual-fenced-4\n  ---\n  duration_ms: 0.25\n  type: 'test'\n  ...\n# Subtest: actual-fenced-5\nok 6 - actual-fenced-5\n  ---\n  duration_ms: 0.185125\n  type: 'test'\n  ...\n# Subtest: actual-fenced-6\nok 7 - actual-fenced-6\n  ---\n  duration_ms: 0.082167\n  type: 'test'\n  ...\n# Subtest: actual-fenced-7\nok 8 - actual-fenced-7\n  ---\n  duration_ms: 0.10025\n  type: 'test'\n  ...\n# Subtest: actual-fenced-8\nok 9 - actual-fenced-8\n  ---\n  duration_ms: 0.286834\n  type: 'test'\n  ...\n# Subtest: actual-fenced-9\nok 10 - actual-fenced-9\n  ---\n  duration_ms: 0.311542\n  type: 'test'\n  ...\n# Subtest: actual-fenced-10\nok 11 - actual-fenced-10\n  ---\n  duration_ms: 0.145583\n  type: 'test'\n  ...\n# Subtest: actual-fenced-11\nok 12 - actual-fenced-11\n  ---\n  duration_ms: 0.0895\n  type: 'test'\n  ...\n# Subtest: actual-fenced-12\nok 13 - actual-fenced-12\n  ---\n  duration_ms: 0.080792\n  type: 'test'\n  ...\n# Subtest: actual-fenced-13\nok 14 - actual-fenced-13\n  ---\n  duration_ms: 0.108208\n  type: 'test'\n  ...\n# Subtest: actual-fenced-14\nok 15 - actual-fenced-14\n  ---\n  duration_ms: 0.093333\n  type: 'test'\n  ...\n# Subtest: actual-fenced-15\nok 16 - actual-fenced-15\n  ---\n  duration_ms: 0.084875\n  type: 'test'\n  ...\n# Subtest: actual-fenced-16\nok 17 - actual-fenced-16\n  ---\n  duration_ms: 0.07275\n  type: 'test'\n  ...\n# Subtest: actual-fenced-17\nok 18 - actual-fenced-17\n  ---\n  duration_ms: 0.422333\n  type: 'test'\n  ...\n# Subtest: actual-fenced-18\nok 19 - actual-fenced-18\n  ---\n  duration_ms: 0.0865\n  type: 'test'\n  ...\n# Subtest: actual-fenced-19\nok 20 - actual-fenced-19\n  ---\n  duration_ms: 0.079542\n  type: 'test'\n  ...\n# Subtest: actual-fenced-20\nok 21 - actual-fenced-20\n  ---\n  duration_ms: 0.077916\n  type: 'test'\n  ...\n# Subtest: actual-fenced-21\nok 22 - actual-fenced-21\n  ---\n  duration_ms: 0.078292\n  type: 'test'\n  ...\n1..22\n# tests 22\n# suites 0\n# pass 22\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 9.857708\n",
+            "stderr": "(node:10678) SecurityWarning: The flag --allow-worker must be used with extreme caution. It could invalidate the permission model.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+          },
+          {
+            "label": "consumer-webdav-loopback-wrong13.mjs",
+            "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+            "originalArgs": [
+              "--permission",
+              "--allow-fs-read=/private/tmp/safe-bash-tap-controls-R5Y7fn/v22.22.2/consumer",
+              "--allow-worker",
+              "--unhandled-rejections=strict",
+              "--test-reporter=tap",
+              "/private/tmp/safe-bash-tap-controls-R5Y7fn/v22.22.2/consumer/wrong13.mjs"
+            ],
+            "args": [
+              "--permission",
+              "--allow-fs-read=/private/tmp/safe-bash-tap-controls-R5Y7fn/v22.22.2/consumer",
+              "--allow-worker",
+              "--unhandled-rejections=strict",
+              "--test-reporter=tap",
+              "/private/tmp/safe-bash-tap-controls-R5Y7fn/v22.22.2/consumer/wrong13.mjs"
+            ],
+            "status": 0,
+            "signal": null,
+            "stdout": "TAP version 13\n# Subtest: actual-fenced-0\nok 1 - actual-fenced-0\n  ---\n  duration_ms: 0.737\n  type: 'test'\n  ...\n# Subtest: actual-fenced-1\nok 2 - actual-fenced-1\n  ---\n  duration_ms: 0.478583\n  type: 'test'\n  ...\n# Subtest: actual-fenced-2\nok 3 - actual-fenced-2\n  ---\n  duration_ms: 0.127458\n  type: 'test'\n  ...\n# Subtest: actual-fenced-3\nok 4 - actual-fenced-3\n  ---\n  duration_ms: 0.083875\n  type: 'test'\n  ...\n# Subtest: actual-fenced-4\nok 5 - actual-fenced-4\n  ---\n  duration_ms: 0.204166\n  type: 'test'\n  ...\n# Subtest: actual-fenced-5\nok 6 - actual-fenced-5\n  ---\n  duration_ms: 0.159791\n  type: 'test'\n  ...\n# Subtest: actual-fenced-6\nok 7 - actual-fenced-6\n  ---\n  duration_ms: 0.087917\n  type: 'test'\n  ...\n# Subtest: actual-fenced-7\nok 8 - actual-fenced-7\n  ---\n  duration_ms: 0.082167\n  type: 'test'\n  ...\n# Subtest: actual-fenced-8\nok 9 - actual-fenced-8\n  ---\n  duration_ms: 0.237708\n  type: 'test'\n  ...\n# Subtest: actual-fenced-9\nok 10 - actual-fenced-9\n  ---\n  duration_ms: 0.256959\n  type: 'test'\n  ...\n# Subtest: actual-fenced-10\nok 11 - actual-fenced-10\n  ---\n  duration_ms: 0.13625\n  type: 'test'\n  ...\n# Subtest: actual-fenced-11\nok 12 - actual-fenced-11\n  ---\n  duration_ms: 0.083292\n  type: 'test'\n  ...\n1..12\n# tests 12\n# suites 0\n# pass 12\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 7.449958\n",
+            "stderr": "(node:10680) SecurityWarning: The flag --allow-worker must be used with extreme caution. It could invalidate the permission model.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+          },
+          {
+            "label": "consumer-counted-skipped.mjs",
+            "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+            "originalArgs": [
+              "--permission",
+              "--allow-fs-read=/private/tmp/safe-bash-tap-controls-R5Y7fn/v22.22.2/consumer",
+              "--allow-worker",
+              "--unhandled-rejections=strict",
+              "--test-reporter=tap",
+              "/private/tmp/safe-bash-tap-controls-R5Y7fn/v22.22.2/consumer/skipped.mjs"
+            ],
+            "args": [
+              "--permission",
+              "--allow-fs-read=/private/tmp/safe-bash-tap-controls-R5Y7fn/v22.22.2/consumer",
+              "--allow-worker",
+              "--unhandled-rejections=strict",
+              "--test-reporter=tap",
+              "/private/tmp/safe-bash-tap-controls-R5Y7fn/v22.22.2/consumer/skipped.mjs"
+            ],
+            "status": 0,
+            "signal": null,
+            "stdout": "TAP version 13\n# Subtest: not-run\nok 1 - not-run # SKIP\n  ---\n  duration_ms: 0.2235\n  type: 'test'\n  ...\n1..1\n# tests 1\n# suites 0\n# pass 0\n# fail 0\n# cancelled 0\n# skipped 1\n# todo 0\n# duration_ms 2.878583\n",
+            "stderr": "(node:10682) SecurityWarning: The flag --allow-worker must be used with extreme caution. It could invalidate the permission model.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+          },
+          {
+            "label": "consumer-counted-todo.mjs",
+            "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+            "originalArgs": [
+              "--permission",
+              "--allow-fs-read=/private/tmp/safe-bash-tap-controls-R5Y7fn/v22.22.2/consumer",
+              "--allow-worker",
+              "--unhandled-rejections=strict",
+              "--test-reporter=tap",
+              "/private/tmp/safe-bash-tap-controls-R5Y7fn/v22.22.2/consumer/todo.mjs"
+            ],
+            "args": [
+              "--permission",
+              "--allow-fs-read=/private/tmp/safe-bash-tap-controls-R5Y7fn/v22.22.2/consumer",
+              "--allow-worker",
+              "--unhandled-rejections=strict",
+              "--test-reporter=tap",
+              "/private/tmp/safe-bash-tap-controls-R5Y7fn/v22.22.2/consumer/todo.mjs"
+            ],
+            "status": 0,
+            "signal": null,
+            "stdout": "TAP version 13\n# Subtest: not-run\nok 1 - not-run # TODO\n  ---\n  duration_ms: 0.223\n  type: 'test'\n  ...\n1..1\n# tests 1\n# suites 0\n# pass 0\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 1\n# duration_ms 2.843333\n",
+            "stderr": "(node:10684) SecurityWarning: The flag --allow-worker must be used with extreme caution. It could invalidate the permission model.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+          }
+        ]
+      },
+      {
+        "executable": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+        "version": "v24.11.1",
+        "sha256": "4255a388254ca4319e2f95f1da375d5deaddf25baf9c7c85070b67f9543b15d0",
+        "permission": {
+          "supported": true,
+          "refusalStatus": 78,
+          "probes": [
+            {
+              "command": [
+                "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+                "--input-type=module",
+                "-e",
+                "console.log(JSON.stringify({executable:process.execPath,version:process.version,platform:process.platform,arch:process.arch,flags:[\"--permission\",\"--experimental-permission\"].filter(flag=>process.allowedNodeEnvironmentFlags.has(flag))}))"
+              ],
+              "cwd": "/private/tmp/safe-bash-tap-controls-R5Y7fn/v24.11.1",
+              "status": 0,
+              "signal": null,
+              "stdout": "{\"executable\":\"/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node\",\"version\":\"v24.11.1\",\"platform\":\"darwin\",\"arch\":\"arm64\",\"flags\":[\"--permission\"]}\n",
+              "stderr": ""
+            },
+            {
+              "command": [
+                "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+                "--permission",
+                "--allow-fs-read=/private/tmp/safe-bash-tap-controls-R5Y7fn/v24.11.1/permission-probe",
+                "--allow-worker",
+                "--unhandled-rejections=strict",
+                "--input-type=module",
+                "-e",
+                "import assert from 'node:assert/strict'; import {readFileSync,writeFileSync} from 'node:fs'; assert.equal(readFileSync(\"/private/tmp/safe-bash-tap-controls-R5Y7fn/v24.11.1/permission-probe/allowed.txt\",'utf8'),'permission-positive\\n'); assert.equal(process.permission.has('fs.read',\"/private/tmp/safe-bash-tap-controls-R5Y7fn/v24.11.1/source/src/index.ts\"),false); assert.throws(()=>writeFileSync(\"/private/tmp/safe-bash-tap-controls-R5Y7fn/v24.11.1/permission-probe/allowed.txt\",'changed'),{code:'ERR_ACCESS_DENIED',permission:'FileSystemWrite'}); console.log(JSON.stringify({executable:process.execPath,version:process.version,read:true,writeDenied:true}));"
+              ],
+              "cwd": "/private/tmp/safe-bash-tap-controls-R5Y7fn/v24.11.1/permission-probe",
+              "status": 0,
+              "signal": null,
+              "stdout": "{\"executable\":\"/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node\",\"version\":\"v24.11.1\",\"read\":true,\"writeDenied\":true}\n",
+              "stderr": "(node:10686) SecurityWarning: The flag --allow-worker must be used with extreme caution. It could invalidate the permission model.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+            },
+            {
+              "command": [
+                "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+                "--permission",
+                "--allow-fs-read=/private/tmp/safe-bash-tap-controls-R5Y7fn/v24.11.1/permission-probe",
+                "--allow-worker",
+                "--unhandled-rejections=strict",
+                "--input-type=module",
+                "-e",
+                "import {readFileSync} from 'node:fs'; readFileSync(\"/private/tmp/safe-bash-tap-controls-R5Y7fn/v24.11.1/source/src/index.ts\");"
+              ],
+              "cwd": "/private/tmp/safe-bash-tap-controls-R5Y7fn/v24.11.1/permission-probe",
+              "status": 1,
+              "signal": null,
+              "stdout": "",
+              "stderr": "(node:10687) SecurityWarning: The flag --allow-worker must be used with extreme caution. It could invalidate the permission model.\n(Use `node --trace-warnings ...` to show where the warning was created)\nnode:fs:560\n  return binding.open(\n                 ^\n\nError: Access to this API has been restricted. Use --allow-fs-read to manage permissions.\n    at Object.openSync (node:fs:560:18)\n    at readFileSync (node:fs:444:35)\n    at file:///private/tmp/safe-bash-tap-controls-R5Y7fn/v24.11.1/permission-probe/[eval1]:1:39\n    at ModuleJob.run (node:internal/modules/esm/module_job:377:25)\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:254:26)\n    at async ModuleLoader.executeModuleJob (node:internal/modules/esm/loader:251:20)\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:101:5) {\n  code: 'ERR_ACCESS_DENIED',\n  permission: 'FileSystemRead',\n  resource: '/private/tmp/safe-bash-tap-controls-R5Y7fn/v24.11.1/source/src/index.ts'\n}\n\nNode.js v24.11.1\n"
+            }
+          ],
+          "executable": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+          "sha256": "4255a388254ca4319e2f95f1da375d5deaddf25baf9c7c85070b67f9543b15d0",
+          "identity": {
+            "executable": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+            "version": "v24.11.1",
+            "platform": "darwin",
+            "arch": "arm64",
+            "flags": [
+              "--permission"
+            ]
+          },
+          "flag": "--permission"
+        },
+        "executions": [
+          {
+            "label": "consumer-webdav-timestamp-independent-mandatory23.mjs",
+            "executable": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+            "originalArgs": [
+              "--permission",
+              "--allow-fs-read=/private/tmp/safe-bash-tap-controls-R5Y7fn/v24.11.1/consumer",
+              "--allow-worker",
+              "--unhandled-rejections=strict",
+              "--test-reporter=tap",
+              "/private/tmp/safe-bash-tap-controls-R5Y7fn/v24.11.1/consumer/mandatory23.mjs"
+            ],
+            "args": [
+              "--permission",
+              "--allow-fs-read=/private/tmp/safe-bash-tap-controls-R5Y7fn/v24.11.1/consumer",
+              "--allow-worker",
+              "--unhandled-rejections=strict",
+              "--test-reporter=tap",
+              "/private/tmp/safe-bash-tap-controls-R5Y7fn/v24.11.1/consumer/mandatory23.mjs"
+            ],
+            "status": 0,
+            "signal": null,
+            "stdout": "TAP version 13\n# Subtest: actual-fenced-0\nok 1 - actual-fenced-0\n  ---\n  duration_ms: 1.045708\n  type: 'test'\n  ...\n# Subtest: actual-fenced-1\nok 2 - actual-fenced-1\n  ---\n  duration_ms: 0.1555\n  type: 'test'\n  ...\n# Subtest: actual-fenced-2\nok 3 - actual-fenced-2\n  ---\n  duration_ms: 0.117375\n  type: 'test'\n  ...\n# Subtest: actual-fenced-3\nok 4 - actual-fenced-3\n  ---\n  duration_ms: 0.107\n  type: 'test'\n  ...\n# Subtest: actual-fenced-4\nok 5 - actual-fenced-4\n  ---\n  duration_ms: 0.102125\n  type: 'test'\n  ...\n# Subtest: actual-fenced-5\nok 6 - actual-fenced-5\n  ---\n  duration_ms: 0.110833\n  type: 'test'\n  ...\n# Subtest: actual-fenced-6\nok 7 - actual-fenced-6\n  ---\n  duration_ms: 0.134167\n  type: 'test'\n  ...\n# Subtest: actual-fenced-7\nok 8 - actual-fenced-7\n  ---\n  duration_ms: 0.117541\n  type: 'test'\n  ...\n# Subtest: actual-fenced-8\nok 9 - actual-fenced-8\n  ---\n  duration_ms: 0.111459\n  type: 'test'\n  ...\n# Subtest: actual-fenced-9\nok 10 - actual-fenced-9\n  ---\n  duration_ms: 0.161542\n  type: 'test'\n  ...\n# Subtest: actual-fenced-10\nok 11 - actual-fenced-10\n  ---\n  duration_ms: 0.139917\n  type: 'test'\n  ...\n# Subtest: actual-fenced-11\nok 12 - actual-fenced-11\n  ---\n  duration_ms: 0.11125\n  type: 'test'\n  ...\n# Subtest: actual-fenced-12\nok 13 - actual-fenced-12\n  ---\n  duration_ms: 0.080583\n  type: 'test'\n  ...\n# Subtest: actual-fenced-13\nok 14 - actual-fenced-13\n  ---\n  duration_ms: 0.076792\n  type: 'test'\n  ...\n# Subtest: actual-fenced-14\nok 15 - actual-fenced-14\n  ---\n  duration_ms: 0.109\n  type: 'test'\n  ...\n# Subtest: actual-fenced-15\nok 16 - actual-fenced-15\n  ---\n  duration_ms: 0.08825\n  type: 'test'\n  ...\n# Subtest: actual-fenced-16\nok 17 - actual-fenced-16\n  ---\n  duration_ms: 0.090917\n  type: 'test'\n  ...\n# Subtest: actual-fenced-17\nok 18 - actual-fenced-17\n  ---\n  duration_ms: 0.426\n  type: 'test'\n  ...\n# Subtest: actual-fenced-18\nok 19 - actual-fenced-18\n  ---\n  duration_ms: 0.088042\n  type: 'test'\n  ...\n# Subtest: actual-fenced-19\nok 20 - actual-fenced-19\n  ---\n  duration_ms: 0.081334\n  type: 'test'\n  ...\n# Subtest: actual-fenced-20\nok 21 - actual-fenced-20\n  ---\n  duration_ms: 0.093125\n  type: 'test'\n  ...\n# Subtest: actual-fenced-21\nok 22 - actual-fenced-21\n  ---\n  duration_ms: 0.083083\n  type: 'test'\n  ...\n# Subtest: actual-fenced-22\nok 23 - actual-fenced-22\n  ---\n  duration_ms: 0.078791\n  type: 'test'\n  ...\n1..23\n# tests 23\n# suites 0\n# pass 23\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 7.928625\n",
+            "stderr": "(node:10688) SecurityWarning: The flag --allow-worker must be used with extreme caution. It could invalidate the permission model.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+          },
+          {
+            "label": "consumer-webdav-loopback-loopback13.mjs",
+            "executable": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+            "originalArgs": [
+              "--permission",
+              "--allow-fs-read=/private/tmp/safe-bash-tap-controls-R5Y7fn/v24.11.1/consumer",
+              "--allow-worker",
+              "--unhandled-rejections=strict",
+              "--test-reporter=tap",
+              "/private/tmp/safe-bash-tap-controls-R5Y7fn/v24.11.1/consumer/loopback13.mjs"
+            ],
+            "args": [
+              "--permission",
+              "--allow-fs-read=/private/tmp/safe-bash-tap-controls-R5Y7fn/v24.11.1/consumer",
+              "--allow-worker",
+              "--unhandled-rejections=strict",
+              "--test-reporter=tap",
+              "/private/tmp/safe-bash-tap-controls-R5Y7fn/v24.11.1/consumer/loopback13.mjs"
+            ],
+            "status": 0,
+            "signal": null,
+            "stdout": "TAP version 13\n# Subtest: actual-fenced-0\nok 1 - actual-fenced-0\n  ---\n  duration_ms: 0.915583\n  type: 'test'\n  ...\n# Subtest: actual-fenced-1\nok 2 - actual-fenced-1\n  ---\n  duration_ms: 0.553834\n  type: 'test'\n  ...\n# Subtest: actual-fenced-2\nok 3 - actual-fenced-2\n  ---\n  duration_ms: 0.135333\n  type: 'test'\n  ...\n# Subtest: actual-fenced-3\nok 4 - actual-fenced-3\n  ---\n  duration_ms: 0.111083\n  type: 'test'\n  ...\n# Subtest: actual-fenced-4\nok 5 - actual-fenced-4\n  ---\n  duration_ms: 0.112959\n  type: 'test'\n  ...\n# Subtest: actual-fenced-5\nok 6 - actual-fenced-5\n  ---\n  duration_ms: 0.119\n  type: 'test'\n  ...\n# Subtest: actual-fenced-6\nok 7 - actual-fenced-6\n  ---\n  duration_ms: 0.122541\n  type: 'test'\n  ...\n# Subtest: actual-fenced-7\nok 8 - actual-fenced-7\n  ---\n  duration_ms: 0.100917\n  type: 'test'\n  ...\n# Subtest: actual-fenced-8\nok 9 - actual-fenced-8\n  ---\n  duration_ms: 0.123292\n  type: 'test'\n  ...\n# Subtest: actual-fenced-9\nok 10 - actual-fenced-9\n  ---\n  duration_ms: 0.123375\n  type: 'test'\n  ...\n# Subtest: actual-fenced-10\nok 11 - actual-fenced-10\n  ---\n  duration_ms: 0.109083\n  type: 'test'\n  ...\n# Subtest: actual-fenced-11\nok 12 - actual-fenced-11\n  ---\n  duration_ms: 0.122333\n  type: 'test'\n  ...\n# Subtest: actual-fenced-12\nok 13 - actual-fenced-12\n  ---\n  duration_ms: 0.110666\n  type: 'test'\n  ...\n1..13\n# tests 13\n# suites 0\n# pass 13\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 9.343625\n",
+            "stderr": "(node:10691) SecurityWarning: The flag --allow-worker must be used with extreme caution. It could invalidate the permission model.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+          },
+          {
+            "label": "consumer-s3-constructor-constructor.mjs",
+            "executable": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+            "originalArgs": [
+              "--permission",
+              "--allow-fs-read=/private/tmp/safe-bash-tap-controls-R5Y7fn/v24.11.1/consumer",
+              "--allow-worker",
+              "--unhandled-rejections=strict",
+              "--test-reporter=tap",
+              "/private/tmp/safe-bash-tap-controls-R5Y7fn/v24.11.1/consumer/constructor.mjs"
+            ],
+            "args": [
+              "--permission",
+              "--allow-fs-read=/private/tmp/safe-bash-tap-controls-R5Y7fn/v24.11.1/consumer",
+              "--allow-worker",
+              "--unhandled-rejections=strict",
+              "--test-reporter=tap",
+              "/private/tmp/safe-bash-tap-controls-R5Y7fn/v24.11.1/consumer/constructor.mjs"
+            ],
+            "status": 0,
+            "signal": null,
+            "stdout": "TAP version 13\n# Subtest: actual-fenced-0\nok 1 - actual-fenced-0\n  ---\n  duration_ms: 0.51775\n  type: 'test'\n  ...\n1..1\n# tests 1\n# suites 0\n# pass 1\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 2.818458\n",
+            "stderr": "(node:10692) SecurityWarning: The flag --allow-worker must be used with extreme caution. It could invalidate the permission model.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+          },
+          {
+            "label": "consumer-suffix-case-suffix.test.mjs",
+            "executable": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+            "originalArgs": [
+              "--permission",
+              "--allow-fs-read=/private/tmp/safe-bash-tap-controls-R5Y7fn/v24.11.1/consumer",
+              "--allow-worker",
+              "--unhandled-rejections=strict",
+              "--test-reporter=tap",
+              "/private/tmp/safe-bash-tap-controls-R5Y7fn/v24.11.1/consumer/suffix.test.mjs"
+            ],
+            "args": [
+              "--permission",
+              "--allow-fs-read=/private/tmp/safe-bash-tap-controls-R5Y7fn/v24.11.1/consumer",
+              "--allow-worker",
+              "--unhandled-rejections=strict",
+              "--test-reporter=tap",
+              "/private/tmp/safe-bash-tap-controls-R5Y7fn/v24.11.1/consumer/suffix.test.mjs"
+            ],
+            "status": 0,
+            "signal": null,
+            "stdout": "TAP version 13\n# Subtest: actual-fenced-0\nok 1 - actual-fenced-0\n  ---\n  duration_ms: 0.636042\n  type: 'test'\n  ...\n# Subtest: actual-fenced-1\nok 2 - actual-fenced-1\n  ---\n  duration_ms: 0.140708\n  type: 'test'\n  ...\n1..2\n# tests 2\n# suites 0\n# pass 2\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 3.430208\n",
+            "stderr": "(node:10693) SecurityWarning: The flag --allow-worker must be used with extreme caution. It could invalidate the permission model.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+          },
+          {
+            "label": "consumer-plain-plain.mjs",
+            "executable": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+            "originalArgs": [
+              "--permission",
+              "--allow-fs-read=/private/tmp/safe-bash-tap-controls-R5Y7fn/v24.11.1/consumer",
+              "--allow-worker",
+              "--unhandled-rejections=strict",
+              "/private/tmp/safe-bash-tap-controls-R5Y7fn/v24.11.1/consumer/plain.mjs"
+            ],
+            "args": [
+              "--permission",
+              "--allow-fs-read=/private/tmp/safe-bash-tap-controls-R5Y7fn/v24.11.1/consumer",
+              "--allow-worker",
+              "--unhandled-rejections=strict",
+              "/private/tmp/safe-bash-tap-controls-R5Y7fn/v24.11.1/consumer/plain.mjs"
+            ],
+            "status": 0,
+            "signal": null,
+            "stdout": "plain-body\n",
+            "stderr": "(node:10694) SecurityWarning: The flag --allow-worker must be used with extreme caution. It could invalidate the permission model.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+          },
+          {
+            "label": "consumer-counted-spec.mjs",
+            "executable": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+            "originalArgs": [
+              "--permission",
+              "--allow-fs-read=/private/tmp/safe-bash-tap-controls-R5Y7fn/v24.11.1/consumer",
+              "--allow-worker",
+              "--unhandled-rejections=strict",
+              "--test-reporter=tap",
+              "/private/tmp/safe-bash-tap-controls-R5Y7fn/v24.11.1/consumer/spec.mjs"
+            ],
+            "args": [
+              "--permission",
+              "--allow-fs-read=/private/tmp/safe-bash-tap-controls-R5Y7fn/v24.11.1/consumer",
+              "--allow-worker",
+              "--unhandled-rejections=strict",
+              "--test-reporter=spec",
+              "/private/tmp/safe-bash-tap-controls-R5Y7fn/v24.11.1/consumer/spec.mjs"
+            ],
+            "status": 0,
+            "signal": null,
+            "stdout": "✔ actual-fenced-0 (0.548167ms)\nℹ tests 1\nℹ suites 0\nℹ pass 1\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 2.652792\n",
+            "stderr": "(node:10695) SecurityWarning: The flag --allow-worker must be used with extreme caution. It could invalidate the permission model.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+          },
+          {
+            "label": "consumer-counted-missing.mjs",
+            "executable": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+            "originalArgs": [
+              "--permission",
+              "--allow-fs-read=/private/tmp/safe-bash-tap-controls-R5Y7fn/v24.11.1/consumer",
+              "--allow-worker",
+              "--unhandled-rejections=strict",
+              "--test-reporter=tap",
+              "/private/tmp/safe-bash-tap-controls-R5Y7fn/v24.11.1/consumer/missing.mjs"
+            ],
+            "args": [
+              "--permission",
+              "--allow-fs-read=/private/tmp/safe-bash-tap-controls-R5Y7fn/v24.11.1/consumer",
+              "--allow-worker",
+              "--unhandled-rejections=strict",
+              "--test-reporter=tap",
+              "/private/tmp/safe-bash-tap-controls-R5Y7fn/v24.11.1/consumer/missing.mjs"
+            ],
+            "status": 0,
+            "signal": null,
+            "stdout": "no test summary\n",
+            "stderr": "(node:10696) SecurityWarning: The flag --allow-worker must be used with extreme caution. It could invalidate the permission model.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+          },
+          {
+            "label": "consumer-counted-zero.mjs",
+            "executable": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+            "originalArgs": [
+              "--permission",
+              "--allow-fs-read=/private/tmp/safe-bash-tap-controls-R5Y7fn/v24.11.1/consumer",
+              "--allow-worker",
+              "--unhandled-rejections=strict",
+              "--test-reporter=tap",
+              "/private/tmp/safe-bash-tap-controls-R5Y7fn/v24.11.1/consumer/zero.mjs"
+            ],
+            "args": [
+              "--permission",
+              "--allow-fs-read=/private/tmp/safe-bash-tap-controls-R5Y7fn/v24.11.1/consumer",
+              "--allow-worker",
+              "--unhandled-rejections=strict",
+              "--test-reporter=tap",
+              "/private/tmp/safe-bash-tap-controls-R5Y7fn/v24.11.1/consumer/zero.mjs"
+            ],
+            "status": 0,
+            "signal": null,
+            "stdout": "# tests 0\n# pass 0\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n",
+            "stderr": "(node:10697) SecurityWarning: The flag --allow-worker must be used with extreme caution. It could invalidate the permission model.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+          },
+          {
+            "label": "consumer-counted-wrong23.mjs",
+            "executable": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+            "originalArgs": [
+              "--permission",
+              "--allow-fs-read=/private/tmp/safe-bash-tap-controls-R5Y7fn/v24.11.1/consumer",
+              "--allow-worker",
+              "--unhandled-rejections=strict",
+              "--test-reporter=tap",
+              "/private/tmp/safe-bash-tap-controls-R5Y7fn/v24.11.1/consumer/wrong23.mjs"
+            ],
+            "args": [
+              "--permission",
+              "--allow-fs-read=/private/tmp/safe-bash-tap-controls-R5Y7fn/v24.11.1/consumer",
+              "--allow-worker",
+              "--unhandled-rejections=strict",
+              "--test-reporter=tap",
+              "/private/tmp/safe-bash-tap-controls-R5Y7fn/v24.11.1/consumer/wrong23.mjs"
+            ],
+            "status": 0,
+            "signal": null,
+            "stdout": "TAP version 13\n# Subtest: actual-fenced-0\nok 1 - actual-fenced-0\n  ---\n  duration_ms: 0.959542\n  type: 'test'\n  ...\n# Subtest: actual-fenced-1\nok 2 - actual-fenced-1\n  ---\n  duration_ms: 0.119916\n  type: 'test'\n  ...\n# Subtest: actual-fenced-2\nok 3 - actual-fenced-2\n  ---\n  duration_ms: 0.106458\n  type: 'test'\n  ...\n# Subtest: actual-fenced-3\nok 4 - actual-fenced-3\n  ---\n  duration_ms: 0.095458\n  type: 'test'\n  ...\n# Subtest: actual-fenced-4\nok 5 - actual-fenced-4\n  ---\n  duration_ms: 0.133125\n  type: 'test'\n  ...\n# Subtest: actual-fenced-5\nok 6 - actual-fenced-5\n  ---\n  duration_ms: 0.118084\n  type: 'test'\n  ...\n# Subtest: actual-fenced-6\nok 7 - actual-fenced-6\n  ---\n  duration_ms: 0.098958\n  type: 'test'\n  ...\n# Subtest: actual-fenced-7\nok 8 - actual-fenced-7\n  ---\n  duration_ms: 0.090167\n  type: 'test'\n  ...\n# Subtest: actual-fenced-8\nok 9 - actual-fenced-8\n  ---\n  duration_ms: 0.13275\n  type: 'test'\n  ...\n# Subtest: actual-fenced-9\nok 10 - actual-fenced-9\n  ---\n  duration_ms: 0.138334\n  type: 'test'\n  ...\n# Subtest: actual-fenced-10\nok 11 - actual-fenced-10\n  ---\n  duration_ms: 0.112542\n  type: 'test'\n  ...\n# Subtest: actual-fenced-11\nok 12 - actual-fenced-11\n  ---\n  duration_ms: 0.080958\n  type: 'test'\n  ...\n# Subtest: actual-fenced-12\nok 13 - actual-fenced-12\n  ---\n  duration_ms: 0.1215\n  type: 'test'\n  ...\n# Subtest: actual-fenced-13\nok 14 - actual-fenced-13\n  ---\n  duration_ms: 0.085791\n  type: 'test'\n  ...\n# Subtest: actual-fenced-14\nok 15 - actual-fenced-14\n  ---\n  duration_ms: 0.10475\n  type: 'test'\n  ...\n# Subtest: actual-fenced-15\nok 16 - actual-fenced-15\n  ---\n  duration_ms: 0.108375\n  type: 'test'\n  ...\n# Subtest: actual-fenced-16\nok 17 - actual-fenced-16\n  ---\n  duration_ms: 0.090625\n  type: 'test'\n  ...\n# Subtest: actual-fenced-17\nok 18 - actual-fenced-17\n  ---\n  duration_ms: 0.076208\n  type: 'test'\n  ...\n# Subtest: actual-fenced-18\nok 19 - actual-fenced-18\n  ---\n  duration_ms: 0.437959\n  type: 'test'\n  ...\n# Subtest: actual-fenced-19\nok 20 - actual-fenced-19\n  ---\n  duration_ms: 0.084125\n  type: 'test'\n  ...\n# Subtest: actual-fenced-20\nok 21 - actual-fenced-20\n  ---\n  duration_ms: 0.09225\n  type: 'test'\n  ...\n# Subtest: actual-fenced-21\nok 22 - actual-fenced-21\n  ---\n  duration_ms: 0.070084\n  type: 'test'\n  ...\n1..22\n# tests 22\n# suites 0\n# pass 22\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 7.456\n",
+            "stderr": "(node:10698) SecurityWarning: The flag --allow-worker must be used with extreme caution. It could invalidate the permission model.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+          },
+          {
+            "label": "consumer-webdav-loopback-wrong13.mjs",
+            "executable": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+            "originalArgs": [
+              "--permission",
+              "--allow-fs-read=/private/tmp/safe-bash-tap-controls-R5Y7fn/v24.11.1/consumer",
+              "--allow-worker",
+              "--unhandled-rejections=strict",
+              "--test-reporter=tap",
+              "/private/tmp/safe-bash-tap-controls-R5Y7fn/v24.11.1/consumer/wrong13.mjs"
+            ],
+            "args": [
+              "--permission",
+              "--allow-fs-read=/private/tmp/safe-bash-tap-controls-R5Y7fn/v24.11.1/consumer",
+              "--allow-worker",
+              "--unhandled-rejections=strict",
+              "--test-reporter=tap",
+              "/private/tmp/safe-bash-tap-controls-R5Y7fn/v24.11.1/consumer/wrong13.mjs"
+            ],
+            "status": 0,
+            "signal": null,
+            "stdout": "TAP version 13\n# Subtest: actual-fenced-0\nok 1 - actual-fenced-0\n  ---\n  duration_ms: 0.55475\n  type: 'test'\n  ...\n# Subtest: actual-fenced-1\nok 2 - actual-fenced-1\n  ---\n  duration_ms: 0.126417\n  type: 'test'\n  ...\n# Subtest: actual-fenced-2\nok 3 - actual-fenced-2\n  ---\n  duration_ms: 0.117875\n  type: 'test'\n  ...\n# Subtest: actual-fenced-3\nok 4 - actual-fenced-3\n  ---\n  duration_ms: 0.0935\n  type: 'test'\n  ...\n# Subtest: actual-fenced-4\nok 5 - actual-fenced-4\n  ---\n  duration_ms: 0.105833\n  type: 'test'\n  ...\n# Subtest: actual-fenced-5\nok 6 - actual-fenced-5\n  ---\n  duration_ms: 0.1055\n  type: 'test'\n  ...\n# Subtest: actual-fenced-6\nok 7 - actual-fenced-6\n  ---\n  duration_ms: 0.091041\n  type: 'test'\n  ...\n# Subtest: actual-fenced-7\nok 8 - actual-fenced-7\n  ---\n  duration_ms: 0.081\n  type: 'test'\n  ...\n# Subtest: actual-fenced-8\nok 9 - actual-fenced-8\n  ---\n  duration_ms: 0.104125\n  type: 'test'\n  ...\n# Subtest: actual-fenced-9\nok 10 - actual-fenced-9\n  ---\n  duration_ms: 0.121875\n  type: 'test'\n  ...\n# Subtest: actual-fenced-10\nok 11 - actual-fenced-10\n  ---\n  duration_ms: 0.090042\n  type: 'test'\n  ...\n# Subtest: actual-fenced-11\nok 12 - actual-fenced-11\n  ---\n  duration_ms: 0.094958\n  type: 'test'\n  ...\n1..12\n# tests 12\n# suites 0\n# pass 12\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 5.517375\n",
+            "stderr": "(node:10699) SecurityWarning: The flag --allow-worker must be used with extreme caution. It could invalidate the permission model.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+          },
+          {
+            "label": "consumer-counted-skipped.mjs",
+            "executable": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+            "originalArgs": [
+              "--permission",
+              "--allow-fs-read=/private/tmp/safe-bash-tap-controls-R5Y7fn/v24.11.1/consumer",
+              "--allow-worker",
+              "--unhandled-rejections=strict",
+              "--test-reporter=tap",
+              "/private/tmp/safe-bash-tap-controls-R5Y7fn/v24.11.1/consumer/skipped.mjs"
+            ],
+            "args": [
+              "--permission",
+              "--allow-fs-read=/private/tmp/safe-bash-tap-controls-R5Y7fn/v24.11.1/consumer",
+              "--allow-worker",
+              "--unhandled-rejections=strict",
+              "--test-reporter=tap",
+              "/private/tmp/safe-bash-tap-controls-R5Y7fn/v24.11.1/consumer/skipped.mjs"
+            ],
+            "status": 0,
+            "signal": null,
+            "stdout": "TAP version 13\n# Subtest: not-run\nok 1 - not-run # SKIP\n  ---\n  duration_ms: 0.220959\n  type: 'test'\n  ...\n1..1\n# tests 1\n# suites 0\n# pass 0\n# fail 0\n# cancelled 0\n# skipped 1\n# todo 0\n# duration_ms 2.492\n",
+            "stderr": "(node:10700) SecurityWarning: The flag --allow-worker must be used with extreme caution. It could invalidate the permission model.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+          },
+          {
+            "label": "consumer-counted-todo.mjs",
+            "executable": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+            "originalArgs": [
+              "--permission",
+              "--allow-fs-read=/private/tmp/safe-bash-tap-controls-R5Y7fn/v24.11.1/consumer",
+              "--allow-worker",
+              "--unhandled-rejections=strict",
+              "--test-reporter=tap",
+              "/private/tmp/safe-bash-tap-controls-R5Y7fn/v24.11.1/consumer/todo.mjs"
+            ],
+            "args": [
+              "--permission",
+              "--allow-fs-read=/private/tmp/safe-bash-tap-controls-R5Y7fn/v24.11.1/consumer",
+              "--allow-worker",
+              "--unhandled-rejections=strict",
+              "--test-reporter=tap",
+              "/private/tmp/safe-bash-tap-controls-R5Y7fn/v24.11.1/consumer/todo.mjs"
+            ],
+            "status": 0,
+            "signal": null,
+            "stdout": "TAP version 13\n# Subtest: not-run\nok 1 - not-run # TODO\n  ---\n  duration_ms: 0.219333\n  type: 'test'\n  ...\n1..1\n# tests 1\n# suites 0\n# pass 0\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 1\n# duration_ms 2.544916\n",
+            "stderr": "(node:10701) SecurityWarning: The flag --allow-worker must be used with extreme caution. It could invalidate the permission model.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+          }
+        ]
+      }
+    ],
+    "controls": [
+      {
+        "name": "v22.22.2: mandatory23 explicit TAP/counts/fences",
+        "status": "pass"
+      },
+      {
+        "name": "v22.22.2: loopback13 explicit TAP/counts/fences",
+        "status": "pass"
+      },
+      {
+        "name": "v22.22.2: constructor explicit TAP/counts/fences",
+        "status": "pass"
+      },
+      {
+        "name": "v22.22.2: suffix explicit TAP/counts/fences",
+        "status": "pass"
+      },
+      {
+        "name": "v22.22.2: plain non-node-test consumer keeps original argv",
+        "status": "pass"
+      },
+      {
+        "name": "v22.22.2: actual spec reporter output is still rejected",
+        "status": "pass"
+      },
+      {
+        "name": "v22.22.2: missing summary is rejected",
+        "status": "pass"
+      },
+      {
+        "name": "v22.22.2: zero count transport is rejected",
+        "status": "pass"
+      },
+      {
+        "name": "v22.22.2: mandatory23 cannot accept22",
+        "status": "pass"
+      },
+      {
+        "name": "v22.22.2: loopback13 cannot accept12",
+        "status": "pass"
+      },
+      {
+        "name": "v22.22.2: skipped real test is rejected",
+        "status": "pass"
+      },
+      {
+        "name": "v22.22.2: TODO real test is rejected",
+        "status": "pass"
+      },
+      {
+        "name": "v24.11.1: mandatory23 explicit TAP/counts/fences",
+        "status": "pass"
+      },
+      {
+        "name": "v24.11.1: loopback13 explicit TAP/counts/fences",
+        "status": "pass"
+      },
+      {
+        "name": "v24.11.1: constructor explicit TAP/counts/fences",
+        "status": "pass"
+      },
+      {
+        "name": "v24.11.1: suffix explicit TAP/counts/fences",
+        "status": "pass"
+      },
+      {
+        "name": "v24.11.1: plain non-node-test consumer keeps original argv",
+        "status": "pass"
+      },
+      {
+        "name": "v24.11.1: actual spec reporter output is still rejected",
+        "status": "pass"
+      },
+      {
+        "name": "v24.11.1: missing summary is rejected",
+        "status": "pass"
+      },
+      {
+        "name": "v24.11.1: zero count transport is rejected",
+        "status": "pass"
+      },
+      {
+        "name": "v24.11.1: mandatory23 cannot accept22",
+        "status": "pass"
+      },
+      {
+        "name": "v24.11.1: loopback13 cannot accept12",
+        "status": "pass"
+      },
+      {
+        "name": "v24.11.1: skipped real test is rejected",
+        "status": "pass"
+      },
+      {
+        "name": "v24.11.1: TODO real test is rejected",
+        "status": "pass"
+      }
+    ],
+    "failures": [],
+    "fullGroupsExecuted": false,
+    "temporaryRemoved": true,
+    "status": "author-controls-pass-independent-review-pending"
+  },
+  "verifierSha256": "09d04680a1dd80059fd31da73068c919bb0402d8bdd31a4d0a971a67d8e1259c",
+  "baselineVerifierSha256": "0877c045fb2c7feb093903ae528ddc518c7d371a73460f69f3ccf853938ed632",
+  "transformedSha256": "4b36c94a1c6788858e21186924222cc09a5e2445b308b21c150e4b4a60c3e592",
+  "launchBlockSha256": "5069e9af080d3a61cdabc5e95e6d08f42b1f7edb1980a41b6c1f5db03c88ed3b",
+  "countBlockSha256": "82108e0a6b2c3e2204024cc3f5ce15a1dd9669abd890bb206a941dd43a01d8b1",
+  "cleaned": true,
+  "finishedAt": "2026-08-27T16:11:21.911Z",
+  "counts": {
+    "total": 31,
+    "pass": 31,
+    "fail": 0
+  }
+}

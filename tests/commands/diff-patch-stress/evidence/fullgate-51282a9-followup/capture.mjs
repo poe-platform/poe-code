@@ -22,7 +22,7 @@ export function save(path, value) {
   assert.throws(() => readFileSync(path), { code: 'ENOENT' });
   const text = JSON.stringify(value, null, 2) + '\n';
   const patch = `*** Begin Patch\n*** Add File: ${path}\n${text.trimEnd().split('\n').map(line => '+' + line).join('\n')}\n*** End Patch\n`;
-  const result = spawnSync('apply_patch', [patch], { encoding: 'utf8', maxBuffer: 1024 * 1024 });
+  const result = spawnSync('apply_patch', [], { input: patch, encoding: 'utf8', maxBuffer: 1024 * 1024 });
   assert.equal(result.status, 0, result.stderr);
 }
 export function sourceState() {

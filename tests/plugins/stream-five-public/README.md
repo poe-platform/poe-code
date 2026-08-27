@@ -20,7 +20,7 @@ runtime dependencies. It is not independent acceptance or a full-project gate.
   flag. One aggregate replacement policy and all-name collision preflight
   remain. `streamInspection` stays separate. Actual default definitions and
   dispatch are 65 unique names; curl and SafeJS remain explicitly optional.
-- `evidence/baseline60.json`: original exact registry assertions at `0487969`,
+- `evidence/baseline60.json`: original exact registry assertions at `bf8b554`,
   **31/31**. `evidence/unchanged-postwire.json`: same test SHA256 after `b7e9eb5`,
   **29/31**, with two exact stale registry failures. `5560a52` is test-only:
   five added expected names, counts 60/61 to 65/66, and a nonnumeric family
@@ -183,6 +183,30 @@ case. Historical `FINAL_HANDOFF.md`, release.json, assertions and all initial
 failures are preserved without editing.
 
 ## Evidence and remaining ownership
+
+Final qualified follow-up selected source
+`d5a5a271d1ace4497990ca8ee38da3903a8a5285`, ran from
+2026-08-27T07:35:40.885Z to 2026-08-27T07:36:04.162Z, and returned zero.
+The source/package/configuration manifest SHA256 is
+`c6811ab9b02bd0af484231ea0fc993ede269b3d6b5d8c6a97478498853e14152`;
+two identical final packages have SHA256
+`cc46e857180765d75b81c1c3d65dd2cdf7c1e07df998b0260f71fab10050253a`.
+All counts above repeat unchanged, including 124/164 strict, 318/318 metadata,
+18/18 stream groups, 31/31 registry and 21/21 moved consumer tests. The seven
+negative public type errors are expected, not verification failures. Both
+copied-asset negative controls again return78 before any product execution.
+`evidence/final-*` records exact commands, current profile, native setup,
+636 built-file SHA256s, raw stream comparisons and strong classifier results.
+Evidence-only follow-up commits do not change the selected source or harness.
+
+The initial inspection used `0487969`, but the baseline test captured HEAD
+`bf8b554`; the raw baseline has always recorded that exact commit. This text
+corrects the earlier summary's inspection/run conflation. Between the first
+successful release `dbe3cfd` and final selected source `d5a5a27`, another owner's
+`07acb1a` changes `src/contracts/command.ts` and `command.md` with cooperative
+invocation cleanup. It is retained and covered by the final source manifest,
+not attributed to this stream author. These different full source hashes are
+not represented as identical repository trees.
 
 `evidence/` retains the original baseline/stale failures, initial snapshot
 preparation fault, initial successful current release, negative controls, and

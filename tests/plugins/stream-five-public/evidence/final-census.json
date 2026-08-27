@@ -1,0 +1,208 @@
+{
+  "sourceCommit": "d5a5a271d1ace4497990ca8ee38da3903a8a5285",
+  "sourceTreeSha256": "c6811ab9b02bd0af484231ea0fc993ede269b3d6b5d8c6a97478498853e14152",
+  "sourceDeltaFromHistorical72f780d": "",
+  "observedAt": "2026-08-27T07:38:02.952Z",
+  "commandNames": [
+    "true",
+    "false",
+    "echo",
+    "pwd",
+    "basename",
+    "dirname",
+    "printf",
+    "mkdir",
+    "touch",
+    "cp",
+    "mv",
+    "rm",
+    "rmdir",
+    "ln",
+    "readlink",
+    "realpath",
+    "ls",
+    "cat",
+    "head",
+    "tail",
+    "wc",
+    "tee",
+    "tr",
+    "sort",
+    "uniq",
+    "cut",
+    "grep",
+    "test",
+    "[",
+    "env",
+    "xargs",
+    "find",
+    "sed",
+    "awk",
+    "jq",
+    "rg",
+    "base64",
+    "base32",
+    "xxd",
+    "od",
+    "sha256sum",
+    "sha1sum",
+    "md5sum",
+    "cksum",
+    "gzip",
+    "gunzip",
+    "zcat",
+    "diff",
+    "patch",
+    "chmod",
+    "stat",
+    "mktemp",
+    "tar",
+    "paste",
+    "comm",
+    "join",
+    "tac",
+    "expand",
+    "fold",
+    "strings",
+    "seq",
+    "nl",
+    "rev",
+    "unexpand",
+    "split"
+  ],
+  "count": 65,
+  "streamFormatNames": [
+    "seq",
+    "nl",
+    "rev",
+    "unexpand"
+  ],
+  "splitNames": [
+    "split"
+  ],
+  "rootAndHistoricalPins": [
+    {
+      "path": "src/index.ts",
+      "sha256": "c9d4d5693dd65dfcb90ff14c43631d00d9d2975a5f58ab03df7ff0e1d34a3e6e"
+    },
+    {
+      "path": "src/plugins/index.ts",
+      "sha256": "bf653ec1ae5f528090d7031caeb5fc3fcae6b240b5f7459318f1d90840a405d9"
+    },
+    {
+      "path": "package.json",
+      "sha256": "c9b768b3ec77ac19262a36ce46f331618916fd7746492d83f0bf6e1212999360"
+    },
+    {
+      "path": "package-lock.json",
+      "sha256": "9c04bb7d2c7d1894479f0c37ce367987c2130256e5bfbf426cfa1bd2729d740b"
+    },
+    {
+      "path": "tsconfig.json",
+      "sha256": "31a3ef68430276b806701fe5d24d86aa7bb3d1630d79b4d5f381d6cd2c2a4c08"
+    },
+    {
+      "path": "tsconfig.build.json",
+      "sha256": "b57d3e5aab1f1f7ab7a70f275183ea6de255e65a2c40a0047c08d97769a1a16e"
+    },
+    {
+      "path": "tests/plugins/agent-commands.test.ts",
+      "sha256": "159a667b153150aaf2b5bde6d1a0bbd3f3bed7daed98b67eee5aa8f7098c094e"
+    },
+    {
+      "path": "scripts/verify-qualified-release.mjs",
+      "sha256": "7aa0cbcb15d1e899dd194422ef8c85845ea4ce10de500d2c43af5fa9303500b8"
+    },
+    {
+      "path": "tests/commands/stream-next-stress/frozen/manifest.json",
+      "sha256": "10b403917e2f024da1f31c517eaef01d6fd428c1091dd2cce37badce5c39f448"
+    },
+    {
+      "path": "tests/commands/stream-next-stress/frozen/native.json",
+      "sha256": "55c1d647f08699a6020d1f8a7afbedf397f534d0a8f0386a7ea0eda0bd1bbe30"
+    },
+    {
+      "path": "tests/commands/stream-next-stress/corpus.mjs",
+      "sha256": "7b3886e8249d599c970e7ad89900b60aa10f067a239a24960ec090d3ac4f3fc6"
+    },
+    {
+      "path": "tests/commands/stream-next-stress/capture-native.mjs",
+      "sha256": "a4011f37df616d40624f99ba3d3b9eb4ae60a7ae7722a52c55c7d49a20032481"
+    },
+    {
+      "path": "tests/commands/stream-next-stress/independent.review.ts",
+      "sha256": "6fa5b5e445500e0ab29be962e9c5ac39a7e2e830fc736fd344e0580778c0f3ae"
+    },
+    {
+      "path": "tests/commands/stream-next-stress/strong-diagnostics.mjs",
+      "sha256": "a0a573ac0d7f5ccbfd40b26a0efaf967533a2d02a9e9a65dfccaa4289f12e40c"
+    },
+    {
+      "path": "tests/commands/stream-next-stress/dangling-regression.mjs",
+      "sha256": "e0d5682f6014945f328aa32d543406510252ec017f359310f7e2fdbe32a6286a"
+    },
+    {
+      "path": "tests/commands/stream-next-stress/evidence/final/release.json",
+      "sha256": "f236f34bcc8f1f1b91bbade93d0d56ede56ae9ec873ec34c8b829ed1145b3315"
+    }
+  ],
+  "declarations": [
+    {
+      "path": "dist/index.d.ts",
+      "sha256": "97198dd4b1b4872a14134fdd02f49c9518b96e7db8a919a945c60dafd325c5d2",
+      "text": "export * from \"./contracts/index.js\";\nexport * from \"./plugins/index.js\";\nexport * from \"./shell/index.js\";\nexport * from \"./commands/index.js\";\nexport type { RegexExecutionOptions } from \"./commands/regex-execution/protocol.js\";\nexport * from \"./commands/text-programs/index.js\";\nexport * from \"./commands/structured/index.js\";\nexport * from \"./commands/search/index.js\";\nexport * from \"./commands/bytes/index.js\";\nexport * from \"./commands/diff-patch/index.js\";\nexport * from \"./commands/safejs/index.js\";\nexport * from \"./commands/network/index.js\";\nexport * from \"./commands/metadata/index.js\";\nexport * from \"./commands/archive/index.js\";\nexport * from \"./commands/table-text/index.js\";\nexport * from \"./commands/stream-inspection/index.js\";\nexport * from \"./commands/stream-format/index.js\";\nexport * from \"./commands/split/index.js\";\nexport * from \"./fs/memory/index.js\";\nexport * from \"./fs/real/index.js\";\nexport * from \"./fs/s3/index.js\";\nexport * from \"./fs/s3/http/index.js\";\nexport * from \"./fs/webdav/index.js\";\nexport * from \"./fs/readonly/index.js\";\nexport * from \"./fs/mount/index.js\";\nexport * from \"./fs/overlay/index.js\";\nexport * from \"./integrations/safejs/index.js\";\n//# sourceMappingURL=index.d.ts.map"
+    },
+    {
+      "path": "dist/plugins/index.d.ts",
+      "sha256": "24326f0fce6fb7433f9175acb26d07df5e870d6321aefc88bcb08c9a42904726",
+      "text": "import { type CommandDefinition, type CommandHandler, type VirtualShellPlugin } from \"../contracts/index.js\";\nimport { type TextProgramOptions } from \"../commands/text-programs/index.js\";\nimport { type StructuredCommandsOptions } from \"../commands/structured/index.js\";\nimport { type SearchOptions } from \"../commands/search/index.js\";\nimport { type DiffPatchOptions } from \"../commands/diff-patch/index.js\";\nimport { type MetadataCommandsOptions } from \"../commands/metadata/index.js\";\nimport { type ArchiveCommandsOptions } from \"../commands/archive/index.js\";\nimport { type TableTextCommandsOptions } from \"../commands/table-text/index.js\";\nimport { type StreamInspectionCommandsOptions } from \"../commands/stream-inspection/index.js\";\nimport { type StreamFormatCommandsOptions } from \"../commands/stream-format/index.js\";\nimport { type SplitCommandsOptions } from \"../commands/split/index.js\";\nexport interface AgentCommandsOptions {\n    readonly replace?: boolean;\n    readonly execute?: CommandHandler;\n    readonly text?: Omit<TextProgramOptions, \"replace\">;\n    readonly structured?: Omit<StructuredCommandsOptions, \"replace\">;\n    readonly search?: Omit<SearchOptions, \"replace\">;\n    readonly diffPatch?: Omit<DiffPatchOptions, \"replace\">;\n    readonly metadata?: Omit<MetadataCommandsOptions, \"replace\">;\n    readonly archive?: Omit<ArchiveCommandsOptions, \"replace\">;\n    readonly tableText?: Omit<TableTextCommandsOptions, \"replace\">;\n    readonly streamInspection?: Omit<StreamInspectionCommandsOptions, \"replace\">;\n    readonly streamFormat?: Omit<StreamFormatCommandsOptions, \"replace\">;\n    readonly split?: Omit<SplitCommandsOptions, \"replace\">;\n}\nexport declare function createAgentCommands(options?: AgentCommandsOptions): readonly CommandDefinition[];\nexport declare function agentCommands(options?: AgentCommandsOptions): VirtualShellPlugin;\n//# sourceMappingURL=index.d.ts.map"
+    },
+    {
+      "path": "dist/commands/stream-format/index.d.ts",
+      "sha256": "68405695710d84cb7a9cd0b4f61a88d646e784c6fdf369960165e34c07f677cc",
+      "text": "import type { CommandDefinition, VirtualShellPlugin } from \"../../contracts/index.js\";\nimport { type StreamFormatCommandsOptions } from \"./shared.js\";\nexport type { StreamFormatCommandsOptions, StreamFormatLimits } from \"./shared.js\";\nexport declare function createStreamFormatCommands(options?: StreamFormatCommandsOptions): readonly CommandDefinition[];\nexport declare function streamFormatCommands(options?: StreamFormatCommandsOptions): VirtualShellPlugin;\n//# sourceMappingURL=index.d.ts.map"
+    },
+    {
+      "path": "dist/commands/stream-format/shared.d.ts",
+      "sha256": "7da5113105d4e41b36f6eda256aae9497f9729928f3f548885b0664e0e3b3e8c",
+      "text": "import { type ByteSource, type CommandContext, type CommandDefinition } from \"../../contracts/index.js\";\nexport interface StreamFormatLimits {\n    readonly maxInputBytes: number;\n    readonly maxOutputBytes: number;\n    readonly maxRecordBytes: number;\n    readonly maxChunkBytes: number;\n    readonly maxFiles: number;\n    readonly maxSteps: number;\n    readonly maxArgumentBytes: number;\n    readonly maxNumericDigits: number;\n}\nexport interface StreamFormatCommandsOptions {\n    readonly replace?: boolean;\n    readonly limits?: Partial<StreamFormatLimits>;\n}\nexport declare function settings(options: StreamFormatCommandsOptions): StreamFormatLimits;\nexport declare class Session {\n    readonly context: CommandContext;\n    readonly limits: StreamFormatLimits;\n    private inputBytes;\n    private outputBytes;\n    private steps;\n    private untilYield;\n    private stdin;\n    private readonly controller;\n    readonly signal: AbortSignal;\n    failed: boolean;\n    constructor(context: CommandContext, limits: StreamFormatLimits);\n    check(size: number, maximum: number, label: string): void;\n    charge(count?: number): void;\n    step(count?: number): Promise<void>;\n    output(bytes: Uint8Array): Promise<void>;\n    text(text: string): Promise<void>;\n    names(operands: readonly string[]): readonly string[];\n    private read;\n    files(names: readonly string[], process: (source: ByteSource, name: string) => Promise<void>): Promise<void>;\n    close(): Promise<void>;\n}\nexport declare function command(name: string, limits: StreamFormatLimits, run: (session: Session) => Promise<void>): CommandDefinition;\nexport declare function records(source: ByteSource, session: Session): AsyncGenerator<Uint8Array>;\nexport declare class ByteOutput {\n    readonly session: Session;\n    private readonly bytes;\n    private size;\n    constructor(session: Session);\n    byte(value: number): Promise<void>;\n    flush(): Promise<void>;\n}\n//# sourceMappingURL=shared.d.ts.map"
+    },
+    {
+      "path": "dist/commands/split/index.d.ts",
+      "sha256": "ccf030388097964f6cd8c9a65105cff756fbdc165888c4a81c8682fdaaadef31",
+      "text": "import type { CommandDefinition, VirtualShellPlugin } from \"../../contracts/index.js\";\nimport { type SplitCommandsOptions } from \"./options.js\";\nexport type { SplitCommandsOptions, SplitLimits } from \"./options.js\";\nexport declare function createSplitCommands(options?: SplitCommandsOptions): readonly CommandDefinition[];\nexport declare function splitCommands(options?: SplitCommandsOptions): VirtualShellPlugin;\n//# sourceMappingURL=index.d.ts.map"
+    },
+    {
+      "path": "dist/commands/split/options.d.ts",
+      "sha256": "579b02a0737e5b2a33110d7d45de32aa0ecdcc423a58823dea9f8c966f364782",
+      "text": "export interface SplitLimits {\n    readonly maxInputBytes: number;\n    readonly maxOutputBytes: number;\n    readonly maxFiles: number;\n    readonly maxBufferBytes: number;\n    readonly maxChunkBytes: number;\n    readonly maxArgumentBytes: number;\n    readonly maxSuffixLength: number;\n    readonly maxSteps: number;\n}\nexport interface SplitCommandsOptions {\n    readonly replace?: boolean;\n    readonly limits?: Partial<SplitLimits>;\n}\nexport declare function settings(options: SplitCommandsOptions): SplitLimits;\nexport interface SplitArguments {\n    readonly mode: \"lines\" | \"bytes\" | \"line-bytes\";\n    readonly size: number;\n    readonly input: string;\n    readonly prefix: string;\n    readonly alphabet: string;\n    readonly suffixLength: number;\n    readonly automatic: boolean;\n    readonly numericStart: string;\n    readonly additionalSuffix: string;\n}\nexport declare function parseArguments(args: readonly string[], limits: SplitLimits): SplitArguments;\n//# sourceMappingURL=options.d.ts.map"
+    }
+  ],
+  "originalRegistry": {
+    "sourceCommit": "bf8b5540fd2d222a273922b12d347f3aa5d07d3b",
+    "path": "tests/plugins/agent-commands.test.ts",
+    "sha256": "98a69b4b33da2d6c134445a2f797996cfa1a6f10ebc922859f58b21adbbef9d2",
+    "text": "import assert from \"node:assert/strict\";\nimport test from \"node:test\";\nimport {\n  agentCommands, createAgentCommands, CommandRegistry, createMemoryFileSystem, Shell,\n  toByteSource,\n  type AgentCommandsOptions, type CommandContext, type PluginHost,\n} from \"../../src/index.js\";\n\nfunction host(commands = new CommandRegistry()): PluginHost {\n  return { commands, use() { throw new Error(\"Unexpected middleware installation\"); }, registerFileSystem() { throw new Error(\"Unexpected filesystem installation\"); } };\n}\n\nasync function direct(commands: CommandRegistry, command: string, args: readonly string[], input = \"\") {\n  const chunks: Uint8Array[] = [];\n  const errors: Uint8Array[] = [];\n  const context: CommandContext = {\n    command, args, stdin: toByteSource(input), stdinIsDefault: false,\n    stdout: { async write(chunk) { chunks.push(chunk.slice()); } },\n    stderr: { async write(chunk) { errors.push(chunk.slice()); } },\n    fs: createMemoryFileSystem(), cwd: \"/\", env: {}, signal: new AbortController().signal,\n  };\n  const result = await commands.get(command)!.execute(context);\n  return { ...result, stdout: Buffer.concat(chunks).toString(), stderr: Buffer.concat(errors).toString() };\n}\n\ntest(\"aggregate definitions are exactly the ten delivered families, each registered once\", async () => {\n  const expected = [\n    \"true\", \"false\", \"echo\", \"pwd\", \"basename\", \"dirname\", \"printf\", \"mkdir\", \"touch\",\n    \"cp\", \"mv\", \"rm\", \"rmdir\", \"ln\", \"readlink\", \"realpath\", \"ls\", \"cat\", \"head\", \"tail\",\n    \"wc\", \"tee\", \"tr\", \"sort\", \"uniq\", \"cut\", \"grep\", \"test\", \"[\", \"env\", \"xargs\", \"find\",\n    \"sed\", \"awk\", \"jq\", \"rg\", \"base64\", \"base32\", \"xxd\", \"od\", \"sha256sum\", \"sha1sum\",\n    \"md5sum\", \"cksum\", \"gzip\", \"gunzip\", \"zcat\", \"diff\", \"patch\", \"chmod\", \"stat\", \"mktemp\", \"tar\",\n    \"paste\", \"comm\", \"join\", \"tac\", \"expand\", \"fold\", \"strings\",\n  ].sort();\n  assert.equal(expected.length, 60);\n  assert.equal(new Set(expected).size, 60);\n  assert.deepEqual(createAgentCommands().map(command => command.name).sort(), expected);\n  const target = host();\n  await agentCommands().setup(target);\n  assert.deepEqual(target.commands.list().map(command => command.name).sort(), expected);\n});\n\nfor (const conflict of [\"printf\", \"sed\", \"jq\", \"rg\", \"gzip\", \"patch\", \"chmod\", \"stat\", \"mktemp\", \"tar\", \"paste\", \"comm\", \"join\"]) {\n  test(`collision with ${conflict} leaves the entire host registry untouched`, () => {\n    const commands = new CommandRegistry([{ name: conflict, execute: () => ({ exitCode: 23 }) }]);\n    const before = commands.list();\n    assert.throws(() => agentCommands().setup(host(commands)), /already registered/u);\n    assert.deepEqual(commands.list(), before);\n  });\n}\n\ntest(\"explicit replacement affects all families once and preserves unrelated commands\", async () => {\n  const target = host(new CommandRegistry([{ name: \"custom\", execute: () => ({ exitCode: 23 }) }]));\n  await agentCommands().setup(target);\n  const original = target.commands.list();\n  assert.throws(() => agentCommands().setup(target), /already registered/u);\n  assert.deepEqual(target.commands.list(), original);\n  await agentCommands({ replace: true }).setup(target);\n  assert.equal(target.commands.list().length, 61);\n  assert.equal(target.commands.get(\"custom\"), original[0]);\n  for (const name of [\"printf\", \"sed\", \"jq\", \"rg\", \"gzip\", \"patch\", \"chmod\", \"stat\", \"mktemp\", \"tar\", \"paste\", \"comm\", \"join\"]) {\n    assert.notEqual(target.commands.get(name), original.find(command => command.name === name));\n  }\n});\n\ntest(\"invalid eager family limits install no commands\", () => {\n  const target = host();\n  assert.throws(() => agentCommands({ structured: { limits: { maxSteps: 0 } } }).setup(target), /positive/u);\n  assert.equal(target.commands.list().length, 0);\n});\n\nfor (const kind of [\"definitions\", \"plugin\"] as const) {\n  test(`${kind} fallback resolves nested argv across families without a shell`, async () => {\n    const commands = kind === \"definitions\" ? new CommandRegistry(createAgentCommands()) : new CommandRegistry();\n    if (kind === \"plugin\") await agentCommands().setup(host(commands));\n    assert.deepEqual(await direct(commands, \"env\", [\"sed\", \"s/a/A/\"], \"a\\n\"), { exitCode: 0, stdout: \"A\\n\", stderr: \"\" });\n    assert.deepEqual(await direct(commands, \"xargs\", [\"jq\", \"-nc\"], \"'1+1'\"), { exitCode: 0, stdout: \"2\\n\", stderr: \"\" });\n    assert.deepEqual(await direct(commands, \"env\", [\"env\", \"rg\", \"a\", \"-\"], \"a\\n\"), { exitCode: 0, stdout: \"a\\n\", stderr: \"\" });\n    const missing = await direct(commands, \"env\", [\"not-a-command\"]);\n    assert.equal(missing.exitCode, 127);\n    assert.match(missing.stderr, /command not found/u);\n  });\n}\n\ntest(\"plugin fallback can resolve host commands outside the aggregate\", async () => {\n  const target = host(new CommandRegistry([{ name: \"custom\", execute: () => ({ exitCode: 23 }) }]));\n  await agentCommands().setup(target);\n  assert.equal((await direct(target.commands, \"env\", [\"custom\"])).exitCode, 23);\n});\n\ntest(\"custom fallback applies only without the shell invocation hook\", async () => {\n  let calls = 0;\n  const options = { execute: () => { calls++; return { exitCode: 17 }; } };\n  const commands = new CommandRegistry(createAgentCommands(options));\n  assert.equal((await direct(commands, \"env\", [\"sed\", \"s/a/A/\"], \"a\")).exitCode, 17);\n  assert.equal(calls, 1);\n  const shell = new Shell({ fs: createMemoryFileSystem() }).use(agentCommands(options));\n  const invoked: string[] = [];\n  shell.use(async (context, next) => { invoked.push(context.command); return next(); });\n  try {\n    assert.equal((await shell.exec(\"env sed 's/a/A/'\", { stdin: \"a\\n\" })).stdout, \"A\\n\");\n    assert.deepEqual(invoked, [\"env\", \"sed\"]);\n    assert.equal(calls, 1);\n  } finally { await shell.dispose(); }\n});\n\nconst limited: readonly [AgentCommandsOptions, string, string, RegExp][] = [\n  [{ text: { maxBufferBytes: 1 } }, \"sed p\", \"long\\n\", /buffer limit/u],\n  [{ structured: { limits: { maxInputBytes: 1 } } }, \"jq .\", \"[1]\", /maxInputBytes/u],\n  [{ search: { maxLineBytes: 1 } }, \"rg x -\", \"xxxx\\n\", /limit/u],\n  [{ diffPatch: { maxInputBytes: 1 } }, \"printf 'ab\\\\n' > first; printf 'cd\\\\n' > second; diff first second\", \"\", /limit|maxBytes/u],\n  [{ metadata: { limits: { maxOutputBytes: 1 } } }, \"mkdir /tmp; mktemp\", \"\", /limit/u],\n  [{ archive: { limits: { maxArchiveBytes: 1 } } }, \"printf content > input; tar -cf - input\", \"\", /limit/u],\n  [{ tableText: { limits: { maxRecordBytes: 1 } } }, \"paste -\", \"ab\\n\", /record limit/u],\n];\nfor (const [options, source, stdin, diagnostic] of limited) {\n  test(`aggregate forwards ${Object.keys(options)[0]} limits without rewriting them`, async () => {\n    const shell = new Shell({ fs: createMemoryFileSystem() }).use(agentCommands(options));\n    try {\n      const result = await shell.exec(source, { stdin });\n      assert.notEqual(result.exitCode, 0);\n      assert.match(result.stderr, diagnostic);\n    } finally { await shell.dispose(); }\n  });\n}\n\ntest(\"search defaultInput remains an explicit family override\", async () => {\n  const fs = createMemoryFileSystem();\n  await fs.writeFile(\"/file\", Buffer.from(\"match\\n\"));\n  const shell = new Shell({ fs }).use(agentCommands({ search: { defaultInput: \"stdin\" } }));\n  try {\n    const result = await shell.exec(\"rg match\");\n    assert.equal(result.exitCode, 1);\n    assert.equal(result.stdout, \"\");\n  } finally { await shell.dispose(); }\n});\n\ntest(\"README aggregate example and binary pipelines use the actual shell\", async () => {\n  const shell = new Shell({ fs: createMemoryFileSystem() }).use(agentCommands());\n  try {\n    const result = await shell.exec(\"printf 'hello\\\\n' | sed 's/hello/world/' | awk '{print $1}'\");\n    assert.equal(result.stdout, \"world\\n\");\n    assert.equal(result.stderr, \"\");\n    assert.equal(result.exitCode, 0);\n    const bytes = await shell.exec(\"printf '\\\\000\\\\377A' | base64 | base64 -d | gzip -c | gunzip -c\");\n    assert.equal(bytes.exitCode, 0, bytes.stderr);\n    assert.deepEqual(bytes.stdoutBytes, Uint8Array.of(0, 255, 65));\n  } finally { await shell.dispose(); }\n});\n\ntest(\"aggregate tar streams binary archives through the actual VFS pipeline\", async () => {\n  const fs = createMemoryFileSystem();\n  await fs.mkdir(\"/input\"); await fs.mkdir(\"/output\");\n  await fs.writeFile(\"/input/bytes\", Uint8Array.of(0, 255, 65, 10));\n  const shell = new Shell({ fs }).use(agentCommands());\n  try {\n    const result = await shell.exec(\"tar -cf - -C /input bytes | tar -xf - -C /output\");\n    assert.equal(result.exitCode, 0, result.stderr);\n    assert.equal(result.stderr, \"\");\n    assert.deepEqual(await fs.readFile(\"/output/bytes\"), Uint8Array.of(0, 255, 65, 10));\n    assert.deepEqual(await fs.readFile(\"/input/bytes\"), Uint8Array.of(0, 255, 65, 10));\n    assert.equal(createAgentCommands().some(command => command.name === \"curl\" || command.name === \"safejs\"), false);\n  } finally { await shell.dispose(); }\n});\n\ntest(\"aggregate table-text composes with existing cut and virtual files\", async () => {\n  const shell = new Shell({ fs: createMemoryFileSystem(), env: { LC_ALL: \"C\" } }).use(agentCommands());\n  try {\n    const result = await shell.exec(\"printf '1 alice\\n2 bob\\n' > names; printf '1 red\\n2 blue\\n' > colors; join names colors | cut -d ' ' -f2,3 | paste -sd, -\");\n    assert.equal(result.exitCode, 0, result.stderr);\n    assert.equal(result.stdout, \"alice red,bob blue\\n\");\n    assert.equal(result.stderr, \"\");\n    const common = await shell.exec(\"printf 'a\\nb\\n' > first; printf 'b\\nc\\n' > second; comm -12 first second\");\n    assert.equal(common.exitCode, 0, common.stderr);\n    assert.equal(common.stdout, \"b\\n\");\n    assert.equal(createAgentCommands().filter(command => command.name === \"cut\").length, 1);\n  } finally { await shell.dispose(); }\n});\n"
+  },
+  "counts": {
+    "baselineRegistry": 31,
+    "unchangedPostwirePass": 29,
+    "unchangedPostwireFail": 2,
+    "currentRegistryPass": 31,
+    "metadataTests": 318,
+    "metadataNativeRows": 22,
+    "currentStreamNodeGroups": 18,
+    "currentStreamDistinctInputs": 82,
+    "currentStreamPrimaryExecutions": 164,
+    "currentStreamStrict": 124,
+    "currentStreamStrongerDiagnostic": 164,
+    "currentStreamWorkflowExecutions": 6,
+    "currentStreamContractGroups": 16,
+    "packedConsumer": 21,
+    "negativeTypeDiagnostics": 7,
+    "missingPrerequisiteExit": 78,
+    "wrongHashPrerequisiteExit": 78
+  },
+  "packSha256": "cc46e857180765d75b81c1c3d65dd2cdf7c1e07df998b0260f71fab10050253a",
+  "limits": "Author integration verification, not independent acceptance/full gate/GNU-Linux parity/superiority/72-hour completion."
+}

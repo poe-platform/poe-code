@@ -1670,7 +1670,8 @@ that any implementation, command, fixture, or test currently exists.
   aggregate is 65 unique names; the old four stream-inspection commands remain
   separate. `RegexExecutionOptions` from `b1939d7`, cold portable configuration,
   optional curl/SafeJS and zero runtime dependencies are preserved.
-- Original registry tests at `0487969`: **31/31**. Unchanged tests after wiring:
+- Initial ownership inspection was at `0487969`; the original registry run's
+  recorded HEAD is `bf8b554`: **31/31**. Unchanged tests after wiring:
   **29/31**, with exactly two stale registry failures. Test-only `5560a52`
   adds five exact names and migrates 60/61 to 65/66; **31/31** again. Both raw
   original outcomes and source/test hashes are preserved under

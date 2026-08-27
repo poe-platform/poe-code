@@ -1,5 +1,10 @@
 # Trusted provider observations for S3 entry comparison
 
+SDK-like transports without private observation markers may supply the optional
+constructor `compareEntry` callback. See `SDK_COMPARISON.md` for the public API,
+receiver, explicit-unknown composition and built-in-alias conflict rules, plus
+the typed isolated built-package consumer example.
+
 `S3FileSystem.compareEntry` implements the optional contract from `5076b32`
 through the shared internal `src/fs/mount/comparison.ts` helper. It resolves fresh
 followed views and propagates metadata errors and cancellation. It does not read
@@ -73,11 +78,11 @@ workflows: one-mount copy, separate-client copy, cross-mount mv and both Memory
 copy directions. Exact counts and frozen old/new evidence are recorded in
 `tests/fs/s3/trusted-observation/REPORT.md`; this is not the entire original gate.
 
-Real SDK or serialized responses without recognized identity remain unknown for
-cross-view existing-target comparison, even when fully protocol-compliant. This
-is an open compatibility requirement, not solved by Mock support. The existing
-FileSystem identity/compareEntry contracts can carry truthful provider authority;
-no new public transport-binding API is implemented. Non-atomic rename, ETag ABA
+Real SDK or serialized responses without recognized identity or a truthful
+constructor comparison callback remain unknown for cross-view existing-target
+comparison, even when fully protocol-compliant. Automatic real-provider identity
+discovery remains open; the constructor option supplies the existing filesystem
+comparison signature, not a public identity registry. Non-atomic rename, ETag ABA
 and partial-effect limits are unchanged. The historical mixed-routing adversary
 is preserved and classified as a false-binding host, not a compliant-provider
 pass. Its revised compliant cache control drops the false binding and preserves
@@ -118,7 +123,8 @@ with the original base method, including instance/prototype changes after
 construction. Explicit callbacks run once per distinct S3 operand with their
 actual receiver, followed paths, peer and signal. Their answers replace S3's
 inferred fallback; missing/unknown explicit authority does not revive that
-fallback. Invalid or conflicting answers fail EIO, and real errors/cancellation
+distinct fallback. Fresh built-in same remains a safety guard: an explicit distinct
+answer conflicts with it and fails EIO. Invalid or conflicting answers fail EIO, and real errors/cancellation
 propagate before data operations. The common helper still handles other operand
 authorities, complete-identity priority and recursive-negotiation suppression.
 

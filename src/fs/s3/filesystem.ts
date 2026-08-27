@@ -19,6 +19,7 @@ export interface S3FileSystemOptions {
   readonly transport: S3Transport;
   readonly bucket: string;
   readonly prefix?: string;
+  readonly compareEntry?: (this: FileSystem, ...args: Parameters<NonNullable<FileSystem["compareEntry"]>>) => ReturnType<NonNullable<FileSystem["compareEntry"]>>;
   readonly readOnly?: boolean;
   readonly allowNonAtomicRename?: boolean;
   readonly pageSize?: number;
@@ -106,6 +107,9 @@ export class S3FileSystem implements FileSystem {
       .some((method) => typeof (options.transport as unknown as Record<string, unknown>)[method] !== "function")) {
       throw new FsError("EINVAL", { message: "an explicit six-operation S3 transport is required; no default credentials or network client are created" });
     }
+    if (options.compareEntry !== undefined && typeof options.compareEntry !== "function") {
+      throw new FsError("EINVAL", { message: "compareEntry must be a filesystem comparison callback" });
+    }
     if (typeof options.bucket !== "string" || !options.bucket || /[\/:\0]/.test(options.bucket)) {
       throw new FsError("EINVAL", { message: "bucket must be a nonempty bucket name, not a URL or ARN" });
     }
@@ -137,7 +141,7 @@ export class S3FileSystem implements FileSystem {
     const bucket = this.bucket;
     const registeredPrefix = this.prefix;
     registerS3EntryOwner(this, path => this.path(path), () => this.transport === transport
-      && this.bucket === bucket && this.prefix === registeredPrefix, s3Comparison);
+      && this.bucket === bucket && this.prefix === registeredPrefix, s3Comparison, options.compareEntry);
     registerEntryAuthority(this, compareOwnedS3Entries);
   }
 

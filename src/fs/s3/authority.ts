@@ -20,6 +20,7 @@ const acceptedHeads = new WeakMap<S3HeadOutput, OwnedS3Entry>();
 const observedStats = new WeakMap<FileStat, { filesystem: FileSystem; path: string; entry: OwnedS3Entry }>();
 const entries = new WeakMap<FileSystem, (view: EntryView) => OwnedS3Entry | undefined>();
 const comparisons = new WeakMap<FileSystem, NonNullable<FileSystem["compareEntry"]>>();
+const configuredComparisons = new WeakMap<FileSystem, NonNullable<FileSystem["compareEntry"]>>();
 
 export function recordMockS3Head(output: S3HeadOutput, input: S3ObjectInput, storage: object): void {
   const query = queries.getStore();
@@ -47,8 +48,9 @@ export function recordS3Stat(filesystem: FileSystem, path: string, stat: FileSta
 }
 
 export function registerS3EntryOwner(filesystem: FileSystem, normalize: (path: string) => string,
-  intact: () => boolean, baseComparison: NonNullable<FileSystem["compareEntry"]>): void {
+  intact: () => boolean, baseComparison: NonNullable<FileSystem["compareEntry"]>, comparison?: NonNullable<FileSystem["compareEntry"]>): void {
   comparisons.set(filesystem, baseComparison);
+  if (comparison) configuredComparisons.set(filesystem, comparison);
   entries.set(filesystem, view => {
     if (!intact()) return undefined;
     const observation = observedStats.get(view.stat);
@@ -69,8 +71,9 @@ export async function compareOwnedS3Entries(own: EntryView, peer: EntryView, opt
     const baseComparison = comparisons.get(left.filesystem);
     if (!baseComparison || visited.has(left.filesystem)) continue;
     visited.add(left.filesystem);
-    const comparison = left.filesystem.compareEntry;
-    if (comparison === baseComparison) continue;
+    const current = left.filesystem.compareEntry;
+    const comparison = current === baseComparison ? configuredComparisons.get(left.filesystem) : current;
+    if (current === baseComparison && comparison === undefined) continue;
     explicit = true;
     if (comparison === undefined) continue;
     options.signal?.throwIfAborted();
@@ -88,11 +91,15 @@ export async function compareOwnedS3Entries(own: EntryView, peer: EntryView, opt
     }
     answer = result;
   }
-  if (explicit) return answer;
   const left = getOwnedS3Entry(own);
   options.signal?.throwIfAborted();
   const right = getOwnedS3Entry(peer);
   options.signal?.throwIfAborted();
-  if (!left || !right) return "unknown";
-  return left.storage === right.storage && left.key === right.key ? "same" : "distinct";
+  const same = left && right && left.storage === right.storage && left.key === right.key;
+  if (same && answer === "distinct") {
+    throw new FsError("EIO", { path: own.path, dest: peer.path, message: "explicit S3 comparison contradicts a known alias" });
+  }
+  if (same) return "same";
+  if (explicit) return answer;
+  return left && right ? "distinct" : "unknown";
 }

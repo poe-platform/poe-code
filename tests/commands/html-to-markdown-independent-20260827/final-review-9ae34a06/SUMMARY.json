@@ -1,0 +1,576 @@
+{
+  "source": "9ae34a06662db27897043d77d6145700c109b22c",
+  "freeze": "c10642866846d83a8a1f61e9712a30aab0ed0cd7",
+  "packSHA256": "aed5586e0e11880d3734fb788f124ccc55cae905b57d01a24bc754da107c325d",
+  "receipts": 570,
+  "productKills": 0,
+  "intentionalKills": 2,
+  "phases": {
+    "isolated/frozen-original": {
+      "total": 125,
+      "pass": 119,
+      "fail": 6
+    },
+    "isolated/corrections-v2": {
+      "total": 6,
+      "pass": 5,
+      "fail": 1
+    },
+    "isolated/semantic-original": {
+      "total": 9,
+      "pass": 7,
+      "fail": 2
+    },
+    "isolated/policy-v2": {
+      "total": 2,
+      "pass": 2,
+      "fail": 0
+    },
+    "isolated/valid-boundaries": {
+      "total": 10,
+      "pass": 10,
+      "fail": 0
+    },
+    "isolated/stress-original": {
+      "total": 28,
+      "pass": 28,
+      "fail": 0
+    },
+    "isolated/supplemental-original": {
+      "total": 6,
+      "pass": 4,
+      "fail": 2
+    },
+    "isolated/old-abort-original": {
+      "total": 1,
+      "pass": 0,
+      "fail": 1
+    },
+    "isolated/abort-observation": {
+      "total": 3,
+      "pass": 3,
+      "fail": 0
+    },
+    "isolated/in-flight-abort": {
+      "total": 6,
+      "pass": 6,
+      "fail": 0
+    },
+    "isolated/adjacent-work": {
+      "total": 8,
+      "pass": 8,
+      "fail": 0
+    },
+    "isolated/slash-neighbor": {
+      "total": 3,
+      "pass": 3,
+      "fail": 0
+    },
+    "isolated/host-negative": {
+      "total": 4,
+      "pass": 4,
+      "fail": 0
+    },
+    "isolated/denials": {
+      "total": 5,
+      "pass": 5,
+      "fail": 0
+    },
+    "isolated/types": {
+      "total": 4,
+      "pass": 4,
+      "fail": 0
+    },
+    "isolated/supervisor-negative": {
+      "total": 1,
+      "pass": 0,
+      "fail": 0
+    },
+    "isolated/semantic-conversion": {
+      "total": 32,
+      "pass": 32,
+      "fail": 0
+    },
+    "isolated/semantic-parser": {
+      "total": 32,
+      "pass": 32,
+      "fail": 0
+    },
+    "moved/frozen-original": {
+      "total": 125,
+      "pass": 119,
+      "fail": 6
+    },
+    "moved/corrections-v2": {
+      "total": 6,
+      "pass": 5,
+      "fail": 1
+    },
+    "moved/semantic-original": {
+      "total": 9,
+      "pass": 7,
+      "fail": 2
+    },
+    "moved/policy-v2": {
+      "total": 2,
+      "pass": 2,
+      "fail": 0
+    },
+    "moved/valid-boundaries": {
+      "total": 10,
+      "pass": 10,
+      "fail": 0
+    },
+    "moved/stress-original": {
+      "total": 28,
+      "pass": 28,
+      "fail": 0
+    },
+    "moved/supplemental-original": {
+      "total": 6,
+      "pass": 4,
+      "fail": 2
+    },
+    "moved/old-abort-original": {
+      "total": 1,
+      "pass": 0,
+      "fail": 1
+    },
+    "moved/abort-observation": {
+      "total": 3,
+      "pass": 3,
+      "fail": 0
+    },
+    "moved/in-flight-abort": {
+      "total": 6,
+      "pass": 6,
+      "fail": 0
+    },
+    "moved/adjacent-work": {
+      "total": 8,
+      "pass": 8,
+      "fail": 0
+    },
+    "moved/slash-neighbor": {
+      "total": 3,
+      "pass": 3,
+      "fail": 0
+    },
+    "moved/host-negative": {
+      "total": 4,
+      "pass": 4,
+      "fail": 0
+    },
+    "moved/denials": {
+      "total": 5,
+      "pass": 5,
+      "fail": 0
+    },
+    "moved/types": {
+      "total": 4,
+      "pass": 4,
+      "fail": 0
+    },
+    "moved/supervisor-negative": {
+      "total": 1,
+      "pass": 0,
+      "fail": 0
+    },
+    "moved/semantic-conversion": {
+      "total": 32,
+      "pass": 32,
+      "fail": 0
+    },
+    "moved/semantic-parser": {
+      "total": 32,
+      "pass": 32,
+      "fail": 0
+    }
+  },
+  "ast": [
+    {
+      "layout": "isolated",
+      "id": "plain-period",
+      "origin": "author22-unchanged",
+      "outcome": "PASS"
+    },
+    {
+      "layout": "isolated",
+      "id": "plain-paren",
+      "origin": "author22-unchanged",
+      "outcome": "PASS"
+    },
+    {
+      "layout": "isolated",
+      "id": "plain-strike",
+      "origin": "author22-unchanged",
+      "outcome": "PASS"
+    },
+    {
+      "layout": "isolated",
+      "id": "adjacent-em",
+      "origin": "author22-unchanged",
+      "outcome": "PASS"
+    },
+    {
+      "layout": "isolated",
+      "id": "adjacent-strong",
+      "origin": "author22-unchanged",
+      "outcome": "PASS"
+    },
+    {
+      "layout": "isolated",
+      "id": "adjacent-strike",
+      "origin": "author22-unchanged",
+      "outcome": "PASS"
+    },
+    {
+      "layout": "isolated",
+      "id": "adjacent-different",
+      "origin": "author22-unchanged",
+      "outcome": "PASS"
+    },
+    {
+      "layout": "isolated",
+      "id": "adjacent-reverse",
+      "origin": "author22-unchanged",
+      "outcome": "PASS"
+    },
+    {
+      "layout": "isolated",
+      "id": "transparent-neighbor",
+      "origin": "author22-unchanged",
+      "outcome": "PASS"
+    },
+    {
+      "layout": "isolated",
+      "id": "redundant-nested",
+      "origin": "author22-unchanged",
+      "outcome": "PASS"
+    },
+    {
+      "layout": "isolated",
+      "id": "nested-strong",
+      "origin": "author22-unchanged",
+      "outcome": "PASS"
+    },
+    {
+      "layout": "isolated",
+      "id": "nested-em",
+      "origin": "author22-unchanged",
+      "outcome": "PASS"
+    },
+    {
+      "layout": "isolated",
+      "id": "intraword-punctuation",
+      "origin": "author22-unchanged",
+      "outcome": "PASS"
+    },
+    {
+      "layout": "isolated",
+      "id": "trailing-punctuation",
+      "origin": "author22-unchanged",
+      "outcome": "PASS"
+    },
+    {
+      "layout": "isolated",
+      "id": "leading-punctuation",
+      "origin": "author22-unchanged",
+      "outcome": "PASS"
+    },
+    {
+      "layout": "isolated",
+      "id": "unicode-boundaries",
+      "origin": "author22-unchanged",
+      "outcome": "PASS"
+    },
+    {
+      "layout": "isolated",
+      "id": "format-spaces",
+      "origin": "author22-unchanged",
+      "outcome": "PASS"
+    },
+    {
+      "layout": "isolated",
+      "id": "empty-format",
+      "origin": "author22-unchanged",
+      "outcome": "PASS"
+    },
+    {
+      "layout": "isolated",
+      "id": "strong-then-text",
+      "origin": "author22-unchanged",
+      "outcome": "PASS"
+    },
+    {
+      "layout": "isolated",
+      "id": "text-then-strong",
+      "origin": "author22-unchanged",
+      "outcome": "PASS"
+    },
+    {
+      "layout": "isolated",
+      "id": "nested-edge",
+      "origin": "author22-unchanged",
+      "outcome": "PASS"
+    },
+    {
+      "layout": "isolated",
+      "id": "split-numeric-prefix",
+      "origin": "author22-unchanged",
+      "outcome": "PASS"
+    },
+    {
+      "layout": "isolated",
+      "id": "ind-code",
+      "origin": "independent-neighbor",
+      "outcome": "PASS"
+    },
+    {
+      "layout": "isolated",
+      "id": "ind-setext",
+      "origin": "independent-neighbor",
+      "outcome": "PASS"
+    },
+    {
+      "layout": "isolated",
+      "id": "ind-split-period",
+      "origin": "independent-neighbor",
+      "outcome": "PASS"
+    },
+    {
+      "layout": "isolated",
+      "id": "ind-mixed-nest-a",
+      "origin": "independent-neighbor",
+      "outcome": "PASS"
+    },
+    {
+      "layout": "isolated",
+      "id": "ind-mixed-nest-b",
+      "origin": "independent-neighbor",
+      "outcome": "PASS"
+    },
+    {
+      "layout": "isolated",
+      "id": "ind-space-between",
+      "origin": "independent-neighbor",
+      "outcome": "PASS"
+    },
+    {
+      "layout": "isolated",
+      "id": "ind-style-space",
+      "origin": "independent-neighbor",
+      "outcome": "PASS"
+    },
+    {
+      "layout": "isolated",
+      "id": "ind-punctuation",
+      "origin": "independent-neighbor",
+      "outcome": "PASS"
+    },
+    {
+      "layout": "isolated",
+      "id": "ind-literal-entity",
+      "origin": "independent-neighbor",
+      "outcome": "PASS"
+    },
+    {
+      "layout": "isolated",
+      "id": "ind-strong-strike",
+      "origin": "independent-neighbor",
+      "outcome": "PASS"
+    },
+    {
+      "layout": "moved",
+      "id": "plain-period",
+      "origin": "author22-unchanged",
+      "outcome": "PASS"
+    },
+    {
+      "layout": "moved",
+      "id": "plain-paren",
+      "origin": "author22-unchanged",
+      "outcome": "PASS"
+    },
+    {
+      "layout": "moved",
+      "id": "plain-strike",
+      "origin": "author22-unchanged",
+      "outcome": "PASS"
+    },
+    {
+      "layout": "moved",
+      "id": "adjacent-em",
+      "origin": "author22-unchanged",
+      "outcome": "PASS"
+    },
+    {
+      "layout": "moved",
+      "id": "adjacent-strong",
+      "origin": "author22-unchanged",
+      "outcome": "PASS"
+    },
+    {
+      "layout": "moved",
+      "id": "adjacent-strike",
+      "origin": "author22-unchanged",
+      "outcome": "PASS"
+    },
+    {
+      "layout": "moved",
+      "id": "adjacent-different",
+      "origin": "author22-unchanged",
+      "outcome": "PASS"
+    },
+    {
+      "layout": "moved",
+      "id": "adjacent-reverse",
+      "origin": "author22-unchanged",
+      "outcome": "PASS"
+    },
+    {
+      "layout": "moved",
+      "id": "transparent-neighbor",
+      "origin": "author22-unchanged",
+      "outcome": "PASS"
+    },
+    {
+      "layout": "moved",
+      "id": "redundant-nested",
+      "origin": "author22-unchanged",
+      "outcome": "PASS"
+    },
+    {
+      "layout": "moved",
+      "id": "nested-strong",
+      "origin": "author22-unchanged",
+      "outcome": "PASS"
+    },
+    {
+      "layout": "moved",
+      "id": "nested-em",
+      "origin": "author22-unchanged",
+      "outcome": "PASS"
+    },
+    {
+      "layout": "moved",
+      "id": "intraword-punctuation",
+      "origin": "author22-unchanged",
+      "outcome": "PASS"
+    },
+    {
+      "layout": "moved",
+      "id": "trailing-punctuation",
+      "origin": "author22-unchanged",
+      "outcome": "PASS"
+    },
+    {
+      "layout": "moved",
+      "id": "leading-punctuation",
+      "origin": "author22-unchanged",
+      "outcome": "PASS"
+    },
+    {
+      "layout": "moved",
+      "id": "unicode-boundaries",
+      "origin": "author22-unchanged",
+      "outcome": "PASS"
+    },
+    {
+      "layout": "moved",
+      "id": "format-spaces",
+      "origin": "author22-unchanged",
+      "outcome": "PASS"
+    },
+    {
+      "layout": "moved",
+      "id": "empty-format",
+      "origin": "author22-unchanged",
+      "outcome": "PASS"
+    },
+    {
+      "layout": "moved",
+      "id": "strong-then-text",
+      "origin": "author22-unchanged",
+      "outcome": "PASS"
+    },
+    {
+      "layout": "moved",
+      "id": "text-then-strong",
+      "origin": "author22-unchanged",
+      "outcome": "PASS"
+    },
+    {
+      "layout": "moved",
+      "id": "nested-edge",
+      "origin": "author22-unchanged",
+      "outcome": "PASS"
+    },
+    {
+      "layout": "moved",
+      "id": "split-numeric-prefix",
+      "origin": "author22-unchanged",
+      "outcome": "PASS"
+    },
+    {
+      "layout": "moved",
+      "id": "ind-code",
+      "origin": "independent-neighbor",
+      "outcome": "PASS"
+    },
+    {
+      "layout": "moved",
+      "id": "ind-setext",
+      "origin": "independent-neighbor",
+      "outcome": "PASS"
+    },
+    {
+      "layout": "moved",
+      "id": "ind-split-period",
+      "origin": "independent-neighbor",
+      "outcome": "PASS"
+    },
+    {
+      "layout": "moved",
+      "id": "ind-mixed-nest-a",
+      "origin": "independent-neighbor",
+      "outcome": "PASS"
+    },
+    {
+      "layout": "moved",
+      "id": "ind-mixed-nest-b",
+      "origin": "independent-neighbor",
+      "outcome": "PASS"
+    },
+    {
+      "layout": "moved",
+      "id": "ind-space-between",
+      "origin": "independent-neighbor",
+      "outcome": "PASS"
+    },
+    {
+      "layout": "moved",
+      "id": "ind-style-space",
+      "origin": "independent-neighbor",
+      "outcome": "PASS"
+    },
+    {
+      "layout": "moved",
+      "id": "ind-punctuation",
+      "origin": "independent-neighbor",
+      "outcome": "PASS"
+    },
+    {
+      "layout": "moved",
+      "id": "ind-literal-entity",
+      "origin": "independent-neighbor",
+      "outcome": "PASS"
+    },
+    {
+      "layout": "moved",
+      "id": "ind-strong-strike",
+      "origin": "independent-neighbor",
+      "outcome": "PASS"
+    }
+  ]
+}

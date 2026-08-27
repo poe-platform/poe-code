@@ -1,0 +1,12 @@
+[
+  {"id":"empty-em-period","input":"<p>1<em></em>. ordinary</p>","runs":[["1. ordinary",[]]]},
+  {"id":"empty-code-paren","input":"<p>1<code></code>) ordinary</p>","runs":[["1) ordinary",[]]]},
+  {"id":"empty-anchor-period","input":"<p>1<a></a>. ordinary</p>","runs":[["1. ordinary",[]]]},
+  {"id":"empty-strong-between-em","input":"<em>a</em><b></b><em>b</em>","runs":[["ab",["Emph"]]]},
+  {"id":"empty-anchor-between-em","input":"<em>a</em><a></a><em>b</em>","runs":[["ab",["Emph"]]]},
+  {"id":"transparent-empty-strong","input":"<em>a</em><span><strong></strong></span><em>b</em>","runs":[["ab",["Emph"]]]},
+  {"id":"empty-em-between-strong","input":"<b>a</b><em></em><b>b</b>","runs":[["ab",["Strong"]]]},
+  {"id":"nonempty-space-separator","input":"<em>a</em><b> </b><em>b</em>","runs":[["a",["Emph"]],[" ",[]],["b",["Emph"]]]},
+  {"id":"empty-transparent-period-control","input":"<p>1<span></span>. ordinary</p>","runs":[["1. ordinary",[]]]},
+  {"id":"nonempty-em-digit-control","input":"<p><em>1</em>. ordinary</p>","runs":[["1",["Emph"]],[". ordinary",[]]]}
+]

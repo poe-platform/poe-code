@@ -46,7 +46,7 @@ function tokenize(source: string): Token[] {
         if (!escaped && current === "\\") escaped = true;
         else escaped = false;
       }
-      const text = source.slice(start, offset);
+      const text = source.slice(start, offset).replace(/[\x00-\x1f]/gu, character => `\\u${character.charCodeAt(0).toString(16).padStart(4, "0")}`);
       try { if (!wellFormed(JSON.parse(text) as string)) throw new Error(); } catch { throw new JqError(`invalid string at offset ${start}`, 3); }
       tokens.push({ text, offset: start, kind: "string" });
       continue;

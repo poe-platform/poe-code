@@ -1,9 +1,9 @@
 import { Budget, copyObject, isObject, JqError, JqLimitError, object, objectKeys, put, remove as removeKey, truth, type Json } from "./limits.js";
 import { isNumber, numberValue, type Numeric } from "./numbers.js";
-import { parseJson, stringify } from "./input.js";
+import { JqParseError, parseJson, stringify } from "./input.js";
 import type { Ast } from "./parser.js";
 import { splitString } from "./split.js";
-import { binary, compare, contains, entries, indexValue, sliceValue, stringCompare, type } from "./values.js";
+import { binary, compare, contains, describe, entries, indexValue, sliceValue, stringCompare, type } from "./values.js";
 
 type Path = (string | number)[];
 const deleted = Symbol("deleted");
@@ -259,11 +259,12 @@ export class Interpreter {
         for (const [, item] of entries(input, budget)) {
           await budget.tick();
           if (!first && separator !== null) {
+            if (typeof separator !== "string") binary("+", result, separator, budget);
             if (typeof separator !== "string") throw new JqError("join separator must be a string or null when used");
             append(separator, separatorBytes);
           }
           first = false;
-          if (isObject(item) || Array.isArray(item)) throw new JqError("join elements must be strings, numbers, booleans or null");
+          if (isObject(item) || Array.isArray(item)) binary("+", result, item, budget);
           const text = item === null ? "" : typeof item === "string" ? item : stringify(item, budget);
           append(text, budget.value(text));
         }
@@ -310,8 +311,15 @@ export class Interpreter {
     if (name === "tostring" || name === "tojson") { const result = typeof input === "string" && name === "tostring" ? input : stringify(input, budget); budget.text(result); yield result; return; }
     if (name === "tonumber" || name === "fromjson") {
       if (name === "tonumber" && isNumber(input)) { yield input; return; }
-      if (typeof input !== "string") throw new JqError(`${name} requires a string`);
-      const result = parseJson(input, budget);
+      if (typeof input !== "string") throw new JqError(name === "fromjson" ? `${describe(input, budget)} only strings can be parsed` : `${name} requires a string`);
+      let result: Json;
+      try { result = parseJson(input, budget); }
+      catch (error) {
+        if (!(error instanceof JqParseError)) throw error;
+        const prefix = Buffer.from(input).subarray(0, error.offset).toString();
+        const lines = prefix.split("\n");
+        throw new JqError(`${error.detail} at line ${lines.length}, column ${Buffer.byteLength(lines.at(-1)!)} (while parsing '${input}')`);
+      }
       if (name === "tonumber" && !isNumber(result)) throw new JqError("tonumber requires a numeric string");
       yield result; return;
     }
@@ -327,11 +335,10 @@ export class Interpreter {
           values.push(mapped);
         }
       }
-      if (!Array.isArray(values)) throw new JqError("from_entries requires an array");
       const result = object();
-      for (const entry of values) {
+      for (const [, entry] of entries(values, budget)) {
         await budget.tick();
-        if (!isObject(entry)) throw new JqError("from_entries requires objects");
+        if (!isObject(entry)) throw new JqError(`Cannot index ${type(entry)} with string "key"`);
         const key = ["key", "Key", "name", "Name"].find(candidate => Object.hasOwn(entry, candidate) && truth(entry[candidate]!));
         const value = ["value", "Value"].find(candidate => Object.hasOwn(entry, candidate));
         if (key === undefined || typeof entry[key] !== "string") throw new JqError("from_entries requires string keys");
@@ -350,7 +357,11 @@ export class Interpreter {
       }
       yield name === "all"; return;
     }
-    if (!Array.isArray(input)) throw new JqError(`${name} requires an array`);
+    if (!Array.isArray(input)) {
+      if (name === "unique") entries(input, budget);
+      if (name === "sort") throw new JqError(`${describe(input, budget)} cannot be sorted, as it is not an array`);
+      throw new JqError(`${name} requires an array`);
+    }
     if (name === "reverse") { yield [...input].reverse(); return; }
     if (name === "add") {
       let result: Json = null;

@@ -29,6 +29,11 @@ export class JqError extends Error {
 export class JqLimitError extends JqError {
   constructor(name: keyof JqLimits) { super(`${name} limit exceeded`); }
 }
+export interface InputLocation {
+  name: string;
+  line: number;
+  complete: boolean;
+}
 export function resolveJqLimits(options: Partial<JqLimits> = {}): JqLimits {
   const limits = { ...defaultJqLimits, ...options };
   for (const [name, value] of Object.entries(limits)) {
@@ -43,6 +48,7 @@ export class Budget {
   inputBytes = 0;
   outputBytes = 0;
   results = 0;
+  inputLocation: InputLocation = { name: "<unknown>", line: 0, complete: true };
   constructor(readonly limits: JqLimits, readonly signal: AbortSignal) {}
   step(count = 1): void {
     this.signal.throwIfAborted();

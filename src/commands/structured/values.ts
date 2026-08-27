@@ -1,8 +1,14 @@
 import { Budget, copyObject, isObject, JqError, JqLimitError, objectKeys, put, type Json } from "./limits.js";
 import { compareNumbers, isNumber, numberValue, type Numeric } from "./numbers.js";
+import { stringify } from "./input.js";
 
 export function type(value: Json): string {
   return value === null ? "null" : isNumber(value) ? "number" : Array.isArray(value) ? "array" : typeof value;
+}
+export function describe(value: Json, budget: Budget): string {
+  const bytes = Buffer.from(stringify(value, budget));
+  const text = bytes.length < 15 ? bytes.toString() : `${bytes.subarray(0, 11).toString()}...`;
+  return `${type(value)} (${text})`;
 }
 export function stringCompare(left: string, right: string): number {
   const leftPoints = Array.from(left, character => character.codePointAt(0)!);
@@ -38,7 +44,7 @@ export function compare(left: Json, right: Json, budget: Budget): number {
 export function entries(value: Json, budget: Budget): [string | number, Json][] {
   if (Array.isArray(value)) { budget.collection(value.length); return value.map((item, index) => [index, item]); }
   if (isObject(value)) { const keys = objectKeys(value); budget.collection(keys.length); return keys.map(key => [key, value[key]!]); }
-  throw new JqError(`cannot iterate over ${type(value)}`);
+  throw new JqError(`Cannot iterate over ${describe(value, budget)}`);
 }
 export function indexValue(value: Json, index: Json): Json {
   if (typeof index === "string") {
@@ -112,11 +118,12 @@ export function binary(operator: string, left: Json, right: Json, budget: Budget
   if (isNumber(left) && isNumber(right)) {
     const first = numberValue(left);
     const second = numberValue(right);
-    if ((operator === "/" && second === 0) || (operator === "%" && Math.trunc(second) === 0)) throw new JqError("division by zero");
+    if ((operator === "/" && second === 0) || (operator === "%" && Math.trunc(second) === 0)) throw new JqError(`${describe(left, budget)} and ${describe(right, budget)} cannot be divided because the divisor is zero`);
     if (operator === "-") return first - second;
     if (operator === "*") return first * second;
     if (operator === "/") return first / second;
     if (operator === "%") return Math.trunc(first) % Math.trunc(second);
   }
+  if (operator === "+") throw new JqError(`${describe(left, budget)} and ${describe(right, budget)} cannot be added`);
   throw new JqError(`cannot apply ${operator} to ${type(left)} and ${type(right)}`);
 }

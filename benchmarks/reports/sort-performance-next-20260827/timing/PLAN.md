@@ -126,3 +126,15 @@ overall win, confidence claim, superiority, counter-to-speed inference, hard RSS
 guarantee or broad command/backend claim. Any timing effects remain PENDING a
 different reviewer routed by root. Failed admission yields TIMING DEFERRED and
 zero measured samples. Freeze and evidence are separate atomic owned commits.
+
+## Preparation-only correction before any sampling
+
+The first frozen runner compiled A but npm rejected the author's duplicate
+`/dev/null` config paths. Its immutable evidence is in `evidence/`, described by
+`PREPARATION_001.md`; it consumed zero correctness calls and zero load attempts.
+The second frozen runner uses distinct empty owned npm configuration files and
+writes only `evidence-002/`. The failed A build is retained at
+`A-preparation-001` under the same scratch root; A is re-extracted from the same
+authenticated archive. No source hash, fixture byte/expectation, threshold,
+measurement schedule or three-admission-attempt total changes. Both preparation
+executions together remain within the original 480-second execution budget.

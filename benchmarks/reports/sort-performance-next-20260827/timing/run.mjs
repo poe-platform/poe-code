@@ -9,13 +9,14 @@ import { command, directory, git, hash, inventory, json, repo } from './common.m
 const frozen = JSON.parse(readFileSync(join(directory, 'frozen.json')));
 const root = frozen.root;
 assert.match(root, /^\/private\/tmp\/sort-cache-timing-[^/]+$/u);
-const evidence = join(directory, 'evidence');
+const evidence = join(directory, 'evidence-002');
 mkdirSync(evidence);
 const started = Date.now();
 const overallDeadline = started + 480000;
 const planCommit = git('log', '-1', '--format=%H', '--', directory).toString().trim();
 assert.equal(git('status', '--porcelain', '--untracked-files=no', '--', directory).toString(), '');
-const inputs = inventory(directory).filter(file => !file.path.startsWith('evidence/'));
+const isFrozenInput = file => !file.path.startsWith('evidence/') && !file.path.startsWith('evidence-002/');
+const inputs = inventory(directory).filter(isFrozenInput);
 const encoded = gunzipSync(readFileSync(join(directory, 'fixtures.json.gz')));
 assert.equal(hash(encoded), frozen.fixtureSha256);
 assert.equal(hash(readFileSync(join(directory, 'fixtures.json.gz'))), frozen.fixtureGzipSha256);
@@ -64,7 +65,7 @@ async function execute(program, args, options = {}, timeout = 60000) {
 function ready(stage) {
   const value = { stage, planCommit, sourceArchiveSha256: frozen.sourceArchiveSha256, base: frozen.base, revisions: frozen.revisions, textHashes: frozen.textHashes, fixturesSha256: frozen.fixtureSha256, frozenManifestSha256: hash(readFileSync(join(directory, 'frozen.json'))), profiles: frozen.profiles, counts: { correctness: frozen.correctnessCalls, measuredWarm: 192, measuredCold: 32, warmups: 32 }, loadPolicy: 'PLAN.md: conjunctive absolute 1/5/15 load 2/2.5/3, normalized load1 <=.15, CPU <=10%, CPU range <=5pp, load1 range <=.25, competing visible CPU <25%; 3 attempts, 45 seconds; fail closed; during/post gates mandatory', commands: [`node ${directory}run.mjs`], root, loadObserved: admissions.length > 0, timingSamples: samples.length, allTimingClaims: 'PENDING DIFFERENT ROOT-ROUTED REVIEWER' };
   json(join(evidence, `readiness-${stage}.json`), value);
-  writeFileSync('/tmp/sort-cache-timing-frozen.ready', JSON.stringify(value, null, 2) + '\n', { flag: stage === 'frozen' ? 'wx' : 'w' });
+  writeFileSync('/tmp/sort-cache-timing-frozen.ready', JSON.stringify(value, null, 2) + '\n');
   console.log(JSON.stringify({ checkpoint: stage, planCommit, readiness: '/tmp/sort-cache-timing-frozen.ready', correctnessPassed: correctness.length, loadObserved: admissions.length > 0, timingSamples: samples.length }));
 }
 function parseTop(raw, exempt) {
@@ -165,6 +166,10 @@ try {
   writeFileSync(join(evidence, 'top-manual.raw.txt'), command('/usr/bin/man', ['top'], { env: { PATH: '/usr/bin:/bin', MANPAGER: 'cat', PAGER: 'cat' } }), { flag: 'wx' });
   assert.equal(host.platform, 'darwin');
   const preparationDeadline = started + 240000;
+  const userConfig = join(root, 'npm-user-empty.conf');
+  const globalConfig = join(root, 'npm-global-empty.conf');
+  writeFileSync(userConfig, '', { flag: 'wx' });
+  writeFileSync(globalConfig, '', { flag: 'wx' });
   for (const label of ['A', 'B', 'C']) {
     const build = join(root, label);
     assert.deepEqual(inventory(build), frozen.sources[label]);
@@ -173,7 +178,7 @@ try {
     json(join(evidence, `build-${label}.json`), buildResult); assert.equal(buildResult.code, 0);
     const dist = inventory(join(build, 'dist'));
     const npm = process.execPath.replace(/node$/u, 'npm');
-    const packResult = await execute(npm, ['pack', '--ignore-scripts', '--json', '--pack-destination', root, '--cache', join(root, 'npm-cache')], { cwd: build, env: { PATH: `${process.execPath.slice(0, process.execPath.lastIndexOf('/'))}:/usr/bin:/bin`, HOME: root, npm_config_userconfig: '/dev/null', npm_config_globalconfig: '/dev/null' } }, Math.min(30000, remaining(preparationDeadline)));
+    const packResult = await execute(npm, ['pack', '--ignore-scripts', '--json', '--pack-destination', root, '--cache', join(root, 'npm-cache')], { cwd: build, env: { PATH: `${process.execPath.slice(0, process.execPath.lastIndexOf('/'))}:/usr/bin:/bin`, HOME: root, npm_config_userconfig: userConfig, npm_config_globalconfig: globalConfig } }, Math.min(30000, remaining(preparationDeadline)));
     json(join(evidence, `pack-${label}.json`), packResult); assert.equal(packResult.code, 0);
     const pack = JSON.parse(packResult.stdout)[0];
     const tarball = join(root, `${label}.tgz`); renameSync(join(root, pack.filename), tarball);
@@ -266,7 +271,7 @@ finally {
       assert.equal(hash(readFileSync(variant.tarball)), variant.tarballSha256);
       integrity.variants[label] = 'source/build/moved-package/tarball unchanged';
     }
-    assert.deepEqual(inventory(directory).filter(file => !file.path.startsWith('evidence/')), inputs);
+    assert.deepEqual(inventory(directory).filter(isFrozenInput), inputs);
     integrity.frozenHarnessAndInputsUnchanged = true;
   } catch (error) { integrity.failure = String(error); status = 'INTEGRITY FAILURE — NO TIMING CLAIM'; }
   json(join(evidence, 'integrity.json'), integrity);

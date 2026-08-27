@@ -73,7 +73,7 @@ test("standalone alias to column pipeline writes only VFS output", async () => {
   try {
     const result = await shell.exec("egrep '^keep' | column -t > /table", { stdin: "keep 1\ndrop 2\nkeep 3\n" });
     assert.deepEqual([result.exitCode, result.stdout, result.stderr], [0, "", ""]);
-    assert.deepEqual(await fs.readFile("/table"), Buffer.from("keep  1\nkeep  3\n"));
+    assert.deepEqual(Buffer.from(await fs.readFile("/table")), Buffer.from("keep  1\nkeep  3\n"));
   } finally { await shell.dispose(); }
 });
 
@@ -84,8 +84,8 @@ test("default aliases and column compose with nested env and VFS pipes", async (
   try {
     const result = await shell.exec("cat /input | env egrep '^keep' | fgrep keep | column -t > /table; cat /table");
     assert.deepEqual([result.exitCode, result.stdout, result.stderr], [0, "keep  1\nkeep  3\n", ""]);
-    assert.deepEqual(await fs.readFile("/table"), Buffer.from(result.stdout));
-    assert.deepEqual(await fs.readFile("/input"), Buffer.from("keep 1\ndrop 2\nkeep 3\n"));
+    assert.deepEqual(Buffer.from(await fs.readFile("/table")), Buffer.from(result.stdout));
+    assert.deepEqual(Buffer.from(await fs.readFile("/input")), Buffer.from("keep 1\ndrop 2\nkeep 3\n"));
   } finally { await shell.dispose(); }
 });
 
@@ -135,7 +135,7 @@ test("column aggregate limits reject real input and preserve the source", async 
     const result = await shell.exec("column -t /input");
     assert.equal(result.exitCode, 1); assert.equal(result.stdout, "");
     assert.equal(result.stderr, "column: EFBIG: column input limit exceeded\n");
-    assert.deepEqual(await fs.readFile("/input"), Buffer.from("a b\n"));
+    assert.deepEqual(Buffer.from(await fs.readFile("/input")), Buffer.from("a b\n"));
   } finally { await shell.dispose(); }
 });
 

@@ -1,0 +1,21 @@
+{
+  "reviewerIdentity": "Codex Independent Leaf Verifier; thread 01a043dd-cfc3-7f93-8f3b-70e2d7b1d2a4",
+  "date": "2026-08-27",
+  "authorFreezeCommit": "a61e63bc46e8389e59c0d8fdc1d424003f62c769",
+  "priorInspectionCommit": "50897e9e17b3201235fa1a9f5fe0f7641bc4f4e3",
+  "files": [
+    {
+      "path": "ADMISSION.json",
+      "bytes": 1432,
+      "sha256": "eb18baa7c27950b687c148da31ce1de7006861492aae61a0d94be1ac55eb8f03"
+    },
+    {
+      "path": "DECISION.md",
+      "bytes": 2752,
+      "sha256": "793c396b31c8de1617e1393a72daf2c29947793d86cfacc7844332d31e2578f9"
+    }
+  ],
+  "manifestSha256": "460b9548b7cc8b998b3e0642f04ae5cd227d587d2a2c497bc939fb9946ec5614",
+  "attestation": "Different reviewer SHA-256 byte attestation, not a cryptographic personal-identity claim. ROOT clarified I01 without changing the exact frozen driver or prior evidence. ALLOW is inspection admission only; zero runtime acceptance at this commit.",
+  "noPromotion": true
+}

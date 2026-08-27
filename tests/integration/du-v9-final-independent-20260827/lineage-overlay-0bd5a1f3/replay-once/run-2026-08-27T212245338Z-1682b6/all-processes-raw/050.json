@@ -1,0 +1,31 @@
+{
+  "sequence": 50,
+  "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "/Users/kjopek/Workspace/safe-bash/tests/integration/du-v9-final-independent-20260827/lineage-overlay-0bd5a1f3/replay-once/bootstrap-scratch/extracted/tests/integration/du-overlay-independent-20260827/approved-v9-9a5a6f92/harness/process-timeout-control.mjs",
+    "grandchild"
+  ],
+  "cwd": "/Users/kjopek/Workspace/safe-bash",
+  "status": null,
+  "signal": "SIGTERM",
+  "pid": 7337,
+  "pgid": 7337,
+  "timedOut": true,
+  "terminationReason": "timeout",
+  "termination": {
+    "termSent": true,
+    "killSent": true,
+    "groupGone": true
+  },
+  "closure": {
+    "descendantGroupDetected": true,
+    "rootPidGone": true,
+    "groupGone": true
+  },
+  "timeoutMs": 1500,
+  "startedAt": "2026-08-27T21:22:46.789Z",
+  "finishedAt": "2026-08-27T21:22:48.584Z",
+  "durationMs": 1795.060708,
+  "stdoutSha256": "41458e9b968729783db3f7972d69c0804200fe8c3b041261b09ce21ee23f9ac7",
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

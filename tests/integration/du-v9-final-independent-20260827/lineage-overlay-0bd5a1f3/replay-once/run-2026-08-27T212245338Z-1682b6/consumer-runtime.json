@@ -1,0 +1,29 @@
+{
+  "name": "consumer-runtime",
+  "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "/Users/kjopek/Workspace/safe-bash/tests/integration/du-v9-final-independent-20260827/lineage-overlay-0bd5a1f3/replay-once/work-PL0Rka/relocated/consumer/runtime.mjs"
+  ],
+  "cwd": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-v9-final-independent-20260827/lineage-overlay-0bd5a1f3/replay-once/work-PL0Rka/relocated/consumer",
+  "status": 0,
+  "signal": null,
+  "pid": 7566,
+  "pgid": 7566,
+  "timedOut": false,
+  "termination": {
+    "termSent": false,
+    "killSent": false,
+    "groupGone": true
+  },
+  "closure": {
+    "descendantGroupDetected": false,
+    "rootPidGone": true,
+    "groupGone": true
+  },
+  "timeoutMs": 120000,
+  "startedAt": "2026-08-27T21:22:59.391Z",
+  "finishedAt": "2026-08-27T21:22:59.541Z",
+  "durationMs": 149.790875,
+  "stdoutSha256": "7fdca13922bb1aba7998ca59d4017a47e286219d0de130a7d862c4453070b36e",
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

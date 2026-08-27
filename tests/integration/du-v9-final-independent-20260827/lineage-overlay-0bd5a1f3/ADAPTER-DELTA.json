@@ -1,0 +1,59 @@
+{
+  "baseRunnerSha256": "e7f135081b91f3ede0a92436b06647b0e1dbbb8ac1c9c5d73edb261ef7f8c7f0",
+  "adapterSha256": "60c3cae6a1407e4fbd69b737090cc6f411ec4d7a9f7dbcbbc604b0843ca39a1c",
+  "originalRunnerFileUntouched": true,
+  "productVerifierArgvEnvironmentOrderAndBudgetsUnchanged": true,
+  "additionalOrchestrationEnvironment": "DU_V9_MATERIALIZED_ROOT",
+  "changes": [
+    {
+      "label": "authenticated immutable supervisor and reviewer support imports",
+      "before": "import { ProcessManager, waitForPidExit } from \"./harness/process-manager.mjs\";",
+      "after": "import { ProcessManager, waitForPidExit } from \"file:///Users/kjopek/Workspace/safe-bash/tests/integration/du-overlay-independent-20260827/approved-v9-9a5a6f92/harness/process-manager.mjs\";\nimport { admitAdapter, expectedFixtureFiles, applyAuthenticatedOverlay, overlayReceipt } from \"./adapter-support.mjs\";"
+    },
+    {
+      "label": "exact revision admission before result creation",
+      "before": "if (candidate !== EXACT_CANDIDATE) throw new Error(`candidate must be exact ${EXACT_CANDIDATE}`);",
+      "after": "if (candidate !== EXACT_CANDIDATE) throw new Error(`candidate must be exact ${EXACT_CANDIDATE}`);\nawait admitAdapter(freezeCommit, candidate);"
+    },
+    {
+      "label": "materialized fixture routing without editing base runner",
+      "before": "const taskRoot = dirname(fileURLToPath(import.meta.url));",
+      "after": "const taskRoot = materialized ? resolve(process.env.DU_V9_MATERIALIZED_ROOT ?? \"\") : \"/Users/kjopek/Workspace/safe-bash/tests/integration/du-overlay-independent-20260827/approved-v9-9a5a6f92\";"
+    },
+    {
+      "label": "base runner identity remains base identity",
+      "before": "const ownBytes = await readFile(fileURLToPath(import.meta.url));",
+      "after": "const ownBytes = await readFile(join(taskRoot, \"replay.mjs\"));"
+    },
+    {
+      "label": "only changed harness uses declared overlay identity",
+      "before": "const expected = [...freeze.manifest.files, {",
+      "after": "const expected = [...expectedFixtureFiles(freeze.manifest.files, phase), {"
+    },
+    {
+      "label": "explicit overlay-aware inventory receipts",
+      "before": "    completeFileCount: actual.length,",
+      "after": "    completeFileCount: actual.length,\n    identityBinding: overlayReceipt(phase),"
+    },
+    {
+      "label": "authenticate pristine base before applying one-file overlay",
+      "before": "    const materializedBeforeChild = await verifyMaterializedTree(freeze, \"bootstrap-materialized-before-child\", extractedRoot);",
+      "after": "    await verifyMaterializedTree(freeze, \"bootstrap-materialized-pristine-before-overlay\", extractedRoot);\n    await applyAuthenticatedOverlay(extractedRoot, resultDirectory);\n    const materializedBeforeChild = await verifyMaterializedTree(freeze, \"bootstrap-materialized-before-child\", extractedRoot);"
+    },
+    {
+      "label": "child uses separately bound reviewer adapter",
+      "before": "    const frozenRunner = join(extractedRoot, \"replay.mjs\");",
+      "after": "    const frozenRunner = fileURLToPath(import.meta.url);"
+    },
+    {
+      "label": "child fixture root routing environment",
+      "before": "      env: { ...process.env, V6_REPOSITORY: repositoryReal },",
+      "after": "      env: { ...process.env, V6_REPOSITORY: repositoryReal, DU_V9_MATERIALIZED_ROOT: extractedRoot },"
+    },
+    {
+      "label": "final result distinguishes pristine and patched binding",
+      "before": "      frozenManifestSha256: sha256(freeze.bytes),",
+      "after": "      frozenManifestSha256: sha256(freeze.bytes),\n      overlayBinding: overlayReceipt(\"complete-replay\"),"
+    }
+  ]
+}

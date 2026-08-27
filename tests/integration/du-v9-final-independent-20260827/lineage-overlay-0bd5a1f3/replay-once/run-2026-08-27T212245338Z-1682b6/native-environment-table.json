@@ -1,0 +1,761 @@
+{
+  "schema": 2,
+  "scope": "GNU-9.7-single-file-apparent-size-environment-precedence-only",
+  "oracle": {
+    "realpath": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/du",
+    "sha256": "f1df033deed07d208d80128568404c1043b283c59f294164f1240789bfadcf2b",
+    "versionStdout": "du (GNU coreutils) 9.7\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Torbjorn Granlund, David MacKenzie, Paul Eggert,\nand Jim Meyering.\n",
+    "versionStderr": "",
+    "versionProcess": {
+      "command": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/du",
+      "args": [
+        "--version"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-v9-final-independent-20260827/lineage-overlay-0bd5a1f3/replay-once/work-PL0Rka/native",
+      "status": 0,
+      "signal": null,
+      "pid": 7600,
+      "pgid": 7600,
+      "timedOut": false,
+      "timeoutMs": 30000,
+      "stdout": "du (GNU coreutils) 9.7\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Torbjorn Granlund, David MacKenzie, Paul Eggert,\nand Jim Meyering.\n",
+      "stderr": "",
+      "stdoutSha256": "75f7022f67006ab90da1861c4990587570c899d9397099b82fed7b61bbe410b5",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "closure": {
+        "descendantGroupDetected": false,
+        "rootPidGone": true,
+        "groupGone": true
+      },
+      "termination": {
+        "termSent": false,
+        "killSent": false,
+        "groupGone": true
+      }
+    }
+  },
+  "environmentPolicy": {
+    "sanitized": {
+      "LC_ALL": "C",
+      "LANG": "C"
+    },
+    "removedAmbientKeys": [
+      "DU_BLOCK_SIZE",
+      "BLOCK_SIZE",
+      "BLOCKSIZE",
+      "POSIXLY_CORRECT",
+      "LANGUAGE",
+      "LC_NUMERIC",
+      "LC_MESSAGES",
+      "DF_BLOCK_SIZE",
+      "LS_BLOCK_SIZE"
+    ]
+  },
+  "fixture": {
+    "name": "env-size-1500.bin",
+    "length": 1500,
+    "fillByte": 97,
+    "sha256": "b935f6b7a9c56a15e7b99c8d6d4b5e918f5a68fafc4490544a446b2ae47bf809",
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-v9-final-independent-20260827/lineage-overlay-0bd5a1f3/replay-once/work-PL0Rka/native/env-size-1500.bin"
+  },
+  "records": [
+    {
+      "id": "no-env-default",
+      "selected": null,
+      "args": [
+        "--apparent-size",
+        "--",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/du-v9-final-independent-20260827/lineage-overlay-0bd5a1f3/replay-once/work-PL0Rka/native/env-size-1500.bin"
+      ],
+      "env": {
+        "PATH": "/usr/bin:/bin",
+        "LC_ALL": "C",
+        "LANG": "C"
+      },
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-v9-final-independent-20260827/lineage-overlay-0bd5a1f3/replay-once/work-PL0Rka/native",
+      "expected": {
+        "statusClass": "success",
+        "units": 2,
+        "stderr": ""
+      },
+      "expectedStdout": "2\t/Users/kjopek/Workspace/safe-bash/tests/integration/du-v9-final-independent-20260827/lineage-overlay-0bd5a1f3/replay-once/work-PL0Rka/native/env-size-1500.bin\n",
+      "observed": {
+        "status": 0,
+        "signal": null,
+        "stdout": "2\t/Users/kjopek/Workspace/safe-bash/tests/integration/du-v9-final-independent-20260827/lineage-overlay-0bd5a1f3/replay-once/work-PL0Rka/native/env-size-1500.bin\n",
+        "stderr": "",
+        "stdoutSha256": "ae1a9345e2e2afbef3f8719ce26a11e7d7c8e7e6e18d7bc558e5a8d5c8b9dda4",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "pid": 7601,
+        "pgid": 7601,
+        "timedOut": false,
+        "closure": {
+          "descendantGroupDetected": false,
+          "rootPidGone": true,
+          "groupGone": true
+        }
+      },
+      "classification": "literal-match"
+    },
+    {
+      "id": "du-block-size-valid-selected",
+      "selected": "DU_BLOCK_SIZE",
+      "args": [
+        "--apparent-size",
+        "--",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/du-v9-final-independent-20260827/lineage-overlay-0bd5a1f3/replay-once/work-PL0Rka/native/env-size-1500.bin"
+      ],
+      "env": {
+        "PATH": "/usr/bin:/bin",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "DU_BLOCK_SIZE": "3072",
+        "BLOCK_SIZE": "512",
+        "BLOCKSIZE": "256"
+      },
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-v9-final-independent-20260827/lineage-overlay-0bd5a1f3/replay-once/work-PL0Rka/native",
+      "expected": {
+        "statusClass": "success",
+        "units": 1,
+        "stderr": ""
+      },
+      "expectedStdout": "1\t/Users/kjopek/Workspace/safe-bash/tests/integration/du-v9-final-independent-20260827/lineage-overlay-0bd5a1f3/replay-once/work-PL0Rka/native/env-size-1500.bin\n",
+      "observed": {
+        "status": 0,
+        "signal": null,
+        "stdout": "1\t/Users/kjopek/Workspace/safe-bash/tests/integration/du-v9-final-independent-20260827/lineage-overlay-0bd5a1f3/replay-once/work-PL0Rka/native/env-size-1500.bin\n",
+        "stderr": "",
+        "stdoutSha256": "db58513f0f5ffcf3eeccf4c429f5be8171a117114865f61b97c1b8fbeae65667",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "pid": 7602,
+        "pgid": 7602,
+        "timedOut": false,
+        "closure": {
+          "descendantGroupDetected": false,
+          "rootPidGone": true,
+          "groupGone": true
+        }
+      },
+      "classification": "literal-match"
+    },
+    {
+      "id": "du-block-size-invalid-fallback-default",
+      "selected": "DU_BLOCK_SIZE",
+      "args": [
+        "--apparent-size",
+        "--",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/du-v9-final-independent-20260827/lineage-overlay-0bd5a1f3/replay-once/work-PL0Rka/native/env-size-1500.bin"
+      ],
+      "env": {
+        "PATH": "/usr/bin:/bin",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "DU_BLOCK_SIZE": "invalid-value",
+        "BLOCK_SIZE": "3072",
+        "BLOCKSIZE": "512"
+      },
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-v9-final-independent-20260827/lineage-overlay-0bd5a1f3/replay-once/work-PL0Rka/native",
+      "expected": {
+        "statusClass": "success",
+        "units": 2,
+        "stderr": ""
+      },
+      "expectedStdout": "2\t/Users/kjopek/Workspace/safe-bash/tests/integration/du-v9-final-independent-20260827/lineage-overlay-0bd5a1f3/replay-once/work-PL0Rka/native/env-size-1500.bin\n",
+      "observed": {
+        "status": 0,
+        "signal": null,
+        "stdout": "2\t/Users/kjopek/Workspace/safe-bash/tests/integration/du-v9-final-independent-20260827/lineage-overlay-0bd5a1f3/replay-once/work-PL0Rka/native/env-size-1500.bin\n",
+        "stderr": "",
+        "stdoutSha256": "ae1a9345e2e2afbef3f8719ce26a11e7d7c8e7e6e18d7bc558e5a8d5c8b9dda4",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "pid": 7603,
+        "pgid": 7603,
+        "timedOut": false,
+        "closure": {
+          "descendantGroupDetected": false,
+          "rootPidGone": true,
+          "groupGone": true
+        }
+      },
+      "classification": "literal-match"
+    },
+    {
+      "id": "du-block-size-empty-fallback-default",
+      "selected": "DU_BLOCK_SIZE",
+      "args": [
+        "--apparent-size",
+        "--",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/du-v9-final-independent-20260827/lineage-overlay-0bd5a1f3/replay-once/work-PL0Rka/native/env-size-1500.bin"
+      ],
+      "env": {
+        "PATH": "/usr/bin:/bin",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "DU_BLOCK_SIZE": "",
+        "BLOCK_SIZE": "3072",
+        "BLOCKSIZE": "512"
+      },
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-v9-final-independent-20260827/lineage-overlay-0bd5a1f3/replay-once/work-PL0Rka/native",
+      "expected": {
+        "statusClass": "success",
+        "units": 2,
+        "stderr": ""
+      },
+      "expectedStdout": "2\t/Users/kjopek/Workspace/safe-bash/tests/integration/du-v9-final-independent-20260827/lineage-overlay-0bd5a1f3/replay-once/work-PL0Rka/native/env-size-1500.bin\n",
+      "observed": {
+        "status": 0,
+        "signal": null,
+        "stdout": "2\t/Users/kjopek/Workspace/safe-bash/tests/integration/du-v9-final-independent-20260827/lineage-overlay-0bd5a1f3/replay-once/work-PL0Rka/native/env-size-1500.bin\n",
+        "stderr": "",
+        "stdoutSha256": "ae1a9345e2e2afbef3f8719ce26a11e7d7c8e7e6e18d7bc558e5a8d5c8b9dda4",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "pid": 7604,
+        "pgid": 7604,
+        "timedOut": false,
+        "closure": {
+          "descendantGroupDetected": false,
+          "rootPidGone": true,
+          "groupGone": true
+        }
+      },
+      "classification": "literal-match"
+    },
+    {
+      "id": "du-block-size-explicit-valid-overrides",
+      "selected": "DU_BLOCK_SIZE",
+      "args": [
+        "--apparent-size",
+        "-B3072",
+        "--",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/du-v9-final-independent-20260827/lineage-overlay-0bd5a1f3/replay-once/work-PL0Rka/native/env-size-1500.bin"
+      ],
+      "env": {
+        "PATH": "/usr/bin:/bin",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "DU_BLOCK_SIZE": "invalid-value",
+        "BLOCK_SIZE": "512"
+      },
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-v9-final-independent-20260827/lineage-overlay-0bd5a1f3/replay-once/work-PL0Rka/native",
+      "expected": {
+        "statusClass": "success",
+        "units": 1,
+        "stderr": ""
+      },
+      "expectedStdout": "1\t/Users/kjopek/Workspace/safe-bash/tests/integration/du-v9-final-independent-20260827/lineage-overlay-0bd5a1f3/replay-once/work-PL0Rka/native/env-size-1500.bin\n",
+      "observed": {
+        "status": 0,
+        "signal": null,
+        "stdout": "1\t/Users/kjopek/Workspace/safe-bash/tests/integration/du-v9-final-independent-20260827/lineage-overlay-0bd5a1f3/replay-once/work-PL0Rka/native/env-size-1500.bin\n",
+        "stderr": "",
+        "stdoutSha256": "db58513f0f5ffcf3eeccf4c429f5be8171a117114865f61b97c1b8fbeae65667",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "pid": 7606,
+        "pgid": 7606,
+        "timedOut": false,
+        "closure": {
+          "descendantGroupDetected": false,
+          "rootPidGone": true,
+          "groupGone": true
+        }
+      },
+      "classification": "literal-match"
+    },
+    {
+      "id": "du-block-size-explicit-invalid-strict",
+      "selected": "DU_BLOCK_SIZE",
+      "args": [
+        "--apparent-size",
+        "-B",
+        "invalid-value",
+        "--",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/du-v9-final-independent-20260827/lineage-overlay-0bd5a1f3/replay-once/work-PL0Rka/native/env-size-1500.bin"
+      ],
+      "env": {
+        "PATH": "/usr/bin:/bin",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "DU_BLOCK_SIZE": "3072",
+        "BLOCK_SIZE": "512"
+      },
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-v9-final-independent-20260827/lineage-overlay-0bd5a1f3/replay-once/work-PL0Rka/native",
+      "expected": {
+        "statusClass": "failure",
+        "stdout": "",
+        "stderrClass": "invalid-block-size",
+        "filesystemCalls": 0
+      },
+      "expectedStdout": "",
+      "observed": {
+        "status": 1,
+        "signal": null,
+        "stdout": "",
+        "stderr": "du: invalid -B argument 'invalid-value'\n",
+        "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderrSha256": "927dbaaabbcd6f07c69e90d54e68af1d9f353275c4455837191ea77460d77009",
+        "pid": 7607,
+        "pgid": 7607,
+        "timedOut": false,
+        "closure": {
+          "descendantGroupDetected": false,
+          "rootPidGone": true,
+          "groupGone": true
+        }
+      },
+      "classification": "strict-rejection-mismatch"
+    },
+    {
+      "id": "block-size-valid-selected",
+      "selected": "BLOCK_SIZE",
+      "args": [
+        "--apparent-size",
+        "--",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/du-v9-final-independent-20260827/lineage-overlay-0bd5a1f3/replay-once/work-PL0Rka/native/env-size-1500.bin"
+      ],
+      "env": {
+        "PATH": "/usr/bin:/bin",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "BLOCK_SIZE": "3072",
+        "BLOCKSIZE": "512"
+      },
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-v9-final-independent-20260827/lineage-overlay-0bd5a1f3/replay-once/work-PL0Rka/native",
+      "expected": {
+        "statusClass": "success",
+        "units": 1,
+        "stderr": ""
+      },
+      "expectedStdout": "1\t/Users/kjopek/Workspace/safe-bash/tests/integration/du-v9-final-independent-20260827/lineage-overlay-0bd5a1f3/replay-once/work-PL0Rka/native/env-size-1500.bin\n",
+      "observed": {
+        "status": 0,
+        "signal": null,
+        "stdout": "1\t/Users/kjopek/Workspace/safe-bash/tests/integration/du-v9-final-independent-20260827/lineage-overlay-0bd5a1f3/replay-once/work-PL0Rka/native/env-size-1500.bin\n",
+        "stderr": "",
+        "stdoutSha256": "db58513f0f5ffcf3eeccf4c429f5be8171a117114865f61b97c1b8fbeae65667",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "pid": 7608,
+        "pgid": 7608,
+        "timedOut": false,
+        "closure": {
+          "descendantGroupDetected": false,
+          "rootPidGone": true,
+          "groupGone": true
+        }
+      },
+      "classification": "literal-match"
+    },
+    {
+      "id": "block-size-invalid-fallback-default",
+      "selected": "BLOCK_SIZE",
+      "args": [
+        "--apparent-size",
+        "--",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/du-v9-final-independent-20260827/lineage-overlay-0bd5a1f3/replay-once/work-PL0Rka/native/env-size-1500.bin"
+      ],
+      "env": {
+        "PATH": "/usr/bin:/bin",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "BLOCK_SIZE": "invalid-value",
+        "BLOCKSIZE": "3072"
+      },
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-v9-final-independent-20260827/lineage-overlay-0bd5a1f3/replay-once/work-PL0Rka/native",
+      "expected": {
+        "statusClass": "success",
+        "units": 2,
+        "stderr": ""
+      },
+      "expectedStdout": "2\t/Users/kjopek/Workspace/safe-bash/tests/integration/du-v9-final-independent-20260827/lineage-overlay-0bd5a1f3/replay-once/work-PL0Rka/native/env-size-1500.bin\n",
+      "observed": {
+        "status": 0,
+        "signal": null,
+        "stdout": "2\t/Users/kjopek/Workspace/safe-bash/tests/integration/du-v9-final-independent-20260827/lineage-overlay-0bd5a1f3/replay-once/work-PL0Rka/native/env-size-1500.bin\n",
+        "stderr": "",
+        "stdoutSha256": "ae1a9345e2e2afbef3f8719ce26a11e7d7c8e7e6e18d7bc558e5a8d5c8b9dda4",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "pid": 7610,
+        "pgid": 7610,
+        "timedOut": false,
+        "closure": {
+          "descendantGroupDetected": false,
+          "rootPidGone": true,
+          "groupGone": true
+        }
+      },
+      "classification": "literal-match"
+    },
+    {
+      "id": "block-size-empty-fallback-default",
+      "selected": "BLOCK_SIZE",
+      "args": [
+        "--apparent-size",
+        "--",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/du-v9-final-independent-20260827/lineage-overlay-0bd5a1f3/replay-once/work-PL0Rka/native/env-size-1500.bin"
+      ],
+      "env": {
+        "PATH": "/usr/bin:/bin",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "BLOCK_SIZE": "",
+        "BLOCKSIZE": "3072"
+      },
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-v9-final-independent-20260827/lineage-overlay-0bd5a1f3/replay-once/work-PL0Rka/native",
+      "expected": {
+        "statusClass": "success",
+        "units": 2,
+        "stderr": ""
+      },
+      "expectedStdout": "2\t/Users/kjopek/Workspace/safe-bash/tests/integration/du-v9-final-independent-20260827/lineage-overlay-0bd5a1f3/replay-once/work-PL0Rka/native/env-size-1500.bin\n",
+      "observed": {
+        "status": 0,
+        "signal": null,
+        "stdout": "2\t/Users/kjopek/Workspace/safe-bash/tests/integration/du-v9-final-independent-20260827/lineage-overlay-0bd5a1f3/replay-once/work-PL0Rka/native/env-size-1500.bin\n",
+        "stderr": "",
+        "stdoutSha256": "ae1a9345e2e2afbef3f8719ce26a11e7d7c8e7e6e18d7bc558e5a8d5c8b9dda4",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "pid": 7611,
+        "pgid": 7611,
+        "timedOut": false,
+        "closure": {
+          "descendantGroupDetected": false,
+          "rootPidGone": true,
+          "groupGone": true
+        }
+      },
+      "classification": "literal-match"
+    },
+    {
+      "id": "block-size-explicit-valid-overrides",
+      "selected": "BLOCK_SIZE",
+      "args": [
+        "--apparent-size",
+        "-B3072",
+        "--",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/du-v9-final-independent-20260827/lineage-overlay-0bd5a1f3/replay-once/work-PL0Rka/native/env-size-1500.bin"
+      ],
+      "env": {
+        "PATH": "/usr/bin:/bin",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "BLOCK_SIZE": "invalid-value",
+        "BLOCKSIZE": "512"
+      },
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-v9-final-independent-20260827/lineage-overlay-0bd5a1f3/replay-once/work-PL0Rka/native",
+      "expected": {
+        "statusClass": "success",
+        "units": 1,
+        "stderr": ""
+      },
+      "expectedStdout": "1\t/Users/kjopek/Workspace/safe-bash/tests/integration/du-v9-final-independent-20260827/lineage-overlay-0bd5a1f3/replay-once/work-PL0Rka/native/env-size-1500.bin\n",
+      "observed": {
+        "status": 0,
+        "signal": null,
+        "stdout": "1\t/Users/kjopek/Workspace/safe-bash/tests/integration/du-v9-final-independent-20260827/lineage-overlay-0bd5a1f3/replay-once/work-PL0Rka/native/env-size-1500.bin\n",
+        "stderr": "",
+        "stdoutSha256": "db58513f0f5ffcf3eeccf4c429f5be8171a117114865f61b97c1b8fbeae65667",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "pid": 7613,
+        "pgid": 7613,
+        "timedOut": false,
+        "closure": {
+          "descendantGroupDetected": false,
+          "rootPidGone": true,
+          "groupGone": true
+        }
+      },
+      "classification": "literal-match"
+    },
+    {
+      "id": "block-size-explicit-invalid-strict",
+      "selected": "BLOCK_SIZE",
+      "args": [
+        "--apparent-size",
+        "-B",
+        "invalid-value",
+        "--",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/du-v9-final-independent-20260827/lineage-overlay-0bd5a1f3/replay-once/work-PL0Rka/native/env-size-1500.bin"
+      ],
+      "env": {
+        "PATH": "/usr/bin:/bin",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "BLOCK_SIZE": "3072",
+        "BLOCKSIZE": "512"
+      },
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-v9-final-independent-20260827/lineage-overlay-0bd5a1f3/replay-once/work-PL0Rka/native",
+      "expected": {
+        "statusClass": "failure",
+        "stdout": "",
+        "stderrClass": "invalid-block-size",
+        "filesystemCalls": 0
+      },
+      "expectedStdout": "",
+      "observed": {
+        "status": 1,
+        "signal": null,
+        "stdout": "",
+        "stderr": "du: invalid -B argument 'invalid-value'\n",
+        "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderrSha256": "927dbaaabbcd6f07c69e90d54e68af1d9f353275c4455837191ea77460d77009",
+        "pid": 7615,
+        "pgid": 7615,
+        "timedOut": false,
+        "closure": {
+          "descendantGroupDetected": false,
+          "rootPidGone": true,
+          "groupGone": true
+        }
+      },
+      "classification": "strict-rejection-mismatch"
+    },
+    {
+      "id": "blocksize-valid-selected",
+      "selected": "BLOCKSIZE",
+      "args": [
+        "--apparent-size",
+        "--",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/du-v9-final-independent-20260827/lineage-overlay-0bd5a1f3/replay-once/work-PL0Rka/native/env-size-1500.bin"
+      ],
+      "env": {
+        "PATH": "/usr/bin:/bin",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "BLOCKSIZE": "3072"
+      },
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-v9-final-independent-20260827/lineage-overlay-0bd5a1f3/replay-once/work-PL0Rka/native",
+      "expected": {
+        "statusClass": "success",
+        "units": 1,
+        "stderr": ""
+      },
+      "expectedStdout": "1\t/Users/kjopek/Workspace/safe-bash/tests/integration/du-v9-final-independent-20260827/lineage-overlay-0bd5a1f3/replay-once/work-PL0Rka/native/env-size-1500.bin\n",
+      "observed": {
+        "status": 0,
+        "signal": null,
+        "stdout": "1\t/Users/kjopek/Workspace/safe-bash/tests/integration/du-v9-final-independent-20260827/lineage-overlay-0bd5a1f3/replay-once/work-PL0Rka/native/env-size-1500.bin\n",
+        "stderr": "",
+        "stdoutSha256": "db58513f0f5ffcf3eeccf4c429f5be8171a117114865f61b97c1b8fbeae65667",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "pid": 7616,
+        "pgid": 7616,
+        "timedOut": false,
+        "closure": {
+          "descendantGroupDetected": false,
+          "rootPidGone": true,
+          "groupGone": true
+        }
+      },
+      "classification": "literal-match"
+    },
+    {
+      "id": "blocksize-invalid-fallback-default",
+      "selected": "BLOCKSIZE",
+      "args": [
+        "--apparent-size",
+        "--",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/du-v9-final-independent-20260827/lineage-overlay-0bd5a1f3/replay-once/work-PL0Rka/native/env-size-1500.bin"
+      ],
+      "env": {
+        "PATH": "/usr/bin:/bin",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "BLOCKSIZE": "invalid-value"
+      },
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-v9-final-independent-20260827/lineage-overlay-0bd5a1f3/replay-once/work-PL0Rka/native",
+      "expected": {
+        "statusClass": "success",
+        "units": 2,
+        "stderr": ""
+      },
+      "expectedStdout": "2\t/Users/kjopek/Workspace/safe-bash/tests/integration/du-v9-final-independent-20260827/lineage-overlay-0bd5a1f3/replay-once/work-PL0Rka/native/env-size-1500.bin\n",
+      "observed": {
+        "status": 0,
+        "signal": null,
+        "stdout": "2\t/Users/kjopek/Workspace/safe-bash/tests/integration/du-v9-final-independent-20260827/lineage-overlay-0bd5a1f3/replay-once/work-PL0Rka/native/env-size-1500.bin\n",
+        "stderr": "",
+        "stdoutSha256": "ae1a9345e2e2afbef3f8719ce26a11e7d7c8e7e6e18d7bc558e5a8d5c8b9dda4",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "pid": 7617,
+        "pgid": 7617,
+        "timedOut": false,
+        "closure": {
+          "descendantGroupDetected": false,
+          "rootPidGone": true,
+          "groupGone": true
+        }
+      },
+      "classification": "literal-match"
+    },
+    {
+      "id": "blocksize-empty-fallback-default",
+      "selected": "BLOCKSIZE",
+      "args": [
+        "--apparent-size",
+        "--",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/du-v9-final-independent-20260827/lineage-overlay-0bd5a1f3/replay-once/work-PL0Rka/native/env-size-1500.bin"
+      ],
+      "env": {
+        "PATH": "/usr/bin:/bin",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "BLOCKSIZE": ""
+      },
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-v9-final-independent-20260827/lineage-overlay-0bd5a1f3/replay-once/work-PL0Rka/native",
+      "expected": {
+        "statusClass": "success",
+        "units": 2,
+        "stderr": ""
+      },
+      "expectedStdout": "2\t/Users/kjopek/Workspace/safe-bash/tests/integration/du-v9-final-independent-20260827/lineage-overlay-0bd5a1f3/replay-once/work-PL0Rka/native/env-size-1500.bin\n",
+      "observed": {
+        "status": 0,
+        "signal": null,
+        "stdout": "2\t/Users/kjopek/Workspace/safe-bash/tests/integration/du-v9-final-independent-20260827/lineage-overlay-0bd5a1f3/replay-once/work-PL0Rka/native/env-size-1500.bin\n",
+        "stderr": "",
+        "stdoutSha256": "ae1a9345e2e2afbef3f8719ce26a11e7d7c8e7e6e18d7bc558e5a8d5c8b9dda4",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "pid": 7618,
+        "pgid": 7618,
+        "timedOut": false,
+        "closure": {
+          "descendantGroupDetected": false,
+          "rootPidGone": true,
+          "groupGone": true
+        }
+      },
+      "classification": "literal-match"
+    },
+    {
+      "id": "blocksize-explicit-valid-overrides",
+      "selected": "BLOCKSIZE",
+      "args": [
+        "--apparent-size",
+        "-B3072",
+        "--",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/du-v9-final-independent-20260827/lineage-overlay-0bd5a1f3/replay-once/work-PL0Rka/native/env-size-1500.bin"
+      ],
+      "env": {
+        "PATH": "/usr/bin:/bin",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "BLOCKSIZE": "invalid-value"
+      },
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-v9-final-independent-20260827/lineage-overlay-0bd5a1f3/replay-once/work-PL0Rka/native",
+      "expected": {
+        "statusClass": "success",
+        "units": 1,
+        "stderr": ""
+      },
+      "expectedStdout": "1\t/Users/kjopek/Workspace/safe-bash/tests/integration/du-v9-final-independent-20260827/lineage-overlay-0bd5a1f3/replay-once/work-PL0Rka/native/env-size-1500.bin\n",
+      "observed": {
+        "status": 0,
+        "signal": null,
+        "stdout": "1\t/Users/kjopek/Workspace/safe-bash/tests/integration/du-v9-final-independent-20260827/lineage-overlay-0bd5a1f3/replay-once/work-PL0Rka/native/env-size-1500.bin\n",
+        "stderr": "",
+        "stdoutSha256": "db58513f0f5ffcf3eeccf4c429f5be8171a117114865f61b97c1b8fbeae65667",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "pid": 7620,
+        "pgid": 7620,
+        "timedOut": false,
+        "closure": {
+          "descendantGroupDetected": false,
+          "rootPidGone": true,
+          "groupGone": true
+        }
+      },
+      "classification": "literal-match"
+    },
+    {
+      "id": "blocksize-explicit-invalid-strict",
+      "selected": "BLOCKSIZE",
+      "args": [
+        "--apparent-size",
+        "-B",
+        "invalid-value",
+        "--",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/du-v9-final-independent-20260827/lineage-overlay-0bd5a1f3/replay-once/work-PL0Rka/native/env-size-1500.bin"
+      ],
+      "env": {
+        "PATH": "/usr/bin:/bin",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "BLOCKSIZE": "3072"
+      },
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-v9-final-independent-20260827/lineage-overlay-0bd5a1f3/replay-once/work-PL0Rka/native",
+      "expected": {
+        "statusClass": "failure",
+        "stdout": "",
+        "stderrClass": "invalid-block-size",
+        "filesystemCalls": 0
+      },
+      "expectedStdout": "",
+      "observed": {
+        "status": 1,
+        "signal": null,
+        "stdout": "",
+        "stderr": "du: invalid -B argument 'invalid-value'\n",
+        "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderrSha256": "927dbaaabbcd6f07c69e90d54e68af1d9f353275c4455837191ea77460d77009",
+        "pid": 7621,
+        "pgid": 7621,
+        "timedOut": false,
+        "closure": {
+          "descendantGroupDetected": false,
+          "rootPidGone": true,
+          "groupGone": true
+        }
+      },
+      "classification": "strict-rejection-mismatch"
+    }
+  ],
+  "summary": {
+    "total": 16,
+    "matched": 13,
+    "mismatched": 3
+  },
+  "everyCaseRecordsActualSpawnCwd": true,
+  "broadNativeParityClaimed": false,
+  "processClosure": {
+    "spawnedRootPids": [
+      7600,
+      7601,
+      7602,
+      7603,
+      7604,
+      7606,
+      7607,
+      7608,
+      7610,
+      7611,
+      7613,
+      7615,
+      7616,
+      7617,
+      7618,
+      7620,
+      7621
+    ],
+    "spawnedProcessGroups": [
+      7600,
+      7601,
+      7602,
+      7603,
+      7604,
+      7606,
+      7607,
+      7608,
+      7610,
+      7611,
+      7613,
+      7615,
+      7616,
+      7617,
+      7618,
+      7620,
+      7621
+    ],
+    "everyRootPidGone": true,
+    "everyOwnedGroupGone": true,
+    "active": []
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "name": "package-v5",
+  "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "--experimental-loader",
+    "/Users/kjopek/Workspace/safe-bash/tests/integration/du-v9-final-independent-20260827/lineage-overlay-0bd5a1f3/replay-once/bootstrap-scratch/extracted/tests/integration/du-overlay-independent-20260827/approved-v9-9a5a6f92/harness/attest-loader.mjs",
+    "/Users/kjopek/Workspace/safe-bash/tests/integration/du-v9-final-independent-20260827/lineage-overlay-0bd5a1f3/replay-once/bootstrap-scratch/extracted/tests/integration/du-overlay-independent-20260827/approved-v9-9a5a6f92/harness/verify-v5.mjs",
+    "/Users/kjopek/Workspace/safe-bash/tests/integration/du-v9-final-independent-20260827/lineage-overlay-0bd5a1f3/replay-once/work-PL0Rka/relocated/consumer/node_modules/virtual-bash",
+    "/Users/kjopek/Workspace/safe-bash/tests/integration/du-v9-final-independent-20260827/lineage-overlay-0bd5a1f3/replay-once/work-PL0Rka"
+  ],
+  "cwd": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-v9-final-independent-20260827/lineage-overlay-0bd5a1f3/replay-once/work-PL0Rka/relocated/consumer",
+  "status": 0,
+  "signal": null,
+  "pid": 7568,
+  "pgid": 7568,
+  "timedOut": false,
+  "termination": {
+    "termSent": false,
+    "killSent": false,
+    "groupGone": true
+  },
+  "closure": {
+    "descendantGroupDetected": false,
+    "rootPidGone": true,
+    "groupGone": true
+  },
+  "timeoutMs": 120000,
+  "startedAt": "2026-08-27T21:22:59.675Z",
+  "finishedAt": "2026-08-27T21:22:59.936Z",
+  "durationMs": 260.888125,
+  "stdoutSha256": "012f4401509dca9afaaa9b794aad6397f682c0f3bfaca98a4c7e9b0c4e1afd36",
+  "stderrSha256": "cb543d44ace63ef8fab1f03a8e8cd4ddc8edf5305e75c00af2b4c59af0460db8"
+}

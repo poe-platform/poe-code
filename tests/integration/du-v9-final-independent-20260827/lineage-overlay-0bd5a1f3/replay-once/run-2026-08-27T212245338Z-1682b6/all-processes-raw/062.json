@@ -1,0 +1,35 @@
+{
+  "sequence": 62,
+  "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "--import",
+    "tsx",
+    "--test",
+    "tests/commands/du/behavior.test.ts",
+    "tests/commands/du/backends.test.ts",
+    "tests/fs/overlay/allocation.test.ts",
+    "tests/fs/overlay/adversarial.test.ts"
+  ],
+  "cwd": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-v9-final-independent-20260827/lineage-overlay-0bd5a1f3/replay-once/work-PL0Rka/source",
+  "status": 0,
+  "signal": null,
+  "pid": 7432,
+  "pgid": 7432,
+  "timedOut": false,
+  "termination": {
+    "termSent": false,
+    "killSent": false,
+    "groupGone": true
+  },
+  "closure": {
+    "descendantGroupDetected": false,
+    "rootPidGone": true,
+    "groupGone": true
+  },
+  "timeoutMs": 120000,
+  "startedAt": "2026-08-27T21:22:52.994Z",
+  "finishedAt": "2026-08-27T21:22:53.661Z",
+  "durationMs": 666.884167,
+  "stdoutSha256": "104f0bdf91414713339ba017bd4c838e2e3073a64e3f084632a66784d531e781",
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

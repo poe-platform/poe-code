@@ -1,0 +1,61 @@
+{
+  "at": "2026-08-27T21:22:16.400Z",
+  "freeze": "1b2ddea9e38b25cc91134a2f35a318e27f4d7c29",
+  "candidate": "9a5a6f922beb1bc6ba84a0cd32ea7a12f8ce985d",
+  "files": [
+    {
+      "path": "common.mjs",
+      "bytes": 4836,
+      "sha256": "63a0d84849a76820bbdb7f7791c58cfc9180fa9399d5c946e11299b0457ec529",
+      "gitBlob": "e71e0d42cb7ddb42f6682515bbf551c9d5ea2e83"
+    },
+    {
+      "path": "review.mjs",
+      "bytes": 5276,
+      "sha256": "3e71229fea70d4996369f2fbb0b4c058049a2226b2be0c3ff4a3fee2eca45a6f",
+      "gitBlob": "09e4e109644f607dc5020827101080e4b5dc1b52"
+    },
+    {
+      "path": "PRE.json",
+      "bytes": 185496,
+      "sha256": "b91ee91bc75ccdaef79340f4cbb1ed22fae27c2f9d69e49fc5058d14f00ae28b",
+      "gitBlob": "e01e05e8e18f7274d6fd86e1a4d73b8af6f60e91"
+    },
+    {
+      "path": "PRE-TOOLS.json",
+      "bytes": 610852,
+      "sha256": "64a7b55dc246a03af7da5186f4b77461aa6480b74dd402bee10dc228f113b88a",
+      "gitBlob": "f5b0a9c91270136eba31cd1c0242c3e94ee8bc7b"
+    },
+    {
+      "path": "adapter-support.mjs",
+      "bytes": 3544,
+      "sha256": "a95062ed9ab69b572f672c320aaa61875f7f64869548099e9655aefbcbc5f3de",
+      "gitBlob": "26d0850cc44176d42d3e9251b4dc02723d3e35d1"
+    },
+    {
+      "path": "build-adapter.mjs",
+      "bytes": 4578,
+      "sha256": "1be3d1b49ecfe9f28fe0267bdc1855e41bd8bb9b5867fe064c99a1585e22ac2b",
+      "gitBlob": "b1f52299aa55ef2cbb3ce62ab4b3ab226e8a3f63"
+    },
+    {
+      "path": "replay-adapter.mjs",
+      "bytes": 44132,
+      "sha256": "60c3cae6a1407e4fbd69b737090cc6f411ec4d7a9f7dbcbbc604b0843ca39a1c",
+      "gitBlob": "c9f937f55d7b5657860ad96f78725b52ec94a701"
+    },
+    {
+      "path": "ADAPTER-DELTA.json",
+      "bytes": 3695,
+      "sha256": "d93fe0839a5423864e829e415b8bc41bd115dbbed733bd03381ffc61483998f9",
+      "gitBlob": "403868813296b8e874bfef531b531b52eb61ca8b"
+    },
+    {
+      "path": "launch.mjs",
+      "bytes": 4649,
+      "sha256": "ed8e276979ab11af845d521ead9e2f7c94d1013859409ab9e2afb5ea06180219",
+      "gitBlob": "57d871a251181195697a42f5ebeaedab2f85ff5c"
+    }
+  ]
+}

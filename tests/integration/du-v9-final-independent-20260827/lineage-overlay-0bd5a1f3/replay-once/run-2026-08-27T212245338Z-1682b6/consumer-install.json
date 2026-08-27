@@ -1,0 +1,37 @@
+{
+  "name": "consumer-install",
+  "command": "npm",
+  "args": [
+    "install",
+    "--offline",
+    "--ignore-scripts",
+    "--no-audit",
+    "--no-fund",
+    "--no-save",
+    "--package-lock=false",
+    "--omit=dev",
+    "/Users/kjopek/Workspace/safe-bash/tests/integration/du-v9-final-independent-20260827/lineage-overlay-0bd5a1f3/replay-once/work-PL0Rka/virtual-bash-0.0.0.tgz"
+  ],
+  "cwd": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-v9-final-independent-20260827/lineage-overlay-0bd5a1f3/replay-once/work-PL0Rka/consumer-staging",
+  "status": 0,
+  "signal": null,
+  "pid": 7537,
+  "pgid": 7537,
+  "timedOut": false,
+  "termination": {
+    "termSent": false,
+    "killSent": false,
+    "groupGone": true
+  },
+  "closure": {
+    "descendantGroupDetected": false,
+    "rootPidGone": true,
+    "groupGone": true
+  },
+  "timeoutMs": 120000,
+  "startedAt": "2026-08-27T21:22:56.609Z",
+  "finishedAt": "2026-08-27T21:22:57.651Z",
+  "durationMs": 1042.282458,
+  "stdoutSha256": "a0c2fa55d05eed73b5085fd48a8b3cf1f4b368885a47f5040e1b0d241ea2e22a",
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

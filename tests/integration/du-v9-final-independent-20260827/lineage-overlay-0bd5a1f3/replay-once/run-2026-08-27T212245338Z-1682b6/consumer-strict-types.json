@@ -1,0 +1,30 @@
+{
+  "name": "consumer-strict-types",
+  "command": "/Users/kjopek/Workspace/safe-bash/node_modules/.bin/tsc",
+  "args": [
+    "-p",
+    "/Users/kjopek/Workspace/safe-bash/tests/integration/du-v9-final-independent-20260827/lineage-overlay-0bd5a1f3/replay-once/work-PL0Rka/relocated/consumer/tsconfig.json"
+  ],
+  "cwd": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-v9-final-independent-20260827/lineage-overlay-0bd5a1f3/replay-once/work-PL0Rka/relocated/consumer",
+  "status": 0,
+  "signal": null,
+  "pid": 7551,
+  "pgid": 7551,
+  "timedOut": false,
+  "termination": {
+    "termSent": false,
+    "killSent": false,
+    "groupGone": true
+  },
+  "closure": {
+    "descendantGroupDetected": false,
+    "rootPidGone": true,
+    "groupGone": true
+  },
+  "timeoutMs": 120000,
+  "startedAt": "2026-08-27T21:22:57.778Z",
+  "finishedAt": "2026-08-27T21:22:59.390Z",
+  "durationMs": 1612.394291,
+  "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

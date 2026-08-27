@@ -1,0 +1,27 @@
+(node:7567) ExperimentalWarning: `--experimental-loader` may be removed in the future; instead use `register()`:
+--import 'data:text/javascript,import { register } from "node:module"; import { pathToFileURL } from "node:url"; register("/Users/kjopek/Workspace/safe-bash/tests/integration/du-v9-final-independent-20260827/lineage-overlay-0bd5a1f3/replay-once/bootstrap-scratch/extracted/tests/integration/du-overlay-independent-20260827/approved-v9-9a5a6f92/harness/attest-loader.mjs", pathToFileURL("./"));'
+(Use `node --trace-warnings ...` to show where the warning was created)
+ok - pending direct stat is pure
+ok - pending direct lstat is pure
+ok - pending direct readdir is pure
+ok - pending direct DU traversal is pure
+ok - pending readonly wrapper readdir is pure
+ok - pending readonly wrapper DU traversal is pure
+ok - pending mount over overlay readdir is pure
+ok - pending mount over overlay DU traversal is pure
+ok - pending overlay over mount readdir is pure
+ok - pending overlay over mount du is pure
+ok - metadata failure and retry preserve pending state
+ok - pre-aborted metadata read is pure
+ok - mid-traversal cancellation is pure
+ok - active stage remains hidden and queued readdir phase is pure
+ok - active stage remains hidden and queued du phase is pure
+ok - explicit cleanup remains a functional positive control
+ok - ordinary overlay mutation remains a functional positive control
+ok - ordinary content read remains a functional positive control
+ok - negative control kills readdir cleanup mutant
+ok - negative control kills DU content-read mutant
+ok - negative control kills DU copy-up mutant
+ok - invalid selected DU_BLOCK_SIZE falls back to no-env default
+ok - empty selected DU_BLOCK_SIZE falls back to no-env default
+ok - explicit -B remains strict and valid explicit precedence works

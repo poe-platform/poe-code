@@ -1,0 +1,7 @@
+Reviewer adapter-support.mjs initially contained one extra closing parenthesis
+in expectedFixtureFiles. The controls launcher failed during module parsing,
+before admission controls, supervisor import, temporary-directory creation or
+any product/control replay. The local syntax typo was corrected. The initial
+execution binding is retained as EXECUTION-PRE.syntax-error.data; the corrected
+scripts receive a new pre-execution binding. No frozen or product input changed,
+and no actual case or replay was retried.

@@ -1,0 +1,30 @@
+{
+  "sequence": 75,
+  "command": "/Users/kjopek/Workspace/safe-bash/node_modules/.bin/tsc",
+  "args": [
+    "-p",
+    "/Users/kjopek/Workspace/safe-bash/tests/integration/du-v9-final-independent-20260827/lineage-overlay-0bd5a1f3/replay-once/work-PL0Rka/negative-semantic-declaration/tsconfig.json"
+  ],
+  "cwd": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-v9-final-independent-20260827/lineage-overlay-0bd5a1f3/replay-once/work-PL0Rka/negative-semantic-declaration",
+  "status": 2,
+  "signal": null,
+  "pid": 7595,
+  "pgid": 7595,
+  "timedOut": false,
+  "termination": {
+    "termSent": false,
+    "killSent": false,
+    "groupGone": true
+  },
+  "closure": {
+    "descendantGroupDetected": false,
+    "rootPidGone": true,
+    "groupGone": true
+  },
+  "timeoutMs": 120000,
+  "startedAt": "2026-08-27T21:23:01.885Z",
+  "finishedAt": "2026-08-27T21:23:03.287Z",
+  "durationMs": 1401.797542,
+  "stdoutSha256": "46d1cdf6cc5b20323b50d6914016fa4eb2db6e07af6a251f9560798d435410a8",
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

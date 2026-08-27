@@ -1,0 +1,35 @@
+{
+  "scope": "actual adapter pure-admission functions with intentionally invalid inputs, not candidate cases",
+  "checks": [
+    {
+      "name": "wrong-base",
+      "rejected": true,
+      "actualProductCases": 0,
+      "writesByGuard": 0
+    },
+    {
+      "name": "wrong-candidate",
+      "rejected": true,
+      "actualProductCases": 0,
+      "writesByGuard": 0
+    },
+    {
+      "name": "wrong-patch",
+      "rejected": true,
+      "actualProductCases": 0,
+      "writesByGuard": 0
+    },
+    {
+      "name": "tampered-patched-harness",
+      "rejected": true,
+      "actualProductCases": 0,
+      "writesByGuard": 0
+    },
+    {
+      "name": "tampered-untouched-file",
+      "rejected": true,
+      "actualProductCases": 0,
+      "writesByGuard": 0
+    }
+  ]
+}

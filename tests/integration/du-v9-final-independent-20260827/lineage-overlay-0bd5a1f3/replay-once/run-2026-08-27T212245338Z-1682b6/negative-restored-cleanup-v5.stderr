@@ -1,0 +1,19 @@
+file:///Users/kjopek/Workspace/safe-bash/tests/integration/du-v9-final-independent-20260827/lineage-overlay-0bd5a1f3/replay-once/work-PL0Rka/negative-restored-cleanup/node_modules/virtual-bash/dist/fs/memory/index.js:87
+        throw new FsError(code, { syscall, path, ...(dest === undefined ? {} : { dest }) });
+              ^
+
+FsError: ENOENT: no such file or directory, lstat '/.virtual-bash-overlay-8c7a29fb-2ac5-4cf5-8059-6d31ac621735'
+    at MemoryFileSystem.fail (file:///Users/kjopek/Workspace/safe-bash/tests/integration/du-v9-final-independent-20260827/lineage-overlay-0bd5a1f3/replay-once/work-PL0Rka/negative-restored-cleanup/node_modules/virtual-bash/dist/fs/memory/index.js:87:15)
+    at MemoryFileSystem.resolve (file:///Users/kjopek/Workspace/safe-bash/tests/integration/du-v9-final-independent-20260827/lineage-overlay-0bd5a1f3/replay-once/work-PL0Rka/negative-restored-cleanup/node_modules/virtual-bash/dist/fs/memory/index.js:145:22)
+    at MemoryFileSystem.lstat (file:///Users/kjopek/Workspace/safe-bash/tests/integration/du-v9-final-independent-20260827/lineage-overlay-0bd5a1f3/replay-once/work-PL0Rka/negative-restored-cleanup/node_modules/virtual-bash/dist/fs/memory/index.js:277:41)
+    at measuredStats (file:///Users/kjopek/Workspace/safe-bash/tests/integration/du-v9-final-independent-20260827/lineage-overlay-0bd5a1f3/replay-once/bootstrap-scratch/extracted/tests/integration/du-overlay-independent-20260827/approved-v9-9a5a6f92/harness/verify-v5.mjs:110:76)
+    at async metadataCase (file:///Users/kjopek/Workspace/safe-bash/tests/integration/du-v9-final-independent-20260827/lineage-overlay-0bd5a1f3/replay-once/bootstrap-scratch/extracted/tests/integration/du-overlay-independent-20260827/approved-v9-9a5a6f92/harness/verify-v5.mjs:447:26)
+    at async file:///Users/kjopek/Workspace/safe-bash/tests/integration/du-v9-final-independent-20260827/lineage-overlay-0bd5a1f3/replay-once/bootstrap-scratch/extracted/tests/integration/du-overlay-independent-20260827/approved-v9-9a5a6f92/harness/verify-v5.mjs:525:83 {
+  code: 'ENOENT',
+  errno: -2,
+  syscall: 'lstat',
+  path: '/.virtual-bash-overlay-8c7a29fb-2ac5-4cf5-8059-6d31ac621735',
+  dest: undefined
+}
+
+Node.js v22.22.2

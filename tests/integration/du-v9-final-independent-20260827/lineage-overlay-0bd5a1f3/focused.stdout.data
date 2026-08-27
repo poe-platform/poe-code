@@ -1,0 +1,68 @@
+{
+  "schema": 1,
+  "scope": "focused lineage, receipt and overlay authentication controls only",
+  "productImported": false,
+  "wholeCohortRun": false,
+  "checks": [
+    {
+      "name": "exact immutable base, candidate, manifest, patch and one-file delta authenticate",
+      "status": "ok"
+    },
+    {
+      "name": "complete patched harness parses without product imports",
+      "status": "ok"
+    },
+    {
+      "name": "stable 40-ID map yields exactly 31 historical, 2 lifecycle and 7 observer records",
+      "status": "ok"
+    },
+    {
+      "name": "V5-024 classification is unchanged by display-title mutation",
+      "status": "ok"
+    },
+    {
+      "name": "duplicate stable ID is rejected",
+      "status": "ok"
+    },
+    {
+      "name": "missing stable ID is rejected",
+      "status": "ok"
+    },
+    {
+      "name": "malformed stable ID is rejected",
+      "status": "ok"
+    },
+    {
+      "name": "unknown stable ID is rejected",
+      "status": "ok"
+    },
+    {
+      "name": "invalid lineage category is rejected",
+      "status": "ok"
+    },
+    {
+      "name": "exact extracted report region accepts the stable 31/2/7 receipt",
+      "status": "ok"
+    },
+    {
+      "name": "wrong category remains nonzero after emitting a complete 40-result JSON receipt",
+      "status": "ok"
+    },
+    {
+      "name": "wrong record count remains nonzero after emitting a complete JSON receipt",
+      "status": "ok"
+    },
+    {
+      "name": "wrong base revision is rejected",
+      "status": "ok"
+    },
+    {
+      "name": "modified untouched-file hash is rejected",
+      "status": "ok"
+    },
+    {
+      "name": "overlay application rejects non-base harness bytes",
+      "status": "ok"
+    }
+  ]
+}

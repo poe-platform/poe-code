@@ -1,0 +1,3 @@
+Error: materialized replay failed (1, timeout=false)
+    at executeBootstrap (file:///Users/kjopek/Workspace/safe-bash/tests/integration/du-v9-final-independent-20260827/lineage-overlay-0bd5a1f3/replay-adapter.mjs:324:13)
+    at async file:///Users/kjopek/Workspace/safe-bash/tests/integration/du-v9-final-independent-20260827/lineage-overlay-0bd5a1f3/replay-adapter.mjs:745:8

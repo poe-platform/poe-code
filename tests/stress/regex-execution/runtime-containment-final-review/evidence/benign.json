@@ -1,0 +1,2057 @@
+{
+  "job": "benign",
+  "time": "2026-08-27T09:14:18.125Z",
+  "pass": true,
+  "preparedSha256": "276b972c3334f0452d26e20fcd0256445f3cbc2dcd43d5b815cbd6d607b1b3b3",
+  "claim": {
+    "job": "benign",
+    "time": "2026-08-27T09:14:17.832Z",
+    "preparedSha256": "276b972c3334f0452d26e20fcd0256445f3cbc2dcd43d5b815cbd6d607b1b3b3",
+    "targetSlotsReserved": 0,
+    "pathologicalRequestsReserved": 0,
+    "noRetry": true
+  },
+  "runs": [
+    {
+      "job": "benign",
+      "pid": 14912,
+      "watchdogMs": 6000,
+      "events": [
+        "ready",
+        "disconnect",
+        "stdout-close",
+        "stderr-close",
+        {
+          "exit": 0,
+          "signal": null
+        }
+      ],
+      "stdout": "",
+      "stderr": "",
+      "result": {
+        "kind": "result",
+        "pass": true,
+        "counts": {
+          "controls": 9,
+          "passed": 9,
+          "failed": 0
+        },
+        "observations": [
+          {
+            "name": "public:drain-all-sync-async-duplicates-cleanup-errors",
+            "pass": true,
+            "details": {
+              "variants": [
+                {
+                  "errors": 0,
+                  "calls": 4
+                },
+                {
+                  "errors": 1,
+                  "calls": 4
+                },
+                {
+                  "errors": 2,
+                  "calls": 4
+                }
+              ]
+            }
+          },
+          {
+            "name": "public:primary-error-and-abort-during-drain-identities",
+            "pass": true,
+            "details": {
+              "variants": [
+                "none",
+                0,
+                false,
+                "",
+                {
+                  "code": "ENOENT"
+                }
+              ]
+            }
+          },
+          {
+            "name": "public:ordinary-handler-throw-result-and-cleanup-identities",
+            "pass": true,
+            "details": {
+              "variants": [
+                {
+                  "errors": 0,
+                  "resolved": true,
+                  "cleanups": 0
+                },
+                {
+                  "errors": 1,
+                  "resolved": false,
+                  "cleanups": 1
+                },
+                {
+                  "errors": 2,
+                  "resolved": false,
+                  "cleanups": 2
+                }
+              ]
+            }
+          },
+          {
+            "name": "public:nested-abort-late-admission-before-child-work",
+            "pass": true
+          },
+          {
+            "name": "public:pipeline-and-substitution-own-descendant-drains",
+            "pass": true,
+            "details": {
+              "variants": [
+                "leaf | cat",
+                "printf \"%s\" \"$(leaf)\"",
+                "outer"
+              ]
+            }
+          },
+          {
+            "name": "public:overlapping-and-repeated-dispose-await-drain",
+            "pass": true
+          },
+          {
+            "name": "public:same-shell-and-other-shell-cancellation-isolation",
+            "pass": true
+          },
+          {
+            "name": "public:abort-avoids-opaque-input-fs-sink-middleware",
+            "pass": true,
+            "details": {
+              "variants": [
+                "stdin",
+                "fs",
+                "sink",
+                "middleware"
+              ]
+            }
+          },
+          {
+            "name": "public:admitted-cooperative-acquisition-closes-permanently",
+            "pass": true
+          }
+        ],
+        "riskConsumed": 0,
+        "boundary": "actual frozen Shell.exec, nested CommandContext.invoke and Shell.dispose",
+        "entry": "file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/cleanup-boundary-review/.temporary/runtime-r1-verified-packed-old-five/production-continuation-review/node_modules/virtual-bash/dist/index.js",
+        "boundaries": [
+          {
+            "owner": "benign-1",
+            "command": "owned",
+            "rejected": false,
+            "result": {
+              "exitCode": 23,
+              "stdout": "",
+              "stderr": ""
+            },
+            "exactCallerReason": null,
+            "callerListeners": null,
+            "signals": [
+              {
+                "aborted": false,
+                "listeners": 0
+              },
+              {
+                "aborted": true,
+                "listeners": 0
+              }
+            ],
+            "workers": []
+          },
+          {
+            "owner": "benign-2",
+            "command": "owned",
+            "rejected": true,
+            "error": "Error: cleanup first",
+            "exactCallerReason": null,
+            "callerListeners": null,
+            "signals": [
+              {
+                "aborted": false,
+                "listeners": 0
+              },
+              {
+                "aborted": true,
+                "listeners": 0
+              }
+            ],
+            "workers": []
+          },
+          {
+            "owner": "benign-3",
+            "command": "owned",
+            "rejected": true,
+            "error": "AggregateError: Invocation cleanup failed",
+            "exactCallerReason": null,
+            "callerListeners": null,
+            "signals": [
+              {
+                "aborted": false,
+                "listeners": 0
+              },
+              {
+                "aborted": true,
+                "listeners": 0
+              }
+            ],
+            "workers": []
+          },
+          {
+            "owner": "benign-4",
+            "command": "owned",
+            "rejected": true,
+            "error": "ShellLimitError: Shell limit exceeded: maxCommands",
+            "exactCallerReason": null,
+            "callerListeners": 0,
+            "signals": [
+              {
+                "aborted": false,
+                "listeners": 0
+              },
+              {
+                "aborted": true,
+                "listeners": 0
+              }
+            ],
+            "workers": []
+          },
+          {
+            "owner": "benign-5",
+            "command": "owned",
+            "rejected": true,
+            "error": "0",
+            "exactCallerReason": true,
+            "callerListeners": 0,
+            "signals": [
+              {
+                "aborted": true,
+                "listeners": 0
+              },
+              {
+                "aborted": true,
+                "listeners": 0
+              }
+            ],
+            "workers": []
+          },
+          {
+            "owner": "benign-6",
+            "command": "owned",
+            "rejected": true,
+            "error": "false",
+            "exactCallerReason": true,
+            "callerListeners": 0,
+            "signals": [
+              {
+                "aborted": true,
+                "listeners": 0
+              },
+              {
+                "aborted": true,
+                "listeners": 0
+              }
+            ],
+            "workers": []
+          },
+          {
+            "owner": "benign-7",
+            "command": "owned",
+            "rejected": true,
+            "error": "",
+            "exactCallerReason": true,
+            "callerListeners": 0,
+            "signals": [
+              {
+                "aborted": true,
+                "listeners": 0
+              },
+              {
+                "aborted": true,
+                "listeners": 0
+              }
+            ],
+            "workers": []
+          },
+          {
+            "owner": "benign-8",
+            "command": "owned",
+            "rejected": true,
+            "error": "[object Object]",
+            "exactCallerReason": true,
+            "callerListeners": 0,
+            "signals": [
+              {
+                "aborted": true,
+                "listeners": 0
+              },
+              {
+                "aborted": true,
+                "listeners": 0
+              }
+            ],
+            "workers": []
+          },
+          {
+            "owner": "benign-9",
+            "command": "owned",
+            "rejected": false,
+            "result": {
+              "exitCode": 1,
+              "stdout": "",
+              "stderr": "c2hlbGw6IGxpbmUgMTogc2VsZWN0ZWQgZXhlY3V0aW9uIGZhaWx1cmUK"
+            },
+            "exactCallerReason": null,
+            "callerListeners": null,
+            "signals": [
+              {
+                "aborted": false,
+                "listeners": 0
+              },
+              {
+                "aborted": true,
+                "listeners": 0
+              }
+            ],
+            "workers": []
+          },
+          {
+            "owner": "benign-10",
+            "command": "owned",
+            "rejected": true,
+            "error": "Error: secondary cleanup failure",
+            "exactCallerReason": null,
+            "callerListeners": null,
+            "signals": [
+              {
+                "aborted": false,
+                "listeners": 0
+              },
+              {
+                "aborted": true,
+                "listeners": 0
+              }
+            ],
+            "workers": []
+          },
+          {
+            "owner": "benign-11",
+            "command": "owned",
+            "rejected": true,
+            "error": "AggregateError: Invocation cleanup failed",
+            "exactCallerReason": null,
+            "callerListeners": null,
+            "signals": [
+              {
+                "aborted": false,
+                "listeners": 0
+              },
+              {
+                "aborted": true,
+                "listeners": 0
+              }
+            ],
+            "workers": []
+          },
+          {
+            "owner": "benign-12",
+            "command": "outer",
+            "rejected": true,
+            "error": "[object Object]",
+            "exactCallerReason": true,
+            "callerListeners": 0,
+            "signals": [
+              {
+                "aborted": true,
+                "listeners": 0
+              },
+              {
+                "aborted": true,
+                "listeners": 0
+              },
+              {
+                "aborted": true,
+                "listeners": 0
+              }
+            ],
+            "workers": []
+          },
+          {
+            "owner": "benign-13",
+            "command": "leaf | cat",
+            "rejected": false,
+            "result": {
+              "exitCode": 0,
+              "stdout": "YWIK",
+              "stderr": ""
+            },
+            "exactCallerReason": null,
+            "callerListeners": null,
+            "signals": [
+              {
+                "aborted": false,
+                "listeners": 0
+              },
+              {
+                "aborted": true,
+                "listeners": 0
+              },
+              {
+                "aborted": true,
+                "listeners": 0
+              },
+              {
+                "aborted": true,
+                "listeners": 0
+              },
+              {
+                "aborted": true,
+                "listeners": 0
+              },
+              {
+                "aborted": true,
+                "listeners": 0
+              },
+              {
+                "aborted": true,
+                "listeners": 0
+              },
+              {
+                "aborted": true,
+                "listeners": 0
+              }
+            ],
+            "workers": []
+          },
+          {
+            "owner": "benign-14",
+            "command": "printf \"%s\" \"$(leaf)\"",
+            "rejected": false,
+            "result": {
+              "exitCode": 0,
+              "stdout": "YWI=",
+              "stderr": ""
+            },
+            "exactCallerReason": null,
+            "callerListeners": null,
+            "signals": [
+              {
+                "aborted": false,
+                "listeners": 0
+              },
+              {
+                "aborted": true,
+                "listeners": 0
+              },
+              {
+                "aborted": true,
+                "listeners": 0
+              },
+              {
+                "aborted": true,
+                "listeners": 0
+              }
+            ],
+            "workers": []
+          },
+          {
+            "owner": "benign-15",
+            "command": "outer",
+            "rejected": false,
+            "result": {
+              "exitCode": 0,
+              "stdout": "YWIK",
+              "stderr": ""
+            },
+            "exactCallerReason": null,
+            "callerListeners": null,
+            "signals": [
+              {
+                "aborted": false,
+                "listeners": 0
+              },
+              {
+                "aborted": true,
+                "listeners": 0
+              },
+              {
+                "aborted": true,
+                "listeners": 0
+              }
+            ],
+            "workers": []
+          },
+          {
+            "owner": "benign-16",
+            "command": "owned",
+            "rejected": true,
+            "error": "Error: Shell is disposed",
+            "exactCallerReason": null,
+            "callerListeners": null,
+            "signals": [
+              {
+                "aborted": true,
+                "listeners": 0
+              },
+              {
+                "aborted": true,
+                "listeners": 0
+              }
+            ],
+            "workers": []
+          },
+          {
+            "owner": "benign-17",
+            "command": "true",
+            "rejected": true,
+            "error": "Error: Shell is disposed",
+            "exactCallerReason": null,
+            "callerListeners": null,
+            "signals": [],
+            "workers": []
+          },
+          {
+            "owner": "benign-18",
+            "command": "owned",
+            "rejected": true,
+            "error": "Error: only one invocation",
+            "exactCallerReason": true,
+            "callerListeners": 0,
+            "signals": [
+              {
+                "aborted": true,
+                "listeners": 0
+              },
+              {
+                "aborted": true,
+                "listeners": 0
+              }
+            ],
+            "workers": [
+              {
+                "owner": "benign-20",
+                "url": "file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/cleanup-boundary-review/.temporary/runtime-r1-verified-packed-old-five/production-continuation-review/node_modules/virtual-bash/dist/commands/regex-execution/worker.js",
+                "options": {
+                  "execArgv": [],
+                  "resourceLimits": {
+                    "maxOldGenerationSizeMb": 128,
+                    "stackSizeMb": 4
+                  }
+                },
+                "exited": false,
+                "readyAtMs": null,
+                "terminationCalls": 0,
+                "terminationAwaited": false,
+                "requests": [
+                  {
+                    "owner": "benign-20",
+                    "id": 1,
+                    "atMs": 194.725,
+                    "descriptor": {
+                      "kind": "grep",
+                      "patterns": [
+                        "^a"
+                      ],
+                      "fixed": false,
+                      "extended": true,
+                      "insensitive": false,
+                      "whole": false,
+                      "word": false
+                    },
+                    "rows": []
+                  },
+                  {
+                    "owner": "benign-20",
+                    "id": 2,
+                    "atMs": 195.856917,
+                    "descriptor": {
+                      "kind": "grep",
+                      "patterns": [
+                        "^a"
+                      ],
+                      "fixed": false,
+                      "extended": true,
+                      "insensitive": false,
+                      "whole": false,
+                      "word": false
+                    },
+                    "rows": [
+                      {
+                        "bytes": "YWI=",
+                        "terminated": true
+                      }
+                    ]
+                  }
+                ],
+                "responses": [
+                  {
+                    "id": 1,
+                    "atMs": 195.68425
+                  },
+                  {
+                    "id": 2,
+                    "atMs": 196.541459
+                  }
+                ],
+                "heldResponses": 0,
+                "listeners": {
+                  "message": 1,
+                  "messageerror": 1,
+                  "error": 1,
+                  "exit": 1
+                }
+              },
+              {
+                "owner": "benign-19",
+                "url": "file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/cleanup-boundary-review/.temporary/runtime-r1-verified-packed-old-five/production-continuation-review/node_modules/virtual-bash/dist/commands/regex-execution/worker.js",
+                "options": {
+                  "execArgv": [],
+                  "resourceLimits": {
+                    "maxOldGenerationSizeMb": 128,
+                    "stackSizeMb": 4
+                  }
+                },
+                "exited": false,
+                "readyAtMs": null,
+                "terminationCalls": 0,
+                "terminationAwaited": false,
+                "requests": [
+                  {
+                    "owner": "benign-19",
+                    "id": 1,
+                    "atMs": 194.646209,
+                    "descriptor": {
+                      "kind": "rg",
+                      "patterns": [
+                        "^a"
+                      ],
+                      "fixed": false,
+                      "case": "sensitive",
+                      "whole": false,
+                      "word": false,
+                      "nullData": false
+                    },
+                    "rows": []
+                  },
+                  {
+                    "owner": "benign-19",
+                    "id": 2,
+                    "atMs": 195.644625,
+                    "descriptor": {
+                      "kind": "rg",
+                      "patterns": [
+                        "^a"
+                      ],
+                      "fixed": false,
+                      "case": "sensitive",
+                      "whole": false,
+                      "word": false,
+                      "nullData": false
+                    },
+                    "rows": [
+                      {
+                        "bytes": "YWI=",
+                        "terminated": true
+                      }
+                    ]
+                  }
+                ],
+                "responses": [
+                  {
+                    "id": 1,
+                    "atMs": 194.942584
+                  },
+                  {
+                    "id": 2,
+                    "atMs": 195.937709
+                  }
+                ],
+                "heldResponses": 0,
+                "listeners": {
+                  "message": 1,
+                  "messageerror": 1,
+                  "error": 1,
+                  "exit": 1
+                }
+              }
+            ]
+          },
+          {
+            "owner": "benign-19",
+            "command": "rg '^a'",
+            "rejected": false,
+            "result": {
+              "exitCode": 0,
+              "stdout": "YWIK",
+              "stderr": ""
+            },
+            "exactCallerReason": null,
+            "callerListeners": null,
+            "signals": [
+              {
+                "aborted": false,
+                "listeners": 0
+              },
+              {
+                "aborted": true,
+                "listeners": 0
+              },
+              {
+                "aborted": true,
+                "listeners": 0
+              },
+              {
+                "aborted": false,
+                "listeners": 0
+              },
+              {
+                "aborted": true,
+                "listeners": 0
+              }
+            ],
+            "workers": [
+              {
+                "owner": "benign-20",
+                "url": "file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/cleanup-boundary-review/.temporary/runtime-r1-verified-packed-old-five/production-continuation-review/node_modules/virtual-bash/dist/commands/regex-execution/worker.js",
+                "options": {
+                  "execArgv": [],
+                  "resourceLimits": {
+                    "maxOldGenerationSizeMb": 128,
+                    "stackSizeMb": 4
+                  }
+                },
+                "exited": false,
+                "readyAtMs": 194.695875,
+                "terminationCalls": 1,
+                "terminationAwaited": false,
+                "requests": [
+                  {
+                    "owner": "benign-20",
+                    "id": 1,
+                    "atMs": 194.725,
+                    "descriptor": {
+                      "kind": "grep",
+                      "patterns": [
+                        "^a"
+                      ],
+                      "fixed": false,
+                      "extended": true,
+                      "insensitive": false,
+                      "whole": false,
+                      "word": false
+                    },
+                    "rows": []
+                  },
+                  {
+                    "owner": "benign-20",
+                    "id": 2,
+                    "atMs": 195.856917,
+                    "descriptor": {
+                      "kind": "grep",
+                      "patterns": [
+                        "^a"
+                      ],
+                      "fixed": false,
+                      "extended": true,
+                      "insensitive": false,
+                      "whole": false,
+                      "word": false
+                    },
+                    "rows": [
+                      {
+                        "bytes": "YWI=",
+                        "terminated": true
+                      }
+                    ]
+                  }
+                ],
+                "responses": [
+                  {
+                    "id": 1,
+                    "atMs": 195.68425
+                  },
+                  {
+                    "id": 2,
+                    "atMs": 196.541459
+                  }
+                ],
+                "heldResponses": 0,
+                "listeners": {
+                  "message": 1,
+                  "messageerror": 1,
+                  "error": 1,
+                  "exit": 2
+                }
+              },
+              {
+                "owner": "benign-19",
+                "url": "file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/cleanup-boundary-review/.temporary/runtime-r1-verified-packed-old-five/production-continuation-review/node_modules/virtual-bash/dist/commands/regex-execution/worker.js",
+                "options": {
+                  "execArgv": [],
+                  "resourceLimits": {
+                    "maxOldGenerationSizeMb": 128,
+                    "stackSizeMb": 4
+                  }
+                },
+                "exited": true,
+                "readyAtMs": 194.494875,
+                "terminationCalls": 1,
+                "terminationAwaited": true,
+                "requests": [
+                  {
+                    "owner": "benign-19",
+                    "id": 1,
+                    "atMs": 194.646209,
+                    "descriptor": {
+                      "kind": "rg",
+                      "patterns": [
+                        "^a"
+                      ],
+                      "fixed": false,
+                      "case": "sensitive",
+                      "whole": false,
+                      "word": false,
+                      "nullData": false
+                    },
+                    "rows": []
+                  },
+                  {
+                    "owner": "benign-19",
+                    "id": 2,
+                    "atMs": 195.644625,
+                    "descriptor": {
+                      "kind": "rg",
+                      "patterns": [
+                        "^a"
+                      ],
+                      "fixed": false,
+                      "case": "sensitive",
+                      "whole": false,
+                      "word": false,
+                      "nullData": false
+                    },
+                    "rows": [
+                      {
+                        "bytes": "YWI=",
+                        "terminated": true
+                      }
+                    ]
+                  }
+                ],
+                "responses": [
+                  {
+                    "id": 1,
+                    "atMs": 194.942584
+                  },
+                  {
+                    "id": 2,
+                    "atMs": 195.937709
+                  }
+                ],
+                "exitCode": 1,
+                "heldResponses": 0,
+                "listeners": {
+                  "message": 0,
+                  "messageerror": 0,
+                  "error": 0,
+                  "exit": 0
+                }
+              }
+            ]
+          },
+          {
+            "owner": "benign-20",
+            "command": "grep -E '^a'",
+            "rejected": false,
+            "result": {
+              "exitCode": 0,
+              "stdout": "YWIK",
+              "stderr": ""
+            },
+            "exactCallerReason": null,
+            "callerListeners": null,
+            "signals": [
+              {
+                "aborted": false,
+                "listeners": 0
+              },
+              {
+                "aborted": true,
+                "listeners": 0
+              },
+              {
+                "aborted": true,
+                "listeners": 0
+              },
+              {
+                "aborted": true,
+                "listeners": 0
+              }
+            ],
+            "workers": [
+              {
+                "owner": "benign-20",
+                "url": "file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/cleanup-boundary-review/.temporary/runtime-r1-verified-packed-old-five/production-continuation-review/node_modules/virtual-bash/dist/commands/regex-execution/worker.js",
+                "options": {
+                  "execArgv": [],
+                  "resourceLimits": {
+                    "maxOldGenerationSizeMb": 128,
+                    "stackSizeMb": 4
+                  }
+                },
+                "exited": true,
+                "readyAtMs": 194.695875,
+                "terminationCalls": 1,
+                "terminationAwaited": true,
+                "requests": [
+                  {
+                    "owner": "benign-20",
+                    "id": 1,
+                    "atMs": 194.725,
+                    "descriptor": {
+                      "kind": "grep",
+                      "patterns": [
+                        "^a"
+                      ],
+                      "fixed": false,
+                      "extended": true,
+                      "insensitive": false,
+                      "whole": false,
+                      "word": false
+                    },
+                    "rows": []
+                  },
+                  {
+                    "owner": "benign-20",
+                    "id": 2,
+                    "atMs": 195.856917,
+                    "descriptor": {
+                      "kind": "grep",
+                      "patterns": [
+                        "^a"
+                      ],
+                      "fixed": false,
+                      "extended": true,
+                      "insensitive": false,
+                      "whole": false,
+                      "word": false
+                    },
+                    "rows": [
+                      {
+                        "bytes": "YWI=",
+                        "terminated": true
+                      }
+                    ]
+                  }
+                ],
+                "responses": [
+                  {
+                    "id": 1,
+                    "atMs": 195.68425
+                  },
+                  {
+                    "id": 2,
+                    "atMs": 196.541459
+                  }
+                ],
+                "exitCode": 1,
+                "heldResponses": 0,
+                "listeners": {
+                  "message": 0,
+                  "messageerror": 0,
+                  "error": 0,
+                  "exit": 0
+                }
+              },
+              {
+                "owner": "benign-19",
+                "url": "file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/cleanup-boundary-review/.temporary/runtime-r1-verified-packed-old-five/production-continuation-review/node_modules/virtual-bash/dist/commands/regex-execution/worker.js",
+                "options": {
+                  "execArgv": [],
+                  "resourceLimits": {
+                    "maxOldGenerationSizeMb": 128,
+                    "stackSizeMb": 4
+                  }
+                },
+                "exited": true,
+                "readyAtMs": 194.494875,
+                "terminationCalls": 1,
+                "terminationAwaited": true,
+                "requests": [
+                  {
+                    "owner": "benign-19",
+                    "id": 1,
+                    "atMs": 194.646209,
+                    "descriptor": {
+                      "kind": "rg",
+                      "patterns": [
+                        "^a"
+                      ],
+                      "fixed": false,
+                      "case": "sensitive",
+                      "whole": false,
+                      "word": false,
+                      "nullData": false
+                    },
+                    "rows": []
+                  },
+                  {
+                    "owner": "benign-19",
+                    "id": 2,
+                    "atMs": 195.644625,
+                    "descriptor": {
+                      "kind": "rg",
+                      "patterns": [
+                        "^a"
+                      ],
+                      "fixed": false,
+                      "case": "sensitive",
+                      "whole": false,
+                      "word": false,
+                      "nullData": false
+                    },
+                    "rows": [
+                      {
+                        "bytes": "YWI=",
+                        "terminated": true
+                      }
+                    ]
+                  }
+                ],
+                "responses": [
+                  {
+                    "id": 1,
+                    "atMs": 194.942584
+                  },
+                  {
+                    "id": 2,
+                    "atMs": 195.937709
+                  }
+                ],
+                "exitCode": 1,
+                "heldResponses": 0,
+                "listeners": {
+                  "message": 0,
+                  "messageerror": 0,
+                  "error": 0,
+                  "exit": 0
+                }
+              }
+            ]
+          },
+          {
+            "owner": "benign-21",
+            "command": "owned",
+            "rejected": true,
+            "error": "stdin",
+            "exactCallerReason": true,
+            "callerListeners": 0,
+            "signals": [
+              {
+                "aborted": true,
+                "listeners": 0
+              },
+              {
+                "aborted": true,
+                "listeners": 0
+              },
+              {
+                "aborted": true,
+                "listeners": 0
+              }
+            ],
+            "workers": [
+              {
+                "owner": "benign-20",
+                "url": "file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/cleanup-boundary-review/.temporary/runtime-r1-verified-packed-old-five/production-continuation-review/node_modules/virtual-bash/dist/commands/regex-execution/worker.js",
+                "options": {
+                  "execArgv": [],
+                  "resourceLimits": {
+                    "maxOldGenerationSizeMb": 128,
+                    "stackSizeMb": 4
+                  }
+                },
+                "exited": true,
+                "readyAtMs": 194.695875,
+                "terminationCalls": 1,
+                "terminationAwaited": true,
+                "requests": [
+                  {
+                    "owner": "benign-20",
+                    "id": 1,
+                    "atMs": 194.725,
+                    "descriptor": {
+                      "kind": "grep",
+                      "patterns": [
+                        "^a"
+                      ],
+                      "fixed": false,
+                      "extended": true,
+                      "insensitive": false,
+                      "whole": false,
+                      "word": false
+                    },
+                    "rows": []
+                  },
+                  {
+                    "owner": "benign-20",
+                    "id": 2,
+                    "atMs": 195.856917,
+                    "descriptor": {
+                      "kind": "grep",
+                      "patterns": [
+                        "^a"
+                      ],
+                      "fixed": false,
+                      "extended": true,
+                      "insensitive": false,
+                      "whole": false,
+                      "word": false
+                    },
+                    "rows": [
+                      {
+                        "bytes": "YWI=",
+                        "terminated": true
+                      }
+                    ]
+                  }
+                ],
+                "responses": [
+                  {
+                    "id": 1,
+                    "atMs": 195.68425
+                  },
+                  {
+                    "id": 2,
+                    "atMs": 196.541459
+                  }
+                ],
+                "exitCode": 1,
+                "heldResponses": 0,
+                "listeners": {
+                  "message": 0,
+                  "messageerror": 0,
+                  "error": 0,
+                  "exit": 0
+                }
+              },
+              {
+                "owner": "benign-19",
+                "url": "file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/cleanup-boundary-review/.temporary/runtime-r1-verified-packed-old-five/production-continuation-review/node_modules/virtual-bash/dist/commands/regex-execution/worker.js",
+                "options": {
+                  "execArgv": [],
+                  "resourceLimits": {
+                    "maxOldGenerationSizeMb": 128,
+                    "stackSizeMb": 4
+                  }
+                },
+                "exited": true,
+                "readyAtMs": 194.494875,
+                "terminationCalls": 1,
+                "terminationAwaited": true,
+                "requests": [
+                  {
+                    "owner": "benign-19",
+                    "id": 1,
+                    "atMs": 194.646209,
+                    "descriptor": {
+                      "kind": "rg",
+                      "patterns": [
+                        "^a"
+                      ],
+                      "fixed": false,
+                      "case": "sensitive",
+                      "whole": false,
+                      "word": false,
+                      "nullData": false
+                    },
+                    "rows": []
+                  },
+                  {
+                    "owner": "benign-19",
+                    "id": 2,
+                    "atMs": 195.644625,
+                    "descriptor": {
+                      "kind": "rg",
+                      "patterns": [
+                        "^a"
+                      ],
+                      "fixed": false,
+                      "case": "sensitive",
+                      "whole": false,
+                      "word": false,
+                      "nullData": false
+                    },
+                    "rows": [
+                      {
+                        "bytes": "YWI=",
+                        "terminated": true
+                      }
+                    ]
+                  }
+                ],
+                "responses": [
+                  {
+                    "id": 1,
+                    "atMs": 194.942584
+                  },
+                  {
+                    "id": 2,
+                    "atMs": 195.937709
+                  }
+                ],
+                "exitCode": 1,
+                "heldResponses": 0,
+                "listeners": {
+                  "message": 0,
+                  "messageerror": 0,
+                  "error": 0,
+                  "exit": 0
+                }
+              }
+            ]
+          },
+          {
+            "owner": "benign-22",
+            "command": "owned",
+            "rejected": true,
+            "error": "fs",
+            "exactCallerReason": true,
+            "callerListeners": 0,
+            "signals": [
+              {
+                "aborted": true,
+                "listeners": 0
+              },
+              {
+                "aborted": true,
+                "listeners": 0
+              }
+            ],
+            "workers": [
+              {
+                "owner": "benign-20",
+                "url": "file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/cleanup-boundary-review/.temporary/runtime-r1-verified-packed-old-five/production-continuation-review/node_modules/virtual-bash/dist/commands/regex-execution/worker.js",
+                "options": {
+                  "execArgv": [],
+                  "resourceLimits": {
+                    "maxOldGenerationSizeMb": 128,
+                    "stackSizeMb": 4
+                  }
+                },
+                "exited": true,
+                "readyAtMs": 194.695875,
+                "terminationCalls": 1,
+                "terminationAwaited": true,
+                "requests": [
+                  {
+                    "owner": "benign-20",
+                    "id": 1,
+                    "atMs": 194.725,
+                    "descriptor": {
+                      "kind": "grep",
+                      "patterns": [
+                        "^a"
+                      ],
+                      "fixed": false,
+                      "extended": true,
+                      "insensitive": false,
+                      "whole": false,
+                      "word": false
+                    },
+                    "rows": []
+                  },
+                  {
+                    "owner": "benign-20",
+                    "id": 2,
+                    "atMs": 195.856917,
+                    "descriptor": {
+                      "kind": "grep",
+                      "patterns": [
+                        "^a"
+                      ],
+                      "fixed": false,
+                      "extended": true,
+                      "insensitive": false,
+                      "whole": false,
+                      "word": false
+                    },
+                    "rows": [
+                      {
+                        "bytes": "YWI=",
+                        "terminated": true
+                      }
+                    ]
+                  }
+                ],
+                "responses": [
+                  {
+                    "id": 1,
+                    "atMs": 195.68425
+                  },
+                  {
+                    "id": 2,
+                    "atMs": 196.541459
+                  }
+                ],
+                "exitCode": 1,
+                "heldResponses": 0,
+                "listeners": {
+                  "message": 0,
+                  "messageerror": 0,
+                  "error": 0,
+                  "exit": 0
+                }
+              },
+              {
+                "owner": "benign-19",
+                "url": "file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/cleanup-boundary-review/.temporary/runtime-r1-verified-packed-old-five/production-continuation-review/node_modules/virtual-bash/dist/commands/regex-execution/worker.js",
+                "options": {
+                  "execArgv": [],
+                  "resourceLimits": {
+                    "maxOldGenerationSizeMb": 128,
+                    "stackSizeMb": 4
+                  }
+                },
+                "exited": true,
+                "readyAtMs": 194.494875,
+                "terminationCalls": 1,
+                "terminationAwaited": true,
+                "requests": [
+                  {
+                    "owner": "benign-19",
+                    "id": 1,
+                    "atMs": 194.646209,
+                    "descriptor": {
+                      "kind": "rg",
+                      "patterns": [
+                        "^a"
+                      ],
+                      "fixed": false,
+                      "case": "sensitive",
+                      "whole": false,
+                      "word": false,
+                      "nullData": false
+                    },
+                    "rows": []
+                  },
+                  {
+                    "owner": "benign-19",
+                    "id": 2,
+                    "atMs": 195.644625,
+                    "descriptor": {
+                      "kind": "rg",
+                      "patterns": [
+                        "^a"
+                      ],
+                      "fixed": false,
+                      "case": "sensitive",
+                      "whole": false,
+                      "word": false,
+                      "nullData": false
+                    },
+                    "rows": [
+                      {
+                        "bytes": "YWI=",
+                        "terminated": true
+                      }
+                    ]
+                  }
+                ],
+                "responses": [
+                  {
+                    "id": 1,
+                    "atMs": 194.942584
+                  },
+                  {
+                    "id": 2,
+                    "atMs": 195.937709
+                  }
+                ],
+                "exitCode": 1,
+                "heldResponses": 0,
+                "listeners": {
+                  "message": 0,
+                  "messageerror": 0,
+                  "error": 0,
+                  "exit": 0
+                }
+              }
+            ]
+          },
+          {
+            "owner": "benign-23",
+            "command": "owned",
+            "rejected": true,
+            "error": "sink",
+            "exactCallerReason": true,
+            "callerListeners": 0,
+            "signals": [
+              {
+                "aborted": true,
+                "listeners": 0
+              },
+              {
+                "aborted": true,
+                "listeners": 0
+              }
+            ],
+            "workers": [
+              {
+                "owner": "benign-20",
+                "url": "file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/cleanup-boundary-review/.temporary/runtime-r1-verified-packed-old-five/production-continuation-review/node_modules/virtual-bash/dist/commands/regex-execution/worker.js",
+                "options": {
+                  "execArgv": [],
+                  "resourceLimits": {
+                    "maxOldGenerationSizeMb": 128,
+                    "stackSizeMb": 4
+                  }
+                },
+                "exited": true,
+                "readyAtMs": 194.695875,
+                "terminationCalls": 1,
+                "terminationAwaited": true,
+                "requests": [
+                  {
+                    "owner": "benign-20",
+                    "id": 1,
+                    "atMs": 194.725,
+                    "descriptor": {
+                      "kind": "grep",
+                      "patterns": [
+                        "^a"
+                      ],
+                      "fixed": false,
+                      "extended": true,
+                      "insensitive": false,
+                      "whole": false,
+                      "word": false
+                    },
+                    "rows": []
+                  },
+                  {
+                    "owner": "benign-20",
+                    "id": 2,
+                    "atMs": 195.856917,
+                    "descriptor": {
+                      "kind": "grep",
+                      "patterns": [
+                        "^a"
+                      ],
+                      "fixed": false,
+                      "extended": true,
+                      "insensitive": false,
+                      "whole": false,
+                      "word": false
+                    },
+                    "rows": [
+                      {
+                        "bytes": "YWI=",
+                        "terminated": true
+                      }
+                    ]
+                  }
+                ],
+                "responses": [
+                  {
+                    "id": 1,
+                    "atMs": 195.68425
+                  },
+                  {
+                    "id": 2,
+                    "atMs": 196.541459
+                  }
+                ],
+                "exitCode": 1,
+                "heldResponses": 0,
+                "listeners": {
+                  "message": 0,
+                  "messageerror": 0,
+                  "error": 0,
+                  "exit": 0
+                }
+              },
+              {
+                "owner": "benign-19",
+                "url": "file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/cleanup-boundary-review/.temporary/runtime-r1-verified-packed-old-five/production-continuation-review/node_modules/virtual-bash/dist/commands/regex-execution/worker.js",
+                "options": {
+                  "execArgv": [],
+                  "resourceLimits": {
+                    "maxOldGenerationSizeMb": 128,
+                    "stackSizeMb": 4
+                  }
+                },
+                "exited": true,
+                "readyAtMs": 194.494875,
+                "terminationCalls": 1,
+                "terminationAwaited": true,
+                "requests": [
+                  {
+                    "owner": "benign-19",
+                    "id": 1,
+                    "atMs": 194.646209,
+                    "descriptor": {
+                      "kind": "rg",
+                      "patterns": [
+                        "^a"
+                      ],
+                      "fixed": false,
+                      "case": "sensitive",
+                      "whole": false,
+                      "word": false,
+                      "nullData": false
+                    },
+                    "rows": []
+                  },
+                  {
+                    "owner": "benign-19",
+                    "id": 2,
+                    "atMs": 195.644625,
+                    "descriptor": {
+                      "kind": "rg",
+                      "patterns": [
+                        "^a"
+                      ],
+                      "fixed": false,
+                      "case": "sensitive",
+                      "whole": false,
+                      "word": false,
+                      "nullData": false
+                    },
+                    "rows": [
+                      {
+                        "bytes": "YWI=",
+                        "terminated": true
+                      }
+                    ]
+                  }
+                ],
+                "responses": [
+                  {
+                    "id": 1,
+                    "atMs": 194.942584
+                  },
+                  {
+                    "id": 2,
+                    "atMs": 195.937709
+                  }
+                ],
+                "exitCode": 1,
+                "heldResponses": 0,
+                "listeners": {
+                  "message": 0,
+                  "messageerror": 0,
+                  "error": 0,
+                  "exit": 0
+                }
+              }
+            ]
+          },
+          {
+            "owner": "benign-24",
+            "command": "owned",
+            "rejected": true,
+            "error": "middleware",
+            "exactCallerReason": true,
+            "callerListeners": 0,
+            "signals": [
+              {
+                "aborted": true,
+                "listeners": 0
+              },
+              {
+                "aborted": true,
+                "listeners": 0
+              }
+            ],
+            "workers": [
+              {
+                "owner": "benign-20",
+                "url": "file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/cleanup-boundary-review/.temporary/runtime-r1-verified-packed-old-five/production-continuation-review/node_modules/virtual-bash/dist/commands/regex-execution/worker.js",
+                "options": {
+                  "execArgv": [],
+                  "resourceLimits": {
+                    "maxOldGenerationSizeMb": 128,
+                    "stackSizeMb": 4
+                  }
+                },
+                "exited": true,
+                "readyAtMs": 194.695875,
+                "terminationCalls": 1,
+                "terminationAwaited": true,
+                "requests": [
+                  {
+                    "owner": "benign-20",
+                    "id": 1,
+                    "atMs": 194.725,
+                    "descriptor": {
+                      "kind": "grep",
+                      "patterns": [
+                        "^a"
+                      ],
+                      "fixed": false,
+                      "extended": true,
+                      "insensitive": false,
+                      "whole": false,
+                      "word": false
+                    },
+                    "rows": []
+                  },
+                  {
+                    "owner": "benign-20",
+                    "id": 2,
+                    "atMs": 195.856917,
+                    "descriptor": {
+                      "kind": "grep",
+                      "patterns": [
+                        "^a"
+                      ],
+                      "fixed": false,
+                      "extended": true,
+                      "insensitive": false,
+                      "whole": false,
+                      "word": false
+                    },
+                    "rows": [
+                      {
+                        "bytes": "YWI=",
+                        "terminated": true
+                      }
+                    ]
+                  }
+                ],
+                "responses": [
+                  {
+                    "id": 1,
+                    "atMs": 195.68425
+                  },
+                  {
+                    "id": 2,
+                    "atMs": 196.541459
+                  }
+                ],
+                "exitCode": 1,
+                "heldResponses": 0,
+                "listeners": {
+                  "message": 0,
+                  "messageerror": 0,
+                  "error": 0,
+                  "exit": 0
+                }
+              },
+              {
+                "owner": "benign-19",
+                "url": "file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/cleanup-boundary-review/.temporary/runtime-r1-verified-packed-old-five/production-continuation-review/node_modules/virtual-bash/dist/commands/regex-execution/worker.js",
+                "options": {
+                  "execArgv": [],
+                  "resourceLimits": {
+                    "maxOldGenerationSizeMb": 128,
+                    "stackSizeMb": 4
+                  }
+                },
+                "exited": true,
+                "readyAtMs": 194.494875,
+                "terminationCalls": 1,
+                "terminationAwaited": true,
+                "requests": [
+                  {
+                    "owner": "benign-19",
+                    "id": 1,
+                    "atMs": 194.646209,
+                    "descriptor": {
+                      "kind": "rg",
+                      "patterns": [
+                        "^a"
+                      ],
+                      "fixed": false,
+                      "case": "sensitive",
+                      "whole": false,
+                      "word": false,
+                      "nullData": false
+                    },
+                    "rows": []
+                  },
+                  {
+                    "owner": "benign-19",
+                    "id": 2,
+                    "atMs": 195.644625,
+                    "descriptor": {
+                      "kind": "rg",
+                      "patterns": [
+                        "^a"
+                      ],
+                      "fixed": false,
+                      "case": "sensitive",
+                      "whole": false,
+                      "word": false,
+                      "nullData": false
+                    },
+                    "rows": [
+                      {
+                        "bytes": "YWI=",
+                        "terminated": true
+                      }
+                    ]
+                  }
+                ],
+                "responses": [
+                  {
+                    "id": 1,
+                    "atMs": 194.942584
+                  },
+                  {
+                    "id": 2,
+                    "atMs": 195.937709
+                  }
+                ],
+                "exitCode": 1,
+                "heldResponses": 0,
+                "listeners": {
+                  "message": 0,
+                  "messageerror": 0,
+                  "error": 0,
+                  "exit": 0
+                }
+              }
+            ]
+          },
+          {
+            "owner": "benign-25",
+            "command": "owned",
+            "rejected": true,
+            "error": "close while acquiring",
+            "exactCallerReason": true,
+            "callerListeners": 0,
+            "signals": [
+              {
+                "aborted": true,
+                "listeners": 0
+              },
+              {
+                "aborted": true,
+                "listeners": 0
+              }
+            ],
+            "workers": [
+              {
+                "owner": "benign-20",
+                "url": "file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/cleanup-boundary-review/.temporary/runtime-r1-verified-packed-old-five/production-continuation-review/node_modules/virtual-bash/dist/commands/regex-execution/worker.js",
+                "options": {
+                  "execArgv": [],
+                  "resourceLimits": {
+                    "maxOldGenerationSizeMb": 128,
+                    "stackSizeMb": 4
+                  }
+                },
+                "exited": true,
+                "readyAtMs": 194.695875,
+                "terminationCalls": 1,
+                "terminationAwaited": true,
+                "requests": [
+                  {
+                    "owner": "benign-20",
+                    "id": 1,
+                    "atMs": 194.725,
+                    "descriptor": {
+                      "kind": "grep",
+                      "patterns": [
+                        "^a"
+                      ],
+                      "fixed": false,
+                      "extended": true,
+                      "insensitive": false,
+                      "whole": false,
+                      "word": false
+                    },
+                    "rows": []
+                  },
+                  {
+                    "owner": "benign-20",
+                    "id": 2,
+                    "atMs": 195.856917,
+                    "descriptor": {
+                      "kind": "grep",
+                      "patterns": [
+                        "^a"
+                      ],
+                      "fixed": false,
+                      "extended": true,
+                      "insensitive": false,
+                      "whole": false,
+                      "word": false
+                    },
+                    "rows": [
+                      {
+                        "bytes": "YWI=",
+                        "terminated": true
+                      }
+                    ]
+                  }
+                ],
+                "responses": [
+                  {
+                    "id": 1,
+                    "atMs": 195.68425
+                  },
+                  {
+                    "id": 2,
+                    "atMs": 196.541459
+                  }
+                ],
+                "exitCode": 1,
+                "heldResponses": 0,
+                "listeners": {
+                  "message": 0,
+                  "messageerror": 0,
+                  "error": 0,
+                  "exit": 0
+                }
+              },
+              {
+                "owner": "benign-19",
+                "url": "file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/cleanup-boundary-review/.temporary/runtime-r1-verified-packed-old-five/production-continuation-review/node_modules/virtual-bash/dist/commands/regex-execution/worker.js",
+                "options": {
+                  "execArgv": [],
+                  "resourceLimits": {
+                    "maxOldGenerationSizeMb": 128,
+                    "stackSizeMb": 4
+                  }
+                },
+                "exited": true,
+                "readyAtMs": 194.494875,
+                "terminationCalls": 1,
+                "terminationAwaited": true,
+                "requests": [
+                  {
+                    "owner": "benign-19",
+                    "id": 1,
+                    "atMs": 194.646209,
+                    "descriptor": {
+                      "kind": "rg",
+                      "patterns": [
+                        "^a"
+                      ],
+                      "fixed": false,
+                      "case": "sensitive",
+                      "whole": false,
+                      "word": false,
+                      "nullData": false
+                    },
+                    "rows": []
+                  },
+                  {
+                    "owner": "benign-19",
+                    "id": 2,
+                    "atMs": 195.644625,
+                    "descriptor": {
+                      "kind": "rg",
+                      "patterns": [
+                        "^a"
+                      ],
+                      "fixed": false,
+                      "case": "sensitive",
+                      "whole": false,
+                      "word": false,
+                      "nullData": false
+                    },
+                    "rows": [
+                      {
+                        "bytes": "YWI=",
+                        "terminated": true
+                      }
+                    ]
+                  }
+                ],
+                "responses": [
+                  {
+                    "id": 1,
+                    "atMs": 194.942584
+                  },
+                  {
+                    "id": 2,
+                    "atMs": 195.937709
+                  }
+                ],
+                "exitCode": 1,
+                "heldResponses": 0,
+                "listeners": {
+                  "message": 0,
+                  "messageerror": 0,
+                  "error": 0,
+                  "exit": 0
+                }
+              }
+            ]
+          }
+        ],
+        "finalWorkers": [
+          {
+            "owner": "benign-20",
+            "url": "file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/cleanup-boundary-review/.temporary/runtime-r1-verified-packed-old-five/production-continuation-review/node_modules/virtual-bash/dist/commands/regex-execution/worker.js",
+            "options": {
+              "execArgv": [],
+              "resourceLimits": {
+                "maxOldGenerationSizeMb": 128,
+                "stackSizeMb": 4
+              }
+            },
+            "exited": true,
+            "readyAtMs": 194.695875,
+            "terminationCalls": 1,
+            "terminationAwaited": true,
+            "requests": [
+              {
+                "owner": "benign-20",
+                "id": 1,
+                "atMs": 194.725,
+                "descriptor": {
+                  "kind": "grep",
+                  "patterns": [
+                    "^a"
+                  ],
+                  "fixed": false,
+                  "extended": true,
+                  "insensitive": false,
+                  "whole": false,
+                  "word": false
+                },
+                "rows": []
+              },
+              {
+                "owner": "benign-20",
+                "id": 2,
+                "atMs": 195.856917,
+                "descriptor": {
+                  "kind": "grep",
+                  "patterns": [
+                    "^a"
+                  ],
+                  "fixed": false,
+                  "extended": true,
+                  "insensitive": false,
+                  "whole": false,
+                  "word": false
+                },
+                "rows": [
+                  {
+                    "bytes": "YWI=",
+                    "terminated": true
+                  }
+                ]
+              }
+            ],
+            "responses": [
+              {
+                "id": 1,
+                "atMs": 195.68425
+              },
+              {
+                "id": 2,
+                "atMs": 196.541459
+              }
+            ],
+            "exitCode": 1,
+            "heldResponses": 0,
+            "listeners": {
+              "message": 0,
+              "messageerror": 0,
+              "error": 0,
+              "exit": 0
+            }
+          },
+          {
+            "owner": "benign-19",
+            "url": "file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/cleanup-boundary-review/.temporary/runtime-r1-verified-packed-old-five/production-continuation-review/node_modules/virtual-bash/dist/commands/regex-execution/worker.js",
+            "options": {
+              "execArgv": [],
+              "resourceLimits": {
+                "maxOldGenerationSizeMb": 128,
+                "stackSizeMb": 4
+              }
+            },
+            "exited": true,
+            "readyAtMs": 194.494875,
+            "terminationCalls": 1,
+            "terminationAwaited": true,
+            "requests": [
+              {
+                "owner": "benign-19",
+                "id": 1,
+                "atMs": 194.646209,
+                "descriptor": {
+                  "kind": "rg",
+                  "patterns": [
+                    "^a"
+                  ],
+                  "fixed": false,
+                  "case": "sensitive",
+                  "whole": false,
+                  "word": false,
+                  "nullData": false
+                },
+                "rows": []
+              },
+              {
+                "owner": "benign-19",
+                "id": 2,
+                "atMs": 195.644625,
+                "descriptor": {
+                  "kind": "rg",
+                  "patterns": [
+                    "^a"
+                  ],
+                  "fixed": false,
+                  "case": "sensitive",
+                  "whole": false,
+                  "word": false,
+                  "nullData": false
+                },
+                "rows": [
+                  {
+                    "bytes": "YWI=",
+                    "terminated": true
+                  }
+                ]
+              }
+            ],
+            "responses": [
+              {
+                "id": 1,
+                "atMs": 194.942584
+              },
+              {
+                "id": 2,
+                "atMs": 195.937709
+              }
+            ],
+            "exitCode": 1,
+            "heldResponses": 0,
+            "listeners": {
+              "message": 0,
+              "messageerror": 0,
+              "error": 0,
+              "exit": 0
+            }
+          }
+        ],
+        "lateErrors": []
+      },
+      "killed": false,
+      "outputBytes": 0,
+      "ipcBytes": 25896,
+      "readyMs": 139.69795900000008,
+      "code": 0,
+      "signal": null,
+      "closeAwaited": true,
+      "streamsAndIPCClosed": true,
+      "activeChildren": 0,
+      "childElapsedMs": 276.132834,
+      "pass": true
+    }
+  ],
+  "targetSlotsConsumed": 0,
+  "activeChildren": 0
+}

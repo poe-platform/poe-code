@@ -1,21 +1,52 @@
 {
-  "version": 1,
+  "version": 2,
   "capturedAt": "2026-08-27",
   "status": "design-only-product-writes-held",
   "observedHeadAtInitialInspection": "a1c95fc52ddeef2d753950b09dd2a26b44b4ab6e",
-  "lastReverifiedHead": "ebd77c05134bc77311609e02cf4a35c8aff0fcc2",
+  "lastReverifiedHead": "5c34372be6aedd179123ceab2663c7d52f207ed1",
   "boundSourceBlobsUnchangedAcrossObservedHeadMovement": true,
   "reverifiedHeadHistory": [
     "12e196af8d8b0866339747150b02ca00b9764a09",
-    "ebd77c05134bc77311609e02cf4a35c8aff0fcc2"
+    "ebd77c05134bc77311609e02cf4a35c8aff0fcc2",
+    "44f00bf84278e3361b52106478d59c707ab7b2bc",
+    "5c34372be6aedd179123ceab2663c7d52f207ed1"
   ],
   "reverificationDifferences": [],
   "draftQualification": {
     "priorUncommittedDesignSha256": "61cd7b70e04c97829985b49fd80f79e9e7eb5184d3af82a5b2affb4ee56cf063",
     "priorUncommittedIdentitySha256": "1c73b2a24e4d5dd8482f7c39a5fecc1916047ac3bdd6fca966c8c34fe1c6812f",
-    "refinedDesignSha256": "48141bead582558fce6227d205a72cef418b39ceb254bea4bf7812123d19f97e",
+    "priorCommittedDesignSha256": "48141bead582558fce6227d205a72cef418b39ceb254bea4bf7812123d19f97e",
+    "refinedDesignSha256": "997680bcd7b7c72b4f67dda02b22ad60344495df24b960d726fb43f724a9f835",
     "freezeClaimed": false,
     "implementationAuthorized": false
+  },
+  "sealedStage2Freeze": {
+    "commit": "98f400c4a33eeb03f825213054f90adc1fd979c4",
+    "tree": "23a7573dc942964ffff99c7f3f3456ddedddc306",
+    "parent": "12e196af8d8b0866339747150b02ca00b9764a09",
+    "rawCommitSha256": "bb9401fe4b24a4dab6d101c7313f2d6106e1fefd75ac770c28906cf7232f6376",
+    "handoff": {
+      "path": "tests/shell/cancellation-stage2-independent-20260827/HANDOFF.md",
+      "blob": "ce80f24cd554460e81aaf5517f1b3d6df1458800",
+      "sha256": "0c79db62ff68785970c19fd9e133a4701df068d87a807d1bde5e58942e96aef5"
+    },
+    "families": {
+      "total": 32,
+      "runtime": 25,
+      "controlOrderSeam": 1,
+      "types": 6
+    },
+    "correctedBaseline": "14/26 with 12 missing-integration failures",
+    "historicalBaselineRetained": "13/26 with EOF fixture correction retained",
+    "frozenMutantClasses": 10,
+    "mutantsRun": false
+  },
+  "resolvedInputs": {
+    "publicAndInternalSignalType": "readonly signal?: AbortSignal | undefined",
+    "nativeLiveDelivery": "preserve the exact reason stored and dispatched by the native AbortSignal; no literal-undefined requirement for native abort(undefined)",
+    "customUndefinedScope": "native-branded own-reason preabort fixture plus actual getter and cleanup throws",
+    "executionRejection": "only an actual escaping rejection; preserve existing handler/middleware diagnostic and numeric-status mapping",
+    "nonzeroStatusIsRejection": false
   },
   "provenanceCommits": [
     {
@@ -107,22 +138,31 @@
   "proposedPrivateHelperExtension": {
     "names": [
       "prepareChildCancellation",
-      "activateChildCancellation"
+      "activateChildCancellation",
+      "selectRuntimeCancellationOutcome"
     ],
-    "purpose": "one-shot inert validation followed by registered control-bearing child activation",
+    "purpose": "one-shot inert validation followed by registered control-bearing child activation, plus strict runtime selection from an authenticated observed origin or descendant report",
+    "stage1Gap": "no two-phase activation, no nested original stage-control input, and local reason equality remains available to the accepted Stage1 selector",
     "separateApiAndHoldoutFreezeRequired": true
   },
   "proposedOutcomeTransport": {
-    "name": "InvokeOutcomeRecord",
-    "recommendedChoice": "boundary-owned exact raw-Promise identity authentication",
+    "names": [
+      "BoundaryOutcomeRecord",
+      "InvokeOutcomeRecord"
+    ],
+    "recommendedChoice": "runtime-owned cancellation-branch origin capture plus boundary-owned exact raw-Promise transport of an already-authenticated report",
     "reasonKeyedGlobalState": false,
     "publicReasonWrappedOrMutated": false,
     "arbitraryAsyncCausalGuarantee": false,
-    "rootDecisionRequired": "accept narrow raw-Promise support or separately authorize an explicit report-aware internal capability"
+    "unknownEscapingRejection": "recommended unrelated unless independently authenticated",
+    "rootDecisionRequired": "accept conservative narrow raw-Promise support or separately authorize an explicit report-aware internal capability"
   },
   "proposedLifecycleOwner": {
     "name": "InvocationCancellationOwner",
     "cleanupImplementationEditRequired": false,
+    "ownerRegisteredOnActualParentScopeBeforeChildAcquisition": true,
+    "rootCallbackWaitsItself": false,
+    "closeFailuresAppendedAsExactAccumulatorMembers": true,
     "borrowedCancellationResourcesAdded": false,
     "selectionAfterOwnedCleanupBarrier": true,
     "closeBeforePublicSettlement": true,
@@ -135,5 +175,7 @@
     "root/package/barrel/config changes"
   ],
   "testsRun": false,
+  "independentFilesExecuted": false,
+  "mutantsRun": false,
   "productFilesChanged": false
 }

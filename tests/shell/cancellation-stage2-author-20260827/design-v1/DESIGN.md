@@ -1,14 +1,15 @@
 # Stage 2 child-cancellation integration map — HOLD
 
-Status: author design only, 2026-08-27. Product writes, executable tests, and
-cohorts remain on hold until Poincare's independent preintegration freeze and
-root release. This design adds no timeout command, public default, status
-channel, deadline counter, or `Budget.timeouts` API.
+Status: author design only, 2026-08-27. Poincare's independent preintegration
+freeze is sealed, but product writes, executable tests, cohorts, and mutants
+remain on hold until root releases Stage2 source work. This design adds no
+timeout command, public default, status channel, deadline counter, or
+`Budget.timeouts` API.
 
 ## Bound current baseline
 
-The inspected tracked source, reverified again at current `HEAD`
-`ebd77c05134bc77311609e02cf4a35c8aff0fcc2`, is clean for every proposed source
+The inspected tracked source, reverified again at observed `HEAD`
+`5c34372be6aedd179123ceab2663c7d52f207ed1`, is clean for every proposed source
 seam. The intervening concurrent HEAD movement did not change any bound source
 blob. `src/contracts/{command.ts,command.md}` and
 `src/shell/{types.ts,runtime.ts,shell.ts,cleanup.ts}` have exactly the accepted
@@ -19,13 +20,27 @@ of 618 and remains a required behavioral provenance, but its transitional
 uses the 618/current lines, including the owned-output paths now present there.
 The current private helper exactly matches accepted repair `fbbe1ef7`.
 
+The independent Stage2 fixture is sealed by commit
+`98f400c4a33eeb03f825213054f90adc1fd979c4`, tree
+`23a7573dc942964ffff99c7f3f3456ddedddc306`, on exact source parent
+`12e196af8d8b0866339747150b02ca00b9764a09`. Its committed and current
+`HANDOFF.md` is blob `ce80f24cd554460e81aaf5517f1b3d6df1458800`, SHA-256
+`0c79db62ff68785970c19fd9e133a4701df068d87a807d1bde5e58942e96aef5`.
+The sealed scope is 32 families: 25 runtime, one control-order seam, and six
+types. The corrected baseline is 14/26 with 12 missing-integration failures;
+the original 13/26 and its EOF-fixture correction remain retained. Ten frozen
+mutant classes were not run. These are inherited freeze facts, not new results
+or acceptance.
+
 ## Additive option contract
 
-Add only `readonly signal?: AbortSignal` to `CommandInvokeOptions` and the
-matching `ShellInvokeOptions`. It is the original child signal, not a controller
-or a composed signal. Its authority covers the selected child invocation and
-that child's descendants. It never cancels or closes its parent, sibling,
-unrelated pipeline stage, or another shell.
+Add only `readonly signal?: AbortSignal | undefined` to
+`CommandInvokeOptions` and the matching `ShellInvokeOptions`. This exact spelling
+accepts `{ signal: undefined }` under `exactOptionalPropertyTypes` while retaining
+readonly access. It is the original child signal, not a controller or a composed
+signal. Its authority covers the selected child invocation and that child's
+descendants. It never cancels or closes its parent, sibling, unrelated pipeline
+stage, or another shell.
 
 Omitted and explicitly undefined options retain the existing path. Absent and
 explicitly undefined `signal` use the helper's borrowed boundary: a small lease
@@ -47,6 +62,13 @@ Admission order is exact:
    sink, or owned-output acquisition. Do not reset or replace the shared budget.
 4. Only a native-branded `AbortSignal` or undefined is accepted. No reason-name,
    errno, truthiness, or signal-shaped-object test substitutes for the brand.
+
+Live delivery preserves exactly the reason dispatched and stored by the native
+`AbortSignal`. In particular, native `abort(undefined)` stores a `DOMException`;
+Stage2 does not require it to deliver literal undefined. Exact undefined is
+limited to the disclosed native-branded own-reason preaborted fixture and to
+actual thrown getter/cleanup values. No reason is wrapped, normalized, or
+mutated.
 
 ## Preintegration mechanism proposals — not frozen
 
@@ -75,17 +97,32 @@ function prepareChildCancellation(
 function activateChildCancellation(
   prepared: PreparedChildCancellation,
 ): CancellationBoundary;
+
+function selectRuntimeCancellationOutcome<Value>(
+  boundary: CancellationBoundary,
+  captured: CapturedCancellationOutcome<Value>,
+  observedOrigin?: CancellationOrigin,
+): CancellationSelection<Value>;
 ```
 
-The actual type is opaque/private. Preparation performs the existing ancestor,
-container, single `options.signal` getter, native-brand, pre-abort, snapshot, and
-capacity validation but allocates no controller and attaches no parent
-subscription or signal listener. Activation is synchronous, may be called once,
-rechecks the parent, capacity, and every original signal, then either returns a
-borrowed boundary or allocates and attaches one child link with rollback on any
-partial failure. Existing `admitChildCancellation(parent, options, snapshot)`
-can remain the compatibility spelling of prepare-then-activate with an empty
-control list.
+The actual prepared type is opaque/private. Preparation performs the existing
+ancestor check, container validation, single `options.signal` getter, and
+native-brand/pre-abort checks. When ownership is needed it also performs inert
+control/snapshot/capacity validation. It allocates no controller and attaches no
+parent subscription or signal/control listener. The exact fast path for omitted options, an explicit
+undefined options argument, an absent signal, or an explicit undefined signal,
+with no new controls, remains borrowed and creates no cancellation owner,
+controller, listener, subscription, or outcome record. Reading an explicitly
+supplied container once is its only additional host-visible action. The actual
+runtime path retains exactly the existing two native controller allocations for
+the invoke scope and command scope; the accepted small borrowed-boundary lease
+does not become an owned cancellation resource.
+
+Activation is synchronous, may be called once, rechecks the parent, capacity,
+and every original signal, then either returns the borrowed boundary or
+allocates and attaches one child link with rollback on every partial failure.
+Existing `admitChildCancellation(parent, options, snapshot)` remains the
+compatibility spelling of prepare-then-activate with an empty control list.
 
 `options.signal` alone creates the frame's `invoke-option`; its frame depth is
 the invoke settlement rank. `controls` contains only original
@@ -96,6 +133,13 @@ downward to its parent, so a child cannot publish into a parent or sibling. It
 owns and detaches its own control listeners and parent subscription. Close fixes
 its selected/delivered origin and ignores later publications.
 
+Stage1 lacks both this two-phase admission and a way to add original nested
+stage controls: `admitChildCancellation` accepts only an invoke option, and
+`createRootCancellationLink` cannot extend an existing lineage. An owned
+preparation is therefore required when either a local invoke signal or an
+original nested control is present. A control-only frame preserves its original
+role but does not invent an invoke-option rank.
+
 The same existing admission accounting applies: the child controller and each
 non-aborted local control/listener consume the child snapshot; the one parent
 subscription is admitted against the parent. Depth/maxDepth remain the existing
@@ -104,24 +148,34 @@ added. Among controls, actual post-listener delivery wins; only multiple control
 already aborted when observation begins use configured order. Later control
 delivery cannot rewrite the delivery origin.
 
+`selectRuntimeCancellationOutcome` is the separate conservative selector needed
+by runtime integration. An `observedOrigin` is accepted only by exact object
+identity when it belongs to the supplied boundary's helper-owned lineage and was
+recorded as the winning cancellation branch at a runtime-owned callsite.
+Reason equality is only a post-authentication consistency check. With no such
+origin and no helper-authenticated descendant report, an escaping rejection is
+unrelated even when `Object.is`-equal to a visible signal reason. The accepted
+Stage1 `selectCancellationOutcome` spelling and its tests remain unchanged.
+
 Tradeoff: widening `createRootCancellationLink` or re-rooting each pipeline from
 a composed signal is fewer names, but it either cannot append a nested control or
 erases its original frame/role. Duplicating the helper's validation in
-`runtime.ts` would also risk admission-order drift. Freeze the exact two private
-signatures, one-shot behavior, resource formula, control order, rollback, and
-holdouts separately before any helper edit.
+`runtime.ts` would also risk admission-order drift. Freeze the exact three
+private signatures, one-shot behavior, strict-selector authentication, resource
+formula, control order, rollback, and holdouts separately before any helper edit.
 
 ### 2. Exact rejection plus private outcome transport
 
-Recommended runtime mechanism: an owned cancellation frame has a private local
-`InvokeOutcomeRecord` set. Each record binds one exact `Promise<CommandResult>`
-object to the child's eventual `CancellationReport`; the record is not keyed by
-the reason and is never attached to, returned in, or encoded around the public
-reason. `Runtime.invoke` creates the record only for an owned cancellation link,
-binds the exact promise returned by the `context.invoke` closure, and finalizes
-the record only after `invokeScoped` has settled, its input and child scope have
-closed, the boundary has closed, and `selectCancellationOutcome` has produced a
-report. The public promise still rejects with `selection.outcome.reason` exactly.
+Recommended runtime mechanism has two private, per-boundary parts. First, a
+runtime-owned execution callsite records the raw return before assimilation and
+races/observes cancellation with a tagged branch carrying the exact
+`CancellationOrigin` supplied by that boundary's helper subscription. If the
+execution branch actually rejects first, it records an unreported escaping
+rejection. It never infers a branch from the rejection reason. Second, an owned
+invoke frame has a local `InvokeOutcomeRecord` set that binds the exact public
+child promise to the child's eventual authenticated `CancellationReport`. No
+record is keyed by reason or attached to, returned in, or encoded around the
+public reason.
 
 The proposed private runtime-only shape is:
 
@@ -132,6 +186,13 @@ interface InvokeOutcomeRecord {
   finalized: boolean;
   consumed: boolean;
   selection?: CancellationSelection<CommandResult>;
+}
+
+interface BoundaryOutcomeRecord<Value> {
+  readonly boundary: CancellationBoundary;
+  readonly rawReturn: unknown;
+  captured?: CapturedCancellationOutcome<Value>;
+  observedOrigin?: CancellationOrigin;
 }
 
 interface InvokeOutcomeChannel {
@@ -152,7 +213,11 @@ interface InvokeOutcomeChannel {
 }
 ```
 
-`consume` succeeds only when the unconsumed finalized record has
+The boundary record supplies `captured` plus `observedOrigin` to
+`selectRuntimeCancellationOutcome`. It sets `observedOrigin` only when the
+runtime-owned cancellation branch wins, never merely because the boundary is
+aborted or its reason equals a throw. The invoke-channel `consume` succeeds only
+when the unconsumed finalized record has
 `rawReturn === record.promise`, a throwing selection whose exact reason is
 `Object.is`-equal to `capturedReason`, and a helper-authenticated report. Promise
 identity plus ownership authenticates the route; equality is only a consistency
@@ -162,7 +227,7 @@ A report is consumable only at the runtime call boundary that owns both the
 record and the raw returned promise. That boundary must observe
 `rawReturn === record.promise` before promise assimilation and must observe that
 same promise reject. It then supplies that report with its captured throw to the
-enclosing `selectCancellationOutcome`. Consumption is one-shot; finalization or
+enclosing `selectRuntimeCancellationOutcome`. Consumption is one-shot; finalization or
 boundary close discards unconsumed records. Different sibling records remain
 distinct even when their reasons are the same primitive. A caught child promise,
 a replacement value/promise, or a separately thrown equal primitive does not
@@ -173,9 +238,19 @@ transparently carry a record already authenticated at an owned runtime boundary.
 The actionable sites are the `dispatchScoped` `context.invoke` closure, the raw
 registry `definition.execute(...)` return, each runtime-owned middleware adapter,
 `Runtime.invoke`/`invokeScoped`, `shebangStage`'s invoke closure, and the explicit
-`envShebang` forwarding catch. The final execution capture remains a
+`envShebang` forwarding catch. Raw handler/middleware returns are observed only
+to authenticate unchanged child-promise forwarding; this does not promote their
+ordinary errors into escaping execution rejection. The final execution capture
+remains a
 `{kind:"return"}`/`{kind:"throw", reason, report?}` discriminant, so falsy values
 remain exact. No `WeakMap` or `Map` keyed by reason is permitted.
+
+“Execution rejection” here means a rejection that actually escapes the current
+invocation mapping, such as the sealed env-getter or Budget paths. Existing
+handler/middleware errors that `command` converts to a diagnostic plus numeric
+status remain on that path. A nonzero status is a return, not a rejection; this
+mechanism must not bypass or disrupt current diagnostic, `CommandFailure`,
+`Flow`, pipefail, errexit, or numeric-status behavior.
 
 There is an irreducible limit in the current public chain. `composeMiddleware`
 and an `async` command/middleware can adopt the invoke promise and reject with
@@ -189,13 +264,14 @@ provenance capability is added. This produces safe false negatives rather than
 handled-child poisoning, but it cannot promise ranked invoke dominance through
 arbitrary `async` user code.
 
-Root must freeze one of two choices before code: (A) accept that narrow support
-contract, recommended because it preserves the current public API and exact
-reason identity; or (B) authorize and specify an explicit report-aware internal
-handler/middleware capability and its propagation rules. Choice B cannot be
+One irreducible decision remains for root: accept the conservative narrow
+contract, recommended here but not inferred as authorization, under which an
+unknown escaping rejection is unrelated and unchanged raw-promise pass-through
+is the only transparent user-code route; or separately authorize an explicit
+report-aware internal handler/middleware capability. The latter cannot be
 silently simulated with reason wrapping, promise decoration, equality matching,
-or a global reason table, and may expand the minimum source write-set. It is not
-authorized by this design.
+or a global reason table and would expand the minimum write-set. Transparent
+identity through arbitrary `async` functions is not claimed.
 
 ### 3. Two-phase ownership and settlement
 
@@ -214,6 +290,7 @@ interface InvocationCancellationOwner {
   finish<Value>(
     childBarrier: Promise<void>,
     captured: CapturedCancellationOutcome<Value>,
+    observedOrigin?: CancellationOrigin,
   ): Promise<CancellationSelection<Value>>;
 }
 ```
@@ -234,10 +311,11 @@ The exact sequence is:
    The already-existing child `InvocationScope` allocation remains and is not
    represented as cancellation work.
 3. For an owned preparation, synchronously register one owner callback on the
-   enclosing scope before `parent.child()` and before activation. The callback
-   sets admission closed and awaits the same owner finalization promise. A
-   registration failure leaves the preparation inert. There is no `await`
-   between successful registration, child-scope creation, and activation.
+   actual existing parent `InvocationScope` before `parent.child()` and before
+   activation. The callback sets admission closed and awaits the same owner
+   finalization promise. A registration failure leaves the preparation inert.
+   There is no `await` between successful registration, child-scope creation,
+   activation/recheck, and admission of cooperative command work.
 4. Create the existing child scope, activate the prepared link, and recheck the
    parent/local/control signals. On activation failure, roll back every partial
    listener/subscription, close any created child scope, append detach failures
@@ -254,8 +332,9 @@ The exact sequence is:
    the enclosing-scope owner callback waits for finalization, while the invoke
    path waits for the child scope barrier and only then finalizes the boundary.
 7. After that barrier, call `boundary.close()` once, append every exact close
-   failure to the existing shared cleanup accumulator, detach, select the fixed
-   outcome, finalize/consume the private record, and resolve the owner promise.
+   failure individually to the existing `InvocationScope.failures` array,
+   detach, select the fixed outcome, finalize/consume the private record, and
+   resolve the owner promise.
    Only then may the invoke promise settle. A parent close/dispose waits the
    registered owner callback; overlapping normal-finally/close/dispose paths
    share the same completion.
@@ -272,19 +351,23 @@ come only from their original signals.
 Root `Shell.exec` uses the same owner state with a non-self-waiting root slot:
 register an inert callback on the root scope before
 `createRootCancellationLink` acquires listeners; that callback only seals root
-admission/requests finalization and does not await the scope whose callback is
-running. `exec` awaits `scope.close()`, then closes/selects the root boundary and
+admission/requests finalization and neither awaits its own owner finalization nor
+the scope whose callback is running. `exec` awaits `scope.close()`, then closes
+and selects the root boundary and
 resolves `owner.finalized`. The existing active-exec record retains the owner so
 `dispose` awaits both `scope.close()` and `owner.finalized`; it cannot settle in
 the microtask gap between them. Root caller remains separate from the original
 `budget.controller.signal`; passing only `budget.signal` is forbidden because
 `AbortSignal.any()` loses provenance.
 
-Boundary-close failures join the existing cleanup accumulator; no callback is
-skipped because another fails. At the public root barrier the order remains:
+Boundary-close/rollback failures join the existing cleanup accumulator by exact
+member, including falsy values; owner finalization itself resolves after recording
+them rather than throwing a nested aggregate. Existing callback failures continue
+to be caught and appended by `InvocationScope.close()`, so no `cleanup.ts` edit
+or callback skip is needed. At the public root barrier the order remains:
 exact root caller > selected execution rejection > sole cleanup failure or
 ordered `AggregateError` > numeric result. At an invoke boundary it remains root
-caller > authenticated unrelated execution rejection > outermost-to-innermost
+caller > actual unrelated escaping execution rejection > outermost-to-innermost
 invoke cancellation > reported cancellation/return. First delivery is immutable
 while ranked selection may improve only until close. No owned-cleanup promise is
 abandoned with `Promise.race`, and no opaque handler, middleware, input, sink,
@@ -337,27 +420,30 @@ No `cleanup.ts`, output contract, barrel, package, root export, timeout family,
 configuration, or Budget API edit belongs in this minimum map. New executable
 tests will be author-owned only after release; no existing/frozen test is edited.
 
-## Required separate freezes and root decisions
+## Required separate freezes and one root decision
 
 The accepted helper is not pre-authorized for change. Stage 2 remains held until
-root routes these exact questions to Poincare and records a decision:
+root routes these exact mechanisms to Poincare and records a decision:
 
-1. Freeze or reject the private `prepareChildCancellation` plus
-   `activateChildCancellation` extension, including control order, one-shot
-   activation, accounting, rollback, and compatibility behavior. No helper code
-   may precede this separate API/holdout freeze.
-2. Choose outcome transport A (recommended narrow raw-Promise authentication)
-   or authorize outcome transport B with an explicit provenance capability and
-   expanded write-set. The freeze must state that equal arbitrary values alone
-   are never causal evidence and whether ranked invoke dominance is intentionally
-   limited across transformed arbitrary user async code.
+1. Freeze or reject the private `prepareChildCancellation`,
+   `activateChildCancellation`, and `selectRuntimeCancellationOutcome`
+   extensions, including control order, one-shot activation, accounting,
+   strict origin authentication, rollback, and compatibility behavior. No
+   helper code may precede this separate API/holdout freeze.
+2. Accept the recommended conservative outcome transport (unknown escaping
+   rejection stays unrelated; only exact unchanged raw-promise forwarding carries
+   an authenticated report), or authorize an explicit provenance capability and
+   expanded write-set. Equal arbitrary values alone are never causal evidence.
 3. Freeze the enclosing `InvocationCancellationOwner` protocol: inert
    registration slot, admission seal, activation rechecks, child cleanup barrier,
    boundary close/select/finalize order, disposal wait, failure accumulation, and
    lifecycle-only scope-close reason.
 
-These are mechanisms with stated tradeoffs, not questions that product code may
-answer implicitly. Re-rooting composed signals, hidden wrapping/decoration, a
+The public/internal `readonly signal?: AbortSignal | undefined` spelling, native
+live-reason boundary, and actual-escaping-rejection interpretation are resolved
+inputs, not remaining questions. The items above are mechanisms with stated
+tradeoffs, not questions product code may answer implicitly. Re-rooting composed
+signals, hidden wrapping/decoration, a
 reason-keyed table, child-to-parent cancellation publication, early boundary
 close, or cleanup abandonment are not admissible substitutes.
 
@@ -389,5 +475,6 @@ close, or cleanup abandonment are not admissible substitutes.
   late losing rejections; no cancellation-to-timeout status mapping.
 
 Poincare's independent scope is
-`tests/shell/cancellation-stage2-independent-20260827/**`; this author design
-does not inspect, edit, run, or claim results from it.
+`tests/shell/cancellation-stage2-independent-20260827/**`. Its `HANDOFF.md` and
+relevant frozen policy were read only for this authorized reconciliation; no
+independent file was edited or executed, and no new result is claimed.

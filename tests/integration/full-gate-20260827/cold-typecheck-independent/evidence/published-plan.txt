@@ -1,0 +1,90 @@
+Independent cold-typecheck review plan (2026-08-27)
+
+Owner: independent leaf verifier, not configuration/evidence author. Only new
+tests/integration/full-gate-20260827/cold-typecheck-independent/** and isolated
+/tmp/safe-bash-cold-typecheck-independent-* are writable. No commit/staging.
+Plan published before any compiler/build/pack/runtime control is executed.
+
+Frozen inputs (not moving HEAD):
+paired source e36dab2b6abc216ddc89e5786a0eba76f08a1722
+  tree a73200db83a3e9c75d1138480c10c5c5e57bb16d; expected canonical tests 470
+author-current source 0c8cf157971e8e8e6aa8bb0e70f97240c41bc609
+  tree f0315987e49b8f81aa5a856a7512008773295d72; expected canonical tests 485
+patch parent 37cc89594a708951d454e3a13c443d701ea9df68
+  tree 232d0c889f326d2109361eac59d70f7e997a056f
+retained evidence 5ce00c1e6d1a3b722c602479d994aaa1a6e95061
+closed authentication checkpoint 010411eff3dd210b9575e061914efccd65c13547
+  is context only, not a new authentication task.
+Initial observed HEAD 4e2d71c6120078dd9b76e1511804fbca13e4dd2b; dirty/staged/
+untracked concurrent work exists. Capture status/index/diff context read-only.
+
+SHA256 hash inputs:
+package-lock.json (both frozen sources and live):
+  9c04bb7d2c7d1894479f0c37ce367987c2130256e5bfbf426cfa1bd2729d740b
+old tsconfig.json:
+  21c3c30b8995b180e079fa8516150f889950d648528de116a32f254f892301cd
+fixed tsconfig.json:
+  31a3ef68430276b806701fe5d24d86aa7bb3d1630d79b4d5f381d6cd2c2a4c08
+old package.json:
+  1f9579a9be0c1e1f23f03f38babad319fc1f8af941c7755aa7ca8759584cc2f1
+fixed package.json:
+  82858a418d8974cc53ec4b9eff231e49415b51224490a78baad61f3da291eb22
+tsconfig.build.json (unchanged):
+  b57d3e5aab1f1f7ab7a70f275183ea6de255e65a2c40a0047c08d97769a1a16e
+historical selected-gnu.ts (unchanged):
+  fac0fb98961398bf8c4fb420d3d9549588ccde730457fe075c968d91bcdec0e8
+new shared-stdin-review/tsconfig.consumer.json:
+  5950b5c511fb7d0be4e0e66416de4cd33a33f64a290e321f4a9f9e4f5d8a86cc
+retained capture-manifest.json:
+  4a6d1ce6f91faffece8d23f598939a0076d56581bfbdbb9ae11d8d5e3d6a2e82
+retained source manifest hashes (JSON insertion order from git tree):
+  e36 d2c850fda1c83ec2d57f030b5dedf0523c6eb8507f8b113889d9b56ea60f8055
+  author 4c25fc1600329839fe5622dc722e2abf69a293758ee09bb5547589cf7bc2a1be
+
+Dependencies: copy existing regular files only for TypeScript 5.9.3,
+@types/node 22.20.1 and its undici-types 6.21.0 closure. Match frozen lock
+versions and retained local lock metadata; hash every reused file before/after.
+No dependency install/download. npm itself is the existing host tool; record
+Node/npm paths/versions. No ambient NODE_OPTIONS/NODE_PATH/TS config injection.
+
+Implementation: a new deterministic checker, independent of author run.mjs,
+inspect.mjs and supervise.mjs. Use immutable git objects and built-in JS archive
+decoding to recreate complete regular-file snapshots, verify git blob IDs,
+SHA256 manifests, retained capture hashes and configuration-only delta.
+No native archive prerequisite checks or unrelated tool/backend tests.
+
+Planned invocations, sequential per snapshot:
+1. Original cold npm run typecheck, then fixed cold npm run typecheck;
+   dist must be absent, exact raw diagnostics retained (paired 6 -> 0;
+   author 7 -> 1, unchanged TS7053 at stream-next independent.test.ts:91:95).
+2. tsc --listFilesOnly / --showConfig to independently reconcile every
+   src/tests TS input and 470/485 canonical test paths; only the historical
+   selected-gnu.ts leaves generic typing. JS/fixtures are separately inventoried,
+   not falsely counted as compiler TS input or test execution.
+3. New real .test.ts TS2322 probe; dedicated consumer cold failure;
+   npm run typecheck:consumers (build first); strict unchanged consumer typing
+   and file-list proof; appended TS2322 consumer probe, restored bytes.
+4. npm pack --offline --ignore-scripts --json into isolated temporary root;
+   extract with Node builtins into a separate consumer (no npm install).
+   Independently run actual 20 public imports, 60 registered commands and
+   four existing pipeline inputs/expected bytes. No network/provider operations.
+5. Frozen original aggregate/S3 type fixtures under strict standalone tsc
+   with skipLibCheck false; exact TS2322/2345/2741 invalid API diagnostics.
+   Verify resolved product files are only packed dist declarations. Poison a
+   packed declaration with TS2344, then remove packed declarations and require
+   failure despite intact source snapshot; restore and recheck positive.
+   These controls demonstrate no workspace TS path-alias fallback.
+
+Budget: two sequential snapshots; at most 44 supervised test/tool invocations
+total, each <=120 seconds, no concurrent compiler/builds, <=15 minutes runner
+wall time. At most 100 bounded metadata/snapshot git invocations (30 seconds
+each; archive operations <=120 seconds). Kill only owned child process groups
+on timeout, observe exits, verify no survivors, delete only owned temp snapshots.
+Retain every attempted outcome; failed expectations are not rewritten to green.
+No npm test/full gate, live build, dependency install, private poe-code, native
+temporary files, WebDAV/provider/authentication tests, root/source/config edits.
+
+Handoff: owned evidence/raw diagnostics, reproducible commands, precise scope
+and exclusions; explicit final per-file SHA256 manifest; detail report at
+/tmp/safe-bash-cold-typecheck-independent-detail.txt. Check owned state/processes
+and stop for root commit review without committing.

@@ -1,0 +1,42 @@
+{
+    "compilerOptions": {
+        "target": "es2023",
+        "lib": [
+            "es2023"
+        ],
+        "module": "nodenext",
+        "moduleResolution": "nodenext",
+        "strict": true,
+        "noUncheckedIndexedAccess": true,
+        "exactOptionalPropertyTypes": true,
+        "verbatimModuleSyntax": true,
+        "forceConsistentCasingInFileNames": true,
+        "skipLibCheck": false,
+        "types": [
+            "node"
+        ],
+        "noEmit": true,
+        "moduleDetection": "force",
+        "isolatedModules": true,
+        "esModuleInterop": true,
+        "allowSyntheticDefaultImports": true,
+        "resolvePackageJsonExports": true,
+        "resolvePackageJsonImports": true,
+        "resolveJsonModule": true,
+        "preserveConstEnums": true,
+        "useDefineForClassFields": true,
+        "noImplicitAny": true,
+        "noImplicitThis": true,
+        "strictNullChecks": true,
+        "strictFunctionTypes": true,
+        "strictBindCallApply": true,
+        "strictPropertyInitialization": true,
+        "strictBuiltinIteratorReturn": true,
+        "alwaysStrict": true,
+        "useUnknownInCatchVariables": true
+    },
+    "files": [
+        "./selected-gnu.ts"
+    ],
+    "exclude": []
+}

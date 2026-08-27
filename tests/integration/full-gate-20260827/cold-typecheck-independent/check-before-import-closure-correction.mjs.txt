@@ -1,0 +1,449 @@
+import assert from "node:assert/strict";
+import { execFileSync, spawn } from "node:child_process";
+import { createHash } from "node:crypto";
+import { chmodSync, closeSync, existsSync, lstatSync, mkdirSync, mkdtempSync, openSync, readFileSync, readSync, readdirSync, realpathSync, renameSync, rmSync, writeFileSync } from "node:fs";
+import { dirname, join, relative, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
+import { gunzipSync } from "node:zlib";
+
+const owned = dirname(fileURLToPath(import.meta.url));
+const repository = resolve(owned, "../../../..");
+assert.equal(repository, "/Users/kjopek/Workspace/safe-bash");
+const output = resolve(process.argv[2] ?? join(owned, "evidence"));
+assert.ok(output.startsWith(owned + "/") && !existsSync(output));
+const plan = "/tmp/safe-bash-cold-typecheck-independent-plan.txt";
+assert.ok(existsSync(plan));
+mkdirSync(output, { recursive: true });
+const root = realpathSync(mkdtempSync("/tmp/safe-bash-cold-typecheck-independent-run-"));
+const author = "0c8cf157971e8e8e6aa8bb0e70f97240c41bc609";
+const paired = "e36dab2b6abc216ddc89e5786a0eba76f08a1722";
+const evidenceRevision = "5ce00c1e6d1a3b722c602479d994aaa1a6e95061";
+const historical = "tests/commands/table-text-stress/shared-stdin-review/selected-gnu.ts";
+const dedicated = "tests/commands/table-text-stress/shared-stdin-review/tsconfig.consumer.json";
+const priorEvidence = "tests/integration/full-gate-20260827/cold-typecheck";
+const hash = bytes => createHash("sha256").update(bytes).digest("hex");
+const save = (name, value) => writeFileSync(join(output, name), JSON.stringify(value, null, 2) + "\n");
+const started = Date.now();
+const report = { startedAt: new Date(started).toISOString(), root, author, paired, evidenceRevision, planSha256: hash(readFileSync(plan)), checkerSha256: hash(readFileSync(fileURLToPath(import.meta.url))), phases: [], snapshots: [], status: "running" };
+let gitInvocations = 0;
+function git(...args) {
+  assert.ok(++gitInvocations <= 100, "Metadata process budget");
+  return execFileSync("git", args, { cwd: repository, env: { ...process.env, GIT_OPTIONAL_LOCKS: "0" }, timeout: args[0] === "archive" ? 120000 : 30000, maxBuffer: 32 * 1024 * 1024 });
+}
+const committed = (revision, path) => git("show", `${revision}:${path}`);
+const alive = pid => { try { process.kill(-pid, 0); return true; } catch (error) { if (error.code === "ESRCH") return false; throw error; } };
+const delay = milliseconds => new Promise(resolveDelay => setTimeout(resolveDelay, milliseconds));
+const environment = {
+  PATH: `${dirname(process.execPath)}:/usr/bin:/bin:/usr/sbin:/sbin`, HOME: join(root, "home"), TMPDIR: join(root, "tmp"),
+  LANG: "C", LC_ALL: "C", TZ: "UTC", npm_config_offline: "true", npm_config_ignore_scripts: "true", npm_config_audit: "false", npm_config_fund: "false",
+  npm_config_registry: "http://127.0.0.1:1", npm_config_cache: join(root, "cache"), npm_config_userconfig: join(root, "npmrc"), npm_config_globalconfig: join(root, "global-npmrc"),
+};
+for (const directory of [environment.HOME, environment.TMPDIR]) mkdirSync(directory);
+writeFileSync(environment.npm_config_userconfig, "");
+writeFileSync(environment.npm_config_globalconfig, "");
+writeFileSync(join(output, "published-plan.txt"), readFileSync(plan));
+
+async function phase(label, command, args, cwd, expected = 0) {
+  assert.ok(report.phases.length < 44, "Test/tool invocation budget");
+  const remaining = 15 * 60 * 1000 - (Date.now() - started);
+  assert.ok(remaining > 0, "Runner wall budget");
+  const stdoutPath = join(output, label + ".stdout.txt");
+  const stderrPath = join(output, label + ".stderr.txt");
+  const stdoutDescriptor = openSync(stdoutPath, "wx");
+  const stderrDescriptor = openSync(stderrPath, "wx");
+  const phaseStart = Date.now();
+  const child = spawn(command, args, { cwd, env: environment, detached: true, stdio: ["ignore", stdoutDescriptor, stderrDescriptor] });
+  closeSync(stdoutDescriptor);
+  closeSync(stderrDescriptor);
+  let timedOut = false;
+  let spawnError;
+  const timeout = setTimeout(() => {
+    timedOut = true;
+    if (child.pid && alive(child.pid)) process.kill(-child.pid, "SIGKILL");
+  }, Math.min(120000, remaining));
+  const result = await new Promise(resolveClose => {
+    child.on("error", error => { spawnError = String(error); });
+    child.on("close", (status, signal) => resolveClose({ status, signal }));
+  });
+  clearTimeout(timeout);
+  const groupAliveOnClose = child.pid ? alive(child.pid) : false;
+  if (groupAliveOnClose) {
+    process.kill(-child.pid, "SIGKILL");
+    for (let attempt = 0; attempt < 20 && alive(child.pid); attempt += 1) await delay(50);
+  }
+  const observation = { label, command, args, cwd, expected, ...result, pid: child.pid, spawnError, timedOut, groupAliveOnClose, groupSurvives: child.pid ? alive(child.pid) : false, elapsedMs: Date.now() - phaseStart, stdout: relative(output, stdoutPath), stderr: relative(output, stderrPath) };
+  report.phases.push(observation);
+  save("report.json", report);
+  assert.equal(spawnError, undefined, label);
+  assert.equal(timedOut, false, label);
+  assert.equal(observation.groupSurvives, false, label);
+  assert.equal(groupAliveOnClose, false, label + " leaked descendants");
+  assert.equal(result.status, expected, label + " (see raw outputs)");
+  return { ...observation, text: readFileSync(stdoutPath, "utf8") + readFileSync(stderrPath, "utf8") };
+}
+
+function parseDiagnostics(text) {
+  const rows = [];
+  for (const line of text.split("\n")) {
+    const match = /^(.*)\((\d+),(\d+)\): error TS(\d+): (.*)$/.exec(line);
+    if (match) rows.push({ path: match[1], line: Number(match[2]), column: Number(match[3]), code: Number(match[4]), message: match[5] });
+  }
+  assert.equal(rows.length, [...text.matchAll(/error TS\d+:/g)].length, "Unparsed diagnostic must not be dropped");
+  return rows;
+}
+const diagnosticCodes = rows => rows.map(row => row.code).sort((left, right) => left - right);
+
+function unpack(archive, destination) {
+  const descriptor = openSync(archive, "r");
+  const read = (length, position) => {
+    const bytes = Buffer.alloc(length);
+    assert.equal(readSync(descriptor, bytes, 0, length, position), length);
+    return bytes;
+  };
+  const field = (header, start, length) => header.subarray(start, start + length).toString().replace(/\0.*$/s, "");
+  const entries = [];
+  let position = 0;
+  let extended = {};
+  try {
+    while (true) {
+      const header = read(512, position);
+      position += 512;
+      if (header.every(byte => byte === 0)) break;
+      const checksum = parseInt(field(header, 148, 8).trim(), 8);
+      assert.equal(header.reduce((sum, value, index) => sum + (index >= 148 && index < 156 ? 32 : value), 0), checksum);
+      const size = parseInt(field(header, 124, 12).trim() || "0", 8);
+      const mode = parseInt(field(header, 100, 8).trim() || "0", 8);
+      const type = field(header, 156, 1);
+      const bytes = read(size, position);
+      position += Math.ceil(size / 512) * 512;
+      if (type === "g" || type === "x") {
+        const values = {};
+        let offset = 0;
+        while (offset < bytes.length) {
+          const separator = bytes.indexOf(32, offset);
+          const length = Number(bytes.subarray(offset, separator).toString());
+          assert.ok(length > 0);
+          const record = bytes.subarray(separator + 1, offset + length - 1).toString();
+          const equals = record.indexOf("=");
+          values[record.slice(0, equals)] = record.slice(equals + 1);
+          offset += length;
+        }
+        if (type === "x") extended = values;
+        continue;
+      }
+      const prefix = field(header, 345, 155);
+      const path = extended.path ?? (prefix ? prefix + "/" : "") + field(header, 0, 100);
+      extended = {};
+      assert.ok(path && !path.startsWith("/") && !path.split("/").includes("..") && !path.includes("\\"));
+      const target = join(destination, path);
+      if (type === "5") { mkdirSync(target, { recursive: true }); continue; }
+      assert.ok(type === "0" || type === "", `Nonregular archive entry ${path}: ${type}`);
+      assert.ok(!existsSync(target), `Duplicate archive entry ${path}`);
+      mkdirSync(dirname(target), { recursive: true });
+      writeFileSync(target, bytes);
+      chmodSync(target, mode & 0o777);
+      assert.ok(lstatSync(target).isFile() && lstatSync(target).nlink === 1);
+      entries.push(path);
+    }
+  } finally { closeSync(descriptor); }
+  return entries;
+}
+
+function tree(revision) {
+  return git("ls-tree", "-rzl", "--full-tree", revision).toString().split("\0").filter(Boolean).map(row => {
+    const separator = row.indexOf("\t");
+    const [mode, type, blob, size] = row.slice(0, separator).trim().split(/\s+/);
+    assert.ok(["100644", "100755"].includes(mode) && type === "blob");
+    return { path: row.slice(separator + 1), mode, blob, bytes: Number(size) };
+  });
+}
+
+function context() {
+  return {
+    at: new Date().toISOString(), head: git("rev-parse", "HEAD").toString().trim(),
+    status: git("status", "--porcelain=v1", "--untracked-files=all").toString(),
+    unstagedDiffSha256: hash(git("diff", "--binary")), stagedDiffSha256: hash(git("diff", "--cached", "--binary")),
+    indexSha256: hash(git("ls-files", "--stage", "-z")),
+    currentCanonicalTracked: git("ls-files", "-z", "tests").toString().split("\0").filter(path => path.endsWith(".test.ts")).length,
+    note: "Status names only for untracked/unowned native artifacts; their contents are not read. Current HEAD/worktree is not a compiler cohort.",
+  };
+}
+
+const dependencies = {};
+const dependencyPackages = ["typescript", "@types/node", "undici-types"];
+function copyDependencies(source) {
+  const sourceRoot = join(repository, "node_modules");
+  function copy(local) {
+    const path = join(sourceRoot, local);
+    const info = lstatSync(path);
+    assert.equal(info.isSymbolicLink(), false, path);
+    if (info.isDirectory()) { for (const name of readdirSync(path).sort()) copy(local + "/" + name); return; }
+    assert.ok(info.isFile());
+    const bytes = readFileSync(path);
+    const target = join(source, "node_modules", local);
+    mkdirSync(dirname(target), { recursive: true });
+    writeFileSync(target, bytes);
+    chmodSync(target, info.mode & 0o777);
+    if (dependencies[local]) assert.equal(hash(bytes), dependencies[local]);
+    dependencies[local] = hash(bytes);
+    assert.equal(lstatSync(target).nlink, 1);
+  }
+  for (const name of dependencyPackages) copy(name);
+  mkdirSync(join(source, "node_modules/.bin"));
+  const compiler = join(source, "node_modules/typescript/bin/tsc");
+  const shim = `#!/bin/sh\nexec '${process.execPath}' '${compiler}' "$@"\n`;
+  writeFileSync(join(source, "node_modules/.bin/tsc"), shim);
+  chmodSync(join(source, "node_modules/.bin/tsc"), 0o755);
+  return compiler;
+}
+
+try {
+  report.initialContext = context();
+  save("initial-context.json", report.initialContext);
+  report.node = { version: process.version, executable: process.execPath, sha256: hash(readFileSync(process.execPath)), platform: process.platform, arch: process.arch };
+  report.npm = { path: realpathSync(join(dirname(process.execPath), "npm")), version: (await phase("npm-version", "npm", ["--version"], root)).text.trim() };
+  report.environment = environment;
+  const oldConfig = committed(author + "^", "tsconfig.json");
+  const fixedConfig = committed(author, "tsconfig.json");
+  const consumerConfig = committed(author, dedicated);
+  const fixedPackage = committed(author, "package.json");
+  const originalPackage = JSON.parse(committed(author + "^", "package.json"));
+  const currentPackage = JSON.parse(fixedPackage);
+  const script = currentPackage.scripts["typecheck:consumers"];
+  assert.equal(script, `npm run build && tsc --noEmit -p ${dedicated}`);
+  delete currentPackage.scripts["typecheck:consumers"];
+  assert.deepEqual(currentPackage, originalPackage);
+  const originalConfiguration = JSON.parse(oldConfig);
+  const fixedConfiguration = JSON.parse(fixedConfig);
+  assert.deepEqual(fixedConfiguration, { ...originalConfiguration, exclude: [...originalConfiguration.exclude, historical] });
+  assert.deepEqual(JSON.parse(consumerConfig), { extends: "../../../../tsconfig.json", compilerOptions: { noEmit: true, skipLibCheck: false }, files: ["selected-gnu.ts"], include: [], exclude: [] });
+  const changedPaths = git("diff-tree", "--no-commit-id", "--name-only", "-r", author).toString().trim().split("\n");
+  assert.deepEqual(changedPaths, ["package.json", dedicated, "tsconfig.json"]);
+  report.patch = { changedPaths, oldConfiguration: originalConfiguration, fixedConfiguration, dedicatedConfiguration: JSON.parse(consumerConfig), script, noProductOrAssertionEdits: true };
+  const frozenLock = committed(author, "package-lock.json");
+  assert.equal(hash(frozenLock), "9c04bb7d2c7d1894479f0c37ce367987c2130256e5bfbf426cfa1bd2729d740b");
+  assert.equal(hash(frozenLock), hash(committed(paired, "package-lock.json")));
+  assert.equal(hash(frozenLock), hash(readFileSync(join(repository, "package-lock.json"))));
+  const lock = JSON.parse(frozenLock);
+  const installedLock = JSON.parse(readFileSync(join(repository, "node_modules/.package-lock.json")));
+  report.lockInputs = { frozenSha256: hash(frozenLock), installedLockSha256: hash(readFileSync(join(repository, "node_modules/.package-lock.json"))) };
+  report.dependencyClosure = dependencyPackages.map(name => {
+    const installed = JSON.parse(readFileSync(join(repository, "node_modules", name, "package.json")));
+    const locked = lock.packages["node_modules/" + name];
+    assert.equal(installed.version, locked.version);
+    assert.deepEqual(installedLock.packages["node_modules/" + name], locked);
+    for (const dependency of Object.keys(installed.dependencies ?? {})) assert.ok(dependencyPackages.includes(dependency));
+    return { name, installedVersion: installed.version, locked, manifestSha256: hash(readFileSync(join(repository, "node_modules", name, "package.json"))) };
+  });
+  report.dependencyAssurance = "Existing installed bytes, versions and local lock metadata matched and fully hashed; registry tarball integrity was NOT independently fetched/recomputed. No install. Only tsc and its declaration closure copied; tsx/esbuild not executed.";
+  const retained = join(root, "retained");
+  mkdirSync(retained);
+  const retainedArchive = join(root, "retained.tar");
+  git("archive", "-o", retainedArchive, evidenceRevision, priorEvidence);
+  unpack(retainedArchive, retained);
+  const capture = JSON.parse(readFileSync(join(retained, priorEvidence, "capture-manifest.json")));
+  report.retainedCapture = { manifestSha256: hash(readFileSync(join(retained, priorEvidence, "capture-manifest.json"))), entries: [] };
+  for (const entry of capture.captures) {
+    assert.ok(entry.path.startsWith(priorEvidence + "/"));
+    const bytes = readFileSync(join(retained, entry.path));
+    const decoded = entry.encoding === "raw" ? bytes : Buffer.from(bytes.toString().trim(), "base64");
+    assert.ok(entry.encoding === "raw" || entry.encoding === "base64");
+    assert.equal(decoded.length, entry.bytes, entry.path);
+    assert.equal(hash(decoded), entry.sha256, entry.path);
+    report.retainedCapture.entries.push({ path: entry.path, bytes: decoded.length, sha256: hash(decoded) });
+  }
+  save("retained-capture-verification.json", report.retainedCapture);
+  const fixtures = [
+    ["tests/integration/full-gate-20260827/consumer.mts.fixture", "aggregate.mts"],
+    ["tests/integration/s3-http-exports/fixtures/consumer.ts.fixture", "consumer.mts"],
+    ["tests/integration/s3-http-exports/fixtures/invalid.ts.fixture", "invalid.mts"],
+  ].map(([path, destination]) => ({ path, destination, bytes: committed(author, path) }));
+  report.validationFixtures = fixtures.map(({ path, destination, bytes }) => ({ path, destination, revision: author, sha256: hash(bytes), execution: "Type-only; original bytes, not runtime" }));
+  for (const [label, revision, canonicalCount, retainedName] of [["paired", paired, 470, "e36-control-final"], ["author", author, 485, "current-final"]]) {
+    const source = join(root, label, "source");
+    const consumer = join(root, label, "consumer");
+    mkdirSync(source, { recursive: true });
+    mkdirSync(consumer);
+    const rows = tree(revision);
+    const archive = join(root, label, "source.tar");
+    git("archive", "-o", archive, revision);
+    const extracted = unpack(archive, source);
+    assert.deepEqual(extracted.sort(), rows.map(row => row.path).sort());
+    const hashes = {};
+    for (const row of rows) {
+      const bytes = readFileSync(join(source, row.path));
+      assert.equal(bytes.length, row.bytes);
+      assert.equal(createHash("sha1").update(`blob ${bytes.length}\0`).update(bytes).digest("hex"), row.blob, row.path);
+      assert.equal(lstatSync(join(source, row.path)).nlink, 1);
+      hashes[row.path] = hash(bytes);
+    }
+    const retainedReport = JSON.parse(readFileSync(join(retained, priorEvidence, "evidence", retainedName, "report.json")));
+    const snapshot = { label, revision, tree: git("rev-parse", `${revision}^{tree}`).toString().trim(), source, archiveSha256: hash(readFileSync(archive)), sourceManifestSha256: hash(JSON.stringify(hashes)), files: rows.length, bytes: rows.reduce((sum, row) => sum + row.bytes, 0), checks: {} };
+    report.snapshots.push(snapshot);
+    assert.equal(snapshot.sourceManifestSha256, retainedReport.sourceManifestSha256);
+    assert.equal(snapshot.archiveSha256, retainedReport.archiveSha256);
+    assert.equal(hashes[historical], "fac0fb98961398bf8c4fb420d3d9549588ccde730457fe075c968d91bcdec0e8");
+    save(label + "-snapshot-manifest.json", rows.map(row => ({ ...row, sha256: hashes[row.path] })));
+    const canonical = rows.filter(row => row.path.startsWith("tests/") && row.path.endsWith(".test.ts")).map(row => row.path);
+    assert.equal(canonical.length, canonicalCount);
+    assert.deepEqual(canonical, retainedReport.canonicalTestFiles);
+    if (label === "paired") {
+      assert.equal(hash(readFileSync(join(source, "tsconfig.json"))), hash(oldConfig));
+      assert.deepEqual(JSON.parse(readFileSync(join(source, "package.json"))), originalPackage);
+      writeFileSync(join(source, "tsconfig.json"), fixedConfig);
+      writeFileSync(join(source, "package.json"), fixedPackage);
+      writeFileSync(join(source, dedicated), consumerConfig);
+      snapshot.overlay = ["package.json", dedicated, "tsconfig.json"].map(path => ({ path, sha256: hash(readFileSync(join(source, path))) }));
+      for (const path of ["package.json", dedicated, "tsconfig.json"]) hashes[path] = hash(readFileSync(join(source, path)));
+    }
+    const compiler = copyDependencies(source);
+    const run = (name, command, args, cwd = source, expected = 0) => phase(label + "-" + name, command, args, cwd, expected);
+    const cold = name => run(name, "npm", ["run", "typecheck"], source, name === "fixed-cold" && label === "paired" ? 0 : 2);
+    assert.equal(existsSync(join(source, "dist")), false);
+    writeFileSync(join(source, "tsconfig.json"), oldConfig);
+    let original;
+    let originalFiles;
+    try {
+      original = parseDiagnostics((await cold("original-cold")).text);
+      originalFiles = (await run("original-files", process.execPath, [compiler, "--listFilesOnly"])).text.trim().split("\n").map(path => realpathSync(resolve(source, path)));
+    }
+    finally { writeFileSync(join(source, "tsconfig.json"), fixedConfig); }
+    assert.equal(original.length, label === "paired" ? 6 : 7);
+    assert.deepEqual(diagnosticCodes(original.filter(row => row.path === historical)), [2307, 2307, 7006, 7006, 7006, 7006]);
+    const other = original.filter(row => row.path !== historical);
+    if (label === "paired") assert.deepEqual(other, []);
+    else assert.deepEqual(other.map(({ path, line, column, code }) => ({ path, line, column, code })), [{ path: "tests/commands/stream-next-stress/independent.test.ts", line: 91, column: 95, code: 7053 }]);
+    const fixed = parseDiagnostics((await cold("fixed-cold")).text);
+    assert.deepEqual(fixed, other);
+    assert.equal(existsSync(join(source, "dist")), false);
+    snapshot.checks.cold = { original, fixed, noDistBeforeAndAfter: true };
+    const effective = JSON.parse((await run("effective-root", process.execPath, [compiler, "--showConfig"])).text);
+    const discovered = (await run("cold-files", process.execPath, [compiler, "--listFilesOnly"])).text.trim().split("\n").map(path => realpathSync(resolve(source, path)));
+    const actualTs = rows.filter(row => /^(src|tests)\//.test(row.path) && /\.(?:ts|mts|cts)$/.test(row.path)).map(row => row.path);
+    const rootTs = actualTs.filter(path => path.endsWith(".ts"));
+    const expectedTs = rootTs.filter(path => path !== historical);
+    const listed = discovered.filter(path => path.startsWith(source + "/src/") || path.startsWith(source + "/tests/")).map(path => relative(source, path)).sort();
+    assert.ok(expectedTs.every(path => listed.includes(path)));
+    assert.ok(listed.every(path => actualTs.includes(path)));
+    assert.deepEqual(originalFiles.filter(path => !discovered.includes(path)), [join(source, historical)]);
+    assert.deepEqual(discovered.filter(path => !originalFiles.includes(path)), []);
+    assert.deepEqual(effective.files.map(path => path.replace(/^\.\//, "")).sort(), [...expectedTs].sort());
+    assert.ok(canonical.every(path => listed.includes(path)));
+    assert.ok(discovered.every(path => path.startsWith(source + "/src/") || path.startsWith(source + "/tests/") || dependencyPackages.some(name => path.startsWith(join(source, "node_modules", name) + "/"))));
+    const otherCode = rows.filter(row => /^(src|tests)\//.test(row.path) && /\.(?:js|mjs|cjs)$/.test(row.path)).map(row => row.path);
+    const preexistingOmissions = actualTs.filter(path => !originalFiles.includes(join(source, path)));
+    const missing = actualTs.filter(path => !listed.includes(path));
+    assert.deepEqual([...missing].sort(), [...preexistingOmissions, historical].sort());
+    assert.ok(actualTs.filter(path => /\.d\.(?:mts|cts)$/.test(path)).every(path => listed.includes(path)));
+    snapshot.checks.inclusion = { canonicalCount, canonicalIncluded: canonical.filter(path => listed.includes(path)).length, actualSourceTs: rootTs.filter(path => path.startsWith("src/")).length, actualTestTs: rootTs.filter(path => path.startsWith("tests/")).length, rootIncluded: expectedTs.length, transitivelyIncludedDeclarations: listed.filter(path => !expectedTs.includes(path)), allTypeScriptFiles: actualTs.length, compilerIncluded: listed.length, missing, preexistingOmissions, newlyExcluded: [historical], canonical, compilerInputs: listed, otherCodeNotClaimedAsTypechecked: otherCode, effectiveCompilerOptions: effective.compilerOptions, finding: preexistingOmissions.length ? "All *.ts roots and canonical tests included except the routed historical consumer; preexisting standalone *.mts omissions prevent an unqualified all-TypeScript-files claim." : null };
+    const probe = join(source, "tests/independent-cold-probe.test.ts");
+    assert.equal(existsSync(probe), false);
+    writeFileSync(probe, 'const independentColdProbe: number = "bad"; export {};\n');
+    try {
+      const diagnostics = parseDiagnostics((await run("root-negative", "npm", ["run", "typecheck"], source, 2)).text);
+      assert.deepEqual(diagnostics.filter(row => row.path !== "tests/independent-cold-probe.test.ts"), other);
+      assert.deepEqual(diagnosticCodes(diagnostics.filter(row => row.path === "tests/independent-cold-probe.test.ts")), [2322]);
+      snapshot.checks.rootNegative = diagnostics;
+    } finally { rmSync(probe); }
+    const beforeBuild = parseDiagnostics((await run("consumer-before-build", process.execPath, [compiler, "--noEmit", "-p", dedicated], source, 2)).text);
+    assert.deepEqual(beforeBuild, original.filter(row => row.path === historical));
+    snapshot.checks.consumerBeforeBuild = beforeBuild;
+    await run("build-first-consumers", "npm", ["run", "typecheck:consumers"]);
+    assert.ok(existsSync(join(source, "dist/index.d.ts")));
+    const consumerEffective = JSON.parse((await run("effective-consumer", process.execPath, [compiler, "--showConfig", "-p", dedicated])).text);
+    assert.equal(consumerEffective.compilerOptions.skipLibCheck, false);
+    assert.equal(consumerEffective.compilerOptions.strict, true);
+    assert.equal(consumerEffective.compilerOptions.noEmit, true);
+    assert.deepEqual(consumerEffective.files, ["./selected-gnu.ts"]);
+    const builtList = (await run("unchanged-consumer-strict", process.execPath, [compiler, "--noEmit", "-p", dedicated, "--listFiles"])).text.trim().split("\n").map(path => realpathSync(resolve(source, path)));
+    assert.ok(builtList.includes(join(source, historical)));
+    assert.ok(builtList.includes(join(source, "dist/index.d.ts")));
+    snapshot.checks.unchangedConsumer = { sha256: hash(readFileSync(join(source, historical))), effectiveConfiguration: consumerEffective, files: builtList };
+    const originalConsumer = readFileSync(join(source, historical));
+    writeFileSync(join(source, historical), Buffer.concat([originalConsumer, Buffer.from('\nconst independentConsumerProbe: number = "bad";\n')]));
+    try {
+      const diagnostics = parseDiagnostics((await run("consumer-negative", process.execPath, [compiler, "--noEmit", "-p", dedicated], source, 2)).text);
+      assert.deepEqual(diagnosticCodes(diagnostics), [2322]);
+      assert.equal(diagnostics[0].path, historical);
+      snapshot.checks.consumerNegative = diagnostics;
+    } finally { writeFileSync(join(source, historical), originalConsumer); }
+    const packed = JSON.parse((await run("pack", "npm", ["pack", "--offline", "--ignore-scripts", "--json", "--pack-destination", join(root, label)])).text)[0];
+    const tarball = join(root, label, packed.filename);
+    const tar = join(root, label, "packed.tar");
+    writeFileSync(tar, gunzipSync(readFileSync(tarball)));
+    const packageStaging = join(root, label, "unpacked");
+    mkdirSync(packageStaging);
+    const packageFiles = unpack(tar, packageStaging);
+    assert.ok(packageFiles.every(path => path.startsWith("package/")));
+    mkdirSync(join(consumer, "node_modules"));
+    renameSync(join(packageStaging, "package"), join(consumer, "node_modules/virtual-bash"));
+    assert.equal(existsSync(join(consumer, "node_modules/virtual-bash/src")), false);
+    writeFileSync(join(consumer, "package.json"), '{"private":true,"type":"module"}\n');
+    for (const fixture of fixtures) writeFileSync(join(consumer, fixture.destination), fixture.bytes);
+    writeFileSync(join(consumer, "public-control.mjs"), readFileSync(join(owned, "public-control.mjs")));
+    snapshot.checks.package = { sha256: hash(readFileSync(tarball)), npmIntegrity: packed.integrity, files: packageFiles, install: "No npm install: authenticated npm pack payload extracted using Node builtins into separate regular files" };
+    const publicResult = await run("packed-runtime", process.execPath, ["public-control.mjs", join(source, "src/index.ts")], consumer);
+    snapshot.checks.public = JSON.parse(publicResult.text);
+    const options = [compiler, "--noEmit", "--target", "ES2023", "--module", "NodeNext", "--moduleResolution", "NodeNext", "--strict", "--noUncheckedIndexedAccess", "--exactOptionalPropertyTypes", "--verbatimModuleSyntax", "--skipLibCheck", "false", "--types", "node", "--typeRoots", join(source, "node_modules/@types")];
+    const positive = await run("packed-positive", process.execPath, [...options, "--listFiles", "aggregate.mts", "consumer.mts"], consumer);
+    const typeFiles = positive.text.trim().split("\n").map(path => realpathSync(resolve(consumer, path)));
+    const productDeclarations = typeFiles.filter(path => path.startsWith(join(consumer, "node_modules/virtual-bash") + "/"));
+    assert.ok(productDeclarations.includes(join(consumer, "node_modules/virtual-bash/dist/index.d.ts")));
+    assert.ok(productDeclarations.every(path => path.includes("/dist/") && path.endsWith(".d.ts")));
+    assert.ok(typeFiles.every(path => path.startsWith(consumer + "/") || dependencyPackages.some(name => path.startsWith(join(source, "node_modules", name) + "/"))));
+    snapshot.checks.packedTypeFiles = typeFiles;
+    const invalid = parseDiagnostics((await run("packed-negative", process.execPath, [...options, "invalid.mts"], consumer, 2)).text);
+    assert.deepEqual(diagnosticCodes(invalid), [2322, 2345, 2741]);
+    assert.ok(invalid.every(row => row.path === "invalid.mts"));
+    snapshot.checks.packedNegative = invalid;
+    const declaration = join(consumer, "node_modules/virtual-bash/dist/index.d.ts");
+    const originalDeclaration = readFileSync(declaration);
+    writeFileSync(declaration, Buffer.concat([originalDeclaration, Buffer.from('\ntype IndependentBound<Value extends number> = Value;\nexport type IndependentDeclarationPoison = IndependentBound<"bad">;\n')]));
+    try {
+      const diagnostics = parseDiagnostics((await run("declaration-poison", process.execPath, [...options, "aggregate.mts", "consumer.mts"], consumer, 2)).text);
+      assert.deepEqual(diagnosticCodes(diagnostics), [2344]);
+      assert.equal(diagnostics[0].path, "node_modules/virtual-bash/dist/index.d.ts");
+      snapshot.checks.declarationPoison = diagnostics;
+    } finally { writeFileSync(declaration, originalDeclaration); }
+    const removed = productDeclarations.map(path => ({ path, held: path + ".independent-held" }));
+    for (const item of removed) renameSync(item.path, item.held);
+    try {
+      const diagnostics = parseDiagnostics((await run("source-fallback-negative", process.execPath, [...options, "aggregate.mts", "consumer.mts"], consumer, 2)).text);
+      assert.deepEqual(diagnosticCodes(diagnostics), [7016, 7016, 7016, 7016, 7016, 7016]);
+      assert.ok(diagnostics.every(row => ["aggregate.mts", "consumer.mts"].includes(row.path)));
+      assert.ok(existsSync(join(source, "src/index.ts")) && existsSync(join(source, "dist/index.d.ts")));
+      snapshot.checks.sourceFallback = { diagnostics, sourceAndWorkspaceDistStillPresent: true, removedDeclarationCount: removed.length };
+    } finally { for (const item of removed) renameSync(item.held, item.path); }
+    await run("packed-restored", process.execPath, [...options, "aggregate.mts", "consumer.mts"], consumer);
+    for (const [path, expected] of Object.entries(hashes)) assert.equal(hash(readFileSync(join(source, path))), expected, path);
+    for (const [path, expected] of Object.entries(dependencies)) {
+      assert.equal(hash(readFileSync(join(source, "node_modules", path))), expected);
+      assert.equal(hash(readFileSync(join(repository, "node_modules", path))), expected);
+    }
+    for (const fixture of fixtures) assert.equal(hash(readFileSync(join(consumer, fixture.destination))), hash(fixture.bytes));
+    assert.equal(hash(readFileSync(declaration)), hash(originalDeclaration));
+    snapshot.checks.inputsUnchangedAfterRestoration = true;
+    save(label + "-results.json", snapshot);
+    save("report.json", report);
+    rmSync(join(root, label), { recursive: true });
+  }
+  report.status = report.snapshots.some(snapshot => snapshot.checks.inclusion.preexistingOmissions.length) ? "verified-configuration-delta-with-preexisting-inclusion-limit" : "verified-bounded-configuration-only";
+} catch (error) {
+  report.status = "failed";
+  report.error = { message: error.message, stack: error.stack };
+  process.exitCode = 1;
+} finally {
+  save("dependency-file-hashes.json", dependencies);
+  report.finalContext = context();
+  save("final-context.json", report.finalContext);
+  const survivingGroups = report.phases.filter(row => row.pid && alive(row.pid)).map(row => row.pid);
+  for (const pid of survivingGroups) process.kill(-pid, "SIGKILL");
+  rmSync(root, { recursive: true, force: true });
+  report.cleanup = { survivingGroupsAtFinalCheck: survivingGroups, temporaryRootRemoved: !existsSync(root), ownedRoot: root };
+  report.gitInvocations = gitInvocations;
+  report.finishedAt = new Date().toISOString();
+  report.elapsedMs = Date.now() - started;
+  report.dependencyFilesSha256 = hash(JSON.stringify(dependencies));
+  save("report.json", report);
+  console.log(JSON.stringify({ status: report.status, error: report.error, phases: report.phases.length, snapshots: report.snapshots.map(row => ({ label: row.label, inclusion: { canonical: row.checks.inclusion?.canonicalIncluded, sourceTs: row.checks.inclusion?.actualSourceTs, testTs: row.checks.inclusion?.actualTestTs }, coldDiagnostics: row.checks.cold ? [row.checks.cold.original.length, row.checks.cold.fixed.length] : undefined })), cleanup: report.cleanup, elapsedMs: report.elapsedMs }, null, 2));
+}

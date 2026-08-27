@@ -1,0 +1,412 @@
+[
+  {
+    "label": "paired",
+    "revision": "e36dab2b6abc216ddc89e5786a0eba76f08a1722",
+    "cold": {
+      "original": [
+        {
+          "path": "tests/commands/table-text-stress/shared-stdin-review/selected-gnu.ts",
+          "line": 34,
+          "column": 119,
+          "code": 2307,
+          "message": "Cannot find module 'virtual-bash' or its corresponding type declarations."
+        },
+        {
+          "path": "tests/commands/table-text-stress/shared-stdin-review/selected-gnu.ts",
+          "line": 35,
+          "column": 65,
+          "code": 2307,
+          "message": "Cannot find module 'virtual-bash/commands/table-text' or its corresponding type declarations."
+        },
+        {
+          "path": "tests/commands/table-text-stress/shared-stdin-review/selected-gnu.ts",
+          "line": 37,
+          "column": 50,
+          "code": 7006,
+          "message": "Parameter 'command' implicitly has an 'any' type."
+        },
+        {
+          "path": "tests/commands/table-text-stress/shared-stdin-review/selected-gnu.ts",
+          "line": 38,
+          "column": 43,
+          "code": 7006,
+          "message": "Parameter 'command' implicitly has an 'any' type."
+        },
+        {
+          "path": "tests/commands/table-text-stress/shared-stdin-review/selected-gnu.ts",
+          "line": 41,
+          "column": 29,
+          "code": 7006,
+          "message": "Parameter 'name' implicitly has an 'any' type."
+        },
+        {
+          "path": "tests/commands/table-text-stress/shared-stdin-review/selected-gnu.ts",
+          "line": 61,
+          "column": 58,
+          "code": 7006,
+          "message": "Parameter 'entry' implicitly has an 'any' type."
+        }
+      ],
+      "fixed": [],
+      "noDistBeforeAndAfter": true
+    },
+    "rootNegative": [
+      {
+        "path": "tests/independent-cold-probe.test.ts",
+        "line": 1,
+        "column": 7,
+        "code": 2322,
+        "message": "Type 'string' is not assignable to type 'number'."
+      }
+    ],
+    "consumerBeforeBuild": [
+      {
+        "path": "tests/commands/table-text-stress/shared-stdin-review/selected-gnu.ts",
+        "line": 34,
+        "column": 119,
+        "code": 2307,
+        "message": "Cannot find module 'virtual-bash' or its corresponding type declarations."
+      },
+      {
+        "path": "tests/commands/table-text-stress/shared-stdin-review/selected-gnu.ts",
+        "line": 35,
+        "column": 65,
+        "code": 2307,
+        "message": "Cannot find module 'virtual-bash/commands/table-text' or its corresponding type declarations."
+      },
+      {
+        "path": "tests/commands/table-text-stress/shared-stdin-review/selected-gnu.ts",
+        "line": 37,
+        "column": 50,
+        "code": 7006,
+        "message": "Parameter 'command' implicitly has an 'any' type."
+      },
+      {
+        "path": "tests/commands/table-text-stress/shared-stdin-review/selected-gnu.ts",
+        "line": 38,
+        "column": 43,
+        "code": 7006,
+        "message": "Parameter 'command' implicitly has an 'any' type."
+      },
+      {
+        "path": "tests/commands/table-text-stress/shared-stdin-review/selected-gnu.ts",
+        "line": 41,
+        "column": 29,
+        "code": 7006,
+        "message": "Parameter 'name' implicitly has an 'any' type."
+      },
+      {
+        "path": "tests/commands/table-text-stress/shared-stdin-review/selected-gnu.ts",
+        "line": 61,
+        "column": 58,
+        "code": 7006,
+        "message": "Parameter 'entry' implicitly has an 'any' type."
+      }
+    ],
+    "consumerNegative": [
+      {
+        "path": "tests/commands/table-text-stress/shared-stdin-review/selected-gnu.ts",
+        "line": 74,
+        "column": 7,
+        "code": 2322,
+        "message": "Type 'string' is not assignable to type 'number'."
+      }
+    ],
+    "packedNegative": [
+      {
+        "path": "invalid.mts",
+        "line": 4,
+        "column": 23,
+        "code": 2345,
+        "message": "Argument of type '{ endpoint: string; region: string; }' is not assignable to parameter of type 'S3HttpTransportOptions'."
+      },
+      {
+        "path": "invalid.mts",
+        "line": 5,
+        "column": 7,
+        "code": 2741,
+        "message": "Property 'secretAccessKey' is missing in type '{ accessKeyId: string; }' but required in type 'S3HttpCredentials'."
+      },
+      {
+        "path": "invalid.mts",
+        "line": 7,
+        "column": 40,
+        "code": 2322,
+        "message": "Type 'number' is not assignable to type 'string'."
+      }
+    ],
+    "declarationPoison": [
+      {
+        "path": "node_modules/virtual-bash/dist/index.d.ts",
+        "line": 27,
+        "column": 61,
+        "code": 2344,
+        "message": "Type 'string' does not satisfy the constraint 'number'."
+      }
+    ],
+    "sourceFallback": {
+      "diagnostics": [
+        {
+          "path": "aggregate.mts",
+          "line": 1,
+          "column": 185,
+          "code": 7016,
+          "message": "Could not find a declaration file for module 'virtual-bash'. '/private/tmp/safe-bash-cold-typecheck-independent-run-ARHlPi/paired/consumer/node_modules/virtual-bash/dist/index.js' implicitly has an 'any' type."
+        },
+        {
+          "path": "aggregate.mts",
+          "line": 2,
+          "column": 65,
+          "code": 7016,
+          "message": "Could not find a declaration file for module 'virtual-bash/commands/stream-inspection'. '/private/tmp/safe-bash-cold-typecheck-independent-run-ARHlPi/paired/consumer/node_modules/virtual-bash/dist/commands/stream-inspection/index.js' implicitly has an 'any' type."
+        },
+        {
+          "path": "aggregate.mts",
+          "line": 3,
+          "column": 59,
+          "code": 7016,
+          "message": "Could not find a declaration file for module 'virtual-bash/fs/s3/http'. '/private/tmp/safe-bash-cold-typecheck-independent-run-ARHlPi/paired/consumer/node_modules/virtual-bash/dist/fs/s3/http/index.js' implicitly has an 'any' type."
+        },
+        {
+          "path": "consumer.mts",
+          "line": 8,
+          "column": 8,
+          "code": 7016,
+          "message": "Could not find a declaration file for module 'virtual-bash'. '/private/tmp/safe-bash-cold-typecheck-independent-run-ARHlPi/paired/consumer/node_modules/virtual-bash/dist/index.js' implicitly has an 'any' type."
+        },
+        {
+          "path": "consumer.mts",
+          "line": 15,
+          "column": 8,
+          "code": 7016,
+          "message": "Could not find a declaration file for module 'virtual-bash/fs/s3/http'. '/private/tmp/safe-bash-cold-typecheck-independent-run-ARHlPi/paired/consumer/node_modules/virtual-bash/dist/fs/s3/http/index.js' implicitly has an 'any' type."
+        },
+        {
+          "path": "consumer.mts",
+          "line": 16,
+          "column": 54,
+          "code": 7016,
+          "message": "Could not find a declaration file for module 'virtual-bash/fs/s3'. '/private/tmp/safe-bash-cold-typecheck-independent-run-ARHlPi/paired/consumer/node_modules/virtual-bash/dist/fs/s3/index.js' implicitly has an 'any' type."
+        }
+      ],
+      "sourceAndWorkspaceDistStillPresent": true,
+      "removedDeclarationCount": 57
+    }
+  },
+  {
+    "label": "author",
+    "revision": "0c8cf157971e8e8e6aa8bb0e70f97240c41bc609",
+    "cold": {
+      "original": [
+        {
+          "path": "tests/commands/stream-next-stress/independent.test.ts",
+          "line": 91,
+          "column": 95,
+          "code": 7053,
+          "message": "Element implicitly has an 'any' type because expression of type 'keyof Actual' can't be used to index type '{ status: number; stdout: string; stderr: string; after: Entry[]; }'."
+        },
+        {
+          "path": "tests/commands/table-text-stress/shared-stdin-review/selected-gnu.ts",
+          "line": 34,
+          "column": 119,
+          "code": 2307,
+          "message": "Cannot find module 'virtual-bash' or its corresponding type declarations."
+        },
+        {
+          "path": "tests/commands/table-text-stress/shared-stdin-review/selected-gnu.ts",
+          "line": 35,
+          "column": 65,
+          "code": 2307,
+          "message": "Cannot find module 'virtual-bash/commands/table-text' or its corresponding type declarations."
+        },
+        {
+          "path": "tests/commands/table-text-stress/shared-stdin-review/selected-gnu.ts",
+          "line": 37,
+          "column": 50,
+          "code": 7006,
+          "message": "Parameter 'command' implicitly has an 'any' type."
+        },
+        {
+          "path": "tests/commands/table-text-stress/shared-stdin-review/selected-gnu.ts",
+          "line": 38,
+          "column": 43,
+          "code": 7006,
+          "message": "Parameter 'command' implicitly has an 'any' type."
+        },
+        {
+          "path": "tests/commands/table-text-stress/shared-stdin-review/selected-gnu.ts",
+          "line": 41,
+          "column": 29,
+          "code": 7006,
+          "message": "Parameter 'name' implicitly has an 'any' type."
+        },
+        {
+          "path": "tests/commands/table-text-stress/shared-stdin-review/selected-gnu.ts",
+          "line": 61,
+          "column": 58,
+          "code": 7006,
+          "message": "Parameter 'entry' implicitly has an 'any' type."
+        }
+      ],
+      "fixed": [
+        {
+          "path": "tests/commands/stream-next-stress/independent.test.ts",
+          "line": 91,
+          "column": 95,
+          "code": 7053,
+          "message": "Element implicitly has an 'any' type because expression of type 'keyof Actual' can't be used to index type '{ status: number; stdout: string; stderr: string; after: Entry[]; }'."
+        }
+      ],
+      "noDistBeforeAndAfter": true
+    },
+    "rootNegative": [
+      {
+        "path": "tests/commands/stream-next-stress/independent.test.ts",
+        "line": 91,
+        "column": 95,
+        "code": 7053,
+        "message": "Element implicitly has an 'any' type because expression of type 'keyof Actual' can't be used to index type '{ status: number; stdout: string; stderr: string; after: Entry[]; }'."
+      },
+      {
+        "path": "tests/independent-cold-probe.test.ts",
+        "line": 1,
+        "column": 7,
+        "code": 2322,
+        "message": "Type 'string' is not assignable to type 'number'."
+      }
+    ],
+    "consumerBeforeBuild": [
+      {
+        "path": "tests/commands/table-text-stress/shared-stdin-review/selected-gnu.ts",
+        "line": 34,
+        "column": 119,
+        "code": 2307,
+        "message": "Cannot find module 'virtual-bash' or its corresponding type declarations."
+      },
+      {
+        "path": "tests/commands/table-text-stress/shared-stdin-review/selected-gnu.ts",
+        "line": 35,
+        "column": 65,
+        "code": 2307,
+        "message": "Cannot find module 'virtual-bash/commands/table-text' or its corresponding type declarations."
+      },
+      {
+        "path": "tests/commands/table-text-stress/shared-stdin-review/selected-gnu.ts",
+        "line": 37,
+        "column": 50,
+        "code": 7006,
+        "message": "Parameter 'command' implicitly has an 'any' type."
+      },
+      {
+        "path": "tests/commands/table-text-stress/shared-stdin-review/selected-gnu.ts",
+        "line": 38,
+        "column": 43,
+        "code": 7006,
+        "message": "Parameter 'command' implicitly has an 'any' type."
+      },
+      {
+        "path": "tests/commands/table-text-stress/shared-stdin-review/selected-gnu.ts",
+        "line": 41,
+        "column": 29,
+        "code": 7006,
+        "message": "Parameter 'name' implicitly has an 'any' type."
+      },
+      {
+        "path": "tests/commands/table-text-stress/shared-stdin-review/selected-gnu.ts",
+        "line": 61,
+        "column": 58,
+        "code": 7006,
+        "message": "Parameter 'entry' implicitly has an 'any' type."
+      }
+    ],
+    "consumerNegative": [
+      {
+        "path": "tests/commands/table-text-stress/shared-stdin-review/selected-gnu.ts",
+        "line": 74,
+        "column": 7,
+        "code": 2322,
+        "message": "Type 'string' is not assignable to type 'number'."
+      }
+    ],
+    "packedNegative": [
+      {
+        "path": "invalid.mts",
+        "line": 4,
+        "column": 23,
+        "code": 2345,
+        "message": "Argument of type '{ endpoint: string; region: string; }' is not assignable to parameter of type 'S3HttpTransportOptions'."
+      },
+      {
+        "path": "invalid.mts",
+        "line": 5,
+        "column": 7,
+        "code": 2741,
+        "message": "Property 'secretAccessKey' is missing in type '{ accessKeyId: string; }' but required in type 'S3HttpCredentials'."
+      },
+      {
+        "path": "invalid.mts",
+        "line": 7,
+        "column": 40,
+        "code": 2322,
+        "message": "Type 'number' is not assignable to type 'string'."
+      }
+    ],
+    "declarationPoison": [
+      {
+        "path": "node_modules/virtual-bash/dist/index.d.ts",
+        "line": 27,
+        "column": 61,
+        "code": 2344,
+        "message": "Type 'string' does not satisfy the constraint 'number'."
+      }
+    ],
+    "sourceFallback": {
+      "diagnostics": [
+        {
+          "path": "aggregate.mts",
+          "line": 1,
+          "column": 185,
+          "code": 7016,
+          "message": "Could not find a declaration file for module 'virtual-bash'. '/private/tmp/safe-bash-cold-typecheck-independent-run-ARHlPi/author/consumer/node_modules/virtual-bash/dist/index.js' implicitly has an 'any' type."
+        },
+        {
+          "path": "aggregate.mts",
+          "line": 2,
+          "column": 65,
+          "code": 7016,
+          "message": "Could not find a declaration file for module 'virtual-bash/commands/stream-inspection'. '/private/tmp/safe-bash-cold-typecheck-independent-run-ARHlPi/author/consumer/node_modules/virtual-bash/dist/commands/stream-inspection/index.js' implicitly has an 'any' type."
+        },
+        {
+          "path": "aggregate.mts",
+          "line": 3,
+          "column": 59,
+          "code": 7016,
+          "message": "Could not find a declaration file for module 'virtual-bash/fs/s3/http'. '/private/tmp/safe-bash-cold-typecheck-independent-run-ARHlPi/author/consumer/node_modules/virtual-bash/dist/fs/s3/http/index.js' implicitly has an 'any' type."
+        },
+        {
+          "path": "consumer.mts",
+          "line": 8,
+          "column": 8,
+          "code": 7016,
+          "message": "Could not find a declaration file for module 'virtual-bash'. '/private/tmp/safe-bash-cold-typecheck-independent-run-ARHlPi/author/consumer/node_modules/virtual-bash/dist/index.js' implicitly has an 'any' type."
+        },
+        {
+          "path": "consumer.mts",
+          "line": 15,
+          "column": 8,
+          "code": 7016,
+          "message": "Could not find a declaration file for module 'virtual-bash/fs/s3/http'. '/private/tmp/safe-bash-cold-typecheck-independent-run-ARHlPi/author/consumer/node_modules/virtual-bash/dist/fs/s3/http/index.js' implicitly has an 'any' type."
+        },
+        {
+          "path": "consumer.mts",
+          "line": 16,
+          "column": 54,
+          "code": 7016,
+          "message": "Could not find a declaration file for module 'virtual-bash/fs/s3'. '/private/tmp/safe-bash-cold-typecheck-independent-run-ARHlPi/author/consumer/node_modules/virtual-bash/dist/fs/s3/index.js' implicitly has an 'any' type."
+        }
+      ],
+      "sourceAndWorkspaceDistStillPresent": true,
+      "removedDeclarationCount": 57
+    }
+  }
+]

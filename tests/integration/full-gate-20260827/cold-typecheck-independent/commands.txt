@@ -1,0 +1,197 @@
+# evidence: failed; 2026-08-27T07:19:54.070Z to 2026-08-27T07:20:07.218Z
+
+# npm-version: exit 0, expected 0, EXECUTED
+(cd '/private/tmp/safe-bash-cold-typecheck-independent-run-zwVoip' && 'npm' '--version')
+# stdout evidence/npm-version.stdout.txt; stderr evidence/npm-version.stderr.txt
+
+# paired-original-cold: exit 2, expected 2, EXECUTED
+(cd '/private/tmp/safe-bash-cold-typecheck-independent-run-zwVoip/paired/source' && 'npm' 'run' 'typecheck')
+# stdout evidence/paired-original-cold.stdout.txt; stderr evidence/paired-original-cold.stderr.txt
+
+# paired-fixed-cold: exit 0, expected 0, EXECUTED
+(cd '/private/tmp/safe-bash-cold-typecheck-independent-run-zwVoip/paired/source' && 'npm' 'run' 'typecheck')
+# stdout evidence/paired-fixed-cold.stdout.txt; stderr evidence/paired-fixed-cold.stderr.txt
+
+# paired-effective-root: exit 0, expected 0, EXECUTED
+(cd '/private/tmp/safe-bash-cold-typecheck-independent-run-zwVoip/paired/source' && '/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node' '/private/tmp/safe-bash-cold-typecheck-independent-run-zwVoip/paired/source/node_modules/typescript/bin/tsc' '--showConfig')
+# stdout evidence/paired-effective-root.stdout.txt; stderr evidence/paired-effective-root.stderr.txt
+
+# paired-cold-files: exit 0, expected 0, EXECUTED
+(cd '/private/tmp/safe-bash-cold-typecheck-independent-run-zwVoip/paired/source' && '/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node' '/private/tmp/safe-bash-cold-typecheck-independent-run-zwVoip/paired/source/node_modules/typescript/bin/tsc' '--listFilesOnly')
+# stdout evidence/paired-cold-files.stdout.txt; stderr evidence/paired-cold-files.stderr.txt
+
+# evidence-final: failed; 2026-08-27T07:21:58.641Z to 2026-08-27T07:22:14.833Z
+
+# npm-version: exit 0, expected 0, EXECUTED
+(cd '/private/tmp/safe-bash-cold-typecheck-independent-run-ARHlPi' && 'npm' '--version')
+# stdout evidence-final/npm-version.stdout.txt; stderr evidence-final/npm-version.stderr.txt
+
+# paired-original-cold: exit 2, expected 2, EXECUTED
+(cd '/private/tmp/safe-bash-cold-typecheck-independent-run-ARHlPi/paired/source' && 'npm' 'run' 'typecheck')
+# stdout evidence-final/paired-original-cold.stdout.txt; stderr evidence-final/paired-original-cold.stderr.txt
+
+# paired-original-files: exit 0, expected 0, EXECUTED
+(cd '/private/tmp/safe-bash-cold-typecheck-independent-run-ARHlPi/paired/source' && '/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node' '/private/tmp/safe-bash-cold-typecheck-independent-run-ARHlPi/paired/source/node_modules/typescript/bin/tsc' '--listFilesOnly')
+# stdout evidence-final/paired-original-files.stdout.txt; stderr evidence-final/paired-original-files.stderr.txt
+
+# paired-fixed-cold: exit 0, expected 0, EXECUTED
+(cd '/private/tmp/safe-bash-cold-typecheck-independent-run-ARHlPi/paired/source' && 'npm' 'run' 'typecheck')
+# stdout evidence-final/paired-fixed-cold.stdout.txt; stderr evidence-final/paired-fixed-cold.stderr.txt
+
+# paired-effective-root: exit 0, expected 0, EXECUTED
+(cd '/private/tmp/safe-bash-cold-typecheck-independent-run-ARHlPi/paired/source' && '/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node' '/private/tmp/safe-bash-cold-typecheck-independent-run-ARHlPi/paired/source/node_modules/typescript/bin/tsc' '--showConfig')
+# stdout evidence-final/paired-effective-root.stdout.txt; stderr evidence-final/paired-effective-root.stderr.txt
+
+# paired-cold-files: exit 0, expected 0, EXECUTED
+(cd '/private/tmp/safe-bash-cold-typecheck-independent-run-ARHlPi/paired/source' && '/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node' '/private/tmp/safe-bash-cold-typecheck-independent-run-ARHlPi/paired/source/node_modules/typescript/bin/tsc' '--listFilesOnly')
+# stdout evidence-final/paired-cold-files.stdout.txt; stderr evidence-final/paired-cold-files.stderr.txt
+
+# evidence-complete: verified-configuration-delta-with-preexisting-inclusion-limit; 2026-08-27T07:24:37.933Z to 2026-08-27T07:25:25.164Z
+
+# npm-version: exit 0, expected 0, REUSED (not executed again)
+(cd '/private/tmp/safe-bash-cold-typecheck-independent-run-ARHlPi' && 'npm' '--version')
+# stdout evidence-complete/npm-version.stdout.txt; stderr evidence-complete/npm-version.stderr.txt
+
+# paired-original-cold: exit 2, expected 2, REUSED (not executed again)
+(cd '/private/tmp/safe-bash-cold-typecheck-independent-run-ARHlPi/paired/source' && 'npm' 'run' 'typecheck')
+# stdout evidence-complete/paired-original-cold.stdout.txt; stderr evidence-complete/paired-original-cold.stderr.txt
+
+# paired-original-files: exit 0, expected 0, REUSED (not executed again)
+(cd '/private/tmp/safe-bash-cold-typecheck-independent-run-ARHlPi/paired/source' && '/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node' '/private/tmp/safe-bash-cold-typecheck-independent-run-ARHlPi/paired/source/node_modules/typescript/bin/tsc' '--listFilesOnly')
+# stdout evidence-complete/paired-original-files.stdout.txt; stderr evidence-complete/paired-original-files.stderr.txt
+
+# paired-fixed-cold: exit 0, expected 0, REUSED (not executed again)
+(cd '/private/tmp/safe-bash-cold-typecheck-independent-run-ARHlPi/paired/source' && 'npm' 'run' 'typecheck')
+# stdout evidence-complete/paired-fixed-cold.stdout.txt; stderr evidence-complete/paired-fixed-cold.stderr.txt
+
+# paired-effective-root: exit 0, expected 0, REUSED (not executed again)
+(cd '/private/tmp/safe-bash-cold-typecheck-independent-run-ARHlPi/paired/source' && '/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node' '/private/tmp/safe-bash-cold-typecheck-independent-run-ARHlPi/paired/source/node_modules/typescript/bin/tsc' '--showConfig')
+# stdout evidence-complete/paired-effective-root.stdout.txt; stderr evidence-complete/paired-effective-root.stderr.txt
+
+# paired-cold-files: exit 0, expected 0, REUSED (not executed again)
+(cd '/private/tmp/safe-bash-cold-typecheck-independent-run-ARHlPi/paired/source' && '/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node' '/private/tmp/safe-bash-cold-typecheck-independent-run-ARHlPi/paired/source/node_modules/typescript/bin/tsc' '--listFilesOnly')
+# stdout evidence-complete/paired-cold-files.stdout.txt; stderr evidence-complete/paired-cold-files.stderr.txt
+
+# paired-root-negative: exit 2, expected 2, EXECUTED
+(cd '/private/tmp/safe-bash-cold-typecheck-independent-run-ARHlPi/paired/source' && 'npm' 'run' 'typecheck')
+# stdout evidence-complete/paired-root-negative.stdout.txt; stderr evidence-complete/paired-root-negative.stderr.txt
+
+# paired-consumer-before-build: exit 2, expected 2, EXECUTED
+(cd '/private/tmp/safe-bash-cold-typecheck-independent-run-ARHlPi/paired/source' && '/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node' '/private/tmp/safe-bash-cold-typecheck-independent-run-ARHlPi/paired/source/node_modules/typescript/bin/tsc' '--noEmit' '-p' 'tests/commands/table-text-stress/shared-stdin-review/tsconfig.consumer.json')
+# stdout evidence-complete/paired-consumer-before-build.stdout.txt; stderr evidence-complete/paired-consumer-before-build.stderr.txt
+
+# paired-build-first-consumers: exit 0, expected 0, EXECUTED
+(cd '/private/tmp/safe-bash-cold-typecheck-independent-run-ARHlPi/paired/source' && 'npm' 'run' 'typecheck:consumers')
+# stdout evidence-complete/paired-build-first-consumers.stdout.txt; stderr evidence-complete/paired-build-first-consumers.stderr.txt
+
+# paired-effective-consumer: exit 0, expected 0, EXECUTED
+(cd '/private/tmp/safe-bash-cold-typecheck-independent-run-ARHlPi/paired/source' && '/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node' '/private/tmp/safe-bash-cold-typecheck-independent-run-ARHlPi/paired/source/node_modules/typescript/bin/tsc' '--showConfig' '-p' 'tests/commands/table-text-stress/shared-stdin-review/tsconfig.consumer.json')
+# stdout evidence-complete/paired-effective-consumer.stdout.txt; stderr evidence-complete/paired-effective-consumer.stderr.txt
+
+# paired-unchanged-consumer-strict: exit 0, expected 0, EXECUTED
+(cd '/private/tmp/safe-bash-cold-typecheck-independent-run-ARHlPi/paired/source' && '/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node' '/private/tmp/safe-bash-cold-typecheck-independent-run-ARHlPi/paired/source/node_modules/typescript/bin/tsc' '--noEmit' '-p' 'tests/commands/table-text-stress/shared-stdin-review/tsconfig.consumer.json' '--listFiles')
+# stdout evidence-complete/paired-unchanged-consumer-strict.stdout.txt; stderr evidence-complete/paired-unchanged-consumer-strict.stderr.txt
+
+# paired-consumer-negative: exit 2, expected 2, EXECUTED
+(cd '/private/tmp/safe-bash-cold-typecheck-independent-run-ARHlPi/paired/source' && '/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node' '/private/tmp/safe-bash-cold-typecheck-independent-run-ARHlPi/paired/source/node_modules/typescript/bin/tsc' '--noEmit' '-p' 'tests/commands/table-text-stress/shared-stdin-review/tsconfig.consumer.json')
+# stdout evidence-complete/paired-consumer-negative.stdout.txt; stderr evidence-complete/paired-consumer-negative.stderr.txt
+
+# paired-pack: exit 0, expected 0, EXECUTED
+(cd '/private/tmp/safe-bash-cold-typecheck-independent-run-ARHlPi/paired/source' && 'npm' 'pack' '--offline' '--ignore-scripts' '--json' '--pack-destination' '/private/tmp/safe-bash-cold-typecheck-independent-run-ARHlPi/paired')
+# stdout evidence-complete/paired-pack.stdout.txt; stderr evidence-complete/paired-pack.stderr.txt
+
+# paired-packed-runtime: exit 0, expected 0, EXECUTED
+(cd '/private/tmp/safe-bash-cold-typecheck-independent-run-ARHlPi/paired/consumer' && '/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node' 'public-control.mjs' '/private/tmp/safe-bash-cold-typecheck-independent-run-ARHlPi/paired/source/src/index.ts')
+# stdout evidence-complete/paired-packed-runtime.stdout.txt; stderr evidence-complete/paired-packed-runtime.stderr.txt
+
+# paired-packed-positive: exit 0, expected 0, EXECUTED
+(cd '/private/tmp/safe-bash-cold-typecheck-independent-run-ARHlPi/paired/consumer' && '/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node' '/private/tmp/safe-bash-cold-typecheck-independent-run-ARHlPi/paired/source/node_modules/typescript/bin/tsc' '--noEmit' '--target' 'ES2023' '--module' 'NodeNext' '--moduleResolution' 'NodeNext' '--strict' '--noUncheckedIndexedAccess' '--exactOptionalPropertyTypes' '--verbatimModuleSyntax' '--skipLibCheck' 'false' '--types' 'node' '--typeRoots' '/private/tmp/safe-bash-cold-typecheck-independent-run-ARHlPi/paired/source/node_modules/@types' '--listFiles' 'aggregate.mts' 'consumer.mts')
+# stdout evidence-complete/paired-packed-positive.stdout.txt; stderr evidence-complete/paired-packed-positive.stderr.txt
+
+# paired-packed-negative: exit 2, expected 2, EXECUTED
+(cd '/private/tmp/safe-bash-cold-typecheck-independent-run-ARHlPi/paired/consumer' && '/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node' '/private/tmp/safe-bash-cold-typecheck-independent-run-ARHlPi/paired/source/node_modules/typescript/bin/tsc' '--noEmit' '--target' 'ES2023' '--module' 'NodeNext' '--moduleResolution' 'NodeNext' '--strict' '--noUncheckedIndexedAccess' '--exactOptionalPropertyTypes' '--verbatimModuleSyntax' '--skipLibCheck' 'false' '--types' 'node' '--typeRoots' '/private/tmp/safe-bash-cold-typecheck-independent-run-ARHlPi/paired/source/node_modules/@types' 'invalid.mts')
+# stdout evidence-complete/paired-packed-negative.stdout.txt; stderr evidence-complete/paired-packed-negative.stderr.txt
+
+# paired-declaration-poison: exit 2, expected 2, EXECUTED
+(cd '/private/tmp/safe-bash-cold-typecheck-independent-run-ARHlPi/paired/consumer' && '/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node' '/private/tmp/safe-bash-cold-typecheck-independent-run-ARHlPi/paired/source/node_modules/typescript/bin/tsc' '--noEmit' '--target' 'ES2023' '--module' 'NodeNext' '--moduleResolution' 'NodeNext' '--strict' '--noUncheckedIndexedAccess' '--exactOptionalPropertyTypes' '--verbatimModuleSyntax' '--skipLibCheck' 'false' '--types' 'node' '--typeRoots' '/private/tmp/safe-bash-cold-typecheck-independent-run-ARHlPi/paired/source/node_modules/@types' 'aggregate.mts' 'consumer.mts')
+# stdout evidence-complete/paired-declaration-poison.stdout.txt; stderr evidence-complete/paired-declaration-poison.stderr.txt
+
+# paired-source-fallback-negative: exit 2, expected 2, EXECUTED
+(cd '/private/tmp/safe-bash-cold-typecheck-independent-run-ARHlPi/paired/consumer' && '/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node' '/private/tmp/safe-bash-cold-typecheck-independent-run-ARHlPi/paired/source/node_modules/typescript/bin/tsc' '--noEmit' '--target' 'ES2023' '--module' 'NodeNext' '--moduleResolution' 'NodeNext' '--strict' '--noUncheckedIndexedAccess' '--exactOptionalPropertyTypes' '--verbatimModuleSyntax' '--skipLibCheck' 'false' '--types' 'node' '--typeRoots' '/private/tmp/safe-bash-cold-typecheck-independent-run-ARHlPi/paired/source/node_modules/@types' 'aggregate.mts' 'consumer.mts')
+# stdout evidence-complete/paired-source-fallback-negative.stdout.txt; stderr evidence-complete/paired-source-fallback-negative.stderr.txt
+
+# paired-packed-restored: exit 0, expected 0, EXECUTED
+(cd '/private/tmp/safe-bash-cold-typecheck-independent-run-ARHlPi/paired/consumer' && '/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node' '/private/tmp/safe-bash-cold-typecheck-independent-run-ARHlPi/paired/source/node_modules/typescript/bin/tsc' '--noEmit' '--target' 'ES2023' '--module' 'NodeNext' '--moduleResolution' 'NodeNext' '--strict' '--noUncheckedIndexedAccess' '--exactOptionalPropertyTypes' '--verbatimModuleSyntax' '--skipLibCheck' 'false' '--types' 'node' '--typeRoots' '/private/tmp/safe-bash-cold-typecheck-independent-run-ARHlPi/paired/source/node_modules/@types' 'aggregate.mts' 'consumer.mts')
+# stdout evidence-complete/paired-packed-restored.stdout.txt; stderr evidence-complete/paired-packed-restored.stderr.txt
+
+# author-original-cold: exit 2, expected 2, EXECUTED
+(cd '/private/tmp/safe-bash-cold-typecheck-independent-run-ARHlPi/author/source' && 'npm' 'run' 'typecheck')
+# stdout evidence-complete/author-original-cold.stdout.txt; stderr evidence-complete/author-original-cold.stderr.txt
+
+# author-original-files: exit 0, expected 0, EXECUTED
+(cd '/private/tmp/safe-bash-cold-typecheck-independent-run-ARHlPi/author/source' && '/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node' '/private/tmp/safe-bash-cold-typecheck-independent-run-ARHlPi/author/source/node_modules/typescript/bin/tsc' '--listFilesOnly')
+# stdout evidence-complete/author-original-files.stdout.txt; stderr evidence-complete/author-original-files.stderr.txt
+
+# author-fixed-cold: exit 2, expected 2, EXECUTED
+(cd '/private/tmp/safe-bash-cold-typecheck-independent-run-ARHlPi/author/source' && 'npm' 'run' 'typecheck')
+# stdout evidence-complete/author-fixed-cold.stdout.txt; stderr evidence-complete/author-fixed-cold.stderr.txt
+
+# author-effective-root: exit 0, expected 0, EXECUTED
+(cd '/private/tmp/safe-bash-cold-typecheck-independent-run-ARHlPi/author/source' && '/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node' '/private/tmp/safe-bash-cold-typecheck-independent-run-ARHlPi/author/source/node_modules/typescript/bin/tsc' '--showConfig')
+# stdout evidence-complete/author-effective-root.stdout.txt; stderr evidence-complete/author-effective-root.stderr.txt
+
+# author-cold-files: exit 0, expected 0, EXECUTED
+(cd '/private/tmp/safe-bash-cold-typecheck-independent-run-ARHlPi/author/source' && '/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node' '/private/tmp/safe-bash-cold-typecheck-independent-run-ARHlPi/author/source/node_modules/typescript/bin/tsc' '--listFilesOnly')
+# stdout evidence-complete/author-cold-files.stdout.txt; stderr evidence-complete/author-cold-files.stderr.txt
+
+# author-root-negative: exit 2, expected 2, EXECUTED
+(cd '/private/tmp/safe-bash-cold-typecheck-independent-run-ARHlPi/author/source' && 'npm' 'run' 'typecheck')
+# stdout evidence-complete/author-root-negative.stdout.txt; stderr evidence-complete/author-root-negative.stderr.txt
+
+# author-consumer-before-build: exit 2, expected 2, EXECUTED
+(cd '/private/tmp/safe-bash-cold-typecheck-independent-run-ARHlPi/author/source' && '/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node' '/private/tmp/safe-bash-cold-typecheck-independent-run-ARHlPi/author/source/node_modules/typescript/bin/tsc' '--noEmit' '-p' 'tests/commands/table-text-stress/shared-stdin-review/tsconfig.consumer.json')
+# stdout evidence-complete/author-consumer-before-build.stdout.txt; stderr evidence-complete/author-consumer-before-build.stderr.txt
+
+# author-build-first-consumers: exit 0, expected 0, EXECUTED
+(cd '/private/tmp/safe-bash-cold-typecheck-independent-run-ARHlPi/author/source' && 'npm' 'run' 'typecheck:consumers')
+# stdout evidence-complete/author-build-first-consumers.stdout.txt; stderr evidence-complete/author-build-first-consumers.stderr.txt
+
+# author-effective-consumer: exit 0, expected 0, EXECUTED
+(cd '/private/tmp/safe-bash-cold-typecheck-independent-run-ARHlPi/author/source' && '/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node' '/private/tmp/safe-bash-cold-typecheck-independent-run-ARHlPi/author/source/node_modules/typescript/bin/tsc' '--showConfig' '-p' 'tests/commands/table-text-stress/shared-stdin-review/tsconfig.consumer.json')
+# stdout evidence-complete/author-effective-consumer.stdout.txt; stderr evidence-complete/author-effective-consumer.stderr.txt
+
+# author-unchanged-consumer-strict: exit 0, expected 0, EXECUTED
+(cd '/private/tmp/safe-bash-cold-typecheck-independent-run-ARHlPi/author/source' && '/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node' '/private/tmp/safe-bash-cold-typecheck-independent-run-ARHlPi/author/source/node_modules/typescript/bin/tsc' '--noEmit' '-p' 'tests/commands/table-text-stress/shared-stdin-review/tsconfig.consumer.json' '--listFiles')
+# stdout evidence-complete/author-unchanged-consumer-strict.stdout.txt; stderr evidence-complete/author-unchanged-consumer-strict.stderr.txt
+
+# author-consumer-negative: exit 2, expected 2, EXECUTED
+(cd '/private/tmp/safe-bash-cold-typecheck-independent-run-ARHlPi/author/source' && '/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node' '/private/tmp/safe-bash-cold-typecheck-independent-run-ARHlPi/author/source/node_modules/typescript/bin/tsc' '--noEmit' '-p' 'tests/commands/table-text-stress/shared-stdin-review/tsconfig.consumer.json')
+# stdout evidence-complete/author-consumer-negative.stdout.txt; stderr evidence-complete/author-consumer-negative.stderr.txt
+
+# author-pack: exit 0, expected 0, EXECUTED
+(cd '/private/tmp/safe-bash-cold-typecheck-independent-run-ARHlPi/author/source' && 'npm' 'pack' '--offline' '--ignore-scripts' '--json' '--pack-destination' '/private/tmp/safe-bash-cold-typecheck-independent-run-ARHlPi/author')
+# stdout evidence-complete/author-pack.stdout.txt; stderr evidence-complete/author-pack.stderr.txt
+
+# author-packed-runtime: exit 0, expected 0, EXECUTED
+(cd '/private/tmp/safe-bash-cold-typecheck-independent-run-ARHlPi/author/consumer' && '/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node' 'public-control.mjs' '/private/tmp/safe-bash-cold-typecheck-independent-run-ARHlPi/author/source/src/index.ts')
+# stdout evidence-complete/author-packed-runtime.stdout.txt; stderr evidence-complete/author-packed-runtime.stderr.txt
+
+# author-packed-positive: exit 0, expected 0, EXECUTED
+(cd '/private/tmp/safe-bash-cold-typecheck-independent-run-ARHlPi/author/consumer' && '/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node' '/private/tmp/safe-bash-cold-typecheck-independent-run-ARHlPi/author/source/node_modules/typescript/bin/tsc' '--noEmit' '--target' 'ES2023' '--module' 'NodeNext' '--moduleResolution' 'NodeNext' '--strict' '--noUncheckedIndexedAccess' '--exactOptionalPropertyTypes' '--verbatimModuleSyntax' '--skipLibCheck' 'false' '--types' 'node' '--typeRoots' '/private/tmp/safe-bash-cold-typecheck-independent-run-ARHlPi/author/source/node_modules/@types' '--listFiles' 'aggregate.mts' 'consumer.mts')
+# stdout evidence-complete/author-packed-positive.stdout.txt; stderr evidence-complete/author-packed-positive.stderr.txt
+
+# author-packed-negative: exit 2, expected 2, EXECUTED
+(cd '/private/tmp/safe-bash-cold-typecheck-independent-run-ARHlPi/author/consumer' && '/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node' '/private/tmp/safe-bash-cold-typecheck-independent-run-ARHlPi/author/source/node_modules/typescript/bin/tsc' '--noEmit' '--target' 'ES2023' '--module' 'NodeNext' '--moduleResolution' 'NodeNext' '--strict' '--noUncheckedIndexedAccess' '--exactOptionalPropertyTypes' '--verbatimModuleSyntax' '--skipLibCheck' 'false' '--types' 'node' '--typeRoots' '/private/tmp/safe-bash-cold-typecheck-independent-run-ARHlPi/author/source/node_modules/@types' 'invalid.mts')
+# stdout evidence-complete/author-packed-negative.stdout.txt; stderr evidence-complete/author-packed-negative.stderr.txt
+
+# author-declaration-poison: exit 2, expected 2, EXECUTED
+(cd '/private/tmp/safe-bash-cold-typecheck-independent-run-ARHlPi/author/consumer' && '/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node' '/private/tmp/safe-bash-cold-typecheck-independent-run-ARHlPi/author/source/node_modules/typescript/bin/tsc' '--noEmit' '--target' 'ES2023' '--module' 'NodeNext' '--moduleResolution' 'NodeNext' '--strict' '--noUncheckedIndexedAccess' '--exactOptionalPropertyTypes' '--verbatimModuleSyntax' '--skipLibCheck' 'false' '--types' 'node' '--typeRoots' '/private/tmp/safe-bash-cold-typecheck-independent-run-ARHlPi/author/source/node_modules/@types' 'aggregate.mts' 'consumer.mts')
+# stdout evidence-complete/author-declaration-poison.stdout.txt; stderr evidence-complete/author-declaration-poison.stderr.txt
+
+# author-source-fallback-negative: exit 2, expected 2, EXECUTED
+(cd '/private/tmp/safe-bash-cold-typecheck-independent-run-ARHlPi/author/consumer' && '/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node' '/private/tmp/safe-bash-cold-typecheck-independent-run-ARHlPi/author/source/node_modules/typescript/bin/tsc' '--noEmit' '--target' 'ES2023' '--module' 'NodeNext' '--moduleResolution' 'NodeNext' '--strict' '--noUncheckedIndexedAccess' '--exactOptionalPropertyTypes' '--verbatimModuleSyntax' '--skipLibCheck' 'false' '--types' 'node' '--typeRoots' '/private/tmp/safe-bash-cold-typecheck-independent-run-ARHlPi/author/source/node_modules/@types' 'aggregate.mts' 'consumer.mts')
+# stdout evidence-complete/author-source-fallback-negative.stdout.txt; stderr evidence-complete/author-source-fallback-negative.stderr.txt
+
+# author-packed-restored: exit 0, expected 0, EXECUTED
+(cd '/private/tmp/safe-bash-cold-typecheck-independent-run-ARHlPi/author/consumer' && '/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node' '/private/tmp/safe-bash-cold-typecheck-independent-run-ARHlPi/author/source/node_modules/typescript/bin/tsc' '--noEmit' '--target' 'ES2023' '--module' 'NodeNext' '--moduleResolution' 'NodeNext' '--strict' '--noUncheckedIndexedAccess' '--exactOptionalPropertyTypes' '--verbatimModuleSyntax' '--skipLibCheck' 'false' '--types' 'node' '--typeRoots' '/private/tmp/safe-bash-cold-typecheck-independent-run-ARHlPi/author/source/node_modules/@types' 'aggregate.mts' 'consumer.mts')
+# stdout evidence-complete/author-packed-restored.stdout.txt; stderr evidence-complete/author-packed-restored.stderr.txt

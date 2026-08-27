@@ -1,0 +1,124 @@
+TAP version 13
+# Subtest: guarded completion bounded host: env-cancel
+ok 1 - guarded completion bounded host: env-cancel
+  ---
+  duration_ms: 192.85175
+  type: 'test'
+  ...
+# Subtest: guarded completion bounded host: target-cancel
+ok 2 - guarded completion bounded host: target-cancel
+  ---
+  duration_ms: 179.52275
+  type: 'test'
+  ...
+# Subtest: guarded completion bounded host: env-cleanup-failure
+ok 3 - guarded completion bounded host: env-cleanup-failure
+  ---
+  duration_ms: 171.734791
+  type: 'test'
+  ...
+# Subtest: guarded completion bounded host: target-cleanup-failure
+ok 4 - guarded completion bounded host: target-cleanup-failure
+  ---
+  duration_ms: 176.563208
+  type: 'test'
+  ...
+# Subtest: guarded completion bounded host: opaque-env
+ok 5 - guarded completion bounded host: opaque-env
+  ---
+  duration_ms: 203.578208
+  type: 'test'
+  ...
+# Subtest: guarded completion bounded host: opaque-target
+ok 6 - guarded completion bounded host: opaque-target
+  ---
+  duration_ms: 295.167333
+  type: 'test'
+  ...
+# Subtest: guarded completion bounded host: closed-admission
+ok 7 - guarded completion bounded host: closed-admission
+  ---
+  duration_ms: 200.975208
+  type: 'test'
+  ...
+# Subtest: guarded completion bounded host: target-middleware-cancel
+ok 8 - guarded completion bounded host: target-middleware-cancel
+  ---
+  duration_ms: 191.5915
+  type: 'test'
+  ...
+# Subtest: guarded completion: executable VFS delegates retain literal argv and normal body resolution
+ok 9 - guarded completion: executable VFS delegates retain literal argv and normal body resolution
+  ---
+  duration_ms: 6.087375
+  type: 'test'
+  ...
+# Subtest: guarded completion: slash targets never normalize basenames or bypass VFS checks
+ok 10 - guarded completion: slash targets never normalize basenames or bypass VFS checks
+  ---
+  duration_ms: 5.216834
+  type: 'test'
+  ...
+# Subtest: guarded completion: exact registered definitions beat functions and builtins and stay pinned
+ok 11 - guarded completion: exact registered definitions beat functions and builtins and stay pinned
+  ---
+  duration_ms: 0.977334
+  type: 'test'
+  ...
+# Subtest: guarded completion: missing bare names refuse PATH, files, functions and builtins
+ok 12 - guarded completion: missing bare names refuse PATH, files, functions and builtins
+  ---
+  duration_ms: 1.370084
+  type: 'test'
+  ...
+# Subtest: guarded completion: env and target middleware observe exact exports, cwd, argv and provenance
+ok 13 - guarded completion: env and target middleware observe exact exports, cwd, argv and provenance
+  ---
+  duration_ms: 3.081458
+  type: 'test'
+  ...
+# Subtest: guarded completion: env pipeline middleware is transparent and adds no command or depth charge
+ok 14 - guarded completion: env pipeline middleware is transparent and adds no command or depth charge
+  ---
+  duration_ms: 3.646875
+  type: 'test'
+  ...
+# Subtest: guarded completion: env middleware short circuits, wraps and observes original target errors
+ok 15 - guarded completion: env middleware short circuits, wraps and observes original target errors
+  ---
+  duration_ms: 2.243625
+  type: 'test'
+  ...
+# Subtest: guarded completion: registered nested invoke stays ordinary and replacement streams share budgets
+ok 16 - guarded completion: registered nested invoke stays ordinary and replacement streams share budgets
+  ---
+  duration_ms: 1.386708
+  type: 'test'
+  ...
+# Subtest: guarded completion: direct delegate cycles and registered cycles use shared limits
+ok 17 - guarded completion: direct delegate cycles and registered cycles use shared limits
+  ---
+  duration_ms: 4.15775
+  type: 'test'
+  ...
+# Subtest: guarded completion: env scoped invoker owns replacement streams without inherited exports
+ok 18 - guarded completion: env scoped invoker owns replacement streams without inherited exports
+  ---
+  duration_ms: 1.100084
+  type: 'test'
+  ...
+# Subtest: guarded completion: target middleware can change scoped state or short circuit without fallback
+ok 19 - guarded completion: target middleware can change scoped state or short circuit without fallback
+  ---
+  duration_ms: 3.154625
+  type: 'test'
+  ...
+1..19
+# tests 19
+# suites 0
+# pass 19
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1773.60625

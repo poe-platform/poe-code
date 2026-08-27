@@ -1,0 +1,13 @@
+
+> virtual-bash@0.0.0 build
+> tsc -p tsconfig.build.json
+
+src/shell/runtime.ts(1164,13): error TS2375: Type '{ env: Record<string, string>; stdin: ByteSource; stdout: ByteSink; stderr: ByteSink; signal: AbortSignal; registerCleanup: (cleanup: InvocationCleanup) => void; ... 5 more ...; invoke?: CommandInvoker; }' is not assignable to type 'ShellCommandContext' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Property 'invoke' is optional in type '{ env: Record<string, string>; stdin: ByteSource; stdout: ByteSink; stderr: ByteSink; signal: AbortSignal; registerCleanup: (cleanup: InvocationCleanup) => void; ... 5 more ...; invoke?: CommandInvoker; }' but required in type 'ShellCommandContext'.
+src/shell/runtime.ts(1172,15): error TS2540: Cannot assign to 'invoke' because it is a read-only property.
+src/shell/runtime.ts(1172,25): error TS7006: Parameter 'name' implicitly has an 'any' type.
+src/shell/runtime.ts(1172,31): error TS7006: Parameter 'args' implicitly has an 'any' type.
+src/shell/runtime.ts(1172,37): error TS7006: Parameter 'options' implicitly has an 'any' type.
+src/shell/runtime.ts(1253,17): error TS2540: Cannot assign to 'invoke' because it is a read-only property.
+src/shell/runtime.ts(1253,33): error TS7006: Parameter 'command' implicitly has an 'any' type.
+src/shell/runtime.ts(1253,42): error TS7006: Parameter 'arguments_' implicitly has an 'any' type.

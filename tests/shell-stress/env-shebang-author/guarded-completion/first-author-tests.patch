@@ -1,0 +1,229 @@
+diff --git a/tests/shell/env-shebang.test.ts b/tests/shell/env-shebang.test.ts
+index 20741b21..7e973e2f 100644
+--- a/tests/shell/env-shebang.test.ts
++++ b/tests/shell/env-shebang.test.ts
+@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
+ import { test } from "node:test";
+ import { Shell, ShellLimitError, agentCommands, createMemoryFileSystem, toByteSource } from "../../src/index.js";
+ import { setup } from "./helpers.js";
++import type { CommandContext } from "../../src/index.js";
+ 
+ const encode = (source: string) => Buffer.from(source);
+ 
+@@ -257,3 +258,216 @@ test("env parser caps and carriage-return command bytes survive the bridge", asy
+   }
+   await shell.dispose();
+ });
++
++test("guarded completion: executable VFS delegates retain literal argv and normal body resolution", async () => {
++  const { shell, fs } = setup();
++  await fs.mkdir("/other");
++  await fs.mkdir("/tools");
++  await fs.writeFile("/tools/body-tool", encode("say normal-path"), { mode: 0o755 });
++  await fs.writeFile("/other/delegate", encode('args "$0" "$@"; body-tool'), { mode: 0o755 });
++  await fs.writeFile("/program", encode("#!/usr/bin/env -S -C /other ./delegate fixed\nsay BAD"), { mode: 0o755 });
++  try {
++    const result = await shell.exec("/program '' 'a b' '; say BAD'", { env: { PATH: "/tools" } });
++    assert.equal(result.exitCode, 0, result.stderr);
++    assert.equal(result.stdout, '["./delegate","fixed","/program","","a b","; say BAD"]normal-path\n');
++    assert.equal(result.stderr, "");
++    assert.equal((await shell.exec("pwd")).stdout, "/\n");
++  } finally { await shell.dispose(); }
++});
++
++test("guarded completion: slash targets never normalize basenames or bypass VFS checks", async () => {
++  const { shell, fs } = setup();
++  await fs.mkdir("/bin");
++  await fs.mkdir("/directory");
++  await fs.writeFile("/bin/bash", encode("say actual-vfs"), { mode: 0o755 });
++  await fs.writeFile("/denied", encode("say BAD"), { mode: 0o644 });
++  await fs.writeFile("/binary", Uint8Array.of(255), { mode: 0o755 });
++  await fs.writeFile("/unknown", encode("#!/unknown\nsay BAD"), { mode: 0o755 });
++  try {
++    for (const [target, status, output] of [["/bin/bash", 0, "actual-vfs\n"], ["/missing", 127, ""], ["/directory", 126, ""], ["/denied", 126, ""], ["/binary", 126, ""], ["/unknown", 126, ""]] as const) {
++      await fs.writeFile("/program", encode(`#!/usr/bin/env -S ${target}\nsay BAD`), { mode: 0o755 });
++      const result = await shell.exec("/program");
++      assert.equal(result.exitCode, status, `${target}: ${result.stderr}`);
++      assert.equal(result.stdout, output, target);
++      if (status) assert.notEqual(result.stderr, "");
++    }
++    await fs.writeFile("/program", encode("#!/usr/bin/env -S ./program\nsay BAD"));
++    shell.use(async (context, next) => {
++      if (context.command === "env") await fs.chmod("/program", 0o644);
++      return next();
++    });
++    assert.equal((await shell.exec("/program")).exitCode, 126);
++  } finally { await shell.dispose(); }
++});
++
++test("guarded completion: exact registered definitions beat functions and builtins and stay pinned", async () => {
++  const { shell, fs, commands } = setup();
++  let hijacks = 0;
++  commands.register({ name: "env", execute() { hijacks++; return { exitCode: 99 }; } });
++  for (const name of ["chosen", "true"]) commands.register({ name, async execute(context) {
++    await context.stdout.write(encode(JSON.stringify([name, ...context.args])));
++    return { exitCode: 23 };
++  } });
++  shell.use(async (context, next) => {
++    if (context.command === "chosen" || context.command === "true") commands.register({ name: context.command, execute() { hijacks++; return { exitCode: 98 }; } }, { replace: true });
++    return next();
++  });
++  try {
++    for (const name of ["chosen", "true"]) {
++      await fs.writeFile("/program", encode(`#!/usr/bin/env -S ${name} fixed\nsay BAD`), { mode: 0o755 });
++      const result = await shell.exec(`${name}() { say BAD; }; /program tail`);
++      assert.equal(result.exitCode, 23, result.stderr);
++      assert.equal(result.stdout, JSON.stringify([name, "fixed", "/program", "tail"]));
++    }
++    assert.equal(hijacks, 0);
++  } finally { await shell.dispose(); }
++});
++
++test("guarded completion: missing bare names refuse PATH, files, functions and builtins", async () => {
++  const { shell, fs } = setup();
++  await fs.mkdir("/tools");
++  for (const path of ["/unregistered", "/tools/unregistered"]) await fs.writeFile(path, encode("say BAD"), { mode: 0o755 });
++  let lookups = 0;
++  const stat = fs.stat.bind(fs);
++  fs.stat = async (path, options) => { if (path.endsWith("unregistered")) lookups++; return stat(path, options); };
++  try {
++    for (const name of ["unregistered", "true", "pwd", "host-only-never-registered"]) {
++      await fs.writeFile("/program", encode(`#!/usr/bin/env -S ${name}\nsay BAD`), { mode: 0o755 });
++      const result = await shell.exec("unregistered() { say BAD; }; PATH=/tools /program");
++      assert.equal(result.exitCode, 127, name);
++      assert.equal(result.stdout, "");
++      assert.equal(result.stderr, `env: ${name}: command not found\n`);
++    }
++    assert.equal(lookups, 0);
++  } finally { await shell.dispose(); }
++});
++
++test("guarded completion: env and target middleware observe exact exports, cwd, argv and provenance", async () => {
++  const { shell, fs, commands } = setup({ env: { OLD: "parent" } });
++  await fs.mkdir("/other");
++  const stages: { command: string; args: readonly string[]; env: Record<string, string>; cwd: string; origin: boolean | undefined }[] = [];
++  const record = (context: CommandContext) => stages.push({ command: context.command, args: [...context.args], env: { ...context.env }, cwd: context.cwd, origin: context.stdinIsDefault });
++  const suffix = "-S -i VALUE=${OLD} probe fixed";
++  shell.use(async (context, next) => {
++    if (context.command === "env" || context.command === "probe") record(context);
++    if (context.command === "env") { context.env.OLD = "middleware"; context.cwd = "/other"; }
++    return next();
++  });
++  commands.register({ name: "probe", async execute(context) {
++    record(context);
++    for await (const chunk of context.stdin) await context.stdout.write(chunk);
++    return { exitCode: 0 };
++  } });
++  await fs.writeFile("/program", encode(`#!/usr/bin/env ${suffix}\nsay BAD`), { mode: 0o755 });
++  try {
++    const result = await shell.exec("PRIVATE=local; /program ''; envget OLD PRIVATE; pwd", { stdin: Uint8Array.of(255, 0) });
++    assert.deepEqual([...result.stdoutBytes], [...Uint8Array.of(255, 0), ...encode("parent|<unset>/\n")]);
++    assert.deepEqual(stages[0], { command: "env", args: [suffix, "/program", ""], env: { OLD: "parent", PWD: "/" }, cwd: "/", origin: false });
++    const expected = { command: "probe", args: ["fixed", "/program", ""], env: { VALUE: "middleware" }, cwd: "/other", origin: false };
++    assert.deepEqual(stages.slice(1), [expected, expected]);
++    stages.length = 0;
++    await shell.exec("/program");
++    assert.deepEqual(stages.map(stage => stage.origin), [true, true, true]);
++  } finally { await shell.dispose(); }
++});
++
++test("guarded completion: env pipeline middleware is transparent and adds no command or depth charge", async () => {
++  const { shell, fs } = setup();
++  const observed: string[] = [];
++  shell.use(async (context, next) => { observed.push(context.command); return next(); });
++  await fs.writeFile("/program", encode("#!/usr/bin/env -S bash\npass"), { mode: 0o755 });
++  try {
++    const result = await shell.exec("bytes | /program | pass", { limits: { pipeHighWaterMark: 1, maxCommands: 5, maxSubstitutionDepth: 1 } });
++    assert.deepEqual([...result.stdoutBytes], [0, 255, 195, 169, 128, 10]);
++    assert.equal(result.exitCode, 0);
++    assert.equal(observed.filter(command => command === "env").length, 1);
++    assert.equal(observed.filter(command => command === "bash").length, 1);
++  } finally { await shell.dispose(); }
++});
++
++test("guarded completion: env middleware short circuits, wraps and observes original target errors", async () => {
++  for (const scenario of ["short", "wrap", "throw", "target-error", "bad-env", "bad-cwd", "bad-status", "bad-target-status"] as const) {
++    const { shell, fs, commands } = setup();
++    const failure = new Error("original target or middleware failure");
++    let entered = 0;
++    let observed: unknown;
++    let cleaned = 0;
++    commands.register({ name: "probe", execute() {
++      entered++;
++      if (scenario === "target-error") throw failure;
++      return { exitCode: scenario === "bad-target-status" ? 999 : 7 };
++    } });
++    shell.use(async (context, next) => {
++      if (context.command !== "env") return next();
++      context.registerCleanup!(() => { cleaned++; });
++      if (scenario === "short") return { exitCode: 19 };
++      if (scenario === "throw") throw failure;
++      if (scenario === "bad-env") context.env["bad=key"] = "value";
++      if (scenario === "bad-cwd") context.cwd = "/bad\0cwd";
++      if (scenario === "bad-status") return { exitCode: -1 };
++      try { const result = await next(); return scenario === "wrap" ? { exitCode: result.exitCode + 1 } : result; }
++      catch (error) { observed = error; throw error; }
++    });
++    await fs.writeFile("/program", encode("#!/usr/bin/env -S -i probe\nsay BAD"), { mode: 0o755 });
++    try {
++      if (scenario === "short" || scenario === "wrap") assert.equal((await shell.exec("/program")).exitCode, scenario === "short" ? 19 : 8);
++      else if (scenario === "bad-cwd") {
++        const result = await shell.exec("/program");
++        assert.equal(result.exitCode, 1);
++        assert.match(result.stderr, /paths must be strings without NUL/u);
++      } else await assert.rejects(shell.exec("/program"), error => {
++        if (scenario === "throw" || scenario === "target-error") return error === failure;
++        return error instanceof TypeError || error instanceof RangeError;
++      });
++      if (scenario === "target-error") assert.equal(observed, failure);
++      assert.equal(entered, ["wrap", "target-error", "bad-target-status"].includes(scenario) ? 1 : 0);
++      assert.equal(cleaned, 1);
++    } finally { await shell.dispose(); }
++  }
++});
++
++test("guarded completion: registered nested invoke stays ordinary and replacement streams share budgets", async () => {
++  const { shell, fs, commands } = setup();
++  const captures: number[] = [];
++  const origins: (boolean | undefined)[] = [];
++  let returned = 0;
++  commands.register({ name: "probe", async execute(context) {
++    await context.invoke!("normal-function", []);
++    return context.invoke!("consume", [], { replaceEnv: true, stdin: {
++      [Symbol.asyncIterator]() { return { async next() { return { done: false, value: Uint8Array.of(255, 0, 1) }; }, async return() { returned++; return { done: true, value: undefined }; } }; },
++    }, stdout: { async write(chunk) { captures.push(...chunk); } } });
++  } });
++  commands.register({ name: "consume", async execute(context) {
++    assert.deepEqual(Object.keys(context.env), []);
++    origins.push(context.stdinIsDefault);
++    const value = await context.stdin[Symbol.asyncIterator]().next();
++    if (!value.done) await context.stdout.write(value.value);
++    return { exitCode: 0 };
++  } });
++  await fs.writeFile("/program", encode("#!/usr/bin/env -S -i probe\nsay BAD"), { mode: 0o755 });
++  try {
++    const source = "normal-function() { true; }; /program";
++    assert.equal((await shell.exec(source)).exitCode, 0);
++    assert.deepEqual(captures, [255, 0, 1]);
++    assert.deepEqual(origins, [false]);
++    assert.equal(returned, 1);
++    await assert.rejects(shell.exec(source, { limits: { maxOutputBytes: 2 } }), error => error instanceof ShellLimitError && error.limit === "maxOutputBytes");
++    assert.equal(returned, 2);
++  } finally { await shell.dispose(); }
++});
++
++test("guarded completion: direct delegate cycles and registered cycles use shared limits", { timeout: 3000 }, async () => {
++  const { shell, fs, commands } = setup();
++  commands.register({ name: "cycle", execute(context) { return context.invoke!("/program", []); } });
++  try {
++    for (const target of ["./program", "cycle"]) {
++      const body = `#!/usr/bin/env -S ${target}\nsay BAD`;
++      await fs.writeFile("/program", encode(body), { mode: 0o755 });
++      for (const [limits, limit] of [[{ maxSubstitutionDepth: 4 }, "maxSubstitutionDepth"], [{ maxCommands: 4 }, "maxCommands"], [{ maxSourceBytes: Buffer.byteLength(body) + 8 }, "maxSourceBytes"]] as const) {
++        await assert.rejects(shell.exec("/program", { limits }), error => error instanceof ShellLimitError && error.limit === limit);
++      }
++    }
++    await fs.writeFile("/program", encode("#!/usr/bin/env\nsay BAD"));
++    await assert.rejects(shell.exec("/program", { limits: { maxSubstitutionDepth: 4 } }), error => error instanceof ShellLimitError && error.limit === "maxSubstitutionDepth");
++  } finally { await shell.dispose(); }
++});

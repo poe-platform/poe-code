@@ -1,0 +1,71 @@
+{
+  "schema": 1,
+  "candidate": "f1a90436c45208ca248e058a039893233c608daa",
+  "chronology": "post-source-commit, pre-replacement-verifier-candidate-inspection-and-execution",
+  "defaultRegistryCommandCount": 70,
+  "connectorBytes": {
+    "ascii": { "tee": "|-- ", "elbow": "`-- ", "vertical": "|   ", "blank": "    " },
+    "utf8": { "tee": "├── ", "elbow": "└── ", "vertical": "│   ", "blank": "    " }
+  },
+  "selectionCases": [
+    { "id": "P01", "flag": "ASCII", "env": { "TREE_CHARSET": "UTF-8", "LC_ALL": "en_US.UTF-8" }, "expect": "ascii" },
+    { "id": "P02", "flag": "utf8", "env": { "TREE_CHARSET": "ASCII" }, "expect": "utf8" },
+    { "id": "P03", "env": { "TREE_CHARSET": "UTF-8", "LC_ALL": "C" }, "expect": "utf8" },
+    { "id": "P04", "env": { "LC_ALL": "C", "LC_CTYPE": "en_US.UTF-8", "LANG": "en_US.UTF-8" }, "expect": "ascii" },
+    { "id": "P05", "env": { "LC_CTYPE": "en_US.UTF8", "LANG": "C" }, "expect": "utf8" },
+    { "id": "P06", "env": { "LANG": "POSIX" }, "expect": "ascii" },
+    { "id": "P07", "env": {}, "expect": "ascii" },
+    { "id": "P08", "env": { "TREE_CHARSET": "", "LC_ALL": "en_US.UTF-8" }, "expectError": "selected-empty-does-not-fall-through" },
+    { "id": "P09", "env": { "TREE_CHARSET": "bogus", "LC_ALL": "en_US.UTF-8" }, "expectError": "selected-unknown-does-not-fall-through" },
+    { "id": "P10", "env": { "LC_ALL": "", "LC_CTYPE": "en_US.UTF-8" }, "expectError": "selected-empty-does-not-fall-through" }
+  ],
+  "aliasCases": [
+    { "id": "A01", "value": "ASCII", "expect": "ascii" },
+    { "id": "A02", "value": "ascii", "expect": "ascii" },
+    { "id": "A03", "value": "UTF-8", "expect": "utf8" },
+    { "id": "A04", "value": "utf-8", "expect": "utf8" },
+    { "id": "A05", "value": "UTF8", "expect": "utf8" },
+    { "id": "A06", "value": "utf8", "expect": "utf8" },
+    { "id": "A07", "value": "C", "expect": "ascii", "envOnly": true },
+    { "id": "A08", "value": "POSIX", "expect": "ascii", "envOnly": true },
+    { "id": "A09", "value": "en_US.UTF-8", "expect": "utf8", "envOnly": true },
+    { "id": "A10", "value": "en_US.utf8", "expect": "utf8", "envOnly": true, "nativeParity": false },
+    { "id": "A11", "value": "en_US.ISO-8859-1", "expectError": "unsupported-selected-value", "envOnly": true },
+    { "id": "A12", "value": "definitely-unknown", "expectError": "unsupported-selected-value" }
+  ],
+  "ownershipCases": [
+    { "id": "O01", "shape": "ordinary-empty-object-with-ambient-process-UTF8", "expect": "ascii" },
+    { "id": "O02", "shape": "object-inheriting-TREE_CHARSET-UTF8", "expect": "ascii" },
+    { "id": "O03", "shape": "null-prototype-own-TREE_CHARSET-UTF8", "expect": "utf8" },
+    { "id": "O04", "shape": "own-LANG-C-shadowing-prototype-TREE_CHARSET-UTF8", "expect": "ascii" },
+    { "id": "O05", "shape": "object-with-hostile-hasOwnProperty-method-and-own-LANG-UTF8", "expect": "utf8" }
+  ],
+  "safetyCases": [
+    { "id": "S01", "kind": "escaping", "names": ["line\\nbreak", "carriage\\rreturn", "tab\\tname", "esc\\u001bname", "del\\u007fname"], "expect": "no-raw-terminal-control-bytes-except-structural-LF" },
+    { "id": "S02", "kind": "connector-injection", "names": ["├── forged", "|-- forged", "`-- forged"], "expect": "each-name-remains-one-escaped-entry-and-cannot-add-visits" },
+    { "id": "S03", "kind": "utf8-byte-cap", "charset": "UTF-8", "expect": "limit-charged-in-encoded-bytes-not-code-units-and-never-exceeded" },
+    { "id": "S04", "kind": "ascii-byte-cap", "charset": "ASCII", "expect": "limit-never-exceeded" },
+    { "id": "S05", "kind": "work-cap", "expect": "bounded-rejection-without-extra-readdir-or-stat-work" },
+    { "id": "S06", "kind": "pre-abort", "expect": "reject-before-filesystem-work-or-sink-write" },
+    { "id": "S07", "kind": "mid-abort", "expect": "bounded-rejection-no-late-unhandled-rejection-and-worker-exits" },
+    { "id": "S08", "kind": "backpressure", "expect": "at-most-one-sink-write-pending-and-settlement-awaits-final-write" },
+    { "id": "S09", "kind": "closed-sink", "expect": "bounded-settlement-and-no-unbounded-traversal-after-write-rejection" },
+    { "id": "S10", "kind": "variant-equivalence", "expect": "same-path-order-file-count-directory-count-and-filesystem-call-trace" }
+  ],
+  "negativeControls": [
+    { "id": "N01", "mutation": "read-process-env-when-context-env-omits-keys", "mustFail": ["O01"] },
+    { "id": "N02", "mutation": "read-inherited-env-properties", "mustFail": ["O02", "O04"] },
+    { "id": "N03", "mutation": "swap-TREE_CHARSET-and-LC_ALL-precedence", "mustFail": ["P03"] },
+    { "id": "N04", "mutation": "fallback-after-selected-unknown-or-empty", "mustFail": ["P08", "P09", "P10"] },
+    { "id": "N05", "mutation": "emit-raw-control-characters-in-names", "mustFail": ["S01"] },
+    { "id": "N06", "mutation": "charge-output-limit-in-JavaScript-code-units", "mustFail": ["S03"] },
+    { "id": "N07", "mutation": "do-not-await-sink-write", "mustFail": ["S08"] },
+    { "id": "N08", "mutation": "load-live-source-or-wrong-installed-package", "mustFail": ["registry-and-authentication-checks"] }
+  ],
+  "nonClaims": [
+    "no traversal or count expansion",
+    "no full native parity",
+    "no full gate rescore",
+    "no pre-source-commit independent freeze"
+  ]
+}

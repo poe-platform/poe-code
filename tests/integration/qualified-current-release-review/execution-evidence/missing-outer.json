@@ -1,0 +1,33 @@
+{
+  "command": [
+    "npm",
+    "run",
+    "verify:release:qualified",
+    "--",
+    "--source-commit",
+    "02a78bf64c29dedcd69071551ed5848b0765c107",
+    "--native-assets-from",
+    "/Users/kjopek/Workspace/safe-bash/tests/integration/qualified-current-release-review/.execution-work/launcher/tests/commands/metadata-stress/.oracle/coreutils-9.7",
+    "--archive-tar-from",
+    "/Users/kjopek/Workspace/safe-bash/tests/integration/qualified-current-release-review/.execution-work/nonexistent-gnu-tar"
+  ],
+  "cwd": "/Users/kjopek/Workspace/safe-bash/tests/integration/qualified-current-release-review/.execution-work/launcher",
+  "environment": {
+    "PATH": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin:/usr/bin:/bin",
+    "LC_ALL": "C",
+    "LANG": "C",
+    "TZ": "UTC",
+    "npm_config_cache": "/Users/kjopek/Workspace/safe-bash/tests/integration/qualified-current-release-review/.execution-work/npm-cache",
+    "npm_config_userconfig": "/Users/kjopek/Workspace/safe-bash/tests/integration/qualified-current-release-review/.execution-work/npmrc",
+    "npm_config_offline": "true",
+    "npm_config_audit": "false",
+    "npm_config_fund": "false",
+    "npm_config_update_notifier": "false"
+  },
+  "startedAt": "2026-08-27T08:23:18.170Z",
+  "finishedAt": "2026-08-27T08:23:21.302Z",
+  "status": 78,
+  "signal": null,
+  "stdout": "\n> virtual-bash@0.0.0 verify:release:qualified\n> node scripts/verify-qualified-release.mjs --source-commit 02a78bf64c29dedcd69071551ed5848b0765c107 --native-assets-from /Users/kjopek/Workspace/safe-bash/tests/integration/qualified-current-release-review/.execution-work/launcher/tests/commands/metadata-stress/.oracle/coreutils-9.7 --archive-tar-from /Users/kjopek/Workspace/safe-bash/tests/integration/qualified-current-release-review/.execution-work/nonexistent-gnu-tar\n\n{\"directory\":\"/Users/kjopek/Workspace/safe-bash/tests/integration/qualified-current-release-review/.execution-work/launcher/tests/plugins/qualified-current-release/.runs/qualified-ZFJwAi\",\"sourceCommit\":\"02a78bf64c29dedcd69071551ed5848b0765c107\",\"sourceTreeSha256\":\"512c1aaea9a7d33e12b40b14830ca52407bf6dbc845eb689b5b3ce92bd88734a\",\"testTreeSha256\":\"44cf89b54c6c8f1206c5796ec471614f2f1cf675d2513006b6a4ac160192b4bd\",\"harnessSha256\":\"441113e3bb31aa2443f9386f0f115dbf72e534a83bee4437fec7acf46cac1f35\"}\n{\"directory\":\"/Users/kjopek/Workspace/safe-bash/tests/integration/qualified-current-release-review/.execution-work/launcher/tests/plugins/qualified-current-release/.runs/qualified-ZFJwAi\",\"sourceCommit\":\"02a78bf64c29dedcd69071551ed5848b0765c107\",\"exitCode\":78,\"sourceUnchanged\":true}\n",
+  "stderr": ""
+}

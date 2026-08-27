@@ -1,0 +1,61 @@
+READ-ONLY WEBDAV CONSUMER BLOCKER — 2026-08-27
+
+Verdict: confirmed loopback fixture/extension-contract mismatch, not demonstrated production timestamp corruption. The unchanged maintained consumer remains 12/13, exit 1. Keep EAGAIN and the release failure. No repository files modified, no production implementation, no ownership transfer.
+
+PIN AND REPRODUCTION
+- Candidate: f12141d4d0a4b7e46ffa5c5e0d1978cf41e72f02, not moving workspace HEAD.
+- sourceTreeSha256: e7f64ecaa2cf5bce5fdebd3bfcca9e94d063d278b85ed9c263f742d104c32424.
+- Built dist manifest SHA256: 283133f9d24d8469f156672f6d48263213400a6e5b8317e09aec313b8c7dbecf.
+- Own git archive of src/package/config and this consumer only; existing TypeScript tooling linked into own /tmp stage, no installation. Own cold build's complete dist manifest equals author's .runs/qualified-L0QqFx/current-consumers.json built manifest. All emitted consumer files also equal author's emitted files byte-for-byte. No author's output executed or changed.
+- Node v22.22.2; isolated build/consumer compilation only establishes this reproduction's provenance, NOT full-package/lifecycle/typecheck acceptance.
+- Stage: /tmp/safe-bash-current-webdav-consumer-blocker-stage-lXZn5P (macOS canonical /private/tmp alias).
+- Exact unchanged execution: node --experimental-permission --allow-fs-read=/private/tmp/safe-bash-current-webdav-consumer-blocker-stage-lXZn5P/consumer --allow-worker --unhandled-rejections=strict /private/tmp/safe-bash-current-webdav-consumer-blocker-stage-lXZn5P/consumer/webdav-loopback/emitted/consumer.test.mjs
+- Outcome: 13 tests, 12 pass, 1 fail, zero skips/cancellations/TODOs. Existing-target mv to-remote fails at consumer.test.mts:38 (emitted:34): mv: EAGAIN: resource temporarily unavailable, utimes '/remote/target'.
+
+EXACT SOURCE HASHES (SHA256)
+tests/fs/webdav/consumer/consumer.test.mts b69e78c54d5afb844cef7f59c4d530e1ddad6634394a32e56e455b7a7bce752a
+tests/fs/webdav/consumer/provider.mts 288d17dca5b6950fababb945cf21c15594dfbf37897d1cdcaab2aba1088a6b9b
+tests/fs/webdav/consumer/example.mts 7a51aed0e78cc30d54dfa1b616c9e659710bed4f0a4cd7e42e28258a974f7b15
+src/fs/webdav/webdav.ts d61d6d36eeea65f0c7e6eb5ecbe118e353ffe5a87131e4e26c1a3d772ee71acf
+src/commands/move.ts 31e1fe6a2c0fc9efb9efa44b636d9478d4cab273de4c4e809d4f572b28084042
+
+OBSERVED PROTOCOL / STATE
+- The relevant pinned adapter utimes is webdav.ts:908-942, not the moving-source 981-1014 range in the handoff. entryStat:465-484 applies successful {urn:virtual-bash:metadata}timestamps JSON only if version/type/strong ETag binding is valid. src/contracts/filesystem.ts:97 provides the optional paired millisecond API; src/fs/webdav/README.md:231-265 explicitly describes virtual dead-property round-trip, NOT native utimes, and EAGAIN on failed readback.
+- Provider source :57-66 serializes DAV:getlastmodified via toUTCString(), omits requested timestamps entirely. :81-95 recognizes a literal v:timestamps string, calls backing.utimes, then reports successful property status without storing that property. :22-26 derives the ETag stamp from backing mtime, so that mutation can also stale the request's validator.
+- In the unmodified-provider instrumented mv reproduction, backing source starts at atimeMs=mtimeMs=1787818471714; PUT publishes payload [0,255,128,13,10,65] to target. PROPPATCH /dav/target has If-Match: "fixture-2" and sets {urn:virtual-bash:metadata}timestamps to {"version":1,"etag":"\"fixture-2\"","type":"file","atimeMs":1787818471714,"mtimeMs":1787818471714}.
+- Actual PROPPATCH response: HTTP 207, /dav/target, one propstat with <v:timestamps xmlns:v="urn:virtual-bash:metadata"/> and HTTP/1.1 200 OK. This is NOT a per-property failure hidden inside 207.
+- Next Depth:0 PROPFIND explicitly requests <v:timestamps xmlns:v="urn:virtual-bash:metadata"/>. Response includes getetag="fixture-3", getlastmodified="Thu, 27 Aug 2026 08:14:31 GMT", and no timestamps property or property-specific missing status. Adapter observes atimeMs=0 and mtimeMs=1787818471000; backing target actually has both requested values 1787818471714. Both visible times mismatch, not just fractional precision.
+- EAGAIN occurs before source removal. Source survives; target already contains copied payload. No rollback inferred. move.ts:115-120 propagates EAGAIN; later source-removal loop is not reached.
+- Ordinary seeded memory values use Date.now integer milliseconds, not an OS-native fractional-millisecond oracle. Explicit controls below introduce fractional milliseconds. Memory backing retains those exactly; HTTP-date fallback loses subsecond precision and exposes no atime. No native filesystem timestamp tests, host artifacts or deployed service involved.
+
+BOUNDED OWN-COPY CONTROLS (NOT PRODUCT PASSES)
+All use unchanged built product and real loopback HTTP; raw requests, namespaces, response headers/bodies and backing stat before/after are in v2-protocol-controls.json.
+1. Original provider, utimes(1700000000456.25,1700000000123.5): backing exact, remote (0,1700000000000), EAGAIN.
+2. Original, whole-second nonzero atime and mtime 1700000000000: EAGAIN. Missing atime alone is sufficient; merely round-aligning mtime cannot fix consumer.
+3. Original, atime=0, mtime=1700000000123.5: EAGAIN. Precision loss independently sufficient.
+4. Original, atime=0, mtime=1700000000000: success by fallback value coincidence. This DOES NOT demonstrate dead-property persistence or general backend support and must not be used as the sole acceptance fixture.
+5. Owned provider copy persists/returns exact requested dead-property XML text with its namespace, without calling native/backing utimes: exact fractional readback succeeds while backing timestamps remain unchanged. Fixed-fraction mv also succeeds, preserves remote timestamps and removes source. Running byte-identical consumer assertions against ONLY that changed provider copy yields 13/13; this is diagnostic evidence, not a changed release result or approved fix.
+6. Same echo plus original backing.utimes retained: EAGAIN because mtime-derived ETag changes and stored property binds the previous ETag. Adding PROPFIND echo alone is insufficient; do not fake validator continuity.
+7. Returned property in wrong namespace: EAGAIN.
+8. Correct namespace/current validator but stored values rounded to seconds: EAGAIN.
+9. HTTP 207 with timestamp propstat 403 and no mutation: EACCES. Preserve actual property errors; envelope status cannot establish success.
+
+SMALLEST CORRECTIVE REQUIREMENT / AUTHORIZATION
+Root must route to Poincare/user for explicit authorization of tests/fs/webdav/consumer/provider.mts (primary defect), plus any approved focused regression/evidence updates in tests/fs/webdav/consumer/consumer.test.mts and tests/fs/webdav/consumer/README.md. No permission is granted by this report. Keep the existing 13-test cohort/expectations and original failure evidence.
+The success fixture must actually implement the documented metadata extension: preserve and serve the accepted namespace-qualified property value for the representation, with truthful ETag/type binding; do not translate it into native/backing utimes. Dead-property storage must be provider-side, not a client-local cache. Any changed content/delete handling must prevent stale property resurrection under the fixture's identity/version semantics. Exact parsing/status and resource binding remain required; diagnostic copies are intentionally not a complete provider implementation.
+Retain negative controls for missing property with nonzero atime, fractional mtime, stale ETag, wrong namespace, rounded values, and per-property denial. Require both exact visible timestamps and proper bytes/source survival/removal, not just exit status. If a provider cannot implement the extension, report that limitation honestly; do not weaken EAGAIN, silently skip, change expected status, use recursive fallback, or relabel this success cohort as passed.
+Read-only production reference paths: src/fs/webdav/webdav.ts, src/fs/webdav/README.md, src/contracts/filesystem.ts, src/commands/move.ts. No product edit demonstrated necessary for this failure. A real service lacking this extension is an unsupported workflow, but this run proves only a loopback fixture's false success claim; no deployed-provider conclusion.
+
+PRIMARY PROTOCOL BASIS
+RFC 4918 §§9.1, 9.2, 9.2.1, 15.7 (RFC Editor, consulted 2026-08-27): named PROPFIND requests retrieve property values/status; PROPPATCH sets properties and uses property-specific status; 200 means the set/change succeeded. Arbitrary dead-property support is SHOULD, not universal. DAV:getlastmodified is an HTTP-date property, SHOULD be protected, and a property-only change SHOULD NOT change it. Therefore a custom metadata property is not a portable native-utimes instruction. These standards do not guarantee this product extension on every provider.
+Source: `https://www.rfc-editor.org/rfc/rfc4918.html`
+
+EVIDENCE / LIMITS
+- baseline.json: source/consumer/tooling hashes, isolated build/compile and first execution attempt. First /tmp-path permission denial is preserved, not counted as a consumer run; canonical /private/tmp path resolves the alias without broadening permission scope.
+- v2-baseline-canonical-path.json SHA256 2456c05a349fe5391bb4bcf98018bcdb7c7a9ef2f7b10887346d9ee39b837ddc
+- v2-protocol-controls.json SHA256 545787c89c5b3a7312741af9127b0b39ee4e57ee782f23f772d24767ccbee201
+- v2-owned-copy-consumer-diagnostic.json SHA256 6c622dbaba65a3b5325c7bcae8aaa7eb596070264ccbbf5f682de6686ba2b676
+- Unmodified emitted consumer SHA256 6a9d7d29fed3df001ba680ab43a4264d879893f87eb8954810b10ac47e027b86; original emitted provider fb7876327faa37ff190716afcbc3bcb400a0afc68af833652ef038eacfaf1f57; diagnostic dead-property provider c1ffbbb170051ab8f0cb2990dade7c0f87655a7f2010b209445e01aa2420cea7.
+- Earlier unprefixed protocol-controls.json is retained: first observer mistakenly consumed upload via a Request clone then forwarded the original consumed init stream, producing observer-only copyFile EIO on two manual mv cases. v2 forwards the Request itself; unmodified baseline runs never used that observer. Do not treat the first observer's EIO as product evidence.
+- Own archived source, original consumer inputs and emitted hashes verified unchanged after controls. Repo index inspected empty; concurrent owners' workspace changes neither inspected beyond status nor edited. No holdout inspection, new dependencies, global installs, host pin changes, root dist writes, commits, watchers or surviving background processes.
+- Author 42631 retains release tooling/tests; reviewer 74627 retains other prep. Five cleanup failures remain OPEN and uninvestigated here. No full-package/lifecycle/TS, superiority, release-readiness, deployed-backend, or completion claim.

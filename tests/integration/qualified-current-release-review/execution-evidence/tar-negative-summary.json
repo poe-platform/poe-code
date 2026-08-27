@@ -1,0 +1,40 @@
+[
+  {
+    "name": "env-only",
+    "status": 78,
+    "executedTests": 0,
+    "steps": 0,
+    "issues": [
+      {
+        "kind": "explicit-archive-assets-required",
+        "message": "--archive-tar-from must name an existing absolute pinned GNU tar executable; GNU_TAR alone is not hardcoded fixture configuration"
+      }
+    ]
+  },
+  {
+    "name": "missing",
+    "status": 78,
+    "executedTests": 0,
+    "steps": 0,
+    "issues": [
+      {
+        "kind": "archive-native-unavailable",
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/qualified-current-release-review/.execution-work/nonexistent-gnu-tar",
+        "message": "ENOENT: no such file or directory, lstat '/Users/kjopek/Workspace/safe-bash/tests/integration/qualified-current-release-review/.execution-work/nonexistent-gnu-tar'"
+      }
+    ]
+  },
+  {
+    "name": "wrong",
+    "status": 78,
+    "executedTests": 0,
+    "steps": 0,
+    "issues": [
+      {
+        "kind": "archive-native-unavailable",
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/qualified-current-release-review/.execution-work/wrong-gnu-tar",
+        "message": "pinned executable SHA256 mismatch\n+ actual - expected\n\n+ 'defd0fa6da080c1843200d07e9057ea7dfa05cac806e2952dacd7907aaa3ee4c'\n- '49a0bd353ad67347674d00a7b3eeb171da58728f7e4577c9b320d8ab1e7bba66'\n"
+      }
+    ]
+  }
+]

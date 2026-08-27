@@ -60,6 +60,10 @@
 - Contracts are src/contracts/**. Command/FS payloads are Uint8Array. Await sink
   writes, preserve backpressure and chunk ownership, and bound collected output.
   Shell exec returns buffered results while internal pipelines use byte streams.
+- Copy retained ByteSource fragments into owned bytes before advancing or
+  finalizing the producer; Buffer.slice/subarray are views, not copies. Completed
+  awaited transient writes need not copy indiscriminately. This tested producer-
+  reuse contract does not promise arbitrary concurrent mutation safety or leases.
 - Middleware must await/return next(). Preserve shared budgets and explicitly
   propagate signals into host work. Cancellation cannot undo completed effects
   or forcibly stop uncooperative host work; observe late rejections.

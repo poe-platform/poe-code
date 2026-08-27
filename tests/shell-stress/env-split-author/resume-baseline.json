@@ -1,0 +1,773 @@
+{
+  "base": "e7f4f2e3753184415f8098445c2009cb4cd9a6e9",
+  "sourceRoot": "/private/tmp/safe-bash-env-split-committed-base-3A1GBF/",
+  "observedRepositoryHead": "7839db5370fe09d57f7aaaea29b5b2acb874cd36",
+  "importedRuntime": "file:///private/tmp/safe-bash-env-split-committed-base-3A1GBF/src/shell/runtime.ts",
+  "importedEnv": "file:///private/tmp/safe-bash-env-split-committed-base-3A1GBF/src/commands/execution.ts",
+  "fixtureHash": "d6e0ea65b61eb91d873103455824a4fbb57ddf1564909f71819d7ae05c755ea2",
+  "rows": [
+    {
+      "name": "plain",
+      "observed": {
+        "status": 2,
+        "stdoutHex": "",
+        "stderrHex": "656e763a20696e76616c6964206f7074696f6e202d2d202753270a"
+      },
+      "calls": [
+        "env"
+      ],
+      "entries": []
+    },
+    {
+      "name": "whitespace",
+      "observed": {
+        "status": 2,
+        "stdoutHex": "",
+        "stderrHex": "656e763a20696e76616c6964206f7074696f6e202d2d202753270a"
+      },
+      "calls": [
+        "env"
+      ],
+      "entries": []
+    },
+    {
+      "name": "quotes-empty",
+      "observed": {
+        "status": 2,
+        "stdoutHex": "",
+        "stderrHex": "656e763a20696e76616c6964206f7074696f6e202d2d202753270a"
+      },
+      "calls": [
+        "env"
+      ],
+      "entries": []
+    },
+    {
+      "name": "quote-literals",
+      "observed": {
+        "status": 2,
+        "stdoutHex": "",
+        "stderrHex": "656e763a20696e76616c6964206f7074696f6e202d2d202753270a"
+      },
+      "calls": [
+        "env"
+      ],
+      "entries": []
+    },
+    {
+      "name": "escape-controls",
+      "observed": {
+        "status": 2,
+        "stdoutHex": "",
+        "stderrHex": "656e763a20696e76616c6964206f7074696f6e202d2d202753270a"
+      },
+      "calls": [
+        "env"
+      ],
+      "entries": []
+    },
+    {
+      "name": "escape-punctuation",
+      "observed": {
+        "status": 2,
+        "stdoutHex": "",
+        "stderrHex": "656e763a20696e76616c6964206f7074696f6e202d2d202753270a"
+      },
+      "calls": [
+        "env"
+      ],
+      "entries": []
+    },
+    {
+      "name": "single-quote-escapes",
+      "observed": {
+        "status": 2,
+        "stdoutHex": "",
+        "stderrHex": "656e763a20696e76616c6964206f7074696f6e202d2d202753270a"
+      },
+      "calls": [
+        "env"
+      ],
+      "entries": []
+    },
+    {
+      "name": "underscore",
+      "observed": {
+        "status": 2,
+        "stdoutHex": "",
+        "stderrHex": "656e763a20696e76616c6964206f7074696f6e202d2d202753270a"
+      },
+      "calls": [
+        "env"
+      ],
+      "entries": []
+    },
+    {
+      "name": "comment",
+      "observed": {
+        "status": 2,
+        "stdoutHex": "",
+        "stderrHex": "656e763a20696e76616c6964206f7074696f6e202d2d202753270a"
+      },
+      "calls": [
+        "env"
+      ],
+      "entries": []
+    },
+    {
+      "name": "comment-active",
+      "observed": {
+        "status": 2,
+        "stdoutHex": "",
+        "stderrHex": "656e763a20696e76616c6964206f7074696f6e202d2d202753270a"
+      },
+      "calls": [
+        "env"
+      ],
+      "entries": []
+    },
+    {
+      "name": "cancel-string",
+      "observed": {
+        "status": 2,
+        "stdoutHex": "",
+        "stderrHex": "656e763a20696e76616c6964206f7074696f6e202d2d202753270a"
+      },
+      "calls": [
+        "env"
+      ],
+      "entries": []
+    },
+    {
+      "name": "cancel-double-error",
+      "observed": {
+        "status": 2,
+        "stdoutHex": "",
+        "stderrHex": "656e763a20696e76616c6964206f7074696f6e202d2d202753270a"
+      },
+      "calls": [
+        "env"
+      ],
+      "entries": []
+    },
+    {
+      "name": "escape-space-error",
+      "observed": {
+        "status": 2,
+        "stdoutHex": "",
+        "stderrHex": "656e763a20696e76616c6964206f7074696f6e202d2d202753270a"
+      },
+      "calls": [
+        "env"
+      ],
+      "entries": []
+    },
+    {
+      "name": "escape-unknown-error",
+      "observed": {
+        "status": 2,
+        "stdoutHex": "",
+        "stderrHex": "656e763a20696e76616c6964206f7074696f6e202d2d202753270a"
+      },
+      "calls": [
+        "env"
+      ],
+      "entries": []
+    },
+    {
+      "name": "escape-final-error",
+      "observed": {
+        "status": 2,
+        "stdoutHex": "",
+        "stderrHex": "656e763a20696e76616c6964206f7074696f6e202d2d202753270a"
+      },
+      "calls": [
+        "env"
+      ],
+      "entries": []
+    },
+    {
+      "name": "quote-final-error",
+      "observed": {
+        "status": 2,
+        "stdoutHex": "",
+        "stderrHex": "656e763a20696e76616c6964206f7074696f6e202d2d202753270a"
+      },
+      "calls": [
+        "env"
+      ],
+      "entries": []
+    },
+    {
+      "name": "expand-boundary",
+      "observed": {
+        "status": 2,
+        "stdoutHex": "",
+        "stderrHex": "656e763a20696e76616c6964206f7074696f6e202d2d202753270a"
+      },
+      "calls": [
+        "env"
+      ],
+      "entries": []
+    },
+    {
+      "name": "expand-empty-unset",
+      "observed": {
+        "status": 2,
+        "stdoutHex": "",
+        "stderrHex": "656e763a20696e76616c6964206f7074696f6e202d2d202753270a"
+      },
+      "calls": [
+        "env"
+      ],
+      "entries": []
+    },
+    {
+      "name": "expand-single-literal",
+      "observed": {
+        "status": 2,
+        "stdoutHex": "",
+        "stderrHex": "656e763a20696e76616c6964206f7074696f6e202d2d202753270a"
+      },
+      "calls": [
+        "env"
+      ],
+      "entries": []
+    },
+    {
+      "name": "expand-before-i",
+      "observed": {
+        "status": 2,
+        "stdoutHex": "",
+        "stderrHex": "656e763a20696e76616c6964206f7074696f6e202d2d202753270a"
+      },
+      "calls": [
+        "env"
+      ],
+      "entries": []
+    },
+    {
+      "name": "expand-before-u",
+      "observed": {
+        "status": 2,
+        "stdoutHex": "",
+        "stderrHex": "656e763a20696e76616c6964206f7074696f6e202d2d202753270a"
+      },
+      "calls": [
+        "env"
+      ],
+      "entries": []
+    },
+    {
+      "name": "expand-assignment-timing",
+      "observed": {
+        "status": 2,
+        "stdoutHex": "",
+        "stderrHex": "656e763a20696e76616c6964206f7074696f6e202d2d202753270a"
+      },
+      "calls": [
+        "env"
+      ],
+      "entries": []
+    },
+    {
+      "name": "dollar-bare-error",
+      "observed": {
+        "status": 2,
+        "stdoutHex": "",
+        "stderrHex": "656e763a20696e76616c6964206f7074696f6e202d2d202753270a"
+      },
+      "calls": [
+        "env"
+      ],
+      "entries": []
+    },
+    {
+      "name": "dollar-name-error",
+      "observed": {
+        "status": 2,
+        "stdoutHex": "",
+        "stderrHex": "656e763a20696e76616c6964206f7074696f6e202d2d202753270a"
+      },
+      "calls": [
+        "env"
+      ],
+      "entries": []
+    },
+    {
+      "name": "dollar-default-error",
+      "observed": {
+        "status": 2,
+        "stdoutHex": "",
+        "stderrHex": "656e763a20696e76616c6964206f7074696f6e202d2d202753270a"
+      },
+      "calls": [
+        "env"
+      ],
+      "entries": []
+    },
+    {
+      "name": "dollar-substitution-error",
+      "observed": {
+        "status": 2,
+        "stdoutHex": "",
+        "stderrHex": "656e763a20696e76616c6964206f7074696f6e202d2d202753270a"
+      },
+      "calls": [
+        "env"
+      ],
+      "entries": []
+    },
+    {
+      "name": "literal-injection",
+      "observed": {
+        "status": 2,
+        "stdoutHex": "",
+        "stderrHex": "656e763a20696e76616c6964206f7074696f6e202d2d202753270a"
+      },
+      "calls": [
+        "env"
+      ],
+      "entries": []
+    },
+    {
+      "name": "attached-S",
+      "observed": {
+        "status": 2,
+        "stdoutHex": "",
+        "stderrHex": "656e763a20696e76616c6964206f7074696f6e202d2d202753270a"
+      },
+      "calls": [
+        "env"
+      ],
+      "entries": []
+    },
+    {
+      "name": "combined-iS",
+      "observed": {
+        "status": 2,
+        "stdoutHex": "",
+        "stderrHex": "656e763a20696e76616c6964206f7074696f6e202d2d202753270a"
+      },
+      "calls": [
+        "env"
+      ],
+      "entries": []
+    },
+    {
+      "name": "long-equals",
+      "observed": {
+        "status": 2,
+        "stdoutHex": "",
+        "stderrHex": "656e763a20756e7265636f676e697a6564206f7074696f6e20272d2d73706c69742d737472696e673d726563206f6e65270a"
+      },
+      "calls": [
+        "env"
+      ],
+      "entries": []
+    },
+    {
+      "name": "long-separate",
+      "observed": {
+        "status": 2,
+        "stdoutHex": "",
+        "stderrHex": "656e763a20756e7265636f676e697a6564206f7074696f6e20272d2d73706c69742d737472696e67270a"
+      },
+      "calls": [
+        "env"
+      ],
+      "entries": []
+    },
+    {
+      "name": "nested-S",
+      "observed": {
+        "status": 2,
+        "stdoutHex": "",
+        "stderrHex": "656e763a20696e76616c6964206f7074696f6e202d2d202753270a"
+      },
+      "calls": [
+        "env"
+      ],
+      "entries": []
+    },
+    {
+      "name": "repeated-S-before-command",
+      "observed": {
+        "status": 2,
+        "stdoutHex": "",
+        "stderrHex": "656e763a20696e76616c6964206f7074696f6e202d2d202753270a"
+      },
+      "calls": [
+        "env"
+      ],
+      "entries": []
+    },
+    {
+      "name": "S-after-command-is-literal",
+      "observed": {
+        "status": 2,
+        "stdoutHex": "",
+        "stderrHex": "656e763a20696e76616c6964206f7074696f6e202d2d202753270a"
+      },
+      "calls": [
+        "env"
+      ],
+      "entries": []
+    },
+    {
+      "name": "after-assignment-is-literal-command",
+      "observed": {
+        "status": 127,
+        "stdoutHex": "",
+        "stderrHex": "7368656c6c3a206c696e6520313a202d533a20636f6d6d616e64206e6f7420666f756e640a"
+      },
+      "calls": [
+        "env",
+        "-S"
+      ],
+      "entries": []
+    },
+    {
+      "name": "empty-S",
+      "observed": {
+        "status": 2,
+        "stdoutHex": "",
+        "stderrHex": "656e763a20696e76616c6964206f7074696f6e202d2d202753270a"
+      },
+      "calls": [
+        "env"
+      ],
+      "entries": []
+    },
+    {
+      "name": "empty-quoted-command",
+      "observed": {
+        "status": 2,
+        "stdoutHex": "",
+        "stderrHex": "656e763a20696e76616c6964206f7074696f6e202d2d202753270a"
+      },
+      "calls": [
+        "env"
+      ],
+      "entries": []
+    },
+    {
+      "name": "empty-print-environment",
+      "observed": {
+        "status": 2,
+        "stdoutHex": "",
+        "stderrHex": "656e763a20696e76616c6964206f7074696f6e202d2d202753270a"
+      },
+      "calls": [
+        "env"
+      ],
+      "entries": []
+    },
+    {
+      "name": "null-print",
+      "observed": {
+        "status": 2,
+        "stdoutHex": "",
+        "stderrHex": "656e763a20696e76616c6964206f7074696f6e202d2d202753270a"
+      },
+      "calls": [
+        "env"
+      ],
+      "entries": []
+    },
+    {
+      "name": "double-dash",
+      "observed": {
+        "status": 2,
+        "stdoutHex": "",
+        "stderrHex": "656e763a20696e76616c6964206f7074696f6e202d2d202753270a"
+      },
+      "calls": [
+        "env"
+      ],
+      "entries": []
+    },
+    {
+      "name": "bare-dash",
+      "observed": {
+        "status": 2,
+        "stdoutHex": "",
+        "stderrHex": "656e763a20696e76616c6964206f7074696f6e202d2d202753270a"
+      },
+      "calls": [
+        "env"
+      ],
+      "entries": []
+    },
+    {
+      "name": "bare-dash-stops-options",
+      "observed": {
+        "status": 2,
+        "stdoutHex": "",
+        "stderrHex": "656e763a20696e76616c6964206f7074696f6e202d2d202753270a"
+      },
+      "calls": [
+        "env"
+      ],
+      "entries": []
+    },
+    {
+      "name": "unset-long",
+      "observed": {
+        "status": 2,
+        "stdoutHex": "",
+        "stderrHex": "656e763a20696e76616c6964206f7074696f6e202d2d202753270a"
+      },
+      "calls": [
+        "env"
+      ],
+      "entries": []
+    },
+    {
+      "name": "unicode",
+      "observed": {
+        "status": 2,
+        "stdoutHex": "",
+        "stderrHex": "656e763a20696e76616c6964206f7074696f6e202d2d202753270a"
+      },
+      "calls": [
+        "env"
+      ],
+      "entries": []
+    },
+    {
+      "name": "no-S-single-target",
+      "observed": {
+        "status": 127,
+        "stdoutHex": "",
+        "stderrHex": "7368656c6c3a206c696e6520313a2072656320616c7068613a20636f6d6d616e64206e6f7420666f756e640a"
+      },
+      "calls": [
+        "env",
+        "rec alpha"
+      ],
+      "entries": []
+    },
+    {
+      "name": "empty-before-comment",
+      "observed": {
+        "status": 2,
+        "stdoutHex": "",
+        "stderrHex": "656e763a20696e76616c6964206f7074696f6e202d2d202753270a"
+      },
+      "calls": [
+        "env"
+      ],
+      "entries": []
+    },
+    {
+      "name": "expanded-punctuation-not-resplit",
+      "observed": {
+        "status": 2,
+        "stdoutHex": "",
+        "stderrHex": "656e763a20696e76616c6964206f7074696f6e202d2d202753270a"
+      },
+      "calls": [
+        "env"
+      ],
+      "entries": []
+    },
+    {
+      "name": "non-ASCII-whitespace-is-data",
+      "observed": {
+        "status": 2,
+        "stdoutHex": "",
+        "stderrHex": "656e763a20696e76616c6964206f7074696f6e202d2d202753270a"
+      },
+      "calls": [
+        "env"
+      ],
+      "entries": []
+    },
+    {
+      "name": "escaped-dollar-not-expanded",
+      "observed": {
+        "status": 2,
+        "stdoutHex": "",
+        "stderrHex": "656e763a20696e76616c6964206f7074696f6e202d2d202753270a"
+      },
+      "calls": [
+        "env"
+      ],
+      "entries": []
+    },
+    {
+      "name": "empty-variable-prefix-suffix",
+      "observed": {
+        "status": 2,
+        "stdoutHex": "",
+        "stderrHex": "656e763a20696e76616c6964206f7074696f6e202d2d202753270a"
+      },
+      "calls": [
+        "env"
+      ],
+      "entries": []
+    },
+    {
+      "name": "stop-before-malformed-tail",
+      "observed": {
+        "status": 2,
+        "stdoutHex": "",
+        "stderrHex": "656e763a20696e76616c6964206f7074696f6e202d2d202753270a"
+      },
+      "calls": [
+        "env"
+      ],
+      "entries": []
+    },
+    {
+      "name": "comment-before-malformed-tail",
+      "observed": {
+        "status": 2,
+        "stdoutHex": "",
+        "stderrHex": "656e763a20696e76616c6964206f7074696f6e202d2d202753270a"
+      },
+      "calls": [
+        "env"
+      ],
+      "entries": []
+    },
+    {
+      "name": "quoted-backslash-newline",
+      "observed": {
+        "status": 2,
+        "stdoutHex": "",
+        "stderrHex": "656e763a20696e76616c6964206f7074696f6e202d2d202753270a"
+      },
+      "calls": [
+        "env"
+      ],
+      "entries": []
+    },
+    {
+      "name": "dollar-invalid-unicode-name",
+      "observed": {
+        "status": 2,
+        "stdoutHex": "",
+        "stderrHex": "656e763a20696e76616c6964206f7074696f6e202d2d202753270a"
+      },
+      "calls": [
+        "env"
+      ],
+      "entries": []
+    },
+    {
+      "name": "valid-name-underscore-digit",
+      "observed": {
+        "status": 2,
+        "stdoutHex": "",
+        "stderrHex": "656e763a20696e76616c6964206f7074696f6e202d2d202753270a"
+      },
+      "calls": [
+        "env"
+      ],
+      "entries": []
+    },
+    {
+      "name": "chdir-last-option-before-assignment",
+      "observed": {
+        "status": 2,
+        "stdoutHex": "",
+        "stderrHex": "656e763a20696e76616c6964206f7074696f6e202d2d202753270a"
+      },
+      "calls": [
+        "env"
+      ],
+      "entries": [
+        "sub"
+      ]
+    },
+    {
+      "name": "nested-options-consume-original-argv",
+      "observed": {
+        "status": 2,
+        "stdoutHex": "",
+        "stderrHex": "656e763a20696e76616c6964206f7074696f6e202d2d202753270a"
+      },
+      "calls": [
+        "env"
+      ],
+      "entries": []
+    },
+    {
+      "name": "nested-S-consumes-original-string",
+      "observed": {
+        "status": 2,
+        "stdoutHex": "",
+        "stderrHex": "656e763a20696e76616c6964206f7074696f6e202d2d202753270a"
+      },
+      "calls": [
+        "env"
+      ],
+      "entries": []
+    },
+    {
+      "name": "duplicate-assignment-preserves-expansion-time",
+      "observed": {
+        "status": 2,
+        "stdoutHex": "",
+        "stderrHex": "656e763a20696e76616c6964206f7074696f6e202d2d202753270a"
+      },
+      "calls": [
+        "env"
+      ],
+      "entries": []
+    },
+    {
+      "name": "split-generated-assignment-stops-options",
+      "observed": {
+        "status": 2,
+        "stdoutHex": "",
+        "stderrHex": "656e763a20696e76616c6964206f7074696f6e202d2d202753270a"
+      },
+      "calls": [
+        "env"
+      ],
+      "entries": []
+    },
+    {
+      "name": "leading-BOM-is-literal-argument-data",
+      "observed": {
+        "status": 2,
+        "stdoutHex": "",
+        "stderrHex": "656e763a20696e76616c6964206f7074696f6e202d2d202753270a"
+      },
+      "calls": [
+        "env"
+      ],
+      "entries": []
+    },
+    {
+      "name": "lone-dash-then-assignment",
+      "observed": {
+        "status": 2,
+        "stdoutHex": "",
+        "stderrHex": "656e763a20696e76616c6964206f7074696f6e202d2d202753270a"
+      },
+      "calls": [
+        "env"
+      ],
+      "entries": []
+    },
+    {
+      "name": "empty-split-does-not-remove-following-empty-arg",
+      "observed": {
+        "status": 2,
+        "stdoutHex": "",
+        "stderrHex": "656e763a20696e76616c6964206f7074696f6e202d2d202753270a"
+      },
+      "calls": [
+        "env"
+      ],
+      "entries": []
+    }
+  ],
+  "sourceInventory": "resume-source-inventory.json",
+  "sourceInventoryHash": "4dc57e8fed7994dcb75314af1f2c768d6f09aecd9f9d133643b1af3c0ce35dcf",
+  "beforeAfterEqual": true
+}

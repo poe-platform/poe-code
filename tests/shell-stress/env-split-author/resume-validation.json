@@ -1,0 +1,111 @@
+{
+  "stage": "Preparation only; no product writes",
+  "base": "e7f4f2e3753184415f8098445c2009cb4cd9a6e9",
+  "repositoryHeadAtFinalCapture": "7839db5370fe09d57f7aaaea29b5b2acb874cd36",
+  "sourceRoot": "/tmp/safe-bash-env-split-committed-base-3A1GBF",
+  "sourceArchiveHash": "58dc72e6fff139213536e8f151b6bc3113ae1bbe9cf3ae1c618294839616ccde",
+  "sourceInventoryHash": "4dc57e8fed7994dcb75314af1f2c768d6f09aecd9f9d133643b1af3c0ce35dcf",
+  "sourceCount": 212,
+  "importedRuntime": "file:///private/tmp/safe-bash-env-split-committed-base-3A1GBF/src/shell/runtime.ts",
+  "importedEnv": "file:///private/tmp/safe-bash-env-split-committed-base-3A1GBF/src/commands/execution.ts",
+  "authorHashes": {
+    "tests/shell/env-split-native.test.ts": "20191b28aaeb2abf249814f709722f9812840d2faef2afd46a7a29382487b433",
+    "tests/shell/env-split-host.test.ts": "f0a9ff72bb7a9565b6441c5a1126d8f4d4719ccbbaa3e31a67ccaec679ff227a",
+    "tests/shell-stress/env-split-author/resume-fixtures.ts": "80b3ee0109c6cd60245594b5f84325ae92b601c7f9b45dcee9d34d3adc173f8c",
+    "tests/shell-stress/env-split-author/resume-host.ts": "c22482b06a27a6883bf1d6f6dac98e8a83795495c452772869e3b5a03b3135ce",
+    "tests/shell-stress/env-split-author/resume-baseline.mjs": "cbb0ce40d757408c753442e5d0875a387440d9b0c785d7e3793e70fee677bd11",
+    "tests/shell-stress/env-split-author/resume-cases.json": "d6e0ea65b61eb91d873103455824a4fbb57ddf1564909f71819d7ae05c755ea2",
+    "tests/shell-stress/env-split-author/resume-native.json": "f0d9a0c1f6c984f0b2d172fd8d938ec5af3910e624468ab67eedead0f4204416",
+    "tests/shell-stress/env-split-author/native-frozen.json": "78454386eeddec592bbdd79128696434fac3c19b862866b89684a2e3747c4a21"
+  },
+  "node": "v22.22.2",
+  "borrowed": {
+    "node_modules/tsx/package.json": "96aee9fd252d0cc31f3c01468250961f5b338c797bc208700d7db926450c7659",
+    "node_modules/typescript/package.json": "822ef7ca6452205657b6288b066481ecf508bfbf43455d715cf7d3ec457561e6",
+    "package-lock.json": "9c04bb7d2c7d1894479f0c37ce367987c2130256e5bfbf426cfa1bd2729d740b"
+  },
+  "sourceArchiveRemoved": true,
+  "native": {
+    "rows": 36,
+    "profiles": [
+      "GNU5.3",
+      "Apple3.2"
+    ],
+    "fixedEnv": "GNU9.7-Darwin",
+    "wholeTupleAgreement": 18,
+    "groupsStopped": 41,
+    "scratchRemoved": true
+  },
+  "baseline": {
+    "rows": 63,
+    "exactPrimaryTuplePass": 0,
+    "exactPrimaryTupleFail": 63,
+    "tests": 89,
+    "pass": 5,
+    "fail": 84,
+    "skipped": 0,
+    "cancelled": 0,
+    "testCommand": [
+      "--import",
+      "tsx",
+      "--test",
+      "--test-concurrency=1",
+      "--test-reporter=spec",
+      "tests/shell/env-split-native.test.ts",
+      "tests/shell/env-split-host.test.ts"
+    ],
+    "testStatus": 1,
+    "rawLog": "resume-red.txt"
+  },
+  "scopedTypecheck": {
+    "command": [
+      "node_modules/typescript/bin/tsc",
+      "--noEmit",
+      "--target",
+      "ES2023",
+      "--lib",
+      "ES2023",
+      "--module",
+      "NodeNext",
+      "--moduleResolution",
+      "NodeNext",
+      "--strict",
+      "--noUncheckedIndexedAccess",
+      "--exactOptionalPropertyTypes",
+      "--verbatimModuleSyntax",
+      "--skipLibCheck",
+      "--types",
+      "node",
+      "tests/shell/env-split-native.test.ts",
+      "tests/shell/env-split-host.test.ts",
+      "tests/shell-stress/env-split-author/resume-host.ts"
+    ],
+    "status": 0,
+    "stdout": "",
+    "stderr": "",
+    "coverage": "Only two owned tests plus host helper and imported source, not a global/build/consumer gate"
+  },
+  "initialAttempts": {
+    "live": {
+      "sourceGuard": "Failed before observations because concurrent commit7a517cec changed internal.ts and streams.ts relative to e7f4f2e",
+      "rawTestLogHash": "f5a992be046d9f5ff816285943314e7f95ee254e26ce6b63d57719e767851eb0",
+      "tests": 89,
+      "pass": 5,
+      "fail": 84,
+      "acceptance": false
+    },
+    "firstCommitted": {
+      "sourceRoot": "/tmp/safe-bash-env-split-committed-base-3BZbji",
+      "sourceArchiveHash": "58dc72e6fff139213536e8f151b6bc3113ae1bbe9cf3ae1c618294839616ccde",
+      "baselineRowsIdentical": true,
+      "tests": 89,
+      "pass": 5,
+      "fail": 84,
+      "typeStatus": 2,
+      "typeStdout": "src/fs/webdav/webdav.ts(725,72): error TS2353: Object literal may only specify known properties, and 'duplex' does not exist in type 'RequestInit'.\ntests/shell/env-split-host.test.ts(20,5): error TS2769: No overload matches this call.\n  Overload 1 of 8, '(command: string, args: readonly string[], options: SpawnSyncOptionsWithStringEncoding): SpawnSyncReturns<string>', gave the following error.\n    Object literal may only specify known properties, and 'detached' does not exist in type 'SpawnSyncOptionsWithStringEncoding'.\n  Overload 2 of 8, '(command: string, args: readonly string[], options: SpawnSyncOptionsWithBufferEncoding): SpawnSyncReturns<NonSharedBuffer>', gave the following error.\n    Object literal may only specify known properties, and 'detached' does not exist in type 'SpawnSyncOptionsWithBufferEncoding'.\n  Overload 3 of 8, '(command: string, args?: readonly string[] | undefined, options?: SpawnSyncOptions | undefined): SpawnSyncReturns<string | NonSharedBuffer>', gave the following error.\n    Object literal may only specify known properties, and 'detached' does not exist in type 'SpawnSyncOptions'.\n",
+      "typeStderr": "",
+      "correction": "Use typed asynchronous spawn for detached groups; specify --lib ES2023 matching repo config instead of default DOM. No source or expected tuple changes."
+    }
+  },
+  "stop": "No product changes authorized. Root must route runtime shebang seam separately; no hidden fixtures read."
+}

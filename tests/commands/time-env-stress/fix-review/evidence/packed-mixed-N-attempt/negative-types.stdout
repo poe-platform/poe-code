@@ -1,0 +1,4 @@
+negative.mts(2,24): error TS2322: Type '() => string' is not assignable to type '() => number'.
+  Type 'string' is not assignable to type 'number'.
+negative.mts(3,24): error TS2741: Property 'clearTimeout' is missing in type '{ now: () => number; setTimeout: () => number; }' but required in type 'SleepScheduler'.
+negative.mts(4,32): error TS2322: Type 'string' is not assignable to type 'number'.

@@ -1,0 +1,76 @@
+import assert from "node:assert/strict";
+import { execFileSync } from "node:child_process";
+import { createHash } from "node:crypto";
+import { existsSync, lstatSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { dirname, join } from "node:path";
+import { test } from "node:test";
+import { fileURLToPath } from "node:url";
+import { currentDriverBindings, historicalSealCommit, nativeCaptureSha256, validateSourceBindings } from "./current-binding.js";
+
+const root = fileURLToPath(new URL("../../../../", import.meta.url));
+const baseline = readFileSync(join(root, "benchmarks/shell-stress/diagnostic-profiles/native-baseline.json"));
+assert.equal(createHash("sha256").update(baseline).digest("hex"), nativeCaptureSha256);
+const { sources } = JSON.parse(baseline.toString()) as { sources: Record<string, string> };
+
+function withCopiedInputs(run: (directory: string) => void): void {
+  const directory = mkdtempSync(join(tmpdir(), "safe-bash-diagnostic-pins-control-"));
+  try {
+    for (const path of Object.keys(sources).filter(path => path.startsWith("tests/"))) {
+      const destination = join(directory, path);
+      mkdirSync(dirname(destination), { recursive: true });
+      writeFileSync(destination, readFileSync(join(root, path)), { flag: "wx" });
+      assert.ok(lstatSync(destination).isFile());
+      assert.equal(lstatSync(destination).isSymbolicLink(), false);
+    }
+    run(directory);
+  } finally { rmSync(directory, { recursive: true, force: true }); }
+}
+
+test("current binding authenticates all fourteen inputs with exactly two migrated pins", () => {
+  assert.equal(Object.keys(sources).filter(path => path.startsWith("tests/")).length, 14);
+  assert.equal(currentDriverBindings.length, 2);
+  validateSourceBindings(root, sources, "current");
+});
+
+for (const driver of currentDriverBindings) {
+  test(`changed driver rejected before case effects: ${driver.path}`, () => {
+    withCopiedInputs(directory => {
+      const destination = join(directory, driver.path);
+      writeFileSync(destination, Buffer.concat([readFileSync(destination), Buffer.from("\n")]));
+      let caseEffects = 0;
+      const marker = join(directory, "case-effect");
+      assert.throws(() => {
+        validateSourceBindings(directory, sources, "current");
+        caseEffects++;
+        writeFileSync(marker, "must not happen");
+      }, { message: `Current fixture/helper binding changed: ${driver.path}` });
+      assert.equal(caseEffects, 0);
+      assert.equal(existsSync(marker), false);
+    });
+  });
+}
+
+test("historical binding replays complete authenticated historical driver bytes", () => {
+  withCopiedInputs(directory => {
+    for (const driver of currentDriverBindings) {
+      const bytes = execFileSync("git", ["show", `${historicalSealCommit}:${driver.path}`], { cwd: root, timeout: 5000, maxBuffer: 65536 });
+      assert.equal(createHash("sha256").update(bytes).digest("hex"), driver.historicalSha256);
+      writeFileSync(join(directory, driver.path), bytes);
+    }
+    validateSourceBindings(directory, sources, "historical");
+    assert.throws(() => validateSourceBindings(directory, sources, "current"), /Current fixture\/helper binding changed/u);
+  });
+});
+
+test("historical binding still rejects the migrated current drivers", () => {
+  assert.throws(() => validateSourceBindings(root, sources, "historical"), /Frozen historical fixture\/helper changed/u);
+});
+
+test("unchanged fixture pin still rejects mutation", () => {
+  withCopiedInputs(directory => {
+    const destination = join(directory, "tests/shell-stress/cases.ts");
+    writeFileSync(destination, Buffer.concat([readFileSync(destination), Buffer.from("\n")]));
+    assert.throws(() => validateSourceBindings(directory, sources, "current"), { message: "Current fixture/helper binding changed: tests/shell-stress/cases.ts" });
+  });
+});

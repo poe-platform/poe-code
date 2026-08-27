@@ -7,6 +7,7 @@ import { differentialCases, syntaxCases } from "../cases.js";
 import { additionalCases } from "../current-gaps/cases.js";
 import type { Observation, Snapshot, StressCase } from "../model.js";
 import { isolatedSpawn } from "../process.js";
+import { nativeCaptureSha256, validateSourceBindings } from "./pin-migration/current-binding.js";
 
 export interface Profile {
   name: string;
@@ -89,13 +90,20 @@ function snapshot(directory: string, prefix = ""): Snapshot {
 }
 
 export function validateFrozenProfile(): void {
+  validateProfile("historical");
+}
+
+export function validateCurrentProfile(): void {
+  validateProfile("current");
+}
+
+function validateProfile(binding: "historical" | "current"): void {
+  assert.equal(sha256(join(artifactRoot, "native-baseline.json")), nativeCaptureSha256, "Frozen native capture changed");
   assert.equal(sha256(profile.executable), profile.sha256, "Pinned native executable changed or unavailable");
   assert.equal(fixtures.length, 88);
   assert.equal(frozen.rows.length, fixtures.length);
   assert.deepEqual(frozen.rows.map(row => ({ cohort: row.cohort, fixture: row.fixture })), fixtures);
-  for (const [path, expected] of Object.entries(evidence.sources)) {
-    if (path.startsWith("tests/")) assert.equal(sha256(join(root, path)), expected, `Frozen historical fixture/helper changed: ${path}`);
-  }
+  validateSourceBindings(root, evidence.sources, binding);
   for (const candidate of evidence.profiles) {
     for (const argv0 of ["shell-stress", "shell"]) {
       const captures = evidence.captures.filter(capture => capture.profile === candidate.name && capture.argv0 === argv0);

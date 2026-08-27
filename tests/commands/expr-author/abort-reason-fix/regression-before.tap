@@ -1,0 +1,825 @@
+TAP version 13
+# Subtest: structural signal implements EventTarget and AbortSignal; native undefined is a DOMException
+ok 1 - structural signal implements EventTarget and AbortSignal; native undefined is a DOMException
+  ---
+  duration_ms: 0.648834
+  type: 'test'
+  ...
+# Subtest: direct run structural-undefined preaborted preserves rejection and sibling
+ok 2 - direct run structural-undefined preaborted preserves rejection and sibling
+  ---
+  duration_ms: 0.295542
+  type: 'test'
+  ...
+# Subtest: direct run structural-undefined startup preserves rejection and sibling
+not ok 3 - direct run structural-undefined startup preserves rejection and sibling
+  ---
+  duration_ms: 11.980208
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/expr/abort-reason-regression.test.ts:1:5912'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + 'fulfilled'
+    - 'rejected'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'rejected'
+  actual: 'fulfilled'
+  operator: 'strictEqual'
+  stack: |-
+    rejected (/Users/kjopek/Workspace/safe-bash/tests/commands/expr/abort-reason-regression.test.ts:103:10)
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/expr/abort-reason-regression.test.ts:188:11)
+    process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: direct run structural-undefined active preserves rejection and sibling
+not ok 4 - direct run structural-undefined active preserves rejection and sibling
+  ---
+  duration_ms: 16.088875
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/expr/abort-reason-regression.test.ts:1:5912'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + 'fulfilled'
+    - 'rejected'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'rejected'
+  actual: 'fulfilled'
+  operator: 'strictEqual'
+  stack: |-
+    rejected (/Users/kjopek/Workspace/safe-bash/tests/commands/expr/abort-reason-regression.test.ts:103:10)
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/expr/abort-reason-regression.test.ts:188:11)
+    process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: direct run structural-undefined queued preserves rejection and sibling
+ok 5 - direct run structural-undefined queued preserves rejection and sibling
+  ---
+  duration_ms: 16.989875
+  type: 'test'
+  ...
+# Subtest: direct run native-undefined preaborted preserves rejection and sibling
+ok 6 - direct run native-undefined preaborted preserves rejection and sibling
+  ---
+  duration_ms: 0.116
+  type: 'test'
+  ...
+# Subtest: direct run native-undefined startup preserves rejection and sibling
+ok 7 - direct run native-undefined startup preserves rejection and sibling
+  ---
+  duration_ms: 23.601916
+  type: 'test'
+  ...
+# Subtest: direct run native-undefined active preserves rejection and sibling
+ok 8 - direct run native-undefined active preserves rejection and sibling
+  ---
+  duration_ms: 33.265916
+  type: 'test'
+  ...
+# Subtest: direct run native-undefined queued preserves rejection and sibling
+ok 9 - direct run native-undefined queued preserves rejection and sibling
+  ---
+  duration_ms: 16.688833
+  type: 'test'
+  ...
+# Subtest: direct run native-zero preaborted preserves rejection and sibling
+ok 10 - direct run native-zero preaborted preserves rejection and sibling
+  ---
+  duration_ms: 0.275959
+  type: 'test'
+  ...
+# Subtest: direct run native-zero startup preserves rejection and sibling
+ok 11 - direct run native-zero startup preserves rejection and sibling
+  ---
+  duration_ms: 23.999875
+  type: 'test'
+  ...
+# Subtest: direct run native-zero active preserves rejection and sibling
+ok 12 - direct run native-zero active preserves rejection and sibling
+  ---
+  duration_ms: 30.427708
+  type: 'test'
+  ...
+# Subtest: direct run native-zero queued preserves rejection and sibling
+ok 13 - direct run native-zero queued preserves rejection and sibling
+  ---
+  duration_ms: 17.625584
+  type: 'test'
+  ...
+# Subtest: direct run native-null preaborted preserves rejection and sibling
+ok 14 - direct run native-null preaborted preserves rejection and sibling
+  ---
+  duration_ms: 0.06575
+  type: 'test'
+  ...
+# Subtest: direct run native-null startup preserves rejection and sibling
+ok 15 - direct run native-null startup preserves rejection and sibling
+  ---
+  duration_ms: 23.197416
+  type: 'test'
+  ...
+# Subtest: direct run native-null active preserves rejection and sibling
+ok 16 - direct run native-null active preserves rejection and sibling
+  ---
+  duration_ms: 33.16525
+  type: 'test'
+  ...
+# Subtest: direct run native-null queued preserves rejection and sibling
+ok 17 - direct run native-null queued preserves rejection and sibling
+  ---
+  duration_ms: 18.861416
+  type: 'test'
+  ...
+# Subtest: direct run native-false preaborted preserves rejection and sibling
+ok 18 - direct run native-false preaborted preserves rejection and sibling
+  ---
+  duration_ms: 0.079083
+  type: 'test'
+  ...
+# Subtest: direct run native-false startup preserves rejection and sibling
+ok 19 - direct run native-false startup preserves rejection and sibling
+  ---
+  duration_ms: 23.258083
+  type: 'test'
+  ...
+# Subtest: direct run native-false active preserves rejection and sibling
+ok 20 - direct run native-false active preserves rejection and sibling
+  ---
+  duration_ms: 29.922959
+  type: 'test'
+  ...
+# Subtest: direct run native-false queued preserves rejection and sibling
+ok 21 - direct run native-false queued preserves rejection and sibling
+  ---
+  duration_ms: 17.304209
+  type: 'test'
+  ...
+# Subtest: direct run native-empty-string preaborted preserves rejection and sibling
+ok 22 - direct run native-empty-string preaborted preserves rejection and sibling
+  ---
+  duration_ms: 0.128
+  type: 'test'
+  ...
+# Subtest: direct run native-empty-string startup preserves rejection and sibling
+ok 23 - direct run native-empty-string startup preserves rejection and sibling
+  ---
+  duration_ms: 22.871
+  type: 'test'
+  ...
+# Subtest: direct run native-empty-string active preserves rejection and sibling
+ok 24 - direct run native-empty-string active preserves rejection and sibling
+  ---
+  duration_ms: 31.15225
+  type: 'test'
+  ...
+# Subtest: direct run native-empty-string queued preserves rejection and sibling
+ok 25 - direct run native-empty-string queued preserves rejection and sibling
+  ---
+  duration_ms: 18.042208
+  type: 'test'
+  ...
+# Subtest: direct run native-Error preaborted preserves rejection and sibling
+ok 26 - direct run native-Error preaborted preserves rejection and sibling
+  ---
+  duration_ms: 0.0585
+  type: 'test'
+  ...
+# Subtest: direct run native-Error startup preserves rejection and sibling
+ok 27 - direct run native-Error startup preserves rejection and sibling
+  ---
+  duration_ms: 22.898666
+  type: 'test'
+  ...
+# Subtest: direct run native-Error active preserves rejection and sibling
+ok 28 - direct run native-Error active preserves rejection and sibling
+  ---
+  duration_ms: 30.494292
+  type: 'test'
+  ...
+# Subtest: direct run native-Error queued preserves rejection and sibling
+ok 29 - direct run native-Error queued preserves rejection and sibling
+  ---
+  duration_ms: 15.757667
+  type: 'test'
+  ...
+# Subtest: session run native-undefined preaborted preserves rejection and sibling
+ok 30 - session run native-undefined preaborted preserves rejection and sibling
+  ---
+  duration_ms: 0.095958
+  type: 'test'
+  ...
+# Subtest: session run native-undefined startup preserves rejection and sibling
+ok 31 - session run native-undefined startup preserves rejection and sibling
+  ---
+  duration_ms: 25.8525
+  type: 'test'
+  ...
+# Subtest: session run native-undefined active preserves rejection and sibling
+ok 32 - session run native-undefined active preserves rejection and sibling
+  ---
+  duration_ms: 31.171917
+  type: 'test'
+  ...
+# Subtest: session run native-undefined queued preserves rejection and sibling
+ok 33 - session run native-undefined queued preserves rejection and sibling
+  ---
+  duration_ms: 18.525833
+  type: 'test'
+  ...
+# Subtest: session run native-zero preaborted preserves rejection and sibling
+ok 34 - session run native-zero preaborted preserves rejection and sibling
+  ---
+  duration_ms: 0.064959
+  type: 'test'
+  ...
+# Subtest: session run native-zero startup preserves rejection and sibling
+ok 35 - session run native-zero startup preserves rejection and sibling
+  ---
+  duration_ms: 23.038083
+  type: 'test'
+  ...
+# Subtest: session run native-zero active preserves rejection and sibling
+ok 36 - session run native-zero active preserves rejection and sibling
+  ---
+  duration_ms: 30.706917
+  type: 'test'
+  ...
+# Subtest: session run native-zero queued preserves rejection and sibling
+ok 37 - session run native-zero queued preserves rejection and sibling
+  ---
+  duration_ms: 18.169625
+  type: 'test'
+  ...
+# Subtest: session run native-null preaborted preserves rejection and sibling
+ok 38 - session run native-null preaborted preserves rejection and sibling
+  ---
+  duration_ms: 0.06675
+  type: 'test'
+  ...
+# Subtest: session run native-null startup preserves rejection and sibling
+ok 39 - session run native-null startup preserves rejection and sibling
+  ---
+  duration_ms: 23.350125
+  type: 'test'
+  ...
+# Subtest: session run native-null active preserves rejection and sibling
+ok 40 - session run native-null active preserves rejection and sibling
+  ---
+  duration_ms: 28.57075
+  type: 'test'
+  ...
+# Subtest: session run native-null queued preserves rejection and sibling
+ok 41 - session run native-null queued preserves rejection and sibling
+  ---
+  duration_ms: 18.131125
+  type: 'test'
+  ...
+# Subtest: session run native-false preaborted preserves rejection and sibling
+ok 42 - session run native-false preaborted preserves rejection and sibling
+  ---
+  duration_ms: 0.069625
+  type: 'test'
+  ...
+# Subtest: session run native-false startup preserves rejection and sibling
+ok 43 - session run native-false startup preserves rejection and sibling
+  ---
+  duration_ms: 23.32475
+  type: 'test'
+  ...
+# Subtest: session run native-false active preserves rejection and sibling
+ok 44 - session run native-false active preserves rejection and sibling
+  ---
+  duration_ms: 29.839041
+  type: 'test'
+  ...
+# Subtest: session run native-false queued preserves rejection and sibling
+ok 45 - session run native-false queued preserves rejection and sibling
+  ---
+  duration_ms: 16.128917
+  type: 'test'
+  ...
+# Subtest: session run native-empty-string preaborted preserves rejection and sibling
+ok 46 - session run native-empty-string preaborted preserves rejection and sibling
+  ---
+  duration_ms: 0.067375
+  type: 'test'
+  ...
+# Subtest: session run native-empty-string startup preserves rejection and sibling
+ok 47 - session run native-empty-string startup preserves rejection and sibling
+  ---
+  duration_ms: 23.774667
+  type: 'test'
+  ...
+# Subtest: session run native-empty-string active preserves rejection and sibling
+ok 48 - session run native-empty-string active preserves rejection and sibling
+  ---
+  duration_ms: 29.656125
+  type: 'test'
+  ...
+# Subtest: session run native-empty-string queued preserves rejection and sibling
+ok 49 - session run native-empty-string queued preserves rejection and sibling
+  ---
+  duration_ms: 17.517333
+  type: 'test'
+  ...
+# Subtest: session run native-Error preaborted preserves rejection and sibling
+ok 50 - session run native-Error preaborted preserves rejection and sibling
+  ---
+  duration_ms: 0.07025
+  type: 'test'
+  ...
+# Subtest: session run native-Error startup preserves rejection and sibling
+ok 51 - session run native-Error startup preserves rejection and sibling
+  ---
+  duration_ms: 23.458708
+  type: 'test'
+  ...
+# Subtest: session run native-Error active preserves rejection and sibling
+ok 52 - session run native-Error active preserves rejection and sibling
+  ---
+  duration_ms: 30.132958
+  type: 'test'
+  ...
+# Subtest: session run native-Error queued preserves rejection and sibling
+ok 53 - session run native-Error queued preserves rejection and sibling
+  ---
+  duration_ms: 18.447875
+  type: 'test'
+  ...
+# Subtest: run natural structural success and native valid-context cleanup
+ok 54 - run natural structural success and native valid-context cleanup
+  ---
+  duration_ms: 28.014
+  type: 'test'
+  ...
+# Subtest: run active structural undefined awaits retirement before rejecting
+not ok 55 - run active structural undefined awaits retirement before rejecting
+  ---
+  duration_ms: 24.717541
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/expr/abort-reason-regression.test.ts:1:8773'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + 'fulfilled'
+    - 'rejected'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'rejected'
+  actual: 'fulfilled'
+  operator: 'strictEqual'
+  stack: |-
+    rejected (/Users/kjopek/Workspace/safe-bash/tests/commands/expr/abort-reason-regression.test.ts:103:10)
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/expr/abort-reason-regression.test.ts:258:7)
+    process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: run session preserves explicit transport rejection undefined
+not ok 56 - run session preserves explicit transport rejection undefined
+  ---
+  duration_ms: 13.578459
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/expr/abort-reason-regression.test.ts:1:9555'
+  failureType: 'testCodeFailure'
+  error: 'exact rejection reason'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    rejected (/Users/kjopek/Workspace/safe-bash/tests/commands/expr/abort-reason-regression.test.ts:104:45)
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/expr/abort-reason-regression.test.ts:271:11)
+    process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: direct matchExpr structural-undefined preaborted preserves rejection and sibling
+ok 57 - direct matchExpr structural-undefined preaborted preserves rejection and sibling
+  ---
+  duration_ms: 0.122
+  type: 'test'
+  ...
+# Subtest: direct matchExpr structural-undefined startup preserves rejection and sibling
+not ok 58 - direct matchExpr structural-undefined startup preserves rejection and sibling
+  ---
+  duration_ms: 9.813875
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/expr/abort-reason-regression.test.ts:1:5912'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + 'fulfilled'
+    - 'rejected'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'rejected'
+  actual: 'fulfilled'
+  operator: 'strictEqual'
+  stack: |-
+    rejected (/Users/kjopek/Workspace/safe-bash/tests/commands/expr/abort-reason-regression.test.ts:103:10)
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/expr/abort-reason-regression.test.ts:188:11)
+    process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: direct matchExpr structural-undefined active preserves rejection and sibling
+not ok 59 - direct matchExpr structural-undefined active preserves rejection and sibling
+  ---
+  duration_ms: 17.264875
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/expr/abort-reason-regression.test.ts:1:5912'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + 'fulfilled'
+    - 'rejected'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'rejected'
+  actual: 'fulfilled'
+  operator: 'strictEqual'
+  stack: |-
+    rejected (/Users/kjopek/Workspace/safe-bash/tests/commands/expr/abort-reason-regression.test.ts:103:10)
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/expr/abort-reason-regression.test.ts:188:11)
+    process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: direct matchExpr structural-undefined queued preserves rejection and sibling
+ok 60 - direct matchExpr structural-undefined queued preserves rejection and sibling
+  ---
+  duration_ms: 15.941667
+  type: 'test'
+  ...
+# Subtest: direct matchExpr native-undefined preaborted preserves rejection and sibling
+ok 61 - direct matchExpr native-undefined preaborted preserves rejection and sibling
+  ---
+  duration_ms: 0.077333
+  type: 'test'
+  ...
+# Subtest: direct matchExpr native-undefined startup preserves rejection and sibling
+ok 62 - direct matchExpr native-undefined startup preserves rejection and sibling
+  ---
+  duration_ms: 25.402
+  type: 'test'
+  ...
+# Subtest: direct matchExpr native-undefined active preserves rejection and sibling
+ok 63 - direct matchExpr native-undefined active preserves rejection and sibling
+  ---
+  duration_ms: 33.374791
+  type: 'test'
+  ...
+# Subtest: direct matchExpr native-undefined queued preserves rejection and sibling
+ok 64 - direct matchExpr native-undefined queued preserves rejection and sibling
+  ---
+  duration_ms: 16.781333
+  type: 'test'
+  ...
+# Subtest: direct matchExpr native-zero preaborted preserves rejection and sibling
+ok 65 - direct matchExpr native-zero preaborted preserves rejection and sibling
+  ---
+  duration_ms: 0.070459
+  type: 'test'
+  ...
+# Subtest: direct matchExpr native-zero startup preserves rejection and sibling
+ok 66 - direct matchExpr native-zero startup preserves rejection and sibling
+  ---
+  duration_ms: 25.258667
+  type: 'test'
+  ...
+# Subtest: direct matchExpr native-zero active preserves rejection and sibling
+ok 67 - direct matchExpr native-zero active preserves rejection and sibling
+  ---
+  duration_ms: 31.594458
+  type: 'test'
+  ...
+# Subtest: direct matchExpr native-zero queued preserves rejection and sibling
+ok 68 - direct matchExpr native-zero queued preserves rejection and sibling
+  ---
+  duration_ms: 17.428334
+  type: 'test'
+  ...
+# Subtest: direct matchExpr native-null preaborted preserves rejection and sibling
+ok 69 - direct matchExpr native-null preaborted preserves rejection and sibling
+  ---
+  duration_ms: 0.079708
+  type: 'test'
+  ...
+# Subtest: direct matchExpr native-null startup preserves rejection and sibling
+ok 70 - direct matchExpr native-null startup preserves rejection and sibling
+  ---
+  duration_ms: 24.223708
+  type: 'test'
+  ...
+# Subtest: direct matchExpr native-null active preserves rejection and sibling
+ok 71 - direct matchExpr native-null active preserves rejection and sibling
+  ---
+  duration_ms: 43.880792
+  type: 'test'
+  ...
+# Subtest: direct matchExpr native-null queued preserves rejection and sibling
+ok 72 - direct matchExpr native-null queued preserves rejection and sibling
+  ---
+  duration_ms: 18.410084
+  type: 'test'
+  ...
+# Subtest: direct matchExpr native-false preaborted preserves rejection and sibling
+ok 73 - direct matchExpr native-false preaborted preserves rejection and sibling
+  ---
+  duration_ms: 0.069542
+  type: 'test'
+  ...
+# Subtest: direct matchExpr native-false startup preserves rejection and sibling
+ok 74 - direct matchExpr native-false startup preserves rejection and sibling
+  ---
+  duration_ms: 26.635375
+  type: 'test'
+  ...
+# Subtest: direct matchExpr native-false active preserves rejection and sibling
+ok 75 - direct matchExpr native-false active preserves rejection and sibling
+  ---
+  duration_ms: 31.647333
+  type: 'test'
+  ...
+# Subtest: direct matchExpr native-false queued preserves rejection and sibling
+ok 76 - direct matchExpr native-false queued preserves rejection and sibling
+  ---
+  duration_ms: 16.2015
+  type: 'test'
+  ...
+# Subtest: direct matchExpr native-empty-string preaborted preserves rejection and sibling
+ok 77 - direct matchExpr native-empty-string preaborted preserves rejection and sibling
+  ---
+  duration_ms: 0.069084
+  type: 'test'
+  ...
+# Subtest: direct matchExpr native-empty-string startup preserves rejection and sibling
+ok 78 - direct matchExpr native-empty-string startup preserves rejection and sibling
+  ---
+  duration_ms: 24.996958
+  type: 'test'
+  ...
+# Subtest: direct matchExpr native-empty-string active preserves rejection and sibling
+ok 79 - direct matchExpr native-empty-string active preserves rejection and sibling
+  ---
+  duration_ms: 32.321166
+  type: 'test'
+  ...
+# Subtest: direct matchExpr native-empty-string queued preserves rejection and sibling
+ok 80 - direct matchExpr native-empty-string queued preserves rejection and sibling
+  ---
+  duration_ms: 17.562541
+  type: 'test'
+  ...
+# Subtest: direct matchExpr native-Error preaborted preserves rejection and sibling
+ok 81 - direct matchExpr native-Error preaborted preserves rejection and sibling
+  ---
+  duration_ms: 0.075625
+  type: 'test'
+  ...
+# Subtest: direct matchExpr native-Error startup preserves rejection and sibling
+ok 82 - direct matchExpr native-Error startup preserves rejection and sibling
+  ---
+  duration_ms: 25.474917
+  type: 'test'
+  ...
+# Subtest: direct matchExpr native-Error active preserves rejection and sibling
+ok 83 - direct matchExpr native-Error active preserves rejection and sibling
+  ---
+  duration_ms: 35.432833
+  type: 'test'
+  ...
+# Subtest: direct matchExpr native-Error queued preserves rejection and sibling
+ok 84 - direct matchExpr native-Error queued preserves rejection and sibling
+  ---
+  duration_ms: 18.549041
+  type: 'test'
+  ...
+# Subtest: session matchExpr native-undefined preaborted preserves rejection and sibling
+ok 85 - session matchExpr native-undefined preaborted preserves rejection and sibling
+  ---
+  duration_ms: 0.082583
+  type: 'test'
+  ...
+# Subtest: session matchExpr native-undefined startup preserves rejection and sibling
+ok 86 - session matchExpr native-undefined startup preserves rejection and sibling
+  ---
+  duration_ms: 24.751959
+  type: 'test'
+  ...
+# Subtest: session matchExpr native-undefined active preserves rejection and sibling
+ok 87 - session matchExpr native-undefined active preserves rejection and sibling
+  ---
+  duration_ms: 31.0375
+  type: 'test'
+  ...
+# Subtest: session matchExpr native-undefined queued preserves rejection and sibling
+ok 88 - session matchExpr native-undefined queued preserves rejection and sibling
+  ---
+  duration_ms: 17.286166
+  type: 'test'
+  ...
+# Subtest: session matchExpr native-zero preaborted preserves rejection and sibling
+ok 89 - session matchExpr native-zero preaborted preserves rejection and sibling
+  ---
+  duration_ms: 0.081667
+  type: 'test'
+  ...
+# Subtest: session matchExpr native-zero startup preserves rejection and sibling
+ok 90 - session matchExpr native-zero startup preserves rejection and sibling
+  ---
+  duration_ms: 24.000334
+  type: 'test'
+  ...
+# Subtest: session matchExpr native-zero active preserves rejection and sibling
+ok 91 - session matchExpr native-zero active preserves rejection and sibling
+  ---
+  duration_ms: 32.590458
+  type: 'test'
+  ...
+# Subtest: session matchExpr native-zero queued preserves rejection and sibling
+ok 92 - session matchExpr native-zero queued preserves rejection and sibling
+  ---
+  duration_ms: 16.836542
+  type: 'test'
+  ...
+# Subtest: session matchExpr native-null preaborted preserves rejection and sibling
+ok 93 - session matchExpr native-null preaborted preserves rejection and sibling
+  ---
+  duration_ms: 0.067833
+  type: 'test'
+  ...
+# Subtest: session matchExpr native-null startup preserves rejection and sibling
+ok 94 - session matchExpr native-null startup preserves rejection and sibling
+  ---
+  duration_ms: 23.206541
+  type: 'test'
+  ...
+# Subtest: session matchExpr native-null active preserves rejection and sibling
+ok 95 - session matchExpr native-null active preserves rejection and sibling
+  ---
+  duration_ms: 29.074459
+  type: 'test'
+  ...
+# Subtest: session matchExpr native-null queued preserves rejection and sibling
+ok 96 - session matchExpr native-null queued preserves rejection and sibling
+  ---
+  duration_ms: 17.850667
+  type: 'test'
+  ...
+# Subtest: session matchExpr native-false preaborted preserves rejection and sibling
+ok 97 - session matchExpr native-false preaborted preserves rejection and sibling
+  ---
+  duration_ms: 0.060208
+  type: 'test'
+  ...
+# Subtest: session matchExpr native-false startup preserves rejection and sibling
+ok 98 - session matchExpr native-false startup preserves rejection and sibling
+  ---
+  duration_ms: 23.066875
+  type: 'test'
+  ...
+# Subtest: session matchExpr native-false active preserves rejection and sibling
+ok 99 - session matchExpr native-false active preserves rejection and sibling
+  ---
+  duration_ms: 31.347708
+  type: 'test'
+  ...
+# Subtest: session matchExpr native-false queued preserves rejection and sibling
+ok 100 - session matchExpr native-false queued preserves rejection and sibling
+  ---
+  duration_ms: 17.587
+  type: 'test'
+  ...
+# Subtest: session matchExpr native-empty-string preaborted preserves rejection and sibling
+ok 101 - session matchExpr native-empty-string preaborted preserves rejection and sibling
+  ---
+  duration_ms: 0.069625
+  type: 'test'
+  ...
+# Subtest: session matchExpr native-empty-string startup preserves rejection and sibling
+ok 102 - session matchExpr native-empty-string startup preserves rejection and sibling
+  ---
+  duration_ms: 23.18075
+  type: 'test'
+  ...
+# Subtest: session matchExpr native-empty-string active preserves rejection and sibling
+ok 103 - session matchExpr native-empty-string active preserves rejection and sibling
+  ---
+  duration_ms: 30.90375
+  type: 'test'
+  ...
+# Subtest: session matchExpr native-empty-string queued preserves rejection and sibling
+ok 104 - session matchExpr native-empty-string queued preserves rejection and sibling
+  ---
+  duration_ms: 19.236333
+  type: 'test'
+  ...
+# Subtest: session matchExpr native-Error preaborted preserves rejection and sibling
+ok 105 - session matchExpr native-Error preaborted preserves rejection and sibling
+  ---
+  duration_ms: 0.072042
+  type: 'test'
+  ...
+# Subtest: session matchExpr native-Error startup preserves rejection and sibling
+ok 106 - session matchExpr native-Error startup preserves rejection and sibling
+  ---
+  duration_ms: 23.50275
+  type: 'test'
+  ...
+# Subtest: session matchExpr native-Error active preserves rejection and sibling
+ok 107 - session matchExpr native-Error active preserves rejection and sibling
+  ---
+  duration_ms: 31.336709
+  type: 'test'
+  ...
+# Subtest: session matchExpr native-Error queued preserves rejection and sibling
+ok 108 - session matchExpr native-Error queued preserves rejection and sibling
+  ---
+  duration_ms: 19.06075
+  type: 'test'
+  ...
+# Subtest: matchExpr natural structural success and native valid-context cleanup
+ok 109 - matchExpr natural structural success and native valid-context cleanup
+  ---
+  duration_ms: 27.873041
+  type: 'test'
+  ...
+# Subtest: matchExpr active structural undefined awaits retirement before rejecting
+not ok 110 - matchExpr active structural undefined awaits retirement before rejecting
+  ---
+  duration_ms: 22.805375
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/expr/abort-reason-regression.test.ts:1:8773'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + 'fulfilled'
+    - 'rejected'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'rejected'
+  actual: 'fulfilled'
+  operator: 'strictEqual'
+  stack: |-
+    rejected (/Users/kjopek/Workspace/safe-bash/tests/commands/expr/abort-reason-regression.test.ts:103:10)
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/expr/abort-reason-regression.test.ts:258:7)
+    process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# {"abortReasonWorkers":134,"activeBeforeSafetyCleanup":0,"activeAfter":0}
+# Subtest: matchExpr session preserves explicit transport rejection undefined
+not ok 111 - matchExpr session preserves explicit transport rejection undefined
+  ---
+  duration_ms: 13.826583
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/expr/abort-reason-regression.test.ts:1:9555'
+  failureType: 'testCodeFailure'
+  error: 'exact rejection reason'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    rejected (/Users/kjopek/Workspace/safe-bash/tests/commands/expr/abort-reason-regression.test.ts:104:45)
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/expr/abort-reason-regression.test.ts:271:11)
+    process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+1..111
+# tests 111
+# suites 0
+# pass 103
+# fail 8
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 2189.992334

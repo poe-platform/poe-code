@@ -1,0 +1,6 @@
+{
+  "extends": "../../../../tsconfig.json",
+  "compilerOptions": { "noEmit": true },
+  "include": ["../../expr/abort-reason-regression.test.ts"],
+  "exclude": []
+}

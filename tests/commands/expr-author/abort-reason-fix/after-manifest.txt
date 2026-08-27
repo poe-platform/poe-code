@@ -1,0 +1,28 @@
+2026-08-27T17:51:56Z
+Darwin 25.4.0 arm64
+v22.22.2
+Version 5.9.3
+commit 27a7793526830768484885afba5832bf8bb248b5
+Author:     Kamil Jopek <kjopek@quora.com>
+AuthorDate: Thu Aug 27 12:49:39 2026 -0500
+Commit:     Kamil Jopek <kjopek@quora.com>
+CommitDate: Thu Aug 27 12:49:39 2026 -0500
+
+    fix(regex): preserve explicit undefined rejection outcomes
+
+ src/commands/regex-execution/client.ts             |  16 +-
+ .../commands/expr/abort-reason-regression.test.ts  | 274 +++++++++++++++++++++
+ 2 files changed, 283 insertions(+), 7 deletions(-)
+a68ba3a650473e23a96511535cec0d4833688da8
+be4a1da7046d583c5c2f95956fdb43da94935458
+5d086314898c38390753a07ef1c37001890ac2b47f3d0e05e221048b9db42ebc  src/commands/regex-execution/client.ts
+24dd22bba16f3072b4d3c4209e5384b46695e38a532eaba146fdad1f76cf34e3  tests/commands/expr/abort-reason-regression.test.ts
+3610a50b436e083b2633e08c841978999b5fa61759fcaea224aeec97230c8bc1  src/commands/regex-execution/protocol.ts
+a442bb67cda6aff313cf3909cbfb0d3d8c12ebc420437d5fd9d7bd51fc6c9da6  src/commands/regex-execution/worker.ts
+8817fdeb2a66376cd44ca8760408b48c015d99f95baf4ee977f951240bd5e5a5  dist/commands/regex-execution/client.js
+46479e6d87bd5d20371a2e523310b2275c74d32d15105fcc9678ec73410efe4f  dist/commands/regex-execution/worker.js
+1db0b7dca579049ca4193d034d835f6bfe73096c73663e5ef9a0b5779939f3d0  node_modules/@types/node/web-globals/abortcontroller.d.ts
+e8a4e2b58a33d2ad6bfa9eb8a4ed5f62775ab9ceac4b9421680c98973fd9109c  tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr
+09cc1d4e87cfb1f328e7b5b6b0ae0f4b31bac9284c170feb2eee18a762bc9227  tests/commands/expr-stress/extension-review/execution/supplement-fe7083d9-first/extra-driver.mjs.data
+e4ec21cb599dcc1f4cd14e999ebd14ec2a0a15a88451490f1f7bec1a55601950  tests/commands/expr-stress/extension-review/execution/supplement-fe7083d9-first/controls.json
+src/commands/regex-execution/client.ts

@@ -1,0 +1,114 @@
+{
+  "schema": 1,
+  "scope": "all files in new owned review directory excluding this manifest; not only Git tracked files",
+  "files": [
+    {
+      "path": "CLEANUP.json",
+      "sha256": "5259fe983ad340f09e0e0ca70dc3a5f7d893a165954163793ddf9763c190f9f5"
+    },
+    {
+      "path": "PRIMARY_SOURCES.md",
+      "sha256": "27c8bfa5967ed194bae3c7da4b509b4cf781db952b3deb78ce333e545d36cf72"
+    },
+    {
+      "path": "README.md",
+      "sha256": "a45ad015c9ccb19266d21e7018e95ba4887336420b021d65b438748712999a7b"
+    },
+    {
+      "path": "REPORT.md",
+      "sha256": "15a1b5f7ddb7833e9ac056f730cbe369607ce6a74a24a59867dcf0c5d75ce0fb"
+    },
+    {
+      "path": "adapter.mjs",
+      "sha256": "01bce412d14f292af289848be5ce46f33babeb128ec9034f28cf989e2699c0ed"
+    },
+    {
+      "path": "consumer.mts.data",
+      "sha256": "a162044a961dfb465a0039ac59bbcfc8c44edf4e8bc04a13139fd46d3504c447"
+    },
+    {
+      "path": "controls.mjs",
+      "sha256": "698c2a91168e3d7216baefdd684f65fcff287306e1c971211b90eebfdc4632a7"
+    },
+    {
+      "path": "evidence/attempt-01/candidate-report.json",
+      "sha256": "7568552aa21ceed799c9058270bcd9c50141a9d56b1926a46dccbb2ea76fbef6"
+    },
+    {
+      "path": "evidence/attempt-01/comparison.json",
+      "sha256": "17a64d1c14eaf1c9508677863fb98b91a89ae7d744142bd2dceda4e7a2731309"
+    },
+    {
+      "path": "evidence/attempt-01/control-driver-failure.json",
+      "sha256": "1b8460881d9a05c45d7d1c6b001472b8d799bb84d00843071a3333e538787ee5"
+    },
+    {
+      "path": "evidence/attempt-01/controls-first.json",
+      "sha256": "5352a5dfcd149e0b4d4b267f335fced220fac801227593297f9bc75ed2d39768"
+    },
+    {
+      "path": "evidence/attempt-01/encoding.json",
+      "sha256": "f2050adb13b85f2d567ee15405b70c01cc0629c7d4e553dd9be53fabc830a5cd"
+    },
+    {
+      "path": "evidence/attempt-01/frozen-comparator.json",
+      "sha256": "b6d2aa19ca2b872d7d7b0eea8ca2f90bc5ba514da0e641d916616bfac984067c"
+    },
+    {
+      "path": "evidence/attempt-01/provenance.json.gz.base64",
+      "sha256": "5a793280a9a38f628797da6939d4ad9ec16422a9f830219c3221b3ce769e29c6"
+    },
+    {
+      "path": "evidence/attempt-01/summary.json",
+      "sha256": "a882b5fec05f077cdad37959ce84283d59dd97cb888d6fea3c7bf6f3a15b7ac7"
+    },
+    {
+      "path": "evidence/attempt-02/execution-failure.json",
+      "sha256": "44ebd799d378bf0dfbde422238a59e4531e538f90f32df1b627ca4e903238460"
+    },
+    {
+      "path": "evidence/final/candidate-report.json",
+      "sha256": "1257a0cf067b782dea070ddf1298e72e1824619859e2212487e330e97c7a5508"
+    },
+    {
+      "path": "evidence/final/comparison.json",
+      "sha256": "17a64d1c14eaf1c9508677863fb98b91a89ae7d744142bd2dceda4e7a2731309"
+    },
+    {
+      "path": "evidence/final/controls.json",
+      "sha256": "0737f4afd170beb105ce39d6fc526d15a175351abcca711b164efd31421f66ad"
+    },
+    {
+      "path": "evidence/final/frozen-comparator.json",
+      "sha256": "668269673e3e48355bf50dbbd56fdcc2706d686eeee7ff050ceb346ac342da8a"
+    },
+    {
+      "path": "evidence/final/preparation.json",
+      "sha256": "e23840ac04b9c6fbbc7adb68811e7ca7c116cff163a461994f4ba8ddd458585f"
+    },
+    {
+      "path": "evidence/final/summary.json",
+      "sha256": "dd4d3dca0a4ca503d6162164008b917443f02de66e7e82f56a98ef79037e6bf9"
+    },
+    {
+      "path": "prepare.mjs",
+      "sha256": "15e5617884392b43a573f9bfa0f9e3a859a68a94d8516667b7b19f01ff777265"
+    },
+    {
+      "path": "provenance.json",
+      "sha256": "726fc9f005df6c0a184c283a31eae5d5afc052159a6f0aa418f1dc1fff59a3a4"
+    },
+    {
+      "path": "regex-probe.mjs",
+      "sha256": "53e5e6035e88db6224f91cf6185795a2f226d0e3fa409e1bee74c9d903e47933"
+    },
+    {
+      "path": "run.mjs",
+      "sha256": "cbdbeed34bca1ad9edf116bcbcfc145287cfe2c3de35733763b414a60eea0467"
+    },
+    {
+      "path": "verify.mjs",
+      "sha256": "392b3a389183134ee6a52790c624acbefc25f118c53296b3c3934f122914b469"
+    }
+  ]
+}

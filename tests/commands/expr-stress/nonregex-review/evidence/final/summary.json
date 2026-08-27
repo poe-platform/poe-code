@@ -1,0 +1,144 @@
+{
+  "allGNU": {
+    "denominator": 104,
+    "semantic": 74,
+    "diagnostic": 66,
+    "strict": 66,
+    "classifications": {
+      "exact": 66,
+      "diagnostic-only-mismatch": 8,
+      "known-pending-regex-status3": 23,
+      "unsupported-locale-profile": 7
+    }
+  },
+  "nonregex": {
+    "denominator": 77,
+    "semantic": 72,
+    "diagnostic": 64,
+    "strict": 64,
+    "classifications": {
+      "exact": 64,
+      "diagnostic-only-mismatch": 8,
+      "unsupported-locale-profile": 5
+    }
+  },
+  "regexContaining": {
+    "denominator": 27,
+    "semantic": 2,
+    "diagnostic": 2,
+    "strict": 2,
+    "classifications": {
+      "exact": 2,
+      "known-pending-regex-status3": 23,
+      "unsupported-locale-profile": 2
+    }
+  },
+  "profiles": [
+    {
+      "id": "gnu-9.7-darwin-C",
+      "denominator": 95,
+      "semantic": 72,
+      "diagnostic": 64,
+      "strict": 64,
+      "classifications": {
+        "exact": 64,
+        "diagnostic-only-mismatch": 8,
+        "known-pending-regex-status3": 23
+      },
+      "nonregex": {
+        "denominator": 70,
+        "semantic": 70,
+        "diagnostic": 62,
+        "strict": 62,
+        "classifications": {
+          "exact": 62,
+          "diagnostic-only-mismatch": 8
+        }
+      }
+    },
+    {
+      "id": "gnu-9.7-darwin-en_US.UTF-8",
+      "denominator": 9,
+      "semantic": 2,
+      "diagnostic": 2,
+      "strict": 2,
+      "classifications": {
+        "unsupported-locale-profile": 7,
+        "exact": 2
+      },
+      "nonregex": {
+        "denominator": 7,
+        "semantic": 2,
+        "diagnostic": 2,
+        "strict": 2,
+        "classifications": {
+          "unsupported-locale-profile": 5,
+          "exact": 2
+        }
+      }
+    }
+  ],
+  "subsetRule": "Explicit independently reviewed input IDs containing expr regex syntax; skipped regex still excluded from nonregex subset.",
+  "uniqueInputs": {
+    "original": 95,
+    "nonregex": 70,
+    "regexContaining": 25
+  },
+  "regexIds": [
+    "and-skip-invalid-match",
+    "evaluated-regex-error",
+    "match-prefix-keyword",
+    "or-skip-invalid-regex",
+    "regex-anchored-not-search",
+    "regex-backreference",
+    "regex-bre-literal-plus",
+    "regex-dollar-not-line-anchor",
+    "regex-empty-capture",
+    "regex-empty-pattern",
+    "regex-first-capture",
+    "regex-gnu-quantifiers",
+    "regex-interval-class",
+    "regex-invalid-backreference",
+    "regex-invalid-capture",
+    "regex-invalid-trailing-backslash",
+    "regex-length",
+    "regex-longest-alternative",
+    "regex-newline-dot",
+    "regex-no-match-capture",
+    "regex-unmatched-capture",
+    "unicode-capture",
+    "unicode-regex-dot",
+    "workflow-basename-fallback",
+    "workflow-version-major"
+  ],
+  "regexSafety": "NOT READY — no product regex executor in this baseline; not passes",
+  "productAcceptance": false,
+  "controls": {
+    "pass": 73,
+    "fail": 0,
+    "workflowsPass": 6,
+    "workflowsTotal": 7,
+    "regexSafetyPass": 0
+  },
+  "standaloneConsumer": {
+    "strict": "PASS",
+    "runtime": "PASS",
+    "moved": true,
+    "offlineInstall": true,
+    "publicExprSubpath": false,
+    "authenticatedInternalDistModule": true,
+    "consumerSourceSha256": "a162044a961dfb465a0039ac59bbcfc8c44edf4e8bc04a13139fd46d3504c447"
+  },
+  "canonicalComparatorExitCode": 1,
+  "replayExitCode": 1,
+  "integrity": {
+    "sourceBeforeAfter": true,
+    "buildBeforeAfter": true,
+    "installedDistMatchesBuild": true,
+    "frozenBeforeAfter": true,
+    "liveFrozenMatchesArchive": true,
+    "enumeratesNewEntries": true,
+    "directoryEntriesIncluded": true,
+    "excludesOnlyCandidateNodeModulesSymlinkAndGeneratedDistFromSourceComparison": true
+  }
+}

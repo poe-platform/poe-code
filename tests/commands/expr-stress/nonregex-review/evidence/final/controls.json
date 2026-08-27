@@ -1,0 +1,4114 @@
+{
+  "cases": [
+    {
+      "id": "stdin-implicit-[\"41\",\"+\",\"1\"]",
+      "specification": "direct-zero-stdin-reads",
+      "status": "PASS",
+      "detail": {
+        "source": "implicit",
+        "nativeMeaning": "bounded nonregex result",
+        "frozenContext": true
+      },
+      "observations": [
+        {
+          "argv": [
+            "41",
+            "+",
+            "1"
+          ],
+          "options": {},
+          "environment": {
+            "LC_ALL": "C"
+          },
+          "sourceKind": "implicit",
+          "stdinIsDefault": true,
+          "status": 0,
+          "stdoutBase64": "NDIK",
+          "stderrBase64": "",
+          "signal": null,
+          "failure": null,
+          "counters": {
+            "stdinGetter": 0,
+            "iterator": 0,
+            "next": 0,
+            "return": 0,
+            "throw": 0,
+            "fs": 0,
+            "invoke": 0,
+            "cleanup": 0
+          }
+        }
+      ]
+    },
+    {
+      "id": "stdin-implicit-[\"0\"]",
+      "specification": "direct-zero-stdin-reads",
+      "status": "PASS",
+      "detail": {
+        "source": "implicit",
+        "nativeMeaning": "bounded nonregex result",
+        "frozenContext": true
+      },
+      "observations": [
+        {
+          "argv": [
+            "0"
+          ],
+          "options": {},
+          "environment": {
+            "LC_ALL": "C"
+          },
+          "sourceKind": "implicit",
+          "stdinIsDefault": true,
+          "status": 1,
+          "stdoutBase64": "MAo=",
+          "stderrBase64": "",
+          "signal": null,
+          "failure": null,
+          "counters": {
+            "stdinGetter": 0,
+            "iterator": 0,
+            "next": 0,
+            "return": 0,
+            "throw": 0,
+            "fs": 0,
+            "invoke": 0,
+            "cleanup": 0
+          }
+        }
+      ]
+    },
+    {
+      "id": "stdin-implicit-[\"1\",\"+\"]",
+      "specification": "direct-zero-stdin-reads",
+      "status": "PASS",
+      "detail": {
+        "source": "implicit",
+        "nativeMeaning": "bounded nonregex result",
+        "frozenContext": true
+      },
+      "observations": [
+        {
+          "argv": [
+            "1",
+            "+"
+          ],
+          "options": {},
+          "environment": {
+            "LC_ALL": "C"
+          },
+          "sourceKind": "implicit",
+          "stdinIsDefault": true,
+          "status": 2,
+          "stdoutBase64": "",
+          "stderrBase64": "ZXhwcjogc3ludGF4IGVycm9yOiBtaXNzaW5nIG9wZXJhbmQK",
+          "signal": null,
+          "failure": null,
+          "counters": {
+            "stdinGetter": 0,
+            "iterator": 0,
+            "next": 0,
+            "return": 0,
+            "throw": 0,
+            "fs": 0,
+            "invoke": 0,
+            "cleanup": 0
+          }
+        }
+      ]
+    },
+    {
+      "id": "stdin-implicit-[\"abc\",\":\",\"a\"]",
+      "specification": "direct-zero-stdin-reads",
+      "status": "PASS",
+      "detail": {
+        "source": "implicit",
+        "nativeMeaning": "NOT READY — evaluated regex still status 3, no regex semantic pass",
+        "frozenContext": true
+      },
+      "observations": [
+        {
+          "argv": [
+            "abc",
+            ":",
+            "a"
+          ],
+          "options": {},
+          "environment": {
+            "LC_ALL": "C"
+          },
+          "sourceKind": "implicit",
+          "stdinIsDefault": true,
+          "status": 3,
+          "stdoutBase64": "",
+          "stderrBase64": "ZXhwcjogYm91bmRlZCBleHByIEJSRSBwcm90b2NvbCBpcyBwZW5kaW5nCg==",
+          "signal": null,
+          "failure": null,
+          "counters": {
+            "stdinGetter": 0,
+            "iterator": 0,
+            "next": 0,
+            "return": 0,
+            "throw": 0,
+            "fs": 0,
+            "invoke": 0,
+            "cleanup": 0
+          }
+        }
+      ]
+    },
+    {
+      "id": "stdin-explicit-[\"41\",\"+\",\"1\"]",
+      "specification": "direct-zero-stdin-reads",
+      "status": "PASS",
+      "detail": {
+        "source": "explicit",
+        "nativeMeaning": "bounded nonregex result",
+        "frozenContext": true
+      },
+      "observations": [
+        {
+          "argv": [
+            "41",
+            "+",
+            "1"
+          ],
+          "options": {},
+          "environment": {
+            "LC_ALL": "C"
+          },
+          "sourceKind": "explicit",
+          "stdinIsDefault": false,
+          "status": 0,
+          "stdoutBase64": "NDIK",
+          "stderrBase64": "",
+          "signal": null,
+          "failure": null,
+          "counters": {
+            "stdinGetter": 0,
+            "iterator": 0,
+            "next": 0,
+            "return": 0,
+            "throw": 0,
+            "fs": 0,
+            "invoke": 0,
+            "cleanup": 0
+          }
+        }
+      ]
+    },
+    {
+      "id": "stdin-explicit-[\"0\"]",
+      "specification": "direct-zero-stdin-reads",
+      "status": "PASS",
+      "detail": {
+        "source": "explicit",
+        "nativeMeaning": "bounded nonregex result",
+        "frozenContext": true
+      },
+      "observations": [
+        {
+          "argv": [
+            "0"
+          ],
+          "options": {},
+          "environment": {
+            "LC_ALL": "C"
+          },
+          "sourceKind": "explicit",
+          "stdinIsDefault": false,
+          "status": 1,
+          "stdoutBase64": "MAo=",
+          "stderrBase64": "",
+          "signal": null,
+          "failure": null,
+          "counters": {
+            "stdinGetter": 0,
+            "iterator": 0,
+            "next": 0,
+            "return": 0,
+            "throw": 0,
+            "fs": 0,
+            "invoke": 0,
+            "cleanup": 0
+          }
+        }
+      ]
+    },
+    {
+      "id": "stdin-explicit-[\"1\",\"+\"]",
+      "specification": "direct-zero-stdin-reads",
+      "status": "PASS",
+      "detail": {
+        "source": "explicit",
+        "nativeMeaning": "bounded nonregex result",
+        "frozenContext": true
+      },
+      "observations": [
+        {
+          "argv": [
+            "1",
+            "+"
+          ],
+          "options": {},
+          "environment": {
+            "LC_ALL": "C"
+          },
+          "sourceKind": "explicit",
+          "stdinIsDefault": false,
+          "status": 2,
+          "stdoutBase64": "",
+          "stderrBase64": "ZXhwcjogc3ludGF4IGVycm9yOiBtaXNzaW5nIG9wZXJhbmQK",
+          "signal": null,
+          "failure": null,
+          "counters": {
+            "stdinGetter": 0,
+            "iterator": 0,
+            "next": 0,
+            "return": 0,
+            "throw": 0,
+            "fs": 0,
+            "invoke": 0,
+            "cleanup": 0
+          }
+        }
+      ]
+    },
+    {
+      "id": "stdin-explicit-[\"abc\",\":\",\"a\"]",
+      "specification": "direct-zero-stdin-reads",
+      "status": "PASS",
+      "detail": {
+        "source": "explicit",
+        "nativeMeaning": "NOT READY — evaluated regex still status 3, no regex semantic pass",
+        "frozenContext": true
+      },
+      "observations": [
+        {
+          "argv": [
+            "abc",
+            ":",
+            "a"
+          ],
+          "options": {},
+          "environment": {
+            "LC_ALL": "C"
+          },
+          "sourceKind": "explicit",
+          "stdinIsDefault": false,
+          "status": 3,
+          "stdoutBase64": "",
+          "stderrBase64": "ZXhwcjogYm91bmRlZCBleHByIEJSRSBwcm90b2NvbCBpcyBwZW5kaW5nCg==",
+          "signal": null,
+          "failure": null,
+          "counters": {
+            "stdinGetter": 0,
+            "iterator": 0,
+            "next": 0,
+            "return": 0,
+            "throw": 0,
+            "fs": 0,
+            "invoke": 0,
+            "cleanup": 0
+          }
+        }
+      ]
+    },
+    {
+      "id": "stdin-binary-[\"41\",\"+\",\"1\"]",
+      "specification": "direct-zero-stdin-reads",
+      "status": "PASS",
+      "detail": {
+        "source": "binary",
+        "nativeMeaning": "bounded nonregex result",
+        "frozenContext": true
+      },
+      "observations": [
+        {
+          "argv": [
+            "41",
+            "+",
+            "1"
+          ],
+          "options": {},
+          "environment": {
+            "LC_ALL": "C"
+          },
+          "sourceKind": "binary",
+          "stdinIsDefault": false,
+          "status": 0,
+          "stdoutBase64": "NDIK",
+          "stderrBase64": "",
+          "signal": null,
+          "failure": null,
+          "counters": {
+            "stdinGetter": 0,
+            "iterator": 0,
+            "next": 0,
+            "return": 0,
+            "throw": 0,
+            "fs": 0,
+            "invoke": 0,
+            "cleanup": 0
+          }
+        }
+      ]
+    },
+    {
+      "id": "stdin-binary-[\"0\"]",
+      "specification": "direct-zero-stdin-reads",
+      "status": "PASS",
+      "detail": {
+        "source": "binary",
+        "nativeMeaning": "bounded nonregex result",
+        "frozenContext": true
+      },
+      "observations": [
+        {
+          "argv": [
+            "0"
+          ],
+          "options": {},
+          "environment": {
+            "LC_ALL": "C"
+          },
+          "sourceKind": "binary",
+          "stdinIsDefault": false,
+          "status": 1,
+          "stdoutBase64": "MAo=",
+          "stderrBase64": "",
+          "signal": null,
+          "failure": null,
+          "counters": {
+            "stdinGetter": 0,
+            "iterator": 0,
+            "next": 0,
+            "return": 0,
+            "throw": 0,
+            "fs": 0,
+            "invoke": 0,
+            "cleanup": 0
+          }
+        }
+      ]
+    },
+    {
+      "id": "stdin-binary-[\"1\",\"+\"]",
+      "specification": "direct-zero-stdin-reads",
+      "status": "PASS",
+      "detail": {
+        "source": "binary",
+        "nativeMeaning": "bounded nonregex result",
+        "frozenContext": true
+      },
+      "observations": [
+        {
+          "argv": [
+            "1",
+            "+"
+          ],
+          "options": {},
+          "environment": {
+            "LC_ALL": "C"
+          },
+          "sourceKind": "binary",
+          "stdinIsDefault": false,
+          "status": 2,
+          "stdoutBase64": "",
+          "stderrBase64": "ZXhwcjogc3ludGF4IGVycm9yOiBtaXNzaW5nIG9wZXJhbmQK",
+          "signal": null,
+          "failure": null,
+          "counters": {
+            "stdinGetter": 0,
+            "iterator": 0,
+            "next": 0,
+            "return": 0,
+            "throw": 0,
+            "fs": 0,
+            "invoke": 0,
+            "cleanup": 0
+          }
+        }
+      ]
+    },
+    {
+      "id": "stdin-binary-[\"abc\",\":\",\"a\"]",
+      "specification": "direct-zero-stdin-reads",
+      "status": "PASS",
+      "detail": {
+        "source": "binary",
+        "nativeMeaning": "NOT READY — evaluated regex still status 3, no regex semantic pass",
+        "frozenContext": true
+      },
+      "observations": [
+        {
+          "argv": [
+            "abc",
+            ":",
+            "a"
+          ],
+          "options": {},
+          "environment": {
+            "LC_ALL": "C"
+          },
+          "sourceKind": "binary",
+          "stdinIsDefault": false,
+          "status": 3,
+          "stdoutBase64": "",
+          "stderrBase64": "ZXhwcjogYm91bmRlZCBleHByIEJSRSBwcm90b2NvbCBpcyBwZW5kaW5nCg==",
+          "signal": null,
+          "failure": null,
+          "counters": {
+            "stdinGetter": 0,
+            "iterator": 0,
+            "next": 0,
+            "return": 0,
+            "throw": 0,
+            "fs": 0,
+            "invoke": 0,
+            "cleanup": 0
+          }
+        }
+      ]
+    },
+    {
+      "id": "stdin-never-ending-[\"41\",\"+\",\"1\"]",
+      "specification": "direct-zero-stdin-reads",
+      "status": "PASS",
+      "detail": {
+        "source": "never-ending",
+        "nativeMeaning": "bounded nonregex result",
+        "frozenContext": true
+      },
+      "observations": [
+        {
+          "argv": [
+            "41",
+            "+",
+            "1"
+          ],
+          "options": {},
+          "environment": {
+            "LC_ALL": "C"
+          },
+          "sourceKind": "never-ending",
+          "stdinIsDefault": false,
+          "status": 0,
+          "stdoutBase64": "NDIK",
+          "stderrBase64": "",
+          "signal": null,
+          "failure": null,
+          "counters": {
+            "stdinGetter": 0,
+            "iterator": 0,
+            "next": 0,
+            "return": 0,
+            "throw": 0,
+            "fs": 0,
+            "invoke": 0,
+            "cleanup": 0
+          }
+        }
+      ]
+    },
+    {
+      "id": "stdin-never-ending-[\"0\"]",
+      "specification": "direct-zero-stdin-reads",
+      "status": "PASS",
+      "detail": {
+        "source": "never-ending",
+        "nativeMeaning": "bounded nonregex result",
+        "frozenContext": true
+      },
+      "observations": [
+        {
+          "argv": [
+            "0"
+          ],
+          "options": {},
+          "environment": {
+            "LC_ALL": "C"
+          },
+          "sourceKind": "never-ending",
+          "stdinIsDefault": false,
+          "status": 1,
+          "stdoutBase64": "MAo=",
+          "stderrBase64": "",
+          "signal": null,
+          "failure": null,
+          "counters": {
+            "stdinGetter": 0,
+            "iterator": 0,
+            "next": 0,
+            "return": 0,
+            "throw": 0,
+            "fs": 0,
+            "invoke": 0,
+            "cleanup": 0
+          }
+        }
+      ]
+    },
+    {
+      "id": "stdin-never-ending-[\"1\",\"+\"]",
+      "specification": "direct-zero-stdin-reads",
+      "status": "PASS",
+      "detail": {
+        "source": "never-ending",
+        "nativeMeaning": "bounded nonregex result",
+        "frozenContext": true
+      },
+      "observations": [
+        {
+          "argv": [
+            "1",
+            "+"
+          ],
+          "options": {},
+          "environment": {
+            "LC_ALL": "C"
+          },
+          "sourceKind": "never-ending",
+          "stdinIsDefault": false,
+          "status": 2,
+          "stdoutBase64": "",
+          "stderrBase64": "ZXhwcjogc3ludGF4IGVycm9yOiBtaXNzaW5nIG9wZXJhbmQK",
+          "signal": null,
+          "failure": null,
+          "counters": {
+            "stdinGetter": 0,
+            "iterator": 0,
+            "next": 0,
+            "return": 0,
+            "throw": 0,
+            "fs": 0,
+            "invoke": 0,
+            "cleanup": 0
+          }
+        }
+      ]
+    },
+    {
+      "id": "stdin-never-ending-[\"abc\",\":\",\"a\"]",
+      "specification": "direct-zero-stdin-reads",
+      "status": "PASS",
+      "detail": {
+        "source": "never-ending",
+        "nativeMeaning": "NOT READY — evaluated regex still status 3, no regex semantic pass",
+        "frozenContext": true
+      },
+      "observations": [
+        {
+          "argv": [
+            "abc",
+            ":",
+            "a"
+          ],
+          "options": {},
+          "environment": {
+            "LC_ALL": "C"
+          },
+          "sourceKind": "never-ending",
+          "stdinIsDefault": false,
+          "status": 3,
+          "stdoutBase64": "",
+          "stderrBase64": "ZXhwcjogYm91bmRlZCBleHByIEJSRSBwcm90b2NvbCBpcyBwZW5kaW5nCg==",
+          "signal": null,
+          "failure": null,
+          "counters": {
+            "stdinGetter": 0,
+            "iterator": 0,
+            "next": 0,
+            "return": 0,
+            "throw": 0,
+            "fs": 0,
+            "invoke": 0,
+            "cleanup": 0
+          }
+        }
+      ]
+    },
+    {
+      "id": "backpressure-stdout",
+      "specification": "await-stdout-backpressure",
+      "status": "PASS",
+      "detail": {
+        "settledBeforeRelease": false,
+        "maximumConcurrentWrites": 1,
+        "retainedByteOwnership": true
+      },
+      "observations": [
+        {
+          "argv": [
+            "41",
+            "+",
+            "1"
+          ],
+          "options": {},
+          "environment": {
+            "LC_ALL": "C"
+          },
+          "sourceKind": "explicit",
+          "stdinIsDefault": false,
+          "status": 0,
+          "stdoutBase64": "NDIK",
+          "stderrBase64": "",
+          "signal": null,
+          "failure": null,
+          "counters": {
+            "stdinGetter": 0,
+            "iterator": 0,
+            "next": 0,
+            "return": 0,
+            "throw": 0,
+            "fs": 0,
+            "invoke": 0,
+            "cleanup": 0
+          }
+        }
+      ]
+    },
+    {
+      "id": "backpressure-stderr",
+      "specification": "await-stdout-backpressure",
+      "status": "PASS",
+      "detail": {
+        "settledBeforeRelease": false,
+        "maximumConcurrentWrites": 1,
+        "retainedByteOwnership": true
+      },
+      "observations": [
+        {
+          "argv": [
+            "1",
+            "+"
+          ],
+          "options": {},
+          "environment": {
+            "LC_ALL": "C"
+          },
+          "sourceKind": "explicit",
+          "stdinIsDefault": false,
+          "status": 2,
+          "stdoutBase64": "",
+          "stderrBase64": "ZXhwcjogc3ludGF4IGVycm9yOiBtaXNzaW5nIG9wZXJhbmQK",
+          "signal": null,
+          "failure": null,
+          "counters": {
+            "stdinGetter": 0,
+            "iterator": 0,
+            "next": 0,
+            "return": 0,
+            "throw": 0,
+            "fs": 0,
+            "invoke": 0,
+            "cleanup": 0
+          }
+        }
+      ]
+    },
+    {
+      "id": "sink-rejection-observation",
+      "specification": "sink-rejection",
+      "status": "PASS",
+      "detail": {
+        "stdoutRejection": "converted to explicit nonzero utility status 3; not success and not sentinel propagation",
+        "stderrRejection": "exact sentinel preserved",
+        "bothRejection": "stderr sentinel preserved",
+        "admittedBytesAreNotCompletedWrites": true,
+        "retries": 0
+      },
+      "observations": [
+        {
+          "argv": [
+            "41",
+            "+",
+            "1"
+          ],
+          "options": {},
+          "environment": {
+            "LC_ALL": "C"
+          },
+          "sourceKind": "explicit",
+          "stdinIsDefault": false,
+          "status": 3,
+          "stdoutBase64": "NDIK",
+          "stderrBase64": "ZXhwcjogZXhlY3V0aW9uIG9yIG91dHB1dCBmYWlsdXJlCg==",
+          "signal": null,
+          "failure": null,
+          "counters": {
+            "stdinGetter": 0,
+            "iterator": 0,
+            "next": 0,
+            "return": 0,
+            "throw": 0,
+            "fs": 0,
+            "invoke": 0,
+            "cleanup": 0
+          }
+        },
+        {
+          "argv": [
+            "1",
+            "+"
+          ],
+          "options": {},
+          "environment": {
+            "LC_ALL": "C"
+          },
+          "sourceKind": "explicit",
+          "stdinIsDefault": false,
+          "status": null,
+          "stdoutBase64": "",
+          "stderrBase64": "ZXhwcjogc3ludGF4IGVycm9yOiBtaXNzaW5nIG9wZXJhbmQK",
+          "signal": null,
+          "failure": {
+            "type": "object",
+            "message": "[object Object]"
+          },
+          "counters": {
+            "stdinGetter": 0,
+            "iterator": 0,
+            "next": 0,
+            "return": 0,
+            "throw": 0,
+            "fs": 0,
+            "invoke": 0,
+            "cleanup": 0
+          }
+        },
+        {
+          "argv": [
+            "41",
+            "+",
+            "1"
+          ],
+          "options": {},
+          "environment": {
+            "LC_ALL": "C"
+          },
+          "sourceKind": "explicit",
+          "stdinIsDefault": false,
+          "status": null,
+          "stdoutBase64": "NDIK",
+          "stderrBase64": "ZXhwcjogZXhlY3V0aW9uIG9yIG91dHB1dCBmYWlsdXJlCg==",
+          "signal": null,
+          "failure": {
+            "type": "object",
+            "message": "[object Object]"
+          },
+          "counters": {
+            "stdinGetter": 0,
+            "iterator": 0,
+            "next": 0,
+            "return": 0,
+            "throw": 0,
+            "fs": 0,
+            "invoke": 0,
+            "cleanup": 0
+          }
+        }
+      ]
+    },
+    {
+      "id": "preabort-0",
+      "specification": "preabort-and-midflight",
+      "status": "PASS",
+      "detail": {
+        "directAndPublicReasonIdentity": true
+      },
+      "observations": [
+        {
+          "argv": [
+            "41",
+            "+",
+            "1"
+          ],
+          "options": {},
+          "environment": {
+            "LC_ALL": "C"
+          },
+          "sourceKind": "explicit",
+          "stdinIsDefault": false,
+          "status": null,
+          "stdoutBase64": "",
+          "stderrBase64": "",
+          "signal": null,
+          "failure": {
+            "type": "object",
+            "message": "[object Object]"
+          },
+          "counters": {
+            "stdinGetter": 0,
+            "iterator": 0,
+            "next": 0,
+            "return": 0,
+            "throw": 0,
+            "fs": 0,
+            "invoke": 0,
+            "cleanup": 0
+          }
+        }
+      ]
+    },
+    {
+      "id": "output-abort-0",
+      "specification": "preabort-and-midflight",
+      "status": "PASS",
+      "detail": {
+        "exactPublicReason": true,
+        "uncooperativeWriteNotAwaited": true,
+        "lateRejectionObserved": true,
+        "completedEffectsNotRolledBack": true
+      },
+      "observations": []
+    },
+    {
+      "id": "preabort-1",
+      "specification": "preabort-and-midflight",
+      "status": "PASS",
+      "detail": {
+        "directAndPublicReasonIdentity": true
+      },
+      "observations": [
+        {
+          "argv": [
+            "41",
+            "+",
+            "1"
+          ],
+          "options": {},
+          "environment": {
+            "LC_ALL": "C"
+          },
+          "sourceKind": "explicit",
+          "stdinIsDefault": false,
+          "status": null,
+          "stdoutBase64": "",
+          "stderrBase64": "",
+          "signal": null,
+          "failure": {
+            "type": "string",
+            "message": "caller-primitive"
+          },
+          "counters": {
+            "stdinGetter": 0,
+            "iterator": 0,
+            "next": 0,
+            "return": 0,
+            "throw": 0,
+            "fs": 0,
+            "invoke": 0,
+            "cleanup": 0
+          }
+        }
+      ]
+    },
+    {
+      "id": "output-abort-1",
+      "specification": "preabort-and-midflight",
+      "status": "PASS",
+      "detail": {
+        "exactPublicReason": true,
+        "uncooperativeWriteNotAwaited": true,
+        "lateRejectionObserved": true,
+        "completedEffectsNotRolledBack": true
+      },
+      "observations": []
+    },
+    {
+      "id": "preabort-2",
+      "specification": "preabort-and-midflight",
+      "status": "PASS",
+      "detail": {
+        "directAndPublicReasonIdentity": true
+      },
+      "observations": [
+        {
+          "argv": [
+            "41",
+            "+",
+            "1"
+          ],
+          "options": {},
+          "environment": {
+            "LC_ALL": "C"
+          },
+          "sourceKind": "explicit",
+          "stdinIsDefault": false,
+          "status": null,
+          "stdoutBase64": "",
+          "stderrBase64": "",
+          "signal": null,
+          "failure": {
+            "type": "object",
+            "message": "Error: caller errno-shaped"
+          },
+          "counters": {
+            "stdinGetter": 0,
+            "iterator": 0,
+            "next": 0,
+            "return": 0,
+            "throw": 0,
+            "fs": 0,
+            "invoke": 0,
+            "cleanup": 0
+          }
+        }
+      ]
+    },
+    {
+      "id": "output-abort-2",
+      "specification": "preabort-and-midflight",
+      "status": "PASS",
+      "detail": {
+        "exactPublicReason": true,
+        "uncooperativeWriteNotAwaited": true,
+        "lateRejectionObserved": true,
+        "completedEffectsNotRolledBack": true
+      },
+      "observations": []
+    },
+    {
+      "id": "cooperative-evaluation-abort",
+      "specification": "preabort-and-midflight",
+      "status": "PASS",
+      "detail": {
+        "cancellationPoint": "bounded index loop cooperative yield"
+      },
+      "observations": [
+        {
+          "argv": [
+            "index",
+            "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+          ],
+          "options": {},
+          "environment": {
+            "LC_ALL": "C"
+          },
+          "sourceKind": "explicit",
+          "stdinIsDefault": false,
+          "status": null,
+          "stdoutBase64": "",
+          "stderrBase64": "",
+          "signal": null,
+          "failure": {
+            "type": "object",
+            "message": "[object Object]"
+          },
+          "counters": {
+            "stdinGetter": 0,
+            "iterator": 0,
+            "next": 0,
+            "return": 0,
+            "throw": 0,
+            "fs": 0,
+            "invoke": 0,
+            "cleanup": 0
+          }
+        }
+      ]
+    },
+    {
+      "id": "no-resource-cleanup-siblings-dispose",
+      "specification": "cleanup-ownership",
+      "status": "PASS",
+      "detail": {
+        "cancelled": {
+          "error": "Error: Shell is disposed"
+        },
+        "repeatedDisposeSettled": true,
+        "sameShellSiblingCompleted": true,
+        "secondShellSurvived": true,
+        "invocationOwnedRegexResources": 0,
+        "cleanupRegistration": "not applicable to no-resource baseline; required regex lease/admission control NOT READY"
+      },
+      "observations": []
+    },
+    {
+      "id": "argument-bytes-ascii-15",
+      "specification": "arg-byte-boundary",
+      "status": "PASS",
+      "detail": {
+        "bytes": 15,
+        "convention": "sum UTF-8 bytes, no terminators/separators"
+      },
+      "observations": [
+        {
+          "argv": [
+            "+",
+            "aaaaaaaaaaaaaa"
+          ],
+          "options": {
+            "limits": {
+              "maxArgumentBytes": 16
+            }
+          },
+          "environment": {
+            "LC_ALL": "C"
+          },
+          "sourceKind": "explicit",
+          "stdinIsDefault": false,
+          "status": 0,
+          "stdoutBase64": "YWFhYWFhYWFhYWFhYWEK",
+          "stderrBase64": "",
+          "signal": null,
+          "failure": null,
+          "counters": {
+            "stdinGetter": 0,
+            "iterator": 0,
+            "next": 0,
+            "return": 0,
+            "throw": 0,
+            "fs": 0,
+            "invoke": 0,
+            "cleanup": 0
+          }
+        }
+      ]
+    },
+    {
+      "id": "argument-bytes-utf8-15",
+      "specification": "arg-byte-boundary",
+      "status": "PASS",
+      "detail": {
+        "bytes": 15,
+        "convention": "sum UTF-8 bytes, no terminators/separators"
+      },
+      "observations": [
+        {
+          "argv": [
+            "+",
+            "ééééééé"
+          ],
+          "options": {
+            "limits": {
+              "maxArgumentBytes": 16
+            }
+          },
+          "environment": {
+            "LC_ALL": "C"
+          },
+          "sourceKind": "explicit",
+          "stdinIsDefault": false,
+          "status": 0,
+          "stdoutBase64": "w6nDqcOpw6nDqcOpw6kK",
+          "stderrBase64": "",
+          "signal": null,
+          "failure": null,
+          "counters": {
+            "stdinGetter": 0,
+            "iterator": 0,
+            "next": 0,
+            "return": 0,
+            "throw": 0,
+            "fs": 0,
+            "invoke": 0,
+            "cleanup": 0
+          }
+        }
+      ]
+    },
+    {
+      "id": "argument-bytes-ascii-16",
+      "specification": "arg-byte-boundary",
+      "status": "PASS",
+      "detail": {
+        "bytes": 16,
+        "convention": "sum UTF-8 bytes, no terminators/separators"
+      },
+      "observations": [
+        {
+          "argv": [
+            "+",
+            "aaaaaaaaaaaaaaa"
+          ],
+          "options": {
+            "limits": {
+              "maxArgumentBytes": 16
+            }
+          },
+          "environment": {
+            "LC_ALL": "C"
+          },
+          "sourceKind": "explicit",
+          "stdinIsDefault": false,
+          "status": 0,
+          "stdoutBase64": "YWFhYWFhYWFhYWFhYWFhCg==",
+          "stderrBase64": "",
+          "signal": null,
+          "failure": null,
+          "counters": {
+            "stdinGetter": 0,
+            "iterator": 0,
+            "next": 0,
+            "return": 0,
+            "throw": 0,
+            "fs": 0,
+            "invoke": 0,
+            "cleanup": 0
+          }
+        }
+      ]
+    },
+    {
+      "id": "argument-bytes-utf8-16",
+      "specification": "arg-byte-boundary",
+      "status": "PASS",
+      "detail": {
+        "bytes": 16,
+        "convention": "sum UTF-8 bytes, no terminators/separators"
+      },
+      "observations": [
+        {
+          "argv": [
+            "+",
+            "éééééééa"
+          ],
+          "options": {
+            "limits": {
+              "maxArgumentBytes": 16
+            }
+          },
+          "environment": {
+            "LC_ALL": "C"
+          },
+          "sourceKind": "explicit",
+          "stdinIsDefault": false,
+          "status": 0,
+          "stdoutBase64": "w6nDqcOpw6nDqcOpw6lhCg==",
+          "stderrBase64": "",
+          "signal": null,
+          "failure": null,
+          "counters": {
+            "stdinGetter": 0,
+            "iterator": 0,
+            "next": 0,
+            "return": 0,
+            "throw": 0,
+            "fs": 0,
+            "invoke": 0,
+            "cleanup": 0
+          }
+        }
+      ]
+    },
+    {
+      "id": "argument-bytes-ascii-17",
+      "specification": "arg-byte-boundary",
+      "status": "PASS",
+      "detail": {
+        "bytes": 17,
+        "convention": "sum UTF-8 bytes, no terminators/separators"
+      },
+      "observations": [
+        {
+          "argv": [
+            "+",
+            "aaaaaaaaaaaaaaaa"
+          ],
+          "options": {
+            "limits": {
+              "maxArgumentBytes": 16
+            }
+          },
+          "environment": {
+            "LC_ALL": "C"
+          },
+          "sourceKind": "explicit",
+          "stdinIsDefault": false,
+          "status": 3,
+          "stdoutBase64": "",
+          "stderrBase64": "ZXhwcjogYWdncmVnYXRlIGFyZ3VtZW50IGJ5dGVzIGxpbWl0IGV4Y2VlZGVkCg==",
+          "signal": null,
+          "failure": null,
+          "counters": {
+            "stdinGetter": 0,
+            "iterator": 0,
+            "next": 0,
+            "return": 0,
+            "throw": 0,
+            "fs": 0,
+            "invoke": 0,
+            "cleanup": 0
+          }
+        }
+      ]
+    },
+    {
+      "id": "argument-bytes-utf8-17",
+      "specification": "arg-byte-boundary",
+      "status": "PASS",
+      "detail": {
+        "bytes": 17,
+        "convention": "sum UTF-8 bytes, no terminators/separators"
+      },
+      "observations": [
+        {
+          "argv": [
+            "+",
+            "éééééééé"
+          ],
+          "options": {
+            "limits": {
+              "maxArgumentBytes": 16
+            }
+          },
+          "environment": {
+            "LC_ALL": "C"
+          },
+          "sourceKind": "explicit",
+          "stdinIsDefault": false,
+          "status": 3,
+          "stdoutBase64": "",
+          "stderrBase64": "ZXhwcjogYWdncmVnYXRlIGFyZ3VtZW50IGJ5dGVzIGxpbWl0IGV4Y2VlZGVkCg==",
+          "signal": null,
+          "failure": null,
+          "counters": {
+            "stdinGetter": 0,
+            "iterator": 0,
+            "next": 0,
+            "return": 0,
+            "throw": 0,
+            "fs": 0,
+            "invoke": 0,
+            "cleanup": 0
+          }
+        }
+      ]
+    },
+    {
+      "id": "argument-skipped-preflight",
+      "specification": "arg-byte-boundary",
+      "status": "PASS",
+      "detail": null,
+      "observations": [
+        {
+          "argv": [
+            "kept",
+            "|",
+            "+",
+            "xxxxxxxxxxxxxxxxx"
+          ],
+          "options": {
+            "limits": {
+              "maxArgumentBytes": 16
+            }
+          },
+          "environment": {
+            "LC_ALL": "C"
+          },
+          "sourceKind": "explicit",
+          "stdinIsDefault": false,
+          "status": 3,
+          "stdoutBase64": "",
+          "stderrBase64": "ZXhwcjogYWdncmVnYXRlIGFyZ3VtZW50IGJ5dGVzIGxpbWl0IGV4Y2VlZGVkCg==",
+          "signal": null,
+          "failure": null,
+          "counters": {
+            "stdinGetter": 0,
+            "iterator": 0,
+            "next": 0,
+            "return": 0,
+            "throw": 0,
+            "fs": 0,
+            "invoke": 0,
+            "cleanup": 0
+          }
+        }
+      ]
+    },
+    {
+      "id": "argument-count-15",
+      "specification": "arg-byte-boundary",
+      "status": "PASS",
+      "detail": {
+        "argumentCount": 15,
+        "cap": "4 * maxNodes = 16; below/at reach syntax error, above refuses preparse"
+      },
+      "observations": [
+        {
+          "argv": [
+            "x",
+            "x",
+            "x",
+            "x",
+            "x",
+            "x",
+            "x",
+            "x",
+            "x",
+            "x",
+            "x",
+            "x",
+            "x",
+            "x",
+            "x"
+          ],
+          "options": {
+            "limits": {
+              "maxNodes": 4
+            }
+          },
+          "environment": {
+            "LC_ALL": "C"
+          },
+          "sourceKind": "explicit",
+          "stdinIsDefault": false,
+          "status": 2,
+          "stdoutBase64": "",
+          "stderrBase64": "ZXhwcjogc3ludGF4IGVycm9yOiB1bmV4cGVjdGVkIGFyZ3VtZW50Cg==",
+          "signal": null,
+          "failure": null,
+          "counters": {
+            "stdinGetter": 0,
+            "iterator": 0,
+            "next": 0,
+            "return": 0,
+            "throw": 0,
+            "fs": 0,
+            "invoke": 0,
+            "cleanup": 0
+          }
+        }
+      ]
+    },
+    {
+      "id": "argument-count-16",
+      "specification": "arg-byte-boundary",
+      "status": "PASS",
+      "detail": {
+        "argumentCount": 16,
+        "cap": "4 * maxNodes = 16; below/at reach syntax error, above refuses preparse"
+      },
+      "observations": [
+        {
+          "argv": [
+            "x",
+            "x",
+            "x",
+            "x",
+            "x",
+            "x",
+            "x",
+            "x",
+            "x",
+            "x",
+            "x",
+            "x",
+            "x",
+            "x",
+            "x",
+            "x"
+          ],
+          "options": {
+            "limits": {
+              "maxNodes": 4
+            }
+          },
+          "environment": {
+            "LC_ALL": "C"
+          },
+          "sourceKind": "explicit",
+          "stdinIsDefault": false,
+          "status": 2,
+          "stdoutBase64": "",
+          "stderrBase64": "ZXhwcjogc3ludGF4IGVycm9yOiB1bmV4cGVjdGVkIGFyZ3VtZW50Cg==",
+          "signal": null,
+          "failure": null,
+          "counters": {
+            "stdinGetter": 0,
+            "iterator": 0,
+            "next": 0,
+            "return": 0,
+            "throw": 0,
+            "fs": 0,
+            "invoke": 0,
+            "cleanup": 0
+          }
+        }
+      ]
+    },
+    {
+      "id": "argument-count-17",
+      "specification": "arg-byte-boundary",
+      "status": "PASS",
+      "detail": {
+        "argumentCount": 17,
+        "cap": "4 * maxNodes = 16; below/at reach syntax error, above refuses preparse"
+      },
+      "observations": [
+        {
+          "argv": [
+            "x",
+            "x",
+            "x",
+            "x",
+            "x",
+            "x",
+            "x",
+            "x",
+            "x",
+            "x",
+            "x",
+            "x",
+            "x",
+            "x",
+            "x",
+            "x",
+            "x"
+          ],
+          "options": {
+            "limits": {
+              "maxNodes": 4
+            }
+          },
+          "environment": {
+            "LC_ALL": "C"
+          },
+          "sourceKind": "explicit",
+          "stdinIsDefault": false,
+          "status": 3,
+          "stdoutBase64": "",
+          "stderrBase64": "ZXhwcjogYXJndW1lbnQgY291bnQgbGltaXQgZXhjZWVkZWQK",
+          "signal": null,
+          "failure": null,
+          "counters": {
+            "stdinGetter": 0,
+            "iterator": 0,
+            "next": 0,
+            "return": 0,
+            "throw": 0,
+            "fs": 0,
+            "invoke": 0,
+            "cleanup": 0
+          }
+        }
+      ]
+    },
+    {
+      "id": "digits-positive-7",
+      "specification": "digit-boundary",
+      "status": "PASS",
+      "detail": {
+        "rawDigits": 7,
+        "signExcluded": true,
+        "zerosCounted": true
+      },
+      "observations": [
+        {
+          "argv": [
+            "1111111",
+            "+",
+            "0"
+          ],
+          "options": {
+            "limits": {
+              "maxNumericDigits": 8
+            }
+          },
+          "environment": {
+            "LC_ALL": "C"
+          },
+          "sourceKind": "explicit",
+          "stdinIsDefault": false,
+          "status": 0,
+          "stdoutBase64": "MTExMTExMQo=",
+          "stderrBase64": "",
+          "signal": null,
+          "failure": null,
+          "counters": {
+            "stdinGetter": 0,
+            "iterator": 0,
+            "next": 0,
+            "return": 0,
+            "throw": 0,
+            "fs": 0,
+            "invoke": 0,
+            "cleanup": 0
+          }
+        }
+      ]
+    },
+    {
+      "id": "digits-negative-7",
+      "specification": "digit-boundary",
+      "status": "PASS",
+      "detail": {
+        "rawDigits": 7,
+        "signExcluded": true,
+        "zerosCounted": true
+      },
+      "observations": [
+        {
+          "argv": [
+            "-1111111",
+            "+",
+            "0"
+          ],
+          "options": {
+            "limits": {
+              "maxNumericDigits": 8
+            }
+          },
+          "environment": {
+            "LC_ALL": "C"
+          },
+          "sourceKind": "explicit",
+          "stdinIsDefault": false,
+          "status": 0,
+          "stdoutBase64": "LTExMTExMTEK",
+          "stderrBase64": "",
+          "signal": null,
+          "failure": null,
+          "counters": {
+            "stdinGetter": 0,
+            "iterator": 0,
+            "next": 0,
+            "return": 0,
+            "throw": 0,
+            "fs": 0,
+            "invoke": 0,
+            "cleanup": 0
+          }
+        }
+      ]
+    },
+    {
+      "id": "digits-zero-padded-7",
+      "specification": "digit-boundary",
+      "status": "PASS",
+      "detail": {
+        "rawDigits": 7,
+        "signExcluded": true,
+        "zerosCounted": true
+      },
+      "observations": [
+        {
+          "argv": [
+            "0000001",
+            "+",
+            "0"
+          ],
+          "options": {
+            "limits": {
+              "maxNumericDigits": 8
+            }
+          },
+          "environment": {
+            "LC_ALL": "C"
+          },
+          "sourceKind": "explicit",
+          "stdinIsDefault": false,
+          "status": 0,
+          "stdoutBase64": "MQo=",
+          "stderrBase64": "",
+          "signal": null,
+          "failure": null,
+          "counters": {
+            "stdinGetter": 0,
+            "iterator": 0,
+            "next": 0,
+            "return": 0,
+            "throw": 0,
+            "fs": 0,
+            "invoke": 0,
+            "cleanup": 0
+          }
+        }
+      ]
+    },
+    {
+      "id": "digits-positive-8",
+      "specification": "digit-boundary",
+      "status": "PASS",
+      "detail": {
+        "rawDigits": 8,
+        "signExcluded": true,
+        "zerosCounted": true
+      },
+      "observations": [
+        {
+          "argv": [
+            "11111111",
+            "+",
+            "0"
+          ],
+          "options": {
+            "limits": {
+              "maxNumericDigits": 8
+            }
+          },
+          "environment": {
+            "LC_ALL": "C"
+          },
+          "sourceKind": "explicit",
+          "stdinIsDefault": false,
+          "status": 0,
+          "stdoutBase64": "MTExMTExMTEK",
+          "stderrBase64": "",
+          "signal": null,
+          "failure": null,
+          "counters": {
+            "stdinGetter": 0,
+            "iterator": 0,
+            "next": 0,
+            "return": 0,
+            "throw": 0,
+            "fs": 0,
+            "invoke": 0,
+            "cleanup": 0
+          }
+        }
+      ]
+    },
+    {
+      "id": "digits-negative-8",
+      "specification": "digit-boundary",
+      "status": "PASS",
+      "detail": {
+        "rawDigits": 8,
+        "signExcluded": true,
+        "zerosCounted": true
+      },
+      "observations": [
+        {
+          "argv": [
+            "-11111111",
+            "+",
+            "0"
+          ],
+          "options": {
+            "limits": {
+              "maxNumericDigits": 8
+            }
+          },
+          "environment": {
+            "LC_ALL": "C"
+          },
+          "sourceKind": "explicit",
+          "stdinIsDefault": false,
+          "status": 0,
+          "stdoutBase64": "LTExMTExMTExCg==",
+          "stderrBase64": "",
+          "signal": null,
+          "failure": null,
+          "counters": {
+            "stdinGetter": 0,
+            "iterator": 0,
+            "next": 0,
+            "return": 0,
+            "throw": 0,
+            "fs": 0,
+            "invoke": 0,
+            "cleanup": 0
+          }
+        }
+      ]
+    },
+    {
+      "id": "digits-zero-padded-8",
+      "specification": "digit-boundary",
+      "status": "PASS",
+      "detail": {
+        "rawDigits": 8,
+        "signExcluded": true,
+        "zerosCounted": true
+      },
+      "observations": [
+        {
+          "argv": [
+            "00000001",
+            "+",
+            "0"
+          ],
+          "options": {
+            "limits": {
+              "maxNumericDigits": 8
+            }
+          },
+          "environment": {
+            "LC_ALL": "C"
+          },
+          "sourceKind": "explicit",
+          "stdinIsDefault": false,
+          "status": 0,
+          "stdoutBase64": "MQo=",
+          "stderrBase64": "",
+          "signal": null,
+          "failure": null,
+          "counters": {
+            "stdinGetter": 0,
+            "iterator": 0,
+            "next": 0,
+            "return": 0,
+            "throw": 0,
+            "fs": 0,
+            "invoke": 0,
+            "cleanup": 0
+          }
+        }
+      ]
+    },
+    {
+      "id": "digits-positive-9",
+      "specification": "digit-boundary",
+      "status": "PASS",
+      "detail": {
+        "rawDigits": 9,
+        "signExcluded": true,
+        "zerosCounted": true
+      },
+      "observations": [
+        {
+          "argv": [
+            "111111111",
+            "+",
+            "0"
+          ],
+          "options": {
+            "limits": {
+              "maxNumericDigits": 8
+            }
+          },
+          "environment": {
+            "LC_ALL": "C"
+          },
+          "sourceKind": "explicit",
+          "stdinIsDefault": false,
+          "status": 3,
+          "stdoutBase64": "",
+          "stderrBase64": "ZXhwcjogbnVtZXJpYyBkaWdpdHMgbGltaXQgZXhjZWVkZWQK",
+          "signal": null,
+          "failure": null,
+          "counters": {
+            "stdinGetter": 0,
+            "iterator": 0,
+            "next": 0,
+            "return": 0,
+            "throw": 0,
+            "fs": 0,
+            "invoke": 0,
+            "cleanup": 0
+          }
+        }
+      ]
+    },
+    {
+      "id": "digits-negative-9",
+      "specification": "digit-boundary",
+      "status": "PASS",
+      "detail": {
+        "rawDigits": 9,
+        "signExcluded": true,
+        "zerosCounted": true
+      },
+      "observations": [
+        {
+          "argv": [
+            "-111111111",
+            "+",
+            "0"
+          ],
+          "options": {
+            "limits": {
+              "maxNumericDigits": 8
+            }
+          },
+          "environment": {
+            "LC_ALL": "C"
+          },
+          "sourceKind": "explicit",
+          "stdinIsDefault": false,
+          "status": 3,
+          "stdoutBase64": "",
+          "stderrBase64": "ZXhwcjogbnVtZXJpYyBkaWdpdHMgbGltaXQgZXhjZWVkZWQK",
+          "signal": null,
+          "failure": null,
+          "counters": {
+            "stdinGetter": 0,
+            "iterator": 0,
+            "next": 0,
+            "return": 0,
+            "throw": 0,
+            "fs": 0,
+            "invoke": 0,
+            "cleanup": 0
+          }
+        }
+      ]
+    },
+    {
+      "id": "digits-zero-padded-9",
+      "specification": "digit-boundary",
+      "status": "PASS",
+      "detail": {
+        "rawDigits": 9,
+        "signExcluded": true,
+        "zerosCounted": true
+      },
+      "observations": [
+        {
+          "argv": [
+            "000000001",
+            "+",
+            "0"
+          ],
+          "options": {
+            "limits": {
+              "maxNumericDigits": 8
+            }
+          },
+          "environment": {
+            "LC_ALL": "C"
+          },
+          "sourceKind": "explicit",
+          "stdinIsDefault": false,
+          "status": 3,
+          "stdoutBase64": "",
+          "stderrBase64": "ZXhwcjogbnVtZXJpYyBkaWdpdHMgbGltaXQgZXhjZWVkZWQK",
+          "signal": null,
+          "failure": null,
+          "counters": {
+            "stdinGetter": 0,
+            "iterator": 0,
+            "next": 0,
+            "return": 0,
+            "throw": 0,
+            "fs": 0,
+            "invoke": 0,
+            "cleanup": 0
+          }
+        }
+      ]
+    },
+    {
+      "id": "digits-128-and-product-growth",
+      "specification": "digit-boundary",
+      "status": "PASS",
+      "detail": null,
+      "observations": [
+        {
+          "argv": [
+            "99999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999",
+            "+",
+            "1"
+          ],
+          "options": {},
+          "environment": {
+            "LC_ALL": "C"
+          },
+          "sourceKind": "explicit",
+          "stdinIsDefault": false,
+          "status": 0,
+          "stdoutBase64": "MTAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwCg==",
+          "stderrBase64": "",
+          "signal": null,
+          "failure": null,
+          "counters": {
+            "stdinGetter": 0,
+            "iterator": 0,
+            "next": 0,
+            "return": 0,
+            "throw": 0,
+            "fs": 0,
+            "invoke": 0,
+            "cleanup": 0
+          }
+        },
+        {
+          "argv": [
+            "9999",
+            "*",
+            "9999"
+          ],
+          "options": {
+            "limits": {
+              "maxNumericDigits": 4
+            }
+          },
+          "environment": {
+            "LC_ALL": "C"
+          },
+          "sourceKind": "explicit",
+          "stdinIsDefault": false,
+          "status": 3,
+          "stdoutBase64": "",
+          "stderrBase64": "ZXhwcjogYXJpdGhtZXRpYyByZXN1bHQgZGlnaXRzIGxpbWl0IGV4Y2VlZGVkCg==",
+          "signal": null,
+          "failure": null,
+          "counters": {
+            "stdinGetter": 0,
+            "iterator": 0,
+            "next": 0,
+            "return": 0,
+            "throw": 0,
+            "fs": 0,
+            "invoke": 0,
+            "cleanup": 0
+          }
+        },
+        {
+          "argv": [
+            "kept",
+            "|",
+            "99999999999999999999",
+            "+",
+            "1"
+          ],
+          "options": {
+            "limits": {
+              "maxNumericDigits": 4
+            }
+          },
+          "environment": {
+            "LC_ALL": "C"
+          },
+          "sourceKind": "explicit",
+          "stdinIsDefault": false,
+          "status": 0,
+          "stdoutBase64": "a2VwdAo=",
+          "stderrBase64": "",
+          "signal": null,
+          "failure": null,
+          "counters": {
+            "stdinGetter": 0,
+            "iterator": 0,
+            "next": 0,
+            "return": 0,
+            "throw": 0,
+            "fs": 0,
+            "invoke": 0,
+            "cleanup": 0
+          }
+        }
+      ]
+    },
+    {
+      "id": "nodes-8-skipped-false",
+      "specification": "node-boundary",
+      "status": "PASS",
+      "detail": {
+        "actualASTNodes": 8,
+        "cap": 9,
+        "literalAndOperatorEachOneNode": true,
+        "parenthesesDoNotCreateNodes": true
+      },
+      "observations": [
+        {
+          "argv": [
+            "length",
+            "1",
+            "+",
+            "1",
+            "+",
+            "1",
+            "+",
+            "1"
+          ],
+          "options": {
+            "limits": {
+              "maxNodes": 9
+            }
+          },
+          "environment": {
+            "LC_ALL": "C"
+          },
+          "sourceKind": "explicit",
+          "stdinIsDefault": false,
+          "status": 0,
+          "stdoutBase64": "NAo=",
+          "stderrBase64": "",
+          "signal": null,
+          "failure": null,
+          "counters": {
+            "stdinGetter": 0,
+            "iterator": 0,
+            "next": 0,
+            "return": 0,
+            "throw": 0,
+            "fs": 0,
+            "invoke": 0,
+            "cleanup": 0
+          }
+        }
+      ]
+    },
+    {
+      "id": "nodes-8-skipped-true",
+      "specification": "node-boundary",
+      "status": "PASS",
+      "detail": {
+        "actualASTNodes": 8,
+        "cap": 9,
+        "literalAndOperatorEachOneNode": true,
+        "parenthesesDoNotCreateNodes": true
+      },
+      "observations": [
+        {
+          "argv": [
+            "kept",
+            "|",
+            "length",
+            "1",
+            "+",
+            "1",
+            "+",
+            "1"
+          ],
+          "options": {
+            "limits": {
+              "maxNodes": 9
+            }
+          },
+          "environment": {
+            "LC_ALL": "C"
+          },
+          "sourceKind": "explicit",
+          "stdinIsDefault": false,
+          "status": 0,
+          "stdoutBase64": "a2VwdAo=",
+          "stderrBase64": "",
+          "signal": null,
+          "failure": null,
+          "counters": {
+            "stdinGetter": 0,
+            "iterator": 0,
+            "next": 0,
+            "return": 0,
+            "throw": 0,
+            "fs": 0,
+            "invoke": 0,
+            "cleanup": 0
+          }
+        }
+      ]
+    },
+    {
+      "id": "nodes-9-skipped-false",
+      "specification": "node-boundary",
+      "status": "PASS",
+      "detail": {
+        "actualASTNodes": 9,
+        "cap": 9,
+        "literalAndOperatorEachOneNode": true,
+        "parenthesesDoNotCreateNodes": true
+      },
+      "observations": [
+        {
+          "argv": [
+            "1",
+            "+",
+            "1",
+            "+",
+            "1",
+            "+",
+            "1",
+            "+",
+            "1"
+          ],
+          "options": {
+            "limits": {
+              "maxNodes": 9
+            }
+          },
+          "environment": {
+            "LC_ALL": "C"
+          },
+          "sourceKind": "explicit",
+          "stdinIsDefault": false,
+          "status": 0,
+          "stdoutBase64": "NQo=",
+          "stderrBase64": "",
+          "signal": null,
+          "failure": null,
+          "counters": {
+            "stdinGetter": 0,
+            "iterator": 0,
+            "next": 0,
+            "return": 0,
+            "throw": 0,
+            "fs": 0,
+            "invoke": 0,
+            "cleanup": 0
+          }
+        }
+      ]
+    },
+    {
+      "id": "nodes-9-skipped-true",
+      "specification": "node-boundary",
+      "status": "PASS",
+      "detail": {
+        "actualASTNodes": 9,
+        "cap": 9,
+        "literalAndOperatorEachOneNode": true,
+        "parenthesesDoNotCreateNodes": true
+      },
+      "observations": [
+        {
+          "argv": [
+            "kept",
+            "|",
+            "1",
+            "+",
+            "1",
+            "+",
+            "1",
+            "+",
+            "1"
+          ],
+          "options": {
+            "limits": {
+              "maxNodes": 9
+            }
+          },
+          "environment": {
+            "LC_ALL": "C"
+          },
+          "sourceKind": "explicit",
+          "stdinIsDefault": false,
+          "status": 0,
+          "stdoutBase64": "a2VwdAo=",
+          "stderrBase64": "",
+          "signal": null,
+          "failure": null,
+          "counters": {
+            "stdinGetter": 0,
+            "iterator": 0,
+            "next": 0,
+            "return": 0,
+            "throw": 0,
+            "fs": 0,
+            "invoke": 0,
+            "cleanup": 0
+          }
+        }
+      ]
+    },
+    {
+      "id": "nodes-10-skipped-false",
+      "specification": "node-boundary",
+      "status": "PASS",
+      "detail": {
+        "actualASTNodes": 10,
+        "cap": 9,
+        "literalAndOperatorEachOneNode": true,
+        "parenthesesDoNotCreateNodes": true
+      },
+      "observations": [
+        {
+          "argv": [
+            "length",
+            "1",
+            "+",
+            "1",
+            "+",
+            "1",
+            "+",
+            "1",
+            "+",
+            "1"
+          ],
+          "options": {
+            "limits": {
+              "maxNodes": 9
+            }
+          },
+          "environment": {
+            "LC_ALL": "C"
+          },
+          "sourceKind": "explicit",
+          "stdinIsDefault": false,
+          "status": 3,
+          "stdoutBase64": "",
+          "stderrBase64": "ZXhwcjogQVNUIG5vZGUgbGltaXQgZXhjZWVkZWQK",
+          "signal": null,
+          "failure": null,
+          "counters": {
+            "stdinGetter": 0,
+            "iterator": 0,
+            "next": 0,
+            "return": 0,
+            "throw": 0,
+            "fs": 0,
+            "invoke": 0,
+            "cleanup": 0
+          }
+        }
+      ]
+    },
+    {
+      "id": "nodes-10-skipped-true",
+      "specification": "node-boundary",
+      "status": "PASS",
+      "detail": {
+        "actualASTNodes": 10,
+        "cap": 9,
+        "literalAndOperatorEachOneNode": true,
+        "parenthesesDoNotCreateNodes": true
+      },
+      "observations": [
+        {
+          "argv": [
+            "kept",
+            "|",
+            "length",
+            "1",
+            "+",
+            "1",
+            "+",
+            "1",
+            "+",
+            "1"
+          ],
+          "options": {
+            "limits": {
+              "maxNodes": 9
+            }
+          },
+          "environment": {
+            "LC_ALL": "C"
+          },
+          "sourceKind": "explicit",
+          "stdinIsDefault": false,
+          "status": 3,
+          "stdoutBase64": "",
+          "stderrBase64": "ZXhwcjogQVNUIG5vZGUgbGltaXQgZXhjZWVkZWQK",
+          "signal": null,
+          "failure": null,
+          "counters": {
+            "stdinGetter": 0,
+            "iterator": 0,
+            "next": 0,
+            "return": 0,
+            "throw": 0,
+            "fs": 0,
+            "invoke": 0,
+            "cleanup": 0
+          }
+        }
+      ]
+    },
+    {
+      "id": "depth-grouping-7",
+      "specification": "depth-boundary",
+      "status": "PASS",
+      "detail": {
+        "depth": 7,
+        "cap": 8,
+        "parserRootDepth": 1,
+        "groupingAddsParserDepthNotASTNode": true
+      },
+      "observations": [
+        {
+          "argv": [
+            "(",
+            "(",
+            "(",
+            "(",
+            "(",
+            "(",
+            "1",
+            ")",
+            ")",
+            ")",
+            ")",
+            ")",
+            ")"
+          ],
+          "options": {
+            "limits": {
+              "maxDepth": 8
+            }
+          },
+          "environment": {
+            "LC_ALL": "C"
+          },
+          "sourceKind": "explicit",
+          "stdinIsDefault": false,
+          "status": 0,
+          "stdoutBase64": "MQo=",
+          "stderrBase64": "",
+          "signal": null,
+          "failure": null,
+          "counters": {
+            "stdinGetter": 0,
+            "iterator": 0,
+            "next": 0,
+            "return": 0,
+            "throw": 0,
+            "fs": 0,
+            "invoke": 0,
+            "cleanup": 0
+          }
+        }
+      ]
+    },
+    {
+      "id": "depth-prefix-7",
+      "specification": "depth-boundary",
+      "status": "PASS",
+      "detail": {
+        "depth": 7,
+        "cap": 8,
+        "parserRootDepth": 1,
+        "groupingAddsParserDepthNotASTNode": true
+      },
+      "observations": [
+        {
+          "argv": [
+            "length",
+            "length",
+            "length",
+            "length",
+            "length",
+            "length",
+            "1"
+          ],
+          "options": {
+            "limits": {
+              "maxDepth": 8
+            }
+          },
+          "environment": {
+            "LC_ALL": "C"
+          },
+          "sourceKind": "explicit",
+          "stdinIsDefault": false,
+          "status": 0,
+          "stdoutBase64": "MQo=",
+          "stderrBase64": "",
+          "signal": null,
+          "failure": null,
+          "counters": {
+            "stdinGetter": 0,
+            "iterator": 0,
+            "next": 0,
+            "return": 0,
+            "throw": 0,
+            "fs": 0,
+            "invoke": 0,
+            "cleanup": 0
+          }
+        }
+      ]
+    },
+    {
+      "id": "depth-grouping-8",
+      "specification": "depth-boundary",
+      "status": "PASS",
+      "detail": {
+        "depth": 8,
+        "cap": 8,
+        "parserRootDepth": 1,
+        "groupingAddsParserDepthNotASTNode": true
+      },
+      "observations": [
+        {
+          "argv": [
+            "(",
+            "(",
+            "(",
+            "(",
+            "(",
+            "(",
+            "(",
+            "1",
+            ")",
+            ")",
+            ")",
+            ")",
+            ")",
+            ")",
+            ")"
+          ],
+          "options": {
+            "limits": {
+              "maxDepth": 8
+            }
+          },
+          "environment": {
+            "LC_ALL": "C"
+          },
+          "sourceKind": "explicit",
+          "stdinIsDefault": false,
+          "status": 0,
+          "stdoutBase64": "MQo=",
+          "stderrBase64": "",
+          "signal": null,
+          "failure": null,
+          "counters": {
+            "stdinGetter": 0,
+            "iterator": 0,
+            "next": 0,
+            "return": 0,
+            "throw": 0,
+            "fs": 0,
+            "invoke": 0,
+            "cleanup": 0
+          }
+        }
+      ]
+    },
+    {
+      "id": "depth-prefix-8",
+      "specification": "depth-boundary",
+      "status": "PASS",
+      "detail": {
+        "depth": 8,
+        "cap": 8,
+        "parserRootDepth": 1,
+        "groupingAddsParserDepthNotASTNode": true
+      },
+      "observations": [
+        {
+          "argv": [
+            "length",
+            "length",
+            "length",
+            "length",
+            "length",
+            "length",
+            "length",
+            "1"
+          ],
+          "options": {
+            "limits": {
+              "maxDepth": 8
+            }
+          },
+          "environment": {
+            "LC_ALL": "C"
+          },
+          "sourceKind": "explicit",
+          "stdinIsDefault": false,
+          "status": 0,
+          "stdoutBase64": "MQo=",
+          "stderrBase64": "",
+          "signal": null,
+          "failure": null,
+          "counters": {
+            "stdinGetter": 0,
+            "iterator": 0,
+            "next": 0,
+            "return": 0,
+            "throw": 0,
+            "fs": 0,
+            "invoke": 0,
+            "cleanup": 0
+          }
+        }
+      ]
+    },
+    {
+      "id": "depth-grouping-9",
+      "specification": "depth-boundary",
+      "status": "PASS",
+      "detail": {
+        "depth": 9,
+        "cap": 8,
+        "parserRootDepth": 1,
+        "groupingAddsParserDepthNotASTNode": true
+      },
+      "observations": [
+        {
+          "argv": [
+            "(",
+            "(",
+            "(",
+            "(",
+            "(",
+            "(",
+            "(",
+            "(",
+            "1",
+            ")",
+            ")",
+            ")",
+            ")",
+            ")",
+            ")",
+            ")",
+            ")"
+          ],
+          "options": {
+            "limits": {
+              "maxDepth": 8
+            }
+          },
+          "environment": {
+            "LC_ALL": "C"
+          },
+          "sourceKind": "explicit",
+          "stdinIsDefault": false,
+          "status": 3,
+          "stdoutBase64": "",
+          "stderrBase64": "ZXhwcjogcGFyc2VyIGRlcHRoIGxpbWl0IGV4Y2VlZGVkCg==",
+          "signal": null,
+          "failure": null,
+          "counters": {
+            "stdinGetter": 0,
+            "iterator": 0,
+            "next": 0,
+            "return": 0,
+            "throw": 0,
+            "fs": 0,
+            "invoke": 0,
+            "cleanup": 0
+          }
+        }
+      ]
+    },
+    {
+      "id": "depth-prefix-9",
+      "specification": "depth-boundary",
+      "status": "PASS",
+      "detail": {
+        "depth": 9,
+        "cap": 8,
+        "parserRootDepth": 1,
+        "groupingAddsParserDepthNotASTNode": true
+      },
+      "observations": [
+        {
+          "argv": [
+            "length",
+            "length",
+            "length",
+            "length",
+            "length",
+            "length",
+            "length",
+            "length",
+            "1"
+          ],
+          "options": {
+            "limits": {
+              "maxDepth": 8
+            }
+          },
+          "environment": {
+            "LC_ALL": "C"
+          },
+          "sourceKind": "explicit",
+          "stdinIsDefault": false,
+          "status": 3,
+          "stdoutBase64": "",
+          "stderrBase64": "ZXhwcjogcGFyc2VyIGRlcHRoIGxpbWl0IGV4Y2VlZGVkCg==",
+          "signal": null,
+          "failure": null,
+          "counters": {
+            "stdinGetter": 0,
+            "iterator": 0,
+            "next": 0,
+            "return": 0,
+            "throw": 0,
+            "fs": 0,
+            "invoke": 0,
+            "cleanup": 0
+          }
+        }
+      ]
+    },
+    {
+      "id": "depth-skipped-unclosed",
+      "specification": "depth-boundary",
+      "status": "PASS",
+      "detail": null,
+      "observations": [
+        {
+          "argv": [
+            "kept",
+            "|",
+            "(",
+            "1"
+          ],
+          "options": {
+            "limits": {
+              "maxDepth": 8
+            }
+          },
+          "environment": {
+            "LC_ALL": "C"
+          },
+          "sourceKind": "explicit",
+          "stdinIsDefault": false,
+          "status": 2,
+          "stdoutBase64": "",
+          "stderrBase64": "ZXhwcjogc3ludGF4IGVycm9yOiBleHBlY3RpbmcgJyknCg==",
+          "signal": null,
+          "failure": null,
+          "counters": {
+            "stdinGetter": 0,
+            "iterator": 0,
+            "next": 0,
+            "return": 0,
+            "throw": 0,
+            "fs": 0,
+            "invoke": 0,
+            "cleanup": 0
+          }
+        }
+      ]
+    },
+    {
+      "id": "work-literal-8",
+      "specification": "work-boundary",
+      "status": "PASS",
+      "detail": {
+        "requiredWork": 9,
+        "ledger": {
+          "argvTokenAndUtf16": 2,
+          "node": 1,
+          "evaluationYield": 1,
+          "allocation": 1,
+          "truth": 1,
+          "output": 2,
+          "finalYield": 1
+        }
+      },
+      "observations": [
+        {
+          "argv": [
+            "x"
+          ],
+          "options": {
+            "limits": {
+              "maxSteps": 8
+            }
+          },
+          "environment": {
+            "LC_ALL": "C"
+          },
+          "sourceKind": "explicit",
+          "stdinIsDefault": false,
+          "status": 3,
+          "stdoutBase64": "",
+          "stderrBase64": "ZXhwcjogZXZhbHVhdGlvbiB3b3JrIGxpbWl0IGV4Y2VlZGVkCg==",
+          "signal": null,
+          "failure": null,
+          "counters": {
+            "stdinGetter": 0,
+            "iterator": 0,
+            "next": 0,
+            "return": 0,
+            "throw": 0,
+            "fs": 0,
+            "invoke": 0,
+            "cleanup": 0
+          }
+        }
+      ]
+    },
+    {
+      "id": "work-literal-9",
+      "specification": "work-boundary",
+      "status": "PASS",
+      "detail": {
+        "requiredWork": 9,
+        "ledger": {
+          "argvTokenAndUtf16": 2,
+          "node": 1,
+          "evaluationYield": 1,
+          "allocation": 1,
+          "truth": 1,
+          "output": 2,
+          "finalYield": 1
+        }
+      },
+      "observations": [
+        {
+          "argv": [
+            "x"
+          ],
+          "options": {
+            "limits": {
+              "maxSteps": 9
+            }
+          },
+          "environment": {
+            "LC_ALL": "C"
+          },
+          "sourceKind": "explicit",
+          "stdinIsDefault": false,
+          "status": 0,
+          "stdoutBase64": "eAo=",
+          "stderrBase64": "",
+          "signal": null,
+          "failure": null,
+          "counters": {
+            "stdinGetter": 0,
+            "iterator": 0,
+            "next": 0,
+            "return": 0,
+            "throw": 0,
+            "fs": 0,
+            "invoke": 0,
+            "cleanup": 0
+          }
+        }
+      ]
+    },
+    {
+      "id": "work-literal-10",
+      "specification": "work-boundary",
+      "status": "PASS",
+      "detail": {
+        "requiredWork": 9,
+        "ledger": {
+          "argvTokenAndUtf16": 2,
+          "node": 1,
+          "evaluationYield": 1,
+          "allocation": 1,
+          "truth": 1,
+          "output": 2,
+          "finalYield": 1
+        }
+      },
+      "observations": [
+        {
+          "argv": [
+            "x"
+          ],
+          "options": {
+            "limits": {
+              "maxSteps": 10
+            }
+          },
+          "environment": {
+            "LC_ALL": "C"
+          },
+          "sourceKind": "explicit",
+          "stdinIsDefault": false,
+          "status": 0,
+          "stdoutBase64": "eAo=",
+          "stderrBase64": "",
+          "signal": null,
+          "failure": null,
+          "counters": {
+            "stdinGetter": 0,
+            "iterator": 0,
+            "next": 0,
+            "return": 0,
+            "throw": 0,
+            "fs": 0,
+            "invoke": 0,
+            "cleanup": 0
+          }
+        }
+      ]
+    },
+    {
+      "id": "work-aggregate-arithmetic-index-skips",
+      "specification": "work-boundary",
+      "status": "PASS",
+      "detail": {
+        "workAggregate": true,
+        "shellCommandBudgetNotReset": true,
+        "nestedLiteralInvokeBudgetNotReset": true,
+        "familyWorkDistinctFromShellCommandBudget": true,
+        "evaluatedRegexWork": "NOT READY"
+      },
+      "observations": [
+        {
+          "argv": [
+            "1",
+            "+",
+            "1",
+            "+",
+            "1",
+            "+",
+            "1",
+            "+",
+            "1",
+            "+",
+            "1",
+            "+",
+            "1",
+            "+",
+            "1",
+            "+",
+            "1",
+            "+",
+            "1",
+            "+",
+            "1",
+            "+",
+            "1"
+          ],
+          "options": {
+            "limits": {
+              "maxSteps": 10000
+            }
+          },
+          "environment": {
+            "LC_ALL": "C"
+          },
+          "sourceKind": "explicit",
+          "stdinIsDefault": false,
+          "status": 0,
+          "stdoutBase64": "MTIK",
+          "stderrBase64": "",
+          "signal": null,
+          "failure": null,
+          "counters": {
+            "stdinGetter": 0,
+            "iterator": 0,
+            "next": 0,
+            "return": 0,
+            "throw": 0,
+            "fs": 0,
+            "invoke": 0,
+            "cleanup": 0
+          }
+        },
+        {
+          "argv": [
+            "1",
+            "+",
+            "1",
+            "+",
+            "1",
+            "+",
+            "1",
+            "+",
+            "1",
+            "+",
+            "1",
+            "+",
+            "1",
+            "+",
+            "1",
+            "+",
+            "1",
+            "+",
+            "1",
+            "+",
+            "1",
+            "+",
+            "1"
+          ],
+          "options": {
+            "limits": {
+              "maxSteps": 100
+            }
+          },
+          "environment": {
+            "LC_ALL": "C"
+          },
+          "sourceKind": "explicit",
+          "stdinIsDefault": false,
+          "status": 3,
+          "stdoutBase64": "",
+          "stderrBase64": "ZXhwcjogZXZhbHVhdGlvbiB3b3JrIGxpbWl0IGV4Y2VlZGVkCg==",
+          "signal": null,
+          "failure": null,
+          "counters": {
+            "stdinGetter": 0,
+            "iterator": 0,
+            "next": 0,
+            "return": 0,
+            "throw": 0,
+            "fs": 0,
+            "invoke": 0,
+            "cleanup": 0
+          }
+        },
+        {
+          "argv": [
+            "index",
+            "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+          ],
+          "options": {
+            "limits": {
+              "maxSteps": 1000
+            }
+          },
+          "environment": {
+            "LC_ALL": "C"
+          },
+          "sourceKind": "explicit",
+          "stdinIsDefault": false,
+          "status": 3,
+          "stdoutBase64": "",
+          "stderrBase64": "ZXhwcjogZXZhbHVhdGlvbiB3b3JrIGxpbWl0IGV4Y2VlZGVkCg==",
+          "signal": null,
+          "failure": null,
+          "counters": {
+            "stdinGetter": 0,
+            "iterator": 0,
+            "next": 0,
+            "return": 0,
+            "throw": 0,
+            "fs": 0,
+            "invoke": 0,
+            "cleanup": 0
+          }
+        },
+        {
+          "argv": [
+            "kept",
+            "|",
+            "1",
+            "/",
+            "0"
+          ],
+          "options": {},
+          "environment": {
+            "LC_ALL": "C"
+          },
+          "sourceKind": "explicit",
+          "stdinIsDefault": false,
+          "status": 0,
+          "stdoutBase64": "a2VwdAo=",
+          "stderrBase64": "",
+          "signal": null,
+          "failure": null,
+          "counters": {
+            "stdinGetter": 0,
+            "iterator": 0,
+            "next": 0,
+            "return": 0,
+            "throw": 0,
+            "fs": 0,
+            "invoke": 0,
+            "cleanup": 0
+          }
+        }
+      ]
+    },
+    {
+      "id": "string-bytes-7",
+      "specification": "arg-byte-boundary/work-boundary",
+      "status": "PASS",
+      "detail": {
+        "stringAllocationBytes": 7,
+        "cap": 8
+      },
+      "observations": [
+        {
+          "argv": [
+            "+",
+            "xxxxxxx"
+          ],
+          "options": {
+            "limits": {
+              "maxStringBytes": 8
+            }
+          },
+          "environment": {
+            "LC_ALL": "C"
+          },
+          "sourceKind": "explicit",
+          "stdinIsDefault": false,
+          "status": 0,
+          "stdoutBase64": "eHh4eHh4eAo=",
+          "stderrBase64": "",
+          "signal": null,
+          "failure": null,
+          "counters": {
+            "stdinGetter": 0,
+            "iterator": 0,
+            "next": 0,
+            "return": 0,
+            "throw": 0,
+            "fs": 0,
+            "invoke": 0,
+            "cleanup": 0
+          }
+        }
+      ]
+    },
+    {
+      "id": "output-bytes-7",
+      "specification": "output-boundary",
+      "status": "PASS",
+      "detail": {
+        "includesLF": true,
+        "stdoutByteCount": 7
+      },
+      "observations": [
+        {
+          "argv": [
+            "+",
+            "xxxxxx"
+          ],
+          "options": {
+            "limits": {
+              "maxOutputBytes": 8
+            }
+          },
+          "environment": {
+            "LC_ALL": "C"
+          },
+          "sourceKind": "explicit",
+          "stdinIsDefault": false,
+          "status": 0,
+          "stdoutBase64": "eHh4eHh4Cg==",
+          "stderrBase64": "",
+          "signal": null,
+          "failure": null,
+          "counters": {
+            "stdinGetter": 0,
+            "iterator": 0,
+            "next": 0,
+            "return": 0,
+            "throw": 0,
+            "fs": 0,
+            "invoke": 0,
+            "cleanup": 0
+          }
+        }
+      ]
+    },
+    {
+      "id": "string-bytes-8",
+      "specification": "arg-byte-boundary/work-boundary",
+      "status": "PASS",
+      "detail": {
+        "stringAllocationBytes": 8,
+        "cap": 8
+      },
+      "observations": [
+        {
+          "argv": [
+            "+",
+            "xxxxxxxx"
+          ],
+          "options": {
+            "limits": {
+              "maxStringBytes": 8
+            }
+          },
+          "environment": {
+            "LC_ALL": "C"
+          },
+          "sourceKind": "explicit",
+          "stdinIsDefault": false,
+          "status": 0,
+          "stdoutBase64": "eHh4eHh4eHgK",
+          "stderrBase64": "",
+          "signal": null,
+          "failure": null,
+          "counters": {
+            "stdinGetter": 0,
+            "iterator": 0,
+            "next": 0,
+            "return": 0,
+            "throw": 0,
+            "fs": 0,
+            "invoke": 0,
+            "cleanup": 0
+          }
+        }
+      ]
+    },
+    {
+      "id": "output-bytes-8",
+      "specification": "output-boundary",
+      "status": "PASS",
+      "detail": {
+        "includesLF": true,
+        "stdoutByteCount": 8
+      },
+      "observations": [
+        {
+          "argv": [
+            "+",
+            "xxxxxxx"
+          ],
+          "options": {
+            "limits": {
+              "maxOutputBytes": 8
+            }
+          },
+          "environment": {
+            "LC_ALL": "C"
+          },
+          "sourceKind": "explicit",
+          "stdinIsDefault": false,
+          "status": 0,
+          "stdoutBase64": "eHh4eHh4eAo=",
+          "stderrBase64": "",
+          "signal": null,
+          "failure": null,
+          "counters": {
+            "stdinGetter": 0,
+            "iterator": 0,
+            "next": 0,
+            "return": 0,
+            "throw": 0,
+            "fs": 0,
+            "invoke": 0,
+            "cleanup": 0
+          }
+        }
+      ]
+    },
+    {
+      "id": "string-bytes-9",
+      "specification": "arg-byte-boundary/work-boundary",
+      "status": "PASS",
+      "detail": {
+        "stringAllocationBytes": 9,
+        "cap": 8
+      },
+      "observations": [
+        {
+          "argv": [
+            "+",
+            "xxxxxxxxx"
+          ],
+          "options": {
+            "limits": {
+              "maxStringBytes": 8
+            }
+          },
+          "environment": {
+            "LC_ALL": "C"
+          },
+          "sourceKind": "explicit",
+          "stdinIsDefault": false,
+          "status": 3,
+          "stdoutBase64": "",
+          "stderrBase64": "ZXhwcjogc3RyaW5nIGFsbG9jYXRpb24gbGltaXQgZXhjZWVkZWQK",
+          "signal": null,
+          "failure": null,
+          "counters": {
+            "stdinGetter": 0,
+            "iterator": 0,
+            "next": 0,
+            "return": 0,
+            "throw": 0,
+            "fs": 0,
+            "invoke": 0,
+            "cleanup": 0
+          }
+        }
+      ]
+    },
+    {
+      "id": "output-bytes-9",
+      "specification": "output-boundary",
+      "status": "PASS",
+      "detail": {
+        "includesLF": true,
+        "stdoutByteCount": 9
+      },
+      "observations": [
+        {
+          "argv": [
+            "+",
+            "xxxxxxxx"
+          ],
+          "options": {
+            "limits": {
+              "maxOutputBytes": 8
+            }
+          },
+          "environment": {
+            "LC_ALL": "C"
+          },
+          "sourceKind": "explicit",
+          "stdinIsDefault": false,
+          "status": 3,
+          "stdoutBase64": "",
+          "stderrBase64": "ZXhwcjogb3V0cHV0IGJ5dGVzIGxpbWl0IGV4Y2VlZGVkCg==",
+          "signal": null,
+          "failure": null,
+          "counters": {
+            "stdinGetter": 0,
+            "iterator": 0,
+            "next": 0,
+            "return": 0,
+            "throw": 0,
+            "fs": 0,
+            "invoke": 0,
+            "cleanup": 0
+          }
+        }
+      ]
+    },
+    {
+      "id": "output-long-integer-and-shell-aggregate",
+      "specification": "output-boundary",
+      "status": "PASS",
+      "detail": {
+        "aggregateShellOutputRefused": true,
+        "diagnosticsBoundedSeparately": true,
+        "regexCaptureOutput": "NOT READY"
+      },
+      "observations": [
+        {
+          "argv": [
+            "99999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999",
+            "+",
+            "1"
+          ],
+          "options": {
+            "limits": {
+              "maxOutputBytes": 130
+            }
+          },
+          "environment": {
+            "LC_ALL": "C"
+          },
+          "sourceKind": "explicit",
+          "stdinIsDefault": false,
+          "status": 0,
+          "stdoutBase64": "MTAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwCg==",
+          "stderrBase64": "",
+          "signal": null,
+          "failure": null,
+          "counters": {
+            "stdinGetter": 0,
+            "iterator": 0,
+            "next": 0,
+            "return": 0,
+            "throw": 0,
+            "fs": 0,
+            "invoke": 0,
+            "cleanup": 0
+          }
+        },
+        {
+          "argv": [
+            "99999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999",
+            "+",
+            "1"
+          ],
+          "options": {
+            "limits": {
+              "maxOutputBytes": 129
+            }
+          },
+          "environment": {
+            "LC_ALL": "C"
+          },
+          "sourceKind": "explicit",
+          "stdinIsDefault": false,
+          "status": 3,
+          "stdoutBase64": "",
+          "stderrBase64": "ZXhwcjogb3V0cHV0IGJ5dGVzIGxpbWl0IGV4Y2VlZGVkCg==",
+          "signal": null,
+          "failure": null,
+          "counters": {
+            "stdinGetter": 0,
+            "iterator": 0,
+            "next": 0,
+            "return": 0,
+            "throw": 0,
+            "fs": 0,
+            "invoke": 0,
+            "cleanup": 0
+          }
+        }
+      ]
+    },
+    {
+      "id": "unicode-policy-not-oracle-substitution",
+      "specification": "unicode-contract",
+      "status": "PASS",
+      "detail": {
+        "policy": "C/POSIX bytes; C.UTF-8/C.utf8 scalars; en_US.UTF-8 unsupported for character operations and collation",
+        "nativeOracleSubstituted": false,
+        "originalSurrogatesAndNULNotSpawned": true,
+        "arbitraryInvalidUtf8Argv": "UNMEASURED"
+      },
+      "observations": [
+        {
+          "argv": [
+            "length",
+            "Aé😀é"
+          ],
+          "options": {},
+          "environment": {
+            "LC_ALL": "C.UTF-8"
+          },
+          "sourceKind": "explicit",
+          "stdinIsDefault": false,
+          "status": 0,
+          "stdoutBase64": "NQo=",
+          "stderrBase64": "",
+          "signal": null,
+          "failure": null,
+          "counters": {
+            "stdinGetter": 0,
+            "iterator": 0,
+            "next": 0,
+            "return": 0,
+            "throw": 0,
+            "fs": 0,
+            "invoke": 0,
+            "cleanup": 0
+          }
+        },
+        {
+          "argv": [
+            "substr",
+            "Aé😀Z",
+            "3",
+            "1"
+          ],
+          "options": {},
+          "environment": {
+            "LC_ALL": "C.UTF-8"
+          },
+          "sourceKind": "explicit",
+          "stdinIsDefault": false,
+          "status": 0,
+          "stdoutBase64": "8J+YgAo=",
+          "stderrBase64": "",
+          "signal": null,
+          "failure": null,
+          "counters": {
+            "stdinGetter": 0,
+            "iterator": 0,
+            "next": 0,
+            "return": 0,
+            "throw": 0,
+            "fs": 0,
+            "invoke": 0,
+            "cleanup": 0
+          }
+        },
+        {
+          "argv": [
+            "length",
+            "\ud800"
+          ],
+          "options": {},
+          "environment": {
+            "LC_ALL": "C"
+          },
+          "sourceKind": "explicit",
+          "stdinIsDefault": false,
+          "status": 2,
+          "stdoutBase64": "",
+          "stderrBase64": "ZXhwcjogYXJndiBtdXN0IGNvbnRhaW4gd2VsbC1mb3JtZWQgVW5pY29kZQo=",
+          "signal": null,
+          "failure": null,
+          "counters": {
+            "stdinGetter": 0,
+            "iterator": 0,
+            "next": 0,
+            "return": 0,
+            "throw": 0,
+            "fs": 0,
+            "invoke": 0,
+            "cleanup": 0
+          }
+        },
+        {
+          "argv": [
+            "length",
+            "\udc00"
+          ],
+          "options": {},
+          "environment": {
+            "LC_ALL": "C"
+          },
+          "sourceKind": "explicit",
+          "stdinIsDefault": false,
+          "status": 2,
+          "stdoutBase64": "",
+          "stderrBase64": "ZXhwcjogYXJndiBtdXN0IGNvbnRhaW4gd2VsbC1mb3JtZWQgVW5pY29kZQo=",
+          "signal": null,
+          "failure": null,
+          "counters": {
+            "stdinGetter": 0,
+            "iterator": 0,
+            "next": 0,
+            "return": 0,
+            "throw": 0,
+            "fs": 0,
+            "invoke": 0,
+            "cleanup": 0
+          }
+        },
+        {
+          "argv": [
+            "+",
+            "a\u0000b"
+          ],
+          "options": {},
+          "environment": {
+            "LC_ALL": "C"
+          },
+          "sourceKind": "explicit",
+          "stdinIsDefault": false,
+          "status": 2,
+          "stdoutBase64": "",
+          "stderrBase64": "ZXhwcjogTlVMIGlzIG5vdCBzdXBwb3J0ZWQgaW4gYXJndgo=",
+          "signal": null,
+          "failure": null,
+          "counters": {
+            "stdinGetter": 0,
+            "iterator": 0,
+            "next": 0,
+            "return": 0,
+            "throw": 0,
+            "fs": 0,
+            "invoke": 0,
+            "cleanup": 0
+          }
+        }
+      ]
+    },
+    {
+      "id": "literal-no-host-effects",
+      "specification": "no-host-effects",
+      "status": "PASS",
+      "detail": {
+        "argvNeverEvaluatedAsShell": true,
+        "directFSCalls": 0,
+        "directInvokeCalls": 0,
+        "proxyIsNotHostJavaScriptSandboxProof": true
+      },
+      "observations": [
+        {
+          "argv": [
+            "+",
+            "$(touch NEVER); * > /not-a-file"
+          ],
+          "options": {},
+          "environment": {
+            "LC_ALL": "C"
+          },
+          "sourceKind": "explicit",
+          "stdinIsDefault": false,
+          "status": 0,
+          "stdoutBase64": "JCh0b3VjaCBORVZFUik7ICogPiAvbm90LWEtZmlsZQo=",
+          "stderrBase64": "",
+          "signal": null,
+          "failure": null,
+          "counters": {
+            "stdinGetter": 0,
+            "iterator": 0,
+            "next": 0,
+            "return": 0,
+            "throw": 0,
+            "fs": 0,
+            "invoke": 0,
+            "cleanup": 0
+          }
+        }
+      ]
+    }
+  ],
+  "workflows": [
+    {
+      "id": "increment-capture-pipeline",
+      "script": "build=41; next=$(expr \"$build\" + 1); printf '%s\\n' \"$next\" | cat",
+      "stdout": "42\n",
+      "stderr": "",
+      "exitCode": 0,
+      "expectedStderr": "",
+      "observed": {
+        "stdoutBase64": "NDIK",
+        "stderrBase64": "",
+        "exitCode": 0,
+        "vfsFiles": {}
+      },
+      "status": "PASS",
+      "classification": "exact"
+    },
+    {
+      "id": "version-parse-pipeline",
+      "script": "expr 'v12.4.7' : 'v\\([0-9][0-9]*\\)\\.' | cat",
+      "stdout": "12\n",
+      "stderr": "",
+      "exitCode": 0,
+      "expectedStderr": "",
+      "observed": {
+        "stdoutBase64": "",
+        "stderrBase64": "ZXhwcjogYm91bmRlZCBleHByIEJSRSBwcm90b2NvbCBpcyBwZW5kaW5nCg==",
+        "exitCode": 0,
+        "vfsFiles": {}
+      },
+      "status": "FAIL",
+      "classification": "known-pending-regex-status3-upstream"
+    },
+    {
+      "id": "false-last-pipeline-status",
+      "script": "printf unused | expr 0",
+      "stdout": "0\n",
+      "stderr": "",
+      "exitCode": 1,
+      "expectedStderr": "",
+      "observed": {
+        "stdoutBase64": "MAo=",
+        "stderrBase64": "",
+        "exitCode": 1,
+        "vfsFiles": {}
+      },
+      "status": "PASS",
+      "classification": "exact"
+    },
+    {
+      "id": "false-upstream-default-status",
+      "script": "expr 0 | cat",
+      "stdout": "0\n",
+      "stderr": "",
+      "exitCode": 0,
+      "expectedStderr": "",
+      "observed": {
+        "stdoutBase64": "MAo=",
+        "stderrBase64": "",
+        "exitCode": 0,
+        "vfsFiles": {}
+      },
+      "status": "PASS",
+      "classification": "exact"
+    },
+    {
+      "id": "false-upstream-pipefail",
+      "script": "set -o pipefail; expr 0 | cat",
+      "stdout": "0\n",
+      "stderr": "",
+      "exitCode": 1,
+      "expectedStderr": "",
+      "observed": {
+        "stdoutBase64": "MAo=",
+        "stderrBase64": "",
+        "exitCode": 1,
+        "vfsFiles": {}
+      },
+      "status": "PASS",
+      "classification": "exact"
+    },
+    {
+      "id": "arithmetic-error-and-status",
+      "script": "expr 7 / 0; printf 'status=%s\\n' \"$?\"",
+      "stdout": "status=2\n",
+      "stderrFromGnuCase": "divide-zero",
+      "exitCode": 0,
+      "expectedStderr": "expr: division by zero\n",
+      "observed": {
+        "stdoutBase64": "c3RhdHVzPTIK",
+        "stderrBase64": "ZXhwcjogZGl2aXNpb24gYnkgemVybwo=",
+        "exitCode": 0,
+        "vfsFiles": {}
+      },
+      "status": "PASS",
+      "classification": "exact"
+    },
+    {
+      "id": "vfs-build-artifact",
+      "script": "expr 41 + 1 > /build-number; cat /build-number",
+      "stdout": "42\n",
+      "stderr": "",
+      "exitCode": 0,
+      "vfsFiles": {
+        "/build-number": "42\n"
+      },
+      "expectedStderr": "",
+      "observed": {
+        "stdoutBase64": "NDIK",
+        "stderrBase64": "",
+        "exitCode": 0,
+        "vfsFiles": {
+          "/build-number": "42\n"
+        }
+      },
+      "status": "PASS",
+      "classification": "exact"
+    }
+  ],
+  "regexObservations": [
+    {
+      "argv": [
+        "aaaaaaaaaaaaaaaaaaaaaaaa!",
+        ":",
+        "\\(a\\+\\)\\+$"
+      ],
+      "status": "NOT READY",
+      "observed": {
+        "threadId": 1,
+        "workerAdmissions": 0,
+        "compilationArguments": [],
+        "exitCode": 3,
+        "stdoutBase64": "",
+        "stderrBase64": "ZXhwcjogYm91bmRlZCBleHByIEJSRSBwcm90b2NvbCBpcyBwZW5kaW5nCg==",
+        "outerWorkerOnly": true
+      },
+      "heartbeat": 3,
+      "reason": "baseline has no product compile/match service; refusal or skipped branch is NOT regex safety acceptance"
+    },
+    {
+      "argv": [
+        "aaaaaaaaaaaaaaaaaaaaaaaa!",
+        ":",
+        "\\(a\\|aa\\)*$"
+      ],
+      "status": "NOT READY",
+      "observed": {
+        "threadId": 2,
+        "workerAdmissions": 0,
+        "compilationArguments": [],
+        "exitCode": 3,
+        "stdoutBase64": "",
+        "stderrBase64": "ZXhwcjogYm91bmRlZCBleHByIEJSRSBwcm90b2NvbCBpcyBwZW5kaW5nCg==",
+        "outerWorkerOnly": true
+      },
+      "heartbeat": 3,
+      "reason": "baseline has no product compile/match service; refusal or skipped branch is NOT regex safety acceptance"
+    },
+    {
+      "argv": [
+        "aaaaaaaaaaaaaaaaaaaaaaaa!",
+        ":",
+        "\\(a*\\)*\\1$"
+      ],
+      "status": "NOT READY",
+      "observed": {
+        "threadId": 3,
+        "workerAdmissions": 0,
+        "compilationArguments": [],
+        "exitCode": 3,
+        "stdoutBase64": "",
+        "stderrBase64": "ZXhwcjogYm91bmRlZCBleHByIEJSRSBwcm90b2NvbCBpcyBwZW5kaW5nCg==",
+        "outerWorkerOnly": true
+      },
+      "heartbeat": 3,
+      "reason": "baseline has no product compile/match service; refusal or skipped branch is NOT regex safety acceptance"
+    },
+    {
+      "argv": [
+        "a",
+        ":",
+        "a\\{32768\\}"
+      ],
+      "status": "NOT READY",
+      "observed": {
+        "threadId": 4,
+        "workerAdmissions": 0,
+        "compilationArguments": [],
+        "exitCode": 3,
+        "stdoutBase64": "",
+        "stderrBase64": "ZXhwcjogYm91bmRlZCBleHByIEJSRSBwcm90b2NvbCBpcyBwZW5kaW5nCg==",
+        "outerWorkerOnly": true
+      },
+      "heartbeat": 3,
+      "reason": "baseline has no product compile/match service; refusal or skipped branch is NOT regex safety acceptance"
+    },
+    {
+      "argv": [
+        "kept",
+        "|",
+        "abc",
+        ":",
+        "["
+      ],
+      "status": "NOT READY",
+      "observed": {
+        "threadId": 5,
+        "workerAdmissions": 0,
+        "compilationArguments": [],
+        "exitCode": 0,
+        "stdoutBase64": "a2VwdAo=",
+        "stderrBase64": "",
+        "outerWorkerOnly": true
+      },
+      "heartbeat": 3,
+      "reason": "baseline has no product compile/match service; refusal or skipped branch is NOT regex safety acceptance"
+    },
+    {
+      "argv": [
+        "0",
+        "&",
+        "match",
+        "abc",
+        "\\("
+      ],
+      "status": "NOT READY",
+      "observed": {
+        "threadId": 6,
+        "workerAdmissions": 0,
+        "compilationArguments": [],
+        "exitCode": 1,
+        "stdoutBase64": "MAo=",
+        "stderrBase64": "",
+        "outerWorkerOnly": true
+      },
+      "heartbeat": 3,
+      "reason": "baseline has no product compile/match service; refusal or skipped branch is NOT regex safety acceptance"
+    }
+  ],
+  "controlCoverage": [
+    {
+      "id": "direct-zero-stdin-reads",
+      "measurements": [
+        "stdin-implicit-[\"41\",\"+\",\"1\"]",
+        "stdin-implicit-[\"0\"]",
+        "stdin-implicit-[\"1\",\"+\"]",
+        "stdin-implicit-[\"abc\",\":\",\"a\"]",
+        "stdin-explicit-[\"41\",\"+\",\"1\"]",
+        "stdin-explicit-[\"0\"]",
+        "stdin-explicit-[\"1\",\"+\"]",
+        "stdin-explicit-[\"abc\",\":\",\"a\"]",
+        "stdin-binary-[\"41\",\"+\",\"1\"]",
+        "stdin-binary-[\"0\"]",
+        "stdin-binary-[\"1\",\"+\"]",
+        "stdin-binary-[\"abc\",\":\",\"a\"]",
+        "stdin-never-ending-[\"41\",\"+\",\"1\"]",
+        "stdin-never-ending-[\"0\"]",
+        "stdin-never-ending-[\"1\",\"+\"]",
+        "stdin-never-ending-[\"abc\",\":\",\"a\"]"
+      ],
+      "state": "BASELINE PORTION MEASURED",
+      "frozenRequirementPreserved": {
+        "id": "direct-zero-stdin-reads",
+        "kind": "safety",
+        "setup": "Call execute with getter-counted stdin whose Symbol.asyncIterator, next, return and throw each fail and increment separate counters; include explicit, implicit, binary and never-ending sources without iterating them.",
+        "inputs": [
+          [
+            "41",
+            "+",
+            "1"
+          ],
+          [
+            "0"
+          ],
+          [
+            "1",
+            "+"
+          ],
+          [
+            "abc",
+            ":",
+            "a"
+          ]
+        ],
+        "require": "Every stdin access/iteration counter remains zero, success/error output and status retain native meaning. FS proxy and invoke must likewise remain unused. Freeze env/cwd/args and assert no mutation."
+      }
+    },
+    {
+      "id": "await-stdout-backpressure",
+      "measurements": [
+        "backpressure-stdout",
+        "backpressure-stderr"
+      ],
+      "state": "BASELINE PORTION MEASURED",
+      "frozenRequirementPreserved": {
+        "id": "await-stdout-backpressure",
+        "kind": "safety",
+        "setup": "For 41 + 1 hold the first stdout.write promise; copy chunks at admission, mark settlement, then release.",
+        "require": "No execute settlement before release; one logical result 42 LF, Uint8Array only, no concurrent unawaited writes or later mutation. Also hold stderr.write for syntax failure; failure status must await its write."
+      }
+    },
+    {
+      "id": "sink-rejection",
+      "measurements": [
+        "sink-rejection-observation"
+      ],
+      "state": "BASELINE PORTION MEASURED",
+      "frozenRequirementPreserved": {
+        "id": "sink-rejection",
+        "kind": "safety",
+        "setup": "Reject stdout then stderr sinks with distinct object sentinels.",
+        "require": "No swallowed failure, retry, duplicate result or unhandled rejection. Apply existing host contract rejection semantics, not invented GNU errno serialization."
+      }
+    },
+    {
+      "id": "preabort-and-midflight",
+      "measurements": [
+        "preabort-0",
+        "output-abort-0",
+        "preabort-1",
+        "output-abort-1",
+        "preabort-2",
+        "output-abort-2",
+        "cooperative-evaluation-abort"
+      ],
+      "state": "BASELINE PORTION MEASURED; regex portion NOT READY",
+      "frozenRequirementPreserved": {
+        "id": "preabort-and-midflight",
+        "kind": "cancellation",
+        "setup": "Abort before execute, during cooperative output write, queued regex acquisition, compile, and match; use object, primitive and errno-shaped reasons.",
+        "require": "Exact caller reason identity wins at public Shell settlement; no pre-abort output/stdin/worker acquisition; close acquisition admission, await owned cooperative retirement, observe late opaque host rejections without requiring their settlement."
+      }
+    },
+    {
+      "id": "cleanup-ownership",
+      "measurements": [
+        "no-resource-cleanup-siblings-dispose"
+      ],
+      "state": "BASELINE PORTION MEASURED; regex portion NOT READY",
+      "frozenRequirementPreserved": {
+        "id": "cleanup-ownership",
+        "kind": "cancellation",
+        "setup": "Instrument registerCleanup before admission; overlap finally/abort/Shell.dispose and run a sibling invocation plus a second Shell.",
+        "require": "Same idempotent cleanup completion is shared; accepted acquisition work covered, owned leases/requests retired before execute/public exec settles where contracted; no global-worker-zero assertion or termination of siblings. Direct host without hook still cleans up in finally."
+      }
+    },
+    {
+      "id": "arg-byte-boundary",
+      "measurements": [
+        "argument-bytes-ascii-15",
+        "argument-bytes-utf8-15",
+        "argument-bytes-ascii-16",
+        "argument-bytes-utf8-16",
+        "argument-bytes-ascii-17",
+        "argument-bytes-utf8-17",
+        "argument-skipped-preflight",
+        "argument-count-15",
+        "argument-count-16",
+        "argument-count-17",
+        "string-bytes-7",
+        "string-bytes-8",
+        "string-bytes-9"
+      ],
+      "state": "BASELINE PORTION MEASURED",
+      "frozenRequirementPreserved": {
+        "id": "arg-byte-boundary",
+        "kind": "intentionalBudget",
+        "setup": "Bind documented argument-byte limit B; test ASCII and é tokens whose UTF-8 totals are B-1/B/B+1, documenting separators/counting convention before executing. Include a long forced literal in a skipped branch.",
+        "require": "Enforce byte accounting before large copies/parse/BigInt/regex admission; no silent truncation or UTF-16-length substitution; refusal has bounded diagnostic and no result output."
+      }
+    },
+    {
+      "id": "digit-boundary",
+      "measurements": [
+        "digits-positive-7",
+        "digits-negative-7",
+        "digits-zero-padded-7",
+        "digits-positive-8",
+        "digits-negative-8",
+        "digits-zero-padded-8",
+        "digits-positive-9",
+        "digits-negative-9",
+        "digits-zero-padded-9",
+        "digits-128-and-product-growth"
+      ],
+      "state": "BASELINE PORTION MEASURED",
+      "frozenRequirementPreserved": {
+        "id": "digit-boundary",
+        "kind": "intentionalBudget",
+        "setup": "Bind digit limit D; test signed and zero-padded decimals of D-1/D/D+1 digits, a 128-digit positive arithmetic control, and product growth from two individually valid factors.",
+        "require": "Exact arithmetic below limits, including beyond 2^53; preflight input and intermediate/output growth before unbounded BigInt work. Record whether sign/zeros count; no Number rounding, overflow wrap or false zero."
+      }
+    },
+    {
+      "id": "node-boundary",
+      "measurements": [
+        "nodes-8-skipped-false",
+        "nodes-8-skipped-true",
+        "nodes-9-skipped-false",
+        "nodes-9-skipped-true",
+        "nodes-10-skipped-false",
+        "nodes-10-skipped-true"
+      ],
+      "state": "BASELINE PORTION MEASURED",
+      "frozenRequirementPreserved": {
+        "id": "node-boundary",
+        "kind": "intentionalBudget",
+        "setup": "Generate left-associative 1 + 1 chains at N-1/N/N+1 documented parse nodes; also place the chain after kept |.",
+        "require": "Bound parse allocation independently of evaluation short-circuit. Report explicit accounting unit, no undocumented token-to-node conversion. No partial result on refusal."
+      }
+    },
+    {
+      "id": "depth-boundary",
+      "measurements": [
+        "depth-grouping-7",
+        "depth-prefix-7",
+        "depth-grouping-8",
+        "depth-prefix-8",
+        "depth-grouping-9",
+        "depth-prefix-9",
+        "depth-skipped-unclosed"
+      ],
+      "state": "BASELINE PORTION MEASURED",
+      "frozenRequirementPreserved": {
+        "id": "depth-boundary",
+        "kind": "intentionalBudget",
+        "setup": "Generate nested parentheses and nested length prefixes at documented depth H-1/H/H+1; maximum harness-generated depth 256.",
+        "require": "Bound both grouping and prefix recursion, no native JS stack overflow or event-loop lock; unclosed skipped parentheses remain syntax failures within budgets."
+      }
+    },
+    {
+      "id": "work-boundary",
+      "measurements": [
+        "work-literal-8",
+        "work-literal-9",
+        "work-literal-10",
+        "work-aggregate-arithmetic-index-skips",
+        "string-bytes-7",
+        "string-bytes-8",
+        "string-bytes-9"
+      ],
+      "state": "BASELINE PORTION MEASURED; regex portion NOT READY",
+      "frozenRequirementPreserved": {
+        "id": "work-boundary",
+        "kind": "intentionalBudget",
+        "setup": "Use bounded repeated arithmetic, string index scans, regex calls and skipped branches; bind documented work accounting before execution.",
+        "require": "Finite aggregate invocation work, not a fresh allowance per operator. Parent Shell shared budget is not reset by dispatch; family-specific limits remain distinct. Valid short-circuit skips numeric conversions and regex compilation while syntax checking remains."
+      }
+    },
+    {
+      "id": "output-boundary",
+      "measurements": [
+        "output-bytes-7",
+        "output-bytes-8",
+        "output-bytes-9",
+        "output-long-integer-and-shell-aggregate"
+      ],
+      "state": "BASELINE PORTION MEASURED; regex portion NOT READY",
+      "frozenRequirementPreserved": {
+        "id": "output-boundary",
+        "kind": "intentionalBudget",
+        "setup": "Bind output limit O; forced literal output of O-1/O/O+1 bytes including terminal LF, a 128-digit sum, a regex capture, and bounded diagnostic output.",
+        "require": "Predictable exact bytes below/at limit, documented nonzero refusal above; no successful truncated number, fabricated output or unbounded capture. Test Shell aggregate output limits separately from command configuration."
+      }
+    },
+    {
+      "id": "required-regex-worker",
+      "measurements": [],
+      "state": "NOT READY",
+      "frozenRequirementPreserved": {
+        "id": "required-regex-worker",
+        "kind": "safety",
+        "setup": "Audit and instrument actual candidate compilation/matching thread IDs; intercept string-to-RegExp compilation including validation, skipped branches, translation and caches. Run dangerous probes only inside an outer REQUIRED worker watchdog, never compile untrusted patterns in the harness main thread.",
+        "require": "Both regex compile and match run in product-owned bounded worker execution, not just the harness containment worker. Literal grammar checks may be bounded non-RegExp parsing. Existing shared worker protocol support is a prerequisite, not assumed. Missing support blocks regex acceptance, never removes frozen regex cases."
+      }
+    },
+    {
+      "id": "bounded-redos",
+      "measurements": [],
+      "state": "NOT READY",
+      "frozenRequirementPreserved": {
+        "id": "bounded-redos",
+        "kind": "safety",
+        "inputs": [
+          {
+            "argv": [
+              "aaaaaaaaaaaaaaaaaaaaaaaa!",
+              ":",
+              "\\(a\\+\\)\\+$"
+            ]
+          },
+          {
+            "argv": [
+              "aaaaaaaaaaaaaaaaaaaaaaaa!",
+              ":",
+              "\\(a\\|aa\\)*$"
+            ]
+          },
+          {
+            "argv": [
+              "aaaaaaaaaaaaaaaaaaaaaaaa!",
+              ":",
+              "\\(a*\\)*\\1$"
+            ]
+          },
+          {
+            "argv": [
+              "a",
+              ":",
+              "a\\{32768\\}"
+            ]
+          }
+        ],
+        "caps": {
+          "outerWorkerDeadlineMs": 2000,
+          "outerWorkerOldGenerationMb": 64,
+          "combinedOutputBytes": 8192,
+          "maximumArgumentBytes": 4096,
+          "maximumConcurrentProbes": 1
+        },
+        "require": "No main-thread compile/match, heartbeat remains responsive, finite product deadline/work refusal or correct result, all invocation-owned workers retired. Outer timeout/termination is a FAILED safety control, not acceptable product cancellation. Do not run these as native goldens. Await worker.terminate and exit; outer containment alone does not prove product isolation."
+      }
+    },
+    {
+      "id": "short-circuit-worker-admission",
+      "measurements": [],
+      "state": "NOT READY",
+      "frozenRequirementPreserved": {
+        "id": "short-circuit-worker-admission",
+        "kind": "safety",
+        "inputs": [
+          [
+            "kept",
+            "|",
+            "abc",
+            ":",
+            "["
+          ],
+          [
+            "0",
+            "&",
+            "match",
+            "abc",
+            "\\("
+          ]
+        ],
+        "require": "No regex request/compile/match/worker admission in skipped branches. Invalid token grammar still rejected. Positive corresponding evaluated branches must actually exercise regex worker; never credit a blanket regex refusal."
+      }
+    },
+    {
+      "id": "unicode-contract",
+      "measurements": [
+        "unicode-policy-not-oracle-substitution"
+      ],
+      "state": "BASELINE PORTION MEASURED",
+      "frozenRequirementPreserved": {
+        "id": "unicode-contract",
+        "kind": "unicodeProfile",
+        "inputs": [
+          [
+            "length",
+            "Aé😀é"
+          ],
+          [
+            "substr",
+            "Aé😀Z",
+            "3",
+            "1"
+          ],
+          [
+            "length",
+            "\ud800"
+          ],
+          [
+            "length",
+            "\udc00"
+          ],
+          [
+            "+",
+            "a\u0000b"
+          ]
+        ],
+        "require": "Freeze actual declared product policy before candidate run: valid Unicode scalar-value profile counts 5, returns 😀; C-byte profile follows native UTF-8 byte argv receipts instead. Lone surrogates and NUL have no faithful native argv oracle here; require deterministic documented rejection or explicit conversion policy, bounded output, and separate intentional-profile reporting. Never claim replacement-character spawn output proves original surrogate behavior. Arbitrary invalid UTF-8 argv is NOT MEASURED because Node string spawn cannot encode it faithfully."
+      }
+    },
+    {
+      "id": "no-host-effects",
+      "measurements": [
+        "literal-no-host-effects"
+      ],
+      "state": "BASELINE PORTION MEASURED",
+      "frozenRequirementPreserved": {
+        "id": "no-host-effects",
+        "kind": "safety",
+        "setup": "Use argv literal-shell-metacharacters with FS/invoke spies, audited imports, worker lifecycle accounting and explicit isolated VFS.",
+        "require": "No native product process spawning, host file access, ambient credentials, external network, argv eval or shell interpolation. Native oracles are harness-only. Proxy call counts alone are not a sandbox proof."
+      }
+    }
+  ],
+  "unhandledRejections": [],
+  "workers": {
+    "created": 6,
+    "terminatedAndExitAwaited": 6
+  },
+  "fullFrozenControlsAccepted": false,
+  "measurements": {
+    "pass": 73,
+    "fail": 0,
+    "workflowsPass": 6,
+    "workflowsTotal": 7,
+    "regexSafetyPass": 0
+  }
+}

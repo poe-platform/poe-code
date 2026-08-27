@@ -113,6 +113,9 @@
 
 - Canonical tests must not rewrite committed evidence. Explicit capture writes
   to unique isolated output directories, preserving existing captures.
+- Reusable current canonical tests must not pin historical implementation bytes
+  as current. Version-specific reproduction/audit drivers remain explicit opt-in
+  with immutable data, outside canonical discovery.
 - Explicitly authorized committed-archive gates bind immutable candidate Git
   inputs and verify archive integrity before/after execution. Unrelated live
   edits neither enter nor veto that archive; never overlay live product inputs.

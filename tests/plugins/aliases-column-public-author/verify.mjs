@@ -103,7 +103,7 @@ try {
   assert.equal(report.publicImports.length, 3);
   for (const row of report.publicImports) assert.ok(fileURLToPath(row.url).startsWith(realpathSync(installed) + '/dist/'));
   report.publicTests = [];
-  for (const repetition of [1, 2]) report.publicTests.push(counts(run(`public-runtime-${repetition}`, process.execPath, ['--unhandled-rejections=strict', '--test', '--test-reporter=tap', '--test-concurrency=1', 'run/consumer.mjs'], consumer), 16));
+  for (const repetition of [1, 2]) report.publicTests.push(counts(run(`public-runtime-${repetition}`, process.execPath, ['--unhandled-rejections=strict', '--test', '--test-reporter=tap', '--test-concurrency=1', 'run/consumer.mjs'], consumer), 17));
   for (const family of ['grep-aliases', 'column']) {
     const module = join(installed, 'dist/commands', family, 'index.js'), withheld = module + '.withheld'; renameSync(module, withheld);
     try {

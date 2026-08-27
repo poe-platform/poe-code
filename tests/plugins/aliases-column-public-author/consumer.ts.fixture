@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { createRequire, syncBuiltinESMExports } from "node:module";
 import test, { after } from "node:test";
 import type { Worker as WorkerType } from "node:worker_threads";
-import type { AgentCommandsOptions, ColumnCommandsOptions, ColumnLimits, GrepAliasOptions, RegexExecutionOptions } from "virtual-bash";
+import type { AgentCommandsOptions, ColumnCommandsOptions, ColumnLimits, GrepAliasOptions, PluginHost, RegexExecutionOptions } from "virtual-bash";
 import type { GrepAliasOptions as AliasSubpathOptions } from "virtual-bash/commands/grep-aliases";
 import type { ColumnCommandsOptions as ColumnSubpathOptions } from "virtual-bash/commands/column";
 
@@ -117,11 +117,12 @@ for (const name of ["egrep", "fgrep", "column"]) test(`${name} collision preflig
   const custom = { name: "custom", execute: () => ({ exitCode: 19 }) };
   const existing = { name, execute: () => ({ exitCode: 23 }) };
   shell.commands.register(custom); shell.commands.register(existing);
+  const host: PluginHost = { commands: shell.commands, use() { throw new Error("Unexpected middleware"); }, registerFileSystem() { throw new Error("Unexpected filesystem"); } };
   try {
     const before = shell.commands.list();
-    assert.throws(() => shell.use(root.agentCommands({ column: { replace: true } } as unknown as AgentCommandsOptions)), /already registered/);
+    assert.throws(() => root.agentCommands({ column: { replace: true } } as unknown as AgentCommandsOptions).setup(host), /already registered/);
     assert.deepEqual(shell.commands.list(), before);
-    shell.use(root.agentCommands({ replace: true, column: { replace: false } } as unknown as AgentCommandsOptions));
+    await root.agentCommands({ replace: true, column: { replace: false } } as unknown as AgentCommandsOptions).setup(host);
     assert.equal(shell.commands.list().length, 74);
     assert.equal(shell.commands.get("custom"), custom); assert.notEqual(shell.commands.get(name), existing);
   } finally { await shell.dispose(); }
@@ -141,9 +142,21 @@ test("column aggregate limits reject real input and preserve the source", async 
 
 test("invalid column settings fail before any aggregate registration", async () => {
   const shell = new root.Shell({ fs: root.createMemoryFileSystem() });
+  const host: PluginHost = { commands: shell.commands, use() { throw new Error("Unexpected middleware"); }, registerFileSystem() { throw new Error("Unexpected filesystem"); } };
   try {
-    assert.throws(() => shell.use(root.agentCommands({ column: { limits: { maxRows: 0 } } })), /Invalid column limit/);
+    assert.throws(() => root.agentCommands({ column: { limits: { maxRows: 0 } } }).setup(host), /Invalid column limit/);
     assert.equal(shell.commands.list().length, 0);
+  } finally { await shell.dispose(); }
+});
+
+test("Shell.use defers plugin errors to execution without partial registration", async () => {
+  const shell = new root.Shell({ fs: root.createMemoryFileSystem() });
+  const original = { name: "column", execute: () => ({ exitCode: 23 }) };
+  shell.commands.register(original);
+  try {
+    assert.equal(shell.use(root.agentCommands()), shell);
+    await assert.rejects(shell.exec(""), /already registered: column/);
+    assert.deepEqual(shell.commands.list(), [original]);
   } finally { await shell.dispose(); }
 });
 

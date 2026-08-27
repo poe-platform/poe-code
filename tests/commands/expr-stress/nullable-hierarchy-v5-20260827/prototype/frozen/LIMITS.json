@@ -1,0 +1,55 @@
+{
+  "schema": 1,
+  "authority": "Frozen inherited bounds, NOT new implementation or permission to raise caps.",
+  "modelBinding": "938fdbc6 design/model.mjs, exact blob/sha256 in BINDINGS.json",
+  "v4Model": {
+    "workDefaultAndFollowupMaximum":1000000,
+    "cumulativeAllocationDefaultAndFollowupMaximum":1000000,
+    "depthDefaultAndMaximum":24,
+    "eventsPerHistoryDefaultAndMaximum":2048,
+    "retainedCandidatesPerModelDefaultAndMaximum":32,
+    "asciiSubjectLengthMaximum":32,
+    "astNodesMaximum":64,
+    "childrenPerNodeMaximum":16,
+    "captureNumberMaximum":16,
+    "finiteCountAndPlanRepetitionsMaximum":32,
+    "oldAPIQualification":"v4 Meter accepted nonnegative safe-integer custom work/allocation caps without its own 1000000 upper check; this follow-up may lower, never raise, its default caps. No new cap increase or old validator guarantee is inferred.",
+    "modelStateQualification":"v4 had candidate/event/node/depth and work/allocation bounds, not a separate worker frontier-state counter. Its 32-candidate limit is per same-AST/subject model, not the sum of this freeze's independent groups. Reuse overlaps; do not retain all 36 across models as one candidate set.",
+    "comparisonBudget":"All context-table traversal, normalization, spans, reference bytes and comparisons debit the same existing work/allocation envelope; no free comparison phase or raised cap."
+  },
+  "productBaselineBinding":"c3e40f8bd721da5e496f3b3abfd51aee45db5a84; exact bre-worker.ts, internal.ts and regex-execution/protocol.ts bindings in BINDINGS.json",
+  "productExprDefaults": {
+    "maxArgumentBytes":65536,
+    "maxNumericDigits":1024,
+    "maxNodes":4096,
+    "maxDepth":128,
+    "maxSteps":8000000,
+    "maxStringBytes":65536,
+    "maxOutputBytes":65537,
+    "maxRegexPatternBytes":8192,
+    "maxRegexNodes":4096,
+    "maxRegexDepth":64,
+    "maxRegexStates":16384,
+    "maxRegexAllocatedUnits":1000000
+  },
+  "productProtocolCeilingsNotExperimentDefaults": {
+    "maxPatternBytes":65536,
+    "maxSubjectBytes":1048576,
+    "maxNodes":8192,
+    "maxDepth":128,
+    "maxSteps":50000000,
+    "maxStates":65536,
+    "maxAllocatedUnits":4000000
+  },
+  "mandatoryFutureChecks": [
+    "Reject invalid caps and refuse before initial state/resource acquisition if allowance is insufficient.",
+    "Pre-admit AST/state/fork/frame/event/env/history/key/output allocations; charge cumulative failed-build and retained-edge allocation.",
+    "Pre-admit node/depth/state/events before descent or publication; no unbounded collection to discover its size.",
+    "Pre-admit comparison/replay/reference-byte work and comparison allocations, including after an incumbent exists.",
+    "Refuse on work/allocation/state/depth exhaustion after an incumbent; never return partial best-so-far bytes.",
+    "Propagate cancellation during construction and comparison; await cooperative cleanup/tracked work for any future worker.",
+    "No early merge by pc, position or environment; no cycle quotient inferred from final-register equality.",
+    "Actual worker candidate requires separate authorization and the historical137 obligations, not execution here."
+  ],
+  "actualExecutions":0
+}

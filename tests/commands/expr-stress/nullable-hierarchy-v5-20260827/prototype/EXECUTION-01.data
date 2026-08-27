@@ -1,0 +1,292 @@
+{
+  "schema": 1,
+  "started": "2026-08-27T22:56:37.279Z",
+  "ended": "2026-08-27T22:56:37.720Z",
+  "inputState": "owned pre-seal exact source snapshot plus authenticated committed freeze; no product source or dist overlay",
+  "status": 1,
+  "signal": null,
+  "expectedPolicyHoldOnly": false,
+  "sourceBefore": [
+    {
+      "path": "src/commands/expr/bre-worker.ts",
+      "sha256": "f5c67e9c76b584337ae506b59449ecdcd945207b2269fdb4f79c5d1f7e81aff0"
+    },
+    {
+      "path": "src/commands/expr/internal.ts",
+      "sha256": "07f203d8fc4e991e4d23cab87d67a23911f7960a2ed6d649fd843b0d7060e840"
+    },
+    {
+      "path": "src/commands/regex-execution/protocol.ts",
+      "sha256": "3610a50b436e083b2633e08c841978999b5fa61759fcaea224aeec97230c8bc1"
+    }
+  ],
+  "sourceAfter": [
+    {
+      "path": "src/commands/expr/bre-worker.ts",
+      "sha256": "f5c67e9c76b584337ae506b59449ecdcd945207b2269fdb4f79c5d1f7e81aff0"
+    },
+    {
+      "path": "src/commands/expr/internal.ts",
+      "sha256": "07f203d8fc4e991e4d23cab87d67a23911f7960a2ed6d649fd843b0d7060e840"
+    },
+    {
+      "path": "src/commands/regex-execution/protocol.ts",
+      "sha256": "3610a50b436e083b2633e08c841978999b5fa61759fcaea224aeec97230c8bc1"
+    }
+  ],
+  "archiveBefore": [
+    {
+      "path": "AUTHENTICATION.data",
+      "kind": "file",
+      "bytes": 3262,
+      "sha256": "051c3245c5b78a158efb7b41d4bf53f6ba37308972b3d2a119b822c76d089165"
+    },
+    {
+      "path": "DESIGN.md",
+      "kind": "file",
+      "bytes": 3780,
+      "sha256": "91ec332f44f9f190a04f6b736924fee512759acc1e86137b648db4d58a1b7281"
+    },
+    {
+      "path": "PLAN.md",
+      "kind": "file",
+      "bytes": 4945,
+      "sha256": "b659b34f896b1fe01f5ef371174b33dfd0f5d9d90b359c57c6d1cf95cd577a7b"
+    },
+    {
+      "path": "RUN-INPUTS.data",
+      "kind": "file",
+      "bytes": 3145,
+      "sha256": "25cd69e45bd7e142fff3414a73e0a1963d0e769e229870bfff38458246098d99"
+    },
+    {
+      "path": "freeze-candidate.txt",
+      "kind": "file",
+      "bytes": 5458,
+      "sha256": "826e74d5390a3ef5795a41d0b5c1688f9a8bc68e25280e71628cb7d58c05ca52"
+    },
+    {
+      "path": "frozen",
+      "kind": "directory"
+    },
+    {
+      "path": "frozen/BINDINGS.json",
+      "kind": "file",
+      "bytes": 31482,
+      "sha256": "8c00abda86917fb7be71f378d94cdcc4fac7e863a859ed8b31c717f565e6c5bf"
+    },
+    {
+      "path": "frozen/CHECKPOINT.txt",
+      "kind": "file",
+      "bytes": 2410,
+      "sha256": "3e8f305c6db96ab872380d538bff3469cb58ca53628c8ce5f51e303dc15ebba9"
+    },
+    {
+      "path": "frozen/INPUTS.json",
+      "kind": "file",
+      "bytes": 11736,
+      "sha256": "ef8fa8b247befaba8e6a52b0ef5ea7447a4c449215567ff0f7038be7c5659aa2"
+    },
+    {
+      "path": "frozen/LIMITS.json",
+      "kind": "file",
+      "bytes": 3177,
+      "sha256": "a6de5a9e205fa34b8b71731ba0fb10189d095a67de66ff983648cdbaddc98424"
+    },
+    {
+      "path": "frozen/MANIFEST.json",
+      "kind": "file",
+      "bytes": 3097,
+      "sha256": "d2f9faa1269f8b0d86f070ee7a5c3df4a6cc39af3d71c1343ad826d1922eb632"
+    },
+    {
+      "path": "frozen/POLICY.md",
+      "kind": "file",
+      "bytes": 13390,
+      "sha256": "30f57cf79ef5f7a3e0def45ab97d8ba657e729ddb88597c16a236e96833e8233"
+    },
+    {
+      "path": "frozen/PREDICTIONS.json",
+      "kind": "file",
+      "bytes": 7917,
+      "sha256": "122f3a095b26f7bea49201e23214c8bd51cc7075a94cd8c10c9bc3533130ac72"
+    },
+    {
+      "path": "frozen/README.md",
+      "kind": "file",
+      "bytes": 4970,
+      "sha256": "036fe31e5ebdddecba99b84da59233a616ba03cdc85d5513d2294eac3b7a80d1"
+    },
+    {
+      "path": "frozen/SOURCES.json",
+      "kind": "file",
+      "bytes": 3127,
+      "sha256": "9bb3447eb685d87f15ecdffe77dbcae92b26abe9e5af5fe0a3e77c3d2a4affeb"
+    },
+    {
+      "path": "inherited-model.mjs",
+      "kind": "file",
+      "bytes": 12331,
+      "sha256": "f04c98a52967f904266660607b0ee2157518cf50d3da260a4aa2b47926c392a0"
+    },
+    {
+      "path": "integrity.mjs",
+      "kind": "file",
+      "bytes": 2380,
+      "sha256": "2c3e10ff0ef1a338fa9e9424f59b31902622f24362fac98dbaea7bfce48448c8"
+    },
+    {
+      "path": "model-extension.patch.data",
+      "kind": "file",
+      "bytes": 13359,
+      "sha256": "5eacd748d1d0aab124a1e7a11e6110f0860c0cc5b0a1c7d88f946424576d64ac"
+    },
+    {
+      "path": "model.mjs",
+      "kind": "file",
+      "bytes": 13012,
+      "sha256": "9e411191722e796460f347b0848c32da60abaea108bdd78bdf8886ab8c1a8e86"
+    },
+    {
+      "path": "run-prototype.mjs",
+      "kind": "file",
+      "bytes": 19619,
+      "sha256": "10cef7ef51fc7865aaee85263dbd6941f9d44e2a751f3c51bb69c9dbe6ab3bb8"
+    },
+    {
+      "path": "verify.mjs",
+      "kind": "file",
+      "bytes": 3495,
+      "sha256": "7f0881a0a378538d419af1f848259ffe5ab508fb65c46d92c895951916894020"
+    }
+  ],
+  "archiveAfter": [
+    {
+      "path": "AUTHENTICATION.data",
+      "kind": "file",
+      "bytes": 3262,
+      "sha256": "051c3245c5b78a158efb7b41d4bf53f6ba37308972b3d2a119b822c76d089165"
+    },
+    {
+      "path": "DESIGN.md",
+      "kind": "file",
+      "bytes": 3780,
+      "sha256": "91ec332f44f9f190a04f6b736924fee512759acc1e86137b648db4d58a1b7281"
+    },
+    {
+      "path": "PLAN.md",
+      "kind": "file",
+      "bytes": 4945,
+      "sha256": "b659b34f896b1fe01f5ef371174b33dfd0f5d9d90b359c57c6d1cf95cd577a7b"
+    },
+    {
+      "path": "RUN-INPUTS.data",
+      "kind": "file",
+      "bytes": 3145,
+      "sha256": "25cd69e45bd7e142fff3414a73e0a1963d0e769e229870bfff38458246098d99"
+    },
+    {
+      "path": "freeze-candidate.txt",
+      "kind": "file",
+      "bytes": 5458,
+      "sha256": "826e74d5390a3ef5795a41d0b5c1688f9a8bc68e25280e71628cb7d58c05ca52"
+    },
+    {
+      "path": "frozen",
+      "kind": "directory"
+    },
+    {
+      "path": "frozen/BINDINGS.json",
+      "kind": "file",
+      "bytes": 31482,
+      "sha256": "8c00abda86917fb7be71f378d94cdcc4fac7e863a859ed8b31c717f565e6c5bf"
+    },
+    {
+      "path": "frozen/CHECKPOINT.txt",
+      "kind": "file",
+      "bytes": 2410,
+      "sha256": "3e8f305c6db96ab872380d538bff3469cb58ca53628c8ce5f51e303dc15ebba9"
+    },
+    {
+      "path": "frozen/INPUTS.json",
+      "kind": "file",
+      "bytes": 11736,
+      "sha256": "ef8fa8b247befaba8e6a52b0ef5ea7447a4c449215567ff0f7038be7c5659aa2"
+    },
+    {
+      "path": "frozen/LIMITS.json",
+      "kind": "file",
+      "bytes": 3177,
+      "sha256": "a6de5a9e205fa34b8b71731ba0fb10189d095a67de66ff983648cdbaddc98424"
+    },
+    {
+      "path": "frozen/MANIFEST.json",
+      "kind": "file",
+      "bytes": 3097,
+      "sha256": "d2f9faa1269f8b0d86f070ee7a5c3df4a6cc39af3d71c1343ad826d1922eb632"
+    },
+    {
+      "path": "frozen/POLICY.md",
+      "kind": "file",
+      "bytes": 13390,
+      "sha256": "30f57cf79ef5f7a3e0def45ab97d8ba657e729ddb88597c16a236e96833e8233"
+    },
+    {
+      "path": "frozen/PREDICTIONS.json",
+      "kind": "file",
+      "bytes": 7917,
+      "sha256": "122f3a095b26f7bea49201e23214c8bd51cc7075a94cd8c10c9bc3533130ac72"
+    },
+    {
+      "path": "frozen/README.md",
+      "kind": "file",
+      "bytes": 4970,
+      "sha256": "036fe31e5ebdddecba99b84da59233a616ba03cdc85d5513d2294eac3b7a80d1"
+    },
+    {
+      "path": "frozen/SOURCES.json",
+      "kind": "file",
+      "bytes": 3127,
+      "sha256": "9bb3447eb685d87f15ecdffe77dbcae92b26abe9e5af5fe0a3e77c3d2a4affeb"
+    },
+    {
+      "path": "inherited-model.mjs",
+      "kind": "file",
+      "bytes": 12331,
+      "sha256": "f04c98a52967f904266660607b0ee2157518cf50d3da260a4aa2b47926c392a0"
+    },
+    {
+      "path": "integrity.mjs",
+      "kind": "file",
+      "bytes": 2380,
+      "sha256": "2c3e10ff0ef1a338fa9e9424f59b31902622f24362fac98dbaea7bfce48448c8"
+    },
+    {
+      "path": "model-extension.patch.data",
+      "kind": "file",
+      "bytes": 13359,
+      "sha256": "5eacd748d1d0aab124a1e7a11e6110f0860c0cc5b0a1c7d88f946424576d64ac"
+    },
+    {
+      "path": "model.mjs",
+      "kind": "file",
+      "bytes": 13012,
+      "sha256": "9e411191722e796460f347b0848c32da60abaea108bdd78bdf8886ab8c1a8e86"
+    },
+    {
+      "path": "run-prototype.mjs",
+      "kind": "file",
+      "bytes": 19619,
+      "sha256": "10cef7ef51fc7865aaee85263dbd6941f9d44e2a751f3c51bb69c9dbe6ab3bb8"
+    },
+    {
+      "path": "verify.mjs",
+      "kind": "file",
+      "bytes": 3495,
+      "sha256": "7f0881a0a378538d419af1f848259ffe5ab508fb65c46d92c895951916894020"
+    }
+  ],
+  "newEntriesDetected": true,
+  "childrenSettled": true,
+  "tempRemovedInFinally": true
+}

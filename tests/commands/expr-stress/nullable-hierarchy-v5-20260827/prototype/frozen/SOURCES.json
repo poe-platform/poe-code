@@ -1,0 +1,33 @@
+{
+  "schema": 1,
+  "accessDate": "2026-08-27",
+  "scope": "Two focused primary checks after sealed normative and review ledgers. No repeat of Curie8897 narrow Paaa research or historical five-source survey.",
+  "quotesUsed": 0,
+  "sources": [
+    {
+      "id":"N8",
+      "url":"https://pubs.opengroup.org/onlinepubs/9799919799/basedefs/V1_chap09.html",
+      "accessDate":"2026-08-27",
+      "retrieval":"web.run direct open supplied no usable body; web search returned older editions which were not substituted. Exact publisher fetch succeeded and was checked in memory, no vendored body.",
+      "status":200,
+      "bytes":60438,
+      "sha256":"2f5f60e9fe2954fe09dc0991f5c03b7c1de771b0ae2104e4a8a5745187c64e24",
+      "class":"Modern primary standard, Issue8 XBD9.1/9.3.6",
+      "boundedParaphrase":"Whole leftmost-longest matching constrains subpattern priority; participating empty outranks no match. Repetition's empty occurrences have restrictions, including required counts. The explicit D pattern fails on abab. These constraints do not by themselves define our AST aggregation, descendant-retention profile, or finite-history comparator.",
+      "projectBoundary":"TEMP's retained-b D/abab witness is an explicit experimental departure. Neither eligibility alternative is proclaimed a general POSIX or root rule."
+    },
+    {
+      "id":"BT19",
+      "url":"https://re2c.org/2019_borsotti_trofimovich_efficient_posix_submatch_extraction_on_nfa.pdf",
+      "accessDate":"2026-08-27",
+      "retrieval":"web.run direct PDF open and focused nil/empty/hierarchy inspection; current web extraction checked only the bounded passages. No current response-body hash is claimed.",
+      "historicalBodyBinding":{"ledger":"v4 normative/SOURCES.json at 44eed610","bytes":464417,"sha256":"15d0d7d581d2597a751da749c9fa0d40a688c926d745adf0fb711eac972399bf"},
+      "class":"Original authors Borsotti/Trofimovich regular-language research, physical PDF pp1-4; old ledger separately identifies Definition5 p6",
+      "boundedParaphrase":"The paper excludes backreferences. It distinguishes capture-related structure and represents nonparticipation with nil constructs/negative tags, rather than an ordinary empty match. It discusses hierarchy-based tag priority and why keeping only last-iteration offsets loses preceding history. Structural representation alone does not select this project's aggregate/body precedence or validate its cycle quotient.",
+      "projectBoundary":"No tagged-NFA/TDFA pruning, complexity or regular-language theorem is transferred to arbitrary backreferences, TEMP capture lifetimes or unproved nullable-cycle equivalence."
+    }
+  ],
+  "notResearchedAgain":["H43","H135","T17","Curie8897 Paaa narrow study"],
+  "nativeEvidence":"Historical tuples/profile bindings only in BINDINGS.json, zero new native executions. Supplied-history byte spans are not native offsets.",
+  "authoritySeparation":{"primary":"This file's bounded paraphrases","proposedProjectRules":"POLICY.md and PREDICTIONS.json, explicitly unselected","observedNativeTuples":"BINDINGS.json historicalNative, immutable v4 capture"}
+}

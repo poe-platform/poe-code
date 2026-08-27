@@ -1,0 +1,3094 @@
+{
+  "schema": 1,
+  "status": "HOLD: supplied-history implementation evidence, not an accepted policy or matcher",
+  "freezeCommit": "f561bd9fa33afdf8285154237f856ebfd8495ce4",
+  "freezeManifestSha256": "d2f9faa1269f8b0d86f070ee7a5c3df4a6cc39af3d71c1343ad826d1922eb632",
+  "runInputsSha256": "25cd69e45bd7e142fff3414a73e0a1963d0e769e229870bfff38458246098d99",
+  "sourceHashes": [
+    {
+      "path": "AUTHENTICATION.data",
+      "bytes": 3262,
+      "sha256": "051c3245c5b78a158efb7b41d4bf53f6ba37308972b3d2a119b822c76d089165"
+    },
+    {
+      "path": "DESIGN.md",
+      "bytes": 3780,
+      "sha256": "91ec332f44f9f190a04f6b736924fee512759acc1e86137b648db4d58a1b7281"
+    },
+    {
+      "path": "PLAN.md",
+      "bytes": 4945,
+      "sha256": "b659b34f896b1fe01f5ef371174b33dfd0f5d9d90b359c57c6d1cf95cd577a7b"
+    },
+    {
+      "path": "freeze-candidate.txt",
+      "bytes": 5458,
+      "sha256": "826e74d5390a3ef5795a41d0b5c1688f9a8bc68e25280e71628cb7d58c05ca52"
+    },
+    {
+      "path": "frozen/BINDINGS.json",
+      "bytes": 31482,
+      "sha256": "8c00abda86917fb7be71f378d94cdcc4fac7e863a859ed8b31c717f565e6c5bf"
+    },
+    {
+      "path": "frozen/CHECKPOINT.txt",
+      "bytes": 2410,
+      "sha256": "3e8f305c6db96ab872380d538bff3469cb58ca53628c8ce5f51e303dc15ebba9"
+    },
+    {
+      "path": "frozen/INPUTS.json",
+      "bytes": 11736,
+      "sha256": "ef8fa8b247befaba8e6a52b0ef5ea7447a4c449215567ff0f7038be7c5659aa2"
+    },
+    {
+      "path": "frozen/LIMITS.json",
+      "bytes": 3177,
+      "sha256": "a6de5a9e205fa34b8b71731ba0fb10189d095a67de66ff983648cdbaddc98424"
+    },
+    {
+      "path": "frozen/MANIFEST.json",
+      "bytes": 3097,
+      "sha256": "d2f9faa1269f8b0d86f070ee7a5c3df4a6cc39af3d71c1343ad826d1922eb632"
+    },
+    {
+      "path": "frozen/POLICY.md",
+      "bytes": 13390,
+      "sha256": "30f57cf79ef5f7a3e0def45ab97d8ba657e729ddb88597c16a236e96833e8233"
+    },
+    {
+      "path": "frozen/PREDICTIONS.json",
+      "bytes": 7917,
+      "sha256": "122f3a095b26f7bea49201e23214c8bd51cc7075a94cd8c10c9bc3533130ac72"
+    },
+    {
+      "path": "frozen/README.md",
+      "bytes": 4970,
+      "sha256": "036fe31e5ebdddecba99b84da59233a616ba03cdc85d5513d2294eac3b7a80d1"
+    },
+    {
+      "path": "frozen/SOURCES.json",
+      "bytes": 3127,
+      "sha256": "9bb3447eb685d87f15ecdffe77dbcae92b26abe9e5af5fe0a3e77c3d2a4affeb"
+    },
+    {
+      "path": "inherited-model.mjs",
+      "bytes": 12331,
+      "sha256": "f04c98a52967f904266660607b0ee2157518cf50d3da260a4aa2b47926c392a0"
+    },
+    {
+      "path": "integrity.mjs",
+      "bytes": 2380,
+      "sha256": "2c3e10ff0ef1a338fa9e9424f59b31902622f24362fac98dbaea7bfce48448c8"
+    },
+    {
+      "path": "model-extension.patch.data",
+      "bytes": 13359,
+      "sha256": "5eacd748d1d0aab124a1e7a11e6110f0860c0cc5b0a1c7d88f946424576d64ac"
+    },
+    {
+      "path": "model.mjs",
+      "bytes": 13012,
+      "sha256": "9e411191722e796460f347b0848c32da60abaea108bdd78bdf8886ab8c1a8e86"
+    },
+    {
+      "path": "run-prototype.mjs",
+      "bytes": 19619,
+      "sha256": "10cef7ef51fc7865aaee85263dbd6941f9d44e2a751f3c51bb69c9dbe6ab3bb8"
+    },
+    {
+      "path": "verify.mjs",
+      "bytes": 3495,
+      "sha256": "7f0881a0a378538d419af1f848259ffe5ab508fb65c46d92c895951916894020"
+    }
+  ],
+  "runtime": {
+    "node": "v22.22.2",
+    "platform": "darwin"
+  },
+  "counts": {
+    "frozenGroups": 12,
+    "uniqueSuppliedHistories": 36,
+    "groupMemberships": 38,
+    "profiles": 4,
+    "predictionAndControlChecks": 93,
+    "failedChecks": 1,
+    "preservedTargetFailures": 6,
+    "permutationChecks": 360,
+    "relationChecks": 1666,
+    "nativeRegexCalls": 0,
+    "workerExecutions": 0,
+    "oldCohortRuns": 0,
+    "historical137Runs": 0
+  },
+  "profileCounts": [
+    {
+      "policy": "HNODE-AGG-v5",
+      "eligibility": "FINITE-PERMISSIVE",
+      "groups": 12,
+      "rankingDomains": 18,
+      "attempts": 38,
+      "accepted": 38,
+      "rejected": 0,
+      "matchedRankPredictions": 18,
+      "failedRankPredictions": 0,
+      "permutations": 110,
+      "relations": 474,
+      "reconstructedControls": 1,
+      "maxModelWork": 190459,
+      "maxModelAllocation": 35002
+    },
+    {
+      "policy": "HNODE-AGG-v5",
+      "eligibility": "LOCAL-TAIL-HYPOTHESIS",
+      "groups": 12,
+      "rankingDomains": 18,
+      "attempts": 38,
+      "accepted": 35,
+      "rejected": 3,
+      "matchedRankPredictions": 18,
+      "failedRankPredictions": 0,
+      "permutations": 70,
+      "relations": 359,
+      "reconstructedControls": 1,
+      "maxModelWork": 153997,
+      "maxModelAllocation": 32341
+    },
+    {
+      "policy": "HTREE-AGG-v5",
+      "eligibility": "FINITE-PERMISSIVE",
+      "groups": 12,
+      "rankingDomains": 18,
+      "attempts": 38,
+      "accepted": 38,
+      "rejected": 0,
+      "matchedRankPredictions": 18,
+      "failedRankPredictions": 0,
+      "permutations": 110,
+      "relations": 474,
+      "reconstructedControls": 1,
+      "maxModelWork": 181539,
+      "maxModelAllocation": 35958
+    },
+    {
+      "policy": "HTREE-AGG-v5",
+      "eligibility": "LOCAL-TAIL-HYPOTHESIS",
+      "groups": 12,
+      "rankingDomains": 18,
+      "attempts": 38,
+      "accepted": 35,
+      "rejected": 3,
+      "matchedRankPredictions": 18,
+      "failedRankPredictions": 0,
+      "permutations": 70,
+      "relations": 359,
+      "reconstructedControls": 1,
+      "maxModelWork": 150661,
+      "maxModelAllocation": 32813
+    }
+  ],
+  "rows": [
+    {
+      "policy": "HNODE-AGG-v5",
+      "eligibility": "FINITE-PERMISSIVE",
+      "group": "G01",
+      "ast": "P",
+      "subject": "aaaa",
+      "order": [
+        "p4-111",
+        "p4-aa",
+        "p4-11",
+        "p4-1"
+      ],
+      "expected": [
+        "p4-111",
+        "p4-aa",
+        "p4-11",
+        "p4-1"
+      ],
+      "predictionMatched": true,
+      "rejections": [],
+      "winnerEnv": [
+        {
+          "state": "absent"
+        },
+        {
+          "state": "completed-nonempty",
+          "start": 2,
+          "end": 3
+        }
+      ],
+      "meter": {
+        "work": 153997,
+        "allocation": 31450
+      }
+    },
+    {
+      "policy": "HNODE-AGG-v5",
+      "eligibility": "FINITE-PERMISSIVE",
+      "group": "G02",
+      "ast": "P",
+      "subject": "aaaa",
+      "order": [
+        "p4-40",
+        "p4-21",
+        "p4-111",
+        "p4-aa"
+      ],
+      "expected": [
+        "p4-40",
+        "p4-21",
+        "p4-111",
+        "p4-aa"
+      ],
+      "predictionMatched": true,
+      "rejections": [],
+      "winnerEnv": [
+        {
+          "state": "absent"
+        },
+        {
+          "state": "completed-empty",
+          "start": 4,
+          "end": 4
+        }
+      ],
+      "meter": {
+        "work": 190459,
+        "allocation": 35002
+      }
+    },
+    {
+      "policy": "HNODE-AGG-v5",
+      "eligibility": "FINITE-PERMISSIVE",
+      "group": "G03",
+      "ast": "prefix",
+      "subject": "aaa",
+      "order": [
+        "prefix-3",
+        "prefix-2",
+        "prefix-0"
+      ],
+      "expected": [
+        "prefix-3",
+        "prefix-2",
+        "prefix-0"
+      ],
+      "predictionMatched": true,
+      "rejections": [],
+      "winnerEnv": [
+        {
+          "state": "absent"
+        },
+        {
+          "state": "completed-empty",
+          "start": 3,
+          "end": 3
+        }
+      ],
+      "meter": {
+        "work": 88376,
+        "allocation": 22159
+      }
+    },
+    {
+      "policy": "HNODE-AGG-v5",
+      "eligibility": "FINITE-PERMISSIVE",
+      "group": "G04",
+      "ast": "boundedPrefix",
+      "subject": "aaa",
+      "order": [
+        "bounded-2",
+        "bounded-1",
+        "bounded-0"
+      ],
+      "expected": [
+        "bounded-2",
+        "bounded-1",
+        "bounded-0"
+      ],
+      "predictionMatched": true,
+      "rejections": [],
+      "winnerEnv": [
+        {
+          "state": "absent"
+        },
+        {
+          "state": "completed-nonempty",
+          "start": 2,
+          "end": 3
+        }
+      ],
+      "meter": {
+        "work": 88676,
+        "allocation": 22159
+      }
+    },
+    {
+      "policy": "HNODE-AGG-v5",
+      "eligibility": "FINITE-PERMISSIVE",
+      "group": "G05",
+      "ast": "innerPrefix",
+      "subject": "aaa",
+      "order": [
+        "inner-3",
+        "inner-2",
+        "inner-0"
+      ],
+      "expected": [
+        "inner-3",
+        "inner-2",
+        "inner-0"
+      ],
+      "predictionMatched": true,
+      "rejections": [],
+      "winnerEnv": [
+        {
+          "state": "absent"
+        },
+        {
+          "state": "completed-nonempty",
+          "start": 0,
+          "end": 3
+        },
+        {
+          "state": "completed-empty",
+          "start": 3,
+          "end": 3
+        }
+      ],
+      "meter": {
+        "work": 106833,
+        "allocation": 24005
+      }
+    },
+    {
+      "policy": "HNODE-AGG-v5",
+      "eligibility": "FINITE-PERMISSIVE",
+      "group": "G06",
+      "ast": "U",
+      "subject": "",
+      "order": [
+        "one-empty",
+        "two-empty",
+        "zero"
+      ],
+      "expected": [
+        "one-empty",
+        "two-empty",
+        "zero"
+      ],
+      "predictionMatched": true,
+      "rejections": [],
+      "winnerEnv": [
+        {
+          "state": "absent"
+        },
+        {
+          "state": "completed-empty",
+          "start": 0,
+          "end": 0
+        }
+      ],
+      "meter": {
+        "work": 58544,
+        "allocation": 18548
+      }
+    },
+    {
+      "policy": "HNODE-AGG-v5",
+      "eligibility": "FINITE-PERMISSIVE",
+      "group": "G07",
+      "ast": "Q",
+      "subject": "",
+      "order": [
+        "q-empty"
+      ],
+      "expected": [
+        "q-empty"
+      ],
+      "predictionMatched": true,
+      "rejections": [],
+      "winnerEnv": [
+        {
+          "state": "absent"
+        },
+        {
+          "state": "completed-empty",
+          "start": 0,
+          "end": 0
+        }
+      ],
+      "meter": {
+        "work": 21213,
+        "allocation": 7588
+      }
+    },
+    {
+      "policy": "HNODE-AGG-v5",
+      "eligibility": "FINITE-PERMISSIVE",
+      "group": "G07",
+      "ast": "Q",
+      "subject": "aaa",
+      "order": [
+        "q3-required-empty",
+        "q3-nonempty"
+      ],
+      "expected": [
+        "q3-required-empty",
+        "q3-nonempty"
+      ],
+      "predictionMatched": true,
+      "rejections": [],
+      "winnerEnv": [
+        {
+          "state": "absent"
+        },
+        {
+          "state": "completed-empty",
+          "start": 3,
+          "end": 3
+        }
+      ],
+      "meter": {
+        "work": 60521,
+        "allocation": 15935
+      }
+    },
+    {
+      "policy": "HNODE-AGG-v5",
+      "eligibility": "FINITE-PERMISSIVE",
+      "group": "G07",
+      "ast": "requiredChild",
+      "subject": "aa",
+      "order": [
+        "required-child"
+      ],
+      "expected": [
+        "required-child"
+      ],
+      "predictionMatched": true,
+      "rejections": [],
+      "winnerEnv": [
+        {
+          "state": "absent"
+        },
+        {
+          "state": "completed-nonempty",
+          "start": 1,
+          "end": 2
+        },
+        {
+          "state": "completed-empty",
+          "start": 2,
+          "end": 2
+        }
+      ],
+      "meter": {
+        "work": 54389,
+        "allocation": 12601
+      }
+    },
+    {
+      "policy": "HNODE-AGG-v5",
+      "eligibility": "FINITE-PERMISSIVE",
+      "group": "G07",
+      "ast": "requiredPrefix",
+      "subject": "a",
+      "order": [
+        "required-prefix"
+      ],
+      "expected": [
+        "required-prefix"
+      ],
+      "predictionMatched": true,
+      "rejections": [],
+      "winnerEnv": [
+        {
+          "state": "absent"
+        },
+        {
+          "state": "completed-empty",
+          "start": 1,
+          "end": 1
+        }
+      ],
+      "meter": {
+        "work": 26131,
+        "allocation": 8512
+      }
+    },
+    {
+      "policy": "HNODE-AGG-v5",
+      "eligibility": "FINITE-PERMISSIVE",
+      "group": "G07",
+      "ast": "requiredNested",
+      "subject": "",
+      "order": [
+        "required-nested"
+      ],
+      "expected": [
+        "required-nested"
+      ],
+      "predictionMatched": true,
+      "rejections": [],
+      "winnerEnv": [
+        {
+          "state": "absent"
+        },
+        {
+          "state": "completed-empty",
+          "start": 0,
+          "end": 0
+        },
+        {
+          "state": "completed-empty",
+          "start": 0,
+          "end": 0
+        }
+      ],
+      "meter": {
+        "work": 37322,
+        "allocation": 9947
+      }
+    },
+    {
+      "policy": "HNODE-AGG-v5",
+      "eligibility": "FINITE-PERMISSIVE",
+      "group": "G08",
+      "ast": "P",
+      "subject": "aaa",
+      "order": [
+        "p3-tail",
+        "p3-narrow",
+        "p3-shorter",
+        "p3-empty"
+      ],
+      "expected": [
+        "p3-tail",
+        "p3-narrow",
+        "p3-shorter",
+        "p3-empty"
+      ],
+      "predictionMatched": true,
+      "rejections": [],
+      "winnerEnv": [
+        {
+          "state": "absent"
+        },
+        {
+          "state": "completed-empty",
+          "start": 3,
+          "end": 3
+        }
+      ],
+      "meter": {
+        "work": 142532,
+        "allocation": 30365
+      }
+    },
+    {
+      "policy": "HNODE-AGG-v5",
+      "eligibility": "FINITE-PERMISSIVE",
+      "group": "G09",
+      "ast": "U",
+      "subject": "aaaa",
+      "order": [
+        "w3-A",
+        "w3-B"
+      ],
+      "expected": [
+        "w3-A",
+        "w3-B"
+      ],
+      "predictionMatched": true,
+      "rejections": [],
+      "winnerEnv": [
+        {
+          "state": "absent"
+        },
+        {
+          "state": "completed-nonempty",
+          "start": 3,
+          "end": 4
+        }
+      ],
+      "meter": {
+        "work": 59864,
+        "allocation": 15600
+      }
+    },
+    {
+      "policy": "HNODE-AGG-v5",
+      "eligibility": "FINITE-PERMISSIVE",
+      "group": "G10",
+      "ast": "W4",
+      "subject": "aaaa",
+      "order": [
+        "w4-A",
+        "w4-B"
+      ],
+      "expected": [
+        "w4-A",
+        "w4-B"
+      ],
+      "predictionMatched": true,
+      "rejections": [],
+      "winnerEnv": [
+        {
+          "state": "absent"
+        },
+        {
+          "state": "completed-nonempty",
+          "start": 2,
+          "end": 4
+        },
+        {
+          "state": "completed-nonempty",
+          "start": 2,
+          "end": 4
+        }
+      ],
+      "meter": {
+        "work": 139558,
+        "allocation": 32341
+      }
+    },
+    {
+      "policy": "HNODE-AGG-v5",
+      "eligibility": "FINITE-PERMISSIVE",
+      "group": "G11",
+      "ast": "D",
+      "subject": "abab",
+      "order": [
+        "d-skip"
+      ],
+      "expected": [
+        "d-skip"
+      ],
+      "predictionMatched": true,
+      "rejections": [],
+      "winnerEnv": [
+        {
+          "state": "absent"
+        },
+        {
+          "state": "completed-nonempty",
+          "start": 2,
+          "end": 3
+        },
+        {
+          "state": "completed-nonempty",
+          "start": 1,
+          "end": 2
+        }
+      ],
+      "meter": {
+        "work": 37078,
+        "allocation": 10157
+      }
+    },
+    {
+      "policy": "HNODE-AGG-v5",
+      "eligibility": "FINITE-PERMISSIVE",
+      "group": "G11",
+      "ast": "D",
+      "subject": "ababb",
+      "order": [
+        "d-reentry"
+      ],
+      "expected": [
+        "d-reentry"
+      ],
+      "predictionMatched": true,
+      "rejections": [],
+      "winnerEnv": [
+        {
+          "state": "absent"
+        },
+        {
+          "state": "completed-nonempty",
+          "start": 2,
+          "end": 4
+        },
+        {
+          "state": "completed-nonempty",
+          "start": 3,
+          "end": 4
+        }
+      ],
+      "meter": {
+        "work": 41154,
+        "allocation": 10727
+      }
+    },
+    {
+      "policy": "HNODE-AGG-v5",
+      "eligibility": "FINITE-PERMISSIVE",
+      "group": "G11",
+      "ast": "E",
+      "subject": "aba",
+      "order": [
+        "e-empty-reentry"
+      ],
+      "expected": [
+        "e-empty-reentry"
+      ],
+      "predictionMatched": true,
+      "rejections": [],
+      "winnerEnv": [
+        {
+          "state": "absent"
+        },
+        {
+          "state": "completed-nonempty",
+          "start": 2,
+          "end": 3
+        },
+        {
+          "state": "completed-empty",
+          "start": 3,
+          "end": 3
+        }
+      ],
+      "meter": {
+        "work": 39035,
+        "allocation": 10441
+      }
+    },
+    {
+      "policy": "HNODE-AGG-v5",
+      "eligibility": "FINITE-PERMISSIVE",
+      "group": "G12",
+      "ast": "emptyReference",
+      "subject": "a",
+      "order": [
+        "empty-reference"
+      ],
+      "expected": [
+        "empty-reference"
+      ],
+      "predictionMatched": true,
+      "rejections": [],
+      "winnerEnv": [
+        {
+          "state": "absent"
+        },
+        {
+          "state": "completed-nonempty",
+          "start": 0,
+          "end": 1
+        },
+        {
+          "state": "completed-empty",
+          "start": 1,
+          "end": 1
+        }
+      ],
+      "meter": {
+        "work": 23089,
+        "allocation": 8014
+      }
+    },
+    {
+      "policy": "HNODE-AGG-v5",
+      "eligibility": "LOCAL-TAIL-HYPOTHESIS",
+      "group": "G01",
+      "ast": "P",
+      "subject": "aaaa",
+      "order": [
+        "p4-111",
+        "p4-aa",
+        "p4-11",
+        "p4-1"
+      ],
+      "expected": [
+        "p4-111",
+        "p4-aa",
+        "p4-11",
+        "p4-1"
+      ],
+      "predictionMatched": true,
+      "rejections": [],
+      "winnerEnv": [
+        {
+          "state": "absent"
+        },
+        {
+          "state": "completed-nonempty",
+          "start": 2,
+          "end": 3
+        }
+      ],
+      "meter": {
+        "work": 153997,
+        "allocation": 31450
+      }
+    },
+    {
+      "policy": "HNODE-AGG-v5",
+      "eligibility": "LOCAL-TAIL-HYPOTHESIS",
+      "group": "G02",
+      "ast": "P",
+      "subject": "aaaa",
+      "order": [
+        "p4-21",
+        "p4-111",
+        "p4-aa"
+      ],
+      "expected": [
+        "p4-21",
+        "p4-111",
+        "p4-aa"
+      ],
+      "predictionMatched": true,
+      "rejections": [
+        {
+          "id": "p4-40",
+          "code": "OPTIONAL_TAIL"
+        }
+      ],
+      "winnerEnv": [
+        {
+          "state": "absent"
+        },
+        {
+          "state": "completed-nonempty",
+          "start": 2,
+          "end": 3
+        }
+      ],
+      "meter": {
+        "work": 115198,
+        "allocation": 27380
+      }
+    },
+    {
+      "policy": "HNODE-AGG-v5",
+      "eligibility": "LOCAL-TAIL-HYPOTHESIS",
+      "group": "G03",
+      "ast": "prefix",
+      "subject": "aaa",
+      "order": [
+        "prefix-3",
+        "prefix-2",
+        "prefix-0"
+      ],
+      "expected": [
+        "prefix-3",
+        "prefix-2",
+        "prefix-0"
+      ],
+      "predictionMatched": true,
+      "rejections": [],
+      "winnerEnv": [
+        {
+          "state": "absent"
+        },
+        {
+          "state": "completed-empty",
+          "start": 3,
+          "end": 3
+        }
+      ],
+      "meter": {
+        "work": 88376,
+        "allocation": 22159
+      }
+    },
+    {
+      "policy": "HNODE-AGG-v5",
+      "eligibility": "LOCAL-TAIL-HYPOTHESIS",
+      "group": "G04",
+      "ast": "boundedPrefix",
+      "subject": "aaa",
+      "order": [
+        "bounded-2",
+        "bounded-1",
+        "bounded-0"
+      ],
+      "expected": [
+        "bounded-2",
+        "bounded-1",
+        "bounded-0"
+      ],
+      "predictionMatched": true,
+      "rejections": [],
+      "winnerEnv": [
+        {
+          "state": "absent"
+        },
+        {
+          "state": "completed-nonempty",
+          "start": 2,
+          "end": 3
+        }
+      ],
+      "meter": {
+        "work": 88676,
+        "allocation": 22159
+      }
+    },
+    {
+      "policy": "HNODE-AGG-v5",
+      "eligibility": "LOCAL-TAIL-HYPOTHESIS",
+      "group": "G05",
+      "ast": "innerPrefix",
+      "subject": "aaa",
+      "order": [
+        "inner-3",
+        "inner-2",
+        "inner-0"
+      ],
+      "expected": [
+        "inner-3",
+        "inner-2",
+        "inner-0"
+      ],
+      "predictionMatched": true,
+      "rejections": [],
+      "winnerEnv": [
+        {
+          "state": "absent"
+        },
+        {
+          "state": "completed-nonempty",
+          "start": 0,
+          "end": 3
+        },
+        {
+          "state": "completed-empty",
+          "start": 3,
+          "end": 3
+        }
+      ],
+      "meter": {
+        "work": 106833,
+        "allocation": 24005
+      }
+    },
+    {
+      "policy": "HNODE-AGG-v5",
+      "eligibility": "LOCAL-TAIL-HYPOTHESIS",
+      "group": "G06",
+      "ast": "U",
+      "subject": "",
+      "order": [
+        "one-empty",
+        "zero"
+      ],
+      "expected": [
+        "one-empty",
+        "zero"
+      ],
+      "predictionMatched": true,
+      "rejections": [
+        {
+          "id": "two-empty",
+          "code": "OPTIONAL_CYCLE"
+        }
+      ],
+      "winnerEnv": [
+        {
+          "state": "absent"
+        },
+        {
+          "state": "completed-empty",
+          "start": 0,
+          "end": 0
+        }
+      ],
+      "meter": {
+        "work": 29850,
+        "allocation": 13801
+      }
+    },
+    {
+      "policy": "HNODE-AGG-v5",
+      "eligibility": "LOCAL-TAIL-HYPOTHESIS",
+      "group": "G07",
+      "ast": "Q",
+      "subject": "",
+      "order": [
+        "q-empty"
+      ],
+      "expected": [
+        "q-empty"
+      ],
+      "predictionMatched": true,
+      "rejections": [],
+      "winnerEnv": [
+        {
+          "state": "absent"
+        },
+        {
+          "state": "completed-empty",
+          "start": 0,
+          "end": 0
+        }
+      ],
+      "meter": {
+        "work": 21213,
+        "allocation": 7588
+      }
+    },
+    {
+      "policy": "HNODE-AGG-v5",
+      "eligibility": "LOCAL-TAIL-HYPOTHESIS",
+      "group": "G07",
+      "ast": "Q",
+      "subject": "aaa",
+      "order": [
+        "q3-required-empty",
+        "q3-nonempty"
+      ],
+      "expected": [
+        "q3-required-empty",
+        "q3-nonempty"
+      ],
+      "predictionMatched": true,
+      "rejections": [],
+      "winnerEnv": [
+        {
+          "state": "absent"
+        },
+        {
+          "state": "completed-empty",
+          "start": 3,
+          "end": 3
+        }
+      ],
+      "meter": {
+        "work": 60521,
+        "allocation": 15935
+      }
+    },
+    {
+      "policy": "HNODE-AGG-v5",
+      "eligibility": "LOCAL-TAIL-HYPOTHESIS",
+      "group": "G07",
+      "ast": "requiredChild",
+      "subject": "aa",
+      "order": [
+        "required-child"
+      ],
+      "expected": [
+        "required-child"
+      ],
+      "predictionMatched": true,
+      "rejections": [],
+      "winnerEnv": [
+        {
+          "state": "absent"
+        },
+        {
+          "state": "completed-nonempty",
+          "start": 1,
+          "end": 2
+        },
+        {
+          "state": "completed-empty",
+          "start": 2,
+          "end": 2
+        }
+      ],
+      "meter": {
+        "work": 54389,
+        "allocation": 12601
+      }
+    },
+    {
+      "policy": "HNODE-AGG-v5",
+      "eligibility": "LOCAL-TAIL-HYPOTHESIS",
+      "group": "G07",
+      "ast": "requiredPrefix",
+      "subject": "a",
+      "order": [
+        "required-prefix"
+      ],
+      "expected": [
+        "required-prefix"
+      ],
+      "predictionMatched": true,
+      "rejections": [],
+      "winnerEnv": [
+        {
+          "state": "absent"
+        },
+        {
+          "state": "completed-empty",
+          "start": 1,
+          "end": 1
+        }
+      ],
+      "meter": {
+        "work": 26131,
+        "allocation": 8512
+      }
+    },
+    {
+      "policy": "HNODE-AGG-v5",
+      "eligibility": "LOCAL-TAIL-HYPOTHESIS",
+      "group": "G07",
+      "ast": "requiredNested",
+      "subject": "",
+      "order": [
+        "required-nested"
+      ],
+      "expected": [
+        "required-nested"
+      ],
+      "predictionMatched": true,
+      "rejections": [],
+      "winnerEnv": [
+        {
+          "state": "absent"
+        },
+        {
+          "state": "completed-empty",
+          "start": 0,
+          "end": 0
+        },
+        {
+          "state": "completed-empty",
+          "start": 0,
+          "end": 0
+        }
+      ],
+      "meter": {
+        "work": 37322,
+        "allocation": 9947
+      }
+    },
+    {
+      "policy": "HNODE-AGG-v5",
+      "eligibility": "LOCAL-TAIL-HYPOTHESIS",
+      "group": "G08",
+      "ast": "P",
+      "subject": "aaa",
+      "order": [
+        "p3-narrow",
+        "p3-shorter",
+        "p3-empty"
+      ],
+      "expected": [
+        "p3-narrow",
+        "p3-shorter",
+        "p3-empty"
+      ],
+      "predictionMatched": true,
+      "rejections": [
+        {
+          "id": "p3-tail",
+          "code": "OPTIONAL_TAIL"
+        }
+      ],
+      "winnerEnv": [
+        {
+          "state": "absent"
+        },
+        {
+          "state": "completed-nonempty",
+          "start": 1,
+          "end": 2
+        }
+      ],
+      "meter": {
+        "work": 83788,
+        "allocation": 24036
+      }
+    },
+    {
+      "policy": "HNODE-AGG-v5",
+      "eligibility": "LOCAL-TAIL-HYPOTHESIS",
+      "group": "G09",
+      "ast": "U",
+      "subject": "aaaa",
+      "order": [
+        "w3-A",
+        "w3-B"
+      ],
+      "expected": [
+        "w3-A",
+        "w3-B"
+      ],
+      "predictionMatched": true,
+      "rejections": [],
+      "winnerEnv": [
+        {
+          "state": "absent"
+        },
+        {
+          "state": "completed-nonempty",
+          "start": 3,
+          "end": 4
+        }
+      ],
+      "meter": {
+        "work": 59864,
+        "allocation": 15600
+      }
+    },
+    {
+      "policy": "HNODE-AGG-v5",
+      "eligibility": "LOCAL-TAIL-HYPOTHESIS",
+      "group": "G10",
+      "ast": "W4",
+      "subject": "aaaa",
+      "order": [
+        "w4-A",
+        "w4-B"
+      ],
+      "expected": [
+        "w4-A",
+        "w4-B"
+      ],
+      "predictionMatched": true,
+      "rejections": [],
+      "winnerEnv": [
+        {
+          "state": "absent"
+        },
+        {
+          "state": "completed-nonempty",
+          "start": 2,
+          "end": 4
+        },
+        {
+          "state": "completed-nonempty",
+          "start": 2,
+          "end": 4
+        }
+      ],
+      "meter": {
+        "work": 139558,
+        "allocation": 32341
+      }
+    },
+    {
+      "policy": "HNODE-AGG-v5",
+      "eligibility": "LOCAL-TAIL-HYPOTHESIS",
+      "group": "G11",
+      "ast": "D",
+      "subject": "abab",
+      "order": [
+        "d-skip"
+      ],
+      "expected": [
+        "d-skip"
+      ],
+      "predictionMatched": true,
+      "rejections": [],
+      "winnerEnv": [
+        {
+          "state": "absent"
+        },
+        {
+          "state": "completed-nonempty",
+          "start": 2,
+          "end": 3
+        },
+        {
+          "state": "completed-nonempty",
+          "start": 1,
+          "end": 2
+        }
+      ],
+      "meter": {
+        "work": 37078,
+        "allocation": 10157
+      }
+    },
+    {
+      "policy": "HNODE-AGG-v5",
+      "eligibility": "LOCAL-TAIL-HYPOTHESIS",
+      "group": "G11",
+      "ast": "D",
+      "subject": "ababb",
+      "order": [
+        "d-reentry"
+      ],
+      "expected": [
+        "d-reentry"
+      ],
+      "predictionMatched": true,
+      "rejections": [],
+      "winnerEnv": [
+        {
+          "state": "absent"
+        },
+        {
+          "state": "completed-nonempty",
+          "start": 2,
+          "end": 4
+        },
+        {
+          "state": "completed-nonempty",
+          "start": 3,
+          "end": 4
+        }
+      ],
+      "meter": {
+        "work": 41154,
+        "allocation": 10727
+      }
+    },
+    {
+      "policy": "HNODE-AGG-v5",
+      "eligibility": "LOCAL-TAIL-HYPOTHESIS",
+      "group": "G11",
+      "ast": "E",
+      "subject": "aba",
+      "order": [
+        "e-empty-reentry"
+      ],
+      "expected": [
+        "e-empty-reentry"
+      ],
+      "predictionMatched": true,
+      "rejections": [],
+      "winnerEnv": [
+        {
+          "state": "absent"
+        },
+        {
+          "state": "completed-nonempty",
+          "start": 2,
+          "end": 3
+        },
+        {
+          "state": "completed-empty",
+          "start": 3,
+          "end": 3
+        }
+      ],
+      "meter": {
+        "work": 39035,
+        "allocation": 10441
+      }
+    },
+    {
+      "policy": "HNODE-AGG-v5",
+      "eligibility": "LOCAL-TAIL-HYPOTHESIS",
+      "group": "G12",
+      "ast": "emptyReference",
+      "subject": "a",
+      "order": [
+        "empty-reference"
+      ],
+      "expected": [
+        "empty-reference"
+      ],
+      "predictionMatched": true,
+      "rejections": [],
+      "winnerEnv": [
+        {
+          "state": "absent"
+        },
+        {
+          "state": "completed-nonempty",
+          "start": 0,
+          "end": 1
+        },
+        {
+          "state": "completed-empty",
+          "start": 1,
+          "end": 1
+        }
+      ],
+      "meter": {
+        "work": 23089,
+        "allocation": 8014
+      }
+    },
+    {
+      "policy": "HTREE-AGG-v5",
+      "eligibility": "FINITE-PERMISSIVE",
+      "group": "G01",
+      "ast": "P",
+      "subject": "aaaa",
+      "order": [
+        "p4-111",
+        "p4-aa",
+        "p4-11",
+        "p4-1"
+      ],
+      "expected": [
+        "p4-111",
+        "p4-aa",
+        "p4-11",
+        "p4-1"
+      ],
+      "predictionMatched": true,
+      "rejections": [],
+      "winnerEnv": [
+        {
+          "state": "absent"
+        },
+        {
+          "state": "completed-nonempty",
+          "start": 2,
+          "end": 3
+        }
+      ],
+      "meter": {
+        "work": 150661,
+        "allocation": 32110
+      }
+    },
+    {
+      "policy": "HTREE-AGG-v5",
+      "eligibility": "FINITE-PERMISSIVE",
+      "group": "G02",
+      "ast": "P",
+      "subject": "aaaa",
+      "order": [
+        "p4-40",
+        "p4-21",
+        "p4-111",
+        "p4-aa"
+      ],
+      "expected": [
+        "p4-40",
+        "p4-21",
+        "p4-111",
+        "p4-aa"
+      ],
+      "predictionMatched": true,
+      "rejections": [],
+      "winnerEnv": [
+        {
+          "state": "absent"
+        },
+        {
+          "state": "completed-empty",
+          "start": 4,
+          "end": 4
+        }
+      ],
+      "meter": {
+        "work": 181539,
+        "allocation": 35958
+      }
+    },
+    {
+      "policy": "HTREE-AGG-v5",
+      "eligibility": "FINITE-PERMISSIVE",
+      "group": "G03",
+      "ast": "prefix",
+      "subject": "aaa",
+      "order": [
+        "prefix-3",
+        "prefix-2",
+        "prefix-0"
+      ],
+      "expected": [
+        "prefix-3",
+        "prefix-2",
+        "prefix-0"
+      ],
+      "predictionMatched": true,
+      "rejections": [],
+      "winnerEnv": [
+        {
+          "state": "absent"
+        },
+        {
+          "state": "completed-empty",
+          "start": 3,
+          "end": 3
+        }
+      ],
+      "meter": {
+        "work": 84448,
+        "allocation": 22411
+      }
+    },
+    {
+      "policy": "HTREE-AGG-v5",
+      "eligibility": "FINITE-PERMISSIVE",
+      "group": "G04",
+      "ast": "boundedPrefix",
+      "subject": "aaa",
+      "order": [
+        "bounded-2",
+        "bounded-1",
+        "bounded-0"
+      ],
+      "expected": [
+        "bounded-2",
+        "bounded-1",
+        "bounded-0"
+      ],
+      "predictionMatched": true,
+      "rejections": [],
+      "winnerEnv": [
+        {
+          "state": "absent"
+        },
+        {
+          "state": "completed-nonempty",
+          "start": 2,
+          "end": 3
+        }
+      ],
+      "meter": {
+        "work": 84892,
+        "allocation": 22447
+      }
+    },
+    {
+      "policy": "HTREE-AGG-v5",
+      "eligibility": "FINITE-PERMISSIVE",
+      "group": "G05",
+      "ast": "innerPrefix",
+      "subject": "aaa",
+      "order": [
+        "inner-3",
+        "inner-2",
+        "inner-0"
+      ],
+      "expected": [
+        "inner-3",
+        "inner-2",
+        "inner-0"
+      ],
+      "predictionMatched": true,
+      "rejections": [],
+      "winnerEnv": [
+        {
+          "state": "absent"
+        },
+        {
+          "state": "completed-nonempty",
+          "start": 0,
+          "end": 3
+        },
+        {
+          "state": "completed-empty",
+          "start": 3,
+          "end": 3
+        }
+      ],
+      "meter": {
+        "work": 102905,
+        "allocation": 24257
+      }
+    },
+    {
+      "policy": "HTREE-AGG-v5",
+      "eligibility": "FINITE-PERMISSIVE",
+      "group": "G06",
+      "ast": "U",
+      "subject": "",
+      "order": [
+        "one-empty",
+        "two-empty",
+        "zero"
+      ],
+      "expected": [
+        "one-empty",
+        "two-empty",
+        "zero"
+      ],
+      "predictionMatched": true,
+      "rejections": [],
+      "winnerEnv": [
+        {
+          "state": "absent"
+        },
+        {
+          "state": "completed-empty",
+          "start": 0,
+          "end": 0
+        }
+      ],
+      "meter": {
+        "work": 53200,
+        "allocation": 18240
+      }
+    },
+    {
+      "policy": "HTREE-AGG-v5",
+      "eligibility": "FINITE-PERMISSIVE",
+      "group": "G07",
+      "ast": "Q",
+      "subject": "",
+      "order": [
+        "q-empty"
+      ],
+      "expected": [
+        "q-empty"
+      ],
+      "predictionMatched": true,
+      "rejections": [],
+      "winnerEnv": [
+        {
+          "state": "absent"
+        },
+        {
+          "state": "completed-empty",
+          "start": 0,
+          "end": 0
+        }
+      ],
+      "meter": {
+        "work": 20733,
+        "allocation": 7588
+      }
+    },
+    {
+      "policy": "HTREE-AGG-v5",
+      "eligibility": "FINITE-PERMISSIVE",
+      "group": "G07",
+      "ast": "Q",
+      "subject": "aaa",
+      "order": [
+        "q3-required-empty",
+        "q3-nonempty"
+      ],
+      "expected": [
+        "q3-required-empty",
+        "q3-nonempty"
+      ],
+      "predictionMatched": true,
+      "rejections": [],
+      "winnerEnv": [
+        {
+          "state": "absent"
+        },
+        {
+          "state": "completed-empty",
+          "start": 3,
+          "end": 3
+        }
+      ],
+      "meter": {
+        "work": 59433,
+        "allocation": 16159
+      }
+    },
+    {
+      "policy": "HTREE-AGG-v5",
+      "eligibility": "FINITE-PERMISSIVE",
+      "group": "G07",
+      "ast": "requiredChild",
+      "subject": "aa",
+      "order": [
+        "required-child"
+      ],
+      "expected": [
+        "required-child"
+      ],
+      "predictionMatched": true,
+      "rejections": [],
+      "winnerEnv": [
+        {
+          "state": "absent"
+        },
+        {
+          "state": "completed-nonempty",
+          "start": 1,
+          "end": 2
+        },
+        {
+          "state": "completed-empty",
+          "start": 2,
+          "end": 2
+        }
+      ],
+      "meter": {
+        "work": 53789,
+        "allocation": 12681
+      }
+    },
+    {
+      "policy": "HTREE-AGG-v5",
+      "eligibility": "FINITE-PERMISSIVE",
+      "group": "G07",
+      "ast": "requiredPrefix",
+      "subject": "a",
+      "order": [
+        "required-prefix"
+      ],
+      "expected": [
+        "required-prefix"
+      ],
+      "predictionMatched": true,
+      "rejections": [],
+      "winnerEnv": [
+        {
+          "state": "absent"
+        },
+        {
+          "state": "completed-empty",
+          "start": 1,
+          "end": 1
+        }
+      ],
+      "meter": {
+        "work": 25571,
+        "allocation": 8532
+      }
+    },
+    {
+      "policy": "HTREE-AGG-v5",
+      "eligibility": "FINITE-PERMISSIVE",
+      "group": "G07",
+      "ast": "requiredNested",
+      "subject": "",
+      "order": [
+        "required-nested"
+      ],
+      "expected": [
+        "required-nested"
+      ],
+      "predictionMatched": true,
+      "rejections": [],
+      "winnerEnv": [
+        {
+          "state": "absent"
+        },
+        {
+          "state": "completed-empty",
+          "start": 0,
+          "end": 0
+        },
+        {
+          "state": "completed-empty",
+          "start": 0,
+          "end": 0
+        }
+      ],
+      "meter": {
+        "work": 36882,
+        "allocation": 9967
+      }
+    },
+    {
+      "policy": "HTREE-AGG-v5",
+      "eligibility": "FINITE-PERMISSIVE",
+      "group": "G08",
+      "ast": "P",
+      "subject": "aaa",
+      "order": [
+        "p3-tail",
+        "p3-narrow",
+        "p3-shorter",
+        "p3-empty"
+      ],
+      "expected": [
+        "p3-tail",
+        "p3-narrow",
+        "p3-shorter",
+        "p3-empty"
+      ],
+      "predictionMatched": true,
+      "rejections": [],
+      "winnerEnv": [
+        {
+          "state": "absent"
+        },
+        {
+          "state": "completed-empty",
+          "start": 3,
+          "end": 3
+        }
+      ],
+      "meter": {
+        "work": 138404,
+        "allocation": 30805
+      }
+    },
+    {
+      "policy": "HTREE-AGG-v5",
+      "eligibility": "FINITE-PERMISSIVE",
+      "group": "G09",
+      "ast": "U",
+      "subject": "aaaa",
+      "order": [
+        "w3-A",
+        "w3-B"
+      ],
+      "expected": [
+        "w3-A",
+        "w3-B"
+      ],
+      "predictionMatched": true,
+      "rejections": [],
+      "winnerEnv": [
+        {
+          "state": "absent"
+        },
+        {
+          "state": "completed-nonempty",
+          "start": 3,
+          "end": 4
+        }
+      ],
+      "meter": {
+        "work": 59464,
+        "allocation": 15908
+      }
+    },
+    {
+      "policy": "HTREE-AGG-v5",
+      "eligibility": "FINITE-PERMISSIVE",
+      "group": "G10",
+      "ast": "W4",
+      "subject": "aaaa",
+      "order": [
+        "w4-B",
+        "w4-A"
+      ],
+      "expected": [
+        "w4-B",
+        "w4-A"
+      ],
+      "predictionMatched": true,
+      "rejections": [],
+      "winnerEnv": [
+        {
+          "state": "absent"
+        },
+        {
+          "state": "completed-nonempty",
+          "start": 3,
+          "end": 4
+        },
+        {
+          "state": "completed-nonempty",
+          "start": 3,
+          "end": 4
+        }
+      ],
+      "meter": {
+        "work": 138462,
+        "allocation": 32813
+      }
+    },
+    {
+      "policy": "HTREE-AGG-v5",
+      "eligibility": "FINITE-PERMISSIVE",
+      "group": "G11",
+      "ast": "D",
+      "subject": "abab",
+      "order": [
+        "d-skip"
+      ],
+      "expected": [
+        "d-skip"
+      ],
+      "predictionMatched": true,
+      "rejections": [],
+      "winnerEnv": [
+        {
+          "state": "absent"
+        },
+        {
+          "state": "completed-nonempty",
+          "start": 2,
+          "end": 3
+        },
+        {
+          "state": "completed-nonempty",
+          "start": 1,
+          "end": 2
+        }
+      ],
+      "meter": {
+        "work": 36678,
+        "allocation": 10237
+      }
+    },
+    {
+      "policy": "HTREE-AGG-v5",
+      "eligibility": "FINITE-PERMISSIVE",
+      "group": "G11",
+      "ast": "D",
+      "subject": "ababb",
+      "order": [
+        "d-reentry"
+      ],
+      "expected": [
+        "d-reentry"
+      ],
+      "predictionMatched": true,
+      "rejections": [],
+      "winnerEnv": [
+        {
+          "state": "absent"
+        },
+        {
+          "state": "completed-nonempty",
+          "start": 2,
+          "end": 4
+        },
+        {
+          "state": "completed-nonempty",
+          "start": 3,
+          "end": 4
+        }
+      ],
+      "meter": {
+        "work": 40914,
+        "allocation": 10847
+      }
+    },
+    {
+      "policy": "HTREE-AGG-v5",
+      "eligibility": "FINITE-PERMISSIVE",
+      "group": "G11",
+      "ast": "E",
+      "subject": "aba",
+      "order": [
+        "e-empty-reentry"
+      ],
+      "expected": [
+        "e-empty-reentry"
+      ],
+      "predictionMatched": true,
+      "rejections": [],
+      "winnerEnv": [
+        {
+          "state": "absent"
+        },
+        {
+          "state": "completed-nonempty",
+          "start": 2,
+          "end": 3
+        },
+        {
+          "state": "completed-empty",
+          "start": 3,
+          "end": 3
+        }
+      ],
+      "meter": {
+        "work": 38635,
+        "allocation": 10521
+      }
+    },
+    {
+      "policy": "HTREE-AGG-v5",
+      "eligibility": "FINITE-PERMISSIVE",
+      "group": "G12",
+      "ast": "emptyReference",
+      "subject": "a",
+      "order": [
+        "empty-reference"
+      ],
+      "expected": [
+        "empty-reference"
+      ],
+      "predictionMatched": true,
+      "rejections": [],
+      "winnerEnv": [
+        {
+          "state": "absent"
+        },
+        {
+          "state": "completed-nonempty",
+          "start": 0,
+          "end": 1
+        },
+        {
+          "state": "completed-empty",
+          "start": 1,
+          "end": 1
+        }
+      ],
+      "meter": {
+        "work": 22569,
+        "allocation": 8014
+      }
+    },
+    {
+      "policy": "HTREE-AGG-v5",
+      "eligibility": "LOCAL-TAIL-HYPOTHESIS",
+      "group": "G01",
+      "ast": "P",
+      "subject": "aaaa",
+      "order": [
+        "p4-111",
+        "p4-aa",
+        "p4-11",
+        "p4-1"
+      ],
+      "expected": [
+        "p4-111",
+        "p4-aa",
+        "p4-11",
+        "p4-1"
+      ],
+      "predictionMatched": true,
+      "rejections": [],
+      "winnerEnv": [
+        {
+          "state": "absent"
+        },
+        {
+          "state": "completed-nonempty",
+          "start": 2,
+          "end": 3
+        }
+      ],
+      "meter": {
+        "work": 150661,
+        "allocation": 32110
+      }
+    },
+    {
+      "policy": "HTREE-AGG-v5",
+      "eligibility": "LOCAL-TAIL-HYPOTHESIS",
+      "group": "G02",
+      "ast": "P",
+      "subject": "aaaa",
+      "order": [
+        "p4-21",
+        "p4-111",
+        "p4-aa"
+      ],
+      "expected": [
+        "p4-21",
+        "p4-111",
+        "p4-aa"
+      ],
+      "predictionMatched": true,
+      "rejections": [
+        {
+          "id": "p4-40",
+          "code": "OPTIONAL_TAIL"
+        }
+      ],
+      "winnerEnv": [
+        {
+          "state": "absent"
+        },
+        {
+          "state": "completed-nonempty",
+          "start": 2,
+          "end": 3
+        }
+      ],
+      "meter": {
+        "work": 112022,
+        "allocation": 27980
+      }
+    },
+    {
+      "policy": "HTREE-AGG-v5",
+      "eligibility": "LOCAL-TAIL-HYPOTHESIS",
+      "group": "G03",
+      "ast": "prefix",
+      "subject": "aaa",
+      "order": [
+        "prefix-3",
+        "prefix-2",
+        "prefix-0"
+      ],
+      "expected": [
+        "prefix-3",
+        "prefix-2",
+        "prefix-0"
+      ],
+      "predictionMatched": true,
+      "rejections": [],
+      "winnerEnv": [
+        {
+          "state": "absent"
+        },
+        {
+          "state": "completed-empty",
+          "start": 3,
+          "end": 3
+        }
+      ],
+      "meter": {
+        "work": 84448,
+        "allocation": 22411
+      }
+    },
+    {
+      "policy": "HTREE-AGG-v5",
+      "eligibility": "LOCAL-TAIL-HYPOTHESIS",
+      "group": "G04",
+      "ast": "boundedPrefix",
+      "subject": "aaa",
+      "order": [
+        "bounded-2",
+        "bounded-1",
+        "bounded-0"
+      ],
+      "expected": [
+        "bounded-2",
+        "bounded-1",
+        "bounded-0"
+      ],
+      "predictionMatched": true,
+      "rejections": [],
+      "winnerEnv": [
+        {
+          "state": "absent"
+        },
+        {
+          "state": "completed-nonempty",
+          "start": 2,
+          "end": 3
+        }
+      ],
+      "meter": {
+        "work": 84892,
+        "allocation": 22447
+      }
+    },
+    {
+      "policy": "HTREE-AGG-v5",
+      "eligibility": "LOCAL-TAIL-HYPOTHESIS",
+      "group": "G05",
+      "ast": "innerPrefix",
+      "subject": "aaa",
+      "order": [
+        "inner-3",
+        "inner-2",
+        "inner-0"
+      ],
+      "expected": [
+        "inner-3",
+        "inner-2",
+        "inner-0"
+      ],
+      "predictionMatched": true,
+      "rejections": [],
+      "winnerEnv": [
+        {
+          "state": "absent"
+        },
+        {
+          "state": "completed-nonempty",
+          "start": 0,
+          "end": 3
+        },
+        {
+          "state": "completed-empty",
+          "start": 3,
+          "end": 3
+        }
+      ],
+      "meter": {
+        "work": 102905,
+        "allocation": 24257
+      }
+    },
+    {
+      "policy": "HTREE-AGG-v5",
+      "eligibility": "LOCAL-TAIL-HYPOTHESIS",
+      "group": "G06",
+      "ast": "U",
+      "subject": "",
+      "order": [
+        "one-empty",
+        "zero"
+      ],
+      "expected": [
+        "one-empty",
+        "zero"
+      ],
+      "predictionMatched": true,
+      "rejections": [
+        {
+          "id": "two-empty",
+          "code": "OPTIONAL_CYCLE"
+        }
+      ],
+      "winnerEnv": [
+        {
+          "state": "absent"
+        },
+        {
+          "state": "completed-empty",
+          "start": 0,
+          "end": 0
+        }
+      ],
+      "meter": {
+        "work": 27890,
+        "allocation": 13653
+      }
+    },
+    {
+      "policy": "HTREE-AGG-v5",
+      "eligibility": "LOCAL-TAIL-HYPOTHESIS",
+      "group": "G07",
+      "ast": "Q",
+      "subject": "",
+      "order": [
+        "q-empty"
+      ],
+      "expected": [
+        "q-empty"
+      ],
+      "predictionMatched": true,
+      "rejections": [],
+      "winnerEnv": [
+        {
+          "state": "absent"
+        },
+        {
+          "state": "completed-empty",
+          "start": 0,
+          "end": 0
+        }
+      ],
+      "meter": {
+        "work": 20733,
+        "allocation": 7588
+      }
+    },
+    {
+      "policy": "HTREE-AGG-v5",
+      "eligibility": "LOCAL-TAIL-HYPOTHESIS",
+      "group": "G07",
+      "ast": "Q",
+      "subject": "aaa",
+      "order": [
+        "q3-required-empty",
+        "q3-nonempty"
+      ],
+      "expected": [
+        "q3-required-empty",
+        "q3-nonempty"
+      ],
+      "predictionMatched": true,
+      "rejections": [],
+      "winnerEnv": [
+        {
+          "state": "absent"
+        },
+        {
+          "state": "completed-empty",
+          "start": 3,
+          "end": 3
+        }
+      ],
+      "meter": {
+        "work": 59433,
+        "allocation": 16159
+      }
+    },
+    {
+      "policy": "HTREE-AGG-v5",
+      "eligibility": "LOCAL-TAIL-HYPOTHESIS",
+      "group": "G07",
+      "ast": "requiredChild",
+      "subject": "aa",
+      "order": [
+        "required-child"
+      ],
+      "expected": [
+        "required-child"
+      ],
+      "predictionMatched": true,
+      "rejections": [],
+      "winnerEnv": [
+        {
+          "state": "absent"
+        },
+        {
+          "state": "completed-nonempty",
+          "start": 1,
+          "end": 2
+        },
+        {
+          "state": "completed-empty",
+          "start": 2,
+          "end": 2
+        }
+      ],
+      "meter": {
+        "work": 53789,
+        "allocation": 12681
+      }
+    },
+    {
+      "policy": "HTREE-AGG-v5",
+      "eligibility": "LOCAL-TAIL-HYPOTHESIS",
+      "group": "G07",
+      "ast": "requiredPrefix",
+      "subject": "a",
+      "order": [
+        "required-prefix"
+      ],
+      "expected": [
+        "required-prefix"
+      ],
+      "predictionMatched": true,
+      "rejections": [],
+      "winnerEnv": [
+        {
+          "state": "absent"
+        },
+        {
+          "state": "completed-empty",
+          "start": 1,
+          "end": 1
+        }
+      ],
+      "meter": {
+        "work": 25571,
+        "allocation": 8532
+      }
+    },
+    {
+      "policy": "HTREE-AGG-v5",
+      "eligibility": "LOCAL-TAIL-HYPOTHESIS",
+      "group": "G07",
+      "ast": "requiredNested",
+      "subject": "",
+      "order": [
+        "required-nested"
+      ],
+      "expected": [
+        "required-nested"
+      ],
+      "predictionMatched": true,
+      "rejections": [],
+      "winnerEnv": [
+        {
+          "state": "absent"
+        },
+        {
+          "state": "completed-empty",
+          "start": 0,
+          "end": 0
+        },
+        {
+          "state": "completed-empty",
+          "start": 0,
+          "end": 0
+        }
+      ],
+      "meter": {
+        "work": 36882,
+        "allocation": 9967
+      }
+    },
+    {
+      "policy": "HTREE-AGG-v5",
+      "eligibility": "LOCAL-TAIL-HYPOTHESIS",
+      "group": "G08",
+      "ast": "P",
+      "subject": "aaa",
+      "order": [
+        "p3-narrow",
+        "p3-shorter",
+        "p3-empty"
+      ],
+      "expected": [
+        "p3-narrow",
+        "p3-shorter",
+        "p3-empty"
+      ],
+      "predictionMatched": true,
+      "rejections": [
+        {
+          "id": "p3-tail",
+          "code": "OPTIONAL_TAIL"
+        }
+      ],
+      "winnerEnv": [
+        {
+          "state": "absent"
+        },
+        {
+          "state": "completed-nonempty",
+          "start": 1,
+          "end": 2
+        }
+      ],
+      "meter": {
+        "work": 82204,
+        "allocation": 24252
+      }
+    },
+    {
+      "policy": "HTREE-AGG-v5",
+      "eligibility": "LOCAL-TAIL-HYPOTHESIS",
+      "group": "G09",
+      "ast": "U",
+      "subject": "aaaa",
+      "order": [
+        "w3-A",
+        "w3-B"
+      ],
+      "expected": [
+        "w3-A",
+        "w3-B"
+      ],
+      "predictionMatched": true,
+      "rejections": [],
+      "winnerEnv": [
+        {
+          "state": "absent"
+        },
+        {
+          "state": "completed-nonempty",
+          "start": 3,
+          "end": 4
+        }
+      ],
+      "meter": {
+        "work": 59464,
+        "allocation": 15908
+      }
+    },
+    {
+      "policy": "HTREE-AGG-v5",
+      "eligibility": "LOCAL-TAIL-HYPOTHESIS",
+      "group": "G10",
+      "ast": "W4",
+      "subject": "aaaa",
+      "order": [
+        "w4-B",
+        "w4-A"
+      ],
+      "expected": [
+        "w4-B",
+        "w4-A"
+      ],
+      "predictionMatched": true,
+      "rejections": [],
+      "winnerEnv": [
+        {
+          "state": "absent"
+        },
+        {
+          "state": "completed-nonempty",
+          "start": 3,
+          "end": 4
+        },
+        {
+          "state": "completed-nonempty",
+          "start": 3,
+          "end": 4
+        }
+      ],
+      "meter": {
+        "work": 138462,
+        "allocation": 32813
+      }
+    },
+    {
+      "policy": "HTREE-AGG-v5",
+      "eligibility": "LOCAL-TAIL-HYPOTHESIS",
+      "group": "G11",
+      "ast": "D",
+      "subject": "abab",
+      "order": [
+        "d-skip"
+      ],
+      "expected": [
+        "d-skip"
+      ],
+      "predictionMatched": true,
+      "rejections": [],
+      "winnerEnv": [
+        {
+          "state": "absent"
+        },
+        {
+          "state": "completed-nonempty",
+          "start": 2,
+          "end": 3
+        },
+        {
+          "state": "completed-nonempty",
+          "start": 1,
+          "end": 2
+        }
+      ],
+      "meter": {
+        "work": 36678,
+        "allocation": 10237
+      }
+    },
+    {
+      "policy": "HTREE-AGG-v5",
+      "eligibility": "LOCAL-TAIL-HYPOTHESIS",
+      "group": "G11",
+      "ast": "D",
+      "subject": "ababb",
+      "order": [
+        "d-reentry"
+      ],
+      "expected": [
+        "d-reentry"
+      ],
+      "predictionMatched": true,
+      "rejections": [],
+      "winnerEnv": [
+        {
+          "state": "absent"
+        },
+        {
+          "state": "completed-nonempty",
+          "start": 2,
+          "end": 4
+        },
+        {
+          "state": "completed-nonempty",
+          "start": 3,
+          "end": 4
+        }
+      ],
+      "meter": {
+        "work": 40914,
+        "allocation": 10847
+      }
+    },
+    {
+      "policy": "HTREE-AGG-v5",
+      "eligibility": "LOCAL-TAIL-HYPOTHESIS",
+      "group": "G11",
+      "ast": "E",
+      "subject": "aba",
+      "order": [
+        "e-empty-reentry"
+      ],
+      "expected": [
+        "e-empty-reentry"
+      ],
+      "predictionMatched": true,
+      "rejections": [],
+      "winnerEnv": [
+        {
+          "state": "absent"
+        },
+        {
+          "state": "completed-nonempty",
+          "start": 2,
+          "end": 3
+        },
+        {
+          "state": "completed-empty",
+          "start": 3,
+          "end": 3
+        }
+      ],
+      "meter": {
+        "work": 38635,
+        "allocation": 10521
+      }
+    },
+    {
+      "policy": "HTREE-AGG-v5",
+      "eligibility": "LOCAL-TAIL-HYPOTHESIS",
+      "group": "G12",
+      "ast": "emptyReference",
+      "subject": "a",
+      "order": [
+        "empty-reference"
+      ],
+      "expected": [
+        "empty-reference"
+      ],
+      "predictionMatched": true,
+      "rejections": [],
+      "winnerEnv": [
+        {
+          "state": "absent"
+        },
+        {
+          "state": "completed-nonempty",
+          "start": 0,
+          "end": 1
+        },
+        {
+          "state": "completed-empty",
+          "start": 1,
+          "end": 1
+        }
+      ],
+      "meter": {
+        "work": 22569,
+        "allocation": 8014
+      }
+    }
+  ],
+  "checks": [
+    {
+      "id": "HNODE-AGG-v5/FINITE-PERMISSIVE/G01/P:aaaa",
+      "status": "pass"
+    },
+    {
+      "id": "HNODE-AGG-v5/FINITE-PERMISSIVE/G02/P:aaaa",
+      "status": "pass"
+    },
+    {
+      "id": "HNODE-AGG-v5/FINITE-PERMISSIVE/G03/prefix:aaa",
+      "status": "pass"
+    },
+    {
+      "id": "HNODE-AGG-v5/FINITE-PERMISSIVE/G04/boundedPrefix:aaa",
+      "status": "pass"
+    },
+    {
+      "id": "HNODE-AGG-v5/FINITE-PERMISSIVE/G05/innerPrefix:aaa",
+      "status": "pass"
+    },
+    {
+      "id": "HNODE-AGG-v5/FINITE-PERMISSIVE/G06/U:",
+      "status": "pass"
+    },
+    {
+      "id": "HNODE-AGG-v5/FINITE-PERMISSIVE/G07/Q:",
+      "status": "pass"
+    },
+    {
+      "id": "HNODE-AGG-v5/FINITE-PERMISSIVE/G07/Q:aaa",
+      "status": "pass"
+    },
+    {
+      "id": "HNODE-AGG-v5/FINITE-PERMISSIVE/G07/requiredChild:aa",
+      "status": "pass"
+    },
+    {
+      "id": "HNODE-AGG-v5/FINITE-PERMISSIVE/G07/requiredPrefix:a",
+      "status": "pass"
+    },
+    {
+      "id": "HNODE-AGG-v5/FINITE-PERMISSIVE/G07/requiredNested:",
+      "status": "pass"
+    },
+    {
+      "id": "HNODE-AGG-v5/FINITE-PERMISSIVE/G08/P:aaa",
+      "status": "pass"
+    },
+    {
+      "id": "HNODE-AGG-v5/FINITE-PERMISSIVE/G09/U:aaaa",
+      "status": "pass"
+    },
+    {
+      "id": "HNODE-AGG-v5/FINITE-PERMISSIVE/G10/W4:aaaa",
+      "status": "pass"
+    },
+    {
+      "id": "HNODE-AGG-v5/FINITE-PERMISSIVE/G11/D:abab",
+      "status": "pass"
+    },
+    {
+      "id": "HNODE-AGG-v5/FINITE-PERMISSIVE/G11/D:ababb",
+      "status": "pass"
+    },
+    {
+      "id": "HNODE-AGG-v5/FINITE-PERMISSIVE/G11/E:aba",
+      "status": "pass"
+    },
+    {
+      "id": "HNODE-AGG-v5/FINITE-PERMISSIVE/G12/emptyReference:a",
+      "status": "pass"
+    },
+    {
+      "id": "HNODE-AGG-v5/LOCAL-TAIL-HYPOTHESIS/G01/P:aaaa",
+      "status": "pass"
+    },
+    {
+      "id": "HNODE-AGG-v5/LOCAL-TAIL-HYPOTHESIS/G02/P:aaaa",
+      "status": "pass"
+    },
+    {
+      "id": "HNODE-AGG-v5/LOCAL-TAIL-HYPOTHESIS/G03/prefix:aaa",
+      "status": "pass"
+    },
+    {
+      "id": "HNODE-AGG-v5/LOCAL-TAIL-HYPOTHESIS/G04/boundedPrefix:aaa",
+      "status": "pass"
+    },
+    {
+      "id": "HNODE-AGG-v5/LOCAL-TAIL-HYPOTHESIS/G05/innerPrefix:aaa",
+      "status": "pass"
+    },
+    {
+      "id": "HNODE-AGG-v5/LOCAL-TAIL-HYPOTHESIS/G06/U:",
+      "status": "pass"
+    },
+    {
+      "id": "HNODE-AGG-v5/LOCAL-TAIL-HYPOTHESIS/G07/Q:",
+      "status": "pass"
+    },
+    {
+      "id": "HNODE-AGG-v5/LOCAL-TAIL-HYPOTHESIS/G07/Q:aaa",
+      "status": "pass"
+    },
+    {
+      "id": "HNODE-AGG-v5/LOCAL-TAIL-HYPOTHESIS/G07/requiredChild:aa",
+      "status": "pass"
+    },
+    {
+      "id": "HNODE-AGG-v5/LOCAL-TAIL-HYPOTHESIS/G07/requiredPrefix:a",
+      "status": "pass"
+    },
+    {
+      "id": "HNODE-AGG-v5/LOCAL-TAIL-HYPOTHESIS/G07/requiredNested:",
+      "status": "pass"
+    },
+    {
+      "id": "HNODE-AGG-v5/LOCAL-TAIL-HYPOTHESIS/G08/P:aaa",
+      "status": "pass"
+    },
+    {
+      "id": "HNODE-AGG-v5/LOCAL-TAIL-HYPOTHESIS/G09/U:aaaa",
+      "status": "pass"
+    },
+    {
+      "id": "HNODE-AGG-v5/LOCAL-TAIL-HYPOTHESIS/G10/W4:aaaa",
+      "status": "pass"
+    },
+    {
+      "id": "HNODE-AGG-v5/LOCAL-TAIL-HYPOTHESIS/G11/D:abab",
+      "status": "pass"
+    },
+    {
+      "id": "HNODE-AGG-v5/LOCAL-TAIL-HYPOTHESIS/G11/D:ababb",
+      "status": "pass"
+    },
+    {
+      "id": "HNODE-AGG-v5/LOCAL-TAIL-HYPOTHESIS/G11/E:aba",
+      "status": "pass"
+    },
+    {
+      "id": "HNODE-AGG-v5/LOCAL-TAIL-HYPOTHESIS/G12/emptyReference:a",
+      "status": "pass"
+    },
+    {
+      "id": "HTREE-AGG-v5/FINITE-PERMISSIVE/G01/P:aaaa",
+      "status": "pass"
+    },
+    {
+      "id": "HTREE-AGG-v5/FINITE-PERMISSIVE/G02/P:aaaa",
+      "status": "pass"
+    },
+    {
+      "id": "HTREE-AGG-v5/FINITE-PERMISSIVE/G03/prefix:aaa",
+      "status": "pass"
+    },
+    {
+      "id": "HTREE-AGG-v5/FINITE-PERMISSIVE/G04/boundedPrefix:aaa",
+      "status": "pass"
+    },
+    {
+      "id": "HTREE-AGG-v5/FINITE-PERMISSIVE/G05/innerPrefix:aaa",
+      "status": "pass"
+    },
+    {
+      "id": "HTREE-AGG-v5/FINITE-PERMISSIVE/G06/U:",
+      "status": "pass"
+    },
+    {
+      "id": "HTREE-AGG-v5/FINITE-PERMISSIVE/G07/Q:",
+      "status": "pass"
+    },
+    {
+      "id": "HTREE-AGG-v5/FINITE-PERMISSIVE/G07/Q:aaa",
+      "status": "pass"
+    },
+    {
+      "id": "HTREE-AGG-v5/FINITE-PERMISSIVE/G07/requiredChild:aa",
+      "status": "pass"
+    },
+    {
+      "id": "HTREE-AGG-v5/FINITE-PERMISSIVE/G07/requiredPrefix:a",
+      "status": "pass"
+    },
+    {
+      "id": "HTREE-AGG-v5/FINITE-PERMISSIVE/G07/requiredNested:",
+      "status": "pass"
+    },
+    {
+      "id": "HTREE-AGG-v5/FINITE-PERMISSIVE/G08/P:aaa",
+      "status": "pass"
+    },
+    {
+      "id": "HTREE-AGG-v5/FINITE-PERMISSIVE/G09/U:aaaa",
+      "status": "pass"
+    },
+    {
+      "id": "HTREE-AGG-v5/FINITE-PERMISSIVE/G10/W4:aaaa",
+      "status": "pass"
+    },
+    {
+      "id": "HTREE-AGG-v5/FINITE-PERMISSIVE/G11/D:abab",
+      "status": "pass"
+    },
+    {
+      "id": "HTREE-AGG-v5/FINITE-PERMISSIVE/G11/D:ababb",
+      "status": "pass"
+    },
+    {
+      "id": "HTREE-AGG-v5/FINITE-PERMISSIVE/G11/E:aba",
+      "status": "pass"
+    },
+    {
+      "id": "HTREE-AGG-v5/FINITE-PERMISSIVE/G12/emptyReference:a",
+      "status": "pass"
+    },
+    {
+      "id": "HTREE-AGG-v5/LOCAL-TAIL-HYPOTHESIS/G01/P:aaaa",
+      "status": "pass"
+    },
+    {
+      "id": "HTREE-AGG-v5/LOCAL-TAIL-HYPOTHESIS/G02/P:aaaa",
+      "status": "pass"
+    },
+    {
+      "id": "HTREE-AGG-v5/LOCAL-TAIL-HYPOTHESIS/G03/prefix:aaa",
+      "status": "pass"
+    },
+    {
+      "id": "HTREE-AGG-v5/LOCAL-TAIL-HYPOTHESIS/G04/boundedPrefix:aaa",
+      "status": "pass"
+    },
+    {
+      "id": "HTREE-AGG-v5/LOCAL-TAIL-HYPOTHESIS/G05/innerPrefix:aaa",
+      "status": "pass"
+    },
+    {
+      "id": "HTREE-AGG-v5/LOCAL-TAIL-HYPOTHESIS/G06/U:",
+      "status": "pass"
+    },
+    {
+      "id": "HTREE-AGG-v5/LOCAL-TAIL-HYPOTHESIS/G07/Q:",
+      "status": "pass"
+    },
+    {
+      "id": "HTREE-AGG-v5/LOCAL-TAIL-HYPOTHESIS/G07/Q:aaa",
+      "status": "pass"
+    },
+    {
+      "id": "HTREE-AGG-v5/LOCAL-TAIL-HYPOTHESIS/G07/requiredChild:aa",
+      "status": "pass"
+    },
+    {
+      "id": "HTREE-AGG-v5/LOCAL-TAIL-HYPOTHESIS/G07/requiredPrefix:a",
+      "status": "pass"
+    },
+    {
+      "id": "HTREE-AGG-v5/LOCAL-TAIL-HYPOTHESIS/G07/requiredNested:",
+      "status": "pass"
+    },
+    {
+      "id": "HTREE-AGG-v5/LOCAL-TAIL-HYPOTHESIS/G08/P:aaa",
+      "status": "pass"
+    },
+    {
+      "id": "HTREE-AGG-v5/LOCAL-TAIL-HYPOTHESIS/G09/U:aaaa",
+      "status": "pass"
+    },
+    {
+      "id": "HTREE-AGG-v5/LOCAL-TAIL-HYPOTHESIS/G10/W4:aaaa",
+      "status": "pass"
+    },
+    {
+      "id": "HTREE-AGG-v5/LOCAL-TAIL-HYPOTHESIS/G11/D:abab",
+      "status": "pass"
+    },
+    {
+      "id": "HTREE-AGG-v5/LOCAL-TAIL-HYPOTHESIS/G11/D:ababb",
+      "status": "pass"
+    },
+    {
+      "id": "HTREE-AGG-v5/LOCAL-TAIL-HYPOTHESIS/G11/E:aba",
+      "status": "pass"
+    },
+    {
+      "id": "HTREE-AGG-v5/LOCAL-TAIL-HYPOTHESIS/G12/emptyReference:a",
+      "status": "pass"
+    },
+    {
+      "id": "G04/overmaximum",
+      "status": "pass"
+    },
+    {
+      "id": "G07/missing-local-minimum",
+      "status": "pass"
+    },
+    {
+      "id": "G07/restarted-required-ordinals",
+      "status": "fail",
+      "name": "AssertionError",
+      "code": "ERR_ASSERTION",
+      "message": "Expected values to be strictly equal:\n\n5 !== 4\n"
+    },
+    {
+      "id": "G11/failed-sibling-preserves-retained-history",
+      "status": "pass"
+    },
+    {
+      "id": "G12/absentReference",
+      "status": "pass"
+    },
+    {
+      "id": "G12/openSelf",
+      "status": "pass"
+    },
+    {
+      "id": "G12/openReentry",
+      "status": "pass"
+    },
+    {
+      "id": "G12/malformed-span-membership-and-expected-projection",
+      "status": "pass"
+    },
+    {
+      "id": "G12/unchanged-caps-and-invalid-cap-refusal",
+      "status": "pass"
+    },
+    {
+      "id": "G12/explicit-profiles-required",
+      "status": "pass"
+    },
+    {
+      "id": "G12/HNODE-AGG-v5/work-after-incumbent",
+      "status": "pass"
+    },
+    {
+      "id": "G12/HNODE-AGG-v5/allocation-after-incumbent",
+      "status": "pass"
+    },
+    {
+      "id": "G12/HTREE-AGG-v5/work-after-incumbent",
+      "status": "pass"
+    },
+    {
+      "id": "G12/HTREE-AGG-v5/allocation-after-incumbent",
+      "status": "pass"
+    },
+    {
+      "id": "G12/preparation-failure-rolls-back-membership-not-charges",
+      "status": "pass"
+    },
+    {
+      "id": "G12/exact-abort-before-work",
+      "status": "pass"
+    },
+    {
+      "id": "G12/exact-abort-during-table-preparation-after-acceptance",
+      "status": "pass"
+    },
+    {
+      "id": "G12/HNODE-AGG-v5/exact-abort-after-incumbent",
+      "status": "pass"
+    },
+    {
+      "id": "G12/HNODE-AGG-v5/exact-abort-during-comparison",
+      "status": "pass"
+    },
+    {
+      "id": "G12/HTREE-AGG-v5/exact-abort-after-incumbent",
+      "status": "pass"
+    },
+    {
+      "id": "G12/HTREE-AGG-v5/exact-abort-during-comparison",
+      "status": "pass"
+    }
+  ],
+  "targetFailures": [
+    {
+      "policy": "HNODE-AGG-v5",
+      "eligibility": "FINITE-PERMISSIVE",
+      "group": "G01",
+      "target": "immutable review C1 first body: p4-aa before p4-111",
+      "observed": [
+        "p4-111",
+        "p4-aa",
+        "p4-11",
+        "p4-1"
+      ],
+      "status": "FAIL: aggregate-first conflict preserved"
+    },
+    {
+      "policy": "HNODE-AGG-v5",
+      "eligibility": "FINITE-PERMISSIVE",
+      "group": "G08",
+      "target": "fixed root P/aaa completed a",
+      "observed": "p3-tail",
+      "status": "FAIL: capture-changing tail remains eligible"
+    },
+    {
+      "policy": "HNODE-AGG-v5",
+      "eligibility": "LOCAL-TAIL-HYPOTHESIS",
+      "group": "G01",
+      "target": "immutable review C1 first body: p4-aa before p4-111",
+      "observed": [
+        "p4-111",
+        "p4-aa",
+        "p4-11",
+        "p4-1"
+      ],
+      "status": "FAIL: aggregate-first conflict preserved"
+    },
+    {
+      "policy": "HTREE-AGG-v5",
+      "eligibility": "FINITE-PERMISSIVE",
+      "group": "G01",
+      "target": "immutable review C1 first body: p4-aa before p4-111",
+      "observed": [
+        "p4-111",
+        "p4-aa",
+        "p4-11",
+        "p4-1"
+      ],
+      "status": "FAIL: aggregate-first conflict preserved"
+    },
+    {
+      "policy": "HTREE-AGG-v5",
+      "eligibility": "FINITE-PERMISSIVE",
+      "group": "G08",
+      "target": "fixed root P/aaa completed a",
+      "observed": "p3-tail",
+      "status": "FAIL: capture-changing tail remains eligible"
+    },
+    {
+      "policy": "HTREE-AGG-v5",
+      "eligibility": "LOCAL-TAIL-HYPOTHESIS",
+      "group": "G01",
+      "target": "immutable review C1 first body: p4-aa before p4-111",
+      "observed": [
+        "p4-111",
+        "p4-aa",
+        "p4-11",
+        "p4-1"
+      ],
+      "status": "FAIL: aggregate-first conflict preserved"
+    }
+  ],
+  "historical": {
+    "authorFailedPredictions": 2,
+    "independent": "46/52; six policy failures",
+    "originalAdapter": "44/50 historical",
+    "source": "frozen/BINDINGS.json; authenticated only, not rerun or rescored"
+  },
+  "interpretation": [
+    "Five prior discrepancy assertions receive the frozen repaired ordering; C1 remains contradictory under both hierarchies.",
+    "P/aaa narrow a succeeds only in the separately named conditional eligibility domain; permissive tails conflict with root.",
+    "W4 splits NODE A versus TREE B. No native vote chooses a policy.",
+    "TEMP D/abab retained-b differs from explicit Issue8; not a POSIX pass. GNU empty gap retained."
+  ],
+  "unproven": [
+    "Matcher and parser correspondence; complete path enumeration; arbitrary external-log validation",
+    "General eligibility/cycle quotient and suffix-compatible dominance; no merge implemented",
+    "Supported arbitrary activation-ID renaming API; reconstructed histories only checked",
+    "Async worker cleanup, responsiveness, opaque-host preemption, physical RSS and historical137",
+    "General policy selection, root authorization, production integration or parity"
+  ],
+  "archiveIntegrity": {
+    "completeEntryInventoryEqualBeforeAfter": true,
+    "detectsAddedFilesDirectoriesAndSymlinks": true,
+    "scope": "owned execution archive only, not the concurrent repository"
+  },
+  "harness": {
+    "workLimit": 50000000,
+    "allocationLimit": 50000000,
+    "cumulativeAdmissionEnforced": true,
+    "integrityInventoryCostsDependOnInertArchiveContents": true
+  }
+}

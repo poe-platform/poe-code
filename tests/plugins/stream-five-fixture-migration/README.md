@@ -41,6 +41,21 @@ including separate `AgentCommandsOptions.split` limits and rejected duplicate
 explicit plugins. The original native inputs and diagnostic assertions are
 unchanged; this helper execution change is disclosed, not unchanged-harness proof.
 
+`final-runs.json` repeats all 189 revised cases successfully. `final-consumer.json`
+records a successful isolated ESM/declaration build, strict compilation and
+execution of the migrated original consumer (12 inspection dispatches and both
+aggregate pipeline modes), plus the new root/subpath options consumer. The latter
+checks actual formatting/split factories, plugins, option/limit types, top-level
+replacement typing, standalone families and default aggregate configuration.
+`final-invariants.json` proves identical hashes for all 159 tracked runtime TS
+files, 93 existing unmigrated test/evidence files, 11 native fixture sources and
+three root configuration files across the original and revised captures. Six
+unchanged fixture/helper-body segments additionally preserve the original native
+adapter, inputs, diagnostic assertions and non-availability tests. Exactly the
+five authorized existing test/helper files differ before the documentation step.
+The compiler is TypeScript 5.9.3 and runtime is Node v22.22.2. No root build or
+independent holdout suite is run. Final packed independent proof remains pending.
+
 These are author fixture-availability checks, not an independent packed freeze,
 the historical original82 native oracle, the stream-next-stress harness, or the
 read-only frozen60 independent inspection suite. Historical source-only evidence,

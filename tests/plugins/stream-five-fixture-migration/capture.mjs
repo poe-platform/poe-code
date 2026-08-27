@@ -85,6 +85,7 @@ const references = Object.fromEntries(["seq", "nl", "unexpand", "split", "rev"].
 const after = manifest();
 save(`${stage}-runs.json`, { capturedAt: new Date().toISOString(), head, platform: { platform: platform(), release: release(), arch: arch(), node: process.version }, sourceDifferences, before, after, runtime: names, references, results, status: git(["status", "--porcelain"]), index: git(["diff", "--cached", "--name-only"]), scope: "Exact author fixtures on committed tracked runtime source; shared working tree, not an independent final freeze. Native cases/diagnostics unchanged; no original82 or historical verifier rerun." });
 assert.deepEqual(after, before, "Validation must not rewrite source or fixture evidence");
+if (stage === "helper" || stage === "final") for (const result of Object.values(results)) assert.equal(result.status, 0, result.stdout);
 
 if (stage === "original" || stage === "final") {
   const base = `${directory}/dist/${stage}`;
@@ -99,10 +100,19 @@ if (stage === "original" || stage === "final") {
   save(`dist/${stage}/consumer/package.json`, { name: "stream-five-fixture-consumer", private: true, type: "module" });
   copyFileSync("package.json", `${packageRoot}/package.json`);
   copyFileSync(owned[1], `${consumer}/consumer.mts`);
+  const consumerFiles = ["consumer.mts"];
+  if (stage === "final") {
+    copyFileSync(`${directory}/public-options.mts`, `${consumer}/public-options.mts`);
+    consumerFiles.push("public-options.mts");
+  }
   save(`dist/${stage}/build/tsconfig.json`, { compilerOptions: { target: "ES2023", lib: ["ES2023"], module: "NodeNext", moduleResolution: "NodeNext", strict: true, noUncheckedIndexedAccess: true, exactOptionalPropertyTypes: true, verbatimModuleSyntax: true, forceConsistentCasingInFileNames: true, skipLibCheck: true, types: ["node"], rootDir: "src", outDir: "../consumer/node_modules/virtual-bash/dist", declaration: true, declarationMap: true, sourceMap: true }, include: ["src/**/*.ts"] });
   const build = command(resolve("node_modules/.bin/tsc"), ["-p", `${base}/build/tsconfig.json`]);
-  const types = command(resolve("node_modules/.bin/tsc"), ["--strict", "--noUncheckedIndexedAccess", "--exactOptionalPropertyTypes", "--verbatimModuleSyntax", "--module", "NodeNext", "--moduleResolution", "NodeNext", "--target", "ES2023", "--types", "node", "--rootDir", ".", "--outDir", "emitted", "consumer.mts"], { cwd: consumer });
+  const types = command(resolve("node_modules/.bin/tsc"), ["--strict", "--noUncheckedIndexedAccess", "--exactOptionalPropertyTypes", "--verbatimModuleSyntax", "--module", "NodeNext", "--moduleResolution", "NodeNext", "--target", "ES2023", "--types", "node", "--rootDir", ".", "--outDir", "emitted", ...consumerFiles], { cwd: consumer });
   const execution = types.status === 0 && build.status === 0 ? command(process.execPath, ["emitted/consumer.mjs"], { cwd: consumer }) : null;
-  save(`${stage}-consumer.json`, { head, sourceHashes: Object.fromEntries(sourceFiles.map(file => [file, before[file]])), consumerSha256: before[owned[1]], build, types, execution, qualification: "Isolated emitted package exports and strict consumer; not npm-packed independent final proof. No root dist writes." });
-  console.log(stage, "consumer", JSON.stringify({ build: build.status, types: types.status, runtime: execution?.status }));
+  const publicOptionsExecution = stage === "final" && types.status === 0 && build.status === 0 ? command(process.execPath, ["emitted/public-options.mjs"], { cwd: consumer }) : null;
+  save(`${stage}-consumer.json`, { head, sourceHashes: Object.fromEntries(sourceFiles.map(file => [file, before[file]])), consumerSha256: before[owned[1]], publicOptionsSha256: stage === "final" ? hash(readFileSync(`${directory}/public-options.mts`)) : null, build, types, execution, publicOptionsExecution, qualification: "Isolated emitted package exports and strict consumer; not npm-packed independent final proof. No root dist writes." });
+  console.log(stage, "consumer", JSON.stringify({ build: build.status, types: types.status, runtime: execution?.status, publicOptions: publicOptionsExecution?.status }));
+  if (stage === "final") {
+    for (const result of [build, types, execution, publicOptionsExecution]) assert.equal(result?.status, 0, result?.stdout + result?.stderr);
+  }
 }

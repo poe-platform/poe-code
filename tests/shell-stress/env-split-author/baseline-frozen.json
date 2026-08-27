@@ -1,0 +1,629 @@
+{
+  "stage": "current unchanged product BEFORE env-S implementation",
+  "before": {
+    "src/shell/runtime.ts": "5589f60a1db983538d37168e3b9276555ef71a2bc67446783535e47789f9d6eb",
+    "src/shell/parser.ts": "10d015eb62fd4e4f964666c04e5869ea78afdb76d930181760adecbcf16ab65e",
+    "src/commands/execution.ts": "1d084ab203dc59a510e39e5c71743b755ba9bdb5d4b018658398ed96c3dff700",
+    "src/commands/internal.ts": "28d83d91d5086b39b50494ea1130d34c3b48b22a15dc04c2912ee2503a7536d5",
+    "src/contracts/command.ts": "9c2f8ecf50def7250b01152a31a45c449109c3ae4d30878252cffe985c6e9df8"
+  },
+  "importedRuntime": "file:///Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts",
+  "fixtureHash": "ca5e3ab2a3ed67e95b4f2ce0e5bae4159445f015b92a3a32d29f631eb23cc68d",
+  "core": [
+    {
+      "name": "plain",
+      "observed": {
+        "status": 2,
+        "stdoutHex": "",
+        "stderrHex": "656e763a20696e76616c6964206f7074696f6e202d2d202753270a"
+      },
+      "calls": [
+        "env"
+      ],
+      "entries": []
+    },
+    {
+      "name": "whitespace",
+      "observed": {
+        "status": 2,
+        "stdoutHex": "",
+        "stderrHex": "656e763a20696e76616c6964206f7074696f6e202d2d202753270a"
+      },
+      "calls": [
+        "env"
+      ],
+      "entries": []
+    },
+    {
+      "name": "quotes-empty",
+      "observed": {
+        "status": 2,
+        "stdoutHex": "",
+        "stderrHex": "656e763a20696e76616c6964206f7074696f6e202d2d202753270a"
+      },
+      "calls": [
+        "env"
+      ],
+      "entries": []
+    },
+    {
+      "name": "quote-literals",
+      "observed": {
+        "status": 2,
+        "stdoutHex": "",
+        "stderrHex": "656e763a20696e76616c6964206f7074696f6e202d2d202753270a"
+      },
+      "calls": [
+        "env"
+      ],
+      "entries": []
+    },
+    {
+      "name": "escape-controls",
+      "observed": {
+        "status": 2,
+        "stdoutHex": "",
+        "stderrHex": "656e763a20696e76616c6964206f7074696f6e202d2d202753270a"
+      },
+      "calls": [
+        "env"
+      ],
+      "entries": []
+    },
+    {
+      "name": "escape-punctuation",
+      "observed": {
+        "status": 2,
+        "stdoutHex": "",
+        "stderrHex": "656e763a20696e76616c6964206f7074696f6e202d2d202753270a"
+      },
+      "calls": [
+        "env"
+      ],
+      "entries": []
+    },
+    {
+      "name": "single-quote-escapes",
+      "observed": {
+        "status": 2,
+        "stdoutHex": "",
+        "stderrHex": "656e763a20696e76616c6964206f7074696f6e202d2d202753270a"
+      },
+      "calls": [
+        "env"
+      ],
+      "entries": []
+    },
+    {
+      "name": "underscore",
+      "observed": {
+        "status": 2,
+        "stdoutHex": "",
+        "stderrHex": "656e763a20696e76616c6964206f7074696f6e202d2d202753270a"
+      },
+      "calls": [
+        "env"
+      ],
+      "entries": []
+    },
+    {
+      "name": "comment",
+      "observed": {
+        "status": 2,
+        "stdoutHex": "",
+        "stderrHex": "656e763a20696e76616c6964206f7074696f6e202d2d202753270a"
+      },
+      "calls": [
+        "env"
+      ],
+      "entries": []
+    },
+    {
+      "name": "comment-active",
+      "observed": {
+        "status": 2,
+        "stdoutHex": "",
+        "stderrHex": "656e763a20696e76616c6964206f7074696f6e202d2d202753270a"
+      },
+      "calls": [
+        "env"
+      ],
+      "entries": []
+    },
+    {
+      "name": "cancel-string",
+      "observed": {
+        "status": 2,
+        "stdoutHex": "",
+        "stderrHex": "656e763a20696e76616c6964206f7074696f6e202d2d202753270a"
+      },
+      "calls": [
+        "env"
+      ],
+      "entries": []
+    },
+    {
+      "name": "cancel-double-error",
+      "observed": {
+        "status": 2,
+        "stdoutHex": "",
+        "stderrHex": "656e763a20696e76616c6964206f7074696f6e202d2d202753270a"
+      },
+      "calls": [
+        "env"
+      ],
+      "entries": []
+    },
+    {
+      "name": "escape-space-error",
+      "observed": {
+        "status": 2,
+        "stdoutHex": "",
+        "stderrHex": "656e763a20696e76616c6964206f7074696f6e202d2d202753270a"
+      },
+      "calls": [
+        "env"
+      ],
+      "entries": []
+    },
+    {
+      "name": "escape-unknown-error",
+      "observed": {
+        "status": 2,
+        "stdoutHex": "",
+        "stderrHex": "656e763a20696e76616c6964206f7074696f6e202d2d202753270a"
+      },
+      "calls": [
+        "env"
+      ],
+      "entries": []
+    },
+    {
+      "name": "escape-final-error",
+      "observed": {
+        "status": 2,
+        "stdoutHex": "",
+        "stderrHex": "656e763a20696e76616c6964206f7074696f6e202d2d202753270a"
+      },
+      "calls": [
+        "env"
+      ],
+      "entries": []
+    },
+    {
+      "name": "quote-final-error",
+      "observed": {
+        "status": 2,
+        "stdoutHex": "",
+        "stderrHex": "656e763a20696e76616c6964206f7074696f6e202d2d202753270a"
+      },
+      "calls": [
+        "env"
+      ],
+      "entries": []
+    },
+    {
+      "name": "expand-boundary",
+      "observed": {
+        "status": 2,
+        "stdoutHex": "",
+        "stderrHex": "656e763a20696e76616c6964206f7074696f6e202d2d202753270a"
+      },
+      "calls": [
+        "env"
+      ],
+      "entries": []
+    },
+    {
+      "name": "expand-empty-unset",
+      "observed": {
+        "status": 2,
+        "stdoutHex": "",
+        "stderrHex": "656e763a20696e76616c6964206f7074696f6e202d2d202753270a"
+      },
+      "calls": [
+        "env"
+      ],
+      "entries": []
+    },
+    {
+      "name": "expand-single-literal",
+      "observed": {
+        "status": 2,
+        "stdoutHex": "",
+        "stderrHex": "656e763a20696e76616c6964206f7074696f6e202d2d202753270a"
+      },
+      "calls": [
+        "env"
+      ],
+      "entries": []
+    },
+    {
+      "name": "expand-before-i",
+      "observed": {
+        "status": 2,
+        "stdoutHex": "",
+        "stderrHex": "656e763a20696e76616c6964206f7074696f6e202d2d202753270a"
+      },
+      "calls": [
+        "env"
+      ],
+      "entries": []
+    },
+    {
+      "name": "expand-before-u",
+      "observed": {
+        "status": 2,
+        "stdoutHex": "",
+        "stderrHex": "656e763a20696e76616c6964206f7074696f6e202d2d202753270a"
+      },
+      "calls": [
+        "env"
+      ],
+      "entries": []
+    },
+    {
+      "name": "expand-assignment-timing",
+      "observed": {
+        "status": 2,
+        "stdoutHex": "",
+        "stderrHex": "656e763a20696e76616c6964206f7074696f6e202d2d202753270a"
+      },
+      "calls": [
+        "env"
+      ],
+      "entries": []
+    },
+    {
+      "name": "dollar-bare-error",
+      "observed": {
+        "status": 2,
+        "stdoutHex": "",
+        "stderrHex": "656e763a20696e76616c6964206f7074696f6e202d2d202753270a"
+      },
+      "calls": [
+        "env"
+      ],
+      "entries": []
+    },
+    {
+      "name": "dollar-name-error",
+      "observed": {
+        "status": 2,
+        "stdoutHex": "",
+        "stderrHex": "656e763a20696e76616c6964206f7074696f6e202d2d202753270a"
+      },
+      "calls": [
+        "env"
+      ],
+      "entries": []
+    },
+    {
+      "name": "dollar-default-error",
+      "observed": {
+        "status": 2,
+        "stdoutHex": "",
+        "stderrHex": "656e763a20696e76616c6964206f7074696f6e202d2d202753270a"
+      },
+      "calls": [
+        "env"
+      ],
+      "entries": []
+    },
+    {
+      "name": "dollar-substitution-error",
+      "observed": {
+        "status": 2,
+        "stdoutHex": "",
+        "stderrHex": "656e763a20696e76616c6964206f7074696f6e202d2d202753270a"
+      },
+      "calls": [
+        "env"
+      ],
+      "entries": []
+    },
+    {
+      "name": "literal-injection",
+      "observed": {
+        "status": 2,
+        "stdoutHex": "",
+        "stderrHex": "656e763a20696e76616c6964206f7074696f6e202d2d202753270a"
+      },
+      "calls": [
+        "env"
+      ],
+      "entries": []
+    },
+    {
+      "name": "attached-S",
+      "observed": {
+        "status": 2,
+        "stdoutHex": "",
+        "stderrHex": "656e763a20696e76616c6964206f7074696f6e202d2d202753270a"
+      },
+      "calls": [
+        "env"
+      ],
+      "entries": []
+    },
+    {
+      "name": "combined-iS",
+      "observed": {
+        "status": 2,
+        "stdoutHex": "",
+        "stderrHex": "656e763a20696e76616c6964206f7074696f6e202d2d202753270a"
+      },
+      "calls": [
+        "env"
+      ],
+      "entries": []
+    },
+    {
+      "name": "long-equals",
+      "observed": {
+        "status": 2,
+        "stdoutHex": "",
+        "stderrHex": "656e763a20756e7265636f676e697a6564206f7074696f6e20272d2d73706c69742d737472696e673d726563206f6e65270a"
+      },
+      "calls": [
+        "env"
+      ],
+      "entries": []
+    },
+    {
+      "name": "long-separate",
+      "observed": {
+        "status": 2,
+        "stdoutHex": "",
+        "stderrHex": "656e763a20756e7265636f676e697a6564206f7074696f6e20272d2d73706c69742d737472696e67270a"
+      },
+      "calls": [
+        "env"
+      ],
+      "entries": []
+    },
+    {
+      "name": "nested-S",
+      "observed": {
+        "status": 2,
+        "stdoutHex": "",
+        "stderrHex": "656e763a20696e76616c6964206f7074696f6e202d2d202753270a"
+      },
+      "calls": [
+        "env"
+      ],
+      "entries": []
+    },
+    {
+      "name": "repeated-S-before-command",
+      "observed": {
+        "status": 2,
+        "stdoutHex": "",
+        "stderrHex": "656e763a20696e76616c6964206f7074696f6e202d2d202753270a"
+      },
+      "calls": [
+        "env"
+      ],
+      "entries": []
+    },
+    {
+      "name": "S-after-command-is-literal",
+      "observed": {
+        "status": 2,
+        "stdoutHex": "",
+        "stderrHex": "656e763a20696e76616c6964206f7074696f6e202d2d202753270a"
+      },
+      "calls": [
+        "env"
+      ],
+      "entries": []
+    },
+    {
+      "name": "after-assignment-is-literal-command",
+      "observed": {
+        "status": 127,
+        "stdoutHex": "",
+        "stderrHex": "7368656c6c3a206c696e6520313a202d533a20636f6d6d616e64206e6f7420666f756e640a"
+      },
+      "calls": [
+        "env",
+        "-S"
+      ],
+      "entries": []
+    },
+    {
+      "name": "empty-S",
+      "observed": {
+        "status": 2,
+        "stdoutHex": "",
+        "stderrHex": "656e763a20696e76616c6964206f7074696f6e202d2d202753270a"
+      },
+      "calls": [
+        "env"
+      ],
+      "entries": []
+    },
+    {
+      "name": "empty-quoted-command",
+      "observed": {
+        "status": 2,
+        "stdoutHex": "",
+        "stderrHex": "656e763a20696e76616c6964206f7074696f6e202d2d202753270a"
+      },
+      "calls": [
+        "env"
+      ],
+      "entries": []
+    },
+    {
+      "name": "empty-print-environment",
+      "observed": {
+        "status": 2,
+        "stdoutHex": "",
+        "stderrHex": "656e763a20696e76616c6964206f7074696f6e202d2d202753270a"
+      },
+      "calls": [
+        "env"
+      ],
+      "entries": []
+    },
+    {
+      "name": "null-print",
+      "observed": {
+        "status": 2,
+        "stdoutHex": "",
+        "stderrHex": "656e763a20696e76616c6964206f7074696f6e202d2d202753270a"
+      },
+      "calls": [
+        "env"
+      ],
+      "entries": []
+    },
+    {
+      "name": "double-dash",
+      "observed": {
+        "status": 2,
+        "stdoutHex": "",
+        "stderrHex": "656e763a20696e76616c6964206f7074696f6e202d2d202753270a"
+      },
+      "calls": [
+        "env"
+      ],
+      "entries": []
+    },
+    {
+      "name": "bare-dash",
+      "observed": {
+        "status": 2,
+        "stdoutHex": "",
+        "stderrHex": "656e763a20696e76616c6964206f7074696f6e202d2d202753270a"
+      },
+      "calls": [
+        "env"
+      ],
+      "entries": []
+    },
+    {
+      "name": "bare-dash-stops-options",
+      "observed": {
+        "status": 2,
+        "stdoutHex": "",
+        "stderrHex": "656e763a20696e76616c6964206f7074696f6e202d2d202753270a"
+      },
+      "calls": [
+        "env"
+      ],
+      "entries": []
+    },
+    {
+      "name": "unset-long",
+      "observed": {
+        "status": 2,
+        "stdoutHex": "",
+        "stderrHex": "656e763a20696e76616c6964206f7074696f6e202d2d202753270a"
+      },
+      "calls": [
+        "env"
+      ],
+      "entries": []
+    },
+    {
+      "name": "unicode",
+      "observed": {
+        "status": 2,
+        "stdoutHex": "",
+        "stderrHex": "656e763a20696e76616c6964206f7074696f6e202d2d202753270a"
+      },
+      "calls": [
+        "env"
+      ],
+      "entries": []
+    },
+    {
+      "name": "no-S-single-target",
+      "observed": {
+        "status": 127,
+        "stdoutHex": "",
+        "stderrHex": "7368656c6c3a206c696e6520313a2072656320616c7068613a20636f6d6d616e64206e6f7420666f756e640a"
+      },
+      "calls": [
+        "env",
+        "rec alpha"
+      ],
+      "entries": []
+    }
+  ],
+  "protocol": [
+    {
+      "name": "plain-e",
+      "observed": {
+        "status": 126,
+        "stdoutHex": "",
+        "stderrHex": "7368656c6c3a206c696e6520313a202e2f7363726970743a20756e737570706f7274656420696e7465727072657465723a202f7573722f62696e2f656e76202d532062617368202d650a"
+      }
+    },
+    {
+      "name": "long-e",
+      "observed": {
+        "status": 126,
+        "stdoutHex": "",
+        "stderrHex": "7368656c6c3a206c696e6520313a202e2f7363726970743a20756e737570706f7274656420696e7465727072657465723a202f7573722f62696e2f656e76202d2d73706c69742d737472696e673d62617368202d650a"
+      }
+    },
+    {
+      "name": "quote-argument",
+      "observed": {
+        "status": 126,
+        "stdoutHex": "",
+        "stderrHex": "7368656c6c3a206c696e6520313a202e2f7363726970743a20756e737570706f7274656420696e7465727072657465723a202f7573722f62696e2f656e76202d532062617368202d6520226c69746572616c206e616d65220a"
+      }
+    },
+    {
+      "name": "environment",
+      "observed": {
+        "status": 126,
+        "stdoutHex": "",
+        "stderrHex": "7368656c6c3a206c696e6520313a202e2f7363726970743a20756e737570706f7274656420696e7465727072657465723a202f7573722f62696e2f656e76202d53202d6920504154483d247b504154487d204b4545503d247b567d2062617368202d650a"
+      }
+    },
+    {
+      "name": "relocated-file",
+      "observed": {
+        "status": 126,
+        "stdoutHex": "",
+        "stderrHex": "7368656c6c3a206c696e6520313a202e2f7363726970743a20756e737570706f7274656420696e7465727072657465723a202f7573722f62696e2f656e76202d53202d43207375622062617368202d650a"
+      }
+    },
+    {
+      "name": "literal-no-S",
+      "observed": {
+        "status": 126,
+        "stdoutHex": "",
+        "stderrHex": "7368656c6c3a206c696e6520313a202e2f7363726970743a20756e737570706f7274656420696e7465727072657465723a202f7573722f62696e2f656e762062617368202d650a"
+      }
+    },
+    {
+      "name": "long-space-not-equals",
+      "observed": {
+        "status": 126,
+        "stdoutHex": "",
+        "stderrHex": "7368656c6c3a206c696e6520313a202e2f7363726970743a20756e737570706f7274656420696e7465727072657465723a202f7573722f62696e2f656e76202d2d73706c69742d737472696e672062617368202d650a"
+      }
+    },
+    {
+      "name": "explicit-c-capability-boundary",
+      "observed": {
+        "status": 126,
+        "stdoutHex": "",
+        "stderrHex": "7368656c6c3a206c696e6520313a202e2f7363726970743a20756e737570706f7274656420696e7465727072657465723a202f7573722f62696e2f656e76202d532062617368202d6320227072696e7466206578706c69636974220a"
+      }
+    }
+  ],
+  "after": {
+    "src/shell/runtime.ts": "5589f60a1db983538d37168e3b9276555ef71a2bc67446783535e47789f9d6eb",
+    "src/shell/parser.ts": "10d015eb62fd4e4f964666c04e5869ea78afdb76d930181760adecbcf16ab65e",
+    "src/commands/execution.ts": "1d084ab203dc59a510e39e5c71743b755ba9bdb5d4b018658398ed96c3dff700",
+    "src/commands/internal.ts": "28d83d91d5086b39b50494ea1130d34c3b48b22a15dc04c2912ee2503a7536d5",
+    "src/contracts/command.ts": "9c2f8ecf50def7250b01152a31a45c449109c3ae4d30878252cffe985c6e9df8"
+  }
+}

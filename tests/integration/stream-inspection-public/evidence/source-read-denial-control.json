@@ -1,0 +1,12 @@
+{
+  "name": "supplemental actual OS repository source-read denial",
+  "notPartOfFrozen27": true,
+  "profile": "(version 1) (allow default) (deny network*) (deny file-read* (subpath \"/Users/kjopek/Workspace/safe-bash\"))",
+  "code": "const fs=require(\"node:fs\");try{fs.readFileSync(\"/Users/kjopek/Workspace/safe-bash/src/index.ts\");process.exitCode=3}catch(error){console.log(JSON.stringify({code:error.code,syscall:error.syscall}));process.exitCode=error.code===\"EPERM\"?0:2}",
+  "node": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "status": 0,
+  "stdout": "{\"code\":\"EPERM\",\"syscall\":\"open\"}\n",
+  "stderr": "",
+  "codeSha256": "822e1d89be4c79b387eb1e493853ca1a6579db20a9afb9991a0dcde2766114e8",
+  "productExecution": false
+}

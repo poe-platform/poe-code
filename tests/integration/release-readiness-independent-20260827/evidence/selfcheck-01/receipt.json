@@ -1,0 +1,276 @@
+{
+  "scope": "pre-candidate fixture machinery only",
+  "startedAt": "2026-08-27T17:54:50.811Z",
+  "completedAt": "2026-08-27T17:54:51.258Z",
+  "baseline": "d5f068cd3649c09c6e4573645b64de505875adc3",
+  "sourceCandidate": null,
+  "nativeExecuted": false,
+  "gateExecuted": false,
+  "node": {
+    "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "version": "v22.22.2",
+    "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+  },
+  "caseDefinitions": 78,
+  "groups": {
+    "inventory": 14,
+    "asset": 4,
+    "classification": 10,
+    "negative": 6,
+    "defaults": 6,
+    "counts": 4,
+    "cleanup": 6,
+    "runtime": 13,
+    "permission": 8,
+    "binding": 7
+  },
+  "perPathOmissions": [
+    "tests/commands/column-stress/current-contract-review/consumer.mts",
+    "tests/commands/column-stress/handoff-20260827/packed-types.mts",
+    "tests/commands/column-stress/padding-evolution/execution-20260827/packed-types.mts",
+    "tests/commands/grep-aliases-stress/verification/coverage-supplement/pipeline-holdouts.mts",
+    "tests/commands/grep-aliases-stress/verification/holdouts.mts",
+    "tests/commands/grep-aliases-stress/verification/public-consumer.mts",
+    "tests/commands/grep-aliases/consumer.mts",
+    "tests/commands/network-zero-caps-review/consumer.mts",
+    "tests/commands/network-zero-caps-review/mutations.d.mts",
+    "tests/commands/network-zero-caps-review/offline.d.mts",
+    "tests/commands/network-zero-caps-review/runtime.d.mts"
+  ],
+  "runs": [
+    {
+      "label": "syntax-01",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--check",
+        "baseline/tests/integration/full-gate-20260827/account.mjs"
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null
+    },
+    {
+      "label": "syntax-02",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--check",
+        "baseline/tests/plugins/qualified-current-release/inventory-check.mjs"
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null
+    },
+    {
+      "label": "syntax-03",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--check",
+        "baseline/tests/plugins/qualified-current-release/runtime-coverage.mjs"
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null
+    },
+    {
+      "label": "syntax-04",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--check",
+        "baseline/tests/plugins/stream-five-public/current-profile.mjs"
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null
+    },
+    {
+      "label": "syntax-05",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--check",
+        "fixture-tools.mjs"
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null
+    },
+    {
+      "label": "syntax-06",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--check",
+        "freeze-baseline.mjs"
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null
+    },
+    {
+      "label": "syntax-07",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--check",
+        "record.mjs"
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null
+    },
+    {
+      "label": "syntax-08",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--check",
+        "selfcheck.mjs"
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null
+    },
+    {
+      "label": "selfcheck",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--test",
+        "--test-reporter=tap",
+        "selfcheck.mjs"
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null
+    }
+  ],
+  "fixtureInventory": [
+    {
+      "path": "",
+      "type": "directory",
+      "mode": 493
+    },
+    {
+      "path": "README.md",
+      "type": "file",
+      "mode": 420,
+      "sha256": "4646617b3c9c8506afb44002f31c87bb9a647832ead3604ccd80df81dd4c55c6"
+    },
+    {
+      "path": "baseline",
+      "type": "directory",
+      "mode": 493
+    },
+    {
+      "path": "baseline/tests",
+      "type": "directory",
+      "mode": 493
+    },
+    {
+      "path": "baseline/tests/integration",
+      "type": "directory",
+      "mode": 493
+    },
+    {
+      "path": "baseline/tests/integration/full-gate-20260827",
+      "type": "directory",
+      "mode": 493
+    },
+    {
+      "path": "baseline/tests/integration/full-gate-20260827/account.mjs",
+      "type": "file",
+      "mode": 420,
+      "sha256": "279f552950ee9f90a884c448f31d19903add6672da042d4a195b89fd84de742c"
+    },
+    {
+      "path": "baseline/tests/plugins",
+      "type": "directory",
+      "mode": 493
+    },
+    {
+      "path": "baseline/tests/plugins/qualified-current-release",
+      "type": "directory",
+      "mode": 493
+    },
+    {
+      "path": "baseline/tests/plugins/qualified-current-release/inventory-check.mjs",
+      "type": "file",
+      "mode": 420,
+      "sha256": "1afd5cf0b4a1f42ed86330fde6655f5b606eed3be79a4f1026b4c2bf6294b9f3"
+    },
+    {
+      "path": "baseline/tests/plugins/qualified-current-release/runtime-coverage.mjs",
+      "type": "file",
+      "mode": 420,
+      "sha256": "96403245ff2ff31b27708d20a56c96c36466551b1a19fcf892e0b0d19ce9e9f5"
+    },
+    {
+      "path": "baseline/tests/plugins/stream-five-public",
+      "type": "directory",
+      "mode": 493
+    },
+    {
+      "path": "baseline/tests/plugins/stream-five-public/current-profile.mjs",
+      "type": "file",
+      "mode": 420,
+      "sha256": "929e019df6e9ae45689ef06ff2d3b495d0dbe7ab2a9a6a30e5d2a7666acde958"
+    },
+    {
+      "path": "boundary.json",
+      "type": "file",
+      "mode": 420,
+      "sha256": "45924201d57add04ff156e0a577f9e865a866e9dc804a82fd5e4821e75cfb3bd"
+    },
+    {
+      "path": "candidate-template.json",
+      "type": "file",
+      "mode": 420,
+      "sha256": "cc0584ddd4f9699ad57e9705b2354ecf78ce40018b63a9ac1d947301f8e4da51"
+    },
+    {
+      "path": "cases.json",
+      "type": "file",
+      "mode": 420,
+      "sha256": "d6a29c9db71081b1a35efa9ebe188e37344051e2a5a175125778771daba44e52"
+    },
+    {
+      "path": "fixture-tools.mjs",
+      "type": "file",
+      "mode": 420,
+      "sha256": "4d387d34fdfe07f720004fde6d2a1eb57d9a2c24676a4cf811e416e39ff861be"
+    },
+    {
+      "path": "freeze-baseline.mjs",
+      "type": "file",
+      "mode": 420,
+      "sha256": "712c6683a2844a0c0ba942c14de9a59e6ecbc86618dbd3c8a6d85d7bf15bd67b"
+    },
+    {
+      "path": "record.mjs",
+      "type": "file",
+      "mode": 420,
+      "sha256": "1a0f277aea1cd0ff9471645c1bb91d8869e755854701ad285037aab2a6fb41bf"
+    },
+    {
+      "path": "selfcheck.mjs",
+      "type": "file",
+      "mode": 420,
+      "sha256": "b0d62be916b0beaad09fe83872d4036ab64c54c5b386dd9235d1c8a2531664f0"
+    }
+  ],
+  "outputHashes": {
+    "syntax-01.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "syntax-01.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "syntax-02.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "syntax-02.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "syntax-03.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "syntax-03.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "syntax-04.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "syntax-04.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "syntax-05.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "syntax-05.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "syntax-06.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "syntax-06.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "syntax-07.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "syntax-07.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "syntax-08.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "syntax-08.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "selfcheck.stdout": "972b0947ee15d56d5c24e49818eb477f9f03198775377ba1ed1670bd7c0799f7",
+    "selfcheck.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  }
+}

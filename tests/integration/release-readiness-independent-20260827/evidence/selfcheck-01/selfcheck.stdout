@@ -1,0 +1,484 @@
+TAP version 13
+# Subtest: fixture boundary and baseline module integrity
+ok 1 - fixture boundary and baseline module integrity
+  ---
+  duration_ms: 1.438542
+  type: 'test'
+  ...
+# Subtest: inventory-unchanged: expected accept (fixture only)
+ok 2 - inventory-unchanged: expected accept (fixture only)
+  ---
+  duration_ms: 3.706417
+  type: 'test'
+  ...
+# Subtest: inventory-postsetup-baseline: expected accept (fixture only)
+ok 3 - inventory-postsetup-baseline: expected accept (fixture only)
+  ---
+  duration_ms: 2.554709
+  type: 'test'
+  ...
+# Subtest: inventory-added-file: expected reject (fixture only)
+ok 4 - inventory-added-file: expected reject (fixture only)
+  ---
+  duration_ms: 3.073
+  type: 'test'
+  ...
+# Subtest: inventory-added-empty-directory: expected reject (fixture only)
+ok 5 - inventory-added-empty-directory: expected reject (fixture only)
+  ---
+  duration_ms: 2.975041
+  type: 'test'
+  ...
+# Subtest: inventory-removed-file: expected reject (fixture only)
+ok 6 - inventory-removed-file: expected reject (fixture only)
+  ---
+  duration_ms: 1.7355
+  type: 'test'
+  ...
+# Subtest: inventory-modified-bytes: expected reject (fixture only)
+ok 7 - inventory-modified-bytes: expected reject (fixture only)
+  ---
+  duration_ms: 1.432833
+  type: 'test'
+  ...
+# Subtest: inventory-file-to-directory: expected reject (fixture only)
+ok 8 - inventory-file-to-directory: expected reject (fixture only)
+  ---
+  duration_ms: 1.440583
+  type: 'test'
+  ...
+# Subtest: inventory-directory-to-file: expected reject (fixture only)
+ok 9 - inventory-directory-to-file: expected reject (fixture only)
+  ---
+  duration_ms: 1.884292
+  type: 'test'
+  ...
+# Subtest: inventory-file-to-symlink: expected reject (fixture only)
+ok 10 - inventory-file-to-symlink: expected reject (fixture only)
+  ---
+  duration_ms: 1.629334
+  type: 'test'
+  ...
+# Subtest: inventory-symlink-retarget: expected reject (fixture only)
+ok 11 - inventory-symlink-retarget: expected reject (fixture only)
+  ---
+  duration_ms: 2.397167
+  type: 'test'
+  ...
+# Subtest: inventory-new-symlink: expected reject (fixture only)
+ok 12 - inventory-new-symlink: expected reject (fixture only)
+  ---
+  duration_ms: 1.988167
+  type: 'test'
+  ...
+# Subtest: inventory-new-dangling-symlink: expected reject (fixture only)
+ok 13 - inventory-new-dangling-symlink: expected reject (fixture only)
+  ---
+  duration_ms: 1.393583
+  type: 'test'
+  ...
+# Subtest: inventory-symlink-to-file: expected reject (fixture only)
+ok 14 - inventory-symlink-to-file: expected reject (fixture only)
+  ---
+  duration_ms: 1.514916
+  type: 'test'
+  ...
+# Subtest: inventory-mode-change: expected reject (fixture only)
+ok 15 - inventory-mode-change: expected reject (fixture only)
+  ---
+  duration_ms: 1.475542
+  type: 'test'
+  ...
+# Subtest: asset-known-control: expected accept (fixture only)
+ok 16 - asset-known-control: expected accept (fixture only)
+  ---
+  duration_ms: 0.70425
+  type: 'test'
+  ...
+# Subtest: asset-missing: expected reject (fixture only)
+ok 17 - asset-missing: expected reject (fixture only)
+  ---
+  duration_ms: 0.312333
+  type: 'test'
+  ...
+# Subtest: asset-wrong-bytes: expected reject (fixture only)
+ok 18 - asset-wrong-bytes: expected reject (fixture only)
+  ---
+  duration_ms: 1.092042
+  type: 'test'
+  ...
+# Subtest: asset-rg-observed-not-expected: expected reject (fixture only)
+ok 19 - asset-rg-observed-not-expected: expected reject (fixture only)
+  ---
+  duration_ms: 0.139083
+  type: 'test'
+  ...
+# Subtest: classification-explicit-routes: expected accept (fixture only)
+ok 20 - classification-explicit-routes: expected accept (fixture only)
+  ---
+  duration_ms: 0.505458
+  type: 'test'
+  ...
+# Subtest: classification-omission: expected reject (fixture only)
+ok 21 - classification-omission: expected reject (fixture only)
+  ---
+  duration_ms: 0.936416
+  type: 'test'
+  ...
+# Subtest: classification-invalid: expected reject (fixture only)
+ok 22 - classification-invalid: expected reject (fixture only)
+  ---
+  duration_ms: 0.07425
+  type: 'test'
+  ...
+# Subtest: classification-multiple: expected reject (fixture only)
+ok 23 - classification-multiple: expected reject (fixture only)
+  ---
+  duration_ms: 0.058125
+  type: 'test'
+  ...
+# Subtest: classification-current-unrouted: expected reject (fixture only)
+ok 24 - classification-current-unrouted: expected reject (fixture only)
+  ---
+  duration_ms: 0.052542
+  type: 'test'
+  ...
+# Subtest: classification-negative-unrouted: expected reject (fixture only)
+ok 25 - classification-negative-unrouted: expected reject (fixture only)
+  ---
+  duration_ms: 0.052625
+  type: 'test'
+  ...
+# Subtest: classification-historical-changed: expected reject (fixture only)
+ok 26 - classification-historical-changed: expected reject (fixture only)
+  ---
+  duration_ms: 0.133
+  type: 'test'
+  ...
+# Subtest: classification-historical-not-current-pass: expected accept (fixture only)
+ok 27 - classification-historical-not-current-pass: expected accept (fixture only)
+  ---
+  duration_ms: 0.074208
+  type: 'test'
+  ...
+# Subtest: classification-declaration-changed: expected reject (fixture only)
+ok 28 - classification-declaration-changed: expected reject (fixture only)
+  ---
+  duration_ms: 0.059167
+  type: 'test'
+  ...
+# Subtest: classification-freeze-evidence-changed: expected reject (fixture only)
+ok 29 - classification-freeze-evidence-changed: expected reject (fixture only)
+  ---
+  duration_ms: 0.053916
+  type: 'test'
+  ...
+# Subtest: negative-exact-diagnostic: expected accept (fixture only)
+ok 30 - negative-exact-diagnostic: expected accept (fixture only)
+  ---
+  duration_ms: 0.041875
+  type: 'test'
+  ...
+# Subtest: negative-wrong-line: expected reject (fixture only)
+ok 31 - negative-wrong-line: expected reject (fixture only)
+  ---
+  duration_ms: 0.074583
+  type: 'test'
+  ...
+# Subtest: negative-wrong-code: expected reject (fixture only)
+ok 32 - negative-wrong-code: expected reject (fixture only)
+  ---
+  duration_ms: 0.033792
+  type: 'test'
+  ...
+# Subtest: negative-missing-module: expected reject (fixture only)
+ok 33 - negative-missing-module: expected reject (fixture only)
+  ---
+  duration_ms: 0.034917
+  type: 'test'
+  ...
+# Subtest: negative-positive-control-failed: expected reject (fixture only)
+ok 34 - negative-positive-control-failed: expected reject (fixture only)
+  ---
+  duration_ms: 0.031875
+  type: 'test'
+  ...
+# Subtest: negative-unexpected-success: expected reject (fixture only)
+ok 35 - negative-unexpected-success: expected reject (fixture only)
+  ---
+  duration_ms: 0.07125
+  type: 'test'
+  ...
+# Subtest: defaults-exact73: expected accept (fixture only)
+ok 36 - defaults-exact73: expected accept (fixture only)
+  ---
+  duration_ms: 0.051916
+  type: 'test'
+  ...
+# Subtest: defaults-old70: expected reject (fixture only)
+ok 37 - defaults-old70: expected reject (fixture only)
+  ---
+  duration_ms: 0.088875
+  type: 'test'
+  ...
+# Subtest: defaults-curl: expected reject (fixture only)
+ok 38 - defaults-curl: expected reject (fixture only)
+  ---
+  duration_ms: 0.098208
+  type: 'test'
+  ...
+# Subtest: defaults-safejs: expected reject (fixture only)
+ok 39 - defaults-safejs: expected reject (fixture only)
+  ---
+  duration_ms: 0.077625
+  type: 'test'
+  ...
+# Subtest: defaults-expr: expected reject (fixture only)
+ok 40 - defaults-expr: expected reject (fixture only)
+  ---
+  duration_ms: 0.076667
+  type: 'test'
+  ...
+# Subtest: defaults-du: expected reject (fixture only)
+ok 41 - defaults-du: expected reject (fixture only)
+  ---
+  duration_ms: 0.076708
+  type: 'test'
+  ...
+# Subtest: counts-exact-two-migrations: expected accept (fixture only)
+ok 42 - counts-exact-two-migrations: expected accept (fixture only)
+  ---
+  duration_ms: 0.062541
+  type: 'test'
+  ...
+# Subtest: counts-one-migration: expected reject (fixture only)
+ok 43 - counts-one-migration: expected reject (fixture only)
+  ---
+  duration_ms: 0.061667
+  type: 'test'
+  ...
+# Subtest: counts-historical-rewrite: expected reject (fixture only)
+ok 44 - counts-historical-rewrite: expected reject (fixture only)
+  ---
+  duration_ms: 0.058416
+  type: 'test'
+  ...
+# Subtest: counts-wrong-value: expected reject (fixture only)
+ok 45 - counts-wrong-value: expected reject (fixture only)
+  ---
+  duration_ms: 0.049708
+  type: 'test'
+  ...
+# Subtest: cleanup-exact-observation-control: expected accept (fixture only)
+ok 46 - cleanup-exact-observation-control: expected accept (fixture only)
+  ---
+  duration_ms: 0.571792
+  type: 'test'
+  ...
+# Subtest: cleanup-missing-source: expected reject (fixture only)
+ok 47 - cleanup-missing-source: expected reject (fixture only)
+  ---
+  duration_ms: 0.605459
+  type: 'test'
+  ...
+# Subtest: cleanup-stale-source: expected reject (fixture only)
+ok 48 - cleanup-stale-source: expected reject (fixture only)
+  ---
+  duration_ms: 0.393917
+  type: 'test'
+  ...
+# Subtest: cleanup-swapped-path: expected reject (fixture only)
+ok 49 - cleanup-swapped-path: expected reject (fixture only)
+  ---
+  duration_ms: 0.345
+  type: 'test'
+  ...
+# Subtest: cleanup-wrong-revision: expected reject (fixture only)
+ok 50 - cleanup-wrong-revision: expected reject (fixture only)
+  ---
+  duration_ms: 0.125917
+  type: 'test'
+  ...
+# Subtest: cleanup-wrong-tree: expected reject (fixture only)
+ok 51 - cleanup-wrong-tree: expected reject (fixture only)
+  ---
+  duration_ms: 0.062417
+  type: 'test'
+  ...
+# Subtest: runtime-success: expected accept (fixture only)
+ok 52 - runtime-success: expected accept (fixture only)
+  ---
+  duration_ms: 0.75925
+  type: 'test'
+  ...
+# Subtest: runtime-nonzero: expected reject (fixture only)
+ok 53 - runtime-nonzero: expected reject (fixture only)
+  ---
+  duration_ms: 0.046625
+  type: 'test'
+  ...
+# Subtest: runtime-abnormal-exit: expected reject (fixture only)
+ok 54 - runtime-abnormal-exit: expected reject (fixture only)
+  ---
+  duration_ms: 0.03425
+  type: 'test'
+  ...
+# Subtest: runtime-timeout: expected reject (fixture only)
+ok 55 - runtime-timeout: expected reject (fixture only)
+  ---
+  duration_ms: 0.032792
+  type: 'test'
+  ...
+# Subtest: runtime-signal: expected reject (fixture only)
+ok 56 - runtime-signal: expected reject (fixture only)
+  ---
+  duration_ms: 0.073834
+  type: 'test'
+  ...
+# Subtest: runtime-missing-tap: expected reject (fixture only)
+ok 57 - runtime-missing-tap: expected reject (fixture only)
+  ---
+  duration_ms: 0.09225
+  type: 'test'
+  ...
+# Subtest: runtime-truncated-tap: expected reject (fixture only)
+ok 58 - runtime-truncated-tap: expected reject (fixture only)
+  ---
+  duration_ms: 0.339625
+  type: 'test'
+  ...
+# Subtest: runtime-failed: expected reject (fixture only)
+ok 59 - runtime-failed: expected reject (fixture only)
+  ---
+  duration_ms: 0.216041
+  type: 'test'
+  ...
+# Subtest: runtime-cancelled: expected reject (fixture only)
+ok 60 - runtime-cancelled: expected reject (fixture only)
+  ---
+  duration_ms: 0.365042
+  type: 'test'
+  ...
+# Subtest: runtime-skipped: expected reject (fixture only)
+ok 61 - runtime-skipped: expected reject (fixture only)
+  ---
+  duration_ms: 0.21
+  type: 'test'
+  ...
+# Subtest: runtime-todo: expected reject (fixture only)
+ok 62 - runtime-todo: expected reject (fixture only)
+  ---
+  duration_ms: 0.069042
+  type: 'test'
+  ...
+# Subtest: runtime-invalid-count: expected reject (fixture only)
+ok 63 - runtime-invalid-count: expected reject (fixture only)
+  ---
+  duration_ms: 0.053333
+  type: 'test'
+  ...
+# Subtest: runtime-wrong-count: expected reject (fixture only)
+ok 64 - runtime-wrong-count: expected reject (fixture only)
+  ---
+  duration_ms: 0.039791
+  type: 'test'
+  ...
+# Subtest: permission-positive-and-attributed-denial: expected accept (fixture only)
+ok 65 - permission-positive-and-attributed-denial: expected accept (fixture only)
+  ---
+  duration_ms: 0.060333
+  type: 'test'
+  ...
+# Subtest: permission-missing-positive: expected reject (fixture only)
+ok 66 - permission-missing-positive: expected reject (fixture only)
+  ---
+  duration_ms: 0.243083
+  type: 'test'
+  ...
+# Subtest: permission-unknown-flag: expected reject (fixture only)
+ok 67 - permission-unknown-flag: expected reject (fixture only)
+  ---
+  duration_ms: 0.04825
+  type: 'test'
+  ...
+# Subtest: permission-wrong-resource: expected reject (fixture only)
+ok 68 - permission-wrong-resource: expected reject (fixture only)
+  ---
+  duration_ms: 3.937625
+  type: 'test'
+  ...
+# Subtest: permission-source-fallback: expected reject (fixture only)
+ok 69 - permission-source-fallback: expected reject (fixture only)
+  ---
+  duration_ms: 0.135833
+  type: 'test'
+  ...
+# Subtest: permission-live-dist-fallback: expected reject (fixture only)
+ok 70 - permission-live-dist-fallback: expected reject (fixture only)
+  ---
+  duration_ms: 0.04475
+  type: 'test'
+  ...
+# Subtest: permission-ambient-native: expected reject (fixture only)
+ok 71 - permission-ambient-native: expected reject (fixture only)
+  ---
+  duration_ms: 0.062167
+  type: 'test'
+  ...
+# Subtest: permission-tap-flag-after-input: expected reject (fixture only)
+ok 72 - permission-tap-flag-after-input: expected reject (fixture only)
+  ---
+  duration_ms: 0.304875
+  type: 'test'
+  ...
+# Subtest: binding-complete-synthetic: expected accept (fixture only)
+ok 73 - binding-complete-synthetic: expected accept (fixture only)
+  ---
+  duration_ms: 0.896708
+  type: 'test'
+  ...
+# Subtest: binding-pending-template: expected reject (fixture only)
+ok 74 - binding-pending-template: expected reject (fixture only)
+  ---
+  duration_ms: 0.330917
+  type: 'test'
+  ...
+# Subtest: binding-mutable-head: expected reject (fixture only)
+ok 75 - binding-mutable-head: expected reject (fixture only)
+  ---
+  duration_ms: 0.166875
+  type: 'test'
+  ...
+# Subtest: binding-missing-asset: expected reject (fixture only)
+ok 76 - binding-missing-asset: expected reject (fixture only)
+  ---
+  duration_ms: 0.220208
+  type: 'test'
+  ...
+# Subtest: binding-missing-classification: expected reject (fixture only)
+ok 77 - binding-missing-classification: expected reject (fixture only)
+  ---
+  duration_ms: 0.319375
+  type: 'test'
+  ...
+# Subtest: binding-missing-cleanup-manifest: expected reject (fixture only)
+ok 78 - binding-missing-cleanup-manifest: expected reject (fixture only)
+  ---
+  duration_ms: 0.263292
+  type: 'test'
+  ...
+# Subtest: binding-skipped-case: expected reject (fixture only)
+ok 79 - binding-skipped-case: expected reject (fixture only)
+  ---
+  duration_ms: 0.726584
+  type: 'test'
+  ...
+1..79
+# tests 79
+# suites 0
+# pass 79
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 114.377375

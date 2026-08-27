@@ -1,0 +1,83 @@
+import assert from 'node:assert/strict';
+import {readFileSync, readdirSync, statSync} from 'node:fs';
+import {execFileSync} from 'node:child_process';
+import {createHash} from 'node:crypto';
+import {resolve, relative} from 'node:path';
+const root = process.cwd(); const temp = process.argv[2];
+assert.ok(temp?.startsWith('/tmp/safe-bash-owned-output-prototype-review-execution-'));
+const candidate = `${temp}/candidate`;
+const parent = `${root}/tests/shell-stress/first-read-contract-review/owned-output-prototype-review`;
+const owned = `${parent}/execution-r1`; const author = `${root}/tests/shell-stress/first-read-contract-review/owned-output-prototype`;
+const sha = value => createHash('sha256').update(value).digest('hex');
+const walk = base => readdirSync(base, {withFileTypes: true}).flatMap(entry => entry.isDirectory() ? walk(`${base}/${entry.name}`) : entry.isFile() ? [`${base}/${entry.name}`] : []).sort();
+const manifest = base => walk(`${candidate}/${base}`).map(path => ({path: relative(candidate, path), bytes: statSync(path).size, sha256: sha(readFileSync(path))}));
+const handoff = JSON.parse(readFileSync(`${author}/handoff.json`));
+const alignment = {verifiedAt: new Date().toISOString(), source: manifest('src'), tests: manifest('tests'), compiled: manifest('dist')};
+for (const [field, key] of [['source', 'sourceManifestSha256'], ['tests', 'testManifestSha256'], ['compiled', 'compiledManifestSha256']]) {
+  assert.deepEqual(alignment[field], handoff[field]); alignment[key] = sha(JSON.stringify(alignment[field])); assert.equal(alignment[key], handoff[key]);
+}
+alignment.tools = handoff.tools;
+assert.equal(sha(readFileSync(process.execPath)), handoff.tools.node.sha256);
+for (const tool of handoff.tools.development) assert.equal(sha(readFileSync(resolve(root, tool.path))), tool.sha256);
+alignment.intentionSealSha256 = sha(readFileSync(`${parent}/intentions-freeze.json`)); assert.equal(alignment.intentionSealSha256, 'aabc0ea5c7d7f03b4c4038b3c94952e7a08d9c98e2d40b9dbbf76417503be972');
+alignment.bindingSealSha256 = sha(readFileSync(`${parent}/binding-freeze.json`)); assert.equal(alignment.bindingSealSha256, 'ed00497a9503623e51922f3d0b65ed15aec5a5c03608d06f265e223cb923b8b1');
+const intentions = JSON.parse(readFileSync(`${parent}/intentions-freeze.json`));
+for (const entry of intentions.intentions) assert.equal(sha(readFileSync(`${parent}/${entry.path}`)), entry.sha256);
+const nativeToolsRelative = 'tests/shell-stress/first-read-contract-review/owned-output-prototype/evidence/native-tools.json';
+assert.equal(sha(readFileSync(`${root}/${nativeToolsRelative}`)), sha(execFileSync('git', ['show', `1ff82cb748c60145740dba354610ac7ed7a7f15f:${nativeToolsRelative}`])));
+const nativeTools = JSON.parse(readFileSync(`${author}/evidence/native-tools.json`));
+for (const tool of nativeTools.tools) assert.equal(sha(readFileSync(tool.path)), tool.sha256);
+alignment.nativeTools = nativeTools;
+const runFiles = readdirSync(`${temp}/evidence/runs`).filter(name => name.endsWith('.json')).sort();
+const runs = runFiles.map(name => JSON.parse(readFileSync(`${temp}/evidence/runs/${name}`)));
+for (const run of runs) {assert.equal(run.closeEventObserved, true); assert.equal(run.groupExistsAfterClose, false); assert.equal(run.pidAfterClose, ''); assert.equal(run.timedOut, false); assert.equal(run.oversized, false); assert.deepEqual(run.signals, []);}
+const byLabel = Object.fromEntries(runs.map(run => [run.label, run]));
+const decode = label => JSON.parse(byLabel[label].stdout.trim());
+const ids = Array.from({length: 16}, (_, index) => `H${String(index + 1).padStart(2, '0')}`);
+const cases = ids.map((id, index) => {
+  const first = index < 5 ? byLabel[`${id}-adapted-compiled`].status === 0 : decode(`${id}-frozen`).verdict === 'PASS';
+  const last = index < 5 ? byLabel[`r1-${id}-adapted-compiled`].status === 0 : decode(`r1-${id}-frozen`).verdict === 'PASS';
+  return {id, initial: first && (id !== 'H01' || decode('H01-frozen').verdict === 'PASS') ? 'PASS' : 'FAIL', corrected: last && (id !== 'H01' || decode('r1-H01-frozen').verdict === 'PASS') ? 'PASS' : 'FAIL', evidence: index < 5 ? `evidence/runs/r1-${id}-adapted-compiled.json` : `evidence/runs/r1-${id}-frozen.json`};
+});
+assert.equal(cases.filter(entry => entry.initial === 'PASS').length, 15); assert.equal(cases.filter(entry => entry.corrected === 'PASS').length, 16);
+const originals = byLabel['original-five-and-head-zero'].stdout.split('\n').filter(line => line.startsWith('# {"scenario"')).map(line => JSON.parse(line.slice(2, line.indexOf(',"stdout"')) + '}'));
+assert.equal(originals.length, 6);
+for (const entry of originals) {assert.equal(entry.residual, false); assert.equal(entry.timedOut, false); assert.equal(entry.oversized, false); assert.equal(entry.signal, null);}
+const originalFive = originals.filter(entry => entry.scenario !== 'first-read-head-zero');
+assert.equal(originalFive.filter(entry => entry.status === 0).length, 1);
+const counts = label => Number(byLabel[label].stdout.match(/^# pass (\d+)$/m)?.[1]);
+const existing57 = counts('existing-byte-io') + counts('existing-remote-after-write-and-no-write') + counts('existing-shared-lifecycle') + counts('existing-streaming') + Number(originals.find(entry => entry.scenario === 'first-read-head-zero').status === 0);
+assert.equal(existing57, 57);
+for (const index of Array.from({length: 9}, (_, index) => index + 1)) assert.equal(byLabel[`baseline-control-C${index}`].status, 0);
+const native = JSON.parse(readFileSync(`${temp}/evidence/native-results.json`)); assert.equal(native.filter(entry => entry.verdict === 'PASS').length, 5);
+const diagnostics = originalFive.map(entry => ({scenario: entry.scenario, unchangedChildStatus: entry.status, observations: byLabel[`diagnostic-${entry.scenario}`].stdout.split('\n').filter(line => line.startsWith('{')).map(line => JSON.parse(line))}));
+const compilerFiles = byLabel['copied-scoped-typecheck'].stdout.trim().split('\n'); assert.equal(compilerFiles.length, handoff.compilerInventoryCount);
+const normalize = path => path.replaceAll('/private/tmp/', '/tmp/').replaceAll(handoff.temp, temp);
+assert.deepEqual(compilerFiles.map(normalize), handoff.scopedCompilerInventory.map(normalize));
+const summary = {finishedAt: new Date().toISOString(), earliestOwnedArtifactAt: statSync(`${owned}/restore.mjs.data`).birthtime.toISOString(), cases,
+  denominators: {initialFrozen: {passed: 15, total: 16}, correctedFrozen: {passed: 16, total: 16}, unchangedFive: {passed: 1, total: 5}, adaptedFive: {passed: 5, total: 5}, existing: {passed: 57, total: 57}, reviewControls: {passed: 9, total: 9, syntheticNonProduct: ['C9']}, knownNative: {passed: 5, total: 5}, priorPreparationProductExecuted: 0, priorScaffoldAssertions: 6},
+  diagnostics, copiedCompilerInventoryCount: compilerFiles.length, sourceFiles: alignment.source.length, testFiles: alignment.tests.length, compiledFiles: alignment.compiled.length,
+  sourceManifestSha256: alignment.sourceManifestSha256, testManifestSha256: alignment.testManifestSha256, compiledManifestSha256: alignment.compiledManifestSha256,
+  processClosure: {capturedRuns: runs.length, allClosed: true, allGroupsAbsent: true, allPidsAbsent: true, outerDeadlineKills: 0, outputLimitKills: 0, sigstopUsed: false},
+  noAuthorCandidateEdits: true, noLiveSourceFallback: true, noNewAuthorOrReviewerHoldoutsRead: true, mutationsExecuted: 0, focusedExecutableHarnessFixRounds: 1,
+  limits: ['Bounded immutable v1 only', 'Unchanged original failures remain failures', 'No active-borrowed/transitive v2 cohort', 'No production/full-suite/global-typing/release or deployed-provider qualification', 'Actual recorded bounded work, not 72 hours'],
+  checkoutHeadMetadataOnly: execFileSync('git', ['rev-parse', 'HEAD'], {encoding: 'utf8'}).trim(), stagedNamesBeforeEvidence: execFileSync('git', ['diff', '--cached', '--name-only'], {encoding: 'utf8'})};
+const copies = [];
+const addCopy = (source, destination) => copies.push({source, destination, bytes: readFileSync(source)});
+for (const path of walk(`${temp}/evidence`)) {
+  const suffix = relative(`${temp}/evidence`, path);
+  addCopy(path, `${owned}/evidence/${suffix.endsWith('.json') ? suffix : suffix + '.data'}`);
+}
+for (const name of ['authentication.json', 'reconstruction-proof.json', 'binding-seal.json', 'binding-r1-seal.json', 'h12-diagnosis-seal.json', 'old-to-bound-adapted.patch-data', 'old-to-diagnostic.patch-data', 'binding-r0-to-r1.patch-data']) addCopy(`${temp}/${name}`, `${owned}/${name}`);
+for (const name of ['holdouts-r1.mjs', 'supervisor.mjs', 'run-existing.mjs', 'run-controls.mjs', 'controls.mjs', 'native.mjs']) addCopy(`${temp}/${name}`, `${owned}/bound/${name}.data`);
+for (const path of walk(`${temp}/bound`)) addCopy(path, `${owned}/bound/${relative(`${temp}/bound`, path)}.data`);
+copies.push({destination: `${owned}/source-alignment.json`, bytes: Buffer.from(JSON.stringify(alignment, null, 2) + '\n')});
+copies.push({destination: `${owned}/results.json`, bytes: Buffer.from(JSON.stringify(summary, null, 2) + '\n')});
+for (const copy of copies) {
+  const content = copy.bytes.toString('utf8'); assert.deepEqual(Buffer.from(content), copy.bytes);
+  assert.ok(content === '' || content.endsWith('\n'), `Raw non-newline output needs exact handling: ${copy.source}`);
+  const lines = content === '' ? '' : content.slice(0, -1).split('\n').map(line => '+' + line).join('\n') + '\n';
+  execFileSync('apply_patch', [], {input: `*** Begin Patch\n*** Add File: ${copy.destination}\n${lines}*** End Patch\n`, maxBuffer: 2 * 1024 * 1024});
+  assert.equal(sha(readFileSync(copy.destination)), sha(copy.bytes), copy.destination);
+}
+console.log(JSON.stringify({evidenceFiles: copies.length, cases, sourceManifestSha256: alignment.sourceManifestSha256, testManifestSha256: alignment.testManifestSha256, compiledManifestSha256: alignment.compiledManifestSha256, closure: summary.processClosure}));

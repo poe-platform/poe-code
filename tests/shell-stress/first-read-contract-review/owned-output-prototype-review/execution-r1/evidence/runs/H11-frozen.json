@@ -1,0 +1,34 @@
+{
+  "label": "H11-frozen",
+  "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "--unhandled-rejections=strict",
+    "/tmp/safe-bash-owned-output-prototype-review-execution-e9I2ro/holdouts.mjs",
+    "H11"
+  ],
+  "cwd": "/tmp/safe-bash-owned-output-prototype-review-execution-e9I2ro/candidate",
+  "env": {
+    "PATH": "/usr/bin:/bin",
+    "LC_ALL": "C",
+    "LANG": "C",
+    "TZ": "UTC",
+    "TSX_DISABLE_CACHE": "1"
+  },
+  "startedAt": "2026-08-27T10:11:35.190Z",
+  "finishedAt": "2026-08-27T10:11:35.280Z",
+  "durationMs": 90.01191600000129,
+  "timeoutMs": 15000,
+  "maxBytes": 1048576,
+  "pid": 23088,
+  "initialIdentity": "23088 22800 23088 Thu Aug 27 05:11:35 2026     /Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --unhandled-rejections=strict /tmp/safe-bash-owned-output-prototype-review-execution-e9I2ro/holdouts.mjs H11",
+  "status": 0,
+  "signal": null,
+  "timedOut": false,
+  "oversized": false,
+  "signals": [],
+  "closeEventObserved": true,
+  "pidAfterClose": "",
+  "groupExistsAfterClose": false,
+  "stdout": "{\"id\":\"H11\",\"verdict\":\"PASS\",\"records\":[{\"pipefail\":false,\"beforeResponseRequestAborted\":false},{\"pipefail\":false,\"result\":{\"stdout\":\"\",\"stderr\":\"\",\"stdoutBytes\":{},\"stderrBytes\":{},\"exitCode\":0},\"producerStatus\":141,\"body\":\"body-one\\nbody-two\\n\",\"headers\":\"HTTP/1.1 200 OK\\r\\nX-Owned-Review: fixed\\r\\nContent-Length: 18\\r\\nConnection: close\\r\\n\\r\\n\",\"expectedHeaders\":\"HTTP/1.1 200 OK\\r\\nX-Owned-Review: fixed\\r\\nContent-Length: 18\\r\\nConnection: close\\r\\n\\r\\n\",\"events\":[\"request.started\",\"stdout.closed\",\"response.sent\",\"response.closed\"],\"stageLiveAtClose\":true,\"callerLiveAtClose\":true},{\"pipefail\":false,\"socketsAfterClose\":0},{\"subrun\":false,\"passed\":true},{\"pipefail\":true,\"beforeResponseRequestAborted\":false},{\"pipefail\":true,\"result\":{\"stdout\":\"\",\"stderr\":\"\",\"stdoutBytes\":{},\"stderrBytes\":{},\"exitCode\":141},\"producerStatus\":141,\"body\":\"body-one\\nbody-two\\n\",\"headers\":\"HTTP/1.1 200 OK\\r\\nX-Owned-Review: fixed\\r\\nContent-Length: 18\\r\\nConnection: close\\r\\n\\r\\n\",\"expectedHeaders\":\"HTTP/1.1 200 OK\\r\\nX-Owned-Review: fixed\\r\\nContent-Length: 18\\r\\nConnection: close\\r\\n\\r\\n\",\"events\":[\"request.started\",\"stdout.closed\",\"response.sent\",\"response.closed\"],\"stageLiveAtClose\":true,\"callerLiveAtClose\":true},{\"pipefail\":true,\"socketsAfterClose\":0},{\"subrun\":true,\"passed\":true}]}\n",
+  "stderr": ""
+}

@@ -1,0 +1,32 @@
+{
+  "label": "review-nine-runner",
+  "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "/tmp/safe-bash-owned-output-prototype-review-execution-e9I2ro/run-controls.mjs"
+  ],
+  "cwd": "/tmp/safe-bash-owned-output-prototype-review-execution-e9I2ro/candidate",
+  "env": {
+    "PATH": "/usr/bin:/bin",
+    "LC_ALL": "C",
+    "LANG": "C",
+    "TZ": "UTC",
+    "TSX_DISABLE_CACHE": "1"
+  },
+  "startedAt": "2026-08-27T10:11:32.933Z",
+  "finishedAt": "2026-08-27T10:11:33.736Z",
+  "durationMs": 803.1254169999993,
+  "timeoutMs": 30000,
+  "maxBytes": 1048576,
+  "pid": 22958,
+  "initialIdentity": "22958 22800 22958 Thu Aug 27 05:11:32 2026     /Users/kjopek/.nvm/versions/node/v22.22.2/bin/node /tmp/safe-bash-owned-output-prototype-review-execution-e9I2ro/run-controls.mjs",
+  "status": 0,
+  "signal": null,
+  "timedOut": false,
+  "oversized": false,
+  "signals": [],
+  "closeEventObserved": true,
+  "pidAfterClose": "",
+  "groupExistsAfterClose": false,
+  "stdout": "{\"label\":\"baseline-control-C1\",\"status\":0,\"durationMs\":79.801917,\"timedOut\":false,\"oversized\":false,\"groupExists\":false,\"counts\":[]}\n{\"label\":\"baseline-control-C2\",\"status\":0,\"durationMs\":109.73454199999999,\"timedOut\":false,\"oversized\":false,\"groupExists\":false,\"counts\":[]}\n{\"label\":\"baseline-control-C3\",\"status\":0,\"durationMs\":76.66520899999998,\"timedOut\":false,\"oversized\":false,\"groupExists\":false,\"counts\":[]}\n{\"label\":\"baseline-control-C4\",\"status\":0,\"durationMs\":80.801042,\"timedOut\":false,\"oversized\":false,\"groupExists\":false,\"counts\":[]}\n{\"label\":\"baseline-control-C5\",\"status\":0,\"durationMs\":76.55154199999998,\"timedOut\":false,\"oversized\":false,\"groupExists\":false,\"counts\":[]}\n{\"label\":\"baseline-control-C6\",\"status\":0,\"durationMs\":75.882791,\"timedOut\":false,\"oversized\":false,\"groupExists\":false,\"counts\":[]}\n{\"label\":\"baseline-control-C7\",\"status\":0,\"durationMs\":79.14316700000006,\"timedOut\":false,\"oversized\":false,\"groupExists\":false,\"counts\":[]}\n{\"label\":\"baseline-control-C8\",\"status\":0,\"durationMs\":72.188625,\"timedOut\":false,\"oversized\":false,\"groupExists\":false,\"counts\":[]}\n{\"label\":\"baseline-control-C9\",\"status\":0,\"durationMs\":75.02683400000001,\"timedOut\":false,\"oversized\":false,\"groupExists\":false,\"counts\":[]}\n",
+  "stderr": ""
+}

@@ -1,0 +1,36 @@
+{
+  "label": "H01-adapted-compiled",
+  "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "--unhandled-rejections=strict",
+    "--import",
+    "tsx",
+    "/tmp/safe-bash-owned-output-prototype-review-execution-e9I2ro/bound/tests/shell/adapted-first-read-probe.ts",
+    "first-read-local"
+  ],
+  "cwd": "/tmp/safe-bash-owned-output-prototype-review-execution-e9I2ro/candidate",
+  "env": {
+    "PATH": "/usr/bin:/bin",
+    "LC_ALL": "C",
+    "LANG": "C",
+    "TZ": "UTC",
+    "TSX_DISABLE_CACHE": "1"
+  },
+  "startedAt": "2026-08-27T10:11:33.740Z",
+  "finishedAt": "2026-08-27T10:11:33.905Z",
+  "durationMs": 164.18425000000025,
+  "timeoutMs": 3000,
+  "maxBytes": 1048576,
+  "pid": 23031,
+  "initialIdentity": "23031 22800 23031 Thu Aug 27 05:11:33 2026     /Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --unhandled-rejections=strict --import tsx /tmp/safe-bash-owned-output-prototype-review-execution-e9I2ro/bound/tests/shell/adapted-first-read-probe.ts first-read-local",
+  "status": 0,
+  "signal": null,
+  "timedOut": false,
+  "oversized": false,
+  "signals": [],
+  "closeEventObserved": true,
+  "pidAfterClose": "",
+  "groupExistsAfterClose": false,
+  "stdout": "first-read-local: passed\n{\"scenario\":\"first-read-local\",\"active\":0,\"reads\":1,\"returned\":1,\"writes\":0,\"stageAborted\":false,\"operationAborted\":true,\"abortedBeforeTeardown\":false,\"events\":[\"source.next:pending-before-first-byte\",\"command.settled:head:0\",\"source.finally\",\"command.settled:pending-stream:141\",\"command.settled:true:0\"]}\n",
+  "stderr": ""
+}

@@ -1,0 +1,2 @@
+first-read-local: passed
+{"scenario":"first-read-local","active":0,"reads":1,"returned":1,"writes":0,"stageAborted":false,"operationAborted":true,"abortedBeforeTeardown":false,"events":["source.next:pending-before-first-byte","command.settled:head:0","source.finally","command.settled:pending-stream:141","command.settled:true:0"]}

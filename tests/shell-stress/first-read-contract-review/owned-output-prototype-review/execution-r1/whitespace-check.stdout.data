@@ -1,0 +1,62 @@
+tests/shell-stress/first-read-contract-review/owned-output-prototype-review/execution-r1/binding-r0-to-r1.patch-data:13: trailing whitespace.
++ 
+tests/shell-stress/first-read-contract-review/owned-output-prototype-review/execution-r1/evidence/runs/original-five-and-head-zero.stdout.data:20: trailing whitespace.
++    
+tests/shell-stress/first-read-contract-review/owned-output-prototype-review/execution-r1/evidence/runs/original-five-and-head-zero.stdout.data:25: trailing whitespace.
++    
+tests/shell-stress/first-read-contract-review/owned-output-prototype-review/execution-r1/evidence/runs/original-five-and-head-zero.stdout.data:27: trailing whitespace.
++    
+tests/shell-stress/first-read-contract-review/owned-output-prototype-review/execution-r1/evidence/runs/original-five-and-head-zero.stdout.data:28: trailing whitespace.
++    
+tests/shell-stress/first-read-contract-review/owned-output-prototype-review/execution-r1/evidence/runs/original-five-and-head-zero.stdout.data:30: trailing whitespace.
++    
+tests/shell-stress/first-read-contract-review/owned-output-prototype-review/execution-r1/evidence/runs/original-five-and-head-zero.stdout.data:64: trailing whitespace.
++    
+tests/shell-stress/first-read-contract-review/owned-output-prototype-review/execution-r1/evidence/runs/original-five-and-head-zero.stdout.data:66: trailing whitespace.
++    
+tests/shell-stress/first-read-contract-review/owned-output-prototype-review/execution-r1/evidence/runs/original-five-and-head-zero.stdout.data:68: trailing whitespace.
++    
+tests/shell-stress/first-read-contract-review/owned-output-prototype-review/execution-r1/evidence/runs/original-five-and-head-zero.stdout.data:77: trailing whitespace.
++    
+tests/shell-stress/first-read-contract-review/owned-output-prototype-review/execution-r1/evidence/runs/original-five-and-head-zero.stdout.data:79: trailing whitespace.
++    
+tests/shell-stress/first-read-contract-review/owned-output-prototype-review/execution-r1/evidence/runs/original-five-and-head-zero.stdout.data:80: trailing whitespace.
++    
+tests/shell-stress/first-read-contract-review/owned-output-prototype-review/execution-r1/evidence/runs/original-five-and-head-zero.stdout.data:82: trailing whitespace.
++    
+tests/shell-stress/first-read-contract-review/owned-output-prototype-review/execution-r1/evidence/runs/original-five-and-head-zero.stdout.data:107: trailing whitespace.
++    
+tests/shell-stress/first-read-contract-review/owned-output-prototype-review/execution-r1/evidence/runs/original-five-and-head-zero.stdout.data:109: trailing whitespace.
++    
+tests/shell-stress/first-read-contract-review/owned-output-prototype-review/execution-r1/evidence/runs/original-five-and-head-zero.stdout.data:111: trailing whitespace.
++    
+tests/shell-stress/first-read-contract-review/owned-output-prototype-review/execution-r1/evidence/runs/original-five-and-head-zero.stdout.data:120: trailing whitespace.
++    
+tests/shell-stress/first-read-contract-review/owned-output-prototype-review/execution-r1/evidence/runs/original-five-and-head-zero.stdout.data:122: trailing whitespace.
++    
+tests/shell-stress/first-read-contract-review/owned-output-prototype-review/execution-r1/evidence/runs/original-five-and-head-zero.stdout.data:123: trailing whitespace.
++    
+tests/shell-stress/first-read-contract-review/owned-output-prototype-review/execution-r1/evidence/runs/original-five-and-head-zero.stdout.data:125: trailing whitespace.
++    
+tests/shell-stress/first-read-contract-review/owned-output-prototype-review/execution-r1/evidence/runs/original-five-and-head-zero.stdout.data:150: trailing whitespace.
++    
+tests/shell-stress/first-read-contract-review/owned-output-prototype-review/execution-r1/evidence/runs/original-five-and-head-zero.stdout.data:152: trailing whitespace.
++    
+tests/shell-stress/first-read-contract-review/owned-output-prototype-review/execution-r1/evidence/runs/original-five-and-head-zero.stdout.data:154: trailing whitespace.
++    
+tests/shell-stress/first-read-contract-review/owned-output-prototype-review/execution-r1/evidence/runs/original-five-and-head-zero.stdout.data:163: trailing whitespace.
++    
+tests/shell-stress/first-read-contract-review/owned-output-prototype-review/execution-r1/evidence/runs/original-five-and-head-zero.stdout.data:165: trailing whitespace.
++    
+tests/shell-stress/first-read-contract-review/owned-output-prototype-review/execution-r1/evidence/runs/original-five-and-head-zero.stdout.data:166: trailing whitespace.
++    
+tests/shell-stress/first-read-contract-review/owned-output-prototype-review/execution-r1/evidence/runs/original-five-and-head-zero.stdout.data:168: trailing whitespace.
++    
+tests/shell-stress/first-read-contract-review/owned-output-prototype-review/execution-r1/old-to-bound-adapted.patch-data:12: trailing whitespace.
++ 
+tests/shell-stress/first-read-contract-review/owned-output-prototype-review/execution-r1/old-to-bound-adapted.patch-data:22: trailing whitespace.
++ 
+tests/shell-stress/first-read-contract-review/owned-output-prototype-review/execution-r1/old-to-diagnostic.patch-data:12: trailing whitespace.
++ 
+tests/shell-stress/first-read-contract-review/owned-output-prototype-review/execution-r1/old-to-diagnostic.patch-data:26: trailing whitespace.
++ 

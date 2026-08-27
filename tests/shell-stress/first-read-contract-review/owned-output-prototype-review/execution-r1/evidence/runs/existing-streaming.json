@@ -1,0 +1,38 @@
+{
+  "label": "existing-streaming",
+  "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "--unhandled-rejections=strict",
+    "--import",
+    "tsx",
+    "--test",
+    "--test-concurrency=1",
+    "--test-name-pattern=pipes preserve|early downstream|pipeline redirects|AbortSignal reaches",
+    "tests/shell/streaming.test.ts"
+  ],
+  "cwd": "/tmp/safe-bash-owned-output-prototype-review-execution-e9I2ro/candidate",
+  "env": {
+    "PATH": "/usr/bin:/bin",
+    "LC_ALL": "C",
+    "LANG": "C",
+    "TZ": "UTC",
+    "TSX_DISABLE_CACHE": "1"
+  },
+  "startedAt": "2026-08-27T10:11:31.110Z",
+  "finishedAt": "2026-08-27T10:11:31.293Z",
+  "durationMs": 182.1608329999999,
+  "timeoutMs": 30000,
+  "maxBytes": 1048576,
+  "pid": 22948,
+  "initialIdentity": "22948 22819 22948 Thu Aug 27 10:11:31 2026     /Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --unhandled-rejections=strict --import tsx --test --test-concurrency=1 --test-name-pattern=pipes preserve|early downstream|pipeline redirects|AbortSignal reaches tests/shell/streaming.test.ts",
+  "status": 0,
+  "signal": null,
+  "timedOut": false,
+  "oversized": false,
+  "signals": [],
+  "closeEventObserved": true,
+  "pidAfterClose": "",
+  "groupExistsAfterClose": false,
+  "stdout": "TAP version 13\n# Subtest: pipes preserve bytes and launch downstream before upstream completes\nok 1 - pipes preserve bytes and launch downstream before upstream completes\n  ---\n  duration_ms: 6.520958\n  type: 'test'\n  ...\n# Subtest: early downstream exit and unused pipeline input do not deadlock\nok 2 - early downstream exit and unused pipeline input do not deadlock\n  ---\n  duration_ms: 4.061292\n  type: 'test'\n  ...\n# Subtest: pipeline redirects replace endpoints without leaving blocked writers\nok 3 - pipeline redirects replace endpoints without leaving blocked writers\n  ---\n  duration_ms: 1.784167\n  type: 'test'\n  ...\n# Subtest: AbortSignal reaches commands and releases blocked pipelines\nok 4 - AbortSignal reaches commands and releases blocked pipelines\n  ---\n  duration_ms: 0.867083\n  type: 'test'\n  ...\n1..4\n# tests 4\n# suites 0\n# pass 4\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 145.602083\n",
+  "stderr": ""
+}

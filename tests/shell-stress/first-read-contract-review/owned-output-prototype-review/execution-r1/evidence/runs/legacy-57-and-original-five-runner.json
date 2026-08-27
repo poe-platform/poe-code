@@ -1,0 +1,32 @@
+{
+  "label": "legacy-57-and-original-five-runner",
+  "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "/tmp/safe-bash-owned-output-prototype-review-execution-e9I2ro/run-existing.mjs"
+  ],
+  "cwd": "/tmp/safe-bash-owned-output-prototype-review-execution-e9I2ro/candidate",
+  "env": {
+    "PATH": "/usr/bin:/bin",
+    "LC_ALL": "C",
+    "LANG": "C",
+    "TZ": "UTC",
+    "TSX_DISABLE_CACHE": "1"
+  },
+  "startedAt": "2026-08-27T10:11:24.207Z",
+  "finishedAt": "2026-08-27T10:11:32.921Z",
+  "durationMs": 8713.850792,
+  "timeoutMs": 30000,
+  "maxBytes": 1048576,
+  "pid": 22819,
+  "initialIdentity": "22819 22800 22819 Thu Aug 27 05:11:24 2026     /Users/kjopek/.nvm/versions/node/v22.22.2/bin/node /tmp/safe-bash-owned-output-prototype-review-execution-e9I2ro/run-existing.mjs",
+  "status": 0,
+  "signal": null,
+  "timedOut": false,
+  "oversized": false,
+  "signals": [],
+  "closeEventObserved": true,
+  "pidAfterClose": "",
+  "groupExistsAfterClose": false,
+  "stdout": "{\"label\":\"original-five-and-head-zero\",\"status\":1,\"durationMs\":2584.891958,\"timedOut\":false,\"oversized\":false,\"groupExists\":false,\"counts\":[\"# tests 6\",\"# pass 2\",\"# fail 4\",\"# cancelled 0\",\"# skipped 0\"]}\n{\"label\":\"existing-remote-after-write-and-no-write\",\"status\":0,\"durationMs\":2742.028417,\"timedOut\":false,\"oversized\":false,\"groupExists\":false,\"counts\":[\"# tests 19\",\"# pass 19\",\"# fail 0\",\"# cancelled 0\",\"# skipped 0\"]}\n{\"label\":\"existing-byte-io\",\"status\":0,\"durationMs\":294.7587910000002,\"timedOut\":false,\"oversized\":false,\"groupExists\":false,\"counts\":[\"# tests 28\",\"# pass 28\",\"# fail 0\",\"# cancelled 0\",\"# skipped 0\"]}\n{\"label\":\"existing-shared-lifecycle\",\"status\":0,\"durationMs\":1186.2982089999996,\"timedOut\":false,\"oversized\":false,\"groupExists\":false,\"counts\":[\"# tests 5\",\"# pass 5\",\"# fail 0\",\"# cancelled 0\",\"# skipped 0\"]}\n{\"label\":\"existing-streaming\",\"status\":0,\"durationMs\":182.1608329999999,\"timedOut\":false,\"oversized\":false,\"groupExists\":false,\"counts\":[\"# tests 4\",\"# pass 4\",\"# fail 0\",\"# cancelled 0\",\"# skipped 0\"]}\n{\"label\":\"copied-source-build\",\"status\":0,\"durationMs\":1603.8159159999996,\"timedOut\":false,\"oversized\":false,\"groupExists\":false,\"counts\":[]}\n",
+  "stderr": ""
+}

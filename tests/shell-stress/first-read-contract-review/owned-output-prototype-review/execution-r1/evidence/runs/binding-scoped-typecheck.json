@@ -1,0 +1,35 @@
+{
+  "label": "binding-scoped-typecheck",
+  "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "/tmp/safe-bash-owned-output-prototype-review-execution-e9I2ro/candidate/node_modules/typescript/bin/tsc",
+    "--noEmit",
+    "-p",
+    "/tmp/safe-bash-owned-output-prototype-review-execution-e9I2ro/bound/tsconfig.json"
+  ],
+  "cwd": "/tmp/safe-bash-owned-output-prototype-review-execution-e9I2ro/candidate",
+  "env": {
+    "PATH": "/usr/bin:/bin",
+    "LC_ALL": "C",
+    "LANG": "C",
+    "TZ": "UTC",
+    "TSX_DISABLE_CACHE": "1"
+  },
+  "startedAt": "2026-08-27T10:11:23.713Z",
+  "finishedAt": "2026-08-27T10:11:24.157Z",
+  "durationMs": 444.9479160000001,
+  "timeoutMs": 30000,
+  "maxBytes": 1048576,
+  "pid": 22813,
+  "initialIdentity": "22813 22800 22813 Thu Aug 27 05:11:23 2026     /Users/kjopek/.nvm/versions/node/v22.22.2/bin/node /tmp/safe-bash-owned-output-prototype-review-execution-e9I2ro/candidate/node_modules/typescript/bin/tsc --noEmit -p /tmp/safe-bash-owned-output-prototype-review-execution-e9I2ro/bound/tsconfig.json",
+  "status": 0,
+  "signal": null,
+  "timedOut": false,
+  "oversized": false,
+  "signals": [],
+  "closeEventObserved": true,
+  "pidAfterClose": "",
+  "groupExistsAfterClose": false,
+  "stdout": "",
+  "stderr": ""
+}

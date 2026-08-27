@@ -1,0 +1,32 @@
+{
+  "label": "H12-binding-diagnosis",
+  "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "/tmp/safe-bash-owned-output-prototype-review-execution-e9I2ro/h12-diagnosis.mjs"
+  ],
+  "cwd": "/tmp/safe-bash-owned-output-prototype-review-execution-e9I2ro/candidate",
+  "env": {
+    "PATH": "/usr/bin:/bin",
+    "LC_ALL": "C",
+    "LANG": "C",
+    "TZ": "UTC",
+    "TSX_DISABLE_CACHE": "1"
+  },
+  "startedAt": "2026-08-27T10:13:28.812Z",
+  "finishedAt": "2026-08-27T10:13:28.957Z",
+  "durationMs": 145.089708,
+  "timeoutMs": 7000,
+  "maxBytes": 1048576,
+  "pid": 27660,
+  "initialIdentity": "27660 27589 27660 Thu Aug 27 05:13:28 2026     /Users/kjopek/.nvm/versions/node/v22.22.2/bin/node /tmp/safe-bash-owned-output-prototype-review-execution-e9I2ro/h12-diagnosis.mjs",
+  "status": 0,
+  "signal": null,
+  "timedOut": false,
+  "oversized": false,
+  "signals": [],
+  "closeEventObserved": true,
+  "pidAfterClose": "",
+  "groupExistsAfterClose": false,
+  "stdout": "{\"diagnosis\":\"First H12 binding used a normal command error, which is diagnosed and converted to status 1; it was never a selected public execution rejection. A public ShellLimitError injected by the same middleware is selected and retains identity with or without cleanup failure.\",\"results\":[{\"typed\":false,\"cleanupFails\":false,\"middlewareThrew\":true,\"selectedExecutionRejection\":false,\"diagnostics\":[\"shell: line 1: [object Object]\\n\"],\"actualExitCode\":1,\"rejectionIsSelected\":false,\"rejectionIsCleanup\":false},{\"typed\":false,\"cleanupFails\":true,\"middlewareThrew\":true,\"selectedExecutionRejection\":false,\"diagnostics\":[\"shell: line 1: [object Object]\\n\"],\"rejectionIsSelected\":false,\"rejectionIsCleanup\":true},{\"typed\":true,\"cleanupFails\":false,\"middlewareThrew\":true,\"selectedExecutionRejection\":true,\"diagnostics\":[],\"rejectionIsSelected\":true,\"rejectionIsCleanup\":false},{\"typed\":true,\"cleanupFails\":true,\"middlewareThrew\":true,\"selectedExecutionRejection\":true,\"diagnostics\":[],\"rejectionIsSelected\":true,\"rejectionIsCleanup\":false}]}\n",
+  "stderr": ""
+}

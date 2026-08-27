@@ -1,0 +1,30 @@
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+import {execFileSync, spawnSync} from 'node:child_process';
+import {createHash} from 'node:crypto';
+const temp = process.argv[2]; assert.ok(temp?.startsWith('/tmp/safe-bash-owned-output-prototype-review-execution-'));
+const sha = value => createHash('sha256').update(value).digest('hex');
+const initial = readFileSync(`${temp}/holdouts.mjs`, 'utf8');
+const seal = JSON.parse(readFileSync(`${temp}/binding-seal.json`));
+assert.equal(sha(initial), seal.files.find(file => file.path === 'holdouts.mjs').sha256);
+const diagnosis = JSON.parse(readFileSync(`${temp}/evidence/runs/H12-binding-diagnosis.json`)); assert.equal(diagnosis.status, 0);
+let corrected = initial;
+const replace = (before, after) => {assert.equal(corrected.split(before).length, 2, before); corrected = corrected.replace(before, after);};
+replace('Shell, MemoryFileSystem, agentCommands, networkCommands, createOutputOperation', 'Shell, MemoryFileSystem, ShellLimitError, agentCommands, networkCommands, createOutputOperation');
+replace("const executionFailure = {failure: 'execution'};", "const executionFailure = new ShellLimitError('maxCommands');");
+replace('const sockets = new Set(); const events = [];', 'const sockets = new Set(); const wireChunks = []; const events = [];');
+replace("server.on('connection', socket => {sockets.add(socket); socket.once('close', () => sockets.delete(socket));});", "server.on('connection', socket => {\n      sockets.add(socket); socket.once('close', () => sockets.delete(socket));\n      const write = socket.write.bind(socket);\n      socket.write = (chunk, ...args) => {wireChunks.push(typeof chunk === 'string' ? Buffer.from(chunk, typeof args[0] === 'string' ? args[0] : 'utf8') : Buffer.from(chunk)); return write(chunk, ...args);};\n    });");
+replace("records.push({pipefail, result, producerStatus, body:", "const wireBytes = Buffer.concat(wireChunks); const headerEnd = wireBytes.indexOf('\\r\\n\\r\\n'); assert.ok(headerEnd >= 0);\n      const capturedHeaderBytes = wireBytes.subarray(0, headerEnd + 4); assert.deepEqual(capturedHeaderBytes, expectedHeaderBytes);\n      records.push({wireBase64: wireBytes.toString('base64'), capturedHeaders: capturedHeaderBytes.toString()});\n      records.push({pipefail, result, producerStatus, body:");
+replace('headerBytes: headers, expectedHeaderBytes, producerStatus', 'headerBytes: headers, expectedHeaderBytes: capturedHeaderBytes, producerStatus');
+replace('const disposalOne = shell.dispose(); const disposalTwo = shell.dispose(); const disposed', 'const disposalOne = shell.dispose(); const disposalTwo = shell.dispose(); assert.equal(disposalOne, disposalTwo); const disposed');
+const add = (path, content) => execFileSync('apply_patch', [], {input: `*** Begin Patch\n*** Add File: ${path}\n${content.replace(/\n$/, '').split('\n').map(line => '+' + line).join('\n')}\n*** End Patch\n`});
+add(`${temp}/holdouts-r1.mjs`, corrected);
+const diff = spawnSync('git', ['diff', '--no-index', '--', `${temp}/holdouts.mjs`, `${temp}/holdouts-r1.mjs`], {encoding: 'utf8'}); assert.equal(diff.status, 1);
+add(`${temp}/binding-r0-to-r1.patch-data`, diff.stdout);
+const revisedSeal = {sealedAt: new Date().toISOString(), productExecutedWithRevision: false, focusedExecutableFixRound: 1,
+  frozenIntentionsUnchanged: true, originalSealSha256: sha(readFileSync(`${temp}/binding-seal.json`)), initialExecutableSha256: sha(initial), correctedExecutableSha256: sha(corrected),
+  exactDeltaSha256: sha(diff.stdout), diagnosisSha256: sha(readFileSync(`${temp}/evidence/runs/H12-binding-diagnosis.json`)),
+  correction: 'H12 selected public rejection is now the authenticated public ShellLimitError, not an ordinary diagnostic/status-converted object. Frozen requirement and exact-identity assertion unchanged. Other changes add raw socket-write byte capture for H09-H11 and explicit same-promise disposal assertion for H13; no input/status-set change.',
+  sourceManifestSha256: seal.sourceManifestSha256, compiledManifestSha256: seal.compiledManifestSha256};
+add(`${temp}/binding-r1-seal.json`, JSON.stringify(revisedSeal, null, 2));
+console.log(JSON.stringify(revisedSeal));

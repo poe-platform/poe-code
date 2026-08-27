@@ -1,0 +1,2 @@
+{"diagnostic":true,"originalObservedAborted":false,"ioAborted":false,"stageAborted":false,"firstWrites":0,"scenario":"first-read-local","active":1,"reads":1,"returned":0,"abortedBeforeTeardown":false,"events":["source.next:pending-before-first-byte","command.settled:head:0"]}
+{"diagnosticAfterTeardown":true,"scenario":"first-read-local","reads":1,"returned":1,"active":0,"unhandled":0,"callerAborted":true}

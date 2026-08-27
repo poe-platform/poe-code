@@ -116,3 +116,10 @@ full shell/tool support, ownership/timestamp parity, all limits, concurrency or
 outside-fixture preservation. Optional SafeJS/Python/JavaScript are not compared.
 Uncovered baseline commands remain explicit inventory gaps. The full product,
 72-hour and “much better” requirements remain unproven.
+
+The separate `benchmarks/reports/expanded-20260827/baseline-only-frozen/`
+matrix retains all53 baseline-only names from the frozen inventory. Three
+primary recipes (dot/source/eval) are ours0/3 versus baseline3/3; the other50
+names are unmeasured, not passes. This extracts existing evidence, not a new
+execution or proof about later source/dot/eval implementations. Reproduce into
+a new directory with `node benchmarks/expanded/baseline-only.mjs PATH`.

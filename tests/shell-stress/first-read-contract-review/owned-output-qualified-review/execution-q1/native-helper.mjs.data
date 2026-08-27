@@ -1,0 +1,12 @@
+import { closeSync, readSync, writeSync } from 'node:fs';
+import assert from 'node:assert/strict';
+const mode=process.argv[2];
+if(mode==='closed') {
+  const bytes=Buffer.alloc(64);let used=0;
+  while(used<8){const count=readSync(3,bytes,used,bytes.length-used,null);assert.ok(count>0);used+=count;}
+  assert.equal(bytes.subarray(0,used).toString(),'started\n');
+  closeSync(0);writeSync(4,'closed\n');closeSync(3);closeSync(4);
+} else {
+  closeSync(3);closeSync(4);
+  for await(const chunk of process.stdin) if(!process.stdout.write(chunk)) await new Promise(resolve=>process.stdout.once('drain',resolve));
+}

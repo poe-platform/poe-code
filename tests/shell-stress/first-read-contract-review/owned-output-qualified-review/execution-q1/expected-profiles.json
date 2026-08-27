@@ -1,0 +1,85 @@
+{
+  "frozenBeforeExecution": true,
+  "authority": "User decisions; exact original/current curl source and unchanged public command cleanup contract; original frozen scripts. Candidate control flow inspected for binding only, not empirical expected-value discovery.",
+  "profiles": {
+    "S07/stdout-only-request": {
+      "nestedPublicResult": {
+        "kind": "value",
+        "value": {
+          "exitCode": 141
+        }
+      },
+      "diagnostic": ""
+    },
+    "S07/stdout-only-streaming-upload": {
+      "nestedPublicResult": {
+        "kind": "value",
+        "value": {
+          "exitCode": 141
+        }
+      },
+      "diagnostic": ""
+    },
+    "S08/stdout-body-and-required-header-file": {
+      "nestedPublicResult": {
+        "kind": "value",
+        "value": {
+          "exitCode": 141
+        }
+      },
+      "diagnostic": ""
+    },
+    "S08/required-body-file-and-stdout-writeout": {
+      "nestedPublicResult": {
+        "kind": "value",
+        "value": {
+          "exitCode": 141
+        }
+      },
+      "diagnostic": ""
+    },
+    "S08/required-files-writeout-and-independent-stderr": {
+      "nestedPublicResult": {
+        "kind": "value",
+        "value": {
+          "exitCode": 141
+        }
+      },
+      "diagnostic": ""
+    },
+    "S11/io-error-before-caller-abort": {
+      "command": "set -o pipefail; precedence-probe | cat",
+      "publicResult": {
+        "kind": "error",
+        "error": 0
+      },
+      "operationSignal": {
+        "aborted": false,
+        "reason": {
+          "serializationTag": "undefined"
+        }
+      }
+    },
+    "S11/caller-abort-before-late-io-rejection": {
+      "command": "set -o pipefail; precedence-probe | cat",
+      "publicResult": {
+        "kind": "error",
+        "error": 0
+      },
+      "operationSignal": {
+        "aborted": true,
+        "reason": 0
+      }
+    }
+  },
+  "comparison": {
+    "publicPipeStatus": [
+      0,
+      141
+    ],
+    "genuineWriteoutStatus": 23,
+    "nativeDifference": "Native writeout-only error status0/bodypipe23 in author profiles, independently replayed, not product policy",
+    "missing": "Product PIPESTATUS unavailable; four original/current nested returns can be absent. Compare only Shell result plus exact stdout/stderr/effects; NEVER manufacture nested equality.",
+    "requiredEffects": "Candidate required body/header and independent file/stderr finish; intentionally not byteidentical old canceled-stage effects."
+  }
+}

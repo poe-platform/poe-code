@@ -1,0 +1,267 @@
+import assert from 'node:assert/strict';
+import { createServer } from 'node:http';
+import { spawn, spawnSync } from 'node:child_process';
+import { readFileSync, writeFileSync, mkdirSync, existsSync, readdirSync } from 'node:fs';
+import { resolve } from 'node:path';
+import { setImmediate as turn } from 'node:timers/promises';
+import { createHash } from 'node:crypto';
+const task = '/tmp/safe-bash-owned-output-qualified-execution-zgVdib';
+const encode = text => new TextEncoder().encode(text);
+const hash = bytes => createHash('sha256').update(bytes).digest('hex');
+const gate = () => { let resolve; const promise = new Promise(done => { resolve = done; }); return { promise, resolve }; };
+const bounded = async (promise, label) => {
+  let timer;
+  try { return await Promise.race([promise, new Promise((_, reject) => { timer = setTimeout(() => reject(new Error(`Timeout: ${label}`)), 8000); })]); }
+  finally { clearTimeout(timer); }
+};
+const describe = value => value === undefined ? { kind: 'undefined' } : value instanceof Error ? { kind: 'Error', name: value.name, message: value.message, code: value.code } : { kind: typeof value, value };
+const outcome = promise => Promise.resolve(promise).then(value => ({ kind: 'result', value }), error => ({ kind: 'error', error }));
+const body = Buffer.from('required-body\n');
+const headerText = 'HTTP/1.1 200 OK\r\nContent-Length: 14\r\nDate: Thu, 01 Jan 1970 00:00:00 GMT\r\nX-Qualified: required-header\r\nConnection: close\r\n\r\n';
+const profiles = [
+  { id: 'C01', output: true, writeout: true, mode: 'drain', pipefail: false },
+  { id: 'C02', output: true, writeout: true, mode: 'closed', pipefail: false },
+  { id: 'C03', output: true, writeout: true, mode: 'closed', pipefail: true },
+  { id: 'C04', output: false, writeout: true, mode: 'closed', pipefail: false },
+  { id: 'C05', output: false, writeout: true, mode: 'closed', pipefail: true },
+  { id: 'C06', output: true, writeout: false, mode: 'closed', pipefail: true },
+  { id: 'C07', output: true, writeout: true, mode: 'error', pipefail: false },
+  { id: 'C08', output: true, writeout: true, mode: 'drain', pipefail: true, directory: true },
+];
+async function serverFixture(mode, events) {
+  const started = gate(); const release = gate(); const sockets = new Set(); const tasks = new Set(); const socketClosures = new Set();
+  const server = createServer((request, response) => {
+    const pending = (async () => {
+      if (request.url === '/gate') { await started.promise; response.end('started'); return; }
+      if (request.url === '/closed') { events.push('native-reader-closed'); release.resolve(); response.end('closed'); return; }
+      events.push({ requestStarted: request.url, method: request.method, headers: request.rawHeaders });
+      const received = []; for await (const bytes of request) received.push(Buffer.from(bytes));
+      events.push({ requestBodyHex: Buffer.concat(received).toString('hex') }); started.resolve();
+      if (mode === 'closed') await release.promise;
+      events.push('server-first-response-write');
+      response.sendDate = false;
+      response.writeHead(200, { 'Content-Length': body.length, Date: 'Thu, 01 Jan 1970 00:00:00 GMT', 'X-Qualified': 'required-header', Connection: 'close' });
+      response.end(body);
+    })();
+    tasks.add(pending); pending.finally(() => tasks.delete(pending)).catch(error => events.push({ serverError: describe(error) }));
+  });
+  server.on('connection', socket => {
+    sockets.add(socket);
+    const closing = new Promise(resolve => socket.on('close', () => { sockets.delete(socket); resolve(); }));
+    socketClosures.add(closing); void closing.then(() => socketClosures.delete(closing));
+  });
+  await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
+  const origin = `http://127.0.0.1:${server.address().port}`;
+  return { origin, started, release, async close() {
+    release.resolve(); await Promise.allSettled([...tasks]);
+    const closed = new Promise(resolve => server.close(resolve));
+    server.closeAllConnections(); for (const socket of sockets) socket.destroy();
+    await closed; await Promise.all([...socketClosures]); assert.equal(sockets.size, 0); assert.equal(tasks.size, 0);
+    return { sockets: sockets.size, tasks: tasks.size, listening: server.listening };
+  } };
+}
+function argsFor(profile, output, headers, url) {
+  return ['-sS', ...(profile.output ? ['-o', output] : []), '-D', headers, ...(profile.writeout ? ['-w', 'W:%{http_code}\\n'] : []), url];
+}
+async function productCurl(name, profile) {
+  const api = await import(resolve(task, name, 'dist/index.js'));
+  const { createCurlCommand } = await import(resolve(task, name, 'dist/commands/network/curl.js'));
+  const events = []; const fixture = await serverFixture(profile.mode, events);
+  const fs = new api.MemoryFileSystem(); const shell = new api.Shell({ fs });
+  const caller = new AbortController(); const attempts = []; let nested; let stage; let ownedClosed = false;
+  const sinkError = Object.assign(new Error('qualified genuine output failure'), { code: 'EIO' });
+  if (profile.directory) await fs.mkdir('/body');
+  shell.register(createCurlCommand({ authorize: request => new URL(request.url).origin === fixture.origin }));
+  shell.register({ name: 'probe', async execute(context) {
+    stage = context.signal;
+    const write = async chunk => { attempts.push({ hex: Buffer.from(chunk).toString('hex'), owned: false }); if (profile.mode === 'error') throw sinkError; await context.stdout.write(chunk); };
+    const stdout = { write };
+    if (context.stdout.ownedOutput && profile.mode !== 'error') {
+      const capability = context.stdout.ownedOutput;
+      capability.consumerClosed.addEventListener('abort', () => { ownedClosed = true; events.push('owned-consumer-closed'); }, { once: true });
+      stdout.ownedOutput = { consumerClosed: capability.consumerClosed, async write(chunk) { attempts.push({ hex: Buffer.from(chunk).toString('hex'), owned: true }); await capability.write(chunk); } };
+    }
+    nested = await context.invoke('curl', argsFor(profile, '/body', '/headers', fixture.origin + '/fixture'), { stdout });
+    events.push({ nestedStatus: nested.exitCode, stageAbortedAfterCurl: stage.aborted });
+    await context.fs.writeFile('/independent', encode('independent-file\n'), { signal: context.signal });
+    await context.stderr.write(encode('independent-stderr\n'));
+    return nested;
+  } });
+  shell.register({ name: 'reader', async execute(context) {
+    if (profile.mode === 'closed') {
+      await fixture.started.promise;
+      await context.stdin[Symbol.asyncIterator]().return?.();
+      events.push('reader-returned');
+      void turn().then(() => { events.push('barrier-released'); fixture.release.resolve(); });
+    } else for await (const chunk of context.stdin) await context.stdout.write(chunk);
+    return { exitCode: 0 };
+  } });
+  let result; let closure;
+  try {
+    result = await bounded(outcome(shell.exec(`${profile.pipefail ? 'set -o pipefail; ' : ''}probe${profile.mode === 'error' ? '' : ' | reader'}`, { signal: caller.signal })), `${name}/${profile.id}`);
+    const effects = {};
+    for (const path of ['/body', '/headers', '/independent']) {
+      try { effects[path] = { hex: Buffer.from(await fs.readFile(path)).toString('hex') }; }
+      catch (error) { effects[path] = { error: describe(error) }; }
+    }
+    return { profile: name, id: profile.id, mode: profile.mode, pipefail: profile.pipefail, outcome: result.kind === 'error' ? { kind: 'error', error: describe(result.error) } : { kind: 'result', exitCode: result.value.exitCode, stdoutHex: Buffer.from(result.value.stdoutBytes).toString('hex'), stderrHex: Buffer.from(result.value.stderrBytes).toString('hex') }, nestedStatus: nested?.exitCode, attempts, ownedClosed, stageAborted: stage?.aborted, callerAborted: caller.signal.aborted, effects, events, get closure() { return closure; } };
+  } finally { fixture.release.resolve(); await shell.dispose(); closure = await fixture.close(); }
+}
+const nativeEnv = { PATH: '/usr/bin:/bin', HOME: task, CURL_HOME: task, TMPDIR: task, TMP: task, TEMP: task, LANG: 'C', LC_ALL: 'C' };
+const quote = text => `'${text.replaceAll("'", "'\\''")}'`;
+async function nativeCurl(profile) {
+  const directory = resolve(task, 'native', profile.id); mkdirSync(directory, { recursive: true });
+  if (profile.directory) mkdirSync(resolve(directory, 'body'));
+  const events = []; const fixture = await serverFixture(profile.mode, events);
+  const args = ['-q', '--noproxy', '*', '--proxy', '', '--connect-timeout', '2', '--max-time', '5', ...argsFor(profile, resolve(directory, 'body'), resolve(directory, 'headers'), fixture.origin + '/fixture')];
+  const curl = ['/usr/bin/curl', ...args].map(quote).join(' ');
+  const helper = [process.execPath, resolve(task, 'native-helper.mjs'), profile.mode === 'closed' ? 'closed' : 'drain', fixture.origin].map(quote).join(' ');
+  const script = `${profile.pipefail ? 'set -o pipefail; ' : ''}${curl}${profile.mode === 'error' ? ' 1>&-' : ''} | ${helper}; printf '%s\\n' "$?" "\${PIPESTATUS[*]}" > ${quote(resolve(directory, 'statuses'))}; printf 'independent-stderr\\n' >&2; printf 'independent-file\\n' > ${quote(resolve(directory, 'independent'))}`;
+  const child = spawn('/bin/bash', ['--noprofile', '--norc', '-c', script], { cwd: directory, env: nativeEnv, detached: true, stdio: ['ignore', 'pipe', 'pipe', 'pipe', 'pipe'] });
+  child.stdio[3].on('error',error=>events.push({barrierWriteError:describe(error)}));
+  if(profile.mode==='closed') {
+    void fixture.started.promise.then(()=>{events.push('fd3.request-start-barrier');child.stdio[3].end('started\n');});
+    child.stdio[4].once('data',chunk=>{assert.equal(chunk.toString(),'closed\n');events.push('fd4.consumer-fd0-closed');fixture.release.resolve();});
+  } else child.stdio[3].end();
+  const stdout = []; const stderr = []; child.stdout.on('data', chunk => stdout.push(Buffer.from(chunk))); child.stderr.on('data', chunk => stderr.push(Buffer.from(chunk)));
+  let timer = setTimeout(() => { try { process.kill(-child.pid, 'SIGKILL'); } catch {} }, 9000);
+  let closure;
+  try {
+    const exited = await new Promise((resolve, reject) => { child.on('error', reject); child.on('close', (code, signal) => resolve({ code, signal })); });
+    clearTimeout(timer); timer = undefined;
+    assert.equal(exited.signal, null); assert.equal(exited.code, 0);
+    assert.throws(() => process.kill(child.pid, 0), { code: 'ESRCH' });
+    assert.throws(() => process.kill(-child.pid, 0), { code: 'ESRCH' });
+    const effects = {};
+    for (const path of ['body', 'headers', 'independent']) {
+      try { effects['/' + path] = { hex: readFileSync(resolve(directory, path)).toString('hex') }; }
+      catch (error) { effects['/' + path] = { error: describe(error) }; }
+    }
+    return { profile: 'native-curl8.7.1-Darwin', id: profile.id, args, script, pid: child.pid, process: exited, groupReaped: true, statuses: readFileSync(resolve(directory, 'statuses'), 'utf8'), stdoutHex: Buffer.concat(stdout).toString('hex'), stderrHex: Buffer.concat(stderr).toString('hex'), effects, events, get closure() { return closure; } };
+  } finally { clearTimeout(timer); fixture.release.resolve(); closure = await fixture.close(); }
+}
+const api = await import(resolve(task, 'candidate/dist/index.js'));
+async function preservePrimary(operation, execute) {
+  let failed = false; let failure; let result;
+  try { result = await execute(); } catch (error) { failed = true; failure = error; }
+  let cleanupFailed = false; let cleanupFailure;
+  try { await operation.close(); } catch (error) { cleanupFailed = true; cleanupFailure = error; }
+  if (failed) throw failure;
+  if (cleanupFailed) throw cleanupFailure;
+  return result;
+}
+async function precedence(index) {
+  const ioError = new Error('local IO'); const callerError = new Error('caller'); const cleanupError = new Error('cleanup');
+  const cases = [
+    { execution: ioError, cleanup: cleanupError, caller: 0, order: 'error-first' },
+    { execution: ioError, cleanup: cleanupError, caller: callerError, order: 'caller-first' },
+    { execution: ioError, cleanup: undefined, noCleanupError: true, order: 'default-abort' },
+    { noExecutionError: true, noCleanupError: true, caller: 0, order: 'normal-close' },
+    { execution: 0, cleanup: cleanupError },
+    { execution: undefined, cleanup: cleanupError },
+    { execution: ioError, cleanup: 0 },
+    { noExecutionError: true, cleanup: 0 },
+    { noExecutionError: true, cleanup: undefined },
+    { noExecutionError: true, cleanup: cleanupError },
+    { noExecutionError: true, noCleanupError: true },
+    { execution: undefined, cleanup: 0, order: 'undefined-abort' },
+  ];
+  const spec = cases[index]; const caller = new AbortController(); const cleanupEntered = gate(); const release = gate();
+  const shell = new api.Shell({ fs: new api.MemoryFileSystem() }); const events = []; let operation; let localObserved = false; let localValue; let cleanupCalls = 0; let stage;
+  shell.register({ name: 'precedence', async execute(context) {
+    stage = context.signal; operation = api.createOutputOperation(context, { async write() { throw spec.execution; } });
+    operation.registerCleanup(async () => { cleanupCalls++; events.push('cleanup-start'); cleanupEntered.resolve(); await release.promise; events.push('cleanup-end'); if (!spec.noCleanupError) throw spec.cleanup; });
+    if (spec.order === 'caller-first') caller.abort(spec.caller);
+    const selected = await outcome(preservePrimary(operation, async () => {
+      if (spec.noExecutionError) return { exitCode: 0 };
+      try {
+        if (spec.order === 'caller-first') throw spec.execution;
+        await operation.output.write(encode('x'));
+      } catch (error) { localObserved = true; localValue = error; events.push('local-throw'); throw error; }
+      return { exitCode: 0 };
+    }));
+    if (spec.order === 'normal-close') { events.push('normally-closed'); caller.abort(0); }
+    if (selected.kind === 'error') throw selected.error;
+    return selected.value;
+  } });
+  const pending = outcome(shell.exec('precedence', { signal: caller.signal }));
+  try {
+    await bounded(cleanupEntered.promise, 'precedence cleanup entry');
+    if (spec.order === 'error-first') caller.abort(spec.caller);
+    if (spec.order === 'default-abort') caller.abort();
+    if (spec.order === 'undefined-abort') caller.abort(undefined);
+    release.resolve();
+    const result = await bounded(pending, 'precedence settlement');
+    const expectedFailure = Boolean(spec.order) || !spec.noExecutionError || !spec.noCleanupError;
+    const expected = caller.signal.aborted ? caller.signal.reason : !spec.noExecutionError ? spec.execution : spec.cleanup;
+    const record = { id: `P${String(index + 1).padStart(2, '0')}`, public: result.kind === 'error' ? { kind: 'error', error: describe(result.error), exactIdentity: Object.is(result.error, expected) } : { kind: 'result', exitCode: result.value.exitCode }, localObserved, local: describe(localValue), localIdentity: spec.noExecutionError || localObserved && Object.is(localValue, spec.execution), caller: { aborted: caller.signal.aborted, reason: describe(caller.signal.reason), actualUndefined: caller.signal.reason === undefined }, operation: { aborted: operation.signal.aborted, reason: describe(operation.signal.reason) }, stageAborted: stage.aborted, cleanupCalls, events };
+    const errors = [];
+    if (expectedFailure && (result.kind !== 'error' || !Object.is(result.error, expected))) errors.push('public precedence/identity');
+    if (!expectedFailure && (result.kind !== 'result' || result.value.exitCode !== 0)) errors.push('normal result');
+    if (!record.localIdentity) errors.push('local thrown identity');
+    if (cleanupCalls !== 1) errors.push('cleanup count');
+    if (spec.order === 'normal-close' && operation.signal.aborted) errors.push('retroactive local abort');
+    return { ...record, errors, passed: errors.length === 0 };
+  } finally { release.resolve(); await pending; await shell.dispose(); }
+}
+async function childrenControl() {
+  const rootSignal = new AbortController(); const callbacks = []; const events = []; const release = gate(); let started = gate();
+  const sink = { async write() {} };
+  const parent = api.createOutputOperation({ signal: rootSignal.signal, registerCleanup: callback => callbacks.push(callback) }, sink);
+  const first = parent.child(sink); const second = parent.child(sink);
+  first.registerCleanup(() => { events.push('first-cleanup'); });
+  await first.close(); await parent.output.write(encode('parent-live')); await second.output.write(encode('sibling-live'));
+  second.registerCleanup(async () => { events.push('second-start'); started.resolve(); await release.promise; events.push('second-end'); });
+  const closing = parent.close(); assert.equal(closing, parent.close());
+  assert.throws(() => parent.child(sink)); assert.throws(() => second.registerCleanup(() => {}));
+  const refused = await outcome(parent.acquire(() => { throw new Error('must not start'); }, () => {})); assert.equal(refused.kind, 'error');
+  let settled = false; void closing.then(() => { settled = true; }); await started.promise; await turn(); assert.equal(settled, false);
+  release.resolve(); await closing; await Promise.all(callbacks.map(callback => callback()));
+  assert.equal(parent.signal.aborted, false); assert.equal(second.signal.aborted, false);
+  assert.deepEqual(events, ['first-cleanup', 'second-start', 'second-end']);
+  return { passed: true, events, sharedClose: true, parentAborted: parent.signal.aborted, siblingAborted: second.signal.aborted, admissionRefused: true };
+}
+async function borrowedControl() {
+  let returns = 0; let reads = 0; const closed = new AbortController(); const effects = []; let operationState; let stageLive;
+  const borrowed = { [Symbol.asyncIterator]() { return { async next() { reads++; return { done: false, value: encode('borrowed') }; }, async return() { returns++; return { done: true }; } }; } };
+  const fs = new api.MemoryFileSystem(); const shell = new api.Shell({ fs });
+  shell.register({ name: 'borrowed', async execute(context) {
+    const destination = { async write() {}, ownedOutput: { consumerClosed: closed.signal, async write() {} } };
+    const operation = api.createOutputOperation(context, destination);
+    const sibling = api.createOutputOperation(context, { async write(chunk) { effects.push(Buffer.from(chunk).toString()); } });
+    await context.stdin[Symbol.asyncIterator]().next();
+    const pipeError = Object.assign(new Error('consumer closed'), { code: 'EPIPE' }); closed.abort(pipeError);
+    await operation.close(); assert.equal(returns, 0); assert.equal(operation.signal.reason, pipeError);
+    await sibling.output.write(encode('sibling-live')); await sibling.close();
+    await context.fs.writeFile('/independent', encode('independent-file\n'), { signal: context.signal });
+    await context.stderr.write(encode('independent-stderr\n'));
+    stageLive = !context.signal.aborted; operationState = { aborted: operation.signal.aborted, borrowedReturnsBeforeOwnerFinalization: returns };
+    return { exitCode: 0 };
+  } });
+  try {
+    const result = await shell.exec('borrowed', { stdin: borrowed });
+    assert.equal(result.exitCode, 0); assert.equal(result.stderr, 'independent-stderr\n'); assert.equal(stageLive, true); assert.equal(returns, 1); assert.deepEqual(effects, ['sibling-live']);
+    return { passed: true, reads, returnsAfterOwnerFinalization: returns, operationState, stageLive, effects, independentHex: Buffer.from(await fs.readFile('/independent')).toString('hex') };
+  } finally { await shell.dispose(); }
+}
+const mode = process.argv[2] ?? 'all';
+assert.equal(mode,'curl','Independent replay permits exactly the frozen eight comparison profiles only');
+const records = { startedAt: new Date().toISOString(), mode, curl: [], precedence: [], auxiliary: [], failures: [] };
+const save = () => writeFileSync(resolve(task, `results-${mode}.json`), JSON.stringify(records, null, 2) + '\n');
+try {
+  if (mode === 'all' || mode === 'curl') for (const profile of profiles) {
+    for (const name of ['original-preoperation', 'current-capture', 'candidate']) { records.curl.push(await productCurl(name, profile)); save(); }
+    records.curl.push(await nativeCurl(profile)); save();
+  }
+  if (mode === 'all' || mode === 'precedence') {
+    for (let index = 0; index < 12; index++) { records.precedence.push(await precedence(index)); save(); }
+    for (const [id, control] of [['Q03', childrenControl], ['Q04', borrowedControl]]) {
+      try { records.auxiliary.push({ id, ...await bounded(control(), id) }); }
+      catch (error) { records.auxiliary.push({ id, passed: false, error: describe(error), stack: error?.stack }); }
+      save();
+    }
+  }
+} catch (error) { records.failures.push({ error: describe(error), stack: error?.stack }); }
+records.completedAt = new Date().toISOString(); save();
+console.log(JSON.stringify({ mode, curl: records.curl.length, precedence: records.precedence.map(record => ({ id: record.id, passed: record.passed, errors: record.errors })), auxiliary: records.auxiliary, failures: records.failures }, null, 2));
+if (records.failures.length || records.precedence.some(record => !record.passed) || records.auxiliary.some(record => !record.passed)) process.exitCode = 1;

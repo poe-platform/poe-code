@@ -1,0 +1,8 @@
+Authentication attempt 1, before all product imports: Node v22.22.2 exited1.
+ENOENT scandir node_modules/get-tsconfig: stale tooling-package assumption in new authenticator.
+Corrected to actual inspected tsx4.23.12 dependency esbuild0.28.0; no install or product run.
+Archives had already been restored and checked. --resume reauthenticates restored bytes, never overwrites them.
+Authentication attempt2 exited1 before product imports: regex import scanner matched text within a command string. Replaced with authenticated existing TypeScript AST parser; not an input exclusion or runtime change.
+Authentication attempt3 exited1 before product imports: mislocated internal resource-id path. Corrected to inspected dist/fs/webdav/resource-id.js; preserve that explicit facade in copied helper closure.
+Preparation refresh attempts4/5 exited1 before product imports: copyFile preserved readonly source mode on exact historical helper copies. Corrected copier to verify/skip identical existing bytes; writable mode changes apply only owned changed captures, never candidate source or readonly author trees.
+Two failed initial apply_patch materializations and one unmatched native patch hunk produced no executable change or product import; retried with valid exact patch framing and a narrower FD-binding patch.

@@ -1,0 +1,97 @@
+import assert from 'node:assert/strict';
+import { readFileSync, readdirSync, mkdirSync, writeFileSync, lstatSync } from 'node:fs';
+import { createHash } from 'node:crypto';
+import { resolve, dirname } from 'node:path';
+import { spawnSync } from 'node:child_process';
+import { createRequire } from 'node:module';
+const root = '/Users/kjopek/Workspace/safe-bash';
+const task = '/tmp/safe-bash-owned-output-qualified-execution-zgVdib';
+const parent = resolve(root, 'tests/shell-stress/first-read-contract-review/owned-output-qualified-review');
+const author = resolve(root, 'tests/shell-stress/first-read-contract-review/owned-output-qualified-prototype');
+const hash = value => createHash('sha256').update(value).digest('hex');
+const json = path => JSON.parse(readFileSync(path));
+const files = new Map();
+const check = (path, expected) => {
+  const bytes = readFileSync(path); const sha256 = hash(bytes);
+  if (expected) assert.equal(sha256, expected, path);
+  files.set(path, { path, bytes: bytes.length, sha256 }); return bytes;
+};
+const pins = [
+  ['/tmp/safe-bash-owned-output-qualified-prototype.ready','1c01dceeb7604340865b140bf411c51fac08926b2c0955f3bf8143368b2ac8c8'],
+  ['/tmp/safe-bash-owned-output-qualified-prototype-api.txt','218d14793fca4c3d55fd742ea6647a3785e2baf246fcc0b786381fe691086a3b'],
+  ['/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA/final-result.txt','085ae57dbb70e0e8ab4ac2a81b59baa847705d1fe68f0a8a22726bb4e4dbdd14'],
+  [resolve(author,'SOURCE-PROFILE.json'),'dde465c6636625f7802f5ead10bbeb236f62c271d8a078459a5c8bb120de1ce2'],
+  [resolve(author,'ARTIFACTS.json'),'db23a80778f21a0f1e6c9ae437f82236d4125ed822a2f3a4cadcc68183a6fda3'],
+  [resolve(parent,'FREEZE.md'),'0e560ee1a35d729e6669087ce79403264d84cbbb2dff8e3710839701e2d54b8a'],
+  [resolve(parent,'preparation-seal.json'),'5bce8c213d4ae41905108c006cec5594400099a40a1fddafc2d2bf5c27d99cdc'],
+  ['/usr/bin/curl','5ef748580e05e8208c8faacc9be88d1aa48d9970101c0a29ba26896e017e6226'],
+  ['/bin/bash','35536aea9733aa345b61134a98d00232380898e55b2ea2a07c497011f7dfc7a3'],
+];
+for (const [path, expected] of pins) check(path, expected);
+for (const [base, manifest] of [[author,'ARTIFACTS.json'],[parent,'preparation-seal.json']]) {
+  for (const entry of json(resolve(base,manifest)).files) check(resolve(base,entry.path),entry.sha256);
+}
+const profile = json(resolve(author,'SOURCE-PROFILE.json'));
+for (const tool of profile.tools) check(tool.path,tool.sha256);
+const children = [];
+function run(binary,args) {
+  const result = spawnSync(binary,args,{cwd:root,encoding:'utf8',timeout:15000,maxBuffer:8*1024*1024,env:{PATH:'/usr/bin:/bin',HOME:task,TMPDIR:resolve(task,'tmp'),LANG:'C',LC_ALL:'C'}});
+  assert.equal(result.error,undefined); assert.equal(result.status,0,result.stderr);
+  assert.throws(()=>process.kill(result.pid,0),{code:'ESRCH'});
+  children.push({binary,args,pid:result.pid,status:result.status,reaped:true}); return result.stdout;
+}
+mkdirSync(resolve(task,'tmp/tsx'),{recursive:true});
+const restored = [];
+for (const archive of profile.archives) {
+  const archivePath=resolve(author,archive.path);check(archivePath,archive.sha256);
+  const base=resolve(task,archive.name);
+  if (!process.argv.includes('--after') && !process.argv.includes('--resume')) {
+    mkdirSync(base);
+    const names=run('/usr/bin/tar',['-tzf',archivePath]).trim().split('\n');
+    assert.ok(names.every(name=>!name.startsWith('/')&&!name.split('/').includes('..')));
+    run('/usr/bin/tar',['-xzf',archivePath,'-C',base]);
+  }
+  for (const entry of archive.files) check(resolve(base,entry.path),entry.sha256);
+  for (const entry of archive.files) check(resolve('/tmp/safe-bash-owned-output-qualified-prototype-restore-lG2sI4',archive.name,entry.path),entry.sha256);
+  if(archive.name==='candidate') for(const entry of archive.files) check(resolve(profile.candidate,entry.path),entry.sha256);
+  restored.push({name:archive.name,base,files:archive.files.length});
+}
+const build=json(resolve(author,'build-identities.json'));
+for(const record of build.records) {
+  for(const [family,id] of [['source','sourceId'],['tests','testId'],['compiled','compiledId']]) {
+    assert.equal(hash(JSON.stringify(record[family])),record[id]);
+    for(const entry of record[family]) check(resolve(task,record.name,entry.path),entry.sha256);
+  }
+  for(const entry of record.inputs) check(entry.path,entry.sha256);
+}
+const baseline=json(resolve(author,'baseline-snapshot.json'));
+check(baseline.tooling.node.path,baseline.tooling.node.sha256);
+for(const entry of baseline.tooling.compiler) check(entry.path,entry.sha256);
+for(const entry of baseline.compilerInputs) check(entry.path,entry.sha256);
+const walk = base => readdirSync(base,{withFileTypes:true}).flatMap(entry=>entry.isDirectory()?walk(resolve(base,entry.name)):entry.isFile()?[resolve(base,entry.name)]:[]);
+for(const pkg of ['tsx','typescript','esbuild','@esbuild']) for(const path of walk(resolve(root,'node_modules',pkg))) check(path);
+const native={curl:run('/usr/bin/curl',['-q','--version']),bash:run('/bin/bash',['--version']),platform:process.platform,arch:process.arch,node:process.version,dyld:'System dynamic libraries not fully pinned'};
+const closure=[];
+const typescript=createRequire(resolve(root,'package.json'))('typescript');
+function visit(path) {
+  if(closure.includes(path))return; closure.push(path);
+  const source=check(path).toString();
+  const imports=[];
+  const tree=typescript.createSourceFile(path,source,typescript.ScriptTarget.Latest,true,typescript.ScriptKind.JS);
+  function scan(node) {
+    if(typescript.isImportDeclaration(node)||typescript.isExportDeclaration(node)) {if(node.moduleSpecifier) imports.push(node.moduleSpecifier.text);}
+    if(typescript.isCallExpression(node)&&node.expression.kind===typescript.SyntaxKind.ImportKeyword) {assert.ok(typescript.isStringLiteral(node.arguments[0]),'computed dynamic import requires explicit qualification');imports.push(node.arguments[0].text);}
+    typescript.forEachChild(node,scan);
+  }
+  scan(tree);
+  for(const spec of imports) {
+    if(spec.startsWith('node:'))continue;
+    assert.ok(spec.startsWith('.'),`external runtime dependency ${spec}`);
+    const next=resolve(dirname(path),spec);assert.ok(next.startsWith(resolve(task,'candidate/dist')+'/'));visit(next);
+  }
+}
+visit(resolve(task,'candidate/dist/index.js'));visit(resolve(task,'candidate/dist/contracts/output.js'));visit(resolve(task,'candidate/dist/fs/webdav/resource-id.js'));
+const phase=process.argv.includes('--after')?'after':'before';
+const evidence={phase,at:new Date().toISOString(),pins,restored,native,children,selectedCompiledClosure:closure,sourceId:profile.sourceManifestSha256,testId:profile.testManifestSha256,compiledId:profile.compiledManifestSha256,files:[...files.values()]};
+writeFileSync(resolve(task,`authentication-${phase}.json`),JSON.stringify(evidence,null,2)+'\n');
+console.log(JSON.stringify({phase,files:files.size,restored,native,closure:closure.length,sourceId:evidence.sourceId,children:children.length}));

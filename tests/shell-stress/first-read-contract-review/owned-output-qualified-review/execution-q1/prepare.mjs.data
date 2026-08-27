@@ -1,0 +1,34 @@
+import assert from 'node:assert/strict';
+import { readFileSync, writeFileSync, copyFileSync, mkdirSync, readdirSync, existsSync, chmodSync } from 'node:fs';
+import { createHash } from 'node:crypto';
+import { resolve,dirname } from 'node:path';
+const root='/Users/kjopek/Workspace/safe-bash';
+const task='/tmp/safe-bash-owned-output-qualified-execution-zgVdib';
+const owned=resolve(root,'tests/shell-stress/first-read-contract-review/owned-output-qualified-review/execution-q1');
+const parent=dirname(owned);
+const hash=bytes=>createHash('sha256').update(bytes).digest('hex');
+const file=path=>({path,sha256:hash(readFileSync(path))});
+const copy=(from,to)=>{mkdirSync(dirname(to),{recursive:true});if(existsSync(to)&&hash(readFileSync(from))===hash(readFileSync(to)))return;if(existsSync(to))chmodSync(to,0o644);copyFileSync(from,to);assert.equal(hash(readFileSync(from)),hash(readFileSync(to)));};
+copy(resolve(parent,'binding-map.json'),resolve(task,'binding-map.json'));
+for(const path of ['tests/stress/remote-cancellation/helpers.ts','tests/fs/webdav/mock.ts','tests/shell/first-read-probe.ts'])copy(resolve(task,'candidate',path),resolve(task,'historical',path));
+for(const [path,content] of [['src/index.ts',`export * from '${task}/candidate/dist/index.js';\n`],['src/fs/webdav/resource-id.ts',`export * from '${task}/candidate/dist/fs/webdav/resource-id.js';\n`]]) {
+  const target=resolve(task,'historical',path);mkdirSync(dirname(target),{recursive:true});writeFileSync(target,content);
+}
+writeFileSync(resolve(task,'historical/package.json'),'{"type":"module"}\n');
+writeFileSync(resolve(task,'tsconfig.json'),'{"compilerOptions":{"module":"NodeNext","moduleResolution":"NodeNext","target":"ES2022"}}\n');
+const profiles={};
+for(const key of ['S07/stdout-only-request','S07/stdout-only-streaming-upload','S08/stdout-body-and-required-header-file','S08/required-body-file-and-stdout-writeout','S08/required-files-writeout-and-independent-stderr']) profiles[key]={nestedPublicResult:{kind:'value',value:{exitCode:141}},diagnostic:''};
+for(const parameter of ['io-error-before-caller-abort','caller-abort-before-late-io-rejection']) profiles[`S11/${parameter}`]={command:'set -o pipefail; precedence-probe | cat',publicResult:{kind:'error',error:0},operationSignal:{aborted:true,reason:0}};
+profiles['S11/io-error-before-caller-abort'].operationSignal={aborted:false,reason:{serializationTag:'undefined'}};
+writeFileSync(resolve(task,'expected-profiles.json'),JSON.stringify({frozenBeforeExecution:true,authority:'User decisions; exact original/current curl source and unchanged public command cleanup contract; original frozen scripts. Candidate control flow inspected for binding only, not empirical expected-value discovery.',profiles,comparison:{publicPipeStatus:[0,141],genuineWriteoutStatus:23,nativeDifference:'Native writeout-only error status0/bodypipe23 in author profiles, independently replayed, not product policy',missing:'Product PIPESTATUS unavailable; four original/current nested returns can be absent. Compare only Shell result plus exact stdout/stderr/effects; NEVER manufacture nested equality.',requiredEffects:'Candidate required body/header and independent file/stderr finish; intentionally not byteidentical old canceled-stage effects.'}},null,2)+'\n');
+const auth=JSON.parse(readFileSync(resolve(task,'authentication-before.json')));
+const walk=base=>readdirSync(base,{withFileTypes:true}).flatMap(entry=>entry.isDirectory()?walk(resolve(base,entry.name)):entry.isFile()?[resolve(base,entry.name)]:[]);
+const executionPaths=[...auth.selectedCompiledClosure,...walk(resolve(task,'historical')),...['driver.mjs','qualified-criteria.mjs','lifetime.mjs','controls.mjs','native-helper.mjs','binding-map.json','expected-profiles.json','tsconfig.json'].map(path=>resolve(task,path)),...auth.files.filter(entry=>entry.path.includes('/node_modules/tsx/')||entry.path.includes('/node_modules/esbuild/')||entry.path.includes('/node_modules/@esbuild/')).map(entry=>entry.path)];
+const config={bindingVersion:'Q1-independent-pre-run',sourceIdentity:auth.sourceId,writeoutTripletBound:true,ready:file('/tmp/safe-bash-owned-output-qualified-prototype.ready'),authentication:file(resolve(task,'authentication-before.json')),executionFiles:[...new Set(executionPaths)].map(file),candidateEntry:file(resolve(task,'candidate/dist/index.js')),historicalHelper:file(resolve(task,'historical/tests/stress/remote-cancellation/helpers.ts')),historicalProbe:file(resolve(task,'historical/tests/shell/first-read-probe.ts')),historicalFacade:file(resolve(task,'historical/src/index.ts')),tsxImport:file(resolve(root,'node_modules/tsx/dist/loader.mjs')),publicProfiles:file(resolve(task,'expected-profiles.json'))};
+writeFileSync(resolve(task,'config.json'),JSON.stringify(config,null,2)+'\n');
+for(const name of ['driver.mjs','qualified-criteria.mjs','lifetime.mjs','controls.mjs','native-helper.mjs','authenticate.mjs','prepare.mjs'])copy(resolve(task,name),resolve(owned,name+'.data'));
+for(const name of ['config.json','authentication-before.json','binding-map.json','expected-profiles.json'])copy(resolve(task,name),resolve(owned,name));
+for(const path of walk(resolve(task,'historical')))copy(path,resolve(owned,'historical',path.slice(resolve(task,'historical').length+1)+'.data'));
+const files=walk(owned).filter(path=>!path.endsWith('pre-run-seal.json')).map(file);
+writeFileSync(resolve(owned,'pre-run-seal.json'),JSON.stringify({at:new Date().toISOString(),productImports:0,productExecutions:0,driverSha256:file(resolve(task,'driver.mjs')).sha256,logical:12,parameters:32,files},null,2)+'\n');
+console.log(JSON.stringify({files:files.length,driverSha256:file(resolve(task,'driver.mjs')).sha256,executionFiles:config.executionFiles.length}));

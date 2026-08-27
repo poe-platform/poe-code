@@ -1,0 +1,144 @@
+{
+  "capturedAt": "2026-08-27T03:46:33.397Z",
+  "scope": "Read-only normative and native-profile classification. No fresh SGID mutation, new privilege setup, Linux execution, permission API or production change.",
+  "host": {
+    "platform": "darwin",
+    "release": "25.4.0",
+    "arch": "arm64",
+    "swVers": "ProductName:\t\tmacOS\nProductVersion:\t\t26.4.1\nBuildVersion:\t\t25E253\n"
+  },
+  "gnu": {
+    "version": "9.7",
+    "binarySha256": "1026eb36ffd2fdca6d064c0ffd6dd99ceb7bb3f49ec5e804df2c53bef372dbf0",
+    "matchesRecordedBinary": true,
+    "file": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/env: Mach-O 64-bit executable arm64\n",
+    "linkage": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/env:\n\t/usr/lib/libSystem.B.dylib (compatibility version 1.0.0, current version 1356.0.0)\n",
+    "localHashes": {
+      "src/env.c": "ed606a062de3f107cd3cb9e1e73c7215272e2a8c7ad6f362aa14e0f6d390a032",
+      "src/chmod.c": "9344f0799f8c50a10984d5cd708a6be41169b77bfd703f2640238618ccc51393",
+      "lib/putenv.c": "cb6f73b52609c1d332e3198b31969deb5c6ed6aca00acc40a1fb71abf74f1e87",
+      "lib/stdlib.h": "91810ae170e8c2364b71b084790f3e62ab8d3e849acc420b5e68b94db1c3e432",
+      "doc/coreutils.texi": "39b126752866fff675e462bd44d76f3e034abafe462a069cebd53ef39fc53eca"
+    },
+    "replacementSelected": true,
+    "replacementPrepends": true
+  },
+  "sources": [
+    {
+      "id": "posix-environment",
+      "url": "https://pubs.opengroup.org/onlinepubs/9799919799/basedefs/V1_chap08.html",
+      "status": 200,
+      "bytes": 52350,
+      "sha256": "89294048dbc032eacc75804005e256eaa7eb6b5c9a2a9cf75b44d8c573d25ad7"
+    },
+    {
+      "id": "posix-env",
+      "url": "https://pubs.opengroup.org/onlinepubs/9799919799/utilities/env.html",
+      "status": 200,
+      "bytes": 15526,
+      "sha256": "0304635ac8176ad6602bdffcc43b50c938cf2ebc1b24acccc60c5814d7e68d33"
+    },
+    {
+      "id": "posix-chmod-function",
+      "url": "https://pubs.opengroup.org/onlinepubs/9799919799/functions/chmod.html",
+      "status": 200,
+      "bytes": 18285,
+      "sha256": "656681ebc473f2ea96d951ac5c57ae232331da31bcbaee955d2b2c83f1d49c33"
+    },
+    {
+      "id": "posix-chmod-utility",
+      "url": "https://pubs.opengroup.org/onlinepubs/9799919799/utilities/chmod.html",
+      "status": 200,
+      "bytes": 28306,
+      "sha256": "29ea831c77491fb8b1f4e84320a273d5f16411a960bb18436459afe25cb4b7b7"
+    },
+    {
+      "id": "apple-unix03-chmod",
+      "url": "https://raw.githubusercontent.com/apple-oss-distributions/xnu/5c306bec31e314fa4d8bbdafb2f6f5a6b7e7b291/libsyscall/wrappers/unix03/chmod.c",
+      "status": 200,
+      "bytes": 1826,
+      "sha256": "668aba30c535ba6ae952bc118e051b9ed62c67ded6fd9288133296d5522894fd"
+    },
+    {
+      "id": "libuv-fs",
+      "url": "https://raw.githubusercontent.com/libuv/libuv/v1.51.0/src/unix/fs.c",
+      "status": 200,
+      "bytes": 59847,
+      "sha256": "ffe2cd709c894083d4e470bce5248eee71c5e5594418be3d7a6d80e44d723a61"
+    },
+    {
+      "id": "node-fs",
+      "url": "https://raw.githubusercontent.com/nodejs/node/v22.22.2/src/node_file.cc",
+      "status": 200,
+      "bytes": 137052,
+      "sha256": "d9bd85b74171f392d96217ca5e1fbf522b504c2cb94f0f84965ebd4ceee9ef06"
+    },
+    {
+      "id": "gnu-chmod",
+      "url": "https://raw.githubusercontent.com/coreutils/coreutils/v9.7/src/chmod.c",
+      "status": 200,
+      "bytes": 18743,
+      "sha256": "9344f0799f8c50a10984d5cd708a6be41169b77bfd703f2640238618ccc51393"
+    },
+    {
+      "id": "gnu-env",
+      "url": "https://raw.githubusercontent.com/coreutils/coreutils/v9.7/src/env.c",
+      "status": 200,
+      "bytes": 26358,
+      "sha256": "ed606a062de3f107cd3cb9e1e73c7215272e2a8c7ad6f362aa14e0f6d390a032"
+    },
+    {
+      "id": "gnu-manual-9.7",
+      "url": "https://raw.githubusercontent.com/coreutils/coreutils/v9.7/doc/coreutils.texi",
+      "status": 200,
+      "bytes": 667701,
+      "sha256": "39b126752866fff675e462bd44d76f3e034abafe462a069cebd53ef39fc53eca"
+    },
+    {
+      "id": "glibc-environment-source-only",
+      "url": "https://raw.githubusercontent.com/bminor/glibc/glibc-2.42/stdlib/setenv.c",
+      "status": 200,
+      "bytes": 11755,
+      "sha256": "ad4757a9fa8c265d02309950ae0d72e241fc3e4aaa456ee59178c025b87e9143"
+    },
+    {
+      "id": "linux-sgid-source-only",
+      "url": "https://raw.githubusercontent.com/torvalds/linux/v6.12/fs/attr.c",
+      "status": 200,
+      "bytes": 15922,
+      "sha256": "c73fd96695dc37122efe103496c794a55eb7c739c5338d8ce5f805ba39ca0b90"
+    }
+  ],
+  "evidence": [
+    {
+      "revision": "277a635",
+      "path": "tests/commands/metadata-stress/sgid-feasibility/README.md",
+      "sha256": "ec236e8db763d27c79b5fac1effc38fb9cb87096822ea0170d4c5c7a25aad4cc",
+      "matchesCommit": true
+    },
+    {
+      "revision": "d7a8179",
+      "path": "tests/fs/real/metadata-review/README.md",
+      "sha256": "dc4ecd4d12dcab909f3768141db077bdccbb16a2ecfc76e63abe308e9024db98",
+      "matchesCommit": true
+    },
+    {
+      "revision": "277a635",
+      "path": "tests/commands/metadata-stress/sgid-feasibility/support/source-proof.json",
+      "sha256": "010a22e7ddffc00436f258274d500b9432fb13841aeb40207e7cf77afbe3a67f",
+      "matchesCommit": true
+    }
+  ],
+  "linux": {
+    "tested": false,
+    "reason": "No docker/podman/colima/limactl/QEMU command in PATH and no usual Docker/Colima socket or binary found. No runner provisioned.",
+    "commonLocations": {
+      "/var/run/docker.sock": false,
+      "/Users/kjopek/.colima/default/docker.sock": false,
+      "/Users/kjopek/.docker/run/docker.sock": false,
+      "/Applications/Docker.app/Contents/Resources/bin/docker": false,
+      "/opt/homebrew/bin/podman": false,
+      "/usr/local/bin/docker": false
+    }
+  }
+}

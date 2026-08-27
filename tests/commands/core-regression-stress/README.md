@@ -1,5 +1,10 @@
 # Independent core regression checkpoint — August 27, 2026
 
+Follow-up: `OUTPUT_ACCOUNTING_REVIEW.md` records independent f7000b0 acceptance
+of the eight original budget failures, with the ordering-only mismatch retained.
+`NORMATIVE_PROFILES.md` qualifies GNU/Darwin ordering and the SGID native profile.
+The historical observations below and their original evidence remain unchanged.
+
 This is the distinct review of Curie's realpath/wc/sort/cksum/env consumer
 changes and Sagan's committed environment replacement integration. Production
 baseline: `954f2302e4b2f42f90cb5ffd5670d1936f47390c`.

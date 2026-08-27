@@ -2085,3 +2085,52 @@ that any implementation, command, fixture, or test currently exists.
   Capture verification authenticates all806 files and reconciles the footer.
   Observed owned processes/scratch are cleaned; foreign live changes preserved.
   Historical b49416,520/307/13 and all comparative profiles remain separate.
+
+### 2026-08-27 17:23 UTC — aliases/column public integration author checkpoint
+
+- Root accepted shared-input fixture18c02655, alias settlement fixture3ceac6f3
+  (77/77+5/5; old80/82 retained) and column final491a98b9/padding reviews before
+  authorizing egrep,fgrep,column public/default wiring70→73. Sourcecb940da6
+  exports existing factories/types at root and explicit commands/grep-aliases
+  and commands/column subpaths. AgentCommandsOptions.regex reaches standard
+  grep and both aliases; column omits nested replace. Top-level replace remains
+  authoritative. Standalone aliases need no separately registered grep.
+- Executed isolated commit3dc0ac26d681badfd4db6319f2630274095c3100 is accepted
+  base0123c83d plus14 enumerated root/fixture/harness paths, made with a temporary
+  private index and commit-tree; it is not moving HEAD. Shared HEAD already
+  contained new tree authorf1a90436; live regex/expr and untracked du also existed.
+  Those sources were excluded, not silently certified. Root source remains clean.
+- Author evidence: build/production types pass;63/63 scoped registry/stream tests;
+  strict moved-package root/subpath types;6 exact negative types;17/17 packed
+  cases twice;2 maintained consumer runtimes;4 missing-module plus2 source-denial
+  controls. All738 packed files and238 archived inputs authenticate/retain bytes.
+  Tarball SHA994dca37308937059b1adacade54f24bd8227589ad65c46c7f4fb661c702c9d5;
+  package.json SHA691426f4934c471d2a76d49675f3fc19f3ddc47c8aa63cc38671d899a09c4535.
+- Earlier author attempts remain failed:12/16 (wrong synchronous setup boundary),
+  expanded61/63 (incomplete current registry migration),14/17 (input-object versus
+  stored-definition identity). Only author fixtures changed; productioncb940da6
+  is unchanged. Historical70-name and whole8670 unqualified17454/12/0 results
+  are not rescored. Report tests/plugins/aliases-column-public-author/REPORT.md.
+- Independent PUBLIC integration review is pending Meitner's frozen dbceec2b;
+  this is scoped author completion, not self-approval or a whole gate. Curl and
+  SafeJS remain opt-in, expr/du are not defaults, runtime dependencies remain zero.
+  Existing AGENTS durable rules already cover this work; no transient counts added.
+
+### 2026-08-27 — root-relayed later foundation/feature scope, not8670 evidence
+
+- Allocation metadata corea3febbee8/wrappers8991abc3 independently93355f81/8f19a9d5:
+  optional readonly FileStat.allocatedBytes is provider-reported nonnegative safe
+  integer, zero known/absence unknown, not physical-unique storage or RSS. Real
+  projects validated blocks*512 on Darwin/Linux code paths; Linux execution is
+  unverified. Wrappers preserve it; Memory/S3/DAV remain unknown. No command change
+  follows; du is separately being authored, not default-registered here.
+- Curl count capsbb7f5972 independently32debb6a allow0/-0 only for maxRedirects
+  and maxRetries (defaults10/5). Initial authorized request perURL remains usable;
+  zero disallows redirect/retry/upload replay despite CLI/Retry-After overrides.
+  Root reports138 author+63 regression,604 same checks in archive and moved pack,
+  7 mutants. This is later scoped evidence, not included in frozen8670.
+- Env-S exact8 fixture migration5ba1a0f3 independentlyec4e264d retains old29/37
+  beside revised37/37+16 controls. Sourceea409a6b remains qualified30/30 scoped,
+  native17/23 using a Linux argv MODEL, not kernel execution. Expr-match shared
+  protocol/client/worker extension is in progress, not accepted by this ledger
+  entry. These distinctions must remain explicit in any later gate candidate.

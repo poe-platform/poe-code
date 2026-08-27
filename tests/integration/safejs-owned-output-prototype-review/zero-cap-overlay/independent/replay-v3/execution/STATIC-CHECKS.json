@@ -1,0 +1,70 @@
+{
+  "pythonAstChecks": 3,
+  "nodeParserOnlyChecks": [
+    {
+      "path": "admission.mjs",
+      "exitCode": 0
+    },
+    {
+      "path": "controls/child.mjs",
+      "exitCode": 0
+    },
+    {
+      "path": "controls/common.mjs",
+      "exitCode": 0
+    },
+    {
+      "path": "controls/guard.mjs",
+      "exitCode": 0
+    },
+    {
+      "path": "controls/profile.mjs",
+      "exitCode": 0
+    },
+    {
+      "path": "controls/run.mjs",
+      "exitCode": 0
+    },
+    {
+      "path": "lifecycle/child.mjs",
+      "exitCode": 0
+    },
+    {
+      "path": "lifecycle/common.mjs",
+      "exitCode": 0
+    },
+    {
+      "path": "lifecycle/guard.mjs",
+      "exitCode": 0
+    },
+    {
+      "path": "lifecycle/profile.mjs",
+      "exitCode": 0
+    },
+    {
+      "path": "lifecycle/run.mjs",
+      "exitCode": 0
+    },
+    {
+      "path": "surface/child.mjs",
+      "exitCode": 0
+    },
+    {
+      "path": "surface/controls.mjs",
+      "exitCode": 0
+    },
+    {
+      "path": "surface/run.mjs",
+      "exitCode": 0
+    }
+  ],
+  "publicReferencesAuthenticated": 155,
+  "sourceFiles": 213,
+  "candidateFiles": 940,
+  "compiledFiles": 708,
+  "packageFiles": 709,
+  "allEffectiveRuntimeInputsEnumerated": true,
+  "privateQueries": 0,
+  "actualExecutions": 0,
+  "pendingOneAttempt": true
+}

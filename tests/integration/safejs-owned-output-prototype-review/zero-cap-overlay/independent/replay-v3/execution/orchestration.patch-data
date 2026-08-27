@@ -1,0 +1,103 @@
+--- c3a3b429/run.py
++++ independent-v3/run.py
+@@ -76,6 +76,14 @@
+         assert regular(filename)['sha256'] == entry['sha256']
+         assert git(REPOSITORY, 'show', f'{commit}:{filename.relative_to(REPOSITORY)}') == filename.read_bytes()
+     assert inventory(AUTHOR) == BINDINGS['authorFiles']
++    assert inventory(Path(BINDINGS['runtimeRoot'])) == BINDINGS['runtimeEntries']
++    assert inventory(Path(BINDINGS['statusAuthorRoot'])) == BINDINGS['statusAuthorFiles']
++    for entry in BINDINGS['statusAuthorFiles']:
++        assert sha(git(REPOSITORY, 'show', f"{BINDINGS['bindingPreparationCommit']}:{BINDINGS['statusAuthorGitPath']}/{entry['path']}")) == entry['sha256']
++    binding_review = json.loads(git(REPOSITORY, 'show', f"{BINDINGS['bindingReviewCommit']}:{BINDINGS['bindingReviewPath']}"))
++    assert binding_review['verdict'] == 'ALLOW_REPLAY_OF_EXACT_STATUS_BINDING'
++    for key in ['bindingPreparationCommit', 'bindingFreezeSha256', 'privateStatusProfileSha256', 'authorFreezeCommit', 'candidateManifestSha256', 'sourceManifestSha256', 'compiledManifestSha256', 'packageManifestSha256']:
++        assert binding_review[key] == BINDINGS[key] == load(HERE / 'ROOT-RELEASE.json')[key]
+     shape = [{'path': path.relative_to(AUTHOR).as_posix(), 'kind': 'directory' if path.is_dir() else 'file'} for path in sorted(AUTHOR.rglob('*'))]
+     assert shape == BINDINGS['authorDirectoryShape']
+     for entry in BINDINGS['publicReferenceBindings']:
+@@ -111,8 +119,28 @@
+             'engine': inventory(PRIVATE / 'packages/safejs', True, ['.git', 'node_modules', 'dist', '.cache', '.turbo'])}
+ 
+ 
++def historical_schema(snapshot):
++    def metadata(entry):
++        projected = {key: value for key, value in entry.items() if key not in ['mtimeNs', 'ctimeNs']}
++        for field in ['mtime', 'ctime']:
++            seconds, nanoseconds = divmod(entry[field + 'Ns'], 1000000000)
++            projected[field + 'Ms'] = seconds * 1000 + nanoseconds / 1000000
++        return projected
++    return {
++        **{key: snapshot[key] for key in ['head', 'tree', 'status', 'staged']},
++        'index': metadata(snapshot['index']),
++        'metadata': {path: metadata(entry) for path, entry in snapshot['metadata'].items()},
++        'engine': [metadata(entry) for entry in snapshot['engine']],
++    }
++
+ def private_identity(snapshot):
+     pins = load(REPOSITORY / 'tests/integration/safejs-owned-output-prototype-review/lifecycle/SOURCE-PINS.json')['privateExpectedAtRelease']
++    expected_ns = load(HERE / 'expected-private-ns.json.data')
++    assert snapshot == expected_ns, 'Exact expected raw NS private state drift'
++    expected_ms = load(Path(BINDINGS['statusAuthorRoot']) / 'expected-private.json.data')
++    assert historical_schema(snapshot) == expected_ms, 'Historical whole metadata profile drift'
++    assert pins['status'] == load(Path(BINDINGS['statusAuthorRoot']) / 'PRIVATE-STATUS.json')['historicalStatus']
++    pins = {**pins, 'status': expected_ms['status']}
+     for key in ['head', 'tree', 'status', 'staged']:
+         assert snapshot[key] == pins[key], key
+     assert snapshot['index']['sha256'] == pins['index']['sha256']
+@@ -268,19 +296,19 @@
+             save(directory / 'run.json', run); runs.append(run)
+             continue
+         before = None
++        immutable = None
+         try:
+             before = private_snapshot(); save(directory / 'private-before.json', before); private_identity(before)
+             save(directory / 'authentication-before.json', authenticate())
+-            immutable = {name: inventory(Path(BINDINGS[name]), True) for name in ['candidateRoot', 'packageRoot', 'authorRoot']}
++            immutable = {name: inventory(Path(BINDINGS[name]), True) for name in BINDINGS['immutableRoots']}
+             save(directory / 'independent-inputs-before.json', immutable)
+-            command = [str(NODE), '--import', str(HERE / 'git-location-binding.mjs'), str(AUTHOR / cohort / 'run.mjs')]
++            command = [str(NODE), str(Path(BINDINGS['runtimeRoot']) / cohort / 'run.mjs')]
+             if cohort != 'surface':
+                 command.append(str(OUTPUT / f'{cohort}-raw'))
+             run['command'] = command
+             environment = {**ENVIRONMENT, 'HOME': str(OUTPUT / 'home'), 'TMPDIR': str(OUTPUT / 'tmp'),
+                            'TMP': str(OUTPUT / 'tmp'), 'TEMP': str(OUTPUT / 'tmp'),
+-                           'ZERO_OVERLAY_ROOT_RELEASE': str(HERE / 'ROOT-RELEASE.json'),
+-                           'ZERO_OVERLAY_GIT_BINDING_LOG': str(directory / 'git-bindings.ndjson')}
++                           'ZERO_OVERLAY_ROOT_RELEASE': str(HERE / 'ROOT-RELEASE.json')}
+             run['parentStarted'] = now()
+             with (directory / 'parent.stdout.txt').open('xb') as stdout, (directory / 'parent.stderr.txt').open('xb') as stderr:
+                 completed = subprocess.run(command, cwd=REPOSITORY, env=environment, stdout=stdout, stderr=stderr)
+@@ -290,21 +318,28 @@
+             run['childrenLaunched'] = assessment['counts']['childrenLaunched']
+             run['counts'] = assessment['counts']
+             run['status'] = 'PASS' if completed.returncode == 0 and assessment['independentAllPass'] else 'FAIL'
+-            after_inputs = {name: inventory(Path(BINDINGS[name]), True) for name in ['candidateRoot', 'packageRoot', 'authorRoot']}
+-            save(directory / 'independent-inputs-after.json', after_inputs)
+-            assert immutable == after_inputs
+         except Exception as error:
+             run['status'] = 'BLOCKED_INPUT_OR_ASSESSMENT' if 'parentStarted' not in run else 'NONPASS_REQUIRES_RAW_REVIEW'
+             run['error'] = repr(error)
+         finally:
+             try:
+                 after = private_snapshot(); save(directory / 'private-after.json', after)
+-                run['privateUnchanged'] = before is not None and before == after
++                run['privateUnchanged'] = None if before is None else before == after
++                if before is None:
++                    run['privateComparison'] = 'NOT_COMPARED: before snapshot absent; no passing guard claim'
+                 assert run['privateUnchanged']
+                 private_identity(after)
+             except Exception as error:
+                 run['privateAfterFailure'] = repr(error); run['status'] = 'PRIVATE_GUARD_NONPASS'
+             try:
++                after_inputs = {name: inventory(Path(BINDINGS[name]), True) for name in BINDINGS['immutableRoots']}
++                save(directory / 'independent-inputs-after.json', after_inputs)
++                run['inputsUnchanged'] = None if immutable is None else immutable == after_inputs
++                if immutable is None:
++                    run['inputComparison'] = 'NOT_COMPARED: before snapshot absent; no passing guard claim'
++                    assert 'parentStarted' not in run and run['status'] != 'PASS'
++                else:
++                    assert run['inputsUnchanged'] is True
+                 save(directory / 'authentication-after.json', authenticate())
+             except Exception as error:
+                 run['authenticationAfterFailure'] = repr(error); run['status'] = 'INPUT_GUARD_NONPASS'

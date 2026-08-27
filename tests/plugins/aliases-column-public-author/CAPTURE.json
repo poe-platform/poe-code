@@ -1,0 +1,9 @@
+{
+  "candidate": "3dc0ac26d681badfd4db6319f2630274095c3100",
+  "rootSourceCommit": "cb940da68052a9f1ab7e115279900d277e051fdb",
+  "packageSha256": "994dca37308937059b1adacade54f24bd8227589ad65c46c7f4fb661c702c9d5",
+  "bytes": 1093926,
+  "sha256": "675a02095a390ef37351b37804ea07d0d3fd37a478320d1b5e881017b827bf4f",
+  "files": 58,
+  "format": "base64 gzip tar of all four raw result attempts and exact candidate receipts; byte-identical npm tarballs deduplicated to package/virtual-bash-0.0.0.tgz"
+}

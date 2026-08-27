@@ -1,5 +1,18 @@
 # Preparation findings for shellcoordinator
 
+**Post-READY update: RED FINAL SOURCE GUARD; no current-tree acceptance.**
+Imported `src/commands/filesystem.ts` changed after the stable runs in commit
+`37e19b7`; the root must coordinate a fresh dependency freeze/replay. The final
+audit preserves expected/observed hashes and does not waive this movement.
+Recorded verification of frozen `21a6b91`: frozen
+holdouts remain **69/72** (broader POSIX plus absent type/command introspection),
+unmodified author tests **130/132** (existing unsupported read -N), previous file
+cohorts **58/58**, targeted regressions **121/121**, and fresh global/build
+noEmit both pass. No new in-scope defect was measured; no failures were hidden.
+Whole raw comparisons and exact preserved failures are in `POST_READY.md` and
+`post-ready-raw-comparison.json`. The earlier preparation observations below are
+retained unchanged as history; post-READY runs are no longer pending.
+
 No invocation acceptance is claimed. READY did not arrive before the bounded
 wait exited; see `ready-wait-evidence.json` for actual timestamps and the slight
 polling overshoot. Source edits remain exclusively the author's. No acceptance

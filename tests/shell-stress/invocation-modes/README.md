@@ -1,5 +1,16 @@
 # Independent invocation-mode checkpoint
 
+**Resumed result (August 27, 2026 UTC): RED FINAL SOURCE GUARD, no current-tree
+acceptance.** Imported `src/commands/filesystem.ts` changed after the stable runs
+(commit `37e19b7`); root must coordinate a fresh dependency freeze/replay.
+Recorded frozen-source `21a6b91` results: holdouts **69/72**, author **130/132**, prior file cohorts **58/58**,
+selected regressions **121/121**, global/build noEmit both exit 0. All failures
+remain visible; no new bounded invocation defect was observed. Raw whole-profile
+matches are **48/57** and **46/57**, not universal compatibility. See
+`POST_READY.md` and immutable `post-ready-*.json` for exact counts, losses, source
+guards, actual imports and reproduction. The preparation record below remains
+historical evidence, not the current readiness state.
+
 **Status: preparation delivered, NOT independently accepted.** The author did
 not publish READY during the single readiness wait. It started at
 2026-08-26 23:51:05.236 UTC and ended at 23:55:05.592 UTC: 240.356 seconds

@@ -38,7 +38,11 @@ test("a shared authority is queried only once", async () => {
 });
 
 test("absent authority remains unknown rather than coerced distinct", async () => {
-  const fs = proxy(createMemoryFileSystem(), { compareEntry: undefined });
+  const fs = new Proxy(createMemoryFileSystem(), { get(target, key) {
+    if (key === "compareEntry") return undefined;
+    const value = Reflect.get(target, key);
+    return typeof value === "function" ? value.bind(target) : value;
+  } });
   assert.equal(await compareObservedEntries(fs, "/one", unknown, fs, "/two", unknown), "unknown");
 });
 

@@ -53,12 +53,13 @@ try {
 
 The result contains `world` followed by a newline.
 
-`agentCommands(options?)` installs twelve delivered families once: standard,
+`agentCommands(options?)` installs thirteen delivered families once: standard,
 text programs, structured (`jq`), search (`rg`), byte tools, diff/patch,
 metadata (`chmod`, `stat`, `mktemp`), archives (`tar`), table-text
 (`paste`, `comm`, `join`), stream inspection (`tac`, `expand`, `fold`, `strings`),
-stream formatting (`seq`, `nl`, `rev`, `unexpand`), and splitting (`split`),
-totaling 65 unique registered plugin names. These families have separate scoped evidence;
+stream formatting (`seq`, `nl`, `rev`, `unexpand`), splitting (`split`), and
+time/environment (`date`, `sleep`, `printenv`), totaling 68 unique registered
+plugin names. These families have separate scoped evidence;
 name registration is not proof of complete utility semantics.
 Do not also install those families unless you deliberately request replacement.
 The bundle checks every name for collisions before changing the registry;
@@ -86,8 +87,38 @@ agentCommands({
   streamInspection: { limits: { maxInputBytes: 16 * 1024 * 1024 } },
   streamFormat: { limits: { maxRecordBytes: 1024 * 1024 } },
   split: { limits: { maxFiles: 128 } },
+  timeEnv: { defaultTimeZone: "UTC", limits: { maxOutputBytes: 1024 * 1024 } },
 });
 ```
+
+`timeEnv` accepts an optional `clock: () => number` in Unix milliseconds
+(default `Date.now`), virtual timezone (default UTC), sleep scheduler/timer cap,
+and bounded family limits. Invocation `TZ` overrides the configured timezone;
+`date -u` selects UTC. No command changes the host clock or environment.
+Root imports and `virtual-bash/commands/time-env` also expose
+`createTimeEnvCommands`, `timeEnvCommands`, and the `TimeEnvCommandsOptions`,
+`TimeEnvLimits`, `SleepScheduler` types for standalone use. Do not install the
+standalone plugin over the aggregate without deliberate replacement.
+
+```ts
+import { Shell, agentCommands, createMemoryFileSystem } from "virtual-bash";
+
+const shell = new Shell({ fs: createMemoryFileSystem() }).use(agentCommands({
+  timeEnv: { clock: () => 1709210096123 },
+}));
+try {
+  console.log((await shell.exec("date -u +%FT%T.%3NZ")).stdout);
+} finally {
+  await shell.dispose();
+}
+```
+
+This prints `2024-02-29T12:34:56.123Z` followed by LF. Nanosecond fields preserve
+available precision; millisecond clocks pad lower digits with zeros. Bare `%-N`
+uses a documented virtual-clock policy, not strict GNU clock-resolution parity.
+The `%g` compatibility rationale is limited to rendered calendar years0000–9999;
+negative-century native counterexamples and five ICU zone-label differences
+remain explicit. See `docs/integration/2026-08-27-TIME_ENV_PUBLIC.md`.
 
 These are per-family limits, not a shared resource budget. Byte tools retain
 their existing fixed limits. Shell-wide limits belong in `new Shell({ limits })`.

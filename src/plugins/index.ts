@@ -12,6 +12,7 @@ import { createTableTextCommands, type TableTextCommandsOptions } from "../comma
 import { createStreamInspectionCommands, type StreamInspectionCommandsOptions } from "../commands/stream-inspection/index.js";
 import { createStreamFormatCommands, type StreamFormatCommandsOptions } from "../commands/stream-format/index.js";
 import { createSplitCommands, type SplitCommandsOptions } from "../commands/split/index.js";
+import { createTimeEnvCommands, type TimeEnvCommandsOptions } from "../commands/time-env/index.js";
 
 export interface AgentCommandsOptions {
   readonly replace?: boolean;
@@ -26,6 +27,7 @@ export interface AgentCommandsOptions {
   readonly streamInspection?: Omit<StreamInspectionCommandsOptions, "replace">;
   readonly streamFormat?: Omit<StreamFormatCommandsOptions, "replace">;
   readonly split?: Omit<SplitCommandsOptions, "replace">;
+  readonly timeEnv?: Omit<TimeEnvCommandsOptions, "replace">;
 }
 
 function executor(lookup: (name: string) => CommandDefinition | undefined): CommandHandler {
@@ -52,6 +54,7 @@ export function createAgentCommands(options: AgentCommandsOptions = {}): readonl
     ...createStreamInspectionCommands({ ...options.streamInspection }),
     ...createStreamFormatCommands({ ...options.streamFormat }),
     ...createSplitCommands({ ...options.split }),
+    ...createTimeEnvCommands({ ...options.timeEnv }),
   );
   return new CommandRegistry(commands).list();
 }

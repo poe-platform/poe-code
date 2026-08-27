@@ -16,6 +16,7 @@ export * from "./commands/table-text/index.js";
 export * from "./commands/stream-inspection/index.js";
 export * from "./commands/stream-format/index.js";
 export * from "./commands/split/index.js";
+export * from "./commands/time-env/index.js";
 export * from "./fs/memory/index.js";
 export * from "./fs/real/index.js";
 export * from "./fs/s3/index.js";

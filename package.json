@@ -50,6 +50,10 @@
       "types": "./dist/commands/split/index.d.ts",
       "import": "./dist/commands/split/index.js"
     },
+    "./commands/time-env": {
+      "types": "./dist/commands/time-env/index.d.ts",
+      "import": "./dist/commands/time-env/index.js"
+    },
     "./fs/s3": {
       "types": "./dist/fs/s3/index.d.ts",
       "import": "./dist/fs/s3/index.js"

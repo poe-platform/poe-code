@@ -1,0 +1,16 @@
+{"atMs":1.046,"kind":"group-admitted","pid":28355,"pgid":28355,"argv":["/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node","--unhandled-rejections=strict","/Users/kjopek/Workspace/safe-bash/benchmarks/reports/current-comparison-20260827/execution/session.mjs","--synthetic"],"host":{"root":"/private/tmp/safe-bash-independent-bridge-tQVUTK","cwd":"/private/tmp/safe-bash-independent-bridge-tQVUTK","env":{"PATH":"/usr/bin:/bin","HOME":"/private/tmp/safe-bash-independent-bridge-tQVUTK","TMPDIR":"/private/tmp/safe-bash-independent-bridge-tQVUTK","LANG":"C","LC_ALL":"C","TZ":"UTC"}}}
+{"atMs":37.874,"id":"independent/clean","nonce":"c2c2aac0-9668-4fe5-bf20-00eb11231bbb","kind":"engine-spawn","pid":28356,"argv":["/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node","--unhandled-rejections=strict","--experimental-import-meta-resolve","--max-old-space-size=128","/Users/kjopek/Workspace/safe-bash/benchmarks/reports/current-comparison-20260827/execution/engine-child.mjs","--synthetic"]}
+{"atMs":92.009,"kind":"request-start","absoluteDeadlineMs":1492.002334}
+{"atMs":92.013,"id":"independent/clean","nonce":"c2c2aac0-9668-4fe5-bf20-00eb11231bbb","kind":"ready"}
+{"atMs":92.647,"id":"independent/clean","nonce":"c2c2aac0-9668-4fe5-bf20-00eb11231bbb","kind":"phase","phase":"exec-start"}
+{"atMs":92.799,"id":"independent/clean","nonce":"c2c2aac0-9668-4fe5-bf20-00eb11231bbb","kind":"phase","phase":"exec-settled"}
+{"atMs":93.05,"id":"independent/clean","nonce":"c2c2aac0-9668-4fe5-bf20-00eb11231bbb","kind":"phase","phase":"snapshot-complete"}
+{"atMs":93.058,"id":"independent/clean","nonce":"c2c2aac0-9668-4fe5-bf20-00eb11231bbb","kind":"phase","phase":"dispose-start"}
+{"atMs":93.493,"id":"independent/clean","nonce":"c2c2aac0-9668-4fe5-bf20-00eb11231bbb","kind":"phase","phase":"dispose-settled"}
+{"atMs":93.74,"kind":"result-received","sha256":"7094adbbcdbd0ebf0d227583dab02b9588284d4760938e5444ca071d5f582332","absoluteTotalUnchangedMs":4500}
+{"atMs":95.595,"id":"independent/clean","nonce":"c2c2aac0-9668-4fe5-bf20-00eb11231bbb","kind":"engine-exit","code":0,"signal":null}
+{"atMs":95.73,"id":"independent/clean","nonce":"c2c2aac0-9668-4fe5-bf20-00eb11231bbb","kind":"engine-close","code":0,"signal":null}
+{"atMs":95.743,"id":"independent/clean","nonce":"c2c2aac0-9668-4fe5-bf20-00eb11231bbb","kind":"fixture-close","closed":true,"sockets":0,"requests":[]}
+{"atMs":95.75,"id":"independent/clean","nonce":"c2c2aac0-9668-4fe5-bf20-00eb11231bbb","kind":"session-complete"}
+{"atMs":97.765,"kind":"coordinator-exit","code":0,"signal":null}
+{"atMs":97.773,"kind":"coordinator-close","code":0,"signal":null}

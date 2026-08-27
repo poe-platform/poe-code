@@ -1,0 +1,81 @@
+import assert from 'node:assert/strict';
+import { mkdtemp, writeFile, mkdir, symlink, appendFile, readFile, readdir } from 'node:fs/promises';
+import { realpathSync } from 'node:fs';
+import { join } from 'node:path';
+import { randomUUID } from 'node:crypto';
+import { loadCohorts, planCases } from './cohorts.mjs';
+import { loadBinding } from './binding.mjs';
+import { hash } from './io.mjs';
+import { sentinelLimits } from './limits.mjs';
+import { runAttempt, groupExists } from './supervise.mjs';
+import { assessAttempt } from './assessment.mjs';
+
+const directory = await mkdtemp(join(realpathSync('/tmp'), 'safe-bash-execution-author-'));
+console.log(`SYNTHETIC_ATTEMPT_DIRECTORY=${directory}`);
+const sourcePins = [];
+await mkdir(join(directory, 'harness'));
+for (const prefix of ['', 'reuse/', 'synthetic/']) for (const name of (await readdir(new URL(`./${prefix}`, import.meta.url))).sort()) {
+  if (!(name.endsWith('.mjs') || name.endsWith('.mjs.data') || name.endsWith('.json.data'))) continue;
+  const relative = `${prefix}${name}`, content = await readFile(new URL(`./${relative}`, import.meta.url));
+  const retained = `${String(sourcePins.length).padStart(2, '0')}-${name}.data`;
+  await writeFile(join(directory, 'harness', retained), content, { flag: 'wx' });
+  sourcePins.push({ path: relative, bytes: content.length, sha256: hash(content), retained: `harness/${retained}` });
+}
+await writeFile(join(directory, 'source-before.json'), `${JSON.stringify(sourcePins, null, 2)}\n`, { flag: 'wx' });
+const host = { cwd: directory, env: { PATH: '/usr/bin:/bin', HOME: directory, TMPDIR: directory, LANG: 'C', LC_ALL: 'C', TZ: 'UTC' } };
+const expected = { stdout: Buffer.from([0, 127, 128, 255]).toString('base64'), stderr: '', exitCode: 0, entries: { binary: { type: 'file', bytes: Buffer.from([0, 127, 128, 255]).toString('base64') } } };
+const cohorts = loadCohorts(), planned = planCases(cohorts);
+assert.equal(planned.filter(row => row.profile !== 'breadth').length, 896);
+assert.equal(planned.filter(row => row.profile === 'breadth').length, 136);
+assert.equal(loadBinding().status, 'WAITING_ROOT');
+const checks = [], ownedPids = [];
+const subject = join(directory, 'binding'); await mkdir(subject);
+await writeFile(join(subject, 'original.txt'), 'original');
+await writeFile(join(directory, 'outside.txt'), 'original');
+await symlink(join(directory, 'outside.txt'), join(subject, 'escape.txt'));
+await writeFile(join(subject, 'changed.txt'), 'modified');
+const modes = ['clean', 'wrong-output', 'wrong-vfs', 'wrong-status', 'leak', 'result-crash', 'crash', 'late-error', 'late-reject', 'oversize', 'diagnostic-flood', 'partial-frame', 'duplicate', 'wrong-id', 'ignore-term', 'coordinator-stall', 'binding-mutated', 'path-escape', 'binding-clean'];
+const variants = [...modes.map(mode => ({ label: mode, mode, profile: 'original' })), ...['module-clean', 'module-wrong-entry', 'module-mutation', 'module-escape'].map(mode => ({ label: mode, mode, profile: 'original' })), ...['clean', 'wrong-output', 'wrong-vfs', 'wrong-status', 'cleanup-error'].map(mode => ({ label: `breadth-${mode}`, mode, profile: 'breadth' }))];
+for (const [index, variant] of variants.entries()) {
+  const { mode, label, profile } = variant;
+  const request = { id: `synthetic/${label}`, nonce: randomUUID(), profile, engine: 'synthetic-not-product', synthetic: true, mode, expected, caps: sentinelLimits, heapMiB: 128, host };
+  if (profile === 'breadth') request.specimen = { id: request.id, name: 'synthetic-only', cohort: 'shared-control', files: {}, symlinks: {}, expected: { exitCode: 0, stdoutBase64: expected.stdout, stderrBase64: '', files: { binary: { base64: expected.entries.binary.bytes } }, absent: [], preserveInputs: true } };
+  if (mode.startsWith('binding-') || mode === 'path-escape') request.syntheticBinding = { root: subject, path: mode === 'binding-mutated' ? 'changed.txt' : mode === 'path-escape' ? 'escape.txt' : 'original.txt', bytes: 8, sha256: hash('original') };
+  if (mode.startsWith('module-')) {
+    const moduleRoot = join(directory, label); await mkdir(moduleRoot);
+    const fixture = name => readFile(new URL(`./synthetic/${name}.data`, import.meta.url));
+    const packageBytes = await fixture('package.json');
+    const entryBytes = await fixture(mode === 'module-escape' ? 'escape.mjs' : 'index.mjs');
+    const packagePath = join(moduleRoot, 'package.json'), entry = join(moduleRoot, 'index.mjs');
+    await writeFile(packagePath, packageBytes); await writeFile(entry, entryBytes);
+    await writeFile(join(moduleRoot, 'unlisted.mjs'), await fixture('index.mjs'));
+    const files = { [packagePath]: { bytes: packageBytes.length, sha256: hash(packageBytes) }, [entry]: { bytes: entryBytes.length, sha256: hash(entryBytes) } };
+    if (mode === 'module-mutation') await writeFile(entry, await fixture('changed.mjs'));
+    request.syntheticModule = { packageName: 'bridge-synthetic', packagePath, entry: mode === 'module-wrong-entry' ? join(moduleRoot, 'wrong.mjs') : entry, files };
+  }
+  let journal = Promise.resolve();
+  const stem = `attempt-${String(index + 1).padStart(3, '0')}-${label}`;
+  const attempt = await runAttempt(request, { onEvent: event => { journal = journal.then(() => appendFile(join(directory, `${stem}.jsonl`), `${JSON.stringify(event)}\n`)); return journal; } });
+  await journal;
+  const assessment = assessAttempt(request, attempt);
+  ownedPids.push({ mode: label, coordinator: attempt.coordinatorPid, engine: attempt.enginePid ?? null, groupGone: attempt.groupGone, signals: attempt.signals });
+  const semanticNegative = ['wrong-output', 'wrong-vfs', 'wrong-status'].includes(mode);
+  const positive = ['clean', 'binding-clean', 'module-clean'].includes(mode);
+  let passed = profile === 'breadth' ? positive ? assessment.operationalCredit && attempt.clean : semanticNegative ? !assessment.operationalCredit && attempt.clean : !assessment.operationalCredit && !attempt.clean : positive ? assessment.status === 'pass' && attempt.clean : semanticNegative ? assessment.status === 'fail' && attempt.clean : assessment.status !== 'pass' && !attempt.clean;
+  if (mode === 'late-reject') passed &&= JSON.stringify(attempt.events).includes('observed late rejection');
+  if (mode === 'ignore-term' || mode === 'coordinator-stall') passed &&= attempt.signals.includes('SIGKILL');
+  if (mode === 'leak') passed &&= attempt.signals.length > 0 && attempt.result !== null;
+  if (mode === 'module-clean') passed &&= attempt.events.some(event => event.kind === 'entry-import-fulfilled') && attempt.events.some(event => event.kind === 'public-resolution');
+  const check = { mode: label, passed: passed && attempt.groupGone, assessment, elapsedMs: attempt.elapsedMs, groupGone: attempt.groupGone, signals: attempt.signals, raw: `${stem}.json` };
+  checks.push(check);
+  await writeFile(join(directory, `${stem}.json`), `${JSON.stringify({ request, attempt, check }, null, 2)}\n`, { flag: 'wx' });
+  console.log(JSON.stringify(check));
+  if (!attempt.groupGone) break;
+}
+const cleanup = ownedPids.map(entry => ({ ...entry, groupExistsAtEnd: groupExists(entry.coordinator) }));
+let sourceStable = true;
+for (const pin of sourcePins) sourceStable &&= hash(await readFile(new URL(`./${pin.path}`, import.meta.url))) === pin.sha256;
+const summary = { schema: 'safe-bash.execution-synthetic-checks.v1', directory, syntheticOnly: true, productImports: 0, nativeCalls: 0, mainCohortObservations: 0, sourcePinsSha256: hash(JSON.stringify(sourcePins)), sourceStable, counts: { old224Planned: 896, breadthPlanned: 136 }, checks, cleanup, success: sourceStable && checks.length === variants.length && checks.every(check => check.passed) && cleanup.every(entry => entry.groupExistsAtEnd === false) };
+await writeFile(join(directory, 'summary.json'), `${JSON.stringify(summary, null, 2)}\n`, { flag: 'wx' });
+console.log(JSON.stringify({ directory, success: summary.success, checks: checks.length, failures: checks.filter(check => !check.passed).map(check => check.mode) }, null, 2));
+process.exitCode = summary.success ? 0 : 1;

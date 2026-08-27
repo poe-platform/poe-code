@@ -1,0 +1,58 @@
+{
+  "scope": [
+    "benchmarks/reports/current-comparison-20260827/execution",
+    "benchmarks/reports/current-comparison-20260827/execution-review"
+  ],
+  "permittedFiles": 373,
+  "noSymlinksOrSpecialFiles": true,
+  "outsideIndexSha256": "302dc3fef030ba23e6c165dd38b9dd3f582ad2aa420736cee3adb25cb3bdb7b1",
+  "outsideIndexEntries": 21995,
+  "head": "026e20cf38ddbb695d82de3f30cf7a1a7c88f088",
+  "stagedBefore": "",
+  "scoreEquality": [
+    {
+      "profile": "original",
+      "engine": "virtual-bash",
+      "fields": [
+        "stdout",
+        "stderr",
+        "exitCode",
+        "entries"
+      ],
+      "equal": true
+    },
+    {
+      "profile": "original",
+      "engine": "just-bash",
+      "fields": [
+        "stdout",
+        "stderr",
+        "exitCode",
+        "entries"
+      ],
+      "equal": true
+    },
+    {
+      "profile": "aligned",
+      "engine": "virtual-bash",
+      "fields": [
+        "stdout",
+        "stderr",
+        "exitCode",
+        "entries"
+      ],
+      "equal": true
+    },
+    {
+      "profile": "aligned",
+      "engine": "just-bash",
+      "fields": [
+        "stdout",
+        "stderr",
+        "exitCode",
+        "entries"
+      ],
+      "equal": true
+    }
+  ]
+}

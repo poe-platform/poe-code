@@ -1,0 +1,57 @@
+[
+  {
+    "name": "exact selected recipes/goldens and profile counts, no new24 prerequisite",
+    "satisfied": true,
+    "detail": {
+      "original": 448,
+      "aligned": 448,
+      "breadth": 136,
+      "breadthRecipes": {
+        "targets": 54,
+        "controls": 7,
+        "diagnostics": 7
+      },
+      "measured": 0
+    }
+  },
+  {
+    "name": "byte-identical historical predicate expanded-common.mjs",
+    "satisfied": true,
+    "detail": {
+      "historical": "0294afb6e690433aed994868e5ed437ecf58ae48:benchmarks/expanded/common.mjs",
+      "sha256": "28e51f7bb98aaf72550a76a159d79a09fb767b5780320fc1426740fedc311061"
+    }
+  },
+  {
+    "name": "byte-identical historical predicate breadth-assess.mjs",
+    "satisfied": true,
+    "detail": {
+      "historical": "849dbf18b1e865c7d12927c11f0e20ba0555c540:benchmarks/reports/baseline-only-20260827/coverage-execution/assess.mjs",
+      "sha256": "4e1ef722249987da598a0765f87e48c021cf5a2f1ec83c09e86d2489c39397eb"
+    }
+  },
+  {
+    "name": "fixed distinct expanded/breadth envelopes",
+    "satisfied": true
+  },
+  {
+    "name": "CLI PREPARE without ROOT cannot import products",
+    "satisfied": true
+  },
+  {
+    "name": "CLI PREFLIGHT without ROOT cannot import products",
+    "satisfied": true
+  },
+  {
+    "name": "CLI MEASURE without ROOT cannot import products",
+    "satisfied": true
+  },
+  {
+    "name": "exact synthetic closure positive, no import",
+    "satisfied": true
+  },
+  {
+    "name": "missing ROOT binding is explicitly unbound",
+    "satisfied": true
+  }
+]

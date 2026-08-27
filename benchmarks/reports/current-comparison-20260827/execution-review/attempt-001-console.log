@@ -1,0 +1,117 @@
+{"mode":"clean","controlSatisfied":true,"observationStatus":"pass","clean":true,"groupGone":true,"signals":[],"resources":{}}
+{"mode":"wrong-output","controlSatisfied":true,"observationStatus":"fail","clean":true,"groupGone":true,"signals":[],"resources":{}}
+{"mode":"wrong-vfs","controlSatisfied":true,"observationStatus":"fail","clean":true,"groupGone":true,"signals":[],"resources":{}}
+{"mode":"wrong-status","controlSatisfied":true,"observationStatus":"fail","clean":true,"groupGone":true,"signals":[],"resources":{}}
+{"mode":"module-clean","controlSatisfied":true,"observationStatus":"pass","clean":true,"groupGone":true,"signals":[],"resources":{"imported.json":{"syntheticOnly":true,"pid":96228,"mode":"module-clean"}}}
+{"mode":"worker-leak","controlSatisfied":true,"observationStatus":"lifecycle-or-capture-failure","clean":false,"groupGone":true,"signals":["SIGTERM"],"resources":{"imported.json":{"syntheticOnly":true,"pid":96230,"mode":"worker-leak"},"owned-worker.json":{"pid":96230,"threadId":2}}}
+{"mode":"pipe-leak","controlSatisfied":true,"observationStatus":"lifecycle-or-capture-failure","clean":false,"groupGone":true,"signals":["SIGTERM"],"resources":{"imported.json":{"syntheticOnly":true,"pid":96233,"mode":"pipe-leak"},"owned-child.json":{"pid":96234,"parent":96233}}}
+{"mode":"crash","controlSatisfied":true,"observationStatus":"lifecycle-or-capture-failure","clean":false,"groupGone":true,"signals":[],"resources":{"imported.json":{"syntheticOnly":true,"pid":96237,"mode":"crash"}}}
+{"mode":"late-rejection","controlSatisfied":true,"observationStatus":"lifecycle-or-capture-failure","clean":false,"groupGone":true,"signals":[],"resources":{"imported.json":{"syntheticOnly":true,"pid":96239,"mode":"late-rejection"}}}
+{"mode":"malformed","controlSatisfied":true,"observationStatus":"lifecycle-or-capture-failure","clean":false,"groupGone":true,"signals":["SIGTERM"],"resources":{"imported.json":{"syntheticOnly":true,"pid":96241,"mode":"malformed"}}}
+{"mode":"oversize","controlSatisfied":true,"observationStatus":"lifecycle-or-capture-failure","clean":false,"groupGone":true,"signals":["SIGTERM"],"resources":{"imported.json":{"syntheticOnly":true,"pid":96243,"mode":"oversize"}}}
+{"mode":"unbound-module","controlSatisfied":true,"observationStatus":"lifecycle-or-capture-failure","clean":false,"groupGone":true,"signals":["SIGTERM"],"resources":{"imported.json":{"syntheticOnly":true,"pid":96245,"mode":"unbound-module"}}}
+{"mode":"changed-entry","controlSatisfied":true,"observationStatus":"lifecycle-or-capture-failure","clean":false,"groupGone":true,"signals":[],"resources":{}}
+{"mode":"wrong-public-entry","controlSatisfied":true,"observationStatus":"lifecycle-or-capture-failure","clean":false,"groupGone":true,"signals":[],"resources":{}}
+{
+  "destination": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/current-comparison-20260827/execution-review/attempt-001",
+  "status": "HOLD",
+  "sourceStable": true,
+  "controlsSatisfied": true,
+  "adapterIssues": [
+    {
+      "profile": "original",
+      "engine": "virtual-bash",
+      "configuration": "default",
+      "issues": [
+        {
+          "label": "actual adapter lifecycle matches supervisor order",
+          "detail": [
+            "exec-start",
+            "snapshot-complete",
+            "exec-settled",
+            "dispose-start",
+            "dispose-settled"
+          ]
+        },
+        {
+          "label": "raw public result retained as documented",
+          "detail": null
+        }
+      ]
+    },
+    {
+      "profile": "original",
+      "engine": "just-bash",
+      "configuration": "default",
+      "issues": [
+        {
+          "label": "actual adapter lifecycle matches supervisor order",
+          "detail": [
+            "exec-start",
+            "exec-settled",
+            "dispose-start",
+            "dispose-settled"
+          ]
+        },
+        {
+          "label": "raw public result retained as documented",
+          "detail": null
+        }
+      ]
+    },
+    {
+      "profile": "aligned",
+      "engine": "virtual-bash",
+      "configuration": "default",
+      "issues": [
+        {
+          "label": "actual adapter lifecycle matches supervisor order",
+          "detail": [
+            "exec-start",
+            "snapshot-complete",
+            "exec-settled",
+            "dispose-start",
+            "dispose-settled"
+          ]
+        },
+        {
+          "label": "raw public result retained as documented",
+          "detail": null
+        }
+      ]
+    },
+    {
+      "profile": "aligned",
+      "engine": "just-bash",
+      "configuration": "default",
+      "issues": [
+        {
+          "label": "actual adapter lifecycle matches supervisor order",
+          "detail": [
+            "exec-start",
+            "exec-settled",
+            "dispose-start",
+            "dispose-settled"
+          ]
+        },
+        {
+          "label": "raw public result retained as documented",
+          "detail": null
+        }
+      ]
+    }
+  ],
+  "counters": {
+    "sentinelAttempts": 14,
+    "sentinelCoordinators": 14,
+    "sentinelEngines": 14,
+    "extraNodeDescendants": 1,
+    "workerThreads": 1,
+    "cliNegativeOrPreparationChildren": 3,
+    "syntheticAdapterInvocations": 12,
+    "actualProductImports": 0,
+    "mainCohortObservations": 0,
+    "nativeOracleCalls": 0,
+    "networkSocketsOpened": 0
+  }
+}

@@ -1,0 +1,13 @@
+{"atMs":0.337,"kind":"group-admitted","pid":86674,"pgid":86674,"argv":["/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node","--unhandled-rejections=strict","/Users/kjopek/Workspace/safe-bash/benchmarks/reports/current-comparison-20260827/execution/session.mjs","--synthetic"],"host":{"cwd":"/private/tmp/safe-bash-execution-author-w3lrWQ","env":{"PATH":"/usr/bin:/bin","HOME":"/private/tmp/safe-bash-execution-author-w3lrWQ","TMPDIR":"/private/tmp/safe-bash-execution-author-w3lrWQ","LANG":"C","LC_ALL":"C","TZ":"UTC"}}}
+{"atMs":41.396,"id":"synthetic/binding-mutated","nonce":"1bdfe256-d8af-4f3e-bae1-bc1f02ca2aff","kind":"engine-spawn","pid":86675,"argv":["/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node","--unhandled-rejections=strict","--experimental-import-meta-resolve","--max-old-space-size=128","/Users/kjopek/Workspace/safe-bash/benchmarks/reports/current-comparison-20260827/execution/engine-child.mjs","--synthetic"]}
+{"atMs":96.664,"kind":"sticky-failure","reason":"{\"name\":\"AssertionError\",\"message\":\"bound hash changed\\n+ actual - expected\\n\\n+ 'b80012851cf027c6d8adda328907d400c95773958fb4fec3e544a02cd5eeab0e'\\n- '0682c5f2076f099c34cfdd15a9e063849ed437a49677e6fcc5b4198c76575be5'\\n\",\"code\":\"ERR_ASSERTION\"}"}
+{"atMs":96.694,"id":"synthetic/binding-mutated","nonce":"1bdfe256-d8af-4f3e-bae1-bc1f02ca2aff","kind":"failure","error":{"name":"AssertionError","message":"bound hash changed\n+ actual - expected\n\n+ 'b80012851cf027c6d8adda328907d400c95773958fb4fec3e544a02cd5eeab0e'\n- '0682c5f2076f099c34cfdd15a9e063849ed437a49677e6fcc5b4198c76575be5'\n","code":"ERR_ASSERTION"}}
+{"atMs":100.445,"kind":"sticky-failure","reason":"engine crash/forced exit"}
+{"atMs":100.449,"id":"synthetic/binding-mutated","nonce":"1bdfe256-d8af-4f3e-bae1-bc1f02ca2aff","kind":"engine-exit","code":1,"signal":null}
+{"atMs":100.509,"id":"synthetic/binding-mutated","nonce":"1bdfe256-d8af-4f3e-bae1-bc1f02ca2aff","kind":"engine-close","code":1,"signal":null}
+{"atMs":100.808,"id":"synthetic/binding-mutated","nonce":"1bdfe256-d8af-4f3e-bae1-bc1f02ca2aff","kind":"fixture-close","closed":true,"sockets":0,"requests":[]}
+{"atMs":100.889,"id":"synthetic/binding-mutated","nonce":"1bdfe256-d8af-4f3e-bae1-bc1f02ca2aff","kind":"session-complete"}
+{"atMs":103.689,"kind":"signal","signal":"SIGTERM","pgid":86674}
+{"atMs":103.726,"kind":"signal-error","error":{"name":"Error","message":"kill EPERM","code":"EPERM"}}
+{"atMs":103.851,"kind":"coordinator-exit","code":0,"signal":null}
+{"atMs":103.879,"kind":"coordinator-close","code":0,"signal":null}

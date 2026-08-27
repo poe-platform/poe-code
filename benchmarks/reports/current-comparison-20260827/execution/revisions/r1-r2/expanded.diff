@@ -1,0 +1,22 @@
+--- original/expanded.mjs
++++ r1-r2/expanded.mjs
+@@ -32,8 +32,7 @@
+     await shell.exec("", { signal });
+     execute = async () => {
+       const result = await shell.exec(specimen.script.replaceAll("{{BASE}}", baseUrl ?? "network-unavailable"), { stdin: decode(specimen.stdin), signal });
+-      await mark("snapshot-complete");
+-    return { raw: { stdoutBase64: encode(result.stdout), stderrBase64: encode(result.stderr) }, stdout: Buffer.from(result.stdoutBytes), stderr: Buffer.from(result.stderrBytes), exitCode: result.exitCode };
++      return { stdout: Buffer.from(result.stdoutBytes), stderr: Buffer.from(result.stderrBytes), exitCode: result.exitCode };
+     };
+     dispose = () => shell.dispose();
+   } else {
+@@ -58,7 +57,8 @@
+     } : { list: path => fs.readdir(path), read: path => fs.readFileBuffer(path), link: path => fs.readlink(path), stat: async path => {
+       const info = await fs.lstat(path); return { type: info.isSymbolicLink ? "symlink" : info.isDirectory ? "directory" : info.isFile ? "file" : "other", mode: info.mode };
+     } }, specimen, fixtureRoot, replacements);
+-    return { stdout: encode(projectBytes(result.stdout, replacements)), stderr: encode(projectBytes(result.stderr, replacements)), exitCode: result.exitCode, entries,
++    await mark("snapshot-complete");
++    return { raw: { stdoutBase64: encode(result.stdout), stderrBase64: encode(result.stderr) }, stdout: encode(projectBytes(result.stdout, replacements)), stderr: encode(projectBytes(result.stderr, replacements)), exitCode: result.exitCode, entries,
+       events, registryEvents, dispatchObservation: "not instrumented; no command replacement",
+       capture: engine === "virtual-bash" ? "native Uint8Array stdout/stderr" : "public stdoutAsBytes/latin1FromBytes; stderr UTF8 public text" };
+   } finally { await mark("dispose-start", { apiAvailable: engine === "virtual-bash" }); await dispose(); await mark("dispose-settled", { apiAvailable: engine === "virtual-bash" }); }

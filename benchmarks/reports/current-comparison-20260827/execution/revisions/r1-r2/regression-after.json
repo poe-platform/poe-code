@@ -1,0 +1,16 @@
+{
+  "scope": "R1/R2 actual adapter regression; synthetic APIs only",
+  "productImports": 0,
+  "mainObservations": 0,
+  "argv": [
+    "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "--test",
+    "benchmarks/reports/current-comparison-20260827/execution/revisions/r1-r2/expanded-regression.mjs"
+  ],
+  "sourceSha256": "761bf2422d03f5dcc6162df7d42e1d2fd2bb974ec2e42b9fe0d51e3e406fe3e2",
+  "status": 0,
+  "signal": null,
+  "error": null,
+  "stdout": "TAP version 13\n# Subtest: R1/R2 actual observeExpanded: virtual-bash/original\nok 1 - R1/R2 actual observeExpanded: virtual-bash/original\n  ---\n  duration_ms: 1.149\n  type: 'test'\n  ...\n# Subtest: R1/R2 actual observeExpanded: virtual-bash/aligned\nok 2 - R1/R2 actual observeExpanded: virtual-bash/aligned\n  ---\n  duration_ms: 0.25975\n  type: 'test'\n  ...\n# Subtest: R1/R2 actual observeExpanded: just-bash/original\nok 3 - R1/R2 actual observeExpanded: just-bash/original\n  ---\n  duration_ms: 0.240375\n  type: 'test'\n  ...\n# Subtest: R1/R2 actual observeExpanded: just-bash/aligned\nok 4 - R1/R2 actual observeExpanded: just-bash/aligned\n  ---\n  duration_ms: 0.462084\n  type: 'test'\n  ...\n1..4\n# tests 4\n# suites 0\n# pass 4\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 43.751667\n",
+  "stderr": ""
+}

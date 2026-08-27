@@ -1,0 +1,292 @@
+{
+  "request": {
+    "id": "synthetic/wrong-status",
+    "nonce": "a55f396d-f56d-4e9b-af5d-f828b57bb004",
+    "profile": "original",
+    "engine": "synthetic-not-product",
+    "synthetic": true,
+    "mode": "wrong-status",
+    "expected": {
+      "stdout": "AH+A/w==",
+      "stderr": "",
+      "exitCode": 0,
+      "entries": {
+        "binary": {
+          "type": "file",
+          "bytes": "AH+A/w=="
+        }
+      }
+    },
+    "caps": {
+      "startupMs": 2000,
+      "guestMs": 180,
+      "requestMs": 1400,
+      "totalMs": 4500,
+      "settleMs": 150,
+      "snapshotMs": 200,
+      "disposeMs": 200,
+      "naturalMs": 180,
+      "termMs": 120,
+      "killMs": 200,
+      "outputBytes": 4194304,
+      "diagnosticBytes": 4096,
+      "reportBytes": 131072,
+      "events": 64,
+      "snapshotBytes": 33554432,
+      "entries": 4096,
+      "depth": 32
+    },
+    "heapMiB": 128,
+    "host": {
+      "cwd": "/private/tmp/safe-bash-execution-author-w3lrWQ",
+      "env": {
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/private/tmp/safe-bash-execution-author-w3lrWQ",
+        "TMPDIR": "/private/tmp/safe-bash-execution-author-w3lrWQ",
+        "LANG": "C",
+        "LC_ALL": "C",
+        "TZ": "UTC"
+      }
+    }
+  },
+  "attempt": {
+    "id": "synthetic/wrong-status",
+    "nonce": "a55f396d-f56d-4e9b-af5d-f828b57bb004",
+    "synthetic": true,
+    "profile": "original",
+    "engine": "synthetic-not-product",
+    "failures": [],
+    "events": [
+      {
+        "atMs": 0.489,
+        "kind": "group-admitted",
+        "pid": 86626,
+        "pgid": 86626,
+        "argv": [
+          "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+          "--unhandled-rejections=strict",
+          "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/current-comparison-20260827/execution/session.mjs",
+          "--synthetic"
+        ],
+        "host": {
+          "cwd": "/private/tmp/safe-bash-execution-author-w3lrWQ",
+          "env": {
+            "PATH": "/usr/bin:/bin",
+            "HOME": "/private/tmp/safe-bash-execution-author-w3lrWQ",
+            "TMPDIR": "/private/tmp/safe-bash-execution-author-w3lrWQ",
+            "LANG": "C",
+            "LC_ALL": "C",
+            "TZ": "UTC"
+          }
+        }
+      },
+      {
+        "atMs": 36.085,
+        "id": "synthetic/wrong-status",
+        "nonce": "a55f396d-f56d-4e9b-af5d-f828b57bb004",
+        "kind": "engine-spawn",
+        "pid": 86628,
+        "argv": [
+          "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+          "--unhandled-rejections=strict",
+          "--experimental-import-meta-resolve",
+          "--max-old-space-size=128",
+          "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/current-comparison-20260827/execution/engine-child.mjs",
+          "--synthetic"
+        ]
+      },
+      {
+        "atMs": 89.571,
+        "kind": "request-start",
+        "absoluteDeadlineMs": 1489.5676250000001
+      },
+      {
+        "atMs": 89.573,
+        "id": "synthetic/wrong-status",
+        "nonce": "a55f396d-f56d-4e9b-af5d-f828b57bb004",
+        "kind": "ready"
+      },
+      {
+        "atMs": 90.213,
+        "id": "synthetic/wrong-status",
+        "nonce": "a55f396d-f56d-4e9b-af5d-f828b57bb004",
+        "kind": "phase",
+        "phase": "exec-start"
+      },
+      {
+        "atMs": 90.309,
+        "id": "synthetic/wrong-status",
+        "nonce": "a55f396d-f56d-4e9b-af5d-f828b57bb004",
+        "kind": "phase",
+        "phase": "exec-settled"
+      },
+      {
+        "atMs": 90.56,
+        "id": "synthetic/wrong-status",
+        "nonce": "a55f396d-f56d-4e9b-af5d-f828b57bb004",
+        "kind": "phase",
+        "phase": "snapshot-complete"
+      },
+      {
+        "atMs": 90.632,
+        "id": "synthetic/wrong-status",
+        "nonce": "a55f396d-f56d-4e9b-af5d-f828b57bb004",
+        "kind": "phase",
+        "phase": "dispose-start"
+      },
+      {
+        "atMs": 90.71,
+        "id": "synthetic/wrong-status",
+        "nonce": "a55f396d-f56d-4e9b-af5d-f828b57bb004",
+        "kind": "phase",
+        "phase": "dispose-settled"
+      },
+      {
+        "atMs": 91.239,
+        "kind": "result-received",
+        "sha256": "aa8dc8edab902811d82cb3f104a323d3a5f0a0041f82b2735a60e725f90eea8f",
+        "absoluteTotalUnchangedMs": 4500
+      },
+      {
+        "atMs": 93.511,
+        "id": "synthetic/wrong-status",
+        "nonce": "a55f396d-f56d-4e9b-af5d-f828b57bb004",
+        "kind": "engine-exit",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "atMs": 93.537,
+        "id": "synthetic/wrong-status",
+        "nonce": "a55f396d-f56d-4e9b-af5d-f828b57bb004",
+        "kind": "engine-close",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "atMs": 93.553,
+        "id": "synthetic/wrong-status",
+        "nonce": "a55f396d-f56d-4e9b-af5d-f828b57bb004",
+        "kind": "fixture-close",
+        "closed": true,
+        "sockets": 0,
+        "requests": []
+      },
+      {
+        "atMs": 93.559,
+        "id": "synthetic/wrong-status",
+        "nonce": "a55f396d-f56d-4e9b-af5d-f828b57bb004",
+        "kind": "session-complete"
+      },
+      {
+        "atMs": 96.018,
+        "kind": "coordinator-exit",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "atMs": 96.022,
+        "kind": "coordinator-close",
+        "code": 0,
+        "signal": null
+      }
+    ],
+    "signals": [],
+    "result": {
+      "id": "synthetic/wrong-status",
+      "nonce": "a55f396d-f56d-4e9b-af5d-f828b57bb004",
+      "kind": "result",
+      "observation": {
+        "stdout": "AH+A/w==",
+        "stderr": "",
+        "exitCode": 17,
+        "entries": {
+          "binary": {
+            "type": "file",
+            "bytes": "AH+A/w=="
+          }
+        }
+      }
+    },
+    "engineExit": {
+      "code": 0,
+      "signal": null
+    },
+    "engineClose": {
+      "code": 0,
+      "signal": null
+    },
+    "sessionExit": {
+      "code": 0,
+      "signal": null
+    },
+    "sessionClose": {
+      "code": 0,
+      "signal": null
+    },
+    "diagnostics": [],
+    "clean": true,
+    "groupGone": true,
+    "coordinatorPid": 86626,
+    "enginePid": 86628,
+    "network": {
+      "id": "synthetic/wrong-status",
+      "nonce": "a55f396d-f56d-4e9b-af5d-f828b57bb004",
+      "kind": "fixture-close",
+      "closed": true,
+      "sockets": 0,
+      "requests": []
+    },
+    "elapsedMs": 105.141,
+    "deadlinesMs": {
+      "total": 4500,
+      "request": 1489.568,
+      "natural": 271.207
+    },
+    "hostBytes": 0,
+    "reportBytes": 1824,
+    "execAdmissions": {
+      "scoredCase": 1,
+      "emptyInitialization": 0
+    },
+    "wireCapture": {
+      "receivedBytes": 1824,
+      "receivedSha256": "ac58bafaff67a342153b967f0d0df219d14ea2563ae251a2a4ca6d27cc0ec46d",
+      "prefixBase64": "AAABinsiaWQiOiJzeW50aGV0aWMvd3Jvbmctc3RhdHVzIiwibm9uY2UiOiJhNTVmMzk2ZC1mNTZkLTRlOWItYWY1ZC1mODI4YjU3YmIwMDQiLCJraW5kIjoiZW5naW5lLXNwYXduIiwicGlkIjo4NjYyOCwiYXJndiI6WyIvVXNlcnMva2pvcGVrLy5udm0vdmVyc2lvbnMvbm9kZS92MjIuMjIuMi9iaW4vbm9kZSIsIi0tdW5oYW5kbGVkLXJlamVjdGlvbnM9c3RyaWN0IiwiLS1leHBlcmltZW50YWwtaW1wb3J0LW1ldGEtcmVzb2x2ZSIsIi0tbWF4LW9sZC1zcGFjZS1zaXplPTEyOCIsIi9Vc2Vycy9ram9wZWsvV29ya3NwYWNlL3NhZmUtYmFzaC9iZW5jaG1hcmtzL3JlcG9ydHMvY3VycmVudC1jb21wYXJpc29uLTIwMjYwODI3L2V4ZWN1dGlvbi9lbmdpbmUtY2hpbGQubWpzIiwiLS1zeW50aGV0aWMiXX0AAABdeyJpZCI6InN5bnRoZXRpYy93cm9uZy1zdGF0dXMiLCJub25jZSI6ImE1NWYzOTZkLWY1NmQtNGU5Yi1hZjVkLWY4MjhiNTdiYjAwNCIsImtpbmQiOiJyZWFkeSJ9AAAAcnsiaWQiOiJzeW50aGV0aWMvd3Jvbmctc3RhdHVzIiwibm9uY2UiOiJhNTVmMzk2ZC1mNTZkLTRlOWItYWY1ZC1mODI4YjU3YmIwMDQiLCJraW5kIjoicGhhc2UiLCJwaGFzZSI6ImV4ZWMtc3RhcnQifQAAAHR7ImlkIjoic3ludGhldGljL3dyb25nLXN0YXR1cyIsIm5vbmNlIjoiYTU1ZjM5NmQtZjU2ZC00ZTliLWFmNWQtZjgyOGI1N2JiMDA0Iiwia2luZCI6InBoYXNlIiwicGhhc2UiOiJleGVjLXNldHRsZWQifQAAAHl7ImlkIjoic3ludGhldGljL3dyb25nLXN0YXR1cyIsIm5vbmNlIjoiYTU1ZjM5NmQtZjU2ZC00ZTliLWFmNWQtZjgyOGI1N2JiMDA0Iiwia2luZCI6InBoYXNlIiwicGhhc2UiOiJzbmFwc2hvdC1jb21wbGV0ZSJ9AAAAdXsiaWQiOiJzeW50aGV0aWMvd3Jvbmctc3RhdHVzIiwibm9uY2UiOiJhNTVmMzk2ZC1mNTZkLTRlOWItYWY1ZC1mODI4YjU3YmIwMDQiLCJraW5kIjoicGhhc2UiLCJwaGFzZSI6ImRpc3Bvc2Utc3RhcnQifQAAAHd7ImlkIjoic3ludGhldGljL3dyb25nLXN0YXR1cyIsIm5vbmNlIjoiYTU1ZjM5NmQtZjU2ZC00ZTliLWFmNWQtZjgyOGI1N2JiMDA0Iiwia2luZCI6InBoYXNlIiwicGhhc2UiOiJkaXNwb3NlLXNldHRsZWQifQAAANR7ImlkIjoic3ludGhldGljL3dyb25nLXN0YXR1cyIsIm5vbmNlIjoiYTU1ZjM5NmQtZjU2ZC00ZTliLWFmNWQtZjgyOGI1N2JiMDA0Iiwia2luZCI6InJlc3VsdCIsIm9ic2VydmF0aW9uIjp7InN0ZG91dCI6IkFIK0Evdz09Iiwic3RkZXJyIjoiIiwiZXhpdENvZGUiOjE3LCJlbnRyaWVzIjp7ImJpbmFyeSI6eyJ0eXBlIjoiZmlsZSIsImJ5dGVzIjoiQUgrQS93PT0ifX19fQAAAHp7ImlkIjoic3ludGhldGljL3dyb25nLXN0YXR1cyIsIm5vbmNlIjoiYTU1ZjM5NmQtZjU2ZC00ZTliLWFmNWQtZjgyOGI1N2JiMDA0Iiwia2luZCI6ImVuZ2luZS1leGl0IiwiY29kZSI6MCwic2lnbmFsIjpudWxsfQAAAHt7ImlkIjoic3ludGhldGljL3dyb25nLXN0YXR1cyIsIm5vbmNlIjoiYTU1ZjM5NmQtZjU2ZC00ZTliLWFmNWQtZjgyOGI1N2JiMDA0Iiwia2luZCI6ImVuZ2luZS1jbG9zZSIsImNvZGUiOjAsInNpZ25hbCI6bnVsbH0AAACNeyJpZCI6InN5bnRoZXRpYy93cm9uZy1zdGF0dXMiLCJub25jZSI6ImE1NWYzOTZkLWY1NmQtNGU5Yi1hZjVkLWY4MjhiNTdiYjAwNCIsImtpbmQiOiJmaXh0dXJlLWNsb3NlIiwiY2xvc2VkIjp0cnVlLCJzb2NrZXRzIjowLCJyZXF1ZXN0cyI6W119AAAAaHsiaWQiOiJzeW50aGV0aWMvd3Jvbmctc3RhdHVzIiwibm9uY2UiOiJhNTVmMzk2ZC1mNTZkLTRlOWItYWY1ZC1mODI4YjU3YmIwMDQiLCJraW5kIjoic2Vzc2lvbi1jb21wbGV0ZSJ9",
+      "prefixOnly": false
+    }
+  },
+  "check": {
+    "mode": "wrong-status",
+    "passed": true,
+    "assessment": {
+      "comparison": {
+        "pass": false,
+        "assertions": [
+          {
+            "field": "stdout",
+            "pass": true
+          },
+          {
+            "field": "stderr",
+            "pass": true
+          },
+          {
+            "field": "exitCode",
+            "pass": false
+          },
+          {
+            "field": "entries",
+            "pass": true
+          }
+        ]
+      },
+      "lifecycle": true,
+      "status": "fail"
+    },
+    "elapsedMs": 105.141,
+    "groupGone": true,
+    "signals": [],
+    "raw": "attempt-004-wrong-status.json"
+  }
+}

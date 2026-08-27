@@ -1,0 +1,405 @@
+{
+  "request": {
+    "id": "independent/module-clean",
+    "nonce": "67f831bd-6692-4d9f-bb13-15e84169460b",
+    "synthetic": true,
+    "engine": "independent-sentinel-not-product",
+    "profile": "original",
+    "mode": "clean",
+    "expected": {
+      "stdout": "AAF/gP7/",
+      "stderr": "aW5kZXBlbmRlbnQK",
+      "exitCode": 0,
+      "entries": {
+        "binary": {
+          "type": "file",
+          "bytes": "AAF/gP7/"
+        }
+      }
+    },
+    "caps": {
+      "startupMs": 2000,
+      "guestMs": 180,
+      "requestMs": 1400,
+      "totalMs": 4500,
+      "settleMs": 150,
+      "snapshotMs": 200,
+      "disposeMs": 200,
+      "naturalMs": 240,
+      "termMs": 120,
+      "killMs": 200,
+      "outputBytes": 4194304,
+      "diagnosticBytes": 4096,
+      "reportBytes": 131072,
+      "events": 64,
+      "snapshotBytes": 33554432,
+      "entries": 4096,
+      "depth": 32
+    },
+    "heapMiB": 128,
+    "host": {
+      "root": "/private/tmp/safe-bash-independent-bridge-tQVUTK",
+      "cwd": "/private/tmp/safe-bash-independent-bridge-tQVUTK",
+      "env": {
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/private/tmp/safe-bash-independent-bridge-tQVUTK",
+        "TMPDIR": "/private/tmp/safe-bash-independent-bridge-tQVUTK",
+        "LANG": "C",
+        "LC_ALL": "C",
+        "TZ": "UTC"
+      }
+    },
+    "syntheticModule": {
+      "packageName": "independent-bridge-sentinel",
+      "packagePath": "/private/tmp/safe-bash-independent-bridge-tQVUTK/module-clean/package.json",
+      "entry": "/private/tmp/safe-bash-independent-bridge-tQVUTK/module-clean/index.mjs",
+      "files": {
+        "/private/tmp/safe-bash-independent-bridge-tQVUTK/module-clean/package.json": {
+          "bytes": 106,
+          "sha256": "27b41fc0708c17fe5dba368c4176fd70b172d024ea879d0a4a43baa8ea20de35"
+        },
+        "/private/tmp/safe-bash-independent-bridge-tQVUTK/module-clean/index.mjs": {
+          "bytes": 1489,
+          "sha256": "ea4ada5cb95bd6a9b2348f0d1f2d5e4c59903778addcf409a6622b11ad808511"
+        }
+      }
+    }
+  },
+  "attempt": {
+    "id": "independent/module-clean",
+    "nonce": "67f831bd-6692-4d9f-bb13-15e84169460b",
+    "synthetic": true,
+    "profile": "original",
+    "engine": "independent-sentinel-not-product",
+    "failures": [],
+    "events": [
+      {
+        "atMs": 0.372,
+        "kind": "group-admitted",
+        "pid": 28363,
+        "pgid": 28363,
+        "argv": [
+          "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+          "--unhandled-rejections=strict",
+          "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/current-comparison-20260827/execution/session.mjs",
+          "--synthetic"
+        ],
+        "host": {
+          "root": "/private/tmp/safe-bash-independent-bridge-tQVUTK",
+          "cwd": "/private/tmp/safe-bash-independent-bridge-tQVUTK",
+          "env": {
+            "PATH": "/usr/bin:/bin",
+            "HOME": "/private/tmp/safe-bash-independent-bridge-tQVUTK",
+            "TMPDIR": "/private/tmp/safe-bash-independent-bridge-tQVUTK",
+            "LANG": "C",
+            "LC_ALL": "C",
+            "TZ": "UTC"
+          }
+        }
+      },
+      {
+        "atMs": 41.397,
+        "id": "independent/module-clean",
+        "nonce": "67f831bd-6692-4d9f-bb13-15e84169460b",
+        "kind": "engine-spawn",
+        "pid": 28364,
+        "argv": [
+          "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+          "--unhandled-rejections=strict",
+          "--experimental-import-meta-resolve",
+          "--max-old-space-size=128",
+          "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/current-comparison-20260827/execution/engine-child.mjs",
+          "--synthetic"
+        ]
+      },
+      {
+        "atMs": 124.902,
+        "id": "independent/module-clean",
+        "nonce": "67f831bd-6692-4d9f-bb13-15e84169460b",
+        "kind": "public-resolution",
+        "specifier": "independent-bridge-sentinel",
+        "parent": "/private/tmp/safe-bash-independent-bridge-tQVUTK/module-clean/package.json",
+        "resolved": "file:///private/tmp/safe-bash-independent-bridge-tQVUTK/module-clean/index.mjs"
+      },
+      {
+        "atMs": 125.142,
+        "id": "independent/module-clean",
+        "nonce": "67f831bd-6692-4d9f-bb13-15e84169460b",
+        "kind": "module",
+        "event": {
+          "type": "resolve-returned",
+          "specifier": "independent-bridge-sentinel",
+          "parentURL": "file:///private/tmp/safe-bash-independent-bridge-tQVUTK/module-clean/package.json",
+          "url": "file:///private/tmp/safe-bash-independent-bridge-tQVUTK/module-clean/index.mjs"
+        }
+      },
+      {
+        "atMs": 125.333,
+        "id": "independent/module-clean",
+        "nonce": "67f831bd-6692-4d9f-bb13-15e84169460b",
+        "kind": "module",
+        "event": {
+          "type": "resolve-returned",
+          "specifier": "file:///private/tmp/safe-bash-independent-bridge-tQVUTK/module-clean/index.mjs",
+          "parentURL": "file:///Users/kjopek/Workspace/safe-bash/benchmarks/reports/current-comparison-20260827/execution/engine-child.mjs",
+          "url": "file:///private/tmp/safe-bash-independent-bridge-tQVUTK/module-clean/index.mjs"
+        }
+      },
+      {
+        "atMs": 126.555,
+        "id": "independent/module-clean",
+        "nonce": "67f831bd-6692-4d9f-bb13-15e84169460b",
+        "kind": "module",
+        "event": {
+          "type": "load-returned",
+          "url": "file:///private/tmp/safe-bash-independent-bridge-tQVUTK/module-clean/index.mjs",
+          "sha256": "ea4ada5cb95bd6a9b2348f0d1f2d5e4c59903778addcf409a6622b11ad808511",
+          "format": "module",
+          "evaluationProven": false
+        }
+      },
+      {
+        "atMs": 127.326,
+        "id": "independent/module-clean",
+        "nonce": "67f831bd-6692-4d9f-bb13-15e84169460b",
+        "kind": "module",
+        "event": {
+          "type": "resolve-returned",
+          "specifier": "node:fs",
+          "parentURL": "file:///private/tmp/safe-bash-independent-bridge-tQVUTK/module-clean/index.mjs",
+          "url": "node:fs"
+        }
+      },
+      {
+        "atMs": 127.495,
+        "id": "independent/module-clean",
+        "nonce": "67f831bd-6692-4d9f-bb13-15e84169460b",
+        "kind": "module",
+        "event": {
+          "type": "resolve-returned",
+          "specifier": "node:child_process",
+          "parentURL": "file:///private/tmp/safe-bash-independent-bridge-tQVUTK/module-clean/index.mjs",
+          "url": "node:child_process"
+        }
+      },
+      {
+        "atMs": 128.828,
+        "id": "independent/module-clean",
+        "nonce": "67f831bd-6692-4d9f-bb13-15e84169460b",
+        "kind": "module",
+        "event": {
+          "type": "resolve-returned",
+          "specifier": "node:worker_threads",
+          "parentURL": "file:///private/tmp/safe-bash-independent-bridge-tQVUTK/module-clean/index.mjs",
+          "url": "node:worker_threads"
+        }
+      },
+      {
+        "atMs": 128.928,
+        "id": "independent/module-clean",
+        "nonce": "67f831bd-6692-4d9f-bb13-15e84169460b",
+        "kind": "entry-import-fulfilled",
+        "resolved": "file:///private/tmp/safe-bash-independent-bridge-tQVUTK/module-clean/index.mjs"
+      },
+      {
+        "atMs": 128.969,
+        "kind": "request-start",
+        "absoluteDeadlineMs": 1528.9658750000003
+      },
+      {
+        "atMs": 128.971,
+        "id": "independent/module-clean",
+        "nonce": "67f831bd-6692-4d9f-bb13-15e84169460b",
+        "kind": "ready"
+      },
+      {
+        "atMs": 129.424,
+        "id": "independent/module-clean",
+        "nonce": "67f831bd-6692-4d9f-bb13-15e84169460b",
+        "kind": "phase",
+        "phase": "exec-start"
+      },
+      {
+        "atMs": 129.477,
+        "id": "independent/module-clean",
+        "nonce": "67f831bd-6692-4d9f-bb13-15e84169460b",
+        "kind": "phase",
+        "phase": "exec-settled"
+      },
+      {
+        "atMs": 129.698,
+        "id": "independent/module-clean",
+        "nonce": "67f831bd-6692-4d9f-bb13-15e84169460b",
+        "kind": "phase",
+        "phase": "snapshot-complete"
+      },
+      {
+        "atMs": 129.754,
+        "id": "independent/module-clean",
+        "nonce": "67f831bd-6692-4d9f-bb13-15e84169460b",
+        "kind": "phase",
+        "phase": "dispose-start"
+      },
+      {
+        "atMs": 129.774,
+        "id": "independent/module-clean",
+        "nonce": "67f831bd-6692-4d9f-bb13-15e84169460b",
+        "kind": "phase",
+        "phase": "dispose-settled"
+      },
+      {
+        "atMs": 129.849,
+        "kind": "result-received",
+        "sha256": "758120e02789484ae7bf2bc8868fffe1ea47dd3670073e92c83084e287cdb05a",
+        "absoluteTotalUnchangedMs": 4500
+      },
+      {
+        "atMs": 133.522,
+        "id": "independent/module-clean",
+        "nonce": "67f831bd-6692-4d9f-bb13-15e84169460b",
+        "kind": "engine-exit",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "atMs": 133.548,
+        "id": "independent/module-clean",
+        "nonce": "67f831bd-6692-4d9f-bb13-15e84169460b",
+        "kind": "engine-close",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "atMs": 133.568,
+        "id": "independent/module-clean",
+        "nonce": "67f831bd-6692-4d9f-bb13-15e84169460b",
+        "kind": "fixture-close",
+        "closed": true,
+        "sockets": 0,
+        "requests": []
+      },
+      {
+        "atMs": 133.575,
+        "id": "independent/module-clean",
+        "nonce": "67f831bd-6692-4d9f-bb13-15e84169460b",
+        "kind": "session-complete"
+      },
+      {
+        "atMs": 136.045,
+        "kind": "coordinator-exit",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "atMs": 136.048,
+        "kind": "coordinator-close",
+        "code": 0,
+        "signal": null
+      }
+    ],
+    "signals": [],
+    "result": {
+      "id": "independent/module-clean",
+      "nonce": "67f831bd-6692-4d9f-bb13-15e84169460b",
+      "kind": "result",
+      "observation": {
+        "stdout": "AAF/gP7/",
+        "stderr": "aW5kZXBlbmRlbnQK",
+        "exitCode": 0,
+        "entries": {
+          "binary": {
+            "type": "file",
+            "bytes": "AAF/gP7/"
+          }
+        }
+      }
+    },
+    "engineExit": {
+      "code": 0,
+      "signal": null
+    },
+    "engineClose": {
+      "code": 0,
+      "signal": null
+    },
+    "sessionExit": {
+      "code": 0,
+      "signal": null
+    },
+    "sessionClose": {
+      "code": 0,
+      "signal": null
+    },
+    "diagnostics": [],
+    "clean": true,
+    "groupGone": true,
+    "coordinatorPid": 28363,
+    "enginePid": 28364,
+    "network": {
+      "id": "independent/module-clean",
+      "nonce": "67f831bd-6692-4d9f-bb13-15e84169460b",
+      "kind": "fixture-close",
+      "closed": true,
+      "sockets": 0,
+      "requests": []
+    },
+    "elapsedMs": 146.416,
+    "deadlinesMs": {
+      "total": 4500,
+      "request": 1528.966,
+      "natural": 369.815
+    },
+    "hostBytes": 0,
+    "reportBytes": 4394,
+    "execAdmissions": {
+      "scoredCase": 1,
+      "emptyInitialization": 0
+    },
+    "wireCapture": {
+      "receivedBytes": 4394,
+      "receivedSha256": "6855614924edb49247413a33c3fb6a92414540d3469ad258f48124ec7448fc6f",
+      "prefixBase64": "AAABjHsiaWQiOiJpbmRlcGVuZGVudC9tb2R1bGUtY2xlYW4iLCJub25jZSI6IjY3ZjgzMWJkLTY2OTItNGQ5Zi1iYjEzLTE1ZTg0MTY5NDYwYiIsImtpbmQiOiJlbmdpbmUtc3Bhd24iLCJwaWQiOjI4MzY0LCJhcmd2IjpbIi9Vc2Vycy9ram9wZWsvLm52bS92ZXJzaW9ucy9ub2RlL3YyMi4yMi4yL2Jpbi9ub2RlIiwiLS11bmhhbmRsZWQtcmVqZWN0aW9ucz1zdHJpY3QiLCItLWV4cGVyaW1lbnRhbC1pbXBvcnQtbWV0YS1yZXNvbHZlIiwiLS1tYXgtb2xkLXNwYWNlLXNpemU9MTI4IiwiL1VzZXJzL2tqb3Blay9Xb3Jrc3BhY2Uvc2FmZS1iYXNoL2JlbmNobWFya3MvcmVwb3J0cy9jdXJyZW50LWNvbXBhcmlzb24tMjAyNjA4MjcvZXhlY3V0aW9uL2VuZ2luZS1jaGlsZC5tanMiLCItLXN5bnRoZXRpYyJdfQAAAUd7ImlkIjoiaW5kZXBlbmRlbnQvbW9kdWxlLWNsZWFuIiwibm9uY2UiOiI2N2Y4MzFiZC02NjkyLTRkOWYtYmIxMy0xNWU4NDE2OTQ2MGIiLCJraW5kIjoicHVibGljLXJlc29sdXRpb24iLCJzcGVjaWZpZXIiOiJpbmRlcGVuZGVudC1icmlkZ2Utc2VudGluZWwiLCJwYXJlbnQiOiIvcHJpdmF0ZS90bXAvc2FmZS1iYXNoLWluZGVwZW5kZW50LWJyaWRnZS10UVZVVEsvbW9kdWxlLWNsZWFuL3BhY2thZ2UuanNvbiIsInJlc29sdmVkIjoiZmlsZTovLy9wcml2YXRlL3RtcC9zYWZlLWJhc2gtaW5kZXBlbmRlbnQtYnJpZGdlLXRRVlVUSy9tb2R1bGUtY2xlYW4vaW5kZXgubWpzIn0AAAFleyJpZCI6ImluZGVwZW5kZW50L21vZHVsZS1jbGVhbiIsIm5vbmNlIjoiNjdmODMxYmQtNjY5Mi00ZDlmLWJiMTMtMTVlODQxNjk0NjBiIiwia2luZCI6Im1vZHVsZSIsImV2ZW50Ijp7InR5cGUiOiJyZXNvbHZlLXJldHVybmVkIiwic3BlY2lmaWVyIjoiaW5kZXBlbmRlbnQtYnJpZGdlLXNlbnRpbmVsIiwicGFyZW50VVJMIjoiZmlsZTovLy9wcml2YXRlL3RtcC9zYWZlLWJhc2gtaW5kZXBlbmRlbnQtYnJpZGdlLXRRVlVUSy9tb2R1bGUtY2xlYW4vcGFja2FnZS5qc29uIiwidXJsIjoiZmlsZTovLy9wcml2YXRlL3RtcC9zYWZlLWJhc2gtaW5kZXBlbmRlbnQtYnJpZGdlLXRRVlVUSy9tb2R1bGUtY2xlYW4vaW5kZXgubWpzIn19AAABuXsiaWQiOiJpbmRlcGVuZGVudC9tb2R1bGUtY2xlYW4iLCJub25jZSI6IjY3ZjgzMWJkLTY2OTItNGQ5Zi1iYjEzLTE1ZTg0MTY5NDYwYiIsImtpbmQiOiJtb2R1bGUiLCJldmVudCI6eyJ0eXBlIjoicmVzb2x2ZS1yZXR1cm5lZCIsInNwZWNpZmllciI6ImZpbGU6Ly8vcHJpdmF0ZS90bXAvc2FmZS1iYXNoLWluZGVwZW5kZW50LWJyaWRnZS10UVZVVEsvbW9kdWxlLWNsZWFuL2luZGV4Lm1qcyIsInBhcmVudFVSTCI6ImZpbGU6Ly8vVXNlcnMva2pvcGVrL1dvcmtzcGFjZS9zYWZlLWJhc2gvYmVuY2htYXJrcy9yZXBvcnRzL2N1cnJlbnQtY29tcGFyaXNvbi0yMDI2MDgyNy9leGVjdXRpb24vZW5naW5lLWNoaWxkLm1qcyIsInVybCI6ImZpbGU6Ly8vcHJpdmF0ZS90bXAvc2FmZS1iYXNoLWluZGVwZW5kZW50LWJyaWRnZS10UVZVVEsvbW9kdWxlLWNsZWFuL2luZGV4Lm1qcyJ9fQAAAU97ImlkIjoiaW5kZXBlbmRlbnQvbW9kdWxlLWNsZWFuIiwibm9uY2UiOiI2N2Y4MzFiZC02NjkyLTRkOWYtYmIxMy0xNWU4NDE2OTQ2MGIiLCJraW5kIjoibW9kdWxlIiwiZXZlbnQiOnsidHlwZSI6ImxvYWQtcmV0dXJuZWQiLCJ1cmwiOiJmaWxlOi8vL3ByaXZhdGUvdG1wL3NhZmUtYmFzaC1pbmRlcGVuZGVudC1icmlkZ2UtdFFWVVRLL21vZHVsZS1jbGVhbi9pbmRleC5tanMiLCJzaGEyNTYiOiJlYTRhZGE1Y2I5NWJkNmE5YjIzNDhmMGQxZjJkNWU0YzU5OTAzNzc4YWRkY2Y0MDlhNjYyMmIxMWFkODA4NTExIiwiZm9ybWF0IjoibW9kdWxlIiwiZXZhbHVhdGlvblByb3ZlbiI6ZmFsc2V9fQAAAQd7ImlkIjoiaW5kZXBlbmRlbnQvbW9kdWxlLWNsZWFuIiwibm9uY2UiOiI2N2Y4MzFiZC02NjkyLTRkOWYtYmIxMy0xNWU4NDE2OTQ2MGIiLCJraW5kIjoibW9kdWxlIiwiZXZlbnQiOnsidHlwZSI6InJlc29sdmUtcmV0dXJuZWQiLCJzcGVjaWZpZXIiOiJub2RlOmZzIiwicGFyZW50VVJMIjoiZmlsZTovLy9wcml2YXRlL3RtcC9zYWZlLWJhc2gtaW5kZXBlbmRlbnQtYnJpZGdlLXRRVlVUSy9tb2R1bGUtY2xlYW4vaW5kZXgubWpzIiwidXJsIjoibm9kZTpmcyJ9fQAAAR17ImlkIjoiaW5kZXBlbmRlbnQvbW9kdWxlLWNsZWFuIiwibm9uY2UiOiI2N2Y4MzFiZC02NjkyLTRkOWYtYmIxMy0xNWU4NDE2OTQ2MGIiLCJraW5kIjoibW9kdWxlIiwiZXZlbnQiOnsidHlwZSI6InJlc29sdmUtcmV0dXJuZWQiLCJzcGVjaWZpZXIiOiJub2RlOmNoaWxkX3Byb2Nlc3MiLCJwYXJlbnRVUkwiOiJmaWxlOi8vL3ByaXZhdGUvdG1wL3NhZmUtYmFzaC1pbmRlcGVuZGVudC1icmlkZ2UtdFFWVVRLL21vZHVsZS1jbGVhbi9pbmRleC5tanMiLCJ1cmwiOiJub2RlOmNoaWxkX3Byb2Nlc3MifX0AAAEfeyJpZCI6ImluZGVwZW5kZW50L21vZHVsZS1jbGVhbiIsIm5vbmNlIjoiNjdmODMxYmQtNjY5Mi00ZDlmLWJiMTMtMTVlODQxNjk0NjBiIiwia2luZCI6Im1vZHVsZSIsImV2ZW50Ijp7InR5cGUiOiJyZXNvbHZlLXJldHVybmVkIiwic3BlY2lmaWVyIjoibm9kZTp3b3JrZXJfdGhyZWFkcyIsInBhcmVudFVSTCI6ImZpbGU6Ly8vcHJpdmF0ZS90bXAvc2FmZS1iYXNoLWluZGVwZW5kZW50LWJyaWRnZS10UVZVVEsvbW9kdWxlLWNsZWFuL2luZGV4Lm1qcyIsInVybCI6Im5vZGU6d29ya2VyX3RocmVhZHMifX0AAADMeyJpZCI6ImluZGVwZW5kZW50L21vZHVsZS1jbGVhbiIsIm5vbmNlIjoiNjdmODMxYmQtNjY5Mi00ZDlmLWJiMTMtMTVlODQxNjk0NjBiIiwia2luZCI6ImVudHJ5LWltcG9ydC1mdWxmaWxsZWQiLCJyZXNvbHZlZCI6ImZpbGU6Ly8vcHJpdmF0ZS90bXAvc2FmZS1iYXNoLWluZGVwZW5kZW50LWJyaWRnZS10UVZVVEsvbW9kdWxlLWNsZWFuL2luZGV4Lm1qcyJ9AAAAX3siaWQiOiJpbmRlcGVuZGVudC9tb2R1bGUtY2xlYW4iLCJub25jZSI6IjY3ZjgzMWJkLTY2OTItNGQ5Zi1iYjEzLTE1ZTg0MTY5NDYwYiIsImtpbmQiOiJyZWFkeSJ9AAAAdHsiaWQiOiJpbmRlcGVuZGVudC9tb2R1bGUtY2xlYW4iLCJub25jZSI6IjY3ZjgzMWJkLTY2OTItNGQ5Zi1iYjEzLTE1ZTg0MTY5NDYwYiIsImtpbmQiOiJwaGFzZSIsInBoYXNlIjoiZXhlYy1zdGFydCJ9AAAAdnsiaWQiOiJpbmRlcGVuZGVudC9tb2R1bGUtY2xlYW4iLCJub25jZSI6IjY3ZjgzMWJkLTY2OTItNGQ5Zi1iYjEzLTE1ZTg0MTY5NDYwYiIsImtpbmQiOiJwaGFzZSIsInBoYXNlIjoiZXhlYy1zZXR0bGVkIn0AAAB7eyJpZCI6ImluZGVwZW5kZW50L21vZHVsZS1jbGVhbiIsIm5vbmNlIjoiNjdmODMxYmQtNjY5Mi00ZDlmLWJiMTMtMTVlODQxNjk0NjBiIiwia2luZCI6InBoYXNlIiwicGhhc2UiOiJzbmFwc2hvdC1jb21wbGV0ZSJ9AAAAd3siaWQiOiJpbmRlcGVuZGVudC9tb2R1bGUtY2xlYW4iLCJub25jZSI6IjY3ZjgzMWJkLTY2OTItNGQ5Zi1iYjEzLTE1ZTg0MTY5NDYwYiIsImtpbmQiOiJwaGFzZSIsInBoYXNlIjoiZGlzcG9zZS1zdGFydCJ9AAAAeXsiaWQiOiJpbmRlcGVuZGVudC9tb2R1bGUtY2xlYW4iLCJub25jZSI6IjY3ZjgzMWJkLTY2OTItNGQ5Zi1iYjEzLTE1ZTg0MTY5NDYwYiIsImtpbmQiOiJwaGFzZSIsInBoYXNlIjoiZGlzcG9zZS1zZXR0bGVkIn0AAADleyJpZCI6ImluZGVwZW5kZW50L21vZHVsZS1jbGVhbiIsIm5vbmNlIjoiNjdmODMxYmQtNjY5Mi00ZDlmLWJiMTMtMTVlODQxNjk0NjBiIiwia2luZCI6InJlc3VsdCIsIm9ic2VydmF0aW9uIjp7InN0ZG91dCI6IkFBRi9nUDcvIiwic3RkZXJyIjoiYVc1a1pYQmxibVJsYm5RSyIsImV4aXRDb2RlIjowLCJlbnRyaWVzIjp7ImJpbmFyeSI6eyJ0eXBlIjoiZmlsZSIsImJ5dGVzIjoiQUFGL2dQNy8ifX19fQAAAHx7ImlkIjoiaW5kZXBlbmRlbnQvbW9kdWxlLWNsZWFuIiwibm9uY2UiOiI2N2Y4MzFiZC02NjkyLTRkOWYtYmIxMy0xNWU4NDE2OTQ2MGIiLCJraW5kIjoiZW5naW5lLWV4aXQiLCJjb2RlIjowLCJzaWduYWwiOm51bGx9AAAAfXsiaWQiOiJpbmRlcGVuZGVudC9tb2R1bGUtY2xlYW4iLCJub25jZSI6IjY3ZjgzMWJkLTY2OTItNGQ5Zi1iYjEzLTE1ZTg0MTY5NDYwYiIsImtpbg==",
+      "prefixOnly": true
+    }
+  },
+  "assessment": {
+    "comparison": {
+      "pass": true,
+      "assertions": [
+        {
+          "field": "stdout",
+          "pass": true
+        },
+        {
+          "field": "stderr",
+          "pass": true
+        },
+        {
+          "field": "exitCode",
+          "pass": true
+        },
+        {
+          "field": "entries",
+          "pass": true
+        }
+      ]
+    },
+    "lifecycle": true,
+    "status": "pass"
+  },
+  "control": {
+    "mode": "module-clean",
+    "controlSatisfied": true,
+    "observationStatus": "pass",
+    "clean": true,
+    "groupGone": true,
+    "signals": [],
+    "resources": {
+      "imported.json": {
+        "syntheticOnly": true,
+        "pid": 28364,
+        "mode": "module-clean"
+      }
+    }
+  }
+}

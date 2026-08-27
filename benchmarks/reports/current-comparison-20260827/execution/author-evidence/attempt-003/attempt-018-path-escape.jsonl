@@ -1,0 +1,11 @@
+{"atMs":0.392,"kind":"group-admitted","pid":77788,"pgid":77788,"argv":["/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node","--unhandled-rejections=strict","/Users/kjopek/Workspace/safe-bash/benchmarks/reports/current-comparison-20260827/execution/session.mjs","--synthetic"],"host":{"cwd":"/private/tmp/safe-bash-execution-author-oOOmAr","env":{"PATH":"/usr/bin:/bin","HOME":"/private/tmp/safe-bash-execution-author-oOOmAr","TMPDIR":"/private/tmp/safe-bash-execution-author-oOOmAr","LANG":"C","LC_ALL":"C","TZ":"UTC"}}}
+{"atMs":39.122,"id":"synthetic/path-escape","nonce":"c7a85351-8901-49da-8fe1-1f41b972b08b","kind":"engine-spawn","pid":77789,"argv":["/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node","--unhandled-rejections=strict","--experimental-import-meta-resolve","--max-old-space-size=128","/Users/kjopek/Workspace/safe-bash/benchmarks/reports/current-comparison-20260827/execution/engine-child.mjs","--synthetic"]}
+{"atMs":92.877,"kind":"sticky-failure","reason":"{\"name\":\"AssertionError\",\"message\":\"symlink component forbidden\",\"code\":\"ERR_ASSERTION\"}"}
+{"atMs":92.901,"id":"synthetic/path-escape","nonce":"c7a85351-8901-49da-8fe1-1f41b972b08b","kind":"failure","error":{"name":"AssertionError","message":"symlink component forbidden","code":"ERR_ASSERTION"}}
+{"atMs":96.358,"kind":"sticky-failure","reason":"engine crash/forced exit"}
+{"atMs":96.362,"id":"synthetic/path-escape","nonce":"c7a85351-8901-49da-8fe1-1f41b972b08b","kind":"engine-exit","code":1,"signal":null}
+{"atMs":96.68,"id":"synthetic/path-escape","nonce":"c7a85351-8901-49da-8fe1-1f41b972b08b","kind":"engine-close","code":1,"signal":null}
+{"atMs":96.826,"id":"synthetic/path-escape","nonce":"c7a85351-8901-49da-8fe1-1f41b972b08b","kind":"fixture-close","closed":true,"sockets":0,"requests":[]}
+{"atMs":96.857,"id":"synthetic/path-escape","nonce":"c7a85351-8901-49da-8fe1-1f41b972b08b","kind":"session-complete"}
+{"atMs":99.399,"kind":"coordinator-exit","code":0,"signal":null}
+{"atMs":99.403,"kind":"coordinator-close","code":0,"signal":null}

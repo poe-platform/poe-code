@@ -1,0 +1,14 @@
+{"atMs":0.356,"kind":"group-admitted","pid":71201,"pgid":71201,"argv":["/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node","--unhandled-rejections=strict","/Users/kjopek/Workspace/safe-bash/benchmarks/reports/current-comparison-20260827/execution/session.mjs","--synthetic"],"host":{"cwd":"/private/tmp/safe-bash-execution-author-6mhwQ8","env":{"PATH":"/usr/bin:/bin","HOME":"/private/tmp/safe-bash-execution-author-6mhwQ8","TMPDIR":"/private/tmp/safe-bash-execution-author-6mhwQ8","LANG":"C","LC_ALL":"C","TZ":"UTC"}}}
+{"atMs":43.832,"id":"synthetic/partial-frame","nonce":"ba32c88e-aba9-4604-8f1f-d3f8c7975796","kind":"engine-spawn","pid":71202,"argv":["/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node","--unhandled-rejections=strict","--experimental-import-meta-resolve","--max-old-space-size=128","/Users/kjopek/Workspace/safe-bash/benchmarks/reports/current-comparison-20260827/execution/engine-child.mjs","--synthetic"]}
+{"atMs":100.725,"kind":"request-start","absoluteDeadlineMs":1500.721708}
+{"atMs":100.727,"id":"synthetic/partial-frame","nonce":"ba32c88e-aba9-4604-8f1f-d3f8c7975796","kind":"ready"}
+{"atMs":101.384,"id":"synthetic/partial-frame","nonce":"ba32c88e-aba9-4604-8f1f-d3f8c7975796","kind":"phase","phase":"exec-start"}
+{"atMs":102.491,"kind":"sticky-failure","reason":"{\"name\":\"AssertionError\",\"message\":\"partial frame at EOF: header=000000, bodyBytes=115\",\"code\":\"ERR_ASSERTION\"}"}
+{"atMs":102.512,"id":"synthetic/partial-frame","nonce":"ba32c88e-aba9-4604-8f1f-d3f8c7975796","kind":"failure","error":{"name":"AssertionError","message":"partial frame at EOF: header=000000, bodyBytes=115","code":"ERR_ASSERTION"}}
+{"atMs":104.642,"kind":"sticky-failure","reason":"engine crash/forced exit"}
+{"atMs":104.645,"id":"synthetic/partial-frame","nonce":"ba32c88e-aba9-4604-8f1f-d3f8c7975796","kind":"engine-exit","code":1,"signal":null}
+{"atMs":104.673,"kind":"signal","signal":"SIGTERM","pgid":71201}
+{"atMs":105.901,"kind":"sticky-failure","reason":"capture: AssertionError [ERR_ASSERTION]: partial frame at EOF: header=0000007c, bodyBytes=0"}
+{"atMs":105.973,"kind":"coordinator-exit","code":null,"signal":"SIGTERM"}
+{"atMs":105.974,"kind":"sticky-failure","reason":"coordinator crash/forced exit"}
+{"atMs":105.976,"kind":"coordinator-close","code":null,"signal":"SIGTERM"}

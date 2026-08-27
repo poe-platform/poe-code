@@ -1,0 +1,298 @@
+{
+  "request": {
+    "id": "synthetic/binding-clean",
+    "nonce": "f9617920-a990-405b-b1a8-558a305f12da",
+    "profile": "original",
+    "engine": "synthetic-not-product",
+    "synthetic": true,
+    "mode": "binding-clean",
+    "expected": {
+      "stdout": "AH+A/w==",
+      "stderr": "",
+      "exitCode": 0,
+      "entries": {
+        "binary": {
+          "type": "file",
+          "bytes": "AH+A/w=="
+        }
+      }
+    },
+    "caps": {
+      "startupMs": 2000,
+      "guestMs": 180,
+      "requestMs": 1400,
+      "totalMs": 4500,
+      "settleMs": 150,
+      "snapshotMs": 200,
+      "disposeMs": 200,
+      "naturalMs": 180,
+      "termMs": 120,
+      "killMs": 200,
+      "outputBytes": 4194304,
+      "diagnosticBytes": 4096,
+      "reportBytes": 131072,
+      "events": 64,
+      "snapshotBytes": 33554432,
+      "entries": 4096,
+      "depth": 32
+    },
+    "heapMiB": 128,
+    "host": {
+      "cwd": "/private/tmp/safe-bash-execution-author-oOOmAr",
+      "env": {
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/private/tmp/safe-bash-execution-author-oOOmAr",
+        "TMPDIR": "/private/tmp/safe-bash-execution-author-oOOmAr",
+        "LANG": "C",
+        "LC_ALL": "C",
+        "TZ": "UTC"
+      }
+    },
+    "syntheticBinding": {
+      "root": "/private/tmp/safe-bash-execution-author-oOOmAr/binding",
+      "path": "original.txt",
+      "bytes": 8,
+      "sha256": "0682c5f2076f099c34cfdd15a9e063849ed437a49677e6fcc5b4198c76575be5"
+    }
+  },
+  "attempt": {
+    "id": "synthetic/binding-clean",
+    "nonce": "f9617920-a990-405b-b1a8-558a305f12da",
+    "synthetic": true,
+    "profile": "original",
+    "engine": "synthetic-not-product",
+    "failures": [],
+    "events": [
+      {
+        "atMs": 0.462,
+        "kind": "group-admitted",
+        "pid": 77790,
+        "pgid": 77790,
+        "argv": [
+          "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+          "--unhandled-rejections=strict",
+          "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/current-comparison-20260827/execution/session.mjs",
+          "--synthetic"
+        ],
+        "host": {
+          "cwd": "/private/tmp/safe-bash-execution-author-oOOmAr",
+          "env": {
+            "PATH": "/usr/bin:/bin",
+            "HOME": "/private/tmp/safe-bash-execution-author-oOOmAr",
+            "TMPDIR": "/private/tmp/safe-bash-execution-author-oOOmAr",
+            "LANG": "C",
+            "LC_ALL": "C",
+            "TZ": "UTC"
+          }
+        }
+      },
+      {
+        "atMs": 39.275,
+        "id": "synthetic/binding-clean",
+        "nonce": "f9617920-a990-405b-b1a8-558a305f12da",
+        "kind": "engine-spawn",
+        "pid": 77791,
+        "argv": [
+          "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+          "--unhandled-rejections=strict",
+          "--experimental-import-meta-resolve",
+          "--max-old-space-size=128",
+          "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/current-comparison-20260827/execution/engine-child.mjs",
+          "--synthetic"
+        ]
+      },
+      {
+        "atMs": 92.351,
+        "kind": "request-start",
+        "absoluteDeadlineMs": 1492.3465000000006
+      },
+      {
+        "atMs": 92.354,
+        "id": "synthetic/binding-clean",
+        "nonce": "f9617920-a990-405b-b1a8-558a305f12da",
+        "kind": "ready"
+      },
+      {
+        "atMs": 93.451,
+        "id": "synthetic/binding-clean",
+        "nonce": "f9617920-a990-405b-b1a8-558a305f12da",
+        "kind": "phase",
+        "phase": "exec-start"
+      },
+      {
+        "atMs": 93.645,
+        "id": "synthetic/binding-clean",
+        "nonce": "f9617920-a990-405b-b1a8-558a305f12da",
+        "kind": "phase",
+        "phase": "exec-settled"
+      },
+      {
+        "atMs": 93.864,
+        "id": "synthetic/binding-clean",
+        "nonce": "f9617920-a990-405b-b1a8-558a305f12da",
+        "kind": "phase",
+        "phase": "snapshot-complete"
+      },
+      {
+        "atMs": 94.092,
+        "id": "synthetic/binding-clean",
+        "nonce": "f9617920-a990-405b-b1a8-558a305f12da",
+        "kind": "phase",
+        "phase": "dispose-start"
+      },
+      {
+        "atMs": 94.496,
+        "id": "synthetic/binding-clean",
+        "nonce": "f9617920-a990-405b-b1a8-558a305f12da",
+        "kind": "phase",
+        "phase": "dispose-settled"
+      },
+      {
+        "atMs": 94.776,
+        "kind": "result-received",
+        "sha256": "2c272cfd3ec74ac543826871ec5106a91b96b1f41ab90b093ccdc950268c54f9",
+        "absoluteTotalUnchangedMs": 4500.000000000001
+      },
+      {
+        "atMs": 97.875,
+        "id": "synthetic/binding-clean",
+        "nonce": "f9617920-a990-405b-b1a8-558a305f12da",
+        "kind": "engine-exit",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "atMs": 97.923,
+        "id": "synthetic/binding-clean",
+        "nonce": "f9617920-a990-405b-b1a8-558a305f12da",
+        "kind": "engine-close",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "atMs": 97.972,
+        "id": "synthetic/binding-clean",
+        "nonce": "f9617920-a990-405b-b1a8-558a305f12da",
+        "kind": "fixture-close",
+        "closed": true,
+        "sockets": 0,
+        "requests": []
+      },
+      {
+        "atMs": 98.088,
+        "id": "synthetic/binding-clean",
+        "nonce": "f9617920-a990-405b-b1a8-558a305f12da",
+        "kind": "session-complete"
+      },
+      {
+        "atMs": 100.708,
+        "kind": "coordinator-exit",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "atMs": 100.712,
+        "kind": "coordinator-close",
+        "code": 0,
+        "signal": null
+      }
+    ],
+    "signals": [],
+    "result": {
+      "id": "synthetic/binding-clean",
+      "nonce": "f9617920-a990-405b-b1a8-558a305f12da",
+      "kind": "result",
+      "observation": {
+        "stdout": "AH+A/w==",
+        "stderr": "",
+        "exitCode": 0,
+        "entries": {
+          "binary": {
+            "type": "file",
+            "bytes": "AH+A/w=="
+          }
+        }
+      }
+    },
+    "engineExit": {
+      "code": 0,
+      "signal": null
+    },
+    "engineClose": {
+      "code": 0,
+      "signal": null
+    },
+    "sessionExit": {
+      "code": 0,
+      "signal": null
+    },
+    "sessionClose": {
+      "code": 0,
+      "signal": null
+    },
+    "diagnostics": [],
+    "clean": true,
+    "groupGone": true,
+    "coordinatorPid": 77790,
+    "enginePid": 77791,
+    "network": {
+      "id": "synthetic/binding-clean",
+      "nonce": "f9617920-a990-405b-b1a8-558a305f12da",
+      "kind": "fixture-close",
+      "closed": true,
+      "sockets": 0,
+      "requests": []
+    },
+    "elapsedMs": 102.277,
+    "deadlinesMs": {
+      "total": 4500,
+      "request": 1492.347,
+      "natural": 274.748
+    },
+    "hostBytes": 0,
+    "reportBytes": 1835,
+    "execAdmissions": {
+      "scoredCase": 1,
+      "emptyInitialization": 0
+    },
+    "wireCapture": {
+      "receivedBytes": 1835,
+      "receivedSha256": "21411218c4d94c83c0f8d0401111b54f5b374743c7151d1bcc02392ba5c4d215",
+      "prefixBase64": "AAABi3siaWQiOiJzeW50aGV0aWMvYmluZGluZy1jbGVhbiIsIm5vbmNlIjoiZjk2MTc5MjAtYTk5MC00MDViLWIxYTgtNTU4YTMwNWYxMmRhIiwia2luZCI6ImVuZ2luZS1zcGF3biIsInBpZCI6Nzc3OTEsImFyZ3YiOlsiL1VzZXJzL2tqb3Blay8ubnZtL3ZlcnNpb25zL25vZGUvdjIyLjIyLjIvYmluL25vZGUiLCItLXVuaGFuZGxlZC1yZWplY3Rpb25zPXN0cmljdCIsIi0tZXhwZXJpbWVudGFsLWltcG9ydC1tZXRhLXJlc29sdmUiLCItLW1heC1vbGQtc3BhY2Utc2l6ZT0xMjgiLCIvVXNlcnMva2pvcGVrL1dvcmtzcGFjZS9zYWZlLWJhc2gvYmVuY2htYXJrcy9yZXBvcnRzL2N1cnJlbnQtY29tcGFyaXNvbi0yMDI2MDgyNy9leGVjdXRpb24vZW5naW5lLWNoaWxkLm1qcyIsIi0tc3ludGhldGljIl19AAAAXnsiaWQiOiJzeW50aGV0aWMvYmluZGluZy1jbGVhbiIsIm5vbmNlIjoiZjk2MTc5MjAtYTk5MC00MDViLWIxYTgtNTU4YTMwNWYxMmRhIiwia2luZCI6InJlYWR5In0AAABzeyJpZCI6InN5bnRoZXRpYy9iaW5kaW5nLWNsZWFuIiwibm9uY2UiOiJmOTYxNzkyMC1hOTkwLTQwNWItYjFhOC01NThhMzA1ZjEyZGEiLCJraW5kIjoicGhhc2UiLCJwaGFzZSI6ImV4ZWMtc3RhcnQifQAAAHV7ImlkIjoic3ludGhldGljL2JpbmRpbmctY2xlYW4iLCJub25jZSI6ImY5NjE3OTIwLWE5OTAtNDA1Yi1iMWE4LTU1OGEzMDVmMTJkYSIsImtpbmQiOiJwaGFzZSIsInBoYXNlIjoiZXhlYy1zZXR0bGVkIn0AAAB6eyJpZCI6InN5bnRoZXRpYy9iaW5kaW5nLWNsZWFuIiwibm9uY2UiOiJmOTYxNzkyMC1hOTkwLTQwNWItYjFhOC01NThhMzA1ZjEyZGEiLCJraW5kIjoicGhhc2UiLCJwaGFzZSI6InNuYXBzaG90LWNvbXBsZXRlIn0AAAB2eyJpZCI6InN5bnRoZXRpYy9iaW5kaW5nLWNsZWFuIiwibm9uY2UiOiJmOTYxNzkyMC1hOTkwLTQwNWItYjFhOC01NThhMzA1ZjEyZGEiLCJraW5kIjoicGhhc2UiLCJwaGFzZSI6ImRpc3Bvc2Utc3RhcnQifQAAAHh7ImlkIjoic3ludGhldGljL2JpbmRpbmctY2xlYW4iLCJub25jZSI6ImY5NjE3OTIwLWE5OTAtNDA1Yi1iMWE4LTU1OGEzMDVmMTJkYSIsImtpbmQiOiJwaGFzZSIsInBoYXNlIjoiZGlzcG9zZS1zZXR0bGVkIn0AAADUeyJpZCI6InN5bnRoZXRpYy9iaW5kaW5nLWNsZWFuIiwibm9uY2UiOiJmOTYxNzkyMC1hOTkwLTQwNWItYjFhOC01NThhMzA1ZjEyZGEiLCJraW5kIjoicmVzdWx0Iiwib2JzZXJ2YXRpb24iOnsic3Rkb3V0IjoiQUgrQS93PT0iLCJzdGRlcnIiOiIiLCJleGl0Q29kZSI6MCwiZW50cmllcyI6eyJiaW5hcnkiOnsidHlwZSI6ImZpbGUiLCJieXRlcyI6IkFIK0Evdz09In19fX0AAAB7eyJpZCI6InN5bnRoZXRpYy9iaW5kaW5nLWNsZWFuIiwibm9uY2UiOiJmOTYxNzkyMC1hOTkwLTQwNWItYjFhOC01NThhMzA1ZjEyZGEiLCJraW5kIjoiZW5naW5lLWV4aXQiLCJjb2RlIjowLCJzaWduYWwiOm51bGx9AAAAfHsiaWQiOiJzeW50aGV0aWMvYmluZGluZy1jbGVhbiIsIm5vbmNlIjoiZjk2MTc5MjAtYTk5MC00MDViLWIxYTgtNTU4YTMwNWYxMmRhIiwia2luZCI6ImVuZ2luZS1jbG9zZSIsImNvZGUiOjAsInNpZ25hbCI6bnVsbH0AAACOeyJpZCI6InN5bnRoZXRpYy9iaW5kaW5nLWNsZWFuIiwibm9uY2UiOiJmOTYxNzkyMC1hOTkwLTQwNWItYjFhOC01NThhMzA1ZjEyZGEiLCJraW5kIjoiZml4dHVyZS1jbG9zZSIsImNsb3NlZCI6dHJ1ZSwic29ja2V0cyI6MCwicmVxdWVzdHMiOltdfQAAAGl7ImlkIjoic3ludGhldGljL2JpbmRpbmctY2xlYW4iLCJub25jZSI6ImY5NjE3OTIwLWE5OTAtNDA1Yi1iMWE4LTU1OGEzMDVmMTJkYSIsImtpbmQiOiJzZXNzaW9uLWNvbXBsZXRlIn0=",
+      "prefixOnly": false
+    }
+  },
+  "check": {
+    "mode": "binding-clean",
+    "passed": true,
+    "assessment": {
+      "comparison": {
+        "pass": true,
+        "assertions": [
+          {
+            "field": "stdout",
+            "pass": true
+          },
+          {
+            "field": "stderr",
+            "pass": true
+          },
+          {
+            "field": "exitCode",
+            "pass": true
+          },
+          {
+            "field": "entries",
+            "pass": true
+          }
+        ]
+      },
+      "lifecycle": true,
+      "status": "pass"
+    },
+    "elapsedMs": 102.277,
+    "groupGone": true,
+    "signals": [],
+    "raw": "attempt-019-binding-clean.json"
+  }
+}

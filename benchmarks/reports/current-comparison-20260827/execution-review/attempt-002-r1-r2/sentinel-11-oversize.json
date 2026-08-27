@@ -1,0 +1,269 @@
+{
+  "request": {
+    "id": "independent/oversize",
+    "nonce": "aac9565c-54d2-4e55-9762-04bbb766fd56",
+    "synthetic": true,
+    "engine": "independent-sentinel-not-product",
+    "profile": "original",
+    "mode": "clean",
+    "expected": {
+      "stdout": "AAF/gP7/",
+      "stderr": "aW5kZXBlbmRlbnQK",
+      "exitCode": 0,
+      "entries": {
+        "binary": {
+          "type": "file",
+          "bytes": "AAF/gP7/"
+        }
+      }
+    },
+    "caps": {
+      "startupMs": 2000,
+      "guestMs": 180,
+      "requestMs": 1400,
+      "totalMs": 4500,
+      "settleMs": 150,
+      "snapshotMs": 200,
+      "disposeMs": 200,
+      "naturalMs": 240,
+      "termMs": 120,
+      "killMs": 200,
+      "outputBytes": 4194304,
+      "diagnosticBytes": 4096,
+      "reportBytes": 131072,
+      "events": 64,
+      "snapshotBytes": 33554432,
+      "entries": 4096,
+      "depth": 32
+    },
+    "heapMiB": 128,
+    "host": {
+      "root": "/private/tmp/safe-bash-independent-bridge-tQVUTK",
+      "cwd": "/private/tmp/safe-bash-independent-bridge-tQVUTK",
+      "env": {
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/private/tmp/safe-bash-independent-bridge-tQVUTK",
+        "TMPDIR": "/private/tmp/safe-bash-independent-bridge-tQVUTK",
+        "LANG": "C",
+        "LC_ALL": "C",
+        "TZ": "UTC"
+      }
+    },
+    "syntheticModule": {
+      "packageName": "independent-bridge-sentinel",
+      "packagePath": "/private/tmp/safe-bash-independent-bridge-tQVUTK/oversize/package.json",
+      "entry": "/private/tmp/safe-bash-independent-bridge-tQVUTK/oversize/index.mjs",
+      "files": {
+        "/private/tmp/safe-bash-independent-bridge-tQVUTK/oversize/package.json": {
+          "bytes": 106,
+          "sha256": "27b41fc0708c17fe5dba368c4176fd70b172d024ea879d0a4a43baa8ea20de35"
+        },
+        "/private/tmp/safe-bash-independent-bridge-tQVUTK/oversize/index.mjs": {
+          "bytes": 1489,
+          "sha256": "ea4ada5cb95bd6a9b2348f0d1f2d5e4c59903778addcf409a6622b11ad808511"
+        }
+      }
+    }
+  },
+  "attempt": {
+    "id": "independent/oversize",
+    "nonce": "aac9565c-54d2-4e55-9762-04bbb766fd56",
+    "synthetic": true,
+    "profile": "original",
+    "engine": "independent-sentinel-not-product",
+    "failures": [
+      "{\"name\":\"SyntaxError\",\"message\":\"Unexpected token '\\u0000', \\\"\\u0000\\u0002\\u0000\\u0001{\\\"id\\\":\\\"... is not valid JSON\",\"code\":null}",
+      "coordinator crash/forced exit",
+      "missing result",
+      "missing lifecycle phase",
+      "engine did not exit/close naturally",
+      "coordinator did not exit/close naturally",
+      "unverified pipe/fixture/group closure"
+    ],
+    "events": [
+      {
+        "atMs": 0.319,
+        "kind": "group-admitted",
+        "pid": 28379,
+        "pgid": 28379,
+        "argv": [
+          "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+          "--unhandled-rejections=strict",
+          "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/current-comparison-20260827/execution/session.mjs",
+          "--synthetic"
+        ],
+        "host": {
+          "root": "/private/tmp/safe-bash-independent-bridge-tQVUTK",
+          "cwd": "/private/tmp/safe-bash-independent-bridge-tQVUTK",
+          "env": {
+            "PATH": "/usr/bin:/bin",
+            "HOME": "/private/tmp/safe-bash-independent-bridge-tQVUTK",
+            "TMPDIR": "/private/tmp/safe-bash-independent-bridge-tQVUTK",
+            "LANG": "C",
+            "LC_ALL": "C",
+            "TZ": "UTC"
+          }
+        }
+      },
+      {
+        "atMs": 41.613,
+        "id": "independent/oversize",
+        "nonce": "aac9565c-54d2-4e55-9762-04bbb766fd56",
+        "kind": "engine-spawn",
+        "pid": 28380,
+        "argv": [
+          "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+          "--unhandled-rejections=strict",
+          "--experimental-import-meta-resolve",
+          "--max-old-space-size=128",
+          "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/current-comparison-20260827/execution/engine-child.mjs",
+          "--synthetic"
+        ]
+      },
+      {
+        "atMs": 123.952,
+        "id": "independent/oversize",
+        "nonce": "aac9565c-54d2-4e55-9762-04bbb766fd56",
+        "kind": "public-resolution",
+        "specifier": "independent-bridge-sentinel",
+        "parent": "/private/tmp/safe-bash-independent-bridge-tQVUTK/oversize/package.json",
+        "resolved": "file:///private/tmp/safe-bash-independent-bridge-tQVUTK/oversize/index.mjs"
+      },
+      {
+        "atMs": 124.263,
+        "id": "independent/oversize",
+        "nonce": "aac9565c-54d2-4e55-9762-04bbb766fd56",
+        "kind": "module",
+        "event": {
+          "type": "resolve-returned",
+          "specifier": "independent-bridge-sentinel",
+          "parentURL": "file:///private/tmp/safe-bash-independent-bridge-tQVUTK/oversize/package.json",
+          "url": "file:///private/tmp/safe-bash-independent-bridge-tQVUTK/oversize/index.mjs"
+        }
+      },
+      {
+        "atMs": 124.614,
+        "id": "independent/oversize",
+        "nonce": "aac9565c-54d2-4e55-9762-04bbb766fd56",
+        "kind": "module",
+        "event": {
+          "type": "resolve-returned",
+          "specifier": "file:///private/tmp/safe-bash-independent-bridge-tQVUTK/oversize/index.mjs",
+          "parentURL": "file:///Users/kjopek/Workspace/safe-bash/benchmarks/reports/current-comparison-20260827/execution/engine-child.mjs",
+          "url": "file:///private/tmp/safe-bash-independent-bridge-tQVUTK/oversize/index.mjs"
+        }
+      },
+      {
+        "atMs": 125.735,
+        "id": "independent/oversize",
+        "nonce": "aac9565c-54d2-4e55-9762-04bbb766fd56",
+        "kind": "module",
+        "event": {
+          "type": "load-returned",
+          "url": "file:///private/tmp/safe-bash-independent-bridge-tQVUTK/oversize/index.mjs",
+          "sha256": "ea4ada5cb95bd6a9b2348f0d1f2d5e4c59903778addcf409a6622b11ad808511",
+          "format": "module",
+          "evaluationProven": false
+        }
+      },
+      {
+        "atMs": 127.506,
+        "kind": "sticky-failure",
+        "reason": "{\"name\":\"SyntaxError\",\"message\":\"Unexpected token '\\u0000', \\\"\\u0000\\u0002\\u0000\\u0001{\\\"id\\\":\\\"... is not valid JSON\",\"code\":null}"
+      },
+      {
+        "atMs": 127.531,
+        "id": "independent/oversize",
+        "nonce": "aac9565c-54d2-4e55-9762-04bbb766fd56",
+        "kind": "failure",
+        "error": {
+          "name": "SyntaxError",
+          "message": "Unexpected token '\u0000', \"\u0000\u0002\u0000\u0001{\"id\":\"... is not valid JSON",
+          "code": null
+        }
+      },
+      {
+        "atMs": 138.858,
+        "kind": "signal",
+        "signal": "SIGTERM",
+        "pgid": 28379
+      },
+      {
+        "atMs": 140.702,
+        "kind": "coordinator-exit",
+        "code": null,
+        "signal": "SIGTERM"
+      },
+      {
+        "atMs": 140.704,
+        "kind": "sticky-failure",
+        "reason": "coordinator crash/forced exit"
+      },
+      {
+        "atMs": 140.707,
+        "kind": "coordinator-close",
+        "code": null,
+        "signal": "SIGTERM"
+      }
+    ],
+    "signals": [
+      "SIGTERM"
+    ],
+    "result": null,
+    "engineExit": null,
+    "engineClose": null,
+    "sessionExit": {
+      "code": null,
+      "signal": "SIGTERM"
+    },
+    "sessionClose": {
+      "code": null,
+      "signal": "SIGTERM"
+    },
+    "diagnostics": [],
+    "clean": false,
+    "groupGone": true,
+    "coordinatorPid": 28379,
+    "enginePid": 28380,
+    "cancelSent": true,
+    "elapsedMs": 142.369,
+    "deadlinesMs": {
+      "total": 4500,
+      "startup": 2000
+    },
+    "hostBytes": 0,
+    "reportBytes": 2065,
+    "execAdmissions": {
+      "scoredCase": 0,
+      "emptyInitialization": 0
+    },
+    "wireCapture": {
+      "receivedBytes": 2065,
+      "receivedSha256": "2194d5e1773fe7e224532a7d24f62398e4830a470b3aca95c10ce01502d79f4f",
+      "prefixBase64": "AAABiHsiaWQiOiJpbmRlcGVuZGVudC9vdmVyc2l6ZSIsIm5vbmNlIjoiYWFjOTU2NWMtNTRkMi00ZTU1LTk3NjItMDRiYmI3NjZmZDU2Iiwia2luZCI6ImVuZ2luZS1zcGF3biIsInBpZCI6MjgzODAsImFyZ3YiOlsiL1VzZXJzL2tqb3Blay8ubnZtL3ZlcnNpb25zL25vZGUvdjIyLjIyLjIvYmluL25vZGUiLCItLXVuaGFuZGxlZC1yZWplY3Rpb25zPXN0cmljdCIsIi0tZXhwZXJpbWVudGFsLWltcG9ydC1tZXRhLXJlc29sdmUiLCItLW1heC1vbGQtc3BhY2Utc2l6ZT0xMjgiLCIvVXNlcnMva2pvcGVrL1dvcmtzcGFjZS9zYWZlLWJhc2gvYmVuY2htYXJrcy9yZXBvcnRzL2N1cnJlbnQtY29tcGFyaXNvbi0yMDI2MDgyNy9leGVjdXRpb24vZW5naW5lLWNoaWxkLm1qcyIsIi0tc3ludGhldGljIl19AAABO3siaWQiOiJpbmRlcGVuZGVudC9vdmVyc2l6ZSIsIm5vbmNlIjoiYWFjOTU2NWMtNTRkMi00ZTU1LTk3NjItMDRiYmI3NjZmZDU2Iiwia2luZCI6InB1YmxpYy1yZXNvbHV0aW9uIiwic3BlY2lmaWVyIjoiaW5kZXBlbmRlbnQtYnJpZGdlLXNlbnRpbmVsIiwicGFyZW50IjoiL3ByaXZhdGUvdG1wL3NhZmUtYmFzaC1pbmRlcGVuZGVudC1icmlkZ2UtdFFWVVRLL292ZXJzaXplL3BhY2thZ2UuanNvbiIsInJlc29sdmVkIjoiZmlsZTovLy9wcml2YXRlL3RtcC9zYWZlLWJhc2gtaW5kZXBlbmRlbnQtYnJpZGdlLXRRVlVUSy9vdmVyc2l6ZS9pbmRleC5tanMifQAAAVl7ImlkIjoiaW5kZXBlbmRlbnQvb3ZlcnNpemUiLCJub25jZSI6ImFhYzk1NjVjLTU0ZDItNGU1NS05NzYyLTA0YmJiNzY2ZmQ1NiIsImtpbmQiOiJtb2R1bGUiLCJldmVudCI6eyJ0eXBlIjoicmVzb2x2ZS1yZXR1cm5lZCIsInNwZWNpZmllciI6ImluZGVwZW5kZW50LWJyaWRnZS1zZW50aW5lbCIsInBhcmVudFVSTCI6ImZpbGU6Ly8vcHJpdmF0ZS90bXAvc2FmZS1iYXNoLWluZGVwZW5kZW50LWJyaWRnZS10UVZVVEsvb3ZlcnNpemUvcGFja2FnZS5qc29uIiwidXJsIjoiZmlsZTovLy9wcml2YXRlL3RtcC9zYWZlLWJhc2gtaW5kZXBlbmRlbnQtYnJpZGdlLXRRVlVUSy9vdmVyc2l6ZS9pbmRleC5tanMifX0AAAGteyJpZCI6ImluZGVwZW5kZW50L292ZXJzaXplIiwibm9uY2UiOiJhYWM5NTY1Yy01NGQyLTRlNTUtOTc2Mi0wNGJiYjc2NmZkNTYiLCJraW5kIjoibW9kdWxlIiwiZXZlbnQiOnsidHlwZSI6InJlc29sdmUtcmV0dXJuZWQiLCJzcGVjaWZpZXIiOiJmaWxlOi8vL3ByaXZhdGUvdG1wL3NhZmUtYmFzaC1pbmRlcGVuZGVudC1icmlkZ2UtdFFWVVRLL292ZXJzaXplL2luZGV4Lm1qcyIsInBhcmVudFVSTCI6ImZpbGU6Ly8vVXNlcnMva2pvcGVrL1dvcmtzcGFjZS9zYWZlLWJhc2gvYmVuY2htYXJrcy9yZXBvcnRzL2N1cnJlbnQtY29tcGFyaXNvbi0yMDI2MDgyNy9leGVjdXRpb24vZW5naW5lLWNoaWxkLm1qcyIsInVybCI6ImZpbGU6Ly8vcHJpdmF0ZS90bXAvc2FmZS1iYXNoLWluZGVwZW5kZW50LWJyaWRnZS10UVZVVEsvb3ZlcnNpemUvaW5kZXgubWpzIn19AAABR3siaWQiOiJpbmRlcGVuZGVudC9vdmVyc2l6ZSIsIm5vbmNlIjoiYWFjOTU2NWMtNTRkMi00ZTU1LTk3NjItMDRiYmI3NjZmZDU2Iiwia2luZCI6Im1vZHVsZSIsImV2ZW50Ijp7InR5cGUiOiJsb2FkLXJldHVybmVkIiwidXJsIjoiZmlsZTovLy9wcml2YXRlL3RtcC9zYWZlLWJhc2gtaW5kZXBlbmRlbnQtYnJpZGdlLXRRVlVUSy9vdmVyc2l6ZS9pbmRleC5tanMiLCJzaGEyNTYiOiJlYTRhZGE1Y2I5NWJkNmE5YjIzNDhmMGQxZjJkNWU0YzU5OTAzNzc4YWRkY2Y0MDlhNjYyMmIxMWFkODA4NTExIiwiZm9ybWF0IjoibW9kdWxlIiwiZXZhbHVhdGlvblByb3ZlbiI6ZmFsc2V9fQAAAOl7ImlkIjoiaW5kZXBlbmRlbnQvb3ZlcnNpemUiLCJub25jZSI6ImFhYzk1NjVjLTU0ZDItNGU1NS05NzYyLTA0YmJiNzY2ZmQ1NiIsImtpbmQiOiJmYWlsdXJlIiwiZXJyb3IiOnsibmFtZSI6IlN5bnRheEVycm9yIiwibWVzc2FnZSI6IlVuZXhwZWN0ZWQgdG9rZW4gJ1x1MDAwMCcsIFwiXHUwMDAwXHUwMDAyXHUwMDAwXHUwMDAxe1wiaWRcIjpcIi4uLiBpcyBub3QgdmFsaWQgSlNPTiIsImNvZGUiOm51bGx9fQ==",
+      "prefixOnly": false
+    }
+  },
+  "assessment": {
+    "comparison": null,
+    "lifecycle": false,
+    "status": "lifecycle-or-capture-failure"
+  },
+  "control": {
+    "mode": "oversize",
+    "controlSatisfied": true,
+    "observationStatus": "lifecycle-or-capture-failure",
+    "clean": false,
+    "groupGone": true,
+    "signals": [
+      "SIGTERM"
+    ],
+    "resources": {
+      "imported.json": {
+        "syntheticOnly": true,
+        "pid": 28380,
+        "mode": "oversize"
+      }
+    }
+  }
+}

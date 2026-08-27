@@ -1,0 +1,229 @@
+{
+  "request": {
+    "id": "synthetic/binding-mutated",
+    "nonce": "4bfffd1c-400e-4d7d-8f53-a83bcc6edb23",
+    "profile": "original",
+    "engine": "synthetic-not-product",
+    "synthetic": true,
+    "mode": "binding-mutated",
+    "expected": {
+      "stdout": "AH+A/w==",
+      "stderr": "",
+      "exitCode": 0,
+      "entries": {
+        "binary": {
+          "type": "file",
+          "bytes": "AH+A/w=="
+        }
+      }
+    },
+    "caps": {
+      "startupMs": 2000,
+      "guestMs": 180,
+      "requestMs": 1400,
+      "totalMs": 4500,
+      "settleMs": 150,
+      "snapshotMs": 200,
+      "disposeMs": 200,
+      "naturalMs": 180,
+      "termMs": 120,
+      "killMs": 200,
+      "outputBytes": 4194304,
+      "diagnosticBytes": 4096,
+      "reportBytes": 131072,
+      "events": 64,
+      "snapshotBytes": 33554432,
+      "entries": 4096,
+      "depth": 32
+    },
+    "heapMiB": 128,
+    "host": {
+      "cwd": "/private/tmp/safe-bash-execution-author-3bLn2Q",
+      "env": {
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/private/tmp/safe-bash-execution-author-3bLn2Q",
+        "TMPDIR": "/private/tmp/safe-bash-execution-author-3bLn2Q",
+        "LANG": "C",
+        "LC_ALL": "C",
+        "TZ": "UTC"
+      }
+    },
+    "syntheticBinding": {
+      "root": "/private/tmp/safe-bash-execution-author-3bLn2Q/binding",
+      "path": "changed.txt",
+      "bytes": 8,
+      "sha256": "0682c5f2076f099c34cfdd15a9e063849ed437a49677e6fcc5b4198c76575be5"
+    }
+  },
+  "attempt": {
+    "id": "synthetic/binding-mutated",
+    "nonce": "4bfffd1c-400e-4d7d-8f53-a83bcc6edb23",
+    "synthetic": true,
+    "profile": "original",
+    "engine": "synthetic-not-product",
+    "failures": [
+      "{\"name\":\"AssertionError\",\"message\":\"bound length changed\\n\\n7 !== 8\\n\",\"code\":\"ERR_ASSERTION\"}",
+      "engine crash/forced exit",
+      "capture: AssertionError [ERR_ASSERTION]: partial frame at EOF",
+      "coordinator crash/forced exit",
+      "missing result",
+      "missing lifecycle phase",
+      "engine did not exit/close naturally",
+      "coordinator did not exit/close naturally",
+      "unverified pipe/fixture/group closure"
+    ],
+    "events": [
+      {
+        "atMs": 0.342,
+        "kind": "group-admitted",
+        "pid": 58825,
+        "pgid": 58825,
+        "argv": [
+          "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+          "--unhandled-rejections=strict",
+          "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/current-comparison-20260827/execution/session.mjs",
+          "--synthetic"
+        ],
+        "host": {
+          "cwd": "/private/tmp/safe-bash-execution-author-3bLn2Q",
+          "env": {
+            "PATH": "/usr/bin:/bin",
+            "HOME": "/private/tmp/safe-bash-execution-author-3bLn2Q",
+            "TMPDIR": "/private/tmp/safe-bash-execution-author-3bLn2Q",
+            "LANG": "C",
+            "LC_ALL": "C",
+            "TZ": "UTC"
+          }
+        }
+      },
+      {
+        "atMs": 41.955,
+        "id": "synthetic/binding-mutated",
+        "nonce": "4bfffd1c-400e-4d7d-8f53-a83bcc6edb23",
+        "kind": "engine-spawn",
+        "pid": 58826,
+        "argv": [
+          "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+          "--unhandled-rejections=strict",
+          "--experimental-import-meta-resolve",
+          "--max-old-space-size=128",
+          "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/current-comparison-20260827/execution/engine-child.mjs",
+          "--synthetic"
+        ]
+      },
+      {
+        "atMs": 98,
+        "kind": "sticky-failure",
+        "reason": "{\"name\":\"AssertionError\",\"message\":\"bound length changed\\n\\n7 !== 8\\n\",\"code\":\"ERR_ASSERTION\"}"
+      },
+      {
+        "atMs": 98.027,
+        "id": "synthetic/binding-mutated",
+        "nonce": "4bfffd1c-400e-4d7d-8f53-a83bcc6edb23",
+        "kind": "failure",
+        "error": {
+          "name": "AssertionError",
+          "message": "bound length changed\n\n7 !== 8\n",
+          "code": "ERR_ASSERTION"
+        }
+      },
+      {
+        "atMs": 100.567,
+        "kind": "sticky-failure",
+        "reason": "engine crash/forced exit"
+      },
+      {
+        "atMs": 100.57,
+        "id": "synthetic/binding-mutated",
+        "nonce": "4bfffd1c-400e-4d7d-8f53-a83bcc6edb23",
+        "kind": "engine-exit",
+        "code": 1,
+        "signal": null
+      },
+      {
+        "atMs": 100.616,
+        "id": "synthetic/binding-mutated",
+        "nonce": "4bfffd1c-400e-4d7d-8f53-a83bcc6edb23",
+        "kind": "engine-close",
+        "code": 1,
+        "signal": null
+      },
+      {
+        "atMs": 100.687,
+        "kind": "signal",
+        "signal": "SIGTERM",
+        "pgid": 58825
+      },
+      {
+        "atMs": 101.811,
+        "kind": "sticky-failure",
+        "reason": "capture: AssertionError [ERR_ASSERTION]: partial frame at EOF"
+      },
+      {
+        "atMs": 101.882,
+        "kind": "coordinator-exit",
+        "code": null,
+        "signal": "SIGTERM"
+      },
+      {
+        "atMs": 101.882,
+        "kind": "sticky-failure",
+        "reason": "coordinator crash/forced exit"
+      },
+      {
+        "atMs": 101.885,
+        "kind": "coordinator-close",
+        "code": null,
+        "signal": "SIGTERM"
+      }
+    ],
+    "signals": [
+      "SIGTERM"
+    ],
+    "result": null,
+    "engineExit": {
+      "code": 1,
+      "signal": null
+    },
+    "engineClose": {
+      "code": 1,
+      "signal": null
+    },
+    "sessionExit": {
+      "code": null,
+      "signal": "SIGTERM"
+    },
+    "sessionClose": {
+      "code": null,
+      "signal": "SIGTERM"
+    },
+    "diagnostics": [],
+    "clean": false,
+    "groupGone": true,
+    "coordinatorPid": 58825,
+    "enginePid": 58826,
+    "cancelSent": true,
+    "elapsedMs": 103.598,
+    "deadlinesMs": {
+      "total": 4500,
+      "startup": 2000
+    },
+    "hostBytes": 0,
+    "reportBytes": 865
+  },
+  "check": {
+    "mode": "binding-mutated",
+    "passed": true,
+    "assessment": {
+      "comparison": null,
+      "lifecycle": false,
+      "status": "lifecycle-or-capture-failure"
+    },
+    "elapsedMs": 103.598,
+    "groupGone": true,
+    "signals": [
+      "SIGTERM"
+    ],
+    "raw": "attempt-017-binding-mutated.json"
+  }
+}

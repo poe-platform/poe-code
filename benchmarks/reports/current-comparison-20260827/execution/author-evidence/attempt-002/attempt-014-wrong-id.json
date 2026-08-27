@@ -1,0 +1,286 @@
+{
+  "request": {
+    "id": "synthetic/wrong-id",
+    "nonce": "a5a981d3-2a16-4163-8d07-f6456cda8090",
+    "profile": "original",
+    "engine": "synthetic-not-product",
+    "synthetic": true,
+    "mode": "wrong-id",
+    "expected": {
+      "stdout": "AH+A/w==",
+      "stderr": "",
+      "exitCode": 0,
+      "entries": {
+        "binary": {
+          "type": "file",
+          "bytes": "AH+A/w=="
+        }
+      }
+    },
+    "caps": {
+      "startupMs": 2000,
+      "guestMs": 180,
+      "requestMs": 1400,
+      "totalMs": 4500,
+      "settleMs": 150,
+      "snapshotMs": 200,
+      "disposeMs": 200,
+      "naturalMs": 180,
+      "termMs": 120,
+      "killMs": 200,
+      "outputBytes": 4194304,
+      "diagnosticBytes": 4096,
+      "reportBytes": 131072,
+      "events": 64,
+      "snapshotBytes": 33554432,
+      "entries": 4096,
+      "depth": 32
+    },
+    "heapMiB": 128,
+    "host": {
+      "cwd": "/private/tmp/safe-bash-execution-author-6mhwQ8",
+      "env": {
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/private/tmp/safe-bash-execution-author-6mhwQ8",
+        "TMPDIR": "/private/tmp/safe-bash-execution-author-6mhwQ8",
+        "LANG": "C",
+        "LC_ALL": "C",
+        "TZ": "UTC"
+      }
+    }
+  },
+  "attempt": {
+    "id": "synthetic/wrong-id",
+    "nonce": "a5a981d3-2a16-4163-8d07-f6456cda8090",
+    "synthetic": true,
+    "profile": "original",
+    "engine": "synthetic-not-product",
+    "failures": [
+      "{\"name\":\"AssertionError\",\"message\":\"Expected values to be strictly equal:\\n+ actual - expected\\n\\n+ 'wrong-request'\\n- 'synthetic/wrong-id'\\n\",\"code\":\"ERR_ASSERTION\"}",
+      "signal error SIGTERM: Error: kill EPERM",
+      "missing result"
+    ],
+    "events": [
+      {
+        "atMs": 0.329,
+        "kind": "group-admitted",
+        "pid": 71205,
+        "pgid": 71205,
+        "argv": [
+          "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+          "--unhandled-rejections=strict",
+          "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/current-comparison-20260827/execution/session.mjs",
+          "--synthetic"
+        ],
+        "host": {
+          "cwd": "/private/tmp/safe-bash-execution-author-6mhwQ8",
+          "env": {
+            "PATH": "/usr/bin:/bin",
+            "HOME": "/private/tmp/safe-bash-execution-author-6mhwQ8",
+            "TMPDIR": "/private/tmp/safe-bash-execution-author-6mhwQ8",
+            "LANG": "C",
+            "LC_ALL": "C",
+            "TZ": "UTC"
+          }
+        }
+      },
+      {
+        "atMs": 42.717,
+        "id": "synthetic/wrong-id",
+        "nonce": "a5a981d3-2a16-4163-8d07-f6456cda8090",
+        "kind": "engine-spawn",
+        "pid": 71206,
+        "argv": [
+          "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+          "--unhandled-rejections=strict",
+          "--experimental-import-meta-resolve",
+          "--max-old-space-size=128",
+          "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/current-comparison-20260827/execution/engine-child.mjs",
+          "--synthetic"
+        ]
+      },
+      {
+        "atMs": 98.072,
+        "kind": "request-start",
+        "absoluteDeadlineMs": 1498.0699579999998
+      },
+      {
+        "atMs": 98.074,
+        "id": "synthetic/wrong-id",
+        "nonce": "a5a981d3-2a16-4163-8d07-f6456cda8090",
+        "kind": "ready"
+      },
+      {
+        "atMs": 98.851,
+        "id": "synthetic/wrong-id",
+        "nonce": "a5a981d3-2a16-4163-8d07-f6456cda8090",
+        "kind": "phase",
+        "phase": "exec-start"
+      },
+      {
+        "atMs": 98.928,
+        "id": "synthetic/wrong-id",
+        "nonce": "a5a981d3-2a16-4163-8d07-f6456cda8090",
+        "kind": "phase",
+        "phase": "exec-settled"
+      },
+      {
+        "atMs": 99.103,
+        "id": "synthetic/wrong-id",
+        "nonce": "a5a981d3-2a16-4163-8d07-f6456cda8090",
+        "kind": "phase",
+        "phase": "snapshot-complete"
+      },
+      {
+        "atMs": 99.201,
+        "id": "synthetic/wrong-id",
+        "nonce": "a5a981d3-2a16-4163-8d07-f6456cda8090",
+        "kind": "phase",
+        "phase": "dispose-start"
+      },
+      {
+        "atMs": 99.671,
+        "id": "synthetic/wrong-id",
+        "nonce": "a5a981d3-2a16-4163-8d07-f6456cda8090",
+        "kind": "phase",
+        "phase": "dispose-settled"
+      },
+      {
+        "atMs": 100.159,
+        "kind": "sticky-failure",
+        "reason": "{\"name\":\"AssertionError\",\"message\":\"Expected values to be strictly equal:\\n+ actual - expected\\n\\n+ 'wrong-request'\\n- 'synthetic/wrong-id'\\n\",\"code\":\"ERR_ASSERTION\"}"
+      },
+      {
+        "atMs": 100.183,
+        "id": "synthetic/wrong-id",
+        "nonce": "a5a981d3-2a16-4163-8d07-f6456cda8090",
+        "kind": "failure",
+        "error": {
+          "name": "AssertionError",
+          "message": "Expected values to be strictly equal:\n+ actual - expected\n\n+ 'wrong-request'\n- 'synthetic/wrong-id'\n",
+          "code": "ERR_ASSERTION"
+        }
+      },
+      {
+        "atMs": 101.716,
+        "id": "synthetic/wrong-id",
+        "nonce": "a5a981d3-2a16-4163-8d07-f6456cda8090",
+        "kind": "engine-exit",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "atMs": 101.743,
+        "id": "synthetic/wrong-id",
+        "nonce": "a5a981d3-2a16-4163-8d07-f6456cda8090",
+        "kind": "engine-close",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "atMs": 101.79,
+        "id": "synthetic/wrong-id",
+        "nonce": "a5a981d3-2a16-4163-8d07-f6456cda8090",
+        "kind": "fixture-close",
+        "closed": true,
+        "sockets": 0,
+        "requests": []
+      },
+      {
+        "atMs": 101.807,
+        "id": "synthetic/wrong-id",
+        "nonce": "a5a981d3-2a16-4163-8d07-f6456cda8090",
+        "kind": "session-complete"
+      },
+      {
+        "atMs": 104.133,
+        "kind": "signal",
+        "signal": "SIGTERM",
+        "pgid": 71205
+      },
+      {
+        "atMs": 104.183,
+        "kind": "signal-error",
+        "error": {
+          "name": "Error",
+          "message": "kill EPERM",
+          "code": "EPERM"
+        }
+      },
+      {
+        "atMs": 104.228,
+        "kind": "coordinator-exit",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "atMs": 104.23,
+        "kind": "coordinator-close",
+        "code": 0,
+        "signal": null
+      }
+    ],
+    "signals": [
+      "SIGTERM"
+    ],
+    "result": null,
+    "engineExit": {
+      "code": 0,
+      "signal": null
+    },
+    "engineClose": {
+      "code": 0,
+      "signal": null
+    },
+    "sessionExit": {
+      "code": 0,
+      "signal": null
+    },
+    "sessionClose": {
+      "code": 0,
+      "signal": null
+    },
+    "diagnostics": [],
+    "clean": false,
+    "groupGone": true,
+    "coordinatorPid": 71205,
+    "enginePid": 71206,
+    "cancelSent": true,
+    "network": {
+      "id": "synthetic/wrong-id",
+      "nonce": "a5a981d3-2a16-4163-8d07-f6456cda8090",
+      "kind": "fixture-close",
+      "closed": true,
+      "sockets": 0,
+      "requests": []
+    },
+    "elapsedMs": 104.345,
+    "deadlinesMs": {
+      "total": 4500,
+      "request": 1498.07
+    },
+    "hostBytes": 0,
+    "reportBytes": 1834,
+    "wireCapture": {
+      "receivedBytes": 1834,
+      "receivedSha256": "3c4334c6b58166f0c609ccd8a153a7538dca88dc1678578cc521572b99f8ca1a",
+      "prefixBase64": "AAABhnsiaWQiOiJzeW50aGV0aWMvd3JvbmctaWQiLCJub25jZSI6ImE1YTk4MWQzLTJhMTYtNDE2My04ZDA3LWY2NDU2Y2RhODA5MCIsImtpbmQiOiJlbmdpbmUtc3Bhd24iLCJwaWQiOjcxMjA2LCJhcmd2IjpbIi9Vc2Vycy9ram9wZWsvLm52bS92ZXJzaW9ucy9ub2RlL3YyMi4yMi4yL2Jpbi9ub2RlIiwiLS11bmhhbmRsZWQtcmVqZWN0aW9ucz1zdHJpY3QiLCItLWV4cGVyaW1lbnRhbC1pbXBvcnQtbWV0YS1yZXNvbHZlIiwiLS1tYXgtb2xkLXNwYWNlLXNpemU9MTI4IiwiL1VzZXJzL2tqb3Blay9Xb3Jrc3BhY2Uvc2FmZS1iYXNoL2JlbmNobWFya3MvcmVwb3J0cy9jdXJyZW50LWNvbXBhcmlzb24tMjAyNjA4MjcvZXhlY3V0aW9uL2VuZ2luZS1jaGlsZC5tanMiLCItLXN5bnRoZXRpYyJdfQAAAFl7ImlkIjoic3ludGhldGljL3dyb25nLWlkIiwibm9uY2UiOiJhNWE5ODFkMy0yYTE2LTQxNjMtOGQwNy1mNjQ1NmNkYTgwOTAiLCJraW5kIjoicmVhZHkifQAAAG57ImlkIjoic3ludGhldGljL3dyb25nLWlkIiwibm9uY2UiOiJhNWE5ODFkMy0yYTE2LTQxNjMtOGQwNy1mNjQ1NmNkYTgwOTAiLCJraW5kIjoicGhhc2UiLCJwaGFzZSI6ImV4ZWMtc3RhcnQifQAAAHB7ImlkIjoic3ludGhldGljL3dyb25nLWlkIiwibm9uY2UiOiJhNWE5ODFkMy0yYTE2LTQxNjMtOGQwNy1mNjQ1NmNkYTgwOTAiLCJraW5kIjoicGhhc2UiLCJwaGFzZSI6ImV4ZWMtc2V0dGxlZCJ9AAAAdXsiaWQiOiJzeW50aGV0aWMvd3JvbmctaWQiLCJub25jZSI6ImE1YTk4MWQzLTJhMTYtNDE2My04ZDA3LWY2NDU2Y2RhODA5MCIsImtpbmQiOiJwaGFzZSIsInBoYXNlIjoic25hcHNob3QtY29tcGxldGUifQAAAHF7ImlkIjoic3ludGhldGljL3dyb25nLWlkIiwibm9uY2UiOiJhNWE5ODFkMy0yYTE2LTQxNjMtOGQwNy1mNjQ1NmNkYTgwOTAiLCJraW5kIjoicGhhc2UiLCJwaGFzZSI6ImRpc3Bvc2Utc3RhcnQifQAAAHN7ImlkIjoic3ludGhldGljL3dyb25nLWlkIiwibm9uY2UiOiJhNWE5ODFkMy0yYTE2LTQxNjMtOGQwNy1mNjQ1NmNkYTgwOTAiLCJraW5kIjoicGhhc2UiLCJwaGFzZSI6ImRpc3Bvc2Utc2V0dGxlZCJ9AAABCnsiaWQiOiJzeW50aGV0aWMvd3JvbmctaWQiLCJub25jZSI6ImE1YTk4MWQzLTJhMTYtNDE2My04ZDA3LWY2NDU2Y2RhODA5MCIsImtpbmQiOiJmYWlsdXJlIiwiZXJyb3IiOnsibmFtZSI6IkFzc2VydGlvbkVycm9yIiwibWVzc2FnZSI6IkV4cGVjdGVkIHZhbHVlcyB0byBiZSBzdHJpY3RseSBlcXVhbDpcbisgYWN0dWFsIC0gZXhwZWN0ZWRcblxuKyAnd3JvbmctcmVxdWVzdCdcbi0gJ3N5bnRoZXRpYy93cm9uZy1pZCdcbiIsImNvZGUiOiJFUlJfQVNTRVJUSU9OIn19AAAAdnsiaWQiOiJzeW50aGV0aWMvd3JvbmctaWQiLCJub25jZSI6ImE1YTk4MWQzLTJhMTYtNDE2My04ZDA3LWY2NDU2Y2RhODA5MCIsImtpbmQiOiJlbmdpbmUtZXhpdCIsImNvZGUiOjAsInNpZ25hbCI6bnVsbH0AAAB3eyJpZCI6InN5bnRoZXRpYy93cm9uZy1pZCIsIm5vbmNlIjoiYTVhOTgxZDMtMmExNi00MTYzLThkMDctZjY0NTZjZGE4MDkwIiwia2luZCI6ImVuZ2luZS1jbG9zZSIsImNvZGUiOjAsInNpZ25hbCI6bnVsbH0AAACJeyJpZCI6InN5bnRoZXRpYy93cm9uZy1pZCIsIm5vbmNlIjoiYTVhOTgxZDMtMmExNi00MTYzLThkMDctZjY0NTZjZGE4MDkwIiwia2luZCI6ImZpeHR1cmUtY2xvc2UiLCJjbG9zZWQiOnRydWUsInNvY2tldHMiOjAsInJlcXVlc3RzIjpbXX0AAABkeyJpZCI6InN5bnRoZXRpYy93cm9uZy1pZCIsIm5vbmNlIjoiYTVhOTgxZDMtMmExNi00MTYzLThkMDctZjY0NTZjZGE4MDkwIiwia2luZCI6InNlc3Npb24tY29tcGxldGUifQ==",
+      "prefixOnly": false
+    }
+  },
+  "check": {
+    "mode": "wrong-id",
+    "passed": true,
+    "assessment": {
+      "comparison": null,
+      "lifecycle": false,
+      "status": "lifecycle-or-capture-failure"
+    },
+    "elapsedMs": 104.345,
+    "groupGone": true,
+    "signals": [
+      "SIGTERM"
+    ],
+    "raw": "attempt-014-wrong-id.json"
+  }
+}

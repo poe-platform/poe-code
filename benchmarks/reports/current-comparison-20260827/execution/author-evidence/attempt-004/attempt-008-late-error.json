@@ -1,0 +1,349 @@
+{
+  "request": {
+    "id": "synthetic/late-error",
+    "nonce": "28f69313-9a01-414e-9366-59f70b5c80fe",
+    "profile": "original",
+    "engine": "synthetic-not-product",
+    "synthetic": true,
+    "mode": "late-error",
+    "expected": {
+      "stdout": "AH+A/w==",
+      "stderr": "",
+      "exitCode": 0,
+      "entries": {
+        "binary": {
+          "type": "file",
+          "bytes": "AH+A/w=="
+        }
+      }
+    },
+    "caps": {
+      "startupMs": 2000,
+      "guestMs": 180,
+      "requestMs": 1400,
+      "totalMs": 4500,
+      "settleMs": 150,
+      "snapshotMs": 200,
+      "disposeMs": 200,
+      "naturalMs": 180,
+      "termMs": 120,
+      "killMs": 200,
+      "outputBytes": 4194304,
+      "diagnosticBytes": 4096,
+      "reportBytes": 131072,
+      "events": 64,
+      "snapshotBytes": 33554432,
+      "entries": 4096,
+      "depth": 32
+    },
+    "heapMiB": 128,
+    "host": {
+      "cwd": "/private/tmp/safe-bash-execution-author-w3lrWQ",
+      "env": {
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/private/tmp/safe-bash-execution-author-w3lrWQ",
+        "TMPDIR": "/private/tmp/safe-bash-execution-author-w3lrWQ",
+        "LANG": "C",
+        "LC_ALL": "C",
+        "TZ": "UTC"
+      }
+    }
+  },
+  "attempt": {
+    "id": "synthetic/late-error",
+    "nonce": "28f69313-9a01-414e-9366-59f70b5c80fe",
+    "synthetic": true,
+    "profile": "original",
+    "engine": "synthetic-not-product",
+    "failures": [
+      "engine crash/forced exit",
+      "coordinator crash/forced exit",
+      "engine did not exit/close naturally",
+      "coordinator did not exit/close naturally"
+    ],
+    "events": [
+      {
+        "atMs": 0.34,
+        "kind": "group-admitted",
+        "pid": 86637,
+        "pgid": 86637,
+        "argv": [
+          "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+          "--unhandled-rejections=strict",
+          "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/current-comparison-20260827/execution/session.mjs",
+          "--synthetic"
+        ],
+        "host": {
+          "cwd": "/private/tmp/safe-bash-execution-author-w3lrWQ",
+          "env": {
+            "PATH": "/usr/bin:/bin",
+            "HOME": "/private/tmp/safe-bash-execution-author-w3lrWQ",
+            "TMPDIR": "/private/tmp/safe-bash-execution-author-w3lrWQ",
+            "LANG": "C",
+            "LC_ALL": "C",
+            "TZ": "UTC"
+          }
+        }
+      },
+      {
+        "atMs": 40.522,
+        "id": "synthetic/late-error",
+        "nonce": "28f69313-9a01-414e-9366-59f70b5c80fe",
+        "kind": "engine-spawn",
+        "pid": 86638,
+        "argv": [
+          "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+          "--unhandled-rejections=strict",
+          "--experimental-import-meta-resolve",
+          "--max-old-space-size=128",
+          "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/current-comparison-20260827/execution/engine-child.mjs",
+          "--synthetic"
+        ]
+      },
+      {
+        "atMs": 90.29,
+        "kind": "request-start",
+        "absoluteDeadlineMs": 1490.28725
+      },
+      {
+        "atMs": 90.293,
+        "id": "synthetic/late-error",
+        "nonce": "28f69313-9a01-414e-9366-59f70b5c80fe",
+        "kind": "ready"
+      },
+      {
+        "atMs": 91.05,
+        "id": "synthetic/late-error",
+        "nonce": "28f69313-9a01-414e-9366-59f70b5c80fe",
+        "kind": "phase",
+        "phase": "exec-start"
+      },
+      {
+        "atMs": 91.097,
+        "id": "synthetic/late-error",
+        "nonce": "28f69313-9a01-414e-9366-59f70b5c80fe",
+        "kind": "phase",
+        "phase": "exec-settled"
+      },
+      {
+        "atMs": 91.28,
+        "id": "synthetic/late-error",
+        "nonce": "28f69313-9a01-414e-9366-59f70b5c80fe",
+        "kind": "phase",
+        "phase": "snapshot-complete"
+      },
+      {
+        "atMs": 91.315,
+        "id": "synthetic/late-error",
+        "nonce": "28f69313-9a01-414e-9366-59f70b5c80fe",
+        "kind": "phase",
+        "phase": "dispose-start"
+      },
+      {
+        "atMs": 91.454,
+        "id": "synthetic/late-error",
+        "nonce": "28f69313-9a01-414e-9366-59f70b5c80fe",
+        "kind": "phase",
+        "phase": "dispose-settled"
+      },
+      {
+        "atMs": 91.616,
+        "kind": "result-received",
+        "sha256": "2b64598bf75ed226e7b51421122b77b862d9f050abc3832c93e02de175dd6054",
+        "absoluteTotalUnchangedMs": 4500
+      },
+      {
+        "atMs": 124.132,
+        "id": "synthetic/late-error",
+        "nonce": "28f69313-9a01-414e-9366-59f70b5c80fe",
+        "kind": "diagnostic",
+        "stream": "stderr",
+        "base64": "eyJuYW1lIjoiRXJyb3IiLCJtZXNzYWdlIjoibGF0ZSBzeW50aGV0aWMgZXJyb3IiLCJjb2RlIjpudWxsfQo="
+      },
+      {
+        "atMs": 124.199,
+        "id": "synthetic/late-error",
+        "nonce": "28f69313-9a01-414e-9366-59f70b5c80fe",
+        "kind": "diagnostic",
+        "stream": "stderr",
+        "base64": "ZmlsZTovLy9Vc2Vycy9ram9wZWsvV29ya3NwYWNlL3NhZmUtYmFzaC9iZW5jaG1hcmtzL3JlcG9ydHMvY3VycmVudC1jb21wYXJpc29uLTIwMjYwODI3L2V4ZWN1dGlvbi9lbmdpbmUtY2hpbGQubWpzOjc4CiAgaWYgKG1vZGUgPT09ICdsYXRlLWVycm9yJykgc2V0VGltZW91dCgoKSA9PiB7IHRocm93IG5ldyBFcnJvcignbGF0ZSBzeW50aGV0aWMgZXJyb3InKTsgfSwgMzApOwogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBeCgpFcnJvcjogbGF0ZSBzeW50aGV0aWMgZXJyb3IKICAgIGF0IFRpbWVvdXQuX29uVGltZW91dCAoZmlsZTovLy9Vc2Vycy9ram9wZWsvV29ya3NwYWNlL3NhZmUtYmFzaC9iZW5jaG1hcmtzL3JlcG9ydHMvY3VycmVudC1jb21wYXJpc29uLTIwMjYwODI3L2V4ZWN1dGlvbi9lbmdpbmUtY2hpbGQubWpzOjc4OjU1KQogICAgYXQgbGlzdE9uVGltZW91dCAobm9kZTppbnRlcm5hbC90aW1lcnM6NTg1OjE3KQogICAgYXQgcHJvY2Vzcy5wcm9jZXNzVGltZXJzIChub2RlOmludGVybmFsL3RpbWVyczo1MjE6NykKCk5vZGUuanMgdjIyLjIyLjIK"
+      },
+      {
+        "atMs": 126.144,
+        "kind": "sticky-failure",
+        "reason": "engine crash/forced exit"
+      },
+      {
+        "atMs": 126.175,
+        "id": "synthetic/late-error",
+        "nonce": "28f69313-9a01-414e-9366-59f70b5c80fe",
+        "kind": "engine-exit",
+        "code": 1,
+        "signal": null
+      },
+      {
+        "atMs": 126.216,
+        "id": "synthetic/late-error",
+        "nonce": "28f69313-9a01-414e-9366-59f70b5c80fe",
+        "kind": "engine-close",
+        "code": 1,
+        "signal": null
+      },
+      {
+        "atMs": 126.224,
+        "id": "synthetic/late-error",
+        "nonce": "28f69313-9a01-414e-9366-59f70b5c80fe",
+        "kind": "fixture-close",
+        "closed": true,
+        "sockets": 0,
+        "requests": []
+      },
+      {
+        "atMs": 126.277,
+        "id": "synthetic/late-error",
+        "nonce": "28f69313-9a01-414e-9366-59f70b5c80fe",
+        "kind": "session-complete"
+      },
+      {
+        "atMs": 126.747,
+        "kind": "signal",
+        "signal": "SIGTERM",
+        "pgid": 86637
+      },
+      {
+        "atMs": 127.822,
+        "kind": "coordinator-exit",
+        "code": null,
+        "signal": "SIGTERM"
+      },
+      {
+        "atMs": 127.825,
+        "kind": "sticky-failure",
+        "reason": "coordinator crash/forced exit"
+      },
+      {
+        "atMs": 127.829,
+        "kind": "coordinator-close",
+        "code": null,
+        "signal": "SIGTERM"
+      }
+    ],
+    "signals": [
+      "SIGTERM"
+    ],
+    "result": {
+      "id": "synthetic/late-error",
+      "nonce": "28f69313-9a01-414e-9366-59f70b5c80fe",
+      "kind": "result",
+      "observation": {
+        "stdout": "AH+A/w==",
+        "stderr": "",
+        "exitCode": 0,
+        "entries": {
+          "binary": {
+            "type": "file",
+            "bytes": "AH+A/w=="
+          }
+        }
+      }
+    },
+    "engineExit": {
+      "code": 1,
+      "signal": null
+    },
+    "engineClose": {
+      "code": 1,
+      "signal": null
+    },
+    "sessionExit": {
+      "code": null,
+      "signal": "SIGTERM"
+    },
+    "sessionClose": {
+      "code": null,
+      "signal": "SIGTERM"
+    },
+    "diagnostics": [
+      {
+        "id": "synthetic/late-error",
+        "nonce": "28f69313-9a01-414e-9366-59f70b5c80fe",
+        "kind": "diagnostic",
+        "stream": "stderr",
+        "base64": "eyJuYW1lIjoiRXJyb3IiLCJtZXNzYWdlIjoibGF0ZSBzeW50aGV0aWMgZXJyb3IiLCJjb2RlIjpudWxsfQo="
+      },
+      {
+        "id": "synthetic/late-error",
+        "nonce": "28f69313-9a01-414e-9366-59f70b5c80fe",
+        "kind": "diagnostic",
+        "stream": "stderr",
+        "base64": "ZmlsZTovLy9Vc2Vycy9ram9wZWsvV29ya3NwYWNlL3NhZmUtYmFzaC9iZW5jaG1hcmtzL3JlcG9ydHMvY3VycmVudC1jb21wYXJpc29uLTIwMjYwODI3L2V4ZWN1dGlvbi9lbmdpbmUtY2hpbGQubWpzOjc4CiAgaWYgKG1vZGUgPT09ICdsYXRlLWVycm9yJykgc2V0VGltZW91dCgoKSA9PiB7IHRocm93IG5ldyBFcnJvcignbGF0ZSBzeW50aGV0aWMgZXJyb3InKTsgfSwgMzApOwogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBeCgpFcnJvcjogbGF0ZSBzeW50aGV0aWMgZXJyb3IKICAgIGF0IFRpbWVvdXQuX29uVGltZW91dCAoZmlsZTovLy9Vc2Vycy9ram9wZWsvV29ya3NwYWNlL3NhZmUtYmFzaC9iZW5jaG1hcmtzL3JlcG9ydHMvY3VycmVudC1jb21wYXJpc29uLTIwMjYwODI3L2V4ZWN1dGlvbi9lbmdpbmUtY2hpbGQubWpzOjc4OjU1KQogICAgYXQgbGlzdE9uVGltZW91dCAobm9kZTppbnRlcm5hbC90aW1lcnM6NTg1OjE3KQogICAgYXQgcHJvY2Vzcy5wcm9jZXNzVGltZXJzIChub2RlOmludGVybmFsL3RpbWVyczo1MjE6NykKCk5vZGUuanMgdjIyLjIyLjIK"
+      }
+    ],
+    "clean": false,
+    "groupGone": true,
+    "coordinatorPid": 86637,
+    "enginePid": 86638,
+    "cancelSent": true,
+    "network": {
+      "id": "synthetic/late-error",
+      "nonce": "28f69313-9a01-414e-9366-59f70b5c80fe",
+      "kind": "fixture-close",
+      "closed": true,
+      "sockets": 0,
+      "requests": []
+    },
+    "elapsedMs": 129.432,
+    "deadlinesMs": {
+      "total": 4500,
+      "request": 1490.287,
+      "natural": 271.498
+    },
+    "hostBytes": 632,
+    "reportBytes": 2903,
+    "execAdmissions": {
+      "scoredCase": 1,
+      "emptyInitialization": 0
+    },
+    "wireCapture": {
+      "receivedBytes": 2903,
+      "receivedSha256": "b0888b9dc106920cca5294be13aca3469daf248d0a3fd51537e3c18d1c83c287",
+      "prefixBase64": "AAABiHsiaWQiOiJzeW50aGV0aWMvbGF0ZS1lcnJvciIsIm5vbmNlIjoiMjhmNjkzMTMtOWEwMS00MTRlLTkzNjYtNTlmNzBiNWM4MGZlIiwia2luZCI6ImVuZ2luZS1zcGF3biIsInBpZCI6ODY2MzgsImFyZ3YiOlsiL1VzZXJzL2tqb3Blay8ubnZtL3ZlcnNpb25zL25vZGUvdjIyLjIyLjIvYmluL25vZGUiLCItLXVuaGFuZGxlZC1yZWplY3Rpb25zPXN0cmljdCIsIi0tZXhwZXJpbWVudGFsLWltcG9ydC1tZXRhLXJlc29sdmUiLCItLW1heC1vbGQtc3BhY2Utc2l6ZT0xMjgiLCIvVXNlcnMva2pvcGVrL1dvcmtzcGFjZS9zYWZlLWJhc2gvYmVuY2htYXJrcy9yZXBvcnRzL2N1cnJlbnQtY29tcGFyaXNvbi0yMDI2MDgyNy9leGVjdXRpb24vZW5naW5lLWNoaWxkLm1qcyIsIi0tc3ludGhldGljIl19AAAAW3siaWQiOiJzeW50aGV0aWMvbGF0ZS1lcnJvciIsIm5vbmNlIjoiMjhmNjkzMTMtOWEwMS00MTRlLTkzNjYtNTlmNzBiNWM4MGZlIiwia2luZCI6InJlYWR5In0AAABweyJpZCI6InN5bnRoZXRpYy9sYXRlLWVycm9yIiwibm9uY2UiOiIyOGY2OTMxMy05YTAxLTQxNGUtOTM2Ni01OWY3MGI1YzgwZmUiLCJraW5kIjoicGhhc2UiLCJwaGFzZSI6ImV4ZWMtc3RhcnQifQAAAHJ7ImlkIjoic3ludGhldGljL2xhdGUtZXJyb3IiLCJub25jZSI6IjI4ZjY5MzEzLTlhMDEtNDE0ZS05MzY2LTU5ZjcwYjVjODBmZSIsImtpbmQiOiJwaGFzZSIsInBoYXNlIjoiZXhlYy1zZXR0bGVkIn0AAAB3eyJpZCI6InN5bnRoZXRpYy9sYXRlLWVycm9yIiwibm9uY2UiOiIyOGY2OTMxMy05YTAxLTQxNGUtOTM2Ni01OWY3MGI1YzgwZmUiLCJraW5kIjoicGhhc2UiLCJwaGFzZSI6InNuYXBzaG90LWNvbXBsZXRlIn0AAABzeyJpZCI6InN5bnRoZXRpYy9sYXRlLWVycm9yIiwibm9uY2UiOiIyOGY2OTMxMy05YTAxLTQxNGUtOTM2Ni01OWY3MGI1YzgwZmUiLCJraW5kIjoicGhhc2UiLCJwaGFzZSI6ImRpc3Bvc2Utc3RhcnQifQAAAHV7ImlkIjoic3ludGhldGljL2xhdGUtZXJyb3IiLCJub25jZSI6IjI4ZjY5MzEzLTlhMDEtNDE0ZS05MzY2LTU5ZjcwYjVjODBmZSIsImtpbmQiOiJwaGFzZSIsInBoYXNlIjoiZGlzcG9zZS1zZXR0bGVkIn0AAADReyJpZCI6InN5bnRoZXRpYy9sYXRlLWVycm9yIiwibm9uY2UiOiIyOGY2OTMxMy05YTAxLTQxNGUtOTM2Ni01OWY3MGI1YzgwZmUiLCJraW5kIjoicmVzdWx0Iiwib2JzZXJ2YXRpb24iOnsic3Rkb3V0IjoiQUgrQS93PT0iLCJzdGRlcnIiOiIiLCJleGl0Q29kZSI6MCwiZW50cmllcyI6eyJiaW5hcnkiOnsidHlwZSI6ImZpbGUiLCJieXRlcyI6IkFIK0Evdz09In19fX0AAADSeyJpZCI6InN5bnRoZXRpYy9sYXRlLWVycm9yIiwibm9uY2UiOiIyOGY2OTMxMy05YTAxLTQxNGUtOTM2Ni01OWY3MGI1YzgwZmUiLCJraW5kIjoiZGlhZ25vc3RpYyIsInN0cmVhbSI6InN0ZGVyciIsImJhc2U2NCI6ImV5SnVZVzFsSWpvaVJYSnliM0lpTENKdFpYTnpZV2RsSWpvaWJHRjBaU0J6ZVc1MGFHVjBhV01nWlhKeWIzSWlMQ0pqYjJSbElqcHVkV3hzZlFvPSJ9AAADdnsiaWQiOiJzeW50aGV0aWMvbGF0ZS1lcnJvciIsIm5vbmNlIjoiMjhmNjkzMTMtOWEwMS00MTRlLTkzNjYtNTlmNzBiNWM4MGZlIiwia2luZCI6ImRpYWdub3N0aWMiLCJzdHJlYW0iOiJzdGRlcnIiLCJiYXNlNjQiOiJabWxzWlRvdkx5OVZjMlZ5Y3k5cmFtOXdaV3N2VjI5eWEzTndZV05sTDNOaFptVXRZbUZ6YUM5aVpXNWphRzFoY210ekwzSmxjRzl5ZEhNdlkzVnljbVZ1ZEMxamIyMXdZWEpwYzI5dUxUSXdNall3T0RJM0wyVjRaV04xZEdsdmJpOWxibWRwYm1VdFkyaHBiR1F1Yldwek9qYzRDaUFnYVdZZ0tHMXZaR1VnUFQwOUlDZHNZWFJsTFdWeWNtOXlKeWtnYzJWMFZHbHRaVzkxZENnb0tTQTlQaUI3SUhSb2NtOTNJRzVsZHlCRmNuSnZjaWduYkdGMFpTQnplVzUwYUdWMGFXTWdaWEp5YjNJbktUc2dmU3dnTXpBcE93b2dJQ0FnSUNBZ0lDQWdJQ0FnSUNBZ0lDQWdJQ0FnSUNBZ0lDQWdJQ0FnSUNBZ0lDQWdJQ0FnSUNBZ0lDQWdJQ0JlQ2dwRmNuSnZjam9nYkdGMFpTQnplVzUwYUdWMGFXTWdaWEp5YjNJS0lDQWdJR0YwSUZScGJXVnZkWFF1WDI5dVZHbHRaVzkxZENBb1ptbHNaVG92THk5VmMyVnljeTlyYW05d1pXc3ZWMjl5YTNOd1lXTmxMM05oWm1VdFltRnphQzlpWlc1amFHMWhjbXR6TDNKbGNHOXlkSE12WTNWeWNtVnVkQzFqYjIxd1lYSnBjMjl1TFRJd01qWXdPREkzTDJWNFpXTjFkR2x2Ymk5bGJtZHBibVV0WTJocGJHUXViV3B6T2pjNE9qVTFLUW9nSUNBZ1lYUWdiR2x6ZEU5dVZHbHRaVzkxZENBb2JtOWtaVHBwYm5SbGNtNWhiQzkwYVcxbGNuTTZOVGcxT2pFM0tRb2dJQ0FnWVhRZ2NISnZZMlZ6Y3k1d2NtOWpaWE56VkdsdFpYSnpJQ2h1YjJSbE9tbHVkR1Z5Ym1Gc0wzUnBiV1Z5Y3pvMU1qRTZOeWtLQ2s1dlpHVXVhbk1nZGpJeUxqSXlMaklLIn0AAAB4eyJpZCI6InN5bnRoZXRpYy9sYXRlLWVycm9yIiwibm9uY2UiOiIyOGY2OTMxMy05YTAxLTQxNGUtOTM2Ni01OWY3MGI1YzgwZmUiLCJraW5kIjoiZW5naW5lLWV4aXQiLCJjb2RlIjoxLCJzaWduYWwiOm51bGx9AAAAeXsiaWQiOiJzeW50aGV0aWMvbGF0ZS1lcnJvciIsIm5vbmNlIjoiMjhmNjkzMTMtOWEwMS00MTRlLTkzNjYtNTlmNzBiNWM4MGZlIiwia2luZCI6ImVuZ2luZS1jbG9zZSIsImNvZGUiOjEsInNpZ25hbCI6bnVsbH0AAACLeyJpZCI6InN5bnRoZXRpYy9sYXRlLWVycm9yIiwibm9uY2UiOiIyOGY2OTMxMy05YTAxLTQxNGUtOTM2Ni01OWY3MGI1YzgwZmUiLCJraW5kIjoiZml4dHVyZS1jbG9zZSIsImNsb3NlZCI6dHJ1ZSwic29ja2V0cyI6MCwicmVxdWVzdHMiOltdfQAAAGZ7ImlkIjoic3ludGhldGljL2xhdGUtZXJyb3IiLCJub25jZSI6IjI4ZjY5MzEzLTlhMDEtNDE0ZS05MzY2LTU5ZjcwYjVjODBmZSIsImtpbmQiOiJzZXNzaW9uLWNvbXBsZXRlIn0=",
+      "prefixOnly": false
+    }
+  },
+  "check": {
+    "mode": "late-error",
+    "passed": true,
+    "assessment": {
+      "comparison": {
+        "pass": true,
+        "assertions": [
+          {
+            "field": "stdout",
+            "pass": true
+          },
+          {
+            "field": "stderr",
+            "pass": true
+          },
+          {
+            "field": "exitCode",
+            "pass": true
+          },
+          {
+            "field": "entries",
+            "pass": true
+          }
+        ]
+      },
+      "lifecycle": false,
+      "status": "lifecycle-or-capture-failure"
+    },
+    "elapsedMs": 129.432,
+    "groupGone": true,
+    "signals": [
+      "SIGTERM"
+    ],
+    "raw": "attempt-008-late-error.json"
+  }
+}

@@ -1,0 +1,37 @@
+{
+  "schema": "safe-bash.bridge-reuse.v1",
+  "records": [
+    {
+      "destination": "reuse/expanded-common.mjs",
+      "commit": "0294afb6e690433aed994868e5ed437ecf58ae48",
+      "path": "benchmarks/expanded/common.mjs",
+      "sourceSha256": "28e51f7bb98aaf72550a76a159d79a09fb767b5780320fc1426740fedc311061",
+      "policy": "byte-identical pure helper",
+      "adaptedSha256": "28e51f7bb98aaf72550a76a159d79a09fb767b5780320fc1426740fedc311061"
+    },
+    {
+      "destination": "reuse/breadth-assess.mjs",
+      "commit": "849dbf18b1e865c7d12927c11f0e20ba0555c540",
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-execution/assess.mjs",
+      "sourceSha256": "4e1ef722249987da598a0765f87e48c021cf5a2f1ec83c09e86d2489c39397eb",
+      "policy": "byte-identical pure helper",
+      "adaptedSha256": "4e1ef722249987da598a0765f87e48c021cf5a2f1ec83c09e86d2489c39397eb"
+    },
+    {
+      "destination": "expanded.mjs",
+      "commit": "0294afb6e690433aed994868e5ed437ecf58ae48",
+      "path": "benchmarks/expanded/engine.mjs",
+      "sourceSha256": "0d534d17f3eb930c12f10d11df551ea31ec79ca4ce495e53bba91ab3abf95b39",
+      "policy": "observe adapter; public injected library, profile scratch, parent signal/events, no sampling or command wrapping",
+      "adaptedSha256": "25e95bcfd43594fc95d4a0a0ef3c4d258bd078a9d357ef38c893a5f0c0146d91"
+    },
+    {
+      "destination": "breadth.mjs",
+      "commit": "849dbf18b1e865c7d12927c11f0e20ba0555c540",
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-execution/engine-child.mjs",
+      "sourceSha256": "cab53ffc60f6e0035c2f3fe56c5eca54d0bc07132c3cb10067ca9463ce483e63",
+      "policy": "unchanged fixture/census/result algorithm; injected public library/signal, bounded lifecycle, functional sleep clock only",
+      "adaptedSha256": "e798b84be8f49e4966a1f9df3e4e6438c3b2ec6618821339705e140e572ba2d8"
+    }
+  ]
+}

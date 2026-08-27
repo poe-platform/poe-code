@@ -1,0 +1,16 @@
+{"atMs":0.389,"kind":"group-admitted","pid":77842,"pgid":77842,"argv":["/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node","--unhandled-rejections=strict","/Users/kjopek/Workspace/safe-bash/benchmarks/reports/current-comparison-20260827/execution/session.mjs","--synthetic"],"host":{"cwd":"/private/tmp/safe-bash-execution-author-oOOmAr","env":{"PATH":"/usr/bin:/bin","HOME":"/private/tmp/safe-bash-execution-author-oOOmAr","TMPDIR":"/private/tmp/safe-bash-execution-author-oOOmAr","LANG":"C","LC_ALL":"C","TZ":"UTC"}}}
+{"atMs":37.895,"id":"synthetic/breadth-wrong-vfs","nonce":"c9d59383-3b24-4bbc-8862-9980b7916064","kind":"engine-spawn","pid":77843,"argv":["/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node","--unhandled-rejections=strict","--experimental-import-meta-resolve","--max-old-space-size=128","/Users/kjopek/Workspace/safe-bash/benchmarks/reports/current-comparison-20260827/execution/engine-child.mjs","--synthetic"]}
+{"atMs":92.119,"kind":"request-start","absoluteDeadlineMs":1492.1165}
+{"atMs":92.122,"id":"synthetic/breadth-wrong-vfs","nonce":"c9d59383-3b24-4bbc-8862-9980b7916064","kind":"ready"}
+{"atMs":92.758,"id":"synthetic/breadth-wrong-vfs","nonce":"c9d59383-3b24-4bbc-8862-9980b7916064","kind":"phase","phase":"exec-start"}
+{"atMs":92.929,"id":"synthetic/breadth-wrong-vfs","nonce":"c9d59383-3b24-4bbc-8862-9980b7916064","kind":"phase","phase":"exec-settled"}
+{"atMs":93.107,"id":"synthetic/breadth-wrong-vfs","nonce":"c9d59383-3b24-4bbc-8862-9980b7916064","kind":"phase","phase":"snapshot-complete"}
+{"atMs":93.189,"id":"synthetic/breadth-wrong-vfs","nonce":"c9d59383-3b24-4bbc-8862-9980b7916064","kind":"phase","phase":"dispose-start"}
+{"atMs":93.309,"id":"synthetic/breadth-wrong-vfs","nonce":"c9d59383-3b24-4bbc-8862-9980b7916064","kind":"phase","phase":"dispose-settled"}
+{"atMs":93.858,"kind":"result-received","sha256":"7461d1381fa298c73334e18db76d79f7f649c172b29b0f6635ae9b75009a83d0","absoluteTotalUnchangedMs":4499.999999999999}
+{"atMs":96.385,"id":"synthetic/breadth-wrong-vfs","nonce":"c9d59383-3b24-4bbc-8862-9980b7916064","kind":"engine-exit","code":0,"signal":null}
+{"atMs":96.428,"id":"synthetic/breadth-wrong-vfs","nonce":"c9d59383-3b24-4bbc-8862-9980b7916064","kind":"engine-close","code":0,"signal":null}
+{"atMs":96.552,"id":"synthetic/breadth-wrong-vfs","nonce":"c9d59383-3b24-4bbc-8862-9980b7916064","kind":"fixture-close","closed":true,"sockets":0,"requests":[]}
+{"atMs":96.579,"id":"synthetic/breadth-wrong-vfs","nonce":"c9d59383-3b24-4bbc-8862-9980b7916064","kind":"session-complete"}
+{"atMs":99.325,"kind":"coordinator-exit","code":0,"signal":null}
+{"atMs":99.33,"kind":"coordinator-close","code":0,"signal":null}

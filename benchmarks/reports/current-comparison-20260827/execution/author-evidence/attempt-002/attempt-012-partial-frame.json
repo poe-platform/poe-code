@@ -1,0 +1,237 @@
+{
+  "request": {
+    "id": "synthetic/partial-frame",
+    "nonce": "ba32c88e-aba9-4604-8f1f-d3f8c7975796",
+    "profile": "original",
+    "engine": "synthetic-not-product",
+    "synthetic": true,
+    "mode": "partial-frame",
+    "expected": {
+      "stdout": "AH+A/w==",
+      "stderr": "",
+      "exitCode": 0,
+      "entries": {
+        "binary": {
+          "type": "file",
+          "bytes": "AH+A/w=="
+        }
+      }
+    },
+    "caps": {
+      "startupMs": 2000,
+      "guestMs": 180,
+      "requestMs": 1400,
+      "totalMs": 4500,
+      "settleMs": 150,
+      "snapshotMs": 200,
+      "disposeMs": 200,
+      "naturalMs": 180,
+      "termMs": 120,
+      "killMs": 200,
+      "outputBytes": 4194304,
+      "diagnosticBytes": 4096,
+      "reportBytes": 131072,
+      "events": 64,
+      "snapshotBytes": 33554432,
+      "entries": 4096,
+      "depth": 32
+    },
+    "heapMiB": 128,
+    "host": {
+      "cwd": "/private/tmp/safe-bash-execution-author-6mhwQ8",
+      "env": {
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/private/tmp/safe-bash-execution-author-6mhwQ8",
+        "TMPDIR": "/private/tmp/safe-bash-execution-author-6mhwQ8",
+        "LANG": "C",
+        "LC_ALL": "C",
+        "TZ": "UTC"
+      }
+    }
+  },
+  "attempt": {
+    "id": "synthetic/partial-frame",
+    "nonce": "ba32c88e-aba9-4604-8f1f-d3f8c7975796",
+    "synthetic": true,
+    "profile": "original",
+    "engine": "synthetic-not-product",
+    "failures": [
+      "{\"name\":\"AssertionError\",\"message\":\"partial frame at EOF: header=000000, bodyBytes=115\",\"code\":\"ERR_ASSERTION\"}",
+      "engine crash/forced exit",
+      "capture: AssertionError [ERR_ASSERTION]: partial frame at EOF: header=0000007c, bodyBytes=0",
+      "coordinator crash/forced exit",
+      "missing result",
+      "missing lifecycle phase",
+      "engine did not exit/close naturally",
+      "coordinator did not exit/close naturally",
+      "unverified pipe/fixture/group closure"
+    ],
+    "events": [
+      {
+        "atMs": 0.356,
+        "kind": "group-admitted",
+        "pid": 71201,
+        "pgid": 71201,
+        "argv": [
+          "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+          "--unhandled-rejections=strict",
+          "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/current-comparison-20260827/execution/session.mjs",
+          "--synthetic"
+        ],
+        "host": {
+          "cwd": "/private/tmp/safe-bash-execution-author-6mhwQ8",
+          "env": {
+            "PATH": "/usr/bin:/bin",
+            "HOME": "/private/tmp/safe-bash-execution-author-6mhwQ8",
+            "TMPDIR": "/private/tmp/safe-bash-execution-author-6mhwQ8",
+            "LANG": "C",
+            "LC_ALL": "C",
+            "TZ": "UTC"
+          }
+        }
+      },
+      {
+        "atMs": 43.832,
+        "id": "synthetic/partial-frame",
+        "nonce": "ba32c88e-aba9-4604-8f1f-d3f8c7975796",
+        "kind": "engine-spawn",
+        "pid": 71202,
+        "argv": [
+          "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+          "--unhandled-rejections=strict",
+          "--experimental-import-meta-resolve",
+          "--max-old-space-size=128",
+          "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/current-comparison-20260827/execution/engine-child.mjs",
+          "--synthetic"
+        ]
+      },
+      {
+        "atMs": 100.725,
+        "kind": "request-start",
+        "absoluteDeadlineMs": 1500.721708
+      },
+      {
+        "atMs": 100.727,
+        "id": "synthetic/partial-frame",
+        "nonce": "ba32c88e-aba9-4604-8f1f-d3f8c7975796",
+        "kind": "ready"
+      },
+      {
+        "atMs": 101.384,
+        "id": "synthetic/partial-frame",
+        "nonce": "ba32c88e-aba9-4604-8f1f-d3f8c7975796",
+        "kind": "phase",
+        "phase": "exec-start"
+      },
+      {
+        "atMs": 102.491,
+        "kind": "sticky-failure",
+        "reason": "{\"name\":\"AssertionError\",\"message\":\"partial frame at EOF: header=000000, bodyBytes=115\",\"code\":\"ERR_ASSERTION\"}"
+      },
+      {
+        "atMs": 102.512,
+        "id": "synthetic/partial-frame",
+        "nonce": "ba32c88e-aba9-4604-8f1f-d3f8c7975796",
+        "kind": "failure",
+        "error": {
+          "name": "AssertionError",
+          "message": "partial frame at EOF: header=000000, bodyBytes=115",
+          "code": "ERR_ASSERTION"
+        }
+      },
+      {
+        "atMs": 104.642,
+        "kind": "sticky-failure",
+        "reason": "engine crash/forced exit"
+      },
+      {
+        "atMs": 104.645,
+        "id": "synthetic/partial-frame",
+        "nonce": "ba32c88e-aba9-4604-8f1f-d3f8c7975796",
+        "kind": "engine-exit",
+        "code": 1,
+        "signal": null
+      },
+      {
+        "atMs": 104.673,
+        "kind": "signal",
+        "signal": "SIGTERM",
+        "pgid": 71201
+      },
+      {
+        "atMs": 105.901,
+        "kind": "sticky-failure",
+        "reason": "capture: AssertionError [ERR_ASSERTION]: partial frame at EOF: header=0000007c, bodyBytes=0"
+      },
+      {
+        "atMs": 105.973,
+        "kind": "coordinator-exit",
+        "code": null,
+        "signal": "SIGTERM"
+      },
+      {
+        "atMs": 105.974,
+        "kind": "sticky-failure",
+        "reason": "coordinator crash/forced exit"
+      },
+      {
+        "atMs": 105.976,
+        "kind": "coordinator-close",
+        "code": null,
+        "signal": "SIGTERM"
+      }
+    ],
+    "signals": [
+      "SIGTERM"
+    ],
+    "result": null,
+    "engineExit": {
+      "code": 1,
+      "signal": null
+    },
+    "engineClose": null,
+    "sessionExit": {
+      "code": null,
+      "signal": "SIGTERM"
+    },
+    "sessionClose": {
+      "code": null,
+      "signal": "SIGTERM"
+    },
+    "diagnostics": [],
+    "clean": false,
+    "groupGone": true,
+    "coordinatorPid": 71201,
+    "enginePid": 71202,
+    "cancelSent": true,
+    "elapsedMs": 107.699,
+    "deadlinesMs": {
+      "total": 4500,
+      "request": 1500.722,
+      "guest": 281.381
+    },
+    "hostBytes": 0,
+    "reportBytes": 963,
+    "wireCapture": {
+      "receivedBytes": 967,
+      "receivedSha256": "8ce0ca4cddfdf6c07b95c91db8df3e9cf20596febbc9c297b11e81b4aeb4a77d",
+      "prefixBase64": "AAABi3siaWQiOiJzeW50aGV0aWMvcGFydGlhbC1mcmFtZSIsIm5vbmNlIjoiYmEzMmM4OGUtYWJhOS00NjA0LThmMWYtZDNmOGM3OTc1Nzk2Iiwia2luZCI6ImVuZ2luZS1zcGF3biIsInBpZCI6NzEyMDIsImFyZ3YiOlsiL1VzZXJzL2tqb3Blay8ubnZtL3ZlcnNpb25zL25vZGUvdjIyLjIyLjIvYmluL25vZGUiLCItLXVuaGFuZGxlZC1yZWplY3Rpb25zPXN0cmljdCIsIi0tZXhwZXJpbWVudGFsLWltcG9ydC1tZXRhLXJlc29sdmUiLCItLW1heC1vbGQtc3BhY2Utc2l6ZT0xMjgiLCIvVXNlcnMva2pvcGVrL1dvcmtzcGFjZS9zYWZlLWJhc2gvYmVuY2htYXJrcy9yZXBvcnRzL2N1cnJlbnQtY29tcGFyaXNvbi0yMDI2MDgyNy9leGVjdXRpb24vZW5naW5lLWNoaWxkLm1qcyIsIi0tc3ludGhldGljIl19AAAAXnsiaWQiOiJzeW50aGV0aWMvcGFydGlhbC1mcmFtZSIsIm5vbmNlIjoiYmEzMmM4OGUtYWJhOS00NjA0LThmMWYtZDNmOGM3OTc1Nzk2Iiwia2luZCI6InJlYWR5In0AAABzeyJpZCI6InN5bnRoZXRpYy9wYXJ0aWFsLWZyYW1lIiwibm9uY2UiOiJiYTMyYzg4ZS1hYmE5LTQ2MDQtOGYxZi1kM2Y4Yzc5NzU3OTYiLCJraW5kIjoicGhhc2UiLCJwaGFzZSI6ImV4ZWMtc3RhcnQifQAAANh7ImlkIjoic3ludGhldGljL3BhcnRpYWwtZnJhbWUiLCJub25jZSI6ImJhMzJjODhlLWFiYTktNDYwNC04ZjFmLWQzZjhjNzk3NTc5NiIsImtpbmQiOiJmYWlsdXJlIiwiZXJyb3IiOnsibmFtZSI6IkFzc2VydGlvbkVycm9yIiwibWVzc2FnZSI6InBhcnRpYWwgZnJhbWUgYXQgRU9GOiBoZWFkZXI9MDAwMDAwLCBib2R5Qnl0ZXM9MTE1IiwiY29kZSI6IkVSUl9BU1NFUlRJT04ifX0AAAB7eyJpZCI6InN5bnRoZXRpYy9wYXJ0aWFsLWZyYW1lIiwibm9uY2UiOiJiYTMyYzg4ZS1hYmE5LTQ2MDQtOGYxZi1kM2Y4Yzc5NzU3OTYiLCJraW5kIjoiZW5naW5lLWV4aXQiLCJjb2RlIjoxLCJzaWduYWwiOm51bGx9AAAAfA==",
+      "prefixOnly": false
+    }
+  },
+  "check": {
+    "mode": "partial-frame",
+    "passed": true,
+    "assessment": {
+      "comparison": null,
+      "lifecycle": false,
+      "status": "lifecycle-or-capture-failure"
+    },
+    "elapsedMs": 107.699,
+    "groupGone": true,
+    "signals": [
+      "SIGTERM"
+    ],
+    "raw": "attempt-012-partial-frame.json"
+  }
+}

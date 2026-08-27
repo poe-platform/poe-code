@@ -1,0 +1,35 @@
+{"mode":"clean","controlSatisfied":true,"observationStatus":"pass","clean":true,"groupGone":true,"signals":[],"resources":{}}
+{"mode":"wrong-output","controlSatisfied":true,"observationStatus":"fail","clean":true,"groupGone":true,"signals":[],"resources":{}}
+{"mode":"wrong-vfs","controlSatisfied":true,"observationStatus":"fail","clean":true,"groupGone":true,"signals":[],"resources":{}}
+{"mode":"wrong-status","controlSatisfied":true,"observationStatus":"fail","clean":true,"groupGone":true,"signals":[],"resources":{}}
+{"mode":"module-clean","controlSatisfied":true,"observationStatus":"pass","clean":true,"groupGone":true,"signals":[],"resources":{"imported.json":{"syntheticOnly":true,"pid":28364,"mode":"module-clean"}}}
+{"mode":"worker-leak","controlSatisfied":true,"observationStatus":"lifecycle-or-capture-failure","clean":false,"groupGone":true,"signals":["SIGTERM"],"resources":{"imported.json":{"syntheticOnly":true,"pid":28366,"mode":"worker-leak"},"owned-worker.json":{"pid":28366,"threadId":2}}}
+{"mode":"pipe-leak","controlSatisfied":true,"observationStatus":"lifecycle-or-capture-failure","clean":false,"groupGone":true,"signals":["SIGTERM"],"resources":{"imported.json":{"syntheticOnly":true,"pid":28368,"mode":"pipe-leak"},"owned-child.json":{"pid":28369,"parent":28368}}}
+{"mode":"crash","controlSatisfied":true,"observationStatus":"lifecycle-or-capture-failure","clean":false,"groupGone":true,"signals":["SIGTERM"],"resources":{"imported.json":{"syntheticOnly":true,"pid":28374,"mode":"crash"}}}
+{"mode":"late-rejection","controlSatisfied":true,"observationStatus":"lifecycle-or-capture-failure","clean":false,"groupGone":true,"signals":["SIGTERM"],"resources":{"imported.json":{"syntheticOnly":true,"pid":28376,"mode":"late-rejection"}}}
+{"mode":"malformed","controlSatisfied":true,"observationStatus":"lifecycle-or-capture-failure","clean":false,"groupGone":true,"signals":["SIGTERM"],"resources":{"imported.json":{"syntheticOnly":true,"pid":28378,"mode":"malformed"}}}
+{"mode":"oversize","controlSatisfied":true,"observationStatus":"lifecycle-or-capture-failure","clean":false,"groupGone":true,"signals":["SIGTERM"],"resources":{"imported.json":{"syntheticOnly":true,"pid":28380,"mode":"oversize"}}}
+{"mode":"unbound-module","controlSatisfied":true,"observationStatus":"lifecycle-or-capture-failure","clean":false,"groupGone":true,"signals":["SIGTERM"],"resources":{"imported.json":{"syntheticOnly":true,"pid":28383,"mode":"unbound-module"}}}
+{"mode":"changed-entry","controlSatisfied":true,"observationStatus":"lifecycle-or-capture-failure","clean":false,"groupGone":true,"signals":[],"resources":{}}
+{"mode":"wrong-public-entry","controlSatisfied":true,"observationStatus":"lifecycle-or-capture-failure","clean":false,"groupGone":true,"signals":["SIGTERM"],"resources":{}}
+{
+  "destination": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/current-comparison-20260827/execution-review/attempt-002-r1-r2",
+  "status": "GO_BRIDGE_ONLY",
+  "sourceStable": true,
+  "controlsSatisfied": true,
+  "adapterIssues": [],
+  "counters": {
+    "sentinelAttempts": 14,
+    "sentinelCoordinators": 14,
+    "sentinelEngines": 14,
+    "extraNodeDescendants": 1,
+    "workerThreads": 1,
+    "cliNegativeOrPreparationChildren": 3,
+    "syntheticAdapterInvocations": 12,
+    "actualProductImports": 0,
+    "mainCohortObservations": 0,
+    "nativeOracleCalls": 0,
+    "networkSocketsOpened": 0,
+    "targetedTypedRawAdapterInvocations": 4
+  }
+}

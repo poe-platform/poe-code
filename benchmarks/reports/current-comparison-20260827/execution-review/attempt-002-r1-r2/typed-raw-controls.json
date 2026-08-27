@@ -1,0 +1,256 @@
+[
+  {
+    "profile": "original",
+    "engine": "virtual-bash",
+    "syntheticOnly": true,
+    "plainUint8ArrayChannels": true,
+    "publicTextDeliberatelyDifferent": true,
+    "loopbackStringOnlyNoSocket": true,
+    "chronology": [
+      {
+        "phase": "initialization-exec"
+      },
+      {
+        "phase": "exec-start"
+      },
+      {
+        "phase": "exec-settled"
+      },
+      "snapshot-byte-read",
+      {
+        "phase": "snapshot-complete"
+      },
+      {
+        "phase": "dispose-start",
+        "detail": {
+          "apiAvailable": true
+        }
+      },
+      {
+        "phase": "dispose-settled",
+        "detail": {
+          "apiAvailable": true
+        }
+      }
+    ],
+    "mkdirCalls": [
+      "/fixture"
+    ],
+    "execCalls": [
+      "",
+      "synthetic-typed-byte-probe"
+    ],
+    "disposed": 1,
+    "satisfied": true,
+    "issues": [],
+    "observation": {
+      "raw": {
+        "stdoutBase64": "AID/aHR0cDovLzEyNy4wLjAuMTo0MzIxMA==",
+        "stderrBase64": "/wCBaHR0cDovLzEyNy4wLjAuMTo0MzIxMA=="
+      },
+      "stdout": "AID/e3tCQVNFfX0=",
+      "stderr": "/wCBe3tCQVNFfX0=",
+      "exitCode": 0,
+      "entries": {
+        "artifact": {
+          "type": "file",
+          "mode": 384,
+          "bytes": "AID/e3tCQVNFfX0="
+        }
+      },
+      "events": [],
+      "registryEvents": [],
+      "dispatchObservation": "not instrumented; no command replacement",
+      "capture": "native Uint8Array stdout/stderr"
+    }
+  },
+  {
+    "profile": "original",
+    "engine": "just-bash",
+    "syntheticOnly": true,
+    "plainUint8ArrayChannels": true,
+    "publicTextDeliberatelyDifferent": false,
+    "loopbackStringOnlyNoSocket": true,
+    "chronology": [
+      {
+        "phase": "exec-start"
+      },
+      {
+        "phase": "exec-settled"
+      },
+      "snapshot-byte-read",
+      {
+        "phase": "snapshot-complete"
+      },
+      {
+        "phase": "dispose-start",
+        "detail": {
+          "apiAvailable": false
+        }
+      },
+      {
+        "phase": "dispose-settled",
+        "detail": {
+          "apiAvailable": false
+        }
+      }
+    ],
+    "mkdirCalls": [
+      "/fixture"
+    ],
+    "execCalls": [
+      "synthetic-typed-byte-probe"
+    ],
+    "disposed": 0,
+    "satisfied": true,
+    "issues": [],
+    "observation": {
+      "raw": {
+        "stdoutBase64": "AID/aHR0cDovLzEyNy4wLjAuMTo0MzIxMA==",
+        "stderrBase64": "w6k6aHR0cDovLzEyNy4wLjAuMTo0MzIxMA=="
+      },
+      "stdout": "AID/e3tCQVNFfX0=",
+      "stderr": "w6k6e3tCQVNFfX0=",
+      "exitCode": 0,
+      "entries": {
+        "artifact": {
+          "type": "file",
+          "mode": 384,
+          "bytes": "AID/e3tCQVNFfX0="
+        }
+      },
+      "events": [],
+      "registryEvents": [],
+      "dispatchObservation": "not instrumented; no command replacement",
+      "capture": "public stdoutAsBytes/latin1FromBytes; stderr UTF8 public text"
+    }
+  },
+  {
+    "profile": "aligned",
+    "engine": "virtual-bash",
+    "syntheticOnly": true,
+    "plainUint8ArrayChannels": true,
+    "publicTextDeliberatelyDifferent": true,
+    "loopbackStringOnlyNoSocket": true,
+    "chronology": [
+      {
+        "phase": "initialization-exec"
+      },
+      {
+        "phase": "exec-start"
+      },
+      {
+        "phase": "exec-settled"
+      },
+      "snapshot-byte-read",
+      {
+        "phase": "snapshot-complete"
+      },
+      {
+        "phase": "dispose-start",
+        "detail": {
+          "apiAvailable": true
+        }
+      },
+      {
+        "phase": "dispose-settled",
+        "detail": {
+          "apiAvailable": true
+        }
+      }
+    ],
+    "mkdirCalls": [
+      "/tmp",
+      "/fixture"
+    ],
+    "execCalls": [
+      "",
+      "synthetic-typed-byte-probe"
+    ],
+    "disposed": 1,
+    "satisfied": true,
+    "issues": [],
+    "observation": {
+      "raw": {
+        "stdoutBase64": "AID/aHR0cDovLzEyNy4wLjAuMTo0MzIxMA==",
+        "stderrBase64": "/wCBaHR0cDovLzEyNy4wLjAuMTo0MzIxMA=="
+      },
+      "stdout": "AID/e3tCQVNFfX0=",
+      "stderr": "/wCBe3tCQVNFfX0=",
+      "exitCode": 0,
+      "entries": {
+        "artifact": {
+          "type": "file",
+          "mode": 384,
+          "bytes": "AID/e3tCQVNFfX0="
+        }
+      },
+      "events": [],
+      "registryEvents": [],
+      "dispatchObservation": "not instrumented; no command replacement",
+      "capture": "native Uint8Array stdout/stderr"
+    }
+  },
+  {
+    "profile": "aligned",
+    "engine": "just-bash",
+    "syntheticOnly": true,
+    "plainUint8ArrayChannels": true,
+    "publicTextDeliberatelyDifferent": false,
+    "loopbackStringOnlyNoSocket": true,
+    "chronology": [
+      {
+        "phase": "exec-start"
+      },
+      {
+        "phase": "exec-settled"
+      },
+      "snapshot-byte-read",
+      {
+        "phase": "snapshot-complete"
+      },
+      {
+        "phase": "dispose-start",
+        "detail": {
+          "apiAvailable": false
+        }
+      },
+      {
+        "phase": "dispose-settled",
+        "detail": {
+          "apiAvailable": false
+        }
+      }
+    ],
+    "mkdirCalls": [
+      "/tmp",
+      "/fixture"
+    ],
+    "execCalls": [
+      "synthetic-typed-byte-probe"
+    ],
+    "disposed": 0,
+    "satisfied": true,
+    "issues": [],
+    "observation": {
+      "raw": {
+        "stdoutBase64": "AID/aHR0cDovLzEyNy4wLjAuMTo0MzIxMA==",
+        "stderrBase64": "w6k6aHR0cDovLzEyNy4wLjAuMTo0MzIxMA=="
+      },
+      "stdout": "AID/e3tCQVNFfX0=",
+      "stderr": "w6k6e3tCQVNFfX0=",
+      "exitCode": 0,
+      "entries": {
+        "artifact": {
+          "type": "file",
+          "mode": 384,
+          "bytes": "AID/e3tCQVNFfX0="
+        }
+      },
+      "events": [],
+      "registryEvents": [],
+      "dispatchObservation": "not instrumented; no command replacement",
+      "capture": "public stdoutAsBytes/latin1FromBytes; stderr UTF8 public text"
+    }
+  }
+]

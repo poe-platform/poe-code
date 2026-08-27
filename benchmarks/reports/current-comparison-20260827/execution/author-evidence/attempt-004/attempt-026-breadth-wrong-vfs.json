@@ -1,0 +1,358 @@
+{
+  "request": {
+    "id": "synthetic/breadth-wrong-vfs",
+    "nonce": "e1ee9f64-7d4d-4139-8fa7-467162b1d237",
+    "profile": "breadth",
+    "engine": "synthetic-not-product",
+    "synthetic": true,
+    "mode": "wrong-vfs",
+    "expected": {
+      "stdout": "AH+A/w==",
+      "stderr": "",
+      "exitCode": 0,
+      "entries": {
+        "binary": {
+          "type": "file",
+          "bytes": "AH+A/w=="
+        }
+      }
+    },
+    "caps": {
+      "startupMs": 2000,
+      "guestMs": 180,
+      "requestMs": 1400,
+      "totalMs": 4500,
+      "settleMs": 150,
+      "snapshotMs": 200,
+      "disposeMs": 200,
+      "naturalMs": 180,
+      "termMs": 120,
+      "killMs": 200,
+      "outputBytes": 4194304,
+      "diagnosticBytes": 4096,
+      "reportBytes": 131072,
+      "events": 64,
+      "snapshotBytes": 33554432,
+      "entries": 4096,
+      "depth": 32
+    },
+    "heapMiB": 128,
+    "host": {
+      "cwd": "/private/tmp/safe-bash-execution-author-w3lrWQ",
+      "env": {
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/private/tmp/safe-bash-execution-author-w3lrWQ",
+        "TMPDIR": "/private/tmp/safe-bash-execution-author-w3lrWQ",
+        "LANG": "C",
+        "LC_ALL": "C",
+        "TZ": "UTC"
+      }
+    },
+    "specimen": {
+      "id": "synthetic/breadth-wrong-vfs",
+      "name": "synthetic-only",
+      "cohort": "shared-control",
+      "files": {},
+      "symlinks": {},
+      "expected": {
+        "exitCode": 0,
+        "stdoutBase64": "AH+A/w==",
+        "stderrBase64": "",
+        "files": {
+          "binary": {
+            "base64": "AH+A/w=="
+          }
+        },
+        "absent": [],
+        "preserveInputs": true
+      }
+    }
+  },
+  "attempt": {
+    "id": "synthetic/breadth-wrong-vfs",
+    "nonce": "e1ee9f64-7d4d-4139-8fa7-467162b1d237",
+    "synthetic": true,
+    "profile": "breadth",
+    "engine": "synthetic-not-product",
+    "failures": [],
+    "events": [
+      {
+        "atMs": 0.355,
+        "kind": "group-admitted",
+        "pid": 86714,
+        "pgid": 86714,
+        "argv": [
+          "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+          "--unhandled-rejections=strict",
+          "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/current-comparison-20260827/execution/session.mjs",
+          "--synthetic"
+        ],
+        "host": {
+          "cwd": "/private/tmp/safe-bash-execution-author-w3lrWQ",
+          "env": {
+            "PATH": "/usr/bin:/bin",
+            "HOME": "/private/tmp/safe-bash-execution-author-w3lrWQ",
+            "TMPDIR": "/private/tmp/safe-bash-execution-author-w3lrWQ",
+            "LANG": "C",
+            "LC_ALL": "C",
+            "TZ": "UTC"
+          }
+        }
+      },
+      {
+        "atMs": 41.97,
+        "id": "synthetic/breadth-wrong-vfs",
+        "nonce": "e1ee9f64-7d4d-4139-8fa7-467162b1d237",
+        "kind": "engine-spawn",
+        "pid": 86715,
+        "argv": [
+          "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+          "--unhandled-rejections=strict",
+          "--experimental-import-meta-resolve",
+          "--max-old-space-size=128",
+          "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/current-comparison-20260827/execution/engine-child.mjs",
+          "--synthetic"
+        ]
+      },
+      {
+        "atMs": 97.655,
+        "kind": "request-start",
+        "absoluteDeadlineMs": 1497.651833
+      },
+      {
+        "atMs": 97.657,
+        "id": "synthetic/breadth-wrong-vfs",
+        "nonce": "e1ee9f64-7d4d-4139-8fa7-467162b1d237",
+        "kind": "ready"
+      },
+      {
+        "atMs": 98.397,
+        "id": "synthetic/breadth-wrong-vfs",
+        "nonce": "e1ee9f64-7d4d-4139-8fa7-467162b1d237",
+        "kind": "phase",
+        "phase": "exec-start"
+      },
+      {
+        "atMs": 98.45,
+        "id": "synthetic/breadth-wrong-vfs",
+        "nonce": "e1ee9f64-7d4d-4139-8fa7-467162b1d237",
+        "kind": "phase",
+        "phase": "exec-settled"
+      },
+      {
+        "atMs": 98.706,
+        "id": "synthetic/breadth-wrong-vfs",
+        "nonce": "e1ee9f64-7d4d-4139-8fa7-467162b1d237",
+        "kind": "phase",
+        "phase": "snapshot-complete"
+      },
+      {
+        "atMs": 98.819,
+        "id": "synthetic/breadth-wrong-vfs",
+        "nonce": "e1ee9f64-7d4d-4139-8fa7-467162b1d237",
+        "kind": "phase",
+        "phase": "dispose-start"
+      },
+      {
+        "atMs": 99.565,
+        "id": "synthetic/breadth-wrong-vfs",
+        "nonce": "e1ee9f64-7d4d-4139-8fa7-467162b1d237",
+        "kind": "phase",
+        "phase": "dispose-settled"
+      },
+      {
+        "atMs": 99.65,
+        "kind": "result-received",
+        "sha256": "599a3f91bc8499baf99b370ab85f3a953bcdb2c1c929b1ac958282b2399c54f5",
+        "absoluteTotalUnchangedMs": 4500
+      },
+      {
+        "atMs": 101.647,
+        "id": "synthetic/breadth-wrong-vfs",
+        "nonce": "e1ee9f64-7d4d-4139-8fa7-467162b1d237",
+        "kind": "engine-exit",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "atMs": 101.677,
+        "id": "synthetic/breadth-wrong-vfs",
+        "nonce": "e1ee9f64-7d4d-4139-8fa7-467162b1d237",
+        "kind": "engine-close",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "atMs": 101.691,
+        "id": "synthetic/breadth-wrong-vfs",
+        "nonce": "e1ee9f64-7d4d-4139-8fa7-467162b1d237",
+        "kind": "fixture-close",
+        "closed": true,
+        "sockets": 0,
+        "requests": []
+      },
+      {
+        "atMs": 101.74,
+        "id": "synthetic/breadth-wrong-vfs",
+        "nonce": "e1ee9f64-7d4d-4139-8fa7-467162b1d237",
+        "kind": "session-complete"
+      },
+      {
+        "atMs": 103.792,
+        "kind": "coordinator-exit",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "atMs": 103.794,
+        "kind": "coordinator-close",
+        "code": 0,
+        "signal": null
+      }
+    ],
+    "signals": [],
+    "result": {
+      "id": "synthetic/breadth-wrong-vfs",
+      "nonce": "e1ee9f64-7d4d-4139-8fa7-467162b1d237",
+      "kind": "result",
+      "report": {
+        "engine": "ours",
+        "captureErrors": [],
+        "before": {
+          "complete": true,
+          "entries": []
+        },
+        "after": {
+          "complete": true,
+          "entries": []
+        },
+        "result": {
+          "exitCode": 0,
+          "stdoutBase64": "AH+A/w==",
+          "stderrBase64": "",
+          "stdout": "\u0000��",
+          "stderr": ""
+        },
+        "cleanup": {
+          "completion": "returned"
+        }
+      }
+    },
+    "engineExit": {
+      "code": 0,
+      "signal": null
+    },
+    "engineClose": {
+      "code": 0,
+      "signal": null
+    },
+    "sessionExit": {
+      "code": 0,
+      "signal": null
+    },
+    "sessionClose": {
+      "code": 0,
+      "signal": null
+    },
+    "diagnostics": [],
+    "clean": true,
+    "groupGone": true,
+    "coordinatorPid": 86714,
+    "enginePid": 86715,
+    "network": {
+      "id": "synthetic/breadth-wrong-vfs",
+      "nonce": "e1ee9f64-7d4d-4139-8fa7-467162b1d237",
+      "kind": "fixture-close",
+      "closed": true,
+      "sockets": 0,
+      "requests": []
+    },
+    "elapsedMs": 105.4,
+    "deadlinesMs": {
+      "total": 4500,
+      "request": 1497.652,
+      "natural": 279.628
+    },
+    "hostBytes": 0,
+    "reportBytes": 2032,
+    "execAdmissions": {
+      "scoredCase": 1,
+      "emptyInitialization": 0
+    },
+    "wireCapture": {
+      "receivedBytes": 2032,
+      "receivedSha256": "db070291f8601d88bb34db12d72a689f7566d84d0707e37d96e78731e9b80fdf",
+      "prefixBase64": "AAABj3siaWQiOiJzeW50aGV0aWMvYnJlYWR0aC13cm9uZy12ZnMiLCJub25jZSI6ImUxZWU5ZjY0LTdkNGQtNDEzOS04ZmE3LTQ2NzE2MmIxZDIzNyIsImtpbmQiOiJlbmdpbmUtc3Bhd24iLCJwaWQiOjg2NzE1LCJhcmd2IjpbIi9Vc2Vycy9ram9wZWsvLm52bS92ZXJzaW9ucy9ub2RlL3YyMi4yMi4yL2Jpbi9ub2RlIiwiLS11bmhhbmRsZWQtcmVqZWN0aW9ucz1zdHJpY3QiLCItLWV4cGVyaW1lbnRhbC1pbXBvcnQtbWV0YS1yZXNvbHZlIiwiLS1tYXgtb2xkLXNwYWNlLXNpemU9MTI4IiwiL1VzZXJzL2tqb3Blay9Xb3Jrc3BhY2Uvc2FmZS1iYXNoL2JlbmNobWFya3MvcmVwb3J0cy9jdXJyZW50LWNvbXBhcmlzb24tMjAyNjA4MjcvZXhlY3V0aW9uL2VuZ2luZS1jaGlsZC5tanMiLCItLXN5bnRoZXRpYyJdfQAAAGJ7ImlkIjoic3ludGhldGljL2JyZWFkdGgtd3JvbmctdmZzIiwibm9uY2UiOiJlMWVlOWY2NC03ZDRkLTQxMzktOGZhNy00NjcxNjJiMWQyMzciLCJraW5kIjoicmVhZHkifQAAAHd7ImlkIjoic3ludGhldGljL2JyZWFkdGgtd3JvbmctdmZzIiwibm9uY2UiOiJlMWVlOWY2NC03ZDRkLTQxMzktOGZhNy00NjcxNjJiMWQyMzciLCJraW5kIjoicGhhc2UiLCJwaGFzZSI6ImV4ZWMtc3RhcnQifQAAAHl7ImlkIjoic3ludGhldGljL2JyZWFkdGgtd3JvbmctdmZzIiwibm9uY2UiOiJlMWVlOWY2NC03ZDRkLTQxMzktOGZhNy00NjcxNjJiMWQyMzciLCJraW5kIjoicGhhc2UiLCJwaGFzZSI6ImV4ZWMtc2V0dGxlZCJ9AAAAfnsiaWQiOiJzeW50aGV0aWMvYnJlYWR0aC13cm9uZy12ZnMiLCJub25jZSI6ImUxZWU5ZjY0LTdkNGQtNDEzOS04ZmE3LTQ2NzE2MmIxZDIzNyIsImtpbmQiOiJwaGFzZSIsInBoYXNlIjoic25hcHNob3QtY29tcGxldGUifQAAAHp7ImlkIjoic3ludGhldGljL2JyZWFkdGgtd3JvbmctdmZzIiwibm9uY2UiOiJlMWVlOWY2NC03ZDRkLTQxMzktOGZhNy00NjcxNjJiMWQyMzciLCJraW5kIjoicGhhc2UiLCJwaGFzZSI6ImRpc3Bvc2Utc3RhcnQifQAAAHx7ImlkIjoic3ludGhldGljL2JyZWFkdGgtd3JvbmctdmZzIiwibm9uY2UiOiJlMWVlOWY2NC03ZDRkLTQxMzktOGZhNy00NjcxNjJiMWQyMzciLCJraW5kIjoicGhhc2UiLCJwaGFzZSI6ImRpc3Bvc2Utc2V0dGxlZCJ9AAABbXsiaWQiOiJzeW50aGV0aWMvYnJlYWR0aC13cm9uZy12ZnMiLCJub25jZSI6ImUxZWU5ZjY0LTdkNGQtNDEzOS04ZmE3LTQ2NzE2MmIxZDIzNyIsImtpbmQiOiJyZXN1bHQiLCJyZXBvcnQiOnsiZW5naW5lIjoib3VycyIsImNhcHR1cmVFcnJvcnMiOltdLCJiZWZvcmUiOnsiY29tcGxldGUiOnRydWUsImVudHJpZXMiOltdfSwiYWZ0ZXIiOnsiY29tcGxldGUiOnRydWUsImVudHJpZXMiOltdfSwicmVzdWx0Ijp7ImV4aXRDb2RlIjowLCJzdGRvdXRCYXNlNjQiOiJBSCtBL3c9PSIsInN0ZGVyckJhc2U2NCI6IiIsInN0ZG91dCI6Ilx1MDAwMH/vv73vv70iLCJzdGRlcnIiOiIifSwiY2xlYW51cCI6eyJjb21wbGV0aW9uIjoicmV0dXJuZWQifX19AAAAf3siaWQiOiJzeW50aGV0aWMvYnJlYWR0aC13cm9uZy12ZnMiLCJub25jZSI6ImUxZWU5ZjY0LTdkNGQtNDEzOS04ZmE3LTQ2NzE2MmIxZDIzNyIsImtpbmQiOiJlbmdpbmUtZXhpdCIsImNvZGUiOjAsInNpZ25hbCI6bnVsbH0AAACAeyJpZCI6InN5bnRoZXRpYy9icmVhZHRoLXdyb25nLXZmcyIsIm5vbmNlIjoiZTFlZTlmNjQtN2Q0ZC00MTM5LThmYTctNDY3MTYyYjFkMjM3Iiwia2luZCI6ImVuZ2luZS1jbG9zZSIsImNvZGUiOjAsInNpZ25hbCI6bnVsbH0AAACSeyJpZCI6InN5bnRoZXRpYy9icmVhZHRoLXdyb25nLXZmcyIsIm5vbmNlIjoiZTFlZTlmNjQtN2Q0ZC00MTM5LThmYTctNDY3MTYyYjFkMjM3Iiwia2luZCI6ImZpeHR1cmUtY2xvc2UiLCJjbG9zZWQiOnRydWUsInNvY2tldHMiOjAsInJlcXVlc3RzIjpbXX0AAABteyJpZCI6InN5bnRoZXRpYy9icmVhZHRoLXdyb25nLXZmcyIsIm5vbmNlIjoiZTFlZTlmNjQtN2Q0ZC00MTM5LThmYTctNDY3MTYyYjFkMjM3Iiwia2luZCI6InNlc3Npb24tY29tcGxldGUifQ==",
+      "prefixOnly": false
+    }
+  },
+  "check": {
+    "mode": "breadth-wrong-vfs",
+    "passed": true,
+    "assessment": {
+      "historical": {
+        "classification": "partial-functionality",
+        "operationalCredit": false,
+        "expectationSatisfied": false,
+        "failures": [
+          "file exists: binary",
+          "file bytes: binary"
+        ],
+        "checks": [
+          {
+            "label": "complete before/after VFS census",
+            "passes": true,
+            "detail": null
+          },
+          {
+            "label": "exit status",
+            "passes": true,
+            "detail": {
+              "expected": 0,
+              "actual": 0
+            }
+          },
+          {
+            "label": "stdoutBase64",
+            "passes": true,
+            "detail": {
+              "expected": "AH+A/w==",
+              "actual": "AH+A/w=="
+            }
+          },
+          {
+            "label": "stderrBase64",
+            "passes": true,
+            "detail": {
+              "expected": "",
+              "actual": ""
+            }
+          },
+          {
+            "label": "file exists: binary",
+            "passes": false,
+            "detail": null
+          },
+          {
+            "label": "file bytes: binary",
+            "passes": false,
+            "detail": null
+          }
+        ],
+        "effects": [],
+        "fixtureState": [],
+        "rawStatus": 0,
+        "rawStdoutBase64": "AH+A/w==",
+        "rawStderrBase64": ""
+      },
+      "lifecycle": true,
+      "cleanupError": false,
+      "operationalCredit": false,
+      "status": "partial-functionality"
+    },
+    "elapsedMs": 105.4,
+    "groupGone": true,
+    "signals": [],
+    "raw": "attempt-026-breadth-wrong-vfs.json"
+  }
+}

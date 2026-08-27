@@ -1,0 +1,220 @@
+{
+  "request": {
+    "id": "synthetic/late-reject",
+    "nonce": "564cc2c2-4301-41fb-91e6-a3ed8500aa90",
+    "profile": "original",
+    "engine": "synthetic-not-product",
+    "synthetic": true,
+    "mode": "late-reject",
+    "expected": {
+      "stdout": "AH+A/w==",
+      "stderr": "",
+      "exitCode": 0,
+      "entries": {
+        "binary": {
+          "type": "file",
+          "bytes": "AH+A/w=="
+        }
+      }
+    },
+    "caps": {
+      "startupMs": 2000,
+      "guestMs": 180,
+      "requestMs": 1400,
+      "totalMs": 4500,
+      "settleMs": 150,
+      "snapshotMs": 200,
+      "disposeMs": 200,
+      "naturalMs": 180,
+      "termMs": 120,
+      "killMs": 200,
+      "outputBytes": 4194304,
+      "diagnosticBytes": 4096,
+      "reportBytes": 131072,
+      "events": 64,
+      "snapshotBytes": 33554432,
+      "entries": 4096,
+      "depth": 32
+    },
+    "heapMiB": 128,
+    "host": {
+      "cwd": "/private/tmp/safe-bash-execution-author-3bLn2Q",
+      "env": {
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/private/tmp/safe-bash-execution-author-3bLn2Q",
+        "TMPDIR": "/private/tmp/safe-bash-execution-author-3bLn2Q",
+        "LANG": "C",
+        "LC_ALL": "C",
+        "TZ": "UTC"
+      }
+    }
+  },
+  "attempt": {
+    "id": "synthetic/late-reject",
+    "nonce": "564cc2c2-4301-41fb-91e6-a3ed8500aa90",
+    "synthetic": true,
+    "profile": "original",
+    "engine": "synthetic-not-product",
+    "failures": [
+      "guest deadline",
+      "{\"name\":\"Error\",\"message\":\"observed late rejection\",\"code\":null}",
+      "coordinator crash/forced exit",
+      "missing result",
+      "missing lifecycle phase",
+      "engine did not exit/close naturally",
+      "coordinator did not exit/close naturally",
+      "unverified pipe/fixture/group closure"
+    ],
+    "events": [
+      {
+        "atMs": 0.417,
+        "kind": "group-admitted",
+        "pid": 58793,
+        "pgid": 58793,
+        "argv": [
+          "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+          "--unhandled-rejections=strict",
+          "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/current-comparison-20260827/execution/session.mjs",
+          "--synthetic"
+        ],
+        "host": {
+          "cwd": "/private/tmp/safe-bash-execution-author-3bLn2Q",
+          "env": {
+            "PATH": "/usr/bin:/bin",
+            "HOME": "/private/tmp/safe-bash-execution-author-3bLn2Q",
+            "TMPDIR": "/private/tmp/safe-bash-execution-author-3bLn2Q",
+            "LANG": "C",
+            "LC_ALL": "C",
+            "TZ": "UTC"
+          }
+        }
+      },
+      {
+        "atMs": 44.851,
+        "id": "synthetic/late-reject",
+        "nonce": "564cc2c2-4301-41fb-91e6-a3ed8500aa90",
+        "kind": "engine-spawn",
+        "pid": 58794,
+        "argv": [
+          "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+          "--unhandled-rejections=strict",
+          "--experimental-import-meta-resolve",
+          "--max-old-space-size=128",
+          "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/current-comparison-20260827/execution/engine-child.mjs",
+          "--synthetic"
+        ]
+      },
+      {
+        "atMs": 99.299,
+        "kind": "request-start",
+        "absoluteDeadlineMs": 1499.296084
+      },
+      {
+        "atMs": 99.302,
+        "id": "synthetic/late-reject",
+        "nonce": "564cc2c2-4301-41fb-91e6-a3ed8500aa90",
+        "kind": "ready"
+      },
+      {
+        "atMs": 99.927,
+        "id": "synthetic/late-reject",
+        "nonce": "564cc2c2-4301-41fb-91e6-a3ed8500aa90",
+        "kind": "phase",
+        "phase": "exec-start"
+      },
+      {
+        "atMs": 280.454,
+        "kind": "sticky-failure",
+        "reason": "guest deadline"
+      },
+      {
+        "atMs": 282.651,
+        "id": "synthetic/late-reject",
+        "nonce": "564cc2c2-4301-41fb-91e6-a3ed8500aa90",
+        "kind": "failure",
+        "error": "guest deadline"
+      },
+      {
+        "atMs": 325.885,
+        "kind": "sticky-failure",
+        "reason": "{\"name\":\"Error\",\"message\":\"observed late rejection\",\"code\":null}"
+      },
+      {
+        "atMs": 325.91,
+        "id": "synthetic/late-reject",
+        "nonce": "564cc2c2-4301-41fb-91e6-a3ed8500aa90",
+        "kind": "failure",
+        "error": {
+          "name": "Error",
+          "message": "observed late rejection",
+          "code": null
+        }
+      },
+      {
+        "atMs": 327.428,
+        "kind": "signal",
+        "signal": "SIGTERM",
+        "pgid": 58793
+      },
+      {
+        "atMs": 334.743,
+        "kind": "coordinator-exit",
+        "code": null,
+        "signal": "SIGTERM"
+      },
+      {
+        "atMs": 334.758,
+        "kind": "sticky-failure",
+        "reason": "coordinator crash/forced exit"
+      },
+      {
+        "atMs": 335.062,
+        "kind": "coordinator-close",
+        "code": null,
+        "signal": "SIGTERM"
+      }
+    ],
+    "signals": [
+      "SIGTERM"
+    ],
+    "result": null,
+    "engineExit": null,
+    "engineClose": null,
+    "sessionExit": {
+      "code": null,
+      "signal": "SIGTERM"
+    },
+    "sessionClose": {
+      "code": null,
+      "signal": "SIGTERM"
+    },
+    "diagnostics": [],
+    "clean": false,
+    "groupGone": true,
+    "coordinatorPid": 58793,
+    "enginePid": 58794,
+    "cancelSent": true,
+    "elapsedMs": 335.294,
+    "deadlinesMs": {
+      "total": 4500,
+      "request": 1499.296
+    },
+    "hostBytes": 0,
+    "reportBytes": 904
+  },
+  "check": {
+    "mode": "late-reject",
+    "passed": true,
+    "assessment": {
+      "comparison": null,
+      "lifecycle": false,
+      "status": "lifecycle-or-capture-failure"
+    },
+    "elapsedMs": 335.294,
+    "groupGone": true,
+    "signals": [
+      "SIGTERM"
+    ],
+    "raw": "attempt-009-late-reject.json"
+  }
+}

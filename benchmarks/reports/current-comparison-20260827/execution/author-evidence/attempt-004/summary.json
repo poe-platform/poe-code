@@ -1,0 +1,1152 @@
+{
+  "schema": "safe-bash.execution-synthetic-checks.v1",
+  "directory": "/private/tmp/safe-bash-execution-author-w3lrWQ",
+  "syntheticOnly": true,
+  "productImports": 0,
+  "nativeCalls": 0,
+  "mainCohortObservations": 0,
+  "sourcePinsSha256": "b65f8bedb30ad480192a87be166feeface92fb5155cd25897096e65eb0556c9a",
+  "sourceStable": true,
+  "counts": {
+    "old224Planned": 896,
+    "breadthPlanned": 136
+  },
+  "checks": [
+    {
+      "mode": "clean",
+      "passed": true,
+      "assessment": {
+        "comparison": {
+          "pass": true,
+          "assertions": [
+            {
+              "field": "stdout",
+              "pass": true
+            },
+            {
+              "field": "stderr",
+              "pass": true
+            },
+            {
+              "field": "exitCode",
+              "pass": true
+            },
+            {
+              "field": "entries",
+              "pass": true
+            }
+          ]
+        },
+        "lifecycle": true,
+        "status": "pass"
+      },
+      "elapsedMs": 105.18,
+      "groupGone": true,
+      "signals": [],
+      "raw": "attempt-001-clean.json"
+    },
+    {
+      "mode": "wrong-output",
+      "passed": true,
+      "assessment": {
+        "comparison": {
+          "pass": false,
+          "assertions": [
+            {
+              "field": "stdout",
+              "pass": false
+            },
+            {
+              "field": "stderr",
+              "pass": true
+            },
+            {
+              "field": "exitCode",
+              "pass": true
+            },
+            {
+              "field": "entries",
+              "pass": true
+            }
+          ]
+        },
+        "lifecycle": true,
+        "status": "fail"
+      },
+      "elapsedMs": 90.581,
+      "groupGone": true,
+      "signals": [],
+      "raw": "attempt-002-wrong-output.json"
+    },
+    {
+      "mode": "wrong-vfs",
+      "passed": true,
+      "assessment": {
+        "comparison": {
+          "pass": false,
+          "assertions": [
+            {
+              "field": "stdout",
+              "pass": true
+            },
+            {
+              "field": "stderr",
+              "pass": true
+            },
+            {
+              "field": "exitCode",
+              "pass": true
+            },
+            {
+              "field": "entries",
+              "pass": false
+            }
+          ]
+        },
+        "lifecycle": true,
+        "status": "fail"
+      },
+      "elapsedMs": 105.109,
+      "groupGone": true,
+      "signals": [],
+      "raw": "attempt-003-wrong-vfs.json"
+    },
+    {
+      "mode": "wrong-status",
+      "passed": true,
+      "assessment": {
+        "comparison": {
+          "pass": false,
+          "assertions": [
+            {
+              "field": "stdout",
+              "pass": true
+            },
+            {
+              "field": "stderr",
+              "pass": true
+            },
+            {
+              "field": "exitCode",
+              "pass": false
+            },
+            {
+              "field": "entries",
+              "pass": true
+            }
+          ]
+        },
+        "lifecycle": true,
+        "status": "fail"
+      },
+      "elapsedMs": 105.141,
+      "groupGone": true,
+      "signals": [],
+      "raw": "attempt-004-wrong-status.json"
+    },
+    {
+      "mode": "leak",
+      "passed": true,
+      "assessment": {
+        "comparison": {
+          "pass": true,
+          "assertions": [
+            {
+              "field": "stdout",
+              "pass": true
+            },
+            {
+              "field": "stderr",
+              "pass": true
+            },
+            {
+              "field": "exitCode",
+              "pass": true
+            },
+            {
+              "field": "entries",
+              "pass": true
+            }
+          ]
+        },
+        "lifecycle": false,
+        "status": "lifecycle-or-capture-failure"
+      },
+      "elapsedMs": 281.172,
+      "groupGone": true,
+      "signals": [
+        "SIGTERM"
+      ],
+      "raw": "attempt-005-leak.json"
+    },
+    {
+      "mode": "result-crash",
+      "passed": true,
+      "assessment": {
+        "comparison": {
+          "pass": true,
+          "assertions": [
+            {
+              "field": "stdout",
+              "pass": true
+            },
+            {
+              "field": "stderr",
+              "pass": true
+            },
+            {
+              "field": "exitCode",
+              "pass": true
+            },
+            {
+              "field": "entries",
+              "pass": true
+            }
+          ]
+        },
+        "lifecycle": false,
+        "status": "lifecycle-or-capture-failure"
+      },
+      "elapsedMs": 139.575,
+      "groupGone": true,
+      "signals": [
+        "SIGTERM"
+      ],
+      "raw": "attempt-006-result-crash.json"
+    },
+    {
+      "mode": "crash",
+      "passed": true,
+      "assessment": {
+        "comparison": null,
+        "lifecycle": false,
+        "status": "lifecycle-or-capture-failure"
+      },
+      "elapsedMs": 107.763,
+      "groupGone": true,
+      "signals": [
+        "SIGTERM"
+      ],
+      "raw": "attempt-007-crash.json"
+    },
+    {
+      "mode": "late-error",
+      "passed": true,
+      "assessment": {
+        "comparison": {
+          "pass": true,
+          "assertions": [
+            {
+              "field": "stdout",
+              "pass": true
+            },
+            {
+              "field": "stderr",
+              "pass": true
+            },
+            {
+              "field": "exitCode",
+              "pass": true
+            },
+            {
+              "field": "entries",
+              "pass": true
+            }
+          ]
+        },
+        "lifecycle": false,
+        "status": "lifecycle-or-capture-failure"
+      },
+      "elapsedMs": 129.432,
+      "groupGone": true,
+      "signals": [
+        "SIGTERM"
+      ],
+      "raw": "attempt-008-late-error.json"
+    },
+    {
+      "mode": "late-reject",
+      "passed": true,
+      "assessment": {
+        "comparison": null,
+        "lifecycle": false,
+        "status": "lifecycle-or-capture-failure"
+      },
+      "elapsedMs": 326.996,
+      "groupGone": true,
+      "signals": [
+        "SIGTERM"
+      ],
+      "raw": "attempt-009-late-reject.json"
+    },
+    {
+      "mode": "oversize",
+      "passed": true,
+      "assessment": {
+        "comparison": null,
+        "lifecycle": false,
+        "status": "lifecycle-or-capture-failure"
+      },
+      "elapsedMs": 119.423,
+      "groupGone": true,
+      "signals": [
+        "SIGTERM"
+      ],
+      "raw": "attempt-010-oversize.json"
+    },
+    {
+      "mode": "diagnostic-flood",
+      "passed": true,
+      "assessment": {
+        "comparison": null,
+        "lifecycle": false,
+        "status": "lifecycle-or-capture-failure"
+      },
+      "elapsedMs": 119.354,
+      "groupGone": true,
+      "signals": [
+        "SIGTERM"
+      ],
+      "raw": "attempt-011-diagnostic-flood.json"
+    },
+    {
+      "mode": "partial-frame",
+      "passed": true,
+      "assessment": {
+        "comparison": null,
+        "lifecycle": false,
+        "status": "lifecycle-or-capture-failure"
+      },
+      "elapsedMs": 108.612,
+      "groupGone": true,
+      "signals": [
+        "SIGTERM"
+      ],
+      "raw": "attempt-012-partial-frame.json"
+    },
+    {
+      "mode": "duplicate",
+      "passed": true,
+      "assessment": {
+        "comparison": {
+          "pass": true,
+          "assertions": [
+            {
+              "field": "stdout",
+              "pass": true
+            },
+            {
+              "field": "stderr",
+              "pass": true
+            },
+            {
+              "field": "exitCode",
+              "pass": true
+            },
+            {
+              "field": "entries",
+              "pass": true
+            }
+          ]
+        },
+        "lifecycle": false,
+        "status": "lifecycle-or-capture-failure"
+      },
+      "elapsedMs": 96.532,
+      "groupGone": true,
+      "signals": [
+        "SIGTERM"
+      ],
+      "raw": "attempt-013-duplicate.json"
+    },
+    {
+      "mode": "wrong-id",
+      "passed": true,
+      "assessment": {
+        "comparison": null,
+        "lifecycle": false,
+        "status": "lifecycle-or-capture-failure"
+      },
+      "elapsedMs": 94.992,
+      "groupGone": true,
+      "signals": [
+        "SIGTERM"
+      ],
+      "raw": "attempt-014-wrong-id.json"
+    },
+    {
+      "mode": "ignore-term",
+      "passed": true,
+      "assessment": {
+        "comparison": null,
+        "lifecycle": false,
+        "status": "lifecycle-or-capture-failure"
+      },
+      "elapsedMs": 547.023,
+      "groupGone": true,
+      "signals": [
+        "SIGTERM",
+        "SIGKILL"
+      ],
+      "raw": "attempt-015-ignore-term.json"
+    },
+    {
+      "mode": "coordinator-stall",
+      "passed": true,
+      "assessment": {
+        "comparison": null,
+        "lifecycle": false,
+        "status": "lifecycle-or-capture-failure"
+      },
+      "elapsedMs": 2125.337,
+      "groupGone": true,
+      "signals": [
+        "SIGTERM",
+        "SIGKILL"
+      ],
+      "raw": "attempt-016-coordinator-stall.json"
+    },
+    {
+      "mode": "binding-mutated",
+      "passed": true,
+      "assessment": {
+        "comparison": null,
+        "lifecycle": false,
+        "status": "lifecycle-or-capture-failure"
+      },
+      "elapsedMs": 105.699,
+      "groupGone": true,
+      "signals": [
+        "SIGTERM"
+      ],
+      "raw": "attempt-017-binding-mutated.json"
+    },
+    {
+      "mode": "path-escape",
+      "passed": true,
+      "assessment": {
+        "comparison": null,
+        "lifecycle": false,
+        "status": "lifecycle-or-capture-failure"
+      },
+      "elapsedMs": 94.797,
+      "groupGone": true,
+      "signals": [
+        "SIGTERM"
+      ],
+      "raw": "attempt-018-path-escape.json"
+    },
+    {
+      "mode": "binding-clean",
+      "passed": true,
+      "assessment": {
+        "comparison": {
+          "pass": true,
+          "assertions": [
+            {
+              "field": "stdout",
+              "pass": true
+            },
+            {
+              "field": "stderr",
+              "pass": true
+            },
+            {
+              "field": "exitCode",
+              "pass": true
+            },
+            {
+              "field": "entries",
+              "pass": true
+            }
+          ]
+        },
+        "lifecycle": true,
+        "status": "pass"
+      },
+      "elapsedMs": 104.451,
+      "groupGone": true,
+      "signals": [],
+      "raw": "attempt-019-binding-clean.json"
+    },
+    {
+      "mode": "module-clean",
+      "passed": true,
+      "assessment": {
+        "comparison": {
+          "pass": true,
+          "assertions": [
+            {
+              "field": "stdout",
+              "pass": true
+            },
+            {
+              "field": "stderr",
+              "pass": true
+            },
+            {
+              "field": "exitCode",
+              "pass": true
+            },
+            {
+              "field": "entries",
+              "pass": true
+            }
+          ]
+        },
+        "lifecycle": true,
+        "status": "pass"
+      },
+      "elapsedMs": 123.69,
+      "groupGone": true,
+      "signals": [],
+      "raw": "attempt-020-module-clean.json"
+    },
+    {
+      "mode": "module-wrong-entry",
+      "passed": true,
+      "assessment": {
+        "comparison": null,
+        "lifecycle": false,
+        "status": "lifecycle-or-capture-failure"
+      },
+      "elapsedMs": 139.265,
+      "groupGone": true,
+      "signals": [],
+      "raw": "attempt-021-module-wrong-entry.json"
+    },
+    {
+      "mode": "module-mutation",
+      "passed": true,
+      "assessment": {
+        "comparison": null,
+        "lifecycle": false,
+        "status": "lifecycle-or-capture-failure"
+      },
+      "elapsedMs": 130.425,
+      "groupGone": true,
+      "signals": [
+        "SIGTERM"
+      ],
+      "raw": "attempt-022-module-mutation.json"
+    },
+    {
+      "mode": "module-escape",
+      "passed": true,
+      "assessment": {
+        "comparison": null,
+        "lifecycle": false,
+        "status": "lifecycle-or-capture-failure"
+      },
+      "elapsedMs": 128.373,
+      "groupGone": true,
+      "signals": [],
+      "raw": "attempt-023-module-escape.json"
+    },
+    {
+      "mode": "breadth-clean",
+      "passed": true,
+      "assessment": {
+        "historical": {
+          "classification": "functional-positive",
+          "operationalCredit": true,
+          "expectationSatisfied": true,
+          "failures": [],
+          "checks": [
+            {
+              "label": "complete before/after VFS census",
+              "passes": true,
+              "detail": null
+            },
+            {
+              "label": "exit status",
+              "passes": true,
+              "detail": {
+                "expected": 0,
+                "actual": 0
+              }
+            },
+            {
+              "label": "stdoutBase64",
+              "passes": true,
+              "detail": {
+                "expected": "AH+A/w==",
+                "actual": "AH+A/w=="
+              }
+            },
+            {
+              "label": "stderrBase64",
+              "passes": true,
+              "detail": {
+                "expected": "",
+                "actual": ""
+              }
+            },
+            {
+              "label": "file exists: binary",
+              "passes": true,
+              "detail": null
+            },
+            {
+              "label": "file bytes: binary",
+              "passes": true,
+              "detail": null
+            }
+          ],
+          "effects": [
+            {
+              "path": "/fixture/binary",
+              "before": null,
+              "after": {
+                "path": "/fixture/binary",
+                "type": "file",
+                "base64": "AH+A/w=="
+              }
+            }
+          ],
+          "fixtureState": [
+            {
+              "path": "/fixture/binary",
+              "type": "file",
+              "base64": "AH+A/w=="
+            }
+          ],
+          "rawStatus": 0,
+          "rawStdoutBase64": "AH+A/w==",
+          "rawStderrBase64": ""
+        },
+        "lifecycle": true,
+        "cleanupError": false,
+        "operationalCredit": true,
+        "status": "functional-positive"
+      },
+      "elapsedMs": 114.167,
+      "groupGone": true,
+      "signals": [],
+      "raw": "attempt-024-breadth-clean.json"
+    },
+    {
+      "mode": "breadth-wrong-output",
+      "passed": true,
+      "assessment": {
+        "historical": {
+          "classification": "partial-functionality",
+          "operationalCredit": false,
+          "expectationSatisfied": false,
+          "failures": [
+            "stdoutBase64"
+          ],
+          "checks": [
+            {
+              "label": "complete before/after VFS census",
+              "passes": true,
+              "detail": null
+            },
+            {
+              "label": "exit status",
+              "passes": true,
+              "detail": {
+                "expected": 0,
+                "actual": 0
+              }
+            },
+            {
+              "label": "stdoutBase64",
+              "passes": false,
+              "detail": {
+                "expected": "AH+A/w==",
+                "actual": "d3JvbmcK"
+              }
+            },
+            {
+              "label": "stderrBase64",
+              "passes": true,
+              "detail": {
+                "expected": "",
+                "actual": ""
+              }
+            },
+            {
+              "label": "file exists: binary",
+              "passes": true,
+              "detail": null
+            },
+            {
+              "label": "file bytes: binary",
+              "passes": true,
+              "detail": null
+            }
+          ],
+          "effects": [
+            {
+              "path": "/fixture/binary",
+              "before": null,
+              "after": {
+                "path": "/fixture/binary",
+                "type": "file",
+                "base64": "AH+A/w=="
+              }
+            }
+          ],
+          "fixtureState": [
+            {
+              "path": "/fixture/binary",
+              "type": "file",
+              "base64": "AH+A/w=="
+            }
+          ],
+          "rawStatus": 0,
+          "rawStdoutBase64": "d3JvbmcK",
+          "rawStderrBase64": ""
+        },
+        "lifecycle": true,
+        "cleanupError": false,
+        "operationalCredit": false,
+        "status": "partial-functionality"
+      },
+      "elapsedMs": 105.937,
+      "groupGone": true,
+      "signals": [],
+      "raw": "attempt-025-breadth-wrong-output.json"
+    },
+    {
+      "mode": "breadth-wrong-vfs",
+      "passed": true,
+      "assessment": {
+        "historical": {
+          "classification": "partial-functionality",
+          "operationalCredit": false,
+          "expectationSatisfied": false,
+          "failures": [
+            "file exists: binary",
+            "file bytes: binary"
+          ],
+          "checks": [
+            {
+              "label": "complete before/after VFS census",
+              "passes": true,
+              "detail": null
+            },
+            {
+              "label": "exit status",
+              "passes": true,
+              "detail": {
+                "expected": 0,
+                "actual": 0
+              }
+            },
+            {
+              "label": "stdoutBase64",
+              "passes": true,
+              "detail": {
+                "expected": "AH+A/w==",
+                "actual": "AH+A/w=="
+              }
+            },
+            {
+              "label": "stderrBase64",
+              "passes": true,
+              "detail": {
+                "expected": "",
+                "actual": ""
+              }
+            },
+            {
+              "label": "file exists: binary",
+              "passes": false,
+              "detail": null
+            },
+            {
+              "label": "file bytes: binary",
+              "passes": false,
+              "detail": null
+            }
+          ],
+          "effects": [],
+          "fixtureState": [],
+          "rawStatus": 0,
+          "rawStdoutBase64": "AH+A/w==",
+          "rawStderrBase64": ""
+        },
+        "lifecycle": true,
+        "cleanupError": false,
+        "operationalCredit": false,
+        "status": "partial-functionality"
+      },
+      "elapsedMs": 105.4,
+      "groupGone": true,
+      "signals": [],
+      "raw": "attempt-026-breadth-wrong-vfs.json"
+    },
+    {
+      "mode": "breadth-wrong-status",
+      "passed": true,
+      "assessment": {
+        "historical": {
+          "classification": "partial-functionality",
+          "operationalCredit": false,
+          "expectationSatisfied": false,
+          "failures": [
+            "exit status"
+          ],
+          "checks": [
+            {
+              "label": "complete before/after VFS census",
+              "passes": true,
+              "detail": null
+            },
+            {
+              "label": "exit status",
+              "passes": false,
+              "detail": {
+                "expected": 0,
+                "actual": 17
+              }
+            },
+            {
+              "label": "stdoutBase64",
+              "passes": true,
+              "detail": {
+                "expected": "AH+A/w==",
+                "actual": "AH+A/w=="
+              }
+            },
+            {
+              "label": "stderrBase64",
+              "passes": true,
+              "detail": {
+                "expected": "",
+                "actual": ""
+              }
+            },
+            {
+              "label": "file exists: binary",
+              "passes": true,
+              "detail": null
+            },
+            {
+              "label": "file bytes: binary",
+              "passes": true,
+              "detail": null
+            }
+          ],
+          "effects": [
+            {
+              "path": "/fixture/binary",
+              "before": null,
+              "after": {
+                "path": "/fixture/binary",
+                "type": "file",
+                "base64": "AH+A/w=="
+              }
+            }
+          ],
+          "fixtureState": [
+            {
+              "path": "/fixture/binary",
+              "type": "file",
+              "base64": "AH+A/w=="
+            }
+          ],
+          "rawStatus": 17,
+          "rawStdoutBase64": "AH+A/w==",
+          "rawStderrBase64": ""
+        },
+        "lifecycle": true,
+        "cleanupError": false,
+        "operationalCredit": false,
+        "status": "partial-functionality"
+      },
+      "elapsedMs": 106.337,
+      "groupGone": true,
+      "signals": [],
+      "raw": "attempt-027-breadth-wrong-status.json"
+    },
+    {
+      "mode": "breadth-cleanup-error",
+      "passed": true,
+      "assessment": {
+        "historical": {
+          "classification": "harness-error",
+          "operationalCredit": false,
+          "failures": [
+            "child did not return normally"
+          ],
+          "checks": [],
+          "effects": null
+        },
+        "lifecycle": false,
+        "cleanupError": true,
+        "operationalCredit": false,
+        "status": "lifecycle-or-capture-failure"
+      },
+      "elapsedMs": 104.41,
+      "groupGone": true,
+      "signals": [
+        "SIGTERM"
+      ],
+      "raw": "attempt-028-breadth-cleanup-error.json"
+    }
+  ],
+  "cleanup": [
+    {
+      "mode": "clean",
+      "coordinator": 86618,
+      "engine": 86619,
+      "groupGone": true,
+      "signals": [],
+      "groupExistsAtEnd": false
+    },
+    {
+      "mode": "wrong-output",
+      "coordinator": 86621,
+      "engine": 86622,
+      "groupGone": true,
+      "signals": [],
+      "groupExistsAtEnd": false
+    },
+    {
+      "mode": "wrong-vfs",
+      "coordinator": 86624,
+      "engine": 86625,
+      "groupGone": true,
+      "signals": [],
+      "groupExistsAtEnd": false
+    },
+    {
+      "mode": "wrong-status",
+      "coordinator": 86626,
+      "engine": 86628,
+      "groupGone": true,
+      "signals": [],
+      "groupExistsAtEnd": false
+    },
+    {
+      "mode": "leak",
+      "coordinator": 86629,
+      "engine": 86631,
+      "groupGone": true,
+      "signals": [
+        "SIGTERM"
+      ],
+      "groupExistsAtEnd": false
+    },
+    {
+      "mode": "result-crash",
+      "coordinator": 86632,
+      "engine": 86633,
+      "groupGone": true,
+      "signals": [
+        "SIGTERM"
+      ],
+      "groupExistsAtEnd": false
+    },
+    {
+      "mode": "crash",
+      "coordinator": 86634,
+      "engine": 86635,
+      "groupGone": true,
+      "signals": [
+        "SIGTERM"
+      ],
+      "groupExistsAtEnd": false
+    },
+    {
+      "mode": "late-error",
+      "coordinator": 86637,
+      "engine": 86638,
+      "groupGone": true,
+      "signals": [
+        "SIGTERM"
+      ],
+      "groupExistsAtEnd": false
+    },
+    {
+      "mode": "late-reject",
+      "coordinator": 86639,
+      "engine": 86640,
+      "groupGone": true,
+      "signals": [
+        "SIGTERM"
+      ],
+      "groupExistsAtEnd": false
+    },
+    {
+      "mode": "oversize",
+      "coordinator": 86642,
+      "engine": 86643,
+      "groupGone": true,
+      "signals": [
+        "SIGTERM"
+      ],
+      "groupExistsAtEnd": false
+    },
+    {
+      "mode": "diagnostic-flood",
+      "coordinator": 86644,
+      "engine": 86645,
+      "groupGone": true,
+      "signals": [
+        "SIGTERM"
+      ],
+      "groupExistsAtEnd": false
+    },
+    {
+      "mode": "partial-frame",
+      "coordinator": 86648,
+      "engine": 86651,
+      "groupGone": true,
+      "signals": [
+        "SIGTERM"
+      ],
+      "groupExistsAtEnd": false
+    },
+    {
+      "mode": "duplicate",
+      "coordinator": 86657,
+      "engine": 86658,
+      "groupGone": true,
+      "signals": [
+        "SIGTERM"
+      ],
+      "groupExistsAtEnd": false
+    },
+    {
+      "mode": "wrong-id",
+      "coordinator": 86659,
+      "engine": 86660,
+      "groupGone": true,
+      "signals": [
+        "SIGTERM"
+      ],
+      "groupExistsAtEnd": false
+    },
+    {
+      "mode": "ignore-term",
+      "coordinator": 86661,
+      "engine": 86662,
+      "groupGone": true,
+      "signals": [
+        "SIGTERM",
+        "SIGKILL"
+      ],
+      "groupExistsAtEnd": false
+    },
+    {
+      "mode": "coordinator-stall",
+      "coordinator": 86664,
+      "engine": 86666,
+      "groupGone": true,
+      "signals": [
+        "SIGTERM",
+        "SIGKILL"
+      ],
+      "groupExistsAtEnd": false
+    },
+    {
+      "mode": "binding-mutated",
+      "coordinator": 86674,
+      "engine": 86675,
+      "groupGone": true,
+      "signals": [
+        "SIGTERM"
+      ],
+      "groupExistsAtEnd": false
+    },
+    {
+      "mode": "path-escape",
+      "coordinator": 86678,
+      "engine": 86683,
+      "groupGone": true,
+      "signals": [
+        "SIGTERM"
+      ],
+      "groupExistsAtEnd": false
+    },
+    {
+      "mode": "binding-clean",
+      "coordinator": 86694,
+      "engine": 86698,
+      "groupGone": true,
+      "signals": [],
+      "groupExistsAtEnd": false
+    },
+    {
+      "mode": "module-clean",
+      "coordinator": 86699,
+      "engine": 86700,
+      "groupGone": true,
+      "signals": [],
+      "groupExistsAtEnd": false
+    },
+    {
+      "mode": "module-wrong-entry",
+      "coordinator": 86702,
+      "engine": 86703,
+      "groupGone": true,
+      "signals": [],
+      "groupExistsAtEnd": false
+    },
+    {
+      "mode": "module-mutation",
+      "coordinator": 86705,
+      "engine": 86706,
+      "groupGone": true,
+      "signals": [
+        "SIGTERM"
+      ],
+      "groupExistsAtEnd": false
+    },
+    {
+      "mode": "module-escape",
+      "coordinator": 86707,
+      "engine": 86708,
+      "groupGone": true,
+      "signals": [],
+      "groupExistsAtEnd": false
+    },
+    {
+      "mode": "breadth-clean",
+      "coordinator": 86710,
+      "engine": 86711,
+      "groupGone": true,
+      "signals": [],
+      "groupExistsAtEnd": false
+    },
+    {
+      "mode": "breadth-wrong-output",
+      "coordinator": 86712,
+      "engine": 86713,
+      "groupGone": true,
+      "signals": [],
+      "groupExistsAtEnd": false
+    },
+    {
+      "mode": "breadth-wrong-vfs",
+      "coordinator": 86714,
+      "engine": 86715,
+      "groupGone": true,
+      "signals": [],
+      "groupExistsAtEnd": false
+    },
+    {
+      "mode": "breadth-wrong-status",
+      "coordinator": 86717,
+      "engine": 86718,
+      "groupGone": true,
+      "signals": [],
+      "groupExistsAtEnd": false
+    },
+    {
+      "mode": "breadth-cleanup-error",
+      "coordinator": 86719,
+      "engine": 86720,
+      "groupGone": true,
+      "signals": [
+        "SIGTERM"
+      ],
+      "groupExistsAtEnd": false
+    }
+  ],
+  "success": true
+}

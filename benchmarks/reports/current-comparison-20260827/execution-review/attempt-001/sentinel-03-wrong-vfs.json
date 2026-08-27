@@ -1,0 +1,299 @@
+{
+  "request": {
+    "id": "independent/wrong-vfs",
+    "nonce": "54f1a7c9-40a9-4297-89ae-d8d8973beccb",
+    "synthetic": true,
+    "engine": "independent-sentinel-not-product",
+    "profile": "original",
+    "mode": "wrong-vfs",
+    "expected": {
+      "stdout": "AAF/gP7/",
+      "stderr": "aW5kZXBlbmRlbnQK",
+      "exitCode": 0,
+      "entries": {
+        "binary": {
+          "type": "file",
+          "bytes": "AAF/gP7/"
+        }
+      }
+    },
+    "caps": {
+      "startupMs": 2000,
+      "guestMs": 180,
+      "requestMs": 1400,
+      "totalMs": 4500,
+      "settleMs": 150,
+      "snapshotMs": 200,
+      "disposeMs": 200,
+      "naturalMs": 240,
+      "termMs": 120,
+      "killMs": 200,
+      "outputBytes": 4194304,
+      "diagnosticBytes": 4096,
+      "reportBytes": 131072,
+      "events": 64,
+      "snapshotBytes": 33554432,
+      "entries": 4096,
+      "depth": 32
+    },
+    "heapMiB": 128,
+    "host": {
+      "root": "/private/tmp/safe-bash-independent-bridge-BBhHqv",
+      "cwd": "/private/tmp/safe-bash-independent-bridge-BBhHqv",
+      "env": {
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/private/tmp/safe-bash-independent-bridge-BBhHqv",
+        "TMPDIR": "/private/tmp/safe-bash-independent-bridge-BBhHqv",
+        "LANG": "C",
+        "LC_ALL": "C",
+        "TZ": "UTC"
+      }
+    }
+  },
+  "attempt": {
+    "id": "independent/wrong-vfs",
+    "nonce": "54f1a7c9-40a9-4297-89ae-d8d8973beccb",
+    "synthetic": true,
+    "profile": "original",
+    "engine": "independent-sentinel-not-product",
+    "failures": [],
+    "events": [
+      {
+        "atMs": 0.552,
+        "kind": "group-admitted",
+        "pid": 96174,
+        "pgid": 96174,
+        "argv": [
+          "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+          "--unhandled-rejections=strict",
+          "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/current-comparison-20260827/execution/session.mjs",
+          "--synthetic"
+        ],
+        "host": {
+          "root": "/private/tmp/safe-bash-independent-bridge-BBhHqv",
+          "cwd": "/private/tmp/safe-bash-independent-bridge-BBhHqv",
+          "env": {
+            "PATH": "/usr/bin:/bin",
+            "HOME": "/private/tmp/safe-bash-independent-bridge-BBhHqv",
+            "TMPDIR": "/private/tmp/safe-bash-independent-bridge-BBhHqv",
+            "LANG": "C",
+            "LC_ALL": "C",
+            "TZ": "UTC"
+          }
+        }
+      },
+      {
+        "atMs": 36.326,
+        "id": "independent/wrong-vfs",
+        "nonce": "54f1a7c9-40a9-4297-89ae-d8d8973beccb",
+        "kind": "engine-spawn",
+        "pid": 96188,
+        "argv": [
+          "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+          "--unhandled-rejections=strict",
+          "--experimental-import-meta-resolve",
+          "--max-old-space-size=128",
+          "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/current-comparison-20260827/execution/engine-child.mjs",
+          "--synthetic"
+        ]
+      },
+      {
+        "atMs": 87.312,
+        "kind": "request-start",
+        "absoluteDeadlineMs": 1487.306916
+      },
+      {
+        "atMs": 87.314,
+        "id": "independent/wrong-vfs",
+        "nonce": "54f1a7c9-40a9-4297-89ae-d8d8973beccb",
+        "kind": "ready"
+      },
+      {
+        "atMs": 87.966,
+        "id": "independent/wrong-vfs",
+        "nonce": "54f1a7c9-40a9-4297-89ae-d8d8973beccb",
+        "kind": "phase",
+        "phase": "exec-start"
+      },
+      {
+        "atMs": 88.07,
+        "id": "independent/wrong-vfs",
+        "nonce": "54f1a7c9-40a9-4297-89ae-d8d8973beccb",
+        "kind": "phase",
+        "phase": "exec-settled"
+      },
+      {
+        "atMs": 88.226,
+        "id": "independent/wrong-vfs",
+        "nonce": "54f1a7c9-40a9-4297-89ae-d8d8973beccb",
+        "kind": "phase",
+        "phase": "snapshot-complete"
+      },
+      {
+        "atMs": 88.306,
+        "id": "independent/wrong-vfs",
+        "nonce": "54f1a7c9-40a9-4297-89ae-d8d8973beccb",
+        "kind": "phase",
+        "phase": "dispose-start"
+      },
+      {
+        "atMs": 88.445,
+        "id": "independent/wrong-vfs",
+        "nonce": "54f1a7c9-40a9-4297-89ae-d8d8973beccb",
+        "kind": "phase",
+        "phase": "dispose-settled"
+      },
+      {
+        "atMs": 88.566,
+        "kind": "result-received",
+        "sha256": "c8b6b1241a08d09fc7fb41761f40bc10c56ae955fbdfb820339cc22296b5e91c",
+        "absoluteTotalUnchangedMs": 4500
+      },
+      {
+        "atMs": 91.29,
+        "id": "independent/wrong-vfs",
+        "nonce": "54f1a7c9-40a9-4297-89ae-d8d8973beccb",
+        "kind": "engine-exit",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "atMs": 91.33,
+        "id": "independent/wrong-vfs",
+        "nonce": "54f1a7c9-40a9-4297-89ae-d8d8973beccb",
+        "kind": "engine-close",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "atMs": 91.335,
+        "id": "independent/wrong-vfs",
+        "nonce": "54f1a7c9-40a9-4297-89ae-d8d8973beccb",
+        "kind": "fixture-close",
+        "closed": true,
+        "sockets": 0,
+        "requests": []
+      },
+      {
+        "atMs": 91.363,
+        "id": "independent/wrong-vfs",
+        "nonce": "54f1a7c9-40a9-4297-89ae-d8d8973beccb",
+        "kind": "session-complete"
+      },
+      {
+        "atMs": 94.12,
+        "kind": "coordinator-exit",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "atMs": 94.124,
+        "kind": "coordinator-close",
+        "code": 0,
+        "signal": null
+      }
+    ],
+    "signals": [],
+    "result": {
+      "id": "independent/wrong-vfs",
+      "nonce": "54f1a7c9-40a9-4297-89ae-d8d8973beccb",
+      "kind": "result",
+      "observation": {
+        "stdout": "AAF/gP7/",
+        "stderr": "aW5kZXBlbmRlbnQK",
+        "exitCode": 0,
+        "entries": {
+          "binary": {
+            "type": "file",
+            "bytes": "AAF/gP7/"
+          },
+          "extra": {
+            "type": "file",
+            "bytes": "AA=="
+          }
+        }
+      }
+    },
+    "engineExit": {
+      "code": 0,
+      "signal": null
+    },
+    "engineClose": {
+      "code": 0,
+      "signal": null
+    },
+    "sessionExit": {
+      "code": 0,
+      "signal": null
+    },
+    "sessionClose": {
+      "code": 0,
+      "signal": null
+    },
+    "diagnostics": [],
+    "clean": true,
+    "groupGone": true,
+    "coordinatorPid": 96174,
+    "enginePid": 96188,
+    "network": {
+      "id": "independent/wrong-vfs",
+      "nonce": "54f1a7c9-40a9-4297-89ae-d8d8973beccb",
+      "kind": "fixture-close",
+      "closed": true,
+      "sockets": 0,
+      "requests": []
+    },
+    "elapsedMs": 105.528,
+    "deadlinesMs": {
+      "total": 4500,
+      "request": 1487.307,
+      "natural": 328.518
+    },
+    "hostBytes": 0,
+    "reportBytes": 1866,
+    "execAdmissions": {
+      "scoredCase": 1,
+      "emptyInitialization": 0
+    },
+    "wireCapture": {
+      "receivedBytes": 1866,
+      "receivedSha256": "6966828a89985e3443bc81a805f3cd2c85db35a41cfad62e48d1021e31c5cbc3",
+      "prefixBase64": "AAABiXsiaWQiOiJpbmRlcGVuZGVudC93cm9uZy12ZnMiLCJub25jZSI6IjU0ZjFhN2M5LTQwYTktNDI5Ny04OWFlLWQ4ZDg5NzNiZWNjYiIsImtpbmQiOiJlbmdpbmUtc3Bhd24iLCJwaWQiOjk2MTg4LCJhcmd2IjpbIi9Vc2Vycy9ram9wZWsvLm52bS92ZXJzaW9ucy9ub2RlL3YyMi4yMi4yL2Jpbi9ub2RlIiwiLS11bmhhbmRsZWQtcmVqZWN0aW9ucz1zdHJpY3QiLCItLWV4cGVyaW1lbnRhbC1pbXBvcnQtbWV0YS1yZXNvbHZlIiwiLS1tYXgtb2xkLXNwYWNlLXNpemU9MTI4IiwiL1VzZXJzL2tqb3Blay9Xb3Jrc3BhY2Uvc2FmZS1iYXNoL2JlbmNobWFya3MvcmVwb3J0cy9jdXJyZW50LWNvbXBhcmlzb24tMjAyNjA4MjcvZXhlY3V0aW9uL2VuZ2luZS1jaGlsZC5tanMiLCItLXN5bnRoZXRpYyJdfQAAAFx7ImlkIjoiaW5kZXBlbmRlbnQvd3JvbmctdmZzIiwibm9uY2UiOiI1NGYxYTdjOS00MGE5LTQyOTctODlhZS1kOGQ4OTczYmVjY2IiLCJraW5kIjoicmVhZHkifQAAAHF7ImlkIjoiaW5kZXBlbmRlbnQvd3JvbmctdmZzIiwibm9uY2UiOiI1NGYxYTdjOS00MGE5LTQyOTctODlhZS1kOGQ4OTczYmVjY2IiLCJraW5kIjoicGhhc2UiLCJwaGFzZSI6ImV4ZWMtc3RhcnQifQAAAHN7ImlkIjoiaW5kZXBlbmRlbnQvd3JvbmctdmZzIiwibm9uY2UiOiI1NGYxYTdjOS00MGE5LTQyOTctODlhZS1kOGQ4OTczYmVjY2IiLCJraW5kIjoicGhhc2UiLCJwaGFzZSI6ImV4ZWMtc2V0dGxlZCJ9AAAAeHsiaWQiOiJpbmRlcGVuZGVudC93cm9uZy12ZnMiLCJub25jZSI6IjU0ZjFhN2M5LTQwYTktNDI5Ny04OWFlLWQ4ZDg5NzNiZWNjYiIsImtpbmQiOiJwaGFzZSIsInBoYXNlIjoic25hcHNob3QtY29tcGxldGUifQAAAHR7ImlkIjoiaW5kZXBlbmRlbnQvd3JvbmctdmZzIiwibm9uY2UiOiI1NGYxYTdjOS00MGE5LTQyOTctODlhZS1kOGQ4OTczYmVjY2IiLCJraW5kIjoicGhhc2UiLCJwaGFzZSI6ImRpc3Bvc2Utc3RhcnQifQAAAHZ7ImlkIjoiaW5kZXBlbmRlbnQvd3JvbmctdmZzIiwibm9uY2UiOiI1NGYxYTdjOS00MGE5LTQyOTctODlhZS1kOGQ4OTczYmVjY2IiLCJraW5kIjoicGhhc2UiLCJwaGFzZSI6ImRpc3Bvc2Utc2V0dGxlZCJ9AAABCXsiaWQiOiJpbmRlcGVuZGVudC93cm9uZy12ZnMiLCJub25jZSI6IjU0ZjFhN2M5LTQwYTktNDI5Ny04OWFlLWQ4ZDg5NzNiZWNjYiIsImtpbmQiOiJyZXN1bHQiLCJvYnNlcnZhdGlvbiI6eyJzdGRvdXQiOiJBQUYvZ1A3LyIsInN0ZGVyciI6ImFXNWtaWEJsYm1SbGJuUUsiLCJleGl0Q29kZSI6MCwiZW50cmllcyI6eyJiaW5hcnkiOnsidHlwZSI6ImZpbGUiLCJieXRlcyI6IkFBRi9nUDcvIn0sImV4dHJhIjp7InR5cGUiOiJmaWxlIiwiYnl0ZXMiOiJBQT09In19fX0AAAB5eyJpZCI6ImluZGVwZW5kZW50L3dyb25nLXZmcyIsIm5vbmNlIjoiNTRmMWE3YzktNDBhOS00Mjk3LTg5YWUtZDhkODk3M2JlY2NiIiwia2luZCI6ImVuZ2luZS1leGl0IiwiY29kZSI6MCwic2lnbmFsIjpudWxsfQAAAHp7ImlkIjoiaW5kZXBlbmRlbnQvd3JvbmctdmZzIiwibm9uY2UiOiI1NGYxYTdjOS00MGE5LTQyOTctODlhZS1kOGQ4OTczYmVjY2IiLCJraW5kIjoiZW5naW5lLWNsb3NlIiwiY29kZSI6MCwic2lnbmFsIjpudWxsfQAAAIx7ImlkIjoiaW5kZXBlbmRlbnQvd3JvbmctdmZzIiwibm9uY2UiOiI1NGYxYTdjOS00MGE5LTQyOTctODlhZS1kOGQ4OTczYmVjY2IiLCJraW5kIjoiZml4dHVyZS1jbG9zZSIsImNsb3NlZCI6dHJ1ZSwic29ja2V0cyI6MCwicmVxdWVzdHMiOltdfQAAAGd7ImlkIjoiaW5kZXBlbmRlbnQvd3JvbmctdmZzIiwibm9uY2UiOiI1NGYxYTdjOS00MGE5LTQyOTctODlhZS1kOGQ4OTczYmVjY2IiLCJraW5kIjoic2Vzc2lvbi1jb21wbGV0ZSJ9",
+      "prefixOnly": false
+    }
+  },
+  "assessment": {
+    "comparison": {
+      "pass": false,
+      "assertions": [
+        {
+          "field": "stdout",
+          "pass": true
+        },
+        {
+          "field": "stderr",
+          "pass": true
+        },
+        {
+          "field": "exitCode",
+          "pass": true
+        },
+        {
+          "field": "entries",
+          "pass": false
+        }
+      ]
+    },
+    "lifecycle": true,
+    "status": "fail"
+  },
+  "control": {
+    "mode": "wrong-vfs",
+    "controlSatisfied": true,
+    "observationStatus": "fail",
+    "clean": true,
+    "groupGone": true,
+    "signals": [],
+    "resources": {}
+  }
+}

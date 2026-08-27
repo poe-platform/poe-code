@@ -1,0 +1,238 @@
+{
+  "request": {
+    "id": "synthetic/binding-mutated",
+    "nonce": "7cb3ccfb-51d8-4fbe-8ffa-0f5e4d1018c9",
+    "profile": "original",
+    "engine": "synthetic-not-product",
+    "synthetic": true,
+    "mode": "binding-mutated",
+    "expected": {
+      "stdout": "AH+A/w==",
+      "stderr": "",
+      "exitCode": 0,
+      "entries": {
+        "binary": {
+          "type": "file",
+          "bytes": "AH+A/w=="
+        }
+      }
+    },
+    "caps": {
+      "startupMs": 2000,
+      "guestMs": 180,
+      "requestMs": 1400,
+      "totalMs": 4500,
+      "settleMs": 150,
+      "snapshotMs": 200,
+      "disposeMs": 200,
+      "naturalMs": 180,
+      "termMs": 120,
+      "killMs": 200,
+      "outputBytes": 4194304,
+      "diagnosticBytes": 4096,
+      "reportBytes": 131072,
+      "events": 64,
+      "snapshotBytes": 33554432,
+      "entries": 4096,
+      "depth": 32
+    },
+    "heapMiB": 128,
+    "host": {
+      "cwd": "/private/tmp/safe-bash-execution-author-oOOmAr",
+      "env": {
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/private/tmp/safe-bash-execution-author-oOOmAr",
+        "TMPDIR": "/private/tmp/safe-bash-execution-author-oOOmAr",
+        "LANG": "C",
+        "LC_ALL": "C",
+        "TZ": "UTC"
+      }
+    },
+    "syntheticBinding": {
+      "root": "/private/tmp/safe-bash-execution-author-oOOmAr/binding",
+      "path": "changed.txt",
+      "bytes": 8,
+      "sha256": "0682c5f2076f099c34cfdd15a9e063849ed437a49677e6fcc5b4198c76575be5"
+    }
+  },
+  "attempt": {
+    "id": "synthetic/binding-mutated",
+    "nonce": "7cb3ccfb-51d8-4fbe-8ffa-0f5e4d1018c9",
+    "synthetic": true,
+    "profile": "original",
+    "engine": "synthetic-not-product",
+    "failures": [
+      "{\"name\":\"AssertionError\",\"message\":\"bound hash changed\\n+ actual - expected\\n\\n+ 'b80012851cf027c6d8adda328907d400c95773958fb4fec3e544a02cd5eeab0e'\\n- '0682c5f2076f099c34cfdd15a9e063849ed437a49677e6fcc5b4198c76575be5'\\n\",\"code\":\"ERR_ASSERTION\"}",
+      "engine crash/forced exit",
+      "missing result",
+      "missing lifecycle phase",
+      "engine did not exit/close naturally"
+    ],
+    "events": [
+      {
+        "atMs": 0.387,
+        "kind": "group-admitted",
+        "pid": 77786,
+        "pgid": 77786,
+        "argv": [
+          "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+          "--unhandled-rejections=strict",
+          "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/current-comparison-20260827/execution/session.mjs",
+          "--synthetic"
+        ],
+        "host": {
+          "cwd": "/private/tmp/safe-bash-execution-author-oOOmAr",
+          "env": {
+            "PATH": "/usr/bin:/bin",
+            "HOME": "/private/tmp/safe-bash-execution-author-oOOmAr",
+            "TMPDIR": "/private/tmp/safe-bash-execution-author-oOOmAr",
+            "LANG": "C",
+            "LC_ALL": "C",
+            "TZ": "UTC"
+          }
+        }
+      },
+      {
+        "atMs": 39.007,
+        "id": "synthetic/binding-mutated",
+        "nonce": "7cb3ccfb-51d8-4fbe-8ffa-0f5e4d1018c9",
+        "kind": "engine-spawn",
+        "pid": 77787,
+        "argv": [
+          "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+          "--unhandled-rejections=strict",
+          "--experimental-import-meta-resolve",
+          "--max-old-space-size=128",
+          "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/current-comparison-20260827/execution/engine-child.mjs",
+          "--synthetic"
+        ]
+      },
+      {
+        "atMs": 96.523,
+        "kind": "sticky-failure",
+        "reason": "{\"name\":\"AssertionError\",\"message\":\"bound hash changed\\n+ actual - expected\\n\\n+ 'b80012851cf027c6d8adda328907d400c95773958fb4fec3e544a02cd5eeab0e'\\n- '0682c5f2076f099c34cfdd15a9e063849ed437a49677e6fcc5b4198c76575be5'\\n\",\"code\":\"ERR_ASSERTION\"}"
+      },
+      {
+        "atMs": 96.552,
+        "id": "synthetic/binding-mutated",
+        "nonce": "7cb3ccfb-51d8-4fbe-8ffa-0f5e4d1018c9",
+        "kind": "failure",
+        "error": {
+          "name": "AssertionError",
+          "message": "bound hash changed\n+ actual - expected\n\n+ 'b80012851cf027c6d8adda328907d400c95773958fb4fec3e544a02cd5eeab0e'\n- '0682c5f2076f099c34cfdd15a9e063849ed437a49677e6fcc5b4198c76575be5'\n",
+          "code": "ERR_ASSERTION"
+        }
+      },
+      {
+        "atMs": 100.165,
+        "kind": "sticky-failure",
+        "reason": "engine crash/forced exit"
+      },
+      {
+        "atMs": 100.17,
+        "id": "synthetic/binding-mutated",
+        "nonce": "7cb3ccfb-51d8-4fbe-8ffa-0f5e4d1018c9",
+        "kind": "engine-exit",
+        "code": 1,
+        "signal": null
+      },
+      {
+        "atMs": 100.221,
+        "id": "synthetic/binding-mutated",
+        "nonce": "7cb3ccfb-51d8-4fbe-8ffa-0f5e4d1018c9",
+        "kind": "engine-close",
+        "code": 1,
+        "signal": null
+      },
+      {
+        "atMs": 100.281,
+        "id": "synthetic/binding-mutated",
+        "nonce": "7cb3ccfb-51d8-4fbe-8ffa-0f5e4d1018c9",
+        "kind": "fixture-close",
+        "closed": true,
+        "sockets": 0,
+        "requests": []
+      },
+      {
+        "atMs": 100.326,
+        "id": "synthetic/binding-mutated",
+        "nonce": "7cb3ccfb-51d8-4fbe-8ffa-0f5e4d1018c9",
+        "kind": "session-complete"
+      },
+      {
+        "atMs": 103.033,
+        "kind": "coordinator-exit",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "atMs": 103.036,
+        "kind": "coordinator-close",
+        "code": 0,
+        "signal": null
+      }
+    ],
+    "signals": [],
+    "result": null,
+    "engineExit": {
+      "code": 1,
+      "signal": null
+    },
+    "engineClose": {
+      "code": 1,
+      "signal": null
+    },
+    "sessionExit": {
+      "code": 0,
+      "signal": null
+    },
+    "sessionClose": {
+      "code": 0,
+      "signal": null
+    },
+    "diagnostics": [],
+    "clean": false,
+    "groupGone": true,
+    "coordinatorPid": 77786,
+    "enginePid": 77787,
+    "cancelSent": true,
+    "network": {
+      "id": "synthetic/binding-mutated",
+      "nonce": "7cb3ccfb-51d8-4fbe-8ffa-0f5e4d1018c9",
+      "kind": "fixture-close",
+      "closed": true,
+      "sockets": 0,
+      "requests": []
+    },
+    "elapsedMs": 106.037,
+    "deadlinesMs": {
+      "total": 4500,
+      "startup": 2000
+    },
+    "hostBytes": 0,
+    "reportBytes": 1274,
+    "execAdmissions": {
+      "scoredCase": 0,
+      "emptyInitialization": 0
+    },
+    "wireCapture": {
+      "receivedBytes": 1274,
+      "receivedSha256": "a878a4641830f7da4260263e28bd53a55ceb92c69c24bf8cf181ff40ec6330ba",
+      "prefixBase64": "AAABjXsiaWQiOiJzeW50aGV0aWMvYmluZGluZy1tdXRhdGVkIiwibm9uY2UiOiI3Y2IzY2NmYi01MWQ4LTRmYmUtOGZmYS0wZjVlNGQxMDE4YzkiLCJraW5kIjoiZW5naW5lLXNwYXduIiwicGlkIjo3Nzc4NywiYXJndiI6WyIvVXNlcnMva2pvcGVrLy5udm0vdmVyc2lvbnMvbm9kZS92MjIuMjIuMi9iaW4vbm9kZSIsIi0tdW5oYW5kbGVkLXJlamVjdGlvbnM9c3RyaWN0IiwiLS1leHBlcmltZW50YWwtaW1wb3J0LW1ldGEtcmVzb2x2ZSIsIi0tbWF4LW9sZC1zcGFjZS1zaXplPTEyOCIsIi9Vc2Vycy9ram9wZWsvV29ya3NwYWNlL3NhZmUtYmFzaC9iZW5jaG1hcmtzL3JlcG9ydHMvY3VycmVudC1jb21wYXJpc29uLTIwMjYwODI3L2V4ZWN1dGlvbi9lbmdpbmUtY2hpbGQubWpzIiwiLS1zeW50aGV0aWMiXX0AAAFfeyJpZCI6InN5bnRoZXRpYy9iaW5kaW5nLW11dGF0ZWQiLCJub25jZSI6IjdjYjNjY2ZiLTUxZDgtNGZiZS04ZmZhLTBmNWU0ZDEwMThjOSIsImtpbmQiOiJmYWlsdXJlIiwiZXJyb3IiOnsibmFtZSI6IkFzc2VydGlvbkVycm9yIiwibWVzc2FnZSI6ImJvdW5kIGhhc2ggY2hhbmdlZFxuKyBhY3R1YWwgLSBleHBlY3RlZFxuXG4rICdiODAwMTI4NTFjZjAyN2M2ZDhhZGRhMzI4OTA3ZDQwMGM5NTc3Mzk1OGZiNGZlYzNlNTQ0YTAyY2Q1ZWVhYjBlJ1xuLSAnMDY4MmM1ZjIwNzZmMDk5YzM0Y2ZkZDE1YTllMDYzODQ5ZWQ0MzdhNDk2NzdlNmZjYzViNDE5OGM3NjU3NWJlNSdcbiIsImNvZGUiOiJFUlJfQVNTRVJUSU9OIn19AAAAfXsiaWQiOiJzeW50aGV0aWMvYmluZGluZy1tdXRhdGVkIiwibm9uY2UiOiI3Y2IzY2NmYi01MWQ4LTRmYmUtOGZmYS0wZjVlNGQxMDE4YzkiLCJraW5kIjoiZW5naW5lLWV4aXQiLCJjb2RlIjoxLCJzaWduYWwiOm51bGx9AAAAfnsiaWQiOiJzeW50aGV0aWMvYmluZGluZy1tdXRhdGVkIiwibm9uY2UiOiI3Y2IzY2NmYi01MWQ4LTRmYmUtOGZmYS0wZjVlNGQxMDE4YzkiLCJraW5kIjoiZW5naW5lLWNsb3NlIiwiY29kZSI6MSwic2lnbmFsIjpudWxsfQAAAJB7ImlkIjoic3ludGhldGljL2JpbmRpbmctbXV0YXRlZCIsIm5vbmNlIjoiN2NiM2NjZmItNTFkOC00ZmJlLThmZmEtMGY1ZTRkMTAxOGM5Iiwia2luZCI6ImZpeHR1cmUtY2xvc2UiLCJjbG9zZWQiOnRydWUsInNvY2tldHMiOjAsInJlcXVlc3RzIjpbXX0AAABreyJpZCI6InN5bnRoZXRpYy9iaW5kaW5nLW11dGF0ZWQiLCJub25jZSI6IjdjYjNjY2ZiLTUxZDgtNGZiZS04ZmZhLTBmNWU0ZDEwMThjOSIsImtpbmQiOiJzZXNzaW9uLWNvbXBsZXRlIn0=",
+      "prefixOnly": false
+    }
+  },
+  "check": {
+    "mode": "binding-mutated",
+    "passed": true,
+    "assessment": {
+      "comparison": null,
+      "lifecycle": false,
+      "status": "lifecycle-or-capture-failure"
+    },
+    "elapsedMs": 106.037,
+    "groupGone": true,
+    "signals": [],
+    "raw": "attempt-017-binding-mutated.json"
+  }
+}

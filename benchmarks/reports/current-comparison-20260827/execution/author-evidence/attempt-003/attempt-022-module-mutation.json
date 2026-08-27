@@ -1,0 +1,300 @@
+{
+  "request": {
+    "id": "synthetic/module-mutation",
+    "nonce": "00f59429-2463-4412-9272-dfbccf51553c",
+    "profile": "original",
+    "engine": "synthetic-not-product",
+    "synthetic": true,
+    "mode": "module-mutation",
+    "expected": {
+      "stdout": "AH+A/w==",
+      "stderr": "",
+      "exitCode": 0,
+      "entries": {
+        "binary": {
+          "type": "file",
+          "bytes": "AH+A/w=="
+        }
+      }
+    },
+    "caps": {
+      "startupMs": 2000,
+      "guestMs": 180,
+      "requestMs": 1400,
+      "totalMs": 4500,
+      "settleMs": 150,
+      "snapshotMs": 200,
+      "disposeMs": 200,
+      "naturalMs": 180,
+      "termMs": 120,
+      "killMs": 200,
+      "outputBytes": 4194304,
+      "diagnosticBytes": 4096,
+      "reportBytes": 131072,
+      "events": 64,
+      "snapshotBytes": 33554432,
+      "entries": 4096,
+      "depth": 32
+    },
+    "heapMiB": 128,
+    "host": {
+      "cwd": "/private/tmp/safe-bash-execution-author-oOOmAr",
+      "env": {
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/private/tmp/safe-bash-execution-author-oOOmAr",
+        "TMPDIR": "/private/tmp/safe-bash-execution-author-oOOmAr",
+        "LANG": "C",
+        "LC_ALL": "C",
+        "TZ": "UTC"
+      }
+    },
+    "syntheticModule": {
+      "packageName": "bridge-synthetic",
+      "packagePath": "/private/tmp/safe-bash-execution-author-oOOmAr/module-mutation/package.json",
+      "entry": "/private/tmp/safe-bash-execution-author-oOOmAr/module-mutation/index.mjs",
+      "files": {
+        "/private/tmp/safe-bash-execution-author-oOOmAr/module-mutation/package.json": {
+          "bytes": 85,
+          "sha256": "3ef42929790fb5892e16d64ef45ae620801a90d7b44ac1056b4a92eae5128a62"
+        },
+        "/private/tmp/safe-bash-execution-author-oOOmAr/module-mutation/index.mjs": {
+          "bytes": 31,
+          "sha256": "aeace2d67ef267dee27907fa06fe7c06e846937823aad339de7def4e65bfe631"
+        }
+      }
+    }
+  },
+  "attempt": {
+    "id": "synthetic/module-mutation",
+    "nonce": "00f59429-2463-4412-9272-dfbccf51553c",
+    "synthetic": true,
+    "profile": "original",
+    "engine": "synthetic-not-product",
+    "failures": [
+      "{\"name\":\"AssertionError\",\"message\":\"bound hash changed\\n+ actual - expected\\n\\n+ 'c2e3d190e04c901b9477325752a76ee2a43021c38efa511db063e2ef66b15fd3'\\n- 'aeace2d67ef267dee27907fa06fe7c06e846937823aad339de7def4e65bfe631'\\n\",\"code\":\"ERR_ASSERTION\"}",
+      "engine crash/forced exit",
+      "signal error SIGTERM: Error: kill EPERM",
+      "missing result",
+      "missing lifecycle phase",
+      "engine did not exit/close naturally"
+    ],
+    "events": [
+      {
+        "atMs": 0.35,
+        "kind": "group-admitted",
+        "pid": 77796,
+        "pgid": 77796,
+        "argv": [
+          "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+          "--unhandled-rejections=strict",
+          "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/current-comparison-20260827/execution/session.mjs",
+          "--synthetic"
+        ],
+        "host": {
+          "cwd": "/private/tmp/safe-bash-execution-author-oOOmAr",
+          "env": {
+            "PATH": "/usr/bin:/bin",
+            "HOME": "/private/tmp/safe-bash-execution-author-oOOmAr",
+            "TMPDIR": "/private/tmp/safe-bash-execution-author-oOOmAr",
+            "LANG": "C",
+            "LC_ALL": "C",
+            "TZ": "UTC"
+          }
+        }
+      },
+      {
+        "atMs": 43.976,
+        "id": "synthetic/module-mutation",
+        "nonce": "00f59429-2463-4412-9272-dfbccf51553c",
+        "kind": "engine-spawn",
+        "pid": 77816,
+        "argv": [
+          "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+          "--unhandled-rejections=strict",
+          "--experimental-import-meta-resolve",
+          "--max-old-space-size=128",
+          "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/current-comparison-20260827/execution/engine-child.mjs",
+          "--synthetic"
+        ]
+      },
+      {
+        "atMs": 127.825,
+        "id": "synthetic/module-mutation",
+        "nonce": "00f59429-2463-4412-9272-dfbccf51553c",
+        "kind": "public-resolution",
+        "specifier": "bridge-synthetic",
+        "parent": "/private/tmp/safe-bash-execution-author-oOOmAr/module-mutation/package.json",
+        "resolved": "file:///private/tmp/safe-bash-execution-author-oOOmAr/module-mutation/index.mjs"
+      },
+      {
+        "atMs": 128.087,
+        "id": "synthetic/module-mutation",
+        "nonce": "00f59429-2463-4412-9272-dfbccf51553c",
+        "kind": "module",
+        "event": {
+          "type": "resolve-returned",
+          "specifier": "bridge-synthetic",
+          "parentURL": "file:///private/tmp/safe-bash-execution-author-oOOmAr/module-mutation/package.json",
+          "url": "file:///private/tmp/safe-bash-execution-author-oOOmAr/module-mutation/index.mjs"
+        }
+      },
+      {
+        "atMs": 128.301,
+        "id": "synthetic/module-mutation",
+        "nonce": "00f59429-2463-4412-9272-dfbccf51553c",
+        "kind": "module",
+        "event": {
+          "type": "resolve-returned",
+          "specifier": "file:///private/tmp/safe-bash-execution-author-oOOmAr/module-mutation/index.mjs",
+          "parentURL": "file:///Users/kjopek/Workspace/safe-bash/benchmarks/reports/current-comparison-20260827/execution/engine-child.mjs",
+          "url": "file:///private/tmp/safe-bash-execution-author-oOOmAr/module-mutation/index.mjs"
+        }
+      },
+      {
+        "atMs": 131.207,
+        "kind": "sticky-failure",
+        "reason": "{\"name\":\"AssertionError\",\"message\":\"bound hash changed\\n+ actual - expected\\n\\n+ 'c2e3d190e04c901b9477325752a76ee2a43021c38efa511db063e2ef66b15fd3'\\n- 'aeace2d67ef267dee27907fa06fe7c06e846937823aad339de7def4e65bfe631'\\n\",\"code\":\"ERR_ASSERTION\"}"
+      },
+      {
+        "atMs": 131.231,
+        "id": "synthetic/module-mutation",
+        "nonce": "00f59429-2463-4412-9272-dfbccf51553c",
+        "kind": "failure",
+        "error": {
+          "name": "AssertionError",
+          "message": "bound hash changed\n+ actual - expected\n\n+ 'c2e3d190e04c901b9477325752a76ee2a43021c38efa511db063e2ef66b15fd3'\n- 'aeace2d67ef267dee27907fa06fe7c06e846937823aad339de7def4e65bfe631'\n",
+          "code": "ERR_ASSERTION"
+        }
+      },
+      {
+        "atMs": 134.079,
+        "kind": "sticky-failure",
+        "reason": "engine crash/forced exit"
+      },
+      {
+        "atMs": 134.082,
+        "id": "synthetic/module-mutation",
+        "nonce": "00f59429-2463-4412-9272-dfbccf51553c",
+        "kind": "engine-exit",
+        "code": 1,
+        "signal": null
+      },
+      {
+        "atMs": 134.155,
+        "id": "synthetic/module-mutation",
+        "nonce": "00f59429-2463-4412-9272-dfbccf51553c",
+        "kind": "engine-close",
+        "code": 1,
+        "signal": null
+      },
+      {
+        "atMs": 134.239,
+        "id": "synthetic/module-mutation",
+        "nonce": "00f59429-2463-4412-9272-dfbccf51553c",
+        "kind": "fixture-close",
+        "closed": true,
+        "sockets": 0,
+        "requests": []
+      },
+      {
+        "atMs": 134.282,
+        "id": "synthetic/module-mutation",
+        "nonce": "00f59429-2463-4412-9272-dfbccf51553c",
+        "kind": "session-complete"
+      },
+      {
+        "atMs": 136.008,
+        "kind": "signal",
+        "signal": "SIGTERM",
+        "pgid": 77796
+      },
+      {
+        "atMs": 136.064,
+        "kind": "signal-error",
+        "error": {
+          "name": "Error",
+          "message": "kill EPERM",
+          "code": "EPERM"
+        }
+      },
+      {
+        "atMs": 136.739,
+        "kind": "coordinator-exit",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "atMs": 136.741,
+        "kind": "coordinator-close",
+        "code": 0,
+        "signal": null
+      }
+    ],
+    "signals": [
+      "SIGTERM"
+    ],
+    "result": null,
+    "engineExit": {
+      "code": 1,
+      "signal": null
+    },
+    "engineClose": {
+      "code": 1,
+      "signal": null
+    },
+    "sessionExit": {
+      "code": 0,
+      "signal": null
+    },
+    "sessionClose": {
+      "code": 0,
+      "signal": null
+    },
+    "diagnostics": [],
+    "clean": false,
+    "groupGone": true,
+    "coordinatorPid": 77796,
+    "enginePid": 77816,
+    "cancelSent": true,
+    "network": {
+      "id": "synthetic/module-mutation",
+      "nonce": "00f59429-2463-4412-9272-dfbccf51553c",
+      "kind": "fixture-close",
+      "closed": true,
+      "sockets": 0,
+      "requests": []
+    },
+    "elapsedMs": 138.304,
+    "deadlinesMs": {
+      "total": 4500,
+      "startup": 2000
+    },
+    "hostBytes": 0,
+    "reportBytes": 2398,
+    "execAdmissions": {
+      "scoredCase": 0,
+      "emptyInitialization": 0
+    },
+    "wireCapture": {
+      "receivedBytes": 2398,
+      "receivedSha256": "75bc725c7137723f19ab3f5abc6d495a06abed261c04b514c5a6b5911198274c",
+      "prefixBase64": "AAABjXsiaWQiOiJzeW50aGV0aWMvbW9kdWxlLW11dGF0aW9uIiwibm9uY2UiOiIwMGY1OTQyOS0yNDYzLTQ0MTItOTI3Mi1kZmJjY2Y1MTU1M2MiLCJraW5kIjoiZW5naW5lLXNwYXduIiwicGlkIjo3NzgxNiwiYXJndiI6WyIvVXNlcnMva2pvcGVrLy5udm0vdmVyc2lvbnMvbm9kZS92MjIuMjIuMi9iaW4vbm9kZSIsIi0tdW5oYW5kbGVkLXJlamVjdGlvbnM9c3RyaWN0IiwiLS1leHBlcmltZW50YWwtaW1wb3J0LW1ldGEtcmVzb2x2ZSIsIi0tbWF4LW9sZC1zcGFjZS1zaXplPTEyOCIsIi9Vc2Vycy9ram9wZWsvV29ya3NwYWNlL3NhZmUtYmFzaC9iZW5jaG1hcmtzL3JlcG9ydHMvY3VycmVudC1jb21wYXJpc29uLTIwMjYwODI3L2V4ZWN1dGlvbi9lbmdpbmUtY2hpbGQubWpzIiwiLS1zeW50aGV0aWMiXX0AAAE/eyJpZCI6InN5bnRoZXRpYy9tb2R1bGUtbXV0YXRpb24iLCJub25jZSI6IjAwZjU5NDI5LTI0NjMtNDQxMi05MjcyLWRmYmNjZjUxNTUzYyIsImtpbmQiOiJwdWJsaWMtcmVzb2x1dGlvbiIsInNwZWNpZmllciI6ImJyaWRnZS1zeW50aGV0aWMiLCJwYXJlbnQiOiIvcHJpdmF0ZS90bXAvc2FmZS1iYXNoLWV4ZWN1dGlvbi1hdXRob3Itb09PbUFyL21vZHVsZS1tdXRhdGlvbi9wYWNrYWdlLmpzb24iLCJyZXNvbHZlZCI6ImZpbGU6Ly8vcHJpdmF0ZS90bXAvc2FmZS1iYXNoLWV4ZWN1dGlvbi1hdXRob3Itb09PbUFyL21vZHVsZS1tdXRhdGlvbi9pbmRleC5tanMifQAAAV17ImlkIjoic3ludGhldGljL21vZHVsZS1tdXRhdGlvbiIsIm5vbmNlIjoiMDBmNTk0MjktMjQ2My00NDEyLTkyNzItZGZiY2NmNTE1NTNjIiwia2luZCI6Im1vZHVsZSIsImV2ZW50Ijp7InR5cGUiOiJyZXNvbHZlLXJldHVybmVkIiwic3BlY2lmaWVyIjoiYnJpZGdlLXN5bnRoZXRpYyIsInBhcmVudFVSTCI6ImZpbGU6Ly8vcHJpdmF0ZS90bXAvc2FmZS1iYXNoLWV4ZWN1dGlvbi1hdXRob3Itb09PbUFyL21vZHVsZS1tdXRhdGlvbi9wYWNrYWdlLmpzb24iLCJ1cmwiOiJmaWxlOi8vL3ByaXZhdGUvdG1wL3NhZmUtYmFzaC1leGVjdXRpb24tYXV0aG9yLW9PT21Bci9tb2R1bGUtbXV0YXRpb24vaW5kZXgubWpzIn19AAABvHsiaWQiOiJzeW50aGV0aWMvbW9kdWxlLW11dGF0aW9uIiwibm9uY2UiOiIwMGY1OTQyOS0yNDYzLTQ0MTItOTI3Mi1kZmJjY2Y1MTU1M2MiLCJraW5kIjoibW9kdWxlIiwiZXZlbnQiOnsidHlwZSI6InJlc29sdmUtcmV0dXJuZWQiLCJzcGVjaWZpZXIiOiJmaWxlOi8vL3ByaXZhdGUvdG1wL3NhZmUtYmFzaC1leGVjdXRpb24tYXV0aG9yLW9PT21Bci9tb2R1bGUtbXV0YXRpb24vaW5kZXgubWpzIiwicGFyZW50VVJMIjoiZmlsZTovLy9Vc2Vycy9ram9wZWsvV29ya3NwYWNlL3NhZmUtYmFzaC9iZW5jaG1hcmtzL3JlcG9ydHMvY3VycmVudC1jb21wYXJpc29uLTIwMjYwODI3L2V4ZWN1dGlvbi9lbmdpbmUtY2hpbGQubWpzIiwidXJsIjoiZmlsZTovLy9wcml2YXRlL3RtcC9zYWZlLWJhc2gtZXhlY3V0aW9uLWF1dGhvci1vT09tQXIvbW9kdWxlLW11dGF0aW9uL2luZGV4Lm1qcyJ9fQAAAV97ImlkIjoic3ludGhldGljL21vZHVsZS1tdXRhdGlvbiIsIm5vbmNlIjoiMDBmNTk0MjktMjQ2My00NDEyLTkyNzItZGZiY2NmNTE1NTNjIiwia2luZCI6ImZhaWx1cmUiLCJlcnJvciI6eyJuYW1lIjoiQXNzZXJ0aW9uRXJyb3IiLCJtZXNzYWdlIjoiYm91bmQgaGFzaCBjaGFuZ2VkXG4rIGFjdHVhbCAtIGV4cGVjdGVkXG5cbisgJ2MyZTNkMTkwZTA0YzkwMWI5NDc3MzI1NzUyYTc2ZWUyYTQzMDIxYzM4ZWZhNTExZGIwNjNlMmVmNjZiMTVmZDMnXG4tICdhZWFjZTJkNjdlZjI2N2RlZTI3OTA3ZmEwNmZlN2MwNmU4NDY5Mzc4MjNhYWQzMzlkZTdkZWY0ZTY1YmZlNjMxJ1xuIiwiY29kZSI6IkVSUl9BU1NFUlRJT04ifX0AAAB9eyJpZCI6InN5bnRoZXRpYy9tb2R1bGUtbXV0YXRpb24iLCJub25jZSI6IjAwZjU5NDI5LTI0NjMtNDQxMi05MjcyLWRmYmNjZjUxNTUzYyIsImtpbmQiOiJlbmdpbmUtZXhpdCIsImNvZGUiOjEsInNpZ25hbCI6bnVsbH0AAAB+eyJpZCI6InN5bnRoZXRpYy9tb2R1bGUtbXV0YXRpb24iLCJub25jZSI6IjAwZjU5NDI5LTI0NjMtNDQxMi05MjcyLWRmYmNjZjUxNTUzYyIsImtpbmQiOiJlbmdpbmUtY2xvc2UiLCJjb2RlIjoxLCJzaWduYWwiOm51bGx9AAAAkHsiaWQiOiJzeW50aGV0aWMvbW9kdWxlLW11dGF0aW9uIiwibm9uY2UiOiIwMGY1OTQyOS0yNDYzLTQ0MTItOTI3Mi1kZmJjY2Y1MTU1M2MiLCJraW5kIjoiZml4dHVyZS1jbG9zZSIsImNsb3NlZCI6dHJ1ZSwic29ja2V0cyI6MCwicmVxdWVzdHMiOltdfQAAAGt7ImlkIjoic3ludGhldGljL21vZHVsZS1tdXRhdGlvbiIsIm5vbmNlIjoiMDBmNTk0MjktMjQ2My00NDEyLTkyNzItZGZiY2NmNTE1NTNjIiwia2luZCI6InNlc3Npb24tY29tcGxldGUifQ==",
+      "prefixOnly": false
+    }
+  },
+  "check": {
+    "mode": "module-mutation",
+    "passed": true,
+    "assessment": {
+      "comparison": null,
+      "lifecycle": false,
+      "status": "lifecycle-or-capture-failure"
+    },
+    "elapsedMs": 138.304,
+    "groupGone": true,
+    "signals": [
+      "SIGTERM"
+    ],
+    "raw": "attempt-022-module-mutation.json"
+  }
+}

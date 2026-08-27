@@ -1,0 +1,13 @@
+{"atMs":0.417,"kind":"group-admitted","pid":58793,"pgid":58793,"argv":["/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node","--unhandled-rejections=strict","/Users/kjopek/Workspace/safe-bash/benchmarks/reports/current-comparison-20260827/execution/session.mjs","--synthetic"],"host":{"cwd":"/private/tmp/safe-bash-execution-author-3bLn2Q","env":{"PATH":"/usr/bin:/bin","HOME":"/private/tmp/safe-bash-execution-author-3bLn2Q","TMPDIR":"/private/tmp/safe-bash-execution-author-3bLn2Q","LANG":"C","LC_ALL":"C","TZ":"UTC"}}}
+{"atMs":44.851,"id":"synthetic/late-reject","nonce":"564cc2c2-4301-41fb-91e6-a3ed8500aa90","kind":"engine-spawn","pid":58794,"argv":["/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node","--unhandled-rejections=strict","--experimental-import-meta-resolve","--max-old-space-size=128","/Users/kjopek/Workspace/safe-bash/benchmarks/reports/current-comparison-20260827/execution/engine-child.mjs","--synthetic"]}
+{"atMs":99.299,"kind":"request-start","absoluteDeadlineMs":1499.296084}
+{"atMs":99.302,"id":"synthetic/late-reject","nonce":"564cc2c2-4301-41fb-91e6-a3ed8500aa90","kind":"ready"}
+{"atMs":99.927,"id":"synthetic/late-reject","nonce":"564cc2c2-4301-41fb-91e6-a3ed8500aa90","kind":"phase","phase":"exec-start"}
+{"atMs":280.454,"kind":"sticky-failure","reason":"guest deadline"}
+{"atMs":282.651,"id":"synthetic/late-reject","nonce":"564cc2c2-4301-41fb-91e6-a3ed8500aa90","kind":"failure","error":"guest deadline"}
+{"atMs":325.885,"kind":"sticky-failure","reason":"{\"name\":\"Error\",\"message\":\"observed late rejection\",\"code\":null}"}
+{"atMs":325.91,"id":"synthetic/late-reject","nonce":"564cc2c2-4301-41fb-91e6-a3ed8500aa90","kind":"failure","error":{"name":"Error","message":"observed late rejection","code":null}}
+{"atMs":327.428,"kind":"signal","signal":"SIGTERM","pgid":58793}
+{"atMs":334.743,"kind":"coordinator-exit","code":null,"signal":"SIGTERM"}
+{"atMs":334.758,"kind":"sticky-failure","reason":"coordinator crash/forced exit"}
+{"atMs":335.062,"kind":"coordinator-close","code":null,"signal":"SIGTERM"}

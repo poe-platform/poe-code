@@ -1,0 +1,26 @@
+[
+  {
+    "mode": "PREPARE",
+    "status": 0,
+    "signal": null,
+    "stdout": "{\n  \"status\": \"READY_FOR_BINDING_AND_REVIEW\",\n  \"preparationCommit\": \"2b2a5fe48142dd94238d37ec77dfd736e2117e71\",\n  \"required\": {\n    \"original\": 448,\n    \"aligned\": 448,\n    \"breadth\": {\n      \"observations\": 136,\n      \"targets\": 54,\n      \"controls\": 7,\n      \"diagnostics\": 7\n    },\n    \"unionScore\": null\n  },\n  \"productImports\": 0,\n  \"nativeCalls\": 0,\n  \"score\": null\n}\n",
+    "stderr": "",
+    "error": null
+  },
+  {
+    "mode": "PREFLIGHT",
+    "status": 2,
+    "signal": null,
+    "stdout": "{\n  \"status\": \"WAITING_ROOT\",\n  \"reason\": \"Exact candidate/package binding and ROOT execution receipt/hash not supplied\",\n  \"productImports\": 0\n}\n",
+    "stderr": "",
+    "error": null
+  },
+  {
+    "mode": "MEASURE",
+    "status": 2,
+    "signal": null,
+    "stdout": "{\n  \"status\": \"WAITING_ROOT\",\n  \"reason\": \"Exact candidate/package binding and ROOT execution receipt/hash not supplied\",\n  \"productImports\": 0\n}\n",
+    "stderr": "",
+    "error": null
+  }
+]

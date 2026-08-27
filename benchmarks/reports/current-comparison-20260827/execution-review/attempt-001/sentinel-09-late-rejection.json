@@ -1,0 +1,445 @@
+{
+  "request": {
+    "id": "independent/late-rejection",
+    "nonce": "532a71f5-a9d7-4e41-a11d-aa80a3530d72",
+    "synthetic": true,
+    "engine": "independent-sentinel-not-product",
+    "profile": "original",
+    "mode": "clean",
+    "expected": {
+      "stdout": "AAF/gP7/",
+      "stderr": "aW5kZXBlbmRlbnQK",
+      "exitCode": 0,
+      "entries": {
+        "binary": {
+          "type": "file",
+          "bytes": "AAF/gP7/"
+        }
+      }
+    },
+    "caps": {
+      "startupMs": 2000,
+      "guestMs": 180,
+      "requestMs": 1400,
+      "totalMs": 4500,
+      "settleMs": 150,
+      "snapshotMs": 200,
+      "disposeMs": 200,
+      "naturalMs": 240,
+      "termMs": 120,
+      "killMs": 200,
+      "outputBytes": 4194304,
+      "diagnosticBytes": 4096,
+      "reportBytes": 131072,
+      "events": 64,
+      "snapshotBytes": 33554432,
+      "entries": 4096,
+      "depth": 32
+    },
+    "heapMiB": 128,
+    "host": {
+      "root": "/private/tmp/safe-bash-independent-bridge-BBhHqv",
+      "cwd": "/private/tmp/safe-bash-independent-bridge-BBhHqv",
+      "env": {
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/private/tmp/safe-bash-independent-bridge-BBhHqv",
+        "TMPDIR": "/private/tmp/safe-bash-independent-bridge-BBhHqv",
+        "LANG": "C",
+        "LC_ALL": "C",
+        "TZ": "UTC"
+      }
+    },
+    "syntheticModule": {
+      "packageName": "independent-bridge-sentinel",
+      "packagePath": "/private/tmp/safe-bash-independent-bridge-BBhHqv/late-rejection/package.json",
+      "entry": "/private/tmp/safe-bash-independent-bridge-BBhHqv/late-rejection/index.mjs",
+      "files": {
+        "/private/tmp/safe-bash-independent-bridge-BBhHqv/late-rejection/package.json": {
+          "bytes": 106,
+          "sha256": "27b41fc0708c17fe5dba368c4176fd70b172d024ea879d0a4a43baa8ea20de35"
+        },
+        "/private/tmp/safe-bash-independent-bridge-BBhHqv/late-rejection/index.mjs": {
+          "bytes": 1489,
+          "sha256": "ea4ada5cb95bd6a9b2348f0d1f2d5e4c59903778addcf409a6622b11ad808511"
+        }
+      }
+    }
+  },
+  "attempt": {
+    "id": "independent/late-rejection",
+    "nonce": "532a71f5-a9d7-4e41-a11d-aa80a3530d72",
+    "synthetic": true,
+    "profile": "original",
+    "engine": "independent-sentinel-not-product",
+    "failures": [
+      "engine crash/forced exit",
+      "engine did not exit/close naturally"
+    ],
+    "events": [
+      {
+        "atMs": 0.415,
+        "kind": "group-admitted",
+        "pid": 96238,
+        "pgid": 96238,
+        "argv": [
+          "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+          "--unhandled-rejections=strict",
+          "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/current-comparison-20260827/execution/session.mjs",
+          "--synthetic"
+        ],
+        "host": {
+          "root": "/private/tmp/safe-bash-independent-bridge-BBhHqv",
+          "cwd": "/private/tmp/safe-bash-independent-bridge-BBhHqv",
+          "env": {
+            "PATH": "/usr/bin:/bin",
+            "HOME": "/private/tmp/safe-bash-independent-bridge-BBhHqv",
+            "TMPDIR": "/private/tmp/safe-bash-independent-bridge-BBhHqv",
+            "LANG": "C",
+            "LC_ALL": "C",
+            "TZ": "UTC"
+          }
+        }
+      },
+      {
+        "atMs": 41.012,
+        "id": "independent/late-rejection",
+        "nonce": "532a71f5-a9d7-4e41-a11d-aa80a3530d72",
+        "kind": "engine-spawn",
+        "pid": 96239,
+        "argv": [
+          "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+          "--unhandled-rejections=strict",
+          "--experimental-import-meta-resolve",
+          "--max-old-space-size=128",
+          "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/current-comparison-20260827/execution/engine-child.mjs",
+          "--synthetic"
+        ]
+      },
+      {
+        "atMs": 127.122,
+        "id": "independent/late-rejection",
+        "nonce": "532a71f5-a9d7-4e41-a11d-aa80a3530d72",
+        "kind": "public-resolution",
+        "specifier": "independent-bridge-sentinel",
+        "parent": "/private/tmp/safe-bash-independent-bridge-BBhHqv/late-rejection/package.json",
+        "resolved": "file:///private/tmp/safe-bash-independent-bridge-BBhHqv/late-rejection/index.mjs"
+      },
+      {
+        "atMs": 127.399,
+        "id": "independent/late-rejection",
+        "nonce": "532a71f5-a9d7-4e41-a11d-aa80a3530d72",
+        "kind": "module",
+        "event": {
+          "type": "resolve-returned",
+          "specifier": "independent-bridge-sentinel",
+          "parentURL": "file:///private/tmp/safe-bash-independent-bridge-BBhHqv/late-rejection/package.json",
+          "url": "file:///private/tmp/safe-bash-independent-bridge-BBhHqv/late-rejection/index.mjs"
+        }
+      },
+      {
+        "atMs": 127.654,
+        "id": "independent/late-rejection",
+        "nonce": "532a71f5-a9d7-4e41-a11d-aa80a3530d72",
+        "kind": "module",
+        "event": {
+          "type": "resolve-returned",
+          "specifier": "file:///private/tmp/safe-bash-independent-bridge-BBhHqv/late-rejection/index.mjs",
+          "parentURL": "file:///Users/kjopek/Workspace/safe-bash/benchmarks/reports/current-comparison-20260827/execution/engine-child.mjs",
+          "url": "file:///private/tmp/safe-bash-independent-bridge-BBhHqv/late-rejection/index.mjs"
+        }
+      },
+      {
+        "atMs": 128.825,
+        "id": "independent/late-rejection",
+        "nonce": "532a71f5-a9d7-4e41-a11d-aa80a3530d72",
+        "kind": "module",
+        "event": {
+          "type": "load-returned",
+          "url": "file:///private/tmp/safe-bash-independent-bridge-BBhHqv/late-rejection/index.mjs",
+          "sha256": "ea4ada5cb95bd6a9b2348f0d1f2d5e4c59903778addcf409a6622b11ad808511",
+          "format": "module",
+          "evaluationProven": false
+        }
+      },
+      {
+        "atMs": 129.629,
+        "id": "independent/late-rejection",
+        "nonce": "532a71f5-a9d7-4e41-a11d-aa80a3530d72",
+        "kind": "module",
+        "event": {
+          "type": "resolve-returned",
+          "specifier": "node:fs",
+          "parentURL": "file:///private/tmp/safe-bash-independent-bridge-BBhHqv/late-rejection/index.mjs",
+          "url": "node:fs"
+        }
+      },
+      {
+        "atMs": 129.81,
+        "id": "independent/late-rejection",
+        "nonce": "532a71f5-a9d7-4e41-a11d-aa80a3530d72",
+        "kind": "module",
+        "event": {
+          "type": "resolve-returned",
+          "specifier": "node:child_process",
+          "parentURL": "file:///private/tmp/safe-bash-independent-bridge-BBhHqv/late-rejection/index.mjs",
+          "url": "node:child_process"
+        }
+      },
+      {
+        "atMs": 131.141,
+        "id": "independent/late-rejection",
+        "nonce": "532a71f5-a9d7-4e41-a11d-aa80a3530d72",
+        "kind": "module",
+        "event": {
+          "type": "resolve-returned",
+          "specifier": "node:worker_threads",
+          "parentURL": "file:///private/tmp/safe-bash-independent-bridge-BBhHqv/late-rejection/index.mjs",
+          "url": "node:worker_threads"
+        }
+      },
+      {
+        "atMs": 131.216,
+        "id": "independent/late-rejection",
+        "nonce": "532a71f5-a9d7-4e41-a11d-aa80a3530d72",
+        "kind": "entry-import-fulfilled",
+        "resolved": "file:///private/tmp/safe-bash-independent-bridge-BBhHqv/late-rejection/index.mjs"
+      },
+      {
+        "atMs": 131.28,
+        "kind": "request-start",
+        "absoluteDeadlineMs": 1531.2765829999998
+      },
+      {
+        "atMs": 131.281,
+        "id": "independent/late-rejection",
+        "nonce": "532a71f5-a9d7-4e41-a11d-aa80a3530d72",
+        "kind": "ready"
+      },
+      {
+        "atMs": 131.7,
+        "id": "independent/late-rejection",
+        "nonce": "532a71f5-a9d7-4e41-a11d-aa80a3530d72",
+        "kind": "phase",
+        "phase": "exec-start"
+      },
+      {
+        "atMs": 131.732,
+        "id": "independent/late-rejection",
+        "nonce": "532a71f5-a9d7-4e41-a11d-aa80a3530d72",
+        "kind": "phase",
+        "phase": "exec-settled"
+      },
+      {
+        "atMs": 131.793,
+        "id": "independent/late-rejection",
+        "nonce": "532a71f5-a9d7-4e41-a11d-aa80a3530d72",
+        "kind": "phase",
+        "phase": "snapshot-complete"
+      },
+      {
+        "atMs": 131.819,
+        "id": "independent/late-rejection",
+        "nonce": "532a71f5-a9d7-4e41-a11d-aa80a3530d72",
+        "kind": "phase",
+        "phase": "dispose-start"
+      },
+      {
+        "atMs": 131.825,
+        "id": "independent/late-rejection",
+        "nonce": "532a71f5-a9d7-4e41-a11d-aa80a3530d72",
+        "kind": "phase",
+        "phase": "dispose-settled"
+      },
+      {
+        "atMs": 132.049,
+        "kind": "result-received",
+        "sha256": "4388570e5fd7c60ccd0bae4b64a99c1c84f03d7f11560eaf371b7bdebd2860f7",
+        "absoluteTotalUnchangedMs": 4500
+      },
+      {
+        "atMs": 233.779,
+        "id": "independent/late-rejection",
+        "nonce": "532a71f5-a9d7-4e41-a11d-aa80a3530d72",
+        "kind": "diagnostic",
+        "stream": "stderr",
+        "base64": "eyJuYW1lIjoiRXJyb3IiLCJtZXNzYWdlIjoiaW5kZXBlbmRlbnQgbGF0ZSByZWplY3Rpb24iLCJjb2RlIjpudWxsfQo="
+      },
+      {
+        "atMs": 233.847,
+        "id": "independent/late-rejection",
+        "nonce": "532a71f5-a9d7-4e41-a11d-aa80a3530d72",
+        "kind": "diagnostic",
+        "stream": "stderr",
+        "base64": "ZmlsZTovLy9wcml2YXRlL3RtcC9zYWZlLWJhc2gtaW5kZXBlbmRlbnQtYnJpZGdlLUJCaEhxdi9sYXRlLXJlamVjdGlvbi9pbmRleC5tanM6MTYKaWYgKGZpeHR1cmUubW9kZSA9PT0gJ2xhdGUtcmVqZWN0aW9uJykgc2V0VGltZW91dCgoKSA9PiBQcm9taXNlLnJlamVjdChuZXcgRXJyb3IoJ2luZGVwZW5kZW50IGxhdGUgcmVqZWN0aW9uJykpLCAxMDApOwogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIF4KCkVycm9yOiBpbmRlcGVuZGVudCBsYXRlIHJlamVjdGlvbgogICAgYXQgVGltZW91dC5fb25UaW1lb3V0IChmaWxlOi8vL3ByaXZhdGUvdG1wL3NhZmUtYmFzaC1pbmRlcGVuZGVudC1icmlkZ2UtQkJoSHF2L2xhdGUtcmVqZWN0aW9uL2luZGV4Lm1qczoxNjo3MikKICAgIGF0IGxpc3RPblRpbWVvdXQgKG5vZGU6aW50ZXJuYWwvdGltZXJzOjU4NToxNykKICAgIGF0IHByb2Nlc3MucHJvY2Vzc1RpbWVycyAobm9kZTppbnRlcm5hbC90aW1lcnM6NTIxOjcpCgpOb2RlLmpzIHYyMi4yMi4yCg=="
+      },
+      {
+        "atMs": 237.476,
+        "kind": "sticky-failure",
+        "reason": "engine crash/forced exit"
+      },
+      {
+        "atMs": 237.51,
+        "id": "independent/late-rejection",
+        "nonce": "532a71f5-a9d7-4e41-a11d-aa80a3530d72",
+        "kind": "engine-exit",
+        "code": 1,
+        "signal": null
+      },
+      {
+        "atMs": 237.537,
+        "id": "independent/late-rejection",
+        "nonce": "532a71f5-a9d7-4e41-a11d-aa80a3530d72",
+        "kind": "engine-close",
+        "code": 1,
+        "signal": null
+      },
+      {
+        "atMs": 237.568,
+        "id": "independent/late-rejection",
+        "nonce": "532a71f5-a9d7-4e41-a11d-aa80a3530d72",
+        "kind": "fixture-close",
+        "closed": true,
+        "sockets": 0,
+        "requests": []
+      },
+      {
+        "atMs": 237.642,
+        "id": "independent/late-rejection",
+        "nonce": "532a71f5-a9d7-4e41-a11d-aa80a3530d72",
+        "kind": "session-complete"
+      },
+      {
+        "atMs": 240.682,
+        "kind": "coordinator-exit",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "atMs": 240.687,
+        "kind": "coordinator-close",
+        "code": 0,
+        "signal": null
+      }
+    ],
+    "signals": [],
+    "result": {
+      "id": "independent/late-rejection",
+      "nonce": "532a71f5-a9d7-4e41-a11d-aa80a3530d72",
+      "kind": "result",
+      "observation": {
+        "stdout": "AAF/gP7/",
+        "stderr": "aW5kZXBlbmRlbnQK",
+        "exitCode": 0,
+        "entries": {
+          "binary": {
+            "type": "file",
+            "bytes": "AAF/gP7/"
+          }
+        }
+      }
+    },
+    "engineExit": {
+      "code": 1,
+      "signal": null
+    },
+    "engineClose": {
+      "code": 1,
+      "signal": null
+    },
+    "sessionExit": {
+      "code": 0,
+      "signal": null
+    },
+    "sessionClose": {
+      "code": 0,
+      "signal": null
+    },
+    "diagnostics": [
+      {
+        "id": "independent/late-rejection",
+        "nonce": "532a71f5-a9d7-4e41-a11d-aa80a3530d72",
+        "kind": "diagnostic",
+        "stream": "stderr",
+        "base64": "eyJuYW1lIjoiRXJyb3IiLCJtZXNzYWdlIjoiaW5kZXBlbmRlbnQgbGF0ZSByZWplY3Rpb24iLCJjb2RlIjpudWxsfQo="
+      },
+      {
+        "id": "independent/late-rejection",
+        "nonce": "532a71f5-a9d7-4e41-a11d-aa80a3530d72",
+        "kind": "diagnostic",
+        "stream": "stderr",
+        "base64": "ZmlsZTovLy9wcml2YXRlL3RtcC9zYWZlLWJhc2gtaW5kZXBlbmRlbnQtYnJpZGdlLUJCaEhxdi9sYXRlLXJlamVjdGlvbi9pbmRleC5tanM6MTYKaWYgKGZpeHR1cmUubW9kZSA9PT0gJ2xhdGUtcmVqZWN0aW9uJykgc2V0VGltZW91dCgoKSA9PiBQcm9taXNlLnJlamVjdChuZXcgRXJyb3IoJ2luZGVwZW5kZW50IGxhdGUgcmVqZWN0aW9uJykpLCAxMDApOwogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIF4KCkVycm9yOiBpbmRlcGVuZGVudCBsYXRlIHJlamVjdGlvbgogICAgYXQgVGltZW91dC5fb25UaW1lb3V0IChmaWxlOi8vL3ByaXZhdGUvdG1wL3NhZmUtYmFzaC1pbmRlcGVuZGVudC1icmlkZ2UtQkJoSHF2L2xhdGUtcmVqZWN0aW9uL2luZGV4Lm1qczoxNjo3MikKICAgIGF0IGxpc3RPblRpbWVvdXQgKG5vZGU6aW50ZXJuYWwvdGltZXJzOjU4NToxNykKICAgIGF0IHByb2Nlc3MucHJvY2Vzc1RpbWVycyAobm9kZTppbnRlcm5hbC90aW1lcnM6NTIxOjcpCgpOb2RlLmpzIHYyMi4yMi4yCg=="
+      }
+    ],
+    "clean": false,
+    "groupGone": true,
+    "coordinatorPid": 96238,
+    "enginePid": 96239,
+    "cancelSent": true,
+    "network": {
+      "id": "independent/late-rejection",
+      "nonce": "532a71f5-a9d7-4e41-a11d-aa80a3530d72",
+      "kind": "fixture-close",
+      "closed": true,
+      "sockets": 0,
+      "requests": []
+    },
+    "elapsedMs": 243.638,
+    "deadlinesMs": {
+      "total": 4500,
+      "request": 1531.277,
+      "natural": 372.014
+    },
+    "hostBytes": 621,
+    "reportBytes": 5560,
+    "execAdmissions": {
+      "scoredCase": 1,
+      "emptyInitialization": 0
+    },
+    "wireCapture": {
+      "receivedBytes": 5560,
+      "receivedSha256": "0256b070e1c77d243f0be308107537a63fccef13486921bcb1c22f4bfacb48e2",
+      "prefixBase64": "AAABjnsiaWQiOiJpbmRlcGVuZGVudC9sYXRlLXJlamVjdGlvbiIsIm5vbmNlIjoiNTMyYTcxZjUtYTlkNy00ZTQxLWExMWQtYWE4MGEzNTMwZDcyIiwia2luZCI6ImVuZ2luZS1zcGF3biIsInBpZCI6OTYyMzksImFyZ3YiOlsiL1VzZXJzL2tqb3Blay8ubnZtL3ZlcnNpb25zL25vZGUvdjIyLjIyLjIvYmluL25vZGUiLCItLXVuaGFuZGxlZC1yZWplY3Rpb25zPXN0cmljdCIsIi0tZXhwZXJpbWVudGFsLWltcG9ydC1tZXRhLXJlc29sdmUiLCItLW1heC1vbGQtc3BhY2Utc2l6ZT0xMjgiLCIvVXNlcnMva2pvcGVrL1dvcmtzcGFjZS9zYWZlLWJhc2gvYmVuY2htYXJrcy9yZXBvcnRzL2N1cnJlbnQtY29tcGFyaXNvbi0yMDI2MDgyNy9leGVjdXRpb24vZW5naW5lLWNoaWxkLm1qcyIsIi0tc3ludGhldGljIl19AAABTXsiaWQiOiJpbmRlcGVuZGVudC9sYXRlLXJlamVjdGlvbiIsIm5vbmNlIjoiNTMyYTcxZjUtYTlkNy00ZTQxLWExMWQtYWE4MGEzNTMwZDcyIiwia2luZCI6InB1YmxpYy1yZXNvbHV0aW9uIiwic3BlY2lmaWVyIjoiaW5kZXBlbmRlbnQtYnJpZGdlLXNlbnRpbmVsIiwicGFyZW50IjoiL3ByaXZhdGUvdG1wL3NhZmUtYmFzaC1pbmRlcGVuZGVudC1icmlkZ2UtQkJoSHF2L2xhdGUtcmVqZWN0aW9uL3BhY2thZ2UuanNvbiIsInJlc29sdmVkIjoiZmlsZTovLy9wcml2YXRlL3RtcC9zYWZlLWJhc2gtaW5kZXBlbmRlbnQtYnJpZGdlLUJCaEhxdi9sYXRlLXJlamVjdGlvbi9pbmRleC5tanMifQAAAWt7ImlkIjoiaW5kZXBlbmRlbnQvbGF0ZS1yZWplY3Rpb24iLCJub25jZSI6IjUzMmE3MWY1LWE5ZDctNGU0MS1hMTFkLWFhODBhMzUzMGQ3MiIsImtpbmQiOiJtb2R1bGUiLCJldmVudCI6eyJ0eXBlIjoicmVzb2x2ZS1yZXR1cm5lZCIsInNwZWNpZmllciI6ImluZGVwZW5kZW50LWJyaWRnZS1zZW50aW5lbCIsInBhcmVudFVSTCI6ImZpbGU6Ly8vcHJpdmF0ZS90bXAvc2FmZS1iYXNoLWluZGVwZW5kZW50LWJyaWRnZS1CQmhIcXYvbGF0ZS1yZWplY3Rpb24vcGFja2FnZS5qc29uIiwidXJsIjoiZmlsZTovLy9wcml2YXRlL3RtcC9zYWZlLWJhc2gtaW5kZXBlbmRlbnQtYnJpZGdlLUJCaEhxdi9sYXRlLXJlamVjdGlvbi9pbmRleC5tanMifX0AAAG/eyJpZCI6ImluZGVwZW5kZW50L2xhdGUtcmVqZWN0aW9uIiwibm9uY2UiOiI1MzJhNzFmNS1hOWQ3LTRlNDEtYTExZC1hYTgwYTM1MzBkNzIiLCJraW5kIjoibW9kdWxlIiwiZXZlbnQiOnsidHlwZSI6InJlc29sdmUtcmV0dXJuZWQiLCJzcGVjaWZpZXIiOiJmaWxlOi8vL3ByaXZhdGUvdG1wL3NhZmUtYmFzaC1pbmRlcGVuZGVudC1icmlkZ2UtQkJoSHF2L2xhdGUtcmVqZWN0aW9uL2luZGV4Lm1qcyIsInBhcmVudFVSTCI6ImZpbGU6Ly8vVXNlcnMva2pvcGVrL1dvcmtzcGFjZS9zYWZlLWJhc2gvYmVuY2htYXJrcy9yZXBvcnRzL2N1cnJlbnQtY29tcGFyaXNvbi0yMDI2MDgyNy9leGVjdXRpb24vZW5naW5lLWNoaWxkLm1qcyIsInVybCI6ImZpbGU6Ly8vcHJpdmF0ZS90bXAvc2FmZS1iYXNoLWluZGVwZW5kZW50LWJyaWRnZS1CQmhIcXYvbGF0ZS1yZWplY3Rpb24vaW5kZXgubWpzIn19AAABU3siaWQiOiJpbmRlcGVuZGVudC9sYXRlLXJlamVjdGlvbiIsIm5vbmNlIjoiNTMyYTcxZjUtYTlkNy00ZTQxLWExMWQtYWE4MGEzNTMwZDcyIiwia2luZCI6Im1vZHVsZSIsImV2ZW50Ijp7InR5cGUiOiJsb2FkLXJldHVybmVkIiwidXJsIjoiZmlsZTovLy9wcml2YXRlL3RtcC9zYWZlLWJhc2gtaW5kZXBlbmRlbnQtYnJpZGdlLUJCaEhxdi9sYXRlLXJlamVjdGlvbi9pbmRleC5tanMiLCJzaGEyNTYiOiJlYTRhZGE1Y2I5NWJkNmE5YjIzNDhmMGQxZjJkNWU0YzU5OTAzNzc4YWRkY2Y0MDlhNjYyMmIxMWFkODA4NTExIiwiZm9ybWF0IjoibW9kdWxlIiwiZXZhbHVhdGlvblByb3ZlbiI6ZmFsc2V9fQAAAQt7ImlkIjoiaW5kZXBlbmRlbnQvbGF0ZS1yZWplY3Rpb24iLCJub25jZSI6IjUzMmE3MWY1LWE5ZDctNGU0MS1hMTFkLWFhODBhMzUzMGQ3MiIsImtpbmQiOiJtb2R1bGUiLCJldmVudCI6eyJ0eXBlIjoicmVzb2x2ZS1yZXR1cm5lZCIsInNwZWNpZmllciI6Im5vZGU6ZnMiLCJwYXJlbnRVUkwiOiJmaWxlOi8vL3ByaXZhdGUvdG1wL3NhZmUtYmFzaC1pbmRlcGVuZGVudC1icmlkZ2UtQkJoSHF2L2xhdGUtcmVqZWN0aW9uL2luZGV4Lm1qcyIsInVybCI6Im5vZGU6ZnMifX0AAAEheyJpZCI6ImluZGVwZW5kZW50L2xhdGUtcmVqZWN0aW9uIiwibm9uY2UiOiI1MzJhNzFmNS1hOWQ3LTRlNDEtYTExZC1hYTgwYTM1MzBkNzIiLCJraW5kIjoibW9kdWxlIiwiZXZlbnQiOnsidHlwZSI6InJlc29sdmUtcmV0dXJuZWQiLCJzcGVjaWZpZXIiOiJub2RlOmNoaWxkX3Byb2Nlc3MiLCJwYXJlbnRVUkwiOiJmaWxlOi8vL3ByaXZhdGUvdG1wL3NhZmUtYmFzaC1pbmRlcGVuZGVudC1icmlkZ2UtQkJoSHF2L2xhdGUtcmVqZWN0aW9uL2luZGV4Lm1qcyIsInVybCI6Im5vZGU6Y2hpbGRfcHJvY2VzcyJ9fQAAASN7ImlkIjoiaW5kZXBlbmRlbnQvbGF0ZS1yZWplY3Rpb24iLCJub25jZSI6IjUzMmE3MWY1LWE5ZDctNGU0MS1hMTFkLWFhODBhMzUzMGQ3MiIsImtpbmQiOiJtb2R1bGUiLCJldmVudCI6eyJ0eXBlIjoicmVzb2x2ZS1yZXR1cm5lZCIsInNwZWNpZmllciI6Im5vZGU6d29ya2VyX3RocmVhZHMiLCJwYXJlbnRVUkwiOiJmaWxlOi8vL3ByaXZhdGUvdG1wL3NhZmUtYmFzaC1pbmRlcGVuZGVudC1icmlkZ2UtQkJoSHF2L2xhdGUtcmVqZWN0aW9uL2luZGV4Lm1qcyIsInVybCI6Im5vZGU6d29ya2VyX3RocmVhZHMifX0AAADQeyJpZCI6ImluZGVwZW5kZW50L2xhdGUtcmVqZWN0aW9uIiwibm9uY2UiOiI1MzJhNzFmNS1hOWQ3LTRlNDEtYTExZC1hYTgwYTM1MzBkNzIiLCJraW5kIjoiZW50cnktaW1wb3J0LWZ1bGZpbGxlZCIsInJlc29sdmVkIjoiZmlsZTovLy9wcml2YXRlL3RtcC9zYWZlLWJhc2gtaW5kZXBlbmRlbnQtYnJpZGdlLUJCaEhxdi9sYXRlLXJlamVjdGlvbi9pbmRleC5tanMifQAAAGF7ImlkIjoiaW5kZXBlbmRlbnQvbGF0ZS1yZWplY3Rpb24iLCJub25jZSI6IjUzMmE3MWY1LWE5ZDctNGU0MS1hMTFkLWFhODBhMzUzMGQ3MiIsImtpbmQiOiJyZWFkeSJ9AAAAdnsiaWQiOiJpbmRlcGVuZGVudC9sYXRlLXJlamVjdGlvbiIsIm5vbmNlIjoiNTMyYTcxZjUtYTlkNy00ZTQxLWExMWQtYWE4MGEzNTMwZDcyIiwia2luZCI6InBoYXNlIiwicGhhc2UiOiJleGVjLXN0YXJ0In0AAAB4eyJpZCI6ImluZGVwZW5kZW50L2xhdGUtcmVqZWN0aW9uIiwibm9uY2UiOiI1MzJhNzFmNS1hOWQ3LTRlNDEtYTExZC1hYTgwYTM1MzBkNzIiLCJraW5kIjoicGhhc2UiLCJwaGFzZSI6ImV4ZWMtc2V0dGxlZCJ9AAAAfXsiaWQiOiJpbmRlcGVuZGVudC9sYXRlLXJlamVjdGlvbiIsIm5vbmNlIjoiNTMyYTcxZjUtYTlkNy00ZTQxLWExMWQtYWE4MGEzNTMwZDcyIiwia2luZCI6InBoYXNlIiwicGhhc2UiOiJzbmFwc2hvdC1jb21wbGV0ZSJ9AAAAeXsiaWQiOiJpbmRlcGVuZGVudC9sYXRlLXJlamVjdGlvbiIsIm5vbmNlIjoiNTMyYTcxZjUtYTlkNy00ZTQxLWExMWQtYWE4MGEzNTMwZDcyIiwia2luZCI6InBoYXNlIiwicGhhc2UiOiJkaXNwb3NlLXN0YXJ0In0AAAB7eyJpZCI6ImluZGVwZW5kZW50L2xhdGUtcmVqZWN0aW9uIiwibm9uY2UiOiI1MzJhNzFmNS1hOWQ3LTRlNDEtYTExZC1hYTgwYTM1MzBkNzIiLCJraW5kIjoicGhhc2UiLCJwaGFzZSI6ImRpc3Bvc2Utc2V0dGxlZCJ9AAAA53siaWQiOiJpbmRlcGVuZGVudC9sYXRlLXJlamVjdGlvbiIsIm5vbmNlIjoiNTMyYTcxZjUtYTlkNy00ZTQxLWExMWQtYWE4MGEzNTMwZDcyIiwia2luZCI6InJlc3VsdCIsIm9ic2VydmF0aW9uIjp7InN0ZG91dCI6IkFBRi9nUDcvIiwic3RkZXJyIjoiYVc1a1pYQmxibVJsYm5RSyIsImV4aXRDb2RlIjowLCJlbnRyaWVzIjp7ImJpbmFyeSI6eyJ0eXBlIjoiZmlsZSIsImJ5dGVzIjoiQUFGL2dQNy8ifX19fQAAAOB7ImlkIjoiaW5kZXBlbmRlbnQvbGF0ZS1yZWplY3Rpb24iLCJub25jZSI6IjUzMmE3MWY1LWE5ZDctNGU0MS1hMTFkLWFhODBhMzUzMGQ3MiIsImtpbmQiOiJkaWFnbm9zdGljIiwic3RyZWFtIjoic3RkZXJyIiwiYmFzZTY0IjoiZXlKdVlXMWxJam9pUlhKeWIzSWlMQ0p0WlhOeg==",
+      "prefixOnly": true
+    }
+  },
+  "assessment": {
+    "comparison": {
+      "pass": true,
+      "assertions": [
+        {
+          "field": "stdout",
+          "pass": true
+        },
+        {
+          "field": "stderr",
+          "pass": true
+        },
+        {
+          "field": "exitCode",
+          "pass": true
+        },
+        {
+          "field": "entries",
+          "pass": true
+        }
+      ]
+    },
+    "lifecycle": false,
+    "status": "lifecycle-or-capture-failure"
+  },
+  "control": {
+    "mode": "late-rejection",
+    "controlSatisfied": true,
+    "observationStatus": "lifecycle-or-capture-failure",
+    "clean": false,
+    "groupGone": true,
+    "signals": [],
+    "resources": {
+      "imported.json": {
+        "syntheticOnly": true,
+        "pid": 96239,
+        "mode": "late-rejection"
+      }
+    }
+  }
+}

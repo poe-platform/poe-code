@@ -1,0 +1,16 @@
+{"atMs":0.994,"kind":"group-admitted","pid":86618,"pgid":86618,"argv":["/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node","--unhandled-rejections=strict","/Users/kjopek/Workspace/safe-bash/benchmarks/reports/current-comparison-20260827/execution/session.mjs","--synthetic"],"host":{"cwd":"/private/tmp/safe-bash-execution-author-w3lrWQ","env":{"PATH":"/usr/bin:/bin","HOME":"/private/tmp/safe-bash-execution-author-w3lrWQ","TMPDIR":"/private/tmp/safe-bash-execution-author-w3lrWQ","LANG":"C","LC_ALL":"C","TZ":"UTC"}}}
+{"atMs":37.509,"id":"synthetic/clean","nonce":"6db66a9d-71bd-4368-9ba9-26a92b29c964","kind":"engine-spawn","pid":86619,"argv":["/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node","--unhandled-rejections=strict","--experimental-import-meta-resolve","--max-old-space-size=128","/Users/kjopek/Workspace/safe-bash/benchmarks/reports/current-comparison-20260827/execution/engine-child.mjs","--synthetic"]}
+{"atMs":87.732,"kind":"request-start","absoluteDeadlineMs":1487.724667}
+{"atMs":87.742,"id":"synthetic/clean","nonce":"6db66a9d-71bd-4368-9ba9-26a92b29c964","kind":"ready"}
+{"atMs":88.708,"id":"synthetic/clean","nonce":"6db66a9d-71bd-4368-9ba9-26a92b29c964","kind":"phase","phase":"exec-start"}
+{"atMs":88.775,"id":"synthetic/clean","nonce":"6db66a9d-71bd-4368-9ba9-26a92b29c964","kind":"phase","phase":"exec-settled"}
+{"atMs":88.935,"id":"synthetic/clean","nonce":"6db66a9d-71bd-4368-9ba9-26a92b29c964","kind":"phase","phase":"snapshot-complete"}
+{"atMs":89.135,"id":"synthetic/clean","nonce":"6db66a9d-71bd-4368-9ba9-26a92b29c964","kind":"phase","phase":"dispose-start"}
+{"atMs":89.194,"id":"synthetic/clean","nonce":"6db66a9d-71bd-4368-9ba9-26a92b29c964","kind":"phase","phase":"dispose-settled"}
+{"atMs":89.867,"kind":"result-received","sha256":"019878417ebbd1be0a3a0f3a4a776592e4db7a35124818fa87667d077208cbc3","absoluteTotalUnchangedMs":4500}
+{"atMs":92.286,"id":"synthetic/clean","nonce":"6db66a9d-71bd-4368-9ba9-26a92b29c964","kind":"engine-exit","code":0,"signal":null}
+{"atMs":92.426,"id":"synthetic/clean","nonce":"6db66a9d-71bd-4368-9ba9-26a92b29c964","kind":"engine-close","code":0,"signal":null}
+{"atMs":92.438,"id":"synthetic/clean","nonce":"6db66a9d-71bd-4368-9ba9-26a92b29c964","kind":"fixture-close","closed":true,"sockets":0,"requests":[]}
+{"atMs":92.445,"id":"synthetic/clean","nonce":"6db66a9d-71bd-4368-9ba9-26a92b29c964","kind":"session-complete"}
+{"atMs":94.661,"kind":"coordinator-exit","code":0,"signal":null}
+{"atMs":94.67,"kind":"coordinator-close","code":0,"signal":null}

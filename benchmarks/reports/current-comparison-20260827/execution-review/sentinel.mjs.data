@@ -1,0 +1,30 @@
+import { readFileSync, writeFileSync, writeSync } from 'node:fs';
+import { spawn } from 'node:child_process';
+import { Worker } from 'node:worker_threads';
+
+const fixture = JSON.parse(readFileSync(new URL('./fixture.json', import.meta.url)));
+writeFileSync(new URL('./imported.json', import.meta.url), JSON.stringify({ syntheticOnly: true, pid: process.pid, mode: fixture.mode }));
+if (fixture.mode === 'worker-leak') {
+  const worker = new Worker('setInterval(() => {}, 1000)', { eval: true });
+  writeFileSync(new URL('./owned-worker.json', import.meta.url), JSON.stringify({ pid: process.pid, threadId: worker.threadId }));
+}
+if (fixture.mode === 'pipe-leak') {
+  const child = spawn(process.execPath, ['-e', 'setInterval(() => {}, 1000)'], { stdio: ['ignore', 1, 2] });
+  writeFileSync(new URL('./owned-child.json', import.meta.url), JSON.stringify({ pid: child.pid, parent: process.pid }));
+  child.unref();
+}
+if (fixture.mode === 'late-rejection') setTimeout(() => Promise.reject(new Error('independent late rejection')), 100);
+if (fixture.mode === 'crash') process.exit(23);
+if (fixture.mode === 'malformed') {
+  const header = Buffer.alloc(4);
+  header.writeUInt32BE(1);
+  writeSync(3, header);
+  writeSync(3, Buffer.from('{'));
+}
+if (fixture.mode === 'oversize') {
+  const header = Buffer.alloc(4);
+  header.writeUInt32BE(fixture.reportBytes + 1);
+  writeSync(3, header);
+}
+if (fixture.mode === 'unbound-module') await import('./unlisted.mjs');
+export const syntheticOnly = true;

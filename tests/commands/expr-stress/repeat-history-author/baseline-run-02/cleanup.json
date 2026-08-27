@@ -1,0 +1,7 @@
+{
+  "scratch": "/Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/repeat-history-author/.work-z4XM7q",
+  "removed": true,
+  "allSynchronousChildrenAwaited": true,
+  "workerClosure": "observe finally awaits session.close/executor.dispose/shell.dispose; test runner must exit; parent child timeout is bounded",
+  "final": "2026-08-27T19:23:13.642Z"
+}

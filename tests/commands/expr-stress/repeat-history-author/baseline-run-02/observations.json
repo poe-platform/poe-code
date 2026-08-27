@@ -1,0 +1,693 @@
+{
+  "oracle": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr",
+  "oracleHash": "e8a4e2b58a33d2ad6bfa9eb8a4ed5f62775ab9ceac4b9421680c98973fd9109c",
+  "profile": "C on pinned GNU9.7/Darwin",
+  "rows": [
+    {
+      "id": "empty",
+      "argv": [
+        "+",
+        "",
+        ":",
+        "\\(a*\\)*\\1"
+      ],
+      "original": true,
+      "expected": {
+        "status": 1,
+        "stdoutHex": "0a",
+        "stderrHex": ""
+      },
+      "cli": {
+        "status": 2,
+        "stdoutHex": "",
+        "stderrHex": "657870723a20756e737570706f72746564204252453a206261636b7265666572656e636520746f2061206361707475726520696e206e756c6c61626c652072657065746974696f6e0a"
+      },
+      "cliEqual": false,
+      "internal": {
+        "category": "unsupported",
+        "message": "unsupported BRE: backreference to a capture in nullable repetition"
+      }
+    },
+    {
+      "id": "a",
+      "argv": [
+        "+",
+        "a",
+        ":",
+        "\\(a*\\)*\\1"
+      ],
+      "original": true,
+      "expected": {
+        "status": 1,
+        "stdoutHex": "0a",
+        "stderrHex": ""
+      },
+      "cli": {
+        "status": 2,
+        "stdoutHex": "",
+        "stderrHex": "657870723a20756e737570706f72746564204252453a206261636b7265666572656e636520746f2061206361707475726520696e206e756c6c61626c652072657065746974696f6e0a"
+      },
+      "cliEqual": false,
+      "internal": {
+        "category": "unsupported",
+        "message": "unsupported BRE: backreference to a capture in nullable repetition"
+      }
+    },
+    {
+      "id": "aa",
+      "argv": [
+        "+",
+        "aa",
+        ":",
+        "\\(a*\\)*\\1"
+      ],
+      "original": true,
+      "expected": {
+        "status": 0,
+        "stdoutHex": "610a",
+        "stderrHex": ""
+      },
+      "cli": {
+        "status": 2,
+        "stdoutHex": "",
+        "stderrHex": "657870723a20756e737570706f72746564204252453a206261636b7265666572656e636520746f2061206361707475726520696e206e756c6c61626c652072657065746974696f6e0a"
+      },
+      "cliEqual": false,
+      "internal": {
+        "category": "unsupported",
+        "message": "unsupported BRE: backreference to a capture in nullable repetition"
+      }
+    },
+    {
+      "id": "aaa",
+      "argv": [
+        "+",
+        "aaa",
+        ":",
+        "\\(a*\\)*\\1"
+      ],
+      "original": true,
+      "expected": {
+        "status": 1,
+        "stdoutHex": "0a",
+        "stderrHex": ""
+      },
+      "cli": {
+        "status": 2,
+        "stdoutHex": "",
+        "stderrHex": "657870723a20756e737570706f72746564204252453a206261636b7265666572656e636520746f2061206361707475726520696e206e756c6c61626c652072657065746974696f6e0a"
+      },
+      "cliEqual": false,
+      "internal": {
+        "category": "unsupported",
+        "message": "unsupported BRE: backreference to a capture in nullable repetition"
+      }
+    },
+    {
+      "id": "no-reference",
+      "argv": [
+        "+",
+        "aaa",
+        ":",
+        "\\(a*\\)*"
+      ],
+      "original": true,
+      "expected": {
+        "status": 0,
+        "stdoutHex": "6161610a",
+        "stderrHex": ""
+      },
+      "cli": {
+        "status": 0,
+        "stdoutHex": "6161610a",
+        "stderrHex": ""
+      },
+      "cliEqual": true,
+      "internal": {
+        "offsetUnit": "byte",
+        "matched": true,
+        "hasCapture": true,
+        "overall": {
+          "start": 0,
+          "end": 3
+        },
+        "capture": {
+          "start": 0,
+          "end": 3
+        },
+        "steps": 442
+      }
+    },
+    {
+      "id": "not-repeated",
+      "argv": [
+        "+",
+        "aaa",
+        ":",
+        "\\(a*\\)\\1"
+      ],
+      "original": true,
+      "expected": {
+        "status": 0,
+        "stdoutHex": "610a",
+        "stderrHex": ""
+      },
+      "cli": {
+        "status": 0,
+        "stdoutHex": "610a",
+        "stderrHex": ""
+      },
+      "cliEqual": true,
+      "internal": {
+        "offsetUnit": "byte",
+        "matched": true,
+        "hasCapture": true,
+        "overall": {
+          "start": 0,
+          "end": 2
+        },
+        "capture": {
+          "start": 0,
+          "end": 1
+        },
+        "steps": 302
+      }
+    },
+    {
+      "id": "nonnullable",
+      "argv": [
+        "+",
+        "aaa",
+        ":",
+        "\\(a\\)*\\1"
+      ],
+      "original": true,
+      "expected": {
+        "status": 0,
+        "stdoutHex": "610a",
+        "stderrHex": ""
+      },
+      "cli": {
+        "status": 0,
+        "stdoutHex": "610a",
+        "stderrHex": ""
+      },
+      "cliEqual": true,
+      "internal": {
+        "offsetUnit": "byte",
+        "matched": true,
+        "hasCapture": true,
+        "overall": {
+          "start": 0,
+          "end": 3
+        },
+        "capture": {
+          "start": 1,
+          "end": 2
+        },
+        "steps": 323
+      }
+    },
+    {
+      "id": "mandatory-empty",
+      "argv": [
+        "+",
+        "",
+        ":",
+        "\\(a*\\)\\{2\\}\\1"
+      ],
+      "original": true,
+      "expected": {
+        "status": 1,
+        "stdoutHex": "0a",
+        "stderrHex": ""
+      },
+      "cli": {
+        "status": 2,
+        "stdoutHex": "",
+        "stderrHex": "657870723a20756e737570706f72746564204252453a206261636b7265666572656e636520746f2061206361707475726520696e206e756c6c61626c652072657065746974696f6e0a"
+      },
+      "cliEqual": false,
+      "internal": {
+        "category": "unsupported",
+        "message": "unsupported BRE: backreference to a capture in nullable repetition"
+      }
+    },
+    {
+      "id": "end-anchor",
+      "argv": [
+        "+",
+        "aaa",
+        ":",
+        "\\(a*\\)*\\1$"
+      ],
+      "original": false,
+      "expected": {
+        "status": 1,
+        "stdoutHex": "0a",
+        "stderrHex": ""
+      },
+      "cli": {
+        "status": 2,
+        "stdoutHex": "",
+        "stderrHex": "657870723a20756e737570706f72746564204252453a206261636b7265666572656e636520746f2061206361707475726520696e206e756c6c61626c652072657065746974696f6e0a"
+      },
+      "cliEqual": false,
+      "internal": {
+        "category": "unsupported",
+        "message": "unsupported BRE: backreference to a capture in nullable repetition"
+      }
+    },
+    {
+      "id": "literal-suffix",
+      "argv": [
+        "+",
+        "aaab",
+        ":",
+        "\\(a*\\)*\\1b"
+      ],
+      "original": false,
+      "expected": {
+        "status": 1,
+        "stdoutHex": "0a",
+        "stderrHex": ""
+      },
+      "cli": {
+        "status": 2,
+        "stdoutHex": "",
+        "stderrHex": "657870723a20756e737570706f72746564204252453a206261636b7265666572656e636520746f2061206361707475726520696e206e756c6c61626c652072657065746974696f6e0a"
+      },
+      "cliEqual": false,
+      "internal": {
+        "category": "unsupported",
+        "message": "unsupported BRE: backreference to a capture in nullable repetition"
+      }
+    },
+    {
+      "id": "mandatory-a",
+      "argv": [
+        "+",
+        "a",
+        ":",
+        "\\(a*\\)\\{2\\}\\1"
+      ],
+      "original": false,
+      "expected": {
+        "status": 1,
+        "stdoutHex": "0a",
+        "stderrHex": ""
+      },
+      "cli": {
+        "status": 2,
+        "stdoutHex": "",
+        "stderrHex": "657870723a20756e737570706f72746564204252453a206261636b7265666572656e636520746f2061206361707475726520696e206e756c6c61626c652072657065746974696f6e0a"
+      },
+      "cliEqual": false,
+      "internal": {
+        "category": "unsupported",
+        "message": "unsupported BRE: backreference to a capture in nullable repetition"
+      }
+    },
+    {
+      "id": "mandatory-aa",
+      "argv": [
+        "+",
+        "aa",
+        ":",
+        "\\(a*\\)\\{2\\}\\1"
+      ],
+      "original": false,
+      "expected": {
+        "status": 1,
+        "stdoutHex": "0a",
+        "stderrHex": ""
+      },
+      "cli": {
+        "status": 2,
+        "stdoutHex": "",
+        "stderrHex": "657870723a20756e737570706f72746564204252453a206261636b7265666572656e636520746f2061206361707475726520696e206e756c6c61626c652072657065746974696f6e0a"
+      },
+      "cliEqual": false,
+      "internal": {
+        "category": "unsupported",
+        "message": "unsupported BRE: backreference to a capture in nullable repetition"
+      }
+    },
+    {
+      "id": "mandatory-aaa",
+      "argv": [
+        "+",
+        "aaa",
+        ":",
+        "\\(a*\\)\\{2\\}\\1"
+      ],
+      "original": false,
+      "expected": {
+        "status": 1,
+        "stdoutHex": "0a",
+        "stderrHex": ""
+      },
+      "cli": {
+        "status": 2,
+        "stdoutHex": "",
+        "stderrHex": "657870723a20756e737570706f72746564204252453a206261636b7265666572656e636520746f2061206361707475726520696e206e756c6c61626c652072657065746974696f6e0a"
+      },
+      "cliEqual": false,
+      "internal": {
+        "category": "unsupported",
+        "message": "unsupported BRE: backreference to a capture in nullable repetition"
+      }
+    },
+    {
+      "id": "bounded-aa",
+      "argv": [
+        "+",
+        "aa",
+        ":",
+        "\\(a*\\)\\{1,3\\}\\1"
+      ],
+      "original": false,
+      "expected": {
+        "status": 0,
+        "stdoutHex": "610a",
+        "stderrHex": ""
+      },
+      "cli": {
+        "status": 2,
+        "stdoutHex": "",
+        "stderrHex": "657870723a20756e737570706f72746564204252453a206261636b7265666572656e636520746f2061206361707475726520696e206e756c6c61626c652072657065746974696f6e0a"
+      },
+      "cliEqual": false,
+      "internal": {
+        "category": "unsupported",
+        "message": "unsupported BRE: backreference to a capture in nullable repetition"
+      }
+    },
+    {
+      "id": "bounded-aaa",
+      "argv": [
+        "+",
+        "aaa",
+        ":",
+        "\\(a*\\)\\{1,3\\}\\1"
+      ],
+      "original": false,
+      "expected": {
+        "status": 0,
+        "stdoutHex": "610a",
+        "stderrHex": ""
+      },
+      "cli": {
+        "status": 2,
+        "stdoutHex": "",
+        "stderrHex": "657870723a20756e737570706f72746564204252453a206261636b7265666572656e636520746f2061206361707475726520696e206e756c6c61626c652072657065746974696f6e0a"
+      },
+      "cliEqual": false,
+      "internal": {
+        "category": "unsupported",
+        "message": "unsupported BRE: backreference to a capture in nullable repetition"
+      }
+    },
+    {
+      "id": "unmatched-closed",
+      "argv": [
+        "+",
+        "",
+        ":",
+        "\\(a\\)*\\1"
+      ],
+      "original": false,
+      "expected": {
+        "status": 1,
+        "stdoutHex": "0a",
+        "stderrHex": ""
+      },
+      "cli": {
+        "status": 1,
+        "stdoutHex": "0a",
+        "stderrHex": ""
+      },
+      "cliEqual": true,
+      "internal": {
+        "offsetUnit": "byte",
+        "matched": false,
+        "hasCapture": true,
+        "overall": null,
+        "capture": null,
+        "steps": 198
+      }
+    },
+    {
+      "id": "required-empty",
+      "argv": [
+        "+",
+        "",
+        ":",
+        "\\(a*\\)\\1"
+      ],
+      "original": false,
+      "expected": {
+        "status": 1,
+        "stdoutHex": "0a",
+        "stderrHex": ""
+      },
+      "cli": {
+        "status": 1,
+        "stdoutHex": "0a",
+        "stderrHex": ""
+      },
+      "cliEqual": true,
+      "internal": {
+        "offsetUnit": "byte",
+        "matched": true,
+        "hasCapture": true,
+        "overall": {
+          "start": 0,
+          "end": 0
+        },
+        "capture": {
+          "start": 0,
+          "end": 0
+        },
+        "steps": 205
+      }
+    },
+    {
+      "id": "open-backref",
+      "argv": [
+        "+",
+        "a",
+        ":",
+        "\\(a\\1\\)"
+      ],
+      "original": false,
+      "expected": {
+        "status": 2,
+        "stdoutHex": "",
+        "stderrHex": "657870723a20496e76616c6964206261636b207265666572656e63650a"
+      },
+      "cli": {
+        "status": 2,
+        "stdoutHex": "",
+        "stderrHex": "657870723a20496e76616c6964206261636b207265666572656e63650a"
+      },
+      "cliEqual": true,
+      "internal": {
+        "category": "syntax",
+        "message": "Invalid back reference"
+      }
+    },
+    {
+      "id": "newline-anchor",
+      "argv": [
+        "+",
+        "a\n",
+        ":",
+        "\\(a\\)$"
+      ],
+      "original": false,
+      "expected": {
+        "status": 1,
+        "stdoutHex": "0a",
+        "stderrHex": ""
+      },
+      "cli": {
+        "status": 1,
+        "stdoutHex": "0a",
+        "stderrHex": ""
+      },
+      "cliEqual": true,
+      "internal": {
+        "offsetUnit": "byte",
+        "matched": false,
+        "hasCapture": true,
+        "overall": null,
+        "capture": null,
+        "steps": 149
+      }
+    },
+    {
+      "id": "nested-history",
+      "argv": [
+        "+",
+        "aaa",
+        ":",
+        "\\(\\(a*\\)*\\)\\2"
+      ],
+      "original": false,
+      "expected": {
+        "status": 1,
+        "stdoutHex": "0a",
+        "stderrHex": ""
+      },
+      "cli": {
+        "status": 2,
+        "stdoutHex": "",
+        "stderrHex": "657870723a20756e737570706f72746564204252453a206261636b7265666572656e636520746f2061206361707475726520696e206e756c6c61626c652072657065746974696f6e0a"
+      },
+      "cliEqual": false,
+      "internal": {
+        "category": "unsupported",
+        "message": "unsupported BRE: backreference to a capture in nullable repetition"
+      }
+    },
+    {
+      "id": "alternation-longest",
+      "argv": [
+        "+",
+        "aaa",
+        ":",
+        "\\(a\\|aa\\)a*"
+      ],
+      "original": false,
+      "expected": {
+        "status": 0,
+        "stdoutHex": "610a",
+        "stderrHex": ""
+      },
+      "cli": {
+        "status": 0,
+        "stdoutHex": "610a",
+        "stderrHex": ""
+      },
+      "cliEqual": true,
+      "internal": {
+        "offsetUnit": "byte",
+        "matched": true,
+        "hasCapture": true,
+        "overall": {
+          "start": 0,
+          "end": 3
+        },
+        "capture": {
+          "start": 0,
+          "end": 1
+        },
+        "steps": 416
+      }
+    },
+    {
+      "id": "finite-optional",
+      "argv": [
+        "+",
+        "aa",
+        ":",
+        "\\(a*\\)\\{0,2\\}\\1"
+      ],
+      "original": false,
+      "expected": {
+        "status": 1,
+        "stdoutHex": "0a",
+        "stderrHex": ""
+      },
+      "cli": {
+        "status": 2,
+        "stdoutHex": "",
+        "stderrHex": "657870723a20756e737570706f72746564204252453a206261636b7265666572656e636520746f2061206361707475726520696e206e756c6c61626c652072657065746974696f6e0a"
+      },
+      "cliEqual": false,
+      "internal": {
+        "category": "unsupported",
+        "message": "unsupported BRE: backreference to a capture in nullable repetition"
+      }
+    },
+    {
+      "id": "nested-stale-backref",
+      "argv": [
+        "+",
+        "abab",
+        ":",
+        "\\(a\\(b\\)*\\)*\\2"
+      ],
+      "original": false,
+      "expected": {
+        "status": 0,
+        "stdoutHex": "610a",
+        "stderrHex": ""
+      },
+      "cli": {
+        "status": 0,
+        "stdoutHex": "610a",
+        "stderrHex": ""
+      },
+      "cliEqual": true,
+      "internal": {
+        "offsetUnit": "byte",
+        "matched": true,
+        "hasCapture": true,
+        "overall": {
+          "start": 0,
+          "end": 4
+        },
+        "capture": {
+          "start": 2,
+          "end": 3
+        },
+        "steps": 650
+      }
+    },
+    {
+      "id": "mandatory-no-reference",
+      "argv": [
+        "+",
+        "aaa",
+        ":",
+        "\\(a*\\)\\{2\\}"
+      ],
+      "original": false,
+      "expected": {
+        "status": 1,
+        "stdoutHex": "0a",
+        "stderrHex": ""
+      },
+      "cli": {
+        "status": 1,
+        "stdoutHex": "0a",
+        "stderrHex": ""
+      },
+      "cliEqual": true,
+      "internal": {
+        "offsetUnit": "byte",
+        "matched": true,
+        "hasCapture": true,
+        "overall": {
+          "start": 0,
+          "end": 3
+        },
+        "capture": {
+          "start": 3,
+          "end": 3
+        },
+        "steps": 677
+      }
+    }
+  ],
+  "actualCLI": "Shell.exec with expr plugin; not a projection from spans",
+  "internal": "separate RegexExecutor request, existing validated byte protocol",
+  "cleanup": {
+    "sessionClosed": true,
+    "executorDisposed": true,
+    "shellDisposed": true,
+    "nativeCwdRemoved": true
+  }
+}

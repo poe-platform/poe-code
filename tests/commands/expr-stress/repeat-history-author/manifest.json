@@ -1,0 +1,241 @@
+{
+  "schema": 1,
+  "roots": [
+    "tests/commands/expr-stress/repeat-history-author",
+    "tests/commands/expr/repeat-history"
+  ],
+  "base": "21220b465537bf45ffcfb36740956a69f43bf75e",
+  "baselineCommit": "e9480736ed91e46a4074288888d2e4a8dbc9f802",
+  "candidateSourceSha256": "663b0b9010d939df16910c75d543f7a41cee832d6cd7cc2ab142996386206890",
+  "promotion": false,
+  "entries": {
+    "tests/commands/expr-stress/repeat-history-author/README.md": {
+      "kind": "file",
+      "bytes": 2145,
+      "sha256": "0732990d3300d66010cb89620199caa97549f8c993cf667f8be5e7676ca52ae7"
+    },
+    "tests/commands/expr-stress/repeat-history-author/REPORT.md": {
+      "kind": "file",
+      "bytes": 13806,
+      "sha256": "0913a8ad2c8d51e4d6f10399686f40c6226da6e85b1e1bdcb2de8592f33a3f17"
+    },
+    "tests/commands/expr-stress/repeat-history-author/baseline-run-01": {
+      "kind": "directory"
+    },
+    "tests/commands/expr-stress/repeat-history-author/baseline-run-01/cleanup.json": {
+      "kind": "file",
+      "bytes": 360,
+      "sha256": "7f469e9dbe4dc2b956f58b09d7c687660a2a81582fd45993e12889c622c3d032"
+    },
+    "tests/commands/expr-stress/repeat-history-author/baseline-run-01/commands.json": {
+      "kind": "file",
+      "bytes": 42706,
+      "sha256": "f25d245bc792dd6c83a7635cf0a0d671a69575599fcb06eecedf8a5790316078"
+    },
+    "tests/commands/expr-stress/repeat-history-author/baseline-run-01/observations.json": {
+      "kind": "file",
+      "bytes": 16301,
+      "sha256": "588ddbf7f45511daca3ad9ad95281bd76ba133c3e40b4ebb99378411fda6756e"
+    },
+    "tests/commands/expr-stress/repeat-history-author/baseline-run-01/provenance.json": {
+      "kind": "file",
+      "bytes": 49473,
+      "sha256": "6b0027e128065944d3b221d156e0313095f8839a78fb484c8a0e7aeaae425965"
+    },
+    "tests/commands/expr-stress/repeat-history-author/baseline-run-01/tests.tap": {
+      "kind": "file",
+      "bytes": 28547,
+      "sha256": "efe5d1bb182d6c91b468311d4742847d33dde7f81d7774499ab1c91c07d9bde3"
+    },
+    "tests/commands/expr-stress/repeat-history-author/baseline-run-02": {
+      "kind": "directory"
+    },
+    "tests/commands/expr-stress/repeat-history-author/baseline-run-02/cleanup.json": {
+      "kind": "file",
+      "bytes": 360,
+      "sha256": "89c8319e6621d0b610f99f7bd5ea04b61e820913bd103686c1c89e2dd7bd2b62"
+    },
+    "tests/commands/expr-stress/repeat-history-author/baseline-run-02/commands.json": {
+      "kind": "file",
+      "bytes": 45386,
+      "sha256": "42ff02c33827536c51841cb2578dfb128ec13c8276dc52c76d336db768dd0283"
+    },
+    "tests/commands/expr-stress/repeat-history-author/baseline-run-02/observations.json": {
+      "kind": "file",
+      "bytes": 16301,
+      "sha256": "588ddbf7f45511daca3ad9ad95281bd76ba133c3e40b4ebb99378411fda6756e"
+    },
+    "tests/commands/expr-stress/repeat-history-author/baseline-run-02/preparation.json": {
+      "kind": "file",
+      "bytes": 51332,
+      "sha256": "ca8d2f33e203f5c6532259ffad508a61d5c3386e3b41deaf25b99d38ad7bc953"
+    },
+    "tests/commands/expr-stress/repeat-history-author/baseline-run-02/provenance.json": {
+      "kind": "file",
+      "bytes": 52420,
+      "sha256": "58d192215163a8b13cffb0f4940db9b90983a37ca6d0e4d27cc5e63ed4594a90"
+    },
+    "tests/commands/expr-stress/repeat-history-author/baseline-run-02/tests.tap": {
+      "kind": "file",
+      "bytes": 30773,
+      "sha256": "fe81c1c9056d6697e0016fa3a8f3f23954b6ca17bf056f20b07e433e26b356a2"
+    },
+    "tests/commands/expr-stress/repeat-history-author/baseline.json": {
+      "kind": "file",
+      "bytes": 23653,
+      "sha256": "daccc97118048d83e22162118f2d3396dcde70ef74965dc7c9c8d87380f7171f"
+    },
+    "tests/commands/expr-stress/repeat-history-author/candidate-bre-worker.ts.data": {
+      "kind": "file",
+      "bytes": 20712,
+      "sha256": "663b0b9010d939df16910c75d543f7a41cee832d6cd7cc2ab142996386206890"
+    },
+    "tests/commands/expr-stress/repeat-history-author/candidate-run-01": {
+      "kind": "directory"
+    },
+    "tests/commands/expr-stress/repeat-history-author/candidate-run-01/cleanup.json": {
+      "kind": "file",
+      "bytes": 360,
+      "sha256": "0dac1c7b88aa05cfd7a354c26b3a1f7f2787b5e50bd95f7281839368fd9e44d6"
+    },
+    "tests/commands/expr-stress/repeat-history-author/candidate-run-01/commands.json": {
+      "kind": "file",
+      "bytes": 48278,
+      "sha256": "d932cd377ae9d72d3d6b938b069eacf763015262825d21ac3ed7fec142dc93fe"
+    },
+    "tests/commands/expr-stress/repeat-history-author/candidate-run-01/observations.json": {
+      "kind": "file",
+      "bytes": 16085,
+      "sha256": "f9ead412dfdcadcd0fee34d5806a2ec29b47f4df7cc42ee1cf5c2ae428f84856"
+    },
+    "tests/commands/expr-stress/repeat-history-author/candidate-run-01/provenance.json": {
+      "kind": "file",
+      "bytes": 49733,
+      "sha256": "43699de4db6a2d4c8274a91cfdeecd491905d1743f5772a2bee263ffb21ed163"
+    },
+    "tests/commands/expr-stress/repeat-history-author/candidate-run-01/tests.tap": {
+      "kind": "file",
+      "bytes": 34645,
+      "sha256": "54101013eb0c7de730aca8a13a03d8c112523c0924b188c00747751abd6b5f2b"
+    },
+    "tests/commands/expr-stress/repeat-history-author/candidate-run-02": {
+      "kind": "directory"
+    },
+    "tests/commands/expr-stress/repeat-history-author/candidate-run-02/cleanup.json": {
+      "kind": "file",
+      "bytes": 360,
+      "sha256": "f6a28d5c519caa81d4db63923c79f608d05c113690fff7d0a3d52ed29b3c4c0e"
+    },
+    "tests/commands/expr-stress/repeat-history-author/candidate-run-02/commands.json": {
+      "kind": "file",
+      "bytes": 53222,
+      "sha256": "0edde3d13604504f74ebf043a9c464f624fc075ad21cc098a25b887ad00719b6"
+    },
+    "tests/commands/expr-stress/repeat-history-author/candidate-run-02/failure.json": {
+      "kind": "file",
+      "bytes": 82170,
+      "sha256": "84533a08f0f4c2c7337cf6040ea13880c2d0d865f4c486d37cec63ed56ab3376"
+    },
+    "tests/commands/expr-stress/repeat-history-author/candidate-run-02/observations.json": {
+      "kind": "file",
+      "bytes": 16085,
+      "sha256": "1a3f3e3fab0b539ef4930e01969146a5c304afa953def888942adc3ead7d2a76"
+    },
+    "tests/commands/expr-stress/repeat-history-author/candidate-run-03": {
+      "kind": "directory"
+    },
+    "tests/commands/expr-stress/repeat-history-author/candidate-run-03/cleanup.json": {
+      "kind": "file",
+      "bytes": 360,
+      "sha256": "0dde5f512e1b4801f56739d8c1a6ad896ab6713078d56a8fb031fc5874448872"
+    },
+    "tests/commands/expr-stress/repeat-history-author/candidate-run-03/commands.json": {
+      "kind": "file",
+      "bytes": 54397,
+      "sha256": "4498649ffec734e8e08fa5431e255871731bfdb76c1701de6f3242e83626caf6"
+    },
+    "tests/commands/expr-stress/repeat-history-author/candidate-run-03/failure.json": {
+      "kind": "file",
+      "bytes": 84520,
+      "sha256": "b06e8bdcf105f4562b8e46d0046eaa4e1b925fa5baef987ac41f966fa7e43f3f"
+    },
+    "tests/commands/expr-stress/repeat-history-author/candidate-run-03/observations.json": {
+      "kind": "file",
+      "bytes": 16085,
+      "sha256": "1a3f3e3fab0b539ef4930e01969146a5c304afa953def888942adc3ead7d2a76"
+    },
+    "tests/commands/expr-stress/repeat-history-author/candidate-run-03/preparation.json": {
+      "kind": "file",
+      "bytes": 51333,
+      "sha256": "151d6296f98433281f7dd19621bbb713797030b622948d81aa8459d575f91c82"
+    },
+    "tests/commands/expr-stress/repeat-history-author/candidate-run-04": {
+      "kind": "directory"
+    },
+    "tests/commands/expr-stress/repeat-history-author/candidate-run-04/cleanup.json": {
+      "kind": "file",
+      "bytes": 360,
+      "sha256": "63b73064ae17aacda8ce662d004fe842555b87e84009fdb4c048a62969e285fc"
+    },
+    "tests/commands/expr-stress/repeat-history-author/candidate-run-04/commands.json": {
+      "kind": "file",
+      "bytes": 53036,
+      "sha256": "66e766da4c3fbde88f422ff66bb9f8dbc8ce4a6d2c5e2cf45c0685688dfd9c5b"
+    },
+    "tests/commands/expr-stress/repeat-history-author/candidate-run-04/observations.json": {
+      "kind": "file",
+      "bytes": 16085,
+      "sha256": "c4b089c10269100d83694a58b88a1b80afe32960ad4c4efc53649b98942d8d2e"
+    },
+    "tests/commands/expr-stress/repeat-history-author/candidate-run-04/preparation.json": {
+      "kind": "file",
+      "bytes": 51333,
+      "sha256": "2b19c9f21f86ed86c48bd9d83061fc0fc34e10aef0facdef81fd1b72a33ec793"
+    },
+    "tests/commands/expr-stress/repeat-history-author/candidate-run-04/provenance.json": {
+      "kind": "file",
+      "bytes": 52551,
+      "sha256": "315cab8c9cdc62a575e6a9f4e5fd6ea3769608d8ab8d3e5bc031d80fee840776"
+    },
+    "tests/commands/expr-stress/repeat-history-author/candidate-run-04/tests.tap": {
+      "kind": "file",
+      "bytes": 39035,
+      "sha256": "50a78166b650c0a2d94a389906a78a517e28a5bf378122b508e6ce00babc1ef0"
+    },
+    "tests/commands/expr-stress/repeat-history-author/candidate.patch": {
+      "kind": "file",
+      "bytes": 39362,
+      "sha256": "900d10baaaad15e6e428747ca5815b3c284f14a612d6752c9b7bdf91b2fed6de"
+    },
+    "tests/commands/expr-stress/repeat-history-author/capture.mjs": {
+      "kind": "file",
+      "bytes": 6903,
+      "sha256": "0c53884d6652fbf8f04c17899067229dc64b773e1cf30e81ac72c9d4d362959e"
+    },
+    "tests/commands/expr-stress/repeat-history-author/observe.mjs": {
+      "kind": "file",
+      "bytes": 4191,
+      "sha256": "5f860e06b09349a233dca66a6ac12e9c535c51d1279cadaf11e5c9231e6453a6"
+    },
+    "tests/commands/expr-stress/repeat-history-author/verify-candidate.mjs": {
+      "kind": "file",
+      "bytes": 4854,
+      "sha256": "fe67fca8798323c34bc715317dc06ba36bea82f9d76eaa61aee93c3cfd9daeb5"
+    },
+    "tests/commands/expr-stress/repeat-history-author/verify.mjs": {
+      "kind": "file",
+      "bytes": 1570,
+      "sha256": "2a83149bd24788e24a4bac92ff7611fd5b9e2481bf528c81777358fa1e5f5703"
+    },
+    "tests/commands/expr/repeat-history/candidate.checks.ts": {
+      "kind": "file",
+      "bytes": 7301,
+      "sha256": "26b4a254897c772d9a151f3729f98a4090d0fcccd3046ed75d6c95cbefba33f6"
+    },
+    "tests/commands/expr/repeat-history/invariants.test.ts": {
+      "kind": "file",
+      "bytes": 2943,
+      "sha256": "432e3df1ddc625b149c0ba1d0e6ea654467e067c21f1171942713ccbe42a7bbe"
+    }
+  }
+}

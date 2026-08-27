@@ -23,3 +23,12 @@ Candidate execution is explicit opt-in in unique isolated scratch from the
 approved Git base. Do not apply its patch to the live worker as a test setup.
 Capture commands require a new output directory; ordinary verification must
 never write evidence. Source snapshots are transient, not canonical fixtures.
+
+See `REPORT.md` for the algorithm, exact denominators, original/native
+differences, failed author-test attempts, accounting limits and cleanup.
+`candidate-bre-worker.ts.data` is the unpromoted source, not a discovered TS
+input. `candidate.patch` has only the authorized worker target.
+`verify-candidate.mjs` authenticates the complete owned seal read-only;
+`verify.mjs` authenticates the historical baseline only. The 12 invariant tests
+are canonical; the 34 provisional checks are explicit `candidate.checks.ts`
+tests copied, strictly typechecked and run only inside candidate snapshots.

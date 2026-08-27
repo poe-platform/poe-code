@@ -1,0 +1,608 @@
+TAP version 13
+# Subtest: jq42 followup failed-prefix-true-none whole
+not ok 1 - jq42 followup failed-prefix-true-none whole
+  ---
+  duration_ms: 4.690542
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-42-author-20260827/followup.test.ts:1:355'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+      {
+    +   status: 0,
+    -   status: 4,
+        stderrHex: '6a713a206572726f7220286174203c737464696e3e3a31293a206e756d6265722028312920616e64206e756d626572202830292063616e6e6f7420626520646976696465642062656361757365207468652064697669736f72206973207a65726f0a',
+        stdoutHex: '747275650a'
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    status: 4
+    stdoutHex: '747275650a'
+    stderrHex: '6a713a206572726f7220286174203c737464696e3e3a31293a206e756d6265722028312920616e64206e756d626572202830292063616e6e6f7420626520646976696465642062656361757365207468652064697669736f72206973207a65726f0a'
+  actual:
+    status: 0
+    stdoutHex: '747275650a'
+    stderrHex: '6a713a206572726f7220286174203c737464696e3e3a31293a206e756d6265722028312920616e64206e756d626572202830292063616e6e6f7420626520646976696465642062656361757365207468652064697669736f72206973207a65726f0a'
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-42-author-20260827/followup.test.ts:8:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# Subtest: jq42 followup failed-prefix-true-none bytewise
+not ok 2 - jq42 followup failed-prefix-true-none bytewise
+  ---
+  duration_ms: 1.569792
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-42-author-20260827/followup.test.ts:1:355'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+      {
+    +   status: 0,
+    -   status: 4,
+        stderrHex: '6a713a206572726f7220286174203c737464696e3e3a31293a206e756d6265722028312920616e64206e756d626572202830292063616e6e6f7420626520646976696465642062656361757365207468652064697669736f72206973207a65726f0a',
+        stdoutHex: '747275650a'
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    status: 4
+    stdoutHex: '747275650a'
+    stderrHex: '6a713a206572726f7220286174203c737464696e3e3a31293a206e756d6265722028312920616e64206e756d626572202830292063616e6e6f7420626520646976696465642062656361757365207468652064697669736f72206973207a65726f0a'
+  actual:
+    status: 0
+    stdoutHex: '747275650a'
+    stderrHex: '6a713a206572726f7220286174203c737464696e3e3a31293a206e756d6265722028312920616e64206e756d626572202830292063616e6e6f7420626520646976696465642062656361757365207468652064697669736f72206973207a65726f0a'
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-42-author-20260827/followup.test.ts:8:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: jq42 followup failed-prefix-true-prior whole
+ok 3 - jq42 followup failed-prefix-true-prior whole
+  ---
+  duration_ms: 0.607917
+  type: 'test'
+  ...
+# Subtest: jq42 followup failed-prefix-true-prior bytewise
+ok 4 - jq42 followup failed-prefix-true-prior bytewise
+  ---
+  duration_ms: 0.666875
+  type: 'test'
+  ...
+# Subtest: jq42 followup failed-prefix-false-none whole
+not ok 5 - jq42 followup failed-prefix-false-none whole
+  ---
+  duration_ms: 0.5565
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-42-author-20260827/followup.test.ts:1:355'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+      {
+    +   status: 1,
+    -   status: 4,
+        stderrHex: '6a713a206572726f7220286174203c737464696e3e3a31293a206e756d6265722028312920616e64206e756d626572202830292063616e6e6f7420626520646976696465642062656361757365207468652064697669736f72206973207a65726f0a',
+        stdoutHex: '66616c73650a'
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    status: 4
+    stdoutHex: '66616c73650a'
+    stderrHex: '6a713a206572726f7220286174203c737464696e3e3a31293a206e756d6265722028312920616e64206e756d626572202830292063616e6e6f7420626520646976696465642062656361757365207468652064697669736f72206973207a65726f0a'
+  actual:
+    status: 1
+    stdoutHex: '66616c73650a'
+    stderrHex: '6a713a206572726f7220286174203c737464696e3e3a31293a206e756d6265722028312920616e64206e756d626572202830292063616e6e6f7420626520646976696465642062656361757365207468652064697669736f72206973207a65726f0a'
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-42-author-20260827/followup.test.ts:8:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: jq42 followup failed-prefix-false-none bytewise
+not ok 6 - jq42 followup failed-prefix-false-none bytewise
+  ---
+  duration_ms: 0.713334
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-42-author-20260827/followup.test.ts:1:355'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+      {
+    +   status: 1,
+    -   status: 4,
+        stderrHex: '6a713a206572726f7220286174203c737464696e3e3a31293a206e756d6265722028312920616e64206e756d626572202830292063616e6e6f7420626520646976696465642062656361757365207468652064697669736f72206973207a65726f0a',
+        stdoutHex: '66616c73650a'
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    status: 4
+    stdoutHex: '66616c73650a'
+    stderrHex: '6a713a206572726f7220286174203c737464696e3e3a31293a206e756d6265722028312920616e64206e756d626572202830292063616e6e6f7420626520646976696465642062656361757365207468652064697669736f72206973207a65726f0a'
+  actual:
+    status: 1
+    stdoutHex: '66616c73650a'
+    stderrHex: '6a713a206572726f7220286174203c737464696e3e3a31293a206e756d6265722028312920616e64206e756d626572202830292063616e6e6f7420626520646976696465642062656361757365207468652064697669736f72206973207a65726f0a'
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-42-author-20260827/followup.test.ts:8:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: jq42 followup failed-prefix-false-prior whole
+not ok 7 - jq42 followup failed-prefix-false-prior whole
+  ---
+  duration_ms: 0.556542
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-42-author-20260827/followup.test.ts:1:355'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+      {
+    +   status: 1,
+    -   status: 0,
+        stderrHex: '6a713a206572726f7220286174203c737464696e3e3a32293a206e756d6265722028312920616e64206e756d626572202830292063616e6e6f7420626520646976696465642062656361757365207468652064697669736f72206973207a65726f0a',
+        stdoutHex: '320a66616c73650a'
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    status: 0
+    stdoutHex: '320a66616c73650a'
+    stderrHex: '6a713a206572726f7220286174203c737464696e3e3a32293a206e756d6265722028312920616e64206e756d626572202830292063616e6e6f7420626520646976696465642062656361757365207468652064697669736f72206973207a65726f0a'
+  actual:
+    status: 1
+    stdoutHex: '320a66616c73650a'
+    stderrHex: '6a713a206572726f7220286174203c737464696e3e3a32293a206e756d6265722028312920616e64206e756d626572202830292063616e6e6f7420626520646976696465642062656361757365207468652064697669736f72206973207a65726f0a'
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-42-author-20260827/followup.test.ts:8:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: jq42 followup failed-prefix-false-prior bytewise
+not ok 8 - jq42 followup failed-prefix-false-prior bytewise
+  ---
+  duration_ms: 0.463209
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-42-author-20260827/followup.test.ts:1:355'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+      {
+    +   status: 1,
+    -   status: 0,
+        stderrHex: '6a713a206572726f7220286174203c737464696e3e3a32293a206e756d6265722028312920616e64206e756d626572202830292063616e6e6f7420626520646976696465642062656361757365207468652064697669736f72206973207a65726f0a',
+        stdoutHex: '320a66616c73650a'
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    status: 0
+    stdoutHex: '320a66616c73650a'
+    stderrHex: '6a713a206572726f7220286174203c737464696e3e3a32293a206e756d6265722028312920616e64206e756d626572202830292063616e6e6f7420626520646976696465642062656361757365207468652064697669736f72206973207a65726f0a'
+  actual:
+    status: 1
+    stdoutHex: '320a66616c73650a'
+    stderrHex: '6a713a206572726f7220286174203c737464696e3e3a32293a206e756d6265722028312920616e64206e756d626572202830292063616e6e6f7420626520646976696465642062656361757365207468652064697669736f72206973207a65726f0a'
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-42-author-20260827/followup.test.ts:8:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: jq42 followup failed-prefix-null-none whole
+not ok 9 - jq42 followup failed-prefix-null-none whole
+  ---
+  duration_ms: 1.0415
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-42-author-20260827/followup.test.ts:1:355'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+      {
+    +   status: 1,
+    -   status: 4,
+        stderrHex: '6a713a206572726f7220286174203c737464696e3e3a31293a206e756d6265722028312920616e64206e756d626572202830292063616e6e6f7420626520646976696465642062656361757365207468652064697669736f72206973207a65726f0a',
+        stdoutHex: '6e756c6c0a'
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    status: 4
+    stdoutHex: '6e756c6c0a'
+    stderrHex: '6a713a206572726f7220286174203c737464696e3e3a31293a206e756d6265722028312920616e64206e756d626572202830292063616e6e6f7420626520646976696465642062656361757365207468652064697669736f72206973207a65726f0a'
+  actual:
+    status: 1
+    stdoutHex: '6e756c6c0a'
+    stderrHex: '6a713a206572726f7220286174203c737464696e3e3a31293a206e756d6265722028312920616e64206e756d626572202830292063616e6e6f7420626520646976696465642062656361757365207468652064697669736f72206973207a65726f0a'
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-42-author-20260827/followup.test.ts:8:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: jq42 followup failed-prefix-null-none bytewise
+not ok 10 - jq42 followup failed-prefix-null-none bytewise
+  ---
+  duration_ms: 0.626417
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-42-author-20260827/followup.test.ts:1:355'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+      {
+    +   status: 1,
+    -   status: 4,
+        stderrHex: '6a713a206572726f7220286174203c737464696e3e3a31293a206e756d6265722028312920616e64206e756d626572202830292063616e6e6f7420626520646976696465642062656361757365207468652064697669736f72206973207a65726f0a',
+        stdoutHex: '6e756c6c0a'
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    status: 4
+    stdoutHex: '6e756c6c0a'
+    stderrHex: '6a713a206572726f7220286174203c737464696e3e3a31293a206e756d6265722028312920616e64206e756d626572202830292063616e6e6f7420626520646976696465642062656361757365207468652064697669736f72206973207a65726f0a'
+  actual:
+    status: 1
+    stdoutHex: '6e756c6c0a'
+    stderrHex: '6a713a206572726f7220286174203c737464696e3e3a31293a206e756d6265722028312920616e64206e756d626572202830292063616e6e6f7420626520646976696465642062656361757365207468652064697669736f72206973207a65726f0a'
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-42-author-20260827/followup.test.ts:8:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: jq42 followup failed-prefix-null-prior whole
+not ok 11 - jq42 followup failed-prefix-null-prior whole
+  ---
+  duration_ms: 0.528334
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-42-author-20260827/followup.test.ts:1:355'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+      {
+    +   status: 1,
+    -   status: 0,
+        stderrHex: '6a713a206572726f7220286174203c737464696e3e3a32293a206e756d6265722028312920616e64206e756d626572202830292063616e6e6f7420626520646976696465642062656361757365207468652064697669736f72206973207a65726f0a',
+        stdoutHex: '320a6e756c6c0a'
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    status: 0
+    stdoutHex: '320a6e756c6c0a'
+    stderrHex: '6a713a206572726f7220286174203c737464696e3e3a32293a206e756d6265722028312920616e64206e756d626572202830292063616e6e6f7420626520646976696465642062656361757365207468652064697669736f72206973207a65726f0a'
+  actual:
+    status: 1
+    stdoutHex: '320a6e756c6c0a'
+    stderrHex: '6a713a206572726f7220286174203c737464696e3e3a32293a206e756d6265722028312920616e64206e756d626572202830292063616e6e6f7420626520646976696465642062656361757365207468652064697669736f72206973207a65726f0a'
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-42-author-20260827/followup.test.ts:8:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: jq42 followup failed-prefix-null-prior bytewise
+not ok 12 - jq42 followup failed-prefix-null-prior bytewise
+  ---
+  duration_ms: 0.582667
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-42-author-20260827/followup.test.ts:1:355'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+      {
+    +   status: 1,
+    -   status: 0,
+        stderrHex: '6a713a206572726f7220286174203c737464696e3e3a32293a206e756d6265722028312920616e64206e756d626572202830292063616e6e6f7420626520646976696465642062656361757365207468652064697669736f72206973207a65726f0a',
+        stdoutHex: '320a6e756c6c0a'
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    status: 0
+    stdoutHex: '320a6e756c6c0a'
+    stderrHex: '6a713a206572726f7220286174203c737464696e3e3a32293a206e756d6265722028312920616e64206e756d626572202830292063616e6e6f7420626520646976696465642062656361757365207468652064697669736f72206973207a65726f0a'
+  actual:
+    status: 1
+    stdoutHex: '320a6e756c6c0a'
+    stderrHex: '6a713a206572726f7220286174203c737464696e3e3a32293a206e756d6265722028312920616e64206e756d626572202830292063616e6e6f7420626520646976696465642062656361757365207468652064697669736f72206973207a65726f0a'
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-42-author-20260827/followup.test.ts:8:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: jq42 followup nul-string-next-line whole
+not ok 13 - jq42 followup nul-string-next-line whole
+  ---
+  duration_ms: 0.276458
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-42-author-20260827/followup.test.ts:1:355'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+      {
+        status: 5,
+    +   stderrHex: '6a713a207061727365206572726f723a20556e66696e697368656420737472696e6720617420454f46206174206c696e6520312c20636f6c756d6e20320a',
+    -   stderrHex: '6a713a207061727365206572726f723a20496e76616c696420737472696e673a20636f6e74726f6c20636861726163746572732066726f6d20552b30303030207468726f75676820552b30303146206d7573742062652065736361706564206174206c696e6520312c20636f6c756d6e20350a',
+        stdoutHex: ''
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    status: 5
+    stdoutHex: ''
+    stderrHex: '6a713a207061727365206572726f723a20496e76616c696420737472696e673a20636f6e74726f6c20636861726163746572732066726f6d20552b30303030207468726f75676820552b30303146206d7573742062652065736361706564206174206c696e6520312c20636f6c756d6e20350a'
+  actual:
+    status: 5
+    stdoutHex: ''
+    stderrHex: '6a713a207061727365206572726f723a20556e66696e697368656420737472696e6720617420454f46206174206c696e6520312c20636f6c756d6e20320a'
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-42-author-20260827/followup.test.ts:8:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: jq42 followup nul-string-next-line bytewise
+not ok 14 - jq42 followup nul-string-next-line bytewise
+  ---
+  duration_ms: 0.433042
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-42-author-20260827/followup.test.ts:1:355'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+      {
+        status: 5,
+    +   stderrHex: '6a713a207061727365206572726f723a20556e66696e697368656420737472696e6720617420454f46206174206c696e6520312c20636f6c756d6e20320a',
+    -   stderrHex: '6a713a207061727365206572726f723a20496e76616c696420737472696e673a20636f6e74726f6c20636861726163746572732066726f6d20552b30303030207468726f75676820552b30303146206d7573742062652065736361706564206174206c696e6520312c20636f6c756d6e20350a',
+        stdoutHex: ''
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    status: 5
+    stdoutHex: ''
+    stderrHex: '6a713a207061727365206572726f723a20496e76616c696420737472696e673a20636f6e74726f6c20636861726163746572732066726f6d20552b30303030207468726f75676820552b30303146206d7573742062652065736361706564206174206c696e6520312c20636f6c756d6e20350a'
+  actual:
+    status: 5
+    stdoutHex: ''
+    stderrHex: '6a713a207061727365206572726f723a20556e66696e697368656420737472696e6720617420454f46206174206c696e6520312c20636f6c756d6e20320a'
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-42-author-20260827/followup.test.ts:8:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: jq42 followup nul-between-values whole
+not ok 15 - jq42 followup nul-between-values whole
+  ---
+  duration_ms: 0.148459
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-42-author-20260827/followup.test.ts:1:355'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+      {
+    +   status: 0,
+    +   stderrHex: '',
+    +   stdoutHex: '6e756c6c0a'
+    -   status: 5,
+    -   stderrHex: '6a713a207061727365206572726f723a20496e76616c6964206c69746572616c206174206c696e6520322c20636f6c756d6e20300a',
+    -   stdoutHex: ''
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    status: 5
+    stdoutHex: ''
+    stderrHex: '6a713a207061727365206572726f723a20496e76616c6964206c69746572616c206174206c696e6520322c20636f6c756d6e20300a'
+  actual:
+    status: 0
+    stdoutHex: '6e756c6c0a'
+    stderrHex: ''
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-42-author-20260827/followup.test.ts:8:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: jq42 followup nul-between-values bytewise
+not ok 16 - jq42 followup nul-between-values bytewise
+  ---
+  duration_ms: 0.228583
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-42-author-20260827/followup.test.ts:1:355'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+      {
+    +   status: 0,
+    +   stderrHex: '',
+    +   stdoutHex: '6e756c6c0a'
+    -   status: 5,
+    -   stderrHex: '6a713a207061727365206572726f723a20496e76616c6964206c69746572616c206174206c696e6520322c20636f6c756d6e20300a',
+    -   stdoutHex: ''
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    status: 5
+    stdoutHex: ''
+    stderrHex: '6a713a207061727365206572726f723a20496e76616c6964206c69746572616c206174206c696e6520322c20636f6c756d6e20300a'
+  actual:
+    status: 0
+    stdoutHex: '6e756c6c0a'
+    stderrHex: ''
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-42-author-20260827/followup.test.ts:8:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: jq42 followup nul-before-newline whole
+not ok 17 - jq42 followup nul-before-newline whole
+  ---
+  duration_ms: 0.072542
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-42-author-20260827/followup.test.ts:1:355'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+      {
+    +   status: 0,
+    +   stderrHex: '',
+    -   status: 5,
+    -   stderrHex: '6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c206174206c696e6520322c20636f6c756d6e20300a',
+        stdoutHex: ''
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    status: 5
+    stdoutHex: ''
+    stderrHex: '6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c206174206c696e6520322c20636f6c756d6e20300a'
+  actual:
+    status: 0
+    stdoutHex: ''
+    stderrHex: ''
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-42-author-20260827/followup.test.ts:8:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: jq42 followup nul-before-newline bytewise
+not ok 18 - jq42 followup nul-before-newline bytewise
+  ---
+  duration_ms: 0.170084
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-42-author-20260827/followup.test.ts:1:355'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+      {
+    +   status: 0,
+    +   stderrHex: '',
+    -   status: 5,
+    -   stderrHex: '6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c206174206c696e6520322c20636f6c756d6e20300a',
+        stdoutHex: ''
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    status: 5
+    stdoutHex: ''
+    stderrHex: '6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c206174206c696e6520322c20636f6c756d6e20300a'
+  actual:
+    status: 0
+    stdoutHex: ''
+    stderrHex: ''
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-42-author-20260827/followup.test.ts:8:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: jq42 followup two-errors-one-line whole
+ok 19 - jq42 followup two-errors-one-line whole
+  ---
+  duration_ms: 0.426042
+  type: 'test'
+  ...
+# Subtest: jq42 followup two-errors-one-line bytewise
+ok 20 - jq42 followup two-errors-one-line bytewise
+  ---
+  duration_ms: 0.642917
+  type: 'test'
+  ...
+# Subtest: jq42 followup two-errors-no-newline whole
+ok 21 - jq42 followup two-errors-no-newline whole
+  ---
+  duration_ms: 0.333125
+  type: 'test'
+  ...
+# Subtest: jq42 followup two-errors-no-newline bytewise
+ok 22 - jq42 followup two-errors-no-newline bytewise
+  ---
+  duration_ms: 0.312916
+  type: 'test'
+  ...
+# Subtest: jq42 followup errors-across-blank-lines whole
+ok 23 - jq42 followup errors-across-blank-lines whole
+  ---
+  duration_ms: 0.270125
+  type: 'test'
+  ...
+# Subtest: jq42 followup errors-across-blank-lines bytewise
+ok 24 - jq42 followup errors-across-blank-lines bytewise
+  ---
+  duration_ms: 0.255458
+  type: 'test'
+  ...
+1..24
+# tests 24
+# suites 0
+# pass 8
+# fail 16
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 185.765292

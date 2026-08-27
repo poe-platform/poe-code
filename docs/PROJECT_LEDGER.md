@@ -2459,3 +2459,47 @@ that any implementation, command, fixture, or test currently exists.
   a current global type pass. This integration ran only build and scoped checks.
   No whole gate, external native/service replay, superiority or72-hour completion
   is claimed.
+
+### 2026-08-27 23:10 UTC — TAP fixture author repair, expr76 declaration and received scoped acceptances
+
+- Root accepts DU type-classification/installed-consumer review397894e0833a84fcd86d34102548faa78e9d988d:
+  fourteen original files unchanged,41 admission negatives, canonical role-swap
+  rejection, authenticated830-file author package (not independently rebuilt),
+  installed/moved DU leaf and two unique byte-identical template compilations.
+  The reviewed Node24 canonical7/8 remains nonpass; original evidence is not
+  recast as global typecheck or independent public DU75 acceptance.
+- Root-authorized fixture-only commit e422ad06b3470477b7f9323c89289d2963a00407
+  changes exactly two lines in qualified-current-release-native-data/controls.test.ts:
+  explicit current-child TAP argument and historical-script TAP before its glob.
+  Historical before-02.json, all assertions, synthetic input paths, script
+  semantics, root compiler policy and product source are unchanged. A new frozen
+  author replay gets Node22 baseline8/8 and Node24 baseline7/8; repaired inputs
+  are8/8 on each runtime, with two targeted reporter-removal controls failing
+  their intended count assertions.19 supervisor checks and scoped strict test/
+  helper types pass, no skips/TODO. Different-agent Meitner review remains pending.
+- These are13-file isolated fixture/config selections, not a product archive or
+  broad suite. Actual npm/compiler/test startup observations use the selected
+  Node22.22.2 or24.11.1 throughout, with the pinned existing npm10.9.7 CLI explicitly
+  run under each binary. Inputs are unchanged including added-entry checks; tools
+  have named before/after hashes. Original author npm-configuration setup failure
+  and its uncredited negative controls are preserved alongside the fresh corrected
+  supervisor run. No product failure was fixed or scored through that harness fix.
+  Evidence: tests/integration/native-data-tap-author-20260827/README.md.
+- Expr76 remains HOLD pending root's different-reviewer freeze. The source-inspected
+  declaration at docs/integration/2026-08-27-EXPR76-PUBLIC-PLAN.md specifies root/
+  explicit expr subpath, existing factories/types, aggregate
+  `expr?: Omit<ExprCommandsOptions, "replace" | "regex">`, global regex authority
+  even when omitted (nested runtime regex is ignored), family limits and top-level
+  replacement. Direct factories retain their own regex options. This extends the
+  existing grep/alias global route without silently altering other family routes.
+  No expr source, exports, defaults, counts or TEMP nullable-history promotion has
+  been performed. Initial restricted guard/quota/profile limitations remain.
+- Root accepts the qualified getopts real-guest followup6133b271 and corrected-G2
+  freeze1cf6596a/evidence7345d0bd. Original distinct-probe1/2 remains unchanged;
+  the separate corrected G2 executes1/1 with7 completed guest assertions, beside
+  G1's prior4. The successful captures together observe9 actual builtin entries
+  (4 plus5), not a new25-profile replay or a rewrite of earlier setup/guest failures.
+  No private checkout writes occurred in those guarded captures, and none was
+  accessed by this ledger/TAP work. Getopts is a builtin, not a default plugin
+  increment. These received acceptances do not establish current whole-product
+  green status, full SafeJS closure or superiority.

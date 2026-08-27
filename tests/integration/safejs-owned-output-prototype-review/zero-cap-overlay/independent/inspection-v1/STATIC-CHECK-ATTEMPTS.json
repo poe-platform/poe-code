@@ -1,0 +1,33 @@
+{
+  "kind": "INDEPENDENT_STATIC_HELPER_ATTEMPTS_NOT_PRODUCT_TESTS",
+  "date": "2026-08-27",
+  "attempts": [
+    {
+      "attempt": 1,
+      "helperSha256": "cd3290ffb9058b04e2de4a8071f53446a38d39a99d1d1ae5f6e5b768bca36260",
+      "command": "python3 tests/integration/safejs-owned-output-prototype-review/zero-cap-overlay/independent/inspection-v1/inspect-fixtures.py",
+      "exitCode": 1,
+      "error": "FileNotFoundError: [Errno 2] No such file or directory: '/private/tmp/safe-bash-zero-overlay-independent-inspect-5q9y5wec/author-inputs/controls/guests/aliases.ajs.data'",
+      "failingLine": "assert actual == (AUTHOR / 'controls/guests' / filename.name).read_bytes()",
+      "cause": "Independent helper incorrectly assumed every lifecycle guest was also copied to the six curl-only controls. The exact author freeze contains only controls/guests/curl.ajs.data.",
+      "correction": "Authenticate every lifecycle guest against approved Git; compare the controls guest copy only for curl.ajs.data. Label other lifecycle guests lifecycle-only in the receipt.",
+      "fixtureBytesChanged": false,
+      "expectationsChanged": false,
+      "runtimeExecutions": 0
+    },
+    {
+      "attempt": 2,
+      "helper": "inspect-fixtures.py (final bytes bound by SIGNATURE.json)",
+      "exitCode": 0,
+      "stdout": "STATIC_FIXTURE_DATA_MATCH; profiles25; runtimeExecutions0; findingI01",
+      "receipt": "FIXTURE-CHECKS.json",
+      "runtimeExecutions": 0
+    }
+  ],
+  "independentPublicCompileAttempts": 1,
+  "independentPublicNoEmitAttempts": 1,
+  "independentParserOnlyChecks": 14,
+  "authorPreparationRefusalsRetainedAt": "a61e63bc46e8389e59c0d8fdc1d424003f62c769:tests/integration/safejs-owned-output-prototype-review/zero-cap-overlay/author/PREPARATION-ATTEMPTS.md",
+  "newRuntimePasses": 0,
+  "noPromotion": true
+}

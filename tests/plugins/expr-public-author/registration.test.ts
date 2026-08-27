@@ -28,11 +28,12 @@ test("expr76 inventory is exactly the frozen DU75 names plus expr", async () => 
 test("expr aggregate collision preflight and top-level replacement preserve custom commands", async () => {
   const original = { name: "expr", execute: () => ({ exitCode: 23 }) }, custom = { name: "custom", execute: () => ({ exitCode: 24 }) };
   const target = host(new CommandRegistry([original, custom]));
+  const registeredCustom = target.commands.get("custom"), registeredExpr = target.commands.get("expr");
   const nested = { expr: { replace: true } } as unknown as AgentCommandsOptions;
   assert.throws(() => agentCommands(nested).setup(target), /already registered: expr/u);
   assert.deepEqual(target.commands.list(), [original, custom]);
   await agentCommands({ ...nested, replace: true }).setup(target);
-  assert.equal(target.commands.list().length, 77); assert.equal(target.commands.get("custom"), custom); assert.notEqual(target.commands.get("expr"), original);
+  assert.equal(target.commands.list().length, 77); assert.equal(target.commands.get("custom"), registeredCustom); assert.notEqual(target.commands.get("expr"), registeredExpr);
 });
 
 test("unknown nested expr regex is ignored with and without global regex", () => {

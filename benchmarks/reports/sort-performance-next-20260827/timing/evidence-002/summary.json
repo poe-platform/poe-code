@@ -1,0 +1,59 @@
+{
+  "status": "TIMING DEFERRED",
+  "reason": "No qualified local window in the three frozen attempts.",
+  "planCommit": "1cd4da47506cdc7982fd79db7334bbe7ddcd2a2a",
+  "measuredSamples": 0,
+  "correctnessPassed": 93,
+  "correctnessExpected": 93,
+  "warmups": 0,
+  "admissions": [
+    {
+      "name": "admission-1",
+      "qualification": {
+        "qualified": false,
+        "failures": [
+          "load-level",
+          "aggregate-cpu",
+          "competing-process-cpu",
+          "cpu-variability",
+          "load-variability"
+        ]
+      }
+    },
+    {
+      "name": "admission-2",
+      "qualification": {
+        "qualified": false,
+        "failures": [
+          "load-level",
+          "aggregate-cpu",
+          "competing-process-cpu",
+          "cpu-variability"
+        ]
+      }
+    },
+    {
+      "name": "admission-3",
+      "qualification": {
+        "qualified": false,
+        "failures": [
+          "load-level",
+          "aggregate-cpu",
+          "competing-process-cpu",
+          "cpu-variability"
+        ]
+      }
+    }
+  ],
+  "elapsedExecutionSecondsNotBenchmark": 51.991,
+  "inputManifestSha256": "55dd5cdcde68818797b6ccd0c9cbe9cafa8dcd5969516759b8d8cc361dd22672",
+  "root": "/private/tmp/sort-cache-timing-EmcEYN",
+  "allTimingClaims": "PENDING DIFFERENT ROOT-ROUTED REVIEWER",
+  "limits": [
+    "Narrow own-cache effects only; no comparator or old 720 campaign.",
+    "Host load qualification is not isolation, thermal or frequency assurance.",
+    "Synthetic common-base archives, not full historical packages or current HEAD.",
+    "Correctness admission is not the full accepted regression/native suite.",
+    "No counter-to-speed, RSS, overall superiority or completion claim."
+  ]
+}

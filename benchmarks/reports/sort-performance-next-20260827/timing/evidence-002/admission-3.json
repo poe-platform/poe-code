@@ -1,0 +1,405 @@
+{
+  "name": "admission-3",
+  "observedAt": "2026-08-27T20:44:53.790Z",
+  "code": 0,
+  "signal": null,
+  "pid": 22178,
+  "timedOut": false,
+  "stderr": "",
+  "rows": [
+    {
+      "index": 1,
+      "valid": true,
+      "load": [
+        21,
+        16.24,
+        12.02
+      ],
+      "busy": 58.56999999999999,
+      "processes": [
+        {
+          "pid": 783,
+          "command": "Google Chrome",
+          "cpu": 101.2
+        },
+        {
+          "pid": 562,
+          "command": "mds_stores",
+          "cpu": 78
+        },
+        {
+          "pid": 360,
+          "command": "mds",
+          "cpu": 44.8
+        },
+        {
+          "pid": 406,
+          "command": "WindowServer",
+          "cpu": 31
+        },
+        {
+          "pid": 20771,
+          "command": "Google Chrome He",
+          "cpu": 28.4
+        },
+        {
+          "pid": 1638,
+          "command": "Google Chrome He",
+          "cpu": 22.7
+        },
+        {
+          "pid": 748,
+          "command": "iTerm2",
+          "cpu": 17.6
+        },
+        {
+          "pid": 6339,
+          "command": "Google Chrome He",
+          "cpu": 16.7
+        },
+        {
+          "pid": 0,
+          "command": "kernel_task",
+          "cpu": 13.7
+        },
+        {
+          "pid": 6337,
+          "command": "Google Chrome He",
+          "cpu": 13.1
+        },
+        {
+          "pid": 66066,
+          "command": "Google Chrome He",
+          "cpu": 12.2
+        },
+        {
+          "pid": 6521,
+          "command": "xTool Studio Hel",
+          "cpu": 7.8
+        }
+      ],
+      "exempt": [
+        19866,
+        22178
+      ],
+      "completeRaw": "Processes: 645 total, 6 running, 639 sleeping, 6675 threads \n2026/08/27 15:44:49\nLoad Avg: 21.00, 16.24, 12.02 \nCPU usage: 32.37% user, 26.20% sys, 41.41% idle \nMemRegions: 359 total, 11M resident, 0B private, 1824M shared.\nPhysMem: 23G used (3962M wired, 7382M compressor), 296M unused.\nVM: 394T vsize, 0B framework vsize, 913754(0) swapins, 1727121(0) swapouts.\nNetworks: packets: 68919056/41G in, 60341922/29G out.\nDisks: 96820907/2079G read, 32397057/820G written.\n\nPID    COMMAND          %CPU \n783    Google Chrome    101.2\n562    mds_stores       78.0 \n360    mds              44.8 \n406    WindowServer     31.0 \n20771  Google Chrome He 28.4 \n1638   Google Chrome He 22.7 \n748    iTerm2           17.6 \n6339   Google Chrome He 16.7 \n0      kernel_task      13.7 \n6337   Google Chrome He 13.1 \n66066  Google Chrome He 12.2 \n6521   xTool Studio Hel 7.8  \n"
+    },
+    {
+      "index": 2,
+      "valid": true,
+      "load": [
+        21,
+        16.24,
+        12.02
+      ],
+      "busy": 52.81999999999999,
+      "processes": [
+        {
+          "pid": 783,
+          "command": "Google Chrome",
+          "cpu": 106.7
+        },
+        {
+          "pid": 22215,
+          "command": "find",
+          "cpu": 60.1
+        },
+        {
+          "pid": 20771,
+          "command": "Google Chrome He",
+          "cpu": 59.3
+        },
+        {
+          "pid": 562,
+          "command": "mds_stores",
+          "cpu": 40.6
+        },
+        {
+          "pid": 406,
+          "command": "WindowServer",
+          "cpu": 30.3
+        },
+        {
+          "pid": 1638,
+          "command": "Google Chrome He",
+          "cpu": 28.6
+        },
+        {
+          "pid": 360,
+          "command": "mds",
+          "cpu": 27.3
+        },
+        {
+          "pid": 6337,
+          "command": "Google Chrome He",
+          "cpu": 24.5
+        },
+        {
+          "pid": 6339,
+          "command": "Google Chrome He",
+          "cpu": 23.9
+        },
+        {
+          "pid": 66066,
+          "command": "Google Chrome He",
+          "cpu": 18.8
+        },
+        {
+          "pid": 748,
+          "command": "iTerm2",
+          "cpu": 17.1
+        },
+        {
+          "pid": 0,
+          "command": "kernel_task",
+          "cpu": 16.5
+        }
+      ],
+      "exempt": [
+        19866,
+        22178
+      ],
+      "completeRaw": "Processes: 649 total, 7 running, 5 stuck, 637 sleeping, 6699 threads \n2026/08/27 15:44:50\nLoad Avg: 21.00, 16.24, 12.02 \nCPU usage: 29.33% user, 23.49% sys, 47.17% idle \nMemRegions: 402 total, 13M resident, 0B private, 1824M shared.\nPhysMem: 23G used (3935M wired, 7381M compressor), 222M unused.\nVM: 395T vsize, 0B framework vsize, 913762(8) swapins, 1727121(0) swapouts.\nNetworks: packets: 68919375/41G in, 60342293/29G out.\nDisks: 96824639/2079G read, 32397763/820G written.\n\nPID    COMMAND          %CPU \n783    Google Chrome    106.7\n22215  find             60.1 \n20771  Google Chrome He 59.3 \n562    mds_stores       40.6 \n406    WindowServer     30.3 \n1638   Google Chrome He 28.6 \n360    mds              27.3 \n6337   Google Chrome He 24.5 \n6339   Google Chrome He 23.9 \n66066  Google Chrome He 18.8 \n748    iTerm2           17.1 \n0      kernel_task      16.5 \n"
+    },
+    {
+      "index": 3,
+      "valid": true,
+      "load": [
+        21,
+        16.24,
+        12.02
+      ],
+      "busy": 59.55,
+      "processes": [
+        {
+          "pid": 783,
+          "command": "Google Chrome",
+          "cpu": 95
+        },
+        {
+          "pid": 562,
+          "command": "mds_stores",
+          "cpu": 80.5
+        },
+        {
+          "pid": 22215,
+          "command": "find",
+          "cpu": 62.5
+        },
+        {
+          "pid": 360,
+          "command": "mds",
+          "cpu": 48.6
+        },
+        {
+          "pid": 406,
+          "command": "WindowServer",
+          "cpu": 33.2
+        },
+        {
+          "pid": 6339,
+          "command": "Google Chrome He",
+          "cpu": 28
+        },
+        {
+          "pid": 22238,
+          "command": "mdworker_shared",
+          "cpu": 23.4
+        },
+        {
+          "pid": 1638,
+          "command": "Google Chrome He",
+          "cpu": 23.3
+        },
+        {
+          "pid": 6337,
+          "command": "Google Chrome He",
+          "cpu": 21.2
+        },
+        {
+          "pid": 66066,
+          "command": "Google Chrome He",
+          "cpu": 19.6
+        },
+        {
+          "pid": 748,
+          "command": "iTerm2",
+          "cpu": 18.5
+        },
+        {
+          "pid": 22245,
+          "command": "mdworker_shared",
+          "cpu": 17.3
+        }
+      ],
+      "exempt": [
+        19866,
+        22178
+      ],
+      "completeRaw": "Processes: 642 total, 11 running, 631 sleeping, 6627 threads \n2026/08/27 15:44:51\nLoad Avg: 21.00, 16.24, 12.02 \nCPU usage: 34.16% user, 25.39% sys, 40.44% idle \nMemRegions: 12128 total, 36M resident, 0B private, 1825M shared.\nPhysMem: 23G used (3961M wired, 7367M compressor), 347M unused.\nVM: 392T vsize, 0B framework vsize, 913762(0) swapins, 1727121(0) swapouts.\nNetworks: packets: 68919702/41G in, 60342599/29G out.\nDisks: 96828463/2079G read, 32398014/820G written.\n\nPID    COMMAND          %CPU \n783    Google Chrome    95.0 \n562    mds_stores       80.5 \n22215  find             62.5 \n360    mds              48.6 \n406    WindowServer     33.2 \n6339   Google Chrome He 28.0 \n22238  mdworker_shared  23.4 \n1638   Google Chrome He 23.3 \n6337   Google Chrome He 21.2 \n66066  Google Chrome He 19.6 \n748    iTerm2           18.5 \n22245  mdworker_shared  17.3 \n"
+    },
+    {
+      "index": 4,
+      "valid": true,
+      "load": [
+        21.08,
+        16.34,
+        12.08
+      ],
+      "busy": 53.42,
+      "processes": [
+        {
+          "pid": 783,
+          "command": "Google Chrome",
+          "cpu": 108.6
+        },
+        {
+          "pid": 22215,
+          "command": "find",
+          "cpu": 59
+        },
+        {
+          "pid": 22256,
+          "command": "Google Chrome He",
+          "cpu": 54.8
+        },
+        {
+          "pid": 562,
+          "command": "mds_stores",
+          "cpu": 53.5
+        },
+        {
+          "pid": 406,
+          "command": "WindowServer",
+          "cpu": 30.1
+        },
+        {
+          "pid": 1638,
+          "command": "Google Chrome He",
+          "cpu": 25.1
+        },
+        {
+          "pid": 6337,
+          "command": "Google Chrome He",
+          "cpu": 24.4
+        },
+        {
+          "pid": 6339,
+          "command": "Google Chrome He",
+          "cpu": 23.8
+        },
+        {
+          "pid": 360,
+          "command": "mds",
+          "cpu": 21.7
+        },
+        {
+          "pid": 748,
+          "command": "iTerm2",
+          "cpu": 17.9
+        },
+        {
+          "pid": 66066,
+          "command": "Google Chrome He",
+          "cpu": 17.5
+        },
+        {
+          "pid": 0,
+          "command": "kernel_task",
+          "cpu": 16
+        }
+      ],
+      "exempt": [
+        19866,
+        22178
+      ],
+      "completeRaw": "Processes: 645 total, 7 running, 4 stuck, 634 sleeping, 6625 threads \n2026/08/27 15:44:52\nLoad Avg: 21.08, 16.34, 12.08 \nCPU usage: 30.20% user, 23.22% sys, 46.56% idle \nMemRegions: 254 total, 8176K resident, 0B private, 1825M shared.\nPhysMem: 23G used (3915M wired, 7366M compressor), 278M unused.\nVM: 394T vsize, 0B framework vsize, 913762(0) swapins, 1727121(0) swapouts.\nNetworks: packets: 68920179/41G in, 60343130/29G out.\nDisks: 96832022/2079G read, 32398088/820G written.\n\nPID    COMMAND          %CPU \n783    Google Chrome    108.6\n22215  find             59.0 \n22256  Google Chrome He 54.8 \n562    mds_stores       53.5 \n406    WindowServer     30.1 \n1638   Google Chrome He 25.1 \n6337   Google Chrome He 24.4 \n6339   Google Chrome He 23.8 \n360    mds              21.7 \n748    iTerm2           17.9 \n66066  Google Chrome He 17.5 \n0      kernel_task      16.0 \n"
+    },
+    {
+      "index": 5,
+      "valid": true,
+      "load": [
+        21.08,
+        16.34,
+        12.08
+      ],
+      "busy": 51.41,
+      "processes": [
+        {
+          "pid": 783,
+          "command": "Google Chrome",
+          "cpu": 93.2
+        },
+        {
+          "pid": 22256,
+          "command": "Google Chrome He",
+          "cpu": 60.8
+        },
+        {
+          "pid": 22215,
+          "command": "find",
+          "cpu": 55.1
+        },
+        {
+          "pid": 562,
+          "command": "mds_stores",
+          "cpu": 45.4
+        },
+        {
+          "pid": 406,
+          "command": "WindowServer",
+          "cpu": 30.9
+        },
+        {
+          "pid": 1638,
+          "command": "Google Chrome He",
+          "cpu": 29.2
+        },
+        {
+          "pid": 6339,
+          "command": "Google Chrome He",
+          "cpu": 29.1
+        },
+        {
+          "pid": 360,
+          "command": "mds",
+          "cpu": 26
+        },
+        {
+          "pid": 66066,
+          "command": "Google Chrome He",
+          "cpu": 22.5
+        },
+        {
+          "pid": 6337,
+          "command": "Google Chrome He",
+          "cpu": 21.4
+        },
+        {
+          "pid": 748,
+          "command": "iTerm2",
+          "cpu": 18
+        },
+        {
+          "pid": 0,
+          "command": "kernel_task",
+          "cpu": 16.4
+        }
+      ],
+      "exempt": [
+        19866,
+        22178
+      ],
+      "completeRaw": "Processes: 647 total, 11 running, 5 stuck, 631 sleeping, 6631 threads \n2026/08/27 15:44:53\nLoad Avg: 21.08, 16.34, 12.08 \nCPU usage: 29.77% user, 21.64% sys, 48.57% idle \nMemRegions: 392 total, 20M resident, 0B private, 1826M shared.\nPhysMem: 23G used (3921M wired, 7362M compressor), 202M unused.\nVM: 395T vsize, 0B framework vsize, 913766(4) swapins, 1727121(0) swapouts.\nNetworks: packets: 68920542/41G in, 60343480/29G out.\nDisks: 96836717/2079G read, 32398194/820G written.\n\nPID    COMMAND          %CPU \n783    Google Chrome    93.2 \n22256  Google Chrome He 60.8 \n22215  find             55.1 \n562    mds_stores       45.4 \n406    WindowServer     30.9 \n1638   Google Chrome He 29.2 \n6339   Google Chrome He 29.1 \n360    mds              26.0 \n66066  Google Chrome He 22.5 \n6337   Google Chrome He 21.4 \n748    iTerm2           18.0 \n0      kernel_task      16.4 \n"
+    }
+  ],
+  "qualification": {
+    "qualified": false,
+    "failures": [
+      "load-level",
+      "aggregate-cpu",
+      "competing-process-cpu",
+      "cpu-variability"
+    ]
+  }
+}

@@ -1,0 +1,138 @@
+Processes: 640 total, 10 running, 630 sleeping, 6647 threads 
+2026/08/27 15:44:47
+Load Avg: 21.00, 16.24, 12.02 
+CPU usage: 32.86% user, 24.6% sys, 43.7% idle 
+MemRegions: 1220052 total, 7848M resident, 0B private, 1823M shared.
+PhysMem: 23G used (3981M wired, 7396M compressor), 222M unused.
+VM: 392T vsize, 0B framework vsize, 913754(0) swapins, 1727121(0) swapouts.
+Networks: packets: 68918726/41G in, 60341605/29G out.
+Disks: 96817859/2079G read, 32396909/820G written.
+
+PID    COMMAND          %CPU
+99270  com.apple.hiserv 0.0 
+98624  spotlightknowled 0.0 
+98224  node             0.0 
+98222  node_repl        0.0 
+98076  node_repl        0.0 
+98007  codex            0.0 
+98006  node             0.0 
+97433  node_repl        0.0 
+97385  codex            0.0 
+97376  node             0.0 
+96217  node_repl        0.0 
+96214  PerfPowerService 0.0 
+Processes: 645 total, 6 running, 639 sleeping, 6675 threads 
+2026/08/27 15:44:49
+Load Avg: 21.00, 16.24, 12.02 
+CPU usage: 32.37% user, 26.20% sys, 41.41% idle 
+MemRegions: 359 total, 11M resident, 0B private, 1824M shared.
+PhysMem: 23G used (3962M wired, 7382M compressor), 296M unused.
+VM: 394T vsize, 0B framework vsize, 913754(0) swapins, 1727121(0) swapouts.
+Networks: packets: 68919056/41G in, 60341922/29G out.
+Disks: 96820907/2079G read, 32397057/820G written.
+
+PID    COMMAND          %CPU 
+783    Google Chrome    101.2
+562    mds_stores       78.0 
+360    mds              44.8 
+406    WindowServer     31.0 
+20771  Google Chrome He 28.4 
+1638   Google Chrome He 22.7 
+748    iTerm2           17.6 
+6339   Google Chrome He 16.7 
+0      kernel_task      13.7 
+6337   Google Chrome He 13.1 
+66066  Google Chrome He 12.2 
+6521   xTool Studio Hel 7.8  
+Processes: 649 total, 7 running, 5 stuck, 637 sleeping, 6699 threads 
+2026/08/27 15:44:50
+Load Avg: 21.00, 16.24, 12.02 
+CPU usage: 29.33% user, 23.49% sys, 47.17% idle 
+MemRegions: 402 total, 13M resident, 0B private, 1824M shared.
+PhysMem: 23G used (3935M wired, 7381M compressor), 222M unused.
+VM: 395T vsize, 0B framework vsize, 913762(8) swapins, 1727121(0) swapouts.
+Networks: packets: 68919375/41G in, 60342293/29G out.
+Disks: 96824639/2079G read, 32397763/820G written.
+
+PID    COMMAND          %CPU 
+783    Google Chrome    106.7
+22215  find             60.1 
+20771  Google Chrome He 59.3 
+562    mds_stores       40.6 
+406    WindowServer     30.3 
+1638   Google Chrome He 28.6 
+360    mds              27.3 
+6337   Google Chrome He 24.5 
+6339   Google Chrome He 23.9 
+66066  Google Chrome He 18.8 
+748    iTerm2           17.1 
+0      kernel_task      16.5 
+Processes: 642 total, 11 running, 631 sleeping, 6627 threads 
+2026/08/27 15:44:51
+Load Avg: 21.00, 16.24, 12.02 
+CPU usage: 34.16% user, 25.39% sys, 40.44% idle 
+MemRegions: 12128 total, 36M resident, 0B private, 1825M shared.
+PhysMem: 23G used (3961M wired, 7367M compressor), 347M unused.
+VM: 392T vsize, 0B framework vsize, 913762(0) swapins, 1727121(0) swapouts.
+Networks: packets: 68919702/41G in, 60342599/29G out.
+Disks: 96828463/2079G read, 32398014/820G written.
+
+PID    COMMAND          %CPU 
+783    Google Chrome    95.0 
+562    mds_stores       80.5 
+22215  find             62.5 
+360    mds              48.6 
+406    WindowServer     33.2 
+6339   Google Chrome He 28.0 
+22238  mdworker_shared  23.4 
+1638   Google Chrome He 23.3 
+6337   Google Chrome He 21.2 
+66066  Google Chrome He 19.6 
+748    iTerm2           18.5 
+22245  mdworker_shared  17.3 
+Processes: 645 total, 7 running, 4 stuck, 634 sleeping, 6625 threads 
+2026/08/27 15:44:52
+Load Avg: 21.08, 16.34, 12.08 
+CPU usage: 30.20% user, 23.22% sys, 46.56% idle 
+MemRegions: 254 total, 8176K resident, 0B private, 1825M shared.
+PhysMem: 23G used (3915M wired, 7366M compressor), 278M unused.
+VM: 394T vsize, 0B framework vsize, 913762(0) swapins, 1727121(0) swapouts.
+Networks: packets: 68920179/41G in, 60343130/29G out.
+Disks: 96832022/2079G read, 32398088/820G written.
+
+PID    COMMAND          %CPU 
+783    Google Chrome    108.6
+22215  find             59.0 
+22256  Google Chrome He 54.8 
+562    mds_stores       53.5 
+406    WindowServer     30.1 
+1638   Google Chrome He 25.1 
+6337   Google Chrome He 24.4 
+6339   Google Chrome He 23.8 
+360    mds              21.7 
+748    iTerm2           17.9 
+66066  Google Chrome He 17.5 
+0      kernel_task      16.0 
+Processes: 647 total, 11 running, 5 stuck, 631 sleeping, 6631 threads 
+2026/08/27 15:44:53
+Load Avg: 21.08, 16.34, 12.08 
+CPU usage: 29.77% user, 21.64% sys, 48.57% idle 
+MemRegions: 392 total, 20M resident, 0B private, 1826M shared.
+PhysMem: 23G used (3921M wired, 7362M compressor), 202M unused.
+VM: 395T vsize, 0B framework vsize, 913766(4) swapins, 1727121(0) swapouts.
+Networks: packets: 68920542/41G in, 60343480/29G out.
+Disks: 96836717/2079G read, 32398194/820G written.
+
+PID    COMMAND          %CPU 
+783    Google Chrome    93.2 
+22256  Google Chrome He 60.8 
+22215  find             55.1 
+562    mds_stores       45.4 
+406    WindowServer     30.9 
+1638   Google Chrome He 29.2 
+6339   Google Chrome He 29.1 
+360    mds              26.0 
+66066  Google Chrome He 22.5 
+6337   Google Chrome He 21.4 
+748    iTerm2           18.0 
+0      kernel_task      16.4 

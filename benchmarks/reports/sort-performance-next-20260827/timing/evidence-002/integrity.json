@@ -1,0 +1,10 @@
+{
+  "archiveUnchanged": true,
+  "detectsAddedEntries": true,
+  "variants": {
+    "A": "source/build/moved-package/tarball unchanged",
+    "B": "source/build/moved-package/tarball unchanged",
+    "C": "source/build/moved-package/tarball unchanged"
+  },
+  "frozenHarnessAndInputsUnchanged": true
+}

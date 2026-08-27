@@ -1,0 +1,173 @@
+import assert from 'node:assert/strict';
+import { execFileSync, spawnSync } from 'node:child_process';
+import { createHash } from 'node:crypto';
+import { chmodSync, copyFileSync, existsSync, lstatSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { dirname, join, resolve } from 'node:path';
+import { fileURLToPath, pathToFileURL } from 'node:url';
+import { gzipSync } from 'node:zlib';
+
+const repository = fileURLToPath(new URL('../../../', import.meta.url));
+const candidate = '4d0507cd3439d5e4dea60ae20d023d3fcb9662f1';
+const output = resolve(process.argv[2] ?? ''); assert.ok(process.argv[2]); assert.equal(existsSync(output), false); mkdirSync(output, { recursive: true });
+const temporary = realpathSync(mkdtempSync(join(tmpdir(), 'safe-bash-native-independent-')));
+const snapshot = join(temporary, 'snapshot'); mkdirSync(snapshot);
+const relativeGuard = 'tests/integration/full-gate-20260827/preflight-repair';
+const environment = { ...process.env, TSX_DISABLE_CACHE: '1' };
+for (const name of ['NODE_TEST_CONTEXT', 'NODE_OPTIONS', 'GIT_DIR', 'GIT_WORK_TREE', 'GIT_INDEX_FILE', 'GIT_OBJECT_DIRECTORY', 'GIT_ALTERNATE_OBJECT_DIRECTORIES']) delete environment[name];
+const hash = bytes => createHash('sha256').update(bytes).digest('hex');
+const committed = path => execFileSync('git', ['--no-replace-objects', 'show', `${candidate}:${path}`], { cwd: repository, maxBuffer: 32 * 1024 * 1024, timeout: 30000 });
+const report = { candidate, startedAt: new Date().toISOString(), harnessSha256: hash(readFileSync(fileURLToPath(import.meta.url))), node: process.version, nodeSha256: hash(readFileSync(process.execPath)), platform: process.platform, arch: process.arch, checks: [], commands: [], sourceInputs: [], captures: [], wholeSuiteLaunched: false };
+const save = (name, value) => {
+  const bytes = Buffer.from(typeof value === 'string' ? value : JSON.stringify(value, null, 2) + '\n');
+  const path = `${name}.gz.base64`; writeFileSync(join(output, path), gzipSync(bytes).toString('base64') + '\n');
+  const entry = { path, bytes: bytes.length, sha256: hash(bytes) }; report.captures.push(entry); return entry;
+};
+const run = (label, executable, args, cwd = snapshot) => {
+  const result = spawnSync(executable, args, { cwd, env: environment, encoding: 'utf8', timeout: 120000, maxBuffer: 32 * 1024 * 1024 });
+  report.commands.push({ label, args, status: result.status, signal: result.signal, error: result.error?.message, stdout: save(`${label}.stdout`, result.stdout ?? ''), stderr: save(`${label}.stderr`, result.stderr ?? '') });
+  assert.equal(result.error, undefined, label); assert.equal(result.signal, null, label); return result;
+};
+const check = async (name, action) => {
+  try { const details = await action(); report.checks.push({ name, status: 'pass', details }); console.log(`PASS ${name}`); }
+  catch (error) { report.checks.push({ name, status: 'fail', error: error.stack }); console.error(`FAIL ${name}: ${error.message}`); }
+};
+const write = (path, bytes) => { mkdirSync(dirname(path), { recursive: true }); writeFileSync(path, bytes); };
+const inspect = path => { const metadata = lstatSync(path); assert.ok(metadata.isFile() && !metadata.isSymbolicLink()); return { path, bytes: metadata.size, mode: metadata.mode & 0o777, sha256: hash(readFileSync(path)) }; };
+const copyTools = (source, target, allowed = realpathSync(source)) => {
+  const actual = realpathSync(source); assert.ok(actual === allowed || actual.startsWith(allowed + '/'));
+  const metadata = lstatSync(actual);
+  if (metadata.isDirectory()) { mkdirSync(target, { recursive: true }); for (const name of readdirSync(actual)) copyTools(join(actual, name), join(target, name), allowed); }
+  else { assert.ok(metadata.isFile()); writeFileSync(target, readFileSync(actual), { flag: 'wx', mode: metadata.mode & 0o777 }); }
+};
+try {
+  const sources = ['package.json', 'scripts/verify-whole-gate.mjs', `${relativeGuard}/preflight.mjs`, `${relativeGuard}/preflight.test.mjs`, `${relativeGuard}/policy.json`, 'tests/commands/filesystem-inspection-stress/tree/EXTERNAL-ARTIFACTS.json'];
+  for (const path of sources) { const bytes = committed(path); write(join(snapshot, path), bytes); report.sourceInputs.push({ path, sha256: hash(bytes), bytes: bytes.length }); }
+  const module = await import(pathToFileURL(join(snapshot, relativeGuard, 'preflight.mjs')));
+  const metadata = JSON.parse(readFileSync(join(snapshot, 'tests/commands/filesystem-inspection-stress/tree/EXTERNAL-ARTIFACTS.json')));
+  const tree = metadata.artifacts.find(entry => entry.externalBasename === 'tree');
+  environment.TREE_NATIVE_BIN = tree.externalPath;
+  const originals = module.policy.native.map(requirement => inspect(requirement.originEnv ? environment[requirement.originEnv] : requirement.origin));
+  report.nativeBefore = originals;
+  report.treeBefore = metadata.artifacts.map(entry => { const actual = inspect(entry.externalPath); assert.equal(actual.sha256, entry.sha256); assert.equal(actual.bytes, entry.bytes); return actual; });
+  await check('all49-real-pinned-native-assets-authenticate', () => {
+    const actual = module.assessNative(module.policy.native, repository, environment);
+    assert.equal(actual.assets.length, 49); assert.deepEqual(actual.issues, []); report.nativeAvailability = actual;
+    return { authenticated: actual.assets.length, executable: actual.assets.filter(asset => asset.executable).length, qualification: 'native availability only; frozen b494 policy does not admit a successor candidate' };
+  });
+  await check('unchanged-author26-controls-in-frozen-selected-source', () => {
+    const result = run('author26', process.execPath, ['--test', `${relativeGuard}/preflight.test.mjs`]);
+    assert.equal(result.status, 0); assert.match(result.stdout, /# tests 26\b/u); assert.match(result.stdout, /# pass 26\b/u); assert.match(result.stdout, /# skipped 0\b/u);
+  });
+  const fixture = join(temporary, 'public-fixture'); mkdirSync(fixture);
+  const git = (...args) => execFileSync('git', args, { cwd: fixture, env: environment, encoding: 'utf8', timeout: 10000 }).trim();
+  git('init', '-q'); write(join(fixture, 'src/control.ts'), 'export {};\n'); write(join(fixture, 'tests/control.test.ts'), 'export {};\n');
+  git('add', '--', 'src/control.ts', 'tests/control.test.ts'); git('-c', 'user.name=independent-fixture', '-c', 'user.email=fixture@invalid', '-c', 'commit.gpgsign=false', 'commit', '-q', '-m', 'isolated preflight control');
+  const fixtureCommit = git('rev-parse', 'HEAD');
+  const requirements = module.policy.native.map((asset, index) => {
+    const path = join(fixture, 'owned-native', String(index)); write(path, readFileSync(originals[index].path)); chmodSync(path, originals[index].mode);
+    return { ...asset, originEnv: undefined, origin: path };
+  });
+  const profile = { candidate: fixtureCommit, platform: process.platform, arch: process.arch, scope: 'independent mini repository with real copied native assets; not product-gate admission', canonicalFiles: ['tests/control.test.ts'], scopeInputs: [{ path: 'src/control.ts', blob: git('rev-parse', 'HEAD:src/control.ts'), mode: '100644' }], historicalBindings: [], blockedWriters: [], native: requirements, environment: {} };
+  const wrapperPath = join(fixture, 'scripts/verify-whole-gate.mjs'), guardPath = join(fixture, relativeGuard, 'preflight.mjs'), profilePath = join(fixture, relativeGuard, 'policy.json');
+  const wrapper = committed('scripts/verify-whole-gate.mjs').toString(), guard = committed(`${relativeGuard}/preflight.mjs`).toString();
+  write(wrapperPath, wrapper); write(guardPath, guard); write(profilePath, JSON.stringify(profile));
+  const sentinel = join(fixture, 'launcher-sentinel'), forbiddenOutput = join(fixture, 'forbidden-output');
+  write(join(fixture, relativeGuard, 'run.mjs'), `import { writeFileSync } from 'node:fs'; writeFileSync(${JSON.stringify(sentinel)}, 'sentinel only, never the product launcher');\n`);
+  const invoke = (label, execute) => run(label, process.execPath, ['scripts/verify-whole-gate.mjs', '--handoff', fixtureCommit, ...(execute ? ['--execute', forbiddenOutput] : ['--preflight-only'])], fixture);
+  await check('positive-public-preflight-does-not-import-launcher-and-execute-imports-sentinel-once', () => {
+    const preflight = invoke('positive-preflight', false); assert.equal(preflight.status, 0); assert.equal(existsSync(sentinel), false);
+    const executed = invoke('positive-sentinel', true); assert.equal(executed.status, 0); assert.ok(existsSync(sentinel)); rmSync(sentinel);
+    assert.equal(existsSync(forbiddenOutput), false);
+  });
+  report.nativeNegatives = [];
+  for (const [index, asset] of requirements.entries()) {
+    const bytes = readFileSync(asset.origin), mode = lstatSync(asset.origin).mode & 0o777;
+    for (const fault of ['missing', 'changed', ...(asset.executable ? ['nonexecutable'] : [])]) {
+      await check(`mandatory-${index}-${asset.name}-${fault}-both-public-routes`, () => {
+        try {
+          if (fault === 'missing') rmSync(asset.origin);
+          else if (fault === 'changed') { chmodSync(asset.origin, mode | 0o200); writeFileSync(asset.origin, 'owned changed native data\n'); chmodSync(asset.origin, mode); }
+          else chmodSync(asset.origin, 0o644);
+          const results = [];
+          for (const execute of [false, true]) {
+            const result = invoke(`native-${index}-${fault}-${execute ? 'execute' : 'preflight'}`, execute);
+            assert.equal(result.status, 78); assert.equal(result.stderr, '');
+            const actual = JSON.parse(result.stdout); assert.equal(actual.issues.length, 1); assert.equal(actual.issues[0].kind, 'native-unavailable-or-mismatched');
+            assert.equal(actual.issues[0].origin, asset.origin); assert.equal(actual.suiteLaunched, false);
+            assert.equal(existsSync(sentinel), false); assert.equal(existsSync(forbiddenOutput), false);
+            results.push({ route: execute ? 'execute' : 'preflight', status: result.status });
+          }
+          report.nativeNegatives.push({ index, name: asset.name, fault, results });
+        } finally { if (existsSync(asset.origin)) chmodSync(asset.origin, mode | 0o200); writeFileSync(asset.origin, bytes); chmodSync(asset.origin, mode); }
+      });
+    }
+  }
+  await check('all-declared-native-staging-targets-and-late-tamper-controls', () => {
+    const native = module.assessNative(requirements, fixture, {}); assert.deepEqual(native.issues, []);
+    const staged = module.stageNative({ issues: [], native, environment: {}, status: 'preflight-admitted-not-product-acceptance' }, { snapshot: join(temporary, 'staged-source'), nativeRoot: join(temporary, 'staged-native'), environment: {} });
+    assert.equal(staged.length, requirements.filter(asset => asset.target).length); module.verifyNativeStaging(staged);
+    for (const asset of staged) {
+      const bytes = readFileSync(asset.target), mode = lstatSync(asset.target).mode & 0o777;
+      try { chmodSync(asset.target, mode | 0o200); writeFileSync(asset.target, 'tampered after staging'); chmodSync(asset.target, mode); assert.throws(() => module.verifyNativeStaging(staged), /staged native changed/u); }
+      finally { chmodSync(asset.target, mode | 0o200); writeFileSync(asset.target, bytes); chmodSync(asset.target, mode); }
+      if (asset.executable) { try { chmodSync(asset.target, 0o644); assert.throws(() => module.verifyNativeStaging(staged), /executable bit changed/u); } finally { chmodSync(asset.target, mode); } }
+    }
+    module.verifyNativeStaging(staged); report.stagedTargets = staged.length;
+  });
+  await check('public-before-import-and-native-issue-guards-kill-two-mutants', () => {
+    const bytes = readFileSync(requirements[0].origin); rmSync(requirements[0].origin);
+    try {
+      const mutations = [
+        { name: 'eager-launcher-import', path: wrapperPath, original: wrapper, source: wrapper.replace('if (report.issues.length) {', `await import('../${relativeGuard}/run.mjs');\nif (report.issues.length) {`) },
+        { name: 'drop-native-issues', path: guardPath, original: guard, source: guard.replace('report.issues.push(...report.native.issues);', '') },
+      ];
+      report.mutants = [];
+      for (const mutation of mutations) {
+        assert.notEqual(mutation.source, mutation.original); writeFileSync(mutation.path, mutation.source);
+        try {
+          const result = invoke(`mutant-${mutation.name}`, true);
+          const imported = existsSync(sentinel); assert.equal(imported, true, 'same no-import assertion must detect the mutation');
+          report.mutants.push({ name: mutation.name, status: result.status, forbiddenImport: imported, rejectedByNoImportControl: true });
+        } finally { writeFileSync(mutation.path, mutation.original); if (existsSync(sentinel)) rmSync(sentinel); }
+      }
+    } finally { writeFileSync(requirements[0].origin, bytes); chmodSync(requirements[0].origin, originals[0].mode); }
+  });
+  await check('frozen-policy-still-rejects-unreviewed-candidate-without-launcher', () => {
+    const result = run('unreviewed-handoff', process.execPath, ['scripts/verify-whole-gate.mjs', '--handoff', candidate, '--execute', join(temporary, 'not-created')]);
+    assert.equal(result.status, 78); assert.match(result.stdout, /unreviewed-candidate/u); assert.equal(existsSync(join(temporary, 'not-created')), false);
+  });
+  await check('actual-package-evaluator-forwards-options-before-files-with-concurrency2', () => {
+    const scheduling = join(temporary, 'scheduling'); mkdirSync(scheduling); copyTools(join(repository, 'node_modules'), join(scheduling, 'node_modules'));
+    const events = join(scheduling, 'events.jsonl');
+    for (let index = 0; index < 6; index++) write(join(scheduling, 'tests', `control-${index}.test.ts`), `import test from 'node:test'; import {appendFileSync} from 'node:fs'; import {setTimeout} from 'node:timers/promises'; test('control-${index}', async()=>{appendFileSync(${JSON.stringify(events)},JSON.stringify({index:${index},phase:'start'})+'\\n');try{await setTimeout(300)}finally{appendFileSync(${JSON.stringify(events)},JSON.stringify({index:${index},phase:'end'})+'\\n')}});\n`.replaceAll("+'\\\\n'", "+'\\n'"));
+    write(join(scheduling, 'tests/commands/regex-execution/continuation/artifacts/native/ignored.test.ts'), 'throw new Error("native raw fixture must not be discovered");\n');
+    const current = JSON.parse(committed('package.json')).scripts.test;
+    const old = JSON.parse(execFileSync('git', ['--no-replace-objects', 'show', '3ee476a8:package.json'], { cwd: repository })).scripts.test;
+    report.scheduling = [];
+    for (const [name, script, flags] of [['current-first', current, ['--test-concurrency=2']], ['current-repeat', current, ['--test-concurrency=2']], ['old-order-mutant', old, ['--test-concurrency=2']], ['unknown-option', current, ['--safe-bash-independent-invalid-option']], ['name-filter', current, ['--test-concurrency=2', '--test-name-pattern=control-2']]]) {
+      rmSync(events, { force: true }); const prefix = 'node --input-type=module -e "', suffix = '" --'; assert.ok(script.startsWith(prefix) && script.endsWith(suffix));
+      const result = run(`scheduling-${name}`, process.execPath, ['--input-type=module', '-e', script.slice(prefix.length, -suffix.length), '--', ...flags], scheduling);
+      const records = existsSync(events) ? readFileSync(events, 'utf8').trim().split('\n').map(line => JSON.parse(line)) : [];
+      const active = new Set(), started = new Set(), finished = new Set(); let peak = 0;
+      for (const record of records) { if (record.phase === 'start') { assert.ok(!started.has(record.index)); started.add(record.index); active.add(record.index); } else { assert.ok(active.has(record.index)); active.delete(record.index); finished.add(record.index); } peak = Math.max(peak, active.size); }
+      const observation = { name, script, flags, status: result.status, records, peak, started: started.size, finished: finished.size }; report.scheduling.push(observation);
+      assert.equal(active.size, 0);
+      if (name === 'unknown-option') { assert.notEqual(result.status, 0); assert.equal(records.length, 0); }
+      else if (name === 'name-filter') { assert.equal(result.status, 0); assert.deepEqual([...started], [2]); assert.equal(finished.size, 1); }
+      else { assert.equal(result.status, 0); assert.equal(started.size, 6); assert.equal(finished.size, 6); assert.match(result.stdout, /# pass 6\b/u); if (name === 'old-order-mutant') assert.ok(peak > 2); else assert.equal(peak, 2); }
+    }
+  });
+  await check('original-native-assets-and-frozen-source-unchanged', () => {
+    assert.deepEqual(originals.map(entry => inspect(entry.path)), originals); assert.deepEqual(metadata.artifacts.map(entry => inspect(entry.externalPath)), report.treeBefore);
+    for (const entry of report.sourceInputs) assert.equal(hash(readFileSync(join(snapshot, entry.path))), entry.sha256);
+    report.originalsUnchanged = true;
+  });
+} catch (error) { report.setupFailure = error.stack; }
+finally {
+  rmSync(temporary, { recursive: true, force: true }); report.cleaned = !existsSync(temporary);
+  report.finishedAt = new Date().toISOString(); report.counts = { pass: report.checks.filter(check => check.status === 'pass').length, fail: report.checks.filter(check => check.status === 'fail').length, skip: 0 };
+  writeFileSync(join(output, 'report.json'), JSON.stringify(report, null, 2) + '\n');
+  console.log(JSON.stringify({ candidate, counts: report.counts, setupFailure: report.setupFailure, native: report.nativeAvailability?.assets.length, publicRefusals: report.nativeNegatives?.length, cleaned: report.cleaned, output }));
+  process.exitCode = report.setupFailure || report.counts.fail ? 1 : 0;
+}

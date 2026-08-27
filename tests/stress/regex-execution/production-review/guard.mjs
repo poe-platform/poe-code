@@ -1,5 +1,5 @@
 import { fork } from 'node:child_process';
-import { mkdir, writeFile, readFile } from 'node:fs/promises';
+import { mkdir, writeFile, readFile, readdir } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { createHash } from 'node:crypto';
 
@@ -7,6 +7,17 @@ const owned = resolve('tests/stress/regex-execution/production-review');
 const [snapshotName, job, label = job] = process.argv.slice(2);
 if (!snapshotName || !job || !/^[a-z0-9-]+$/u.test(label)) throw new Error('snapshot job [unique-label] required');
 const risky = job.startsWith('risk-');
+if (risky) {
+  if (!['risk-grep-timeout', 'risk-rg-timeout', 'risk-grep-abort', 'risk-rg-abort'].includes(job)) throw new Error('not one of four frozen risk cases');
+  await readFile('/tmp/regex-production-author-ready.txt');
+  const control = JSON.parse(await readFile(resolve(owned, `evidence/${snapshotName}/cohort.json`)));
+  if (!control.result?.pass || control.killed) throw new Error('same-source benign controls must pass first');
+  await readFile(resolve(owned, `evidence/${snapshotName}/static-review.json`));
+  const claims = await readdir(resolve(owned, 'evidence/risk-claims')).catch(() => []);
+  if (claims.length >= 4 || claims.includes(`${job}.json`)) throw new Error('risk reservation exhausted or duplicate; root required');
+  await mkdir(resolve(owned, 'evidence/risk-claims'), { recursive: true });
+  await writeFile(resolve(owned, `evidence/risk-claims/${job}.json`), JSON.stringify({ job, snapshotName, time: new Date().toISOString(), input: { pattern: '^(a+)+$', repeatedAsciiA: 28, suffix: '!\n' }, noRetry: true }) + '\n', { flag: 'wx' });
+}
 const evidence = resolve(owned, 'evidence', snapshotName);
 await mkdir(evidence, { recursive: true });
 const claim = { snapshotName, job, label, time: new Date().toISOString(), risky, watchdogAfterReadyMs: risky ? 250 : 15000, outputCap: 65536, oldSpaceMb: 128, historical: '12 archived, prior revision 0/6; not rerun', reservation: risky ? 'reviewer one of four, no retry' : 'benign; no risk reservation consumed', harnessSha256: createHash('sha256').update(await readFile(new URL('./child.mjs', import.meta.url))).digest('hex') };

@@ -34,6 +34,14 @@ const checkWithin = async (promise, milliseconds) => { let timer; try { return a
 const makeShell = () => new api.Shell({ fs: new api.MemoryFileSystem() }).use(api.agentCommands());
 const vector = result => ({ code: result.exitCode, stdout: Buffer.from(result.stdoutBytes).toString('base64'), stderr: Buffer.from(result.stderrBytes).toString('base64') });
 const observations = [];
+let riskControl;
+if (job.startsWith('risk-')) {
+  const command = job.includes('-grep-') ? 'grep -E' : 'rg';
+  const options = { regex: { requestTimeoutMs: 20, startupTimeoutMs: 1000 } };
+  const shell = new api.Shell({ fs: new api.MemoryFileSystem() }).use(api.standardCommands(options)).use(api.searchCommands(options));
+  try { const result = await shell.exec(`${command} '^a+$'`, { stdin: 'aaaa\n' }); assert.equal(result.stdout, 'aaaa\n'); assert.equal(result.exitCode, 0); riskControl = { command, output: result.stdout, workers: workers.length }; }
+  finally { await shell.dispose(); }
+}
 async function caseCheck(name, callback) {
   try { const details = await callback(); observations.push({ name, pass: true, details }); }
   catch (error) { observations.push({ name, pass: false, error: error.stack }); }
@@ -145,6 +153,30 @@ async function benchmark() {
     }
   }
 }
+async function risk() {
+  const command = job.includes('-grep-') ? 'grep -E' : 'rg';
+  const cancel = job.endsWith('-abort');
+  const options = { regex: { requestTimeoutMs: cancel ? 1000 : 20, startupTimeoutMs: 1000 } };
+  const shell = new api.Shell({ fs: new api.MemoryFileSystem() }).use(api.standardCommands(options)).use(api.searchCommands(options));
+  const controller = new AbortController();
+  const reason = new Error('independent active regex abort');
+  let timer;
+  let armed = false;
+  const originalPost = NativeWorker.prototype.postMessage;
+  if (cancel) NativeWorker.prototype.postMessage = function(message, ...rest) {
+    if (!armed && message?.rows?.some(row => row.bytes?.length > 20)) { armed = true; timer = setTimeout(() => controller.abort(reason), 10); }
+    return originalPost.call(this, message, ...rest);
+  };
+  const start = performance.now();
+  try {
+    const result = await shell.exec(`${command} '^(a+)+$'`, { stdin: 'a'.repeat(28) + '!\n', ...(cancel ? { signal: controller.signal } : {}) }).then(value => ({ value }), error => ({ error }));
+    if (cancel) { assert.equal(armed, true); assert.equal(result.error, reason); }
+    else { assert.equal(result.value?.exitCode, 2); assert.match(result.value.stderr, /active request.*20ms/u); }
+    await shell.dispose();
+    assert.equal(active, 0);
+    return { elapsed: performance.now() - start, result: result.value ? vector(result.value) : { error: result.error.message, exactAbortReason: result.error === reason }, riskControl, configuredPolicy: options.regex, default1000Observed: false };
+  } finally { clearTimeout(timer); NativeWorker.prototype.postMessage = originalPost; await shell.dispose(); }
+}
 process.send({ kind: 'ready' });
 process.once('message', async message => {
   if (message.kind !== 'run') throw new Error('unexpected parent protocol');
@@ -153,6 +185,7 @@ process.once('message', async message => {
     else if (job === 'lifecycle') await lifecycle();
     else if (job === 'benchmark') await benchmark();
     else if (job === 'transport') await (await import('./transport.mjs')).runTransport(snapshot, caseCheck);
+    else if (job.startsWith('risk-')) await caseCheck(job, risk);
     else throw new Error(`unprepared job ${job}`);
     assert.equal(active, 0, 'zero live workers at final settlement');
   } catch (error) { observations.push({ name: 'job-final', pass: false, error: error.stack }); }

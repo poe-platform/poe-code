@@ -6,8 +6,8 @@ import * as native from "node:fs/promises";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { chunks, files, run } from "./helpers.js";
+import { captureNativeReport, createNativeScratch } from "./native-capture.js";
 
-const directory = fileURLToPath(new URL(".", import.meta.url));
 const executable = fileURLToPath(new URL("../metadata-stress/.oracle/coreutils-9.7/src/split", import.meta.url));
 
 test("GNU boundary stress: complete effects under large chunks and reused windows", async context => {
@@ -25,7 +25,7 @@ test("GNU boundary stress: complete effects under large chunks and reused window
   let failed = false;
   for (const [inputName, input] of [["64KiB-record-edges", records], ["seed1729-binary", binaryPattern]] as const) {
     for (const args of [["-C4096"], ["-C65536"], ["-b65536"], ["-l2"]]) {
-      const temp = await native.mkdtemp(join(directory, ".native-stress-"));
+      const temp = await createNativeScratch(context);
       const result = spawnSync(executable, args, { cwd: temp, input, env: { LC_ALL: "C", PATH: "/usr/bin:/bin" }, timeout: 10000 });
       const expectedFiles: Record<string, string> = {};
       for (const name of (await native.readdir(temp)).sort()) expectedFiles[name] = (await native.readFile(join(temp, name))).toString("hex");
@@ -43,9 +43,6 @@ test("GNU boundary stress: complete effects under large chunks and reused window
       if (rowMatch) await native.rm(temp, { recursive: true });
     }
   }
-  await native.mkdir(join(directory, "evidence"), { recursive: true });
-  const json = JSON.stringify({ profile: "GNU9.7 Darwin LC_ALL=C", report, failed }, null, 2) + "\n";
-  try { await native.writeFile(join(directory, "evidence/stress-initial.json"), json, { flag: "wx" }); } catch (error) { if ((error as NodeJS.ErrnoException).code !== "EEXIST") throw error; }
-  await native.writeFile(join(directory, "evidence/stress-latest.json"), json);
-  assert.equal(failed, false, "native boundary stress mismatch; original evidence retained");
+  const path = await captureNativeReport(context, "stress", { profile: "GNU9.7 Darwin LC_ALL=C", report, failed }, failed);
+  assert.equal(failed, false, `native boundary stress mismatch; evidence retained in ${path ?? "test diagnostics"}`);
 });

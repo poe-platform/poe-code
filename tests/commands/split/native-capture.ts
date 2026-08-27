@@ -4,7 +4,7 @@ import { isAbsolute, join, relative } from "node:path";
 import type { TestContext } from "node:test";
 import { fileURLToPath } from "node:url";
 
-const reportNames = ["gnu9.7-darwin", "apple-bsd", "gnu-errors", "native-profile-differences"] as const;
+const reportNames = ["gnu9.7-darwin", "apple-bsd", "gnu-errors", "native-profile-differences", "edge", "stress", "dangling-native"] as const;
 type ReportName = typeof reportNames[number];
 
 async function temporaryRoot(): Promise<string> {

@@ -10,7 +10,7 @@ import { captureNativeReport, createNativeCapture, createNativeScratch } from ".
 
 const root = fileURLToPath(new URL("../../../", import.meta.url));
 const suite = "tests/commands/split";
-const canonical = ["native.test.ts", "native-errors.test.ts"];
+const canonical = ["native.test.ts", "native-errors.test.ts", "edge.test.ts", "stress.test.ts", "dangling-native.test.ts"];
 const sources = [...canonical, "native-capture.ts", "cases.ts", "helpers.ts"];
 const sha256 = (bytes: Uint8Array) => createHash("sha256").update(bytes).digest("hex");
 
@@ -78,6 +78,19 @@ test("native capture rejects path-valued switches and invalid report names", asy
   }
   await assert.rejects(createNativeCapture("../escape" as "gnu-errors"), /Unknown split native report name/);
   assert.deepEqual(await snapshot(root), before);
+});
+
+test("remaining native reports publish concurrently without sharing destinations", async () => {
+  const captures = await Promise.all(["edge", "stress", "dangling-native"].flatMap(name =>
+    Array.from({ length: 2 }, () => createNativeCapture(name as "edge" | "stress" | "dangling-native"))));
+  try {
+    assert.equal(new Set(captures.map(capture => capture.directory)).size, 6);
+    await Promise.all(captures.map(async (capture, index) => {
+      await capture.write({ index });
+      assert.deepEqual(JSON.parse(await native.readFile(capture.path, "utf8")), { index });
+      await assert.rejects(capture.write({ replacement: true }), { code: "EEXIST" });
+    }));
+  } finally { for (const capture of captures) await native.rm(capture.directory, { recursive: true }); }
 });
 
 test("native scratch and capture reject repository temp roots, including symlink aliases", async () => {
@@ -151,6 +164,9 @@ for (const failed of [false, true]) for (const capture of [false, true]) {
         const mutations = [
           ["native.test.ts", "exitCode: actual.exitCode, stdout: actual.stdout", "exitCode: actual.exitCode + Number(specimen.id === \"default-empty\"), stdout: actual.stdout"],
           ["native-errors.test.ts", "const actual = await run(specimen.args, specimen.input, {}, { fs });", "const actual = await run(specimen.args, specimen.input, {}, { fs });\n    if (specimen.id === \"zero-lines\") actual.exitCode += 1;"],
+          ["edge.test.ts", "const observed = await run(args);", "const observed = await run(args);\n    if (size === \"1g\") observed.exitCode += 1;"],
+          ["stress.test.ts", "const actual = await run(args, chunks(input, chunkSize, true), { limits: { maxChunkBytes: 4096 } });", "const actual = await run(args, chunks(input, chunkSize, true), { limits: { maxChunkBytes: 4096 } });\n        if (inputName === \"64KiB-record-edges\" && args[0] === \"-C4096\" && chunkSize === 65537) actual.exitCode += 1;"],
+          ["dangling-native.test.ts", "const result = await run(args, \"\", {}, { fs });", "const result = await run(args, \"\", {}, { fs });\n        if (fixture.id === \"relative\" && backend === \"memory\") result.exitCode += 1;"],
         ] as const;
         for (const [name, original, replacement] of mutations) {
           const path = join(sandbox, suite, name);
@@ -164,20 +180,20 @@ for (const failed of [false, true]) for (const capture of [false, true]) {
       delete env.NODE_TEST_CONTEXT;
       delete env.VIRTUAL_BASH_SPLIT_CAPTURE;
       if (capture) env.VIRTUAL_BASH_SPLIT_CAPTURE = "1";
-      const child = spawnSync(process.execPath, ["--unhandled-rejections=strict", "--import", "tsx", "--test", "--test-reporter=tap", ...canonical.map(name => join(suite, name))], {
+      const child = spawnSync(process.execPath, ["--unhandled-rejections=strict", "--import", "tsx", "--test", "--test-concurrency=3", "--test-reporter=tap", ...canonical.map(name => join(suite, name))], {
         cwd: working, env, encoding: "utf8", timeout: 100_000, killSignal: "SIGKILL", maxBuffer: 8 * 1024 * 1024,
       });
       assert.equal(child.error, undefined);
       assert.equal(child.signal, null);
       assert.equal(child.status, failed ? 1 : 0, child.stdout + child.stderr);
-      assert.match(child.stdout, failed ? /# pass 1\n# fail 3\n/ : /# pass 4\n# fail 0\n/);
+      assert.match(child.stdout, failed ? /# pass 1\n# fail 6\n/ : /# pass 7\n# fail 0\n/);
       assert.match(child.stdout, /# skipped 0\n/);
       const paths = [...child.stdout.matchAll(/^# split native capture: (.+)$/gm)].map(match => match[1]!);
-      assert.equal(paths.length, capture ? 4 : 0);
+      assert.equal(paths.length, capture ? 7 : 0);
       assert.equal(new Set(paths).size, paths.length);
       for (const path of paths) assert.equal(dirname(dirname(path)), temporary);
       const scratches = [...child.stdout.matchAll(/^# split native scratch retained: (.+)$/gm)].map(match => match[1]!);
-      assert.equal(scratches.length, failed ? 3 : 0);
+      assert.equal(scratches.length, failed ? 4 : 0);
       for (const path of scratches) { assert.equal(dirname(path), temporary); assert.ok((await native.stat(path)).isDirectory()); }
       if (failed) {
         const errorsPath = paths.find(path => path.endsWith("/gnu-errors.json"));
@@ -191,6 +207,26 @@ for (const failed of [false, true]) for (const capture of [false, true]) {
         assert.equal(report.report[0].expected.stderr, "split: invalid number of lines: '0'\n");
         assert.equal(report.report[0].observed.stderr, report.report[0].expected.stderr);
         context.diagnostic(`Injected harness-only mismatch retained before cleanup: ${JSON.stringify(report.report[0])}`);
+        for (const [name, rows] of [["edge", 18], ["stress", 8], ["dangling-native", 11]] as const) {
+          const reportPath = paths.find(path => path.endsWith(`/${name}.json`));
+          const diagnostic = new RegExp(`^# split native failure ${name} \\(base64\\): (.+)$`, "m").exec(child.stdout);
+          assert.ok(reportPath || diagnostic, `${name} failure evidence must survive`);
+          const failure = JSON.parse(reportPath ? await native.readFile(reportPath, "utf8") : Buffer.from(diagnostic![1]!, "base64").toString("utf8"));
+          assert.equal((failure.evidence ?? failure.report).length, rows);
+          if (name === "edge") {
+            assert.equal(failure.failed, true);
+            assert.equal(failure.evidence[0].semanticMatch, false);
+            assert.equal(failure.evidence[0].observed.status, failure.evidence[0].expected.status + 1);
+          } else if (name === "stress") {
+            assert.equal(failure.failed, true);
+            assert.equal(failure.report[0].variants[0].match, false);
+            assert.equal(failure.report[0].variants[0].observed.status, failure.report[0].expected.status + 1);
+          } else {
+            assert.equal(failure.failures.length, 1);
+            assert.equal(failure.report[0].observed[0].match, false);
+            assert.equal(failure.report[0].observed[0].actual.status, failure.report[0].profiles["GNU9.7-Darwin"].status + 1);
+          }
+        }
       }
       assert.deepEqual(await snapshot(working), baseline);
       assert.deepEqual(await snapshot(root), before);

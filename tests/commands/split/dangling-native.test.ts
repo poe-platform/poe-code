@@ -10,8 +10,8 @@ import type { FileSystem } from "../../../src/contracts/index.js";
 import { createMemoryFileSystem } from "../../../src/fs/memory/index.js";
 import { createRealFileSystem } from "../../../src/fs/real/index.js";
 import { run } from "./helpers.js";
+import { captureNativeReport, createNativeScratch } from "./native-capture.js";
 
-const directory = fileURLToPath(new URL(".", import.meta.url));
 const executable = fileURLToPath(new URL("../metadata-stress/.oracle/coreutils-9.7/src/split", import.meta.url));
 const pin = "cf5851c4e6566983ce69940b766c0b5eb0cd26ebf2bb45eefe215b2d5c62f958";
 interface Fixture {
@@ -83,7 +83,7 @@ test("dangling output links: pinned GNU effects on MemoryFS and rooted RealFS; A
     const args = ["-b3", "input", fixture.prefix ?? "x"];
     const profiles: Record<string, { status: number | null; stdout: string; stderr: string; entries: Record<string, unknown> }> = {};
     for (const [profile, command] of [["GNU9.7-Darwin", executable], ...(apple ? [["Apple", apple]] : [])]) {
-      const root = await native.mkdtemp(join(directory, ".native-dangling-"));
+      const root = await createNativeScratch(context);
       try {
         await native.writeFile(join(root, "input"), "abcdef");
         for (const path of fixture.dirs ?? []) await native.mkdir(join(root, path));
@@ -99,7 +99,7 @@ test("dangling output links: pinned GNU effects on MemoryFS and rooted RealFS; A
     else assert.equal(expected.stderr, "");
     const observed: unknown[] = [];
     for (const backend of ["memory", "explicit-root-real"]) {
-      const root = backend === "explicit-root-real" ? await native.mkdtemp(join(directory, ".native-dangling-real-")) : undefined;
+      const root = backend === "explicit-root-real" ? await createNativeScratch(context) : undefined;
       try {
         const fs = root ? await createRealFileSystem({ root }) : createMemoryFileSystem();
         await setup(fs, fixture);
@@ -122,6 +122,6 @@ test("dangling output links: pinned GNU effects on MemoryFS and rooted RealFS; A
     source: createHash("sha256").update(await native.readFile(new URL("../../../src/commands/split/outputs.ts", import.meta.url))).digest("hex"),
     absoluteFixtureMapping: "native targets rooted under scratch; snapshot strips only that exact root; VFS uses virtual absolute targets",
     diagnostics: "GNU and virtual negative patterns asserted separately; exact raw stderr retained. Apple is a separate observation, not a GNU oracle substitute.", report, failures };
-  await native.writeFile(new URL(`evidence/dangling/native-${process.env.SPLIT_DANGLING_PHASE ?? "latest"}.json`, import.meta.url), `${JSON.stringify(manifest, null, 2)}\n`);
+  await captureNativeReport(context, "dangling-native", manifest, failures.length > 0);
   assert.deepEqual(failures, []);
 });

@@ -1,21 +1,14 @@
 import assert from "node:assert/strict";
-import { readFile } from "node:fs/promises";
 import { test } from "node:test";
 import { CommandRegistry, FsError, pipeBytes } from "../../src/contracts/index.js";
 import { MemoryFileSystem } from "../../src/fs/memory/index.js";
 import { Shell, ShellLimitError } from "../../src/shell/index.js";
 import { discoveryFixCases, discoveryFixFiles, discoveryFixFileText } from "./invocation-discovery-fixes-cases.js";
+import { discoveryProfile } from "../shell-stress/canonical-profile-migration/discovery-profile.js";
 
 const quote = (value: string): string => `'${value.replaceAll("'", "'\\''")}'`;
-interface NativeRow {
-  name: string;
-  mode: "bash" | "sh";
-  cwd: string;
-  source: string;
-  result: { stdoutHex: string; stderrHex: string; status: number };
-}
-const reference = JSON.parse(await readFile(new URL("./invocation-discovery-fixes-native.json", import.meta.url), "utf8")) as { profiles: { name: string; observations: NativeRow[] }[] };
-for (const profile of reference.profiles) for (const row of profile.observations) test(`${profile.name}/${row.mode}/${row.name}`, async () => {
+const profile = discoveryProfile("GNU-5.3");
+for (const row of profile.observations) test(`${profile.name}/${row.mode}/${row.name}`, async () => {
   assert.equal(row.source, discoveryFixCases.find(fixture => fixture.name === row.name)?.source);
   const fs = new MemoryFileSystem();
   for (const file of discoveryFixFiles) {

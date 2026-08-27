@@ -38,7 +38,7 @@ test("cross-mount hardlink alias is a no-op, never copy followed by source remov
   let copies = 0, removals = 0;
   const wrapped = proxy(fs, { copyFile: async () => { copies++; }, rm: async () => { removals++; } });
   const result = await run("mv", ["/left/source", "/right/target"], { fs: wrapped, cwd: "/" });
-  assert.equal(result.exitCode, 0, result.stderr); assert.equal(copies, 0); assert.equal(removals, 0);
+  assert.equal(result.exitCode, 1, result.stderr); assert.equal(copies, 0); assert.equal(removals, 0);
   assert.equal(await contents(left, "/source"), "payload"); assert.equal(await contents(left, "/target"), "payload");
 });
 

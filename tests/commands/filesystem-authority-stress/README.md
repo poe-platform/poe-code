@@ -30,19 +30,21 @@ the frozen pre-review source. Two consumer fixes account for those failures:
    skip. No alias is copied or removed. This is an exit-status correction to
    the EXDEV consumer path, not a rewrite of backend native rename semantics.
 
-### Open author-test coordination
+### Original author-test coordination at `0bee8e7`
 
-Two **unmodified** author assertions still expect status 0 for alias moves:
+Two **unmodified at that checkpoint** author assertions expected status 0 for
+alias moves:
 
 - `tests/commands/entry-comparison.test.ts`: `cross-device move uses comparison
   same before copy/delete`.
 - `tests/commands/move-cross-device.test.ts`: `cross-mount hardlink alias is a
   no-op, never copy followed by source removal`.
 
-The root/author-test owner must adjudicate/update these using the immutable
-GNU evidence, retaining all no-copy/no-delete and source-byte assertions.
-This worker did not edit unowned tests. Their failures are not waived or hidden:
-the latest owner-integrated author/contracts cohort is **68/70**, not 70/70.
+The original handoff requested owner adjudication using immutable GNU evidence,
+retaining all no-copy/no-delete and source-byte assertions. That commit did not
+edit the unowned tests. Its owner-integrated author/contracts result remains
+**68/70**, not retrospectively 70/70. The original TAP and `evidence/review.json`
+remain unchanged; the separately authorized correction is recorded next.
 
 Poincare's mount fix `e8d308a11bf562efcfba1d8a861503883b4952a3` independently fixes
 an older author fixture's observation problem. Before that FS fix, the frozen
@@ -50,6 +52,79 @@ author/contracts cohort was **69/70** before this review and **67/70** with its
 consumer patch: an opaque proxy stripped `lstat` scope, but the old resolver
 substituted scoped `stat` metadata. That historical extra failure remains in
 the archived TAP. Do not attribute the owner's FS fix to this core patch.
+
+### Authorized test-only closure, August 27, 2026
+
+The user accepted the scoped consumer fix and explicitly authorized **exactly
+two stale exit-status assertion corrections** in a separate test-only commit:
+
+- `entry-comparison.test.ts`: the `same` comparison branch changes from 0 to 1;
+  `unknown` remains 1 and `distinct` remains 0.
+- `move-cross-device.test.ts`: the EXDEV hardlink-alias case changes from 0 to 1.
+
+No other assertion, fixture, command behavior, contract or production file
+changes in this closure. In particular, comparison counts, copy/removal counts,
+source/destination bytes, successful distinct moves and `-n` skip behavior retain
+their previous expectations. The profile is GNU 9.7 same-file rejection, not a
+waiver of source-preservation requirements or general GNU/BSD parity.
+
+The independent native case is `move same hardlink` in `native-gnu-9.7.json`:
+GNU exits **1**, emits a same-file diagnostic, and preserves both names and their
+identical bytes. The unchanged evidence SHA256 is
+`51d72f9595f65b2e12a03069bd8ce20467ad697b7125375f19983c5d1a8a50bb`.
+No native expectation was regenerated or edited to fit the implementation.
+The original **85/92**, **68/70** and **11/11 killed mutants** remain historical
+results; this closure does not overwrite their source hashes or TAP.
+
+Validation freezes the then-current committed revision
+`a3f26e6e2008677fc467dcc876c771fea5ab6284`, overlays only those two corrected test
+files, and excludes all concurrent uncommitted worker changes. It is an explicit
+composite snapshot, not a claim about later HEAD or the dirty working tree.
+The review README is updated afterward and is not an executable test input.
+
+| Closure check on frozen inputs | Result |
+| --- | --- |
+| Author/contracts, same five files as the prior 70-case cohort | **70/70**, zero skips/TODOs |
+| Independent command authority corpus | **92/92**, zero skips/TODOs |
+| Strict scoped TypeScript, both cohorts and owned tooling | pass |
+| Project `npm run typecheck` | pass |
+| Project `npm run build` | pass |
+
+The existing installed tooling is Node v22.22.2 and TypeScript 5.9. The snapshot
+contains 2,394 tracked input files; hashing before and after validation found no
+input drift. Production `filesystem.ts` retains reviewed SHA256
+`393ea36b78c2cc142633c0eb631bf4d316767b3992c0d5f0724135ca4f01403a`.
+The corrected test SHA256 values are:
+
+| Test | SHA256 |
+| --- | --- |
+| `tests/commands/entry-comparison.test.ts` | `85bc12350662758f78191f171b2cec922fdd642cfdbdee12fc2627ec3583cbb7` |
+| `tests/commands/move-cross-device.test.ts` | `67f772e8dc1c6e95c524ea12d8b237be17b205aa0610412884c5d915562a1c49` |
+
+Reproduce the snapshot with two `git archive --format=tar` invocations at that
+revision: one selecting `src tests package.json package-lock.json tsconfig.json
+tsconfig.build.json`, the other selecting `benchmarks`. Extract both into an
+isolated directory, overlay the two corrected tests from this closure, and link
+the already installed root `node_modules`. Run the five original author/contract
+test paths listed in `review.ts`, the independent `*.test.ts` files, strict
+scoped TypeScript, `npm run typecheck` and `npm run build` there.
+
+| Frozen artifact | SHA256 |
+| --- | --- |
+| Source/tests/config archive | `9f3561f1c348f7893277d3543bac3a86ea9d67e1200d8462aa18b17b8b9d025d` |
+| Same-revision benchmarks archive | `7578218f33f7f8a71bcec8918b2d24631027f0600a0c5f88f342e28b1a122ec9` |
+| Complete input manifest after the two test overlays | `0d21a0b26edc416836dea01f3cc41287e600eba08517243913955f9372a75705` |
+
+The snapshot, complete manifest, command arguments and raw logs are retained
+locally under
+`/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-core-closure-Rus4jL/`,
+with final results in `complete-closure-report.json`. The first capture's
+`closure-report.json` is also retained: its global TypeScript run failed because
+the capture omitted committed benchmark modules imported by existing tests.
+Adding those files **from the same frozen revision**, without changing any code,
+assertion or expectation, resolved that capture defect. It is not a product
+failure rebaseline. Both full test cohorts and both typechecks/build were rerun
+on the complete snapshot; no remaining actual failure was suppressed.
 
 ## Frozen inputs and reproducibility
 
@@ -182,7 +257,8 @@ nor reruns the historical **28/38 required remote positives**; the **10 blocked
 remote workflows remain separately open** pending their owner's implementation
 and verification. No live S3/WebDAV/real provider authority claim is made here.
 Root contracts/exports and shared helpers remain unchanged. The two old alias
-status assertions need root coordination, with GNU evidence retained.
+status assertions are resolved only by the explicitly authorized test-only
+closure, with the original failures and GNU evidence retained.
 No direct worker-message tool was available in this review slot; the progress
 updates and this handoff expose the coordination request without claiming a
 direct exchange occurred.

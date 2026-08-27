@@ -150,6 +150,7 @@ await check('public:ordinary-handler-throw-result-and-cleanup-identities', async
         assert.equal(result.error.message, 'Invocation cleanup failed');
         assert.equal(result.error.errors.length, 2);
         assert.deepEqual(new Set(result.error.errors), new Set(failures));
+        for (const failure of failures) assert.ok(result.error.errors.includes(failure));
       }
     }
     assert.equal(cleanups, errors);

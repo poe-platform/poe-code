@@ -268,7 +268,7 @@ async function run(context: CommandContext, budget: Budget): Promise<number> {
       if (outcome.misordered) message += "misordered hunks! output would be garbled\n";
       if (options.quiet) continue;
       if (outcome.failed) message += `Hunk #${outcome.index} FAILED at ${outcome.line}.\n`;
-      else if (outcome.offset || outcome.fuzz) message += `Hunk #${outcome.index} succeeded at ${outcome.line}${outcome.fuzz ? ` with fuzz ${outcome.fuzz}` : ""}${outcome.offset ? ` (offset ${outcome.offset} ${Math.abs(outcome.offset) === 1 ? "line" : "lines"})` : ""}.\n`;
+      else if (outcome.offset || outcome.fuzz) message += `Hunk #${outcome.index} succeeded at ${outcome.line}${outcome.fuzz ? ` with fuzz ${outcome.fuzz}` : ""}${outcome.offset ? ` (offset ${outcome.offset} ${outcome.offset === 1 ? "line" : "lines"})` : ""}.\n`;
     }
     if (failed.length) message += `${failed.length} out of ${outcomes.length} ${outcomes.length === 1 ? "hunk" : "hunks"} FAILED${options.dryRun || rejectPath === undefined ? "" : ` -- saving rejects to file ${rejectDestination}`}\n`;
     if (deletion && result !== "") message += `Not deleting file ${name} as content differs from patch\n`;

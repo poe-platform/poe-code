@@ -199,21 +199,28 @@ export async function applyHunks(original: string, patch: FilePatch, fuzz: numbe
         if (found >= 0) break;
         continue;
       }
-      if (await matches(expected, Math.max(0, prefixFuzz), suffixFuzz)) { found = expected; break; }
       const retained = oldLines.length - Math.max(0, prefixFuzz) - suffixFuzz;
-      if (retained === 0) continue;
+      if (retained === 0) {
+        if (await matches(expected, Math.max(0, prefixFuzz), suffixFuzz)) { found = expected; break; }
+        continue;
+      }
       const maximum = source.length - hunk.oldCount + suffixFuzz;
-      const distanceLimit = Math.max(Math.abs(expected - cursor), Math.abs(maximum - expected));
-      for (let distance = 1; distance <= distanceLimit; distance++) {
-        if (await matches(expected + distance, Math.max(0, prefixFuzz), suffixFuzz)) { found = expected + distance; break; }
-        if (await matches(expected - distance, Math.max(0, prefixFuzz), suffixFuzz)) { found = expected - distance; break; }
+      const positiveLimit = maximum - expected;
+      const negativeLimit = Math.min(expected - cursor, expected);
+      const distanceLimit = Math.max(positiveLimit, negativeLimit);
+      const firstDistance = positiveLimit < 0 ? -positiveLimit : negativeLimit < 0 ? negativeLimit : 0;
+      for (let distance = firstDistance; distance <= distanceLimit; distance++) {
+        if (distance <= positiveLimit && await matches(expected + distance, Math.max(0, prefixFuzz), suffixFuzz)) { found = expected + distance; break; }
+        if (distance <= negativeLimit && await matches(expected - distance, Math.max(0, prefixFuzz), suffixFuzz)) { found = expected - distance; break; }
       }
       if (found >= 0) break;
     }
+    const matched = found;
+    if (matched >= 0) offset = matched - startIndex(hunk.oldStart, hunk.oldCount);
     if (misordered) found = -1;
     application.outcomes?.push({ hunk, index: hunkIndex + 1, failed: found < 0, misordered: found < 0 && misordered,
-      line: (found < 0 ? startIndex(hunk.oldStart, hunk.oldCount) : found) + 1 + outputOffset,
-      outputOffset, offset: found - startIndex(hunk.oldStart, hunk.oldCount), fuzz: usedFuzz });
+      line: (matched < 0 ? startIndex(hunk.oldStart, hunk.oldCount) : matched) + 1 + outputOffset,
+      outputOffset, offset: matched - startIndex(hunk.oldStart, hunk.oldCount), fuzz: usedFuzz });
     if (found < 0) {
       if (application.partial) continue;
       throw new ToolError(`hunk ${hunkIndex + 1} does not match ${patch.oldPath}`, 1);
@@ -224,7 +231,6 @@ export async function applyHunks(original: string, patch: FilePatch, fuzz: numbe
       else if (line.kind === " ") { if (cursor < source.length) append(source[cursor++]!); }
       else cursor++;
     }
-    offset = found - startIndex(hunk.oldStart, hunk.oldCount);
     outputOffset += hunk.newCount - hunk.oldCount;
   }
   while (cursor < source.length) append(source[cursor++]!);

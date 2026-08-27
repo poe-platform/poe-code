@@ -133,10 +133,12 @@ export class ShellInput implements ByteSource {
     let escaping = false;
     let escapedCharacter = false;
     let units = 0;
+    let pulls = 0;
     let terminated = options.count === 0;
     try {
       while (!terminated) {
         if (offset === chunk.length) {
+          if (++pulls % 128 === 0) await interruptible(new Promise<void>(resolve => setImmediate(resolve)), this.signal);
           const result = await this.#cursor.take(this.signal);
           if (result.done) {
             break;

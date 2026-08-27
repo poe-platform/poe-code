@@ -27,10 +27,11 @@ export const defaultLimits: Required<ShellLimits> = {
 
 const shellBuiltinNames = new Set([
   ":", "true", "false", "pwd", "cd", "set", "shift", "export", "local", "unset", "read",
-  "exit", "return", "break", "continue", "command", "type", "echo", "printf", "test", "[",
+  "exit", "return", "break", "continue", "command", "type", "readonly", "echo", "printf", "test", "[",
 ]);
 
 const implementedBuiltins = new Set([...shellBuiltinNames].filter(name => !["echo", "printf", "test", "["].includes(name)));
+const specialBuiltinNames = new Set([":", "break", "continue", "exit", "export", "readonly", "return", "set", "shift", "unset"]);
 type Discovery = { kind: "function" | "builtin" | "command" | "interpreter" | "file"; name: string };
 
 export function resolveLimits(...limits: (ShellLimits | undefined)[]): Required<ShellLimits> {
@@ -132,13 +133,14 @@ export interface State {
   positional: string[];
   arg0?: string;
   profile?: "bash" | "sh";
+  readonlyVariables?: Set<string>;
   pathUnset?: boolean;
   status: number;
   substitutionStatus: number;
   depth: number;
   loopDepth: number;
   functionDepth: number;
-  locals: Map<string, { value: string | undefined; exported: boolean }>[];
+  locals: Map<string, { value: string | undefined; exported: boolean; readOnly?: boolean }>[];
   pipefail: boolean;
   isolated?: boolean;
   redirectAssignments?: ReadonlyMap<string, string>;
@@ -202,6 +204,8 @@ class CommandFailure extends Error {
   constructor(message: string, readonly status: number) { super(message); }
 }
 
+class FatalCommandFailure extends CommandFailure {}
+
 class ParameterExpansionFailure extends ExpansionFailure {}
 
 class PipelineClosed extends Error {
@@ -218,6 +222,7 @@ function cloneState(state: State): State {
     ...state,
     variables: Object.assign(Object.create(null) as Record<string, string>, state.variables),
     exported: new Set(state.exported), functions: new Map(state.functions), positional: [...state.positional],
+    readonlyVariables: new Set(state.readonlyVariables),
     locals: state.locals.map((scope) => new Map(scope)),
   };
 }
@@ -247,6 +252,20 @@ export class Runtime {
     readonly fileWrites = new Map<string, Promise<void>>(),
     readonly outputFiles = new Map<string, OutputFile>(),
   ) {}
+
+  diagnostic(io: IO, text: string): Promise<void> {
+    return writeText(io.stderr, `${io.scriptName ?? "shell"}: line ${io.diagnosticLine ?? 1}: ${text}\n`);
+  }
+
+  writeVariable(state: State, name: string, value: string): void {
+    if (state.readonlyVariables?.has(name)) throw new Error(`${name}: readonly variable`);
+    state.variables[name] = value;
+  }
+
+  arithmeticVariables(state: State): Record<string, string> {
+    if (!state.readonlyVariables?.size) return state.variables;
+    return new Proxy(state.variables, { set: (_target, key, value: string) => { this.writeVariable(state, String(key), value); return true; } });
+  }
 
   async run(script: Script, state: State, io: IO): Promise<number> {
     return (await this.runUnit(script, state, io)).exitCode;
@@ -365,13 +384,17 @@ export class Runtime {
     let io = originalIO;
     try {
       if (command.kind === "function") {
+        if (state.profile === "sh" && specialBuiltinNames.has(command.name)) {
+          await this.diagnostic(io, `\`${command.name}': is a special builtin`);
+          throw new Flow("exit", 2);
+        }
         state.functions.set(command.name, command.body);
         return 0;
       }
       if (command.kind === "simple") return await this.simple(command, state, originalIO, inputs, outputs, fileShortcut);
       io = await this.redirect(command.redirects, state, io, inputs, outputs, command.kind === "subshell", command.kind !== "subshell");
       if (command.kind === "arithmetic") {
-        try { return Number(evaluateArithmetic(command.expression, state.variables) === 0n); }
+        try { return Number(evaluateArithmetic(command.expression, this.arithmeticVariables(state)) === 0n); }
         catch (error) { throw new Error(`((: ${message(error)}`); }
       }
       if (command.kind === "subshell") {
@@ -414,7 +437,7 @@ export class Runtime {
           const values = command.words ? await this.words(command.words, state, io) : state.positional;
           for (const value of values) {
             this.budget.loop();
-            state.variables[command.name] = value;
+            this.writeVariable(state, command.name, value);
             const result = await this.loopBody(command.body, state, io);
             status = result.status;
             if (result.stop) break;
@@ -445,6 +468,7 @@ export class Runtime {
       try { await writeText(io.stderr, `${io.scriptName ?? "shell"}: line ${line}: ${diagnostic ?? message(error)}\n`); }
       catch { this.signal.throwIfAborted(); }
       if (error instanceof ExpansionFailure) throw new Flow("exit", error instanceof ParameterExpansionFailure && !state.isolated ? 127 : 1);
+      if (error instanceof FatalCommandFailure) throw new Flow("exit", error.status);
       if (error instanceof CommandFailure) return error.status;
       return 1;
     } finally {
@@ -650,7 +674,8 @@ export class Runtime {
       declarationIndex++;
       if (commandWords[declarationIndex]?.plain === "--") declarationIndex++;
     }
-    const words = await this.words(commandWords, state, originalIO, ["export", "local"].includes(commandWords[declarationIndex]?.plain ?? ""));
+    const words = await this.words(commandWords, state, originalIO, ["export", "local", "readonly"].includes(commandWords[declarationIndex]?.plain ?? ""));
+    const special = state.profile === "sh" && specialBuiltinNames.has(words[0] ?? "");
     const inlineInput = command.redirects.some((redirect) => redirect.document || redirect.operator === "<<<");
     const functionCommand = words.length > 0 && state.functions.has(words[0]!);
     const isolatedInlineInput = inlineInput && words.length > 0 && !shellBuiltinNames.has(words[0]!) && !functionCommand;
@@ -659,13 +684,19 @@ export class Runtime {
     const previous = new Map<string, { value: string | undefined; exported: boolean }>();
     const assign = async () => {
       for (const assignment of assignments) {
+        const value = (await this.word(assignment.value, state, io, false)).join("");
+        if (state.readonlyVariables?.has(assignment.name)) {
+          await this.diagnostic(io, `${assignment.name}: readonly variable`);
+          if (state.profile === "sh" || !words.length) throw new Flow("exit", state.profile === "sh" && (special || !words.length) ? 127 : 1);
+          continue;
+        }
         if (!previous.has(assignment.name)) previous.set(assignment.name, { value: state.variables[assignment.name], exported: state.exported.has(assignment.name) });
-        state.variables[assignment.name] = (await this.word(assignment.value, state, io, false)).join("");
+        state.variables[assignment.name] = value;
         if (words.length) state.exported.add(assignment.name);
       }
     };
     try {
-      if (inlineInput) await assign();
+      if (inlineInput || (state.profile === "sh" || !words.length) && assignments.some(assignment => state.readonlyVariables?.has(assignment.name))) await assign();
       if (inlineInput && functionCommand && previous.size) {
         const variables = Object.assign(Object.create(null) as Record<string, string>, state.variables);
         const redirectAssignments = new Map<string, string>();
@@ -693,7 +724,13 @@ export class Runtime {
       }
       return words.length ? await this.dispatch(words[0]!, words.slice(1), state, io, previous) : state.substitutionStatus;
     } catch (error) {
-      if (error instanceof ExecutionFailure || error instanceof Flow) throw error;
+      if (error instanceof Flow) throw error;
+      this.signal.throwIfAborted();
+      const original = error instanceof ExecutionFailure ? error.original : error;
+      if (special && !(original instanceof ShellLimitError) && !(original instanceof ExpansionFailure) && !(original instanceof Flow) && !(original instanceof ShellSyntaxError)) {
+        throw new ExecutionFailure(new FatalCommandFailure(message(original), 1), error instanceof ExecutionFailure ? error.io : io, error instanceof ExecutionFailure ? error.diagnostic : undefined);
+      }
+      if (error instanceof ExecutionFailure) throw error;
       throw new ExecutionFailure(error, io);
     } finally {
       if (words.length) for (const [key, saved] of previous) {
@@ -738,7 +775,7 @@ export class Runtime {
           state.positional = [...context.args];
           state.functionDepth++;
           state.depth++;
-          const locals = new Map<string, { value: string | undefined; exported: boolean }>();
+          const locals = new Map<string, { value: string | undefined; exported: boolean; readOnly?: boolean }>();
           state.locals.push(locals);
           try { return { exitCode: await this.command(body, state, context) }; }
           catch (error) {
@@ -754,13 +791,19 @@ export class Runtime {
               else state.variables[name] = previous.value;
               if (previous.exported) state.exported.add(name);
               else state.exported.delete(name);
+              if (!previous.readOnly) state.readonlyVariables?.delete(name);
             }
           }
         }
         if (selected?.kind === "builtin") {
           if (context.command === "command" || context.command === "type") return { exitCode: await this.discoveryBuiltin(context, state, io, assignments) };
-          const builtin = await this.builtin(context, state, assignments, (error, diagnostic) => { builtinFailure = { error, diagnostic }; });
-          if (builtin !== undefined) return { exitCode: builtin };
+          const special = state.profile === "sh" && !bypassFunctions && specialBuiltinNames.has(context.command);
+          if (special) assignments.clear();
+          const builtin = await this.builtin(context, state, assignments, (error, diagnostic) => { builtinFailure = { error, diagnostic }; }, bypassFunctions);
+          if (builtin !== undefined) {
+            if (special && builtin !== 0 && context.command !== "shift") throw new Flow("exit", builtin);
+            return { exitCode: builtin };
+          }
         }
         const definition = this.commands.get(context.command);
         if (!definition) {
@@ -797,6 +840,7 @@ export class Runtime {
     if (implementedBuiltins.has(name)) matches.push({ kind: "builtin", name });
     else if (this.commands.has(name)) matches.push({ kind: "command", name });
     else if (name === "bash" || name === "sh") matches.push({ kind: "interpreter", name });
+    if (state.profile === "sh" && specialBuiltinNames.has(name)) matches.sort((left, right) => Number(right.kind === "builtin") - Number(left.kind === "builtin"));
     return matches;
   }
 
@@ -1096,7 +1140,7 @@ export class Runtime {
     finally { await input?.close(); }
   }
 
-  async builtin(context: CommandContext, state: State, assignments: Map<string, { value: string | undefined; exported: boolean }>, diagnose?: (error: unknown, diagnostic: string) => void): Promise<number | undefined> {
+  async builtin(context: CommandContext, state: State, assignments: Map<string, { value: string | undefined; exported: boolean }>, diagnose?: (error: unknown, diagnostic: string) => void, suppressSpecial = false): Promise<number | undefined> {
     const { command, args, stdout, stderr } = context;
     if (command === ":" || command === "true") return 0;
     if (command === "false") return 1;
@@ -1118,9 +1162,9 @@ export class Runtime {
         if (diagnostic) diagnose?.(error, diagnostic);
         throw error;
       }
-      state.variables.OLDPWD = state.cwd;
+      this.writeVariable(state, "OLDPWD", state.cwd);
       state.cwd = path;
-      state.variables.PWD = path;
+      this.writeVariable(state, "PWD", path);
       state.exported.add("PWD");
       state.exported.add("OLDPWD");
       if (args[0] === "-") await writeText(stdout, `${path}\n`);
@@ -1134,6 +1178,7 @@ export class Runtime {
       }
       if (args.some((arg) => /^[+-]/u.test(arg))) {
         await writeText(stderr, "set: unsupported shell option; supported forms are -- arguments, -o pipefail, +o pipefail\n");
+        if (state.profile === "sh" && suppressSpecial) return 2;
         throw new Flow("exit", 2);
       }
       await writeText(stderr, "set: supported forms are -- arguments, -o pipefail, +o pipefail\n");
@@ -1145,23 +1190,37 @@ export class Runtime {
       state.positional = state.positional.slice(count);
       return 0;
     }
-    if (command === "export" || command === "local") {
+    if (command === "export" || command === "local" || command === "readonly") {
+      const declarationArgs = [...args];
+      if (command === "readonly") {
+        while (declarationArgs[0]?.startsWith("-")) {
+          const option = declarationArgs.shift();
+          if (option === "--") break;
+          if (option !== "-p") { await writeText(stderr, `readonly: ${option}: unsupported option\n`); return 2; }
+        }
+      }
       const locals = state.locals.at(-1);
       if (command === "local" && !locals) { await writeText(stderr, "local: not in a function\n"); return 1; }
       let status = 0;
-      if (!args.length) {
-        for (const name of [...state.exported].sort()) await writeText(stdout, `declare -x ${name}=${JSON.stringify(state.variables[name] ?? "")}\n`);
+      if (!declarationArgs.length) {
+        const names = command === "readonly" ? state.readonlyVariables ?? [] : state.exported;
+        const prefix = state.profile === "sh" ? command : command === "readonly" ? "declare -r" : "declare -x";
+        for (const name of [...names].sort()) await writeText(stdout, `${prefix} ${name}=${JSON.stringify(state.variables[name] ?? "")}\n`);
       }
-      for (const arg of args) {
+      for (const arg of declarationArgs) {
         const match = /^([a-zA-Z_][a-zA-Z_0-9]*)(?:=(.*))?$/su.exec(arg);
-        if (!match) { await writeText(stderr, `${command}: ${arg}: not a valid identifier\n`); status = 1; continue; }
+        if (!match) { await this.diagnostic(context, `${command}: \`${arg}': not a valid identifier`); status = 1; continue; }
         const name = match[1]!;
+        if (state.readonlyVariables?.has(name) && (match[2] !== undefined || command === "local")) {
+          await this.diagnostic(context, `${name}: readonly variable`); status = 1; continue;
+        }
         if (command === "local" && !locals!.has(name)) {
           locals!.set(name, assignments.get(name) ?? { value: state.variables[name], exported: state.exported.has(name) });
           if (!assignments.has(name) && match[2] === undefined) delete state.variables[name];
         }
         if (match[2] !== undefined) state.variables[name] = match[2];
         if (command === "export") state.exported.add(name);
+        if (command === "readonly") { state.readonlyVariables ??= new Set(); state.readonlyVariables.add(name); }
         assignments.delete(name);
       }
       return status;
@@ -1170,9 +1229,11 @@ export class Runtime {
       let status = 0;
       for (const name of args) {
         if (!/^[a-zA-Z_][a-zA-Z_0-9]*$/u.test(name)) { await writeText(stderr, `unset: ${name}: not a valid identifier\n`); status = 1; continue; }
+        if (state.readonlyVariables?.has(name)) { await this.diagnostic(context, `unset: ${name}: cannot unset: readonly variable`); status = 1; continue; }
         if (name === "PATH") state.pathUnset = true;
         delete state.variables[name];
         state.exported.delete(name);
+        if (state.profile === "sh") assignments.delete(name);
       }
       return status;
     }
@@ -1220,7 +1281,10 @@ export class Runtime {
         : await input.line(raw, count === undefined && delimiter === undefined ? undefined : {
           ...(count === undefined ? {} : { count }), ...(delimiter === undefined ? {} : { delimiter }), byteCount: byteLocale(state.variables), exact,
         });
-      if (!names.length) state.variables.REPLY = line.value;
+      if (!names.length) {
+        if (state.readonlyVariables?.has("REPLY")) { await this.diagnostic(context, "REPLY: readonly variable"); return 1; }
+        state.variables.REPLY = line.value;
+      }
       else {
         const separators = exact ? "" : state.variables.IFS ?? " \t\n";
         const characters = Array.from(line.value);
@@ -1240,6 +1304,10 @@ export class Runtime {
           while (position < end && whitespace(position)) position++;
         }
         for (let index = 0; index < names.length; index++) {
+          if (state.readonlyVariables?.has(names[index]!)) {
+            await this.diagnostic(context, `${names[index]}: readonly variable`);
+            return index === names.length - 1 ? 1 : 2;
+          }
           const field = fields[index];
           state.variables[names[index]!] = field ? characters.slice(field.start, index === names.length - 1 && fields.length > names.length ? end : field.end).join("") : "";
         }
@@ -1282,7 +1350,7 @@ export class Runtime {
       return "";
     }
     if (part.kind === "arithmetic") {
-      try { return String(evaluateArithmetic(part.expression, state.variables)); }
+      try { return String(evaluateArithmetic(part.expression, this.arithmeticVariables(state))); }
       catch (error) { throw new ExpansionFailure(message(error), io.diagnosticLine ?? part.line); }
     }
     if (part.kind === "substitution") {
@@ -1335,7 +1403,7 @@ export class Runtime {
         if (operator === "?") throw new ParameterExpansionFailure(`${part.name}: ${alternate || (part.operator.startsWith(":") ? "parameter null or not set" : "parameter not set")}`, io.diagnosticLine ?? part.line);
         if (operator === "=") {
           if (!/^[a-zA-Z_][a-zA-Z_0-9]*$/u.test(part.name)) throw new Error("Cannot assign special parameter");
-          state.variables[part.name] = alternate;
+          this.writeVariable(state, part.name, alternate);
         }
         value = alternate;
       } else if (operator === "+") value = "";

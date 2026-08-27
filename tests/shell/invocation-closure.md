@@ -62,8 +62,6 @@ normalized or dialect-waived. Build-config noEmit passes. A later global noEmit
 retry instead encounters four unowned missing declarations in the concurrently
 created structured jq independent review; no owned shell errors remain.
 
-## Native evidence and reproducibility
-
 ## Group 2: exact-count read
 
 Group 1 commit: `7e69fe19521d806782f135f4d1827052ef6b8976`.
@@ -110,6 +108,11 @@ Related official source hashes: type.def
 `bd6fda6403e4bd872830c105e5e4f0eef6ee0a2e2fe9f5db792c8e405e1d41b6`,
 command.def `0189759e29c50d527fa89932654ef585cc29b98b592a6b59744f6ca84aa79d34`.
 These references supplement the official manual, not a copied implementation.
+Official source archive: `https://ftp.gnu.org/gnu/bash/bash-5.3.tar.gz`, SHA256
+`0d5cd86965f869a26cf64f4b71be7b96f90a3ba8b3d74e27e8e9d9d5550f31ba`.
+The supplied capture's signature log records GOODSIG/VALIDSIG for GNU maintainer
+key `7C0135FB088AAF6C66C650B9BB5869F064EA74AB`; the native binary remains pinned
+separately by its own hash rather than equating a parent version with child mode.
 The fresh complete native comparison passes **56/56 primary, 2/56 historical**;
 historical 3.2 does not implement N. All 54 differences remain in the raw
 checkpoint, not excused as passes. Global and build-config noEmit pass at this
@@ -129,6 +132,111 @@ read, and frozen invocation132 remains unmodified and passing.
 node --unhandled-rejections=strict --import tsx --test tests/shell/invocation-closure-read.test.ts
 node --unhandled-rejections=strict --import tsx tests/shell/invocation-closure-native.ts --capture read
 node --unhandled-rejections=strict --import tsx tests/shell/invocation-closure-native.ts --verify read
+```
+
+## Group 3: explicit sh assignment profile
+
+Group 2 commit: `6370e717c0f540991fb980a10b36725f301e2f3c`.
+
+Only actual virtual `sh` invocation selects this profile, across file, -c and
+stdin/-s modes. `bash` resets to Bash policy; commandname/$0 does not select a
+profile. Top-level Shell remains Bash even if a supplied environment contains
+POSIXLY_CORRECT. No startup files, implicit env-driven mode changes or complete
+POSIX parser are introduced. Subshells, functions, substitutions and literal
+invoke retain the profile; fresh interpreter processes isolate state as before.
+
+For implemented special builtins (`:`, break, continue, exit, export, readonly,
+return, set, shift, unset), sh retains prefix assignments and their export
+attribute. Regular utilities and function-prefix assignments remain temporary in
+the GNU 5.3 profile. Historical 3.2 sh differs on function-prefix/local and unset
+behavior; the modern result is not inferred from old documentation. Special
+builtins precede functions in sh discovery/dispatch, and defining a function with
+one of these implemented special names is a fatal error. `command` bypasses
+functions and suppresses special prefix-assignment/fatal-error treatment, while
+explicit export/unset of a named variable still has that builtin's effects.
+
+Special-builtin failures terminate the virtual noninteractive sh, including
+redirection failure. Shift's range failure remains nonfatal. Existing return,
+shift and set option/diagnostic limitations outside the covered cases remain;
+this is not a broad diagnostic rewrite. `command set` in sh suppresses the
+special fatal treatment even for explicitly unsupported options.
+
+Bounded scalar `readonly [--] name[=value] ...` and `readonly -p` support is added
+to test actual assignment failures rather than inventing readonly state. Other
+readonly options (arrays/functions) are rejected. Attributes protect assignment,
+export/local/unset/read, arithmetic and parameter writes and loop variables;
+local attributes unwind and interpreter process environments inherit values,
+not readonly attributes. Listings contain only actual virtual attributes, not
+invented native BASHOPTS/UID/etc. Complex declaration/attribute printing and
+special-variable interactions are not universal native parity claims.
+
+Readonly read errors happen after consumption and preserve earlier successful
+name assignments; the intermediate-name status differs from final-name status
+as captured from 5.3. Failed fatal readonly assignments are checked before
+target redirection effects, while ordinary successful prefix assignments do not
+retroactively alter redirection-word expansion. The new native file snapshots
+caught and fixed unwanted marker-file creation on four profile/effect cases.
+
+Initial group: **31/71 pass, 40 fail**. Three additional controls all failed
+(endless empty chunks, readonly read assignment order, special redirection
+fatality); all were fixed. The empty-chunk case initially hit its five-second
+child deadline, not a caller-rescued pass. The bounded reader now yields after
+128 input pulls even when chunks are empty; cursor ownership/close lifecycle is
+unchanged. A test output ceiling equal to the exact four-byte result was corrected
+to three bytes (a stronger bound, not a relaxed result). Later native file-effect
+expansion reproduced **87/91 pass, 4 fail**, then the final group passed **91/91**.
+
+## Final author checkpoint
+
+- New author cases: **211/211** (50 discovery, 70 read-N, 91 sh).
+- Final combined cohort: **684/684**, comprising those 211, frozen invocation132,
+  file-author41 and existing semantics300. No skips, xfails or TODOs.
+- Prior file holdout: **16/17**; combined prior file cohort remains **57/58**.
+  The unmodified old builtin-before-function assertion requires its owner's
+  review. It is not waived and this is not independent acceptance.
+- Complete live native cohorts: **162/162 GNU 5.3**, **69/162 historical 3.2**.
+  Discovery is 36/36 versus 30/36; read is 56/56 versus 2/56; sh is 70/70 versus
+  37/70. All 93 historical differences stay failures, and all three verification
+  commands return nonzero because of them. Do not merge these counts with the
+  earlier nine historical invocation findings; those are a separate open cohort.
+- Global, build-config and benchmark-config TypeScript checks pass with noEmit.
+  Earlier moving-worktree failures are retained above. No emitting tsc ran.
+- An actual loader hook confirms **30 imported product .ts files**, including
+  shell and imported contracts/core/memory dependencies, with hashes before/after
+  loading. The final 684-case run also checks those 30 dependency hashes unchanged.
+  No source/dependency guard invalidation occurred in that guarded run.
+- Six discovery, four read and six sh/safety checks use hard-bounded isolated
+  strict-rejection children. Native processes use bounded process groups. All
+  owned children finish or are killed by their bounds; no watchers are retained.
+
+`invocation-closure-checkpoint.json` records source/scenario/import hashes,
+revision provenance, frozen-test hashes and counts. The group reference JSONs
+retain exact native observations; sh's final raw comparison is in
+`invocation-closure-sh-checkpoint.json`. The import proof and its runnable source
+are committed, not only a /tmp assertion. A new final-source recheck is needed
+after any source/dependency change; this is still a moving-worktree author
+checkpoint, not clean-product certification.
+
+Public/root/shell-index export names changed: **none**. The only new source module
+is the internal AST function-display helper; parser word spelling is metadata,
+not new syntax. No contracts, manifests, dependencies, commands or FS sources
+are changed by this author. The five custom first-read failures, prior nine
+historical differences and pending NUL diagnostic remain open and unrerun here.
+No source/dot/eval, arrays, jobs, startup/interactive features or host execution
+are added. UTF-8 variable/boundary limits, non-atomic VFS lookup, unsupported
+command -p, keyword/alias discovery and full compound pretty-print parity remain
+explicit limits. Full Bash, superiority and the 72-hour objective remain pending.
+
+```sh
+node --unhandled-rejections=strict --import tsx --test tests/shell/invocation-closure-sh.test.ts
+node --unhandled-rejections=strict --import tsx tests/shell/invocation-closure-native.ts --capture sh
+node --unhandled-rejections=strict --import tsx tests/shell/invocation-closure-native.ts --verify sh
+node --unhandled-rejections=strict --import tsx tests/shell/invocation-closure-imports.ts
+node --unhandled-rejections=strict --import tsx --test tests/shell/{invocation-closure-discovery,invocation-closure-read,invocation-closure-sh,invocation-modes,script-entrypoint,core,parser-regressions,input-units,runtime-regressions,lifecycle,inline-input-limits,glob-budget,variable-scope,descriptor-inheritance,descriptor-moves,stdin-origin,fs-error-diagnostics,invoke,read-options,heredoc}.test.ts
+node --unhandled-rejections=strict --import tsx --test tests/shell-stress/script-entrypoint/holdout.test.ts
+./node_modules/.bin/tsc --noEmit
+./node_modules/.bin/tsc -p tsconfig.build.json --noEmit
+./node_modules/.bin/tsc -p benchmarks/tsconfig.json --noEmit
 ```
 
 ## Native harness and reproducibility

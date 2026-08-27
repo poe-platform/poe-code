@@ -35,6 +35,15 @@ if (name === "command-depth" || name === "command-count") {
   await assert.rejects(setup().shell.exec("bash -c 'command read -N2 value'", { stdin, signal: controller.signal }), error => error === reason);
   await new Promise(resolve => setTimeout(resolve, 40));
   assert.equal(returned, 1);
+} else if (name === "read-empty-cancel") {
+  const controller = new AbortController();
+  const reason = new FsError("ECANCELED", { path: "empty chunks" });
+  let returned = 0;
+  const timer = setTimeout(() => controller.abort(reason), 10);
+  const stdin = { async *[Symbol.asyncIterator]() { try { while (true) yield new Uint8Array(); } finally { returned++; } } };
+  try { await assert.rejects(setup().shell.exec("read -N1 value", { stdin, signal: controller.signal }), error => error === reason); }
+  finally { clearTimeout(timer); }
+  assert.equal(returned, 1);
 } else if (name === "read-limit") {
   await assert.rejects(setup({ limits: { maxOutputBytes: 3 } }).shell.exec("read -N5 value", { stdin: "abcde" }), error => error instanceof ShellLimitError && error.limit === "maxOutputBytes");
 } else if (name === "read-source") {
@@ -43,5 +52,20 @@ if (name === "command-depth" || name === "command-count") {
   await assert.rejects(setup({ limits: { maxSourceBytes: Buffer.byteLength(outer) + Buffer.byteLength(source) - Buffer.byteLength("αβ") - 1 } }).shell.exec(outer, { stdin: source }), error => error instanceof ShellLimitError && error.limit === "maxSourceBytes");
 } else if (name === "read-loop") {
   await assert.rejects(setup({ limits: { maxLoopIterations: 3 } }).shell.exec("while read -N0 value; do :; done"), error => error instanceof ShellLimitError && error.limit === "maxLoopIterations");
+} else if (name === "sh-depth") {
+  await assert.rejects(setup({ limits: { maxSubstitutionDepth: 4 } }).shell.exec("sh -c 'fun() { fun; }; fun'"), error => error instanceof ShellLimitError && error.limit === "maxSubstitutionDepth");
+} else if (name === "sh-source") {
+  const source = "sh -c 'VALUE=é :; true'";
+  await assert.rejects(setup({ limits: { maxSourceBytes: Buffer.byteLength(source) + Buffer.byteLength("VALUE=é :; true") - 1 } }).shell.exec(source), error => error instanceof ShellLimitError && error.limit === "maxSourceBytes");
+} else if (name === "sh-output") {
+  await assert.rejects(setup({ limits: { maxOutputBytes: 3 } }).shell.exec("sh -c 'VALUE=new :; say $VALUE'"), error => error instanceof ShellLimitError && error.limit === "maxOutputBytes");
+} else if (name === "sh-loop") {
+  await assert.rejects(setup({ limits: { maxLoopIterations: 3 } }).shell.exec("sh -c 'while true; do VALUE=new :; done'"), error => error instanceof ShellLimitError && error.limit === "maxLoopIterations");
+} else if (name === "sh-cancel") {
+  const { shell, commands } = setup();
+  const controller = new AbortController();
+  const reason = new FsError("ENOENT", { path: "cancel sh command" });
+  commands.register({ name: "cancel", async execute(context) { assert.equal(context.env.VALUE, "new"); controller.abort(reason); throw reason; } });
+  await assert.rejects(shell.exec("sh -c 'VALUE=new :; command cancel'", { signal: controller.signal }), error => error === reason);
 } else throw new Error(`unknown probe ${name}`);
 console.log(`PASS ${name}`);

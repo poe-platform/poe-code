@@ -97,7 +97,7 @@ export class Shell implements PluginHost {
       }
       const state: State = {
         cwd, variables, exported: new Set(Object.keys(variables)), functions: new Map(), positional: [],
-        status: 0, substitutionStatus: 0, depth: 0, loopDepth: 0, functionDepth: 0, locals: [], pipefail: false,
+        status: 0, substitutionStatus: 0, depth: 0, loopDepth: 0, functionDepth: 0, locals: [], pipefail: false, profile: "bash",
       };
       const runtime = new Runtime(options.fs ?? this.#options.fs, this.commands, [...this.#middleware], budget);
       exitCode = 0;

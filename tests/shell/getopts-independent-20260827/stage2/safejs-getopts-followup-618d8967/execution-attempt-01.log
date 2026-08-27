@@ -1,0 +1,2 @@
+{"id":"G1","classification":"INFRASTRUCTURE_NONPASS","guestAssertions":0,"builtinEntries":4}
+{"counts":{"pass":0,"guestNonpass":0,"infrastructureNonpass":1,"blocked":1,"denominator":2},"private":"EXACTLY_UNCHANGED_INCLUDING_ELIGIBLE_ADDITIONS","childrenClosed":true}

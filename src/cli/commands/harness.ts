@@ -11,6 +11,7 @@ import {
   type HarnessPair
 } from "@poe-code/agent-harness";
 import {
+  Budget,
   makeAgentModule,
   makeEnvModule,
   parseEnvConfig,
@@ -61,6 +62,8 @@ type HarnessRunOptions = {
   fs?: boolean;
   fsRoot?: string;
   envConfig?: string;
+  maxSteps?: number;
+  dataSize?: number;
   mcpConfig?: string;
   mode?: string;
   model?: string;
@@ -103,6 +106,16 @@ export function registerHarnessCommand(program: Command, container: CliContainer
         "Directory --fs confines the harness to (default: the harness directory)."
       )
       .option("--snapshot-path <path>", "File to write/read harness snapshots.")
+      .option(
+        "--max-steps <n>",
+        "Cap interpreter steps; raise explicitly when resuming.",
+        (value) => parseBudgetLimit(value, "--max-steps")
+      )
+      .option(
+        "--data-size <n>",
+        "Cap retained sandbox data; raise explicitly when resuming.",
+        (value) => parseBudgetLimit(value, "--data-size")
+      )
       .option("--mcp-config <path>", "Give the harness named MCP servers from a JSON config.")
       .option("--env-config <path>", "Grant environment reads from an explicit JSON config.")
       .option("--resume", "Resume from the snapshot file when it exists.")
@@ -229,6 +242,10 @@ async function executeHarnessRun(
                     root: mapSourcePathIntoWorktree(container.env.cwd, fsOptions.root, worktreeCwd)
                   };
             return await runHarnessPair(runSelectedPath, {
+              budget:
+                options.maxSteps === undefined && options.dataSize === undefined
+                  ? undefined
+                  : new Budget({ maxSteps: options.maxSteps, dataSize: options.dataSize }),
               signal: abortController.signal,
               modulesFor: (frontmatter, meta) =>
                 createHarnessModules(
@@ -318,6 +335,14 @@ function mapSourcePathIntoWorktree(
     return path.join(worktreeCwd, relativePath);
   }
   return sourcePath;
+}
+
+function parseBudgetLimit(value: string, flag: string): number {
+  const parsed = Number(value);
+  if (!Number.isSafeInteger(parsed) || parsed <= 0) {
+    throw new ValidationError(`${flag} must be a positive safe integer.`);
+  }
+  return parsed;
 }
 
 function readOwn(record: object, key: string): unknown {

@@ -5,7 +5,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { vol } from "memfs";
 
 import { resolveRunLogDir } from "@poe-code/agent-harness-tools";
-import { lint, makeAgentModule } from "@poe-code/safejs";
+import { Budget, lint, makeAgentModule } from "@poe-code/safejs";
 import type { Snapshot, SnapshotBackend } from "@poe-code/safejs";
 
 const mockedFileSystemState = vi.hoisted(() => ({
@@ -129,6 +129,27 @@ describe("runHarnessPair", () => {
 
   afterEach(() => {
     vi.restoreAllMocks();
+  });
+
+  it("recovers a budget failure without repeating completed effects", async () => {
+    vol.fromJSON({
+      "/repo/recovery.md": "---\nkind: recovery\nversion: 1\n---\n",
+      "/repo/recovery.ajs":
+        'import {effect} from "test"; export default async function (frontmatter) { await effect(); let total=0; for(let index=0; index<50; index++) total += index; return total; }'
+    });
+    const effect = vi.fn(async () => "done");
+    const options = { modulesFor: () => ({ test: { effect } }), snapshotPath: "/repo/state.json" };
+    await expect(
+      runHarnessPair("/repo/recovery.md", { ...options, budget: new Budget({ maxSteps: 50 }) })
+    ).rejects.toMatchObject({ code: "budgetExceeded", budget: "steps" });
+    await expect(
+      runHarnessPair("/repo/recovery.md", {
+        ...options,
+        resume: true,
+        budget: new Budget({ maxSteps: 5000 })
+      })
+    ).resolves.toMatchObject({ ok: true, returnValue: 1225 });
+    expect(effect).toHaveBeenCalledOnce();
   });
 
   it("is re-exported from the package entrypoint", () => {

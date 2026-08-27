@@ -1,8 +1,24 @@
 import { describe, expect, it } from "vitest";
 
 import { PromiseReplay } from "./promise-replay.js";
+import { SandboxError } from "./budget.js";
 
 describe("PromiseReplay", () => {
+  it("does not record settlements caused by stopping a failed run", async () => {
+    const replay = new PromiseReplay();
+    const pending = replay.track(Promise.resolve(1));
+    replay.fail(new Error("stopped"));
+    await pending;
+    expect(replay.snapshot().settlements).toEqual([]);
+  });
+
+  it("does not replay a fatal budget rejection as a promise settlement", async () => {
+    const replay = new PromiseReplay();
+    const error = new SandboxError({ budget: "steps", current: 2, limit: 1 });
+    await expect(replay.track(Promise.reject(error))).rejects.toBe(error);
+    expect(replay.snapshot().settlements).toEqual([]);
+  });
+
   it("gates competing continuations by their recorded AST node order", async () => {
     const replay = new PromiseReplay({
       version: 1,

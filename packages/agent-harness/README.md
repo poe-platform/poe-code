@@ -37,4 +37,4 @@ This package does not read any environment variables.
 
 ## Configuration
 
-This package does not read package-level configuration. Runtime behavior is supplied through `runHarnessPair` options: `modulesFor`, `allowedGlobals`, `resume`, `signal`, and `snapshotPath`.
+This package does not read package-level configuration. Runtime behavior is supplied through `runHarnessPair` options: `modulesFor`, `allowedGlobals`, `budget`, `resume`, `signal`, and `snapshotPath`. `budget` accepts a SafeJS `Budget`; current failure checkpoints never raise limits automatically. The CLI exposes `--max-steps` and `--data-size`; see [SafeJS recovery](../safejs/RECOVERY.md).

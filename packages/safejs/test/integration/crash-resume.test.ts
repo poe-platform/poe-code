@@ -132,7 +132,7 @@ describe("crash and resume integration", () => {
     );
   });
 
-  it("resumes a failed iteration from the last-gasp snapshot instead of a stale interval", async () => {
+  it("replays a recorded iteration error instead of retrying the failed operation", async () => {
     const source = [
       "const output = [];",
       "for (let index = 0; index < 4; index = index + 1) {",
@@ -169,15 +169,18 @@ describe("crash and resume integration", () => {
       hasBinding(snapshot, "output", [0, 1, 2])
     );
 
-    const resumed = await expectSuccessfulRun(
+    let resumedCalls = 0;
+    await expect(
       run(source, {
         bindings: {
-          crash: async () => undefined
+          crash: async () => {
+            resumedCalls += 1;
+          }
         },
         snapshot: restore(lastGaspSnapshot!, { source })
       })
-    );
-    expect(resumed.returnValue).toBe(JSON.stringify([0, 1, 2, 3]));
+    ).rejects.toThrow("process crashed");
+    expect(resumedCalls).toBe(0);
   });
 
   it("re-issues an idempotent pending host call after restore", async () => {

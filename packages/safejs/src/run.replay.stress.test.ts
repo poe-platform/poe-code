@@ -133,7 +133,7 @@ describe("checkpoint interaction stress", () => {
     }
   );
 
-  it("keeps the last durable replay checkpoint when cancellation unwinds the run", async () => {
+  it("preserves replay history before cancellation unwinds the run", async () => {
     const source = "const value = Math.random(); await wait(); return [value, Math.random()];";
     const controller = new AbortController();
     let saved: SafeJSSnapshot | undefined;
@@ -161,7 +161,12 @@ describe("checkpoint interaction stress", () => {
     const durable = structuredClone(saved);
     controller.abort();
     await expect(finishReplay(execution)).rejects.toMatchObject({ name: "AbortError" });
-    expect(saved).toEqual(durable);
+    expect(saved).toMatchObject({
+      replay: durable!.replay,
+      initialInputs: durable!.initialInputs,
+      promiseReplay: durable!.promiseReplay,
+      random: { seed: 123, state: durable!.random!.state }
+    });
     const random = createSeededRandom(123);
     const resumed = await finishReplay(
       run(source, { snapshot: saved, bindings: { wait: async () => undefined } })

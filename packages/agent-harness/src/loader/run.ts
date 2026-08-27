@@ -51,6 +51,7 @@ export type HarnessImportMeta = {
 
 export type RunHarnessPairOptions = {
   allowedGlobals?: LintOptions["allowedGlobals"];
+  budget?: RunOptions["budget"];
   clock?: {
     now: () => number;
   };
@@ -198,6 +199,7 @@ export async function runHarnessPair(
     try {
       result = await runWithSpawnUsageAccumulator(usageAccumulator, () =>
         run(executableSource, {
+          budget: options.budget,
           clock: runtimeClock,
           importMeta: meta,
           entryPointArgs: [validated],

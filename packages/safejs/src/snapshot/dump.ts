@@ -4,12 +4,16 @@ import { SandboxError } from "../interp/budget.js";
 
 const RUN_DUMP_CONTROLLER = Symbol("SafeJS.run-dump-controller");
 
+export type DumpOptions = {
+  onFailure?: "throw" | "checkpoint";
+};
+
 type DumpController = {
   fail(error: unknown): void;
   finalize(snapshot: RunSnapshot): void;
   onYield(createSnapshot: () => RunSnapshot): void;
   requestCurrentSnapshot(): Promise<string>;
-  requestSnapshot(): Promise<string>;
+  requestSnapshot(options?: DumpOptions): Promise<string>;
 };
 
 export type RunLifecycle = {
@@ -102,17 +106,16 @@ export function createDumpController(lifecycle?: RunLifecycle): DumpController {
 
       return this.requestSnapshot();
     },
-    requestSnapshot() {
+    requestSnapshot(options = {}) {
       assertDumpAllowed();
       if (failed !== undefined) {
         if (
-          isDataBudgetError(failed.error) &&
-          (latestSnapshot !== undefined || latestSnapshotFactory !== undefined)
+          (options.onFailure === "checkpoint" ||
+            (options.onFailure === undefined && isDataBudgetError(failed.error))) &&
+          finalSnapshot !== undefined
         ) {
           try {
-            return Promise.resolve(
-              serializeRunSnapshot(latestSnapshot ?? latestSnapshotFactory!())
-            );
+            return Promise.resolve(serializeRunSnapshot(finalSnapshot));
           } catch (error) {
             return Promise.reject(error);
           }
@@ -191,12 +194,13 @@ function isDataBudgetError(error: unknown): boolean {
 }
 
 export function dump(
-  result: Pick<RunResult, "snapshot"> | PromiseLike<RunResult>
+  result: Pick<RunResult, "snapshot"> | PromiseLike<RunResult>,
+  options: DumpOptions = {}
 ): Promise<string> {
   const controller = readDumpController(result);
 
   if (controller !== undefined) {
-    return controller.requestSnapshot();
+    return controller.requestSnapshot(options);
   }
 
   if (hasSnapshot(result)) {

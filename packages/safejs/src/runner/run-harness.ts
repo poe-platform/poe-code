@@ -11,7 +11,7 @@ import { createLintModulesFromRuntimeRegistry } from "../lint/runtime-modules.js
 import type { ModuleExports, ModuleRegistry } from "../modules/registry.js";
 import type { OtelSink } from "../observability/otel.js";
 import { parseModule } from "../parse/parser.js";
-import { run, type RunResult } from "../run.js";
+import { run, type RunOptions, type RunResult } from "../run.js";
 import type { SnapshotBackend } from "../snapshot/backend.js";
 
 type HarnessMeta = {
@@ -21,6 +21,7 @@ type HarnessMeta = {
 };
 
 export type RunHarnessOptions = {
+  budget?: RunOptions["budget"];
   modulesFor: (frontmatter: Record<string, unknown>, meta: HarnessMeta) => ModuleRegistry;
   otelSink?: OtelSink;
   signal?: AbortSignal;
@@ -108,6 +109,7 @@ export async function runHarness(
   }
 
   return runHarnessSource(executableSource, {
+    budget: options.budget,
     entryPointArgs: hasDefaultExport(executableSource, filepath) ? [] : undefined,
     filename: filepath,
     modules,
@@ -150,6 +152,7 @@ export async function runHarnessPair(
   }
 
   return runHarnessSource(executableSource, {
+    budget: options.budget,
     entryPointArgs: [frontmatter],
     filename: pair.scriptPath,
     importMeta: {

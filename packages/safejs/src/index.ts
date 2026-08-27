@@ -27,7 +27,7 @@ export type {
   PendingHostCallPolicyMode,
   PendingHostCallPolicyRegistration
 } from "./snapshot/policy.js";
-export { dump } from "./dump.js";
+export { dump, type DumpOptions } from "./dump.js";
 export { restore } from "./restore.js";
 export { SnapshotValidationError } from "./snapshot/validation.js";
 export type { SnapshotValidationCode } from "./snapshot/validation.js";

@@ -172,8 +172,17 @@ export function run(source: string, options: RunOptions = {}): Promise<RunResult
       let leaveHostReplay: (() => void) | undefined;
       let leaveInputReplay: (() => void) | undefined;
       let createFailureSnapshot: (() => RunSnapshot) | undefined;
-      let lastCheckpoint: RunSnapshot | undefined;
+      let cancellationSnapshot: RunSnapshot | undefined;
+      let cancellationSnapshotError: { reason: unknown } | undefined;
       let snapshotScheduler: SnapshotScheduler<RunSnapshot> | undefined;
+      const captureCancellationSnapshot = () => {
+        try {
+          cancellationSnapshot = createFailureSnapshot?.();
+        } catch (reason) {
+          cancellationSnapshotError = { reason };
+        }
+      };
+      options.signal?.addEventListener("abort", captureCancellationSnapshot, { once: true });
       try {
         const restoredSnapshot =
           options.snapshot === undefined ? undefined : restore(options.snapshot, { source });
@@ -324,6 +333,9 @@ export function run(source: string, options: RunOptions = {}): Promise<RunResult
             bindings: executionScope.snapshot().bindings,
             clock: options.clock,
             hostCalls: hostCalls.snapshot(),
+            replay: hostCalls.snapshotReplay(),
+            initialInputs: initialInputs.snapshot,
+            promiseReplay: promiseReplay.snapshot(),
             random,
             sourceHash
           });
@@ -357,7 +369,6 @@ export function run(source: string, options: RunOptions = {}): Promise<RunResult
                   typeof yieldPoint.replayState === "number" ? yieldPoint.replayState : undefined,
                 sourceHash
               });
-              lastCheckpoint = snapshot;
               return snapshot;
             };
 
@@ -406,7 +417,6 @@ export function run(source: string, options: RunOptions = {}): Promise<RunResult
                           : undefined,
                       sourceHash
                     });
-                    lastCheckpoint = snapshot;
                     return snapshot;
                   };
 
@@ -451,9 +461,10 @@ export function run(source: string, options: RunOptions = {}): Promise<RunResult
         materializeWrappedErrorCause(error);
         if (createFailureSnapshot !== undefined && snapshotScheduler !== undefined) {
           try {
-            const snapshot = lastCheckpoint ?? createFailureSnapshot();
-            await snapshotScheduler.write(snapshot);
+            if (cancellationSnapshotError !== undefined) throw cancellationSnapshotError.reason;
+            const snapshot = cancellationSnapshot ?? createFailureSnapshot();
             dumpController.finalize(snapshot);
+            await snapshotScheduler.write(snapshot);
           } catch (snapshotError) {
             if (snapshotError instanceof UnsnapshotableValueError) {
               console.warn(`Skipping failure snapshot: ${snapshotError.message}`);
@@ -465,6 +476,7 @@ export function run(source: string, options: RunOptions = {}): Promise<RunResult
         dumpController.fail(error);
         throw error;
       } finally {
+        options.signal?.removeEventListener("abort", captureCancellationSnapshot);
         leaveInputReplay?.();
         leaveHostReplay?.();
         promiseReplay.dispose();

@@ -1,7 +1,7 @@
 import { AsyncLocalStorage } from "node:async_hooks";
 
 import { validateSnapshotData } from "../snapshot/validation.js";
-import type { Budget } from "./budget.js";
+import { SandboxError, type Budget } from "./budget.js";
 
 type ReplayEvent =
   | { kind: "promise"; id: number; step: number }
@@ -118,9 +118,17 @@ export class PromiseReplay {
     const id = this.nextPromise++;
     if (!this.replaying) {
       const settled = () => {
+        if (this.failure !== undefined) return;
         this.events.push({ kind: "promise", id, step: this.steps });
       };
-      void promise.then(settled, settled);
+      void promise.then(settled, (reason: unknown) => {
+        if (
+          reason instanceof SandboxError &&
+          (reason.code === "budgetExceeded" || reason.code === "reentry")
+        )
+          return;
+        settled();
+      });
       return promise;
     }
     const tracked = new Promise<TValue>((resolve, reject) => {
@@ -136,6 +144,14 @@ export class PromiseReplay {
         },
         (reason: unknown) => {
           if (this.failure !== undefined) return;
+          if (
+            reason instanceof SandboxError &&
+            (reason.code === "budgetExceeded" || reason.code === "reentry")
+          ) {
+            this.rejectors.delete(id);
+            reject(reason);
+            return;
+          }
           this.ready.set(id, () => {
             this.rejectors.delete(id);
             reject(reason);

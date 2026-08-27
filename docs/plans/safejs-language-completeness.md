@@ -1483,6 +1483,66 @@ documentation-only Release run 33052303602 also completed successfully.
   results alone. The broader language goal and recorded checkpoint failures
   remain open.
 
+## Recoverable failure checkpoints and budgets
+
+Implemented an explicit host checkpoint policy without weakening sandbox limits:
+`dump(originalRunPromise, { onFailure: "checkpoint" })` after a rejected run.
+`run()` still rejects, script handlers cannot catch fatal budgets, cleanup is
+awaited, and the host must explicitly choose new limits/deadlines for recovery.
+The historical default data-size dump remains compatible; explicit
+`onFailure: "throw"` always propagates the failure.
+
+Failure snapshots now include the current host journal, original inputs, random
+state, and promise replay instead of falling back to an older periodic snapshot.
+Standalone `--snapshot` writes current failure state and reports capture/storage
+failures without claiming an existing file is current. Paired and legacy harness
+SDKs accept `budget`; root CLI now exposes `--max-steps` and `--data-size`, matching
+standalone limits. API/recovery boundaries and manual QA are in
+`packages/safejs/RECOVERY.md`; the skill template is synchronized.
+
+TDD and stress found two additional recovery defects before release:
+
+- Cancellation unwind settlements can deadlock replay. Capture the precise
+  cancellation boundary, not an earlier yield, while retaining existing
+  catch/finally behavior for cancellation inside scripts.
+- Fatal promise settlements from a second budget-exhausted replay can deadlock
+  a later successful replay. Neither original nor restored runs now journal
+  fatal termination as an ordinary promise settlement. Fatal rejection still
+  reaches the existing tracker and cleanup paths; it is not swallowed.
+
+An old integration fixture simulated process death by throwing a normal error.
+That error is now correctly recorded and replayed rather than silently retried;
+the test asserts no repeated operation. Separate real SIGKILL tests establish
+process-death recovery. Unsupported graph state and missing resume capabilities
+still reject capture rather than fabricating a stale fallback. Pending effects
+still require reconciliation; no global exactly-once guarantee is claimed.
+
+Validation on August 27, 2026, before publication:
+
+- New SDK script matrix: 138 resource-limit cases over six families, three
+  widths, entrypoint modes, and handler forms; 27 ordinary-failure cases; 468
+  restore attempts, including deliberately unchanged exhausted limits; and 48
+  concurrent recoveries. Native JavaScript supplies successful results. Verify
+  effects already occurred before the initial failure, not just after recovery.
+- Real CLI matrix: 12 scenarios, 24 restores, 42 processes across both binaries,
+  with file-backed effect counts and invalid-limit rejection.
+- Real crash matrix: 12 SIGKILL cases, each followed by a budget-limited restore
+  and successful higher-budget restore; six require explicit proof reconciling
+  an already performed pending effect. No repeated effects.
+- Regressions: 2,916 native Promise cases and 5,832 restores; 360 fatal cases with
+  zero catch escapes and 360 cleanups; 12 MCP hard restarts and 24 CLI SIGINT
+  cases with no leaked children. Opt-in parser/adversarial tests: nine pass,
+  five skipped, which remain coverage gaps.
+- Inspected standalone/root budget failure and successful resume screenshots,
+  plus root help documenting both limits. Nonzero failure exit codes remain.
+- All 67 workspace builds, root typecheck, ESLint, 17 package-lint rules, actual
+  installed SDK smoke, and isolated declaration checks pass. Cleanup verifies
+  153 removed outputs and six obsolete directories remain absent, all five
+  binaries exist, and consumer links stay inside the isolated installation.
+
+Publication, final full-suite counts, and installed release receipt remain
+pending. Keep the budget checklist open until that release is verified.
+
 ## Stale artifact cleanup
 
 - Removed ignored `dist` / `.turbo` output from obsolete `agent-maestro`,

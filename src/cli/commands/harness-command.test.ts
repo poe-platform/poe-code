@@ -1254,6 +1254,36 @@ describe("harness command", () => {
     );
   });
 
+  it("passes explicit resource limits to the harness SDK", async () => {
+    await runHarnessCommand([
+      "harness",
+      "run",
+      "harness.md",
+      "--max-steps",
+      "75",
+      "--data-size",
+      "1000"
+    ]);
+    expect(harnessMocks.runHarnessPairMock).toHaveBeenCalledWith(
+      "/repo/harness.md",
+      expect.objectContaining({
+        budget: expect.objectContaining({
+          limits: expect.objectContaining({ maxSteps: 75, dataSize: 1000 })
+        })
+      })
+    );
+  });
+
+  it.each(["-1", "1.5", "Infinity", "NaN", "", "9007199254740992"])(
+    "rejects invalid resource limit %s before execution",
+    async (limit) => {
+      await expect(
+        runHarnessCommand(["harness", "run", "harness.md", "--max-steps", limit])
+      ).rejects.toThrow();
+      expect(harnessMocks.runHarnessPairMock).not.toHaveBeenCalled();
+    }
+  );
+
   it("writes the default snapshot path under .poe-code/harnesses/<basename>", async () => {
     const snapshotPath = "/repo/.poe-code/harnesses/harness/snapshot.json";
     harnessMocks.runHarnessPairMock.mockImplementation(async (_mdPath, options) => {

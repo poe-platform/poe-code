@@ -424,6 +424,29 @@ describe("SafeJS CLI", () => {
     });
   });
 
+  it.each([
+    'effect(); throw new Error("failed");',
+    'export default function () { effect(); throw new Error("failed"); }',
+    'export default async function () { await effect(); throw new Error("failed"); }'
+  ])("replaces stale snapshots after a failed run: %s", async (body) => {
+    const effect = vi.fn(() => "done");
+    const options = {
+      cwd: "/repo",
+      stdout: createSink(),
+      stderr: createSink(),
+      modulesFor: () => ({ test: { effect } })
+    };
+    vol.writeFileSync("/repo/script.ajs", "return 1;");
+    expect(await runCli(["--snapshot", "state.json", "script.ajs"], options)).toBe(0);
+    vol.writeFileSync("/repo/script.ajs", `import {effect} from "test"; ${body}`);
+    expect(await runCli(["--snapshot", "state.json", "script.ajs"], options)).toBe(1);
+    const stderr = createSink();
+    expect(await runCli(["--restore", "state.json", "script.ajs"], { ...options, stderr })).toBe(1);
+    expect(stderr.output()).toContain("failed");
+    expect(stderr.output()).not.toContain("source changed");
+    expect(effect).toHaveBeenCalledOnce();
+  });
+
   it("restores from a snapshot and fails clearly when restore is invalid", async () => {
     const stdout = createSink();
     const stderr = createSink();

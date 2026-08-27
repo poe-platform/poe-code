@@ -325,7 +325,8 @@ async function runScriptFile(
   });
   let env = options.env;
   if (parsed.envConfig !== undefined) {
-    if (env !== undefined) throw new TypeError("Pass environment options or --env-config, not both.");
+    if (env !== undefined)
+      throw new TypeError("Pass environment options or --env-config, not both.");
     const configPath = path.resolve(options.cwd, parsed.envConfig);
     env = parseEnvConfig(await options.readFile(configPath, "utf8"));
   }
@@ -333,7 +334,8 @@ async function runScriptFile(
     const registry = new Map(
       runtime.registry instanceof Map ? runtime.registry : Object.entries(runtime.registry)
     );
-    if (registry.has("env")) throw new TypeError("Environment is already registered by modulesFor.");
+    if (registry.has("env"))
+      throw new TypeError("Environment is already registered by modulesFor.");
     registry.set("env", makeEnvModule(env));
     runtime.registry = registry;
   }
@@ -461,6 +463,19 @@ async function runScriptFile(
     return options.brokenPipe.closed ? 0 : interrupted ? EXIT_SIGINT : 0;
   } catch (error) {
     await signalSnapshotWrite;
+    if (parsed.snapshotPath !== undefined && runPromise !== undefined) {
+      try {
+        await writeSnapshot(
+          parsed.snapshotPath,
+          await dump(runPromise, { onFailure: "checkpoint" }),
+          options
+        );
+      } catch (snapshotError) {
+        options.stderr.write(
+          `Failed to write recovery snapshot at ${parsed.snapshotPath}: ${readErrorMessage(snapshotError)}. Any existing snapshot may be stale.\n`
+        );
+      }
+    }
     if (options.brokenPipe.closed) {
       return 0;
     }
@@ -698,7 +713,7 @@ function createUsage(): string {
     "                        directory)",
     "  --mcp-config <path>   register named MCP servers from an explicit JSON config",
     "  --env-config <path>   grant environment reads from an explicit JSON config",
-    "  --snapshot <path>     write the final snapshot, and best-effort snapshot on SIGINT",
+    "  --snapshot <path>     write success/failure state; best-effort snapshot on SIGINT",
     "  --restore <path>      restore from a snapshot before running",
     "  --max-steps <n>       cap interpreter step budget",
     "  --data-size <n>       cap retained sandbox data units",

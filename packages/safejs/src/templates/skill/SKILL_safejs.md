@@ -126,6 +126,13 @@ poe-code harness run path/to/harness.md
 
 Long harness runs should use snapshots.
 
+Budget failures remain fatal inside the script. The host can request
+`dump(originalRunPromise, { onFailure: "checkpoint" })` after failure and resume
+with an explicitly larger budget. Both CLIs support `--max-steps` and
+`--data-size`; never silently retry with unlimited resources. Current failure
+checkpoints preserve completed effects, but pending effects still need
+reconciliation and unsupported state can prevent recovery.
+
 ```bash
 poe-code harness run path/to/harness.md --snapshot-path tmp/harness.snapshot.json
 poe-code harness run path/to/harness.md --snapshot-path tmp/harness.snapshot.json --resume

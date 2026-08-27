@@ -269,9 +269,9 @@ Executes a script module. Resolves to:
 
 Options: `bindings`, `budget`, `modules`, `randomSeed`, `signal`, `snapshot` (prior snapshot), `snapshotIntervalMs`, `snapshotPath`, `sink`.
 
-### `dump(resultOrPromise)`
+### `dump(resultOrPromise, { onFailure? })`
 
-Serializes a snapshot to formatted JSON. Accepts either a completed `RunResult` or the in-flight promise from `run()` (in which case it resolves to the latest yielded snapshot).
+Serializes a snapshot to formatted JSON. Accepts a completed `RunResult` or the original `run()` promise (requesting its next yield while active). After rejection, `{ onFailure: "checkpoint" }` requests current replay state without changing the failure; see [RECOVERY.md](RECOVERY.md).
 
 ### `restore(snapshot, { source })`
 
@@ -322,7 +322,7 @@ no module bodies to inspect.
 ## Gotchas
 
 - **Snapshots are source- and execution-pinned.** Changes to parsed structure invalidate prior snapshots; formatting-only changes can remain compatible. Replay snapshots from older execution semantics are rejected before execution. Resume them with their original runtime; automatic migration is not yet available.
-- **Budgets are hard limits, not soft warnings.** Hitting `maxSteps` or `deadline` throws `SandboxError` with `code: "budgetExceeded"`. There is no partial-result fallback; choose budgets that fit the workload or wrap the run in your own retry policy.
+- **Budgets remain host-controlled.** Exhaustion throws fatal `SandboxError`; the host can explicitly capture a current failure checkpoint and resume with a larger budget. Replay work is charged again, unsupported state can prevent recovery, and pending effects require reconciliation; see [RECOVERY.md](RECOVERY.md).
 
 ## What's intentionally limited
 

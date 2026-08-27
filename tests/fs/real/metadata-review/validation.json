@@ -1,0 +1,37 @@
+{
+  "capturedAt": "2026-08-27T01:15:58.504Z",
+  "head": "a3f26e6e2008677fc467dcc876c771fea5ab6284",
+  "command": [
+    "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "--import",
+    "tsx",
+    "--test",
+    "tests/fs/real/metadata-review/classification.test.ts"
+  ],
+  "status": 0,
+  "stdout": "TAP version 13\n# Subtest: frozen chmod classification has six original cases, not twelve bugs\nok 1 - frozen chmod classification has six original cases, not twelve bugs\n  ---\n  duration_ms: 0.870708\n  type: 'test'\n  ...\n# Subtest: C1: frozen unresolved GNU mismatch is the same syscall-wrapper cause\nok 2 - C1: frozen unresolved GNU mismatch is the same syscall-wrapper cause\n  ---\n  duration_ms: 0.112333\n  type: 'test'\n  ...\n# Subtest: C2: frozen unresolved GNU mismatch is the same syscall-wrapper cause\nok 3 - C2: frozen unresolved GNU mismatch is the same syscall-wrapper cause\n  ---\n  duration_ms: 0.042083\n  type: 'test'\n  ...\n# Subtest: C3: frozen unresolved GNU mismatch is the same syscall-wrapper cause\nok 4 - C3: frozen unresolved GNU mismatch is the same syscall-wrapper cause\n  ---\n  duration_ms: 0.138416\n  type: 'test'\n  ...\n# Subtest: C4: frozen unresolved GNU mismatch is the same syscall-wrapper cause\nok 5 - C4: frozen unresolved GNU mismatch is the same syscall-wrapper cause\n  ---\n  duration_ms: 0.069458\n  type: 'test'\n  ...\n# Subtest: C5: frozen unresolved GNU mismatch is the same syscall-wrapper cause\nok 6 - C5: frozen unresolved GNU mismatch is the same syscall-wrapper cause\n  ---\n  duration_ms: 0.02675\n  type: 'test'\n  ...\n# Subtest: C6: frozen unresolved GNU mismatch is the same syscall-wrapper cause\nok 7 - C6: frozen unresolved GNU mismatch is the same syscall-wrapper cause\n  ---\n  duration_ms: 0.063209\n  type: 'test'\n  ...\n# Subtest: four causal controls preserve useful chmod, not a blanket EPERM waiver\nok 8 - four causal controls preserve useful chmod, not a blanket EPERM waiver\n  ---\n  duration_ms: 0.053416\n  type: 'test'\n  ...\n# Subtest: primary-source evidence pins the matching XNU version and Node/libuv versions\nok 9 - primary-source evidence pins the matching XNU version and Node/libuv versions\n  ---\n  duration_ms: 0.153417\n  type: 'test'\n  ...\n1..9\n# tests 9\n# suites 0\n# pass 9\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 115.27075\n",
+  "stderr": "",
+  "finalAndRepeatInputsIdentical": true,
+  "counts": {
+    "originalDistinctCases": 6,
+    "originalGNUFailuresStillUnwaived": 6,
+    "finalReproduced": 6,
+    "repeatReproduced": 6,
+    "frozenEvidenceTests": 9,
+    "passed": 9
+  },
+  "ownedFileHashesBeforeValidationFile": {
+    "README.md": "dc4ecd4d12dcab909f3768141db077bdccbb16a2ecfc76e63abe308e9024db98",
+    "classification.test.ts": "acd62000fa92d03712b636d6f99feb453800bf9046c551ce2fcbc14071466e2d",
+    "classified-evidence.json": "d2e90915988cead665dc04351b32065efaa35240233fc942c608e2232fa604ba",
+    "current-evidence.json": "2facdd2059d5d7d5e61a8e9a155153de4ec4b4125f09543297978854894e28f8",
+    "evidence.json": "ac346dc197614d7a7abce6d55bec6a65a62fa172ba52776a041e424fbb3b1010",
+    "final-evidence.json": "fbb39aedeb0155e249f16413e294575dc570629394c22e562bb5f5706a712ae4",
+    "repeat-evidence.json": "72e6a1ecf6cd5aaa72e6d147ed65fd5c1082e225df455523e8f4049a0d919826",
+    "reproduce.mjs": "e0e38027f720e64a12102f8f5ea5288ca805efe1bee0ae8b55e0c148c6149f50",
+    "source-proof.json": "010a22e7ddffc00436f258274d500b9432fb13841aeb40207e7cf77afbe3a67f",
+    "source-proof.mjs": "92b88ad09ea8e199ccfd4b1540bb294902902aa2c8d2bd033a8cddb34b5ac438",
+    "syscall-probe.c": "86e14248249ec20ca08e9c5a04008028883e0f19c254230353bbfe71f619cb40",
+    "trace-fchmodat.c": "b87b6da606aa4213c867745b5efafce76b709515c2296e4e23da342dec8b2045"
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "completed": true,
+  "temporaryRemoved": true,
+  "ownedRunningChildren": 0,
+  "model": "Synchronous bounded children settled; worker threads belong to exited Node test processes; no detached children or separate lifecycle instrumentation.",
+  "nativeOracleStarted": false,
+  "globalBuild": false,
+  "hostTools": [
+    "git",
+    "tar",
+    "node"
+  ],
+  "finished": "2026-08-27T19:53:39.004Z"
+}

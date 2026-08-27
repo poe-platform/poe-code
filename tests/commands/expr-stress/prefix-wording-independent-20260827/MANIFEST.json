@@ -1,0 +1,93 @@
+{
+  "algorithm": "SHA-256",
+  "excludes": [
+    "MANIFEST.json"
+  ],
+  "files": [
+    {
+      "path": "capture.mjs",
+      "bytes": 12991,
+      "sha256": "7bfb5813323e78cd7cfcd41e6da7724741e3f937dfab2beeaa7c30911f9b2682"
+    },
+    {
+      "path": "REPORT.md",
+      "bytes": 6283,
+      "sha256": "d4dffadfe1f79bb5a58df3739f66ba9753723b9fb73906eb7cd777aa9e902810"
+    },
+    {
+      "path": "run-01/binding.json",
+      "bytes": 1818,
+      "sha256": "1ac75f1893aa850a5c1e1d3f155ccea3ed75c3d37bac784839379333285b69c6"
+    },
+    {
+      "path": "run-01/cleanup.json",
+      "bytes": 399,
+      "sha256": "92a9cc7d8e2c9de9341880f9e1a52d201ca5aed93a5ee4529d5c07e8733c9026"
+    },
+    {
+      "path": "run-01/delta.json",
+      "bytes": 2920,
+      "sha256": "29e885f8462f5fefda796551f0555576b34566f5366632b4cd5ed8d380ca63a3"
+    },
+    {
+      "path": "run-01/efb-fixture-overlay.log",
+      "bytes": 12441,
+      "sha256": "2918f67fdadbec9fe4961e73318a0844a2cfbd8e145c69aaf127946dfd176674"
+    },
+    {
+      "path": "run-01/executions.json",
+      "bytes": 4381,
+      "sha256": "5e4abe954595e924f5d829d65fa161506aaefc64a4552803b18496d0688c1f5c"
+    },
+    {
+      "path": "run-01/generated.json",
+      "bytes": 1008,
+      "sha256": "9543e147ae53a8d2ab51201969d5d001416639d344d757f33cba775aea50692b"
+    },
+    {
+      "path": "run-01/inputs.json",
+      "bytes": 41853,
+      "sha256": "075ebced7cda7fd9d322d01c3cc479e1c9670f02739f92ec7c0fd559f7e1dcda"
+    },
+    {
+      "path": "run-01/integrity.json",
+      "bytes": 4757,
+      "sha256": "48a9bc2081e9083ced2a81b3269170586c26a235c56a389a800ad4b630ae9c98"
+    },
+    {
+      "path": "run-01/negative-status.log",
+      "bytes": 17289,
+      "sha256": "9d8034381224127e0e2ced25bad158a7cb573ee42481dbd41781379efba394bb"
+    },
+    {
+      "path": "run-01/negative-wording.log",
+      "bytes": 17775,
+      "sha256": "a2ceb7752a28c3063d87d41b853bba37921ea436b7d943442931571b349ec214"
+    },
+    {
+      "path": "run-01/original-4f.log",
+      "bytes": 17455,
+      "sha256": "c5f03697308a5c1b14ff3a03e1113b211e9affd73ec97f48d3804bf2e9d16720"
+    },
+    {
+      "path": "run-01/original-strict-types.log",
+      "bytes": 18156,
+      "sha256": "f113ffcccbd30c6fb64d63099d11e62b22418a938a538678fe707a0c42344ef2"
+    },
+    {
+      "path": "run-01/overlay-strict-types.log",
+      "bytes": 18156,
+      "sha256": "f113ffcccbd30c6fb64d63099d11e62b22418a938a538678fe707a0c42344ef2"
+    },
+    {
+      "path": "run-01/summary.json",
+      "bytes": 2615,
+      "sha256": "7ebb478558e098b0ea13c192265f13a8fa3309b423eb56623290062fd2fe4db3"
+    },
+    {
+      "path": "run-01/worker-build.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ]
+}

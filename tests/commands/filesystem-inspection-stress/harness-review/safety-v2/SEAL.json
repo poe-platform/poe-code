@@ -1,0 +1,134 @@
+{
+  "schema": 2,
+  "createdAt": "2026-08-27T09:44:51.671Z",
+  "provenance": "Explicit additive correction authorized after original four-row run; not new independent input generation",
+  "previousProductInvocations": 4,
+  "maximumNewProductInvocations": 2,
+  "derivedProductInvocations": 0,
+  "originalPresealSha256": "b72b5e9f109e3da38732c931980d3730bbda14dc0eef16cdea7c3fa632e92ebb",
+  "originalRuntimeSha256": "428424f50da19fcbe970f962f8149eb9674dccd475db7e720b52d83c1b1d4905",
+  "originalRunSummarySha256": "67eb07af4da1452bce7f7751882d4ed6195fbf91aee016510850f3bc8dcd4465",
+  "caps": {
+    "childWallMs": 5000,
+    "heapMiB": 128,
+    "observedRssBytes": 268435456,
+    "captureBytes": 65536,
+    "wholeWallMs": 30000,
+    "telemetryEntries": 1024,
+    "ipcBytes": 524288,
+    "maxChildren": 1,
+    "retries": 0
+  },
+  "caseHashes": [
+    {
+      "id": "T-DP-cumulative",
+      "sha256": "9bca8031edc1f3bcd1a429081dadaa0057d49c3a25e1efbf5d65093a3df01fe1"
+    },
+    {
+      "id": "T-sort-many",
+      "sha256": "cb58f411a1d5396d96383b387c561d2a500d4b9738e4ec62457e937320d26aa1"
+    }
+  ],
+  "files": [
+    {
+      "path": "cases.mjs",
+      "bytes": 1365,
+      "sha256": "74ee597d8bb23e8112d7a1f9858c96bdea34c10197c283b9c1b9c8dc7dcdd32a"
+    },
+    {
+      "path": "seal.mjs",
+      "bytes": 1223,
+      "sha256": "0f4134e841fda654cbb4a5c4a4ba0034c80f8d9f887d95026ed9cf43de2ba39a"
+    },
+    {
+      "path": "oracle.mjs",
+      "bytes": 6773,
+      "sha256": "e121409bb544fee91c2b3281962a802d54bc0b19f38dd0e9e7e3d84cbd7891fa"
+    },
+    {
+      "path": "vfs.mjs",
+      "bytes": 1393,
+      "sha256": "44251f041e04f5abec70d77c5c94bb84bb21636998e194093ca4eca7aaace26b"
+    },
+    {
+      "path": "authorization.mjs",
+      "bytes": 5157,
+      "sha256": "3ac28ccdcb9fcce133d12c3ad6631b227e0091798902b487190646d49f429c22"
+    },
+    {
+      "path": "child.mjs",
+      "bytes": 4144,
+      "sha256": "67f39d4d9147f5eead02f9e8c1b0ba97329c97d938d986f481ca489aeac6d1e1"
+    },
+    {
+      "path": "loader.mjs",
+      "bytes": 2256,
+      "sha256": "18c047c90b16767d91d53e73f38316ef851d9fe90754f92c9160d8aef9c2d93d"
+    },
+    {
+      "path": "run.mjs",
+      "bytes": 7214,
+      "sha256": "d6bd6939ac26c311b8a0b3b9007718289229a870d7b25280552698d650c6b4eb"
+    },
+    {
+      "path": "derived-cases.json",
+      "bytes": 87429,
+      "sha256": "9a6311c6514fe95739459af32ca0b18a38fecfecb700407a94a72766a70c675c"
+    },
+    {
+      "path": "derivation.json",
+      "bytes": 4902,
+      "sha256": "1cfafb797f63a4075fc0862ea17ff9553f4abc0a989ee35cff139d477cc8e39d"
+    },
+    {
+      "path": "selfcheck.test.mjs",
+      "bytes": 6398,
+      "sha256": "996e56eccf5f5b883127f6ea8c80c273e122b13203154c9c16ec0a1c55eb1599"
+    },
+    {
+      "path": "validate.mjs",
+      "bytes": 3934,
+      "sha256": "0a0380f14a73ce8cf8eb0bbac84878c53a809f04e0eb9a7a4fc8964d9096ba4e"
+    },
+    {
+      "path": "STATIC_PROOF.md",
+      "bytes": 5996,
+      "sha256": "f6d244865f4df7729ebe51ca592a52af4a62e1c1c2d505db3c255de37c8b1d46"
+    },
+    {
+      "path": "../safety-v1/cases.mjs",
+      "bytes": 6786,
+      "sha256": "2761cb3b037e2e1f3b42abe8f159b854f926be4982dc93b56ae3619a855f32ab"
+    },
+    {
+      "path": "../safety-v1/seal.mjs",
+      "bytes": 2199,
+      "sha256": "544b82e7d1a62c19af02b38b4d27f65f8cd3e8a941aba7154fc11fe5e9bb3c5a"
+    },
+    {
+      "path": "../safety-v1/PRESEAL.json",
+      "bytes": 969,
+      "sha256": "b72b5e9f109e3da38732c931980d3730bbda14dc0eef16cdea7c3fa632e92ebb"
+    },
+    {
+      "path": "../safety-v1/sealed-cases.json",
+      "bytes": 1044390,
+      "sha256": "0e7d70e3026e2cc716c28725c529bfc98655224b01f4b2b7ce340fd65f42e6a1"
+    },
+    {
+      "path": "../safety-v1/vfs.mjs",
+      "bytes": 4182,
+      "sha256": "9ff36eb4a2656e265d7473f90b6852533eef6b773ecbcd68a3916882db2ead2a"
+    },
+    {
+      "path": "../safety-v1/authorization.mjs",
+      "bytes": 4446,
+      "sha256": "4b562e819b431004ba94e1f28f78a1a1a968aa33a1b183590258bf8c757a8369"
+    },
+    {
+      "path": "../safety-run-evidence/MANIFEST.json",
+      "bytes": 6925,
+      "sha256": "22555f0ea0af50825bd4bd9ee51cbc84ff822186feaa3d9c765e8467a09b1b9c"
+    }
+  ]
+}

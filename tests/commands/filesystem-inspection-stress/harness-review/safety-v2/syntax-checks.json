@@ -1,0 +1,46 @@
+{
+  "syntaxOnly": true,
+  "productExecutions": 0,
+  "files": [
+    {
+      "path": "authorization.mjs",
+      "status": "pass"
+    },
+    {
+      "path": "cases.mjs",
+      "status": "pass"
+    },
+    {
+      "path": "child.mjs",
+      "status": "pass"
+    },
+    {
+      "path": "loader.mjs",
+      "status": "pass"
+    },
+    {
+      "path": "oracle.mjs",
+      "status": "pass"
+    },
+    {
+      "path": "run.mjs",
+      "status": "pass"
+    },
+    {
+      "path": "seal.mjs",
+      "status": "pass"
+    },
+    {
+      "path": "selfcheck.test.mjs",
+      "status": "pass"
+    },
+    {
+      "path": "validate.mjs",
+      "status": "pass"
+    },
+    {
+      "path": "vfs.mjs",
+      "status": "pass"
+    }
+  ]
+}

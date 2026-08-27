@@ -1,0 +1,97 @@
+{
+  "kind": "offline-original-evidence-and-derived-seal-validation",
+  "rows": [
+    {
+      "id": "T-empty-many",
+      "status": "pass",
+      "childStarts": 1,
+      "commandStarts": 1,
+      "childCode": 0,
+      "disposed": true,
+      "unhandled": 0,
+      "mutations": 0,
+      "observedRss": 81412096,
+      "heapLimit": 134217728,
+      "productStdoutBytes": 8262,
+      "productStderrBytes": 0,
+      "transportBytes": 448,
+      "moduleLoads": 25,
+      "streamBytes": 0,
+      "iteratorReturns": 0
+    },
+    {
+      "id": "T-DP-cumulative",
+      "status": "HOLD",
+      "childStarts": 0,
+      "commandStarts": 0
+    },
+    {
+      "id": "T-sort-many",
+      "status": "HOLD",
+      "childStarts": 0,
+      "commandStarts": 0
+    },
+    {
+      "id": "F-JSON-cumulative",
+      "status": "pass",
+      "childStarts": 1,
+      "commandStarts": 1,
+      "childCode": 0,
+      "disposed": true,
+      "unhandled": 0,
+      "mutations": 0,
+      "observedRss": 80887808,
+      "heapLimit": 134217728,
+      "productStdoutBytes": 29,
+      "productStderrBytes": 26,
+      "transportBytes": 448,
+      "moduleLoads": 21,
+      "streamBytes": 16380,
+      "iteratorReturns": 0
+    },
+    {
+      "id": "F-header-many",
+      "status": "pass",
+      "childStarts": 1,
+      "commandStarts": 1,
+      "childCode": 0,
+      "disposed": true,
+      "unhandled": 0,
+      "mutations": 0,
+      "observedRss": 81477632,
+      "heapLimit": 134217728,
+      "productStdoutBytes": 1192,
+      "productStderrBytes": 0,
+      "transportBytes": 448,
+      "moduleLoads": 21,
+      "streamBytes": 16384,
+      "iteratorReturns": 0
+    },
+    {
+      "id": "F-metadata-many",
+      "status": "pass",
+      "childStarts": 1,
+      "commandStarts": 1,
+      "childCode": 0,
+      "disposed": true,
+      "unhandled": 0,
+      "mutations": 0,
+      "observedRss": 80658432,
+      "heapLimit": 134217728,
+      "productStdoutBytes": 0,
+      "productStderrBytes": 28,
+      "transportBytes": 448,
+      "moduleLoads": 21,
+      "streamBytes": 0,
+      "iteratorReturns": 0
+    }
+  ],
+  "previousProductInvocations": 4,
+  "newProductInvocations": 0,
+  "derivedRowsPrepared": [
+    "T-DP-cumulative",
+    "T-sort-many"
+  ],
+  "derivedAuthorization": "PENDING_ROOT",
+  "nativeCalls": 0
+}

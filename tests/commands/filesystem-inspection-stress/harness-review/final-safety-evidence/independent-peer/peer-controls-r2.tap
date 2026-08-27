@@ -1,0 +1,40 @@
+TAP version 13
+# Subtest: partial throw preserves sentinel and exact fourth-entry phase, unlike full reset/later-sort surrogate
+ok 1 - partial throw preserves sentinel and exact fourth-entry phase, unlike full reset/later-sort surrogate
+  ---
+  duration_ms: 3.636208
+  type: 'test'
+  ...
+# Subtest: sort requires exhaustion, not break-on-last-name or partial fourth-filter trace
+ok 2 - sort requires exhaustion, not break-on-last-name or partial fourth-filter trace
+  ---
+  duration_ms: 1.327125
+  type: 'test'
+  ...
+# Subtest: strict status, byte effects, identity and every exact proof coefficient fail closed
+ok 3 - strict status, byte effects, identity and every exact proof coefficient fail closed
+  ---
+  duration_ms: 3.7335
+  type: 'test'
+  ...
+# Subtest: exclusive claim helper rejects a second mock claim; official claim untouched
+ok 4 - exclusive claim helper rejects a second mock claim; official claim untouched
+  ---
+  duration_ms: 0.507666
+  type: 'test'
+  ...
+# Subtest: loader resolver mock allows only required snapshot closure/builtins and rejects ambient dependency routes
+ok 5 - loader resolver mock allows only required snapshot closure/builtins and rejects ambient dependency routes
+  ---
+  duration_ms: 2.144417
+  type: 'test'
+  ...
+1..5
+# tests 5
+# suites 0
+# pass 5
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 63.985542

@@ -1,0 +1,381 @@
+READY — INDEPENDENT FINAL-SOURCE STATIC PREPARATION ONLY
+Approval: PENDING_ROOT. No execution authorization is granted by this report.
+Date: August 27, 2026. Product imports/executions: 0. Native oracle runs: 0.
+No product command, Shell constructor, VFS command, or product worker was activated.
+No source/test/harness edits, repository staging/commits, installs, or worktrees.
+
+1. Identity, isolation, build, and scope
+
+Requested candidate: 436bda3e21b2b6041409fac7408cf072b5d3fe5e.
+Requested file baseline: cd37ce07c1f41f3797e19e0f701b662823338843.
+Snapshot: /private/tmp/safe-bash-inspection-final-YZxhi8/snapshot
+Equivalent user-facing /tmp path: /tmp/safe-bash-inspection-final-YZxhi8/snapshot
+Evidence: /tmp/safe-bash-inspection-final-YZxhi8/provenance.json
+Static inventory: /tmp/safe-bash-inspection-final-YZxhi8/static-accounting.json
+Proposed authorization: /tmp/safe-bash-inspection-final-proof-authorization.proposed.json
+
+The candidate is the requested commit, NOT the concurrent live HEAD. Initial
+observed HEAD was f5341340bcbc9e4c4d46d6eb3f1759da73713097. Dirty/untracked
+repository material was observed and left alone; none supplied snapshot source.
+All 212 tracked src files and exactly package.json, package-lock.json,
+tsconfig.json, tsconfig.build.json were materialized with git cat-file from their
+commit tree blob identities. There are no source/test live aliases, symlinks,
+hardlinks, private-checkout writes, or worktrees. No tests were copied into the
+product snapshot or compiled. Immutable harness evidence copies are outside it.
+
+All four src/commands/file files have identical bytes at both requested commits:
+README.md  aaa49bf4c73705aed8571eafc030dd1cb3b3db5a0ef4121319a0c0531071d57d
+classify.ts fcdee375d2f97afae9d8dc6a23eff64440258aea0a8c2adff7b2968875bc6535
+index.ts    5278a91c223e182a6bfd2961b16545ff42e2f4e986c25f5dc7f35371aee0d178
+shared.ts   bb6d9ac67eeace8e52220c94f7eb2d78236fe045d3d1312814c5b9dcb0755fc5
+
+Source-only build: Node v22.22.2, `node node_modules/typescript/lib/tsc.js
+-p tsconfig.build.json --pretty false`, executed in the isolated snapshot.
+Exit 0, no diagnostics; emitted ESM, declarations and their source/declaration
+maps. The sole compiler process completed and its tool session was reaped.
+The copied development compiler was read-only, not installed: TypeScript 5.9.3
+(132 files), @types/node 22.20.1 (74), undici-types 6.21.0 (41). Every installed
+file was byte-hash compared to its SHA512-integrity-verified, already cached
+archive at the exact frozen lock version before copying. Compiler/types hashes
+were rechecked after use. No package scripts, tsx, download or npm install ran.
+Runtime dependencies remain empty. Tool binaries are not runner-permitted files.
+
+One overview command accidentally used repository cwd to read contracts/index,
+shell/index, shell/shell and shell/runtime; every such read was explicitly
+compared equal to its frozen counterpart (static-accounting incidentalLiveReads).
+All line-numbered substantive proofs below are from the frozen snapshot. This
+disclosure does not substitute live HEAD for candidate provenance.
+
+2. Seal and authorization boundary
+
+Six unmodified cases, ordered as sealed:
+T-empty-many, T-DP-cumulative, T-sort-many, F-JSON-cumulative,
+F-header-many, F-metadata-many.
+PRESEAL SHA256: b72b5e9f109e3da38732c931980d3730bbda14dc0eef16cdea7c3fa632e92ebb
+Runtime harness SHA256:
+428424f50da19fcbe970f962f8149eb9674dccd475db7e720b52d83c1b1d4905
+The proposal binds the runner's exact eight-file ordered harness identity, all
+six canonical case hashes, original PREPARATION/PRESEAL, current helper hashes,
+all snapshot source/config and emitted artifacts, and the six exact proof keys.
+Sealed cases are verified against their presealed construction using the existing
+preparation-only verifier. No child execution path is entered.
+
+Four static proofs are approved for root consideration. Two rows are invalidated
+and must remain HOLD/zero-invocation under this unchanged runner. Neither HOLD is
+a product failure or a passing stress result. All six dynamic outcomes are
+UNEXECUTED. The proposal's PENDING_ROOT marker intentionally fails authorize().
+Root must independently review and explicitly authorize a hash-addressed file;
+this leaf does not change the marker or manufacture an authorized copy.
+
+3. Exact cumulative work accounting
+
+All numbers below are family budget units, not CPU instruction counts. Startup
+includes every charged argument/metadata/FS action on the applicable route.
+Checks and host work with no step charge are named, not hidden as free CPU.
+Numbers beyond a cap describe demanded admission, NOT performed work/allocation.
+No deadline, CPU-time, engine sort-comparison count or peak-memory measurement
+was made. Cancellation/backend/sink failures can of course prevent completion.
+
+T-empty-many / emptyNormalization — approved static premise
+  tree/pattern.ts:6-41 compilation: 256 UTF16 scan-admission + 256 UTF8
+  encoding-admission + 255 parser iterations = 767. Argument validation separately
+  admits 274 argument bytes before scans; it charges no maxSteps units.
+  Root lstat + readdir = 2; each of 64 names costs 1 listing + 256 alternatives.
+  pattern.ts:46-50 skips empty alternatives before either DP row allocation.
+  This is a rowless empty-alternative fast path, NOT removal of the 256 token
+  arrays: every alternative remains charged. It genuinely eliminates the sealed
+  old 256*129*64 = 2,113,536 DP initial-row bytes. No regex optimization assumed.
+  Before sort: 767+2+64*257 = 17,217. Child lstats add 64. Each comparison reserves
+  257. Total successful-invocation charge = 17,281 + 257*C, with C the actual
+  engine comparator count. At most 952 comparisons fit the 262144 cap while
+  leaving room for every child stat. Exact C is deliberately not fabricated.
+  For illustration ONLY, C=63 would cost 33,472; this is not a measured C.
+  Metadata charge for this route is 25,360 bytes (root fields16 +64*(128+134+134));
+  output is 8,262 bytes. Text processing is bounded by those separate caps, not
+  an additional per-byte maxSteps debit. All 64 distinct names survive filtering.
+  The boolean emptyAlternativesNormalized means this explicit rowless handling,
+  not compiler token-array compaction. Actual complete output remains a run gate.
+
+T-DP-cumulative / dpNonEliminated — INVALIDATED
+  No suffix optimization exists: 17 tokens are all evaluated, without a per-name
+  or per-operand reset. Compile = 18+18+17 = 53; root FS calls2; startup55.
+  For a128-byte name the initial row has129 cells and each token reserves258
+  (zeroed row plus transition work) BEFORE allocation. Matcher cost is
+  1 alternative +129 +17*258 = 4516, plus listing1 =4517 per candidate.
+  First filter requires4572 total; a complete singleton including child lstat
+  requires4573. Both exceed the sealed4096 ceiling before cumulative-many-entry
+  behavior is possible. With the actual cap, token15 finishes at4056; token16
+  requests258 and rejects at attempted4314, before that row is allocated.
+  The successful initial+15 token rows total2064 allocated cells cumulatively;
+  rejected units are not allocated bytes. All64 filters would demand289143
+  units before any sort. This is a SINGLE-entry rejection, not the sealed stress.
+  Proposed singleEntryMaximumWork=4573 is intentionally not falsified to <=4096.
+  A second independent invalidation is the actual-Shell mismatch described below.
+
+T-sort-many / sortByteCost — metering proven, row INVALIDATED
+  Startup FS2 +64 listing iterations =66 before sorting. Per-field/path and
+  metadata admissions occur before encoding; metadata at this point is32784.
+  tree/tree.ts:114-117 reserves1+512+512=1025 before each Buffer.compare. For a
+  complete general comparison sort of64 distinct keys, the conservative lower
+  bound of63 comparisons means64512 byte-span reservation units plus63 overhead.
+  This is charged span coverage, not a claim that Buffer.compare touches exactly
+  1024 bytes or that the engine performs exactly63 comparisons. Each sealed pair
+  shares at least510 initial bytes. First3 comparisons bring the counter to3141;
+  comparator4 requests1025 and rejects at4166 BEFORE Buffer.compare, child stat,
+  or stdout. Thus the low cap exercises the first name sort only.
+  tree.ts:128-131 independently reserves1 before every dirsfirst comparator;
+  it compares only two already-observed directory classifications, not names.
+  Both passes share one WalkBudget. Second-pass accounting is static evidence,
+  not a claim the sealed low-cap row reaches that pass.
+  INVALIDATION: sealed oracle requires Shell.exec rejection with error.code EFBIG
+  and empty stderr, whereas this exact frozen Shell consumes that command error,
+  writes a human diagnostic and returns exitCode1. See the precise route below.
+
+F-JSON-cumulative / jsonCumulative — approved static premise
+  file/index.ts:23-28 startup argument work = |-b|2 + |--mime|6 +8*10 =88;
+  cumulative argument-byte admission also includes one byte per argument.
+  Per operand: loop1 + eight producer-chunk charges +8190 sample-admission
+  +29 output characters =8228. Lstat/readStream host wrappers do not themselves
+  charge steps. Brief mode omits label escaping. The8190 sample charge occurs
+  at index.ts:119 BEFORE classify(), decode, regex and JSON.parse.
+  First complete operand:88+8228=8316 <=16384, including whole-cohort startup.
+  A separately invoked single operand with its own three arguments would8246.
+  After its first line, second operand/chunks bring accepted work to8325;
+  its8190 scan reservation would16515 >16384 and is rejected BEFORE classification.
+  Therefore two distinct files/streams are admitted and read (16380 content bytes),
+  exactly one ASCII line is produced, and the second sample is not classified.
+  twoEntryMinimumWork=16515; invocationMinimumWork=16515; singleEntryMaximumWork=8316.
+  Hypothetical two complete operands cost16544; all eight would65912. There is
+  one SharedBudget per execute(), never reset in the operand loop. The fixed
+  emergency failure diagnostic reserve is separate, not more ordinary work.
+
+F-header-many / headerBounds — approved static premise
+  Startup =2+6+32*12=392. Each512-byte stream has four128-byte chunks, then EOF;
+  data chunks cost4, operand loop1, sample precharge512, output line its length.
+  Predicted classification groups, NOT observed execution: invalid PDF9.x becomes
+  text/plain us-ascii (29-byte line); bad tar octal becomes octet-stream binary
+  (41); oversized MZ PE offset becomes DOS MIME binary (38); SQLite format4
+  becomes octet-stream binary (41). Per-entry charges546,558,555,558 respectively;
+  each group occurs8 times. Total work18128 <32768, output1192 <4096, input16384
+  <32768. Largest entry including entire startup is950; all32 fit cumulatively.
+  Only bounded sample memory is accessed; no offset becomes a new VFS read.
+  These labels are characterization predictions, not valid-format certification.
+
+F-metadata-many / textPreAdmission — approved static premise
+  Startup32*10=320, first operand loop1, target UTF16 work4096 =>4417 units.
+  shared.ts:88-91 admits4096 against remaining input, output, and work BEFORE
+  scanning; the raw metadata construction/readlink happens in the host first.
+  Each U+0001 expands to five ASCII bytes. Before retaining each piece, cumulative
+  escaped bytes are checked. 819 pieces fit4095 bytes; attempted piece820 raises
+ 4100>4096 before pushing it. At most that one5-byte rejected piece was formed.
+  Input is charged820 bytes before the failure. The final20510-byte human line
+  is never assembled, joined, encoded, or written. No label escape or content
+  read is reached; first lstat and first readlink are the only VFS operations.
+  stdout is empty; terminal `file: output limit exceeded\n` is28 bytes from the
+  fixed64-unit emergency reserve, still within the4096 combined output cap.
+  Cumulative inputBytes/outputBytes/steps live in the same SharedBudget across
+  all operands. Each field is admitted relative to remaining output, then the
+  whole line is rechecked; intermediate bounded fragments are not output debits.
+  This row proves the first rejection only, NOT32 successful metadata escapes.
+
+4. Frozen Shell mismatch: route to root/harness owner, NOT a source fix
+
+tree/io.ts:7-10 constructs TreeLimitError extends FsError, code EFBIG.
+tree/io.ts:47 throws via check on a work overrun; tree.ts lets this propagate.
+shell/runtime.ts:883 awaits definition.execute; :895-898 rethrows its failure.
+Runtime.command catches it at runtime.ts:494. It is not Flow, ShellLimitError,
+ShellSyntaxError, HereDocumentSyntaxError, or EPIPE. Lines505-512 write a shell
+human-readable diagnostic and return status1. shell/shell.ts:148 executes that
+runtime; :179-188 returns the ShellResult. No abort or throwing sink is present
+in these fixtures. Child therefore sets exitCode1 and rejected=false.
+Unchanged harness oracle.mjs:tree-work-rejection demands rejected=true, EFBIG
+on the outer promise, and empty stderr. It cannot pass either tree limit row
+against the required actual Shell. The tree README even qualifies this boundary.
+
+This is a sealed API/oracle premise mismatch, not an independently established
+source bug and not permission to alter Shell error semantics. Root should route
+it to the harness owner for explicit adjudication; preserve the six originals.
+An additive separately approved case/oracle may be appropriate later, but no
+fixture, oracle or new harness is changed or proposed for execution here.
+No additional legitimate product-source defect was established in this bounded
+review. No broad source audit or full safety gate is claimed.
+
+5. Exhaustive family regex/text/header/parser boundedness inventory
+
+The AST inventory found12 regex literals across all9 tree/file TypeScript files;
+none builds a dynamic RegExp. Exact expressions and locations are in the static
+inventory, independently extracted without importing product modules:
+  tree/arguments.ts:30 well-formed Unicode surrogate class, one admitted argument;
+  tree/arguments.ts:70 anchored digits, one admitted -L argument;
+  tree/io.ts:19 anchored errno prefix, raw message admitted before replacement;
+  tree/tree.ts:30 single Unicode character class for JSON size preflight;
+  tree/tree.ts:43 same class globally over preflight-bounded JSON text;
+  tree/tree.ts:105 surrogate class over admitted entry name;
+  tree/tree.ts:120 anchored trailing slash over admitted display string;
+  file/classify.ts:34 anchored PDF signature over ascii() clipped to16 bytes;
+  file/classify.ts:43 NUL-tail replacement over at most8 checksum characters;
+  file/classify.ts:44 anchored octal digits over that at-most8-character field;
+  file/classify.ts:88 anchored whitespace prefix then one brace/bracket over
+    decoded admitted sample; single linear repetition, no nested quantifiers;
+  file/shared.ts:102 Unicode category test on one codepoint (<=2 UTF16 units).
+All are fixed patterns with bounded inputs, not adversarial regex compilation.
+
+Tree parsing/tokenization: arguments have count and cumulative bytes admitted
+before UTF8 scans; pattern compile has explicit pre-scan/pre-encoding charges,
+then bounded byte iterations. Alternatives/token/range arrays cannot outgrow
+the admitted source; bracket loops charge before range allocation. The matcher
+has no recursive regex engine. Each row's allocation and transition reservation
+precedes it; ranges reserve their full count before .some(), cumulatively.
+Tree sort compares pre-encoded admitted names and reserves full byte spans.
+Argument, cwd, raw operand, name, path/display, raw error and readlink text use
+constant-time code-unit lower-bound checks before byteLength/validation scans.
+Tree text() is governed by path/metadata quotas, not a per-byte step charge.
+No claim that maxSteps is a universal meter of those scans is made.
+
+Tree escaping pre-admits raw output, encodes only admitted bytes, then checks
+each bounded escape fragment before concatenation. JSON serialized() checks
+expanded byte length character-by-character BEFORE JSON.stringify and control
+replacement. The only fields are bounded strings and finite internal counts.
+Per-character replacement expansions are at most12 bytes for a surrogate pair;
+JSON control escaping is preflighted. A few individually bounded name/target/
+annotation/prefix fragments can exist before aggregate line admission. Emit
+checks full bytes before encoding and awaits writes in <=16384-byte pieces.
+Output limit is not a promise that no transient string exceeds remaining output.
+
+File parsing and escaping: all arguments receive cumulative byte admission and
+code-unit work charge before UTF8 sizing/options array creation. Raw metadata is
+admitted against remaining input, rendered output and work before looping.
+escapeName uses an array of already-admitted bounded pieces, yields every4096
+UTF16 units, and joins only after success. MIME-only symlinks still admit and
+charge their target but skip unused description expansion. Output admits raw
+length/work and exact UTF8 bytes before encode; per-line formatting has a bounded
+number of admitted pieces. Backend Error.message follows the same metadata path.
+limitMessage checks length<=32 before its fixed list comparisons; known limit
+messages go through an invocation-wide64-code-unit emergency reserve. The reserve
+does not reset maxSteps, still honors output/chunk/time/signal and Unicode bounds.
+
+File sampling: readStream uses explicit0..maxSniffBytes and bounded chunk requests;
+each chunk is admitted before retained copy. Chunks aggregate to <=maxSniffBytes
+and are copied into one bounded sample before classification. The sample work
+precharge occurs after that bounded gathering/copy but BEFORE content inspection.
+It is NOT a claim that maxSteps alone gates initial sample allocation. Fallback
+readFile checks stat/maxBytes/returned length but cannot undo a host allocation;
+none of these six file stream fixtures uses fallback. The file timeout is checked
+around synchronous classification; no mid-JSON.parse/regex preemption is promised.
+
+All magic-family guards in classify.ts:21-66, including paths not selected by the
+four header near-miss variants, were inspected:
+  PNG >=33; uint32 offsets8,16,20, fixed ascii12..15, fields<=28.
+  GIF >=13; ascii0..5, uint16 offsets6 and8.
+  JPEG >=4; bytes0..3.
+  RIFF/WebP >=20; fixed ascii ranges0..3/8..11/12..15, uint32 offset4.
+  TIFF >=8; fixed four-byte signatures.
+  BMP >=26; uint32 offset14.
+  ICO >=22; uint16 offset4.
+  PDF ascii subarray0..16 clips even a shorter sample; no unchecked read.
+  gzip >=10, bzip2 >=10, XZ >=12, Zstd >=6: fixed byte/signature positions
+    within those minima, including bzip2 offset4 length6.
+  ZIP >=30 or22, 7zip >=32, RAR >=14 or16: bounded fixed signatures only.
+  tar >=512; magic257..261, checksum148..155; successful octal guard precedes
+    a512-iteration checksum loop. Sealed9999999 checksum fails that octal guard.
+  ELF >=52 or64, type uint16 at16, class/endianness/version fields4..6.
+  MZ >=64 before uint32 at60; PE offset must be >=64 AND <=sample.length-24
+    before the offset signature. The unsigned huge sealed value is rejected;
+    no addition overflow, allocation or read is based on it. DOS fallback remains.
+  WebAssembly >=8, fixed8-byte signature.
+  SQLite >=100; fixed16-byte magic, uint16 at16, fields18/19/21..23.
+  OLE >=512; eight-byte prefix and two-byte signature at28.
+matches() itself checks offset+signature.length before byte access; offsets are
+small fixed numbers or the guarded uint32. ascii() spreads at most16 bytes,
+never the full sample. DataView is restricted to bytes.byteOffset/byteLength.
+
+After magic: fixed BOM checks; fatal TextDecoder sees only the admitted sample;
+control scanning is one pass over decoded codepoints; ASCII .every one byte pass;
+the anchored JSON-prefix test is another bounded linear pass. JSON.parse receives
+only that complete bounded string (maxSniffBytes65536 in JSON fixtures, actual8190),
+does not evaluate JS or use a reviver; invalid/truncated JSON is conservatively
+text. Parsing/decoding allocations and constant-number scans are covered by the
+sample size policy and one-sample work reservation, not charged one CPU instruction
+at a time. Arbitrary configured safe-integer limits could authorize large work;
+these finite sealed limits are the proof scope, not a hard process-memory bound.
+
+6. Entrypoints, imports, host-call boundary
+
+Compiled entrypoints (exact SHA256 values in the authorization and final appendix):
+  shell: dist/shell/index.js -> Shell
+  contracts: dist/contracts/index.js -> FsError
+  tree: dist/commands/tree/index.js -> createTreeCommand
+  file: dist/commands/file/index.js -> createFileCommand
+Their declarations and 28-module transitive static import/re-export closure were
+inspected as text/AST. No product module was imported to establish these exports.
+No dynamic import, require or eval expression exists in this closure. This uses
+the already-inspected internal-snapshot APIs explicitly allowed by the runner;
+it is not a package-root/public-export integration claim.
+
+Precise required product builtin allowlist for this closure:
+  dist/contracts/errors.js:1 -> node:util (getSystemErrorMap)
+  dist/contracts/io.js:1 -> node:stream/web (TransformStream)
+  dist/contracts/path.js:1 -> node:path (posix)
+  dist/commands/tree/io.js:1 -> node:timers/promises (setImmediate)
+Current loader already allows these. No node:fs, fs/promises, worker_threads,
+child_process, network or package import is required by these four entrypoints.
+getSystemErrorMap is a legitimate built-in errno table operation, not a host file
+or process launch. Timers, encoding, stream plumbing and pure POSIX path helpers
+are legitimate runtime operations, not product ambient filesystem authority.
+
+The full compiled snapshot also contains other optional product modules. Their
+presence is not their activation; this bounded entrypoint closure does not reach
+them. In particular do not import dist/index.js to broaden this proof, mistake a
+legitimate fs/worker import in another root closure for a product bug, or globally
+unblock forbidden imports on that supposition. A different entrypoint/closure
+would need explicit root/harness re-adjudication with exact parent/specifier/hash
+edges and a no-ambient-calls analysis. No new allowlist or harness edit is needed
+for the four paths selected here. Import gating is not a JavaScript sandbox.
+
+7. Limits and final handoff
+
+maxSteps is a cumulative admitted-work ceiling with explicit coefficients and
+separate text/input/metadata/output quotas. It is NOT CPU preemption, a hard heap
+or RSS limit, proof of peak transient allocation, or containment of uncooperative
+host JS/backends. Parent watchdog and observed RSS policies remain unexercised
+runner controls; cooperative RSS samples miss event-loop stalls. No performance,
+native parity, deployed provider, superiority, full gate, or duration claim.
+
+Original six fixtures and expectations remain untouched. DP is HOLD because the
+new correct row-allocation coefficient invalidates its singleton premise; sort
+is HOLD because its sealed Shell-boundary oracle is incompatible with the frozen
+source. Four remaining proofs are preparation attestations only. Root must retain
+these distinctions and approve any later execution explicitly. Stop state: READY.
+
+8. Final delivery hashes and preparation-only checks
+
+Candidate Git tree object: cf727e5fb2d2c18c46323bcec76820a8f42e988a
+Proposal SHA256: 4f096db838c296579e52811c5d3a349cd0ecdae0278fe4045219e895c205c11f
+Proposal size:210163 bytes; marker remains PENDING_ROOT.
+Snapshot has1167 regular, single-link files:216 frozen source/config files,
+704 emitted artifacts,247 verified development-tool files. Runner manifest
+permits920 source/config/build files, NOT the development-tool files.
+Every snapshot file is mode0444 and each directory0555 after build/verification.
+No symbolic links or hardlinked files are present. Owner chmod is not a security
+sandbox; manifest byte hashes and module-loader rechecks remain required.
+
+Compiled entrypoint SHA256s (paths relative to the snapshot specified above):
+dist/shell/index.js
+  e4727274e08ff8199102d4826579aaf410b3a72b3a4e0c4dc8864a57bc714afb
+dist/contracts/index.js
+  7e494e421356e368da43cab478f595600127d8ee345a887838f40bffe2757d27
+dist/commands/tree/index.js
+  702a5d511ede375a30473275f8428b84f7b4c44b7caa706ba3796d5e9b94140a
+dist/commands/file/index.js
+  2f63be99b23805e68498f39b71382134d70ab2929f7413460337790d8d3e5ad5
+
+Completed checks: existing verifySeal(); exact canonical case hashes versus
+PREPARATION; all current harness files versus initial copies; exact ordered
+eight-helper harness digest; all source and development-tool hashes before/after
+build; full regular-file inventory; compiled28-module import closure;12 family
+regex AST records; each exact checkPremise() schema with invalidations preserved;
+entrypoints/proof references contained in the manifest. Existing authorize() was
+called ONLY with the PENDING_ROOT proposal and asserted to reject specifically
+at that marker. No authorized variant was written or evaluated. No child started.
+delivery.json records the final inventory and this intentionally blocked gate.
+All owned compiler processes are reaped; no product process exists to reap.

@@ -1,0 +1,83 @@
+{
+  "id": "T-DP-cumulative",
+  "pid": 99040,
+  "childCode": 0,
+  "signal": null,
+  "observedRss": 85573632,
+  "observedCommandStarts": 1,
+  "report": {
+    "id": "T-DP-cumulative",
+    "actualShell": true,
+    "shellDisposed": true,
+    "rejected": false,
+    "exitCode": 1,
+    "heapSizeLimit": 134217728,
+    "calls": [
+      {
+        "method": "lstat",
+        "path": "/root",
+        "signalPresent": true,
+        "signalAbortedAtEntry": false
+      },
+      {
+        "method": "readdir",
+        "path": "/root",
+        "signalPresent": true,
+        "signalAbortedAtEntry": false
+      }
+    ],
+    "streams": [],
+    "mutations": 0,
+    "listings": [
+      {
+        "path": "/root",
+        "next": 4,
+        "yielded": 4,
+        "done": false,
+        "returned": 1,
+        "names": [
+          "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa0000q",
+          "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa0001q",
+          "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa0002q",
+          "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa0003q"
+        ]
+      }
+    ],
+    "commandInvocations": 1,
+    "unhandled": [],
+    "stdout": "",
+    "stderr": "shell: line 1: EFBIG: tree work limit exceeded (16384)\n",
+    "stdoutBase64": "",
+    "stderrBase64": "c2hlbGw6IGxpbmUgMTogRUZCSUc6IHRyZWUgd29yayBsaW1pdCBleGNlZWRlZCAoMTYzODQpCg==",
+    "stdoutBytes": 0,
+    "stderrBytes": 55
+  },
+  "status": "pass",
+  "qualification": "Derived budget16384 admits singleton4573; fourth filter exceeds cumulative work before listing exhaustion/sort. Require exact four-entry partial iterator trace plus independently reviewed frozen static proof; no per-entry reset or later-sort substitution.",
+  "staticProof": {
+    "status": "approved",
+    "sourceCommit": "436bda3e21b2b6041409fac7408cf072b5d3fe5e",
+    "files": [
+      "src/commands/tree/pattern.ts",
+      "src/commands/tree/tree.ts",
+      "src/commands/tree/io.ts",
+      "src/shell/runtime.ts",
+      "src/shell/shell.ts",
+      "src/contracts/errors.ts",
+      "src/commands/tree/arguments.ts"
+    ],
+    "shellReturnsStatusOne": true,
+    "phaseTraceReviewed": true,
+    "perOperandReset": false,
+    "independentReviewPath": "/tmp/safe-bash-inspection-v2-proof-detail.txt",
+    "independentReviewSha256": "c072c58a4a96606091fdea1c41bb7cedf1e262e2a7383a95a1100ac95d656216",
+    "basis": "Independent peer frozen-source review: pattern.ts compile18+18+17=53; root FS2; listing1+alternative1+row129+17*258=4517/filter. Singleton55+4517+childstat1=4573 fits16384. Three13606; four18123. Fourth initial13737; token10 accepted16317; token11 attempts16575 before allocation. One WalkBudget, no suffix elimination/reset. tree.ts:101-112 must yield only first4 names before its throw/IteratorClose(return1); sort at114 requires exhaustion. Exact trace next4/yielded4/done=false/returned1 + root-only calls + resolved Shell status1/empty stdout/relevant exact-cap work diagnostic rejects full-list reset/later-sort surrogates. Independent mock throw preserved the identical sentinel; phase trace is not a token meter. Original v1 singleton premise remains invalidated; this is a disclosed derived input budget, no runtime result.",
+    "singleEntryMaximumWork": 4573,
+    "fourFiltersDemandedWork": 18123,
+    "acceptedWorkBeforeFailure": 16317,
+    "attemptedWorkAtFailure": 16575,
+    "failedTokenOrdinal": 11,
+    "patternEvaluationEliminated": false,
+    "rejectingPhase": "fourth-filter-before-sort"
+  }
+}

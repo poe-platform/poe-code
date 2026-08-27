@@ -1,0 +1,88 @@
+{
+  "approval": "PENDING_ROOT",
+  "sourceCommit": "436bda3e21b2b6041409fac7408cf072b5d3fe5e",
+  "baseAuthorization": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/filesystem-inspection-stress/harness-review/safety-run-evidence/original-root-approved.json",
+    "sha256": "e4d048afb4784f802047de589212519465bb7589ccdb99e10ba677add39cee1c"
+  },
+  "harnessSha256": "f29c603e3205e69716d6fafff4b256d128c981cd010fc8c0021d604ae2c06b77",
+  "sealSha256": "8111403a37f392dd8934c3e0f9d89bc6b8338bf5d14becb3471bc68a6ee682df",
+  "cases": [
+    "T-DP-cumulative",
+    "T-sort-many"
+  ],
+  "caseHashes": [
+    {
+      "id": "T-DP-cumulative",
+      "sha256": "9bca8031edc1f3bcd1a429081dadaa0057d49c3a25e1efbf5d65093a3df01fe1"
+    },
+    {
+      "id": "T-sort-many",
+      "sha256": "cb58f411a1d5396d96383b387c561d2a500d4b9738e4ec62457e937320d26aa1"
+    }
+  ],
+  "maximumNewProductInvocations": 2,
+  "maximumTotalProductInvocations": 6,
+  "previousRun": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/filesystem-inspection-stress/harness-review/safety-run-evidence/original-run/summary.json",
+    "sha256": "67eb07af4da1452bce7f7751882d4ed6195fbf91aee016510850f3bc8dcd4465"
+  },
+  "reuseWithoutRerun": [
+    "T-empty-many",
+    "F-JSON-cumulative",
+    "F-header-many",
+    "F-metadata-many"
+  ],
+  "executionClaim": "/tmp/safe-bash-inspection-derived-two-436bda3-execution-claim.json",
+  "proofs": {
+    "dpNonEliminated": {
+      "status": "PENDING_INDEPENDENT_REVIEW",
+      "sourceCommit": "436bda3e21b2b6041409fac7408cf072b5d3fe5e",
+      "files": [
+        "src/commands/tree/pattern.ts",
+        "src/commands/tree/tree.ts",
+        "src/commands/tree/io.ts",
+        "src/shell/runtime.ts",
+        "src/shell/shell.ts",
+        "src/contracts/errors.ts"
+      ],
+      "shellReturnsStatusOne": true,
+      "phaseTraceReviewed": true,
+      "perOperandReset": false,
+      "independentReviewPath": null,
+      "independentReviewSha256": null,
+      "basis": "Candidate proof only: singleton4573 fits16384; three filters13606; fourth token11 demands16575 after16317 accepted, before sort. Require original first4 names with nonexhausted iterator/return1 plus actual Shell status1/work diagnostic. See STATIC_PROOF.md; separate review required.",
+      "singleEntryMaximumWork": 4573,
+      "fourFiltersDemandedWork": 18123,
+      "acceptedWorkBeforeFailure": 16317,
+      "attemptedWorkAtFailure": 16575,
+      "failedTokenOrdinal": 11,
+      "patternEvaluationEliminated": false,
+      "rejectingPhase": "fourth-filter-before-sort"
+    },
+    "sortByteCost": {
+      "status": "PENDING_INDEPENDENT_REVIEW",
+      "sourceCommit": "436bda3e21b2b6041409fac7408cf072b5d3fe5e",
+      "files": [
+        "src/commands/tree/pattern.ts",
+        "src/commands/tree/tree.ts",
+        "src/commands/tree/io.ts",
+        "src/shell/runtime.ts",
+        "src/shell/shell.ts",
+        "src/contracts/errors.ts"
+      ],
+      "shellReturnsStatusOne": true,
+      "phaseTraceReviewed": true,
+      "perOperandReset": false,
+      "independentReviewPath": null,
+      "independentReviewSha256": null,
+      "basis": "Candidate proof only: startup66;1025 per admitted name comparison; three3141/fourth4166. Require exhausted64-name iterator/no child stat plus actual Shell status1/work diagnostic. Both-pass metering is independently static, not low-cap second-pass execution. Separate review required.",
+      "comparedByteCostMetered": true,
+      "bothSortPassesMetered": true,
+      "comparisonReservation": 1025,
+      "acceptedWorkBeforeFailure": 3141,
+      "attemptedWorkAtFailure": 4166,
+      "rejectingPhase": "fourth-name-comparison-before-child-stat"
+    }
+  }
+}

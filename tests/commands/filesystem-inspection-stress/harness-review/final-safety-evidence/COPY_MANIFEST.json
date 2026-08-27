@@ -1,0 +1,185 @@
+{
+  "classification": "Peer reports, hash provenance, authorization and raw virtual-command observations only; no source/compiler/native payload",
+  "files": [
+    {
+      "source": "/tmp/safe-bash-inspection-v2-proof-detail.txt",
+      "path": "independent-v2-proof.txt",
+      "bytes": 17189,
+      "sha256": "c072c58a4a96606091fdea1c41bb7cedf1e262e2a7383a95a1100ac95d656216"
+    },
+    {
+      "source": "/tmp/safe-bash-inspection-v2-authorization.proposed.json",
+      "path": "independent-v2-proposal.json",
+      "bytes": 14336,
+      "sha256": "e9612864715f8894945f771674016826d0a05a5ef9d44a1ac37e8def3db6cffd"
+    },
+    {
+      "source": "/tmp/safe-bash-inspection-v2-root-approved.json",
+      "path": "root-approved.json",
+      "bytes": 14368,
+      "sha256": "86d99b7d185bdd6e51e61b8476316346c00ab709f5ae39bdba80780f6a92453a"
+    },
+    {
+      "source": "/tmp/safe-bash-inspection-v2-wrong-marker-unexecuted.json",
+      "path": "wrong-marker-unexecuted.json",
+      "bytes": 14369,
+      "sha256": "9b9f82b689eec875e30ec1dd6c51c6ce131a9999fa0a57ca7915844054eae3bd"
+    },
+    {
+      "source": "/tmp/safe-bash-inspection-safety-final-preflight.json",
+      "path": "preflight.json",
+      "bytes": 960,
+      "sha256": "dab42f082d501867e3e837caa1caa093195472855255380936fd61be52e97769"
+    },
+    {
+      "source": "/tmp/safe-bash-inspection-safety-final-postrun.json",
+      "path": "postrun.json",
+      "bytes": 2578,
+      "sha256": "44c6eef726ee61980ae706f3d9b41f619946ab6caaf8f35584305244f856060d"
+    },
+    {
+      "source": "/tmp/safe-bash-inspection-derived-two-436bda3-execution-claim.json",
+      "path": "execution-claim.json",
+      "bytes": 161,
+      "sha256": "63f2cc1da9b0f83bd617efb29f9c85b5cf538eb18af659c6e2a80d494e626847"
+    },
+    {
+      "source": "/tmp/safe-bash-inspection-safety-derived-final-stdout.txt",
+      "path": "controller-stdout.txt",
+      "bytes": 163,
+      "sha256": "29f6d95569dac04f960e46682e24b8ae64a1f67e8750a4b0030a4744bb11f2d6"
+    },
+    {
+      "source": "/tmp/safe-bash-inspection-safety-derived-final-stderr.txt",
+      "path": "controller-stderr.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "source": "/tmp/safe-bash-inspection-safety-derived-final-exit.txt",
+      "path": "controller-exit.txt",
+      "bytes": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "source": "/tmp/safe-bash-inspection-harness-peer-detail.txt",
+      "path": "historical-peer-waiting-and-v1.txt",
+      "bytes": 11424,
+      "sha256": "963bf2f90eceabd6282e5dfe043b3f32c343a539fb63979ad8e83e697836a042"
+    },
+    {
+      "source": "/tmp/safe-bash-inspection-safety-run-detail.txt",
+      "path": "historical-four-run-and-two-prep.txt",
+      "bytes": 13137,
+      "sha256": "e565fef2a8f4e092881e8052745ad34b2ea3dc7b811d3b230b7f2107e343e469"
+    },
+    {
+      "source": "/tmp/safe-bash-file-text-fix-detail.txt",
+      "path": "file-author-text-report.txt",
+      "bytes": 11389,
+      "sha256": "26575726dc3e2df1da386de7ba650e5209468de71c45557a28be515fa34559be"
+    },
+    {
+      "source": "/tmp/safe-bash-tree-sort-text-fix-detail.txt",
+      "path": "tree-author-sort-text-report.txt",
+      "bytes": 10042,
+      "sha256": "254490f4f4033b6a99d1a44610327e601bab3f88e6fdc090ffcf2d0103ce27e9"
+    },
+    {
+      "source": "/tmp/safe-bash-inspection-v2-peer-E3UA3q/delivery.json",
+      "path": "independent-peer/delivery.json",
+      "bytes": 1228,
+      "sha256": "69aef3f22361ce7ebcf5d040832a3f1c00f37b73beb76d64012b282b889d18b2"
+    },
+    {
+      "source": "/tmp/safe-bash-inspection-v2-peer-E3UA3q/peer-inventory.json",
+      "path": "independent-peer/peer-inventory.json",
+      "bytes": 148239,
+      "sha256": "cf7ea5b5ab09d089f329aa90212446c1b9139ec737de1a6fc1915899417c35b2"
+    },
+    {
+      "source": "/tmp/safe-bash-inspection-v2-peer-E3UA3q/selfcheck.tap",
+      "path": "independent-peer/selfcheck.tap",
+      "bytes": 1632,
+      "sha256": "ef671a64e685700a19190aac73402553d6776a95dc2fa90e46856eb8703d4e39"
+    },
+    {
+      "source": "/tmp/safe-bash-inspection-v2-peer-E3UA3q/offline-validation.json",
+      "path": "independent-peer/offline-validation.json",
+      "bytes": 2274,
+      "sha256": "e9b218cd8f8910fca3e1e00d2a36e85861bb856fdf9e84efd03bd6f514c09e35"
+    },
+    {
+      "source": "/tmp/safe-bash-inspection-v2-peer-E3UA3q/preparation-check.json",
+      "path": "independent-peer/preparation-check.json",
+      "bytes": 2088,
+      "sha256": "0612835a32044063add533c65b7c202c8b1a649e99641b16edbb785c5a1e16a8"
+    },
+    {
+      "source": "/tmp/safe-bash-inspection-v2-peer-E3UA3q/peer-controls.tap",
+      "path": "independent-peer/peer-controls.tap",
+      "bytes": 1501,
+      "sha256": "eab2be41fbd7e91d5e55f9794ef6fbb5e9b4de454fb9578f851666e397e68ede"
+    },
+    {
+      "source": "/tmp/safe-bash-inspection-v2-peer-E3UA3q/peer-controls-r2.tap",
+      "path": "independent-peer/peer-controls-r2.tap",
+      "bytes": 1359,
+      "sha256": "bfc2621d262866a2c54143c62c6231f5ee0c491d358a5c0384e0499e8fafe35d"
+    },
+    {
+      "source": "/tmp/safe-bash-inspection-safety-derived-final-run-20260827-01/T-DP-cumulative.json",
+      "path": "derived-run/T-DP-cumulative.json",
+      "bytes": 3776,
+      "sha256": "f00997621d1e523bd1da20d15f17f1cc7b0829cae4de31036527da96b706fc25"
+    },
+    {
+      "source": "/tmp/safe-bash-inspection-safety-derived-final-run-20260827-01/T-DP-cumulative.modules.jsonl",
+      "path": "derived-run/T-DP-cumulative.modules.jsonl",
+      "bytes": 4186,
+      "sha256": "d03cbccc1a8af8dd7a784029f1d80067c495c91105c7608eda5aa4cf08d41313"
+    },
+    {
+      "source": "/tmp/safe-bash-inspection-safety-derived-final-run-20260827-01/T-DP-cumulative.stderr.txt",
+      "path": "derived-run/T-DP-cumulative.stderr.txt",
+      "bytes": 448,
+      "sha256": "262d548faddd92720c5f329d745ceafead0cdfd7154cd75193b765911ad09bc2"
+    },
+    {
+      "source": "/tmp/safe-bash-inspection-safety-derived-final-run-20260827-01/T-DP-cumulative.stdout.txt",
+      "path": "derived-run/T-DP-cumulative.stdout.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "source": "/tmp/safe-bash-inspection-safety-derived-final-run-20260827-01/T-sort-many.json",
+      "path": "derived-run/T-sort-many.json",
+      "bytes": 36664,
+      "sha256": "ea9d11582b0fdca0c74c6be9e710e04789ecf9e342016343d60a6f163571b10f"
+    },
+    {
+      "source": "/tmp/safe-bash-inspection-safety-derived-final-run-20260827-01/T-sort-many.modules.jsonl",
+      "path": "derived-run/T-sort-many.modules.jsonl",
+      "bytes": 4186,
+      "sha256": "f186dbb191fed3146e23a9413e9b3cf499c5abdd05a98cf436b40bd5078ea1c1"
+    },
+    {
+      "source": "/tmp/safe-bash-inspection-safety-derived-final-run-20260827-01/T-sort-many.stderr.txt",
+      "path": "derived-run/T-sort-many.stderr.txt",
+      "bytes": 448,
+      "sha256": "f3a0f80760f82da84253d1ad3cf95694313634397d96c0e224346a89b4839946"
+    },
+    {
+      "source": "/tmp/safe-bash-inspection-safety-derived-final-run-20260827-01/T-sort-many.stdout.txt",
+      "path": "derived-run/T-sort-many.stdout.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "source": "/tmp/safe-bash-inspection-safety-derived-final-run-20260827-01/summary.json",
+      "path": "derived-run/summary.json",
+      "bytes": 44447,
+      "sha256": "a17a55919f1d253554785f77417f564cc925eeb0d0fb6b27c1c8f7e70ce8f3ec"
+    }
+  ]
+}

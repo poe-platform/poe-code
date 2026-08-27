@@ -1,0 +1,1 @@
+{"output":"/tmp/safe-bash-inspection-safety-derived-final-run-20260827-01","rows":[{"id":"T-DP-cumulative","status":"pass"},{"id":"T-sort-many","status":"pass"}]}

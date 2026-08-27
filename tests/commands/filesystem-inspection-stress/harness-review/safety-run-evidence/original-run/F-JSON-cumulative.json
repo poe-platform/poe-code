@@ -1,0 +1,92 @@
+{
+  "id": "F-JSON-cumulative",
+  "pid": 71964,
+  "childCode": 0,
+  "signal": null,
+  "observedRss": 80887808,
+  "observedCommandStarts": 1,
+  "report": {
+    "id": "F-JSON-cumulative",
+    "actualShell": true,
+    "shellDisposed": true,
+    "rejected": false,
+    "exitCode": 1,
+    "heapSizeLimit": 134217728,
+    "calls": [
+      {
+        "method": "lstat",
+        "path": "/json-0000",
+        "signalPresent": true,
+        "signalAbortedAtEntry": false
+      },
+      {
+        "method": "readStream",
+        "path": "/json-0000",
+        "signalPresent": true,
+        "signalAbortedAtEntry": false
+      },
+      {
+        "method": "lstat",
+        "path": "/json-0001",
+        "signalPresent": true,
+        "signalAbortedAtEntry": false
+      },
+      {
+        "method": "readStream",
+        "path": "/json-0001",
+        "signalPresent": true,
+        "signalAbortedAtEntry": false
+      }
+    ],
+    "streams": [
+      {
+        "path": "/json-0000",
+        "start": 0,
+        "endExclusive": 65536,
+        "chunkSize": 1024,
+        "next": 9,
+        "returned": 0,
+        "bytes": 8190
+      },
+      {
+        "path": "/json-0001",
+        "start": 0,
+        "endExclusive": 65536,
+        "chunkSize": 1024,
+        "next": 9,
+        "returned": 0,
+        "bytes": 8190
+      }
+    ],
+    "mutations": 0,
+    "commandInvocations": 1,
+    "unhandled": [],
+    "stdout": "text/plain; charset=us-ascii\n",
+    "stderr": "file: step limit exceeded\n",
+    "stdoutBase64": "dGV4dC9wbGFpbjsgY2hhcnNldD11cy1hc2NpaQo=",
+    "stderrBase64": "ZmlsZTogc3RlcCBsaW1pdCBleGNlZWRlZAo=",
+    "stdoutBytes": 29,
+    "stderrBytes": 26
+  },
+  "status": "pass",
+  "qualification": "Each bounded operand must fit alone under the disclosed accounting; the combined scan must exceed16384 without operand resets. If a new coefficient invalidates that premise, HOLD for an additive reseal, not relabel a single-operand limit as cumulative proof.",
+  "staticProof": {
+    "status": "approved",
+    "sourceCommit": "436bda3e21b2b6041409fac7408cf072b5d3fe5e",
+    "files": [
+      "src/commands/file/shared.ts",
+      "src/commands/file/index.ts",
+      "src/commands/file/classify.ts"
+    ],
+    "basis": "One SharedBudget covers all operands. Parse startup88 includes all10 argument fields. Each entry charges loop1+eight chunks+sample8190+output29=8228. First complete8316 fits16384. After first line and second operand/chunks, accepted8325; second sample reservation demands16515 and fails before classify, after two distinct8190-byte streams. First invalid JSON is bounded ASCII text; no per-operand resets. Two complete16544/all eight65912 are hypothetical beyond cap, not performed work. Diagnostics use fixed64-unit emergency reserve, no normal-work reset.",
+    "singleEntryMaximumWork": 8316,
+    "twoEntryMinimumWork": 16515,
+    "invocationMinimumWork": 16515,
+    "perOperandReset": false,
+    "startupWork": 88,
+    "perEntryWork": 8228,
+    "totalWorkIfCapRelaxed": 65912,
+    "acceptedWorkBeforeRejectedBatch": 8325,
+    "attemptedWorkAtRejection": 16515
+  }
+}

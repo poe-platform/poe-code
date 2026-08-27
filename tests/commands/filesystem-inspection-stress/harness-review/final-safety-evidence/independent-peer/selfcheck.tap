@@ -1,0 +1,52 @@
+TAP version 13
+# Subtest: two rows differ only in declared budget and expectations
+ok 1 - two rows differ only in declared budget and expectations
+  ---
+  duration_ms: 11.783333
+  type: 'test'
+  ...
+# Subtest: pure arithmetic establishes singleton fit and fourth-filter failure
+ok 2 - pure arithmetic establishes singleton fit and fourth-filter failure
+  ---
+  duration_ms: 0.059334
+  type: 'test'
+  ...
+# Subtest: exact recorded helper transformations preserve all other bytes
+ok 3 - exact recorded helper transformations preserve all other bytes
+  ---
+  duration_ms: 0.723041
+  type: 'test'
+  ...
+# Subtest: T-DP-cumulative: real fixture telemetry with synthetic Shell reply; negative controls
+ok 4 - T-DP-cumulative: real fixture telemetry with synthetic Shell reply; negative controls
+  ---
+  duration_ms: 3.024667
+  type: 'test'
+  ...
+# Subtest: T-sort-many: real fixture telemetry with synthetic Shell reply; negative controls
+ok 5 - T-sort-many: real fixture telemetry with synthetic Shell reply; negative controls
+  ---
+  duration_ms: 1.999166
+  type: 'test'
+  ...
+# Subtest: bounded diagnostic grammar rejects unrelated, wrong-budget and status-only surrogates
+ok 6 - bounded diagnostic grammar rejects unrelated, wrong-budget and status-only surrogates
+  ---
+  duration_ms: 2.082958
+  type: 'test'
+  ...
+# Subtest: review-pending proposal cannot execute; invalid proof coefficients reject
+ok 7 - review-pending proposal cannot execute; invalid proof coefficients reject
+  ---
+  duration_ms: 3.099584
+  type: 'test'
+  ...
+1..7
+# tests 7
+# suites 0
+# pass 7
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 71.0425

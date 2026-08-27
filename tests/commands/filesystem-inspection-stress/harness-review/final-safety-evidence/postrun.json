@@ -1,0 +1,108 @@
+{
+  "startedAt": "2026-08-27T10:01:57.169Z",
+  "finishedAt": "2026-08-27T10:01:57.462Z",
+  "sourceCommit": "436bda3e21b2b6041409fac7408cf072b5d3fe5e",
+  "originalStarts": 4,
+  "derivedStarts": 2,
+  "totalStarts": 6,
+  "rows": [
+    {
+      "id": "T-DP-cumulative",
+      "status": "pass",
+      "pid": 99040,
+      "childCode": 0,
+      "signal": null,
+      "commands": 1,
+      "disposed": true,
+      "exitCode": 1,
+      "rejected": false,
+      "stdoutBytes": 0,
+      "stderr": "shell: line 1: EFBIG: tree work limit exceeded (16384)\n",
+      "stderrBytes": 55,
+      "observedRss": 85573632,
+      "transportBytes": 448,
+      "moduleLoads": 25,
+      "calls": [
+        {
+          "method": "lstat",
+          "path": "/root",
+          "signalPresent": true,
+          "signalAbortedAtEntry": false
+        },
+        {
+          "method": "readdir",
+          "path": "/root",
+          "signalPresent": true,
+          "signalAbortedAtEntry": false
+        }
+      ],
+      "listings": [
+        {
+          "path": "/root",
+          "next": 4,
+          "yielded": 4,
+          "done": false,
+          "returned": 1,
+          "namesCount": 4
+        }
+      ]
+    },
+    {
+      "id": "T-sort-many",
+      "status": "pass",
+      "pid": 99041,
+      "childCode": 0,
+      "signal": null,
+      "commands": 1,
+      "disposed": true,
+      "exitCode": 1,
+      "rejected": false,
+      "stdoutBytes": 0,
+      "stderr": "shell: line 1: EFBIG: tree work limit exceeded (4096)\n",
+      "stderrBytes": 54,
+      "observedRss": 84836352,
+      "transportBytes": 448,
+      "moduleLoads": 25,
+      "calls": [
+        {
+          "method": "lstat",
+          "path": "/root",
+          "signalPresent": true,
+          "signalAbortedAtEntry": false
+        },
+        {
+          "method": "readdir",
+          "path": "/root",
+          "signalPresent": true,
+          "signalAbortedAtEntry": false
+        }
+      ],
+      "listings": [
+        {
+          "path": "/root",
+          "next": 65,
+          "yielded": 64,
+          "done": true,
+          "returned": 0,
+          "namesCount": 64
+        }
+      ]
+    }
+  ],
+  "frozenFilesRechecked": 920,
+  "summarySha256": "a17a55919f1d253554785f77417f564cc925eeb0d0fb6b27c1c8f7e70ce8f3ec",
+  "claim": {
+    "authorizationSha256": "86d99b7d185bdd6e51e61b8476316346c00ab709f5ae39bdba80780f6a92453a",
+    "previous": 4,
+    "maximumNew": 2,
+    "cases": [
+      "T-DP-cumulative",
+      "T-sort-many"
+    ]
+  },
+  "unknownEffects": false,
+  "unhandled": 0,
+  "mutations": 0,
+  "nativeCalls": 0,
+  "retries": 0
+}

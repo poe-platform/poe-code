@@ -1,0 +1,544 @@
+{
+  "claim": {
+    "time": "2026-08-27T07:17:12.392Z",
+    "name": "candidate",
+    "job": "benchmark",
+    "label": "benchmark",
+    "sourceHead": "ef8bbe749b1d4cf129f758ded158f5611b8ac894",
+    "sourceManifestSha256": "d78335a41cbd8aa9e939a10a984568c0ca562041a455a420c892cba9fee8b253",
+    "childSha256": "6f6182401ba7628935f6426e9de1841c4ea5849c47899ca4628c119a8a25902b",
+    "heapMb": 128,
+    "watchdogMs": 20000,
+    "outputCap": 65536,
+    "ipcCap": 1048576,
+    "strictUnhandled": true,
+    "riskConsumed": 0
+  },
+  "pid": 26048,
+  "events": [
+    {
+      "kind": "ready"
+    },
+    {
+      "kind": "disconnect"
+    },
+    {
+      "kind": "stdout-close"
+    },
+    {
+      "kind": "stderr-close"
+    },
+    {
+      "kind": "exit",
+      "code": 0,
+      "signal": null
+    }
+  ],
+  "stdout": "",
+  "stderr": "",
+  "result": {
+    "kind": "result",
+    "pass": true,
+    "summary": {
+      "passed": 3,
+      "total": 3,
+      "cleanupFailures": 0,
+      "active": 0,
+      "peak": 1,
+      "workers": 6
+    },
+    "moduleLocation": "file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/production-continuation-review/snapshots/candidate/dist/index.js",
+    "observations": [
+      {
+        "name": "complete-command-pair-0",
+        "pass": true,
+        "details": {
+          "baseline": {
+            "milliseconds": 33.18404199999999,
+            "output": {
+              "code": 0,
+              "stdout": "Li9maWxlMDAudHh0OmhpdCAwMAouL2ZpbGUwMS50eHQ6aGl0IDAxCi4vZmlsZTAyLnR4dDpoaXQgMDIKLi9maWxlMDMudHh0OmhpdCAwMwouL2ZpbGUwNC50eHQ6aGl0IDA0Ci4vZmlsZTA1LnR4dDpoaXQgMDUKLi9maWxlMDYudHh0OmhpdCAwNgouL2ZpbGUwNy50eHQ6aGl0IDA3Ci4vZmlsZTA4LnR4dDpoaXQgMDgKLi9maWxlMDkudHh0OmhpdCAwOQouL2ZpbGUxMi50eHQ6aGl0IDEyCi4vZmlsZTMwLnR4dDpoaXQgMzAKLi9maWxlMzEudHh0OmhpdCAzMQo=",
+              "stderr": ""
+            },
+            "startupMs": [
+              22.092207999999985
+            ],
+            "activeAtSettlement": 0
+          },
+          "candidate": {
+            "milliseconds": 22.802249999999987,
+            "output": {
+              "code": 0,
+              "stdout": "Li9maWxlMDAudHh0OmhpdCAwMAouL2ZpbGUwMS50eHQ6aGl0IDAxCi4vZmlsZTAyLnR4dDpoaXQgMDIKLi9maWxlMDMudHh0OmhpdCAwMwouL2ZpbGUwNC50eHQ6aGl0IDA0Ci4vZmlsZTA1LnR4dDpoaXQgMDUKLi9maWxlMDYudHh0OmhpdCAwNgouL2ZpbGUwNy50eHQ6aGl0IDA3Ci4vZmlsZTA4LnR4dDpoaXQgMDgKLi9maWxlMDkudHh0OmhpdCAwOQouL2ZpbGUxMi50eHQ6aGl0IDEyCi4vZmlsZTMwLnR4dDpoaXQgMzAKLi9maWxlMzEudHh0OmhpdCAzMQo=",
+              "stderr": ""
+            },
+            "startupMs": [
+              12.361541999999986
+            ],
+            "activeAtSettlement": 0
+          }
+        },
+        "publicSettlement": {
+          "active": 0,
+          "ownedWorkers": [
+            {
+              "url": "file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/production-continuation-review/snapshots/baseline/dist/commands/regex-execution/worker.js",
+              "options": {
+                "execArgv": [],
+                "resourceLimits": {
+                  "maxOldGenerationSizeMb": 128,
+                  "stackSizeMb": 4
+                }
+              },
+              "exited": true,
+              "terminationCalls": 1,
+              "startupMs": 22.092207999999985,
+              "exitCode": 1,
+              "terminationAwaited": true,
+              "listeners": {
+                "message": 0,
+                "messageerror": 0,
+                "error": 0,
+                "exit": 0
+              }
+            },
+            {
+              "url": "file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/production-continuation-review/snapshots/candidate/dist/commands/regex-execution/worker.js",
+              "options": {
+                "execArgv": [],
+                "resourceLimits": {
+                  "maxOldGenerationSizeMb": 128,
+                  "stackSizeMb": 4
+                }
+              },
+              "exited": true,
+              "terminationCalls": 1,
+              "startupMs": 12.361541999999986,
+              "exitCode": 1,
+              "terminationAwaited": true,
+              "listeners": {
+                "message": 0,
+                "messageerror": 0,
+                "error": 0,
+                "exit": 0
+              }
+            }
+          ]
+        }
+      },
+      {
+        "name": "complete-command-pair-1",
+        "pass": true,
+        "details": {
+          "candidate": {
+            "milliseconds": 17.544291999999984,
+            "output": {
+              "code": 0,
+              "stdout": "Li9maWxlMDAudHh0OmhpdCAwMAouL2ZpbGUwMS50eHQ6aGl0IDAxCi4vZmlsZTAyLnR4dDpoaXQgMDIKLi9maWxlMDMudHh0OmhpdCAwMwouL2ZpbGUwNC50eHQ6aGl0IDA0Ci4vZmlsZTA1LnR4dDpoaXQgMDUKLi9maWxlMDYudHh0OmhpdCAwNgouL2ZpbGUwNy50eHQ6aGl0IDA3Ci4vZmlsZTA4LnR4dDpoaXQgMDgKLi9maWxlMDkudHh0OmhpdCAwOQouL2ZpbGUxMi50eHQ6aGl0IDEyCi4vZmlsZTMwLnR4dDpoaXQgMzAKLi9maWxlMzEudHh0OmhpdCAzMQo=",
+              "stderr": ""
+            },
+            "startupMs": [
+              12.529291999999998
+            ],
+            "activeAtSettlement": 0
+          },
+          "baseline": {
+            "milliseconds": 15.27487499999998,
+            "output": {
+              "code": 0,
+              "stdout": "Li9maWxlMDAudHh0OmhpdCAwMAouL2ZpbGUwMS50eHQ6aGl0IDAxCi4vZmlsZTAyLnR4dDpoaXQgMDIKLi9maWxlMDMudHh0OmhpdCAwMwouL2ZpbGUwNC50eHQ6aGl0IDA0Ci4vZmlsZTA1LnR4dDpoaXQgMDUKLi9maWxlMDYudHh0OmhpdCAwNgouL2ZpbGUwNy50eHQ6aGl0IDA3Ci4vZmlsZTA4LnR4dDpoaXQgMDgKLi9maWxlMDkudHh0OmhpdCAwOQouL2ZpbGUxMi50eHQ6aGl0IDEyCi4vZmlsZTMwLnR4dDpoaXQgMzAKLi9maWxlMzEudHh0OmhpdCAzMQo=",
+              "stderr": ""
+            },
+            "startupMs": [
+              12.51483300000001
+            ],
+            "activeAtSettlement": 0
+          }
+        },
+        "publicSettlement": {
+          "active": 0,
+          "ownedWorkers": [
+            {
+              "url": "file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/production-continuation-review/snapshots/candidate/dist/commands/regex-execution/worker.js",
+              "options": {
+                "execArgv": [],
+                "resourceLimits": {
+                  "maxOldGenerationSizeMb": 128,
+                  "stackSizeMb": 4
+                }
+              },
+              "exited": true,
+              "terminationCalls": 1,
+              "startupMs": 12.529291999999998,
+              "exitCode": 1,
+              "terminationAwaited": true,
+              "listeners": {
+                "message": 0,
+                "messageerror": 0,
+                "error": 0,
+                "exit": 0
+              }
+            },
+            {
+              "url": "file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/production-continuation-review/snapshots/baseline/dist/commands/regex-execution/worker.js",
+              "options": {
+                "execArgv": [],
+                "resourceLimits": {
+                  "maxOldGenerationSizeMb": 128,
+                  "stackSizeMb": 4
+                }
+              },
+              "exited": true,
+              "terminationCalls": 1,
+              "startupMs": 12.51483300000001,
+              "exitCode": 1,
+              "terminationAwaited": true,
+              "listeners": {
+                "message": 0,
+                "messageerror": 0,
+                "error": 0,
+                "exit": 0
+              }
+            }
+          ]
+        }
+      },
+      {
+        "name": "complete-command-pair-2",
+        "pass": true,
+        "details": {
+          "baseline": {
+            "milliseconds": 14.866666999999978,
+            "output": {
+              "code": 0,
+              "stdout": "Li9maWxlMDAudHh0OmhpdCAwMAouL2ZpbGUwMS50eHQ6aGl0IDAxCi4vZmlsZTAyLnR4dDpoaXQgMDIKLi9maWxlMDMudHh0OmhpdCAwMwouL2ZpbGUwNC50eHQ6aGl0IDA0Ci4vZmlsZTA1LnR4dDpoaXQgMDUKLi9maWxlMDYudHh0OmhpdCAwNgouL2ZpbGUwNy50eHQ6aGl0IDA3Ci4vZmlsZTA4LnR4dDpoaXQgMDgKLi9maWxlMDkudHh0OmhpdCAwOQouL2ZpbGUxMi50eHQ6aGl0IDEyCi4vZmlsZTMwLnR4dDpoaXQgMzAKLi9maWxlMzEudHh0OmhpdCAzMQo=",
+              "stderr": ""
+            },
+            "startupMs": [
+              12.163207999999997
+            ],
+            "activeAtSettlement": 0
+          },
+          "candidate": {
+            "milliseconds": 16.660167,
+            "output": {
+              "code": 0,
+              "stdout": "Li9maWxlMDAudHh0OmhpdCAwMAouL2ZpbGUwMS50eHQ6aGl0IDAxCi4vZmlsZTAyLnR4dDpoaXQgMDIKLi9maWxlMDMudHh0OmhpdCAwMwouL2ZpbGUwNC50eHQ6aGl0IDA0Ci4vZmlsZTA1LnR4dDpoaXQgMDUKLi9maWxlMDYudHh0OmhpdCAwNgouL2ZpbGUwNy50eHQ6aGl0IDA3Ci4vZmlsZTA4LnR4dDpoaXQgMDgKLi9maWxlMDkudHh0OmhpdCAwOQouL2ZpbGUxMi50eHQ6aGl0IDEyCi4vZmlsZTMwLnR4dDpoaXQgMzAKLi9maWxlMzEudHh0OmhpdCAzMQo=",
+              "stderr": ""
+            },
+            "startupMs": [
+              12.107459000000006
+            ],
+            "activeAtSettlement": 0
+          }
+        },
+        "publicSettlement": {
+          "active": 0,
+          "ownedWorkers": [
+            {
+              "url": "file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/production-continuation-review/snapshots/baseline/dist/commands/regex-execution/worker.js",
+              "options": {
+                "execArgv": [],
+                "resourceLimits": {
+                  "maxOldGenerationSizeMb": 128,
+                  "stackSizeMb": 4
+                }
+              },
+              "exited": true,
+              "terminationCalls": 1,
+              "startupMs": 12.163207999999997,
+              "exitCode": 1,
+              "terminationAwaited": true,
+              "listeners": {
+                "message": 0,
+                "messageerror": 0,
+                "error": 0,
+                "exit": 0
+              }
+            },
+            {
+              "url": "file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/production-continuation-review/snapshots/candidate/dist/commands/regex-execution/worker.js",
+              "options": {
+                "execArgv": [],
+                "resourceLimits": {
+                  "maxOldGenerationSizeMb": 128,
+                  "stackSizeMb": 4
+                }
+              },
+              "exited": true,
+              "terminationCalls": 1,
+              "startupMs": 12.107459000000006,
+              "exitCode": 1,
+              "terminationAwaited": true,
+              "listeners": {
+                "message": 0,
+                "messageerror": 0,
+                "error": 0,
+                "exit": 0
+              }
+            }
+          ]
+        }
+      }
+    ],
+    "settlement": [
+      {
+        "url": "file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/production-continuation-review/snapshots/baseline/dist/commands/regex-execution/worker.js",
+        "options": {
+          "execArgv": [],
+          "resourceLimits": {
+            "maxOldGenerationSizeMb": 128,
+            "stackSizeMb": 4
+          }
+        },
+        "exited": true,
+        "terminationCalls": 1,
+        "startupMs": 22.092207999999985,
+        "exitCode": 1,
+        "terminationAwaited": true,
+        "listeners": {
+          "message": 0,
+          "messageerror": 0,
+          "error": 0,
+          "exit": 0
+        }
+      },
+      {
+        "url": "file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/production-continuation-review/snapshots/candidate/dist/commands/regex-execution/worker.js",
+        "options": {
+          "execArgv": [],
+          "resourceLimits": {
+            "maxOldGenerationSizeMb": 128,
+            "stackSizeMb": 4
+          }
+        },
+        "exited": true,
+        "terminationCalls": 1,
+        "startupMs": 12.361541999999986,
+        "exitCode": 1,
+        "terminationAwaited": true,
+        "listeners": {
+          "message": 0,
+          "messageerror": 0,
+          "error": 0,
+          "exit": 0
+        }
+      },
+      {
+        "url": "file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/production-continuation-review/snapshots/candidate/dist/commands/regex-execution/worker.js",
+        "options": {
+          "execArgv": [],
+          "resourceLimits": {
+            "maxOldGenerationSizeMb": 128,
+            "stackSizeMb": 4
+          }
+        },
+        "exited": true,
+        "terminationCalls": 1,
+        "startupMs": 12.529291999999998,
+        "exitCode": 1,
+        "terminationAwaited": true,
+        "listeners": {
+          "message": 0,
+          "messageerror": 0,
+          "error": 0,
+          "exit": 0
+        }
+      },
+      {
+        "url": "file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/production-continuation-review/snapshots/baseline/dist/commands/regex-execution/worker.js",
+        "options": {
+          "execArgv": [],
+          "resourceLimits": {
+            "maxOldGenerationSizeMb": 128,
+            "stackSizeMb": 4
+          }
+        },
+        "exited": true,
+        "terminationCalls": 1,
+        "startupMs": 12.51483300000001,
+        "exitCode": 1,
+        "terminationAwaited": true,
+        "listeners": {
+          "message": 0,
+          "messageerror": 0,
+          "error": 0,
+          "exit": 0
+        }
+      },
+      {
+        "url": "file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/production-continuation-review/snapshots/baseline/dist/commands/regex-execution/worker.js",
+        "options": {
+          "execArgv": [],
+          "resourceLimits": {
+            "maxOldGenerationSizeMb": 128,
+            "stackSizeMb": 4
+          }
+        },
+        "exited": true,
+        "terminationCalls": 1,
+        "startupMs": 12.163207999999997,
+        "exitCode": 1,
+        "terminationAwaited": true,
+        "listeners": {
+          "message": 0,
+          "messageerror": 0,
+          "error": 0,
+          "exit": 0
+        }
+      },
+      {
+        "url": "file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/production-continuation-review/snapshots/candidate/dist/commands/regex-execution/worker.js",
+        "options": {
+          "execArgv": [],
+          "resourceLimits": {
+            "maxOldGenerationSizeMb": 128,
+            "stackSizeMb": 4
+          }
+        },
+        "exited": true,
+        "terminationCalls": 1,
+        "startupMs": 12.107459000000006,
+        "exitCode": 1,
+        "terminationAwaited": true,
+        "listeners": {
+          "message": 0,
+          "messageerror": 0,
+          "error": 0,
+          "exit": 0
+        }
+      }
+    ],
+    "final": [
+      {
+        "url": "file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/production-continuation-review/snapshots/baseline/dist/commands/regex-execution/worker.js",
+        "options": {
+          "execArgv": [],
+          "resourceLimits": {
+            "maxOldGenerationSizeMb": 128,
+            "stackSizeMb": 4
+          }
+        },
+        "exited": true,
+        "terminationCalls": 1,
+        "startupMs": 22.092207999999985,
+        "exitCode": 1,
+        "terminationAwaited": true,
+        "listeners": {
+          "message": 0,
+          "messageerror": 0,
+          "error": 0,
+          "exit": 0
+        }
+      },
+      {
+        "url": "file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/production-continuation-review/snapshots/candidate/dist/commands/regex-execution/worker.js",
+        "options": {
+          "execArgv": [],
+          "resourceLimits": {
+            "maxOldGenerationSizeMb": 128,
+            "stackSizeMb": 4
+          }
+        },
+        "exited": true,
+        "terminationCalls": 1,
+        "startupMs": 12.361541999999986,
+        "exitCode": 1,
+        "terminationAwaited": true,
+        "listeners": {
+          "message": 0,
+          "messageerror": 0,
+          "error": 0,
+          "exit": 0
+        }
+      },
+      {
+        "url": "file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/production-continuation-review/snapshots/candidate/dist/commands/regex-execution/worker.js",
+        "options": {
+          "execArgv": [],
+          "resourceLimits": {
+            "maxOldGenerationSizeMb": 128,
+            "stackSizeMb": 4
+          }
+        },
+        "exited": true,
+        "terminationCalls": 1,
+        "startupMs": 12.529291999999998,
+        "exitCode": 1,
+        "terminationAwaited": true,
+        "listeners": {
+          "message": 0,
+          "messageerror": 0,
+          "error": 0,
+          "exit": 0
+        }
+      },
+      {
+        "url": "file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/production-continuation-review/snapshots/baseline/dist/commands/regex-execution/worker.js",
+        "options": {
+          "execArgv": [],
+          "resourceLimits": {
+            "maxOldGenerationSizeMb": 128,
+            "stackSizeMb": 4
+          }
+        },
+        "exited": true,
+        "terminationCalls": 1,
+        "startupMs": 12.51483300000001,
+        "exitCode": 1,
+        "terminationAwaited": true,
+        "listeners": {
+          "message": 0,
+          "messageerror": 0,
+          "error": 0,
+          "exit": 0
+        }
+      },
+      {
+        "url": "file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/production-continuation-review/snapshots/baseline/dist/commands/regex-execution/worker.js",
+        "options": {
+          "execArgv": [],
+          "resourceLimits": {
+            "maxOldGenerationSizeMb": 128,
+            "stackSizeMb": 4
+          }
+        },
+        "exited": true,
+        "terminationCalls": 1,
+        "startupMs": 12.163207999999997,
+        "exitCode": 1,
+        "terminationAwaited": true,
+        "listeners": {
+          "message": 0,
+          "messageerror": 0,
+          "error": 0,
+          "exit": 0
+        }
+      },
+      {
+        "url": "file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/production-continuation-review/snapshots/candidate/dist/commands/regex-execution/worker.js",
+        "options": {
+          "execArgv": [],
+          "resourceLimits": {
+            "maxOldGenerationSizeMb": 128,
+            "stackSizeMb": 4
+          }
+        },
+        "exited": true,
+        "terminationCalls": 1,
+        "startupMs": 12.107459000000006,
+        "exitCode": 1,
+        "terminationAwaited": true,
+        "listeners": {
+          "message": 0,
+          "messageerror": 0,
+          "error": 0,
+          "exit": 0
+        }
+      }
+    ]
+  },
+  "killed": false,
+  "code": 0,
+  "signal": null
+}

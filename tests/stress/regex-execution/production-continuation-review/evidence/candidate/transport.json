@@ -1,0 +1,231 @@
+{
+  "claim": {
+    "time": "2026-08-27T07:17:11.040Z",
+    "name": "candidate",
+    "job": "transport",
+    "label": "transport",
+    "sourceHead": "ef8bbe749b1d4cf129f758ded158f5611b8ac894",
+    "sourceManifestSha256": "d78335a41cbd8aa9e939a10a984568c0ca562041a455a420c892cba9fee8b253",
+    "childSha256": "6f6182401ba7628935f6426e9de1841c4ea5849c47899ca4628c119a8a25902b",
+    "heapMb": 128,
+    "watchdogMs": 20000,
+    "outputCap": 65536,
+    "ipcCap": 1048576,
+    "strictUnhandled": true,
+    "riskConsumed": 0
+  },
+  "pid": 26041,
+  "events": [
+    {
+      "kind": "ready"
+    },
+    {
+      "kind": "disconnect"
+    },
+    {
+      "kind": "stdout-close"
+    },
+    {
+      "kind": "stderr-close"
+    },
+    {
+      "kind": "exit",
+      "code": 0,
+      "signal": null
+    }
+  ],
+  "stdout": "",
+  "stderr": "",
+  "result": {
+    "kind": "result",
+    "pass": true,
+    "summary": {
+      "passed": 15,
+      "total": 15,
+      "cleanupFailures": 0,
+      "active": 0,
+      "peak": 0,
+      "workers": 0
+    },
+    "moduleLocation": "file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/production-continuation-review/snapshots/candidate/dist/index.js",
+    "observations": [
+      {
+        "name": "default-policy-inspection",
+        "pass": true,
+        "details": {
+          "requestTimeoutMs": 1000,
+          "startupTimeoutMs": 3000,
+          "maxWorkers": 2,
+          "maxQueuedRequests": 64,
+          "maxQueuedBytes": 134217728,
+          "idleTimeoutMs": 100,
+          "workerOldGenerationMb": 128,
+          "workerStackMb": 4
+        },
+        "publicSettlement": {
+          "active": 0,
+          "ownedWorkers": []
+        }
+      },
+      {
+        "name": "preabort-no-construction",
+        "pass": true,
+        "publicSettlement": {
+          "active": 0,
+          "ownedWorkers": []
+        }
+      },
+      {
+        "name": "default-no-caller-signal-safe-static-stall",
+        "pass": true,
+        "details": {
+          "elapsed": 1001.59225,
+          "error": "regex REQUEST_TIMEOUT: active request exceeded 1000ms",
+          "noRegexExecuted": true,
+          "callerNeverAborted": true
+        },
+        "publicSettlement": {
+          "active": 0,
+          "ownedWorkers": []
+        }
+      },
+      {
+        "name": "startup-short-safe-stall",
+        "pass": true,
+        "publicSettlement": {
+          "active": 0,
+          "ownedWorkers": []
+        }
+      },
+      {
+        "name": "fifo-cancel-bytes-overflow",
+        "pass": true,
+        "details": {
+          "byteAccounting": 179,
+          "dispatchedIds": [
+            1,
+            2,
+            3
+          ],
+          "cancelledNeverDispatched": true
+        },
+        "publicSettlement": {
+          "active": 0,
+          "ownedWorkers": []
+        }
+      },
+      {
+        "name": "descriptor-and-row-byte-limit",
+        "pass": true,
+        "details": {
+          "independentlyExpectedBytes": 179,
+          "actualBytes": 179
+        },
+        "publicSettlement": {
+          "active": 0,
+          "ownedWorkers": []
+        }
+      },
+      {
+        "name": "default-two-workers-and-independent-executors",
+        "pass": true,
+        "publicSettlement": {
+          "active": 0,
+          "ownedWorkers": []
+        }
+      },
+      {
+        "name": "active-abort-waits-termination-before-admitting-next",
+        "pass": true,
+        "publicSettlement": {
+          "active": 0,
+          "ownedWorkers": []
+        }
+      },
+      {
+        "name": "worker-wrong-id",
+        "pass": true,
+        "details": {
+          "code": "PROTOCOL",
+          "error": "regex PROTOCOL: invalid reply identity"
+        },
+        "publicSettlement": {
+          "active": 0,
+          "ownedWorkers": []
+        }
+      },
+      {
+        "name": "worker-odd-ranges",
+        "pass": true,
+        "details": {
+          "code": "PROTOCOL",
+          "error": "regex PROTOCOL: invalid match ranges"
+        },
+        "publicSettlement": {
+          "active": 0,
+          "ownedWorkers": []
+        }
+      },
+      {
+        "name": "worker-out-of-bounds",
+        "pass": true,
+        "details": {
+          "code": "PROTOCOL",
+          "error": "regex PROTOCOL: invalid match bounds"
+        },
+        "publicSettlement": {
+          "active": 0,
+          "ownedWorkers": []
+        }
+      },
+      {
+        "name": "worker-fatal",
+        "pass": true,
+        "details": {
+          "code": "WORKER_ERROR",
+          "error": "regex WORKER_ERROR: controlled worker fatal"
+        },
+        "publicSettlement": {
+          "active": 0,
+          "ownedWorkers": []
+        }
+      },
+      {
+        "name": "worker-messageerror",
+        "pass": true,
+        "details": {
+          "code": "PROTOCOL",
+          "error": "regex PROTOCOL: worker message could not be deserialized"
+        },
+        "publicSettlement": {
+          "active": 0,
+          "ownedWorkers": []
+        }
+      },
+      {
+        "name": "idle-fatal-retirement",
+        "pass": true,
+        "publicSettlement": {
+          "active": 0,
+          "ownedWorkers": []
+        }
+      },
+      {
+        "name": "timeout-then-abort-during-awaited-cleanup",
+        "pass": true,
+        "details": {
+          "precedence": "first timeout retained after cleanup-time abort"
+        },
+        "publicSettlement": {
+          "active": 0,
+          "ownedWorkers": []
+        }
+      }
+    ],
+    "settlement": [],
+    "final": []
+  },
+  "killed": false,
+  "code": 0,
+  "signal": null
+}

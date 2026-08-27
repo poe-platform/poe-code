@@ -1,0 +1,19 @@
+{
+  "checks": {
+    "isolatedBaselineBuild": "pass; evidence/baseline/build.json",
+    "isolatedCandidateBuild": "pass; evidence/candidate/build.json",
+    "movedPublicConsumerTypes": "pass; evidence/packed/package.json",
+    "nineCurrentStaticMjsSyntaxChecks": "pass",
+    "ownedGitDiffCheck": "pass",
+    "snapshotHistoryHarnessPackageDigestAudit": "pass; evidence/audit.json"
+  },
+  "validationShellCorrection": {
+    "initialResult": "zsh: command not found: node",
+    "cause": "Loop variable named path replaced zsh's special PATH-tied array in that one shell invocation; no syntax check executed.",
+    "correction": "Fresh shell, loop variable stem; all nine syntax checks and owned diff check passed.",
+    "productOrTestChange": false
+  },
+  "publicCleanup": "FAIL remains preserved; successful validation is not default acceptance",
+  "fullRepositorySuiteRun": false,
+  "additionalPathologicalProbes": 0
+}

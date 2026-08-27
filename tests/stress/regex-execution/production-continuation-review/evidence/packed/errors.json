@@ -1,0 +1,170 @@
+{
+  "claim": {
+    "time": "2026-08-27T07:17:15.692Z",
+    "name": "packed",
+    "job": "errors",
+    "label": "errors",
+    "sourceHead": "ef8bbe749b1d4cf129f758ded158f5611b8ac894",
+    "sourceManifestSha256": "d78335a41cbd8aa9e939a10a984568c0ca562041a455a420c892cba9fee8b253",
+    "childSha256": "6f6182401ba7628935f6426e9de1841c4ea5849c47899ca4628c119a8a25902b",
+    "heapMb": 128,
+    "watchdogMs": 20000,
+    "outputCap": 65536,
+    "ipcCap": 1048576,
+    "strictUnhandled": true,
+    "riskConsumed": 0
+  },
+  "pid": 26102,
+  "events": [
+    {
+      "kind": "ready"
+    },
+    {
+      "kind": "disconnect"
+    },
+    {
+      "kind": "stdout-close"
+    },
+    {
+      "kind": "stderr-close"
+    },
+    {
+      "kind": "exit",
+      "code": 0,
+      "signal": null
+    }
+  ],
+  "stdout": "",
+  "stderr": "",
+  "result": {
+    "kind": "result",
+    "pass": true,
+    "summary": {
+      "passed": 2,
+      "total": 2,
+      "cleanupFailures": 0,
+      "active": 0,
+      "peak": 1,
+      "workers": 1
+    },
+    "moduleLocation": "file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/production-continuation-review/.temporary/moved/node_modules/virtual-bash/dist/index.js",
+    "observations": [
+      {
+        "name": "actual-public-worker-constructor-failure",
+        "pass": true,
+        "details": [
+          {
+            "code": 2,
+            "stdout": "",
+            "stderr": "Z3JlcDogaW5kZXBlbmRlbnQgY29uc3RydWN0b3IgZmFpbHVyZQo="
+          },
+          {
+            "code": 2,
+            "stdout": "",
+            "stderr": "cmc6IGluZGVwZW5kZW50IGNvbnN0cnVjdG9yIGZhaWx1cmUK"
+          }
+        ],
+        "publicSettlement": {
+          "active": 0,
+          "ownedWorkers": []
+        }
+      },
+      {
+        "name": "actual-public-bounded-queue-admission",
+        "pass": true,
+        "details": [
+          {
+            "code": 0,
+            "stdout": "YWIK",
+            "stderr": ""
+          },
+          {
+            "code": 2,
+            "stdout": "",
+            "stderr": "cmc6IHJlZ2V4IFFVRVVFX0VYSEFVU1RFRDogcXVldWVkIHJlcXVlc3QgY291bnQgb3IgaW5wdXQgYnl0ZSBsaW1pdCBleGNlZWRlZAo="
+          },
+          {
+            "code": 2,
+            "stdout": "",
+            "stderr": "cmc6IHJlZ2V4IFFVRVVFX0VYSEFVU1RFRDogcXVldWVkIHJlcXVlc3QgY291bnQgb3IgaW5wdXQgYnl0ZSBsaW1pdCBleGNlZWRlZAo="
+          }
+        ],
+        "publicSettlement": {
+          "active": 0,
+          "ownedWorkers": [
+            {
+              "url": "file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/production-continuation-review/.temporary/moved/node_modules/virtual-bash/dist/commands/regex-execution/worker.js",
+              "options": {
+                "execArgv": [],
+                "resourceLimits": {
+                  "maxOldGenerationSizeMb": 128,
+                  "stackSizeMb": 4
+                }
+              },
+              "exited": true,
+              "terminationCalls": 1,
+              "startupMs": 22.421625000000006,
+              "exitCode": 1,
+              "terminationAwaited": true,
+              "listeners": {
+                "message": 0,
+                "messageerror": 0,
+                "error": 0,
+                "exit": 0
+              }
+            }
+          ]
+        }
+      }
+    ],
+    "settlement": [
+      {
+        "url": "file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/production-continuation-review/.temporary/moved/node_modules/virtual-bash/dist/commands/regex-execution/worker.js",
+        "options": {
+          "execArgv": [],
+          "resourceLimits": {
+            "maxOldGenerationSizeMb": 128,
+            "stackSizeMb": 4
+          }
+        },
+        "exited": true,
+        "terminationCalls": 1,
+        "startupMs": 22.421625000000006,
+        "exitCode": 1,
+        "terminationAwaited": true,
+        "listeners": {
+          "message": 0,
+          "messageerror": 0,
+          "error": 0,
+          "exit": 0
+        }
+      }
+    ],
+    "final": [
+      {
+        "url": "file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/production-continuation-review/.temporary/moved/node_modules/virtual-bash/dist/commands/regex-execution/worker.js",
+        "options": {
+          "execArgv": [],
+          "resourceLimits": {
+            "maxOldGenerationSizeMb": 128,
+            "stackSizeMb": 4
+          }
+        },
+        "exited": true,
+        "terminationCalls": 1,
+        "startupMs": 22.421625000000006,
+        "exitCode": 1,
+        "terminationAwaited": true,
+        "listeners": {
+          "message": 0,
+          "messageerror": 0,
+          "error": 0,
+          "exit": 0
+        }
+      }
+    ]
+  },
+  "killed": false,
+  "code": 0,
+  "signal": null
+}

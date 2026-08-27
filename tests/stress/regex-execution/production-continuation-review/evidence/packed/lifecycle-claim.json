@@ -1,0 +1,15 @@
+{
+  "time": "2026-08-27T07:17:14.698Z",
+  "name": "packed",
+  "job": "lifecycle",
+  "label": "lifecycle",
+  "sourceHead": "ef8bbe749b1d4cf129f758ded158f5611b8ac894",
+  "sourceManifestSha256": "d78335a41cbd8aa9e939a10a984568c0ca562041a455a420c892cba9fee8b253",
+  "childSha256": "6f6182401ba7628935f6426e9de1841c4ea5849c47899ca4628c119a8a25902b",
+  "heapMb": 128,
+  "watchdogMs": 20000,
+  "outputCap": 65536,
+  "ipcCap": 1048576,
+  "strictUnhandled": true,
+  "riskConsumed": 0
+}

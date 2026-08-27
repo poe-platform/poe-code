@@ -1,0 +1,25 @@
+{
+  "time": "2026-08-27T07:21:08.163Z",
+  "head": "04879692a66d88eee129b8ffd6e7ca93c7a9476a",
+  "status": " M tests/stress/regex-execution/production-continuation-review/HARNESS_CORRECTION.md\n?? src/commands/time-env/\n?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/\n?? tests/commands/search-stress/.native-1m4O1e/\n?? tests/commands/time-env/\n?? tests/integration/full-gate-20260827/cold-typecheck-independent/\n?? tests/shell-stress/canonical-profile-migration/.candidate-A-MCzKZA/\n?? tests/shell-stress/canonical-profile-migration/.candidate-A-Utom8y/\n?? tests/shell-stress/canonical-profile-migration/.candidate-B-hwqqUo/\n?? tests/shell-stress/canonical-profile-migration/.candidate-C-jWPzgO/\n?? tests/shell-stress/canonical-profile-migration/.candidate-FINAL-T42B3X/\n?? tests/shell-stress/canonical-profile-migration/.source-6e-9PS0KC/\n?? tests/shell-stress/errexit-legacy-policy/.correction-archive-bLk5Ko/\n?? tests/stress/regex-execution/production-continuation-review/REPORT.md\n?? tests/stress/regex-execution/production-continuation-review/evidence/audit.json\n?? tests/stress/regex-execution/production-continuation-review/evidence/candidate/\n?? tests/stress/regex-execution/production-continuation-review/evidence/native-walker-fixture-readback.json\n?? tests/stress/regex-execution/production-continuation-review/evidence/packed/\n",
+  "index": "",
+  "authorSource": "ef8bbe749b1d4cf129f758ded158f5611b8ac894",
+  "differences": [
+    {
+      "path": "src/fs/mount/index.ts",
+      "frozenSha256": "290e22e36016bf206badff86e55047e8311c3c4feb1c525b9ae0807c568333ee",
+      "liveSha256": "a2be203c4bb0a1c979e9ff2ab3672f7aa7a1f441cc4c57cddcca7e4807a1881d"
+    },
+    {
+      "path": "src/fs/overlay/index.ts",
+      "frozenSha256": "6442f61ab61aee52a321ef91892ec4c0dc73674bb40ca9a732ffa69f7e73495e",
+      "liveSha256": "e14936876292b4900e1f2d4298ae5ec41509c5772d5afc63bf143d36c85662be"
+    },
+    {
+      "path": "src/fs/s3/filesystem.ts",
+      "frozenSha256": "af2ee439cbabdc3babe008da2601ccc1a031555edc5e082f8711f4512db01411",
+      "liveSha256": "9ac11951d681db45cee474568ca46d227cfb5bbd9b0d5ce2d6c176d0c4f94833"
+    }
+  ],
+  "scope": "Only author commit ef8bbe7 is executed by the independent final replay. Concurrent live edits excluded and never reverted."
+}

@@ -1,0 +1,43 @@
+{
+  "frozenAt": "2026-08-27T07:42:25.260Z",
+  "phase": "Hidden native preparation, stop before author candidate inspection",
+  "sourceAuthorImplementationProposalFixturesInspected": false,
+  "sourceReadCommit": "6e3e3165e3b88aa5518eac33afd0b2ecdfa5fd2a",
+  "productExecutions": 0,
+  "hostsExecuted": 0,
+  "counts": {
+    "primaryProductTargets": 48,
+    "commandRows": 42,
+    "singleOptionalShebangRows": 6,
+    "hostControls": 7,
+    "eachNativeCapture": {
+      "ordinary": 108,
+      "bounded": 2,
+      "kernelArgv": 2
+    },
+    "preservedCaptures": 2,
+    "totalNativeObservationsWithControls": 224,
+    "integrityPass": 6
+  },
+  "files": {
+    "README.md": "85827044815d49f00c1d8bdced9f1031516d80ebe7dd81a3b6e493d0d32a0687",
+    "aligned-cases.mjs": "0c820b8fcbb1ce2769e85a0cc352d01cdc28e1a1015eef35d60a31464d5d1f8b",
+    "aligned-cleanup.json": "7854756c45ac1268aca667ad6bc74ec1e01d824c2a3e4b60d9d520fe1a24dd93",
+    "aligned-inputs.json": "0b25047da8d6d9221f12ecd73a26c71986d645f37b040dce65968c5e20991885",
+    "cases.mjs": "3b937f671e6dd9230b9be96936dbea7c2026169e26260abda0046e9b7caa3bda",
+    "endpoint.json": "ac836f6357e46daa3ae851f0220f26f796f4f93398fae691536d3bf0306d3a1c",
+    "hosts.mjs": "2919f3022e5c683e34a58e176adc15e22a33f5b960ac122edfeee84a85b93790",
+    "integrity.test.mjs": "fabf78ffdceb76c498e85e00b85e2188200758182c113aadcad308213fd94587",
+    "native-aligned.json": "bca8b30a21de8f09e5e660d3f77480cdf8ac3b4a00c36490987b6d15ef9cf818",
+    "native-cleanup.json": "47eafcf40a5b87efd75f81071691adcb0a15f58d99d8e5dc8c31e2a09ac8340a",
+    "native-frozen.json": "6517106deac7e63616d6b02fc60901c33d3c455f0db2311a06e17bf0946dfe83",
+    "native-initial.mjs": "b195fa473c93300eb0d1ecd0f4fb28a205f2c6154489eb4ab2b042ce38436008",
+    "native-inputs.json": "90dd4c1aaacd1a3ff28254a4999121bf77c894583698263518f1dc9274ace51e",
+    "native.mjs": "be2ee8ff1b88e0ca6ce0736076fd2f2df863dbb82c0373278e3b1c49f01bc197",
+    "probe.mjs": "b833cdcfcf799da217dae8861858929eebfa490849ffc294591d6c500e3c72d1",
+    "product-row.mjs": "d639d33f45a47fcf883b4c7a9946fb26a7bd54b0e71bf7bb3f4a198568a23571",
+    "provenance.json": "7f0cc494bab5f77208ff776b1108ccdc44895503ccd6e830d8ebae9c186cafb9",
+    "recorder.c": "fb4b63d49db7bc6d29f543f5f87675bf9f7740118f99817a91be8ce697a97db3",
+    "support.mjs": "d065b395da9445782a0b1aa20c1cad3c04b4b941aa5bf7e9f4afed5bf929113e"
+  }
+}

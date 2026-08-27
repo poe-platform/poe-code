@@ -1,0 +1,386 @@
+{
+  "frozenAt": "2026-08-27T07:33:01.022Z",
+  "sourceAuthorInputsInspected": false,
+  "files": {
+    "cases.mjs": "3b937f671e6dd9230b9be96936dbea7c2026169e26260abda0046e9b7caa3bda",
+    "recorder.c": "fb4b63d49db7bc6d29f543f5f87675bf9f7740118f99817a91be8ce697a97db3",
+    "support.mjs": "d065b395da9445782a0b1aa20c1cad3c04b4b941aa5bf7e9f4afed5bf929113e",
+    "native.mjs": "b195fa473c93300eb0d1ecd0f4fb28a205f2c6154489eb4ab2b042ce38436008"
+  },
+  "helperProof": {
+    "path": "tests/shell-stress/current-shell/support.mjs",
+    "commit": "303d18449c6e01bae4f33dada2f2022f95a56d49",
+    "sha256": "d7b278db709f869a03e5cce56c501011a1162465b03ecfc1663465b0163c6f8a"
+  },
+  "commandCases": [
+    {
+      "id": "mixed-fragments",
+      "args": [
+        "-S",
+        "argvprobe left\" middle\"' right' end"
+      ]
+    },
+    {
+      "id": "empty-quoted-arguments",
+      "args": [
+        "-S",
+        "argvprobe '' \"\" x''y tail"
+      ]
+    },
+    {
+      "id": "six-whitespace-separators",
+      "args": [
+        "-S",
+        "argvprobe one\ttwo\nthree\rfour\u000bfiv\fsix"
+      ]
+    },
+    {
+      "id": "quoted-whitespace",
+      "args": [
+        "-S",
+        "argvprobe \"a\nb\tc\" ' d e '"
+      ]
+    },
+    {
+      "id": "underscore-escape-contexts",
+      "args": [
+        "-S",
+        "argvprobe a\\_b \"c\\_d\" 'e\\_f'"
+      ]
+    },
+    {
+      "id": "escaped-control-characters",
+      "args": [
+        "-S",
+        "argvprobe a\\nb c\\td e\\rf g\\vh i\\fj"
+      ]
+    },
+    {
+      "id": "single-quote-escape-exceptions",
+      "args": [
+        "-S",
+        "argvprobe 'can\\'t' 'back\\\\slash' '\\n\\t\\$'"
+      ]
+    },
+    {
+      "id": "escaped-quotes-hash-dollar",
+      "args": [
+        "-S",
+        "argvprobe \\\" \\' \\\\ \\# \\$"
+      ]
+    },
+    {
+      "id": "hash-boundary",
+      "args": [
+        "-S",
+        "argvprobe x#y \\#z \"#inside\" # ignored never"
+      ]
+    },
+    {
+      "id": "stop-escape",
+      "args": [
+        "-S",
+        "argvprobe left\\cright \"unterminated"
+      ]
+    },
+    {
+      "id": "stop-inside-double-quote-error",
+      "args": [
+        "-S",
+        "argvprobe \"left\\cright\""
+      ]
+    },
+    {
+      "id": "stop-inside-single-quote-literal",
+      "args": [
+        "-S",
+        "argvprobe 'left\\cright'"
+      ]
+    },
+    {
+      "id": "unmatched-single-quote",
+      "args": [
+        "-S",
+        "argvprobe before 'unfinished"
+      ]
+    },
+    {
+      "id": "unmatched-double-quote",
+      "args": [
+        "-S",
+        "argvprobe before \"unfinished"
+      ]
+    },
+    {
+      "id": "invalid-escape",
+      "args": [
+        "-S",
+        "argvprobe before \\q after"
+      ]
+    },
+    {
+      "id": "terminal-backslash",
+      "args": [
+        "-S",
+        "argvprobe before \\"
+      ]
+    },
+    {
+      "id": "incoming-value-keeps-one-argument",
+      "args": [
+        "-S",
+        "argvprobe ${WORDS} \"${WORDS}\" x${WORDS}y"
+      ]
+    },
+    {
+      "id": "incoming-value-not-reparsed",
+      "args": [
+        "-S",
+        "argvprobe ${PAYLOAD} ${QUOTED} ${DOLLARS}"
+      ]
+    },
+    {
+      "id": "single-quote-no-expansion",
+      "args": [
+        "-S",
+        "argvprobe '${WORDS}' \"${WORDS}\""
+      ]
+    },
+    {
+      "id": "empty-and-unset-boundaries",
+      "args": [
+        "-S",
+        "argvprobe ${EMPTY} ${ABSENT} \"${EMPTY}\" \"${ABSENT}\" x${EMPTY}y"
+      ]
+    },
+    {
+      "id": "lookup-before-ignore-and-unset",
+      "args": [
+        "-S",
+        "-i -u WORDS COPY=${WORDS} argvprobe ${WORDS}"
+      ]
+    },
+    {
+      "id": "lookup-before-assignment",
+      "args": [
+        "-S",
+        "WORDS=replaced COPY=${WORDS} argvprobe ${WORDS}"
+      ]
+    },
+    {
+      "id": "earlier-option-unset-lookup",
+      "args": [
+        "-u",
+        "WORDS",
+        "-S",
+        "argvprobe ${WORDS}"
+      ]
+    },
+    {
+      "id": "earlier-ignore-lookup",
+      "args": [
+        "-i",
+        "-S",
+        "SNAP=${WORDS} argvprobe ${WORDS}"
+      ]
+    },
+    {
+      "id": "invalid-bare-dollar",
+      "args": [
+        "-S",
+        "argvprobe $WORDS"
+      ]
+    },
+    {
+      "id": "invalid-special-dollar",
+      "args": [
+        "-S",
+        "argvprobe $$ $@"
+      ]
+    },
+    {
+      "id": "invalid-parameter-operator",
+      "args": [
+        "-S",
+        "argvprobe ${ABSENT:-fallback}"
+      ]
+    },
+    {
+      "id": "command-substitution-not-shell",
+      "args": [
+        "-S",
+        "argvprobe $(printf BAD>injected)"
+      ]
+    },
+    {
+      "id": "backticks-and-operators-literal",
+      "args": [
+        "-S",
+        "argvprobe `touch injected` ; >injected | *"
+      ]
+    },
+    {
+      "id": "long-split-equals-tail",
+      "args": [
+        "--split-string=argvprobe \"left right\"",
+        "tail",
+        ""
+      ]
+    },
+    {
+      "id": "long-split-separate",
+      "args": [
+        "--split-string",
+        "argvprobe a\tb",
+        "--literal",
+        "tail"
+      ]
+    },
+    {
+      "id": "attached-short-split",
+      "args": [
+        "-Sargvprobe \"a b\"",
+        "tail"
+      ]
+    },
+    {
+      "id": "repeat-split-option",
+      "args": [
+        "-S",
+        "-S \"argvprobe inner\" tail"
+      ]
+    },
+    {
+      "id": "nested-split-with-variable",
+      "args": [
+        "-S",
+        "-S \"argvprobe ${WORDS}\" tail"
+      ]
+    },
+    {
+      "id": "assignment-options-stop",
+      "args": [
+        "-S",
+        "-i KEEP=one KEEP=two argvprobe -u KEEP"
+      ]
+    },
+    {
+      "id": "double-dash-after-split",
+      "args": [
+        "-S",
+        "-- argvprobe -S literal"
+      ]
+    },
+    {
+      "id": "packed-non-s-single-operand",
+      "args": [
+        "argvprobe two words"
+      ]
+    },
+    {
+      "id": "plain-argv-positive",
+      "args": [
+        "argvprobe",
+        "two words",
+        "",
+        "--literal"
+      ]
+    },
+    {
+      "id": "empty-split-then-tail",
+      "args": [
+        "-S",
+        "",
+        "argvprobe",
+        "tail"
+      ]
+    },
+    {
+      "id": "missing-command-negative",
+      "args": [
+        "-S",
+        "env-split-never-a-real-command argument"
+      ]
+    },
+    {
+      "id": "nonexecutable-command-negative",
+      "args": [
+        "-S",
+        "./nonexec argument"
+      ],
+      "nonexec": true
+    },
+    {
+      "id": "moderate-variable-growth",
+      "args": [
+        "-S",
+        "argvprobe ${GROWTH}${GROWTH}${GROWTH}${GROWTH}"
+      ]
+    }
+  ],
+  "shebangCases": [
+    {
+      "id": "plain-bash",
+      "optional": "bash"
+    },
+    {
+      "id": "non-s-packed-bash-option",
+      "optional": "bash -e"
+    },
+    {
+      "id": "split-errexit",
+      "optional": "-S bash -e"
+    },
+    {
+      "id": "split-assignment-and-clear",
+      "optional": "-S -i MARK=kept bash -e"
+    },
+    {
+      "id": "split-long-plus-option",
+      "optional": "--split-string=bash +e"
+    },
+    {
+      "id": "split-quoted-marker",
+      "optional": "-S MARK=\"two words\" bash -e"
+    }
+  ],
+  "scriptBody": "case $- in *e*) printf \"e=on\\n\";; *) printf \"e=off\\n\";; esac\nprintf \"argc=%s\\n\" \"$#\"\nprintf \"<%s>\\n\" \"$@\"\nprintf \"%s\" \"${MARK-unset}\" >effect\nfalse\nprintf \"survived\\n\"\n",
+  "boundedCases": [
+    {
+      "id": "self-referential-resplit",
+      "args": [
+        "-S",
+        "${LOOP}"
+      ],
+      "env": {
+        "LOOP": "-S ${LOOP}"
+      },
+      "deadlineMs": 250,
+      "nativeTimeoutIsNotPass": true
+    }
+  ],
+  "baseValues": {
+    "WORDS": "north south\teast\nwest",
+    "EMPTY": "",
+    "PAYLOAD": "$(printf BAD>injected); >injected | `touch injected`",
+    "QUOTED": "\"a b\" 'c d' \\_ #comment",
+    "DOLLARS": "${WORDS} $@ $$",
+    "GROWTH": "xyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxy"
+  },
+  "profiles": [
+    {
+      "id": "gnu97-darwin-primary",
+      "env": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/env",
+      "envHash": "1026eb36ffd2fdca6d064c0ffd6dd99ceb7bb3f49ec5e804df2c53bef372dbf0",
+      "bash": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+      "bashHash": "8cecb482de24198c23a736b931cb7e8cee1f94eb0b51abd54bd99f1d73d9673c"
+    },
+    {
+      "id": "apple-env-bash32-historical",
+      "env": "/usr/bin/env",
+      "envHash": "9eb7c5aed7f3c7fe07b77d9a84d0a7c6a8c68c17a15aa3dace0d8ff02d352776",
+      "bash": "/bin/bash",
+      "bashHash": "35536aea9733aa345b61134a98d00232380898e55b2ea2a07c497011f7dfc7a3"
+    }
+  ]
+}

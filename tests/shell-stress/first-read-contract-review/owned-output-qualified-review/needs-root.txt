@@ -1,0 +1,11 @@
+PRIVATE reviewer-to-root handoff; do not forward case bodies/questions to author.
+Freeze publication pending first commit. Readiness UNBOUND. Product executions 0.
+Exact frozen scope: 12 logical / original20 + additional12 = 32 parameters.
+Author46954 reported active; no actual-ready claim. No new declaration/source/tests read.
+Root must launch a fresh executor only after actual author/preparer exit and NEW
+immutable qualified-ready authentication. This finite preparation never executes.
+Needed later: authenticated public declaration/signatures; immutable candidate and
+source/test/compiled/tool identities; exact source-authentic existing curl baseline;
+bounded pinned-native profile with verifier replay; explicit synthetic-undefined
+caller compatibility. Missing profiles remain BLOCKED/UNBOUND, never invented.
+SafeJS privileged-hook/membrane audit NOT DONE; required before promotion.

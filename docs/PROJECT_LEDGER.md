@@ -1588,6 +1588,44 @@ that any implementation, command, fixture, or test currently exists.
   docs/history/2026-08-27-root-docs/validation.json; these are documentation
   checks, not product-suite passes.
 
+### August 27, 2026 — 04:14 UTC: mechanical S3 HTTP public exports
+
+- Source `3c45ca2e8b2f9c832ab2bfa79ba4aa5140b80c03` adds only root export wiring
+  and the `./fs/s3/http` package-map entry. The root and new subpath expose
+  `createS3HttpTransport(options: S3HttpTransportOptions): S3Transport` and types
+  `S3HttpCredentials`, `S3HttpCredentialProvider`, `S3HttpRequestFactory`,
+  `S3HttpTransportOptions`. Existing `./fs/s3` and all Poincare-owned FS source
+  remain unchanged by this integration. No API was guessed or renamed.
+- Independent mechanical harness `fe46a3c9b1e94744bc1e099f735df05f534117cf`
+  repeats against that exact product source, with a clean owned harness scope.
+  Capture04:13:59.652–04:14:04.843 UTC: fresh git archive/build, actual pack,
+  offline tarball install, plain-Node root/subpath imports and strict public
+  TypeScript consumer all pass. Zero runtime/optional/peer dependencies;
+  package-lock and development dependency declarations are unchanged.
+- Installed package has546 files, no product source/node_modules/tests.
+  All135 runtime module resolutions and228 TypeScript inputs are constrained
+  to packed output/consumer or explicit dev types/standard libraries. Deliberate
+  outside-repository-source and private-subpath imports reject. Three invalid
+  TypeScript controls yield expected TS2322/2345/2741 and exit2. Two synthetic
+  factory constructions issue zero requests and zero credential-provider calls.
+  The wrapper separately passes1/1, zero skips/TODOs; scoped test TS exits0.
+- Node22.22.2/npm10.9.7/TS5.9.3, Darwin arm64. Product archive SHA256
+  `88561712e95a5231ba9eeb3b02d6b860f2f3976fb4ced63d194d778352f4cc2f`;
+  packed SHA256 `dea8d1eaa0bd354b5491f77edd94705d4e1aa73e8d6bec278a1f52de66a5dcce`.
+  Full hashes, logs and resolution lists: tests/integration/s3-http-exports/
+  evidence-3c45ca2.json; handoff/commands/limits in REPORT.md and README.md there.
+- This closes the prior root/subpath packaging gap, not a service or behavior
+  gate. Existing native service guards13/17 remain13/17 with four unsupported
+  destination-COPY/conditional-DELETE guards. Separate18/18 workflows and14/14
+  bounded-copy results disclose their list-encoding fixture change. Complete
+  actual-service public-consumer/example remains Poincare-owned; further
+  independent behavioral acceptance is not inferred. No service or global suite
+  was rerun; no whole-worktree, arbitrary-provider, superiority or72-hour claim.
+- README now reflects verified public exports without presenting the factory as
+  a completed real-service integration. Durable AGENTS rules remain unchanged;
+  old unexported-state audit/evidence is preserved. Concurrent authors' source,
+  tests and staging are outside this leaf's commit paths.
+
 ### Remaining product validation
 
 - Re-run whole-repo typechecking, tests, build, and export checks as concurrent

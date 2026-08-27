@@ -24,12 +24,14 @@ and its linked reports for original failures, later source fixes, fixture/profil
 changes and scoped acceptance. Original reports are preserved; no selected suite
 or command count establishes the full product goal.
 
-The package currently exposes S3FileSystem plus createS3Transport for an explicit
-caller-supplied minimal client. The HTTP/SigV4 transport under src/fs/s3/http is
-incoming author work, not yet root/package-exported or accepted as a bundled
-real-service integration. Public built-package consumer and actual-service
-proof are required before documenting that factory as ready. Mock/loopback and
-trusted host-resolver tests do not establish arbitrary-provider support.
+The package exposes `S3FileSystem` plus `createS3Transport` for an explicit
+caller-supplied minimal client. The separate HTTP/SigV4 factory
+`createS3HttpTransport` and its types are public at `virtual-bash` and
+`virtual-bash/fs/s3/http`. [Clean packed-consumer checks](tests/integration/s3-http-exports/REPORT.md)
+verify these imports and declarations, not complete real-service integration.
+Actual-service workflows and provider conditional-operation guards require
+separate evidence; mock/loopback and trusted host-resolver tests do not establish
+arbitrary-provider support.
 
 ## Use the command bundle
 

@@ -1,0 +1,33 @@
+TAP version 13
+# Subtest: independent quiescent profile preserves every object except the exact marker
+not ok 1 - independent quiescent profile preserves every object except the exact marker
+  ---
+  duration_ms: 4.655625
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/stress/adapters/s3-snapshot-profile-independent/.work-Kq3dhV/tests/stress/adapters/s3-snapshot-profile-independent/independent.test.ts:1:2905'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + undefined
+    - true
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/stress/adapters/s3-snapshot-profile-independent/.work-Kq3dhV/tests/stress/adapters/s3-snapshot-profile-independent/independent.test.ts:79:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 0
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 136.642541

@@ -1,0 +1,80 @@
+TAP version 13
+# Subtest: s3: named-file cleanup leaves parents and snapshot rmdir deletes only the empty marker
+not ok 1 - s3: named-file cleanup leaves parents and snapshot rmdir deletes only the empty marker
+  ---
+  duration_ms: 6.008042
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/stress/adapters/s3-snapshot-profile-independent/.work-Kq3dhV/tests/stress/adapters/remote-safe-workflows.test.ts:1:1990'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+      [
+        {
+          body: Uint8Array(2) [
+            255,
+            3
+          ],
+    +     etag: 'tampered',
+    -     etag: '"e614504aca10d1a55718b9727b211361"',
+          key: 'sentinel',
+          metadata: {}
+        },
+        {
+          body: Uint8Array(0) [],
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    0:
+      key: 'sentinel'
+      body:
+        0: 255
+        1: 3
+      metadata:
+      etag: '"e614504aca10d1a55718b9727b211361"'
+    1:
+      key: 'work/'
+      body:
+      metadata:
+      etag: '"d41d8cd98f00b204e9800998ecf8427e"'
+    2:
+      key: 'work/scratch/'
+      body:
+      metadata:
+      etag: '"d41d8cd98f00b204e9800998ecf8427e"'
+  actual:
+    0:
+      key: 'sentinel'
+      body:
+        0: 255
+        1: 3
+      metadata:
+      etag: 'tampered'
+    1:
+      key: 'work/'
+      body:
+      metadata:
+      etag: '"d41d8cd98f00b204e9800998ecf8427e"'
+    2:
+      key: 'work/scratch/'
+      body:
+      metadata:
+      etag: '"d41d8cd98f00b204e9800998ecf8427e"'
+  operator: 'deepStrictEqual'
+  stack: |-
+    assertExactMarkerRemoval (/Users/kjopek/Workspace/safe-bash/tests/stress/adapters/s3-snapshot-profile-independent/.work-Kq3dhV/tests/stress/adapters/s3-snapshot-profile/assertions.ts:27:10)
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/stress/adapters/s3-snapshot-profile-independent/.work-Kq3dhV/tests/stress/adapters/remote-safe-workflows.test.ts:77:7)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 0
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 127.191917

@@ -1,0 +1,7 @@
+*** Begin Patch
+*** Update File: src/fs/s3/mock.ts
+@@
+-    bucket.delete(input.Key);
++    bucket.delete(input.Key);
++    if (input.Key === "work/scratch/nested/") bucket.set("sentinel", { ...bucket.get("sentinel")!, etag: "tampered" });
+*** End Patch

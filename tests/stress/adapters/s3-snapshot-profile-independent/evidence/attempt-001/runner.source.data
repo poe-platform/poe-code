@@ -1,0 +1,241 @@
+import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
+import { execFileSync, spawnSync } from "node:child_process";
+import { copyFileSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { createRequire } from "node:module";
+import { dirname, join, relative, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
+import { gunzipSync } from "node:zlib";
+
+const root = fileURLToPath(new URL("../../../../", import.meta.url));
+const owned = "tests/stress/adapters/s3-snapshot-profile-independent";
+const author = "tests/stress/adapters/s3-snapshot-profile";
+const fixture = "tests/stress/adapters/remote-safe-workflows.test.ts";
+const independent = `${owned}/independent.test.ts`;
+const freeze = "8b19cf4fad31ed4c11ca76bcb0cc38ef1a5ce508";
+const seal = "12782961ce72a7b84f9043bb1f0d75456cf6c5d1";
+const authorEvidence = "71ecb39df73a46210e923c59141c89eb3f3fd311";
+assert.equal(process.argv.length, 3, "usage: node run.mjs <new owned evidence directory>");
+const output = resolve(process.argv[2]);
+assert.ok(output.startsWith(join(root, owned, "evidence") + "/"));
+assert.equal(existsSync(output), false, "evidence cannot be overwritten");
+const hash = bytes => createHash("sha256").update(bytes).digest("hex");
+const git = (...args) => execFileSync("git", args, { cwd: root, encoding: "utf8", maxBuffer: 16 * 1024 * 1024 }).trim();
+const blob = (commit, path) => execFileSync("git", ["show", `${commit}:${path}`], { cwd: root, maxBuffer: 16 * 1024 * 1024 });
+const require = createRequire(join(root, "package.json"));
+const loader = require.resolve("tsx/esm");
+const compiler = require.resolve("typescript/bin/tsc");
+const controls = [
+  ["marker-controls", "tests/fs/s3/rmdir.test.ts", "^(snapshot rmdir deletes only the empty marker with conditionalDelete=(false|true)|a child created after the empty listing survives successful marker removal|rmdir rejects (explicit|implicit) directory containing (file|nested/file|child/)|pre-abort, read-only mode, and root protection make no requests)$"],
+  ["inspection-controls", "tests/fs/s3/rmdir-real-service/snapshot-profile/rmdir-profile.test.ts", "^(snapshot capability is frozen and does not enable atomic rename or conditional DELETE|removal requests at least two keys and paginates with configured pageSize=1|an empty intermediate page is not completion; deletion waits for the marker and final page|(missing completeness flag|missing continuation token|disappeared marker) refuses before deletion|file-prefix ambiguity is unchanged and not deleted|late byte child, nested marker and nested bytes survive; no rollback or ENOTEMPTY after delete|an implicit directory losing its final child does not authorize marker deletion)$"],
+  ["authority-refusal", "tests/fs/s3/constructor-comparison.test.ts", "^serialized SDK alias and existing target with unknown authority$"],
+  ["stock-webdav-refusal", "tests/fs/webdav/rmdir.test.ts", "^(empty rmdir is unsupported with (lock|etag) policy and never locks or deletes|a child created after the empty PROPFIND survives without DELETE)$"],
+];
+const parseTap = stdout => {
+  const counts = Object.fromEntries([...stdout.matchAll(/^# (tests|pass|fail|cancelled|skipped|todo) (\d+)$/gm)].map(match => [match[1], Number(match[2])]));
+  const cases = [...stdout.matchAll(/^(not ok|ok) \d+ - (.+)$/gm)].map(match => ({ status: match[1], name: match[2] }));
+  assert.equal(cases.length, counts.tests, "all selected tests must be top-level and independently counted");
+  assert.equal(cases.filter(entry => entry.status === "ok").length, counts.pass);
+  assert.equal(cases.filter(entry => entry.status === "not ok").length, counts.fail);
+  for (const key of ["skipped", "cancelled", "todo"]) assert.equal(counts[key], 0);
+  return { counts, cases };
+};
+
+mkdirSync(output, { recursive: true });
+const temporary = mkdtempSync(join(root, owned, ".work-"));
+const report = {
+  classification: "independent fixture-only snapshot-profile verification; not service, full-gate, atomic POSIX or ABA acceptance",
+  startedAt: new Date().toISOString(), freeze, seal, authorEvidence, headBefore: git("rev-parse", "HEAD"),
+  command: [process.execPath, ...process.argv.slice(1)], temporary, statusBefore: git("status", "--porcelain=v1"), indexBefore: git("diff", "--cached", "--raw"),
+  runtime: { node: process.version, executable: process.execPath, platform: process.platform, arch: process.arch, tsx: require("tsx/package.json").version, typescript: require("typescript/package.json").version, loader, compiler, loaderSha256: hash(readFileSync(loader)), compilerSha256: hash(readFileSync(compiler)) },
+  inputs: [], runs: [], mutants: [],
+};
+const save = (path, value) => writeFileSync(join(output, path), typeof value === "string" || Buffer.isBuffer(value) ? value : JSON.stringify(value, null, 2) + "\n");
+const execute = (name, args, { expectedStatus = 0, tests = false, failureName } = {}) => {
+  const result = spawnSync(process.execPath, args, { cwd: temporary, env: { ...process.env, TSX_DISABLE_CACHE: "1" }, encoding: "utf8", timeout: 120000, maxBuffer: 16 * 1024 * 1024 });
+  const stdout = result.stdout ?? "";
+  const stderr = result.stderr ?? "";
+  save(`${name}.stdout.log.data`, stdout);
+  save(`${name}.stderr.log.data`, stderr);
+  const record = { name, executable: process.execPath, args, cwd: temporary, environmentOverride: { TSX_DISABLE_CACHE: "1" }, status: result.status, signal: result.signal, error: result.error?.message, stdoutSha256: hash(stdout), stderrSha256: hash(stderr) };
+  report.runs.push(record);
+  assert.equal(result.error, undefined);
+  assert.equal(result.signal, null);
+  assert.equal(result.status, expectedStatus, stdout + stderr);
+  if (tests) {
+    Object.assign(record, parseTap(stdout));
+    assert.ok(record.counts.tests > 0);
+    if (expectedStatus === 0) assert.equal(record.counts.fail, 0);
+    else {
+      assert.equal(record.counts.tests, 1);
+      assert.equal(record.counts.fail, 1);
+      assert.equal(record.cases[0].name, failureName);
+      assert.match(stdout, /code: 'ERR_ASSERTION'/);
+    }
+  }
+  console.log(JSON.stringify({ name, status: record.status, counts: record.counts }));
+  return stdout;
+};
+const testArgs = (files, pattern) => ["--import", loader, "--test", "--test-reporter=tap", "--test-concurrency=1", ...(pattern ? [`--test-name-pattern=${pattern}`] : []), ...files];
+const checkIntegrity = () => {
+  for (const input of report.inputs) {
+    assert.equal(hash(readFileSync(join(root, input.path))), input.sha256, `live input changed: ${input.path}`);
+    assert.equal(hash(readFileSync(join(temporary, input.path))), input.sha256, `frozen input changed: ${input.path}`);
+  }
+};
+
+try {
+  assert.equal(git("rev-parse", "8b19cf4f"), freeze);
+  assert.equal(git("rev-parse", "12782961"), seal);
+  const historical = JSON.parse(blob(seal, `${author}/historical/manifest.json`));
+  const paths = [...new Set([
+    ...git("ls-tree", "-r", "--name-only", freeze, "--", "src", "package.json", "package-lock.json", "tsconfig.json", "tsconfig.build.json", author).split("\n"),
+    fixture, "tests/fs/conformance/fixtures.ts", "tests/fs/webdav/mock.ts", ...controls.map(control => control[1]),
+    historical.originalFailure.raw.path, historical.originalFailure.routing.path, historical.originalFailure.repositoryManifest.path,
+  ])].sort();
+  const archive = execFileSync("git", ["archive", freeze, ...paths], { cwd: root, maxBuffer: 32 * 1024 * 1024 });
+  report.archiveSha256 = hash(archive);
+  const unpack = spawnSync("tar", ["-x", "-C", temporary], { input: archive });
+  assert.equal(unpack.status, 0);
+  for (const path of paths) {
+    const bytes = readFileSync(join(temporary, path));
+    const entry = { path, sha256: hash(bytes), gitBlob: git("rev-parse", `${freeze}:${path}`), origin: freeze };
+    assert.equal(hash(readFileSync(join(root, path))), entry.sha256, `live input differs from freeze: ${path}`);
+    report.inputs.push(entry);
+  }
+  for (const path of [independent, `${owned}/run.mjs`]) {
+    mkdirSync(dirname(join(temporary, path)), { recursive: true });
+    copyFileSync(join(root, path), join(temporary, path));
+    report.inputs.push({ path, sha256: hash(readFileSync(join(root, path))), origin: "new independent overlay; exact bytes retained in this commit" });
+  }
+  report.changedPathsSinceSeal = git("diff", "--name-only", seal, freeze).split("\n");
+  assert.ok(report.changedPathsSinceSeal.every(path => path === fixture || path.startsWith(`${author}/`)));
+  const original = blob(historical.originalFixture.commit, fixture);
+  assert.equal(hash(original), historical.originalFixture.sha256);
+  assert.equal(git("rev-parse", `${historical.originalFixture.commit}:${fixture}`), historical.originalFixture.gitBlob);
+  assert.deepEqual(original, readFileSync(join(temporary, author, "historical/remote-safe-workflows.test.ts.data")));
+  for (const path of paths.filter(path => path.startsWith(`${author}/historical/`))) assert.deepEqual(blob(seal, path), readFileSync(join(temporary, path)));
+  const start = JSON.parse(readFileSync(join(temporary, author, "historical/author-start-inputs.json"), "utf8"));
+  const unchangedStartInputs = start.inputs.filter(input => input.path !== fixture);
+  for (const input of unchangedStartInputs) {
+    assert.equal(hash(readFileSync(join(temporary, input.path))), input.sha256);
+    assert.equal(git("rev-parse", `${freeze}:${input.path}`), input.gitBlob);
+  }
+  report.unchangedAuthorStartInputs = unchangedStartInputs.length;
+  const raw = historical.originalFailure.raw;
+  const encoded = readFileSync(join(temporary, raw.path));
+  assert.equal(hash(encoded), raw.storedSha256);
+  const decoded = gunzipSync(Buffer.from(encoded.toString().trim(), "base64"));
+  assert.equal(hash(decoded), raw.decodedSha256);
+  assert.equal(decoded.length, raw.decodedBytes);
+  const excerpt = decoded.toString().split("\n").slice(raw.lineStart - 1, raw.lineEnd).join("\n") + "\n";
+  assert.equal(hash(excerpt), raw.excerptSha256);
+  assert.match(excerpt, /not ok 16491 - s3: named-file cleanup/);
+  assert.match(excerpt, /Missing expected rejection/);
+  save("original-b494-excerpt.log.data", excerpt);
+  report.originalFailure = { ...historical.originalFailure, totals: Object.fromEntries([...decoded.toString().matchAll(/^# (tests|pass|fail|skipped|cancelled|todo) (\d+)$/gm)].map(match => [match[1], Number(match[2])])) };
+  for (const entry of [historical.originalFailure.routing, historical.originalFailure.repositoryManifest]) assert.equal(hash(readFileSync(join(temporary, entry.path))), entry.sha256);
+  const captureManifest = JSON.parse(readFileSync(join(temporary, historical.originalFailure.repositoryManifest.path), "utf8"));
+  const capture = captureManifest.captures.find(entry => entry.key === "canonical/test.stdout.log");
+  assert.equal(capture.originalSha256, raw.decodedSha256);
+  assert.equal(capture.storedSha256, raw.storedSha256);
+  const authorReportPath = `${author}/evidence/committed-run-001/report.json`;
+  const authorBytes = blob(authorEvidence, authorReportPath);
+  const authorReport = JSON.parse(authorBytes);
+  assert.equal(authorReport.sourceCommit, freeze);
+  report.authorEvidenceAuthentication = { commit: authorEvidence, reportSha256: hash(authorBytes), runs: [] };
+  for (const run of authorReport.runs) {
+    const stdout = blob(authorEvidence, `${author}/evidence/committed-run-001/${run.name}.stdout.log.data`);
+    const stderr = blob(authorEvidence, `${author}/evidence/committed-run-001/${run.name}.stderr.log.data`);
+    assert.equal(hash(stdout), run.stdoutSha256);
+    assert.equal(hash(stderr), run.stderrSha256);
+    const tap = run.name === "scoped-types" ? undefined : parseTap(stdout.toString());
+    if (tap) assert.deepEqual(tap.counts, run.counts);
+    report.authorEvidenceAuthentication.runs.push({ name: run.name, status: run.status, ...tap, stdoutSha256: hash(stdout), stderrSha256: hash(stderr) });
+  }
+  const authorPasses = report.authorEvidenceAuthentication.runs.filter(run => run.status === 0 && run.counts).reduce((sum, run) => sum + run.counts.pass, 0);
+  report.authorEvidenceAuthentication.observedPassingChecks = authorPasses;
+  const frozenFixture = readFileSync(join(temporary, fixture));
+  try {
+    writeFileSync(join(temporary, fixture), original);
+    const name = "s3: named-file cleanup leaves parents and unsupported empty rmdir has no effects";
+    const stdout = execute("fresh-old-assertion", testArgs([fixture], `^${name}$`), { tests: true, expectedStatus: 1, failureName: name });
+    assert.match(stdout, /Missing expected rejection/);
+  } finally { writeFileSync(join(temporary, fixture), frozenFixture); }
+  execute("migrated-workflows", testArgs([fixture]), { tests: true });
+  execute("author-guards", testArgs([`${author}/profile-guards.test.ts`, `${author}/preservation.test.ts`]), { tests: true });
+  for (const [name, file, pattern] of controls) execute(name, testArgs([file], pattern), { tests: true });
+  report.replayedAuthorChecks = report.runs.filter(run => run.status === 0 && run.counts).reduce((sum, run) => sum + run.counts.pass, 0);
+  assert.equal(report.replayedAuthorChecks, authorPasses);
+  execute("independent-guards", testArgs([independent]), { tests: true });
+  const config = { extends: "./tsconfig.json", compilerOptions: { noEmit: true, typeRoots: [join(root, "node_modules/@types")] }, files: [fixture, `${author}/assertions.ts`, `${author}/profile-guards.test.ts`, `${author}/preservation.test.ts`, independent, ...controls.map(control => control[1])], include: ["src/**/*.ts"], exclude: [] };
+  save("scoped-config.json.data", config);
+  writeFileSync(join(temporary, "tsconfig.independent.json"), JSON.stringify(config));
+  const listed = execute("scoped-types", [compiler, "-p", "tsconfig.independent.json", "--listFiles"]);
+  report.typeClosure = listed.trim().split("\n").map(path => {
+    const local = path.startsWith(temporary + "/");
+    if (local) assert.ok(report.inputs.some(input => input.path === relative(temporary, path)), `unfrozen type input ${path}`);
+    else assert.ok(path.startsWith(join(root, "node_modules") + "/"), `unexpected external type input ${path}`);
+    return { path: local ? relative(temporary, path) : path, origin: local ? "frozen-or-independent" : "installed-development-types", sha256: hash(readFileSync(path)) };
+  });
+  const s3 = "src/fs/s3/filesystem.ts";
+  const webdav = "src/fs/webdav/webdav.ts";
+  const deletion = '      await this.call("deleteObject", path, options, () => this.transport.deleteObject({ Bucket: this.bucket, Key: prefix }, this.requestOptions(options)));';
+  const quiescent = "independent quiescent profile preserves every object except the exact marker";
+  const late = "independent late descendants survive successful marker removal and retain visibility";
+  const webdavName = "independent stock WebDAV exact ENOTSUP preserves all parents and bytes";
+  const authorS3Name = "s3: named-file cleanup leaves parents and snapshot rmdir deletes only the empty marker";
+  const authorWebdavName = "webdav: named-file cleanup leaves parents and unsupported empty rmdir has no effects";
+  const mutants = [
+    { name: "declaration-false", file: s3, before: "      atomicRename: false, snapshotRmdir: true,", after: "      atomicRename: false, snapshotRmdir: false,", target: quiescent, authorTarget: authorS3Name },
+    { name: "declaration-omitted", file: s3, before: "      atomicRename: false, snapshotRmdir: true,", after: "      atomicRename: false,", target: quiescent, authorTarget: authorS3Name },
+    { name: "extra-child-delete", file: s3, before: deletion, after: deletion + '\n      await this.transport.deleteObject({ Bucket: this.bucket, Key: prefix + "child" }, this.requestOptions(options));', target: quiescent, authorTarget: authorS3Name },
+    { name: "sentinel-byte-mutation", file: s3, before: deletion, after: deletion + '\n      await this.transport.putObject({ Bucket: this.bucket, Key: "sentinel", Body: new Uint8Array([0, 3]) }, this.requestOptions(options));', target: quiescent, authorTarget: authorS3Name },
+    { name: "parent-marker-removal", file: s3, before: deletion, after: deletion + '\n      await this.transport.deleteObject({ Bucket: this.bucket, Key: "work/scratch/" }, this.requestOptions(options));', target: quiescent, authorTarget: authorS3Name },
+    { name: "webdav-false-success", file: webdav, before: '      this.unsupported("rmdir", path);', after: "      return;", target: webdavName, authorTarget: authorWebdavName },
+    { name: "late-child-delete", file: s3, before: deletion, after: deletion + '\n      await this.transport.deleteObject({ Bucket: this.bucket, Key: prefix + "late" }, this.requestOptions(options));', target: late },
+    { name: "incomplete-listing-accepted", file: s3, before: '        if (page.IsTruncated === undefined) fail("EIO", "rmdir", input, "listing did not confirm completeness");', after: "", target: "independent incomplete listing missing completeness fails closed" },
+  ];
+  for (const mutant of mutants) {
+    checkIntegrity();
+    const path = join(temporary, mutant.file);
+    const pristine = readFileSync(path, "utf8");
+    assert.equal(pristine.split(mutant.before).length, 2, "mutation must have one exact target");
+    const patch = `*** Begin Patch\n*** Update File: ${mutant.file}\n@@\n-${mutant.before}\n${mutant.after ? mutant.after.split("\n").map(line => "+" + line).join("\n") + "\n" : ""}*** End Patch\n`;
+    save(`mutant-${mutant.name}.patch.data`, patch);
+    const entry = { name: mutant.name, file: mutant.file, pristineSha256: hash(pristine), patchSha256: hash(patch), target: mutant.target, authorTarget: mutant.authorTarget, restored: false };
+    report.mutants.push(entry);
+    try {
+      const applied = spawnSync("apply_patch", [patch], { cwd: temporary, encoding: "utf8" });
+      save(`mutant-${mutant.name}.apply.log.data`, (applied.stdout ?? "") + (applied.stderr ?? ""));
+      assert.equal(applied.status, 0);
+      assert.equal(readFileSync(path, "utf8"), pristine.replace(mutant.before, mutant.after));
+      entry.mutatedSha256 = hash(readFileSync(path));
+      if (mutant.authorTarget) execute(`mutant-${mutant.name}-author`, testArgs([fixture], `^${mutant.authorTarget}$`), { tests: true, expectedStatus: 1, failureName: mutant.authorTarget });
+      execute(`mutant-${mutant.name}-independent`, testArgs([independent], `^${mutant.target}$`), { tests: true, expectedStatus: 1, failureName: mutant.target });
+      entry.detected = true;
+    } finally {
+      writeFileSync(path, pristine);
+      entry.restored = hash(readFileSync(path)) === entry.pristineSha256;
+    }
+  }
+  checkIntegrity();
+  execute("restored-workflows", testArgs([fixture]), { tests: true });
+  execute("restored-independent", testArgs([independent]), { tests: true });
+  report.status = "accepted-profile-bounded";
+} catch (error) {
+  report.status = "verification-failed";
+  report.error = error.stack ?? String(error);
+  process.exitCode = 1;
+} finally {
+  try { checkIntegrity(); report.finalInputIntegrity = true; }
+  catch (error) { report.finalInputIntegrity = false; report.integrityError = String(error); process.exitCode = 1; }
+  rmSync(temporary, { recursive: true, force: true });
+  report.cleaned = !existsSync(temporary);
+  report.finishedAt = new Date().toISOString();
+  report.headAfter = git("rev-parse", "HEAD");
+  report.statusAfter = git("status", "--porcelain=v1");
+  report.indexAfter = git("diff", "--cached", "--raw");
+  save("report.json", report);
+  console.log(JSON.stringify({ status: report.status, cleaned: report.cleaned, integrity: report.finalInputIntegrity, output, error: report.error }));
+}

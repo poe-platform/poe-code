@@ -1,0 +1,6 @@
+*** Begin Patch
+*** Update File: src/fs/webdav/webdav.ts
+@@
+-      this.unsupported("rmdir", path);
++      return;
+*** End Patch

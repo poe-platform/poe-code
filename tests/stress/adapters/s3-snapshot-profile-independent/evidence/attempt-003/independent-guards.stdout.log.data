@@ -1,0 +1,70 @@
+TAP version 13
+# Subtest: independent quiescent profile preserves every object except the exact marker
+ok 1 - independent quiescent profile preserves every object except the exact marker
+  ---
+  duration_ms: 9.5455
+  type: 'test'
+  ...
+# Subtest: independent observed descendant bytes refuses without effects
+ok 2 - independent observed descendant bytes refuses without effects
+  ---
+  duration_ms: 2.30825
+  type: 'test'
+  ...
+# Subtest: independent observed descendant child/ refuses without effects
+ok 3 - independent observed descendant child/ refuses without effects
+  ---
+  duration_ms: 1.618875
+  type: 'test'
+  ...
+# Subtest: independent observed descendant child/deep-bytes refuses without effects
+ok 4 - independent observed descendant child/deep-bytes refuses without effects
+  ---
+  duration_ms: 1.421541
+  type: 'test'
+  ...
+# Subtest: independent late descendants survive successful marker removal and retain visibility
+ok 5 - independent late descendants survive successful marker removal and retain visibility
+  ---
+  duration_ms: 2.506
+  type: 'test'
+  ...
+# Subtest: independent incomplete listing missing completeness fails closed
+ok 6 - independent incomplete listing missing completeness fails closed
+  ---
+  duration_ms: 1.176416
+  type: 'test'
+  ...
+# Subtest: independent incomplete listing missing token fails closed
+ok 7 - independent incomplete listing missing token fails closed
+  ---
+  duration_ms: 1.057792
+  type: 'test'
+  ...
+# Subtest: independent incomplete listing repeated token fails closed
+ok 8 - independent incomplete listing repeated token fails closed
+  ---
+  duration_ms: 1.431708
+  type: 'test'
+  ...
+# Subtest: independent failed final listing preserves all bytes and markers
+ok 9 - independent failed final listing preserves all bytes and markers
+  ---
+  duration_ms: 1.1145
+  type: 'test'
+  ...
+# Subtest: independent stock WebDAV exact ENOTSUP preserves all parents and bytes
+ok 10 - independent stock WebDAV exact ENOTSUP preserves all parents and bytes
+  ---
+  duration_ms: 18.5005
+  type: 'test'
+  ...
+1..10
+# tests 10
+# suites 0
+# pass 10
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 179.178792

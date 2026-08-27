@@ -1,0 +1,64 @@
+TAP version 13
+# Subtest: s3: named-file cleanup leaves parents and snapshot rmdir deletes only the empty marker
+not ok 1 - s3: named-file cleanup leaves parents and snapshot rmdir deletes only the empty marker
+  ---
+  duration_ms: 5.831917
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/stress/adapters/s3-snapshot-profile-independent/.work-Kq3dhV/tests/stress/adapters/remote-safe-workflows.test.ts:1:1990'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    ... Skipped lines
+    
+      [
+        {
+          input: {
+            Bucket: 'safe-workflows',
+            Key: 'work/scratch/nested/'
+    ...
+        },
+    +   {
+    +     input: {
+    +       Bucket: 'safe-workflows',
+    +       Key: 'work/scratch/nested/child'
+    +     },
+    +     operation: 'deleteObject'
+    +   }
+      ]
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    0:
+      operation: 'deleteObject'
+      input:
+        Bucket: 'safe-workflows'
+        Key: 'work/scratch/nested/'
+  actual:
+    0:
+      operation: 'deleteObject'
+      input:
+        Bucket: 'safe-workflows'
+        Key: 'work/scratch/nested/'
+    1:
+      operation: 'deleteObject'
+      input:
+        Bucket: 'safe-workflows'
+        Key: 'work/scratch/nested/child'
+  operator: 'deepStrictEqual'
+  stack: |-
+    assertExactMarkerRemoval (/Users/kjopek/Workspace/safe-bash/tests/stress/adapters/s3-snapshot-profile-independent/.work-Kq3dhV/tests/stress/adapters/s3-snapshot-profile/assertions.ts:26:10)
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/stress/adapters/s3-snapshot-profile-independent/.work-Kq3dhV/tests/stress/adapters/remote-safe-workflows.test.ts:77:7)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 0
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 140.053167

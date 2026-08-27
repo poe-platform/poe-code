@@ -4,6 +4,7 @@ import type {
   FileSystem, FileSystemCapabilities, FsOptions, MkdirOptions, ReadFileOptions,
   ReadStreamOptions, RemoveOptions, WriteFileOptions,
 } from "../../contracts/index.js";
+import { compareEntries, registerEntryView } from "../mount/comparison.js";
 
 function readOnly(syscall: string, path: string, dest?: string): never {
   throw new FsError("EROFS", { syscall, path, ...(dest === undefined ? {} : { dest }) });
@@ -29,6 +30,7 @@ export class ReadOnlyFileSystem implements FileSystem {
 
   constructor(filesystem: FileSystem) {
     this.#filesystem = filesystem;
+    registerEntryView(this, async (path) => ({ filesystem: this.#filesystem, path, readOnly: true }));
     const streamingRead = typeof filesystem.readStream === "function" ? filesystem.capabilities.streamingRead : false;
     this.#capabilities = Object.freeze({
       readOnly: true,
@@ -56,6 +58,10 @@ export class ReadOnlyFileSystem implements FileSystem {
 
   async lstat(path: string, options?: FsOptions): Promise<FileStat> {
     return snapshotStat(await this.#filesystem.lstat(path, options));
+  }
+
+  compareEntry(path: string, peer: FileSystem, peerPath: string, options: FsOptions = {}) {
+    return compareEntries(this, path, peer, peerPath, options);
   }
 
   async readdir(path: string, options?: FsOptions): Promise<DirectoryEntry[]> {

@@ -93,9 +93,14 @@ consumption. New-file modes are requested only from permission-capable writers.
 Complete `identityScope`/`dev`/`ino` tuples reject observed aliases before source
 acquisition or target writes (`EINVAL`, or `EEXIST` for exclusive copies).
 Different complete scopes must denote genuinely disjoint storage; missing or
-invalid identity cannot justify an existing overwrite through this wrapper
-(`ENOTSUP`), even on one mount: arbitrary `copyFile` method presence is not a
-negotiated native guard. Direct backend-native copies retain their own guards.
+invalid identity alone cannot justify an existing overwrite through this wrapper.
+For unknown tuples, the approved optional `compareEntry` authority is consulted
+before content acquisition. Recognized distinctness permits copying; unknown
+remains `ENOTSUP`, and invalid or conflicting answers fail `EIO`. Arbitrary
+`copyFile` method presence is not a negotiated native guard. Both operands resolve
+through trusted wrapper views without erasing readonly policy. A shared actual
+backend can receive its native copy operation after the guard, even when mounted
+twice. See `COMPARISON.md` for the internal integration API and provider limits.
 Observed missing targets use exclusive creation, preserving raced entries.
 These are point-in-time checks, not leases or pathname/ABA race protection.
 Copy is not a transaction: a failed destination write can leave partial bytes,

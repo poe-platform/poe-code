@@ -3,10 +3,14 @@
 This directory exports `ReadOnlyFileSystem implements FileSystem`, with
 `constructor(filesystem: FileSystem)`, and the synchronous factory
 `createReadOnlyFileSystem(filesystem: FileSystem): ReadOnlyFileSystem`.
-It uses only the shared contracts and has no runtime package dependencies.
+It uses the shared contracts and internal entry-comparison helper, with no runtime package dependencies.
 No package-root or package-subpath export is added by this component.
 
 ## Mutation policy
+
+`compareEntry` is metadata-only: it resolves both actual backing views using the
+internal comparison helper and preserves readonly policy. Its result never
+authorizes a mutation through this wrapper; all denials below remain unchanged.
 
 Every mutation rejects its returned promise with `FsError` code `EROFS`, before
 reading options, inspecting payloads, checking paths, or calling the delegate.

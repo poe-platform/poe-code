@@ -7,6 +7,13 @@ backends must be distinct, non-aliasing storage namespaces. Upper must be
 exclusively owned by this instance; lower must not be externally modified while
 the instance is in use. No other wrappers are required.
 
+`compareEntry` resolves both followed read views without copy-up or staging
+cleanup. It exposes the currently selected backing entry, not future write
+authority. `copyFile` separately resolves its destination inside the mutation
+queue, checks any physical upper target before content acquisition, and uses
+the approved comparison authority when complete scoped identities are unknown.
+Unknown remains unsupported; invalid/conflicting authority answers fail `EIO`.
+
 Symlink namespace agreement is checked, not assumed. Before returning a resolved
 path, every followed link's backend must confirm that the complete remaining
 request resolves to the same canonical path as the overlay. This uses backend

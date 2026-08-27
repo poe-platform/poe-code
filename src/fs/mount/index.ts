@@ -9,6 +9,7 @@ import type { ByteSource } from "../../contracts/io.js";
 import { readBytes } from "../../contracts/io.js";
 import { normalizePath, validatePath } from "../../contracts/path.js";
 import { compareIdentity } from "./identity.js";
+import { compareEntries, registerEntryAuthority, registerEntryView } from "./comparison.js";
 
 export interface MountFileSystemOptions {
   readonly root: FileSystem;
@@ -104,6 +105,12 @@ export class MountFileSystem implements FileSystem {
       add(path, backend);
     }
     this.mounts = mounts.sort((left, right) => right.path.length - left.path.length);
+    registerEntryView(this, (path, options) => this.operation("compareEntry", path, options, async () => {
+      const location = await this.resolve(path, options);
+      if (location.synthetic) return { filesystem: this, path, stat: syntheticStat, readOnly: true };
+      return { filesystem: location.mount.backend, path: location.local };
+    }));
+    registerEntryAuthority(this, async () => "unknown");
     const all = (capability: string, methods: readonly (keyof FileSystem)[] = []): boolean =>
       mounts.every(({ backend }) => backend.capabilities[capability] === true
         && methods.every((method) => typeof backend[method] === "function"));
@@ -416,11 +423,15 @@ export class MountFileSystem implements FileSystem {
       this.mutable(target);
       if (options.exclusive && target.stat) fail("EEXIST");
       if (origin.mount.backend === target.mount.backend && origin.local === target.local) fail("EINVAL");
-      const identity = compareIdentity(origin.stat, target.stat);
+      let identity = compareIdentity(origin.stat, target.stat);
       if (identity === "same") fail("EINVAL");
       if (target.stat?.type === "directory") fail("EISDIR");
+      if (target.stat && identity === "unknown") {
+        identity = await compareEntries(origin.mount.backend, origin.local, target.mount.backend, target.local, options);
+        if (identity === "same") fail("EINVAL");
+      }
       if (target.stat && identity === "unknown") fail("ENOTSUP");
-      if (origin.mount === target.mount) {
+      if (origin.mount.backend === target.mount.backend) {
         await origin.mount.backend.copyFile(origin.local, target.local, { ...options, exclusive: options.exclusive || !target.stat });
         return;
       }
@@ -452,6 +463,10 @@ export class MountFileSystem implements FileSystem {
 
   realpath(path: string, options: FsOptions = {}): Promise<string> {
     return this.operation("realpath", path, options, async () => (await this.resolve(path, options)).path);
+  }
+
+  compareEntry(path: string, peer: FileSystem, peerPath: string, options: FsOptions = {}) {
+    return this.operation("compareEntry", path, options, () => compareEntries(this, path, peer, peerPath, options), peerPath);
   }
 
   access(path: string, mode = 0, options: FsOptions = {}): Promise<void> {

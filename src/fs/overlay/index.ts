@@ -3,6 +3,7 @@ import {
   collectBytes, dirname, FsError, isPathWithin, normalizePath, readBytes, toFsError, validatePath,
 } from "../../contracts/index.js";
 import { compareIdentity } from "../mount/identity.js";
+import { compareEntries, registerEntryView } from "../mount/comparison.js";
 import type {
   AppendFileOptions, ByteSource, CopyFileOptions, DirectoryEntry, ErrnoCode,
   FileStat, FileSystem, FileSystemCapabilities, FsOptions, MkdirOptions,
@@ -111,6 +112,10 @@ export class OverlayFileSystem implements FileSystem {
     if (options.upper === options.lower) throw new TypeError("Overlay upper and lower must be distinct backends");
     this.#upper = options.upper;
     this.#lower = options.lower;
+    registerEntryView(this, (path, options) => this.run(options, async () => {
+      const entry = await this.required(path, options);
+      return { filesystem: entry.backend, path: entry.path, readOnly: this.capabilities.readOnly === true };
+    }, false));
     this.maxBufferBytes = options.maxBufferBytes ?? 64 * 1024 * 1024;
     integer(this.maxBufferBytes, "/");
     const writable = !this.#upper.capabilities.readOnly && this.#upper.capabilities.atomicRename === true;
@@ -170,6 +175,7 @@ export class OverlayFileSystem implements FileSystem {
     let stat: FileStat;
     try { stat = await backend.lstat(path, options); }
     catch (error) {
+      options.signal?.throwIfAborted();
       if (hasCode(error, "ENOENT")) return undefined;
       throw error;
     }
@@ -521,6 +527,10 @@ export class OverlayFileSystem implements FileSystem {
     return this.run(options, async () => snapshotStat((await this.required(path, options, false)).stat), false);
   }
 
+  compareEntry(path: string, peer: FileSystem, peerPath: string, options: FsOptions = {}) {
+    return compareEntries(this, path, peer, peerPath, options);
+  }
+
   async readdir(path: string, options: FsOptions = {}): Promise<DirectoryEntry[]> {
     return this.run(options, async () => this.listing(await this.required(path, options), options));
   }
@@ -670,9 +680,19 @@ export class OverlayFileSystem implements FileSystem {
       const target = await this.writeLocation(destination, { ...options, flag: options.exclusive ? "wx" : "w" });
       if (original.path === target.path) fail("EINVAL", destination, "source and destination are the same file");
       if (target.entry) {
-        const identity = compareIdentity(original.stat, target.entry.stat);
+        let identity = compareIdentity(original.stat, target.entry.stat);
+        if (identity === "unknown") identity = await compareEntries(original.backend, original.path, target.entry.backend, target.entry.path, options);
         if (identity === "same") fail("EINVAL", destination, "source and destination are the same file");
         if (identity === "unknown") fail("ENOTSUP", destination, "backing-entry identity is unknown");
+      }
+      if (target.entry?.backend !== this.#upper) {
+        const upper = await this.maybeStat(this.#upper, target.path, options);
+        if (upper) {
+          let identity = compareIdentity(original.stat, upper);
+          if (identity === "unknown") identity = await compareEntries(original.backend, original.path, this.#upper, target.path, options);
+          if (identity === "same") fail("EINVAL", destination, "source and destination are the same file");
+          if (identity === "unknown") fail("ENOTSUP", destination, "upper backing-entry identity is unknown");
+        }
       }
       await this.cleanGarbage(false);
       const bytes = await this.bytes(original, options);

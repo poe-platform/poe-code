@@ -1,0 +1,8 @@
+[
+  {
+    "code": 2322,
+    "file": "tests/commands/regex-execution/continuation/glob.test.ts",
+    "start": 5276,
+    "message": "Type 'Promise<ExprMatchResult>' is not assignable to type 'Promise<Match[][]>'.\n  Type 'ExprMatchResult' is missing the following properties from type 'Match[][]': length, pop, push, concat, and 35 more."
+  }
+]

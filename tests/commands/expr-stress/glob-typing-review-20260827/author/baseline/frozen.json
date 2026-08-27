@@ -1,0 +1,12 @@
+{
+  "frozenBeforeFix": "2026-08-27T20:30:43.005Z",
+  "fixture": "3e128ac96388c1a6389dc62e2ed6c0c931fe750ab71ea2028c474793316b47dd",
+  "diagnosticCodes": [
+    2339,
+    2345,
+    2769
+  ],
+  "exactForeignDiagnosticMatch": true,
+  "emittedJs": "b995643979e9447809a8c216768e021e00700c854b3477469a3cfaa57f32e146",
+  "runtimeExpected": 0
+}

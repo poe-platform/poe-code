@@ -1,0 +1,34 @@
+TAP version 13
+# Subtest: worker globs retain code-unit strings, Unicode predicates and ancestor policy
+ok 1 - worker globs retain code-unit strings, Unicode predicates and ancestor policy
+  ---
+  duration_ms: 16.881542
+  type: 'test'
+  ...
+# Subtest: glob validation preserves first invalid rule and ignore-file literal brackets
+ok 2 - glob validation preserves first invalid rule and ignore-file literal brackets
+  ---
+  duration_ms: 55.476625
+  type: 'test'
+  ...
+# Subtest: glob batching caps ordinary descriptors without reordering matches
+ok 3 - glob batching caps ordinary descriptors without reordering matches
+  ---
+  duration_ms: 14.748875
+  type: 'test'
+  ...
+# Subtest: glob queue accounting includes options and UTF16LE path bytes
+ok 4 - glob queue accounting includes options and UTF16LE path bytes
+  ---
+  duration_ms: 0.14875
+  type: 'test'
+  ...
+1..4
+# tests 4
+# suites 0
+# pass 4
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 218.249375

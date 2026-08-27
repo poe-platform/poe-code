@@ -1,0 +1,8 @@
+[
+  {
+    "code": 2339,
+    "file": "tests/commands/regex-execution/continuation/glob.test.ts",
+    "start": 5286,
+    "message": "Property 'flags' does not exist on type 'Descriptor'.\n  Property 'flags' does not exist on type 'GrepDescriptor'."
+  }
+]

@@ -1,0 +1,191 @@
+[
+  {
+    "name": "head",
+    "command": "git",
+    "args": [
+      "rev-parse",
+      "HEAD"
+    ],
+    "started": "2026-08-27T20:31:01.864Z",
+    "finished": "2026-08-27T20:31:01.891Z",
+    "pid": 99315,
+    "code": 0,
+    "signal": null,
+    "timedOut": false,
+    "overflow": false,
+    "groupRemaining": false,
+    "expected": 0
+  },
+  {
+    "name": "status",
+    "command": "git",
+    "args": [
+      "status",
+      "--short"
+    ],
+    "started": "2026-08-27T20:31:01.891Z",
+    "finished": "2026-08-27T20:31:02.105Z",
+    "pid": 99320,
+    "code": 0,
+    "signal": null,
+    "timedOut": false,
+    "overflow": false,
+    "groupRemaining": false,
+    "expected": 0
+  },
+  {
+    "name": "index",
+    "command": "git",
+    "args": [
+      "diff",
+      "--cached",
+      "--name-only"
+    ],
+    "started": "2026-08-27T20:31:02.105Z",
+    "finished": "2026-08-27T20:31:02.126Z",
+    "pid": 99332,
+    "code": 0,
+    "signal": null,
+    "timedOut": false,
+    "overflow": false,
+    "groupRemaining": false,
+    "expected": 0
+  },
+  {
+    "name": "focused-tsc",
+    "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "args": [
+      "node_modules/typescript/bin/tsc",
+      "--pretty",
+      "false",
+      "--noEmit",
+      "--target",
+      "ES2023",
+      "--lib",
+      "ES2023",
+      "--module",
+      "NodeNext",
+      "--moduleResolution",
+      "NodeNext",
+      "--strict",
+      "--noUncheckedIndexedAccess",
+      "--exactOptionalPropertyTypes",
+      "--verbatimModuleSyntax",
+      "--forceConsistentCasingInFileNames",
+      "--skipLibCheck",
+      "--types",
+      "node",
+      "tests/commands/regex-execution/continuation/glob.test.ts"
+    ],
+    "started": "2026-08-27T20:31:02.128Z",
+    "finished": "2026-08-27T20:31:02.485Z",
+    "pid": 99333,
+    "code": 0,
+    "signal": null,
+    "timedOut": false,
+    "overflow": false,
+    "groupRemaining": false,
+    "expected": 0
+  },
+  {
+    "name": "scoped-tsc",
+    "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "args": [
+      "node_modules/typescript/bin/tsc",
+      "--pretty",
+      "false",
+      "-p",
+      "tests/commands/regex-execution/continuation/tsconfig.json"
+    ],
+    "started": "2026-08-27T20:31:04.344Z",
+    "finished": "2026-08-27T20:31:05.774Z",
+    "pid": 99339,
+    "code": 0,
+    "signal": null,
+    "timedOut": false,
+    "overflow": false,
+    "groupRemaining": false,
+    "expected": 0
+  },
+  {
+    "name": "canonical-scoped",
+    "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "args": [
+      "--import",
+      "tsx",
+      "--test",
+      "tests/commands/regex-execution/continuation/glob.test.ts",
+      "tests/commands/regex-execution/continuation/glob-transport.test.ts",
+      "tests/commands/expr/regex-protocol.test.ts"
+    ],
+    "started": "2026-08-27T20:31:05.775Z",
+    "finished": "2026-08-27T20:31:06.150Z",
+    "pid": 99370,
+    "code": 0,
+    "signal": null,
+    "timedOut": false,
+    "overflow": false,
+    "groupRemaining": false,
+    "expected": 0
+  },
+  {
+    "name": "negative-runtime-batch-order",
+    "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "args": [
+      "--import",
+      "tsx",
+      "--input-type=module",
+      "-e",
+      "import assert from \"node:assert/strict\";\nimport { getEventListeners } from \"node:events\";\nimport test from \"node:test\";\nimport { RegexExecutor } from \"file:///Users/kjopek/Workspace/safe-bash/src/commands/regex-execution/client.ts\";\nimport { inputBytes } from \"file:///Users/kjopek/Workspace/safe-bash/src/commands/regex-execution/protocol.ts\";\nimport { Glob, ignoreRules, matchGlobs } from \"file:///Users/kjopek/Workspace/safe-bash/src/commands/search/glob.ts\";\ntest(\"worker globs retain code-unit strings, Unicode predicates and ancestor policy\", async () => {\n    const executor = new RegexExecutor();\n    const controller = new AbortController();\n    const session = executor.open(controller.signal);\n    try {\n        const cases = [\n            [\"?.ts\", \"🙂.ts\", false, false, false, true],\n            [\"\\ud800.ts\", \"\\ud800.ts\", false, false, false, true],\n            [\"\\ud800.ts\", \"�.ts\", false, false, false, false],\n            [\"k.ts\", \"K.ts\", false, false, true, true],\n            [\"sub/\", \"sub/file\", false, true, false, true],\n            [\"sub/\", \"sub/file\", false, false, false, false],\n            [\"sub/\", \"sub\", false, false, false, false],\n            [\"sub/\", \"sub\", true, false, false, true],\n            [\"**/alpha\", \"dir/alpha\", false, false, false, true],\n            [\"**/alpha\", \"dir\\n/alpha\", false, false, false, false],\n            [\"[!a-c]\", \"z\", false, false, false, true],\n            [\"{alpha,{beta,gamma}}\", \"beta\", false, false, false, true],\n        ];\n        const globs = cases.map(([source, , , , insensitive]) => new Glob(source, insensitive));\n        const candidates = cases.map(([, path, directory, ancestors]) => ({ path, directory, ancestors }));\n        assert.deepEqual(await matchGlobs(globs, candidates, session), cases.map(([, , , , , expected]) => expected));\n    }\n    finally {\n        await session.close();\n        await executor.dispose();\n    }\n    assert.equal(getEventListeners(controller.signal, \"abort\").length, 0);\n});\ntest(\"glob validation preserves first invalid rule and ignore-file literal brackets\", async () => {\n    const executor = new RegexExecutor();\n    const session = executor.open(new AbortController().signal);\n    try {\n        await assert.rejects(matchGlobs([new Glob(\"[z-a]\"), new Glob(\"{\")], [], session), /Range out of order/u);\n        await assert.rejects(matchGlobs([new Glob(\"{\"), new Glob(\"[z-a]\")], [], session), /unclosed glob brace/u);\n        await assert.rejects(matchGlobs([new Glob(\"alpha[\")], [], session), /unclosed glob character class/u);\n        const rules = await ignoreRules(\"# ignored\\nalpha[\\n!beta\\\\ \\n\", \"/\", 2, session);\n        assert.deepEqual(rules.map(rule => [rule.glob.source, rule.include]), [[\"alpha[\", false], [\"beta\\\\ \", true]]);\n        assert.equal(await rules[0].glob.matches(\"alpha[\", false, session, false), true);\n        assert.equal(await rules[1].glob.matches(\"beta \", false, session, false), true);\n    }\n    finally {\n        await session.close();\n        await executor.dispose();\n    }\n});\ntest(\"glob batching caps ordinary descriptors without reordering matches\", async () => {\n    const executor = new RegexExecutor();\n    const session = executor.open(new AbortController().signal);\n    const original = executor.request.bind(executor);\n    const requests = [];\n    executor.request = (descriptor, rows, signal) => {\n        requests.push({ patterns: descriptor.patterns.length, rows: rows.length, bytes: inputBytes(descriptor, rows, signal) });\n        return original(descriptor, rows, signal);\n    };\n    try {\n        const globs = Array.from({ length: 260 }, (_, index) => new Glob(index % 2 ? \"alpha.*\" : \"beta.*\"));\n        const matches = await matchGlobs(globs, globs.map(() => ({ path: \"alpha.ts\", directory: false, ancestors: false })), session);\n        assert.deepEqual(matches, globs.map((_, index) => Boolean(index % 2)));\n        assert.deepEqual(requests.map(request => [request.patterns, request.rows]), [[127, 128], [128, 128], [4, 4]]);\n        assert.ok(requests.every(request => request.bytes <= 64 * 1024));\n    }\n    finally {\n        await session.close();\n        await executor.dispose();\n    }\n});\ntest(\"glob queue accounting includes options and UTF16LE path bytes\", () => {\n    const descriptor = { kind: \"glob\", patterns: [\"alpha.*\"], globOptions: [{ insensitive: false, literalUnclosedClass: false }] };\n    const signal = new AbortController().signal;\n    assert.equal(inputBytes(descriptor, [{ bytes: Buffer.from(\"🙂.ts\", \"utf16le\"), all: false, terminated: true }], signal), 128 + 32 + 16 + 14 + 32 + 10);\n    const executor = new RegexExecutor();\n    const controller = new AbortController();\n    controller.abort(new Error(\"before glob admission\"));\n    assert.throws(() => executor.open(controller.signal), /before glob admission/u);\n    assert.equal(getEventListeners(controller.signal, \"abort\").length, 0);\n});\n"
+    ],
+    "started": "2026-08-27T20:31:06.151Z",
+    "finished": "2026-08-27T20:31:06.360Z",
+    "pid": 99375,
+    "code": 1,
+    "signal": null,
+    "timedOut": false,
+    "overflow": false,
+    "groupRemaining": false,
+    "expected": 1
+  },
+  {
+    "name": "negative-runtime-invalid-rule",
+    "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "args": [
+      "--import",
+      "tsx",
+      "--input-type=module",
+      "-e",
+      "import assert from \"node:assert/strict\";\nimport { getEventListeners } from \"node:events\";\nimport test from \"node:test\";\nimport { RegexExecutor } from \"file:///Users/kjopek/Workspace/safe-bash/src/commands/regex-execution/client.ts\";\nimport { inputBytes } from \"file:///Users/kjopek/Workspace/safe-bash/src/commands/regex-execution/protocol.ts\";\nimport { Glob, ignoreRules, matchGlobs } from \"file:///Users/kjopek/Workspace/safe-bash/src/commands/search/glob.ts\";\ntest(\"worker globs retain code-unit strings, Unicode predicates and ancestor policy\", async () => {\n    const executor = new RegexExecutor();\n    const controller = new AbortController();\n    const session = executor.open(controller.signal);\n    try {\n        const cases = [\n            [\"?.ts\", \"🙂.ts\", false, false, false, true],\n            [\"\\ud800.ts\", \"\\ud800.ts\", false, false, false, true],\n            [\"\\ud800.ts\", \"�.ts\", false, false, false, false],\n            [\"k.ts\", \"K.ts\", false, false, true, true],\n            [\"sub/\", \"sub/file\", false, true, false, true],\n            [\"sub/\", \"sub/file\", false, false, false, false],\n            [\"sub/\", \"sub\", false, false, false, false],\n            [\"sub/\", \"sub\", true, false, false, true],\n            [\"**/alpha\", \"dir/alpha\", false, false, false, true],\n            [\"**/alpha\", \"dir\\n/alpha\", false, false, false, false],\n            [\"[!a-c]\", \"z\", false, false, false, true],\n            [\"{alpha,{beta,gamma}}\", \"beta\", false, false, false, true],\n        ];\n        const globs = cases.map(([source, , , , insensitive]) => new Glob(source, insensitive));\n        const candidates = cases.map(([, path, directory, ancestors]) => ({ path, directory, ancestors }));\n        assert.deepEqual(await matchGlobs(globs, candidates, session), cases.map(([, , , , , expected]) => expected));\n    }\n    finally {\n        await session.close();\n        await executor.dispose();\n    }\n    assert.equal(getEventListeners(controller.signal, \"abort\").length, 0);\n});\ntest(\"glob validation preserves first invalid rule and ignore-file literal brackets\", async () => {\n    const executor = new RegexExecutor();\n    const session = executor.open(new AbortController().signal);\n    try {\n        await assert.rejects(matchGlobs([new Glob(\"[z-a]\"), new Glob(\"{\")], [], session), /deliberately impossible diagnostic/u);\n        await assert.rejects(matchGlobs([new Glob(\"{\"), new Glob(\"[z-a]\")], [], session), /unclosed glob brace/u);\n        await assert.rejects(matchGlobs([new Glob(\"alpha[\")], [], session), /unclosed glob character class/u);\n        const rules = await ignoreRules(\"# ignored\\nalpha[\\n!beta\\\\ \\n\", \"/\", 2, session);\n        assert.deepEqual(rules.map(rule => [rule.glob.source, rule.include]), [[\"alpha[\", false], [\"beta\\\\ \", true]]);\n        assert.equal(await rules[0].glob.matches(\"alpha[\", false, session, false), true);\n        assert.equal(await rules[1].glob.matches(\"beta \", false, session, false), true);\n    }\n    finally {\n        await session.close();\n        await executor.dispose();\n    }\n});\ntest(\"glob batching caps ordinary descriptors without reordering matches\", async () => {\n    const executor = new RegexExecutor();\n    const session = executor.open(new AbortController().signal);\n    const original = executor.request.bind(executor);\n    const requests = [];\n    executor.request = (descriptor, rows, signal) => {\n        requests.push({ patterns: descriptor.patterns.length, rows: rows.length, bytes: inputBytes(descriptor, rows, signal) });\n        return original(descriptor, rows, signal);\n    };\n    try {\n        const globs = Array.from({ length: 260 }, (_, index) => new Glob(index % 2 ? \"alpha.*\" : \"beta.*\"));\n        const matches = await matchGlobs(globs, globs.map(() => ({ path: \"alpha.ts\", directory: false, ancestors: false })), session);\n        assert.deepEqual(matches, globs.map((_, index) => Boolean(index % 2)));\n        assert.deepEqual(requests.map(request => [request.patterns, request.rows]), [[128, 128], [128, 128], [4, 4]]);\n        assert.ok(requests.every(request => request.bytes <= 64 * 1024));\n    }\n    finally {\n        await session.close();\n        await executor.dispose();\n    }\n});\ntest(\"glob queue accounting includes options and UTF16LE path bytes\", () => {\n    const descriptor = { kind: \"glob\", patterns: [\"alpha.*\"], globOptions: [{ insensitive: false, literalUnclosedClass: false }] };\n    const signal = new AbortController().signal;\n    assert.equal(inputBytes(descriptor, [{ bytes: Buffer.from(\"🙂.ts\", \"utf16le\"), all: false, terminated: true }], signal), 128 + 32 + 16 + 14 + 32 + 10);\n    const executor = new RegexExecutor();\n    const controller = new AbortController();\n    controller.abort(new Error(\"before glob admission\"));\n    assert.throws(() => executor.open(controller.signal), /before glob admission/u);\n    assert.equal(getEventListeners(controller.signal, \"abort\").length, 0);\n});\n"
+    ],
+    "started": "2026-08-27T20:31:06.361Z",
+    "finished": "2026-08-27T20:31:06.548Z",
+    "pid": 99376,
+    "code": 1,
+    "signal": null,
+    "timedOut": false,
+    "overflow": false,
+    "groupRemaining": false,
+    "expected": 1
+  },
+  {
+    "name": "negative-runtime-byte-budget",
+    "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "args": [
+      "--import",
+      "tsx",
+      "--input-type=module",
+      "-e",
+      "import assert from \"node:assert/strict\";\nimport { getEventListeners } from \"node:events\";\nimport test from \"node:test\";\nimport { RegexExecutor } from \"file:///Users/kjopek/Workspace/safe-bash/src/commands/regex-execution/client.ts\";\nimport { inputBytes } from \"file:///Users/kjopek/Workspace/safe-bash/src/commands/regex-execution/protocol.ts\";\nimport { Glob, ignoreRules, matchGlobs } from \"file:///Users/kjopek/Workspace/safe-bash/src/commands/search/glob.ts\";\ntest(\"worker globs retain code-unit strings, Unicode predicates and ancestor policy\", async () => {\n    const executor = new RegexExecutor();\n    const controller = new AbortController();\n    const session = executor.open(controller.signal);\n    try {\n        const cases = [\n            [\"?.ts\", \"🙂.ts\", false, false, false, true],\n            [\"\\ud800.ts\", \"\\ud800.ts\", false, false, false, true],\n            [\"\\ud800.ts\", \"�.ts\", false, false, false, false],\n            [\"k.ts\", \"K.ts\", false, false, true, true],\n            [\"sub/\", \"sub/file\", false, true, false, true],\n            [\"sub/\", \"sub/file\", false, false, false, false],\n            [\"sub/\", \"sub\", false, false, false, false],\n            [\"sub/\", \"sub\", true, false, false, true],\n            [\"**/alpha\", \"dir/alpha\", false, false, false, true],\n            [\"**/alpha\", \"dir\\n/alpha\", false, false, false, false],\n            [\"[!a-c]\", \"z\", false, false, false, true],\n            [\"{alpha,{beta,gamma}}\", \"beta\", false, false, false, true],\n        ];\n        const globs = cases.map(([source, , , , insensitive]) => new Glob(source, insensitive));\n        const candidates = cases.map(([, path, directory, ancestors]) => ({ path, directory, ancestors }));\n        assert.deepEqual(await matchGlobs(globs, candidates, session), cases.map(([, , , , , expected]) => expected));\n    }\n    finally {\n        await session.close();\n        await executor.dispose();\n    }\n    assert.equal(getEventListeners(controller.signal, \"abort\").length, 0);\n});\ntest(\"glob validation preserves first invalid rule and ignore-file literal brackets\", async () => {\n    const executor = new RegexExecutor();\n    const session = executor.open(new AbortController().signal);\n    try {\n        await assert.rejects(matchGlobs([new Glob(\"[z-a]\"), new Glob(\"{\")], [], session), /Range out of order/u);\n        await assert.rejects(matchGlobs([new Glob(\"{\"), new Glob(\"[z-a]\")], [], session), /unclosed glob brace/u);\n        await assert.rejects(matchGlobs([new Glob(\"alpha[\")], [], session), /unclosed glob character class/u);\n        const rules = await ignoreRules(\"# ignored\\nalpha[\\n!beta\\\\ \\n\", \"/\", 2, session);\n        assert.deepEqual(rules.map(rule => [rule.glob.source, rule.include]), [[\"alpha[\", false], [\"beta\\\\ \", true]]);\n        assert.equal(await rules[0].glob.matches(\"alpha[\", false, session, false), true);\n        assert.equal(await rules[1].glob.matches(\"beta \", false, session, false), true);\n    }\n    finally {\n        await session.close();\n        await executor.dispose();\n    }\n});\ntest(\"glob batching caps ordinary descriptors without reordering matches\", async () => {\n    const executor = new RegexExecutor();\n    const session = executor.open(new AbortController().signal);\n    const original = executor.request.bind(executor);\n    const requests = [];\n    executor.request = (descriptor, rows, signal) => {\n        requests.push({ patterns: descriptor.patterns.length, rows: rows.length, bytes: inputBytes(descriptor, rows, signal) });\n        return original(descriptor, rows, signal);\n    };\n    try {\n        const globs = Array.from({ length: 260 }, (_, index) => new Glob(index % 2 ? \"alpha.*\" : \"beta.*\"));\n        const matches = await matchGlobs(globs, globs.map(() => ({ path: \"alpha.ts\", directory: false, ancestors: false })), session);\n        assert.deepEqual(matches, globs.map((_, index) => Boolean(index % 2)));\n        assert.deepEqual(requests.map(request => [request.patterns, request.rows]), [[128, 128], [128, 128], [4, 4]]);\n        assert.ok(requests.every(request => request.bytes <= 1));\n    }\n    finally {\n        await session.close();\n        await executor.dispose();\n    }\n});\ntest(\"glob queue accounting includes options and UTF16LE path bytes\", () => {\n    const descriptor = { kind: \"glob\", patterns: [\"alpha.*\"], globOptions: [{ insensitive: false, literalUnclosedClass: false }] };\n    const signal = new AbortController().signal;\n    assert.equal(inputBytes(descriptor, [{ bytes: Buffer.from(\"🙂.ts\", \"utf16le\"), all: false, terminated: true }], signal), 128 + 32 + 16 + 14 + 32 + 10);\n    const executor = new RegexExecutor();\n    const controller = new AbortController();\n    controller.abort(new Error(\"before glob admission\"));\n    assert.throws(() => executor.open(controller.signal), /before glob admission/u);\n    assert.equal(getEventListeners(controller.signal, \"abort\").length, 0);\n});\n"
+    ],
+    "started": "2026-08-27T20:31:06.549Z",
+    "finished": "2026-08-27T20:31:06.778Z",
+    "pid": 99378,
+    "code": 1,
+    "signal": null,
+    "timedOut": false,
+    "overflow": false,
+    "groupRemaining": false,
+    "expected": 1
+  }
+]

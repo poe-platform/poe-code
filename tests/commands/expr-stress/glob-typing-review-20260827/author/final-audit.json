@@ -1,0 +1,96 @@
+{
+  "checkedAt": "2026-08-27T20:35:20.759Z",
+  "sourceCommit": "ec59c917ba137126a064960995b5fc6945ea8f6d",
+  "commands": [
+    {
+      "command": "git",
+      "args": [
+        "diff-tree",
+        "--no-commit-id",
+        "--name-only",
+        "-r",
+        "ec59c917ba137126a064960995b5fc6945ea8f6d"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdout": "tests/commands/regex-execution/continuation/glob.test.ts\n",
+      "stderr": "",
+      "error": null
+    },
+    {
+      "command": "git",
+      "args": [
+        "show",
+        "ec59c917ba137126a064960995b5fc6945ea8f6d:tests/commands/regex-execution/continuation/glob.test.ts"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdout": "import assert from \"node:assert/strict\";\nimport { getEventListeners } from \"node:events\";\nimport test from \"node:test\";\nimport { RegexExecutor } from \"../../../../src/commands/regex-execution/client.js\";\nimport { inputBytes, type Descriptor, type GlobDescriptor, type Match, type Row } from \"../../../../src/commands/regex-execution/protocol.js\";\nimport { Glob, ignoreRules, matchGlobs } from \"../../../../src/commands/search/glob.js\";\n\ntest(\"worker globs retain code-unit strings, Unicode predicates and ancestor policy\", async () => {\n  const executor = new RegexExecutor();\n  const controller = new AbortController();\n  const session = executor.open(controller.signal);\n  try {\n    const cases: readonly [string, string, boolean, boolean, boolean, boolean][] = [\n      [\"?.ts\", \"🙂.ts\", false, false, false, true],\n      [\"\\ud800.ts\", \"\\ud800.ts\", false, false, false, true],\n      [\"\\ud800.ts\", \"�.ts\", false, false, false, false],\n      [\"k.ts\", \"K.ts\", false, false, true, true],\n      [\"sub/\", \"sub/file\", false, true, false, true],\n      [\"sub/\", \"sub/file\", false, false, false, false],\n      [\"sub/\", \"sub\", false, false, false, false],\n      [\"sub/\", \"sub\", true, false, false, true],\n      [\"**/alpha\", \"dir/alpha\", false, false, false, true],\n      [\"**/alpha\", \"dir\\n/alpha\", false, false, false, false],\n      [\"[!a-c]\", \"z\", false, false, false, true],\n      [\"{alpha,{beta,gamma}}\", \"beta\", false, false, false, true],\n    ];\n    const globs = cases.map(([source, , , , insensitive]) => new Glob(source, insensitive));\n    const candidates = cases.map(([, path, directory, ancestors]) => ({ path, directory, ancestors }));\n    assert.deepEqual(await matchGlobs(globs, candidates, session), cases.map(([, , , , , expected]) => expected));\n  } finally { await session.close(); await executor.dispose(); }\n  assert.equal(getEventListeners(controller.signal, \"abort\").length, 0);\n});\n\ntest(\"glob validation preserves first invalid rule and ignore-file literal brackets\", async () => {\n  const executor = new RegexExecutor();\n  const session = executor.open(new AbortController().signal);\n  try {\n    await assert.rejects(matchGlobs([new Glob(\"[z-a]\"), new Glob(\"{\")], [], session), /Range out of order/u);\n    await assert.rejects(matchGlobs([new Glob(\"{\"), new Glob(\"[z-a]\")], [], session), /unclosed glob brace/u);\n    await assert.rejects(matchGlobs([new Glob(\"alpha[\")], [], session), /unclosed glob character class/u);\n    const rules = await ignoreRules(\"# ignored\\nalpha[\\n!beta\\\\ \\n\", \"/\", 2, session);\n    assert.deepEqual(rules.map(rule => [rule.glob.source, rule.include]), [[\"alpha[\", false], [\"beta\\\\ \", true]]);\n    assert.equal(await rules[0]!.glob.matches(\"alpha[\", false, session, false), true);\n    assert.equal(await rules[1]!.glob.matches(\"beta \", false, session, false), true);\n  } finally { await session.close(); await executor.dispose(); }\n});\n\ntest(\"glob batching caps ordinary descriptors without reordering matches\", async () => {\n  const executor: Omit<RegexExecutor, \"request\"> & {\n    request(descriptor: Descriptor, rows: readonly Row[], signal: AbortSignal): Promise<Match[][]>;\n  } = new RegexExecutor();\n  const session = executor.open(new AbortController().signal);\n  const original = executor.request.bind(executor);\n  const requests: { patterns: number; rows: number; bytes: number }[] = [];\n  executor.request = (descriptor, rows, signal) => {\n    requests.push({ patterns: descriptor.patterns.length, rows: rows.length, bytes: inputBytes(descriptor, rows, signal) });\n    return original(descriptor, rows, signal);\n  };\n  try {\n    const globs = Array.from({ length: 260 }, (_, index) => new Glob(index % 2 ? \"alpha.*\" : \"beta.*\"));\n    const matches = await matchGlobs(globs, globs.map(() => ({ path: \"alpha.ts\", directory: false, ancestors: false })), session);\n    assert.deepEqual(matches, globs.map((_, index) => Boolean(index % 2)));\n    assert.deepEqual(requests.map(request => [request.patterns, request.rows]), [[128, 128], [128, 128], [4, 4]]);\n    assert.ok(requests.every(request => request.bytes <= 64 * 1024));\n  } finally { await session.close(); await executor.dispose(); }\n});\n\ntest(\"glob queue accounting includes options and UTF16LE path bytes\", () => {\n  const descriptor: GlobDescriptor = { kind: \"glob\", patterns: [\"alpha.*\"], globOptions: [{ insensitive: false, literalUnclosedClass: false }] };\n  const signal = new AbortController().signal;\n  assert.equal(inputBytes(descriptor, [{ bytes: Buffer.from(\"🙂.ts\", \"utf16le\"), all: false, terminated: true }], signal), 128 + 32 + 16 + 14 + 32 + 10);\n  const executor = new RegexExecutor();\n  const controller = new AbortController();\n  controller.abort(new Error(\"before glob admission\"));\n  assert.throws(() => executor.open(controller.signal), /before glob admission/u);\n  assert.equal(getEventListeners(controller.signal, \"abort\").length, 0);\n});\n",
+      "stderr": "",
+      "error": null
+    },
+    {
+      "command": "git",
+      "args": [
+        "show",
+        "--format=fuller",
+        "--stat",
+        "ec59c917ba137126a064960995b5fc6945ea8f6d"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdout": "commit ec59c917ba137126a064960995b5fc6945ea8f6d\nAuthor:     Kamil Jopek <kjopek@quora.com>\nAuthorDate: Thu Aug 27 15:31:57 2026 -0500\nCommit:     Kamil Jopek <kjopek@quora.com>\nCommitDate: Thu Aug 27 15:31:57 2026 -0500\n\n    test(regex): narrow glob batching instrumentation to regex requests\n\n tests/commands/regex-execution/continuation/glob.test.ts | 6 ++++--\n 1 file changed, 4 insertions(+), 2 deletions(-)\n",
+      "stderr": "",
+      "error": null
+    },
+    {
+      "command": "git",
+      "args": [
+        "diff",
+        "--check",
+        "--",
+        "tests/commands/regex-execution/continuation/glob.test.ts",
+        "tests/commands/expr-stress/glob-typing-review-20260827/author"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": "",
+      "error": null
+    },
+    {
+      "command": "git",
+      "args": [
+        "status",
+        "--short"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdout": "?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/\n?? tests/commands/expr-stress/glob-typing-review-20260827/\n?? tests/commands/search-stress/.native-1m4O1e/\n",
+      "stderr": "",
+      "error": null
+    },
+    {
+      "command": "git",
+      "args": [
+        "diff",
+        "--cached",
+        "--name-only"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": "",
+      "error": null
+    }
+  ],
+  "sourceCommitOnlyAuthorizedFixture": true,
+  "candidateStillMatchesCommit": true,
+  "candidateCompilerInputCount": 175,
+  "candidateCompilerInputsUnchanged": true,
+  "workerSourceAndRuntimeUnchanged": true,
+  "suppliedDiagnosticsUnchanged": true,
+  "candidateReceiptSha256": "e1e9e6256d00a73c05f7c0994e005bc6daf93cc0801f4e4fe42300c0f3a87dc9",
+  "candidateReceiptPublished": true,
+  "cohostState": "Other workers are active; status/index observations are informational, not a clean whole-tree assertion."
+}

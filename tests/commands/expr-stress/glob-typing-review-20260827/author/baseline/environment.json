@@ -1,0 +1,26 @@
+{
+  "started": "2026-08-27T20:30:41.779Z",
+  "node": "v22.22.2",
+  "typescript": "5.9.3",
+  "platform": "darwin",
+  "arch": "arm64",
+  "root": "/Users/kjopek/Workspace/safe-bash",
+  "phase": "baseline",
+  "options": {
+    "target": 10,
+    "lib": [
+      "lib.es2023.d.ts"
+    ],
+    "module": 199,
+    "moduleResolution": 99,
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true,
+    "verbatimModuleSyntax": true,
+    "forceConsistentCasingInFileNames": true,
+    "skipLibCheck": true,
+    "types": [
+      "node"
+    ]
+  }
+}

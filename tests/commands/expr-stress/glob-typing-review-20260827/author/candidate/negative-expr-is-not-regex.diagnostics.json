@@ -1,0 +1,8 @@
+[
+  {
+    "code": 2345,
+    "file": "tests/commands/regex-execution/continuation/glob.test.ts",
+    "start": 5281,
+    "message": "Argument of type 'ExprMatchDescriptor' is not assignable to parameter of type 'Descriptor'.\n  Type 'ExprMatchDescriptor' is missing the following properties from type 'GlobDescriptor': patterns, globOptions"
+  }
+]

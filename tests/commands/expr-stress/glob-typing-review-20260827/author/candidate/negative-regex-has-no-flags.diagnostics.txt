@@ -1,0 +1,2 @@
+tests/commands/regex-execution/continuation/glob.test.ts(86,17): error TS2339: Property 'flags' does not exist on type 'Descriptor'.
+  Property 'flags' does not exist on type 'GrepDescriptor'.

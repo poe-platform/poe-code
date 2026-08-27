@@ -1,0 +1,8 @@
+tests/commands/regex-execution/continuation/glob.test.ts(86,23): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(descriptor: Descriptor, rows: readonly Row[], signal: AbortSignal, retirements?: Set<Promise<void>> | undefined): Promise<Match[][]>', gave the following error.
+    Argument of type 'Descriptor | ExprMatchDescriptor' is not assignable to parameter of type 'Descriptor'.
+      Type 'ExprMatchDescriptor' is not assignable to type 'Descriptor'.
+        Type 'ExprMatchDescriptor' is missing the following properties from type 'GlobDescriptor': patterns, globOptions
+  Overload 2 of 2, '(descriptor: ExprMatchDescriptor, rows: readonly Row[], signal: AbortSignal, retirements?: Set<Promise<void>> | undefined): Promise<...>', gave the following error.
+    Argument of type 'Descriptor | ExprMatchDescriptor' is not assignable to parameter of type 'ExprMatchDescriptor'.
+      Type 'GrepDescriptor' is missing the following properties from type 'ExprMatchDescriptor': pattern, profile, limits

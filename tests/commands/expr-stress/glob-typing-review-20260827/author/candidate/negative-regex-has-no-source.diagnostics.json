@@ -1,0 +1,8 @@
+[
+  {
+    "code": 2339,
+    "file": "tests/commands/regex-execution/continuation/glob.test.ts",
+    "start": 5286,
+    "message": "Property 'source' does not exist on type 'Descriptor'.\n  Property 'source' does not exist on type 'GrepDescriptor'."
+  }
+]

@@ -1,0 +1,8 @@
+[
+  {
+    "code": 2551,
+    "file": "tests/commands/regex-execution/continuation/glob.test.ts",
+    "start": 3410,
+    "message": "Property 'pattern' does not exist on type 'Descriptor'. Did you mean 'patterns'?\n  Property 'pattern' does not exist on type 'GrepDescriptor'."
+  }
+]

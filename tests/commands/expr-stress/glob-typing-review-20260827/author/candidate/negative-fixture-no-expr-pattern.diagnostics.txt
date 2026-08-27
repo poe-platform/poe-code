@@ -1,0 +1,2 @@
+tests/commands/regex-execution/continuation/glob.test.ts(56,16): error TS2551: Property 'pattern' does not exist on type 'Descriptor'. Did you mean 'patterns'?
+  Property 'pattern' does not exist on type 'GrepDescriptor'.

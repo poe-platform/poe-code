@@ -1,0 +1,52 @@
+{
+  "checkedAt": "2026-08-27T20:31:57.001Z",
+  "node": "v22.22.2",
+  "typescript": "5.9.3",
+  "config": "b57d3e5aab1f1f7ab7a70f275183ea6de255e65a2c40a0047c08d97769a1a16e",
+  "inputs": [
+    {
+      "file": "src/commands/regex-execution/protocol.ts",
+      "sha256": "3610a50b436e083b2633e08c841978999b5fa61759fcaea224aeec97230c8bc1"
+    },
+    {
+      "file": "src/commands/regex-execution/matching.ts",
+      "sha256": "1d21b81ebbfe361405556aa59b58f6e2cf9f6d487e9518c5d77a90af36690737"
+    },
+    {
+      "file": "src/commands/expr/bre-worker.ts",
+      "sha256": "f5c67e9c76b584337ae506b59449ecdcd945207b2269fdb4f79c5d1f7e81aff0"
+    },
+    {
+      "file": "src/commands/regex-execution/worker.ts",
+      "sha256": "a442bb67cda6aff313cf3909cbfb0d3d8c12ebc420437d5fd9d7bd51fc6c9da6"
+    }
+  ],
+  "emitted": [
+    {
+      "file": "dist/commands/regex-execution/protocol.js",
+      "expected": "a38e930b62581a22b23d05087b4f67937accbe157d5f6bb6c9b33e7c35f5c9b6",
+      "actual": "a38e930b62581a22b23d05087b4f67937accbe157d5f6bb6c9b33e7c35f5c9b6",
+      "equal": true
+    },
+    {
+      "file": "dist/commands/regex-execution/matching.js",
+      "expected": "2f97a68fce0ab504676afe31b4c4fd5eea1edde87ffb28bea9f55c8422693791",
+      "actual": "2f97a68fce0ab504676afe31b4c4fd5eea1edde87ffb28bea9f55c8422693791",
+      "equal": true
+    },
+    {
+      "file": "dist/commands/expr/bre-worker.js",
+      "expected": "e744453f4430b6a929cadac4e4b6a8a4e58ac75440ef16006ff4f4dab31f4874",
+      "actual": "e744453f4430b6a929cadac4e4b6a8a4e58ac75440ef16006ff4f4dab31f4874",
+      "equal": true
+    },
+    {
+      "file": "dist/commands/regex-execution/worker.js",
+      "expected": "46479e6d87bd5d20371a2e523310b2275c74d32d15105fcc9678ec73410efe4f",
+      "actual": "46479e6d87bd5d20371a2e523310b2275c74d32d15105fcc9678ec73410efe4f",
+      "equal": true
+    }
+  ],
+  "writesToDist": 0,
+  "qualifier": "Worker TypeScript dependency closure emitted only in memory and compared with existing dist JavaScript. This authenticates worker runtime prerequisites, not a full build."
+}

@@ -1622,3 +1622,82 @@ boundaries are not evidence of universal conformance or perfection.
   newer main commits. Archived it to
   `/tmp/poe-stale-rebase.oKpckf/rebase-merge.tar.gz`, then used `git rebase --quit`,
   verifying HEAD did not change. No source changes were discarded.
+
+## Explicit snapshot migration — August 27, 2026
+
+Implementation and local validation are complete; the release/installed-registry
+verification gate remains open until the receipt below is recorded.
+
+- Added `inspectSnapshotMigration`, `migrateSnapshot`, and
+  `migrateSnapshotFile`, plus standalone `migrate` and `poe-code harness migrate`.
+  This is a deliberate application-state continuation, not automatic old-stack
+  migration: original source and complete journals are validated, the host
+  supplies a digest-bound quiescence/reconciliation receipt, and new source reads
+  selected portable state through `import.meta.migration`. No old host operation,
+  replay hook, callback, or execution frame runs during the transition.
+- Archived ancestry survives further migrations and success/failure/budget
+  checkpoints. Paired migrated runs now retain a completed checkpoint rather than
+  deleting it and silently starting fresh on a subsequent `--resume`. Ordinary
+  non-migrated harness cleanup behavior is unchanged. Migration output is synced
+  and published with an exclusive hard link; existing files/symlinks are not
+  overwritten, and failed partial writes clean up their temporary files.
+- TDD covered SDK/CLI operation, corrupt identities, source mismatch guidance,
+  older markers, receipt matching, outstanding operations, graph state, budgets,
+  ancestry, file collisions and partial storage failures. Adversarial work found
+  and closed missing validation for unregistered callback IDs and outcomes on
+  unresolved calls. Real CLI checks also exposed completed-pair cleanup and
+  decorated rather than parseable inspection JSON; both have regressions.
+- The full repository suite before the final paired-retention regression passed
+  21,136 tests, with 41 skipped. The subsequent focused integration suite passed
+  236 tests, and the final diagnostics subset passed 149. The push gate reruns
+  the entire final suite. Build, eslint, TypeScript, workflow lint, and all 17
+  package-lint rules pass. No release is inferred solely from these local checks.
+- Fresh candidate: `/tmp/safejs-migration-verified-consumer.wdvVqq/project`;
+  installed from the local tarball with no workspace runtime symlinks. The actual
+  extracted CI SDK smoke, shared index/core runtime check, and strict migration
+  declaration consumer all pass. These checks do not globally install/uninstall
+  the user's CLI or query an LLM.
+- `/tmp/safejs-migration-matrix.mjs` passes 810 cases, 1,620 restores, 1,350
+  expected failures, and 48 concurrent continuations **per runtime** on Node
+  18.18.2, 22.22.2, and 24.14.0 against that installed candidate. Six program
+  families, three widths/entry forms, success/throw/budget predecessors, and five
+  marker variants compare with corresponding native-JavaScript bodies. Each
+  transition checks effect counts, budget recovery, completed replay, another
+  migration, immutable input data, and preserved ancestry.
+- `/tmp/safejs-migration-legacy.mjs` separately generates and migrates 90 real
+  snapshots from published 5.0.4, 6.0.0, 7.0.0, 8.0.0, and 10.0.3 runtimes,
+  spanning actual `jobs-v1` through `jobs-v5` and source callbacks. Older packages
+  predate the public-index packaging fix, so those generators use their shipped
+  core and dump modules; the new consumer itself uses its public installed API.
+- `/tmp/safejs-migration-crash.mjs` passes 18 actual SIGKILL original runs,
+  18 subsequent budget failures, 36 successful restores, and 24 explicit pending
+  call resolutions across 72 children. Cases stop at pending effects, plain waits,
+  and host-invoked source callbacks; external files confirm old/new effects occur
+  once each. All launched children terminate.
+- `/tmp/safejs-migration-cli.mjs` passes 24 root/standalone cases, 168 processes,
+  and 48 target restores. It checks failed and successful predecessor workflows
+  where supported, inspection JSON, dry runs, exclusive output, original-file
+  preservation, target results, and completed paired replay.
+- `/tmp/safejs-migration-adversarial.mjs` rejects 150 corrupt snapshots and five
+  invalid state kinds. Across 192 concurrent publication attempts, exactly 24
+  outputs win their races; the other attempts report EEXIST. No repeated effects
+  or stale temporary publication files remain in these successful audits.
+- Inspected help, inspection, publication, duplicate-output, and resumed-result
+  screenshots. The successful paired visual run returns 42 with zero agent
+  spawns. Screenshot capture needs its own `--` separator before command flags
+  and a short explicit screenshot output name; intermediate capture failures are
+  not counted as successful command validation.
+- Rechecked stale artifacts after uncached/cache-hit builds and fresh packaging:
+  all 153 removed outputs and six obsolete directories remain absent; all five
+  binaries and 19 package symlinks pass, with zero external consumer symlinks.
+  Unrelated `packages/terminal-pilot/assets/` fonts remain untouched.
+- Limits remain explicit in `packages/safejs/MIGRATION.md`: portable format-1,
+  complete journal version-1, supported execution markers, no live capability
+  state, and trusted host reconciliation. The host must stop all old writers and
+  account for effects occurring after the saved checkpoint. Migration cannot
+  authenticate external business state or prevent deliberately repeated work in
+  newly supplied source. These results are not a universal conformance claim.
+
+### Registry release receipt
+
+Pending publication and verification of the exact released package and commit.

@@ -198,10 +198,13 @@ code `unsupportedVersion`, at `$.executionSemantics`, before host operations.
 Unknown markers are also rejected. Legacy snapshots without replay history keep
 their existing legacy restoration path; this does not upgrade their guarantees.
 
-Keep older replay snapshots and use the runtime that created them. Do not rename
-or inject the version marker, or restart an effectful script merely to bypass
-this check: neither operation establishes safe migration. Explicit migration
-and external-effect reconciliation remain a separate language-completeness item.
+Keep older replay snapshots and their original source. Do not rename or inject
+the version marker, or restart an effectful script merely to bypass this check:
+neither operation establishes safe migration. The explicit continuation workflow
+in [MIGRATION.md](MIGRATION.md) validates supported old journals, requires
+digest-bound host quiescence and external-effect reconciliation, and transfers
+selected application state without executing old frames. Use the original
+runtime for formats outside that workflow's documented compatibility envelope.
 
 Cancellation of builtin awaits is handled at the await boundary, without
 replacing constructors or dropping their static properties and identity. Host

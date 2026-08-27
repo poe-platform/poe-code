@@ -159,6 +159,61 @@ async function snapshotForSource(source: string): Promise<string> {
 }
 
 describe("harness command", () => {
+  it("uses the snapshot migration SDK for inspection, dry run, and exclusive output", async () => {
+    const { dump } = await import("@poe-code/safejs");
+    const execution = runSafeJS("return 1;");
+    await execution;
+    vol.fromJSON({
+      "/repo/old.ajs": "return 1;",
+      "/repo/new.ajs": "export default () => import.meta.migration.count;",
+      "/repo/old.json": await dump(execution)
+    });
+    const logs: string[] = [];
+    const stdout = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+    await runHarnessCommand(
+      ["harness", "migrate", "old.json", "--from", "old.ajs", "--inspect"],
+      logs
+    );
+    const result = JSON.parse(stdout.mock.calls.map((call) => String(call[0])).join(""));
+    expect(logs).toEqual([]);
+    vol.fromJSON({
+      "/repo/plan.json": JSON.stringify({
+        state: { count: 4 },
+        reconciliation: {
+          checkpointDigest: result.inspection.checkpointDigest,
+          quiescent: true,
+          calls: []
+        }
+      })
+    });
+    const args = [
+      "harness",
+      "migrate",
+      "old.json",
+      "--from",
+      "old.ajs",
+      "--to",
+      "new.ajs",
+      "--plan",
+      "plan.json",
+      "--output",
+      "next.json"
+    ];
+    await runHarnessCommand(["--dry-run", ...args]);
+    expect(memfs.existsSync("/repo/next.json")).toBe(false);
+    await runHarnessCommand(args);
+    const snapshot = JSON.parse(memfs.readFileSync("/repo/next.json", "utf8") as string);
+    expect(
+      (
+        await runSafeJS("export default () => import.meta.migration.count;", {
+          snapshot,
+          entryPointArgs: []
+        })
+      ).returnValue
+    ).toBe(4);
+    await expect(runHarnessCommand(args)).rejects.toMatchObject({ code: "EEXIST" });
+  });
+
   beforeEach(() => {
     setProcessStdinIsTTY(true);
     vol.reset();

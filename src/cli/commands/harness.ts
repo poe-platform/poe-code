@@ -12,6 +12,7 @@ import {
 } from "@poe-code/agent-harness";
 import {
   Budget,
+  migrateSnapshotFile,
   makeAgentModule,
   makeEnvModule,
   parseEnvConfig,
@@ -132,6 +133,39 @@ export function registerHarnessCommand(program: Command, container: CliContainer
       await executeHarnessRun(program, container, mdPath, options);
     }
   });
+
+  harness
+    .command("migrate")
+    .description("Inspect or explicitly migrate a checkpoint to continuation source.")
+    .argument("<snapshot-path>", "Original checkpoint JSON; never overwritten")
+    .requiredOption("--from <path>", "Original executable .ajs source")
+    .option("--inspect", "Inspect identities and unresolved calls without writing")
+    .option("--to <path>", "New continuation .ajs source")
+    .option("--plan <path>", "JSON application state and digest-bound reconciliation")
+    .option("--output <path>", "New checkpoint path; must not already exist")
+    .action(
+      async (
+        snapshotPath: string,
+        options: { from: string; inspect?: boolean; to?: string; plan?: string; output?: string }
+      ) => {
+        const flags = resolveHarnessFlags(program, undefined);
+        const result = await withSpinner({
+          message: options.inspect ? "Inspecting checkpoint" : "Validating checkpoint migration",
+          fn: () =>
+            migrateSnapshotFile({
+              snapshotPath,
+              sourcePath: options.from,
+              targetSourcePath: options.to,
+              planPath: options.plan,
+              outputPath: options.output,
+              inspect: options.inspect,
+              dryRun: flags.dryRun,
+              cwd: container.env.cwd
+            })
+        });
+      process.stdout.write(`${JSON.stringify(result, null, 2)}\n`);
+      }
+    );
 
   harness
     .command("new")

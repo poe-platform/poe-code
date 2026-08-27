@@ -34,6 +34,7 @@ import { parseModule } from "./parse/parser.js";
 import { restore, type SafeJSSnapshot } from "./restore.js";
 import { run, type RunResult } from "./run.js";
 import { dump, dumpCurrent } from "./snapshot/dump.js";
+import { migrateSnapshotFile, type SnapshotMigrationFileOptions } from "./migration-file.js";
 
 type CliStream = OutputStream;
 
@@ -122,6 +123,14 @@ export async function runCli(
           return 0;
         }
 
+        if (argv[0] === "migrate") {
+          const result = await migrateSnapshotFile({
+            ...parseMigrationArgs(argv.slice(1)),
+            cwd: options.cwd ?? readCurrentWorkingDirectory()
+          });
+          stdout.write(`${JSON.stringify(result, null, 2)}\n`);
+          return 0;
+        }
         const parsed = parseArgs(argv);
         if (parsed.filepath === undefined) {
           stderr.write(`${createUsage()}\n`);
@@ -169,6 +178,43 @@ function readCurrentWorkingDirectory(): string {
   } catch (error) {
     throw new Error(`Unable to resolve current working directory: ${readErrorMessage(error)}`);
   }
+}
+
+function parseMigrationArgs(argv: readonly string[]): SnapshotMigrationFileOptions {
+  const result: SnapshotMigrationFileOptions = { snapshotPath: "", sourcePath: "" };
+  const paths = new Map<string, "sourcePath" | "targetSourcePath" | "planPath" | "outputPath">([
+    ["--from", "sourcePath"],
+    ["--to", "targetSourcePath"],
+    ["--plan", "planPath"],
+    ["--output", "outputPath"]
+  ]);
+  const seen = new Set<string>();
+  for (let index = 0; index < argv.length; index += 1) {
+    const argument = argv[index]!;
+    if (!argument.startsWith("-")) {
+      if (result.snapshotPath.length > 0)
+        throw new TypeError("Migration accepts exactly one snapshot path.");
+      result.snapshotPath = argument;
+      continue;
+    }
+    if (seen.has(argument)) throw new TypeError(`Duplicate migration option: ${argument}`);
+    seen.add(argument);
+    if (argument === "--inspect") {
+      result.inspect = true;
+      continue;
+    }
+    if (argument === "--dry-run") {
+      result.dryRun = true;
+      continue;
+    }
+    const key = paths.get(argument);
+    if (key === undefined) throw new TypeError(`Unknown migration option: ${argument}`);
+    const value = argv[++index];
+    if (value === undefined || value.startsWith("--"))
+      throw new TypeError(`${argument} requires a path.`);
+    result[key] = value;
+  }
+  return result;
 }
 
 function parseArgs(argv: readonly string[]): ParsedArgs {
@@ -704,6 +750,9 @@ function formatConsoleArgs(args: readonly unknown[]): string {
 function createUsage(): string {
   return [
     "Usage: poe-safejs [options] <script.md|script.safejs|script.ajs>",
+    "       poe-safejs migrate <checkpoint.json> --from <original.ajs> --inspect",
+    "       poe-safejs migrate <checkpoint.json> --from <original.ajs> --to <continuation.ajs>",
+    "                         --plan <migration.json> --output <new-checkpoint.json> [--dry-run]",
     "",
     "Options:",
     "  --fix                 apply lint fixes before running",

@@ -3,10 +3,12 @@ import { replaceErrorStack } from "./error/shape.js";
 import { SnapshotValidationError, validateDumpEnvelope } from "./snapshot/validation.js";
 import { EXECUTION_SEMANTICS } from "./snapshot/dump-format.js";
 import { assertSnapshotInactive } from "./interp/running-state.js";
+import { validateSnapshotMigration, type SnapshotMigration } from "./snapshot/migration.js";
 
 export type SafeJSSnapshot = {
   version?: number;
   sourceHash: string;
+  migration?: SnapshotMigration;
   clock?: {
     next: number;
   };
@@ -44,6 +46,7 @@ export function restore<TSnapshot extends SafeJSSnapshot>(
 ): TSnapshot {
   assertSnapshotInactive(snapshot);
   validateDumpEnvelope(snapshot);
+  validateSnapshotMigration(snapshot.migration, snapshot.sourceHash);
 
   if (
     snapshot.executionSemantics !== EXECUTION_SEMANTICS &&

@@ -139,9 +139,15 @@ poe-code harness run path/to/harness.md --snapshot-path tmp/harness.snapshot.jso
 ```
 
 Snapshots record interpreter state across await points. Resume validates the
-`.ajs` source and execution semantics. Older execution semantics require the
-original runtime; automatic migration is unavailable. Starting fresh without
-`--resume` can repeat earlier host effects.
+`.ajs` source and execution semantics. For changed source or supported older
+execution markers, use `poe-code harness migrate old.json --from original.ajs
+--inspect`, reconcile outstanding operations, and confirm the old execution and
+callbacks are stopped. Then provide `--to continuation.ajs --plan migration.json
+--output next.json`. The plan contains explicit `state` and digest-bound
+`reconciliation`; the continuation reads `import.meta.migration`. Migration never
+runs old frames or effects and refuses to overwrite files. See SafeJS's
+`MIGRATION.md` for receipt details and supported formats. Starting fresh without
+`--resume`, or repeating old work in the continuation, can repeat host effects.
 
 ## Constraint Propagation
 

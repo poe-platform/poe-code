@@ -42,6 +42,72 @@ async function withObjectPrototypeProperties<T>(
 }
 
 describe("SafeJS CLI", () => {
+  it("inspects and migrates checkpoints without executing the target", async () => {
+    const { dump, run } = await import("./index.js");
+    const execution = run("return 1;");
+    await execution;
+    vol.fromJSON({
+      "/repo/old.ajs": "return 1;",
+      "/repo/new.ajs": "return import.meta.migration.count;",
+      "/repo/old.json": await dump(execution)
+    });
+    const stdout = createSink();
+    const stderr = createSink();
+    expect(
+      await runCli(["migrate", "old.json", "--from", "old.ajs", "--inspect"], {
+        cwd: "/repo",
+        stdout,
+        stderr
+      })
+    ).toBe(0);
+    const inspection = JSON.parse(stdout.output()).inspection;
+    vol.fromJSON({
+      "/repo/plan.json": JSON.stringify({
+        state: { count: 3 },
+        reconciliation: {
+          checkpointDigest: inspection.checkpointDigest,
+          quiescent: true,
+          calls: []
+        }
+      })
+    });
+    expect(
+      await runCli(
+        [
+          "migrate",
+          "old.json",
+          "--from",
+          "old.ajs",
+          "--to",
+          "new.ajs",
+          "--plan",
+          "plan.json",
+          "--output",
+          "next.json"
+        ],
+        { cwd: "/repo", stdout: createSink(), stderr }
+      )
+    ).toBe(0);
+    const output = createSink();
+    expect(
+      await runCli(["new.ajs", "--restore", "next.json"], { cwd: "/repo", stdout: output, stderr })
+    ).toBe(0);
+    expect(JSON.parse(output.output()).returnValue).toBe(3);
+    expect(stderr.output()).toBe("");
+  });
+
+  it.each([
+    ["migrate"],
+    ["migrate", "old.json", "--from"],
+    ["migrate", "old.json", "--from", "old.ajs", "--inspect", "--inspect"],
+    ["migrate", "old.json", "--unknown"],
+    ["migrate", "old.json", "extra.json"]
+  ])("rejects invalid migration arguments: %j", async (...args) => {
+    const stderr = createSink();
+    expect(await runCli(args, { cwd: "/repo", stdout: createSink(), stderr })).toBe(1);
+    expect(stderr.output()).not.toBe("");
+  });
+
   it("registers only an explicit environment capability config", async () => {
     vol.fromJSON({
       "/repo/script.ajs":

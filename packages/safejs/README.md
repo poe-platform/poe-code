@@ -275,7 +275,7 @@ Serializes a snapshot to formatted JSON. Accepts a completed `RunResult` or the 
 
 ### `restore(snapshot, { source })`
 
-Validates a stored snapshot against the current source via `sourceHash`. Returns it unchanged on match, throws on mismatch.
+Validates a stored snapshot against the current source via `sourceHash`. Returns it unchanged on match, throws on mismatch. For changed source or supported older execution semantics, use the explicit `inspectSnapshotMigration()` / `migrateSnapshot()` continuation workflow in [MIGRATION.md](MIGRATION.md).
 
 ### `runHarness(filepath, options)`
 
@@ -321,7 +321,7 @@ no module bodies to inspect.
 
 ## Gotchas
 
-- **Snapshots are source- and execution-pinned.** Changes to parsed structure invalidate prior snapshots; formatting-only changes can remain compatible. Replay snapshots from older execution semantics are rejected before execution. Resume them with their original runtime; automatic migration is not yet available.
+- **Ordinary restore is source- and execution-pinned.** Formatting-only changes can remain compatible; structural or execution-semantics changes require an explicit continuation migration. Inspect the old checkpoint, reconcile outstanding operations, select application state, and create a new checkpoint with `migrateSnapshot()` or `harness migrate`; see [MIGRATION.md](MIGRATION.md). No old frames or effects execute during migration.
 - **Budgets remain host-controlled.** Exhaustion throws fatal `SandboxError`; the host can explicitly capture a current failure checkpoint and resume with a larger budget. Replay work is charged again, unsupported state can prevent recovery, and pending effects require reconciliation; see [RECOVERY.md](RECOVERY.md).
 
 ## What's intentionally limited

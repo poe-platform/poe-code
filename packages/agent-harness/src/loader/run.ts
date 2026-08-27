@@ -220,7 +220,9 @@ export async function runHarnessPair(
     }
 
     await hostCallReplay.flush();
-    if (result.ok && options.preserveSnapshotOnSuccess !== true) {
+    if (result.ok && result.snapshot.migration !== undefined) {
+      await snapshotBackend.write(result.snapshot);
+    } else if (result.ok && options.preserveSnapshotOnSuccess !== true) {
       await cleanupCompletedSnapshot(snapshotBackend, snapshotPath);
     }
 

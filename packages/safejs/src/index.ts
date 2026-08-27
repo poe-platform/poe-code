@@ -29,6 +29,14 @@ export type {
 } from "./snapshot/policy.js";
 export { dump, type DumpOptions } from "./dump.js";
 export { restore } from "./restore.js";
+export { inspectSnapshotMigration, migrateSnapshot } from "./migrate.js";
+export { migrateSnapshotFile, type SnapshotMigrationFileOptions } from "./migration-file.js";
+export type {
+  SnapshotMigration,
+  SnapshotMigrationOptions,
+  SnapshotMigrationReconciliation,
+  SnapshotMigrationResolution
+} from "./migrate.js";
 export { SnapshotValidationError } from "./snapshot/validation.js";
 export type { SnapshotValidationCode } from "./snapshot/validation.js";
 export { Budget, SandboxError } from "./interp/budget.js";

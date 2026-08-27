@@ -79,7 +79,11 @@ import { DUMP_FORMAT_VERSION, EXECUTION_SEMANTICS } from "./snapshot/dump-format
 import { createSnapshotScheduler, type SnapshotScheduler } from "./snapshot/scheduler.js";
 import { UnsnapshotableValueError } from "./snapshot/serialize.js";
 import { prepareReplayInputs } from "./snapshot/replay-inputs.js";
-import { MissingReplayCapabilityError, type ReplayData } from "./snapshot/replay-data.js";
+import {
+  decodeReplayData,
+  MissingReplayCapabilityError,
+  type ReplayData
+} from "./snapshot/replay-data.js";
 
 export type RunOptions = {
   bindings?: Record<string, CallerInjectedBinding>;
@@ -251,6 +255,20 @@ export function run(source: string, options: RunOptions = {}): Promise<RunResult
           }),
           ...createRegexGlobals()
         };
+        const importMeta = deepCopyToSandbox(options.importMeta ?? {}) as Record<
+          string,
+          SandboxValue
+        >;
+        if (restoredSnapshot?.migration !== undefined) {
+          if (Object.hasOwn(importMeta, "migration"))
+            throw new TypeError("import.meta.migration is reserved for migrated checkpoint state.");
+          Object.defineProperty(importMeta, "migration", {
+            value: decodeReplayData(restoredSnapshot.migration.state),
+            enumerable: true,
+            configurable: true,
+            writable: true
+          });
+        }
         const initialInputs = prepareReplayInputs(
           {
             bindings: callerBindings,
@@ -264,7 +282,7 @@ export function run(source: string, options: RunOptions = {}): Promise<RunResult
               options.entryPointArgs === undefined
                 ? undefined
                 : (deepCopyToSandbox([...options.entryPointArgs]) as SandboxValue[]),
-            importMeta: deepCopyToSandbox(options.importMeta ?? {})
+            importMeta
           },
           restoredSnapshot?.initialInputs,
           (promise, id) => {
@@ -331,6 +349,7 @@ export function run(source: string, options: RunOptions = {}): Promise<RunResult
         snapshotScheduler = activeSnapshotScheduler;
         createFailureSnapshot = () =>
           createRunSnapshot({
+            migration: restoredSnapshot?.migration,
             bindings: executionScope.snapshot().bindings,
             clock: options.clock,
             hostCalls: hostCalls.snapshot(),
@@ -357,6 +376,7 @@ export function run(source: string, options: RunOptions = {}): Promise<RunResult
               }
               const interpreterSnapshot = yieldPoint.snapshot();
               snapshot = createRunSnapshot({
+                migration: restoredSnapshot?.migration,
                 bindings: interpreterSnapshot.bindings,
                 clock: options.clock,
                 hostCalls: hostCalls.snapshot(),
@@ -403,6 +423,7 @@ export function run(source: string, options: RunOptions = {}): Promise<RunResult
                     }
                     const interpreterSnapshot = yieldPoint.snapshot();
                     snapshot = createRunSnapshot({
+                      migration: restoredSnapshot?.migration,
                       bindings: interpreterSnapshot.bindings,
                       clock: options.clock,
                       hostCalls: hostCalls.snapshot(),
@@ -441,6 +462,7 @@ export function run(source: string, options: RunOptions = {}): Promise<RunResult
           replayError = error.message;
         }
         const snapshot = createRunSnapshot({
+          migration: restoredSnapshot?.migration,
           bindings: executionScope.snapshot().bindings,
           clock: options.clock,
           hostCalls: hostCalls.snapshot(),
@@ -639,6 +661,7 @@ function createExecutableNode(module: Module): ParseResult {
 }
 
 function createRunSnapshot(input: {
+  migration?: SafeJSSnapshot["migration"];
   bindings: InterpreterResult["snapshot"]["bindings"];
   clock: RunClock | undefined;
   hostCalls?: HostCallRecord[];
@@ -661,6 +684,7 @@ function createRunSnapshot(input: {
     version: DUMP_FORMAT_VERSION,
     executionSemantics: EXECUTION_SEMANTICS,
     sourceHash: input.sourceHash,
+    ...(input.migration === undefined ? {} : { migration: structuredClone(input.migration) }),
     bindings: input.bindings,
     clock: input.clock?.snapshot(),
     ...(input.hostCalls === undefined || input.hostCalls.length === 0

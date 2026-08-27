@@ -5,7 +5,15 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { vol } from "memfs";
 
 import { resolveRunLogDir } from "@poe-code/agent-harness-tools";
-import { Budget, lint, makeAgentModule } from "@poe-code/safejs";
+import {
+  Budget,
+  dump,
+  inspectSnapshotMigration,
+  lint,
+  makeAgentModule,
+  migrateSnapshot,
+  run
+} from "@poe-code/safejs";
 import type { Snapshot, SnapshotBackend } from "@poe-code/safejs";
 
 const mockedFileSystemState = vi.hoisted(() => ({
@@ -115,6 +123,50 @@ const expectedCoverageDemoReturnValue = {
 };
 
 describe("runHarnessPair", () => {
+  it("persists completed migrated checkpoints instead of deleting their history", async () => {
+    const source = "return 1;";
+    const original = run(source);
+    await original;
+    const snapshot = JSON.parse(await dump(original));
+    const targetSource =
+      'import {effect} from "host"; export default async (frontmatter) => { await effect(); return import.meta.migration.value; };';
+    vol.fromJSON({
+      "/repo/migrated.md": "---\nkind: migrated\nversion: 1\n---\n",
+      "/repo/migrated.ajs": targetSource
+    });
+    const migrated = migrateSnapshot(snapshot, {
+      source,
+      targetSource,
+      state: { value: 2 },
+      reconciliation: {
+        checkpointDigest: inspectSnapshotMigration(snapshot, { source }).checkpointDigest,
+        quiescent: true,
+        calls: []
+      }
+    });
+    const snapshotBackend = new MemorySnapshotBackend(migrated);
+    const effect = vi.fn(async () => true);
+    const options = {
+      modulesFor: () => ({ host: { effect } }),
+      snapshotBackend,
+      snapshotPath: "/snapshots/migrated.json",
+      resume: true
+    };
+    await expect(runHarnessPair("/repo/migrated.md", options)).resolves.toMatchObject({
+      ok: true,
+      returnValue: 2
+    });
+    expect(snapshotBackend.removes).toBe(0);
+    expect(snapshotBackend.writes).toHaveLength(1);
+    expect(snapshotBackend.snapshot?.migration).toEqual(migrated.migration);
+    await expect(runHarnessPair("/repo/migrated.md", options)).resolves.toMatchObject({
+      ok: true,
+      returnValue: 2
+    });
+    expect(effect).toHaveBeenCalledOnce();
+    expect(snapshotBackend.writes).toHaveLength(2);
+  });
+
   beforeEach(() => {
     vol.reset();
     mockedFileSystemState.failingWritePath = undefined;

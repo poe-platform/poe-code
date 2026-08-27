@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { writeFileSync } from "node:fs";
 import { setImmediate as turn } from "node:timers/promises";
 import { cases } from "./cases.mjs";
-import { Shell, MemoryFileSystem, CommandRegistry, createStandardCommands, readBytes } from "virtual-bash";
+import { Shell, ShellLimitError, MemoryFileSystem, CommandRegistry, createStandardCommands, readBytes } from "virtual-bash";
 
 const [caseId, reportPath, mutant = "none"] = process.argv.slice(2);
 const spec = cases.find(entry => entry.id === caseId);
@@ -18,7 +18,7 @@ const primaryError = new Error("independent-primary-failure");
 const binary = Uint8Array.of(0x00, 0xff);
 const outcome = promise => {
   const state = { settled: false };
-  state.promise = Promise.resolve(promise).then(value => { Object.assign(state, { settled: true, ok: true, value }); events.push("fulfilled"); return state; }, reason => { Object.assign(state, { settled: true, ok: false, reason }); events.push(`rejected:${String(reason)}`); return state; });
+  state.promise = Promise.resolve(promise).then(value => { Object.assign(state, { settled: true, ok: true, value }); events.push(`fulfilled:${JSON.stringify(value)}`); return state; }, reason => { Object.assign(state, { settled: true, ok: false, reason }); events.push(`rejected:${String(reason)}`); return state; });
   tracked.push(state.promise);
   return state;
 };
@@ -103,30 +103,45 @@ async function run() {
   } else if (spec.kind === "normal" || spec.kind === "normalDeferred") {
     const returning = spec.kind === "normalDeferred" ? gate("normal-return") : undefined;
     const input = observedInput = source({ mode: spec.mode, returnGate: returning, chunks: [binary, Uint8Array.of(0x80)] });
-    const operation = spec.operation ?? "drain";
+    const operation = spec.operation ?? "one";
     const result = outcome(shell().exec(operation, { stdin: input.iterable, stdout: sink }));
     if (returning) {
       await input.enteredReturn.promise;
       await checkpoint();
       assert.equal(result.settled, false, "ordinary awaited close remains pending");
-      assert.equal(output.join(""), "00ff80");
+      assert.equal(output.join(""), "00ff");
       returning.reject(closeError);
     }
     const actual = await result.promise;
     events.push(`observed-result:${JSON.stringify(actual.value ?? null)}`);
-    counts(input, operation === "drain" ? 3 : operation === "status17" ? 0 : 1, 1);
+    counts(input, operation === "drain" ? 3 : operation === "status17" ? 0 : 1, operation === "drain" ? 0 : 1);
     assert.equal(output.join(""), operation === "drain" ? "00ff80" : operation === "status17" ? "" : "00ff");
-    rejected(actual, spec.mode === "zero" ? 0 : closeError);
+    if (operation === "drain") { assert.equal(actual.ok, true); assert.equal(actual.value.exitCode, 0); assert.equal(actual.value.stderr, ""); }
+    else rejected(actual, spec.mode === "zero" ? 0 : closeError);
   } else if (spec.kind === "primary") {
     const reason = spec.mode === "zero" ? 0 : primaryError;
     const input = observedInput = source({ mode: "reject", nextFailure: { value: reason } });
-    rejected(await outcome(shell().exec("drain", { stdin: input.iterable })).promise, reason);
+    const actual = await outcome(shell().exec("drain", { stdin: input.iterable, stderr })).promise;
+    assert.equal(errors.join(""), `shell: line 1: ${spec.mode === "zero" ? "0" : primaryError.message}\n`);
     counts(input, 1, 1);
+    rejected(actual, closeError);
   } else if (spec.kind === "sink") {
     const input = observedInput = source({ mode: "sync" });
-    rejected(await outcome(shell().exec("one", { stdin: input.iterable, stdout: { async write(bytes) { await sink.write(bytes); throw primaryError; } } })).promise, primaryError);
+    const actual = await outcome(shell().exec("one", { stdin: input.iterable, stderr, stdout: { async write(bytes) { await sink.write(bytes); throw primaryError; } } })).promise;
     counts(input, 1, 1);
     assert.equal(output.join(""), "00ff");
+    assert.equal(errors.join(""), `shell: line 1: ${primaryError.message}\n`);
+    rejected(actual, closeError);
+  } else if (spec.kind === "directPrimary") {
+    const reason = spec.mode === "zero" ? 0 : primaryError;
+    const input = observedInput = source({ mode: "reject", nextFailure: { value: reason } });
+    rejected(await outcome(drain({ stdin: input.iterable, stdout: sink, signal: new AbortController().signal })).promise, reason);
+    counts(input, 1, 1);
+  } else if (spec.kind === "selected") {
+    const selected = new ShellLimitError("maxCommands");
+    const input = observedInput = source({ mode: "reject" });
+    rejected(await outcome(shell([{ name: "fatal", execute: () => { throw selected; } }]).exec("fatal", { stdin: input.iterable })).promise, selected);
+    counts(input, 0, 1);
   } else if (spec.kind === "abort") {
     const pending = gate("opaque-next");
     const returning = gate("opaque-return");
@@ -200,7 +215,7 @@ async function run() {
     assert.equal(actual.exitCode, 0);
     assert.equal(Buffer.from(actual.stdoutBytes).toString("hex"), "00ff8041");
     assert.equal(actual.stderr, "");
-    counts(input, 4, 1);
+    counts(input, 4, 0);
   } else if (spec.kind === "siblings") {
     const pending = gate("cancelled-sibling-next");
     const returning = gate("cancelled-sibling-return");

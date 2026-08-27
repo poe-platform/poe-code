@@ -1,0 +1,154 @@
+{
+  "schema": 1,
+  "authoredAt": "2026-08-27T23:09:04.704Z",
+  "localDate": "2026-08-27",
+  "phase": "post-module expectation freeze; intended pre-Curie wiring; no concurrent-HEAD absence certification",
+  "initialObservedHead": "a995616a48ccc3d712f2fec4f68f7a8b639086f3",
+  "acceptedDu75Revision": null,
+  "candidateRevision": null,
+  "execution": {
+    "product": "NOT_EXECUTED",
+    "types": "NOT_EXECUTED",
+    "package": "NOT_EXECUTED",
+    "workers": "NOT_EXECUTED",
+    "native": "NOT_EXECUTED"
+  },
+  "readScope": "Declared public module index, README/handoff profiles; public API/consumer conventions and aggregate wiring delta only. Whole Git blobs hashed; only needed sections inspected. No engine audit.",
+  "sources": [
+    {
+      "commit": "c3e40f8bd721da5e496f3b3abfd51aee45db5a84",
+      "path": "src/commands/expr/index.ts",
+      "blob": "1031dd28c5dda297d35914dbff4c99f8844c8981",
+      "sha256": "e7cf6a0077a291578f4c669fe41da37188be8cebcb19bdb574838fd7fae2eb8e",
+      "bytes": 5041
+    },
+    {
+      "commit": "c3e40f8bd721da5e496f3b3abfd51aee45db5a84",
+      "path": "src/commands/expr/README.md",
+      "blob": "d2ab23fc28ba3a1f500f4a0f7b520683be7585eb",
+      "sha256": "4efc22e4f79c42e14305d274deae5a8f95cf8b053d7e1e4b7be1652a23c56586",
+      "bytes": 17457
+    },
+    {
+      "commit": "c14363bd191042d42defc8498c4d084cf9411375",
+      "path": "src/commands/expr/index.ts",
+      "blob": "1031dd28c5dda297d35914dbff4c99f8844c8981",
+      "sha256": "e7cf6a0077a291578f4c669fe41da37188be8cebcb19bdb574838fd7fae2eb8e",
+      "bytes": 5041
+    },
+    {
+      "commit": "c14363bd191042d42defc8498c4d084cf9411375",
+      "path": "src/commands/expr/README.md",
+      "blob": "0cd563cfc79ff980d6af8660febe7a067a22ffa9",
+      "sha256": "e6f315c0de81abb4a3ade52dba9280a9079f65a77328827bd4cc106484c13131",
+      "bytes": 18875
+    },
+    {
+      "commit": "b158d1e5732642e1386110db70fcc0cc2c4c6e20",
+      "path": "src/commands/expr/index.ts",
+      "blob": "1031dd28c5dda297d35914dbff4c99f8844c8981",
+      "sha256": "e7cf6a0077a291578f4c669fe41da37188be8cebcb19bdb574838fd7fae2eb8e",
+      "bytes": 5041
+    },
+    {
+      "commit": "b158d1e5732642e1386110db70fcc0cc2c4c6e20",
+      "path": "src/commands/expr/README.md",
+      "blob": "0cd563cfc79ff980d6af8660febe7a067a22ffa9",
+      "sha256": "e6f315c0de81abb4a3ade52dba9280a9079f65a77328827bd4cc106484c13131",
+      "bytes": 18875
+    },
+    {
+      "commit": "b158d1e5732642e1386110db70fcc0cc2c4c6e20",
+      "path": "tests/commands/expr-stress/initial-profile-handoff-20260827/REPORT.md",
+      "blob": "872bd482efce67cb1739cf3e9ce693ec8aff0cb9",
+      "sha256": "c83429a5ea70cce3b43bed3583a3386846a7cb8de37229cde5c900fd78695575",
+      "bytes": 25629
+    },
+    {
+      "commit": "b158d1e5732642e1386110db70fcc0cc2c4c6e20",
+      "path": "src/commands/regex-execution/README.md",
+      "blob": "3be6ea55e45b28c0492474d4d11d238e058579c2",
+      "sha256": "914db79131dd4543e69746c73786df72e4f62055818e6cee17fd57eddcea4481",
+      "bytes": 11189
+    },
+    {
+      "commit": "b158d1e5732642e1386110db70fcc0cc2c4c6e20",
+      "path": "package.json",
+      "blob": "1842dae563718b130101a85b1f28a0b2ae1187d3",
+      "sha256": "aaea215e419a64b08e4739dee1a6b7bba5f41f9d5e1c93d4d1771f939e904842",
+      "bytes": 4453
+    },
+    {
+      "commit": "b158d1e5732642e1386110db70fcc0cc2c4c6e20",
+      "path": "src/plugins/index.ts",
+      "blob": "ceb9e6576ec3c186a3af397ce4849357e4daeed3",
+      "sha256": "4a83459600f7077a055a2a4d36d1cf6c88e331ff79e9193917d7c338185c079a",
+      "bytes": 5416
+    },
+    {
+      "commit": "b2b4604f09f351d8130c0f2a3349e85f4b4c45e1",
+      "path": "src/plugins/index.ts",
+      "blob": "33b26ccb3f245b1aacaa003a8bf7afea34c5bf5f",
+      "sha256": "13bab0981353ff5e3e49b9b153df2932f7f0b2d42cf7c457acea079021fa29b2",
+      "bytes": 5596
+    },
+    {
+      "commit": "b158d1e5732642e1386110db70fcc0cc2c4c6e20",
+      "path": "src/index.ts",
+      "blob": "24667d4e79ac69c44e4b9ce3a4027b41d5dadc0b",
+      "sha256": "b6c2761f3af4809033c4be77f0139bd5f6afa9b963ecad65bafe923c185f35ec",
+      "bytes": 1468
+    },
+    {
+      "commit": "b158d1e5732642e1386110db70fcc0cc2c4c6e20",
+      "path": "src/contracts/command.ts",
+      "blob": "671327d43c48c5964658ad8c630578fe889421e2",
+      "sha256": "9c2f8ecf50def7250b01152a31a45c449109c3ae4d30878252cffe985c6e9df8",
+      "bytes": 2923
+    },
+    {
+      "commit": "b158d1e5732642e1386110db70fcc0cc2c4c6e20",
+      "path": "src/contracts/io.ts",
+      "blob": "6dc0efb87132376763228a845b2e62638898268a",
+      "sha256": "ff792b401508a2ef768aa4f9dd9794e653e1e14f2163e57d137e9cb2b7427809",
+      "bytes": 7663
+    },
+    {
+      "commit": "b158d1e5732642e1386110db70fcc0cc2c4c6e20",
+      "path": "src/shell/types.ts",
+      "blob": "4684a5ad1f8b76c721a6f827646f289eda4c44ef",
+      "sha256": "fc4133f1fb41283b0586aa7597c766d393d4f91067b613f4777e5adbef230a6d",
+      "bytes": 2178
+    },
+    {
+      "commit": "b158d1e5732642e1386110db70fcc0cc2c4c6e20",
+      "path": "tests/integration/aliases-column-public-independent-20260827/consumer.mjs",
+      "blob": "f64c6cc867d9ec2bf28357ba64b6dc214f830117",
+      "sha256": "bd40dc0b2d3399259e7160dc1112a26a88144a1752ebcb984940baa34a14d7a3",
+      "bytes": 21315
+    },
+    {
+      "commit": "b158d1e5732642e1386110db70fcc0cc2c4c6e20",
+      "path": "tests/integration/aliases-column-public-independent-20260827/positive.ts.fixture",
+      "blob": "eb4e0fa39069d36db8839fb1717a7ef23d46c19b",
+      "sha256": "276c21ee937336e75512985d4d86a39984f92c5d82d085403b76680848bbf811",
+      "bytes": 1999
+    },
+    {
+      "commit": "b158d1e5732642e1386110db70fcc0cc2c4c6e20",
+      "path": "tests/integration/aliases-column-public-independent-20260827/cases.json",
+      "blob": "161ea63d7ab5a7502869dc0ef6490410cc7e0ccd",
+      "sha256": "39480fd5667f94088c9d864fa4b09c8e8dc1ed125d96f9bafc30c1b5da563598",
+      "bytes": 3758
+    }
+  ],
+  "fixtureSha256": {
+    "cases.json": "215f5e8f44ccf8792cfc175437fe9701fa7f176d29081d5d561cd828f1269b16",
+    "consumer.mjs": "0e4f011b37009faf83a8289bbf517c2cdecc6b409bec1b9abe1315a41f8e7cab",
+    "positive.ts.fixture": "43756d6555472d6dc57ad9c01b9083880b03538c49bd215c7fe8eda2bc979e81",
+    "negative.ts.fixture": "5585338e666d821baacafbde4c19641e1f73c0722a63366b5dc217d67b7d41d3",
+    "README.md": "be1f7097901df77b55d16e9604eba1f3778bc5b6ecca231a1134441664a626d8",
+    "PROTOCOL.md": "4d5606e192b3f52fdfaec64c9de090f0c2e0938ca98afd70cf0b497b257a7568",
+    "self-check.mjs": "567d18fc33468e4c516c209416260ca1e65c77fdbe0eff9de9a4bec38c9f1040"
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "schema": 1,
+  "command": "node tests/integration/du-overlay-independent-20260827/v9-lineage-overlay-20260827/focused-controls.mjs",
+  "status": 0,
+  "signal": null,
+  "stdout": {
+    "path": "focused-controls.stdout.data",
+    "bytes": 1719,
+    "sha256": "32c7bd19722e9f9892a09106cfd52908206819fc4ddb68d28e4867109ec3c34b"
+  },
+  "stderr": {
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  }
+}

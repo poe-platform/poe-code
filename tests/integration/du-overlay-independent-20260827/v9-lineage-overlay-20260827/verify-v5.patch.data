@@ -1,0 +1,96 @@
+diff --git a/harness/verify-v5.mjs b/harness/verify-v5.mjs
+index 8b48d1b..0000000 100644
+--- a/harness/verify-v5.mjs
++++ b/harness/verify-v5.mjs
+@@ -233,14 +233,53 @@ function callsMatching(observers, methods) {
+   return observers.flatMap(observer => observer.calls.filter(call => methods.has(call.method)));
+ }
+ 
++// V9_LINEAGE_OVERLAY_BEGIN
++const frozenLineageCaseIds = Object.freeze({
++  "historical-frozen-derived": Object.freeze([
++    "V5-001", "V5-002", "V5-003", "V5-004", "V5-005", "V5-006", "V5-007", "V5-008",
++    "V5-009", "V5-010", "V5-011", "V5-012", "V5-013", "V5-014", "V5-015", "V5-016",
++    "V5-017", "V5-018", "V5-019", "V5-020", "V5-028", "V5-029", "V5-030", "V5-031",
++    "V5-032", "V5-033", "V5-035", "V5-036", "V5-037", "V5-038", "V5-039",
++  ]),
++  "postfreeze-lifecycle-addition": Object.freeze(["V5-034", "V5-040"]),
++  "v5-observer-policy-control": Object.freeze([
++    "V5-021", "V5-022", "V5-023", "V5-024", "V5-025", "V5-026", "V5-027",
++  ]),
++});
++
++function buildLineageByCaseId(groups = frozenLineageCaseIds) {
++  const expectedIds = Array.from({ length: 40 }, (_, index) => `V5-${String(index + 1).padStart(3, "0")}`);
++  const allowedLineages = new Set([
++    "historical-frozen-derived", "postfreeze-lifecycle-addition", "v5-observer-policy-control",
++  ]);
++  const map = new Map();
++  for (const [lineage, ids] of Object.entries(groups)) {
++    assert.ok(allowedLineages.has(lineage), `invalid frozen lineage category: ${lineage}`);
++    assert.ok(Array.isArray(ids), `frozen lineage category ${lineage} must contain an ID array`);
++    for (const id of ids) {
++      assert.match(id, /^V5-\d{3}$/u, `malformed frozen case ID in ${lineage}`);
++      assert.ok(!map.has(id), `duplicate frozen case ID: ${id}`);
++      map.set(id, lineage);
++    }
++  }
++  assert.deepEqual([...map.keys()].sort(), expectedIds, "frozen lineage map must contain exactly V5-001 through V5-040");
++  return map;
++}
++
++const lineageByCaseId = buildLineageByCaseId();
++function lineageForCaseId(id, map = lineageByCaseId) {
++  assert.match(id, /^V5-\d{3}$/u, "malformed recorded case ID");
++  const lineage = map.get(id);
++  assert.ok(lineage, `unknown recorded case ID: ${id}`);
++  return lineage;
++}
++// V9_LINEAGE_OVERLAY_END
++
+ function record(name, category, observation, checks, target = {}) {
+   const failures = Object.entries(checks).filter(([, pass]) => !pass).map(([label]) => label);
+   const id = `V5-${String(results.length + 1).padStart(3, "0")}`;
+-  const lineage = name.startsWith("consumer-registered pending cleanup") || name.startsWith("actual Shell lifecycle")
+-    ? "postfreeze-lifecycle-addition"
+-    : name.startsWith("real ") || name.startsWith("observer-only file read") || name.startsWith("atime field scope")
+-      ? "v5-observer-policy-control"
+-      : "historical-frozen-derived";
++  assert.ok(!results.some(result => result.id === id), `duplicate recorded case ID: ${id}`);
++  const lineage = lineageForCaseId(id);
+   const result = { id, name, category, lineage, pass: failures.length === 0, failures, target, observation };
+   results.push(result);
+   process.stderr.write(`${result.pass ? "ok" : "not ok"} - ${name}${failures.length ? `: ${failures.join("; ")}` : ""}\n`);
+@@ -1135,6 +1174,7 @@ for (const path of loadedPaths) {
+   const bytes = await readFile(path);
+   loadedFiles.push({ path, bytes: bytes.byteLength, sha256: createHash("sha256").update(bytes).digest("hex") });
+ }
++// V9_RECEIPT_AND_LINEAGE_ASSERTIONS_BEGIN
+ const summary = {
+   total: results.length,
+   passed: results.filter(result => result.pass).length,
+@@ -1150,15 +1190,19 @@ const summary = {
+     failed: results.filter(result => result.lineage === lineage && !result.pass).length,
+   }])),
+ };
+-assert.equal(summary.byLineage["historical-frozen-derived"]?.total, 31, "fresh v5 must retain exactly 31 historical frozen-derived cases");
+-assert.equal(summary.byLineage["postfreeze-lifecycle-addition"]?.total, 2, "fresh v5 must retain exactly two postfreeze lifecycle additions");
+-assert.equal(summary.byLineage["v5-observer-policy-control"]?.total, 7, "fresh v5 must contain exactly seven observer-policy controls");
+-process.stdout.write(`${JSON.stringify({
++const receipt = {
+   schema: 1,
+   moduleRoot,
+   loadedFiles,
+   summary,
+   parityProjection: results.map(({ id, name, category, pass, failures, target }) => ({ id, name, category, pass, failures, target })),
+   results,
+-}, null, 2)}\n`);
++};
++await new Promise((resolve, reject) => {
++  process.stdout.write(`${JSON.stringify(receipt, null, 2)}\n`, error => error ? reject(error) : resolve());
++});
++assert.equal(summary.byLineage["historical-frozen-derived"]?.total, 31, "fresh v5 must retain exactly 31 historical frozen-derived cases");
++assert.equal(summary.byLineage["postfreeze-lifecycle-addition"]?.total, 2, "fresh v5 must retain exactly two postfreeze lifecycle additions");
++assert.equal(summary.byLineage["v5-observer-policy-control"]?.total, 7, "fresh v5 must contain exactly seven observer-policy controls");
+ process.exitCode = summary.failed === 0 ? 0 : 1;
++// V9_RECEIPT_AND_LINEAGE_ASSERTIONS_END

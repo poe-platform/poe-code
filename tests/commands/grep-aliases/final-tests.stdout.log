@@ -1,0 +1,725 @@
+TAP version 13
+# Subtest: standalone plugin pipes both aliases without registered grep
+ok 1 - standalone plugin pipes both aliases without registered grep
+  ---
+  duration_ms: 24.790042
+  type: 'test'
+  ...
+# Subtest: literal invoke argv, middleware, VFS and parent state survive aliases
+ok 2 - literal invoke argv, middleware, VFS and parent state survive aliases
+  ---
+  duration_ms: 16.275458
+  type: 'test'
+  ...
+# Subtest: egrep standalone factory never dispatches grep
+ok 3 - egrep standalone factory never dispatches grep
+  ---
+  duration_ms: 15.592958
+  type: 'test'
+  ...
+# Subtest: egrep delegates exact grep profile 0: -F a
+ok 4 - egrep delegates exact grep profile 0: -F a
+  ---
+  duration_ms: 0.458833
+  type: 'test'
+  ...
+# Subtest: egrep delegates exact grep profile 1: -E a
+ok 5 - egrep delegates exact grep profile 1: -E a
+  ---
+  duration_ms: 30.1155
+  type: 'test'
+  ...
+# Subtest: egrep delegates exact grep profile 2: -EF a
+ok 6 - egrep delegates exact grep profile 2: -EF a
+  ---
+  duration_ms: 0.411791
+  type: 'test'
+  ...
+# Subtest: egrep delegates exact grep profile 3: --extended-regexp --fixed-strings a
+ok 7 - egrep delegates exact grep profile 3: --extended-regexp --fixed-strings a
+  ---
+  duration_ms: 0.27075
+  type: 'test'
+  ...
+# Subtest: egrep delegates exact grep profile 4: -e -F
+ok 8 - egrep delegates exact grep profile 4: -e -F
+  ---
+  duration_ms: 31.488709
+  type: 'test'
+  ...
+# Subtest: egrep delegates exact grep profile 5: -- -F
+ok 9 - egrep delegates exact grep profile 5: -- -F
+  ---
+  duration_ms: 28.897708
+  type: 'test'
+  ...
+# Subtest: egrep delegates exact grep profile 6: -G a
+ok 10 - egrep delegates exact grep profile 6: -G a
+  ---
+  duration_ms: 0.413125
+  type: 'test'
+  ...
+# Subtest: egrep delegates exact grep profile 7: -P a
+ok 11 - egrep delegates exact grep profile 7: -P a
+  ---
+  duration_ms: 0.158167
+  type: 'test'
+  ...
+# Subtest: egrep delegates exact grep profile 8: -e
+ok 12 - egrep delegates exact grep profile 8: -e
+  ---
+  duration_ms: 0.109625
+  type: 'test'
+  ...
+# Subtest: egrep delegates exact grep profile 9: 
+ok 13 - egrep delegates exact grep profile 9: 
+  ---
+  duration_ms: 0.095167
+  type: 'test'
+  ...
+# Subtest: egrep delegates exact grep profile 10: a missing
+ok 14 - egrep delegates exact grep profile 10: a missing
+  ---
+  duration_ms: 28.268
+  type: 'test'
+  ...
+# Subtest: egrep delegates exact grep profile 11: -s a missing
+ok 15 - egrep delegates exact grep profile 11: -s a missing
+  ---
+  duration_ms: 28.642
+  type: 'test'
+  ...
+# Subtest: egrep delegates exact grep profile 12: -m0 a
+ok 16 - egrep delegates exact grep profile 12: -m0 a
+  ---
+  duration_ms: 28.330125
+  type: 'test'
+  ...
+# Subtest: egrep delegates exact grep profile 13: -f - data
+ok 17 - egrep delegates exact grep profile 13: -f - data
+  ---
+  duration_ms: 28.377125
+  type: 'test'
+  ...
+# Subtest: egrep delegates exact grep profile 14: -f empty data
+ok 18 - egrep delegates exact grep profile 14: -f empty data
+  ---
+  duration_ms: 27.039334
+  type: 'test'
+  ...
+# Subtest: egrep delegates exact grep profile 15: -f patterns -e no data
+ok 19 - egrep delegates exact grep profile 15: -f patterns -e no data
+  ---
+  duration_ms: 28.554334
+  type: 'test'
+  ...
+# Subtest: egrep delegates exact grep profile 16: -Hnz a
+ok 20 - egrep delegates exact grep profile 16: -Hnz a
+  ---
+  duration_ms: 27.329542
+  type: 'test'
+  ...
+# Subtest: egrep reports matcher conflict with alias diagnostic
+ok 21 - egrep reports matcher conflict with alias diagnostic
+  ---
+  duration_ms: 0.138584
+  type: 'test'
+  ...
+# Subtest: fgrep standalone factory never dispatches grep
+ok 22 - fgrep standalone factory never dispatches grep
+  ---
+  duration_ms: 13.017333
+  type: 'test'
+  ...
+# Subtest: fgrep delegates exact grep profile 0: -E a
+ok 23 - fgrep delegates exact grep profile 0: -E a
+  ---
+  duration_ms: 0.167375
+  type: 'test'
+  ...
+# Subtest: fgrep delegates exact grep profile 1: -F a
+ok 24 - fgrep delegates exact grep profile 1: -F a
+  ---
+  duration_ms: 25.801792
+  type: 'test'
+  ...
+# Subtest: fgrep delegates exact grep profile 2: -EF a
+ok 25 - fgrep delegates exact grep profile 2: -EF a
+  ---
+  duration_ms: 0.164917
+  type: 'test'
+  ...
+# Subtest: fgrep delegates exact grep profile 3: --extended-regexp --fixed-strings a
+ok 26 - fgrep delegates exact grep profile 3: --extended-regexp --fixed-strings a
+  ---
+  duration_ms: 0.1045
+  type: 'test'
+  ...
+# Subtest: fgrep delegates exact grep profile 4: -e -E
+ok 27 - fgrep delegates exact grep profile 4: -e -E
+  ---
+  duration_ms: 26.750958
+  type: 'test'
+  ...
+# Subtest: fgrep delegates exact grep profile 5: -- -E
+ok 28 - fgrep delegates exact grep profile 5: -- -E
+  ---
+  duration_ms: 26.6295
+  type: 'test'
+  ...
+# Subtest: fgrep delegates exact grep profile 6: -G a
+ok 29 - fgrep delegates exact grep profile 6: -G a
+  ---
+  duration_ms: 0.16575
+  type: 'test'
+  ...
+# Subtest: fgrep delegates exact grep profile 7: -P a
+ok 30 - fgrep delegates exact grep profile 7: -P a
+  ---
+  duration_ms: 0.09
+  type: 'test'
+  ...
+# Subtest: fgrep delegates exact grep profile 8: -e
+ok 31 - fgrep delegates exact grep profile 8: -e
+  ---
+  duration_ms: 0.082917
+  type: 'test'
+  ...
+# Subtest: fgrep delegates exact grep profile 9: 
+ok 32 - fgrep delegates exact grep profile 9: 
+  ---
+  duration_ms: 0.107667
+  type: 'test'
+  ...
+# Subtest: fgrep delegates exact grep profile 10: a missing
+ok 33 - fgrep delegates exact grep profile 10: a missing
+  ---
+  duration_ms: 26.104958
+  type: 'test'
+  ...
+# Subtest: fgrep delegates exact grep profile 11: -s a missing
+ok 34 - fgrep delegates exact grep profile 11: -s a missing
+  ---
+  duration_ms: 25.219208
+  type: 'test'
+  ...
+# Subtest: fgrep delegates exact grep profile 12: -m0 a
+ok 35 - fgrep delegates exact grep profile 12: -m0 a
+  ---
+  duration_ms: 24.90775
+  type: 'test'
+  ...
+# Subtest: fgrep delegates exact grep profile 13: -f - data
+ok 36 - fgrep delegates exact grep profile 13: -f - data
+  ---
+  duration_ms: 26.48225
+  type: 'test'
+  ...
+# Subtest: fgrep delegates exact grep profile 14: -f empty data
+ok 37 - fgrep delegates exact grep profile 14: -f empty data
+  ---
+  duration_ms: 25.581625
+  type: 'test'
+  ...
+# Subtest: fgrep delegates exact grep profile 15: -f patterns -e no data
+ok 38 - fgrep delegates exact grep profile 15: -f patterns -e no data
+  ---
+  duration_ms: 25.407625
+  type: 'test'
+  ...
+# Subtest: fgrep delegates exact grep profile 16: -Hnz a
+ok 39 - fgrep delegates exact grep profile 16: -Hnz a
+  ---
+  duration_ms: 26.998959
+  type: 'test'
+  ...
+# Subtest: fgrep reports matcher conflict with alias diagnostic
+ok 40 - fgrep reports matcher conflict with alias diagnostic
+  ---
+  duration_ms: 0.125041
+  type: 'test'
+  ...
+# Subtest: plugin preflights both collisions without partial registration
+ok 41 - plugin preflights both collisions without partial registration
+  ---
+  duration_ms: 0.15275
+  type: 'test'
+  ...
+# Subtest: regex configuration is validated without registering either alias
+ok 42 - regex configuration is validated without registering either alias
+  ---
+  duration_ms: 0.051208
+  type: 'test'
+  ...
+# Subtest: native-derived egrep-default-mode (exact BSD tuple)
+ok 43 - native-derived egrep-default-mode (exact BSD tuple)
+  ---
+  duration_ms: 18.928917
+  type: 'test'
+  ...
+# Subtest: native-derived egrep-repeated-mode (exact BSD tuple)
+ok 44 - native-derived egrep-repeated-mode (exact BSD tuple)
+  ---
+  duration_ms: 15.449333
+  type: 'test'
+  ...
+# Subtest: native-derived egrep-line-count (exact BSD tuple)
+ok 45 - native-derived egrep-line-count (exact BSD tuple)
+  ---
+  duration_ms: 14.7295
+  type: 'test'
+  ...
+# Subtest: native-derived egrep-invert-number (exact BSD tuple)
+ok 46 - native-derived egrep-invert-number (exact BSD tuple)
+  ---
+  duration_ms: 15.331667
+  type: 'test'
+  ...
+# Subtest: native-derived egrep-case-word (exact BSD tuple)
+ok 47 - native-derived egrep-case-word (exact BSD tuple)
+  ---
+  duration_ms: 14.718292
+  type: 'test'
+  ...
+# Subtest: native-derived egrep-whole-only (exact BSD tuple)
+ok 48 - native-derived egrep-whole-only (exact BSD tuple)
+  ---
+  duration_ms: 15.546666
+  type: 'test'
+  ...
+# Subtest: native-derived egrep-max-count (exact BSD tuple)
+ok 49 - native-derived egrep-max-count (exact BSD tuple)
+  ---
+  duration_ms: 15.948042
+  type: 'test'
+  ...
+# Subtest: native-derived egrep-unterminated (exact BSD tuple)
+ok 50 - native-derived egrep-unterminated (exact BSD tuple)
+  ---
+  duration_ms: 15.761333
+  type: 'test'
+  ...
+# Subtest: native-derived egrep-no-match (exact BSD tuple)
+ok 51 - native-derived egrep-no-match (exact BSD tuple)
+  ---
+  duration_ms: 14.34075
+  type: 'test'
+  ...
+# Subtest: native-derived egrep-empty-input (exact BSD tuple)
+ok 52 - native-derived egrep-empty-input (exact BSD tuple)
+  ---
+  duration_ms: 14.358542
+  type: 'test'
+  ...
+# Subtest: native-derived egrep-multiple-files (exact BSD tuple)
+ok 53 - native-derived egrep-multiple-files (exact BSD tuple)
+  ---
+  duration_ms: 15.056375
+  type: 'test'
+  ...
+# Subtest: native-derived egrep-mixed-stdin-file (exact BSD tuple)
+ok 54 - native-derived egrep-mixed-stdin-file (exact BSD tuple)
+  ---
+  duration_ms: 14.023167
+  type: 'test'
+  ...
+# Subtest: native-derived egrep-pattern-file (exact BSD tuple)
+ok 55 - native-derived egrep-pattern-file (exact BSD tuple)
+  ---
+  duration_ms: 14.883334
+  type: 'test'
+  ...
+# Subtest: native-derived egrep-stdin-pattern-file (exact BSD tuple)
+ok 56 - native-derived egrep-stdin-pattern-file (exact BSD tuple)
+  ---
+  duration_ms: 14.104416
+  type: 'test'
+  ...
+# Subtest: native-derived egrep-empty-pattern-file (exact BSD tuple)
+ok 57 - native-derived egrep-empty-pattern-file (exact BSD tuple)
+  ---
+  duration_ms: 14.232083
+  type: 'test'
+  ...
+# Subtest: native-derived egrep-multiple-patterns (exact BSD tuple)
+ok 58 - native-derived egrep-multiple-patterns (exact BSD tuple)
+  ---
+  duration_ms: 13.974625
+  type: 'test'
+  ...
+# Subtest: native-derived egrep-files-with-match (exact BSD tuple)
+ok 59 - native-derived egrep-files-with-match (exact BSD tuple)
+  ---
+  duration_ms: 14.302667
+  type: 'test'
+  ...
+# Subtest: native-derived egrep-silent-missing (exact BSD tuple)
+ok 60 - native-derived egrep-silent-missing (exact BSD tuple)
+  ---
+  duration_ms: 13.819083
+  type: 'test'
+  ...
+# Subtest: native-derived egrep-quiet-before-missing (qualified)
+ok 61 - native-derived egrep-quiet-before-missing (qualified)
+  ---
+  duration_ms: 13.436542
+  type: 'test'
+  ...
+# Subtest: native-derived egrep-dash-pattern-literal (exact BSD tuple)
+ok 62 - native-derived egrep-dash-pattern-literal (exact BSD tuple)
+  ---
+  duration_ms: 13.56225
+  type: 'test'
+  ...
+# Subtest: native-derived egrep-conflicting-mode (qualified)
+ok 63 - native-derived egrep-conflicting-mode (qualified)
+  ---
+  duration_ms: 0.193041
+  type: 'test'
+  ...
+# Subtest: native-derived egrep-missing-pattern (qualified)
+ok 64 - native-derived egrep-missing-pattern (qualified)
+  ---
+  duration_ms: 0.085459
+  type: 'test'
+  ...
+# Subtest: native-derived egrep-unsupported-G (qualified)
+ok 65 - native-derived egrep-unsupported-G (qualified)
+  ---
+  duration_ms: 0.07025
+  type: 'test'
+  ...
+# Subtest: native-derived egrep-invalid-option (qualified)
+ok 66 - native-derived egrep-invalid-option (qualified)
+  ---
+  duration_ms: 0.081
+  type: 'test'
+  ...
+# Subtest: native-derived egrep-ordered-alternative (qualified)
+ok 67 - native-derived egrep-ordered-alternative (qualified)
+  ---
+  duration_ms: 13.64875
+  type: 'test'
+  ...
+# Subtest: native-derived fgrep-default-mode (exact BSD tuple)
+ok 68 - native-derived fgrep-default-mode (exact BSD tuple)
+  ---
+  duration_ms: 15.196208
+  type: 'test'
+  ...
+# Subtest: native-derived fgrep-repeated-mode (exact BSD tuple)
+ok 69 - native-derived fgrep-repeated-mode (exact BSD tuple)
+  ---
+  duration_ms: 13.802125
+  type: 'test'
+  ...
+# Subtest: native-derived fgrep-line-count (exact BSD tuple)
+ok 70 - native-derived fgrep-line-count (exact BSD tuple)
+  ---
+  duration_ms: 12.931959
+  type: 'test'
+  ...
+# Subtest: native-derived fgrep-invert-number (exact BSD tuple)
+ok 71 - native-derived fgrep-invert-number (exact BSD tuple)
+  ---
+  duration_ms: 12.94125
+  type: 'test'
+  ...
+# Subtest: native-derived fgrep-case-word (exact BSD tuple)
+ok 72 - native-derived fgrep-case-word (exact BSD tuple)
+  ---
+  duration_ms: 12.712416
+  type: 'test'
+  ...
+# Subtest: native-derived fgrep-whole-only (exact BSD tuple)
+ok 73 - native-derived fgrep-whole-only (exact BSD tuple)
+  ---
+  duration_ms: 12.51525
+  type: 'test'
+  ...
+# Subtest: native-derived fgrep-max-count (exact BSD tuple)
+ok 74 - native-derived fgrep-max-count (exact BSD tuple)
+  ---
+  duration_ms: 13.332292
+  type: 'test'
+  ...
+# Subtest: native-derived fgrep-unterminated (exact BSD tuple)
+ok 75 - native-derived fgrep-unterminated (exact BSD tuple)
+  ---
+  duration_ms: 13.033459
+  type: 'test'
+  ...
+# Subtest: native-derived fgrep-no-match (exact BSD tuple)
+ok 76 - native-derived fgrep-no-match (exact BSD tuple)
+  ---
+  duration_ms: 13.225875
+  type: 'test'
+  ...
+# Subtest: native-derived fgrep-empty-input (exact BSD tuple)
+ok 77 - native-derived fgrep-empty-input (exact BSD tuple)
+  ---
+  duration_ms: 12.864875
+  type: 'test'
+  ...
+# Subtest: native-derived fgrep-multiple-files (exact BSD tuple)
+ok 78 - native-derived fgrep-multiple-files (exact BSD tuple)
+  ---
+  duration_ms: 13.692083
+  type: 'test'
+  ...
+# Subtest: native-derived fgrep-mixed-stdin-file (exact BSD tuple)
+ok 79 - native-derived fgrep-mixed-stdin-file (exact BSD tuple)
+  ---
+  duration_ms: 12.972667
+  type: 'test'
+  ...
+# Subtest: native-derived fgrep-pattern-file (exact BSD tuple)
+ok 80 - native-derived fgrep-pattern-file (exact BSD tuple)
+  ---
+  duration_ms: 12.329167
+  type: 'test'
+  ...
+# Subtest: native-derived fgrep-stdin-pattern-file (exact BSD tuple)
+ok 81 - native-derived fgrep-stdin-pattern-file (exact BSD tuple)
+  ---
+  duration_ms: 12.604458
+  type: 'test'
+  ...
+# Subtest: native-derived fgrep-empty-pattern-file (exact BSD tuple)
+ok 82 - native-derived fgrep-empty-pattern-file (exact BSD tuple)
+  ---
+  duration_ms: 12.42125
+  type: 'test'
+  ...
+# Subtest: native-derived fgrep-multiple-patterns (exact BSD tuple)
+ok 83 - native-derived fgrep-multiple-patterns (exact BSD tuple)
+  ---
+  duration_ms: 12.539625
+  type: 'test'
+  ...
+# Subtest: native-derived fgrep-files-with-match (exact BSD tuple)
+ok 84 - native-derived fgrep-files-with-match (exact BSD tuple)
+  ---
+  duration_ms: 13.277959
+  type: 'test'
+  ...
+# Subtest: native-derived fgrep-silent-missing (exact BSD tuple)
+ok 85 - native-derived fgrep-silent-missing (exact BSD tuple)
+  ---
+  duration_ms: 12.974667
+  type: 'test'
+  ...
+# Subtest: native-derived fgrep-quiet-before-missing (qualified)
+ok 86 - native-derived fgrep-quiet-before-missing (qualified)
+  ---
+  duration_ms: 13.007416
+  type: 'test'
+  ...
+# Subtest: native-derived fgrep-dash-pattern-literal (exact BSD tuple)
+ok 87 - native-derived fgrep-dash-pattern-literal (exact BSD tuple)
+  ---
+  duration_ms: 12.601792
+  type: 'test'
+  ...
+# Subtest: native-derived fgrep-literal-argv (exact BSD tuple)
+ok 88 - native-derived fgrep-literal-argv (exact BSD tuple)
+  ---
+  duration_ms: 12.827875
+  type: 'test'
+  ...
+# Subtest: native-derived fgrep-conflicting-mode (qualified)
+ok 89 - native-derived fgrep-conflicting-mode (qualified)
+  ---
+  duration_ms: 0.137667
+  type: 'test'
+  ...
+# Subtest: native-derived fgrep-missing-pattern (qualified)
+ok 90 - native-derived fgrep-missing-pattern (qualified)
+  ---
+  duration_ms: 0.077334
+  type: 'test'
+  ...
+# Subtest: native-derived fgrep-unsupported-G (qualified)
+ok 91 - native-derived fgrep-unsupported-G (qualified)
+  ---
+  duration_ms: 0.065083
+  type: 'test'
+  ...
+# Subtest: native-derived fgrep-invalid-option (qualified)
+ok 92 - native-derived fgrep-invalid-option (qualified)
+  ---
+  duration_ms: 0.068916
+  type: 'test'
+  ...
+# Subtest: optional GNU replay requires supplied frozen identities and raw warning evidence
+ok 93 - optional GNU replay requires supplied frozen identities and raw warning evidence # SKIP GNU grep unavailable to author; supply a pinned capture and set GREP_ALIASES_GNU_NATIVE=1
+  ---
+  duration_ms: 0.011584
+  type: 'test'
+  ...
+# Subtest: optional BSD replay requires exact recorded binaries, version and corpus
+ok 94 - optional BSD replay requires exact recorded binaries, version and corpus
+  ---
+  duration_ms: 271.874041
+  type: 'test'
+  ...
+# Subtest: egrep registers cleanup synchronously before acquisition and shares completion
+ok 95 - egrep registers cleanup synchronously before acquisition and shares completion
+  ---
+  duration_ms: 18.459209
+  type: 'test'
+  ...
+# Subtest: egrep already aborted input never acquires a session
+ok 96 - egrep already aborted input never acquires a session
+  ---
+  duration_ms: 0.159125
+  type: 'test'
+  ...
+# Subtest: egrep cancellation awaits active worker retirement
+ok 97 - egrep cancellation awaits active worker retirement
+  ---
+  duration_ms: 15.13325
+  type: 'test'
+  ...
+# Subtest: egrep owned records survive Buffer reuse and source finalization
+ok 98 - egrep owned records survive Buffer reuse and source finalization
+  ---
+  duration_ms: 14.663792
+  type: 'test'
+  ...
+# Subtest: egrep awaits stdout backpressure before another write
+ok 99 - egrep awaits stdout backpressure before another write
+  ---
+  duration_ms: 15.031292
+  type: 'test'
+  ...
+# Subtest: egrep aborts entered opaque stdin and observes late rejection
+ok 100 - egrep aborts entered opaque stdin and observes late rejection
+  ---
+  duration_ms: 14.924
+  type: 'test'
+  ...
+# Subtest: egrep aborts entered opaque stdout and observes late rejection
+ok 101 - egrep aborts entered opaque stdout and observes late rejection
+  ---
+  duration_ms: 14.799125
+  type: 'test'
+  ...
+# Subtest: egrep quiet early stop awaits cooperative source return
+ok 102 - egrep quiet early stop awaits cooperative source return
+  ---
+  duration_ms: 15.278083
+  type: 'test'
+  ...
+# Subtest: egrep sink failure finalizes source and retains alias diagnostic
+ok 103 - egrep sink failure finalizes source and retains alias diagnostic
+  ---
+  duration_ms: 16.054083
+  type: 'test'
+  ...
+# Subtest: egrep input error precedes return error and closes once
+ok 104 - egrep input error precedes return error and closes once
+  ---
+  duration_ms: 14.456083
+  type: 'test'
+  ...
+# Subtest: egrep matching uses worker not host RegExp construction
+ok 105 - egrep matching uses worker not host RegExp construction
+  ---
+  duration_ms: 14.533667
+  type: 'test'
+  ...
+# Subtest: fgrep registers cleanup synchronously before acquisition and shares completion
+ok 106 - fgrep registers cleanup synchronously before acquisition and shares completion
+  ---
+  duration_ms: 14.657042
+  type: 'test'
+  ...
+# Subtest: fgrep already aborted input never acquires a session
+ok 107 - fgrep already aborted input never acquires a session
+  ---
+  duration_ms: 0.08425
+  type: 'test'
+  ...
+# Subtest: fgrep cancellation awaits active worker retirement
+ok 108 - fgrep cancellation awaits active worker retirement
+  ---
+  duration_ms: 14.21725
+  type: 'test'
+  ...
+# Subtest: fgrep owned records survive Buffer reuse and source finalization
+ok 109 - fgrep owned records survive Buffer reuse and source finalization
+  ---
+  duration_ms: 14.35675
+  type: 'test'
+  ...
+# Subtest: fgrep awaits stdout backpressure before another write
+ok 110 - fgrep awaits stdout backpressure before another write
+  ---
+  duration_ms: 14.373042
+  type: 'test'
+  ...
+# Subtest: fgrep aborts entered opaque stdin and observes late rejection
+ok 111 - fgrep aborts entered opaque stdin and observes late rejection
+  ---
+  duration_ms: 14.41475
+  type: 'test'
+  ...
+# Subtest: fgrep aborts entered opaque stdout and observes late rejection
+ok 112 - fgrep aborts entered opaque stdout and observes late rejection
+  ---
+  duration_ms: 13.726334
+  type: 'test'
+  ...
+# Subtest: fgrep quiet early stop awaits cooperative source return
+ok 113 - fgrep quiet early stop awaits cooperative source return
+  ---
+  duration_ms: 13.784417
+  type: 'test'
+  ...
+# Subtest: fgrep sink failure finalizes source and retains alias diagnostic
+ok 114 - fgrep sink failure finalizes source and retains alias diagnostic
+  ---
+  duration_ms: 14.506167
+  type: 'test'
+  ...
+# Subtest: fgrep input error precedes return error and closes once
+ok 115 - fgrep input error precedes return error and closes once
+  ---
+  duration_ms: 13.438167
+  type: 'test'
+  ...
+# Subtest: fgrep matching uses worker not host RegExp construction
+ok 116 - fgrep matching uses worker not host RegExp construction
+  ---
+  duration_ms: 13.666333
+  type: 'test'
+  ...
+# Subtest: family aliases share executor worker and queue budgets
+ok 117 - family aliases share executor worker and queue budgets
+  ---
+  duration_ms: 28.574542
+  type: 'test'
+  ...
+# Subtest: request timeout option bounds a stalled actual matcher request
+ok 118 - request timeout option bounds a stalled actual matcher request
+  ---
+  duration_ms: 65.850292
+  type: 'test'
+  ...
+# {"actualWorkers":24,"exited":24,"active":0}
+# Subtest: paused alias sink releases shared request capacity for sibling
+ok 119 - paused alias sink releases shared request capacity for sibling
+  ---
+  duration_ms: 14.226125
+  type: 'test'
+  ...
+1..119
+# tests 119
+# suites 0
+# pass 118
+# fail 0
+# cancelled 0
+# skipped 1
+# todo 0
+# duration_ms 1016.834625

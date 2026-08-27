@@ -1,0 +1,9 @@
+{
+  "sourceArchiveMatchesGitBefore": true,
+  "sourceAfterOnlyApprovedFixture": true,
+  "compiledUnchanged": true,
+  "historicalFilesUnchanged": 205,
+  "historicalDirectoryEntriesUnchanged": true,
+  "detectsNewEntries": true,
+  "scope": "Selected archive and four named historical directories only, not the entire live tree."
+}

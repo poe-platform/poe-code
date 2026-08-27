@@ -1,0 +1,1232 @@
+[
+  {
+    "path": "tests/commands/expr-stress/diagnostics-review/FREEZE.md",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "0c4ef745b3b2054df53a30d7b9f05e044fe5b6d5",
+    "sha256": "26f22d8fb2d052f3647026d61c155a0a648db7b69d78985f3f8a5e33fcc5c29a"
+  },
+  {
+    "path": "tests/commands/expr-stress/diagnostics-review/REPORT.md",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "82673ce74651edb1810568fb0479496111fbc383",
+    "sha256": "548d581d97d48dd306fa16f8f630511996c5f2d7f328438f82d804a9f594e258"
+  },
+  {
+    "path": "tests/commands/expr-stress/diagnostics-review/bind-harness.mjs",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "9cba5bcea211ddc09f954175dd551f073f905827",
+    "sha256": "03d808336a7b72ab5e6b646edcc6a5df7a2e0f6a6feaa1c545ac262a262ec1da"
+  },
+  {
+    "path": "tests/commands/expr-stress/diagnostics-review/finalize.mjs",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "2f3a64a4066fb85c48940ca229b7da438495798a",
+    "sha256": "e84c02d34effb4787ce499c9eb983ce8e89fe5094df98ec361746bdbf503b7ed"
+  },
+  {
+    "path": "tests/commands/expr-stress/diagnostics-review/freeze/baseline-source.txt",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "d083456497eeefb1313f6560b1ce6ed93c3592f9",
+    "sha256": "ba791eba95ef220c2e8af9f1d26c15daa8ff28a77121a3fd4d52128e859731ee"
+  },
+  {
+    "path": "tests/commands/expr-stress/diagnostics-review/freeze/independent-native.json",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "a505e0c21ce2d21123f9cd2d4f02bd13c3492b9b",
+    "sha256": "252a342ef50d6721bd156d80efa602b988f2b3e600edca3cf42c7e8901ad2ea0"
+  },
+  {
+    "path": "tests/commands/expr-stress/diagnostics-review/freeze/native-original-replay.json",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "f4d7bb0d2c552d73da3f1a5410ef2ef49cda7695",
+    "sha256": "73963033fae8bb782a0d22e73ebe199fec39d97e354cb6ececf0692dbeb94352"
+  },
+  {
+    "path": "tests/commands/expr-stress/diagnostics-review/freeze/nine-unchanged.json",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "b9ca5a042bdb6620232fa5c65899fe481eaf1990",
+    "sha256": "e8f45a480018d1fb52727c9a5fd9448350df35bcfcdd33739e469cd287604e4d"
+  },
+  {
+    "path": "tests/commands/expr-stress/diagnostics-review/freeze/runtime-binding.json",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "3e755a5eb2648ac70aa7de79be43a6d6702c057c",
+    "sha256": "0d58cf989c6655a92ac284340919cb97226819865354125b3cbd43465ad4ad2b"
+  },
+  {
+    "path": "tests/commands/expr-stress/diagnostics-review/freeze/seal.json",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "7f09eafa30a47f48e26969d80ea362bd1893112d",
+    "sha256": "2b813ece23533035090eb28da77160e73e5ed0b8cc297d7b56101b24bf1bf0fd"
+  },
+  {
+    "path": "tests/commands/expr-stress/diagnostics-review/independent.mjs",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "8375c95d5828c34c7b3f33eba5c0f46d8e5a5198",
+    "sha256": "1133db0f2de868259835e3adfbef45b55a865f6bbf8eb1888a7fca8919924d6b"
+  },
+  {
+    "path": "tests/commands/expr-stress/diagnostics-review/inputs.json",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "47a05451a6bc26b7583946f1b6f6aab535f7661a",
+    "sha256": "dc758ff0c657d6ce7366e5f9b96af97d73a97773e092b17ed899f769ec251f28"
+  },
+  {
+    "path": "tests/commands/expr-stress/diagnostics-review/integrity.mjs",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "0ff56c09c7b53a977f92d83ffe6401fe49029c54",
+    "sha256": "0f660f28b11d11d283846a2a2a0aa320c88d8989effe44f2b97c601b121978ad"
+  },
+  {
+    "path": "tests/commands/expr-stress/diagnostics-review/prepare.mjs",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "cc25255b880825fab653c10d62b70b59810cb3cb",
+    "sha256": "a255d5e66e32a86602504c09f77ea6bfd8bb9962e8fd2c0c6171f5655f9ab7b4"
+  },
+  {
+    "path": "tests/commands/expr-stress/diagnostics-review/replay/accept-controls.mjs",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "b074ca591eaf15d67dd642b655d0b1f56b326212",
+    "sha256": "47119f8655136b9eccc9578ecb569b72f2955a1f5703b635c480f9c2c8fcf97b"
+  },
+  {
+    "path": "tests/commands/expr-stress/diagnostics-review/replay/accept-native.mjs",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "d50f6d86bb5251792984ac812be469753b71cd42",
+    "sha256": "e3a6f2d40b4c468e41fa42fcb77633c68b41b16deadf7008e9d2fc408960532e"
+  },
+  {
+    "path": "tests/commands/expr-stress/diagnostics-review/replay/baseline-27a77935/stage.json",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "601a3d23ceae42fad4eb1f78769670a2826bf822",
+    "sha256": "e1d5ea032c70a4bb3f3538e6089f4dc59ddd1fcbc90917ad659d49e7cc248fa4"
+  },
+  {
+    "path": "tests/commands/expr-stress/diagnostics-review/replay/baseline-8f19a9d5/stage.json",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "157a8e5328d47e9275b3e1c77a5db26f15aa9792",
+    "sha256": "9b7320a16952779eed2ce33ec32d35f1366e864fb57939039f2af4f8488b19fa"
+  },
+  {
+    "path": "tests/commands/expr-stress/diagnostics-review/replay/baseline-first/independent.json",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "a326fdd262bb7c27c0c1145a12ba98bf55a0edb6",
+    "sha256": "b2b76e79c48090475324d6a70193f5e3c90658ac9a095c154d2cd8e64a8130e0"
+  },
+  {
+    "path": "tests/commands/expr-stress/diagnostics-review/replay/baseline-source-tests.json",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "2382d4dc139638561886904de8a4231678f7e7a3",
+    "sha256": "77122f870a74698709f09597c2aa42d57714684da20a81cd853caaf25c144f7d"
+  },
+  {
+    "path": "tests/commands/expr-stress/diagnostics-review/replay/comparators.mjs",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "9ead337d9b81241e792ab5f402225f38550c029d",
+    "sha256": "983eb4e43f8178300534074c0f41fab5d9b814d20c9c858caa945509b8f353de"
+  },
+  {
+    "path": "tests/commands/expr-stress/diagnostics-review/replay/devdeps-authentication.json",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "cd2a49060a564c188b92ece4a8aa9c7b220122fd",
+    "sha256": "4bfdf12d2d2eb073bdc62b56176e806d24c585a2e4a190792e396ded54cb98ae"
+  },
+  {
+    "path": "tests/commands/expr-stress/diagnostics-review/replay/distribution.mjs",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "231ed3d8d4e7acab8d186b780fd866619ff85f4a",
+    "sha256": "cc65dcb177350c1b2868b497e0cf77ac13fa737927e77b8b4b818f6aa9f5be44"
+  },
+  {
+    "path": "tests/commands/expr-stress/diagnostics-review/replay/extra-driver.mjs",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "208556ceedacef8b8dd94462dfe6c915415fed19",
+    "sha256": "c05bc59571949eebfc14074b8e03bb4a0c87a00069e86bc44801db7ec82cdbf2"
+  },
+  {
+    "path": "tests/commands/expr-stress/diagnostics-review/replay/final-integrity-cleanup.json",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "3360b36e62e56f8747e00c8ccdb776edfa3cbcb8",
+    "sha256": "b43ef227db369b52552e992fadf5275c5bda779269d41407b2ccbc198a423611"
+  },
+  {
+    "path": "tests/commands/expr-stress/diagnostics-review/replay/final-inventory-baseline-27a77935.json",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "ae481e049b1a672942d09b521ddbec4e12788c92",
+    "sha256": "f414cc12f0e721e59b867a48a7cbf5fcdeae9c26692bd8e2a65f1785dafb6149"
+  },
+  {
+    "path": "tests/commands/expr-stress/diagnostics-review/replay/final-inventory-baseline-8f19a9d5.json",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "8ce52564ccffedc98cb45b38b52958ca904f51ff",
+    "sha256": "23d70683d9a34c2c496db376efcb22152a95fedf3fedd2c57c6bc4976c88c939"
+  },
+  {
+    "path": "tests/commands/expr-stress/diagnostics-review/replay/harness-bindings.json",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "2b28a61defe31e335cb0a1a66ac03d0bef8d67ab",
+    "sha256": "32907d1dead8f99a439378765c4826310683e15e6651b3eab82f3a08e5be2dda"
+  },
+  {
+    "path": "tests/commands/expr-stress/diagnostics-review/replay/integrity-helper-v1-failure.json",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "7e13dea2c90b08a8df58a7fdac5ddfb3f40e55d3",
+    "sha256": "b5c1c41f08394925a200b93ef843f9e88d8fd6e320f24f6bd4f107340b75a1d9"
+  },
+  {
+    "path": "tests/commands/expr-stress/diagnostics-review/replay/integrity-helper-v1.mjs.data",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "7d281d33d0f7814c6d5d82c8affbed80f06214f5",
+    "sha256": "2e40da645ddb622654ff37d09cd677398f7870143ba15c67ca0f0c2779576f15"
+  },
+  {
+    "path": "tests/commands/expr-stress/diagnostics-review/replay/legacy-plan.json",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "76af3d6432160087b0b0c83f507d0e0bb4bf3b2b",
+    "sha256": "ddf86e33953c6c84eff2a2a8702226907fb2833023ee3a183dede3c3bc25207a"
+  },
+  {
+    "path": "tests/commands/expr-stress/diagnostics-review/replay/lifecycle-driver.mjs",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "36d220ad59a33477a1d423bd5c29056dd65773df",
+    "sha256": "1246aa9d53aabb47b825133634b458a9f2ce958f3d32c758c28e7c76668c2e37"
+  },
+  {
+    "path": "tests/commands/expr-stress/diagnostics-review/replay/preparation-decision.json",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "80bad99e1804cd78cc5f5c79096921c5736682a6",
+    "sha256": "a711cc6ac7008c19ab3b0ae0e3ec9796dbbb477aea66ec16a1212dbe8de9616f"
+  },
+  {
+    "path": "tests/commands/expr-stress/diagnostics-review/replay/protocol-driver.mjs",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "f684c4cbd9c09053a1be1138701394c3c8dfb592",
+    "sha256": "3f87c282e60a67388e64bf6fdd0b2b445778171fbb93c0190a237c53f2fc77bc"
+  },
+  {
+    "path": "tests/commands/expr-stress/diagnostics-review/replay/review.mjs",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "21dc51ca068ac23e9a70cdc6be9282e708f29652",
+    "sha256": "f4ad8610633523eae4c510f396c54c78c9f050c3d0780e166012f25a39c7765b"
+  },
+  {
+    "path": "tests/commands/expr-stress/diagnostics-review/replay/runtime-driver.mjs",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "4efa630ae6a6c032c95c9188462db0be22617a0b",
+    "sha256": "5ae25ca13f47fcf2715ca0336149b41faf3d70fafa83ef42c667c9be054ca686"
+  },
+  {
+    "path": "tests/commands/expr-stress/diagnostics-review/replay/shell-lifecycle-driver.mjs",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "bfab156c5b2cf516efd92ebb3617b875284a080f",
+    "sha256": "00a054683c0694edae9484591ef8b99642c39c49153c2b0a1b4414b5cedf24c6"
+  },
+  {
+    "path": "tests/commands/expr-stress/diagnostics-review/replay/stage.mjs",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "81aa82e747bdd31f34fb9d5975c58da6084c1bcf",
+    "sha256": "ed6fa329fa1f6816b69f9658e3d27428f2bb4bad0e0c4fd259c60724146b14bd"
+  },
+  {
+    "path": "tests/commands/expr-stress/diagnostics-review/replay/supplement.mjs",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "db14d1cf3d2e0b3427366450ef04a35bd548ee0b",
+    "sha256": "4df7544c5b0a7847b88c34283ba073e5c7cb98ccfc729dbd3139b48e98cb7f65"
+  },
+  {
+    "path": "tests/commands/expr-stress/diagnostics-review/replay/watchdog.mjs",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "779fe63b5aa821db0bcf7f31dd58591f5d78dd86",
+    "sha256": "bef0f71905b37dbfd461f211214760ffc2ba8ae9039859f5736c3234309a92ee"
+  },
+  {
+    "path": "tests/commands/expr-stress/diagnostics-review/runtime-driver.mjs",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "8db4ee15f4bb811f417767ba9a9d7eac89c729a5",
+    "sha256": "649443266097a92d93e8e58e408c34a688a66b724a510a433be80eea11a1caf8"
+  },
+  {
+    "path": "tests/commands/expr-stress/fixture-output-contract-20260827/REPORT.md",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "735c0dc61fed4aa9a646001912cce287b249eec2",
+    "sha256": "fc8d1cadd07abe12655b6bb5468521543060aad7f0b2c68c5a792b1b9c8573e4"
+  },
+  {
+    "path": "tests/commands/expr-stress/fixture-output-contract-20260827/SEAL.json",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "55d85633caf064c570225ce1a0636719ae737d5a",
+    "sha256": "4bc693c9bed462c9643c9922b5955d5c2c62f7847f2a84dd66e32ff1831b9596"
+  },
+  {
+    "path": "tests/commands/expr-stress/fixture-output-contract-20260827/after-01/archive-source.before.json",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "558dd37f348a882087ddeaabaff3b2c377b62818",
+    "sha256": "1b41a6340ec4310f214fb8cbf51a795988e695326159305e6bc01c5dcccfe01c"
+  },
+  {
+    "path": "tests/commands/expr-stress/fixture-output-contract-20260827/after-01/build.json",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "0a227934cc07c2746becb3ad1e398292b44846dc",
+    "sha256": "29f82760c5173cc5e3ea948a407e8834facc99f4b1b30f0b4ebdb0a87a62d7e5"
+  },
+  {
+    "path": "tests/commands/expr-stress/fixture-output-contract-20260827/after-01/cleanup.json",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "23ec9bdf263bf5f273aabc71c4cc78b832d7878b",
+    "sha256": "d69c39d826e7cecbff45343c5fcd03919dbdaef1f1a4341ca5eb03aadb5722e1"
+  },
+  {
+    "path": "tests/commands/expr-stress/fixture-output-contract-20260827/after-01/dependencies.before.json",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "27f9b2ef42082cf07a57d83171deda814b32af4b",
+    "sha256": "91225600ffe6070bb6e9556a6ce811c242c47ac502a78b6ea4e5d579304c9690"
+  },
+  {
+    "path": "tests/commands/expr-stress/fixture-output-contract-20260827/after-01/diagnostics-run.json",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "e629e15f1f003bedb9f97e7b0d4f11a4f85e6bc3",
+    "sha256": "8b0b57268ebe16c5f731c38845bbf2613f0d3810fb162e358e31c84517243bd0"
+  },
+  {
+    "path": "tests/commands/expr-stress/fixture-output-contract-20260827/after-01/dist.before.json",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "29b2e9b61bad1f0283faf2b7996e7e0d28caec43",
+    "sha256": "d4924432bbf91f5d47545aec718f9b24b491197004c0be9e5aa5fefd7abb9a21"
+  },
+  {
+    "path": "tests/commands/expr-stress/fixture-output-contract-20260827/after-01/fixture.patch",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "18a152bb9516b986f3c960ce3812595506503f7d",
+    "sha256": "78df24f62329f10d9467a164743327b68c37315a689907634a621fc1f1bab51a"
+  },
+  {
+    "path": "tests/commands/expr-stress/fixture-output-contract-20260827/after-01/frozen-FREEZE.md",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "0c4ef745b3b2054df53a30d7b9f05e044fe5b6d5",
+    "sha256": "26f22d8fb2d052f3647026d61c155a0a648db7b69d78985f3f8a5e33fcc5c29a"
+  },
+  {
+    "path": "tests/commands/expr-stress/fixture-output-contract-20260827/after-01/frozen-REPORT.md",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "82673ce74651edb1810568fb0479496111fbc383",
+    "sha256": "548d581d97d48dd306fa16f8f630511996c5f2d7f328438f82d804a9f594e258"
+  },
+  {
+    "path": "tests/commands/expr-stress/fixture-output-contract-20260827/after-01/frozen-freeze__independent-native.json",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "a505e0c21ce2d21123f9cd2d4f02bd13c3492b9b",
+    "sha256": "252a342ef50d6721bd156d80efa602b988f2b3e600edca3cf42c7e8901ad2ea0"
+  },
+  {
+    "path": "tests/commands/expr-stress/fixture-output-contract-20260827/after-01/frozen-freeze__runtime-binding.json",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "3e755a5eb2648ac70aa7de79be43a6d6702c057c",
+    "sha256": "0d58cf989c6655a92ac284340919cb97226819865354125b3cbd43465ad4ad2b"
+  },
+  {
+    "path": "tests/commands/expr-stress/fixture-output-contract-20260827/after-01/frozen-independent.mjs",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "8375c95d5828c34c7b3f33eba5c0f46d8e5a5198",
+    "sha256": "1133db0f2de868259835e3adfbef45b55a865f6bbf8eb1888a7fca8919924d6b"
+  },
+  {
+    "path": "tests/commands/expr-stress/fixture-output-contract-20260827/after-01/frozen-inputs.json",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "47a05451a6bc26b7583946f1b6f6aab535f7661a",
+    "sha256": "dc758ff0c657d6ce7366e5f9b96af97d73a97773e092b17ed899f769ec251f28"
+  },
+  {
+    "path": "tests/commands/expr-stress/fixture-output-contract-20260827/after-01/frozen-runtime-driver.mjs",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "8db4ee15f4bb811f417767ba9a9d7eac89c729a5",
+    "sha256": "649443266097a92d93e8e58e408c34a688a66b724a510a433be80eea11a1caf8"
+  },
+  {
+    "path": "tests/commands/expr-stress/fixture-output-contract-20260827/after-01/grammar-run.json",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "1fa31c0739751b8c7c87814e4d35ecc9fdd77463",
+    "sha256": "a055568d5b864e354a204fb2689e7d3aebec159255786f3e291d1a7cfc2b6291"
+  },
+  {
+    "path": "tests/commands/expr-stress/fixture-output-contract-20260827/after-01/grammar.before.ts.data",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "e761422198854dd64c5cad38f0000e95b49705ca",
+    "sha256": "5fb0135c85c09a06f45b92828d736b6fa4e03272993c8362ab834766bd00e727"
+  },
+  {
+    "path": "tests/commands/expr-stress/fixture-output-contract-20260827/after-01/grammar.executed.ts.data",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "9b521543288460f525be9ab52d0a0953d297eeca",
+    "sha256": "0de1d7042f5f0a1a7ad75a540096bdb07cdf28a2137b6927b2e8177091d64919"
+  },
+  {
+    "path": "tests/commands/expr-stress/fixture-output-contract-20260827/after-01/historical-REPORT.md",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "86d914d404b0d11992c30c5ddca9a295d23a93f6",
+    "sha256": "64bee60709f337f2ee4b1440ae4ada26dc92d0780cdd628b197bbe02651cd7fd"
+  },
+  {
+    "path": "tests/commands/expr-stress/fixture-output-contract-20260827/after-01/historical-replay__regressions__expr-legacy241-qualified.json",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "e655ffb81bebab290a0080aa82e40f0705adb13c",
+    "sha256": "a80cb2db4e616c76740632bd512ba522395168cc06b0c03279de2d9473753e27"
+  },
+  {
+    "path": "tests/commands/expr-stress/fixture-output-contract-20260827/after-01/historical-replay__regressions__expr-legacy241.json",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "fe55294104b3ec0bd6581ef4ca5c49def5620b4c",
+    "sha256": "e38fd476cfaca00b6bae13516edefa339fbdfc79d886664c7c53cfa3808a6323"
+  },
+  {
+    "path": "tests/commands/expr-stress/fixture-output-contract-20260827/after-01/historical-replay__regressions__legacy-prerequisite-repair-after.json",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "a30f4e999e783783ac72b3f5aeeb31324469b835",
+    "sha256": "af05cd9f742f06837f17487846dd7f92a4a170dac6410f554a2c6a27721df140"
+  },
+  {
+    "path": "tests/commands/expr-stress/fixture-output-contract-20260827/after-01/historical-replay__regressions__legacy-prerequisite-repair-before.json",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "1b2f7f48e09957d44159acfbcd0dd0d91fb48cb2",
+    "sha256": "bc6f0f9ec57d613b3a7564a2102991fbb7f7e1d57190f8b2d59d07696d719f60"
+  },
+  {
+    "path": "tests/commands/expr-stress/fixture-output-contract-20260827/after-01/integrity.json",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "3a37ef5972693e07812715efe378c9fea93d614e",
+    "sha256": "7bb2ddb7514c588b7fc9d2415c58663d360d81b4c6c46393648dfe2fba59407e"
+  },
+  {
+    "path": "tests/commands/expr-stress/fixture-output-contract-20260827/after-01/legacy241-run.json",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "c97c918226cfd02ef5c92b85f7e08fa45d017dc3",
+    "sha256": "33c01392cb4514911af3135887fd596b7a6167e284aed62fa831139571418300"
+  },
+  {
+    "path": "tests/commands/expr-stress/fixture-output-contract-20260827/after-01/preserved-inputs.json",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "68ffb88bc2c4310e78e517ec9cbdc2fa27cf95d7",
+    "sha256": "057549650b4e39c3c483791a903357ea2090010ed5f78f5752b7d7bd60fabb64"
+  },
+  {
+    "path": "tests/commands/expr-stress/fixture-output-contract-20260827/after-01/summary.json",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "f080bdf8555311d0cb0f029103f4456014c117e0",
+    "sha256": "f1d47bbd0db425d00af41dbda6644e35f01606f5428d0c6292ad70fa0c904aca"
+  },
+  {
+    "path": "tests/commands/expr-stress/fixture-output-contract-20260827/assertion-audit.json",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "21e4304ee51fe589a6be45453411d26f779d91dc",
+    "sha256": "a8aa977170fa31c49bb7b8e0d844934f52bfef59492ed224b6474dd23abee3d2"
+  },
+  {
+    "path": "tests/commands/expr-stress/fixture-output-contract-20260827/audit-fixture.mjs",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "b05878f415b6093c96525f09dd6d171dd217018a",
+    "sha256": "ebe04c56f161696880c66ab62bc5390734753d2e9021ac5e107f58df3b26a2e1"
+  },
+  {
+    "path": "tests/commands/expr-stress/fixture-output-contract-20260827/before-01/archive-source.before.json",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "a9d9136f3cae94c8a5ff2a10833c927fadc5ff4b",
+    "sha256": "3dc077b56a38dfb5dae5039880c31c6b690c5052c5a664457715d5742b4432a1"
+  },
+  {
+    "path": "tests/commands/expr-stress/fixture-output-contract-20260827/before-01/build.json",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "b308e45639d80f75a394e54003246c463ecdf650",
+    "sha256": "561ace2a0d3361a7a7ff3f658003b1514b946121a087d12c5a5127136ca07d39"
+  },
+  {
+    "path": "tests/commands/expr-stress/fixture-output-contract-20260827/before-01/cleanup.json",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "01d32f586f734ca8cc2a7e86ce4743a7a0eef315",
+    "sha256": "e2d94e4c9d70e509bf4349ae2559bea202ee001bc0738c70b13f8cb0625042a2"
+  },
+  {
+    "path": "tests/commands/expr-stress/fixture-output-contract-20260827/before-01/dependencies.before.json",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "27f9b2ef42082cf07a57d83171deda814b32af4b",
+    "sha256": "91225600ffe6070bb6e9556a6ce811c242c47ac502a78b6ea4e5d579304c9690"
+  },
+  {
+    "path": "tests/commands/expr-stress/fixture-output-contract-20260827/before-01/dist.before.json",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "29b2e9b61bad1f0283faf2b7996e7e0d28caec43",
+    "sha256": "d4924432bbf91f5d47545aec718f9b24b491197004c0be9e5aa5fefd7abb9a21"
+  },
+  {
+    "path": "tests/commands/expr-stress/fixture-output-contract-20260827/before-01/frozen-FREEZE.md",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "0c4ef745b3b2054df53a30d7b9f05e044fe5b6d5",
+    "sha256": "26f22d8fb2d052f3647026d61c155a0a648db7b69d78985f3f8a5e33fcc5c29a"
+  },
+  {
+    "path": "tests/commands/expr-stress/fixture-output-contract-20260827/before-01/frozen-REPORT.md",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "82673ce74651edb1810568fb0479496111fbc383",
+    "sha256": "548d581d97d48dd306fa16f8f630511996c5f2d7f328438f82d804a9f594e258"
+  },
+  {
+    "path": "tests/commands/expr-stress/fixture-output-contract-20260827/before-01/frozen-freeze__independent-native.json",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "a505e0c21ce2d21123f9cd2d4f02bd13c3492b9b",
+    "sha256": "252a342ef50d6721bd156d80efa602b988f2b3e600edca3cf42c7e8901ad2ea0"
+  },
+  {
+    "path": "tests/commands/expr-stress/fixture-output-contract-20260827/before-01/frozen-freeze__runtime-binding.json",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "3e755a5eb2648ac70aa7de79be43a6d6702c057c",
+    "sha256": "0d58cf989c6655a92ac284340919cb97226819865354125b3cbd43465ad4ad2b"
+  },
+  {
+    "path": "tests/commands/expr-stress/fixture-output-contract-20260827/before-01/frozen-independent.mjs",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "8375c95d5828c34c7b3f33eba5c0f46d8e5a5198",
+    "sha256": "1133db0f2de868259835e3adfbef45b55a865f6bbf8eb1888a7fca8919924d6b"
+  },
+  {
+    "path": "tests/commands/expr-stress/fixture-output-contract-20260827/before-01/frozen-inputs.json",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "47a05451a6bc26b7583946f1b6f6aab535f7661a",
+    "sha256": "dc758ff0c657d6ce7366e5f9b96af97d73a97773e092b17ed899f769ec251f28"
+  },
+  {
+    "path": "tests/commands/expr-stress/fixture-output-contract-20260827/before-01/frozen-runtime-driver.mjs",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "8db4ee15f4bb811f417767ba9a9d7eac89c729a5",
+    "sha256": "649443266097a92d93e8e58e408c34a688a66b724a510a433be80eea11a1caf8"
+  },
+  {
+    "path": "tests/commands/expr-stress/fixture-output-contract-20260827/before-01/grammar-run.json",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "927c0480f1dea5c0f90ff09368656fa84ba1fb53",
+    "sha256": "aad5e5e9310fae67c471c1933e78ff4934d4e2fcef0deeb6aae49732f2c3a905"
+  },
+  {
+    "path": "tests/commands/expr-stress/fixture-output-contract-20260827/before-01/grammar.before.ts.data",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "e761422198854dd64c5cad38f0000e95b49705ca",
+    "sha256": "5fb0135c85c09a06f45b92828d736b6fa4e03272993c8362ab834766bd00e727"
+  },
+  {
+    "path": "tests/commands/expr-stress/fixture-output-contract-20260827/before-01/grammar.executed.ts.data",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "e761422198854dd64c5cad38f0000e95b49705ca",
+    "sha256": "5fb0135c85c09a06f45b92828d736b6fa4e03272993c8362ab834766bd00e727"
+  },
+  {
+    "path": "tests/commands/expr-stress/fixture-output-contract-20260827/before-01/historical-REPORT.md",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "86d914d404b0d11992c30c5ddca9a295d23a93f6",
+    "sha256": "64bee60709f337f2ee4b1440ae4ada26dc92d0780cdd628b197bbe02651cd7fd"
+  },
+  {
+    "path": "tests/commands/expr-stress/fixture-output-contract-20260827/before-01/historical-replay__regressions__expr-legacy241-qualified.json",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "e655ffb81bebab290a0080aa82e40f0705adb13c",
+    "sha256": "a80cb2db4e616c76740632bd512ba522395168cc06b0c03279de2d9473753e27"
+  },
+  {
+    "path": "tests/commands/expr-stress/fixture-output-contract-20260827/before-01/historical-replay__regressions__expr-legacy241.json",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "fe55294104b3ec0bd6581ef4ca5c49def5620b4c",
+    "sha256": "e38fd476cfaca00b6bae13516edefa339fbdfc79d886664c7c53cfa3808a6323"
+  },
+  {
+    "path": "tests/commands/expr-stress/fixture-output-contract-20260827/before-01/historical-replay__regressions__legacy-prerequisite-repair-after.json",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "a30f4e999e783783ac72b3f5aeeb31324469b835",
+    "sha256": "af05cd9f742f06837f17487846dd7f92a4a170dac6410f554a2c6a27721df140"
+  },
+  {
+    "path": "tests/commands/expr-stress/fixture-output-contract-20260827/before-01/historical-replay__regressions__legacy-prerequisite-repair-before.json",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "1b2f7f48e09957d44159acfbcd0dd0d91fb48cb2",
+    "sha256": "bc6f0f9ec57d613b3a7564a2102991fbb7f7e1d57190f8b2d59d07696d719f60"
+  },
+  {
+    "path": "tests/commands/expr-stress/fixture-output-contract-20260827/before-01/integrity.json",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "dae8be4f1025047cfca6e098e6cb5857128d3a14",
+    "sha256": "a4db3499329c50c22c1d90c44810a6aa951b7c7ebac0133cc980feb2ea2e7064"
+  },
+  {
+    "path": "tests/commands/expr-stress/fixture-output-contract-20260827/before-01/legacy241-run.json",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "5cdc3a284aaa1f36794ab5dc2096f054c363a548",
+    "sha256": "fe6d45c1b35f110b6670c92a23262de4041637cf51651c7756a3f3666fad4e35"
+  },
+  {
+    "path": "tests/commands/expr-stress/fixture-output-contract-20260827/before-01/preserved-inputs.json",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "85c1e7b35af70d193a0cd1489c1df4debe782a3c",
+    "sha256": "6bb462f4e2e9cdc8fd70d555e4df1ca776a463c33243384dc4861fbc16ffb389"
+  },
+  {
+    "path": "tests/commands/expr-stress/fixture-output-contract-20260827/before-01/runtime-frozen.json",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "2c93f25adde6ba1cedc469f889b2209ebf93220b",
+    "sha256": "e4996ee9ad9c0a1c5240379f2f2aeee041606547de5f05851a914d6230176605"
+  },
+  {
+    "path": "tests/commands/expr-stress/fixture-output-contract-20260827/before-01/runtime-observations.json",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "e1e2d79b2ffc917227dcd568c7d04fa7b8f4af23",
+    "sha256": "9fc0d008705f4af5069c5b72aa538e48d59f283ad358491934ef119f518efef8"
+  },
+  {
+    "path": "tests/commands/expr-stress/fixture-output-contract-20260827/before-01/summary.json",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "19846e4ffecd09a5ce4ca322c2543d4b3ced6fec",
+    "sha256": "f18c104063f813d59fb5743fa576afbc4be43c2e4622bfd50bb88b49bf061f09"
+  },
+  {
+    "path": "tests/commands/expr-stress/fixture-output-contract-20260827/boundary-01/build.json",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "e3605c80236e3ced5c6272bd55860eff657999a3",
+    "sha256": "33fe895235f36cb55f872c1da7303b326b9a53836a8dd4c58ff6167cec845074"
+  },
+  {
+    "path": "tests/commands/expr-stress/fixture-output-contract-20260827/boundary-01/cleanup.json",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "6b38792110ea132e64b2d4fa1fa04866404d88bf",
+    "sha256": "fb93bc17c16674da4d626ff34e47bc14bd74f8b5834e268978cecd4f224d790f"
+  },
+  {
+    "path": "tests/commands/expr-stress/fixture-output-contract-20260827/boundary-01/integrity.json",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "87ded23c4fbdf145fb680e7af65f034ef5dad52c",
+    "sha256": "66db4536ed4b46458483516e7272aad2026133e8f1aa19ddc18a09fa3a3590d8"
+  },
+  {
+    "path": "tests/commands/expr-stress/fixture-output-contract-20260827/boundary-01/observations.json",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "e721134c071a7f3a90456e4c05d7a667313b13fd",
+    "sha256": "73d235bc8681b0ea37611b7fee71984585e9ed0fd9ec4b6fa7fc16626e8bfd3a"
+  },
+  {
+    "path": "tests/commands/expr-stress/fixture-output-contract-20260827/boundary-controls.mjs",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "2f70ccb7d91e40738628d1d6a27a04d521de323f",
+    "sha256": "3537679b86952c345c01c6e2bcd5a31c47c3b0149d9403b8f8f8370bb52f98c7"
+  },
+  {
+    "path": "tests/commands/expr-stress/fixture-output-contract-20260827/capture.mjs",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "fd47001ac2f2ee9494871a8b2a210a63649b2425",
+    "sha256": "065badcc85f067bb627c5f17b1440e87387ae527bced27c03e03740e2b640671"
+  },
+  {
+    "path": "tests/commands/expr-stress/fixture-output-contract-20260827/seal.mjs",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "f19caf7341a2558a6f24c932764fcdc3ea9d0419",
+    "sha256": "ab6edd9ae31e91d3795e0b63cd1f6d51057e0816953148c89f3c49fa322c43d3"
+  },
+  {
+    "path": "tests/commands/expr-stress/fixture-output-contract-20260827/source-bindings/author-policy-REPORT.md.data",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "c843332d21d34615caabdc3d42645e3c1ecfedd6",
+    "sha256": "1116e98d85521dcac57b795236b534b9649c8e6c4c6486cd1408e6ecde2cd931"
+  },
+  {
+    "path": "tests/commands/expr-stress/fixture-output-contract-20260827/source-bindings/author-policy-SEAL.json.data",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "98b18014cf2b8fd23f5397b17f69bc7ff0034bd9",
+    "sha256": "4e60e069e1453424f17131bd6708d4d5a8ee7136284aface8fad365d4ca9ba37"
+  },
+  {
+    "path": "tests/commands/expr-stress/fixture-output-contract-20260827/source-bindings/bindings.json",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "82311872c9aee8d6b89048e028d324e5ae6bba23",
+    "sha256": "cbcdc36dde53bd09dedfa4a5a6619ee0bfd1749ea95043ae7ed56b6a7dbbe2aa"
+  },
+  {
+    "path": "tests/commands/expr-stress/fixture-output-contract-20260827/source-bindings/src__commands__expr__README.md.data",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "872dec7c707a847bb70c7102d391956178ed30cc",
+    "sha256": "0da1befe61e8e55196e24b972ff0a5d7d4642c4a201968359a1daf01c650f0bd"
+  },
+  {
+    "path": "tests/commands/expr-stress/fixture-output-contract-20260827/source-bindings/src__commands__expr__index.ts.data",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "2566abc10687f19fc19e7f79a5d5d2449071aca9",
+    "sha256": "1f4eb0b6aa5200877ce62b59f7ac488255f4b98c3d5bb8b426fb49dec372dcef"
+  },
+  {
+    "path": "tests/commands/expr-stress/fixture-output-contract-20260827/source-bindings/src__commands__expr__internal.ts.data",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "112ca8b74fdf9fd390d6619a0e15be50a3e21d4d",
+    "sha256": "12ba86e1164d34a7fee89de4f8c1470fffa2fe624d26641584c08c9c96e90f56"
+  },
+  {
+    "path": "tests/commands/expr-stress/fixture-output-contract-20260827/source-bindings/src__commands__expr__syntax.ts.data",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "767e82b52609e5d37587a79094b176355752f866",
+    "sha256": "4e8d05cc672be9f0786ebd74b09f9524028fd1d4f1491319cccd8a74d1ea3df0"
+  },
+  {
+    "path": "tests/commands/expr-stress/fixture-output-contract-20260827/source-bindings/src__contracts__command.md.data",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "16371126acaccd07a8db2505b53a0625eb9b4592",
+    "sha256": "8a5426b1e7a30a03dc62f74b28c6eb7bf9b008b78cb7b521eb7de0bc5c59a3f8"
+  },
+  {
+    "path": "tests/commands/expr-stress/fixture-output-contract-20260827/source-bindings/src__contracts__command.ts.data",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "671327d43c48c5964658ad8c630578fe889421e2",
+    "sha256": "9c2f8ecf50def7250b01152a31a45c449109c3ae4d30878252cffe985c6e9df8"
+  },
+  {
+    "path": "tests/commands/expr-stress/fixture-output-contract-20260827/source-bindings/src__contracts__errors.ts.data",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "d466866ce93c4feced56e2bd5fe4c41637e62226",
+    "sha256": "66455381fe9d9e5357d08942e73de6ea1d613a03b09acaab77a5ccccde0f2840"
+  },
+  {
+    "path": "tests/commands/expr-stress/fixture-output-contract-20260827/source-bindings/src__contracts__io.ts.data",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "738e6bb2e1055d6e575f6b342b75ed3053710f70",
+    "sha256": "e925ab08a5ad41862d3f5c031164cc7310bc28397455b11b37b75b55a9dbacdb"
+  },
+  {
+    "path": "tests/commands/expr-stress/fixture-output-contract-20260827/source-bindings/src__shell__runtime.ts.data",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "1eb395676cf2c3f22ed75dfdf4454f50f9614b75",
+    "sha256": "4e937b71df3135d1262a616924b4173e982f236dd86415e0e75895eac9c85e06"
+  },
+  {
+    "path": "tests/commands/expr-stress/fixture-output-contract-20260827/source-bindings/src__shell__shell.ts.data",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "9d535825bce412d86c4dee587c59142bcf86944d",
+    "sha256": "538f7ea1504019fcde03abc2781c1f903573243a0332033b87501804a1c4ac5c"
+  },
+  {
+    "path": "tests/commands/expr-stress/fixture-output-contract-20260827/source-bindings/src__shell__types.ts.data",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "4684a5ad1f8b76c721a6f827646f289eda4c44ef",
+    "sha256": "fc4133f1fb41283b0586aa7597c766d393d4f91067b613f4777e5adbef230a6d"
+  },
+  {
+    "path": "tests/commands/expr-stress/fixture-output-contract-20260827/source-bindings/tests__commands__expr__diagnostics-regression.test.ts.data",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "1b916aa47de418b1cde1032037672a7a778736ca",
+    "sha256": "f01f5f88b4d2bd4c43f7359f548ce64002fcf2c0bf24b7fc7300a8cb8d9795e4"
+  },
+  {
+    "path": "tests/commands/expr-stress/frozen/README.md",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "1e33efdb44d123edfd674b45a15b5748a6e7fa30",
+    "sha256": "123231477bc6efa4f9f8f36dad66e2386772d60f6b6f70ad5c53b8999276cdc9"
+  },
+  {
+    "path": "tests/commands/expr-stress/frozen/controls.json",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "f0b876c36dec73491b94257eff105f25b5e612a0",
+    "sha256": "5cbd8dd6e102730bf09d88b2e61ebdaccdcf3127432f37edab36ed879f32e4ec"
+  },
+  {
+    "path": "tests/commands/expr-stress/frozen/evidence/original-20260827/manifest.json",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "b8d25981a46f0b35c7dde5fdc99b597d1af14f73",
+    "sha256": "74966f1d10cdc574100d2f2936ef759f711f8f658a6a82fda2fe1edcb53a1543"
+  },
+  {
+    "path": "tests/commands/expr-stress/frozen/evidence/original-20260827/oracle.json",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "bc6b3055d7cf9e317bdc2824b411a2c7821514f6",
+    "sha256": "66b3b03c30b63d97e6cbe4ba77e185d03caa57780a6be3b681a15784dee9efd3"
+  },
+  {
+    "path": "tests/commands/expr-stress/frozen/evidence/validation-20260827.json",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "f42d59ba0bd9f5b806663dac0b20bb96d5c0782f",
+    "sha256": "5ae67ba3a82246567d9dae5124421b0f10eae385df153c3c7a9406c11f1b6fd0"
+  },
+  {
+    "path": "tests/commands/expr-stress/frozen/inputs.json",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "85e320269c4b5c0ffd94abfd838149c1616f9787",
+    "sha256": "d52e6d93668c2d368d65f456a1d4fdf12a43820b6a3bbd46b9c4980cfc5ac8ba"
+  },
+  {
+    "path": "tests/commands/expr-stress/frozen/primary-sources.json",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "17428e9624ed0de4f3b650d7282f5f96520e8127",
+    "sha256": "6e259e64408bb3eb5835ccd302e1baec051d29a56b6c68ebb1a651f9334f741b"
+  },
+  {
+    "path": "tests/commands/expr-stress/frozen/runner.mjs.data",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "150bcb4450661be6c0c7c258aef905e8dc32b7f6",
+    "sha256": "41aea89a81b5e83eafd072ab585844c8590f6bdc766cd2cc59726674562fb9d8"
+  },
+  {
+    "path": "tests/commands/expr-stress/qualified-final-review-20260827/.gitignore",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "3c1b3b23b8dc3e84e17a69860ea4b5d95a6c9bdc",
+    "sha256": "035be897b00b2e4df85234618e91ae2c91213ba53b2bf492fc890efec505f2ae"
+  },
+  {
+    "path": "tests/commands/expr-stress/qualified-final-review-20260827/ATTEMPTS.md",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "00ed09c8ebd2e1eb09bfe0afd7089dd966ad8f9e",
+    "sha256": "46fdecae4c62175404f61517c5398ec3fddccce1ba042f8b5d998dd619a36c3c"
+  },
+  {
+    "path": "tests/commands/expr-stress/qualified-final-review-20260827/REPORT.md",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "1339efff4be5d602a215c86fcbabff39c923262b",
+    "sha256": "9fa4074cb6d4fc3e36e897892a331ff99a5cce9d61aff97f07685478204fad36"
+  },
+  {
+    "path": "tests/commands/expr-stress/qualified-final-review-20260827/SEAL.json",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "d9011f469c390c303703f38d018b377e8d5f8c17",
+    "sha256": "16b81efdb347a51ffa399e96ce39b6dba3b4f15f2674fa8d79f5b0491e0995f9"
+  },
+  {
+    "path": "tests/commands/expr-stress/qualified-final-review-20260827/archive-after.json",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "0a4f3e3a91f2f9dcaf5d798138fa103c08291e2a",
+    "sha256": "e0edcb02e6778a2f7f60f515c2f6dd0fcfbb4578bdccfc65e619e227c9eb24d7"
+  },
+  {
+    "path": "tests/commands/expr-stress/qualified-final-review-20260827/archive-before.json",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "248e369bc9a031425a5c65738d0a7ad7d5b89a89",
+    "sha256": "71b8570a950e3fcb2a45df5fc4877843ce40317adeb1196ad59f5a743e377380"
+  },
+  {
+    "path": "tests/commands/expr-stress/qualified-final-review-20260827/build-strict.json",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "6c0d5ec7633b7dc0259bf34e6d9c7b87374864f3",
+    "sha256": "9d08ca9cb8c9d614a0c04a5bb431bc6f96bc73a8adcb85e00819bd986a21886d"
+  },
+  {
+    "path": "tests/commands/expr-stress/qualified-final-review-20260827/cleanup.json",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "e13739112e37281ccfdef23960ecbbc17badf1e2",
+    "sha256": "47427158fa9a42374c9dfc587835aa2869b80bc16764b1524a4ea4e033f16951"
+  },
+  {
+    "path": "tests/commands/expr-stress/qualified-final-review-20260827/compiled-after.json",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "fb4fd5165952bdd564f8463d29c0d294f1a04c50",
+    "sha256": "f97004bdc93b2b8a9f4cf13106003d1bf29de44b0dd3a6a4782bd8aa314a1cfd"
+  },
+  {
+    "path": "tests/commands/expr-stress/qualified-final-review-20260827/compiled-before.json",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "fb4fd5165952bdd564f8463d29c0d294f1a04c50",
+    "sha256": "f97004bdc93b2b8a9f4cf13106003d1bf29de44b0dd3a6a4782bd8aa314a1cfd"
+  },
+  {
+    "path": "tests/commands/expr-stress/qualified-final-review-20260827/core-binding-deltas.json",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "72b1f7f40637f0f214d903c57ffba9d1b8564aaf",
+    "sha256": "90dea78713576656f30e9858455403aa01ac25cc9190ff7b60947f683ce943f1"
+  },
+  {
+    "path": "tests/commands/expr-stress/qualified-final-review-20260827/core-bindings.mjs",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "c248008da7f71ab745feb3936041fa292b8cbdd6",
+    "sha256": "ef437994c0069dd5cadca79af70e3ad26929f3797c7de67268a6fa1b7e8b66f1"
+  },
+  {
+    "path": "tests/commands/expr-stress/qualified-final-review-20260827/core-bound.mjs",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "b8ff7982366530ac9f77300da2151efa1eaa9653",
+    "sha256": "84afeca73bbb859a0f3014d9712a7ffd053424267bc3a5fe93fe1358563fbee1"
+  },
+  {
+    "path": "tests/commands/expr-stress/qualified-final-review-20260827/core-console.txt",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "e5c9686b4196fc261fda41417bb95b86f1a40c59",
+    "sha256": "1498fa07048b9352a82d5dadcf9e8c7a4fadf0860f71cbe12394d8ccc41285bf"
+  },
+  {
+    "path": "tests/commands/expr-stress/qualified-final-review-20260827/core-controls.json",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "b8eca279ddc9cd02fab1b8b0428a6b1ca8592502",
+    "sha256": "ad98b8a919e0bdbe3be05840360676fc94e037a31c34dfa4b0d8e666afa30133"
+  },
+  {
+    "path": "tests/commands/expr-stress/qualified-final-review-20260827/core-prepare.mjs",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "2f06cbb59303d6047073876a82fc753800551a02",
+    "sha256": "290fe17048192c21806c75c9f2e92d49172bd1174e14485147193535bcd4b960"
+  },
+  {
+    "path": "tests/commands/expr-stress/qualified-final-review-20260827/diagnostics-nine.json",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "7ec1c256029f13b127745b0f28e845b2467d0811",
+    "sha256": "93c537941c13a6213234ea4b21d230f59f8379a61338a738de1a624b6ec6590a"
+  },
+  {
+    "path": "tests/commands/expr-stress/qualified-final-review-20260827/diagnostics-runtime12.json",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "90035d4d8e42f788ae919af5e1d110545c8e5319",
+    "sha256": "dd29ab7752f4f1d63aed1ade00fffd4a42da1907ae5714e5f7a20bf707d394c8"
+  },
+  {
+    "path": "tests/commands/expr-stress/qualified-final-review-20260827/execute.mjs",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "b7a41c1e1bf24c60661b8f499dd3f9f0f0d43831",
+    "sha256": "295dd23d263b60472f362056ee6b287645d1eb62d17e54e9457bc81936bee9ce"
+  },
+  {
+    "path": "tests/commands/expr-stress/qualified-final-review-20260827/expr-legacy241-candidate.json",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "013fb0b7f7169ff69604da8bc2d9a258f1cab1a1",
+    "sha256": "81ab2a2a229723109e5e53795b3bdc342eaa0b899e5ee54f3010c8d41afd7acb"
+  },
+  {
+    "path": "tests/commands/expr-stress/qualified-final-review-20260827/extract.json",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "56a4b620232710917510a28d64bde408ed679fe5",
+    "sha256": "84111666927b815bbd9488156fbcb7a4d0a91cb76eb6341c54ec6ed3c08b532c"
+  },
+  {
+    "path": "tests/commands/expr-stress/qualified-final-review-20260827/finalize.mjs",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "db88fbd260bd6e054953e11c3c4d5b0138ea103e",
+    "sha256": "ef7d3e430b2d26feee6b7a368829492a601b4f37f780367df11cd716f1dbae54"
+  },
+  {
+    "path": "tests/commands/expr-stress/qualified-final-review-20260827/grammar-audit.json",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "00b73ec399cb9db5d2fff287f003e8c7fec77bc5",
+    "sha256": "98b7cda97d6bd8b42a6e4346391714e5a541e51577cdbb129762bfe0ea34a032"
+  },
+  {
+    "path": "tests/commands/expr-stress/qualified-final-review-20260827/grammar-audit.mjs",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "02f19fceb741841ee6d0a27ef7db86ad4c69ddf2",
+    "sha256": "f60b329e921b2e80581068812ad80cc65bffe1b3e7b0a2d47b243ddd7f245566"
+  },
+  {
+    "path": "tests/commands/expr-stress/qualified-final-review-20260827/grammar-candidate-exact-two-corrections.json",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "0061fab9fb747953bad3c83f9818ecc072dba1f3",
+    "sha256": "4dfa0996aa3386cceb9ef3ba29f247b2163db31acc65d6a0fd3e7eba1130788f"
+  },
+  {
+    "path": "tests/commands/expr-stress/qualified-final-review-20260827/grammar-parent-original-assertions.json",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "ba395f5c2824c1f005296183adbdd601d3e77746",
+    "sha256": "2115f336e688a3382c2d80c42f2547069c7e78b78b936b8bf9ec069a1ed4061f"
+  },
+  {
+    "path": "tests/commands/expr-stress/qualified-final-review-20260827/infrastructure-attempt2/archive-before.json",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "248e369bc9a031425a5c65738d0a7ad7d5b89a89",
+    "sha256": "71b8570a950e3fcb2a45df5fc4877843ce40317adeb1196ad59f5a743e377380"
+  },
+  {
+    "path": "tests/commands/expr-stress/qualified-final-review-20260827/infrastructure-attempt2/extract.json",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "02e8fcd9c1970b8326a3c0d61b59740b522a9ed6",
+    "sha256": "f271cb58841e6b34caa3a6f1f466555b754bcdd1730a24cd98411ee856d3f48d"
+  },
+  {
+    "path": "tests/commands/expr-stress/qualified-final-review-20260827/infrastructure-attempt2/source-before.json",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "f22f8041ba78f35f4024d3ecb02204410daeb5e5",
+    "sha256": "74a16729ef6ebfffcd28c7d230ad63a649e18a0a2edd359338f56aac4c2f4b27"
+  },
+  {
+    "path": "tests/commands/expr-stress/qualified-final-review-20260827/installed-after.json",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "5abafb9f47d6a8f2d5120009315c12f62f27359a",
+    "sha256": "6a599481f7abd95870d11a05cbef5186585a3a0cb665dc8803c457a17252e9c3"
+  },
+  {
+    "path": "tests/commands/expr-stress/qualified-final-review-20260827/installed-before.json",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "5abafb9f47d6a8f2d5120009315c12f62f27359a",
+    "sha256": "6a599481f7abd95870d11a05cbef5186585a3a0cb665dc8803c457a17252e9c3"
+  },
+  {
+    "path": "tests/commands/expr-stress/qualified-final-review-20260827/integrity.json",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "3e592b346e684a0c9a8838c48162b37144bd6c80",
+    "sha256": "828f48309b1c9442c23e86cc6df1a88042a3bbb16db34aa998883a70e51838c2"
+  },
+  {
+    "path": "tests/commands/expr-stress/qualified-final-review-20260827/moved-consumer-strict.json",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "c58bed384052596d676f4d0782e068e4faa1b891",
+    "sha256": "ec082e48056db00208f33f0acb91c7d4e434c5cdddbf2ac72cc55734e4335efa"
+  },
+  {
+    "path": "tests/commands/expr-stress/qualified-final-review-20260827/moved-runtime-flags.json",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "b5a9aa4b16fc3aaae7246c45f9ff793719609e2b",
+    "sha256": "d1f21984b600f01c727cfe5b2dfd234a1f02c5c144d16332d5be16525d36cf31"
+  },
+  {
+    "path": "tests/commands/expr-stress/qualified-final-review-20260827/moved-runtime.mjs",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "dedd961ec91c71ee4a7c9ae0768c48ae906861d6",
+    "sha256": "84c031b8b1d95254e25d7854065baf8edf52c5605cf5b545a708739d4e2f711b"
+  },
+  {
+    "path": "tests/commands/expr-stress/qualified-final-review-20260827/named-ambient-summary.json",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "cd17df51f8920b01118bd1e935a0148dd968e1dd",
+    "sha256": "5021c3c6b6cb9c6d666c44359396da142ec33acf774214d923d2da19c1dde84f"
+  },
+  {
+    "path": "tests/commands/expr-stress/qualified-final-review-20260827/named-explicit-ambient-C.json",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "f2bb3ec925a73fcb0716443c658e25949d16b942",
+    "sha256": "6cb8bf89c5338489c960a2f9f43adedd6d9ff148fc36ff24a91fa653fcfc8fd8"
+  },
+  {
+    "path": "tests/commands/expr-stress/qualified-final-review-20260827/named-explicit-ambient-enUS.json",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "e6aeb46016b7bcf31c6eec24800838354c84d24b",
+    "sha256": "dd100389f9a0e90d2a13da1df57449f8f3101d344dd1479b5f91d5ef237f64f3"
+  },
+  {
+    "path": "tests/commands/expr-stress/qualified-final-review-20260827/named-initial-unqualified-ambient.json",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "c1198aff8cb30a3c3033f6fb8684420b7f308251",
+    "sha256": "122bf0dd7fd04c7e2d02adc3e391b58e79fe8e9f0123dac684503bb942d5f366"
+  },
+  {
+    "path": "tests/commands/expr-stress/qualified-final-review-20260827/named-profile-design-20260827-authentication.json",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "0e4c23de57f37f72e1bf12835d6d925d0273ba8c",
+    "sha256": "5ac93075c196775fdb0838cd4ee6104b9f08f8a7fb653e94207f9cb9c6f5a8b2"
+  },
+  {
+    "path": "tests/commands/expr-stress/qualified-final-review-20260827/named.mjs",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "3ebda608e9854f1071a67c592e9fba9e19c511b7",
+    "sha256": "523bbbbee1ac0750f8cfd003cf120de46273d899c942f2e124cd84bcd6ebcf08"
+  },
+  {
+    "path": "tests/commands/expr-stress/qualified-final-review-20260827/native-and-ambient.mjs",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "67e5d68aab4b292b2dc2e4c5e2d1fde15272da4d",
+    "sha256": "724dfc88482afe22df56d38ed4655e20df4581ce095d7d06847d811ccad8d005"
+  },
+  {
+    "path": "tests/commands/expr-stress/qualified-final-review-20260827/native-prerequisites.json",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "bbca9a90bcd5ba7645436afb1cf4bf3c1331ce48",
+    "sha256": "1a974edc2c0eab3a7a8bdad016d7e14bce084a49ef1d58875330b1d9b88a9dc3"
+  },
+  {
+    "path": "tests/commands/expr-stress/qualified-final-review-20260827/native-summary.json",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "178cb6bea74f910b09ce6333a564aab7774bd69a",
+    "sha256": "47753bc3513561311dddfba870ec4d56887562949d6b0a47757a96b58dbc9585"
+  },
+  {
+    "path": "tests/commands/expr-stress/qualified-final-review-20260827/offline-install.json",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "83de7caa1ed03fd5a71cf9335f46b682d4655fd2",
+    "sha256": "4996b3446e88758ae47ce18652608257bb65c1a3101d1cc9f6bc761f090224da"
+  },
+  {
+    "path": "tests/commands/expr-stress/qualified-final-review-20260827/oracle-binding-cleanup.json",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "1e9721156ca22784f40b76dd232ecf08ad554128",
+    "sha256": "ec36ad0b65997e1ff601df4f6a6f004d28f2eae0a5da347650a002b5e3e6d9e5"
+  },
+  {
+    "path": "tests/commands/expr-stress/qualified-final-review-20260827/pack.json",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "7fe25ce53db0002d47c331b0075cadfa4c7aeb70",
+    "sha256": "633a1e7dc3993199fa4aa3c489df8920ab8e1d1bfcc393dacec66c228c427b72"
+  },
+  {
+    "path": "tests/commands/expr-stress/qualified-final-review-20260827/postcandidate-supplements.json",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "aeda86ead72733b2f216550fa3d99b93e9c49aaa",
+    "sha256": "aac90e51a596adcc1226daf05fcaf45ed29c2b2e3816cdfc8bc5308807ce312b"
+  },
+  {
+    "path": "tests/commands/expr-stress/qualified-final-review-20260827/prepare.mjs",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "ed89da4f57a2e966e9bed01df47fe26235602102",
+    "sha256": "adf44679afe81af7bf6559967ecf34c5b1ea289be32406f9f72d4c289c474f1a"
+  },
+  {
+    "path": "tests/commands/expr-stress/qualified-final-review-20260827/provenance.json",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "4c164894b81f2901625218f85c32f96a697fd61b",
+    "sha256": "f68f3b140969720d439bc571bc3d12ce95c17545dc1af998b92945ff0c533cc5"
+  },
+  {
+    "path": "tests/commands/expr-stress/qualified-final-review-20260827/regression-summary.json",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "a3366d8edb6924a14d0fdbd189474f50cd90c1eb",
+    "sha256": "8ffd6ce05962542bbd8ac42bf26cf89182130a05f02ea5919a850d750bc27643"
+  },
+  {
+    "path": "tests/commands/expr-stress/qualified-final-review-20260827/regressions.mjs",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "bb27630b03d305856e06171a5f845e9f97a6553b",
+    "sha256": "7ed5a1f03d42a5851e0cb02c9b92add699e67da64d8d5f16b93822c2c4900a3c"
+  },
+  {
+    "path": "tests/commands/expr-stress/qualified-final-review-20260827/sequencing-design-20260827-authentication.json",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "67663de61c37315346178135476030a55b146dc2",
+    "sha256": "c69a540cfcb5def30be7e7ae131a5a03cea2db1b2b425425df7624024595efae"
+  },
+  {
+    "path": "tests/commands/expr-stress/qualified-final-review-20260827/sequencing-summary.json",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "729ae427b8e75ed279b5b47c162da97e0e950c35",
+    "sha256": "e7642d9cb5f2f0eebcc2db0fe9e11cac185f83f4bc2e9f69d082d34b9c20676b"
+  },
+  {
+    "path": "tests/commands/expr-stress/qualified-final-review-20260827/sequencing-unchanged.json",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "ff0d247cf942b02a0679ec736d265733a888f03f",
+    "sha256": "6fd12fc992ae68bb13b76f4ede2bdd03f0757eb866c0c3caa0febf1cf2600e5c"
+  },
+  {
+    "path": "tests/commands/expr-stress/qualified-final-review-20260827/shared-final-summary.json",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "274e81177fd0da7ced704cbd82c7618c64e4053a",
+    "sha256": "d8e68c0b47802d54705ae78ed75646e9baca6af4b084dc768a999664f009c27c"
+  },
+  {
+    "path": "tests/commands/expr-stress/qualified-final-review-20260827/shared-final-temp-cleanup.json",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "281b0dd68051bf435f1323a9c49d22c2ade843dd",
+    "sha256": "45e9b3fe6aca258439df83eb7c45f4a365c42fd772550ec5c1d9321f01e9c5ff"
+  },
+  {
+    "path": "tests/commands/expr-stress/qualified-final-review-20260827/shared-final.mjs",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "b81a422ea52bb740abb013d0ad34d24fce14bce6",
+    "sha256": "12517c87b961a2a9e6ed8ed1effbc08a5d8ba81ee72806d3415fe49e47f98fd8"
+  },
+  {
+    "path": "tests/commands/expr-stress/qualified-final-review-20260827/shared-legacy276-final.json",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "68190c143dc20211dc87e9bbf6230181b9a57cfd",
+    "sha256": "6870e9160a470df0b6dc5e0e369b469d314e1c214a0442f63112d292c6aa3c83"
+  },
+  {
+    "path": "tests/commands/expr-stress/qualified-final-review-20260827/shared-legacy276-outside-git-rerun.json",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "693a3de3037f27aa0874efb4c0ea66b210df8733",
+    "sha256": "6b1bd461d998dc802db784931bb2a861596cadb41c00618fa3355e2b0c3f2e86"
+  },
+  {
+    "path": "tests/commands/expr-stress/qualified-final-review-20260827/shared-legacy276-qualified-rerun.json",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "715015c31496e37c05dc142172811d56e0387c93",
+    "sha256": "dc43f852d96e1d29dcdc0548d31643e6f88501eed20d33f08be9ee285dfb0fd3"
+  },
+  {
+    "path": "tests/commands/expr-stress/qualified-final-review-20260827/shared-legacy276.json",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "0cc8a25e3911330a3d1f9563ee1dd7c5bf1db785",
+    "sha256": "dd0d966df92c164104806f8f6b895a5e2b9b28633f8eb55268fe7a40943a86d4"
+  },
+  {
+    "path": "tests/commands/expr-stress/qualified-final-review-20260827/shared-native-temp-cleanup.json",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "907ff1a9bfb92821bc798408fa6dbeec67c6c214",
+    "sha256": "bdafc8939b36de6f5a604a629a822b6cb9f3bc413db826e04c7e9f0b25bb13b7"
+  },
+  {
+    "path": "tests/commands/expr-stress/qualified-final-review-20260827/shared-outside-git-rerun.mjs",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "57d3d956c3703d681c24303c5486a0315e150e3d",
+    "sha256": "5b8d4ab568f5906f6d3688971f8ccd14968626d2cabfdb172275077d399f40c1"
+  },
+  {
+    "path": "tests/commands/expr-stress/qualified-final-review-20260827/shared-qualified-after.json",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "cf26e41af1f22b99bf59787159ab3f94f9125a20",
+    "sha256": "8d743339f437f1833ec38f0d8b5c23ae6b8ca0186074e54a98a4f16fd1b4bbc3"
+  },
+  {
+    "path": "tests/commands/expr-stress/qualified-final-review-20260827/shared-qualified-before.json",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "e50237f153f6fcc89f777b69d6b2f5ecb4079169",
+    "sha256": "9d749db7e83bea59fcba719e583b587cfb1b582e1b286f18d2bfda01b4f16bc4"
+  },
+  {
+    "path": "tests/commands/expr-stress/qualified-final-review-20260827/shared-qualified-build.json",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "0a09a913f4448ad7dd8d249dc53fefa45a42098d",
+    "sha256": "6bca9d2c9ff002f20da005d38fdfe0fa6b109f448360a85ec76ddff5f97b04b8"
+  },
+  {
+    "path": "tests/commands/expr-stress/qualified-final-review-20260827/shared-qualified-extract.json",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "ae330c60818cb9c6daafbc6d6ece9d540bf6925c",
+    "sha256": "16dbed00fc4f06daf085b8d99751c0fda772dc972ee40ab8b1e0659d607e8f5e"
+  },
+  {
+    "path": "tests/commands/expr-stress/qualified-final-review-20260827/shared-qualified-summary.json",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "2cb535c53f7829b5f8b808f50daf605d7a89beeb",
+    "sha256": "d87ec2e45d0e6f9ee4ac40c487f7f6b5b7ce9efe09ce7f57470c61e09ff1e69c"
+  },
+  {
+    "path": "tests/commands/expr-stress/qualified-final-review-20260827/shared-rerun.mjs",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "c9461876c76492c539bc4b825ee7873e28491f90",
+    "sha256": "d9d5ed4ced8e894021bca165b2f3165057815a1891738e248f760cb18ca3b259"
+  },
+  {
+    "path": "tests/commands/expr-stress/qualified-final-review-20260827/source-after.json",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "f22f8041ba78f35f4024d3ecb02204410daeb5e5",
+    "sha256": "74a16729ef6ebfffcd28c7d230ad63a649e18a0a2edd359338f56aac4c2f4b27"
+  },
+  {
+    "path": "tests/commands/expr-stress/qualified-final-review-20260827/source-audit.json",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "8aff9e560e8bd8a78f6a6118f79e32544ce07ea5",
+    "sha256": "5c7ab8ea4f806ef633f1fab1a91bbfa5d3fafe7719d151017d4abb425e47243c"
+  },
+  {
+    "path": "tests/commands/expr-stress/qualified-final-review-20260827/source-audit.mjs",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "510412b53470b1d8f7df7f6f3b0a807f02f6cfe1",
+    "sha256": "a7ca9e68ab56b32c10c614e88bb79c3471668caff5072185bed22f1e0c09741a"
+  },
+  {
+    "path": "tests/commands/expr-stress/qualified-final-review-20260827/source-author-additional.json",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "b9b75515801efa6bf81ac73131a7d76af1776c81",
+    "sha256": "3d219365fa5c0f823fee94e81cb056ec2e8ccfd6e450d13dd8afc8f450d0777d"
+  },
+  {
+    "path": "tests/commands/expr-stress/qualified-final-review-20260827/source-before.json",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "f22f8041ba78f35f4024d3ecb02204410daeb5e5",
+    "sha256": "74a16729ef6ebfffcd28c7d230ad63a649e18a0a2edd359338f56aac4c2f4b27"
+  },
+  {
+    "path": "tests/commands/expr-stress/qualified-final-review-20260827/source-tests-strict.json",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "750a9c9fe7055cad05cc59faddfe9d6ede37715e",
+    "sha256": "63def99a8ba24dbc33b8cc92d61945541d862e598eff0425e99025e40c26298a"
+  },
+  {
+    "path": "tests/commands/expr-stress/qualified-final-review-20260827/supplements.mjs",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "cea7dddb501796cf411e14f77ddfbf5eabf1ab85",
+    "sha256": "88396bd89ea8bd2676597357c71f936a7215b0cce4f9e7b39319f5ace3bea657"
+  },
+  {
+    "path": "tests/commands/expr-stress/qualified-final-review-20260827/verify.mjs",
+    "commit": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+    "gitBlob": "ebecae9f7246a79c549c02a1c558ef9907c323f7",
+    "sha256": "4be71c9c85561afbe81ba7e4421d1bb2aca50ac327dca034d396c6232d83dc28"
+  }
+]

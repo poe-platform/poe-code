@@ -1,0 +1,18 @@
+{
+  "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "--import",
+    "tsx",
+    "--test",
+    "--test-reporter=spec",
+    "tests/commands/expr/contracts.test.ts"
+  ],
+  "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/approved-profile-fixtures-20260827/run-01/.work",
+  "started": "2026-08-27T20:13:11.167Z",
+  "finished": "2026-08-27T20:13:11.417Z",
+  "status": 0,
+  "signal": null,
+  "error": null,
+  "stdout": "✔ factories register exactly expr with explicit replacement (1.052083ms)\n✔ evaluated BRE uses matching and rejects invalid patterns on empty subjects (47.657292ms)\n✔ UTF-8 argv uses bytes in C and scalars in C.UTF-8, never UTF-16 units (1.393ms)\n✔ unsupported locales and unrepresentable argv are explicit errors (0.516542ms)\n✔ bounded aggregate argument bytes {\"maxArgumentBytes\":3} (0.087833ms)\n✔ bounded numeric digits {\"maxNumericDigits\":3} (0.086708ms)\n✔ bounded arithmetic result digits {\"maxNumericDigits\":3} (0.127ms)\n✔ bounded arithmetic result digits {\"maxNumericDigits\":3} (0.076625ms)\n✔ bounded numeric result digits {\"maxNumericDigits\":1} (0.174959ms)\n✔ bounded AST node {\"maxNodes\":2} (0.2275ms)\n✔ bounded depth {\"maxDepth\":3} (0.07225ms)\n✔ bounded depth {\"maxDepth\":3} (0.063459ms)\n✔ bounded depth {\"maxDepth\":3} (0.065792ms)\n✔ bounded evaluation work {\"maxSteps\":3} (0.061208ms)\n✔ bounded string allocation {\"maxStringBytes\":3} (0.0645ms)\n✔ bounded output bytes {\"maxOutputBytes\":3} (0.076666ms)\n✔ bounded evaluation work {\"maxSteps\":1000} (0.344958ms)\n✔ factory limit validation and long input preflight (4.135208ms)\n✔ direct success and errors do not even access stdin (0.432833ms)\n✔ awaits sink backpressure and preserves complete byte output (0.338541ms)\n✔ byte pipe backpressure, C partial bytes, and exact abort reason (2.414125ms)\n✔ abort during pending output observes late rejection (0.350084ms)\n✔ work yields for timer cancellation without consuming stdin (2.486333ms)\n✔ sink failure is status 3 and diagnostic failure is not swallowed (0.338666ms)\n✔ actual Shell registry, piping and VFS redirection preserve byte output (4.936625ms)\n✔ Shell input ownership is compared to its baseline, not direct-command ownership (0.808292ms)\n✔ literal argv dispatch uses the actual Shell invoker and middleware (0.827792ms)\nℹ tests 27\nℹ suites 0\nℹ pass 27\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 222.210916\n",
+  "stderr": ""
+}

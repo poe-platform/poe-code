@@ -1,0 +1,10 @@
+2026-08-27 independent delegated-leaf inspection: SOURCE CHANGE REQUIRED.
+
+Inspected HEAD 7623599c995c42f62ec1cd9ad78ced2913970f66.
+src/commands/expr/index.ts SHA256 4fd60b3b2fec4126e42e492922004e90e870a08aa319d2f088c085255355841d
+src/commands/expr/evaluate.ts SHA256 04ca8f588ccaea97b3801fe30accfa6020636c5f72f156b0d158fa6474f525c9
+src/commands/expr/syntax.ts SHA256 4e8d05cc672be9f0786ebd74b09f9524028fd1d4f1491319cccd8a74d1ea3df0
+
+The user-selected ["1","x"] with maxOutputBytes:1 follows the parser's normal diagnostic quota check and then emits the selected fixed 34-byte emergency diagnostic with status3. This is not an absolute combined cap.
+
+However, index.ts catch at lines59-63 writes every ExprError/ExprMatchError/RegexExecutionError message to stderr without an output quota check or a distinct emergency-only gate. evaluate.ts:60 throws ExprError("division by zero") directly. Thus ["1","/","0"] with maxOutputBytes:1 emits normal 23-byte "expr: division by zero\n" rather than enforcing the normal quota. The required condition "normal writes never bypass normal quota" cannot hold on this inspected source. Other fixed errors have the same unchecked path. No product/global-contract/old-fixture edits are authorized or made. Bounded frozen controls will preserve failures; the historical 11/12 remains unchanged.

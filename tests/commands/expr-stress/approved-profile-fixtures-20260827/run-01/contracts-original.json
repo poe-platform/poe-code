@@ -1,0 +1,18 @@
+{
+  "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "--import",
+    "tsx",
+    "--test",
+    "--test-reporter=spec",
+    "tests/commands/expr/contracts.test.ts"
+  ],
+  "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/approved-profile-fixtures-20260827/run-01/.work",
+  "started": "2026-08-27T20:13:10.917Z",
+  "finished": "2026-08-27T20:13:11.167Z",
+  "status": 1,
+  "signal": null,
+  "error": null,
+  "stdout": "✔ factories register exactly expr with explicit replacement (0.936542ms)\n✔ evaluated BRE uses matching and rejects invalid patterns on empty subjects (45.654916ms)\n✔ UTF-8 argv uses bytes in C and scalars in C.UTF-8, never UTF-16 units (1.8105ms)\n✖ unsupported locales and unrepresentable argv are explicit errors (1.266542ms)\n✔ bounded aggregate argument bytes {\"maxArgumentBytes\":3} (0.149ms)\n✔ bounded numeric digits {\"maxNumericDigits\":3} (0.138208ms)\n✔ bounded arithmetic result digits {\"maxNumericDigits\":3} (0.120792ms)\n✔ bounded arithmetic result digits {\"maxNumericDigits\":3} (0.091375ms)\n✔ bounded numeric result digits {\"maxNumericDigits\":1} (0.128458ms)\n✔ bounded AST node {\"maxNodes\":2} (0.236209ms)\n✔ bounded depth {\"maxDepth\":3} (0.077333ms)\n✔ bounded depth {\"maxDepth\":3} (0.063875ms)\n✔ bounded depth {\"maxDepth\":3} (0.072375ms)\n✔ bounded evaluation work {\"maxSteps\":3} (0.091459ms)\n✔ bounded string allocation {\"maxStringBytes\":3} (0.064ms)\n✔ bounded output bytes {\"maxOutputBytes\":3} (0.068875ms)\n✔ bounded evaluation work {\"maxSteps\":1000} (0.336792ms)\n✔ factory limit validation and long input preflight (4.126792ms)\n✔ direct success and errors do not even access stdin (0.383875ms)\n✔ awaits sink backpressure and preserves complete byte output (0.28425ms)\n✔ byte pipe backpressure, C partial bytes, and exact abort reason (2.060125ms)\n✔ abort during pending output observes late rejection (0.386167ms)\n✔ work yields for timer cancellation without consuming stdin (3.340333ms)\n✔ sink failure is status 3 and diagnostic failure is not swallowed (0.320125ms)\n✔ actual Shell registry, piping and VFS redirection preserve byte output (5.553875ms)\n✔ Shell input ownership is compared to its baseline, not direct-command ownership (0.887083ms)\n✔ literal argv dispatch uses the actual Shell invoker and middleware (0.862292ms)\nℹ tests 27\nℹ suites 0\nℹ pass 26\nℹ fail 1\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 218.914875\n\n✖ failing tests:\n\ntest at tests/commands/expr/contracts.test.ts:1:2090\n✖ unsupported locales and unrepresentable argv are explicit errors (1.266542ms)\n  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n  \n  0 !== 2\n  \n      at TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/approved-profile-fixtures-20260827/run-01/.work/tests/commands/expr/contracts.test.ts:43:12)\n      at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n      at async Test.run (node:internal/test_runner/test:1054:7)\n      at async Test.processPendingSubtests (node:internal/test_runner/test:744:7) {\n    generatedMessage: true,\n    code: 'ERR_ASSERTION',\n    actual: 0,\n    expected: 2,\n    operator: 'strictEqual',\n    diff: 'simple'\n  }\n",
+  "stderr": ""
+}

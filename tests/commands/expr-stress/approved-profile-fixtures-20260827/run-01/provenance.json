@@ -1,0 +1,53 @@
+{
+  "started": "2026-08-27T20:12:47.666Z",
+  "baseline": "6f2f0abb0fb337715849adf8978d5429d086fb6d",
+  "candidate": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+  "frozenCommit": "d0fb3ef0bc9c3c04cae829a47454c10e565ad971",
+  "selected": [
+    "src",
+    "tests/commands/expr",
+    "package.json",
+    "package-lock.json",
+    "tsconfig.json",
+    "tsconfig.build.json"
+  ],
+  "node": {
+    "version": "v22.22.2",
+    "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+  },
+  "host": {
+    "platform": "darwin",
+    "arch": "arm64"
+  },
+  "headAtStart": "d6814492a9de79c4f11b16956293afa14acc6fc0",
+  "liveStatusAtStart": " M tests/integration/owned-output-production-independent-20260827/candidate-v1/core-cases.mjs\n M tests/integration/owned-output-production-independent-20260827/candidate-v1/run-case.mjs\n?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/\n?? tests/commands/expr-stress/approved-profile-fixtures-20260827/\n?? tests/commands/expr-stress/output-emergency-review-20260827/\n?? tests/commands/html-to-markdown-independent-20260827/fix-review-3ef5811f/ATTEMPT-01.md\n?? tests/commands/html-to-markdown-independent-20260827/fix-review-3ef5811f/NEIGHBORS.json\n?? tests/commands/html-to-markdown-independent-20260827/fix-review-3ef5811f/adjacent-probe.mjs\n?? tests/commands/html-to-markdown-independent-20260827/fix-review-3ef5811f/common.mjs\n?? tests/commands/html-to-markdown-independent-20260827/fix-review-3ef5811f/followup.mjs\n?? tests/commands/html-to-markdown-independent-20260827/fix-review-3ef5811f/probe.mjs\n?? tests/commands/html-to-markdown-independent-20260827/fix-review-3ef5811f/run.mjs\n?? tests/commands/html-to-markdown-independent-20260827/fix-review-3ef5811f/run01/\n?? tests/commands/html-to-markdown-independent-20260827/fix-review-3ef5811f/run02/\n?? tests/commands/html-to-markdown-independent-20260827/fix-review-3ef5811f/run03/\n?? tests/commands/html-to-markdown-independent-20260827/fix-review-3ef5811f/run04/\n?? tests/commands/html-to-markdown-independent-20260827/fix-review-3ef5811f/run05/\n?? tests/commands/html-to-markdown-independent-20260827/fix-review-3ef5811f/seal.mjs\n?? tests/commands/html-to-markdown-independent-20260827/fix-review-3ef5811f/setup.mjs\n?? tests/commands/search-stress/.native-1m4O1e/\n?? tests/integration/du-overlay-independent-20260827/approved-v7-replay-9a5a6f92/replay-001/\n?? tests/integration/owned-output-production-independent-20260827/candidate-v1/network-cases.mjs\n?? tests/shell/getopts-independent-20260827/stage2/\n",
+  "indexAtStart": "",
+  "toolchain": [
+    {
+      "path": "typescript/package.json",
+      "sha256": "822ef7ca6452205657b6288b066481ecf508bfbf43455d715cf7d3ec457561e6"
+    },
+    {
+      "path": "typescript/lib/tsc.js",
+      "sha256": "2cffde0b8c6760dfb0b5b0382bbb7e00ba6a8b2d981b9205b256a700a481d983"
+    },
+    {
+      "path": "typescript/lib/_tsc.js",
+      "sha256": "e8f349eabd48486bdb2bf9dc1a00c89d58297270c54b745838879e2859194419"
+    },
+    {
+      "path": "tsx/package.json",
+      "sha256": "96aee9fd252d0cc31f3c01468250961f5b338c797bc208700d7db926450c7659"
+    },
+    {
+      "path": "tsx/dist/loader.mjs",
+      "sha256": "49fb46730ddeb226ac4fa9fb990d3573ac8f18fa4de02f1bf723c61d715710c2"
+    },
+    {
+      "path": "@types/node/package.json",
+      "sha256": "1e6d3bbbc5082745123d236b38dce0eacdab987d4ac9e57e299e55f780c170de"
+    }
+  ],
+  "qualification": "Selected committed source/tests archive plus only the committed contract assertion delta. No native execution, recapture, full gate, distribution acceptance, or repeat promotion."
+}

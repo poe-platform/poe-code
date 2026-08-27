@@ -1405,6 +1405,36 @@ that any implementation, command, fixture, or test currently exists.
   implementation/independent acceptance are distinct. No new feature or broad
   benchmark expansion was made. The50 baseline-only names remain unmeasured.
 
+### August27,2026 approved env contract and pinned ordering follow-up
+
+- Root approved optional replaceEnv: absent/false preserves current invocation
+  compatibility; true uses exactly supplied exported env (omitted means empty),
+  without inherited-variable/PWD injection or local promotion. Parent values,
+  export/local attributes, cwd, middleware, stdin and shared budgets remain
+  unaffected. Contract/core consumer commit84fc742 includes focused forwarding
+  and legacy actual-shell tests30/30 with typecheck passing. Sagan alone owns
+  runtime/types integration; no shell source was changed by Curie.
+- Actual pinned native ordering investigation found env.c calls putenv and the
+  included gnulib putenv prepends new names, replaces existing slots in place.
+  6b81bb3 implements that profile in production, with23 exact native observations
+  (5/23 before,23/23 after), covering replacement/unset/duplicate/inherited/NUL/
+  numeric names. This is not a portable POSIX/every-GNU-build ordering claim,
+  nor a final-output reversal or benchmark normalization. Two old author
+  assertions now use documented native behavior; historical expected JSON stays
+  unchanged. The combined boundary/order cohort passes80/80, zero skipped/TODO.
+- Added actual-shell runtime acceptance remains2/10 pass,8/10 fail before Sagan
+  integration, zero skip/TODO. Omitted/false legacy behavior passes; true exact,
+  omitted/empty env, explicit PWD, nested clear/unset/prefix and export/local
+  isolation are real required failures. Evidence:
+  tests/commands/core-env/runtime-before-integration.json. These tests remain
+  visible in the main suite; an80/80 subset is not all-green runtime evidence.
+  No new six-row replay is claimed until runtime integration is committed;
+  historical six-d49d9e5.json4/6 and leak reproduction remain immutable.
+- Plato review handoff adds84fc742/6b81bb3 to b5ec52a/f3eb0fe/8bf6f43 (afcea6c
+  test typing only). Provider-binding paragraph remains cd8b5c8 and routes to
+  Poincare; no new binding API or backend acceptance claim. No new benchmark
+  breadth or tool family;50 baseline-only names remain unmeasured.
+
 ### Remaining product validation
 
 - Re-run whole-repo typechecking, tests, build, and export checks as concurrent

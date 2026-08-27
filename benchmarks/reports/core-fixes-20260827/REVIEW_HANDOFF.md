@@ -3,6 +3,26 @@
 Prepared August27,2026. Curie's author evidence is not independent review.
 No new production feature or broad benchmark expansion is included here.
 
+## Approved env follow-up for Plato
+
+Additional production commits84fc742 (additive contract plus env forwarding) and
+6b81bb3 (pinned gnulib ordering) are now part of the bounded review. The earlier
+production commits in the table remain unchanged. Scope env/runtime jointly:
+Curie changes contracts/core caller; Sagan implements shell runtime/types.
+Thirty boundary/legacy checks pass, and the expanded boundary/order cohort
+passes80/80. Native ordering changes from5/23 to23/23 using exact observations;
+new names prepend while replacements retain position, not output normalization.
+Two old author order assertions changed with this explicit profile evidence;
+historical six/224 expected JSON stays untouched.
+
+Actual runtime acceptance is separately2/10 pass,8/10 fail before Sagan's
+integration. Preserve those red cases; do not close with a stub invoker. See
+tests/commands/core-env/runtime-before-integration.json and SAGAN_ENV_HANDOFF.md.
+After runtime integration, run the unchanged six-row replay into a new file,
+then independently stress export/local/parent isolation, exact empty replacement,
+plain unset, prefix assignments, cwd, stdin, middleware and shared budgets.
+The historical4/6 replay below is not overwritten or silently advanced.
+
 ## Exact production revisions
 
 | Commit | Production paths | Scope |

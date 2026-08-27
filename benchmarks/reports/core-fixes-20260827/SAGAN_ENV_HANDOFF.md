@@ -1,5 +1,25 @@
 # Curie → Sagan: exact nested env replacement handoff
 
+## Current status after root approval
+
+Root approved the additive semantics below. Contract/core forwarding is now
+committed84fc742: `src/contracts/command.ts`, `src/contracts/command.md` and
+`src/commands/execution.ts`. No shell source/types edit by Curie. The separate
+6b81bb3 production ordering fix implements the inspected pinned gnulib rule;
+it does not change replacement semantics. Sagan can implement runtime/types now.
+
+Actual-shell `tests/commands/core-env/runtime-acceptance.test.ts` is2/10 pass,
+8/10 fail before runtime integration. Omitted/false compatibility passes; true
+exact/empty/omitted-env/PWD, actual env clear/unset/prefix chains and local/export
+isolation remain required red assertions. Raw evidence is committed alongside.
+The boundary/order80 passes are not runtime closure. Replay the unchanged six
+historical rows only after committed runtime integration, with a new output
+filename; preserve six-d49d9e5.json4/6 and its exact leak bytes.
+
+The following section retains the original proposal and reproduction history;
+its “not yet accepted” wording describes the earlier4dfa0c0 handoff, not this
+now-approved contract.
+
 August27,2026. Proposed shared-contract change only; not yet implemented or
 accepted. Serialize Sagan runtime changes with source/dot/eval work. Curie owns
 contracts/core env; Sagan alone owns shell runtime/types. No production edit in

@@ -275,9 +275,11 @@
   plus type-test correction `afcea6c` (sort), and `8bf6f43` (cksum algorithms).
   This narrow checksum assignment supersedes the general bytes exclusion only
   for that routed work. Distinct source/performance verification remains due.
-  Preserve the frozen224 observations: nested env clearing still needs agreed
-  shell invocation replacement semantics; environment entry ordering is a
-  separate native-profile discrepancy, not a reason to reverse/sort to green.
+  Preserve the frozen224 observations. Approved replaceEnv semantics are in
+  contract/core commit84fc742; Sagan runtime integration and actual-shell proof
+  remain required. Env ordering commit6b81bb3 follows the pinned gnulib rule
+  (prepend new names, replace existing positions), not a final-output reversal
+  or benchmark normalization. Original ordering failures remain historical.
 - Preserve the shell cohorts independently: reported `90cbf28` is72/72 holdout
   and132/132 author, while frozen expanded-seven `5cfb70a` remains0/7 and native
   GNU5.3/Bash3.2 both7/7. Dirty source/dot/eval48/48 is not accepted closure.

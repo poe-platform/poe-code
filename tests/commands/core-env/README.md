@@ -45,7 +45,12 @@ node --unhandled-rejections=strict --import tsx --test \
   tests/contracts/invoke.test.ts tests/contracts/stdin-provenance.test.ts
 ```
 
-The combined cohort is80/80 with typecheck passing at this author checkpoint.
+The combined boundary/order cohort is80/80 with typecheck passing at this author
+checkpoint, before adding `runtime-acceptance.test.ts`. The separate actual-shell
+acceptance is2/10 pass,8/10 fail before Sagan runtime integration; zero skips/TODO.
+Its committed raw evidence is `runtime-before-integration.json`. The wildcard
+command now includes those deliberately visible required failures, so it is
+not an80/80 all-green command until runtime integration actually passes them.
 Different-agent verification and actual-shell true/empty/unset/export/local
 acceptance remain mandatory after runtime integration; no six-row closure is
 claimed from these tests. No new runtime dependency or native product process.

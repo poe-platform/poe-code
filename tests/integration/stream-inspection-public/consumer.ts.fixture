@@ -1,0 +1,23 @@
+import { Shell, MemoryFileSystem, CommandRegistry, createAgentCommands, agentCommands, streamInspectionCommands, createStreamInspectionCommands, createBytePipe, toByteSource, collectBytes, RealFileSystem } from 'virtual-bash';
+import type { StreamInspectionCommandsOptions, StreamInspectionLimits, ByteSource, ByteSink, CommandDefinition, VirtualShellPlugin, FileSystem } from 'virtual-bash';
+import { streamInspectionCommands as subPlugin, createStreamInspectionCommands as subFactory } from 'virtual-bash/commands/stream-inspection';
+import type { StreamInspectionCommandsOptions as SubOptions, StreamInspectionLimits as SubLimits } from 'virtual-bash/commands/stream-inspection';
+
+const limits: StreamInspectionLimits = { maxInputBytes: 1024, maxOutputBytes: 2048, maxRecordBytes: 1024, maxChunkBytes: 512, maxFiles: 4, maxSteps: 8192, maxArgumentBytes: 1024 };
+const subLimits: SubLimits = limits;
+const options: StreamInspectionCommandsOptions = { replace: true, limits: subLimits };
+const subOptions: SubOptions = options;
+const definitions: readonly CommandDefinition[] = createStreamInspectionCommands(options);
+const subDefinitions: readonly CommandDefinition[] = subFactory(subOptions);
+const plugin: VirtualShellPlugin = streamInspectionCommands(options);
+const alternatePlugin: VirtualShellPlugin = subPlugin(subOptions);
+const filesystem: FileSystem = new MemoryFileSystem();
+const real: FileSystem = new RealFileSystem({ root: '/explicit-host-root-not-executed' });
+const source: ByteSource = toByteSource(new Uint8Array([255, 0]));
+const pipe = createBytePipe({ highWaterMark: 8, signal: new AbortController().signal });
+const sink: ByteSink = pipe.writable;
+const shell = new Shell({ fs: filesystem, commands: new CommandRegistry(createAgentCommands()) });
+const configured = new Shell({ fs: filesystem }).use(agentCommands());
+void shell.exec('tac | expand | fold | strings', { stdin: source, stdout: sink });
+void collectBytes(pipe.readable, { maxBytes: 4096 });
+void [definitions, subDefinitions, plugin, alternatePlugin, real, configured];

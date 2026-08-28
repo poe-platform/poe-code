@@ -189,7 +189,7 @@ test("private ownership: root close drains admitted cooperative work before reso
 test("foundation: actual public zero B/F limits retain scalar-only execution", { timeout: 5000 }, async () => {
   const instance = shell();
   try {
-    assert.equal((await instance.exec("true", { limits: { maxExpansionBytes: 0, maxExpansionFields: 1 } })).exitCode, 0);
+    assert.equal((await instance.exec("scalar=", { limits: { maxExpansionBytes: 0, maxExpansionFields: 1 } })).exitCode, 0);
     const bytes = await instance.exec("a=()", { limits: { maxExpansionBytes: 0 } });
     assert.equal(bytes.exitCode, 1);
     assert.match(bytes.stderr, /private payload limit/u);

@@ -55,17 +55,18 @@ const snapshot = () => {
   visit(source);
   return entries;
 };
-const run = (label, args, timeout) => {
-  const launch = { label, args, timeout, launchedAt: new Date().toISOString() };
+const run = (label, args, timeout, expected = 0, cwd = source) => {
+  const launch = { label, args, timeout, cwd, expected, launchedAt: new Date().toISOString() };
   report.commands.push(launch); save();
   const result = spawnSync(process.execPath, args, {
-    cwd: source, env: { PATH: path.dirname(process.execPath), HOME: attempt, TMPDIR: attempt, LANG: "C", LC_ALL: "C", TSX_DISABLE_CACHE: "1" },
+    cwd, env: { PATH: path.dirname(process.execPath), HOME: attempt, TMPDIR: attempt, LANG: "C", LC_ALL: "C", TSX_DISABLE_CACHE: "1", npm_config_cache: path.join(attempt, "npm-cache") },
     timeout, killSignal: "SIGKILL", maxBuffer: 4 * 1024 * 1024,
   });
   Object.assign(launch, { settledAt: new Date().toISOString(), status: result.status, signal: result.signal, error: result.error?.message ?? null, stdout: result.stdout?.toString() ?? "", stderr: result.stderr?.toString() ?? "" }); save();
   assert.equal(result.signal, null, label);
   assert.equal(result.error, undefined, label);
-  assert.equal(result.status, 0, `${label}: ${launch.stdout}\n${launch.stderr}`);
+  assert.equal(result.status, expected, `${label}: ${launch.stdout}\n${launch.stderr}`);
+  return launch;
 };
 try {
   for (const input of base.inputs) {
@@ -78,7 +79,7 @@ try {
     put(input.path, selected);
   }
   const modules = git("ls-tree", "-r", "--name-only", revision, "src/shell/arrays").toString().trim().split("\n");
-  for (const name of ["src/shell/runtime.ts", "src/shell/parser.ts", "src/shell/shell.ts", ...modules, `${relativeOwn}/foundation.test.ts`, `${relativeOwn}/syntax.test.ts`]) {
+  for (const name of ["src/shell/runtime.ts", "src/shell/parser.ts", "src/shell/shell.ts", ...modules, `${relativeOwn}/foundation.test.ts`, `${relativeOwn}/syntax.test.ts`, `${relativeOwn}/public-consumer.ts`]) {
     const bytes = git("show", `${revision}:${name}`);
     report.overlays[name] = { sha256: sha(bytes), blob: blob(bytes), base64: bytes.toString("base64") };
     put(name, bytes);
@@ -96,6 +97,82 @@ try {
   assert.deepEqual(snapshot(), before);
   report.runtimeStableIncludingNewEntries = true;
   report.buildInventory = before;
+  const npm = path.resolve(path.dirname(process.execPath), "../lib/node_modules/npm/bin/npm-cli.js");
+  assert(fs.existsSync(npm));
+  const packed = run("package-artifact", [npm, "pack", "--json", "--ignore-scripts", "--offline", "--pack-destination", attempt], 120000);
+  const pack = JSON.parse(packed.stdout)[0];
+  const artifact = fs.readFileSync(path.join(attempt, pack.filename));
+  report.package = { sha256: sha(artifact), filename: pack.filename, files: pack.files, bytes: artifact.length, base64: artifact.toString("base64") };
+  let installed = path.join(attempt, "installed");
+  const packagePath = path.join(installed, "node_modules/virtual-bash");
+  fs.mkdirSync(packagePath, { recursive: true });
+  const tar = gunzipSync(artifact);
+  const packageInventory = {};
+  for (let offset = 0; offset + 512 <= tar.length;) {
+    const header = tar.subarray(offset, offset + 512);
+    if (header.every(byte => byte === 0)) break;
+    const string = (start, length) => header.subarray(start, start + length).toString().replace(/\0.*$/su, "");
+    const prefix = string(345, 155);
+    const name = (prefix ? prefix + "/" : "") + string(0, 100);
+    const size = Number.parseInt(string(124, 12).trim(), 8);
+    assert(Number.isSafeInteger(size) && size >= 0);
+    offset += 512;
+    const content = tar.subarray(offset, offset + size);
+    offset += Math.ceil(size / 512) * 512;
+    const kind = string(156, 1);
+    if (kind === "x" || kind === "g" || kind === "5") continue;
+    assert(kind === "0" || kind === "", `unsupported artifact entry ${name}: ${kind}`);
+    assert(name.startsWith("package/") && !name.split("/").includes(".."));
+    const relative = name.slice(8);
+    const destination = path.join(packagePath, relative);
+    fs.mkdirSync(path.dirname(destination), { recursive: true });
+    fs.writeFileSync(destination, content, { flag: "wx" });
+    packageInventory[relative] = sha(content);
+  }
+  assert.deepEqual(Object.keys(packageInventory).sort(), pack.files.map(file => file.path).sort());
+  const manifest = JSON.parse(fs.readFileSync(path.join(packagePath, "package.json")));
+  assert.deepEqual(manifest.dependencies ?? {}, {});
+  assert(!fs.existsSync(path.join(packagePath, "src")));
+  report.package.inventory = packageInventory;
+  fs.writeFileSync(path.join(installed, "package.json"), JSON.stringify({ type: "module" }));
+  fs.writeFileSync(path.join(installed, "consumer.ts"), fs.readFileSync(path.join(source, relativeOwn, "public-consumer.ts")));
+  fs.writeFileSync(path.join(installed, "tsconfig.json"), JSON.stringify({ compilerOptions: { target: "ES2022", module: "NodeNext", moduleResolution: "NodeNext", strict: true, exactOptionalPropertyTypes: true, noUncheckedIndexedAccess: true, skipLibCheck: false, outDir: "out", typeRoots: [path.join(repository, "node_modules/@types")] }, files: ["consumer.ts"] }));
+  fs.writeFileSync(path.join(installed, "load-hook.mjs"), 'import { register } from "node:module"; register("./load-guard.mjs", import.meta.url);\n');
+  fs.writeFileSync(path.join(installed, "load-guard.mjs"), `import fs from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+import { createHash } from "node:crypto";
+const root = path.dirname(fileURLToPath(import.meta.url));
+export async function load(url, context, nextLoad) {
+  if (!url.startsWith("file:")) return nextLoad(url, context);
+  const filename = fileURLToPath(url);
+  const relative = path.relative(root, filename);
+  if (!(relative.startsWith("node_modules/virtual-bash/") || relative === "out/consumer.js")) throw new Error("Out-of-package runtime load: " + filename);
+  const loaded = await nextLoad(url, context);
+  fs.appendFileSync(path.join(root, "loads.jsonl"), JSON.stringify({ relative, sha256: createHash("sha256").update(fs.readFileSync(filename)).digest("hex") }) + "\\n");
+  return loaded;
+}
+`);
+  const publicLayout = label => {
+    run(label + "-strict", [compiler, "-p", "tsconfig.json"], 120000, 0, installed);
+    run(label + "-runtime", ["--import", "./load-hook.mjs", "out/consumer.js"], 60000, 0, installed);
+    const loads = fs.readFileSync(path.join(installed, "loads.jsonl"), "utf8").trim().split("\n").map(line => JSON.parse(line));
+    assert(loads.some(entry => entry.relative.endsWith("/dist/shell/arrays/bindings.js")));
+    for (const entry of loads) if (entry.relative.startsWith("node_modules/virtual-bash/")) assert.equal(entry.sha256, packageInventory[entry.relative.slice("node_modules/virtual-bash/".length)], entry.relative);
+    (report.layouts ??= []).push({ label, directory: installed, loads, publicFlows: 6 });
+    fs.renameSync(path.join(installed, "loads.jsonl"), path.join(installed, `${label}-loads.jsonl`));
+  };
+  publicLayout("installed");
+  const moved = path.join(attempt, "physically-moved");
+  fs.renameSync(installed, moved);
+  assert(!fs.existsSync(installed));
+  installed = moved;
+  publicLayout("moved");
+  fs.writeFileSync(path.join(installed, "negative.ts"), 'import { Shell, MemoryFileSystem, ArrayLedger } from "virtual-bash"; new Shell({ fs: new MemoryFileSystem(), maxArrayBytes: 1 });\n');
+  const negative = run("unchanged-public-api-negative-control", [compiler, "--noEmit", "--strict", "--module", "NodeNext", "--moduleResolution", "NodeNext", "--target", "ES2022", "--typeRoots", path.join(repository, "node_modules/@types"), "negative.ts"], 120000, 2, installed);
+  assert.match(negative.stdout, /no exported member.*ArrayLedger/u);
+  assert.match(negative.stdout, /maxArrayBytes.*does not exist/u);
+  assert.deepEqual(snapshot(), before, "package phases must not alter selected source/build inventory");
   report.success = true;
 } catch (error) { report.failure = error.stack; process.exitCode = 1; }
 finally {

@@ -1,0 +1,523 @@
+{
+  "classification": "INDEPENDENT_STATIC_DATA_ARITHMETIC_NOT_RUNTIME",
+  "evidenceCommit": "009c20f812926e4dc7c175b379f85753ff632691",
+  "checks": [
+    {
+      "check": "original149CanonicalHash",
+      "satisfiedAsStaticData": true
+    },
+    {
+      "check": "exact194FrozenIdentitiesRoles",
+      "satisfiedAsStaticData": true
+    },
+    {
+      "check": "194UniqueIDs",
+      "satisfiedAsStaticData": true
+    },
+    {
+      "check": "roleCountsUnchanged",
+      "satisfiedAsStaticData": true
+    },
+    {
+      "check": "eightOverlappingIDsUnchanged",
+      "satisfiedAsStaticData": true
+    },
+    {
+      "check": "335UniqueDeniedSlots",
+      "satisfiedAsStaticData": true
+    },
+    {
+      "check": "noRecordPasses",
+      "satisfiedAsStaticData": true
+    },
+    {
+      "check": "source-built-directExact149References",
+      "satisfiedAsStaticData": false
+    },
+    {
+      "check": "installed-moved-directExact149References",
+      "satisfiedAsStaticData": false
+    },
+    {
+      "check": "132IDsPerEnvironment",
+      "satisfiedAsStaticData": true
+    },
+    {
+      "check": "94Complete17PartialEligibilityNotResults",
+      "satisfiedAsStaticData": true
+    },
+    {
+      "check": "135MissingBindings80Records",
+      "satisfiedAsStaticData": true
+    },
+    {
+      "check": "missingIDsMatchLedger",
+      "satisfiedAsStaticData": true
+    },
+    {
+      "check": "371UnboundDeclaredValuesMatchFrozenPointers",
+      "satisfiedAsStaticData": true
+    },
+    {
+      "check": "allExpectedTopLevelFieldsRepresented",
+      "satisfiedAsStaticData": true
+    },
+    {
+      "check": "old31RawFailsPreserved",
+      "satisfiedAsStaticData": true
+    },
+    {
+      "check": "AUTHENTICATIONMembershipAndSum",
+      "satisfiedAsStaticData": true
+    },
+    {
+      "check": "AUTHENTICATIONAbsoluteCutoff",
+      "satisfiedAsStaticData": true
+    },
+    {
+      "check": "BUILDMembershipAndSum",
+      "satisfiedAsStaticData": true
+    },
+    {
+      "check": "BUILDAbsoluteCutoff",
+      "satisfiedAsStaticData": true
+    },
+    {
+      "check": "SETUPMembershipAndSum",
+      "satisfiedAsStaticData": true
+    },
+    {
+      "check": "SETUPAbsoluteCutoff",
+      "satisfiedAsStaticData": true
+    },
+    {
+      "check": "CONTROLSMembershipAndSum",
+      "satisfiedAsStaticData": true
+    },
+    {
+      "check": "CONTROLSAbsoluteCutoff",
+      "satisfiedAsStaticData": true
+    },
+    {
+      "check": "SOURCE_AUDITMembershipAndSum",
+      "satisfiedAsStaticData": true
+    },
+    {
+      "check": "SOURCE_AUDITAbsoluteCutoff",
+      "satisfiedAsStaticData": true
+    },
+    {
+      "check": "SOURCE_RUNTIMEMembershipAndSum",
+      "satisfiedAsStaticData": true
+    },
+    {
+      "check": "SOURCE_RUNTIMEAbsoluteCutoff",
+      "satisfiedAsStaticData": true
+    },
+    {
+      "check": "MOVED_RUNTIMEMembershipAndSum",
+      "satisfiedAsStaticData": true
+    },
+    {
+      "check": "MOVED_RUNTIMEAbsoluteCutoff",
+      "satisfiedAsStaticData": true
+    },
+    {
+      "check": "TYPESMembershipAndSum",
+      "satisfiedAsStaticData": true
+    },
+    {
+      "check": "TYPESAbsoluteCutoff",
+      "satisfiedAsStaticData": true
+    },
+    {
+      "check": "LOADED_CONTROLSMembershipAndSum",
+      "satisfiedAsStaticData": true
+    },
+    {
+      "check": "LOADED_CONTROLSAbsoluteCutoff",
+      "satisfiedAsStaticData": true
+    },
+    {
+      "check": "FINALIZATIONMembershipAndSum",
+      "satisfiedAsStaticData": true
+    },
+    {
+      "check": "FINALIZATIONAbsoluteCutoff",
+      "satisfiedAsStaticData": true
+    },
+    {
+      "check": "global23625000EqualsEverySlotAndPhase",
+      "satisfiedAsStaticData": true
+    },
+    {
+      "check": "12CompilerDescendantsBuild1Direct6Public5",
+      "satisfiedAsStaticData": true
+    },
+    {
+      "check": "SOURCE_RUNTIMESuballocationsWith5000Cleanup",
+      "satisfiedAsStaticData": true
+    },
+    {
+      "check": "MOVED_RUNTIMESuballocationsWith5000Cleanup",
+      "satisfiedAsStaticData": true
+    },
+    {
+      "check": "LOADED_CONTROLSSuballocationsWith5000Cleanup",
+      "satisfiedAsStaticData": true
+    },
+    {
+      "check": "TYPE_directSuballocations",
+      "satisfiedAsStaticData": true
+    },
+    {
+      "check": "TYPE_publicSuballocations",
+      "satisfiedAsStaticData": true
+    },
+    {
+      "check": "18Guards31CMD22DefinitionsOneWorker",
+      "satisfiedAsStaticData": true
+    },
+    {
+      "check": "tenLoadedSlotsFourWitnessesPerEnvironment",
+      "satisfiedAsStaticData": true
+    },
+    {
+      "check": "mutantsExplicitlyUnbound",
+      "satisfiedAsStaticData": true
+    },
+    {
+      "check": "sixDirectFivePublicGapDefinitions",
+      "satisfiedAsStaticData": true
+    },
+    {
+      "check": "23PrimarySourceTwoOverlappingAnnotations",
+      "satisfiedAsStaticData": true
+    },
+    {
+      "check": "allCandidateSlotsNullDeny",
+      "satisfiedAsStaticData": true
+    },
+    {
+      "check": "noRetrySingleOuterWorker",
+      "satisfiedAsStaticData": true
+    },
+    {
+      "check": "gitHelperCeilingArithmetic",
+      "satisfiedAsStaticData": true
+    }
+  ],
+  "staticChecksSatisfied": 49,
+  "staticChecksUnsatisfied": [
+    "source-built-directExact149References",
+    "installed-moved-directExact149References"
+  ],
+  "notAcceptance": "SS-F01 and pending implementation/bindings are not resolved by data consistency.",
+  "roles": {
+    "command-semantic-runtime": 111,
+    "admission-error-boundary": 34,
+    "source-static-counterproof": 23,
+    "lifecycle-cooperative": 11,
+    "materialized-package-infrastructure": 4,
+    "type-consumer": 5,
+    "negative-control": 6
+  },
+  "environments": {
+    "source-built-direct": {
+      "jobs": 149,
+      "uniqueIds": 132,
+      "roles": {
+        "command-semantic-runtime": 128,
+        "admission-error-boundary": 21
+      }
+    },
+    "installed-moved-direct": {
+      "jobs": 149,
+      "uniqueIds": 132,
+      "roles": {
+        "command-semantic-runtime": 128,
+        "admission-error-boundary": 21
+      }
+    }
+  },
+  "environmentCount": 2,
+  "installedAndMovedAreOneProfile": true,
+  "obligationStateCounts": {
+    "DECLARED_RUNTIME_BINDING_REQUIRES_REPLAY": 330,
+    "PROPOSED_DECLARED_ALIAS_BINDING": 3,
+    "UNRUN_OBLIGATION_BINDING": 24,
+    "PROPOSED_DECLARED_BYTE_ALIAS_BINDING": 7,
+    "PROPOSED_DECLARED_DIAGNOSTIC_ALIAS_BINDING": 1,
+    "FIXTURE_DATA_PLUS_UNRUN_INTERNAL_OBLIGATION": 3,
+    "PROPOSED_PARTIAL_DECLARED_WITNESS": 3
+  },
+  "gapRecords": 80,
+  "missingBindings": 135,
+  "historicalIncomplete": 31,
+  "overlayRouting": [
+    {
+      "id": "NUM-14",
+      "jobs": [
+        "source-built-direct/NUM-14--whole",
+        "installed-moved-direct/NUM-14--whole"
+      ],
+      "missingBindings": []
+    },
+    {
+      "id": "NUM-15",
+      "jobs": [
+        "source-built-direct/NUM-15--whole",
+        "installed-moved-direct/NUM-15--whole"
+      ],
+      "missingBindings": [
+        "NUM-15::missing/0"
+      ]
+    },
+    {
+      "id": "ENC-07",
+      "jobs": [
+        "SOURCE-STATIC-REPORT",
+        "source-built-direct/ENC-07--whole",
+        "installed-moved-direct/ENC-07--whole"
+      ],
+      "missingBindings": []
+    },
+    {
+      "id": "QUE-12",
+      "jobs": [
+        "source-built-direct/QUE-12--whole",
+        "installed-moved-direct/QUE-12--whole"
+      ],
+      "missingBindings": []
+    },
+    {
+      "id": "UTF-12",
+      "jobs": [
+        "source-built-direct/UTF-12--whole",
+        "installed-moved-direct/UTF-12--whole"
+      ],
+      "missingBindings": []
+    },
+    {
+      "id": "WRK-10",
+      "jobs": [],
+      "missingBindings": [
+        "WRK-10::missing/0",
+        "WRK-10::missing/1"
+      ]
+    },
+    {
+      "id": "WRK-22",
+      "jobs": [
+        "SOURCE-STATIC-REPORT"
+      ],
+      "missingBindings": [
+        "WRK-22::missing/0",
+        "WRK-22::missing/1"
+      ]
+    },
+    {
+      "id": "WRK-26",
+      "jobs": [
+        "SOURCE-STATIC-REPORT"
+      ],
+      "missingBindings": [
+        "WRK-26::missing/0",
+        "WRK-26::missing/1"
+      ]
+    }
+  ],
+  "phases": [
+    {
+      "id": "AUTHENTICATION",
+      "outerSlots": 1,
+      "sumSlotCapsMs": 120000,
+      "startOffsetMs": 0,
+      "absoluteCutoffOffsetMs": 120000,
+      "allocation": {
+        "setup": 60000,
+        "authentication": 45000,
+        "evidence": 10000,
+        "cleanup": 5000
+      }
+    },
+    {
+      "id": "BUILD",
+      "outerSlots": 1,
+      "sumSlotCapsMs": 300000,
+      "startOffsetMs": 120000,
+      "absoluteCutoffOffsetMs": 420000,
+      "allocation": {
+        "toolAndSourceSetup": 90000,
+        "compiler": 120000,
+        "comparisonPacking": 60000,
+        "evidenceCleanup": 30000
+      }
+    },
+    {
+      "id": "SETUP",
+      "outerSlots": 2,
+      "sumSlotCapsMs": 180000,
+      "startOffsetMs": 420000,
+      "absoluteCutoffOffsetMs": 600000,
+      "allocation": {
+        "runtimeRecipeSetup": 90000,
+        "runtimeAdmission": 90000
+      }
+    },
+    {
+      "id": "CONTROLS",
+      "outerSlots": 19,
+      "sumSlotCapsMs": 570000,
+      "startOffsetMs": 600000,
+      "absoluteCutoffOffsetMs": 1170000,
+      "allocation": {
+        "guardRecordSlots": 18,
+        "guardRecordSlotMs": 30000,
+        "cmd22WorkerSlots": 1,
+        "cmd22WorkerMs": 30000,
+        "cmd22FixtureCount": 31
+      }
+    },
+    {
+      "id": "SOURCE_AUDIT",
+      "outerSlots": 1,
+      "sumSlotCapsMs": 300000,
+      "startOffsetMs": 1170000,
+      "absoluteCutoffOffsetMs": 1470000,
+      "allocation": {
+        "designatedAndSecondaryReport": 270000,
+        "evidence": 25000,
+        "cleanup": 5000
+      }
+    },
+    {
+      "id": "SOURCE_RUNTIME",
+      "outerSlots": 149,
+      "sumSlotCapsMs": 6705000,
+      "startOffsetMs": 1470000,
+      "absoluteCutoffOffsetMs": 8175000,
+      "allocation": {
+        "recordSlots": 149,
+        "recordSlotMs": 45000,
+        "perRecord": {
+          "setupAdmission": 5000,
+          "semanticInvocation": 30000,
+          "guardsCapture": 5000,
+          "cleanupKnownReap": 5000
+        }
+      }
+    },
+    {
+      "id": "MOVED_RUNTIME",
+      "outerSlots": 149,
+      "sumSlotCapsMs": 13410000,
+      "startOffsetMs": 8175000,
+      "absoluteCutoffOffsetMs": 21585000,
+      "allocation": {
+        "recordSlots": 149,
+        "recordSlotMs": 90000,
+        "perRecord": {
+          "setupAdmission": 40000,
+          "semanticInvocation": 30000,
+          "guardsCapture": 15000,
+          "cleanupKnownReap": 5000
+        }
+      }
+    },
+    {
+      "id": "TYPES",
+      "outerSlots": 2,
+      "sumSlotCapsMs": 1020000,
+      "startOffsetMs": 21585000,
+      "absoluteCutoffOffsetMs": 22605000,
+      "allocation": {
+        "directWorker": 540000,
+        "conditionalPublicWorker": 480000,
+        "direct": {
+          "setup": 90000,
+          "compilerInvocations": 6,
+          "compilerMsEach": 60000,
+          "postguardsEvidence": 60000,
+          "cleanup": 30000
+        },
+        "public": {
+          "setup": 90000,
+          "compilerInvocations": 5,
+          "compilerMsEach": 60000,
+          "postguardsEvidence": 60000,
+          "cleanup": 30000
+        }
+      }
+    },
+    {
+      "id": "LOADED_CONTROLS",
+      "outerSlots": 10,
+      "sumSlotCapsMs": 900000,
+      "startOffsetMs": 22605000,
+      "absoluteCutoffOffsetMs": 23505000,
+      "allocation": {
+        "recordSlots": 10,
+        "recordSlotMs": 90000,
+        "perRecord": {
+          "mutationSetupAdmission": 40000,
+          "actualLoadInvocation": 30000,
+          "guardsCaptureClassification": 15000,
+          "cleanupKnownReap": 5000
+        }
+      }
+    },
+    {
+      "id": "FINALIZATION",
+      "outerSlots": 1,
+      "sumSlotCapsMs": 120000,
+      "startOffsetMs": 23505000,
+      "absoluteCutoffOffsetMs": 23625000,
+      "allocation": {
+        "finalMembershipHashModeSweep": 90000,
+        "knownReapEvidence": 30000
+      }
+    }
+  ],
+  "globalCapMs": 23625000,
+  "duration": {
+    "hours": 6,
+    "minutes": 33,
+    "seconds": 45
+  },
+  "maxOuterSlots": 335,
+  "maxCompilerDescendants": 12,
+  "candidateNullSlots": 26,
+  "cleanupQualification": "Runtime/loaded slots include 1000+4000=5000ms. Generic control/setup and nested compiler ownership still require implemented internal reserves; no external grace, reset or guaranteed reap is inferred.",
+  "headroomVsHistoricalMovedWholeMax": {
+    "historicalMs": 27231,
+    "sourceSlotMs": 45000,
+    "sourceDifferenceMs": 17769,
+    "sourceRatio": 1.6525283684036576,
+    "movedSlotMs": 90000,
+    "movedDifferenceMs": 62769,
+    "movedRatio": 3.305056736807315,
+    "qualification": "Finite headroom, not measured phase isolation, a forecast/guarantee, native benchmark or product-bug attribution."
+  },
+  "storageArithmetic": {
+    "knownPackageAndCaptureReservationsBytes": 17733517312,
+    "cohortCeilingBytes": 25769803776,
+    "remainingBaseSourceToolAllowanceBytes": 8036286464,
+    "qualification": "Aggregate arithmetic only. Exact tool and copy reservations remain unimplemented."
+  },
+  "execution": {
+    "authoredValidators": 0,
+    "controls": 0,
+    "predicates": 0,
+    "adapters": 0,
+    "materializers": 0,
+    "loaders": 0,
+    "product": 0,
+    "builds": 0,
+    "compilers": 0,
+    "harnessCohorts": 0
+  },
+  "controlPasses": 0,
+  "runtimePasses": 0,
+  "productPasses": 0
+}

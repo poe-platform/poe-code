@@ -1,0 +1,113 @@
+{
+  "id": "SS-F01",
+  "kind": "PLAN_ROUTING_VERSUS_CURRENT_USER_REQUIREMENT",
+  "productFailure": false,
+  "authority": "Current user: Inspect types6directperenvironment/public5gap",
+  "observed": "The sealed proposal deliberately runs six direct fixtures once on installed/moved declarations whose hashes must match source-built declarations. It does not schedule the six on source-built declarations. Byte equality is not a second compiler execution.",
+  "rawEvidence": {
+    "commit": "009c20f812926e4dc7c175b379f85753ff632691",
+    "jobs": {
+      "path": "tests/commands/yq-independent-20260828/successor-review-preseal-v1/JOBS.json",
+      "sha256": "ae2969c22e1c3d5d955bf9edf460c9d59db006dd5134bd3b9e50c82a4b741e8f",
+      "pointer": "/outerJobs",
+      "typeJobs": [
+        {
+          "id": "TYPE-DIRECT-SIX",
+          "phase": "TYPES",
+          "role": "type-consumer",
+          "state": "UNRUN_NO_SUCCESSOR_GO",
+          "executionAuthorized": false,
+          "recordIds": [
+            "TYP-01",
+            "TYP-02",
+            "TYP-03",
+            "TYP-07"
+          ],
+          "fixtures": [
+            "positive",
+            "factory-command-extra",
+            "factory-array-extra",
+            "unknown-limits",
+            "replace-string",
+            "replace-undefined"
+          ],
+          "maxCompilerDescendants": 6,
+          "installedMovedOnly": true,
+          "sourceBuiltDeclarationsMustMatch": true,
+          "slotCapMs": 540000,
+          "phaseAbsoluteCutoffOffsetMs": 22605000
+        },
+        {
+          "id": "TYPE-PUBLIC-FIVE",
+          "phase": "TYPES",
+          "role": "type-consumer",
+          "state": "UNRUN_NO_SUCCESSOR_GO",
+          "executionAuthorized": false,
+          "recordIds": [
+            "TYP-04"
+          ],
+          "fixtures": [
+            "hidden-limits",
+            "hidden-defaults",
+            "hidden-session",
+            "hidden-factory",
+            "hidden-parser"
+          ],
+          "maxCompilerDescendants": 5,
+          "conditional": true,
+          "condition": "Actual explicitly authorized public export map and declarations",
+          "defaultGap": "UNRUN_PUBLIC_EXPORT_GAP",
+          "slotCapMs": 480000,
+          "phaseAbsoluteCutoffOffsetMs": 22605000
+        }
+      ],
+      "typeEnvironmentQualification": "Six direct fixtures run once on installed/moved declarations whose hashes match independent source-built declarations; not two type environments or extra semantic IDs. Five public-only fixtures are conditional gaps."
+    },
+    "schedule": {
+      "path": "tests/commands/yq-independent-20260828/successor-review-preseal-v1/SCHEDULE.json",
+      "sha256": "ff21793f53b42719b9e4bc764b6c00442a49ba75d489699c6dc69835e00a04dc",
+      "typePhase": {
+        "id": "TYPES",
+        "startOffsetMs": 21585000,
+        "absoluteCutoffOffsetMs": 22605000,
+        "capMs": 1020000,
+        "allocation": {
+          "directWorker": 540000,
+          "conditionalPublicWorker": 480000,
+          "direct": {
+            "setup": 90000,
+            "compilerInvocations": 6,
+            "compilerMsEach": 60000,
+            "postguardsEvidence": 60000,
+            "cleanup": 30000
+          },
+          "public": {
+            "setup": 90000,
+            "compilerInvocations": 5,
+            "compilerMsEach": 60000,
+            "postguardsEvidence": 60000,
+            "cleanup": 30000
+          }
+        },
+        "jobIds": [
+          "TYPE-DIRECT-SIX",
+          "TYPE-PUBLIC-FIVE"
+        ]
+      },
+      "maxCompilerDescendants": 12
+    }
+  },
+  "notAnAuthorFalseClaim": "The one-environment qualification is explicit; the mismatch is against the current requested per-environment review scope, not concealed execution or product behavior.",
+  "minimumAdditiveArithmeticNotApprovedPlan": {
+    "additionalDirectWorkerAtExistingCapMs": 540000,
+    "additionalOuterSlots": 1,
+    "additionalCompilerDescendants": 6,
+    "resultingOuterSlots": 336,
+    "resultingCompilerDescendants": 18,
+    "resultingGlobalCapMsIfSameAllocations": 24165000,
+    "publicFiveGapAssumedStillOneConditionalWorker": true
+  },
+  "requiredResolution": "Bind and reserve six direct fixtures for each of the two declared environments in an additive successor plan, or obtain explicit user scope alignment. Do not silently infer source-environment compiler success from declaration byte equality. No product fix required.",
+  "controlExecutions": 0,
+  "productExecutions": 0
+}

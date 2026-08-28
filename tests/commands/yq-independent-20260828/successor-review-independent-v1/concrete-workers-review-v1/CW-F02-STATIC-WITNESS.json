@@ -1,0 +1,117 @@
+{
+  "schema": 1,
+  "id": "CW-F02",
+  "classification": "STATIC_LEAF_INCOMPLETE_HANDLING_AND_FROZEN_ABI_CONTRADICTION_NOT_EXECUTED",
+  "severity": "medium",
+  "source": {
+    "revision": "c0353685540288d504b93f206735fe4c448268ef",
+    "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/workers/loaded-worker.mjs",
+    "sha256": "b63c1b93c96676f70aa12b64560bdae4f149a4005eae1ae3ab72fc1d03fd7ee0",
+    "bytes": 9806
+  },
+  "sourceLines": [
+    72,
+    73,
+    74,
+    111,
+    112,
+    113,
+    116,
+    117
+  ],
+  "frozenF01": {
+    "revision": "7add5d2c0a3acb27483ba0bb5dd52385812d8ed7",
+    "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/runtime-v2/delta.mjs",
+    "sha256": "c4241ec7033dc47171548988c638367a96e923c7a4462f2cddb9f9783bc57ed0",
+    "bytes": 5957
+  },
+  "frozenF01Lines": [
+    15,
+    16,
+    17,
+    27,
+    28
+  ],
+  "abi": {
+    "revision": "9d582d791336fd66d865f6592b830c39a359d344",
+    "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/CORE-INTERFACE.json",
+    "sha256": "c5e36798741667981f21f002755be3f420fbd6103b8a4b3f8783531a9f6fc412",
+    "bytes": 8164
+  },
+  "abiLine": 32,
+  "witnessSource": {
+    "revision": "c0353685540288d504b93f206735fe4c448268ef",
+    "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/workers/MUTANT-PLAN.json",
+    "sha256": "4b6ebde4b0e348ef6d4a0df3c5468002717c32dbbfb470fd112331cd7274181b",
+    "bytes": 20641
+  },
+  "witnessId": "UTF-22--whole",
+  "frozenWitness": {
+    "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+    "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/execution/DECLARED-JOBS-149.json",
+    "sha256": "153caa0762421b0f3af3717cae17df95fcf251939a4af8b87de5a75bc0f64ea6",
+    "bytes": 1058682,
+    "pointer": "/jobs/145",
+    "jobSha256": "96c842953b880ccc65f3df2d38f9c0547d2c968adf6d62a868dab2bf7b89840e"
+  },
+  "unchangedExpected": {
+    "status": 0,
+    "stdoutUtf8": "[1,2]\n",
+    "assertions": [
+      "Retained fragments survive producer reuse and finalization; subarray/slice views do not qualify as owned copies."
+    ]
+  },
+  "affectedSlots": [
+    {
+      "id": "source-built-direct/LOAD-POSITIVE",
+      "variantId": null,
+      "environment": "source-built-direct"
+    },
+    {
+      "id": "source-built-direct/MUT-RETAINED-VIEW",
+      "variantId": "retained-view",
+      "environment": "source-built-direct"
+    },
+    {
+      "id": "installed-moved-direct/LOAD-POSITIVE",
+      "variantId": null,
+      "environment": "installed-moved-direct"
+    },
+    {
+      "id": "installed-moved-direct/MUT-RETAINED-VIEW",
+      "variantId": "retained-view",
+      "environment": "installed-moved-direct"
+    }
+  ],
+  "benignBranchData": {
+    "normalFacts": {
+      "completion": "command-result",
+      "status": 0,
+      "stdoutHex": "5b312c325d0a",
+      "stderrHex": "",
+      "diagnosticCode": null
+    },
+    "projection": {
+      "status": "INCOMPLETE",
+      "error": "Natural-language obligation has no executable proof binding",
+      "unfulfilled": [
+        "expected.assertions[0]"
+      ]
+    },
+    "actualExecutionOutcome": "UNRUN"
+  },
+  "staticControlFlow": [
+    "The exact frozen UTF22 expected object retains a natural-language assertion, even though its fullRecordEligibleAfterProjection flag is true.",
+    "Unchanged F01 adds every expected.assertions item to unfulfilled and records INCOMPLETE before assertion failure. The sealed ABI promises unchanged F01/CMD22 projection, not a new proof adapter.",
+    "For each pristine LOAD-POSITIVE, loaded-worker line112 maps any non-BOUND_PROJECTION_ONLY status to FAIL; line113 names it PRISTINE_WITNESS_FAILURE even when known status/stdout facts match.",
+    "The retained-view prerequisite repeats the same whole-witness projection at line72 and requires BOUND at line74. Its two mutant slots have an unavailable prerequisite under the unchanged ABI; core must refuse/retain the gap BEFORE materialization/import as INTEGRATION.md line11 requires.",
+    "Returning BOUND from core merely to satisfy this leaf, stripping the assertion or calling these four controls complete would silently weaken frozen F01. The six other mutant slots do not have this particular expected.assertions blocker."
+  ],
+  "expectedTreatment": "Keep the unbound assertion and distinguish INCOMPLETE/UNRUN_CONTROL from a contradicted pristine primitive. No kill/positive credit, no product failure inference, no altered frozen expected data.",
+  "minimumOwnerAction": "Handle INCOMPLETE explicitly rather than collapsing it to a pristine/control FAIL; declare the four affected slot prerequisites pending in composition and deny mutant admission until genuinely bound. If a separately scoped primitive control proof is later proposed, it must be explicitly bound without changing whole-record F01 or inheriting a PASS. This review grants no such adapter.",
+  "notJustUnexecutedFutureProof": "The blocker is derivable from an existing frozen assertion and actual leaf branch, not from the absence of any runtime run. Runtime behavior and all controls remain UNRUN.",
+  "candidateExecutions": 0,
+  "controlExecutions": 0,
+  "authoredProjectionCalls": 0,
+  "controlPasses": 0
+}

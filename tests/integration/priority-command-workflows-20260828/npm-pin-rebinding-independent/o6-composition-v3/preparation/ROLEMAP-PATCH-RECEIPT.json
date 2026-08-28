@@ -1,0 +1,9 @@
+{
+  "role": "PRESEAL_AUTHORING_NOT_PROOF",
+  "pid": 90208,
+  "status": 0,
+  "signal": null,
+  "stdout": "Success. Updated the following files:\nA tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-independent/o6-composition-v3/ROLEMAP.json\n",
+  "stderr": "",
+  "error": null
+}

@@ -1,0 +1,106 @@
+{
+  "schema": "o6-preseal-dependencies-v3",
+  "role": "PREPARATION_ONLY_NOT_PROOF_RESULT",
+  "files": [
+    {
+      "path": "RECIPE.md",
+      "mode": 420,
+      "bytes": 7942,
+      "sha256": "c1809bad831367e96c5cad43b8cc390b00136ebdc4119f2d5ca6f2bd94cfa5ba"
+    },
+    {
+      "path": "ROLEMAP.json",
+      "mode": 420,
+      "bytes": 131350,
+      "sha256": "4fbb5cbb00877bae74e0d0109cd4814f9d3c0db35eeda0cd33aa409d2a6d1f33"
+    },
+    {
+      "path": "preparation/RECEIPT.json",
+      "mode": 420,
+      "bytes": 1187,
+      "sha256": "1eb6048ba9170a5d20ace71c1068f4286d3467c2ce56a825c4b0ec82a1b8e362"
+    },
+    {
+      "path": "preparation/ROLEMAP-PATCH-RECEIPT.json",
+      "mode": 420,
+      "bytes": 299,
+      "sha256": "df03bbe48d102ba32f84e5fa5df7a48160104bf7058d63ee274125f2a14713eb"
+    },
+    {
+      "path": "preparation/SOURCE-PATH-RECEIPT.json",
+      "mode": 420,
+      "bytes": 4409,
+      "sha256": "12c326498399c6eb81a69e79318a1ed9e9b551087d4c18aac94d73fa0ef794d8"
+    },
+    {
+      "path": "preparation/catalog.stderr",
+      "mode": 420,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "preparation/catalog.stdout",
+      "mode": 420,
+      "bytes": 218446,
+      "sha256": "b9d1c90ce2cc77bd79ae1475625e10fd79eec19b36edca570a9b03df7b38b8b4"
+    },
+    {
+      "path": "preparation/source-path-catalog.stderr",
+      "mode": 420,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "preparation/source-path-catalog.stdout",
+      "mode": 420,
+      "bytes": 40514,
+      "sha256": "08fe0123dd64a807f2129cbca87865f87a8fced81f7c9a8a4dd9fb37f5515354"
+    },
+    {
+      "path": "proof.mjs",
+      "mode": 420,
+      "bytes": 22889,
+      "sha256": "e5c4931fbd8293d75d97d403503a25b2ebe463f5f0d53833f8c265bf9edd932e"
+    }
+  ],
+  "inspectionTool": {
+    "path": "/Library/Developer/CommandLineTools/usr/bin/git",
+    "mode": 493,
+    "bytes": 7604272,
+    "sha256": "be4afb2b003904725826250de9fb76567bbacf82323457b5a1ec26706b66bcae"
+  },
+  "host": "Existing Node REPL; no fresh version qualification or ambient package imports",
+  "allowedImports": [
+    "new sealed proof.mjs",
+    "node:fs",
+    "node:path",
+    "node:crypto",
+    "node:perf_hooks",
+    "node:child_process"
+  ],
+  "plannedRequests": {
+    "documents": 7,
+    "commits": 4,
+    "trees": 56,
+    "selectedBlobs": 268,
+    "total": 335,
+    "gitBatches": 2
+  },
+  "plannedDirectChildren": {
+    "proofGit": 2,
+    "reportPatch": 1,
+    "administrativeGit": 6,
+    "total": 9,
+    "max": 16
+  },
+  "caps": {
+    "wallMs": 600000,
+    "sourceAdmissionMs": 360000,
+    "peakProcesses": 2,
+    "captureBytes": 33554432,
+    "workBytes": 134217728
+  },
+  "freshProofsExecuted": 0,
+  "priorControlsReplayed": 0,
+  "productExecutions": 0
+}

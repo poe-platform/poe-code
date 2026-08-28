@@ -1,0 +1,62 @@
+{
+  "schema": "AP753-preparation-evidence-v4",
+  "artifacts": [
+    {
+      "path": "qualification-01/OWNER.jsonl",
+      "bytes": 431,
+      "mode": 384,
+      "sha256": "62e9f7de08c1aab52f6fd4910e9c66547987f6b2700b88db3795c6a857ade162"
+    },
+    {
+      "path": "qualification-01/RECEIPT.json",
+      "bytes": 315,
+      "mode": 420,
+      "sha256": "1accf6666bb2abd5e841631a185b2865cc77d54c44399f4914bcfcaedddcd7ac"
+    },
+    {
+      "path": "qualification-01/scratch/NORMALIZED-HISTORICAL.json",
+      "bytes": 1016036,
+      "mode": 420,
+      "sha256": "663f9829586e0821fde7900187e1ff363f1678a94e72efdcb459a9a4812cf02a"
+    },
+    {
+      "path": "qualification-01/scratch/dist/commands/apply-patch/apply.js",
+      "bytes": 108,
+      "mode": 420,
+      "sha256": "24b67c5726afb5b49488967c9b3a07fdd1cb23287a95ef9ce963424f6e73d531"
+    },
+    {
+      "path": "qualification-01/scratch/dist/commands/apply-patch/index.js",
+      "bytes": 108,
+      "mode": 420,
+      "sha256": "24b67c5726afb5b49488967c9b3a07fdd1cb23287a95ef9ce963424f6e73d531"
+    },
+    {
+      "path": "qualification-01/scratch/unbound.js",
+      "bytes": 108,
+      "mode": 420,
+      "sha256": "24b67c5726afb5b49488967c9b3a07fdd1cb23287a95ef9ce963424f6e73d531"
+    },
+    {
+      "path": "qualification-01/stderr.raw",
+      "bytes": 171,
+      "mode": 384,
+      "sha256": "703be10d8e2c8dd2190928e509e8db2b5010165f8b679399c1421302c0406c65"
+    },
+    {
+      "path": "qualification-01/stdout.raw",
+      "bytes": 3580,
+      "mode": 384,
+      "sha256": "75a832a0fd624502c1f91007aaa728134e8b51a93a5ea09ac1887c33e1ad5b76"
+    }
+  ],
+  "bytes": 1020857,
+  "rawCaptured": 3751,
+  "qualification": {
+    "pass": 31,
+    "fail": 0,
+    "sourceCommit": "a90fa437047c1edacabcc3384b622179c84bf14d"
+  },
+  "original22of23Preserved": true,
+  "rawReconstruction": false
+}

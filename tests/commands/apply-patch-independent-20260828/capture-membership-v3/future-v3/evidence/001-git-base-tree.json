@@ -1,0 +1,457 @@
+{
+  "id": "git-base-tree",
+  "role": "git",
+  "executable": "/usr/bin/git",
+  "args": [
+    "--no-replace-objects",
+    "ls-tree",
+    "-rz",
+    "--full-tree",
+    "67eab12e315054907ef4ef435c6bbca2f59e0c36"
+  ],
+  "started": "2026-08-28T19:59:19.290Z",
+  "finished": "2026-08-28T19:59:19.879Z",
+  "startedElapsedMs": 1100.550917,
+  "finishedElapsedMs": 1689.250417,
+  "pid": 69244,
+  "spawnAttempted": true,
+  "spawnReturned": true,
+  "spawnEvent": true,
+  "spawnThrew": false,
+  "code": 0,
+  "signal": null,
+  "closeObserved": true,
+  "groupAbsent": true,
+  "spawnError": null,
+  "fault": null,
+  "bytes": 5554546,
+  "fragments": [
+    {
+      "name": "001-git-base-tree-stdout-0.json",
+      "bytes": 65536,
+      "sha256": "e47221b27ada06e07afdf066cdbff177985ef30514bb817e6990471929df07da"
+    },
+    {
+      "name": "001-git-base-tree-stdout-65536.json",
+      "bytes": 65536,
+      "sha256": "491281a13afbef81564d70fb8cf062ab138e87ce64e13fd86dc74736d85d8395"
+    },
+    {
+      "name": "001-git-base-tree-stdout-131072.json",
+      "bytes": 65536,
+      "sha256": "98553734489172d1730b7afa85a4f10a1b00c0c32eb216e8317e119feaef7ae1"
+    },
+    {
+      "name": "001-git-base-tree-stdout-196608.json",
+      "bytes": 65536,
+      "sha256": "534ab3f42a6da953e26ab02e539929b42751e4c06344fd9c32b7a4481abbe07c"
+    },
+    {
+      "name": "001-git-base-tree-stdout-262144.json",
+      "bytes": 65536,
+      "sha256": "fe2083e221b6b68f6f68dfbe093ed63a781a6e89aee6239f11567c2aad58e5e8"
+    },
+    {
+      "name": "001-git-base-tree-stdout-327680.json",
+      "bytes": 65536,
+      "sha256": "e8258412fe9851d6a8f425c3006c29d5b6ebc37a425df9f2af6121186819e43a"
+    },
+    {
+      "name": "001-git-base-tree-stdout-393216.json",
+      "bytes": 65536,
+      "sha256": "b544d9fee10e3fe61297a9ca3e3650006c1929903c9cdea9defc7dfac98e4904"
+    },
+    {
+      "name": "001-git-base-tree-stdout-458752.json",
+      "bytes": 65536,
+      "sha256": "bca9d6b95226f769beea44b2cd7047826cb1a01e00d886876a6ccf6d01b52cc5"
+    },
+    {
+      "name": "001-git-base-tree-stdout-524288.json",
+      "bytes": 65536,
+      "sha256": "b713f3eec8b8d19c21b4d41544724870e3c157641823220d2e83f9980272e924"
+    },
+    {
+      "name": "001-git-base-tree-stdout-589824.json",
+      "bytes": 65536,
+      "sha256": "12ca283582a018b229675ba824f424764ba53bb197b01bc3ceb797c124c12c5f"
+    },
+    {
+      "name": "001-git-base-tree-stdout-655360.json",
+      "bytes": 65536,
+      "sha256": "8ab272b4bba4c4f1bad56b65ac1a05b4f627bd37367f7a2937bbfe89196095bc"
+    },
+    {
+      "name": "001-git-base-tree-stdout-720896.json",
+      "bytes": 65536,
+      "sha256": "4136a86d636fbfba7dfa7cc4fa269e850ce557fee041ce1cae7de7c4a9cee5b3"
+    },
+    {
+      "name": "001-git-base-tree-stdout-786432.json",
+      "bytes": 65536,
+      "sha256": "e8b2785616a09d5c6415e0de73ac01028fc02241577a81869d30dd2b525043fa"
+    },
+    {
+      "name": "001-git-base-tree-stdout-851968.json",
+      "bytes": 65536,
+      "sha256": "c9b3bdebd4aba864d28d731b5b2f83bee76d6f205fdbd2ba14d342d41151d6fe"
+    },
+    {
+      "name": "001-git-base-tree-stdout-917504.json",
+      "bytes": 65536,
+      "sha256": "85febaffa490953f21c311e64e9bbe36590db26729c56f4345e0b29e8251d184"
+    },
+    {
+      "name": "001-git-base-tree-stdout-983040.json",
+      "bytes": 65536,
+      "sha256": "07d6fc5e83590e443403b5644066d6a6037a8fe4820b6771cd24d7fa9ee5f0c9"
+    },
+    {
+      "name": "001-git-base-tree-stdout-1048576.json",
+      "bytes": 65536,
+      "sha256": "6d1c54feeab1c1852331289b2b4f7d5e138fdd5d19345d06b98fe57d5a540be5"
+    },
+    {
+      "name": "001-git-base-tree-stdout-1114112.json",
+      "bytes": 65536,
+      "sha256": "94988df65cc7c9752a3b062a953a67e195b193c0a38b6a4f81f0bc9a9880fc11"
+    },
+    {
+      "name": "001-git-base-tree-stdout-1179648.json",
+      "bytes": 65536,
+      "sha256": "32db6a98cabdfaf971bbdee2814468eb221a5da9fcbf094d6f3c58534d0005c5"
+    },
+    {
+      "name": "001-git-base-tree-stdout-1245184.json",
+      "bytes": 65536,
+      "sha256": "2388b3e3324e4b010eb14f9ed3d8a203f12d36b281aacd2ccb6dd0aba052b5e4"
+    },
+    {
+      "name": "001-git-base-tree-stdout-1310720.json",
+      "bytes": 65536,
+      "sha256": "699815b1efb165a33f6ddb3d07ad15da8451fa0854ee73a32ba2e26f374fbc47"
+    },
+    {
+      "name": "001-git-base-tree-stdout-1376256.json",
+      "bytes": 65536,
+      "sha256": "cd749038b6d8737185165b88704ec4fd707b339a8bfb9782386ed7889b99b18c"
+    },
+    {
+      "name": "001-git-base-tree-stdout-1441792.json",
+      "bytes": 65536,
+      "sha256": "3985ef61fe1bdded1d1abc62156ec3935cac9321eea50cfd17f90054f710baad"
+    },
+    {
+      "name": "001-git-base-tree-stdout-1507328.json",
+      "bytes": 65536,
+      "sha256": "fd53f7b6494564881b0070bf67777098124ce645bd50e27c6841ba1f78ebee80"
+    },
+    {
+      "name": "001-git-base-tree-stdout-1572864.json",
+      "bytes": 65536,
+      "sha256": "36686a29f6ddf2fccc29ce5dfbd3ec92670df3133960f8f45fc4a7d262c594f1"
+    },
+    {
+      "name": "001-git-base-tree-stdout-1638400.json",
+      "bytes": 65536,
+      "sha256": "f2d5c2bdeeb118815cff937072df50c7c2f180101873ae977e24b3c6119a9a15"
+    },
+    {
+      "name": "001-git-base-tree-stdout-1703936.json",
+      "bytes": 65536,
+      "sha256": "62bcadd0e30839cd1bbb2adf516bf6db46e88b17f79df38f4467e1334166751f"
+    },
+    {
+      "name": "001-git-base-tree-stdout-1769472.json",
+      "bytes": 65536,
+      "sha256": "83b913b880f7f9153c95f4930834199b274d81b143c63b561e0495ebf5a00b31"
+    },
+    {
+      "name": "001-git-base-tree-stdout-1835008.json",
+      "bytes": 65536,
+      "sha256": "140756bd938135cfd303bed4fb96df659cafecf2b1b92ee70f0f2ef020097e33"
+    },
+    {
+      "name": "001-git-base-tree-stdout-1900544.json",
+      "bytes": 65536,
+      "sha256": "845be7256e4008c3281a250185feb794f562de1af15ed7e635506b48995f6e12"
+    },
+    {
+      "name": "001-git-base-tree-stdout-1966080.json",
+      "bytes": 65536,
+      "sha256": "5ba04d67f62ba9d62b7f10f2a175e91656ecd9dbd33f0b5d04fdeb0abc3364d8"
+    },
+    {
+      "name": "001-git-base-tree-stdout-2031616.json",
+      "bytes": 65536,
+      "sha256": "f46783a805165905826e4f761eea484069022c813e7ff4358629c7d903ac26c5"
+    },
+    {
+      "name": "001-git-base-tree-stdout-2097152.json",
+      "bytes": 65536,
+      "sha256": "146a93ac749fbaa066c7919a6f02c9c7f8a1be834719ca17407ef51eb2400e5d"
+    },
+    {
+      "name": "001-git-base-tree-stdout-2162688.json",
+      "bytes": 65536,
+      "sha256": "ddd81e842f9f501ec173b37341f3036a7a8f0151aae6a6d810f9906965b2bb18"
+    },
+    {
+      "name": "001-git-base-tree-stdout-2228224.json",
+      "bytes": 65536,
+      "sha256": "168767b6e9a96bbce7244a41f0d0f195519cfa1d17342780baed11abbbb4d6ee"
+    },
+    {
+      "name": "001-git-base-tree-stdout-2293760.json",
+      "bytes": 65536,
+      "sha256": "4533f9649214d6179c87896e69118e85437c25b5ea1e9cb734b0c20366724376"
+    },
+    {
+      "name": "001-git-base-tree-stdout-2359296.json",
+      "bytes": 65536,
+      "sha256": "9280f6ce65ded66ce11e0c0e0296bc21bba376dec448c7fa356ac99a46648ab8"
+    },
+    {
+      "name": "001-git-base-tree-stdout-2424832.json",
+      "bytes": 65536,
+      "sha256": "998068ce28d36261fbb28f72e5e7ef782f6b4a69edcd2e1f46aadb5aeeb242d8"
+    },
+    {
+      "name": "001-git-base-tree-stdout-2490368.json",
+      "bytes": 65536,
+      "sha256": "9fa5d9657e7e1096a9e49616b49249c4c1ad04f90c05fbb9bea1760b5b2cd0cd"
+    },
+    {
+      "name": "001-git-base-tree-stdout-2555904.json",
+      "bytes": 65536,
+      "sha256": "3eb0b94c53ed41e87fc323a172a002e71dbcf42c3572914e1832ebcc40fbaa69"
+    },
+    {
+      "name": "001-git-base-tree-stdout-2621440.json",
+      "bytes": 65536,
+      "sha256": "f73f71e0bae97673ce1b90679f5c52ae1639894975806d887f9d83ad4bbb6f9f"
+    },
+    {
+      "name": "001-git-base-tree-stdout-2686976.json",
+      "bytes": 65536,
+      "sha256": "4475d5c21bcc797e552ccba12e3eabb2ed7287c8e0fe10f450e891a117d891ff"
+    },
+    {
+      "name": "001-git-base-tree-stdout-2752512.json",
+      "bytes": 65536,
+      "sha256": "2ed69f9f4dba0c80b4b298674cc4d25a121d1f68e43638f835759b01caa883bd"
+    },
+    {
+      "name": "001-git-base-tree-stdout-2818048.json",
+      "bytes": 65536,
+      "sha256": "62dd08189401fc41b80d9cd1672c85fa310f6a6369710eafc3fa3a8a345b1650"
+    },
+    {
+      "name": "001-git-base-tree-stdout-2883584.json",
+      "bytes": 65536,
+      "sha256": "206f08fc47b8d55b0d5dcf0cac7bc505b48e402f7a108002a3facccbda5a7252"
+    },
+    {
+      "name": "001-git-base-tree-stdout-2949120.json",
+      "bytes": 65536,
+      "sha256": "7bd115be2302bef7c7fd6c4e24432cf1fb38adc61b439c4fa46324223387eff2"
+    },
+    {
+      "name": "001-git-base-tree-stdout-3014656.json",
+      "bytes": 65536,
+      "sha256": "1149454f184c3d704dd663a6d00f7b4c66a4fae79fd11d44012a64a2ebb79c1f"
+    },
+    {
+      "name": "001-git-base-tree-stdout-3080192.json",
+      "bytes": 65536,
+      "sha256": "fbc1eb0ebfc9a9179bea4401c0d82073e0c9410c0de0ec61fd79fde0753b67fb"
+    },
+    {
+      "name": "001-git-base-tree-stdout-3145728.json",
+      "bytes": 65536,
+      "sha256": "23380f94366688e4a6729c726f3a0e5159f5b3631a650eb4be278f9ceecc939b"
+    },
+    {
+      "name": "001-git-base-tree-stdout-3211264.json",
+      "bytes": 65536,
+      "sha256": "9c7cf4f4684851ebcf4b5b39d4a2a27b618c4dbac9581b3c485c29828583450e"
+    },
+    {
+      "name": "001-git-base-tree-stdout-3276800.json",
+      "bytes": 65536,
+      "sha256": "8be8414f158f3aca2e34a39f0dac391516436ac6d14acb3ff135f9ebb9dc85b1"
+    },
+    {
+      "name": "001-git-base-tree-stdout-3342336.json",
+      "bytes": 65536,
+      "sha256": "60acbe62ffbd5c3c13ae22832b9a91f4bb88f9ed36134c145980a02185ff2541"
+    },
+    {
+      "name": "001-git-base-tree-stdout-3407872.json",
+      "bytes": 65536,
+      "sha256": "5097ce74c02c0a5e0d14e5900858f0c10bca365d2ee842712093bbc02501899a"
+    },
+    {
+      "name": "001-git-base-tree-stdout-3473408.json",
+      "bytes": 65536,
+      "sha256": "ffb14c70e052b4d545532acce00727e741137bb649de425bf7f64a1b32429c31"
+    },
+    {
+      "name": "001-git-base-tree-stdout-3538944.json",
+      "bytes": 65536,
+      "sha256": "17dc465bf96a1b8fd416bcce07acad3228559818f93e7f0d8605c9269b156557"
+    },
+    {
+      "name": "001-git-base-tree-stdout-3604480.json",
+      "bytes": 65536,
+      "sha256": "a6d18e9fe0345719ed787e84741b17c5b818f45a5d8c2ef7cac694e39daad4d2"
+    },
+    {
+      "name": "001-git-base-tree-stdout-3670016.json",
+      "bytes": 65536,
+      "sha256": "33c913045e864c404c4bf3622c53174d82e27c38f17554113bc987ea8c82bb23"
+    },
+    {
+      "name": "001-git-base-tree-stdout-3735552.json",
+      "bytes": 65536,
+      "sha256": "c5cec482bfb9b03cf4ffa429b153b027dc5a61fff807e0efeeb0142bfc932de0"
+    },
+    {
+      "name": "001-git-base-tree-stdout-3801088.json",
+      "bytes": 65536,
+      "sha256": "41535296491a8f959fba3b118c828b66f273a97252eba5a1ac41965664558fe2"
+    },
+    {
+      "name": "001-git-base-tree-stdout-3866624.json",
+      "bytes": 65536,
+      "sha256": "48c7f7fc24a1031068e054d52681a567bc995ae736ef13634f7990eb68499933"
+    },
+    {
+      "name": "001-git-base-tree-stdout-3932160.json",
+      "bytes": 65536,
+      "sha256": "cc29a2e7d9e0f55878b07f95303f643ea145af103f9890d248e61a2d5a4eb66d"
+    },
+    {
+      "name": "001-git-base-tree-stdout-3997696.json",
+      "bytes": 65536,
+      "sha256": "baf6951874a100e4dc3ecbadf969afbb8aeef0838acf86cc8c93ba247dbc2f69"
+    },
+    {
+      "name": "001-git-base-tree-stdout-4063232.json",
+      "bytes": 65536,
+      "sha256": "a7415abae3012c352927bedb1474ef0b063b876431d7d36884e086fd83f5b715"
+    },
+    {
+      "name": "001-git-base-tree-stdout-4128768.json",
+      "bytes": 65536,
+      "sha256": "08a9579efb8df6ecdfafc1bd50c0c1ca561ffaa3442ce3446b682a546f449d25"
+    },
+    {
+      "name": "001-git-base-tree-stdout-4194304.json",
+      "bytes": 65536,
+      "sha256": "f0da93489f7e381e90fb5c58fb957a19700b89fdb3ad8e27cdec8723ac061196"
+    },
+    {
+      "name": "001-git-base-tree-stdout-4259840.json",
+      "bytes": 65536,
+      "sha256": "1a9e95892eb198401fe3c882293990e523a3948b3c60d11c1a3bc92983df8633"
+    },
+    {
+      "name": "001-git-base-tree-stdout-4325376.json",
+      "bytes": 65536,
+      "sha256": "62970551e7b8ee9216fd542995db218279938df1c82091fce4463d1a7b2a96b5"
+    },
+    {
+      "name": "001-git-base-tree-stdout-4390912.json",
+      "bytes": 65536,
+      "sha256": "c381ea6686ee5c78af97bd5b877af80e343a072cf8cef0c4110414480e70bddc"
+    },
+    {
+      "name": "001-git-base-tree-stdout-4456448.json",
+      "bytes": 65536,
+      "sha256": "9f2cd11b315d4b44240518f3e41e7fdc4d03441c8f0aadcb112b159db238d97c"
+    },
+    {
+      "name": "001-git-base-tree-stdout-4521984.json",
+      "bytes": 65536,
+      "sha256": "64e0e3ddf75e223299c59fb84267018126180939a682ddeb6cae6c7069f46e22"
+    },
+    {
+      "name": "001-git-base-tree-stdout-4587520.json",
+      "bytes": 65536,
+      "sha256": "bf220a4a9eb5642679eb18789cd1e806ae4d746cfac6b25b126742bd33b49e56"
+    },
+    {
+      "name": "001-git-base-tree-stdout-4653056.json",
+      "bytes": 65536,
+      "sha256": "53ccfa3fb672ce9e37847ae38eb2e03ab039d1701400eba5cf00cb02b6aac7aa"
+    },
+    {
+      "name": "001-git-base-tree-stdout-4718592.json",
+      "bytes": 65536,
+      "sha256": "a76861defc2921f3266df10058010f58449abb14737eefdbee1ea72e70165643"
+    },
+    {
+      "name": "001-git-base-tree-stdout-4784128.json",
+      "bytes": 65536,
+      "sha256": "339d56a286719fcb41d88d64260c99d286f16869e8990986c50521d243e0dc88"
+    },
+    {
+      "name": "001-git-base-tree-stdout-4849664.json",
+      "bytes": 65536,
+      "sha256": "90c207c12be6cb09f6a97714f35d1160fe5672e3663018d8ee70f124f36a3fca"
+    },
+    {
+      "name": "001-git-base-tree-stdout-4915200.json",
+      "bytes": 65536,
+      "sha256": "c3432e8cb869f3b74cde89e9011427e4842ef14c97bed558c011867c30630a3f"
+    },
+    {
+      "name": "001-git-base-tree-stdout-4980736.json",
+      "bytes": 65536,
+      "sha256": "7a538947f2b7fee09f151e42e436104b15133cb0d5f43916048f4012f4dc3598"
+    },
+    {
+      "name": "001-git-base-tree-stdout-5046272.json",
+      "bytes": 65536,
+      "sha256": "e4774ec0b044b891a84802779686c699a9e89ca967368120c9a0a98d78bd9d6b"
+    },
+    {
+      "name": "001-git-base-tree-stdout-5111808.json",
+      "bytes": 65536,
+      "sha256": "b37f1870aa49475107e4826a816275aeb380a149df4d7c94b7c19d94c8d2ad17"
+    },
+    {
+      "name": "001-git-base-tree-stdout-5177344.json",
+      "bytes": 65536,
+      "sha256": "f0ccf4abb5da78347ccc7d55512833fb17394bfa0459eff68ba78392c5718c49"
+    },
+    {
+      "name": "001-git-base-tree-stdout-5242880.json",
+      "bytes": 65536,
+      "sha256": "ee312c43a35c983d737e66d91853a5051a0f7090b8126b7a50a5551482a0c0be"
+    },
+    {
+      "name": "001-git-base-tree-stdout-5308416.json",
+      "bytes": 65536,
+      "sha256": "1d659f8bc0bc87a2b44ce7727076a38e40ef99b9fb42d74585c3fa49dcc523d0"
+    },
+    {
+      "name": "001-git-base-tree-stdout-5373952.json",
+      "bytes": 65536,
+      "sha256": "21152fbd433ea3500727f7aef820d6ce288a40e882472e49274a31dde0688552"
+    },
+    {
+      "name": "001-git-base-tree-stdout-5439488.json",
+      "bytes": 65536,
+      "sha256": "24ab92074f5acc652b1394dfa6a1f83695c84fde52963e5ed36c6dee6000574a"
+    },
+    {
+      "name": "001-git-base-tree-stdout-5505024.json",
+      "bytes": 49522,
+      "sha256": "34a548a000e843d5bdb556c1bc813a326a90a966800abbf8d809c173d1cf4fe4"
+    }
+  ],
+  "stdoutSha256": "d158f9bf8f6d0a18053939105fa92387a0f7ab766ea94f2fb42246a3c4f29fe5",
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

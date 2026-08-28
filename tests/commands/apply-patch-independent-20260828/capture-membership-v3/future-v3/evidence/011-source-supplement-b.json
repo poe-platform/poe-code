@@ -1,0 +1,49 @@
+{
+  "id": "source-supplement-b",
+  "role": "product",
+  "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "--max-old-space-size=256",
+    "--permission",
+    "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/capture-membership-v3/future-v3/.work-v2/source-consumer",
+    "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/capture-membership-v3/future-v3/.work-v2/source",
+    "--allow-fs-write=/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/capture-membership-v3/future-v3/.work-v2/source-consumer/fixtures-source-supplement-b",
+    "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/capture-membership-v3/future-v3/.work-v2/source-consumer/bootstrap.mjs",
+    "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/capture-membership-v3/future-v3/.work-v2/source-consumer/job-source-supplement-b.json"
+  ],
+  "started": "2026-08-28T20:01:42.488Z",
+  "finished": "2026-08-28T20:01:42.797Z",
+  "startedElapsedMs": 144296.100417,
+  "finishedElapsedMs": 144604.749,
+  "pid": 71120,
+  "spawnAttempted": true,
+  "spawnReturned": true,
+  "spawnEvent": true,
+  "spawnThrew": false,
+  "code": 1,
+  "signal": null,
+  "closeObserved": true,
+  "groupAbsent": true,
+  "spawnError": null,
+  "fault": null,
+  "bytes": 166754,
+  "fragments": [
+    {
+      "name": "011-source-supplement-b-stdout-0.json",
+      "bytes": 65536,
+      "sha256": "5c268380d8450caefe96e7be068c995d08005046e728780408114624874b381a"
+    },
+    {
+      "name": "011-source-supplement-b-stdout-65536.json",
+      "bytes": 65536,
+      "sha256": "f81bf08b382ef29ad432019a00b1a0eb0be5a9212ad473a1d70352ca50ef1865"
+    },
+    {
+      "name": "011-source-supplement-b-stdout-131072.json",
+      "bytes": 35682,
+      "sha256": "3ee40442aa1c654a620ba977264780587adfe4a4842c26c74b4d8ba6cebba215"
+    }
+  ],
+  "stdoutSha256": "eae44ff9b98f2ccd2a9f2a8f2e17b0e8c53699362eb5787616b740805387e7a6",
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

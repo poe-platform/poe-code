@@ -1,0 +1,48 @@
+{
+  "id": "types-installed-positive",
+  "role": "type",
+  "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/bin/tsc",
+    "--noEmit",
+    "--listFiles",
+    "--strict",
+    "--exactOptionalPropertyTypes",
+    "--module",
+    "NodeNext",
+    "--moduleResolution",
+    "NodeNext",
+    "--target",
+    "ES2023",
+    "--types",
+    "node",
+    "--typeRoots",
+    "/Users/kjopek/Workspace/safe-bash/node_modules/@types",
+    "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/capture-membership-v3/future-v3/.work-v2/installed/consumer-positive.mts"
+  ],
+  "started": "2026-08-28T20:01:58.785Z",
+  "finished": "2026-08-28T20:01:59.960Z",
+  "startedElapsedMs": 160593.129459,
+  "finishedElapsedMs": 161767.66425,
+  "pid": 71228,
+  "spawnAttempted": true,
+  "spawnReturned": true,
+  "spawnEvent": true,
+  "spawnThrew": false,
+  "code": 0,
+  "signal": null,
+  "closeObserved": true,
+  "groupAbsent": true,
+  "spawnError": null,
+  "fault": null,
+  "bytes": 15607,
+  "fragments": [
+    {
+      "name": "020-types-installed-positive-stdout-0.json",
+      "bytes": 15607,
+      "sha256": "fe59aab66da0afeb04ccce2261a1053c8f27e46a660845d7951cef1b8911024e"
+    }
+  ],
+  "stdoutSha256": "fe59aab66da0afeb04ccce2261a1053c8f27e46a660845d7951cef1b8911024e",
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

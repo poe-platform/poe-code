@@ -1,0 +1,35 @@
+{
+  "id": "guard-missing",
+  "role": "guard",
+  "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/capture-membership-v3/future-v3/guard-control.mjs",
+    "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/capture-membership-v3/future-v3/.work-v2/guard",
+    "missing"
+  ],
+  "started": "2026-08-28T19:59:23.039Z",
+  "finished": "2026-08-28T19:59:23.112Z",
+  "startedElapsedMs": 4848.785625,
+  "finishedElapsedMs": 4921.6075,
+  "pid": 69262,
+  "spawnAttempted": true,
+  "spawnReturned": true,
+  "spawnEvent": true,
+  "spawnThrew": false,
+  "code": 0,
+  "signal": null,
+  "closeObserved": true,
+  "groupAbsent": true,
+  "spawnError": null,
+  "fault": null,
+  "bytes": 239,
+  "fragments": [
+    {
+      "name": "004-guard-missing-stdout-0.json",
+      "bytes": 239,
+      "sha256": "d93215c009441ef5dbfd314003e4aca23de8d08f1a8eb36feeabe12e88c75d2d"
+    }
+  ],
+  "stdoutSha256": "d93215c009441ef5dbfd314003e4aca23de8d08f1a8eb36feeabe12e88c75d2d",
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

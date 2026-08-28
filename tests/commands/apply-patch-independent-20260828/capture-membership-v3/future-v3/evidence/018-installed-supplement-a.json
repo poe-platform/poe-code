@@ -1,0 +1,49 @@
+{
+  "id": "installed-supplement-a",
+  "role": "product",
+  "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "--max-old-space-size=256",
+    "--permission",
+    "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/capture-membership-v3/future-v3/.work-v2/installed",
+    "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/capture-membership-v3/future-v3/.work-v2/installed/node_modules/virtual-bash",
+    "--allow-fs-write=/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/capture-membership-v3/future-v3/.work-v2/installed/fixtures-installed-supplement-a",
+    "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/capture-membership-v3/future-v3/.work-v2/installed/bootstrap.mjs",
+    "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/capture-membership-v3/future-v3/.work-v2/installed/job-installed-supplement-a.json"
+  ],
+  "started": "2026-08-28T20:01:55.769Z",
+  "finished": "2026-08-28T20:01:56.042Z",
+  "startedElapsedMs": 157577.068875,
+  "finishedElapsedMs": 157850.003584,
+  "pid": 71215,
+  "spawnAttempted": true,
+  "spawnReturned": true,
+  "spawnEvent": true,
+  "spawnThrew": false,
+  "code": 0,
+  "signal": null,
+  "closeObserved": true,
+  "groupAbsent": true,
+  "spawnError": null,
+  "fault": null,
+  "bytes": 153220,
+  "fragments": [
+    {
+      "name": "018-installed-supplement-a-stdout-0.json",
+      "bytes": 65536,
+      "sha256": "58936ce9df6ab3000e51514d379aa4184066abff28f5eabe37505f7c04c89852"
+    },
+    {
+      "name": "018-installed-supplement-a-stdout-65536.json",
+      "bytes": 65536,
+      "sha256": "4db754535f95560714b34639ea66e4c4dabd2d787c118aef32d709a078cf91eb"
+    },
+    {
+      "name": "018-installed-supplement-a-stdout-131072.json",
+      "bytes": 22148,
+      "sha256": "6bc23b4f5738d97437828a614bf0a1ea6c2deb91ac7e57d6262857d32077b19c"
+    }
+  ],
+  "stdoutSha256": "fe1348a16595b1ed12d6ab74aa9f488c21e1cef967f8a239d6dcb24cd063314d",
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

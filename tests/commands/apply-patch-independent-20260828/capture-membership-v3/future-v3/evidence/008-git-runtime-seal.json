@@ -1,0 +1,65 @@
+{
+  "id": "git-runtime-seal",
+  "role": "git",
+  "executable": "/usr/bin/git",
+  "args": [
+    "--no-replace-objects",
+    "show",
+    "07f6a3967994b768f47d0ca8fffb93e19a08fd90:tests/commands/apply-patch-independent-20260828/capture-membership-v3/future-v3/RUNTIME-SEAL.json"
+  ],
+  "started": "2026-08-28T20:01:39.070Z",
+  "finished": "2026-08-28T20:01:39.102Z",
+  "startedElapsedMs": 140878.558042,
+  "finishedElapsedMs": 140910.757875,
+  "pid": 71102,
+  "spawnAttempted": true,
+  "spawnReturned": true,
+  "spawnEvent": true,
+  "spawnThrew": false,
+  "code": 0,
+  "signal": null,
+  "closeObserved": true,
+  "groupAbsent": true,
+  "spawnError": null,
+  "fault": null,
+  "bytes": 419736,
+  "fragments": [
+    {
+      "name": "008-git-runtime-seal-stdout-0.json",
+      "bytes": 65536,
+      "sha256": "0aa1255ac93a130a2d9809660f103ea92161bfd5f72eb3c704d56ad7bcc23ff8"
+    },
+    {
+      "name": "008-git-runtime-seal-stdout-65536.json",
+      "bytes": 65536,
+      "sha256": "618d48ad3568333cf30a3bcf6209703b5d9b5c1ae833d5a14aae2c2500bbdf8c"
+    },
+    {
+      "name": "008-git-runtime-seal-stdout-131072.json",
+      "bytes": 65536,
+      "sha256": "6b49b39eba2ce1f6a746b6fc76d277e088d469124fc62619b2fc8e27dbcdf218"
+    },
+    {
+      "name": "008-git-runtime-seal-stdout-196608.json",
+      "bytes": 65536,
+      "sha256": "c023b7422be400e6d65cc94a27f429f599230d4ff86c7c20a0a17802cd090744"
+    },
+    {
+      "name": "008-git-runtime-seal-stdout-262144.json",
+      "bytes": 65536,
+      "sha256": "4f7ab0161c6bd355cda76dee641dfcd616cdaf1a193c837deb321f460157e7f4"
+    },
+    {
+      "name": "008-git-runtime-seal-stdout-327680.json",
+      "bytes": 65536,
+      "sha256": "64697610b9aa0b1d55ea0c9c3ef2960c03d2a4b6b7cf454e4a925d2c011286f8"
+    },
+    {
+      "name": "008-git-runtime-seal-stdout-393216.json",
+      "bytes": 26520,
+      "sha256": "242158d613b3b69ecfb4dbd09ca4deadb2fbb6ec0e3c9229007b2b3d6ab4edfc"
+    }
+  ],
+  "stdoutSha256": "9a5a3b4aa2fe5c39ae3ea1cc0b266459d5dccb7e373a4e9b56c78a321a86cf23",
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

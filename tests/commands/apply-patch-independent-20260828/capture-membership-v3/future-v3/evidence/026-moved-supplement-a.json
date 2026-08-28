@@ -1,0 +1,49 @@
+{
+  "id": "moved-supplement-a",
+  "role": "product",
+  "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "--max-old-space-size=256",
+    "--permission",
+    "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/capture-membership-v3/future-v3/.work-v2/physically-moved",
+    "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/capture-membership-v3/future-v3/.work-v2/physically-moved/node_modules/virtual-bash",
+    "--allow-fs-write=/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/capture-membership-v3/future-v3/.work-v2/physically-moved/fixtures-moved-supplement-a",
+    "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/capture-membership-v3/future-v3/.work-v2/physically-moved/bootstrap.mjs",
+    "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/capture-membership-v3/future-v3/.work-v2/physically-moved/job-moved-supplement-a.json"
+  ],
+  "started": "2026-08-28T20:02:11.371Z",
+  "finished": "2026-08-28T20:02:11.738Z",
+  "startedElapsedMs": 173179.2215,
+  "finishedElapsedMs": 173545.642834,
+  "pid": 71910,
+  "spawnAttempted": true,
+  "spawnReturned": true,
+  "spawnEvent": true,
+  "spawnThrew": false,
+  "code": 0,
+  "signal": null,
+  "closeObserved": true,
+  "groupAbsent": true,
+  "spawnError": null,
+  "fault": null,
+  "bytes": 154731,
+  "fragments": [
+    {
+      "name": "026-moved-supplement-a-stdout-0.json",
+      "bytes": 65536,
+      "sha256": "58936ce9df6ab3000e51514d379aa4184066abff28f5eabe37505f7c04c89852"
+    },
+    {
+      "name": "026-moved-supplement-a-stdout-65536.json",
+      "bytes": 65536,
+      "sha256": "c1362d88060407d6e32bfe0736efd4f3b8cc4d9984a282505d1b150ef3b2ca34"
+    },
+    {
+      "name": "026-moved-supplement-a-stdout-131072.json",
+      "bytes": 23659,
+      "sha256": "7607760c239dd39b85ff38e766c7e38b3d3c82aa7fc0ec541a246ebea02858f8"
+    }
+  ],
+  "stdoutSha256": "c1bfb3400e25020d678a2026dee991275d52fb25858712f88e1da3b21e980e60",
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

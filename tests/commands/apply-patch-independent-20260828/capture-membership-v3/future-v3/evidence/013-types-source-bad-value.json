@@ -1,0 +1,48 @@
+{
+  "id": "types-source-bad-value",
+  "role": "type",
+  "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/bin/tsc",
+    "--noEmit",
+    "--listFiles",
+    "--strict",
+    "--exactOptionalPropertyTypes",
+    "--module",
+    "NodeNext",
+    "--moduleResolution",
+    "NodeNext",
+    "--target",
+    "ES2023",
+    "--types",
+    "node",
+    "--typeRoots",
+    "/Users/kjopek/Workspace/safe-bash/node_modules/@types",
+    "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/capture-membership-v3/future-v3/.work-v2/source-consumer/consumer-bad-value.mts"
+  ],
+  "started": "2026-08-28T20:01:45.602Z",
+  "finished": "2026-08-28T20:01:46.780Z",
+  "startedElapsedMs": 147410.334959,
+  "finishedElapsedMs": 148588.048459,
+  "pid": 71137,
+  "spawnAttempted": true,
+  "spawnReturned": true,
+  "spawnEvent": true,
+  "spawnThrew": false,
+  "code": 2,
+  "signal": null,
+  "closeObserved": true,
+  "groupAbsent": true,
+  "spawnError": null,
+  "fault": null,
+  "bytes": 15418,
+  "fragments": [
+    {
+      "name": "013-types-source-bad-value-stdout-0.json",
+      "bytes": 15418,
+      "sha256": "bd792555442b542e0b4beaa35bad1945911007c3588fedd71e82b1b1afc8b152"
+    }
+  ],
+  "stdoutSha256": "bd792555442b542e0b4beaa35bad1945911007c3588fedd71e82b1b1afc8b152",
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

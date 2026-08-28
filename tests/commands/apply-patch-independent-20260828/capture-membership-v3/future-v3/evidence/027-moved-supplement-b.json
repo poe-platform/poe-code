@@ -1,0 +1,49 @@
+{
+  "id": "moved-supplement-b",
+  "role": "product",
+  "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "--max-old-space-size=256",
+    "--permission",
+    "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/capture-membership-v3/future-v3/.work-v2/physically-moved",
+    "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/capture-membership-v3/future-v3/.work-v2/physically-moved/node_modules/virtual-bash",
+    "--allow-fs-write=/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/capture-membership-v3/future-v3/.work-v2/physically-moved/fixtures-moved-supplement-b",
+    "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/capture-membership-v3/future-v3/.work-v2/physically-moved/bootstrap.mjs",
+    "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/capture-membership-v3/future-v3/.work-v2/physically-moved/job-moved-supplement-b.json"
+  ],
+  "started": "2026-08-28T20:02:13.395Z",
+  "finished": "2026-08-28T20:02:13.885Z",
+  "startedElapsedMs": 175203.273625,
+  "finishedElapsedMs": 175692.62925,
+  "pid": 71942,
+  "spawnAttempted": true,
+  "spawnReturned": true,
+  "spawnEvent": true,
+  "spawnThrew": false,
+  "code": 1,
+  "signal": null,
+  "closeObserved": true,
+  "groupAbsent": true,
+  "spawnError": null,
+  "fault": null,
+  "bytes": 174236,
+  "fragments": [
+    {
+      "name": "027-moved-supplement-b-stdout-0.json",
+      "bytes": 65536,
+      "sha256": "5c268380d8450caefe96e7be068c995d08005046e728780408114624874b381a"
+    },
+    {
+      "name": "027-moved-supplement-b-stdout-65536.json",
+      "bytes": 65536,
+      "sha256": "e5e05a37112c5ae4a5d462093177c35d1b023a45b6913a288bcc3da6009c226a"
+    },
+    {
+      "name": "027-moved-supplement-b-stdout-131072.json",
+      "bytes": 43164,
+      "sha256": "d02fc69a2edef5018dd8eb5580acfc777e39e05e712450b59f391f474ebdb739"
+    }
+  ],
+  "stdoutSha256": "27b8a2c483ab17b9d06dbdd8daa4b3fdfea9465675bb696433c30166d7bfe400",
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

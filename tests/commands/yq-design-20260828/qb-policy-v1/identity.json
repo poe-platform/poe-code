@@ -122,8 +122,13 @@
     "src/commands/yq/encoder.ts"
   ],
   "execution": {
-    "newSyntheticRows": 23,
-    "syntheticAccountingRunner": 1,
+    "finalSyntheticCohortRows": 23,
+    "finalSyntheticCohortResult": "AUTHOR_REPORTED_PASS",
+    "finalSyntheticCohortRunnerExecutions": 1,
+    "runnerExecutionScope": "FINAL_23_ROW_COHORT_ONLY_NOT_TOTAL_HISTORICAL_INVOCATIONS",
+    "preliminary20RowRun": "AUTHOR_REPORTED_PRELIMINARY_NOT_PRODUCT_PROOF",
+    "totalHistoricalRunnerInvocations": "NOT_DURABLY_RETAINED",
+    "sourceImplementation": 0,
     "product": 0,
     "nativeOrReference": 0,
     "existingTestsOrCheckers": 0,

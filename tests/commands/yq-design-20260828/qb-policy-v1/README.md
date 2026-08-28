@@ -250,3 +250,49 @@ alias estimator/descriptor/copy consumer), and `src/commands/yq/encoder.ts`
 owner's separate work. No shared-Budget edit or additional author question is
 required by this mechanism. A different Sagan freeze must authenticate and bind
 the final design before any implementation authorization.
+
+## Post-seal narrow clarification — 2026-08-28
+
+This section supplements, but does not rewrite, the statement sealed at
+`89e403e080ba2ac051bcc19a634d9e964620152d`. At fixed baseline
+`5137a74ec855a32d8a8860eb66b62eb44d11e290`, `Budget.tick()` calls `step()`
+and, at its yield boundary, advances `nextYield`, directly awaits
+`setImmediate(undefined, { signal: this.signal })`, then calls
+`this.signal.throwIfAborted()`. It has no catch around that await, so its
+post-await check does not execute when the timer promise rejects. This source
+observation identifies only the future private `prepaidCheckpoint` gap; it does
+not change or newly qualify normal `Budget.tick()` and requires no shared edit.
+
+The future prepaid helper must use the existing Budget-style signal check
+(`signal.throwIfAborted()`, as used by `step()` and `tick()`) before awaiting the
+signal-bound immediate. Its catch must select outcomes explicitly: when the
+borrowed signal is then aborted, call that check and let the exact
+`signal.reason` escape, including a falsy, `null`, or `undefined` reason, rather
+than propagating a timer `AbortError` wrapper; while that signal remains live,
+rethrow the original yield failure unchanged. After a fulfilled await, perform
+the same signal check before resetting `pending`. Do not reset `pending` on a
+failed checkpoint. The consuming copy path's `finally` expires the reservation
+through the same idempotent `abandon`/owned-close path and publishes nothing.
+Because the helper directly awaits the signal-bound immediate, that scheduled
+immediate naturally settles or is cancelled before the helper settles; this
+adds no `Promise.race`, scheduler injection, listener/resource lifetime, or
+work outside the owned close.
+
+Illustrative prospective cases, not executed here: abort reasons `false`,
+`null`, and `undefined` each escape exactly; for an object reason `r`, even when
+the timer rejection is the same object, selection follows the borrowed
+signal's aborted state and preserves `r` by identity, not an equality-derived
+provenance rule; if the borrowed signal is not aborted and the immediate rejects
+with `e`, `e` escapes unchanged even if it resembles cancellation. The existing
+outer outcome rules remain separate: a root-caller abort observed before public
+settlement retains first priority, while an unrelated yield/execution failure
+is not converted to cancellation while the borrowed parent signal is live, and
+the outer Shell retains its accepted mapping.
+
+Evidence chronology is likewise narrow. The final literal cohort contains 23
+rows and passed according to the author report. The earlier 20-row table run was
+preliminary and is not product proof. The execution fields in `identity.json`
+describe the final 23-row cohort, not the total number of historical runner
+invocations; that exact total was not durably retained, and no log or raw count
+is reconstructed here. This clarification ran no accounting runner, product,
+source implementation, native/reference program, package, or existing test.

@@ -1,0 +1,1192 @@
+{
+  "classification": "author-dev-observations-not-independent-acceptance",
+  "protocolCommit": "4e2e582847bc3438f3092f963db05d12fc3bc6c5",
+  "repository": "/Users/kjopek/Workspace/safe-bash",
+  "host": {
+    "platform": "darwin",
+    "arch": "arm64",
+    "release": "25.4.0",
+    "node": "v22.22.2"
+  },
+  "interrupted": null,
+  "receipts": [
+    {
+      "id": "01-version",
+      "binary": {
+        "path": "/tmp/xan-precode-20260828.X6abEd/xan",
+        "sha256": "2600a522a9a47d079a9ee93eaa4a2f6e4ce541eb381cde7b41ee6c04a6615d46",
+        "format": "Mach-O arm64",
+        "runtimeVersion": "UNKNOWN until frozen row 01"
+      },
+      "argv": [
+        "--version"
+      ],
+      "cwd": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/xan-dev-oracle-20260828-IYxIHW/01-version",
+      "env": {
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "NO_COLOR": "1",
+        "TERM": "dumb",
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/xan-dev-oracle-20260828-IYxIHW/01-version",
+        "TMPDIR": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/xan-dev-oracle-20260828-IYxIHW/01-version"
+      },
+      "stdinBase64": "",
+      "fixtureFiles": {},
+      "started": "2026-08-28T02:15:03.613Z",
+      "pid": 33983,
+      "close": {
+        "code": 0,
+        "signal": null,
+        "at": "2026-08-28T02:15:03.890Z"
+      },
+      "groupAbsent": true,
+      "limit": null,
+      "spawnError": null,
+      "stdinError": null,
+      "stdoutBase64": "MC41NC4wCg==",
+      "stderrBase64": "",
+      "effects": {}
+    },
+    {
+      "id": "02-headers-help",
+      "binary": {
+        "path": "/tmp/xan-precode-20260828.X6abEd/xan",
+        "sha256": "2600a522a9a47d079a9ee93eaa4a2f6e4ce541eb381cde7b41ee6c04a6615d46",
+        "format": "Mach-O arm64",
+        "runtimeVersion": "UNKNOWN until frozen row 01"
+      },
+      "argv": [
+        "headers",
+        "--help"
+      ],
+      "cwd": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/xan-dev-oracle-20260828-IYxIHW/02-headers-help",
+      "env": {
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "NO_COLOR": "1",
+        "TERM": "dumb",
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/xan-dev-oracle-20260828-IYxIHW/02-headers-help",
+        "TMPDIR": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/xan-dev-oracle-20260828-IYxIHW/02-headers-help"
+      },
+      "stdinBase64": "",
+      "fixtureFiles": {},
+      "started": "2026-08-28T02:15:03.891Z",
+      "pid": 33984,
+      "close": {
+        "code": 0,
+        "signal": null,
+        "at": "2026-08-28T02:15:03.900Z"
+      },
+      "groupAbsent": true,
+      "limit": null,
+      "spawnError": null,
+      "stdinError": null,
+      "stdoutBase64": "UHJpbnQgdGhlIGhlYWRlcnMgb2YgQ1NWIGZpbGVzLCB3aXRoIGR1cGxpY2F0ZWQgY29sdW1uIG5hbWVzIHByaW50ZWQgaW4geWVsbG93LgoKV2hlbiBnaXZlbiBtdWx0aXBsZSBmaWxlcywgaGVhZGVycyBmb3VuZCBhY3Jvc3MgYWxsIGZpbGVzIHdpbGwgYmUga2VwdCBpbiB3aGl0ZSwKd2hpbGUgZGl2ZXJnaW5nIGhlYWRlcnMgd2lsbCBiZSBwcmludGVkIGluIGdyZXkuCgpVc2FnZToKICAgIHhhbiBoZWFkZXJzIFtvcHRpb25zXSBbPGlucHV0Pi4uLl0KICAgIHhhbiBoIFtvcHRpb25zXSBbPGlucHV0Pi4uLl0KCmhlYWRlcnMgb3B0aW9uczoKICAgIC1qLCAtLWp1c3QtbmFtZXMgIE9ubHkgc2hvdyB0aGUgaGVhZGVyIG5hbWVzIChoaWRlIGNvbHVtbiBpbmRleCkuCiAgICAtLWNzdiAgICAgICAgICAgICBSZXR1cm4gaGVhZGVycyBhcyBhIENTViBmaWxlLCB3aXRoIGZpbGUgcGF0aCBhcwogICAgICAgICAgICAgICAgICAgICAgY29sdW1uIG5hbWVzLgogICAgLXMsIC0tc3RhcnQgPG4+ICAgQ29sdW1uIGluZGljZXMgd2lsbCBzdGFydCBmcm9tIGdpdmVuIG51bWJlci4KICAgICAgICAgICAgICAgICAgICAgIFtkZWZhdWx0OiAwXQogICAgLS1jb2xvciA8d2hlbj4gICAgV2hlbiB0byBjb2xvciB0aGUgb3V0cHV0IHVzaW5nIEFOU0kgZXNjYXBlIGNvZGVzLgogICAgICAgICAgICAgICAgICAgICAgVXNlIGBhdXRvYCBmb3IgYXV0b21hdGljIGRldGVjdGlvbiwgYG5ldmVyYCB0bwogICAgICAgICAgICAgICAgICAgICAgZGlzYWJsZSBjb2xvcnMgY29tcGxldGVseSBhbmQgYGFsd2F5c2AgdG8gZm9yY2UKICAgICAgICAgICAgICAgICAgICAgIGNvbG9ycywgZXZlbiB3aGVuIHRoZSBvdXRwdXQgY291bGQgbm90IGhhbmRsZSB0aGVtLgogICAgICAgICAgICAgICAgICAgICAgW2RlZmF1bHQ6IGF1dG9dCgpDb21tb24gb3B0aW9uczoKICAgIC1oLCAtLWhlbHAgICAgICAgICAgICAgRGlzcGxheSB0aGlzIG1lc3NhZ2UKICAgIC1vLCAtLW91dHB1dCA8ZmlsZT4gICAgV3JpdGUgb3V0cHV0IHRvIDxmaWxlPiBpbnN0ZWFkIG9mIHN0ZG91dC4KICAgIC1kLCAtLWRlbGltaXRlciA8YXJnPiAgVGhlIGZpZWxkIGRlbGltaXRlciBmb3IgcmVhZGluZyBDU1YgZGF0YS4KICAgICAgICAgICAgICAgICAgICAgICAgICAgTXVzdCBiZSBhIHNpbmdsZSBjaGFyYWN0ZXIuCg==",
+      "stderrBase64": "",
+      "effects": {}
+    },
+    {
+      "id": "03-count-help",
+      "binary": {
+        "path": "/tmp/xan-precode-20260828.X6abEd/xan",
+        "sha256": "2600a522a9a47d079a9ee93eaa4a2f6e4ce541eb381cde7b41ee6c04a6615d46",
+        "format": "Mach-O arm64",
+        "runtimeVersion": "UNKNOWN until frozen row 01"
+      },
+      "argv": [
+        "count",
+        "--help"
+      ],
+      "cwd": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/xan-dev-oracle-20260828-IYxIHW/03-count-help",
+      "env": {
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "NO_COLOR": "1",
+        "TERM": "dumb",
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/xan-dev-oracle-20260828-IYxIHW/03-count-help",
+        "TMPDIR": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/xan-dev-oracle-20260828-IYxIHW/03-count-help"
+      },
+      "stdinBase64": "",
+      "fixtureFiles": {},
+      "started": "2026-08-28T02:15:03.900Z",
+      "pid": 33985,
+      "close": {
+        "code": 0,
+        "signal": null,
+        "at": "2026-08-28T02:15:03.908Z"
+      },
+      "groupAbsent": true,
+      "limit": null,
+      "spawnError": null,
+      "stdinError": null,
+      "stdoutBase64": "UHJpbnRzIGEgY291bnQgb2YgdGhlIG51bWJlciBvZiByZWNvcmRzIGluIHRoZSBDU1YgZGF0YS4KCk5vdGUgdGhhdCB0aGUgY291bnQgd2lsbCBub3QgaW5jbHVkZSB0aGUgaGVhZGVyIHJvdyAodW5sZXNzIC0tbm8taGVhZGVycyBpcwpnaXZlbikuCgpZb3UgY2FuIGFsc28gdXNlIHRoZSAtcC8tLXBhcmFsbGVsIG9yIC10Ly0tdGhyZWFkcyBmbGFnIHRvIGNvdW50IHRoZSBudW1iZXIKb2YgcmVjb3JkcyBvZiB0aGUgZmlsZSBpbiBwYXJhbGxlbCB0byBnbyBmYXN0ZXIuIEJ1dCB0aGlzIGNhbm5vdCB3b3JrIG9uIHN0cmVhbXMKb3IgZ3ppcHBlZCBmaWxlcywgdW5sZXNzIGEgYC5nemlgIGluZGV4IChhcyBjcmVhdGVkIGJ5IGBiZ3ppcCAtaWApIGNhbiBiZSBmb3VuZApiZXNpZGUgaXQuCgpVc2FnZToKICAgIHhhbiBjb3VudCBbb3B0aW9uc10gWzxpbnB1dD5dCgpjb3VudCBvcHRpb25zOgogICAgLXAsIC0tcGFyYWxsZWwgICAgICAgICAgIFdoZXRoZXIgdG8gdXNlIHBhcmFsbGVsaXphdGlvbiB0byBzcGVlZCB1cCBjb3VudGluZy4KICAgICAgICAgICAgICAgICAgICAgICAgICAgICBXaWxsIGF1dG9tYXRpY2FsbHkgc2VsZWN0IGEgc3VpdGFibGUgbnVtYmVyIG9mIHRocmVhZHMgdG8gdXNlCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgYmFzZWQgb24geW91ciBudW1iZXIgb2YgY29yZXMuIFVzZSAtdCwgLS10aHJlYWRzIGlmIHlvdSB3YW50IHRvCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgaW5kaWNhdGUgdGhlIG51bWJlciBvZiB0aHJlYWRzIHlvdXJzZWxmLgogICAgLXQsIC0tdGhyZWFkcyA8dGhyZWFkcz4gIFBhcmVsbGl6ZSBjb21wdXRhdGlvbnMgdXNpbmcgdGhpcyBtYW55IHRocmVhZHMuIFVzZSAtcCwgLS1wYXJhbGxlbAogICAgICAgICAgICAgICAgICAgICAgICAgICAgIGlmIHlvdSB3YW50IHRoZSBudW1iZXIgb2YgdGhyZWFkcyB0byBiZSBhdXRvbWF0aWNhbGx5IGNob3NlbiBpbnN0ZWFkLgogICAgLWEsIC0tYXBwcm94ICAgICAgICAgICAgIEF0dGVtcHQgdG8gYXBwcm94aW1hdGUgYSBDU1YgZmlsZSByb3cgY291bnQgYnkgc2FtcGxpbmcgaXRzCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgZmlyc3Qgcm93cy4gVGFyZ2V0IG11c3QgYmUgc2Vla2FibGUsIHdoaWNoIG1lYW5zIHRoaXMgY2Fubm90CiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgd29yayBvbiBhIHN0cmVhbSBmZWQgdGhyb3VnaCBzdGRpbiBub3Igd2l0aCBnemlwcGVkIGRhdGEuCgpDb21tb24gb3B0aW9uczoKICAgIC1oLCAtLWhlbHAgICAgICAgICAgICAgRGlzcGxheSB0aGlzIG1lc3NhZ2UKICAgIC1vLCAtLW91dHB1dCA8ZmlsZT4gICAgV3JpdGUgb3V0cHV0IHRvIDxmaWxlPiBpbnN0ZWFkIG9mIHN0ZG91dC4KICAgIC1uLCAtLW5vLWhlYWRlcnMgICAgICAgV2hlbiBzZXQsIHRoZSBmaXJzdCByb3cgd2lsbCBub3QgYmUgaW5jbHVkZWQgaW4KICAgICAgICAgICAgICAgICAgICAgICAgICAgdGhlIGNvdW50LgogICAgLWQsIC0tZGVsaW1pdGVyIDxhcmc+ICBUaGUgZmllbGQgZGVsaW1pdGVyIGZvciByZWFkaW5nIENTViBkYXRhLgogICAgICAgICAgICAgICAgICAgICAgICAgICBNdXN0IGJlIGEgc2luZ2xlIGNoYXJhY3Rlci4K",
+      "stderrBase64": "",
+      "effects": {}
+    },
+    {
+      "id": "04-select-help",
+      "binary": {
+        "path": "/tmp/xan-precode-20260828.X6abEd/xan",
+        "sha256": "2600a522a9a47d079a9ee93eaa4a2f6e4ce541eb381cde7b41ee6c04a6615d46",
+        "format": "Mach-O arm64",
+        "runtimeVersion": "UNKNOWN until frozen row 01"
+      },
+      "argv": [
+        "select",
+        "--help"
+      ],
+      "cwd": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/xan-dev-oracle-20260828-IYxIHW/04-select-help",
+      "env": {
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "NO_COLOR": "1",
+        "TERM": "dumb",
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/xan-dev-oracle-20260828-IYxIHW/04-select-help",
+        "TMPDIR": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/xan-dev-oracle-20260828-IYxIHW/04-select-help"
+      },
+      "stdinBase64": "",
+      "fixtureFiles": {},
+      "started": "2026-08-28T02:15:03.909Z",
+      "pid": 33986,
+      "close": {
+        "code": 0,
+        "signal": null,
+        "at": "2026-08-28T02:15:03.917Z"
+      },
+      "groupAbsent": true,
+      "limit": null,
+      "spawnError": null,
+      "stdinError": null,
+      "stdoutBase64": "U2VsZWN0IGNvbHVtbnMgZnJvbSBDU1YgZGF0YSB1c2luZyBhIHNob3J0aGFuZCBub3RhdGlvbiBvciBieSBldmFsdWF0aW5nIGFuIGV4cHJlc3Npb24Kb24gZWFjaCByb3cgKHVzaW5nIHRoZSAtZS8tLWV2YWx1YXRlIG9yIC1mLy0tZXZhbHVhdGUtZmlsZSBmbGFnKS4KClRoaXMgY29tbWFuZCBsZXRzIHlvdSBtYW5pcHVsYXRlIGNvbHVtbnMgb2YgQ1NWIGRhdGEuIFlvdSBjYW4gcmUtb3JkZXIKdGhlbSwgZHVwbGljYXRlIHRoZW0sIHRyYW5zZm9ybSB0aGVtIG9yIGV2ZW4gZHJvcCB0aGVtIGluIHRoZSBwcm9jZXNzLgoKIyBTaG9ydGhhbmQgbm90YXRpb24KCkNvbHVtbnMgY2FuIGJlIHJlZmVyZW5jZWQgdXNpbmcgYSB6ZXJvLWJhc2VkIGluZGV4LCBvciBhIG5lZ2F0aXZlIGluZGV4IHN0YXJ0aW5nCmZyb20gdGhlIGVuZCwgb3IgYSBuYW1lIChpZiB0aGUgZmlsZSBoYXMgaGVhZGVycykgb3IgYSBuYW1lIGFuZCBudGgsIHNvIHlvdQpjYW4gZWFzaWx5IHNlbGVjdCBjb2x1bW5zIHdpdGggZHVwbGljYXRlIG5hbWVzLgoKWW91IGNhbiBhbHNvIHNlbGVjdCBjb2x1bW5zIGJ5IHByZWZpeCBvciBzdWZmaXggdXNpbmcgYCpgIGluIHRoZSBjb2x1bW4gbmFtZS4KCkZpbmFsbHksIGl0IGlzIGFsc28gcG9zc2libGUgdG8gc2VsZWN0IHJhbmdlcyBvZiBjb2x1bW5zIHVzaW5nIHRoZSBgOmAKY2hhcmFjdGVyLiBOb3RlIHRoYXQgY29sdW1uIHJhbmdlcyBhcmUgYWx3YXlzIGluY2x1c2l2ZS4KCkV4YW1wbGVzOgoKICBTZWxlY3QgdGhlIGZpcnN0IGFuZCBmb3VydGggY29sdW1uczoKICAgICQgeGFuIHNlbGVjdCAwLDMKCiAgU2VsZWN0IHRoZSBsYXN0IGNvbHVtbiB1c2luZyBuZWdhdGl2ZSBpbmRleGluZyAobm90aWNlIHRoZSBgLS1gCiAgdG8gYXZvaWQgc2hlbGwgaXNzdWVzIHdpdGggYXJndW1lbnRzIHN0YXJ0aW5nIHdpdGggaHlwaGVucyk6CiAgICAkIHhhbiBzZWxlY3QgLS0gLTEKCiAgU2VsZWN0IGZpcnN0IGFuZCBuZXh0IHRvIGxhc3Q6CiAgICAkIHhhbiBzZWxlY3QgMCwtMgoKICBTZWxlY3QgdGhlIGZpcnN0IDQgY29sdW1ucyAoYnkgaW5kZXggb3IgYnkgbmFtZSk6CiAgICAkIHhhbiBzZWxlY3QgMDozCiAgICAkIHhhbiBzZWxlY3QgSGVhZGVyMTpIZWFkZXI0CgogIElnbm9yZSB0aGUgZmlyc3QgMiBjb2x1bW5zIChieSByYW5nZSBhbmQgYnkgb21pc3Npb24pOgogICAgJCB4YW4gc2VsZWN0IDI6CiAgICAkIHhhbiBzZWxlY3QgJyEwOjEnICh1c2Ugc2luZ2xlIHF1b3RlcyB0byBhdm9pZCBzaGVsbCBpc3N1ZXMhKQoKICBTZWxlY3QgdXNpbmcgbmVnYXRpdmUgaW5kaWNlcyBpbiByYW5nZToKICAgICQgeGFuIHNlbGVjdCAzOi0yIChmb3VydGggdG8gbmV4dCB0byBsYXN0KQogICAgJCB4YW4gc2VsZWN0IC0tIC0zOiAobGFzdCB0aHJlZSBjb2x1bW5zKQogICAgJCB4YW4gc2VsZWN0IDotMyAodXAgdG8gdGhlIHRoaXJkIGZyb20gbGFzdCkKCiAgU2VsZWN0IHRoZSB0aGlyZCBjb2x1bW4gbmFtZWQgJ0Zvbyc6CiAgICAkIHhhbiBzZWxlY3QgJ0Zvb1syXScKCiAgU2VsZWN0IHRoZSBsYXN0IGNvbHVtbiBuYW1lZCAnRm9vJzoKICAgICQgeGFuIHNlbGVjdCAnRm9vWy0xXScKCiAgU2VsZWN0IGNvbHVtbiBuYW1lcyBjb250YWluaW5nIHNwYWNlczoKICAgICQgeGFuIHNlbGVjdCAiUmV2ZW51ZXMgaW4gbWlsbGlvbnMiCiAgICAkIHhhbiBzZWxlY3QgUmV2ZW51ZXNcIGluXCBtaWxsaW9ucwogICAgJCB4YW4gc2VsZWN0IDEsIlJldmVudWVzIGluIG1pbGxpb25zIix5ZWFyCgogIFJlLW9yZGVyIGFuZCBkdXBsaWNhdGUgY29sdW1ucyBhcmJpdHJhcmlseToKICAgICQgeGFuIHNlbGVjdCAzOjEsSGVhZGVyMzpIZWFkZXIxLEhlYWRlcjEsRm9vWzJdLEhlYWRlcjEKCiAgUXVvdGUgY29sdW1uIG5hbWVzIHRoYXQgY29uZmxpY3Qgd2l0aCBzZWxlY3RvciBzeW50YXgsCiAgKG1pbmQgdGhlIGRvdWJsZSBxdW90aW5nLCBwcm9ibGVtYXRpYyBjaGFyYWN0ZXJzIGJlaW5nIGAqYCwgYDpgLCBgIWAsIGBbYCBhbmQgYF1gKToKICAgICQgeGFuIHNlbGVjdCAnIlN0YXJ0OmRhdGV0aW1lIiwiQ291bnQ6aW50IicKCiAgU2VsZWN0IGFsbCB0aGUgY29sdW1ucyB3aGljaCBpcyB1c2VmdWwgdG8gYWRkIHNvbWUgY29waWVzIG9mIGNvbHVtbnMKICAobm90aWNlIHRoZSBzaW1wbGUgcXVvdGVzIHRvIGF2b2lkIHNoZWxsIGdsb2JiaW5nKToKICAgICQgeGFuIHNlbGVjdCAnKicKICAgICQgeGFuIHNlbGVjdCAnKixuYW1lJwogICAgJCB4YW4gc2VsZWN0ICcqLDEnCiAgICAkIHhhbiBzZWxlY3QgJzA6JwogICAgJCB4YW4gc2VsZWN0ICc6MCcKCiAgU2VsZWN0IGFsbCBjb2x1bW5zIHN0YXJ0aW5nIGJ5ICJkaW1fIgogIChub3RpY2UgdGhlIHNpbXBsZSBxdW90ZXMgYWdhaW4pOgogICAgJCB4YW4gc2VsZWN0ICdkaW1fKicKCiAgU2VsZWN0IGFsbCBjb2x1bW5zIGVuZGluZyBieSAiX2NvdW50IjoKICAgICQgeGFuIHNlbGVjdCAnKl9jb3VudCcKCiMgRXZhbHVhdGluZyBhIGV4cHJlc3Npb24KClVzaW5nIGEgU1FMaXNoIHN5bnRheCB0aGF0IGlzIHRoZSBzYW1lIGFzIGZvciB0aGUgYG1hcGAsIGBhZ2dgLCBgZmlsdGVyYCBldGMuCmNvbW1hbmRzLCB5b3UgY2FuIHdyYW5nbGUgdGhlIHJvd3MgYW5kIHBlcmZvcm0gYSBjdXN0b20gc2VsZWN0aW9uLgoKICAkIHhhbiBzZWxlY3QgLWUgJ2lkLCBuYW1lIGFzIHN1cm5hbWUsIGNvdW50MSArIGNvdW50MiBhcyB0b3RhbCcKCkV4cHJlc3Npb24gY2xhdXNlcyBjYW4gYWxzbyByZXR1cm4gbW9yZSB0aGFuIG9uZSBpdGVtIGF0IG9uY2UgdG8gYXZvaWQgcmVwZWF0aW5nCmNvbXB1dGF0aW9ucywgZm9yIGluc3RhbmNlOgoKU3BsaXR0aW5nIGEgZnVsbCBuYW1lOgoKICAgICQgeGFuIHNlbGVjdCAtZSAnZnVsbF9uYW1lLnNwbGl0KCIgIikgYXMgKGZpcnN0X25hbWUsIGxhc3RfbmFtZSknIGZpbGUuY3N2ID4gcmVzdWx0LmNzdgoKRXh0cmFjdGluZyBkYXRhIGZyb20gYSBKU09OIGNlbGw6CgogICAgJCB4YW4gc2VsZWN0IC1lICdkYXRhLnBhcnNlX2pzb24oKSB8IFtfLm5hbWUsIF8ubWV0YVsyXS5hZ2VdIGFzIChuYW1lLCBhZ2UpJyBmaWxlLmNzdiA+IHJlc3VsdC5jc3YKCklmIHlvdXIgZXhwcmVzc2lvbiBiZWNvbWVzIHRvbyBjb21wbGljYXRlZCwgeW91IGNhbiB3cml0ZSBpdCBpbiBhIGZpbGUgYW5kCnVzZSB0aGUgLWYvLS1ldmFsdWF0ZS1maWxlIGZsYWcgaW5zdGVhZDoKCiAgJCB4YW4gc2VsZWN0IC1mIHNlbGVjdGlvbi5tb29uYmxhZGUKCkZvciBhIHF1aWNrIHJldmlldyBvZiB0aGUgY2FwYWJpbGl0aWVzIG9mIHRoZSBleHByZXNzaW9uIGxhbmd1YWdlLApjaGVjayBvdXQgdGhlIGB4YW4gaGVscCBjaGVhdHNoZWV0YCBjb21tYW5kLgoKRm9yIGEgbGlzdCBvZiBhdmFpbGFibGUgZnVuY3Rpb25zLCB1c2UgYHhhbiBoZWxwIGZ1bmN0aW9uc2AuCgpVc2FnZToKICAgIHhhbiBzZWxlY3QgW29wdGlvbnNdIFstLV0gPHNlbGVjdGlvbj4gWzxpbnB1dD5dCiAgICB4YW4gc2VsZWN0IC0taGVscAoKc2VsZWN0IG9wdGlvbnM6CiAgICAtZSwgLS1ldmFsdWF0ZSAgICAgICBUb2dnbGUgZXhwcmVzc2lvbiBldmFsdWF0aW9uIHJhdGhlciB0aGFuIHVzaW5nIHRoZQogICAgICAgICAgICAgICAgICAgICAgICAgc2hvcnRoYW5kIHNlbGVjdGlvbiBub3RhdGlvbi4KICAgIC1mLCAtLWV2YWx1YXRlLWZpbGUgIFJlYWQgZXZhbHVhdGlvbiBleHByZXNzaW9uIGZyb20gYSBmaWxlIGluc3RlYWQuCgpDb21tb24gb3B0aW9uczoKICAgIC1oLCAtLWhlbHAgICAgICAgICAgICAgRGlzcGxheSB0aGlzIG1lc3NhZ2UKICAgIC1vLCAtLW91dHB1dCA8ZmlsZT4gICAgV3JpdGUgb3V0cHV0IHRvIDxmaWxlPiBpbnN0ZWFkIG9mIHN0ZG91dC4KICAgIC1uLCAtLW5vLWhlYWRlcnMgICAgICAgV2hlbiBzZXQsIHRoZSBmaXJzdCByb3cgd2lsbCBub3QgYmUgaW50ZXJwcmV0ZWQKICAgICAgICAgICAgICAgICAgICAgICAgICAgYXMgaGVhZGVycy4gKGkuZS4sIFRoZXkgYXJlIG5vdCBzZWFyY2hlZCwgYW5hbHl6ZWQsCiAgICAgICAgICAgICAgICAgICAgICAgICAgIHNsaWNlZCwgZXRjLikKICAgIC1kLCAtLWRlbGltaXRlciA8YXJnPiAgVGhlIGZpZWxkIGRlbGltaXRlciBmb3IgcmVhZGluZyBDU1YgZGF0YS4KICAgICAgICAgICAgICAgICAgICAgICAgICAgTXVzdCBiZSBhIHNpbmdsZSBjaGFyYWN0ZXIuCg==",
+      "stderrBase64": "",
+      "effects": {}
+    },
+    {
+      "id": "05-slice-help",
+      "binary": {
+        "path": "/tmp/xan-precode-20260828.X6abEd/xan",
+        "sha256": "2600a522a9a47d079a9ee93eaa4a2f6e4ce541eb381cde7b41ee6c04a6615d46",
+        "format": "Mach-O arm64",
+        "runtimeVersion": "UNKNOWN until frozen row 01"
+      },
+      "argv": [
+        "slice",
+        "--help"
+      ],
+      "cwd": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/xan-dev-oracle-20260828-IYxIHW/05-slice-help",
+      "env": {
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "NO_COLOR": "1",
+        "TERM": "dumb",
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/xan-dev-oracle-20260828-IYxIHW/05-slice-help",
+        "TMPDIR": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/xan-dev-oracle-20260828-IYxIHW/05-slice-help"
+      },
+      "stdinBase64": "",
+      "fixtureFiles": {},
+      "started": "2026-08-28T02:15:03.918Z",
+      "pid": 33987,
+      "close": {
+        "code": 0,
+        "signal": null,
+        "at": "2026-08-28T02:15:03.926Z"
+      },
+      "groupAbsent": true,
+      "limit": null,
+      "spawnError": null,
+      "stdinError": null,
+      "stdoutBase64": "UmV0dXJucyByb3dzIG9mIGEgQ1NWIGZpbGUgaW4gdGhlIHNwZWNpZmllZCByYW5nZS4gVGhpcyByYW5nZSBjYW4gYmUgc3BlY2lmaWVkCnRocm91Z2ggMC1iYXNlZCByb3dzIGluZGljZXMsIGJ5dGUgb2Zmc2V0cyBpbiB0aGUgZmlsZSBhbmQgdXNpbmcgY3VzdG9tIGV4cHJlc3Npb25zCmFzIHN0YXJ0ICYgc3RvcCBjb25kaXRpb25zLgoKU2xpY2luZyB0aGUgMTAgZmlyc3Qgcm93cyBvZiBhIGZpbGU6CgogICAgJCB4YW4gc2xpY2UgLWwgMTAgZmlsZS5jc3YKClNsaWNpbmcgcm93cyBiZXR3ZWVuIGluZGljZXMgNSBhbmQgMTA6CgogICAgJCB4YW4gc2xpY2UgLXMgNSAtZSAxMCBmaWxlLmNzdgoKUmV0cmlldmluZyByb3dzIGF0IHNvbWUgaW5kaWNlczoKCiAgICAkIHhhbiBzbGljZSAtSSA0LDUsMTksNjUgZmlsZS5jc3YKClJldHJpZXZpbmcgbGFzdCA1IHJvd3M6CgogICAgJCB4YW4gc2xpY2UgLUwgNSBmaWxlLmNzdgoKU2xpY2luZyByb3dzIHN0YXJ0aW5nIGF0IHNvbWUgYnl0ZSBvZmZzZXQgaW4gdGhlIGZpbGU6CgogICAgJCB4YW4gc2xpY2UgLUIgNTYzNTYgZmlsZS5jc3YKClNsaWNpbmcgcm93cyB1bnRpbCBhIHJvdyB3aGVyZSB0aGUgImNvdW50IiBjb2x1bW4gaXMgb3ZlciBgNDVgOgoKICAgICQgeGFuIHNsaWNlIC1FICdjb3VudCA+IDQ1JyBmaWxlLmNzdgoKVGhlIGNvbW1hbmQgd2lsbCBvZiBjb3Vyc2UgdGVybWluYXRlIGFzIHNvb24gYXMgdGhlIHNwZWNpZmllZCByYW5nZSBvZiByb3dzIGlzCmZvdW5kIGFuZCB3b24ndCBuZWVkIHRvIHJlYWQgdG8gd2hvbGUgZmlsZSBvciBzdHJlYW0gaWYgdW5uZWNlc3NhcnkuCgpPZiBjb3Vyc2UsIGZsYWdzIHJlbGF0ZWQgdG8gYnl0ZSBvZmZzZXRzIHdpbGwgb25seSB3b3JrIHdpdGggc2Vla2FibGUgaW5wdXRzLCBlLmcuIGZpbGVzCm9uIGRpc2sgYnV0IG5vIHN0ZGluIG5vciBnemlwcGVkIGZpbGVzLgoKTm90ZSB0aGF0IGl0IGlzIHBlcmZlY3RseSBmaW5lIHRvIG1peCAmIG1hdGNoIGZsYWdzIHJlbGF0ZWQgdG8gcm93IGluZGljZXMsCmJ5dGUgb2Zmc2V0cyBhbmQgY29uZGl0aW9ucy4gSW4gd2hpY2ggY2FzZSwgaGVyZSBpcyBkZXNjcmlwdGlvbiBvZiB0aGUgb3JkZXIKb2Ygb3BlcmF0aW9uczoKCi0gRmlyc3QsIHRoZSBjb21tYW5kIHdpbGwgc2VlayBpbiB0YXJnZXQgZmlsZSBpZiAtQi8tLWJ5dGUtb2Zmc2V0IHdhcyBnaXZlbiwgYW5kCndvbid0IHJlYWQgcGFzdCBhIGNlcnRhaW4gYnl0ZSBvZmZzZXQgaWYgLS1lbmQtYnl0ZSB3YXMgZ2l2ZW4uCi0gVGhlbiB0aGUgLVMvLS1zdGFydC1jb25kaXRpb24gYW5kIC1FLy0tZW5kLWNvbmR0aW9uIGFwcGx5LgotIEZpbmFsbHkgZmxhZ3MgcmVsYXRlZCB0byByb3cgaW5kaWNlcyB3aWxsIGFwcGx5LiBOb3RlIHRoYXQgaW5kaWNlcyBhcmUgdGhlcmVmb3JlCnJlbGF0aXZlIHRvIGJvdGggdGhlIGFwcGxpY2F0aW9uIG9mIHRoZSBieXRlIG9mZnNldCBhbmQgdGhlIHN0YXJ0IGNvbmRpdGlvbiBhbmQgbm90CnRvIHRoZSBmaXJzdCBhY3R1YWwgcm93IGluIHRoZSBmaWxlLgoKU28sIGZvciBpbnN0YW5jZSwgaWYgeW91IHdhbnQgdG8gc2xpY2UgNSByb3dzIGluIHRoZSBmaWxlIGJ1dCBvbmx5IGFmdGVyIGEgcm93CndoZXJlIHRoZSAiY291bnQiIGNvbHVtbiBpcyBvdmVyIGAxMGAsIHlvdSBjb3VsZCBkbyB0aGUgZm9sbG93aW5nOgoKICAgICQgeGFuIHNsaWNlIC1TICdjb3VudCA+IDEwJyAtbCA1IGZpbGUuY3N2CgpVc2FnZToKICAgIHhhbiBzbGljZSBbb3B0aW9uc10gWzxpbnB1dD5dCgpzbGljZSBvcHRpb25zIHRvIHVzZSB3aXRoIHJvdyBpbmRpY2VzOgogICAgLXMsIC0tc3RhcnQgPG4+ICAgIFRoZSBpbmRleCBvZiB0aGUgcm93IHRvIHNsaWNlIGZyb20uCiAgICAtLXNraXAgPG4+ICAgICAgICAgU2FtZSBhcyAtcywgLS1zdGFydC4KICAgIC1lLCAtLWVuZCA8bj4gICAgICBUaGUgaW5kZXggb2YgdGhlIHJvdyB0byBzbGljZSB0by4KICAgIC1sLCAtLWxlbiA8bj4gICAgICBUaGUgbGVuZ3RoIG9mIHRoZSBzbGljZSAoY2FuIGJlIHVzZWQgaW5zdGVhZCBvZiAtLWVuZCkuCiAgICAtaSwgLS1pbmRleCA8aT4gICAgU2xpY2UgYSBzaW5nbGUgcm93IChzaG9ydGN1dCBmb3IgLXMgTiAtbCAxKS4KICAgIC1JLCAtLWluZGljZXMgPGk+ICBSZXR1cm4gYSBzbGljZSBjb250YWluaW5nIG11bHRpcGxlIGluZGljZXMgYXQgb25jZS4KICAgICAgICAgICAgICAgICAgICAgICBZb3UgbXVzdCBwcm92aWRlIHRoZSBpbmRpY2VzIHNlcGFyYXRlZCBieSBjb21tYXMsCiAgICAgICAgICAgICAgICAgICAgICAgZS5nLiAiMSw0LDY3LDg5Ii4gTm90ZSB0aGF0IHNlbGVjdGVkIHJvd3Mgd2lsbCBiZQogICAgICAgICAgICAgICAgICAgICAgIGVtaXR0ZWQgaW4gZmlsZSBvcmRlciwgbm90IGluIHRoZSBvcmRlciBnaXZlbi4KICAgIC1MLCAtLWxhc3QgPG4+ICAgICBSZXR1cm4gbGFzdCA8bj4gcm93cyBmcm9tIGZpbGUuIEluY29tcGF0aWJsZSB3aXRoIG90aGVyCiAgICAgICAgICAgICAgICAgICAgICAgZmxhZ3MuIFJ1bnMgaW4gTyhuKSB0aW1lICYgbWVtb3J5IGlmIGZpbGUgaXMgc2Vla2FibGUuCiAgICAgICAgICAgICAgICAgICAgICAgRWxzZSBydW5zIGluIE8oTikgdGltZSAoTiBiZWluZyB0aGUgdG90YWwgbnVtYmVyIG9mIHJvd3Mgb2YKICAgICAgICAgICAgICAgICAgICAgICB0aGUgZmlsZSkgYW5kIE8obikgbWVtb3J5LgoKc2xpY2Ugb3B0aW9ucyB0byB1c2Ugd2l0aCBleHByZXNzaW9uczoKICAgIC1TLCAtLXN0YXJ0LWNvbmRpdGlvbiA8ZXhwcj4gIERvIG5vdCBzdGFydCB5aWVsZGluZyByb3dzIHVudGlsIGdpdmVuIGV4cHJlc3Npb24KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIHJldHVybnMgdHJ1ZS4KICAgIC1FLCAtLWVuZC1jb25kaXRpb24gPGV4cHI+ICAgIFN0b3AgeWllbGRpbmcgcm93cyBhcyBzb29uIGFzIGdpdmVuIGV4cHJlc3Npb24KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIHJldHVybnMgZmFsc2UuCgpzbGljZSBvcHRpb25zIHRvIHVzZSB3aXRoIGJ5dGUgb2ZmZXRzOgogICAgLUIsIC0tYnl0ZS1vZmZzZXQgPGI+ICBCeXRlIG9mZnNldCB0byBzZWVrIHRvIGluIHRoZSBzbGljZWQgZmlsZS4gVGhpcyBjYW4KICAgICAgICAgICAgICAgICAgICAgICAgICAgYmUgdXNlZnVsIHRvIGFjY2VzcyBhIHBhcnRpY3VsYXIgc2xpY2Ugb2Ygcm93cyBpbgogICAgICAgICAgICAgICAgICAgICAgICAgICBjb25zdGFudCB0aW1lLCB3aXRob3V0IG5lZWRpbmcgdG8gcmVhZCBwcmVjZWRpbmcgYnl0ZXMuCiAgICAgICAgICAgICAgICAgICAgICAgICAgIFlvdSBtdXN0IHByb3ZpZGUgYSBieXRlIG9mZnNldCBzdGFydGluZyBhIENTViByb3cgb3IKICAgICAgICAgICAgICAgICAgICAgICAgICAgdGhlIG91dHB1dCBjb3VsZCBiZSBjb3JydXB0ZWQuIFRoaXMgcmVxdWlyZXMgdGhlIGlucHV0CiAgICAgICAgICAgICAgICAgICAgICAgICAgIHRvIGJlIHNlZWthYmxlIChzdGRpbiBvciBnemlwcGVkIGZpbGVzIG5vdCBzdXBwb3J0ZWQpLgogICAgLS1lbmQtYnl0ZSA8Yj4gICAgICAgICBPbmx5IHJlYWQgdXAgdG8gcHJvdmlkZWQgcG9zaXRpb24gaW4gYnl0ZSwgZXhjbHVzaXZlLgogICAgICAgICAgICAgICAgICAgICAgICAgICBUaGlzIHJlcXVpcmVzIHRoZSBpbnB1dCB0byBiZSBzZWVrYWJsZSAoc3RkaW4gb3IgZ3ppcHBlZAogICAgICAgICAgICAgICAgICAgICAgICAgICBmaWxlcyBub3Qgc3VwcG9ydGVkKS4KICAgIC0tcmF3ICAgICAgICAgICAgICAgICAgUmF3IHNsaWNpbmcgdGhhdCBmb3JlZ28gcGFyc2luZyBDU1YgZGF0YSBmb3IgYmV0dGVyCiAgICAgICAgICAgICAgICAgICAgICAgICAgIHBlcmZvcm1hbmNlLiBPbmx5IHVzZSBpZiB5b3Uga25vdyB3aGF0IHlvdSBhcmUgZG9pbmcuCgpDb21tb24gb3B0aW9uczoKICAgIC1oLCAtLWhlbHAgICAgICAgICAgICAgRGlzcGxheSB0aGlzIG1lc3NhZ2UKICAgIC1vLCAtLW91dHB1dCA8ZmlsZT4gICAgV3JpdGUgb3V0cHV0IHRvIDxmaWxlPiBpbnN0ZWFkIG9mIHN0ZG91dC4KICAgIC1uLCAtLW5vLWhlYWRlcnMgICAgICAgV2hlbiBzZXQsIHRoZSBmaXJzdCByb3cgd2lsbCBub3QgYmUgaW50ZXJwcmV0ZWQKICAgICAgICAgICAgICAgICAgICAgICAgICAgYXMgaGVhZGVycy4gT3RoZXJ3aXNlLCB0aGUgZmlyc3Qgcm93IHdpbGwgYWx3YXlzCiAgICAgICAgICAgICAgICAgICAgICAgICAgIGFwcGVhciBpbiB0aGUgb3V0cHV0IGFzIHRoZSBoZWFkZXIgcm93LgogICAgLWQsIC0tZGVsaW1pdGVyIDxhcmc+ICBUaGUgZmllbGQgZGVsaW1pdGVyIGZvciByZWFkaW5nIENTViBkYXRhLgogICAgICAgICAgICAgICAgICAgICAgICAgICBNdXN0IGJlIGEgc2luZ2xlIGNoYXJhY3Rlci4K",
+      "stderrBase64": "",
+      "effects": {}
+    },
+    {
+      "id": "06-headers-display",
+      "binary": {
+        "path": "/tmp/xan-precode-20260828.X6abEd/xan",
+        "sha256": "2600a522a9a47d079a9ee93eaa4a2f6e4ce541eb381cde7b41ee6c04a6615d46",
+        "format": "Mach-O arm64",
+        "runtimeVersion": "UNKNOWN until frozen row 01"
+      },
+      "argv": [
+        "headers",
+        "--color",
+        "never",
+        "-s",
+        "9"
+      ],
+      "cwd": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/xan-dev-oracle-20260828-IYxIHW/06-headers-display",
+      "env": {
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "NO_COLOR": "1",
+        "TERM": "dumb",
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/xan-dev-oracle-20260828-IYxIHW/06-headers-display",
+        "TMPDIR": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/xan-dev-oracle-20260828-IYxIHW/06-headers-display"
+      },
+      "stdinBase64": "77u/bmFtZSwibGluZQpmaWVsZCIsbmFtZSwiIHRhYgkgIg0KMSwyLDMsNA0K",
+      "fixtureFiles": {},
+      "started": "2026-08-28T02:15:03.927Z",
+      "pid": 33988,
+      "close": {
+        "code": 0,
+        "signal": null,
+        "at": "2026-08-28T02:15:03.934Z"
+      },
+      "groupAbsent": true,
+      "limit": null,
+      "spawnError": null,
+      "stdinError": null,
+      "stdoutBase64": "OSAgIG5hbWUKMTAgIGxpbmVcbmZpZWxkCjExICBuYW1lCjEyICDCt3RhYlx0wrcK",
+      "stderrBase64": "",
+      "effects": {}
+    },
+    {
+      "id": "07-headers-multi-csv",
+      "binary": {
+        "path": "/tmp/xan-precode-20260828.X6abEd/xan",
+        "sha256": "2600a522a9a47d079a9ee93eaa4a2f6e4ce541eb381cde7b41ee6c04a6615d46",
+        "format": "Mach-O arm64",
+        "runtimeVersion": "UNKNOWN until frozen row 01"
+      },
+      "argv": [
+        "headers",
+        "a.csv",
+        "b.csv",
+        "--csv",
+        "-o",
+        "out.csv"
+      ],
+      "cwd": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/xan-dev-oracle-20260828-IYxIHW/07-headers-multi-csv",
+      "env": {
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "NO_COLOR": "1",
+        "TERM": "dumb",
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/xan-dev-oracle-20260828-IYxIHW/07-headers-multi-csv",
+        "TMPDIR": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/xan-dev-oracle-20260828-IYxIHW/07-headers-multi-csv"
+      },
+      "stdinBase64": "",
+      "fixtureFiles": {
+        "a.csv": "a,b\n1,2\n",
+        "b.csv": "b,c,d\n"
+      },
+      "started": "2026-08-28T02:15:03.936Z",
+      "pid": 33989,
+      "close": {
+        "code": 0,
+        "signal": null,
+        "at": "2026-08-28T02:15:03.943Z"
+      },
+      "groupAbsent": true,
+      "limit": null,
+      "spawnError": null,
+      "stdinError": null,
+      "stdoutBase64": "",
+      "stderrBase64": "",
+      "effects": {
+        "a.csv": {
+          "bytes": 8,
+          "base64": "YSxiCjEsMgo="
+        },
+        "b.csv": {
+          "bytes": 6,
+          "base64": "YixjLGQK"
+        },
+        "out.csv": {
+          "bytes": 23,
+          "base64": "YS5jc3YsYi5jc3YKYSxiCmIsYwosZAo="
+        }
+      }
+    },
+    {
+      "id": "08-headers-multi-text",
+      "binary": {
+        "path": "/tmp/xan-precode-20260828.X6abEd/xan",
+        "sha256": "2600a522a9a47d079a9ee93eaa4a2f6e4ce541eb381cde7b41ee6c04a6615d46",
+        "format": "Mach-O arm64",
+        "runtimeVersion": "UNKNOWN until frozen row 01"
+      },
+      "argv": [
+        "headers",
+        "-j",
+        "a.csv",
+        "b.csv"
+      ],
+      "cwd": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/xan-dev-oracle-20260828-IYxIHW/08-headers-multi-text",
+      "env": {
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "NO_COLOR": "1",
+        "TERM": "dumb",
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/xan-dev-oracle-20260828-IYxIHW/08-headers-multi-text",
+        "TMPDIR": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/xan-dev-oracle-20260828-IYxIHW/08-headers-multi-text"
+      },
+      "stdinBase64": "",
+      "fixtureFiles": {
+        "a.csv": "a,a\n",
+        "b.csv": "a,b\n"
+      },
+      "started": "2026-08-28T02:15:03.945Z",
+      "pid": 33990,
+      "close": {
+        "code": 0,
+        "signal": null,
+        "at": "2026-08-28T02:15:03.953Z"
+      },
+      "groupAbsent": true,
+      "limit": null,
+      "spawnError": null,
+      "stdinError": null,
+      "stdoutBase64": "YS5jc3YKYQphCgpiLmNzdgphCmIKCkFsbCBmaWxlcyBkb24ndCBoYXZlIHRoZSBzYW1lIGhlYWRlcnMhCkRpdmVyZ2luZyBoZWFkZXJzOiBiCg==",
+      "stderrBase64": "",
+      "effects": {
+        "a.csv": {
+          "bytes": 4,
+          "base64": "YSxhCg=="
+        },
+        "b.csv": {
+          "bytes": 4,
+          "base64": "YSxiCg=="
+        }
+      }
+    },
+    {
+      "id": "09-headers-noheaders-invalid",
+      "binary": {
+        "path": "/tmp/xan-precode-20260828.X6abEd/xan",
+        "sha256": "2600a522a9a47d079a9ee93eaa4a2f6e4ce541eb381cde7b41ee6c04a6615d46",
+        "format": "Mach-O arm64",
+        "runtimeVersion": "UNKNOWN until frozen row 01"
+      },
+      "argv": [
+        "headers",
+        "-n"
+      ],
+      "cwd": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/xan-dev-oracle-20260828-IYxIHW/09-headers-noheaders-invalid",
+      "env": {
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "NO_COLOR": "1",
+        "TERM": "dumb",
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/xan-dev-oracle-20260828-IYxIHW/09-headers-noheaders-invalid",
+        "TMPDIR": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/xan-dev-oracle-20260828-IYxIHW/09-headers-noheaders-invalid"
+      },
+      "stdinBase64": "YQo=",
+      "fixtureFiles": {},
+      "started": "2026-08-28T02:15:03.954Z",
+      "pid": 33991,
+      "close": {
+        "code": 1,
+        "signal": null,
+        "at": "2026-08-28T02:15:03.962Z"
+      },
+      "groupAbsent": true,
+      "limit": null,
+      "spawnError": null,
+      "stdinError": null,
+      "stdoutBase64": "",
+      "stderrBase64": "VXNhZ2U6CiAgICB4YW4gaGVhZGVycyBbb3B0aW9uc10gWzxpbnB1dD4uLi5dCiAgICB4YW4gaCBbb3B0aW9uc10gWzxpbnB1dD4uLi5dCgpVbmtub3duIGZsYWc6ICctbicgVXNlIHRoZSAtaC8tLWhlbHAgZmxhZyBmb3IgbW9yZSBpbmZvcm1hdGlvbi4K",
+      "effects": {}
+    },
+    {
+      "id": "10-count-records",
+      "binary": {
+        "path": "/tmp/xan-precode-20260828.X6abEd/xan",
+        "sha256": "2600a522a9a47d079a9ee93eaa4a2f6e4ce541eb381cde7b41ee6c04a6615d46",
+        "format": "Mach-O arm64",
+        "runtimeVersion": "UNKNOWN until frozen row 01"
+      },
+      "argv": [
+        "count"
+      ],
+      "cwd": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/xan-dev-oracle-20260828-IYxIHW/10-count-records",
+      "env": {
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "NO_COLOR": "1",
+        "TERM": "dumb",
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/xan-dev-oracle-20260828-IYxIHW/10-count-records",
+        "TMPDIR": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/xan-dev-oracle-20260828-IYxIHW/10-count-records"
+      },
+      "stdinBase64": "YSxiDQoNCjEsIngKeSINMix6CjMsNA0=",
+      "fixtureFiles": {},
+      "started": "2026-08-28T02:15:03.963Z",
+      "pid": 33992,
+      "close": {
+        "code": 0,
+        "signal": null,
+        "at": "2026-08-28T02:15:03.970Z"
+      },
+      "groupAbsent": true,
+      "limit": null,
+      "spawnError": null,
+      "stdinError": null,
+      "stdoutBase64": "Mgo=",
+      "stderrBase64": "",
+      "effects": {}
+    },
+    {
+      "id": "11-count-noheaders",
+      "binary": {
+        "path": "/tmp/xan-precode-20260828.X6abEd/xan",
+        "sha256": "2600a522a9a47d079a9ee93eaa4a2f6e4ce541eb381cde7b41ee6c04a6615d46",
+        "format": "Mach-O arm64",
+        "runtimeVersion": "UNKNOWN until frozen row 01"
+      },
+      "argv": [
+        "count",
+        "-n",
+        "-"
+      ],
+      "cwd": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/xan-dev-oracle-20260828-IYxIHW/11-count-noheaders",
+      "env": {
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "NO_COLOR": "1",
+        "TERM": "dumb",
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/xan-dev-oracle-20260828-IYxIHW/11-count-noheaders",
+        "TMPDIR": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/xan-dev-oracle-20260828-IYxIHW/11-count-noheaders"
+      },
+      "stdinBase64": "YSxiCjEsMgo=",
+      "fixtureFiles": {},
+      "started": "2026-08-28T02:15:03.971Z",
+      "pid": 33993,
+      "close": {
+        "code": 0,
+        "signal": null,
+        "at": "2026-08-28T02:15:03.978Z"
+      },
+      "groupAbsent": true,
+      "limit": null,
+      "spawnError": null,
+      "stdinError": null,
+      "stdoutBase64": "Mgo=",
+      "stderrBase64": "",
+      "effects": {}
+    },
+    {
+      "id": "12-count-bom-only",
+      "binary": {
+        "path": "/tmp/xan-precode-20260828.X6abEd/xan",
+        "sha256": "2600a522a9a47d079a9ee93eaa4a2f6e4ce541eb381cde7b41ee6c04a6615d46",
+        "format": "Mach-O arm64",
+        "runtimeVersion": "UNKNOWN until frozen row 01"
+      },
+      "argv": [
+        "count"
+      ],
+      "cwd": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/xan-dev-oracle-20260828-IYxIHW/12-count-bom-only",
+      "env": {
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "NO_COLOR": "1",
+        "TERM": "dumb",
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/xan-dev-oracle-20260828-IYxIHW/12-count-bom-only",
+        "TMPDIR": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/xan-dev-oracle-20260828-IYxIHW/12-count-bom-only"
+      },
+      "stdinBase64": "77u/",
+      "fixtureFiles": {},
+      "started": "2026-08-28T02:15:03.978Z",
+      "pid": 33994,
+      "close": {
+        "code": 0,
+        "signal": null,
+        "at": "2026-08-28T02:15:03.985Z"
+      },
+      "groupAbsent": true,
+      "limit": null,
+      "spawnError": null,
+      "stdinError": null,
+      "stdoutBase64": "MAo=",
+      "stderrBase64": "",
+      "effects": {}
+    },
+    {
+      "id": "13-count-ragged",
+      "binary": {
+        "path": "/tmp/xan-precode-20260828.X6abEd/xan",
+        "sha256": "2600a522a9a47d079a9ee93eaa4a2f6e4ce541eb381cde7b41ee6c04a6615d46",
+        "format": "Mach-O arm64",
+        "runtimeVersion": "UNKNOWN until frozen row 01"
+      },
+      "argv": [
+        "count"
+      ],
+      "cwd": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/xan-dev-oracle-20260828-IYxIHW/13-count-ragged",
+      "env": {
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "NO_COLOR": "1",
+        "TERM": "dumb",
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/xan-dev-oracle-20260828-IYxIHW/13-count-ragged",
+        "TMPDIR": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/xan-dev-oracle-20260828-IYxIHW/13-count-ragged"
+      },
+      "stdinBase64": "YSxiCjEKMiwzLDQK",
+      "fixtureFiles": {},
+      "started": "2026-08-28T02:15:03.986Z",
+      "pid": 33995,
+      "close": {
+        "code": 0,
+        "signal": null,
+        "at": "2026-08-28T02:15:03.993Z"
+      },
+      "groupAbsent": true,
+      "limit": null,
+      "spawnError": null,
+      "stdinError": null,
+      "stdoutBase64": "Mgo=",
+      "stderrBase64": "",
+      "effects": {}
+    },
+    {
+      "id": "14-headers-invalid-utf8",
+      "binary": {
+        "path": "/tmp/xan-precode-20260828.X6abEd/xan",
+        "sha256": "2600a522a9a47d079a9ee93eaa4a2f6e4ce541eb381cde7b41ee6c04a6615d46",
+        "format": "Mach-O arm64",
+        "runtimeVersion": "UNKNOWN until frozen row 01"
+      },
+      "argv": [
+        "headers"
+      ],
+      "cwd": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/xan-dev-oracle-20260828-IYxIHW/14-headers-invalid-utf8",
+      "env": {
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "NO_COLOR": "1",
+        "TERM": "dumb",
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/xan-dev-oracle-20260828-IYxIHW/14-headers-invalid-utf8",
+        "TMPDIR": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/xan-dev-oracle-20260828-IYxIHW/14-headers-invalid-utf8"
+      },
+      "stdinBase64": "/yxiCjEsMgo=",
+      "fixtureFiles": {},
+      "started": "2026-08-28T02:15:03.994Z",
+      "pid": 33996,
+      "close": {
+        "code": 1,
+        "signal": null,
+        "at": "2026-08-28T02:15:04.001Z"
+      },
+      "groupAbsent": true,
+      "limit": null,
+      "spawnError": null,
+      "stdinError": null,
+      "stdoutBase64": "",
+      "stderrBase64": "eGFuIGhlYWRlcnM6IENTViBwYXJzZSBlcnJvcjogcmVjb3JkIDAgKGxpbmUgMSwgZmllbGQ6IDAsIGJ5dGU6IDApOiBpbnZhbGlkIHV0Zi04OiBpbnZhbGlkIFVURi04IGluIGZpZWxkIDAgbmVhciBieXRlIGluZGV4IDAK",
+      "effects": {}
+    },
+    {
+      "id": "15-select-grammar",
+      "binary": {
+        "path": "/tmp/xan-precode-20260828.X6abEd/xan",
+        "sha256": "2600a522a9a47d079a9ee93eaa4a2f6e4ce541eb381cde7b41ee6c04a6615d46",
+        "format": "Mach-O arm64",
+        "runtimeVersion": "UNKNOWN until frozen row 01"
+      },
+      "argv": [
+        "select",
+        "3:1,Foo[-1],!x,dim_*,*_count,0,-1,\"Start:time\""
+      ],
+      "cwd": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/xan-dev-oracle-20260828-IYxIHW/15-select-grammar",
+      "env": {
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "NO_COLOR": "1",
+        "TERM": "dumb",
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/xan-dev-oracle-20260828-IYxIHW/15-select-grammar",
+        "TMPDIR": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/xan-dev-oracle-20260828-IYxIHW/15-select-grammar"
+      },
+      "stdinBase64": "Rm9vLEZvbyxkaW1feCxuX2NvdW50LCF4LFN0YXJ0OnRpbWUKMCwxLDIsMyw0LDUK",
+      "fixtureFiles": {},
+      "started": "2026-08-28T02:15:04.001Z",
+      "pid": 33997,
+      "close": {
+        "code": 0,
+        "signal": null,
+        "at": "2026-08-28T02:15:04.009Z"
+      },
+      "groupAbsent": true,
+      "limit": null,
+      "spawnError": null,
+      "stdinError": null,
+      "stdoutBase64": "bl9jb3VudCxkaW1feCxGb28sRm9vLCF4LGRpbV94LG5fY291bnQsRm9vLFN0YXJ0OnRpbWUsU3RhcnQ6dGltZQozLDIsMSwxLDQsMiwzLDAsNSw1Cg==",
+      "stderrBase64": "",
+      "effects": {}
+    },
+    {
+      "id": "16-select-complement",
+      "binary": {
+        "path": "/tmp/xan-precode-20260828.X6abEd/xan",
+        "sha256": "2600a522a9a47d079a9ee93eaa4a2f6e4ce541eb381cde7b41ee6c04a6615d46",
+        "format": "Mach-O arm64",
+        "runtimeVersion": "UNKNOWN until frozen row 01"
+      },
+      "argv": [
+        "select",
+        "!1:2"
+      ],
+      "cwd": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/xan-dev-oracle-20260828-IYxIHW/16-select-complement",
+      "env": {
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "NO_COLOR": "1",
+        "TERM": "dumb",
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/xan-dev-oracle-20260828-IYxIHW/16-select-complement",
+        "TMPDIR": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/xan-dev-oracle-20260828-IYxIHW/16-select-complement"
+      },
+      "stdinBase64": "YSxiLGMsZAoxLDIsMyw0Cg==",
+      "fixtureFiles": {},
+      "started": "2026-08-28T02:15:04.009Z",
+      "pid": 33998,
+      "close": {
+        "code": 0,
+        "signal": null,
+        "at": "2026-08-28T02:15:04.017Z"
+      },
+      "groupAbsent": true,
+      "limit": null,
+      "spawnError": null,
+      "stdinError": null,
+      "stdoutBase64": "YSxkCjEsNAo=",
+      "stderrBase64": "",
+      "effects": {}
+    },
+    {
+      "id": "17-select-delimiter-output",
+      "binary": {
+        "path": "/tmp/xan-precode-20260828.X6abEd/xan",
+        "sha256": "2600a522a9a47d079a9ee93eaa4a2f6e4ce541eb381cde7b41ee6c04a6615d46",
+        "format": "Mach-O arm64",
+        "runtimeVersion": "UNKNOWN until frozen row 01"
+      },
+      "argv": [
+        "select",
+        "-n",
+        "-d",
+        ";",
+        "1,0",
+        "a.csv",
+        "-o",
+        "out.tsv"
+      ],
+      "cwd": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/xan-dev-oracle-20260828-IYxIHW/17-select-delimiter-output",
+      "env": {
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "NO_COLOR": "1",
+        "TERM": "dumb",
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/xan-dev-oracle-20260828-IYxIHW/17-select-delimiter-output",
+        "TMPDIR": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/xan-dev-oracle-20260828-IYxIHW/17-select-delimiter-output"
+      },
+      "stdinBase64": "",
+      "fixtureFiles": {
+        "a.csv": "\"a;b\";\"x\"\r\n;z\n"
+      },
+      "started": "2026-08-28T02:15:04.017Z",
+      "pid": 33999,
+      "close": {
+        "code": 0,
+        "signal": null,
+        "at": "2026-08-28T02:15:04.025Z"
+      },
+      "groupAbsent": true,
+      "limit": null,
+      "spawnError": null,
+      "stdinError": null,
+      "stdoutBase64": "",
+      "stderrBase64": "",
+      "effects": {
+        "a.csv": {
+          "bytes": 14,
+          "base64": "ImE7YiI7IngiDQo7ego="
+        },
+        "out.tsv": {
+          "bytes": 9,
+          "base64": "eAlhO2IKegkK"
+        }
+      }
+    },
+    {
+      "id": "18-select-raw-quotes",
+      "binary": {
+        "path": "/tmp/xan-precode-20260828.X6abEd/xan",
+        "sha256": "2600a522a9a47d079a9ee93eaa4a2f6e4ce541eb381cde7b41ee6c04a6615d46",
+        "format": "Mach-O arm64",
+        "runtimeVersion": "UNKNOWN until frozen row 01"
+      },
+      "argv": [
+        "select",
+        "*"
+      ],
+      "cwd": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/xan-dev-oracle-20260828-IYxIHW/18-select-raw-quotes",
+      "env": {
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "NO_COLOR": "1",
+        "TERM": "dumb",
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/xan-dev-oracle-20260828-IYxIHW/18-select-raw-quotes",
+        "TMPDIR": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/xan-dev-oracle-20260828-IYxIHW/18-select-raw-quotes"
+      },
+      "stdinBase64": "ImEiLGINCiIxIiwieCINCiJxIiJyIiwgZW5kIAo=",
+      "fixtureFiles": {},
+      "started": "2026-08-28T02:15:04.025Z",
+      "pid": 34000,
+      "close": {
+        "code": 0,
+        "signal": null,
+        "at": "2026-08-28T02:15:04.037Z"
+      },
+      "groupAbsent": true,
+      "limit": null,
+      "spawnError": null,
+      "stdinError": null,
+      "stdoutBase64": "YSxiCiIxIiwieCIKInEiInIiLCBlbmQgCg==",
+      "stderrBase64": "",
+      "effects": {}
+    },
+    {
+      "id": "19-select-invalid-utf8",
+      "binary": {
+        "path": "/tmp/xan-precode-20260828.X6abEd/xan",
+        "sha256": "2600a522a9a47d079a9ee93eaa4a2f6e4ce541eb381cde7b41ee6c04a6615d46",
+        "format": "Mach-O arm64",
+        "runtimeVersion": "UNKNOWN until frozen row 01"
+      },
+      "argv": [
+        "select",
+        "0"
+      ],
+      "cwd": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/xan-dev-oracle-20260828-IYxIHW/19-select-invalid-utf8",
+      "env": {
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "NO_COLOR": "1",
+        "TERM": "dumb",
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/xan-dev-oracle-20260828-IYxIHW/19-select-invalid-utf8",
+        "TMPDIR": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/xan-dev-oracle-20260828-IYxIHW/19-select-invalid-utf8"
+      },
+      "stdinBase64": "/yxiCv8sMgo=",
+      "fixtureFiles": {},
+      "started": "2026-08-28T02:15:04.038Z",
+      "pid": 34001,
+      "close": {
+        "code": 0,
+        "signal": null,
+        "at": "2026-08-28T02:15:04.045Z"
+      },
+      "groupAbsent": true,
+      "limit": null,
+      "spawnError": null,
+      "stdinError": null,
+      "stdoutBase64": "/wr/Cg==",
+      "stderrBase64": "",
+      "effects": {}
+    },
+    {
+      "id": "20-select-ragged",
+      "binary": {
+        "path": "/tmp/xan-precode-20260828.X6abEd/xan",
+        "sha256": "2600a522a9a47d079a9ee93eaa4a2f6e4ce541eb381cde7b41ee6c04a6615d46",
+        "format": "Mach-O arm64",
+        "runtimeVersion": "UNKNOWN until frozen row 01"
+      },
+      "argv": [
+        "select",
+        "*"
+      ],
+      "cwd": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/xan-dev-oracle-20260828-IYxIHW/20-select-ragged",
+      "env": {
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "NO_COLOR": "1",
+        "TERM": "dumb",
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/xan-dev-oracle-20260828-IYxIHW/20-select-ragged",
+        "TMPDIR": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/xan-dev-oracle-20260828-IYxIHW/20-select-ragged"
+      },
+      "stdinBase64": "YSxiCjEKMiwzLDQK",
+      "fixtureFiles": {},
+      "started": "2026-08-28T02:15:04.046Z",
+      "pid": 34002,
+      "close": {
+        "code": 1,
+        "signal": null,
+        "at": "2026-08-28T02:15:04.053Z"
+      },
+      "groupAbsent": true,
+      "limit": null,
+      "spawnError": null,
+      "stdinError": null,
+      "stdoutBase64": "YSxiCg==",
+      "stderrBase64": "eGFuIHNlbGVjdDogQ1NWIGVycm9yOiByZWNvcmQgMiAoYnl0ZTogNCk6IGZvdW5kIHJlY29yZCB3aXRoIDEgZmllbGRzLCBidXQgdGhlIHByZXZpb3VzIHJlY29yZCBoYXMgMiBmaWVsZHMK",
+      "effects": {}
+    },
+    {
+      "id": "21-select-unterminated",
+      "binary": {
+        "path": "/tmp/xan-precode-20260828.X6abEd/xan",
+        "sha256": "2600a522a9a47d079a9ee93eaa4a2f6e4ce541eb381cde7b41ee6c04a6615d46",
+        "format": "Mach-O arm64",
+        "runtimeVersion": "UNKNOWN until frozen row 01"
+      },
+      "argv": [
+        "select",
+        "*"
+      ],
+      "cwd": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/xan-dev-oracle-20260828-IYxIHW/21-select-unterminated",
+      "env": {
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "NO_COLOR": "1",
+        "TERM": "dumb",
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/xan-dev-oracle-20260828-IYxIHW/21-select-unterminated",
+        "TMPDIR": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/xan-dev-oracle-20260828-IYxIHW/21-select-unterminated"
+      },
+      "stdinBase64": "YSxiCjEsIngKeQ==",
+      "fixtureFiles": {},
+      "started": "2026-08-28T02:15:04.054Z",
+      "pid": 34003,
+      "close": {
+        "code": 0,
+        "signal": null,
+        "at": "2026-08-28T02:15:04.061Z"
+      },
+      "groupAbsent": true,
+      "limit": null,
+      "spawnError": null,
+      "stdinError": null,
+      "stdoutBase64": "YSxiCjEsIngKeQo=",
+      "stderrBase64": "",
+      "effects": {}
+    },
+    {
+      "id": "22-slice-range",
+      "binary": {
+        "path": "/tmp/xan-precode-20260828.X6abEd/xan",
+        "sha256": "2600a522a9a47d079a9ee93eaa4a2f6e4ce541eb381cde7b41ee6c04a6615d46",
+        "format": "Mach-O arm64",
+        "runtimeVersion": "UNKNOWN until frozen row 01"
+      },
+      "argv": [
+        "slice",
+        "--skip",
+        "1",
+        "-e",
+        "3"
+      ],
+      "cwd": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/xan-dev-oracle-20260828-IYxIHW/22-slice-range",
+      "env": {
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "NO_COLOR": "1",
+        "TERM": "dumb",
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/xan-dev-oracle-20260828-IYxIHW/22-slice-range",
+        "TMPDIR": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/xan-dev-oracle-20260828-IYxIHW/22-slice-range"
+      },
+      "stdinBase64": "YSxiCjAsIngKeSIKMSx6CjIsdwozLHEK",
+      "fixtureFiles": {},
+      "started": "2026-08-28T02:15:04.062Z",
+      "pid": 34004,
+      "close": {
+        "code": 0,
+        "signal": null,
+        "at": "2026-08-28T02:15:04.071Z"
+      },
+      "groupAbsent": true,
+      "limit": null,
+      "spawnError": null,
+      "stdinError": null,
+      "stdoutBase64": "YSxiCjEsegoyLHcK",
+      "stderrBase64": "",
+      "effects": {}
+    },
+    {
+      "id": "23-slice-zero",
+      "binary": {
+        "path": "/tmp/xan-precode-20260828.X6abEd/xan",
+        "sha256": "2600a522a9a47d079a9ee93eaa4a2f6e4ce541eb381cde7b41ee6c04a6615d46",
+        "format": "Mach-O arm64",
+        "runtimeVersion": "UNKNOWN until frozen row 01"
+      },
+      "argv": [
+        "slice",
+        "-l",
+        "0"
+      ],
+      "cwd": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/xan-dev-oracle-20260828-IYxIHW/23-slice-zero",
+      "env": {
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "NO_COLOR": "1",
+        "TERM": "dumb",
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/xan-dev-oracle-20260828-IYxIHW/23-slice-zero",
+        "TMPDIR": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/xan-dev-oracle-20260828-IYxIHW/23-slice-zero"
+      },
+      "stdinBase64": "YQowCjEK",
+      "fixtureFiles": {},
+      "started": "2026-08-28T02:15:04.072Z",
+      "pid": 34005,
+      "close": {
+        "code": 0,
+        "signal": null,
+        "at": "2026-08-28T02:15:04.079Z"
+      },
+      "groupAbsent": true,
+      "limit": null,
+      "spawnError": null,
+      "stdinError": null,
+      "stdoutBase64": "YQowCjEK",
+      "stderrBase64": "",
+      "effects": {}
+    },
+    {
+      "id": "24-slice-headless-zero",
+      "binary": {
+        "path": "/tmp/xan-precode-20260828.X6abEd/xan",
+        "sha256": "2600a522a9a47d079a9ee93eaa4a2f6e4ce541eb381cde7b41ee6c04a6615d46",
+        "format": "Mach-O arm64",
+        "runtimeVersion": "UNKNOWN until frozen row 01"
+      },
+      "argv": [
+        "slice",
+        "-n",
+        "-l",
+        "0"
+      ],
+      "cwd": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/xan-dev-oracle-20260828-IYxIHW/24-slice-headless-zero",
+      "env": {
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "NO_COLOR": "1",
+        "TERM": "dumb",
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/xan-dev-oracle-20260828-IYxIHW/24-slice-headless-zero",
+        "TMPDIR": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/xan-dev-oracle-20260828-IYxIHW/24-slice-headless-zero"
+      },
+      "stdinBase64": "MAoxCg==",
+      "fixtureFiles": {},
+      "started": "2026-08-28T02:15:04.080Z",
+      "pid": 34006,
+      "close": {
+        "code": 0,
+        "signal": null,
+        "at": "2026-08-28T02:15:04.087Z"
+      },
+      "groupAbsent": true,
+      "limit": null,
+      "spawnError": null,
+      "stdinError": null,
+      "stdoutBase64": "MAoxCg==",
+      "stderrBase64": "",
+      "effects": {}
+    },
+    {
+      "id": "25-slice-indices",
+      "binary": {
+        "path": "/tmp/xan-precode-20260828.X6abEd/xan",
+        "sha256": "2600a522a9a47d079a9ee93eaa4a2f6e4ce541eb381cde7b41ee6c04a6615d46",
+        "format": "Mach-O arm64",
+        "runtimeVersion": "UNKNOWN until frozen row 01"
+      },
+      "argv": [
+        "slice",
+        "-I",
+        "2,0,2"
+      ],
+      "cwd": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/xan-dev-oracle-20260828-IYxIHW/25-slice-indices",
+      "env": {
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "NO_COLOR": "1",
+        "TERM": "dumb",
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/xan-dev-oracle-20260828-IYxIHW/25-slice-indices",
+        "TMPDIR": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/xan-dev-oracle-20260828-IYxIHW/25-slice-indices"
+      },
+      "stdinBase64": "YQowCjEKMgozCg==",
+      "fixtureFiles": {},
+      "started": "2026-08-28T02:15:04.088Z",
+      "pid": 34007,
+      "close": {
+        "code": 0,
+        "signal": null,
+        "at": "2026-08-28T02:15:04.098Z"
+      },
+      "groupAbsent": true,
+      "limit": null,
+      "spawnError": null,
+      "stdinError": null,
+      "stdoutBase64": "YQowCjIK",
+      "stderrBase64": "",
+      "effects": {}
+    },
+    {
+      "id": "26-slice-last",
+      "binary": {
+        "path": "/tmp/xan-precode-20260828.X6abEd/xan",
+        "sha256": "2600a522a9a47d079a9ee93eaa4a2f6e4ce541eb381cde7b41ee6c04a6615d46",
+        "format": "Mach-O arm64",
+        "runtimeVersion": "UNKNOWN until frozen row 01"
+      },
+      "argv": [
+        "slice",
+        "-L",
+        "2"
+      ],
+      "cwd": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/xan-dev-oracle-20260828-IYxIHW/26-slice-last",
+      "env": {
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "NO_COLOR": "1",
+        "TERM": "dumb",
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/xan-dev-oracle-20260828-IYxIHW/26-slice-last",
+        "TMPDIR": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/xan-dev-oracle-20260828-IYxIHW/26-slice-last"
+      },
+      "stdinBase64": "YQowCjEKMgo=",
+      "fixtureFiles": {},
+      "started": "2026-08-28T02:15:04.099Z",
+      "pid": 34008,
+      "close": {
+        "code": 0,
+        "signal": null,
+        "at": "2026-08-28T02:15:04.106Z"
+      },
+      "groupAbsent": true,
+      "limit": null,
+      "spawnError": null,
+      "stdinError": null,
+      "stdoutBase64": "YQoxCjIK",
+      "stderrBase64": "",
+      "effects": {}
+    },
+    {
+      "id": "27-slice-overflow",
+      "binary": {
+        "path": "/tmp/xan-precode-20260828.X6abEd/xan",
+        "sha256": "2600a522a9a47d079a9ee93eaa4a2f6e4ce541eb381cde7b41ee6c04a6615d46",
+        "format": "Mach-O arm64",
+        "runtimeVersion": "UNKNOWN until frozen row 01"
+      },
+      "argv": [
+        "slice",
+        "-s",
+        "18446744073709551616"
+      ],
+      "cwd": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/xan-dev-oracle-20260828-IYxIHW/27-slice-overflow",
+      "env": {
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "NO_COLOR": "1",
+        "TERM": "dumb",
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/xan-dev-oracle-20260828-IYxIHW/27-slice-overflow",
+        "TMPDIR": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/xan-dev-oracle-20260828-IYxIHW/27-slice-overflow"
+      },
+      "stdinBase64": "YQowCg==",
+      "fixtureFiles": {},
+      "started": "2026-08-28T02:15:04.107Z",
+      "pid": 34009,
+      "close": {
+        "code": 1,
+        "signal": null,
+        "at": "2026-08-28T02:15:04.114Z"
+      },
+      "groupAbsent": true,
+      "limit": null,
+      "spawnError": null,
+      "stdinError": null,
+      "stdoutBase64": "",
+      "stderrBase64": "Q291bGQgbm90IGRlc2VyaWFsaXplICcxODQ0Njc0NDA3MzcwOTU1MTYxNicgdG8gdTY0IGZvciAnLS1zdGFydCcuCg==",
+      "effects": {}
+    },
+    {
+      "id": "28-select-missing",
+      "binary": {
+        "path": "/tmp/xan-precode-20260828.X6abEd/xan",
+        "sha256": "2600a522a9a47d079a9ee93eaa4a2f6e4ce541eb381cde7b41ee6c04a6615d46",
+        "format": "Mach-O arm64",
+        "runtimeVersion": "UNKNOWN until frozen row 01"
+      },
+      "argv": [
+        "select"
+      ],
+      "cwd": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/xan-dev-oracle-20260828-IYxIHW/28-select-missing",
+      "env": {
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "NO_COLOR": "1",
+        "TERM": "dumb",
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/xan-dev-oracle-20260828-IYxIHW/28-select-missing",
+        "TMPDIR": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/xan-dev-oracle-20260828-IYxIHW/28-select-missing"
+      },
+      "stdinBase64": "YQowCg==",
+      "fixtureFiles": {},
+      "started": "2026-08-28T02:15:04.114Z",
+      "pid": 34010,
+      "close": {
+        "code": 1,
+        "signal": null,
+        "at": "2026-08-28T02:15:04.122Z"
+      },
+      "groupAbsent": true,
+      "limit": null,
+      "spawnError": null,
+      "stdinError": null,
+      "stdoutBase64": "",
+      "stderrBase64": "VXNhZ2U6CiAgICB4YW4gc2VsZWN0IFtvcHRpb25zXSBbLS1dIDxzZWxlY3Rpb24+IFs8aW5wdXQ+XQogICAgeGFuIHNlbGVjdCAtLWhlbHAKCkludmFsaWQgc3ViY29tbWFuZCBvciBhcmd1bWVudHMhIFVzZSB0aGUgLWgvLS1oZWxwIGZsYWcgZm9yIG1vcmUgaW5mb3JtYXRpb24uCg==",
+      "effects": {}
+    }
+  ]
+}

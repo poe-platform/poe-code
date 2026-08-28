@@ -1,0 +1,63 @@
+{
+  "schema": 1,
+  "sealedAt": "2026-08-28T14:15:53.971Z",
+  "authorizationCommit": "021302a1",
+  "execSession": 93642,
+  "launchCount": 1,
+  "coordinatorExit": 1,
+  "authorizationConsumed": true,
+  "packet": "69f5cc1b05484c9d0836edf77bfbbbfb46145383",
+  "candidate": "f5e9fc49b6abb38e180cc9de16c95fced102ff75",
+  "completedPhases": 6,
+  "totalPhases": 14,
+  "status": "HOLD_OR_QUALIFIED_RED",
+  "canonicalRaw": {
+    "pass": 19425,
+    "fail": 132,
+    "skipped": 7,
+    "todo": 0,
+    "cancelled": 0
+  },
+  "capturedFiles": 928,
+  "rawBytes": 114734734,
+  "compressedBytes": 11430146,
+  "encodedArtifactsVerified": 928,
+  "files": [
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/released-run-v3-qualified-h11/ROOT-RECEIPT.json",
+      "bytes": 1333,
+      "sha256": "f61bace1ea85dc1aa19b8f80728cbc4526148fbca424ac452a818471c28dc847"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/released-run-v3-qualified-h11/AUTHORIZATION.md",
+      "bytes": 2507,
+      "sha256": "4e147728358e679ee324813d0ddeedd4e1d5ffc1a83d0f4181e5fccf36b2d4c8"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/released-run-v3-qualified-h11/capture.mjs",
+      "bytes": 10443,
+      "sha256": "2579ba47883474502622933f5df0fbb7c2f7d4e187a382650cdef0d983ca3608"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/released-run-v3-qualified-h11/EVIDENCE.json",
+      "bytes": 665350,
+      "sha256": "152c361e078882910d965b8c5e761f5af27cae7ab9b90af43611344caa931bd1"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/released-run-v3-qualified-h11/SUMMARY.json",
+      "bytes": 24342,
+      "sha256": "a7b87530f7b3533bf81d10927f43b68338c77103d81ae84a8b26270238ddf6d9"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/released-run-v3-qualified-h11/TAP-NONPASSING.json",
+      "bytes": 463757,
+      "sha256": "91792a4ef1888435d2e19dcb1aeedbeaa9552ce518c16843cd31b4bf310978c2"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/released-run-v3-qualified-h11/HANDOFF.md",
+      "bytes": 10046,
+      "sha256": "997965e069cf7f222ae45d5748d67d92ea5158c2ae548812e06389186a2d11b9"
+    }
+  ],
+  "qualification": "Terminal data only; no subject rerun. Final integrity/source binding and cleanup qualification remain false. Both prior consumed 0/14 attempts stay immutable. No new GO."
+}

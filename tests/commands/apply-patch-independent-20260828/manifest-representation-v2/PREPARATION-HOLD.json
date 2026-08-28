@@ -1,0 +1,63 @@
+{
+  "schema": "apply-patch-manifest-preparation-hold-v1",
+  "date": "2026-08-28",
+  "status": "HOLD",
+  "classification": "operator SOURCE-inspection capture failure; not a product finding",
+  "evidenceKind": "transcription of tool output, not a retained raw capture",
+  "originalAttempt": {
+    "commit": "685cdd0d55f46be3aa71fd5f7deab80cdebb8abb",
+    "completedSetupJobs": 3,
+    "totalJobs": 54,
+    "unrunJobs": 51,
+    "irrecoverableUnretainedObservedBytes": 131072,
+    "runtimeSealBytes": 22330550,
+    "unchanged": true
+  },
+  "candidate": {
+    "commit": "753f33d2fa1a2ccd86089c563d4ad66b9a1ae26d",
+    "derivedTree": "6a59ca403c5411344dea2ee057909ba179bf7043",
+    "fullPackageFiles": 882,
+    "fullPackageSha256": "f04afbf9230fd9e3275f83c7dab26837aeb618bd6178f4ac0b794b93302d6d95",
+    "qualification": "identity carried forward from the immutable prior record; not newly reauthenticated by this stopped preparation"
+  },
+  "failure": {
+    "preparationProcessOrdinal": 3,
+    "toolChunkId": "10141d",
+    "exitCode": 0,
+    "reportedWallSeconds": 2.2429,
+    "unsafeInspection": "console.log('PATCH_TOOL', fs.readFileSync(tool, 'utf8'))",
+    "toolPath": "/Users/kjopek/.codex/tmp/arg0/codex-arg0wITElD/apply_patch",
+    "cause": "A native executable was mistakenly treated as a bounded text launcher and printed without an output-size precheck or owned raw capture.",
+    "toolReportedOriginalTokenCount": 95510992,
+    "toolReportedOmittedBytes": 380995389,
+    "authorizedCaptureBytes": 67108864,
+    "rawObservedBytes": null,
+    "rawRetainedBytes": null,
+    "rawLostBytes": null,
+    "byteQualification": "The tool-rendered omission report exceeds the entire capture allowance. It is not an authenticated measurement of raw pipe bytes, and must not be used to invent exact raw retained/lost counts.",
+    "tailTimestampReportedByCommand": "2026-08-28T23:03:54.219Z",
+    "rawReconstructionAttempted": false
+  },
+  "execution": {
+    "preparationProcessesBeforeStop": 3,
+    "sequence": [
+      "Pinned Node instruction/metadata inspection; creates PREPARATION-START.json",
+      "Shell builtin command lookup followed by exec Git scoped status",
+      "Pinned Node SOURCE inspection; unbounded executable-as-text output; exits 0"
+    ],
+    "productLoads": 0,
+    "candidateBuilds": 0,
+    "newControlExecutions": 0,
+    "mutantExecutions": 0,
+    "manifestRepairImplemented": false,
+    "newSealCreated": false,
+    "cleanupEvidence": "All three synchronous preparation tool calls returned completion; no persistent session, test server, or child recipe was started. This is not a separate PID-absence or descendant-enumeration proof.",
+    "postStopActivity": "Bounded instruction/status inspection and evidence-only patch/Git archival; no preparation continuation or budget reset. Archival calls remain visible in the tool transcript and are not control passes."
+  },
+  "nextAuthorityRequired": "Fresh bounded SOURCE/DATA preparation authorization after this capture failure; no actual product continuation is authorized by this record.",
+  "proposedPrevention": [
+    "Treat executable paths as binary: inspect only bounded magic bytes, stat metadata, or a streaming digest; never decode and print executable contents.",
+    "Precheck text-file size before reading and cap summary output; keep owned bounded raw capture for future dispatched preparation/control commands.",
+    "Keep all original caps and histories; finish and preseal the compact manifest reader/writer/loader repair before any new controls or product admission."
+  ]
+}

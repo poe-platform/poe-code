@@ -1,0 +1,21 @@
+{
+  "date": "2026-08-28T23:00:16.187Z",
+  "startedMs": 1787958016189,
+  "pid": 84295,
+  "scope": "tests/commands/apply-patch-independent-20260828/manifest-representation-v2",
+  "bounds": {
+    "milliseconds": 1200000,
+    "allOwnedProcesses": 32,
+    "peak": 4,
+    "captureBytes": 67108864,
+    "workingBytes": 268435456
+  },
+  "processes": [
+    {
+      "ordinal": 1,
+      "role": "instructions-and-preparation-start",
+      "pid": 84295
+    }
+  ],
+  "authorization": "ROOT manifest representation SOURCE/DATA/SYNTHETIC preparation only; no product/build/native/network/private"
+}

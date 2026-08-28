@@ -1,0 +1,283 @@
+[
+  {
+    "id": "spaces",
+    "accept": true,
+    "base64": "MTAwNjQ0IGJsb2IgMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMQkgbGVhZGluZyBhbmQgdHJhaWxpbmcgAA==",
+    "entries": [
+      {
+        "mode": "100644",
+        "blob": "1111111111111111111111111111111111111111",
+        "pathBase64": "IGxlYWRpbmcgYW5kIHRyYWlsaW5nIA=="
+      }
+    ]
+  },
+  {
+    "id": "tab",
+    "accept": true,
+    "base64": "MTAwNjQ0IGJsb2IgMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMQlhCWIA",
+    "entries": [
+      {
+        "mode": "100644",
+        "blob": "1111111111111111111111111111111111111111",
+        "pathBase64": "YQli"
+      }
+    ]
+  },
+  {
+    "id": "newline",
+    "accept": true,
+    "base64": "MTAwNjQ0IGJsb2IgMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMQlhCmIA",
+    "entries": [
+      {
+        "mode": "100644",
+        "blob": "1111111111111111111111111111111111111111",
+        "pathBase64": "YQpi"
+      }
+    ]
+  },
+  {
+    "id": "quote",
+    "accept": true,
+    "base64": "MTAwNjQ0IGJsb2IgMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMQlhImIA",
+    "entries": [
+      {
+        "mode": "100644",
+        "blob": "1111111111111111111111111111111111111111",
+        "pathBase64": "YSJi"
+      }
+    ]
+  },
+  {
+    "id": "backslash",
+    "accept": true,
+    "base64": "MTAwNjQ0IGJsb2IgMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMQlhXGIA",
+    "entries": [
+      {
+        "mode": "100644",
+        "blob": "1111111111111111111111111111111111111111",
+        "pathBase64": "YVxi"
+      }
+    ]
+  },
+  {
+    "id": "unicode",
+    "accept": true,
+    "base64": "MTAwNjQ0IGJsb2IgMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMQnpm6ovw6kA",
+    "entries": [
+      {
+        "mode": "100644",
+        "blob": "1111111111111111111111111111111111111111",
+        "pathBase64": "6ZuqL8Op"
+      }
+    ]
+  },
+  {
+    "id": "nfc",
+    "accept": true,
+    "base64": "MTAwNjQ0IGJsb2IgMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMQnDqQA=",
+    "entries": [
+      {
+        "mode": "100644",
+        "blob": "1111111111111111111111111111111111111111",
+        "pathBase64": "w6k="
+      }
+    ]
+  },
+  {
+    "id": "nfd",
+    "accept": true,
+    "base64": "MTAwNjQ0IGJsb2IgMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMQllzIEA",
+    "entries": [
+      {
+        "mode": "100644",
+        "blob": "1111111111111111111111111111111111111111",
+        "pathBase64": "ZcyB"
+      }
+    ]
+  },
+  {
+    "id": "bom",
+    "accept": true,
+    "base64": "MTAwNjQ0IGJsb2IgMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMQnvu79uYW1lAA==",
+    "entries": [
+      {
+        "mode": "100644",
+        "blob": "1111111111111111111111111111111111111111",
+        "pathBase64": "77u/bmFtZQ=="
+      }
+    ]
+  },
+  {
+    "id": "cr",
+    "accept": true,
+    "base64": "MTAwNjQ0IGJsb2IgMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMQlhDWIA",
+    "entries": [
+      {
+        "mode": "100644",
+        "blob": "1111111111111111111111111111111111111111",
+        "pathBase64": "YQ1i"
+      }
+    ]
+  },
+  {
+    "id": "leading-dash",
+    "accept": true,
+    "base64": "MTAwNjQ0IGJsb2IgMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMQktLW5hbWUA",
+    "entries": [
+      {
+        "mode": "100644",
+        "blob": "1111111111111111111111111111111111111111",
+        "pathBase64": "LS1uYW1l"
+      }
+    ]
+  },
+  {
+    "id": "quoted-literal",
+    "accept": true,
+    "base64": "MTAwNjQ0IGJsb2IgMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMQkibGl0ZXJhbCIA",
+    "entries": [
+      {
+        "mode": "100644",
+        "blob": "1111111111111111111111111111111111111111",
+        "pathBase64": "ImxpdGVyYWwi"
+      }
+    ]
+  },
+  {
+    "id": "directory-sort-modes-normalization-distinct",
+    "accept": true,
+    "base64": "MTAwNjQ0IGJsb2IgMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMQlkaXIvZmlsZQAxMDA3NTUgYmxvYiAxMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExCWRpci5maWxlADEyMDAwMCBibG9iIDExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTEJw6kAMTYwMDAwIGNvbW1pdCAxMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExCWXMgQA=",
+    "entries": [
+      {
+        "mode": "100644",
+        "blob": "1111111111111111111111111111111111111111",
+        "pathBase64": "ZGlyL2ZpbGU="
+      },
+      {
+        "mode": "100755",
+        "blob": "1111111111111111111111111111111111111111",
+        "pathBase64": "ZGlyLmZpbGU="
+      },
+      {
+        "mode": "120000",
+        "blob": "1111111111111111111111111111111111111111",
+        "pathBase64": "w6k="
+      },
+      {
+        "mode": "160000",
+        "blob": "1111111111111111111111111111111111111111",
+        "pathBase64": "ZcyB"
+      }
+    ]
+  },
+  {
+    "id": "truncated",
+    "accept": false,
+    "base64": "MTAwNjQ0IGJsb2IgMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMQlh"
+  },
+  {
+    "id": "empty-record",
+    "accept": false,
+    "base64": "AA=="
+  },
+  {
+    "id": "empty-path",
+    "accept": false,
+    "base64": "MTAwNjQ0IGJsb2IgMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMQkA"
+  },
+  {
+    "id": "absolute",
+    "accept": false,
+    "base64": "MTAwNjQ0IGJsb2IgMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMQkvYQA="
+  },
+  {
+    "id": "dot",
+    "accept": false,
+    "base64": "MTAwNjQ0IGJsb2IgMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMQkuL2EA"
+  },
+  {
+    "id": "parent",
+    "accept": false,
+    "base64": "MTAwNjQ0IGJsb2IgMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMQkuLi9hAA=="
+  },
+  {
+    "id": "double-slash",
+    "accept": false,
+    "base64": "MTAwNjQ0IGJsb2IgMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMQlhLy9iAA=="
+  },
+  {
+    "id": "trailing-slash",
+    "accept": false,
+    "base64": "MTAwNjQ0IGJsb2IgMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMQlhLwA="
+  },
+  {
+    "id": "invalid-utf8",
+    "accept": false,
+    "base64": "MTAwNjQ0IGJsb2IgMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMQn/AA=="
+  },
+  {
+    "id": "overlong-utf8",
+    "accept": false,
+    "base64": "MTAwNjQ0IGJsb2IgMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMQnArwA="
+  },
+  {
+    "id": "surrogate-utf8",
+    "accept": false,
+    "base64": "MTAwNjQ0IGJsb2IgMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMQntoIAA"
+  },
+  {
+    "id": "duplicate",
+    "accept": false,
+    "base64": "MTAwNjQ0IGJsb2IgMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMQlhADEwMDY0NCBibG9iIDExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTEJYQA="
+  },
+  {
+    "id": "file-directory",
+    "accept": false,
+    "base64": "MTAwNjQ0IGJsb2IgMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMQlhADEwMDY0NCBibG9iIDExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTEJYS9iAA=="
+  },
+  {
+    "id": "directory-file",
+    "accept": false,
+    "base64": "MTAwNjQ0IGJsb2IgMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMQlhL2IAMTAwNjQ0IGJsb2IgMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMQlhAA=="
+  },
+  {
+    "id": "mode",
+    "accept": false,
+    "base64": "MTAwNjY0IGJsb2IgMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMQlhAA=="
+  },
+  {
+    "id": "type",
+    "accept": false,
+    "base64": "MTAwNjQ0IHRyZWUgMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMQlhAA=="
+  },
+  {
+    "id": "type-mode",
+    "accept": false,
+    "base64": "MTYwMDAwIGJsb2IgMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMQlhAA=="
+  },
+  {
+    "id": "missing-tab",
+    "accept": false,
+    "base64": "MTAwNjQ0IGJsb2IgMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMSBhAA=="
+  },
+  {
+    "id": "extra-header",
+    "accept": false,
+    "base64": "MTAwNjQ0IGJsb2IgMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMSBleHRyYQlhAA=="
+  },
+  {
+    "id": "uppercase-oid",
+    "accept": false,
+    "base64": "MTAwNjQ0IGJsb2IgQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQQlhAA=="
+  },
+  {
+    "id": "short-oid",
+    "accept": false,
+    "base64": "MTAwNjQ0IGJsb2IgMTIzCWEA"
+  },
+  {
+    "id": "embedded-nul",
+    "accept": false,
+    "base64": "MTAwNjQ0IGJsb2IgMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMQlhAGIA"
+  }
+]

@@ -1,0 +1,595 @@
+{
+  "classification": "raw inventory freeze only; NOT repaired authentication or controls",
+  "count": 50002,
+  "specialCount": 98,
+  "entries": [
+    {
+      "ordinal": 8876,
+      "pathBase64": "dGVzdHMvY29tbWFuZHMvZmlsZXN5c3RlbS1pbnNwZWN0aW9uLXN0cmVzcy90cmVlL2V2aWRlbmNlL2ZpbmFsLTQzNmJkYTMvaGFybmVzcy9kZXJpdmVkL25hdGl2ZS1maXh0dXJlcy9jb250cm9scy9iYWNrXHNsYXNo",
+      "pathUtf8": "tests/commands/filesystem-inspection-stress/tree/evidence/final-436bda3/harness/derived/native-fixtures/controls/back\\slash",
+      "header": "100644 blob 63d8dbd40c23542e740659a7168a0ce3138ea748"
+    },
+    {
+      "ordinal": 8877,
+      "pathBase64": "dGVzdHMvY29tbWFuZHMvZmlsZXN5c3RlbS1pbnNwZWN0aW9uLXN0cmVzcy90cmVlL2V2aWRlbmNlL2ZpbmFsLTQzNmJkYTMvaGFybmVzcy9kZXJpdmVkL25hdGl2ZS1maXh0dXJlcy9jb250cm9scy9jYXJyaWFnZQ1yZXR1cm4=",
+      "pathUtf8": "tests/commands/filesystem-inspection-stress/tree/evidence/final-436bda3/harness/derived/native-fixtures/controls/carriage\rreturn",
+      "header": "100644 blob 1d2f01491f783c8c7f0917cc68526c6307d80e39"
+    },
+    {
+      "ordinal": 8878,
+      "pathBase64": "dGVzdHMvY29tbWFuZHMvZmlsZXN5c3RlbS1pbnNwZWN0aW9uLXN0cmVzcy90cmVlL2V2aWRlbmNlL2ZpbmFsLTQzNmJkYTMvaGFybmVzcy9kZXJpdmVkL25hdGl2ZS1maXh0dXJlcy9jb250cm9scy9lc2NhcGUbWzMxbQ==",
+      "pathUtf8": "tests/commands/filesystem-inspection-stress/tree/evidence/final-436bda3/harness/derived/native-fixtures/controls/escape\u001b[31m",
+      "header": "100644 blob 9cbe6ea56f225388ae614c419249bfc6d734cc30"
+    },
+    {
+      "ordinal": 8879,
+      "pathBase64": "dGVzdHMvY29tbWFuZHMvZmlsZXN5c3RlbS1pbnNwZWN0aW9uLXN0cmVzcy90cmVlL2V2aWRlbmNlL2ZpbmFsLTQzNmJkYTMvaGFybmVzcy9kZXJpdmVkL25hdGl2ZS1maXh0dXJlcy9jb250cm9scy9saW5lCmJyZWFrLnR4dA==",
+      "pathUtf8": "tests/commands/filesystem-inspection-stress/tree/evidence/final-436bda3/harness/derived/native-fixtures/controls/line\nbreak.txt",
+      "header": "100644 blob ef073cc45ccc66c921adc7ccc6221e38aa54ae17"
+    },
+    {
+      "ordinal": 8880,
+      "pathBase64": "dGVzdHMvY29tbWFuZHMvZmlsZXN5c3RlbS1pbnNwZWN0aW9uLXN0cmVzcy90cmVlL2V2aWRlbmNlL2ZpbmFsLTQzNmJkYTMvaGFybmVzcy9kZXJpdmVkL25hdGl2ZS1maXh0dXJlcy9jb250cm9scy9xdW90ZSJuYW1l",
+      "pathUtf8": "tests/commands/filesystem-inspection-stress/tree/evidence/final-436bda3/harness/derived/native-fixtures/controls/quote\"name",
+      "header": "100644 blob ea0c8a85cb7293feae2c9e151d1d395be59b61fa"
+    },
+    {
+      "ordinal": 8881,
+      "pathBase64": "dGVzdHMvY29tbWFuZHMvZmlsZXN5c3RlbS1pbnNwZWN0aW9uLXN0cmVzcy90cmVlL2V2aWRlbmNlL2ZpbmFsLTQzNmJkYTMvaGFybmVzcy9kZXJpdmVkL25hdGl2ZS1maXh0dXJlcy9jb250cm9scy90YWIJbmFtZQ==",
+      "pathUtf8": "tests/commands/filesystem-inspection-stress/tree/evidence/final-436bda3/harness/derived/native-fixtures/controls/tab\tname",
+      "header": "100644 blob 32f64f4d836716819dc5fa9a1e09a29b428881df"
+    },
+    {
+      "ordinal": 8883,
+      "pathBase64": "dGVzdHMvY29tbWFuZHMvZmlsZXN5c3RlbS1pbnNwZWN0aW9uLXN0cmVzcy90cmVlL2V2aWRlbmNlL2ZpbmFsLTQzNmJkYTMvaGFybmVzcy9kZXJpdmVkL25hdGl2ZS1maXh0dXJlcy9jb250cm9scy/DqWNsYWlyLnR4dA==",
+      "pathUtf8": "tests/commands/filesystem-inspection-stress/tree/evidence/final-436bda3/harness/derived/native-fixtures/controls/éclair.txt",
+      "header": "100644 blob f3c6c3c68af484bd95bc7b7a38276c6c014d6aa3"
+    },
+    {
+      "ordinal": 8884,
+      "pathBase64": "dGVzdHMvY29tbWFuZHMvZmlsZXN5c3RlbS1pbnNwZWN0aW9uLXN0cmVzcy90cmVlL2V2aWRlbmNlL2ZpbmFsLTQzNmJkYTMvaGFybmVzcy9kZXJpdmVkL25hdGl2ZS1maXh0dXJlcy9jb250cm9scy/pm6oudHh0",
+      "pathUtf8": "tests/commands/filesystem-inspection-stress/tree/evidence/final-436bda3/harness/derived/native-fixtures/controls/雪.txt",
+      "header": "100644 blob f3c6c3c68af484bd95bc7b7a38276c6c014d6aa3"
+    },
+    {
+      "ordinal": 8885,
+      "pathBase64": "dGVzdHMvY29tbWFuZHMvZmlsZXN5c3RlbS1pbnNwZWN0aW9uLXN0cmVzcy90cmVlL2V2aWRlbmNlL2ZpbmFsLTQzNmJkYTMvaGFybmVzcy9kZXJpdmVkL25hdGl2ZS1maXh0dXJlcy9jb250cm9scy/wn5iALnR4dA==",
+      "pathUtf8": "tests/commands/filesystem-inspection-stress/tree/evidence/final-436bda3/harness/derived/native-fixtures/controls/😀.txt",
+      "header": "100644 blob f3c6c3c68af484bd95bc7b7a38276c6c014d6aa3"
+    },
+    {
+      "ordinal": 8896,
+      "pathBase64": "dGVzdHMvY29tbWFuZHMvZmlsZXN5c3RlbS1pbnNwZWN0aW9uLXN0cmVzcy90cmVlL2V2aWRlbmNlL2ZpbmFsLTQzNmJkYTMvaGFybmVzcy9kZXJpdmVkL25hdGl2ZS1maXh0dXJlcy93aWRlL2VudHJ5LTAwMC3pm6oudHh0",
+      "pathUtf8": "tests/commands/filesystem-inspection-stress/tree/evidence/final-436bda3/harness/derived/native-fixtures/wide/entry-000-雪.txt",
+      "header": "100644 blob c1b0730e0133447badcfd47fd144e254807b06e1"
+    },
+    {
+      "ordinal": 8897,
+      "pathBase64": "dGVzdHMvY29tbWFuZHMvZmlsZXN5c3RlbS1pbnNwZWN0aW9uLXN0cmVzcy90cmVlL2V2aWRlbmNlL2ZpbmFsLTQzNmJkYTMvaGFybmVzcy9kZXJpdmVkL25hdGl2ZS1maXh0dXJlcy93aWRlL2VudHJ5LTAwMS3pm6oudHh0",
+      "pathUtf8": "tests/commands/filesystem-inspection-stress/tree/evidence/final-436bda3/harness/derived/native-fixtures/wide/entry-001-雪.txt",
+      "header": "100644 blob c1b0730e0133447badcfd47fd144e254807b06e1"
+    },
+    {
+      "ordinal": 8898,
+      "pathBase64": "dGVzdHMvY29tbWFuZHMvZmlsZXN5c3RlbS1pbnNwZWN0aW9uLXN0cmVzcy90cmVlL2V2aWRlbmNlL2ZpbmFsLTQzNmJkYTMvaGFybmVzcy9kZXJpdmVkL25hdGl2ZS1maXh0dXJlcy93aWRlL2VudHJ5LTAwMi3pm6oudHh0",
+      "pathUtf8": "tests/commands/filesystem-inspection-stress/tree/evidence/final-436bda3/harness/derived/native-fixtures/wide/entry-002-雪.txt",
+      "header": "100644 blob c1b0730e0133447badcfd47fd144e254807b06e1"
+    },
+    {
+      "ordinal": 8899,
+      "pathBase64": "dGVzdHMvY29tbWFuZHMvZmlsZXN5c3RlbS1pbnNwZWN0aW9uLXN0cmVzcy90cmVlL2V2aWRlbmNlL2ZpbmFsLTQzNmJkYTMvaGFybmVzcy9kZXJpdmVkL25hdGl2ZS1maXh0dXJlcy93aWRlL2VudHJ5LTAwMy3pm6oudHh0",
+      "pathUtf8": "tests/commands/filesystem-inspection-stress/tree/evidence/final-436bda3/harness/derived/native-fixtures/wide/entry-003-雪.txt",
+      "header": "100644 blob c1b0730e0133447badcfd47fd144e254807b06e1"
+    },
+    {
+      "ordinal": 8900,
+      "pathBase64": "dGVzdHMvY29tbWFuZHMvZmlsZXN5c3RlbS1pbnNwZWN0aW9uLXN0cmVzcy90cmVlL2V2aWRlbmNlL2ZpbmFsLTQzNmJkYTMvaGFybmVzcy9kZXJpdmVkL25hdGl2ZS1maXh0dXJlcy93aWRlL2VudHJ5LTAwNC3pm6oudHh0",
+      "pathUtf8": "tests/commands/filesystem-inspection-stress/tree/evidence/final-436bda3/harness/derived/native-fixtures/wide/entry-004-雪.txt",
+      "header": "100644 blob c1b0730e0133447badcfd47fd144e254807b06e1"
+    },
+    {
+      "ordinal": 8901,
+      "pathBase64": "dGVzdHMvY29tbWFuZHMvZmlsZXN5c3RlbS1pbnNwZWN0aW9uLXN0cmVzcy90cmVlL2V2aWRlbmNlL2ZpbmFsLTQzNmJkYTMvaGFybmVzcy9kZXJpdmVkL25hdGl2ZS1maXh0dXJlcy93aWRlL2VudHJ5LTAwNS3pm6oudHh0",
+      "pathUtf8": "tests/commands/filesystem-inspection-stress/tree/evidence/final-436bda3/harness/derived/native-fixtures/wide/entry-005-雪.txt",
+      "header": "100644 blob c1b0730e0133447badcfd47fd144e254807b06e1"
+    },
+    {
+      "ordinal": 8902,
+      "pathBase64": "dGVzdHMvY29tbWFuZHMvZmlsZXN5c3RlbS1pbnNwZWN0aW9uLXN0cmVzcy90cmVlL2V2aWRlbmNlL2ZpbmFsLTQzNmJkYTMvaGFybmVzcy9kZXJpdmVkL25hdGl2ZS1maXh0dXJlcy93aWRlL2VudHJ5LTAwNi3pm6oudHh0",
+      "pathUtf8": "tests/commands/filesystem-inspection-stress/tree/evidence/final-436bda3/harness/derived/native-fixtures/wide/entry-006-雪.txt",
+      "header": "100644 blob c1b0730e0133447badcfd47fd144e254807b06e1"
+    },
+    {
+      "ordinal": 8903,
+      "pathBase64": "dGVzdHMvY29tbWFuZHMvZmlsZXN5c3RlbS1pbnNwZWN0aW9uLXN0cmVzcy90cmVlL2V2aWRlbmNlL2ZpbmFsLTQzNmJkYTMvaGFybmVzcy9kZXJpdmVkL25hdGl2ZS1maXh0dXJlcy93aWRlL2VudHJ5LTAwNy3pm6oudHh0",
+      "pathUtf8": "tests/commands/filesystem-inspection-stress/tree/evidence/final-436bda3/harness/derived/native-fixtures/wide/entry-007-雪.txt",
+      "header": "100644 blob c1b0730e0133447badcfd47fd144e254807b06e1"
+    },
+    {
+      "ordinal": 8904,
+      "pathBase64": "dGVzdHMvY29tbWFuZHMvZmlsZXN5c3RlbS1pbnNwZWN0aW9uLXN0cmVzcy90cmVlL2V2aWRlbmNlL2ZpbmFsLTQzNmJkYTMvaGFybmVzcy9kZXJpdmVkL25hdGl2ZS1maXh0dXJlcy93aWRlL2VudHJ5LTAwOC3pm6oudHh0",
+      "pathUtf8": "tests/commands/filesystem-inspection-stress/tree/evidence/final-436bda3/harness/derived/native-fixtures/wide/entry-008-雪.txt",
+      "header": "100644 blob c1b0730e0133447badcfd47fd144e254807b06e1"
+    },
+    {
+      "ordinal": 8905,
+      "pathBase64": "dGVzdHMvY29tbWFuZHMvZmlsZXN5c3RlbS1pbnNwZWN0aW9uLXN0cmVzcy90cmVlL2V2aWRlbmNlL2ZpbmFsLTQzNmJkYTMvaGFybmVzcy9kZXJpdmVkL25hdGl2ZS1maXh0dXJlcy93aWRlL2VudHJ5LTAwOS3pm6oudHh0",
+      "pathUtf8": "tests/commands/filesystem-inspection-stress/tree/evidence/final-436bda3/harness/derived/native-fixtures/wide/entry-009-雪.txt",
+      "header": "100644 blob c1b0730e0133447badcfd47fd144e254807b06e1"
+    },
+    {
+      "ordinal": 8906,
+      "pathBase64": "dGVzdHMvY29tbWFuZHMvZmlsZXN5c3RlbS1pbnNwZWN0aW9uLXN0cmVzcy90cmVlL2V2aWRlbmNlL2ZpbmFsLTQzNmJkYTMvaGFybmVzcy9kZXJpdmVkL25hdGl2ZS1maXh0dXJlcy93aWRlL2VudHJ5LTAxMC3pm6oudHh0",
+      "pathUtf8": "tests/commands/filesystem-inspection-stress/tree/evidence/final-436bda3/harness/derived/native-fixtures/wide/entry-010-雪.txt",
+      "header": "100644 blob c1b0730e0133447badcfd47fd144e254807b06e1"
+    },
+    {
+      "ordinal": 8907,
+      "pathBase64": "dGVzdHMvY29tbWFuZHMvZmlsZXN5c3RlbS1pbnNwZWN0aW9uLXN0cmVzcy90cmVlL2V2aWRlbmNlL2ZpbmFsLTQzNmJkYTMvaGFybmVzcy9kZXJpdmVkL25hdGl2ZS1maXh0dXJlcy93aWRlL2VudHJ5LTAxMS3pm6oudHh0",
+      "pathUtf8": "tests/commands/filesystem-inspection-stress/tree/evidence/final-436bda3/harness/derived/native-fixtures/wide/entry-011-雪.txt",
+      "header": "100644 blob c1b0730e0133447badcfd47fd144e254807b06e1"
+    },
+    {
+      "ordinal": 8908,
+      "pathBase64": "dGVzdHMvY29tbWFuZHMvZmlsZXN5c3RlbS1pbnNwZWN0aW9uLXN0cmVzcy90cmVlL2V2aWRlbmNlL2ZpbmFsLTQzNmJkYTMvaGFybmVzcy9kZXJpdmVkL25hdGl2ZS1maXh0dXJlcy93aWRlL2VudHJ5LTAxMi3pm6oudHh0",
+      "pathUtf8": "tests/commands/filesystem-inspection-stress/tree/evidence/final-436bda3/harness/derived/native-fixtures/wide/entry-012-雪.txt",
+      "header": "100644 blob c1b0730e0133447badcfd47fd144e254807b06e1"
+    },
+    {
+      "ordinal": 8909,
+      "pathBase64": "dGVzdHMvY29tbWFuZHMvZmlsZXN5c3RlbS1pbnNwZWN0aW9uLXN0cmVzcy90cmVlL2V2aWRlbmNlL2ZpbmFsLTQzNmJkYTMvaGFybmVzcy9kZXJpdmVkL25hdGl2ZS1maXh0dXJlcy93aWRlL2VudHJ5LTAxMy3pm6oudHh0",
+      "pathUtf8": "tests/commands/filesystem-inspection-stress/tree/evidence/final-436bda3/harness/derived/native-fixtures/wide/entry-013-雪.txt",
+      "header": "100644 blob c1b0730e0133447badcfd47fd144e254807b06e1"
+    },
+    {
+      "ordinal": 8910,
+      "pathBase64": "dGVzdHMvY29tbWFuZHMvZmlsZXN5c3RlbS1pbnNwZWN0aW9uLXN0cmVzcy90cmVlL2V2aWRlbmNlL2ZpbmFsLTQzNmJkYTMvaGFybmVzcy9kZXJpdmVkL25hdGl2ZS1maXh0dXJlcy93aWRlL2VudHJ5LTAxNC3pm6oudHh0",
+      "pathUtf8": "tests/commands/filesystem-inspection-stress/tree/evidence/final-436bda3/harness/derived/native-fixtures/wide/entry-014-雪.txt",
+      "header": "100644 blob c1b0730e0133447badcfd47fd144e254807b06e1"
+    },
+    {
+      "ordinal": 8911,
+      "pathBase64": "dGVzdHMvY29tbWFuZHMvZmlsZXN5c3RlbS1pbnNwZWN0aW9uLXN0cmVzcy90cmVlL2V2aWRlbmNlL2ZpbmFsLTQzNmJkYTMvaGFybmVzcy9kZXJpdmVkL25hdGl2ZS1maXh0dXJlcy93aWRlL2VudHJ5LTAxNS3pm6oudHh0",
+      "pathUtf8": "tests/commands/filesystem-inspection-stress/tree/evidence/final-436bda3/harness/derived/native-fixtures/wide/entry-015-雪.txt",
+      "header": "100644 blob c1b0730e0133447badcfd47fd144e254807b06e1"
+    },
+    {
+      "ordinal": 8912,
+      "pathBase64": "dGVzdHMvY29tbWFuZHMvZmlsZXN5c3RlbS1pbnNwZWN0aW9uLXN0cmVzcy90cmVlL2V2aWRlbmNlL2ZpbmFsLTQzNmJkYTMvaGFybmVzcy9kZXJpdmVkL25hdGl2ZS1maXh0dXJlcy93aWRlL2VudHJ5LTAxNi3pm6oudHh0",
+      "pathUtf8": "tests/commands/filesystem-inspection-stress/tree/evidence/final-436bda3/harness/derived/native-fixtures/wide/entry-016-雪.txt",
+      "header": "100644 blob c1b0730e0133447badcfd47fd144e254807b06e1"
+    },
+    {
+      "ordinal": 8913,
+      "pathBase64": "dGVzdHMvY29tbWFuZHMvZmlsZXN5c3RlbS1pbnNwZWN0aW9uLXN0cmVzcy90cmVlL2V2aWRlbmNlL2ZpbmFsLTQzNmJkYTMvaGFybmVzcy9kZXJpdmVkL25hdGl2ZS1maXh0dXJlcy93aWRlL2VudHJ5LTAxNy3pm6oudHh0",
+      "pathUtf8": "tests/commands/filesystem-inspection-stress/tree/evidence/final-436bda3/harness/derived/native-fixtures/wide/entry-017-雪.txt",
+      "header": "100644 blob c1b0730e0133447badcfd47fd144e254807b06e1"
+    },
+    {
+      "ordinal": 8914,
+      "pathBase64": "dGVzdHMvY29tbWFuZHMvZmlsZXN5c3RlbS1pbnNwZWN0aW9uLXN0cmVzcy90cmVlL2V2aWRlbmNlL2ZpbmFsLTQzNmJkYTMvaGFybmVzcy9kZXJpdmVkL25hdGl2ZS1maXh0dXJlcy93aWRlL2VudHJ5LTAxOC3pm6oudHh0",
+      "pathUtf8": "tests/commands/filesystem-inspection-stress/tree/evidence/final-436bda3/harness/derived/native-fixtures/wide/entry-018-雪.txt",
+      "header": "100644 blob c1b0730e0133447badcfd47fd144e254807b06e1"
+    },
+    {
+      "ordinal": 8915,
+      "pathBase64": "dGVzdHMvY29tbWFuZHMvZmlsZXN5c3RlbS1pbnNwZWN0aW9uLXN0cmVzcy90cmVlL2V2aWRlbmNlL2ZpbmFsLTQzNmJkYTMvaGFybmVzcy9kZXJpdmVkL25hdGl2ZS1maXh0dXJlcy93aWRlL2VudHJ5LTAxOS3pm6oudHh0",
+      "pathUtf8": "tests/commands/filesystem-inspection-stress/tree/evidence/final-436bda3/harness/derived/native-fixtures/wide/entry-019-雪.txt",
+      "header": "100644 blob c1b0730e0133447badcfd47fd144e254807b06e1"
+    },
+    {
+      "ordinal": 8916,
+      "pathBase64": "dGVzdHMvY29tbWFuZHMvZmlsZXN5c3RlbS1pbnNwZWN0aW9uLXN0cmVzcy90cmVlL2V2aWRlbmNlL2ZpbmFsLTQzNmJkYTMvaGFybmVzcy9kZXJpdmVkL25hdGl2ZS1maXh0dXJlcy93aWRlL2VudHJ5LTAyMC3pm6oudHh0",
+      "pathUtf8": "tests/commands/filesystem-inspection-stress/tree/evidence/final-436bda3/harness/derived/native-fixtures/wide/entry-020-雪.txt",
+      "header": "100644 blob c1b0730e0133447badcfd47fd144e254807b06e1"
+    },
+    {
+      "ordinal": 8917,
+      "pathBase64": "dGVzdHMvY29tbWFuZHMvZmlsZXN5c3RlbS1pbnNwZWN0aW9uLXN0cmVzcy90cmVlL2V2aWRlbmNlL2ZpbmFsLTQzNmJkYTMvaGFybmVzcy9kZXJpdmVkL25hdGl2ZS1maXh0dXJlcy93aWRlL2VudHJ5LTAyMS3pm6oudHh0",
+      "pathUtf8": "tests/commands/filesystem-inspection-stress/tree/evidence/final-436bda3/harness/derived/native-fixtures/wide/entry-021-雪.txt",
+      "header": "100644 blob c1b0730e0133447badcfd47fd144e254807b06e1"
+    },
+    {
+      "ordinal": 8918,
+      "pathBase64": "dGVzdHMvY29tbWFuZHMvZmlsZXN5c3RlbS1pbnNwZWN0aW9uLXN0cmVzcy90cmVlL2V2aWRlbmNlL2ZpbmFsLTQzNmJkYTMvaGFybmVzcy9kZXJpdmVkL25hdGl2ZS1maXh0dXJlcy93aWRlL2VudHJ5LTAyMi3pm6oudHh0",
+      "pathUtf8": "tests/commands/filesystem-inspection-stress/tree/evidence/final-436bda3/harness/derived/native-fixtures/wide/entry-022-雪.txt",
+      "header": "100644 blob c1b0730e0133447badcfd47fd144e254807b06e1"
+    },
+    {
+      "ordinal": 8919,
+      "pathBase64": "dGVzdHMvY29tbWFuZHMvZmlsZXN5c3RlbS1pbnNwZWN0aW9uLXN0cmVzcy90cmVlL2V2aWRlbmNlL2ZpbmFsLTQzNmJkYTMvaGFybmVzcy9kZXJpdmVkL25hdGl2ZS1maXh0dXJlcy93aWRlL2VudHJ5LTAyMy3pm6oudHh0",
+      "pathUtf8": "tests/commands/filesystem-inspection-stress/tree/evidence/final-436bda3/harness/derived/native-fixtures/wide/entry-023-雪.txt",
+      "header": "100644 blob c1b0730e0133447badcfd47fd144e254807b06e1"
+    },
+    {
+      "ordinal": 8920,
+      "pathBase64": "dGVzdHMvY29tbWFuZHMvZmlsZXN5c3RlbS1pbnNwZWN0aW9uLXN0cmVzcy90cmVlL2V2aWRlbmNlL2ZpbmFsLTQzNmJkYTMvaGFybmVzcy9kZXJpdmVkL25hdGl2ZS1maXh0dXJlcy93aWRlL2VudHJ5LTAyNC3pm6oudHh0",
+      "pathUtf8": "tests/commands/filesystem-inspection-stress/tree/evidence/final-436bda3/harness/derived/native-fixtures/wide/entry-024-雪.txt",
+      "header": "100644 blob c1b0730e0133447badcfd47fd144e254807b06e1"
+    },
+    {
+      "ordinal": 8921,
+      "pathBase64": "dGVzdHMvY29tbWFuZHMvZmlsZXN5c3RlbS1pbnNwZWN0aW9uLXN0cmVzcy90cmVlL2V2aWRlbmNlL2ZpbmFsLTQzNmJkYTMvaGFybmVzcy9kZXJpdmVkL25hdGl2ZS1maXh0dXJlcy93aWRlL2VudHJ5LTAyNS3pm6oudHh0",
+      "pathUtf8": "tests/commands/filesystem-inspection-stress/tree/evidence/final-436bda3/harness/derived/native-fixtures/wide/entry-025-雪.txt",
+      "header": "100644 blob c1b0730e0133447badcfd47fd144e254807b06e1"
+    },
+    {
+      "ordinal": 8922,
+      "pathBase64": "dGVzdHMvY29tbWFuZHMvZmlsZXN5c3RlbS1pbnNwZWN0aW9uLXN0cmVzcy90cmVlL2V2aWRlbmNlL2ZpbmFsLTQzNmJkYTMvaGFybmVzcy9kZXJpdmVkL25hdGl2ZS1maXh0dXJlcy93aWRlL2VudHJ5LTAyNi3pm6oudHh0",
+      "pathUtf8": "tests/commands/filesystem-inspection-stress/tree/evidence/final-436bda3/harness/derived/native-fixtures/wide/entry-026-雪.txt",
+      "header": "100644 blob c1b0730e0133447badcfd47fd144e254807b06e1"
+    },
+    {
+      "ordinal": 8923,
+      "pathBase64": "dGVzdHMvY29tbWFuZHMvZmlsZXN5c3RlbS1pbnNwZWN0aW9uLXN0cmVzcy90cmVlL2V2aWRlbmNlL2ZpbmFsLTQzNmJkYTMvaGFybmVzcy9kZXJpdmVkL25hdGl2ZS1maXh0dXJlcy93aWRlL2VudHJ5LTAyNy3pm6oudHh0",
+      "pathUtf8": "tests/commands/filesystem-inspection-stress/tree/evidence/final-436bda3/harness/derived/native-fixtures/wide/entry-027-雪.txt",
+      "header": "100644 blob c1b0730e0133447badcfd47fd144e254807b06e1"
+    },
+    {
+      "ordinal": 8924,
+      "pathBase64": "dGVzdHMvY29tbWFuZHMvZmlsZXN5c3RlbS1pbnNwZWN0aW9uLXN0cmVzcy90cmVlL2V2aWRlbmNlL2ZpbmFsLTQzNmJkYTMvaGFybmVzcy9kZXJpdmVkL25hdGl2ZS1maXh0dXJlcy93aWRlL2VudHJ5LTAyOC3pm6oudHh0",
+      "pathUtf8": "tests/commands/filesystem-inspection-stress/tree/evidence/final-436bda3/harness/derived/native-fixtures/wide/entry-028-雪.txt",
+      "header": "100644 blob c1b0730e0133447badcfd47fd144e254807b06e1"
+    },
+    {
+      "ordinal": 8925,
+      "pathBase64": "dGVzdHMvY29tbWFuZHMvZmlsZXN5c3RlbS1pbnNwZWN0aW9uLXN0cmVzcy90cmVlL2V2aWRlbmNlL2ZpbmFsLTQzNmJkYTMvaGFybmVzcy9kZXJpdmVkL25hdGl2ZS1maXh0dXJlcy93aWRlL2VudHJ5LTAyOS3pm6oudHh0",
+      "pathUtf8": "tests/commands/filesystem-inspection-stress/tree/evidence/final-436bda3/harness/derived/native-fixtures/wide/entry-029-雪.txt",
+      "header": "100644 blob c1b0730e0133447badcfd47fd144e254807b06e1"
+    },
+    {
+      "ordinal": 8926,
+      "pathBase64": "dGVzdHMvY29tbWFuZHMvZmlsZXN5c3RlbS1pbnNwZWN0aW9uLXN0cmVzcy90cmVlL2V2aWRlbmNlL2ZpbmFsLTQzNmJkYTMvaGFybmVzcy9kZXJpdmVkL25hdGl2ZS1maXh0dXJlcy93aWRlL2VudHJ5LTAzMC3pm6oudHh0",
+      "pathUtf8": "tests/commands/filesystem-inspection-stress/tree/evidence/final-436bda3/harness/derived/native-fixtures/wide/entry-030-雪.txt",
+      "header": "100644 blob c1b0730e0133447badcfd47fd144e254807b06e1"
+    },
+    {
+      "ordinal": 8927,
+      "pathBase64": "dGVzdHMvY29tbWFuZHMvZmlsZXN5c3RlbS1pbnNwZWN0aW9uLXN0cmVzcy90cmVlL2V2aWRlbmNlL2ZpbmFsLTQzNmJkYTMvaGFybmVzcy9kZXJpdmVkL25hdGl2ZS1maXh0dXJlcy93aWRlL2VudHJ5LTAzMS3pm6oudHh0",
+      "pathUtf8": "tests/commands/filesystem-inspection-stress/tree/evidence/final-436bda3/harness/derived/native-fixtures/wide/entry-031-雪.txt",
+      "header": "100644 blob c1b0730e0133447badcfd47fd144e254807b06e1"
+    },
+    {
+      "ordinal": 8928,
+      "pathBase64": "dGVzdHMvY29tbWFuZHMvZmlsZXN5c3RlbS1pbnNwZWN0aW9uLXN0cmVzcy90cmVlL2V2aWRlbmNlL2ZpbmFsLTQzNmJkYTMvaGFybmVzcy9kZXJpdmVkL25hdGl2ZS1maXh0dXJlcy93aWRlL2VudHJ5LTAzMi3pm6oudHh0",
+      "pathUtf8": "tests/commands/filesystem-inspection-stress/tree/evidence/final-436bda3/harness/derived/native-fixtures/wide/entry-032-雪.txt",
+      "header": "100644 blob c1b0730e0133447badcfd47fd144e254807b06e1"
+    },
+    {
+      "ordinal": 8929,
+      "pathBase64": "dGVzdHMvY29tbWFuZHMvZmlsZXN5c3RlbS1pbnNwZWN0aW9uLXN0cmVzcy90cmVlL2V2aWRlbmNlL2ZpbmFsLTQzNmJkYTMvaGFybmVzcy9kZXJpdmVkL25hdGl2ZS1maXh0dXJlcy93aWRlL2VudHJ5LTAzMy3pm6oudHh0",
+      "pathUtf8": "tests/commands/filesystem-inspection-stress/tree/evidence/final-436bda3/harness/derived/native-fixtures/wide/entry-033-雪.txt",
+      "header": "100644 blob c1b0730e0133447badcfd47fd144e254807b06e1"
+    },
+    {
+      "ordinal": 8930,
+      "pathBase64": "dGVzdHMvY29tbWFuZHMvZmlsZXN5c3RlbS1pbnNwZWN0aW9uLXN0cmVzcy90cmVlL2V2aWRlbmNlL2ZpbmFsLTQzNmJkYTMvaGFybmVzcy9kZXJpdmVkL25hdGl2ZS1maXh0dXJlcy93aWRlL2VudHJ5LTAzNC3pm6oudHh0",
+      "pathUtf8": "tests/commands/filesystem-inspection-stress/tree/evidence/final-436bda3/harness/derived/native-fixtures/wide/entry-034-雪.txt",
+      "header": "100644 blob c1b0730e0133447badcfd47fd144e254807b06e1"
+    },
+    {
+      "ordinal": 8931,
+      "pathBase64": "dGVzdHMvY29tbWFuZHMvZmlsZXN5c3RlbS1pbnNwZWN0aW9uLXN0cmVzcy90cmVlL2V2aWRlbmNlL2ZpbmFsLTQzNmJkYTMvaGFybmVzcy9kZXJpdmVkL25hdGl2ZS1maXh0dXJlcy93aWRlL2VudHJ5LTAzNS3pm6oudHh0",
+      "pathUtf8": "tests/commands/filesystem-inspection-stress/tree/evidence/final-436bda3/harness/derived/native-fixtures/wide/entry-035-雪.txt",
+      "header": "100644 blob c1b0730e0133447badcfd47fd144e254807b06e1"
+    },
+    {
+      "ordinal": 8932,
+      "pathBase64": "dGVzdHMvY29tbWFuZHMvZmlsZXN5c3RlbS1pbnNwZWN0aW9uLXN0cmVzcy90cmVlL2V2aWRlbmNlL2ZpbmFsLTQzNmJkYTMvaGFybmVzcy9kZXJpdmVkL25hdGl2ZS1maXh0dXJlcy93aWRlL2VudHJ5LTAzNi3pm6oudHh0",
+      "pathUtf8": "tests/commands/filesystem-inspection-stress/tree/evidence/final-436bda3/harness/derived/native-fixtures/wide/entry-036-雪.txt",
+      "header": "100644 blob c1b0730e0133447badcfd47fd144e254807b06e1"
+    },
+    {
+      "ordinal": 8933,
+      "pathBase64": "dGVzdHMvY29tbWFuZHMvZmlsZXN5c3RlbS1pbnNwZWN0aW9uLXN0cmVzcy90cmVlL2V2aWRlbmNlL2ZpbmFsLTQzNmJkYTMvaGFybmVzcy9kZXJpdmVkL25hdGl2ZS1maXh0dXJlcy93aWRlL2VudHJ5LTAzNy3pm6oudHh0",
+      "pathUtf8": "tests/commands/filesystem-inspection-stress/tree/evidence/final-436bda3/harness/derived/native-fixtures/wide/entry-037-雪.txt",
+      "header": "100644 blob c1b0730e0133447badcfd47fd144e254807b06e1"
+    },
+    {
+      "ordinal": 8934,
+      "pathBase64": "dGVzdHMvY29tbWFuZHMvZmlsZXN5c3RlbS1pbnNwZWN0aW9uLXN0cmVzcy90cmVlL2V2aWRlbmNlL2ZpbmFsLTQzNmJkYTMvaGFybmVzcy9kZXJpdmVkL25hdGl2ZS1maXh0dXJlcy93aWRlL2VudHJ5LTAzOC3pm6oudHh0",
+      "pathUtf8": "tests/commands/filesystem-inspection-stress/tree/evidence/final-436bda3/harness/derived/native-fixtures/wide/entry-038-雪.txt",
+      "header": "100644 blob c1b0730e0133447badcfd47fd144e254807b06e1"
+    },
+    {
+      "ordinal": 8935,
+      "pathBase64": "dGVzdHMvY29tbWFuZHMvZmlsZXN5c3RlbS1pbnNwZWN0aW9uLXN0cmVzcy90cmVlL2V2aWRlbmNlL2ZpbmFsLTQzNmJkYTMvaGFybmVzcy9kZXJpdmVkL25hdGl2ZS1maXh0dXJlcy93aWRlL2VudHJ5LTAzOS3pm6oudHh0",
+      "pathUtf8": "tests/commands/filesystem-inspection-stress/tree/evidence/final-436bda3/harness/derived/native-fixtures/wide/entry-039-雪.txt",
+      "header": "100644 blob c1b0730e0133447badcfd47fd144e254807b06e1"
+    },
+    {
+      "ordinal": 9421,
+      "pathBase64": "dGVzdHMvY29tbWFuZHMvZmlsZXN5c3RlbS1pbnNwZWN0aW9uLXN0cmVzcy90cmVlL3NlYWxlZC9uYXRpdmUtZml4dHVyZXMvY29udHJvbHMvYmFja1xzbGFzaA==",
+      "pathUtf8": "tests/commands/filesystem-inspection-stress/tree/sealed/native-fixtures/controls/back\\slash",
+      "header": "100644 blob 63d8dbd40c23542e740659a7168a0ce3138ea748"
+    },
+    {
+      "ordinal": 9422,
+      "pathBase64": "dGVzdHMvY29tbWFuZHMvZmlsZXN5c3RlbS1pbnNwZWN0aW9uLXN0cmVzcy90cmVlL3NlYWxlZC9uYXRpdmUtZml4dHVyZXMvY29udHJvbHMvY2FycmlhZ2UNcmV0dXJu",
+      "pathUtf8": "tests/commands/filesystem-inspection-stress/tree/sealed/native-fixtures/controls/carriage\rreturn",
+      "header": "100644 blob 1d2f01491f783c8c7f0917cc68526c6307d80e39"
+    },
+    {
+      "ordinal": 9423,
+      "pathBase64": "dGVzdHMvY29tbWFuZHMvZmlsZXN5c3RlbS1pbnNwZWN0aW9uLXN0cmVzcy90cmVlL3NlYWxlZC9uYXRpdmUtZml4dHVyZXMvY29udHJvbHMvZXNjYXBlG1szMW0=",
+      "pathUtf8": "tests/commands/filesystem-inspection-stress/tree/sealed/native-fixtures/controls/escape\u001b[31m",
+      "header": "100644 blob 9cbe6ea56f225388ae614c419249bfc6d734cc30"
+    },
+    {
+      "ordinal": 9424,
+      "pathBase64": "dGVzdHMvY29tbWFuZHMvZmlsZXN5c3RlbS1pbnNwZWN0aW9uLXN0cmVzcy90cmVlL3NlYWxlZC9uYXRpdmUtZml4dHVyZXMvY29udHJvbHMvbGluZQpicmVhay50eHQ=",
+      "pathUtf8": "tests/commands/filesystem-inspection-stress/tree/sealed/native-fixtures/controls/line\nbreak.txt",
+      "header": "100644 blob ef073cc45ccc66c921adc7ccc6221e38aa54ae17"
+    },
+    {
+      "ordinal": 9425,
+      "pathBase64": "dGVzdHMvY29tbWFuZHMvZmlsZXN5c3RlbS1pbnNwZWN0aW9uLXN0cmVzcy90cmVlL3NlYWxlZC9uYXRpdmUtZml4dHVyZXMvY29udHJvbHMvcXVvdGUibmFtZQ==",
+      "pathUtf8": "tests/commands/filesystem-inspection-stress/tree/sealed/native-fixtures/controls/quote\"name",
+      "header": "100644 blob ea0c8a85cb7293feae2c9e151d1d395be59b61fa"
+    },
+    {
+      "ordinal": 9426,
+      "pathBase64": "dGVzdHMvY29tbWFuZHMvZmlsZXN5c3RlbS1pbnNwZWN0aW9uLXN0cmVzcy90cmVlL3NlYWxlZC9uYXRpdmUtZml4dHVyZXMvY29udHJvbHMvdGFiCW5hbWU=",
+      "pathUtf8": "tests/commands/filesystem-inspection-stress/tree/sealed/native-fixtures/controls/tab\tname",
+      "header": "100644 blob 32f64f4d836716819dc5fa9a1e09a29b428881df"
+    },
+    {
+      "ordinal": 9428,
+      "pathBase64": "dGVzdHMvY29tbWFuZHMvZmlsZXN5c3RlbS1pbnNwZWN0aW9uLXN0cmVzcy90cmVlL3NlYWxlZC9uYXRpdmUtZml4dHVyZXMvY29udHJvbHMvw6ljbGFpci50eHQ=",
+      "pathUtf8": "tests/commands/filesystem-inspection-stress/tree/sealed/native-fixtures/controls/éclair.txt",
+      "header": "100644 blob f3c6c3c68af484bd95bc7b7a38276c6c014d6aa3"
+    },
+    {
+      "ordinal": 9429,
+      "pathBase64": "dGVzdHMvY29tbWFuZHMvZmlsZXN5c3RlbS1pbnNwZWN0aW9uLXN0cmVzcy90cmVlL3NlYWxlZC9uYXRpdmUtZml4dHVyZXMvY29udHJvbHMv6ZuqLnR4dA==",
+      "pathUtf8": "tests/commands/filesystem-inspection-stress/tree/sealed/native-fixtures/controls/雪.txt",
+      "header": "100644 blob f3c6c3c68af484bd95bc7b7a38276c6c014d6aa3"
+    },
+    {
+      "ordinal": 9430,
+      "pathBase64": "dGVzdHMvY29tbWFuZHMvZmlsZXN5c3RlbS1pbnNwZWN0aW9uLXN0cmVzcy90cmVlL3NlYWxlZC9uYXRpdmUtZml4dHVyZXMvY29udHJvbHMv8J+YgC50eHQ=",
+      "pathUtf8": "tests/commands/filesystem-inspection-stress/tree/sealed/native-fixtures/controls/😀.txt",
+      "header": "100644 blob f3c6c3c68af484bd95bc7b7a38276c6c014d6aa3"
+    },
+    {
+      "ordinal": 9441,
+      "pathBase64": "dGVzdHMvY29tbWFuZHMvZmlsZXN5c3RlbS1pbnNwZWN0aW9uLXN0cmVzcy90cmVlL3NlYWxlZC9uYXRpdmUtZml4dHVyZXMvd2lkZS9lbnRyeS0wMDAt6ZuqLnR4dA==",
+      "pathUtf8": "tests/commands/filesystem-inspection-stress/tree/sealed/native-fixtures/wide/entry-000-雪.txt",
+      "header": "100644 blob c1b0730e0133447badcfd47fd144e254807b06e1"
+    },
+    {
+      "ordinal": 9442,
+      "pathBase64": "dGVzdHMvY29tbWFuZHMvZmlsZXN5c3RlbS1pbnNwZWN0aW9uLXN0cmVzcy90cmVlL3NlYWxlZC9uYXRpdmUtZml4dHVyZXMvd2lkZS9lbnRyeS0wMDEt6ZuqLnR4dA==",
+      "pathUtf8": "tests/commands/filesystem-inspection-stress/tree/sealed/native-fixtures/wide/entry-001-雪.txt",
+      "header": "100644 blob c1b0730e0133447badcfd47fd144e254807b06e1"
+    },
+    {
+      "ordinal": 9443,
+      "pathBase64": "dGVzdHMvY29tbWFuZHMvZmlsZXN5c3RlbS1pbnNwZWN0aW9uLXN0cmVzcy90cmVlL3NlYWxlZC9uYXRpdmUtZml4dHVyZXMvd2lkZS9lbnRyeS0wMDIt6ZuqLnR4dA==",
+      "pathUtf8": "tests/commands/filesystem-inspection-stress/tree/sealed/native-fixtures/wide/entry-002-雪.txt",
+      "header": "100644 blob c1b0730e0133447badcfd47fd144e254807b06e1"
+    },
+    {
+      "ordinal": 9444,
+      "pathBase64": "dGVzdHMvY29tbWFuZHMvZmlsZXN5c3RlbS1pbnNwZWN0aW9uLXN0cmVzcy90cmVlL3NlYWxlZC9uYXRpdmUtZml4dHVyZXMvd2lkZS9lbnRyeS0wMDMt6ZuqLnR4dA==",
+      "pathUtf8": "tests/commands/filesystem-inspection-stress/tree/sealed/native-fixtures/wide/entry-003-雪.txt",
+      "header": "100644 blob c1b0730e0133447badcfd47fd144e254807b06e1"
+    },
+    {
+      "ordinal": 9445,
+      "pathBase64": "dGVzdHMvY29tbWFuZHMvZmlsZXN5c3RlbS1pbnNwZWN0aW9uLXN0cmVzcy90cmVlL3NlYWxlZC9uYXRpdmUtZml4dHVyZXMvd2lkZS9lbnRyeS0wMDQt6ZuqLnR4dA==",
+      "pathUtf8": "tests/commands/filesystem-inspection-stress/tree/sealed/native-fixtures/wide/entry-004-雪.txt",
+      "header": "100644 blob c1b0730e0133447badcfd47fd144e254807b06e1"
+    },
+    {
+      "ordinal": 9446,
+      "pathBase64": "dGVzdHMvY29tbWFuZHMvZmlsZXN5c3RlbS1pbnNwZWN0aW9uLXN0cmVzcy90cmVlL3NlYWxlZC9uYXRpdmUtZml4dHVyZXMvd2lkZS9lbnRyeS0wMDUt6ZuqLnR4dA==",
+      "pathUtf8": "tests/commands/filesystem-inspection-stress/tree/sealed/native-fixtures/wide/entry-005-雪.txt",
+      "header": "100644 blob c1b0730e0133447badcfd47fd144e254807b06e1"
+    },
+    {
+      "ordinal": 9447,
+      "pathBase64": "dGVzdHMvY29tbWFuZHMvZmlsZXN5c3RlbS1pbnNwZWN0aW9uLXN0cmVzcy90cmVlL3NlYWxlZC9uYXRpdmUtZml4dHVyZXMvd2lkZS9lbnRyeS0wMDYt6ZuqLnR4dA==",
+      "pathUtf8": "tests/commands/filesystem-inspection-stress/tree/sealed/native-fixtures/wide/entry-006-雪.txt",
+      "header": "100644 blob c1b0730e0133447badcfd47fd144e254807b06e1"
+    },
+    {
+      "ordinal": 9448,
+      "pathBase64": "dGVzdHMvY29tbWFuZHMvZmlsZXN5c3RlbS1pbnNwZWN0aW9uLXN0cmVzcy90cmVlL3NlYWxlZC9uYXRpdmUtZml4dHVyZXMvd2lkZS9lbnRyeS0wMDct6ZuqLnR4dA==",
+      "pathUtf8": "tests/commands/filesystem-inspection-stress/tree/sealed/native-fixtures/wide/entry-007-雪.txt",
+      "header": "100644 blob c1b0730e0133447badcfd47fd144e254807b06e1"
+    },
+    {
+      "ordinal": 9449,
+      "pathBase64": "dGVzdHMvY29tbWFuZHMvZmlsZXN5c3RlbS1pbnNwZWN0aW9uLXN0cmVzcy90cmVlL3NlYWxlZC9uYXRpdmUtZml4dHVyZXMvd2lkZS9lbnRyeS0wMDgt6ZuqLnR4dA==",
+      "pathUtf8": "tests/commands/filesystem-inspection-stress/tree/sealed/native-fixtures/wide/entry-008-雪.txt",
+      "header": "100644 blob c1b0730e0133447badcfd47fd144e254807b06e1"
+    },
+    {
+      "ordinal": 9450,
+      "pathBase64": "dGVzdHMvY29tbWFuZHMvZmlsZXN5c3RlbS1pbnNwZWN0aW9uLXN0cmVzcy90cmVlL3NlYWxlZC9uYXRpdmUtZml4dHVyZXMvd2lkZS9lbnRyeS0wMDkt6ZuqLnR4dA==",
+      "pathUtf8": "tests/commands/filesystem-inspection-stress/tree/sealed/native-fixtures/wide/entry-009-雪.txt",
+      "header": "100644 blob c1b0730e0133447badcfd47fd144e254807b06e1"
+    },
+    {
+      "ordinal": 9451,
+      "pathBase64": "dGVzdHMvY29tbWFuZHMvZmlsZXN5c3RlbS1pbnNwZWN0aW9uLXN0cmVzcy90cmVlL3NlYWxlZC9uYXRpdmUtZml4dHVyZXMvd2lkZS9lbnRyeS0wMTAt6ZuqLnR4dA==",
+      "pathUtf8": "tests/commands/filesystem-inspection-stress/tree/sealed/native-fixtures/wide/entry-010-雪.txt",
+      "header": "100644 blob c1b0730e0133447badcfd47fd144e254807b06e1"
+    },
+    {
+      "ordinal": 9452,
+      "pathBase64": "dGVzdHMvY29tbWFuZHMvZmlsZXN5c3RlbS1pbnNwZWN0aW9uLXN0cmVzcy90cmVlL3NlYWxlZC9uYXRpdmUtZml4dHVyZXMvd2lkZS9lbnRyeS0wMTEt6ZuqLnR4dA==",
+      "pathUtf8": "tests/commands/filesystem-inspection-stress/tree/sealed/native-fixtures/wide/entry-011-雪.txt",
+      "header": "100644 blob c1b0730e0133447badcfd47fd144e254807b06e1"
+    },
+    {
+      "ordinal": 9453,
+      "pathBase64": "dGVzdHMvY29tbWFuZHMvZmlsZXN5c3RlbS1pbnNwZWN0aW9uLXN0cmVzcy90cmVlL3NlYWxlZC9uYXRpdmUtZml4dHVyZXMvd2lkZS9lbnRyeS0wMTIt6ZuqLnR4dA==",
+      "pathUtf8": "tests/commands/filesystem-inspection-stress/tree/sealed/native-fixtures/wide/entry-012-雪.txt",
+      "header": "100644 blob c1b0730e0133447badcfd47fd144e254807b06e1"
+    },
+    {
+      "ordinal": 9454,
+      "pathBase64": "dGVzdHMvY29tbWFuZHMvZmlsZXN5c3RlbS1pbnNwZWN0aW9uLXN0cmVzcy90cmVlL3NlYWxlZC9uYXRpdmUtZml4dHVyZXMvd2lkZS9lbnRyeS0wMTMt6ZuqLnR4dA==",
+      "pathUtf8": "tests/commands/filesystem-inspection-stress/tree/sealed/native-fixtures/wide/entry-013-雪.txt",
+      "header": "100644 blob c1b0730e0133447badcfd47fd144e254807b06e1"
+    },
+    {
+      "ordinal": 9455,
+      "pathBase64": "dGVzdHMvY29tbWFuZHMvZmlsZXN5c3RlbS1pbnNwZWN0aW9uLXN0cmVzcy90cmVlL3NlYWxlZC9uYXRpdmUtZml4dHVyZXMvd2lkZS9lbnRyeS0wMTQt6ZuqLnR4dA==",
+      "pathUtf8": "tests/commands/filesystem-inspection-stress/tree/sealed/native-fixtures/wide/entry-014-雪.txt",
+      "header": "100644 blob c1b0730e0133447badcfd47fd144e254807b06e1"
+    },
+    {
+      "ordinal": 9456,
+      "pathBase64": "dGVzdHMvY29tbWFuZHMvZmlsZXN5c3RlbS1pbnNwZWN0aW9uLXN0cmVzcy90cmVlL3NlYWxlZC9uYXRpdmUtZml4dHVyZXMvd2lkZS9lbnRyeS0wMTUt6ZuqLnR4dA==",
+      "pathUtf8": "tests/commands/filesystem-inspection-stress/tree/sealed/native-fixtures/wide/entry-015-雪.txt",
+      "header": "100644 blob c1b0730e0133447badcfd47fd144e254807b06e1"
+    },
+    {
+      "ordinal": 9457,
+      "pathBase64": "dGVzdHMvY29tbWFuZHMvZmlsZXN5c3RlbS1pbnNwZWN0aW9uLXN0cmVzcy90cmVlL3NlYWxlZC9uYXRpdmUtZml4dHVyZXMvd2lkZS9lbnRyeS0wMTYt6ZuqLnR4dA==",
+      "pathUtf8": "tests/commands/filesystem-inspection-stress/tree/sealed/native-fixtures/wide/entry-016-雪.txt",
+      "header": "100644 blob c1b0730e0133447badcfd47fd144e254807b06e1"
+    },
+    {
+      "ordinal": 9458,
+      "pathBase64": "dGVzdHMvY29tbWFuZHMvZmlsZXN5c3RlbS1pbnNwZWN0aW9uLXN0cmVzcy90cmVlL3NlYWxlZC9uYXRpdmUtZml4dHVyZXMvd2lkZS9lbnRyeS0wMTct6ZuqLnR4dA==",
+      "pathUtf8": "tests/commands/filesystem-inspection-stress/tree/sealed/native-fixtures/wide/entry-017-雪.txt",
+      "header": "100644 blob c1b0730e0133447badcfd47fd144e254807b06e1"
+    },
+    {
+      "ordinal": 9459,
+      "pathBase64": "dGVzdHMvY29tbWFuZHMvZmlsZXN5c3RlbS1pbnNwZWN0aW9uLXN0cmVzcy90cmVlL3NlYWxlZC9uYXRpdmUtZml4dHVyZXMvd2lkZS9lbnRyeS0wMTgt6ZuqLnR4dA==",
+      "pathUtf8": "tests/commands/filesystem-inspection-stress/tree/sealed/native-fixtures/wide/entry-018-雪.txt",
+      "header": "100644 blob c1b0730e0133447badcfd47fd144e254807b06e1"
+    },
+    {
+      "ordinal": 9460,
+      "pathBase64": "dGVzdHMvY29tbWFuZHMvZmlsZXN5c3RlbS1pbnNwZWN0aW9uLXN0cmVzcy90cmVlL3NlYWxlZC9uYXRpdmUtZml4dHVyZXMvd2lkZS9lbnRyeS0wMTkt6ZuqLnR4dA==",
+      "pathUtf8": "tests/commands/filesystem-inspection-stress/tree/sealed/native-fixtures/wide/entry-019-雪.txt",
+      "header": "100644 blob c1b0730e0133447badcfd47fd144e254807b06e1"
+    },
+    {
+      "ordinal": 9461,
+      "pathBase64": "dGVzdHMvY29tbWFuZHMvZmlsZXN5c3RlbS1pbnNwZWN0aW9uLXN0cmVzcy90cmVlL3NlYWxlZC9uYXRpdmUtZml4dHVyZXMvd2lkZS9lbnRyeS0wMjAt6ZuqLnR4dA==",
+      "pathUtf8": "tests/commands/filesystem-inspection-stress/tree/sealed/native-fixtures/wide/entry-020-雪.txt",
+      "header": "100644 blob c1b0730e0133447badcfd47fd144e254807b06e1"
+    },
+    {
+      "ordinal": 9462,
+      "pathBase64": "dGVzdHMvY29tbWFuZHMvZmlsZXN5c3RlbS1pbnNwZWN0aW9uLXN0cmVzcy90cmVlL3NlYWxlZC9uYXRpdmUtZml4dHVyZXMvd2lkZS9lbnRyeS0wMjEt6ZuqLnR4dA==",
+      "pathUtf8": "tests/commands/filesystem-inspection-stress/tree/sealed/native-fixtures/wide/entry-021-雪.txt",
+      "header": "100644 blob c1b0730e0133447badcfd47fd144e254807b06e1"
+    },
+    {
+      "ordinal": 9463,
+      "pathBase64": "dGVzdHMvY29tbWFuZHMvZmlsZXN5c3RlbS1pbnNwZWN0aW9uLXN0cmVzcy90cmVlL3NlYWxlZC9uYXRpdmUtZml4dHVyZXMvd2lkZS9lbnRyeS0wMjIt6ZuqLnR4dA==",
+      "pathUtf8": "tests/commands/filesystem-inspection-stress/tree/sealed/native-fixtures/wide/entry-022-雪.txt",
+      "header": "100644 blob c1b0730e0133447badcfd47fd144e254807b06e1"
+    },
+    {
+      "ordinal": 9464,
+      "pathBase64": "dGVzdHMvY29tbWFuZHMvZmlsZXN5c3RlbS1pbnNwZWN0aW9uLXN0cmVzcy90cmVlL3NlYWxlZC9uYXRpdmUtZml4dHVyZXMvd2lkZS9lbnRyeS0wMjMt6ZuqLnR4dA==",
+      "pathUtf8": "tests/commands/filesystem-inspection-stress/tree/sealed/native-fixtures/wide/entry-023-雪.txt",
+      "header": "100644 blob c1b0730e0133447badcfd47fd144e254807b06e1"
+    },
+    {
+      "ordinal": 9465,
+      "pathBase64": "dGVzdHMvY29tbWFuZHMvZmlsZXN5c3RlbS1pbnNwZWN0aW9uLXN0cmVzcy90cmVlL3NlYWxlZC9uYXRpdmUtZml4dHVyZXMvd2lkZS9lbnRyeS0wMjQt6ZuqLnR4dA==",
+      "pathUtf8": "tests/commands/filesystem-inspection-stress/tree/sealed/native-fixtures/wide/entry-024-雪.txt",
+      "header": "100644 blob c1b0730e0133447badcfd47fd144e254807b06e1"
+    },
+    {
+      "ordinal": 9466,
+      "pathBase64": "dGVzdHMvY29tbWFuZHMvZmlsZXN5c3RlbS1pbnNwZWN0aW9uLXN0cmVzcy90cmVlL3NlYWxlZC9uYXRpdmUtZml4dHVyZXMvd2lkZS9lbnRyeS0wMjUt6ZuqLnR4dA==",
+      "pathUtf8": "tests/commands/filesystem-inspection-stress/tree/sealed/native-fixtures/wide/entry-025-雪.txt",
+      "header": "100644 blob c1b0730e0133447badcfd47fd144e254807b06e1"
+    },
+    {
+      "ordinal": 9467,
+      "pathBase64": "dGVzdHMvY29tbWFuZHMvZmlsZXN5c3RlbS1pbnNwZWN0aW9uLXN0cmVzcy90cmVlL3NlYWxlZC9uYXRpdmUtZml4dHVyZXMvd2lkZS9lbnRyeS0wMjYt6ZuqLnR4dA==",
+      "pathUtf8": "tests/commands/filesystem-inspection-stress/tree/sealed/native-fixtures/wide/entry-026-雪.txt",
+      "header": "100644 blob c1b0730e0133447badcfd47fd144e254807b06e1"
+    },
+    {
+      "ordinal": 9468,
+      "pathBase64": "dGVzdHMvY29tbWFuZHMvZmlsZXN5c3RlbS1pbnNwZWN0aW9uLXN0cmVzcy90cmVlL3NlYWxlZC9uYXRpdmUtZml4dHVyZXMvd2lkZS9lbnRyeS0wMjct6ZuqLnR4dA==",
+      "pathUtf8": "tests/commands/filesystem-inspection-stress/tree/sealed/native-fixtures/wide/entry-027-雪.txt",
+      "header": "100644 blob c1b0730e0133447badcfd47fd144e254807b06e1"
+    },
+    {
+      "ordinal": 9469,
+      "pathBase64": "dGVzdHMvY29tbWFuZHMvZmlsZXN5c3RlbS1pbnNwZWN0aW9uLXN0cmVzcy90cmVlL3NlYWxlZC9uYXRpdmUtZml4dHVyZXMvd2lkZS9lbnRyeS0wMjgt6ZuqLnR4dA==",
+      "pathUtf8": "tests/commands/filesystem-inspection-stress/tree/sealed/native-fixtures/wide/entry-028-雪.txt",
+      "header": "100644 blob c1b0730e0133447badcfd47fd144e254807b06e1"
+    },
+    {
+      "ordinal": 9470,
+      "pathBase64": "dGVzdHMvY29tbWFuZHMvZmlsZXN5c3RlbS1pbnNwZWN0aW9uLXN0cmVzcy90cmVlL3NlYWxlZC9uYXRpdmUtZml4dHVyZXMvd2lkZS9lbnRyeS0wMjkt6ZuqLnR4dA==",
+      "pathUtf8": "tests/commands/filesystem-inspection-stress/tree/sealed/native-fixtures/wide/entry-029-雪.txt",
+      "header": "100644 blob c1b0730e0133447badcfd47fd144e254807b06e1"
+    },
+    {
+      "ordinal": 9471,
+      "pathBase64": "dGVzdHMvY29tbWFuZHMvZmlsZXN5c3RlbS1pbnNwZWN0aW9uLXN0cmVzcy90cmVlL3NlYWxlZC9uYXRpdmUtZml4dHVyZXMvd2lkZS9lbnRyeS0wMzAt6ZuqLnR4dA==",
+      "pathUtf8": "tests/commands/filesystem-inspection-stress/tree/sealed/native-fixtures/wide/entry-030-雪.txt",
+      "header": "100644 blob c1b0730e0133447badcfd47fd144e254807b06e1"
+    },
+    {
+      "ordinal": 9472,
+      "pathBase64": "dGVzdHMvY29tbWFuZHMvZmlsZXN5c3RlbS1pbnNwZWN0aW9uLXN0cmVzcy90cmVlL3NlYWxlZC9uYXRpdmUtZml4dHVyZXMvd2lkZS9lbnRyeS0wMzEt6ZuqLnR4dA==",
+      "pathUtf8": "tests/commands/filesystem-inspection-stress/tree/sealed/native-fixtures/wide/entry-031-雪.txt",
+      "header": "100644 blob c1b0730e0133447badcfd47fd144e254807b06e1"
+    },
+    {
+      "ordinal": 9473,
+      "pathBase64": "dGVzdHMvY29tbWFuZHMvZmlsZXN5c3RlbS1pbnNwZWN0aW9uLXN0cmVzcy90cmVlL3NlYWxlZC9uYXRpdmUtZml4dHVyZXMvd2lkZS9lbnRyeS0wMzIt6ZuqLnR4dA==",
+      "pathUtf8": "tests/commands/filesystem-inspection-stress/tree/sealed/native-fixtures/wide/entry-032-雪.txt",
+      "header": "100644 blob c1b0730e0133447badcfd47fd144e254807b06e1"
+    },
+    {
+      "ordinal": 9474,
+      "pathBase64": "dGVzdHMvY29tbWFuZHMvZmlsZXN5c3RlbS1pbnNwZWN0aW9uLXN0cmVzcy90cmVlL3NlYWxlZC9uYXRpdmUtZml4dHVyZXMvd2lkZS9lbnRyeS0wMzMt6ZuqLnR4dA==",
+      "pathUtf8": "tests/commands/filesystem-inspection-stress/tree/sealed/native-fixtures/wide/entry-033-雪.txt",
+      "header": "100644 blob c1b0730e0133447badcfd47fd144e254807b06e1"
+    },
+    {
+      "ordinal": 9475,
+      "pathBase64": "dGVzdHMvY29tbWFuZHMvZmlsZXN5c3RlbS1pbnNwZWN0aW9uLXN0cmVzcy90cmVlL3NlYWxlZC9uYXRpdmUtZml4dHVyZXMvd2lkZS9lbnRyeS0wMzQt6ZuqLnR4dA==",
+      "pathUtf8": "tests/commands/filesystem-inspection-stress/tree/sealed/native-fixtures/wide/entry-034-雪.txt",
+      "header": "100644 blob c1b0730e0133447badcfd47fd144e254807b06e1"
+    },
+    {
+      "ordinal": 9476,
+      "pathBase64": "dGVzdHMvY29tbWFuZHMvZmlsZXN5c3RlbS1pbnNwZWN0aW9uLXN0cmVzcy90cmVlL3NlYWxlZC9uYXRpdmUtZml4dHVyZXMvd2lkZS9lbnRyeS0wMzUt6ZuqLnR4dA==",
+      "pathUtf8": "tests/commands/filesystem-inspection-stress/tree/sealed/native-fixtures/wide/entry-035-雪.txt",
+      "header": "100644 blob c1b0730e0133447badcfd47fd144e254807b06e1"
+    },
+    {
+      "ordinal": 9477,
+      "pathBase64": "dGVzdHMvY29tbWFuZHMvZmlsZXN5c3RlbS1pbnNwZWN0aW9uLXN0cmVzcy90cmVlL3NlYWxlZC9uYXRpdmUtZml4dHVyZXMvd2lkZS9lbnRyeS0wMzYt6ZuqLnR4dA==",
+      "pathUtf8": "tests/commands/filesystem-inspection-stress/tree/sealed/native-fixtures/wide/entry-036-雪.txt",
+      "header": "100644 blob c1b0730e0133447badcfd47fd144e254807b06e1"
+    },
+    {
+      "ordinal": 9478,
+      "pathBase64": "dGVzdHMvY29tbWFuZHMvZmlsZXN5c3RlbS1pbnNwZWN0aW9uLXN0cmVzcy90cmVlL3NlYWxlZC9uYXRpdmUtZml4dHVyZXMvd2lkZS9lbnRyeS0wMzct6ZuqLnR4dA==",
+      "pathUtf8": "tests/commands/filesystem-inspection-stress/tree/sealed/native-fixtures/wide/entry-037-雪.txt",
+      "header": "100644 blob c1b0730e0133447badcfd47fd144e254807b06e1"
+    },
+    {
+      "ordinal": 9479,
+      "pathBase64": "dGVzdHMvY29tbWFuZHMvZmlsZXN5c3RlbS1pbnNwZWN0aW9uLXN0cmVzcy90cmVlL3NlYWxlZC9uYXRpdmUtZml4dHVyZXMvd2lkZS9lbnRyeS0wMzgt6ZuqLnR4dA==",
+      "pathUtf8": "tests/commands/filesystem-inspection-stress/tree/sealed/native-fixtures/wide/entry-038-雪.txt",
+      "header": "100644 blob c1b0730e0133447badcfd47fd144e254807b06e1"
+    },
+    {
+      "ordinal": 9480,
+      "pathBase64": "dGVzdHMvY29tbWFuZHMvZmlsZXN5c3RlbS1pbnNwZWN0aW9uLXN0cmVzcy90cmVlL3NlYWxlZC9uYXRpdmUtZml4dHVyZXMvd2lkZS9lbnRyeS0wMzkt6ZuqLnR4dA==",
+      "pathUtf8": "tests/commands/filesystem-inspection-stress/tree/sealed/native-fixtures/wide/entry-039-雪.txt",
+      "header": "100644 blob c1b0730e0133447badcfd47fd144e254807b06e1"
+    }
+  ]
+}

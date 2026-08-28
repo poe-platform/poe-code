@@ -38,7 +38,7 @@ export const defaultLimits: Required<ShellLimits> = {
 
 const shellBuiltinNames = new Set([
   ":", "true", "false", "pwd", "cd", "set", "shift", "export", "local", "unset", "read",
-  "exit", "return", "break", "continue", "command", "type", "readonly", "echo", "printf", "test", "[", ".", "source", "eval", "getopts", "let",
+  "exit", "return", "break", "continue", "command", "type", "readonly", "echo", "printf", "test", "[", ".", "source", "eval", "getopts", "let", "pushd", "dirs", "popd",
 ]);
 
 const implementedBuiltins = new Set([...shellBuiltinNames].filter(name => !["echo", "printf", "test", "["].includes(name)));
@@ -183,6 +183,8 @@ export interface State {
   functionDepth: number;
   locals: Map<string, SavedVariable>[];
   getopts?: GetoptsBinding;
+  directoryStack?: { readonly entries: readonly string[]; readonly bytes: number };
+  directoryStackCwdPublication?: symbol;
   pipefail: boolean;
   errexit?: boolean;
   isolated?: boolean;
@@ -282,6 +284,7 @@ function cloneState(state: State): State {
     exported: new Set(state.exported), functions: new Map(state.functions), positional: [...state.positional],
     readonlyVariables: new Set(state.readonlyVariables),
     getopts: cloneGetoptsBinding(state),
+    directoryStack: { entries: [...state.directoryStack?.entries ?? []], bytes: state.directoryStack?.bytes ?? 0 },
     locals: state.locals.map((scope) => new Map([...scope].map(([name, saved]) => [name, { ...saved, ...(saved.getopts ? { getopts: { integer: saved.getopts.integer, cursor: cloneGetoptsState(saved.getopts.cursor) } } : {}) }]))),
   };
 }
@@ -454,6 +457,133 @@ class CdLookup {
       }
     }
     return { path: await probe("", 0), print: false };
+  }
+}
+
+class DirectoryStackWork {
+  private spent = 0;
+  private flushed = 0;
+  private outputBytes = 0;
+  private chunk = "";
+  private chunkBytes = 0;
+
+  constructor(private readonly name: string, private readonly signal: AbortSignal, private readonly stdout: ByteSink) {}
+
+  fail(text: string, status = 1): never {
+    throw new CommandFailure(cdDiagnostic([this.name, ": ", text]), status);
+  }
+
+  async charge(amount: number): Promise<void> {
+    this.signal.throwIfAborted();
+    if (!Number.isSafeInteger(amount) || amount < 0 || amount > 8_388_608 - this.spent) this.fail("helper work limit exceeded");
+    while (amount > 0) {
+      const step = Math.min(amount, 128 - this.spent % 128);
+      this.spent += step;
+      amount -= step;
+      if (this.spent % 128 === 0) await this.flushWork();
+    }
+  }
+
+  async flushWork(): Promise<void> {
+    this.signal.throwIfAborted();
+    if (this.flushed === this.spent) return;
+    await interruptible(new Promise<void>(resolve => setImmediate(resolve)), this.signal);
+    this.signal.throwIfAborted();
+    this.flushed = this.spent;
+  }
+
+  async scan(value: string, kind: "argument" | "path" | "HOME"): Promise<number> {
+    let bytes = 0;
+    for (let offset = 0; offset < value.length;) {
+      const point = value.codePointAt(offset)!;
+      const width = cdUtf8Width(point);
+      if (width > 65_536 - bytes) this.fail(`${kind} exceeds 65536 UTF-8 bytes`);
+      await this.charge(width);
+      bytes += width;
+      offset += point > 0xffff ? 2 : 1;
+    }
+    return bytes;
+  }
+
+  async number(token: string): Promise<bigint> {
+    let phase: "leading" | "sign" | "digits" | "trailing" = "leading";
+    let negative = false;
+    let digits = false;
+    let value = 0n;
+    await this.charge(1);
+    for (let offset = 1; offset < token.length; offset++) {
+      await this.charge(1);
+      const code = token.charCodeAt(offset);
+      const whitespace = code === 32 || code >= 9 && code <= 13;
+      if (phase === "leading" && whitespace) continue;
+      if (phase === "leading" && (code === 43 || code === 45)) {
+        negative = code === 45;
+        phase = "sign";
+        continue;
+      }
+      if (code >= 48 && code <= 57 && phase !== "trailing") {
+        phase = "digits";
+        digits = true;
+        value = value * 10n + BigInt(code - 48);
+        if (value > (negative ? 9_223_372_036_854_775_808n : 9_223_372_036_854_775_807n)) this.fail("invalid directory stack index", 2);
+      } else if (phase === "digits" && whitespace || phase === "trailing" && whitespace) phase = "trailing";
+      else this.fail("invalid directory stack index", 2);
+    }
+    if (!digits) this.fail("invalid directory stack index", 2);
+    return negative ? -value : value;
+  }
+
+  async emit(text: string): Promise<void> {
+    for (let offset = 0; offset < text.length;) {
+      const point = text.codePointAt(offset)!;
+      const width = cdUtf8Width(point);
+      if (width > 8_388_608 - this.outputBytes) this.fail("display exceeds 8388608 UTF-8 bytes");
+      await this.charge(width);
+      if (width > 16_384 - this.chunkBytes) await this.flushOutput();
+      const units = point > 0xffff ? 2 : 1;
+      this.chunk += text.slice(offset, offset + units);
+      this.chunkBytes += width;
+      this.outputBytes += width;
+      offset += units;
+    }
+  }
+
+  async flushOutput(): Promise<void> {
+    this.signal.throwIfAborted();
+    if (!this.chunkBytes) return;
+    const text = this.chunk;
+    this.chunk = "";
+    this.chunkBytes = 0;
+    await writeText(this.stdout, text);
+    this.signal.throwIfAborted();
+  }
+
+  async display(cwd: string, entries: readonly string[], options: { long: boolean; lines: boolean; verbose: boolean; index?: number }, home: string | undefined): Promise<void> {
+    await this.scan(cwd, "path");
+    const homeBytes = !options.long && home !== undefined ? await this.scan(home, "HOME") : 0;
+    const start = options.index ?? 0;
+    const end = options.index ?? entries.length;
+    for (let index = start; index <= end; index++) {
+      await this.charge(1);
+      let entry = index === 0 ? cwd : entries[index - 1]!;
+      if (homeBytes > 1 && home !== undefined && entry.length >= home.length) {
+        let matches = true;
+        for (let offset = 0; offset < home.length; offset++) {
+          await this.charge(1);
+          if (entry.charCodeAt(offset) !== home.charCodeAt(offset)) { matches = false; break; }
+        }
+        if (matches) {
+          if (entry.length > home.length) await this.charge(1);
+          if (entry.length === home.length || entry[home.length] === "/") entry = `~${entry.slice(home.length)}`;
+        }
+      }
+      if (index !== start && !options.lines && !options.verbose) await this.emit(" ");
+      if (options.verbose) await this.emit(`${String(index).padStart(2, " ")}  `);
+      await this.emit(entry);
+      if (options.lines || options.verbose) await this.emit("\n");
+    }
+    if (!options.lines && !options.verbose) await this.emit("\n");
+    await this.flushOutput();
   }
 }
 
@@ -1321,7 +1451,7 @@ export class Runtime {
           if (saved.value === undefined) delete variables[name];
           else variables[name] = saved.value;
         }
-        const redirectState = { ...state, variables, redirectAssignments, getopts: cloneGetoptsBinding(state) };
+        const redirectState = { ...state, variables, redirectAssignments, getopts: cloneGetoptsBinding(state), directoryStack: { entries: [...state.directoryStack?.entries ?? []], bytes: state.directoryStack?.bytes ?? 0 } };
         const savedIndex = previous.get("OPTIND");
         if (savedIndex?.getopts) redirectState.getopts = { integer: savedIndex.getopts.integer, cursor: cloneGetoptsState(savedIndex.getopts.cursor) };
         try { io = await this.redirect(command.redirects, redirectState, io, inputs, outputs, false, true, false, command.line ?? 1); }
@@ -1406,6 +1536,7 @@ export class Runtime {
       scope.assertOpen();
       const previous = new Map<string, SavedVariable & { overlay: string | undefined }>();
       const cwd = state.cwd;
+      const directoryStackCwdPublication = state.directoryStackCwdPublication;
       state.cwd = resolvePath("/", context.cwd);
       for (const key of new Set([...Object.keys(initialEnv), ...Object.keys(context.env)])) {
         if (Object.hasOwn(context.env, key) && typeof context.env[key] !== "string") throw new TypeError("Invalid middleware environment value");
@@ -1474,7 +1605,7 @@ export class Runtime {
         const raw = definition.execute(forwarded);
         return await this.observeRuntimeReturn(raw, runtimeFrame);
       } finally {
-        if (context.command !== "cd" && state.cwd === context.cwd) state.cwd = cwd;
+        if (context.command !== "cd" && state.cwd === context.cwd && state.directoryStackCwdPublication === directoryStackCwdPublication) state.cwd = cwd;
         for (const [key, saved] of previous) {
           if (state.variables[key] !== saved.overlay) continue;
           restoreVariable(state, key, saved);
@@ -1614,6 +1745,7 @@ export class Runtime {
     variables.OPTERR = "1";
     return {
       cwd: state.cwd, variables, exported, functions: new Map(), getopts: { cursor: createGetoptsState(), integer: true },
+      directoryStack: { entries: [], bytes: 0 },
       positional: [...args], arg0, profile: context.command === "sh" ? "sh" : "bash", status: 0, substitutionStatus: 0, depth: state.depth + 1,
       loopDepth: 0, functionDepth: 0, locals: [], pipefail: false, isolated: true,
       errexit: false,
@@ -2246,42 +2378,190 @@ export class Runtime {
     return result.status;
   }
 
+  private async changeDirectory(context: CommandContext & IO, state: State, args: readonly string[], diagnose?: (error: unknown, diagnostic: string) => void, stackHooks?: { name: string; onCwdPublished(): void; emit(text: string): Promise<void> }): Promise<number> {
+    const name = stackHooks?.name ?? "cd";
+    this.signal.throwIfAborted();
+    if (args.length > 1) { await writeText(context.stderr, `${name}: too many arguments\n`); return 1; }
+    const target = args[0] === "-" ? state.variables.OLDPWD : (args[0] ?? state.variables.HOME);
+    if (target === undefined) { await writeText(context.stderr, `${name}: ${args[0] === "-" ? "OLDPWD" : "HOME"} not set\n`); return 1; }
+    let selected: { path: string; print: boolean };
+    try {
+      selected = await new CdLookup(this.signal).find(this.fs, state.cwd, target || ".", state.variables.CDPATH);
+    } catch (error) {
+      this.signal.throwIfAborted();
+      const description = filesystemDiagnostic(error, "");
+      const text = description ? "" : message(error);
+      diagnose?.(error, cdDiagnostic(description ? [name, ": ", target, description]
+        : stackHooks && text.startsWith("cd: ") ? [name, text.slice(2)] : [text]));
+      throw error;
+    }
+    this.signal.throwIfAborted();
+    const { path } = selected;
+    this.writeVariable(state, "OLDPWD", state.cwd);
+    state.cwd = path;
+    stackHooks?.onCwdPublished();
+    this.writeVariable(state, "PWD", path);
+    state.exported.add("PWD");
+    state.exported.add("OLDPWD");
+    if (selected.print || args[0] === "-") {
+      if (stackHooks) await stackHooks.emit(`${path}\n`);
+      else await writeText(context.stdout, `${path}\n`);
+    }
+    return 0;
+  }
+
+  private async directoryStackBuiltin(context: CommandContext & IO, state: State, diagnose?: (error: unknown, diagnostic: string) => void): Promise<number> {
+    const { command, args } = context;
+    const work = new DirectoryStackWork(command, this.signal, context.stdout);
+    const tail = state.directoryStack ?? { entries: [], bytes: 0 };
+    const count = tail.entries.length;
+    let noCd = false;
+    let clear = false;
+    let long = false;
+    let lines = false;
+    let verbose = false;
+    let selected: bigint | undefined;
+    let target: string | undefined;
+    let targetBytes: number | undefined;
+    const boundedIndex = (index: bigint): number => {
+      if (index < 0n || index > BigInt(count)) work.fail("directory stack index out of range");
+      return Number(index);
+    };
+    const field = async (value: string): Promise<number> => {
+      await work.charge(1);
+      return work.scan(value, "argument");
+    };
+    const plan = async (length: number, removed: number | undefined, added: string | undefined, addedBytes: number | undefined, entry: (index: number) => string): Promise<NonNullable<State["directoryStack"]>> => {
+      if (length > 4096) work.fail("directory stack exceeds 4096 entries");
+      const removedBytes = removed === undefined ? 0 : await work.scan(tail.entries[removed]!, "path");
+      const extraBytes = added === undefined ? 0 : addedBytes ?? await work.scan(added, "path");
+      const bytes = tail.bytes - removedBytes + extraBytes;
+      if (!Number.isSafeInteger(bytes) || bytes < 0 || bytes > 4_194_304) work.fail("directory stack exceeds 4194304 UTF-8 bytes");
+      await work.charge(length);
+      const entries = new Array<string>(length);
+      for (let index = 0; index < length; index++) entries[index] = entry(index);
+      return { entries, bytes };
+    };
+    const publish = async (next: NonNullable<State["directoryStack"]>): Promise<void> => {
+      await work.flushWork();
+      state.directoryStack = next;
+    };
+    const cd = async (path: string): Promise<number> => {
+      await work.flushWork();
+      return this.changeDirectory(context, state, [path], diagnose, {
+        name: command,
+        onCwdPublished() { state.directoryStackCwdPublication = Symbol(); },
+        async emit(text) { await work.emit(text); await work.flushOutput(); },
+      });
+    };
+    const display = async (index?: number): Promise<void> => {
+      await work.display(state.cwd, state.directoryStack?.entries ?? [], { long, lines, verbose, ...(index !== undefined ? { index } : {}) }, state.variables.HOME);
+    };
+    try {
+      for (let offset = 0; offset < args.length; offset++) {
+        const token = args[offset]!;
+        const bytes = await field(token);
+        if (token === "--") {
+          if (command === "pushd" && selected === undefined && offset + 1 < args.length) {
+            target = args[offset + 1]!;
+            targetBytes = await field(target);
+            if (!noCd && offset + 2 < args.length) work.fail("too many arguments");
+          }
+          break;
+        }
+        if (command === "dirs" && ["-c", "-l", "-p", "-v"].includes(token)) {
+          if (token === "-c") clear = true;
+          if (token === "-l") long = true;
+          if (token === "-p") lines = true;
+          if (token === "-v") verbose = true;
+          continue;
+        }
+        if (command !== "dirs" && token === "-n") { noCd = true; continue; }
+        if ((token.startsWith("+") || token.startsWith("-")) && !(command === "pushd" && token === "-")) {
+          const number = await work.number(token);
+          selected = token.startsWith("+") ? number : BigInt(count) - number;
+          if (command === "pushd") boundedIndex(selected);
+          continue;
+        }
+        if (command === "popd" && token === "") break;
+        if (command !== "pushd") work.fail("invalid directory stack argument", 2);
+        if (selected === undefined) {
+          target = token;
+          targetBytes = bytes;
+          if (!noCd && offset + 1 < args.length) work.fail("too many arguments");
+        }
+        break;
+      }
+      if (command === "dirs") {
+        if (clear) await publish({ entries: [], bytes: 0 });
+        else await display(selected === undefined ? undefined : boundedIndex(selected));
+      } else if (command === "pushd") {
+        if (selected !== undefined) {
+          const index = boundedIndex(selected);
+          if (!(noCd && index === 0)) {
+            const cwd = state.cwd;
+            const at = (fullIndex: number): string => fullIndex === 0 ? cwd : tail.entries[fullIndex - 1]!;
+            const next = await plan(count, index === 0 ? undefined : index - 1, index === 0 ? undefined : cwd, undefined,
+              slot => at((index + slot + 1) % (count + 1)));
+            await publish(next);
+            if (!noCd) {
+              const status = await cd(at(index));
+              if (status !== 0) return status;
+              await display();
+            }
+          }
+        } else if (target !== undefined) {
+          const saved = noCd ? target : state.cwd;
+          const next = await plan(count + 1, undefined, saved, noCd ? targetBytes : undefined,
+            slot => slot === 0 ? saved : tail.entries[slot - 1]!);
+          if (!noCd) {
+            const status = await cd(target);
+            if (status !== 0) return status;
+          }
+          await publish(next);
+          await display();
+        } else if (!noCd) {
+          if (!count) work.fail("no other directory");
+          const cwd = state.cwd;
+          const next = await plan(count, 0, cwd, undefined, slot => slot === 0 ? cwd : tail.entries[slot]!);
+          await publish(next);
+          const status = await cd(tail.entries[0]!);
+          if (status !== 0) return status;
+          await display();
+        }
+      } else {
+        const index = boundedIndex(selected ?? 0n);
+        if (!count) work.fail("directory stack empty");
+        const removed = Math.max(0, index - 1);
+        const next = await plan(count - 1, removed, undefined, undefined,
+          slot => tail.entries[slot < removed ? slot : slot + 1]!);
+        if (index === 0 && !noCd) {
+          const status = await cd(tail.entries[0]!);
+          if (status !== 0) return status;
+        }
+        await publish(next);
+        await display();
+      }
+      return 0;
+    } finally {
+      await work.flushWork();
+    }
+  }
+
   async builtin(context: CommandContext & IO, state: State, assignments: Map<string, SavedVariable>, diagnose?: (error: unknown, diagnostic: string) => void, suppressSpecial = false): Promise<number | undefined> {
     const { command, args, stdout, stderr } = context;
     if (command === ":" || command === "true") return 0;
     if (command === "false") return 1;
     if (command === "let") return this.letBuiltin(context, state);
     if (command === "getopts") return this.getoptsBuiltin(context, state);
+    if (command === "pushd" || command === "dirs" || command === "popd") return this.directoryStackBuiltin(context, state, diagnose);
     if (command === "pwd") {
       if (args.some((arg) => arg !== "-L" && arg !== "-P")) { await writeText(stderr, "pwd: invalid option\n"); return 2; }
       const path = args.at(-1) === "-P" ? await this.fs.realpath(state.cwd, { signal: this.signal }) : state.cwd;
       await writeText(stdout, `${path}\n`);
       return 0;
     }
-    if (command === "cd") {
-      this.signal.throwIfAborted();
-      if (args.length > 1) { await writeText(stderr, "cd: too many arguments\n"); return 1; }
-      const target = args[0] === "-" ? state.variables.OLDPWD : (args[0] ?? state.variables.HOME);
-      if (target === undefined) { await writeText(stderr, `cd: ${args[0] === "-" ? "OLDPWD" : "HOME"} not set\n`); return 1; }
-      let selected: { path: string; print: boolean };
-      try {
-        selected = await new CdLookup(this.signal).find(this.fs, state.cwd, target || ".", state.variables.CDPATH);
-      } catch (error) {
-        this.signal.throwIfAborted();
-        const description = filesystemDiagnostic(error, "");
-        diagnose?.(error, cdDiagnostic(description ? ["cd: ", target, description] : [message(error)]));
-        throw error;
-      }
-      this.signal.throwIfAborted();
-      const { path } = selected;
-      this.writeVariable(state, "OLDPWD", state.cwd);
-      state.cwd = path;
-      this.writeVariable(state, "PWD", path);
-      state.exported.add("PWD");
-      state.exported.add("OLDPWD");
-      if (selected.print || args[0] === "-") await writeText(stdout, `${path}\n`);
-      return 0;
-    }
+    if (command === "cd") return this.changeDirectory(context, state, args, diagnose);
     if (command === "set") {
       let index = 0;
       let positionals = false;

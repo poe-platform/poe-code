@@ -1,0 +1,18 @@
+{
+  "schema": "unified76-shared-v6-followup3-freeze",
+  "createdAt": "2026-08-28T03:52:47.819Z",
+  "prior": "9be9e9e9",
+  "reason": "Correction of independent no-AGENTS copy violation, not product/driver behavior. Two behavioral passes from previous execution preserved but not sufficient for compliant acceptance.",
+  "exactChange": "Skip basename AGENTS.md in authenticated regular dependency copy; enumerate exact skipped entry and assert no AGENTS exists before any product phase. Continue full unchanged host EXTERNAL identity verification, regular byte hashes for every copied dependency, exact same selected source/helpers and shared APIs/options, sandbox/loader/audit. New empty work-followup3/raw-followup3. No stub/source fork/counter injection.",
+  "recipeSha256": "2c80061b75033d58bb6c56a8cf832c7345bb96e8a6f569b81eb8b47504e839d8",
+  "excludedDependencyInstruction": {
+    "path": "benchmarks/node_modules/just-bash/dist/AGENTS.md",
+    "bytes": 9231,
+    "sha256": "1269340457d3ce77dff98082a4270125ff362c9ee7a4eee66574c280d8319979"
+  },
+  "expected": "Original cold78/one real build/typecheckall0/23+3+3/832/208 and real duplicate audit refusal unchanged; no observer rerun",
+  "actualProductionBuildsSoFar": 2,
+  "expectedAdditionalRealBuilds": 2,
+  "countQualification": "One positive shared build and one deliberate duplicate negative per successful execution; no universal one-build or driver permission for2. Both prebuild setup failures remain0.",
+  "fullGate": false
+}

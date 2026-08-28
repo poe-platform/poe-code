@@ -1,0 +1,1 @@
+typecheck: Built-package prerequisite missing (46 files). Run npm run typecheck:all to build once and check source plus current consumers, or npm run build before npm run typecheck. No consumer compilation was attempted.

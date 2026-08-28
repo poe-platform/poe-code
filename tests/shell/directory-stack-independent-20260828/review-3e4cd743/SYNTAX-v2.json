@@ -1,0 +1,72 @@
+{
+  "at": "2026-08-28T09:13:03.203Z",
+  "kind": "syntax-only-before-corrected-execution",
+  "checks": [
+    {
+      "file": "run-review-v2.mjs",
+      "status": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "file": "types-review-v1.mjs",
+      "status": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "file": "types-review-v2.mjs",
+      "status": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "file": "harness-v2/adapters.mjs",
+      "status": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "file": "harness-v2/child-process.mjs",
+      "status": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "file": "harness-v2/driver.mjs",
+      "status": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "file": "harness-v2/gaps.mjs",
+      "status": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "file": "harness-v2/integrity.mjs",
+      "status": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "file": "harness-v2/lifecycle.mjs",
+      "status": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "file": "harness-v2/load-hook.mjs",
+      "status": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "file": "harness-v2/public-cases.mjs",
+      "status": 0,
+      "stdout": "",
+      "stderr": ""
+    }
+  ]
+}

@@ -398,6 +398,12 @@
       "sha256": "ec0c72d114ed6dcfc84643ab82cbeadd229fa63b9da39036d45bb607d3ed85f4"
     },
     {
+      "path": "REPAIR-01.md",
+      "bytes": 2389,
+      "mode": 420,
+      "sha256": "53ae9f8b4937336a93624327d973da5de5b8834bbb41d05f8a203b01b14a25dc"
+    },
+    {
       "path": "adapter.mjs",
       "bytes": 8558,
       "mode": 420,
@@ -411,15 +417,15 @@
     },
     {
       "path": "controls.mjs",
-      "bytes": 11890,
+      "bytes": 12231,
       "mode": 420,
-      "sha256": "cb2344dba3fb97cd7bf9542e3fafc58685da676bd91fed9e99963e5321925cae"
+      "sha256": "b3f27f0a698491ad1045675c14d1a697fca25a7489e36a31b586353f94498fbf"
     },
     {
       "path": "coordinator.mjs",
-      "bytes": 9892,
+      "bytes": 10162,
       "mode": 420,
-      "sha256": "a7214e19ae31946fa3adbef57e7cf44650a90e6eb0c5464dc9c77b384b41477a"
+      "sha256": "8aeaec93a72007b7704293df01666005922606c56c58f4edb1583847d7394b78"
     },
     {
       "path": "fixtures/forbidden.mjs",
@@ -447,15 +453,15 @@
     },
     {
       "path": "loader.mjs",
-      "bytes": 2724,
+      "bytes": 2755,
       "mode": 420,
-      "sha256": "87f78b5c041e88894b85d732c1eb93217fe327fa8037eac9df496eecdb66aed9"
+      "sha256": "23a22e044fec40f8408a1af33adfab3e3d2817fb053c132b816591f4da4af3db"
     },
     {
       "path": "offline.mjs",
-      "bytes": 6854,
+      "bytes": 8044,
       "mode": 420,
-      "sha256": "d5700d905a70b60fabdfcf2e053723779fb9a16df8e2d911a1697eb86c2864aa"
+      "sha256": "6dac37c0f6062d48cbddddc264c40c7dd83e8de4142f6a15f0cedd5f2496b00f"
     },
     {
       "path": "predicates.mjs",
@@ -467,7 +473,13 @@
       "path": "projection.mjs",
       "bytes": 7218,
       "mode": 420,
-      "sha256": "67a7ed562d989ea43a565ef00e3be3850cca778a7decb76a64ce1b84bbaf44a8"
+      "sha256": "53dfc038e6f68301d11b035640e99e7f12a942a1cd09fdb1738c830f9479311c"
+    },
+    {
+      "path": "regular-read.mjs",
+      "bytes": 999,
+      "mode": 420,
+      "sha256": "9995afc3c98840ece5b85fa7057c48f5331c5e174b52a8dea682df65c72833bb"
     },
     {
       "path": "safety.mjs",
@@ -514,5 +526,11 @@
   ],
   "mutableOutputNamespace": "runs",
   "authorization": "synthetic only; product/comparator phases require later exact different freeze and root grants",
-  "priorReview": "a66683b5bf9b0274705f5f6e61ff1e35aee1db46"
+  "priorReview": "a66683b5bf9b0274705f5f6e61ff1e35aee1db46",
+  "version": 2,
+  "priorRecipe": {
+    "commit": "d5a68a9f",
+    "sha256": "f6d8c07d75e11123eb08af6ff07c43200d24a76fb8d515bc5eb98f74b133ed89",
+    "firstEvidenceCommit": "446206f6"
+  }
 }

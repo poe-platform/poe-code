@@ -23,8 +23,9 @@ export function syntheticReport(specimen) {
   for (const [name, file] of Object.entries(specimen.expected.addedFiles)) after.push({ path: `/fixture/${name}`, type: 'file', ...file });
   return { captureErrors: [], before: { complete: true, entries: initial }, after: { complete: true, entries: after.filter(entry => !specimen.expected.absent.includes(entry.path.slice(9))) }, result: { ...specimen.expected }, additionalObservations: Object.fromEntries((specimen.additionalObservations ?? []).map(name => [name, true])) };
 }
-export async function controls({ root, work, workflows, child, integrity, actualC11 }) {
-  const families = Array.from({ length: 12 }, (_, index) => ({ id: `C${String(index + 1).padStart(2, '0')}` }));
+export async function controls({ root, work, workflows, child, integrity, actualC11, only = null }) {
+  const families = Array.from({ length: 12 }, (_, index) => ({ id: `C${String(index + 1).padStart(2, '0')}` })).filter(row => !only || only.includes(row.id));
+  requireThat(only === null || JSON.stringify(only) === '["C03","C04","C05"]', 'CONTROL_SELECTION', only);
   const fixtures = ['loaded.mjs', 'loaded.cjs', 'require-consumer.mjs'].map(name => { const bytes = fs.readFileSync(path.join(root, 'fixtures', name)); return { path: name, mode: 0o644, bytes: bytes.length, sha256: hash(bytes) }; });
   const view = { root: path.join(work, 'synthetic-view'), files: fixtures };
   writeView(view.root, fixtures, entry => fs.readFileSync(path.join(root, 'fixtures', entry.path)));
@@ -82,12 +83,14 @@ export async function controls({ root, work, workflows, child, integrity, actual
     },
     async C12() { const receipt = await child({ mode: 'load', view }); assert(settled(receipt)); const observed = receipt.records.at(-1).report; assert(observed.evaluated); const row = workflows.find(row => row.id === 'W02'), report = syntheticReport(row); report.after = structuredClone(report.before); assert(!assessWorkflow(row, report).pass); return { actualNoopLoad: observed, designatedFilesystemRejection: true }; },
   };
-  return serial(families, async item => {
+  const result = await serial(families, async item => {
     let observation;
     try { observation = await actions[item.id](); }
     catch (error) { if (error[ownedAssertion] !== true) throw error; await guarded(); return { safe: true, pass: false, assertion: { message: error.message, stack: error.stack } }; }
       return { safe: true, pass: true, observation };
   }, guarded);
+  for (const row of result.rows) if (row.observation?.status === 'MODEL_ONLY_ACTUAL_HELD') { row.status = 'HELD_ACTUAL_C11'; row.pass = null; }
+  return result;
 }
 export async function defectControls() {
   const rows = [];

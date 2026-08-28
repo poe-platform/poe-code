@@ -3,8 +3,8 @@ import { registerHooks, isBuiltin } from 'node:module';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import path from 'node:path';
 import { hash, requireThat } from './safety.mjs';
+import { readRegular } from './regular-read.mjs';
 
-const read = fs.readFileSync.bind(fs);
 const stat = fs.lstatSync.bind(fs);
 export function installLoader(view, emit) {
   const files = new Map(view.files.map(file => [pathToFileURL(path.join(view.root, file.path)).href, file]));
@@ -16,7 +16,7 @@ export function installLoader(view, emit) {
     const entry = files.get(url);
     const info = stat(filename);
     requireThat(info.isFile() && !info.isSymbolicLink() && info.size === entry.bytes && (info.mode & 0o7777) === entry.mode, 'LOAD_METADATA', url);
-    const bytes = read(filename);
+    const bytes = readRegular(filename, entry.bytes);
     requireThat(hash(bytes) === entry.sha256, 'LOAD_HASH', url);
     return { bytes, entry };
   }

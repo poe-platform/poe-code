@@ -17,7 +17,8 @@ const workflows = readJson(path.join(root, '../WORKFLOWS.json')).rows;
 const legacy = readJson(path.join(root, '../LEGACY-RECIPES.json')).rows.map(row => row.recipe);
 const schedule = readJson(path.join(root, '../executor-preparation-v1/SCHEDULE.json'));
 const mode = process.argv[2];
-requireThat(['verify', 'synthetic', 'admission', 'cohort'].includes(mode), 'MODE', mode);
+requireThat(['verify', 'synthetic', 'synthetic-repair', 'admission', 'cohort'].includes(mode), 'MODE', mode);
+const syntheticMode = mode.startsWith('synthetic');
 const recipe = authenticatePacket(root);
 for (const tool of projection.tools) boundFile(tool.path, tool);
 if (mode === 'verify') {
@@ -27,7 +28,7 @@ if (mode === 'verify') {
   requireThat(/^[a-z0-9-]{1,64}$/.test(runId ?? ''), 'RUN_ID', runId);
   const runRoot = path.join(root, 'runs', runId);
   let authorization;
-  if (mode !== 'synthetic') {
+  if (!syntheticMode) {
     const external = readJson(process.argv[4]);
     authorization = { repository, phase: mode, review: external.review, grant: external.grant };
     authority({ ...authorization, root, projection });
@@ -44,7 +45,7 @@ if (mode === 'verify') {
     fs.writeFileSync(path.join(runRoot, name), bytes, { flag: 'wx', mode: 0o644 });
     return hash(bytes);
   };
-  save('AUTHORIZATION.json', { mode, authorization: authorization ?? null, recipe, actualRootGrant: mode !== 'synthetic' });
+  save('AUTHORIZATION.json', { mode, authorization: authorization ?? null, recipe, actualRootGrant: !syntheticMode });
   let staged;
   const integrity = async () => {
     try {
@@ -74,9 +75,9 @@ if (mode === 'verify') {
     return receipt;
   }
   try {
-    if (mode === 'synthetic') {
-      output.defectControls = await defectControls();
-      output.controls = await controls({ root, work: runRoot, workflows, child: config => launch(config, true), integrity });
+    if (syntheticMode) {
+      output.defectControls = mode === 'synthetic' ? await defectControls() : { status: 'RETAINED_NOT_RERUN', originalCommit: '446206f6', count: 20 };
+      output.controls = await controls({ root, work: runRoot, workflows, child: config => launch(config, true), integrity, only: mode === 'synthetic-repair' ? ['C03', 'C04', 'C05'] : null });
       output.unsafe = output.controls.unsafe;
       output.productImports = 0;
       output.actualC11 = 'HELD_NOT_A_MODEL_PASS';
@@ -127,7 +128,7 @@ if (mode === 'verify') {
     await integrity();
   } catch (error) { output.unsafe = true; output.fatal = errorRecord(error); }
   output.finished = new Date().toISOString();
-  const expected = mode === 'cohort' ? schedule.rows.map(row => `${row.ordinal}:${row.layout}:${row.id}`) : Array.from({ length: 12 }, (_, index) => `C${String(index + 1).padStart(2, '0')}`);
+  const expected = mode === 'cohort' ? schedule.rows.map(row => `${row.ordinal}:${row.layout}:${row.id}`) : mode === 'synthetic-repair' ? ['C03', 'C04', 'C05'] : Array.from({ length: 12 }, (_, index) => `C${String(index + 1).padStart(2, '0')}`);
   const observedRows = mode === 'cohort' ? output.cohort?.rows ?? [] : output.controls?.rows ?? [];
   output.tail = expected.map((id, index) => ({ id, status: observedRows[index]?.status ?? 'UNRUN_PREPARATION_OR_UNSAFE_STOP' }));
   output.allChildrenReaped = output.children.every(child => child.reaped);

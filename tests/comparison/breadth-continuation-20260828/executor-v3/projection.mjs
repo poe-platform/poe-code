@@ -30,8 +30,8 @@ export function inspectTree(root, files, excluded = [], directoryMode = 0o755) {
   function visit(relative) {
     for (const name of fs.readdirSync(path.join(root, relative)).sort()) {
       const filename = relative ? `${relative}/${name}` : name;
-      requireThat(++total <= files.length + excluded.length + allowedDirectories.size, 'TREE_COUNT', filename);
       requireThat(expected.has(filename) || omissions.has(filename) || allowedDirectories.has(filename), 'UNLISTED_ENTRY', filename);
+      requireThat(++total <= files.length + excluded.length + allowedDirectories.size, 'TREE_COUNT', filename);
       const absolute = path.join(root, filename);
       const info = fs.lstatSync(absolute);
       requireThat(!info.isSymbolicLink(), 'SYMLINK', filename);

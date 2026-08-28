@@ -14,8 +14,8 @@ import moduleAPI, { syncBuiltinESMExports, isBuiltin } from 'node:module';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import { hash, requireThat } from './safety.mjs';
+import { readRegular } from './regular-read.mjs';
 
-const read = fs.readFileSync.bind(fs);
 const stat = fs.lstatSync.bind(fs);
 export function installOffline(view, emit) {
   const files = new Map(view.files.map(file => [path.join(view.root, file.path), file]));
@@ -23,6 +23,8 @@ export function installOffline(view, emit) {
   const pending = new Set();
   const restores = [];
   const assets = [];
+  const descriptors = new Set();
+  const openDescriptor = fs.openSync.bind(fs), closeDescriptor = fs.closeSync.bind(fs), readDescriptor = fs.readSync.bind(fs), statDescriptor = fs.fstatSync.bind(fs);
   const createRequire = moduleAPI.createRequire;
   function replace(object, name, value) {
     const previous = object[name];
@@ -40,14 +42,13 @@ export function installOffline(view, emit) {
     requireThat(entry && !entry.path.split('/').some(name => name.toUpperCase() === 'AGENTS.MD'), 'UNBOUND_ASSET', absolute);
     const info = stat(absolute);
     requireThat(info.isFile() && !info.isSymbolicLink() && info.size === entry.bytes && (info.mode & 0o7777) === entry.mode, 'ASSET_METADATA', absolute);
-    const bytes = read(absolute);
+    const bytes = readRegular(absolute, entry.bytes);
     requireThat(hash(bytes) === entry.sha256, 'ASSET_HASH', absolute);
     const witness = { path: entry.path, bytes: bytes.length, sha256: entry.sha256 };
     assets.push(witness); emit({ kind: 'asset-read', ...witness });
     return bytes;
     } catch (error) { const value = { operation: 'asset-read', code: error.code }; violations.push(value); emit({ kind: 'offline-denied', ...value }); throw error; }
   }
-  const originalRead = fs.readFileSync;
   replace(moduleAPI, 'createRequire', filename => {
     const absolute = filename instanceof URL || (typeof filename === 'string' && filename.startsWith('file:')) ? fileURLToPath(filename) : filename;
     if (!files.has(absolute)) return deny('REQUIRE_BASE')(absolute);
@@ -61,7 +62,7 @@ export function installOffline(view, emit) {
     return checked;
   });
   for (const name of ['register', 'registerHooks', 'enableCompileCache', 'flushCompileCache', 'runMain']) replace(moduleAPI, name, deny(`module.${name}`));
-  replace(fs, 'readFileSync', (filename, options) => { asset(filename); return originalRead(filename, options); });
+  replace(fs, 'readFileSync', (filename, options) => { const bytes = asset(filename); return typeof options === 'string' ? bytes.toString(options) : options?.encoding ? bytes.toString(options.encoding) : bytes; });
   replace(fs, 'readFile', (filename, options, callback) => {
     if (typeof options === 'function') { callback = options; options = undefined; }
     try { const bytes = asset(filename); callback(null, typeof options === 'string' ? bytes.toString(options) : options?.encoding ? bytes.toString(options.encoding) : bytes); }
@@ -75,6 +76,15 @@ export function installOffline(view, emit) {
     if (['readFile', 'readFileSync', 'constants'].includes(name)) continue;
     if (typeof object[name] === 'function') replace(object, name, deny(`fs.${name}`));
   }
+  replace(fs, 'openSync', (filename, flags) => {
+    if (!(flags === 'r' || flags === 0)) return deny('fs.openSync.write')(filename);
+    asset(filename);
+    const descriptor = openDescriptor(filename, fs.constants.O_RDONLY | fs.constants.O_NOFOLLOW);
+    descriptors.add(descriptor); return descriptor;
+  });
+  replace(fs, 'readSync', (descriptor, ...args) => { if (!descriptors.has(descriptor)) return deny('fs.readSync.unowned')(descriptor); return readDescriptor(descriptor, ...args); });
+  replace(fs, 'fstatSync', descriptor => { if (!descriptors.has(descriptor)) return deny('fs.fstatSync.unowned')(descriptor); return statDescriptor(descriptor); });
+  replace(fs, 'closeSync', descriptor => { if (!descriptors.has(descriptor)) return deny('fs.closeSync.unowned')(descriptor); closeDescriptor(descriptor); descriptors.delete(descriptor); });
   for (const [object, names] of [[http, ['request', 'get', 'createServer']], [https, ['request', 'get', 'createServer']], [net, ['connect', 'createConnection', 'createServer', 'Socket', 'Server']], [tls, ['connect', 'createServer', 'TLSSocket']], [dns, Object.keys(dns)], [dns.promises, Object.keys(dns.promises)], [dgram, ['createSocket']], [childProcess, Object.keys(childProcess)], [workers, ['Worker']]]) for (const name of names) replace(object, name, deny(name === 'Worker' ? 'UNSUPPORTED_WORKER_ASSET_ADMISSION' : name));
   replace(globalThis, 'fetch', deny('fetch'));
   replace(globalThis, 'WebSocket', deny('WebSocket'));
@@ -94,5 +104,5 @@ export function installOffline(view, emit) {
   replace(timerPromises, 'setInterval', deny('unsupported-timers-promises.setInterval'));
   for (const name of ['compile', 'instantiate', 'compileStreaming', 'instantiateStreaming', 'Module']) replace(WebAssembly, name, deny(`UNSUPPORTED_WASM_ADMISSION.${name}`));
   syncBuiltinESMExports();
-  return { receipt: () => ({ pending: pending.size, violations, assets, scope: 'trusted dependency operation guard; not adversarial JavaScript isolation', workerWasmPolicy: 'refuse before creation/compilation; unsupported never qualifies' }), close() { for (const restore of restores.reverse()) restore(); syncBuiltinESMExports(); } };
+  return { receipt: () => ({ pending: pending.size + descriptors.size, descriptors: descriptors.size, violations, assets, scope: 'trusted dependency operation guard; not adversarial JavaScript isolation', workerWasmPolicy: 'refuse before creation/compilation; unsupported never qualifies' }), close() { for (const restore of restores.reverse()) restore(); syncBuiltinESMExports(); } };
 }

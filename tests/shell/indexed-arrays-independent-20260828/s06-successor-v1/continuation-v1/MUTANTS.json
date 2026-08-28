@@ -1,0 +1,146 @@
+{
+  "originalDefinitionFile": "../preparation-v3/MUTANTS.json",
+  "declarations": [
+    {
+      "id": "U08",
+      "member": "dist/shell/runtime.js",
+      "replacements": [
+        {
+          "before": "    async arrayZero(state, name, expand, append = false, freeze = false) {\n        const store = requireArrays(state);\n        const operation = ArrayOwner.create(store.owner.ledger, store.owner);\n        const holding = store.owner.hold();\n        let staged;\n        try {\n            const watch = await store.watch(name, operation, this.signal);\n            const tickets = operation.reserve({ generation: true, version: true, epoch: true, work: 8 });\n            let frozenAttributes;\n            if (freeze) {\n                store.owner.reserve({ metadata: state.readonlyVariables ? 32 : 96, slots: 1, work: 5 });\n                if (!state.readonlyVariables)\n                    frozenAttributes = stateMonitor(state).prepareCollection(new Set(), \"readonlyVariables\");\n            }\n            const expanded = await expand();\n            this.signal.throwIfAborted();\n            if (state.readonlyVariables?.has(name))\n                throw new ArrayFailure(\"readonly binding\");\n            if (!watch.valid())\n                throw new ArrayFailure(\"stale binding\");\n            const current = store.get(name);\n            if (!current)\n                throw new ArrayFailure(\"stale binding\");\n            staged = await current.copy(this.signal);\n            const value = append ? await this.arrayJoin(operation, [current.get(0) ?? \"\", expanded], \"\") : expanded;\n            const token = await textToken(staged.owner, value, this.signal);\n            try {\n                staged.insert(0, token);\n            }\n            catch (error) {\n                token.release();\n                throw error;\n            }\n            const supersede = await stateMonitor(state).prepareTypedPublication(name, operation, this.signal);\n            this.signal.throwIfAborted();\n            if (state.readonlyVariables?.has(name))\n                throw new ArrayFailure(\"readonly binding\");\n            if (!watch.valid())\n                throw new ArrayFailure(\"stale binding\");\n            let released;\n            stateMonitor(state).publish(tickets, name, () => {\n                supersede();\n                released = store.publish(name, staged, tickets);\n                if (freeze) {\n                    state.readonlyVariables ??= frozenAttributes;\n                    state.readonlyVariables.add(name);\n                }\n            });\n            staged = undefined;\n            watch.close();\n            await released;\n        }\n        finally {\n            try {\n                await staged?.release();\n                await operation.close();\n            }\n            finally {\n                holding.release();\n            }\n        }\n    }\n",
+          "after": "    async arrayZero(state, name, expand, append = false, freeze = false) {\n        const store = requireArrays(state);\n        const operation = ArrayOwner.create(store.owner.ledger, store.owner);\n        const holding = store.owner.hold();\n        let staged;\n        try {\n            const watch = await store.watch(name, operation, this.signal);\n            const tickets = operation.reserve({ generation: true, version: true, epoch: true, work: 8 });\n            let frozenAttributes;\n            if (freeze) {\n                store.owner.reserve({ metadata: state.readonlyVariables ? 32 : 96, slots: 1, work: 5 });\n                if (!state.readonlyVariables)\n                    frozenAttributes = stateMonitor(state).prepareCollection(new Set(), \"readonlyVariables\");\n            }\n            const expanded = await expand();\n            this.signal.throwIfAborted();\n            __arrayMutantHit();\n            if (!watch.valid())\n                throw new ArrayFailure(\"stale binding\");\n            if (state.readonlyVariables?.has(name))\n                throw new ArrayFailure(\"readonly binding\");\n            const current = store.get(name);\n            if (!current)\n                throw new ArrayFailure(\"stale binding\");\n            staged = await current.copy(this.signal);\n            const value = append ? await this.arrayJoin(operation, [current.get(0) ?? \"\", expanded], \"\") : expanded;\n            const token = await textToken(staged.owner, value, this.signal);\n            try {\n                staged.insert(0, token);\n            }\n            catch (error) {\n                token.release();\n                throw error;\n            }\n            const supersede = await stateMonitor(state).prepareTypedPublication(name, operation, this.signal);\n            this.signal.throwIfAborted();\n            __arrayMutantHit();\n            if (!watch.valid())\n                throw new ArrayFailure(\"stale binding\");\n            if (state.readonlyVariables?.has(name))\n                throw new ArrayFailure(\"readonly binding\");\n            let released;\n            stateMonitor(state).publish(tickets, name, () => {\n                supersede();\n                released = store.publish(name, staged, tickets);\n                if (freeze) {\n                    state.readonlyVariables ??= frozenAttributes;\n                    state.readonlyVariables.add(name);\n                }\n            });\n            staged = undefined;\n            watch.close();\n            await released;\n        }\n        finally {\n            try {\n                await staged?.release();\n                await operation.close();\n            }\n            finally {\n                holding.release();\n            }\n        }\n    }\n"
+        }
+      ],
+      "originalSha256": "ecac8e40fa3a650008cf852f955813c4c78928586b6b9265c64f1d0de8e12a80",
+      "originalBytes": 222267,
+      "mode": 420,
+      "prefix": "import { createHash as __arrayHash } from 'node:crypto';\nimport { readFileSync as __arrayRead } from 'node:fs';\nimport { fileURLToPath as __arrayPath } from 'node:url';\nlet __arrayHits = 0;\nfunction __arrayMutantHit() { if (++__arrayHits === 1) process.stdout.write(JSON.stringify({ activation: { id: \"U08\", path: __arrayPath(import.meta.url), sha256: __arrayHash('sha256').update(__arrayRead(new URL(import.meta.url))).digest('hex'), hits: 1 } }) + '\\n'); }\n",
+      "finalLF": true,
+      "changedSha256": "8cc9ec1edaacd0aa06643936b955b0a9551bbbf8349118877273adeee6569279",
+      "changedBytes": 222791,
+      "cohort": "mechanical",
+      "ids": [
+        "M22"
+      ],
+      "requiredFailed": [
+        "M22"
+      ],
+      "requiredPassed": [],
+      "originalCandidateExecution": false,
+      "version": "affected-tail-v2"
+    },
+    {
+      "id": "U09",
+      "member": "dist/shell/runtime.js",
+      "replacements": [
+        {
+          "before": "const members = await this.arrayMembers(part.name, state);",
+          "after": "__arrayMutantHit();\n                    const members = [(await this.arrayMembers(part.name, state)).join(\"\")];"
+        }
+      ],
+      "originalSha256": "ecac8e40fa3a650008cf852f955813c4c78928586b6b9265c64f1d0de8e12a80",
+      "originalBytes": 222267,
+      "mode": 420,
+      "prefix": "import { createHash as __arrayHash } from 'node:crypto';\nimport { readFileSync as __arrayRead } from 'node:fs';\nimport { fileURLToPath as __arrayPath } from 'node:url';\nlet __arrayHits = 0;\nfunction __arrayMutantHit() { if (++__arrayHits === 1) process.stdout.write(JSON.stringify({ activation: { id: \"U09\", path: __arrayPath(import.meta.url), sha256: __arrayHash('sha256').update(__arrayRead(new URL(import.meta.url))).digest('hex'), hits: 1 } }) + '\\n'); }\n",
+      "finalLF": true,
+      "changedSha256": "04f5b3b4c49fa6cf4255bb24f93b40f533549d12586b86be9bc75564e79abe87",
+      "changedBytes": 222780,
+      "cohort": "semantic",
+      "ids": [
+        "S01",
+        "O15"
+      ],
+      "requiredFailed": [
+        "S01"
+      ],
+      "requiredPassed": [
+        "O15"
+      ],
+      "originalCandidateExecution": false,
+      "version": "affected-tail-v2"
+    },
+    {
+      "id": "U11",
+      "member": "dist/shell/runtime.js",
+      "replacements": [
+        {
+          "before": "state.variables[key] === saved.overlay && typed.watch.watch.typedVersion === typed.watch.typedVersion",
+          "after": "(__arrayMutantHit(), typed.watch.watch.version === typed.overlayVersion)"
+        }
+      ],
+      "originalSha256": "ecac8e40fa3a650008cf852f955813c4c78928586b6b9265c64f1d0de8e12a80",
+      "originalBytes": 222267,
+      "mode": 420,
+      "prefix": "import { createHash as __arrayHash } from 'node:crypto';\nimport { readFileSync as __arrayRead } from 'node:fs';\nimport { fileURLToPath as __arrayPath } from 'node:url';\nlet __arrayHits = 0;\nfunction __arrayMutantHit() { if (++__arrayHits === 1) process.stdout.write(JSON.stringify({ activation: { id: \"U11\", path: __arrayPath(import.meta.url), sha256: __arrayHash('sha256').update(__arrayRead(new URL(import.meta.url))).digest('hex'), hits: 1 } }) + '\\n'); }\n",
+      "finalLF": true,
+      "changedSha256": "636da6d2400ac6ad4f9b82f13a0e30c8be5e2c8612ec47562ad7354300e52485",
+      "changedBytes": 222698,
+      "cohort": "operations",
+      "ids": [
+        "P11-U11"
+      ],
+      "requiredFailed": [
+        "P11-U11"
+      ],
+      "requiredPassed": [],
+      "originalCandidateExecution": false,
+      "version": "affected-tail-v2"
+    },
+    {
+      "id": "U12",
+      "member": "dist/shell/arrays/ledger.js",
+      "replacements": [
+        {
+          "before": "        return this.completion;",
+          "after": "        __arrayMutantHit();\n        return this.completion.then(() => undefined);"
+        }
+      ],
+      "originalSha256": "d2dc9cb6ecb727d7854468f5aacb3eca8dedf09239e6ec325f25a5ac8510b43d",
+      "originalBytes": 9152,
+      "mode": 420,
+      "prefix": "import { createHash as __arrayHash } from 'node:crypto';\nimport { readFileSync as __arrayRead } from 'node:fs';\nimport { fileURLToPath as __arrayPath } from 'node:url';\nlet __arrayHits = 0;\nfunction __arrayMutantHit() { if (++__arrayHits === 1) process.stdout.write(JSON.stringify({ activation: { id: \"U12\", path: __arrayPath(import.meta.url), sha256: __arrayHash('sha256').update(__arrayRead(new URL(import.meta.url))).digest('hex'), hits: 1 } }) + '\\n'); }\n",
+      "finalLF": true,
+      "changedSha256": "73172f943eeb549fdf9f2a65e56923227fb8e3e091a025c6b4ed28fca533cf5f",
+      "changedBytes": 9662,
+      "cohort": "mechanical",
+      "ids": [
+        "M07"
+      ],
+      "requiredFailed": [
+        "M07"
+      ],
+      "requiredPassed": [],
+      "originalCandidateExecution": false,
+      "version": "affected-tail-v2"
+    },
+    {
+      "id": "U13-S06",
+      "member": "dist/shell/runtime.js",
+      "replacements": [
+        {
+          "before": "const quotedPresence = part.quoted && !(arrayOwned && isQuoteMarker(part));",
+          "after": "__arrayMutantHit();\n                const quotedPresence = part.quoted;"
+        }
+      ],
+      "originalSha256": "ecac8e40fa3a650008cf852f955813c4c78928586b6b9265c64f1d0de8e12a80",
+      "originalBytes": 222267,
+      "mode": 420,
+      "prefix": "import { createHash as __arrayHash } from 'node:crypto';\nimport { readFileSync as __arrayRead } from 'node:fs';\nimport { fileURLToPath as __arrayPath } from 'node:url';\nlet __arrayHits = 0;\nfunction __arrayMutantHit() { if (++__arrayHits === 1) process.stdout.write(JSON.stringify({ activation: { id: \"U13-S06\", path: __arrayPath(import.meta.url), sha256: __arrayHash('sha256').update(__arrayRead(new URL(import.meta.url))).digest('hex'), hits: 1 } }) + '\\n'); }\n",
+      "finalLF": true,
+      "changedSha256": "ddc15913410eba296ca3094a5cb7d35e68f893adecd939521ba1380b61fb3f02",
+      "changedBytes": 222727,
+      "cohort": "semantic",
+      "ids": [
+        "S06",
+        "S08"
+      ],
+      "requiredFailed": [
+        "S06"
+      ],
+      "requiredPassed": [
+        "S08"
+      ],
+      "originalCandidateExecution": false,
+      "version": "affected-tail-v2"
+    }
+  ]
+}

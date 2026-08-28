@@ -28,7 +28,7 @@ not a full Git archive or unrelated provider re-review.
 4. Run product-worker.mjs in chunks of32 for commands102, unsupported696, globs72,
    states14, overlay8 (within R23), and one-at-a-time procedures R01–R23/R25/R26.
    Use existing supervise/classify with required actual runtime and root loads.
-   Each child<=30s/2MiB; only bounded frozen patterns are allowed. Record every
+   Each child<=30s/256KiB; only bounded frozen patterns are allowed. Record every
    ordinary failure after disposal/reap and continue; stop on resource/cleanup
    failure. No whole-suite or native execution. No sum of overlapping obligations.
 5. Run five strict compiler fixtures using consumer-v2 plus unchanged negative
@@ -38,11 +38,14 @@ not a full Git archive or unrelated provider re-review.
 6. Exercise every named guard, actual source fallback denial and actual one-case
    successful package run with late exit7. Classify after child reap; allPASS with
    nonzero status cannot be accepted. Each guard<=10s/1MiB; no new native/runtime.
-7. In two separate copied package trees call mutants.mjs: load the actual appended
+7. In separate copied package trees call mutants.mjs: load the actual appended
    missing-builtin behavior module or exact accepted-STACK runtime/shell reversion.
    Rebind mutant inventories explicitly, never represent mutant bytes as candidate.
    Run R01, require actual changed module load, mechanism hit, designated failed
-   R01 and complete disposal/reap. Other loader/setup failures are not mutant kills.
+   R01 and complete disposal/reap. These two controls supplement, not replace,
+   original PROTOCOL M0–M8. Their concrete source hunks are sealed after candidate
+   inspection as the original protocol requires; no candidate execution precedes
+   this executor freeze. Other loader/setup failures are not mutant kills.
 8. Bind raw receipts in workflow JSON (verifyWorkflow schema), then execute R24
    against that hash-bound workflow. It rereads source/pack and reconciles actual
    source/installed/moved bodies, source denials, types, mutants, guards and late

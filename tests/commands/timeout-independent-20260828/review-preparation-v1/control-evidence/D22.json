@@ -1,0 +1,6 @@
+{
+  "id": "D22",
+  "name": "factory surface rejects undeclared runtime export",
+  "classification": "development-only-synthetic-control",
+  "status": "PASS"
+}

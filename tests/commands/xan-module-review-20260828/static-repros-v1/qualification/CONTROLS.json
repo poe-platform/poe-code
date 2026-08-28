@@ -1,0 +1,93 @@
+{
+  "controls": [
+    {
+      "kind": "pass",
+      "receipt": {
+        "code": 0,
+        "signal": null,
+        "pid": 25323,
+        "reaped": true,
+        "timeout": false,
+        "overflow": false,
+        "spawnError": null,
+        "logs": [
+          {
+            "deliveredBytes": 21,
+            "fullDeliveredSha256": "50668975530cac0ac8464b9144902a4168bcc237244ba5c6a14523376fdb0d9f",
+            "artifactBytes": 21,
+            "artifactSha256": "50668975530cac0ac8464b9144902a4168bcc237244ba5c6a14523376fdb0d9f",
+            "truncated": false
+          },
+          {
+            "deliveredBytes": 0,
+            "fullDeliveredSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "artifactBytes": 0,
+            "artifactSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "truncated": false
+          }
+        ],
+        "ended": "2026-08-28T06:59:34.251Z"
+      }
+    },
+    {
+      "kind": "fail",
+      "receipt": {
+        "code": 1,
+        "signal": null,
+        "pid": 25326,
+        "reaped": true,
+        "timeout": false,
+        "overflow": false,
+        "spawnError": null,
+        "logs": [
+          {
+            "deliveredBytes": 21,
+            "fullDeliveredSha256": "2a421347179242adaf591c4087fd2f45e1e2ea9eea73e0f457929db1af34e0ef",
+            "artifactBytes": 21,
+            "artifactSha256": "2a421347179242adaf591c4087fd2f45e1e2ea9eea73e0f457929db1af34e0ef",
+            "truncated": false
+          },
+          {
+            "deliveredBytes": 0,
+            "fullDeliveredSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "artifactBytes": 0,
+            "artifactSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "truncated": false
+          }
+        ],
+        "ended": "2026-08-28T06:59:34.406Z"
+      }
+    },
+    {
+      "kind": "timeout",
+      "receipt": {
+        "code": null,
+        "signal": "SIGTERM",
+        "pid": 25327,
+        "reaped": true,
+        "timeout": true,
+        "overflow": false,
+        "spawnError": null,
+        "logs": [
+          {
+            "deliveredBytes": 24,
+            "fullDeliveredSha256": "cae8770e47bf5f9b177c0e22cf3d8fd408484bd1132e2a5ce04bd79611697293",
+            "artifactBytes": 24,
+            "artifactSha256": "cae8770e47bf5f9b177c0e22cf3d8fd408484bd1132e2a5ce04bd79611697293",
+            "truncated": false
+          },
+          {
+            "deliveredBytes": 0,
+            "fullDeliveredSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "artifactBytes": 0,
+            "artifactSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "truncated": false
+          }
+        ],
+        "ended": "2026-08-28T06:59:34.805Z"
+      }
+    }
+  ],
+  "counterfeitRejected": 4,
+  "candidateExecuted": false
+}

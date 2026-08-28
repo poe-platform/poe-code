@@ -2704,3 +2704,26 @@ that any implementation, command, fixture, or test currently exists.
 - Received root's scoped DU75 composed29 acceptance (public4343b646 plus
   83645ad0) and combined5137 acceptance through7ebe10a0. These received component
   decisions neither alter frozen76 nor close its driver/full-gate HOLD.
+
+### 2026-08-28 — Literal POSIX admission; one actual review-only build/type pass
+
+- Source e062bcc1c79bf626541cc13ce35bad89e28dfe0a, evidence69a77055, driver
+  3d8d2a15214f12c07b64e3223f5e0088989845b8f60a74abb0a521dba32fa018.
+  Transport admits literal backslashes only on its explicit darwin/arm64 POSIX
+  slash-separator profile. Traversal/NUL/absolute/link/mode/hash/byte guards
+  remain; no Windows claim or filename rewriting. Productf5e9fc49, expectedc109,
+  native/cleanup/profile inputs are unchanged; the tarball is not rebuilt here.
+- Five presealed author control groups pass, including actual extraction of
+  both exact committed backslash files and unchanged nested V4 duplicate-build/
+  contained-observer controls. The target's ps EPERM and filesystem fence remain;
+  trusted outer observation proves owned-child closure, not arbitrary OS safety.
+- Exactly one successor review attempt exits0:37,397 entries/2,382,440,321 bytes
+  authenticate; cold typecheck78; one actual production compiler invocation;
+  typecheck:all0 with source/tests,23 maintained plus3 source-consumer groups,
+  the historical build-first consumer and3 exact negative groups. Typing reuses
+  208 declarations;832 emitted files are receipted. Guards and natural cleanup
+  pass with zero forced signals/survivors. No consumer runtime or full gate runs.
+- Exact raw reports/phase logs are losslessly indexed in launcher-v3/review-v5/
+  evidence; HANDOFF.md routes source/controls/shared-phase receipt to Dirac.
+  This is author proof, not independent A10 closure or a release. Prior dfcb
+  zero-build failure, old19/3→21/1 and all historical gate results remain intact.

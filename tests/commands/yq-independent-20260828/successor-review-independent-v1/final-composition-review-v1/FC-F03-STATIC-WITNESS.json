@@ -1,0 +1,73 @@
+{
+  "schema": 1,
+  "id": "FC-F03",
+  "classification": "CODE_PHASE_TRANSITION_CAN_ERASE_EXPIRED_SUBDEADLINE",
+  "status": "STATIC_CONTRADICTION_NO_EXECUTION",
+  "criteria": "FC04/FC10",
+  "sources": [
+    {
+      "revision": "b1b8566686769e5e53433048f2058ab09d8c00c3",
+      "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/composition-v2/assembly/core/phase-capture.mjs",
+      "sha256": "85702be619115df518ae16a946e1f3810277ca0705f8a2c421268611dfdb7b64",
+      "bytes": 2230,
+      "startLine": 15,
+      "endLine": 29,
+      "exactSource": "  record(kind, detail = {}, transition = false) {\n    requireFact(now() <= BigInt(this.deadline.jobNs), 'PHASE_DEADLINE');\n    if (transition) {\n      const next = STATES.indexOf(kind);\n      requireFact(next === this.index + 1, 'PHASE_ORDER', `${this.job.id}:${kind}`);\n      this.index = next;\n      if (kind === 'operation') this.operationStart = now();\n    }\n    const event = { schema: 1, index: this.count++, jobId: this.job.id, phase: this.job.phase, kind, transition, parentMonotonicNs: now().toString(), detail };\n    const line = `${JSON.stringify(event)}\\n`;\n    this.bytes += Buffer.byteLength(line);\n    requireFact(this.count <= 4096 && this.bytes <= 4194304 && Buffer.byteLength(line) <= 262144, 'PHASE_EVENT_BOUND');\n    appendFileSync(this.descriptor, line);\n    fsyncSync(this.descriptor);\n    return event;\n"
+    },
+    {
+      "revision": "b1b8566686769e5e53433048f2058ab09d8c00c3",
+      "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/composition-v2/assembly/core/phase-capture.mjs",
+      "sha256": "85702be619115df518ae16a946e1f3810277ca0705f8a2c421268611dfdb7b64",
+      "bytes": 2230,
+      "startLine": 31,
+      "endLine": 42,
+      "exactSource": "  operationDeadline() {\n    if (this.operationStart === null) return BigInt(this.deadline.workNs);\n    const millisecondsCap = ['SOURCE_RUNTIME', 'MOVED_RUNTIME', 'LOADED_CONTROLS'].includes(this.job.phase) ? 30000 : this.job.slotCapMs;\n    return minimum(BigInt(this.deadline.workNs), this.operationStart + milliseconds(millisecondsCap));\n  }\n  currentDeadline() {\n    if (this.index < 2 && ['SOURCE_RUNTIME', 'MOVED_RUNTIME', 'LOADED_CONTROLS'].includes(this.job.phase)) {\n      const setup = this.job.phase === 'SOURCE_RUNTIME' ? 5000 : 40000;\n      return minimum(BigInt(this.deadline.workNs), BigInt(this.deadline.reservationNs) + milliseconds(setup));\n    }\n    return this.index === 2 ? this.operationDeadline() : BigInt(this.deadline.workNs);\n  }\n"
+    },
+    {
+      "revision": "b1b8566686769e5e53433048f2058ab09d8c00c3",
+      "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/composition-v2/assembly/core/owned-process.mjs",
+      "sha256": "bcb309eed5984baeaf064d89cae892d54e4afe2d8c9dd710ad26ccf516c9d302",
+      "bytes": 5989,
+      "startLine": 81,
+      "endLine": 90,
+      "exactSource": "  const timer = setInterval(() => {\n    try {\n      const instant = now();\n      const workDeadline = minimum(BigInt(options.workDeadline), options.currentDeadline?.() ?? BigInt(options.workDeadline));\n      if (instant >= workDeadline) terminate('timeout');\n      if (termAt !== null && instant >= termAt + milliseconds(1000) && child.pid && groupAlive(child.pid)) { killAt ??= instant; signalGroup(child.pid, 'SIGKILL'); }\n      if (closeObserved && (!child.pid || !groupAlive(child.pid))) finish(true);\n      else if (closeObserved && termAt === null) terminate('remaining-group');\n      if (instant >= BigInt(options.hardDeadline)) { if (child.pid) { killAt ??= instant; signalGroup(child.pid, 'SIGKILL'); } finish(closeObserved && (!child.pid || !groupAlive(child.pid))); }\n    } catch (error) { spawnError = describeError(error); terminate('monitor-error'); if (now() >= BigInt(options.hardDeadline)) finish(false); }\n"
+    },
+    {
+      "revision": "b1b8566686769e5e53433048f2058ab09d8c00c3",
+      "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/composition-v2/assembly/core/supervisor.mjs",
+      "sha256": "c353bf16984a670f07a7414a60ca999c192215bfcccfd98b58b7377e608436ed",
+      "bytes": 25075,
+      "startLine": 110,
+      "endLine": 114,
+      "exactSource": "        keys(message, ['schema', 'nonce', 'jobId', 'seq', 'type', 'payload']);\n        requireFact(message.schema === 1 && message.nonce === request.nonce && message.jobId === job.id && message.seq === context.received++ && context.received <= 2048 && Buffer.byteLength(JSON.stringify(message)) <= 262144, 'IPC_ENVELOPE');\n        let value;\n        if (message.type === 'PHASE') value = context.phase.record(message.payload.name, message.payload.detail, true);\n        else if (message.type === 'NOTE') {\n"
+    }
+  ],
+  "authority": "Fixed setup/semantic caps, no budget reset or borrowing; late completion must fail even though host scheduling/preemption is not guaranteed.",
+  "benignClockArithmetic": {
+    "units": "milliseconds relative to one fixed reservation",
+    "sourceJobDeadline": 45000,
+    "fixedWorkDeadline": 40000,
+    "operationStart": 5000,
+    "semanticCap": 30000,
+    "outgoingOperationDeadline": 35000,
+    "lastMonitorTick": 34999,
+    "parentCaptureTransition": 35001,
+    "nextMonitorTick": 35009,
+    "noNewClock": true
+  },
+  "staticTrace": [
+    "PhaseCapture.record(capture,...,true) at35001 checks only jobNs45000, then changes index from2 to3. It does not compare the transition time to the outgoing35000 operation deadline.",
+    "currentDeadline then returns workNs40000 for index3, so the next periodic owned-process monitor at35009 no longer sees the expired operation deadline. A normal close below40000 can retain timedOut=false.",
+    "The setup/admission-to-operation transition has the analogous ordering: the5s/40s outgoing setup cap can disappear before the periodic monitor observes it.",
+    "No later phase-duration validation is present on the inspected supervisor PHASE route; only the mutable currentDeadline is monitored. This is an ordering gap, not a claim of measured scheduler behavior."
+  ],
+  "requiredCorrection": "Owner must retain the parent-observed transition evidence and validate the deadline of the phase being completed before allowing a transition to remove that deadline. Late completion remains sticky failure; do not merely tighten polling or claim hard preemption. Preserve global/phase/slot caps, capture ordering and cleanup reservation.",
+  "notClaimed": [
+    "No actual timeout, sleep, control, child, compiler or product was run.",
+    "No OS scheduling precision or opaque-host preemption is promised.",
+    "No source/product performance bug is inferred."
+  ],
+  "targetExecutions": 0,
+  "controlPasses": 0,
+  "rootGO": false
+}

@@ -1,0 +1,53 @@
+{
+  "date": "2026-08-28",
+  "status": "AUTHOR scoped candidate; different independent review required",
+  "policy": "bf25da0ed51b3d7cddf295a698020c524d4c27a3 plus root fixed-maxima ratification",
+  "precodeProtocol": "7ce2ed91",
+  "executorFreeze": "4a2f9a38",
+  "candidate": "58be2d6c5706f3e90f01d48e695ecfd9daa52669",
+  "baseComputedTree": "8437e4eda904e1248c25eeef0d9d455b1d251495",
+  "compositionRule": "exact authenticated coherent78 MANIFEST inputs plus ONLY the six listed module files from candidate; not raw candidate HEAD",
+  "source": [
+    {"path":"src/commands/apply-patch/apply.ts","bytes":11977,"sha256":"4722032feaf1cef0f3f65a79370292df0f4b6e7dbe061bf609f94ec8867db545"},
+    {"path":"src/commands/apply-patch/index.ts","bytes":1298,"sha256":"98dbcac5b211bd3d789ae4da451df3794ceaaca269b70cb10ed99fc3ce73050b"},
+    {"path":"src/commands/apply-patch/matcher.ts","bytes":5261,"sha256":"44063ee95bd503f4ce55d0d9bd688a8bc69e2e860320985878f26a2151e0408f"},
+    {"path":"src/commands/apply-patch/options.ts","bytes":1864,"sha256":"3d0aad73e4b6482813fd2aebc117236b5f091bebe6531d7b1c35f019b8c50de3"},
+    {"path":"src/commands/apply-patch/parser.ts","bytes":6458,"sha256":"9e6fbbed387d30a5dc1397d79ee77dde8db934abbefce7ba97845a697adbfc1a"},
+    {"path":"src/commands/apply-patch/shared.ts","bytes":5645,"sha256":"45ec3a0b93705142e43235cf2ef69c1984d4148a5c77a88d140d3ad40e2f04da"}
+  ],
+  "package": {
+    "fullFiles": 882,
+    "acceptedBaseFiles": 858,
+    "newEmissions": 24,
+    "tarballBytes": 773240,
+    "tarballSha256": "e89e146a6f3a9856124a94f451cfe38a16bd6703cac102d19917eb892d896f91",
+    "fullManifestSha256": "91bbda56c424f883cc1e8b92da48b4ff329e340c4bda913f99259800ab32dce0",
+    "defaultCommands": 78,
+    "runtimeDependencies": 0,
+    "publicApplyPatchExport": false,
+    "qualification": "full package with internal dist/commands/apply-patch module; root/subpath export and default registration intentionally absent"
+  },
+  "results": {
+    "primaryAttempts": 1,
+    "build": "passed on isolated selected source",
+    "layouts": ["source-build 63/63", "offline-installed 63/63", "physically-moved 63/63"],
+    "caseSplit": {"literalSuccessfulOperations":21,"literalExpectedRefusals":11,"supplementaryFamilies":24,"writableBackendShellFlows":6,"readonlyBackendRefusal":1},
+    "loadedModulesPerLayout": 216,
+    "typesPerLayout": {"positive":1,"expectedNegative":2,"repairedInversion":2,"matched":5},
+    "loadedBehaviorMutantsKilled":6,
+    "restoredTargetedControlsPassed":6,
+    "loaderNegativesRejected":3,
+    "shellsCreatedAndDisposedMainLayouts":24,
+    "allChildSettlements":36,
+    "ownedTemporaryRootRemoved":true
+  },
+  "evidence": {
+    "path":"captures/apply-patch-author-zr8SJA.json.gz.base64",
+    "encodedBytes":1209269,
+    "encodedSha256":"cf455ae74df63da61b3705dc80c6d00238675b504a6a9fa957857b6ce2b310b6",
+    "decodedSha256":"309ae565ad818dc59b60f008a400ff774fc6c8429de95017729a2d68188a8019",
+    "contents":"raw child stdout/stderr/status, all case outcomes, actual module hashes, declaration lists/digests, complete pack base64/manifest, mutation/restoration observations and cleanup"
+  },
+  "limits": "fixed maxima as ratified; only lower host-configured limits accepted; logical byte/record/work accounting, no RSS or opaque host preemption claim",
+  "remainingReview": "different source/semantic/limit/alias/cleanup reviewer required; no full Codex/native parity, real remote-service interoperability, cross-provider transaction, public integration or whole-gate acceptance"
+}

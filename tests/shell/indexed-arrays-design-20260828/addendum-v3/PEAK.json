@@ -1,0 +1,83 @@
+{
+  "schema": "indexed-arrays-private-logical-peak-v3",
+  "date": "2026-08-28",
+  "kind": "declared accounting graph; no product/native execution or resource measurement",
+  "inputs": { "B": 4096, "F": 64 },
+  "costs": { "objectHeader": 64, "tokenHeader": 32, "mapSlot": 64, "vectorSlot": 32 },
+  "storage": [
+    { "name": "ledger and four owner records", "objects": 5, "metadata": 320, "payload": 0, "mapSlots": 0, "vectorSlots": 0 },
+    { "name": "watch, restoration, snapshot pin", "objects": 3, "metadata": 192, "payload": 0, "mapSlots": 0, "vectorSlots": 0 },
+    { "name": "watch table header and one entry", "objects": 1, "metadata": 128, "payload": 0, "mapSlots": 1, "vectorSlots": 0 },
+    { "name": "four wrappers and four maps", "objects": 8, "metadata": 512, "payload": 0, "mapSlots": 0, "vectorSlots": 0 },
+    { "name": "old2 stage3 saved2 clone3 value map slots", "objects": 0, "metadata": 640, "payload": 0, "mapSlots": 10, "vectorSlots": 0 },
+    { "name": "name1 and values3+5+7 tokens", "objects": 4, "metadata": 128, "payload": 16, "mapSlots": 0, "vectorSlots": 0 },
+    { "name": "two three-index sort vectors", "objects": 2, "metadata": 320, "payload": 0, "mapSlots": 0, "vectorSlots": 6 },
+    { "name": "three-field join vector", "objects": 1, "metadata": 160, "payload": 0, "mapSlots": 0, "vectorSlots": 3 },
+    { "name": "flat join17 and encoded output17 tokens", "objects": 2, "metadata": 64, "payload": 34, "mapSlots": 0, "vectorSlots": 0 },
+    { "name": "argv header and one field", "objects": 1, "metadata": 96, "payload": 0, "mapSlots": 0, "vectorSlots": 1 }
+  ],
+  "strongEdges": [
+    { "from": "ledger", "to": "root, operation, saved frame, cloned state, watch table", "count": 5 },
+    { "from": "root", "to": "old wrapper, watch", "count": 2 },
+    { "from": "operation", "to": "stage wrapper, two sort vectors, join vector, argv, encoded output, snapshot pin", "count": 7 },
+    { "from": "saved frame", "to": "saved wrapper, restoration record", "count": 2 },
+    { "from": "cloned state", "to": "clone wrapper", "count": 1 },
+    { "from": "watch table slot", "to": "name token key, watch value", "count": 2 },
+    { "from": "watch", "to": "name token", "count": 1 },
+    { "from": "restoration", "to": "watch, saved wrapper", "count": 2 },
+    { "from": "four wrappers", "to": "four name references and four maps", "count": 8 },
+    { "from": "ten value-map slots", "to": "value tokens", "count": 10 },
+    { "from": "three join fields", "to": "three value tokens", "count": 3 },
+    { "from": "argv field", "to": "flat join", "count": 1 },
+    { "from": "snapshot pin", "to": "old wrapper", "count": 1 }
+  ],
+  "cleanup": {
+    "headersEnqueueDequeueRelease": { "count": 27, "unitsEach": 3 },
+    "mapSlotVisitDeleteRelease": { "count": 11, "unitsEach": 3 },
+    "vectorSlotVisitRelease": { "count": 10, "unitsEach": 2 },
+    "referenceDecrement": { "count": 45, "unitsEach": 1 },
+    "gateClose": { "count": 5, "unitsEach": 1 },
+    "restorationPublication": { "count": 1, "unitsEach": 5 }
+  },
+  "forwardWork": {
+    "admissionChecksSevenDerivedThreeIdentitySevenCounters": 17,
+    "ticketIssuanceThreeInitialThreePublicationThreeRestoration": 9,
+    "initialAndFinalEpochGenerationVersionGuardReads": 6,
+    "headerConstruction": 27,
+    "slotConstruction": 21,
+    "mapSlotVisitCopyStage2Saved2Clone3": 7,
+    "mapLookups": 11,
+    "mapInsertions": 11,
+    "referenceAcquires": 45,
+    "utf16InputScanNameAndThreeValues": 16,
+    "literalIndexScanThreeSingleDigits": 3,
+    "payloadMaterializationBytesInput16Join17Encoding17": 50,
+    "sortComparisonsForDeclaredThreeMemberMergeSchedule": 3,
+    "sortMovesInitial3MergePasses6": 9,
+    "joinFieldPlacement": 3,
+    "argvFieldPlacement": 1,
+    "outputEmissionBytesReservedBeforeSinkWrite": 17
+  },
+  "expected": {
+    "objects": 27,
+    "strongEdges": 45,
+    "wrappers": 4,
+    "mapSlots": 11,
+    "vectorSlots": 10,
+    "metadata": 2560,
+    "payload": 50,
+    "cumulativeBytes": 2610,
+    "cumulativeSlots": 21,
+    "forwardWork": 256,
+    "cleanupCredits": 189,
+    "cumulativeReservedWork": 445
+  },
+  "caps": { "wrappers": 64, "mapSlots": 64, "payload": 4096, "metadata": 8192, "cumulativeBytes": 65536, "cumulativeSlots": 512, "work": 147456 },
+  "boundary": {
+    "privatePeak": "2610 logical bytes before sink emission; includes every object/edge in this declared graph",
+    "existingPhase": "E remains independently owned existing input/source/capture/output storage, including any retained sink copy",
+    "combined": "2610 + E, not a finite total live-memory/RSS bound",
+    "noHiddenRefund": "No discarded allocations in this witness; actual discarded stages add cumulative bytes/slots/work. Cleanup credits stay spent.",
+    "notAnImplementationCount": "Any additional candidate storage, primitive intermediate, guard, dependency node, promise or edge requires extra admission; this graph does not assert source execution has exactly these operations."
+  }
+}

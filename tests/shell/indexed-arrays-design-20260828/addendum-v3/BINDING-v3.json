@@ -1,0 +1,234 @@
+{
+  "schema": "indexed-arrays-static-addendum-binding-v3",
+  "date": "2026-08-28",
+  "scope": "tests/shell/indexed-arrays-design-20260828/addendum-v3/",
+  "status": "STATIC_DOCUMENT_BINDING_NOT_RATIFICATION",
+  "authorityCorrection": "Earlier root-settled staging/index labels were unsupported proposal/preference. Current user explicitly chooses staged target/no RHS rollback/canonical decimal 0..2147483647 only; fresh-exec/shared-descendant ledger was already settled.",
+  "acceptedStack": {
+    "revision": "3e4cd743f1d4d2302b6b58a337740b3fde68462a",
+    "runtimeBlob": "9ff4aa32354f15901ed18e7e57aa30f812d34b14",
+    "shellBlob": "0ebf7efa77df77707d594fa55c89af4db891ee87",
+    "selectedComposition": "099455f232870fa1ea59e1a0ae482e003fd170db",
+    "qualification": "User-bound reconstructed composition identifier; not an available loose object here and not reconstructed/certified in this addendum."
+  },
+  "oldEvidence": {
+    "launches": 16,
+    "exit0": 14,
+    "exit127": [
+      "N12",
+      "N15"
+    ],
+    "notPasses": true,
+    "N13": "Historical proposed candidate contradicted",
+    "supervisor": "Five STATIC gaps remain; no observed capture escape/cleanup/byte violation claimed by the cited review",
+    "documentSeal": "STOPPED_FINAL_INTEGRITY remains; this is not its replacement or retry",
+    "dotglob": "d2502 FROZEN; no source inspection, retest or investigation reopened"
+  },
+  "execution": {
+    "nativeCalls": 0,
+    "productCalls": 0,
+    "productImports": 0,
+    "tests": 0,
+    "builds": 0,
+    "supervisorCalls": 0,
+    "oldBinderCalls": 0,
+    "resourceProbes": 0,
+    "networkCalls": 0
+  },
+  "hashMethod": "Git cat-file immutable blob bytes; recompute SHA1 with Git blob type/length header and independent SHA256; no product imports",
+  "documents": [
+    {
+      "path": "tests/shell/indexed-arrays-design-20260828/addendum-v3/DECISIONS.md",
+      "bytes": 36965,
+      "sha256": "0f5f07b550d4f1695dfe5df42da5ff9a3cb6bc22f1b20fede04049989666e9b8"
+    },
+    {
+      "path": "tests/shell/indexed-arrays-design-20260828/addendum-v3/PEAK.json",
+      "bytes": 4974,
+      "sha256": "79e72a3a9900330470d60b8dc6c23d14bc6fd3fd2da45e56cfc0cded6bd85b74"
+    },
+    {
+      "path": "tests/shell/indexed-arrays-design-20260828/addendum-v3/REPORT.md",
+      "bytes": 4290,
+      "sha256": "f1d868c7d0c4a177542729bb9f4861ca4e386750e999127e4186d4e9d47c7f34"
+    }
+  ],
+  "immutableReferences": [
+    {
+      "revision": "2cb939883a91b495bed7dadb8973cd1939b16e6a",
+      "path": "tests/shell/indexed-arrays-design-20260828/PROFILE.md",
+      "blob": "0a24e7a5ed7b2b88e54568af14121f06e1a51915",
+      "bytes": 15448,
+      "sha256": "9607903a7d0c5dec46364b1b3f5db5e42cdfd187c4281121094c955e5e044eb2"
+    },
+    {
+      "revision": "2cb939883a91b495bed7dadb8973cd1939b16e6a",
+      "path": "tests/shell/indexed-arrays-design-20260828/REPORT.md",
+      "blob": "41c35eef9cfc78b5969fd5080f70bd5798b2b8e6",
+      "bytes": 4157,
+      "sha256": "7350cc8d646eb0851d3b7fdd6fa93fc19466e0a4709b58e42442713b25376175"
+    },
+    {
+      "revision": "2cb939883a91b495bed7dadb8973cd1939b16e6a",
+      "path": "tests/shell/indexed-arrays-design-20260828/SOURCE-BINDING.json",
+      "blob": "326ac757d102933054e76a8736a1c4a55b828d05",
+      "bytes": 3861,
+      "sha256": "6cda9ea07116d58cf5a47e5add7c56d4bf8b6ca1b52bfa552a2e478f427c6a72"
+    },
+    {
+      "revision": "abe53e03b654cd576dfa5f8f7a6cf435edc2b4d0",
+      "path": "tests/shell/indexed-arrays-design-20260828/addendum-v1/ACCOUNTING.md",
+      "blob": "aadd0fd42304d7b606cae8de765abf057615a9a0",
+      "bytes": 8500,
+      "sha256": "811cf0226c4232cf389e6e410c687bf952232b5ce9ea0a8cac49bbe7c21e2109"
+    },
+    {
+      "revision": "abe53e03b654cd576dfa5f8f7a6cf435edc2b4d0",
+      "path": "tests/shell/indexed-arrays-design-20260828/addendum-v1/CHOICES.md",
+      "blob": "11d539c4371520bac2edb662d306c2e61dbbc9df",
+      "bytes": 10534,
+      "sha256": "513e178786a1d27561cc113152aea69537b5f9ff7c3fe969bede4cf056a62569"
+    },
+    {
+      "revision": "abe53e03b654cd576dfa5f8f7a6cf435edc2b4d0",
+      "path": "tests/shell/indexed-arrays-design-20260828/addendum-v1/REPORT.md",
+      "blob": "30888ba760f48165205fe75200819cf22ec0fa95",
+      "bytes": 4470,
+      "sha256": "4261ebf4b6350a285c50f92a979e80e3560bfdc11f803165e09e79b9a966eef4"
+    },
+    {
+      "revision": "0d70a9d4d30f4623a5ec2594e7f8568f5e2dbb43",
+      "path": "tests/shell/indexed-arrays-independent-20260828/FINDINGS.md",
+      "blob": "eb0199c7b1418c785f2b303c1143af8142bd86fb",
+      "bytes": 13894,
+      "sha256": "3bcff7d04a679670c89797691075c004bfe2b704bf4b1aa4618737b7ef6c1eab"
+    },
+    {
+      "revision": "573f229c5bc60ca92dbcc6ca87e3da3bf9b64634",
+      "path": "tests/shell/indexed-arrays-design-20260828/addendum-v2/DECISIONS.md",
+      "blob": "03e8eae6224303421afc1e198d5bb99f7055a543",
+      "bytes": 18427,
+      "sha256": "593338b07ffd4a96f17db2328a6b0d678b034e4cf80cb7405d8ff910e23a7781"
+    },
+    {
+      "revision": "573f229c5bc60ca92dbcc6ca87e3da3bf9b64634",
+      "path": "tests/shell/indexed-arrays-design-20260828/addendum-v2/REPORT.md",
+      "blob": "cb8e163e315e91d89baf5b08f3439177a63fecd3",
+      "bytes": 4686,
+      "sha256": "e59d4521925fdad08fbcec79961dd4aee42854e97374126e5f8cfbe419b5585f"
+    },
+    {
+      "revision": "573f229c5bc60ca92dbcc6ca87e3da3bf9b64634",
+      "path": "tests/shell/indexed-arrays-design-20260828/addendum-v2/BINDINGS.json",
+      "blob": "282a0b0f1c16c8e3c99d746502a898c1f9642534",
+      "bytes": 11841,
+      "sha256": "48a6449ff343fb6af54b0356f6677dd0782d542e36a350e54bf6a3a19d3b113b"
+    },
+    {
+      "revision": "573f229c5bc60ca92dbcc6ca87e3da3bf9b64634",
+      "path": "tests/shell/indexed-arrays-design-20260828/addendum-v2/FINAL-STOP.json",
+      "blob": "bc9b5f7b27b4a88ed076567bded93b016d2fb734",
+      "bytes": 1941,
+      "sha256": "25f1393193044710e5aedb6e55156c6f2d50fc75b1646b6888128142e576205d"
+    },
+    {
+      "revision": "2142c48314ed252879cd78589870435617358f64",
+      "path": "tests/shell/indexed-arrays-design-20260828/observation-review-v1/REPORT.md",
+      "blob": "15b2ca2ba332bf26b8d90d187a2f24c5328c22a2",
+      "bytes": 3302,
+      "sha256": "c0995b687a583c93e3be358bb23f52411e9823808338c6224a1c317cdc5f49d1"
+    },
+    {
+      "revision": "d4f3d9f91a8549ebdd3a222fbac04d379c6ce770",
+      "path": "tests/shell/indexed-arrays-native-review-20260828/REPORT.md",
+      "blob": "f0cab153333cc15832658130728a24870d7cdf76",
+      "bytes": 27289,
+      "sha256": "fe6f5093e16bfbc819d8c0a60e3668310a074bf433d9160603eb766a178dcf06"
+    },
+    {
+      "revision": "d4f3d9f91a8549ebdd3a222fbac04d379c6ce770",
+      "path": "tests/shell/indexed-arrays-native-review-20260828/BINDINGS.json",
+      "blob": "74b67d02cd7e27dc20e01f83720c8818cdf48433",
+      "bytes": 41071,
+      "sha256": "54f7086e0b39fcaa8b5ef543e6cf613c71fcee7667c0577cf39beb84bf7d8d9a"
+    },
+    {
+      "revision": "4e8f8a13590d489df5b5e7c70fe684de4abd2b5d",
+      "path": "tests/shell/indexed-arrays-design-20260828/native-observations-v1/EVIDENCE.json",
+      "blob": "50f2e118edced26235cd3e81d1db469df66d9507",
+      "bytes": 31897,
+      "sha256": "9ecea95e1f9e9e94a80fd799874051ec2b62b97180152ecef019f14aa3f3199d"
+    },
+    {
+      "revision": "0fe2274a28f251370e9894cf30bb215f80b600d0",
+      "path": "tests/shell/directory-stack-independent-20260828/review-3e4cd743/HANDOFF.md",
+      "blob": "0844dbcbd1fea3fa5965d738ff2f21f255cd2189",
+      "bytes": 4182,
+      "sha256": "68ef5d9f53a6a9cacce2e978588236d5372dbf0dcbb57a59bffb03031ef8de68"
+    },
+    {
+      "revision": "c26892c3a1a419311c9cf46a6c2976e696e00624",
+      "path": "src/shell/runtime.ts",
+      "blob": "9e70a9d556e46ecf23b977a048f089b1c0d25e5c",
+      "bytes": 139761,
+      "sha256": "eb4588578001136b8ac011c1c458079b0c8a9f07e653938836d342dff052e193"
+    },
+    {
+      "revision": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "path": "src/shell/parser.ts",
+      "blob": "f570235d1f65ade0f7279ccacf805ec1333155f7",
+      "bytes": 36304,
+      "sha256": "10d015eb62fd4e4f964666c04e5869ea78afdb76d930181760adecbcf16ab65e"
+    },
+    {
+      "revision": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "path": "src/shell/cleanup.ts",
+      "blob": "eae04650a553e4820da9c7b08b0255a6b20fc01c",
+      "bytes": 1947,
+      "sha256": "134f55641d6437681cd185960a2923d68086096921758717c5b8059595304385"
+    },
+    {
+      "revision": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "path": "src/shell/shell.ts",
+      "blob": "0b96a82f4ec29da4dbdd447806cca6a2f514311a",
+      "bytes": 15002,
+      "sha256": "3e36a27bbf98b384c7351ffa40d396485c788b0aa0bbefb8702e3bd45ce11a24"
+    },
+    {
+      "revision": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "path": "src/shell/locale.ts",
+      "blob": "5a2cda6417f2f28af38b33f2d32a56271c0f5a58",
+      "bytes": 207,
+      "sha256": "1b0687b8401c3f0886a793bf6f212a1731d4bd973be6ac2c7642254e6e1fb2d2"
+    },
+    {
+      "revision": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "path": "src/contracts/command.md",
+      "blob": "ef94adf238122441a66c2232fb3055aaee62d290",
+      "bytes": 9253,
+      "sha256": "ace3670c3820fff94055c6a9d6bee7ac1206a06bcb7607fdafe30f340c0234c6"
+    },
+    {
+      "revision": "3e4cd743f1d4d2302b6b58a337740b3fde68462a",
+      "path": "src/shell/runtime.ts",
+      "blob": "9ff4aa32354f15901ed18e7e57aa30f812d34b14",
+      "bytes": 152461,
+      "sha256": "12b2ebdc006ba36159eb81149498cba65ba65d4efc014ce076ae13dc1c4ba419"
+    },
+    {
+      "revision": "3e4cd743f1d4d2302b6b58a337740b3fde68462a",
+      "path": "src/shell/shell.ts",
+      "blob": "0ebf7efa77df77707d594fa55c89af4db891ee87",
+      "bytes": 15055,
+      "sha256": "59e5f9dfac10ada26bc4d836ea78aabd998c8f269e467dd17ffe316ffc047018"
+    }
+  ],
+  "notClaimed": [
+    "full historical capture recensus",
+    "clean old document seal",
+    "current full source gate",
+    "implementation-ready design",
+    "independent review of this addendum",
+    "cross-exec or RSS guarantee"
+  ]
+}

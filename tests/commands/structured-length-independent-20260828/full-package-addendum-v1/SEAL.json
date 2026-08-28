@@ -1,0 +1,9 @@
+{
+  "PRESEAL.md": "3401cc87f364079a3dc81e0b9d16ec6502ca89bb5805ba16b66dfc61f41ef84b",
+  "README.md": "414c290c9c3fa87905cc5fa85d2cec347999e3aff5aadc0834cec93010a3e785",
+  "RECIPE.json": "11e80b9b76e2b74fd0ffcd429b76faa4f85a699ff5739873fbee3349f9b88e9e",
+  "result/REPORT.json": "04cbb2f907badb0dabde5a5c1f16ed4f63056d2efd1a395dd1d90c7f10746100",
+  "result/virtual-bash-0.0.0.tgz": "ff230f2e9079cc843198533e412f836abb62e4ade63f4fa210b7269f7deb4eff",
+  "run.mjs": "e62591b5a8edc06c24f434d30cb6d2e57605e012af842db3fc0aa363553dd49d",
+  "verify-seal.mjs": "a650d1aa64202fcb443395acb3922e9700704f0cea3a3a02a09ce84055da3c85"
+}

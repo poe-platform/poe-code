@@ -1,0 +1,6 @@
+{
+  "preseal": "9027f94e",
+  "code": 1,
+  "stdout": "{\"work\":\"/Users/kjopek/Workspace/safe-bash/tests/shell/indexed-arrays-independent-20260828/candidate-v1/complete-app-LEJxv5\",\"accepted\":false,\"types\":[{\"id\":\"public\",\"accepted\":false,\"code\":2,\"error\":\"AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\\n\\n2 !== 0\\n\",\"closed\":true,\"groupAbsent\":true},{\"id\":\"ast\",\"accepted\":true,\"code\":0,\"error\":null,\"closed\":true,\"groupAbsent\":true},{\"id\":\"negative-option\",\"accepted\":true,\"code\":2,\"error\":null,\"closed\":true,\"groupAbsent\":true},{\"id\":\"negative-limit\",\"accepted\":true,\"code\":2,\"error\":null,\"closed\":true,\"groupAbsent\":true},{\"id\":\"negative-export\",\"accepted\":true,\"code\":2,\"error\":null,\"closed\":true,\"groupAbsent\":true},{\"id\":\"option-inverse\",\"accepted\":true,\"code\":0,\"error\":null,\"closed\":true,\"groupAbsent\":true},{\"id\":\"limit-inverse\",\"accepted\":true,\"code\":0,\"error\":null,\"closed\":true,\"groupAbsent\":true},{\"id\":\"export-inverse\",\"accepted\":true,\"code\":0,\"error\":null,\"closed\":true,\"groupAbsent\":true},{\"id\":\"ast-negative\",\"accepted\":true,\"code\":2,\"error\":null,\"closed\":true,\"groupAbsent\":true}],\"sha256\":\"6a45e01a58ce76c87e580885fead5b0dd0abcb7792926b2b4b086f84fa71f3b1\"}\n",
+  "stderr": ""
+}

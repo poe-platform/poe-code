@@ -1,0 +1,137 @@
+{
+  "kind": "array-complete-app-type-admission-01",
+  "preseal": "9027f94e",
+  "candidate": "50117fc54fdfd650e8f57e84b82ba21297ab8a0f",
+  "selectedTree": "d6c17f62d2d3062b5ab074044a86b8a455820373",
+  "packageSha256": "0fadca03da4e100c7dd5b7df0a25d321467f9f1f9fbd288ebcc4456746945d26",
+  "packageMembers": 862,
+  "encodedSha256": "1f1d85f2b253799cf2c60a4aff3f27e4bba706c2e696aa4f3284d4d5e8a2b31f",
+  "decodedSha256": "ed570b4739dd278e64a2cdb882734d0c12412c9b67b5a540d1ca1d7e96fc18ca",
+  "rawReportSha256": "6a45e01a58ce76c87e580885fead5b0dd0abcb7792926b2b4b086f84fa71f3b1",
+  "rawReportBytes": 11356162,
+  "capsuleEncodedBytes": 897641,
+  "types": [
+    {
+      "id": "public",
+      "accepted": false,
+      "code": 2
+    },
+    {
+      "id": "ast",
+      "accepted": true,
+      "code": 0
+    },
+    {
+      "id": "negative-option",
+      "accepted": true,
+      "code": 2
+    },
+    {
+      "id": "negative-limit",
+      "accepted": true,
+      "code": 2
+    },
+    {
+      "id": "negative-export",
+      "accepted": true,
+      "code": 2
+    },
+    {
+      "id": "option-inverse",
+      "accepted": true,
+      "code": 0
+    },
+    {
+      "id": "limit-inverse",
+      "accepted": true,
+      "code": 0
+    },
+    {
+      "id": "export-inverse",
+      "accepted": true,
+      "code": 0
+    },
+    {
+      "id": "ast-negative",
+      "accepted": true,
+      "code": 2
+    }
+  ],
+  "accepted": false,
+  "passed": 8,
+  "failed": 1,
+  "diagnostics": [
+    "public.mts(5,39): error TS2322: Type '(context: ShellCommandContext) => Promise<CommandResult>' is not assignable to type 'CommandHandler'.",
+    "public.mts(6,3): error TS2722: Cannot invoke an object which is possibly 'undefined'."
+  ],
+  "declarationProof": [
+    {
+      "path": "dist/index.d.ts",
+      "mode": 420,
+      "bytes": 1628,
+      "sha256": "d3e61ecf6b1db842cdfb51c137242c86d03fcf1d4678c4e210ab0ee923aa09f1",
+      "acceptedBaselineEqual": true
+    },
+    {
+      "path": "dist/contracts/command.d.ts",
+      "mode": 420,
+      "bytes": 2024,
+      "sha256": "dba1185c9c0d49f8bee2a27b44b52b604e7ed14133eaa01cbd5969a75a723c08",
+      "acceptedBaselineEqual": true
+    },
+    {
+      "path": "dist/shell/types.d.ts",
+      "mode": 420,
+      "bytes": 2508,
+      "sha256": "ff4c74a63635087b4b239184e1ba691990528bd87619d8569d4f8fd6c9843cde",
+      "acceptedBaselineEqual": true
+    },
+    {
+      "path": "dist/shell/shell.d.ts",
+      "mode": 420,
+      "bytes": 923,
+      "sha256": "a5000b8a9d94806a5ae826a393fab48d561c506c9d78943c6b0468aae243b72a",
+      "acceptedBaselineEqual": true
+    }
+  ],
+  "sourceProof": [
+    {
+      "path": "src/contracts/command.ts",
+      "commit": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "mode": "100644",
+      "blob": "9c5f2d150df8681f2688fe6aee7ed2d5dfcd22b8",
+      "bytes": 2968,
+      "sha256": "d2f6c788a48b3bb0bed9570f0e69bb2bfab845528376a7fe9288d1c07556df7c"
+    },
+    {
+      "path": "src/shell/types.ts",
+      "commit": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "mode": "100644",
+      "blob": "763d2ee0ad2b15c7ed7af31e7c6171f739c98486",
+      "bytes": 2223,
+      "sha256": "aaef878966d35d1c671cf84e5b416f10f6a31433f1ec264ef1730b9c6570f990"
+    },
+    {
+      "path": "src/shell/shell.ts",
+      "commit": "d2502aae3c8458e0ac92662f2af07e7f9fc3923a",
+      "mode": "100644",
+      "blob": "220d6c28a6e50f459a48aaee2030f24a841f4ab7",
+      "bytes": 15081,
+      "sha256": "126438b132a9f1863bf25b20f02ca6473cb24aa86e0a91869ab98bcbf3309cba"
+    }
+  ],
+  "children": {
+    "count": 9,
+    "closed": 9,
+    "groupsAbsent": 9,
+    "active": 0
+  },
+  "buildExecutions": 0,
+  "npmExecutions": 0,
+  "productRuntimeImports": 0,
+  "nativeCalls": 0,
+  "cleanup": {
+    "root": "/Users/kjopek/Workspace/safe-bash/tests/shell/indexed-arrays-independent-20260828/candidate-v1/complete-app-LEJxv5",
+    "removedAfterPreservationAndIntegrity": true
+  }
+}

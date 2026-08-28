@@ -1,0 +1,446 @@
+{
+  "status": "ACCEPT_READY_FOR_ROOT_AUTHORIZATION_METADATA_ONLY",
+  "packetCommit": "d9dd698a33421b197ee15432a6606ad91dd06c63",
+  "normalizedPacketSha256": "7e40e84c099d8eaa2e9bc4c1cc73274b4a174d699737f34b7015eb4eb706ec70",
+  "rawPacketSha256": "56d45cb729ce8c60ed60834f7b86f2f08b438d34ff334c1f699d71d61a7fda47",
+  "source": "fe15f1e406fa1039accddec25c696ae7187f6135",
+  "acceptedReview": "97c081ec7c7f180889d3640c29d1cd5fd1b10752",
+  "shippingFiles": [
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/DRIVER.json",
+      "blob": "ee51d1117b7dcd9bcfaeb7ba054e907f301e55f5",
+      "sha256": "966848549f5a9969faa0eee9345991698afd8275dcef0abcb90379cf07666f96",
+      "liveRegularBytesMatch": true
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/CANDIDATE.json",
+      "blob": "70d776fafe01afacdc29299e2f33867aabdcb691",
+      "sha256": "b46ac2defc2ae1c199f291f37099445d401a561e43bc4acb1cca563476d0bddd",
+      "liveRegularBytesMatch": true
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/PROFILE.json.gz.base64",
+      "blob": "3a662ce727c931a5cdd3065a8d95d3ff4e1e02d6",
+      "sha256": "a98b340fbede2d12e9cb0264726a13bc9d7ace4853a8705e17fc69c07df60d37",
+      "liveRegularBytesMatch": true
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/PROFILE-RECEIPT.json",
+      "blob": "cc0049a0568f3924b47fd705651fb705dfeecd81",
+      "sha256": "bae07fe064489bf3c2eab1f49520d784b43b9deda5cc579a0af6af6b4a512ca0",
+      "liveRegularBytesMatch": true
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/CLEANUP.json",
+      "blob": "161431a7a7ac90755bb895f3ff9c1fc3f5124626",
+      "sha256": "0bf253f75c9ef32f37c1bc154e06c055b5db640f09a7db89e98c1bc5ded27fde",
+      "liveRegularBytesMatch": true
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/EXTERNAL.json.gz.base64",
+      "blob": "cb03f3cab771028df57fe70aade72574d2b3921b",
+      "sha256": "ee7a51bc076144312e694b94a19d81f9349f438253d43465e7497616ed9f379e",
+      "liveRegularBytesMatch": true
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/EXTERNAL-RECEIPT.json",
+      "blob": "4cbafbae57d48d1fd4b1aae515005f6b2eeb46bf",
+      "sha256": "0374aad612ced6941f849de615d89bfedc7a6bcdd2708c017ba13fe57417ac84",
+      "liveRegularBytesMatch": true
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/common.mjs",
+      "blob": "bb44d03dfe124a336db8964ef138b0c8d698b0e3",
+      "sha256": "aa751c0b12d8662df2e02fdea4e8bf1f893663698fa1063f5a1cf187c3303ad4",
+      "liveRegularBytesMatch": true
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/profile.mjs",
+      "blob": "a5a31d596998be0e801a0aaa4107fd17e4cded12",
+      "sha256": "4746445e74d7a14d7a8f8b29cbd6daee4d5af2488d6627fda268d7b73579de0e",
+      "liveRegularBytesMatch": true
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/admission.mjs",
+      "blob": "5caa46278fb84c010fdc027a1f70764030eaff97",
+      "sha256": "b4e38b581d8be10604c8ea823b74551912e43bfc9806fbdb138b304d40bc7f90",
+      "liveRegularBytesMatch": true
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/inventory.mjs",
+      "blob": "429b8c73aba142c18d510e93d91ff6a765978b45",
+      "sha256": "4474327377ffdf4d46344e84c8bfb5022664511f94bef53d77bac77253ad88d1",
+      "liveRegularBytesMatch": true
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/run.mjs",
+      "blob": "2b467083dce5c3bf8ff8de08b3b64043bb4bb0bf",
+      "sha256": "a93d31887f2fd363d8747baec1a5cba405fb1c580fbf023cc80a9daa1bc2d1f2",
+      "liveRegularBytesMatch": true
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/worker.mjs",
+      "blob": "ce91b51b3db512d7c7331bd5e108e906b3eea5dc",
+      "sha256": "8c3ad0676c804d02b45f9d7b8acfc355966ee23413dca8a8dfb2b2a4e2189e3a",
+      "liveRegularBytesMatch": true
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/supervise.mjs",
+      "blob": "bc4db8061db8aafcf0a4f7c926267ff20dc3e83a",
+      "sha256": "87837c2ff91182fc7b1b45f3d0b0ae54b7e1af66f289bd581d20a6cb5938773b",
+      "liveRegularBytesMatch": true
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/execute.mjs",
+      "blob": "ac336a9683bc3696abb4deb6ba834ffec6204f7e",
+      "sha256": "fadf7b45c9fb628c0f91cf9c0af514733421942bee6c1a9f0e9fd1437f1de040",
+      "liveRegularBytesMatch": true
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/policy.mjs",
+      "blob": "49228227576c2d4e750edd6a00ed3f8611a3e69a",
+      "sha256": "23749abb9716a9b60f5fcb909a4888f538610bdc1e8c502bcf99a2cc8f2baf86",
+      "liveRegularBytesMatch": true
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/transport.mjs",
+      "blob": "f00563f5583154e494b8f97605141f0a28ab0bfb",
+      "sha256": "f4da1e721bef673835a2827901754b612fe9cf4e4d400f77c97bdd60c3991646",
+      "liveRegularBytesMatch": true
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/external.mjs",
+      "blob": "684372da6826145d119fe4cbc2c0ef94b60d7374",
+      "sha256": "546906a56a37ac8448385fb069a9ee703ed5c1309157953fc2c2b62987186ba8",
+      "liveRegularBytesMatch": true
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/external-admission.mjs",
+      "blob": "ee15d4353eb3b54fad59d92382d5dbb975051ed1",
+      "sha256": "0c8bf4c9cc810610bbcc8bf951b24e0b1d294c14317ef2d23affd475aaa7d9c2",
+      "liveRegularBytesMatch": true
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/built-consumers.mjs",
+      "blob": "4a712e0a36261c6c1a73aa1df65354841d4e4e1a",
+      "sha256": "ee133c167e94513af7f42b5f4fa875c27b2079311a5597e358e789faa30048d8",
+      "liveRegularBytesMatch": true
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/consumer-admission.mjs",
+      "blob": "95e05dd5d3c689c68d6c4c108b18e41aebdb8d76",
+      "sha256": "2d60adf6b0039b6fd56250bc2e31eeaecdae6e167ba106f8c9344822e841aeb7",
+      "liveRegularBytesMatch": true
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/tap.mjs",
+      "blob": "4913ccc42598b861b6bf0f9e34238901d5e8ebcd",
+      "sha256": "76fb3404cdda60bb9d8cf52a2f60f5220d8bc72bfe443fa689236c14a453339b",
+      "liveRegularBytesMatch": true
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/public.mjs",
+      "blob": "13aaed92eec7fd29db226c194202f862b0a96942",
+      "sha256": "0e0398d2163368cfefd36fb3d5c50b7090aaf5f768271d518f6708daa37d1e70",
+      "liveRegularBytesMatch": true
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/consumer.mts.fixture",
+      "blob": "212a6cb22f7c70b72a9106431a642a250e3fddef",
+      "sha256": "8a9061761d0e22f2bc534ccbebc40a57393a907b9c4885977e8f6eccd9ebd9ba",
+      "liveRegularBytesMatch": true
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/negative.mts.fixture",
+      "blob": "ea76b2f6ead1689fe8f751ffdda0b25a0ec6a491",
+      "sha256": "03c4aa908881ccdb3fd15ad5e752578dcd7713d50414089192c8b07b433f31a3",
+      "liveRegularBytesMatch": true
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/build-audit.mjs",
+      "blob": "1f7389579d9cb04812b81a05b238387c7736ed66",
+      "sha256": "57eefea8f3efb22e70ffce47c001f9a71d916b15dba288bd44668a95d201141f",
+      "liveRegularBytesMatch": true
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/build-types.mjs",
+      "blob": "f9cf36f20696032c607910df66922a0674ec300d",
+      "sha256": "35ef0abb6d917131fc17dc989ff8bca5adf706539e2e344aedc8d31f3635eb9a",
+      "liveRegularBytesMatch": true
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/phase-runner.mjs",
+      "blob": "2a5bdddcd55867219f0b405edea6e84b4217ead9",
+      "sha256": "ac679021137624fc2b4beaed6460d06acc6851a36d52351b390a4b53fad9bd88",
+      "liveRegularBytesMatch": true
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/process-observer.mjs",
+      "blob": "925f27ff6a40c580414e81bddff2d17480a8be8a",
+      "sha256": "b295e635e643a1a236c61a7344f23921bfbd374b9b0158b1c1244f6acbd72e12",
+      "liveRegularBytesMatch": true
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/review-build-types.mjs",
+      "blob": "c657767026174b0a3da0084759fbbf7df49462ea",
+      "sha256": "ef79cc344dc0259bfef3d2351fa61ea5a2f716ac8c427dfab346294498d0a507",
+      "liveRegularBytesMatch": true
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/review-build-types-worker.mjs",
+      "blob": "17fc149caf58eaa4a8e12399720bb8cbe9c60320",
+      "sha256": "e69573ee434436bb9ab9bda807155cfaaa5a687a2eb32a09a4b6b0d54214f295",
+      "liveRegularBytesMatch": true
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/projection.mjs",
+      "blob": "e1ecc3bda2e4313fa40281e1a6b97cbe38b05a82",
+      "sha256": "28ac3a2300c79aadabf98ca46dfbb46d48677c8b413cded8f06b06d3eda8c7f8",
+      "liveRegularBytesMatch": true
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/INSTRUCTION-PROJECTION.json",
+      "blob": "b3954b6ade7d6eaedde0a4284e95694cf9abbd4c",
+      "sha256": "59b957511d0b259a17dab5e256b2d4e32e7dd9b26059985752998f6a89254537",
+      "liveRegularBytesMatch": true
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/os-instruction-fence.mjs",
+      "blob": "71baaf76ac8097454dc27b147793b198eb5ea121",
+      "sha256": "1955d2225312f57dfd4f7cb4a122e4d940caf997aea9ba4aa4c85f85558bac69",
+      "liveRegularBytesMatch": true
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/fenced-supervisor.mjs",
+      "blob": "9f85df10b564b4fc4781ab5a3da9fb60c7fd1ff9",
+      "sha256": "644b94da6339cee42c2ff0ccaaa0fc4a6d12746a39c0683fea339aea51f7a6f8",
+      "liveRegularBytesMatch": true
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/OS-INSTRUCTION-FENCE.json",
+      "blob": "28ef6498c599fa37f1293532453470b842eea15e",
+      "sha256": "8beb3aeb244fd490bd1904fa32bddc1332a7ccfb4c48d36dfe8c6ebbf3305a7f",
+      "liveRegularBytesMatch": true
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/tool-routing.mjs",
+      "blob": "58ca434dd543c8a74af4369922a1ffe405060714",
+      "sha256": "b3cbdfb52fdae6067d58a8c1f57d5890a2b0f2755f29c66c6744ec028582cdb6",
+      "liveRegularBytesMatch": true
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/TOOL-ROUTES.json",
+      "blob": "5836669cb9ef9929977ad2b05c6fb5091c92e293",
+      "sha256": "01bbe980528bacee75b89571746763bb92f8990bfa4f426f20307c82a25251c7",
+      "liveRegularBytesMatch": true
+    }
+  ],
+  "independentProofFiles": [
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver-independent/tool-routes-v10/HANDOFF.md",
+      "revision": "97c081ec7c7f180889d3640c29d1cd5fd1b10752",
+      "blob": "b38ed8f27d1a2d86feb7fd8a6e21bc260b7fffbd",
+      "mode": "100644",
+      "bytes": 11393,
+      "sha256": "105e4679403b2d8b7d36da5c133844ae8accf4dc635c527acdffa55869618358"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver-independent/tool-routes-v10/BINDINGS.json",
+      "revision": "97c081ec7c7f180889d3640c29d1cd5fd1b10752",
+      "blob": "3202293bb43c3eaf01eb755dbbc1e811ed4ef175",
+      "mode": "100644",
+      "bytes": 123457,
+      "sha256": "fb3fc4e54159eda8856cc5a18dea19c28bc104653716143ed857d2f487df50b3"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver-independent/tool-routes-v10/QUALIFICATIONS.json",
+      "revision": "97c081ec7c7f180889d3640c29d1cd5fd1b10752",
+      "blob": "098cff60ccc8cd424fbcddb98d7bc30c848d7d65",
+      "mode": "100644",
+      "bytes": 2675,
+      "sha256": "e9bcf0e1942a413ec57a2b93b14868596355a93f1d162ec667725d99e72025d4"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver-independent/tool-routes-v10/PACKET-CHECK.json",
+      "revision": "97c081ec7c7f180889d3640c29d1cd5fd1b10752",
+      "blob": "4c3945917df70f0c887c7deb89dcef40ebbafbb8",
+      "mode": "100644",
+      "bytes": 622,
+      "sha256": "e1895a13ce6a83d62e96e371ba5642a6a315e79c10df4b3b2226e4a096fc0e0a"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver-independent/tool-routes-v10/RESULTS.json",
+      "revision": "97c081ec7c7f180889d3640c29d1cd5fd1b10752",
+      "blob": "6064d52a11f9b9a9ae21d65ec4bea6975ce24023",
+      "mode": "100644",
+      "bytes": 33018,
+      "sha256": "c923d6233ec5c91097ed0f5f3886716c6e47e8d26206f932ee6362e6565e6ca5"
+    }
+  ],
+  "driverSha256": "25ee4ded79df9c4fe0a9c8031721887dd7c8e22cb56f10d42b3d415eb30c0527",
+  "profileSha256": "8c9363ea17f6a319acc783b1e7ec2a4d4dc0a00529692b9f2331f60571ab149f",
+  "projectionSha256": "b74e575644c9476b26d96b6863aa2a2078931e73fe3251862d713edd1d7bbefb",
+  "toolRoutesSha256": "b440b32475d24642d0fbe5dc222356ac1f209a11597baa07d63d286b06b68ca9",
+  "externalSha256": "23458bf9f68194b0620d73cdbd00a144a3cdb06000144cdb30588c54eb62ba48",
+  "readableToolRecords": 61,
+  "nativeAssetRecords": 51,
+  "dependencyManifests": 4,
+  "fixturePaths": [
+    "tests/commands/split/integration.test.ts",
+    "tests/commands/stream-format-author-stress/contracts.test.ts",
+    "tests/integration/stream-inspection-public-author/public.test.ts",
+    "tests/plugins/stream-five-public/consumer.mjs"
+  ],
+  "projectionRecords": 6,
+  "phaseCount": 14,
+  "supervisedPhaseCount": 13,
+  "finalSweep": "in-worker verification/receipt,not a fourteenth child process",
+  "phases": [
+    {
+      "name": "safejs-availability",
+      "expectedStatus": 0
+    },
+    {
+      "name": "cold-typecheck",
+      "expectedStatus": 78
+    },
+    {
+      "name": "typecheck-all",
+      "expectedStatus": 0
+    },
+    {
+      "name": "benchmark-types",
+      "expectedStatus": 0
+    },
+    {
+      "name": "env-source-binding",
+      "expectedStatus": 0
+    },
+    {
+      "name": "canonical",
+      "expectedStatus": 0
+    },
+    {
+      "name": "current-consumers",
+      "expectedStatus": 0
+    },
+    {
+      "name": "pack",
+      "expectedStatus": 0
+    },
+    {
+      "name": "public-runtime",
+      "expectedStatus": 0
+    },
+    {
+      "name": "public-types",
+      "expectedStatus": 0
+    },
+    {
+      "name": "negative-types",
+      "expectedStatus": 2
+    },
+    {
+      "name": "missing-root",
+      "expectedStatus": 1
+    },
+    {
+      "name": "missing-contracts",
+      "expectedStatus": 1
+    },
+    {
+      "name": "final-sweep",
+      "expectedStatus": 0
+    }
+  ],
+  "bounds": {
+    "archiveEntries": 37397,
+    "archiveBytes": 2382440321,
+    "archiveTransferBytes": 3221225472,
+    "historyTransferBytes": 8589934592,
+    "dependencyBytes": 1073741824,
+    "setupStderrBytes": 1048576,
+    "phaseOutputBytes": 268435456,
+    "allPhaseOutputBytes": 4294967296,
+    "setupTimeoutMs": 600000,
+    "phaseTimeoutMs": 1800000,
+    "cleanupTimeoutMs": 5000,
+    "chunkBytes": 65536,
+    "maximumLineBytes": 1048576,
+    "totalSupervisorMs": 25805000,
+    "observerRequests": 4096,
+    "maintainedConsumerTimeoutMs": 900000,
+    "secondaryDiagnosticBytes": 8388608,
+    "maximumTapCases": 100000
+  },
+  "launch": {
+    "cwd": "/Users/kjopek/Workspace/safe-bash",
+    "executable": {
+      "origin": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+      "physical": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+      "bytes": 117591472,
+      "mode": 493,
+      "sha256": "4255a388254ca4319e2f95f1da375d5deaddf25baf9c7c85070b67f9543b15d0"
+    },
+    "script": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/run.mjs",
+    "args": [
+      "--candidate",
+      "f5e9fc49b6abb38e180cc9de16c95fced102ff75",
+      "--run",
+      "/tmp/full-gate-unified76-f5-fe15-finalroutes-20260828-r1",
+      "--release",
+      "/tmp/unified76-release-f5-fe15-finalroutes-20260828-r1.json",
+      "--committed-archive"
+    ],
+    "output": "/tmp/full-gate-unified76-f5-fe15-finalroutes-20260828-r1",
+    "physicalOutput": "/private/tmp/full-gate-unified76-f5-fe15-finalroutes-20260828-r1",
+    "authorizationFile": "/tmp/unified76-release-f5-fe15-finalroutes-20260828-r1.json",
+    "supervisorOutputPattern": "/private/tmp/unified76-supervisor-*",
+    "writeRootPattern": "/private/tmp/unified76-os-write-*",
+    "profileNativeEnvironment": {
+      "STREAM_NATIVE_LIVE": "1",
+      "STREAM_GNU_BIN": "$NATIVE/stream",
+      "STREAM_GNU_STRINGS": "$NATIVE/stream/strings",
+      "GNU_TABLE_BIN": "$SNAPSHOT/tests/commands/metadata-stress/.oracle/coreutils-9.7/src",
+      "TREE_NATIVE_BIN": "$NATIVE/tree",
+      "BYTE_GNU_COREUTILS_DIR": "$NATIVE/bytes",
+      "BYTE_GNU_GZIP": "$NATIVE/bytes/gzip"
+    },
+    "qualification": "Output/authorization paths checked absent now; do not create output before authorized launcher. Rendered fence/inodes bind actual roots at setup; no future envelope invented."
+  },
+  "command": "GIT_PAGER= \\\nRG_NATIVE_BIN=/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-rg-recovered-gsSpuz/rg \\\nTREE_NATIVE_BIN=/tmp/safe-bash-tree-external-oracle-TbVJVK/tree \\\n/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node \\\ntests/integration/full-gate-20260827/unified76-driver/launcher-v3/run.mjs \\\n--candidate f5e9fc49b6abb38e180cc9de16c95fced102ff75 \\\n--run /tmp/full-gate-unified76-f5-fe15-finalroutes-20260828-r1 \\\n--release /tmp/unified76-release-f5-fe15-finalroutes-20260828-r1.json \\\n--committed-archive",
+  "nativeAssignments": [
+    {
+      "name": "RG_NATIVE_BIN",
+      "origin": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-rg-recovered-gsSpuz/rg"
+    },
+    {
+      "name": "TREE_NATIVE_BIN",
+      "origin": "/tmp/safe-bash-tree-external-oracle-TbVJVK/tree"
+    }
+  ],
+  "pathAbsenceAtVerification": [
+    {
+      "path": "/tmp/full-gate-unified76-f5-fe15-finalroutes-20260828-r1",
+      "absent": true
+    },
+    {
+      "path": "/private/tmp/full-gate-unified76-f5-fe15-finalroutes-20260828-r1",
+      "absent": true
+    },
+    {
+      "path": "/tmp/unified76-release-f5-fe15-finalroutes-20260828-r1.json",
+      "absent": true
+    }
+  ],
+  "template": "Deliberately invalid: pending action and blank authorization; no valid root receipt created",
+  "limitations": [
+    "One attempt/no retry is root policy; receipt is not a cryptographically consumed one-shot token",
+    "No wider permissions/overlay/old GO is root policy backed by unchanged code and source/hash guards,not an imported packet executor",
+    "25805s is configured post-preflight worker watchdog;5000ms is cleanup/IPC allowance,not kernel-hard all-drain deadline",
+    "Current live shipping files match as a separate point-in-time check; accepted identity derives from committed source/accepted seal; recheck before launch",
+    "No executable driver/product imports,tools rehash/native probes,build/pack/fullgate/private access or instruction payload materialization"
+  ],
+  "rootAuthorizationIssued": false,
+  "fullGateLaunched": false
+}

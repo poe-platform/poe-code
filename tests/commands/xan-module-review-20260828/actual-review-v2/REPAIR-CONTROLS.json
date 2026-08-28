@@ -1,0 +1,66 @@
+{
+  "classification": "SYNTHETIC_COMPILER_INFRASTRUCTURE_ONLY",
+  "records": [
+    {
+      "allowed": false,
+      "receipt": {
+        "code": 2,
+        "signal": null,
+        "pid": 73137,
+        "reaped": true,
+        "timeout": false,
+        "overflow": false,
+        "spawnError": null,
+        "logs": [
+          {
+            "deliveredBytes": 269,
+            "fullDeliveredSha256": "7d90e17876fd4625d172b5e18a4bfbb0d65933122fa2875e3a8323a3d1c82fd6",
+            "artifactBytes": 269,
+            "artifactSha256": "7d90e17876fd4625d172b5e18a4bfbb0d65933122fa2875e3a8323a3d1c82fd6",
+            "truncated": false
+          },
+          {
+            "deliveredBytes": 0,
+            "fullDeliveredSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "artifactBytes": 0,
+            "artifactSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "truncated": false
+          }
+        ],
+        "ended": "2026-08-28T06:28:24.505Z"
+      },
+      "raw": "error TS5033: Could not write file '/Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/actual-review-v2/controls-work/nested-emission-false/nested/value.mjs': Access to this API has been restricted. Use --allow-fs-write to manage permissions..\n"
+    },
+    {
+      "allowed": true,
+      "receipt": {
+        "code": 0,
+        "signal": null,
+        "pid": 73146,
+        "reaped": true,
+        "timeout": false,
+        "overflow": false,
+        "spawnError": null,
+        "logs": [
+          {
+            "deliveredBytes": 0,
+            "fullDeliveredSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "artifactBytes": 0,
+            "artifactSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "truncated": false
+          },
+          {
+            "deliveredBytes": 0,
+            "fullDeliveredSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "artifactBytes": 0,
+            "artifactSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "truncated": false
+          }
+        ],
+        "ended": "2026-08-28T06:28:25.176Z"
+      },
+      "raw": ""
+    }
+  ],
+  "runtimeCandidateInvocations": 0
+}

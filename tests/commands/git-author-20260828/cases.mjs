@@ -18,8 +18,10 @@ const fixture = JSON.parse(await hostFs.readFile(new URL('fixture.json', import.
 const cases = [];
 const record = async (id, name, run) => {
   const begin = Date.now();
+  await hostFs.appendFile(process.env.GIT_AUTHOR_RESULT + '.events.jsonl', JSON.stringify({ id, name, state: 'START' }) + '\n');
   try { await run(); cases.push({ id, name, status: 'PASS', elapsedMs: Date.now() - begin }); }
   catch (error) { cases.push({ id, name, status: 'FAIL', error: String(error?.stack ?? error), elapsedMs: Date.now() - begin }); console.error(name, error); }
+  await hostFs.appendFile(process.env.GIT_AUTHOR_RESULT + '.events.jsonl', JSON.stringify(cases.at(-1)) + '\n');
 };
 const hash = (type, bytes) => createHash('sha1').update(`${type} ${bytes.length}\0`).update(bytes).digest('hex');
 async function put(fs, name, bytes, mode = 0o644) {

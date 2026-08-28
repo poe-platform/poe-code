@@ -49,13 +49,19 @@ async function child(label, executable, args, cwd, extra = {}, input) {
   return { code, out, err };
 }
 
-async function regularTree(root) {
+async function regularTree(root, containedLinks = false) {
   const entries = [];
   async function walk(relative) {
     for (const name of (await fs.readdir(path.join(root, relative))).sort()) {
       demand(name !== 'AGENTS.md', 'instruction file must not be copied');
       const file = path.join(relative, name), stat = await fs.lstat(path.join(root, file));
-      demand(!stat.isSymbolicLink(), `symlink refused: ${file}`);
+      if (stat.isSymbolicLink()) {
+        demand(containedLinks, `symlink refused: ${file}`);
+        const target = await fs.realpath(path.join(root, file)), realRoot = await fs.realpath(root);
+        demand(target.startsWith(realRoot + path.sep) && (await fs.stat(target)).isFile(), 'tool link must target contained regular file');
+        entries.push({ path: file, link: await fs.readlink(path.join(root, file)), target: path.relative(realRoot, target), targetSha256: sha(await fs.readFile(target)) });
+        continue;
+      }
       if (stat.isDirectory()) await walk(file);
       else { demand(stat.isFile(), 'nonregular input'); const bytes = await fs.readFile(path.join(root, file)); entries.push({ path: file, bytes: bytes.length, mode: stat.mode & 0o777, sha256: sha(bytes) }); }
     }
@@ -112,16 +118,23 @@ async function main() {
   const build = await child('build', process.execPath, [compiler, '-p', 'tsconfig.build.json'], source);
   demand(build.code === 0, 'isolated build failed');
   const harness = path.join(output, 'harness');
-  for (const name of ['cases.mjs', 'source-loader.mjs', 'consumer.ts.fixture']) await write(path.join(harness, name), await fs.readFile(path.join(here, name)));
+  for (const name of ['cases.mjs', 'source-loader.mjs', 'package-loader.mjs', 'mutants.mjs', 'consumer.ts.fixture']) await write(path.join(harness, name), await fs.readFile(path.join(here, name)));
   await write(path.join(harness, 'fixture.json'), fixture);
   const binding = { root: source, inputs: sourceBefore, compiler: path.join(source, 'node_modules/typescript/lib/typescript.js'), output };
   await write(path.join(harness, 'source-binding.json'), JSON.stringify(binding));
   const sourceRun = await child('source', process.execPath, ['--loader', path.join(harness, 'source-loader.mjs'), path.join(harness, 'cases.mjs')], source, { GIT_AUTHOR_BINDING: path.join(harness, 'source-binding.json'), GIT_AUTHOR_LAYOUT: 'source', GIT_AUTHOR_ROOT: source, GIT_AUTHOR_RESULT: path.join(output, 'source-cases.json') });
-  const compiled = await child('compiled', process.execPath, [path.join(harness, 'cases.mjs')], source, { GIT_AUTHOR_ROOT: source, GIT_AUTHOR_RESULT: path.join(output, 'compiled-cases.json') });
+  const packageRun = async (label, packageRoot, script = 'cases.mjs', extras = {}) => {
+    const real = await fs.realpath(packageRoot);
+    const entries = await regularTree(path.join(real, 'dist'));
+    const file = path.join(harness, `${label}-binding.json`);
+    await write(file, JSON.stringify({ root: real, inputs: entries, harness: await fs.realpath(harness), trace: path.join(output, `${label}-loads.jsonl`) }));
+    return child(label, process.execPath, ['--loader', path.join(harness, 'package-loader.mjs'), path.join(harness, script)], packageRoot, { GIT_AUTHOR_BINDING: file, GIT_AUTHOR_ROOT: packageRoot, GIT_AUTHOR_RESULT: path.join(output, `${label}-cases.json`), ...extras });
+  };
+  const compiled = await packageRun('compiled', source);
   demand(sourceRun.code === 0 && compiled.code === 0, 'author semantic controls failed');
   const npm = path.resolve(path.dirname(process.execPath), '../lib/node_modules/npm/bin/npm-cli.js');
   const npmRoot = path.dirname(path.dirname(npm));
-  receipt.npmClosure = await regularTree(npmRoot);
+  receipt.npmClosure = await regularTree(npmRoot, true);
   const packed = await child('pack', process.execPath, [npm, 'pack', '--offline', '--ignore-scripts', '--json', '--cache', path.join(output, 'npm-cache')], source);
   demand(packed.code === 0, 'offline pack failed');
   const filename = JSON.parse(packed.out.toString())[0].filename;
@@ -132,19 +145,46 @@ async function main() {
   demand(install.code === 0, 'offline install failed');
   const installedRoot = path.join(installed, 'node_modules/virtual-bash');
   const packageBefore = await regularTree(installedRoot); receipt.packageFiles = packageBefore;
-  const installedRun = await child('installed', process.execPath, [path.join(harness, 'cases.mjs')], installed, { GIT_AUTHOR_ROOT: installedRoot, GIT_AUTHOR_RESULT: path.join(output, 'installed-cases.json') });
+  const installedRun = await packageRun('installed', installedRoot);
   demand(installedRun.code === 0, 'installed controls failed');
   const moved = path.join(output, 'moved package'); await fs.rename(installed, moved);
   const movedRoot = path.join(moved, 'node_modules/virtual-bash');
-  const movedRun = await child('moved', process.execPath, [path.join(harness, 'cases.mjs')], moved, { GIT_AUTHOR_ROOT: movedRoot, GIT_AUTHOR_RESULT: path.join(output, 'moved-cases.json') });
+  const movedRun = await packageRun('moved', movedRoot);
   demand(movedRun.code === 0, 'moved controls failed');
   const consumer = (await fs.readFile(path.join(harness, 'consumer.ts.fixture'), 'utf8')).replaceAll('PACKAGE_LEAF', pathToFileURL(path.join(movedRoot, 'dist/commands/git/index.js')).pathname);
   await write(path.join(moved, 'consumer.ts'), consumer);
   const types = await child('types', process.execPath, [compiler, '--strict', '--noEmit', '--target', 'ES2022', '--module', 'NodeNext', '--moduleResolution', 'NodeNext', '--skipLibCheck', '--typeRoots', path.join(source, 'node_modules/@types'), path.join(moved, 'consumer.ts')], moved);
   demand(types.code === 0, 'strict consumer/types negatives failed');
+  for (const [name, relative, original, replacement] of [
+    ['hash', 'codec.js', 'await session.hash(body, type) === oid', 'true'],
+    ['pack', 'repository.js', 'children.length === 0', 'true'],
+    ['exit', 'queries.js', 'return different && (parsed.flags.has("--quiet") || parsed.flags.has("--exit-code")) ? 1 : 0;', 'return 0;'],
+  ]) {
+    const mutantRoot = path.join(output, `mutant-${name}`);
+    for (const row of packageBefore) await write(path.join(mutantRoot, row.path), await fs.readFile(path.join(movedRoot, row.path)), row.mode);
+    const target = path.join(mutantRoot, 'dist/commands/git', relative), text = await fs.readFile(target, 'utf8');
+    demand(text.split(original).length === 2, 'mutant must replace exactly one site');
+    await fs.writeFile(target, text.replace(original, replacement));
+    const mutated = await packageRun(`mutant-${name}`, mutantRoot, 'mutants.mjs', { GIT_AUTHOR_MUTANT: name });
+    demand(mutated.code === 1 && mutated.out.toString().includes('"observed":0'), 'loaded semantic mutant not specifically detected');
+    receipt.checks.push({ name: `loaded-${name}-mutant`, status: 'DETECTED', mutatedFileSha256: sha(await fs.readFile(target)) });
+  }
+  for (const kind of ['missing', 'changed', 'outside']) {
+    const original = JSON.parse(await fs.readFile(path.join(harness, 'moved-binding.json')));
+    const row = original.inputs.find(row => row.path === 'commands/git/index.js');
+    if (kind === 'missing') original.inputs = original.inputs.filter(value => value !== row);
+    if (kind === 'changed') row.sha256 = '0'.repeat(64);
+    if (kind === 'outside') original.root = path.join(output, 'wrong-package');
+    original.trace = path.join(output, `negative-${kind}-loads.jsonl`);
+    const file = path.join(harness, `negative-${kind}.json`); await write(file, JSON.stringify(original));
+    const negative = await child(`binding-${kind}`, process.execPath, ['--loader', path.join(harness, 'package-loader.mjs'), path.join(harness, 'mutants.mjs')], moved, { GIT_AUTHOR_BINDING: file, GIT_AUTHOR_ROOT: movedRoot, GIT_AUTHOR_MUTANT: 'hash' });
+    demand(negative.code !== 0 && /package (binding|hash|outside)/.test(negative.err.toString()), 'binding control wrong failure');
+    receipt.checks.push({ name: `binding-${kind}`, status: 'REFUSED' });
+  }
   demand(JSON.stringify(sourceBefore) === JSON.stringify(await regularTree(path.join(source, 'src'))), 'isolated source changed');
   demand(JSON.stringify(packageBefore) === JSON.stringify(await regularTree(movedRoot)), 'installed package changed');
   demand(JSON.stringify(moduleRows) === JSON.stringify(await regularTree(moduleRoot)), 'author source drifted');
+  demand(JSON.stringify(receipt.npmClosure) === JSON.stringify(await regularTree(npmRoot, true)), 'npm tool closure changed');
   receipt.status = 'AUTHOR_SCOPED_PASS'; receipt.elapsedMs = Date.now() - started; receipt.scratchBytesCharged = scratchBytes;
   await save(); console.log(JSON.stringify({ output, status: receipt.status, packageSha256: receipt.packageSha256 }));
 }

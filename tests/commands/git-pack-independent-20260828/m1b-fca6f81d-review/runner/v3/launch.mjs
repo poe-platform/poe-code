@@ -41,7 +41,7 @@ demand(sha(recipeBytes) === route.recipeSha256 && sha(sealBytes) === route.final
 const recipe = JSON.parse(recipeBytes.toString('utf8'));
 const seal = JSON.parse(sealBytes.toString('utf8'));
 demand(recipe.schema === 'm1b-review-recipe-v2' && recipe.state === 'COMPLETE_PRESEAL' && seal.status === 'COMPLETE_SELECTED_PRESEAL', 'RECIPE_NOT_READY');
-demand(recipe.caps.wallMs === 7200000 && recipe.caps.childStarts === 168 && recipe.caps.peakProcesses === 4 && recipe.caps.captureBytes === 268435456 && recipe.caps.workBytes === 1073741824 && recipe.caps.outerCaptureBytes === 4194304, 'FIXED_CAPS');
+demand(recipe.caps.wallMs === 7200000 && recipe.caps.childStarts === 168 && recipe.caps.peakProcesses === 4 && recipe.caps.captureBytes === 255852544 && recipe.caps.workBytes === 1073741824 && recipe.caps.outerCaptureBytes === 4194304, 'FIXED_CAPS');
 demand(Array.isArray(route.componentReviews) && recipe.requiredReviews.every(required => route.componentReviews.some(review => review.component === required.component && review.sourceSeal === required.sourceSeal && /^[a-f0-9]{40}$/.test(review.commit) && /^[a-f0-9]{64}$/.test(review.receiptSha256) && review.disposition === 'PRELAUNCH_COMPONENT_REVIEW_COMPLETE')), 'COMPONENT_REVIEW_REQUIRED');
 for (const row of seal.files) await file(path.join(scope, relative(row.path)), row);
 const root = route.outputRoot;

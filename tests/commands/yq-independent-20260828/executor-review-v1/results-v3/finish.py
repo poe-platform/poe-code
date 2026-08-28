@@ -173,7 +173,13 @@ for entry in evidence['entries']:
         evidence_paths.append(path)
 assert sorted(git('ls-tree', '-r', '--name-only', EVIDENCE, '--', PREFIX).decode().splitlines()) == sorted([*evidence_paths, PREFIX + '/EVIDENCE-SEAL.json'])
 pins = json.loads((core / 'COMPONENTS.json').read_bytes())
-assert pins['runtime']['sourcePreseal']['revision'] == '7add5d2c0a3acb27483ba0bb5dd52385812d8ed7'
+assert pins['runtime']['commit'] == '7add5d2c0a3acb27483ba0bb5dd52385812d8ed7'
+assert pins['runtime']['sourcePreseal']['sha256'] == 'c971d27207b661ae3ee23d61d6e1ee7cfefc2b6a8a890f4e0fde228c81945c64'
+runtime_sources = {entry['path']: entry for entry in authentication['sourceSeal']['files']}
+for entry in pins['runtime']['files']:
+    original = runtime_sources[Path(entry['path']).name]
+    assert entry['sha256'] == original['sha256'] and entry['mode'] == original['mode']
+assert len(pins['runtime']['files']) == len(runtime_sources) == 11
 assert pins['runtime']['seal']['sha256'] == runtime['recipeSealSha256']
 assert pins['runtime']['treeSha256'] == runtime['recipeTreeSha256']
 assert pins['consumers']['commit'] == '90c4c50070334a34c1b75d78f7da25d302f6bb61'

@@ -17,7 +17,7 @@ async function launch(spec) {
   event({kind:'before-spawn',id:spec.id,args:spec.args});
   const child=spawn(seal.node.path,spec.args,{cwd:root,env:{PATH:dirname(seal.node.path),HOME:root,UV_THREADPOOL_SIZE:'1',M1A_OUTER_START_NS:start.toString()},stdio:['ignore','pipe','pipe']});
   known.add(child);
-  let closedResolve, timer, escalation, stdout='', stderr='', listenerFailure;
+  let closedResolve, timer, hardTimer, cleanupTimer, escalation, stdout='', stderr='', listenerFailure;
   const closed=new Promise(resolve=>{closedResolve=resolve;});
   const stop=reason=>{row.stopReason??=reason;if(!row.closed){row.signals.push({signal:'SIGTERM',accepted:child.kill('SIGTERM')});escalation??=setTimeout(()=>{if(!row.closed)row.signals.push({signal:'SIGKILL',accepted:child.kill('SIGKILL')});},1000);}};
   try {
@@ -26,14 +26,20 @@ async function launch(spec) {
     child.once('close',(code,signal)=>{row.closed=true;row.close={code,signal};closedResolve();});
     for(const [name,stream,fd] of [['stdout',child.stdout,stdoutFd],['stderr',child.stderr,stderrFd]]) {
       stream.once('close',()=>{row[name+'Closed']=true;});stream.on('error',error=>{row.captureError=String(error);stop('stream capture');});
-      stream.on('data',chunk=>{try {bytes+=chunk.length;row[name+'Bytes']+=chunk.length;assert.ok(bytes<=4194304,'outer raw cap');writeSync(fd,chunk);if(name==='stdout')stdout+=chunk.toString();else stderr+=chunk.toString();}catch(error){row.captureError=String(error);stop('raw capture');}});
+      stream.on('data',chunk=>{try {bytes+=chunk.length;row[name+'Bytes']+=chunk.length;assert.ok(bytes<=4194304,'outer raw cap');for(let offset=0;offset<chunk.length;){const written=writeSync(fd,chunk,offset,chunk.length-offset);assert.ok(written>0,'raw write progress');offset+=written;}if(name==='stdout')stdout+=chunk.toString();else stderr+=chunk.toString();}catch(error){row.captureError=String(error);stop('raw capture');}});
     }
     row.enrollment='known.add immediately after spawn before listeners/helpers';row.pid=child.pid;
     event({kind:'enrolled',id:spec.id,pid:child.pid});
-    timer=setTimeout(()=>stop('deadline'),Math.min(spec.timeoutMs,(mode==='controls'?seal.preparationDeadlineNs?Number(BigInt(seal.preparationDeadlineNs)-process.hrtime.bigint())/1e6:1200000:6600000-elapsed())-6000));
-    await closed;
-  } catch(error) {listenerFailure=error;stop('listener/helper failure');if(!row.closed)await closed;}
-  finally {clearTimeout(timer);clearTimeout(escalation);row.cleanupSettled=row.closed&&row.stdoutClosed===true&&row.stderrClosed===true;event({kind:'child-terminal',...row});}
+    const timeout=Math.min(spec.timeoutMs,(mode==='controls'?Number(BigInt(seal.preparationDeadlineNs)-process.hrtime.bigint())/1e6:6600000-elapsed())-12000);
+    assert.ok(timeout>0,'owned cleanup reserve');
+    timer=setTimeout(()=>stop('deadline'),timeout);
+    await Promise.race([closed,new Promise(resolve=>{hardTimer=setTimeout(resolve,timeout+7000);})]);
+    if(!row.closed)stop('unknown close after bounded wait');
+  } catch(error) {listenerFailure=error;stop('listener/helper failure');}
+  finally {
+    clearTimeout(timer);clearTimeout(hardTimer);
+    if(!row.closed){stop('owned finally');await Promise.race([closed,new Promise(resolve=>{cleanupTimer=setTimeout(resolve,5000);})]);}
+    clearTimeout(cleanupTimer);clearTimeout(escalation);row.cleanupAttempted=true;row.cleanupSettled=row.closed&&row.stdoutClosed===true&&row.stderrClosed===true;event({kind:'child-terminal',...row});}
   assert.ok(!listenerFailure&&!row.spawnError&&!row.captureError&&!row.stopReason&&row.cleanupSettled,'owned capture/closure');
   assert.equal(row.exit.signal,null);
   return {row,stdout,stderr,accepted:row.exit.code===0};

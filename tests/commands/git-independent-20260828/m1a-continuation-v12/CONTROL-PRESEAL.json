@@ -96,8 +96,8 @@
     },
     {
       "path": "outer.mjs",
-      "bytes": 6334,
-      "sha256": "587d0f269668195df2d399e9859c08ca7f04367a057a995939ef2dd0abaef9ef"
+      "bytes": 6881,
+      "sha256": "88a502cfe16f4d5e67b5574842a9e455043d439b7d91102eb7943b6ee9120415"
     },
     {
       "path": "controls-data.mjs",
@@ -196,8 +196,8 @@
     },
     {
       "path": "SOURCE-MAP.json",
-      "bytes": 2019,
-      "sha256": "685e2b668ca10737f48f12f0c5f88e7a7d00cd01a82f8d00ad6e89a17ccd197a"
+      "bytes": 2199,
+      "sha256": "850c22030fcf62c66d098ee67b7a375d219ce1b01dcf10211f306b590acfeb61"
     },
     {
       "path": "SCOPE.md",
@@ -213,5 +213,6 @@
     "workBytes": 268435456
   },
   "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node tests/commands/git-independent-20260828/m1a-continuation-v12/outer.mjs controls",
-  "noProductExecution": true
+  "noProductExecution": true,
+  "preControlSourceOnlyCorrection": true
 }

@@ -43,5 +43,6 @@
   "candidate": "9885390fb11454fa194a3e60fdbef198dbfdf633",
   "packageSha256": "68541722217fb3f88f7317750c8f1a66042ea090f2c769564b9afc14372dfe68",
   "H10Calls": 1,
-  "privateWriter": "SOURCE_LINKED_CONDITIONAL_JOIN, unchanged"
+  "privateWriter": "SOURCE_LINKED_CONDITIONAL_JOIN, unchanged",
+  "preControlCaptureCorrection": "Before any controls: bounded hard-close wait and cleanup reserve; loop raw writeSync until exact bytes written. No target/lifecycle alteration."
 }

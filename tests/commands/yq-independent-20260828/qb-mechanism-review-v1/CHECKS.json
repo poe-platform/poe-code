@@ -1,0 +1,53 @@
+{
+  "schema": "yq-qb-mechanism-independent-checks/1",
+  "date": "2026-08-28",
+  "result": {
+    "status": "STATIC_CHECKS_PASS_ROOT_TERMINAL_POLICY_HELD",
+    "originalRows": 64,
+    "arithmeticAndMutationRows": 52,
+    "traceSchemaRecordsOnly": 12,
+    "detectedArithmeticMutations": 10,
+    "selectedGitInputs": 20,
+    "casesSha256": "ee1cbe07b3590cff1405c9708f7122385067189e56ef060bcbb58ce7edbb7c65",
+    "identitySha256": "b25d2be29c296e87fadcd32adbac158fb26b63e5e55625ca04d6a1a588a8f9f0",
+    "policySelected": false,
+    "runtimeCancellationTests": 0,
+    "productExecutions": 0,
+    "nativeExecutions": 0,
+    "authorCheckerExecutions": 0,
+    "existingCheckerExecutions": 0,
+    "evidenceWrites": 0,
+    "qualification": "Arithmetic and static trace/source checks only; author's 23 rows not run or counted; no implementation proof."
+  },
+  "ownStaticCheckerInvocationsThisTask": 2,
+  "chronology": "Both invocations checked the same 64-row cohort; the final checker additionally verifies exact author changed-path lists and accepted-length Budget identity. No author or old checker was run.",
+  "findings": [
+    {
+      "id": "QBM-01",
+      "status": "ROOT_POLICY_CHOICE_HELD",
+      "witnesses": [
+        "S10",
+        "A02",
+        "S13",
+        "A06"
+      ],
+      "summary": "before-next formula is conditional; terminal-threshold flush changes preallocation cost and finish role"
+    },
+    {
+      "id": "QBM-02",
+      "status": "EXISTING_CANCELLATION_GUARD_BINDING_REQUIRED",
+      "witnesses": [
+        "T06",
+        "T07"
+      ],
+      "summary": "no-checkpoint last-unit and final publication require signal/closed-admission guards independently of timer helper"
+    }
+  ],
+  "artifactHashes": {
+    "REVIEW.md": "bcbc458a7a99fdae4940711899ae289fd6fb112b0bd18a693109387e8f339969",
+    "CASES.json": "ee1cbe07b3590cff1405c9708f7122385067189e56ef060bcbb58ce7edbb7c65",
+    "SOURCE_IDENTITY.json": "b25d2be29c296e87fadcd32adbac158fb26b63e5e55625ca04d6a1a588a8f9f0",
+    "check.mjs": "c10cd76e86b5c328f541e6b62563969efcce38f6986687fbdc38012c3f34477e"
+  },
+  "scope": "Only the new qb-mechanism-review-v1 packet. No prior history, source, adopted or author file changed; no runtime proof or new policy selected."
+}

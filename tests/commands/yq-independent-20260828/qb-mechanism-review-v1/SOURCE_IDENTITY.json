@@ -1,0 +1,198 @@
+{
+  "schema": "yq-qb-mechanism-independent-source-identity/1",
+  "date": "2026-08-28",
+  "captureHead": "c26892c3a1a419311c9cf46a6c2976e696e00624",
+  "binding": {
+    "authorBase": "89e403e080ba2ac051bcc19a634d9e964620152d",
+    "authorClarification": "6620463abdf7e952aaa855abfba13159a6c5cc83",
+    "latestReadmeSha256": "96a7ae5aa36cec464a28d9ba09cfcd9791cb0dd09e80a51a6fc203cdd87b7ac6",
+    "baseline": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+    "baselineTree": "48e5ae39ce98e1c8e416bae77da40d88b75e1db5",
+    "acceptedLength": "74361026502d76b8c2b696f9c60e410ac9b78d95",
+    "futureSourceBase": "exact fixed baseline + accepted length + authorized NEW yq/private adapter files; not current HEAD",
+    "rootDecisions": "Current assignment authorizes async owned traversals and whole-copy preadmission; terminal timing is independently reviewed, not presumed adopted.",
+    "lengthAndFull846": "Accepted root relay; not replayed and not a blocker"
+  },
+  "baseChangedPaths": [
+    "tests/commands/yq-design-20260828/qb-policy-v1/README.md",
+    "tests/commands/yq-design-20260828/qb-policy-v1/check-accounting.mjs",
+    "tests/commands/yq-design-20260828/qb-policy-v1/controls.json",
+    "tests/commands/yq-design-20260828/qb-policy-v1/identity.json"
+  ],
+  "clarificationChangedPaths": [
+    "tests/commands/yq-design-20260828/qb-policy-v1/README.md",
+    "tests/commands/yq-design-20260828/qb-policy-v1/identity.json"
+  ],
+  "readmeClarificationIsExactAppend": true,
+  "entries": [
+    {
+      "revision": "89e403e080ba2ac051bcc19a634d9e964620152d",
+      "path": "tests/commands/yq-design-20260828/qb-policy-v1/README.md",
+      "role": "author-base-read-only",
+      "gitBlob": "82e9db96a2f8acb09b94014169639f54542fa4eb",
+      "bytes": 14241,
+      "sha256": "9e17fcf17acce080b74667580c95fccd11c6a3171781f483904029899a034879"
+    },
+    {
+      "revision": "89e403e080ba2ac051bcc19a634d9e964620152d",
+      "path": "tests/commands/yq-design-20260828/qb-policy-v1/identity.json",
+      "role": "author-base-read-only",
+      "gitBlob": "dac1b341b0315b3e6b20a3dbab6df307edc199f5",
+      "bytes": 6277,
+      "sha256": "f74e4e4459a723a4425a90d04e6964eae2b679be7c31360c881b5b00371a6bf5"
+    },
+    {
+      "revision": "89e403e080ba2ac051bcc19a634d9e964620152d",
+      "path": "tests/commands/yq-design-20260828/qb-policy-v1/controls.json",
+      "role": "author-base-read-only",
+      "gitBlob": "2757932475a9303c59a857311fbbfe14caaca3a2",
+      "bytes": 3729,
+      "sha256": "305f884198df8c8626b8246d1189f5708938fb0af4a2990e924420a178a9c43d"
+    },
+    {
+      "revision": "89e403e080ba2ac051bcc19a634d9e964620152d",
+      "path": "tests/commands/yq-design-20260828/qb-policy-v1/check-accounting.mjs",
+      "role": "author-base-read-only",
+      "gitBlob": "bb640bef986105cc88320be4fa88b0dab3ce0a61",
+      "bytes": 4741,
+      "sha256": "e740782983b4f15eb146185a10514bc17ca91003dade6cc67856ffff64c5935a"
+    },
+    {
+      "revision": "6620463abdf7e952aaa855abfba13159a6c5cc83",
+      "path": "tests/commands/yq-design-20260828/qb-policy-v1/README.md",
+      "role": "author-clarification-read-only",
+      "gitBlob": "69d60070d289e422164ebe45cf34f6bc2919a37c",
+      "bytes": 17271,
+      "sha256": "96a7ae5aa36cec464a28d9ba09cfcd9791cb0dd09e80a51a6fc203cdd87b7ac6"
+    },
+    {
+      "revision": "6620463abdf7e952aaa855abfba13159a6c5cc83",
+      "path": "tests/commands/yq-design-20260828/qb-policy-v1/identity.json",
+      "role": "author-clarification-read-only",
+      "gitBlob": "5ff9922a1c99a72858a4c7e1b8aa974a8713b954",
+      "bytes": 6614,
+      "sha256": "23a949aa0837aa50fa92c38941b83eae4c4404c9e6e5c3600e393817ca4852a4"
+    },
+    {
+      "revision": "5783b8e03912f7774d2a86ba1dae9de778121273",
+      "path": "tests/commands/yq-design-20260828/final-contract-v1/README.md",
+      "role": "adopted-final",
+      "gitBlob": "a6550e0698ff588b5e2d4ca4289282793a6f4f32",
+      "bytes": 8158,
+      "sha256": "14cee48cac1803f92432b4f7df8f3311514b12277357805945bd11156e8646ff"
+    },
+    {
+      "revision": "5783b8e03912f7774d2a86ba1dae9de778121273",
+      "path": "tests/commands/yq-design-20260828/final-contract-v1/contract.json",
+      "role": "adopted-final",
+      "gitBlob": "a902a481993cbfd3b1a85ce8c54112ade65fbc81",
+      "bytes": 37274,
+      "sha256": "1b2cf2740586d6847286d5a28788beb748d09e8b2181f02e6476d3b7634cefb8"
+    },
+    {
+      "revision": "cfa6fbcb72c5a3e228c4ffbea7cb1719827b2707",
+      "path": "tests/commands/yq-design-20260828/final-adoption-v1/README.md",
+      "role": "adopted-root",
+      "gitBlob": "289cd87cbd208578f16b5411dd44501fb0d03f48",
+      "bytes": 5128,
+      "sha256": "7e2f1a691409a09130f4cf2d539914eb76feab81d13c7cdc9f2c72d3a268c081"
+    },
+    {
+      "revision": "cfa6fbcb72c5a3e228c4ffbea7cb1719827b2707",
+      "path": "tests/commands/yq-design-20260828/final-adoption-v1/adoption.json",
+      "role": "adopted-root",
+      "gitBlob": "403173f53d1674cbe35c8166e6fcb3c56c25ab5b",
+      "bytes": 8461,
+      "sha256": "22e83a0e6f602103ac9378654dd62fc7098c461ac90b7385e5d6b06cec156be6"
+    },
+    {
+      "revision": "b311c2364ceca13daab4086dfb21157b9b8ae856",
+      "path": "tests/commands/yq-design-20260828/initial-profile-v1/README.md",
+      "role": "original-checkpoint-role",
+      "gitBlob": "4d74b959588b2708cca6d4d8e8f2aa8ee465da68",
+      "bytes": 29498,
+      "sha256": "75af84bd5e888a3080e9096b86ed0a25be95105524011851193b9bf39192ba50"
+    },
+    {
+      "revision": "544f8279138cb1335ded08f9db638410e91c1324",
+      "path": "tests/commands/yq-independent-20260828/reconciliation-v1/README.md",
+      "role": "current-review-at-assigned-revision",
+      "gitBlob": "a729866d1cdf7b2bb0a0454ddfbff477a6cab423",
+      "bytes": 6402,
+      "sha256": "0788e1b5c1fb8e2aaa17eb5a4ba21e3b6dabc3136862d7b0c4ff55302a9c529e"
+    },
+    {
+      "revision": "544f8279138cb1335ded08f9db638410e91c1324",
+      "path": "tests/commands/yq-independent-20260828/README.md",
+      "role": "current-index-at-assigned-revision",
+      "gitBlob": "7efe716189486e39004b44c55887d3c3fe65a20f",
+      "bytes": 2490,
+      "sha256": "fe17910dc150d5a84835c9739dfd754a64bd2cb56e50b1a6b008b54a7d9dd5c9"
+    },
+    {
+      "revision": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "path": "src/commands/structured/limits.ts",
+      "role": "fixed-Budget-lines-45-64",
+      "gitBlob": "f40c2edc755f14474ed50491b6f4118be33d7ae5",
+      "bytes": 6675,
+      "sha256": "9919a0c0de44c08a9c63c977f7dc8a6d7319f4111cb37c7f3b249fbfd07743fe"
+    },
+    {
+      "revision": "74361026502d76b8c2b696f9c60e410ac9b78d95",
+      "path": "src/commands/structured/limits.ts",
+      "role": "accepted-length-Budget-identity",
+      "gitBlob": "f40c2edc755f14474ed50491b6f4118be33d7ae5",
+      "bytes": 6675,
+      "sha256": "9919a0c0de44c08a9c63c977f7dc8a6d7319f4111cb37c7f3b249fbfd07743fe"
+    },
+    {
+      "revision": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "path": "src/commands/structured/interpreter.ts",
+      "role": "fixed-interpreter-lines-10-38-and-210-217",
+      "gitBlob": "f7e0dfcb1815aa90ae49d495e453b4d069139108",
+      "bytes": 21567,
+      "sha256": "bac1cf5325eff5bfa69f1c8bec5d3d8a80bb452fd61cdc802d55a26788acaffc"
+    },
+    {
+      "revision": "74361026502d76b8c2b696f9c60e410ac9b78d95",
+      "path": "src/commands/structured/interpreter.ts",
+      "role": "accepted-length-only-delta",
+      "gitBlob": "d3ba11f0057b07d5ad307c5dfbb5f0612a87a047",
+      "bytes": 21632,
+      "sha256": "e32ad45efe69544ed95b43b97f191006f10d3beea9ca9e2a3327843dffd45a74"
+    },
+    {
+      "revision": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "path": "src/contracts/command.md",
+      "role": "cleanup-outcome-lines-104-138",
+      "gitBlob": "ef94adf238122441a66c2232fb3055aaee62d290",
+      "bytes": 9253,
+      "sha256": "ace3670c3820fff94055c6a9d6bee7ac1206a06bcb7607fdafe30f340c0234c6"
+    },
+    {
+      "revision": "3bc2ee8aa38e82773a1fbec1f0b67673b0928105",
+      "path": "tests/commands/yq-independent-20260828/query-budget/REVIEW.md",
+      "role": "prior-sealed-resource-findings",
+      "gitBlob": "5e590f62051ae0018eadeaa3dfea687d7000a024",
+      "bytes": 17110,
+      "sha256": "db38472bd5252dea54e41da049742740af2f4bc4f8354dc096db407a29def538"
+    },
+    {
+      "revision": "3387a103798bb441764218d38696639d501d19d2",
+      "path": "tests/commands/yq-independent-20260828/query-budget/LENGTH-ACCEPTANCE-ADDENDUM.md",
+      "role": "accepted-prerequisite-relay",
+      "gitBlob": "ae15f35b39adf79830bbfafcf2f4c91356ded6e8",
+      "bytes": 2599,
+      "sha256": "77246ca464b245e4258e622f10014cff70aa0b7293209fd3e6fbbca18914e713"
+    }
+  ],
+  "selectedBytes": 235795,
+  "execution": {
+    "product": 0,
+    "native": 0,
+    "authorChecker": 0,
+    "existingCheckers": 0,
+    "archives": 0
+  },
+  "qualification": "Selected immutable file hashes and exact commit-path deltas only; not a whole archive, package review, product replay, or author-cohort rescore."
+}

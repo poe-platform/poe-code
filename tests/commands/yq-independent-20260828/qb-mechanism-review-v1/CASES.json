@@ -1,0 +1,87 @@
+{
+  "schema": "yq-qb-mechanism-independent-cases/1",
+  "date": "2026-08-28",
+  "classification": "original data-only arithmetic and prospective traces; no implementation observations",
+  "window": 1023,
+  "policyState": "root choice held: before-next carry versus terminal-threshold close",
+  "scheduleRows": [
+    { "id": "S01", "pending": 0, "units": 0, "checkpoints": 0, "finalPending": 0, "cost": 0, "terminalCloseCost": 0 },
+    { "id": "S02", "pending": 0, "units": 1, "checkpoints": 0, "finalPending": 1, "cost": 1, "terminalCloseCost": 1 },
+    { "id": "S03", "pending": 0, "units": 1023, "checkpoints": 0, "finalPending": 1023, "cost": 1023, "terminalCloseCost": 1024 },
+    { "id": "S04", "pending": 0, "units": 1024, "checkpoints": 1, "finalPending": 1, "cost": 1025, "terminalCloseCost": 1025 },
+    { "id": "S05", "pending": 1, "units": 0, "checkpoints": 0, "finalPending": 1, "cost": 0, "terminalCloseCost": 0 },
+    { "id": "S06", "pending": 1, "units": 1, "checkpoints": 0, "finalPending": 2, "cost": 1, "terminalCloseCost": 1 },
+    { "id": "S07", "pending": 1, "units": 1023, "checkpoints": 1, "finalPending": 1, "cost": 1024, "terminalCloseCost": 1024 },
+    { "id": "S08", "pending": 1, "units": 1024, "checkpoints": 1, "finalPending": 2, "cost": 1025, "terminalCloseCost": 1025 },
+    { "id": "S09", "pending": 1022, "units": 0, "checkpoints": 0, "finalPending": 1022, "cost": 0, "terminalCloseCost": 0 },
+    { "id": "S10", "pending": 1022, "units": 1, "checkpoints": 0, "finalPending": 1023, "cost": 1, "terminalCloseCost": 2 },
+    { "id": "S11", "pending": 1022, "units": 1023, "checkpoints": 1, "finalPending": 1022, "cost": 1024, "terminalCloseCost": 1024 },
+    { "id": "S12", "pending": 1022, "units": 1024, "checkpoints": 1, "finalPending": 1023, "cost": 1025, "terminalCloseCost": 1026 },
+    { "id": "S13", "pending": 1023, "units": 0, "checkpoints": 0, "finalPending": 1023, "cost": 0, "terminalCloseCost": 1 },
+    { "id": "S14", "pending": 1023, "units": 1, "checkpoints": 1, "finalPending": 1, "cost": 2, "terminalCloseCost": 2 },
+    { "id": "S15", "pending": 1023, "units": 1023, "checkpoints": 1, "finalPending": 1023, "cost": 1024, "terminalCloseCost": 1025 },
+    { "id": "S16", "pending": 1023, "units": 1024, "checkpoints": 2, "finalPending": 1, "cost": 1026, "terminalCloseCost": 1026 }
+  ],
+  "sequenceRows": [
+    { "id": "Q01", "pending": 0, "estimateUnits": 1023, "estimateCost": 1023, "postEstimatePending": 1023, "copyUnits": 1, "copyCost": 2, "finalPending": 1, "combinedCost": 1025 },
+    { "id": "Q02", "pending": 1022, "estimateUnits": 2, "estimateCost": 3, "postEstimatePending": 1, "copyUnits": 1023, "copyCost": 1024, "finalPending": 1, "combinedCost": 1027 },
+    { "id": "Q03", "pending": 1023, "estimateUnits": 0, "estimateCost": 0, "postEstimatePending": 1023, "copyUnits": 0, "copyCost": 0, "finalPending": 1023, "combinedCost": 0 },
+    { "id": "Q04", "pending": 1, "estimateUnits": 1022, "estimateCost": 1022, "postEstimatePending": 1023, "copyUnits": 1023, "copyCost": 1024, "finalPending": 1023, "combinedCost": 2046 },
+    { "id": "Q05", "pending": 1023, "estimateUnits": 1, "estimateCost": 2, "postEstimatePending": 1, "copyUnits": 1022, "copyCost": 1022, "finalPending": 1023, "combinedCost": 1024 }
+  ],
+  "admissionRows": [
+    { "id": "A01", "schedule": "S10", "remaining": 0, "beforeNextAdmits": false, "terminalCloseAdmits": false },
+    { "id": "A02", "schedule": "S10", "remaining": 1, "beforeNextAdmits": true, "terminalCloseAdmits": false },
+    { "id": "A03", "schedule": "S10", "remaining": 2, "beforeNextAdmits": true, "terminalCloseAdmits": true },
+    { "id": "A04", "schedule": "S04", "remaining": 1024, "beforeNextAdmits": false, "terminalCloseAdmits": false },
+    { "id": "A05", "schedule": "S04", "remaining": 1025, "beforeNextAdmits": true, "terminalCloseAdmits": true },
+    { "id": "A06", "schedule": "S13", "remaining": 0, "beforeNextAdmits": true, "terminalCloseAdmits": false },
+    { "id": "A07", "schedule": "S16", "remaining": 1025, "beforeNextAdmits": false, "terminalCloseAdmits": false },
+    { "id": "A08", "schedule": "S16", "remaining": 1026, "beforeNextAdmits": true, "terminalCloseAdmits": true }
+  ],
+  "refusalRows": [
+    { "id": "O01", "pending": -1, "units": 0, "stage": "pending" },
+    { "id": "O02", "pending": 1024, "units": 0, "stage": "pending" },
+    { "id": "O03", "pending": 0, "units": -1, "stage": "units" },
+    { "id": "O04", "pending": 0, "units": 0.5, "stage": "units" },
+    { "id": "O05", "pending": 1, "units": 9007199254740991, "stage": "sum" },
+    { "id": "O06", "pending": 0, "units": 9007199254740991, "stage": "total" },
+    { "id": "O07", "pending": 1023, "units": 9007199254739968, "stage": "total" },
+    { "id": "O08", "pending": 0, "units": 9007199254740992, "stage": "units" },
+    { "id": "O09", "pending": 0, "units": "1", "stage": "units" }
+  ],
+  "payloadRows": [
+    { "id": "P01", "operations": [[1], [1]], "units": 2, "mergedMutation": 1 },
+    { "id": "P02", "operations": [[1023, 1]], "units": 1, "fragmentMutation": 2 },
+    { "id": "P03", "operations": [[1024, 1]], "units": 2, "fragmentMutation": 2 },
+    { "id": "P04", "operations": [[], [0], [1023], [1]], "units": 2, "mergedMutation": 1 }
+  ],
+  "mutationRows": [
+    { "id": "M01", "mutation": "charge-terminal-checkpoint-as-if-before-next", "schedule": "S03", "expected": 0, "mutant": 1 },
+    { "id": "M02", "mutation": "ignore-carried-pending", "schedule": "S14", "expected": 1, "mutant": 0 },
+    { "id": "M03", "mutation": "omit-zero-unit-branch", "schedule": "S01", "expected": 0, "mutant": -1 },
+    { "id": "M04", "mutation": "use-pre-estimation-pending", "sequence": "Q01", "expected": 2, "mutant": 1 },
+    { "id": "M05", "mutation": "call-real-tick-again-after-reserve", "schedule": "S04", "expected": 1025, "mutant": 1026 },
+    { "id": "M06", "mutation": "silently-reset-final-pending", "schedule": "S10", "nextUnits": 1, "expected": 2, "mutant": 1 },
+    { "id": "M07", "mutation": "merge-distinct-payload-operations", "payload": "P01", "expected": 2, "mutant": 1 },
+    { "id": "M08", "mutation": "charge-each-execution-fragment", "payload": "P02", "expected": 1, "mutant": 2 },
+    { "id": "M09", "mutation": "check-after-unsafe-addition", "refusal": "O05", "expectedUnsafeAdditions": 0, "mutantUnsafeAdditions": 1 },
+    { "id": "M10", "mutation": "omit-reserved-checkpoint-cost", "schedule": "S14", "expected": 2, "mutant": 1 }
+  ],
+  "traceRows": [
+    { "id": "T01", "stage": "before-admission", "events": ["caller-abort", "Budget.step(total)"], "expect": { "budgetDelta": 0, "allocation": false, "publication": false, "outcome": "exact caller reason", "refund": 0 }, "basis": "Budget.step checks signal before increment" },
+    { "id": "T02", "stage": "failed-admission", "events": ["live signal", "Budget.step total exceeds remaining"], "expect": { "budgetDelta": "entire attempted total before maxSteps throw", "allocation": false, "publication": false, "outcome": "existing named limit, unless later caller abort wins settlement", "refund": 0 }, "basis": "do not invent transactional rollback of private steps" },
+    { "id": "T03", "stage": "prepaid-checkpoint", "events": ["checkpoint credit consumed", "timer rejects", "borrowed signal aborted"], "reasons": [false, null, "<undefined>", "<object-identity>"], "expect": { "pendingReset": false, "publication": false, "outcome": "exact borrowed reason; outer caller precedence remains separate", "refund": 0 }, "basis": "6620463a catch qualification, not equality-based provenance" },
+    { "id": "T04", "stage": "prepaid-checkpoint", "events": ["timer rejects with errno-shaped failure", "borrowed signal still live"], "expect": { "pendingReset": false, "publication": false, "outcome": "original timer/execution failure unchanged", "refund": 0 }, "basis": "do not map a live-signal failure into cancellation" },
+    { "id": "T05", "stage": "prepaid-checkpoint", "events": ["timer fulfills", "signal aborted before continuation check"], "expect": { "pendingReset": false, "publication": false, "outcome": "exact signal reason before consuming ordinary credit", "refund": 0 }, "basis": "successful await does not waive post-await check" },
+    { "id": "T06", "stage": "non-checkpoint-last-unit", "pending": 0, "units": 1, "events": ["reserve step(1)", "await beforeUnit resolves without checkpoint", "caller abort before copy continuation", "copy then finish if no guard"], "expect": { "allocation": false, "publication": false, "outcome": "post-await pre-copy signal check required; exact caller reason", "refund": 0 }, "basis": "QBM-02: timer helper is never reached, credit equality alone cannot establish cancellation" },
+    { "id": "T07", "stage": "after-last-copy-before-finish", "pending": 1022, "units": 1, "events": ["last bounded copy operation complete", "caller aborted before closeout publication"], "expect": { "publication": false, "outcome": "finish/publication signal check required independently of terminal checkpoint policy", "refund": 0 }, "basis": "a signal-only check has no new Budget step charge; a selected final checkpoint does" },
+    { "id": "T08", "stage": "after-completed-copy", "events": ["exact finish succeeds", "alias value becomes visible", "caller abort", "owned cleanup still pending"], "expect": { "outcome": "drain registered cooperative work, then caller reason wins; no claim of undoing earlier complete output", "refund": 0 }, "basis": "completed effects and root cleanup settlement are distinct from uncompleted alias publication" },
+    { "id": "T09", "stage": "late-cleanup", "events": ["escaping execution failure selected", "cleanup rejects", "root caller abort observed before settlement"], "expect": { "outcome": "root caller exact reason first; retain/observe secondary failures; no early settlement", "refund": 0 }, "basis": "existing command cleanup precedence, not every outer Shell rejection" },
+    { "id": "T10", "stage": "reservation-active", "events": ["reserve admitted", "query/scanner/estimator/normal-charge/nested-reserve attempts entry"], "expect": { "interleaving": false, "outcome": "internal misuse before any competing Budget consumption; one existing Budget", "refund": 0 }, "basis": "serialized session excludes all consumers, not only a second query" },
+    { "id": "T11", "stage": "abandon-and-close", "events": ["some prepaid units unused", "abandon and two close calls overlap"], "expect": { "outcome": "expire once with shared cleanup completion, no publication/session reuse and no Budget replacement", "publication": false, "refund": 0 }, "basis": "reservation is local credit, not refundable or another Budget" },
+    { "id": "T12", "stage": "phase-handoff", "events": ["before-next finish with pending 1023", "unrelated await", "new document/query phase", "next normal owned unit"], "expect": { "outcome": "retain pending; next owned unit first pays real tick, unless root explicitly selects a prepaid terminal flush", "refund": 0 }, "basis": "no reset from finish, unrelated await, document boundary or engine tick; terminal choice is explicit" }
+  ],
+  "execution": { "product": 0, "native": 0, "authorChecker": 0, "existingCheckers": 0 },
+  "qualification": "52 arithmetic/control rows plus 12 trace-schema records. Trace fields are requirements or identified missing bindings, not asynchronous simulation or product passes. The author's 23 rows are not included."
+}

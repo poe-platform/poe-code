@@ -1,0 +1,13 @@
+# L02 parent-only diagnostic preseal
+
+Preserve 345b9851f00e77ba520014b36567259440fd4ed0: L01 PASS/L02 escaping-parent FAIL; two Workers/two guest entries; nine Workers/eight guests UNRUN. Original rejection descriptors were not captured.
+
+Exact source path: fixture readText/data /missing constructs compiled FsError; parent-rpc sets fs-operation only while awaiting that operation; typedErrorDTO rejects any own accessor/extra before DTO validation; catch preserves original as escaping-parent. No seq2 fsError outcome was published. Final reconciliation runs even without terminal but cannot reconstruct this absent typed outcome. supervisor serializes only presence/provenance/identity flags, losing name/message/code/shape. A stack accessor is a source hypothesis, not original runtime fact.
+
+Activation after commit: import the literal local launch.mjs and call run('65aeb8c85db05821c050290d669d8a2a77859e18081ea5c75a62db4fa3d0cf7e'). PRESEAL.json binds exact argv/env/module edges, capture helper, Node binary, request, zero engine/Worker/guest/compiler/private/network ceiling. Raw capture acquisition precedes Node/input admission. One parent child; 30s deadline then TERM/2s/KILL; root 5min/6children/peak3, 16MiB capture/128MiB work. Launcher writes at most1MiB; child outputs at most64KiB. No retry. No unknown retirement treated clean. Preparation/publication tools are recorded separately, not hidden in probe execution counts.
+
+Observer uses trusted util.types.isProxy before reflection/recognizer, accepts only bounded own-data primitive fields, omits stack/cause values and arbitrary extra-key text, never calls accessors. Reflecting all own keys is finite for this exact trusted FsError/provider; this is not an untrusted arbitrary host-object allocation bound. Raw primary is retained separately, including undefined. Observer failure cannot replace it. Dynamic imported modules are hash-checked on each resolve/load; trusted launcher/entry bootstrap bindings are preauthenticated, not misreported as hook loads.
+
+Probe invokes the unchanged actual parent fixture and owner without a Worker. Validated seq2 request is a bounded route projection, not full parent-RPC/engine execution. Cleanup must report proven-none acquisition and both cleanup flags true. Exit0 means completed observation, NOT a typed-error success requirement. Additional strict observer controls may be sealed separately after diagnosis; no Worker continuation authority.
+
+The actual-v7 capsule inputs are authenticated against COMPOSITION.json; their complete bytes remain reachable through the previously committed full archive. No moving HEAD or new compilation participates.

@@ -1,0 +1,135 @@
+{
+  "schema": 1,
+  "state": "PRESEAL_BEFORE_WORKER_VALIDATION",
+  "files": {
+    "DEFERRED-CONTROLS.json": {
+      "sha256": "55ef67e504833471aac9a6417b9e6eb66a9ec88ca71b0c93abb143a7ab54576f",
+      "bytes": 3047,
+      "mode": 420,
+      "kind": "file"
+    },
+    "INPUTS.json": {
+      "sha256": "67d7e6d98edb0eb71c678ff618654123934f15b69a3686345afe469b35d735fc",
+      "bytes": 9615,
+      "mode": 420,
+      "kind": "file"
+    },
+    "MUTANT-PLAN.json": {
+      "sha256": "4b6ebde4b0e348ef6d4a0df3c5468002717c32dbbfb470fd112331cd7274181b",
+      "bytes": 20641,
+      "mode": 420,
+      "kind": "file"
+    },
+    "PROTOCOL.md": {
+      "sha256": "258df7957a3efa57bcd504312107bd4f80ddb9e0ac7471532faafc5cbd878487",
+      "bytes": 9248,
+      "mode": 420,
+      "kind": "file"
+    },
+    "RESULT-SCHEMA.json": {
+      "sha256": "c0d2a2d224a906bdba73fc5785cbfb16e3509b6086c329948d4cd5d6253a000c",
+      "bytes": 3403,
+      "mode": 420,
+      "kind": "file"
+    },
+    "TYPE-PLAN.json": {
+      "sha256": "8eed676ec82857081c5103f0ccdd5514676e71eccbdfe26463352c34386fb9a2",
+      "bytes": 15023,
+      "mode": 420,
+      "kind": "file"
+    },
+    "fixtures/factory-array-extra.mts.data": {
+      "sha256": "a637c4c761bb1e1741387326dec844d406f554b941a269d7bec65e1d33564e89",
+      "bytes": 80,
+      "mode": 420,
+      "kind": "file"
+    },
+    "fixtures/factory-command-extra.mts.data": {
+      "sha256": "bf2c319d9399bafa476e73d6f0d8e6993983b5066dfd3abd6d649fe0a3ec78eb",
+      "bytes": 63,
+      "mode": 420,
+      "kind": "file"
+    },
+    "fixtures/hidden-defaults.mts.data": {
+      "sha256": "53478f30079b739c9e34ffeb9404a67b5fd7947a4c00e08e117a85c009b48400",
+      "bytes": 86,
+      "mode": 420,
+      "kind": "file"
+    },
+    "fixtures/hidden-factory.mts.data": {
+      "sha256": "f73fef9fd1fae5e66379989d8cdf59101f09d82443122f7e91506bd03d8a5f20",
+      "bytes": 96,
+      "mode": 420,
+      "kind": "file"
+    },
+    "fixtures/hidden-limits.mts.data": {
+      "sha256": "8fbaf4075b51382e279f1052350559ebbe3f4ce9c03944b7ac95e9d1890fc761",
+      "bytes": 76,
+      "mode": 420,
+      "kind": "file"
+    },
+    "fixtures/hidden-parser.mts.data": {
+      "sha256": "5a05bae0fc1d308ce6e9a53c50b50d5fa17dd6d6e0795f0733e6f832e8347139",
+      "bytes": 68,
+      "mode": 420,
+      "kind": "file"
+    },
+    "fixtures/hidden-session.mts.data": {
+      "sha256": "6b2868895df93e11b3de80caee59e2494ca5d49ff0b5e16b60d227a85e658a15",
+      "bytes": 88,
+      "mode": 420,
+      "kind": "file"
+    },
+    "fixtures/positive.mts.data": {
+      "sha256": "f673aa48081df5da7422afccae8035f772d9b7d4f0807e5358c25e860e4ca7f0",
+      "bytes": 1036,
+      "mode": 420,
+      "kind": "file"
+    },
+    "fixtures/replace-string.mts.data": {
+      "sha256": "e8ee0308b05e85331c1137a8993f97f36788856e70416d214b44afa2cced1bcc",
+      "bytes": 69,
+      "mode": 420,
+      "kind": "file"
+    },
+    "fixtures/replace-undefined.mts.data": {
+      "sha256": "d282022d8e329add3275f9c11f53a6f3cbeb3831598864ed631646edc3de9169",
+      "bytes": 73,
+      "mode": 420,
+      "kind": "file"
+    },
+    "fixtures/unknown-limits.mts.data": {
+      "sha256": "e2b019fca89c754c4254077c2a20ae615b3dbdaf3e82c70382d415d494d35a42",
+      "bytes": 78,
+      "mode": 420,
+      "kind": "file"
+    },
+    "maps/pending-shadow.json": {
+      "sha256": "f28d8d9538599055d5845eb92b347f51c6756024a5f661b8634bf6bb3b139e80",
+      "bytes": 152021,
+      "mode": 420,
+      "kind": "file"
+    },
+    "maps/pristine.json": {
+      "sha256": "fa3f05161730244a4760938640470ee10a75e780ece4ceeacc51e70dfc913da7",
+      "bytes": 152021,
+      "mode": 420,
+      "kind": "file"
+    },
+    "maps/quoted-del.json": {
+      "sha256": "cbdd27df0009a439a2b6612de57ca9cd6d19c03a259e2c711b56c7c3c880bfe7",
+      "bytes": 152021,
+      "mode": 420,
+      "kind": "file"
+    },
+    "maps/retained-view.json": {
+      "sha256": "9192ff9472d89e5311b5010a862ea8d31841c48ea128624c6a7fcab1018211c6",
+      "bytes": 152021,
+      "mode": 420,
+      "kind": "file"
+    }
+  },
+  "authorExecution": 0,
+  "dynamicControls": 0,
+  "rootGO": false
+}

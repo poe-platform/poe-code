@@ -1,0 +1,2 @@
+import { createLetCommands } from 'virtual-bash';
+void createLetCommands;

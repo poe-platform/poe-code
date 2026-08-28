@@ -1,0 +1,192 @@
+{
+  "capturedAt": "2026-08-28T09:24:32.811Z",
+  "candidate": "f5e9fc49b6abb38e180cc9de16c95fced102ff75",
+  "driverSha256": "25ee4ded79df9c4fe0a9c8031721887dd7c8e22cb56f10d42b3d415eb30c0527",
+  "profileSha256": "8c9363ea17f6a319acc783b1e7ec2a4d4dc0a00529692b9f2331f60571ab149f",
+  "rootAuthorizationCommit": "8e6b40ecd2cec2b6dcaf2ce80c0cff477d39e6eb",
+  "toolSession": 92296,
+  "launcherInvocations": 1,
+  "launcherExit": 1,
+  "status": "HOLD_OR_QUALIFIED_RED",
+  "startedAt": "2026-08-28T09:20:27.564Z",
+  "finishedAt": "2026-08-28T09:21:12.112Z",
+  "error": {
+    "message": "spawnSync git EPERM",
+    "stack": "Error: spawnSync git EPERM\n    at Object.spawnSync (node:internal/child_process:1120:20)\n    at spawnSync (node:child_process:911:24)\n    at execFileSync (node:child_process:954:15)\n    at file:///private/tmp/unified76-os-write-c6k6am/tmp/unified76-execution-fPdjwB/support/tests/integration/full-gate-20260827/combined-8670ebe8/prerequisites.mjs:22:22\n    at Array.map (<anonymous>)\n    at Module.prerequisites (file:///private/tmp/unified76-os-write-c6k6am/tmp/unified76-execution-fPdjwB/support/tests/integration/full-gate-20260827/combined-8670ebe8/prerequisites.mjs:21:39)\n    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver/launcher-v3/execute.mjs:73:44)\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver/launcher-v3/worker.mjs:8:67"
+  },
+  "phaseOutcomes": [
+    {
+      "name": "safejs-availability",
+      "expectedStatus": 0,
+      "outcome": "NOT_EXECUTED",
+      "reason": "setup authority Git route refused before first phase"
+    },
+    {
+      "name": "cold-typecheck",
+      "expectedStatus": 78,
+      "outcome": "NOT_EXECUTED",
+      "reason": "setup authority Git route refused before first phase"
+    },
+    {
+      "name": "typecheck-all",
+      "expectedStatus": 0,
+      "outcome": "NOT_EXECUTED",
+      "reason": "setup authority Git route refused before first phase"
+    },
+    {
+      "name": "benchmark-types",
+      "expectedStatus": 0,
+      "outcome": "NOT_EXECUTED",
+      "reason": "setup authority Git route refused before first phase"
+    },
+    {
+      "name": "env-source-binding",
+      "expectedStatus": 0,
+      "outcome": "NOT_EXECUTED",
+      "reason": "setup authority Git route refused before first phase"
+    },
+    {
+      "name": "canonical",
+      "expectedStatus": 0,
+      "outcome": "NOT_EXECUTED",
+      "reason": "setup authority Git route refused before first phase"
+    },
+    {
+      "name": "current-consumers",
+      "expectedStatus": 0,
+      "outcome": "NOT_EXECUTED",
+      "reason": "setup authority Git route refused before first phase"
+    },
+    {
+      "name": "pack",
+      "expectedStatus": 0,
+      "outcome": "NOT_EXECUTED",
+      "reason": "setup authority Git route refused before first phase"
+    },
+    {
+      "name": "public-runtime",
+      "expectedStatus": 0,
+      "outcome": "NOT_EXECUTED",
+      "reason": "setup authority Git route refused before first phase"
+    },
+    {
+      "name": "public-types",
+      "expectedStatus": 0,
+      "outcome": "NOT_EXECUTED",
+      "reason": "setup authority Git route refused before first phase"
+    },
+    {
+      "name": "negative-types",
+      "expectedStatus": 2,
+      "outcome": "NOT_EXECUTED",
+      "reason": "setup authority Git route refused before first phase"
+    },
+    {
+      "name": "missing-root",
+      "expectedStatus": 1,
+      "outcome": "NOT_EXECUTED",
+      "reason": "setup authority Git route refused before first phase"
+    },
+    {
+      "name": "missing-contracts",
+      "expectedStatus": 1,
+      "outcome": "NOT_EXECUTED",
+      "reason": "setup authority Git route refused before first phase"
+    },
+    {
+      "name": "final-sweep",
+      "expectedStatus": 0,
+      "outcome": "NOT_EXECUTED",
+      "reason": "setup authority Git route refused before first phase"
+    }
+  ],
+  "productionBuilds": 0,
+  "canonicalTestsExecuted": 0,
+  "canonicalCounts": null,
+  "packageRebuilt": false,
+  "preflight": {
+    "status": "preflight-admitted-not-product-acceptance",
+    "issues": [],
+    "nativeBindings": 51,
+    "readableBindingsVerified": true
+  },
+  "setup": {
+    "logicalEntries": 37397,
+    "physicalEntries": 37392,
+    "historyBytes": 452090184,
+    "checkoutPerformed": false,
+    "omittedInstructionPathsAbsent": [
+      "/private/tmp/unified76-os-write-c6k6am/tmp/unified76-execution-fPdjwB/source/AGENTS.md",
+      "/private/tmp/unified76-os-write-c6k6am/tmp/unified76-execution-fPdjwB/source/tests/commands/filesystem-inspection-stress/tree/sealed/inputs/AGENTS.md",
+      "/private/tmp/unified76-os-write-c6k6am/tmp/unified76-execution-fPdjwB/source/tests/stress/regex-execution/production-review/snapshots/baseline/AGENTS.md",
+      "/private/tmp/unified76-os-write-c6k6am/tmp/unified76-execution-fPdjwB/source/tests/stress/regex-execution/production-review/snapshots/production-final/AGENTS.md",
+      "/private/tmp/unified76-os-write-c6k6am/tmp/unified76-execution-fPdjwB/source/tests/stress/regex-execution/production-review/snapshots/production-first/AGENTS.md",
+      "/private/tmp/unified76-os-write-c6k6am/tmp/unified76-execution-fPdjwB/source/benchmarks/node_modules/just-bash/dist/AGENTS.md"
+    ],
+    "nativeStagedExecutableCopies": 36,
+    "helper": {
+      "path": "tests/integration/full-gate-20260827/combined-8670ebe8/prerequisites.mjs",
+      "staged": "/private/tmp/unified76-os-write-c6k6am/tmp/unified76-execution-fPdjwB/support/tests/integration/full-gate-20260827/combined-8670ebe8/prerequisites.mjs",
+      "bytes": 5589,
+      "sha256": "60ae62f6bab6e0348288cd04a6f69c551ce13769bd7ea9e47fb251b9a9dfa2db"
+    },
+    "finalSweepReached": false,
+    "setupSentinelAbsent": true
+  },
+  "private": {
+    "metadataAdmission": {
+      "root": "/Users/kjopek/Workspace/poe-code/packages/safejs",
+      "files": 264,
+      "metadataSha256": "765bee1eabc87924ab6e845b18dc3e6c665cdedc25280476de3bb46f42fcc6f1",
+      "instructionEntries": 0,
+      "qualification": "Metadata preflight of exact would-copy paths; no added omission and no private body read"
+    },
+    "beforeStateReached": false,
+    "afterStateReached": false,
+    "engineCopyExists": false,
+    "guestExecutions": 0,
+    "qualification": "Metadata-only would-copy preflight reached. Failure precedes helper privateState/engine body copy. No private pre/post identity claim is inferred."
+  },
+  "cleanup": {
+    "workerClosed": true,
+    "workerProcessClean": true,
+    "signals": [],
+    "survivors": [],
+    "observerSurvivors": [],
+    "completedSupervisedPhases": 0,
+    "phaseProtocolClean": false,
+    "aggregateFenceClean": false,
+    "qualification": "Natural owned-process closure, but phase protocol/final gate cleanup completeness is false because all phases are unreached; no kernel-hard drain claim."
+  },
+  "retained": {
+    "output": "/private/tmp/full-gate-unified76-f5-fe15-finalroutes-20260828-r1",
+    "outer": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/unified76-supervisor-lAnYPa",
+    "workRoot": {
+      "path": "/private/tmp/unified76-os-write-c6k6am",
+      "device": 16777232,
+      "inode": 181058320,
+      "mode": 448,
+      "uid": 501
+    },
+    "temporary": "/private/tmp/unified76-os-write-c6k6am/tmp/unified76-execution-fPdjwB",
+    "rawFiles": 7,
+    "rawBytes": 19036819,
+    "fullSnapshotRemoved": false,
+    "qualification": "Exact failed-attempt trees retained for authorized inspection; no new full snapshot or instruction-body evidence copy."
+  },
+  "integrity": {
+    "shipping38Unchanged": true,
+    "checkedSixInstructionPathsAbsent": true,
+    "originalOutputFiles": [
+      "ADMISSION.json",
+      "REPORT.json"
+    ],
+    "finalProductPackagePrivateSweeps": "NOT_REACHED",
+    "qualification": "Setup archive proof and bounded terminal checks only, not completed whole-gate immutability qualification."
+  },
+  "diagnosis": {
+    "confirmed": "prerequisites receives environment but line22 execFileSync git supplies cwd only; inherited process.env is used rather than the verified local PATH. privateGit line10 also uses process.env and was not reached.",
+    "inference": "The bare Git refusal is consistent with the blocked /usr/bin/git selector route; the failed exec has no resolved-absolute-path receipt, so that specific target is not asserted as dynamically observed.",
+    "nextDecision": "A separately authorized versioned driver environment/routing repair and review would be needed; no helper body, permission, source/profile or receipt is changed by this capture."
+  }
+}

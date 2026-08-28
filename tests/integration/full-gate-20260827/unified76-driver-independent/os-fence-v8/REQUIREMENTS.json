@@ -1,0 +1,30 @@
+{
+  "schema": 1,
+  "status": "PREINSPECTION_REQUIREMENTS_NOT_EXECUTED",
+  "recordedAt": "2026-08-28T01:45:55-0500",
+  "chronology": "POSTAUTHOR/PREINSPECTION of new OS fence source and evidence. Existing repository instructions and Git metadata read; earlier projection and readonly risk assessment known. Not blind pre-code review.",
+  "source": "86038b27d1bee03333f13560e374ad407db417b8",
+  "additionalControls": "65bb898d17af8e674842e060ddd7ea61f91ff5bc",
+  "evidence": "62593a89afb0ee9db82341cf073229c555d3e2bc",
+  "candidate": "f5e9fc49b6abb38e180cc9de16c95fced102ff75",
+  "base": "44f00bf84278e3361b52106478d59c707ab7b2bc",
+  "expectedNormalizedDriver": "a99c9f24b9edee16ef959139b48905e943ee108080c0aa39511965103f32f26a",
+  "carriedPackage": "c109372f90b1bd19bcf756cf993bb2976fb52b75fe0c92a1cf96dab4c229b5cd",
+  "workspaceHead": "dad2b08ce6bba02d3c404e7a55da5f4163b39d77",
+  "initialIndex": [],
+  "foreignUntracked": ["tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/", "tests/commands/search-stress/.native-1m4O1e/", "tests/commands/xan-module-review-20260828/actual-review-v2/build-continuation/", "tests/commands/xan-module-review-20260828/actual-review-v2/evidence-continuation/", "tests/comparison/", "tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/", "tests/integration/html-public-admission-resource-v32-independent-20260827/ROOT-COORDINATION.md"],
+  "oracles": [
+    {"id":"F01", "requirement":"Exact frozen shipping launch callpath and profile/tool/projection/external identities; no unfenced Node/native custom-env fallback. Source inspection is not dynamic proof."},
+    {"id":"F02", "requirement":"Ordinary create/append/rename/temp/subdirectory Node and native writes within fresh gatedir and exact outputdir succeed; outside publication refuses."},
+    {"id":"F03", "requirement":"Instruction filename case/rename/path alias/symlink/hardlink/directory imports refuse before forbidden publication. Use benign canaries only; no actual instruction plaintext setup."},
+    {"id":"F04", "requirement":"Environment-cleared Node/native descendants and grandchildren remain OS-fenced independently of NODE_OPTIONS."},
+    {"id":"F05", "requirement":"Preopened outside read/write descriptors are denied or documented as a counterexample requiring explicit parent descriptor admission. Stop unsafe admission on bypass."},
+    {"id":"F06", "requirement":"If earlier safety controls permit, actual historical Git archive streamed directly to native tar refuses instruction materialization. Archive never stored or printed; accurately retain partial ordinary effects."},
+    {"id":"F07", "requirement":"Outer observation closes owned child/stdio/groups; separate review-owned foreign sentinel survives watched cleanup. No real private access; synthetic outside canary only."},
+    {"id":"F08", "requirement":"If admission remains safe, actual shared A10 under shipping fence: cold78, one real production build, 23 maintained plus3 source plus3 expected-negative groups,832 emits verified rather than assumed; real duplicate compiler refusal, no synthetic counter."}
+  ],
+  "osQualification": "Only macOS26.4.1/build25E253; existing exact11 system reference pairs plus exact2 sandbox-exec to libsandbox.1/libSystem.B ENOENT pairs, metadata-only. Lists unbound until packet read. No full OS/filehash attestation or other dependency exception.",
+  "protocol": "Freeze exact API recipe after inspection before imports/execution. Finite time/output/disk/children limits; fresh owned /tmp roots; no private access/install/fullgate/release. Stop relevant unsafe paths at real bypass, preserve failure and report promptly. Safe disjoint controls may finish. No hidden retry; followup requires additive freeze.",
+  "history": "All previous artifacts/counts remain immutable: e584 scoped8/A10/13observer, prior22 and OS risk assessment, stopped0/14 and forbidden-copy incident. Author counts are not independent outcomes. Root public prerequisites accepted; fresh release absent.",
+  "unbound": ["exact shipping component API", "sandbox profile bytes/hash", "tool and additional library reference identities", "execution recipe and observed outcomes"]
+}

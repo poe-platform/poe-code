@@ -1,0 +1,889 @@
+{
+  "schema": "independent-chronology-v4-final",
+  "date": "2026-08-28",
+  "decision": "SCOPED_SOURCE_SYNTHETIC_ACCEPTED_REAL_GO_NOT_GRANTED",
+  "candidate": "3d3a0371729b88ced47b6e37376676746b638ad9",
+  "evidence": "b9d681d9c25d4054ab6a9bf2d5470d88b39eed67",
+  "preseal": "ebd928f448b2e3551316f161c0ba050005ac13f5",
+  "finalEvidenceAndQualificationCommit": "8779070712e5d2d253fd29f31b0294ae4b9414cc",
+  "reportCommit": "resolved by final handoff; report/summary are reporting-only additions, not qualification runtime inputs",
+  "moduleSealSha256": "b0006cdbbad9f3a0e75f48588e3e0d9ea6557924ae7aeb687ad6b88e7f27df14",
+  "counts": {
+    "uniqueControlIdentities": 55,
+    "executions": 55,
+    "reusedIdentities": 49,
+    "reusedPassed": 49,
+    "newIdentities": 6,
+    "newPassed": 6,
+    "oldHistoricalPassed": 47,
+    "oldHistoricalTotal": 49,
+    "subjectRuns": 1,
+    "hostExit": 0,
+    "authorControlExecutions": 0,
+    "loadedModules": 7,
+    "boundModules": 8,
+    "sealArtifacts": 28,
+    "virtualStarts": 33,
+    "virtualEvents": 571,
+    "realObserverChildren": 0,
+    "native43Executions": 0,
+    "productExecutions": 0,
+    "networkConnections": 0,
+    "qualificationEntryExecutions": 0
+  },
+  "identityQualification": {
+    "casesBlob": "1fd14b359db19cd67dd6dd8f57af5d06a2855e81",
+    "casesSha256": "13a9aa3a85c564b48aed64e53b621201a94a4b5e2f1e2f3b9c5beb675cb9bd45",
+    "reused": 49,
+    "added": 6,
+    "historicalScore": "47/49 unchanged",
+    "originalChronologySchedules": "unchanged1/2/3ms; new source fault triggers unchanged model TERM behavior, so delivered/settlement outcomes differ",
+    "versionedFixtureAdaptation": "candidate/seal bytes updated and all current28 artifacts+main seal protected; not unchanged byte-for-byte whole configuration"
+  },
+  "repairedOriginalTwo": [
+    {
+      "id": "close-before-spawn-live-group",
+      "pass": true,
+      "success": false,
+      "firstViolation": {
+        "event": "exit",
+        "state": "awaiting-spawn",
+        "at": 1
+      },
+      "state": "invalid",
+      "counts": {
+        "spawn": 0,
+        "exit": 1,
+        "close": 1,
+        "error": 0
+      },
+      "events": [
+        {
+          "name": "exit",
+          "at": 1,
+          "code": 0,
+          "signal": null
+        },
+        {
+          "name": "fault",
+          "at": 1
+        },
+        {
+          "name": "close",
+          "at": 1,
+          "code": 0,
+          "signal": null
+        },
+        {
+          "name": "fault",
+          "at": 1
+        }
+      ],
+      "model": {
+        "starts": 1,
+        "releases": 1,
+        "events": 4,
+        "clock": 3,
+        "maximumTasks": 8,
+        "pending": 0,
+        "descriptors": 0,
+        "signals": [
+          "SIGTERM"
+        ],
+        "virtualGroupAlive": false,
+        "discardedEntries": 44,
+        "coercions": 0,
+        "callbackExceptions": []
+      },
+      "rawDriverDelivery": [
+        {
+          "operation": "emit",
+          "at": 1,
+          "label": "child",
+          "event": "exit",
+          "listeners": 1
+        },
+        {
+          "operation": "emit",
+          "at": 1,
+          "label": "child",
+          "event": "close",
+          "listeners": 1
+        },
+        {
+          "operation": "emit",
+          "at": 2,
+          "label": "child",
+          "event": "spawn",
+          "listeners": 1
+        }
+      ]
+    },
+    {
+      "id": "exit-before-spawn-live-group",
+      "pass": true,
+      "success": false,
+      "firstViolation": {
+        "event": "exit",
+        "state": "awaiting-spawn",
+        "at": 1
+      },
+      "state": "invalid",
+      "counts": {
+        "spawn": 1,
+        "exit": 2,
+        "close": 1,
+        "error": 0
+      },
+      "events": [
+        {
+          "name": "exit",
+          "at": 1,
+          "code": 0,
+          "signal": null
+        },
+        {
+          "name": "fault",
+          "at": 1
+        },
+        {
+          "name": "spawn",
+          "at": 2
+        },
+        {
+          "name": "exit",
+          "at": 2,
+          "code": 0,
+          "signal": null
+        },
+        {
+          "name": "close",
+          "at": 2,
+          "code": 0,
+          "signal": null
+        },
+        {
+          "name": "fault",
+          "at": 2
+        }
+      ],
+      "model": {
+        "starts": 1,
+        "releases": 1,
+        "events": 4,
+        "clock": 3,
+        "maximumTasks": 8,
+        "pending": 0,
+        "descriptors": 0,
+        "signals": [
+          "SIGTERM"
+        ],
+        "virtualGroupAlive": false,
+        "discardedEntries": 45,
+        "coercions": 0,
+        "callbackExceptions": []
+      },
+      "rawDriverDelivery": [
+        {
+          "operation": "emit",
+          "at": 1,
+          "label": "child",
+          "event": "exit",
+          "listeners": 1
+        },
+        {
+          "operation": "emit",
+          "at": 2,
+          "label": "child",
+          "event": "spawn",
+          "listeners": 1
+        },
+        {
+          "operation": "emit",
+          "at": 2,
+          "label": "child",
+          "event": "exit",
+          "listeners": 1
+        },
+        {
+          "operation": "emit",
+          "at": 2,
+          "label": "child",
+          "event": "close",
+          "listeners": 1
+        }
+      ]
+    }
+  ],
+  "additions": [
+    {
+      "id": "v4-duplicate-spawn",
+      "pass": true,
+      "state": "invalid",
+      "violation": {
+        "event": "spawn",
+        "state": "running",
+        "at": 1
+      },
+      "counts": {
+        "spawn": 2,
+        "exit": 1,
+        "close": 1,
+        "error": 0
+      },
+      "model": {
+        "starts": 1,
+        "releases": 1,
+        "events": 4,
+        "clock": 4,
+        "maximumTasks": 8,
+        "pending": 0,
+        "descriptors": 0,
+        "signals": [
+          "SIGTERM"
+        ],
+        "virtualGroupAlive": false,
+        "discardedEntries": 45,
+        "coercions": 0,
+        "callbackExceptions": []
+      }
+    },
+    {
+      "id": "v4-duplicate-exit",
+      "pass": true,
+      "state": "invalid",
+      "violation": {
+        "event": "exit",
+        "state": "exited",
+        "at": 2
+      },
+      "counts": {
+        "spawn": 1,
+        "exit": 2,
+        "close": 1,
+        "error": 0
+      },
+      "model": {
+        "starts": 1,
+        "releases": 1,
+        "events": 4,
+        "clock": 4,
+        "maximumTasks": 8,
+        "pending": 0,
+        "descriptors": 0,
+        "signals": [
+          "SIGTERM"
+        ],
+        "virtualGroupAlive": false,
+        "discardedEntries": 45,
+        "coercions": 0,
+        "callbackExceptions": []
+      }
+    },
+    {
+      "id": "v4-duplicate-close",
+      "pass": true,
+      "state": "invalid",
+      "violation": {
+        "event": "close",
+        "state": "closed",
+        "at": 3
+      },
+      "counts": {
+        "spawn": 1,
+        "exit": 1,
+        "close": 2,
+        "error": 0
+      },
+      "model": {
+        "starts": 1,
+        "releases": 1,
+        "events": 6,
+        "clock": 25,
+        "maximumTasks": 9,
+        "pending": 0,
+        "descriptors": 0,
+        "signals": [
+          "SIGTERM"
+        ],
+        "virtualGroupAlive": false,
+        "discardedEntries": 45,
+        "coercions": 0,
+        "callbackExceptions": []
+      }
+    },
+    {
+      "id": "v4-sync-error-close-no-pid",
+      "pass": true,
+      "state": "failed-before-spawn",
+      "violation": null,
+      "counts": {
+        "spawn": 0,
+        "exit": 0,
+        "close": 1,
+        "error": 1
+      },
+      "model": {
+        "starts": 1,
+        "releases": 1,
+        "events": 0,
+        "clock": 0,
+        "maximumTasks": 4,
+        "pending": 0,
+        "descriptors": 0,
+        "signals": [],
+        "virtualGroupAlive": false,
+        "discardedEntries": 44,
+        "coercions": 0,
+        "callbackExceptions": []
+      }
+    },
+    {
+      "id": "v4-first-falsy-error",
+      "pass": true,
+      "state": "closed",
+      "violation": null,
+      "counts": {
+        "spawn": 1,
+        "exit": 1,
+        "close": 1,
+        "error": 2
+      },
+      "model": {
+        "starts": 1,
+        "releases": 1,
+        "events": 5,
+        "clock": 4,
+        "maximumTasks": 9,
+        "pending": 0,
+        "descriptors": 0,
+        "signals": [
+          "SIGTERM"
+        ],
+        "virtualGroupAlive": false,
+        "discardedEntries": 45,
+        "coercions": 0,
+        "callbackExceptions": []
+      }
+    },
+    {
+      "id": "v4-current-closure-mode",
+      "pass": true,
+      "state": "closed",
+      "violation": null,
+      "counts": {
+        "spawn": 1,
+        "exit": 1,
+        "close": 1,
+        "error": 0
+      },
+      "model": {
+        "starts": 1,
+        "releases": 1,
+        "events": 2,
+        "clock": 10,
+        "maximumTasks": 6,
+        "pending": 0,
+        "descriptors": 0,
+        "signals": [],
+        "virtualGroupAlive": false,
+        "discardedEntries": 45,
+        "coercions": 0,
+        "callbackExceptions": []
+      }
+    }
+  ],
+  "realVmOwnData": {
+    "positiveFamilies": [
+      "vm-config-positive",
+      "vm-own-data-positive",
+      "vm-null-prototype-positive"
+    ],
+    "refusalSubprobes": [
+      {
+        "id": "hole",
+        "refused": true,
+        "coercions": 0
+      },
+      {
+        "id": "array-extra",
+        "refused": true,
+        "coercions": 0
+      },
+      {
+        "id": "array-symbol",
+        "refused": true,
+        "coercions": 0
+      },
+      {
+        "id": "accessor",
+        "refused": true,
+        "coercions": 0
+      },
+      {
+        "id": "array-accessor",
+        "refused": true,
+        "coercions": 0
+      },
+      {
+        "id": "toJSON",
+        "refused": true,
+        "coercions": 0
+      },
+      {
+        "id": "toPrimitive",
+        "refused": true,
+        "coercions": 0
+      },
+      {
+        "id": "nonfinite",
+        "refused": true,
+        "coercions": 0
+      },
+      {
+        "id": "undefined",
+        "refused": true,
+        "coercions": 0
+      },
+      {
+        "id": "type",
+        "refused": true,
+        "coercions": 0
+      },
+      {
+        "id": "sequence",
+        "refused": true,
+        "coercions": 0
+      },
+      {
+        "id": "extra-record",
+        "refused": true,
+        "coercions": 0
+      },
+      {
+        "id": "nonenumerable-extra",
+        "refused": true,
+        "coercions": 0
+      }
+    ],
+    "coercions": 0,
+    "prototypeIdentityNotRequired": true
+  },
+  "reasonIdentity": {
+    "hostObjectAndProxyControlsPassed": true,
+    "firstUndefinedPreservedBeforeSerialization": true,
+    "falsyWitness": "MODEL-ADDITIONS.mjs.data verifyV4 asserts own-property presence and ===undefined on row/report/failure; v4-first-falsy-error passed",
+    "objectWitnesses": [
+      {
+        "id": "spawn-publication-fails",
+        "pass": true,
+        "reasonIdentity": {
+          "row": true,
+          "report": true,
+          "phases": [
+            "execution"
+          ]
+        }
+      },
+      {
+        "id": "row-publication-fails",
+        "pass": true,
+        "reasonIdentity": {
+          "row": false,
+          "report": true,
+          "phases": [
+            "execution"
+          ]
+        }
+      },
+      {
+        "id": "host-reason-identity",
+        "pass": true,
+        "reasonIdentity": {
+          "row": true,
+          "report": true,
+          "phases": [
+            "execution"
+          ]
+        }
+      },
+      {
+        "id": "v4-sync-error-close-no-pid",
+        "pass": true,
+        "reasonIdentity": {
+          "row": true,
+          "report": true,
+          "phases": [
+            "execution"
+          ]
+        }
+      },
+      {
+        "id": "host-proxy-reason-identity",
+        "pass": true,
+        "referenceIdentity": true
+      }
+    ]
+  },
+  "oldLifecycleGaps": {
+    "S1": "models settle missing close/surviving group at3000ms with explicit uncertainty, no OS reaping inference",
+    "S2": "post-persistence controls/receipts and current nonloaded chronology module mode drift refuse; input membership/modes authenticated",
+    "S3": "register-before-mkdir direct module plus integrated acquired/stat failure",
+    "S4": "spawn/row/final persistence failures retain real adapter callback counts and exact reasons",
+    "S5": "sync throw/async no-PID do not fabricate events; special error+close-before-return branch observed explicitly"
+  },
+  "loadWitness": [
+    {
+      "name": "admission.mjs",
+      "identifier": "file:///independent-frozen/modules/admission.mjs",
+      "sha256": "40faa6d99b10cb430b773086f0bcfe5765a72feffc63257e063bad62e18283bf",
+      "bytes": 6289,
+      "transformed": false,
+      "blob": "22375cca303a927c7326b47022f8e32bc1ba29c8",
+      "evaluated": "evaluated"
+    },
+    {
+      "name": "cli.mjs",
+      "identifier": "file:///independent-frozen/modules/cli.mjs",
+      "sha256": "0d7aa7223fee54f39e019a2fb80112e77697dc34f3d4f6854d353b56a300f720",
+      "bytes": 4212,
+      "transformed": false,
+      "blob": "0493dbf4d60c7dda2040a7bc8fe527f2185b19c4",
+      "evaluated": "evaluated"
+    },
+    {
+      "name": "data.mjs",
+      "identifier": "file:///independent-frozen/modules/data.mjs",
+      "sha256": "1febd9039ace712a565c13069d92accd67296dfa9790b3dc4849cc9b5461c883",
+      "bytes": 3016,
+      "transformed": false,
+      "blob": "4ee4817b899cd9488afb33d4981b23f871d3b448",
+      "evaluated": "evaluated"
+    },
+    {
+      "name": "lifecycle.mjs",
+      "identifier": "file:///independent-frozen/modules/lifecycle.mjs",
+      "sha256": "176e55d98b2058daa121e4864ec84e450eaf3f1c2d4f7f716051577a5c14b645",
+      "bytes": 7700,
+      "transformed": false,
+      "blob": "349ef87486b0b05770c90e42976b993bd215bd1e",
+      "evaluated": "evaluated"
+    },
+    {
+      "name": "node-driver.mjs",
+      "identifier": "file:///independent-frozen/modules/node-driver.mjs",
+      "sha256": "6daea48e05a79279ca64cabad8fc44df3a388d24671a6e0f8d53ad1fa8ef3f97",
+      "bytes": 4016,
+      "transformed": false,
+      "blob": "0470289dafc96841bd9085e090a0fcb23b278492",
+      "evaluated": "evaluated"
+    },
+    {
+      "name": "observer.mjs",
+      "identifier": "file:///independent-frozen/modules/observer.mjs",
+      "sha256": "614ac17db096c0ce746eeab1a4ae5caffac778dea4113fab3fd094d7d6f0b4d8",
+      "bytes": 4734,
+      "transformed": false,
+      "blob": "9cecba9cd64c1497c4cc29a70f8a6933b8ea27c1",
+      "evaluated": "evaluated"
+    },
+    {
+      "name": "storage.mjs",
+      "identifier": "file:///independent-frozen/modules/storage.mjs",
+      "sha256": "60b084b3fc5a940090fa45a6936cf9a952b0caf3b70fd57c074d4bbaf67ad8ad",
+      "bytes": 3696,
+      "transformed": false,
+      "blob": "9db3d36dc47cff24abef704f10f95a7ec95c1db2",
+      "evaluated": "evaluated"
+    }
+  ],
+  "allEightModuleBindings": [
+    {
+      "commit": "3d3a0371729b88ced47b6e37376676746b638ad9",
+      "path": "tests/shell/mapfile-design-20260828/observer-v1/modules/admission.mjs",
+      "blob": "22375cca303a927c7326b47022f8e32bc1ba29c8",
+      "mode": 420,
+      "sha256": "40faa6d99b10cb430b773086f0bcfe5765a72feffc63257e063bad62e18283bf",
+      "bytes": 6289
+    },
+    {
+      "commit": "3d3a0371729b88ced47b6e37376676746b638ad9",
+      "path": "tests/shell/mapfile-design-20260828/observer-v1/modules/cli.mjs",
+      "blob": "0493dbf4d60c7dda2040a7bc8fe527f2185b19c4",
+      "mode": 420,
+      "sha256": "0d7aa7223fee54f39e019a2fb80112e77697dc34f3d4f6854d353b56a300f720",
+      "bytes": 4212
+    },
+    {
+      "commit": "3d3a0371729b88ced47b6e37376676746b638ad9",
+      "path": "tests/shell/mapfile-design-20260828/observer-v1/modules/lifecycle.mjs",
+      "blob": "349ef87486b0b05770c90e42976b993bd215bd1e",
+      "mode": 420,
+      "sha256": "176e55d98b2058daa121e4864ec84e450eaf3f1c2d4f7f716051577a5c14b645",
+      "bytes": 7700
+    },
+    {
+      "commit": "3d3a0371729b88ced47b6e37376676746b638ad9",
+      "path": "tests/shell/mapfile-design-20260828/observer-v1/modules/node-driver.mjs",
+      "blob": "0470289dafc96841bd9085e090a0fcb23b278492",
+      "mode": 420,
+      "sha256": "6daea48e05a79279ca64cabad8fc44df3a388d24671a6e0f8d53ad1fa8ef3f97",
+      "bytes": 4016
+    },
+    {
+      "commit": "3d3a0371729b88ced47b6e37376676746b638ad9",
+      "path": "tests/shell/mapfile-design-20260828/observer-v1/modules/observer.mjs",
+      "blob": "9cecba9cd64c1497c4cc29a70f8a6933b8ea27c1",
+      "mode": 420,
+      "sha256": "614ac17db096c0ce746eeab1a4ae5caffac778dea4113fab3fd094d7d6f0b4d8",
+      "bytes": 4734
+    },
+    {
+      "commit": "3d3a0371729b88ced47b6e37376676746b638ad9",
+      "path": "tests/shell/mapfile-design-20260828/observer-v1/modules/storage.mjs",
+      "blob": "9db3d36dc47cff24abef704f10f95a7ec95c1db2",
+      "mode": 420,
+      "sha256": "60b084b3fc5a940090fa45a6936cf9a952b0caf3b70fd57c074d4bbaf67ad8ad",
+      "bytes": 3696
+    },
+    {
+      "commit": "3d3a0371729b88ced47b6e37376676746b638ad9",
+      "path": "tests/shell/mapfile-design-20260828/observer-v1/modules/synthetic.mjs",
+      "blob": "f5b138537bd9b01dcae0311c68e49bc6c121e6b6",
+      "mode": 420,
+      "sha256": "b99be7012e6c969e7e834e99a1b77d9fb3f65f8c3356d7564ae462780f9bd5f1",
+      "bytes": 18908
+    },
+    {
+      "commit": "3d3a0371729b88ced47b6e37376676746b638ad9",
+      "path": "tests/shell/mapfile-design-20260828/observer-v1/modules/data.mjs",
+      "blob": "4ee4817b899cd9488afb33d4981b23f871d3b448",
+      "mode": 420,
+      "sha256": "1febd9039ace712a565c13069d92accd67296dfa9790b3dc4849cc9b5461c883",
+      "bytes": 3016
+    }
+  ],
+  "authorDataOnly": [
+    {
+      "commit": "b9d681d9c25d4054ab6a9bf2d5470d88b39eed67",
+      "path": "tests/shell/mapfile-design-20260828/observer-v1/captures/chronology-v4-baseline-1787928076193-12827.json.gz.base64",
+      "blob": "21272d034908356547a5764d1dc11a9de02ad15e",
+      "encodedSha256": "12f0864540f563188de1f541c22edee68205f48c9841c90c5a16e5a5516def04",
+      "decodedSha256": "25724706cb8f75927c6ae8ddf7a7450a2ddfebafb43d592fcf5fea9e62cbde6b",
+      "decodedBytes": 16422,
+      "claimedPasses": 1,
+      "claimedTotal": 3,
+      "role": "immutable DATA authentication only, not independent passes",
+      "failedIds": [
+        "T03",
+        "T04"
+      ]
+    },
+    {
+      "commit": "b9d681d9c25d4054ab6a9bf2d5470d88b39eed67",
+      "path": "tests/shell/mapfile-design-20260828/observer-v1/captures/chronology-v4-candidate-1787928291780-21693.json.gz.base64",
+      "blob": "dca4629b4c5c58c88e263f11bca20317550c104f",
+      "encodedSha256": "617da62f8c2e32819af3c412965e8c409fdd7ce382abc8b18b7e93af924f3cc0",
+      "decodedSha256": "716d3bb163c701d5a0fd40670f83eff1b26b0da8796f9f90a7bd94aff9e46704",
+      "decodedBytes": 92038,
+      "claimedPasses": 20,
+      "claimedTotal": 20,
+      "role": "immutable DATA authentication only, not independent passes",
+      "failedIds": []
+    },
+    {
+      "commit": "b9d681d9c25d4054ab6a9bf2d5470d88b39eed67",
+      "path": "tests/shell/mapfile-design-20260828/observer-v1/captures/synthetic-1787928292156-21704.json.gz.base64",
+      "blob": "6a4396aaad3bc8d0445c9d3cd19f21d61adb7f3e",
+      "encodedSha256": "5c678253eeda871b265f0a780ad912ced8b9e5831d9d36434b7a4ca416ca9fc5",
+      "decodedSha256": "2c6effb548c72b9a240601e3fb020b7c251b69eafa829c2e17dea6c9846dc476",
+      "decodedBytes": 1707694,
+      "claimedPasses": 37,
+      "claimedTotal": 37,
+      "role": "immutable DATA authentication only, not independent passes",
+      "failedIds": []
+    },
+    {
+      "commit": "b9d681d9c25d4054ab6a9bf2d5470d88b39eed67",
+      "path": "tests/shell/mapfile-design-20260828/observer-v1/captures/repair-v3-1787928292450-21660.json.gz.base64",
+      "blob": "519c68591fa365354394a085e13b0717dd469d30",
+      "encodedSha256": "357af713387f54fabcc5be8b5347af721c0fc1a79bbf3bfcb09c47ea066bfc98",
+      "decodedSha256": "ccaf6771aea4f86f8009d4fb62e9ef5d2151be705508e907dc2634040750971e",
+      "decodedBytes": 64162,
+      "claimedPasses": 27,
+      "claimedTotal": 27,
+      "role": "immutable DATA authentication only, not independent passes",
+      "failedIds": []
+    }
+  ],
+  "integrity": {
+    "beforeAfterHashesModesAndNewEntryCensus": true,
+    "all18OldFilesMatchB1485454": true,
+    "oldHistory": [
+      {
+        "path": "tests/shell/mapfile-observer-independent-20260828/BUNDLE.json",
+        "blob": "630d9511e8559cd8a1fae9590397956528be0ad8",
+        "sha256": "3c0645aaeed69d9fc4585f0f3157731d571956c773387329073137366ff94b87",
+        "bytes": 223576,
+        "mode": 420
+      },
+      {
+        "path": "tests/shell/mapfile-observer-independent-20260828/CAPTURE-01.json",
+        "blob": "e852e013b64b95b1fc9f7cba546eed4dcc9e63dc",
+        "sha256": "2b0948fe9874356d9947f22e6938f6733c34771b008931fea3fd0c872901a527",
+        "bytes": 1013588,
+        "mode": 420
+      },
+      {
+        "path": "tests/shell/mapfile-observer-independent-20260828/CAPTURE-02.json",
+        "blob": "f12611cd26b5f520142413263abee18499c9d004",
+        "sha256": "7b4e295292e4ad7832b6a4e1bf8530c2f649834fe9a0f13ad17ffb7cf2d038ec",
+        "bytes": 187780,
+        "mode": 420
+      },
+      {
+        "path": "tests/shell/mapfile-observer-independent-20260828/CASES.json",
+        "blob": "1fd14b359db19cd67dd6dd8f57af5d06a2855e81",
+        "sha256": "13a9aa3a85c564b48aed64e53b621201a94a4b5e2f1e2f3b9c5beb675cb9bd45",
+        "bytes": 2938,
+        "mode": 420
+      },
+      {
+        "path": "tests/shell/mapfile-observer-independent-20260828/CONTINUATION.json",
+        "blob": "82dad6ba595f74ecb861f5fcc0b2a8ff09feed84",
+        "sha256": "ec085cbea8b1a580fd7cba9c1b63d84104cad11b0474bbac2f09b5580f61ec93",
+        "bytes": 655,
+        "mode": 420
+      },
+      {
+        "path": "tests/shell/mapfile-observer-independent-20260828/CONTINUATION.md",
+        "blob": "81bd2573f03ad718cb99a212ffe198d310ea85ec",
+        "sha256": "2e17a2e0373a49d7102e79ebe8ce1b60c45868ee8c33a8a04d1d88c954253a35",
+        "bytes": 2445,
+        "mode": 420
+      },
+      {
+        "path": "tests/shell/mapfile-observer-independent-20260828/EXECUTION-01.json",
+        "blob": "54f808a365034843e58ac42a2138ca3ea8718711",
+        "sha256": "3aff602ade4254d4a1f1cae576b23eaf593f409a4671704a05cb2cfcabf7c752",
+        "bytes": 1453,
+        "mode": 420
+      },
+      {
+        "path": "tests/shell/mapfile-observer-independent-20260828/EXECUTION-02.json",
+        "blob": "f68cfc16f6d6257a290398bd90656dd881421dbf",
+        "sha256": "1d367f90d3ac3acb141439557c0401ed1c5e7ece1349e10cf2414aa77709fd41",
+        "bytes": 904,
+        "mode": 420
+      },
+      {
+        "path": "tests/shell/mapfile-observer-independent-20260828/HISTORICAL-FAILURES.json",
+        "blob": "c2fa994b0ec8b1737df1c6493183159c6d03dff4",
+        "sha256": "f019af02c0609ba48523a68e06126b47c357cab1357a8838a44a9f0fb7289556",
+        "bytes": 32659,
+        "mode": 420
+      },
+      {
+        "path": "tests/shell/mapfile-observer-independent-20260828/MANIFEST.json",
+        "blob": "9c038171a4d05508f655f67de14adc46c81e328e",
+        "sha256": "a7e3668c00476e440e3a7b63fd1c0760216442e51319605b82648fb748f2d2b3",
+        "bytes": 2098,
+        "mode": 420
+      },
+      {
+        "path": "tests/shell/mapfile-observer-independent-20260828/RECEIPT-01.json",
+        "blob": "ad2858a705787c404a467a47a9e766473ad3b0e7",
+        "sha256": "1100b2ed58db7dc0e4cdae7d971839bc24a1d1113ef8fbbab8e51426fb019341",
+        "bytes": 424,
+        "mode": 420
+      },
+      {
+        "path": "tests/shell/mapfile-observer-independent-20260828/RECEIPT-02.json",
+        "blob": "fbdb712df250b34b03782598e80ab1dd68bec4b3",
+        "sha256": "e948675771ee8c4e9dc774fc0580c1547525be80893b0482e7ad1a8f2881bcb4",
+        "bytes": 387,
+        "mode": 420
+      },
+      {
+        "path": "tests/shell/mapfile-observer-independent-20260828/RECIPE.md",
+        "blob": "438f227287d20356f69971c9e3f4acd1c771522d",
+        "sha256": "f7dd4df42992b9abd6db2f87052d2010cf275ad3a3fbf573e784bce8a73bd102",
+        "bytes": 4430,
+        "mode": 420
+      },
+      {
+        "path": "tests/shell/mapfile-observer-independent-20260828/REPORT.md",
+        "blob": "041a8e99259fc8c71fe72776049f034e7b240200",
+        "sha256": "f925d2f8c8611dcebe6d4cf8f4eec4eff15d3bd1476f4cc4d4648f9541a1e33b",
+        "bytes": 4753,
+        "mode": 420
+      },
+      {
+        "path": "tests/shell/mapfile-observer-independent-20260828/SUMMARY.json",
+        "blob": "1b35ee5cce71e53644b9b619fb39e03bfd9505f3",
+        "sha256": "8f74ccede6e0416a429b0e623e64edc2ee70a0f892744052e219e156e9040f10",
+        "bytes": 23523,
+        "mode": 420
+      },
+      {
+        "path": "tests/shell/mapfile-observer-independent-20260828/continue-v2.mjs.data",
+        "blob": "64eb265c10f1d4041aee0d93b4dc2d0689f3245f",
+        "sha256": "c16ea9e267960d0dad017bc4ae3da86389a7775570fb672da67de27a5e27c355",
+        "bytes": 3797,
+        "mode": 420
+      },
+      {
+        "path": "tests/shell/mapfile-observer-independent-20260828/prepare.mjs.data",
+        "blob": "377439c3bcbbf22bf610ab2711f93a429a5e16b6",
+        "sha256": "3a1e3074474b021bb3b028090995cb48144606d4086f26a97fd6a104291e96cb",
+        "bytes": 4383,
+        "mode": 420
+      },
+      {
+        "path": "tests/shell/mapfile-observer-independent-20260828/review.mjs.data",
+        "blob": "b6eee96f74ba33d52c2f7a54b47864903a3f8c94",
+        "sha256": "2faa315db1601ff14dd4847da450ba10621e8a5a2da3b59d07515008e2fb2501",
+        "bytes": 33606,
+        "mode": 420
+      }
+    ],
+    "allModelQueuesDescriptorsDrained": true,
+    "virtualFilesDiscarded": true,
+    "forbiddenHostEffects": [],
+    "workingHeadFallback": false
+  },
+  "qualification": {
+    "status": "INDEPENDENTLY_PREPARED_INERT_UNEXECUTED_NO_ROOT_GO",
+    "commit": "8779070712e5d2d253fd29f31b0294ae4b9414cc",
+    "inputManifestSha256": "664b25357ca4c293aed6c2bc51da408b5c6e50265a9cf61753aa9a578ca33355",
+    "activeArchiveFiles": 34,
+    "maximumChildStarts": 5,
+    "noChildControls": 3,
+    "syntheticOnlyNegativeFamilies": [
+      "impossible/duplicate event order",
+      "missing-close callbacks",
+      "indefinitely surviving group",
+      "async no-PID fabricated/late notifications"
+    ],
+    "actualExecutions": 0,
+    "stagingOrCopies": 0,
+    "freshBinaryBodyReads": 0,
+    "toolPinQualification": "inherited authenticated hashes plus current metadata; fresh actual binary hashing requires ROOT authorization",
+    "pendingRootFields": [
+      "review unexecuted entry",
+      "authenticate exact package/archive against qualificationCommit",
+      "fresh GO file/hash and timestamps",
+      "canonical fresh archiveRoot/evidenceRoot",
+      "exact tool pins and authorized fresh descriptor hashing",
+      "independently armed external70s watchdog and owned-PID journal owner"
+    ],
+    "fullCliAdmittedExecution": false,
+    "native43Go": false
+  },
+  "sourceLimits": [
+    "only lifecycle changed among8 modules",
+    "full admitted cli.main remains static-only",
+    "no actual Node child event/OS group/descriptor/reaping qualification",
+    "ROOT lease/no-queue/no-ALS/effective-u0 remains context, not implemented"
+  ]
+}

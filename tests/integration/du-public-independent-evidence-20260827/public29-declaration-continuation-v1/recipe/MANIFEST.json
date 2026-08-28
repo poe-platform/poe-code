@@ -1,0 +1,38 @@
+{
+  "schema": "du-public29-declaration-continuation-recipe/1",
+  "sealedAt": "2026-08-28T02:31:22.195Z",
+  "priorEvidence": "83645ad032238edb6d0887ae445c3b8c9d7c7f2a",
+  "candidate": "0895de2dc63014989f23912c3d48f7c4d0d35a47",
+  "pack": "4d4d071a0142ac950240f7c3aaacd5283777143d70cc2e3c245ba199fdd01c7d",
+  "sevenCases": [
+    "T03",
+    "T04",
+    "T05",
+    "P03",
+    "P04",
+    "P05",
+    "P06"
+  ],
+  "focusedControls": 22,
+  "actualCasesBeforeSeal": 0,
+  "semanticAttemptsAuthorized": 1,
+  "oldRuntimeReruns": 0,
+  "files": {
+    "ADAPTER.json": "0f2677bac21b271c17467c5cc77e09897ce2c41b96c7c271b0dea9443cfc0e93",
+    "RECIPE.md": "78ab31b5a4f8526ded731147b4102fb9f26e09349e2d82b2fe1d7d9457f179df",
+    "REPLAY-DELTA.json": "2dcf5212a310c495a9930761072c724968f066ea42041683f9adbfcfef53feb2",
+    "ROOT-AUTHORIZATION.md": "6d15a85e253d2ab997dd5c4634a2b6ec66dbb27a0d45ee4c198e3176e5d7379c",
+    "ROUTES.json": "2eee3ed8d227912a5945d09e1c4b9bb74be86ef678b724b60d37ace3b02cb1fe",
+    "archive.mjs": "60b5dfefa8c4c6cbefa08835df4880a3c87a7ff279206696d60bb3de90b7a36d",
+    "binding-contract.mjs": "19c156336ff42131a9b42014bf200ec46529bfb73542c7c396c03c16b905fdd2",
+    "common.mjs": "7720b8f7cdac788ae394cf2ec0fd641388f708a312061a5e4b2c87913fbe6604",
+    "controls.mjs": "9dcc6324f46154db78dc78e5b8261b3c12836de3a95acc5a27a59b1b3f8fe370",
+    "diagnostic-control.mjs": "08d49d1815ce284ac58472088c006a99ea7f7a2fdbc2f6375cbf37aeb7757800",
+    "executor.mjs": "471828f6915debadf281a61650435d4355cf493d09726499af0184b105c94b3d",
+    "launch.mjs": "3a5d98af9b951056d3e35fd19bf6ef1ff5df94a16d2bb425ab05399564193e36",
+    "predicate.mjs": "f5033ec5e36373f3707e774797242580d931a0df05002e894ff92749e711f6d3",
+    "prepare.mjs": "23d2d1b6bab95948b46eb6ccac13ca5f4ace53370fd8467ca4857d3b65b2eead",
+    "prior.mjs": "645eff3008af84590e2d31ffc44f42363aed8960825f9568bbebfddaab4c5c5d",
+    "tool-observer.cjs": "318f0ce280bdeddb86ef49691094b46ddfc4b8d12ba05f6abd04900f7df61967"
+  }
+}

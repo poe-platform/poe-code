@@ -1,0 +1,194 @@
+{
+  "schema": "du-declaration-predicate-overlay/1",
+  "originalExecutor": {
+    "path": "tests/integration/du-public-independent-evidence-20260827/public29-v1/recipe/executor.mjs",
+    "sha256": "a296254a1ccf87d5108df3dbd37f17db19cc81f7aa1b426131607f2325e30d8a"
+  },
+  "patchedExecutor": {
+    "path": "tests/integration/du-public-independent-evidence-20260827/public29-declaration-continuation-v1/recipe/executor.mjs",
+    "sha256": "471828f6915debadf281a61650435d4355cf493d09726499af0184b105c94b3d"
+  },
+  "originalManifestDoesNotValidatePatchedBytes": true,
+  "changes": [
+    {
+      "label": "continuation imports",
+      "beforeSha256": "2ea4208ba07ed38660bd71422036ecb809eaa5037ba5045303f0d020ce864e05",
+      "afterSha256": "815eed157ce9de81c1a6b1c62c4b08aef18725d103e2db3b8e7e572216353ddd",
+      "beforeBytes": 62,
+      "afterBytes": 291
+    },
+    {
+      "label": "bound old bindings and explicit replay delta",
+      "beforeSha256": "15edd0b3c645b3d1f799b5b2678389ea7a300e0cd0821a0147942aa944e0fb2a",
+      "afterSha256": "8bd46169bcbff782c22027f0ec818f2175d36ec98754ec949937a08d261c2017",
+      "beforeBytes": 112,
+      "afterBytes": 795
+    },
+    {
+      "label": "no runtime case cohort selected",
+      "beforeSha256": "f8258f96ab7f286dfcd408ef3d4435da8d12c667fc52f788af683fd196ccf408",
+      "afterSha256": "59f8b27fa2d73601a93410e98b489a976579c036ee32c60dcd5c4c759eaf2bf5",
+      "beforeBytes": 154,
+      "afterBytes": 23
+    },
+    {
+      "label": "separate continuation state",
+      "beforeSha256": "4d7c510bd21e62a6a0d19327f2ee707ff1c418f935867e33c32831ddd2631209",
+      "afterSha256": "d28b54a889d1f657c4602eaefae53a3011c794ede4cdafe94752ef1208868b39",
+      "beforeBytes": 513,
+      "afterBytes": 685
+    },
+    {
+      "label": "label-aware tool predicate signature",
+      "beforeSha256": "eda378d499ee498473be19055321129f7a0862e091d3c6dcc54c403adcf1b96c",
+      "afterSha256": "1c5af3436405eba961c90d0bab9f7ec33e3e7363030ffafac90f5965bc1f7281",
+      "beforeBytes": 46,
+      "afterBytes": 67
+    },
+    {
+      "label": "remove unrelated universal root declaration requirement",
+      "beforeSha256": "dffec9040447fb22662588b49f700a20cd44c7ca761de26ea8d18cd4429ba32c",
+      "afterSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "beforeBytes": 86,
+      "afterBytes": 0
+    },
+    {
+      "label": "require exact entry and transitive declaration reads",
+      "beforeSha256": "098f3c3ab39f41dfdb1da0a0868e7916b7054db14e35f324b5d6cc6e0008e739",
+      "afterSha256": "48928af7d4f0a4a7c1e040cd55c388e4b5b175f0a01a79ad377386ac988a401f",
+      "beforeBytes": 61,
+      "afterBytes": 185
+    },
+    {
+      "label": "only two unchanged runtime negative entry helpers",
+      "beforeSha256": "149781d95b63b2d0bc38b7d55af26e4831dd8243ea8bf74d6f9435026578cee4",
+      "afterSha256": "13f5971fdd98fa58a1563c1201e6ef4b47ad67b5d1998094adb1968ec1ce8e4a",
+      "beforeBytes": 291,
+      "afterBytes": 144
+    },
+    {
+      "label": "remove unused runtime cohort functions",
+      "beforeSha256": "f294c275c07da39f083c19f8be28acd8ef53c22e75daf516c61c4c5abbcc228c",
+      "afterSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "beforeBytes": 2258,
+      "afterBytes": 0
+    },
+    {
+      "label": "select route without changing legacy diagnostics",
+      "beforeSha256": "f6e55f807fca59906dc0d9a817fb1126a620b9961138047405c336a11c8b2844",
+      "afterSha256": "f2d0720a1e167dd917b439174bcaf59015aee1927c9673adde6129ecae49ebc9",
+      "beforeBytes": 51,
+      "afterBytes": 119
+    },
+    {
+      "label": "A06 prior acceptance bound without rescore",
+      "beforeSha256": "f69645f68102707481df9fe01153ec1c5878ee76b7818ed2db304ba5e5b2b33e",
+      "afterSha256": "167a432809c19b4367b73bbb14054a5f2ed1cff6a59600fef1e3863b6af8c0eb",
+      "beforeBytes": 140,
+      "afterBytes": 674
+    },
+    {
+      "label": "authenticate selected Git inventory, no source rematerialization",
+      "beforeSha256": "227d6d305b58a2272e961297d7e94e9cf48afcecdcbbb7e8c6bd631a9a940adb",
+      "afterSha256": "d8da408ef818eb9a3c9236ab758a81d7d0ac01031977905992bc3daa3fa1c198",
+      "beforeBytes": 472,
+      "afterBytes": 188
+    },
+    {
+      "label": "no source staging",
+      "beforeSha256": "ece9b97eb3e8e507608b4d363620f2562032b6fa6564fe4b458e76864054070f",
+      "afterSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "beforeBytes": 143,
+      "afterBytes": 0
+    },
+    {
+      "label": "exact authenticated archived tarball, no ephemeral fallback",
+      "beforeSha256": "c2b5394be214440ee1ee90fd8debde12b6e706766763996695d49b988ffe914e",
+      "afterSha256": "59c20c35bb6d7cf9d2b9f838d930d16c1ab9899c9c8545d0cc74775965d6a6fd",
+      "beforeBytes": 120,
+      "afterBytes": 146
+    },
+    {
+      "label": "setup only, no P02 or nineteen-times-two rescore",
+      "beforeSha256": "619af703553812c255e8d3955a96f0ee5c4d3814da9d6610582637c89761d5ca",
+      "afterSha256": "1d6e99a9c47c5c7566f473c700299bb0facc9cfbfb98768e580412e2cbfecf70",
+      "beforeBytes": 194,
+      "afterBytes": 75
+    },
+    {
+      "label": "only corrected T03 and previously unrun T04",
+      "beforeSha256": "633e52c22866a55156807ded13f3463778ee1d34c4a2248fe375cf938250f8d8",
+      "afterSha256": "d200398f793a5fd57b8612a4ef0ff6c3bbf8a768334079bcaf9a0b1db7193c1f",
+      "beforeBytes": 76,
+      "afterBytes": 125
+    },
+    {
+      "label": "unchanged T05 data, no family copy",
+      "beforeSha256": "4cfd4a3e190bee745917101e76806fb422dd30748fd890098f19401b751c42df",
+      "afterSha256": "68d0bda39b05df3865c5e42e684717e6fc71250c3811e2d7fdbf49392d0825c7",
+      "beforeBytes": 148,
+      "afterBytes": 153
+    },
+    {
+      "label": "composed completion, not original all-pass footer",
+      "beforeSha256": "113a42a6edb3bbf183176ba6384f8c5c1bf25b35cf42e1a86fb6816515c4fcf0",
+      "afterSha256": "09f86c33f3f37d1d5c4c17ffd9263d99f6dca24a24f87d99764d6d52b0d97123",
+      "beforeBytes": 384,
+      "afterBytes": 564
+    },
+    {
+      "label": "separate continuation unexecuted set",
+      "beforeSha256": "987ae09b479f6afc330df9518ee78cc82fe24612c212ce39a644b24f3b6f6416",
+      "afterSha256": "939a79478b3851879cd15f06da37ce30e2a1b28482f1c8488ab44df5f6fdea15",
+      "beforeBytes": 129,
+      "afterBytes": 191
+    }
+  ],
+  "unchanged": [
+    {
+      "name": "child",
+      "sha256": "93327db834a92335d3b238ad1e546094b80b29f78b0b8618093ac2c61807181c",
+      "bytes": 2369
+    },
+    {
+      "name": "compile-diagnostic-assertions",
+      "sha256": "676884718e6f7eec00a87f950a3d8a03b7792fc2cef32e0f8e2484788c919fee",
+      "bytes": 835
+    },
+    {
+      "name": "package-controls-P03-through-P06",
+      "sha256": "60a1ec2bd86a7ddccdfb709870ad1168f7fb393f80ad7a4604236f9e4d73f239",
+      "bytes": 4773
+    }
+  ],
+  "common": {
+    "originalSha256": "98be3da0bf0421eb7178258fab2655524d9f913931f21a2ac754cc61a787591c",
+    "patchedSha256": "7720b8f7cdac788ae394cf2ec0fd641388f708a312061a5e4b2c87913fbe6604",
+    "delta": "only hardcoded authenticateRecipe namespace; runtime path is derived from current file location"
+  },
+  "parser": {
+    "originalFunctionSha256": "f653ac87f905c0116a4c4d9c99c336fa1d8ce9d2a54baa4cfa0bfe4d0c151dc1",
+    "patchedFunctionSha256": "af53017ed16a91c9c943a62058897d2b836d635b525ac4a4b0f5544fcbf6db96",
+    "delta": "export function and retain authenticated member bytes/modes callback; all path/link/checksum/member predicates unchanged",
+    "limit": 16777216,
+    "originalFile": {
+      "commit": "5508a2a236763754be97baf7347a36ce27e5ef92",
+      "path": "tests/integration/du-public-independent-evidence-20260827/admission-v2/executor.mjs",
+      "sha256": "dca165bf823cd099d8b4e8dd50e6cd029a79c811f0444b2609eb7dcc8edaf6e7"
+    }
+  },
+  "diagnosticsControlBodySha256": "676884718e6f7eec00a87f950a3d8a03b7792fc2cef32e0f8e2484788c919fee",
+  "observerUnchangedSha256": "318f0ce280bdeddb86ef49691094b46ddfc4b8d12ba05f6abd04900f7df61967",
+  "oldFilesWritten": 0,
+  "fixturePayloadChanges": 0,
+  "runtimeCohortExecutionsAuthorized": 0,
+  "casesAuthorized": [
+    "T03",
+    "T04",
+    "T05",
+    "P03",
+    "P04",
+    "P05",
+    "P06"
+  ]
+}

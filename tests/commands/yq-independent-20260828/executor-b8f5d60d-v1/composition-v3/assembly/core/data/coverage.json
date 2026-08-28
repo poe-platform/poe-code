@@ -1,0 +1,33 @@
+{
+  "originalIds": 194,
+  "overlappingOverlays": 8,
+  "roles": {
+    "command-semantic-runtime": 111,
+    "admission-error-boundary": 34,
+    "source-static-counterproof": 23,
+    "lifecycle-cooperative": 11,
+    "materialized-package-infrastructure": 4,
+    "type-consumer": 5,
+    "negative-control": 6
+  },
+  "runtimePerEnvironment": 149,
+  "uniqueRuntimeIds": 132,
+  "environments": [
+    "source-built-direct",
+    "installed-moved-direct"
+  ],
+  "semanticEligibility": {
+    "completeProjection": 94,
+    "partial": 17
+  },
+  "gapRecords": 80,
+  "missingBindings": 135,
+  "declaredProjectionObligations": 371,
+  "outerSlots": 336,
+  "maxCompilerDescendants": 18,
+  "globalMonotonicCapMs": 24165000,
+  "retries": 0,
+  "semanticPasses": 0,
+  "directTypeFixturesPerEnvironment": 6,
+  "directTypeCompilerInvocations": 12
+}

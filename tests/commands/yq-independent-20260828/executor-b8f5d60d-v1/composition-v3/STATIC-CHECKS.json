@@ -1,0 +1,503 @@
+{
+  "schema": 1,
+  "date": "2026-08-28",
+  "classification": "AUTHOR_STATIC_CHECKS_ONLY_NOT_INDEPENDENT_ACCEPTANCE",
+  "sourceInputs": {
+    "selectedCommits": [
+      "b1b8566686769e5e53433048f2058ab09d8c00c3",
+      "3b55c4afb81e32d719c14995a6e38620b4fabe2c",
+      "946c33cfaf02f4120fb636d19b2095ab62746ad4"
+    ],
+    "sealedFileCounts": [
+      89,
+      10,
+      19
+    ],
+    "committedLiveBytesAndPosixModes": true,
+    "beforeAfterSourceMembership": true,
+    "preimageReplacements": 4,
+    "addOnlyAbsence": 2,
+    "unionFiles": 72,
+    "modules": 33,
+    "unchangedBaselineFiles": 66,
+    "otherExecutableChanges": 0,
+    "otherActiveDataChanges": 0
+  },
+  "closure": {
+    "relativeImports": 56,
+    "builtinImports": 63,
+    "dynamicSites": 2,
+    "unresolvedLiteralImports": 0,
+    "dataBindings": 23,
+    "dispatchRoles": [
+      "build",
+      "types",
+      "loaded",
+      "semantic",
+      "sourceAudit",
+      "infrastructure"
+    ],
+    "newRecipeHash": "bf66d8929646c85e5d6e63313d59e28422ca6e276718e548e6fe581b18ed5b7b",
+    "newAssemblyHash": "03f5bf3411349f9d57cfc812ca7ee72b4d4e0a1850b6d40b5f6abb753702d6a8",
+    "compatibilityTagsUnchanged": true,
+    "syntaxChecks": [
+      {
+        "path": "core/admission.mjs",
+        "operation": "node --check only",
+        "status": 0,
+        "signal": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "path": "core/build-adapter.mjs",
+        "operation": "node --check only",
+        "status": 0,
+        "signal": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "path": "core/capture-budget-v3.mjs",
+        "operation": "node --check only",
+        "status": 0,
+        "signal": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "path": "core/classification.mjs",
+        "operation": "node --check only",
+        "status": 0,
+        "signal": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "path": "core/cli.mjs",
+        "operation": "node --check only",
+        "status": 0,
+        "signal": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "path": "core/coordinator.mjs",
+        "operation": "node --check only",
+        "status": 0,
+        "signal": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "path": "core/coverage.mjs",
+        "operation": "node --check only",
+        "status": 0,
+        "signal": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "path": "core/frozen/assert-capture.mjs",
+        "operation": "node --check only",
+        "status": 0,
+        "signal": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "path": "core/frozen/cmd22-read-paths.mjs",
+        "operation": "node --check only",
+        "status": 0,
+        "signal": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "path": "core/frozen/context.mjs",
+        "operation": "node --check only",
+        "status": 0,
+        "signal": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "path": "core/frozen/deferred-fixtures.mjs",
+        "operation": "node --check only",
+        "status": 0,
+        "signal": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "path": "core/frozen/integrity.mjs",
+        "operation": "node --check only",
+        "status": 0,
+        "signal": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "path": "core/frozen/original-assert-capture.mjs",
+        "operation": "node --check only",
+        "status": 0,
+        "signal": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "path": "core/infrastructure-worker.mjs",
+        "operation": "node --check only",
+        "status": 0,
+        "signal": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "path": "core/loader.mjs",
+        "operation": "node --check only",
+        "status": 0,
+        "signal": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "path": "core/materialization.mjs",
+        "operation": "node --check only",
+        "status": 0,
+        "signal": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "path": "core/owned-process.mjs",
+        "operation": "node --check only",
+        "status": 0,
+        "signal": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "path": "core/phase-capture.mjs",
+        "operation": "node --check only",
+        "status": 0,
+        "signal": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "path": "core/primitives.mjs",
+        "operation": "node --check only",
+        "status": 0,
+        "signal": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "path": "core/semantic-worker.mjs",
+        "operation": "node --check only",
+        "status": 0,
+        "signal": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "path": "core/source-audit-worker.mjs",
+        "operation": "node --check only",
+        "status": 0,
+        "signal": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "path": "core/supervisor.mjs",
+        "operation": "node --check only",
+        "status": 0,
+        "signal": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "path": "core/tool-bridge.mjs",
+        "operation": "node --check only",
+        "status": 0,
+        "signal": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "path": "core/tool-profile.mjs",
+        "operation": "node --check only",
+        "status": 0,
+        "signal": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "path": "core/tool-request.mjs",
+        "operation": "node --check only",
+        "status": 0,
+        "signal": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "path": "core/worker-api.mjs",
+        "operation": "node --check only",
+        "status": 0,
+        "signal": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "path": "core/worker-host.mjs",
+        "operation": "node --check only",
+        "status": 0,
+        "signal": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "path": "workers/build-fs.mjs",
+        "operation": "node --check only",
+        "status": 0,
+        "signal": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "path": "workers/build-outputs.mjs",
+        "operation": "node --check only",
+        "status": 0,
+        "signal": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "path": "workers/build-worker.mjs",
+        "operation": "node --check only",
+        "status": 0,
+        "signal": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "path": "workers/loaded-worker.mjs",
+        "operation": "node --check only",
+        "status": 0,
+        "signal": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "path": "workers/type-worker.mjs",
+        "operation": "node --check only",
+        "status": 0,
+        "signal": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "path": "workers/worker-support.mjs",
+        "operation": "node --check only",
+        "status": 0,
+        "signal": null,
+        "stdout": "",
+        "stderr": ""
+      }
+    ],
+    "jsonAssemblyFiles": 28
+  },
+  "physical": {
+    "toolFiles": 249,
+    "archives": 2,
+    "completeRegularModesHashesSizesMembershipBeforeAfter": true,
+    "finalPhysicalRecheck": true,
+    "noDuplicateCopy": true,
+    "noExecutionDirectory": true
+  },
+  "schedule": {
+    "phaseArithmetic": [
+      {
+        "id": "AUTHENTICATION",
+        "capMs": 120000,
+        "absoluteCutoffOffsetMs": 120000,
+        "jobCount": 1,
+        "sumSlotCapsMs": 120000
+      },
+      {
+        "id": "BUILD",
+        "capMs": 300000,
+        "absoluteCutoffOffsetMs": 420000,
+        "jobCount": 1,
+        "sumSlotCapsMs": 300000
+      },
+      {
+        "id": "SETUP",
+        "capMs": 180000,
+        "absoluteCutoffOffsetMs": 600000,
+        "jobCount": 2,
+        "sumSlotCapsMs": 180000
+      },
+      {
+        "id": "CONTROLS",
+        "capMs": 570000,
+        "absoluteCutoffOffsetMs": 1170000,
+        "jobCount": 19,
+        "sumSlotCapsMs": 570000
+      },
+      {
+        "id": "SOURCE_AUDIT",
+        "capMs": 300000,
+        "absoluteCutoffOffsetMs": 1470000,
+        "jobCount": 1,
+        "sumSlotCapsMs": 300000
+      },
+      {
+        "id": "SOURCE_RUNTIME",
+        "capMs": 6705000,
+        "absoluteCutoffOffsetMs": 8175000,
+        "jobCount": 149,
+        "sumSlotCapsMs": 6705000
+      },
+      {
+        "id": "MOVED_RUNTIME",
+        "capMs": 13410000,
+        "absoluteCutoffOffsetMs": 21585000,
+        "jobCount": 149,
+        "sumSlotCapsMs": 13410000
+      },
+      {
+        "id": "TYPES",
+        "capMs": 1560000,
+        "absoluteCutoffOffsetMs": 23145000,
+        "jobCount": 3,
+        "sumSlotCapsMs": 1560000
+      },
+      {
+        "id": "LOADED_CONTROLS",
+        "capMs": 900000,
+        "absoluteCutoffOffsetMs": 24045000,
+        "jobCount": 10,
+        "sumSlotCapsMs": 900000
+      },
+      {
+        "id": "FINALIZATION",
+        "capMs": 120000,
+        "absoluteCutoffOffsetMs": 24165000,
+        "jobCount": 1,
+        "sumSlotCapsMs": 120000
+      }
+    ],
+    "globalMs": 24165000,
+    "outerReservations": 336,
+    "knownPreOuterDenials": 2,
+    "maximumOuterStartsAbsentOtherRefusals": 334,
+    "currentCompilerPlanned": 13,
+    "compilerMaximum": 18,
+    "ledgerRoleCounts": {
+      "command-semantic-runtime": 111,
+      "admission-error-boundary": 34,
+      "source-static-counterproof": 23,
+      "lifecycle-cooperative": 11,
+      "materialized-package-infrastructure": 4,
+      "type-consumer": 5,
+      "negative-control": 6
+    },
+    "sourceProjection": 271,
+    "archiveProjection": 273,
+    "fullPackage": 870,
+    "sourceAndMovedEach": 149
+  },
+  "captureSourceInspection": {
+    "jobBytes": 33554432,
+    "terminalInsideJob": 933888,
+    "phaseInsideJob": 4194304,
+    "ordinaryInitial": 28426240,
+    "processMetadataReserve": 131072,
+    "actualFinalFileTotalChecks": "SOURCE_INSPECTED_ONLY",
+    "outgoingDeadlineAtEntryAndBeforeIndexChange": "SOURCE_INSPECTED_ONLY",
+    "saturationOrTimingProof": "UNRUN"
+  },
+  "specification": {
+    "initialStatus": 1,
+    "initialErrors": 3,
+    "correctedStatus": 0,
+    "warnings": 0
+  },
+  "preparationFailures": [
+    {
+      "id": "PREP-01",
+      "operation": "First Node REPL data inspection",
+      "observed": "ReferenceError: fs is not defined after session reset",
+      "correction": "Initialize builtin data-only modules explicitly; no target code was imported or reached",
+      "classification": "AUTHOR_STATIC_INSPECTION_FAILURE_NOT_CANDIDATE_FINDING"
+    },
+    {
+      "id": "PREP-02",
+      "operation": "Summary display of harnessExecutableBodies",
+      "observed": "TypeError: .slice is not a function because field is an object map",
+      "correction": "Inspect the actual object schema; no source/target behavior changed",
+      "classification": "AUTHOR_STATIC_INSPECTION_FAILURE_NOT_CANDIDATE_FINDING"
+    },
+    {
+      "id": "PREP-03",
+      "operation": "Initial write-spec document structural check",
+      "status": 1,
+      "errors": [
+        "H1 missing Specification",
+        "Test and Validation Matrix heading missing",
+        "Conformance Criteria heading missing"
+      ],
+      "correction": "Corrected only three documentation headings; second check exit0/0warnings",
+      "classification": "AUTHOR_DOCUMENT_CHECK_FAILURE_NOT_CANDIDATE_FINDING"
+    }
+  ],
+  "componentPreparationHistory": "Original FC-F01 static checker failure and FC-F02/03 shell/document failures remain in authenticated source seals; no original report is rescored.",
+  "knownCodeAndCoverageGaps": {
+    "additionalIntegrationExecutableChangeNeeded": false,
+    "newSourceFindingDetected": false,
+    "loadedObservationGaps": 4,
+    "missingRecordBindings": 80,
+    "missingObligations": 135,
+    "publicTypeFixturesUnrun": 5,
+    "unknownAssertions": "Frozen F01 unfulfilled assertions remain INCOMPLETE; no record is green without every obligation.",
+    "sourceProof": "23 source records/four repair arguments are not public runtime proof."
+  },
+  "deferredComponentControls": {
+    "FCF01": 24,
+    "FCF02F03": 20,
+    "executed": 0,
+    "newlyEnrolledInFixedRecipe": 0
+  },
+  "futureProof": [
+    "Different static review of this exact union and separately routed capture overlay",
+    "Fresh root receipt/independent expected hashes after review",
+    "Independent BUILD attempt, direct/moved runtime, scoped types and actual loaded mutants under fixed recipe",
+    "Actual capture saturation, outgoing deadline, safe continuation, teardown/reap and own-data boundary behavior; none proved dynamically here"
+  ],
+  "executionCounts": {
+    "product": 0,
+    "candidate": 0,
+    "compiler": 0,
+    "copiedTool": 0,
+    "coordinator": 0,
+    "worker": 0,
+    "loader": 0,
+    "materializer": 0,
+    "composeHelper": 0,
+    "clockOrBudget": 0,
+    "proxyOrGetter": 0,
+    "predicate": 0,
+    "classifier": 0,
+    "control": 0,
+    "authoredModuleImport": 0,
+    "runtimePasses": 0,
+    "semanticPasses": 0,
+    "controlPasses": 0,
+    "activeOwnedExecutionChildren": 0
+  },
+  "RootGO": false,
+  "goFileRunIdTokenCreated": false,
+  "accepted": false
+}

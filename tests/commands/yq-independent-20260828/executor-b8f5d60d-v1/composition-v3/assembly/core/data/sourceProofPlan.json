@@ -1,0 +1,287 @@
+{
+  "schema": 1,
+  "state": "UNRUN_NEW_SOURCE_UNBOUND",
+  "designated": [
+    {
+      "id": "ENC-08",
+      "role": "source-static-counterproof",
+      "oldClassification": "SUPPORT_ONLY",
+      "oldReference": "tests/commands/yq-independent-20260828/actual-35da1854-v1/execution/SOURCE-STATIC.json#/results/0",
+      "successorEvidence": null,
+      "required": "Re-audit frozen obligation against new selected source; no old support/pass inheritance.",
+      "sourcePredicateBinding": null,
+      "runtimePrivateCounterProof": false,
+      "fullRecordPass": false
+    },
+    {
+      "id": "ENC-09",
+      "role": "source-static-counterproof",
+      "oldClassification": "SUPPORT_ONLY",
+      "oldReference": "tests/commands/yq-independent-20260828/actual-35da1854-v1/execution/SOURCE-STATIC.json#/results/1",
+      "successorEvidence": null,
+      "required": "Re-audit frozen obligation against new selected source; no old support/pass inheritance.",
+      "sourcePredicateBinding": null,
+      "runtimePrivateCounterProof": false,
+      "fullRecordPass": false
+    },
+    {
+      "id": "ENC-10",
+      "role": "source-static-counterproof",
+      "oldClassification": "SUPPORT_ONLY",
+      "oldReference": "tests/commands/yq-independent-20260828/actual-35da1854-v1/execution/SOURCE-STATIC.json#/results/2",
+      "successorEvidence": null,
+      "required": "Re-audit frozen obligation against new selected source; no old support/pass inheritance.",
+      "sourcePredicateBinding": null,
+      "runtimePrivateCounterProof": false,
+      "fullRecordPass": false
+    },
+    {
+      "id": "QUE-09",
+      "role": "source-static-counterproof",
+      "oldClassification": "SUPPORT_ONLY",
+      "oldReference": "tests/commands/yq-independent-20260828/actual-35da1854-v1/execution/SOURCE-STATIC.json#/results/3",
+      "successorEvidence": null,
+      "required": "Re-audit frozen obligation against new selected source; no old support/pass inheritance.",
+      "sourcePredicateBinding": null,
+      "runtimePrivateCounterProof": false,
+      "fullRecordPass": false
+    },
+    {
+      "id": "QUE-10",
+      "role": "source-static-counterproof",
+      "oldClassification": "SUPPORT_ONLY",
+      "oldReference": "tests/commands/yq-independent-20260828/actual-35da1854-v1/execution/SOURCE-STATIC.json#/results/4",
+      "successorEvidence": null,
+      "required": "Re-audit frozen obligation against new selected source; no old support/pass inheritance.",
+      "sourcePredicateBinding": null,
+      "runtimePrivateCounterProof": false,
+      "fullRecordPass": false
+    },
+    {
+      "id": "QUE-11",
+      "role": "source-static-counterproof",
+      "oldClassification": "SUPPORT_ONLY",
+      "oldReference": "tests/commands/yq-independent-20260828/actual-35da1854-v1/execution/SOURCE-STATIC.json#/results/5",
+      "successorEvidence": null,
+      "required": "Re-audit frozen obligation against new selected source; no old support/pass inheritance.",
+      "sourcePredicateBinding": null,
+      "runtimePrivateCounterProof": false,
+      "fullRecordPass": false
+    },
+    {
+      "id": "WRK-05",
+      "role": "source-static-counterproof",
+      "oldClassification": "SUPPORT_ONLY",
+      "oldReference": "tests/commands/yq-independent-20260828/actual-35da1854-v1/execution/SOURCE-STATIC.json#/results/6",
+      "successorEvidence": null,
+      "required": "Re-audit frozen obligation against new selected source; no old support/pass inheritance.",
+      "sourcePredicateBinding": null,
+      "runtimePrivateCounterProof": false,
+      "fullRecordPass": false
+    },
+    {
+      "id": "WRK-06",
+      "role": "source-static-counterproof",
+      "oldClassification": "SOURCE_COUNTERPROOF",
+      "oldReference": "tests/commands/yq-independent-20260828/actual-35da1854-v1/execution/SOURCE-STATIC.json#/results/7",
+      "successorEvidence": null,
+      "required": "Document/raw-source admission before copied/decoded growth; raw CRLF byte accounting before normalization.",
+      "sourcePredicateBinding": null,
+      "runtimePrivateCounterProof": false,
+      "fullRecordPass": false
+    },
+    {
+      "id": "WRK-07",
+      "role": "source-static-counterproof",
+      "oldClassification": "SOURCE_COUNTERPROOF",
+      "oldReference": "tests/commands/yq-independent-20260828/actual-35da1854-v1/execution/SOURCE-STATIC.json#/results/8",
+      "successorEvidence": null,
+      "required": "Quoted/escaped scalar admission before construction or append, not after decode.",
+      "sourcePredicateBinding": null,
+      "runtimePrivateCounterProof": false,
+      "fullRecordPass": false
+    },
+    {
+      "id": "WRK-08",
+      "role": "source-static-counterproof",
+      "oldClassification": "PARTIAL_SUPPORT",
+      "oldReference": "tests/commands/yq-independent-20260828/actual-35da1854-v1/execution/SOURCE-STATIC.json#/results/9",
+      "successorEvidence": null,
+      "required": "Re-audit frozen obligation against new selected source; no old support/pass inheritance.",
+      "sourcePredicateBinding": null,
+      "runtimePrivateCounterProof": false,
+      "fullRecordPass": false
+    },
+    {
+      "id": "WRK-11",
+      "role": "source-static-counterproof",
+      "oldClassification": "SUPPORT_ONLY",
+      "oldReference": "tests/commands/yq-independent-20260828/actual-35da1854-v1/execution/SOURCE-STATIC.json#/results/10",
+      "successorEvidence": null,
+      "required": "Re-audit frozen obligation against new selected source; no old support/pass inheritance.",
+      "sourcePredicateBinding": null,
+      "runtimePrivateCounterProof": false,
+      "fullRecordPass": false
+    },
+    {
+      "id": "WRK-12",
+      "role": "source-static-counterproof",
+      "oldClassification": "SUPPORT_ONLY",
+      "oldReference": "tests/commands/yq-independent-20260828/actual-35da1854-v1/execution/SOURCE-STATIC.json#/results/11",
+      "successorEvidence": null,
+      "required": "Re-audit frozen obligation against new selected source; no old support/pass inheritance.",
+      "sourcePredicateBinding": null,
+      "runtimePrivateCounterProof": false,
+      "fullRecordPass": false
+    },
+    {
+      "id": "WRK-13",
+      "role": "source-static-counterproof",
+      "oldClassification": "SOURCE_COUNTERPROOF",
+      "oldReference": "tests/commands/yq-independent-20260828/actual-35da1854-v1/execution/SOURCE-STATIC.json#/results/12",
+      "successorEvidence": null,
+      "required": "Collection-member admission before prospective child parse/allocation, not just insertion.",
+      "sourcePredicateBinding": null,
+      "runtimePrivateCounterProof": false,
+      "fullRecordPass": false
+    },
+    {
+      "id": "WRK-15",
+      "role": "source-static-counterproof",
+      "oldClassification": "SUPPORT_ONLY",
+      "oldReference": "tests/commands/yq-independent-20260828/actual-35da1854-v1/execution/SOURCE-STATIC.json#/results/13",
+      "successorEvidence": null,
+      "required": "Re-audit frozen obligation against new selected source; no old support/pass inheritance.",
+      "sourcePredicateBinding": null,
+      "runtimePrivateCounterProof": false,
+      "fullRecordPass": false
+    },
+    {
+      "id": "WRK-16",
+      "role": "source-static-counterproof",
+      "oldClassification": "PARTIAL_SUPPORT",
+      "oldReference": "tests/commands/yq-independent-20260828/actual-35da1854-v1/execution/SOURCE-STATIC.json#/results/14",
+      "successorEvidence": null,
+      "required": "Re-audit frozen obligation against new selected source; no old support/pass inheritance.",
+      "sourcePredicateBinding": null,
+      "runtimePrivateCounterProof": false,
+      "fullRecordPass": false
+    },
+    {
+      "id": "WRK-17",
+      "role": "source-static-counterproof",
+      "oldClassification": "SOURCE_COUNTERPROOF",
+      "oldReference": "tests/commands/yq-independent-20260828/actual-35da1854-v1/execution/SOURCE-STATIC.json#/results/15",
+      "successorEvidence": null,
+      "required": "Encoder retained-fragment admission before escape/concatenation allocation, not only final publication.",
+      "sourcePredicateBinding": null,
+      "runtimePrivateCounterProof": false,
+      "fullRecordPass": false
+    },
+    {
+      "id": "WRK-18",
+      "role": "source-static-counterproof",
+      "oldClassification": "SUPPORT_ONLY",
+      "oldReference": "tests/commands/yq-independent-20260828/actual-35da1854-v1/execution/SOURCE-STATIC.json#/results/16",
+      "successorEvidence": null,
+      "required": "Re-audit frozen obligation against new selected source; no old support/pass inheritance.",
+      "sourcePredicateBinding": null,
+      "runtimePrivateCounterProof": false,
+      "fullRecordPass": false
+    },
+    {
+      "id": "WRK-20",
+      "role": "source-static-counterproof",
+      "oldClassification": "SUPPORT_ONLY",
+      "oldReference": "tests/commands/yq-independent-20260828/actual-35da1854-v1/execution/SOURCE-STATIC.json#/results/17",
+      "successorEvidence": null,
+      "required": "Re-audit frozen obligation against new selected source; no old support/pass inheritance.",
+      "sourcePredicateBinding": null,
+      "runtimePrivateCounterProof": false,
+      "fullRecordPass": false
+    },
+    {
+      "id": "WRK-21",
+      "role": "source-static-counterproof",
+      "oldClassification": "SUPPORT_ONLY",
+      "oldReference": "tests/commands/yq-independent-20260828/actual-35da1854-v1/execution/SOURCE-STATIC.json#/results/18",
+      "successorEvidence": null,
+      "required": "Re-audit frozen obligation against new selected source; no old support/pass inheritance.",
+      "sourcePredicateBinding": null,
+      "runtimePrivateCounterProof": false,
+      "fullRecordPass": false
+    },
+    {
+      "id": "WRK-23",
+      "role": "source-static-counterproof",
+      "oldClassification": "PARTIAL_SUPPORT",
+      "oldReference": "tests/commands/yq-independent-20260828/actual-35da1854-v1/execution/SOURCE-STATIC.json#/results/19",
+      "successorEvidence": null,
+      "required": "Re-audit frozen obligation against new selected source; no old support/pass inheritance.",
+      "sourcePredicateBinding": null,
+      "runtimePrivateCounterProof": false,
+      "fullRecordPass": false
+    },
+    {
+      "id": "WRK-24",
+      "role": "source-static-counterproof",
+      "oldClassification": "PARTIAL_SUPPORT",
+      "oldReference": "tests/commands/yq-independent-20260828/actual-35da1854-v1/execution/SOURCE-STATIC.json#/results/20",
+      "successorEvidence": null,
+      "required": "Re-audit frozen obligation against new selected source; no old support/pass inheritance.",
+      "sourcePredicateBinding": null,
+      "runtimePrivateCounterProof": false,
+      "fullRecordPass": false
+    },
+    {
+      "id": "WRK-26",
+      "role": "source-static-counterproof",
+      "oldClassification": "SUPPORT_ONLY",
+      "oldReference": "tests/commands/yq-independent-20260828/actual-35da1854-v1/execution/SOURCE-STATIC.json#/results/21",
+      "successorEvidence": null,
+      "required": "Re-audit frozen obligation against new selected source; no old support/pass inheritance.",
+      "sourcePredicateBinding": null,
+      "runtimePrivateCounterProof": false,
+      "fullRecordPass": false
+    },
+    {
+      "id": "TYP-08",
+      "role": "source-static-counterproof",
+      "oldClassification": "SUPPORT_ONLY",
+      "oldReference": "tests/commands/yq-independent-20260828/actual-35da1854-v1/execution/SOURCE-STATIC.json#/results/22",
+      "successorEvidence": null,
+      "required": "Re-audit frozen obligation against new selected source; no old support/pass inheritance.",
+      "sourcePredicateBinding": null,
+      "runtimePrivateCounterProof": false,
+      "fullRecordPass": false
+    }
+  ],
+  "repairIds": [
+    "WRK-06",
+    "WRK-07",
+    "WRK-13",
+    "WRK-17"
+  ],
+  "secondaryAnnotations": [
+    {
+      "id": "ENC-07",
+      "role": "existing-overlay-secondary-source-proof",
+      "need": "CARRY/value-tree allocation order; not an additional semantic case."
+    },
+    {
+      "id": "WRK-22",
+      "role": "existing-overlay-secondary-source-proof",
+      "need": "Depth/work preflight before child admission; not a runtime counter trace."
+    }
+  ],
+  "privateInstrumentation": "None authorized; QB64 logical source evidence is not extra runtime passes.",
+  "oldLineNumbers": "Historical only. Fresh selected origins/hashes/line spans and a repair/counterproof argument are required.",
+  "reportBinding": "Source audit worker extracts/checks exact source evidence and already bound independent arguments; it cannot synthesize an allocation-order proof from hashes. Missing argument => UNRUN_SOURCE_OBLIGATION. A bound source contradiction is source evidence, not a runtime near-cap observation.",
+  "repairHandoff": {
+    "revision": "bcfe423bd38fbc4f3f0e9c4c047d2fee7ba5a0f5",
+    "path": "tests/commands/yq-independent-20260828/actual-35da1854-handoff-v1/evidence/REPAIR-FINDINGS.json",
+    "sha256": "4e666227a417204ad88caf1e802f001c9a564c56df1f9855d53b2afc0c158ecf",
+    "pointer": "/findings",
+    "role": "Historical normative pointers and allocation-order counterproofs; no repaired-candidate inheritance."
+  }
+}

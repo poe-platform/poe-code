@@ -1,0 +1,110 @@
+{
+  "schema": 1,
+  "date": "2026-08-28",
+  "selectedComponents": [
+    {
+      "name": "baseline",
+      "commit": "b1b8566686769e5e53433048f2058ab09d8c00c3",
+      "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/composition-v2/FINAL-SEAL.json",
+      "sha256": "e2d4dd59a490d71f498e7ca5a26eb37a17325500c6e7b535f78e82373cf88ebd"
+    },
+    {
+      "name": "FC-F01",
+      "commit": "3b55c4afb81e32d719c14995a6e38620b4fabe2c",
+      "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/tool-request-validation-v3/FINAL-SEAL.json",
+      "sha256": "9f8cacde18c46e9d7d7c82c3665ab0ba0e6406b9b42e6e939c2fe826164daa54"
+    },
+    {
+      "name": "FC-F02-F03",
+      "commit": "946c33cfaf02f4120fb636d19b2095ab62746ad4",
+      "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/capture-deadlines-v3/FINAL-SEAL.json",
+      "sha256": "430af377d11b9a824320bedd7b163e1a314269b4b8ce5229138c7ecc13c0c7c4"
+    }
+  ],
+  "sourceAuthentication": [
+    {
+      "name": "baseline",
+      "commit": "b1b8566686769e5e53433048f2058ab09d8c00c3",
+      "sourceFiles": 89,
+      "finalSealSha256": "e2d4dd59a490d71f498e7ca5a26eb37a17325500c6e7b535f78e82373cf88ebd",
+      "committedAndLiveBytesEqual": true,
+      "originalPosixManifestAndFreshModeChecked": true,
+      "completeMembershipChecked": true
+    },
+    {
+      "name": "FC-F01",
+      "commit": "3b55c4afb81e32d719c14995a6e38620b4fabe2c",
+      "sourceFiles": 10,
+      "finalSealSha256": "9f8cacde18c46e9d7d7c82c3665ab0ba0e6406b9b42e6e939c2fe826164daa54",
+      "committedAndLiveBytesEqual": true,
+      "originalPosixManifestAndFreshModeChecked": true,
+      "completeMembershipChecked": true
+    },
+    {
+      "name": "FC-F02-F03",
+      "commit": "946c33cfaf02f4120fb636d19b2095ab62746ad4",
+      "sourceFiles": 19,
+      "finalSealSha256": "430af377d11b9a824320bedd7b163e1a314269b4b8ce5229138c7ecc13c0c7c4",
+      "committedAndLiveBytesEqual": true,
+      "originalPosixManifestAndFreshModeChecked": true,
+      "completeMembershipChecked": true
+    }
+  ],
+  "overlayMaps": [
+    {
+      "commit": "3b55c4afb81e32d719c14995a6e38620b4fabe2c",
+      "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/tool-request-validation-v3/OVERLAY.json",
+      "sha256": "2d31ea4c244af9c0a036822bd5150984e0a047f20777493bb41b1c05b485c1fe",
+      "targets": 2
+    },
+    {
+      "commit": "946c33cfaf02f4120fb636d19b2095ab62746ad4",
+      "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/capture-deadlines-v3/ASSEMBLY-OVERLAY.json",
+      "sha256": "397b98ac8c2355541c0a11a5162ea2cb219a64c9a5a31f91d09c67b47b29628e",
+      "targets": 4
+    }
+  ],
+  "preimagesChecked": 4,
+  "addOnlyAbsencesChecked": 2,
+  "selectedUnionOnly": true,
+  "independentReferences": [
+    {
+      "name": "FC-F01-independent-static-coherent",
+      "commit": "abd9f2f022c671f6ff2b9d359f95bf94a8877e4b",
+      "path": "tests/commands/yq-independent-20260828/successor-review-independent-v1/tool-request-correction-review-v1/FINAL-SEAL.json",
+      "role": "Prior narrow overlay static review only; not v3 acceptance",
+      "sha256": "35ccedf185e0a49f5621c84cdeb881c90706185aecaada2589e74f9db3f9e5a6"
+    },
+    {
+      "name": "Frozen-b1-CHANGES_REQUIRED",
+      "commit": "88f92894efd9c14de76ed6a2669292f10467dc4f",
+      "path": "tests/commands/yq-independent-20260828/successor-review-independent-v1/final-composition-review-v1/FINAL-SEAL.json",
+      "role": "Immutable original failure history; never rescored",
+      "sha256": "e8b96f4f9f28cad1d2337ad6564887ce492b8890184c960d76da11b10ec6762b"
+    }
+  ],
+  "FCF02F03Review": "ROOT_ROUTED_SEPARATELY_NOT_CLAIMED_AS_COMPLETE_HERE",
+  "currentUnionReview": "PENDING_DIFFERENT_REVIEW_OF_THIS_EXACT_FINAL_SEAL",
+  "candidate": {
+    "source": "b8f5d60d75452e1dd181167fb87abd995221f6e3",
+    "evidence": "644460b932feb6fa87222b7042d705da1219cf0c",
+    "handoff": "065f824d06e36de3fafaee1b7a5baa278f40407c",
+    "sourceArchive": "fe76de08017859b066ecb8830846e109cdab6fa3953b0317e5fc6f27777fd878",
+    "fullPackage": "1d06350cdef1a5f6c7d70c7d55a19b63537037bd97b2de5a5d8b8b8f722229ca",
+    "sourceProjection": 271,
+    "archiveFiles": 273,
+    "fullPackageFiles": 870,
+    "fullReadmeRequired": true,
+    "unchanged": true,
+    "sourcePolicy": "5137 baseline +7436 accepted length changes +7 selected Yq/private adapter paths, not whole Git301 or mutable HEAD",
+    "authority": {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/composition-v3/assembly/core/data/sourceAuthority.json",
+      "sha256": "55bb4e289f13e4ed6df1ab442df5ff7c9c7278c7293f90f72463cd5b6f01b752"
+    }
+  },
+  "physicalGuard": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/composition-v3/PHYSICAL-INPUT-SEAL.json",
+    "sha256": "a71d7ab9bce88733fbec79238b1e9136f597c67fb690a4c97e6273839986d95f"
+  },
+  "RootGO": false
+}

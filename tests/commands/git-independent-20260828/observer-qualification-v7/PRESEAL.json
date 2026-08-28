@@ -1,0 +1,430 @@
+{
+  "schema": "observer-v7-preseal",
+  "node": {
+    "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "version": "v22.22.2",
+    "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+  },
+  "files": [
+    {
+      "path": "CONTROLS.json",
+      "bytes": 1762,
+      "sha256": "39084f4d241facccda63eb257408a90d00050cc9a9ffde33680c2d6535baa61c"
+    },
+    {
+      "path": "CORRESPONDENCE.json",
+      "bytes": 3880,
+      "sha256": "e2d28ede63d60eece4715968da4edcc654bff12e902b4545534b8fcf7cf9df27"
+    },
+    {
+      "path": "CRITERION.md",
+      "bytes": 9531,
+      "sha256": "1fd70d51ecaf2a5e80912d849b1bcc2ca8053ab9b14b26a39fe86e7003dcbca6"
+    },
+    {
+      "path": "DIFF-V6.patch",
+      "bytes": 27516,
+      "sha256": "7f967b2aff21015c201a37c5c3e91bc59a2f73967f4a5e53688aeee664b0c82c"
+    },
+    {
+      "path": "SOURCE-DATA.json",
+      "bytes": 27686,
+      "sha256": "acb06f41f6fafc28cfdf10555fe909fa4b6283baf8efbe62ee594b7b7d0176f7"
+    },
+    {
+      "path": "observer.mjs",
+      "bytes": 11712,
+      "sha256": "43c4bbb26c152e8e73b85b8ab4c38bcd438a424cbdfe517403daaf8721033d8d"
+    },
+    {
+      "path": "prepare.py",
+      "bytes": 9803,
+      "sha256": "9c9c5dffadaa5149cb641f796dbbbbd48fb023b14ac538c2ff83cc0e31871522"
+    },
+    {
+      "path": "run.mjs",
+      "bytes": 9188,
+      "sha256": "90073bb4f581f93dbbb4bf06d6733034325ded7747397441fc457b7fa6334743"
+    },
+    {
+      "path": "worker.mjs",
+      "bytes": 16855,
+      "sha256": "2bf398a8f74acd6b1fab73908c1d314af2d12586d4ca5897d7de74df50431e60"
+    },
+    {
+      "path": "writer-surrogate.mjs",
+      "bytes": 1189,
+      "sha256": "94b2d6b48b5981e2df17e69b5b5109a7cfe8c8e42a13692ff25badca95fa0f5d"
+    }
+  ],
+  "oldTrees": [
+    {
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-review-v5",
+      "commit": "655cb37b97521558c4c90581b5b23fc6c3ad9bf2",
+      "rows": [
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-review-v5/AUDIT.json",
+          "sha256": "1e826bf7812654a0cd7e523d69afec6e3e635e60fa09622a05aa6f8cd40d17bc",
+          "bytes": 33025
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-review-v5/BINDING.json",
+          "sha256": "435739487723415b02ce1b4c558828d5b6548876bdd5a4566d4e922d508a6a13",
+          "bytes": 323015
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-review-v5/CLEANUP.json",
+          "sha256": "3a7073c03af8e5b40f2c70db3caaaacd2de70eeeda19f4df3b1630c94687a058",
+          "bytes": 343
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-review-v5/FINAL-SEAL.json",
+          "sha256": "d1d72406b854edcc8993028c41982e82404a9435d341a88d089a5c079ba89193",
+          "bytes": 4843
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-review-v5/H09-FIXTURE.json",
+          "sha256": "abba06e3f44fc2bf5844debc3f1521c9a423303077cce5e448dd6298162df49a",
+          "bytes": 2660
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-review-v5/HANDOFF.md",
+          "sha256": "59ee37e1b31f585009c7f975f0169056c174b1cd643ffdbb2e55222385aa719c",
+          "bytes": 11173
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-review-v5/INPUTS.json",
+          "sha256": "f23c38e5e78c365da8d396e3a0fb60ddcd224bb71fe948802642f676d5db701b",
+          "bytes": 3387857
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-review-v5/NODE-CLOSE-STATIC.json",
+          "sha256": "29afa9d347f9f1c1e0be906a090f1ee60def8f9a3079c0d0c41a6e71281bed7a",
+          "bytes": 1450
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-review-v5/PRESEAL.json",
+          "sha256": "963d9ff5d158f2f68d68004efaa463d669d144fbfa246330a6fb9f14fd5f5b21",
+          "bytes": 14163
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-review-v5/RAW.json.gz.base64",
+          "sha256": "9d1debc1fec5229c4c1afaaf56049342013dea6950a12baf47fcbaf5e2cbb64f",
+          "bytes": 1245993
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-review-v5/RECIPE.md",
+          "sha256": "33822eabe5db51938fe2f64ec559f7961fcfb74dfea790a179c4ba4b2422db95",
+          "bytes": 7853
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-review-v5/RESULT.json",
+          "sha256": "c23f5eaea80a7c5d453c7a2837259e0888b4ace6b446fef599a673f4797536c6",
+          "bytes": 15675
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-review-v5/WORKING.json.gz.base64",
+          "sha256": "933c05e3a489ef0171987908f5d260b6a8bea97727665af058049f60064a97d9",
+          "bytes": 3208909
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-review-v5/audit.mjs",
+          "sha256": "86f37dd970b101ebf7337d581cb7767571f45eaa6a6aa65cb2be6855100978dd",
+          "bytes": 11809
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-review-v5/cases.mjs",
+          "sha256": "807a2e32b286da6a7e979cc45c75d0985de1e49db79b9d1926627c7a444f8b21",
+          "bytes": 34603
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-review-v5/child.mjs",
+          "sha256": "1b7a11aa795c94ac2a8b9bd2bd91b8db9b2a0c545f8e3882b44433d7d0c75dd7",
+          "bytes": 1122
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-review-v5/common.mjs",
+          "sha256": "62b88de6158a1d7c27b0483e92b57e3eb60947f8f218f0f4c9c37eb9d266c769",
+          "bytes": 3207
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-review-v5/finalize.mjs",
+          "sha256": "7952ab3be7052179e594072e1d47b87eeeadf67bb951c3cebb9ecb6666a0d2d7",
+          "bytes": 2735
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-review-v5/fixtures.mjs",
+          "sha256": "7130f0cdf6dea855f1d1c805569fb3e2d0d982e4c6f196be46728b0d05f1e396",
+          "bytes": 6833
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-review-v5/freeze.mjs",
+          "sha256": "861311f281467c58b429cd1deac35c0b30379e99c7d25b2a38ef2d23e214f6ab",
+          "bytes": 6235
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-review-v5/loader.mjs",
+          "sha256": "7609cf3388e0850334f438dd5e14124f3f2afbd395d5e2f026b83307b6c8fd09",
+          "bytes": 2944
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-review-v5/prepare.mjs",
+          "sha256": "19ce1e5d75d97958fcad07fdaf54077fe0359d0963c8531f6fcc8021c15307bc",
+          "bytes": 8274
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-review-v5/run.mjs",
+          "sha256": "a5aad3b074bb31991a57d0a5fcab51978b68d5aa123b3d5d7119388df1b88831",
+          "bytes": 15148
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-review-v5/supervisor.mjs",
+          "sha256": "84ab6d711f4353a80e0346433074232985b47a820a82d95fd4f4f27b395c4a62",
+          "bytes": 4493
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-review-v5/worker.mjs",
+          "sha256": "4ed48d8e1a40a7abc298d9ac16d6fcaba3d844c5a1673835868a586c3844182c",
+          "bytes": 5143
+        }
+      ]
+    },
+    {
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/observer-qualification-v6",
+      "commit": "0be0667e64510868f78c8a989fddcc3acfd10b94",
+      "rows": [
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/observer-qualification-v6/AUDIT.json",
+          "sha256": "03916f114a8b35210ef7bf15fdcffca81505c334763b4cf8f73e8cf705c9e917",
+          "bytes": 4131
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/observer-qualification-v6/CONTINUATION-PROPOSED.json",
+          "sha256": "338ffcf7b055900f667eef175919978f7ba545977ad1022c2e485f1609f1cbeb",
+          "bytes": 8127
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/observer-qualification-v6/CONTROLS.json",
+          "sha256": "d700a90576b557f3d70a6cf24df695c02892536366b36312ffaeba288aa42de4",
+          "bytes": 1663
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/observer-qualification-v6/CRITERION.md",
+          "sha256": "a069101a63c3ab4b5a4fd003d02d4b6c7ec350c40d891deaeae8619b4456b505",
+          "bytes": 8195
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/observer-qualification-v6/HANDOFF.md",
+          "sha256": "2c282b31f7571c5fd31f5ae712530ffdb815dce311cf6d4242a08ba08415236a",
+          "bytes": 8579
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/observer-qualification-v6/NODE-SOURCES.json",
+          "sha256": "35277f8bbedf0a011da961f09922b6480e74ba613b93a2e64a6bbfee7deaa329",
+          "bytes": 862575
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/observer-qualification-v6/PRESEAL.json",
+          "sha256": "bd2755b9ab6b71e6014e514de0c1b4130162f59100628ec501656c49640e85a2",
+          "bytes": 9209
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/observer-qualification-v6/RUN-01",
+          "directory": true,
+          "bytes": 0
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/observer-qualification-v6/RUN-01/RECEIPT.json",
+          "sha256": "3fc78821542c747df773a1fb58ab06583c39a637450137ddeee8d01096dd1e90",
+          "bytes": 3431
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/observer-qualification-v6/RUN-01/worker.stderr.txt",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/observer-qualification-v6/RUN-01/worker.stdout.jsonl",
+          "sha256": "ae456d931de752a78ae2b8e72102679257d7e01e1381e29ae26f0696b8036a22",
+          "bytes": 21573
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/observer-qualification-v6/SOURCE-DATA.json",
+          "sha256": "acb06f41f6fafc28cfdf10555fe909fa4b6283baf8efbe62ee594b7b7d0176f7",
+          "bytes": 27686
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/observer-qualification-v6/WORKER-ADAPTER-PROPOSAL.md",
+          "sha256": "7e77312e20959b65d0d8a1adea57316787c993fd20cf0bf76ecc76d6b0987745",
+          "bytes": 5145
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/observer-qualification-v6/audit.py",
+          "sha256": "c3fd17ee9328803e2b5f92f5f944282a7878d0299f0a0df21077f22407561e72",
+          "bytes": 10121
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/observer-qualification-v6/observer.mjs",
+          "sha256": "2f6b88f05d53d8c4c5b95724baddc3b6b7e825163f05abb6c69bcdf161de4abb",
+          "bytes": 7527
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/observer-qualification-v6/prepare.py",
+          "sha256": "0a0e7d2f74c920c698226bd8fa625f25ec68e6b78e8c2c91c9010c6b91e1f2e7",
+          "bytes": 6736
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/observer-qualification-v6/run.mjs",
+          "sha256": "b96f113cbf919c6f223d5dddf1e043424078b047bada0d46a3d94f30c32ac44d",
+          "bytes": 8863
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/observer-qualification-v6/worker.mjs",
+          "sha256": "e5ef38f0946793f0f3e99b99aa4b740e7ca41ff5f94259cf4d7e4bc1e6c58cf8",
+          "bytes": 11903
+        }
+      ]
+    }
+  ],
+  "v6PresealCommit": "65b73e44d5641b5472e2b96000d51d5b6f81f7ff",
+  "v6EvidenceCommit": "0be0667e64510868f78c8a989fddcc3acfd10b94",
+  "sourceCorrespondence": {
+    "sourceCommit": "9885390fb11454fa194a3e60fdbef198dbfdf633",
+    "blobOid": "02ad268a05e6e88edae8410c73328a65ac82d3e3",
+    "blobSha256": "442bd6956340565599afcc1e0762eb7a8d8e001fe8880e9ec8185b1e200bd868",
+    "writerSha256": "9b54d9f0b5cc73cf776b45b8c57fbc27a7f1acd8ca165306836a1b4760ed1fd6",
+    "surrogateSha256": "94b2d6b48b5981e2df17e69b5b5109a7cfe8c8e42a13692ff25badca95fa0f5d"
+  },
+  "firstReliablePreparationWall": "2026-08-28T18:54:16Z",
+  "frozenWall": "2026-08-28T19:02:08.791631+00:00",
+  "preparationScriptMonotonicMs": 423.93825,
+  "metadataGitCommands": [
+    [
+      "git",
+      "diff",
+      "--cached",
+      "--raw",
+      "-z"
+    ],
+    [
+      "git",
+      "ls-tree",
+      "-rz",
+      "655cb37b97521558c4c90581b5b23fc6c3ad9bf2",
+      "--",
+      "tests/commands/git-independent-20260828/m1a-review-v5"
+    ],
+    [
+      "git",
+      "ls-tree",
+      "-rz",
+      "0be0667e64510868f78c8a989fddcc3acfd10b94",
+      "--",
+      "tests/commands/git-independent-20260828/observer-qualification-v6"
+    ],
+    [
+      "git",
+      "show",
+      "9885390fb11454fa194a3e60fdbef198dbfdf633:src/commands/git/codec.ts"
+    ],
+    [
+      "git",
+      "rev-parse",
+      "9885390fb11454fa194a3e60fdbef198dbfdf633:src/commands/git/codec.ts"
+    ]
+  ],
+  "patchHelperChildrenThisScript": 1,
+  "indexSha256": "f1c8611be0644e2b9f7739e175392da4076eadd160164dc409a924026e23b797",
+  "qualificationExecutedBeforeSeal": 0,
+  "syntaxChildrenBeforeSeal": 0,
+  "counts": {
+    "real": 6,
+    "synthetic": 11,
+    "data": 2,
+    "total": 19,
+    "originalRows": 18,
+    "addedRows": 1
+  },
+  "originalRowExpectationsUnchanged": true,
+  "membership": [
+    "R01",
+    "R02",
+    "R03",
+    "R04",
+    "R05",
+    "R06",
+    "S01",
+    "S02",
+    "S03",
+    "S04",
+    "S05",
+    "S06",
+    "S07",
+    "S08",
+    "S09",
+    "S10",
+    "S11",
+    "D01",
+    "D02"
+  ],
+  "priorV6": {
+    "R01": "PASS unchanged historical repeat",
+    "R02": "FAIL unchanged historical; repaired surrogate in v7",
+    "other16": "UNEXECUTED unchanged historical"
+  },
+  "command": "env -i PATH=/Users/kjopek/.nvm/versions/node/v22.22.2/bin UV_THREADPOOL_SIZE=1 /Users/kjopek/.nvm/versions/node/v22.22.2/bin/node tests/commands/git-independent-20260828/observer-qualification-v7/run.mjs",
+  "cwd": "/Users/kjopek/Workspace/safe-bash",
+  "aggregateInclusiveCleanupPublicationMs": 600000,
+  "directChildCap": 6,
+  "plannedDirectChildren": 1,
+  "plannedSyntaxChildren": 0,
+  "plannedStandaloneControlChildren": 0,
+  "peakOwnedProcesses": 2,
+  "captureCapBytes": 33554432,
+  "scratchCapBytes": 134217728,
+  "child": {
+    "argv": [
+      "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/observer-qualification-v7/worker.mjs"
+    ],
+    "env": {
+      "PATH": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin",
+      "UV_THREADPOOL_SIZE": "1"
+    },
+    "stdio": [
+      "ignore",
+      "pipe",
+      "pipe"
+    ]
+  },
+  "imports": {
+    "observer.mjs": [],
+    "writer-surrogate.mjs": [],
+    "worker.mjs": [
+      "node:assert/strict",
+      "node:fs/promises",
+      "node:zlib",
+      "./writer-surrogate.mjs",
+      "node:crypto",
+      "node:events",
+      "./observer.mjs"
+    ],
+    "run.mjs": [
+      "node:assert/strict",
+      "node:child_process",
+      "node:crypto",
+      "node:fs",
+      "node:path",
+      "node:url"
+    ]
+  },
+  "candidateModuleImports": 0,
+  "wholeCodecExecutions": 0,
+  "builds": 0,
+  "nativeGitOracles": 0,
+  "network": 0,
+  "priorNodeDocs": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/observer-qualification-v6/NODE-SOURCES.json",
+    "sha256": "35277f8bbedf0a011da961f09922b6480e74ba613b93a2e64a6bbfee7deaa329",
+    "newRequests": 0
+  }
+}

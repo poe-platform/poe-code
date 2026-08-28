@@ -1,0 +1,16 @@
+{
+  "role": "OWN_STATIC_DATA_INSPECTOR_NOT_PRODUCT_OR_HARNESS_COHORT",
+  "command": [
+    "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "tests/commands/yq-independent-20260828/candidate-b8f5d60d-preseal-v1/inspect-data.mjs",
+    "665962b00ee3bd745296eff0f36e00a08db98cb82f75abd67b425edc68dda664"
+  ],
+  "startedAt": "2026-08-28T11:17:07.729Z",
+  "elapsedMs": 922,
+  "exit": 1,
+  "signal": null,
+  "error": null,
+  "reaped": true,
+  "stdout": "",
+  "stderr": "node:internal/modules/run_main:123\n    triggerUncaughtException(\n    ^\n\nAssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\n384 !== 420\n\n    at snapshotHistory (file:///Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/candidate-b8f5d60d-preseal-v1/inspect-data.mjs:120:167)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/candidate-b8f5d60d-preseal-v1/inspect-data.mjs:161:62\n    at Array.map (<anonymous>)\n    at main (file:///Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/candidate-b8f5d60d-preseal-v1/inspect-data.mjs:161:35)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/candidate-b8f5d60d-preseal-v1/inspect-data.mjs:225:7\n    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5) {\n  generatedMessage: true,\n  code: 'ERR_ASSERTION',\n  actual: 384,\n  expected: 420,\n  operator: 'strictEqual',\n  diff: 'simple'\n}\n\nNode.js v22.22.2\n"
+}

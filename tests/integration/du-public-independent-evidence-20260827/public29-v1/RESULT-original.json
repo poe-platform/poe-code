@@ -1,0 +1,2942 @@
+{
+  "schema": "du-public29-replay/1",
+  "startedAt": "2026-08-28T01:58:03.539Z",
+  "candidate": "0895de2dc63014989f23912c3d48f7c4d0d35a47",
+  "freeze": "1bd1048b0075adf9ee1ebf041e299122f72c3459",
+  "packSha256": "4d4d071a0142ac950240f7c3aaacd5283777143d70cc2e3c245ba199fdd01c7d",
+  "mode": "scoped-committed-archive",
+  "recipeCommit": "22a76e7854776aeb5234698bd8346bfe82ab653f",
+  "attempts": 1,
+  "retries": 0,
+  "source": [
+    {
+      "id": "P01",
+      "proof": {
+        "loads": 203,
+        "unique": 203
+      },
+      "status": "PASS",
+      "directory": "raw/source-P01"
+    },
+    {
+      "id": "R01",
+      "proof": {
+        "loads": 203,
+        "unique": 203
+      },
+      "status": "PASS",
+      "directory": "raw/source-R01"
+    },
+    {
+      "id": "R02",
+      "proof": {
+        "loads": 203,
+        "unique": 203
+      },
+      "status": "PASS",
+      "directory": "raw/source-R02"
+    },
+    {
+      "id": "R03",
+      "proof": {
+        "loads": 203,
+        "unique": 203
+      },
+      "status": "PASS",
+      "directory": "raw/source-R03"
+    },
+    {
+      "id": "R04",
+      "proof": {
+        "loads": 203,
+        "unique": 203
+      },
+      "status": "PASS",
+      "directory": "raw/source-R04"
+    },
+    {
+      "id": "R05",
+      "proof": {
+        "loads": 203,
+        "unique": 203
+      },
+      "status": "PASS",
+      "directory": "raw/source-R05"
+    },
+    {
+      "id": "R06",
+      "proof": {
+        "loads": 203,
+        "unique": 203
+      },
+      "status": "PASS",
+      "directory": "raw/source-R06"
+    },
+    {
+      "id": "R07",
+      "proof": {
+        "loads": 203,
+        "unique": 203
+      },
+      "status": "PASS",
+      "directory": "raw/source-R07"
+    },
+    {
+      "id": "E01",
+      "proof": {
+        "loads": 203,
+        "unique": 203
+      },
+      "status": "PASS",
+      "directory": "raw/source-E01"
+    },
+    {
+      "id": "E02",
+      "proof": {
+        "loads": 203,
+        "unique": 203
+      },
+      "status": "PASS",
+      "directory": "raw/source-E02"
+    },
+    {
+      "id": "E03",
+      "proof": {
+        "loads": 203,
+        "unique": 203
+      },
+      "status": "PASS",
+      "directory": "raw/source-E03"
+    },
+    {
+      "id": "L01",
+      "proof": {
+        "loads": 203,
+        "unique": 203
+      },
+      "status": "PASS",
+      "directory": "raw/source-L01"
+    },
+    {
+      "id": "L02",
+      "proof": {
+        "loads": 203,
+        "unique": 203
+      },
+      "status": "PASS",
+      "directory": "raw/source-L02"
+    },
+    {
+      "id": "L03",
+      "proof": {
+        "loads": 203,
+        "unique": 203
+      },
+      "status": "PASS",
+      "directory": "raw/source-L03"
+    },
+    {
+      "id": "L04",
+      "proof": {
+        "loads": 203,
+        "unique": 203
+      },
+      "status": "PASS",
+      "directory": "raw/source-L04"
+    },
+    {
+      "id": "L05",
+      "proof": {
+        "loads": 203,
+        "unique": 203
+      },
+      "status": "PASS",
+      "directory": "raw/source-L05"
+    },
+    {
+      "id": "L06",
+      "proof": {
+        "loads": 203,
+        "unique": 203
+      },
+      "status": "PASS",
+      "directory": "raw/source-L06"
+    },
+    {
+      "id": "L07",
+      "proof": {
+        "loads": 203,
+        "unique": 203
+      },
+      "status": "PASS",
+      "directory": "raw/source-L07"
+    },
+    {
+      "id": "L08",
+      "proof": {
+        "loads": 203,
+        "unique": 203
+      },
+      "status": "PASS",
+      "directory": "raw/source-L08"
+    }
+  ],
+  "moved": [
+    {
+      "id": "P01",
+      "proof": {
+        "loads": 203,
+        "unique": 203
+      },
+      "status": "PASS",
+      "directory": "raw/moved-P01"
+    },
+    {
+      "id": "R01",
+      "proof": {
+        "loads": 203,
+        "unique": 203
+      },
+      "status": "PASS",
+      "directory": "raw/moved-R01"
+    },
+    {
+      "id": "R02",
+      "proof": {
+        "loads": 203,
+        "unique": 203
+      },
+      "status": "PASS",
+      "directory": "raw/moved-R02"
+    },
+    {
+      "id": "R03",
+      "proof": {
+        "loads": 203,
+        "unique": 203
+      },
+      "status": "PASS",
+      "directory": "raw/moved-R03"
+    },
+    {
+      "id": "R04",
+      "proof": {
+        "loads": 203,
+        "unique": 203
+      },
+      "status": "PASS",
+      "directory": "raw/moved-R04"
+    },
+    {
+      "id": "R05",
+      "proof": {
+        "loads": 203,
+        "unique": 203
+      },
+      "status": "PASS",
+      "directory": "raw/moved-R05"
+    },
+    {
+      "id": "R06",
+      "proof": {
+        "loads": 203,
+        "unique": 203
+      },
+      "status": "PASS",
+      "directory": "raw/moved-R06"
+    },
+    {
+      "id": "R07",
+      "proof": {
+        "loads": 203,
+        "unique": 203
+      },
+      "status": "PASS",
+      "directory": "raw/moved-R07"
+    },
+    {
+      "id": "E01",
+      "proof": {
+        "loads": 203,
+        "unique": 203
+      },
+      "status": "PASS",
+      "directory": "raw/moved-E01"
+    },
+    {
+      "id": "E02",
+      "proof": {
+        "loads": 203,
+        "unique": 203
+      },
+      "status": "PASS",
+      "directory": "raw/moved-E02"
+    },
+    {
+      "id": "E03",
+      "proof": {
+        "loads": 203,
+        "unique": 203
+      },
+      "status": "PASS",
+      "directory": "raw/moved-E03"
+    },
+    {
+      "id": "L01",
+      "proof": {
+        "loads": 203,
+        "unique": 203
+      },
+      "status": "PASS",
+      "directory": "raw/moved-L01"
+    },
+    {
+      "id": "L02",
+      "proof": {
+        "loads": 203,
+        "unique": 203
+      },
+      "status": "PASS",
+      "directory": "raw/moved-L02"
+    },
+    {
+      "id": "L03",
+      "proof": {
+        "loads": 203,
+        "unique": 203
+      },
+      "status": "PASS",
+      "directory": "raw/moved-L03"
+    },
+    {
+      "id": "L04",
+      "proof": {
+        "loads": 203,
+        "unique": 203
+      },
+      "status": "PASS",
+      "directory": "raw/moved-L04"
+    },
+    {
+      "id": "L05",
+      "proof": {
+        "loads": 203,
+        "unique": 203
+      },
+      "status": "PASS",
+      "directory": "raw/moved-L05"
+    },
+    {
+      "id": "L06",
+      "proof": {
+        "loads": 203,
+        "unique": 203
+      },
+      "status": "PASS",
+      "directory": "raw/moved-L06"
+    },
+    {
+      "id": "L07",
+      "proof": {
+        "loads": 203,
+        "unique": 203
+      },
+      "status": "PASS",
+      "directory": "raw/moved-L07"
+    },
+    {
+      "id": "L08",
+      "proof": {
+        "loads": 203,
+        "unique": 203
+      },
+      "status": "PASS",
+      "directory": "raw/moved-L08"
+    }
+  ],
+  "cases": [
+    {
+      "id": "P02",
+      "details": {
+        "authenticatedMembers": 834,
+        "tarballBytes": 726693,
+        "tarballSha256": "4d4d071a0142ac950240f7c3aaacd5283777143d70cc2e3c245ba199fdd01c7d",
+        "installed": true,
+        "physicallyMoved": true,
+        "oldLocationAbsent": true,
+        "publicExecutionBeforeMove": 0,
+        "typesBeforeMove": 0,
+        "boundFullPackReproduction": {
+          "commit": "5508a2a236763754be97baf7347a36ce27e5ef92",
+          "recipe": "436173fcec6787f17f167e03a3b789bf6485e9e5",
+          "manifestSha256": "d369aa59e1e92c4dde6140bd22f230239e93a24b1d81f69f8ba6627511463489",
+          "fullPackReproduced": "4d4d071a0142ac950240f7c3aaacd5283777143d70cc2e3c245ba199fdd01c7d",
+          "selectedInputs": 771,
+          "members": 834,
+          "profile": "scoped-committed-archive-not-full-history"
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "P01",
+      "category": "frozen-public-case",
+      "status": "PASS"
+    },
+    {
+      "id": "R01",
+      "category": "frozen-public-case",
+      "status": "PASS"
+    },
+    {
+      "id": "R02",
+      "category": "frozen-public-case",
+      "status": "PASS"
+    },
+    {
+      "id": "R03",
+      "category": "frozen-public-case",
+      "status": "PASS"
+    },
+    {
+      "id": "R04",
+      "category": "frozen-public-case",
+      "status": "PASS"
+    },
+    {
+      "id": "R05",
+      "category": "frozen-public-case",
+      "status": "PASS"
+    },
+    {
+      "id": "R06",
+      "category": "frozen-public-case",
+      "status": "PASS"
+    },
+    {
+      "id": "R07",
+      "category": "frozen-public-case",
+      "status": "PASS"
+    },
+    {
+      "id": "E01",
+      "category": "frozen-public-case",
+      "status": "PASS"
+    },
+    {
+      "id": "E02",
+      "category": "frozen-public-case",
+      "status": "PASS"
+    },
+    {
+      "id": "E03",
+      "category": "frozen-public-case",
+      "status": "PASS"
+    },
+    {
+      "id": "L01",
+      "category": "frozen-public-case",
+      "status": "PASS"
+    },
+    {
+      "id": "L02",
+      "category": "frozen-public-case",
+      "status": "PASS"
+    },
+    {
+      "id": "L03",
+      "category": "frozen-public-case",
+      "status": "PASS"
+    },
+    {
+      "id": "L04",
+      "category": "frozen-public-case",
+      "status": "PASS"
+    },
+    {
+      "id": "L05",
+      "category": "frozen-public-case",
+      "status": "PASS"
+    },
+    {
+      "id": "L06",
+      "category": "frozen-public-case",
+      "status": "PASS"
+    },
+    {
+      "id": "L07",
+      "category": "frozen-public-case",
+      "status": "PASS"
+    },
+    {
+      "id": "L08",
+      "category": "frozen-public-case",
+      "status": "PASS"
+    },
+    {
+      "id": "T01",
+      "status": "PASS"
+    },
+    {
+      "id": "T02",
+      "status": "PASS"
+    }
+  ],
+  "controls": [
+    {
+      "id": "A06",
+      "status": "PASS-new-positive-release",
+      "acceptedHtml": {
+        "commit": "9d84903356a4c33402814bdc367e3bbe9894d1c2",
+        "recipe": "7885ce6a043653eeacbf4dd885f1c59ee570b5a7",
+        "candidate": "aff899aa94ed0c57a936b08fd36d185688f5c0bb",
+        "summaryPath": "tests/integration/html-public-independent-20260827/actual34-v1/SUMMARY.json",
+        "summarySha256": "b8cea7a008548ab906e3b38d66718c7364e5602b1c6d1b26be504f5a9bdd9df6",
+        "manifestSha256": "2a5e9f9e973eb9988062df68cfa2a3e7d61445fed5eb044ecdc26667cfd725dd",
+        "installed": 34,
+        "moved": 34,
+        "sameCases": true,
+        "priorQualificationsRetained": true
+      },
+      "not74NameSubstitution": true
+    }
+  ],
+  "children": [
+    {
+      "label": "npm-install",
+      "args": [
+        "--require",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/recipe/tool-observer.cjs",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/tools/npm/bin/npm-cli.js",
+        "install",
+        "--offline",
+        "--ignore-scripts",
+        "--no-audit",
+        "--no-fund",
+        "--package-lock=false",
+        "--save-exact",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/candidate.tgz"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/installed-consumer",
+      "environment": {
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/home",
+        "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/tmp",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "NODE_NO_WARNINGS": "1",
+        "npm_config_cache": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/npm-cache",
+        "npm_config_userconfig": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/empty-npmrc",
+        "npm_config_globalconfig": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/empty-global-npmrc",
+        "npm_config_update_notifier": "false",
+        "DU_ADMISSION_WORK": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work",
+        "DU_ADMISSION_RUN": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1",
+        "DU_ADMISSION_LOG": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/raw/npm-tool.jsonl",
+        "DU_TOOL_MAP": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/tool-map.json"
+      },
+      "directory": "raw/001-npm-install",
+      "startedAt": "2026-08-28T01:58:35.073Z",
+      "exit": {
+        "code": 0,
+        "signal": null,
+        "at": "2026-08-28T01:58:35.986Z"
+      },
+      "close": {
+        "code": 0,
+        "signal": null,
+        "at": "2026-08-28T01:58:35.986Z"
+      },
+      "forced": false,
+      "outputBytes": 26,
+      "pid": 14349,
+      "finishedAt": "2026-08-28T01:58:36.006Z",
+      "pidAbsent": true,
+      "processGroupEmpty": true
+    },
+    {
+      "label": "source-P01",
+      "args": [
+        "--permission",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/source-consumer",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/raw/source-P01",
+        "--allow-fs-write=/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/raw/source-P01",
+        "--import",
+        "file:///Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/source-consumer/fixtures/preload.mjs",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/source-consumer/fixtures/entry.mjs"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/source-consumer",
+      "environment": {
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/home",
+        "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/tmp",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "NODE_NO_WARNINGS": "1",
+        "npm_config_cache": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/npm-cache",
+        "npm_config_userconfig": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/empty-npmrc",
+        "npm_config_globalconfig": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/empty-global-npmrc",
+        "npm_config_update_notifier": "false",
+        "DU_CONFIG": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/raw/source-P01/config.json"
+      },
+      "directory": "raw/002-source-P01",
+      "startedAt": "2026-08-28T01:58:37.208Z",
+      "exit": {
+        "code": 0,
+        "signal": null,
+        "at": "2026-08-28T01:58:37.480Z"
+      },
+      "close": {
+        "code": 0,
+        "signal": null,
+        "at": "2026-08-28T01:58:37.480Z"
+      },
+      "forced": false,
+      "outputBytes": 641,
+      "pid": 14393,
+      "finishedAt": "2026-08-28T01:58:37.488Z",
+      "pidAbsent": true,
+      "processGroupEmpty": true
+    },
+    {
+      "label": "source-R01",
+      "args": [
+        "--permission",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/source-consumer",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/raw/source-R01",
+        "--allow-fs-write=/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/raw/source-R01",
+        "--import",
+        "file:///Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/source-consumer/fixtures/preload.mjs",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/source-consumer/fixtures/entry.mjs"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/source-consumer",
+      "environment": {
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/home",
+        "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/tmp",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "NODE_NO_WARNINGS": "1",
+        "npm_config_cache": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/npm-cache",
+        "npm_config_userconfig": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/empty-npmrc",
+        "npm_config_globalconfig": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/empty-global-npmrc",
+        "npm_config_update_notifier": "false",
+        "DU_CONFIG": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/raw/source-R01/config.json"
+      },
+      "directory": "raw/003-source-R01",
+      "startedAt": "2026-08-28T01:58:38.520Z",
+      "exit": {
+        "code": 0,
+        "signal": null,
+        "at": "2026-08-28T01:58:38.788Z"
+      },
+      "close": {
+        "code": 0,
+        "signal": null,
+        "at": "2026-08-28T01:58:38.788Z"
+      },
+      "forced": false,
+      "outputBytes": 641,
+      "pid": 14410,
+      "finishedAt": "2026-08-28T01:58:38.796Z",
+      "pidAbsent": true,
+      "processGroupEmpty": true
+    },
+    {
+      "label": "source-R02",
+      "args": [
+        "--permission",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/source-consumer",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/raw/source-R02",
+        "--allow-fs-write=/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/raw/source-R02",
+        "--import",
+        "file:///Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/source-consumer/fixtures/preload.mjs",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/source-consumer/fixtures/entry.mjs"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/source-consumer",
+      "environment": {
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/home",
+        "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/tmp",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "NODE_NO_WARNINGS": "1",
+        "npm_config_cache": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/npm-cache",
+        "npm_config_userconfig": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/empty-npmrc",
+        "npm_config_globalconfig": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/empty-global-npmrc",
+        "npm_config_update_notifier": "false",
+        "DU_CONFIG": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/raw/source-R02/config.json"
+      },
+      "directory": "raw/004-source-R02",
+      "startedAt": "2026-08-28T01:58:39.777Z",
+      "exit": {
+        "code": 0,
+        "signal": null,
+        "at": "2026-08-28T01:58:40.056Z"
+      },
+      "close": {
+        "code": 0,
+        "signal": null,
+        "at": "2026-08-28T01:58:40.056Z"
+      },
+      "forced": false,
+      "outputBytes": 641,
+      "pid": 14421,
+      "finishedAt": "2026-08-28T01:58:40.064Z",
+      "pidAbsent": true,
+      "processGroupEmpty": true
+    },
+    {
+      "label": "source-R03",
+      "args": [
+        "--permission",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/source-consumer",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/raw/source-R03",
+        "--allow-fs-write=/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/raw/source-R03",
+        "--import",
+        "file:///Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/source-consumer/fixtures/preload.mjs",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/source-consumer/fixtures/entry.mjs"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/source-consumer",
+      "environment": {
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/home",
+        "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/tmp",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "NODE_NO_WARNINGS": "1",
+        "npm_config_cache": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/npm-cache",
+        "npm_config_userconfig": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/empty-npmrc",
+        "npm_config_globalconfig": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/empty-global-npmrc",
+        "npm_config_update_notifier": "false",
+        "DU_CONFIG": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/raw/source-R03/config.json"
+      },
+      "directory": "raw/005-source-R03",
+      "startedAt": "2026-08-28T01:58:41.077Z",
+      "exit": {
+        "code": 0,
+        "signal": null,
+        "at": "2026-08-28T01:58:41.345Z"
+      },
+      "close": {
+        "code": 0,
+        "signal": null,
+        "at": "2026-08-28T01:58:41.345Z"
+      },
+      "forced": false,
+      "outputBytes": 595,
+      "pid": 14434,
+      "finishedAt": "2026-08-28T01:58:41.353Z",
+      "pidAbsent": true,
+      "processGroupEmpty": true
+    },
+    {
+      "label": "source-R04",
+      "args": [
+        "--permission",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/source-consumer",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/raw/source-R04",
+        "--allow-fs-write=/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/raw/source-R04",
+        "--import",
+        "file:///Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/source-consumer/fixtures/preload.mjs",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/source-consumer/fixtures/entry.mjs"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/source-consumer",
+      "environment": {
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/home",
+        "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/tmp",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "NODE_NO_WARNINGS": "1",
+        "npm_config_cache": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/npm-cache",
+        "npm_config_userconfig": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/empty-npmrc",
+        "npm_config_globalconfig": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/empty-global-npmrc",
+        "npm_config_update_notifier": "false",
+        "DU_CONFIG": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/raw/source-R04/config.json"
+      },
+      "directory": "raw/006-source-R04",
+      "startedAt": "2026-08-28T01:58:42.374Z",
+      "exit": {
+        "code": 0,
+        "signal": null,
+        "at": "2026-08-28T01:58:42.655Z"
+      },
+      "close": {
+        "code": 0,
+        "signal": null,
+        "at": "2026-08-28T01:58:42.655Z"
+      },
+      "forced": false,
+      "outputBytes": 641,
+      "pid": 14446,
+      "finishedAt": "2026-08-28T01:58:42.665Z",
+      "pidAbsent": true,
+      "processGroupEmpty": true
+    },
+    {
+      "label": "source-R05",
+      "args": [
+        "--permission",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/source-consumer",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/raw/source-R05",
+        "--allow-fs-write=/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/raw/source-R05",
+        "--import",
+        "file:///Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/source-consumer/fixtures/preload.mjs",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/source-consumer/fixtures/entry.mjs"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/source-consumer",
+      "environment": {
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/home",
+        "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/tmp",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "NODE_NO_WARNINGS": "1",
+        "npm_config_cache": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/npm-cache",
+        "npm_config_userconfig": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/empty-npmrc",
+        "npm_config_globalconfig": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/empty-global-npmrc",
+        "npm_config_update_notifier": "false",
+        "DU_CONFIG": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/raw/source-R05/config.json"
+      },
+      "directory": "raw/007-source-R05",
+      "startedAt": "2026-08-28T01:58:43.668Z",
+      "exit": {
+        "code": 0,
+        "signal": null,
+        "at": "2026-08-28T01:58:43.934Z"
+      },
+      "close": {
+        "code": 0,
+        "signal": null,
+        "at": "2026-08-28T01:58:43.934Z"
+      },
+      "forced": false,
+      "outputBytes": 641,
+      "pid": 14458,
+      "finishedAt": "2026-08-28T01:58:43.943Z",
+      "pidAbsent": true,
+      "processGroupEmpty": true
+    },
+    {
+      "label": "source-R06",
+      "args": [
+        "--permission",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/source-consumer",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/raw/source-R06",
+        "--allow-fs-write=/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/raw/source-R06",
+        "--import",
+        "file:///Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/source-consumer/fixtures/preload.mjs",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/source-consumer/fixtures/entry.mjs"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/source-consumer",
+      "environment": {
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/home",
+        "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/tmp",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "NODE_NO_WARNINGS": "1",
+        "npm_config_cache": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/npm-cache",
+        "npm_config_userconfig": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/empty-npmrc",
+        "npm_config_globalconfig": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/empty-global-npmrc",
+        "npm_config_update_notifier": "false",
+        "DU_CONFIG": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/raw/source-R06/config.json"
+      },
+      "directory": "raw/008-source-R06",
+      "startedAt": "2026-08-28T01:58:44.901Z",
+      "exit": {
+        "code": 0,
+        "signal": null,
+        "at": "2026-08-28T01:58:45.171Z"
+      },
+      "close": {
+        "code": 0,
+        "signal": null,
+        "at": "2026-08-28T01:58:45.171Z"
+      },
+      "forced": false,
+      "outputBytes": 646,
+      "pid": 14460,
+      "finishedAt": "2026-08-28T01:58:45.180Z",
+      "pidAbsent": true,
+      "processGroupEmpty": true
+    },
+    {
+      "label": "source-R07",
+      "args": [
+        "--permission",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/source-consumer",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/raw/source-R07",
+        "--allow-fs-write=/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/raw/source-R07",
+        "--import",
+        "file:///Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/source-consumer/fixtures/preload.mjs",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/source-consumer/fixtures/entry.mjs"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/source-consumer",
+      "environment": {
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/home",
+        "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/tmp",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "NODE_NO_WARNINGS": "1",
+        "npm_config_cache": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/npm-cache",
+        "npm_config_userconfig": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/empty-npmrc",
+        "npm_config_globalconfig": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/empty-global-npmrc",
+        "npm_config_update_notifier": "false",
+        "DU_CONFIG": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/raw/source-R07/config.json"
+      },
+      "directory": "raw/009-source-R07",
+      "startedAt": "2026-08-28T01:58:46.125Z",
+      "exit": {
+        "code": 0,
+        "signal": null,
+        "at": "2026-08-28T01:58:46.395Z"
+      },
+      "close": {
+        "code": 0,
+        "signal": null,
+        "at": "2026-08-28T01:58:46.395Z"
+      },
+      "forced": false,
+      "outputBytes": 875,
+      "pid": 14469,
+      "finishedAt": "2026-08-28T01:58:46.403Z",
+      "pidAbsent": true,
+      "processGroupEmpty": true
+    },
+    {
+      "label": "source-E01",
+      "args": [
+        "--permission",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/source-consumer",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/raw/source-E01",
+        "--allow-fs-write=/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/raw/source-E01",
+        "--import",
+        "file:///Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/source-consumer/fixtures/preload.mjs",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/source-consumer/fixtures/entry.mjs"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/source-consumer",
+      "environment": {
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/home",
+        "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/tmp",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "NODE_NO_WARNINGS": "1",
+        "npm_config_cache": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/npm-cache",
+        "npm_config_userconfig": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/empty-npmrc",
+        "npm_config_globalconfig": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/empty-global-npmrc",
+        "npm_config_update_notifier": "false",
+        "DU_CONFIG": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/raw/source-E01/config.json"
+      },
+      "directory": "raw/010-source-E01",
+      "startedAt": "2026-08-28T01:58:47.349Z",
+      "exit": {
+        "code": 0,
+        "signal": null,
+        "at": "2026-08-28T01:58:47.614Z"
+      },
+      "close": {
+        "code": 0,
+        "signal": null,
+        "at": "2026-08-28T01:58:47.614Z"
+      },
+      "forced": false,
+      "outputBytes": 641,
+      "pid": 14471,
+      "finishedAt": "2026-08-28T01:58:47.622Z",
+      "pidAbsent": true,
+      "processGroupEmpty": true
+    },
+    {
+      "label": "source-E02",
+      "args": [
+        "--permission",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/source-consumer",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/raw/source-E02",
+        "--allow-fs-write=/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/raw/source-E02",
+        "--import",
+        "file:///Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/source-consumer/fixtures/preload.mjs",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/source-consumer/fixtures/entry.mjs"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/source-consumer",
+      "environment": {
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/home",
+        "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/tmp",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "NODE_NO_WARNINGS": "1",
+        "npm_config_cache": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/npm-cache",
+        "npm_config_userconfig": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/empty-npmrc",
+        "npm_config_globalconfig": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/empty-global-npmrc",
+        "npm_config_update_notifier": "false",
+        "DU_CONFIG": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/raw/source-E02/config.json"
+      },
+      "directory": "raw/011-source-E02",
+      "startedAt": "2026-08-28T01:58:48.571Z",
+      "exit": {
+        "code": 0,
+        "signal": null,
+        "at": "2026-08-28T01:58:48.832Z"
+      },
+      "close": {
+        "code": 0,
+        "signal": null,
+        "at": "2026-08-28T01:58:48.832Z"
+      },
+      "forced": false,
+      "outputBytes": 641,
+      "pid": 14483,
+      "finishedAt": "2026-08-28T01:58:48.841Z",
+      "pidAbsent": true,
+      "processGroupEmpty": true
+    },
+    {
+      "label": "source-E03",
+      "args": [
+        "--permission",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/source-consumer",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/raw/source-E03",
+        "--allow-fs-write=/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/raw/source-E03",
+        "--import",
+        "file:///Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/source-consumer/fixtures/preload.mjs",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/source-consumer/fixtures/entry.mjs"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/source-consumer",
+      "environment": {
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/home",
+        "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/tmp",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "NODE_NO_WARNINGS": "1",
+        "npm_config_cache": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/npm-cache",
+        "npm_config_userconfig": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/empty-npmrc",
+        "npm_config_globalconfig": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/empty-global-npmrc",
+        "npm_config_update_notifier": "false",
+        "DU_CONFIG": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/raw/source-E03/config.json"
+      },
+      "directory": "raw/012-source-E03",
+      "startedAt": "2026-08-28T01:58:49.800Z",
+      "exit": {
+        "code": 0,
+        "signal": null,
+        "at": "2026-08-28T01:58:50.056Z"
+      },
+      "close": {
+        "code": 0,
+        "signal": null,
+        "at": "2026-08-28T01:58:50.056Z"
+      },
+      "forced": false,
+      "outputBytes": 641,
+      "pid": 14490,
+      "finishedAt": "2026-08-28T01:58:50.065Z",
+      "pidAbsent": true,
+      "processGroupEmpty": true
+    },
+    {
+      "label": "source-L01",
+      "args": [
+        "--permission",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/source-consumer",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/raw/source-L01",
+        "--allow-fs-write=/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/raw/source-L01",
+        "--import",
+        "file:///Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/source-consumer/fixtures/preload.mjs",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/source-consumer/fixtures/entry.mjs"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/source-consumer",
+      "environment": {
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/home",
+        "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/tmp",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "NODE_NO_WARNINGS": "1",
+        "npm_config_cache": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/npm-cache",
+        "npm_config_userconfig": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/empty-npmrc",
+        "npm_config_globalconfig": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/empty-global-npmrc",
+        "npm_config_update_notifier": "false",
+        "DU_CONFIG": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/raw/source-L01/config.json"
+      },
+      "directory": "raw/013-source-L01",
+      "startedAt": "2026-08-28T01:58:51.059Z",
+      "exit": {
+        "code": 0,
+        "signal": null,
+        "at": "2026-08-28T01:58:51.336Z"
+      },
+      "close": {
+        "code": 0,
+        "signal": null,
+        "at": "2026-08-28T01:58:51.336Z"
+      },
+      "forced": false,
+      "outputBytes": 666,
+      "pid": 14491,
+      "finishedAt": "2026-08-28T01:58:51.343Z",
+      "pidAbsent": true,
+      "processGroupEmpty": true
+    },
+    {
+      "label": "source-L02",
+      "args": [
+        "--permission",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/source-consumer",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/raw/source-L02",
+        "--allow-fs-write=/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/raw/source-L02",
+        "--import",
+        "file:///Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/source-consumer/fixtures/preload.mjs",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/source-consumer/fixtures/entry.mjs"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/source-consumer",
+      "environment": {
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/home",
+        "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/tmp",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "NODE_NO_WARNINGS": "1",
+        "npm_config_cache": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/npm-cache",
+        "npm_config_userconfig": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/empty-npmrc",
+        "npm_config_globalconfig": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/empty-global-npmrc",
+        "npm_config_update_notifier": "false",
+        "DU_CONFIG": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/raw/source-L02/config.json"
+      },
+      "directory": "raw/014-source-L02",
+      "startedAt": "2026-08-28T01:58:52.277Z",
+      "exit": {
+        "code": 0,
+        "signal": null,
+        "at": "2026-08-28T01:58:52.539Z"
+      },
+      "close": {
+        "code": 0,
+        "signal": null,
+        "at": "2026-08-28T01:58:52.539Z"
+      },
+      "forced": false,
+      "outputBytes": 666,
+      "pid": 14500,
+      "finishedAt": "2026-08-28T01:58:52.547Z",
+      "pidAbsent": true,
+      "processGroupEmpty": true
+    },
+    {
+      "label": "source-L03",
+      "args": [
+        "--permission",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/source-consumer",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/raw/source-L03",
+        "--allow-fs-write=/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/raw/source-L03",
+        "--import",
+        "file:///Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/source-consumer/fixtures/preload.mjs",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/source-consumer/fixtures/entry.mjs"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/source-consumer",
+      "environment": {
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/home",
+        "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/tmp",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "NODE_NO_WARNINGS": "1",
+        "npm_config_cache": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/npm-cache",
+        "npm_config_userconfig": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/empty-npmrc",
+        "npm_config_globalconfig": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/empty-global-npmrc",
+        "npm_config_update_notifier": "false",
+        "DU_CONFIG": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/raw/source-L03/config.json"
+      },
+      "directory": "raw/015-source-L03",
+      "startedAt": "2026-08-28T01:58:53.490Z",
+      "exit": {
+        "code": 0,
+        "signal": null,
+        "at": "2026-08-28T01:58:53.750Z"
+      },
+      "close": {
+        "code": 0,
+        "signal": null,
+        "at": "2026-08-28T01:58:53.750Z"
+      },
+      "forced": false,
+      "outputBytes": 662,
+      "pid": 14502,
+      "finishedAt": "2026-08-28T01:58:53.758Z",
+      "pidAbsent": true,
+      "processGroupEmpty": true
+    },
+    {
+      "label": "source-L04",
+      "args": [
+        "--permission",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/source-consumer",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/raw/source-L04",
+        "--allow-fs-write=/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/raw/source-L04",
+        "--import",
+        "file:///Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/source-consumer/fixtures/preload.mjs",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/source-consumer/fixtures/entry.mjs"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/source-consumer",
+      "environment": {
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/home",
+        "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/tmp",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "NODE_NO_WARNINGS": "1",
+        "npm_config_cache": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/npm-cache",
+        "npm_config_userconfig": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/empty-npmrc",
+        "npm_config_globalconfig": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/empty-global-npmrc",
+        "npm_config_update_notifier": "false",
+        "DU_CONFIG": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/raw/source-L04/config.json"
+      },
+      "directory": "raw/016-source-L04",
+      "startedAt": "2026-08-28T01:58:54.703Z",
+      "exit": {
+        "code": 0,
+        "signal": null,
+        "at": "2026-08-28T01:58:54.974Z"
+      },
+      "close": {
+        "code": 0,
+        "signal": null,
+        "at": "2026-08-28T01:58:54.974Z"
+      },
+      "forced": false,
+      "outputBytes": 658,
+      "pid": 14510,
+      "finishedAt": "2026-08-28T01:58:54.982Z",
+      "pidAbsent": true,
+      "processGroupEmpty": true
+    },
+    {
+      "label": "source-L05",
+      "args": [
+        "--permission",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/source-consumer",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/raw/source-L05",
+        "--allow-fs-write=/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/raw/source-L05",
+        "--import",
+        "file:///Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/source-consumer/fixtures/preload.mjs",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/source-consumer/fixtures/entry.mjs"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/source-consumer",
+      "environment": {
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/home",
+        "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/tmp",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "NODE_NO_WARNINGS": "1",
+        "npm_config_cache": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/npm-cache",
+        "npm_config_userconfig": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/empty-npmrc",
+        "npm_config_globalconfig": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/empty-global-npmrc",
+        "npm_config_update_notifier": "false",
+        "DU_CONFIG": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/raw/source-L05/config.json"
+      },
+      "directory": "raw/017-source-L05",
+      "startedAt": "2026-08-28T01:58:55.917Z",
+      "exit": {
+        "code": 0,
+        "signal": null,
+        "at": "2026-08-28T01:58:56.180Z"
+      },
+      "close": {
+        "code": 0,
+        "signal": null,
+        "at": "2026-08-28T01:58:56.180Z"
+      },
+      "forced": false,
+      "outputBytes": 663,
+      "pid": 14523,
+      "finishedAt": "2026-08-28T01:58:56.187Z",
+      "pidAbsent": true,
+      "processGroupEmpty": true
+    },
+    {
+      "label": "source-L06",
+      "args": [
+        "--permission",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/source-consumer",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/raw/source-L06",
+        "--allow-fs-write=/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/raw/source-L06",
+        "--import",
+        "file:///Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/source-consumer/fixtures/preload.mjs",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/source-consumer/fixtures/entry.mjs"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/source-consumer",
+      "environment": {
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/home",
+        "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/tmp",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "NODE_NO_WARNINGS": "1",
+        "npm_config_cache": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/npm-cache",
+        "npm_config_userconfig": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/empty-npmrc",
+        "npm_config_globalconfig": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/empty-global-npmrc",
+        "npm_config_update_notifier": "false",
+        "DU_CONFIG": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/raw/source-L06/config.json"
+      },
+      "directory": "raw/018-source-L06",
+      "startedAt": "2026-08-28T01:58:57.189Z",
+      "exit": {
+        "code": 0,
+        "signal": null,
+        "at": "2026-08-28T01:58:57.504Z"
+      },
+      "close": {
+        "code": 0,
+        "signal": null,
+        "at": "2026-08-28T01:58:57.504Z"
+      },
+      "forced": false,
+      "outputBytes": 679,
+      "pid": 14543,
+      "finishedAt": "2026-08-28T01:58:57.513Z",
+      "pidAbsent": true,
+      "processGroupEmpty": true
+    },
+    {
+      "label": "source-L07",
+      "args": [
+        "--permission",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/source-consumer",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/raw/source-L07",
+        "--allow-fs-write=/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/raw/source-L07",
+        "--import",
+        "file:///Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/source-consumer/fixtures/preload.mjs",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/source-consumer/fixtures/entry.mjs"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/source-consumer",
+      "environment": {
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/home",
+        "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/tmp",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "NODE_NO_WARNINGS": "1",
+        "npm_config_cache": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/npm-cache",
+        "npm_config_userconfig": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/empty-npmrc",
+        "npm_config_globalconfig": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/empty-global-npmrc",
+        "npm_config_update_notifier": "false",
+        "DU_CONFIG": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/raw/source-L07/config.json"
+      },
+      "directory": "raw/019-source-L07",
+      "startedAt": "2026-08-28T01:58:58.523Z",
+      "exit": {
+        "code": 0,
+        "signal": null,
+        "at": "2026-08-28T01:58:58.821Z"
+      },
+      "close": {
+        "code": 0,
+        "signal": null,
+        "at": "2026-08-28T01:58:58.821Z"
+      },
+      "forced": false,
+      "outputBytes": 881,
+      "pid": 14660,
+      "finishedAt": "2026-08-28T01:58:58.829Z",
+      "pidAbsent": true,
+      "processGroupEmpty": true
+    },
+    {
+      "label": "source-L08",
+      "args": [
+        "--permission",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/source-consumer",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/raw/source-L08",
+        "--allow-fs-write=/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/raw/source-L08",
+        "--import",
+        "file:///Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/source-consumer/fixtures/preload.mjs",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/source-consumer/fixtures/entry.mjs"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/source-consumer",
+      "environment": {
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/home",
+        "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/tmp",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "NODE_NO_WARNINGS": "1",
+        "npm_config_cache": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/npm-cache",
+        "npm_config_userconfig": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/empty-npmrc",
+        "npm_config_globalconfig": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/empty-global-npmrc",
+        "npm_config_update_notifier": "false",
+        "DU_CONFIG": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/raw/source-L08/config.json"
+      },
+      "directory": "raw/020-source-L08",
+      "startedAt": "2026-08-28T01:58:59.783Z",
+      "exit": {
+        "code": 0,
+        "signal": null,
+        "at": "2026-08-28T01:59:00.058Z"
+      },
+      "close": {
+        "code": 0,
+        "signal": null,
+        "at": "2026-08-28T01:59:00.058Z"
+      },
+      "forced": false,
+      "outputBytes": 697,
+      "pid": 14807,
+      "finishedAt": "2026-08-28T01:59:00.066Z",
+      "pidAbsent": true,
+      "processGroupEmpty": true
+    },
+    {
+      "label": "moved-P01",
+      "args": [
+        "--permission",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/moved consumer with spaces",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/raw/moved-P01",
+        "--allow-fs-write=/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/raw/moved-P01",
+        "--import",
+        "file:///Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/moved%20consumer%20with%20spaces/fixtures/preload.mjs",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/moved consumer with spaces/fixtures/entry.mjs"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/moved consumer with spaces",
+      "environment": {
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/home",
+        "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/tmp",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "NODE_NO_WARNINGS": "1",
+        "npm_config_cache": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/npm-cache",
+        "npm_config_userconfig": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/empty-npmrc",
+        "npm_config_globalconfig": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/empty-global-npmrc",
+        "npm_config_update_notifier": "false",
+        "DU_CONFIG": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/raw/moved-P01/config.json"
+      },
+      "directory": "raw/021-moved-P01",
+      "startedAt": "2026-08-28T01:59:01.116Z",
+      "exit": {
+        "code": 0,
+        "signal": null,
+        "at": "2026-08-28T01:59:01.243Z"
+      },
+      "close": {
+        "code": 0,
+        "signal": null,
+        "at": "2026-08-28T01:59:01.243Z"
+      },
+      "forced": false,
+      "outputBytes": 676,
+      "pid": 14946,
+      "finishedAt": "2026-08-28T01:59:01.252Z",
+      "pidAbsent": true,
+      "processGroupEmpty": true
+    },
+    {
+      "label": "moved-R01",
+      "args": [
+        "--permission",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/moved consumer with spaces",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/raw/moved-R01",
+        "--allow-fs-write=/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/raw/moved-R01",
+        "--import",
+        "file:///Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/moved%20consumer%20with%20spaces/fixtures/preload.mjs",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/moved consumer with spaces/fixtures/entry.mjs"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/moved consumer with spaces",
+      "environment": {
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/home",
+        "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/tmp",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "NODE_NO_WARNINGS": "1",
+        "npm_config_cache": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/npm-cache",
+        "npm_config_userconfig": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/empty-npmrc",
+        "npm_config_globalconfig": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/empty-global-npmrc",
+        "npm_config_update_notifier": "false",
+        "DU_CONFIG": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/raw/moved-R01/config.json"
+      },
+      "directory": "raw/022-moved-R01",
+      "startedAt": "2026-08-28T01:59:02.233Z",
+      "exit": {
+        "code": 0,
+        "signal": null,
+        "at": "2026-08-28T01:59:02.378Z"
+      },
+      "close": {
+        "code": 0,
+        "signal": null,
+        "at": "2026-08-28T01:59:02.378Z"
+      },
+      "forced": false,
+      "outputBytes": 676,
+      "pid": 15087,
+      "finishedAt": "2026-08-28T01:59:02.386Z",
+      "pidAbsent": true,
+      "processGroupEmpty": true
+    },
+    {
+      "label": "moved-R02",
+      "args": [
+        "--permission",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/moved consumer with spaces",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/raw/moved-R02",
+        "--allow-fs-write=/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/raw/moved-R02",
+        "--import",
+        "file:///Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/moved%20consumer%20with%20spaces/fixtures/preload.mjs",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/moved consumer with spaces/fixtures/entry.mjs"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/moved consumer with spaces",
+      "environment": {
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/home",
+        "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/tmp",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "NODE_NO_WARNINGS": "1",
+        "npm_config_cache": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/npm-cache",
+        "npm_config_userconfig": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/empty-npmrc",
+        "npm_config_globalconfig": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/empty-global-npmrc",
+        "npm_config_update_notifier": "false",
+        "DU_CONFIG": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/raw/moved-R02/config.json"
+      },
+      "directory": "raw/023-moved-R02",
+      "startedAt": "2026-08-28T01:59:03.372Z",
+      "exit": {
+        "code": 0,
+        "signal": null,
+        "at": "2026-08-28T01:59:03.503Z"
+      },
+      "close": {
+        "code": 0,
+        "signal": null,
+        "at": "2026-08-28T01:59:03.503Z"
+      },
+      "forced": false,
+      "outputBytes": 676,
+      "pid": 15231,
+      "finishedAt": "2026-08-28T01:59:03.512Z",
+      "pidAbsent": true,
+      "processGroupEmpty": true
+    },
+    {
+      "label": "moved-R03",
+      "args": [
+        "--permission",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/moved consumer with spaces",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/raw/moved-R03",
+        "--allow-fs-write=/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/raw/moved-R03",
+        "--import",
+        "file:///Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/moved%20consumer%20with%20spaces/fixtures/preload.mjs",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/moved consumer with spaces/fixtures/entry.mjs"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/moved consumer with spaces",
+      "environment": {
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/home",
+        "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/tmp",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "NODE_NO_WARNINGS": "1",
+        "npm_config_cache": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/npm-cache",
+        "npm_config_userconfig": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/empty-npmrc",
+        "npm_config_globalconfig": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/empty-global-npmrc",
+        "npm_config_update_notifier": "false",
+        "DU_CONFIG": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/raw/moved-R03/config.json"
+      },
+      "directory": "raw/024-moved-R03",
+      "startedAt": "2026-08-28T01:59:04.495Z",
+      "exit": {
+        "code": 0,
+        "signal": null,
+        "at": "2026-08-28T01:59:04.637Z"
+      },
+      "close": {
+        "code": 0,
+        "signal": null,
+        "at": "2026-08-28T01:59:04.637Z"
+      },
+      "forced": false,
+      "outputBytes": 630,
+      "pid": 15379,
+      "finishedAt": "2026-08-28T01:59:04.645Z",
+      "pidAbsent": true,
+      "processGroupEmpty": true
+    },
+    {
+      "label": "moved-R04",
+      "args": [
+        "--permission",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/moved consumer with spaces",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/raw/moved-R04",
+        "--allow-fs-write=/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/raw/moved-R04",
+        "--import",
+        "file:///Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/moved%20consumer%20with%20spaces/fixtures/preload.mjs",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/moved consumer with spaces/fixtures/entry.mjs"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/moved consumer with spaces",
+      "environment": {
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/home",
+        "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/tmp",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "NODE_NO_WARNINGS": "1",
+        "npm_config_cache": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/npm-cache",
+        "npm_config_userconfig": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/empty-npmrc",
+        "npm_config_globalconfig": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/empty-global-npmrc",
+        "npm_config_update_notifier": "false",
+        "DU_CONFIG": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/raw/moved-R04/config.json"
+      },
+      "directory": "raw/025-moved-R04",
+      "startedAt": "2026-08-28T01:59:05.629Z",
+      "exit": {
+        "code": 0,
+        "signal": null,
+        "at": "2026-08-28T01:59:05.761Z"
+      },
+      "close": {
+        "code": 0,
+        "signal": null,
+        "at": "2026-08-28T01:59:05.761Z"
+      },
+      "forced": false,
+      "outputBytes": 676,
+      "pid": 15521,
+      "finishedAt": "2026-08-28T01:59:05.769Z",
+      "pidAbsent": true,
+      "processGroupEmpty": true
+    },
+    {
+      "label": "moved-R05",
+      "args": [
+        "--permission",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/moved consumer with spaces",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/raw/moved-R05",
+        "--allow-fs-write=/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/raw/moved-R05",
+        "--import",
+        "file:///Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/moved%20consumer%20with%20spaces/fixtures/preload.mjs",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/moved consumer with spaces/fixtures/entry.mjs"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/moved consumer with spaces",
+      "environment": {
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/home",
+        "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/tmp",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "NODE_NO_WARNINGS": "1",
+        "npm_config_cache": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/npm-cache",
+        "npm_config_userconfig": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/empty-npmrc",
+        "npm_config_globalconfig": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/empty-global-npmrc",
+        "npm_config_update_notifier": "false",
+        "DU_CONFIG": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/raw/moved-R05/config.json"
+      },
+      "directory": "raw/026-moved-R05",
+      "startedAt": "2026-08-28T01:59:06.962Z",
+      "exit": {
+        "code": 0,
+        "signal": null,
+        "at": "2026-08-28T01:59:07.098Z"
+      },
+      "close": {
+        "code": 0,
+        "signal": null,
+        "at": "2026-08-28T01:59:07.098Z"
+      },
+      "forced": false,
+      "outputBytes": 676,
+      "pid": 15684,
+      "finishedAt": "2026-08-28T01:59:07.107Z",
+      "pidAbsent": true,
+      "processGroupEmpty": true
+    },
+    {
+      "label": "moved-R06",
+      "args": [
+        "--permission",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/moved consumer with spaces",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/raw/moved-R06",
+        "--allow-fs-write=/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/raw/moved-R06",
+        "--import",
+        "file:///Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/moved%20consumer%20with%20spaces/fixtures/preload.mjs",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/moved consumer with spaces/fixtures/entry.mjs"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/moved consumer with spaces",
+      "environment": {
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/home",
+        "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/tmp",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "NODE_NO_WARNINGS": "1",
+        "npm_config_cache": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/npm-cache",
+        "npm_config_userconfig": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/empty-npmrc",
+        "npm_config_globalconfig": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/empty-global-npmrc",
+        "npm_config_update_notifier": "false",
+        "DU_CONFIG": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/raw/moved-R06/config.json"
+      },
+      "directory": "raw/027-moved-R06",
+      "startedAt": "2026-08-28T01:59:08.101Z",
+      "exit": {
+        "code": 0,
+        "signal": null,
+        "at": "2026-08-28T01:59:08.235Z"
+      },
+      "close": {
+        "code": 0,
+        "signal": null,
+        "at": "2026-08-28T01:59:08.235Z"
+      },
+      "forced": false,
+      "outputBytes": 681,
+      "pid": 15822,
+      "finishedAt": "2026-08-28T01:59:08.243Z",
+      "pidAbsent": true,
+      "processGroupEmpty": true
+    },
+    {
+      "label": "moved-R07",
+      "args": [
+        "--permission",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/moved consumer with spaces",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/raw/moved-R07",
+        "--allow-fs-write=/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/raw/moved-R07",
+        "--import",
+        "file:///Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/moved%20consumer%20with%20spaces/fixtures/preload.mjs",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/moved consumer with spaces/fixtures/entry.mjs"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/moved consumer with spaces",
+      "environment": {
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/home",
+        "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/tmp",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "NODE_NO_WARNINGS": "1",
+        "npm_config_cache": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/npm-cache",
+        "npm_config_userconfig": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/empty-npmrc",
+        "npm_config_globalconfig": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/empty-global-npmrc",
+        "npm_config_update_notifier": "false",
+        "DU_CONFIG": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/raw/moved-R07/config.json"
+      },
+      "directory": "raw/028-moved-R07",
+      "startedAt": "2026-08-28T01:59:09.238Z",
+      "exit": {
+        "code": 0,
+        "signal": null,
+        "at": "2026-08-28T01:59:09.384Z"
+      },
+      "close": {
+        "code": 0,
+        "signal": null,
+        "at": "2026-08-28T01:59:09.384Z"
+      },
+      "forced": false,
+      "outputBytes": 910,
+      "pid": 15963,
+      "finishedAt": "2026-08-28T01:59:09.392Z",
+      "pidAbsent": true,
+      "processGroupEmpty": true
+    },
+    {
+      "label": "moved-E01",
+      "args": [
+        "--permission",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/moved consumer with spaces",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/raw/moved-E01",
+        "--allow-fs-write=/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/raw/moved-E01",
+        "--import",
+        "file:///Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/moved%20consumer%20with%20spaces/fixtures/preload.mjs",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/moved consumer with spaces/fixtures/entry.mjs"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/moved consumer with spaces",
+      "environment": {
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/home",
+        "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/tmp",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "NODE_NO_WARNINGS": "1",
+        "npm_config_cache": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/npm-cache",
+        "npm_config_userconfig": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/empty-npmrc",
+        "npm_config_globalconfig": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/empty-global-npmrc",
+        "npm_config_update_notifier": "false",
+        "DU_CONFIG": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/raw/moved-E01/config.json"
+      },
+      "directory": "raw/029-moved-E01",
+      "startedAt": "2026-08-28T01:59:10.383Z",
+      "exit": {
+        "code": 0,
+        "signal": null,
+        "at": "2026-08-28T01:59:10.514Z"
+      },
+      "close": {
+        "code": 0,
+        "signal": null,
+        "at": "2026-08-28T01:59:10.514Z"
+      },
+      "forced": false,
+      "outputBytes": 676,
+      "pid": 16059,
+      "finishedAt": "2026-08-28T01:59:10.523Z",
+      "pidAbsent": true,
+      "processGroupEmpty": true
+    },
+    {
+      "label": "moved-E02",
+      "args": [
+        "--permission",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/moved consumer with spaces",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/raw/moved-E02",
+        "--allow-fs-write=/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/raw/moved-E02",
+        "--import",
+        "file:///Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/moved%20consumer%20with%20spaces/fixtures/preload.mjs",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/moved consumer with spaces/fixtures/entry.mjs"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/moved consumer with spaces",
+      "environment": {
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/home",
+        "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/tmp",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "NODE_NO_WARNINGS": "1",
+        "npm_config_cache": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/npm-cache",
+        "npm_config_userconfig": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/empty-npmrc",
+        "npm_config_globalconfig": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/empty-global-npmrc",
+        "npm_config_update_notifier": "false",
+        "DU_CONFIG": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/raw/moved-E02/config.json"
+      },
+      "directory": "raw/030-moved-E02",
+      "startedAt": "2026-08-28T01:59:11.584Z",
+      "exit": {
+        "code": 0,
+        "signal": null,
+        "at": "2026-08-28T01:59:11.719Z"
+      },
+      "close": {
+        "code": 0,
+        "signal": null,
+        "at": "2026-08-28T01:59:11.719Z"
+      },
+      "forced": false,
+      "outputBytes": 676,
+      "pid": 16211,
+      "finishedAt": "2026-08-28T01:59:11.728Z",
+      "pidAbsent": true,
+      "processGroupEmpty": true
+    },
+    {
+      "label": "moved-E03",
+      "args": [
+        "--permission",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/moved consumer with spaces",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/raw/moved-E03",
+        "--allow-fs-write=/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/raw/moved-E03",
+        "--import",
+        "file:///Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/moved%20consumer%20with%20spaces/fixtures/preload.mjs",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/moved consumer with spaces/fixtures/entry.mjs"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/moved consumer with spaces",
+      "environment": {
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/home",
+        "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/tmp",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "NODE_NO_WARNINGS": "1",
+        "npm_config_cache": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/npm-cache",
+        "npm_config_userconfig": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/empty-npmrc",
+        "npm_config_globalconfig": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/empty-global-npmrc",
+        "npm_config_update_notifier": "false",
+        "DU_CONFIG": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/raw/moved-E03/config.json"
+      },
+      "directory": "raw/031-moved-E03",
+      "startedAt": "2026-08-28T01:59:12.708Z",
+      "exit": {
+        "code": 0,
+        "signal": null,
+        "at": "2026-08-28T01:59:12.849Z"
+      },
+      "close": {
+        "code": 0,
+        "signal": null,
+        "at": "2026-08-28T01:59:12.849Z"
+      },
+      "forced": false,
+      "outputBytes": 676,
+      "pid": 16351,
+      "finishedAt": "2026-08-28T01:59:12.857Z",
+      "pidAbsent": true,
+      "processGroupEmpty": true
+    },
+    {
+      "label": "moved-L01",
+      "args": [
+        "--permission",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/moved consumer with spaces",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/raw/moved-L01",
+        "--allow-fs-write=/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/raw/moved-L01",
+        "--import",
+        "file:///Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/moved%20consumer%20with%20spaces/fixtures/preload.mjs",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/moved consumer with spaces/fixtures/entry.mjs"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/moved consumer with spaces",
+      "environment": {
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/home",
+        "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/tmp",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "NODE_NO_WARNINGS": "1",
+        "npm_config_cache": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/npm-cache",
+        "npm_config_userconfig": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/empty-npmrc",
+        "npm_config_globalconfig": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/empty-global-npmrc",
+        "npm_config_update_notifier": "false",
+        "DU_CONFIG": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/raw/moved-L01/config.json"
+      },
+      "directory": "raw/032-moved-L01",
+      "startedAt": "2026-08-28T01:59:13.866Z",
+      "exit": {
+        "code": 0,
+        "signal": null,
+        "at": "2026-08-28T01:59:14.009Z"
+      },
+      "close": {
+        "code": 0,
+        "signal": null,
+        "at": "2026-08-28T01:59:14.009Z"
+      },
+      "forced": false,
+      "outputBytes": 701,
+      "pid": 16499,
+      "finishedAt": "2026-08-28T01:59:14.017Z",
+      "pidAbsent": true,
+      "processGroupEmpty": true
+    },
+    {
+      "label": "moved-L02",
+      "args": [
+        "--permission",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/moved consumer with spaces",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/raw/moved-L02",
+        "--allow-fs-write=/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/raw/moved-L02",
+        "--import",
+        "file:///Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/moved%20consumer%20with%20spaces/fixtures/preload.mjs",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/moved consumer with spaces/fixtures/entry.mjs"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/moved consumer with spaces",
+      "environment": {
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/home",
+        "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/tmp",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "NODE_NO_WARNINGS": "1",
+        "npm_config_cache": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/npm-cache",
+        "npm_config_userconfig": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/empty-npmrc",
+        "npm_config_globalconfig": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/empty-global-npmrc",
+        "npm_config_update_notifier": "false",
+        "DU_CONFIG": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/raw/moved-L02/config.json"
+      },
+      "directory": "raw/033-moved-L02",
+      "startedAt": "2026-08-28T01:59:15.042Z",
+      "exit": {
+        "code": 0,
+        "signal": null,
+        "at": "2026-08-28T01:59:15.201Z"
+      },
+      "close": {
+        "code": 0,
+        "signal": null,
+        "at": "2026-08-28T01:59:15.201Z"
+      },
+      "forced": false,
+      "outputBytes": 701,
+      "pid": 16656,
+      "finishedAt": "2026-08-28T01:59:15.210Z",
+      "pidAbsent": true,
+      "processGroupEmpty": true
+    },
+    {
+      "label": "moved-L03",
+      "args": [
+        "--permission",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/moved consumer with spaces",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/raw/moved-L03",
+        "--allow-fs-write=/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/raw/moved-L03",
+        "--import",
+        "file:///Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/moved%20consumer%20with%20spaces/fixtures/preload.mjs",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/moved consumer with spaces/fixtures/entry.mjs"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/moved consumer with spaces",
+      "environment": {
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/home",
+        "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/tmp",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "NODE_NO_WARNINGS": "1",
+        "npm_config_cache": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/npm-cache",
+        "npm_config_userconfig": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/empty-npmrc",
+        "npm_config_globalconfig": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/empty-global-npmrc",
+        "npm_config_update_notifier": "false",
+        "DU_CONFIG": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/raw/moved-L03/config.json"
+      },
+      "directory": "raw/034-moved-L03",
+      "startedAt": "2026-08-28T01:59:16.208Z",
+      "exit": {
+        "code": 0,
+        "signal": null,
+        "at": "2026-08-28T01:59:16.344Z"
+      },
+      "close": {
+        "code": 0,
+        "signal": null,
+        "at": "2026-08-28T01:59:16.344Z"
+      },
+      "forced": false,
+      "outputBytes": 697,
+      "pid": 16814,
+      "finishedAt": "2026-08-28T01:59:16.353Z",
+      "pidAbsent": true,
+      "processGroupEmpty": true
+    },
+    {
+      "label": "moved-L04",
+      "args": [
+        "--permission",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/moved consumer with spaces",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/raw/moved-L04",
+        "--allow-fs-write=/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/raw/moved-L04",
+        "--import",
+        "file:///Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/moved%20consumer%20with%20spaces/fixtures/preload.mjs",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/moved consumer with spaces/fixtures/entry.mjs"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/moved consumer with spaces",
+      "environment": {
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/home",
+        "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/tmp",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "NODE_NO_WARNINGS": "1",
+        "npm_config_cache": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/npm-cache",
+        "npm_config_userconfig": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/empty-npmrc",
+        "npm_config_globalconfig": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/empty-global-npmrc",
+        "npm_config_update_notifier": "false",
+        "DU_CONFIG": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/raw/moved-L04/config.json"
+      },
+      "directory": "raw/035-moved-L04",
+      "startedAt": "2026-08-28T01:59:17.397Z",
+      "exit": {
+        "code": 0,
+        "signal": null,
+        "at": "2026-08-28T01:59:17.533Z"
+      },
+      "close": {
+        "code": 0,
+        "signal": null,
+        "at": "2026-08-28T01:59:17.533Z"
+      },
+      "forced": false,
+      "outputBytes": 693,
+      "pid": 16956,
+      "finishedAt": "2026-08-28T01:59:17.542Z",
+      "pidAbsent": true,
+      "processGroupEmpty": true
+    },
+    {
+      "label": "moved-L05",
+      "args": [
+        "--permission",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/moved consumer with spaces",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/raw/moved-L05",
+        "--allow-fs-write=/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/raw/moved-L05",
+        "--import",
+        "file:///Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/moved%20consumer%20with%20spaces/fixtures/preload.mjs",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/moved consumer with spaces/fixtures/entry.mjs"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/moved consumer with spaces",
+      "environment": {
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/home",
+        "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/tmp",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "NODE_NO_WARNINGS": "1",
+        "npm_config_cache": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/npm-cache",
+        "npm_config_userconfig": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/empty-npmrc",
+        "npm_config_globalconfig": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/empty-global-npmrc",
+        "npm_config_update_notifier": "false",
+        "DU_CONFIG": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/raw/moved-L05/config.json"
+      },
+      "directory": "raw/036-moved-L05",
+      "startedAt": "2026-08-28T01:59:18.549Z",
+      "exit": {
+        "code": 0,
+        "signal": null,
+        "at": "2026-08-28T01:59:18.678Z"
+      },
+      "close": {
+        "code": 0,
+        "signal": null,
+        "at": "2026-08-28T01:59:18.678Z"
+      },
+      "forced": false,
+      "outputBytes": 698,
+      "pid": 17095,
+      "finishedAt": "2026-08-28T01:59:18.686Z",
+      "pidAbsent": true,
+      "processGroupEmpty": true
+    },
+    {
+      "label": "moved-L06",
+      "args": [
+        "--permission",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/moved consumer with spaces",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/raw/moved-L06",
+        "--allow-fs-write=/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/raw/moved-L06",
+        "--import",
+        "file:///Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/moved%20consumer%20with%20spaces/fixtures/preload.mjs",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/moved consumer with spaces/fixtures/entry.mjs"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/moved consumer with spaces",
+      "environment": {
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/home",
+        "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/tmp",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "NODE_NO_WARNINGS": "1",
+        "npm_config_cache": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/npm-cache",
+        "npm_config_userconfig": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/empty-npmrc",
+        "npm_config_globalconfig": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/empty-global-npmrc",
+        "npm_config_update_notifier": "false",
+        "DU_CONFIG": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/raw/moved-L06/config.json"
+      },
+      "directory": "raw/037-moved-L06",
+      "startedAt": "2026-08-28T01:59:19.848Z",
+      "exit": {
+        "code": 0,
+        "signal": null,
+        "at": "2026-08-28T01:59:19.998Z"
+      },
+      "close": {
+        "code": 0,
+        "signal": null,
+        "at": "2026-08-28T01:59:19.998Z"
+      },
+      "forced": false,
+      "outputBytes": 714,
+      "pid": 17185,
+      "finishedAt": "2026-08-28T01:59:20.008Z",
+      "pidAbsent": true,
+      "processGroupEmpty": true
+    },
+    {
+      "label": "moved-L07",
+      "args": [
+        "--permission",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/moved consumer with spaces",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/raw/moved-L07",
+        "--allow-fs-write=/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/raw/moved-L07",
+        "--import",
+        "file:///Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/moved%20consumer%20with%20spaces/fixtures/preload.mjs",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/moved consumer with spaces/fixtures/entry.mjs"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/moved consumer with spaces",
+      "environment": {
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/home",
+        "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/tmp",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "NODE_NO_WARNINGS": "1",
+        "npm_config_cache": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/npm-cache",
+        "npm_config_userconfig": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/empty-npmrc",
+        "npm_config_globalconfig": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/empty-global-npmrc",
+        "npm_config_update_notifier": "false",
+        "DU_CONFIG": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/raw/moved-L07/config.json"
+      },
+      "directory": "raw/038-moved-L07",
+      "startedAt": "2026-08-28T01:59:21.047Z",
+      "exit": {
+        "code": 0,
+        "signal": null,
+        "at": "2026-08-28T01:59:21.212Z"
+      },
+      "close": {
+        "code": 0,
+        "signal": null,
+        "at": "2026-08-28T01:59:21.212Z"
+      },
+      "forced": false,
+      "outputBytes": 916,
+      "pid": 17197,
+      "finishedAt": "2026-08-28T01:59:21.220Z",
+      "pidAbsent": true,
+      "processGroupEmpty": true
+    },
+    {
+      "label": "moved-L08",
+      "args": [
+        "--permission",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/moved consumer with spaces",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/raw/moved-L08",
+        "--allow-fs-write=/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/raw/moved-L08",
+        "--import",
+        "file:///Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/moved%20consumer%20with%20spaces/fixtures/preload.mjs",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/moved consumer with spaces/fixtures/entry.mjs"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/moved consumer with spaces",
+      "environment": {
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/home",
+        "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/tmp",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "NODE_NO_WARNINGS": "1",
+        "npm_config_cache": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/npm-cache",
+        "npm_config_userconfig": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/empty-npmrc",
+        "npm_config_globalconfig": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/empty-global-npmrc",
+        "npm_config_update_notifier": "false",
+        "DU_CONFIG": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/raw/moved-L08/config.json"
+      },
+      "directory": "raw/039-moved-L08",
+      "startedAt": "2026-08-28T01:59:22.282Z",
+      "exit": {
+        "code": 0,
+        "signal": null,
+        "at": "2026-08-28T01:59:22.439Z"
+      },
+      "close": {
+        "code": 0,
+        "signal": null,
+        "at": "2026-08-28T01:59:22.439Z"
+      },
+      "forced": false,
+      "outputBytes": 732,
+      "pid": 17221,
+      "finishedAt": "2026-08-28T01:59:22.447Z",
+      "pidAbsent": true,
+      "processGroupEmpty": true
+    },
+    {
+      "label": "T01",
+      "args": [
+        "--permission",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/moved consumer with spaces",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/tools",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/tool-map.json",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/recipe/tool-observer.cjs",
+        "--allow-fs-write=/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1",
+        "--require",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/recipe/tool-observer.cjs",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/tools/typescript/bin/tsc",
+        "--project",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/moved consumer with spaces/tsconfig.json",
+        "--pretty",
+        "false"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/moved consumer with spaces",
+      "environment": {
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/home",
+        "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/tmp",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "NODE_NO_WARNINGS": "1",
+        "npm_config_cache": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/npm-cache",
+        "npm_config_userconfig": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/empty-npmrc",
+        "npm_config_globalconfig": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/empty-global-npmrc",
+        "npm_config_update_notifier": "false",
+        "DU_ADMISSION_WORK": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work",
+        "DU_ADMISSION_RUN": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1",
+        "DU_ADMISSION_LOG": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/raw/T01-tool.jsonl",
+        "DU_TOOL_MAP": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/tool-map.json"
+      },
+      "directory": "raw/040-T01",
+      "startedAt": "2026-08-28T01:59:23.422Z",
+      "exit": {
+        "code": 0,
+        "signal": null,
+        "at": "2026-08-28T01:59:24.487Z"
+      },
+      "close": {
+        "code": 0,
+        "signal": null,
+        "at": "2026-08-28T01:59:24.487Z"
+      },
+      "forced": false,
+      "outputBytes": 0,
+      "pid": 17248,
+      "finishedAt": "2026-08-28T01:59:24.495Z",
+      "pidAbsent": true,
+      "processGroupEmpty": true
+    },
+    {
+      "label": "T02",
+      "args": [
+        "--permission",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/moved consumer with spaces",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/tools",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/tool-map.json",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/recipe/tool-observer.cjs",
+        "--allow-fs-write=/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1",
+        "--require",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/recipe/tool-observer.cjs",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/tools/typescript/bin/tsc",
+        "--project",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/moved consumer with spaces/tsconfig.json",
+        "--pretty",
+        "false"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/moved consumer with spaces",
+      "environment": {
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/home",
+        "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/tmp",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "NODE_NO_WARNINGS": "1",
+        "npm_config_cache": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/npm-cache",
+        "npm_config_userconfig": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/empty-npmrc",
+        "npm_config_globalconfig": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/empty-global-npmrc",
+        "npm_config_update_notifier": "false",
+        "DU_ADMISSION_WORK": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work",
+        "DU_ADMISSION_RUN": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1",
+        "DU_ADMISSION_LOG": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/raw/T02-tool.jsonl",
+        "DU_TOOL_MAP": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/tool-map.json"
+      },
+      "directory": "raw/041-T02",
+      "startedAt": "2026-08-28T01:59:25.553Z",
+      "exit": {
+        "code": 2,
+        "signal": null,
+        "at": "2026-08-28T01:59:26.573Z"
+      },
+      "close": {
+        "code": 2,
+        "signal": null,
+        "at": "2026-08-28T01:59:26.573Z"
+      },
+      "forced": false,
+      "outputBytes": 292,
+      "pid": 17273,
+      "finishedAt": "2026-08-28T01:59:26.581Z",
+      "pidAbsent": true,
+      "processGroupEmpty": true
+    },
+    {
+      "label": "T03",
+      "args": [
+        "--permission",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/moved consumer with spaces",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/tools",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/tool-map.json",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/recipe/tool-observer.cjs",
+        "--allow-fs-write=/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1",
+        "--require",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/recipe/tool-observer.cjs",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/tools/typescript/bin/tsc",
+        "--project",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/moved consumer with spaces/tsconfig.json",
+        "--pretty",
+        "false"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/moved consumer with spaces",
+      "environment": {
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/home",
+        "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/tmp",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "NODE_NO_WARNINGS": "1",
+        "npm_config_cache": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/npm-cache",
+        "npm_config_userconfig": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/empty-npmrc",
+        "npm_config_globalconfig": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/empty-global-npmrc",
+        "npm_config_update_notifier": "false",
+        "DU_ADMISSION_WORK": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work",
+        "DU_ADMISSION_RUN": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1",
+        "DU_ADMISSION_LOG": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/raw/T03-tool.jsonl",
+        "DU_TOOL_MAP": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/node_modules/du-public-work/tool-map.json"
+      },
+      "directory": "raw/042-T03",
+      "startedAt": "2026-08-28T01:59:27.650Z",
+      "exit": {
+        "code": 2,
+        "signal": null,
+        "at": "2026-08-28T01:59:28.537Z"
+      },
+      "close": {
+        "code": 2,
+        "signal": null,
+        "at": "2026-08-28T01:59:28.537Z"
+      },
+      "forced": false,
+      "outputBytes": 83,
+      "pid": 17296,
+      "finishedAt": "2026-08-28T01:59:28.546Z",
+      "pidAbsent": true,
+      "processGroupEmpty": true
+    }
+  ],
+  "guards": [
+    {
+      "label": "npm-install-PRE",
+      "at": "2026-08-28T01:58:35.072Z",
+      "status": "unchanged"
+    },
+    {
+      "label": "physically-moved-PRE-FIRST-PUBLIC-EXECUTION",
+      "at": "2026-08-28T01:58:36.680Z",
+      "status": "unchanged"
+    },
+    {
+      "label": "source-P01-PRE",
+      "at": "2026-08-28T01:58:37.116Z",
+      "status": "unchanged"
+    },
+    {
+      "label": "source-P01-POST",
+      "at": "2026-08-28T01:58:37.986Z",
+      "status": "unchanged"
+    },
+    {
+      "label": "source-R01-PRE",
+      "at": "2026-08-28T01:58:38.425Z",
+      "status": "unchanged"
+    },
+    {
+      "label": "source-R01-POST",
+      "at": "2026-08-28T01:58:39.261Z",
+      "status": "unchanged"
+    },
+    {
+      "label": "source-R02-PRE",
+      "at": "2026-08-28T01:58:39.679Z",
+      "status": "unchanged"
+    },
+    {
+      "label": "source-R02-POST",
+      "at": "2026-08-28T01:58:40.546Z",
+      "status": "unchanged"
+    },
+    {
+      "label": "source-R03-PRE",
+      "at": "2026-08-28T01:58:40.991Z",
+      "status": "unchanged"
+    },
+    {
+      "label": "source-R03-POST",
+      "at": "2026-08-28T01:58:41.833Z",
+      "status": "unchanged"
+    },
+    {
+      "label": "source-R04-PRE",
+      "at": "2026-08-28T01:58:42.285Z",
+      "status": "unchanged"
+    },
+    {
+      "label": "source-R04-POST",
+      "at": "2026-08-28T01:58:43.130Z",
+      "status": "unchanged"
+    },
+    {
+      "label": "source-R05-PRE",
+      "at": "2026-08-28T01:58:43.563Z",
+      "status": "unchanged"
+    },
+    {
+      "label": "source-R05-POST",
+      "at": "2026-08-28T01:58:44.408Z",
+      "status": "unchanged"
+    },
+    {
+      "label": "source-R06-PRE",
+      "at": "2026-08-28T01:58:44.815Z",
+      "status": "unchanged"
+    },
+    {
+      "label": "source-R06-POST",
+      "at": "2026-08-28T01:58:45.622Z",
+      "status": "unchanged"
+    },
+    {
+      "label": "source-R07-PRE",
+      "at": "2026-08-28T01:58:46.040Z",
+      "status": "unchanged"
+    },
+    {
+      "label": "source-R07-POST",
+      "at": "2026-08-28T01:58:46.848Z",
+      "status": "unchanged"
+    },
+    {
+      "label": "source-E01-PRE",
+      "at": "2026-08-28T01:58:47.261Z",
+      "status": "unchanged"
+    },
+    {
+      "label": "source-E01-POST",
+      "at": "2026-08-28T01:58:48.074Z",
+      "status": "unchanged"
+    },
+    {
+      "label": "source-E02-PRE",
+      "at": "2026-08-28T01:58:48.484Z",
+      "status": "unchanged"
+    },
+    {
+      "label": "source-E02-POST",
+      "at": "2026-08-28T01:58:49.294Z",
+      "status": "unchanged"
+    },
+    {
+      "label": "source-E03-PRE",
+      "at": "2026-08-28T01:58:49.706Z",
+      "status": "unchanged"
+    },
+    {
+      "label": "source-E03-POST",
+      "at": "2026-08-28T01:58:50.567Z",
+      "status": "unchanged"
+    },
+    {
+      "label": "source-L01-PRE",
+      "at": "2026-08-28T01:58:50.973Z",
+      "status": "unchanged"
+    },
+    {
+      "label": "source-L01-POST",
+      "at": "2026-08-28T01:58:51.791Z",
+      "status": "unchanged"
+    },
+    {
+      "label": "source-L02-PRE",
+      "at": "2026-08-28T01:58:52.192Z",
+      "status": "unchanged"
+    },
+    {
+      "label": "source-L02-POST",
+      "at": "2026-08-28T01:58:52.990Z",
+      "status": "unchanged"
+    },
+    {
+      "label": "source-L03-PRE",
+      "at": "2026-08-28T01:58:53.407Z",
+      "status": "unchanged"
+    },
+    {
+      "label": "source-L03-POST",
+      "at": "2026-08-28T01:58:54.215Z",
+      "status": "unchanged"
+    },
+    {
+      "label": "source-L04-PRE",
+      "at": "2026-08-28T01:58:54.619Z",
+      "status": "unchanged"
+    },
+    {
+      "label": "source-L04-POST",
+      "at": "2026-08-28T01:58:55.426Z",
+      "status": "unchanged"
+    },
+    {
+      "label": "source-L05-PRE",
+      "at": "2026-08-28T01:58:55.833Z",
+      "status": "unchanged"
+    },
+    {
+      "label": "source-L05-POST",
+      "at": "2026-08-28T01:58:56.689Z",
+      "status": "unchanged"
+    },
+    {
+      "label": "source-L06-PRE",
+      "at": "2026-08-28T01:58:57.092Z",
+      "status": "unchanged"
+    },
+    {
+      "label": "source-L06-POST",
+      "at": "2026-08-28T01:58:57.988Z",
+      "status": "unchanged"
+    },
+    {
+      "label": "source-L07-PRE",
+      "at": "2026-08-28T01:58:58.428Z",
+      "status": "unchanged"
+    },
+    {
+      "label": "source-L07-POST",
+      "at": "2026-08-28T01:58:59.270Z",
+      "status": "unchanged"
+    },
+    {
+      "label": "source-L08-PRE",
+      "at": "2026-08-28T01:58:59.697Z",
+      "status": "unchanged"
+    },
+    {
+      "label": "source-L08-POST",
+      "at": "2026-08-28T01:59:00.571Z",
+      "status": "unchanged"
+    },
+    {
+      "label": "moved-P01-PRE",
+      "at": "2026-08-28T01:59:01.013Z",
+      "status": "unchanged"
+    },
+    {
+      "label": "moved-P01-POST",
+      "at": "2026-08-28T01:59:01.723Z",
+      "status": "unchanged"
+    },
+    {
+      "label": "moved-R01-PRE",
+      "at": "2026-08-28T01:59:02.136Z",
+      "status": "unchanged"
+    },
+    {
+      "label": "moved-R01-POST",
+      "at": "2026-08-28T01:59:02.843Z",
+      "status": "unchanged"
+    },
+    {
+      "label": "moved-R02-PRE",
+      "at": "2026-08-28T01:59:03.283Z",
+      "status": "unchanged"
+    },
+    {
+      "label": "moved-R02-POST",
+      "at": "2026-08-28T01:59:03.987Z",
+      "status": "unchanged"
+    },
+    {
+      "label": "moved-R03-PRE",
+      "at": "2026-08-28T01:59:04.405Z",
+      "status": "unchanged"
+    },
+    {
+      "label": "moved-R03-POST",
+      "at": "2026-08-28T01:59:05.106Z",
+      "status": "unchanged"
+    },
+    {
+      "label": "moved-R04-PRE",
+      "at": "2026-08-28T01:59:05.533Z",
+      "status": "unchanged"
+    },
+    {
+      "label": "moved-R04-POST",
+      "at": "2026-08-28T01:59:06.337Z",
+      "status": "unchanged"
+    },
+    {
+      "label": "moved-R05-PRE",
+      "at": "2026-08-28T01:59:06.847Z",
+      "status": "unchanged"
+    },
+    {
+      "label": "moved-R05-POST",
+      "at": "2026-08-28T01:59:07.558Z",
+      "status": "unchanged"
+    },
+    {
+      "label": "moved-R06-PRE",
+      "at": "2026-08-28T01:59:08.001Z",
+      "status": "unchanged"
+    },
+    {
+      "label": "moved-R06-POST",
+      "at": "2026-08-28T01:59:08.717Z",
+      "status": "unchanged"
+    },
+    {
+      "label": "moved-R07-PRE",
+      "at": "2026-08-28T01:59:09.137Z",
+      "status": "unchanged"
+    },
+    {
+      "label": "moved-R07-POST",
+      "at": "2026-08-28T01:59:09.870Z",
+      "status": "unchanged"
+    },
+    {
+      "label": "moved-E01-PRE",
+      "at": "2026-08-28T01:59:10.292Z",
+      "status": "unchanged"
+    },
+    {
+      "label": "moved-E01-POST",
+      "at": "2026-08-28T01:59:11.001Z",
+      "status": "unchanged"
+    },
+    {
+      "label": "moved-E02-PRE",
+      "at": "2026-08-28T01:59:11.492Z",
+      "status": "unchanged"
+    },
+    {
+      "label": "moved-E02-POST",
+      "at": "2026-08-28T01:59:12.205Z",
+      "status": "unchanged"
+    },
+    {
+      "label": "moved-E03-PRE",
+      "at": "2026-08-28T01:59:12.617Z",
+      "status": "unchanged"
+    },
+    {
+      "label": "moved-E03-POST",
+      "at": "2026-08-28T01:59:13.342Z",
+      "status": "unchanged"
+    },
+    {
+      "label": "moved-L01-PRE",
+      "at": "2026-08-28T01:59:13.775Z",
+      "status": "unchanged"
+    },
+    {
+      "label": "moved-L01-POST",
+      "at": "2026-08-28T01:59:14.502Z",
+      "status": "unchanged"
+    },
+    {
+      "label": "moved-L02-PRE",
+      "at": "2026-08-28T01:59:14.949Z",
+      "status": "unchanged"
+    },
+    {
+      "label": "moved-L02-POST",
+      "at": "2026-08-28T01:59:15.672Z",
+      "status": "unchanged"
+    },
+    {
+      "label": "moved-L03-PRE",
+      "at": "2026-08-28T01:59:16.114Z",
+      "status": "unchanged"
+    },
+    {
+      "label": "moved-L03-POST",
+      "at": "2026-08-28T01:59:16.852Z",
+      "status": "unchanged"
+    },
+    {
+      "label": "moved-L04-PRE",
+      "at": "2026-08-28T01:59:17.279Z",
+      "status": "unchanged"
+    },
+    {
+      "label": "moved-L04-POST",
+      "at": "2026-08-28T01:59:18.002Z",
+      "status": "unchanged"
+    },
+    {
+      "label": "moved-L05-PRE",
+      "at": "2026-08-28T01:59:18.452Z",
+      "status": "unchanged"
+    },
+    {
+      "label": "moved-L05-POST",
+      "at": "2026-08-28T01:59:19.172Z",
+      "status": "unchanged"
+    },
+    {
+      "label": "moved-L06-PRE",
+      "at": "2026-08-28T01:59:19.719Z",
+      "status": "unchanged"
+    },
+    {
+      "label": "moved-L06-POST",
+      "at": "2026-08-28T01:59:20.534Z",
+      "status": "unchanged"
+    },
+    {
+      "label": "moved-L07-PRE",
+      "at": "2026-08-28T01:59:20.944Z",
+      "status": "unchanged"
+    },
+    {
+      "label": "moved-L07-POST",
+      "at": "2026-08-28T01:59:21.718Z",
+      "status": "unchanged"
+    },
+    {
+      "label": "moved-L08-PRE",
+      "at": "2026-08-28T01:59:22.193Z",
+      "status": "unchanged"
+    },
+    {
+      "label": "moved-L08-POST",
+      "at": "2026-08-28T01:59:22.941Z",
+      "status": "unchanged"
+    },
+    {
+      "label": "T01-PRE",
+      "at": "2026-08-28T01:59:23.422Z",
+      "status": "unchanged"
+    },
+    {
+      "label": "T01-POST",
+      "at": "2026-08-28T01:59:25.052Z",
+      "status": "unchanged"
+    },
+    {
+      "label": "T02-PRE",
+      "at": "2026-08-28T01:59:25.553Z",
+      "status": "unchanged"
+    },
+    {
+      "label": "T02-POST",
+      "at": "2026-08-28T01:59:27.082Z",
+      "status": "unchanged"
+    },
+    {
+      "label": "T03-PRE",
+      "at": "2026-08-28T01:59:27.650Z",
+      "status": "unchanged"
+    },
+    {
+      "label": "T03-POST",
+      "at": "2026-08-28T01:59:29.026Z",
+      "status": "unchanged"
+    },
+    {
+      "label": "FINAL-INTEGRITY",
+      "at": "2026-08-28T01:59:29.535Z",
+      "status": "unchanged"
+    }
+  ],
+  "phase": "T03",
+  "failure": {
+    "name": "AssertionError",
+    "code": "ERR_ASSERTION",
+    "message": "The expression evaluated to a falsy value:\n\n  assert.ok(reads.some(row => row.path.endsWith('/virtual-bash/dist/index.d.ts')))\n",
+    "stack": "AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:\n\n  assert.ok(reads.some(row => row.path.endsWith('/virtual-bash/dist/index.d.ts')))\n\n    at validateTool (file:///Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/recipe/executor.mjs:94:12)\n    at compile (file:///Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/recipe/executor.mjs:142:17)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-v1/recipe/executor.mjs:221:22"
+  },
+  "privateHelperApproved": false,
+  "privateHelperLoads": 0,
+  "fullGate": false,
+  "whole76": false,
+  "buildAndPackReproduction": "bound accepted5508a2a2, not repeated",
+  "oldHold": "3e02038d 0/29 preserved",
+  "toolsPre": {
+    "regular": 2274,
+    "metadataOnlyAliases": 12
+  },
+  "seal": {
+    "commit": "22a76e7854776aeb5234698bd8346bfe82ab653f",
+    "manifestSha256": "bbb98d5a46a7636e77548d1060da17c617f39c74b1f4962b146fad7af6770889"
+  },
+  "selected": {
+    "files": 771,
+    "candidate": "0895de2dc63014989f23912c3d48f7c4d0d35a47",
+    "tree": "0d6fe4cc764e047c0f4c9eb93cfaa3824be36965"
+  },
+  "npmProof": {
+    "reads": 569,
+    "compiles": 550
+  },
+  "package": {
+    "authenticatedMembers": 834,
+    "tarballBytes": 726693,
+    "tarballSha256": "4d4d071a0142ac950240f7c3aaacd5283777143d70cc2e3c245ba199fdd01c7d",
+    "installed": true,
+    "physicallyMoved": true,
+    "oldLocationAbsent": true,
+    "publicExecutionBeforeMove": 0,
+    "typesBeforeMove": 0,
+    "boundFullPackReproduction": {
+      "commit": "5508a2a236763754be97baf7347a36ce27e5ef92",
+      "recipe": "436173fcec6787f17f167e03a3b789bf6485e9e5",
+      "manifestSha256": "d369aa59e1e92c4dde6140bd22f230239e93a24b1d81f69f8ba6627511463489",
+      "fullPackReproduced": "4d4d071a0142ac950240f7c3aaacd5283777143d70cc2e3c245ba199fdd01c7d",
+      "selectedInputs": 771,
+      "members": 834,
+      "profile": "scoped-committed-archive-not-full-history"
+    }
+  },
+  "types": [
+    {
+      "label": "T01",
+      "expected": {
+        "case": "T01",
+        "file": "consumers/positive.ts.data",
+        "exitCode": 0,
+        "diagnostics": []
+      },
+      "diagnostics": [],
+      "proof": {
+        "reads": 257,
+        "compiles": 3
+      },
+      "payloadSha256": "d1d5860c82394788b51b138bf21d180a3f03471d5a9ceb3feef09c914ef0f415",
+      "status": "EXPECTED"
+    },
+    {
+      "label": "T02",
+      "expected": {
+        "case": "T02",
+        "file": "consumers/negative-options.ts.data",
+        "exitCode": 2,
+        "diagnostics": [
+          {
+            "line": 3,
+            "code": 2353,
+            "mentions": "notADuOption"
+          },
+          {
+            "line": 4,
+            "code": 2353,
+            "mentions": "notADuOption"
+          }
+        ]
+      },
+      "diagnostics": [
+        {
+          "line": 3,
+          "column": 19,
+          "code": 2353,
+          "text": "Object literal may only specify known properties, and 'notADuOption' does not exist in type 'DuCommandsOptions'."
+        },
+        {
+          "line": 4,
+          "column": 20,
+          "code": 2353,
+          "text": "Object literal may only specify known properties, and 'notADuOption' does not exist in type 'DuCommandsOptions'."
+        }
+      ],
+      "proof": {
+        "reads": 257,
+        "compiles": 3
+      },
+      "payloadSha256": "236b464bb11091248ea87eaa745b203a6a5400718070adcba9ac0c0f351e7ffd",
+      "status": "EXPECTED"
+    }
+  ],
+  "failedCase": "T03",
+  "status": "STOP_NO_RETRY",
+  "finalIntegrity": "PASS",
+  "allChildrenReaped": true,
+  "finishedAt": "2026-08-28T01:59:29.536Z",
+  "gitSynchronousNaturalReturns": 881,
+  "actualToolReads": 1083,
+  "actualToolCompiles": 556,
+  "actualFrozenPasses": 22,
+  "unexecuted": [
+    "P03",
+    "P04",
+    "P05",
+    "P06",
+    "T03",
+    "T04",
+    "T05"
+  ],
+  "sourceUnexecuted": [],
+  "movedUnexecuted": []
+}

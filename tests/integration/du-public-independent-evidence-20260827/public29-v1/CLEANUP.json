@@ -1,0 +1,10 @@
+{
+  "at": "2026-08-28T02:01:39.401Z",
+  "scratchRemoved": true,
+  "rawCompactedLosslessly": true,
+  "childrenNatural": 42,
+  "processGroupsEmpty": 42,
+  "active": 0,
+  "reexecutedCases": 0,
+  "scopeOnly": "tests/integration/du-public-independent-evidence-20260827/public29-v1"
+}

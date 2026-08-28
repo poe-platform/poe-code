@@ -1,0 +1,106 @@
+{
+  "kind": "array-first-runtime-bounded-hold",
+  "types": {
+    "versionedAdmissionPassed": 9,
+    "versionedAdmissionTotal": 9,
+    "originalFixtureExactNegativeControlPassed": 1,
+    "originalFixtureCode": 2,
+    "originalFailureRescored": false
+  },
+  "runtime": {
+    "requested": 33,
+    "completedObservations": 27,
+    "passedObservations": 26,
+    "failedObservations": [
+      "S06"
+    ],
+    "incompleteObservation": "O11",
+    "notStarted": [
+      "O12",
+      "O13",
+      "O14",
+      "O15",
+      "O16"
+    ],
+    "childCode": 13,
+    "runnerCode": 78,
+    "unsafeStop": true,
+    "actualLoadedFiles": 212,
+    "holdoutsExecuted": 0,
+    "operationsExecuted": 0,
+    "mechanicalExecuted": 0,
+    "mutantsExecuted": 0,
+    "installedExecuted": 0,
+    "movedExecuted": 0
+  },
+  "guardControlsPassed": 6,
+  "guardControlsTotal": 6,
+  "candidate": "50117fc54fdfd650e8f57e84b82ba21297ab8a0f",
+  "product": "c7dae6e884d1a144266dfc1bb80785bf007a667f",
+  "selectedTree": "d6c17f62d2d3062b5ab074044a86b8a455820373",
+  "packageSha256": "0fadca03da4e100c7dd5b7df0a25d321467f9f1f9fbd288ebcc4456746945d26",
+  "packageMembers": 862,
+  "encodedSha256": "c84e205b07dc5c472650bc468c278ab99877dec63cdc0c5c8040c4bfacc7f995",
+  "decodedSha256": "0c2bbc09b0a291ba9b4a3eeb623857b12deae2b9691daa460fc52ea973908d08",
+  "encodedBytes": 1365201,
+  "decodedBytes": 18518325,
+  "records": {
+    "TYPE-BINDING.json": {
+      "sha256": "01d54cd2a8e44e5ce66e8d1693b42d9d7cb5c8e024e03761c2523b4290ccded3",
+      "bytes": 206514
+    },
+    "TYPE-PRELAUNCH.json": {
+      "sha256": "ad1a3280e10ac409154bda2e6b580dff69a2cb324df48e5ea2897a94112a4f2f",
+      "bytes": 945
+    },
+    "TYPE-RESULT.json": {
+      "sha256": "046e4346bb6da263d99d34557d13f39845b4a1df61ff91890ac497d451f3e3e5",
+      "bytes": 12634938
+    },
+    "RUNTIME-MANIFEST.json": {
+      "sha256": "c67610efbed48ec99282a29f32d18c3c25648949112a3930ca128383dfada793",
+      "bytes": 275498
+    },
+    "RUNTIME-GO.json": {
+      "sha256": "160e1d24337b3e7b4890ca26186148615db390d69dce69ac53262997daa933b6",
+      "bytes": 232
+    },
+    "RUNTIME-GUARDS.json": {
+      "sha256": "b54352329a365fccfe189065a9f2657bec23cae334d028f745d0bcaaf00afd5e",
+      "bytes": 2062
+    },
+    "BAD-MANIFEST.json": {
+      "sha256": "dc90afb019ca21fafea76312d0ac8bb131a84cba8ea8d778a2639cf07974b985",
+      "bytes": 275498
+    },
+    "BAD-GO.json": {
+      "sha256": "ee838463df9619eb8fd948463a37a2037411e7b99db9ce565ff3331ac942f2b8",
+      "bytes": 232
+    },
+    "RUNTIME-semantic.json": {
+      "sha256": "f54ded5ef9d51a998eaf340047c75b2c53a93c9fbfcadbe8b6cfa8a16773c621",
+      "bytes": 156461
+    },
+    "RUNTIME-PHASE1-RESULT.json": {
+      "sha256": "178e1e91eea739f1435aa40340db59e69bfe62aa8e34121a31d970bbed1134f8",
+      "bytes": 143724
+    }
+  },
+  "children": {
+    "typeChildren": 10,
+    "runtimeRunner": 1,
+    "runtimeWorker": 1,
+    "total": 12,
+    "closeObserved": 12,
+    "groupsAbsent": 12,
+    "active": 0
+  },
+  "cleanup": {
+    "root": "/Users/kjopek/Workspace/safe-bash/tests/shell/indexed-arrays-independent-20260828/candidate-v1/public-v2-app-5xarxw",
+    "removedAfterCaptureAndIntegrity": true
+  },
+  "nativeCalls": 0,
+  "privateEngineCalls": 0,
+  "buildRetries": 0,
+  "accepted": false
+}

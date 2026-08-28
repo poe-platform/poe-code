@@ -1,0 +1,4 @@
+declare -- a
+declare -- a="inner"
+function=7
+declare -a a=([2]="outer" [7]="")

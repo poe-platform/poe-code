@@ -1,0 +1,15 @@
+declare -x a="temporary"
+declare -x BASH_ENV=""
+declare -x ENV=""
+declare -x HOME="/private/tmp/indexed-arrays-preseal-v1-7843e762-7db7-4d2b-a16a-0c279d49c616/home"
+declare -x LANG="C"
+declare -x LC_ALL="C"
+declare -x OLDPWD
+declare -x PATH=""
+declare -x PWD="/private/tmp/indexed-arrays-preseal-v1-7843e762-7db7-4d2b-a16a-0c279d49c616"
+declare -x SHLVL="1"
+declare -x TMPDIR="/private/tmp/indexed-arrays-preseal-v1-7843e762-7db7-4d2b-a16a-0c279d49c616/tmp"
+declare -x TZ="UTC"
+declare -x a="temporary"
+command=0
+declare -a a=([2]="outer")

@@ -1,0 +1,11 @@
+{
+  "sealRevision": "f0c6321f506f866f37c42d4162dc332a80668925",
+  "sealSha256": "57216e8c9b1a49ea89e0456af7f45eef94d1ef6cc3d06042839f1e08284927f6",
+  "manifestSha256": "f731d304306b02d11df41b386d4528405ad307ca33098d25f1bc2a0193c0764f",
+  "authorizationSha256": "abd008e47589f3237c88e8d409bd67b47a48992140b07abb86ea335e6430cc02",
+  "startedAt": "2026-08-28T10:07:07.779Z",
+  "output": "/Users/kjopek/Workspace/safe-bash/tests/shell/indexed-arrays-design-20260828/native-observations-v1/capture-7843e762-7db7-4d2b-a16a-0c279d49c616",
+  "fixture": "/private/tmp/indexed-arrays-preseal-v1-7843e762-7db7-4d2b-a16a-0c279d49c616",
+  "onceOnly": true,
+  "admittedRowSlots": 16
+}

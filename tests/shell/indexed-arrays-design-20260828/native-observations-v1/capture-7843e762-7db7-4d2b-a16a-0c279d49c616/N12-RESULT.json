@@ -1,0 +1,91 @@
+{
+  "id": "N12",
+  "startedAt": "2026-08-28T10:07:08.206Z",
+  "scriptSha256": "07672e6489965b5e146ea7011079f2728107d053d2dfaed2c424fb6936d5cf2a",
+  "binary": "/private/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+  "argv": [
+    "--noprofile",
+    "--norc",
+    "-c",
+    "a=([0]=old [5]=tail)\ntrap 'declare -p a side' EXIT\na=([0]=new [1]=\"${side:=kept}\" [2]=\"${missing:?preseal-stop}\")\nprintf 'after\\n'\n",
+    "indexed-preseal-v1"
+  ],
+  "env": {
+    "PATH": "",
+    "ENV": "",
+    "BASH_ENV": "",
+    "HOME": "/private/tmp/indexed-arrays-preseal-v1-7843e762-7db7-4d2b-a16a-0c279d49c616/home",
+    "TMPDIR": "/private/tmp/indexed-arrays-preseal-v1-7843e762-7db7-4d2b-a16a-0c279d49c616/tmp",
+    "LANG": "C",
+    "LC_ALL": "C",
+    "TZ": "UTC"
+  },
+  "cwd": "/private/tmp/indexed-arrays-preseal-v1-7843e762-7db7-4d2b-a16a-0c279d49c616",
+  "stdin": "empty /dev/null via ignore",
+  "spawnSucceeded": true,
+  "pid": 69650,
+  "pgid": 69650,
+  "exitCode": 127,
+  "signal": null,
+  "errors": [],
+  "stdoutObservedBytes": 59,
+  "stderrObservedBytes": 50,
+  "groupSignals": [],
+  "groupChecks": [
+    {
+      "atMs": 12.224083000000064,
+      "exists": false
+    }
+  ],
+  "stopReasons": [],
+  "groupCheckCount": 1,
+  "cleanupRegisteredBeforeSpawn": true,
+  "exitObserved": true,
+  "exitedAt": "2026-08-28T10:07:08.218Z",
+  "lastGroupExists": false,
+  "elapsedMs": 12.232457999999951,
+  "closedAt": "2026-08-28T10:07:08.218Z",
+  "observedClosureByDeadline": true,
+  "childCloseObserved": true,
+  "childReaped": true,
+  "groupAbsent": true,
+  "retainedBytes": 109,
+  "stdout": {
+    "bytes": 59,
+    "sha256": "84a74eacc31195b0cbf69030d695fd08d3f5b74bc9b2317fdc078559357a305d"
+  },
+  "stderr": {
+    "bytes": 50,
+    "sha256": "0d930beeaa9e85fa50074e128054c45ab4b22b2ccb413cae2700634268df7bab"
+  },
+  "after": [
+    {
+      "path": "/private/tmp/indexed-arrays-preseal-v1-7843e762-7db7-4d2b-a16a-0c279d49c616",
+      "realpath": "/private/tmp/indexed-arrays-preseal-v1-7843e762-7db7-4d2b-a16a-0c279d49c616",
+      "dev": 16777232,
+      "ino": 181263727,
+      "mode": 448,
+      "kind": "directory",
+      "bytes": 0
+    },
+    {
+      "path": "/private/tmp/indexed-arrays-preseal-v1-7843e762-7db7-4d2b-a16a-0c279d49c616/home",
+      "realpath": "/private/tmp/indexed-arrays-preseal-v1-7843e762-7db7-4d2b-a16a-0c279d49c616/home",
+      "dev": 16777232,
+      "ino": 181263728,
+      "mode": 448,
+      "kind": "directory",
+      "bytes": 0
+    },
+    {
+      "path": "/private/tmp/indexed-arrays-preseal-v1-7843e762-7db7-4d2b-a16a-0c279d49c616/tmp",
+      "realpath": "/private/tmp/indexed-arrays-preseal-v1-7843e762-7db7-4d2b-a16a-0c279d49c616/tmp",
+      "dev": 16777232,
+      "ino": 181263729,
+      "mode": 448,
+      "kind": "directory",
+      "bytes": 0
+    }
+  ],
+  "newEntries": []
+}

@@ -1,0 +1,19 @@
+{
+  "schema": "independent-v4-focused-expectations",
+  "DATA": ["D01-plan-budget", "D02-strict-forwarding-and-import-order"],
+  "SYNTHETIC": [
+    "R1-admission-prefix-rejects-case", "R1-cohort-prefix-rejects-C11", "R1-prefix-rejects-unknown",
+    "R1-prefix-valid-and-claim-order", "R1-prefix-strict-and-launch-path", "R1-phase-plan-grant-mutations",
+    "R1-operation-layout-specimen-mutations", "R1-control-binding-mutations",
+    "R2-null-primary", "R2-undefined-primary", "R2-Error-primary", "R2-zero-primary", "R2-no-primary",
+    "B1-valid-control", "B1-missing-late", "B1-nonempty-late", "B1-denied-load", "B1-missing-postguard", "B1-contradictory-result",
+    "W07-uncredited-and-exact-failures",
+    "R3-loaded-noop", "R3-loaded-status23", "R3-loaded-partial-effect", "R3-loaded-complete-effects", "R3-source-binding-negative",
+    "R4-EEXIST-emergency-closed-unrun-tail", "R4-preparation-and-unknown-acquisition"
+  ],
+  "expectedNamedPasses": 29,
+  "expectedFixtureChildren": 5,
+  "expectedUnsafeMiniRun": ["UNSAFE_STOP", "UNRUN_UNSAFE_TAIL"],
+  "noActualProductOrComparatorImport": true,
+  "noActualC11": true
+}

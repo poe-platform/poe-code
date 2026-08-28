@@ -1,6 +1,7 @@
 # OS instruction-write fence — author review packet
 
-2026-08-28. **Review ready, not independently accepted or released. No full gate.**
+2026-08-28. **Original author packet; later scoped acceptance is qualified below.
+No full-gate release.** Historical results in this packet are unchanged.
 
 ## Fixed inputs and source
 
@@ -31,7 +32,10 @@ output root. The inherited OS profile denies writes/linking outside these
 roots, and instruction-basename writes/linking inside them. `/dev/null`
 data writes remain permitted. Literal POSIX backslashes are not separators.
 Output/root identity, case/path handling and profile bytes are bound in the
-per-run envelope; no preexisting directory or link alias is admitted.
+per-run envelope; no preexisting directory or link alias is admitted as a fresh
+initial root. This does not prohibit runtime inert outside symlink references:
+they are allowed, while resolved writes through those references are denied.
+Outside hardlinks and physical-directory rename/import remain denied.
 
 Every target worker and phase is launched through sandbox-exec. Nested Node,
 shell, git and tar targets cannot remove this guard by clearing their env or
@@ -117,3 +121,18 @@ Different Dirac review of this source/packet and a **new root release** remain
 mandatory before any full gate. Fourteen full-gate phases, zero-skip policy,
 historical failures, exact-six metadata projection and opaque authenticated Git
 provenance policy remain. This packet neither resumes nor rescales an older gate.
+
+## Later scoped review and remaining executable-route hold
+
+Root accepted independent `38a4e7b08f47139328f3a4ac5b4b50d83a6544b3` for five
+resolved-write safety phases plus actual A10/real duplicate-build denial, not a
+complete release binding. Runtime inert outside symlink creation is allowed;
+required resolved writes through aliases/chains/renamed links are denied. The
+historical tar refusal left216 ordinary neighbors extracted, without rollback.
+Preopened-FD limitations and prior creation-proxy2pass/1fail remain unchanged.
+
+The independent trace exposed unbound pre-execution `xcodebuild` and unresolved
+`otool-classic` provenance. `../tool-routes-v1/PROPOSAL.md` records read-only
+diagnosis, exact proposed direct routes and a narrow new tool/reference approval
+request. Current shipping driver/profile bytes have not been rebound; no full
+gate is authorized by either the scoped review or this qualification.

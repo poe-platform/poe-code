@@ -6,8 +6,8 @@ import { admitFile, exact, validateRetirement } from './admission.mjs';
 
 export function observeWorkers(configuration) {
   const NativeWorker = workers.Worker;
-  const rows = [], outstanding = new Set();
-  let closed = false, closing, active = 0, captured = 0;
+  const rows = [], admissionRefusals = [], outstanding = new Set();
+  let closed = false, closing, active = 0, captured = 0, attempts = 0;
   const emit = value => {
     const bytes = Buffer.from(JSON.stringify({ pid: process.pid, event: 'worker-parent', ...value }) + '\n');
     captured += bytes.length;
@@ -20,18 +20,22 @@ export function observeWorkers(configuration) {
   admitFile(configuration.guard, configuration.files);
   class ObservedWorker extends NativeWorker {
     constructor(url, options) {
+      try {
       assert.equal(closed, false, 'LATE_WORKER_ACQUISITION_STOP');
       assert.ok(url instanceof URL && url.href === configuration.entry, 'WORKER_URL_DRIFT');
       exact(options, requested, 'WORKER_OPTIONS_DRIFT');
       admitFile(url.href, configuration.files);
       admitFile(configuration.preload, configuration.files);
       admitFile(configuration.guard, configuration.files);
-      assert.ok(active < configuration.maxConcurrent && rows.length < configuration.maxStarts, 'WORKER_START_BOUND');
+      assert.ok(active < configuration.maxConcurrent && attempts < configuration.maxStarts, 'WORKER_START_BOUND');
+      } catch (error) { admissionRefusals.push(String(error)); emit({ action: 'admission-refused', error: String(error) }); throw error; }
       const token = `${configuration.token}:${rows.length + 1}`;
       const row = { token, entry: url.href, requested, effective, exited: false, exitCode: null, terminatePending: 0, terminateErrors: [], emergency: false, productTerminateCalls: 0, errors: [] };
       const prior = workers.getEnvironmentData('priority-worker-observation-v1');
       workers.setEnvironmentData('priority-worker-observation-v1', { ...configuration, token, requested, effective });
+      attempts++; emit({ action: 'constructor-attempt', token, entry: url.href, requested, effective });
       try { super(url, effective); }
+      catch (error) { admissionRefusals.push('CONSTRUCTOR_ACQUISITION_UNKNOWN_STOP:' + String(error)); emit({ action: 'constructor-error', token, error: String(error) }); throw error; }
       finally { workers.setEnvironmentData('priority-worker-observation-v1', prior); }
       rows.push(row); active++;
       row.threadId = this.threadId;
@@ -64,6 +68,7 @@ export function observeWorkers(configuration) {
   syncBuiltinESMExports();
   return {
     rows,
+    admissionRefusals,
     close() {
       if (closing) return closing;
       closed = true;

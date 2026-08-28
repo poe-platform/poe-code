@@ -37,5 +37,7 @@ finally {
   catch (error) { observation.pass = false; observation.failures.push({ kind: 'worker-cleanup', message: String(error) }); observation.workers = observer.rows.map(({ reaped, ...row }) => row); }
 }
 observation.layout = configuration.layout;
+observation.workerAdmissionRefusals = observer.admissionRefusals;
+if (observer.admissionRefusals.length) observation.pass = false;
 console.log(JSON.stringify(observation));
 if (!observation.pass) process.exitCode = 1;

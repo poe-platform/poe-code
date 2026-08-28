@@ -4,16 +4,16 @@ import path from 'node:path';
 import vm from 'node:vm';
 import { spawnSync } from 'node:child_process';
 import { pathToFileURL } from 'node:url';
-import { sha, readJson, writeJson, directory, repository, packet, composition, admitFile, expectedGrant, requireGrant, validateRetirement } from './admission.mjs';
+import { sha, readJson, writeJson, inventory, directory, repository, packet, composition, admitFile, expectedGrant, requireGrant, validateRetirement } from './admission.mjs';
 import { authenticateArchive, storedRequests, verifyStoredBatch } from './source-auth.mjs';
 import { observeWorkers } from './worker-observer.mjs';
 
-assert.deepEqual(process.argv.slice(2), ['--out', path.join(directory, 'stub-evidence-v1')]);
-const protocol = readJson(path.join(directory, 'STUB-PROTOCOL.json'));
+assert.deepEqual(process.argv.slice(2), ['--out', path.join(directory, 'stub-evidence-v2')]);
+const protocol = readJson(path.join(directory, 'STUB-PROTOCOL-v2.json'));
 for (const row of protocol.files) assert.equal(sha(fs.readFileSync(path.join(directory, row.path))), row.sha256, row.path);
 const output = process.argv[3]; assert.equal(fs.existsSync(output), false); fs.mkdirSync(output);
 const started = Date.now();
-const evidence = { role: 'DATA_SYNTHETIC_BENIGN_STUB_ONLY', protocolSha256: sha(fs.readFileSync(path.join(directory, 'STUB-PROTOCOL.json'))), started, host: { node: process.execPath, version: process.version, qualification: 'stub host only; not accepted-tool qualification' }, synthetic: [], children: [], failures: [], productImports: 0, productExecutions: 0, nativeOracleExecutions: 0 };
+const evidence = { role: 'DATA_SYNTHETIC_BENIGN_STUB_ONLY', protocolSha256: sha(fs.readFileSync(path.join(directory, 'STUB-PROTOCOL-v2.json'))), started, host: { node: process.execPath, version: process.version, qualification: 'stub host only; not accepted-tool qualification' }, synthetic: [], children: [], failures: [], productImports: 0, productExecutions: 0, nativeOracleExecutions: 0 };
 const test = (name, body) => { try { body(); evidence.synthetic.push({ name, pass: true }); } catch (error) { evidence.synthetic.push({ name, pass: false, error: String(error) }); evidence.failures.push({ name, error: String(error) }); } };
 function child(label, executable, args, input, timeout = 5000) {
   assert.ok(evidence.children.length < protocol.bounds.children && Date.now() - started < protocol.bounds.windowMs);
@@ -59,7 +59,7 @@ try {
   test('worker-url-drift-before-start', () => assert.throws(() => new Worker(new URL('./stub-dependency.mjs', import.meta.url), options), /WORKER_URL_DRIFT/u));
   test('worker-options-drift-before-start', () => assert.throws(() => new Worker(new URL('./stub-entry.mjs', import.meta.url), { ...options, execArgv: ['--inspect'] }), /WORKER_OPTIONS_DRIFT/u));
   test('worker-preload-digest-drift-before-start', () => { const changed = { ...observerFiles, [preload]: { sha256: '0'.repeat(64) } }; assert.throws(() => observeWorkers({ files: changed, preload: pathToFileURL(preload).href, guard: pathToFileURL(guard).href }), /LOAD_HASH_REFUSED/u); });
-  await observer.close(); assert.equal(observer.rows.length, 0);
+  await observer.close(); assert.equal(observer.rows.length, 0); assert.equal(observer.admissionRefusals.length, 2);
   const refusal = child('no-go-no-setup', process.execPath, [path.join(directory, 'future-supervisor.mjs')]);
   assert.notEqual(refusal.status, 0); assert.ok(refusal.stderr.toString().includes('EXACT_COMMAND_REQUIRED_NO_SETUP'));
   assert.equal(fs.existsSync(path.join(directory, 'future-run-01')), false);
@@ -70,6 +70,7 @@ try {
     const loads = fs.existsSync(loadPath) ? fs.readFileSync(loadPath, 'utf8').split('\n').filter(Boolean).map(line => JSON.parse(line)) : [];
     test('actual-stub:' + mode, () => {
       assert.equal(result.status, 0); assert.equal(record.pass, true);
+      assert.equal(record.admissionRefusals.length, ['late-acquisition', 'concurrent-bound', 'cumulative-bound'].includes(mode) ? 1 : 0);
       for (const row of record.rows) {
         assert.equal(row.exited, true); assert.equal(row.terminatePending, 0);
         const matching = loads.filter(load => load.token === row.token && load.threadId === row.threadId);
@@ -86,6 +87,8 @@ try {
 finally {
   evidence.finished = Date.now(); evidence.allOwnedOsChildrenReaped = evidence.children.every(row => row.reaped);
   evidence.workerStarts = evidence.children.reduce((sum, row) => sum + (row.observation?.rows.length ?? 0), 0);
+  evidence.retainedBytesBeforeFinalReceipt = Object.values(inventory(output)).reduce((sum, row) => sum + (row.bytes ?? 0), 0);
+  if (evidence.workerStarts > protocol.bounds.workerStarts || evidence.finished - started > protocol.bounds.windowMs || evidence.retainedBytesBeforeFinalReceipt + Buffer.byteLength(JSON.stringify(evidence, null, 2)) > protocol.bounds.storageBytes) evidence.failures.push({ kind: 'RESOURCE_BOUND' });
   evidence.allOwnedWorkersReaped = evidence.children.every(row => row.observation?.rows.every(worker => worker.exited && worker.terminatePending === 0) ?? true);
   evidence.pass = evidence.failures.length === 0 && evidence.allOwnedOsChildrenReaped && evidence.allOwnedWorkersReaped;
   writeJson(path.join(output, 'RESULTS.json'), evidence);

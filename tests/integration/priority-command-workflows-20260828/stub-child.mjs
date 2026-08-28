@@ -9,7 +9,7 @@ import { observeWorkers } from './worker-observer.mjs';
 const [mode, output] = process.argv.slice(2);
 assert.ok(['natural', 'product-forced', 'emergency', 'error', 'loader-drift', 'late-acquisition', 'concurrent-bound', 'cumulative-bound'].includes(mode));
 const own = path.dirname(fileURLToPath(import.meta.url));
-const protocol = readJson(path.join(own, 'STUB-PROTOCOL.json'));
+const protocol = readJson(path.join(own, 'STUB-PROTOCOL-v2.json'));
 for (const row of protocol.files) assert.equal(sha(fs.readFileSync(path.join(own, row.path))), row.sha256, row.path);
 const files = {};
 for (const name of ['stub-entry.mjs', 'stub-dependency.mjs', 'stub-guard.mjs', 'admission.mjs', 'worker-preload.mjs']) files[path.join(own, name)] = { sha256: sha(fs.readFileSync(path.join(own, name))), relative: name, role: 'benign-stub-or-harness' };
@@ -50,5 +50,5 @@ try {
   }
   assert.ok(observer.rows.every(row => row.exited && row.terminatePending === 0)); pass = true;
 } catch (error) { failure = { message: String(error), stack: error?.stack }; try { await observer.close(); } catch {} }
-console.log(JSON.stringify({ role: 'BENIGN_STUB_ONLY_NOT_PRODUCT_PROOF', mode, pass, failure, expectedRefusal, rows: observer.rows.map(({ reaped, ...row }) => row), productImports: 0, productDispatches: 0 }));
+console.log(JSON.stringify({ role: 'BENIGN_STUB_ONLY_NOT_PRODUCT_PROOF', mode, pass, failure, expectedRefusal, admissionRefusals: observer.admissionRefusals, rows: observer.rows.map(({ reaped, ...row }) => row), productImports: 0, productDispatches: 0 }));
 if (!pass) process.exitCode = 1;

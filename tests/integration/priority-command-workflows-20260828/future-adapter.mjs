@@ -17,14 +17,18 @@ function chunksSource(chunks, counts, fault) {
   return {
     [Symbol.asyncIterator]() {
       counts.iterators++;
+      counts.pending = (counts.pending ?? 0) + 1;
       let index = 0;
+      let open = true;
+      const close = () => { if (open) { open = false; counts.pending--; } };
       return {
         async next() {
           counts.next++;
           if (fault) throw fault;
-          return index < chunks.length ? { done: false, value: decode(chunks[index++]) } : { done: true, value: undefined };
+          if (index < chunks.length) return { done: false, value: decode(chunks[index++]) };
+          close(); return { done: true, value: undefined };
         },
-        async return() { counts.return++; return { done: true, value: undefined }; },
+        async return() { counts.return++; close(); return { done: true, value: undefined }; },
       };
     },
   };
@@ -41,7 +45,7 @@ function observeFs(target, trace, fixture, api) {
         const record = { method: name, paths: args.filter(argument => typeof argument === 'string'), success: false };
         trace.calls.push(record);
         if (name === 'readStream') {
-          const counts = { iterators: 0, next: 0, return: 0 };
+          const counts = { iterators: 0, next: 0, return: 0, pending: 0 };
           record.stream = counts;
           if (fixture.fault?.path === args[0]) {
             const { code, ...options } = fixture.fault.error;
@@ -51,15 +55,19 @@ function observeFs(target, trace, fixture, api) {
           return {
             [Symbol.asyncIterator]() {
               counts.iterators++;
+              counts.pending++;
+              let open = true;
+              const close = () => { if (open) { open = false; counts.pending--; } };
               const iterator = stream[Symbol.asyncIterator]();
               return {
-                next: async () => { counts.next++; const result = await iterator.next(); if (result.done) record.success = true; return result; },
-                return: async () => { counts.return++; return iterator.return ? iterator.return() : { done: true, value: undefined }; },
+                next: async () => { counts.next++; const result = await iterator.next(); if (result.done) { record.success = true; close(); } return result; },
+                return: async () => { counts.return++; const result = iterator.return ? await iterator.return() : { done: true, value: undefined }; close(); return result; },
               };
             },
           };
         }
-        return Promise.resolve().then(() => Reflect.apply(value, backing, args)).then(result => { record.success = true; return result; });
+        trace.pending = (trace.pending ?? 0) + 1;
+        return Promise.resolve().then(() => Reflect.apply(value, backing, args)).then(result => { record.success = true; return result; }, error => { record.error = { code: error?.code, message: String(error) }; throw error; }).finally(() => { trace.pending--; });
       };
       methods.set(name, wrapped);
       return wrapped;
@@ -99,7 +107,7 @@ function partialOrder(events, sequence) {
 }
 
 function checkGuards(row, trace) {
-  if (row.stdinGuard) assert.deepEqual(trace.stdin, row.stdinGuard, 'STDIN_COUNTS');
+  if (row.stdinGuard) assert.deepEqual({ iterators: trace.stdin.iterators, next: trace.stdin.next, return: trace.stdin.return }, row.stdinGuard, 'STDIN_COUNTS');
   if (row.mutationGuard) {
     const actual = trace.fs.calls.filter(call => mutators.has(call.method));
     assert.deepEqual(actual.map(call => [call.method, ...call.paths]), row.mutationGuard.exactCalls, 'MUTATION_CALLS');
@@ -132,7 +140,7 @@ function checkGuards(row, trace) {
 export async function runCase(api, row, fixture, defaults, networkLimits) {
   const trace = {
     id: row.id, role: 'REAL_PUBLIC_API_FUTURE_EXECUTION', created: 0, disposed: 0,
-    events: [], stages: [], fs: { calls: [] }, backing: { calls: [] }, stdin: { iterators: 0, next: 0, return: 0 },
+    events: [], stages: [], fs: { calls: [], pending: 0 }, backing: { calls: [], pending: 0 }, stdin: { iterators: 0, next: 0, return: 0, pending: 0 },
     network: { authorizations: 0, requests: 0, responseIterators: [], responseNext: [], responseReturn: [], responseDispose: [], requestAfterClose: 0, extraRequests: 0 },
     lifecycle: {}, requestTrace: [], authorizationTrace: [], failures: [],
   };
@@ -161,6 +169,7 @@ export async function runCase(api, row, fixture, defaults, networkLimits) {
       assert.deepEqual(actual, fixture.authorization); event('authorization.enter'); fixturePending++;
       authorizationEntered.resolve();
       try { return await opaque.promise; }
+      catch (reason) { trace.lifecycle.opaqueLateRejects = (trace.lifecycle.opaqueLateRejects ?? 0) + 1; trace.lifecycle.lateReasonSameObject = reason === lateReason; throw reason; }
       finally { fixturePending--; opaqueSettled = true; }
     }
     const route = fixture.network.routes[index];
@@ -173,19 +182,19 @@ export async function runCase(api, row, fixture, defaults, networkLimits) {
     const route = fixture.network.routes[index];
     if (!route) { trace.network.extraRequests++; throw new Error('EXTRA_REQUEST_STOP'); }
     const pending = fixture.infrastructure === 'cooperative-transport';
-    let cleanup, acquisitionSettled = false, rejectAcquisition;
+    let cleanup, acquisitionSettled = false, rejectAcquisition, admitted = false;
     const acquisition = deferred();
     const abort = () => { event('host.acquire.reject'); rejectAcquisition(request.signal.reason); };
     const clean = () => cleanup ??= (async () => {
       if (pending) { hostClosed = true; event('host.cleanup.start'); cleanupEntered.resolve(); await cleanupGate.promise; }
       await acquisition.promise.catch(() => {});
       if (pending) { request.signal.removeEventListener('abort', abort); listenerCount--; event('host.cleanup.finish'); }
-      ownedPending--;
+      if (admitted) ownedPending--;
     })();
     assert.equal(typeof request.registerCleanup, 'function', 'COOPERATIVE_HOOK_REQUIRED');
     request.registerCleanup(clean); event('host.cleanup.register');
-    request.signal.throwIfAborted(); ownedPending++; event('host.acquire.admit');
     try {
+      request.signal.throwIfAborted(); ownedPending++; admitted = true; event('host.acquire.admit');
       const parts = []; let bodyBytes = 0;
       if (request.body) for await (const chunk of request.body) { bodyBytes += chunk.length; assert.ok(bodyBytes <= 4096); parts.push(new Uint8Array(chunk)); }
       const actual = { url: request.url, method: request.method, headers: request.headers.map(pair => [...pair]), bodyBase64: request.body ? encode(Buffer.concat(parts)) : null };
@@ -198,7 +207,7 @@ export async function runCase(api, row, fixture, defaults, networkLimits) {
         finally { acquisitionSettled = true; acquisition.resolve(); }
       }
       assert.ok(route.response, 'RESPONSE_REQUIRED');
-      const counts = { iterators: 0, next: 0, return: 0 };
+      const counts = { iterators: 0, next: 0, return: 0, pending: 0 };
       let disposed;
       for (const key of ['responseIterators', 'responseNext', 'responseReturn', 'responseDispose']) trace.network[key].push(0);
       const body = chunksSource(route.response.chunks, counts);
@@ -254,7 +263,7 @@ export async function runCase(api, row, fixture, defaults, networkLimits) {
     if (fixture.infrastructure === 'opaque-authorizer') {
       await authorizationEntered.promise; caller.abort(callerReason); await execution;
       trace.lifecycle.opaquePendingAtExecSettlement = !opaqueSettled;
-      opaque.reject(lateReason); trace.lifecycle.opaqueLateRejects = 1; await turn();
+      opaque.reject(lateReason); await turn();
     }
     await execution;
   } catch (error) { trace.failures.push({ kind: 'adapter-or-execution', message: String(error), stack: error?.stack }); }
@@ -283,6 +292,10 @@ export async function runCase(api, row, fixture, defaults, networkLimits) {
   try {
     assert.equal(trace.failures.length, 0); assert.equal(trace.created, 1); assert.equal(trace.disposed, 1);
     assert.equal(listenerCount, 0); assert.equal(ownedPending, 0); assert.equal(fixturePending, 0);
+    assert.equal(trace.stdin.pending, 0); assert.equal(trace.fs.pending, 0); assert.equal(trace.backing.pending, 0);
+    for (const call of [...trace.fs.calls, ...trace.backing.calls]) if (call.stream) assert.equal(call.stream.pending, 0, 'FILESYSTEM_CURSOR_UNREAPED');
+    for (const response of trace.responses ?? []) assert.equal(response.pending, 0, 'RESPONSE_CURSOR_UNREAPED');
+    if (fixture.infrastructure === 'opaque-authorizer') assert.equal(trace.lifecycle.lateReasonSameObject, true);
     assert.equal(trace.outcome.kind, row.expected.kind);
     if (row.expected.kind === 'result') assert.equal(trace.outcome.exitCode, row.expected.exitCode);
     else { assert.equal(Object.hasOwn(trace.outcome, 'exitCode'), false); assert.equal(trace.outcome.callerReasonSameObject, true); }

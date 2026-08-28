@@ -198,6 +198,7 @@ try {
       evidence.rows.push({ layout: layout.name, id, result: record, parentLoads, childLoads, workerEvents });
       evidence.unexecuted.splice(evidence.unexecuted.indexOf(`${layout.name}:${id}`), 1);
       assert.equal(record.id, id); assert.equal(record.layout, layout.name);
+      assert.deepEqual(record.workerAdmissionRefusals, [], 'WORKER_ADMISSION_STOP');
       assert.equal(starts.length, record.workers.length, 'WORKER_ACCOUNTING_UNKNOWN_STOP');
       validateRetirement(record.workers);
       for (const start of starts) {

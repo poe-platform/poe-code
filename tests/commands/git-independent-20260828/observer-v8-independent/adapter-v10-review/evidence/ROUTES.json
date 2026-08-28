@@ -1,0 +1,921 @@
+{
+  "sourceCasesSha256": "807a2e32b286da6a7e979cc45c75d0985de1e49db79b9d1926627c7a444f8b21",
+  "rows": [
+    {
+      "id": "A01",
+      "route": "ordinary direct helper with registered callback; original case bytes authoritative",
+      "historicalDataOnly": {
+        "id": "A01",
+        "historicalCreatedDelta": 6,
+        "invocationsObserved": 1,
+        "rowSha256": "80df4738fa2727bc53d9ba03bceacf401f3d765b710116130fce38fca2d59bc0"
+      },
+      "independentInstrumentedPilot": false,
+      "unchangedNewSemanticRun": false,
+      "full71WorkerCapacityProof": "NOT_SEALED"
+    },
+    {
+      "id": "A02",
+      "route": "ordinary direct helper with registered callback; original case bytes authoritative",
+      "historicalDataOnly": {
+        "id": "A02",
+        "historicalCreatedDelta": 2,
+        "invocationsObserved": 1,
+        "rowSha256": "a785d7f11507a0879631719e32b9f290bb314503c83445d3e7c1d5d820c94d53"
+      },
+      "independentInstrumentedPilot": false,
+      "unchangedNewSemanticRun": false,
+      "full71WorkerCapacityProof": "NOT_SEALED"
+    },
+    {
+      "id": "A03",
+      "route": "ordinary direct helper with registered callback; original case bytes authoritative",
+      "historicalDataOnly": {
+        "id": "A03",
+        "historicalCreatedDelta": 7,
+        "invocationsObserved": 1,
+        "rowSha256": "53b953ae00997f3ff83a4c022038b14c997a608c77aafb7d0b6fcc7292b3d79b"
+      },
+      "independentInstrumentedPilot": false,
+      "unchangedNewSemanticRun": false,
+      "full71WorkerCapacityProof": "NOT_SEALED"
+    },
+    {
+      "id": "A04",
+      "route": "ordinary direct helper with registered callback; original case bytes authoritative",
+      "historicalDataOnly": {
+        "id": "A04",
+        "historicalCreatedDelta": 6,
+        "invocationsObserved": 1,
+        "rowSha256": "d2e13195e0f1ae14dc6ff3995623b37221cca4d444f0ae0b0823e86dd74f52a6"
+      },
+      "independentInstrumentedPilot": false,
+      "unchangedNewSemanticRun": false,
+      "full71WorkerCapacityProof": "NOT_SEALED"
+    },
+    {
+      "id": "A05",
+      "route": "ordinary direct helper with registered callback; original case bytes authoritative",
+      "historicalDataOnly": {
+        "id": "A05",
+        "historicalCreatedDelta": 4,
+        "invocationsObserved": 1,
+        "rowSha256": "3895dfc54761486c997db9009296f4a26a57017bde2bb9648ac2c614e51b4dd4"
+      },
+      "independentInstrumentedPilot": false,
+      "unchangedNewSemanticRun": false,
+      "full71WorkerCapacityProof": "NOT_SEALED"
+    },
+    {
+      "id": "A06",
+      "route": "ordinary direct helper with registered callback; original case bytes authoritative",
+      "historicalDataOnly": {
+        "id": "A06",
+        "historicalCreatedDelta": 0,
+        "invocationsObserved": 1,
+        "rowSha256": "8ec27823589d6aef4e6d6e4ad5658e9d8f7e69ccbc21a93ded02b9cf1d9f1125"
+      },
+      "independentInstrumentedPilot": false,
+      "unchangedNewSemanticRun": false,
+      "full71WorkerCapacityProof": "NOT_SEALED"
+    },
+    {
+      "id": "A07",
+      "route": "ordinary direct helper with registered callback; original case bytes authoritative",
+      "historicalDataOnly": {
+        "id": "A07",
+        "historicalCreatedDelta": 0,
+        "invocationsObserved": 4,
+        "rowSha256": "6c38d61ef92bc130d9384be263f9de0dfb63f0f74efc90e223d32b783203d738"
+      },
+      "independentInstrumentedPilot": false,
+      "unchangedNewSemanticRun": false,
+      "full71WorkerCapacityProof": "NOT_SEALED"
+    },
+    {
+      "id": "A08",
+      "route": "ordinary direct helper with registered callback; original case bytes authoritative",
+      "historicalDataOnly": {
+        "id": "A08",
+        "historicalCreatedDelta": 0,
+        "invocationsObserved": 2,
+        "rowSha256": "1c31059c9e38138d8ce801c42b150845974e959f6b9752bf3f744a503b183981"
+      },
+      "independentInstrumentedPilot": false,
+      "unchangedNewSemanticRun": false,
+      "full71WorkerCapacityProof": "NOT_SEALED"
+    },
+    {
+      "id": "A09",
+      "route": "ordinary direct helper with registered callback; original case bytes authoritative",
+      "historicalDataOnly": {
+        "id": "A09",
+        "historicalCreatedDelta": 0,
+        "invocationsObserved": 1,
+        "rowSha256": "17cae9a99cc97af1388f3e51984747b67cf03ba61661beb9b30fbd93b7e938ef"
+      },
+      "independentInstrumentedPilot": false,
+      "unchangedNewSemanticRun": false,
+      "full71WorkerCapacityProof": "NOT_SEALED"
+    },
+    {
+      "id": "A10",
+      "route": "ordinary direct helper with registered callback; original case bytes authoritative",
+      "historicalDataOnly": {
+        "id": "A10",
+        "historicalCreatedDelta": 6,
+        "invocationsObserved": 3,
+        "rowSha256": "6f40715cc009e67f765822d13d9f9567ee3af209c98468746905346440c0b31e"
+      },
+      "independentInstrumentedPilot": false,
+      "unchangedNewSemanticRun": false,
+      "full71WorkerCapacityProof": "NOT_SEALED"
+    },
+    {
+      "id": "A11",
+      "route": "ordinary direct helper with registered callback; original case bytes authoritative",
+      "historicalDataOnly": {
+        "id": "A11",
+        "historicalCreatedDelta": 4,
+        "invocationsObserved": 3,
+        "rowSha256": "17584be92b661da1d211239ddc6abe7ba87d8004d26ea1610e3873ec03f309c3"
+      },
+      "independentInstrumentedPilot": false,
+      "unchangedNewSemanticRun": false,
+      "full71WorkerCapacityProof": "NOT_SEALED"
+    },
+    {
+      "id": "A12",
+      "route": "ordinary direct helper with registered callback; original case bytes authoritative",
+      "historicalDataOnly": {
+        "id": "A12",
+        "historicalCreatedDelta": 0,
+        "invocationsObserved": 3,
+        "rowSha256": "7145beca3d4189e4fc3296699c8ccf87b29793441ba436b0b7a1c98c1a3238a7"
+      },
+      "independentInstrumentedPilot": false,
+      "unchangedNewSemanticRun": false,
+      "full71WorkerCapacityProof": "NOT_SEALED"
+    },
+    {
+      "id": "A13",
+      "route": "ordinary direct helper with registered callback; original case bytes authoritative",
+      "historicalDataOnly": {
+        "id": "A13",
+        "historicalCreatedDelta": 6,
+        "invocationsObserved": 4,
+        "rowSha256": "848bc82125629ede4d257dc005cde078d0664edea7da96e3da0b7632b36db385"
+      },
+      "independentInstrumentedPilot": false,
+      "unchangedNewSemanticRun": false,
+      "full71WorkerCapacityProof": "NOT_SEALED"
+    },
+    {
+      "id": "A14",
+      "route": "ordinary direct helper with registered callback; original case bytes authoritative",
+      "historicalDataOnly": {
+        "id": "A14",
+        "historicalCreatedDelta": 0,
+        "invocationsObserved": 8,
+        "rowSha256": "ccfddead9a410e65c2c7267d2f4ba16a66b61673cb3be884565f07b7f793fb17"
+      },
+      "independentInstrumentedPilot": false,
+      "unchangedNewSemanticRun": false,
+      "full71WorkerCapacityProof": "NOT_SEALED"
+    },
+    {
+      "id": "A15",
+      "route": "ordinary direct helper with registered callback; original case bytes authoritative",
+      "historicalDataOnly": {
+        "id": "A15",
+        "historicalCreatedDelta": 0,
+        "invocationsObserved": 5,
+        "rowSha256": "151dcd4da07e6d767e44ef24387fd77056e6478155c41d039a42afd30d294d7d"
+      },
+      "independentInstrumentedPilot": false,
+      "unchangedNewSemanticRun": false,
+      "full71WorkerCapacityProof": "NOT_SEALED"
+    },
+    {
+      "id": "A16",
+      "route": "ordinary direct helper with registered callback; original case bytes authoritative",
+      "historicalDataOnly": {
+        "id": "A16",
+        "historicalCreatedDelta": 0,
+        "invocationsObserved": 3,
+        "rowSha256": "8d18de8c25f2ab4ba99cb5e01d0545af8aea6f81cde1f0e057494f7f352c12cc"
+      },
+      "independentInstrumentedPilot": false,
+      "unchangedNewSemanticRun": false,
+      "full71WorkerCapacityProof": "NOT_SEALED"
+    },
+    {
+      "id": "A17",
+      "route": "ordinary direct helper with registered callback; original case bytes authoritative",
+      "historicalDataOnly": {
+        "id": "A17",
+        "historicalCreatedDelta": 1,
+        "invocationsObserved": 4,
+        "rowSha256": "d0930102ef1d1f9231e0483cbf7948165dcd25cf6e2967db62dac5e90e6a778a"
+      },
+      "independentInstrumentedPilot": false,
+      "unchangedNewSemanticRun": false,
+      "full71WorkerCapacityProof": "NOT_SEALED"
+    },
+    {
+      "id": "A18",
+      "route": "ordinary direct helper with registered callback; original case bytes authoritative",
+      "historicalDataOnly": {
+        "id": "A18",
+        "historicalCreatedDelta": 0,
+        "invocationsObserved": 4,
+        "rowSha256": "fe5867974860b76a7094960b3b3ac48d122d8aaf1b86d8d1937449b261f55423"
+      },
+      "independentInstrumentedPilot": false,
+      "unchangedNewSemanticRun": false,
+      "full71WorkerCapacityProof": "NOT_SEALED"
+    },
+    {
+      "id": "A19",
+      "route": "ordinary direct helper with registered callback; original case bytes authoritative",
+      "historicalDataOnly": {
+        "id": "A19",
+        "historicalCreatedDelta": 7,
+        "invocationsObserved": 3,
+        "rowSha256": "840a98eeef70f987adb22e886553ee627824447c664da1346ca8fae7f5d5d23f"
+      },
+      "independentInstrumentedPilot": false,
+      "unchangedNewSemanticRun": false,
+      "full71WorkerCapacityProof": "NOT_SEALED"
+    },
+    {
+      "id": "A20",
+      "route": "ordinary direct helper with registered callback; original case bytes authoritative",
+      "historicalDataOnly": {
+        "id": "A20",
+        "historicalCreatedDelta": 3,
+        "invocationsObserved": 5,
+        "rowSha256": "79cb375dfe59ffc5478b666105a38c17daaec0909851376f15a9a2b0095845ac"
+      },
+      "independentInstrumentedPilot": false,
+      "unchangedNewSemanticRun": false,
+      "full71WorkerCapacityProof": "NOT_SEALED"
+    },
+    {
+      "id": "A21",
+      "route": "ordinary direct helper with registered callback; original case bytes authoritative",
+      "historicalDataOnly": {
+        "id": "A21",
+        "historicalCreatedDelta": 2,
+        "invocationsObserved": 1,
+        "rowSha256": "7e166b0cd20e732b0b100b335838fe4678ab163f9c6392cfb8068cc08364a428"
+      },
+      "independentInstrumentedPilot": false,
+      "unchangedNewSemanticRun": false,
+      "full71WorkerCapacityProof": "NOT_SEALED"
+    },
+    {
+      "id": "A22",
+      "route": "ordinary direct helper with registered callback; original case bytes authoritative",
+      "historicalDataOnly": {
+        "id": "A22",
+        "historicalCreatedDelta": 0,
+        "invocationsObserved": 3,
+        "rowSha256": "2673f33ca7eb46860eb6381ec723593bfe990b19d2bb2da4860ace63bca8f4f2"
+      },
+      "independentInstrumentedPilot": false,
+      "unchangedNewSemanticRun": false,
+      "full71WorkerCapacityProof": "NOT_SEALED"
+    },
+    {
+      "id": "A23",
+      "route": "ordinary direct helper with registered callback; original case bytes authoritative",
+      "historicalDataOnly": {
+        "id": "A23",
+        "historicalCreatedDelta": 0,
+        "invocationsObserved": 3,
+        "rowSha256": "56db61feacf05090721d8ca865da0e58ea0556c41f2c0ffa46aeb4ab20533919"
+      },
+      "independentInstrumentedPilot": false,
+      "unchangedNewSemanticRun": false,
+      "full71WorkerCapacityProof": "NOT_SEALED"
+    },
+    {
+      "id": "A24",
+      "route": "ordinary direct helper with registered callback; original case bytes authoritative",
+      "historicalDataOnly": {
+        "id": "A24",
+        "historicalCreatedDelta": 0,
+        "invocationsObserved": 4,
+        "rowSha256": "20dc2ec3ad6c5f7f4b4d5d63f5a2a82d1fba675748ec30f233dac3b59b410922"
+      },
+      "independentInstrumentedPilot": false,
+      "unchangedNewSemanticRun": false,
+      "full71WorkerCapacityProof": "NOT_SEALED"
+    },
+    {
+      "id": "A25",
+      "route": "ordinary direct helper with registered callback; original case bytes authoritative",
+      "historicalDataOnly": {
+        "id": "A25",
+        "historicalCreatedDelta": 0,
+        "invocationsObserved": 3,
+        "rowSha256": "2a26076e4b6fdb898abcead1884a8fffb312ca4942f8064a441fd732df27376b"
+      },
+      "independentInstrumentedPilot": false,
+      "unchangedNewSemanticRun": false,
+      "full71WorkerCapacityProof": "NOT_SEALED"
+    },
+    {
+      "id": "A26",
+      "route": "ordinary direct helper with registered callback; original case bytes authoritative",
+      "historicalDataOnly": {
+        "id": "A26",
+        "historicalCreatedDelta": 21,
+        "invocationsObserved": 14,
+        "rowSha256": "1821c75a5ea2df5dee7bc6b1e088afcfce0ff7152bb46d962470fbd5827fb887"
+      },
+      "independentInstrumentedPilot": false,
+      "unchangedNewSemanticRun": false,
+      "full71WorkerCapacityProof": "NOT_SEALED"
+    },
+    {
+      "id": "A27",
+      "route": "ordinary direct helper with registered callback; original case bytes authoritative",
+      "historicalDataOnly": {
+        "id": "A27",
+        "historicalCreatedDelta": 0,
+        "invocationsObserved": 4,
+        "rowSha256": "11ba34e3c48cc7589c308dd745412969323f71a3286f780f0e6d3f8aa702aa03"
+      },
+      "independentInstrumentedPilot": false,
+      "unchangedNewSemanticRun": false,
+      "full71WorkerCapacityProof": "NOT_SEALED"
+    },
+    {
+      "id": "A28",
+      "route": "ordinary direct helper with registered callback; original case bytes authoritative",
+      "historicalDataOnly": {
+        "id": "A28",
+        "historicalCreatedDelta": 9,
+        "invocationsObserved": 3,
+        "rowSha256": "15c822a3be1e061e2499e279b7d92035e84a4d860862e096323c860817e6be16"
+      },
+      "independentInstrumentedPilot": false,
+      "unchangedNewSemanticRun": false,
+      "full71WorkerCapacityProof": "NOT_SEALED"
+    },
+    {
+      "id": "A29",
+      "route": "ordinary direct helper with registered callback; original case bytes authoritative",
+      "historicalDataOnly": {
+        "id": "A29",
+        "historicalCreatedDelta": 18,
+        "invocationsObserved": 6,
+        "rowSha256": "6d462a921491c377d5b9a53774951024eda52cb8e2315dd92669dfe70274ecc6"
+      },
+      "independentInstrumentedPilot": false,
+      "unchangedNewSemanticRun": false,
+      "full71WorkerCapacityProof": "NOT_SEALED"
+    },
+    {
+      "id": "A30",
+      "route": "ordinary direct helper with registered callback; original case bytes authoritative",
+      "historicalDataOnly": {
+        "id": "A30",
+        "historicalCreatedDelta": 15,
+        "invocationsObserved": 5,
+        "rowSha256": "c6881e43c1bc8f5e1fa643d2a8881f345aab43afcc2f250089d41a84f99dbe40"
+      },
+      "independentInstrumentedPilot": false,
+      "unchangedNewSemanticRun": false,
+      "full71WorkerCapacityProof": "NOT_SEALED"
+    },
+    {
+      "id": "A31",
+      "route": "ordinary direct helper with registered callback; original case bytes authoritative",
+      "historicalDataOnly": {
+        "id": "A31",
+        "historicalCreatedDelta": 4,
+        "invocationsObserved": 1,
+        "rowSha256": "40699fe59597421e1baba6b31b5c967fe368270b41535bb5028d28b89919ce26"
+      },
+      "independentInstrumentedPilot": false,
+      "unchangedNewSemanticRun": false,
+      "full71WorkerCapacityProof": "NOT_SEALED"
+    },
+    {
+      "id": "A32",
+      "route": "ordinary direct helper with registered callback; original case bytes authoritative",
+      "historicalDataOnly": {
+        "id": "A32",
+        "historicalCreatedDelta": 4,
+        "invocationsObserved": 2,
+        "rowSha256": "3ff3234e9d5fd07351251f53dd7433998e033e2282c9bb0a34d885212fa3026f"
+      },
+      "independentInstrumentedPilot": false,
+      "unchangedNewSemanticRun": false,
+      "full71WorkerCapacityProof": "NOT_SEALED"
+    },
+    {
+      "id": "A33",
+      "route": "ordinary direct helper with registered callback; original case bytes authoritative",
+      "historicalDataOnly": {
+        "id": "A33",
+        "historicalCreatedDelta": 8,
+        "invocationsObserved": 2,
+        "rowSha256": "708caaae9e572d97500b760aa50de32c8ee3f32a899805ac01cd5eb018d7c9a3"
+      },
+      "independentInstrumentedPilot": false,
+      "unchangedNewSemanticRun": false,
+      "full71WorkerCapacityProof": "NOT_SEALED"
+    },
+    {
+      "id": "A34",
+      "route": "ordinary direct helper with registered callback; original case bytes authoritative",
+      "historicalDataOnly": {
+        "id": "A34",
+        "historicalCreatedDelta": 3,
+        "invocationsObserved": 1,
+        "rowSha256": "404b9097363e024d7594da6e30815ac682b489008f2ebd5e2b5f48bd0610db58"
+      },
+      "independentInstrumentedPilot": false,
+      "unchangedNewSemanticRun": false,
+      "full71WorkerCapacityProof": "NOT_SEALED"
+    },
+    {
+      "id": "A35",
+      "route": "ordinary direct helper with registered callback; original case bytes authoritative",
+      "historicalDataOnly": {
+        "id": "A35",
+        "historicalCreatedDelta": 6,
+        "invocationsObserved": 2,
+        "rowSha256": "cf815940c701fd653c2229b2afa3fb8e9596a752054668d417cd69ce2a4896ca"
+      },
+      "independentInstrumentedPilot": false,
+      "unchangedNewSemanticRun": false,
+      "full71WorkerCapacityProof": "NOT_SEALED"
+    },
+    {
+      "id": "A36",
+      "route": "ordinary direct helper with registered callback; original case bytes authoritative",
+      "historicalDataOnly": {
+        "id": "A36",
+        "historicalCreatedDelta": 9,
+        "invocationsObserved": 3,
+        "rowSha256": "d24a7aa8917ca5f0f10be04911acbb523d75fff1e9217580fa4df9cf48762970"
+      },
+      "independentInstrumentedPilot": false,
+      "unchangedNewSemanticRun": false,
+      "full71WorkerCapacityProof": "NOT_SEALED"
+    },
+    {
+      "id": "A37",
+      "route": "ordinary direct helper with registered callback; original case bytes authoritative",
+      "historicalDataOnly": {
+        "id": "A37",
+        "historicalCreatedDelta": 6,
+        "invocationsObserved": 2,
+        "rowSha256": "3c498071e6612a95f4ffbbc536ad83c22094a14887d67e6afa618e3fd5ffb905"
+      },
+      "independentInstrumentedPilot": false,
+      "unchangedNewSemanticRun": false,
+      "full71WorkerCapacityProof": "NOT_SEALED"
+    },
+    {
+      "id": "A38",
+      "route": "ordinary direct helper with registered callback; original case bytes authoritative",
+      "historicalDataOnly": {
+        "id": "A38",
+        "historicalCreatedDelta": 3,
+        "invocationsObserved": 1,
+        "rowSha256": "35361cfda2dd4aa067c58b951785567f23f1a2a279ad8a0d817db244c195146f"
+      },
+      "independentInstrumentedPilot": false,
+      "unchangedNewSemanticRun": false,
+      "full71WorkerCapacityProof": "NOT_SEALED"
+    },
+    {
+      "id": "A39",
+      "route": "ordinary direct helper with registered callback; original case bytes authoritative",
+      "historicalDataOnly": {
+        "id": "A39",
+        "historicalCreatedDelta": 3,
+        "invocationsObserved": 1,
+        "rowSha256": "0c3d7228a062f1781cde461483d54c305836205c6154f2c8d78c3d48e7b50bde"
+      },
+      "independentInstrumentedPilot": false,
+      "unchangedNewSemanticRun": false,
+      "full71WorkerCapacityProof": "NOT_SEALED"
+    },
+    {
+      "id": "A40",
+      "route": "ordinary direct helper with registered callback; original case bytes authoritative",
+      "historicalDataOnly": {
+        "id": "A40",
+        "historicalCreatedDelta": 12,
+        "invocationsObserved": 2,
+        "rowSha256": "80e8451535246255627893279c7fd33fa42a79bc319e3834ff1313c433438880"
+      },
+      "independentInstrumentedPilot": false,
+      "unchangedNewSemanticRun": false,
+      "full71WorkerCapacityProof": "NOT_SEALED"
+    },
+    {
+      "id": "A41",
+      "route": "ordinary direct helper with registered callback; original case bytes authoritative",
+      "historicalDataOnly": {
+        "id": "A41",
+        "historicalCreatedDelta": 9,
+        "invocationsObserved": 3,
+        "rowSha256": "1d271ac1a65d1e22445d5b84211c6d8aae0e6eb7e7ce01caf382f6f7a625e063"
+      },
+      "independentInstrumentedPilot": false,
+      "unchangedNewSemanticRun": false,
+      "full71WorkerCapacityProof": "NOT_SEALED"
+    },
+    {
+      "id": "A42",
+      "route": "ordinary direct helper with registered callback; original case bytes authoritative",
+      "historicalDataOnly": {
+        "id": "A42",
+        "historicalCreatedDelta": 6,
+        "invocationsObserved": 2,
+        "rowSha256": "ada3b137b0e2a6ac95c7f1c30e30e2258952365e91845f19274322df1fd47a33"
+      },
+      "independentInstrumentedPilot": false,
+      "unchangedNewSemanticRun": false,
+      "full71WorkerCapacityProof": "NOT_SEALED"
+    },
+    {
+      "id": "A43",
+      "route": "ordinary direct helper with registered callback; original case bytes authoritative",
+      "historicalDataOnly": {
+        "id": "A43",
+        "historicalCreatedDelta": 12,
+        "invocationsObserved": 2,
+        "rowSha256": "99962b7bb87e28c384aee9d065a84d91a836b080190965ff0baf1be0f508c805"
+      },
+      "independentInstrumentedPilot": false,
+      "unchangedNewSemanticRun": false,
+      "full71WorkerCapacityProof": "NOT_SEALED"
+    },
+    {
+      "id": "A44",
+      "route": "ordinary direct helper with registered callback; original case bytes authoritative",
+      "historicalDataOnly": {
+        "id": "A44",
+        "historicalCreatedDelta": 10,
+        "invocationsObserved": 4,
+        "rowSha256": "64a775d3039bf5c2afa28a631a0bad5e9c10e5c5f8e4f42870698f58eca6b886"
+      },
+      "independentInstrumentedPilot": false,
+      "unchangedNewSemanticRun": false,
+      "full71WorkerCapacityProof": "NOT_SEALED"
+    },
+    {
+      "id": "A45",
+      "route": "ordinary direct helper with registered callback; original case bytes authoritative",
+      "historicalDataOnly": {
+        "id": "A45",
+        "historicalCreatedDelta": 1,
+        "invocationsObserved": 2,
+        "rowSha256": "e7ec2177fd21316a2952fe43d894399ac08fdf2be4c5e9211beab5c7f89e4a26"
+      },
+      "independentInstrumentedPilot": false,
+      "unchangedNewSemanticRun": false,
+      "full71WorkerCapacityProof": "NOT_SEALED"
+    },
+    {
+      "id": "A46",
+      "route": "ordinary direct helper with registered callback; original case bytes authoritative",
+      "historicalDataOnly": {
+        "id": "A46",
+        "historicalCreatedDelta": 1,
+        "invocationsObserved": 1,
+        "rowSha256": "360ac229420b0e4ed817f8d97c7ab7c4d6cedb1b922ef81246ee2945292f6ccc"
+      },
+      "independentInstrumentedPilot": false,
+      "unchangedNewSemanticRun": false,
+      "full71WorkerCapacityProof": "NOT_SEALED"
+    },
+    {
+      "id": "A47",
+      "route": "ordinary direct helper with registered callback; original case bytes authoritative",
+      "historicalDataOnly": {
+        "id": "A47",
+        "historicalCreatedDelta": 6,
+        "invocationsObserved": 6,
+        "rowSha256": "050d6ab0bceacaa3512886801bbaf3af22dd50ef39a123a007d5a82e4391fe36"
+      },
+      "independentInstrumentedPilot": false,
+      "unchangedNewSemanticRun": false,
+      "full71WorkerCapacityProof": "NOT_SEALED"
+    },
+    {
+      "id": "A48",
+      "route": "ordinary direct helper with registered callback; original case bytes authoritative",
+      "historicalDataOnly": {
+        "id": "A48",
+        "historicalCreatedDelta": 1,
+        "invocationsObserved": 5,
+        "rowSha256": "cbce686ef5a259d48a3aae7e3efe96801d0e8ecbacc5a89a1653f99c54b20645"
+      },
+      "independentInstrumentedPilot": false,
+      "unchangedNewSemanticRun": false,
+      "full71WorkerCapacityProof": "NOT_SEALED"
+    },
+    {
+      "id": "A49",
+      "route": "ordinary direct helper with registered callback; original case bytes authoritative",
+      "historicalDataOnly": {
+        "id": "A49",
+        "historicalCreatedDelta": 3,
+        "invocationsObserved": 3,
+        "rowSha256": "040d91c0590c7330b585e69d024698f75423a5ae98e5b00f70472f2fa2eb2977"
+      },
+      "independentInstrumentedPilot": false,
+      "unchangedNewSemanticRun": false,
+      "full71WorkerCapacityProof": "NOT_SEALED"
+    },
+    {
+      "id": "A50",
+      "route": "ordinary direct helper with registered callback; original case bytes authoritative",
+      "historicalDataOnly": {
+        "id": "A50",
+        "historicalCreatedDelta": 4,
+        "invocationsObserved": 2,
+        "rowSha256": "8a9e95c2b9fe8fd0493f4c0ab4ffc2f676d6ff3551841d175b656c7799997c48"
+      },
+      "independentInstrumentedPilot": false,
+      "unchangedNewSemanticRun": false,
+      "full71WorkerCapacityProof": "NOT_SEALED"
+    },
+    {
+      "id": "A51",
+      "route": "ordinary direct helper with registered callback; original case bytes authoritative",
+      "historicalDataOnly": {
+        "id": "A51",
+        "historicalCreatedDelta": 0,
+        "invocationsObserved": 2,
+        "rowSha256": "3f369777ee40ef7363f0b2668580a24dd21e8d0db3f678baa55f04af6679b8f0"
+      },
+      "independentInstrumentedPilot": false,
+      "unchangedNewSemanticRun": false,
+      "full71WorkerCapacityProof": "NOT_SEALED"
+    },
+    {
+      "id": "A52",
+      "route": "ten direct Session counter scopes, no command invocation/inflater",
+      "historicalDataOnly": {
+        "id": "A52",
+        "historicalCreatedDelta": 0,
+        "invocationsObserved": 0,
+        "rowSha256": "cae62b771ccc2b20111e724a0c07a1ca05aa47ea8ea71253ba7928c050930ed2"
+      },
+      "independentInstrumentedPilot": false,
+      "unchangedNewSemanticRun": false,
+      "full71WorkerCapacityProof": "NOT_SEALED"
+    },
+    {
+      "id": "A53",
+      "route": "ordinary direct helper with registered callback; original case bytes authoritative",
+      "historicalDataOnly": {
+        "id": "A53",
+        "historicalCreatedDelta": 0,
+        "invocationsObserved": 2,
+        "rowSha256": "b5dd15ae0e13c740ccd34efbe9bc8cd8aa1faa7cc136e705edce8b8f0a6cc0b3"
+      },
+      "independentInstrumentedPilot": false,
+      "unchangedNewSemanticRun": false,
+      "full71WorkerCapacityProof": "NOT_SEALED"
+    },
+    {
+      "id": "A54",
+      "route": "ordinary direct helper with registered callback; original case bytes authoritative",
+      "historicalDataOnly": {
+        "id": "A54",
+        "historicalCreatedDelta": 6,
+        "invocationsObserved": 1,
+        "rowSha256": "eb2ef2019595d15e954e7f7ba18fb4b80ce0547838f7f25f87ee961182ddeecb"
+      },
+      "independentInstrumentedPilot": false,
+      "unchangedNewSemanticRun": false,
+      "full71WorkerCapacityProof": "NOT_SEALED"
+    },
+    {
+      "id": "A55",
+      "route": "three preabort identities plus one midread abort; original zero inflaters",
+      "historicalDataOnly": {
+        "id": "A55",
+        "historicalCreatedDelta": 0,
+        "invocationsObserved": 4,
+        "rowSha256": "5192b3b84e972e3fef81341cf9522ae4c46043962a6edfea0340c979f08de1e9"
+      },
+      "independentInstrumentedPilot": false,
+      "unchangedNewSemanticRun": false,
+      "full71WorkerCapacityProof": "NOT_SEALED"
+    },
+    {
+      "id": "A56",
+      "route": "slow sink, rejected sink identity, preclosed consumer141",
+      "historicalDataOnly": {
+        "id": "A56",
+        "historicalCreatedDelta": 12,
+        "invocationsObserved": 3,
+        "rowSha256": "526db632ba20d4d480989bde07be87d00e6a778064958c9a6125fd47905e4eff"
+      },
+      "independentInstrumentedPilot": false,
+      "unchangedNewSemanticRun": false,
+      "full71WorkerCapacityProof": "NOT_SEALED"
+    },
+    {
+      "id": "A57",
+      "route": "direct noHook/internal finally",
+      "historicalDataOnly": {
+        "id": "A57",
+        "historicalCreatedDelta": 6,
+        "invocationsObserved": 1,
+        "rowSha256": "2f8d05a4127308b333c675a8600af5d7bf32b95c6deafd507654f6149a76c18d"
+      },
+      "independentInstrumentedPilot": true,
+      "unchangedNewSemanticRun": false,
+      "full71WorkerCapacityProof": "NOT_SEALED"
+    },
+    {
+      "id": "A58",
+      "route": "ordinary direct helper with registered callback; original case bytes authoritative",
+      "historicalDataOnly": {
+        "id": "A58",
+        "historicalCreatedDelta": 6,
+        "invocationsObserved": 2,
+        "rowSha256": "a44202e7858e2708f30e2d3e11eb984369e166a0fc71c768d81c65e130f1850a"
+      },
+      "independentInstrumentedPilot": false,
+      "unchangedNewSemanticRun": false,
+      "full71WorkerCapacityProof": "NOT_SEALED"
+    },
+    {
+      "id": "A59",
+      "route": "ordinary direct helper with registered callback; original case bytes authoritative",
+      "historicalDataOnly": {
+        "id": "A59",
+        "historicalCreatedDelta": 0,
+        "invocationsObserved": 1,
+        "rowSha256": "05247ae43b65925f555d6377436d23743aa0d70a29e4fd52e7eeb4641161d0b3"
+      },
+      "independentInstrumentedPilot": false,
+      "unchangedNewSemanticRun": false,
+      "full71WorkerCapacityProof": "NOT_SEALED"
+    },
+    {
+      "id": "A60",
+      "route": "actual Shell plugin pipeline + cat + scope cleanup",
+      "historicalDataOnly": {
+        "id": "A60",
+        "historicalCreatedDelta": 6,
+        "invocationsObserved": 1,
+        "rowSha256": "a2412a23d179f82779979d7f739e5ffc46a494d69476258a587cde3b3d6279ff"
+      },
+      "independentInstrumentedPilot": true,
+      "unchangedNewSemanticRun": false,
+      "full71WorkerCapacityProof": "NOT_SEALED"
+    },
+    {
+      "id": "H01",
+      "route": "ordinary direct helper with registered callback; original case bytes authoritative",
+      "historicalDataOnly": {
+        "id": "H01",
+        "historicalCreatedDelta": 6,
+        "invocationsObserved": 1,
+        "rowSha256": "5b5f16a9650c1a8eb702faac2dd5f896c8c7d45dc1a736c15ed7761fed0a4501"
+      },
+      "independentInstrumentedPilot": false,
+      "unchangedNewSemanticRun": false,
+      "full71WorkerCapacityProof": "NOT_SEALED"
+    },
+    {
+      "id": "H02",
+      "route": "ordinary direct helper with registered callback; original case bytes authoritative",
+      "historicalDataOnly": {
+        "id": "H02",
+        "historicalCreatedDelta": 1,
+        "invocationsObserved": 1,
+        "rowSha256": "53892d8b077dd377260b83b51be1f1725c003adbff32f2fd0e90973e89c5a5e3"
+      },
+      "independentInstrumentedPilot": false,
+      "unchangedNewSemanticRun": false,
+      "full71WorkerCapacityProof": "NOT_SEALED"
+    },
+    {
+      "id": "H03",
+      "route": "ordinary direct helper with registered callback; original case bytes authoritative",
+      "historicalDataOnly": {
+        "id": "H03",
+        "historicalCreatedDelta": 3,
+        "invocationsObserved": 1,
+        "rowSha256": "0aa69527df1f69bf0bb3b14de9f34edba87bf50672f0bf37be19964c05ab3ae8"
+      },
+      "independentInstrumentedPilot": false,
+      "unchangedNewSemanticRun": false,
+      "full71WorkerCapacityProof": "NOT_SEALED"
+    },
+    {
+      "id": "H04",
+      "route": "ordinary direct helper with registered callback; original case bytes authoritative",
+      "historicalDataOnly": {
+        "id": "H04",
+        "historicalCreatedDelta": 3,
+        "invocationsObserved": 1,
+        "rowSha256": "0d36d292c9668f32d7fd44f0817d3afa239b3caf0a6c46760c4bbd1746867b14"
+      },
+      "independentInstrumentedPilot": false,
+      "unchangedNewSemanticRun": false,
+      "full71WorkerCapacityProof": "NOT_SEALED"
+    },
+    {
+      "id": "H05",
+      "route": "ordinary direct helper with registered callback; original case bytes authoritative",
+      "historicalDataOnly": {
+        "id": "H05",
+        "historicalCreatedDelta": 4,
+        "invocationsObserved": 2,
+        "rowSha256": "c389edc70af917bf02e0e9a0644bbef1946456bca233e1fcf410f6cee4f5bfa5"
+      },
+      "independentInstrumentedPilot": false,
+      "unchangedNewSemanticRun": false,
+      "full71WorkerCapacityProof": "NOT_SEALED"
+    },
+    {
+      "id": "H06",
+      "route": "ordinary direct helper with registered callback; original case bytes authoritative",
+      "historicalDataOnly": {
+        "id": "H06",
+        "historicalCreatedDelta": 3,
+        "invocationsObserved": 1,
+        "rowSha256": "36bc69a749f311968d14c4311c01298aa5b692f39044205efe6aaad10218a459"
+      },
+      "independentInstrumentedPilot": false,
+      "unchangedNewSemanticRun": false,
+      "full71WorkerCapacityProof": "NOT_SEALED"
+    },
+    {
+      "id": "H07",
+      "route": "ordinary direct helper with registered callback; original case bytes authoritative",
+      "historicalDataOnly": {
+        "id": "H07",
+        "historicalCreatedDelta": 2,
+        "invocationsObserved": 2,
+        "rowSha256": "ac32b0f95a31e1d1459d30bc785580c7ce64ff0a45d3b3dd6e24ef2c31a9d93b"
+      },
+      "independentInstrumentedPilot": false,
+      "unchangedNewSemanticRun": false,
+      "full71WorkerCapacityProof": "NOT_SEALED"
+    },
+    {
+      "id": "H08",
+      "route": "registry factories only, no execute/inflater",
+      "historicalDataOnly": {
+        "id": "H08",
+        "historicalCreatedDelta": 0,
+        "invocationsObserved": 0,
+        "rowSha256": "456739322aaa3f3498e20b67c38da33c6980c8b31a783924e7aa0faac7b22107"
+      },
+      "independentInstrumentedPilot": false,
+      "unchangedNewSemanticRun": false,
+      "full71WorkerCapacityProof": "NOT_SEALED"
+    },
+    {
+      "id": "H09",
+      "route": "oversized declared header, no huge body",
+      "historicalDataOnly": {
+        "id": "H09",
+        "historicalCreatedDelta": 3,
+        "invocationsObserved": 1,
+        "rowSha256": "e585b88b378d300a97d50f9341b527b19c03f08d8dc6a6ebbfc5210bccb31af6"
+      },
+      "independentInstrumentedPilot": true,
+      "unchangedNewSemanticRun": false,
+      "full71WorkerCapacityProof": "NOT_SEALED"
+    },
+    {
+      "id": "H10",
+      "route": "ONE direct helper call, oversized config lstat before inflate",
+      "historicalDataOnly": null,
+      "independentInstrumentedPilot": false,
+      "unchangedNewSemanticRun": false,
+      "full71WorkerCapacityProof": "NOT_SEALED"
+    },
+    {
+      "id": "H11",
+      "route": "ONE direct helper call through separately owned Real filesystem",
+      "historicalDataOnly": null,
+      "independentInstrumentedPilot": false,
+      "unchangedNewSemanticRun": false,
+      "full71WorkerCapacityProof": "NOT_SEALED"
+    }
+  ],
+  "historicalHelperObservationRows": 178,
+  "historicalIncludesOneShellObservation": true,
+  "authorH10TwoCallsCorrectedAsSourceDataOnly": true
+}

@@ -1,0 +1,535 @@
+{
+  "classification": "Final addition-aware actual review evidence; data-only audit after authenticated scratch cleanup",
+  "evidenceCommit": "2585f78dcd5cfd2ea454977462c57b23f7044a12",
+  "candidateBindingPreseal": "3d8174864eeed5c5cda4d6f1db22c2b7673b3639",
+  "candidate": "4641075df5355a91c83bf5b2cc3a88dfaf1f5153",
+  "own": "tests/shell/cd-prerequisite-independent-20260828/review-4641075d",
+  "selfHashExclusion": "MANIFEST.json only; final explicit-path Git commit binds its bytes",
+  "files": [
+    "ADAPTATION-v1.json",
+    "ADAPTATION-v2.json",
+    "ADAPTATION-v3.json",
+    "ADAPTATION-v4.json",
+    "ADAPTATION-v5.json",
+    "ARCHIVE-INDEX.json.gz",
+    "ARCHIVE.json",
+    "ARTIFACTS-01.gz.part",
+    "ARTIFACTS-02.gz.part",
+    "ARTIFACTS-03.gz.part",
+    "ARTIFACTS-04.gz.part",
+    "ATTEMPT-01-AUDIT.json",
+    "ATTEMPT-02-AUDIT-v2.json",
+    "ATTEMPT-02-AUDIT-v3.json",
+    "ATTEMPT-02-AUDIT.json",
+    "AUXILIARY-PRESEAL.json",
+    "BINDING.json",
+    "CLEANUP.json",
+    "CONTROL-IDENTITY.json",
+    "DRIVER-01.json",
+    "DRIVER-02.json",
+    "DRIVER-03.json",
+    "DRIVER-04.json",
+    "DRIVER-05.json",
+    "DRIVER-06.json",
+    "DRIVER-07.json",
+    "DRIVER-08.json",
+    "EVIDENCE-SEAL-INPUTS.json",
+    "EXPOSURES.json",
+    "HANDOFF.md",
+    "LOAD-CONTROLS-PRESEAL.json",
+    "MANIFEST.json",
+    "PRESEAL.json",
+    "RAW-source-attempt01.json.gz",
+    "RAW-source-attempt02.json.gz",
+    "REPORT.md",
+    "REPRO.md",
+    "RESULT.json",
+    "ROOT-ROUTE-v2.json",
+    "ROOT-ROUTE.json",
+    "SOURCE-REVIEW.json",
+    "TOOL-ORIGINS.json",
+    "TOOLS.json",
+    "TREE-PROOF-FULL.json.gz",
+    "TREE-PROOF.json",
+    "adapter-checks-v2.mjs",
+    "adapter-checks.mjs",
+    "archive.mjs",
+    "aux-entry.mjs",
+    "auxiliary.mjs",
+    "baseline-runtime.ts.txt.gz",
+    "bind.mjs",
+    "common.mjs",
+    "composition.json.gz",
+    "continue-v2.mjs",
+    "continue-v3.mjs",
+    "continue.mjs",
+    "entry-v2.mjs",
+    "entry.mjs",
+    "fixtures-v2.mjs",
+    "fixtures-v3.mjs",
+    "fixtures.mjs",
+    "full-load-controls.mjs",
+    "full-load-entry.mjs",
+    "mapping.mjs",
+    "report.mjs",
+    "run-v2.mjs",
+    "run.mjs",
+    "series.mjs",
+    "setup.mjs",
+    "types.mjs",
+    "verify.mjs",
+    "workspace.mjs"
+  ],
+  "entries": {
+    "": {
+      "kind": "directory",
+      "mode": 493
+    },
+    "ADAPTATION-v1.json": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 4043,
+      "sha256": "125399a93fcf845fcfd02ba07c309528589767257e67d32854f5863469f61130"
+    },
+    "ADAPTATION-v2.json": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 1389,
+      "sha256": "9d5fea3747b611d7bb6de5bbbcd5ed70a27eba59aca224bf909fdc8bdc530087"
+    },
+    "ADAPTATION-v3.json": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 1298,
+      "sha256": "d2611588c9a4836d2738a918853bceb42f7e17691fa568bf205469609b028cbf"
+    },
+    "ADAPTATION-v4.json": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 31849,
+      "sha256": "e9744ce59bf7f65fda262251a0c4e7ae9d27de0c6b8f60eb6a5fca1a8f0eacd1"
+    },
+    "ADAPTATION-v5.json": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 34906,
+      "sha256": "c15ec98e921223d182d4836d2397b03a8e0c8b1c66441233188ff8f50107498b"
+    },
+    "ARCHIVE-INDEX.json.gz": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 694579,
+      "sha256": "09ca77e10d7303458db1c50db3292c56d2692d3c910680a7898b3f4a695e3314"
+    },
+    "ARCHIVE.json": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 1222,
+      "sha256": "b9399a569070ddb4cffb33f8a1886ebfc379beb65c182858c314b32417e083f3"
+    },
+    "ARTIFACTS-01.gz.part": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 16777216,
+      "sha256": "33faf1785ceaafc62e2711f9eece093767273aaea88b2139ea62960ea68e290f"
+    },
+    "ARTIFACTS-02.gz.part": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 16777216,
+      "sha256": "87d47e00dac009baadd86d404e5ae68d3d890ad1da617e945a50720dbde54ca8"
+    },
+    "ARTIFACTS-03.gz.part": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 16777216,
+      "sha256": "2f4bed9d007d6d36833b36aeb46737ab3d109aa71a1d56b6a93676b47d83ee45"
+    },
+    "ARTIFACTS-04.gz.part": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 7625973,
+      "sha256": "4b85f308ef7079462a76a4ba29bf79f26fda70b98d5c771f5a794f1483f31c42"
+    },
+    "ATTEMPT-01-AUDIT.json": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 827651,
+      "sha256": "973d6678b110472c2012234304b733cb0a913d8f2d542f6a498cfe726cab4c2c"
+    },
+    "ATTEMPT-02-AUDIT-v2.json": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 828084,
+      "sha256": "97d1afdf50b796565ee8f71fd55c92d654b334676d3ede930a5ed230bad2bd1c"
+    },
+    "ATTEMPT-02-AUDIT-v3.json": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 844205,
+      "sha256": "6512cea935817e59bd607823fa7fb45c8c29a9ef729c19c4c07967081198ae09"
+    },
+    "ATTEMPT-02-AUDIT.json": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 828084,
+      "sha256": "97d1afdf50b796565ee8f71fd55c92d654b334676d3ede930a5ed230bad2bd1c"
+    },
+    "AUXILIARY-PRESEAL.json": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 1928,
+      "sha256": "02795280e3811eda9cab66049f774b883866e0295c216559d415bed99845d103"
+    },
+    "BINDING.json": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 928,
+      "sha256": "2e9a2d91397b5379513ce03d4b867657dc31ee46d2b09c0e15a6ad2bf1c45ec2"
+    },
+    "CLEANUP.json": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 535,
+      "sha256": "00bf17b47c33f0b4e1eff617ec05ced2738a0ee272805e585a924e15b6394388"
+    },
+    "CONTROL-IDENTITY.json": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 107623,
+      "sha256": "240c313fa722ff516ec9872865682e5f7b66fa51f11763735dbb592f6ebfd034"
+    },
+    "DRIVER-01.json": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 411,
+      "sha256": "c29a9d033675499493436dcb9e9feef8d890e590344995411cc5281d2a6a7c4e"
+    },
+    "DRIVER-02.json": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 887,
+      "sha256": "c3a34e9268bbbe4f4c46ccdf3024857a69cc893cb185be1282e1e06698975a27"
+    },
+    "DRIVER-03.json": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 433,
+      "sha256": "0d3808fe44ddbb7faf9ee0db063c8a30348ba7f50c6a3a35ac658a22b613b013"
+    },
+    "DRIVER-04.json": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 1224,
+      "sha256": "68691f9bd77c54322dbf74b176db01a1c1e2e9814a604b2fe31c42b64e17b79a"
+    },
+    "DRIVER-05.json": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 845,
+      "sha256": "1a1617eb961c2d92e6ef35ff79f0ef8ecd36c2352c0760c76ba894a1fcc1e3fe"
+    },
+    "DRIVER-06.json": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 1397,
+      "sha256": "73b477074506fcb0e4d7f50a157a316be3b8e2d82ddc83ad61e9532e1857c1db"
+    },
+    "DRIVER-07.json": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 399,
+      "sha256": "107d6ee5fd40b6f53f38a163d98cbaa804192770d399b5ec0ce264480a1a3bb6"
+    },
+    "DRIVER-08.json": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 354,
+      "sha256": "6d8bdc2fc2ef2f0c64d91d6dc4711cd5fcfafa72efe34a6cac015b5a93698f22"
+    },
+    "EVIDENCE-SEAL-INPUTS.json": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 10993,
+      "sha256": "965cd9a4e7d5716176e38ff04cd32d15b62fb91db88ca4e8cb19cced92aed9f1"
+    },
+    "EXPOSURES.json": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 1147,
+      "sha256": "736472bb1ae4199e05808e5cb8d849202b3f8cf32450dac935356cf3cd601c3b"
+    },
+    "HANDOFF.md": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 1425,
+      "sha256": "062f5bb70485ebd614fb9970c400810a352c9648ccd8ad5273612d3e16aeb491"
+    },
+    "LOAD-CONTROLS-PRESEAL.json": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 1097,
+      "sha256": "0566e60e581521ac5fdd971cf2024efbdc6904bf7f35154060f63cc6a8277f6f"
+    },
+    "PRESEAL.json": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 1698,
+      "sha256": "7b62e1be49492949d6da9a574092d6e57b5f3610d25402e00165751f21f34b50"
+    },
+    "RAW-source-attempt01.json.gz": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 24953,
+      "sha256": "38cdcfe6918e19a81953ec395233feec770acf2e61be6e32c0cbf9b356916277"
+    },
+    "RAW-source-attempt02.json.gz": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 83227,
+      "sha256": "1f756a9faa6fd4f0bb88341fb165cfb1cf47116c83b2e74d19a704e968933a32"
+    },
+    "REPORT.md": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 11207,
+      "sha256": "272bf823713a6d393857d3cfa3439ec3501e4c77db3565257bcafb4f72db228e"
+    },
+    "REPRO.md": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 3341,
+      "sha256": "8ee16d09bf6101154b6f7bc2bae00ddde8acc906f2cb5834965f5b6dec03b7e2"
+    },
+    "RESULT.json": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 93675,
+      "sha256": "4fe76377723dc5e0837663ad2e094e454ee6e4eac376b0be6ca3c02552dd02b1"
+    },
+    "ROOT-ROUTE-v2.json": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 967,
+      "sha256": "a1a338915047ed2acc1a169b44f1920f20b81dd888f0710c6618b6ce29444224"
+    },
+    "ROOT-ROUTE.json": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 967,
+      "sha256": "eaf5befdb7cc8c73de806a39d42768b65a625dccd4ec9e3df4692dde9d1831cf"
+    },
+    "SOURCE-REVIEW.json": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 18842,
+      "sha256": "8992325bdf7674b7e4610d0af7e8940bb8cb14835760c6cb01d271c7d7cda07e"
+    },
+    "TOOL-ORIGINS.json": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 527110,
+      "sha256": "a720f25803059bdd4963ff238f6d436eab13b4ce062eec67b8b3dafbb47d0b58"
+    },
+    "TOOLS.json": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 574882,
+      "sha256": "edf0654923642f065f07dfc43fbbedab28343edf32bbda889969f889b9561d35"
+    },
+    "TREE-PROOF-FULL.json.gz": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 28958,
+      "sha256": "814d3f3b232a523bbc3d0530b5823cd8c503476ba2d2d284a97acb2fca0675f3"
+    },
+    "TREE-PROOF.json": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 9664,
+      "sha256": "90166b3238c9e51d2a31ae98ca9fdb8e8659f3270b5c6b4b4bd3baabc55e4a92"
+    },
+    "adapter-checks-v2.mjs": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 3183,
+      "sha256": "6636d25c8f7b915f0817d6d72fa8f1d9d5007ff4f6594bb2ffa7436db91eaa0a"
+    },
+    "adapter-checks.mjs": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 2833,
+      "sha256": "2807dbb6ebedd7ea80e6adb33666b8da3086fe963b9af7ddbf2341808bf2c9f5"
+    },
+    "archive.mjs": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 10907,
+      "sha256": "2d6dfe87ab20185ca2c4d0d433c70f3836dcdd40e49d11b999aa4f7378c3e7dc"
+    },
+    "aux-entry.mjs": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 6424,
+      "sha256": "267e862c3c1fbc96cc4c89688c2ed2ab2964b86b2b6bb4d29da2c5d92dae5227"
+    },
+    "auxiliary.mjs": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 5466,
+      "sha256": "bfb605951ef0e1797cb7a69f332119ea5c01ba86addb06363e1ca03e13d5dfe7"
+    },
+    "baseline-runtime.ts.txt.gz": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 27922,
+      "sha256": "18b6765fd939c9087535280942f3f73c767f2252e7d2c4f89688b8a763292f22"
+    },
+    "bind.mjs": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 7781,
+      "sha256": "276379f23066e9e89768aed373d52abfe710b51659ab61590f96d7db173f7eed"
+    },
+    "common.mjs": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 6324,
+      "sha256": "becffd50ad2f050c0a3704abd73bf7588e0b326be5343508a04bdecfe8bb0dd0"
+    },
+    "composition.json.gz": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 1030591,
+      "sha256": "e9838bcac52a9447a439a5bcb1f3e09fb45ea5ea26447458469d6954ce762a4a"
+    },
+    "continue-v2.mjs": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 10232,
+      "sha256": "0d7e610422cd5da6ff3dec96e8f165d77f0e3db7bc0e8cd915404280a868a428"
+    },
+    "continue-v3.mjs": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 11287,
+      "sha256": "5da0ba21bad3346b6d755eeaacf6445f1faf7f52e77f1b3d07a1fd8c49e10852"
+    },
+    "continue.mjs": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 9986,
+      "sha256": "0a853a5509524be55c05088c69f18c8f9960ff6c9d71841db1e0a581e413fd7e"
+    },
+    "entry-v2.mjs": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 5587,
+      "sha256": "0e4b5de6bbf3f48594b7612aa413c42b1b65d7f2691132c19d678735e374fc99"
+    },
+    "entry.mjs": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 5216,
+      "sha256": "0647c7bef888901ec8addaa03d4675366ac1ef884a4121e1cb3887a5a051700c"
+    },
+    "fixtures-v2.mjs": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 20333,
+      "sha256": "1de40d8b8c44631bc4277866f0525eb067975d0a8ab344fb5d1a685f8e9efba2"
+    },
+    "fixtures-v3.mjs": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 20576,
+      "sha256": "41ba7dfa4771f69137be545e490f0770b47a3258192501f79c1754c9e10e32e6"
+    },
+    "fixtures.mjs": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 20055,
+      "sha256": "abb1b6c30715b2e516e36b56e77286a69b1dc5e585741cf4e8d828e1108076fb"
+    },
+    "full-load-controls.mjs": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 6062,
+      "sha256": "d03065a1b661407e92bcd6c14680a2682a66b0c68cca7b71553506935a8647b6"
+    },
+    "full-load-entry.mjs": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 5407,
+      "sha256": "3de32459f4d05bbdeac2d15b46c6196c6106cf08b35c6ea2b18af4bc712d25ed"
+    },
+    "mapping.mjs": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 6550,
+      "sha256": "609ee45f74551b39fbb527f37f826be8d6a2340daecc23db40f5b29e31ed38f4"
+    },
+    "report.mjs": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 14123,
+      "sha256": "b87e3cb19f41f168be4807ab8d62a10acc836ec5b08ed59c9ba2d0e0eb98ecc5"
+    },
+    "run-v2.mjs": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 11481,
+      "sha256": "f8040fa90cceb9250519db1edaa92f15b3b6fabc6674672647d2d98e36632a46"
+    },
+    "run.mjs": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 11435,
+      "sha256": "7483ab5245c6b854a3193baf4c48db01f809e39039b4dc8d6fdeafebb329c2f2"
+    },
+    "series.mjs": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 3446,
+      "sha256": "bcc5185b281ac496251301661f66b03cc293a3a0d0945b088e823b01cb9265dc"
+    },
+    "setup.mjs": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 7573,
+      "sha256": "6c8b92bb067ae73f4a88697eea09b23d036a471cd577eac1200d64cc4b3ad304"
+    },
+    "types.mjs": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 4321,
+      "sha256": "fffd42508c4361dcee7e5545e88eaf85ecc27f33ddd07d7f6ed2a04f4615f3a5"
+    },
+    "verify.mjs": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 8873,
+      "sha256": "d1a450f29ee799b6e9b2390b6075a1757854bbeaa3f27ef5bca919d81970dd85"
+    },
+    "workspace.mjs": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 5973,
+      "sha256": "8e1a9954e708e0c42a91a3acce86f5b3aefb6fccaceaa3afeb992e30b12e9c8a"
+    }
+  },
+  "cleanupSha256": "00bf17b47c33f0b4e1eff617ec05ced2738a0ee272805e585a924e15b6394388",
+  "preservedControls": {
+    "original": 18,
+    "ratification": 4,
+    "executor": 19
+  },
+  "archivedScratch": {
+    "roots": 8,
+    "files": 11764,
+    "uniqueBlobs": 3884,
+    "compressedBytes": 57957621
+  },
+  "foreignStaging": [],
+  "runtimeAuthorization": "Review completed only; ROOT retains acceptance and directory-stack release authority"
+}

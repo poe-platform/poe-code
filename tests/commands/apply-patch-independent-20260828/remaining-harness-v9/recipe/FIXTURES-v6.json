@@ -1,0 +1,747 @@
+{
+  "schema": "versioned-fixture-data-v6",
+  "classification": "SOURCE/DATA only; four proposed new product rows, all NOT_RUN",
+  "supplement": {
+    "path": "tests/commands/apply-patch-independent-20260828/capture-membership-v3/matrix/SUPPLEMENT-v1.json",
+    "bytes": 124506,
+    "mode": 420,
+    "sha256": "44074ff7627215afdc92dd4565c2154ca3eb5b34870dafc0cae0433f912ed558"
+  },
+  "original32": {
+    "path": "tests/commands/apply-patch-independent-20260828/capture-membership-v3/matrix/ORIGINAL32-v1.json",
+    "bytes": 43410,
+    "mode": 420,
+    "sha256": "b10cd0aeb7272ddb029baaa871b58f73ef645278e5bc3d9ef9bea1a1d1d6fe29"
+  },
+  "worker": {
+    "path": "worker.mjs",
+    "sha256": "6563b3319cb495dea5c0b5c0499d166eaf5bf63806fd9e12487ed42b6f046296"
+  },
+  "cases": [
+    {
+      "originalSourceBase64": "ewogICAgICAiaWQiOiAiUzYyIiwKICAgICAgIm5hbWUiOiAiSHVnZSB0eXBlZCBwcmVmbGlnaHQgZXJyb3IgZGlhZ25vc3RpYyBpcyBib3VuZGVkIGJlZm9yZSBjb25zdHJ1Y3Rpb24iLAogICAgICAiZXhlY3V0aW9uIjogIk5PVF9SVU4iLAogICAgICAiaW5kZXBlbmRlbmNlIjogIkRpc3RpbmN0IGNoYWxsZW5nZXIgZml4dHVyZSBmcm96ZW4gd2l0aG91dCBjYW5kaWRhdGUgaW5zcGVjdGlvbjsgbm90IGluZmVycmVkIGZyb20gY2FuZGlkYXRlIG91dHB1dC4iLAogICAgICAiaW52b2NhdGlvbiI6IHsKICAgICAgICAicm91dGUiOiAibGl0ZXJhbC1jb21tYW5kIiwKICAgICAgICAiY3dkIjogIi93b3JrIiwKICAgICAgICAiYXJncyI6IFtdLAogICAgICAgICJzdGRpbiI6IHsKICAgICAgICAgICJjaHVua3MiOiBbCiAgICAgICAgICAgIHsKICAgICAgICAgICAgICAidXRmOCI6ICIqKiogQmVnaW4gUGF0Y2hcbioqKiBVcGRhdGUgRmlsZTogYVxuQEBcbi1vbGRcbituZXdcbioqKiBFbmQgUGF0Y2hcbiIKICAgICAgICAgICAgfQogICAgICAgICAgXSwKICAgICAgICAgICJlb2YiOiB0cnVlCiAgICAgICAgfQogICAgICB9LAogICAgICAiYmVmb3JlIjogewogICAgICAgICJmaWxlcyI6IHsKICAgICAgICAgICIvd29yay9hIjogewogICAgICAgICAgICAidXRmOCI6ICJvbGRcbiIKICAgICAgICAgIH0KICAgICAgICB9LAogICAgICAgICJkaXJlY3RvcmllcyI6IFsKICAgICAgICAgICIvIiwKICAgICAgICAgICIvd29yayIKICAgICAgICBdCiAgICAgIH0sCiAgICAgICJleHBlY3RlZCI6IHsKICAgICAgICAib3V0Y29tZSI6IHsKICAgICAgICAgICJraW5kIjogInJldHVybiIsCiAgICAgICAgICAiZXhpdENvZGUiOiAxCiAgICAgICAgfSwKICAgICAgICAiZmlsZXMiOiB7CiAgICAgICAgICAiL3dvcmsvYSI6IHsKICAgICAgICAgICAgInV0ZjgiOiAib2xkXG4iCiAgICAgICAgICB9CiAgICAgICAgfSwKICAgICAgICAiYWJzZW50IjogW10sCiAgICAgICAgInN0ZG91dCI6IHsKICAgICAgICAgICJ1dGY4IjogIiIKICAgICAgICB9LAogICAgICAgICJzdGRlcnIiOiB7CiAgICAgICAgICAic2VtYW50aWMiOiAicHJlZmxpZ2h0LWRpYWdub3N0aWMiCiAgICAgICAgfSwKICAgICAgICAiY29uc3RyYWludHMiOiBbCiAgICAgICAgICAiR0xPQkFMIiwKICAgICAgICAgICJOT19DT01NQU5EX01VVEFUSU9OIiwKICAgICAgICAgICJCT1VOREVEIgogICAgICAgIF0sCiAgICAgICAgImRpYWdub3N0aWNNZWFuaW5nIjogInBlcm1pc3Npb24gZGVuaWFsIC93b3JrL2EiLAogICAgICAgICJkaWFnbm9zdGljTWF4Qnl0ZXMiOiAxNjM4NCwKICAgICAgICAiZGlhZ25vc3RpY1RydW5jYXRpb25TdWZmaXgiOiAiIFt0cnVuY2F0ZWRdXG4iCiAgICAgIH0sCiAgICAgICJwcm92aWRlciI6IHsKICAgICAgICAiYWNjZXNzIjogewogICAgICAgICAgIm1vZGUiOiAyLAogICAgICAgICAgInJlamVjdCI6IHsKICAgICAgICAgICAgImtpbmQiOiAiRnNFcnJvciIsCiAgICAgICAgICAgICJjb2RlIjogIkVBQ0NFUyIsCiAgICAgICAgICAgICJwYXRoIjogIi93b3JrL2EiLAogICAgICAgICAgICAibWVzc2FnZSI6IHsKICAgICAgICAgICAgICAicmVwZWF0IjogewogICAgICAgICAgICAgICAgInV0ZjgiOiAiw6kiCiAgICAgICAgICAgICAgfSwKICAgICAgICAgICAgICAiY291bnQiOiAyMDAwMAogICAgICAgICAgICB9CiAgICAgICAgICB9CiAgICAgICAgfQogICAgICB9CiAgICB9",
+      "originalSourceSha256": "2e8b96d898d89223220d2732ef8a914c931d77a4132be7a83b92aef03d9c1648",
+      "original": {
+        "id": "S62",
+        "name": "Huge typed preflight error diagnostic is bounded before construction",
+        "execution": "NOT_RUN",
+        "independence": "Distinct challenger fixture frozen without candidate inspection; not inferred from candidate output.",
+        "invocation": {
+          "route": "literal-command",
+          "cwd": "/work",
+          "args": [],
+          "stdin": {
+            "chunks": [
+              {
+                "utf8": "*** Begin Patch\n*** Update File: a\n@@\n-old\n+new\n*** End Patch\n"
+              }
+            ],
+            "eof": true
+          }
+        },
+        "before": {
+          "files": {
+            "/work/a": {
+              "utf8": "old\n"
+            }
+          },
+          "directories": [
+            "/",
+            "/work"
+          ]
+        },
+        "expected": {
+          "outcome": {
+            "kind": "return",
+            "exitCode": 1
+          },
+          "files": {
+            "/work/a": {
+              "utf8": "old\n"
+            }
+          },
+          "absent": [],
+          "stdout": {
+            "utf8": ""
+          },
+          "stderr": {
+            "semantic": "preflight-diagnostic"
+          },
+          "constraints": [
+            "GLOBAL",
+            "NO_COMMAND_MUTATION",
+            "BOUNDED"
+          ],
+          "diagnosticMeaning": "permission denial /work/a",
+          "diagnosticMaxBytes": 16384,
+          "diagnosticTruncationSuffix": " [truncated]\n"
+        },
+        "provider": {
+          "access": {
+            "mode": 2,
+            "reject": {
+              "kind": "FsError",
+              "code": "EACCES",
+              "path": "/work/a",
+              "message": {
+                "repeat": {
+                  "utf8": "é"
+                },
+                "count": 20000
+              }
+            }
+          }
+        }
+      },
+      "deltas": [
+        {
+          "op": "set",
+          "path": "/id",
+          "value": "V6-S62-CANONICAL",
+          "reason": "New denominator; never rescore original ID."
+        },
+        {
+          "op": "set",
+          "path": "/independence",
+          "value": "Versioned root-authorized fixture adjudication after frozen diagnosis; not a fresh blind fixture.",
+          "reason": "Disclose informed fixture change."
+        },
+        {
+          "op": "set",
+          "path": "/name",
+          "value": "Typed EACCES canonical diagnostic; not truncation evidence",
+          "reason": "Discarded provider message does not prove truncation."
+        },
+        {
+          "op": "set",
+          "path": "/expected/stderr",
+          "value": {
+            "utf8": "apply_patch: permission denied: /work/a\n"
+          },
+          "reason": "Root corrects the count to 40 bytes for the exact unchanged canonical diagnostic."
+        },
+        {
+          "op": "remove",
+          "path": "/expected/diagnosticTruncationSuffix",
+          "reason": "Original suffix expectation failed and remains in original data."
+        }
+      ],
+      "row": {
+        "id": "V6-S62-CANONICAL",
+        "name": "Typed EACCES canonical diagnostic; not truncation evidence",
+        "execution": "NOT_RUN",
+        "independence": "Versioned root-authorized fixture adjudication after frozen diagnosis; not a fresh blind fixture.",
+        "invocation": {
+          "route": "literal-command",
+          "cwd": "/work",
+          "args": [],
+          "stdin": {
+            "chunks": [
+              {
+                "utf8": "*** Begin Patch\n*** Update File: a\n@@\n-old\n+new\n*** End Patch\n"
+              }
+            ],
+            "eof": true
+          }
+        },
+        "before": {
+          "files": {
+            "/work/a": {
+              "utf8": "old\n"
+            }
+          },
+          "directories": [
+            "/",
+            "/work"
+          ]
+        },
+        "expected": {
+          "outcome": {
+            "kind": "return",
+            "exitCode": 1
+          },
+          "files": {
+            "/work/a": {
+              "utf8": "old\n"
+            }
+          },
+          "absent": [],
+          "stdout": {
+            "utf8": ""
+          },
+          "stderr": {
+            "utf8": "apply_patch: permission denied: /work/a\n"
+          },
+          "constraints": [
+            "GLOBAL",
+            "NO_COMMAND_MUTATION",
+            "BOUNDED"
+          ],
+          "diagnosticMeaning": "permission denial /work/a",
+          "diagnosticMaxBytes": 16384
+        },
+        "provider": {
+          "access": {
+            "mode": 2,
+            "reject": {
+              "kind": "FsError",
+              "code": "EACCES",
+              "path": "/work/a",
+              "message": {
+                "repeat": {
+                  "utf8": "é"
+                },
+                "count": 20000
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "originalSourceBase64": "ewogICAgICAiaWQiOiAiUzY0IiwKICAgICAgIm5hbWUiOiAiTGl0ZXJhbCBpbnZvY2F0aW9uIHByZXNlcnZlcyBkb2xsYXIvYmFja3RpY2svYmFja3NsYXNoIHBhdGggYW5kIHBheWxvYWQiLAogICAgICAiZXhlY3V0aW9uIjogIk5PVF9SVU4iLAogICAgICAiaW5kZXBlbmRlbmNlIjogIkRpc3RpbmN0IGNoYWxsZW5nZXIgZml4dHVyZSBmcm96ZW4gd2l0aG91dCBjYW5kaWRhdGUgaW5zcGVjdGlvbjsgbm90IGluZmVycmVkIGZyb20gY2FuZGlkYXRlIG91dHB1dC4iLAogICAgICAiaW52b2NhdGlvbiI6IHsKICAgICAgICAicm91dGUiOiAiYWN0dWFsIFNoZWxsIHBhcmVudCBjb250ZXh0Lmludm9rZSB3aXRoIGxpdGVyYWwgYXJndiBhbmQgcmVwbGFjZUVudjp0cnVlIiwKICAgICAgICAiY3dkIjogIi93b3JrIiwKICAgICAgICAiYXJncyI6IFsKICAgICAgICAgICIqKiogQmVnaW4gUGF0Y2hcbioqKiBBZGQgRmlsZTogJEhPTUVgd2hvYW1pYFxcYVxuKyQodG91Y2ggZXNjYXBlKVxuKioqIEVuZCBQYXRjaFxuIgogICAgICAgIF0sCiAgICAgICAgInN0ZGluIjogewogICAgICAgICAgImFjcXVpcmUiOiAiVEhST1dfSUZfQUNRVUlSRUQiCiAgICAgICAgfSwKICAgICAgICAiaW52b2tlT3B0aW9ucyI6IHsKICAgICAgICAgICJyZXBsYWNlRW52IjogdHJ1ZSwKICAgICAgICAgICJlbnYiOiB7CiAgICAgICAgICAgICJIT01FIjogIi9ub3QtZXhwYW5kZWQiCiAgICAgICAgICB9LAogICAgICAgICAgInNpZ25hbCI6ICJvbWl0dGVkIgogICAgICAgIH0KICAgICAgfSwKICAgICAgImJlZm9yZSI6IHsKICAgICAgICAiZmlsZXMiOiB7fSwKICAgICAgICAiZGlyZWN0b3JpZXMiOiBbCiAgICAgICAgICAiLyIsCiAgICAgICAgICAiL3dvcmsiCiAgICAgICAgXQogICAgICB9LAogICAgICAiZXhwZWN0ZWQiOiB7CiAgICAgICAgIm91dGNvbWUiOiB7CiAgICAgICAgICAia2luZCI6ICJyZXR1cm4iLAogICAgICAgICAgImV4aXRDb2RlIjogMAogICAgICAgIH0sCiAgICAgICAgImZpbGVzIjogewogICAgICAgICAgIi93b3JrLyRIT01FYHdob2FtaWBcXGEiOiB7CiAgICAgICAgICAgICJ1dGY4IjogIiQodG91Y2ggZXNjYXBlKVxuIgogICAgICAgICAgfQogICAgICAgIH0sCiAgICAgICAgImFic2VudCI6IFsKICAgICAgICAgICIvd29yay9lc2NhcGUiCiAgICAgICAgXSwKICAgICAgICAic3Rkb3V0IjogewogICAgICAgICAgInV0ZjgiOiAiU3VjY2Vzcy4gVXBkYXRlZCB0aGUgZm9sbG93aW5nIGZpbGVzOlxuQSAkSE9NRWB3aG9hbWlgXFxhXG4iCiAgICAgICAgfSwKICAgICAgICAic3RkZXJyIjogewogICAgICAgICAgInV0ZjgiOiAiIgogICAgICAgIH0sCiAgICAgICAgImNvbnN0cmFpbnRzIjogWwogICAgICAgICAgIkdMT0JBTCIsCiAgICAgICAgICAiSU5JVElBTF9QUkVGTElHSFQiLAogICAgICAgICAgIlNVQ0NFU1MiCiAgICAgICAgXSwKICAgICAgICAicGFyZW50U3RhdGVVbmNoYW5nZWQiOiB0cnVlLAogICAgICAgICJub0Vudmlyb25tZW50RXhwYW5zaW9uIjogdHJ1ZQogICAgICB9CiAgICB9",
+      "originalSourceSha256": "7bf5df02aced5028d32670a5110d4c6cf236a0a8151cfe7f053353d5404ffa6d",
+      "original": {
+        "id": "S64",
+        "name": "Literal invocation preserves dollar/backtick/backslash path and payload",
+        "execution": "NOT_RUN",
+        "independence": "Distinct challenger fixture frozen without candidate inspection; not inferred from candidate output.",
+        "invocation": {
+          "route": "actual Shell parent context.invoke with literal argv and replaceEnv:true",
+          "cwd": "/work",
+          "args": [
+            "*** Begin Patch\n*** Add File: $HOME`whoami`\\a\n+$(touch escape)\n*** End Patch\n"
+          ],
+          "stdin": {
+            "acquire": "THROW_IF_ACQUIRED"
+          },
+          "invokeOptions": {
+            "replaceEnv": true,
+            "env": {
+              "HOME": "/not-expanded"
+            },
+            "signal": "omitted"
+          }
+        },
+        "before": {
+          "files": {},
+          "directories": [
+            "/",
+            "/work"
+          ]
+        },
+        "expected": {
+          "outcome": {
+            "kind": "return",
+            "exitCode": 0
+          },
+          "files": {
+            "/work/$HOME`whoami`\\a": {
+              "utf8": "$(touch escape)\n"
+            }
+          },
+          "absent": [
+            "/work/escape"
+          ],
+          "stdout": {
+            "utf8": "Success. Updated the following files:\nA $HOME`whoami`\\a\n"
+          },
+          "stderr": {
+            "utf8": ""
+          },
+          "constraints": [
+            "GLOBAL",
+            "INITIAL_PREFLIGHT",
+            "SUCCESS"
+          ],
+          "parentStateUnchanged": true,
+          "noEnvironmentExpansion": true
+        }
+      },
+      "deltas": [
+        {
+          "op": "set",
+          "path": "/id",
+          "value": "V6-S64-LITERAL-NOPULL",
+          "reason": "New denominator; never rescore original ID."
+        },
+        {
+          "op": "set",
+          "path": "/independence",
+          "value": "Versioned root-authorized fixture adjudication after frozen diagnosis; not a fresh blind fixture.",
+          "reason": "Disclose informed fixture change."
+        },
+        {
+          "op": "set",
+          "path": "/invocation/stdin",
+          "value": {
+            "acquire": "ALLOW_WRAPPER_ACQUISITION",
+            "pull": "THROW_IF_PULLED"
+          },
+          "reason": "Shell wrapper acquisition allowed; valid iterator throws only from next."
+        },
+        {
+          "op": "set",
+          "path": "/expected/stdinPulls",
+          "value": 0,
+          "reason": "No consumption; no fixed acquisition count or Shell change."
+        },
+        {
+          "op": "set",
+          "path": "/expected/noExtraFilesystemEffects",
+          "value": true,
+          "reason": "Proposed explicit reading: preserve intended literal writes, prohibit additional effects; zero total effects conflicts with success."
+        }
+      ],
+      "row": {
+        "id": "V6-S64-LITERAL-NOPULL",
+        "name": "Literal invocation preserves dollar/backtick/backslash path and payload",
+        "execution": "NOT_RUN",
+        "independence": "Versioned root-authorized fixture adjudication after frozen diagnosis; not a fresh blind fixture.",
+        "invocation": {
+          "route": "actual Shell parent context.invoke with literal argv and replaceEnv:true",
+          "cwd": "/work",
+          "args": [
+            "*** Begin Patch\n*** Add File: $HOME`whoami`\\a\n+$(touch escape)\n*** End Patch\n"
+          ],
+          "stdin": {
+            "acquire": "ALLOW_WRAPPER_ACQUISITION",
+            "pull": "THROW_IF_PULLED"
+          },
+          "invokeOptions": {
+            "replaceEnv": true,
+            "env": {
+              "HOME": "/not-expanded"
+            },
+            "signal": "omitted"
+          }
+        },
+        "before": {
+          "files": {},
+          "directories": [
+            "/",
+            "/work"
+          ]
+        },
+        "expected": {
+          "outcome": {
+            "kind": "return",
+            "exitCode": 0
+          },
+          "files": {
+            "/work/$HOME`whoami`\\a": {
+              "utf8": "$(touch escape)\n"
+            }
+          },
+          "absent": [
+            "/work/escape"
+          ],
+          "stdout": {
+            "utf8": "Success. Updated the following files:\nA $HOME`whoami`\\a\n"
+          },
+          "stderr": {
+            "utf8": ""
+          },
+          "constraints": [
+            "GLOBAL",
+            "INITIAL_PREFLIGHT",
+            "SUCCESS"
+          ],
+          "parentStateUnchanged": true,
+          "noEnvironmentExpansion": true,
+          "stdinPulls": 0,
+          "noExtraFilesystemEffects": true
+        }
+      }
+    },
+    {
+      "originalSourceBase64": "ewogICAgICAiaWQiOiAiUzcxIiwKICAgICAgIm5hbWUiOiAiRGVsZXRlIHBlcm1pc3Npb24gcHJvYmVzIHBhcmVudCwgbm90IHdyaXRhYmxlIGxlYWYiLAogICAgICAiZXhlY3V0aW9uIjogIk5PVF9SVU4iLAogICAgICAiaW5kZXBlbmRlbmNlIjogIkRpc3RpbmN0IGNoYWxsZW5nZXIgZml4dHVyZSBmcm96ZW4gd2l0aG91dCBjYW5kaWRhdGUgaW5zcGVjdGlvbjsgbm90IGluZmVycmVkIGZyb20gY2FuZGlkYXRlIG91dHB1dC4iLAogICAgICAiaW52b2NhdGlvbiI6IHsKICAgICAgICAicm91dGUiOiAibGl0ZXJhbC1jb21tYW5kIiwKICAgICAgICAiY3dkIjogIi93b3JrIiwKICAgICAgICAiYXJncyI6IFtdLAogICAgICAgICJzdGRpbiI6IHsKICAgICAgICAgICJjaHVua3MiOiBbCiAgICAgICAgICAgIHsKICAgICAgICAgICAgICAidXRmOCI6ICIqKiogQmVnaW4gUGF0Y2hcbioqKiBEZWxldGUgRmlsZTogYVxuKioqIEVuZCBQYXRjaFxuIgogICAgICAgICAgICB9CiAgICAgICAgICBdLAogICAgICAgICAgImVvZiI6IHRydWUKICAgICAgICB9CiAgICAgIH0sCiAgICAgICJiZWZvcmUiOiB7CiAgICAgICAgImZpbGVzIjogewogICAgICAgICAgIi93b3JrL2EiOiB7CiAgICAgICAgICAgICJ1dGY4IjogIm9sZFxuIgogICAgICAgICAgfQogICAgICAgIH0sCiAgICAgICAgImRpcmVjdG9yaWVzIjogWwogICAgICAgICAgIi8iLAogICAgICAgICAgIi93b3JrIgogICAgICAgIF0KICAgICAgfSwKICAgICAgImV4cGVjdGVkIjogewogICAgICAgICJvdXRjb21lIjogewogICAgICAgICAgImtpbmQiOiAicmV0dXJuIiwKICAgICAgICAgICJleGl0Q29kZSI6IDEKICAgICAgICB9LAogICAgICAgICJmaWxlcyI6IHsKICAgICAgICAgICIvd29yay9hIjogewogICAgICAgICAgICAidXRmOCI6ICJvbGRcbiIKICAgICAgICAgIH0KICAgICAgICB9LAogICAgICAgICJhYnNlbnQiOiBbXSwKICAgICAgICAic3Rkb3V0IjogewogICAgICAgICAgInV0ZjgiOiAiIgogICAgICAgIH0sCiAgICAgICAgInN0ZGVyciI6IHsKICAgICAgICAgICJzZW1hbnRpYyI6ICJwcmVmbGlnaHQtZGlhZ25vc3RpYyIKICAgICAgICB9LAogICAgICAgICJjb25zdHJhaW50cyI6IFsKICAgICAgICAgICJHTE9CQUwiLAogICAgICAgICAgIklOSVRJQUxfUFJFRkxJR0hUIiwKICAgICAgICAgICJOT19DT01NQU5EX01VVEFUSU9OIgogICAgICAgIF0sCiAgICAgICAgImF1dGhvcml6YXRpb24iOiAiREVOSUVEIiwKICAgICAgICAib3BlcmF0aW9uVHJhY2UiOiB7CiAgICAgICAgICAicmVxdWlyZWQiOiBbCiAgICAgICAgICAgIHsKICAgICAgICAgICAgICAibWV0aG9kIjogImFjY2VzcyIsCiAgICAgICAgICAgICAgInBhdGgiOiAiL3dvcmsiLAogICAgICAgICAgICAgICJtb2RlIjogMgogICAgICAgICAgICB9CiAgICAgICAgICBdLAogICAgICAgICAgImZvcmJpZCI6IFsKICAgICAgICAgICAgInJtIgogICAgICAgICAgXQogICAgICAgIH0KICAgICAgfSwKICAgICAgInByb3ZpZGVyIjogewogICAgICAgICJhY2Nlc3MiOiB7CiAgICAgICAgICAicGF0aCI6ICIvd29yayIsCiAgICAgICAgICAibW9kZSI6IDIsCiAgICAgICAgICAicmVqZWN0IjogewogICAgICAgICAgICAia2luZCI6ICJGc0Vycm9yIiwKICAgICAgICAgICAgImNvZGUiOiAiRUFDQ0VTIgogICAgICAgICAgfQogICAgICAgIH0sCiAgICAgICAgIm90aGVyQWNjZXNzIjogImFsbG93IgogICAgICB9CiAgICB9",
+      "originalSourceSha256": "e7cc232eda8844c05c343ab8a35f85556b39b91d9a61f92e06dba3a410ea133b",
+      "original": {
+        "id": "S71",
+        "name": "Delete permission probes parent, not writable leaf",
+        "execution": "NOT_RUN",
+        "independence": "Distinct challenger fixture frozen without candidate inspection; not inferred from candidate output.",
+        "invocation": {
+          "route": "literal-command",
+          "cwd": "/work",
+          "args": [],
+          "stdin": {
+            "chunks": [
+              {
+                "utf8": "*** Begin Patch\n*** Delete File: a\n*** End Patch\n"
+              }
+            ],
+            "eof": true
+          }
+        },
+        "before": {
+          "files": {
+            "/work/a": {
+              "utf8": "old\n"
+            }
+          },
+          "directories": [
+            "/",
+            "/work"
+          ]
+        },
+        "expected": {
+          "outcome": {
+            "kind": "return",
+            "exitCode": 1
+          },
+          "files": {
+            "/work/a": {
+              "utf8": "old\n"
+            }
+          },
+          "absent": [],
+          "stdout": {
+            "utf8": ""
+          },
+          "stderr": {
+            "semantic": "preflight-diagnostic"
+          },
+          "constraints": [
+            "GLOBAL",
+            "INITIAL_PREFLIGHT",
+            "NO_COMMAND_MUTATION"
+          ],
+          "authorization": "DENIED",
+          "operationTrace": {
+            "required": [
+              {
+                "method": "access",
+                "path": "/work",
+                "mode": 2
+              }
+            ],
+            "forbid": [
+              "rm"
+            ]
+          }
+        },
+        "provider": {
+          "access": {
+            "path": "/work",
+            "mode": 2,
+            "reject": {
+              "kind": "FsError",
+              "code": "EACCES"
+            }
+          },
+          "otherAccess": "allow"
+        }
+      },
+      "deltas": [
+        {
+          "op": "set",
+          "path": "/id",
+          "value": "V6-S71-ACCESS-MODE",
+          "reason": "New denominator; never rescore original ID."
+        },
+        {
+          "op": "set",
+          "path": "/independence",
+          "value": "Versioned root-authorized fixture adjudication after frozen diagnosis; not a fresh blind fixture.",
+          "reason": "Disclose informed fixture change."
+        },
+        {
+          "op": "set",
+          "path": "/observer",
+          "value": {
+            "accessMode": "actual args[1]",
+            "accessDenialMatch": "exact path and supplied mode"
+          },
+          "reason": "Old observer dropped mode; capture actual argument and match denial without fabrication."
+        }
+      ],
+      "row": {
+        "id": "V6-S71-ACCESS-MODE",
+        "name": "Delete permission probes parent, not writable leaf",
+        "execution": "NOT_RUN",
+        "independence": "Versioned root-authorized fixture adjudication after frozen diagnosis; not a fresh blind fixture.",
+        "invocation": {
+          "route": "literal-command",
+          "cwd": "/work",
+          "args": [],
+          "stdin": {
+            "chunks": [
+              {
+                "utf8": "*** Begin Patch\n*** Delete File: a\n*** End Patch\n"
+              }
+            ],
+            "eof": true
+          }
+        },
+        "before": {
+          "files": {
+            "/work/a": {
+              "utf8": "old\n"
+            }
+          },
+          "directories": [
+            "/",
+            "/work"
+          ]
+        },
+        "expected": {
+          "outcome": {
+            "kind": "return",
+            "exitCode": 1
+          },
+          "files": {
+            "/work/a": {
+              "utf8": "old\n"
+            }
+          },
+          "absent": [],
+          "stdout": {
+            "utf8": ""
+          },
+          "stderr": {
+            "semantic": "preflight-diagnostic"
+          },
+          "constraints": [
+            "GLOBAL",
+            "INITIAL_PREFLIGHT",
+            "NO_COMMAND_MUTATION"
+          ],
+          "authorization": "DENIED",
+          "operationTrace": {
+            "required": [
+              {
+                "method": "access",
+                "path": "/work",
+                "mode": 2
+              }
+            ],
+            "forbid": [
+              "rm"
+            ]
+          }
+        },
+        "provider": {
+          "access": {
+            "path": "/work",
+            "mode": 2,
+            "reject": {
+              "kind": "FsError",
+              "code": "EACCES"
+            }
+          },
+          "otherAccess": "allow"
+        },
+        "observer": {
+          "accessMode": "actual args[1]",
+          "accessDenialMatch": "exact path and supplied mode"
+        }
+      }
+    },
+    {
+      "originalSourceBase64": "ewogICAgICAiaWQiOiAiUzc0IiwKICAgICAgIm5hbWUiOiAiVW5rbm93biByZWFsIGFsaWFzIGNhbiBjYXVzZSBxdWFsaWZpZWQgcGFydGlhbCBvdXRjb21lIG9uIHJldmFsaWRhdGlvbiIsCiAgICAgICJleGVjdXRpb24iOiAiTk9UX1JVTiIsCiAgICAgICJpbmRlcGVuZGVuY2UiOiAiRGlzdGluY3QgY2hhbGxlbmdlciBmaXh0dXJlIGZyb3plbiB3aXRob3V0IGNhbmRpZGF0ZSBpbnNwZWN0aW9uOyBub3QgaW5mZXJyZWQgZnJvbSBjYW5kaWRhdGUgb3V0cHV0LiIsCiAgICAgICJpbnZvY2F0aW9uIjogewogICAgICAgICJyb3V0ZSI6ICJsaXRlcmFsLWNvbW1hbmQiLAogICAgICAgICJjd2QiOiAiL3dvcmsiLAogICAgICAgICJhcmdzIjogW10sCiAgICAgICAgInN0ZGluIjogewogICAgICAgICAgImNodW5rcyI6IFsKICAgICAgICAgICAgewogICAgICAgICAgICAgICJ1dGY4IjogIioqKiBCZWdpbiBQYXRjaFxuKioqIFVwZGF0ZSBGaWxlOiBhXG5AQFxuLW9sZFxuK25ld1xuKioqIFVwZGF0ZSBGaWxlOiBiXG5AQFxuLW9sZFxuK25ld1xuKioqIEVuZCBQYXRjaFxuIgogICAgICAgICAgICB9CiAgICAgICAgICBdLAogICAgICAgICAgImVvZiI6IHRydWUKICAgICAgICB9CiAgICAgIH0sCiAgICAgICJiZWZvcmUiOiB7CiAgICAgICAgImZpbGVzIjogewogICAgICAgICAgIi93b3JrL2EiOiB7CiAgICAgICAgICAgICJ1dGY4IjogIm9sZFxuIgogICAgICAgICAgfSwKICAgICAgICAgICIvd29yay9iIjogewogICAgICAgICAgICAidXRmOCI6ICJvbGRcbiIKICAgICAgICAgIH0KICAgICAgICB9LAogICAgICAgICJkaXJlY3RvcmllcyI6IFsKICAgICAgICAgICIvIiwKICAgICAgICAgICIvd29yayIKICAgICAgICBdCiAgICAgIH0sCiAgICAgICJleHBlY3RlZCI6IHsKICAgICAgICAib3V0Y29tZSI6IHsKICAgICAgICAgICJraW5kIjogInJldHVybiIsCiAgICAgICAgICAiZXhpdENvZGUiOiAxCiAgICAgICAgfSwKICAgICAgICAiZmlsZXMiOiB7CiAgICAgICAgICAiL3dvcmsvYSI6IHsKICAgICAgICAgICAgInV0ZjgiOiAibmV3XG4iCiAgICAgICAgICB9LAogICAgICAgICAgIi93b3JrL2IiOiB7CiAgICAgICAgICAgICJ1dGY4IjogIm5ld1xuIgogICAgICAgICAgfQogICAgICAgIH0sCiAgICAgICAgImFic2VudCI6IFtdLAogICAgICAgICJzdGRvdXQiOiB7CiAgICAgICAgICAidXRmOCI6ICIiCiAgICAgICAgfSwKICAgICAgICAic3RkZXJyIjogewogICAgICAgICAgInNlbWFudGljIjogInB1YmxpY2F0aW9uLWRpYWdub3N0aWMiCiAgICAgICAgfSwKICAgICAgICAiY29uc3RyYWludHMiOiBbCiAgICAgICAgICAiR0xPQkFMIiwKICAgICAgICAgICJJTklUSUFMX1BSRUZMSUdIVCIKICAgICAgICBdLAogICAgICAgICJvcGVyYXRpb25PcmRpbmFsIjogMiwKICAgICAgICAib3BlcmF0aW9uVHJhY2UiOiB7CiAgICAgICAgICAicmVxdWlyZWQiOiBbCiAgICAgICAgICAgIHsKICAgICAgICAgICAgICAibWV0aG9kIjogIndyaXRlRmlsZSIsCiAgICAgICAgICAgICAgInBhdGgiOiAiL3dvcmsvYSIsCiAgICAgICAgICAgICAgImZsYWciOiAidyIKICAgICAgICAgICAgfQogICAgICAgICAgXSwKICAgICAgICAgICJmb3JiaWRNYXRjaGluZyI6IFsKICAgICAgICAgICAgewogICAgICAgICAgICAgICJtZXRob2QiOiAid3JpdGVGaWxlIiwKICAgICAgICAgICAgICAicGF0aCI6ICIvd29yay9iIgogICAgICAgICAgICB9CiAgICAgICAgICBdCiAgICAgICAgfSwKICAgICAgICAiZGlhZ25vc3RpY01lYW5pbmciOiAic2Vjb25kIHRhcmdldCBjaGFuZ2VkIHNpbmNlIGluaXRpYWwgc25hcHNob3Q7IHByaW9yIGNoYW5nZXMgbWF5IHJlbWFpbiIKICAgICAgfSwKICAgICAgInByb3ZpZGVyIjogewogICAgICAgICJpZGVudGl0eSI6ICJvbWl0dGVkIiwKICAgICAgICAiY29tcGFyZUVudHJ5IjogInVua25vd24iLAogICAgICAgICJiYWNraW5nQWxpYXNlcyI6IFsKICAgICAgICAgIFsKICAgICAgICAgICAgIi93b3JrL2EiLAogICAgICAgICAgICAiL3dvcmsvYiIKICAgICAgICAgIF0KICAgICAgICBdLAogICAgICAgICJ3cml0ZUZpbGUiOiAiaW4tcGxhY2UgY2hhbmdlcyBzaGFyZWQgYmFja2luZyBieXRlcyIKICAgICAgfQogICAgfQ==",
+      "originalSourceSha256": "f06d69a6497e7dd1108ab4a15870181104070cdf51f759e92dcac0a6e4b4f6c1",
+      "original": {
+        "id": "S74",
+        "name": "Unknown real alias can cause qualified partial outcome on revalidation",
+        "execution": "NOT_RUN",
+        "independence": "Distinct challenger fixture frozen without candidate inspection; not inferred from candidate output.",
+        "invocation": {
+          "route": "literal-command",
+          "cwd": "/work",
+          "args": [],
+          "stdin": {
+            "chunks": [
+              {
+                "utf8": "*** Begin Patch\n*** Update File: a\n@@\n-old\n+new\n*** Update File: b\n@@\n-old\n+new\n*** End Patch\n"
+              }
+            ],
+            "eof": true
+          }
+        },
+        "before": {
+          "files": {
+            "/work/a": {
+              "utf8": "old\n"
+            },
+            "/work/b": {
+              "utf8": "old\n"
+            }
+          },
+          "directories": [
+            "/",
+            "/work"
+          ]
+        },
+        "expected": {
+          "outcome": {
+            "kind": "return",
+            "exitCode": 1
+          },
+          "files": {
+            "/work/a": {
+              "utf8": "new\n"
+            },
+            "/work/b": {
+              "utf8": "new\n"
+            }
+          },
+          "absent": [],
+          "stdout": {
+            "utf8": ""
+          },
+          "stderr": {
+            "semantic": "publication-diagnostic"
+          },
+          "constraints": [
+            "GLOBAL",
+            "INITIAL_PREFLIGHT"
+          ],
+          "operationOrdinal": 2,
+          "operationTrace": {
+            "required": [
+              {
+                "method": "writeFile",
+                "path": "/work/a",
+                "flag": "w"
+              }
+            ],
+            "forbidMatching": [
+              {
+                "method": "writeFile",
+                "path": "/work/b"
+              }
+            ]
+          },
+          "diagnosticMeaning": "second target changed since initial snapshot; prior changes may remain"
+        },
+        "provider": {
+          "identity": "omitted",
+          "compareEntry": "unknown",
+          "backingAliases": [
+            [
+              "/work/a",
+              "/work/b"
+            ]
+          ],
+          "writeFile": "in-place changes shared backing bytes"
+        }
+      },
+      "deltas": [
+        {
+          "op": "set",
+          "path": "/id",
+          "value": "V6-S74-EXACT-BRANCH-SET",
+          "reason": "New denominator; never rescore original ID."
+        },
+        {
+          "op": "set",
+          "path": "/independence",
+          "value": "Versioned root-authorized fixture adjudication after frozen diagnosis; not a fresh blind fixture.",
+          "reason": "Disclose informed fixture change."
+        },
+        {
+          "op": "set",
+          "path": "/expected/stderr",
+          "value": {
+            "exactUtf8Alternatives": [
+              "apply_patch: operation 2; prior changes may remain: target bytes changed since preflight: /work/b\n",
+              "apply_patch: operation 2; prior changes may remain: target changed since preflight: /work/b\n"
+            ]
+          },
+          "reason": "Only two existing full 98/92-byte diagnostics; no timestamp-cause claim or blanket predicate."
+        }
+      ],
+      "row": {
+        "id": "V6-S74-EXACT-BRANCH-SET",
+        "name": "Unknown real alias can cause qualified partial outcome on revalidation",
+        "execution": "NOT_RUN",
+        "independence": "Versioned root-authorized fixture adjudication after frozen diagnosis; not a fresh blind fixture.",
+        "invocation": {
+          "route": "literal-command",
+          "cwd": "/work",
+          "args": [],
+          "stdin": {
+            "chunks": [
+              {
+                "utf8": "*** Begin Patch\n*** Update File: a\n@@\n-old\n+new\n*** Update File: b\n@@\n-old\n+new\n*** End Patch\n"
+              }
+            ],
+            "eof": true
+          }
+        },
+        "before": {
+          "files": {
+            "/work/a": {
+              "utf8": "old\n"
+            },
+            "/work/b": {
+              "utf8": "old\n"
+            }
+          },
+          "directories": [
+            "/",
+            "/work"
+          ]
+        },
+        "expected": {
+          "outcome": {
+            "kind": "return",
+            "exitCode": 1
+          },
+          "files": {
+            "/work/a": {
+              "utf8": "new\n"
+            },
+            "/work/b": {
+              "utf8": "new\n"
+            }
+          },
+          "absent": [],
+          "stdout": {
+            "utf8": ""
+          },
+          "stderr": {
+            "exactUtf8Alternatives": [
+              "apply_patch: operation 2; prior changes may remain: target bytes changed since preflight: /work/b\n",
+              "apply_patch: operation 2; prior changes may remain: target changed since preflight: /work/b\n"
+            ]
+          },
+          "constraints": [
+            "GLOBAL",
+            "INITIAL_PREFLIGHT"
+          ],
+          "operationOrdinal": 2,
+          "operationTrace": {
+            "required": [
+              {
+                "method": "writeFile",
+                "path": "/work/a",
+                "flag": "w"
+              }
+            ],
+            "forbidMatching": [
+              {
+                "method": "writeFile",
+                "path": "/work/b"
+              }
+            ]
+          },
+          "diagnosticMeaning": "second target changed since initial snapshot; prior changes may remain"
+        },
+        "provider": {
+          "identity": "omitted",
+          "compareEntry": "unknown",
+          "backingAliases": [
+            [
+              "/work/a",
+              "/work/b"
+            ]
+          ],
+          "writeFile": "in-place changes shared backing bytes"
+        }
+      }
+    }
+  ]
+}

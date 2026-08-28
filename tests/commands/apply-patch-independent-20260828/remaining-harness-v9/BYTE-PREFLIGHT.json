@@ -1,0 +1,92 @@
+{
+  "schema": "v9-fixed-byte-count-preflight",
+  "historicalHold": "6f5c1dd8635aeb9a49419dc87b8c348b52fee779",
+  "canonical": {
+    "utf8": "apply_patch: permission denied: /work/a\n",
+    "hex": "6170706c795f70617463683a207065726d697373696f6e2064656e6965643a202f776f726b2f610a",
+    "historicalCount": 38,
+    "correctedCount": 40,
+    "unchangedExactBytes": true
+  },
+  "branches": [
+    {
+      "utf8": "apply_patch: operation 2; prior changes may remain: target bytes changed since preflight: /work/b\n",
+      "bytes": 98,
+      "expected": 98
+    },
+    {
+      "utf8": "apply_patch: operation 2; prior changes may remain: target changed since preflight: /work/b\n",
+      "bytes": 92,
+      "expected": 92
+    }
+  ],
+  "releaseBytes": 8,
+  "helperAcceptedBytes": 64,
+  "helperRefusedBytes": 65,
+  "regularFixtureBytes": 34,
+  "regularFixtureSha256": "78a9ab677743cead7950080fa8977115f3b08d5ee6c93b178c5ad5f84e486c0b",
+  "symlinkTargetText": "link-target",
+  "symlinkTargetBytes": 11,
+  "exactGitStdoutBytes": 152,
+  "exactGitStdoutSha256": "53efaa170347fa9310fb09d738a67949b3d591e8e974bd1b6a981326c088f01b",
+  "gitObjectLengthHeadersRecomputed": {
+    "blob": "f9e4014e169ed925725c571c37ff71ef81eed230",
+    "tree": "3ac38790e22525634c1451f402d8b01f7d5caf4e",
+    "commit": "147aa1a5c5a862ffe2d6152c52d66bd3111c0267"
+  },
+  "originalExcerptHashesVerified": 4,
+  "emptyExpectedStderrBytes": 0,
+  "excludedFromExactStringCounts": [
+    "resource ceilings are upper bounds, not exact string sizes",
+    "record/control/entry counts are not byte counts",
+    "environment and streamed output sizes are observed at runtime within sealed caps"
+  ],
+  "changedExpectations": [
+    "D02 canonical byte count38-to40",
+    "D02 emitted canonicalBytes38-to40",
+    "S62 delta reason description only"
+  ],
+  "otherChanges": [
+    "exact versioned root path substitution",
+    "ROOT-approved five-minute/eight-process/16MiB qualification ceilings"
+  ],
+  "presealSha256": "baa109dabb17310edf71b76e94df612cd12f870dee8a678d9be8029b15a8bdd4",
+  "files": {
+    "owner.mjs": {
+      "bytes": 23853,
+      "mode": 420,
+      "sha256": "a167c664bdfed3ab6a5c16aa27ccc697e9de625b225db4286cdb53cd6ede2692"
+    },
+    "child.mjs": {
+      "bytes": 2269,
+      "mode": 420,
+      "sha256": "2d433819913e3d9559b03da65480a89c498b9203b885469ed4d0433d42a14f25"
+    },
+    "data-controls.mjs": {
+      "bytes": 9376,
+      "mode": 420,
+      "sha256": "7032c82a5a96c5c5efe41641ab0bad38f099a042974303da62ac60fbda9e0f26"
+    },
+    "primitives.mjs": {
+      "bytes": 2593,
+      "mode": 420,
+      "sha256": "27ba09f27460eaddddc241e64dbf98fe55b48fa72216bfa7d68ec635d3feff65"
+    },
+    "fixture-data.mjs": {
+      "bytes": 1450,
+      "mode": 420,
+      "sha256": "b70d884f3c30c1fa4ce29c99889bce8ecd55057232d3d51e6362ecad83f7e6dd"
+    },
+    "INPUTS-v6.json": {
+      "bytes": 618,
+      "mode": 420,
+      "sha256": "1d9320fc256d076398de3d16ea7c4044ce709bb50b6d5a5e70fde8018a6478bf"
+    },
+    "FIXTURES-v6.json": {
+      "bytes": 30980,
+      "mode": 420,
+      "sha256": "9404d6df5623e049ef002c46a560483e765b45e609cc873caaa8fdc40acf6da1"
+    }
+  },
+  "productRuns": 0
+}

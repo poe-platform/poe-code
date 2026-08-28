@@ -1,0 +1,12 @@
+{
+  "result": null,
+  "failure": {
+    "name": "Error",
+    "message": "source identity: /Users/kjopek/Workspace/safe-bash/tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/decoder-v3/DATA-01/492.json"
+  },
+  "childStarts": 0,
+  "allMetadataChildrenKnownRetired": true,
+  "captureBytesBeforeResult": 194,
+  "elapsedMs": 20.599916999999998,
+  "receipts": []
+}

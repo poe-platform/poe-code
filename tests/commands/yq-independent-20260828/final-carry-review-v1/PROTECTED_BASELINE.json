@@ -1,0 +1,430 @@
+{
+  "schema": "yq-final-carry-review-protected-baseline/1",
+  "date": "2026-08-28",
+  "revision": "c52a1d733576aebad79f154e71146923b5aa4e0c",
+  "scope": "Eight bounded original scopes captured after own predicate preseal, before author packet/handoff inspection; byte/mode/membership metadata only, no content copy.",
+  "scopes": [
+    "tests/commands/yq-independent-20260828/freeze",
+    "tests/commands/yq-independent-20260828/normative",
+    "tests/commands/yq-independent-20260828/query-budget",
+    "tests/commands/yq-independent-20260828/reconciliation-v1",
+    "tests/commands/yq-independent-20260828/adopted-n-encoder-v1",
+    "tests/commands/yq-independent-20260828/adopted-n-encoder-review-v1",
+    "tests/commands/yq-independent-20260828/qb-mechanism-review-v1",
+    "tests/commands/yq-design-20260828/qb-policy-v1"
+  ],
+  "members": [
+    {
+      "path": "tests/commands/yq-independent-20260828/freeze/PREPARATION.md",
+      "mode": "100644",
+      "gitBlob": "094d4786d199fb7b9d7365f0edeb491ce2a319a8",
+      "bytes": 2150,
+      "sha256": "e7f2b885b41714e23691e1db730b92e04df2510059bc55e426eb67eb32026b2c"
+    },
+    {
+      "path": "tests/commands/yq-independent-20260828/freeze/README.md",
+      "mode": "100644",
+      "gitBlob": "75ec73bc1cd0fbdf91c1f21ce0328f2a603a3796",
+      "bytes": 13125,
+      "sha256": "0cb91b8b471fd5f7453fc0dfae9da3acf224680d758d50a750995108875d3955"
+    },
+    {
+      "path": "tests/commands/yq-independent-20260828/freeze/accounting.json",
+      "mode": "100644",
+      "gitBlob": "122721e4bef71663f098456e94990b8055b84b87",
+      "bytes": 10897,
+      "sha256": "f81e089520ccaffcd3cd73589f46737dd658cb9be295f43089156f64382381cf"
+    },
+    {
+      "path": "tests/commands/yq-independent-20260828/freeze/command-parser.json",
+      "mode": "100644",
+      "gitBlob": "2818796d706eb48e452d769d36c0644754ceefbd",
+      "bytes": 10728,
+      "sha256": "173a594a4b61c17e14ecd09ee850027e1c9cfafac95530e04cfcb65d7c1de18f"
+    },
+    {
+      "path": "tests/commands/yq-independent-20260828/freeze/fixed-values.json",
+      "mode": "100644",
+      "gitBlob": "f6d1f2e79e6fbc1e4edeb5e34ffead287525cb48",
+      "bytes": 3446,
+      "sha256": "59a1fbcc170e9b26e6184fca8f082f17c558ca3b0b9dcd15561a6a9dbf470b3a"
+    },
+    {
+      "path": "tests/commands/yq-independent-20260828/freeze/integration.json",
+      "mode": "100644",
+      "gitBlob": "889e6db198ca7521e175501e39864a42ffc71e24",
+      "bytes": 12184,
+      "sha256": "5486bac2261fec24e85b2ebe2a48eaccbd59be0f8013cdbd852f081c3cc1af30"
+    },
+    {
+      "path": "tests/commands/yq-independent-20260828/freeze/integrity.json",
+      "mode": "100644",
+      "gitBlob": "b05483562a8c8961ef594f7bf909b33fc9852285",
+      "bytes": 3428,
+      "sha256": "658c00cf9b38c7b4c0f8cf2c0c9092baa04468433747e0427e25868f94ba5462"
+    },
+    {
+      "path": "tests/commands/yq-independent-20260828/freeze/recipes.mjs",
+      "mode": "100644",
+      "gitBlob": "5ab08743922bde7be44ae78f9711a72950b2a91d",
+      "bytes": 1382,
+      "sha256": "fb750252e49c92d5e5bfc91980e6bf042cc2ca3825cc85e97dd8329f458dc146"
+    },
+    {
+      "path": "tests/commands/yq-independent-20260828/freeze/source-bindings.json",
+      "mode": "100644",
+      "gitBlob": "5e9789334b69046bd31d427938d54be89c3f7622",
+      "bytes": 7912,
+      "sha256": "7d93b149eacfefeee82560af6c72ee1f235bbf6abdfaadebe7811e92375c6ed2"
+    },
+    {
+      "path": "tests/commands/yq-independent-20260828/freeze/utf8.json",
+      "mode": "100644",
+      "gitBlob": "d191c59bd40fd9413d4b73d7e8ac57acd4c197c2",
+      "bytes": 4211,
+      "sha256": "bd42933b99802391de2d41d8af9c00a32963f96ac5fb243b4913da3f358f150c"
+    },
+    {
+      "path": "tests/commands/yq-independent-20260828/freeze/value-query.json",
+      "mode": "100644",
+      "gitBlob": "15386e9f5336d8244ead725f0c5402b4e5a1183d",
+      "bytes": 12730,
+      "sha256": "b83f0f56eeddbc9637947356078d972999533af791d40f200d493008e17ee443"
+    },
+    {
+      "path": "tests/commands/yq-independent-20260828/freeze/verify-preparation.mjs",
+      "mode": "100644",
+      "gitBlob": "9fbda5b20a90faaad934ebcd8d19eb7a37bf17b1",
+      "bytes": 12556,
+      "sha256": "430b92c6270b73ab18e3e313255fee5c473914299bca203655a75a39b8af8de1"
+    },
+    {
+      "path": "tests/commands/yq-independent-20260828/normative/COORDINATION.md",
+      "mode": "100644",
+      "gitBlob": "2fb08e76f58d5a20106f7894572ed5c2132dca8d",
+      "bytes": 4242,
+      "sha256": "55a5bf84f43edfd98f35294ccfe89e686e10a219a087de14e2ae07f344f3e7b4"
+    },
+    {
+      "path": "tests/commands/yq-independent-20260828/normative/PREPARATION.md",
+      "mode": "100644",
+      "gitBlob": "52fd8a6e3dc460827aea062b972d64d3fd3e6554",
+      "bytes": 2011,
+      "sha256": "0ca4baf1254e2efa2d40506f615a8da223eb9890cf585c1fe71ed8c45564d815"
+    },
+    {
+      "path": "tests/commands/yq-independent-20260828/normative/REVIEW.md",
+      "mode": "100644",
+      "gitBlob": "633f0d91892c5d89a4befdb6682724b98dfdbb67",
+      "bytes": 14285,
+      "sha256": "f28c20f0b7c4be27ffb9ba432bb8a1f948f1dd2e27753845c6055d6f11a9bd34"
+    },
+    {
+      "path": "tests/commands/yq-independent-20260828/normative/cases.json",
+      "mode": "100644",
+      "gitBlob": "61c8bf10b3de59500b14462875a8650190b5aa8f",
+      "bytes": 20354,
+      "sha256": "36538ec3e40205a61d9d1b3a3ce0e9232bcff47502512dafc9cd90c615282d9e"
+    },
+    {
+      "path": "tests/commands/yq-independent-20260828/normative/check-static.mjs",
+      "mode": "100644",
+      "gitBlob": "0df0123d9569d8db65be40afa7acd2a89165921a",
+      "bytes": 10581,
+      "sha256": "cd866d7b8aa228f672a55c72152d15899f05283029e8c3b96d23ba296610b6b2"
+    },
+    {
+      "path": "tests/commands/yq-independent-20260828/normative/selected-inputs.json",
+      "mode": "100644",
+      "gitBlob": "290e325478937c7ef02cf6df2419b4c121471e8c",
+      "bytes": 4071,
+      "sha256": "b3ac2840e6414cc943be7d75e1553f5aff0af88e83fb87feb82fae41ed522d86"
+    },
+    {
+      "path": "tests/commands/yq-independent-20260828/query-budget/CASES.json",
+      "mode": "100644",
+      "gitBlob": "a447806a83a413aba3562a806a57902a2b9a5777",
+      "bytes": 16845,
+      "sha256": "cc1e73ab2adc50840499f0f57f4d30a1baa72bee2e095652e9b2d456f3753de3"
+    },
+    {
+      "path": "tests/commands/yq-independent-20260828/query-budget/CHECKS.json",
+      "mode": "100644",
+      "gitBlob": "63006e4721e75a23f6df3407dce1c4dd964b88b6",
+      "bytes": 1797,
+      "sha256": "de87987338dc5de7733c9f71c86f408d7cd29e8db276a4ced0baf99a1a58202b"
+    },
+    {
+      "path": "tests/commands/yq-independent-20260828/query-budget/COORDINATION.md",
+      "mode": "100644",
+      "gitBlob": "0f8af6e9ac1b1246216774e1e307ff16c631405a",
+      "bytes": 1248,
+      "sha256": "3ee8e980437b692d631e02b0a1dfafd605b68eca405fcdc7a3c88a8c8fbe70ef"
+    },
+    {
+      "path": "tests/commands/yq-independent-20260828/query-budget/LENGTH-ACCEPTANCE-ADDENDUM.md",
+      "mode": "100644",
+      "gitBlob": "ae15f35b39adf79830bbfafcf2f4c91356ded6e8",
+      "bytes": 2599,
+      "sha256": "77246ca464b245e4258e622f10014cff70aa0b7293209fd3e6fbbca18914e713"
+    },
+    {
+      "path": "tests/commands/yq-independent-20260828/query-budget/REVIEW.md",
+      "mode": "100644",
+      "gitBlob": "5e590f62051ae0018eadeaa3dfea687d7000a024",
+      "bytes": 17110,
+      "sha256": "db38472bd5252dea54e41da049742740af2f4bc4f8354dc096db407a29def538"
+    },
+    {
+      "path": "tests/commands/yq-independent-20260828/query-budget/SOURCE_IDENTITY.json",
+      "mode": "100644",
+      "gitBlob": "5e4c5ca817c76c7b4924c6ac46fdd837620ce4b1",
+      "bytes": 16884,
+      "sha256": "044b46fadfe9b6732933c2b10bf4c7c4f01a8f7ee11df51120167ed2182162e9"
+    },
+    {
+      "path": "tests/commands/yq-independent-20260828/query-budget/check.mjs",
+      "mode": "100644",
+      "gitBlob": "5e00a56ce5a813faf03318d2856245d94c9b3cbd",
+      "bytes": 8094,
+      "sha256": "889b2229b4622a0f8bff3b0b4b51947db4b629c51609cd5cad868ebf25050550"
+    },
+    {
+      "path": "tests/commands/yq-independent-20260828/reconciliation-v1/README.md",
+      "mode": "100644",
+      "gitBlob": "a729866d1cdf7b2bb0a0454ddfbff477a6cab423",
+      "bytes": 6402,
+      "sha256": "0788e1b5c1fb8e2aaa17eb5a4ba21e3b6dabc3136862d7b0c4ff55302a9c529e"
+    },
+    {
+      "path": "tests/commands/yq-independent-20260828/reconciliation-v1/check.mjs",
+      "mode": "100644",
+      "gitBlob": "08198a16323b9a69a0820e30886e685c0df31515",
+      "bytes": 8550,
+      "sha256": "86e447aaed4f996d2acafa654e452ce9c5af820fbae54b6793ebfa85f25424cf"
+    },
+    {
+      "path": "tests/commands/yq-independent-20260828/reconciliation-v1/crosswalk.json",
+      "mode": "100644",
+      "gitBlob": "19727506747a63f02ccc90cc8e63a098a8d28317",
+      "bytes": 12336,
+      "sha256": "c19081327f7e3d2602e0383078dd1acc05fbf2f70e6e60e4a7d9f895f4c34f4f"
+    },
+    {
+      "path": "tests/commands/yq-independent-20260828/reconciliation-v1/sources.json",
+      "mode": "100644",
+      "gitBlob": "a68c16b766c833ac7e8c88c30bc092bceb029177",
+      "bytes": 6078,
+      "sha256": "cb6ec8a4769af033ebf7ebd5a26b240d3748ccd2be6ac1fe7060853786d7cd43"
+    },
+    {
+      "path": "tests/commands/yq-independent-20260828/adopted-n-encoder-v1/CHECKS.json",
+      "mode": "100644",
+      "gitBlob": "1b5854773bb70cb05566d33f2c81876f618049b2",
+      "bytes": 7264,
+      "sha256": "890b78635d8c1de145f28496b951f438f365b6fd726dcae5e687f6d0575ae248"
+    },
+    {
+      "path": "tests/commands/yq-independent-20260828/adopted-n-encoder-v1/README.md",
+      "mode": "100644",
+      "gitBlob": "bb0a3149ebe210e374f375398b362e3172da8d15",
+      "bytes": 9889,
+      "sha256": "ed95bae71de2f5c9ffb6f66a1fa5e96a56f2def34b96fedaed581ad357be52d3"
+    },
+    {
+      "path": "tests/commands/yq-independent-20260828/adopted-n-encoder-v1/cases.json",
+      "mode": "100644",
+      "gitBlob": "29a584ae5513f43e03c86ff0bd9c2e307404db4f",
+      "bytes": 10246,
+      "sha256": "cb1c52cc7c5d50b2e6e31cc0229f1a16cc526ab242c01bc04df16e581bf50279"
+    },
+    {
+      "path": "tests/commands/yq-independent-20260828/adopted-n-encoder-v1/check.mjs",
+      "mode": "100644",
+      "gitBlob": "639dbf5ffee60a28783ace3818540a7d63900690",
+      "bytes": 17270,
+      "sha256": "3575b88f575eba515f05e6d8510ffca0da76e45d760a76604deb4e41ea577915"
+    },
+    {
+      "path": "tests/commands/yq-independent-20260828/adopted-n-encoder-v1/decisions.json",
+      "mode": "100644",
+      "gitBlob": "043c4c868022cbb0093e062f3b05ffe8e51035ff",
+      "bytes": 6187,
+      "sha256": "bb4b07487d10340ab3ca715d52e6ada6765ee05b06bbd97f58d06fc87dabbdcc"
+    },
+    {
+      "path": "tests/commands/yq-independent-20260828/adopted-n-encoder-v1/sources.json",
+      "mode": "100644",
+      "gitBlob": "0f69f09f95e66f3802eb9487210c7716a1f754e0",
+      "bytes": 5477,
+      "sha256": "e59890237fe8ccb26c7ef0af91937d82accc45d1b6aebed9a8456ec35b97e574"
+    },
+    {
+      "path": "tests/commands/yq-independent-20260828/adopted-n-encoder-review-v1/PROTOCOL.md",
+      "mode": "100644",
+      "gitBlob": "8cc17564bc91e693aca6a027b4475673bcccd24c",
+      "bytes": 9938,
+      "sha256": "6478619ec64844b41f59edc0087ff0079f70d5ceae05e33cdee58a375009fe6e"
+    },
+    {
+      "path": "tests/commands/yq-independent-20260828/adopted-n-encoder-review-v1/manifest.json",
+      "mode": "100644",
+      "gitBlob": "f68ddc42c9b62e4ce8826f4dda7464a16e7202fd",
+      "bytes": 4175,
+      "sha256": "4eebdfa562ac8e9267f6cb13d55e99b54cb72b87ffaa79386e5534b87869240b"
+    },
+    {
+      "path": "tests/commands/yq-independent-20260828/adopted-n-encoder-review-v1/results-v1/RESULTS.json",
+      "mode": "100644",
+      "gitBlob": "3f66b39a409bd5e3dc95726c4ae63685fd4320b2",
+      "bytes": 73686,
+      "sha256": "7711c6833d9605e19bd2a2f1197f06798a8f2cafb4e269c7159795ff6f7535cc"
+    },
+    {
+      "path": "tests/commands/yq-independent-20260828/adopted-n-encoder-review-v1/results-v1/REVIEW.md",
+      "mode": "100644",
+      "gitBlob": "ca80745b90fd460611b38b01d0b6a031cf758d8d",
+      "bytes": 9476,
+      "sha256": "dec947b595be7ec9763ca73b616eb837ce9f9dca0ac363d19245b47c9b09a7a1"
+    },
+    {
+      "path": "tests/commands/yq-independent-20260828/adopted-n-encoder-review-v1/results-v1/check.mjs",
+      "mode": "100644",
+      "gitBlob": "2dc60320c136407f8a22e64b059694769054fa51",
+      "bytes": 25369,
+      "sha256": "466460156169bc26b3da06419e2931df532923ef4567527f54a8c1ca598a2935"
+    },
+    {
+      "path": "tests/commands/yq-independent-20260828/adopted-n-encoder-review-v1/witnesses.json",
+      "mode": "100644",
+      "gitBlob": "92fee65892aac545b9cf994c8b04c075876f797e",
+      "bytes": 6670,
+      "sha256": "86ddb817e442e7ea274c0d4be3f8bda205e4b6e5294bd09186af8e2ff2ff510c"
+    },
+    {
+      "path": "tests/commands/yq-independent-20260828/qb-mechanism-review-v1/CASES.json",
+      "mode": "100644",
+      "gitBlob": "6ec60d283a3f20a0af1938ffaeafdb35188c0e59",
+      "bytes": 11434,
+      "sha256": "ee1cbe07b3590cff1405c9708f7122385067189e56ef060bcbb58ce7edbb7c65"
+    },
+    {
+      "path": "tests/commands/yq-independent-20260828/qb-mechanism-review-v1/CHECKS.json",
+      "mode": "100644",
+      "gitBlob": "eff894f0818abaa769527fd33161cdc4596d6054",
+      "bytes": 2239,
+      "sha256": "79048a7e8e9c45a048dc58eace90d107f285fc44d4d655c59bf6716b078591df"
+    },
+    {
+      "path": "tests/commands/yq-independent-20260828/qb-mechanism-review-v1/REVIEW.md",
+      "mode": "100644",
+      "gitBlob": "02333e186660e0004cd7c39b11e378f93c0c25af",
+      "bytes": 11739,
+      "sha256": "bcbc458a7a99fdae4940711899ae289fd6fb112b0bd18a693109387e8f339969"
+    },
+    {
+      "path": "tests/commands/yq-independent-20260828/qb-mechanism-review-v1/SOURCE_IDENTITY.json",
+      "mode": "100644",
+      "gitBlob": "cd04cdf79e445b191e1c0f72e14e0478101e8fe8",
+      "bytes": 8933,
+      "sha256": "b25d2be29c296e87fadcd32adbac158fb26b63e5e55625ca04d6a1a588a8f9f0"
+    },
+    {
+      "path": "tests/commands/yq-independent-20260828/qb-mechanism-review-v1/check.mjs",
+      "mode": "100644",
+      "gitBlob": "938094c451a916e26796cc787f7dcfd65ffe3881",
+      "bytes": 10517,
+      "sha256": "c10cd76e86b5c328f541e6b62563969efcce38f6986687fbdc38012c3f34477e"
+    },
+    {
+      "path": "tests/commands/yq-design-20260828/qb-policy-v1/README.md",
+      "mode": "100644",
+      "gitBlob": "69d60070d289e422164ebe45cf34f6bc2919a37c",
+      "bytes": 17271,
+      "sha256": "96a7ae5aa36cec464a28d9ba09cfcd9791cb0dd09e80a51a6fc203cdd87b7ac6"
+    },
+    {
+      "path": "tests/commands/yq-design-20260828/qb-policy-v1/check-accounting.mjs",
+      "mode": "100644",
+      "gitBlob": "bb640bef986105cc88320be4fa88b0dab3ce0a61",
+      "bytes": 4741,
+      "sha256": "e740782983b4f15eb146185a10514bc17ca91003dade6cc67856ffff64c5935a"
+    },
+    {
+      "path": "tests/commands/yq-design-20260828/qb-policy-v1/controls.json",
+      "mode": "100644",
+      "gitBlob": "2757932475a9303c59a857311fbbfe14caaca3a2",
+      "bytes": 3729,
+      "sha256": "305f884198df8c8626b8246d1189f5708938fb0af4a2990e924420a178a9c43d"
+    },
+    {
+      "path": "tests/commands/yq-design-20260828/qb-policy-v1/identity.json",
+      "mode": "100644",
+      "gitBlob": "5ff9922a1c99a72858a4c7e1b8aa974a8713b954",
+      "bytes": 6614,
+      "sha256": "23a949aa0837aa50fa92c38941b83eae4c4404c9e6e5c3600e393817ca4852a4"
+    }
+  ],
+  "membership": [
+    "tests/commands/yq-design-20260828/qb-policy-v1",
+    "tests/commands/yq-design-20260828/qb-policy-v1/README.md",
+    "tests/commands/yq-design-20260828/qb-policy-v1/check-accounting.mjs",
+    "tests/commands/yq-design-20260828/qb-policy-v1/controls.json",
+    "tests/commands/yq-design-20260828/qb-policy-v1/identity.json",
+    "tests/commands/yq-independent-20260828/adopted-n-encoder-review-v1",
+    "tests/commands/yq-independent-20260828/adopted-n-encoder-review-v1/PROTOCOL.md",
+    "tests/commands/yq-independent-20260828/adopted-n-encoder-review-v1/manifest.json",
+    "tests/commands/yq-independent-20260828/adopted-n-encoder-review-v1/results-v1",
+    "tests/commands/yq-independent-20260828/adopted-n-encoder-review-v1/results-v1/RESULTS.json",
+    "tests/commands/yq-independent-20260828/adopted-n-encoder-review-v1/results-v1/REVIEW.md",
+    "tests/commands/yq-independent-20260828/adopted-n-encoder-review-v1/results-v1/check.mjs",
+    "tests/commands/yq-independent-20260828/adopted-n-encoder-review-v1/witnesses.json",
+    "tests/commands/yq-independent-20260828/adopted-n-encoder-v1",
+    "tests/commands/yq-independent-20260828/adopted-n-encoder-v1/CHECKS.json",
+    "tests/commands/yq-independent-20260828/adopted-n-encoder-v1/README.md",
+    "tests/commands/yq-independent-20260828/adopted-n-encoder-v1/cases.json",
+    "tests/commands/yq-independent-20260828/adopted-n-encoder-v1/check.mjs",
+    "tests/commands/yq-independent-20260828/adopted-n-encoder-v1/decisions.json",
+    "tests/commands/yq-independent-20260828/adopted-n-encoder-v1/sources.json",
+    "tests/commands/yq-independent-20260828/freeze",
+    "tests/commands/yq-independent-20260828/freeze/PREPARATION.md",
+    "tests/commands/yq-independent-20260828/freeze/README.md",
+    "tests/commands/yq-independent-20260828/freeze/accounting.json",
+    "tests/commands/yq-independent-20260828/freeze/command-parser.json",
+    "tests/commands/yq-independent-20260828/freeze/fixed-values.json",
+    "tests/commands/yq-independent-20260828/freeze/integration.json",
+    "tests/commands/yq-independent-20260828/freeze/integrity.json",
+    "tests/commands/yq-independent-20260828/freeze/recipes.mjs",
+    "tests/commands/yq-independent-20260828/freeze/source-bindings.json",
+    "tests/commands/yq-independent-20260828/freeze/utf8.json",
+    "tests/commands/yq-independent-20260828/freeze/value-query.json",
+    "tests/commands/yq-independent-20260828/freeze/verify-preparation.mjs",
+    "tests/commands/yq-independent-20260828/normative",
+    "tests/commands/yq-independent-20260828/normative/COORDINATION.md",
+    "tests/commands/yq-independent-20260828/normative/PREPARATION.md",
+    "tests/commands/yq-independent-20260828/normative/REVIEW.md",
+    "tests/commands/yq-independent-20260828/normative/cases.json",
+    "tests/commands/yq-independent-20260828/normative/check-static.mjs",
+    "tests/commands/yq-independent-20260828/normative/selected-inputs.json",
+    "tests/commands/yq-independent-20260828/qb-mechanism-review-v1",
+    "tests/commands/yq-independent-20260828/qb-mechanism-review-v1/CASES.json",
+    "tests/commands/yq-independent-20260828/qb-mechanism-review-v1/CHECKS.json",
+    "tests/commands/yq-independent-20260828/qb-mechanism-review-v1/REVIEW.md",
+    "tests/commands/yq-independent-20260828/qb-mechanism-review-v1/SOURCE_IDENTITY.json",
+    "tests/commands/yq-independent-20260828/qb-mechanism-review-v1/check.mjs",
+    "tests/commands/yq-independent-20260828/query-budget",
+    "tests/commands/yq-independent-20260828/query-budget/CASES.json",
+    "tests/commands/yq-independent-20260828/query-budget/CHECKS.json",
+    "tests/commands/yq-independent-20260828/query-budget/COORDINATION.md",
+    "tests/commands/yq-independent-20260828/query-budget/LENGTH-ACCEPTANCE-ADDENDUM.md",
+    "tests/commands/yq-independent-20260828/query-budget/REVIEW.md",
+    "tests/commands/yq-independent-20260828/query-budget/SOURCE_IDENTITY.json",
+    "tests/commands/yq-independent-20260828/query-budget/check.mjs",
+    "tests/commands/yq-independent-20260828/reconciliation-v1",
+    "tests/commands/yq-independent-20260828/reconciliation-v1/README.md",
+    "tests/commands/yq-independent-20260828/reconciliation-v1/check.mjs",
+    "tests/commands/yq-independent-20260828/reconciliation-v1/crosswalk.json",
+    "tests/commands/yq-independent-20260828/reconciliation-v1/sources.json"
+  ],
+  "qualification": "Complete selected-scope membership includes directories, not an append-proof whole repository or proof against between-snapshot mutation."
+}

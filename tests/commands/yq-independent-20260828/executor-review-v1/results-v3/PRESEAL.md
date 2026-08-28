@@ -8,6 +8,21 @@ Purpose: Bind a narrow independent review of the sealed F01/F02/fence correction
 
 Date: August 28, 2026.
 
+## Normative Language
+
+MUST and MUST NOT constrain this independent review. MAY denotes an allowed
+choice within the existing user policy, not a new product capability.
+
+## Problem Statement
+
+The original unknown-obligation and reason-identity findings require independent
+verification against committed corrective handlers, not inherited author results.
+
+## Goals and Non-Goals
+
+Verify only the focused correction and nearby safety boundaries. Actual product,
+public, type and full semantic acceptance remain outside this review.
+
 ## Authority and Boundary
 
 This protocol governs this reviewer only, not product policy. The original
@@ -55,7 +70,7 @@ control uses 150 ms. Only owned PIDs/groups may be signalled. An outer timeout
 stops the review; opaque/escaped descendants are not claimed contained. Source
 and history integrity are rechecked after execution. No pending case is green.
 
-## Frozen Validation Matrix
+## Test and Validation Matrix
 
 Exactly 20 independent observations are planned, not 20 semantic YQ passes:
 
@@ -93,7 +108,7 @@ Original F01/F02 raw inputs, expectations and verdicts stay sealed. New results
 describe the new runtime only. Inventory eligibility is not proof of execution
 or current assertion completeness. No functional adapter or private DI is added.
 
-## Integration Checkpoint and Conformance
+## Integration Checkpoint
 
 After this bounded runtime review, inspect `/tmp/yq-integration-v2-ready.txt`
 once. If absent, report pending and stop without waiting. If present, authenticate
@@ -102,6 +117,8 @@ preseal before any bounded canned-metadata checks. Preserve its preparation
 failures. Require source271/archive273/package870 distinctions, exact roots and
 receipts, AUTHOR_ARTIFACT_BINDING_ONLY classification and no product/public GO.
 Unknown or unsealed integration is pending, never an inferred PASS.
+
+## Conformance Criteria
 
 Readiness requires recorded actual outcomes and integrity/reap evidence, not
 author success. Findings freeze raw reproductions before reporting. This review

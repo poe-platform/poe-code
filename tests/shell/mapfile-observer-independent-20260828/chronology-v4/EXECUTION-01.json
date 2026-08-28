@@ -1,0 +1,19 @@
+{
+  "schema": "external-host-execution-v4",
+  "preseal": "ebd928f448b2e3551316f161c0ba050005ac13f5",
+  "observedHostExit": 0,
+  "signal": null,
+  "subjectRunCount": 1,
+  "predicatePasses": 55,
+  "predicateTotal": 55,
+  "reusedControlIdentities": 49,
+  "newControlIdentities": 6,
+  "authorExecutorsRun": 0,
+  "realObserverChildren": 0,
+  "native43Runs": 0,
+  "productRuns": 0,
+  "qualificationEntryRuns": 0,
+  "stderrExcerpt": "ExperimentalWarning: VM Modules is an experimental feature and might change at any time",
+  "stderrQualification": "warning text excerpt; not full process stderr",
+  "recipe": "absolute pinned Node --max-old-space-size=256 --experimental-vm-modules --input-type=module; REVIEW_FREEZE exact; data-URL load of sealed review.mjs.data"
+}

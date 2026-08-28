@@ -1,0 +1,513 @@
+{
+  "schema": "independent-chronology-v4-evidence-bindings",
+  "candidate": "3d3a0371729b88ced47b6e37376676746b638ad9",
+  "evidence": "b9d681d9c25d4054ab6a9bf2d5470d88b39eed67",
+  "preseal": "ebd928f448b2e3551316f161c0ba050005ac13f5",
+  "sourceBindings": [
+    {
+      "commit": "3d3a0371729b88ced47b6e37376676746b638ad9",
+      "path": "tests/shell/mapfile-design-20260828/observer-v1/MODULE-SEAL.json",
+      "blob": "ac13380e50b7754355a3cc5b1fec4625fa168a82",
+      "mode": 420,
+      "sha256": "b0006cdbbad9f3a0e75f48588e3e0d9ea6557924ae7aeb687ad6b88e7f27df14",
+      "bytes": 4750
+    },
+    {
+      "commit": "3d3a0371729b88ced47b6e37376676746b638ad9",
+      "path": "tests/shell/mapfile-design-20260828/SEAL.json",
+      "blob": "7398541b081d8344e065a626bbd9d88b0919ef91",
+      "mode": 420,
+      "sha256": "3ffdfde6e4b0b8536d2a6593dffa340f6c09868b47d7ce5ee55b6fa85be39fe1",
+      "bytes": 1510
+    },
+    {
+      "commit": "3d3a0371729b88ced47b6e37376676746b638ad9",
+      "path": "tests/shell/mapfile-design-20260828/SOURCE-BINDINGS.json",
+      "blob": "b103959d08c48f139f909f3c6a04876210abbc74",
+      "mode": 420,
+      "sha256": "5af734d1acb1879e26351d6fea1b65ba33ca61576cc1efc151820adb45818e29",
+      "bytes": 9642
+    },
+    {
+      "commit": "3d3a0371729b88ced47b6e37376676746b638ad9",
+      "path": "tests/shell/mapfile-design-20260828/OBSERVATIONS.json",
+      "blob": "2c306a8fd2d6daa62c98f740a993f6581d44304d",
+      "mode": 420,
+      "sha256": "f252918ca8594cd4401d1938051498628e48211c18343c47011dfb5c6843083d",
+      "bytes": 18614
+    },
+    {
+      "commit": "3d3a0371729b88ced47b6e37376676746b638ad9",
+      "path": "tests/shell/mapfile-design-20260828/OBSERVER-PROTOCOL.md",
+      "blob": "0dad11c9c46908788d044071af9c411e8013351b",
+      "mode": 420,
+      "sha256": "0f805b39e14d458cc18e8e807d7788a38fe5595d3398c8f00c854aafdde0df65",
+      "bytes": 7430
+    },
+    {
+      "commit": "3d3a0371729b88ced47b6e37376676746b638ad9",
+      "path": "tests/shell/mapfile-design-20260828/ADDENDUM-v2.md",
+      "blob": "4b7bd12cf568de77aa31613a3ed5ffa6e44a93c1",
+      "mode": 420,
+      "sha256": "06d194641b3df74e17b6c2708e0b54c7872e7c00dfbdfaaf852c240a2fea4e69",
+      "bytes": 6461
+    },
+    {
+      "commit": "3d3a0371729b88ced47b6e37376676746b638ad9",
+      "path": "tests/shell/mapfile-design-20260828/OBSERVATIONS-addendum-v2.json",
+      "blob": "1afbd38e1f5250056832747b04aeccb84c2d0831",
+      "mode": 420,
+      "sha256": "e6892b11fca34cc0ecc0f7e9d7856d34db01bf5ddc768cc56a1f0818e89624af",
+      "bytes": 7314
+    },
+    {
+      "commit": "3d3a0371729b88ced47b6e37376676746b638ad9",
+      "path": "tests/shell/mapfile-design-20260828/observer-v1/PRECODE.json",
+      "blob": "fe87e11f2be02444fb2ea3239b87434afd038805",
+      "mode": 420,
+      "sha256": "a522bf543796951728d64b963e67c4cc94e2b8503eb93b9ff9f482154ff9219c",
+      "bytes": 2081
+    },
+    {
+      "commit": "3d3a0371729b88ced47b6e37376676746b638ad9",
+      "path": "tests/shell/mapfile-design-20260828/observer-v1/README.md",
+      "blob": "bd7f1cbadac9773d4728326f7f8034fb40baf7d8",
+      "mode": 420,
+      "sha256": "3cd55fdd6a92999c65790fe535051c79927f7ec11ab31df44bf1e1e105eae4a1",
+      "bytes": 13536
+    },
+    {
+      "commit": "3d3a0371729b88ced47b6e37376676746b638ad9",
+      "path": "tests/shell/mapfile-design-20260828/observer-v1/modules/admission.mjs",
+      "blob": "22375cca303a927c7326b47022f8e32bc1ba29c8",
+      "mode": 420,
+      "sha256": "40faa6d99b10cb430b773086f0bcfe5765a72feffc63257e063bad62e18283bf",
+      "bytes": 6289
+    },
+    {
+      "commit": "3d3a0371729b88ced47b6e37376676746b638ad9",
+      "path": "tests/shell/mapfile-design-20260828/observer-v1/modules/cli.mjs",
+      "blob": "0493dbf4d60c7dda2040a7bc8fe527f2185b19c4",
+      "mode": 420,
+      "sha256": "0d7aa7223fee54f39e019a2fb80112e77697dc34f3d4f6854d353b56a300f720",
+      "bytes": 4212
+    },
+    {
+      "commit": "3d3a0371729b88ced47b6e37376676746b638ad9",
+      "path": "tests/shell/mapfile-design-20260828/observer-v1/modules/lifecycle.mjs",
+      "blob": "349ef87486b0b05770c90e42976b993bd215bd1e",
+      "mode": 420,
+      "sha256": "176e55d98b2058daa121e4864ec84e450eaf3f1c2d4f7f716051577a5c14b645",
+      "bytes": 7700
+    },
+    {
+      "commit": "3d3a0371729b88ced47b6e37376676746b638ad9",
+      "path": "tests/shell/mapfile-design-20260828/observer-v1/modules/node-driver.mjs",
+      "blob": "0470289dafc96841bd9085e090a0fcb23b278492",
+      "mode": 420,
+      "sha256": "6daea48e05a79279ca64cabad8fc44df3a388d24671a6e0f8d53ad1fa8ef3f97",
+      "bytes": 4016
+    },
+    {
+      "commit": "3d3a0371729b88ced47b6e37376676746b638ad9",
+      "path": "tests/shell/mapfile-design-20260828/observer-v1/modules/observer.mjs",
+      "blob": "9cecba9cd64c1497c4cc29a70f8a6933b8ea27c1",
+      "mode": 420,
+      "sha256": "614ac17db096c0ce746eeab1a4ae5caffac778dea4113fab3fd094d7d6f0b4d8",
+      "bytes": 4734
+    },
+    {
+      "commit": "3d3a0371729b88ced47b6e37376676746b638ad9",
+      "path": "tests/shell/mapfile-design-20260828/observer-v1/modules/storage.mjs",
+      "blob": "9db3d36dc47cff24abef704f10f95a7ec95c1db2",
+      "mode": 420,
+      "sha256": "60b084b3fc5a940090fa45a6936cf9a952b0caf3b70fd57c074d4bbaf67ad8ad",
+      "bytes": 3696
+    },
+    {
+      "commit": "3d3a0371729b88ced47b6e37376676746b638ad9",
+      "path": "tests/shell/mapfile-design-20260828/observer-v1/modules/synthetic.mjs",
+      "blob": "f5b138537bd9b01dcae0311c68e49bc6c121e6b6",
+      "mode": 420,
+      "sha256": "b99be7012e6c969e7e834e99a1b77d9fb3f65f8c3356d7564ae462780f9bd5f1",
+      "bytes": 18908
+    },
+    {
+      "commit": "3d3a0371729b88ced47b6e37376676746b638ad9",
+      "path": "tests/shell/mapfile-design-20260828/observer-v1/PRECODE-v2.json",
+      "blob": "3c1091963dafa2c6bf5db3e0d04d317543cc1020",
+      "mode": 420,
+      "sha256": "d4f2d336037435bdc905402a54179bb2e22b8e93207c842da329ba6c4cc58903",
+      "bytes": 2355
+    },
+    {
+      "commit": "3d3a0371729b88ced47b6e37376676746b638ad9",
+      "path": "tests/shell/mapfile-design-20260828/observer-v1/MODULE-SEAL-v1.json",
+      "blob": "df7c830cea0b75a31f546d3bc204b6da7875585f",
+      "mode": 420,
+      "sha256": "e2b58d8bf09d93b38f90d1b75902a9b78cbc937f3a137e63cc4a690f96f77934",
+      "bytes": 2032
+    },
+    {
+      "commit": "3d3a0371729b88ced47b6e37376676746b638ad9",
+      "path": "tests/shell/mapfile-design-20260828/observer-v1/modules/data.mjs",
+      "blob": "4ee4817b899cd9488afb33d4981b23f871d3b448",
+      "mode": 420,
+      "sha256": "1febd9039ace712a565c13069d92accd67296dfa9790b3dc4849cc9b5461c883",
+      "bytes": 3016
+    },
+    {
+      "commit": "3d3a0371729b88ced47b6e37376676746b638ad9",
+      "path": "tests/shell/mapfile-design-20260828/observer-v1/REPAIR-v3.json",
+      "blob": "ad8328bd78326fe4404d7fe96623dc70a867a21a",
+      "mode": 420,
+      "sha256": "5dd5ac4067f22cda22973079e8c342b8f059ae1dce2ef1fbda38a816971319af",
+      "bytes": 5188
+    },
+    {
+      "commit": "3d3a0371729b88ced47b6e37376676746b638ad9",
+      "path": "tests/shell/mapfile-design-20260828/observer-v1/repair-controls.mjs",
+      "blob": "8d7ab635e7901f6c87f3f7596ddb2bbdda22f3ba",
+      "mode": 420,
+      "sha256": "032545e466dfc45b1e11bf83e70ebeaac93868e698203fbcc60b515ef16db9b5",
+      "bytes": 14369
+    },
+    {
+      "commit": "3d3a0371729b88ced47b6e37376676746b638ad9",
+      "path": "tests/shell/mapfile-design-20260828/CURSOR-DECISION-v3.md",
+      "blob": "38c2875a69a9a0f1352cad85afd3448f07f25f5e",
+      "mode": 420,
+      "sha256": "6da269b7ec8e373c36a088c867e29d42c00f2c06a1a310cbb304df4bcc43ae9e",
+      "bytes": 1736
+    },
+    {
+      "commit": "3d3a0371729b88ced47b6e37376676746b638ad9",
+      "path": "tests/shell/mapfile-design-20260828/observer-v1/MODULE-SEAL-v2.json",
+      "blob": "98eeb21b71080186b7446d8998e28db188bf4bee",
+      "mode": 420,
+      "sha256": "d08585b8995ffd1399be27c17dc378357707106b93f12c240e92ffe57dadadc4",
+      "bytes": 2291
+    },
+    {
+      "commit": "3d3a0371729b88ced47b6e37376676746b638ad9",
+      "path": "tests/shell/mapfile-design-20260828/observer-v1/REPAIR-v3.1.md",
+      "blob": "6874d3e7e06beedc096bf1fc1a73b2100e062688",
+      "mode": 420,
+      "sha256": "08de2cb7097ede0976f2d1f3e92ba371c88e4cecb3077f8e26c942db31e2494d",
+      "bytes": 1725
+    },
+    {
+      "commit": "3d3a0371729b88ced47b6e37376676746b638ad9",
+      "path": "tests/shell/mapfile-design-20260828/observer-v1/MODULE-SEAL-v3.json",
+      "blob": "34f7a9a66b9bcd96e527341528844ab7fa60275a",
+      "mode": 420,
+      "sha256": "2829de1f75bd7522a12d1399d387838f132d397bce4700180d1640cb2ade6198",
+      "bytes": 3740
+    },
+    {
+      "commit": "3d3a0371729b88ced47b6e37376676746b638ad9",
+      "path": "tests/shell/mapfile-design-20260828/observer-v1/CHRONOLOGY-v4.json",
+      "blob": "e949136b870f9cebc9cae82c88bd1664a1a9ecdd",
+      "mode": 420,
+      "sha256": "793dfe7be332e6f7970bf2d48a74e3f69c482572f30ef7a9c1c7bd3d5acb6ea0",
+      "bytes": 6070
+    },
+    {
+      "commit": "3d3a0371729b88ced47b6e37376676746b638ad9",
+      "path": "tests/shell/mapfile-design-20260828/observer-v1/chronology-controls.mjs",
+      "blob": "e5fba6e2a7b782e4aa5e5aba791dfce1ace1a940",
+      "mode": 420,
+      "sha256": "2294a6d37abde050fe5297d91b1581a4427b0855373a6f92e1bdd505809d895c",
+      "bytes": 15011
+    },
+    {
+      "commit": "3d3a0371729b88ced47b6e37376676746b638ad9",
+      "path": "tests/shell/mapfile-design-20260828/observer-v1/MODULE-SEAL-v3.1.json",
+      "blob": "e0aa3d40d3f30a9a1cca8705a1f1d98dba0071bc",
+      "mode": 420,
+      "sha256": "e0e9257426d969633c75749066ac94fe75bb13083179b0e3352ece17b0001381",
+      "bytes": 4093
+    },
+    {
+      "commit": "3d3a0371729b88ced47b6e37376676746b638ad9",
+      "path": "tests/shell/mapfile-design-20260828/observer-v1/MODULE-SEAL-v4-baseline.json",
+      "blob": "d98b033965ed7e9ea37270babd101c5cebf7a0b5",
+      "mode": 420,
+      "sha256": "22e485b482d28f35a2d6e03145e75e36175635503592c243b4ddfb2dee82c403",
+      "bytes": 4594
+    },
+    {
+      "commit": "b9d681d9c25d4054ab6a9bf2d5470d88b39eed67",
+      "path": "tests/shell/mapfile-design-20260828/observer-v1/HANDOFF-CHRONOLOGY-v4.md",
+      "blob": "75eabb577d0e5bd889951b4d8a857466c42aed45",
+      "mode": 420,
+      "sha256": "2e3c82e2fb9cacd8b63987a290bd714a30b7031f17f1ce79d2211a5fd453ced3",
+      "bytes": 6381
+    },
+    {
+      "commit": "3d3a0371729b88ced47b6e37376676746b638ad9",
+      "path": "tests/shell/mapfile-design-20260828/observer-v1/CHRONOLOGY-BASELINE-v4.md",
+      "blob": "a664136433975ae6eccc3ce319b1adcd3adb3f4b",
+      "mode": 420,
+      "sha256": "9e326c6d89de18898f75ba9a51b16ff2a412a4114cb10f6d0b1c5b3ce346b671",
+      "bytes": 1378
+    }
+  ],
+  "loaded": [
+    {
+      "name": "admission.mjs",
+      "identifier": "file:///independent-frozen/modules/admission.mjs",
+      "sha256": "40faa6d99b10cb430b773086f0bcfe5765a72feffc63257e063bad62e18283bf",
+      "bytes": 6289,
+      "transformed": false,
+      "blob": "22375cca303a927c7326b47022f8e32bc1ba29c8",
+      "evaluated": "evaluated"
+    },
+    {
+      "name": "cli.mjs",
+      "identifier": "file:///independent-frozen/modules/cli.mjs",
+      "sha256": "0d7aa7223fee54f39e019a2fb80112e77697dc34f3d4f6854d353b56a300f720",
+      "bytes": 4212,
+      "transformed": false,
+      "blob": "0493dbf4d60c7dda2040a7bc8fe527f2185b19c4",
+      "evaluated": "evaluated"
+    },
+    {
+      "name": "data.mjs",
+      "identifier": "file:///independent-frozen/modules/data.mjs",
+      "sha256": "1febd9039ace712a565c13069d92accd67296dfa9790b3dc4849cc9b5461c883",
+      "bytes": 3016,
+      "transformed": false,
+      "blob": "4ee4817b899cd9488afb33d4981b23f871d3b448",
+      "evaluated": "evaluated"
+    },
+    {
+      "name": "lifecycle.mjs",
+      "identifier": "file:///independent-frozen/modules/lifecycle.mjs",
+      "sha256": "176e55d98b2058daa121e4864ec84e450eaf3f1c2d4f7f716051577a5c14b645",
+      "bytes": 7700,
+      "transformed": false,
+      "blob": "349ef87486b0b05770c90e42976b993bd215bd1e",
+      "evaluated": "evaluated"
+    },
+    {
+      "name": "node-driver.mjs",
+      "identifier": "file:///independent-frozen/modules/node-driver.mjs",
+      "sha256": "6daea48e05a79279ca64cabad8fc44df3a388d24671a6e0f8d53ad1fa8ef3f97",
+      "bytes": 4016,
+      "transformed": false,
+      "blob": "0470289dafc96841bd9085e090a0fcb23b278492",
+      "evaluated": "evaluated"
+    },
+    {
+      "name": "observer.mjs",
+      "identifier": "file:///independent-frozen/modules/observer.mjs",
+      "sha256": "614ac17db096c0ce746eeab1a4ae5caffac778dea4113fab3fd094d7d6f0b4d8",
+      "bytes": 4734,
+      "transformed": false,
+      "blob": "9cecba9cd64c1497c4cc29a70f8a6933b8ea27c1",
+      "evaluated": "evaluated"
+    },
+    {
+      "name": "storage.mjs",
+      "identifier": "file:///independent-frozen/modules/storage.mjs",
+      "sha256": "60b084b3fc5a940090fa45a6936cf9a952b0caf3b70fd57c074d4bbaf67ad8ad",
+      "bytes": 3696,
+      "transformed": false,
+      "blob": "9db3d36dc47cff24abef704f10f95a7ec95c1db2",
+      "evaluated": "evaluated"
+    }
+  ],
+  "authorData": [
+    {
+      "commit": "b9d681d9c25d4054ab6a9bf2d5470d88b39eed67",
+      "path": "tests/shell/mapfile-design-20260828/observer-v1/captures/chronology-v4-baseline-1787928076193-12827.json.gz.base64",
+      "blob": "21272d034908356547a5764d1dc11a9de02ad15e",
+      "encodedSha256": "12f0864540f563188de1f541c22edee68205f48c9841c90c5a16e5a5516def04",
+      "decodedSha256": "25724706cb8f75927c6ae8ddf7a7450a2ddfebafb43d592fcf5fea9e62cbde6b",
+      "decodedBytes": 16422,
+      "claimedPasses": 1,
+      "claimedTotal": 3,
+      "role": "immutable DATA authentication only, not independent passes",
+      "failedIds": [
+        "T03",
+        "T04"
+      ]
+    },
+    {
+      "commit": "b9d681d9c25d4054ab6a9bf2d5470d88b39eed67",
+      "path": "tests/shell/mapfile-design-20260828/observer-v1/captures/chronology-v4-candidate-1787928291780-21693.json.gz.base64",
+      "blob": "dca4629b4c5c58c88e263f11bca20317550c104f",
+      "encodedSha256": "617da62f8c2e32819af3c412965e8c409fdd7ce382abc8b18b7e93af924f3cc0",
+      "decodedSha256": "716d3bb163c701d5a0fd40670f83eff1b26b0da8796f9f90a7bd94aff9e46704",
+      "decodedBytes": 92038,
+      "claimedPasses": 20,
+      "claimedTotal": 20,
+      "role": "immutable DATA authentication only, not independent passes",
+      "failedIds": []
+    },
+    {
+      "commit": "b9d681d9c25d4054ab6a9bf2d5470d88b39eed67",
+      "path": "tests/shell/mapfile-design-20260828/observer-v1/captures/synthetic-1787928292156-21704.json.gz.base64",
+      "blob": "6a4396aaad3bc8d0445c9d3cd19f21d61adb7f3e",
+      "encodedSha256": "5c678253eeda871b265f0a780ad912ced8b9e5831d9d36434b7a4ca416ca9fc5",
+      "decodedSha256": "2c6effb548c72b9a240601e3fb020b7c251b69eafa829c2e17dea6c9846dc476",
+      "decodedBytes": 1707694,
+      "claimedPasses": 37,
+      "claimedTotal": 37,
+      "role": "immutable DATA authentication only, not independent passes",
+      "failedIds": []
+    },
+    {
+      "commit": "b9d681d9c25d4054ab6a9bf2d5470d88b39eed67",
+      "path": "tests/shell/mapfile-design-20260828/observer-v1/captures/repair-v3-1787928292450-21660.json.gz.base64",
+      "blob": "519c68591fa365354394a085e13b0717dd469d30",
+      "encodedSha256": "357af713387f54fabcc5be8b5347af721c0fc1a79bbf3bfcb09c47ea066bfc98",
+      "decodedSha256": "ccaf6771aea4f86f8009d4fb62e9ef5d2151be705508e907dc2634040750971e",
+      "decodedBytes": 64162,
+      "claimedPasses": 27,
+      "claimedTotal": 27,
+      "role": "immutable DATA authentication only, not independent passes",
+      "failedIds": []
+    }
+  ],
+  "independentCapture": {
+    "path": "CAPTURE-01.json",
+    "sha256": "d79dff270a10c9e46eadf0d8770f54afcc5cabac60f6fbc2b46e9b7625409e08",
+    "bytes": 2628603,
+    "observedHostExit": 0,
+    "claimedExit": 0,
+    "beforeAfterHashesModesAndAppendCensus": true
+  },
+  "oldHistory": [
+    {
+      "path": "tests/shell/mapfile-observer-independent-20260828/BUNDLE.json",
+      "blob": "630d9511e8559cd8a1fae9590397956528be0ad8",
+      "sha256": "3c0645aaeed69d9fc4585f0f3157731d571956c773387329073137366ff94b87",
+      "bytes": 223576,
+      "mode": 420
+    },
+    {
+      "path": "tests/shell/mapfile-observer-independent-20260828/CAPTURE-01.json",
+      "blob": "e852e013b64b95b1fc9f7cba546eed4dcc9e63dc",
+      "sha256": "2b0948fe9874356d9947f22e6938f6733c34771b008931fea3fd0c872901a527",
+      "bytes": 1013588,
+      "mode": 420
+    },
+    {
+      "path": "tests/shell/mapfile-observer-independent-20260828/CAPTURE-02.json",
+      "blob": "f12611cd26b5f520142413263abee18499c9d004",
+      "sha256": "7b4e295292e4ad7832b6a4e1bf8530c2f649834fe9a0f13ad17ffb7cf2d038ec",
+      "bytes": 187780,
+      "mode": 420
+    },
+    {
+      "path": "tests/shell/mapfile-observer-independent-20260828/CASES.json",
+      "blob": "1fd14b359db19cd67dd6dd8f57af5d06a2855e81",
+      "sha256": "13a9aa3a85c564b48aed64e53b621201a94a4b5e2f1e2f3b9c5beb675cb9bd45",
+      "bytes": 2938,
+      "mode": 420
+    },
+    {
+      "path": "tests/shell/mapfile-observer-independent-20260828/CONTINUATION.json",
+      "blob": "82dad6ba595f74ecb861f5fcc0b2a8ff09feed84",
+      "sha256": "ec085cbea8b1a580fd7cba9c1b63d84104cad11b0474bbac2f09b5580f61ec93",
+      "bytes": 655,
+      "mode": 420
+    },
+    {
+      "path": "tests/shell/mapfile-observer-independent-20260828/CONTINUATION.md",
+      "blob": "81bd2573f03ad718cb99a212ffe198d310ea85ec",
+      "sha256": "2e17a2e0373a49d7102e79ebe8ce1b60c45868ee8c33a8a04d1d88c954253a35",
+      "bytes": 2445,
+      "mode": 420
+    },
+    {
+      "path": "tests/shell/mapfile-observer-independent-20260828/EXECUTION-01.json",
+      "blob": "54f808a365034843e58ac42a2138ca3ea8718711",
+      "sha256": "3aff602ade4254d4a1f1cae576b23eaf593f409a4671704a05cb2cfcabf7c752",
+      "bytes": 1453,
+      "mode": 420
+    },
+    {
+      "path": "tests/shell/mapfile-observer-independent-20260828/EXECUTION-02.json",
+      "blob": "f68cfc16f6d6257a290398bd90656dd881421dbf",
+      "sha256": "1d367f90d3ac3acb141439557c0401ed1c5e7ece1349e10cf2414aa77709fd41",
+      "bytes": 904,
+      "mode": 420
+    },
+    {
+      "path": "tests/shell/mapfile-observer-independent-20260828/HISTORICAL-FAILURES.json",
+      "blob": "c2fa994b0ec8b1737df1c6493183159c6d03dff4",
+      "sha256": "f019af02c0609ba48523a68e06126b47c357cab1357a8838a44a9f0fb7289556",
+      "bytes": 32659,
+      "mode": 420
+    },
+    {
+      "path": "tests/shell/mapfile-observer-independent-20260828/MANIFEST.json",
+      "blob": "9c038171a4d05508f655f67de14adc46c81e328e",
+      "sha256": "a7e3668c00476e440e3a7b63fd1c0760216442e51319605b82648fb748f2d2b3",
+      "bytes": 2098,
+      "mode": 420
+    },
+    {
+      "path": "tests/shell/mapfile-observer-independent-20260828/RECEIPT-01.json",
+      "blob": "ad2858a705787c404a467a47a9e766473ad3b0e7",
+      "sha256": "1100b2ed58db7dc0e4cdae7d971839bc24a1d1113ef8fbbab8e51426fb019341",
+      "bytes": 424,
+      "mode": 420
+    },
+    {
+      "path": "tests/shell/mapfile-observer-independent-20260828/RECEIPT-02.json",
+      "blob": "fbdb712df250b34b03782598e80ab1dd68bec4b3",
+      "sha256": "e948675771ee8c4e9dc774fc0580c1547525be80893b0482e7ad1a8f2881bcb4",
+      "bytes": 387,
+      "mode": 420
+    },
+    {
+      "path": "tests/shell/mapfile-observer-independent-20260828/RECIPE.md",
+      "blob": "438f227287d20356f69971c9e3f4acd1c771522d",
+      "sha256": "f7dd4df42992b9abd6db2f87052d2010cf275ad3a3fbf573e784bce8a73bd102",
+      "bytes": 4430,
+      "mode": 420
+    },
+    {
+      "path": "tests/shell/mapfile-observer-independent-20260828/REPORT.md",
+      "blob": "041a8e99259fc8c71fe72776049f034e7b240200",
+      "sha256": "f925d2f8c8611dcebe6d4cf8f4eec4eff15d3bd1476f4cc4d4648f9541a1e33b",
+      "bytes": 4753,
+      "mode": 420
+    },
+    {
+      "path": "tests/shell/mapfile-observer-independent-20260828/SUMMARY.json",
+      "blob": "1b35ee5cce71e53644b9b619fb39e03bfd9505f3",
+      "sha256": "8f74ccede6e0416a429b0e623e64edc2ee70a0f892744052e219e156e9040f10",
+      "bytes": 23523,
+      "mode": 420
+    },
+    {
+      "path": "tests/shell/mapfile-observer-independent-20260828/continue-v2.mjs.data",
+      "blob": "64eb265c10f1d4041aee0d93b4dc2d0689f3245f",
+      "sha256": "c16ea9e267960d0dad017bc4ae3da86389a7775570fb672da67de27a5e27c355",
+      "bytes": 3797,
+      "mode": 420
+    },
+    {
+      "path": "tests/shell/mapfile-observer-independent-20260828/prepare.mjs.data",
+      "blob": "377439c3bcbbf22bf610ab2711f93a429a5e16b6",
+      "sha256": "3a1e3074474b021bb3b028090995cb48144606d4086f26a97fd6a104291e96cb",
+      "bytes": 4383,
+      "mode": 420
+    },
+    {
+      "path": "tests/shell/mapfile-observer-independent-20260828/review.mjs.data",
+      "blob": "b6eee96f74ba33d52c2f7a54b47864903a3f8c94",
+      "sha256": "2faa315db1601ff14dd4847da450ba10621e8a5a2da3b59d07515008e2fb2501",
+      "bytes": 33606,
+      "mode": 420
+    }
+  ],
+  "qualificationInputManifestSha256": "664b25357ca4c293aed6c2bc51da408b5c6e50265a9cf61753aa9a578ca33355",
+  "qualificationStatus": "PREPARED_INERT_NOT_EXECUTED_NOT_AUTHORIZED",
+  "originalHistoryScore": "47/49 remains historical; author baseline1/3 remains failed baseline"
+}

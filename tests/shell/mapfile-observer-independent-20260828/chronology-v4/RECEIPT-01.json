@@ -1,0 +1,11 @@
+{
+  "freeze": "ebd928f448b2e3551316f161c0ba050005ac13f5",
+  "captureSha256": "d79dff270a10c9e46eadf0d8770f54afcc5cabac60f6fbc2b46e9b7625409e08",
+  "captureBytes": 2628603,
+  "passed": 55,
+  "total": 55,
+  "declared": 55,
+  "exitCode": 0,
+  "realObserverChildren": 0,
+  "beforeAfterOriginalHashesAndNewEntryCensus": true
+}

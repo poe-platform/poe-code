@@ -1,0 +1,46 @@
+{
+  "kind": "PRE_HANDOFF_SYNTHETIC_EXPECTATIONS_REPORT",
+  "status": "READY_FOR_NARROW_AUTHOR_HANDOFF_NOT_CANDIDATE_ACCEPTANCE",
+  "freezeCommit": "bfff3dfed06d9144c82652246251f654c8bd26e7",
+  "presealSha256": "a1fd3018e3a0a63567ee8709766c1073bb48e6755701cf0a24609df9e6eb6074",
+  "resultSha256": "597a067d71ddc75c8e6fbcec6404e076a18d3e2f7831708a507178a69311f84c",
+  "baselineRecipe": "b993d26cd6777567ab6de45c617f1b073dd0d1de",
+  "failedAdmission": "d40af0d52381a138f2dabb415d343526ad015722",
+  "v4AdmissionStatus": "UNSAFE_STOP",
+  "historicalScoresUnchanged": true,
+  "successorInspected": false,
+  "successorAlreadyPresentAtFreeze": true,
+  "claimPreSuccessorAppearance": false,
+  "actualProductImports": 0,
+  "actualComparatorImports": 0,
+  "actualNativeOracles": 0,
+  "archiveStaging": 0,
+  "grantIssued": false,
+  "admissionQualified": false,
+  "semanticGo": false,
+  "synthetic": {
+    "total": 15,
+    "positive": 4,
+    "expectedNegative": 11,
+    "matched": 15,
+    "unexpectedFailure": 0,
+    "unrun": 0,
+    "closedChildren": 15,
+    "supervisorClosed": true,
+    "started": "2026-08-28T11:48:07.247Z",
+    "finished": "2026-08-28T11:48:12.695Z"
+  },
+  "requiredWrapperProperty": {
+    "nameDistinctFrom": [
+      "virtual-bash",
+      "just-bash"
+    ],
+    "fixtureConcreteName": "safe-bash-breadth-consumer-fixture",
+    "fixtureExactUtf8": "{\"name\":\"safe-bash-breadth-consumer-fixture\",\"private\":true,\"type\":\"module\"}\n",
+    "bytes": 77,
+    "mode": 420,
+    "sha256": "3e46acb281e826bed6c5fdbeaccc90c8744312a54021adb3fbffe7ba389e444f",
+    "authorMayChooseDifferentConcreteBoundName": true
+  },
+  "requiresNewAuthorHandoffAndSeparateAuthority": true
+}

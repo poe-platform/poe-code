@@ -1,0 +1,15 @@
+{
+  "scenario": {
+    "id": "wrapper-mode-beforeload",
+    "action": "wrapper-mode",
+    "library": "virtual-bash",
+    "cwd": "own",
+    "expectedCode": "BOUNDARY_METADATA",
+    "expectedIdentity": null,
+    "expectedEvaluations": [],
+    "expectedLoads": 0,
+    "expectedBarePath": null
+  },
+  "caseRoot": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v5-review/capture-01/wrapper-mode-beforeload",
+  "fixturesSha256": "284c08b24ebca74fa2dbced570dfa46c3b1e5a5ed09409337b5f271821ebeb7b"
+}

@@ -1,0 +1,15 @@
+{
+  "kind": "SYNTHETIC_ONLY_NOT_CANDIDATE_ACCEPTANCE",
+  "freezeCommit": "bfff3dfed06d9144c82652246251f654c8bd26e7",
+  "presealSha256": "a1fd3018e3a0a63567ee8709766c1073bb48e6755701cf0a24609df9e6eb6074",
+  "started": "2026-08-28T11:48:07.247Z",
+  "rows": [],
+  "productImports": 0,
+  "comparatorImports": 0,
+  "nativeOracleCalls": 0,
+  "archiveReads": 0,
+  "stagingCalls": 0,
+  "newGrant": false,
+  "supervisorPid": 26015,
+  "sourceVerified": true
+}

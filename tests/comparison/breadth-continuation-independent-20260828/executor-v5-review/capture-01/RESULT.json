@@ -1,0 +1,156 @@
+{
+  "kind": "SYNTHETIC_ONLY_NOT_CANDIDATE_ACCEPTANCE",
+  "freezeCommit": "bfff3dfed06d9144c82652246251f654c8bd26e7",
+  "presealSha256": "a1fd3018e3a0a63567ee8709766c1073bb48e6755701cf0a24609df9e6eb6074",
+  "started": "2026-08-28T11:48:07.247Z",
+  "rows": [
+    {
+      "id": "bareexports-target",
+      "expectation": "positive",
+      "observedCode": null,
+      "passed": true,
+      "errors": [],
+      "pid": 26296,
+      "reaped": true
+    },
+    {
+      "id": "bareexports-baseline",
+      "expectation": "positive",
+      "observedCode": null,
+      "passed": true,
+      "errors": [],
+      "pid": 26427,
+      "reaped": true
+    },
+    {
+      "id": "cwd-independent-target",
+      "expectation": "positive",
+      "observedCode": null,
+      "passed": true,
+      "errors": [],
+      "pid": 26484,
+      "reaped": true
+    },
+    {
+      "id": "selfref-trap",
+      "expectation": "expected-negative",
+      "observedCode": "UNBOUND_MODULE",
+      "passed": true,
+      "errors": [],
+      "pid": 26496,
+      "reaped": true
+    },
+    {
+      "id": "missingboundary-resolver",
+      "expectation": "expected-negative",
+      "observedCode": "UNBOUND_MODULE",
+      "passed": true,
+      "errors": [],
+      "pid": 26522,
+      "reaped": true
+    },
+    {
+      "id": "missingboundary-preflight",
+      "expectation": "expected-negative",
+      "observedCode": "BOUNDARY_MISSING",
+      "passed": true,
+      "errors": [],
+      "pid": 26537,
+      "reaped": true
+    },
+    {
+      "id": "wrongname-target",
+      "expectation": "expected-negative",
+      "observedCode": "BOUNDARY_NAME",
+      "passed": true,
+      "errors": [],
+      "pid": 26551,
+      "reaped": true
+    },
+    {
+      "id": "wrongname-baseline",
+      "expectation": "expected-negative",
+      "observedCode": "BOUNDARY_NAME",
+      "passed": true,
+      "errors": [],
+      "pid": 26559,
+      "reaped": true
+    },
+    {
+      "id": "unboundtarget",
+      "expectation": "expected-negative",
+      "observedCode": "UNBOUND_MODULE",
+      "passed": true,
+      "errors": [],
+      "pid": 26567,
+      "reaped": true
+    },
+    {
+      "id": "movedoriginabsence",
+      "expectation": "positive",
+      "observedCode": null,
+      "passed": true,
+      "errors": [],
+      "pid": 26577,
+      "reaped": true
+    },
+    {
+      "id": "hash-beforeload",
+      "expectation": "expected-negative",
+      "observedCode": "LOAD_HASH",
+      "passed": true,
+      "errors": [],
+      "pid": 26592,
+      "reaped": true
+    },
+    {
+      "id": "mode-beforeload",
+      "expectation": "expected-negative",
+      "observedCode": "LOAD_METADATA",
+      "passed": true,
+      "errors": [],
+      "pid": 26616,
+      "reaped": true
+    },
+    {
+      "id": "wrapper-hash-beforeload",
+      "expectation": "expected-negative",
+      "observedCode": "BOUNDARY_HASH",
+      "passed": true,
+      "errors": [],
+      "pid": 26626,
+      "reaped": true
+    },
+    {
+      "id": "wrapper-mode-beforeload",
+      "expectation": "expected-negative",
+      "observedCode": "BOUNDARY_METADATA",
+      "passed": true,
+      "errors": [],
+      "pid": 26634,
+      "reaped": true
+    },
+    {
+      "id": "entry-parent-denied",
+      "expectation": "expected-negative",
+      "observedCode": "ENTRY_PARENT",
+      "passed": true,
+      "errors": [],
+      "pid": 26650,
+      "reaped": true
+    }
+  ],
+  "productImports": 0,
+  "comparatorImports": 0,
+  "nativeOracleCalls": 0,
+  "archiveReads": 0,
+  "stagingCalls": 0,
+  "newGrant": false,
+  "sourcesUnchanged": true,
+  "finished": "2026-08-28T11:48:12.695Z",
+  "unrun": [],
+  "passed": 15,
+  "failed": 0,
+  "closed": 15,
+  "status": "EXPECTED_SYNTHETIC_OUTCOMES"
+}

@@ -23,7 +23,7 @@ members and both old/new hashes are listed individually. All211 nonprivate
 and source/declaration maps are correctly included among changed artifacts.
 No executing declaration compatibility is inferred from this DATA comparison.
 
-The binding also records exact current tool inventories and33 fixture/helper
+The binding also records exact current tool inventories and28 fixture/helper
 roles, fixed case IDs, ten strict type fixtures, four literal AST inputs, four
 concrete mutation specifications, and51 explicitly enumerated job records.
 It does **not** contain a successor dispatch GO or a yet-created app census.

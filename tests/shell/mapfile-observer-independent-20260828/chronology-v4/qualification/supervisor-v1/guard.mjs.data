@@ -1,0 +1,87 @@
+import fs from 'node:fs';
+import path from 'node:path';
+import { createHash } from 'node:crypto';
+
+export const hash = bytes => createHash('sha256').update(bytes).digest('hex');
+export const identity = stat => `${stat.dev}:${stat.ino}`;
+const same = (first, second) => ['dev','ino','size','mode','mtimeMs','ctimeMs'].every(key => first[key] === second[key]);
+let toolReadBytes = 0;
+export function readBound(filename, maximum, mode, expectedHash) {
+  if (!path.isAbsolute(filename) || fs.realpathSync(filename) !== filename) throw new Error('noncanonical input');
+  const before = fs.lstatSync(filename);
+  if (!before.isFile() || before.size > maximum || (before.mode & 4095) !== mode) throw new Error('input type/size/mode');
+  const descriptor = fs.openSync(filename, fs.constants.O_RDONLY | fs.constants.O_NOFOLLOW);
+  try {
+    if (!same(before, fs.fstatSync(descriptor))) throw new Error('input identity');
+    const bytes = Buffer.alloc(before.size), scratch = Buffer.alloc(65536); let offset = 0;
+    while (offset < bytes.length) { const count = fs.readSync(descriptor, scratch, 0, Math.min(scratch.length, bytes.length - offset), null); if (!count) throw new Error('short input'); scratch.copy(bytes, offset, 0, count); offset += count; }
+    if (fs.readSync(descriptor, scratch, 0, 1, null) || !same(before, fs.fstatSync(descriptor)) || !same(before, fs.lstatSync(filename))) throw new Error('changed input');
+    if (expectedHash && hash(bytes) !== expectedHash) throw new Error('input hash');
+    return bytes;
+  } finally { fs.closeSync(descriptor); }
+}
+export function hashTool(tool) {
+  toolReadBytes += tool.bytes; if (toolReadBytes > 4294967296) throw new Error('aggregate parent tool read ceiling');
+  const before = fs.lstatSync(tool.path);
+  if (fs.realpathSync(tool.path) !== tool.path || !before.isFile() || before.size !== tool.bytes || (before.mode & 4095) !== tool.mode || tool.bytes > 268435456) throw new Error('tool metadata');
+  const descriptor = fs.openSync(tool.path, fs.constants.O_RDONLY | fs.constants.O_NOFOLLOW), scratch = Buffer.alloc(65536), digest = createHash('sha256');
+  try {
+    if (!same(before, fs.fstatSync(descriptor))) throw new Error('tool FD identity');
+    let offset = 0;
+    while (offset < tool.bytes) { const count = fs.readSync(descriptor, scratch, 0, Math.min(65536, tool.bytes - offset), null); if (!count) throw new Error('short tool'); digest.update(scratch.subarray(0, count)); offset += count; }
+    if (fs.readSync(descriptor, scratch, 0, 1, null) || !same(before, fs.fstatSync(descriptor)) || !same(before, fs.lstatSync(tool.path)) || digest.digest('hex') !== tool.sha256) throw new Error('tool change/hash');
+    return { path: tool.path, identity: identity(before), mode: tool.mode, bytes: tool.bytes, sha256: tool.sha256 };
+  } finally { fs.closeSync(descriptor); }
+}
+export function createStore(root, guardPath, run, maximum = 16777216) {
+  const files = new Map(), directories = new Map(); let total = 0, sequence = 0, previous = '0'.repeat(64), journalFd, journalBytes = 0;
+  function plan(filename, mode = 0o600) {
+    if (files.has(filename) || files.size >= 32 || !(filename === guardPath || path.dirname(filename) === root)) throw new Error('producer path/count');
+    const record = { path: filename, mode, acquired: false, identity: null, bytes: 0, digest: createHash('sha256'), fd: null }; files.set(filename, record); return record;
+  }
+  function open(filename, mode) {
+    const record = plan(filename, mode); record.fd = fs.openSync(filename, fs.constants.O_WRONLY | fs.constants.O_CREAT | fs.constants.O_EXCL | fs.constants.O_NOFOLLOW, record.mode); record.acquired = true;
+    const stat = fs.fstatSync(record.fd); record.identity = identity(stat); if (!stat.isFile() || (stat.mode & 4095) !== record.mode) throw new Error('producer identity/mode'); return record;
+  }
+  function append(record, bytes) {
+    if (!Buffer.isBuffer(bytes) || total + bytes.length > maximum || record.bytes + bytes.length > 5242880) throw new Error('storage ceiling');
+    const stat = fs.fstatSync(record.fd), pathname = fs.lstatSync(record.path);
+    if (!stat.isFile() || identity(stat) !== record.identity || identity(pathname) !== record.identity || stat.size !== record.bytes || (pathname.mode & 4095) !== record.mode || fs.realpathSync(record.path) !== record.path) throw new Error('producer tamper');
+    total += bytes.length;
+    let offset = 0; while (offset < bytes.length) { const count = fs.writeSync(record.fd, bytes, offset, bytes.length - offset); if (!count) throw new Error('short producer write'); offset += count; }
+    record.bytes += bytes.length; record.digest.update(bytes);
+  }
+  function journal(value) {
+    if (sequence >= 8192) throw new Error('journal event ceiling');
+    const payload = Buffer.from(JSON.stringify({ sequence, previous, run, value })); if (payload.length > 16384 || journalBytes + payload.length + 4 > 2097152) throw new Error('journal size ceiling');
+    const frame = Buffer.alloc(payload.length + 4); frame.writeUInt32BE(payload.length); payload.copy(frame, 4); append(journalFd, frame); fs.fsyncSync(journalFd.fd); journalBytes += frame.length; previous = hash(frame); sequence++;
+  }
+  function initialize() {
+    try { journalFd = open(guardPath, 0o600); journal({ kind: 'root-prospective', root });
+      directories.set(root, { path: root, acquired: false, identity: null }); fs.mkdirSync(root, { mode: 0o700 }); const record = directories.get(root); record.acquired = true; record.identity = identity(fs.lstatSync(root)); journal({ kind: 'root-acquired', identity: record.identity });
+    } catch (reason) { close(); throw reason; }
+  }
+  function audit() {
+    const entries = fs.readdirSync(root); if (entries.length > 32) throw new Error('producer census ceiling');
+    const expected = [...files.values()].filter(record => record.acquired && record.path !== guardPath).map(record => path.basename(record.path)).sort();
+    if (JSON.stringify(entries.sort()) !== JSON.stringify(expected)) throw new Error('producer census');
+    for (const record of directories.values()) { const stat = fs.lstatSync(record.path); if (!stat.isDirectory() || identity(stat) !== record.identity || (stat.mode & 4095) !== 0o700 || fs.realpathSync(record.path) !== record.path) throw new Error('directory identity'); }
+    for (const record of files.values()) if (record.acquired) { const bytes = readBound(record.path, 5242880, record.mode); if (identity(fs.lstatSync(record.path)) !== record.identity || bytes.length !== record.bytes || hash(bytes) !== record.digest.copy().digest('hex')) throw new Error('producer hash/identity'); }
+    validateJournal(readBound(guardPath, 2097152, 0o600), run);
+    return { total, sequence, files: [...files.values()].map(({ fd, digest, ...record }) => ({ ...record, sha256: digest.copy().digest('hex') })), directories: [...directories.values()] };
+  }
+  function close() { for (const record of files.values()) if (record.fd !== null) { fs.closeSync(record.fd); record.fd = null; } }
+  return { initialize, journal, open, append, audit, close, write(filename, bytes) { const record = open(filename, 0o600); append(record, bytes); return record; } };
+}
+export function validateJournal(bytes, run) {
+  if (bytes.length > 2097152) throw new Error('journal total');
+  let offset = 0, sequence = 0, previous = '0'.repeat(64);
+  while (offset < bytes.length) {
+    if (sequence >= 8192 || bytes.length - offset < 4) throw new Error('partial journal header');
+    const length = bytes.readUInt32BE(offset); if (length > 16384 || length < 2 || offset + 4 + length > bytes.length) throw new Error('partial/oversize journal frame');
+    const frame = bytes.subarray(offset, offset + 4 + length), record = JSON.parse(frame.subarray(4));
+    if (JSON.stringify(Object.keys(record).sort()) !== JSON.stringify(['previous','run','sequence','value']) || record.sequence !== sequence || record.previous !== previous || JSON.stringify(record.run) !== JSON.stringify(run)) throw new Error('journal identity/chain');
+    previous = hash(frame); sequence++; offset += frame.length;
+  }
+  if (!sequence) throw new Error('empty journal'); return { sequence, previous };
+}

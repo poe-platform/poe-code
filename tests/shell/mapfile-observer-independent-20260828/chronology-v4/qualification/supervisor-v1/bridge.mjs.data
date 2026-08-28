@@ -1,0 +1,43 @@
+import fs from 'node:fs';
+import { EventEmitter } from 'node:events';
+import { performance } from 'node:perf_hooks';
+
+export function installBridge(runId, token, parentPid) {
+  if (process.ppid !== parentPid || typeof process.send !== 'function') throw new Error('broker parent missing');
+  const children = new Map(), sleeper = new Int32Array(new SharedArrayBuffer(4)); let sequence = 0, responseBytes = Buffer.alloc(0), totalCalls = 0;
+  function rpc(operation, details = {}) {
+    if (++totalCalls > 1024) throw new Error('RPC ceiling');
+    const request = Buffer.from(JSON.stringify({ runId, token, parentPid, entryPid: process.pid, sequence: sequence++, operation, ...details }) + '\n');
+    if (request.length > 16384) throw new Error('RPC frame ceiling');
+    const deadline = performance.now() + 2000; let offset = 0;
+    while (offset < request.length) { if (performance.now() >= deadline) throw new Error('RPC write deadline'); try { offset += fs.writeSync(3, request, offset, request.length - offset); } catch (reason) { if (reason.code !== 'EAGAIN') throw reason; Atomics.wait(sleeper, 0, 0, 2); } }
+    while (true) {
+      const newline = responseBytes.indexOf(10);
+      if (newline !== -1) { const line = responseBytes.subarray(0, newline); responseBytes = responseBytes.subarray(newline + 1); const response = JSON.parse(line); if (response.sequence !== sequence - 1 || response.runId !== runId) throw new Error('RPC replay'); if (!response.ok) throw new Error('broker refused: ' + response.reason); return response.value; }
+      if (performance.now() >= deadline) throw new Error('RPC read deadline');
+      const scratch = Buffer.alloc(16384); try { const count = fs.readSync(4, scratch, 0, scratch.length, null); if (!count) throw new Error('broker EOF'); if (responseBytes.length + count > 16384) throw new Error('RPC response ceiling'); responseBytes = Buffer.concat([responseBytes, scratch.subarray(0, count)]); } catch (reason) { if (reason.code !== 'EAGAIN') throw reason; Atomics.wait(sleeper, 0, 0, 2); }
+    }
+  }
+  process.on('message', message => {
+    if (!message || message.runId !== runId || !children.has(message.id)) throw new Error('unknown broker event');
+    const child = children.get(message.id);
+    if (message.name === 'data') { if (!['stdout','stderr'].includes(message.channel) || message.base64.length > 174764) throw new Error('invalid broker data'); child[message.channel].emit('data', Buffer.from(message.base64, 'base64')); }
+    else if (message.name === 'error') child.emit('error', new Error(message.description));
+    else if (['spawn','exit','close'].includes(message.name)) child.emit(message.name, ...message.args);
+    else throw new Error('unknown broker callback');
+  });
+  function spawn(executable, args, options) {
+    const response = rpc('spawn', { executable, args, options });
+    const child = new EventEmitter(); child.pid = response.pid; child.stdout = new EventEmitter(); child.stderr = new EventEmitter(); child.stdin = new EventEmitter();
+    for (const channel of ['stdin','stdout','stderr']) child[channel].destroy = () => {};
+    child.unref = () => rpc('release', { id: response.id });
+    child.stdin.end = (bytes, callback) => { rpc('arm', { id: response.id, stdinHex: Buffer.from(bytes).toString('hex') }); callback(); };
+    children.set(response.id, child); return child;
+  }
+  process.kill = (pid, signal) => {
+    const item = [...children].find(([, child]) => child.pid === -pid); if (!item) throw new Error('unknown bridge PID');
+    if (signal === 0) { if (!rpc('group', { id: item[0] })) { const error = new Error('absent owned group'); error.code = 'ESRCH'; throw error; } return true; }
+    if (!['SIGTERM','SIGKILL'].includes(signal)) throw new Error('invalid bridge signal'); rpc('signal', { id: item[0], signal }); return true;
+  };
+  return { spawn, rpc, close() { rpc('entry-complete'); fs.closeSync(3); fs.closeSync(4); process.disconnect(); } };
+}

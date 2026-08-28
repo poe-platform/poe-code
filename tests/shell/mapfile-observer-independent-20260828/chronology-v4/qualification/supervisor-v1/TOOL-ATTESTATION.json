@@ -1,0 +1,9 @@
+{
+  "classification":"READONLY authenticated bodies; no GNU execution or qualification launch",
+  "host":"trusted prep Node only; shell/tool calls are not qualification children",
+  "chunkBytes":65536,"noFollow":true,"sameBeforeAfter":["dev","ino","size","mode","mtimeMs","ctimeMs"],
+  "tools":[
+    {"path":"/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node","sha256":"5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011","bytes":112989184,"mode":493,"dev":16777232,"ino":3707231,"mtimeMs":1774313550000,"ctimeMs":1776794488519.6758,"readCeiling":268435456,"authenticatedAt":"2026-08-28T15:20:09.377Z"},
+    {"path":"/private/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash","sha256":"8cecb482de24198c23a736b931cb7e8cee1f94eb0b51abd54bd99f1d73d9673c","bytes":1395864,"mode":493,"dev":16777232,"ino":167971824,"mtimeMs":1787777347320.6458,"ctimeMs":1787777347321.193,"readCeiling":16777216,"authenticatedAt":"2026-08-28T15:20:09.383Z"}
+  ]
+}

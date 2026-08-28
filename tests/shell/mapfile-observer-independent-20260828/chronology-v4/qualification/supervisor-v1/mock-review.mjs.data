@@ -1,0 +1,183 @@
+import fs from 'node:fs';
+import path from 'node:path';
+import vm from 'node:vm';
+import assert from 'node:assert/strict';
+import crypto from 'node:crypto';
+import { EventEmitter } from 'node:events';
+import { types } from 'node:util';
+import * as url from 'node:url';
+import childProcess from 'node:child_process';
+import { syncBuiltinESMExports } from 'node:module';
+
+const root = 'tests/shell/mapfile-observer-independent-20260828/chronology-v4/qualification/supervisor-v1';
+const sha = bytes => crypto.createHash('sha256').update(bytes).digest('hex');
+const controls = JSON.parse(fs.readFileSync(`${root}/CONTROLS.json`));
+const manifestBytes = fs.readFileSync(`${root}/COMBINED.json`), manifest = JSON.parse(manifestBytes);
+assert.equal(crypto.createHash('sha256').update(manifestBytes).digest('hex'),process.env.EXPECTED_MANIFEST_SHA256);
+const hostDeadline=setTimeout(()=>{process.stderr.write('PREP_HOST_TIMEOUT\n');process.exit(124);},180000);
+const payloads = JSON.parse(fs.readFileSync(`${root}/PAYLOADS.json`));
+const sourceFiles = new Map();
+for (const [relative, binding] of Object.entries(manifest.files)) {
+  const bytes = relative.startsWith('supervisor/') ? fs.readFileSync(`${root}/${relative.slice(11)}`) : Buffer.from(payloads.files[relative].base64,'base64');
+  assert.equal(sha(bytes),binding.sha256); sourceFiles.set(relative,bytes);
+}
+sourceFiles.set('supervisor/COMBINED.json',manifestBytes);
+let safetyAttempts = 0;
+const deny = () => { safetyAttempts++; throw new Error('SAFETY_STOP_REAL_CAPABILITY'); };
+for(const key of ['spawn','spawnSync','exec','execSync','execFile','execFileSync','fork'])childProcess[key]=deny;
+syncBuiltinESMExports();
+const limits=JSON.parse(sourceFiles.get('supervisor/LIMITS.json'));
+const results=[];
+function moduleWorld(contextValues, builtins, lookup, witness) {
+  const context=vm.createContext({Buffer,Uint8Array,TextEncoder,TextDecoder,URL,console:{log:deny,error:deny},...contextValues}), cache=new Map(); let hooks;
+  const moduleShim={registerHooks(value){hooks=value;return{deregister(){hooks=undefined;}};}};
+  async function load(specifier, parent='') {
+    let identifier=specifier;
+    if(specifier.startsWith('.'))identifier=new URL(specifier,parent).href;
+    if(cache.has(identifier))return cache.get(identifier);
+    if(identifier.startsWith('node:') && !(identifier==='node:child_process'&&hooks)) {
+      const value=identifier==='node:module'?moduleShim:builtins[identifier];if(value===undefined){safetyAttempts++;throw new Error('SAFETY_STOP_IMPORT '+identifier);}
+      const names=[...new Set(['default',...Object.keys(value)])], module=new vm.SyntheticModule(names,function(){this.setExport('default',value);for(const name of names)if(name!=='default')this.setExport(name,value[name]);},{context,identifier});cache.set(identifier,module);return module;
+    }
+    let source;
+    if(identifier.startsWith('data:text/javascript;base64,'))source=Buffer.from(identifier.slice(28),'base64').toString();
+    else if(hooks)source=hooks.load(identifier,{},()=>({format:'module',source:lookup(url.fileURLToPath(identifier)).toString()})).source;
+    else source=lookup(identifier).toString();
+    const bytes=Buffer.from(source);witness.push({identifier:identifier.startsWith('data:')?'data:'+sha(bytes):identifier,sha256:sha(bytes),bytes:bytes.length});
+    const module=new vm.SourceTextModule(source,{context,identifier,initializeImportMeta(meta){meta.url=identifier;},importModuleDynamically:async(specifier,referrer)=>{const imported=await load(specifier,referrer.identifier);if(imported.status==='unlinked')await imported.link(link);if(imported.status==='linked')await imported.evaluate({timeout:1000});return imported;}});cache.set(identifier,module);return module;
+  }
+  async function link(specifier,referrer){return load(specifier,referrer.identifier);}
+  return {context,async evaluate(identifier){const module=await load(identifier);await module.link(link);await module.evaluate({timeout:1000});return module.namespace;}};
+}
+function memoryFs() {
+  const nodes=new Map(),descriptors=new Map();let nextInode=1,nextDescriptor=100,tick=1,writeBytes=0,opened=0;const errors=[];
+  const error=code=>Object.assign(new Error(code),{code});
+  function add(filename,bytes=null,mode=bytes===null?0o700:0o644){if(nodes.has(filename))throw error('EEXIST');nodes.set(filename,{bytes:bytes===null?null:Buffer.from(bytes),mode,ino:nextInode++,mtimeMs:tick,ctimeMs:tick});}
+  function parents(filename){const parent=path.dirname(filename);if(parent!==filename&&!nodes.has(parent)){parents(parent);add(parent);}}
+  function get(filename){const node=nodes.get(filename);if(!node)throw error('ENOENT');return node;}
+  function stat(node){return{dev:1,ino:node.ino,size:node.bytes?.length??0,mode:node.mode|(node.bytes===null?0o40000:0o100000),mtimeMs:node.mtimeMs,ctimeMs:node.ctimeMs,isFile:()=>node.bytes!==null,isDirectory:()=>node.bytes===null,isSymbolicLink:()=>false};}
+  let pipeWrite,pipeRead,openFault;
+  const api={constants:fs.constants,
+    realpathSync(filename){get(filename);return filename;},lstatSync(filename){return stat(get(filename));},fstatSync(descriptor){return stat(get(descriptors.get(descriptor).filename));},
+    readdirSync(directory){get(directory);return[...nodes.keys()].filter(filename=>filename!==directory&&path.dirname(filename)===directory).map(filename=>path.basename(filename));},
+    mkdirSync(filename,options){if(!nodes.has(path.dirname(filename)))throw error('ENOENT');add(filename,null,options.mode);},
+    rmdirSync(filename){if(api.readdirSync(filename).length)throw error('ENOTEMPTY');nodes.delete(filename);},
+    readFileSync(filename){return Buffer.from(get(typeof filename==='number'?descriptors.get(filename).filename:filename).bytes);},
+    openSync(filename,flags,mode=0o644){if(openFault)openFault(filename);const create=typeof flags==='string'?flags.includes('w'):Boolean(flags&fs.constants.O_CREAT);if(create){if(nodes.has(filename))throw error('EEXIST');if(!nodes.has(path.dirname(filename)))throw error('ENOENT');add(filename,Buffer.alloc(0),mode);}else get(filename);const descriptor=nextDescriptor++;descriptors.set(descriptor,{filename,offset:0});opened++;if(descriptors.size>64)throw Error('mock descriptor ceiling');return descriptor;},
+    readSync(descriptor,buffer,offset,length,position){if(descriptor===4)return pipeRead(buffer,offset,length);const opened=descriptors.get(descriptor),node=get(opened.filename),start=position??opened.offset,count=Math.min(length,node.bytes.length-start);if(count>0)node.bytes.copy(buffer,offset,start,start+count);if(position===null)opened.offset+=Math.max(0,count);return Math.max(0,count);},
+    writeSync(descriptor,bytes,offset=0,length=bytes.length-offset){if(descriptor===3)return pipeWrite(Buffer.from(bytes.subarray(offset,offset+length)));const opened=descriptors.get(descriptor),node=get(opened.filename),part=bytes.subarray(offset,offset+length);node.bytes=Buffer.concat([node.bytes,part]);node.mtimeMs=++tick;node.ctimeMs=tick;writeBytes+=part.length;if(writeBytes>33554432)throw Error('mock storage ceiling');return part.length;},
+    writeFileSync(filename,bytes,options){const descriptor=api.openSync(filename,options.flag,options.mode);try{api.writeSync(descriptor,Buffer.from(bytes));}finally{api.closeSync(descriptor);}},
+    closeSync(descriptor){if(descriptor===3||descriptor===4)return;if(!descriptors.delete(descriptor))throw error('EBADF');},fsyncSync(){}
+  };
+  return{api,nodes,descriptors,add,parents,errors,get,setPipes(write,read){pipeWrite=write;pipeRead=read;},setOpenFault(fn){openFault=fn;},get accounting(){return{writeBytes,opened,remainingDescriptors:descriptors.size,members:nodes.size};}};
+}
+async function integration(variant) {
+  const model=memoryFs(),clock={now:0},timers=new Map(),witness=[],signals=[],starts=[],rootStdout=[],rootStderr=[],asyncErrors=[];let timerId=0,entryProcess,entryHandle,replyBytes=Buffer.alloc(0),entryDone=false;
+  const reason=Object.freeze({tag:'exact-spawn-throw'}),runId='mock-qualification-0001',archiveRoot='/private/tmp/mapfile-observer-hq-archive-mock000000000001',evidenceRoot=`/private/tmp/mapfile-observer-hq-${runId}`,token='a'.repeat(64),parentPid=200,rootPid=100;
+  const prepared=structuredClone(manifest);prepared.runtime.bytes=1;prepared.runtime.sha256=sha(Buffer.from('N'));prepared.binary.bytes=1;prepared.binary.sha256=sha(Buffer.from('B'));
+  for(const [relative,bytes]of sourceFiles){const filename=path.join(archiveRoot,relative);model.parents(filename);model.add(filename,bytes);}
+  for(const [tool,text]of [[prepared.runtime,'N'],[prepared.binary,'B']]){model.parents(tool.path);model.add(tool.path,Buffer.from(text),0o755);}
+  prepared.authenticatedTools=[prepared.runtime,prepared.binary].map(tool=>({path:tool.path,identity:`1:${model.get(tool.path).ino}`,mode:tool.mode,bytes:tool.bytes,sha256:tool.sha256}));
+  const combined=Buffer.from(JSON.stringify(prepared));model.get(path.join(archiveRoot,'supervisor/COMBINED.json')).bytes=combined;
+  const go={kind:variant==='not-authorized'?'NOT_AUTHORIZED':'ROOT_HARMLESS_OBSERVER_SUPERVISOR_GO',qualificationCommit:'f'.repeat(40),manifestSha256:sha(combined),parentSha256:sha(sourceFiles.get('supervisor/parent.mjs.data')),archiveRoot,evidenceRoot,runId,rootPid,tokenSha256:sha(Buffer.from(token)),caseIds:['D01','D02','D03','H01','H02','H03','H04','H05'],runtime:prepared.runtime,binary:prepared.binary,approvedAtMs:1787930000000,expiresAtMs:1787930300000,zeroNetwork:true,archiveAuthenticatedAgainstCommit:true,externalWatchdog:'PARENT_OWNED_BROKER_V1',limits};
+  const goPath='/private/tmp/mock-external-go.json',goBytes=Buffer.from(JSON.stringify(go));model.add(goPath,goBytes);
+  if(variant==='archive-mode')model.get(path.join(archiveRoot,'controls/observer-v1/modules/observer.mjs')).mode=0o600;
+  if(variant==='final-publish-failure')model.setOpenFault(filename=>{if(filename.endsWith('/parent-final.json'))throw Object.freeze({tag:'publication-refusal'});});
+  const env={PATH:'',ENV:'',BASH_ENV:'',NODE_OPTIONS:'',NODE_PATH:'',HOME:evidenceRoot,TMPDIR:evidenceRoot,LANG:'C',LC_ALL:'C',TZ:'UTC'};
+  function schedule(callback,delay=0,repeat=0){const id=++timerId;timers.set(id,{at:clock.now+delay,callback,repeat});return id;}
+  const timeout=(callback,delay)=>schedule(callback,delay),clear=id=>timers.delete(id);
+  class ClockDate extends Date {static now(){return go.approvedAtMs+clock.now;}}
+  function processFor(pid,ppid,argv){const process=new EventEmitter();Object.assign(process,{pid,ppid,argv,execPath:prepared.runtime.path,version:'v22.22.2',platform:'darwin',arch:'arm64',env:{...env},cwd:()=>archiveRoot,exitCode:0,kill:deny});return process;}
+  const parentProcess=processFor(parentPid,rootPid,[prepared.runtime.path,path.join(archiveRoot,'supervisor/parent.mjs.data'),go.parentSha256,goPath,sha(goBytes),token]);parentProcess.stdout={write:bytes=>rootStdout.push(Buffer.from(bytes))};parentProcess.stderr={write:bytes=>rootStderr.push(Buffer.from(bytes))};
+  const common={'node:fs':model.api,'node:path':path,'node:crypto':crypto,'node:assert/strict':assert,'node:perf_hooks':{performance:{now:()=>clock.now}},'node:events':{EventEmitter},'node:url':url,'node:util/types':types};
+  const globals=process=>({process,Date:ClockDate,Atomics:{wait(){clock.now+=2;return'timed-out';}},performance:{now:()=>clock.now},setTimeout:timeout,clearTimeout:clear,setInterval:(callback,delay)=>schedule(callback,delay,delay),clearInterval:clear});
+  function makeChild(id){const child=new EventEmitter();child.pid=300+starts.length;child.connected=id==='entry';child.unref=()=>{};child.disconnect=()=>{child.connected=false;child.emit('disconnect');};child.stdout=new EventEmitter();child.stderr=new EventEmitter();child.stdin=new EventEmitter();child.stdio=[child.stdin,child.stdout,child.stderr,new EventEmitter(),new EventEmitter()];for(const stream of child.stdio)stream.destroy=()=>{};child.stdio[4].write=bytes=>{replyBytes=Buffer.concat([replyBytes,bytes]);return true;};child.send=(message,callback)=>{schedule(()=>{entryProcess.emit('message',structuredClone(message));callback();},0);return true;};return child;}
+  function terminal(child,code,signal,delay=0){if(child.terminal)return;child.terminal=true;schedule(()=>child.emit('exit',code,signal),delay);schedule(()=>{child.groupAbsent=true;child.emit('close',code,signal);},delay+1);}
+  function spawn(executable,args,options){
+    const id=executable===prepared.runtime.path?'entry':`H0${starts.filter(item=>item.id!=='entry').length+1}`;
+    if(variant==='spawn-throw'&&id==='entry')throw reason;
+    const child=makeChild(id);starts.push({id,executable,args,options,child});schedule(()=>child.emit('spawn'),0);
+    if(id==='entry'){
+      entryHandle=child;
+      model.setPipes(bytes=>{child.stdio[3].emit('data',bytes);return bytes.length;},(buffer,offset,length)=>{if(!replyBytes.length)throw Object.assign(Error('EAGAIN'),{code:'EAGAIN'});const count=Math.min(length,replyBytes.length);replyBytes.copy(buffer,offset,0,count);replyBytes=replyBytes.subarray(count);return count;});
+      if(['entry-stall','entry-close-late'].includes(variant))return child;
+      if(variant==='entry-overflow'){schedule(()=>child.stdout.emit('data',Buffer.alloc(3000000)),1);schedule(()=>child.stderr.emit('data',Buffer.alloc(2000000)),2);return child;}
+      entryProcess=processFor(child.pid,parentPid,[prepared.runtime.path,...args.slice(4)]);entryProcess.send=()=>{};entryProcess.disconnect=()=>{child.connected=false;child.emit('disconnect');};entryProcess.stdout={write:bytes=>{child.stdout.emit('data',Buffer.from(bytes));return true;}};entryProcess.stderr={write:bytes=>{child.stderr.emit('data',Buffer.from(bytes));return true;}};
+      schedule(()=>{
+        const world=moduleWorld(globals(entryProcess),common,filename=>model.api.readFileSync(filename),witness);
+        world.evaluate('data:text/javascript;base64,'+Buffer.from(args[3]).toString('base64')).then(()=>{entryDone=true;terminal(child,entryProcess.exitCode,null);},error=>{asyncErrors.push({role:'entry',name:error?.name,message:error?.message,stack:error?.stack});entryDone=true;terminal(child,1,null);});
+      },0);
+    }else{
+      child.stdin.end=(bytes,callback)=>{
+        if(id==='H01'){schedule(()=>child.stdout.emit('data',Buffer.from('ok:alpha\n')),1);schedule(()=>child.stderr.emit('data',Buffer.from('note\n')),2);schedule(()=>terminal(child,0,null),3);}
+        if(id==='H02'){schedule(()=>child.stdout.emit('data',Buffer.from('nonzero\n')),1);schedule(()=>terminal(child,7,null),2);}
+        if(id==='H04'){schedule(()=>child.stdout.emit('data',Buffer.alloc(65537,32)),1);schedule(()=>terminal(child,0,null),2);}
+        callback();
+      };
+    }
+    return child;
+  }
+  parentProcess.kill=(pid,signal)=>{
+    const item=starts.find(item=>item.child.pid===-pid);if(!item)throw Error('SAFETY_UNKNOWN_MODEL_PID');
+    if(signal===0){if(item.child.groupAbsent)throw Object.assign(Error('ESRCH'),{code:'ESRCH'});return true;}
+    signals.push({id:item.id,signal,at:clock.now});
+    if(signal==='SIGTERM'&&(item.id==='H03'||['entry-stall','entry-close-late'].includes(variant)))return true;
+    terminal(item.child,null,signal,variant==='entry-close-late'?150:0);return true;
+  };
+  const parentWorld=moduleWorld(globals(parentProcess),{...common,'node:child_process':{spawn}},filename=>model.api.readFileSync(filename),witness);
+  const parent=await parentWorld.evaluate('data:text/javascript;base64,'+sourceFiles.get('supervisor/parent.mjs.data').toString('base64'));
+  let done=false,rejection;parent.main().then(()=>{done=true;},error=>{done=true;rejection=error;});
+  let steps=0;
+  while(!done){for(let count=0;count<120;count++)await Promise.resolve();if(done)break;if(++steps>20000)throw Error('SAFETY_VIRTUAL_QUEUE_LIMIT');const pending=[...timers].sort((first,second)=>first[1].at-second[1].at||first[0]-second[0])[0];if(!pending)throw Error('SAFETY_UNRESOLVED_MODEL_WITHOUT_TIMER');const[id,timer]=pending;clock.now=timer.at;if(clock.now>71000)throw Error('SAFETY_VIRTUAL_WALL');if(timer.repeat)timer.at+=timer.repeat;else timers.delete(id);timer.callback();}
+  for(let count=0;count<50;count++)await Promise.resolve();
+  const output=Buffer.concat(rootStdout).toString(),stderr=Buffer.concat(rootStderr).toString();let result;try{result=JSON.parse(output);}catch{}
+  const states=[...model.nodes].filter(([filename])=>filename.endsWith('/parent-final.json')).map(([,node])=>JSON.parse(node.bytes));
+  const artifacts=[...model.nodes].filter(([filename,node])=>filename.startsWith(evidenceRoot)&&node.bytes!==null).map(([filename,node])=>({path:filename,mode:node.mode,bytes:node.bytes.length,sha256:sha(node.bytes),base64:node.bytes.toString('base64')}));
+  const evidence={variant,output,stderr,rejection:rejection?{message:rejection.message,stack:rejection.stack}:null,asyncErrors,starts:starts.map(({child,...item})=>({...item,pid:child.pid,actualMockTerminal:!!child.terminal,groupAbsent:!!child.groupAbsent})),signals,witness,states,artifacts,virtualMs:clock.now,steps,entryDone,accounting:model.accounting,remainingTimers:timers.size,exitCode:parentProcess.exitCode};
+  try { if(variant==='positive'){assert.equal(rejection,undefined);assert.equal(parentProcess.exitCode,0);assert.equal(result?.success,true);assert.equal(starts.length,6);assert.equal(asyncErrors.length,0);assert.ok(witness.some(item=>item.sha256===manifest.files['controls/observer-v1/modules/node-driver.mjs'].sha256));}
+  else if(['not-authorized','archive-mode'].includes(variant)){assert.ok(rejection);assert.equal(starts.length,0);assert.equal(model.accounting.writeBytes,0);}
+  else{assert.equal(result?.success===true,false);assert.equal(parentProcess.exitCode,1);if(variant==='spawn-throw'){assert.equal(states[0].state.records[0].closed,false);assert.equal(states[0].retainedUnknownResources,true);}if(['entry-stall','entry-close-late'].includes(variant)){assert.deepEqual(signals.map(item=>item.signal),['SIGTERM','SIGKILL']);assert.equal(states[0].state.records[0].settled,true);}}
+    assert.equal(model.descriptors.size,0);assert.equal(timers.size,0);
+  } catch(reason) { reason.evidence=evidence; if(model.descriptors.size||timers.size)throw Object.assign(Error('SAFETY_UNCLEAN_MODEL'),{evidence}); throw reason; }
+  return evidence;
+}
+async function loadPure(relative, extras={}) {const witness=[];const world=moduleWorld({}, {'node:fs':extras.fs??{},'node:path':path,'node:crypto':crypto},filename=>sourceFiles.get(filename),witness);return world.evaluate('data:text/javascript;base64,'+sourceFiles.get(relative).toString('base64'));}
+const ownData=await loadPure('controls/observer-v1/modules/data.mjs');
+for(const control of controls.cases){
+  let evidence;
+  try{
+    if(control.kind==='whole-parent-entry')evidence=await integration(control.variant);
+    if(control.kind==='own-data'){
+      let invoked=0;const foreign=vm.runInNewContext('({a:[1,"two",null,true],z:{finite:3.5}})');
+      if(control.variant==='cross-realm'){ownData.assertOwnData(foreign,{a:[1,'two',null,true],z:{finite:3.5}});assert.notEqual(Object.getPrototypeOf(foreign),Object.prototype);}
+      if(control.variant==='accessor-hole-extra'){for(const value of [Object.defineProperty({},'a',{get(){invoked++;return 1;}}),[,1],Object.assign([1],{extra:2}),{a:1,toJSON(){invoked++;return{};}}])assert.throws(()=>ownData.assertOwnData(value,{a:1}));assert.equal(invoked,0);}
+      if(control.variant==='type-order')for(const [left,right]of [[[1,2],[2,1]],[{a:1},{a:'1'}],[{a:Infinity},{a:Infinity}],[{a:1,b:2},{a:1}]])assert.throws(()=>ownData.assertOwnData(left,right));
+      evidence={invoked,realVm:true};
+    }
+    if(control.kind==='owner'){
+      const {createOwner}=await loadPure('supervisor/owner.mjs.data');let now=0,spawns=0,releases=0;const signals=[],journal=[],reason=Object.freeze({host:'identity'});let journalFault=false;
+      const owner=createOwner({now:()=>now,journal:value=>{if(journalFault)throw reason;journal.push(value);},describe:()=>[],capture(){},deliver(){},signal:(handle,pid,signal)=>signals.push({pid,signal}),groupExists:()=>control.variant==='post-exit-signal',release:()=>{releases++;}},limits);
+      const child=new EventEmitter();Object.assign(child,{pid:567,stdout:new EventEmitter(),stderr:new EventEmitter()});
+      if(control.variant==='journal-before-acquire'){journalFault=true;assert.throws(()=>owner.acquire('H01','harmless',()=>{spawns++;return child;}),value=>value===reason);assert.equal(spawns,0);assert.equal(owner.status().failure,reason);}
+      else{
+        owner.acquire('H01','harmless',()=>{spawns++;return child;});child.emit('spawn');
+        if(control.variant==='unknown-pid'){assert.throws(()=>owner.requestSignal('567','SIGKILL'));assert.equal(signals.length,0);}
+        if(control.variant==='reason-identity'){owner.fail(reason);owner.fail(undefined);assert.equal(owner.status().failure,reason);const other=createOwner({now:()=>0},limits);other.fail(undefined);other.fail(reason);assert.equal(other.status().failure,undefined);assert.equal(other.status().failed,true);}
+        child.emit('exit',0,null);
+        if(control.variant==='post-exit-signal'){owner.requestSignal('H01','SIGKILL');now=4000;owner.tick();now=5100;owner.tick();assert.equal(signals.length,0);assert.equal(owner.status().settled,false);}
+        else{child.emit('close',0,null);if(control.variant==='duplicate-close'){child.emit('close',0,null);assert.equal(owner.status().failed,true);}owner.tick();owner.tick();assert.equal(releases,1);}
+      }
+      evidence={state:{...owner.status(),failure:undefined},journal,signals,spawns,releases,reasonIdentity:true};
+    }
+    if(control.kind==='journal'){
+      const model=memoryFs();model.add('/');model.add('/owned');const {validateJournal,createStore}=await loadPure('supervisor/guard.mjs.data',{fs:model.api});const run={runId:'finite',rootPid:10,parentPid:20};
+      if(control.variant==='tamper'){const store=createStore('/owned/root','/owned/guard',run);store.initialize();model.get('/owned/guard').bytes[5]^=1;assert.throws(()=>store.audit());store.close();assert.equal(model.descriptors.size,0);}
+      else{let bytes;if(control.variant==='partial-header')bytes=Buffer.from([0]);if(control.variant==='partial-frame')bytes=Buffer.from([0,0,0,4,123]);if(control.variant==='overflow')bytes=Buffer.alloc(2097153);if(control.variant==='unknown-pid'){const payload=Buffer.from(JSON.stringify({sequence:0,previous:'0'.repeat(64),run:{...run,rootPid:999},value:{pid:12345}}));bytes=Buffer.alloc(4+payload.length);bytes.writeUInt32BE(payload.length);payload.copy(bytes,4);}assert.throws(()=>validateJournal(bytes,run));}
+      evidence={refused:true,signals:0};
+    }
+    results.push({id:control.id,pass:true,evidence});
+  }catch(reason){results.push({id:control.id,pass:false,error:{name:reason?.name,message:reason?.message,stack:reason?.stack},evidence:reason?.evidence});if(safetyAttempts||String(reason?.message).startsWith('SAFETY_'))break;}
+}
+assert.equal(safetyAttempts,0);
+const result={classification:'SYNTHETIC_MOCK_OS_ONLY',controlsSha256:sha(fs.readFileSync(`${root}/CONTROLS.json`)),manifestSha256:sha(manifestBytes),pass:results.filter(item=>item.pass).length,fail:results.filter(item=>!item.pass).length,executed:results.length,planned:controls.cases.length,safetyAttempts,realQualificationChildren:0,realQualificationEntries:0,results};
+const capture=Buffer.from(JSON.stringify(result));assert.ok(capture.length<=16777216);fs.writeFileSync(`${root}/CAPTURE-01.json`,capture,{flag:'wx',mode:0o644});process.stdout.write(JSON.stringify({pass:result.pass,fail:result.fail,executed:result.executed,sha256:sha(capture),bytes:capture.length})+'\n');process.exitCode=result.fail||results.length!==controls.cases.length?1:0;clearTimeout(hostDeadline);

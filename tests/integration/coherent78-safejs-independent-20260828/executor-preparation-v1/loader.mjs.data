@@ -1,0 +1,131 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import path from 'node:path';
+import { createHash } from 'node:crypto';
+import { registerHooks, syncBuiltinESMExports, isBuiltin } from 'node:module';
+import { fileURLToPath, pathToFileURL } from 'node:url';
+import http from 'node:http';
+import https from 'node:https';
+import http2 from 'node:http2';
+import net from 'node:net';
+import tls from 'node:tls';
+import dgram from 'node:dgram';
+import dns from 'node:dns';
+import childProcess from 'node:child_process';
+import workers from 'node:worker_threads';
+
+const sha = bytes => createHash('sha256').update(bytes).digest('hex');
+const root = fs.realpathSync(process.env.C78_SCRATCH);
+assert.equal(root, process.env.C78_SCRATCH);
+const admissionPath = process.env.C78_ADMISSION;
+const tracePath = process.env.C78_TRACE;
+assert.ok(admissionPath.startsWith(root + '/') && tracePath.startsWith(root + '/logs/'));
+const admissionBytes = fs.readFileSync(admissionPath);
+assert.ok(admissionBytes.length <= 2097152);
+assert.equal(sha(admissionBytes), process.env.C78_ADMISSION_SHA256);
+const admission = JSON.parse(admissionBytes);
+assert.equal(admission.executionToken, process.env.C78_CHILD_TOKEN);
+assert.ok(['installer', 'workflow'].includes(admission.role));
+assert.ok(!fs.existsSync(tracePath));
+fs.writeFileSync(tracePath, '', { flag: 'wx', mode: 0o600 });
+let traceBytes = 0;
+let compiler;
+const records = [];
+const builtinAllowlist = new Set(admission.builtinAllowlist);
+const record = entry => {
+  assert.ok(records.length < 4096, 'LOAD_EVENT_BOUND');
+  const line = JSON.stringify({ ordinal: records.length + 1, ...entry }) + '\n';
+  traceBytes += Buffer.byteLength(line);
+  assert.ok(traceBytes <= 2097152, 'LOAD_TRACE_BOUND');
+  records.push(entry);
+  fs.appendFileSync(tracePath, line);
+};
+const refuse = (code, detail) => {
+  record({ event: 'refuse', code, detail });
+  throw Object.assign(new Error(code + ':' + detail), { code });
+};
+const forbidden = name => () => refuse('HOST_CAPABILITY_FORBIDDEN', name);
+globalThis.fetch = forbidden('fetch');
+globalThis.WebSocket = forbidden('WebSocket');
+for (const [target, names] of [
+  [http, ['request', 'get', 'createServer']], [https, ['request', 'get', 'createServer']],
+  [http2, ['connect', 'createServer', 'createSecureServer']],
+  [net, ['connect', 'createConnection', 'createServer']], [tls, ['connect', 'createServer']],
+  [dgram, ['createSocket']], [childProcess, ['spawn', 'spawnSync', 'exec', 'execSync', 'execFile', 'execFileSync', 'fork']],
+]) for (const name of names) target[name] = forbidden(name);
+net.Socket.prototype.connect = forbidden('Socket.connect');
+net.Server.prototype.listen = forbidden('Server.listen');
+for (const target of [dns, dns.promises]) {
+  for (const name of Object.keys(target)) {
+    if (typeof target[name] === 'function' && (name.startsWith('resolve') || ['lookup', 'lookupService', 'reverse'].includes(name))) target[name] = forbidden('dns.' + name);
+  }
+}
+for (const constructor of [dns.Resolver, dns.promises.Resolver]) {
+  for (const name of Object.getOwnPropertyNames(constructor.prototype)) {
+    if (name.startsWith('resolve') || name === 'reverse') constructor.prototype[name] = forbidden('Resolver.' + name);
+  }
+}
+workers.Worker = forbidden('Worker');
+syncBuiltinESMExports();
+function authenticate(filename) {
+  const absolute = path.resolve(filename);
+  if (!absolute.startsWith(root + '/') || fs.realpathSync(absolute) !== absolute) return refuse('OUTSIDE_OR_SYMLINK', absolute);
+  const relative = path.relative(root, absolute);
+  if (!Object.hasOwn(admission.files, relative)) return refuse('UNBOUND_MODULE', relative);
+  const expected = admission.files[relative];
+  const stat = fs.lstatSync(absolute);
+  if (!stat.isFile() || stat.isSymbolicLink() || stat.size !== expected.bytes || (stat.mode & 511) !== expected.mode) return refuse('MODULE_METADATA', relative);
+  const bytes = fs.readFileSync(absolute);
+  if (sha(bytes) !== expected.sha256) return refuse('MODULE_HASH', relative);
+  return { absolute, relative, expected, bytes };
+}
+registerHooks({
+  resolve(specifier, context, next) {
+    if (isBuiltin(specifier)) {
+      const name = specifier.replace(/^node:/u, '');
+      if (!builtinAllowlist.has(name)) return refuse('UNBOUND_BUILTIN', name);
+      record({ event: 'builtin', name, parent: context.parentURL });
+      return next(specifier, context);
+    }
+    if (/^[a-zA-Z][a-zA-Z+.-]*:/u.test(specifier) && !specifier.startsWith('file:')) return refuse('IMPORT_PROTOCOL', specifier);
+    if (specifier.startsWith('file:')) authenticate(fileURLToPath(specifier));
+    let resolved;
+    try { resolved = next(specifier, context); }
+    catch (error) {
+      const parent = context.parentURL?.startsWith('file:') ? path.relative(root, fileURLToPath(context.parentURL)) : '';
+      if (admission.role !== 'workflow' || admission.files[parent]?.role !== 'engine' || !specifier.startsWith('.') || !specifier.endsWith('.js') || error.code !== 'ERR_MODULE_NOT_FOUND') throw error;
+      const target = new URL(specifier.slice(0, -3) + '.ts', context.parentURL);
+      const checked = authenticate(fileURLToPath(target));
+      if (checked.expected.role !== 'engine') return refuse('ENGINE_FALLBACK_SCOPE', checked.relative);
+      resolved = { url: target.href, shortCircuit: true };
+    }
+    if (!resolved.url.startsWith('file:')) return refuse('NONFILE_RESOLUTION', resolved.url);
+    authenticate(fileURLToPath(resolved.url));
+    return resolved;
+  },
+  load(url, context, next) {
+    if (url.startsWith('node:')) return next(url, context);
+    if (!url.startsWith('file:')) return refuse('NONFILE_LOAD', url);
+    const checked = authenticate(fileURLToPath(url));
+    if (checked.relative.endsWith('.ts')) {
+      if (checked.expected.role !== 'engine' || !compiler) return refuse('UNAPPROVED_TS_TRANSFORM', checked.relative);
+      const emitted = compiler.transpileModule(checked.bytes.toString('utf8'), {
+        compilerOptions: { target: compiler.ScriptTarget.ES2023, module: compiler.ModuleKind.ESNext, verbatimModuleSyntax: true },
+      }).outputText;
+      if (sha(emitted) !== checked.expected.emittedSha256) return refuse('ENGINE_EMISSION_HASH', checked.relative);
+      record({ event: 'load', path: checked.relative, role: 'engine', method: 'explicit-transform', sha256: checked.expected.sha256, emittedSha256: sha(emitted) });
+      return { format: 'module', source: emitted, shortCircuit: true };
+    }
+    const loaded = next(url, context);
+    const exposed = loaded.source !== undefined && loaded.source !== null;
+    if (exposed) assert.equal(sha(typeof loaded.source === 'string' ? Buffer.from(loaded.source) : Buffer.from(loaded.source)), checked.expected.sha256, 'NEXT_LOAD_BYTES');
+    record({ event: 'load', path: checked.relative, role: checked.expected.role, sha256: checked.expected.sha256, method: 'nextLoad', sourceExposed: exposed, format: loaded.format });
+    return loaded;
+  },
+});
+record({ event: 'loader-ready', role: admission.role, admissionSha256: sha(admissionBytes) });
+if (admission.role === 'workflow') {
+  compiler = (await import(pathToFileURL(path.join(root, admission.compiler)))).default;
+  assert.equal(compiler.version, '5.9.3');
+  record({ event: 'compiler-ready', version: compiler.version });
+}

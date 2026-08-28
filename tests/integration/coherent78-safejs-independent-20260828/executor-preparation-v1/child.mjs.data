@@ -1,0 +1,327 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import path from 'node:path';
+import { createHash } from 'node:crypto';
+import { pathToFileURL } from 'node:url';
+
+const sha = bytes => createHash('sha256').update(bytes).digest('hex');
+const root = process.env.C78_SCRATCH;
+const consumer = process.env.C78_CONSUMER;
+const output = process.env.C78_RESULT;
+const admissionBytes = fs.readFileSync(process.env.C78_ADMISSION);
+assert.equal(sha(admissionBytes), process.env.C78_ADMISSION_SHA256);
+const admission = JSON.parse(admissionBytes);
+assert.equal(admission.executionToken, process.env.C78_CHILD_TOKEN);
+assert.equal(admission.role, 'workflow');
+function readBound(relative) {
+  const absolute = path.join(consumer, relative);
+  const expected = admission.files[path.relative(root, absolute)];
+  assert.ok(expected, 'UNBOUND_DATA');
+  const bytes = fs.readFileSync(absolute);
+  assert.equal(bytes.length, expected.bytes);
+  assert.equal(sha(bytes), expected.sha256);
+  return bytes;
+}
+const fixtures = JSON.parse(readBound('harness/CASES.json'));
+const limits = JSON.parse(readBound('harness/RECIPE.json')).bounds;
+const row = fixtures.cases.find(value => value.id === process.env.C78_CASE);
+assert.ok(row && ['installed', 'moved'].includes(process.env.C78_LAYOUT));
+const guestBytes = readBound('harness/' + row.guestFile);
+const guestSource = guestBytes.toString('utf8');
+const bridgeSource = row.id === 'G01' ? fixtures.filesystem.files['/work/flow.sh'] : row.id === 'G02'
+  ? 'curl https://coherent78.invalid/data' : 'export C78=child; printf \'child:%s\\n\' "$C78"';
+const serialized = error => ({ name: error?.name, code: error?.code, message: String(error?.message ?? error).slice(0,4096) });
+const report = {
+  schema: 'coherent78-safejs-execution-v1', case: row.id, layout: process.env.C78_LAYOUT,
+  classification: 'RUNNING', events: [], assertions: [], counters: { shellsCreated: 0, shellsDisposed: 0, publicExecs: 0, wrapperEntered: 0, wrapperSettled: 0, actualRunInvoked: 0, actualRunSettled: 0, guestEntries: 0, bridgeEntered: 0, literalInvokes: 0, bridgeSettled: 0, invocationCleanupEntered: 0, invocationCleanupDone: 0 },
+  sourceSha256: sha(guestBytes), outerSha256: sha(row.outer), dispatch: [], unhandled: [],
+};
+assert.ok(output.startsWith(root + '/logs/') && !fs.existsSync(output));
+const persist = () => {
+  const bytes = JSON.stringify(report) + '\n';
+  assert.ok(Buffer.byteLength(bytes) <= limits.receiptBytesPerChild, 'RECEIPT_BOUND');
+  fs.writeFileSync(output, bytes, { mode: 0o600 });
+};
+const mark = (event, detail = {}) => {
+  assert.ok(report.events.length < limits.eventsPerChild, 'EVENT_BOUND');
+  report.events.push({ ordinal: report.events.length + 1, event, ...detail });
+  persist();
+};
+const check = (name, action) => {
+  try { action(); report.assertions.push({ name, pass: true }); }
+  catch (error) { report.assertions.push({ name, pass: false, error: serialized(error) }); }
+};
+const gate = () => {
+  let release;
+  const promise = new Promise(resolve => { release = resolve; });
+  return { promise, release };
+};
+const turns = async () => { for (let index = 0; index < limits.microtaskCheckpointTurns; index++) await Promise.resolve(); };
+const unhandled = error => { assert.ok(report.unhandled.length < 32); report.unhandled.push(serialized(error)); };
+process.on('unhandledRejection', unhandled);
+const pendingEngine = new Set();
+const pendingBridge = new Set();
+const ownedTimers = new Set();
+const originalTimers = { setTimeout, clearTimeout, setInterval, clearInterval };
+let shell, filesystem, activeContext, runtimeCleanup;
+let invocationOpen = true;
+const caller = new AbortController();
+const bodyGate = gate(), disposalGate = gate(), releaseGate = gate();
+const traffic = { authorization: [], requests: [], acquired: 0, next: 0, nextPending: 0, returned: 0, returnPending: 0, disposed: 0, disposalDone: 0, cleanup: 0, cleanupDone: 0, requestAborts: 0, ownedListeners: 0 };
+const clock = { nowValue: 0, rows: [], live: new Set() };
+const scheduler = {
+  now() { assert.equal(this, scheduler); return clock.nowValue; },
+  setTimeout(callback, milliseconds) {
+    assert.equal(this, scheduler); assert.equal(milliseconds, 10); assert.equal(clock.rows.length, 0);
+    const handle = { index: 0 };
+    clock.rows.push({ handle, callback, milliseconds, fired: false, cleared: false }); clock.live.add(handle);
+    mark('timer-arm', { milliseconds }); return handle;
+  },
+  clearTimeout(handle) {
+    assert.equal(this, scheduler); const timer = clock.rows.find(value => value.handle === handle);
+    assert.ok(timer && !timer.cleared); timer.cleared = true; clock.live.delete(handle); mark('timer-clear');
+  },
+};
+const ownListener = (signal, callback) => {
+  let attached = true;
+  const detach = () => { if (attached) { attached = false; signal.removeEventListener('abort', callback); traffic.ownedListeners--; } };
+  traffic.ownedListeners++; signal.addEventListener('abort', callback, { once: true });
+  return detach;
+};
+let detachRequest = () => {};
+async function snapshot(filesystemToRead) {
+  const records = {};
+  let bytes = 0;
+  async function visit(directory) {
+    for (const entry of (await filesystemToRead.readdir(directory, { signal: new AbortController().signal })).sort((left, right) => left.name.localeCompare(right.name, 'en'))) {
+      const filename = directory === '/' ? '/' + entry.name : directory + '/' + entry.name;
+      const stat = await filesystemToRead.lstat(filename, { signal: new AbortController().signal });
+      assert.ok(Object.keys(records).length < 256, 'VFS_ENTRY_BOUND');
+      if (stat.type === 'directory') { records[filename] = { type: 'directory' }; await visit(filename); }
+      else { assert.equal(stat.type, 'file'); const content = await filesystemToRead.readFile(filename, { signal: new AbortController().signal, maxBytes: 65536 }); bytes += content.length; assert.ok(bytes <= 1048576); records[filename] = { type: 'file', base64: Buffer.from(content).toString('base64') }; }
+    }
+  }
+  await visit('/'); return records;
+}
+function capture() {
+  let length = 0;
+  const chunks = [];
+  return { sink: { async write(bytes) { length += bytes.length; assert.ok(length <= limits.shell.maxOutputBytes, 'BRIDGE_OUTPUT_BOUND'); chunks.push(Uint8Array.from(bytes)); } }, text() { return Buffer.concat(chunks.map(bytes => Buffer.from(bytes))).toString('utf8'); } };
+}
+try {
+  mark('imports-begin');
+  const product = await import('virtual-bash');
+  const engineImport = filename => import(pathToFileURL(path.join(consumer, 'node_modules/engine/src', filename)));
+  const { run } = await engineImport('run.ts');
+  const { Budget } = await engineImport('interp/budget.ts');
+  const { makeFsModule } = await engineImport('modules/fs.ts');
+  const { declareHostOperation } = await engineImport('interp/host-bridge.ts');
+  const { Shell, MemoryFileSystem, ReadOnlyFileSystem, agentCommands, curlCommands, safeJsCommands, makeSafeJsShellModule, toByteSource } = product;
+  mark('imports-complete');
+  for (const name of ['setTimeout', 'setInterval']) {
+    globalThis[name] = (callback, milliseconds, ...args) => {
+      let handle;
+      handle = originalTimers[name]((...values) => { if (name === 'setTimeout') ownedTimers.delete(handle); callback(...values); }, milliseconds, ...args);
+      ownedTimers.add(handle); return handle;
+    };
+  }
+  for (const name of ['clearTimeout', 'clearInterval']) globalThis[name] = handle => { ownedTimers.delete(handle); return originalTimers[name](handle); };
+  const memory = new MemoryFileSystem();
+  const seedSignal = new AbortController().signal;
+  for (const directory of fixtures.filesystem.directories) await memory.mkdir(directory, { recursive: true, signal: seedSignal });
+  for (const [filename, text] of Object.entries(fixtures.filesystem.files)) await memory.writeFile(filename, Buffer.from(text), { signal: seedSignal });
+  await memory.writeFile(row.guestPath, guestBytes, { signal: seedSignal });
+  filesystem = row.readOnly ? new ReadOnlyFileSystem(memory) : memory;
+  report.vfsBefore = await snapshot(filesystem);
+  const runtime = {
+    createBudget: options => new Budget(options), makeFsModule, declareHostOperation,
+    run(source, options) {
+      report.counters.wrapperEntered++;
+      assert.equal(source, guestSource, 'EXACT_GUEST_BYTES');
+      assert.ok(invocationOpen && activeContext && typeof activeContext.registerCleanup === 'function');
+      const context = activeContext;
+      runtimeCleanup = () => {
+        if (runtimeCleanup.promise) return runtimeCleanup.promise;
+        invocationOpen = false; report.counters.invocationCleanupEntered++; mark('invocation-cleanup-enter');
+        runtimeCleanup.promise = (async () => {
+          await Promise.allSettled([...pendingEngine, ...pendingBridge]);
+          report.counters.invocationCleanupDone++; mark('invocation-cleanup-done');
+        })();
+        return runtimeCleanup.promise;
+      };
+      context.registerCleanup(runtimeCleanup);
+      assert.ok(invocationOpen, 'ENGINE_ADMISSION_CLOSED'); options.signal.throwIfAborted();
+      mark('engine-cleanup-registered');
+      const originalWrite = options.modules.stdio.write;
+      const modules = { ...options.modules, stdio: { ...options.modules.stdio, write: declareHostOperation(async text => {
+        if (text === row.id + ':enter\n') {
+          assert.equal(report.counters.actualRunInvoked, 1); report.counters.guestEntries++;
+          mark('actual-guest-hostcall', { module: 'stdio', operation: 'write', sourceSha256: sha(source), text });
+        }
+        if (text === 'G02:forbidden-after-abort\n') mark('forbidden-after-abort');
+        return originalWrite(text);
+      }, 'read-side-effect') } };
+      modules.shell = makeSafeJsShellModule(async (script, request) => {
+        assert.ok(invocationOpen, 'BRIDGE_ADMISSION_CLOSED');
+        assert.equal(script, bridgeSource); assert.equal(request.fs, filesystem); assert.equal(request.signal, options.signal);
+        assert.equal(typeof context.invoke, 'function');
+        report.counters.bridgeEntered++;
+        const stdout = capture(), stderr = capture();
+        const invokeOptions = {
+          signal: request.signal, stdout: stdout.sink, stderr: stderr.sink,
+          stdin: toByteSource(request.stdin ?? ''), stdinIsDefault: request.stdin === undefined,
+          ...(request.cwd === undefined ? {} : { cwd: request.cwd }),
+          ...(request.env === undefined ? {} : { env: request.env, replaceEnv: true }),
+        };
+        mark('shell-bridge-enter', { sourceSha256: sha(script), argv: ['bash', '-c', script, 'c78-guest'], cwd: request.cwd, env: request.env, stdinIsDefault: invokeOptions.stdinIsDefault });
+        const pending = Promise.resolve().then(() => {
+          assert.ok(invocationOpen, 'INVOKE_ADMISSION_CLOSED'); request.signal.throwIfAborted();
+          report.counters.literalInvokes++;
+          return context.invoke('bash', ['-c', script, 'c78-guest'], invokeOptions);
+        });
+        pendingBridge.add(pending);
+        try {
+          const result = await pending;
+          const returned = { stdout: stdout.text(), stderr: stderr.text(), exitCode: result.exitCode };
+          mark('shell-bridge-result', returned); return returned;
+        } catch (error) { mark('shell-bridge-reject', { error: serialized(error) }); throw error; }
+        finally { pendingBridge.delete(pending); report.counters.bridgeSettled++; mark('shell-bridge-settled'); }
+      }, { fs: filesystem, signal: options.signal, replayPolicy: 'read-side-effect', declareHostOperation });
+      let entered = false;
+      const admitted = Promise.resolve().then(() => {
+        assert.ok(invocationOpen, 'ENGINE_ADMISSION_CLOSED'); options.signal.throwIfAborted();
+        entered = true; report.counters.actualRunInvoked++; mark('actual-engine-run-call', { sourceSha256: sha(source) });
+        return run(source, { ...options, modules });
+      });
+      const pending = admitted.then(value => {
+        report.counters.actualRunSettled++; mark('actual-engine-settled', { kind: 'return', ok: value.ok }); return value;
+      }, error => { if (entered) { report.counters.actualRunSettled++; mark('actual-engine-settled', { kind: 'throw', error: serialized(error) }); } else mark('engine-admission-refused', { error: serialized(error) }); throw error; });
+      pendingEngine.add(pending);
+      return pending.finally(() => { pendingEngine.delete(pending); report.counters.wrapperSettled++; mark('runtime-wrapper-settled'); });
+    },
+  };
+  const transport = async request => {
+    assert.equal(row.id, 'G02');
+    assert.equal(request.url, row.url); assert.equal(request.method, 'GET'); assert.equal(request.body, undefined);
+    assert.deepEqual(request.headers, [['Accept', '*/*'], ['User-Agent', 'virtual-bash-curl/0.0']]);
+    assert.equal(typeof request.registerCleanup, 'function');
+    let transportOpen = true;
+    let cleanupPromise;
+    const cleanup = () => { transportOpen = false; return cleanupPromise ??= (async () => {
+      traffic.cleanup++; mark('transport-cleanup-enter'); await releaseGate.promise;
+      detachRequest(); traffic.cleanupDone++; mark('transport-cleanup-done');
+    })(); };
+    request.registerCleanup(cleanup); mark('transport-cleanup-registered');
+    assert.ok(transportOpen, 'TRANSPORT_ADMISSION_CLOSED'); request.signal.throwIfAborted();
+    traffic.requests.push({ url: request.url, method: request.method, headers: request.headers });
+    detachRequest = ownListener(request.signal, () => { traffic.requestAborts++; mark('request-aborted', { reason: serialized(request.signal.reason) }); });
+    let disposal;
+    const body = { [Symbol.asyncIterator]() {
+      assert.ok(transportOpen, 'BODY_ADMISSION_CLOSED'); request.signal.throwIfAborted();
+      traffic.acquired++; mark('body-acquired');
+      return {
+        async next() {
+          traffic.next++; traffic.nextPending++; mark('body-next'); bodyGate.release();
+          try {
+            await new Promise((resolve, reject) => {
+              let detach = () => {};
+              const aborted = () => { detach(); reject(request.signal.reason); };
+              if (request.signal.aborted) aborted(); else detach = ownListener(request.signal, aborted);
+            });
+            assert.fail('BODY_MUST_ABORT');
+          } finally { traffic.nextPending--; mark('body-next-settled'); }
+        },
+        async return() { traffic.returnPending++; try { traffic.returned++; mark('body-return'); return { done: true }; } finally { traffic.returnPending--; } },
+      };
+    } };
+    return { status: 200, statusText: 'OK', headers: [], httpVersion: '1.1', body,
+      dispose() { transportOpen = false; return disposal ??= (async () => { traffic.disposed++; mark('response-disposal-enter'); disposalGate.release(); await releaseGate.promise; traffic.disposalDone++; mark('response-disposal-done'); })(); },
+    };
+  };
+  shell = new Shell({ fs: filesystem, cwd: fixtures.shellOptions.cwd, env: fixtures.shellOptions.env, limits: limits.shell });
+  report.counters.shellsCreated++;
+  shell.use(async (context, next) => {
+    assert.ok(report.dispatch.length < 256); report.dispatch.push({ command: context.command, args: [...context.args], cwd: context.cwd, stdinIsDefault: context.stdinIsDefault });
+    if (context.command === 'safejs') activeContext = context;
+    const result = await next();
+    if (context.command === 'safejs') assert.equal(context.env.C78, 'parent', 'HOST_EXPORTED_ENV_ISOLATION');
+    return result;
+  });
+  shell.use(agentCommands({ timeout: { scheduler } }));
+  shell.use({ name: 'coherent78-explicit-opt-in-check', setup(host) { assert.equal(host.commands.list().length, 78); assert.equal(host.commands.has('safejs'), false); assert.equal(host.commands.has('curl'), false); mark('base78-before-opt-in'); } });
+  shell.use(curlCommands({ authorize(request) {
+    assert.equal(row.id, 'G02'); assert.equal(request.url, row.url); assert.equal(request.method, 'GET'); assert.equal(request.attempt, 0); assert.equal(request.redirectFrom, undefined);
+    traffic.authorization.push({ url: request.url, method: request.method, attempt: request.attempt }); mark('authorize'); return true;
+  }, transport, limits: limits.curl }));
+  shell.use(safeJsCommands({ runtime, limits: limits.safejs }));
+  report.counters.publicExecs++;
+  const publicState = { settled: false };
+  const pendingPublic = shell.exec(row.outer, { stdin: row.stdin, signal: caller.signal }).then(value => {
+    publicState.settled = true; publicState.value = value;
+    mark('public-settled', { kind: 'return', enginePending: pendingEngine.size, bridgePending: pendingBridge.size, cleanupDone: traffic.cleanupDone });
+  }, error => { publicState.settled = true; publicState.error = serialized(error); mark('public-settled', { kind: 'throw', error: publicState.error }); });
+  if (row.id === 'G02') {
+    const checkpoint = async (promise, name) => {
+      const value = await Promise.race([promise.then(() => true), pendingPublic.then(() => false)]);
+      assert.equal(value, true, name);
+    };
+    await checkpoint(bodyGate.promise, 'BODY_GATE_REQUIRED');
+    assert.equal(report.counters.guestEntries, 1); assert.equal(clock.rows.length, 1);
+    const timer = clock.rows[0]; assert.equal(timer.fired, false); assert.equal(timer.cleared, false);
+    timer.fired = true; clock.nowValue = 10; clock.live.delete(timer.handle); mark('deadline-delivered'); timer.callback();
+    await checkpoint(disposalGate.promise, 'DISPOSAL_GATE_REQUIRED'); await turns();
+    report.heldCheckpoint = { publicPending: !publicState.settled, enginePending: pendingEngine.size, bridgePending: pendingBridge.size, disposalPending: traffic.disposalDone === 0, cleanupPending: traffic.cleanupDone === 0 };
+    assert.equal(publicState.settled, false, 'PUBLIC_WAITED_FOR_HELD_CLEANUP');
+    assert.equal(traffic.disposalDone, 0); assert.equal(traffic.cleanupDone, 0); assert.equal(traffic.requestAborts, 1);
+    mark('held-cleanup-checkpoint', report.heldCheckpoint); releaseGate.release(); mark('cleanup-release');
+  }
+  await pendingPublic;
+  report.public = publicState.error ? { error: publicState.error } : { exitCode: publicState.value.exitCode, stdout: publicState.value.stdout, stderr: publicState.value.stderr, stdoutBase64: Buffer.from(publicState.value.stdoutBytes).toString('base64'), stderrBase64: Buffer.from(publicState.value.stderrBytes).toString('base64') };
+  check('EXACT_PUBLIC_BYTES_STATUS', () => {
+    assert.equal(publicState.error, undefined); assert.equal(report.public.exitCode, row.expected.exitCode);
+    assert.equal(report.public.stdout, row.expected.stdout); assert.equal(report.public.stderr, row.expected.stderr);
+    assert.equal(report.public.stdoutBase64, Buffer.from(row.expected.stdout).toString('base64')); assert.equal(report.public.stderrBase64, Buffer.from(row.expected.stderr).toString('base64'));
+  });
+  await runtimeCleanup?.(); await Promise.allSettled([...pendingEngine, ...pendingBridge]);
+  report.vfsAfter = await snapshot(filesystem);
+  check('EXACT_VFS_EFFECTS', () => {
+    const expected = structuredClone(report.vfsBefore);
+    for (const [filename, text] of Object.entries(row.expected.filesystemDelta)) expected[filename] = { type: 'file', base64: Buffer.from(text).toString('base64') };
+    assert.deepEqual(report.vfsAfter, expected);
+  });
+  check('ACTUAL_ENTRY_AND_RETIREMENT', () => {
+    for (const key of ['wrapperEntered', 'wrapperSettled', 'actualRunInvoked', 'actualRunSettled', 'guestEntries', 'bridgeEntered', 'literalInvokes', 'bridgeSettled', 'publicExecs', 'invocationCleanupEntered', 'invocationCleanupDone']) assert.equal(report.counters[key], 1, key);
+    assert.ok(report.dispatch.some(entry => entry.command === 'bash' && entry.args[0] === '-c' && entry.args[1] === bridgeSource));
+  });
+  check('CALLER_NOT_ABORTED', () => assert.equal(caller.signal.aborted, false));
+  check('DEADLINE_OR_NO_NETWORK', () => {
+    if (row.id === 'G02') {
+      for (const key of ['acquired', 'next', 'returned', 'disposed', 'disposalDone', 'cleanup', 'cleanupDone', 'requestAborts']) assert.equal(traffic[key], 1, key);
+      assert.equal(traffic.authorization.length, 1); assert.equal(traffic.requests.length, 1);
+      assert.equal(clock.rows.length, 1); assert.equal(clock.rows[0].fired, true); assert.equal(clock.rows[0].cleared, true);
+      assert.equal(report.events.filter(event => event.event === 'forbidden-after-abort').length, 0);
+      const publicEvent = report.events.find(event => event.event === 'public-settled');
+      for (const name of ['actual-engine-settled', 'shell-bridge-settled', 'response-disposal-done', 'transport-cleanup-done']) assert.ok(report.events.find(event => event.event === name).ordinal < publicEvent.ordinal, name);
+    } else { assert.equal(traffic.requests.length, 0); assert.equal(traffic.authorization.length, 0); assert.equal(clock.rows.length, 0); }
+  });
+} catch (error) { report.fatal = serialized(error); }
+finally {
+  releaseGate.release();
+  if (report.fatal && !caller.signal.aborted) caller.abort(Object.assign(new Error('HARNESS_FAILURE_CLEANUP'), { code: 'HARNESS_FAILURE_CLEANUP' }));
+  try {
+    await shell?.dispose(); if (shell) report.counters.shellsDisposed++;
+    await runtimeCleanup?.(); await Promise.allSettled([...pendingEngine, ...pendingBridge]);
+    detachRequest(); await turns();
+    await new Promise(resolve => setImmediate(resolve));
+  } catch (error) { report.cleanupError = serialized(error); }
+  report.traffic = traffic;
+  report.clock = { live: clock.live.size, rows: clock.rows.map(({ milliseconds, fired, cleared }) => ({ milliseconds, fired, cleared })) };
+  report.finalResources = { pendingActualEnginePromises: pendingEngine.size, pendingBridgePromises: pendingBridge.size, pendingBodyNext: traffic.nextPending, outstandingIteratorReturn: traffic.returnPending, outstandingResponseDisposal: traffic.disposed - traffic.disposalDone, outstandingRegisteredCleanup: traffic.cleanup - traffic.cleanupDone, outstandingInvocationCleanup: report.counters.invocationCleanupEntered - report.counters.invocationCleanupDone, liveControlledClockHandles: clock.live.size, ownedTimers: ownedTimers.size, ownedSignalListeners: traffic.ownedListeners, unhandledRejections: report.unhandled.length, undisposedShells: report.counters.shellsCreated - report.counters.shellsDisposed };
+  report.clean = !report.cleanupError && Object.values(report.finalResources).every(value => value === 0) && report.counters.shellsCreated === 1;
+  report.classification = report.fatal || !report.clean ? 'SAFETY_STOP' : report.assertions.every(value => value.pass) ? 'PASS' : 'ASSERTION_FAILURE_CLEAN';
+  for (const [name, implementation] of Object.entries(originalTimers)) globalThis[name] = implementation;
+  process.removeListener('unhandledRejection', unhandled);
+  persist();
+}
+console.log(JSON.stringify({ case: row.id, layout: report.layout, classification: report.classification, clean: report.clean, counters: report.counters }));
+process.exitCode = report.classification === 'PASS' ? 0 : report.classification === 'ASSERTION_FAILURE_CLEAN' ? 1 : 2;

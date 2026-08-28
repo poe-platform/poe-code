@@ -1,0 +1,101 @@
+{
+  "schema": "coherent78-safejs-preparation-v1",
+  "date": "2026-08-28",
+  "authorization": {
+    "state": "PREPARATION_ONLY_STOP",
+    "executionAuthorized": false,
+    "required": "Separate ROOT GO naming this sidecar commit, final runner manifest hash, exact package/engine/tool closure and finite commands. This preparation and any historical GO do not authorize copying, installation, imports, builds or evaluation.",
+    "continuations": "No automatic retry, revised expectation, expanded closure or new continuation. Preserve first failure and obtain explicit revision-specific ROOT authorization before continuing."
+  },
+  "classification": {
+    "g01.mjs.data": "inert guest source, syntax-only, not executable discovery or canonical TypeScript",
+    "g02.mjs.data": "inert guest source, syntax-only, not executable discovery or canonical TypeScript",
+    "g03.mjs.data": "inert guest source, syntax-only, not executable discovery or canonical TypeScript",
+    "CASES.json": "exact UTF-8 guest inputs, shell scripts and planned assertions",
+    "BINDINGS.json": "hash/metadata preparation receipt; no private source bytes",
+    "MANIFEST.json": "owned artifact authentication and exact data classification",
+    "RECIPE.json": "planned protocol, not execution evidence",
+    "README.md": "bounded preparation handoff"
+  },
+  "baseline": "Default78 unchanged; exactly one agentCommands registration, then explicit curlCommands and safeJsCommands; no root exports/package/product changes. No SafeJS engine auto-loading.",
+  "runner": {
+    "state": "NOT_IMPLEMENTED_OR_AUTHORIZED",
+    "reference": "384fcc7a8b1ee0f10452f136c2cbd046b57e3e2d:tests/integration/timeout-curl-safejs-20260828/{child.mjs,loader.mjs,common.mjs,execute.mjs}; exact hashes in BINDINGS.json. Readonly source references, not directly reusable: old package, 264-copy envelope, old cohorts and old guard commands must NOT execute.",
+    "requiredNewFiles": ["supervisor.mjs.data", "loader.mjs.data", "child.mjs.data"],
+    "blocker": "A new finite runner must be authored, statically reviewed and separately sealed before ROOT execution GO. This file intentionally supplies no guessed runnable launch for missing code."
+  },
+  "guestContract": {
+    "nativeModules": ["fs", "stdio", "command"],
+    "explicitAdditionalModule": "shell, injected only by the legitimate runtime.run wrapper using public makeSafeJsShellModule and actual engine declareHostOperation",
+    "exec": "await shell.exec(sourceString, optional {cwd:string,env:Record<string,string>,stdin:string}) -> {stdout:string,stderr:string,exitCode:integer 0..255}",
+    "bridge": "Capture the current safejs CommandContext in awaited middleware. For each admitted shell.exec call invoke context.invoke('bash', ['-c', exactSource, 'c78-guest'], options). bash is virtual interpreter dispatch, not a native process or registry builtin mislabel. Preserve request.signal, FS and shared budgets. Use bounded owned byte sinks with awaited writes and copy retained chunks; decode once after settlement. Forward supplied stdin via toByteSource and stdinIsDefault:false; omitted stdin is explicit empty default with stdinIsDefault:true, not the already-consumed outer pipe. Supplied env maps use replaceEnv:true; absent env omits env/replaceEnv. Forward cwd only when supplied. Return actual captured output/status; never fabricate empty output.",
+    "limits": "The shell limits remain shared through context.invoke. SafeJS and curl family limits remain distinct. No reset via another Shell.exec for guest source.",
+    "entryReceipts": "Record wrapperEntered separately from actual run() calls and settled promises. Verify exact source bytes/hash before calling actual engine run. A guestEntries increment requires the declared stdio.write callback receiving the exact Gxx:enter LF bytes after real run admission, actual engine module-load receipts, and subsequent matching guest-dependent host calls/results. No direct host marker emission or helper pass may satisfy this predicate.",
+    "errorCancellation": "Inspect actual engine return/rejection separately from public Shell result. Engine host bridge copies values and wraps errors; no cross-realm identity assertion. Product withSignal races/observes work but does not by itself retire opaque promises. Synchronously register one idempotent invocation cleanup before actual engine or bridge admission; close admission, await all admitted engine and bridge promises and explicit child scopes; observe late rejections. Actual guest retirement requires measured engine settlement and no remaining admitted work, not wrapper settlement, host abort or a count increment.",
+    "state": "One fresh Shell/VFS per case per layout; G03 seeds before ReadOnlyFileSystem wrapping. No second guest evaluation is hidden in setup, state inspection or disposal."
+  },
+  "futureStages": [
+    "Authenticate sidecar and sealed archive as data; authenticate preserved commit/tree/blob records and recover whole tarball through the accepted evidence commit's archive path before writing any scratch input. Verify all858 regular tar member bytes/modes against the exact installed manifest. The archive-only source path proof covers43/268;35 omitted descendant trees prohibit a fresh all-source reconstruction claim. Source reconstruction/build is unnecessary and not authorized. No live substitution or synthetic object writes to Git.",
+    "Take specified read-only original guards. Materialize only exact package tarball bytes and approved minimal regular engine/tool/runner files into an absent owned scratch path; no symlinks, full private checkout, worktree, private AGENTS or private package build/install.",
+    "Run one pinned offline npm install in consumer: copied node copied-npm/bin/npm-cli.js install --offline --ignore-scripts --no-audit --no-fund --package-lock=false --no-save <absolute-owned-package.tgz>. Empty owned HOME/cache/userconfig/globalconfig, no ambient NODE_OPTIONS/NODE_PATH/credentials. Refuse external dependencies and unapproved links. Authenticate the exact 858-file installed manifest and whole package hash, not a projection.",
+    "Run G01,G02,G03 serially in installed layout, one direct child each, with closed module allowlist and only owned log writes. No canonical tests, native commands, external network, accepted cohorts or prior controls.",
+    "Physically rename the entire consumer containing package/engine/compiler/runner to a path containing spaces; assert old path absent. Recompute admission paths from authenticated relative names, do not symlink. Run the same three cases serially with fresh Shell/VFS.",
+    "Authenticate actual module closure, raw outputs, all child settlements, owned cleanup and original guards. Archive bounded new raw evidence, verify its bytes, then remove only enumerated owned scratch. Report failures without retesting or rescoring."
+  ],
+  "closure": {
+    "product": "Exactly the accepted full858 package recovered from RAW-v2.pack.base64; no source build needed or authorized. Actual load allowlist = authenticated package dist JavaScript regular files; compare exact observed path/hash set across six children, expected prior 210 is reference only, not a new pass. Root/subpath public consumers only; no product TS fallback.",
+    "engine": "63 existing observed runtime files named in BINDINGS.json, each bound to bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e Git blob and SHA256. Future copies must match commit and selected current bytes. No264-file copy. Explicit entry modules src/run.ts, src/interp/budget.ts, src/modules/fs.ts, src/interp/host-bridge.ts, not package index/CLI or private dependencies. A host-owned generated engine/package.json may contain exactly {\"type\":\"module\",\"private\":true} followed by LF; it is not copied private package metadata and must be included in the final runner admission manifest.",
+    "transform": "Reference loader uses TypeScript5.9.3 transpileModule, ES2023 + ESNext + verbatimModuleSyntax:true, only for allowlisted engine .ts. Resolve .js-to-.ts only inside copied engine after ordinary resolution fails. Hash transformed output and log every actual load. No engine build or dist dependency claim. Compiler execution itself requires later GO.",
+    "tools": "Node22.22.2 binary, TypeScript5.9.3 package.json/lib/typescript.js and pinned npm10.9.7 offline CLI closure. Archive tool manifests are authenticated data references, not a newly checked installed closure. Exact minimal npm dependency/load set remains a decision before materialization; copying the entire private repo or silently broadening the tool set is forbidden.",
+    "loader": "Allowlisted node builtins only; reject private/host/source fallback, unlisted regular files, symlinks, hash mismatches and data/HTTP imports. Authenticate actual nextLoad bytes and each engine transform. Child has no child-process/network permission and only scratch filesystem permission. Loader interception is defense in depth, not a hostile-JavaScript sandbox guarantee."
+  },
+  "originalGuards": {
+    "status": "PLANNED_NOT_EXECUTED_OR_CERTIFIED",
+    "privateReads": "GIT_OPTIONAL_LOCKS=0 and --no-replace-objects for every private Git read; only rev-parse/ls-tree/cat-file. Never git status, diff index refresh, update-index, build, install, import or scripts in private checkout.",
+    "scope": "Before/after and before each child: recursively lstat/hash packages/safejs/src entries with path/type/mode/size/mtime/ctime and SHA256; inventory detects additions/removals within this subtree. Also exact packages/safejs/package.json and tsconfig.json, root package.json/package-lock.json/tsconfig.json, and existing actual .git HEAD/index/config/packed-refs plus refs directory membership. Record absent paths, do not create them; resolve git-dir through read-only metadata and refuse any path outside pinned private repository. Git objects are authenticated selected blobs, not an exhaustive object-store guard.",
+    "exclusions": "No full-repository unchanged claim. Other private packages, dist, node_modules, caches, logs, reflogs, object-store additions and atime are not covered. No private dirtiness reset or cleanliness assumption; preserve exact preexisting bytes and metadata. Foreign private activity causes scoped guard refusal, never repairs.",
+    "public": "Authenticate exact sealed references before/after, and recursively check owned materialized immutable inputs including new entries. Do not let unrelated live safe-bash changes veto archived product selection; do not import them. Foreign staging stays untouched.",
+    "bounds": { "privateSourceEntries": 1024, "privateGuardBytes": 67108864, "gitMetadataEntries": 2048, "gitMetadataBytes": 16777216 }
+  },
+  "bounds": {
+    "workflowFamilies": 3,
+    "layouts": 2,
+    "guestEvaluations": 6,
+    "shellsCreatedAndDisposed": 6,
+    "publicExecs": 6,
+    "bridgeInvocations": 6,
+    "concurrentChildren": 1,
+    "executionChildren": 8,
+    "executionChildRoles": "one offline installer, six workflow children, one builtin-only supervisor; no build child",
+    "readOnlyGitChildren": 12,
+    "totalChildrenMaximum": 20,
+    "gitChildTimeoutMs": 5000,
+    "installerTimeoutMs": 60000,
+    "workflowContainmentMs": 15000,
+    "overallContainmentMs": 180000,
+    "containmentGraceMs": 1000,
+    "containmentMeaning": "Deadlines are safety bounds, not measured latency or correctness oracle. On containment record failure, await direct child exit/close and reap before cleanup; no hard-preemption or universal descendant guarantee.",
+    "eventsPerChild": 512,
+    "stdoutBytesPerChild": 65536,
+    "stderrBytesPerChild": 65536,
+    "receiptBytesPerChild": 262144,
+    "loadTraceBytesPerChild": 2097152,
+    "totalEvidenceBytes": 33554432,
+    "scratchBytes": 536870912,
+    "scratchFiles": 4096,
+    "diskEnforcement": "Check before/after each admission, install, child and move; not continuous quota or RSS measurement. Exceedance stops, never loosens bounds.",
+    "microtaskCheckpointTurns": 8,
+    "shell": { "maxCommands": 128, "maxLoopIterations": 128, "maxSubstitutionDepth": 16, "maxSourceBytes": 16384, "maxOutputBytes": 32768, "maxExpansionFields": 256, "maxExpansionBytes": 32768, "pipeHighWaterMark": 4096 },
+    "safejs": { "maxSteps": 10000, "maxCallDepth": 32, "maxSourceBytes": 8192, "maxInputBytes": 4096, "maxOutputBytes": 16384, "timeoutMs": 5000, "stringLength": 16384, "arrayLength": 256, "dataSize": 262144 },
+    "curl": { "maxUploadBytes": 1024, "maxDownloadBytes": 1024, "maxBufferBytes": 1024, "maxHeaderBytes": 4096, "maxRedirects": 0, "maxRetries": 0, "maxUrls": 1, "maxTimeMs": 5000 },
+    "finalZeros": ["pendingActualEnginePromises", "pendingBridgePromises", "pendingBodyNext", "outstandingIteratorReturn", "outstandingResponseDisposal", "outstandingRegisteredCleanup", "liveControlledClockHandles", "ownedTimers", "ownedSignalListeners", "unhandledRejections", "unreapedDirectChildren"],
+    "retryCount": 0
+  },
+  "decisions": [
+    "Resolve fd1dc7ed138 to a full authenticated reference or have ROOT explicitly remove it from prerequisite authority. It does not resolve in the current repository and was not found in searched handoff/pin metadata; never guess a completion.",
+    "Approve the new finite runner and minimal npm tool/load closure after their exact bytes are sealed. Existing Raman recipe cannot be launched unchanged.",
+    "Accept literal context.invoke('bash',['-c',source,'c78-guest']) as the host shell binding, with explicit stdin/env policy and actual guest-entry receipts; no implicit shell module or arbitrary guest import.",
+    "Approve the three exact cases and deterministic deadline-only cancellation scope. Caller-priority collisions, restart/replay and elapsed-time races are deliberately not included."
+  ],
+  "preservedEvidence": "Bind, never replay/rescore: accepted633f6c82, composition8437e4ed, 28 positive identities/85 executions including H07 repeat +3 refusals;36 types/86 reached of214 declarations;210 modules/layout;6 controls with one actual mutant;136 direct children/95 Shells; original822a1528 stop/4024f790 continuation/author16of18. STACK136/C06 partial/S13 unsupported/DOTGLOB composed and nonblind qualifications persist. Raman original25/24 counts and W05 zero-guest correction remain historical, not authorpasses or new proof. No arrays/YQ/XAN/native/network/global gate/superiority claim."
+}

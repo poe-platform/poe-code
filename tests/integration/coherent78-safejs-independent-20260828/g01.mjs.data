@@ -1,0 +1,12 @@
+import * as fs from "fs";
+import * as stdio from "stdio";
+import * as shell from "shell";
+import * as command from "command";
+await stdio.write("G01:enter\n");
+const input = await stdio.readText();
+const source = await fs.readFile("/work/flow.sh", "utf8");
+const result = await shell.exec(source, { cwd: "/work", env: { C78: "guest" }, stdin: input });
+await stdio.write(result.stdout);
+await stdio.error(result.stderr);
+await stdio.write("G01:done:" + result.exitCode + "\n");
+command.setExitCode(result.exitCode);

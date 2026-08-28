@@ -1,0 +1,833 @@
+{
+  "schema": "coherent78-safejs-preparation-bindings-v1",
+  "date": "2026-08-28",
+  "measuredRole": "Trusted standard hashing and parsing of existing bytes plus read-only Git metadata. No product/engine/fixture imports or on-disk package materialization.",
+  "acceptedEvidence": "633f6c82f738f1c69d6c7b6c91672524ec8688b2",
+  "composition": {
+    "tree": "8437e4eda904e1248c25eeef0d9d455b1d251495",
+    "classification": "Computed Git tree in archived reconstructedTrees, not a commit or currently locally stored object",
+    "componentCommits": [
+      "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+      "74361026502d76b8c2b696f9c60e410ac9b78d95",
+      "ca1d33424b94a21ae0f40a36412fd8191611e2df",
+      "d2502aae3c8458e0ac92662f2af07e7f9fc3923a"
+    ],
+    "componentTable": [
+      {
+        "path": "src/commands/structured/interpreter.ts",
+        "revision": "74361026502d76b8c2b696f9c60e410ac9b78d95",
+        "blob": "d3ba11f0057b07d5ad307c5dfbb5f0612a87a047",
+        "mode": "100644",
+        "bytes": 21632,
+        "sha256": "e32ad45efe69544ed95b43b97f191006f10d3beea9ca9e2a3327843dffd45a74",
+        "role": "explicit accepted override"
+      },
+      {
+        "path": "src/fs/webdav/README.md",
+        "revision": "ca1d33424b94a21ae0f40a36412fd8191611e2df",
+        "blob": "94f6f2e6d83d76cbf5f0bd8b38994ca3f4e81e78",
+        "mode": "100644",
+        "bytes": 43172,
+        "sha256": "b931ac0545c709d3be2bd7d8e328fe9b1137cdb6514dfd8e9975c64c1fecb7bd",
+        "role": "explicit accepted override"
+      },
+      {
+        "path": "src/fs/webdav/webdav.ts",
+        "revision": "ca1d33424b94a21ae0f40a36412fd8191611e2df",
+        "blob": "cb5454597ff3ee2d87f55b18c467d947020ed677",
+        "mode": "100644",
+        "bytes": 54400,
+        "sha256": "cf65b82429bd92ca52b73490e1d6c1070545b5912fbddaba7037e01c57cc21f5",
+        "role": "explicit accepted override"
+      },
+      {
+        "path": "src/shell/runtime.ts",
+        "revision": "d2502aae3c8458e0ac92662f2af07e7f9fc3923a",
+        "blob": "69125acc1d3afefcaeba642e71539ab0cc40e055",
+        "mode": "100644",
+        "bytes": 154603,
+        "sha256": "100361256ee71d7a263c92fa607de31ec1d3be9b1fb5c601b337c19e700ac4b3",
+        "role": "explicit accepted override"
+      },
+      {
+        "path": "src/shell/shell.ts",
+        "revision": "d2502aae3c8458e0ac92662f2af07e7f9fc3923a",
+        "blob": "220d6c28a6e50f459a48aaee2030f24a841f4ab7",
+        "mode": "100644",
+        "bytes": 15081,
+        "sha256": "126438b132a9f1863bf25b20f02ca6473cb24aa86e0a91869ab98bcbf3309cba",
+        "role": "explicit accepted override"
+      }
+    ],
+    "archiveRawCommitCount": 9,
+    "archiveReachableTreeRecords": 16,
+    "archiveReconstructedTreeRecords": 13,
+    "authenticatedSelectedBlobCount": 268,
+    "selectedInputManifestSha256": "c6efddf8b14d2b15231b95e3a5be975c9c93c7c10f309acf77c80883f9cc074c",
+    "originAndCompositionPathMembershipsVerified": 43,
+    "missingDescendantTrees": [
+      "054017c05ef09463acd41b20e6d336062e92a39c",
+      "056792f8e997c7ce6ca225946bda40df1ac5421a",
+      "05ae20cad5b40bb8240fe43e6074e3030af889fe",
+      "22e39680abec4421a040b489cdd98d09779772a5",
+      "255f2acdbf1cdb1723e80bf50055c221afb4d83f",
+      "3d5837b94917df4b8a1d1290a78d25aeb875e671",
+      "43f65bbceee5f48e292ffaa4780f0d9447a59872",
+      "46a64c03d2f23c040322a46a9db5eaaa2509b06b",
+      "4b53dcde4f7668ddad673f6bde6dd06cf56043be",
+      "4c8715aa4234a7959c7a92cb6d48c55f8b8eb7b0",
+      "5a600ae11f788de52c4209ac22cff8b0692defc8",
+      "5e8ac069bfa6ead7a337130457cd6519f2066e2c",
+      "614f17525ac04c9028ff345d45262a99f9ce201e",
+      "6ec8075554476709c74eb34b53bf7ed639b785e7",
+      "841027ce0aa9fc70abd880b4f8f5c35df80bb651",
+      "850da5274f3fc2486fc6f270009a36a5245cec76",
+      "89f05caec3a6ddf54759cc07c7f4cba94625e859",
+      "8b32998383d1372a8624ac41d2e747551e5b6d4c",
+      "8eaca87156f26b45ae7d10fa6e8f758863afab11",
+      "945acca9e16102e27fa8a15e4b078f1ed9fd531e",
+      "a71cef39d747d1c9ad5c76ab09aa63eb7543f9bf",
+      "b849635513b21542efb475a689cfbd5f9db17bdf",
+      "bb63eb37f4d9af9596b7dc70650bd50ceaf3acb2",
+      "c2accc97a51575045b70cfc906c660a4ddd5b1b8",
+      "c3387972ad40fbb5dd39333103f124aea2cfb56a",
+      "c36032206a8a12054bfbdf36d274ff8297e9d6bc",
+      "d0dff7a6a23ebe01acdc5b86e4359712c07ed509",
+      "da2cfcbf8a485ed3414523163c4858d27750af2c",
+      "dab33c9ecd504c91e066ff63b45084d5ea5ddab7",
+      "e5c80eb477963e74d359c704ce0f9853a1975b5a",
+      "f2bb7ff0413fda0a3a0b2b20cb14971930606855",
+      "f87de2a11bc4b59d0062391da6b1565e01f59181",
+      "fa825038fd64db7291006132f584ef7426d0557e",
+      "fdbb9d78316afeeb53523db4302151e791c23634",
+      "fe61c2df56e02b4b88b7fde64c2c7ec6f0ad6cf3"
+    ],
+    "qualification": "All268 archived selected byte strings match declared blob IDs/SHA256/size. Preserved commit/tree records authenticate by Git object ID. Only enumerated memberships are newly checked: omitted unaffected descendant trees prevent all268 independent path proofs from these records alone. Historical accepted receipts remain bound, not rescored. Exact archived package is sufficient for this no-source-build proposal."
+  },
+  "archive": {
+    "path": "tests/integration/coherent78-shell-independent-20260828/RAW-v2.json.gz.base64",
+    "bytes": 5916905,
+    "sha256": "a49b8a7055ac2902d1368ddb638d62c5a1896dc9ed25c18b025816a710077509",
+    "decodedGzipSha256": "af8bebfcfd125e6008e3ec2071f030a7a438e48b5b01b3720f9ff637378f1f4c",
+    "maximumDecodedBytes": 67108864,
+    "packagePointer": "pack.base64",
+    "installedManifestPointer": "fullInstalledBefore"
+  },
+  "package": {
+    "bytes": 759089,
+    "regularFiles": 858,
+    "wholeSha256": "6b5863d51ecd6484b79b7141a2004c04b775f9894d5b80bb016a02ffbefed40e",
+    "installedManifestSha256": "484c1dd76c63f126376cff810b445c8185e791825ec83fd94e996691b2b1eb5d",
+    "tarBytes": 4855296,
+    "tarHeaderChecksumsVerified": 858,
+    "tarFileContentAndModeMatches": 858,
+    "qualification": "In-memory data parsing only: exact regular member set, unique contained paths, checksums/modes/bytes/hashes and zero trailing blocks. Not installed execution or package build.",
+    "onDiskMaterializations": 0,
+    "builds": 0,
+    "installs": 0
+  },
+  "referenceLoadClosure": {
+    "pointer": "layouts[0].loads",
+    "count": 210,
+    "sha256": "daebab1637e5e19b215d21e8e94d5eb091bbcbb10d0c23a8fa1d585e4e49cc94",
+    "role": "Historical actual module list; no new module loaded"
+  },
+  "references": [
+    {
+      "commit": "633f6c82f738f1c69d6c7b6c91672524ec8688b2",
+      "path": "tests/integration/coherent78-shell-independent-20260828/RAW-v2.json.gz.base64",
+      "bytes": 5916905,
+      "sha256": "a49b8a7055ac2902d1368ddb638d62c5a1896dc9ed25c18b025816a710077509"
+    },
+    {
+      "commit": "633f6c82f738f1c69d6c7b6c91672524ec8688b2",
+      "path": "tests/integration/coherent78-shell-independent-20260828/EVIDENCE.json",
+      "bytes": 171946,
+      "sha256": "b227b7f0538d1c6d70d6be110c9515e7603b4335cc78996f24f02162090a5519"
+    },
+    {
+      "commit": "633f6c82f738f1c69d6c7b6c91672524ec8688b2",
+      "path": "tests/integration/coherent78-shell-independent-20260828/REPORT.md",
+      "bytes": 4920,
+      "sha256": "65e30cbaa931ea5d084d23e3af3ef259c72360cb6107211131b1b21183158f55"
+    },
+    {
+      "commit": "633f6c82f738f1c69d6c7b6c91672524ec8688b2",
+      "path": "tests/integration/coherent78-shell-independent-20260828/run-v2.mjs.data",
+      "bytes": 33815,
+      "sha256": "2c5ff316a4fda0548869101cf9da58bbaad864c5b7dacb114e647d6ccd0350be"
+    },
+    {
+      "commit": "384fcc7a8b1ee0f10452f136c2cbd046b57e3e2d",
+      "path": "tests/integration/timeout-curl-safejs-20260828/BINDINGS.json",
+      "bytes": 446578,
+      "sha256": "8626a2524018b12f6fb8edce67efb1f47d7ff7b679849acc88ada39501f00d10"
+    },
+    {
+      "commit": "384fcc7a8b1ee0f10452f136c2cbd046b57e3e2d",
+      "path": "tests/integration/timeout-curl-safejs-20260828/CASES.json",
+      "bytes": 5843,
+      "sha256": "d9acce9d4eb0d58bda2ffe4359f49a283adaa04c3ff2ebbb1c73d5f8ea4938d0"
+    },
+    {
+      "commit": "384fcc7a8b1ee0f10452f136c2cbd046b57e3e2d",
+      "path": "tests/integration/timeout-curl-safejs-20260828/MANIFEST.json",
+      "bytes": 2079,
+      "sha256": "e6982d0beae85d14f1d6458e735f6ddac3eb0cea5e7178875cff75ee033cf331"
+    },
+    {
+      "commit": "384fcc7a8b1ee0f10452f136c2cbd046b57e3e2d",
+      "path": "tests/integration/timeout-curl-safejs-20260828/child.mjs",
+      "bytes": 18151,
+      "sha256": "51facb8c7ec0a367f211ff7e4d18df9a97ce4b12d6182bef504cab14728d1c03"
+    },
+    {
+      "commit": "384fcc7a8b1ee0f10452f136c2cbd046b57e3e2d",
+      "path": "tests/integration/timeout-curl-safejs-20260828/loader.mjs",
+      "bytes": 4155,
+      "sha256": "80f6aedd533348b3255a8acf60dffa1afe2a785edc6b8c2fe01859218fd39899"
+    },
+    {
+      "commit": "384fcc7a8b1ee0f10452f136c2cbd046b57e3e2d",
+      "path": "tests/integration/timeout-curl-safejs-20260828/common.mjs",
+      "bytes": 4796,
+      "sha256": "4de7b30439a6bc4c0de22c82da0ed832825e1573a8e13b6dc4d573b03d10e9d5"
+    },
+    {
+      "commit": "384fcc7a8b1ee0f10452f136c2cbd046b57e3e2d",
+      "path": "tests/integration/timeout-curl-safejs-20260828/execute.mjs",
+      "bytes": 1125,
+      "sha256": "6672177d0a62d351e0fe75ed8b73e16149107633ce2621f5d3d38adafad56f84"
+    },
+    {
+      "commit": "144e0fca945b40dc8f04cbd9d69fa6e23f770ac8",
+      "path": "tests/integration/timeout-curl-safejs-20260828/HANDOFF.md",
+      "bytes": 4627,
+      "sha256": "5671396ddb127f51714fe76bdbc5aa05aae1dba6750121fd9e0ef93e6c2a0b97"
+    },
+    {
+      "commit": "144e0fca945b40dc8f04cbd9d69fa6e23f770ac8",
+      "path": "tests/integration/timeout-curl-safejs-20260828/EVIDENCE-MANIFEST.json",
+      "bytes": 3930,
+      "sha256": "5198c32b5c9793396c8db534419413168d6929d52baceaffea3fd5d7bc86da40"
+    },
+    {
+      "commit": "01b8e0e785d05078cdb88f330d141d23c0b0988d",
+      "path": "tests/integration/timeout-curl-safejs-20260828/w05-literal-v1/HANDOFF.md",
+      "bytes": 3426,
+      "sha256": "5f1a7ceddd0db4d8432e9268505a2a67cef8aaa147a3217f1212bf9ea2822843"
+    },
+    {
+      "commit": "01b8e0e785d05078cdb88f330d141d23c0b0988d",
+      "path": "tests/integration/timeout-curl-safejs-20260828/w05-literal-v1/EVIDENCE-MANIFEST.json",
+      "bytes": 3259,
+      "sha256": "e32df8a26d5d3713f3a338f5240d8e37e3cd71384e138e6bf47bb28f8d48b5ce"
+    },
+    {
+      "path": "tests/commands/timeout-independent-20260828/clock.mjs",
+      "bytes": 1987,
+      "sha256": "86b98eee4ec0b3d2aeb740eb8922b7dcff31a050c52b7088e0878d0e3f08d61d",
+      "authority": "384fcc7a8b1ee0f10452f136c2cbd046b57e3e2d:tests/integration/timeout-curl-safejs-20260828/BINDINGS.json references[]"
+    }
+  ],
+  "engine": {
+    "commit": "bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e",
+    "observedHead": "bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e",
+    "commitPayloadSha256": "38f0704e0a7aba9de1ae1af2f0a0679906b415ddcfb686f04a22a071c17ceded",
+    "commitTree": "ebcb4508690856b288a40e60e7682331d6fad8ff",
+    "root": "/Users/kjopek/Workspace/poe-code/packages/safejs",
+    "privateFilesCopied": 0,
+    "imports": 0,
+    "evaluations": 0,
+    "selectedFileMetadataAuthenticated": 63,
+    "privateBeforeAfterGuardsExecuted": 0,
+    "scope": "Only selected63 current regular files hash-compared with pinned Git blobs and prior observed closure. Not a dirty-state/status check or whole-private-tree before/after guard.",
+    "files": [
+      {
+        "path": "src/run.ts",
+        "blob": "2f829e27c65da9421001772f2db2233adc5edfe0",
+        "bytes": 25016,
+        "mode": 420,
+        "sha256": "243e3ca4efef03f6df73a50ef2f23fdcee4ef07c4e26eca7f498bf7823988e1b"
+      },
+      {
+        "path": "src/parse/hash.ts",
+        "blob": "45ae666945a300bdf2e21e22bf42f582bc1aa26a",
+        "bytes": 2717,
+        "mode": 420,
+        "sha256": "2c8dc1624946ec70722878e792367c8f506560eae62705e60e84d36114bf2cf2"
+      },
+      {
+        "path": "src/parse/parser.ts",
+        "blob": "6a9a1bd6eca9b036951de8c11985d73f880bc297",
+        "bytes": 133783,
+        "mode": 420,
+        "sha256": "cf69c4192e77a65b019de8661079da3276582958361a9b446d488214051957b3"
+      },
+      {
+        "path": "src/parse/tokenizer.ts",
+        "blob": "56f3e8483b14f925530b1bba00873ac9e8059b16",
+        "bytes": 29344,
+        "mode": 420,
+        "sha256": "dff80493fc5e1d5aa9a27bfb9526d816dd6b2d8a6705c92ce9c575663b4227ec"
+      },
+      {
+        "path": "src/parse/assign-ids.ts",
+        "blob": "9c723da347ae80109b5bd0f9b4c5a641e894449d",
+        "bytes": 3144,
+        "mode": 420,
+        "sha256": "c52cb05ef02c866bf5ceea51ac70a1daf235d2cf946568b384da324553b8ee8e"
+      },
+      {
+        "path": "src/parse/format-error.ts",
+        "blob": "7ab20190b99b23dbffb691090d094d07742b5e29",
+        "bytes": 7669,
+        "mode": 420,
+        "sha256": "f473ea99ac4c6f47a692d1daa105d54084bf5ce0873735e34e6d7a3ad9a08d53"
+      },
+      {
+        "path": "src/error/shape.ts",
+        "blob": "6e99828475c534af445bf986aa9532f90a5b93a7",
+        "bytes": 5240,
+        "mode": 420,
+        "sha256": "8505bc4cc4b78f98acb039c949c0686f83de6fc8b7de7fabb31b2e64d703144d"
+      },
+      {
+        "path": "src/parse/parse-export.ts",
+        "blob": "4bd2caff645411db26e5ccdc61a0f43029dff7bf",
+        "bytes": 3164,
+        "mode": 420,
+        "sha256": "ba7d304b6fa4b02f9d13f625808bcf7e0a4e3685f4088ec142094a9a7bb8eee6"
+      },
+      {
+        "path": "src/parse/parse-import-meta.ts",
+        "blob": "91a4cfaab1372d008d13f136cf3167bdb3a54452",
+        "bytes": 1105,
+        "mode": 420,
+        "sha256": "84ae4c6087918353e0e3c5499cf5031bacafb7a272afb28fa772c85d04278b6b"
+      },
+      {
+        "path": "src/interp/regex/parse.ts",
+        "blob": "6d2dcb958e62011c4f4e1695758f02f1e4ac657d",
+        "bytes": 11403,
+        "mode": 420,
+        "sha256": "86d0c5fa8a8269e5eb40aaccae36160dd09f51358e0f619ac9e4335aa0617e15"
+      },
+      {
+        "path": "src/random.ts",
+        "blob": "ff7f57c46ebad4809bbf4067e1455c28d35171d1",
+        "bytes": 1199,
+        "mode": 420,
+        "sha256": "717f65f8d80823f6fa31a7bcab7cdb0c6a68997b378a1f55f83322e464dbece4"
+      },
+      {
+        "path": "src/interp/globals/math.ts",
+        "blob": "897a1669cce78b7478e3c1737ab81a8acd88ea7b",
+        "bytes": 2338,
+        "mode": 420,
+        "sha256": "2ea73d09944ff3d81fa10821ae52966edae87a46bdfc02ef1142523330d96502"
+      },
+      {
+        "path": "src/interp/values.ts",
+        "blob": "7fab3dbf15a67cfa8a9fe51b1da95ec90dd73269",
+        "bytes": 24602,
+        "mode": 420,
+        "sha256": "931e3d99b2ca4c279600fd00d053e382be7add117d26420f8d8ebf3a157336dd"
+      },
+      {
+        "path": "src/observability/otel.ts",
+        "blob": "4c6e45c30bab388917c60d0358839cd5710b27b9",
+        "bytes": 3224,
+        "mode": 420,
+        "sha256": "14679c70249ccce8e0dbe86a9e158a82b0fffd7b0dce169e0ba6e37bb28d9a02"
+      },
+      {
+        "path": "src/interp/budget.ts",
+        "blob": "2f69c852a87f134470acfcac7e0be37c6e3d0412",
+        "bytes": 9007,
+        "mode": 420,
+        "sha256": "df520d7a1363e017e49cff2d3524ea981ce7aeb710502b62484e7723c4f791f3"
+      },
+      {
+        "path": "src/interp/promise-tracker.ts",
+        "blob": "0f7d921e02c9caf03cb2203b9d958f377c3872ae",
+        "bytes": 2427,
+        "mode": 420,
+        "sha256": "4e98449297680ee631b4e98f69512442d4a3bd1c209f9d04e0aa239375959581"
+      },
+      {
+        "path": "src/interp/promise-replay.ts",
+        "blob": "3687c8821478d47322b7a4e38a50ecb952db6629",
+        "bytes": 15538,
+        "mode": 420,
+        "sha256": "12113e684793316e0c476589a6c2e54cba4a7d86a95025e601f6585db0b3a127"
+      },
+      {
+        "path": "src/snapshot/validation.ts",
+        "blob": "2c9b634615886cffa8ba4332c3938fb04f99c84e",
+        "bytes": 29061,
+        "mode": 420,
+        "sha256": "20b30c5a18aec5624c048bd17e07cb0a55f9c90d144c663d388d5ae12a76681c"
+      },
+      {
+        "path": "src/snapshot/dump-format.ts",
+        "blob": "bf1fb39daa13ddeb062739a1f0d91c7ee60aeef8",
+        "bytes": 7860,
+        "mode": 420,
+        "sha256": "27af4f306a4e616deed470b85c8a0491945dd55da5a025498f4f52f4df2b0c14"
+      },
+      {
+        "path": "src/graph-depth.ts",
+        "blob": "c63a7cc1aa575ac5562594e48616172e08c70777",
+        "bytes": 3383,
+        "mode": 420,
+        "sha256": "36b5f0e3a978f73583d086fd3df38303ce7694947c1c55028b9bfb3831391346"
+      },
+      {
+        "path": "src/interp/arguments.ts",
+        "blob": "a3e5810fc2155f4abf4bb30d2b672f21cd2fa492",
+        "bytes": 2210,
+        "mode": 420,
+        "sha256": "5eab3d8f1e094babdb96b1ac0031a6aed89279341d88e1b01ef0e31ef77bd186"
+      },
+      {
+        "path": "src/snapshot/arguments.ts",
+        "blob": "2b1ad9207d27e47940be96a0ca48397464d5e7bc",
+        "bytes": 1860,
+        "mode": 420,
+        "sha256": "4d34751c3c4f4792029a005e069fab23fb9d4984301168c79a5b024ad2ed9e47"
+      },
+      {
+        "path": "src/restore.ts",
+        "blob": "7a45c954457038156930661bcb3ee8af8d0da970",
+        "bytes": 2031,
+        "mode": 420,
+        "sha256": "ef418d071df149b3878a02042a2944faec1a37dba8f894897fef41976e0b7428"
+      },
+      {
+        "path": "src/interp/running-state.ts",
+        "blob": "6c556a713def73a14e34e7a72f1b063cc48cd336",
+        "bytes": 1254,
+        "mode": 420,
+        "sha256": "a930536ee55df896b62c77c6c9dfc0ff597f56da7d5bf12b7269c0836cfac041"
+      },
+      {
+        "path": "src/interp/cancel.ts",
+        "blob": "03f38bbee5e0cfb8aee2ef032606a75efa506ac4",
+        "bytes": 6588,
+        "mode": 420,
+        "sha256": "6e6b5a9a1dc3b58fcdf7e259a3a2e129877bdf97c93b09268ace0084d9e3e97a"
+      },
+      {
+        "path": "src/interp/promise.ts",
+        "blob": "a07cedbbe3ebe8ca86604cb42307fc33a94f97df",
+        "bytes": 15619,
+        "mode": 420,
+        "sha256": "7753754f9ca15ce2e27eaa6bb9134356e812f90215e1d2672064b687466ad70c"
+      },
+      {
+        "path": "src/interp/exceptions.ts",
+        "blob": "94a7e5d191435c599c8a8ebbcc1acb8fe43d7519",
+        "bytes": 19651,
+        "mode": 420,
+        "sha256": "089f08ed0a282d62ef751407ecd9e0ea938e6b2172e41530ca95a0b95b7c6773"
+      },
+      {
+        "path": "src/interp/host-call.ts",
+        "blob": "076c704be6fafccfe0bdb8339af010e1572183b7",
+        "bytes": 24833,
+        "mode": 420,
+        "sha256": "7f5d5bbc6888f12c268dd9680d3a255c074d81c16f0843fa3ff0c8202aa1e4c5"
+      },
+      {
+        "path": "src/snapshot/replay-data.ts",
+        "blob": "2bce008be6a53bbef6d93f4ef31cab984e3971c5",
+        "bytes": 13196,
+        "mode": 420,
+        "sha256": "0130544934e8aa02404eb9e4aa41a835dad7416435decff4dcfd5a119ea576e6"
+      },
+      {
+        "path": "src/snapshot/policy.ts",
+        "blob": "8b8600e397e25661b0e3b7e2229c5d2f0f6ee416",
+        "bytes": 6813,
+        "mode": 420,
+        "sha256": "7306c1f3c1170a0bdde41fb56ac943e07dffa1a69fed46faec538f459ae56a33"
+      },
+      {
+        "path": "src/interp/jobs.ts",
+        "blob": "33a67b3fe4b50dea7d1934781aa19b5ef0c03eea",
+        "bytes": 2737,
+        "mode": 420,
+        "sha256": "92c1e20439879b172d460b7b684fcfecf1e5f855441ec5652e576da7f80ab09e"
+      },
+      {
+        "path": "src/interp/globals/console-json.ts",
+        "blob": "23363392746d1189027f7ea6058f6a47cb633106",
+        "bytes": 10644,
+        "mode": 420,
+        "sha256": "2b4e345e75d0f3647e53daa588dc71d1b3e363b3a55fd0381e5ada37e8a93b43"
+      },
+      {
+        "path": "src/interp/host-bridge.ts",
+        "blob": "5e1a6ef3b90912c190d0f4a849c1b1e91f845b1c",
+        "bytes": 30852,
+        "mode": 420,
+        "sha256": "68b91c99f60d971a80cd70996f94d8d1686713dfe3c14ec283ca4e732c457b90"
+      },
+      {
+        "path": "src/interp/async.ts",
+        "blob": "4feb1a05dad236daa18f05692a7d811f58a6e586",
+        "bytes": 12403,
+        "mode": 420,
+        "sha256": "e67052b01017ecface7b6b6e69d62f2939b89c5a4d1c247ec1bb4ddbca5353cb"
+      },
+      {
+        "path": "src/interp/generator.ts",
+        "blob": "afddd819298db7d0d70e714d0c739ad18904357d",
+        "bytes": 5508,
+        "mode": 420,
+        "sha256": "73e839e516d042d3ea6893ee95b54731b4e3ab23df28baf61f66ac400b4fc59b"
+      },
+      {
+        "path": "src/interp/patterns.ts",
+        "blob": "68a343738d35e986771e54006ba92e48a16f23bc",
+        "bytes": 9354,
+        "mode": 420,
+        "sha256": "ea2c4b76ec48549eb82025bbf05777b72d1965e497deee5c3c7de73c80b39010"
+      },
+      {
+        "path": "src/interp/var-hoist.ts",
+        "blob": "4d3458cdb6193f9b57c1764c82f14561808c7f3b",
+        "bytes": 5008,
+        "mode": 420,
+        "sha256": "ae52756a61821f2ae5fc828bcca66c51826121076f043b1a9036c1d23e033aee"
+      },
+      {
+        "path": "src/interp/globals/collections.ts",
+        "blob": "7d2c5347901aac8ffe7e4b1b5768634e699c3816",
+        "bytes": 4271,
+        "mode": 420,
+        "sha256": "6cb56413e215814b76d01782dc7d8a5b66b0afccf5c16f8fca56b9e55788c089"
+      },
+      {
+        "path": "src/interp/iteration.ts",
+        "blob": "e7a0285bc2f5688171847addb0d03040483f3541",
+        "bytes": 2798,
+        "mode": 420,
+        "sha256": "dd71ba305822701e19deaa7c2bf643bb67c17fcfe7ce9c6f089224fedb2c965d"
+      },
+      {
+        "path": "src/interp/globals/error.ts",
+        "blob": "8a5f598095227b49b8522e0c3b0450d49e92312d",
+        "bytes": 2740,
+        "mode": 420,
+        "sha256": "6d32795654371c6748f785d96b9b4d37002f245c436ce56572752f23a598f47b"
+      },
+      {
+        "path": "src/interp/globals/regex.ts",
+        "blob": "2d150cdb2828dca38d44fdae4af41886ce32bdd7",
+        "bytes": 409,
+        "mode": 420,
+        "sha256": "5b7322f1e633c89e7677ff9f1397ae356a5a0a3dac229553f43c1554439ca6be"
+      },
+      {
+        "path": "src/interp/globals/misc.ts",
+        "blob": "ff2b4589cd8cf3f749dd822e11c5c1505ab5a840",
+        "bytes": 2360,
+        "mode": 420,
+        "sha256": "e6f15902c7e2dfaa6f8e2bf43fe8e1f25b79f1b863c8ee8df00ee4242bc00781"
+      },
+      {
+        "path": "src/interp/globals/object-array.ts",
+        "blob": "8e8c22d730ab26948007cdfa2aa59202ddd498d8",
+        "bytes": 9891,
+        "mode": 420,
+        "sha256": "b9103764b650f0b193450145694f1618673be159272ce6a5524511605b8cbad9"
+      },
+      {
+        "path": "src/interp/interpreter.ts",
+        "blob": "07f5c623d88a7799dfa45028fdd0393ab589dd8e",
+        "bytes": 97921,
+        "mode": 420,
+        "sha256": "4d33fdba962311153d7cc8ce10d93990fe5db2604513b52fa1f3ea4cbdffc715"
+      },
+      {
+        "path": "src/interp/methods/array.ts",
+        "blob": "5139e8418db2eb5ed4ec4be0b17adeb88a707886",
+        "bytes": 22610,
+        "mode": 420,
+        "sha256": "ea2f2b887081c4c1af790c8154068ca7c693915abaa1a59cfa991f649ba23587"
+      },
+      {
+        "path": "src/interp/methods/function.ts",
+        "blob": "6d1f9f8fea4e8726fae6c43958791374a4b4d258",
+        "bytes": 1942,
+        "mode": 420,
+        "sha256": "3a5482d6c00b84356f02a0d56817ab0e1cdc993c24541ce5989cc3832c7dadcb"
+      },
+      {
+        "path": "src/interp/methods/map.ts",
+        "blob": "3a6901351292b780659fd175e41629ac0672c1c2",
+        "bytes": 3192,
+        "mode": 420,
+        "sha256": "681c1e044f4ec0c5f780c1c36978de2c14b37d19323a73552ea22a3fd417b446"
+      },
+      {
+        "path": "src/interp/methods/number.ts",
+        "blob": "0e017a4c205e02c2c9b9baded4c06a435c97489b",
+        "bytes": 2913,
+        "mode": 420,
+        "sha256": "22a78b6782766bbd79d98ebf487721276a4b0fd064aa7d4a61a5d35d9c759a49"
+      },
+      {
+        "path": "src/interp/methods/generator.ts",
+        "blob": "8af8e5185eb81da4b874bceb712b5737f848d7f9",
+        "bytes": 987,
+        "mode": 420,
+        "sha256": "5da82dde9a05bbbf833ba320389033325fe8cf781496cce8bda1009d75ec2657"
+      },
+      {
+        "path": "src/interp/methods/regex.ts",
+        "blob": "3f5e36e732b8754e10ad8fb4c781ac2b0fcc1826",
+        "bytes": 2094,
+        "mode": 420,
+        "sha256": "a80b629e850f6d0a934da14e57c8926a691d6ba132d0667c6a1514972bb4171e"
+      },
+      {
+        "path": "src/interp/regex/engine.ts",
+        "blob": "3dfddf7308165871ef8e952ddd0ce537dfb58223",
+        "bytes": 9631,
+        "mode": 420,
+        "sha256": "b12b0efa3760b5395a13474d0ce7313f063e2978cdb0e7a97f6e581bd6613118"
+      },
+      {
+        "path": "src/interp/methods/string.ts",
+        "blob": "85832f75686a1ad2d13b74bf7728aacc08a2c583",
+        "bytes": 12789,
+        "mode": 420,
+        "sha256": "25b7eb646e115ce55b5fe02cc5d480109587fb6dab93d70b51cdb5e42a2b19a3"
+      },
+      {
+        "path": "src/interp/methods/set.ts",
+        "blob": "ad620194b53173c23453f5d7c41048aa1e07a8bd",
+        "bytes": 2985,
+        "mode": 420,
+        "sha256": "755828aac63a296b9df4e107c5ef046681dc4cc3d93e9e54710419f24096653d"
+      },
+      {
+        "path": "src/interp/scope.ts",
+        "blob": "dcaae5316fc77236636178475c5b05d62a4f3a89",
+        "bytes": 7749,
+        "mode": 420,
+        "sha256": "148723026726511c7b444f7c1dd02cb955d8eb22d9aea9891928ef60b326eb6e"
+      },
+      {
+        "path": "src/modules/registry.ts",
+        "blob": "8d7d52115b27822446540edf9267beb20e58688b",
+        "bytes": 6478,
+        "mode": 420,
+        "sha256": "466490d886714c678d8e99d5e4cf6703a0a26a130365ea0db365094356f13d0f"
+      },
+      {
+        "path": "src/snapshot/dump.ts",
+        "blob": "c766d4e7415b8f4bc63799d586f6c72663a21007",
+        "bytes": 6335,
+        "mode": 420,
+        "sha256": "2f0a4f144c6496214b81ee128c8f9605fc548c0638bdec9a6de1d28cc5017ad5"
+      },
+      {
+        "path": "src/snapshot/scheduler.ts",
+        "blob": "f6ac537aaf343a6585a60da3e8bf6b15df418092",
+        "bytes": 2787,
+        "mode": 420,
+        "sha256": "616c06660d9ee884f3b79c5d0843a255376e1fa441620a803205eb680e28c2fc"
+      },
+      {
+        "path": "src/snapshot/backend.ts",
+        "blob": "832490086261dabe8c3466935c1b333d2c954a13",
+        "bytes": 5893,
+        "mode": 420,
+        "sha256": "55fe58a47a8a623a957d3cdcc40ed922db35d2cdede0f97d38e3eba34ebe70f1"
+      },
+      {
+        "path": "src/error-codes.ts",
+        "blob": "50b4f952c66610ac7c412f6b92baec42cd8e22fb",
+        "bytes": 470,
+        "mode": 420,
+        "sha256": "276480f5fc5e9b536fbf976b46c09aed159c0465c32cb8cb448f8fd7137ab51b"
+      },
+      {
+        "path": "src/snapshot/serialize.ts",
+        "blob": "7403050c26f8d8673c291ec31fe68b05baaa615e",
+        "bytes": 15993,
+        "mode": 420,
+        "sha256": "ec5744b807c279928036f65c48bbed55c7ba8d563e25b292fb3ef7c4bc732bd6"
+      },
+      {
+        "path": "src/snapshot/replay-inputs.ts",
+        "blob": "957f1fda14da52e6ebc37b3502efb00071b7d642",
+        "bytes": 5007,
+        "mode": 420,
+        "sha256": "d23eeb791eeb9ac5610f5fdc014df38d8d5bd9fb4c00b2dfcfbe109bfc5f58d5"
+      },
+      {
+        "path": "src/modules/fs.ts",
+        "blob": "eb47329a1056c80c5af26431934371d2b2651b6b",
+        "bytes": 31730,
+        "mode": 420,
+        "sha256": "99fc3a501ce906aa2021f298ef8803b63d2272de5f412dfcdf3714757510b142"
+      },
+      {
+        "path": "src/modules/canonical-path.ts",
+        "blob": "6200ec3ead6193e46106cdd908f05408649b4205",
+        "bytes": 8572,
+        "mode": 420,
+        "sha256": "380aee25cc6a2ac6ace9c67927d930b6159fdda75670bc238d4517b2cafb525a"
+      }
+    ]
+  },
+  "tools": {
+    "node": {
+      "origin": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "copied": "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-shell-independent-20260828/.scratch-review-v2/tools/node",
+      "version": "v22.22.2",
+      "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+      "platform": "darwin",
+      "arch": "arm64"
+    },
+    "typescript": {
+      "origin": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript",
+      "version": "5.9.3",
+      "files": [
+        [
+          "lib/typescript.js",
+          420,
+          9112572,
+          "3ae902c92cc44dace175c0e69e13a4b0899f6983c6121d76b9ab8dd5795e7675"
+        ],
+        [
+          "package.json",
+          420,
+          3620,
+          "822ef7ca6452205657b6288b066481ecf508bfbf43455d715cf7d3ec457561e6"
+        ]
+      ]
+    },
+    "npm": {
+      "origin": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm",
+      "version": "10.9.7",
+      "archivePointer": "tools.npm.originalRows",
+      "referenceRows": 2039,
+      "referenceRowsSha256": "76ddb347ab8dce68f6ce84513b57e6489eb5f4a6492a87748db863ef11f9be55",
+      "copiedSha256": "dddb66e1a4d791167c74de1226a4a1263be7485302658eeb7d3ce800c0636d9d",
+      "minimalClosureStatus": "NOT_YET_SEALED; historical conservative manifest is reference only, not permission to copy entire tree"
+    },
+    "qualification": "Historical tool hashes are data references, not newly certified current tool closures. No dependency/script imports."
+  },
+  "inspectedContracts": [
+    {
+      "path": "src/commands/safejs/index.ts",
+      "revision": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+      "blob": "b981d9fc64d9cce94dcc79652ee5437d61b50e80",
+      "sha256": "3978b1f876a3651034a56e793313d54bc5031c650f82d23bc59f40a73545fceb",
+      "currentReadMatchesArchive": true
+    },
+    {
+      "path": "src/commands/safejs/types.ts",
+      "revision": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+      "blob": "99b00cbf92e062838ae253ff6f8649ff4b34985b",
+      "sha256": "edd5f7cf2ed473ca33105cfe1039c3fb36ae913112d0564ea3d9b163b3c08bf4",
+      "currentReadMatchesArchive": true
+    },
+    {
+      "path": "src/commands/safejs/options.ts",
+      "revision": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+      "blob": "d632015ceab0146605d271d6ea0b5557a26aea29",
+      "sha256": "4009050c3a75daececeb2e75af46be8872d21a83c7a8132b6221b0b4d87c7a43",
+      "currentReadMatchesArchive": true
+    },
+    {
+      "path": "src/integrations/safejs/shell.ts",
+      "revision": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+      "blob": "2d1b1bdf717670ad6652ca0742ab8f4ed58bf00d",
+      "sha256": "5cb3e55c5e62adb540b41ac7ce39e8458a3a25ffb8422e6164419c1d22ef15da",
+      "currentReadMatchesArchive": true
+    },
+    {
+      "path": "src/integrations/safejs/values.ts",
+      "revision": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+      "blob": "d326d0a41a7145bae4f6f12d3774522c9c500d76",
+      "sha256": "91ac3025b6420a7a908736f1d746077f27c9f045f6be22d82a37f4a07ff9111a",
+      "currentReadMatchesArchive": true
+    },
+    {
+      "path": "src/integrations/safejs/filesystem.ts",
+      "revision": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+      "blob": "a1593368ebe58df7695bf6010e192bbbce9e9da6",
+      "sha256": "c9ab864768e430bbfbea7590071646985c6374634124f62516ec09c13d9af578",
+      "currentReadMatchesArchive": true
+    },
+    {
+      "path": "src/contracts/command.ts",
+      "revision": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+      "blob": "9c5f2d150df8681f2688fe6aee7ed2d5dfcd22b8",
+      "sha256": "d2f6c788a48b3bb0bed9570f0e69bb2bfab845528376a7fe9288d1c07556df7c",
+      "currentReadMatchesArchive": true
+    },
+    {
+      "path": "src/shell/types.ts",
+      "revision": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+      "blob": "763d2ee0ad2b15c7ed7af31e7c6171f739c98486",
+      "sha256": "aaef878966d35d1c671cf84e5b416f10f6a31433f1ec264ef1730b9c6570f990",
+      "currentReadMatchesArchive": true
+    },
+    {
+      "path": "src/shell/runtime.ts",
+      "revision": "d2502aae3c8458e0ac92662f2af07e7f9fc3923a",
+      "blob": "69125acc1d3afefcaeba642e71539ab0cc40e055",
+      "sha256": "100361256ee71d7a263c92fa607de31ec1d3be9b1fb5c601b337c19e700ac4b3",
+      "currentReadMatchesArchive": false
+    },
+    {
+      "path": "src/fs/readonly/index.ts",
+      "revision": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+      "blob": "c3f291f04374001d2070235de9bc07d99ef8c2a2",
+      "sha256": "2d5057de23f90cfef1f98c45f41063545bcd6c5a4439aa57d9aa0a058645b7b2",
+      "currentReadMatchesArchive": true
+    },
+    {
+      "path": "src/commands/network/types.ts",
+      "revision": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+      "blob": "41d192aaadeb0a727990392cc4df3e05d94aab31",
+      "sha256": "be7a2770efdf42e90ca9eb41e37115b28607aeaf99ce95865d44b3625d20aa19",
+      "currentReadMatchesArchive": true
+    }
+  ],
+  "unresolvedReferences": [
+    {
+      "requested": "fd1dc7ed138",
+      "fullPin": null,
+      "status": "Local git resolution failed; no matching full reference located in searched handoff/manifests/pins. ROOT decision required; no guessed substitute."
+    }
+  ],
+  "preparationChecks": {
+    "archiveAndReferenceDataOnly": true,
+    "privateSelectedHashMetadataOnly": true,
+    "guestFixtureSyntaxChecks": 3,
+    "syntaxCommand": "node --input-type=module --check < g0N.mjs.data",
+    "syntaxMeaning": "Node parses own guest-source data only; no imports resolve and this is NOT SafeJS dialect validation.",
+    "productEvaluations": 0,
+    "engineEvaluations": 0,
+    "guestEvaluations": 0,
+    "nativeOracleEvaluations": 0,
+    "builds": 0,
+    "installs": 0,
+    "privateBeforeAfterGuardCertifications": 0,
+    "chronology": [
+      "Source/evidence-inspected, not blind.",
+      "Read-only data summary queried nonexistent selected key src/fs/readonly.ts and stopped with ERR_INVALID_ARG_TYPE; corrected metadata path src/fs/readonly/index.ts.",
+      "Initial authentication preparation stopped before writing at missing archive subtree for src/commands/archive/README.md; corrected receipt explicitly retains missing-tree qualification rather than claiming all268 path membership.",
+      "Invalid proposed curl limit names corrected during preparation to the inspected NetworkLimits names. No product/private mutation or evaluation occurred."
+    ]
+  }
+}

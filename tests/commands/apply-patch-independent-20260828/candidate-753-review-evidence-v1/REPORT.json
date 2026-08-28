@@ -1,0 +1,45 @@
+{
+  "classification": "independent actual one-attempt review; no automatic product/default acceptance",
+  "candidate": "753f33d2fa1a2ccd86089c563d4ad66b9a1ae26d",
+  "preseal": "e0031def83ab08a4ba17bd08863cc8e23bee925bbe8bb34330d27153ceef74ce",
+  "sourceCommit": "bf6e96e9f418b130ca6efb52a58635f5c70f3631",
+  "runtimeCommit": "d161d9dd8cb96e90b8bc5d47591dffefd4c0e65c",
+  "status": "HOLD",
+  "completedJobs": 3,
+  "plannedJobs": 54,
+  "cohorts": [],
+  "failures": [],
+  "primary": {
+    "type": "object",
+    "name": "AssertionError",
+    "message": "{\"type\":\"object\",\"name\":\"AssertionError\",\"message\":\"child combined capture STOP\",\"code\":\"ERR_ASSERTION\",\"stack\":\"AssertionError [ERR_ASSERTION]: child combined capture STOP\\n    at receive (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/candidate-753-review-executor-v1/controller.mjs:101:14)\\n    at Socket.<anonymous> (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/candidate-753-review-executor-v1/controller.mjs:111:39)\\n    at Socket.emit (node:events:519:28)\\n    at addChunk (node:internal/streams/readable:561:12)\\n    at readableAddChunkPushByteMode (node:internal/streams/readable:512:3)\\n    at Readable.push (node:internal/streams/readable:392:5)\\n    at Pipe.onStreamRead (node:internal/stream_base_commons:189:23)\"}\n+ actual - expected\n\n+ {\n+   code: 'ERR_ASSERTION',\n+   message: 'child combined capture STOP',\n+   name: 'AssertionError',\n+   stack: 'AssertionError [ERR_ASSERTION]: child combined capture STOP\\n' +\n+     '    at receive (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/candidate-753-review-executor-v1/controller.mjs:101:14)\\n' +\n+     '    at Socket.<anonymous> (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/candidate-753-review-executor-v1/controller.mjs:111:39)\\n' +\n+     '    at Socket.emit (node:events:519:28)\\n' +\n+     '    at addChunk (node:internal/streams/readable:561:12)\\n' +\n+     '    at readableAddChunkPushByteMode (node:internal/streams/readable:512:3)\\n' +\n+     '    at Readable.push (node:internal/streams/readable:392:5)\\n' +\n+     '    at Pipe.onStreamRead (node:internal/stream_base_commons:189:23)',\n+   type: 'object'\n+ }\n- null\n",
+    "code": "ERR_ASSERTION",
+    "stack": "AssertionError [ERR_ASSERTION]: {\"type\":\"object\",\"name\":\"AssertionError\",\"message\":\"child combined capture STOP\",\"code\":\"ERR_ASSERTION\",\"stack\":\"AssertionError [ERR_ASSERTION]: child combined capture STOP\\n    at receive (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/candidate-753-review-executor-v1/controller.mjs:101:14)\\n    at Socket.<anonymous> (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/candidate-753-review-executor-v1/controller.mjs:111:39)\\n    at Socket.emit (node:events:519:28)\\n    at addChunk (node:internal/streams/readable:561:12)\\n    at readableAddChunkPushByteMode (node:internal/streams/readable:512:3)\\n    at Readable.push (node:internal/streams/readable:392:5)\\n    at Pipe.onStreamRead (node:internal/stream_base_commons:189:23)\"}\n+ actual - expected\n\n+ {\n+   code: 'ERR_ASSERTION',\n+   message: 'child combined capture STOP',\n+   name: 'AssertionError',\n+   stack: 'AssertionError [ERR_ASSERTION]: child combined capture STOP\\n' +\n+     '    at receive (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/candidate-753-review-executor-v1/controller.mjs:101:14)\\n' +\n+     '    at Socket.<anonymous> (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/candidate-753-review-executor-v1/controller.mjs:111:39)\\n' +\n+     '    at Socket.emit (node:events:519:28)\\n' +\n+     '    at addChunk (node:internal/streams/readable:561:12)\\n' +\n+     '    at readableAddChunkPushByteMode (node:internal/streams/readable:512:3)\\n' +\n+     '    at Readable.push (node:internal/streams/readable:392:5)\\n' +\n+     '    at Pipe.onStreamRead (node:internal/stream_base_commons:189:23)',\n+   type: 'object'\n+ }\n- null\n\n    at child (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/candidate-753-review-executor-v1/controller.mjs:129:10)\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async git (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/candidate-753-review-executor-v1/controller.mjs:138:15)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/candidate-753-review-executor-v1/controller.mjs:299:100"
+  },
+  "parentReaped": true,
+  "allChildrenReaped": true,
+  "allOwnedActualSubject": 10,
+  "postflightProcesses": 1,
+  "archivalGitPlanned": 2,
+  "subjectPeakTotal": 2,
+  "targetPeak": 2,
+  "rawBytes": 19302997,
+  "combinedFilesBytes": 95194850,
+  "elapsedMs": 145030.196,
+  "cleanup": {
+    "files": 29474,
+    "logicalBytes": 158051300,
+    "archive": {
+      "bytes": 47152633,
+      "sha256": "40475307db623dd965de584eda3d2eca2b71ae2b75aa9b8cdcfc177d98fd9286",
+      "mode": 384
+    },
+    "removed": true
+  },
+  "captureMembership": {
+    "bytes": 6002,
+    "sha256": "73869509c12440a398963cc9acc7928c89ff9d11e9adf6424adbd4b714e9ccad",
+    "mode": 420
+  },
+  "historical": "all58be and harness HOLDs unchanged; original STATIC/NOT_RUN not transformed into passes; expected mutant failures and original obsolete expectations are separate from genuine product failures"
+}

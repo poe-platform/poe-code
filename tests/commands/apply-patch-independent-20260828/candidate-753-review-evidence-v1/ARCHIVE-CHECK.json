@@ -1,0 +1,9 @@
+{
+  "classification": "DATA-only post-HOLD archive reconstruction; no product retry/import",
+  "records": 29809,
+  "logicalBytes": 158051300,
+  "files": 29474,
+  "allExact": true,
+  "runtimeSealBytes": 22330550,
+  "runtimeCommit": "d161d9dd8cb96e90b8bc5d47591dffefd4c0e65c"
+}

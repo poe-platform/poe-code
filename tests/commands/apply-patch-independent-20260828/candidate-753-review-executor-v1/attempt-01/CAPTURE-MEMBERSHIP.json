@@ -1,0 +1,185 @@
+{
+  "schema": "exact-regular-capture-membership-v1",
+  "members": {
+    "01-source-metadata.receipt.json": {
+      "bytes": 1643,
+      "sha256": "5e49dbd4833fb152e888a395fc69fc5d1741d66886d6a9a35ae4c661da003a1d",
+      "mode": 420
+    },
+    "01-source-metadata.stderr.raw": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": 384
+    },
+    "01-source-metadata.stdout.raw": {
+      "bytes": 2482185,
+      "sha256": "0cc0758e6017a9cf79d1912f734b0d3e878627ff97135417f0eaf5594836ccd8",
+      "mode": 384
+    },
+    "02-preseal-tree.receipt.json": {
+      "bytes": 1796,
+      "sha256": "749d8ea6be7f311a5e08712f82e51ecf2544aacbaa02698206b6a013c3c852eb",
+      "mode": 420
+    },
+    "02-preseal-tree.stderr.raw": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": 384
+    },
+    "02-preseal-tree.stdout.raw": {
+      "bytes": 5136,
+      "sha256": "558ba233dafd88a7477cdb156aaaac767920c4fbb745361c219a1ed6399e8536",
+      "mode": 384
+    },
+    "03-candidate-module-tree.receipt.json": {
+      "bytes": 1765,
+      "sha256": "3227a7b2cf7d039a9ff923d78253a6f250b755228edaa8692b99c87941f39f34",
+      "mode": 420
+    },
+    "03-candidate-module-tree.stderr.raw": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": 384
+    },
+    "03-candidate-module-tree.stdout.raw": {
+      "bytes": 528,
+      "sha256": "6fa81043229e53c0f1ae585c80ca659005c55a7737c3c2b05e992777b04ef2d5",
+      "mode": 384
+    },
+    "04-binding-negatives.receipt.json": {
+      "bytes": 1975,
+      "sha256": "e04d08b87b1f3f64750dbfa55fa762734cc0e9259ef1a1f7955301985be1717d",
+      "mode": 420
+    },
+    "04-binding-negatives.stderr.raw": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": 384
+    },
+    "04-binding-negatives.stdout.raw": {
+      "bytes": 496,
+      "sha256": "fbe08db98b24cf757045f9d13b2c1429692f36a00542c08499507e5fce1b9083",
+      "mode": 384
+    },
+    "05-strict-build.receipt.json": {
+      "bytes": 2105,
+      "sha256": "b6120338439a6395be4accc9c35b625e8d69cee8eeb002d7fc6eb11cb4f5dd6a",
+      "mode": 420
+    },
+    "05-strict-build.stderr.raw": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": 384
+    },
+    "05-strict-build.stdout.raw": {
+      "bytes": 37612,
+      "sha256": "febb31c1323685a9607f9213df02d8753983ef59dd73bcd1652084d804180921",
+      "mode": 384
+    },
+    "06-runtime-add.receipt.json": {
+      "bytes": 1830,
+      "sha256": "2b293cf3f91b9927f11fb170536c247429e1def9e02702998a43b1590cf1d6b7",
+      "mode": 420
+    },
+    "06-runtime-add.stderr.raw": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": 384
+    },
+    "06-runtime-add.stdout.raw": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": 384
+    },
+    "07-runtime-commit.receipt.json": {
+      "bytes": 1932,
+      "sha256": "e95cd6468d8279a1dc0bdf88bec8e921c3b37d0a9a66289cdac2178a5a4d3f17",
+      "mode": 420
+    },
+    "07-runtime-commit.stderr.raw": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": 384
+    },
+    "07-runtime-commit.stdout.raw": {
+      "bytes": 866,
+      "sha256": "cba0e43e6f6bdfc40c9c54e6fbd7d2ed5bbc6211091e1f3d56f7a4de8aeca047",
+      "mode": 384
+    },
+    "08-runtime-tree.receipt.json": {
+      "bytes": 1919,
+      "sha256": "c7ea86d2d9be5c23bd4dd0298e2904aaa48aa67dde1e3a2f864d7a95d9e38692",
+      "mode": 420
+    },
+    "08-runtime-tree.stderr.raw": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": 384
+    },
+    "08-runtime-tree.stdout.raw": {
+      "bytes": 305,
+      "sha256": "7b033bae4dd6e02c9fe25b0d2c2bc50843a44c4c1affcdff8f7618bdf7c2b8d0",
+      "mode": 384
+    },
+    "09-runtime-objects.receipt.json": {
+      "bytes": 2508,
+      "sha256": "fcaac039c5bde212980a580ce173c47b08102f82de5b5f1448e701f735ac4bd1",
+      "mode": 420
+    },
+    "09-runtime-objects.stderr.raw": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": 384
+    },
+    "09-runtime-objects.stdout.raw": {
+      "bytes": 16775869,
+      "sha256": "356f08f8a79cb914eb47c9fa2eb288de8a4934d518db74ae62a4fad394d03e2a",
+      "mode": 384
+    },
+    "OUTCOME.json": {
+      "bytes": 25913,
+      "sha256": "4681e107830f7c0420f53bf25c6506452784f65f71be422b726e2f1720048c58",
+      "mode": 420
+    },
+    "OWNER-EVENTS.jsonl": {
+      "bytes": 8782,
+      "sha256": "623be77e22dd413a992c7988aa37b2482503cb07710848f9af19daa3ca37e0f8",
+      "mode": 384
+    },
+    "OWNER.stderr.raw": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": 384
+    },
+    "OWNER.stdout.raw": {
+      "bytes": 5320,
+      "sha256": "8dc0e5a8956b4fa33a2a2deb076590ead6787c61ceae66b14cdc8d16286d6bcd",
+      "mode": 384
+    },
+    "WORK-CAPTURE.jsonl.gz": {
+      "bytes": 47152633,
+      "sha256": "40475307db623dd965de584eda3d2eca2b71ae2b75aa9b8cdcfc177d98fd9286",
+      "mode": 384
+    },
+    "WORK-MEMBERSHIP.json": {
+      "bytes": 6297813,
+      "sha256": "dbcda5a04017b125929974398e11899cd604c2740974cc071f5ef85bd4fc58fc",
+      "mode": 420
+    }
+  },
+  "retainedScratch": null,
+  "externalRecords": {
+    "BUILD-RECEIPT.json": {
+      "bytes": 47367,
+      "sha256": "b124ba0badc4a3c46979aa48314a2694a51913b222dfff2dd5194057f8d228ce",
+      "mode": 420
+    },
+    "RUNTIME-SEAL.json": {
+      "bytes": 22330550,
+      "sha256": "ed92126e7b2399068ae3ca6d500925c0b314b3243af1b04b7a81c946a6139d18",
+      "mode": 420
+    }
+  },
+  "totalBytes": 72810931,
+  "combinedAccountedBeforeIndex": 95188848
+}

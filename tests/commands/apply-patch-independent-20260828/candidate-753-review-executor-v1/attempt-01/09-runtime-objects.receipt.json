@@ -1,0 +1,63 @@
+{
+  "id": "runtime-objects",
+  "role": "runtime-seal-git",
+  "executable": "/Library/Developer/CommandLineTools/usr/bin/git",
+  "args": [
+    "-c",
+    "core.fsmonitor=false",
+    "-c",
+    "core.hooksPath=/dev/null",
+    "-c",
+    "maintenance.auto=false",
+    "-c",
+    "gc.auto=0",
+    "-c",
+    "commit.gpgsign=false",
+    "-c",
+    "core.abbrev=40",
+    "--no-replace-objects",
+    "cat-file",
+    "--batch"
+  ],
+  "cwd": "/Users/kjopek/Workspace/safe-bash",
+  "env": {
+    "GIT_CONFIG_GLOBAL": "/dev/null",
+    "GIT_CONFIG_NOSYSTEM": "1",
+    "GIT_NO_REPLACE_OBJECTS": "1",
+    "HOME": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/candidate-753-review-executor-v1/attempt-01/work/home",
+    "NO_COLOR": "1",
+    "PATH": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin:/usr/bin:/bin",
+    "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/candidate-753-review-executor-v1/attempt-01/work/tmp",
+    "__CF_USER_TEXT_ENCODING": "0x1F5:0x0:0x0"
+  },
+  "timeoutMs": 30000,
+  "maxCombinedBytes": 16777216,
+  "pid": 82111,
+  "closeObserved": true,
+  "absent": true,
+  "code": null,
+  "signal": "SIGTERM",
+  "failure": {
+    "type": "object",
+    "name": "AssertionError",
+    "message": "child combined capture STOP",
+    "code": "ERR_ASSERTION",
+    "stack": "AssertionError [ERR_ASSERTION]: child combined capture STOP\n    at receive (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/candidate-753-review-executor-v1/controller.mjs:101:14)\n    at Socket.<anonymous> (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/candidate-753-review-executor-v1/controller.mjs:111:39)\n    at Socket.emit (node:events:519:28)\n    at addChunk (node:internal/streams/readable:561:12)\n    at readableAddChunkPushByteMode (node:internal/streams/readable:512:3)\n    at Readable.push (node:internal/streams/readable:392:5)\n    at Pipe.onStreamRead (node:internal/stream_base_commons:189:23)"
+  },
+  "stdout": {
+    "path": "09-runtime-objects.stdout.raw",
+    "bytes": 16775869,
+    "sha256": "356f08f8a79cb914eb47c9fa2eb288de8a4934d518db74ae62a4fad394d03e2a",
+    "mode": 384,
+    "observedBytes": 16906941,
+    "lostBytes": 131072
+  },
+  "stderr": {
+    "path": "09-runtime-objects.stderr.raw",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "mode": 384,
+    "observedBytes": 0,
+    "lostBytes": 0
+  }
+}

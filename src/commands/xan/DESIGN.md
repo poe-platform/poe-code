@@ -1,5 +1,11 @@
 # XAN 0.54.0: bounded CSV kernel and four-command design
 
+**Selector clarification v4:** `design-evidence/SELECTOR-POLICY-V4.md` records
+seven newly ratified project boundaries and the complete proposed selector
+grammar. Only its remaining selector exclusion disposition awaits root/Dirac.
+It supersedes conflicting grammar proposal labels below and in historical v3;
+v3 CR/BOM/EOF/L0, all 18 caps and fallback remain approved unchanged.
+
 **Final policy v3:** `design-evidence/PROFILE-V3.md` and
 `design-evidence/BYTE-TABLE-V3.md` supersede conflicting v2 policy below.
 Accepted v2 bytes remain recoverable at b9ce9e61115c7d99dfa6a76591b3dcfdaee9ce21.
@@ -102,7 +108,7 @@ short values (`-l2`), and clustered switches are recognized. A value-bearing sho
 option consumes the remaining token or the next argv item. No option abbreviation
 is promised. One literal `-` means stdin/stdout in the relevant operand; no shell
 expansion occurs inside the command. Repeated singleton flags are not a
-last-one-wins extension: proposed reject them before I/O; exact docopt diagnostic
+last-one-wins extension: root ratifies rejection before I/O; exact docopt diagnostic
 for every repetition is unmeasured, so this is a declared strict grammar boundary.
 
 | Subcommand | Pinned grammar and options | Proposed Stage K |
@@ -129,17 +135,17 @@ unsupported-format diagnostic rather than pretending to implement their native
 compression/tabular adapters. Ordinary extensionless VFS files remain supported.
 
 Delimiter conversion in upstream accepts exactly one ASCII byte or literal `\t`;
-Unicode multi-byte delimiters fail, even when one Unicode character. Proposed
+Unicode multi-byte delimiters fail, even when one Unicode character. Ratified
 Stage K additionally refuses NUL, CR, LF and quote as delimiter (CLI NUL cannot
 normally arrive through a shell); native parser behavior for those pathological
-delimiters is not qualified. This explicit restriction needs root approval.
+delimiters is not qualified. This is a project restriction, not a native golden.
 
 Integer parsing: row/start/end/len/header-start are decimal u64 in this 64-bit
-profile; threads is NonZeroUsize upstream. Proposed profile accepts ASCII digits
+profile; threads is NonZeroUsize upstream. Ratified profile accepts ASCII digits
 and optional leading `+`, no spaces, negative sign, decimal point, exponent,
 separators or hex. Source qualification found docopt's numeric deserializer
 converts an empty or whitespace-only supplied value to **zero** before Rust
-FromStr; proposed rejection of that special case is an explicit safety deviation,
+FromStr; ratified rejection of that special case is an explicit safety deviation,
 not the native grammar. Nonempty numbers with surrounding whitespace fail natively.
 Parse
 digit-by-digit with bigint/checked integer arithmetic, rejecting >2^64-1 before
@@ -219,10 +225,12 @@ can follow a closing quote. Pin surprising source behavior: quoted numeric text
 still parses as an index; doubled quotes inside a quoted name are retained as
 **two** quote characters, not decoded to one. A quoted bare name ending `*` still
 takes the parser's prefix-selection branch. Do not promise quoting fixes every
-documented conflict. Trailing comma is tolerated upstream. Empty clauses and
-malformed wildcard/range combinations that exploit parser cursor-skipping quirks
-are proposed unsupported with a deterministic selector error; independent freeze
-must identify this boundary rather than treating them as tested parity.
+documented conflict. Whole empty selection and a single trailing comma are valid;
+interior empty clauses are ratified pre-I/O refusals. SELECTOR-POLICY-V4 defines
+the complete proposed consuming grammar and finite refusal categories, replacing
+the vague cursor-skipping exclusion. In particular `0::1` is proposed syntax
+failure; `**` is a suffix match and `0:*` has a literal-name range endpoint.
+Root/Dirac must dispose of this last selector proposal before independent freeze.
 
 Data emission has two modes. Same-comma data may preserve owned raw lexemes ONLY
 when the exact faithful-reparse criterion in PROFILE-V3 holds. Cross-delimiter
@@ -251,10 +259,10 @@ Ordinary zero/equal ranges are not early-read stops. V1's correction is withdraw
 all tokens, sort and deduplicate under the selector-node/work budgets, then emit
 in file order. Upstream ignores ordinary range flags when this branch wins;
 -L takes precedence over -I and ordinary range flags despite help saying
-incompatible. Proposed profile rejects these mixed modes before I/O instead of
+incompatible. Ratified profile rejects these mixed modes before I/O instead of
 silently honoring native precedence. Common -n/-d/-o remain valid with every mode.
-The native -I invalid-index message mistakenly says `-i/--index`; preserve the
-message only if exact compatibility is selected by root.
+The native -I invalid-index message mistakenly says `-i/--index`; root requires
+accurate `-I` identification and nonempty bounded wording, not globally fixed text.
 
 -L N for positive N retains at most N owned decoded records in a bounded ring and emits after
 EOF; no seek optimization or filesystem whole-read is required. Both row count
@@ -567,8 +575,8 @@ original 28+16 observations and historical receipts remain byte-preserved.
 3. Approve faithful serialization: quote CR-containing cells and moved first
    BOM data. Same-comma raw must be writer-valid AND reversible.
 4. Approve all 18 unchanged defaults/hard ceilings; parent budgets always win.
-   Strict numeric/selector/mixed-mode boundaries remain declared proposals,
-   not newly approved grammar or new command breadth.
+   SELECTOR-POLICY-V4 records seven subsequent ratifications; only its precise
+   selector exclusion proposal remains pending. No new command breadth is added.
 5. Approve bounded whole-result writeFile fallback under existing wx/w and
    alias rules, not append emulation or atomic identity-conditioned open.
 6. Advanced flags/formats/color/expressions remain rejected. Root must route

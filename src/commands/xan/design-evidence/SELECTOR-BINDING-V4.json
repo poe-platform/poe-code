@@ -1,0 +1,240 @@
+{
+  "classification": "docs-only-selector-policy-proposal-seven-ratifications-not-independent-freeze",
+  "recordedAt": "2026-08-28T04:10:53.668Z",
+  "acceptedPolicyCommit": "1168432e12568e63ff307e92ed83d64d78a03a3c",
+  "headAtValidation": "c3d215e3c5f8594b1ade147cf3af88e6d18f3165",
+  "primarySource": {
+    "cachePath": "/tmp/xan-precode-20260828.X6abEd/src__select.rs",
+    "url": "https://raw.githubusercontent.com/medialab/xan/2f9156c8ec79a3ecc09e0879735ac68ec8997b7a/src/select.rs",
+    "bytes": 19613,
+    "sha256": "a9e9ec4bdadaff676af7d8aeb1bb8cb6ca59f56aaa06d779791b3d01c7dbe6da"
+  },
+  "docs": [
+    {
+      "path": "src/commands/xan/DESIGN.md",
+      "priorSha256": "a91220c4b62c15e89e88e54d488d8b58534907a8197d71a97748b6f7e945e5ea",
+      "currentSha256": "c6228d77f8610cb0690d3e6420813833474dcfadb57ae27e0077039b0cfd38d3"
+    },
+    {
+      "path": "src/commands/xan/design-evidence/SELECTOR-POLICY-V4.md",
+      "priorSha256": null,
+      "currentSha256": "1e0d605985ddc6c2877d9ed38f76769a85b07e82d1c844406c39b2aa45a11493"
+    }
+  ],
+  "unchangedHistoricalDocs": [
+    {
+      "path": "src/commands/xan/design-evidence/BYTE-TABLE-V2.md",
+      "priorSha256": "bb098e841cd62791066432ae74f6b8368f99fbb1d9083d63583bc201cbeb2172",
+      "currentSha256": "bb098e841cd62791066432ae74f6b8368f99fbb1d9083d63583bc201cbeb2172",
+      "unchanged": true
+    },
+    {
+      "path": "src/commands/xan/design-evidence/BYTE-TABLE-V3.md",
+      "priorSha256": "5a46a960ebf9709e3e2373984cf0ae44e9ae66821263c347b35168f5bab1f6a2",
+      "currentSha256": "5a46a960ebf9709e3e2373984cf0ae44e9ae66821263c347b35168f5bab1f6a2",
+      "unchanged": true
+    },
+    {
+      "path": "src/commands/xan/design-evidence/FINAL-BINDING-V3.json",
+      "priorSha256": "058aa5c6495225f5202b7bd06e2715b39729000e50254279af39c2aad3f02d4e",
+      "currentSha256": "058aa5c6495225f5202b7bd06e2715b39729000e50254279af39c2aad3f02d4e",
+      "unchanged": true
+    },
+    {
+      "path": "src/commands/xan/design-evidence/HANDOFF-V2.md",
+      "priorSha256": "36457c0a546af45c3fb05a6ee64283d54f7b16ad8002481ca21bde79e218fa75",
+      "currentSha256": "36457c0a546af45c3fb05a6ee64283d54f7b16ad8002481ca21bde79e218fa75",
+      "unchanged": true
+    },
+    {
+      "path": "src/commands/xan/design-evidence/HANDOFF-V3.md",
+      "priorSha256": "30bc8d219a35ce7d4cc9fd6c71ffd206d920cb457057d3a8dc60dabf5f8a3238",
+      "currentSha256": "30bc8d219a35ce7d4cc9fd6c71ffd206d920cb457057d3a8dc60dabf5f8a3238",
+      "unchanged": true
+    },
+    {
+      "path": "src/commands/xan/design-evidence/LOCAL-BINDING.json",
+      "priorSha256": "23c95d7ce93839e9314302304c1782d1bf533d97e733bf97bba5272f2ada7633",
+      "currentSha256": "23c95d7ce93839e9314302304c1782d1bf533d97e733bf97bba5272f2ada7633",
+      "unchanged": true
+    },
+    {
+      "path": "src/commands/xan/design-evidence/PROFILE-V2.md",
+      "priorSha256": "e9084f0074cd4e13ac3f9406bb6ea3d9f1764903004716a1e94840d626a8595d",
+      "currentSha256": "e9084f0074cd4e13ac3f9406bb6ea3d9f1764903004716a1e94840d626a8595d",
+      "unchanged": true
+    },
+    {
+      "path": "src/commands/xan/design-evidence/PROFILE-V3.md",
+      "priorSha256": "8ec63164310e818b670bbafc01780356ffb83adea409e7273c456165c2e7bb44",
+      "currentSha256": "8ec63164310e818b670bbafc01780356ffb83adea409e7273c456165c2e7bb44",
+      "unchanged": true
+    },
+    {
+      "path": "src/commands/xan/design-evidence/RECEIPT.md",
+      "priorSha256": "99cfe1c2da8aa09b055113134cb48700685752411d9df18664cbe8c8292c1869",
+      "currentSha256": "99cfe1c2da8aa09b055113134cb48700685752411d9df18664cbe8c8292c1869",
+      "unchanged": true
+    },
+    {
+      "path": "src/commands/xan/design-evidence/REVIEW-BINDING-V2.json",
+      "priorSha256": "e18eeb25d599c139cd325dc1e6961a47b0753b86225360db50033054cecf8bb0",
+      "currentSha256": "e18eeb25d599c139cd325dc1e6961a47b0753b86225360db50033054cecf8bb0",
+      "unchanged": true
+    },
+    {
+      "path": "src/commands/xan/design-evidence/SOURCE-MAP.md",
+      "priorSha256": "7bef1e1e9815441dd396c65cc99207fc14d6a64746f3e2aea577e3a99a9f85c7",
+      "currentSha256": "7bef1e1e9815441dd396c65cc99207fc14d6a64746f3e2aea577e3a99a9f85c7",
+      "unchanged": true
+    }
+  ],
+  "originalEvidence": [
+    {
+      "path": "tests/commands/xan-oracle-prep-20260828/LICENSE-NOTICES.md",
+      "sha256": "25879e19f4eae96c155ad38ab5dae9c27152d66ddb9133db02b275e6a5bfd1db",
+      "gitBlob": "cfff35d4ea4152c24e8d0a207713e46aa172431f",
+      "bytes": 10810,
+      "unchanged": true
+    },
+    {
+      "path": "tests/commands/xan-oracle-prep-20260828/OBSERVATIONS.md",
+      "sha256": "beeb74a4930b0695450b3cd3357e5e3370aa51827578890d9f822fc701aa99f2",
+      "gitBlob": "21e69debe88c818bd3e90b90dc8d9e80b7f44272",
+      "bytes": 3139,
+      "unchanged": true
+    },
+    {
+      "path": "tests/commands/xan-oracle-prep-20260828/PROTOCOL.md",
+      "sha256": "ad03e7126c841358e812e6b4be38a44bceb530bc8dfb5e56420e39ee6591fd80",
+      "gitBlob": "81350b03cc009f3332c75336a1389b1bd27250f2",
+      "bytes": 3473,
+      "unchanged": true
+    },
+    {
+      "path": "tests/commands/xan-oracle-prep-20260828/RESULTS.json",
+      "sha256": "402fcdc93732d32ca87cdcb2b9bc4e896568f6763c5162c1dae4924771fc987a",
+      "gitBlob": "28fa4395d627c2520e13f4621ad7a8c8a4ef3d45",
+      "bytes": 54174,
+      "unchanged": true
+    },
+    {
+      "path": "tests/commands/xan-oracle-prep-20260828/ROWS.json",
+      "sha256": "7a019c039971f45e612a1bfffd17fc940bf425f326d19f84036cb68ed9d69db2",
+      "gitBlob": "e794aaf4e1359ff9ad91b0f498aeea288e7eb67f",
+      "bytes": 2809,
+      "unchanged": true
+    },
+    {
+      "path": "tests/commands/xan-oracle-prep-20260828/additional-v2/BINDING.json",
+      "sha256": "b9277c1454901c67b07ff6c875aea14942885c2f86dc5a96c693f293aaf0426a",
+      "gitBlob": "f9a1fadfb3cf9c83c843f5d9171989cb75fa038e",
+      "bytes": 10704,
+      "unchanged": true
+    },
+    {
+      "path": "tests/commands/xan-oracle-prep-20260828/additional-v2/OBSERVATIONS.md",
+      "sha256": "bf308fdf24c6cc29d562556df9558c566b730055f5a0ddd61438204d2eaf1854",
+      "gitBlob": "b4804f84bc44f9eef2df2298023169a2d7adc6f9",
+      "bytes": 2376,
+      "unchanged": true
+    },
+    {
+      "path": "tests/commands/xan-oracle-prep-20260828/additional-v2/PROTOCOL.md",
+      "sha256": "7cb17627355e1d119bfdb24be955afb14f0ebe021656452a84e1a367a19e30be",
+      "gitBlob": "04a781f9b8b5318e775888acf8cd4ca0af51603e",
+      "bytes": 2872,
+      "unchanged": true
+    },
+    {
+      "path": "tests/commands/xan-oracle-prep-20260828/additional-v2/RESULTS.json",
+      "sha256": "d7cc5e04d2dd860cce0fd9fa8ad4261b490d195088cd352b7d8bb31c86a71e32",
+      "gitBlob": "1389f719011546a9047702e5b8d751f52feefbb3",
+      "bytes": 21713,
+      "unchanged": true
+    },
+    {
+      "path": "tests/commands/xan-oracle-prep-20260828/additional-v2/ROWS.json",
+      "sha256": "ec4f684cd436cba42173cb065a0b0bacb12be120e6f1fb0ddd7befcdf422ed0a",
+      "gitBlob": "7dea0665eedca0441bfc8e1e656cd39a4b1ed2d4",
+      "bytes": 3909,
+      "unchanged": true
+    },
+    {
+      "path": "tests/commands/xan-oracle-prep-20260828/additional-v2/run.mjs",
+      "sha256": "7f7be7b0ec52e4edeb145541485e17c6ca87195d14e00be9cd7ba3b2b4c8a0cd",
+      "gitBlob": "58de2a186def15d2fbd53dfb3c7ae874d3d734a4",
+      "bytes": 6111,
+      "unchanged": true
+    },
+    {
+      "path": "tests/commands/xan-oracle-prep-20260828/provenance.json",
+      "sha256": "30b3343ea7c99a8168a366dd5e11b04dd87a472dddf2210db5f61684cef17aa4",
+      "gitBlob": "e234fc710afc8551167019eb96836a83ce230cad",
+      "bytes": 13191,
+      "unchanged": true
+    },
+    {
+      "path": "tests/commands/xan-oracle-prep-20260828/run.mjs",
+      "sha256": "57460aabc8a0863c7073c34d5d0bfbdea7f9dd9e9a20d0f170a182b672f027ca",
+      "gitBlob": "4c51716c9b006e357a38ed61ff19dd63d06e5898",
+      "bytes": 5549,
+      "unchanged": true
+    }
+  ],
+  "documentFixtures": [
+    {
+      "name": "A",
+      "utf8": "a,b\n1,2\n3,4\n",
+      "bytes": 12,
+      "sha256": "b9485148546419a0f6a85e8d708c923557c15d7f3c7d078ef1fa7f7c0f57d5a5"
+    },
+    {
+      "name": "B",
+      "utf8": "a,a,ab,ba,a*,*,\"a\"\"\"\"b\",0,x:y,\"x,y\",,a]\nA0,A1,AB,BA,AST,STAR,QQ,ZERO,COL,COM,EMPTY,CLOSE\n",
+      "bytes": 89,
+      "sha256": "5969a05e49ce3fa36444810ae441d5843fa9b03b6116006cea77ca4a15f3db9c"
+    }
+  ],
+  "exactLimitRows": [
+    "| maxArgs | 128 | 4096 |",
+    "| maxArgumentBytes | 64 KiB | 1 MiB |",
+    "| maxInputFiles | 16 | 256 |",
+    "| maxInputBytes | 256 MiB | 4 GiB |",
+    "| maxChunks | 262144 | 4194304 |",
+    "| maxChunkBytes | 8 MiB | 64 MiB |",
+    "| maxRecordBytes | 8 MiB | 64 MiB |",
+    "| maxCellBytes | 4 MiB | 32 MiB |",
+    "| maxColumns | 16384 | 65536 |",
+    "| maxRecords | 1000000 | 16000000 |",
+    "| maxSelectorBytes | 16 KiB | 256 KiB |",
+    "| maxSelectorNodes | 4096 | 65536 |",
+    "| maxSelectorDepth | 2 | 2 |",
+    "| maxSelectedColumns | 16384 | 65536 |",
+    "| maxLastRows | 4096 | 65536 |",
+    "| maxWork | 1000000000 | 16000000000 |",
+    "| maxOutputBytes | 256 MiB | 4 GiB |",
+    "| maxRetainedBytes | 32 MiB | 256 MiB |"
+  ],
+  "checks": {
+    "fixtureSerialization": true,
+    "explicitPositionOutputRows": 22,
+    "allowedExamples": 41,
+    "emptyFailureRows": 6,
+    "originalEvidenceFiles": 13,
+    "exactLimitRows": 18,
+    "sourceHashVerified": true,
+    "hiddenFixturesRead": 0,
+    "nativeExecutions": 0,
+    "downloads": 0,
+    "productTests": 0,
+    "fullParserImplemented": false,
+    "independentFreeze": false,
+    "appendProof": false
+  },
+  "proceduralIssues": [
+    "Initial read-only zsh command used reserved variable path, shadowing PATH in that process; command-not-found occurred; corrected to docfile. No files changed.",
+    "First Node doc-check JSON cell extraction included a Markdown delimiter; failed before any binding write. Corrected extraction; full doc check then passed."
+  ],
+  "limitations": "Only listed original evidence/protected docs verified, not append-proof. Explicit position serialization checks are neither a selector implementation nor native/product acceptance."
+}

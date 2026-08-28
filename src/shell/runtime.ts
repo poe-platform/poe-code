@@ -24,6 +24,13 @@ import type {
   CancellationAdmissionSnapshot, CancellationBoundary, CancellationControlOriginInput, CancellationOrigin,
   CancellationReport, CancellationSelection, CapturedCancellationOutcome, PreparedChildCancellation,
 } from "./cancellation.js";
+import { getArrayAssignment, getArraySelector, copyArraySelector, numericIndex, literalIndex } from "./arrays/syntax.js";
+import type { ArrayAssignment } from "./arrays/syntax.js";
+import { ArrayFailure, ArrayOwner, exactSum } from "./arrays/ledger.js";
+import { controlNames, IndexedBinding, textToken } from "./arrays/bindings.js";
+import { arrayStore, requireArrays, snapshotState, stateMonitor, trackState } from "./arrays/state.js";
+import type { Admission } from "./arrays/ledger.js";
+import type { BindingWatch, OwnedText } from "./arrays/bindings.js";
 
 export const defaultLimits: Required<ShellLimits> = {
   maxOutputBytes: 16 * 1024 * 1024,
@@ -164,6 +171,16 @@ interface SavedVariable {
   getopts?: GetoptsBinding;
 }
 
+interface TypedSavedVariable {
+  readonly owner: ArrayOwner;
+  readonly binding: IndexedBinding | undefined;
+  readonly tickets: Admission;
+  readonly prepared: { readonly name: OwnedText; readonly admission: Admission };
+  readonly watch: BindingWatch;
+}
+
+const typedSavedVariables = new WeakMap<SavedVariable, TypedSavedVariable>();
+
 export interface State {
   cwd: string;
   variables: Record<string, string>;
@@ -278,8 +295,8 @@ function signalSink(sink: ByteSink, signal: AbortSignal): ByteSink {
   return output;
 }
 
-function cloneState(state: State): State {
-  return {
+async function cloneState(state: State, signal: AbortSignal): Promise<State> {
+  return snapshotState(state, () => ({
     ...state,
     variables: Object.assign(Object.create(null) as Record<string, string>, state.variables),
     exported: new Set(state.exported), functions: new Map(state.functions), positional: [...state.positional],
@@ -287,7 +304,7 @@ function cloneState(state: State): State {
     getopts: cloneGetoptsBinding(state),
     directoryStack: { entries: [...state.directoryStack?.entries ?? []], bytes: state.directoryStack?.bytes ?? 0 },
     locals: state.locals.map((scope) => new Map([...scope].map(([name, saved]) => [name, { ...saved, ...(saved.getopts ? { getopts: { integer: saved.getopts.integer, cursor: cloneGetoptsState(saved.getopts.cursor) } } : {}) }]))),
-  };
+  }), signal);
 }
 
 function cloneGetoptsBinding(state: State): GetoptsBinding {
@@ -298,7 +315,31 @@ function saveVariable(state: State, name: string): SavedVariable {
   return { value: state.variables[name], exported: state.exported.has(name), readOnly: state.readonlyVariables?.has(name) ?? false, ...(name === "OPTIND" ? { getopts: cloneGetoptsBinding(state) } : {}) };
 }
 
-function restoreVariable(state: State, name: string, saved: SavedVariable): void {
+async function restoreVariable(state: State, name: string, saved: SavedVariable): Promise<void> {
+  const typed = typedSavedVariables.get(saved);
+  if (typed) {
+    typedSavedVariables.delete(saved);
+    const store = requireArrays(state);
+    let released: Promise<void> | undefined;
+    stateMonitor(state)!.publish(typed.tickets, name, () => {
+      if (typed.binding) {
+        delete state.variables[name];
+        released = store.publish(name, typed.binding, typed.tickets, typed.prepared);
+      } else {
+        released = store.remove(name, typed.tickets);
+        if (saved.value === undefined) delete state.variables[name];
+        else state.variables[name] = saved.value;
+      }
+      if (saved.exported) state.exported.add(name);
+      else state.exported.delete(name);
+      if (saved.readOnly) { state.readonlyVariables ??= new Set(); state.readonlyVariables.add(name); }
+      else state.readonlyVariables?.delete(name);
+    });
+    typed.watch.close();
+    await released;
+    await typed.owner.close();
+    return;
+  }
   if (saved.value === undefined) delete state.variables[name];
   else state.variables[name] = saved.value;
   if (saved.exported) state.exported.add(name);
@@ -923,6 +964,7 @@ export class Runtime {
   }
 
   writeVariable(state: State, name: string, value: string, origin: "assignment" | "arithmetic" | "getopts" = "assignment"): void {
+    if (arrayStore(state)?.get(name)) throw new ArrayFailure(origin === "arithmetic" ? "indexed arithmetic is unsupported" : "indexed write requires prepared publication");
     if (state.readonlyVariables?.has(name)) throw new Error(`${name}: readonly variable`);
     if (name === "OPTIND" && state.getopts?.integer && origin !== "arithmetic") {
       try { value = String(evaluateArithmetic(prepareArithmetic(value || "0"), this.arithmeticVariables(state))); }
@@ -953,7 +995,195 @@ export class Runtime {
   }
 
   arithmeticVariables(state: State): Record<string, string> {
-    return new Proxy(state.variables, { set: (_target, key, value: string) => { this.writeVariable(state, String(key), value, "arithmetic"); return true; } });
+    return new Proxy(state.variables, {
+      get: (target, key) => {
+        if (arrayStore(state)?.get(String(key))) throw new ArrayFailure("indexed arithmetic is unsupported");
+        return Reflect.get(target, key);
+      },
+      set: (_target, key, value: string) => { this.writeVariable(state, String(key), value, "arithmetic"); return true; },
+    });
+  }
+
+  variable(state: State, name: string): string | undefined {
+    const binding = arrayStore(state)?.get(name);
+    return binding ? binding.get(0) : state.variables[name];
+  }
+
+  async assignVariable(state: State, name: string, value: string, origin: "assignment" | "getopts" = "assignment"): Promise<void> {
+    if (!arrayStore(state)?.get(name)) { this.writeVariable(state, name, value, origin); return; }
+    await this.arrayZero(state, name, async () => value);
+  }
+
+  async prepareVariable(state: State, name: string, saved: SavedVariable): Promise<void> {
+    const store = requireArrays(state);
+    const owner = ArrayOwner.create(store.owner.ledger, store.owner);
+    let binding: IndexedBinding | undefined;
+    try {
+      const watch = await store.watch(name, owner, this.signal);
+      const tickets = owner.reserve({ generation: true, version: true, epoch: true, metadata: 64, work: 14 });
+      const token = await textToken(owner, name, this.signal);
+      const admission = owner.reserve({ slots: 1, metadata: 32, work: 5 });
+      if (saved.value !== undefined) await textToken(owner, saved.value, this.signal);
+      if (!watch.valid()) throw new ArrayFailure("stale binding");
+      binding = store.get(name)?.retain();
+      typedSavedVariables.set(saved, { owner, binding, tickets, prepared: { name: token, admission }, watch });
+    } catch (error) { await binding?.release(); await owner.close(); throw error; }
+  }
+
+  async unsetIndexed(state: State, name: string, index?: number | "members"): Promise<void> {
+    const store = requireArrays(state);
+    const operation = ArrayOwner.create(store.owner.ledger, store.owner);
+    let staged: IndexedBinding | undefined;
+    try {
+      if (state.readonlyVariables?.has(name)) throw new ArrayFailure("readonly binding");
+      const watch = await store.watch(name, operation, this.signal);
+      const tickets = operation.reserve({ generation: true, version: true, epoch: true, work: 8 });
+      const current = store.get(name);
+      if (index !== undefined && current) {
+        staged = index === "members" ? IndexedBinding.create(store.owner) : await current.copy(this.signal);
+        let maximum = -1;
+        for (const key of staged.values.keys()) {
+          operation.reserve({ work: 2 }).release();
+          if (key !== index && key > maximum) maximum = key;
+          await operation.ledger.checkpoint(this.signal, 2);
+        }
+        if (typeof index === "number") staged.values.get(index)?.slot.release();
+        staged.maximum = maximum;
+      }
+      this.signal.throwIfAborted();
+      if (state.readonlyVariables?.has(name)) throw new ArrayFailure("readonly binding");
+      if (!watch.valid()) throw new ArrayFailure("stale binding");
+      let released: Promise<void> | undefined;
+      stateMonitor(state)!.publish(tickets, name, () => {
+        if (staged) released = store.publish(name, staged, tickets);
+        else if (index === undefined) {
+          released = store.remove(name, tickets);
+          delete state.variables[name];
+          state.exported.delete(name);
+        } else if (index === 0 || index === "members") delete state.variables[name];
+      });
+      staged = undefined;
+      watch.close();
+      await released;
+    } finally { await staged?.release(); await operation.close(); }
+  }
+
+  async arrayZero(state: State, name: string, expand: () => Promise<string>, append = false, freeze = false): Promise<void> {
+    const store = requireArrays(state);
+    const operation = ArrayOwner.create(store.owner.ledger, store.owner);
+    let staged: IndexedBinding | undefined;
+    try {
+      const watch = await store.watch(name, operation, this.signal);
+      const tickets = operation.reserve({ generation: true, version: true, epoch: true, work: 8 });
+      const expanded = await expand();
+      this.signal.throwIfAborted();
+      if (state.readonlyVariables?.has(name)) throw new ArrayFailure("readonly binding");
+      if (!watch.valid()) throw new ArrayFailure("stale binding");
+      const current = store.get(name);
+      if (!current) throw new ArrayFailure("stale binding");
+      staged = await current.copy(this.signal);
+      const value = append ? this.arrayJoin(operation, [current.get(0) ?? "", expanded], "") : expanded;
+      const token = await textToken(staged.owner, value, this.signal);
+      try { staged.insert(0, token); } catch (error) { token.release(); throw error; }
+      this.signal.throwIfAborted();
+      if (state.readonlyVariables?.has(name)) throw new ArrayFailure("readonly binding");
+      if (!watch.valid()) throw new ArrayFailure("stale binding");
+      let released: Promise<void> | undefined;
+      stateMonitor(state)!.publish(tickets, name, () => {
+        released = store.publish(name, staged!, tickets);
+        if (freeze) { state.readonlyVariables ??= new Set(); state.readonlyVariables.add(name); }
+      });
+      staged = undefined;
+      watch.close();
+      await released;
+    } finally { await staged?.release(); await operation.close(); }
+  }
+
+  arrayJoin(owner: ArrayOwner, values: readonly string[], separator: string): string {
+    let bytes = 0;
+    for (const value of values) bytes = exactSum(bytes, Buffer.byteLength(value));
+    bytes = exactSum(bytes, Math.max(0, values.length - 1) * Buffer.byteLength(separator));
+    owner.reserve({ metadata: exactSum(96, values.length * 32), payload: bytes, allocatedSlots: values.length, work: values.length * 3 + 7 });
+    this.signal.throwIfAborted();
+    return values.join(separator);
+  }
+
+  async arrayAssignment(assignment: ArrayAssignment, state: State, io: IO): Promise<void> {
+    const name = assignment.name;
+    this.signal.throwIfAborted();
+    if (state.readonlyVariables?.has(name)) throw new ArrayFailure("readonly binding");
+    if (controlNames.has(name)) throw new ArrayFailure("control binding cannot be indexed");
+    if (state.exported.has(name)) throw new ArrayFailure("exported binding cannot be indexed");
+    const store = requireArrays(state);
+    const operation = ArrayOwner.create(store.owner.ledger, store.owner);
+    let staged: IndexedBinding | undefined;
+    try {
+      const watch = await store.watch(name, operation, this.signal);
+      const current = store.get(name);
+      const initialMaximum = current?.maximum ?? (state.variables[name] === undefined ? -1 : 0);
+      let planned: number | null = assignment.append && assignment.kind === "compound" ? initialMaximum + 1 : 0;
+      if (assignment.kind === "element") {
+        operation.reserve({ work: assignment.index.decimal.length + 1 }).release();
+        if (numericIndex(assignment.index) === undefined) throw new ArrayFailure("index outside 0..2147483647");
+      } else for (const entry of assignment.entries) {
+        operation.reserve({ work: entry.value.parts.length + (entry.index?.decimal.length ?? 0) + 2 }).release();
+        if (entry.index) {
+          const index = numericIndex(entry.index);
+          if (index === undefined) throw new ArrayFailure("index outside 0..2147483647");
+          planned = index + 1;
+        } else {
+          const certain = entry.value.parts.every(part => part.kind === "text" && (part.quoted || !/[*?[]/u.test(part.value)));
+          if (certain && planned !== null) {
+            if (planned > 2147483647) throw new ArrayFailure("index outside 0..2147483647");
+            planned++;
+          } else planned = null;
+        }
+        await operation.ledger.checkpoint(this.signal, entry.value.parts.length + 2);
+      }
+      const tickets = operation.reserve({ generation: true, version: true, epoch: true, work: 8 });
+      const prepared = await store.prepareName(name, operation, this.signal);
+      const preserve = assignment.kind === "element" || assignment.append;
+      staged = preserve && current ? await current.copy(this.signal) : IndexedBinding.create(store.owner);
+      if (preserve && !current && state.variables[name] !== undefined) {
+        const token = await textToken(staged.owner, state.variables[name]!, this.signal);
+        try { staged.insert(0, token); } catch (error) { token.release(); throw error; }
+      }
+      let writes = 0;
+      let cursor = assignment.append && assignment.kind === "compound" ? initialMaximum + 1 : 0;
+      const insert = async (index: number, value: string) => {
+        if (index > 2147483647) throw new ArrayFailure("index outside 0..2147483647");
+        const token = await textToken(staged!.owner, value, this.signal);
+        try { staged!.insert(index, token); } catch (error) { token.release(); throw error; }
+        writes++;
+      };
+      if (assignment.kind === "element") {
+        const index = numericIndex(assignment.index)!;
+        const fields = await this.word(assignment.value, state, io, false);
+        let value = this.arrayJoin(operation, fields, "");
+        if (assignment.append) value = this.arrayJoin(operation, [staged.get(index) ?? "", value], "");
+        await insert(index, value);
+      } else for (const entry of assignment.entries) {
+        const fields = await this.word(entry.value, state, io, entry.index === undefined);
+        if (entry.index) {
+          const index = numericIndex(entry.index)!;
+          await insert(index, this.arrayJoin(operation, fields, ""));
+          cursor = index + 1;
+        } else for (const value of fields) { await insert(cursor, value); cursor++; }
+      }
+      this.signal.throwIfAborted();
+      if (state.readonlyVariables?.has(name)) throw new ArrayFailure("readonly binding");
+      if (!watch.valid()) throw new ArrayFailure("stale binding");
+      if (!(assignment.kind === "compound" && assignment.append && writes === 0)) {
+        let released: Promise<void> | undefined;
+        stateMonitor(state)!.publish(tickets, name, () => {
+          delete state.variables[name];
+          released = store.publish(name, staged!, tickets, prepared);
+        });
+        staged = undefined;
+        await released;
+      }
+      watch.close();
+    } finally { await staged?.release(); await operation.close(); }
   }
 
   async run(script: Script, state: State, io: IO): Promise<number> {
@@ -961,6 +1191,7 @@ export class Runtime {
   }
 
   async runUnit(script: Script, state: State, io: IO): Promise<{ exitCode: number; terminated: boolean }> {
+    state = trackState(state, this.budget, io[invocationScope]);
     try { return { exitCode: await this.script(script, state, io), terminated: false }; }
     catch (error) {
       if (error instanceof Flow && error.kind === "exit") return { exitCode: error.status, terminated: true };
@@ -1036,7 +1267,9 @@ export class Runtime {
           try {
             let exitCode: number;
             try {
-              exitCode = await interruptible(runtime.runCommandIsolated(command, { ...cloneState(state), isolated: true }, {
+              const child = await cloneState(state, this.signal);
+              child.isolated = true;
+              exitCode = await interruptible(runtime.runCommandIsolated(command, child, {
                 ...isolateIO(io),
                 stdin: input,
                 ...(incoming ? { stdinIsDefault: false } : {}),
@@ -1108,6 +1341,7 @@ export class Runtime {
   }
 
   async executeCommand(command: Command, state: State, originalIO: IO, fileShortcut = false): Promise<number> {
+    state = trackState(state, this.budget, originalIO[invocationScope]);
     originalIO = activeIO(originalIO);
     originalIO.descriptors ??= new Map<number, Descriptor>([
       [0, { input: originalIO.stdin, ...(originalIO.stdinIsDefault === undefined ? {} : { stdinIsDefault: originalIO.stdinIsDefault }) }],
@@ -1138,7 +1372,7 @@ export class Runtime {
         catch (error) { throw new Error(`((: ${message(error)}`); }
       }
       if (command.kind === "subshell") {
-        const child = cloneState(state);
+        const child = await cloneState(state, this.signal);
         child.isolated = true;
         child.loopDepth = 0;
         return await this.run(command.body, child, io);
@@ -1177,7 +1411,7 @@ export class Runtime {
           const values = command.words ? await this.words(command.words, state, io) : state.positional;
           for (const value of values) {
             this.budget.loop();
-            this.writeVariable(state, command.name, value);
+            await this.assignVariable(state, command.name, value);
             const result = await this.loopBody(command.body, state, io);
             status = result.status;
             if (result.stop) break;
@@ -1398,20 +1632,20 @@ export class Runtime {
     finally { if (this.fileWrites.get(path) === pending) this.fileWrites.delete(path); }
   }
 
-  assignment(word: Word): { name: string; value: Word } | undefined {
+  assignment(word: Word): { name: string; value: Word; append: boolean } | undefined {
     const first = word.parts[0];
     if (first?.kind !== "text" || first.quoted) return undefined;
-    const match = /^([a-zA-Z_][a-zA-Z_0-9]*)=/u.exec(first.value);
+    const match = /^([a-zA-Z_][a-zA-Z_0-9]*)(\+?)=/u.exec(first.value);
     if (!match) return undefined;
-    return { name: match[1]!, value: { offset: word.offset, parts: [{ ...first, value: first.value.slice(match[0].length) }, ...word.parts.slice(1)] } };
+    return { name: match[1]!, append: match[2] === "+", value: { offset: word.offset, parts: [{ ...first, value: first.value.slice(match[0].length) }, ...word.parts.slice(1)] } };
   }
 
   async simple(command: Extract<Command, { kind: "simple" }>, state: State, originalIO: IO, inputs: Set<ShellInput>, outputs: Set<() => void>, fileShortcut = false): Promise<number> {
     state.substitutionStatus = 0;
-    const assignments: { name: string; value: Word }[] = [];
+    const assignments: ({ name: string; value: Word; append: boolean; kind?: undefined } | ArrayAssignment)[] = [];
     let wordIndex = 0;
     for (; wordIndex < command.words.length; wordIndex++) {
-      const assignment = this.assignment(command.words[wordIndex]!);
+      const assignment = getArrayAssignment(command.words[wordIndex]!) ?? this.assignment(command.words[wordIndex]!);
       if (!assignment) break;
       assignments.push(assignment);
     }
@@ -1426,12 +1660,25 @@ export class Runtime {
     const inlineInput = command.redirects.some((redirect) => redirect.document || redirect.operator === "<<<");
     const functionCommand = words.length > 0 && state.functions.has(words[0]!);
     const isolatedInlineInput = inlineInput && words.length > 0 && !shellBuiltinNames.has(words[0]!) && !functionCommand;
-    if (isolatedInlineInput) state = cloneState(state);
+    if (isolatedInlineInput) state = await cloneState(state, this.signal);
     let io = originalIO;
     const previous = new Map<string, SavedVariable>();
     const assign = async () => {
       for (const assignment of assignments) {
-        const value = (await this.word(assignment.value, state, io, false)).join("");
+        if (assignment.kind) { await this.arrayAssignment(assignment, state, io); continue; }
+        if (arrayStore(state)?.get(assignment.name)) {
+          if (words.length) {
+            await this.word(assignment.value, state, io, false);
+            throw new ArrayFailure("indexed binding cannot be a command prefix");
+          }
+          await this.arrayZero(state, assignment.name, async () => {
+            const fields = await this.word(assignment.value, state, io, false);
+            return this.arrayJoin(requireArrays(state).owner, fields, "");
+          }, assignment.append);
+          continue;
+        }
+        let value = (await this.word(assignment.value, state, io, false)).join("");
+        if (assignment.append) value = (state.variables[assignment.name] ?? "") + value;
         if (state.readonlyVariables?.has(assignment.name)) {
           await this.diagnostic(io, `${assignment.name}: readonly variable`);
           if (state.profile === "sh" || !words.length) throw new Flow("exit", state.profile === "sh" && (special || !words.length) ? 127 : 1);
@@ -1487,7 +1734,7 @@ export class Runtime {
       throw new ExecutionFailure(error, io);
     } finally {
       if (words.length) for (const [key, saved] of previous) {
-        restoreVariable(state, key, saved);
+        await restoreVariable(state, key, saved);
       }
     }
   }
@@ -1573,7 +1820,7 @@ export class Runtime {
             state.depth--;
             state.locals.pop();
             for (const [name, previous] of locals) {
-              restoreVariable(state, name, previous);
+              await restoreVariable(state, name, previous);
               if (!previous.readOnly) state.readonlyVariables?.delete(name);
             }
             if (locals.has("OPTIND")) {
@@ -1609,7 +1856,7 @@ export class Runtime {
         if (context.command !== "cd" && state.cwd === context.cwd && state.directoryStackCwdPublication === directoryStackCwdPublication) state.cwd = cwd;
         for (const [key, saved] of previous) {
           if (state.variables[key] !== saved.overlay) continue;
-          restoreVariable(state, key, saved);
+          await restoreVariable(state, key, saved);
         }
       }
     });
@@ -1866,7 +2113,7 @@ export class Runtime {
   private static readonly envShebangCommand = executionCommands(() => { throw new Error("Unreserved shebang invocation"); }).find(command => command.name === "env");
 
   private shebangState(context: CommandContext, state: State): State {
-    const child = cloneState(state);
+    const child = await cloneState(state, this.signal);
     child.cwd = resolvePath("/", context.cwd);
     for (const key of child.exported) delete child.variables[key];
     for (const [key, value] of Object.entries(context.env)) {
@@ -2233,7 +2480,7 @@ export class Runtime {
 
   private async invokeScoped(name: string, args: readonly string[], options: ShellInvokeOptions, context: ShellCommandContext, state: State, scope: InvocationScope): Promise<{ exitCode: number }> {
     this.signal.throwIfAborted();
-    const child = cloneState(state);
+    const child = await cloneState(state, this.signal);
     child.cwd = resolvePath(context.cwd, options.cwd ?? ".");
     for (const key of child.exported) delete child.variables[key];
     const env = options.replaceEnv ? { ...options.env } : { ...context.env, ...options.env, PWD: child.cwd };
@@ -2376,7 +2623,7 @@ export class Runtime {
     if (result.argument.kind === "set") this.writeVariable(state, "OPTARG", result.argument.value, "getopts");
     else this.unsetVariable(state, "OPTARG", true);
     if (!/^[a-zA-Z_][a-zA-Z_0-9]*$/u.test(name)) throw new Error(`getopts: \`${name}': not a valid identifier`);
-    this.writeVariable(state, name, result.option, "getopts");
+    await this.assignVariable(state, name, result.option, "getopts");
     return result.status;
   }
 
@@ -2663,6 +2910,7 @@ export class Runtime {
       let status = 0;
       if (!declarationArgs.length) {
         const names = command === "readonly" ? state.readonlyVariables ?? [] : state.exported;
+        for (const name of names) if (arrayStore(state)?.get(name)) { await this.diagnostic(context, "indexed array: listing indexed bindings is unsupported"); return 2; }
         const prefix = state.profile === "sh" ? command : command === "readonly" ? "declare -r" : "declare -x";
         for (const name of [...names].sort()) await writeText(stdout, `${prefix} ${name}=${JSON.stringify(state.variables[name] ?? "")}\n`);
       }
@@ -2673,13 +2921,48 @@ export class Runtime {
         if (state.readonlyVariables?.has(name) && (match[2] !== undefined || command === "local")) {
           await this.diagnostic(context, `${name}: readonly variable`); status = 1; continue;
         }
+        if (arrayStore(state)?.get(name) && command === "export") {
+          await this.diagnostic(context, "indexed array: indexed binding cannot be exported"); status = 1; continue;
+        }
         if (command === "local" && !locals!.has(name)) {
-          locals!.set(name, assignments.get(name) ?? saveVariable(state, name));
+          const saved = assignments.get(name) ?? saveVariable(state, name);
+          if (arrayStore(state)?.get(name)) {
+            await this.prepareVariable(state, name, saved);
+            const store = requireArrays(state);
+            const operation = ArrayOwner.create(store.owner.ledger, store.owner);
+            let shadow: IndexedBinding | undefined;
+            try {
+              const tickets = operation.reserve({ generation: true, version: true, epoch: true, work: 8 });
+              shadow = IndexedBinding.create(store.owner);
+              if (match[2] !== undefined) {
+                const token = await textToken(shadow.owner, match[2], this.signal);
+                try { shadow.insert(0, token); } catch (error) { token.release(); throw error; }
+              }
+              this.signal.throwIfAborted();
+              if (state.readonlyVariables?.has(name)) throw new ArrayFailure("readonly binding");
+              if (!typedSavedVariables.get(saved)!.watch.valid()) throw new ArrayFailure("stale binding");
+              let released: Promise<void> | undefined;
+              stateMonitor(state)!.publish(tickets, name, () => {
+                locals!.set(name, saved);
+                released = store.publish(name, shadow!, tickets);
+              });
+              shadow = undefined;
+              await released;
+            } finally { await shadow?.release(); await operation.close(); }
+            assignments.delete(name);
+            continue;
+          }
+          locals!.set(name, saved);
           if (!assignments.has(name) && match[2] === undefined) delete state.variables[name];
           if (name === "OPTIND") {
             state.getopts ??= cloneGetoptsBinding(state);
             state.getopts.integer = false;
           }
+        }
+        if (match[2] !== undefined && arrayStore(state)?.get(name)) {
+          await this.arrayZero(state, name, async () => match[2]!, false, command === "readonly");
+          assignments.delete(name);
+          continue;
         }
         if (match[2] !== undefined) this.writeVariable(state, name, match[2]);
         else if (command === "local" && name === "OPTIND") this.syncGetopts(state);
@@ -2692,10 +2975,26 @@ export class Runtime {
     if (command === "unset") {
       let status = 0;
       for (const name of args) {
+        const selected = /^([a-zA-Z_][a-zA-Z_0-9]*)\[(.*)\]$/su.exec(name);
+        if (selected) {
+          const base = selected[1]!;
+          const selector = selected[2]!;
+          if (state.readonlyVariables?.has(base)) { await this.diagnostic(context, "indexed array: readonly binding"); status = 1; continue; }
+          if (selector === "@" || selector === "*") await this.unsetIndexed(state, base, "members");
+          else {
+            let index: number | undefined;
+            try { index = numericIndex(literalIndex(selector, 0)); }
+            catch { await this.diagnostic(context, "indexed array: unsupported subscript"); status = 2; continue; }
+            if (index === undefined) { await this.diagnostic(context, "indexed array: index outside 0..2147483647"); status = 1; continue; }
+            await this.unsetIndexed(state, base, index);
+          }
+          continue;
+        }
         if (!/^[a-zA-Z_][a-zA-Z_0-9]*$/u.test(name)) { await writeText(stderr, `unset: ${name}: not a valid identifier\n`); status = 1; continue; }
         if (state.readonlyVariables?.has(name)) { await this.diagnostic(context, `unset: ${name}: cannot unset: readonly variable`); status = 1; continue; }
         if (name === "PATH") state.pathUnset = true;
-        this.unsetVariable(state, name);
+        if (arrayStore(state)?.get(name)) await this.unsetIndexed(state, name);
+        else this.unsetVariable(state, name);
         if (state.profile === "sh") assignments.delete(name);
       }
       return status;
@@ -2772,7 +3071,7 @@ export class Runtime {
             return index === names.length - 1 ? 1 : 2;
           }
           const field = fields[index];
-          this.writeVariable(state, names[index]!, field ? characters.slice(field.start, index === names.length - 1 && fields.length > names.length ? end : field.end).join("") : "");
+          await this.assignVariable(state, names[index]!, field ? characters.slice(field.start, index === names.length - 1 && fields.length > names.length ? end : field.end).join("") : "");
         }
       }
       return line.terminated ? 0 : 1;
@@ -2819,7 +3118,7 @@ export class Runtime {
     if (part.kind === "substitution") {
       if (state.depth >= this.budget.limits.maxSubstitutionDepth) this.budget.fail("maxSubstitutionDepth");
       const capture = new Capture();
-      const child = cloneState(state);
+      const child = await cloneState(state, this.signal);
       child.isolated = true;
       if (state.profile !== "sh") child.errexit = false;
       for (const [name, value] of state.redirectAssignments ?? []) {
@@ -2843,20 +3142,44 @@ export class Runtime {
       if (bytes.includes(0)) await writeText(io.stderr, `${io.scriptName ?? "shell"}: line ${warningLine}: warning: command substitution: ignored null byte in input\n`);
       return new TextDecoder().decode(bytes.includes(0) ? bytes.filter((byte) => byte !== 0) : bytes).replace(/\n+$/u, "");
     }
+    const selector = getArraySelector(part);
+    if (selector) {
+      const store = requireArrays(state);
+      const binding = store.get(part.name);
+      if (selector.kind === "element") {
+        const index = numericIndex(selector.index);
+        if (index === undefined) throw new ArrayFailure("index outside 0..2147483647");
+        const value = binding ? binding.get(index) : index === 0 ? state.variables[part.name] : undefined;
+        return part.length ? String(Array.from(value ?? "").length) : value ?? "";
+      }
+      if (part.length) return String(binding?.values.size ?? (state.variables[part.name] === undefined ? 0 : 1));
+      const values = await this.arrayMembers(part.name, state);
+      return this.arrayJoin(store.owner, values, Array.from(state.variables.IFS ?? " ")[0] ?? "");
+    }
     let value = part.name === "?" ? String(state.status)
       : part.name === "-" ? state.errexit ? "e" : ""
       : part.name === "#" ? String(state.positional.length)
       : part.name === "@" || part.name === "*" ? state.positional.join(hereString && (part.name === "@" || !part.quoted) ? " " : Array.from(state.variables.IFS ?? " ")[0] ?? "")
       : /^0+$/u.test(part.name) ? state.arg0 ?? "virtual-bash"
       : /^\d+$/u.test(part.name) ? state.positional[Number(part.name) - 1]
-      : state.variables[part.name];
+      : this.variable(state, part.name);
     if (part.substring) return this.substring(part, value, state, io);
     if (part.operator) {
       if (["#", "##", "%", "%%"].includes(part.operator) || part.operator.startsWith("/")) return this.parameterPattern(part, value ?? "", state, io, hereString);
       const missing = value === undefined || (part.operator.startsWith(":") && value === "");
       const operator = part.operator.at(-1)!;
       if ((operator === "+" && !missing) || (operator !== "+" && missing)) {
-        const alternate = (await this.word(part.alternate!, state, io, false, false, hereString)).join("");
+        let alternate: string;
+        if (operator === "=" && arrayStore(state)?.get(part.name)) {
+          alternate = "";
+          await this.arrayZero(state, part.name, async () => {
+            alternate = this.arrayJoin(requireArrays(state).owner, await this.word(part.alternate!, state, io, false, false, hereString), "");
+            return alternate;
+          });
+          value = alternate;
+          return part.length ? String(Array.from(value).length) : value;
+        }
+        alternate = (await this.word(part.alternate!, state, io, false, false, hereString)).join("");
         if (operator === "?") throw new ParameterExpansionFailure(`${part.name}: ${alternate || (part.operator.startsWith(":") ? "parameter null or not set" : "parameter not set")}`, io.diagnosticLine ?? part.line);
         if (operator === "=") {
           if (!/^[a-zA-Z_][a-zA-Z_0-9]*$/u.test(part.name)) throw new Error("Cannot assign special parameter");
@@ -2990,6 +3313,9 @@ export class Runtime {
   }
 
   async word(word: Word, state: State, io: IO, split = true, pattern = false, hereString = false): Promise<string[]> {
+    const arrayOwned = word.parts.some(part => part.kind === "variable" && (getArraySelector(part) !== undefined || arrayStore(state)?.get(part.name) !== undefined));
+    const owner = arrayOwned ? requireArrays(state).owner : undefined;
+    owner?.reserve({ metadata: 128 + word.parts.length * 32, allocatedSlots: word.parts.length + 1, work: word.parts.length + 5 });
     const fields: { value: string; pattern: string; present: boolean }[] = [{ value: "", pattern: "", present: false }];
     let expansionBytes = 0;
     const append = (value: string, glob: boolean, present: boolean) => {
@@ -2997,6 +3323,7 @@ export class Runtime {
       if (size > this.budget.limits.maxExpansionBytes - expansionBytes) this.budget.fail("maxExpansionBytes");
       expansionBytes += size;
       const field = fields.at(-1)!;
+      if (owner) owner.reserve({ payload: exactSum(Buffer.byteLength(field.value) + size, Buffer.byteLength(field.pattern) + (glob ? size : size * 2)), metadata: 64, work: value.length + 8 });
       field.value += value;
       field.pattern += glob ? value : value.replace(/[\\*?[\]\-^]/gu, "\\$&");
       field.present ||= present;
@@ -3005,16 +3332,46 @@ export class Runtime {
     for (let index = 0; index < parts.length; index++) {
       const { part, splitText } = parts[index]!;
       if (part.kind === "variable" && ["-", "+", ":-", ":+"].includes(part.operator ?? "") && /^[a-zA-Z_][a-zA-Z_0-9]*$/u.test(part.name)) {
-        const value = state.variables[part.name];
+        const value = this.variable(state, part.name);
         const missing = value === undefined || (part.operator!.startsWith(":") && value === "");
         if (part.operator!.endsWith("+") ? !missing : missing) {
-          const alternate = part.alternate!.parts.map((entry) => ({ part: { ...entry, quoted: entry.quoted || part.quoted }, splitText: true }));
+          const alternate = part.alternate!.parts.map((entry) => ({ part: copyArraySelector(entry, { ...entry, quoted: entry.quoted || part.quoted }), splitText: true }));
           if (!alternate.length && part.quoted) append("", false, true);
           parts.splice(index + 1, 0, ...alternate);
           continue;
         }
       }
-      if (part.kind === "text" && !splitText) {
+      const selector = getArraySelector(part);
+      if (part.kind === "variable" && selector?.kind === "members" && !part.length && split && (!part.quoted || selector.separator === "@")) {
+        const members = await this.arrayMembers(part.name, state);
+        for (let position = 0; position < members.length; position++) {
+          if (position > 0) {
+            owner?.reserve({ metadata: 32, allocatedSlots: 1, work: 3 });
+            fields.push({ value: "", pattern: "", present: false });
+          }
+          const value = members[position]!;
+          if (part.quoted || state.variables.IFS === "") append(value, !part.quoted, part.quoted || value.length > 0);
+          else {
+            const separators = state.variables.IFS ?? " \t\n";
+            let boundary = false;
+            for (const character of value) {
+              if (separators.includes(character)) {
+                if (!/[ \t\n]/u.test(character)) {
+                  fields.at(-1)!.present = true;
+                  owner?.reserve({ metadata: 32, allocatedSlots: 1, work: 3 });
+                  fields.push({ value: "", pattern: "", present: false });
+                } else if (fields.at(-1)!.present) boundary = true;
+              } else {
+                if (boundary) { owner?.reserve({ metadata: 32, allocatedSlots: 1, work: 3 }); fields.push({ value: "", pattern: "", present: false }); }
+                boundary = false;
+                append(character, true, true);
+              }
+              await owner!.ledger.checkpoint(this.signal);
+            }
+            if (boundary) { owner?.reserve({ metadata: 32, allocatedSlots: 1, work: 3 }); fields.push({ value: "", pattern: "", present: false }); }
+          }
+        }
+      } else if (part.kind === "text" && !splitText) {
         let value = part.value;
         if (index === 0 && !part.quoted && /^~(?:\/|$)/u.test(value)) value = (state.variables.HOME ?? "~") + value.slice(1);
         append(value, !part.quoted, part.quoted || value.length > 0);
@@ -3046,6 +3403,7 @@ export class Runtime {
         }
       }
       if (fields.length > this.budget.limits.maxExpansionFields) this.budget.fail("maxExpansionFields");
+      if (owner) await owner.ledger.checkpoint(this.signal);
     }
     const result: string[] = [];
     let resultBytes = 0;
@@ -3055,11 +3413,38 @@ export class Runtime {
         const size = Buffer.byteLength(value);
         if (size > this.budget.limits.maxExpansionBytes - resultBytes) this.budget.fail("maxExpansionBytes");
         resultBytes += size;
+        owner?.reserve({ metadata: 32, allocatedSlots: 1, work: 3 });
         result.push(value);
       }
       if (result.length > this.budget.limits.maxExpansionFields) this.budget.fail("maxExpansionFields");
     }
     return result;
+  }
+
+  async arrayMembers(name: string, state: State): Promise<string[]> {
+    const store = requireArrays(state);
+    const binding = store.get(name);
+    store.owner.reserve({ metadata: 64, work: 3 });
+    if (!binding) {
+      const value = state.variables[name];
+      if (value === undefined) return [];
+      store.owner.reserve({ metadata: 32, allocatedSlots: 1, work: 3 });
+      await textToken(store.owner, value, this.signal);
+      return [value];
+    }
+    binding.retain();
+    try {
+      const indices = await binding.indices(store.owner, this.signal);
+      const values: string[] = [];
+      for (const index of indices) {
+        store.owner.reserve({ metadata: 32, allocatedSlots: 1, work: 4 });
+        const value = binding.get(index)!;
+        await textToken(store.owner, value, this.signal);
+        values.push(value);
+        await store.owner.ledger.checkpoint(this.signal);
+      }
+      return values;
+    } finally { await binding.release(); }
   }
 
   async glob(value: string, pattern: string, state: State): Promise<string[]> {

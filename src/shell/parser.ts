@@ -1,6 +1,8 @@
 import { ShellSyntaxError } from "./types.js";
 import { arithmeticEnd, prepareArithmetic } from "./arithmetic.js";
 import type { ArithmeticProgram } from "./arithmetic.js";
+import { arraySelector, compoundEntry, compoundHead, elementAssignment, getArrayAssignment, scalarAssignmentName, setArrayAssignment, setArraySelector } from "./arrays/syntax.js";
+import type { ArrayEntry, ArraySelector } from "./arrays/syntax.js";
 
 export type WordPart =
   | { kind: "text"; value: string; quoted: boolean }
@@ -445,6 +447,16 @@ class Lexer {
       const name = /^(?:[a-zA-Z_][a-zA-Z_0-9]*|[0-9]+|[?@*#-])/u.exec(this.source.slice(this.position))?.[0];
       if (!name) this.error("Unsupported parameter expansion");
       this.position += name.length;
+      let selector: ArraySelector | undefined;
+      if (this.source[this.position] === "[") {
+        if (!/^[a-zA-Z_][a-zA-Z_0-9]*$/u.test(name)) this.error("Unsupported indexed-array parameter");
+        const start = ++this.position;
+        const end = this.source.indexOf("]", start);
+        if (end < 0) this.error("Unterminated indexed-array subscript");
+        selector = arraySelector(this.source.slice(start, end), start);
+        this.position = end + 1;
+        if (this.source[this.position] !== "}") this.error("Unsupported indexed-array operator");
+      }
       const operator = /^(?::[-=+?]|##|%%|\/\/|\/[#%]?|[-=+?#%])/u.exec(this.source.slice(this.position))?.[0];
       let alternate: Word | undefined;
       let replacement: Word | undefined;
@@ -470,7 +482,9 @@ class Lexer {
       }
       if (this.source[this.position] !== "}") this.error("Unterminated or unsupported parameter expansion");
       this.position++;
-      parts.push({ kind: "variable", name, quoted, line, ...(length ? { length } : {}), ...(operator ? { operator, alternate: alternate! } : {}), ...(replacement ? { replacement } : {}), ...(substring ? { substring } : {}) });
+      const part: WordPart = { kind: "variable", name, quoted, line, ...(length ? { length } : {}), ...(operator ? { operator, alternate: alternate! } : {}), ...(replacement ? { replacement } : {}), ...(substring ? { substring } : {}) };
+      if (selector) setArraySelector(part, selector);
+      parts.push(part);
     } else {
       const name = /^(?:[a-zA-Z_][a-zA-Z_0-9]*|[?@*#0-9-])/u.exec(this.source.slice(this.position))?.[0];
       if (name) {
@@ -658,7 +672,7 @@ class Parser {
       const body = this.nonemptyScript(new Set(["done"]));
       this.expect("done");
       command = { kind: "for", name, ...(words ? { words } : {}), body, redirects: [] };
-    } else if (this.current.kind === "word" && this.peek().value === "(") {
+    } else if (this.current.kind === "word" && !compoundHead(this.current.word!) && this.peek().value === "(") {
       const name = this.advance().value;
       if (!/^[a-zA-Z_][a-zA-Z_0-9]*$/u.test(name)) this.error("Invalid function name");
       this.expect("(");
@@ -675,10 +689,32 @@ class Parser {
         const wordLine = this.lexer.lineAt(Math.max(this.current.offset, this.current.end - 1));
         const redirect = this.redirect();
         if (redirect) { line ??= redirect.line; redirects.push(redirect); }
-        else if (this.current.kind === "word") { line ??= wordLine; words.push(this.advance().word!); }
+        else if (this.current.kind === "word") {
+          line ??= wordLine;
+          let word = this.advance().word!;
+          const head = compoundHead(word);
+          if (head && this.is("(")) {
+            this.advance();
+            const entries: ArrayEntry[] = [];
+            this.newlines();
+            while (this.current.kind === "word") {
+              entries.push(compoundEntry(this.advance().word!));
+              this.newlines();
+            }
+            if (!this.is(")")) this.error("Unsupported indexed-array compound assignment");
+            const end = this.advance().end;
+            word = { offset: word.offset, parts: word.parts, spelling: this.lexer.source.slice(word.offset, end) };
+            setArrayAssignment(word, { kind: "compound", ...head, entries });
+          } else {
+            const assignment = elementAssignment(word);
+            if (assignment) setArrayAssignment(word, assignment);
+          }
+          words.push(word);
+        }
         else break;
       }
       if (!words.length && !redirects.length) this.error("Expected command");
+      if (words.some(word => getArrayAssignment(word)) && words.some(word => !getArrayAssignment(word) && !scalarAssignmentName(word))) this.error("Indexed-array command prefixes are unsupported");
       return { kind: "simple", words, redirects, ...(line === undefined ? {} : { line }) };
     }
     let redirect: Redirect | undefined;

@@ -1,0 +1,112 @@
+import assert from "node:assert/strict";
+import test from "node:test";
+import { Shell } from "../../../src/shell/shell.js";
+import { MemoryFileSystem } from "../../../src/fs/memory/index.js";
+import { basicCommands } from "../../../src/commands/basic.js";
+import { ArrayLedger, ArrayOwner } from "../../../src/shell/arrays/ledger.js";
+import { BindingStore } from "../../../src/shell/arrays/bindings.js";
+
+function shell(): Shell {
+  const result = new Shell({ fs: new MemoryFileSystem() });
+  for (const command of basicCommands()) if (command.name === "printf" || command.name === "echo") result.register(command);
+  return result;
+}
+
+async function output(source: string, expected: string, status = 0): Promise<void> {
+  const instance = shell();
+  try {
+    const result = await instance.exec(source);
+    assert.equal(result.stdout, expected, source + "\n" + result.stderr);
+    assert.equal(result.exitCode, status, source + "\n" + result.stderr);
+    if (status === 0 && !source.includes("||")) assert.equal(result.stderr, "", source);
+  } finally { await instance.dispose(); }
+}
+
+test("foundation: sparse assignment, append and distinct zero views", { timeout: 5000 }, async () => {
+  await output('a=([9]=nine [0]="" [2147483647]=max); printf "<%s>" "${a[@]}"; printf "/%s/%s/%s" "${#a[@]}" "${a-absent}" "${a:-empty}"', "<><nine><max>/3//empty");
+  await output('a=(A B); a+=([5]=F G); a[0]+=Z; a+=([1]=Q); printf "<%s>" "${a[@]}"', "<AZ><Q><F><G>");
+  await output('a=scalar; a[3]=three; printf "<%s>" "${a[@]}"; a=(); printf "/%s/%s" "${#a[@]}" "${a-missing}"', "<scalar><three>/0/missing");
+});
+
+test("foundation: repeated aggregate splice, quotes, IFS and empty fragments", { timeout: 5000 }, async () => {
+  await output('a=(A B); b=(C D); printf "<%s>" "${a[@]}:${b[@]}"', "<A><B:C><D>");
+  await output('a=(); printf "<%s>" pre"${a[@]}"post; printf "/%s" "${#a[@]}"', "<prepost>/0");
+  await output('a=(A B); IFS="💡x"; printf "<%s>" "${a[*]}"; IFS=; printf "<%s>" "${a[*]}"', "<A💡B><AB>");
+  await output('a=("A B" "" C); printf "<%s>" ${a[@]}', "<A><B><C>");
+});
+
+test("foundation: supported lazy bare operators preserve scalar behavior", { timeout: 5000 }, async () => {
+  for (const initial of ['a=([4]=four)', 'unset a']) {
+    await output(`${initial}; printf "<%s>" "${'${a:=zero}'}" "${'${a:+yes}'}" "${'${a:-no}'}" "${'${a#z}'}" "${'${a/er/X}'}" "${'${#a}'}"`, "<zero><yes><zero><ero><zXo><4>");
+  }
+  await output('a=(yes); printf "%s" "${a:-${side:=bad}}" "${side-unset}"', "yesunset");
+});
+
+test("foundation: static overflow suppresses RHS, dynamic zero arity does not consume", { timeout: 5000 }, async () => {
+  await output('a=([2147483647]=max); a+=(${side:=bad} literal) || printf "failed:"; printf "%s/%s" "${side-unset}" "${a[2147483647]}"', "failed:bad/max");
+  await output('a=([2147483647]=${side:=bad} next) || printf "failed:"; printf "%s" "${side-unset}"', "failed:unset");
+  await output('a=([2147483647]=max); a+=($missing); printf "%s/%s" "${#a[@]}" "${a[2147483647]}"', "1/max");
+});
+
+test("foundation: syntax refusal includes inactive branches and ordinary argv remains literal", { timeout: 5000 }, async () => {
+  await output('false && a[01]=bad', "", 2);
+  await output('a=(x) echo nope', "", 2);
+  await output('printf "%s" "a[1]=x"', "a[1]=x");
+  await output('printf "%s" "${a[0]:-x}"', "", 2);
+});
+
+test("foundation: element/aggregate unset retains kind; whole unset removes it", { timeout: 5000 }, async () => {
+  await output('a=([1]=x [2147483647]=y); unset "a[2147483647]"; a+=(z); printf "<%s>" "${a[@]}"; unset "a[@]"; a=zero; printf "/%s/%s" "${#a[@]}" "$a"', "<x><z>/1/zero");
+  await output('a=(x); unset a; a=scalar; printf "%s" "$a"', "scalar");
+});
+
+test("foundation: readonly, export phases and typed local restoration", { timeout: 5000 }, async () => {
+  await output('a=([3]=outer); f() { local a=inner; a[8]=tail; printf "<%s>" "${a[@]}"; readonly a; }; f; printf "<%s>" "${a[@]}"', "<inner><tail><outer>");
+  await output('a=(x y); readonly a=zero; a[0]=bad || printf "refused:"; printf "<%s>" "${a[@]}"', "refused:<zero><y>");
+  await output('export a=scalar; a=(${side:=bad}) || printf "refused:"; printf "%s/%s" "$a" "${side-unset}"', "refused:scalar/unset");
+  await output('a=(x); export a=bad || printf "refused:"; printf "%s" "$a"', "refused:x");
+});
+
+test("foundation: clones, functions, eval and fresh public exec", { timeout: 5000 }, async () => {
+  await output('a=(outer tail); (a[0]=child; printf "%s/" "$a"); printf "%s/" "$a"; eval "a[1]=changed"; printf "%s" "${a[1]}"', "child/outer/changed");
+  const instance = shell();
+  try {
+    assert.equal((await instance.exec('a=(first); printf "%s" "$a"')).stdout, "first");
+    assert.equal((await instance.exec('printf "%s" "${a-unset}"')).stdout, "unset");
+  } finally { await instance.dispose(); }
+});
+
+test("private ledger: seven formulas, atomic refusal and cumulative nonrefund", () => {
+  const ledger = new ArrayLedger(100, 10);
+  const admitted = ledger.reserve({ wrappers: 1, slots: 1, payload: 10, metadata: 32, generation: true, version: true, epoch: true, work: 8 });
+  assert.deepEqual(ledger.snapshot().caps, [10, 10, 100, 1280, 5920, 80, 5760]);
+  assert.deepEqual([admitted.generation, admitted.version, admitted.epoch], [1, 2, 3]);
+  const before = ledger.snapshot();
+  assert.throws(() => ledger.reserve({ wrappers: 11, payload: 101, epoch: true }), /private wrapper limit/u);
+  assert.deepEqual(ledger.snapshot(), before);
+  admitted.release();
+  assert.deepEqual(ledger.snapshot().used.slice(0, 4), [0, 0, 0, 0]);
+  assert.deepEqual(ledger.snapshot().used.slice(4), before.used.slice(4));
+  assert.equal(ledger.snapshot().lastIssued, 3);
+});
+
+test("private ledger: last observer retires, ABA gets fresh tickets, overlapping close single-flights", { timeout: 2000 }, async () => {
+  const ledger = new ArrayLedger(1000, 100);
+  const owner = ArrayOwner.create(ledger);
+  const store = BindingStore.create(owner);
+  const operation = ArrayOwner.create(ledger, owner);
+  const signal = new AbortController().signal;
+  const first = await store.watch("absent", operation, signal);
+  const second = await store.watch("absent", operation, signal);
+  assert.equal(store.watches.size, 1);
+  first.close();
+  assert.equal(store.watches.size, 1);
+  second.close();
+  assert.equal(store.watches.size, 0);
+  const third = await store.watch("absent", operation, signal);
+  assert.notEqual(third.generation, first.generation);
+  const closing = owner.close();
+  assert.equal(owner.close(), closing);
+  await closing;
+  assert.deepEqual(ledger.snapshot().used.slice(0, 4), [0, 0, 0, 0]);
+});

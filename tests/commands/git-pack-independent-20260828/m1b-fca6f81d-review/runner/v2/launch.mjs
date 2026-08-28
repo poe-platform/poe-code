@@ -21,7 +21,10 @@ async function file(filename, expected) {
 const args = process.argv.slice(2);
 demand(args.length === 4 && args[0] === '--root-receipt' && args[2] === '--expect-root' && /^[a-f0-9]{64}$/.test(args[3]) && typeof process.send === 'function', 'OUTER_OWNED_ROUTE_REQUIRED');
 const scope = path.dirname(path.dirname(path.dirname(fileURLToPath(import.meta.url))));
-const routeBytes = await file(path.resolve(args[1]));
+const routeFilename = path.resolve(args[1]);
+const routeStat = await fs.lstat(routeFilename);
+demand((routeStat.mode & 0o777) === 0o600 && routeStat.size <= 65536, 'ROOT_ROUTE_MODE_SIZE');
+const routeBytes = await file(routeFilename);
 demand(sha(routeBytes) === args[3], 'ROUTE_RAW_HASH');
 const route = JSON.parse(routeBytes.toString('utf8'));
 demand(JSON.stringify(Object.keys(route)) === JSON.stringify(['schema', 'recipeSha256', 'finalSealSha256', 'sourceCommit', 'derivedTree', 'packageSha256', 'componentReviews', 'outputRoot', 'originHrtimeNs', 'action']), 'ROOT_ROUTE_KEYS_ORDER');
@@ -31,6 +34,7 @@ demand(typeof route.originHrtimeNs === 'string' && /^[0-9]{1,24}$/.test(route.or
 const elapsedNs = process.hrtime.bigint() - BigInt(route.originHrtimeNs);
 demand(elapsedNs >= 0n && elapsedNs < 7200000000000n, 'ROOT_ORIGIN_EXPIRED');
 const origin = performance.now() - Number(elapsedNs) / 1000000;
+for (const name of ['RECIPE-v2.json', 'FINAL-SEAL-v2.json']) demand(((await fs.lstat(path.join(scope, name))).mode & 0o777) === 0o644, 'ROOT_CONTROL_MODE');
 const recipeBytes = await file(path.join(scope, 'RECIPE-v2.json'));
 const sealBytes = await file(path.join(scope, 'FINAL-SEAL-v2.json'));
 demand(sha(recipeBytes) === route.recipeSha256 && sha(sealBytes) === route.finalSealSha256, 'ROOT_RECIPE_SEAL');

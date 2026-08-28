@@ -71,7 +71,9 @@ try {
   const origin = BigInt(originNs);
   rootEnd = origin + 7200000000000n;
   demand(process.hrtime.bigint() >= origin && process.hrtime.bigint() < rootEnd - 5000000000n, 'ROOT_ORIGIN');
-  const routeBytes = await bound(routePath);
+  const routeStat = await fs.lstat(routePath);
+  demand((routeStat.mode & 0o777) === 0o600 && routeStat.size <= 65536, 'ROOT_ROUTE_MODE_SIZE');
+  const routeBytes = await bound(routePath, undefined, 65536);
   demand(sha(routeBytes) === routeHash, 'ROOT_ROUTE_HASH');
   const route = JSON.parse(routeBytes.toString('utf8'));
   demand(route.outputRoot === root && route.originHrtimeNs === originNs, 'ROOT_CAPTURE_ROUTE_BINDING');

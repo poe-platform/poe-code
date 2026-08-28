@@ -1,0 +1,152 @@
+{
+  "schemaVersion": 1,
+  "parentCheckpoint": "544f8279138cb1335ded08f9db638410e91c1324",
+  "initialHead": "08dd69d06a2f40edd31263631605ae153a9cf318",
+  "authenticationHead": "89e403e080ba2ac051bcc19a634d9e964620152d",
+  "date": "2026-08-28",
+  "scope": "Nine selected files and four bounded old packet trees; no whole-repository archive or candidate execution",
+  "primary": {
+    "url": "https://yaml.org/spec/1.2.2/",
+    "revision": "1.2.2",
+    "published": "2021-10-01",
+    "accessed": "2026-08-28",
+    "method": "web.run",
+    "snapshotRetained": false,
+    "pinpoints": [
+      "7.4.2: 140-149,154-155",
+      "7.5: 157,160",
+      "7.3.1: 109-116",
+      "6.3,6.5: 69,72-74",
+      "8.2.2: 192-193",
+      "10.2.1.4 and 10.3.2"
+    ]
+  },
+  "files": [
+    {
+      "id": "initial",
+      "commit": "b311c2364ceca13daab4086dfb21157b9b8ae856",
+      "path": "tests/commands/yq-design-20260828/initial-profile-v1/README.md",
+      "gitBlob": "4d74b959588b2708cca6d4d8e8f2aa8ee465da68",
+      "sha256": "75af84bd5e888a3080e9096b86ed0a25be95105524011851193b9bf39192ba50",
+      "bytes": 29498,
+      "compareWorktree": true
+    },
+    {
+      "id": "final-readme",
+      "commit": "5783b8e03912f7774d2a86ba1dae9de778121273",
+      "path": "tests/commands/yq-design-20260828/final-contract-v1/README.md",
+      "gitBlob": "a6550e0698ff588b5e2d4ca4289282793a6f4f32",
+      "sha256": "14cee48cac1803f92432b4f7df8f3311514b12277357805945bd11156e8646ff",
+      "bytes": 8158,
+      "compareWorktree": true
+    },
+    {
+      "id": "final",
+      "commit": "5783b8e03912f7774d2a86ba1dae9de778121273",
+      "path": "tests/commands/yq-design-20260828/final-contract-v1/contract.json",
+      "gitBlob": "a902a481993cbfd3b1a85ce8c54112ade65fbc81",
+      "sha256": "1b2cf2740586d6847286d5a28788beb748d09e8b2181f02e6476d3b7634cefb8",
+      "bytes": 37274,
+      "compareWorktree": true
+    },
+    {
+      "id": "adoption-readme",
+      "commit": "cfa6fbcb72c5a3e228c4ffbea7cb1719827b2707",
+      "path": "tests/commands/yq-design-20260828/final-adoption-v1/README.md",
+      "gitBlob": "289cd87cbd208578f16b5411dd44501fb0d03f48",
+      "sha256": "7e2f1a691409a09130f4cf2d539914eb76feab81d13c7cdc9f2c72d3a268c081",
+      "bytes": 5128,
+      "compareWorktree": true
+    },
+    {
+      "id": "adoption",
+      "commit": "cfa6fbcb72c5a3e228c4ffbea7cb1719827b2707",
+      "path": "tests/commands/yq-design-20260828/final-adoption-v1/adoption.json",
+      "gitBlob": "403173f53d1674cbe35c8166e6fcb3c56c25ab5b",
+      "sha256": "22e83a0e6f602103ac9378654dd62fc7098c461ac90b7385e5d6b06cec156be6",
+      "bytes": 8461,
+      "compareWorktree": true
+    },
+    {
+      "id": "numeric",
+      "commit": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "path": "src/commands/structured/numbers.ts",
+      "gitBlob": "fe90b5fcbef68a4a2a4aed164d7599d0dcd22630",
+      "sha256": "1ef4803e8311e554c8b11a590e75f4c9a96fb81614872587f534514fadfc7ae2",
+      "bytes": 6091,
+      "compareWorktree": true
+    },
+    {
+      "id": "checkpoint",
+      "commit": "544f8279138cb1335ded08f9db638410e91c1324",
+      "path": "tests/commands/yq-independent-20260828/reconciliation-v1/crosswalk.json",
+      "gitBlob": "19727506747a63f02ccc90cc8e63a098a8d28317",
+      "sha256": "c19081327f7e3d2602e0383078dd1acc05fbf2f70e6e60e4a7d9f895f4c34f4f",
+      "bytes": 12336,
+      "compareWorktree": true
+    },
+    {
+      "id": "length",
+      "commit": "3387a103798bb441764218d38696639d501d19d2",
+      "path": "tests/commands/yq-independent-20260828/query-budget/LENGTH-ACCEPTANCE-ADDENDUM.md",
+      "gitBlob": "ae15f35b39adf79830bbfafcf2f4c91356ded6e8",
+      "sha256": "77246ca464b245e4258e622f10014cff70aa0b7293209fd3e6fbbca18914e713",
+      "bytes": 2599,
+      "compareWorktree": true
+    },
+    {
+      "id": "prior-index",
+      "commit": "544f8279138cb1335ded08f9db638410e91c1324",
+      "path": "tests/commands/yq-independent-20260828/README.md",
+      "gitBlob": "7efe716189486e39004b44c55887d3c3fe65a20f",
+      "sha256": "fe17910dc150d5a84835c9739dfd754a64bd2cb56e50b1a6b008b54a7d9dd5c9",
+      "bytes": 2490,
+      "compareWorktree": false
+    }
+  ],
+  "trees": [
+    {
+      "name": "freeze",
+      "commit": "f074c142411ba839cbd9da45a499cc798965149d",
+      "path": "tests/commands/yq-independent-20260828/freeze",
+      "tree": "7ec5e3e15684a0799b7ab9d52f0d3335e56db013",
+      "files": 12,
+      "flat": true
+    },
+    {
+      "name": "normative",
+      "commit": "c75fad948ab185fc68e5fdbd49dce4727a279514",
+      "path": "tests/commands/yq-independent-20260828/normative",
+      "tree": "3dd68fd76a50082c690c442bc2e0fde8fd79abac",
+      "files": 6,
+      "flat": true
+    },
+    {
+      "name": "query-budget",
+      "commit": "3387a103798bb441764218d38696639d501d19d2",
+      "path": "tests/commands/yq-independent-20260828/query-budget",
+      "tree": "2b39f4898553dbdae8e2bc399fc55a2e1271cbdd",
+      "files": 7,
+      "flat": true
+    },
+    {
+      "name": "reconciliation-v1",
+      "commit": "544f8279138cb1335ded08f9db638410e91c1324",
+      "path": "tests/commands/yq-independent-20260828/reconciliation-v1",
+      "tree": "57e189f0b53a32a9479bd855c754dbb9a2258ba4",
+      "files": 4,
+      "flat": true
+    }
+  ],
+  "queryOriginalSeal": {
+    "commit": "3bc2ee8aa38e82773a1fbec1f0b67673b0928105",
+    "files": 6,
+    "tree": "58f001d04b85463af2cf06df210cbec74957a43a"
+  },
+  "execution": {
+    "product": 0,
+    "nativeOrReference": 0,
+    "typeOrBuild": 0,
+    "lengthReplay": 0
+  }
+}

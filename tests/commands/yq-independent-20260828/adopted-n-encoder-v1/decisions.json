@@ -1,0 +1,42 @@
+{
+  "schemaVersion": 1,
+  "state": "ROOT_ADOPTED_EXPECTATIONS_AWAITING_DIFFERENT_REVIEW",
+  "implementationAuthorized": false,
+  "rootAuthority": {
+    "kind": "current explicit root user assignment, recorded verbatim below; not a decision retroactively attributed to the parent",
+    "parentCheckpoint": "544f8279138cb1335ded08f9db638410e91c1324",
+    "finalContract": "5783b8e03912f7774d2a86ba1dae9de778121273",
+    "additiveAdoption": "cfa6fbcb72c5a3e228c4ffbea7cb1719827b2707",
+    "decisionQuotes": {
+      "N1": "N1 follow YAML1.2.2 PRODUCTION-SPECIFIC key restrictions, NOT blanket all quoted/braced flow keys singleline; derive exact newline-fold example from PRIMARYgrammar within declared supportedproductions and flag only remainingtrueambiguity.",
+      "N2": "N2 normalize NONZERO coefficient trailingzeros BEFORE normalized-exponent range admission; keep alreadysettled rawexponent-token/zero-exponent refusals, no pow/BigInt; 10e-1147483647 MAYadmitnormalized1e-1147483646 if allotherfrozengatespass.",
+      "N3": "N3 combine IMMEDIATELY ADJACENT literal \\uXXXX high+low surrogateescape pairs intoone scalar BEFOREvalidity; rejectunpaired/reversed/intervening/mismatched forms; \\U scalarvalidityunchanged.",
+      "N4": "N4 explicit tags DIRECTLYvalidate thattaglexicalfamily: !!float 7 allowed; !!int 7.0 rejected; no implicit-firstfamilyveto.",
+      "ENCODER": "Encoder NUL exact literal escape \\u0000.",
+      "QB-F1": "QB-F1 DESIGN ONLY newyq-ownedASYNCmeasurement/encoding traversal withownedcheckpoints inNEWfilesonly; existingcompiler/interpreterinternalbounded syncphases stillqualified/no broadrefactor.",
+      "QB-F2": "QB-F2 WHOLEalias-copywork preadmission INCLUDEScheckpointcharges; preflightestimation itself separatelycharged; actualprivateBudgetadmissionbeforecopy, consumeadmittedworkONCE/no refunds/no newBudgetperalias/doc, serializedsessionNOinterleavedqueryconsumption.",
+      "RESOURCE_PENDING": "Productauthorwillproposepreciseprecharge/reservationcreditmechanism avoidingdoubleticks/newsharedAPI BEFOREfinalfreeze. DoNOT invent/implement/acceptmechanism here. No implementationauthority."
+    }
+  },
+  "preservedCohorts": { "freeze": 194, "normative": 80, "queryBudget": 62, "sumAsUniqueProductCases": null, "edited": false, "rescored": false },
+  "crosswalk": [
+    { "id": "N1", "prior": ["normative:G03"], "priorControl": ["normative:G04", "normative:G06"], "cases": ["N1-01", "N1-02", "N1-03", "N1-04"], "state": "ADOPTED_EXACT_EXPECTATION", "effective": "The actual-newline braced FLOW-IN key folds to red blue; no blanket single-line rule. Block implicit and unbraced flow-pair controls retain their production-specific refusals." },
+    { "id": "N2", "prior": ["freeze:NUM-15", "normative:N07"], "priorControl": ["freeze:NUM-14", "freeze:NUM-12", "normative:N06", "query-budget:N08", "query-budget:N09", "query-budget:N10"], "cases": ["N2-01", "N2-02", "N2-03", "N2-04", "N2-05", "N2-06", "N2-07", "N2-08", "N2-09"], "state": "ADOPTED_EXACT_EXPECTATION", "effective": "Normalize nonzero trailing coefficient zeros first. Range, exact safe-integrality, finite/safe projected double, scalar/value/depth/work/output and other frozen gates still apply. Zero has no new exponent waiver. Normalized admission is not a raw-exponent interval veto before that normalization." },
+    { "id": "N3", "prior": ["normative:Q11", "freeze:UTF-12"], "priorControl": ["normative:Q10", "normative:Q12"], "cases": ["N3-01", "N3-02", "N3-03", "N3-04", "N3-05", "N3-06", "N3-07", "N3-08", "N3-09", "N3-10", "N3-11", "N3-12", "N3-13"], "state": "ADOPTED_EXACT_EXPECTATION", "effective": "Only immediately adjacent literal 16-bit high/low escapes combine. Scalar validity, fatal UTF-8 and all other quote grammar remain; no general decoder or text-filter change." },
+    { "id": "N4", "prior": ["normative:T13"], "priorControl": [], "cases": ["N4-01", "N4-02", "N4-03", "N4-04"], "state": "ADOPTED_EXACT_EXPECTATION", "effective": "The explicit tag selects the checked lexical family directly; kind, finite/safe numeric policy and all other frozen gates remain." },
+    { "id": "B-ENCODER-ESCAPE-SPELLING", "prior": ["freeze:ENC-07"], "priorControl": [], "cases": ["E-01", "E-02"], "state": "ADOPTED_EXACT_EXPECTATION", "effective": "NUL uses literal \\u0000 inside the already required double quotes. Existing LF and later-document separator bytes remain; no other YAML escape spelling is selected." }
+  ],
+  "resourceDirections": {
+    "state": "ADOPTED_DESIGN_REQUIREMENTS_MECHANISM_AND_FINAL_RESOURCE_FREEZE_PENDING_AUTHOR",
+    "QB-F1": { "newYqOwnedAsyncTraversal": true, "ownedCheckpointsRequired": true, "newFilesOnly": true, "existingInternalSyncPhasesStillQualified": true, "broadRefactor": false, "priorWitness": "query-budget:B01" },
+    "QB-F2": { "wholeCopyPreadmission": true, "includesCheckpointCharges": true, "estimationSeparatelyCharged": true, "actualPrivateBudgetAdmissionBeforeCopy": true, "consumeOnce": true, "refunds": false, "newBudgetPerAliasOrDocument": false, "interleavedQueryConsumption": false, "priorWitness": "query-budget:B02" },
+    "preciseMechanism": null,
+    "mechanismAccepted": false,
+    "finalResourceFreezeComplete": false,
+    "originalWRK22Hold": { "reference": "freeze:WRK-22/expect/assertions/0", "retained": true, "rescored": false, "extent": "Unqualified application to the existing synchronous helpers remains held; this decision does not make them yield." }
+  },
+  "catalogue": { "entries": 54, "changed": false, "reservedUnreachable": ["ALIAS_DUPLICATE_ANCHOR"], "separateObservation": "N5 ALIAS_CYCLE reachability remains unproved, not newly reserved or activated." },
+  "futureModule": { "base": "5137a74ec855a32d8a8860eb66b62eb44d11e290", "acceptedLength": "74361026502d76b8c2b696f9c60e410ac9b78d95", "acceptanceAddendum": "3387a103798bb441764218d38696639d501d19d2", "lengthPrerequisiteRemains": false, "lengthReplayedHere": false, "newScope": "new yq/private-adapter paths only; no live rebaseline or broad refactor", "implementationAuthorized": false },
+  "remainingSemanticAmbiguitiesInTheseCases": [],
+  "execution": { "product": 0, "nativeOrReference": 0, "typeOrBuild": 0, "lengthReplay": 0 }
+}

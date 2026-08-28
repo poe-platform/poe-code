@@ -1,0 +1,196 @@
+{
+  "schemaVersion": 1,
+  "state": "PREPARATION_ONLY_NOT_PRODUCT_ACCEPTANCE",
+  "date": "2026-08-28",
+  "headAtChecks": "6620463abdf7e952aaa855abfba13159a6c5cc83",
+  "historicalOutputQualification": "Old six/four/two blocked counts, prior reconciliation holds and query pending-Plato label are historical seal outputs, not rescoring or current unmet length prerequisites.",
+  "checks": [
+    {
+      "command": "node tests/commands/yq-independent-20260828/freeze/verify-preparation.mjs",
+      "checkerSha256": "430b92c6270b73ab18e3e313255fee5c473914299bca203655a75a39b8af8de1",
+      "exitStatus": 0,
+      "stdoutSha256": "b73c5b0467c55ddf29fd438f4c89983c3bbbaeebcc3b6975c741a31b95a16733",
+      "result": {
+        "state": "PREPARATION_CHECKS_ONLY",
+        "caseRecords": 194,
+        "categoryCounts": {
+          "COMMAND": 24,
+          "PARSER": 36,
+          "NUMERIC": 16,
+          "ENCODER": 10,
+          "QUERY": 12,
+          "ALIAS": 15,
+          "UTF8": 22,
+          "WORK": 26,
+          "LIFECYCLE": 10,
+          "FS": 6,
+          "MOVED": 3,
+          "TYPE": 8,
+          "NEGATIVE_CONTROL": 6
+        },
+        "blockedRecords": 6,
+        "diagnosticBindings": 54,
+        "recipeInputsChecked": 8,
+        "chunkPartitionsChecked": 26,
+        "inMemoryNegativeControls": 3,
+        "productExecutions": 0,
+        "nativeOrReferenceExecutions": 0
+      }
+    },
+    {
+      "command": "node tests/commands/yq-independent-20260828/normative/check-static.mjs",
+      "checkerSha256": "cd866d7b8aa228f672a55c72152d15899f05283029e8c3b96d23ba296610b6b2",
+      "exitStatus": 0,
+      "stdoutSha256": "00f30552343acf4956764eaa930f903fc2381a4c0eae7018fa90b065817379e7",
+      "result": {
+        "status": "PREPARATION_ONLY_OK",
+        "selectedFiles": 8,
+        "caseRecords": 80,
+        "caseKinds": {
+          "documents": 34,
+          "failure": 32,
+          "blocked": 4,
+          "decimal": 1,
+          "information": 9
+        },
+        "finiteCatalogueEntries": 54,
+        "currentHead": "6620463abdf7e952aaa855abfba13159a6c5cc83",
+        "selectedCurrentDifferences": [],
+        "productRuns": 0,
+        "nativeOracleRuns": 0,
+        "yamlParserRuns": 0,
+        "writes": 0,
+        "caveat": "Schema and selected-byte checks only; no YAML semantics, runtime acceptance, full-tree integrity or append-proof claim."
+      }
+    },
+    {
+      "command": "node tests/commands/yq-independent-20260828/query-budget/check.mjs",
+      "checkerSha256": "889b2229b4622a0f8bff3b0b4b51947db4b629c51609cd5cad868ebf25050550",
+      "exitStatus": 0,
+      "stdoutSha256": "73d989425d83c376ea566bc6a7473d4574fe1c24074e42d6e3d89f2e6d87d463",
+      "result": {
+        "result": "STATIC_PACKET_CHECKS_PASS_NOT_PRODUCT_ACCEPTANCE",
+        "caseCount": 62,
+        "layerCounts": {
+          "command": 36,
+          "graph-depth": 3,
+          "admission-state": 11,
+          "lifecycle-recipe": 9,
+          "blocked-choice": 2,
+          "dependency": 1
+        },
+        "selectedGitInputs": 32,
+        "selectedBytes": 418743,
+        "privateCaps": 21,
+        "diagnosticEntries": 54,
+        "manifestSha256": "044b46fadfe9b6732933c2b10bf4c7c4f01a8f7ee11df51120167ed2182162e9",
+        "casesSha256": "cc1e73ab2adc50840499f0f57f4d30a1baa72bee2e095652e9b2d456f3753de3",
+        "checks": [
+          "selected immutable Git bytes/blobs/SHA256",
+          "fixed caps and mapping",
+          "54-code catalogue binding",
+          "help/version bytes",
+          "case schema/unique IDs/status-code consistency",
+          "bounded synthetic admission/output arithmetic"
+        ],
+        "productExecutions": 0,
+        "nativeOracleExecutions": 0,
+        "dependencyChanges": 0,
+        "evidenceWrites": 0,
+        "lengthAcceptance": "pending Plato"
+      }
+    },
+    {
+      "command": "node tests/commands/yq-independent-20260828/reconciliation-v1/check.mjs",
+      "checkerSha256": "86e447aaed4f996d2acafa654e452ce9c5af820fbae54b6793ebfa85f25424cf",
+      "exitStatus": 0,
+      "stdoutSha256": "9ae8c753dca3754e22463c636630ff4eb995e362a58ee368f95a15143c11d8df",
+      "result": {
+        "status": "STATIC_CROSSWALK_PASS_NOT_PRODUCT_ACCEPTANCE",
+        "originalRecords": 194,
+        "newCaseRecords": 0,
+        "resolvedOriginalBlockers": 3,
+        "originalGoldenHeldRecords": 3,
+        "additionalScopeHeldRecords": 1,
+        "uniqueHeldOriginalRecords": 4,
+        "openChoiceIds": [
+          "N1",
+          "N2",
+          "N3",
+          "N4",
+          "QB-F1",
+          "QB-F2",
+          "B-ENCODER-ESCAPE-SPELLING"
+        ],
+        "observationIds": [
+          "N5"
+        ],
+        "normativeBlockedRecords": 4,
+        "queryResourceBlockedRecords": 2,
+        "selectedSourceBindings": 15,
+        "originalFreezeFilesUnchanged": 12,
+        "lengthPrerequisiteRemains": false,
+        "productExecutions": 0,
+        "nativeOrReferenceExecutions": 0,
+        "independentLengthPackReplay": 0,
+        "writes": 0
+      }
+    },
+    {
+      "command": "node tests/commands/yq-independent-20260828/adopted-n-encoder-v1/check.mjs",
+      "checkerSha256": "3575b88f575eba515f05e6d8510ffca0da76e45d760a76604deb4e41ea577915",
+      "exitStatus": 0,
+      "stdoutSha256": "3f2aa01f88a54771a44fd15c99bc2a2a60ce2ba05948483cd54630f778f398d6",
+      "result": {
+        "state": "ADDITIVE_PREPARATION_ONLY_OK",
+        "caseRecords": 32,
+        "expectedStatusCounts": {
+          "success": 12,
+          "refusal": 20
+        },
+        "lineageCounts": {
+          "prior-held-witness": 6,
+          "prior-control": 7,
+          "new-bounded-control": 19
+        },
+        "selectedFiles": 9,
+        "oldTreeFilesUnchanged": 29,
+        "completeOldTreeMembershipCheckedBeforeAndAfter": true,
+        "originalCohorts": {
+          "freeze": 194,
+          "normative": 80,
+          "queryBudget": 62
+        },
+        "rescored": false,
+        "inMemoryNegativeControls": 12,
+        "finiteCatalogueEntries": 54,
+        "semanticChoicesRemainingInPacket": 0,
+        "resourceMechanismAndFinalFreeze": "PENDING_AUTHOR",
+        "originalWRK22Hold": "RETAINED_UNRESCORED",
+        "lengthPrerequisiteRemains": false,
+        "productExecutions": 0,
+        "nativeOrReferenceExecutions": 0,
+        "typeOrBuildExecutions": 0,
+        "independentLengthReplay": 0,
+        "writes": 0
+      }
+    },
+    {
+      "command": "python3 /Users/kjopek/.codex/skills/write-spec/scripts/check_spec.py tests/commands/yq-independent-20260828/adopted-n-encoder-v1/README.md",
+      "exitStatus": 0,
+      "stdout": "OK: /Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/adopted-n-encoder-v1/README.md (0 warning(s))\n"
+    },
+    {
+      "command": "node --check tests/commands/yq-independent-20260828/adopted-n-encoder-v1/check.mjs",
+      "exitStatus": 0
+    }
+  ],
+  "execution": {
+    "product": 0,
+    "nativeOrReference": 0,
+    "typeOrBuild": 0,
+    "lengthReplay": 0
+  },
+  "writes": "Only this new receipt is authored by apply_patch after checks; the checkers write nothing.",
+  "preservation": "New checker verifies all 29 old-tree files and complete flat membership before/after; old checkers remained byte-identical. No whole-repository append-proof claim."
+}

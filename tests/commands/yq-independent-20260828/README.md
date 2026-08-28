@@ -5,13 +5,12 @@ product acceptance, or a parity result. This delegated case-freeze author is
 independent of `productdesignHeisenberg`; normative and query-budget reviewers
 own their separate directories and findings.
 
-Current index: **`reconciliation-v1/README.md`**, the bounded additive decision
-checkpoint over the unchanged initial `freeze/README.md` and the sealed sibling
-reviews. No new cases or product runs are added. The original **194 records**
-remain future assertions: three original blockers close (accepted length, exact
-AST-depth recipe, pre-conversion zero-exponent refusal); NUM-15, UTF-12 and ENC-07
-remain golden-held, plus a narrow WRK-22 checkpoint-scope hold. Four distinct
-original records currently have holds. The original six-blocker record is history.
+Current index: **`adopted-n-encoder-v1/README.md`**, recording root's N1–N4 and
+exact NUL-encoder decisions as **32 additive expectation records**, awaiting a
+fresh independent review. The prior checkpoint `reconciliation-v1/README.md`
+and original **194 records** remain unchanged and unrescored. Six prior held
+witnesses, seven prior controls and 19 new bounded controls are distinguished;
+none is an executed or newly unique product pass.
 
 Sealed sibling evidence: `normative/REVIEW.md` (80 records) and
 `query-budget/REVIEW.md` (62 records). These overlapping inventories are not summed
@@ -21,10 +20,12 @@ was performed here. **Product/native/reference executions: 0**.
 
 Authority remains the adopted design chain: immutable initial profile `b311c236`,
 final contract `5783b8e0`, then root additive adoption `cfa6fbcb`. The freeze binds
-full commits/hashes and does not replace those documents. The current crosswalk
-holds N1/N2/N3/N4, QB-F1/QB-F2 and exact encoder spelling for root's decision
-checkpoint, with N5 separately retained as unproved cycle-code reachability.
-It makes no new policy decision and grants no implementation permission.
+full commits/hashes and does not replace those documents. The new packet records
+only the current explicit additive root decisions. QB-F1/QB-F2 are adopted design
+requirements, but the precise private mechanism and final resource freeze remain
+pending the author. The original WRK-22 helper-scope hold remains unrescored;
+old synchronous helpers are not made cooperative by this record. N5 remains a
+separate cycle-code reachability observation. No implementation is authorized.
 
 Run the explicit, static-only preparation checks from the repository root:
 
@@ -33,6 +34,7 @@ node tests/commands/yq-independent-20260828/freeze/verify-preparation.mjs
 node tests/commands/yq-independent-20260828/normative/check-static.mjs
 node tests/commands/yq-independent-20260828/query-budget/check.mjs
 node tests/commands/yq-independent-20260828/reconciliation-v1/check.mjs
+node tests/commands/yq-independent-20260828/adopted-n-encoder-v1/check.mjs
 ```
 
 No build, typecheck, command handler, parser, private query engine, native oracle,

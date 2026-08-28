@@ -1,0 +1,124 @@
+TAP version 13
+# Subtest: join compact-value and raw-output byte boundaries are exact
+ok 1 - join compact-value and raw-output byte boundaries are exact
+  ---
+  duration_ms: 16.177916
+  type: 'test'
+  ...
+# Subtest: join control characters count escaped value bytes even with raw output
+ok 2 - join control characters count escaped value bytes even with raw output
+  ---
+  duration_ms: 1.094958
+  type: 'test'
+  ...
+# Subtest: join budget 0: maxInputBytes
+ok 3 - join budget 0: maxInputBytes
+  ---
+  duration_ms: 0.285917
+  type: 'test'
+  ...
+# Subtest: join budget 1: maxValueBytes
+ok 4 - join budget 1: maxValueBytes
+  ---
+  duration_ms: 1.09975
+  type: 'test'
+  ...
+# Subtest: join budget 2: maxValueBytes
+ok 5 - join budget 2: maxValueBytes
+  ---
+  duration_ms: 0.498542
+  type: 'test'
+  ...
+# Subtest: join budget 3: maxSteps
+ok 6 - join budget 3: maxSteps
+  ---
+  duration_ms: 1.200708
+  type: 'test'
+  ...
+# Subtest: join budget 4: maxResults
+ok 7 - join budget 4: maxResults
+  ---
+  duration_ms: 1.253791
+  type: 'test'
+  ...
+# Subtest: join budget 5: maxCollectionSize
+ok 8 - join budget 5: maxCollectionSize
+  ---
+  duration_ms: 0.230083
+  type: 'test'
+  ...
+# Subtest: join budget 6: maxDepth
+ok 9 - join budget 6: maxDepth
+  ---
+  duration_ms: 0.47125
+  type: 'test'
+  ...
+# Subtest: join budget 7: maxAstDepth
+ok 10 - join budget 7: maxAstDepth
+  ---
+  duration_ms: 0.338
+  type: 'test'
+  ...
+# Subtest: join budget 8: maxSourceBytes
+ok 11 - join budget 8: maxSourceBytes
+  ---
+  duration_ms: 0.203167
+  type: 'test'
+  ...
+# Subtest: join output-limit failures preserve earlier generator results
+ok 12 - join output-limit failures preserve earlier generator results
+  ---
+  duration_ms: 0.5715
+  type: 'test'
+  ...
+# Subtest: join separator generators remain lazy and uncached
+ok 13 - join separator generators remain lazy and uncached
+  ---
+  duration_ms: 1.682875
+  type: 'test'
+  ...
+# Subtest: join and split wrong arities still preflight dead branches
+ok 14 - join and split wrong arities still preflight dead branches
+  ---
+  duration_ms: 0.4395
+  type: 'test'
+  ...
+# Subtest: join emits before input EOF and waits for stdout before later separator errors
+ok 15 - join emits before input EOF and waits for stdout before later separator errors
+  ---
+  duration_ms: 4.978667
+  type: 'test'
+  ...
+# Subtest: join CPU cancellation: "ready",join("")
+ok 16 - join CPU cancellation: "ready",join("")
+  ---
+  duration_ms: 23.9865
+  type: 'test'
+  ...
+# Subtest: join CPU cancellation: "ready",(join(range(1000000000))|empty)
+ok 17 - join CPU cancellation: "ready",(join(range(1000000000))|empty)
+  ---
+  duration_ms: 4.720166
+  type: 'test'
+  ...
+# Subtest: join object values and Unicode cannot modify host prototypes
+ok 18 - join object values and Unicode cannot modify host prototypes
+  ---
+  duration_ms: 0.619792
+  type: 'test'
+  ...
+# Subtest: join actual MemoryFS pipelines support agent formatting and raw-input composition
+ok 19 - join actual MemoryFS pipelines support agent formatting and raw-input composition
+  ---
+  duration_ms: 31.093709
+  type: 'test'
+  ...
+1..19
+# tests 19
+# suites 0
+# pass 19
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 431.496125

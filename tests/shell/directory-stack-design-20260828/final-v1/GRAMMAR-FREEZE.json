@@ -1,0 +1,22 @@
+{
+  "sealedAt": "2026-08-28T06:52:06.509Z",
+  "cases": 8,
+  "binary": "/private/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+  "binaryHash": "8cecb482de24198c23a736b931cb7e8cee1f94eb0b51abd54bd99f1d73d9673c",
+  "fixtureHashes": {
+    "grammar-cases.json": "3fc1561c03e8f52c23236818618d398ecf55401e598576cfa811b85a2cd58cb2",
+    "grammar.mjs": "bc488f01a41716a2ab48956f1757d2ce7196f4ec206c0b7fd23661cd1fca701c"
+  },
+  "protectedHashes": {
+    "src/shell/runtime.ts": "93c06908aec9d5d61d801657f99ab75122cadb6688f038e1941c587b4a8d4ed3",
+    "src/shell/shell.ts": "3e36a27bbf98b384c7351ffa40d396485c788b0aa0bbefb8702e3bd45ce11a24",
+    "src/shell/types.ts": "aaef878966d35d1c671cf84e5b416f10f6a31433f1ec264ef1730b9c6570f990",
+    "tests/shell/directory-stack-design-20260828/observations-01.json.gz.base64": "179d48ba3dbfe8cc81e6280df7dcbc5d49c84c5a2297b9ed8ca05f04e90cbaf2",
+    "tests/shell/directory-stack-design-20260828/supplemental-observations-01.json.gz.base64": "ecb8bd5f8653a4dad2aaa8eb22a496466a45a3e9e5229441c926b422cac680c8"
+  },
+  "scope": "eight additional native-only grammar observations; no virtual replay, original34+4 unchanged",
+  "environment": "exact per-child map, PATH empty, LC_ALL/LANG C, TZ UTC, task-owned HOME/ROOT/PWD/OLDPWD/TMPDIR; --noprofile --norc",
+  "normalization": "replace task-owned case root with /fixture in separate normalized views; retain raw bytes",
+  "timeoutMs": 3000,
+  "stdoutStderrLimitBytes": 131072
+}

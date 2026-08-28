@@ -1,0 +1,724 @@
+{
+  "schema": 1,
+  "classification": "STATIC_DATA_ARITHMETIC_NOT_EXECUTION",
+  "planEvidenceCommit": "46806f6eac2b7be26b476d6a7a04d08a17d20771",
+  "criteriaCommit": "1e20418887cb87073270d87ef17d74576e02440f",
+  "method": "Parse authenticated JSON. Insert one declared job and overlay exactly thirteen cutoff changes; merge effective phase fields into original phases, excluding display-only jobCount. SHA256 is insertion-order compact UTF-8 JSON, no target code imported. All arrays remain data.",
+  "effectiveJobsSha256": "e8684e9a919ea285532296b271160142c63b9ce47b08c901680500048aa0dd17",
+  "expectedEffectiveJobsSha256": "e8684e9a919ea285532296b271160142c63b9ce47b08c901680500048aa0dd17",
+  "effectivePhasesSha256": "a5738318c71567a28e83a922f265f444f00840b8f621795e2592cff916cf86f7",
+  "expectedEffectivePhasesSha256": "a5738318c71567a28e83a922f265f444f00840b8f621795e2592cff916cf86f7",
+  "outerSlots": 336,
+  "maxCompilerDescendants": 18,
+  "compilerWorkers": [
+    {
+      "id": "BUILD-SUCCESSOR",
+      "maxCompilerDescendants": 1,
+      "slotCapMs": 300000,
+      "environment": null,
+      "installedMovedOnly": null
+    },
+    {
+      "id": "TYPE-SOURCE-DIRECT-SIX",
+      "maxCompilerDescendants": 6,
+      "slotCapMs": 540000,
+      "environment": "source-built-direct",
+      "installedMovedOnly": false
+    },
+    {
+      "id": "TYPE-DIRECT-SIX",
+      "maxCompilerDescendants": 6,
+      "slotCapMs": 540000,
+      "environment": null,
+      "installedMovedOnly": true
+    },
+    {
+      "id": "TYPE-PUBLIC-FIVE",
+      "maxCompilerDescendants": 5,
+      "slotCapMs": 480000,
+      "environment": null,
+      "installedMovedOnly": null
+    }
+  ],
+  "globalCapMs": 24165000,
+  "globalSeconds": 24165,
+  "duration": "6h42m45s",
+  "contiguousAbsolutePhases": true,
+  "phaseTable": [
+    {
+      "id": "AUTHENTICATION",
+      "jobs": 1,
+      "capMs": 120000,
+      "sumSlotCapsMs": 120000,
+      "startOffsetMs": 0,
+      "absoluteCutoffOffsetMs": 120000,
+      "jobIdsExactlyMatch": true,
+      "allJobCutoffsMatch": true,
+      "allocation": {
+        "setup": 60000,
+        "authentication": 45000,
+        "evidence": 10000,
+        "cleanup": 5000
+      }
+    },
+    {
+      "id": "BUILD",
+      "jobs": 1,
+      "capMs": 300000,
+      "sumSlotCapsMs": 300000,
+      "startOffsetMs": 120000,
+      "absoluteCutoffOffsetMs": 420000,
+      "jobIdsExactlyMatch": true,
+      "allJobCutoffsMatch": true,
+      "allocation": {
+        "toolAndSourceSetup": 90000,
+        "compiler": 120000,
+        "comparisonPacking": 60000,
+        "evidenceCleanup": 30000
+      }
+    },
+    {
+      "id": "SETUP",
+      "jobs": 2,
+      "capMs": 180000,
+      "sumSlotCapsMs": 180000,
+      "startOffsetMs": 420000,
+      "absoluteCutoffOffsetMs": 600000,
+      "jobIdsExactlyMatch": true,
+      "allJobCutoffsMatch": true,
+      "allocation": {
+        "runtimeRecipeSetup": 90000,
+        "runtimeAdmission": 90000
+      }
+    },
+    {
+      "id": "CONTROLS",
+      "jobs": 19,
+      "capMs": 570000,
+      "sumSlotCapsMs": 570000,
+      "startOffsetMs": 600000,
+      "absoluteCutoffOffsetMs": 1170000,
+      "jobIdsExactlyMatch": true,
+      "allJobCutoffsMatch": true,
+      "allocation": {
+        "guardRecordSlots": 18,
+        "guardRecordSlotMs": 30000,
+        "cmd22WorkerSlots": 1,
+        "cmd22WorkerMs": 30000,
+        "cmd22FixtureCount": 31
+      }
+    },
+    {
+      "id": "SOURCE_AUDIT",
+      "jobs": 1,
+      "capMs": 300000,
+      "sumSlotCapsMs": 300000,
+      "startOffsetMs": 1170000,
+      "absoluteCutoffOffsetMs": 1470000,
+      "jobIdsExactlyMatch": true,
+      "allJobCutoffsMatch": true,
+      "allocation": {
+        "designatedAndSecondaryReport": 270000,
+        "evidence": 25000,
+        "cleanup": 5000
+      }
+    },
+    {
+      "id": "SOURCE_RUNTIME",
+      "jobs": 149,
+      "capMs": 6705000,
+      "sumSlotCapsMs": 6705000,
+      "startOffsetMs": 1470000,
+      "absoluteCutoffOffsetMs": 8175000,
+      "jobIdsExactlyMatch": true,
+      "allJobCutoffsMatch": true,
+      "allocation": {
+        "recordSlots": 149,
+        "recordSlotMs": 45000,
+        "perRecord": {
+          "setupAdmission": 5000,
+          "semanticInvocation": 30000,
+          "guardsCapture": 5000,
+          "cleanupKnownReap": 5000
+        }
+      }
+    },
+    {
+      "id": "MOVED_RUNTIME",
+      "jobs": 149,
+      "capMs": 13410000,
+      "sumSlotCapsMs": 13410000,
+      "startOffsetMs": 8175000,
+      "absoluteCutoffOffsetMs": 21585000,
+      "jobIdsExactlyMatch": true,
+      "allJobCutoffsMatch": true,
+      "allocation": {
+        "recordSlots": 149,
+        "recordSlotMs": 90000,
+        "perRecord": {
+          "setupAdmission": 40000,
+          "semanticInvocation": 30000,
+          "guardsCapture": 15000,
+          "cleanupKnownReap": 5000
+        }
+      }
+    },
+    {
+      "id": "TYPES",
+      "jobs": 3,
+      "capMs": 1560000,
+      "sumSlotCapsMs": 1560000,
+      "startOffsetMs": 21585000,
+      "absoluteCutoffOffsetMs": 23145000,
+      "jobIdsExactlyMatch": true,
+      "allJobCutoffsMatch": true,
+      "allocation": {
+        "sourceDirectWorker": 540000,
+        "installedMovedDirectWorker": 540000,
+        "conditionalPublicWorker": 480000,
+        "directPerEnvironment": {
+          "setup": 90000,
+          "compilerInvocations": 6,
+          "compilerMsEach": 60000,
+          "postguardsEvidence": 60000,
+          "cleanup": 30000
+        },
+        "public": {
+          "setup": 90000,
+          "compilerInvocations": 5,
+          "compilerMsEach": 60000,
+          "postguardsEvidence": 60000,
+          "cleanup": 30000
+        }
+      }
+    },
+    {
+      "id": "LOADED_CONTROLS",
+      "jobs": 10,
+      "capMs": 900000,
+      "sumSlotCapsMs": 900000,
+      "startOffsetMs": 23145000,
+      "absoluteCutoffOffsetMs": 24045000,
+      "jobIdsExactlyMatch": true,
+      "allJobCutoffsMatch": true,
+      "allocation": {
+        "recordSlots": 10,
+        "recordSlotMs": 90000,
+        "perRecord": {
+          "mutationSetupAdmission": 40000,
+          "actualLoadInvocation": 30000,
+          "guardsCaptureClassification": 15000,
+          "cleanupKnownReap": 5000
+        }
+      }
+    },
+    {
+      "id": "FINALIZATION",
+      "jobs": 1,
+      "capMs": 120000,
+      "sumSlotCapsMs": 120000,
+      "startOffsetMs": 24045000,
+      "absoluteCutoffOffsetMs": 24165000,
+      "jobIdsExactlyMatch": true,
+      "allJobCutoffsMatch": true,
+      "allocation": {
+        "finalMembershipHashModeSweep": 90000,
+        "knownReapEvidence": 30000
+      }
+    }
+  ],
+  "profiles": [
+    {
+      "environment": "source-built-direct",
+      "runtimeJobs": 149,
+      "uniqueRecordIds": 132,
+      "jobRoles": {
+        "command-semantic-runtime": 128,
+        "admission-error-boundary": 21
+      },
+      "directCompilerCalls": 6,
+      "fixtureNames": [
+        "positive",
+        "factory-command-extra",
+        "factory-array-extra",
+        "unknown-limits",
+        "replace-string",
+        "replace-undefined"
+      ],
+      "states": [
+        "UNRUN_FRESH_SCOPED_COMPILER_REQUIRED"
+      ],
+      "runtimeUnrun": true,
+      "noSuccessInheritance": true
+    },
+    {
+      "environment": "installed-moved-direct",
+      "runtimeJobs": 149,
+      "uniqueRecordIds": 132,
+      "jobRoles": {
+        "command-semantic-runtime": 128,
+        "admission-error-boundary": 21
+      },
+      "directCompilerCalls": 6,
+      "fixtureNames": [
+        "positive",
+        "factory-command-extra",
+        "factory-array-extra",
+        "unknown-limits",
+        "replace-string",
+        "replace-undefined"
+      ],
+      "states": [
+        "UNRUN_FRESH_SCOPED_COMPILER_REQUIRED"
+      ],
+      "runtimeUnrun": true,
+      "noSuccessInheritance": true
+    }
+  ],
+  "installedUnmoved": "Admission and physical movement origin only: zero third runtime/type cohort.",
+  "ledger": {
+    "uniqueIds": 194,
+    "rows": 194,
+    "declaredOverlays": [
+      "NUM-14",
+      "NUM-15",
+      "UTF-12",
+      "ENC-07",
+      "QUE-12",
+      "WRK-10",
+      "WRK-22",
+      "WRK-26"
+    ],
+    "actualPrimaryRoleCounts": {
+      "command-semantic-runtime": 111,
+      "admission-error-boundary": 34,
+      "source-static-counterproof": 23,
+      "lifecycle-cooperative": 11,
+      "materialized-package-infrastructure": 4,
+      "type-consumer": 5,
+      "negative-control": 6
+    },
+    "roleCountsMatch": true,
+    "eligibility": {
+      "completeProjection": 94,
+      "partial": 17
+    },
+    "gapRecords": 80,
+    "declaredMissingBindingCounts": {
+      "records": 80,
+      "noRuntimeAdapter": 62,
+      "partialRuntime": 18,
+      "resolvedByThisPreparation": 0
+    },
+    "declaredProjectionObligations": 371,
+    "missingBindings": 135,
+    "allRecordsUnrun": true,
+    "newBindingClosures": 0
+  },
+  "directFixturesMatchDeclaredHash": true,
+  "directFixtureExecutions": [
+    {
+      "id": "source-built-direct/positive",
+      "environment": "source-built-direct",
+      "fixture": "positive",
+      "fixtureSha256": "f673aa48081df5da7422afccae8035f772d9b7d4f0807e5358c25e860e4ca7f0",
+      "recordId": "TYP-01",
+      "state": "UNRUN_FRESH_SCOPED_COMPILER_REQUIRED"
+    },
+    {
+      "id": "source-built-direct/factory-command-extra",
+      "environment": "source-built-direct",
+      "fixture": "factory-command-extra",
+      "fixtureSha256": "bf2c319d9399bafa476e73d6f0d8e6993983b5066dfd3abd6d649fe0a3ec78eb",
+      "recordId": "TYP-02",
+      "state": "UNRUN_FRESH_SCOPED_COMPILER_REQUIRED"
+    },
+    {
+      "id": "source-built-direct/factory-array-extra",
+      "environment": "source-built-direct",
+      "fixture": "factory-array-extra",
+      "fixtureSha256": "a637c4c761bb1e1741387326dec844d406f554b941a269d7bec65e1d33564e89",
+      "recordId": "TYP-02",
+      "state": "UNRUN_FRESH_SCOPED_COMPILER_REQUIRED"
+    },
+    {
+      "id": "source-built-direct/unknown-limits",
+      "environment": "source-built-direct",
+      "fixture": "unknown-limits",
+      "fixtureSha256": "e2b019fca89c754c4254077c2a20ae615b3dbdaf3e82c70382d415d494d35a42",
+      "recordId": "TYP-03",
+      "state": "UNRUN_FRESH_SCOPED_COMPILER_REQUIRED"
+    },
+    {
+      "id": "source-built-direct/replace-string",
+      "environment": "source-built-direct",
+      "fixture": "replace-string",
+      "fixtureSha256": "e8ee0308b05e85331c1137a8993f97f36788856e70416d214b44afa2cced1bcc",
+      "recordId": "TYP-03",
+      "state": "UNRUN_FRESH_SCOPED_COMPILER_REQUIRED"
+    },
+    {
+      "id": "source-built-direct/replace-undefined",
+      "environment": "source-built-direct",
+      "fixture": "replace-undefined",
+      "fixtureSha256": "d282022d8e329add3275f9c11f53a6f3cbeb3831598864ed631646edc3de9169",
+      "recordId": "TYP-07",
+      "state": "UNRUN_FRESH_SCOPED_COMPILER_REQUIRED"
+    },
+    {
+      "id": "installed-moved-direct/positive",
+      "environment": "installed-moved-direct",
+      "fixture": "positive",
+      "fixtureSha256": "f673aa48081df5da7422afccae8035f772d9b7d4f0807e5358c25e860e4ca7f0",
+      "recordId": "TYP-01",
+      "state": "UNRUN_FRESH_SCOPED_COMPILER_REQUIRED"
+    },
+    {
+      "id": "installed-moved-direct/factory-command-extra",
+      "environment": "installed-moved-direct",
+      "fixture": "factory-command-extra",
+      "fixtureSha256": "bf2c319d9399bafa476e73d6f0d8e6993983b5066dfd3abd6d649fe0a3ec78eb",
+      "recordId": "TYP-02",
+      "state": "UNRUN_FRESH_SCOPED_COMPILER_REQUIRED"
+    },
+    {
+      "id": "installed-moved-direct/factory-array-extra",
+      "environment": "installed-moved-direct",
+      "fixture": "factory-array-extra",
+      "fixtureSha256": "a637c4c761bb1e1741387326dec844d406f554b941a269d7bec65e1d33564e89",
+      "recordId": "TYP-02",
+      "state": "UNRUN_FRESH_SCOPED_COMPILER_REQUIRED"
+    },
+    {
+      "id": "installed-moved-direct/unknown-limits",
+      "environment": "installed-moved-direct",
+      "fixture": "unknown-limits",
+      "fixtureSha256": "e2b019fca89c754c4254077c2a20ae615b3dbdaf3e82c70382d415d494d35a42",
+      "recordId": "TYP-03",
+      "state": "UNRUN_FRESH_SCOPED_COMPILER_REQUIRED"
+    },
+    {
+      "id": "installed-moved-direct/replace-string",
+      "environment": "installed-moved-direct",
+      "fixture": "replace-string",
+      "fixtureSha256": "e8ee0308b05e85331c1137a8993f97f36788856e70416d214b44afa2cced1bcc",
+      "recordId": "TYP-03",
+      "state": "UNRUN_FRESH_SCOPED_COMPILER_REQUIRED"
+    },
+    {
+      "id": "installed-moved-direct/replace-undefined",
+      "environment": "installed-moved-direct",
+      "fixture": "replace-undefined",
+      "fixtureSha256": "d282022d8e329add3275f9c11f53a6f3cbeb3831598864ed631646edc3de9169",
+      "recordId": "TYP-07",
+      "state": "UNRUN_FRESH_SCOPED_COMPILER_REQUIRED"
+    }
+  ],
+  "conditionalPublic": [
+    {
+      "name": "hidden-limits",
+      "mode": "PUBLIC_ONLY",
+      "state": "UNRUN_PUBLIC_EXPORT_GAP",
+      "outcome": "reject",
+      "diagnostic": {
+        "code": 2305,
+        "line": 1
+      }
+    },
+    {
+      "name": "hidden-defaults",
+      "mode": "PUBLIC_ONLY",
+      "state": "UNRUN_PUBLIC_EXPORT_GAP",
+      "outcome": "reject",
+      "diagnostic": {
+        "code": 2305,
+        "line": 1
+      }
+    },
+    {
+      "name": "hidden-session",
+      "mode": "PUBLIC_ONLY",
+      "state": "UNRUN_PUBLIC_EXPORT_GAP",
+      "outcome": "reject",
+      "diagnostic": {
+        "code": 2305,
+        "line": 1
+      }
+    },
+    {
+      "name": "hidden-factory",
+      "mode": "PUBLIC_ONLY",
+      "state": "UNRUN_PUBLIC_EXPORT_GAP",
+      "outcome": "reject",
+      "diagnostic": {
+        "code": 2305,
+        "line": 1
+      }
+    },
+    {
+      "name": "hidden-parser",
+      "mode": "PUBLIC_ONLY",
+      "state": "UNRUN_PUBLIC_EXPORT_GAP",
+      "outcome": "reject",
+      "diagnostic": {
+        "code": 2305,
+        "line": 1
+      }
+    }
+  ],
+  "negativeTypeRule": "Exact declared diagnostic code/line inside zero-exit worker. Wrong diagnostic/compiler crash/nonzero worker FAIL; missing public module stays GAP.",
+  "deltaOnly": {
+    "newJobs": [
+      "TYPE-SOURCE-DIRECT-SIX"
+    ],
+    "changedExistingJobs": [
+      {
+        "id": "TYPE-DIRECT-SIX",
+        "fields": [
+          "phaseAbsoluteCutoffOffsetMs"
+        ]
+      },
+      {
+        "id": "TYPE-PUBLIC-FIVE",
+        "fields": [
+          "phaseAbsoluteCutoffOffsetMs"
+        ]
+      },
+      {
+        "id": "source-built-direct/LOAD-POSITIVE",
+        "fields": [
+          "phaseAbsoluteCutoffOffsetMs"
+        ]
+      },
+      {
+        "id": "source-built-direct/MUT-RETAINED-VIEW",
+        "fields": [
+          "phaseAbsoluteCutoffOffsetMs"
+        ]
+      },
+      {
+        "id": "source-built-direct/MUT-QUOTED-DEL-DOUBLE",
+        "fields": [
+          "phaseAbsoluteCutoffOffsetMs"
+        ]
+      },
+      {
+        "id": "source-built-direct/MUT-QUOTED-DEL-SINGLE",
+        "fields": [
+          "phaseAbsoluteCutoffOffsetMs"
+        ]
+      },
+      {
+        "id": "source-built-direct/MUT-PENDING-SHADOW",
+        "fields": [
+          "phaseAbsoluteCutoffOffsetMs"
+        ]
+      },
+      {
+        "id": "installed-moved-direct/LOAD-POSITIVE",
+        "fields": [
+          "phaseAbsoluteCutoffOffsetMs"
+        ]
+      },
+      {
+        "id": "installed-moved-direct/MUT-RETAINED-VIEW",
+        "fields": [
+          "phaseAbsoluteCutoffOffsetMs"
+        ]
+      },
+      {
+        "id": "installed-moved-direct/MUT-QUOTED-DEL-DOUBLE",
+        "fields": [
+          "phaseAbsoluteCutoffOffsetMs"
+        ]
+      },
+      {
+        "id": "installed-moved-direct/MUT-QUOTED-DEL-SINGLE",
+        "fields": [
+          "phaseAbsoluteCutoffOffsetMs"
+        ]
+      },
+      {
+        "id": "installed-moved-direct/MUT-PENDING-SHADOW",
+        "fields": [
+          "phaseAbsoluteCutoffOffsetMs"
+        ]
+      },
+      {
+        "id": "FINAL-GUARDS-REAP-SEAL",
+        "fields": [
+          "phaseAbsoluteCutoffOffsetMs"
+        ]
+      }
+    ],
+    "outerIncrease": 1,
+    "compilerIncrease": 6,
+    "globalIncreaseMs": 540000,
+    "ledgerJobLinks": [
+      {
+        "recordId": "TYP-01",
+        "appendSuccessorJob": "TYPE-SOURCE-DIRECT-SIX",
+        "state": "UNRUN_NO_SUCCESSOR_GO",
+        "fullRecordPass": false
+      },
+      {
+        "recordId": "TYP-02",
+        "appendSuccessorJob": "TYPE-SOURCE-DIRECT-SIX",
+        "state": "UNRUN_NO_SUCCESSOR_GO",
+        "fullRecordPass": false
+      },
+      {
+        "recordId": "TYP-03",
+        "appendSuccessorJob": "TYPE-SOURCE-DIRECT-SIX",
+        "state": "UNRUN_NO_SUCCESSOR_GO",
+        "fullRecordPass": false
+      },
+      {
+        "recordId": "TYP-07",
+        "appendSuccessorJob": "TYPE-SOURCE-DIRECT-SIX",
+        "state": "UNRUN_NO_SUCCESSOR_GO",
+        "fullRecordPass": false
+      }
+    ],
+    "allDocumentOverrides": {
+      "jobs": [
+        {
+          "pointer": "/counts/outerJobs",
+          "value": 336
+        },
+        {
+          "pointer": "/counts/maxCompilerDescendants",
+          "value": 18
+        },
+        {
+          "pointer": "/counts/directTypeCompilerInvocations",
+          "value": 12
+        },
+        {
+          "pointer": "/counts/directTypeFixturesPerEnvironment",
+          "value": 6
+        },
+        {
+          "pointer": "/typeEnvironmentQualification",
+          "value": "Six direct fixtures run separately on source-built and installed/moved declarations; declaration equality is not a compiler run. Five public-only gaps remain one conditional worker."
+        }
+      ],
+      "schedule": [
+        {
+          "pointer": "/globalMonotonicCapMs",
+          "value": 24165000
+        },
+        {
+          "pointer": "/globalCapSeconds",
+          "value": 24165
+        },
+        {
+          "pointer": "/maxOuterJobSlots",
+          "value": 336
+        },
+        {
+          "pointer": "/maxCompilerDescendants",
+          "value": 18
+        },
+        {
+          "pointer": "/metadataToolBounds/globalMaximumGitHelpers",
+          "value": 11010048
+        },
+        {
+          "pointer": "/metadataToolBounds/maximumCompilerInvocations",
+          "value": 18
+        },
+        {
+          "pointer": "/parentTopology/maxOuterWorkers",
+          "value": 336
+        },
+        {
+          "pointer": "/parentTopology/maxNestedCompilers",
+          "value": 18
+        }
+      ],
+      "tools": [
+        {
+          "pointer": "/resourceBounds/outerWorkerSlots",
+          "value": 336
+        },
+        {
+          "pointer": "/resourceBounds/maximumRetainedPackageCopies",
+          "value": 180
+        },
+        {
+          "pointer": "/toolInvocationTemplates/2/countCeiling",
+          "value": 336
+        },
+        {
+          "pointer": "/toolInvocationTemplates/3/countCeiling",
+          "value": 18
+        }
+      ],
+      "ledgerAppendJobLinks": [
+        {
+          "recordId": "TYP-01",
+          "appendSuccessorJob": "TYPE-SOURCE-DIRECT-SIX",
+          "state": "UNRUN_NO_SUCCESSOR_GO",
+          "fullRecordPass": false
+        },
+        {
+          "recordId": "TYP-02",
+          "appendSuccessorJob": "TYPE-SOURCE-DIRECT-SIX",
+          "state": "UNRUN_NO_SUCCESSOR_GO",
+          "fullRecordPass": false
+        },
+        {
+          "recordId": "TYP-03",
+          "appendSuccessorJob": "TYPE-SOURCE-DIRECT-SIX",
+          "state": "UNRUN_NO_SUCCESSOR_GO",
+          "fullRecordPass": false
+        },
+        {
+          "recordId": "TYP-07",
+          "appendSuccessorJob": "TYPE-SOURCE-DIRECT-SIX",
+          "state": "UNRUN_NO_SUCCESSOR_GO",
+          "fullRecordPass": false
+        }
+      ],
+      "requestRoutingTypeQualification": "Six direct fixtures per each of two environments;12 direct compiler invocations; public5 conditional gap; no global typecheck."
+    }
+  },
+  "resourceArithmetic": {
+    "gitHelpersPerJob": 32768,
+    "outerSlots": 336,
+    "globalGitHelperCeiling": 11010048,
+    "retainedPackageCopies": 180,
+    "packageCopyCapBytes": 67108864,
+    "outerCaptureCapBytes": 16777216,
+    "compilerCaptureCapBytes": 8388608,
+    "retainedCopiesPlusRawCaptureBytes": 17867735040,
+    "storageCapBytes": 25769803776,
+    "remainingForBaseSourceToolsBytes": 7902068736,
+    "qualification": "Arithmetic ceiling only; actual profile admission, peak concurrency, stream enforcement, scratch expansion and retained evidence accounting await sealed implementation."
+  },
+  "clockRules": {
+    "origin": "One immutable coordinator monotonic t0 before initial fresh root-envelope validation. Denial admits no child; if authorized, every authentication/setup/tool/guard/control/wait/capture/type/mutation/cleanup interval stays under this same origin.",
+    "globalDeadline": "t0 + globalMonotonicCapMs; never renewed per phase/job/process.",
+    "phaseDeadline": "min(globalDeadline, t0+absoluteCutoffOffsetMs, actualPhaseStart+capMs). Early finish permits early next phase but never increases local caps.",
+    "jobDeadline": "min(phaseDeadline, globalDeadline, slotReservationTime+slotCap); slotReservationTime precedes all job-scoped preflight/setup and is never reset on child spawn. Subphase caps remain inside this absolute slot.",
+    "admission": "Reserve the entire declared slot including cleanup before job-scoped work, only if it fits remaining absolute time. Reservation alone admits no child. Initial root validation is inside AUTH setup; phase-start and first-slot reservation share one timestamp. Later child admission inherits the already-consuming slot deadline and must still fit its remaining subphase+cleanup reserves; otherwise UNRUN_BUDGET.",
+    "cleanup": "TERM grace1000ms plus known group reap/KILL wait4000ms are inside cleanup allocation, not appended to global cap. No late retry.",
+    "supervisor": "Independent owned supervisor enforces absolute deadlines even if worker synchronous hashing/Git/compiler stalls. All admitted work uses known PID/groups; no foreign scan/kill or opaque-host preemption promise.",
+    "coordinatorOverhead": "All coordinator bookkeeping, preflight and phase transitions are charged within the current slot setup/guard/evidence allocation; no work is free between phases. Reservations and phase-entry timestamps use the same owner event. These are proposed APIs, not existing clock proof."
+  },
+  "headroom": {
+    "observedMovedWholeChildMaxMs": 27231,
+    "sourceSlotMs": 45000,
+    "movedSlotMs": 90000,
+    "movedSetupPlusInvocationMs": 70000,
+    "sourceWholeSlotRatioToMovedObservation": 1.6525283684036576,
+    "movedWholeSlotRatioToMovedObservation": 3.305056736807315,
+    "qualification": "Historical whole-child observation is not isolated setup/semantic timing or a guarantee for the repaired candidate. No forecast, native benchmark or performance acceptance."
+  },
+  "ssF01": "RESOLVED_IN_NEW_PLAN_ONLY: +one source type worker/+six compiler descendants/+540000ms; v1 finding not rescored.",
+  "runtimePasses": 0,
+  "controlPasses": 0,
+  "candidateExecutions": 0,
+  "staticArithmeticConsistent": true
+}

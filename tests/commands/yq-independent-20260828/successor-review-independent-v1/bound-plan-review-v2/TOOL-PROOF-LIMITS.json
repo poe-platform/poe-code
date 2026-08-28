@@ -1,0 +1,290 @@
+{
+  "classification": "STATIC_TOOL_AND_PROOF_ROLE_AUDIT",
+  "toolProfile": {
+    "revision": "009c20f812926e4dc7c175b379f85753ff632691",
+    "path": "tests/commands/yq-independent-20260828/successor-review-preseal-v1/TOOLS-LOADER-GUARDS.json",
+    "sha256": "60ce4d385c98996773ae783b98310561491fe8d05ed4d95695262e6d9be83786",
+    "bytes": 9881
+  },
+  "allFourToolOverridesLocateExistingFields": true,
+  "toolOverrides": [
+    {
+      "pointer": "/resourceBounds/outerWorkerSlots",
+      "before": 335,
+      "after": 336
+    },
+    {
+      "pointer": "/resourceBounds/maximumRetainedPackageCopies",
+      "before": 179,
+      "after": 180
+    },
+    {
+      "pointer": "/toolInvocationTemplates/2/countCeiling",
+      "before": 335,
+      "after": 336
+    },
+    {
+      "pointer": "/toolInvocationTemplates/3/countCeiling",
+      "before": 12,
+      "after": 18
+    }
+  ],
+  "effectiveResourceBounds": {
+    "treeEntries": 4096,
+    "treeBytes": 67108864,
+    "fileBytes": 16777216,
+    "workerRawCaptureBytes": 16777216,
+    "compilerCaptureBytes": 8388608,
+    "maximumRetainedPackageCopies": 180,
+    "maximumCohortStorageBytes": 25769803776,
+    "storageRationale": "179*64MiB package-copy allowance +335*16MiB raw worker captures +12*8MiB compiler captures + bounded base/source/tool trees fit24GiB. Admission checks reservations; ceilings, not observed usage.",
+    "outerWorkerSlots": 336
+  },
+  "invocationTemplateCeilings": [
+    {
+      "index": 0,
+      "countCeiling": null,
+      "role": null
+    },
+    {
+      "index": 1,
+      "countCeiling": null,
+      "role": null
+    },
+    {
+      "index": 2,
+      "countCeiling": 336,
+      "role": null
+    },
+    {
+      "index": 3,
+      "countCeiling": 18,
+      "role": null
+    }
+  ],
+  "toolCopyState": null,
+  "loaderState": {
+    "implemented": false,
+    "sourceBuiltEntry": "<independently-built full-package root>/dist/commands/yq/index.js",
+    "installedMovedEntry": "<regular installed package physically moved root>/dist/commands/yq/index.js",
+    "environmentCount": 2,
+    "installedStaging": "Setup/materialization role, not a third semantic environment",
+    "candidateImports": "Only exact parent-bound relative compiled entries and sealed candidate-role builtin allowlist; no ambient package/network/workspace resolution.",
+    "harnessImports": "Separately sealed host-tool role, including exact coordinator and CMD22 modules; do not confuse host builtin permission with candidate import permission.",
+    "allowlist": {
+      "state": "UNBOUND_DENY",
+      "value": null,
+      "reason": "Fresh complete role-aware loader recipe and exact entries required before any actual load"
+    },
+    "loadRecords": "Actual resolved canonical path, parentURL, input/package/recipe hash, loaded bytes and namespace/command invocation. Hash admission alone is not loaded-code proof.",
+    "candidateBuiltinData": [
+      "node:path",
+      "node:stream/web",
+      "node:timers/promises",
+      "node:util"
+    ],
+    "typedEntryData": {
+      "yq": "dist/commands/yq/index.js",
+      "contracts": "dist/contracts/index.js"
+    },
+    "inertFullReceipt": {
+      "revision": "e729a5ab8776ea768d10e6107692149989b2511d",
+      "path": "tests/commands/yq-independent-20260828/candidate-b8f5d60d-preseal-v2/FULL-RECEIPT.proposed.json",
+      "sha256": "4187da231bb328cc2bead131ca67d9527beb0ecf7d8a6cf9b26d4d0b16d34b02",
+      "bytes": 7455
+    }
+  },
+  "rawCaptureDistinctions": {
+    "frozenCommand": {
+      "reference": {
+        "revision": "ee9d0c1fd24b33aa918154eb379a92c02cfe5925",
+        "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/runtime/recipe/context.mjs",
+        "sha256": "1e3c7edee830a662f678e70d54398a0bccaf7a19a4fe29f53eadd27ad0985a23",
+        "bytes": 4497
+      },
+      "sourceLines": [
+        {
+          "line": 17,
+          "text": "  let outputBytes = 0;"
+        },
+        {
+          "line": 19,
+          "text": "    assert(events.length < 20000, 'Harness event capture bound');"
+        },
+        {
+          "line": 63,
+          "text": "      assert(outputBytes + bytes.length <= 2097152, 'Harness command output capture bound');"
+        },
+        {
+          "line": 64,
+          "text": "      outputBytes += bytes.length;"
+        },
+        {
+          "line": 71,
+          "text": "    stdinIsDefault: job.stdinIsDefault, stdout: sink('stdout', stdout), stderr: sink('stderr', stderr),"
+        }
+      ],
+      "combinedStdoutStderrBytes": 2097152,
+      "events": 20000,
+      "runtimeV2Delta": {
+        "revision": "7add5d2c0a3acb27483ba0bb5dd52385812d8ed7",
+        "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/runtime-v2/delta.mjs",
+        "sha256": "c4241ec7033dc47171548988c638367a96e923c7a4462f2cddb9f9783bc57ed0",
+        "bytes": 5957
+      },
+      "deltaInspection": "Only context import and rejection-identity encoder change. createFixtureContext outputBytes/event/sink cap body is unchanged. No authored delta function called.",
+      "cmd22RequiredContextHash": "b4827ee8656e9d2a88a23176c9b61b757bf9d4c79f8c46463c5cb579e42e7821",
+      "completeGeneratedContextReconstructedOrExecutedHere": false
+    },
+    "publicYqCombinedOutputCapBytes": 16777216,
+    "outerWorkerRawCaptureBytes": 16777216,
+    "compilerRawCaptureBytes": 8388608,
+    "qualification": "Three different roles; raising an outer capture allowance does not change the frozen 2MiB fixture sink. The command sink can mask an attempt to observe 16MiB public behavior. Host capture failure is not independent YQ cap rejection or boundary acceptance. Preserve raw outcome and sticky actual worker/parent failure; retain unfulfilled boundary proof as HOST_CAPTURE_MASKED/UNRUN with exact gate, not false product failure.",
+    "activeProfileDeclarationRequired": "Sealed code must declare and enforce per-command sink, parent stdout/stderr, compiler output, event/evidence capture, overflow behavior and peak owned-process limits. No active core/worker body read in this review. No enlarged fixture sink or lowered public cap authorized here."
+  },
+  "boundaryRoles": {
+    "reference": {
+      "revision": "46806f6eac2b7be26b476d6a7a04d08a17d20771",
+      "path": "tests/commands/yq-independent-20260828/successor-review-preseal-v2/BOUNDARY-PROOFS.json",
+      "sha256": "5fade6551c744254bcc686c2b33ffe23df6bdfa25aa2912258f71b85e34d01c8",
+      "bytes": 20271
+    },
+    "sourcePrimaryIds": 23,
+    "repairIds": [
+      "WRK-06",
+      "WRK-07",
+      "WRK-13",
+      "WRK-17"
+    ],
+    "freshSourceArgumentReceipt": null,
+    "publicBoundaryPasses": 0,
+    "rows": [
+      {
+        "id": "WRK-06",
+        "authorObservation": "Author C+1 raw document rejection: # + (C-2) x bytes + CRLF = C+1=8388609. Not an at-C success result.",
+        "atC": {
+          "state": "UNRUN_GATE_PROOF_REQUIRED",
+          "authorQualification": "Author says its synthetic comment-body at-C construction reaches the independent fixed work cap. No independent at-C proof inherited.",
+          "requirement": "Bind exact fixed-P1 source gate ordering and original input construction, count raw bytes/codepoints/charged steps including comment/document selection, identify which gate masks later admission. Without complete argument do not call at-C reachable or unreachable."
+        },
+        "newRuntimeFixture": false
+      },
+      {
+        "id": "WRK-07",
+        "authorObservation": "Actual parser plus real YqLedger fixed maxScalarBytes1048576 accepted C and rejected C+1 in author evidence; helper parseOne supplies noopWork. This is not a full public command/Budget proof.",
+        "publicAtC": {
+          "state": "UNRUN_GATE_PROOF_REQUIRED",
+          "conditionalArithmetic": "Author ASCII scalar has C+2 source codepoints including quotes. Parser scans/charges codepoints before Composer parsing;1048578 exceeds fixed maxSteps1000000 under ordinary budget.step, before additional work. A fresh independent gate argument must bind actual session/Budget wiring and relevant branches; do not transplant noopWork or lower caps.",
+          "fullPublicCapSuccess": false
+        },
+        "newRuntimeFixture": false
+      },
+      {
+        "id": "WRK-13",
+        "authorObservation": "Author ninth control invokes actual parser with subclassed ledger/event work for member-before-child order. Source/control proof, not independent public100000-member boundary.",
+        "required": "Inspect all flow/block collection branches against the existing frozen member-admission obligation; retain source role and any branch gaps.",
+        "newRuntimeFixture": false
+      },
+      {
+        "id": "WRK-17",
+        "authorObservation": "Author actual encoder calls use internal maxBytes7/8 for escaped NUL. These are PROOF_CONTROL, not public combined-output cap16777216 or command cap reachability.",
+        "required": "Independent source argument for exact projected-byte reservation before every retained escaped fragment; distinguish append/publish, no double charge. Fixed-cap masked/unreachable claims need explicit gate/path proof, not injected ledger state.",
+        "publicBoundaryState": "UNRUN_GATE_PROOF_REQUIRED",
+        "newRuntimeFixture": false
+      }
+    ],
+    "gateProofSchema": {
+      "required": [
+        "original194 obligation/reference",
+        "fixed profile constants and exact selected-source hashes",
+        "unchanged input/construction or designated symbolic source path",
+        "ordered gates and their own counters",
+        "explicit lower/upper arithmetic and branch applicability",
+        "reachable/masked/unknown classification with justification",
+        "proof role and missing observations"
+      ],
+      "forbidden": [
+        "lowered public caps",
+        "injected product counter state",
+        "private adapter DI",
+        "noopWork promoted to public invocation proof",
+        "source order promoted to runtime pass"
+      ]
+    },
+    "qualification": "Source23/four repair arguments remain SOURCE, not public runtime memory/progress/cap proof. WRK06 C+1 is not C success; WRK07 noopWork scalar author result is not independent full command; WRK17 internal7/8-byte controls do not prove public16MiB. Bind exact frozen gate ordering/counters/input arithmetic for masked or unreachable claims; no injected state/lowered caps."
+  },
+  "quoteLabels": [
+    {
+      "witness": "UTF-02--single-byte",
+      "legacyLabel": "MUT-QUOTED-DEL-DOUBLE",
+      "actualQuoteStyle": "single",
+      "stdinHex": "277fc280c29fefbfbeefbfbf270a",
+      "firstByte": "27",
+      "expected": {
+        "status": 0,
+        "documents": [
+          "\u007f\u0080\u009f\ufffe\uffff"
+        ]
+      },
+      "entireFrozenWitnessHashAuthenticated": "SERIALIZATION-CLARIFICATION.json"
+    },
+    {
+      "witness": "UTF-03--whole",
+      "legacyLabel": "MUT-QUOTED-DEL-SINGLE",
+      "actualQuoteStyle": "double",
+      "stdinHex": "227fc280c29fefbfbeefbfbf220a",
+      "firstByte": "22",
+      "expected": {
+        "status": 0,
+        "documents": [
+          "\u007f\u0080\u009f\ufffe\uffff"
+        ]
+      },
+      "entireFrozenWitnessHashAuthenticated": "SERIALIZATION-CLARIFICATION.json"
+    }
+  ],
+  "continuation": "Ordinary assertion or semantic-timeout failures remain sticky FAIL and may continue only with intact guards AND known reap. Source/runtime admission, provenance, integrity or unknown reap failure stops. All actual parent/worker nonzero fail regardless of receipts.",
+  "phaseObservability": {
+    "status": "NOT_IMPLEMENTED",
+    "current30s": "Old whole-child timer includes metadata/auth/materialization/import/semantic work; not an isolated semantic timer.",
+    "proposal": {
+      "implemented": false,
+      "recordOrder": [
+        "owner:slot-reservation-and-phase-start",
+        "worker:setup-start",
+        "worker:source-recipe-package-authenticated",
+        "worker:runtime-admitted",
+        "worker:setup-end",
+        "worker:compiled-import-start",
+        "worker:compiled-import-end",
+        "worker:command-invocation-start",
+        "worker:command-settlement-or-rejection",
+        "worker:cooperative-drain-settled-or-expired",
+        "worker:raw-capture-published",
+        "worker:projection-classification",
+        "worker:receipt-published",
+        "owner:child-exit-and-known-reap",
+        "owner:post-integrity-complete",
+        "owner:next-admission-gate"
+      ],
+      "clockDomain": "Owner timestamps from one monotonic clock; child phase messages are captured observations, not independent authority. Absolute deadlines sent over authenticated job binding; owner remains responsible for enforcement.",
+      "semanticWindow": "30s includes compiled import, invocation and cooperative settlement; no product instrumentation. Setup/admission is separate only after proposed wrapper exists.",
+      "cleanup": "Reserve within slot. Reap can precede postguard; no continuation until both positive. Always raw byte/status capture before any assertion. Escape or unknown reap stops admissions; no opaque preemption guarantee."
+    },
+    "measurementLabels": [
+      "whole-record elapsed",
+      "setup/auth/materialization elapsed",
+      "compiled-import + invocation + cooperative settlement elapsed",
+      "guard/capture elapsed",
+      "cleanup/reap elapsed",
+      "unattributed or missing phase interval"
+    ],
+    "proofLimit": "Only future trusted owner events and independent supervision can establish proposed phases. Historical16.840\u201327.231s moved totals are not setup measurements. Missing phase timestamps stay UNKNOWN, never inferred from residue."
+  },
+  "rootGO": false,
+  "passes": {
+    "control": 0,
+    "runtime": 0,
+    "candidateExecutions": 0
+  }
+}

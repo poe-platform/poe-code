@@ -1,0 +1,53 @@
+{
+  "classification": "REVIEWER_SERIALIZATION_CLARIFICATION_NOT_TARGET_FAILURE",
+  "preservedRaw": "MUTANT-DATA-AUDIT.json",
+  "rawQualification": "The raw staticDefinitionsConsistent=false includes seven mismatches from reviewer applying recursive sorted-key map serialization to insertion-order edit lists/frozen jobs. Postimages, offsets, full control maps, expected fields were already equal. No target child ran or failed. Raw remains unchanged.",
+  "correctSerialization": "Compact insertion-order UTF-8 JSON for edit lists/frozen jobs, as also verified for effectiveJobs/effectivePhases. Full files/directories map uses recursive sorted keys.",
+  "rows": [
+    {
+      "kind": "edit-list",
+      "id": "retained-view",
+      "actualSha256": "e27268c5aff7ed0ea26031ec19aea4d1b17fc17db5e62ea1606cafecce89625b",
+      "expectedSha256": "e27268c5aff7ed0ea26031ec19aea4d1b17fc17db5e62ea1606cafecce89625b"
+    },
+    {
+      "kind": "edit-list",
+      "id": "quoted-del",
+      "actualSha256": "f2822ee915302a1a714faba40c780927500c636735ed3a189e630ad687d067e8",
+      "expectedSha256": "f2822ee915302a1a714faba40c780927500c636735ed3a189e630ad687d067e8"
+    },
+    {
+      "kind": "edit-list",
+      "id": "pending-shadow",
+      "actualSha256": "ef77ada28beb1029e02e8014a231f0c4463a6866de6461e8288154bd2a3241c3",
+      "expectedSha256": "ef77ada28beb1029e02e8014a231f0c4463a6866de6461e8288154bd2a3241c3"
+    },
+    {
+      "kind": "frozen-job",
+      "id": "UTF-22--whole",
+      "actualSha256": "96c842953b880ccc65f3df2d38f9c0547d2c968adf6d62a868dab2bf7b89840e",
+      "expectedSha256": "96c842953b880ccc65f3df2d38f9c0547d2c968adf6d62a868dab2bf7b89840e"
+    },
+    {
+      "kind": "frozen-job",
+      "id": "UTF-02--single-byte",
+      "actualSha256": "400ed7ad2fb3e25654b6a1f3856db9771f849c559316e762dc3c9194f54ef716",
+      "expectedSha256": "400ed7ad2fb3e25654b6a1f3856db9771f849c559316e762dc3c9194f54ef716"
+    },
+    {
+      "kind": "frozen-job",
+      "id": "UTF-03--whole",
+      "actualSha256": "7e4641b06cf5e451e25a966b06e3bc4d64568b46116a9ee24d85bca6c5601041",
+      "expectedSha256": "7e4641b06cf5e451e25a966b06e3bc4d64568b46116a9ee24d85bca6c5601041"
+    },
+    {
+      "kind": "frozen-job",
+      "id": "ALS-04--whole",
+      "actualSha256": "760421327aa9dcb1f18aff118df2b82d36cb55a3fe9edfdeb229cc7abb9800c0",
+      "expectedSha256": "760421327aa9dcb1f18aff118df2b82d36cb55a3fe9edfdeb229cc7abb9800c0"
+    }
+  ],
+  "allSevenDeclaredHashesMatch": true,
+  "finalStaticMutationDefinitionVerdict": "CONSISTENT_DATA_ONLY",
+  "executionCount": 0
+}

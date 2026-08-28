@@ -1,0 +1,171 @@
+{
+  "classification": "INDEPENDENT_STATIC_PLAN_SEAL_AUTHENTICATION",
+  "criteriaCommit": "1e20418887cb87073270d87ef17d74576e02440f",
+  "sourceCommit": "5bbf54dd0b99dfbb679d7cb04ac3d7cf912b8d56",
+  "evidenceCommit": "46806f6eac2b7be26b476d6a7a04d08a17d20771",
+  "sourceSealSha256": "79e92aeed9364d390b8aabed2df2c52e3eecd5ce2abbf7caef83765304ae7fa8",
+  "finalSealSha256": "e5e789d888f0fe6c5b48af2e850f19f44a557a867bcc91c2d556fc1e3eeb1c98",
+  "sourceFileCount": 16,
+  "finalFileCount": 18,
+  "sourceUnchanged": true,
+  "sourceDiff": {
+    "argv": [
+      "diff",
+      "--no-ext-diff",
+      "--no-textconv",
+      "--binary",
+      "--full-index",
+      "5bbf54dd0b99dfbb679d7cb04ac3d7cf912b8d56^",
+      "5bbf54dd0b99dfbb679d7cb04ac3d7cf912b8d56",
+      "--",
+      "tests/commands/yq-independent-20260828/successor-review-preseal-v2/BOUNDARY-PROOFS.json",
+      "tests/commands/yq-independent-20260828/successor-review-preseal-v2/CANDIDATE-BINDINGS.json",
+      "tests/commands/yq-independent-20260828/successor-review-preseal-v2/INPUTS.json",
+      "tests/commands/yq-independent-20260828/successor-review-preseal-v2/MUTANT-TRANSFORMS.json",
+      "tests/commands/yq-independent-20260828/successor-review-preseal-v2/PACKET-BINDING.json",
+      "tests/commands/yq-independent-20260828/successor-review-preseal-v2/PEER-BINDINGS.json",
+      "tests/commands/yq-independent-20260828/successor-review-preseal-v2/PLAN.json",
+      "tests/commands/yq-independent-20260828/successor-review-preseal-v2/PREPARATION-LOG.md",
+      "tests/commands/yq-independent-20260828/successor-review-preseal-v2/PRESEAL.md",
+      "tests/commands/yq-independent-20260828/successor-review-preseal-v2/README.md",
+      "tests/commands/yq-independent-20260828/successor-review-preseal-v2/RECIPE-COMPOSITION.json",
+      "tests/commands/yq-independent-20260828/successor-review-preseal-v2/ROOT-DECISIONS.json",
+      "tests/commands/yq-independent-20260828/successor-review-preseal-v2/SCHEDULE-DELTA.json",
+      "tests/commands/yq-independent-20260828/successor-review-preseal-v2/SOURCE-DELTA.json",
+      "tests/commands/yq-independent-20260828/successor-review-preseal-v2/SOURCE-SEAL.json",
+      "tests/commands/yq-independent-20260828/successor-review-preseal-v2/TOOL-LOADER-TYPES.json"
+    ],
+    "bytes": 193110,
+    "sha256": "05215ba24a104b58847bdd78686d617001871f6276d44933abe49c0d8fffb8d6"
+  },
+  "files": [
+    {
+      "path": "BOUNDARY-PROOFS.json",
+      "gitMode": "100644",
+      "kind": "blob",
+      "blob": "3dd7c285b562e2d521d8b11cb462266a85155bfe",
+      "sha256": "5fade6551c744254bcc686c2b33ffe23df6bdfa25aa2912258f71b85e34d01c8"
+    },
+    {
+      "path": "CANDIDATE-BINDINGS.json",
+      "gitMode": "100644",
+      "kind": "blob",
+      "blob": "76192091ece30de64074338e4fad61806a134bb2",
+      "sha256": "0dfd3bd787cfdeb945db20a912e3b2ecbbbec8f0102be39bfd31696e9cb71a45"
+    },
+    {
+      "path": "FINAL-SEAL.json",
+      "gitMode": "100644",
+      "kind": "blob",
+      "blob": "5b05ffe78ab6da2d02516e75e3e23c8f0e9fba63",
+      "sha256": "e5e789d888f0fe6c5b48af2e850f19f44a557a867bcc91c2d556fc1e3eeb1c98"
+    },
+    {
+      "path": "INPUTS.json",
+      "gitMode": "100644",
+      "kind": "blob",
+      "blob": "9236bb2f5c70dc3cc5d6c465adfd2691a09b62cc",
+      "sha256": "dc4233dbe1e994a71e15bb005b3371db261ca631d848619c3b6da3c404ef00bb"
+    },
+    {
+      "path": "MUTANT-TRANSFORMS.json",
+      "gitMode": "100644",
+      "kind": "blob",
+      "blob": "601034d200fc1db5254f8df00546509419b7c5be",
+      "sha256": "97d4e4cd9827a6fa159a7cc7ffe2e66cae1ad52b44f74f9a5e2acd2319eddac2"
+    },
+    {
+      "path": "PACKET-BINDING.json",
+      "gitMode": "100644",
+      "kind": "blob",
+      "blob": "8f1b4a02f68fb3ee91b27a11635c5d4a84e7a58c",
+      "sha256": "f6d4397aed0d347807ec197073dc6460ee9b9af0d4884f732cc8a534dba33a21"
+    },
+    {
+      "path": "PEER-BINDINGS.json",
+      "gitMode": "100644",
+      "kind": "blob",
+      "blob": "dbf6b27c0876ea5ab1e7e01251105d9d717b7533",
+      "sha256": "0d0938c3340a49fedc7f8310c0ba72c2bda8a8aa4ed4e14c7332bcae887f7663"
+    },
+    {
+      "path": "PLAN.json",
+      "gitMode": "100644",
+      "kind": "blob",
+      "blob": "e6f903c190a36a59e994503e9078c13481b167d3",
+      "sha256": "c690e28f8cc57cebe3fb29b2a1afd373d13c4c53fafe231489c8db382d3d9c92"
+    },
+    {
+      "path": "PREPARATION-LOG.md",
+      "gitMode": "100644",
+      "kind": "blob",
+      "blob": "ba830ba8e35bf1a32b2946f10f5457b1a0fadc35",
+      "sha256": "d833805ac778f4cd6ec7fa3609d368446094706dc5138c6bfe5506b922524733"
+    },
+    {
+      "path": "PRESEAL.md",
+      "gitMode": "100644",
+      "kind": "blob",
+      "blob": "053b57400137ed25116d0fcdf898117280bf0bb1",
+      "sha256": "45633396655ac8b2b0df2df6356a2964ea2ece1181be81ef152a07671d02d352"
+    },
+    {
+      "path": "README.md",
+      "gitMode": "100644",
+      "kind": "blob",
+      "blob": "a5abe31cd1f1f879865408c5a81bb041f7424ba7",
+      "sha256": "4b327580f2831babeaf6470198044d2a7dab87667fcd229d4b693fca4d341f5e"
+    },
+    {
+      "path": "RECIPE-COMPOSITION.json",
+      "gitMode": "100644",
+      "kind": "blob",
+      "blob": "940fa39290c926a967668e09bdea9db074cbf3d9",
+      "sha256": "4e689fef2a869fc173111565fb0e64e1646b0b80fd17423e0e38d92047723e24"
+    },
+    {
+      "path": "ROOT-DECISIONS.json",
+      "gitMode": "100644",
+      "kind": "blob",
+      "blob": "0d1394facdb5488d161c17df8b4438c83a849091",
+      "sha256": "4f0ee130249ac23c7601bba420c3d6c20cde3130c6ae2467c642db134b67be25"
+    },
+    {
+      "path": "SCHEDULE-DELTA.json",
+      "gitMode": "100644",
+      "kind": "blob",
+      "blob": "a7b2c21ac23749f1095a2e8517692ee6e0d1afa9",
+      "sha256": "40f23c539f5b329f1c60d94969250b72d5090adf357a491b889efa6d1c67b556"
+    },
+    {
+      "path": "SOURCE-DELTA.json",
+      "gitMode": "100644",
+      "kind": "blob",
+      "blob": "7a0d9203462da112ea9f066d65aa03622f39e94e",
+      "sha256": "9872104edaafa14c4f606364af1f7e917e89b410b726a38fd71d4cba13304c18"
+    },
+    {
+      "path": "SOURCE-SEAL.json",
+      "gitMode": "100644",
+      "kind": "blob",
+      "blob": "068fedc58e2c80f4d3fe07045ece45bf02a6c330",
+      "sha256": "79e92aeed9364d390b8aabed2df2c52e3eecd5ce2abbf7caef83765304ae7fa8"
+    },
+    {
+      "path": "STATIC-CHECKS.json",
+      "gitMode": "100644",
+      "kind": "blob",
+      "blob": "26863da35e6bb34c917dd3eeca688499284b1f21",
+      "sha256": "addb8da20f180236c5c3fb1c47a321ef2e6bf0017eef56ad9cad5ca8d1a76cc9"
+    },
+    {
+      "path": "TOOL-LOADER-TYPES.json",
+      "gitMode": "100644",
+      "kind": "blob",
+      "blob": "eed35e6fd9c21e73802a5ecc5b30a2c8d3156f40",
+      "sha256": "649c5da87a0bde485dfc3be77ce98e4e63c00aee06ef8857bd74b7edd3e9cab8"
+    }
+  ],
+  "modeScope": "Git regular/executable class, not runtime materialization or full live POSIX-mode proof",
+  "targetExecutions": 0
+}

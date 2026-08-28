@@ -2112,7 +2112,7 @@ export class Runtime {
 
   private static readonly envShebangCommand = executionCommands(() => { throw new Error("Unreserved shebang invocation"); }).find(command => command.name === "env");
 
-  private shebangState(context: CommandContext, state: State): State {
+  private async shebangState(context: CommandContext, state: State): Promise<State> {
     const child = await cloneState(state, this.signal);
     child.cwd = resolvePath("/", context.cwd);
     for (const key of child.exported) delete child.variables[key];
@@ -2159,7 +2159,7 @@ export class Runtime {
           return invocation;
         },
       };
-      const child = runtime.shebangState(context, state);
+      const child = await runtime.shebangState(context, state);
       const childIO = { ...io, ...context, [invocationScope]: scope };
       invoke = prepare?.(runtime, context, child, childIO);
       const runtimeFrame: RuntimeOutcomeFrame = {};
@@ -2174,7 +2174,7 @@ export class Runtime {
       });
       const execute = composeMiddleware(middleware, async () => {
         scope.assertOpen();
-        const forwarded = runtime.shebangState(context, child);
+        const forwarded = await runtime.shebangState(context, child);
         context.cwd = forwarded.cwd;
         const raw = terminal(runtime, context, forwarded, { ...childIO, ...context });
         return await runtime.observeRuntimeReturn(raw, runtimeFrame);
@@ -2212,7 +2212,7 @@ export class Runtime {
     const reserved = command === "bash" || command === "sh";
     const direct = command.includes("/");
     const definition = this.commands.get(command);
-    const child = this.shebangState(context, state);
+    const child = await this.shebangState(context, state);
     child.cwd = resolvePath(context.cwd, options.cwd ?? ".");
     if (!reserved) {
       if (child.depth >= this.budget.limits.maxSubstitutionDepth) this.budget.fail("maxSubstitutionDepth");

@@ -1,0 +1,68 @@
+{
+  "schema": "REPORT_ONLY_EXACT_SOURCE_OVERLAY_V1",
+  "baseRecipeCommit": "931b8e07114b8f69fa50f35e798a7a619f578cdb",
+  "appliesToFrozenFiles": false,
+  "realAdmissionAuthorized": false,
+  "sourceFilesChanged": 3,
+  "nativeBuiltinPolicyChanged": false,
+  "referencesNowBind": "Physical descriptor/record bytes; all logical JSON parts separately authenticated before parse",
+  "rows": [
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v6/coordinator.mjs",
+      "beforeSha256": "87a590e7233d742aa992471fe22ea70061640b9dbe05b876d68ad81895fc37a4",
+      "afterSha256": "c8c2c281b42042f8fe3b4339674845c1a96b026edebfe9bec6773ffab1835a48",
+      "edits": [
+        {
+          "before": "import fs from 'node:fs';",
+          "after": "import fs from 'node:fs';\nimport { createStore, readDocument, limits } from '../coordinator-report-v1/records.mjs';\nimport { publish } from '../coordinator-report-v1/publisher.mjs';"
+        },
+        {
+          "before": "  let written = 0;\n  const save = (name, value) => {\n    const bytes = Buffer.from(`${JSON.stringify(value)}\\n`);\n    written += bytes.length;\n    requireThat(written <= 268435456, 'EVIDENCE_CAP', written);\n    fs.writeFileSync(path.join(runRoot, name), bytes, { flag: 'wx', mode: 0o644 });\n    return hash(bytes);\n  };\n",
+          "after": "  const store = createStore(runRoot);\n  const save = (name, value) => store.save(name, value, name === 'STAGED.json' || /^child-\\d{3}\\.json$/.test(name) ? 2 * 1024 * 1024 : limits.document).sha256;\n"
+        },
+        {
+          "before": "      const bytes = fs.readFileSync(admissionFile);\n      requireThat(hash(bytes) === approved.acceptedAdmission.sha256, 'ADMISSION_HASH', admissionFile);\n      const admission = JSON.parse(bytes);",
+          "after": "      const admission = readDocument(path.dirname(admissionFile), path.basename(admissionFile), approved.acceptedAdmission.sha256);"
+        },
+        {
+          "before": "      staged = parseStage(fs.readFileSync(path.join(path.dirname(admissionFile), 'STAGED.json')), admission.stagedSha256);",
+          "after": "      staged = readDocument(path.dirname(admissionFile), 'STAGED.json', admission.stagedSha256, 2 * 1024 * 1024);"
+        },
+        {
+          "before": "  output.evidenceBytesBeforeFinal = written;\n  try { save('RESULT.json', output); } catch (error) { output.unsafe = true; output.status = 'UNSAFE_STOP'; output.finalPersistenceError = errorRecord(error); process.stderr.write(`${JSON.stringify({ emergencyLaunchAccounting: output.launchAccounting, children: output.children, error: output.finalPersistenceError })}\\n`); }\n  process.stdout.write(`${JSON.stringify({ mode, runId, unsafe: output.unsafe, children: output.children.length, reaped: output.children.filter(child => child.reaped).length, controls: output.controls?.rows.map(row => ({ id: row.id, status: row.status })), fatal: output.fatal, report: path.join(runRoot, 'RESULT.json') })}\\n`);\n  if (output.unsafe || output.controls?.rows.some(row => row.pass === false) || output.cohort?.rows.some(row => row.pass === false)) process.exitCode = 1;",
+          "after": "  output.evidenceBytesBeforeFinal = store.state().accounted;\n  const publication = publish({ output, ledger, store, inheritedExitCode: process.exitCode ?? 0 });\n  process.exitCode = publication.exitCode;"
+        }
+      ]
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v6/worker.mjs",
+      "beforeSha256": "aa18dd6294fab08bd1f74132f0ca292f0dc0227138cf5956f25ba8c4084e568f",
+      "afterSha256": "d8484b8c6d6d3b5265daa641d53a88c6fb867fd42cac7bfafcc1ccd9fe836aff",
+      "edits": [
+        {
+          "before": "import fs from 'node:fs';",
+          "after": "import fs from 'node:fs';\nimport { readDocument } from '../coordinator-report-v1/records.mjs';"
+        },
+        {
+          "before": "  const configBytes = fs.readFileSync(configPath);\n  requireThat(configBytes.length < 2 * 1024 * 1024 && hash(configBytes) === process.argv[3], 'CONFIG_BINDING', process.argv[2]);\n  const config = JSON.parse(configBytes);",
+          "after": "  const config = readDocument(path.dirname(configPath), path.basename(configPath), process.argv[3], 2 * 1024 * 1024 - 1);"
+        }
+      ]
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v6/synthetic-worker.mjs",
+      "beforeSha256": "4f2f09d61ff806503b12d2e8345bc60e9901ce637ea937d37d9401cbd70be175",
+      "afterSha256": "53d5c1820b964a60df8d7a46761760d224514eb0c58863243558a7082cb0b3df",
+      "edits": [
+        {
+          "before": "import fs from 'node:fs';",
+          "after": "import fs from 'node:fs';\nimport { readDocument } from '../coordinator-report-v1/records.mjs';"
+        },
+        {
+          "before": "  const bytes = fs.readFileSync(configPath);\n  requireThat(bytes.length <= 2 * 1024 * 1024 && hash(bytes) === process.argv[3], 'CONFIG_BINDING', configPath);\n  config = JSON.parse(bytes);",
+          "after": "  config = readDocument(path.dirname(configPath), path.basename(configPath), process.argv[3], 2 * 1024 * 1024);"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,29 @@
+{
+  "schema": 1,
+  "date": "2026-08-28",
+  "newPreparationFailures": [
+    {
+      "id": "PREP-01",
+      "role": "HOST_STATIC_DATA_INSPECTION_NOT_TARGET_EXECUTION",
+      "exitCode": 1,
+      "toolReportedWallSeconds": 0.0165,
+      "stdout": "",
+      "stderr": "file:///Users/kjopek/Workspace/safe-bash/[eval1]:29\nfor (const entry of priorSeal.files) {\n                              ^\n\nTypeError: priorSeal.files is not iterable\n    at file:///Users/kjopek/Workspace/safe-bash/[eval1]:29:31\n    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:272:26)\n    at async ModuleLoader.executeModuleJob (node:internal/modules/esm/loader:268:20)\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)\n\nNode.js v22.22.2\n",
+      "cause": "The host data inspector assumed priorSeal.files; the authenticated committed FINAL-SEAL.json names the array entries.",
+      "priorChecksReached": "The specified supervisor and original seal SHA256 matched; prior membership lists matched before the invalid array iteration.",
+      "writesReached": false,
+      "newScopeAbsentAfterFailure": true,
+      "correction": "Read the committed seal schema and iterate priorSeal.entries without changing any expected bytes, mode or membership.",
+      "status": "FAIL_RETAINED_NOT_RESCORED"
+    }
+  ],
+  "historicalPreparationAuthority": {
+    "commit": "946c33cfaf02f4120fb636d19b2095ab62746ad4",
+    "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/capture-deadlines-v3/PREPARATION-HISTORY.md",
+    "preservation": "Original shell exit127 and document-check failures remain in the original immutable packet; their captures are not overwritten or rescored. Original b1, 946, cohort gaps and other failed captures retain their original status."
+  },
+  "candidateExecutions": 0,
+  "harnessExecutions": 0,
+  "controlExecutions": 0,
+  "rootGO": false
+}

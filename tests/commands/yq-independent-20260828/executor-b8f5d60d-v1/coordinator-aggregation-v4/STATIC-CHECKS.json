@@ -1,0 +1,122 @@
+{
+  "schema": 1,
+  "date": "2026-08-28",
+  "status": "PASS_SCOPED_STATIC_CHECKS_ONLY",
+  "sourcePreseal": {
+    "path": "SOURCE-PRESEAL.json",
+    "bytes": 3995,
+    "sha256": "551879a34bb2092280657bb0f65016438c98b26a5a47c15cd7b75ad3cd98ef2f"
+  },
+  "commandCaptures": [
+    {
+      "role": "SYNTAX_ONLY_NO_IMPORT_RESOLUTION_OR_EVALUATION",
+      "argv": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--check",
+        "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/coordinator-aggregation-v4/overlay/core/supervisor.mjs"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "timeoutMs": 30000,
+      "maxBufferBytes": 1048576,
+      "exitCode": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": "",
+      "processError": null,
+      "elapsedNs": "38716125",
+      "synchronousWaitReturned": true,
+      "status": "PASS_STATIC_ONLY"
+    },
+    {
+      "role": "TRUSTED_SPEC_TEXT_LINT_NOT_HARNESS_EXECUTION",
+      "argv": [
+        "python3",
+        "/Users/kjopek/.codex/skills/write-spec/scripts/check_spec.py",
+        "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/coordinator-aggregation-v4/SPECIFICATION.md"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "timeoutMs": 30000,
+      "maxBufferBytes": 1048576,
+      "exitCode": 0,
+      "signal": null,
+      "stdout": "OK: /Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/coordinator-aggregation-v4/SPECIFICATION.md (0 warning(s))\n",
+      "stderr": "",
+      "processError": null,
+      "elapsedNs": "120367750",
+      "synchronousWaitReturned": true,
+      "status": "PASS_STATIC_ONLY"
+    }
+  ],
+  "staticFacts": [
+    {
+      "id": "sourcePresealUnchanged",
+      "status": "MATCH",
+      "files": 7
+    },
+    {
+      "id": "minimalExactDiff",
+      "status": "MATCH",
+      "changedLines": [
+        276
+      ],
+      "literalInsertionBytes": 104,
+      "allOtherBytesUnchanged": true,
+      "predicateEvaluationPerformed": false
+    },
+    {
+      "id": "importsAndTargets",
+      "status": "MATCH",
+      "activeSourceFiles": 1,
+      "assemblyTargets": [
+        "core/supervisor.mjs"
+      ],
+      "importsUnchanged": true,
+      "closureOrAssemblyExecuted": false
+    },
+    {
+      "id": "frozenWitness",
+      "status": "MATCH",
+      "witnessSha256": "604334221f8e1b1caad5e55a17055e644960cda2bd744f1dbc3aaa8d32fb20fc",
+      "excerptSources": 3
+    },
+    {
+      "id": "original946After",
+      "status": "MATCH_IMMUTABLE_SEAL_BEFORE_AND_AFTER",
+      "files": 19,
+      "directories": 3,
+      "bytesModesMembershipAndGitBytes": true,
+      "failuresRescored": false
+    },
+    {
+      "id": "freshMembership",
+      "status": "MATCH",
+      "filesBeforeStaticReceipt": 8,
+      "directories": 3,
+      "allRegular": true,
+      "noSymlinks": true,
+      "noAgEntsCopies": true
+    },
+    {
+      "id": "staticToolsAfter",
+      "status": "HASH_UNCHANGED",
+      "candidateToolchainProof": false
+    }
+  ],
+  "inspectionFailure": null,
+  "earlierPreparationFailure": "PREPARATION-HISTORY.json PREP-01 remains FAIL, not rescored by this later static check.",
+  "sourceInspectionIsBehavioralProof": false,
+  "proposedReceiptConstructionExecutions": 0,
+  "authoredModuleImports": 0,
+  "harnessExecutions": 0,
+  "candidateExecutions": 0,
+  "compilerExecutions": 0,
+  "controlExecutions": 0,
+  "controlPasses": 0,
+  "deferredConditions": {
+    "declared": 13,
+    "executed": 0,
+    "status": "ALL_UNRUN"
+  },
+  "independentReview": "PENDING_DIFFERENT_REVIEWER",
+  "rootGO": false
+}

@@ -1,0 +1,14 @@
+node:fs:1370
+  const result = binding.mkdir(
+                         ^
+
+Error: Access to this API has been restricted. Use --allow-fs-write to manage permissions.
+    at Object.mkdirSync (node:fs:1370:26)
+    at file:///Users/kjopek/Workspace/safe-bash/[eval1]:90:4
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5) {
+  code: 'ERR_ACCESS_DENIED',
+  permission: 'FileSystemWrite',
+  resource: '/Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-20260828/repair-v3-f05/runs/f05-01'
+}
+
+Node.js v22.22.2

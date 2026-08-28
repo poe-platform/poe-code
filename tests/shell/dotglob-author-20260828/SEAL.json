@@ -1,0 +1,61 @@
+{
+  "version": 1,
+  "role": "author-only committed-source replay, with retained precommit attempts; not independent acceptance",
+  "sourceCommit": "d2502aae3c8458e0ac92662f2af07e7f9fc3923a",
+  "acceptedTree": "099455f232870fa1ea59e1a0ae482e003fd170db",
+  "candidateComposedTree": "37ad3f94f9fa07037e61d2bd27a4a4b7cddb4d5e",
+  "packageSha256": "b0544dcb3d0d9b22420932fc86e4d4693377fcc813fde6bde95c8625edc951aa",
+  "packageFiles": 846,
+  "finalCapture": "capture-hm46By",
+  "createdAt": "2026-08-28T10:33:37.913Z",
+  "captures": [
+    {
+      "path": "capture-01.json.gz.base64",
+      "jsonSha256": "be61dbf3813137c39d8e25d2c6c1c8aba889408beaf36b11048abf0799cc22dc",
+      "originalCapture": "capture-EIVMjr"
+    },
+    {
+      "path": "capture-02.json.gz.base64",
+      "jsonSha256": "7456ba1c960dfe970262d0a1e6267cd732af75d4f6e0d0b3fce7539c98248c6e",
+      "originalCapture": "capture-Mhj2uC"
+    },
+    {
+      "path": "capture-03.json.gz.base64",
+      "jsonSha256": "25fd389c60ee9e051a7a1107b6c823645041731098e85e0890dc6d2d820b84d8",
+      "originalCapture": "capture-gODtnS"
+    },
+    {
+      "path": "capture-04.json.gz.base64",
+      "jsonSha256": "a925aab2538b0fa85e5f86caf5e2b2eae5c326cac2fdce6c8843be44691c8010",
+      "originalCapture": "capture-fnJ3DT"
+    },
+    {
+      "path": "capture-05.json.gz.base64",
+      "jsonSha256": "c9d68f26e7ee0aefc6ca74b97e8d5a0c95e78e80e662e83e30f1c40b58fd3d51",
+      "originalCapture": "capture-RqGsst"
+    },
+    {
+      "path": "capture-06.json.gz.base64",
+      "jsonSha256": "7f90b69b6a1cb6e7576d111edf2682ab5746609b8eff1a681801721583055125",
+      "originalCapture": "capture-fReJE1"
+    },
+    {
+      "path": "capture-07.json.gz.base64",
+      "jsonSha256": "41fe4c9b59d249f9f8be3a196c9d48f5602d38587bb8d9a8fc6364062ff4b8de",
+      "originalCapture": "capture-hm46By"
+    }
+  ],
+  "artifacts": {
+    "capture-01.json.gz.base64": "8fd257788fb5e932688cc6a231eceb34933b8289d0bfe1bd668e2cc95115b979",
+    "capture-02.json.gz.base64": "7d8554c12be90805a68d1f7728fadfddc7136602f677fd27a72859db89cfeeea",
+    "capture-03.json.gz.base64": "4f4cec1c6bc16875eec8dfc73b55660973330d502aa0867a67af7714b3488b97",
+    "capture-04.json.gz.base64": "2a3f837e338342133c61297bcda110343c00cc6009a02d497acc017b94adc67a",
+    "capture-05.json.gz.base64": "c7aef32e29720861e4b0ee3421f1f973071309c4903dbc72556888f9a0f87064",
+    "capture-06.json.gz.base64": "33b644d82f2e8fb582c36577ff78ad21c79c75993b3ce0dd6abde5954a9d35a3",
+    "HANDOFF.md": "9495d35bf53a0dbf06d3d364d15951849d0e863e11ecbe22342791c021d729c3",
+    "CLEANUP.json": "1cb20441e6ad0d058fc4fb12c09edaa2f462e22d72e897cd3265838086e039c0",
+    "verify-evidence.mjs": "19f0c2d1ee0883665a9014201b37f61bb1a4b4e127cca7213a77dd385f87f44f",
+    "capture-07.json.gz.base64": "0d10e6b256324146c2660f526767f9e6eb69e76b1abbda73348361ff3c74e88f"
+  },
+  "driverCommit": "a8a64dccbb026faf9a89d9eaccd6571de25ae41a"
+}

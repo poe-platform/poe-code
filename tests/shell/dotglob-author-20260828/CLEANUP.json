@@ -1,0 +1,24 @@
+{
+  "at": "2026-08-28T10:35:59.887Z",
+  "removedCaptures": [
+    "capture-EIVMjr",
+    "capture-Mhj2uC",
+    "capture-gODtnS",
+    "capture-fnJ3DT",
+    "capture-RqGsst",
+    "capture-fReJE1"
+  ],
+  "archiveRawBytesVerifiedBeforeRemoval": true,
+  "allOwnedCaptureDirectoriesAbsent": true,
+  "observedMatchingAuthorRunnersOrAbsolutePathTestChildren": [],
+  "observationLimit": "Targeted command-line sample plus synchronous child settlement; not a universal descendant census or opaque-host preemption guarantee.",
+  "nativeOracleRuns": 0,
+  "finalCommittedReplayCleanup": {
+    "at": "2026-08-28T10:40:11.506Z",
+    "removedCapture": "capture-hm46By",
+    "rawBytesVerified": true,
+    "recordedNodeInvocationsSettled": 21,
+    "allRecordedSignalsAndErrorsNull": true,
+    "noRemainingOwnedCaptureDirectories": true
+  }
+}

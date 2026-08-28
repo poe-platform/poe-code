@@ -1,0 +1,70 @@
+{
+  "schema": "overlay-v2-final-static-authentication-v1",
+  "author": "eb468a7e5283525e48a282c40dd98ec7617c4307",
+  "prior": "157eb678f8bcb9ed18fd308a21771aa4d6a032ce",
+  "checks": [
+    {
+      "id": "original-manifest-binding-only",
+      "holds": true,
+      "detail": null
+    },
+    {
+      "id": "current-original-manifest-binding-only",
+      "holds": true,
+      "detail": null
+    },
+    {
+      "id": "author-root-top-level-new-entries",
+      "holds": true,
+      "detail": {
+        "expectedCount": 13
+      }
+    },
+    {
+      "id": "tool-regular:node",
+      "holds": true,
+      "detail": null
+    },
+    {
+      "id": "tool-bytes:node",
+      "holds": true,
+      "detail": null
+    },
+    {
+      "id": "tool-regular:git",
+      "holds": true,
+      "detail": null
+    },
+    {
+      "id": "tool-bytes:git",
+      "holds": true,
+      "detail": null
+    },
+    {
+      "id": "prior-root-new-entries-except-exact-owned-directory",
+      "holds": true,
+      "detail": null
+    }
+  ],
+  "counts": {
+    "checks": 8,
+    "holds": 8,
+    "doesNotHold": 0
+  },
+  "tools": [
+    {
+      "role": "node",
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+      "executedForReview": false
+    },
+    {
+      "role": "git",
+      "path": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+      "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9",
+      "executedForReview": true
+    }
+  ],
+  "checkerSha256": "fd061ef622dfffe54a1f0eb5ac51517fbaaaaace299634a88c80cce0413f0914",
+  "qualification": "Metadata/tool-byte authentication only. Original eleven-file proof is not repeated. Git read-only commands are not native-oracle execution; Node is hashed, not invoked. Membership snapshots are point-in-time, not a filesystem lease."
+}

@@ -1,6 +1,6 @@
 {
   "schema": 8,
-  "createdAt": "2026-08-28T08:12:06.354Z",
+  "createdAt": "2026-08-28T08:18:14.479Z",
   "candidate": "f5e9fc49b6abb38e180cc9de16c95fced102ff75",
   "tree": "5687cbdebc46ec6d3618d32072c4de708118b9bb",
   "files": {
@@ -39,12 +39,12 @@
     "os-instruction-fence.mjs": "1955d2225312f57dfd4f7cb4a122e4d940caf997aea9ba4aa4c85f85558bac69",
     "fenced-supervisor.mjs": "644b94da6339cee42c2ff0ccaaa0fc4a6d12746a39c0683fea339aea51f7a6f8",
     "OS-INSTRUCTION-FENCE.json": "8beb3aeb244fd490bd1904fa32bddc1332a7ccfb4c48d36dfe8c6ebbf3305a7f",
-    "tool-routing.mjs": "9cc8fb1e975c930ff40aaa192ea2216bbaf8f456f1c326032d37ce560ac0a41f",
+    "tool-routing.mjs": "6fdd0e4b7bc142694c1a479b3471e844c0ad3ce1d13ae1b3fc3253fe18118ced",
     "TOOL-ROUTES.json": "01bbe980528bacee75b89571746763bb92f8990bfa4f426f20307c82a25251c7"
   },
   "wholeGateLaunched": false,
   "qualification": "Versioned integrated launcher for review only; explicit root release and independent driver acceptance required.",
-  "previousSource": "484c5c2a",
-  "previousDriverSha256": "4d3a330d4d01dee94435fadc038c9920310ec3dfa670abe9cf202d36f5aafb7e",
+  "previousSource": "6fd073379fe530e0c3cec024a856f55810857ead",
+  "previousDriverSha256": "c4ae8a14a99c4834bb0565544dd086a7fc1c06599512581fc2860dc28e02f68b",
   "scope": "Version8: retains every prior35 closure entry, adds two explicit route bindings; approved direct inspector with exact two OS-reference pairs, finite admitted PATH/direct Git-core, inherited denial of old selector routes. Resolved-write scope and all existing guards/f5/c109/exact6 projection/14 phases/A10 build reuse preserved. Fresh independent review/root release required."
 }

@@ -112,6 +112,10 @@ export function inspectLinkage(origin, environment = process.env) {
   const invocation = prepareInspection(origin, environment);
   const result = spawnSync(invocation.executable, invocation.args, {env: invocation.env, encoding: 'utf8', timeout: 10000, maxBuffer: 1024 * 1024});
   if (result.error || result.status !== 0 || result.signal || result.stderr) throw fail(new Error('direct dependency inspection failed: ' + (result.error?.message ?? result.stderr ?? result.status)));
+  const expected = origin === '/usr/bin/sandbox-exec'
+    ? JSON.parse(readFileSync(join(directory, 'OS-INSTRUCTION-FENCE.json'))).linkage
+    : externalRecords().linkage.find(entry => entry.origin === origin).stdout;
+  assert.equal(result.stdout, expected, 'linkage output changed or missing');
   return {stdout: result.stdout, stderr: result.stderr, status: result.status, pid: result.pid, signal: result.signal, invocation};
 }
 

@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { authority, authenticatePacket } from './authorization.mjs';
-import { boundFile, inspectTree, stage } from './projection.mjs';
+import { boundFile, inspectTree, stage, authenticateView, parseStage } from './projection.mjs';
 import { supervise } from './supervisor.mjs';
 import { controls, defectControls } from './controls.mjs';
 import { qualify } from './predicates.mjs';
@@ -34,6 +34,7 @@ if (mode === 'verify') {
     authority({ ...authorization, root, projection });
   }
   fs.mkdirSync(path.join(root, 'runs'), { recursive: true });
+  if (!syntheticMode) fs.writeFileSync(path.join(root, 'runs', `authority-${authorization.grant.sha256}.lock`), `${JSON.stringify({ runId, mode, recipe, grant: authorization.grant })}\n`, { flag: 'wx', mode: 0o444 });
   fs.mkdirSync(runRoot);
   const output = { recipe, mode, runId, started: new Date().toISOString(), productCohortCalls: 0, setupCalls: 0, children: [], rows: [], unsafe: false, historicalScoresUnchanged: true };
   const outerStart = Date.now();
@@ -53,6 +54,7 @@ if (mode === 'verify') {
     requireThat(authenticatePacket(root) === recipe, 'RECIPE_CHANGED', recipe);
     for (const tool of projection.tools) boundFile(tool.path, tool);
     if (staged) for (const view of Object.values(staged.views)) {
+      authenticateView(projection, view);
       inspectTree(view.root, view.files);
       if (view.oldOrigin) requireThat(!fs.existsSync(view.oldOrigin), 'OLD_LAYOUT_PRESENT', view.oldOrigin);
     }
@@ -83,7 +85,7 @@ if (mode === 'verify') {
       output.actualC11 = 'HELD_NOT_A_MODEL_PASS';
     } else if (mode === 'admission') {
       staged = stage(path.join(runRoot, 'views'), projection);
-      save('STAGED.json', staged);
+      output.stagedSha256 = save('STAGED.json', staged);
       output.projection = { proof: staged.proof, before: staged.before, after: staged.after };
       output.probes = await serial(Object.values(staged.views).map(view => ({ id: view.name, view })), async item => {
         const receipt = await launch({ authorization, kind: 'probe', view: item.view });
@@ -105,7 +107,7 @@ if (mode === 'verify') {
       requireThat(hash(bytes) === approved.acceptedAdmission.sha256, 'ADMISSION_HASH', admissionFile);
       const admission = JSON.parse(bytes);
       requireThat(admission.mode === 'admission' && admission.recipe === recipe && admission.admissionQualified === true && !admission.unsafe, 'ADMISSION_NOT_ACCEPTED', admission);
-      staged = readJson(path.join(path.dirname(admissionFile), 'STAGED.json'));
+      staged = parseStage(fs.readFileSync(path.join(path.dirname(admissionFile), 'STAGED.json')), admission.stagedSha256);
       await integrity();
       const executions = schedule.rows ?? schedule.executions;
       requireThat(Array.isArray(executions) && executions.length === 99, 'SCHEDULE', executions?.length);

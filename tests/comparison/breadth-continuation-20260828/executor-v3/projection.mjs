@@ -90,6 +90,25 @@ export function writeView(root, entries, content) {
   }
   return inspectTree(root, entries);
 }
+export function viewProjection(projection, name) {
+  requireThat(['target-installed', 'target-moved', 'baseline-installed'].includes(name), 'VIEW_NAME', name);
+  const baseline = name === 'baseline-installed';
+  const consumerPath = baseline ? 'benchmarks/consumer.mjs' : 'consumer.mjs';
+  const consumer = `import * as library from '${baseline ? 'just-bash' : 'virtual-bash'}';\nexport { library };\n`;
+  const files = baseline ? projection.baseline.closure.files.filter(entry => !projection.baseline.excluded.some(omit => omit.path === entry.path)) : projection.target.files.map(entry => ({ ...entry, path: `node_modules/virtual-bash/${entry.path}` }));
+  return { engine: baseline ? 'just-bash' : 'virtual-bash', consumerPath, consumer, files: [...files, { path: consumerPath, bytes: Buffer.byteLength(consumer), sha256: hash(consumer), mode: 0o644 }] };
+}
+export function authenticateView(projection, view) {
+  const expected = viewProjection(projection, view.name);
+  requireThat(view.engine === expected.engine && view.consumerPath === expected.consumerPath && JSON.stringify(view.files) === JSON.stringify(expected.files), 'VIEW_PROJECTION_BINDING', view.name);
+  requireThat(path.isAbsolute(view.root) && path.basename(view.root) === view.name, 'VIEW_ROOT', view.root);
+  requireThat(view.oldOrigin === (view.name === 'target-moved' ? path.join(path.dirname(view.root), 'move-origin') : null), 'MOVE_ORIGIN_BINDING', view.oldOrigin);
+  return true;
+}
+export function parseStage(bytes, expectedSha256) {
+  requireThat(bytes.length <= 2 * 1024 * 1024 && hash(bytes) === expectedSha256, 'STAGED_HASH', expectedSha256);
+  return JSON.parse(bytes);
+}
 export function stage(work, projection) {
   const targetMembers = tarMembers(boundFile(projection.target.pack.physical, projection.target.pack), projection.target.files);
   boundFile(projection.baseline.archive.physical, projection.baseline.archive);

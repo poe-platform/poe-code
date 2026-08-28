@@ -380,6 +380,12 @@
       "sha256": "c193ed7feac7d2e2278591c84c8032db822d79085781f8f2bf7d249f6b82b348"
     },
     {
+      "path": "FINAL-BINDING-ADDENDUM.md",
+      "bytes": 1613,
+      "mode": 420,
+      "sha256": "be4f6755cc5086e7223c1e0dc73066a8ea53d2c9f05539df84413cba8b17d4c0"
+    },
+    {
       "path": "PROJECTION.json",
       "bytes": 812576,
       "mode": 420,
@@ -429,9 +435,9 @@
     },
     {
       "path": "coordinator.mjs",
-      "bytes": 10270,
+      "bytes": 10625,
       "mode": 420,
-      "sha256": "f24735f6370ab687b387f2a71dbe237ab394630becb1ba6c83587412d17fa2fb"
+      "sha256": "28fd68be4605b2f35fcc0d334cfb165c11957547eb99513d243ebd2e7cebb32f"
     },
     {
       "path": "fixtures/forbidden.mjs",
@@ -477,9 +483,9 @@
     },
     {
       "path": "projection.mjs",
-      "bytes": 7218,
+      "bytes": 8872,
       "mode": 420,
-      "sha256": "53dfc038e6f68301d11b035640e99e7f12a942a1cd09fdb1738c830f9479311c"
+      "sha256": "13f3363d839f4c3820f5bdd860684564087fb15b7ed2a1d337a10297000b84e1"
     },
     {
       "path": "regular-read.mjs",
@@ -513,9 +519,9 @@
     },
     {
       "path": "validate.mjs",
-      "bytes": 3735,
+      "bytes": 5296,
       "mode": 420,
-      "sha256": "8dc669c2160f52eef48d66461a4dc88c1aadbd266c9199b7802c2b91f918bb31"
+      "sha256": "4d4f28ee503222f1cee6d8038bee8741525e8e92cdb12a6129252478cf936ca9"
     },
     {
       "path": "w07.mjs",
@@ -525,18 +531,18 @@
     },
     {
       "path": "worker.mjs",
-      "bytes": 7372,
+      "bytes": 7435,
       "mode": 420,
-      "sha256": "7125c82910509cf57b057cb2c75af03bda8c1f364ed0c79f671681edbb7f506f"
+      "sha256": "8680e118cb97b3f65fe7fd59f21a3c47f44fb59ec6ff72844079ff5e59d1ac17"
     }
   ],
   "mutableOutputNamespace": "runs",
   "authorization": "synthetic only; product/comparator phases require later exact different freeze and root grants",
   "priorReview": "a66683b5bf9b0274705f5f6e61ff1e35aee1db46",
-  "version": 3,
+  "version": 4,
   "priorRecipe": {
-    "commit": "4ad7eefb",
-    "sha256": "950626b647233848133080f6e2d3446cf27d34d3b0efde2a24ad6841a935793b",
-    "evidenceCommit": "8abf1f29"
+    "commit": "4a33f94a",
+    "sha256": "91fb92dcf62b54b3d85004b2c2d7a71f286fcb72b5c2e5493470cbf7dd8c387b",
+    "evidenceCommit": "7d5a2e30"
   }
 }

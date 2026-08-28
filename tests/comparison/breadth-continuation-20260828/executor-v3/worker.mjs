@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { authority } from './authorization.mjs';
-import { inspectTree } from './projection.mjs';
+import { inspectTree, authenticateView } from './projection.mjs';
 import { installLoader } from './loader.mjs';
 import { installOffline } from './offline.mjs';
 import { transport } from './transport.mjs';
@@ -27,6 +27,7 @@ try {
   const config = JSON.parse(configBytes);
   const projection = readJson(path.join(root, 'PROJECTION.json'));
   authority({ ...config.authorization, root, projection });
+  authenticateView(projection, config.view);
   inspectTree(config.view.root, config.view.files);
   if (config.view.oldOrigin) requireThat(!fs.existsSync(config.view.oldOrigin), 'OLD_LAYOUT_PRESENT', config.view.oldOrigin);
   const bindings = readJson(path.join(root, '../BINDINGS.json'));

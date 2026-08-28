@@ -1,0 +1,682 @@
+{
+  "kind": "independent observer-only review",
+  "authorPreseal": "1f03c93a0a857d7360bf8a418eff45bbcfa20942",
+  "authorEvidence": "06265c49d60676f041fed2de07f5a6c8c6c375f5",
+  "bindings": [
+    {
+      "revision": "1f03c93a0a857d7360bf8a418eff45bbcfa20942",
+      "path": "tests/commands/git-independent-20260828/observer-qualification-v8/worker.mjs",
+      "blob": "3f5b52a4ddb5e25e70c1ec01b8c422f1f8af598e",
+      "bytes": 21443,
+      "sha256": "7a80e290169f1c2980b2696127c2989f6fe7218a905d9ca2dda9bf9b4f71beee"
+    },
+    {
+      "revision": "1f03c93a0a857d7360bf8a418eff45bbcfa20942",
+      "path": "tests/commands/git-independent-20260828/observer-qualification-v8/observer.mjs",
+      "blob": "efe87c1c83299a472cba7633bf608a8eaee60c50",
+      "bytes": 15146,
+      "sha256": "30d33df91fe6bfbb89a10ac81b93e39d321bdc7aa39a6133fa2e0dfd65e1f7c1"
+    },
+    {
+      "revision": "1f03c93a0a857d7360bf8a418eff45bbcfa20942",
+      "path": "tests/commands/git-independent-20260828/observer-qualification-v8/retirement.mjs",
+      "blob": "e9fe23212ed931020fce64bb838bc7c66fed20ef",
+      "bytes": 5974,
+      "sha256": "c8a19a9389d045b2807eb1d60534747297e2430fd93c7950e1e5025e698720f2"
+    },
+    {
+      "revision": "1f03c93a0a857d7360bf8a418eff45bbcfa20942",
+      "path": "tests/commands/git-independent-20260828/observer-qualification-v8/writer-surrogate.mjs",
+      "blob": "6a19f536b7fd8b9a574f2c94ebe16e69887513f7",
+      "bytes": 1189,
+      "sha256": "94b2d6b48b5981e2df17e69b5b5109a7cfe8c8e42a13692ff25badca95fa0f5d"
+    },
+    {
+      "revision": "1f03c93a0a857d7360bf8a418eff45bbcfa20942",
+      "path": "tests/commands/git-independent-20260828/observer-qualification-v8/CONTROLS.json",
+      "blob": "7fb5c7b4c796f4a053374c45fcf754c5d9821b89",
+      "bytes": 1847,
+      "sha256": "6b14dc90df85f3ad41f51f2d2405491bd95ed8b05df4a1514ad24c27550f6642"
+    },
+    {
+      "revision": "1f03c93a0a857d7360bf8a418eff45bbcfa20942",
+      "path": "tests/commands/git-independent-20260828/observer-qualification-v8/SOURCE-DATA.json",
+      "blob": "facc9d2ad34fb112069a7e2d81563ecd56d7ecb9",
+      "bytes": 27686,
+      "sha256": "acb06f41f6fafc28cfdf10555fe909fa4b6283baf8efbe62ee594b7b7d0176f7"
+    },
+    {
+      "revision": "1f03c93a0a857d7360bf8a418eff45bbcfa20942",
+      "path": "tests/commands/git-independent-20260828/observer-qualification-v8/CORRESPONDENCE.json",
+      "blob": "a20bc43d880c73c5c1e1a2a068592be19bb7279e",
+      "bytes": 3880,
+      "sha256": "e2d28ede63d60eece4715968da4edcc654bff12e902b4545534b8fcf7cf9df27"
+    },
+    {
+      "revision": "06265c49d60676f041fed2de07f5a6c8c6c375f5",
+      "path": "tests/commands/git-independent-20260828/observer-qualification-v8/PRESEAL.json",
+      "blob": "939f51a244dad46a3289491fa1882c588f3eee5d",
+      "bytes": 23187,
+      "sha256": "dc1918ec176c0da906903ce9ff1c55b277d74eea9c283f442f69f9718ed4d0de"
+    },
+    {
+      "revision": "06265c49d60676f041fed2de07f5a6c8c6c375f5",
+      "path": "tests/commands/git-independent-20260828/observer-qualification-v8/HANDOFF.md",
+      "blob": "1f2435afaad030ef42ddace9119dc7306dbca43e",
+      "bytes": 7611,
+      "sha256": "0470667678f8e6437d469785a91e664d858ecb647730562ea0db0c0f4c2468e6"
+    },
+    {
+      "revision": "06265c49d60676f041fed2de07f5a6c8c6c375f5",
+      "path": "tests/commands/git-independent-20260828/observer-qualification-v8/WORKER-ADAPTER-PROPOSAL.md",
+      "blob": "67d927164ea8662d4374dbfc034840a0287a6522",
+      "bytes": 5846,
+      "sha256": "5fbc84e198bcca25e5d2ef35cc486ae1cd3e2ac5d87f4f2db42ee9546e70370d"
+    },
+    {
+      "revision": "06265c49d60676f041fed2de07f5a6c8c6c375f5",
+      "path": "tests/commands/git-independent-20260828/observer-qualification-v8/CONTINUATION-PROPOSED.json",
+      "blob": "7ce47cf308d00c82b200f4b9f1215ac2b2e7a287",
+      "bytes": 8766,
+      "sha256": "24d89f323c44cb86ea9be23880489bf7270e10fbfbab322413c44d13a34e2a42"
+    },
+    {
+      "revision": "06265c49d60676f041fed2de07f5a6c8c6c375f5",
+      "path": "tests/commands/git-independent-20260828/observer-qualification-v8/CRITERION.md",
+      "blob": "053e86d749af6a665f43c92dfae9724b9a5eb603",
+      "bytes": 10225,
+      "sha256": "00bd64f79dadfcbc88a349a96115d4c3500420381945c60a8514596c896be33f"
+    },
+    {
+      "revision": "06265c49d60676f041fed2de07f5a6c8c6c375f5",
+      "path": "tests/commands/git-independent-20260828/observer-qualification-v8/NODE-PRIMARY.json",
+      "blob": "78890a3e4cb93013350aaa3f260b6ad9e0bfbf10",
+      "bytes": 722751,
+      "sha256": "2bf28e73ff32639a9ca015ac4b654601a581aa9c96709156ca58edadcc2caff5"
+    },
+    {
+      "revision": "06265c49d60676f041fed2de07f5a6c8c6c375f5",
+      "path": "tests/commands/git-independent-20260828/observer-qualification-v8/NODE-PROVENANCE.json",
+      "blob": "fd8eb112f572a4ed5fb807ab4b97a0593fe04087",
+      "bytes": 6137,
+      "sha256": "348dc3010327e23cfc99233b50b0159a28bdceaa4ea6d0ce94834433866cd936"
+    },
+    {
+      "revision": "9885390fb11454fa194a3e60fdbef198dbfdf633",
+      "path": "src/commands/git/codec.ts",
+      "blob": "02ad268a05e6e88edae8410c73328a65ac82d3e3",
+      "bytes": 4631,
+      "sha256": "442bd6956340565599afcc1e0762eb7a8d8e001fe8880e9ec8185b1e200bd868"
+    },
+    {
+      "revision": "9885390fb11454fa194a3e60fdbef198dbfdf633",
+      "path": "src/contracts/output.ts",
+      "blob": "3b1fe9536352a5e13c94ff231ce20ead354aabc8",
+      "bytes": 4661,
+      "sha256": "5e262bda9541a5b70fcb23d4950e92844d404f9029f02c32c889b90d7c92d83e"
+    }
+  ],
+  "node": {
+    "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "version": "v22.22.2",
+    "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+  },
+  "appNames": [
+    "worker.mjs",
+    "observer.mjs",
+    "retirement.mjs",
+    "writer-surrogate.mjs",
+    "CONTROLS.json",
+    "SOURCE-DATA.json",
+    "CORRESPONDENCE.json"
+  ],
+  "protectedTrees": [
+    {
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-review-v5",
+      "entries": {
+        "AUDIT.json": {
+          "bytes": 33025,
+          "mode": 420,
+          "sha256": "1e826bf7812654a0cd7e523d69afec6e3e635e60fa09622a05aa6f8cd40d17bc"
+        },
+        "BINDING.json": {
+          "bytes": 323015,
+          "mode": 420,
+          "sha256": "435739487723415b02ce1b4c558828d5b6548876bdd5a4566d4e922d508a6a13"
+        },
+        "CLEANUP.json": {
+          "bytes": 343,
+          "mode": 420,
+          "sha256": "3a7073c03af8e5b40f2c70db3caaaacd2de70eeeda19f4df3b1630c94687a058"
+        },
+        "FINAL-SEAL.json": {
+          "bytes": 4843,
+          "mode": 420,
+          "sha256": "d1d72406b854edcc8993028c41982e82404a9435d341a88d089a5c079ba89193"
+        },
+        "H09-FIXTURE.json": {
+          "bytes": 2660,
+          "mode": 420,
+          "sha256": "abba06e3f44fc2bf5844debc3f1521c9a423303077cce5e448dd6298162df49a"
+        },
+        "HANDOFF.md": {
+          "bytes": 11173,
+          "mode": 420,
+          "sha256": "59ee37e1b31f585009c7f975f0169056c174b1cd643ffdbb2e55222385aa719c"
+        },
+        "INPUTS.json": {
+          "bytes": 3387857,
+          "mode": 420,
+          "sha256": "f23c38e5e78c365da8d396e3a0fb60ddcd224bb71fe948802642f676d5db701b"
+        },
+        "NODE-CLOSE-STATIC.json": {
+          "bytes": 1450,
+          "mode": 420,
+          "sha256": "29afa9d347f9f1c1e0be906a090f1ee60def8f9a3079c0d0c41a6e71281bed7a"
+        },
+        "PRESEAL.json": {
+          "bytes": 14163,
+          "mode": 420,
+          "sha256": "963d9ff5d158f2f68d68004efaa463d669d144fbfa246330a6fb9f14fd5f5b21"
+        },
+        "RAW.json.gz.base64": {
+          "bytes": 1245993,
+          "mode": 420,
+          "sha256": "9d1debc1fec5229c4c1afaaf56049342013dea6950a12baf47fcbaf5e2cbb64f"
+        },
+        "RECIPE.md": {
+          "bytes": 7853,
+          "mode": 420,
+          "sha256": "33822eabe5db51938fe2f64ec559f7961fcfb74dfea790a179c4ba4b2422db95"
+        },
+        "RESULT.json": {
+          "bytes": 15675,
+          "mode": 420,
+          "sha256": "c23f5eaea80a7c5d453c7a2837259e0888b4ace6b446fef599a673f4797536c6"
+        },
+        "WORKING.json.gz.base64": {
+          "bytes": 3208909,
+          "mode": 420,
+          "sha256": "933c05e3a489ef0171987908f5d260b6a8bea97727665af058049f60064a97d9"
+        },
+        "audit.mjs": {
+          "bytes": 11809,
+          "mode": 420,
+          "sha256": "86f37dd970b101ebf7337d581cb7767571f45eaa6a6aa65cb2be6855100978dd"
+        },
+        "cases.mjs": {
+          "bytes": 34603,
+          "mode": 420,
+          "sha256": "807a2e32b286da6a7e979cc45c75d0985de1e49db79b9d1926627c7a444f8b21"
+        },
+        "child.mjs": {
+          "bytes": 1122,
+          "mode": 420,
+          "sha256": "1b7a11aa795c94ac2a8b9bd2bd91b8db9b2a0c545f8e3882b44433d7d0c75dd7"
+        },
+        "common.mjs": {
+          "bytes": 3207,
+          "mode": 420,
+          "sha256": "62b88de6158a1d7c27b0483e92b57e3eb60947f8f218f0f4c9c37eb9d266c769"
+        },
+        "finalize.mjs": {
+          "bytes": 2735,
+          "mode": 420,
+          "sha256": "7952ab3be7052179e594072e1d47b87eeeadf67bb951c3cebb9ecb6666a0d2d7"
+        },
+        "fixtures.mjs": {
+          "bytes": 6833,
+          "mode": 420,
+          "sha256": "7130f0cdf6dea855f1d1c805569fb3e2d0d982e4c6f196be46728b0d05f1e396"
+        },
+        "freeze.mjs": {
+          "bytes": 6235,
+          "mode": 420,
+          "sha256": "861311f281467c58b429cd1deac35c0b30379e99c7d25b2a38ef2d23e214f6ab"
+        },
+        "loader.mjs": {
+          "bytes": 2944,
+          "mode": 420,
+          "sha256": "7609cf3388e0850334f438dd5e14124f3f2afbd395d5e2f026b83307b6c8fd09"
+        },
+        "prepare.mjs": {
+          "bytes": 8274,
+          "mode": 420,
+          "sha256": "19ce1e5d75d97958fcad07fdaf54077fe0359d0963c8531f6fcc8021c15307bc"
+        },
+        "run.mjs": {
+          "bytes": 15148,
+          "mode": 420,
+          "sha256": "a5aad3b074bb31991a57d0a5fcab51978b68d5aa123b3d5d7119388df1b88831"
+        },
+        "supervisor.mjs": {
+          "bytes": 4493,
+          "mode": 420,
+          "sha256": "84ab6d711f4353a80e0346433074232985b47a820a82d95fd4f4f27b395c4a62"
+        },
+        "worker.mjs": {
+          "bytes": 5143,
+          "mode": 420,
+          "sha256": "4ed48d8e1a40a7abc298d9ac16d6fcaba3d844c5a1673835868a586c3844182c"
+        }
+      }
+    },
+    {
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/observer-qualification-v6",
+      "entries": {
+        "AUDIT.json": {
+          "bytes": 4131,
+          "mode": 420,
+          "sha256": "03916f114a8b35210ef7bf15fdcffca81505c334763b4cf8f73e8cf705c9e917"
+        },
+        "CONTINUATION-PROPOSED.json": {
+          "bytes": 8127,
+          "mode": 420,
+          "sha256": "338ffcf7b055900f667eef175919978f7ba545977ad1022c2e485f1609f1cbeb"
+        },
+        "CONTROLS.json": {
+          "bytes": 1663,
+          "mode": 420,
+          "sha256": "d700a90576b557f3d70a6cf24df695c02892536366b36312ffaeba288aa42de4"
+        },
+        "CRITERION.md": {
+          "bytes": 8195,
+          "mode": 420,
+          "sha256": "a069101a63c3ab4b5a4fd003d02d4b6c7ec350c40d891deaeae8619b4456b505"
+        },
+        "HANDOFF.md": {
+          "bytes": 8579,
+          "mode": 420,
+          "sha256": "2c282b31f7571c5fd31f5ae712530ffdb815dce311cf6d4242a08ba08415236a"
+        },
+        "NODE-SOURCES.json": {
+          "bytes": 862575,
+          "mode": 420,
+          "sha256": "35277f8bbedf0a011da961f09922b6480e74ba613b93a2e64a6bbfee7deaa329"
+        },
+        "PRESEAL.json": {
+          "bytes": 9209,
+          "mode": 420,
+          "sha256": "bd2755b9ab6b71e6014e514de0c1b4130162f59100628ec501656c49640e85a2"
+        },
+        "RUN-01/": {
+          "directory": true,
+          "mode": 493
+        },
+        "RUN-01/RECEIPT.json": {
+          "bytes": 3431,
+          "mode": 420,
+          "sha256": "3fc78821542c747df773a1fb58ab06583c39a637450137ddeee8d01096dd1e90"
+        },
+        "RUN-01/worker.stderr.txt": {
+          "bytes": 0,
+          "mode": 420,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "RUN-01/worker.stdout.jsonl": {
+          "bytes": 21573,
+          "mode": 420,
+          "sha256": "ae456d931de752a78ae2b8e72102679257d7e01e1381e29ae26f0696b8036a22"
+        },
+        "SOURCE-DATA.json": {
+          "bytes": 27686,
+          "mode": 420,
+          "sha256": "acb06f41f6fafc28cfdf10555fe909fa4b6283baf8efbe62ee594b7b7d0176f7"
+        },
+        "WORKER-ADAPTER-PROPOSAL.md": {
+          "bytes": 5145,
+          "mode": 420,
+          "sha256": "7e77312e20959b65d0d8a1adea57316787c993fd20cf0bf76ecc76d6b0987745"
+        },
+        "audit.py": {
+          "bytes": 10121,
+          "mode": 420,
+          "sha256": "c3fd17ee9328803e2b5f92f5f944282a7878d0299f0a0df21077f22407561e72"
+        },
+        "observer.mjs": {
+          "bytes": 7527,
+          "mode": 420,
+          "sha256": "2f6b88f05d53d8c4c5b95724baddc3b6b7e825163f05abb6c69bcdf161de4abb"
+        },
+        "prepare.py": {
+          "bytes": 6736,
+          "mode": 420,
+          "sha256": "0a0e7d2f74c920c698226bd8fa625f25ec68e6b78e8c2c91c9010c6b91e1f2e7"
+        },
+        "run.mjs": {
+          "bytes": 8863,
+          "mode": 420,
+          "sha256": "b96f113cbf919c6f223d5dddf1e043424078b047bada0d46a3d94f30c32ac44d"
+        },
+        "worker.mjs": {
+          "bytes": 11903,
+          "mode": 420,
+          "sha256": "e5ef38f0946793f0f3e99b99aa4b740e7ca41ff5f94259cf4d7e4bc1e6c58cf8"
+        }
+      }
+    },
+    {
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/observer-qualification-v7",
+      "entries": {
+        "AUDIT.json": {
+          "bytes": 7079,
+          "mode": 420,
+          "sha256": "e96d722eadfbadd28fad4878759d06abebd91106ba619ef2e18f2b0a8545cbfb"
+        },
+        "CONTROLS.json": {
+          "bytes": 1762,
+          "mode": 420,
+          "sha256": "39084f4d241facccda63eb257408a90d00050cc9a9ffde33680c2d6535baa61c"
+        },
+        "CORRESPONDENCE.json": {
+          "bytes": 3880,
+          "mode": 420,
+          "sha256": "e2d28ede63d60eece4715968da4edcc654bff12e902b4545534b8fcf7cf9df27"
+        },
+        "CRITERION.md": {
+          "bytes": 9531,
+          "mode": 420,
+          "sha256": "1fd70d51ecaf2a5e80912d849b1bcc2ca8053ab9b14b26a39fe86e7003dcbca6"
+        },
+        "DIFF-V6.patch": {
+          "bytes": 27516,
+          "mode": 420,
+          "sha256": "7f967b2aff21015c201a37c5c3e91bc59a2f73967f4a5e53688aeee664b0c82c"
+        },
+        "HANDOFF.md": {
+          "bytes": 7172,
+          "mode": 420,
+          "sha256": "eae3d7a298fa955fb6b4d924e25f6bd6be55a094f2756c8c107513978572c247"
+        },
+        "PRESEAL.json": {
+          "bytes": 17240,
+          "mode": 420,
+          "sha256": "45011d93a274d531261cd28666c93739a75a2f11b5b1d435e17a093506e56ea4"
+        },
+        "RUN-01/": {
+          "directory": true,
+          "mode": 493
+        },
+        "RUN-01/PUBLICATION-CLOCK.json": {
+          "bytes": 81,
+          "mode": 420,
+          "sha256": "e46740bdb7b5b616715795423dc8aa5e0992452ccf7a677ef18f6673c8576a33"
+        },
+        "RUN-01/RECEIPT.json": {
+          "bytes": 4024,
+          "mode": 420,
+          "sha256": "92efbee139bb7d4f10d44f0eb6a6a7055a4db0ae0ecde560641ffd1e4cebae09"
+        },
+        "RUN-01/worker.stderr.txt": {
+          "bytes": 0,
+          "mode": 420,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "RUN-01/worker.stdout.jsonl": {
+          "bytes": 96602,
+          "mode": 420,
+          "sha256": "dd3e06091b8414e0bb73f0e609ff8930910b4cb68aae42aed3f8334492e6b9cf"
+        },
+        "SOURCE-DATA.json": {
+          "bytes": 27686,
+          "mode": 420,
+          "sha256": "acb06f41f6fafc28cfdf10555fe909fa4b6283baf8efbe62ee594b7b7d0176f7"
+        },
+        "audit.py": {
+          "bytes": 6675,
+          "mode": 420,
+          "sha256": "a7584f92656760960e9b108517af318ef59b559c5316a34bdc04c28d8caa2726"
+        },
+        "observer.mjs": {
+          "bytes": 11712,
+          "mode": 420,
+          "sha256": "43c4bbb26c152e8e73b85b8ab4c38bcd438a424cbdfe517403daaf8721033d8d"
+        },
+        "prepare.py": {
+          "bytes": 9803,
+          "mode": 420,
+          "sha256": "9c9c5dffadaa5149cb641f796dbbbbd48fb023b14ac538c2ff83cc0e31871522"
+        },
+        "run.mjs": {
+          "bytes": 9188,
+          "mode": 420,
+          "sha256": "90073bb4f581f93dbbb4bf06d6733034325ded7747397441fc457b7fa6334743"
+        },
+        "worker.mjs": {
+          "bytes": 16855,
+          "mode": 420,
+          "sha256": "2bf398a8f74acd6b1fab73908c1d314af2d12586d4ca5897d7de74df50431e60"
+        },
+        "writer-surrogate.mjs": {
+          "bytes": 1189,
+          "mode": 420,
+          "sha256": "94b2d6b48b5981e2df17e69b5b5109a7cfe8c8e42a13692ff25badca95fa0f5d"
+        }
+      }
+    },
+    {
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/observer-qualification-v8",
+      "entries": {
+        "AUDIT.json": {
+          "bytes": 8473,
+          "mode": 420,
+          "sha256": "0a9bbf99e6c39e4335470ffb7b2c2796b7310c09861733d0ca65556932541b25"
+        },
+        "CONTINUATION-PROPOSED.json": {
+          "bytes": 8766,
+          "mode": 420,
+          "sha256": "24d89f323c44cb86ea9be23880489bf7270e10fbfbab322413c44d13a34e2a42"
+        },
+        "CONTROLS.json": {
+          "bytes": 1847,
+          "mode": 420,
+          "sha256": "6b14dc90df85f3ad41f51f2d2405491bd95ed8b05df4a1514ad24c27550f6642"
+        },
+        "CORRESPONDENCE.json": {
+          "bytes": 3880,
+          "mode": 420,
+          "sha256": "e2d28ede63d60eece4715968da4edcc654bff12e902b4545534b8fcf7cf9df27"
+        },
+        "CRITERION.md": {
+          "bytes": 10225,
+          "mode": 420,
+          "sha256": "00bd64f79dadfcbc88a349a96115d4c3500420381945c60a8514596c896be33f"
+        },
+        "DELTA-V7.json": {
+          "bytes": 26093,
+          "mode": 420,
+          "sha256": "59e2a4c41422d0f7ccebd2d4d79f93bab1ccd3166b4c10809abe23fee54d93dc"
+        },
+        "HANDOFF.md": {
+          "bytes": 7611,
+          "mode": 420,
+          "sha256": "0470667678f8e6437d469785a91e664d858ecb647730562ea0db0c0f4c2468e6"
+        },
+        "NODE-PRIMARY.json": {
+          "bytes": 722751,
+          "mode": 420,
+          "sha256": "2bf28e73ff32639a9ca015ac4b654601a581aa9c96709156ca58edadcc2caff5"
+        },
+        "NODE-PROVENANCE.json": {
+          "bytes": 6137,
+          "mode": 420,
+          "sha256": "348dc3010327e23cfc99233b50b0159a28bdceaa4ea6d0ce94834433866cd936"
+        },
+        "PRESEAL.json": {
+          "bytes": 23187,
+          "mode": 420,
+          "sha256": "dc1918ec176c0da906903ce9ff1c55b277d74eea9c283f442f69f9718ed4d0de"
+        },
+        "RUN-01/": {
+          "directory": true,
+          "mode": 493
+        },
+        "RUN-01/PUBLICATION-CLOCK.json": {
+          "bytes": 80,
+          "mode": 420,
+          "sha256": "ab1ee14050e2d453821db7114c4dc6be00dc2ba1da4f602b5124dda343ddd27d"
+        },
+        "RUN-01/RECEIPT.json": {
+          "bytes": 6866,
+          "mode": 420,
+          "sha256": "d53c813987f9882977e8a594faa8e532abd945af1cdef5e9293358b465477baf"
+        },
+        "RUN-01/worker.stderr.txt": {
+          "bytes": 0,
+          "mode": 420,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "RUN-01/worker.stdout.jsonl": {
+          "bytes": 388140,
+          "mode": 420,
+          "sha256": "48741daa583e8e8189732dc8687f38b2218a473b1403ac1d6feb1699ad48d47e"
+        },
+        "SOURCE-DATA.json": {
+          "bytes": 27686,
+          "mode": 420,
+          "sha256": "acb06f41f6fafc28cfdf10555fe909fa4b6283baf8efbe62ee594b7b7d0176f7"
+        },
+        "WORKER-ADAPTER-PROPOSAL.md": {
+          "bytes": 5846,
+          "mode": 420,
+          "sha256": "5fbc84e198bcca25e5d2ef35cc486ae1cd3e2ac5d87f4f2db42ee9546e70370d"
+        },
+        "audit.py": {
+          "bytes": 13993,
+          "mode": 420,
+          "sha256": "75ae13dfaffe0817bdddfd9dd53cc7823c07415239bbc5dcbc439f4769e6554d"
+        },
+        "observer.mjs": {
+          "bytes": 15146,
+          "mode": 420,
+          "sha256": "30d33df91fe6bfbb89a10ac81b93e39d321bdc7aa39a6133fa2e0dfd65e1f7c1"
+        },
+        "prepare.py": {
+          "bytes": 11577,
+          "mode": 420,
+          "sha256": "d9e55a25bd2d93d1ce2558eaec9821eed53635ca08105ff1cc2dbde258a2688e"
+        },
+        "retirement.mjs": {
+          "bytes": 5974,
+          "mode": 420,
+          "sha256": "c8a19a9389d045b2807eb1d60534747297e2430fd93c7950e1e5025e698720f2"
+        },
+        "run.mjs": {
+          "bytes": 9188,
+          "mode": 420,
+          "sha256": "79f72599908d7a5102a939103de6eb2e6f0f77bd1651a4ce1fc6614984d31675"
+        },
+        "worker.mjs": {
+          "bytes": 21443,
+          "mode": 420,
+          "sha256": "7a80e290169f1c2980b2696127c2989f6fe7218a905d9ca2dda9bf9b4f71beee"
+        },
+        "writer-surrogate.mjs": {
+          "bytes": 1189,
+          "mode": 420,
+          "sha256": "94b2d6b48b5981e2df17e69b5b5109a7cfe8c8e42a13692ff25badca95fa0f5d"
+        }
+      }
+    }
+  ],
+  "roles": [
+    {
+      "path": "tests/shell/indexed-arrays-independent-20260828/s06-successor-v1/preparation-v4/controller.mjs",
+      "bytes": 8301,
+      "mode": 420,
+      "sha256": "a82b3503d4613a209d00db7cd77d23c70ae362391a576e7b1fecedaa2d7ce6e3"
+    },
+    {
+      "path": "tests/shell/indexed-arrays-independent-20260828/s06-successor-v1/preparation-v4/supervisor.mjs",
+      "bytes": 4656,
+      "mode": 420,
+      "sha256": "fd49dbff486a8399b19de12e3a8abc5c41116ae18a11191d67ee199782572e31"
+    },
+    {
+      "path": "tests/shell/indexed-arrays-independent-20260828/s06-successor-v1/preparation-v4/deadline.mjs",
+      "bytes": 1413,
+      "mode": 420,
+      "sha256": "b2538ecd3b45ea7ea9e4114ca29fae73d7e39aad585ce53259da7968922eb55e"
+    },
+    {
+      "path": "tests/shell/indexed-arrays-independent-20260828/s06-successor-v1/preparation-v3/staging.mjs",
+      "bytes": 4647,
+      "mode": 420,
+      "sha256": "861e25bad0935d25cc035b9aa991fdbb9cb9ceddaea72665532ed2a8805e717d"
+    },
+    {
+      "path": "tests/shell/indexed-arrays-independent-20260828/candidate-v1/boundary-app.mjs",
+      "bytes": 11119,
+      "mode": 420,
+      "sha256": "a8c7cddbf73fe9dddab960a59c430265a16262691a71fc88e8fe6b9fffae40cf"
+    },
+    {
+      "path": "tests/commands/git-independent-20260828/observer-v8-independent/common.mjs",
+      "bytes": 1601,
+      "mode": 420,
+      "sha256": "492169e009efbb8935077d78e3268d28c2919e97a0b65301e55881764df73a30"
+    },
+    {
+      "path": "tests/commands/git-independent-20260828/observer-v8-independent/bootstrap.mjs",
+      "bytes": 1413,
+      "mode": 420,
+      "sha256": "c6dc5f8ebc44955b75e427c445c710f8bb81c9391885d39f4f98a2d22b092dde"
+    },
+    {
+      "path": "tests/commands/git-independent-20260828/observer-v8-independent/counter.mjs",
+      "bytes": 7279,
+      "mode": 420,
+      "sha256": "87add152f903ef42bfcf64b83d377f6ed9355f37bcf76cb1fe461fdf1e9e2c21"
+    },
+    {
+      "path": "tests/commands/git-independent-20260828/observer-v8-independent/prepare.mjs",
+      "bytes": 5623,
+      "mode": 420,
+      "sha256": "e1fe9a582000ea820d5e38427145011acc949f4b48f766a37e76410a1f7b5eb0"
+    },
+    {
+      "path": "tests/commands/git-independent-20260828/observer-v8-independent/run.mjs",
+      "bytes": 6060,
+      "mode": 420,
+      "sha256": "6a5c87ea91d0ce80a26a003e1d99743301074a0b056b63ec8b4d477a9782fad4"
+    },
+    {
+      "path": "tests/commands/git-independent-20260828/observer-v8-independent/PRESEAL.md",
+      "bytes": 3018,
+      "mode": 420,
+      "sha256": "d8332143672cd5f2dde6afd613c45472ccd955e0d3b37579acc49b14580e64d5"
+    }
+  ],
+  "metadata": {
+    "children": 1,
+    "bytes": 871819,
+    "code": 0,
+    "candidateExecutions": 0
+  },
+  "policy": {
+    "maxConcurrency": 1,
+    "totalElapsedMsIncludingCleanup": 600000,
+    "reservedCleanupMs": 45000,
+    "maxGitChildren": 0,
+    "maxOtherSupervisedChildren": 12,
+    "maxProductWorkers": 12,
+    "maxRuntimeWorkerMs": 60000,
+    "maxRuntimeWorkerCaptureBytes": 4194304,
+    "maxTypeWorkerCaptureBytes": 0,
+    "maxToolCaptureBytes": 0,
+    "maxGitCaptureBytes": 0,
+    "maxTotalCapturedChildBytes": 33554432,
+    "maxTotalGitBytes": 0,
+    "maxWorkingBytes": 134217728,
+    "maxRecordBytes": 8388608,
+    "maxPersistedEvidenceBytes": 16777216
+  },
+  "label": "GIT-OBSERVER-V8-INDEPENDENT-01",
+  "childEntries": [
+    "worker.mjs",
+    "counter.mjs"
+  ],
+  "expectedOriginal": 19,
+  "expectedIndependent": 5,
+  "candidateAdmission": false
+}

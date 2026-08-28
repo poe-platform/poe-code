@@ -1,0 +1,143 @@
+{
+  "schema": 1,
+  "date": "2026-08-28",
+  "status": "PRESEAL_SYNTHETIC_REVIEW_HARNESS_ONLY_NO_TARGET_GO",
+  "node": {
+    "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "version": "v22.22.2",
+    "identity": {
+      "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+      "bytes": 112989184,
+      "mode": 493
+    }
+  },
+  "sourceFiles": {
+    "CONTRIBUTION.json": {
+      "sha256": "17c6bda9eb226d3db716b4bd44c55c640ff00e85fbf55e9296a8a86b5f97cefb",
+      "bytes": 5584,
+      "mode": 420
+    },
+    "INPUTS.json": {
+      "sha256": "313eaaedfcd66fb6ccb7ce3c917d0aece1df0d91b7de4a3340a9349e0e36c6c2",
+      "bytes": 7998,
+      "mode": 420
+    },
+    "OBSERVATION-NEEDS.json": {
+      "sha256": "6d855fe183c80130a7fafe99d998e33e0bd1781aeec6a95a3a3155fb2fb006dc",
+      "bytes": 37283,
+      "mode": 420
+    },
+    "PREPARATION-HISTORY.json": {
+      "sha256": "4c4e1629cbf22eb66f73cbf48b6caaed547e84104ee81142dcc13cd38e239be5",
+      "bytes": 1137,
+      "mode": 420
+    },
+    "README.md": {
+      "sha256": "5f78bdcdf562ce707ccf09c49f74aff83b421d09326039acc04e59859c519e41",
+      "bytes": 4412,
+      "mode": 420
+    },
+    "SPECIFICATION.md": {
+      "sha256": "41c9de7505df4baf62f2be7ab98a1eebdf7373f6d2f12302491b38cec1fe4239",
+      "bytes": 9936,
+      "mode": 420
+    },
+    "STATIC-CHECKS.json": {
+      "sha256": "dc36e86f82aa1bc9455118c11492a00142d4499badf7135738ddfeeec84aa762",
+      "bytes": 1599,
+      "mode": 420
+    },
+    "SYNTHETIC-CONTROLS.json": {
+      "sha256": "dbf6210b3b3c22ad1d676b9c5c23f34e0012a6bce25e6f5599505f9eb776a492",
+      "bytes": 37843,
+      "mode": 420
+    },
+    "catalogue.json": {
+      "sha256": "77e64e9b4fdb7b84493da6f094a72d95197aac3824b0b1531b06bc11aec0f216",
+      "bytes": 322743,
+      "mode": 420
+    },
+    "evaluate-assertions.mjs": {
+      "sha256": "6bdbb7ff4d21d79009296f162bc00827ee6284f1000744a9ebf9ea541e7968ea",
+      "bytes": 18757,
+      "mode": 420
+    },
+    "synthetic-checks.mjs": {
+      "sha256": "714dab62eacf4b33bd6581beff3061c9d29184625f328145a563bf2321c66f47",
+      "bytes": 11534,
+      "mode": 420
+    },
+    "synthetic-supervisor.mjs": {
+      "sha256": "dbe7ec90b86a87c509b10663c698acd94cff9b73ec8e50d174d29d707a1e3fb8",
+      "bytes": 6304,
+      "mode": 420
+    }
+  },
+  "imports": {
+    "evaluate-assertions.mjs": [
+      "node:buffer",
+      "./catalogue.json"
+    ],
+    "synthetic-checks.mjs": [
+      "node:fs",
+      "node:crypto",
+      "node:vm",
+      "./evaluate-assertions.mjs",
+      "./catalogue.json",
+      "./SYNTHETIC-CONTROLS.json"
+    ],
+    "synthetic-supervisor.mjs": [
+      "node:fs",
+      "node:crypto",
+      "node:child_process",
+      "node:url",
+      "node:path"
+    ]
+  },
+  "controls": 280,
+  "command": {
+    "argv": [
+      "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "tests/commands/yq-independent-20260828/coverage-completion-v1/assertions/synthetic-supervisor.mjs"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash"
+  },
+  "environment": {
+    "LANG": "C",
+    "TZ": "UTC"
+  },
+  "bounds": {
+    "wallMs": 60000,
+    "cleanupReserveMs": 5000,
+    "outerProcesses": 1,
+    "nestedProcesses": 1,
+    "grandchildren": 0,
+    "retries": 0,
+    "stdoutBytes": 1048576,
+    "stderrBytes": 1048576,
+    "metadataBytes": 1048576,
+    "storageBytes": 18874368
+  },
+  "evidenceFiles": [
+    "evidence/synthetic-v1/launch.json",
+    "evidence/synthetic-v1/stdout.bin",
+    "evidence/synthetic-v1/stderr.bin",
+    "evidence/synthetic-v1/start.json",
+    "evidence/synthetic-v1/raw.jsonl",
+    "evidence/synthetic-v1/results.jsonl",
+    "evidence/synthetic-v1/summary.json",
+    "evidence/synthetic-v1/child-raw.json",
+    "evidence/synthetic-v1/supervisor.json"
+  ],
+  "authorization": "Only data/synthetic/stub assertion checks under review-harness implementation GO; target/compiler/mutant/loader work forbidden. Commit this complete recipe before imports. Root must separately bind future code/data and observation authority.",
+  "qualifications": [
+    "No hard RSS or hostile JavaScript sandbox",
+    "Raw before assert; unknown nonzero never waived",
+    "Known child close/reap and post-integrity before successful continuation",
+    "No source/private/package/native-oracle product execution",
+    "No retry or old cohort inheritance",
+    "All source and tool files regular with fresh mode/hash/size/path",
+    "New entries detected; evidence allowlist is exact",
+    "Node builtin vm cross-realm stubs only; no target namespace supplied"
+  ]
+}

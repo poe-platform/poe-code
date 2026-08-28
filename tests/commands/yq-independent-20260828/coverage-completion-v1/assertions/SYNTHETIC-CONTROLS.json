@@ -1,0 +1,1682 @@
+[
+  {
+    "id": "A001",
+    "kind": "baseline",
+    "bindingId": "CMD-04--whole::expected/stdoutBinding",
+    "expected": "MATCH"
+  },
+  {
+    "id": "A002",
+    "kind": "contradiction",
+    "bindingId": "CMD-04--whole::expected/stdoutBinding",
+    "expected": "CONTRADICTION"
+  },
+  {
+    "id": "A003",
+    "kind": "missing-fragment",
+    "bindingId": "CMD-04--whole::expected/stdoutBinding",
+    "expected": "UNOBSERVED"
+  },
+  {
+    "id": "A004",
+    "kind": "baseline",
+    "bindingId": "CMD-05--whole::expected/stdoutBinding",
+    "expected": "MATCH"
+  },
+  {
+    "id": "A005",
+    "kind": "contradiction",
+    "bindingId": "CMD-05--whole::expected/stdoutBinding",
+    "expected": "CONTRADICTION"
+  },
+  {
+    "id": "A006",
+    "kind": "missing-fragment",
+    "bindingId": "CMD-05--whole::expected/stdoutBinding",
+    "expected": "UNOBSERVED"
+  },
+  {
+    "id": "A007",
+    "kind": "baseline",
+    "bindingId": "CMD-06--whole::expected/stdoutBinding",
+    "expected": "MATCH"
+  },
+  {
+    "id": "A008",
+    "kind": "contradiction",
+    "bindingId": "CMD-06--whole::expected/stdoutBinding",
+    "expected": "CONTRADICTION"
+  },
+  {
+    "id": "A009",
+    "kind": "missing-fragment",
+    "bindingId": "CMD-06--whole::expected/stdoutBinding",
+    "expected": "UNOBSERVED"
+  },
+  {
+    "id": "A010",
+    "kind": "baseline",
+    "bindingId": "PAR-12--whole::expected/queryRuns",
+    "expected": "UNOBSERVED"
+  },
+  {
+    "id": "A011",
+    "kind": "contradiction",
+    "bindingId": "PAR-12--whole::expected/queryRuns",
+    "expected": "CONTRADICTION"
+  },
+  {
+    "id": "A012",
+    "kind": "missing-fragment",
+    "bindingId": "PAR-12--whole::expected/queryRuns",
+    "expected": "UNOBSERVED"
+  },
+  {
+    "id": "A013",
+    "kind": "observed",
+    "bindingId": "PAR-12--whole::expected/queryRuns",
+    "expected": "MATCH"
+  },
+  {
+    "id": "A014",
+    "kind": "missing-field",
+    "bindingId": "PAR-12--whole::expected/queryRuns",
+    "expected": "UNOBSERVED"
+  },
+  {
+    "id": "A015",
+    "kind": "extra-field",
+    "bindingId": "PAR-12--whole::expected/queryRuns",
+    "expected": "UNOBSERVED"
+  },
+  {
+    "id": "A016",
+    "kind": "extra-and-wrong",
+    "bindingId": "PAR-12--whole::expected/queryRuns",
+    "expected": "CONTRADICTION"
+  },
+  {
+    "id": "A017",
+    "kind": "baseline",
+    "bindingId": "PAR-13--whole::expected/queryRuns",
+    "expected": "UNOBSERVED"
+  },
+  {
+    "id": "A018",
+    "kind": "contradiction",
+    "bindingId": "PAR-13--whole::expected/queryRuns",
+    "expected": "CONTRADICTION"
+  },
+  {
+    "id": "A019",
+    "kind": "missing-fragment",
+    "bindingId": "PAR-13--whole::expected/queryRuns",
+    "expected": "UNOBSERVED"
+  },
+  {
+    "id": "A020",
+    "kind": "observed",
+    "bindingId": "PAR-13--whole::expected/queryRuns",
+    "expected": "MATCH"
+  },
+  {
+    "id": "A021",
+    "kind": "missing-field",
+    "bindingId": "PAR-13--whole::expected/queryRuns",
+    "expected": "UNOBSERVED"
+  },
+  {
+    "id": "A022",
+    "kind": "extra-field",
+    "bindingId": "PAR-13--whole::expected/queryRuns",
+    "expected": "UNOBSERVED"
+  },
+  {
+    "id": "A023",
+    "kind": "extra-and-wrong",
+    "bindingId": "PAR-13--whole::expected/queryRuns",
+    "expected": "CONTRADICTION"
+  },
+  {
+    "id": "A024",
+    "kind": "baseline",
+    "bindingId": "PAR-26--whole::expected/assertions/0",
+    "expected": "UNOBSERVED"
+  },
+  {
+    "id": "A025",
+    "kind": "contradiction",
+    "bindingId": "PAR-26--whole::expected/assertions/0",
+    "expected": "CONTRADICTION"
+  },
+  {
+    "id": "A026",
+    "kind": "missing-fragment",
+    "bindingId": "PAR-26--whole::expected/assertions/0",
+    "expected": "UNOBSERVED"
+  },
+  {
+    "id": "A027",
+    "kind": "observed",
+    "bindingId": "PAR-26--whole::expected/assertions/0",
+    "expected": "MATCH"
+  },
+  {
+    "id": "A028",
+    "kind": "missing-field",
+    "bindingId": "PAR-26--whole::expected/assertions/0",
+    "expected": "UNOBSERVED"
+  },
+  {
+    "id": "A029",
+    "kind": "extra-field",
+    "bindingId": "PAR-26--whole::expected/assertions/0",
+    "expected": "UNOBSERVED"
+  },
+  {
+    "id": "A030",
+    "kind": "extra-and-wrong",
+    "bindingId": "PAR-26--whole::expected/assertions/0",
+    "expected": "CONTRADICTION"
+  },
+  {
+    "id": "A031",
+    "kind": "baseline",
+    "bindingId": "NUM-11--whole::expected/assertions/0",
+    "expected": "UNOBSERVED"
+  },
+  {
+    "id": "A032",
+    "kind": "contradiction",
+    "bindingId": "NUM-11--whole::expected/assertions/0",
+    "expected": "CONTRADICTION"
+  },
+  {
+    "id": "A033",
+    "kind": "missing-fragment",
+    "bindingId": "NUM-11--whole::expected/assertions/0",
+    "expected": "UNOBSERVED"
+  },
+  {
+    "id": "A034",
+    "kind": "observed",
+    "bindingId": "NUM-11--whole::expected/assertions/0",
+    "expected": "MATCH"
+  },
+  {
+    "id": "A035",
+    "kind": "missing-field",
+    "bindingId": "NUM-11--whole::expected/assertions/0",
+    "expected": "UNOBSERVED"
+  },
+  {
+    "id": "A036",
+    "kind": "extra-field",
+    "bindingId": "NUM-11--whole::expected/assertions/0",
+    "expected": "UNOBSERVED"
+  },
+  {
+    "id": "A037",
+    "kind": "extra-and-wrong",
+    "bindingId": "NUM-11--whole::expected/assertions/0",
+    "expected": "CONTRADICTION"
+  },
+  {
+    "id": "A038",
+    "kind": "baseline",
+    "bindingId": "NUM-14--whole::expected/stdout",
+    "expected": "MATCH"
+  },
+  {
+    "id": "A039",
+    "kind": "contradiction",
+    "bindingId": "NUM-14--whole::expected/stdout",
+    "expected": "CONTRADICTION"
+  },
+  {
+    "id": "A040",
+    "kind": "missing-fragment",
+    "bindingId": "NUM-14--whole::expected/stdout",
+    "expected": "UNOBSERVED"
+  },
+  {
+    "id": "A041",
+    "kind": "baseline",
+    "bindingId": "NUM-14--whole::expected/diagnostic",
+    "expected": "MATCH"
+  },
+  {
+    "id": "A042",
+    "kind": "contradiction",
+    "bindingId": "NUM-14--whole::expected/diagnostic",
+    "expected": "CONTRADICTION"
+  },
+  {
+    "id": "A043",
+    "kind": "missing-fragment",
+    "bindingId": "NUM-14--whole::expected/diagnostic",
+    "expected": "UNOBSERVED"
+  },
+  {
+    "id": "A044",
+    "kind": "baseline",
+    "bindingId": "NUM-15--whole::expected/stdout",
+    "expected": "MATCH"
+  },
+  {
+    "id": "A045",
+    "kind": "contradiction",
+    "bindingId": "NUM-15--whole::expected/stdout",
+    "expected": "CONTRADICTION"
+  },
+  {
+    "id": "A046",
+    "kind": "missing-fragment",
+    "bindingId": "NUM-15--whole::expected/stdout",
+    "expected": "UNOBSERVED"
+  },
+  {
+    "id": "A047",
+    "kind": "baseline",
+    "bindingId": "NUM-15--whole::expected/stderr",
+    "expected": "MATCH"
+  },
+  {
+    "id": "A048",
+    "kind": "contradiction",
+    "bindingId": "NUM-15--whole::expected/stderr",
+    "expected": "CONTRADICTION"
+  },
+  {
+    "id": "A049",
+    "kind": "missing-fragment",
+    "bindingId": "NUM-15--whole::expected/stderr",
+    "expected": "UNOBSERVED"
+  },
+  {
+    "id": "A050",
+    "kind": "baseline",
+    "bindingId": "NUM-15--whole::expected/numeric",
+    "expected": "UNOBSERVED"
+  },
+  {
+    "id": "A051",
+    "kind": "contradiction",
+    "bindingId": "NUM-15--whole::expected/numeric",
+    "expected": "CONTRADICTION"
+  },
+  {
+    "id": "A052",
+    "kind": "missing-fragment",
+    "bindingId": "NUM-15--whole::expected/numeric",
+    "expected": "UNOBSERVED"
+  },
+  {
+    "id": "A053",
+    "kind": "observed",
+    "bindingId": "NUM-15--whole::expected/numeric",
+    "expected": "MATCH"
+  },
+  {
+    "id": "A054",
+    "kind": "missing-field",
+    "bindingId": "NUM-15--whole::expected/numeric",
+    "expected": "UNOBSERVED"
+  },
+  {
+    "id": "A055",
+    "kind": "extra-field",
+    "bindingId": "NUM-15--whole::expected/numeric",
+    "expected": "UNOBSERVED"
+  },
+  {
+    "id": "A056",
+    "kind": "extra-and-wrong",
+    "bindingId": "NUM-15--whole::expected/numeric",
+    "expected": "CONTRADICTION"
+  },
+  {
+    "id": "A057",
+    "kind": "baseline",
+    "bindingId": "NUM-16--whole::expected/assertions/0",
+    "expected": "UNOBSERVED"
+  },
+  {
+    "id": "A058",
+    "kind": "contradiction",
+    "bindingId": "NUM-16--whole::expected/assertions/0",
+    "expected": "CONTRADICTION"
+  },
+  {
+    "id": "A059",
+    "kind": "missing-fragment",
+    "bindingId": "NUM-16--whole::expected/assertions/0",
+    "expected": "UNOBSERVED"
+  },
+  {
+    "id": "A060",
+    "kind": "observed",
+    "bindingId": "NUM-16--whole::expected/assertions/0",
+    "expected": "UNOBSERVED"
+  },
+  {
+    "id": "A061",
+    "kind": "missing-field",
+    "bindingId": "NUM-16--whole::expected/assertions/0",
+    "expected": "UNOBSERVED"
+  },
+  {
+    "id": "A062",
+    "kind": "extra-field",
+    "bindingId": "NUM-16--whole::expected/assertions/0",
+    "expected": "UNOBSERVED"
+  },
+  {
+    "id": "A063",
+    "kind": "extra-and-wrong",
+    "bindingId": "NUM-16--whole::expected/assertions/0",
+    "expected": "CONTRADICTION"
+  },
+  {
+    "id": "A064",
+    "kind": "baseline",
+    "bindingId": "ENC-07--whole::expected/stdout",
+    "expected": "MATCH"
+  },
+  {
+    "id": "A065",
+    "kind": "contradiction",
+    "bindingId": "ENC-07--whole::expected/stdout",
+    "expected": "CONTRADICTION"
+  },
+  {
+    "id": "A066",
+    "kind": "missing-fragment",
+    "bindingId": "ENC-07--whole::expected/stdout",
+    "expected": "UNOBSERVED"
+  },
+  {
+    "id": "A067",
+    "kind": "baseline",
+    "bindingId": "ENC-07--whole::expected/stderr",
+    "expected": "MATCH"
+  },
+  {
+    "id": "A068",
+    "kind": "contradiction",
+    "bindingId": "ENC-07--whole::expected/stderr",
+    "expected": "CONTRADICTION"
+  },
+  {
+    "id": "A069",
+    "kind": "missing-fragment",
+    "bindingId": "ENC-07--whole::expected/stderr",
+    "expected": "UNOBSERVED"
+  },
+  {
+    "id": "A070",
+    "kind": "baseline",
+    "bindingId": "ENC-07--whole::expected/yamlFrame",
+    "expected": "MATCH"
+  },
+  {
+    "id": "A071",
+    "kind": "contradiction",
+    "bindingId": "ENC-07--whole::expected/yamlFrame",
+    "expected": "CONTRADICTION"
+  },
+  {
+    "id": "A072",
+    "kind": "missing-fragment",
+    "bindingId": "ENC-07--whole::expected/yamlFrame",
+    "expected": "UNOBSERVED"
+  },
+  {
+    "id": "A073",
+    "kind": "baseline",
+    "bindingId": "QUE-01--whole::expected/queryRuns",
+    "expected": "UNOBSERVED"
+  },
+  {
+    "id": "A074",
+    "kind": "contradiction",
+    "bindingId": "QUE-01--whole::expected/queryRuns",
+    "expected": "CONTRADICTION"
+  },
+  {
+    "id": "A075",
+    "kind": "missing-fragment",
+    "bindingId": "QUE-01--whole::expected/queryRuns",
+    "expected": "UNOBSERVED"
+  },
+  {
+    "id": "A076",
+    "kind": "observed",
+    "bindingId": "QUE-01--whole::expected/queryRuns",
+    "expected": "MATCH"
+  },
+  {
+    "id": "A077",
+    "kind": "missing-field",
+    "bindingId": "QUE-01--whole::expected/queryRuns",
+    "expected": "UNOBSERVED"
+  },
+  {
+    "id": "A078",
+    "kind": "extra-field",
+    "bindingId": "QUE-01--whole::expected/queryRuns",
+    "expected": "UNOBSERVED"
+  },
+  {
+    "id": "A079",
+    "kind": "extra-and-wrong",
+    "bindingId": "QUE-01--whole::expected/queryRuns",
+    "expected": "CONTRADICTION"
+  },
+  {
+    "id": "A080",
+    "kind": "baseline",
+    "bindingId": "QUE-01--whole::expected/compileAttempts",
+    "expected": "UNOBSERVED"
+  },
+  {
+    "id": "A081",
+    "kind": "contradiction",
+    "bindingId": "QUE-01--whole::expected/compileAttempts",
+    "expected": "CONTRADICTION"
+  },
+  {
+    "id": "A082",
+    "kind": "missing-fragment",
+    "bindingId": "QUE-01--whole::expected/compileAttempts",
+    "expected": "UNOBSERVED"
+  },
+  {
+    "id": "A083",
+    "kind": "observed",
+    "bindingId": "QUE-01--whole::expected/compileAttempts",
+    "expected": "MATCH"
+  },
+  {
+    "id": "A084",
+    "kind": "missing-field",
+    "bindingId": "QUE-01--whole::expected/compileAttempts",
+    "expected": "UNOBSERVED"
+  },
+  {
+    "id": "A085",
+    "kind": "extra-field",
+    "bindingId": "QUE-01--whole::expected/compileAttempts",
+    "expected": "UNOBSERVED"
+  },
+  {
+    "id": "A086",
+    "kind": "extra-and-wrong",
+    "bindingId": "QUE-01--whole::expected/compileAttempts",
+    "expected": "CONTRADICTION"
+  },
+  {
+    "id": "A087",
+    "kind": "baseline",
+    "bindingId": "QUE-02--whole::expected/queryRuns",
+    "expected": "UNOBSERVED"
+  },
+  {
+    "id": "A088",
+    "kind": "contradiction",
+    "bindingId": "QUE-02--whole::expected/queryRuns",
+    "expected": "CONTRADICTION"
+  },
+  {
+    "id": "A089",
+    "kind": "missing-fragment",
+    "bindingId": "QUE-02--whole::expected/queryRuns",
+    "expected": "UNOBSERVED"
+  },
+  {
+    "id": "A090",
+    "kind": "observed",
+    "bindingId": "QUE-02--whole::expected/queryRuns",
+    "expected": "MATCH"
+  },
+  {
+    "id": "A091",
+    "kind": "missing-field",
+    "bindingId": "QUE-02--whole::expected/queryRuns",
+    "expected": "UNOBSERVED"
+  },
+  {
+    "id": "A092",
+    "kind": "extra-field",
+    "bindingId": "QUE-02--whole::expected/queryRuns",
+    "expected": "UNOBSERVED"
+  },
+  {
+    "id": "A093",
+    "kind": "extra-and-wrong",
+    "bindingId": "QUE-02--whole::expected/queryRuns",
+    "expected": "CONTRADICTION"
+  },
+  {
+    "id": "A094",
+    "kind": "baseline",
+    "bindingId": "QUE-02--whole::expected/compileAttempts",
+    "expected": "UNOBSERVED"
+  },
+  {
+    "id": "A095",
+    "kind": "contradiction",
+    "bindingId": "QUE-02--whole::expected/compileAttempts",
+    "expected": "CONTRADICTION"
+  },
+  {
+    "id": "A096",
+    "kind": "missing-fragment",
+    "bindingId": "QUE-02--whole::expected/compileAttempts",
+    "expected": "UNOBSERVED"
+  },
+  {
+    "id": "A097",
+    "kind": "observed",
+    "bindingId": "QUE-02--whole::expected/compileAttempts",
+    "expected": "MATCH"
+  },
+  {
+    "id": "A098",
+    "kind": "missing-field",
+    "bindingId": "QUE-02--whole::expected/compileAttempts",
+    "expected": "UNOBSERVED"
+  },
+  {
+    "id": "A099",
+    "kind": "extra-field",
+    "bindingId": "QUE-02--whole::expected/compileAttempts",
+    "expected": "UNOBSERVED"
+  },
+  {
+    "id": "A100",
+    "kind": "extra-and-wrong",
+    "bindingId": "QUE-02--whole::expected/compileAttempts",
+    "expected": "CONTRADICTION"
+  },
+  {
+    "id": "A101",
+    "kind": "baseline",
+    "bindingId": "QUE-07--whole::expected/assertions/0",
+    "expected": "MATCH"
+  },
+  {
+    "id": "A102",
+    "kind": "contradiction",
+    "bindingId": "QUE-07--whole::expected/assertions/0",
+    "expected": "CONTRADICTION"
+  },
+  {
+    "id": "A103",
+    "kind": "missing-fragment",
+    "bindingId": "QUE-07--whole::expected/assertions/0",
+    "expected": "UNOBSERVED"
+  },
+  {
+    "id": "A104",
+    "kind": "baseline",
+    "bindingId": "ALS-01--whole::expected/assertions/0",
+    "expected": "UNOBSERVED"
+  },
+  {
+    "id": "A105",
+    "kind": "contradiction",
+    "bindingId": "ALS-01--whole::expected/assertions/0",
+    "expected": "CONTRADICTION"
+  },
+  {
+    "id": "A106",
+    "kind": "missing-fragment",
+    "bindingId": "ALS-01--whole::expected/assertions/0",
+    "expected": "UNOBSERVED"
+  },
+  {
+    "id": "A107",
+    "kind": "observed",
+    "bindingId": "ALS-01--whole::expected/assertions/0",
+    "expected": "MATCH"
+  },
+  {
+    "id": "A108",
+    "kind": "missing-field",
+    "bindingId": "ALS-01--whole::expected/assertions/0",
+    "expected": "UNOBSERVED"
+  },
+  {
+    "id": "A109",
+    "kind": "extra-field",
+    "bindingId": "ALS-01--whole::expected/assertions/0",
+    "expected": "UNOBSERVED"
+  },
+  {
+    "id": "A110",
+    "kind": "extra-and-wrong",
+    "bindingId": "ALS-01--whole::expected/assertions/0",
+    "expected": "CONTRADICTION"
+  },
+  {
+    "id": "A111",
+    "kind": "baseline",
+    "bindingId": "ALS-03--whole::expected/assertions/0",
+    "expected": "UNOBSERVED"
+  },
+  {
+    "id": "A112",
+    "kind": "contradiction",
+    "bindingId": "ALS-03--whole::expected/assertions/0",
+    "expected": "CONTRADICTION"
+  },
+  {
+    "id": "A113",
+    "kind": "missing-fragment",
+    "bindingId": "ALS-03--whole::expected/assertions/0",
+    "expected": "UNOBSERVED"
+  },
+  {
+    "id": "A114",
+    "kind": "observed",
+    "bindingId": "ALS-03--whole::expected/assertions/0",
+    "expected": "MATCH"
+  },
+  {
+    "id": "A115",
+    "kind": "missing-field",
+    "bindingId": "ALS-03--whole::expected/assertions/0",
+    "expected": "UNOBSERVED"
+  },
+  {
+    "id": "A116",
+    "kind": "extra-field",
+    "bindingId": "ALS-03--whole::expected/assertions/0",
+    "expected": "UNOBSERVED"
+  },
+  {
+    "id": "A117",
+    "kind": "extra-and-wrong",
+    "bindingId": "ALS-03--whole::expected/assertions/0",
+    "expected": "CONTRADICTION"
+  },
+  {
+    "id": "A118",
+    "kind": "baseline",
+    "bindingId": "ALS-07--whole::expected/assertions/0",
+    "expected": "UNOBSERVED"
+  },
+  {
+    "id": "A119",
+    "kind": "contradiction",
+    "bindingId": "ALS-07--whole::expected/assertions/0",
+    "expected": "CONTRADICTION"
+  },
+  {
+    "id": "A120",
+    "kind": "missing-fragment",
+    "bindingId": "ALS-07--whole::expected/assertions/0",
+    "expected": "UNOBSERVED"
+  },
+  {
+    "id": "A121",
+    "kind": "observed",
+    "bindingId": "ALS-07--whole::expected/assertions/0",
+    "expected": "MATCH"
+  },
+  {
+    "id": "A122",
+    "kind": "missing-field",
+    "bindingId": "ALS-07--whole::expected/assertions/0",
+    "expected": "UNOBSERVED"
+  },
+  {
+    "id": "A123",
+    "kind": "extra-field",
+    "bindingId": "ALS-07--whole::expected/assertions/0",
+    "expected": "UNOBSERVED"
+  },
+  {
+    "id": "A124",
+    "kind": "extra-and-wrong",
+    "bindingId": "ALS-07--whole::expected/assertions/0",
+    "expected": "CONTRADICTION"
+  },
+  {
+    "id": "A125",
+    "kind": "baseline",
+    "bindingId": "ALS-10--whole::expected/assertions/0",
+    "expected": "UNOBSERVED"
+  },
+  {
+    "id": "A126",
+    "kind": "contradiction",
+    "bindingId": "ALS-10--whole::expected/assertions/0",
+    "expected": "CONTRADICTION"
+  },
+  {
+    "id": "A127",
+    "kind": "missing-fragment",
+    "bindingId": "ALS-10--whole::expected/assertions/0",
+    "expected": "UNOBSERVED"
+  },
+  {
+    "id": "A128",
+    "kind": "observed",
+    "bindingId": "ALS-10--whole::expected/assertions/0",
+    "expected": "MATCH"
+  },
+  {
+    "id": "A129",
+    "kind": "missing-field",
+    "bindingId": "ALS-10--whole::expected/assertions/0",
+    "expected": "UNOBSERVED"
+  },
+  {
+    "id": "A130",
+    "kind": "extra-field",
+    "bindingId": "ALS-10--whole::expected/assertions/0",
+    "expected": "UNOBSERVED"
+  },
+  {
+    "id": "A131",
+    "kind": "extra-and-wrong",
+    "bindingId": "ALS-10--whole::expected/assertions/0",
+    "expected": "CONTRADICTION"
+  },
+  {
+    "id": "A132",
+    "kind": "baseline",
+    "bindingId": "ALS-11--whole::expected/assertions/0",
+    "expected": "UNOBSERVED"
+  },
+  {
+    "id": "A133",
+    "kind": "contradiction",
+    "bindingId": "ALS-11--whole::expected/assertions/0",
+    "expected": "CONTRADICTION"
+  },
+  {
+    "id": "A134",
+    "kind": "missing-fragment",
+    "bindingId": "ALS-11--whole::expected/assertions/0",
+    "expected": "UNOBSERVED"
+  },
+  {
+    "id": "A135",
+    "kind": "observed",
+    "bindingId": "ALS-11--whole::expected/assertions/0",
+    "expected": "MATCH"
+  },
+  {
+    "id": "A136",
+    "kind": "missing-field",
+    "bindingId": "ALS-11--whole::expected/assertions/0",
+    "expected": "UNOBSERVED"
+  },
+  {
+    "id": "A137",
+    "kind": "extra-field",
+    "bindingId": "ALS-11--whole::expected/assertions/0",
+    "expected": "UNOBSERVED"
+  },
+  {
+    "id": "A138",
+    "kind": "extra-and-wrong",
+    "bindingId": "ALS-11--whole::expected/assertions/0",
+    "expected": "CONTRADICTION"
+  },
+  {
+    "id": "A139",
+    "kind": "baseline",
+    "bindingId": "ALS-12--whole::expected/queryRuns",
+    "expected": "UNOBSERVED"
+  },
+  {
+    "id": "A140",
+    "kind": "contradiction",
+    "bindingId": "ALS-12--whole::expected/queryRuns",
+    "expected": "CONTRADICTION"
+  },
+  {
+    "id": "A141",
+    "kind": "missing-fragment",
+    "bindingId": "ALS-12--whole::expected/queryRuns",
+    "expected": "UNOBSERVED"
+  },
+  {
+    "id": "A142",
+    "kind": "observed",
+    "bindingId": "ALS-12--whole::expected/queryRuns",
+    "expected": "MATCH"
+  },
+  {
+    "id": "A143",
+    "kind": "missing-field",
+    "bindingId": "ALS-12--whole::expected/queryRuns",
+    "expected": "UNOBSERVED"
+  },
+  {
+    "id": "A144",
+    "kind": "extra-field",
+    "bindingId": "ALS-12--whole::expected/queryRuns",
+    "expected": "UNOBSERVED"
+  },
+  {
+    "id": "A145",
+    "kind": "extra-and-wrong",
+    "bindingId": "ALS-12--whole::expected/queryRuns",
+    "expected": "CONTRADICTION"
+  },
+  {
+    "id": "A146",
+    "kind": "baseline",
+    "bindingId": "ALS-12--whole::expected/assertions/0",
+    "expected": "UNOBSERVED"
+  },
+  {
+    "id": "A147",
+    "kind": "contradiction",
+    "bindingId": "ALS-12--whole::expected/assertions/0",
+    "expected": "CONTRADICTION"
+  },
+  {
+    "id": "A148",
+    "kind": "missing-fragment",
+    "bindingId": "ALS-12--whole::expected/assertions/0",
+    "expected": "UNOBSERVED"
+  },
+  {
+    "id": "A149",
+    "kind": "observed",
+    "bindingId": "ALS-12--whole::expected/assertions/0",
+    "expected": "MATCH"
+  },
+  {
+    "id": "A150",
+    "kind": "missing-field",
+    "bindingId": "ALS-12--whole::expected/assertions/0",
+    "expected": "UNOBSERVED"
+  },
+  {
+    "id": "A151",
+    "kind": "extra-field",
+    "bindingId": "ALS-12--whole::expected/assertions/0",
+    "expected": "UNOBSERVED"
+  },
+  {
+    "id": "A152",
+    "kind": "extra-and-wrong",
+    "bindingId": "ALS-12--whole::expected/assertions/0",
+    "expected": "CONTRADICTION"
+  },
+  {
+    "id": "A153",
+    "kind": "baseline",
+    "bindingId": "ALS-13--whole::expected/assertions/0",
+    "expected": "UNOBSERVED"
+  },
+  {
+    "id": "A154",
+    "kind": "contradiction",
+    "bindingId": "ALS-13--whole::expected/assertions/0",
+    "expected": "CONTRADICTION"
+  },
+  {
+    "id": "A155",
+    "kind": "missing-fragment",
+    "bindingId": "ALS-13--whole::expected/assertions/0",
+    "expected": "UNOBSERVED"
+  },
+  {
+    "id": "A156",
+    "kind": "observed",
+    "bindingId": "ALS-13--whole::expected/assertions/0",
+    "expected": "MATCH"
+  },
+  {
+    "id": "A157",
+    "kind": "missing-field",
+    "bindingId": "ALS-13--whole::expected/assertions/0",
+    "expected": "UNOBSERVED"
+  },
+  {
+    "id": "A158",
+    "kind": "extra-field",
+    "bindingId": "ALS-13--whole::expected/assertions/0",
+    "expected": "UNOBSERVED"
+  },
+  {
+    "id": "A159",
+    "kind": "extra-and-wrong",
+    "bindingId": "ALS-13--whole::expected/assertions/0",
+    "expected": "CONTRADICTION"
+  },
+  {
+    "id": "A160",
+    "kind": "baseline",
+    "bindingId": "ALS-14--whole::expected/queryRuns",
+    "expected": "UNOBSERVED"
+  },
+  {
+    "id": "A161",
+    "kind": "contradiction",
+    "bindingId": "ALS-14--whole::expected/queryRuns",
+    "expected": "CONTRADICTION"
+  },
+  {
+    "id": "A162",
+    "kind": "missing-fragment",
+    "bindingId": "ALS-14--whole::expected/queryRuns",
+    "expected": "UNOBSERVED"
+  },
+  {
+    "id": "A163",
+    "kind": "observed",
+    "bindingId": "ALS-14--whole::expected/queryRuns",
+    "expected": "MATCH"
+  },
+  {
+    "id": "A164",
+    "kind": "missing-field",
+    "bindingId": "ALS-14--whole::expected/queryRuns",
+    "expected": "UNOBSERVED"
+  },
+  {
+    "id": "A165",
+    "kind": "extra-field",
+    "bindingId": "ALS-14--whole::expected/queryRuns",
+    "expected": "UNOBSERVED"
+  },
+  {
+    "id": "A166",
+    "kind": "extra-and-wrong",
+    "bindingId": "ALS-14--whole::expected/queryRuns",
+    "expected": "CONTRADICTION"
+  },
+  {
+    "id": "A167",
+    "kind": "baseline",
+    "bindingId": "ALS-14--whole::expected/assertions/0",
+    "expected": "UNOBSERVED"
+  },
+  {
+    "id": "A168",
+    "kind": "contradiction",
+    "bindingId": "ALS-14--whole::expected/assertions/0",
+    "expected": "CONTRADICTION"
+  },
+  {
+    "id": "A169",
+    "kind": "missing-fragment",
+    "bindingId": "ALS-14--whole::expected/assertions/0",
+    "expected": "UNOBSERVED"
+  },
+  {
+    "id": "A170",
+    "kind": "observed",
+    "bindingId": "ALS-14--whole::expected/assertions/0",
+    "expected": "MATCH"
+  },
+  {
+    "id": "A171",
+    "kind": "missing-field",
+    "bindingId": "ALS-14--whole::expected/assertions/0",
+    "expected": "UNOBSERVED"
+  },
+  {
+    "id": "A172",
+    "kind": "extra-field",
+    "bindingId": "ALS-14--whole::expected/assertions/0",
+    "expected": "UNOBSERVED"
+  },
+  {
+    "id": "A173",
+    "kind": "extra-and-wrong",
+    "bindingId": "ALS-14--whole::expected/assertions/0",
+    "expected": "CONTRADICTION"
+  },
+  {
+    "id": "A174",
+    "kind": "baseline",
+    "bindingId": "ALS-15--whole::expected/queryRuns",
+    "expected": "UNOBSERVED"
+  },
+  {
+    "id": "A175",
+    "kind": "contradiction",
+    "bindingId": "ALS-15--whole::expected/queryRuns",
+    "expected": "CONTRADICTION"
+  },
+  {
+    "id": "A176",
+    "kind": "missing-fragment",
+    "bindingId": "ALS-15--whole::expected/queryRuns",
+    "expected": "UNOBSERVED"
+  },
+  {
+    "id": "A177",
+    "kind": "observed",
+    "bindingId": "ALS-15--whole::expected/queryRuns",
+    "expected": "MATCH"
+  },
+  {
+    "id": "A178",
+    "kind": "missing-field",
+    "bindingId": "ALS-15--whole::expected/queryRuns",
+    "expected": "UNOBSERVED"
+  },
+  {
+    "id": "A179",
+    "kind": "extra-field",
+    "bindingId": "ALS-15--whole::expected/queryRuns",
+    "expected": "UNOBSERVED"
+  },
+  {
+    "id": "A180",
+    "kind": "extra-and-wrong",
+    "bindingId": "ALS-15--whole::expected/queryRuns",
+    "expected": "CONTRADICTION"
+  },
+  {
+    "id": "A181",
+    "kind": "baseline",
+    "bindingId": "ALS-15--whole::expected/assertions/0",
+    "expected": "UNOBSERVED"
+  },
+  {
+    "id": "A182",
+    "kind": "contradiction",
+    "bindingId": "ALS-15--whole::expected/assertions/0",
+    "expected": "CONTRADICTION"
+  },
+  {
+    "id": "A183",
+    "kind": "missing-fragment",
+    "bindingId": "ALS-15--whole::expected/assertions/0",
+    "expected": "UNOBSERVED"
+  },
+  {
+    "id": "A184",
+    "kind": "observed",
+    "bindingId": "ALS-15--whole::expected/assertions/0",
+    "expected": "MATCH"
+  },
+  {
+    "id": "A185",
+    "kind": "missing-field",
+    "bindingId": "ALS-15--whole::expected/assertions/0",
+    "expected": "UNOBSERVED"
+  },
+  {
+    "id": "A186",
+    "kind": "extra-field",
+    "bindingId": "ALS-15--whole::expected/assertions/0",
+    "expected": "UNOBSERVED"
+  },
+  {
+    "id": "A187",
+    "kind": "extra-and-wrong",
+    "bindingId": "ALS-15--whole::expected/assertions/0",
+    "expected": "CONTRADICTION"
+  },
+  {
+    "id": "A188",
+    "kind": "baseline",
+    "bindingId": "UTF-12--whole::expected/stdout",
+    "expected": "MATCH"
+  },
+  {
+    "id": "A189",
+    "kind": "contradiction",
+    "bindingId": "UTF-12--whole::expected/stdout",
+    "expected": "CONTRADICTION"
+  },
+  {
+    "id": "A190",
+    "kind": "missing-fragment",
+    "bindingId": "UTF-12--whole::expected/stdout",
+    "expected": "UNOBSERVED"
+  },
+  {
+    "id": "A191",
+    "kind": "baseline",
+    "bindingId": "UTF-12--whole::expected/stderr",
+    "expected": "MATCH"
+  },
+  {
+    "id": "A192",
+    "kind": "contradiction",
+    "bindingId": "UTF-12--whole::expected/stderr",
+    "expected": "CONTRADICTION"
+  },
+  {
+    "id": "A193",
+    "kind": "missing-fragment",
+    "bindingId": "UTF-12--whole::expected/stderr",
+    "expected": "UNOBSERVED"
+  },
+  {
+    "id": "A194",
+    "kind": "baseline",
+    "bindingId": "UTF-12--whole::expected/scalar",
+    "expected": "MATCH"
+  },
+  {
+    "id": "A195",
+    "kind": "contradiction",
+    "bindingId": "UTF-12--whole::expected/scalar",
+    "expected": "CONTRADICTION"
+  },
+  {
+    "id": "A196",
+    "kind": "missing-fragment",
+    "bindingId": "UTF-12--whole::expected/scalar",
+    "expected": "UNOBSERVED"
+  },
+  {
+    "id": "A197",
+    "kind": "baseline",
+    "bindingId": "UTF-22--whole::expected/assertions/0",
+    "expected": "UNOBSERVED"
+  },
+  {
+    "id": "A198",
+    "kind": "contradiction",
+    "bindingId": "UTF-22--whole::expected/assertions/0",
+    "expected": "CONTRADICTION"
+  },
+  {
+    "id": "A199",
+    "kind": "missing-fragment",
+    "bindingId": "UTF-22--whole::expected/assertions/0",
+    "expected": "UNOBSERVED"
+  },
+  {
+    "id": "A200",
+    "kind": "observed",
+    "bindingId": "UTF-22--whole::expected/assertions/0",
+    "expected": "UNOBSERVED"
+  },
+  {
+    "id": "A201",
+    "kind": "missing-field",
+    "bindingId": "UTF-22--whole::expected/assertions/0",
+    "expected": "UNOBSERVED"
+  },
+  {
+    "id": "A202",
+    "kind": "extra-field",
+    "bindingId": "UTF-22--whole::expected/assertions/0",
+    "expected": "UNOBSERVED"
+  },
+  {
+    "id": "A203",
+    "kind": "extra-and-wrong",
+    "bindingId": "UTF-22--whole::expected/assertions/0",
+    "expected": "CONTRADICTION"
+  },
+  {
+    "id": "A204",
+    "kind": "baseline",
+    "bindingId": "WRK-14--whole::expected/assertions/0",
+    "expected": "UNOBSERVED"
+  },
+  {
+    "id": "A205",
+    "kind": "contradiction",
+    "bindingId": "WRK-14--whole::expected/assertions/0",
+    "expected": "CONTRADICTION"
+  },
+  {
+    "id": "A206",
+    "kind": "missing-fragment",
+    "bindingId": "WRK-14--whole::expected/assertions/0",
+    "expected": "UNOBSERVED"
+  },
+  {
+    "id": "A207",
+    "kind": "observed",
+    "bindingId": "WRK-14--whole::expected/assertions/0",
+    "expected": "MATCH"
+  },
+  {
+    "id": "A208",
+    "kind": "missing-field",
+    "bindingId": "WRK-14--whole::expected/assertions/0",
+    "expected": "UNOBSERVED"
+  },
+  {
+    "id": "A209",
+    "kind": "extra-field",
+    "bindingId": "WRK-14--whole::expected/assertions/0",
+    "expected": "UNOBSERVED"
+  },
+  {
+    "id": "A210",
+    "kind": "extra-and-wrong",
+    "bindingId": "WRK-14--whole::expected/assertions/0",
+    "expected": "CONTRADICTION"
+  },
+  {
+    "id": "A211",
+    "kind": "baseline",
+    "bindingId": "FS-01--whole::expected/assertions/0",
+    "expected": "UNOBSERVED"
+  },
+  {
+    "id": "A212",
+    "kind": "contradiction",
+    "bindingId": "FS-01--whole::expected/assertions/0",
+    "expected": "CONTRADICTION"
+  },
+  {
+    "id": "A213",
+    "kind": "missing-fragment",
+    "bindingId": "FS-01--whole::expected/assertions/0",
+    "expected": "UNOBSERVED"
+  },
+  {
+    "id": "A214",
+    "kind": "observed",
+    "bindingId": "FS-01--whole::expected/assertions/0",
+    "expected": "UNOBSERVED"
+  },
+  {
+    "id": "A215",
+    "kind": "missing-field",
+    "bindingId": "FS-01--whole::expected/assertions/0",
+    "expected": "UNOBSERVED"
+  },
+  {
+    "id": "A216",
+    "kind": "extra-field",
+    "bindingId": "FS-01--whole::expected/assertions/0",
+    "expected": "UNOBSERVED"
+  },
+  {
+    "id": "A217",
+    "kind": "extra-and-wrong",
+    "bindingId": "FS-01--whole::expected/assertions/0",
+    "expected": "CONTRADICTION"
+  },
+  {
+    "id": "A218",
+    "kind": "baseline",
+    "bindingId": "FS-05--whole::expected/assertions/0",
+    "expected": "MATCH"
+  },
+  {
+    "id": "A219",
+    "kind": "contradiction",
+    "bindingId": "FS-05--whole::expected/assertions/0",
+    "expected": "CONTRADICTION"
+  },
+  {
+    "id": "A220",
+    "kind": "missing-fragment",
+    "bindingId": "FS-05--whole::expected/assertions/0",
+    "expected": "UNOBSERVED"
+  },
+  {
+    "id": "A221",
+    "kind": "primitive-contradiction",
+    "jobId": "CMD-04--whole",
+    "expected": "FAIL"
+  },
+  {
+    "id": "A222",
+    "kind": "primitive-contradiction",
+    "jobId": "CMD-05--whole",
+    "expected": "FAIL"
+  },
+  {
+    "id": "A223",
+    "kind": "primitive-contradiction",
+    "jobId": "CMD-06--whole",
+    "expected": "FAIL"
+  },
+  {
+    "id": "A224",
+    "kind": "primitive-contradiction",
+    "jobId": "PAR-12--whole",
+    "expected": "FAIL"
+  },
+  {
+    "id": "A225",
+    "kind": "primitive-contradiction",
+    "jobId": "PAR-13--whole",
+    "expected": "FAIL"
+  },
+  {
+    "id": "A226",
+    "kind": "primitive-contradiction",
+    "jobId": "PAR-26--whole",
+    "expected": "FAIL"
+  },
+  {
+    "id": "A227",
+    "kind": "primitive-contradiction",
+    "jobId": "NUM-11--whole",
+    "expected": "FAIL"
+  },
+  {
+    "id": "A228",
+    "kind": "primitive-contradiction",
+    "jobId": "NUM-14--whole",
+    "expected": "FAIL"
+  },
+  {
+    "id": "A229",
+    "kind": "primitive-contradiction",
+    "jobId": "NUM-15--whole",
+    "expected": "FAIL"
+  },
+  {
+    "id": "A230",
+    "kind": "primitive-contradiction",
+    "jobId": "NUM-16--whole",
+    "expected": "FAIL"
+  },
+  {
+    "id": "A231",
+    "kind": "primitive-contradiction",
+    "jobId": "ENC-07--whole",
+    "expected": "FAIL"
+  },
+  {
+    "id": "A232",
+    "kind": "primitive-contradiction",
+    "jobId": "QUE-01--whole",
+    "expected": "FAIL"
+  },
+  {
+    "id": "A233",
+    "kind": "primitive-contradiction",
+    "jobId": "QUE-02--whole",
+    "expected": "FAIL"
+  },
+  {
+    "id": "A234",
+    "kind": "primitive-contradiction",
+    "jobId": "QUE-07--whole",
+    "expected": "FAIL"
+  },
+  {
+    "id": "A235",
+    "kind": "primitive-contradiction",
+    "jobId": "ALS-01--whole",
+    "expected": "FAIL"
+  },
+  {
+    "id": "A236",
+    "kind": "primitive-contradiction",
+    "jobId": "ALS-03--whole",
+    "expected": "FAIL"
+  },
+  {
+    "id": "A237",
+    "kind": "primitive-contradiction",
+    "jobId": "ALS-07--whole",
+    "expected": "FAIL"
+  },
+  {
+    "id": "A238",
+    "kind": "primitive-contradiction",
+    "jobId": "ALS-10--whole",
+    "expected": "FAIL"
+  },
+  {
+    "id": "A239",
+    "kind": "primitive-contradiction",
+    "jobId": "ALS-11--whole",
+    "expected": "FAIL"
+  },
+  {
+    "id": "A240",
+    "kind": "primitive-contradiction",
+    "jobId": "ALS-12--whole",
+    "expected": "FAIL"
+  },
+  {
+    "id": "A241",
+    "kind": "primitive-contradiction",
+    "jobId": "ALS-13--whole",
+    "expected": "FAIL"
+  },
+  {
+    "id": "A242",
+    "kind": "primitive-contradiction",
+    "jobId": "ALS-14--whole",
+    "expected": "FAIL"
+  },
+  {
+    "id": "A243",
+    "kind": "primitive-contradiction",
+    "jobId": "ALS-15--whole",
+    "expected": "FAIL"
+  },
+  {
+    "id": "A244",
+    "kind": "primitive-contradiction",
+    "jobId": "UTF-12--whole",
+    "expected": "FAIL"
+  },
+  {
+    "id": "A245",
+    "kind": "primitive-contradiction",
+    "jobId": "UTF-22--whole",
+    "expected": "FAIL"
+  },
+  {
+    "id": "A246",
+    "kind": "primitive-contradiction",
+    "jobId": "WRK-14--whole",
+    "expected": "FAIL"
+  },
+  {
+    "id": "A247",
+    "kind": "primitive-contradiction",
+    "jobId": "FS-01--whole",
+    "expected": "FAIL"
+  },
+  {
+    "id": "A248",
+    "kind": "primitive-contradiction",
+    "jobId": "FS-05--whole",
+    "expected": "FAIL"
+  },
+  {
+    "id": "A249",
+    "kind": "accessor",
+    "jobId": "CMD-04--whole",
+    "expected": "INPUT_ERROR"
+  },
+  {
+    "id": "A250",
+    "kind": "nonenumerable",
+    "jobId": "CMD-04--whole",
+    "expected": "INPUT_ERROR"
+  },
+  {
+    "id": "A251",
+    "kind": "symbol",
+    "jobId": "CMD-04--whole",
+    "expected": "INPUT_ERROR"
+  },
+  {
+    "id": "A252",
+    "kind": "undefined",
+    "jobId": "CMD-04--whole",
+    "expected": "INPUT_ERROR"
+  },
+  {
+    "id": "A253",
+    "kind": "hole",
+    "jobId": "CMD-04--whole",
+    "expected": "INPUT_ERROR"
+  },
+  {
+    "id": "A254",
+    "kind": "array-extra",
+    "jobId": "CMD-04--whole",
+    "expected": "INPUT_ERROR"
+  },
+  {
+    "id": "A255",
+    "kind": "duplicate-fragment",
+    "jobId": "CMD-04--whole",
+    "expected": "INPUT_ERROR"
+  },
+  {
+    "id": "A256",
+    "kind": "unknown-fragment",
+    "jobId": "CMD-04--whole",
+    "expected": "INPUT_ERROR"
+  },
+  {
+    "id": "A257",
+    "kind": "changed-golden",
+    "jobId": "CMD-04--whole",
+    "expected": "INPUT_ERROR"
+  },
+  {
+    "id": "A258",
+    "kind": "unknown-event",
+    "jobId": "CMD-04--whole",
+    "expected": "INPUT_ERROR"
+  },
+  {
+    "id": "A259",
+    "kind": "extra-event",
+    "jobId": "CMD-04--whole",
+    "expected": "INPUT_ERROR"
+  },
+  {
+    "id": "A260",
+    "kind": "wrong-event-order",
+    "jobId": "CMD-04--whole",
+    "expected": "INPUT_ERROR"
+  },
+  {
+    "id": "A261",
+    "kind": "observation-without-ref",
+    "bindingId": "PAR-12--whole::expected/queryRuns",
+    "expected": "INPUT_ERROR"
+  },
+  {
+    "id": "A262",
+    "kind": "wrong-observation-id",
+    "bindingId": "PAR-12--whole::expected/queryRuns",
+    "expected": "INPUT_ERROR"
+  },
+  {
+    "id": "A263",
+    "kind": "reason-object",
+    "jobId": "CMD-04--whole",
+    "expected": "SAME_REASON"
+  },
+  {
+    "id": "A264",
+    "kind": "reason-primitive",
+    "jobId": "CMD-04--whole",
+    "expected": "SAME_REASON"
+  },
+  {
+    "id": "A265",
+    "kind": "cross-realm",
+    "jobId": "CMD-04--whole",
+    "expected": "PASS"
+  },
+  {
+    "id": "A266",
+    "kind": "local-unvisited",
+    "jobId": "CMD-04--whole",
+    "expected": "PASS"
+  },
+  {
+    "id": "A267",
+    "kind": "cross-realm-observation",
+    "bindingId": "PAR-12--whole::expected/queryRuns",
+    "expected": "MATCH"
+  },
+  {
+    "id": "A268",
+    "kind": "source-not-runtime",
+    "bindingId": "PAR-12--whole::expected/queryRuns",
+    "expected": "UNOBSERVED"
+  },
+  {
+    "id": "A269",
+    "kind": "bad-rejection",
+    "jobId": "CMD-04--whole",
+    "expected": "FAIL"
+  },
+  {
+    "id": "A270",
+    "kind": "bad-cleanup",
+    "jobId": "CMD-04--whole",
+    "expected": "FAIL"
+  },
+  {
+    "id": "A271",
+    "kind": "bad-success-stderr",
+    "jobId": "CMD-04--whole",
+    "expected": "FAIL"
+  },
+  {
+    "id": "A272",
+    "kind": "bad-namespace",
+    "jobId": "CMD-04--whole",
+    "expected": "FAIL"
+  },
+  {
+    "id": "A273",
+    "kind": "bad-signal",
+    "jobId": "FS-01--whole",
+    "expected": "FAIL"
+  },
+  {
+    "id": "A274",
+    "kind": "bad-order",
+    "jobId": "FS-01--whole",
+    "expected": "FAIL"
+  },
+  {
+    "id": "A275",
+    "kind": "diagnostic-location",
+    "bindingId": "NUM-14--whole::expected/diagnostic",
+    "expected": "MATCH"
+  },
+  {
+    "id": "A276",
+    "kind": "diagnostic-extra",
+    "jobId": "NUM-14--whole",
+    "expected": "FAIL"
+  },
+  {
+    "id": "A277",
+    "kind": "diagnostic-wrong-source",
+    "jobId": "NUM-14--whole",
+    "expected": "FAIL"
+  },
+  {
+    "id": "A278",
+    "kind": "invalid-utf8",
+    "jobId": "UTF-12--whole",
+    "expected": "FAIL"
+  },
+  {
+    "id": "A279",
+    "kind": "malformed-json",
+    "jobId": "UTF-12--whole",
+    "expected": "FAIL"
+  },
+  {
+    "id": "A280",
+    "kind": "utf22-wrong-bytes",
+    "jobId": "UTF-22--whole",
+    "expected": "FAIL"
+  }
+]

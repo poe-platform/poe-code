@@ -169,6 +169,29 @@ export function createToolPath(parent) {
   return {path, device: stat.dev, inode: stat.ino, aliases, gitCore: closure, qualification: 'Finite declared aliases only; no ambient/system/developer-directory PATH fallback.'};
 }
 
+function verifyNativePath(root) {
+  const records = externalRecords();
+  assert.equal(realpathSync(root), root);
+  const files = new Map(records.native.assets.filter(entry => entry.target?.startsWith('native:')).map(entry => [entry.target.slice(7), entry]));
+  const directories = new Set(['.']);
+  for (const path of files.keys()) for (let parent = dirname(path); parent !== '.'; parent = dirname(parent)) directories.add(parent);
+  const visit = local => {
+    const path = join(root, local), stat = lstatSync(path);
+    assert.ok(!stat.isSymbolicLink(), 'native PATH entries must not become aliases');
+    if (stat.isDirectory()) {
+      assert.ok(directories.has(local), 'unbound native PATH directory: ' + local);
+      for (const name of readdirSync(path)) visit(local === '.' ? name : local + '/' + name);
+    } else {
+      const asset = files.get(local);
+      assert.ok(asset, 'unbound native PATH entry: ' + local);
+      const expected = records.tools.find(entry => entry.origin === asset.origin);
+      assert.ok(expected && expected.sha256 === asset.sha256);
+      verifyToolFile({...expected, origin: path, physical: path, mode: asset.mode});
+    }
+  };
+  visit('.');
+}
+
 export function verifyToolPath(binding, environment, nativeRoot) {
   rejectToolSelection(environment);
   const stat = lstatSync(binding.path);
@@ -178,6 +201,7 @@ export function verifyToolPath(binding, environment, nativeRoot) {
   assert.deepEqual(readdirSync(binding.path).sort(), binding.aliases.map(entry => entry.name).sort());
   assert.equal(environment.PATH, [nativeRoot, binding.path].filter(Boolean).join(':'));
   assert.equal(environment.GIT_EXEC_PATH, binding.gitCore.origin);
+  if (nativeRoot) verifyNativePath(nativeRoot);
   for (const entry of binding.aliases) {
     const path = join(binding.path, entry.name);
     assert.ok(lstatSync(path).isSymbolicLink());
